@@ -731,7 +731,7 @@ namespace Microsoft.ML.Runtime.RunTests
                     NewDim = 10,
                     UseSin = false
                 }, data);
-                data = new ConcatTransform(Env, new ConcatTransform.Arguments()
+                data = ConcatTransform.Create(Env, new ConcatTransform.Arguments()
                 {
                     Column = new[] { new ConcatTransform.Column() { Name = "Features", Source = new[] { "Features1", "Features2" } } }
                 }, data);
@@ -1205,7 +1205,7 @@ namespace Microsoft.ML.Runtime.RunTests
                     NewDim = 10,
                     UseSin = false
                 }, data);
-                data = new ConcatTransform(Env, new ConcatTransform.Arguments()
+                data = ConcatTransform.Create(Env, new ConcatTransform.Arguments()
                 {
                     Column = new[] { new ConcatTransform.Column() { Name = "Features", Source = new[] { "Features1", "Features2" } } }
                 }, data);

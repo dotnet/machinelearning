@@ -18,19 +18,27 @@ using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.Model.Onnx;
 using Microsoft.ML.Runtime.Model.Pfa;
 using Newtonsoft.Json.Linq;
+using Microsoft.ML.Core.Data;
 
-[assembly: LoadableClass(ConcatTransform.Summary, typeof(ConcatTransform), typeof(ConcatTransform.TaggedArguments), typeof(SignatureDataTransform),
+[assembly: LoadableClass(ConcatTransform.Summary, typeof(IDataTransform), typeof(ConcatTransform), typeof(ConcatTransform.TaggedArguments), typeof(SignatureDataTransform),
     ConcatTransform.UserName, ConcatTransform.LoadName, "ConcatTransform", DocName = "transform/ConcatTransform.md")]
 
-[assembly: LoadableClass(ConcatTransform.Summary, typeof(ConcatTransform), null, typeof(SignatureLoadDataTransform),
+[assembly: LoadableClass(ConcatTransform.Summary, typeof(IDataTransform), typeof(ConcatTransform), null, typeof(SignatureLoadDataTransform),
     ConcatTransform.UserName, ConcatTransform.LoaderSignature, ConcatTransform.LoaderSignatureOld)]
 
 namespace Microsoft.ML.Runtime.Data
 {
-    using T = PfaUtils.Type;
+    using PfaType = PfaUtils.Type;
 
-    public sealed class ConcatTransform : RowToRowMapperTransformBase, ITransformCanSavePfa, ITransformCanSaveOnnx
+    public sealed class ConcatTransform : ITransformer, ICanSaveModel
     {
+        public const string Summary = "Concatenates one or more columns of the same item type.";
+        public const string UserName = "Concat Transform";
+        public const string LoadName = "Concat";
+
+        internal const string LoaderSignature = "ConcatTransform";
+        internal const string LoaderSignatureOld = "ConcatFunction";
+
         public sealed class Column : ManyToOneColumn
         {
             public static Column Parse(string str)
@@ -111,6 +119,215 @@ namespace Microsoft.ML.Runtime.Data
         {
             [Argument(ArgumentType.Multiple, HelpText = "New column definition(s) (optional form: name:srcs)", ShortName = "col", SortOrder = 1)]
             public TaggedColumn[] Column;
+        }
+
+        public sealed class ColumnInfo
+        {
+            public readonly string Output;
+
+            private readonly (string name, string alias)[] _inputs;
+            public IReadOnlyList<(string name, string alias)> Inputs => _inputs.AsReadOnly();
+
+            public ColumnInfo(string outputName, params string[] inputNames)
+                : this(outputName, GetPairs(inputNames))
+            {
+            }
+
+            private static IEnumerable<(string name, string alias)> GetPairs(string[] inputNames)
+            {
+                Contracts.CheckValue(inputNames, nameof(inputNames));
+                return inputNames.Select(name => (name, (string)null));
+            }
+
+            public ColumnInfo(string outputName, IEnumerable<(string name, string alias)> inputs)
+            {
+                Contracts.CheckNonEmpty(outputName, nameof(outputName));
+                Contracts.CheckValue(inputs, nameof(inputs));
+                Contracts.CheckParam(inputs.Any(), nameof(inputs), "Can not be empty");
+
+                foreach (var (name, alias) in inputs)
+                {
+                    Contracts.CheckNonEmpty(name, nameof(inputs));
+                    Contracts.CheckValueOrNull(alias);
+                }
+
+                Output = outputName;
+                _inputs = inputs.ToArray();
+            }
+
+            public void Save(ModelSaveContext ctx)
+            {
+                Contracts.AssertValue(ctx);
+                // *** Binary format ***
+                // int: id of output
+                // int: number of inputs
+                // for each input
+                //   int: id of name
+                //   int: id of alias
+
+                ctx.SaveNonEmptyString(Output);
+                Contracts.Assert(_inputs.Length > 0);
+                ctx.Writer.Write(_inputs.Length);
+                foreach (var (name, alias) in _inputs)
+                {
+                    ctx.SaveNonEmptyString(name);
+                    ctx.SaveStringOrNull(alias);
+                }
+            }
+
+            public ColumnInfo(ModelLoadContext ctx)
+            {
+                Contracts.AssertValue(ctx);
+                // *** Binary format ***
+                // int: id of output
+                // int: number of inputs
+                // for each input
+                //   int: id of name
+                //   int: id of alias
+
+                Output = ctx.LoadNonEmptyString();
+                int n = ctx.Reader.ReadInt32();
+                Contracts.CheckDecode(n > 0);
+                _inputs = new (string name, string alias)[n];
+                for (int i = 0; i < n; i++)
+                {
+                    var name = ctx.LoadNonEmptyString();
+                    var alias = ctx.LoadStringOrNull();
+                    _inputs[i] = (name, alias);
+                }
+            }
+        }
+
+        private readonly IHost _host;
+        private readonly ColumnInfo[] _columns;
+
+        public IReadOnlyCollection<ColumnInfo> Columns => _columns.AsReadOnly();
+
+        public ConcatTransform(IHostEnvironment env, string outputName, params string[] inputNames)
+            : this(env, new ColumnInfo(outputName, inputNames))
+        {
+        }
+
+        public ConcatTransform(IHostEnvironment env, params ColumnInfo[] columns)
+        {
+            Contracts.CheckValue(env, nameof(env));
+            _host = env.Register(nameof(ConcatTransform));
+            Contracts.CheckValue(columns, nameof(columns));
+
+            _columns = columns.ToArray();
+        }
+
+        private static VersionInfo GetVersionInfo()
+        {
+            return new VersionInfo(
+                modelSignature: "CONCAT F",
+                //verWrittenCur: 0x00010001, // Initial
+                //verWrittenCur: 0x00010002, // Added aliases
+                verWrittenCur: 0x00010003, // Converted to transformer
+                verReadableCur: 0x00010002,
+                verWeCanReadBack: 0x00010001,
+                loaderSignature: LoaderSignature,
+                loaderSignatureAlt: LoaderSignatureOld);
+        }
+
+        private const int VersionAddedAliases = 0x00010002;
+        private const int VersionTransformer = 0x00010002;
+
+        public void Save(ModelSaveContext ctx)
+        {
+            _host.CheckValue(ctx, nameof(ctx));
+            ctx.CheckAtModel();
+            ctx.SetVersionInfo(GetVersionInfo());
+
+            // *** Binary format ***
+            // int: number of columns
+            // for each column:
+            //    columnInfo
+
+            Contracts.Assert(_columns.Length > 0);
+            ctx.Writer.Write(_columns.Length);
+            foreach (var col in _columns)
+                col.Save(ctx);
+        }
+
+        public ConcatTransform(IHostEnvironment env, ModelLoadContext ctx)
+        {
+            Contracts.CheckValue(env, nameof(env));
+            _host = env.Register(nameof(ConcatTransform));
+            _host.CheckValue(ctx, nameof(ctx));
+            ctx.CheckAtModel(GetVersionInfo());
+            if (ctx.Header.ModelVerReadable >= VersionTransformer)
+            {
+                // *** Binary format ***
+                // int: number of columns
+                // for each column:
+                //    columnInfo
+                int n = ctx.Reader.ReadInt32();
+                Contracts.CheckDecode(n > 0);
+                _columns = new ColumnInfo[n];
+                for (int i = 0; i < n; i++)
+                    _columns[i] = new ColumnInfo(ctx);
+            }
+            else
+                _columns = LoadLegacy(ctx);
+        }
+
+        private ColumnInfo[] LoadLegacy(ModelLoadContext ctx)
+        {
+            // *** Legacy binary format ***
+            // int: number of added columns
+            // for each added column
+            //   int: id of output column name
+            //   int: number of input column names
+            //   int[]: ids of input column names
+            // if version >= VersionAddedAliases
+            //   foreach column:
+            //      foreach non-null alias
+            //          int: index of the alias
+            //          int: string id of the alias
+            //      int: -1, marks the end of the list
+
+            int n = ctx.Reader.ReadInt32();
+            Contracts.CheckDecode(n > 0);
+            var names = new string[n];
+            var inputs = new string[n][];
+            for (int i = 0; i < n; i++)
+            {
+                names[i] = ctx.LoadNonEmptyString();
+                int numSources = ctx.Reader.ReadInt32();
+                Contracts.CheckDecode(numSources > 0);
+                inputs[i] = new string[numSources];
+                for (int j = 0; j < numSources; j++)
+                    inputs[i][j] = ctx.LoadNonEmptyString();
+            }
+
+            var aliases = new string[n][];
+            if (ctx.Header.ModelVerReadable >= VersionAddedAliases)
+            {
+                for (int i = 0; i < n; i++)
+                {
+                    var length = inputs[i].Length;
+                    aliases[i] = new string[length];
+                    if (ctx.Header.ModelVerReadable >= VersionAddedAliases)
+                    {
+                        for (; ; )
+                        {
+                            var j = ctx.Reader.ReadInt32();
+                            if (j == -1)
+                                break;
+                            Contracts.CheckDecode(0 <= j && j < length);
+                            Contracts.CheckDecode(aliases[i][j] == null);
+                            aliases[i][j] = ctx.LoadNonEmptyString();
+                        }
+                    }
+                }
+            }
+
+            var result = new ColumnInfo[n];
+            for (int i = 0; i < n; i++)
+                result[i] = new ColumnInfo(names[i],
+                    inputs[i].Zip(aliases[i], (name, alias) => (name, alias)));
+            return result;
         }
 
         private sealed class Bindings : ManyToOneColumnBindingsBase
@@ -505,496 +722,579 @@ namespace Microsoft.ML.Runtime.Data
             }
         }
 
-        public const string Summary = "Concatenates one or more columns of the same item type.";
-        public const string UserName = "Concat Transform";
-        public const string LoadName = "Concat";
-
-        internal const string LoaderSignature = "ConcatTransform";
-        internal const string LoaderSignatureOld = "ConcatFunction";
-        private static VersionInfo GetVersionInfo()
-        {
-            return new VersionInfo(
-                modelSignature: "CONCAT F",
-                //verWrittenCur: 0x00010001, // Initial
-                verWrittenCur: 0x00010002, // Added aliases
-                verReadableCur: 0x00010002,
-                verWeCanReadBack: 0x00010001,
-                loaderSignature: LoaderSignature,
-                loaderSignatureAlt: LoaderSignatureOld);
-        }
-
-        private const int VersionAddedAliases = 0x00010002;
-
-        private readonly Bindings _bindings;
-
-        private const string RegistrationName = "Concat";
-
-        public bool CanSavePfa => true;
-
-        public bool CanSaveOnnx => true;
-
-        public override ISchema Schema => _bindings;
-
         /// <summary>
-        /// Convenience constructor for public facing API.
+        /// Factory method corresponding to SignatureDataTransform.
         /// </summary>
-        /// <param name="env">Host Environment.</param>
-        /// <param name="input">Input <see cref="IDataView"/>. This is the output from previous transform or loader.</param>
-        /// <param name="name">Name of the output column.</param>
-        /// <param name="source">Input columns to concatenate.</param>
-        public ConcatTransform(IHostEnvironment env, IDataView input, string name, params string[] source)
-            : this(env, new Arguments(name, source), input)
-        {
-        }
-
-        /// <summary>
-        /// Public constructor corresponding to SignatureDataTransform.
-        /// </summary>
-        public ConcatTransform(IHostEnvironment env, Arguments args, IDataView input)
-            : base(env, RegistrationName, input)
-        {
-            Host.CheckValue(args, nameof(args));
-            Host.CheckUserArg(Utils.Size(args.Column) > 0, nameof(args.Column));
-            for (int i = 0; i < args.Column.Length; i++)
-                Host.CheckUserArg(Utils.Size(args.Column[i].Source) > 0, nameof(args.Column));
-
-            _bindings = new Bindings(args.Column, null, Source.Schema);
-        }
-
-        /// <summary>
-        /// Public constructor corresponding to SignatureDataTransform.
-        /// </summary>
-        public ConcatTransform(IHostEnvironment env, TaggedArguments args, IDataView input)
-            : base(env, RegistrationName, input)
-        {
-            Host.CheckValue(args, nameof(args));
-            Host.CheckUserArg(Utils.Size(args.Column) > 0, nameof(args.Column));
-            for (int i = 0; i < args.Column.Length; i++)
-                Host.CheckUserArg(Utils.Size(args.Column[i].Source) > 0, nameof(args.Column));
-
-            var columns = args.Column
-                .Select(c => new Column() { Name = c.Name, Source = c.Source.Select(kvp => kvp.Value).ToArray() })
-                .ToArray();
-            _bindings = new Bindings(columns, args.Column, Source.Schema);
-        }
-
-        private ConcatTransform(IHost host, ModelLoadContext ctx, IDataView input)
-            : base(host, input)
-        {
-            Host.AssertValue(ctx);
-
-            // *** Binary format ***
-            // int: sizeof(Float)
-            // bindings
-            int cbFloat = ctx.Reader.ReadInt32();
-            Host.CheckDecode(cbFloat == sizeof(Float));
-            _bindings = new Bindings(ctx, Source.Schema);
-        }
-
-        public static ConcatTransform Create(IHostEnvironment env, ModelLoadContext ctx, IDataView input)
+        public static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
         {
             Contracts.CheckValue(env, nameof(env));
-            var h = env.Register(LoadName);
-            h.CheckValue(ctx, nameof(ctx));
-            h.CheckValue(input, nameof(input));
-            ctx.CheckAtModel(GetVersionInfo());
-            return h.Apply("Loading Model", ch => new ConcatTransform(h, ctx, input));
+            env.CheckValue(args, nameof(args));
+            env.CheckValue(input, nameof(input));
+            env.CheckUserArg(Utils.Size(args.Column) > 0, nameof(args.Column));
+
+            for (int i = 0; i < args.Column.Length; i++)
+                env.CheckUserArg(Utils.Size(args.Column[i].Source) > 0, nameof(args.Column));
+
+            var cols = args.Column
+                .Select(c => new ColumnInfo(c.Name, c.Source))
+                .ToArray();
+            var transformer = new ConcatTransform(env, cols);
+            return transformer.MakeDataTransform(input);
         }
 
-        public override void Save(ModelSaveContext ctx)
+        /// <summary>
+        /// Factory method corresponding to SignatureDataTransform.
+        /// </summary>
+        public static IDataTransform Create(IHostEnvironment env, TaggedArguments args, IDataView input)
         {
-            Host.CheckValue(ctx, nameof(ctx));
-            ctx.CheckAtModel();
-            ctx.SetVersionInfo(GetVersionInfo());
+            Contracts.CheckValue(env, nameof(env));
+            env.CheckValue(args, nameof(args));
+            env.CheckValue(input, nameof(input));
+            env.CheckUserArg(Utils.Size(args.Column) > 0, nameof(args.Column));
 
-            // *** Binary format ***
-            // int: sizeof(Float)
-            // bindings
-            ctx.Writer.Write(sizeof(Float));
-            _bindings.Save(ctx);
+            for (int i = 0; i < args.Column.Length; i++)
+                env.CheckUserArg(Utils.Size(args.Column[i].Source) > 0, nameof(args.Column));
+
+            var cols = args.Column
+                .Select(c => new ColumnInfo(c.Name, c.Source.Select(kvp => (kvp.Value, kvp.Key))))
+                .ToArray();
+            var transformer = new ConcatTransform(env, cols);
+            return transformer.MakeDataTransform(input);
         }
 
-        private KeyValuePair<string, JToken> SavePfaInfoCore(BoundPfaContext ctx, int iinfo)
+        public IDataView Transform(IDataView input) => MakeDataTransform(input);
+
+        private IDataTransform MakeDataTransform(IDataView input)
+            => new RowToRowMapperTransform(_host, input, MakeRowMapper(input.Schema));
+
+        public IRowMapper MakeRowMapper(ISchema inputSchema) => new Mapper(this, inputSchema);
+
+        /// <summary>
+        /// Factory method for SignatureLoadDataTransform
+        /// </summary>
+        public static IDataTransform Create(IHostEnvironment env, ModelLoadContext ctx, IDataView input)
+            => new ConcatTransform(env, ctx).MakeDataTransform(input);
+
+        public ISchema GetOutputSchema(ISchema inputSchema)
         {
-            Host.AssertValue(ctx);
-            Host.Assert(0 <= iinfo && iinfo < _bindings.InfoCount);
-
-            var info = _bindings.Infos[iinfo];
-            int outIndex = _bindings.MapIinfoToCol(iinfo);
-            string outName = _bindings.GetColumnName(outIndex);
-            if (info.SrcSize == 0) // Do not attempt variable length.
-                return new KeyValuePair<string, JToken>(outName, null);
-
-            string[] srcTokens = new string[info.SrcIndices.Length];
-            bool[] srcPrimitive = new bool[info.SrcIndices.Length];
-            for (int i = 0; i < info.SrcIndices.Length; ++i)
-            {
-                int srcIndex = info.SrcIndices[i];
-                var srcName = Source.Schema.GetColumnName(srcIndex);
-                if ((srcTokens[i] = ctx.TokenOrNullForName(srcName)) == null)
-                    return new KeyValuePair<string, JToken>(outName, null);
-                srcPrimitive[i] = info.SrcTypes[i].IsPrimitive;
-            }
-            Host.Assert(srcTokens.All(tok => tok != null));
-            var itemColumnType = _bindings.GetColumnType(outIndex).ItemType;
-            var itemType = T.PfaTypeOrNullForColumnType(itemColumnType);
-            if (itemType == null)
-                return new KeyValuePair<string, JToken>(outName, null);
-            JObject jobj = null;
-            var arrType = T.Array(itemType);
-
-            // The "root" object will be the concatenation of all the initial scalar objects into an
-            // array, or else, if the first object is not scalar, just that first object.
-            JToken result;
-            int min;
-            if (srcPrimitive[0])
-            {
-                JArray rootObjects = new JArray();
-                for (int i = 0; i < srcTokens.Length && srcPrimitive[i]; ++i)
-                    rootObjects.Add(srcTokens[i]);
-                result = jobj.AddReturn("type", arrType).AddReturn("new", new JArray(rootObjects));
-                min = rootObjects.Count;
-            }
-            else
-            {
-                result = srcTokens[0];
-                min = 1;
-            }
-
-            for (int i = min; i < srcTokens.Length; ++i)
-                result = PfaUtils.Call(srcPrimitive[i] ? "a.append" : "a.concat", result, srcTokens[i]);
-
-            Host.AssertValue(result);
-            return new KeyValuePair<string, JToken>(outName, result);
+            _host.CheckValue(inputSchema, nameof(inputSchema));
+            var mapper = MakeRowMapper(inputSchema);
+            return RowToRowMapperTransform.GetOutputSchema(inputSchema, MakeRowMapper(inputSchema));
         }
 
-        public void SaveAsPfa(BoundPfaContext ctx)
+        private sealed class Mapper : IRowMapper, ISaveAsOnnx, ISaveAsPfa
         {
-            Host.CheckValue(ctx, nameof(ctx));
+            private readonly IHost _host;
+            private readonly ISchema _inputSchema;
+            private readonly ConcatTransform _parent;
+            private readonly BoundColumn[] _columns;
 
-            var toHide = new List<string>();
-            var toDeclare = new List<KeyValuePair<string, JToken>>();
+            public bool CanSaveOnnx => true;
+            public bool CanSavePfa => true;
 
-            for (int iinfo = 0; iinfo < _bindings.InfoCount; ++iinfo)
+            public Mapper(ConcatTransform parent, ISchema inputSchema)
             {
-                var toSave = SavePfaInfoCore(ctx, iinfo);
-                if (toSave.Value == null)
-                    toHide.Add(toSave.Key);
-                else
-                    toDeclare.Add(toSave);
-            }
-            ctx.Hide(toHide.ToArray());
-            ctx.DeclareVar(toDeclare.ToArray());
-        }
+                Contracts.AssertValue(parent);
+                Contracts.AssertValue(inputSchema);
+                _host = parent._host.Register(nameof(Mapper));
+                _parent = parent;
+                _inputSchema = inputSchema;
 
-        public void SaveAsOnnx(OnnxContext ctx)
-        {
-            Host.CheckValue(ctx, nameof(ctx));
-            Host.Assert(CanSaveOnnx);
-
-            string opType = "FeatureVectorizer";
-            for (int iinfo = 0; iinfo < _bindings.InfoCount; ++iinfo)
-            {
-                var info = _bindings.Infos[iinfo];
-                int outIndex = _bindings.MapIinfoToCol(iinfo);
-                string outName = _bindings.GetColumnName(outIndex);
-                var outColType = _bindings.GetColumnType(outIndex);
-                if (info.SrcSize == 0)
+                _columns = new BoundColumn[_parent._columns.Length];
+                for (int i = 0; i < _parent._columns.Length; i++)
                 {
-                    ctx.RemoveColumn(outName, false);
-                    continue;
+                    _columns[i] = MakeColumn(inputSchema, i);
                 }
+            }
 
-                List<KeyValuePair<string, long>> inputList = new List<KeyValuePair<string, long>>();
-                for (int i = 0; i < info.SrcIndices.Length; ++i)
+            private BoundColumn MakeColumn(ISchema inputSchema, int iinfo)
+            {
+                Contracts.AssertValue(inputSchema);
+                Contracts.Assert(0 <= iinfo && iinfo < _parent._columns.Length);
+
+                ColumnType itemType = null;
+                int[] sources = new int[_parent._columns[iinfo].Inputs.Count];
+                // Go through the columns, and establish the following:
+                // - indices of input columns in the input schema. Throw if they are not there.
+                // - output type. Throw if the types of inputs are not the same.
+                // - how many slots are there in the output vector (or variable). Denoted by totalSize.
+                // - total size of CategoricalSlotRanges metadata, if present. Denoted by catCount.
+                // - whether the column is normalized.
+                //      It is true when ALL inputs are normalized (and of numeric type).
+                // - whether the column has slot names.
+                //      It is true if ANY input is a scalar, or has slot names.
+                // - whether the column has categorical slot ranges.
+                //      It is true if ANY input has this metadata.
+                int totalSize = 0;
+                int catCount = 0;
+                bool isNormalized = true;
+                bool hasSlotNames = false;
+                bool hasCategoricals = false;
+                for (int i = 0; i < _parent._columns[iinfo].Inputs.Count; i++)
                 {
-                    int srcIndex = info.SrcIndices[i];
-                    var srcName = Source.Schema.GetColumnName(srcIndex);
-                    if (!ctx.ContainsColumn(srcName))
+                    var (srcName, srcAlias) = _parent._columns[iinfo].Inputs[i];
+                    if (!inputSchema.TryGetColumnIndex(srcName, out int srcCol))
+                        throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", srcName);
+                    sources[i] = srcCol;
+
+                    var curType = inputSchema.GetColumnType(srcCol);
+                    if (itemType == null)
                     {
-                        ctx.RemoveColumn(outName, false);
-                        return;
+                        itemType = curType.ItemType;
+                        totalSize = curType.ValueCount;
                     }
-
-                    inputList.Add(new KeyValuePair<string, long>(ctx.GetVariableName(srcName),
-                        Source.Schema.GetColumnType(srcIndex).ValueCount));
-                }
-
-                var node = ctx.CreateNode(opType, inputList.Select(t => t.Key),
-                    new[] { ctx.AddIntermediateVariable(outColType, outName) }, ctx.GetNodeName(opType));
-
-                node.AddAttribute("inputdimensions", inputList.Select(x => x.Value));
-            }
-        }
-
-        protected override bool? ShouldUseParallelCursors(Func<int, bool> predicate)
-        {
-            Host.AssertValue(predicate, "predicate");
-
-            // Prefer parallel cursors iff some of our columns are active, otherwise, don't care.
-            if (_bindings.AnyNewColumnsActive(predicate))
-                return true;
-            return null;
-        }
-
-        protected override IRowCursor GetRowCursorCore(Func<int, bool> predicate, IRandom rand = null)
-        {
-            Host.AssertValue(predicate, "predicate");
-            Host.AssertValueOrNull(rand);
-
-            var inputPred = _bindings.GetDependencies(predicate);
-            var active = _bindings.GetActive(predicate);
-            var input = Source.GetRowCursor(inputPred, rand);
-            return new RowCursor(Host, this, input, active);
-        }
-
-        public sealed override IRowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator,
-            Func<int, bool> predicate, int n, IRandom rand = null)
-        {
-            Host.CheckValue(predicate, nameof(predicate));
-            Host.CheckValueOrNull(rand);
-
-            var inputPred = _bindings.GetDependencies(predicate);
-            var active = _bindings.GetActive(predicate);
-            var inputs = Source.GetRowCursorSet(out consolidator, inputPred, n, rand);
-            Host.AssertNonEmpty(inputs);
-
-            if (inputs.Length == 1 && n > 1 && _bindings.AnyNewColumnsActive(predicate))
-                inputs = DataViewUtils.CreateSplitCursors(out consolidator, Host, inputs[0], n);
-            Host.AssertNonEmpty(inputs);
-
-            var cursors = new IRowCursor[inputs.Length];
-            for (int i = 0; i < inputs.Length; i++)
-                cursors[i] = new RowCursor(Host, this, inputs[i], active);
-            return cursors;
-        }
-
-        protected override int MapColumnIndex(out bool isSrc, int col)
-        {
-            return _bindings.MapColumnIndex(out isSrc, col);
-        }
-
-        protected override Func<int, bool> GetDependenciesCore(Func<int, bool> predicate)
-        {
-            return _bindings.GetDependencies(predicate);
-        }
-
-        protected override Delegate[] CreateGetters(IRow input, Func<int, bool> active, out Action disposer)
-        {
-            Func<int, bool> activeInfos =
-                iinfo =>
-                {
-                    int col = _bindings.MapIinfoToCol(iinfo);
-                    return active(col);
-                };
-
-            var getters = new Delegate[_bindings.InfoCount];
-            disposer = null;
-            using (var ch = Host.Start("CreateGetters"))
-            {
-                for (int iinfo = 0; iinfo < _bindings.InfoCount; iinfo++)
-                {
-                    if (!activeInfos(iinfo))
-                        continue;
-                    getters[iinfo] = MakeGetter(ch, input, iinfo);
-                }
-                ch.Done();
-                return getters;
-            }
-        }
-
-        private ValueGetter<T> GetSrcGetter<T>(IRow input, int iinfo, int isrc)
-        {
-            return input.GetGetter<T>(_bindings.Infos[iinfo].SrcIndices[isrc]);
-        }
-
-        private Delegate MakeGetter(IChannel ch, IRow input, int iinfo)
-        {
-            var info = _bindings.Infos[iinfo];
-            MethodInfo meth;
-            if (_bindings.EchoSrc[iinfo])
-            {
-                Func<IRow, int, int, ValueGetter<int>> srcDel = GetSrcGetter<int>;
-                meth = srcDel.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(info.SrcTypes[0].RawType);
-                return (Delegate)meth.Invoke(this, new object[] { input, iinfo, 0 });
-            }
-
-            Func<IChannel, IRow, int, ValueGetter<VBuffer<int>>> del = MakeGetter<int>;
-            meth = del.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(info.SrcTypes[0].ItemType.RawType);
-            return (Delegate)meth.Invoke(this, new object[] { ch, input, iinfo });
-        }
-
-        private ValueGetter<VBuffer<T>> MakeGetter<T>(IChannel ch, IRow input, int iinfo)
-        {
-            var info = _bindings.Infos[iinfo];
-            var srcGetterOnes = new ValueGetter<T>[info.SrcIndices.Length];
-            var srcGetterVecs = new ValueGetter<VBuffer<T>>[info.SrcIndices.Length];
-            for (int j = 0; j < info.SrcIndices.Length; j++)
-            {
-                if (info.SrcTypes[j].IsVector)
-                    srcGetterVecs[j] = GetSrcGetter<VBuffer<T>>(input, iinfo, j);
-                else
-                    srcGetterOnes[j] = GetSrcGetter<T>(input, iinfo, j);
-            }
-
-            T tmp = default(T);
-            VBuffer<T>[] tmpBufs = new VBuffer<T>[info.SrcIndices.Length];
-            return
-                (ref VBuffer<T> dst) =>
-                {
-                    int dstLength = 0;
-                    int dstCount = 0;
-                    for (int i = 0; i < info.SrcIndices.Length; i++)
+                    else if (curType.ItemType.Equals(itemType))
                     {
-                        var type = info.SrcTypes[i];
-                        if (type.IsVector)
-                        {
-                            srcGetterVecs[i](ref tmpBufs[i]);
-                            if (type.VectorSize != 0 && type.VectorSize != tmpBufs[i].Length)
-                            {
-                                throw ch.Except("Column '{0}': expected {1} slots, but got {2}",
-                                    input.Schema.GetColumnName(info.SrcIndices[i]), type.VectorSize, tmpBufs[i].Length)
-                                    .MarkSensitive(MessageSensitivity.Schema);
-                            }
-                            dstLength = checked(dstLength + tmpBufs[i].Length);
-                            dstCount = checked(dstCount + tmpBufs[i].Count);
-                        }
+                        // If any one input is variable length, then the output is variable length.
+                        if (totalSize == 0 || curType.ValueCount == 0)
+                            totalSize = 0;
                         else
+                            totalSize += curType.ValueCount;
+                    }
+                    else
+                        throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", srcName, itemType.ToString(), curType.ToString());
+
+                    if (isNormalized && !inputSchema.IsNormalized(srcCol))
+                        isNormalized = false;
+
+                    if (MetadataUtils.TryGetCategoricalFeatureIndices(inputSchema, srcCol, out int[] typeCat))
+                    {
+                        Contracts.Assert(typeCat.Length > 0);
+                        catCount += typeCat.Length;
+                        hasCategoricals = true;
+                    }
+
+                    if (!hasSlotNames && !curType.IsVector || inputSchema.HasSlotNames(srcCol, curType.VectorSize))
+                        hasSlotNames = true;
+                }
+
+                if (!itemType.IsNumber)
+                    isNormalized = false;
+                if (totalSize == 0)
+                {
+                    hasCategoricals = false;
+                    hasSlotNames = false;
+                }
+
+                return new BoundColumn(_inputSchema, _parent._columns[iinfo], sources, new VectorType(itemType.AsPrimitive, totalSize),
+                    isNormalized, hasSlotNames, hasCategoricals, totalSize, catCount);
+            }
+
+            /// <summary>
+            /// This represents the column information bound to the schema.
+            /// </summary>
+            private sealed class BoundColumn
+            {
+                public readonly int[] SrcIndices;
+
+                private readonly ColumnInfo _columnInfo;
+                private readonly ColumnType[] _srcTypes;
+
+                public readonly ColumnType OutputType;
+
+                // Fields pertaining to column metadata.
+                private readonly bool _isIdentity;
+                private readonly bool _isNormalized;
+                private readonly bool _hasSlotNames;
+                private readonly bool _hasCategoricals;
+
+                private readonly ColumnType _slotNamesType;
+                private readonly ColumnType _categoricalRangeType;
+
+                private readonly ISchema _inputSchema;
+
+                public BoundColumn(ISchema inputSchema, ColumnInfo columnInfo, int[] sources, ColumnType outputType,
+                    bool isNormalized, bool hasSlotNames, bool hasCategoricals, int slotCount, int catCount)
+                {
+                    _columnInfo = columnInfo;
+                    SrcIndices = sources;
+                    _srcTypes = sources.Select(c => inputSchema.GetColumnType(c)).ToArray();
+
+                    OutputType = outputType;
+
+                    _inputSchema = inputSchema;
+
+                    _isIdentity = SrcIndices.Length == 1 && _inputSchema.GetColumnType(SrcIndices[0]).IsVector;
+                    _isNormalized = isNormalized;
+
+                    _hasSlotNames = hasSlotNames;
+                    if (_hasSlotNames)
+                        _slotNamesType = MetadataUtils.GetNamesType(slotCount);
+
+                    _hasCategoricals = hasCategoricals;
+                    if (_hasCategoricals)
+                        _categoricalRangeType = MetadataUtils.GetCategoricalType(catCount / 2);
+                }
+
+                public RowMapperColumnInfo MakeColumnInfo()
+                {
+                    if (_isIdentity)
+                        return new RowMapperColumnInfo(_columnInfo.Output, OutputType, RowColumnUtils.GetMetadataAsRow(_inputSchema, SrcIndices[0]));
+
+                    var metadata = new ColumnMetadataInfo(_columnInfo.Output);
+                    if (_isNormalized)
+                        metadata.Add(MetadataUtils.Kinds.IsNormalized, new MetadataInfo<bool>(BoolType.Instance, GetIsNormalized));
+                    if (_hasSlotNames)
+                        metadata.Add(MetadataUtils.Kinds.SlotNames, new MetadataInfo<VBuffer<DvText>>(TextType.Instance, GetSlotNames));
+                    if (_hasCategoricals)
+                        metadata.Add(MetadataUtils.Kinds.CategoricalSlotRanges, new MetadataInfo<VBuffer<DvInt4>>(TextType.Instance, GetCategoricalSlotRanges));
+
+                    return new RowMapperColumnInfo(_columnInfo.Output, OutputType, metadata);
+                }
+
+                private void GetIsNormalized(int col, ref bool value) => value = _isNormalized;
+
+                private void GetCategoricalSlotRanges(int iiinfo, ref VBuffer<DvInt4> dst)
+                {
+                    List<DvInt4> allValues = new List<DvInt4>();
+                    int slotCount = 0;
+                    for (int i = 0; i < SrcIndices.Length; i++)
+                    {
+
+                        Contracts.Assert(_srcTypes[i].ValueCount > 0);
+
+                        if (i > 0)
+                            slotCount += _srcTypes[i - 1].ValueCount;
+
+                        if (MetadataUtils.TryGetCategoricalFeatureIndices(_inputSchema, SrcIndices[i], out int[] values))
                         {
-                            dstLength = checked(dstLength + 1);
-                            dstCount = checked(dstCount + 1);
+                            Contracts.Assert(values.Length > 0 && values.Length % 2 == 0);
+
+                            for (int j = 0; j < values.Length; j++)
+                                allValues.Add(values[j] + slotCount);
                         }
                     }
 
-                    var values = dst.Values;
-                    var indices = dst.Indices;
-                    if (dstCount <= dstLength / 2)
-                    {
-                        // Concatenate into a sparse representation.
-                        if (Utils.Size(values) < dstCount)
-                            values = new T[dstCount];
-                        if (Utils.Size(indices) < dstCount)
-                            indices = new int[dstCount];
+                    Contracts.Assert(allValues.Count > 0);
 
-                        int offset = 0;
-                        int count = 0;
-                        for (int j = 0; j < info.SrcIndices.Length; j++)
+                    dst = new VBuffer<DvInt4>(allValues.Count, allValues.ToArray());
+                }
+
+                private void GetSlotNames(int iinfo, ref VBuffer<DvText> dst)
+                {
+                    Contracts.Assert(!_isIdentity);
+                    Contracts.Assert(OutputType.VectorSize > 0);
+
+                    Contracts.AssertValue(_slotNamesType);
+                    Contracts.Assert(_slotNamesType.VectorSize == OutputType.VectorSize);
+
+                    var bldr = BufferBuilder<DvText>.CreateDefault();
+                    bldr.Reset(_slotNamesType.VectorSize, dense: false);
+
+                    var sb = new StringBuilder();
+                    var names = default(VBuffer<DvText>);
+                    int slot = 0;
+                    for (int i = 0; i < _srcTypes.Length; i++)
+                    {
+                        int colSrc = SrcIndices[i];
+                        var typeSrc = _srcTypes[i];
+                        Contracts.Assert(_columnInfo.Inputs[i].alias != "");
+                        var colName = _inputSchema.GetColumnName(colSrc);
+                        var nameSrc = _columnInfo.Inputs[i].alias ?? colName;
+                        if (!typeSrc.IsVector)
                         {
-                            ch.Assert(offset < dstLength);
-                            if (info.SrcTypes[j].IsVector)
+                            bldr.AddFeature(slot++, new DvText(nameSrc));
+                            continue;
+                        }
+
+                        Contracts.Assert(typeSrc.IsKnownSizeVector);
+                        var typeNames = _inputSchema.GetMetadataTypeOrNull(MetadataUtils.Kinds.SlotNames, colSrc);
+                        if (typeNames != null && typeNames.VectorSize == typeSrc.VectorSize && typeNames.ItemType.IsText)
+                        {
+                            _inputSchema.GetMetadata(MetadataUtils.Kinds.SlotNames, colSrc, ref names);
+                            sb.Clear();
+                            if (_columnInfo.Inputs[i].alias != colName)
+                                sb.Append(nameSrc).Append(".");
+                            int len = sb.Length;
+                            foreach (var kvp in names.Items())
                             {
-                                var buffer = tmpBufs[j];
-                                ch.Assert(buffer.Count <= dstCount - count);
-                                ch.Assert(buffer.Length <= dstLength - offset);
-                                if (buffer.IsDense)
+                                if (!kvp.Value.HasChars)
+                                    continue;
+                                sb.Length = len;
+                                kvp.Value.AddToStringBuilder(sb);
+                                bldr.AddFeature(slot + kvp.Key, new DvText(sb.ToString()));
+                            }
+                        }
+                        slot += _srcTypes[i].VectorSize;
+                    }
+                    Contracts.Assert(slot == OutputType.VectorSize);
+
+                    bldr.GetResult(ref dst);
+                }
+
+                public Delegate MakeGetter(IRow input)
+                {
+                    if (_isIdentity)
+                    {
+                        Contracts.Assert(SrcIndices.Length == 1);
+                        Func<Delegate> getSrcGetter = () => input.GetGetter<int>(SrcIndices[0]);
+                        return Utils.MarshalInvoke(getSrcGetter, _srcTypes[0].RawType);
+                    }
+
+                    Func<IRow, ValueGetter<VBuffer<int>>> del = MakeGetter<int>;
+                    return Utils.MarshalInvoke(MakeGetter<int>, _srcTypes[0].RawType, input);
+                }
+
+                private ValueGetter<VBuffer<T>> MakeGetter<T>(IRow input)
+                {
+                    var srcGetterOnes = new ValueGetter<T>[SrcIndices.Length];
+                    var srcGetterVecs = new ValueGetter<VBuffer<T>>[SrcIndices.Length];
+                    for (int j = 0; j < SrcIndices.Length; j++)
+                    {
+                        if (_srcTypes[j].IsVector)
+                            srcGetterVecs[j] = input.GetGetter<VBuffer<T>>(SrcIndices[j]);
+                        else
+                            srcGetterOnes[j] = input.GetGetter<T>(SrcIndices[j]);
+                    }
+
+                    T tmp = default(T);
+                    VBuffer<T>[] tmpBufs = new VBuffer<T>[SrcIndices.Length];
+                    return
+                        (ref VBuffer<T> dst) =>
+                        {
+                            int dstLength = 0;
+                            int dstCount = 0;
+                            for (int i = 0; i < SrcIndices.Length; i++)
+                            {
+                                var type = _srcTypes[i];
+                                if (type.IsVector)
                                 {
-                                    for (int i = 0; i < buffer.Length; i++)
+                                    srcGetterVecs[i](ref tmpBufs[i]);
+                                    if (type.VectorSize != 0 && type.VectorSize != tmpBufs[i].Length)
                                     {
-                                        values[count] = buffer.Values[i];
-                                        indices[count++] = offset + i;
+                                        throw Contracts.Except("Column '{0}': expected {1} slots, but got {2}",
+                                            input.Schema.GetColumnName(SrcIndices[i]), type.VectorSize, tmpBufs[i].Length)
+                                            .MarkSensitive(MessageSensitivity.Schema);
                                     }
+                                    dstLength = checked(dstLength + tmpBufs[i].Length);
+                                    dstCount = checked(dstCount + tmpBufs[i].Count);
                                 }
                                 else
                                 {
-                                    for (int i = 0; i < buffer.Count; i++)
+                                    dstLength = checked(dstLength + 1);
+                                    dstCount = checked(dstCount + 1);
+                                }
+                            }
+
+                            var values = dst.Values;
+                            var indices = dst.Indices;
+                            if (dstCount <= dstLength / 2)
+                            {
+                                // Concatenate into a sparse representation.
+                                if (Utils.Size(values) < dstCount)
+                                    values = new T[dstCount];
+                                if (Utils.Size(indices) < dstCount)
+                                    indices = new int[dstCount];
+
+                                int offset = 0;
+                                int count = 0;
+                                for (int j = 0; j < SrcIndices.Length; j++)
+                                {
+                                    Contracts.Assert(offset < dstLength);
+                                    if (_srcTypes[j].IsVector)
                                     {
-                                        values[count] = buffer.Values[i];
-                                        indices[count++] = offset + buffer.Indices[i];
+                                        var buffer = tmpBufs[j];
+                                        Contracts.Assert(buffer.Count <= dstCount - count);
+                                        Contracts.Assert(buffer.Length <= dstLength - offset);
+                                        if (buffer.IsDense)
+                                        {
+                                            for (int i = 0; i < buffer.Length; i++)
+                                            {
+                                                values[count] = buffer.Values[i];
+                                                indices[count++] = offset + i;
+                                            }
+                                        }
+                                        else
+                                        {
+                                            for (int i = 0; i < buffer.Count; i++)
+                                            {
+                                                values[count] = buffer.Values[i];
+                                                indices[count++] = offset + buffer.Indices[i];
+                                            }
+                                        }
+                                        offset += buffer.Length;
+                                    }
+                                    else
+                                    {
+                                        Contracts.Assert(count < dstCount);
+                                        srcGetterOnes[j](ref tmp);
+                                        values[count] = tmp;
+                                        indices[count++] = offset;
+                                        offset++;
                                     }
                                 }
-                                offset += buffer.Length;
+                                Contracts.Assert(count <= dstCount);
+                                Contracts.Assert(offset == dstLength);
+                                dst = new VBuffer<T>(dstLength, count, values, indices);
                             }
                             else
                             {
-                                ch.Assert(count < dstCount);
-                                srcGetterOnes[j](ref tmp);
-                                values[count] = tmp;
-                                indices[count++] = offset;
-                                offset++;
+                                // Concatenate into a dense representation.
+                                if (Utils.Size(values) < dstLength)
+                                    values = new T[dstLength];
+
+                                int offset = 0;
+                                for (int j = 0; j < SrcIndices.Length; j++)
+                                {
+                                    Contracts.Assert(tmpBufs[j].Length <= dstLength - offset);
+                                    if (_srcTypes[j].IsVector)
+                                    {
+                                        tmpBufs[j].CopyTo(values, offset);
+                                        offset += tmpBufs[j].Length;
+                                    }
+                                    else
+                                    {
+                                        srcGetterOnes[j](ref tmp);
+                                        values[offset++] = tmp;
+                                    }
+                                }
+                                Contracts.Assert(offset == dstLength);
+                                dst = new VBuffer<T>(dstLength, values, indices);
                             }
-                        }
-                        ch.Assert(count <= dstCount);
-                        ch.Assert(offset == dstLength);
-                        dst = new VBuffer<T>(dstLength, count, values, indices);
+                        };
+                }
+
+                public KeyValuePair<string, JToken> SavePfaInfo(BoundPfaContext ctx)
+                {
+                    Contracts.AssertValue(ctx);
+                    string outName = _columnInfo.Output;
+                    if (OutputType.ValueCount == 0) // Do not attempt variable length.
+                        return new KeyValuePair<string, JToken>(outName, null);
+
+                    string[] srcTokens = new string[SrcIndices.Length];
+                    bool[] srcPrimitive = new bool[SrcIndices.Length];
+                    for (int i = 0; i < SrcIndices.Length; ++i)
+                    {
+                        var srcName = _columnInfo.Inputs[i].name;
+                        if ((srcTokens[i] = ctx.TokenOrNullForName(srcName)) == null)
+                            return new KeyValuePair<string, JToken>(outName, null);
+                        srcPrimitive[i] = _srcTypes[i].IsPrimitive;
+                    }
+                    Contracts.Assert(srcTokens.All(tok => tok != null));
+                    var itemColumnType = OutputType.ItemType;
+                    var itemType = PfaType.PfaTypeOrNullForColumnType(itemColumnType);
+                    if (itemType == null)
+                        return new KeyValuePair<string, JToken>(outName, null);
+                    JObject jobj = null;
+                    var arrType = PfaType.Array(itemType);
+
+                    // The "root" object will be the concatenation of all the initial scalar objects into an
+                    // array, or else, if the first object is not scalar, just that first object.
+                    JToken result;
+                    int min;
+                    if (srcPrimitive[0])
+                    {
+                        JArray rootObjects = new JArray();
+                        for (int i = 0; i < srcTokens.Length && srcPrimitive[i]; ++i)
+                            rootObjects.Add(srcTokens[i]);
+                        result = jobj.AddReturn("type", arrType).AddReturn("new", new JArray(rootObjects));
+                        min = rootObjects.Count;
                     }
                     else
                     {
-                        // Concatenate into a dense representation.
-                        if (Utils.Size(values) < dstLength)
-                            values = new T[dstLength];
-
-                        int offset = 0;
-                        for (int j = 0; j < info.SrcIndices.Length; j++)
-                        {
-                            ch.Assert(tmpBufs[j].Length <= dstLength - offset);
-                            if (info.SrcTypes[j].IsVector)
-                            {
-                                tmpBufs[j].CopyTo(values, offset);
-                                offset += tmpBufs[j].Length;
-                            }
-                            else
-                            {
-                                srcGetterOnes[j](ref tmp);
-                                values[offset++] = tmp;
-                            }
-                        }
-                        ch.Assert(offset == dstLength);
-                        dst = new VBuffer<T>(dstLength, values, indices);
+                        result = srcTokens[0];
+                        min = 1;
                     }
-                };
-        }
 
-        private sealed class RowCursor : SynchronizedCursorBase<IRowCursor>, IRowCursor
-        {
-            private readonly Bindings _bindings;
-            private readonly bool[] _active;
-            private readonly Delegate[] _getters;
+                    for (int i = min; i < srcTokens.Length; ++i)
+                        result = PfaUtils.Call(srcPrimitive[i] ? "a.append" : "a.concat", result, srcTokens[i]);
 
-            public RowCursor(IChannelProvider provider, ConcatTransform parent, IRowCursor input, bool[] active)
-                : base(provider, input)
-            {
-                Ch.AssertValue(parent);
-                Ch.Assert(active == null || active.Length == parent._bindings.ColumnCount);
-
-                _bindings = parent._bindings;
-                _active = active;
-
-                _getters = new Delegate[_bindings.Infos.Length];
-                for (int i = 0; i < _bindings.Infos.Length; i++)
-                {
-                    if (IsIndexActive(i))
-                        _getters[i] = parent.MakeGetter(Ch, Input, i);
+                    Contracts.AssertValue(result);
+                    return new KeyValuePair<string, JToken>(outName, result);
                 }
             }
 
-            public ISchema Schema { get { return _bindings; } }
-
-            private bool IsIndexActive(int iinfo)
+            public Func<int, bool> GetDependencies(Func<int, bool> activeOutput)
             {
-                Ch.Assert(0 <= iinfo & iinfo < _bindings.Infos.Length);
-                return _active == null || _active[_bindings.MapIinfoToCol(iinfo)];
+                var active = new bool[_inputSchema.ColumnCount];
+                for (int i = 0; i < _columns.Length; i++)
+                {
+                    if (activeOutput(i))
+                    {
+                        foreach (var src in _columns[i].SrcIndices)
+                            active[src] = true;
+                    }
+                }
+                return col => active[col];
             }
 
-            public bool IsColumnActive(int col)
+            public RowMapperColumnInfo[] GetOutputColumns()
+                => _columns.Select(x => x.MakeColumnInfo()).ToArray();
+
+            public void Save(ModelSaveContext ctx) => _parent.Save(ctx);
+
+            public Delegate[] CreateGetters(IRow input, Func<int, bool> activeOutput, out Action disposer)
             {
-                Ch.Check(0 <= col && col < _bindings.ColumnCount);
-                return _active == null || _active[col];
+                Contracts.Assert(input.Schema == _inputSchema);
+                var result = new Delegate[_columns.Length];
+                for (int i = 0; i < _columns.Length; i++)
+                {
+                    if (!activeOutput(i))
+                        continue;
+                    result[i] = _columns[i].MakeGetter(input);
+                }
+                disposer = null;
+                return result;
             }
 
-            public ValueGetter<TValue> GetGetter<TValue>(int col)
+            public void SaveAsPfa(BoundPfaContext ctx)
             {
-                Ch.Check(IsColumnActive(col));
+                _host.CheckValue(ctx, nameof(ctx));
 
-                bool isSrc;
-                int index = _bindings.MapColumnIndex(out isSrc, col);
-                if (isSrc)
-                    return Input.GetGetter<TValue>(index);
+                var toHide = new List<string>();
+                var toDeclare = new List<KeyValuePair<string, JToken>>();
 
-                Ch.Assert(_getters[index] != null);
-                var fn = _getters[index] as ValueGetter<TValue>;
-                if (fn == null)
-                    throw Ch.Except("Invalid TValue in GetGetter: '{0}'", typeof(TValue));
-                return fn;
+                for (int iinfo = 0; iinfo < _columns.Length; ++iinfo)
+                {
+                    var toSave = _columns[iinfo].SavePfaInfo(ctx);
+                    if (toSave.Value == null)
+                        toHide.Add(toSave.Key);
+                    else
+                        toDeclare.Add(toSave);
+                }
+                ctx.Hide(toHide.ToArray());
+                ctx.DeclareVar(toDeclare.ToArray());
+            }
+
+            public void SaveAsOnnx(OnnxContext ctx)
+            {
+                _host.CheckValue(ctx, nameof(ctx));
+                Contracts.Assert(CanSaveOnnx);
+
+                string opType = "FeatureVectorizer";
+                for (int iinfo = 0; iinfo < _columns.Length; ++iinfo)
+                {
+                    var colInfo = _parent._columns[iinfo];
+                    var boundCol = _columns[iinfo];
+
+                    string outName = colInfo.Output;
+                    var outColType = boundCol.OutputType;
+                    if (outColType.ValueCount == 0)
+                    {
+                        ctx.RemoveColumn(outName, false);
+                        continue;
+                    }
+
+                    List<KeyValuePair<string, long>> inputList = new List<KeyValuePair<string, long>>();
+                    for (int i = 0; i < boundCol.SrcIndices.Length; ++i)
+                    {
+                        var srcName = colInfo.Inputs[i].name;
+                        if (!ctx.ContainsColumn(srcName))
+                        {
+                            ctx.RemoveColumn(outName, false);
+                            return;
+                        }
+
+                        var srcIndex = boundCol.SrcIndices[i];
+                        inputList.Add(new KeyValuePair<string, long>(ctx.GetVariableName(srcName),
+                            _inputSchema.GetColumnType(srcIndex).ValueCount));
+                    }
+
+                    var node = ctx.CreateNode(opType, inputList.Select(t => t.Key),
+                        new[] { ctx.AddIntermediateVariable(outColType, outName) }, ctx.GetNodeName(opType));
+
+                    node.AddAttribute("inputdimensions", inputList.Select(x => x.Value));
+                }
             }
         }
     }
