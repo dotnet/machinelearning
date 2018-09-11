@@ -148,14 +148,12 @@ namespace Microsoft.ML.Transforms
                 // Load model binary
                 byte[] tfFilesBin = null;
                 var load = ctx.TryLoadBinaryStream("TFSavedModel", br => tfFilesBin = br.ReadByteArray());
-                var tempDirName = Path.GetFullPath(Path.Combine(Path.GetTempPath(), "_MLNET_TFTransform_" + Guid.NewGuid()));
-                var tempDir = Directory.CreateDirectory(tempDirName);
-                var tfZipFilePath = Path.Combine(tempDir.FullName, "tf_savedmodel.zip");
-                File.WriteAllBytes(tfZipFilePath, tfFilesBin);
-                ZipFile.ExtractToDirectory(tfZipFilePath, Path.Combine(tempDir.FullName, "tf_savedmodel"));
+
+                var tfSavedModelDirectoryInfo = new TensorFlowSavedModelDirectoryInfo();
+                tfSavedModelDirectoryInfo.ExtractTensorFlowBin(tfFilesBin);
 
                 var io = ModelInputsOutputs(env, ctx);
-                return new TensorFlowTransform(env, Path.Combine(tempDir.FullName, "tf_savedmodel"), io.Item1, io.Item2, (isFrozen == 1));
+                return new TensorFlowTransform(env, tfSavedModelDirectoryInfo.ExtractedSavedModelPath, io.Item1, io.Item2, (isFrozen == 1));
             }
         }
 
@@ -339,16 +337,15 @@ namespace Microsoft.ML.Transforms
             }
             else
             {
-                var tempDirName = Path.GetFullPath(Path.Combine(Path.GetTempPath(), "_MLNET_TFTransform_" + Guid.NewGuid()));
-                var tempDir = Directory.CreateDirectory(tempDirName);
-                var tfZipFilePath = Path.Combine(tempDir.FullName, "tf_savedmodel.zip");
+                var tfSavedModelDirectoryInfo = new TensorFlowSavedModelDirectoryInfo();
+                var byteArray = tfSavedModelDirectoryInfo.PackageTensorFlowSavedModel(ExportDir);
 
-                ZipFile.CreateFromDirectory(ExportDir, tfZipFilePath, CompressionLevel.Fastest, false);
-                byte[] byteArray = File.ReadAllBytes(tfZipFilePath);
                 ctx.SaveBinaryStream("TFSavedModel", w =>
                 {
                     w.WriteByteArray(byteArray);
                 });
+
+                Directory.Delete(tfSavedModelDirectoryInfo.SavedModelPath, true);
             }
             _host.AssertNonEmpty(Inputs);
             ctx.Writer.Write(Inputs.Length);
@@ -574,6 +571,39 @@ namespace Microsoft.ML.Transforms
                     _vBuffer.CopyToDense(ref _vBufferDense);
                     return TFTensor.Create(_vBufferDense.Values, _tfShape);
                 }
+            }
+        }
+
+        private sealed class TensorFlowSavedModelDirectoryInfo
+        {
+            private const string TensorFlowSavedModelZipFilename = "tf_savedmodel.zip";
+            private const string TensorFlowExtractedSavedModelPath = "SavedModelExtract";
+            private readonly string _tfSavedModelZipFilePath;
+            public string SavedModelPath { get; }
+            public string ExtractedSavedModelPath { get; set;  }
+            public TensorFlowSavedModelDirectoryInfo()
+            {
+                SavedModelPath = Path.GetFullPath(Path.Combine(Path.GetTempPath(), "_MLNET_TFTransform_" + Guid.NewGuid()));
+                var savedModelInfo = Directory.CreateDirectory(SavedModelPath);
+                _tfSavedModelZipFilePath = Path.Combine(savedModelInfo.FullName, TensorFlowSavedModelZipFilename);
+            }
+
+            public byte[] PackageTensorFlowSavedModel(string exportDir)
+            {
+                ZipFile.CreateFromDirectory(
+                    exportDir,
+                    _tfSavedModelZipFilePath,
+                    CompressionLevel.Fastest,
+                    false);
+
+                return File.ReadAllBytes(_tfSavedModelZipFilePath);
+            }
+
+            public void ExtractTensorFlowBin(byte[] tensorFlowBin)
+            {
+                ExtractedSavedModelPath = Path.Combine(SavedModelPath, TensorFlowExtractedSavedModelPath);
+                File.WriteAllBytes(_tfSavedModelZipFilePath, tensorFlowBin);
+                ZipFile.ExtractToDirectory(_tfSavedModelZipFilePath, ExtractedSavedModelPath);
             }
         }
 
