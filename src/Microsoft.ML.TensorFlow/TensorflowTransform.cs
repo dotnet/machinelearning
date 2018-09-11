@@ -33,6 +33,7 @@ using Microsoft.ML.Transforms.TensorFlow;
 
 namespace Microsoft.ML.Transforms
 {
+    /// <include file='doc.xml' path='doc/members/member[@name="TensorflowTransform"]/*' />
     public sealed class TensorFlowTransform : ITransformer, ICanSaveModel
     {
         public sealed class Arguments : TransformInputBase
@@ -62,10 +63,10 @@ namespace Microsoft.ML.Transforms
         public readonly string[] Outputs;
 
         public static int BatchSize = 1;
-        public const string Summary = "Transforms the data using the TensorFlow model.";
-        public const string UserName = "TensorFlowTransform";
-        public const string ShortName = "TFTransform";
-        public const string LoaderSignature = "TensorFlowTransform";
+        internal const string Summary = "Transforms the data using the TensorFlow model.";
+        internal const string UserName = "TensorFlowTransform";
+        internal const string ShortName = "TFTransform";
+        internal const string LoaderSignature = "TensorFlowTransform";
 
         private static VersionInfo GetVersionInfo()
         {
@@ -548,7 +549,11 @@ namespace Microsoft.ML.Transforms
             }
         }
 
-        [TlcModule.EntryPoint(Name = "Transforms.TensorFlowScorer", Desc = Summary, UserName = UserName, ShortName = ShortName)]
+        [TlcModule.EntryPoint(Name = "Transforms.TensorFlowScorer",
+            Desc = Summary,
+            UserName = UserName,
+            ShortName = ShortName,
+            XmlInclude = new[] { @"<include file='../Microsoft.ML.TensorFlow/doc.xml' path='doc/members/member[@name=""TensorflowTransform""]/*' />" })]
         public static CommonOutputs.TransformOutput TensorFlowScorer(IHostEnvironment env, Arguments input)
         {
             Contracts.CheckValue(env, nameof(env));
