@@ -87,9 +87,10 @@ namespace Microsoft.ML.Tests.Transformers
 
             var est = data2.MakeNewEstimator()
                 .Append(row => (
-                ScalarString: row.A.ToVector(bag: true),
-                ScalarStringWithBag: row.A.ToVector(bag: true),
-                VectorString: row.B.ToVector()));
+                ScalarString: row.A.ToVector(),
+                VectorString: row.B.ToVector(),
+                VectorBaggedString: row.B.ToBaggedVector()
+                ));
 
             TestEstimatorCore(est.AsDynamic, data2.AsDynamic, invalidInput: data.AsDynamic);
 

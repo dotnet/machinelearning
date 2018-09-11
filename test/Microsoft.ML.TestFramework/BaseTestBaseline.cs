@@ -26,11 +26,11 @@ namespace Microsoft.ML.Runtime.RunTests
     {
         private readonly ITestOutputHelper _output;
 
-        protected BaseTestBaseline(ITestOutputHelper helper): base(helper)
+        protected BaseTestBaseline(ITestOutputHelper helper) : base(helper)
         {
             _output = helper;
-            ITest test = (ITest)helper.GetType().GetField("test", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(helper); 
-            TestName = test.TestCase.TestMethod.Method.Name; 
+            ITest test = (ITest)helper.GetType().GetField("test", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(helper);
+            TestName = test.TestCase.TestMethod.TestClass.Class.Name + "." + test.TestCase.TestMethod.Method.Name;
             Init();
         }
 

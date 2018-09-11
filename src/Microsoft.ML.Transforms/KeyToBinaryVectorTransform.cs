@@ -499,6 +499,12 @@ namespace Microsoft.ML.Runtime.Data
             {
                 Input = input;
             }
+
+            public OutVectorColumn(VarVector<Key<TKey, TValue>> input)
+            : base(Reconciler.Inst, input)
+            {
+                Input = input;
+            }
         }
 
         private sealed class Reconciler : EstimatorReconciler
@@ -525,6 +531,9 @@ namespace Microsoft.ML.Runtime.Data
 
         /// <summary>
         /// Takes a column of key type of known cardinality and produces a vector of bits representing the key in binary form.
+        /// The first value is encoded as all zeros and missing values are encoded as all ones.
+        /// In the case where a vector has multiple keys, the encoded values are concatenated.
+        /// Number of bits per key is determined as the number of bits needed to represent the cardinality of the keys plus one.
         /// </summary>
         public static Vector<float> ToBinaryVector<TKey, TValue>(this Key<TKey, TValue> input)
         {
@@ -534,6 +543,9 @@ namespace Microsoft.ML.Runtime.Data
 
         /// <summary>
         /// Takes a column of key type of known cardinality and produces a vector of bits representing the key in binary form.
+        /// The first value is encoded as all zeros and missing values are encoded as all ones.
+        /// In the case where a vector has multiple keys, the encoded values are concatenated.
+        /// Number of bits per key is determined as the number of bits needed to represent the cardinality of the keys plus one.
         /// </summary>
         public static Vector<float> ToBinaryVector<TKey, TValue>(this Vector<Key<TKey, TValue>> input)
         {
@@ -541,5 +553,16 @@ namespace Microsoft.ML.Runtime.Data
             return new OutVectorColumn<TKey, TValue>(input);
         }
 
+        /// <summary>
+        /// Takes a column of key type of known cardinality and produces a vector of bits representing the key in binary form.
+        /// The first value is encoded as all zeros and missing values are encoded as all ones.
+        /// In the case where a vector has multiple keys, the encoded values are concatenated.
+        /// Number of bits per key is determined as the number of bits needed to represent the cardinality of the keys plus one.
+        /// </summary>
+        public static Vector<float> ToBinaryVector<TKey, TValue>(this VarVector<Key<TKey, TValue>> input)
+        {
+            Contracts.CheckValue(input, nameof(input));
+            return new OutVectorColumn<TKey, TValue>(input);
+        }
     }
 }
