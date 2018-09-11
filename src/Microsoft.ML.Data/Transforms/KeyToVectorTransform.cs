@@ -264,7 +264,7 @@ namespace Microsoft.ML.Runtime.Data
                 _types = new VectorType[_parent.ColumnPairs.Length];
                 for (int i = 0; i < _parent.ColumnPairs.Length; i++)
                 {
-                    if (_parent._columns[i].Bag|| _infos[i].TypeSrc.ValueCount == 1)
+                    if (_parent._columns[i].Bag || _infos[i].TypeSrc.ValueCount == 1)
                         _types[i] = new VectorType(NumberType.Float, _infos[i].TypeSrc.ItemType.KeyCount);
                     else
                         _types[i] = new VectorType(NumberType.Float, _infos[i].TypeSrc.ValueCount, _infos[i].TypeSrc.ItemType.KeyCount);
@@ -770,46 +770,49 @@ namespace Microsoft.ML.Runtime.Data
     /// </summary>
     public static class KeyToVectorExtensions
     {
-        private const bool DefaultBag = KeyToVectorEstimator.Defaults.Bag;
-        private struct Config
-        {
-            public readonly bool Bag;
-            public Config(bool bag)
-            {
-                Bag = bag;
-            }
-        }
-
         private interface IColInput
         {
             PipelineColumn Input { get; }
-            Config Config { get; }
+            bool Bag { get; }
         }
 
         private sealed class OutVectorColumn<TKey, TValue> : Vector<float>, IColInput
         {
             public PipelineColumn Input { get; }
-            public Config Config { get; }
+            public bool Bag { get; }
 
-            public OutVectorColumn(Vector<Key<TKey, TValue>> input, Config config)
-                : base(Reconciler.Inst, input)
-            {
-                Input = input;
-                Config = config;
-            }
-
-            public OutVectorColumn(Key<TKey, TValue> input, Config config)
-              : base(Reconciler.Inst, input)
-            {
-                Input = input;
-                Config = config;
-            }
-
-            public OutVectorColumn(VarVector<Key<TKey, TValue>> input, Config config)
+            public OutVectorColumn(Key<TKey, TValue> input)
              : base(Reconciler.Inst, input)
             {
                 Input = input;
-                Config = config;
+                Bag = false;
+            }
+
+            public OutVectorColumn(Vector<Key<TKey, TValue>> input, bool bag)
+                : base(Reconciler.Inst, input)
+            {
+                Input = input;
+                Bag = bag;
+            }
+
+            public OutVectorColumn(VarVector<Key<TKey, TValue>> input)
+             : base(Reconciler.Inst, input)
+            {
+                Input = input;
+                Bag = true;
+            }
+        }
+
+        private sealed class OutVarVectorColumn<TKey, TValue> : VarVector<float>, IColInput
+        {
+            public PipelineColumn Input { get; }
+            public bool Bag { get; }
+
+            public OutVarVectorColumn(VarVector<Key<TKey, TValue>> input)
+            : base(Reconciler.Inst, input)
+            {
+                Input = input;
+                Bag = false;
             }
         }
 
@@ -844,7 +847,7 @@ namespace Microsoft.ML.Runtime.Data
         public static Vector<float> ToVector<TKey, TValue>(this Key<TKey, TValue> input)
         {
             Contracts.CheckValue(input, nameof(input));
-            return new OutVectorColumn<TKey, TValue>(input, new Config(false));
+            return new OutVectorColumn<TKey, TValue>(input);
         }
 
         /// <summary>
@@ -856,7 +859,7 @@ namespace Microsoft.ML.Runtime.Data
         public static Vector<float> ToVector<TKey, TValue>(this Vector<Key<TKey, TValue>> input)
         {
             Contracts.CheckValue(input, nameof(input));
-            return new OutVectorColumn<TKey, TValue> (input, new Config(false));
+            return new OutVectorColumn<TKey, TValue>(input, false);
         }
 
         /// <summary>
@@ -868,10 +871,10 @@ namespace Microsoft.ML.Runtime.Data
         /// to produce the final vector with type equal to the key cardinality; so, in all cases, whether vector or scalar,
         /// the output column will be a vector type of length equal to that cardinality.
         /// </summary>
-        public static Vector<float> ToVector<TKey, TValue>(this VarVector<Key<TKey, TValue>> input)
+        public static VarVector<float> ToVector<TKey, TValue>(this VarVector<Key<TKey, TValue>> input)
         {
             Contracts.CheckValue(input, nameof(input));
-            return new OutVectorColumn<TKey, TValue> (input, new Config(false));
+            return new OutVarVectorColumn<TKey, TValue>(input);
         }
 
         /// <summary>
@@ -886,13 +889,22 @@ namespace Microsoft.ML.Runtime.Data
         public static Vector<float> ToBaggedVector<TKey, TValue>(this Vector<Key<TKey, TValue>> input)
         {
             Contracts.CheckValue(input, nameof(input));
-            return new OutVectorColumn<TKey, TValue>(input, new Config(true));
+            return new OutVectorColumn<TKey, TValue>(input, true);
         }
 
+        /// <summary>
+        /// Takes a column of key type of known cardinality and produces an indicator vector of floats.
+        /// Each key value of the input is used to create an indicator vector: the indicator vector is the length of the key cardinality,
+        /// where all values are 0, except for the entry corresponding to the value of the key, which is 1.
+        /// If the key value is missing, then all values are 0. Naturally this tends to generate very sparse vectors.
+        /// In this case then the indicator vectors for all values in the column will be simply added together,
+        /// to produce the final vector with type equal to the key cardinality; so, in all cases, whether vector or scalar,
+        /// the output column will be a vector type of length equal to that cardinality.
+        /// </summary>
         public static Vector<float> ToBaggedVector<TKey, TValue>(this VarVector<Key<TKey, TValue>> input)
         {
             Contracts.CheckValue(input, nameof(input));
-            return new OutVectorColumn<TKey, TValue>(input, new Config(true));
+            return new OutVectorColumn<TKey, TValue>(input);
         }
 
     }
