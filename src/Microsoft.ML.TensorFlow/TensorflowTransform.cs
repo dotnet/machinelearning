@@ -51,11 +51,12 @@ namespace Microsoft.ML.Transforms
         }
 
         private readonly IHost _host;
+        private readonly string _model;
         private const string RegistrationName = "TensorFlowTransform";
 
         internal readonly TFSession Session;
         internal readonly bool IsFrozen;
-        internal readonly string ExportDir;
+
         internal readonly ColumnType[] OutputTypes;
         internal readonly TFDataType[] TFOutputTypes;
         internal readonly TFDataType[] TFInputTypes;
@@ -153,7 +154,10 @@ namespace Microsoft.ML.Transforms
                 tfSavedModelDirectoryInfo.ExtractTensorFlowBin(tfFilesBin);
 
                 var io = ModelInputsOutputs(env, ctx);
-                return new TensorFlowTransform(env, tfSavedModelDirectoryInfo.ExtractedSavedModelPath, io.Item1, io.Item2, (isFrozen == 1));
+                var session = GetSession(env, tfSavedModelDirectoryInfo.ExtractedSavedModelPath, (isFrozen == 1));
+
+                Directory.Delete(tfSavedModelDirectoryInfo.SavedModelPath, true);
+                return new TensorFlowTransform(env, session, (isFrozen == 1), io.Item1, io.Item2);
             }
         }
 
@@ -225,21 +229,21 @@ namespace Microsoft.ML.Transforms
         }
 
         public TensorFlowTransform(IHostEnvironment env, string model, string[] inputs, string[] outputs, bool isFrozen = TensorFlowEstimator.Defaults.IsFrozen) :
-            this(env, GetSession(env, model, isFrozen), isFrozen, inputs, outputs, model)
+            this(env, GetSession(env, model, isFrozen), isFrozen, inputs, outputs)
         {
+            _model = model;
         }
 
         private TensorFlowTransform(IHostEnvironment env, byte[] modelBytes, bool isFrozen, string[] inputs, string[] outputs) :
-            this(env, LoadTFSession(env, modelBytes), isFrozen, inputs, outputs, null)
+            this(env, LoadTFSession(env, modelBytes), isFrozen, inputs, outputs)
         { }
 
-        private TensorFlowTransform(IHostEnvironment env, TFSession session, bool isFrozen, string[] inputs, string[] outputs, string exportDir)
+        private TensorFlowTransform(IHostEnvironment env, TFSession session, bool isFrozen, string[] inputs, string[] outputs)
         {
             Contracts.CheckValue(env, nameof(env));
             _host = env.Register(nameof(RegistrationName));
             Session = session;
             IsFrozen = isFrozen;
-            ExportDir = exportDir;
             foreach (var input in inputs)
             {
                 _host.CheckNonWhiteSpace(input, nameof(inputs));
@@ -338,7 +342,7 @@ namespace Microsoft.ML.Transforms
             else
             {
                 var tfSavedModelDirectoryInfo = new TensorFlowSavedModelDirectoryInfo();
-                var byteArray = tfSavedModelDirectoryInfo.PackageTensorFlowSavedModel(ExportDir);
+                var byteArray = tfSavedModelDirectoryInfo.PackageTensorFlowSavedModel(_model);
 
                 ctx.SaveBinaryStream("TFSavedModel", w =>
                 {
