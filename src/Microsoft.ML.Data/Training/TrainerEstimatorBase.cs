@@ -18,6 +18,12 @@ namespace Microsoft.ML.Runtime.Training
         where TModel : IPredictor
     {
         /// <summary>
+        /// A standard string to use in errors or warnings by subclasses, to communicate the idea that no valid
+        /// instances were able to be found.
+        /// </summary>
+        protected const string NoTrainingInstancesMessage = "No valid training instances found, all instances have missing features.";
+
+        /// <summary>
         /// The feature column that the trainer expects.
         /// </summary>
         public readonly SchemaShape.Column FeatureColumn;
@@ -33,11 +39,6 @@ namespace Microsoft.ML.Runtime.Training
         /// not used for training.
         /// </summary>
         public readonly SchemaShape.Column WeightColumn;
-
-        /// <summary>
-        /// The columns that will be created by the fitted transformer.
-        /// </summary>
-        protected abstract SchemaShape.Column[] OutputColumns { get; }
 
         protected readonly IHost Host;
 
@@ -70,11 +71,16 @@ namespace Microsoft.ML.Runtime.Training
             CheckInputSchema(inputSchema);
 
             var outColumns = inputSchema.Columns.ToDictionary(x => x.Name);
-            foreach (var col in OutputColumns)
+            foreach (var col in GetOutputColumnsCore(inputSchema))
                 outColumns[col.Name] = col;
 
             return new SchemaShape(outColumns.Values);
         }
+
+        /// <summary>
+        /// The columns that will be created by the fitted transformer.
+        /// </summary>
+        protected abstract SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema);
 
         public TModel Train(TrainContext context)
         {

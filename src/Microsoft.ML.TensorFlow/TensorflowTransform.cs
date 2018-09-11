@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Microsoft.ML.Core.Data;
+using Microsoft.ML.Data.StaticPipe.Runtime;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
@@ -191,6 +192,9 @@ namespace Microsoft.ML.Transforms
             Contracts.CheckValue(env, nameof(env));
             _host = env.Register(nameof(RegistrationName));
             _host.CheckValue(modelBytes, nameof(modelBytes));
+            _host.CheckNonEmpty(inputs, nameof(inputs));
+            _host.CheckNonEmpty(outputs, nameof(outputs));
+
             Session = LoadTFSession(modelBytes);
             foreach (var input in inputs)
             {
@@ -205,7 +209,7 @@ namespace Microsoft.ML.Transforms
             var newNames = new HashSet<string>();
             foreach (var output in outputs)
             {
-                _host.CheckNonEmpty(output, nameof(outputs));
+                _host.CheckNonWhiteSpace(output, nameof(outputs));
                 if (!newNames.Add(output))
                     throw _host.ExceptParam(nameof(outputs), $"Output column '{output}' specified multiple times");
                 if (Session.Graph[output] == null)
@@ -220,10 +224,15 @@ namespace Microsoft.ML.Transforms
                 var tfInput = new TFOutput(Graph[Inputs[i]]);
                 TFInputTypes[i] = tfInput.OutputType;
                 TFInputShapes[i] = Graph.GetTensorShape(tfInput);
-                var newShape = new long[TFInputShapes[i].NumDimensions];
-                for (int j = 0; j < TFInputShapes[i].NumDimensions; j++)
-                    newShape[j] = TFInputShapes[i][j] == -1 ? BatchSize : TFInputShapes[i][j];
-                TFInputShapes[i] = new TFShape(newShape);
+                if (TFInputShapes[i].NumDimensions != -1)
+                {
+                    var newShape = new long[TFInputShapes[i].NumDimensions];
+                    newShape[0] = TFInputShapes[i][0] == -1 ? BatchSize : TFInputShapes[i][0];
+
+                    for (int j = 1; j < TFInputShapes[i].NumDimensions; j++)
+                        newShape[j] = TFInputShapes[i][j];
+                    TFInputShapes[i] = new TFShape(newShape);
+                }
             }
 
             Outputs = outputs;
@@ -233,7 +242,7 @@ namespace Microsoft.ML.Transforms
             {
                 var tfOutput = new TFOutput(Graph[Outputs[i]]);
                 var shape = Graph.GetTensorShape(tfOutput);
-                int[] dims = shape.ToIntArray().Skip(shape[0] == -1 ? BatchSize : 0).ToArray();
+                int[] dims = shape.NumDimensions > 0 ? shape.ToIntArray().Skip(shape[0] == -1 ? BatchSize : 0).ToArray() : new[] { 0 };
                 var type = TensorFlowUtils.Tf2MlNetType(tfOutput.OutputType);
                 OutputTypes[i] = new VectorType(type, dims);
                 TFOutputTypes[i] = tfOutput.OutputType;
@@ -300,6 +309,7 @@ namespace Microsoft.ML.Transforms
             private readonly TensorFlowTransform _parent;
             private readonly int[] _inputColIndices;
             private readonly bool[] _isInputVector;
+            private readonly TFShape[] _fullySpecifiedShapes;
 
             public Mapper(IHostEnvironment env, TensorFlowTransform parent, ISchema inputSchema)
             {
@@ -311,26 +321,56 @@ namespace Microsoft.ML.Transforms
                 _schema = inputSchema;
                 _inputColIndices = new int[_parent.Inputs.Length];
                 _isInputVector = new bool[_parent.Inputs.Length];
+                _fullySpecifiedShapes = new TFShape[_parent.Inputs.Length];
                 for (int i = 0; i < _parent.Inputs.Length; i++)
                 {
                     if (!inputSchema.TryGetColumnIndex(_parent.Inputs[i], out _inputColIndices[i]))
                         throw _host.Except($"Column {_parent.Inputs[i]} doesn't exist");
 
                     var type = inputSchema.GetColumnType(_inputColIndices[i]);
+                    _isInputVector[i] = type.IsVector;
                     var expectedType = TensorFlowUtils.Tf2MlNetType(_parent.TFInputTypes[i]);
                     if (type.ItemType != expectedType)
                         throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", _parent.Inputs[i], expectedType.ToString(), type.ToString());
-                    var originalShape = _parent.Graph.GetTensorShape(new TFOutput(_parent.Graph[_parent.Inputs[i]]));
-                    var shape = originalShape.ToIntArray().Skip(originalShape[0] == -1 ? BatchSize : 0);
-                    _isInputVector[i] = type.IsVector;
-                    if (type.AsVector.DimCount == 1)
+                    var originalShape = _parent.TFInputShapes[i];
+                    var shape = originalShape.ToIntArray();
+
+                    var colTypeDims = Enumerable.Range(0, type.AsVector.DimCount + 1).Select(d => d == 0 ? 1 : (long)type.AsVector.GetDim(d - 1)).ToArray();
+                    if (shape == null)
+                        _fullySpecifiedShapes[i] = new TFShape(colTypeDims);
+                    else if (type.AsVector.DimCount == 1)
                     {
-                        int valCount = shape.Aggregate((x, y) => x * y);
-                        if (type.ValueCount != valCount)
-                            throw _host.Except($"Input shape mismatch: Input '{_parent.Inputs[i]}' has shape {shape.ToString()}, but input data is of length {valCount}.");
+                        // If the column is one dimension we make sure that the total size of the TF shape matches.
+                        // Compute the total size of the known dimensions of the shape.
+                        int valCount = shape.Where(x => x > 0).Aggregate((x, y) => x * y);
+                        // The column length should be divisible by this, so that the other dimensions can be integral.
+                        if (type.ValueCount % valCount != 0)
+                            throw Contracts.Except($"Input shape mismatch: Input '{_parent.Inputs[i]}' has shape {originalShape.ToString()}, but input data is of length {type.ValueCount}.");
+
+                        // If the shape is multi-dimensional, we should be able to create the length of the vector by plugging
+                        // in a single value for the unknown shapes. E.g., if the shape is [?,?,3], then there should exist a value
+                        // d such that d*d*3 is equal to the length of the input column.
+                        var d = originalShape.NumDimensions > 2 ? Math.Pow(type.ValueCount / valCount, 1.0 / (originalShape.NumDimensions - 2)) : 1;
+                        if (originalShape.NumDimensions > 2 && d - (int)d != 0)
+                            throw Contracts.Except($"Input shape mismatch: Input '{_parent.Inputs[i]}' has shape {originalShape.ToString()}, but input data is of length {type.ValueCount}.");
+
+                        // Fill in the unknown dimensions.
+                        var l = new long[originalShape.NumDimensions];
+                        for (int ishape = 0; ishape < originalShape.NumDimensions; ishape++)
+                            l[ishape] = originalShape[ishape] == -1 ? (int)d : originalShape[ishape];
+                        _fullySpecifiedShapes[i] = new TFShape(l);
                     }
-                    else if (shape.Select((dim, j) => dim != type.AsVector.GetDim(j)).Any(b => b))
-                        throw _host.Except($"Input shape mismatch: Input '{_parent.Inputs[i]}' has shape {shape.ToString()}, but input data is {type.AsVector.ToString()}.");
+                    else
+                    {
+                        if (shape.Select((dim, j) => dim != -1 && dim != colTypeDims[j]).Any(b => b))
+                            throw Contracts.Except($"Input shape mismatch: Input '{_parent.Inputs[i]}' has shape {originalShape.ToString()}, but input data is {type.AsVector.ToString()}.");
+
+                        // Fill in the unknown dimensions.
+                        var l = new long[originalShape.NumDimensions];
+                        for (int ishape = 0; ishape < originalShape.NumDimensions; ishape++)
+                            l[ishape] = originalShape[ishape] == -1 ? colTypeDims[ishape] : originalShape[ishape];
+                        _fullySpecifiedShapes[i] = new TFShape(l);
+                    }
                 }
             }
 
@@ -361,7 +401,7 @@ namespace Microsoft.ML.Transforms
                 for (int i = 0; i < _inputColIndices.Length; i++)
                 {
                     int colIndex = _inputColIndices[i];
-                    srcTensorGetters[i] = CreateTensorValueGetter(input, _parent.TFInputTypes[i], _isInputVector[i], colIndex, _parent.TFInputShapes[i]);
+                    srcTensorGetters[i] = CreateTensorValueGetter(input, _parent.TFInputTypes[i], _isInputVector[i], colIndex, _fullySpecifiedShapes[i]);
                 }
                 return srcTensorGetters;
             }
@@ -384,7 +424,7 @@ namespace Microsoft.ML.Transforms
                 var outputCache = new OutputCache();
                 var activeOutputColNames = _parent.Outputs.Where((x, i) => activeOutput(i)).ToArray();
 
-                var valueGetters = new List<Delegate>();
+                var valueGetters = new Delegate[_parent.Outputs.Length];
                 for (int i = 0; i < _parent.Outputs.Length; i++)
                 {
                     if (activeOutput(i))
@@ -392,10 +432,10 @@ namespace Microsoft.ML.Transforms
                         var type = TFTensor.TypeFromTensorType(_parent.TFOutputTypes[i]);
                         _host.Assert(type == _parent.OutputTypes[i].ItemType.RawType);
                         var srcTensorGetters = GetTensorValueGetters(input);
-                        valueGetters.Add(Utils.MarshalInvoke(MakeGetter<int>, type, input, i, srcTensorGetters, activeOutputColNames, outputCache));
+                        valueGetters[i] = Utils.MarshalInvoke(MakeGetter<int>, type, input, i, srcTensorGetters, activeOutputColNames, outputCache);
                     }
                 }
-                return valueGetters.ToArray();
+                return valueGetters;
             }
 
             private Delegate MakeGetter<T>(IRow input, int iinfo, ITensorValueGetter[] srcTensorGetters, string[] activeOutputColNames, OutputCache outputCache)
@@ -405,16 +445,15 @@ namespace Microsoft.ML.Transforms
                 {
                     UpdateCacheIfNeeded(input.Position, srcTensorGetters, activeOutputColNames, outputCache);
 
-                    var values = dst.Values;
-                    var indices = dst.Indices;
-                    if (Utils.Size(values) < _parent.OutputTypes[iinfo].VectorSize)
-                    {
-                        values = new T[_parent.OutputTypes[iinfo].VectorSize];
-                        indices = new int[_parent.OutputTypes[iinfo].VectorSize];
-                    }
+                    var tensor = outputCache.Outputs[_parent.Outputs[iinfo]];
+                    var tensorSize = tensor.Shape.Where(x => x > 0).Aggregate((x, y) => x * y);
 
-                    TensorFlowUtils.FetchData<T>(outputCache.Outputs[_parent.Outputs[iinfo]].Data, values);
-                    dst = new VBuffer<T>(values.Length, values, indices);
+                    var values = dst.Values;
+                    if (Utils.Size(values) < tensorSize)
+                        values = new T[tensorSize];
+
+                    TensorFlowUtils.FetchData<T>(tensor.Data, values);
+                    dst = new VBuffer<T>(values.Length, values, dst.Indices);
                 };
                 return valuegetter;
             }
@@ -504,7 +543,7 @@ namespace Microsoft.ML.Transforms
                 {
                     _srcgetter(ref _vBuffer);
                     _vBuffer.CopyToDense(ref _vBufferDense);
-                    return TFTensor.Create(_vBufferDense.Values, _tfShape);
+                    return TFTensor.Create(_vBufferDense.Values, _vBufferDense.Length, _tfShape);
                 }
             }
         }
@@ -554,8 +593,64 @@ namespace Microsoft.ML.Transforms
                     throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", input, expectedType.ToString(), col.ItemType.ToString());
             }
             for (var i = 0; i < Transformer.Outputs.Length; i++)
-                resultDic[Transformer.Outputs[i]] = new SchemaShape.Column(Transformer.Outputs[i], SchemaShape.Column.VectorKind.Vector, Transformer.OutputTypes[i].ItemType, false);
+            {
+                resultDic[Transformer.Outputs[i]] = new SchemaShape.Column(Transformer.Outputs[i],
+                    Transformer.OutputTypes[i].IsKnownSizeVector ? SchemaShape.Column.VectorKind.Vector
+                    : SchemaShape.Column.VectorKind.VariableVector, Transformer.OutputTypes[i].ItemType, false);
+            }
             return new SchemaShape(resultDic.Values);
+        }
+    }
+
+    public static class TensorFlowStaticExtensions
+    {
+
+        private sealed class OutColumn : Vector<float>
+        {
+            public PipelineColumn Input { get; }
+
+            public OutColumn(Vector<float> input, string modelFile)
+                : base(new Reconciler(modelFile), input)
+            {
+                Input = input;
+            }
+        }
+
+        private sealed class Reconciler : EstimatorReconciler
+        {
+            private readonly string _modelFile;
+
+            public Reconciler(string modelFile)
+            {
+                Contracts.AssertNonEmpty(modelFile);
+                _modelFile = modelFile;
+            }
+
+            public override IEstimator<ITransformer> Reconcile(IHostEnvironment env,
+                PipelineColumn[] toOutput,
+                IReadOnlyDictionary<PipelineColumn, string> inputNames,
+                IReadOnlyDictionary<PipelineColumn, string> outputNames,
+                IReadOnlyCollection<string> usedNames)
+            {
+                Contracts.Assert(toOutput.Length == 1);
+
+                var outCol = (OutColumn)toOutput[0];
+                return new TensorFlowEstimator(env, _modelFile, new[] { inputNames[outCol.Input] }, new[] { outputNames[outCol] });
+            }
+        }
+
+        // REVIEW: this method only covers one use case of using TensorFlow models: consuming one
+        // input and producing one output of floats.
+        // We could consider selectively adding some more extensions to enable common scenarios.
+        /// <summary>
+        /// Run a TensorFlow model on the input column and extract one output column.
+        /// The inputs and outputs are matched to TensorFlow graph nodes by name.
+        /// </summary>
+        public static Vector<float> ApplyTensorFlowGraph(this Vector<float> input, string modelFile)
+        {
+            Contracts.CheckValue(input, nameof(input));
+            Contracts.CheckNonEmpty(modelFile, nameof(modelFile));
+            return new OutColumn(input, modelFile);
         }
     }
 }

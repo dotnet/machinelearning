@@ -1390,7 +1390,9 @@ namespace Microsoft.ML.Runtime.Learners
 
         protected override bool ShuffleData => _args.Shuffle;
 
-        protected override SchemaShape.Column[] OutputColumns { get; }
+        private readonly SchemaShape.Column[] _outputColumns;
+
+        protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema) => _outputColumns;
 
         public override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
 
@@ -1408,7 +1410,7 @@ namespace Microsoft.ML.Runtime.Learners
 
             if (Info.NeedCalibration)
             {
-                OutputColumns = new[]
+                _outputColumns = new[]
                 {
                     new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false),
                     new SchemaShape.Column(DefaultColumnNames.PredictedLabel, SchemaShape.Column.VectorKind.Scalar, BoolType.Instance, false)
@@ -1416,7 +1418,7 @@ namespace Microsoft.ML.Runtime.Learners
             }
             else
             {
-                OutputColumns = new[]
+                _outputColumns = new[]
                 {
                     new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false),
                     new SchemaShape.Column(DefaultColumnNames.Probability, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false),
@@ -1492,7 +1494,7 @@ namespace Microsoft.ML.Runtime.Learners
         protected override BinaryPredictionTransformer<TScalarPredictor> MakeTransformer(TScalarPredictor model, ISchema trainSchema)
             => new BinaryPredictionTransformer<TScalarPredictor>(Host, model, trainSchema, FeatureColumn.Name);
 
-        public BinaryPredictionTransformer<TScalarPredictor> Train(IDataView trainData, IDataView validationData) => TrainTransformer(trainData, validationData);
+        public BinaryPredictionTransformer<TScalarPredictor> Train(IDataView trainData, IDataView validationData = null, IPredictor initialPredictor = null) => TrainTransformer(trainData, validationData, initialPredictor);
     }
 
     public sealed class StochasticGradientDescentClassificationTrainer :

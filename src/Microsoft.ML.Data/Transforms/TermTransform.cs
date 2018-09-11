@@ -708,6 +708,12 @@ namespace Microsoft.ML.Runtime.Data
                 });
         }
 
+        internal TermMap GetTermMap(int iinfo)
+        {
+            Contracts.Assert(0 <= iinfo && iinfo < _unboundMaps.Length);
+            return _unboundMaps[iinfo];
+        }
+
         protected override IRowMapper MakeRowMapper(ISchema schema)
           => new Mapper(this, schema);
 
@@ -743,7 +749,7 @@ namespace Microsoft.ML.Runtime.Data
                 _termMap = new BoundTermMap[_parent.ColumnPairs.Length];
                 for (int iinfo = 0; iinfo < _parent.ColumnPairs.Length; ++iinfo)
                 {
-                    _termMap[iinfo] = _parent._unboundMaps[iinfo].Bind(Host, inputSchema, _infos, _parent._textMetadata, iinfo);
+                    _termMap[iinfo] = Bind(Host, inputSchema, _parent._unboundMaps[iinfo], _infos, _parent._textMetadata, iinfo);
                 }
             }
 
