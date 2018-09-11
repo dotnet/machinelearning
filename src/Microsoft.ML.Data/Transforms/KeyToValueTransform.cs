@@ -182,7 +182,31 @@ namespace Microsoft.ML.Runtime.Data
 
             public void SaveAsPfa(BoundPfaContext ctx)
             {
-                throw new NotImplementedException();
+                Host.CheckValue(ctx, nameof(ctx));
+
+                var toHide = new List<string>();
+                var toDeclare = new List<KeyValuePair<string, JToken>>();
+
+                for (int iinfo = 0; iinfo < _parent.ColumnPairs.Length; ++iinfo)
+                {
+                    var info = _parent.ColumnPairs[iinfo];
+                    var srcName = info.input;
+                    string srcToken = ctx.TokenOrNullForName(srcName);
+                    if (srcToken == null)
+                    {
+                        toHide.Add(info.output);
+                        continue;
+                    }
+                    var result = _kvMaps[iinfo].SavePfa(ctx, srcToken);
+                    if (result == null)
+                    {
+                        toHide.Add(info.output);
+                        continue;
+                    }
+                    toDeclare.Add(new KeyValuePair<string, JToken>(info.output, result));
+                }
+                ctx.Hide(toHide.ToArray());
+                ctx.DeclareVar(toDeclare.ToArray());
             }
 
             protected override Delegate MakeGetter(IRow input, int iinfo, out Action disposer)
