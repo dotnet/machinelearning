@@ -85,6 +85,8 @@
                         Runtime="@(_fileFromArchiveFlat->'%(Runtime)')"
                         PackagePath="@(PackageFileFromArchive->'%(PackagePath)')"
                         CopyToNativeAssets="@(PackageFileFromArchive->'%(CopyToNativeAssets)')" />
+      <!-- not every archive contains every PackageFileFromArchive, so remove those that didn't intersect -->
+      <_fileFromArchive Remove="@(_fileFromArchive)" Condition="'%(_fileFromArchive.ExtractDirectory)' == ''" />
       <_fileFromArchive Condition="'%(_fileFromArchive.PackagePath)' == ''" PackagePath="runtimes\%(_fileFromArchive.Runtime)\native\%(FileName)%(Extension)" />
 
       <!-- copy to packaging location -->
