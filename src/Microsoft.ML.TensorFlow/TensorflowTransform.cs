@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Microsoft.ML.Core.Data;
+using Microsoft.ML.Data.StaticPipe.Runtime;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
@@ -556,6 +557,58 @@ namespace Microsoft.ML.Transforms
             for (var i = 0; i < Transformer.Outputs.Length; i++)
                 resultDic[Transformer.Outputs[i]] = new SchemaShape.Column(Transformer.Outputs[i], SchemaShape.Column.VectorKind.Vector, Transformer.OutputTypes[i].ItemType, false);
             return new SchemaShape(resultDic.Values);
+        }
+    }
+
+    public static class TensorFlowStaticExtensions
+    {
+
+        private sealed class OutColumn : Vector<float>
+        {
+            public PipelineColumn Input { get; }
+
+            public OutColumn(Vector<float> input, string modelFile)
+                : base(new Reconciler(modelFile), input)
+            {
+                Input = input;
+            }
+        }
+
+        private sealed class Reconciler : EstimatorReconciler
+        {
+            private readonly string _modelFile;
+
+            public Reconciler(string modelFile)
+            {
+                Contracts.AssertNonEmpty(modelFile);
+                _modelFile = modelFile;
+            }
+
+            public override IEstimator<ITransformer> Reconcile(IHostEnvironment env,
+                PipelineColumn[] toOutput,
+                IReadOnlyDictionary<PipelineColumn, string> inputNames,
+                IReadOnlyDictionary<PipelineColumn, string> outputNames,
+                IReadOnlyCollection<string> usedNames)
+            {
+                Contracts.Assert(toOutput.Length == 1);
+
+                var outCol = (OutColumn)toOutput[0];
+                return new TensorFlowEstimator(env, _modelFile, new[] { inputNames[outCol.Input] }, new[] { outputNames[outCol] });
+            }
+        }
+
+        // REVIEW: this method only covers one use case of using TensorFlow models: consuming one
+        // input and producing one output of floats.
+        // We could consider selectively adding some more extensions to enable common scenarios.
+        /// <summary>
+        /// Run a TensorFlow model on the input column and extract one output column.
+        /// The inputs and outputs are matched to TensorFlow graph nodes by name.
+        /// </summary>
+        public static Vector<float> ApplyTensorFlowGraph(this Vector<float> input, string modelFile)
+        {
+            Contracts.CheckValue(input, nameof(input));
+            Contracts.CheckNonEmpty(modelFile, nameof(modelFile));
+            return new OutColumn(input, modelFile);
         }
     }
 }
