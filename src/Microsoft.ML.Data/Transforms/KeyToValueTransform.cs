@@ -163,8 +163,7 @@ namespace Microsoft.ML.Runtime.Data
                 : base(parent.Host.Register(nameof(Mapper)), parent, inputSchema)
             {
                 _parent = parent;
-                ComputeKVMapsAndMetadata(inputSchema, out _types, out _kvMaps);
-
+                ComputeKvMaps(inputSchema, out _types, out _kvMaps);
             }
 
             public override RowMapperColumnInfo[] GetOutputColumns()
@@ -188,7 +187,7 @@ namespace Microsoft.ML.Runtime.Data
             }
 
             // Computes the types of the columns and constructs the kvMaps.
-            private void ComputeKVMapsAndMetadata(ISchema schema, out ColumnType[] types, out KeyToValueMap[] kvMaps)
+            private void ComputeKvMaps(ISchema schema, out ColumnType[] types, out KeyToValueMap[] kvMaps)
             {
                 types = new ColumnType[_parent.ColumnPairs.Length];
                 kvMaps = new KeyToValueMap[_parent.ColumnPairs.Length];
