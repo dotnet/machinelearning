@@ -412,7 +412,7 @@ namespace Microsoft.ML.Transforms.TensorFlow
         // Convenience function to factor out the setup of a new tensor from an array
         internal static IntPtr SetupTensor(TFDataType dt, long[] dims, Array data, int count, int size)
         {
-            return SetupTensor(dt, dims, data, start: 0, count: count, size: size);
+            return SetupTensor(dt, dims, data, 0, count, size);
         }
 
         // Convenience function to factor out the setup of a new tensor from an array
@@ -422,7 +422,7 @@ namespace Microsoft.ML.Transforms.TensorFlow
             for (int i = 0; i < dims.Length; i++)
                 dims[i] = data.GetLength(i);
 
-            return SetupTensor(dt, dims, data, start: 0, count: data.Length, size: size);
+            return SetupTensor(dt, dims, data, 0, data.Length, size);
         }
 
         // Use for single dimension arrays
