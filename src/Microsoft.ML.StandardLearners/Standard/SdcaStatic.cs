@@ -215,7 +215,7 @@ namespace Microsoft.ML.Runtime.Learners
         /// <returns>The set of output columns including in order the predicted per-class likelihoods (between 0 and 1, and summing up to 1), and the predicted label.</returns>
         public static (Vector<float> score, Key<uint, TVal> predictedLabel)
             PredictSdcaClassification<TVal>(this Key<uint, TVal> label, Vector<float> features,
-                ISupportSdcaClassificationLoss loss,
+                ISupportSdcaClassificationLoss loss = null,
                 Scalar<float> weights = null,
                 float? l2Const = null,
                 float? l1Threshold = null,
@@ -231,15 +231,15 @@ namespace Microsoft.ML.Runtime.Learners
             Contracts.CheckParam(!(maxIterations < 1), nameof(maxIterations), "Must be positive if specified");
             Contracts.CheckValueOrNull(onFit);
 
-            bool hasProbs = loss is LogLoss;
-
             var args = new SdcaMultiClassTrainer.Arguments
             {
                 L2Const = l2Const,
                 L1Threshold = l1Threshold,
-                MaxIterations = maxIterations,
-                LossFunction = new TrivialClassificationLossFactory(loss)
+                MaxIterations = maxIterations
             };
+
+            if (loss != null)
+                args.LossFunction = new TrivialClassificationLossFactory(loss);
 
             var rec = new TrainerEstimatorReconciler.MulticlassClassifier<TVal>(
                 (env, labelName, featuresName, weightsName) =>

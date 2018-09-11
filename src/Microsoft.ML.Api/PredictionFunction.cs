@@ -7,6 +7,10 @@ using Microsoft.ML.Runtime.Api;
 
 namespace Microsoft.ML.Runtime.Data
 {
+    /// <summary>
+    /// A prediction engine class, that takes instances of <typeparamref name="TSrc"/> through
+    /// the transformer pipeline and produces instances of <typeparamref name="TDst"/> as outputs.
+    /// </summary>
     public sealed class PredictionFunction<TSrc, TDst>
                 where TSrc : class
                 where TDst : class, new()
@@ -27,6 +31,12 @@ namespace Microsoft.ML.Runtime.Data
 
     public static class PredictionFunctionExtensions
     {
+        /// <summary>
+        /// Create an instance of the 'prediction function', or 'prediction machine', from a model
+        /// denoted by <paramref name="transformer"/>.
+        /// It will be accepting instances of <typeparamref name="TSrc"/> as input, and produce
+        /// instances of <typeparamref name="TDst"/> as output.
+        /// </summary>
         public static PredictionFunction<TSrc, TDst> MakePredictionFunction<TSrc, TDst>(this ITransformer transformer, IHostEnvironment env)
                 where TSrc : class
                 where TDst : class, new()

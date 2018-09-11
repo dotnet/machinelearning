@@ -8,7 +8,6 @@ using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Internal.Utilities;
-using static Microsoft.ML.Data.StaticPipe.Runtime.TrainerEstimatorReconciler;
 
 namespace Microsoft.ML.Data.StaticPipe.Runtime
 {
@@ -365,10 +364,11 @@ namespace Microsoft.ML.Data.StaticPipe.Runtime
             private static readonly string[] _fixedOutputNames = new[] { DefaultColumnNames.Score, DefaultColumnNames.PredictedLabel };
 
             /// <summary>
-            /// Constructs a new general regression reconciler.
+            /// Constructs a new general multiclass classifier reconciler.
             /// </summary>
             /// <param name="estimatorFactory">The delegate to create the training estimator. It is assumed that this estimator
-            /// will produce a single new scalar <see cref="float"/> column named <see cref="DefaultColumnNames.Score"/>.</param>
+            /// will produce a vector <see cref="float"/> column named <see cref="DefaultColumnNames.Score"/> and a scalar
+            /// key column named <see cref="DefaultColumnNames.PredictedLabel"/>.</param>
             /// <param name="label">The input label column.</param>
             /// <param name="features">The input features column.</param>
             /// <param name="weights">The input weights column, or <c>null</c> if there are no weights.</param>

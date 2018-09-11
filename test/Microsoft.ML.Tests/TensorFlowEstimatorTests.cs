@@ -151,15 +151,16 @@ namespace Microsoft.ML.Tests
                 var imageFolder = Path.GetDirectoryName(dataFile);
 
                 var data = TextLoader.CreateReader(env, ctx => (
-                    ImagePath: ctx.LoadText(0),
-                    Name: ctx.LoadText(1)))
+                    imagePath: ctx.LoadText(0),
+                    name: ctx.LoadText(1)))
                     .Read(new MultiFileSource(dataFile));
 
+                // Note that CamelCase column names are there to match the TF graph node names.
                 var pipe = data.MakeNewEstimator()
                     .Append(row => (
-                        row.Name,
-                        Input: row.ImagePath.LoadAsImage(imageFolder).Resize(imageHeight, imageWidth).ExtractPixels(interleaveArgb: true)))
-                    .Append(row => (row.Name, Output: row.Input.ApplyTensorFlowGraph(modelLocation)));
+                        row.name,
+                        Input: row.imagePath.LoadAsImage(imageFolder).Resize(imageHeight, imageWidth).ExtractPixels(interleaveArgb: true)))
+                    .Append(row => (row.name, Output: row.Input.ApplyTensorFlowGraph(modelLocation)));
 
                 TestEstimatorCore(pipe.AsDynamic, data.AsDynamic);
 
