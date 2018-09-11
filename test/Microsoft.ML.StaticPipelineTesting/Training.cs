@@ -8,6 +8,7 @@ using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Internal.Calibration;
 using Microsoft.ML.Runtime.Learners;
 using System;
+using System.Linq;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -167,6 +168,53 @@ namespace Microsoft.ML.StaticPipelineTesting
             Assert.InRange(metrics.Accuracy, 0, 1);
             Assert.InRange(metrics.Auc, 0, 1);
             Assert.InRange(metrics.Auprc, 0, 1);
+
+            // Just output some data on the schema for fun.
+            var schema = data.AsDynamic.Schema;
+            for (int c = 0; c < schema.ColumnCount; ++c)
+                Console.WriteLine($"{schema.GetColumnName(c)}, {schema.GetColumnType(c)}");
+        }
+
+        [Fact]
+        public void SdcaMulticlassClassification()
+        {
+            var env = new TlcEnvironment(seed: 0);
+            var dataPath = GetDataPath("iris.data");
+            var dataSource = new MultiFileSource(dataPath);
+
+            var reader = TextLoader.CreateReader(env,
+                c => (label: c.LoadText(4), features: c.LoadFloat(0, 3)),
+                separator: ',');
+
+            MulticlassLogisticRegressionPredictor pred = null;
+
+            var est = reader.MakeNewEstimator()
+                .Append(r => (label: r.label.ToKey(), r.features))
+                .Append(r => (r.label, preds: r.label.PredictSdcaClassification(r.features, onFit: p => pred = p)));
+            var pipe = reader.Append(est);
+
+            Assert.Null(pred);
+            var model = pipe.Fit(dataSource);
+            Assert.NotNull(pred);
+
+            VBuffer<float>[] weights = default;
+            pred.GetWeights(ref weights, out int numClasses);
+            Assert.Equal(3, numClasses);
+            Assert.Equal(3, weights.Length);
+            for (int i = 0; i < weights.Length; ++i)
+                Assert.Equal(4, weights[i].Length);
+
+            var data = model.Read(dataSource);
+
+            var metrics = MultiClassClassifierEvaluator.Evaluate(data, r => r.label, r => r.preds, 2);
+            Assert.InRange(metrics.AccuracyMacro, 0, 1);
+            Assert.InRange(metrics.AccuracyMicro, 0, 1);
+            Assert.InRange(metrics.LogLoss, 0, double.PositiveInfinity);
+            Assert.Equal(3, metrics.PerClassLogLoss.Length);
+            Assert.InRange(metrics.PerClassLogLoss.Min(), 0, double.PositiveInfinity);
+            Assert.InRange(metrics.PerClassLogLoss.Max(), 0, double.PositiveInfinity);
+            Assert.InRange(metrics.LogLoss, metrics.PerClassLogLoss.Min(), metrics.PerClassLogLoss.Max());
+            Assert.InRange(metrics.TopKAccuracy, metrics.AccuracyMicro, 1);
 
             // Just output some data on the schema for fun.
             var schema = data.AsDynamic.Schema;

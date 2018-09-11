@@ -6,6 +6,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
+using Microsoft.ML.Data.StaticPipe;
+using Microsoft.ML.Data.StaticPipe.Runtime;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
@@ -496,6 +498,166 @@ namespace Microsoft.ML.Runtime.Data
                     values[i] = new DvText(string.Format("(class {0})", ClassNames[i]));
                 slotNames = new VBuffer<DvText>(ClassNames.Length, values);
             }
+        }
+
+        public sealed class Result
+        {
+            /// <summary>
+            /// Gets the micro-average accuracy of the model.
+            /// </summary>
+            /// <remarks>
+            /// The micro-average is the fraction of instances predicted correctly.
+            ///
+            /// The micro-average metric weighs each class according to the number of instances that belong
+            /// to it in the dataset.
+            /// </remarks>
+            public double AccuracyMicro { get; }
+
+            /// <summary>
+            /// Gets the macro-average accuracy of the model.
+            /// </summary>
+            /// <remarks>
+            /// The macro-average is computed by taking the average over all the classes of the fraction
+            /// of correct predictions in this class (the number of correctly predicted instances in the class,
+            /// divided by the total number of instances in the class).
+            ///
+            /// The macro-average metric gives the same weight to each class, no matter how many instances from
+            /// that class the dataset contains.
+            /// </remarks>
+            public double AccuracyMacro { get; }
+
+            /// <summary>
+            /// Gets the average log-loss of the classifier.
+            /// </summary>
+            /// <remarks>
+            /// The log-loss metric, is computed as follows:
+            /// LL = - (1/m) * sum( log(p[i]))
+            /// where m is the number of instances in the test set.
+            /// p[i] is the probability returned by the classifier if the instance belongs to class 1,
+            /// and 1 minus the probability returned by the classifier if the instance belongs to class 0.
+            /// </remarks>
+            public double LogLoss { get; }
+
+            /// <summary>
+            /// Gets the log-loss reduction (also known as relative log-loss, or reduction in information gain - RIG)
+            /// of the classifier.
+            /// </summary>
+            /// <remarks>
+            /// The log-loss reduction is scaled relative to a classifier that predicts the prior for every example:
+            /// (LL(prior) - LL(classifier)) / LL(prior)
+            /// This metric can be interpreted as the advantage of the classifier over a random prediction.
+            /// E.g., if the RIG equals 20, it can be interpreted as "the probability of a correct prediction is
+            /// 20% better than random guessing".
+            /// </remarks>
+            public double LogLossReduction { get; private set; }
+
+            /// <summary>
+            /// If positive, this is the top-K for which the <see cref="TopKAccuracy"/> is calculated.
+            /// </summary>
+            public int TopK { get; }
+
+            /// <summary>
+            /// If <see cref="TopK"/> is positive, this is the relative number of examples where
+            /// the true label is one of the top k predicted labels by the predictor.
+            /// </summary>
+            public double TopKAccuracy { get; }
+
+            /// <summary>
+            /// Gets the log-loss of the classifier for each class.
+            /// </summary>
+            /// <remarks>
+            /// The log-loss metric, is computed as follows:
+            /// LL = - (1/m) * sum( log(p[i]))
+            /// where m is the number of instances in the test set.
+            /// p[i] is the probability returned by the classifier if the instance belongs to the class,
+            /// and 1 minus the probability returned by the classifier if the instance does not belong to the class.
+            /// </remarks>
+            public double[] PerClassLogLoss { get; }
+
+            private static T Fetch<T>(IExceptionContext ectx, IRow row, string name)
+            {
+                if (!row.Schema.TryGetColumnIndex(name, out int col))
+                    throw ectx.Except($"Could not find column '{name}'");
+                T val = default;
+                row.GetGetter<T>(col)(ref val);
+                return val;
+            }
+            internal Result(IExceptionContext ectx, IRow overallResult, int topK)
+            {
+                double Fetch(string name) => Fetch<double>(ectx, overallResult, name);
+                AccuracyMicro = Fetch(MultiClassClassifierEvaluator.AccuracyMicro);
+                AccuracyMacro = Fetch(MultiClassClassifierEvaluator.AccuracyMacro);
+                LogLoss = Fetch(MultiClassClassifierEvaluator.LogLoss);
+                LogLossReduction = Fetch(MultiClassClassifierEvaluator.LogLossReduction);
+                TopK = topK;
+                if (topK > 0)
+                    TopKAccuracy = Fetch(MultiClassClassifierEvaluator.TopKAccuracy);
+
+                var perClassLogLoss = Fetch<VBuffer<double>>(ectx, overallResult, MultiClassClassifierEvaluator.PerClassLogLoss);
+                PerClassLogLoss = new double[perClassLogLoss.Length];
+                perClassLogLoss.CopyTo(PerClassLogLoss);
+            }
+        }
+
+        /// <summary>
+        /// Evaluates scored regression data.
+        /// </summary>
+        /// <typeparam name="T">The shape type for the input data.</typeparam>
+        /// <typeparam name="TKey">The value type for the key label.</typeparam>
+        /// <param name="data">The data to evaluate.</param>
+        /// <param name="label">The index delegate for the label column.</param>
+        /// <param name="pred">The index delegate for columns from prediction of a multi-class classifier.
+        /// Under typical scenarios, this will just be the same tuple of results returned from the trainer.</param>
+        /// <param name="topK">If given a positive value, the <see cref="Result.TopKAccuracy"/> will be filled with
+        /// the top-K accuracy, that is, the accuracy assuming we consider an example with the correct class within
+        /// the top-K values as being stored "correctly."</param>
+        /// <returns>The evaluation results for these outputs.</returns>
+        public static Result Evaluate<T, TKey>(
+            DataView<T> data,
+            Func<T, Key<uint, TKey>> label,
+            Func<T, (Vector<float> score, Key<uint, TKey> predictedLabel)> pred,
+            int topK = 0)
+        {
+            Contracts.CheckValue(data, nameof(data));
+            var env = StaticPipeUtils.GetEnvironment(data);
+            Contracts.AssertValue(env);
+            env.CheckValue(label, nameof(label));
+            env.CheckValue(pred, nameof(pred));
+            env.CheckParam(topK >= 0, nameof(topK), "Must not be negative.");
+
+            var indexer = StaticPipeUtils.GetIndexer(data);
+            string labelName = indexer.Get(label(indexer.Indices));
+            (var scoreCol, var predCol) = pred(indexer.Indices);
+            Contracts.CheckParam(scoreCol != null, nameof(pred), "Indexing delegate resulted in null score column.");
+            Contracts.CheckParam(predCol != null, nameof(pred), "Indexing delegate resulted in null predicted label column.");
+            string scoreName = indexer.Get(scoreCol);
+            string predName = indexer.Get(predCol);
+
+            var args = new Arguments() { };
+            if (topK > 0)
+                args.OutputTopKAcc = topK;
+
+            var eval = new MultiClassClassifierEvaluator(env, args);
+
+            var roles = new RoleMappedData(data.AsDynamic, opt: false,
+                RoleMappedSchema.ColumnRole.Label.Bind(labelName),
+                RoleMappedSchema.CreatePair(MetadataUtils.Const.ScoreValueKind.Score, scoreName),
+                RoleMappedSchema.CreatePair(MetadataUtils.Const.ScoreValueKind.PredictedLabel, predName));
+
+            var resultDict = eval.Evaluate(roles);
+            env.Assert(resultDict.ContainsKey(MetricKinds.OverallMetrics));
+            var overall = resultDict[MetricKinds.OverallMetrics];
+
+            Result result;
+            using (var cursor = overall.GetRowCursor(i => true))
+            {
+                var moved = cursor.MoveNext();
+                env.Assert(moved);
+                result = new Result(env, cursor, topK);
+                moved = cursor.MoveNext();
+                env.Assert(!moved);
+            }
+            return result;
         }
     }
 
