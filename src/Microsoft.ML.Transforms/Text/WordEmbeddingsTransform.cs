@@ -426,13 +426,14 @@ namespace Microsoft.ML.Runtime.Data
                         dimension = wordsInFirstLine.Length - 1;
                         if (model == null)
                             model = new Model(dimension);
-                        float temp;
-                        string firstKey = wordsInFirstLine[0];
-                        float[] firstValue = wordsInFirstLine.Skip(1).Select(x => float.TryParse(x, out temp) ? temp : Single.NaN).ToArray();
-                        if (!firstValue.Contains(Single.NaN) && firstValue.Length == model.Dimension)
-                            model.AddWordVector(ch, firstKey, firstValue);
-                        else
-                            ch.Warning($"Parsing error while reading model file: '{_modelFileNameWithPath}', line number 1");
+                        if (model.Dimension == dimension)
+                        {
+                            float temp;
+                            string firstKey = wordsInFirstLine[0];
+                            float[] firstValue = wordsInFirstLine.Skip(1).Select(x => float.TryParse(x, out temp) ? temp : Single.NaN).ToArray();
+                            if (!firstValue.Contains(Single.NaN))
+                                model.AddWordVector(ch, firstKey, firstValue);
+                        }
                         pch.Checkpoint(lineNumber);
                     }
                 }
