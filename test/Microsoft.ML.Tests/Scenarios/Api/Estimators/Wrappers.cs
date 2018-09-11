@@ -354,24 +354,6 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         }
     }
 
-    public sealed class MyPredictionEngine<TSrc, TDst>
-                where TSrc : class
-                where TDst : class, new()
-    {
-        private readonly PredictionEngine<TSrc, TDst> _engine;
-
-        public MyPredictionEngine(IHostEnvironment env, ITransformer pipe)
-        {
-            IDataView dv = env.CreateDataView(new TSrc[0]);
-            _engine = env.CreatePredictionEngine<TSrc, TDst>(pipe.Transform(dv));
-        }
-
-        public TDst Predict(TSrc example)
-        {
-            return _engine.Predict(example);
-        }
-    }
-
     public sealed class MyBinaryClassifierEvaluator
     {
         private readonly IHostEnvironment _env;

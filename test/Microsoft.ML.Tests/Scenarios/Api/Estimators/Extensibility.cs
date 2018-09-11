@@ -43,7 +43,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                     .Append(new MyKeyToValueTransform(env, "PredictedLabel"));
 
                 var model = pipeline.Fit(data).GetModelFor(TransformerScope.Scoring);
-                var engine = new MyPredictionEngine<IrisData, IrisPrediction>(env, model);
+                var engine = model.MakePredictionFunction<IrisDataNoLabel, IrisPrediction>(env);
 
                 var testLoader = TextLoader.ReadFile(env, MakeIrisTextLoaderArgs(), new MultiFileSource(dataPath));
                 var testData = testLoader.AsEnumerable<IrisData>(env, false);
