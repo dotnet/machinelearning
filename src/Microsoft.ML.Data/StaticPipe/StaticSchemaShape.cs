@@ -254,9 +254,9 @@ namespace Microsoft.ML.Data.StaticPipe.Runtime
                         var normtype = meta.Schema.GetColumnType(normcol);
                         if (normtype == BoolType.Instance)
                         {
-                            DvBool val = default;
-                            meta.GetGetter<DvBool>(normcol)(ref val);
-                            if (val.IsTrue)
+                            bool val = default;
+                            meta.GetGetter<bool>(normcol)(ref val);
+                            if (val)
                                 vecType = typeof(NormVector<>);
                         }
                     }

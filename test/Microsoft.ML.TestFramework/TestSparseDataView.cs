@@ -35,7 +35,7 @@ namespace Microsoft.ML.Runtime.RunTests
         {
             GenericSparseDataView(new[] { 1f, 2f, 3f }, new[] { 1f, 10f, 100f });
             GenericSparseDataView(new DvInt4[] { 1, 2, 3 }, new DvInt4[] { 1, 10, 100 });
-            GenericSparseDataView(new DvBool[] { true, true, true }, new DvBool[] { false, false, false });
+            GenericSparseDataView(new bool[] { true, true, true }, new bool[] { false, false, false });
             GenericSparseDataView(new double[] { 1, 2, 3 }, new double[] { 1, 10, 100 });
             GenericSparseDataView(new DvText[] { new DvText("a"), new DvText("b"), new DvText("c") },
                                   new DvText[] { new DvText("aa"), new DvText("bb"), new DvText("cc") });
@@ -77,7 +77,7 @@ namespace Microsoft.ML.Runtime.RunTests
         {
             GenericDenseDataView(new[] { 1f, 2f, 3f }, new[] { 1f, 10f, 100f });
             GenericDenseDataView(new DvInt4[] { 1, 2, 3 }, new DvInt4[] { 1, 10, 100 });
-            GenericDenseDataView(new DvBool[] { true, true, true }, new DvBool[] { false, false, false });
+            GenericDenseDataView(new bool[] { true, true, true }, new bool[] { false, false, false });
             GenericDenseDataView(new double[] { 1, 2, 3 }, new double[] { 1, 10, 100 });
             GenericDenseDataView(new DvText[] { new DvText("a"), new DvText("b"), new DvText("c") },
                                  new DvText[] { new DvText("aa"), new DvText("bb"), new DvText("cc") });

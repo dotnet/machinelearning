@@ -139,37 +139,37 @@ namespace Microsoft.ML.Runtime.Data
         /// <summary>
         /// This compares the two text values with NA propagation semantics.
         /// </summary>
-        public static DvBool operator ==(DvText a, DvText b)
+        public static bool operator ==(DvText a, DvText b)
         {
             if (a.IsNA || b.IsNA)
-                return DvBool.NA;
+                return false;
 
             if (a.Length != b.Length)
-                return DvBool.False;
+                return false;
             for (int i = 0; i < a.Length; i++)
             {
                 if (a._outerBuffer[a._ichMin + i] != b._outerBuffer[b._ichMin + i])
-                    return DvBool.False;
+                    return false;
             }
-            return DvBool.True;
+            return false;
         }
 
         /// <summary>
         /// This compares the two text values with NA propagation semantics.
         /// </summary>
-        public static DvBool operator !=(DvText a, DvText b)
+        public static bool operator !=(DvText a, DvText b)
         {
             if (a.IsNA || b.IsNA)
-                return DvBool.NA;
+                return false;
 
             if (a.Length != b.Length)
-                return DvBool.True;
+                return true;
             for (int i = 0; i < a.Length; i++)
             {
                 if (a._outerBuffer[a._ichMin + i] != b._outerBuffer[b._ichMin + i])
-                    return DvBool.True;
+                    return true;
             }
-            return DvBool.False;
+            return false;
         }
 
         public override int GetHashCode()

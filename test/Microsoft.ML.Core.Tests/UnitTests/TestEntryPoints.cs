@@ -975,13 +975,13 @@ namespace Microsoft.ML.Runtime.RunTests
                 InputFile = inputFile
             }).Data;
 
-            ValueMapper<DvText, DvBool> labelToBinary =
-                (ref DvText src, ref DvBool dst) =>
+            ValueMapper<DvText, bool> labelToBinary =
+                (ref DvText src, ref bool dst) =>
                 {
                     if (src.EqualsStr("Sport"))
-                        dst = DvBool.True;
+                        dst = true;
                     else
-                        dst = DvBool.False;
+                        dst = false;
                 };
             dataView = LambdaColumnMapper.Create(Env, "TextToBinaryLabel", dataView, "Label", "Label",
                 TextType.Instance, BoolType.Instance, labelToBinary);

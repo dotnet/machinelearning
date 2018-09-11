@@ -300,7 +300,7 @@ namespace Microsoft.ML.Runtime.Data
             private int[] _featureSums;
             private readonly List<Single> _singles;
             private readonly List<Double> _doubles;
-            private ValueMapper<VBuffer<DvBool>, VBuffer<int>> _boolMapper;
+            private ValueMapper<VBuffer<bool>, VBuffer<int>> _boolMapper;
 
             public Impl(IHost host)
             {
@@ -428,7 +428,7 @@ namespace Microsoft.ML.Runtime.Data
                 }
                 else if (labelType.IsBool)
                 {
-                    var tmp = default(VBuffer<DvBool>);
+                    var tmp = default(VBuffer<bool>);
                     trans.GetSingleSlotValue(labelCol, ref tmp);
                     BinBools(ref tmp, ref labels);
                     _numLabels = 3;
@@ -510,7 +510,7 @@ namespace Microsoft.ML.Runtime.Data
                 if (type.ItemType.IsBool)
                 {
                     return ComputeMutualInformation(trans, col,
-                        (ref VBuffer<DvBool> src, ref VBuffer<int> dst, out int min, out int lim) =>
+                        (ref VBuffer<bool> src, ref VBuffer<int> dst, out int min, out int lim) =>
                         {
                             min = -1;
                             lim = 2;
@@ -756,16 +756,16 @@ namespace Microsoft.ML.Runtime.Data
                 _doubles.Clear();
             }
 
-            private void BinBools(ref VBuffer<DvBool> input, ref VBuffer<int> output)
+            private void BinBools(ref VBuffer<bool> input, ref VBuffer<int> output)
             {
                 if (_boolMapper == null)
-                    _boolMapper = CreateVectorMapper<DvBool, int>(BinOneBool);
+                    _boolMapper = CreateVectorMapper<bool, int>(BinOneBool);
                 _boolMapper(ref input, ref output);
             }
 
-            private void BinOneBool(ref DvBool src, ref int dst)
+            private void BinOneBool(ref bool src, ref int dst)
             {
-                dst = src.IsNA ? -1 : src.IsFalse ? 0 : 1;
+                dst = Convert.ToInt32(src);
             }
         }
 

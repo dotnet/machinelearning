@@ -409,7 +409,7 @@ namespace Microsoft.ML.Runtime.Data
                     case MetadataUtils.Kinds.IsNormalized:
                         if (!_isNormalized[iinfo])
                             throw MetadataUtils.ExceptGetMetadata();
-                        MetadataUtils.Marshal<DvBool, TValue>(IsNormalized, iinfo, ref value);
+                        MetadataUtils.Marshal<bool, TValue>(IsNormalized, iinfo, ref value);
                         break;
                     default:
                         base.GetMetadataCore(kind, iinfo, ref value);
@@ -443,9 +443,9 @@ namespace Microsoft.ML.Runtime.Data
                 dst = new VBuffer<DvInt4>(allValues.Count, allValues.ToArray());
             }
 
-            private void IsNormalized(int iinfo, ref DvBool dst)
+            private void IsNormalized(int iinfo, ref bool dst)
             {
-                dst = DvBool.True;
+                dst = true;
             }
 
             private void GetSlotNames(int iinfo, ref VBuffer<DvText> dst)

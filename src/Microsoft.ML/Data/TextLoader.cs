@@ -182,7 +182,7 @@ namespace Microsoft.ML.Data
                 kind = DataKind.R8;
             else if (type == typeof(DvText) || type == typeof(string))
                 kind = DataKind.TX;
-            else if (type == typeof(DvBool) || type == typeof(bool))
+            else if (type == typeof(bool))
                 kind = DataKind.BL;
             else if (type == typeof(DvTimeSpan) || type == typeof(TimeSpan))
                 kind = DataKind.TS;

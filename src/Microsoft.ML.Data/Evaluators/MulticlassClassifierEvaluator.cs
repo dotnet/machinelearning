@@ -139,7 +139,7 @@ namespace Microsoft.ML.Runtime.Data
         {
             var stratCol = new List<uint>();
             var stratVal = new List<DvText>();
-            var isWeighted = new List<DvBool>();
+            var isWeighted = new List<bool>();
 
             var microAcc = new List<Double>();
             var macroAcc = new List<Double>();
@@ -165,7 +165,7 @@ namespace Microsoft.ML.Runtime.Data
 
                     stratCol.Add(stratColKey);
                     stratVal.Add(stratColVal);
-                    isWeighted.Add(DvBool.False);
+                    isWeighted.Add(false);
                     microAcc.Add(agg.UnweightedCounters.MicroAvgAccuracy);
                     macroAcc.Add(agg.UnweightedCounters.MacroAvgAccuracy);
                     logLoss.Add(agg.UnweightedCounters.LogLoss);
@@ -182,7 +182,7 @@ namespace Microsoft.ML.Runtime.Data
                     {
                         stratCol.Add(stratColKey);
                         stratVal.Add(stratColVal);
-                        isWeighted.Add(DvBool.True);
+                        isWeighted.Add(true);
                         microAcc.Add(agg.WeightedCounters.MicroAvgAccuracy);
                         macroAcc.Add(agg.WeightedCounters.MacroAvgAccuracy);
                         logLoss.Add(agg.WeightedCounters.LogLoss);

@@ -135,7 +135,7 @@ namespace Microsoft.ML.Runtime.Data
                     _ectx.CheckParam(0 <= col && col < ColumnCount, nameof(col));
 
                     if ((col == PathIdx || col == LeafIdx) && kind == MetadataUtils.Kinds.IsNormalized)
-                        MetadataUtils.Marshal<DvBool, TValue>(IsNormalized, col, ref value);
+                        MetadataUtils.Marshal<bool, TValue>(IsNormalized, col, ref value);
                     else if (kind == MetadataUtils.Kinds.SlotNames)
                     {
                         switch (col)
@@ -156,9 +156,9 @@ namespace Microsoft.ML.Runtime.Data
                         throw _ectx.ExceptGetMetadata();
                 }
 
-                private void IsNormalized(int iinfo, ref DvBool dst)
+                private void IsNormalized(int iinfo, ref bool dst)
                 {
-                    dst = DvBool.True;
+                    dst = true;
                 }
             }
 

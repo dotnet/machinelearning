@@ -324,7 +324,7 @@ namespace Microsoft.ML.Runtime.Data
                 }
 
                 if (!bag || info.TypeSrc.ValueCount == 1)
-                    bldr.AddPrimitive(MetadataUtils.Kinds.IsNormalized, BoolType.Instance, DvBool.True);
+                    bldr.AddPrimitive(MetadataUtils.Kinds.IsNormalized, BoolType.Instance, true);
             }
         }
 
