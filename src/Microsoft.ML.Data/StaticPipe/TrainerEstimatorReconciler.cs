@@ -138,7 +138,7 @@ namespace Microsoft.ML.Data.StaticPipe.Runtime
         public sealed class Regression : TrainerEstimatorReconciler
         {
             /// <summary>
-            /// The delegate to create the <see cref="Regression"/> instance.
+            /// The delegate to create the regression trainer instance.
             /// </summary>
             /// <param name="env">The environment with which to create the estimator</param>
             /// <param name="label">The label column name</param>
@@ -198,7 +198,7 @@ namespace Microsoft.ML.Data.StaticPipe.Runtime
         public sealed class BinaryClassifier : TrainerEstimatorReconciler
         {
             /// <summary>
-            /// The delegate to create the <see cref="BinaryClassifier"/> instance.
+            /// The delegate to create the binary classifier trainer instance.
             /// </summary>
             /// <param name="env">The environment with which to create the estimator.</param>
             /// <param name="label">The label column name.</param>
@@ -259,12 +259,12 @@ namespace Microsoft.ML.Data.StaticPipe.Runtime
 
         /// <summary>
         /// A reconciler capable of handling the most common cases for binary classification that does not
-        /// necessarily have with calibrated outputs.
+        /// necessarily have calibrated outputs.
         /// </summary>
         public sealed class BinaryClassifierNoCalibration : TrainerEstimatorReconciler
         {
             /// <summary>
-            /// The delegate to create the <see cref="BinaryClassifier"/> instance.
+            /// The delegate to create the binary classifier trainer instance.
             /// </summary>
             /// <param name="env">The environment with which to create the estimator</param>
             /// <param name="label">The label column name.</param>
@@ -343,7 +343,7 @@ namespace Microsoft.ML.Data.StaticPipe.Runtime
         public sealed class MulticlassClassifier<TVal> : TrainerEstimatorReconciler
         {
             /// <summary>
-            /// The delegate to create the <see cref="MulticlassClassifier{TVal}"/> instance.
+            /// The delegate to create the multiclass classifier trainer instance.
             /// </summary>
             /// <param name="env">The environment with which to create the estimator</param>
             /// <param name="label">The label column name</param>
