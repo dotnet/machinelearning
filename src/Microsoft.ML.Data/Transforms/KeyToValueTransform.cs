@@ -153,7 +153,7 @@ namespace Microsoft.ML.Runtime.Data
         protected override IRowMapper MakeRowMapper(ISchema inputSchema)
             => new Mapper(this, inputSchema);
 
-        private sealed class Mapper : MapperBase
+        private sealed class Mapper : MapperBase, ISaveAsPfa
         {
             private readonly KeyToValueTransform _parent;
             private readonly ColumnType[] _types;
@@ -166,6 +166,8 @@ namespace Microsoft.ML.Runtime.Data
                 ComputeKvMaps(inputSchema, out _types, out _kvMaps);
             }
 
+            public bool CanSavePfa => true;
+
             public override RowMapperColumnInfo[] GetOutputColumns()
             {
                 var result = new RowMapperColumnInfo[_parent.ColumnPairs.Length];
@@ -176,6 +178,11 @@ namespace Microsoft.ML.Runtime.Data
                     result[i] = new RowMapperColumnInfo(_parent.ColumnPairs[i].output, _types[i], meta);
                 }
                 return result;
+            }
+
+            public void SaveAsPfa(BoundPfaContext ctx)
+            {
+                throw new NotImplementedException();
             }
 
             protected override Delegate MakeGetter(IRow input, int iinfo, out Action disposer)
