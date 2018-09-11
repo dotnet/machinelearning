@@ -47,7 +47,7 @@ namespace Microsoft.ML.Tests.Scenarios.PipelineApi
         {
             var imageHeight = 32;
             var imageWidth = 32;
-            var model_location = GetDataPath("cifar_save10");
+            var model_location = "cifar_saved_model";
             var dataFile = GetDataPath("images/images.tsv");
             var imageFolder = Path.GetDirectoryName(dataFile);
 

@@ -224,7 +224,7 @@ namespace Microsoft.ML.Scenarios
         [Fact]
         public void TensorFlowTransformCifarSavedModel()
         {
-            var model_location = GetDataPath("cifar_save10");
+            var model_location = "cifar_saved_model";
 
             using (var env = new TlcEnvironment())
             {
