@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#define TRACE_ASSEMBLY_LOADING
-
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -24,7 +22,7 @@ namespace Microsoft.ML.Runtime
     /// types for component instantiation. Each component may also specify an "arguments object" that should
     /// be provided at instantiation time.
     /// </summary>
-    public static partial class ComponentCatalog
+    public static class ComponentCatalog
     {
         /// <summary>
         /// Provides information on an instantiatable component, aka, loadable class.
@@ -61,97 +59,65 @@ namespace Microsoft.ML.Runtime
                 }
             }
 
-            private readonly Type _type;
-            private readonly string _summary;
-            private readonly Type _loaderType;
-
-            // UserName may be empty, indicating that this should be hidden in the UI.
-            private readonly string _userName;
-            private readonly IReadOnlyList<string> _loadNames;
-
-            private readonly MethodInfo _getter;
-            private readonly ConstructorInfo _ctor;
-            private readonly MethodInfo _create;
-            private readonly IReadOnlyList<Type> _sigTypes;
-            private readonly bool _requireEnvironment;
-            private readonly string _docName;
-
-            internal readonly Type[] CtorTypes;
-            public readonly Type ArgType;
-
             /// <summary>
             /// Count of component construction arguments, NOT including the arguments object (if there is one).
             /// This matches the number of arguments for the signature type delegate(s).
             /// </summary>
-            internal int ExtraArgCount
-            { get { return ArgType == null ? CtorTypes.Length : CtorTypes.Length - 1; } }
+            internal int ExtraArgCount => ArgType == null ? CtorTypes.Length : CtorTypes.Length - 1;
 
-            public Type Type
-            { get { return _type; } }
+            public Type Type { get; }
 
             /// <summary>
             /// The type that contains the construction method, whether static Instance property,
             /// static Create method, or constructor.
             /// </summary>
-            public Type LoaderType
-            { get { return _loaderType; } }
+            public Type LoaderType { get; }
 
-            public IReadOnlyList<Type> SignatureTypes
-            { get { return _sigTypes; } }
+            public IReadOnlyList<Type> SignatureTypes { get; }
 
             /// <summary>
             /// Summary of the component.
             /// </summary>
-            public string Summary
-            { get { return _summary; } }
+            public string Summary { get; }
 
             /// <summary>
             /// UserName may be null or empty, indicating that it should be hidden in UI.
             /// </summary>
-            public string UserName
-            { get { return _userName; } }
+            public string UserName { get; }
 
             /// <summary>
             /// Whether this is a "hidden" component, that generally shouldn't be displayed
             /// to users.
             /// </summary>
-            public bool IsHidden
-            { get { return string.IsNullOrWhiteSpace(_userName); } }
+            public bool IsHidden => string.IsNullOrWhiteSpace(UserName);
 
             /// <summary>
             /// All load names. The first is the default.
             /// </summary>
-            public IReadOnlyList<string> LoadNames
-            { get { return _loadNames; } }
+            public IReadOnlyList<string> LoadNames { get; }
 
             /// <summary>
             /// The static property that returns an instance of this loadable class.
             /// This creation method does not support an arguments class.
             /// Only one of Ctor, Create and InstanceGetter can be non-null.
             /// </summary>
-            public MethodInfo InstanceGetter
-            { get { return _getter; } }
+            public MethodInfo InstanceGetter { get; }
 
             /// <summary>
             /// The constructor to create an instance of this loadable class.
             /// This creation method supports an arguments class.
             /// Only one of Ctor, Create and InstanceGetter can be non-null.
             /// </summary>
-            public ConstructorInfo Constructor
-            { get { return _ctor; } }
+            public ConstructorInfo Constructor { get; }
 
             /// <summary>
             /// The static method that creates an instance of this loadable class.
             /// This creation method supports an arguments class.
             /// Only one of Ctor, Create and InstanceGetter can be non-null.
             /// </summary>
-            public MethodInfo CreateMethod
-            { get { return _create; } }
+            public MethodInfo CreateMethod { get; }
 
-            public bool RequireEnvironment
-            {
-                get { return _requireEnvironment; }
-            }
+            public bool RequireEnvironment { get; }
 
             /// <summary>
             /// A name of an embedded resource containing documentation for this
@@ -159,7 +125,14 @@ namespace Microsoft.ML.Runtime
             /// verified the assembly of <see cref="LoaderType"/> actually contains
             /// this resource.
             /// </summary>
-            public string DocName => _docName;
+            public string DocName { get; }
+
+            /// <summary>
+            /// The type that contains the arguments to the component.
+            /// </summary>
+            public Type ArgType { get; }
+
+            private Type[] CtorTypes { get; }
 
             internal LoadableClassInfo(LoadableClassAttributeBase attr, MethodInfo getter, ConstructorInfo ctor, MethodInfo create, bool requireEnvironment)
             {
@@ -172,25 +145,25 @@ namespace Microsoft.ML.Runtime
                 Contracts.AssertNonEmpty(attr.LoadNames);
                 Contracts.Assert(getter == null || Utils.Size(attr.CtorTypes) == 0);
 
-                _type = attr.InstanceType;
-                _loaderType = attr.LoaderType;
-                _summary = attr.Summary;
-                _userName = attr.UserName;
-                _loadNames = attr.LoadNames.AsReadOnly();
+                Type = attr.InstanceType;
+                LoaderType = attr.LoaderType;
+                Summary = attr.Summary;
+                UserName = attr.UserName;
+                LoadNames = attr.LoadNames.AsReadOnly();
 
                 if (getter != null)
-                    _getter = getter;
+                    InstanceGetter = getter;
                 else if (ctor != null)
-                    _ctor = ctor;
+                    Constructor = ctor;
                 else if (create != null)
-                    _create = create;
+                    CreateMethod = create;
                 ArgType = attr.ArgType;
-                _sigTypes = attr.SigTypes.AsReadOnly();
+                SignatureTypes = attr.SigTypes.AsReadOnly();
                 CtorTypes = attr.CtorTypes ?? Type.EmptyTypes;
-                _requireEnvironment = requireEnvironment;
+                RequireEnvironment = requireEnvironment;
 
                 if (!string.IsNullOrWhiteSpace(attr.DocName))
-                    _docName = attr.DocName;
+                    DocName = attr.DocName;
 
                 Contracts.Assert(ArgType == null || CtorTypes.Length > 0 && CtorTypes[0] == ArgType);
             }
@@ -199,15 +172,15 @@ namespace Microsoft.ML.Runtime
             {
                 Contracts.Assert(Utils.Size(ctorArgs) == CtorTypes.Length + ((RequireEnvironment) ? 1 : 0));
 
-                if (_getter != null)
+                if (InstanceGetter != null)
                 {
                     Contracts.Assert(Utils.Size(ctorArgs) == 0);
-                    return _getter.Invoke(null, null);
+                    return InstanceGetter.Invoke(null, null);
                 }
-                if (_ctor != null)
-                    return _ctor.Invoke(ctorArgs);
-                if (_create != null)
-                    return _create.Invoke(null, ctorArgs);
+                if (Constructor != null)
+                    return Constructor.Invoke(ctorArgs);
+                if (CreateMethod != null)
+                    return CreateMethod.Invoke(null, ctorArgs);
                 throw Contracts.Except("Can't instantiate class '{0}'", Type.Name);
             }
 
@@ -448,11 +421,10 @@ namespace Microsoft.ML.Runtime
                             continue;
                     }
 
-#if TRACE_ASSEMBLY_LOADING
                     // The "" no-op argument is necessary because WriteLine has multiple overloads, and with two strings
                     // it will be the one that is message/category, rather than format string with
                     System.Diagnostics.Debug.WriteLine("*** Caching classes in {0}", assembly.FullName, "");
-#endif
+
                     int added = 0;
                     foreach (LoadableClassAttributeBase attr in assembly.GetCustomAttributes(typeof(LoadableClassAttributeBase)))
                     {
@@ -472,27 +444,10 @@ namespace Microsoft.ML.Runtime
                         AddClass(info, attr.LoadNames);
                         added++;
                     }
-#if TRACE_ASSEMBLY_LOADING
+
                     System.Diagnostics.Debug.WriteLine("    Found {0} entries in {1}", added, assembly.FullName);
-#endif
                 }
             }
-        }
-
-        private static object FixUp(object obj)
-        {
-            if (obj == null)
-                return null;
-
-            var coll = obj as ICollection<CustomAttributeTypedArgument>;
-            if (coll == null)
-                return obj;
-            if (coll.Count == 0)
-                return null;
-            object[] array = coll.Select(a => a.Value).ToArray();
-            if (array[0] is string)
-                return array.Select(a => (string)a).ToArray();
-            return array.Select(a => (Type)a).ToArray();
         }
 
         private static bool TryGetIniters(Type instType, Type loaderType, Type[] parmTypes,
@@ -592,12 +547,10 @@ namespace Microsoft.ML.Runtime
                     continue;
                 // Loading the assembly is enough because of our event handler.
                 var assembly = LoadAssembly(path);
-#if TRACE_ASSEMBLY_LOADING
                 if (assembly == null)
                     System.Diagnostics.Debug.WriteLine("*** Loading {0} failed!", path, "");
                 else
                     System.Diagnostics.Debug.WriteLine("*** Loaded {0}", path, "");
-#endif
             }
         }
 
