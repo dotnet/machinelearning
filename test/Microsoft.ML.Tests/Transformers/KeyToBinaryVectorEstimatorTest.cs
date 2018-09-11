@@ -57,7 +57,7 @@ namespace Microsoft.ML.Tests.Transformers
         }
 
         [Fact]
-        public void KeyToBinaryVectorPigsty()
+        public void KeyToBinaryVectorStatic()
         {
             string dataPath = GetDataPath("breast-cancer.txt");
             var reader = TextLoader.CreateReader(Env, ctx => (
@@ -113,6 +113,7 @@ namespace Microsoft.ML.Tests.Transformers
 
             var result = pipe.Fit(dataView).Transform(dataView);
             ValidateMetadata(result);
+            Done();
         }
 
         private void ValidateMetadata(IDataView result)

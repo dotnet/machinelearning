@@ -477,14 +477,14 @@ namespace Microsoft.ML.Runtime.Data
     /// <summary>
     /// Extension methods for the static-pipeline over <see cref="PipelineColumn"/> objects.
     /// </summary>
-    public static class KeyToVectorExtensions
+    public static class KeyToBinaryVectorExtensions
     {
         private interface IColInput
         {
             PipelineColumn Input { get; }
         }
 
-        private sealed class OutVectorColumn<TKey, TValue> : Vector<TValue>, IColInput
+        private sealed class OutVectorColumn<TKey, TValue> : Vector<float>, IColInput
         {
             public PipelineColumn Input { get; }
 
@@ -524,18 +524,18 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         /// <summary>
-        /// Takes a column of key type of known cardinality and produces a binary encoded indicator vector of zeros and ones.
+        /// Takes a column of key type of known cardinality and produces a vector of bits representing the key in binary form.
         /// </summary>
-        public static Vector<TValue> ToBinaryVector<TKey, TValue>(this Key<TKey, TValue> input)
+        public static Vector<float> ToBinaryVector<TKey, TValue>(this Key<TKey, TValue> input)
         {
             Contracts.CheckValue(input, nameof(input));
             return new OutVectorColumn<TKey, TValue>(input);
         }
 
         /// <summary>
-        /// Takes a column of key type of known cardinality and produces a binary encoded indicator vector of zeros and ones.
+        /// Takes a column of key type of known cardinality and produces a vector of bits representing the key in binary form.
         /// </summary>
-        public static Vector<TValue> ToBinaryVector<TKey, TValue>(this Vector<Key<TKey, TValue>> input)
+        public static Vector<float> ToBinaryVector<TKey, TValue>(this Vector<Key<TKey, TValue>> input)
         {
             Contracts.CheckValue(input, nameof(input));
             return new OutVectorColumn<TKey, TValue>(input);

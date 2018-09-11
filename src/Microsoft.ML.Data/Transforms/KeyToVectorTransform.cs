@@ -218,7 +218,7 @@ namespace Microsoft.ML.Runtime.Data
                 {
                     var item = args.Column[i];
 
-                    cols[i] = new ColumnInfo(item.Source??item.Name,
+                    cols[i] = new ColumnInfo(item.Source ?? item.Name,
                         item.Name,
                         item.Bag ?? args.Bag);
                 };
@@ -786,21 +786,7 @@ namespace Microsoft.ML.Runtime.Data
             Config Config { get; }
         }
 
-        private sealed class OutKeyColumn<TOuterKey, TInnerKey> : Key<TInnerKey>, IColInput
-        {
-            public PipelineColumn Input { get; }
-            public Config Config { get; }
-
-            public OutKeyColumn(PipelineColumn input, Config config)
-                : base(Reconciler.Inst, input)
-            {
-                Input = input;
-                Config = config;
-            }
-
-        }
-
-        private sealed class OutVectorColumn<TKey, TValue> : Vector<TValue>, IColInput
+        private sealed class OutVectorColumn<TKey, TValue> : Vector<float>, IColInput
         {
             public PipelineColumn Input { get; }
             public Config Config { get; }
@@ -845,7 +831,7 @@ namespace Microsoft.ML.Runtime.Data
         /// <summary>
         /// Takes a column of key type of known cardinality and produces an indicator vector of floats.
         /// </summary>
-        public static Vector<TValue> ToVector<TKey, TValue>(this Key<TKey, TValue> input, bool bag = DefaultBag)
+        public static Vector<float> ToVector<TKey, TValue>(this Key<TKey, TValue> input, bool bag = DefaultBag)
         {
             Contracts.CheckValue(input, nameof(input));
             return new OutVectorColumn<TKey, TValue>(input, new Config(bag));
@@ -854,7 +840,7 @@ namespace Microsoft.ML.Runtime.Data
         /// <summary>
         /// Takes a column of key type of known cardinality and produces an indicator vector of floats.
         /// </summary>
-        public static Vector<TValue> ToVector<TKey, TValue>(this Vector<Key<TKey, TValue>> input, bool bag = DefaultBag)
+        public static Vector<float> ToVector<TKey, TValue>(this Vector<Key<TKey, TValue>> input, bool bag = DefaultBag)
         {
             Contracts.CheckValue(input, nameof(input));
             return new OutVectorColumn<TKey, TValue>(input, new Config(bag));
