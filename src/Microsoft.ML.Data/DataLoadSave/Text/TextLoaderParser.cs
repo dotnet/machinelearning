@@ -1081,11 +1081,11 @@ namespace Microsoft.ML.Runtime.Data
                     var text = scan.TextBuf;
                     int ichLim = scan.IchLimBuf;
                     int ichCur = scan.IchMinNext;
-
+                    var span = text.Span;
                     if (!_sepContainsSpace)
                     {
                         // Ignore leading spaces
-                        while (ichCur < ichLim && text.Span[ichCur] == ' ')
+                        while (ichCur < ichLim && span[ichCur] == ' ')
                             ichCur++;
                     }
 
@@ -1102,29 +1102,29 @@ namespace Microsoft.ML.Runtime.Data
                     }
 
                     int ichMinRaw = ichCur;
-                    if (_sparse && (uint)(text.Span[ichCur] - '0') <= 9)
+                    if (_sparse && (uint)(span[ichCur] - '0') <= 9)
                     {
                         // See if it is sparse. Avoid overflow by limiting the index to 9 digits.
                         // REVIEW: This limits the src index to a billion. Is this acceptable?
                         int ichEnd = Math.Min(ichLim, ichCur + 9);
                         int ichCol = ichCur + 1;
                         Contracts.Assert(ichCol <= ichEnd);
-                        while (ichCol < ichEnd && (uint)(text.Span[ichCol] - '0') <= 9)
+                        while (ichCol < ichEnd && (uint)(span[ichCol] - '0') <= 9)
                             ichCol++;
 
-                        if (ichCol < ichLim && text.Span[ichCol] == ':')
+                        if (ichCol < ichLim && span[ichCol] == ':')
                         {
                             // It is sparse. Compute the index.
                             int ind = 0;
                             for (int ich = ichCur; ich < ichCol; ich++)
-                                ind = ind * 10 + (text.Span[ich] - '0');
+                                ind = ind * 10 + (span[ich] - '0');
                             ichCur = ichCol + 1;
                             scan.Index = ind;
 
                             // Skip spaces again.
                             if (!_sepContainsSpace)
                             {
-                                while (ichCur < ichLim && text.Span[ichCur] == ' ')
+                                while (ichCur < ichLim && span[ichCur] == ' ')
                                     ichCur++;
                             }
 
@@ -1138,7 +1138,7 @@ namespace Microsoft.ML.Runtime.Data
                     }
 
                     Contracts.Assert(ichCur < ichLim);
-                    if (text.Span[ichCur] == '"' && _quoting)
+                    if (span[ichCur] == '"' && _quoting)
                     {
                         // Quoted case.
                         ichCur++;
@@ -1153,13 +1153,13 @@ namespace Microsoft.ML.Runtime.Data
                                 scan.QuotingError = true;
                                 break;
                             }
-                            if (text.Span[ichCur] == '"')
+                            if (span[ichCur] == '"')
                             {
                                 if (ichCur > ichRun)
                                     _sb.Append(text, ichRun, ichCur - ichRun);
                                 if (++ichCur >= ichLim)
                                     break;
-                                if (text.Span[ichCur] != '"')
+                                if (span[ichCur] != '"')
                                     break;
                                 ichRun = ichCur;
                             }
@@ -1168,7 +1168,7 @@ namespace Microsoft.ML.Runtime.Data
                         // Ignore any spaces between here and the next separator. Anything else is a formatting "error".
                         for (; ichCur < ichLim; ichCur++)
                         {
-                            if (text.Span[ichCur] == ' ')
+                            if (span[ichCur] == ' ')
                             {
                                 // End the loop if space is a sep, otherwise ignore this space.
                                 if (_sepContainsSpace)
@@ -1177,7 +1177,7 @@ namespace Microsoft.ML.Runtime.Data
                             else
                             {
                                 // End the loop if this nonspace char is a sep, otherwise it is an error.
-                                if (IsSep(text.Span[ichCur]))
+                                if (IsSep(span[ichCur]))
                                     break;
                                 scan.QuotingError = true;
                             }
@@ -1200,7 +1200,7 @@ namespace Microsoft.ML.Runtime.Data
                                 Contracts.Assert(ichCur <= ichLim);
                                 if (ichCur >= ichLim)
                                     break;
-                                if (_sep0 == text.Span[ichCur])
+                                if (_sep0 == span[ichCur])
                                     break;
                             }
                         }
@@ -1211,7 +1211,7 @@ namespace Microsoft.ML.Runtime.Data
                                 Contracts.Assert(ichCur <= ichLim);
                                 if (ichCur >= ichLim)
                                     break;
-                                if (_sep0 == text.Span[ichCur] || _sep1 == text.Span[ichCur])
+                                if (_sep0 == span[ichCur] || _sep1 == span[ichCur])
                                     break;
                             }
                         }
@@ -1222,7 +1222,7 @@ namespace Microsoft.ML.Runtime.Data
                                 Contracts.Assert(ichCur <= ichLim);
                                 if (ichCur >= ichLim)
                                     break;
-                                if (IsSep(text.Span[ichCur]))
+                                if (IsSep(span[ichCur]))
                                     break;
                             }
                         }
@@ -1240,7 +1240,7 @@ namespace Microsoft.ML.Runtime.Data
                         return false;
                     }
 
-                    Contracts.Assert(_seps.Contains(text.Span[ichCur]));
+                    Contracts.Assert(_seps.Contains(span[ichCur]));
                     scan.IchMinNext = ichCur + 1;
                     return true;
                 }
