@@ -6,7 +6,6 @@ using BenchmarkDotNet.Attributes;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Internal.Calibration;
 using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.KMeans;
 using Microsoft.ML.Runtime.Learners;
 
