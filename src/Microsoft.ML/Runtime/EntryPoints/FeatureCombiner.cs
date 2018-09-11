@@ -93,7 +93,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
                 // when the user has slightly different key values between the training and testing set.
                 // The solution is to apply KeyToValue, then Term using the terms from the key metadata of the original key column
                 // and finally the KeyToVector transform.
-                viewTrain = new KeyToValueTransform(host, ktv.Select(x => (x.Source ?? x.Name, x.Name)).ToArray())
+                viewTrain = new KeyToValueTransform(host, ktv.Select(x => (x.Input , x.Output)).ToArray())
                     .Transform(viewTrain);
 
                 viewTrain = TermTransform.Create(host,
