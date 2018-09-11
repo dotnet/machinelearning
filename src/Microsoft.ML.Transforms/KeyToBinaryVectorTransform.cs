@@ -499,9 +499,40 @@ namespace Microsoft.ML.Runtime.Data
             {
                 Input = input;
             }
+        }
 
-            public OutVectorColumn(VarVector<Key<TKey, TValue>> input)
-            : base(Reconciler.Inst, input)
+        private sealed class OutVarVectorColumn<TKey, TValue> : VarVector<float>, IColInput
+        {
+            public PipelineColumn Input { get; }
+            public OutVarVectorColumn(VarVector<Key<TKey, TValue>> input)
+                : base(Reconciler.Inst, input)
+            {
+                Input = input;
+            }
+        }
+
+        private sealed class OutVectorColumn<TKey> : Vector<float>, IColInput
+        {
+            public PipelineColumn Input { get; }
+
+            public OutVectorColumn(Vector<Key<TKey>> input)
+                : base(Reconciler.Inst, input)
+            {
+                Input = input;
+            }
+
+            public OutVectorColumn(Key<TKey> input)
+              : base(Reconciler.Inst, input)
+            {
+                Input = input;
+            }
+        }
+
+        private sealed class OutVarVectorColumn<TKey> : VarVector<float>, IColInput
+        {
+            public PipelineColumn Input { get; }
+            public OutVarVectorColumn(VarVector<Key<TKey>> input)
+                : base(Reconciler.Inst, input)
             {
                 Input = input;
             }
@@ -559,10 +590,46 @@ namespace Microsoft.ML.Runtime.Data
         /// In the case where a vector has multiple keys, the encoded values are concatenated.
         /// Number of bits per key is determined as the number of bits needed to represent the cardinality of the keys plus one.
         /// </summary>
-        public static Vector<float> ToBinaryVector<TKey, TValue>(this VarVector<Key<TKey, TValue>> input)
+        public static VarVector<float> ToBinaryVector<TKey, TValue>(this VarVector<Key<TKey, TValue>> input)
         {
             Contracts.CheckValue(input, nameof(input));
-            return new OutVectorColumn<TKey, TValue>(input);
+            return new OutVarVectorColumn<TKey, TValue>(input);
+        }
+
+        /// <summary>
+        /// Takes a column of key type of known cardinality and produces a vector of bits representing the key in binary form.
+        /// The first value is encoded as all zeros and missing values are encoded as all ones.
+        /// In the case where a vector has multiple keys, the encoded values are concatenated.
+        /// Number of bits per key is determined as the number of bits needed to represent the cardinality of the keys plus one.
+        /// </summary>
+        public static Vector<float> ToBinaryVector<TKey>(this Key<TKey> input)
+        {
+            Contracts.CheckValue(input, nameof(input));
+            return new OutVectorColumn<TKey>(input);
+        }
+
+        /// <summary>
+        /// Takes a column of key type of known cardinality and produces a vector of bits representing the key in binary form.
+        /// The first value is encoded as all zeros and missing values are encoded as all ones.
+        /// In the case where a vector has multiple keys, the encoded values are concatenated.
+        /// Number of bits per key is determined as the number of bits needed to represent the cardinality of the keys plus one.
+        /// </summary>
+        public static Vector<float> ToBinaryVector<TKey>(this Vector<Key<TKey>> input)
+        {
+            Contracts.CheckValue(input, nameof(input));
+            return new OutVectorColumn<TKey>(input);
+        }
+
+        /// <summary>
+        /// Takes a column of key type of known cardinality and produces a vector of bits representing the key in binary form.
+        /// The first value is encoded as all zeros and missing values are encoded as all ones.
+        /// In the case where a vector has multiple keys, the encoded values are concatenated.
+        /// Number of bits per key is determined as the number of bits needed to represent the cardinality of the keys plus one.
+        /// </summary>
+        public static VarVector<float> ToBinaryVector<TKey>(this VarVector<Key<TKey>> input)
+        {
+            Contracts.CheckValue(input, nameof(input));
+            return new OutVarVectorColumn<TKey>(input);
         }
     }
 }
