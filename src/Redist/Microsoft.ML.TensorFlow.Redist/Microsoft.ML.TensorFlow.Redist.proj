@@ -3,6 +3,9 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
+    <!-- although we could extract all archives on all machines, mac requires a fixup which can only be run on mac 
+         so we split these per-rid and join during the official build packaging.  -->
+    <ArchiveFileRuntime>$(PackageRid)</ArchiveFileRuntime>
   </PropertyGroup>
   
   <ItemGroup>
@@ -10,8 +13,30 @@
     <TensorFlowConfig Include="linux" FileExtension=".tar.gz" FilesFromArchive="lib\libtensorflow.so;lib\libtensorflow_framework.so;include\tensorflow\c\LICENSE" Runtime="linux-x64" />
     <TensorFlowConfig Include="darwin" FileExtension=".tar.gz" FilesFromArchive="lib\libtensorflow.so;lib\libtensorflow_framework.so;include\tensorflow\c\LICENSE" Runtime="osx-x64" />
 
-    <AdditionalDownloadFile Include="https://github.com/tensorflow/tensorflow/blob/master/LICENSE" DownloadFile="$(IntermediateOutputPath)LICENSE" />
+    <AdditionalDownloadFile Include="https://github.com/tensorflow/tensorflow/blob/master/LICENSE" DownloadFile="$(IntermediateOutputPath)LICENSE" PackagePath="LICENSE.TXT" />
+
+    <!-- LICENSE from the package is actually THIRD_PARTY_NOTICES-->
+    <PackageFileFromArchive Include="include\tensorflow\c\LICENSE" PackagePath="THIRD_PARTY_NOTICES.txt" CopyToNativeAssets="false" />
+
+    <ArchiveFile Include="@(TensorFlowConfig->'https://storage.googleapis.com/tensorflow/libtensorflow/libtensorflow-cpu-%(Identity)-x86_64-$(TensorFlowVersion)%(FileExtension)')" />
   </ItemGroup>
+  
+  <Target Name="RenameFiles"
+          AfterTargets="GetFilesFromArchive">
+    <ItemGroup>
+      <!-- rename the .so to .dylib since CORECLR's DLLImport convention requires dylib -->
+      <FilesFromArchive Condition="'%(FilesFromArchive.Runtime)' == 'osx-x64' AND '%(Extension)' == '.so'"
+                        PackagePath="$([System.IO.Path]::ChangeExtension('%(PackagePath)', '.dylib'))"
+                        TargetPath="$([System.IO.Path]::ChangeExtension('%(TargetPath)', '.dylib'))" />
+    </ItemGroup>
+  </Target>
+
+  <Target Name="FixTensorFlowRPthOnMac"
+          AfterTargets="CopyFilesFromArchive">
+    <!-- fix up the renamed libtensorflow, this can only run on mac -->
+    <Exec Condition="'%(FilesFromArchive.Runtime)' == 'osx-x64' AND '%(FilesFromArchive.FileName)' == 'libtensorflow'"
+          Command="install_name_tool -change @rpath/libtensorflow_framework.so @rpath/libtensorflow_framework.dylib &quot;%(FilesFromArchive.TargetPath)&quot;" />
+  </Target>
 
   <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), Directory.Build.targets))\Directory.Build.targets" />
 </Project>
