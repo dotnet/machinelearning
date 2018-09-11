@@ -189,7 +189,7 @@ namespace Microsoft.ML.Runtime.Model
         }
 
         /// <summary>
-        /// REVIEW: consider adding an overload that returns ReadOnlyMemory/>
+        /// REVIEW: consider adding an overload that returns <see cref="ReadOnlyMemory{T}"/> of <see cref="char"/>
         /// Loads optionally feature names from the repository directory.
         /// Returns false iff no stream was found for feature names, iff result is set to null.
         /// </summary>

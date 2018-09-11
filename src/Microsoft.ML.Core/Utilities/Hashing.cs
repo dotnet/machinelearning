@@ -11,6 +11,8 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
 {
     public static class Hashing
     {
+        private const uint _defaultSeed = (5381 << 16) + 5381;
+
         public static uint CombineHash(uint u1, uint u2)
         {
             return ((u1 << 7) | (u1 >> 25)) ^ u2;
@@ -68,10 +70,10 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         public static uint HashString(string str)
         {
             Contracts.AssertValue(str);
-            return MurmurHash((5381 << 16) + 5381, str.AsMemory());
+            return MurmurHash(_defaultSeed, str.AsMemory());
         }
 
-        public static uint HashString(ReadOnlyMemory<char> str) => MurmurHash((5381 << 16) + 5381, str);
+        public static uint HashString(ReadOnlyMemory<char> str) => MurmurHash(_defaultSeed, str);
 
         /// <summary>
         /// Hash the characters in a sub-string. This MUST produce the same result
@@ -80,7 +82,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         public static uint HashString(string str, int ichMin, int ichLim)
         {
             Contracts.Assert(0 <= ichMin & ichMin <= ichLim & ichLim <= Utils.Size(str));
-            return MurmurHash((5381 << 16) + 5381, str.AsMemory().Slice(ichMin, ichLim - ichMin));
+            return MurmurHash(_defaultSeed, str.AsMemory().Slice(ichMin, ichLim - ichMin));
         }
 
         /// <summary>
@@ -90,12 +92,12 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         public static uint HashString(StringBuilder sb)
         {
             Contracts.AssertValue(sb);
-            return MurmurHash((5381 << 16) + 5381, sb, 0, sb.Length);
+            return MurmurHash(_defaultSeed, sb, 0, sb.Length);
         }
 
         public static uint HashSequence(uint[] sequence, int min, int lim)
         {
-            return MurmurHash((5381 << 16) + 5381, sequence, min, lim);
+            return MurmurHash(_defaultSeed, sequence, min, lim);
         }
 
         /// <summary>
@@ -135,13 +137,14 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
             // Current bits, value and count.
             ulong cur = 0;
             int bits = 0;
+            var span = data.Span;
             for (int ich = 0; ich < data.Length; ich++)
             {
                 Contracts.Assert((bits & 0x7) == 0);
                 Contracts.Assert((uint)bits <= 24);
                 Contracts.Assert(cur <= 0x00FFFFFF);
 
-                uint ch = toUpper ? char.ToUpperInvariant(data.Span[ich]) : data.Span[ich];
+                uint ch = toUpper ? char.ToUpperInvariant(span[ich]) : span[ich];
                 if (ch <= 0x007F)
                 {
                     cur |= ch << bits;

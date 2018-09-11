@@ -303,7 +303,7 @@ namespace Microsoft.ML.Runtime.Data
         /// </summary>
         public static bool TryParse(out Single value, ReadOnlyMemory<char> memory)
         {
-            var res = DoubleParser.Parse(out value, memory);
+            var res = DoubleParser.Parse(out value, memory.Span);
             Contracts.Assert(res != DoubleParser.Result.Empty || value == 0);
             return res <= DoubleParser.Result.Empty;
         }
@@ -313,7 +313,7 @@ namespace Microsoft.ML.Runtime.Data
         /// </summary>
         public static bool TryParse(out Double value, ReadOnlyMemory<char> memory)
         {
-            var res = DoubleParser.Parse(out value, memory);
+            var res = DoubleParser.Parse(out value, memory.Span);
             Contracts.Assert(res != DoubleParser.Result.Empty || value == 0);
             return res <= DoubleParser.Result.Empty;
         }

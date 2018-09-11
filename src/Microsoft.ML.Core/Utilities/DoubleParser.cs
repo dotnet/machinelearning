@@ -70,14 +70,12 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
             Error = 3
         }
 
-        public static Result Parse(out Single value, ReadOnlyMemory<char> s)
+        public static Result Parse(out Single value, ReadOnlySpan<char> span)
         {
             int ich = 0;
-            var span = s.Span;
-
             for (; ; ich++)
             {
-                if (ich >= s.Length)
+                if (ich >= span.Length)
                 {
                     value = 0;
                     return Result.Empty;
@@ -87,7 +85,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
             }
 
             // Handle the common case of a single digit or ?
-            if (s.Length - ich == 1)
+            if (span.Length - ich == 1)
             {
                 char ch = span[ich];
                 if (ch >= '0' && ch <= '9')
@@ -103,14 +101,14 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
             }
 
             int ichEnd;
-            if (!DoubleParser.TryParse(out value, s, ich, s.Length, out ichEnd))
+            if (!DoubleParser.TryParse(out value, span.Slice(ich, span.Length - ich), out ichEnd))
             {
                 value = default(Single);
                 return Result.Error;
             }
 
             // Make sure everything was consumed.
-            while (ichEnd < s.Length)
+            while (ichEnd < span.Length)
             {
                 if (!char.IsWhiteSpace(span[ichEnd]))
                     return Result.Extra;
@@ -120,14 +118,12 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
             return Result.Good;
         }
 
-        public static Result Parse(out Double value, ReadOnlyMemory<char> s)
+        public static Result Parse(out Double value, ReadOnlySpan<char> span)
         {
             int ich = 0;
-            var span = s.Span;
-
             for (; ; ich++)
             {
-                if (ich >= s.Length)
+                if (ich >= span.Length)
                 {
                     value = 0;
                     return Result.Empty;
@@ -137,7 +133,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
             }
 
             // Handle the common case of a single digit or ?
-            if (s.Length - ich == 1)
+            if (span.Length - ich == 1)
             {
                 char ch = span[ich];
                 if (ch >= '0' && ch <= '9')
@@ -153,14 +149,14 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
             }
 
             int ichEnd;
-            if (!DoubleParser.TryParse(out value, s, ich, s.Length, out ichEnd))
+            if (!DoubleParser.TryParse(out value, span.Slice(ich, span.Length - ich), out ichEnd))
             {
                 value = default(Double);
                 return Result.Error;
             }
 
             // Make sure everything was consumed.
-            while (ichEnd < s.Length)
+            while (ichEnd < span.Length)
             {
                 if (!char.IsWhiteSpace(span[ichEnd]))
                     return Result.Extra;
@@ -170,15 +166,15 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
             return Result.Good;
         }
 
-        public static bool TryParse(out Single value, ReadOnlyMemory<char> s, int ichMin, int ichLim, out int ichEnd)
+        public static bool TryParse(out Single value, ReadOnlySpan<char> span, out int ichEnd)
         {
             bool neg = false;
             ulong num = 0;
             long exp = 0;
 
-            ichEnd = ichMin;
-            if (!TryParseCore(s, ref ichEnd, ichLim, ref neg, ref num, ref exp))
-                return TryParseSpecial(out value, s, ref ichEnd, ichLim);
+            ichEnd = 0;
+            if (!TryParseCore(span, ref ichEnd, ref neg, ref num, ref exp))
+                return TryParseSpecial(out value, span, ref ichEnd);
 
             if (num == 0)
             {
@@ -259,15 +255,15 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
             return true;
         }
 
-        public static bool TryParse(out Double value, ReadOnlyMemory<char> s, int ichMin, int ichLim, out int ichEnd)
+        public static bool TryParse(out Double value, ReadOnlySpan<char> span, out int ichEnd)
         {
             bool neg = false;
             ulong num = 0;
             long exp = 0;
 
-            ichEnd = ichMin;
-            if (!TryParseCore(s, ref ichEnd, ichLim, ref neg, ref num, ref exp))
-                return TryParseSpecial(out value, s, ref ichEnd, ichLim);
+            ichEnd = 0;
+            if (!TryParseCore(span, ref ichEnd, ref neg, ref num, ref exp))
+                return TryParseSpecial(out value, span, ref ichEnd);
 
             if (num == 0)
             {
@@ -442,19 +438,18 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
             return true;
         }
 
-        private static bool TryParseSpecial(out Double value, ReadOnlyMemory<char> s, ref int ich, int ichLim)
+        private static bool TryParseSpecial(out Double value, ReadOnlySpan<char> span, ref int ich)
         {
             Single tmp;
-            bool res = TryParseSpecial(out tmp, s, ref ich, ichLim);
+            bool res = TryParseSpecial(out tmp, span, ref ich);
             value = tmp;
             return res;
         }
 
-        private static bool TryParseSpecial(out Single value, ReadOnlyMemory<char> s, ref int ich, int ichLim)
+        private static bool TryParseSpecial(out Single value, ReadOnlySpan<char> span, ref int ich)
         {
-            if (ich < ichLim)
+            if (ich < span.Length)
             {
-                var span = s.Span;
                 switch (span[ich])
                 {
                 case '?':
@@ -464,7 +459,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
                     return true;
 
                 case 'N':
-                    if (ich + 3 <= ichLim && span[ich + 1] == 'a' && span[ich + 2] == 'N')
+                    if (ich + 3 <= span.Length && span[ich + 1] == 'a' && span[ich + 2] == 'N')
                     {
                         value = Single.NaN;
                         ich += 3;
@@ -473,7 +468,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
                     break;
 
                 case 'I':
-                    if (ich + 8 <= ichLim && span[ich + 1] == 'n' && span[ich + 2] == 'f' && span[ich + 3] == 'i' && span[ich + 4] == 'n' && span[ich + 5] == 'i' && span[ich + 6] == 't' && span[ich + 7] == 'y')
+                    if (ich + 8 <= span.Length && span[ich + 1] == 'n' && span[ich + 2] == 'f' && span[ich + 3] == 'i' && span[ich + 4] == 'n' && span[ich + 5] == 'i' && span[ich + 6] == 't' && span[ich + 7] == 'y')
                     {
                         value = Single.PositiveInfinity;
                         ich += 8;
@@ -482,14 +477,14 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
                     break;
 
                 case '-':
-                    if (ich + 2 <= ichLim && span[ich + 1] == InfinitySymbol)
+                    if (ich + 2 <= span.Length && span[ich + 1] == InfinitySymbol)
                     {
                         value = Single.NegativeInfinity;
                         ich += 2;
                         return true;
                     }
 
-                    if (ich + 9 <= ichLim && span[ich + 1] == 'I' && span[ich + 2] == 'n' && span[ich + 3] == 'f' && span[ich + 4] == 'i' && span[ich + 5] == 'n' && span[ich + 6] == 'i' && span[ich + 7] == 't' && span[ich + 8] == 'y')
+                    if (ich + 9 <= span.Length && span[ich + 1] == 'I' && span[ich + 2] == 'n' && span[ich + 3] == 'f' && span[ich + 4] == 'i' && span[ich + 5] == 'n' && span[ich + 6] == 'i' && span[ich + 7] == 't' && span[ich + 8] == 'y')
                     {
                         value = Single.NegativeInfinity;
                         ich += 9;
@@ -508,14 +503,14 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
             return false;
         }
 
-        private static bool TryParseCore(ReadOnlyMemory<char> s, ref int ich, int ichLim, ref bool neg, ref ulong num, ref long exp)
+        private static bool TryParseCore(ReadOnlySpan<char> span, ref int ich, ref bool neg, ref ulong num, ref long exp)
         {
-            Contracts.Assert(0 <= ich & ich <= ichLim & ichLim <= s.Length);
+            Contracts.Assert(0 <= ich & ich <= span.Length);
             Contracts.Assert(!neg);
             Contracts.Assert(num == 0);
             Contracts.Assert(exp == 0);
 
-            if (ich >= ichLim)
+            if (ich >= span.Length)
                 return false;
 
             // If num gets bigger than this, we don't process additional digits.
@@ -526,20 +521,19 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
 
             // Get started: handle sign
             int i = ich;
-            var span = s.Span;
             switch (span[i])
             {
             default:
                 return false;
 
             case '-':
-                if (++i >= ichLim)
+                if (++i >= span.Length)
                     return false;
                 neg = true;
                 break;
 
             case '+':
-                if (++i >= ichLim)
+                if (++i >= span.Length)
                     return false;
                 break;
 
@@ -564,7 +558,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
             uint d;
             for (; ; )
             {
-                Contracts.Assert(i < ichLim);
+                Contracts.Assert(i < span.Length);
                 if ((d = (uint)span[i] - '0') > 9)
                     break;
 
@@ -574,32 +568,32 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
                 else
                     exp++;
 
-                if (++i >= ichLim)
+                if (++i >= span.Length)
                 {
                     ich = i;
                     return true;
                 }
             }
-            Contracts.Assert(i < ichLim);
+            Contracts.Assert(i < span.Length);
 
             if (span[i] != '.')
                 goto LAfterDigits;
 
         LPoint:
-            Contracts.Assert(i < ichLim);
+            Contracts.Assert(i < span.Length);
             Contracts.Assert(span[i] == '.');
 
             // Get the digits after '.'
             for (; ; )
             {
-                if (++i >= ichLim)
+                if (++i >= span.Length)
                 {
                     if (digits)
                         ich = i;
                     return digits;
                 }
 
-                Contracts.Assert(i < ichLim);
+                Contracts.Assert(i < span.Length);
                 if ((d = (uint)span[i] - '0') > 9)
                     break;
 
@@ -612,7 +606,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
             }
 
         LAfterDigits:
-            Contracts.Assert(i < ichLim);
+            Contracts.Assert(i < span.Length);
             if (!digits)
                 return false;
 
@@ -627,23 +621,23 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
 
             case 'e':
             case 'E':
-                if (++i >= ichLim)
+                if (++i >= span.Length)
                     return true;
                 break;
             }
 
             // Handle the exponent sign.
             bool expNeg = false;
-            Contracts.Assert(i < ichLim);
+            Contracts.Assert(i < span.Length);
             switch (span[i])
             {
             case '-':
-                if (++i >= ichLim)
+                if (++i >= span.Length)
                     return true;
                 expNeg = true;
                 break;
             case '+':
-                if (++i >= ichLim)
+                if (++i >= span.Length)
                     return true;
                 break;
             }
@@ -659,14 +653,14 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
             long e = 0;
             for (; ; )
             {
-                Contracts.Assert(i < ichLim);
+                Contracts.Assert(i < span.Length);
                 if ((d = (uint)span[i] - '0') > 9)
                     break;
 
                 digits = true;
                 if (e < eMax)
                     e = 10 * e + (int)d;
-                if (++i >= ichLim)
+                if (++i >= span.Length)
                     break;
             }
 
