@@ -40,7 +40,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                 var model = pipeline.Fit(data);
 
                 // Create prediction engine and test predictions.
-                var engine = new MyPredictionEngine<SentimentData, SentimentPrediction>(env, model);
+                var engine = model.MakePredictionFunction<SentimentData, SentimentPrediction>(env);
 
                 // Take a couple examples out of the test data and run predictions on top.
                 var testData = reader.Read(new MultiFileSource(GetDataPath(SentimentTestPath)))

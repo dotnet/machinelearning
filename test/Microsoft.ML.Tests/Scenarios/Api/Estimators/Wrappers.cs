@@ -327,21 +327,30 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         }
     }
 
-    public sealed class MyPredictionEngine<TSrc, TDst>
-                where TSrc : class
-                where TDst : class, new()
+    public class MyKeyToValueTransform : IEstimator<TransformWrapper>
     {
-        private readonly PredictionEngine<TSrc, TDst> _engine;
+        private readonly IHostEnvironment _env;
+        private readonly string _name;
+        private readonly string _source;
 
-        public MyPredictionEngine(IHostEnvironment env, ITransformer pipe)
+        public MyKeyToValueTransform(IHostEnvironment env, string name, string source = null)
         {
-            IDataView dv = env.CreateDataView(new TSrc[0]);
-            _engine = env.CreatePredictionEngine<TSrc, TDst>(pipe.Transform(dv));
+            _env = env;
+            _name = name;
+            _source = source;
         }
 
-        public TDst Predict(TSrc example)
+        public TransformWrapper Fit(IDataView input)
         {
-            return _engine.Predict(example);
+            var xf = new KeyToValueTransform(_env, input, _name, _source);
+            var empty = new EmptyDataView(_env, input.Schema);
+            var chunk = ApplyTransformUtils.ApplyAllTransformsToData(_env, xf, empty, input);
+            return new TransformWrapper(_env, chunk);
+        }
+
+        public SchemaShape GetOutputSchema(SchemaShape inputSchema)
+        {
+            throw new NotImplementedException();
         }
     }
 
