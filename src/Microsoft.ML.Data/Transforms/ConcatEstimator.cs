@@ -2,25 +2,19 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Float = System.Single;
-
+using Microsoft.ML.Core.Data;
+using Microsoft.ML.Data.StaticPipe.Runtime;
+using Microsoft.ML.Runtime;
+using Microsoft.ML.Runtime.Data;
+using Microsoft.ML.Runtime.Data.IO;
+using Microsoft.ML.Runtime.Internal.Utilities;
+using Microsoft.ML.Runtime.Model;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
-using System.Text;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.EntryPoints;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Model;
-using Microsoft.ML.Runtime.Model.Onnx;
-using Microsoft.ML.Runtime.Model.Pfa;
-using Newtonsoft.Json.Linq;
-using Microsoft.ML.Core.Data;
-using Microsoft.ML.Runtime.Data.IO;
-using Microsoft.ML.Data.StaticPipe.Runtime;
+
+[assembly: LoadableClass(typeof(ConcatTransformer), null, typeof(SignatureLoadModel),
+    "Concat Transformer Wrapper", ConcatTransformer.LoaderSignature)]
 
 namespace Microsoft.ML.Runtime.Data
 {
@@ -134,7 +128,7 @@ namespace Microsoft.ML.Runtime.Data
     // have to wait a little bit.
     internal sealed class ConcatTransformer : ITransformer, ICanSaveModel
     {
-        public const string LoaderSignature = "TransformWrapper";
+        public const string LoaderSignature = "ConcatTransformWrapper";
         private const string TransformDirTemplate = "Step_{0:000}";
 
         private readonly IHostEnvironment _env;
