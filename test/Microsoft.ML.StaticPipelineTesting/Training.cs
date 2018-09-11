@@ -154,5 +154,43 @@ namespace Microsoft.ML.StaticPipelineTesting
             for (int c = 0; c < schema.ColumnCount; ++c)
                 Console.WriteLine($"{schema.GetColumnName(c)}, {schema.GetColumnType(c)}");
         }
+
+        [Fact]
+        public void SdcaMulticlass()
+        {
+            var env = new TlcEnvironment(seed: 0);
+            var dataPath = GetDataPath("iris.txt");
+            var dataSource = new MultiFileSource(dataPath);
+
+            var reader = TextLoader.CreateReader(env,
+                c => (label: c.LoadText(0), features: c.LoadFloat(1, 4)));
+
+            LinearBinaryPredictor pred = null;
+
+            var loss = new HingeLoss(new HingeLoss.Arguments() { Margin = 1 });
+
+            // With a custom loss function we no longer get calibrated predictions.
+            var est = reader.MakeNewEstimator()
+                .Append(r=> (label: r.label.ToKey(), r.features))
+                .Append(r => (r.label, preds: r.label.Predict(r.features,
+                maxIterations: 2,
+                loss: loss, onFit: p => pred = p)));
+
+            var pipe = reader.Append(est);
+
+            Assert.Null(pred);
+            var model = pipe.Fit(dataSource);
+            Assert.NotNull(pred);
+            // 9 input features, so we ought to have 9 weights.
+            Assert.Equal(9, pred.Weights2.Count);
+
+            var data = model.Read(dataSource);
+
+            // Just output some data on the schema for fun.
+            var rows = DataViewUtils.ComputeRowCount(data.AsDynamic);
+            var schema = data.AsDynamic.Schema;
+            for (int c = 0; c < schema.ColumnCount; ++c)
+                Console.WriteLine($"{schema.GetColumnName(c)}, {schema.GetColumnType(c)}");
+        }
     }
 }
