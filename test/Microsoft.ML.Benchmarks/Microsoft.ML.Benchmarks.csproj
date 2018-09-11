@@ -22,6 +22,7 @@
   </ItemGroup>
   <ItemGroup>
     <NativeAssemblyReference Include="CpuMathNative" />
+    <NativeAssemblyReference Include="FastTreeNative" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Input\" />
@@ -37,6 +38,21 @@
     <None Condition="Exists('..\data\external\WikiDetoxAnnotated160kRows.tsv')"
                   Include="..\data\external\WikiDetoxAnnotated160kRows.tsv"
                   Link="external\WikiDetoxAnnotated160kRows.tsv">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Condition="Exists('..\data\external\MSLRWeb10KTrain3.6MRows.tsv')"
+                  Include="..\data\external\MSLRWeb10KTrain3.6MRows.tsv"
+                  Link="external\MSLRWeb10KTrain3.6MRows.tsv">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Condition="Exists('..\data\external\MSLRWeb10KValidate1.2MRows.tsv')"
+                  Include="..\data\external\MSLRWeb10KValidate1.2MRows.tsv"
+                  Link="external\MSLRWeb10KValidate1.2MRows.tsv">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Condition="Exists('..\data\external\MSLRWeb10KTest1.2MRows.tsv')"
+                  Include="..\data\external\MSLRWeb10KTest1.2MRows.tsv"
+                  Link="external\MSLRWeb10KTest1.2MRows.tsv">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
