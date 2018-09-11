@@ -72,12 +72,42 @@ namespace Microsoft.ML.Scenarios
         }
 
         [Fact]
-        public void TensorFlowListLayersMnistConv()
+        public void TensorFlowInputsOutputsSchemaTest()
         {
-            var model_location = "mnist_model/frozen_saved_model.pb";
             using (var env = new TlcEnvironment(seed: 1, conc: 1))
             {
+                var model_location = "mnist_model/frozen_saved_model.pb";
                 var schema = TensorFlowUtils.GetModelSchema(env, model_location);
+                Assert.Equal(46, schema.ColumnCount);
+                Assert.True(schema.TryGetColumnIndex("Placeholder", out int col));
+                var type = schema.GetColumnType(col).AsVector;
+                Assert.Equal(2, type.DimCount);
+                Assert.Equal(28, type.GetDim(0));
+                Assert.Equal(28, type.GetDim(1));
+                Assert.True(schema.TryGetColumnIndex("conv2d/Conv2D/ReadVariableOp", out col));
+                type = schema.GetColumnType(col).AsVector;
+                Assert.Equal(4, type.DimCount);
+                Assert.Equal(5, type.GetDim(0));
+                Assert.Equal(5, type.GetDim(1));
+                Assert.Equal(1, type.GetDim(2));
+                Assert.Equal(32, type.GetDim(3));
+                Assert.True(schema.TryGetColumnIndex("Softmax", out col));
+                type = schema.GetColumnType(col).AsVector;
+                Assert.Equal(1, type.DimCount);
+                Assert.Equal(10, type.GetDim(0));
+
+                model_location = "model_matmul/frozen_saved_model.pb";
+                schema = TensorFlowUtils.GetModelSchema(env, model_location);
+                char name = 'a';
+                for (int i = 0; i < schema.ColumnCount; i++)
+                {
+                    Assert.Equal(name.ToString(), schema.GetColumnName(i));
+                    type = schema.GetColumnType(i).AsVector;
+                    Assert.Equal(2, type.DimCount);
+                    Assert.Equal(2, type.GetDim(0));
+                    Assert.Equal(2, type.GetDim(1));
+                    name++;
+                }
             }
         }
 

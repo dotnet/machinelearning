@@ -31,32 +31,25 @@ namespace Microsoft.ML.Transforms.TensorFlow
 
         private static unsafe ISchema GetModelSchema(IExceptionContext ectx, TFGraph graph)
         {
-            long pos = 0;
-            TF_Operation oper;
             var res = new List<KeyValuePair<string, ColumnType>>();
-            while ((oper = TFGraph.TF_GraphNextOperation(graph.handle, &pos)) != IntPtr.Zero)
+            foreach (var oper in graph)
             {
-                var name = TFGraph.TF_OperationName(oper);
-                var type = TFGraph.TF_OperationOpType(oper);
-                var numOutputs = TFGraph.TF_OperationNumOutputs(oper);
-                if (numOutputs != 1)
+                if (oper.NumOutputs != 1)
                     continue;
 
-                var numInputs = TFGraph.TF_OperationNumInputs(oper);
-                if (numInputs == 0)
+                if (oper.NumInputs == 0 && oper.OpType != "Placeholder")
                     continue;
 
-                var tfType = TFGraph.TF_OperationOutputType(new TFOutput(graph[name]));
+                var tfType = oper[0].OutputType;
                 var mlType = Tf2MlNetTypeOrNull(tfType);
                 if (mlType == null)
                     continue;
-
-                var shape = graph.GetTensorShape(new TFOutput(graph[name]));
+                var shape = graph.GetTensorShape(oper[0]);
                 var shapeArray = shape.ToIntArray();
                 var columnType = Utils.Size(shapeArray) > 0 && shapeArray.Skip(1).All(x => x > 0) ?
                     new VectorType(mlType, shapeArray[0] > 0 ? shapeArray : shapeArray.Skip(1).ToArray())
                     : new VectorType(mlType);
-                res.Add(new KeyValuePair<string, ColumnType>(name, columnType));
+                res.Add(new KeyValuePair<string, ColumnType>(oper.Name, columnType));
             }
             return new SimpleSchema(ectx, res.ToArray());
         }
@@ -93,7 +86,7 @@ namespace Microsoft.ML.Transforms.TensorFlow
             }
         }
 
-        internal static TFSession LoadTFSession(IExceptionContext ectx, byte[] modelBytes, string modelArg)
+        internal static TFSession LoadTFSession(IExceptionContext ectx, byte[] modelBytes, string modelFile = null)
         {
             var graph = new TFGraph();
             try
@@ -102,8 +95,8 @@ namespace Microsoft.ML.Transforms.TensorFlow
             }
             catch (Exception ex)
             {
-                if (!string.IsNullOrEmpty(modelArg))
-                    throw ectx.Except($"TensorFlow exception triggered while loading model from '{modelArg}'");
+                if (!string.IsNullOrEmpty(modelFile))
+                    throw ectx.Except($"TensorFlow exception triggered while loading model from '{modelFile}'");
 #pragma warning disable MSML_NoMessagesForLoadContext
                 throw ectx.ExceptDecode(ex, "Tensorflow exception triggered while loading model.");
 #pragma warning restore MSML_NoMessagesForLoadContext
