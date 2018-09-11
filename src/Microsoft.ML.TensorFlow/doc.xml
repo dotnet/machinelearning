@@ -47,12 +47,12 @@
       <example>
         <code language="csharp">
           pipeline.Add(new TextLoader(dataFile).CreateFrom&lt;MNISTData&gt;(useHeader: false));
-          pipeline.Add(new ColumnCopier((&quot;NumericImageVec&quot;, &quot;Input&quot;);
+          pipeline.Add(new ColumnCopier(("NumericImageVec", "Input");
           pipeline.Add(new TensorFlowScorer()
           {
-          ModelFile = model_location;
-          InputColumns = new []{ &quot;Input&quot; };
-          OutputColumns = &quot;Output&quot;
+            ModelFile = model_location;
+            InputColumns = new []{ "Input" };
+            OutputColumns = "Output"
           }
         </code>
       </example>
@@ -60,29 +60,29 @@
         <code language="csharp">
           var pipeline = new LearningPipeline(seed: 1);
           pipeline.Add(new TextLoader(dataFile).CreateFrom&lt;CifarData&gt;(useHeader: false));
-          pipeline.Add(new ImageLoader((&quot;ImagePath&quot;, &quot;ImageReal&quot;))
+          pipeline.Add(new ImageLoader(("ImagePath", "ImageReal"))
           {
-          ImageFolder = imageFolder
+            ImageFolder = imageFolder
           });
 
-          pipeline.Add(new ImageResizer((&quot;ImageReal&quot;, &quot;ImageCropped&quot;))
+          pipeline.Add(new ImageResizer(("ImageReal", "ImageCropped"))
           {
-          ImageHeight = imageHeight,
-          ImageWidth = imageWidth,
-          Resizing = ImageResizerTransformResizingKind.IsoCrop
+            ImageHeight = imageHeight,
+            ImageWidth = imageWidth,
+            Resizing = ImageResizerTransformResizingKind.IsoCrop
           });
 
-          pipeline.Add(new ImagePixelExtractor((&quot;ImageCropped&quot;, &quot;Input&quot;))
+          pipeline.Add(new ImagePixelExtractor(("ImageCropped", "Input"))
           {
-          UseAlpha = false,
-          InterleaveArgb = true
+            UseAlpha = false,
+            InterleaveArgb = true
           });
 
           pipeline.Add(new TensorFlowScorer()
           {
-          ModelFile = model_location,
-          InputColumns = new[] { &quot;Input&quot; },
-          OutputColumns = &quot;Output&quot;
+            ModelFile = model_location,
+            InputColumns = new[] { "Input" },
+            OutputColumns = "Output"
           });
         </code>
     </example>
