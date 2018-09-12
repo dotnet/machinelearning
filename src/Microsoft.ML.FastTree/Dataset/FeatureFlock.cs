@@ -248,7 +248,7 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
             double sumGTTargets = 0.0;
             double sumGTWeights = eps;
             int gtCount = 0;
-            sumWeights = 2 * eps;
+            sumWeights += 2 * eps;
             double gainShift = leafCalculator.GetLeafSplitGain(totalCount, sumTargets, sumWeights);
 
             // We get to this more explicit handling of the zero case since, under the influence of
