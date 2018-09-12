@@ -175,7 +175,7 @@ namespace Microsoft.ML.Runtime.Data
             public readonly string[] Term;
             public readonly bool TextKeyValues;
 
-            protected string Terms { get; set; }
+            protected internal string Terms { get; set; }
         }
 
         public const string Summary = "Converts input values (words, numbers, etc.) to index in a dictionary.";

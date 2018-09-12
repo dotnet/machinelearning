@@ -1,13 +1,15 @@
-﻿using Microsoft.ML.Runtime.Api;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
+using Microsoft.ML.Runtime.Data.IO;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.RunTests;
 using Microsoft.ML.Runtime.Tools;
-using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -50,16 +52,52 @@ namespace Microsoft.ML.Tests.Transformers
 
             var dataView = ComponentCreation.CreateDataView(Env, data);
             var pipe = new CategoricalEstimator(Env, new[]{
-                    new CategoricalEstimator.ColumnInfo("A", "CatA", CategoricalEstimator.OutputKind.Bag),
-                    new CategoricalEstimator.ColumnInfo("A", "CatB", CategoricalEstimator.OutputKind.Bin),
-                    new CategoricalEstimator.ColumnInfo("A", "CatC", CategoricalEstimator.OutputKind.Ind),
-                    new CategoricalEstimator.ColumnInfo("A", "CatD", CategoricalEstimator.OutputKind.Key),
+                    new CategoricalEstimator.ColumnInfo("A", "CatA", CategoricalTransform.OutputKind.Bag),
+                    new CategoricalEstimator.ColumnInfo("A", "CatB", CategoricalTransform.OutputKind.Bin),
+                    new CategoricalEstimator.ColumnInfo("A", "CatC", CategoricalTransform.OutputKind.Ind),
+                    new CategoricalEstimator.ColumnInfo("A", "CatD", CategoricalTransform.OutputKind.Key),
                 });
 
             TestEstimatorCore(pipe, dataView);
             Done();
         }
 
+        [Fact]
+        public void CategoricalStatic()
+        {
+            string dataPath = GetDataPath("breast-cancer.txt");
+            var reader = TextLoader.CreateReader(Env, ctx => (
+                ScalarString: ctx.LoadText(1),
+                VectorString: ctx.LoadText(1, 4),
+                ScalarFloat: ctx.LoadFloat(1),
+                VectorFloat: ctx.LoadFloat(1, 4)
+            ));
+            var data = reader.Read(new MultiFileSource(dataPath));
+            var wrongCollection = new[] { new TestClass() { A = 1, B = 2, C = 3, }, new TestClass() { A = 4, B = 5, C = 6 } };
+
+            var invalidData = ComponentCreation.CreateDataView(Env, wrongCollection);
+            var est = data.MakeNewEstimator().
+                  Append(row => (
+                  A: row.ScalarString.OneHotEncoding(),
+                  B: row.VectorString.OneHotEncoding(),
+                  C: row.ScalarFloat.OneHotEncoding(),
+                  D: row.VectorFloat.OneHotEncoding()));
+
+            TestEstimatorCore(est.AsDynamic, data.AsDynamic, invalidInput: invalidData);
+
+            var outputPath = GetOutputPath("Categorical", "featurized.tsv");
+            using (var ch = Env.Start("save"))
+            {
+                var saver = new TextSaver(Env, new TextSaver.Arguments { Silent = true });
+                IDataView savedData = TakeFilter.Create(Env, est.Fit(data).Transform(data).AsDynamic, 4);
+                savedData = new ChooseColumnsTransform(Env, savedData, "A", "B", "C", "D");
+                using (var fs = File.Create(outputPath))
+                    DataSaverUtils.SaveDataView(ch, saver, savedData, fs, keepHidden: true);
+            }
+
+            CheckEquality("Categorical", "featurized.tsv");
+            Done();
+        }
 
         [Fact]
         public void TestMetadataPropagation()
@@ -72,27 +110,28 @@ namespace Microsoft.ML.Tests.Transformers
 
             var dataView = ComponentCreation.CreateDataView(Env, data);
             var bagPipe = new CategoricalEstimator(Env,
-                new CategoricalEstimator.ColumnInfo("A", "CatA", CategoricalEstimator.OutputKind.Bag),
-                new CategoricalEstimator.ColumnInfo("B", "CatB", CategoricalEstimator.OutputKind.Bag),
-                new CategoricalEstimator.ColumnInfo("C", "CatC", CategoricalEstimator.OutputKind.Bag),
-                new CategoricalEstimator.ColumnInfo("D", "CatD", CategoricalEstimator.OutputKind.Bag),
-                new CategoricalEstimator.ColumnInfo("E", "CatE", CategoricalEstimator.OutputKind.Ind),
-                new CategoricalEstimator.ColumnInfo("F", "CatF", CategoricalEstimator.OutputKind.Ind),
-                new CategoricalEstimator.ColumnInfo("G", "CatG", CategoricalEstimator.OutputKind.Key),
-                new CategoricalEstimator.ColumnInfo("H", "CatH", CategoricalEstimator.OutputKind.Key));
+                new CategoricalEstimator.ColumnInfo("A", "CatA", CategoricalTransform.OutputKind.Bag),
+                new CategoricalEstimator.ColumnInfo("B", "CatB", CategoricalTransform.OutputKind.Bag),
+                new CategoricalEstimator.ColumnInfo("C", "CatC", CategoricalTransform.OutputKind.Bag),
+                new CategoricalEstimator.ColumnInfo("D", "CatD", CategoricalTransform.OutputKind.Bag),
+                new CategoricalEstimator.ColumnInfo("E", "CatE", CategoricalTransform.OutputKind.Ind),
+                new CategoricalEstimator.ColumnInfo("F", "CatF", CategoricalTransform.OutputKind.Ind),
+                new CategoricalEstimator.ColumnInfo("G", "CatG", CategoricalTransform.OutputKind.Key),
+                new CategoricalEstimator.ColumnInfo("H", "CatH", CategoricalTransform.OutputKind.Key));
+
             var binPipe = new CategoricalEstimator(Env,
-                new CategoricalEstimator.ColumnInfo("A", "CatA", CategoricalEstimator.OutputKind.Bin),
-                new CategoricalEstimator.ColumnInfo("B", "CatB", CategoricalEstimator.OutputKind.Bin),
-                new CategoricalEstimator.ColumnInfo("C", "CatC", CategoricalEstimator.OutputKind.Bin),
-                new CategoricalEstimator.ColumnInfo("D", "CatD", CategoricalEstimator.OutputKind.Bin),
-                new CategoricalEstimator.ColumnInfo("E", "CatE", CategoricalEstimator.OutputKind.Ind),
-                new CategoricalEstimator.ColumnInfo("F", "CatF", CategoricalEstimator.OutputKind.Ind),
-                new CategoricalEstimator.ColumnInfo("G", "CatG", CategoricalEstimator.OutputKind.Key),
-                new CategoricalEstimator.ColumnInfo("H", "CatH", CategoricalEstimator.OutputKind.Key));
+                new CategoricalEstimator.ColumnInfo("A", "CatA", CategoricalTransform.OutputKind.Bin),
+                new CategoricalEstimator.ColumnInfo("B", "CatB", CategoricalTransform.OutputKind.Bin),
+                new CategoricalEstimator.ColumnInfo("C", "CatC", CategoricalTransform.OutputKind.Bin),
+                new CategoricalEstimator.ColumnInfo("D", "CatD", CategoricalTransform.OutputKind.Bin),
+                new CategoricalEstimator.ColumnInfo("E", "CatE", CategoricalTransform.OutputKind.Ind),
+                new CategoricalEstimator.ColumnInfo("F", "CatF", CategoricalTransform.OutputKind.Ind),
+                new CategoricalEstimator.ColumnInfo("G", "CatG", CategoricalTransform.OutputKind.Key),
+                new CategoricalEstimator.ColumnInfo("H", "CatH", CategoricalTransform.OutputKind.Key));
 
             var bagResult = bagPipe.Fit(dataView).Transform(dataView);
             var binResult = binPipe.Fit(dataView).Transform(dataView);
-            
+
             ValidateBagMetadata(bagResult);
             ValidateBinMetadata(binResult);
             Done();

@@ -15,6 +15,7 @@ using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Internal.Internallearn;
 using Microsoft.ML.Core.Data;
+using Microsoft.ML.Data.StaticPipe.Runtime;
 
 [assembly: LoadableClass(CategoricalTransform.Summary, typeof(IDataTransform), typeof(CategoricalTransform), typeof(CategoricalTransform.Arguments), typeof(SignatureDataTransform),
     CategoricalTransform.UserName, "CategoricalTransform", "CatTransform", "Categorical", "Cat")]
@@ -119,7 +120,7 @@ namespace Microsoft.ML.Runtime.Data
 
         public const string UserName = "Categorical Transform";
 
-        public static IDataView Create(IHostEnvironment env, Arguments args, IDataView input)
+        public static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
         {
             Contracts.CheckValue(env, nameof(env));
             var h = env.Register("Categorical");
@@ -140,7 +141,7 @@ namespace Microsoft.ML.Runtime.Data
                 col.SetTerms(column.Terms);
                 columns.Add(col);
             }
-            return Create(env, input, columns.ToArray());
+            return Create(env, input, columns.ToArray()) as IDataTransform;
         }
 
         public static IDataView Create(IHostEnvironment env, IDataView input, params CategoricalEstimator.ColumnInfo[] columns)
@@ -304,6 +305,111 @@ namespace Microsoft.ML.Runtime.Data
 
             var xf = KeyToValueTransform.Create(host, input, input.Data);
             return new CommonOutputs.TransformOutput { Model = new TransformModel(env, xf, input.Data), OutputData = xf };
+        }
+    }
+
+    public enum OneHotOutputKind : byte
+    {
+        /// <summary>
+        /// Output is a bag (multi-set) vector
+        /// </summary>
+        Bag = 1,
+
+        /// <summary>
+        /// Output is an indicator vector
+        /// </summary>
+        Ind = 2,
+
+        /// <summary>
+        /// Output is a key value
+        /// </summary>
+        Key = 3,
+
+        /// <summary>
+        /// Output is binary encoded
+        /// </summary>
+        Bin = 4,
+    }
+
+    public static partial class CategoricalStaticExtensions
+    {
+        // I am not certain I see a good way to cover the distinct types beyond complete enumeration.
+        // Raw generics would allow illegal possible inputs, e.g., Scalar<Bitmap>. So, this is a partial
+        // class, and all the public facing extension methods for each possible type are in a T4 generated result.
+
+        private const KeyValueOrder DefSort = (KeyValueOrder)TermEstimator.Defaults.Sort;
+        private const int DefMax = TermEstimator.Defaults.MaxNumTerms;
+        private const OneHotOutputKind DefOut = (OneHotOutputKind)CategoricalEstimator.Defaults.OutKind;
+
+        private struct Config
+        {
+            public readonly KeyValueOrder Order;
+            public readonly int Max;
+            public readonly OneHotOutputKind OutputKind;
+
+            public Config(KeyValueOrder order, int max, OneHotOutputKind outputKind)
+            {
+                Order = order;
+                Max = max;
+                OutputKind = outputKind;
+            }
+        }
+
+        private interface IOneHotCol
+        {
+            PipelineColumn Input { get; }
+            Config Config { get; }
+        }
+
+        private sealed class ImplScalar<T> :Vector<float>, IOneHotCol
+        {
+            public PipelineColumn Input { get; }
+            public Config Config { get; }
+            public ImplScalar(PipelineColumn input, Config config) : base(Rec.Inst, input)
+            {
+                Input = input;
+                Config = config;
+            }
+        }
+
+        private sealed class ImplVector<T> : Vector<float>, IOneHotCol
+        {
+            public PipelineColumn Input { get; }
+            public Config Config { get; }
+            public ImplVector(PipelineColumn input, Config config) : base(Rec.Inst, input)
+            {
+                Input = input;
+                Config = config;
+            }
+        }
+
+        private sealed class ImplVarVector<T> : VarVector<float>, IOneHotCol
+        {
+            public PipelineColumn Input { get; }
+            public Config Config { get; }
+            public ImplVarVector(PipelineColumn input, Config config) : base(Rec.Inst, input)
+            {
+                Input = input;
+                Config = config;
+            }
+        }
+
+        private sealed class Rec : EstimatorReconciler
+        {
+            public static readonly Rec Inst = new Rec();
+
+            public override IEstimator<ITransformer> Reconcile(IHostEnvironment env, PipelineColumn[] toOutput,
+                IReadOnlyDictionary<PipelineColumn, string> inputNames, IReadOnlyDictionary<PipelineColumn, string> outputNames, IReadOnlyCollection<string> usedNames)
+            {
+                var infos = new CategoricalEstimator.ColumnInfo[toOutput.Length];
+                for (int i = 0; i < toOutput.Length; ++i)
+                {
+                    var tcol = (IOneHotCol)toOutput[i];
+                    infos[i] = new CategoricalEstimator.ColumnInfo(inputNames[tcol.Input], outputNames[toOutput[i]], (CategoricalTransform.OutputKind)tcol.Config.OutputKind,
+                        tcol.Config.Max, (TermTransform.SortOrder)tcol.Config.Order);
+                }
+                return new CategoricalEstimator(env, infos);
+            }
         }
     }
 }
