@@ -28,7 +28,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             using (var env = new TlcEnvironment(seed: 1, conc: 1))
             {
                 var trainData = new TextLoader(env, MakeSentimentTextLoaderArgs())
-                    .Append(new MyTextTransform(env, MakeSentimentTextTransformArgs()))
+                    .Append(new TextTransform(env, "SentimentText", "Features"))
                     .FitAndRead(new MultiFileSource(dataPath));
 
                 using (var file = env.CreateOutputFile("i.idv"))

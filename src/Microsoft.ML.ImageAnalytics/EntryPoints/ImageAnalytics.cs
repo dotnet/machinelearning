@@ -11,6 +11,16 @@ namespace Microsoft.ML.Runtime.ImageAnalytics.EntryPoints
 {
     public static class ImageAnalytics
     {
+        // This method is needed for the Pipeline API, since ModuleCatalog does not load entry points that are located
+        // in assemblies that aren't directly used in the code. Users who want to use ImageAnalytics components will have to call
+        // ImageAnalytics.Initialize() before creating the pipeline.
+        /// <summary>
+        /// Initialize the Image Analytics environment. Call this method before adding Image components to a learning pipeline.
+        /// </summary>
+        public static void Initialize()
+        {
+        }
+
         [TlcModule.EntryPoint(Name = "Transforms.ImageLoader", Desc = ImageLoaderTransform.Summary,
             UserName = ImageLoaderTransform.UserName, ShortName = ImageLoaderTransform.LoaderSignature)]
         public static CommonOutputs.TransformOutput ImageLoader(IHostEnvironment env, ImageLoaderTransform.Arguments input)

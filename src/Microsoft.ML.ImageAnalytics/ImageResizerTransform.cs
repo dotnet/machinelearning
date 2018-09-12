@@ -8,6 +8,7 @@ using System.Drawing;
 using System.Linq;
 using System.Text;
 using Microsoft.ML.Core.Data;
+using Microsoft.ML.Data.StaticPipe.Runtime;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
@@ -17,10 +18,10 @@ using Microsoft.ML.Runtime.Internal.Internallearn;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
 
-[assembly: LoadableClass(ImageResizerTransform.Summary, typeof(ImageResizerTransform), typeof(ImageResizerTransform.Arguments),
+[assembly: LoadableClass(ImageResizerTransform.Summary, typeof(IDataTransform), typeof(ImageResizerTransform), typeof(ImageResizerTransform.Arguments),
     typeof(SignatureDataTransform), ImageResizerTransform.UserName, "ImageResizerTransform", "ImageResizer")]
 
-[assembly: LoadableClass(ImageResizerTransform.Summary, typeof(ImageResizerTransform), null, typeof(SignatureLoadDataTransform),
+[assembly: LoadableClass(ImageResizerTransform.Summary, typeof(IDataTransform), typeof(ImageResizerTransform), null, typeof(SignatureLoadDataTransform),
     ImageResizerTransform.UserName, ImageResizerTransform.LoaderSignature)]
 
 [assembly: LoadableClass(typeof(ImageResizerTransform), null, typeof(SignatureLoadModel),
@@ -446,9 +447,7 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
             var result = inputSchema.Columns.ToDictionary(x => x.Name);
             foreach (var colInfo in Transformer.Columns)
             {
-                var col = inputSchema.FindColumn(colInfo.Input);
-
-                if (col == null)
+                if (!inputSchema.TryFindColumn(colInfo.Input, out var col))
                     throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.Input);
                 if (!(col.ItemType is ImageType) || col.Kind != SchemaShape.Column.VectorKind.Scalar)
                     throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.Input, new ImageType().ToString(), col.GetTypeString());
@@ -457,6 +456,59 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
             }
 
             return new SchemaShape(result.Values);
+        }
+
+        internal sealed class OutPipelineColumn : Scalar<Bitmap>
+        {
+            private readonly PipelineColumn _input;
+            private readonly int _width;
+            private readonly int _height;
+            private readonly ImageResizerTransform.ResizingKind _resizing;
+            private readonly ImageResizerTransform.Anchor _cropAnchor;
+
+            public OutPipelineColumn(PipelineColumn input, int width, int height,
+            ImageResizerTransform.ResizingKind resizing, ImageResizerTransform.Anchor cropAnchor)
+                : base(Reconciler.Inst, input)
+            {
+                Contracts.AssertValue(input);
+                _input = input;
+                _width = width;
+                _height = height;
+                _resizing = resizing;
+                _cropAnchor = cropAnchor;
+            }
+
+            private ImageResizerTransform.ColumnInfo MakeColumnInfo(string input, string output)
+                => new ImageResizerTransform.ColumnInfo(input, output, _width, _height, _resizing, _cropAnchor);
+
+            /// <summary>
+            /// Reconciler to an <see cref="ImageResizerTransform"/> for the <see cref="PipelineColumn"/>.
+            /// </summary>
+            /// <seealso cref="ImageStaticPipe.Resize(Scalar{Bitmap}, int, int, ImageResizerTransform.ResizingKind, ImageResizerTransform.Anchor)"/>
+            /// <seealso cref="ImageStaticPipe.Resize(Scalar{UnknownSizeBitmap}, int, int, ImageResizerTransform.ResizingKind, ImageResizerTransform.Anchor)"/>
+            private sealed class Reconciler : EstimatorReconciler
+            {
+                public static Reconciler Inst = new Reconciler();
+
+                private Reconciler()
+                {
+                }
+
+                public override IEstimator<ITransformer> Reconcile(IHostEnvironment env,
+                    PipelineColumn[] toOutput,
+                    IReadOnlyDictionary<PipelineColumn, string> inputNames,
+                    IReadOnlyDictionary<PipelineColumn, string> outputNames,
+                    IReadOnlyCollection<string> usedNames)
+                {
+                    var cols = new ImageResizerTransform.ColumnInfo[toOutput.Length];
+                    for (int i = 0; i < toOutput.Length; ++i)
+                    {
+                        var outCol = (OutPipelineColumn)toOutput[i];
+                        cols[i] = outCol.MakeColumnInfo(inputNames[outCol._input], outputNames[outCol]);
+                    }
+                    return new ImageResizerEstimator(env, cols);
+                }
+            }
         }
     }
 }

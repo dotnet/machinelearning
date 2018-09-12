@@ -156,7 +156,7 @@ namespace Microsoft.ML.Runtime.Data
                 args.OutputKind,
                 args.Column,
                 args.Column.Select(col => col.OutputKind).ToList(),
-                new TermTransform(args, args.Column, h, input),
+                 TermTransform.Create(h, args, args.Column, input),
                 h,
                 env);
         }
@@ -177,7 +177,7 @@ namespace Microsoft.ML.Runtime.Data
             using (var ch = h.Start("Create Transform Core"))
             {
                 // Create the KeyToVectorTransform, if needed.
-                List<KeyToVectorTransform.Column> cols = new List<KeyToVectorTransform.Column>();
+                var cols = new List<KeyToVectorTransform.Column>();
                 bool binaryEncoding = argsOutputKind == OutputKind.Bin;
                 for (int i = 0; i < columns.Length; i++)
                 {
@@ -220,19 +220,14 @@ namespace Microsoft.ML.Runtime.Data
                     if ((catHashArgs?.InvertHash ?? 0) != 0)
                         ch.Warning("Invert hashing is being used with binary encoding.");
 
-                    var keyToBinaryArgs = new KeyToBinaryVectorTransform.Arguments();
-                    keyToBinaryArgs.Column = cols.ToArray();
-                    transform = new KeyToBinaryVectorTransform(h, keyToBinaryArgs, input);
+                    var keyToBinaryVecCols = cols.Select(x => new KeyToBinaryVectorTransform.ColumnInfo(x.Source, x.Name)).ToArray();
+                    transform = KeyToBinaryVectorTransform.Create(h, input, keyToBinaryVecCols);
                 }
                 else
                 {
-                    var keyToVecArgs = new KeyToVectorTransform.Arguments
-                    {
-                        Bag = argsOutputKind == OutputKind.Bag,
-                        Column = cols.ToArray()
-                    };
+                    var keyToVecCols = cols.Select(x => new KeyToVectorTransform.ColumnInfo(x.Source, x.Name, x.Bag ?? argsOutputKind == OutputKind.Bag)).ToArray();
 
-                    transform = new KeyToVectorTransform(h, keyToVecArgs, input);
+                    transform = KeyToVectorTransform.Create(h, input, keyToVecCols);
                 }
 
                 ch.Done();
@@ -261,7 +256,7 @@ namespace Microsoft.ML.Runtime.Data
 
         [TlcModule.EntryPoint(Name = "Transforms.CategoricalHashOneHotVectorizer",
             Desc = CategoricalHashTransform.Summary,
-            UserName = CategoricalHashTransform.UserName ,
+            UserName = CategoricalHashTransform.UserName,
             XmlInclude = new[] { @"<include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/member[@name=""CategoricalHashOneHotVectorizer""]/*' />",
                                  @"<include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/example[@name=""CategoricalHashOneHotVectorizer""]/*' />"})]
         public static CommonOutputs.TransformOutput CatTransformHash(IHostEnvironment env, CategoricalHashTransform.Arguments input)
@@ -287,7 +282,7 @@ namespace Microsoft.ML.Runtime.Data
             host.CheckValue(input, nameof(input));
             EntryPointUtils.CheckInputArgs(host, input);
 
-            var xf = new TermTransform(host, input, input.Data);
+            var xf = TermTransform.Create(host, input, input.Data);
             return new CommonOutputs.TransformOutput { Model = new TransformModel(env, xf, input.Data), OutputData = xf };
         }
 
@@ -302,7 +297,7 @@ namespace Microsoft.ML.Runtime.Data
             host.CheckValue(input, nameof(input));
             EntryPointUtils.CheckInputArgs(host, input);
 
-            var xf = new KeyToValueTransform(host, input, input.Data);
+            var xf = KeyToValueTransform.Create(host, input, input.Data);
             return new CommonOutputs.TransformOutput { Model = new TransformModel(env, xf, input.Data), OutputData = xf };
         }
     }

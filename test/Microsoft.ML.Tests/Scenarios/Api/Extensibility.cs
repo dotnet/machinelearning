@@ -31,7 +31,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                     j.SepalWidth = i.SepalWidth;
                 };
                 var lambda = LambdaTransform.CreateMap(env, loader, action);
-                var term = new TermTransform(env, lambda, "Label");
+                var term = TermTransform.Create(env, lambda, "Label");
                 var concat = new ConcatTransform(env, term, "Features", "SepalLength", "SepalWidth", "PetalLength", "PetalWidth");
 
                 var trainer = new SdcaMultiClassTrainer(env, new SdcaMultiClassTrainer.Arguments { MaxIterations = 100, Shuffle = true, NumThreads = 1 });
@@ -46,7 +46,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                 var scoreRoles = new RoleMappedData(concat, label: "Label", feature: "Features");
                 IDataScorerTransform scorer = ScoreUtils.GetScorer(predictor, scoreRoles, env, trainRoles.Schema);
 
-                var keyToValue = new KeyToValueTransform(env, scorer, "PredictedLabel");
+                var keyToValue = new KeyToValueTransform(env, "PredictedLabel").Transform(scorer);
                 var model = env.CreatePredictionEngine<IrisData, IrisPrediction>(keyToValue);
 
                 var testLoader = TextLoader.ReadFile(env, MakeIrisTextLoaderArgs(), new MultiFileSource(dataPath));

@@ -122,9 +122,7 @@ namespace Microsoft.ML.Runtime.Tools
                         return -1;
                     }
 
-                    var cmdDef = new SubComponent<ICommand, SignatureCommand>(kind, settings);
-
-                    if (!ComponentCatalog.TryCreateInstance(mainHost, out ICommand cmd, cmdDef))
+                    if (!ComponentCatalog.TryCreateInstance<ICommand, SignatureCommand>(mainHost, out ICommand cmd, kind, settings))
                     {
                         // Telemetry: Log
                         telemetryPipe.Send(TelemetryMessage.CreateCommand("UnknownCommand", settings));

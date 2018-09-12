@@ -300,58 +300,6 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         }
     }
 
-    public class MyTextTransform : IEstimator<TransformWrapper>
-    {
-        private readonly IHostEnvironment _env;
-        private readonly TextTransform.Arguments _args;
-
-        public MyTextTransform(IHostEnvironment env, TextTransform.Arguments args)
-        {
-            _env = env;
-            _args = args;
-        }
-
-        public TransformWrapper Fit(IDataView input)
-        {
-            var xf = TextTransform.Create(_env, _args, input);
-            var empty = new EmptyDataView(_env, input.Schema);
-            var chunk = ApplyTransformUtils.ApplyAllTransformsToData(_env, xf, empty, input);
-            return new TransformWrapper(_env, chunk);
-        }
-
-        public SchemaShape GetOutputSchema(SchemaShape inputSchema)
-        {
-            throw new NotImplementedException();
-        }
-    }
-
-    public class MyTermTransform : IEstimator<TransformWrapper>
-    {
-        private readonly IHostEnvironment _env;
-        private readonly string _column;
-        private readonly string _srcColumn;
-
-        public MyTermTransform(IHostEnvironment env, string column, string srcColumn = null)
-        {
-            _env = env;
-            _column = column;
-            _srcColumn = srcColumn;
-        }
-
-        public TransformWrapper Fit(IDataView input)
-        {
-            var xf = new TermTransform(_env, input, _column, _srcColumn);
-            var empty = new EmptyDataView(_env, input.Schema);
-            var chunk = ApplyTransformUtils.ApplyAllTransformsToData(_env, xf, empty, input);
-            return new TransformWrapper(_env, chunk);
-        }
-
-        public SchemaShape GetOutputSchema(SchemaShape inputSchema)
-        {
-            throw new NotImplementedException();
-        }
-    }
-
     public class MyConcatTransform : IEstimator<TransformWrapper>
     {
         private readonly IHostEnvironment _env;
@@ -376,74 +324,6 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         public SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {
             throw new NotImplementedException();
-        }
-    }
-
-    public class MyKeyToValueTransform : IEstimator<TransformWrapper>
-    {
-        private readonly IHostEnvironment _env;
-        private readonly string _name;
-        private readonly string _source;
-
-        public MyKeyToValueTransform(IHostEnvironment env, string name, string source = null)
-        {
-            _env = env;
-            _name = name;
-            _source = source;
-        }
-
-        public TransformWrapper Fit(IDataView input)
-        {
-            var xf = new KeyToValueTransform(_env, input, _name, _source);
-            var empty = new EmptyDataView(_env, input.Schema);
-            var chunk = ApplyTransformUtils.ApplyAllTransformsToData(_env, xf, empty, input);
-            return new TransformWrapper(_env, chunk);
-        }
-
-        public SchemaShape GetOutputSchema(SchemaShape inputSchema)
-        {
-            throw new NotImplementedException();
-        }
-    }
-
-    public sealed class MyAveragedPerceptron : TrainerBase<BinaryScorerWrapper<IPredictor>, IPredictor>
-    {
-        private readonly AveragedPerceptronTrainer _trainer;
-
-        public override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
-
-        public MyAveragedPerceptron(IHostEnvironment env, AveragedPerceptronTrainer.Arguments args, string featureCol, string labelCol)
-            : base(env, new TrainerInfo(caching: false), featureCol, labelCol)
-        {
-            _trainer = new AveragedPerceptronTrainer(env, args);
-        }
-
-        protected override IPredictor TrainCore(TrainContext trainContext) => _trainer.Train(trainContext);
-
-        public ITransformer Train(IDataView trainData, IPredictor initialPredictor)
-        {
-            return TrainTransformer(trainData, initPredictor: initialPredictor);
-        }
-
-        protected override BinaryScorerWrapper<IPredictor> MakeScorer(IPredictor predictor, RoleMappedData data)
-            => new BinaryScorerWrapper<IPredictor>(_env, predictor, data.Data.Schema, _featureCol, new BinaryClassifierScorer.Arguments());
-    }
-
-    public sealed class MyPredictionEngine<TSrc, TDst>
-                where TSrc : class
-                where TDst : class, new()
-    {
-        private readonly PredictionEngine<TSrc, TDst> _engine;
-
-        public MyPredictionEngine(IHostEnvironment env, ITransformer pipe)
-        {
-            IDataView dv = env.CreateDataView(new TSrc[0]);
-            _engine = env.CreatePredictionEngine<TSrc, TDst>(pipe.Transform(dv));
-        }
-
-        public TDst Predict(TSrc example)
-        {
-            return _engine.Predict(example);
         }
     }
 
@@ -587,7 +467,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
 
         public override PredictionKind PredictionKind => PredictionKind.MultiClassClassification;
 
-        private static TrainerInfo MakeTrainerInfo(ITrainerEstimator<IPredictionTransformer<TScalarPredictor>, TScalarPredictor> estimator) 
+        private static TrainerInfo MakeTrainerInfo(ITrainerEstimator<IPredictionTransformer<TScalarPredictor>, TScalarPredictor> estimator)
             => new TrainerInfo(estimator.Info.NeedNormalization, estimator.Info.NeedCalibration, false);
 
         protected override ScorerWrapper<OvaPredictor> MakeScorer(OvaPredictor predictor, RoleMappedData data)

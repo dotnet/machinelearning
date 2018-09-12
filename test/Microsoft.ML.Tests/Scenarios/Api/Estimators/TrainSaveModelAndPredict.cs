@@ -31,7 +31,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                 var data = reader.Read(new MultiFileSource(dataPath));
 
                 // Pipeline.
-                var pipeline = new MyTextTransform(env, MakeSentimentTextTransformArgs())
+                var pipeline = new TextTransform(env, "SentimentText", "Features")
                     .Append(new LinearClassificationTrainer(env, new LinearClassificationTrainer.Arguments { NumThreads = 1 }, "Features", "Label"));
 
                 // Train.
@@ -49,7 +49,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                 }
 
                 // Create prediction engine and test predictions.
-                var engine = new MyPredictionEngine<SentimentData, SentimentPrediction>(env, loadedModel);
+                var engine = loadedModel.MakePredictionFunction<SentimentData, SentimentPrediction>(env);
 
                 // Take a couple examples out of the test data and run predictions on top.
                 var testData = reader.Read(new MultiFileSource(GetDataPath(SentimentTestPath)))

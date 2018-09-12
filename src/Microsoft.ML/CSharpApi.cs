@@ -15789,139 +15789,7 @@ namespace Microsoft.ML
     namespace Transforms
     {
 
-        /// <summary>
-        /// Similar to BinNormalizer, but calculates bins based on correlation with the label column, not equi-density. The new value is bin_number / number_of_bins.
-        /// </summary>
-        public sealed partial class SupervisedBinNormalizer : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.ILearningPipelineItem
-        {
-
-            public SupervisedBinNormalizer()
-            {
-            }
-            
-            public SupervisedBinNormalizer(params string[] inputColumns)
-            {
-                if (inputColumns != null)
-                {
-                    foreach (string input in inputColumns)
-                    {
-                        AddColumn(input);
-                    }
-                }
-            }
-            
-            public SupervisedBinNormalizer(params (string inputColumn, string outputColumn)[] inputOutputColumns)
-            {
-                if (inputOutputColumns != null)
-                {
-                    foreach (var inputOutput in inputOutputColumns)
-                    {
-                        AddColumn(inputOutput.outputColumn, inputOutput.inputColumn);
-                    }
-                }
-            }
-            
-            public void AddColumn(string inputColumn)
-            {
-                var list = Column == null ? new List<Microsoft.ML.Transforms.NormalizeTransformBinColumn>() : new List<Microsoft.ML.Transforms.NormalizeTransformBinColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Transforms.NormalizeTransformBinColumn>.Create(inputColumn));
-                Column = list.ToArray();
-            }
-
-            public void AddColumn(string outputColumn, string inputColumn)
-            {
-                var list = Column == null ? new List<Microsoft.ML.Transforms.NormalizeTransformBinColumn>() : new List<Microsoft.ML.Transforms.NormalizeTransformBinColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Transforms.NormalizeTransformBinColumn>.Create(outputColumn, inputColumn));
-                Column = list.ToArray();
-            }
-
-
-            /// <summary>
-            /// Label column for supervised binning
-            /// </summary>
-            public string LabelColumn { get; set; }
-
-            /// <summary>
-            /// Minimum number of examples per bin
-            /// </summary>
-            public int MinBinSize { get; set; } = 10;
-
-            /// <summary>
-            /// New column definition(s) (optional form: name:src)
-            /// </summary>
-            public NormalizeTransformBinColumn[] Column { get; set; }
-
-            /// <summary>
-            /// Max number of bins, power of 2 recommended
-            /// </summary>
-            public int NumBins { get; set; } = 1024;
-
-            /// <summary>
-            /// Whether to map zero to zero, preserving sparsity
-            /// </summary>
-            public bool FixZero { get; set; } = true;
-
-            /// <summary>
-            /// Max number of examples used to train the normalizer
-            /// </summary>
-            public long MaxTrainingExamples { get; set; } = 1000000000;
-
-            /// <summary>
-            /// Input dataset
-            /// </summary>
-            public Var<Microsoft.ML.Runtime.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
-
-
-            public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITransformOutput
-            {
-                /// <summary>
-                /// Transformed dataset
-                /// </summary>
-                public Var<Microsoft.ML.Runtime.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
-
-                /// <summary>
-                /// Transform model
-                /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel>();
-
-            }
-            public Var<IDataView> GetInputData() => Data;
-            
-            public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
-            {
-                if (previousStep != null)
-                {
-                    if (!(previousStep is ILearningPipelineDataStep dataStep))
-                    {
-                        throw new InvalidOperationException($"{ nameof(SupervisedBinNormalizer)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
-                    }
-
-                    Data = dataStep.Data;
-                }
-                Output output = experiment.Add(this);
-                return new SupervisedBinNormalizerPipelineStep(output);
-            }
-
-            private class SupervisedBinNormalizerPipelineStep : ILearningPipelineDataStep
-            {
-                public SupervisedBinNormalizerPipelineStep(Output output)
-                {
-                    Data = output.OutputData;
-                    Model = output.Model;
-                }
-
-                public Var<IDataView> Data { get; }
-                public Var<ITransformModel> Model { get; }
-            }
-        }
-    }
-
-    namespace Transforms
-    {
-
-        /// <summary>
-        /// Transforms the data using the TensorFlow model.
-        /// </summary>
+        /// <include file='../Microsoft.ML.TensorFlow/doc.xml' path='doc/members/member[@name="TensorflowTransform"]/*' />
         public sealed partial class TensorFlowScorer : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.ILearningPipelineItem
         {
 
@@ -15937,9 +15805,9 @@ namespace Microsoft.ML
             public string[] InputColumns { get; set; }
 
             /// <summary>
-            /// The name of the output
+            /// The name of the outputs
             /// </summary>
-            public string OutputColumn { get; set; }
+            public string[] OutputColumns { get; set; }
 
             /// <summary>
             /// Input dataset

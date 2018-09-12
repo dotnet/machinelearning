@@ -1049,6 +1049,24 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
             meth.Invoke(act.Target, new object[] { arg1 });
         }
 
+        /// <summary>
+        /// A two-argument version of <see cref="MarshalActionInvoke(Action, Type)"/>.
+        /// </summary>
+        public static void MarshalActionInvoke<TArg1, TArg2>(Action<TArg1, TArg2> act, Type genArg, TArg1 arg1, TArg2 arg2)
+        {
+            var meth = MarshalActionInvokeCheckAndCreate(genArg, act);
+            meth.Invoke(act.Target, new object[] { arg1, arg2 });
+        }
+
+        /// <summary>
+        /// A three-argument version of <see cref="MarshalActionInvoke(Action, Type)"/>.
+        /// </summary>
+        public static void MarshalActionInvoke<TArg1, TArg2, TArg3>(Action<TArg1, TArg2, TArg3> act, Type genArg, TArg1 arg1, TArg2 arg2, TArg3 arg3)
+        {
+            var meth = MarshalActionInvokeCheckAndCreate(genArg, act);
+            meth.Invoke(act.Target, new object[] { arg1, arg2, arg3 });
+        }
+
         public static string GetDescription(this Enum value)
         {
             Type type = value.GetType();

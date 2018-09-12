@@ -67,18 +67,12 @@ namespace Microsoft.ML.Runtime.Data
             var resultDic = inputSchema.Columns.ToDictionary(x => x.Name);
             foreach (var column in _columns)
             {
-                var originalColumn = inputSchema.FindColumn(column.Source);
-                if (originalColumn != null)
-                {
-                    var col = new SchemaShape.Column(column.Name, originalColumn.Kind, originalColumn.ItemType, originalColumn.IsKey, originalColumn.MetadataKinds);
-                    resultDic[column.Name] = col;
-                }
-                else
-                {
-                    throw _host.ExceptParam(nameof(inputSchema), $"{column.Source} not found in {nameof(inputSchema)}");
-                }
+                if (!inputSchema.TryFindColumn(column.Source, out var originalColumn))
+                    throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", column.Source);
+                var col = new SchemaShape.Column(column.Name, originalColumn.Kind, originalColumn.ItemType, originalColumn.IsKey, originalColumn.Metadata);
+                resultDic[column.Name] = col;
             }
-            return new SchemaShape(resultDic.Values.ToArray());
+            return new SchemaShape(resultDic.Values);
         }
     }
 
@@ -217,7 +211,7 @@ namespace Microsoft.ML.Runtime.Data
     {
         private readonly ISchema _schema;
         private readonly Dictionary<int, int> _colNewToOldMapping;
-        private (string Source, string Name)[] _columns;
+        private readonly (string Source, string Name)[] _columns;
         private readonly IHost _host;
         public const string LoaderSignature = "CopyColumnsRowMapper";
 
@@ -304,29 +298,11 @@ namespace Microsoft.ML.Runtime.Data
             for (int i = 0; i < _columns.Length; i++)
             {
                 _schema.TryGetColumnIndex(_columns[i].Source, out int colIndex);
-                //REVIEW: Metadata need to be switched to IRow instead of ColumMetadataInfo
-                var colMetaInfo = new ColumnMetadataInfo(_columns[i].Name);
-                var types = _schema.GetMetadataTypes(colIndex);
                 var colType = _schema.GetColumnType(colIndex);
-                foreach (var type in types)
-                {
-                    Utils.MarshalInvoke(AddMetaGetter<int>, type.Value.RawType, colMetaInfo, _schema, type.Key, type.Value, _colNewToOldMapping);
-                }
-                result[i] = new RowMapperColumnInfo(_columns[i].Name, colType, colMetaInfo);
+                var meta = new RowColumnUtils.MetadataRow(_schema, colIndex, x => true);
+                result[i] = new RowMapperColumnInfo(_columns[i].Name, colType, meta);
             }
             return result;
-        }
-
-        private int AddMetaGetter<T>(ColumnMetadataInfo colMetaInfo, ISchema schema, string kind, ColumnType ct, Dictionary<int, int> colMap)
-        {
-            MetadataUtils.MetadataGetter<T> getter = (int col, ref T dst) =>
-            {
-                var originalCol = colMap[col];
-                schema.GetMetadata<T>(kind, originalCol, ref dst);
-            };
-            var info = new MetadataInfo<T>(ct, getter);
-            colMetaInfo.Add(kind, info);
-            return 0;
         }
 
         public void Save(ModelSaveContext ctx)
