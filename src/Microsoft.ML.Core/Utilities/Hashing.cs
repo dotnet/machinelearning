@@ -64,26 +64,10 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         }
 
         /// <summary>
-        /// Hash the characters in a string. This MUST produce the same result as the other
-        /// overloads (with equivalent characters).
+        /// Hash the characters in a <see cref="ReadOnlySpan{T}"/> of <see cref="char"/>.
+        /// This MUST produce the same result as the other overloads (with equivalent characters).
         /// </summary>
-        public static uint HashString(string str)
-        {
-            Contracts.AssertValue(str);
-            return MurmurHash(_defaultSeed, str.AsSpan());
-        }
-
-        public static uint HashString(ReadOnlyMemory<char> str) => MurmurHash(_defaultSeed, str.Span);
-
-        /// <summary>
-        /// Hash the characters in a sub-string. This MUST produce the same result
-        /// as HashString(str.SubString(ichMin, ichLim - ichMin)).
-        /// </summary>
-        public static uint HashString(string str, int ichMin, int ichLim)
-        {
-            Contracts.Assert(0 <= ichMin & ichMin <= ichLim & ichLim <= Utils.Size(str));
-            return MurmurHash(_defaultSeed, str.AsSpan().Slice(ichMin, ichLim - ichMin));
-        }
+        public static uint HashString(ReadOnlySpan<char> str) => MurmurHash(_defaultSeed, str);
 
         /// <summary>
         /// Hash the characters in a string builder. This MUST produce the same result

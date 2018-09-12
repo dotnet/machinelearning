@@ -427,8 +427,9 @@ namespace Microsoft.ML.Runtime.Data
                         }
                         Utils.EnsureSize(ref buffer, text.Length);
 
+                        var span = text.Span;
                         for (int i = 0; i < text.Length; i++)
-                            buffer[i] = text.Span[i];
+                            buffer[i] = span[i];
 
                         writer.WriteLine(buffer, 0, text.Length);
                     }

@@ -99,7 +99,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
                 if (str == null)
                     str = "";
 
-                uint hash = Hashing.HashString(str);
+                uint hash = Hashing.HashString(str.AsSpan());
                 int ins = GetIns(hash);
                 while (ins >= 0)
                 {
@@ -121,7 +121,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
             {
                 AssertValid();
 
-                uint hash = Hashing.HashString(str);
+                uint hash = Hashing.HashString(str.Span);
                 int ins = GetIns(hash);
                 while (ins >= 0)
                 {
@@ -203,7 +203,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
             private NormStr AddCore(ReadOnlyMemory<char> str, uint hash)
             {
                 Contracts.Assert(str.Length >= 0);
-                Contracts.Assert(Hashing.HashString(str) == hash);
+                Contracts.Assert(Hashing.HashString(str.Span) == hash);
 
                 if (_rgns == null)
                 {

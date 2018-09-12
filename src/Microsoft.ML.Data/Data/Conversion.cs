@@ -1069,15 +1069,15 @@ namespace Microsoft.ML.Runtime.Data.Conversion
         /// and had only digits and the letters 'a' through 'f' or 'A' through 'F' as characters</returns>
         public bool TryParse(ref TX src, out UG dst)
         {
+            var span = src.Span;
             // REVIEW: Accomodate numeric inputs?
-            if (src.Length != 34 || src.Span[0] != '0' || (src.Span[1] != 'x' && src.Span[1] != 'X'))
+            if (src.Length != 34 || span[0] != '0' || (span[1] != 'x' && span[1] != 'X'))
             {
                 dst = default(UG);
                 return false;
             }
-            int ichMin = 0;
-            int ichLim = src.Length;
-            int offset = ichMin + 2;
+
+            int offset = 2;
             ulong hi = 0;
             ulong num = 0;
             for (int i = 0; i < 2; ++i)
@@ -1085,7 +1085,7 @@ namespace Microsoft.ML.Runtime.Data.Conversion
                 for (int d = 0; d < 16; ++d)
                 {
                     num <<= 4;
-                    char c = src.Span[offset++];
+                    char c = span[offset++];
                     // REVIEW: An exhaustive switch statement *might* be faster, maybe, at the
                     // cost of being significantly longer.
                     if ('0' <= c && c <= '9')
@@ -1106,7 +1106,7 @@ namespace Microsoft.ML.Runtime.Data.Conversion
                     num = 0;
                 }
             }
-            Contracts.Assert(offset == ichLim);
+            Contracts.Assert(offset == src.Length);
             // The first read bits are the higher order bits, so they are listed second here.
             dst = new UG(num, hi);
             return true;
@@ -1124,28 +1124,29 @@ namespace Microsoft.ML.Runtime.Data.Conversion
             Contracts.Assert(!src.IsEmpty);
 
             char ch;
+            var span = src.Span;
             switch (src.Length)
             {
                 default:
                     return false;
 
                 case 1:
-                    if (src.Span[0] == '?')
+                    if (span[0] == '?')
                         return true;
                     return false;
                 case 2:
-                    if ((ch = src.Span[0]) != 'N' && ch != 'n')
+                    if ((ch = span[0]) != 'N' && ch != 'n')
                         return false;
-                    if ((ch = src.Span[1]) != 'A' && ch != 'a')
+                    if ((ch = span[1]) != 'A' && ch != 'a')
                         return false;
                     return true;
                 case 3:
-                    if ((ch = src.Span[0]) != 'N' && ch != 'n')
+                    if ((ch = span[0]) != 'N' && ch != 'n')
                         return false;
-                    if ((ch = src.Span[1]) == '/')
+                    if ((ch = span[1]) == '/')
                     {
                         // Check for N/A.
-                        if ((ch = src.Span[2]) != 'A' && ch != 'a')
+                        if ((ch = span[2]) != 'A' && ch != 'a')
                             return false;
                     }
                     else
@@ -1153,7 +1154,7 @@ namespace Microsoft.ML.Runtime.Data.Conversion
                         // Check for NaN.
                         if (ch != 'a' && ch != 'A')
                             return false;
-                        if ((ch = src.Span[2]) != 'N' && ch != 'n')
+                        if ((ch = span[2]) != 'N' && ch != 'n')
                             return false;
                     }
                     return true;
@@ -1204,14 +1205,14 @@ namespace Microsoft.ML.Runtime.Data.Conversion
             return true;
         }
 
-        private bool TryParseCore(ReadOnlyMemory<char> text, out ulong dst) => TryParseCore(text, 0, text.Length, out dst);
-
-        private bool TryParseCore(ReadOnlyMemory<char> text, int ich, int lim, out ulong dst)
+        private bool TryParseCore(ReadOnlyMemory<char> text, out ulong dst)
         {
             ulong res = 0;
-            while (ich < lim)
+            var span = text.Span;
+            int ich = 0;
+            while (ich < text.Length)
             {
-                uint d = (uint)text.Span[ich++] - (uint)'0';
+                uint d = (uint)span[ich++] - (uint)'0';
                 if (d >= 10)
                     goto LFail;
 
@@ -1293,15 +1294,15 @@ namespace Microsoft.ML.Runtime.Data.Conversion
         /// <summary>
         /// Returns false if the text is not parsable as an non-negative long or overflows.
         /// </summary>
-        private bool TryParseNonNegative(ReadOnlyMemory<char> text, int ich, int lim, out long result)
+        private bool TryParseNonNegative(ReadOnlyMemory<char> text, out long result)
         {
-            Contracts.Assert(0 <= ich && ich <= lim && lim <= text.Length);
-
             long res = 0;
-            while (ich < lim)
+            var span = text.Span;
+            int ich = 0;
+            while (ich < text.Length)
             {
                 Contracts.Assert(res >= 0);
-                uint d = (uint)text.Span[ich++] - (uint)'0';
+                uint d = (uint)span[ich++] - (uint)'0';
                 if (d >= 10)
                     goto LFail;
 
@@ -1329,23 +1330,22 @@ namespace Microsoft.ML.Runtime.Data.Conversion
         /// When it returns false, result is set to the NA value. The result can be NA on true return,
         /// since some representations of NA are not considered parse failure.
         /// </summary>
-        private void TryParseSigned(long max, ref TX span, out long? result)
+        private void TryParseSigned(long max, ref TX text, out long? result)
         {
             Contracts.Assert(max > 0);
             Contracts.Assert((max & (max + 1)) == 0);
 
-            if (span.IsEmpty)
+            if (text.IsEmpty)
             {
                 result = default(long);
                 return;
             }
 
-            int ichMin = 0;
-            int ichLim = span.Length;
             ulong val;
-            if (span.Span[0] == '-')
+            var span = text.Span;
+            if (span[0] == '-')
             {
-                if (span.Span.Length == 1 || !TryParseCore(span, 1, span.Length, out val) || (val > ((ulong)max + 1)))
+                if (span.Length == 1 || !TryParseCore(text.Slice(1, text.Length - 1), out val) || (val > ((ulong)max + 1)))
                 {
                     result = null;
                     return;
@@ -1357,7 +1357,7 @@ namespace Microsoft.ML.Runtime.Data.Conversion
             }
 
             long sVal;
-            if (!TryParseNonNegative(span, ichMin, ichLim, out sVal))
+            if (!TryParseNonNegative(text.Slice(0), out sVal))
             {
                 result = null;
                 return;
@@ -1529,6 +1529,7 @@ namespace Microsoft.ML.Runtime.Data.Conversion
             Contracts.Check(!IsStdMissing(ref src), "Missing text values cannot be converted to bool value.");
 
             char ch;
+            var span = src.Span;
             switch (src.Length)
             {
                 case 0:
@@ -1537,7 +1538,7 @@ namespace Microsoft.ML.Runtime.Data.Conversion
                     return true;
 
                 case 1:
-                    switch (src.Span[0])
+                    switch (span[0])
                     {
                         case 'T':
                         case 't':
@@ -1559,21 +1560,21 @@ namespace Microsoft.ML.Runtime.Data.Conversion
                     break;
 
                 case 2:
-                    switch (src.Span[0])
+                    switch (span[0])
                     {
                         case 'N':
                         case 'n':
-                            if ((ch = src.Span[1]) != 'O' && ch != 'o')
+                            if ((ch = span[1]) != 'O' && ch != 'o')
                                 break;
                             dst = false;
                             return true;
                         case '+':
-                            if ((ch = src.Span[1]) != '1')
+                            if ((ch = span[1]) != '1')
                                 break;
                             dst = true;
                             return true;
                         case '-':
-                            if ((ch = src.Span[1]) != '1')
+                            if ((ch = span[1]) != '1')
                                 break;
                             dst = false;
                             return true;
@@ -1581,13 +1582,13 @@ namespace Microsoft.ML.Runtime.Data.Conversion
                     break;
 
                 case 3:
-                    switch (src.Span[0])
+                    switch (span[0])
                     {
                         case 'Y':
                         case 'y':
-                            if ((ch = src.Span[1]) != 'E' && ch != 'e')
+                            if ((ch = span[1]) != 'E' && ch != 'e')
                                 break;
-                            if ((ch = src.Span[2]) != 'S' && ch != 's')
+                            if ((ch = span[2]) != 'S' && ch != 's')
                                 break;
                             dst = true;
                             return true;
@@ -1595,15 +1596,15 @@ namespace Microsoft.ML.Runtime.Data.Conversion
                     break;
 
                 case 4:
-                    switch (src.Span[0])
+                    switch (span[0])
                     {
                         case 'T':
                         case 't':
-                            if ((ch = src.Span[1]) != 'R' && ch != 'r')
+                            if ((ch = span[1]) != 'R' && ch != 'r')
                                 break;
-                            if ((ch = src.Span[2]) != 'U' && ch != 'u')
+                            if ((ch = span[2]) != 'U' && ch != 'u')
                                 break;
-                            if ((ch = src.Span[3]) != 'E' && ch != 'e')
+                            if ((ch = span[3]) != 'E' && ch != 'e')
                                 break;
                             dst = true;
                             return true;
@@ -1611,17 +1612,17 @@ namespace Microsoft.ML.Runtime.Data.Conversion
                     break;
 
                 case 5:
-                    switch (src.Span[0])
+                    switch (span[0])
                     {
                         case 'F':
                         case 'f':
-                            if ((ch = src.Span[1]) != 'A' && ch != 'a')
+                            if ((ch = span[1]) != 'A' && ch != 'a')
                                 break;
-                            if ((ch = src.Span[2]) != 'L' && ch != 'l')
+                            if ((ch = span[2]) != 'L' && ch != 'l')
                                 break;
-                            if ((ch = src.Span[3]) != 'S' && ch != 's')
+                            if ((ch = span[3]) != 'S' && ch != 's')
                                 break;
-                            if ((ch = src.Span[4]) != 'E' && ch != 'e')
+                            if ((ch = span[4]) != 'E' && ch != 'e')
                                 break;
                             dst = false;
                             return true;

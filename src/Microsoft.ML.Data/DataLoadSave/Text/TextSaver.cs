@@ -805,6 +805,7 @@ namespace Microsoft.ML.Runtime.Data.IO
             else
                 sb.Clear();
 
+            var span = src.Span;
             if (src.IsEmpty)
                 sb.Append("\"\"");
             else
@@ -817,7 +818,7 @@ namespace Microsoft.ML.Runtime.Data.IO
 
                 // Strings that start with space need to be quoted.
                 Contracts.Assert(ichCur < ichLim);
-                if (src.Span[ichCur] == ' ')
+                if (span[ichCur] == ' ')
                 {
                     quoted = true;
                     sb.Append('"');
@@ -825,7 +826,7 @@ namespace Microsoft.ML.Runtime.Data.IO
 
                 for (; ichCur < ichLim; ichCur++)
                 {
-                    char ch = src.Span[ichCur];
+                    char ch = span[ichCur];
                     if (ch != '"' && ch != sep && ch != ':')
                         continue;
                     if (!quoted)

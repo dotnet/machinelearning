@@ -307,13 +307,12 @@ namespace Microsoft.ML.Runtime.TextAnalytics
 
             buffer.Clear();
 
-            int ichMin = 0;
-            int ichLim = src.Length;
-            int i = ichMin;
-            int min = ichMin;
-            while (i < ichLim)
+            int i = 0;
+            int min = 0;
+            var span = src.Span;
+            while (i < src.Length)
             {
-                char ch = src.Span[i];
+                char ch = span[i];
                 if (!_keepPunctuations && char.IsPunctuation(ch) || !_keepNumbers && char.IsNumber(ch))
                 {
                     // Append everything before ch and ignore ch.
@@ -351,9 +350,9 @@ namespace Microsoft.ML.Runtime.TextAnalytics
                 i++;
             }
 
-            Host.Assert(i == ichLim);
+            Host.Assert(i == src.Length);
             int len = i - min;
-            if (ichMin == min)
+            if (min == 0)
             {
                 Host.Assert(src.Length == len);
                 dst = src;

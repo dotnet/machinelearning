@@ -385,8 +385,9 @@ namespace Microsoft.ML.Runtime.TextAnalytics
                         int index = 0;
                         if (_useMarkerChars)
                             values[index++] = TextStartMarker;
+                        var span = src.Span;
                         for (int ich = 0; ich < src.Length; ich++)
-                            values[index++] = src.Span[ich];
+                            values[index++] = span[ich];
                         if (_useMarkerChars)
                             values[index++] = TextEndMarker;
                         Contracts.Assert(index == len);
@@ -436,8 +437,9 @@ namespace Microsoft.ML.Runtime.TextAnalytics
                                 continue;
                             if (_useMarkerChars)
                                 values[index++] = TextStartMarker;
+                            var span = src.Values[i].Span;
                             for (int ich = 0; ich < src.Values[i].Length; ich++)
-                                values[index++] = src.Values[i].Span[ich];
+                                values[index++] = span[ich];
                             if (_useMarkerChars)
                                 values[index++] = TextEndMarker;
                         }
@@ -492,10 +494,9 @@ namespace Microsoft.ML.Runtime.TextAnalytics
                             if (i > 0)
                                 values[index++] = UnitSeparator;
 
+                            var span = src.Values[i].Span;
                             for (int ich = 0; ich < src.Values[i].Length; ich++)
-                            {
-                                values[index++] = src.Values[i].Span[ich];
-                            }
+                                values[index++] = span[ich];
                         }
 
                         if (_useMarkerChars)
