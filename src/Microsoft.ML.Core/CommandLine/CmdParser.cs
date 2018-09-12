@@ -502,7 +502,7 @@ namespace Microsoft.ML.Runtime.CommandLine
             var parser = new CmdParser(env);
             return parser.GetUsageString(env, info, showRsp, columns);
         }
-        
+
         private CmdParser(IHostEnvironment env)
         {
             _host = env.Register("CmdParser");
