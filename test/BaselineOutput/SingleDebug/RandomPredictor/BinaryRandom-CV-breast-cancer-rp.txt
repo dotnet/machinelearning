@@ -1,0 +1,4 @@
+RandomPredictor
+AUC	Accuracy	Positive precision	Positive recall	Negative precision	Negative recall	Log-loss	Log-loss reduction	F1 Score	AUPRC	Learner Name	Train Dataset	Test Dataset	Results File	Run Time	Physical Memory	Virtual Memory	Command Line	Settings	
+0.504448	0.512714	0.348756	0.482738	0.660332	0.528318	1.380713	-48.96051	0.404545	0.353016	RandomPredictor	%Data%		%Output%	99	0	0	maml.exe CV tr=RandomPredictor threads=- dout=%Output% data=%Data% seed=1		
+
