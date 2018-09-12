@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Float = System.Single;
-
 using System;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
@@ -69,7 +67,7 @@ namespace Microsoft.ML.Runtime.Learners
 
             RoleMappedData trainRoles = new RoleMappedData(cachedTrain);
             var pred = Train(new TrainContext(trainRoles));
-            return new BinaryPredictionTransformer<RandomPredictor>(Host, pred, cachedTrain.Schema, trainRoles.Schema.Feature.Name);
+            return new BinaryPredictionTransformer<RandomPredictor>(Host, pred, cachedTrain.Schema, null);
         }
 
         public override RandomPredictor Train(TrainContext context)
@@ -78,10 +76,6 @@ namespace Microsoft.ML.Runtime.Learners
             return new RandomPredictor(Host, Host.Rand.Next());
         }
 
-        /// <summary>
-        /// Create a new SchemaShape with all columns in inputScema and an additional
-        /// Score column which is the output of the Estimator.
-        /// </summary>
         public SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {
             Host.CheckValue(inputSchema, nameof(inputSchema));
@@ -99,8 +93,8 @@ namespace Microsoft.ML.Runtime.Learners
     ///  uniform random probability and classification assignment.
     /// </summary>
     public sealed class RandomPredictor :
-        PredictorBase<Float>,
-        IDistPredictorProducing<Float, Float>,
+        PredictorBase<float>,
+        IDistPredictorProducing<float, float>,
         IValueMapperDist,
         ICanSaveModel
     {
@@ -118,7 +112,7 @@ namespace Microsoft.ML.Runtime.Learners
         // Keep all the serializable state here.
         private readonly int _seed;
         private readonly object _instanceLock;
-        private readonly Random _random;
+        private readonly TauswortheHybrid _random;
 
         public override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
         public ColumnType InputType { get; }
@@ -131,7 +125,7 @@ namespace Microsoft.ML.Runtime.Learners
             _seed = seed;
 
             _instanceLock = new object();
-            _random = new Random(_seed);
+            _random = RandomUtils.Create(_seed);
 
             InputType = new VectorType(NumberType.Float);
         }
@@ -148,7 +142,7 @@ namespace Microsoft.ML.Runtime.Learners
             _seed = ctx.Reader.ReadInt32();
 
             _instanceLock = new object();
-            _random = new Random(_seed);
+            _random = RandomUtils.Create(_seed);
         }
 
         public static RandomPredictor Create(IHostEnvironment env, ModelLoadContext ctx)
@@ -176,24 +170,24 @@ namespace Microsoft.ML.Runtime.Learners
 
         public ValueMapper<TIn, TOut> GetMapper<TIn, TOut>()
         {
-            Contracts.Check(typeof(TIn) == typeof(VBuffer<Float>));
-            Contracts.Check(typeof(TOut) == typeof(Float));
+            Contracts.Check(typeof(TIn) == typeof(VBuffer<float>));
+            Contracts.Check(typeof(TOut) == typeof(float));
 
-            ValueMapper<VBuffer<Float>, Float> del = Map;
+            ValueMapper<VBuffer<float>, float> del = Map;
             return (ValueMapper<TIn, TOut>)(Delegate)del;
         }
 
         public ValueMapper<TIn, TOut, TDist> GetMapper<TIn, TOut, TDist>()
         {
-            Contracts.Check(typeof(TIn) == typeof(VBuffer<Float>));
-            Contracts.Check(typeof(TOut) == typeof(Float));
-            Contracts.Check(typeof(TDist) == typeof(Float));
+            Contracts.Check(typeof(TIn) == typeof(VBuffer<float>));
+            Contracts.Check(typeof(TOut) == typeof(float));
+            Contracts.Check(typeof(TDist) == typeof(float));
 
-            ValueMapper<VBuffer<Float>, Float, Float> del = MapDist;
+            ValueMapper<VBuffer<float>, float, float> del = MapDist;
             return (ValueMapper<TIn, TOut, TDist>)(Delegate)del;
         }
 
-        private Float PredictCore()
+        private float PredictCore()
         {
             // Predict can be called from different threads.
             // Ensure your implementation is thread-safe
@@ -205,12 +199,12 @@ namespace Microsoft.ML.Runtime.Learners
             }
         }
 
-        private void Map(ref VBuffer<Float> src, ref Float dst)
+        private void Map(ref VBuffer<float> src, ref float dst)
         {
             dst = PredictCore();
         }
 
-        private void MapDist(ref VBuffer<Float> src, ref Float score, ref Float prob)
+        private void MapDist(ref VBuffer<float> src, ref float score, ref float prob)
         {
             score = PredictCore();
             prob = (score + 1) / 2;
@@ -270,16 +264,16 @@ namespace Microsoft.ML.Runtime.Learners
             using (var cursor = data.Data.GetRowCursor(c => c == col || c == colWeight))
             {
                 var getLab = cursor.GetLabelFloatGetter(data);
-                var getWeight = colWeight >= 0 ? cursor.GetGetter<Float>(colWeight) : null;
-                Float lab = default(Float);
-                Float weight = 1;
+                var getWeight = colWeight >= 0 ? cursor.GetGetter<float>(colWeight) : null;
+                float lab = default(float);
+                float weight = 1;
                 while (cursor.MoveNext())
                 {
                     getLab(ref lab);
                     if (getWeight != null)
                     {
                         getWeight(ref weight);
-                        if (!(0 < weight && weight < Float.PositiveInfinity))
+                        if (!(0 < weight && weight < float.PositiveInfinity))
                             continue;
                     }
 
@@ -291,27 +285,23 @@ namespace Microsoft.ML.Runtime.Learners
                 }
             }
 
-            Float prob = prob = pos + neg > 0 ? (Float)(pos / (pos + neg)) : Float.NaN;
+            float prob = prob = pos + neg > 0 ? (float)(pos / (pos + neg)) : float.NaN;
             return new PriorPredictor(Host, prob);
         }
 
         protected override BinaryPredictionTransformer<PriorPredictor> MakeTransformer(PriorPredictor model, ISchema trainSchema)
              => new BinaryPredictionTransformer<PriorPredictor>(Host, model, trainSchema, FeatureColumn.Name);
 
-        private static SchemaShape.Column MakeFeatureColumn(string featureColumn)
-        {
-            return new SchemaShape.Column(featureColumn, SchemaShape.Column.VectorKind.Vector, NumberType.R4, false);
-        }
+        private static SchemaShape.Column MakeFeatureColumn(string featureColumn) =>
+            new SchemaShape.Column(featureColumn, SchemaShape.Column.VectorKind.Vector, NumberType.R4, false);
 
-        private static SchemaShape.Column MakeLabelColumn(string labelColumn)
-        {
-            return new SchemaShape.Column(labelColumn, SchemaShape.Column.VectorKind.Scalar, BoolType.Instance, false);
-        }
+        private static SchemaShape.Column MakeLabelColumn(string labelColumn) =>
+            new SchemaShape.Column(labelColumn, SchemaShape.Column.VectorKind.Scalar, BoolType.Instance, false);
     }
 
     public sealed class PriorPredictor :
-        PredictorBase<Float>,
-        IDistPredictorProducing<Float, Float>,
+        PredictorBase<float>,
+        IDistPredictorProducing<float, float>,
         IValueMapperDist,
         ICanSaveModel
     {
@@ -326,13 +316,13 @@ namespace Microsoft.ML.Runtime.Learners
                 loaderSignature: LoaderSignature);
         }
 
-        private readonly Float _prob;
-        private readonly Float _raw;
+        private readonly float _prob;
+        private readonly float _raw;
 
-        public PriorPredictor(IHostEnvironment env, Float prob)
+        public PriorPredictor(IHostEnvironment env, float prob)
             : base(env, LoaderSignature)
         {
-            Host.Check(!Float.IsNaN(prob));
+            Host.Check(!float.IsNaN(prob));
 
             _prob = prob;
             _raw = 2 * _prob - 1;       // This could be other functions -- logodds for instance
@@ -347,7 +337,7 @@ namespace Microsoft.ML.Runtime.Learners
             // Float: _prob
 
             _prob = ctx.Reader.ReadFloat();
-            Host.CheckDecode(!Float.IsNaN(_prob));
+            Host.CheckDecode(!float.IsNaN(_prob));
 
             _raw = 2 * _prob - 1;
 
@@ -370,7 +360,7 @@ namespace Microsoft.ML.Runtime.Learners
             // *** Binary format ***
             // Float: _prob
 
-            Contracts.Assert(!Float.IsNaN(_prob));
+            Contracts.Assert(!float.IsNaN(_prob));
             ctx.Writer.Write(_prob);
         }
 
@@ -382,29 +372,29 @@ namespace Microsoft.ML.Runtime.Learners
 
         public ValueMapper<TIn, TOut> GetMapper<TIn, TOut>()
         {
-            Contracts.Check(typeof(TIn) == typeof(VBuffer<Float>));
-            Contracts.Check(typeof(TOut) == typeof(Float));
+            Contracts.Check(typeof(TIn) == typeof(VBuffer<float>));
+            Contracts.Check(typeof(TOut) == typeof(float));
 
-            ValueMapper<VBuffer<Float>, Float> del = Map;
+            ValueMapper<VBuffer<float>, float> del = Map;
             return (ValueMapper<TIn, TOut>)(Delegate)del;
         }
 
         public ValueMapper<TIn, TOut, TDist> GetMapper<TIn, TOut, TDist>()
         {
-            Contracts.Check(typeof(TIn) == typeof(VBuffer<Float>));
-            Contracts.Check(typeof(TOut) == typeof(Float));
-            Contracts.Check(typeof(TDist) == typeof(Float));
+            Contracts.Check(typeof(TIn) == typeof(VBuffer<float>));
+            Contracts.Check(typeof(TOut) == typeof(float));
+            Contracts.Check(typeof(TDist) == typeof(float));
 
-            ValueMapper<VBuffer<Float>, Float, Float> del = MapDist;
+            ValueMapper<VBuffer<float>, float, float> del = MapDist;
             return (ValueMapper<TIn, TOut, TDist>)(Delegate)del;
         }
 
-        private void Map(ref VBuffer<Float> src, ref Float dst)
+        private void Map(ref VBuffer<float> src, ref float dst)
         {
             dst = _raw;
         }
 
-        private void MapDist(ref VBuffer<Float> src, ref Float score, ref Float prob)
+        private void MapDist(ref VBuffer<float> src, ref float score, ref float prob)
         {
             score = _raw;
             prob = _prob;
