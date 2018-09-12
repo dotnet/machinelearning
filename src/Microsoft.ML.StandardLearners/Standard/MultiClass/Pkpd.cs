@@ -70,7 +70,7 @@ namespace Microsoft.ML.Runtime.Learners
         /// <summary>
         /// Legacy constructor that builds the <see cref="Pkpd"/> trainer supplying the base trainer to use, for the classification task
         /// through the <see cref="Arguments"/>arguments.
-        /// Developers should instantiate OVA by supplying the trainer argument directly to the OVA constructor
+        /// Developers should instantiate <see cref="Pkpd"/> by supplying the trainer argument directly to the <see cref="Pkpd"/> constructor
         /// using the other public constructor.
         /// </summary>
         /// <param name="env"></param>
@@ -84,14 +84,13 @@ namespace Microsoft.ML.Runtime.Learners
         /// Initializes a new instance of the <see cref="Pkpd"/>
         /// </summary>
         /// <param name="env">The <see cref="IHostEnvironment"/> instance.</param>
-        /// <param name="singleEstimator">An instance of the <see cref="Ova.Arguments"/> class containing the training arguments.</param>
-        /// <param name="calibrator"></param>
+        /// <param name="singleEstimator">An instance of the <see cref="BinaryPredictionTransformer{IModel}"/> used as the base predictor.</param>
+        /// <param name="calibrator">The <see cref="ICalibratorTrainer"/> used.</param>
         /// <param name="labelColumn">The name of the label colum.</param>
-        /// <param name="imputeMissingLabelsAsNegative">The <see cref="ITrainer"/> </param>
-        /// <param name="maxCalibrationExamples"></param>
-        /// <param name="useProbabilities"></param>
+        /// <param name="imputeMissingLabelsAsNegative">Whether to treat missing labels as having negative labels, instead of keeping them missing.</param>
+        /// <param name="maxCalibrationExamples">Number of instances to train the calibrator.</param>
         public Pkpd(IHostEnvironment env, TScalarTrainer singleEstimator, string labelColumn = DefaultColumnNames.Label,
-            bool imputeMissingLabelsAsNegative = false, ICalibratorTrainer calibrator = null, int maxCalibrationExamples = 1000000000, bool useProbabilities = true)
+            bool imputeMissingLabelsAsNegative = false, ICalibratorTrainer calibrator = null, int maxCalibrationExamples = 1000000000)
            : base(env,
                new Arguments
                {
@@ -176,8 +175,8 @@ namespace Microsoft.ML.Runtime.Learners
         /// <summary>
         /// Fits the data to the transformer
         /// </summary>
-        /// <param name="input"></param>
-        /// <returns></returns>
+        /// <param name="input">The input data.</param>
+        /// <returns>The trained predictor.</returns>
         public override TTransformer Fit(IDataView input)
         {
             string featureColumn = null;

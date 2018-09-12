@@ -58,16 +58,16 @@ namespace Microsoft.ML.Runtime.Learners
         public TScalarTrainer PredictorType;
 
         /// <summary>
-        /// Legacy constructor, that initializes the <see cref="MetaMulticlassTrainer{TTransformer, TModel}"/> from the Arguments class.
-        /// For the programatic usage of <see cref="MetaMulticlassTrainer{TTransformer, TModel}"/> use the other constructor.
+        /// Initializes the <see cref="MetaMulticlassTrainer{TTransformer, TModel}"/> from the Arguments class.
         /// </summary>
-        /// <param name="env"></param>
-        /// <param name="args"></param>
-        /// <param name="name"></param>
-        /// <param name="labelColumn"></param>
-        /// <param name="singleEstimator"></param>
-        /// <param name="calibrator"></param>
-        internal MetaMulticlassTrainer(IHostEnvironment env, ArgumentsBase args, string name, string labelColumn = null, TScalarTrainer singleEstimator = null, ICalibratorTrainer calibrator = null)
+        /// <param name="env">The private instance of the <see cref="IHostEnvironment"/>.</param>
+        /// <param name="args">The legacy arguments <see cref="ArgumentsBase"/>class.</param>
+        /// <param name="name">The component name.</param>
+        /// <param name="labelColumn">The label column for the metalinear trainer and the binary trainer.</param>
+        /// <param name="singleEstimator">The binary estimator.</param>
+        /// <param name="calibrator">The calibrator.</param>
+        internal MetaMulticlassTrainer(IHostEnvironment env, ArgumentsBase args, string name, string labelColumn = null,
+            TScalarTrainer singleEstimator = null, ICalibratorTrainer calibrator = null)
         {
             Host = Contracts.CheckRef(env, nameof(env)).Register(name);
             Host.CheckValue(args, nameof(args));
@@ -137,6 +137,11 @@ namespace Microsoft.ML.Runtime.Learners
 
         protected abstract TModel TrainCore(IChannel ch, RoleMappedData data, int count);
 
+        /// <summary>
+        /// The legacy train method.
+        /// </summary>
+        /// <param name="context">The trainig context for this learner.</param>
+        /// <returns>The trained model.</returns>
         public TModel Train(TrainContext context)
         {
             Host.CheckValue(context, nameof(context));
@@ -157,6 +162,11 @@ namespace Microsoft.ML.Runtime.Learners
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="inputSchema"></param>
+        /// <returns></returns>
         public SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {
             Host.CheckValue(inputSchema, nameof(inputSchema));
@@ -181,6 +191,11 @@ namespace Microsoft.ML.Runtime.Learners
 
         IPredictor ITrainer.Train(TrainContext context) => Train(context);
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns></returns>
         public abstract TTransformer Fit(IDataView input);
     }
 }

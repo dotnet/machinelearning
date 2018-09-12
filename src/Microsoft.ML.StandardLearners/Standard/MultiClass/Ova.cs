@@ -63,8 +63,8 @@ namespace Microsoft.ML.Runtime.Learners
         /// Developers should instantiate OVA by supplying the trainer argument directly to the OVA constructor
         /// using the other public constructor.
         /// </summary>
-        /// <param name="env">The <see cref="IHostEnvironment"/> that reports the progress output</param>
-        /// <param name="args"></param>
+        /// <param name="env">The private <see cref="IHostEnvironment"/> for this estimator.</param>
+        /// <param name="args">The legacy <see cref="Arguments"/></param>
         public Ova(IHostEnvironment env, Arguments args)
             : base(env, args, LoadNameValue)
         {
@@ -75,12 +75,12 @@ namespace Microsoft.ML.Runtime.Learners
         /// Initializes a new instance of <see cref="Ova"/>.
         /// </summary>
         /// <param name="env">The <see cref="IHostEnvironment"/> instance.</param>
-        /// <param name="singleEstimator">An instance of the <see cref="Ova.Arguments"/> class containing the training arguments.</param>
-        /// <param name="calibrator"></param>
+        /// <param name="singleEstimator">An instance of the <see cref="BinaryPredictionTransformer{IModel}"/> used as the base predictor.</param>
+        /// <param name="calibrator">The <see cref="ICalibratorTrainer"/> used.</param>
         /// <param name="labelColumn">The name of the label colum.</param>
-        /// <param name="imputeMissingLabelsAsNegative">The <see cref="ITrainer"/> </param>
-        /// <param name="maxCalibrationExamples"></param>
-        /// <param name="useProbabilities"></param>
+        /// <param name="imputeMissingLabelsAsNegative">Whether to treat missing labels as having negative labels, instead of keeping them missing.</param>
+        /// <param name="maxCalibrationExamples">Number of instances to train the calibrator.</param>
+        /// <param name="useProbabilities">Use probabilities (vs. raw outputs) to identify top-score category.</param>
         public Ova(IHostEnvironment env, TScalarTrainer singleEstimator, string labelColumn = DefaultColumnNames.Label,
             bool imputeMissingLabelsAsNegative = false, ICalibratorTrainer calibrator = null,
             int maxCalibrationExamples = 1000000000, bool useProbabilities = true)
