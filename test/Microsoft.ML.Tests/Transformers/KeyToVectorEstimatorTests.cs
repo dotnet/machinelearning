@@ -8,6 +8,7 @@ using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.RunTests;
 using Microsoft.ML.Runtime.Tools;
+using System;
 using System.IO;
 using System.Linq;
 using Xunit;
@@ -147,9 +148,9 @@ namespace Microsoft.ML.Tests.Transformers
             Assert.True(result.Schema.TryGetColumnIndex("CatF", out int colH));
             var types = result.Schema.GetMetadataTypes(colA);
             Assert.Equal(types.Select(x => x.Key), new string[1] { MetadataUtils.Kinds.SlotNames });
-            VBuffer<DvText> slots = default;
-            VBuffer<DvInt4> slotRanges = default;
-            DvBool normalized = default;
+            VBuffer<ReadOnlyMemory<char>> slots = default;
+            VBuffer<int> slotRanges = default;
+            bool normalized = default;
             result.Schema.GetMetadata(MetadataUtils.Kinds.SlotNames, colA, ref slots);
             Assert.True(slots.Length == 2);
             Assert.Equal(slots.Values.Select(x => x.ToString()), new string[2] { "A", "B" });
@@ -161,9 +162,9 @@ namespace Microsoft.ML.Tests.Transformers
             Assert.Equal(slots.Items().Select(x => x.Value.ToString()), new string[1] { "C" });
             result.Schema.GetMetadata(MetadataUtils.Kinds.CategoricalSlotRanges, colB, ref slotRanges);
             Assert.True(slotRanges.Length == 2);
-            Assert.Equal(slotRanges.Items().Select(x => x.Value.RawValue), new int[2] { 0, 0 });
+            Assert.Equal(slotRanges.Items().Select(x => x.Value), new int[2] { 0, 0 });
             result.Schema.GetMetadata(MetadataUtils.Kinds.IsNormalized, colB, ref normalized);
-            Assert.True(normalized.IsTrue);
+            Assert.True(normalized);
 
             types = result.Schema.GetMetadataTypes(colC);
             Assert.Equal(types.Select(x => x.Key), new string[3] { MetadataUtils.Kinds.SlotNames, MetadataUtils.Kinds.CategoricalSlotRanges, MetadataUtils.Kinds.IsNormalized });
@@ -172,9 +173,9 @@ namespace Microsoft.ML.Tests.Transformers
             Assert.Equal(slots.Items().Select(x => x.Value.ToString()), new string[4] { "[0].3", "[0].5", "[1].3", "[1].5" });
             result.Schema.GetMetadata(MetadataUtils.Kinds.CategoricalSlotRanges, colC, ref slotRanges);
             Assert.True(slotRanges.Length == 4);
-            Assert.Equal(slotRanges.Items().Select(x => x.Value.RawValue), new int[4] { 0, 1, 2, 3 });
+            Assert.Equal(slotRanges.Items().Select(x => x.Value), new int[4] { 0, 1, 2, 3 });
             result.Schema.GetMetadata(MetadataUtils.Kinds.IsNormalized, colC, ref normalized);
-            Assert.True(normalized.IsTrue);
+            Assert.True(normalized);
 
             types = result.Schema.GetMetadataTypes(colD);
             Assert.Equal(types.Select(x => x.Key), new string[2] { MetadataUtils.Kinds.SlotNames, MetadataUtils.Kinds.IsNormalized });
@@ -182,34 +183,34 @@ namespace Microsoft.ML.Tests.Transformers
             Assert.True(slots.Length == 2);
             Assert.Equal(slots.Items().Select(x => x.Value.ToString()), new string[2] { "6", "1" });
             result.Schema.GetMetadata(MetadataUtils.Kinds.IsNormalized, colD, ref normalized);
-            Assert.True(normalized.IsTrue);
+            Assert.True(normalized);
 
 
             types = result.Schema.GetMetadataTypes(colE);
             Assert.Equal(types.Select(x => x.Key), new string[2] { MetadataUtils.Kinds.CategoricalSlotRanges, MetadataUtils.Kinds.IsNormalized });
             result.Schema.GetMetadata(MetadataUtils.Kinds.CategoricalSlotRanges, colE, ref slotRanges);
             Assert.True(slotRanges.Length == 4);
-            Assert.Equal(slotRanges.Items().Select(x => x.Value.RawValue), new int[4] { 0, 5, 6, 11 });
+            Assert.Equal(slotRanges.Items().Select(x => x.Value), new int[4] { 0, 5, 6, 11 });
             result.Schema.GetMetadata(MetadataUtils.Kinds.IsNormalized, colE, ref normalized);
-            Assert.True(normalized.IsTrue);
+            Assert.True(normalized);
 
             types = result.Schema.GetMetadataTypes(colF);
             Assert.Equal(types.Select(x => x.Key), new string[1] { MetadataUtils.Kinds.IsNormalized });
             result.Schema.GetMetadata(MetadataUtils.Kinds.IsNormalized, colF, ref normalized);
-            Assert.True(normalized.IsTrue);
+            Assert.True(normalized);
 
             types = result.Schema.GetMetadataTypes(colG);
             Assert.Equal(types.Select(x => x.Key), new string[2] { MetadataUtils.Kinds.CategoricalSlotRanges, MetadataUtils.Kinds.IsNormalized });
             result.Schema.GetMetadata(MetadataUtils.Kinds.CategoricalSlotRanges, colG, ref slotRanges);
             Assert.True(slotRanges.Length == 4);
-            Assert.Equal(slotRanges.Items().Select(x => x.Value.RawValue), new int[4] { 0, 5, 6, 11 });
+            Assert.Equal(slotRanges.Items().Select(x => x.Value), new int[4] { 0, 5, 6, 11 });
             result.Schema.GetMetadata(MetadataUtils.Kinds.IsNormalized, colF, ref normalized);
-            Assert.True(normalized.IsTrue);
+            Assert.True(normalized);
 
             types = result.Schema.GetMetadataTypes(colH);
             Assert.Equal(types.Select(x => x.Key), new string[1] { MetadataUtils.Kinds.IsNormalized });
             result.Schema.GetMetadata(MetadataUtils.Kinds.IsNormalized, colF, ref normalized);
-            Assert.True(normalized.IsTrue);
+            Assert.True(normalized);
         }
 
         [Fact]

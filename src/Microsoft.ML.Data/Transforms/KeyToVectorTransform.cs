@@ -313,11 +313,11 @@ namespace Microsoft.ML.Runtime.Data
                 {
                     if (typeNames != null)
                     {
-                        MetadataUtils.MetadataGetter<VBuffer<DvText>> getter = (int col, ref VBuffer<DvText> dst) =>
+                        MetadataUtils.MetadataGetter<VBuffer<ReadOnlyMemory<char>>> getter = (int col, ref VBuffer<ReadOnlyMemory<char>> dst) =>
                         {
                             InputSchema.GetMetadata(MetadataUtils.Kinds.KeyValues, srcCol, ref dst);
                         };
-                        var info = new MetadataInfo<VBuffer<DvText>>(typeNames, getter);
+                        var info = new MetadataInfo<VBuffer<ReadOnlyMemory<char>>>(typeNames, getter);
                         colMetaInfo.Add(MetadataUtils.Kinds.SlotNames, info);
                     }
                 }
@@ -325,38 +325,38 @@ namespace Microsoft.ML.Runtime.Data
                 {
                     if (typeNames != null && _types[i].IsKnownSizeVector)
                     {
-                        MetadataUtils.MetadataGetter<VBuffer<DvText>> getter = (int col, ref VBuffer<DvText> dst) =>
+                        MetadataUtils.MetadataGetter<VBuffer<ReadOnlyMemory<char>>> getter = (int col, ref VBuffer<ReadOnlyMemory<char>> dst) =>
                         {
                             GetSlotNames(i, ref dst);
                         };
-                        var info = new MetadataInfo<VBuffer<DvText>>(new VectorType(TextType.Instance, _types[i]), getter);
+                        var info = new MetadataInfo<VBuffer<ReadOnlyMemory<char>>>(new VectorType(TextType.Instance, _types[i]), getter);
                         colMetaInfo.Add(MetadataUtils.Kinds.SlotNames, info);
                     }
                 }
 
                 if (!_parent._columns[i].Bag && srcType.ValueCount > 0)
                 {
-                    MetadataUtils.MetadataGetter<VBuffer<DvInt4>> getter = (int col, ref VBuffer<DvInt4> dst) =>
+                    MetadataUtils.MetadataGetter<VBuffer<int>> getter = (int col, ref VBuffer<int> dst) =>
                     {
                         GetCategoricalSlotRanges(i, ref dst);
                     };
-                    var info = new MetadataInfo<VBuffer<DvInt4>>(MetadataUtils.GetCategoricalType(_infos[i].TypeSrc.ValueCount), getter);
+                    var info = new MetadataInfo<VBuffer<int>>(MetadataUtils.GetCategoricalType(_infos[i].TypeSrc.ValueCount), getter);
                     colMetaInfo.Add(MetadataUtils.Kinds.CategoricalSlotRanges, info);
                 }
 
                 if (!_parent._columns[i].Bag || srcType.ValueCount == 1)
                 {
-                    MetadataUtils.MetadataGetter<DvBool> getter = (int col, ref DvBool dst) =>
+                    MetadataUtils.MetadataGetter<bool> getter = (int col, ref bool dst) =>
                     {
                         dst = true;
                     };
-                    var info = new MetadataInfo<DvBool>(BoolType.Instance, getter);
+                    var info = new MetadataInfo<bool>(BoolType.Instance, getter);
                     colMetaInfo.Add(MetadataUtils.Kinds.IsNormalized, info);
                 }
             }
 
             // Combines source key names and slot names to produce final slot names.
-            private void GetSlotNames(int iinfo, ref VBuffer<DvText> dst)
+            private void GetSlotNames(int iinfo, ref VBuffer<ReadOnlyMemory<char>> dst)
             {
                 Host.Assert(0 <= iinfo && iinfo < _infos.Length);
                 Host.Assert(_types[iinfo].IsKnownSizeVector);
@@ -367,7 +367,7 @@ namespace Microsoft.ML.Runtime.Data
                 Host.Assert(typeSrc.VectorSize > 1);
 
                 // Get the source slot names, defaulting to empty text.
-                var namesSlotSrc = default(VBuffer<DvText>);
+                var namesSlotSrc = default(VBuffer<ReadOnlyMemory<char>>);
                 InputSchema.TryGetColumnIndex(_infos[iinfo].Source, out int srcCol);
                 Host.Assert(srcCol >= 0);
                 var typeSlotSrc = InputSchema.GetMetadataTypeOrNull(MetadataUtils.Kinds.SlotNames, srcCol);
@@ -377,22 +377,22 @@ namespace Microsoft.ML.Runtime.Data
                     Host.Check(namesSlotSrc.Length == typeSrc.VectorSize);
                 }
                 else
-                    namesSlotSrc = VBufferUtils.CreateEmpty<DvText>(typeSrc.VectorSize);
+                    namesSlotSrc = VBufferUtils.CreateEmpty<ReadOnlyMemory<char>>(typeSrc.VectorSize);
 
                 int keyCount = typeSrc.ItemType.ItemType.KeyCount;
                 int slotLim = _types[iinfo].VectorSize;
                 Host.Assert(slotLim == (long)typeSrc.VectorSize * keyCount);
 
                 // Get the source key names, in an array (since we will use them multiple times).
-                var namesKeySrc = default(VBuffer<DvText>);
+                var namesKeySrc = default(VBuffer<ReadOnlyMemory<char>>);
                 InputSchema.GetMetadata(MetadataUtils.Kinds.KeyValues, srcCol, ref namesKeySrc);
                 Host.Check(namesKeySrc.Length == keyCount);
-                var keys = new DvText[keyCount];
+                var keys = new ReadOnlyMemory<char>[keyCount];
                 namesKeySrc.CopyTo(keys);
 
                 var values = dst.Values;
                 if (Utils.Size(values) < slotLim)
-                    values = new DvText[slotLim];
+                    values = new ReadOnlyMemory<char>[slotLim];
 
                 var sb = new StringBuilder();
                 int slot = 0;
@@ -400,8 +400,8 @@ namespace Microsoft.ML.Runtime.Data
                 {
                     Contracts.Assert(slot == (long)kvpSlot.Key * keyCount);
                     sb.Clear();
-                    if (kvpSlot.Value.HasChars)
-                        kvpSlot.Value.AddToStringBuilder(sb);
+                    if (!kvpSlot.Value.IsEmpty)
+                        ReadOnlyMemoryUtils.AddToStringBuilder(kvpSlot.Value, sb);
                     else
                         sb.Append('[').Append(kvpSlot.Key).Append(']');
                     sb.Append('.');
@@ -410,16 +410,16 @@ namespace Microsoft.ML.Runtime.Data
                     foreach (var key in keys)
                     {
                         sb.Length = len;
-                        key.AddToStringBuilder(sb);
-                        values[slot++] = new DvText(sb.ToString());
+                        ReadOnlyMemoryUtils.AddToStringBuilder(key, sb);
+                        values[slot++] = sb.ToString().AsMemory();
                     }
                 }
                 Host.Assert(slot == slotLim);
 
-                dst = new VBuffer<DvText>(slotLim, values, dst.Indices);
+                dst = new VBuffer<ReadOnlyMemory<char>>(slotLim, values, dst.Indices);
             }
 
-            private void GetCategoricalSlotRanges(int iinfo, ref VBuffer<DvInt4> dst)
+            private void GetCategoricalSlotRanges(int iinfo, ref VBuffer<int> dst)
             {
                 Host.Assert(0 <= iinfo && iinfo < _infos.Length);
 
@@ -427,7 +427,7 @@ namespace Microsoft.ML.Runtime.Data
 
                 Host.Assert(info.TypeSrc.ValueCount > 0);
 
-                DvInt4[] ranges = new DvInt4[info.TypeSrc.ValueCount * 2];
+                int[] ranges = new int[info.TypeSrc.ValueCount * 2];
                 int size = info.TypeSrc.ItemType.KeyCount;
 
                 ranges[0] = 0;
@@ -438,7 +438,7 @@ namespace Microsoft.ML.Runtime.Data
                     ranges[i + 1] = ranges[i] + size - 1;
                 }
 
-                dst = new VBuffer<DvInt4>(ranges.Length, ranges);
+                dst = new VBuffer<int>(ranges.Length, ranges);
             }
 
             protected override Delegate MakeGetter(IRow input, int iinfo, out Action disposer)
@@ -834,7 +834,7 @@ namespace Microsoft.ML.Runtime.Data
                 Input = input;
                 Bag = bag;
             }
-            
+
             public OutVectorColumn(VarVector<Key<TKey>> input)
              : base(Reconciler.Inst, input)
             {
