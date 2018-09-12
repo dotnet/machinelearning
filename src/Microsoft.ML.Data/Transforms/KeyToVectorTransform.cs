@@ -411,7 +411,7 @@ namespace Microsoft.ML.Runtime.Data
                 Contracts.Assert(slot == (long)kvpSlot.Key * keyCount);
                 sb.Clear();
                 if (!kvpSlot.Value.IsEmpty)
-                    ReadOnlyMemoryUtils.AddToStringBuilder(sb, kvpSlot.Value);
+                    ReadOnlyMemoryUtils.AddToStringBuilder(kvpSlot.Value, sb);
                 else
                     sb.Append('[').Append(kvpSlot.Key).Append(']');
                 sb.Append('.');
@@ -420,7 +420,7 @@ namespace Microsoft.ML.Runtime.Data
                 foreach (var key in keys)
                 {
                     sb.Length = len;
-                    ReadOnlyMemoryUtils.AddToStringBuilder(sb, key);
+                    ReadOnlyMemoryUtils.AddToStringBuilder(key, sb);
                     values[slot++] = sb.ToString().AsMemory();
                 }
             }

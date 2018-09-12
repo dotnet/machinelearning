@@ -181,7 +181,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
                         foreach (var span in data)
                         {
                             sumLength += span.Length;
-                            seen.Add(ReadOnlyMemoryUtils.Hash(0, span));
+                            seen.Add(ReadOnlyMemoryUtils.Hash(span.Span, 0));
                             string spanStr = span.ToString();
                             sumSpaces += spanStr.Count(x => x == ' ');
 

@@ -343,11 +343,11 @@ namespace Microsoft.ML.Runtime.Data
 
         private int[][] CompileSlotMap(string slotMapString, int srcSlotCount)
         {
-            var parts = ReadOnlyMemoryUtils.Split(new[] { ';' }, slotMapString.AsMemory()).ToArray();
+            var parts = ReadOnlyMemoryUtils.Split(slotMapString.AsMemory(), new[] { ';' }).ToArray();
             var slotMap = new int[parts.Length][];
             for (int i = 0; i < slotMap.Length; i++)
             {
-                var slotIndices = ReadOnlyMemoryUtils.Split(new[] { ',' }, parts[i]).ToArray();
+                var slotIndices = ReadOnlyMemoryUtils.Split(parts[i], new[] { ',' }).ToArray();
                 var slots = new int[slotIndices.Length];
                 slotMap[i] = slots;
                 for (int j = 0; j < slots.Length; j++)

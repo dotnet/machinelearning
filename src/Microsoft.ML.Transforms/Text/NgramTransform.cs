@@ -424,7 +424,7 @@ namespace Microsoft.ML.Runtime.Data
                 else
                 {
                     termGetter((int)unigram - 1, ref term);
-                    ReadOnlyMemoryUtils.AddToStringBuilder(sb, term);
+                    ReadOnlyMemoryUtils.AddToStringBuilder(term, sb);
                 }
             }
         }

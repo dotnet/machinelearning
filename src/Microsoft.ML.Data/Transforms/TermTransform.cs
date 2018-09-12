@@ -579,7 +579,7 @@ namespace Microsoft.ML.Runtime.Data
                 var terms = columns[iinfo].Terms.AsMemory();
                 var termsArray = columns[iinfo].Term;
 
-                terms = ReadOnlyMemoryUtils.Trim(terms);
+                terms = ReadOnlyMemoryUtils.TrimSpaces(terms);
                 if (!terms.IsEmpty || (termsArray != null && termsArray.Length > 0))
                 {
                     // We have terms! Pass it in.

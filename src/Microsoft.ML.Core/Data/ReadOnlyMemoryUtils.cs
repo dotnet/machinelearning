@@ -13,26 +13,6 @@ namespace Microsoft.ML.Runtime.Data
     {
 
         /// <summary>
-        /// Compares two <see cref="ReadOnlyMemory{T}"/> of <see cref="char"/> byte by byte.
-        /// </summary>
-        public static bool Equals(ReadOnlyMemory<char> b, ReadOnlyMemory<char> a)
-        {
-            if (a.Length != b.Length)
-                return false;
-
-            Contracts.Assert(a.IsEmpty == b.IsEmpty);
-            var aSpan = a.Span;
-            var bSpan = b.Span;
-
-            for (int i = 0; i < a.Length; i++)
-            {
-                if (aSpan[i] != bSpan[i])
-                    return false;
-            }
-            return true;
-        }
-
-        /// <summary>
         /// Compare equality with the given system string value.
         /// </summary>
         public static bool EqualsStr(string s, ReadOnlyMemory<char> memory)
@@ -45,39 +25,10 @@ namespace Microsoft.ML.Runtime.Data
             if (s.Length != memory.Length)
                 return false;
 
-            var span = memory.Span;
-            for (int i = 0; i < memory.Length; i++)
-            {
-                if (s[i] != span[i])
-                    return false;
-            }
-            return true;
+            return memory.Span.SequenceEqual(s.AsSpan());
         }
 
-        /// <summary>
-        /// For implementation of <see cref="ReadOnlyMemory{T}"/> of <see cref="char"/>. Uses code point comparison.
-        /// Generally, this is not appropriate for sorting for presentation to a user.
-        /// </summary>
-        public static int CompareTo(ReadOnlyMemory<char> b, ReadOnlyMemory<char> a)
-        {
-            int len = Math.Min(a.Length, b.Length);
-            var aSpan = a.Span;
-            var bSpan = b.Span;
-            for (int ich = 0; ich < len; ich++)
-            {
-                char ch1 = aSpan[ich];
-                char ch2 = bSpan[ich];
-                if (ch1 != ch2)
-                    return ch1 < ch2 ? -1 : +1;
-            }
-            if (len < b.Length)
-                return -1;
-            if (len < a.Length)
-                return +1;
-            return 0;
-        }
-
-        public static IEnumerable<ReadOnlyMemory<char>> Split(char[] separators, ReadOnlyMemory<char> memory)
+        public static IEnumerable<ReadOnlyMemory<char>> Split(ReadOnlyMemory<char> memory, char[] separators)
         {
             Contracts.CheckValueOrNull(separators);
 
@@ -146,7 +97,7 @@ namespace Microsoft.ML.Runtime.Data
         /// this returns false and sets <paramref name="left"/> to this instance and <paramref name="right"/>
         /// to the default <see cref="ReadOnlyMemory{T}"/> of <see cref="char"/> value.
         /// </summary>
-        public static bool SplitOne(char separator, out ReadOnlyMemory<char> left, out ReadOnlyMemory<char> right, ReadOnlyMemory<char> memory)
+        public static bool SplitOne(ReadOnlyMemory<char> memory, char separator, out ReadOnlyMemory<char> left, out ReadOnlyMemory<char> right)
         {
             if (memory.IsEmpty)
             {
@@ -155,23 +106,16 @@ namespace Microsoft.ML.Runtime.Data
                 return false;
             }
 
-            var span = memory.Span;
-            int ichCur = 0;
-            for (; ; ichCur++)
+            int index = memory.Span.IndexOf(separator);
+            if (index == -1)
             {
-                Contracts.Assert(0 <= ichCur && ichCur <= memory.Length);
-                if (ichCur >= memory.Length)
-                {
-                    left = memory;
-                    right = default;
-                    return false;
-                }
-                if (span[ichCur] == separator)
-                    break;
+                left = memory;
+                right = default;
+                return false;
             }
 
-            left = memory.Slice(0, ichCur);
-            right = memory.Slice(ichCur + 1, memory.Length - ichCur - 1);
+            left = memory.Slice(0, index);
+            right = memory.Slice(index + 1, memory.Length - index - 1);
             return true;
         }
 
@@ -181,7 +125,7 @@ namespace Microsoft.ML.Runtime.Data
         /// characters in separators, this return false and initializes <paramref name="left"/> to this instance
         /// and <paramref name="right"/> to the default <see cref="ReadOnlyMemory{T}"/> of <see cref="char"/> value.
         /// </summary>
-        public static bool SplitOne(char[] separators, out ReadOnlyMemory<char> left, out ReadOnlyMemory<char> right, ReadOnlyMemory<char> memory)
+        public static bool SplitOne(ReadOnlyMemory<char> memory, char[] separators, out ReadOnlyMemory<char> left, out ReadOnlyMemory<char> right)
         {
             Contracts.CheckValueOrNull(separators);
 
@@ -192,46 +136,21 @@ namespace Microsoft.ML.Runtime.Data
                 return false;
             }
 
-            var span = memory.Span;
-
-            int ichCur = 0;
+            int index;
             if (separators.Length == 1)
-            {
-                // Note: This duplicates code of the other SplitOne, but doing so improves perf because this is
-                // used so heavily in instances parsing.
-                char chSep = separators[0];
-                for (; ; ichCur++)
-                {
-                    Contracts.Assert(0 <= ichCur && ichCur <= memory.Length);
-                    if (ichCur >= memory.Length)
-                    {
-                        left = memory;
-                        right = default;
-                        return false;
-                    }
-                    if (span[ichCur] == chSep)
-                        break;
-                }
-            }
+                index = memory.Span.IndexOf(separators[0]);
             else
+                index = memory.Span.IndexOfAny(separators);
+
+            if (index >= memory.Length)
             {
-                for (; ; ichCur++)
-                {
-                    Contracts.Assert(0 <= ichCur && ichCur <= memory.Length);
-                    if (ichCur >= memory.Length)
-                    {
-                        left = memory;
-                        right = default;
-                        return false;
-                    }
-                    // REVIEW: Can this be faster?
-                    if (ContainsChar(span[ichCur], separators))
-                        break;
-                }
+                left = memory;
+                right = default;
+                return false;
             }
 
-            left = memory.Slice(0, ichCur);
-            right = memory.Slice(ichCur + 1, memory.Length - ichCur - 1);
+            left = memory.Slice(0, index);
+            right = memory.Slice(index + 1, memory.Length - index - 1);
             return true;
         }
 
@@ -239,7 +158,7 @@ namespace Microsoft.ML.Runtime.Data
         /// Returns a <see cref="ReadOnlyMemory{T}"/> of <see cref="char"/> with leading and trailing spaces trimmed. Note that this
         /// will remove only spaces, not any form of whitespace.
         /// </summary>
-        public static ReadOnlyMemory<char> Trim(ReadOnlyMemory<char> memory)
+        public static ReadOnlyMemory<char> TrimSpaces(ReadOnlyMemory<char> memory)
         {
             if (memory.IsEmpty)
                 return memory;
@@ -301,7 +220,7 @@ namespace Microsoft.ML.Runtime.Data
         /// <summary>
         /// This produces zero for an empty string.
         /// </summary>
-        public static bool TryParse(out Single value, ReadOnlyMemory<char> memory)
+        public static bool TryParse(ReadOnlyMemory<char> memory, out Single value)
         {
             var res = DoubleParser.Parse(out value, memory.Span);
             Contracts.Assert(res != DoubleParser.Result.Empty || value == 0);
@@ -311,35 +230,35 @@ namespace Microsoft.ML.Runtime.Data
         /// <summary>
         /// This produces zero for an empty string.
         /// </summary>
-        public static bool TryParse(out Double value, ReadOnlyMemory<char> memory)
+        public static bool TryParse(ReadOnlyMemory<char> memory, out Double value)
         {
             var res = DoubleParser.Parse(out value, memory.Span);
             Contracts.Assert(res != DoubleParser.Result.Empty || value == 0);
             return res <= DoubleParser.Result.Empty;
         }
 
-        public static uint Hash(uint seed, ReadOnlyMemory<char> memory) => Hashing.MurmurHash(seed, memory);
+        public static uint Hash(ReadOnlySpan<char> span, uint seed) => Hashing.MurmurHash(seed, span);
 
-        public static NormStr AddToPool(NormStr.Pool pool, ReadOnlyMemory<char> memory)
+        public static NormStr AddToPool(ReadOnlyMemory<char> memory, NormStr.Pool pool)
         {
             Contracts.CheckValue(pool, nameof(pool));
             return pool.Add(memory);
         }
 
-        public static NormStr FindInPool(NormStr.Pool pool, ReadOnlyMemory<char> memory)
+        public static NormStr FindInPool(ReadOnlyMemory<char> memory, NormStr.Pool pool)
         {
             Contracts.CheckValue(pool, nameof(pool));
             return pool.Get(memory);
         }
 
-        public static void AddToStringBuilder(StringBuilder sb, ReadOnlyMemory<char> memory)
+        public static void AddToStringBuilder(ReadOnlyMemory<char> memory, StringBuilder sb)
         {
             Contracts.CheckValue(sb, nameof(sb));
             if (!memory.IsEmpty)
                 sb.AppendAll(memory);
         }
 
-        public static void AddLowerCaseToStringBuilder(StringBuilder sb, ReadOnlyMemory<char> memory)
+        public static void AddLowerCaseToStringBuilder(ReadOnlyMemory<char> memory, StringBuilder sb)
         {
             Contracts.CheckValue(sb, nameof(sb));
 

@@ -369,8 +369,8 @@ namespace Microsoft.ML.Runtime.Data
                 while (!rest.IsEmpty)
                 {
                     ReadOnlyMemory<char> term;
-                    ReadOnlyMemoryUtils.SplitOne(separators, out term, out rest, rest);
-                    term = ReadOnlyMemoryUtils.Trim(term);
+                    ReadOnlyMemoryUtils.SplitOne(rest, separators, out term, out rest);
+                    term = ReadOnlyMemoryUtils.TrimSpaces(term);
                     if (!term.IsEmpty)
                         terms.Add(term);
                 }
@@ -381,8 +381,8 @@ namespace Microsoft.ML.Runtime.Data
                 while (!rest.IsEmpty)
                 {
                     ReadOnlyMemory<char> term;
-                    ReadOnlyMemoryUtils.SplitOne(separator, out term, out rest, rest);
-                    term = ReadOnlyMemoryUtils.Trim(term);
+                    ReadOnlyMemoryUtils.SplitOne(rest, separator, out term, out rest);
+                    term = ReadOnlyMemoryUtils.TrimSpaces(term);
                     if (!term.IsEmpty)
                         terms.Add(term);
                 }

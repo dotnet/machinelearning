@@ -815,13 +815,13 @@ namespace Microsoft.ML.Runtime.Data.Conversion
 
         // The IsNA methods are for efficient delegates (instance instead of static).
         #region IsNA
-        private bool IsNA(ref R4 src) => src.IsNA();
-        private bool IsNA(ref R8 src) => src.IsNA();
+        private bool IsNA(ref R4 src) => R4.IsNaN(src);
+        private bool IsNA(ref R8 src) => R8.IsNaN(src);
         #endregion IsNA
 
         #region HasNA
-        private bool HasNA(ref VBuffer<R4> src) { for (int i = 0; i < src.Count; i++) { if (src.Values[i].IsNA()) return true; } return false; }
-        private bool HasNA(ref VBuffer<R8> src) { for (int i = 0; i < src.Count; i++) { if (src.Values[i].IsNA()) return true; } return false; }
+        private bool HasNA(ref VBuffer<R4> src) { for (int i = 0; i < src.Count; i++) { if (R4.IsNaN(src.Values[i])) return true; } return false; }
+        private bool HasNA(ref VBuffer<R8> src) { for (int i = 0; i < src.Count; i++) { if (R8.IsNaN(src.Values[i])) return true; } return false; }
         #endregion HasNA
 
         #region IsDefault
@@ -973,8 +973,8 @@ namespace Microsoft.ML.Runtime.Data.Conversion
         public void Convert(ref U4 src, ref SB dst) => ClearDst(ref dst).Append(src);
         public void Convert(ref U8 src, ref SB dst) => ClearDst(ref dst).Append(src);
         public void Convert(ref UG src, ref SB dst) { ClearDst(ref dst); dst.AppendFormat("0x{0:x16}{1:x16}", src.Hi, src.Lo); }
-        public void Convert(ref R4 src, ref SB dst) { ClearDst(ref dst); if (src.IsNA()) dst.AppendFormat(CultureInfo.InvariantCulture, "{0}", "?"); else dst.AppendFormat(CultureInfo.InvariantCulture, "{0:R}", src); }
-        public void Convert(ref R8 src, ref SB dst) { ClearDst(ref dst); if (src.IsNA()) dst.AppendFormat(CultureInfo.InvariantCulture, "{0}", "?"); else dst.AppendFormat(CultureInfo.InvariantCulture, "{0:G17}", src); }
+        public void Convert(ref R4 src, ref SB dst) { ClearDst(ref dst); if (R4.IsNaN(src)) dst.AppendFormat(CultureInfo.InvariantCulture, "{0}", "?"); else dst.AppendFormat(CultureInfo.InvariantCulture, "{0:R}", src); }
+        public void Convert(ref R8 src, ref SB dst) { ClearDst(ref dst); if (R8.IsNaN(src)) dst.AppendFormat(CultureInfo.InvariantCulture, "{0}", "?"); else dst.AppendFormat(CultureInfo.InvariantCulture, "{0:G17}", src); }
         public void Convert(ref BL src, ref SB dst)
         {
             ClearDst(ref dst);
@@ -1381,7 +1381,7 @@ namespace Microsoft.ML.Runtime.Data.Conversion
         /// </summary>
         public bool TryParse(ref TX src, out R4 dst)
         {
-            if (ReadOnlyMemoryUtils.TryParse(out dst, src))
+            if (ReadOnlyMemoryUtils.TryParse(src, out dst))
                 return true;
             dst = R4.NaN;
             return IsStdMissing(ref src);
@@ -1393,7 +1393,7 @@ namespace Microsoft.ML.Runtime.Data.Conversion
         /// </summary>
         public bool TryParse(ref TX src, out R8 dst)
         {
-            if (ReadOnlyMemoryUtils.TryParse(out dst, src))
+            if (ReadOnlyMemoryUtils.TryParse(src, out dst))
                 return true;
             dst = R8.NaN;
             return IsStdMissing(ref src);
@@ -1678,14 +1678,14 @@ namespace Microsoft.ML.Runtime.Data.Conversion
         }
         public void Convert(ref TX span, ref R4 value)
         {
-            if (ReadOnlyMemoryUtils.TryParse(out value, span))
+            if (ReadOnlyMemoryUtils.TryParse(span, out value))
                 return;
             // Unparsable is mapped to NA.
             value = R4.NaN;
         }
         public void Convert(ref TX span, ref R8 value)
         {
-            if (ReadOnlyMemoryUtils.TryParse(out value, span))
+            if (ReadOnlyMemoryUtils.TryParse(span, out value))
                 return;
             // Unparsable is mapped to NA.
             value = R8.NaN;
@@ -1704,7 +1704,7 @@ namespace Microsoft.ML.Runtime.Data.Conversion
         {
             ClearDst(ref dst);
             if (!src.IsEmpty)
-                ReadOnlyMemoryUtils.AddToStringBuilder(dst, src);
+                ReadOnlyMemoryUtils.AddToStringBuilder(src, dst);
         }
 
         public void Convert(ref TX span, ref TS value) => TryParse(ref span, out value);

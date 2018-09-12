@@ -129,7 +129,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
                     if ((int)Utils.GetLo(meta) == str.Length)
                     {
                         var ns = GetNs(ins);
-                        if (ReadOnlyMemoryUtils.Equals(ns.Value, str))
+                        if (ns.Value.Span.SequenceEqual(str.Span))
                             return ns;
                     }
                     ins = (int)Utils.GetHi(meta);

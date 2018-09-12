@@ -91,9 +91,5 @@
     <Compile Include="BinFile\BinFinder.cs" />
     <Compile Include="BinFile\IniFileParserInterface.cs" />
 </ItemGroup>
-
-<ItemGroup>
-  <PackageReference Include="System.Memory" Version="$(SystemMemoryVersion)" />
-</ItemGroup>
   
 </Project>

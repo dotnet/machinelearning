@@ -157,8 +157,8 @@ namespace Microsoft.ML.Runtime.Data
                 {
                     getTerm(ref term);
                     // REVIEW: Should we trim?
-                    term = ReadOnlyMemoryUtils.Trim(term);
-                    var nstr = ReadOnlyMemoryUtils.AddToPool(terms, term);
+                    term = ReadOnlyMemoryUtils.TrimSpaces(term);
+                    var nstr = ReadOnlyMemoryUtils.AddToPool(term, terms);
                     if (nstr.Id != values.Count)
                         throw ectx.Except("Duplicate term in lookup data: '{0}'", nstr);
 
@@ -192,8 +192,8 @@ namespace Microsoft.ML.Runtime.Data
                     (ref TRes dst) =>
                     {
                         getTerm(ref src);
-                        src = ReadOnlyMemoryUtils.Trim(src);
-                        var nstr = ReadOnlyMemoryUtils.FindInPool(_terms, src);
+                        src = ReadOnlyMemoryUtils.TrimSpaces(src);
+                        var nstr = ReadOnlyMemoryUtils.FindInPool(src, _terms);
                         if (nstr == null)
                             GetMissing(ref dst);
                         else

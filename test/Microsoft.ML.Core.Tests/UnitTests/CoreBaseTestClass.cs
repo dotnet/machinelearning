@@ -176,7 +176,7 @@ namespace Microsoft.ML.Runtime.Core.Tests.UnitTests
                         else
                             return GetComparerOne<Double>(r1, r2, col, EqualWithEps);
                     case DataKind.Text:
-                        return GetComparerOne<ReadOnlyMemory<char>>(r1, r2, col, ReadOnlyMemoryUtils.Equals);
+                        return GetComparerOne<ReadOnlyMemory<char>>(r1, r2, col, (a, b) => a.Span.SequenceEqual(b.Span));
                     case DataKind.Bool:
                         return GetComparerOne<bool>(r1, r2, col, (x, y) => x == y);
                     case DataKind.TimeSpan:
@@ -219,7 +219,7 @@ namespace Microsoft.ML.Runtime.Core.Tests.UnitTests
                         else
                             return GetComparerVec<Double>(r1, r2, col, size, EqualWithEps);
                     case DataKind.Text:
-                        return GetComparerVec<ReadOnlyMemory<char>>(r1, r2, col, size, ReadOnlyMemoryUtils.Equals);
+                        return GetComparerVec<ReadOnlyMemory<char>>(r1, r2, col, size, (a,b) => a.Span.SequenceEqual(b.Span));
                     case DataKind.Bool:
                         return GetComparerVec<bool>(r1, r2, col, size, (x, y) => x == y);
                     case DataKind.TimeSpan:

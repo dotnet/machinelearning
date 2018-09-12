@@ -349,7 +349,7 @@ namespace Microsoft.ML.Runtime.Data.IO
                 public override void Write(ref ReadOnlyMemory<char> value)
                 {
                     Contracts.Check(_builder != null, "writer was already committed");
-                    ReadOnlyMemoryUtils.AddToStringBuilder(_builder, value);
+                    ReadOnlyMemoryUtils.AddToStringBuilder(value, _builder);
                     _boundaries.Add(_builder.Length);
                 }
 

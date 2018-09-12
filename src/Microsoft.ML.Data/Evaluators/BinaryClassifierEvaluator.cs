@@ -999,7 +999,7 @@ namespace Microsoft.ML.Runtime.Data
         private bool GetPredictedLabel(Single val)
         {
             //Behavior for NA values is undefined.
-            return val.IsNA() ? false : val > _threshold;
+            return Single.IsNaN(val) ? false : val > _threshold;
         }
 
         public override RowMapperColumnInfo[] GetOutputColumns()

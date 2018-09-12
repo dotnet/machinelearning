@@ -90,34 +90,14 @@ namespace Microsoft.ML.Runtime.RunTests
             //3. ERROR condition: sbyte.MinValue - 1 in text to sbyte.
             src = (sbyte.MinValue - 1).ToString().AsMemory();
             dst = 0;
-            bool error = false;
-            try
-            {
-                mapper(ref src, ref dst);
-            }
-            catch(Exception ex)
-            {
-                Assert.Equal("Value could not be parsed from text to sbyte.", ex.Message);
-                error = true;
-            }
-
-            Assert.True(error);
+            var ex = Assert.ThrowsAny<Exception>(() => mapper(ref src, ref dst));
+            Assert.Equal("Value could not be parsed from text to sbyte.", ex.Message);
 
             //4. ERROR condition: sbyte.MaxValue + 1 in text to sbyte.
             src = (sbyte.MaxValue + 1).ToString().AsMemory();
             dst = 0;
-            error = false;
-            try
-            {
-                mapper(ref src, ref dst);
-            }
-            catch(Exception ex)
-            {
-                Assert.Equal("Value could not be parsed from text to sbyte.", ex.Message);
-                error = true;
-            }
-
-            Assert.True(error);
+            ex = Assert.ThrowsAny<Exception>(() => mapper(ref src, ref dst));
+            Assert.Equal("Value could not be parsed from text to sbyte.", ex.Message);
 
             //5. Empty string in text to sbyte.
             src = default;
@@ -150,34 +130,14 @@ namespace Microsoft.ML.Runtime.RunTests
             //3. ERROR condition: short.MinValue - 1 in text to short.
             src = (minValue - 1).ToString().AsMemory();
             dst = 0;
-            bool error = false;
-            try
-            {
-                mapper(ref src, ref dst);
-            }
-            catch(Exception ex)
-            {
-                Assert.Equal("Value could not be parsed from text to short.", ex.Message);
-                error = true;
-            }
-
-            Assert.True(error);
+            var ex = Assert.ThrowsAny<Exception>(() => mapper(ref src, ref dst));
+            Assert.Equal("Value could not be parsed from text to short.", ex.Message);
 
             //4. ERROR condition: short.MaxValue + 1 in text to short.
             src = (maxValue + 1).ToString().AsMemory();
             dst = 0;
-            error = false;
-            try
-            {
-                mapper(ref src, ref dst);
-            }
-            catch (Exception ex)
-            {
-                Assert.Equal("Value could not be parsed from text to short.", ex.Message);
-                error = true;
-            }
-
-            Assert.True(error);
+            ex = Assert.ThrowsAny<Exception>(() => mapper(ref src, ref dst));
+            Assert.Equal("Value could not be parsed from text to short.", ex.Message);
 
             //5. Empty value in text to short.
             src = default;
@@ -210,34 +170,14 @@ namespace Microsoft.ML.Runtime.RunTests
             //3. ERROR condition: int.MinValue - 1 in text to int.
             src = ((long)minValue - 1).ToString().AsMemory();
             dst = 0;
-            bool error = false;
-            try
-            {
-                mapper(ref src, ref dst);
-            }
-            catch (Exception ex)
-            {
-                Assert.Equal("Value could not be parsed from text to int.", ex.Message);
-                error = true;
-            }
-
-            Assert.True(error);
+            var ex = Assert.ThrowsAny<Exception>(() => mapper(ref src, ref dst));
+            Assert.Equal("Value could not be parsed from text to int.", ex.Message);
 
             //4. ERROR condition: int.MaxValue + 1 in text to int.
             src = ((long)maxValue + 1).ToString().AsMemory();
             dst = 0;
-            error = false;
-            try
-            {
-                mapper(ref src, ref dst);
-            }
-            catch (Exception ex)
-            {
-                Assert.Equal("Value could not be parsed from text to int.", ex.Message);
-                error = true;
-            }
-
-            Assert.True(error);
+            ex = Assert.ThrowsAny<Exception>(() => mapper(ref src, ref dst));
+            Assert.Equal("Value could not be parsed from text to int.", ex.Message);
 
             //5. Empty value in text to int.
             src = default;
@@ -276,18 +216,8 @@ namespace Microsoft.ML.Runtime.RunTests
             //4. ERROR condition: long.MaxValue + 1 in text to long.
             src = ((ulong)maxValue + 1).ToString().AsMemory();
             dst = 0;
-            bool error = false;
-            try
-            {
-                mapper(ref src, ref dst);
-            }
-            catch (Exception ex)
-            {
-                Assert.Equal("Value could not be parsed from text to long.", ex.Message);
-                error = true;
-            }
-
-            Assert.True(error);
+            var ex = Assert.ThrowsAny<Exception>(() => mapper(ref src, ref dst));
+            Assert.Equal("Value could not be parsed from text to long.", ex.Message);
 
             //5. Empty value in text to long.
             src = default;

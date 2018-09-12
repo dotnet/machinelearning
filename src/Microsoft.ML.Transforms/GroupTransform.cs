@@ -440,7 +440,7 @@ namespace Microsoft.ML.Runtime.Data
                             if ((typeof(IEquatable<T>).IsAssignableFrom(typeof(T))))
                                 result = oldValue.Equals(newValue);
                             else if ((typeof(ReadOnlyMemory<char>).IsAssignableFrom(typeof(T))))
-                                result = ReadOnlyMemoryUtils.Equals((ReadOnlyMemory<char>)(object)oldValue, (ReadOnlyMemory<char>)(object)newValue);
+                                result = ((ReadOnlyMemory<char>)(object)oldValue).Span.SequenceEqual(((ReadOnlyMemory<char>)(object)newValue).Span);
                             else
                                 Contracts.Check(result = false, "Invalid type.");
 

@@ -143,7 +143,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
             for (int i = 0; i < metadata.Length; i++)
             {
                 sb.Append(pre);
-                ReadOnlyMemoryUtils.AddToStringBuilder(sb, metadata.Values[i]);
+                ReadOnlyMemoryUtils.AddToStringBuilder(metadata.Values[i], sb);
                 pre = ",";
             }
             return sb.ToString();

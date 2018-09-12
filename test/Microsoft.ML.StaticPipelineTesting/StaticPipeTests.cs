@@ -92,7 +92,7 @@ namespace Microsoft.ML.StaticPipelineTesting
                     labelGetter(ref labelVal);
                     textGetter(ref textVal);
                     numericFeaturesGetter(ref numVal);
-                    Assert.True(ReadOnlyMemoryUtils.Equals(tx.AsMemory(), textVal));
+                    Assert.True(tx.AsSpan().SequenceEqual(textVal.Span));
                     Assert.Equal((bool)bl, labelVal);
                     Assert.Equal(3, numVal.Length);
                     Assert.Equal(v0, numVal.GetItemOrDefault(0));

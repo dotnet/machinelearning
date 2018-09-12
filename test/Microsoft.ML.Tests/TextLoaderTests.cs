@@ -139,7 +139,7 @@ namespace Microsoft.ML.EntryPoints.Tests
         {
 
         }
-        
+
         [Fact]
         public void ConstructorDoesntThrow()
         {

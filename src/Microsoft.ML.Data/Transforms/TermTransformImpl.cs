@@ -110,7 +110,7 @@ namespace Microsoft.ML.Runtime.Data
                     if (val.IsEmpty)
                         return false;
                     int count = _pool.Count;
-                    return ReadOnlyMemoryUtils.AddToPool(_pool, val).Id == count;
+                    return ReadOnlyMemoryUtils.AddToPool(val, _pool).Id == count;
                 }
 
                 public override TermMap Finish()
@@ -119,7 +119,7 @@ namespace Microsoft.ML.Runtime.Data
                         return new TermMap.TextImpl(_pool);
                     // REVIEW: Should write a Sort method in NormStr.Pool to make sorting more memory efficient.
                     var perm = Utils.GetIdentityPermutation(_pool.Count);
-                    Comparison<int> comp = (i, j) => ReadOnlyMemoryUtils.CompareTo(_pool.GetNormStrById(i).Value, _pool.GetNormStrById(j).Value);
+                    Comparison<int> comp = (i, j) => _pool.GetNormStrById(i).Value.Span.CompareTo(_pool.GetNormStrById(j).Value.Span, StringComparison.InvariantCulture);
                     Array.Sort(perm, comp);
 
                     var sortedPool = new NormStr.Pool();
@@ -127,7 +127,7 @@ namespace Microsoft.ML.Runtime.Data
                     {
                         var nstr = sortedPool.Add(_pool.GetNormStrById(perm[i]).Value);
                         Contracts.Assert(nstr.Id == i);
-                        Contracts.Assert(i == 0 || ReadOnlyMemoryUtils.CompareTo(sortedPool.GetNormStrById(i - 1).Value, sortedPool.GetNormStrById(i).Value) < 0);
+                        Contracts.Assert(i == 0 || sortedPool.GetNormStrById(i - 1).Value.Span.CompareTo(sortedPool.GetNormStrById(i).Value.Span, StringComparison.InvariantCulture) < 0);
                     }
                     Contracts.Assert(sortedPool.Count == _pool.Count);
                     return new TermMap.TextImpl(sortedPool);
@@ -208,8 +208,8 @@ namespace Microsoft.ML.Runtime.Data
                 for (bool more = true; more;)
                 {
                     ReadOnlyMemory<char> term;
-                    more = ReadOnlyMemoryUtils.SplitOne(',', out term, out terms, terms);
-                    term = ReadOnlyMemoryUtils.Trim(term);
+                    more = ReadOnlyMemoryUtils.SplitOne(terms, ',', out term, out terms);
+                    term = ReadOnlyMemoryUtils.TrimSpaces(term);
                     if (term.IsEmpty)
                         ch.Warning("Empty strings ignored in 'terms' specification");
                     else if (!tryParse(ref term, out val))
@@ -234,7 +234,7 @@ namespace Microsoft.ML.Runtime.Data
                 foreach (var sterm in terms)
                 {
                     ReadOnlyMemory<char> term = sterm.AsMemory();
-                    term = ReadOnlyMemoryUtils.Trim(term);
+                    term = ReadOnlyMemoryUtils.TrimSpaces(term);
                     if (term.IsEmpty)
                         ch.Warning("Empty strings ignored in 'term' specification");
                     else if (!tryParse(ref term, out val))
@@ -633,7 +633,7 @@ namespace Microsoft.ML.Runtime.Data
 
                 private void KeyMapper(ref ReadOnlyMemory<char> src, ref uint dst)
                 {
-                    var nstr = ReadOnlyMemoryUtils.FindInPool(_pool, src);
+                    var nstr = ReadOnlyMemoryUtils.FindInPool(src, _pool);
                     if (nstr == null)
                         dst = 0;
                     else

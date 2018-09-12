@@ -7,7 +7,6 @@
 
   <ItemGroup>
     <PackageReference Include="Parquet.Net" Version="$(ParquetDotNetPackageVersion)" />
-    <PackageReference Include="System.Memory" Version="$(SystemMemoryVersion)" />
   </ItemGroup>
 
   <ItemGroup>

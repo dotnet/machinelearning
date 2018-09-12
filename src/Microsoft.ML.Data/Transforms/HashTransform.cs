@@ -675,7 +675,7 @@ namespace Microsoft.ML.Runtime.Data
             Contracts.Assert(Utils.IsPowerOfTwo(mask + 1));
             if (value.IsEmpty)
                 return 0;
-            return (ReadOnlyMemoryUtils.Hash(seed, ReadOnlyMemoryUtils.Trim(value)) & mask) + 1;
+            return (ReadOnlyMemoryUtils.Hash(ReadOnlyMemoryUtils.TrimSpaces(value).Span, seed) & mask) + 1;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -684,14 +684,14 @@ namespace Microsoft.ML.Runtime.Data
             Contracts.Assert(Utils.IsPowerOfTwo(mask + 1));
             if (value.IsEmpty)
                 return 0;
-            return (ReadOnlyMemoryUtils.Hash(Hashing.MurmurRound(seed, (uint)i), ReadOnlyMemoryUtils.Trim(value)) & mask) + 1;
+            return (ReadOnlyMemoryUtils.Hash(ReadOnlyMemoryUtils.TrimSpaces(value).Span, Hashing.MurmurRound(seed, (uint)i)) & mask) + 1;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static uint HashCore(uint seed, ref float value, uint mask)
         {
             Contracts.Assert(Utils.IsPowerOfTwo(mask + 1));
-            if (value.IsNA())
+            if (float.IsNaN(value))
                 return 0;
             // (value == 0 ? 0 : value) takes care of negative 0, its equal to positive 0 according to the IEEE 754 standard
             return (Hashing.MixHash(Hashing.MurmurRound(seed, FloatUtils.GetBits(value == 0 ? 0 : value))) & mask) + 1;
@@ -701,7 +701,7 @@ namespace Microsoft.ML.Runtime.Data
         private static uint HashCore(uint seed, ref float value, int i, uint mask)
         {
             Contracts.Assert(Utils.IsPowerOfTwo(mask + 1));
-            if (value.IsNA())
+            if (float.IsNaN(value))
                 return 0;
             return (Hashing.MixHash(Hashing.MurmurRound(Hashing.MurmurRound(seed, (uint)i),
                 FloatUtils.GetBits(value == 0 ? 0: value))) & mask) + 1;
@@ -711,7 +711,7 @@ namespace Microsoft.ML.Runtime.Data
         private static uint HashCore(uint seed, ref double value, uint mask)
         {
             Contracts.Assert(Utils.IsPowerOfTwo(mask + 1));
-            if (value.IsNA())
+            if (double.IsNaN(value))
                 return 0;
 
             ulong v = FloatUtils.GetBits(value == 0 ? 0 : value);
@@ -727,7 +727,7 @@ namespace Microsoft.ML.Runtime.Data
         {
             // If the high word is zero, this should produce the same value as the uint version.
             Contracts.Assert(Utils.IsPowerOfTwo(mask + 1));
-            if (value.IsNA())
+            if (double.IsNaN(value))
                 return 0;
 
             ulong v = FloatUtils.GetBits(value == 0 ? 0 : value);
@@ -1063,16 +1063,13 @@ namespace Microsoft.ML.Runtime.Data
                     _seed = seed;
                 }
 
-                public bool Equals(ReadOnlyMemory<char> x, ReadOnlyMemory<char> y)
-                {
-                    return ReadOnlyMemoryUtils.Equals(y, x);
-                }
+                public bool Equals(ReadOnlyMemory<char> x, ReadOnlyMemory<char> y) => x.Span.SequenceEqual(y.Span);
 
                 public int GetHashCode(ReadOnlyMemory<char> obj)
                 {
                     if (obj.IsEmpty)
                         return 0;
-                    return (int)ReadOnlyMemoryUtils.Hash(_seed, ReadOnlyMemoryUtils.Trim(obj)) + 1;
+                    return (int)ReadOnlyMemoryUtils.Hash(ReadOnlyMemoryUtils.TrimSpaces(obj).Span, _seed) + 1;
                 }
             }
 

@@ -129,7 +129,7 @@ namespace Microsoft.ML.Runtime.Api
                         if (outputType.GetElementType() == typeof(string))
                         {
                             Ch.Assert(colType.ItemType.IsText);
-                            return CreateConvertingArrayGetterDelegate<string, ReadOnlyMemory<char>>(index, x =>  x != null ? x.AsMemory() : "".AsMemory() );
+                            return CreateConvertingArrayGetterDelegate<string, ReadOnlyMemory<char>>(index, x =>  x != null ? x.AsMemory() : ReadOnlyMemory<char>.Empty);
                         }
 
                         // T[] -> VBuffer<T>
@@ -156,7 +156,7 @@ namespace Microsoft.ML.Runtime.Api
                         {
                             // String -> ReadOnlyMemory<char>
                             Ch.Assert(colType.IsText);
-                            return CreateConvertingGetterDelegate<String, ReadOnlyMemory<char>>(index, x => x != null ? x.AsMemory() : "".AsMemory());
+                            return CreateConvertingGetterDelegate<String, ReadOnlyMemory<char>>(index, x => x != null ? x.AsMemory() : ReadOnlyMemory<char>.Empty);
                         }
 
                         // T -> T

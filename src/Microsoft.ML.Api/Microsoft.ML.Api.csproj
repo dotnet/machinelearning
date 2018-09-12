@@ -15,7 +15,6 @@
 
   <ItemGroup>
      <PackageReference Include="System.CodeDom" Version="$(SystemCodeDomPackageVersion)" />
-     <PackageReference Include="System.Memory" Version="$(SystemMemoryVersion)" />
      <PackageReference Include="System.Reflection.Emit.Lightweight" Version="$(SystemReflectionEmitLightweightPackageVersion)" />
   </ItemGroup>
 

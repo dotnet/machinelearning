@@ -493,7 +493,7 @@ namespace Microsoft.ML.Runtime.Data
                             if (kvp.Value.IsEmpty)
                                 continue;
                             sb.Length = len;
-                            ReadOnlyMemoryUtils.AddToStringBuilder(sb, kvp.Value);
+                            ReadOnlyMemoryUtils.AddToStringBuilder(kvp.Value, sb);
                             bldr.AddFeature(slot + kvp.Key, sb.ToString().AsMemory());
                         }
                     }

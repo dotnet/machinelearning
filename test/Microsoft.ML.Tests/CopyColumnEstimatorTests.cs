@@ -154,7 +154,7 @@ namespace Microsoft.ML.Tests
                 var type2 = result.Schema.GetColumnType(copyIndex);
                 result.Schema.GetMetadata(MetadataUtils.Kinds.KeyValues, termIndex, ref names1);
                 result.Schema.GetMetadata(MetadataUtils.Kinds.KeyValues, copyIndex, ref names2);
-                Assert.True(CompareVec(ref names1, ref names2, size, ReadOnlyMemoryUtils.Equals));
+                Assert.True(CompareVec(ref names1, ref names2, size, (a, b) => a.Span.SequenceEqual(b.Span)));
             }
         }
 

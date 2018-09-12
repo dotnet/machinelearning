@@ -471,7 +471,7 @@ namespace Microsoft.ML.Runtime.TextAnalytics
                         if (src.Values[i].IsEmpty)
                             continue;
                         buffer.Clear();
-                        ReadOnlyMemoryUtils.AddLowerCaseToStringBuilder(buffer, src.Values[i]);
+                        ReadOnlyMemoryUtils.AddLowerCaseToStringBuilder(src.Values[i], buffer);
 
                         // REVIEW nihejazi: Consider using a trie for string matching (Aho-Corasick, etc.)
                         if (StopWords[(int)langToUse].Get(buffer) == null)
@@ -699,19 +699,19 @@ namespace Microsoft.ML.Runtime.TextAnalytics
             var buffer = new StringBuilder();
 
             var stopwords = loaderArgs.Stopwords.AsMemory();
-            stopwords = ReadOnlyMemoryUtils.Trim(stopwords);
+            stopwords = ReadOnlyMemoryUtils.TrimSpaces(stopwords);
             if (!stopwords.IsEmpty)
             {
                 bool warnEmpty = true;
                 for (bool more = true; more;)
                 {
                     ReadOnlyMemory<char> stopword;
-                    more = ReadOnlyMemoryUtils.SplitOne(',', out stopword, out stopwords, stopwords);
-                    stopword = ReadOnlyMemoryUtils.Trim(stopword);
+                    more = ReadOnlyMemoryUtils.SplitOne(stopwords, ',', out stopword, out stopwords);
+                    stopword = ReadOnlyMemoryUtils.TrimSpaces(stopword);
                     if (!stopword.IsEmpty)
                     {
                         buffer.Clear();
-                        ReadOnlyMemoryUtils.AddLowerCaseToStringBuilder(buffer, stopwords);
+                        ReadOnlyMemoryUtils.AddLowerCaseToStringBuilder(stopwords, buffer);
                         stopWordsMap.Add(buffer);
                     }
                     else if (warnEmpty)
@@ -728,11 +728,11 @@ namespace Microsoft.ML.Runtime.TextAnalytics
                 foreach (string word in loaderArgs.Stopword)
                 {
                     var stopword = word.AsMemory();
-                    stopword = ReadOnlyMemoryUtils.Trim(stopword);
+                    stopword = ReadOnlyMemoryUtils.TrimSpaces(stopword);
                     if (!stopword.IsEmpty)
                     {
                         buffer.Clear();
-                        ReadOnlyMemoryUtils.AddLowerCaseToStringBuilder(buffer, stopword);
+                        ReadOnlyMemoryUtils.AddLowerCaseToStringBuilder(stopword, buffer);
                         stopWordsMap.Add(buffer);
                     }
                     else if (warnEmpty)
@@ -763,7 +763,7 @@ namespace Microsoft.ML.Runtime.TextAnalytics
                         if (!src.IsEmpty)
                         {
                             buffer.Clear();
-                            ReadOnlyMemoryUtils.AddLowerCaseToStringBuilder(buffer, src);
+                            ReadOnlyMemoryUtils.AddLowerCaseToStringBuilder(src, buffer);
                             stopWordsMap.Add(buffer);
                         }
                         else if (warnEmpty)
@@ -944,7 +944,7 @@ namespace Microsoft.ML.Runtime.TextAnalytics
                         if (src.Values[i].IsEmpty)
                             continue;
                         buffer.Clear();
-                        ReadOnlyMemoryUtils.AddLowerCaseToStringBuilder(buffer, src.Values[i]);
+                        ReadOnlyMemoryUtils.AddLowerCaseToStringBuilder(src.Values[i], buffer);
 
                         // REVIEW nihejazi: Consider using a trie for string matching (Aho-Corasick, etc.)
                         if (_stopWordsMap.Get(buffer) == null)
