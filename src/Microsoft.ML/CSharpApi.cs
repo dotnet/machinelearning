@@ -1522,18 +1522,6 @@ namespace Microsoft.ML
                 AddEntryPoint("Transforms.SentimentAnalyzer", input, output);
             }
 
-            public Microsoft.ML.Transforms.SupervisedBinNormalizer.Output Add(Microsoft.ML.Transforms.SupervisedBinNormalizer input)
-            {
-                var output = new Microsoft.ML.Transforms.SupervisedBinNormalizer.Output();
-                Add(input, output);
-                return output;
-            }
-
-            public void Add(Microsoft.ML.Transforms.SupervisedBinNormalizer input, Microsoft.ML.Transforms.SupervisedBinNormalizer.Output output)
-            {
-                AddEntryPoint("Transforms.SupervisedBinNormalizer", input, output);
-            }
-
             public Microsoft.ML.Transforms.TensorFlowScorer.Output Add(Microsoft.ML.Transforms.TensorFlowScorer input)
             {
                 var output = new Microsoft.ML.Transforms.TensorFlowScorer.Output();
