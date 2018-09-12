@@ -51,12 +51,13 @@ namespace Microsoft.ML.Transforms
         }
 
         private readonly IHost _host;
-        private readonly string _model;
+        private static string _savedModel;
         private const string RegistrationName = "TensorFlowTransform";
+        private const string TempSavedModelDirName = "MLNET_TensorFlowTransform_SavedModel";
+        private const string TempSavedModelZipName = "SavedModel.zip";
 
         internal readonly TFSession Session;
         internal readonly bool IsFrozen;
-
         internal readonly ColumnType[] OutputTypes;
         internal readonly TFDataType[] TFOutputTypes;
         internal readonly TFDataType[] TFInputTypes;
@@ -97,27 +98,6 @@ namespace Microsoft.ML.Transforms
             return new TensorFlowTransform(env, model,  source, names, isFrozen).MakeDataTransform(input);
         }
 
-        private static Tuple<string[], string[]> ModelInputsOutputs(IHostEnvironment env, ModelLoadContext ctx)
-        {
-            var numInputs = ctx.Reader.ReadInt32();
-            env.CheckDecode(numInputs > 0);
-            string[] inputs = new string[numInputs];
-            for (int j = 0; j < inputs.Length; j++)
-                inputs[j] = ctx.LoadNonEmptyString();
-
-            bool isMultiOutput = ctx.Header.ModelVerReadable >= 0x00010002;
-            var numOutputs = 1;
-            if (isMultiOutput)
-                numOutputs = ctx.Reader.ReadInt32();
-
-            env.CheckDecode(numOutputs > 0);
-            var outputs = new string[numOutputs];
-            for (int j = 0; j < outputs.Length; j++)
-                outputs[j] = ctx.LoadNonEmptyString();
-
-            return new Tuple<string[], string[]>(inputs, outputs);
-        }
-
         // Factory method for SignatureLoadModel.
         public static TensorFlowTransform Create(IHostEnvironment env, ModelLoadContext ctx)
         {
@@ -142,7 +122,7 @@ namespace Microsoft.ML.Transforms
                     throw env.ExceptDecode();
 
                 var io = ModelInputsOutputs(env, ctx);
-                return new TensorFlowTransform(env, modelBytes, (isFrozen == 1), io.Item1, io.Item2);
+                return new TensorFlowTransform(env, modelBytes, io.Item1, io.Item2, (isFrozen == 1));
             }
             else
             {
@@ -150,14 +130,21 @@ namespace Microsoft.ML.Transforms
                 byte[] tfFilesBin = null;
                 var load = ctx.TryLoadBinaryStream("TFSavedModel", br => tfFilesBin = br.ReadByteArray());
 
-                var tfSavedModelDirectoryInfo = new TensorFlowSavedModelDirectoryInfo();
-                tfSavedModelDirectoryInfo.ExtractTensorFlowBin(tfFilesBin);
+                if (File.Exists(TempSavedModelZipName))
+                    File.Delete(TempSavedModelZipName);
 
+                File.WriteAllBytes(TempSavedModelZipName, tfFilesBin);
+                _savedModel = Path.GetFullPath(Path.Combine(Path.GetTempPath(), TempSavedModelDirName));
+                DirectoryInfo dir = new DirectoryInfo(_savedModel);
+                if (dir.Exists)
+                    Directory.Delete(_savedModel, true);
+
+                ZipFile.ExtractToDirectory(TempSavedModelZipName, _savedModel);
                 var io = ModelInputsOutputs(env, ctx);
-                var session = GetSession(env, tfSavedModelDirectoryInfo.ExtractedSavedModelPath, (isFrozen == 1));
+                var session = GetSession(env, _savedModel, (isFrozen == 1));
+                File.Delete(TempSavedModelZipName);
 
-                Directory.Delete(tfSavedModelDirectoryInfo.SavedModelPath, true);
-                return new TensorFlowTransform(env, session, (isFrozen == 1), io.Item1, io.Item2);
+                return new TensorFlowTransform(env, session, io.Item1, io.Item2, (isFrozen == 1));
             }
         }
 
@@ -179,6 +166,27 @@ namespace Microsoft.ML.Transforms
         // Factory method for SignatureLoadRowMapper.
         public static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, ISchema inputSchema)
             => Create(env, ctx).MakeRowMapper(inputSchema);
+
+        private static Tuple<string[], string[]> ModelInputsOutputs(IHostEnvironment env, ModelLoadContext ctx)
+        {
+            var numInputs = ctx.Reader.ReadInt32();
+            env.CheckDecode(numInputs > 0);
+            string[] inputs = new string[numInputs];
+            for (int j = 0; j < inputs.Length; j++)
+                inputs[j] = ctx.LoadNonEmptyString();
+
+            bool isMultiOutput = ctx.Header.ModelVerReadable >= 0x00010002;
+            var numOutputs = 1;
+            if (isMultiOutput)
+                numOutputs = ctx.Reader.ReadInt32();
+
+            env.CheckDecode(numOutputs > 0);
+            var outputs = new string[numOutputs];
+            for (int j = 0; j < outputs.Length; j++)
+                outputs[j] = ctx.LoadNonEmptyString();
+
+            return new Tuple<string[], string[]>(inputs, outputs);
+        }
 
         private static TFSession LoadTFSession(IHostEnvironment env, byte[] modelBytes)
         {
@@ -229,21 +237,23 @@ namespace Microsoft.ML.Transforms
         }
 
         public TensorFlowTransform(IHostEnvironment env, string model, string[] inputs, string[] outputs, bool isFrozen = TensorFlowEstimator.Defaults.IsFrozen) :
-            this(env, GetSession(env, model, isFrozen), isFrozen, inputs, outputs)
+            this(env, GetSession(env, model, isFrozen), inputs, outputs, isFrozen)
         {
-            _model = model;
+            if (!isFrozen)
+                _savedModel = model;
         }
 
-        private TensorFlowTransform(IHostEnvironment env, byte[] modelBytes, bool isFrozen, string[] inputs, string[] outputs) :
-            this(env, LoadTFSession(env, modelBytes), isFrozen, inputs, outputs)
+        private TensorFlowTransform(IHostEnvironment env, byte[] modelBytes, string[] inputs, string[] outputs, bool isFrozen) :
+            this(env, LoadTFSession(env, modelBytes), inputs, outputs, isFrozen)
         { }
 
-        private TensorFlowTransform(IHostEnvironment env, TFSession session, bool isFrozen, string[] inputs, string[] outputs)
+        private TensorFlowTransform(IHostEnvironment env, TFSession session, string[] inputs, string[] outputs, bool isFrozen)
         {
             Contracts.CheckValue(env, nameof(env));
             _host = env.Register(nameof(RegistrationName));
             Session = session;
             IsFrozen = isFrozen;
+
             foreach (var input in inputs)
             {
                 _host.CheckNonWhiteSpace(input, nameof(inputs));
@@ -341,15 +351,18 @@ namespace Microsoft.ML.Transforms
             }
             else
             {
-                var tfSavedModelDirectoryInfo = new TensorFlowSavedModelDirectoryInfo();
-                var byteArray = tfSavedModelDirectoryInfo.PackageTensorFlowSavedModel(_model);
+                if (File.Exists(TempSavedModelZipName))
+                    File.Delete(TempSavedModelZipName);
 
+                ZipFile.CreateFromDirectory(_savedModel, TempSavedModelZipName, CompressionLevel.Fastest, false);
+
+                var byteArray = File.ReadAllBytes(TempSavedModelZipName);
                 ctx.SaveBinaryStream("TFSavedModel", w =>
                 {
                     w.WriteByteArray(byteArray);
                 });
 
-                Directory.Delete(tfSavedModelDirectoryInfo.SavedModelPath, true);
+                File.Delete(TempSavedModelZipName);
             }
             _host.AssertNonEmpty(Inputs);
             ctx.Writer.Write(Inputs.Length);
@@ -575,39 +588,6 @@ namespace Microsoft.ML.Transforms
                     _vBuffer.CopyToDense(ref _vBufferDense);
                     return TFTensor.Create(_vBufferDense.Values, _tfShape);
                 }
-            }
-        }
-
-        private sealed class TensorFlowSavedModelDirectoryInfo
-        {
-            private const string TensorFlowSavedModelZipFilename = "tf_savedmodel.zip";
-            private const string TensorFlowExtractedSavedModelPath = "SavedModelExtract";
-            private readonly string _tfSavedModelZipFilePath;
-            public string SavedModelPath { get; }
-            public string ExtractedSavedModelPath { get; set;  }
-            public TensorFlowSavedModelDirectoryInfo()
-            {
-                SavedModelPath = Path.GetFullPath(Path.Combine(Path.GetTempPath(), "_MLNET_TFTransform_" + Guid.NewGuid()));
-                var savedModelInfo = Directory.CreateDirectory(SavedModelPath);
-                _tfSavedModelZipFilePath = Path.Combine(savedModelInfo.FullName, TensorFlowSavedModelZipFilename);
-            }
-
-            public byte[] PackageTensorFlowSavedModel(string exportDir)
-            {
-                ZipFile.CreateFromDirectory(
-                    exportDir,
-                    _tfSavedModelZipFilePath,
-                    CompressionLevel.Fastest,
-                    false);
-
-                return File.ReadAllBytes(_tfSavedModelZipFilePath);
-            }
-
-            public void ExtractTensorFlowBin(byte[] tensorFlowBin)
-            {
-                ExtractedSavedModelPath = Path.Combine(SavedModelPath, TensorFlowExtractedSavedModelPath);
-                File.WriteAllBytes(_tfSavedModelZipFilePath, tensorFlowBin);
-                ZipFile.ExtractToDirectory(_tfSavedModelZipFilePath, ExtractedSavedModelPath);
             }
         }
 
