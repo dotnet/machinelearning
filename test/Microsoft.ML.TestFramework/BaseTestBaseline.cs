@@ -30,7 +30,8 @@ namespace Microsoft.ML.Runtime.RunTests
         {
             _output = helper;
             ITest test = (ITest)helper.GetType().GetField("test", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(helper);
-            TestName = test.TestCase.TestMethod.TestClass.Class.Name + "." + test.TestCase.TestMethod.Method.Name;
+            FullTestName = test.TestCase.TestMethod.TestClass.Class.Name + "." + test.TestCase.TestMethod.Method.Name;
+            TestName = test.TestCase.TestMethod.Method.Name;
             Init();
         }
 
@@ -92,6 +93,7 @@ namespace Microsoft.ML.Runtime.RunTests
         private bool _passed;
 
         public string TestName { get; set; }
+        public string FullTestName { get; set; }
 
         public void Init()
         {
@@ -103,7 +105,7 @@ namespace Microsoft.ML.Runtime.RunTests
             // Find the sample data and baselines.
             _baseDir = Path.Combine(RootDir, _baselineRootRelPath);
 
-            string logPath = Path.Combine(logDir, TestName + LogSuffix);
+            string logPath = Path.Combine(logDir, FullTestName + LogSuffix);
             LogWriter = OpenWriter(logPath);
             _passed = true;
             Env = new TlcEnvironment(42, outWriter: LogWriter, errWriter: LogWriter);
