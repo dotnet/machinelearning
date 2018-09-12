@@ -929,7 +929,7 @@ namespace Microsoft.ML.Runtime.Data
                 public RowMapperColumnInfo MakeColumnInfo()
                 {
                     if (_isIdentity)
-                        return new RowMapperColumnInfo(_columnInfo.Output, OutputType, RowColumnUtils.GetMetadataAsRow(_inputSchema, SrcIndices[0]));
+                        return new RowMapperColumnInfo(_columnInfo.Output, OutputType, RowColumnUtils.GetMetadataAsRow(_inputSchema, SrcIndices[0], x => true));
 
                     var metadata = new ColumnMetadataInfo(_columnInfo.Output);
                     if (_isNormalized)

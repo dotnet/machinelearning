@@ -300,33 +300,6 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         }
     }
 
-    public class MyConcatTransform : IEstimator<TransformWrapper>
-    {
-        private readonly IHostEnvironment _env;
-        private readonly string _name;
-        private readonly string[] _source;
-
-        public MyConcatTransform(IHostEnvironment env, string name, params string[] source)
-        {
-            _env = env;
-            _name = name;
-            _source = source;
-        }
-
-        public TransformWrapper Fit(IDataView input)
-        {
-            var xf = new ConcatTransform(_env, input, _name, _source);
-            var empty = new EmptyDataView(_env, input.Schema);
-            var chunk = ApplyTransformUtils.ApplyAllTransformsToData(_env, xf, empty, input);
-            return new TransformWrapper(_env, chunk);
-        }
-
-        public SchemaShape GetOutputSchema(SchemaShape inputSchema)
-        {
-            throw new NotImplementedException();
-        }
-    }
-
     public sealed class MyBinaryClassifierEvaluator
     {
         private readonly IHostEnvironment _env;
