@@ -1543,7 +1543,7 @@ namespace Microsoft.ML
 
             public void Add(Microsoft.ML.Transforms.TensorFlowScorer input, Microsoft.ML.Transforms.TensorFlowScorer.Output output)
             {
-                _jsonNodes.Add(Serialize("Transforms.TensorFlowScorer", input, output));
+                AddEntryPoint("Transforms.TensorFlowScorer", input, output);
             }
 
             public Microsoft.ML.Transforms.TextFeaturizer.Output Add(Microsoft.ML.Transforms.TextFeaturizer input)
