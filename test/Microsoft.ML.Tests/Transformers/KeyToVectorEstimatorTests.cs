@@ -152,7 +152,7 @@ namespace Microsoft.ML.Tests.Transformers
             DvBool normalized = default;
             result.Schema.GetMetadata(MetadataUtils.Kinds.SlotNames, colA, ref slots);
             Assert.True(slots.Length == 2);
-            Assert.Equal(slots.Values.Select(x => x.ToString()), new string[2] { "A", "B" });
+            Assert.Equal(slots.Items().Select(x => x.Value.ToString()), new string[2] { "A", "B" });
 
             types = result.Schema.GetMetadataTypes(colB);
             Assert.Equal(types.Select(x => x.Key), new string[3] { MetadataUtils.Kinds.SlotNames, MetadataUtils.Kinds.CategoricalSlotRanges, MetadataUtils.Kinds.IsNormalized });

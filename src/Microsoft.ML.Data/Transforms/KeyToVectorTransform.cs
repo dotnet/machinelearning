@@ -733,7 +733,7 @@ namespace Microsoft.ML.Runtime.Data
         {
         }
 
-        public KeyToVectorEstimator(IHostEnvironment env, KeyToVectorTransform transformer)
+        private KeyToVectorEstimator(IHostEnvironment env, KeyToVectorTransform transformer)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(KeyToVectorEstimator)), transformer)
         {
         }

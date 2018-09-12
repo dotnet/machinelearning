@@ -14,6 +14,7 @@ using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Internal.Internallearn;
+using Microsoft.ML.Core.Data;
 
 [assembly: LoadableClass(CategoricalTransform.Summary, typeof(IDataTransform), typeof(CategoricalTransform), typeof(CategoricalTransform.Arguments), typeof(SignatureDataTransform),
     CategoricalTransform.UserName, "CategoricalTransform", "CatTransform", "Categorical", "Cat")]
@@ -96,11 +97,6 @@ namespace Microsoft.ML.Runtime.Data
             }
         }
 
-        private static class Defaults
-        {
-            public const OutputKind OutKind = OutputKind.Ind;
-        }
-
         public sealed class Arguments : TermTransform.ArgumentsBase
         {
             [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "New column definition(s) (optional form: name:src)", ShortName = "col", SortOrder = 1)]
@@ -108,7 +104,7 @@ namespace Microsoft.ML.Runtime.Data
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Output kind: Bag (multi-set vector), Ind (indicator vector), or Key (index)",
                 ShortName = "kind", SortOrder = 102)]
-            public OutputKind OutputKind = Defaults.OutKind;
+            public OutputKind OutputKind = CategoricalEstimator.Defaults.OutKind;
 
             public Arguments()
             {
@@ -123,116 +119,125 @@ namespace Microsoft.ML.Runtime.Data
 
         public const string UserName = "Categorical Transform";
 
-        /// <summary>
-        /// A helper method to create <see cref="CategoricalTransform"/> for public facing API.
-        /// </summary>
-        /// <param name="env">Host Environment.</param>
-        /// <param name="input">Input <see cref="IDataView"/>. This is the output from previous transform or loader.</param>
-        /// <param name="name">Name of the output column.</param>
-        /// <param name="source">Name of the column to be transformed. If this is null '<paramref name="name"/>' will be used.</param>
-        /// <param name="outputKind">The type of output expected.</param>
-        public static IDataTransform Create(IHostEnvironment env, IDataView input, string name, string source = null, OutputKind outputKind = Defaults.OutKind)
-        {
-            var args = new Arguments()
-            {
-                Column = new[] { new Column(){
-                        Source = source ?? name,
-                        Name = name
-                    }
-                },
-                OutputKind = outputKind
-            };
-            return Create(env, args, input);
-        }
-
-        public static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
+        public static IDataView Create(IHostEnvironment env, Arguments args, IDataView input)
         {
             Contracts.CheckValue(env, nameof(env));
             var h = env.Register("Categorical");
             h.CheckValue(args, nameof(args));
             h.CheckValue(input, nameof(input));
             h.CheckUserArg(Utils.Size(args.Column) > 0, nameof(args.Column));
-            return CreateTransformCore(
-                args.OutputKind,
-                args.Column,
-                args.Column.Select(col => col.OutputKind).ToList(),
-                 TermTransform.Create(h, args, args.Column, input),
-                h,
-                env);
+
+            var columns = new List<CategoricalEstimator.ColumnInfo>();
+            foreach (var column in args.Column)
+            {
+                var col = new CategoricalEstimator.ColumnInfo(
+                    column.Source ?? column.Name,
+                    column.Name,
+                    column.OutputKind ?? args.OutputKind,
+                    column.MaxNumTerms ?? args.MaxNumTerms,
+                    column.Sort ?? args.Sort,
+                    column.Term ?? args.Term);
+                col.SetTerms(column.Terms);
+                columns.Add(col);
+            }
+            return Create(env, input, columns.ToArray());
         }
 
-        public static IDataTransform CreateTransformCore(
-            OutputKind argsOutputKind,
-            OneToOneColumn[] columns,
-            List<OutputKind?> columnOutputKinds,
-            IDataTransform input,
-            IHost h,
-            IHostEnvironment env,
-            CategoricalHashTransform.Arguments catHashArgs = null)
+        public static IDataView Create(IHostEnvironment env, IDataView input, params CategoricalEstimator.ColumnInfo[] columns)
         {
-            Contracts.CheckValue(columns, nameof(columns));
-            Contracts.CheckValue(columnOutputKinds, nameof(columnOutputKinds));
-            Contracts.CheckParam(columns.Length == columnOutputKinds.Count, nameof(columns));
+            return new CategoricalEstimator(env, columns).Fit(input).Transform(input);
+        }
+    }
 
-            using (var ch = h.Start("Create Transform Core"))
+    public sealed class CategoricalEstimator : IEstimator<ITransformer>
+    {
+        public static class Defaults
+        {
+            public const CategoricalTransform.OutputKind OutKind = CategoricalTransform.OutputKind.Ind;
+        }
+
+        public class ColumnInfo : TermTransform.ColumnInfo
+        {
+            public readonly CategoricalTransform.OutputKind OutputKind;
+            public ColumnInfo(string input, string output, CategoricalTransform.OutputKind outputKind = Defaults.OutKind, int maxNumTerms = TermEstimator.Defaults.MaxNumTerms, TermTransform.SortOrder sort = TermEstimator.Defaults.Sort, string[] term = null)
+                : base(input, output, maxNumTerms, sort, term, true)
             {
-                // Create the KeyToVectorTransform, if needed.
-                var cols = new List<KeyToVectorTransform.Column>();
-                bool binaryEncoding = argsOutputKind == OutputKind.Bin;
-                for (int i = 0; i < columns.Length; i++)
+                OutputKind = outputKind;
+            }
+
+            internal void SetTerms(string terms)
+            {
+                Terms = terms;
+            }
+
+        }
+
+        private readonly IHost _host;
+        private readonly ColumnInfo[] _columns;
+        private readonly IEstimator<ITransformer> _estimatorChain;
+
+        public CategoricalEstimator(IHostEnvironment env, IDataView input, string name, string source = null, CategoricalTransform.OutputKind outputKind = Defaults.OutKind)
+            : this(env, new ColumnInfo(source ?? name, name, outputKind))
+        {
+        }
+
+        public CategoricalEstimator(IHostEnvironment env, params ColumnInfo[] columns)
+        {
+            Contracts.CheckValue(env, nameof(env));
+            _host = env.Register(nameof(TermEstimator));
+            _columns = columns.ToArray();
+            var termEst = new TermEstimator(_host, _columns);
+
+            var cols = new List<KeyToVectorTransform.ColumnInfo>();
+            bool binaryEncoding = false;
+            for (int i = 0; i < _columns.Length; i++)
+            {
+                var column = _columns[i];
+
+                bool bag;
+
+                CategoricalTransform.OutputKind kind = _columns[i].OutputKind;
+                switch (kind)
                 {
-                    var column = columns[i];
-                    if (!column.TrySanitize())
-                        throw h.ExceptUserArg(nameof(Column.Name));
-
-                    bool? bag;
-                    OutputKind kind = columnOutputKinds[i].HasValue ? columnOutputKinds[i].Value : argsOutputKind;
-                    switch (kind)
-                    {
-                        default:
-                            throw env.ExceptUserArg(nameof(Column.OutputKind));
-                        case OutputKind.Key:
-                            continue;
-                        case OutputKind.Bin:
-                            binaryEncoding = true;
-                            bag = false;
-                            break;
-                        case OutputKind.Ind:
-                            bag = false;
-                            break;
-                        case OutputKind.Bag:
-                            bag = true;
-                            break;
-                    }
-                    var col = new KeyToVectorTransform.Column();
-                    col.Name = column.Name;
-                    col.Source = column.Name;
-                    col.Bag = bag;
-                    cols.Add(col);
+                    default:
+                        throw _host.ExceptUserArg(nameof(column.OutputKind));
+                    case CategoricalTransform.OutputKind.Key:
+                        continue;
+                    case CategoricalTransform.OutputKind.Bin:
+                        binaryEncoding = true;
+                        bag = false;
+                        break;
+                    case CategoricalTransform.OutputKind.Ind:
+                        bag = false;
+                        break;
+                    case CategoricalTransform.OutputKind.Bag:
+                        bag = true;
+                        break;
                 }
+                var col = new KeyToVectorTransform.ColumnInfo(column.Output, column.Output, bag);
+                cols.Add(col);
 
-                if (cols.Count == 0)
-                    return input;
-
-                IDataTransform transform;
                 if (binaryEncoding)
                 {
-                    if ((catHashArgs?.InvertHash ?? 0) != 0)
-                        ch.Warning("Invert hashing is being used with binary encoding.");
-
-                    var keyToBinaryVecCols = cols.Select(x => new KeyToBinaryVectorTransform.ColumnInfo(x.Source, x.Name)).ToArray();
-                    transform = KeyToBinaryVectorTransform.Create(h, input, keyToBinaryVecCols);
+                    var keyToBinEst = new KeyToBinaryVectorEstimator(_host, cols.Select(x => new KeyToBinaryVectorTransform.ColumnInfo(x.Input, x.Output)).ToArray());
+                    _estimatorChain = termEst.Append(keyToBinEst);
                 }
                 else
                 {
-                    var keyToVecCols = cols.Select(x => new KeyToVectorTransform.ColumnInfo(x.Source, x.Name, x.Bag ?? argsOutputKind == OutputKind.Bag)).ToArray();
-
-                    transform = KeyToVectorTransform.Create(h, input, keyToVecCols);
+                    var keyToVecEst = new KeyToVectorEstimator(_host, cols.Select(x => new KeyToVectorTransform.ColumnInfo(x.Input, x.Output, x.Bag)).ToArray());
+                    _estimatorChain = termEst.Append(keyToVecEst);
                 }
-
-                ch.Done();
-                return transform;
             }
+        }
+
+        public SchemaShape GetOutputSchema(SchemaShape inputSchema)
+        {
+            return _estimatorChain.GetOutputSchema(inputSchema);
+        }
+
+        public ITransformer Fit(IDataView input)
+        {
+            return _estimatorChain.Fit(input);
         }
     }
 
