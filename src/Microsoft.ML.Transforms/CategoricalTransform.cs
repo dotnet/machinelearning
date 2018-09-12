@@ -177,7 +177,7 @@ namespace Microsoft.ML.Runtime.Data
             using (var ch = h.Start("Create Transform Core"))
             {
                 // Create the KeyToVectorTransform, if needed.
-                List<KeyToVectorTransform.Column> cols = new List<KeyToVectorTransform.Column>();
+                var cols = new List<KeyToVectorTransform.Column>();
                 bool binaryEncoding = argsOutputKind == OutputKind.Bin;
                 for (int i = 0; i < columns.Length; i++)
                 {
@@ -220,19 +220,14 @@ namespace Microsoft.ML.Runtime.Data
                     if ((catHashArgs?.InvertHash ?? 0) != 0)
                         ch.Warning("Invert hashing is being used with binary encoding.");
 
-                    var keyToBinaryArgs = new KeyToBinaryVectorTransform.Arguments();
-                    keyToBinaryArgs.Column = cols.ToArray();
-                    transform = new KeyToBinaryVectorTransform(h, keyToBinaryArgs, input);
+                    var keyToBinaryVecCols = cols.Select(x => new KeyToBinaryVectorTransform.ColumnInfo(x.Source, x.Name)).ToArray();
+                    transform = KeyToBinaryVectorTransform.Create(h, input, keyToBinaryVecCols);
                 }
                 else
                 {
-                    var keyToVecArgs = new KeyToVectorTransform.Arguments
-                    {
-                        Bag = argsOutputKind == OutputKind.Bag,
-                        Column = cols.ToArray()
-                    };
+                    var keyToVecCols = cols.Select(x => new KeyToVectorTransform.ColumnInfo(x.Source, x.Name, x.Bag ?? argsOutputKind == OutputKind.Bag)).ToArray();
 
-                    transform = new KeyToVectorTransform(h, keyToVecArgs, input);
+                    transform = KeyToVectorTransform.Create(h, input, keyToVecCols);
                 }
 
                 ch.Done();
