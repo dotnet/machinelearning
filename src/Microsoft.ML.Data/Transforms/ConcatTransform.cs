@@ -26,6 +26,12 @@ using Microsoft.ML.Core.Data;
 [assembly: LoadableClass(ConcatTransform.Summary, typeof(IDataTransform), typeof(ConcatTransform), null, typeof(SignatureLoadDataTransform),
     ConcatTransform.UserName, ConcatTransform.LoaderSignature, ConcatTransform.LoaderSignatureOld)]
 
+[assembly: LoadableClass(typeof(ConcatTransform), null, typeof(SignatureLoadModel),
+    ConcatTransform.UserName, ConcatTransform.LoaderSignature)]
+
+[assembly: LoadableClass(typeof(IRowMapper), typeof(ConcatTransform), null, typeof(SignatureLoadRowMapper),
+    ConcatTransform.UserName, ConcatTransform.LoaderSignature)]
+
 namespace Microsoft.ML.Runtime.Data
 {
     using PfaType = PfaUtils.Type;
@@ -250,6 +256,9 @@ namespace Microsoft.ML.Runtime.Data
                 col.Save(ctx);
         }
 
+        /// <summary>
+        /// Constructor for SignatureLoadModel.
+        /// </summary>
         public ConcatTransform(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
@@ -770,10 +779,16 @@ namespace Microsoft.ML.Runtime.Data
         public IRowMapper MakeRowMapper(ISchema inputSchema) => new Mapper(this, inputSchema);
 
         /// <summary>
-        /// Factory method for SignatureLoadDataTransform
+        /// Factory method for SignatureLoadDataTransform.
         /// </summary>
         public static IDataTransform Create(IHostEnvironment env, ModelLoadContext ctx, IDataView input)
             => new ConcatTransform(env, ctx).MakeDataTransform(input);
+
+        /// <summary>
+        /// Factory method for SignatureLoadRowMapper.
+        /// </summary>
+        public static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, ISchema inputSchema)
+            => new ConcatTransform(env, ctx).MakeRowMapper(inputSchema);
 
         public ISchema GetOutputSchema(ISchema inputSchema)
         {
@@ -933,16 +948,16 @@ namespace Microsoft.ML.Runtime.Data
 
                     var metadata = new ColumnMetadataInfo(_columnInfo.Output);
                     if (_isNormalized)
-                        metadata.Add(MetadataUtils.Kinds.IsNormalized, new MetadataInfo<bool>(BoolType.Instance, GetIsNormalized));
+                        metadata.Add(MetadataUtils.Kinds.IsNormalized, new MetadataInfo<DvBool>(BoolType.Instance, GetIsNormalized));
                     if (_hasSlotNames)
-                        metadata.Add(MetadataUtils.Kinds.SlotNames, new MetadataInfo<VBuffer<DvText>>(TextType.Instance, GetSlotNames));
+                        metadata.Add(MetadataUtils.Kinds.SlotNames, new MetadataInfo<VBuffer<DvText>>(_slotNamesType, GetSlotNames));
                     if (_hasCategoricals)
-                        metadata.Add(MetadataUtils.Kinds.CategoricalSlotRanges, new MetadataInfo<VBuffer<DvInt4>>(TextType.Instance, GetCategoricalSlotRanges));
+                        metadata.Add(MetadataUtils.Kinds.CategoricalSlotRanges, new MetadataInfo<VBuffer<DvInt4>>(_categoricalRangeType, GetCategoricalSlotRanges));
 
                     return new RowMapperColumnInfo(_columnInfo.Output, OutputType, metadata);
                 }
 
-                private void GetIsNormalized(int col, ref bool value) => value = _isNormalized;
+                private void GetIsNormalized(int col, ref DvBool value) => value = _isNormalized;
 
                 private void GetCategoricalSlotRanges(int iiinfo, ref VBuffer<DvInt4> dst)
                 {
@@ -1025,17 +1040,18 @@ namespace Microsoft.ML.Runtime.Data
                 public Delegate MakeGetter(IRow input)
                 {
                     if (_isIdentity)
-                    {
-                        Contracts.Assert(SrcIndices.Length == 1);
-                        Func<Delegate> getSrcGetter = () => input.GetGetter<int>(SrcIndices[0]);
-                        return Utils.MarshalInvoke(getSrcGetter, _srcTypes[0].RawType);
-                    }
+                        return Utils.MarshalInvoke(MakeIdentityGetter<int>, OutputType.RawType, input);
 
-                    Func<IRow, ValueGetter<VBuffer<int>>> del = MakeGetter<int>;
-                    return Utils.MarshalInvoke(MakeGetter<int>, _srcTypes[0].RawType, input);
+                    return Utils.MarshalInvoke(MakeGetter<int>, OutputType.ItemType.RawType, input);
                 }
 
-                private ValueGetter<VBuffer<T>> MakeGetter<T>(IRow input)
+                private Delegate MakeIdentityGetter<T>(IRow input)
+                {
+                    Contracts.Assert(SrcIndices.Length == 1);
+                    return input.GetGetter<T>(SrcIndices[0]);
+                }
+
+                private Delegate MakeGetter<T>(IRow input)
                 {
                     var srcGetterOnes = new ValueGetter<T>[SrcIndices.Length];
                     var srcGetterVecs = new ValueGetter<VBuffer<T>>[SrcIndices.Length];
@@ -1049,109 +1065,109 @@ namespace Microsoft.ML.Runtime.Data
 
                     T tmp = default(T);
                     VBuffer<T>[] tmpBufs = new VBuffer<T>[SrcIndices.Length];
-                    return
-                        (ref VBuffer<T> dst) =>
+                    ValueGetter<VBuffer<T>> result = (ref VBuffer<T> dst) =>
+                    {
+                        int dstLength = 0;
+                        int dstCount = 0;
+                        for (int i = 0; i < SrcIndices.Length; i++)
                         {
-                            int dstLength = 0;
-                            int dstCount = 0;
-                            for (int i = 0; i < SrcIndices.Length; i++)
+                            var type = _srcTypes[i];
+                            if (type.IsVector)
                             {
-                                var type = _srcTypes[i];
-                                if (type.IsVector)
+                                srcGetterVecs[i](ref tmpBufs[i]);
+                                if (type.VectorSize != 0 && type.VectorSize != tmpBufs[i].Length)
                                 {
-                                    srcGetterVecs[i](ref tmpBufs[i]);
-                                    if (type.VectorSize != 0 && type.VectorSize != tmpBufs[i].Length)
-                                    {
-                                        throw Contracts.Except("Column '{0}': expected {1} slots, but got {2}",
-                                            input.Schema.GetColumnName(SrcIndices[i]), type.VectorSize, tmpBufs[i].Length)
-                                            .MarkSensitive(MessageSensitivity.Schema);
-                                    }
-                                    dstLength = checked(dstLength + tmpBufs[i].Length);
-                                    dstCount = checked(dstCount + tmpBufs[i].Count);
+                                    throw Contracts.Except("Column '{0}': expected {1} slots, but got {2}",
+                                        input.Schema.GetColumnName(SrcIndices[i]), type.VectorSize, tmpBufs[i].Length)
+                                        .MarkSensitive(MessageSensitivity.Schema);
                                 }
-                                else
-                                {
-                                    dstLength = checked(dstLength + 1);
-                                    dstCount = checked(dstCount + 1);
-                                }
-                            }
-
-                            var values = dst.Values;
-                            var indices = dst.Indices;
-                            if (dstCount <= dstLength / 2)
-                            {
-                                // Concatenate into a sparse representation.
-                                if (Utils.Size(values) < dstCount)
-                                    values = new T[dstCount];
-                                if (Utils.Size(indices) < dstCount)
-                                    indices = new int[dstCount];
-
-                                int offset = 0;
-                                int count = 0;
-                                for (int j = 0; j < SrcIndices.Length; j++)
-                                {
-                                    Contracts.Assert(offset < dstLength);
-                                    if (_srcTypes[j].IsVector)
-                                    {
-                                        var buffer = tmpBufs[j];
-                                        Contracts.Assert(buffer.Count <= dstCount - count);
-                                        Contracts.Assert(buffer.Length <= dstLength - offset);
-                                        if (buffer.IsDense)
-                                        {
-                                            for (int i = 0; i < buffer.Length; i++)
-                                            {
-                                                values[count] = buffer.Values[i];
-                                                indices[count++] = offset + i;
-                                            }
-                                        }
-                                        else
-                                        {
-                                            for (int i = 0; i < buffer.Count; i++)
-                                            {
-                                                values[count] = buffer.Values[i];
-                                                indices[count++] = offset + buffer.Indices[i];
-                                            }
-                                        }
-                                        offset += buffer.Length;
-                                    }
-                                    else
-                                    {
-                                        Contracts.Assert(count < dstCount);
-                                        srcGetterOnes[j](ref tmp);
-                                        values[count] = tmp;
-                                        indices[count++] = offset;
-                                        offset++;
-                                    }
-                                }
-                                Contracts.Assert(count <= dstCount);
-                                Contracts.Assert(offset == dstLength);
-                                dst = new VBuffer<T>(dstLength, count, values, indices);
+                                dstLength = checked(dstLength + tmpBufs[i].Length);
+                                dstCount = checked(dstCount + tmpBufs[i].Count);
                             }
                             else
                             {
-                                // Concatenate into a dense representation.
-                                if (Utils.Size(values) < dstLength)
-                                    values = new T[dstLength];
+                                dstLength = checked(dstLength + 1);
+                                dstCount = checked(dstCount + 1);
+                            }
+                        }
 
-                                int offset = 0;
-                                for (int j = 0; j < SrcIndices.Length; j++)
+                        var values = dst.Values;
+                        var indices = dst.Indices;
+                        if (dstCount <= dstLength / 2)
+                        {
+                            // Concatenate into a sparse representation.
+                            if (Utils.Size(values) < dstCount)
+                                values = new T[dstCount];
+                            if (Utils.Size(indices) < dstCount)
+                                indices = new int[dstCount];
+
+                            int offset = 0;
+                            int count = 0;
+                            for (int j = 0; j < SrcIndices.Length; j++)
+                            {
+                                Contracts.Assert(offset < dstLength);
+                                if (_srcTypes[j].IsVector)
                                 {
-                                    Contracts.Assert(tmpBufs[j].Length <= dstLength - offset);
-                                    if (_srcTypes[j].IsVector)
+                                    var buffer = tmpBufs[j];
+                                    Contracts.Assert(buffer.Count <= dstCount - count);
+                                    Contracts.Assert(buffer.Length <= dstLength - offset);
+                                    if (buffer.IsDense)
                                     {
-                                        tmpBufs[j].CopyTo(values, offset);
-                                        offset += tmpBufs[j].Length;
+                                        for (int i = 0; i < buffer.Length; i++)
+                                        {
+                                            values[count] = buffer.Values[i];
+                                            indices[count++] = offset + i;
+                                        }
                                     }
                                     else
                                     {
-                                        srcGetterOnes[j](ref tmp);
-                                        values[offset++] = tmp;
+                                        for (int i = 0; i < buffer.Count; i++)
+                                        {
+                                            values[count] = buffer.Values[i];
+                                            indices[count++] = offset + buffer.Indices[i];
+                                        }
                                     }
+                                    offset += buffer.Length;
                                 }
-                                Contracts.Assert(offset == dstLength);
-                                dst = new VBuffer<T>(dstLength, values, indices);
+                                else
+                                {
+                                    Contracts.Assert(count < dstCount);
+                                    srcGetterOnes[j](ref tmp);
+                                    values[count] = tmp;
+                                    indices[count++] = offset;
+                                    offset++;
+                                }
                             }
-                        };
+                            Contracts.Assert(count <= dstCount);
+                            Contracts.Assert(offset == dstLength);
+                            dst = new VBuffer<T>(dstLength, count, values, indices);
+                        }
+                        else
+                        {
+                            // Concatenate into a dense representation.
+                            if (Utils.Size(values) < dstLength)
+                                values = new T[dstLength];
+
+                            int offset = 0;
+                            for (int j = 0; j < SrcIndices.Length; j++)
+                            {
+                                Contracts.Assert(tmpBufs[j].Length <= dstLength - offset);
+                                if (_srcTypes[j].IsVector)
+                                {
+                                    tmpBufs[j].CopyTo(values, offset);
+                                    offset += tmpBufs[j].Length;
+                                }
+                                else
+                                {
+                                    srcGetterOnes[j](ref tmp);
+                                    values[offset++] = tmp;
+                                }
+                            }
+                            Contracts.Assert(offset == dstLength);
+                            dst = new VBuffer<T>(dstLength, values, indices);
+                        }
+                    };
+                    return result;
                 }
 
                 public KeyValuePair<string, JToken> SavePfaInfo(BoundPfaContext ctx)
