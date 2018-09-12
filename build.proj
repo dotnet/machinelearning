@@ -7,6 +7,7 @@
 
   <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), Directory.Build.props))\Directory.Build.props" />
 
+  <Import Project="build/ExternalBenchmarkDataFiles.props" />
   <Import Project="$(ToolsDir)VersionTools.targets" Condition="Exists('$(ToolsDir)VersionTools.targets')" />
   <UsingTask TaskName="DownloadFilesFromUrl" AssemblyFile="$(ToolsDir)Microsoft.DotNet.Build.Tasks.dll"/>
   <PropertyGroup>
@@ -81,22 +82,13 @@
       DestinationFile="$(MSBuildThisFileDirectory)test/data/external/winequality-white.csv" />    
   </ItemGroup>
   
-  <ItemGroup Condition="'$(IncludeBenchmarkData)' == 'true'" >    
-    <TestFile Include="$(MSBuildThisFileDirectory)/test/data/external/WikiDetoxAnnotated160kRows.tsv"
-      Url="http://aka.ms/tlc-resources/benchmarks/WikiDetoxAnnotated160kRows.tsv"
-      DestinationFile="$(MSBuildThisFileDirectory)test/data/external/WikiDetoxAnnotated160kRows.tsv" />
+  <ItemGroup Condition="'$(IncludeBenchmarkData)' == 'true'">
+    <TlcResourceFile Update="@(TlcResourceFile)">
+      <Url>http://aka.ms/tlc-resources/benchmarks/%(Identity)</Url>
+      <DestinationFile>$(MSBuildThisFileDirectory)/test/data/external/%(Identity)</DestinationFile>
+    </TlcResourceFile>
 
-    <TestFile Include="$(MSBuildThisFileDirectory)/test/data/external/MSLRWeb10KTrain3.6MRows.tsv"
-      Url="http://aka.ms/tlc-resources/benchmarks/MSLRWeb10KTrain3.6MRows.tsv"
-      DestinationFile="$(MSBuildThisFileDirectory)test/data/external/MSLRWeb10KTrain3.6MRows.tsv" />
-    
-    <TestFile Include="$(MSBuildThisFileDirectory)/test/data/external/MSLRWeb10KValidate1.2MRows.tsv"
-      Url="http://aka.ms/tlc-resources/benchmarks/MSLRWeb10KValidate1.2MRows.tsv"
-      DestinationFile="$(MSBuildThisFileDirectory)test/data/external/MSLRWeb10KValidate1.2MRows.tsv" />
-    
-    <TestFile Include="$(MSBuildThisFileDirectory)/test/data/external/MSLRWeb10KTest1.2MRows.tsv"
-      Url="http://aka.ms/tlc-resources/benchmarks/MSLRWeb10KTest1.2MRows.tsv"
-      DestinationFile="$(MSBuildThisFileDirectory)test/data/external/MSLRWeb10KTest1.2MRows.tsv" />
+    <TestFile Include="@(TlcResourceFile->'$(MSBuildThisFileDirectory)/test/data/external/%(Identity)')" />
   </ItemGroup>
 
   <Target Name="DownloadExternalTestFiles" Inputs="@(TestFile)" Outputs="%(TestFile.DestinationFile)">

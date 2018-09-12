@@ -170,9 +170,9 @@ namespace Microsoft.ML.Runtime.RunTests
         public static TestDataset MSLRWeb = new TestDataset
         {
             name = "MSLRWeb",
-            trainFilename = "external/MSLRWeb10KTrain3.6MRows.tsv",
-            validFilename = "external/MSLRWeb10KValidate1.2MRows.tsv",
-            testFilename = "external/MSLRWeb10KTest1.2MRows.tsv"
+            trainFilename = "external/MSLRWeb10KTrain720kRows.tsv",
+            validFilename = "external/MSLRWeb10KValidate240kRows.tsv",
+            testFilename = "external/MSLRWeb10KTest240kRows.tsv"
         };
 
         public static TestDataset winequality = new TestDataset

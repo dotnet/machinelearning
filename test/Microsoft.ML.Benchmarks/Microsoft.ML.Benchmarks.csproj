@@ -1,4 +1,5 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="..\..\build\ExternalBenchmarkDataFiles.props" /> 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <LangVersion>7.2</LangVersion>
@@ -35,25 +36,14 @@
     <None Include="..\data\wikipedia-detox-250-line-data.tsv" Link="Input\wikipedia-detox-250-line-data.tsv">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Condition="Exists('..\data\external\WikiDetoxAnnotated160kRows.tsv')"
-                  Include="..\data\external\WikiDetoxAnnotated160kRows.tsv"
-                  Link="external\WikiDetoxAnnotated160kRows.tsv">
+
+    <TlcResourceFile Update="@(TlcResourceFile)">
+      <Link>external\%(Identity)</Link>
+    </TlcResourceFile>
+
+    <None Condition="Exists('@(TlcResourceFile->'..\data\external\%(Identity)')')"
+                  Include="@(TlcResourceFile->'..\data\external\%(Identity)')">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Condition="Exists('..\data\external\MSLRWeb10KTrain3.6MRows.tsv')"
-                  Include="..\data\external\MSLRWeb10KTrain3.6MRows.tsv"
-                  Link="external\MSLRWeb10KTrain3.6MRows.tsv">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Condition="Exists('..\data\external\MSLRWeb10KValidate1.2MRows.tsv')"
-                  Include="..\data\external\MSLRWeb10KValidate1.2MRows.tsv"
-                  Link="external\MSLRWeb10KValidate1.2MRows.tsv">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Condition="Exists('..\data\external\MSLRWeb10KTest1.2MRows.tsv')"
-                  Include="..\data\external\MSLRWeb10KTest1.2MRows.tsv"
-                  Link="external\MSLRWeb10KTest1.2MRows.tsv">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
+    </None>  
   </ItemGroup>
 </Project>
