@@ -675,7 +675,7 @@ namespace Microsoft.ML.Runtime.Data
             Contracts.Assert(Utils.IsPowerOfTwo(mask + 1));
             if (value.IsEmpty)
                 return 0;
-            return (ReadOnlyMemoryUtils.Hash(ReadOnlyMemoryUtils.TrimSpaces(value).Span, seed) & mask) + 1;
+            return (ReadOnlyMemoryUtils.Hash(ReadOnlyMemoryUtils.TrimSpaces(value.Span), seed) & mask) + 1;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -684,7 +684,7 @@ namespace Microsoft.ML.Runtime.Data
             Contracts.Assert(Utils.IsPowerOfTwo(mask + 1));
             if (value.IsEmpty)
                 return 0;
-            return (ReadOnlyMemoryUtils.Hash(ReadOnlyMemoryUtils.TrimSpaces(value).Span, Hashing.MurmurRound(seed, (uint)i)) & mask) + 1;
+            return (ReadOnlyMemoryUtils.Hash(ReadOnlyMemoryUtils.TrimSpaces(value.Span), Hashing.MurmurRound(seed, (uint)i)) & mask) + 1;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -1069,7 +1069,7 @@ namespace Microsoft.ML.Runtime.Data
                 {
                     if (obj.IsEmpty)
                         return 0;
-                    return (int)ReadOnlyMemoryUtils.Hash(ReadOnlyMemoryUtils.TrimSpaces(obj).Span, _seed) + 1;
+                    return (int)ReadOnlyMemoryUtils.Hash(ReadOnlyMemoryUtils.TrimSpaces(obj.Span), _seed) + 1;
                 }
             }
 

@@ -176,6 +176,23 @@ namespace Microsoft.ML.Runtime.Data
             return memory.Slice(ichMin, ichLim - ichMin);
         }
 
+        public static ReadOnlySpan<char> TrimSpaces(ReadOnlySpan<char> span)
+        {
+            if (span.IsEmpty)
+                return span;
+
+            int ichLim = span.Length;
+            int ichMin = 0;
+            if (span[ichMin] != ' ' && span[ichLim - 1] != ' ')
+                return span;
+
+            while (ichMin < ichLim && span[ichMin] == ' ')
+                ichMin++;
+            while (ichMin < ichLim && span[ichLim - 1] == ' ')
+                ichLim--;
+            return span.Slice(ichMin, ichLim - ichMin);
+        }
+
         /// <summary>
         /// Returns a <see cref="ReadOnlyMemory{T}"/> of <see cref="char"/> with leading and trailing whitespace trimmed.
         /// </summary>
