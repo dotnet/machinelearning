@@ -440,6 +440,25 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         /// <summary>
+        /// Given this instance, bind it to a particular input column. This allows us to service
+        /// requests on the input dataset. This should throw an error if we attempt to bind this
+        /// to the wrong type of item.
+        /// </summary>
+        private static BoundTermMap Bind(IHostEnvironment env, ISchema schema, TermMap unbound, ColInfo[] infos, bool[] textMetadata, int iinfo)
+        {
+            env.Assert(0 <= iinfo && iinfo < infos.Length);
+
+            var info = infos[iinfo];
+            var inType = info.TypeSrc.ItemType;
+            if (!inType.Equals(unbound.ItemType))
+            {
+                throw env.Except("Could not apply a map over type '{0}' to column '{1}' since it has type '{2}'",
+                    unbound.ItemType, info.Name, inType);
+            }
+            return BoundTermMap.Create(env, schema, unbound, infos, textMetadata, iinfo);
+        }
+
+        /// <summary>
         /// A map is an object capable of creating the association from an input type, to an output
         /// type. The input type, whatever it is, must have <see cref="ItemType"/> as its input item
         /// type, and will produce either <see cref="OutputType"/>, or a vector type with that output
@@ -451,7 +470,7 @@ namespace Microsoft.ML.Runtime.Data
         /// These are the immutable and serializable analogs to the <see cref="Builder"/> used in
         /// training.
         /// </summary>
-        private abstract class TermMap
+        internal abstract class TermMap
         {
             /// <summary>
             /// The item type of the input type, that is, either the input type or,
@@ -546,25 +565,6 @@ namespace Microsoft.ML.Runtime.Data
                 }
 
                 return new HashArrayImpl<T>(codec.Type.AsPrimitive, values);
-            }
-
-            /// <summary>
-            /// Given this instance, bind it to a particular input column. This allows us to service
-            /// requests on the input dataset. This should throw an error if we attempt to bind this
-            /// to the wrong type of item.
-            /// </summary>
-            public BoundTermMap Bind(IHostEnvironment env, ISchema schema,  ColInfo[] infos, bool[] textMetadata, int iinfo)
-            {
-                env.Assert(0 <= iinfo && iinfo < infos.Length);
-
-                var info = infos[iinfo];
-                var inType = info.TypeSrc.ItemType;
-                if (!inType.Equals(ItemType))
-                {
-                    throw env.Except("Could not apply a map over type '{0}' to column '{1}' since it has type '{2}'",
-                        ItemType, info.Name, inType);
-                }
-                return BoundTermMap.Create(env, schema, this, infos, textMetadata, iinfo);
             }
 
             public abstract void WriteTextTerms(TextWriter writer);
@@ -757,7 +757,7 @@ namespace Microsoft.ML.Runtime.Data
             }
         }
 
-        private abstract class TermMap<T> : TermMap
+        internal abstract class TermMap<T> : TermMap
         {
             protected TermMap(PrimitiveType type, int count)
                 : base(type, count)
@@ -1051,7 +1051,6 @@ namespace Microsoft.ML.Runtime.Data
                         MetadataUtils.MetadataGetter<VBuffer<ReadOnlyMemory<char>>> getter =
                             (int iinfo, ref VBuffer<ReadOnlyMemory<char>> dst) =>
                             {
-                                _host.Assert(iinfo == _iinfo);
                                 // No buffer sharing convenient here.
                                 VBuffer<T> dstT = default(VBuffer<T>);
                                 TypedMap.GetTerms(ref dstT);
@@ -1066,7 +1065,6 @@ namespace Microsoft.ML.Runtime.Data
                         MetadataUtils.MetadataGetter<VBuffer<T>> getter =
                             (int iinfo, ref VBuffer<T> dst) =>
                             {
-                                _host.Assert(iinfo == _iinfo);
                                 TypedMap.GetTerms(ref dst);
                             };
                         var columnType = new VectorType(TypedMap.ItemType, TypedMap.OutputType.KeyCount);

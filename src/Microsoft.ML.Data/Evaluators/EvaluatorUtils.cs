@@ -905,7 +905,8 @@ namespace Microsoft.ML.Runtime.Data
                     {
                         if (keyCol == labelColName && labelColKeyValuesType == null)
                             continue;
-                        idv = new KeyToValueTransform(env, new KeyToValueTransform.Arguments() { Column = new[] { new KeyToValueTransform.Column() { Name = keyCol }, } }, idv);
+
+                        idv = new KeyToValueTransform(env, keyCol).Transform(idv);
                         var hidden = FindHiddenColumns(idv.Schema, keyCol);
                         idv = new ChooseColumnsByIndexTransform(env, new ChooseColumnsByIndexTransform.Arguments() { Drop = true, Index = hidden.ToArray() }, idv);
                     }
@@ -1067,11 +1068,7 @@ namespace Microsoft.ML.Runtime.Data
             // If there are stratified results, apply a KeyToValue transform to get the stratification column
             // names from the key column.
             if (hasStrat)
-            {
-                var args = new KeyToValueTransform.Arguments();
-                args.Column = new[] { new KeyToValueTransform.Column() { Source = MetricKinds.ColumnNames.StratCol }, };
-                overall = new KeyToValueTransform(env, args, overall);
-            }
+                overall = new KeyToValueTransform(env, MetricKinds.ColumnNames.StratCol).Transform(overall);
             return overall;
         }
 

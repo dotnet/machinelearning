@@ -325,5 +325,81 @@ namespace Microsoft.ML.StaticPipelineTesting
                 Console.WriteLine(Encoding.UTF8.GetString(stream.ToArray()));
             }
         }
+
+        [Fact]
+        public void ToKey()
+        {
+            var env = new TlcEnvironment(seed: 0);
+            var dataPath = GetDataPath("iris.data");
+            var reader = TextLoader.CreateReader(env,
+                c => (label: c.LoadText(4), values: c.LoadFloat(0, 3)),
+                separator: ',');
+            var dataSource = new MultiFileSource(dataPath);
+            var data = reader.Read(dataSource);
+
+            var est = data.MakeNewEstimator()
+                .Append(r => (labelKey: r.label.ToKey(), valuesKey: r.values.ToKey(onFit: m => { })))
+                .Append(r => (r.labelKey, r.valuesKey, valuesKeyKey: r.valuesKey.ToKey()));
+
+            var tdata = est.Fit(data).Transform(data);
+            var schema = tdata.AsDynamic.Schema;
+            Assert.True(schema.TryGetColumnIndex("labelKey", out int labelCol));
+            Assert.True(schema.TryGetColumnIndex("valuesKey", out int valuesCol));
+            Assert.True(schema.TryGetColumnIndex("valuesKeyKey", out int valuesKeyCol));
+
+            Assert.Equal(3, schema.GetColumnType(labelCol).KeyCount);
+            Assert.True(schema.GetColumnType(valuesCol).ItemType.IsKey);
+            Assert.True(schema.GetColumnType(valuesKeyCol).ItemType.IsKey);
+
+            var labelKeyType = schema.GetMetadataTypeOrNull(MetadataUtils.Kinds.KeyValues, labelCol);
+            var valuesKeyType = schema.GetMetadataTypeOrNull(MetadataUtils.Kinds.KeyValues, valuesCol);
+            var valuesKeyKeyType = schema.GetMetadataTypeOrNull(MetadataUtils.Kinds.KeyValues, valuesKeyCol);
+            Assert.NotNull(labelKeyType);
+            Assert.NotNull(valuesKeyType);
+            Assert.NotNull(valuesKeyKeyType);
+            Assert.True(labelKeyType.IsVector && labelKeyType.ItemType == TextType.Instance);
+            Assert.True(valuesKeyType.IsVector && valuesKeyType.ItemType == NumberType.Float);
+            Assert.True(valuesKeyKeyType.IsVector && valuesKeyKeyType.ItemType == NumberType.Float);
+            // Because they're over exactly the same data, they ought to have the same cardinality and everything.
+            Assert.True(valuesKeyKeyType.Equals(valuesKeyType));
+        }
+
+        [Fact]
+        public void ConcatWith()
+        {
+            var env = new TlcEnvironment(seed: 0);
+            var dataPath = GetDataPath("iris.data");
+            var reader = TextLoader.CreateReader(env,
+                c => (label: c.LoadText(4), values: c.LoadFloat(0, 3), value: c.LoadFloat(2)),
+                separator: ',');
+            var dataSource = new MultiFileSource(dataPath);
+            var data = reader.Read(dataSource);
+
+            var est = data.MakeNewEstimator()
+                .Append(r => (
+                    r.label, r.values, r.value,
+                    c0: r.label.AsVector(), c1: r.label.ConcatWith(r.label),
+                    c2: r.value.ConcatWith(r.values), c3: r.values.ConcatWith(r.value, r.values)));
+
+            var tdata = est.Fit(data).Transform(data);
+            var schema = tdata.AsDynamic.Schema;
+
+            int[] idx = new int[4];
+            for (int i = 0; i < idx.Length; ++i)
+                Assert.True(schema.TryGetColumnIndex("c" + i, out idx[i]), $"Could not find col c{i}");
+            var types = new VectorType[idx.Length];
+            int[] expectedLen = new int[] { 1, 2, 5, 9 };
+            for (int i = 0; i < idx.Length; ++i)
+            {
+                var type = schema.GetColumnType(idx[i]);
+                Assert.True(type.VectorSize > 0, $"Col c{i} had unexpected type {type}");
+                types[i] = type.AsVector;
+                Assert.Equal(expectedLen[i], type.VectorSize);
+            }
+            Assert.Equal(TextType.Instance, types[0].ItemType);
+            Assert.Equal(TextType.Instance, types[1].ItemType);
+            Assert.Equal(NumberType.Float, types[2].ItemType);
+            Assert.Equal(NumberType.Float, types[3].ItemType);
+        }
     }
 }

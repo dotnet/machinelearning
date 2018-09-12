@@ -26,6 +26,12 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             public float PetalLength { get; set; }
         }
 
+        public class IssueInput
+        {
+            public string Description { get; set; }
+            public string Title { get; set; }
+        }
+
         public void FirstExperienceWithML()
         {
             // Load the data into the system.
@@ -212,8 +218,6 @@ namespace Microsoft.ML.Tests.Scenarios.Api
 
             var prediction = predictor.PredictSdcaMultiClass(new IssueInput
                 {
-                    ID = "29338\t",
-                    Area = "area-System.Net\t", 
                     Title = "Include fragment and query in Uri.LocalPath on Unix\t", 
                     Description = "While testing XmlUriResolver, @pjanotti discovered that any segments of a file path following a '#' symbol will be cut out of Uri.LocalPath on Unix. Based on additional tests, this also occurs for the '?' symbol. This is happening because the Unix specific case for local path only uses the path component of the URI:  https://github.com/dotnet/corefx/blob/9e8d443ff78c4f0a9a6bedf7f95961cf96ceff0a/src/System.Private.Uri/src/System/Uri.cs#L1032-L1037    The fix here is to include the fragment and query in LocalPath in the Unix path specific case. This PR enables the test case in XmlUriResolver that uncovered this issues, and adds some additional cases to our URI tests.    Fixes: #28486 "
                 });

@@ -37,13 +37,13 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                     j.SepalWidth = i.SepalWidth;
                 };
                 var pipeline = new MyConcatTransform(env, "Features", "SepalLength", "SepalWidth", "PetalLength", "PetalWidth")
-                    .Append(new MyLambdaTransform<IrisData, IrisData>(env, action))
+                    .Append(new MyLambdaTransform<IrisData, IrisData>(env, action), TransformerScope.TrainTest)
                     .Append(new TermEstimator(env, "Label"), TransformerScope.TrainTest)
                     .Append(new SdcaMultiClassTrainer(env, new SdcaMultiClassTrainer.Arguments { MaxIterations = 100, Shuffle = true, NumThreads = 1 }, "Features", "Label"))
-                    .Append(new MyKeyToValueTransform(env, "PredictedLabel"));
+                    .Append(new KeyToValueEstimator(env, "PredictedLabel"));
 
                 var model = pipeline.Fit(data).GetModelFor(TransformerScope.Scoring);
-                var engine = new MyPredictionEngine<IrisData, IrisPrediction>(env, model);
+                var engine = model.MakePredictionFunction<IrisDataNoLabel, IrisPrediction>(env);
 
                 var testLoader = TextLoader.ReadFile(env, MakeIrisTextLoaderArgs(), new MultiFileSource(dataPath));
                 var testData = testLoader.AsEnumerable<IrisData>(env, false);

@@ -49,7 +49,7 @@ namespace Microsoft.ML.Tests
         }
 
         [Fact]
-        void TestDifferntTypes()
+        void TestDifferentTypes()
         {
             string dataPath = GetDataPath("adult.test");
 
