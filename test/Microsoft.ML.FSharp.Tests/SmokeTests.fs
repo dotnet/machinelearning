@@ -66,7 +66,7 @@ module SmokeTest1 =
 
     type SentimentData() =
         [<Column(ordinal = "0"); DefaultValue>]
-        val mutable SentimentText : ReadOnlyMemory<char>
+        val mutable SentimentText : string
         [<Column(ordinal = "1", name = "Label"); DefaultValue>]
         val mutable Sentiment : float32
 
@@ -119,9 +119,9 @@ module SmokeTest1 =
         let model = pipeline.Train<SentimentData, SentimentPrediction>()
 
         let predictions =
-            [ SentimentData(SentimentText = "This is a gross exaggeration. Nobody is setting a kangaroo court. There was a simple addition.".AsMemory())
-              SentimentData(SentimentText = "Sort of ok".AsMemory())
-              SentimentData(SentimentText = "Joe versus the Volcano Coffee Company is a great film.".AsMemory()) ]
+            [ SentimentData(SentimentText = "This is a gross exaggeration. Nobody is setting a kangaroo court. There was a simple addition.")
+              SentimentData(SentimentText = "Sort of ok")
+              SentimentData(SentimentText = "Joe versus the Volcano Coffee Company is a great film.") ]
             |> model.Predict
 
         let predictionResults = [ for p in predictions -> p.Sentiment ]
@@ -133,7 +133,7 @@ module SmokeTest2 =
     [<CLIMutable>]
     type SentimentData =
         { [<Column(ordinal = "0")>] 
-          SentimentText : ReadOnlyMemory<char>
+          SentimentText : string
 
           [<Column(ordinal = "1", name = "Label")>] 
           Sentiment : float32 }
@@ -188,9 +188,9 @@ module SmokeTest2 =
         let model = pipeline.Train<SentimentData, SentimentPrediction>()
 
         let predictions =
-            [ { SentimentText = "This is a gross exaggeration. Nobody is setting a kangaroo court. There was a simple addition.".AsMemory(); Sentiment = 0.0f }
-              { SentimentText = "Sort of ok".AsMemory(); Sentiment = 0.0f }
-              { SentimentText = "Joe versus the Volcano Coffee Company is a great film.".AsMemory(); Sentiment = 0.0f } ]
+            [ { SentimentText = "This is a gross exaggeration. Nobody is setting a kangaroo court. There was a simple addition."; Sentiment = 0.0f }
+              { SentimentText = "Sort of ok"; Sentiment = 0.0f }
+              { SentimentText = "Joe versus the Volcano Coffee Company is a great film."; Sentiment = 0.0f } ]
             |> model.Predict
 
         let predictionResults = [ for p in predictions -> p.Sentiment ]

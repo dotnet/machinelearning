@@ -66,7 +66,7 @@ namespace Microsoft.ML.Runtime.RunTests
                     {
                         new TextLoader.Column("Label", type: null, 0),
                         new TextLoader.Column("F1", DataKind.Text, 1),
-                        new TextLoader.Column("F2", DataKind.R4, 2),
+                        new TextLoader.Column("F2", DataKind.I4, 2),
                         new TextLoader.Column("Rest", type: null, new [] { new TextLoader.Range(3, 9) })
                     }
                 },

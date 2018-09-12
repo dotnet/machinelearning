@@ -7,7 +7,6 @@ using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.ImageAnalytics;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.RunTests;
-using Microsoft.ML.TestFramework;
 using System;
 using System.Drawing;
 using System.IO;

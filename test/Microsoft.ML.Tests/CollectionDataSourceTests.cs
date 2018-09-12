@@ -383,7 +383,7 @@ namespace Microsoft.ML.EntryPoints.Tests
                     fuLong = ulong.MaxValue - 1,
                     fShort = short.MaxValue - 1,
                     fuShort = ushort.MaxValue - 1,
-                    fString = ""
+                    fString = null
                 },
                 new ConversionSimpleClass()
                 {
@@ -661,7 +661,7 @@ namespace Microsoft.ML.EntryPoints.Tests
                     fuLong = new ulong[2] { ulong.MaxValue, 0 },
                     fuShort = new ushort[2] { 0, ushort.MaxValue }
                 },
-                new ClassWithArrays() { fInt = new int[3] { -2, 1, 0 }, fFloat = new float[3] { 0.99f, 0f, -0.99f }, fString = new string[2] { "", "" } },
+                new ClassWithArrays() { fInt = new int[3] { -2, 1, 0 }, fFloat = new float[3] { 0.99f, 0f, -0.99f }, fString = new string[2] { "", null } },
                 new ClassWithArrays()
             };
 
@@ -726,7 +726,7 @@ namespace Microsoft.ML.EntryPoints.Tests
                     ULongProp = new ulong[2] { ulong.MaxValue, 0 },
                     UShortProp = new ushort[2] { 0, ushort.MaxValue }
                 },
-                new ClassWithArrayProperties() { IntProp = new int[3] { -2, 1, 0 }, FloatProp = new float[3] { 0.99f, 0f, -0.99f }, StringProp = new string[2] { "", "Tom" } },
+                new ClassWithArrayProperties() { IntProp = new int[3] { -2, 1, 0 }, FloatProp = new float[3] { 0.99f, 0f, -0.99f }, StringProp = new string[2] { "", null } },
                 new ClassWithArrayProperties()
             };
 

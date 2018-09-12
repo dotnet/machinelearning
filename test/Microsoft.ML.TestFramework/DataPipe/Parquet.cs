@@ -33,19 +33,8 @@ namespace Microsoft.ML.Runtime.RunTests
         public void TestParquetNull()
         {
             string pathData = GetDataPath(@"Parquet", "test-null.parquet");
-            bool exception = false;
-            try
-            {
-                TestCore(pathData, false, new[] { "loader=Parquet{bigIntDates=+}" }, forceDense: true);
-            }
-            catch (Exception ex)
-            {
-                Assert.Equal("Nullable object must have a value.", ex.Message);
-                exception = true;
-            }
-
-            Assert.True(exception, "Test failed because control reached here without an expected exception for nullable values.");
-
+            var ex = Assert.ThrowsAny<Exception>(() => TestCore(pathData, false, new[] { "loader=Parquet{bigIntDates=+}" }, forceDense: true));
+            Assert.Equal("Nullable object must have a value.", ex.Message);
             Done();
         }
     }

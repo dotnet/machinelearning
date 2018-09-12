@@ -6,7 +6,6 @@ using Microsoft.ML.Data;
 using Microsoft.ML.Models;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Api;
-using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Transforms;
 using System.Collections.Generic;

@@ -208,7 +208,7 @@ namespace Microsoft.ML.Runtime.RunTests
             Assert.Equal(dst, maxValue);
 
             //3. long.MinValue - 1 in text to long.
-            src = ((long)minValue - 1).ToString().AsMemory();
+            src = (minValue - 1).ToString().AsMemory();
             dst = 0;
             mapper(ref src, ref dst);
             Assert.Equal(dst, (long)minValue - 1);
@@ -228,9 +228,8 @@ namespace Microsoft.ML.Runtime.RunTests
 
         public ValueMapper<TSrc, TDst> GetMapper<TSrc, TDst>()
         {
-            Assert.True(typeof(TSrc).TryGetDataKind(out DataKind srcDataKind));
             Assert.True(typeof(TDst).TryGetDataKind(out DataKind dstDataKind));
-            
+
             return Conversions.Instance.GetStandardConversion<TSrc, TDst>(
                 TextType.Instance, NumberType.FromKind(dstDataKind), out bool identity);
         }
