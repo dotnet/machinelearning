@@ -67,7 +67,7 @@ namespace Microsoft.ML.Runtime.Learners
 
             RoleMappedData trainRoles = new RoleMappedData(cachedTrain);
             var pred = Train(new TrainContext(trainRoles));
-            return new BinaryPredictionTransformer<RandomPredictor>(Host, pred, cachedTrain.Schema, null);
+            return new BinaryPredictionTransformer<RandomPredictor>(Host, pred, cachedTrain.Schema, featureColumn: null);
         }
 
         public override RandomPredictor Train(TrainContext context)
@@ -112,7 +112,7 @@ namespace Microsoft.ML.Runtime.Learners
         // Keep all the serializable state here.
         private readonly int _seed;
         private readonly object _instanceLock;
-        private readonly TauswortheHybrid _random;
+        private readonly IRandom _random;
 
         public override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
         public ColumnType InputType { get; }
@@ -143,6 +143,8 @@ namespace Microsoft.ML.Runtime.Learners
 
             _instanceLock = new object();
             _random = RandomUtils.Create(_seed);
+
+            InputType = new VectorType(NumberType.Float);
         }
 
         public static RandomPredictor Create(IHostEnvironment env, ModelLoadContext ctx)
@@ -292,11 +294,11 @@ namespace Microsoft.ML.Runtime.Learners
         protected override BinaryPredictionTransformer<PriorPredictor> MakeTransformer(PriorPredictor model, ISchema trainSchema)
              => new BinaryPredictionTransformer<PriorPredictor>(Host, model, trainSchema, FeatureColumn.Name);
 
-        private static SchemaShape.Column MakeFeatureColumn(string featureColumn) =>
-            new SchemaShape.Column(featureColumn, SchemaShape.Column.VectorKind.Vector, NumberType.R4, false);
+        private static SchemaShape.Column MakeFeatureColumn(string featureColumn)
+            => new SchemaShape.Column(featureColumn, SchemaShape.Column.VectorKind.Vector, NumberType.R4, false);
 
-        private static SchemaShape.Column MakeLabelColumn(string labelColumn) =>
-            new SchemaShape.Column(labelColumn, SchemaShape.Column.VectorKind.Scalar, BoolType.Instance, false);
+        private static SchemaShape.Column MakeLabelColumn(string labelColumn)
+            => new SchemaShape.Column(labelColumn, SchemaShape.Column.VectorKind.Scalar, BoolType.Instance, false);
     }
 
     public sealed class PriorPredictor :

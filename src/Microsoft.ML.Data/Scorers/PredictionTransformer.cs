@@ -36,17 +36,18 @@ namespace Microsoft.ML.Runtime.Data
 
         public TModel Model { get; }
 
-        public PredictionTransformerBase(IHost host, TModel model, ISchema trainSchema, string featureColumn)
+        public PredictionTransformerBase(IHost host, TModel model, ISchema trainSchema, string featureColumn = null)
         {
             Contracts.CheckValue(host, nameof(host));
+            Contracts.CheckValueOrNull(featureColumn);
             Host = host;
             Host.CheckValue(trainSchema, nameof(trainSchema));
 
             Model = model;
             FeatureColumn = featureColumn;
-            if (!trainSchema.TryGetColumnIndex(featureColumn, out int col))
+            if (!trainSchema.TryGetColumnIndex(featureColumn, out int col) && (featureColumn != null))
                 throw Host.ExceptSchemaMismatch(nameof(featureColumn), RoleMappedSchema.ColumnRole.Feature.Value, featureColumn);
-            FeatureColumnType = trainSchema.GetColumnType(col);
+            FeatureColumnType = (featureColumn != null) ? trainSchema.GetColumnType(col) : null;
 
             TrainSchema = trainSchema;
             BindableMapper = ScoreUtils.GetSchemaBindableMapper(Host, model);
@@ -133,7 +134,7 @@ namespace Microsoft.ML.Runtime.Data
         public readonly string ThresholdColumn;
         public readonly float Threshold;
 
-        public BinaryPredictionTransformer(IHostEnvironment env, TModel model, ISchema inputSchema, string featureColumn,
+        public BinaryPredictionTransformer(IHostEnvironment env, TModel model, ISchema inputSchema, string featureColumn = null,
             float threshold = 0f, string thresholdColumn = DefaultColumnNames.Score)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(BinaryPredictionTransformer<TModel>)), model, inputSchema, featureColumn)
         {

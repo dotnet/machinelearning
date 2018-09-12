@@ -91,7 +91,7 @@ namespace Microsoft.ML.Runtime.RunTests
         [TestCategory("Binary")]
         public void BinaryClassifierPerceptronTest()
         {
-            var binaryPredictors = new[] { TestLearners.perceptron};
+            var binaryPredictors = new[] { TestLearners.perceptron };
             var binaryClassificationDatasets = GetDatasetsForBinaryClassifierBaseTest();
             RunAllTests(binaryPredictors, binaryClassificationDatasets);
             Done();
