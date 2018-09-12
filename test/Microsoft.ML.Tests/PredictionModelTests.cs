@@ -49,7 +49,7 @@ namespace Microsoft.ML.EntryPoints.Tests
                 ModelHelper.WriteKcHousePriceModel(GetDataPath("kc_house_data.csv"), memoryStream);
                 memoryStream.Position = 0;
 
-                var model = await PredictionModel.ReadAsync<HousePriceData, HousePricePrediction>(memoryStream);
+                var model = await Legacy.PredictionModel.ReadAsync<HousePriceData, HousePricePrediction>(memoryStream);
 
                 HousePricePrediction prediction = model.Predict(new HousePriceData()
                 {
@@ -87,11 +87,11 @@ namespace Microsoft.ML.EntryPoints.Tests
                     Assert.InRange(score, 100_000, 200_000);
                 }
 
-                PredictionModel nonGenericModel;
+                Legacy.PredictionModel nonGenericModel;
                 using (var anotherStream = new MemoryStream())
                 {
                     await model.WriteAsync(anotherStream);
-                    nonGenericModel = await PredictionModel.ReadAsync(anotherStream);
+                    nonGenericModel = await Legacy.PredictionModel.ReadAsync(anotherStream);
                 }
 
                 dataView = nonGenericModel.Predict(ModelHelper.GetKcHouseDataView(GetDataPath("kc_house_data.csv")));

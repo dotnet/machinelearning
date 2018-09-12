@@ -2,13 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
-using Microsoft.ML.Transforms;
 using Newtonsoft.Json.Linq;
+using System;
 
 [assembly: LoadableClass(typeof(void), typeof(TrainTestMacro), null, typeof(SignatureEntryPointModule), "TrainTestMacro")]
 
@@ -163,14 +162,14 @@ namespace Microsoft.ML.Runtime.EntryPoints
             var testingVar = node.GetInputVariable(nameof(input.TestingData));
             var exp = new Experiment(env);
 
-            DatasetScorer.Output scoreNodeOutput = null;
-            ML.Models.DatasetTransformer.Output datasetTransformNodeOutput = null;
+            Legacy.Transforms.DatasetScorer.Output scoreNodeOutput = null;
+            Legacy.Models.DatasetTransformer.Output datasetTransformNodeOutput = null;
             if (input.Outputs.PredictorModel == null)
             {
                 //combine the predictor model with any potential transfrom model passed from the outer graph
                 if (transformModelVarName != null && transformModelVarName.VariableName != null)
                 {
-                    var modelCombine = new ML.Transforms.ModelCombiner
+                    var modelCombine = new ML.Legacy.Transforms.ModelCombiner
                     {
                         Models = new ArrayVar<ITransformModel>(
                                 new Var<ITransformModel>[] {
@@ -183,7 +182,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
                     outputVarName = modelCombineOutput.OutputModel.VarName;
                 }
 
-                var datasetTransformerNode = new Models.DatasetTransformer
+                var datasetTransformerNode = new Legacy.Models.DatasetTransformer
                 {
                     Data = { VarName = testingVar.ToJson() },
                     TransformModel = { VarName = outputVarName }
@@ -196,7 +195,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
                 //combine the predictor model with any potential transfrom model passed from the outer graph
                 if (transformModelVarName != null && transformModelVarName.VariableName != null)
                 {
-                    var modelCombine = new TwoHeterogeneousModelCombiner
+                    var modelCombine = new Legacy.Transforms.TwoHeterogeneousModelCombiner
                     {
                         TransformModel = { VarName = transformModelVarName.VariableName },
                         PredictorModel = { VarName = outputVarName }
@@ -207,7 +206,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
                 }
 
                 // Add the scoring node for testing.
-                var scoreNode = new DatasetScorer
+                var scoreNode = new Legacy.Transforms.DatasetScorer
                 {
                     Data = { VarName = testingVar.ToJson() },
                     PredictorModel = { VarName = outputVarName }
@@ -234,11 +233,11 @@ namespace Microsoft.ML.Runtime.EntryPoints
 
             if (input.IncludeTrainingMetrics)
             {
-                DatasetScorer.Output scoreNodeTrainingOutput = null;
-                ML.Models.DatasetTransformer.Output datasetTransformNodeTrainingOutput = null;
+                Legacy.Transforms.DatasetScorer.Output scoreNodeTrainingOutput = null;
+                Legacy.Models.DatasetTransformer.Output datasetTransformNodeTrainingOutput = null;
                 if (input.Outputs.PredictorModel == null)
                 {
-                    var datasetTransformerNode = new Models.DatasetTransformer
+                    var datasetTransformerNode = new Legacy.Models.DatasetTransformer
                     {
                         Data = { VarName = testingVar.ToJson() },
                         TransformModel = { VarName = outputVarName }
@@ -249,7 +248,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
                 else
                 {
                     // Add the scoring node for training.
-                    var scoreNodeTraining = new DatasetScorer
+                    var scoreNodeTraining = new Legacy.Transforms.DatasetScorer
                     {
                         Data = { VarName = trainingVar.ToJson() },
                         PredictorModel = { VarName = outputVarName }
