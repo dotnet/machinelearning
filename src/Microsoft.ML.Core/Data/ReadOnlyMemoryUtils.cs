@@ -235,6 +235,24 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         /// <summary>
+        /// Returns a <see cref="ReadOnlyMemory{T}"/> of <see cref="char"/> with trailing whitespace trimmed.
+        /// </summary>
+        public static ReadOnlyMemory<char> TrimEndWhiteSpace(ReadOnlyMemory<char> memory, ReadOnlySpan<char> span)
+        {
+            if (memory.IsEmpty)
+                return memory;
+
+            int ichLim = memory.Length;
+            if (!char.IsWhiteSpace(span[ichLim - 1]))
+                return memory;
+
+            while (0 < ichLim && char.IsWhiteSpace(span[ichLim - 1]))
+                ichLim--;
+
+            return memory.Slice(0, ichLim);
+        }
+
+        /// <summary>
         /// This produces zero for an empty string.
         /// </summary>
         public static bool TryParse(ReadOnlyMemory<char> memory, out Single value)
@@ -326,6 +344,14 @@ namespace Microsoft.ML.Runtime.Data
             var span = memory.Span;
             for (int index = startIndex; index < ichLim; index++)
                 sb.Append(span[index]);
+
+            return sb;
+        }
+
+        public static StringBuilder Append(this StringBuilder sb, ReadOnlySpan<char> span)
+        {
+            for (int index = 0; index < span.Length; index++)
+                sb.Append((char)span[index]);
 
             return sb;
         }

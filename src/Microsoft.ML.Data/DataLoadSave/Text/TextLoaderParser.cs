@@ -706,7 +706,7 @@ namespace Microsoft.ML.Runtime.Data
                             continue;
 
                         // REVIEW: This is doing more work than we need, but makes sure we're consistent....
-                        int srcLim = impl.GatherFields(text);
+                        int srcLim = impl.GatherFields(text, text.Span);
                         // Don't need the fields, just srcLim.
                         impl.Fields.Clear();
 
@@ -735,7 +735,7 @@ namespace Microsoft.ML.Runtime.Data
                 var impl = new HelperImpl(stats, parent._flags, parent._separators, parent._inputSize, int.MaxValue);
                 try
                 {
-                    impl.GatherFields(textHeader);
+                    impl.GatherFields(textHeader, textHeader.Span);
                 }
                 finally
                 {
@@ -805,12 +805,13 @@ namespace Microsoft.ML.Runtime.Data
 
                 var impl = (HelperImpl)helper;
                 var lineSpan = text.AsMemory();
+                var span = lineSpan.Span;
                 if ((_flags & Options.TrimWhitespace) != 0)
-                    lineSpan = ReadOnlyMemoryUtils.TrimEndWhiteSpace(lineSpan);
+                    lineSpan = ReadOnlyMemoryUtils.TrimEndWhiteSpace(lineSpan, span);
                 try
                 {
                     // Parse the spans into items, ensuring that sparse don't precede non-sparse.
-                    int srcLim = impl.GatherFields(lineSpan, path, line);
+                    int srcLim = impl.GatherFields(lineSpan, span, path, line);
                     impl.Fields.AssertValid();
 
                     // REVIEW: When should we report inconsistency?
@@ -903,20 +904,20 @@ namespace Microsoft.ML.Runtime.Data
                 /// Process the line of text into fields, stored in the Fields field. Ensures that sparse
                 /// don't precede non-sparse. Returns the lim of the src columns.
                 /// </summary>
-                public int GatherFields(ReadOnlyMemory<char> lineSpan, string path = null, long line = 0)
+                public int GatherFields(ReadOnlyMemory<char> lineSpan, ReadOnlySpan<char> span, string path = null, long line = 0)
                 {
                     Fields.AssertEmpty();
 
                     ScanInfo scan = new ScanInfo(ref lineSpan, path, line);
                     Contracts.Assert(scan.IchMinBuf <= scan.IchMinNext && scan.IchMinNext <= scan.IchLimBuf);
-
+                    //var span = lineSpan.Span;
                     int src = 0;
                     if (!_sparse)
                     {
                         for (; ; )
                         {
                             Contracts.Assert(scan.IchMinBuf <= scan.IchMinNext && scan.IchMinNext <= scan.IchLimBuf);
-                            bool more = FetchNextField(ref scan);
+                            bool more = FetchNextField(ref scan, span);
                             Contracts.Assert(scan.IchMinBuf <= scan.IchMinNext && scan.IchMinNext <= scan.IchLimBuf);
                             Contracts.Assert(scan.Index == -1);
 
@@ -947,7 +948,7 @@ namespace Microsoft.ML.Runtime.Data
                     for (; ; )
                     {
                         Contracts.Assert(scan.IchMinBuf <= scan.IchMinNext && scan.IchMinNext <= scan.IchLimBuf);
-                        bool more = FetchNextField(ref scan);
+                        bool more = FetchNextField(ref scan, span);
                         Contracts.Assert(scan.IchMinBuf <= scan.IchMinNext && scan.IchMinNext <= scan.IchLimBuf);
                         Contracts.Assert(scan.Index >= -1);
 
@@ -1074,14 +1075,14 @@ namespace Microsoft.ML.Runtime.Data
                     return inputSize;
                 }
 
-                private bool FetchNextField(ref ScanInfo scan)
+                private bool FetchNextField(ref ScanInfo scan, ReadOnlySpan<char> span)
                 {
                     Contracts.Assert(scan.IchMinBuf <= scan.IchMinNext && scan.IchMinNext <= scan.IchLimBuf);
 
                     var text = scan.TextBuf;
                     int ichLim = scan.IchLimBuf;
                     int ichCur = scan.IchMinNext;
-                    var span = text.Span;
+                    //var span = text.Span;
                     if (!_sepContainsSpace)
                     {
                         // Ignore leading spaces
@@ -1156,7 +1157,7 @@ namespace Microsoft.ML.Runtime.Data
                             if (span[ichCur] == '"')
                             {
                                 if (ichCur > ichRun)
-                                    _sb.Append(text, ichRun, ichCur - ichRun);
+                                    _sb.Append(span.Slice(ichRun, ichCur - ichRun));
                                 if (++ichCur >= ichLim)
                                     break;
                                 if (span[ichCur] != '"')
