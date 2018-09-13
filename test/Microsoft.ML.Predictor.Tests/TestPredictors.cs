@@ -117,7 +117,7 @@ namespace Microsoft.ML.Runtime.RunTests
             var predictors = new[] {
                 TestLearners.binaryRandom};
             var datasets = GetDatasetsForBinaryClassifierBaseTest();
-            RunAllTests(predictors, datasets);
+            RunAllTests(predictors, datasets, extraSettings: new[] { "n=1" });
             Done();
         }
 

@@ -1,4 +1,4 @@
-maml.exe CV tr=RandomPredictor threads=- dout=%Output% data=%Data% seed=1
+maml.exe CV tr=RandomPredictor threads=- dout=%Output% data=%Data% seed=1 n=1
 Not adding a normalizer.
 Not training a calibrator because it is not needed.
 Not adding a normalizer.
@@ -8,15 +8,15 @@ Confusion table
           ||======================
 PREDICTED || positive | negative | Recall
 TRUTH     ||======================
- positive ||       65 |       69 | 0.4851
- negative ||      118 |      110 | 0.4825
+ positive ||       67 |       67 | 0.5000
+ negative ||      116 |      112 | 0.4912
           ||======================
-Precision ||   0.3552 |   0.6145 |
-OVERALL 0/1 ACCURACY: 0.483425
-LOG LOSS/instance:  1.486294
+Precision ||   0.3661 |   0.6257 |
+OVERALL 0/1 ACCURACY: 0.494475
+LOG LOSS/instance:  1.411189
 Test-set entropy (prior Log-Loss/instance): 0.950799
-LOG-LOSS REDUCTION (RIG): -56.320456
-AUC:                0.486940
+LOG-LOSS REDUCTION (RIG): -48.421356
+AUC:                0.521242
 TEST POSITIVE RATIO:	0.3175 (107.0/(107.0+230.0))
 Confusion table
           ||======================
@@ -34,16 +34,16 @@ AUC:                0.484884
 
 OVERALL RESULTS
 ---------------------------------------
-AUC:                0.485912 (0.0010)
-Accuracy:           0.489487 (0.0061)
-Positive precision: 0.330970 (0.0242)
-Positive recall:    0.476182 (0.0089)
-Negative precision: 0.643469 (0.0289)
-Negative recall:    0.495576 (0.0131)
-Log-loss:           1.468733 (0.0176)
-Log-loss reduction: -58.633358 (2.3129)
-F1 Score:           0.390233 (0.0199)
-AUPRC:              0.353840 (0.0310)
+AUC:                0.503063 (0.0182)
+Accuracy:           0.495012 (0.0005)
+Positive precision: 0.336434 (0.0297)
+Positive recall:    0.483645 (0.0164)
+Negative precision: 0.649056 (0.0234)
+Negative recall:    0.499962 (0.0087)
+Log-loss:           1.431181 (0.0200)
+Log-loss reduction: -54.683808 (6.2625)
+F1 Score:           0.396542 (0.0262)
+AUPRC:              0.348911 (0.0260)
 
 ---------------------------------------
 Physical memory usage(MB): %Number%

@@ -1,4 +1,4 @@
-maml.exe TrainTest test=%Data% tr=RandomPredictor dout=%Output% data=%Data% out=%Output% seed=1
+maml.exe TrainTest test=%Data% tr=RandomPredictor dout=%Output% data=%Data% out=%Output% seed=1 n=1
 Not adding a normalizer.
 Not training a calibrator because it is not needed.
 TEST POSITIVE RATIO:	0.3448 (241.0/(241.0+458.0))
@@ -6,28 +6,28 @@ Confusion table
           ||======================
 PREDICTED || positive | negative | Recall
 TRUTH     ||======================
- positive ||      118 |      123 | 0.4896
- negative ||      226 |      232 | 0.5066
+ positive ||      113 |      128 | 0.4689
+ negative ||      231 |      227 | 0.4956
           ||======================
-Precision ||   0.3430 |   0.6535 |
-OVERALL 0/1 ACCURACY: 0.500715
-LOG LOSS/instance:  1.394054
+Precision ||   0.3285 |   0.6394 |
+OVERALL 0/1 ACCURACY: 0.486409
+LOG LOSS/instance:  1.479534
 Test-set entropy (prior Log-Loss/instance): 0.929318
-LOG-LOSS REDUCTION (RIG): -50.008349
-AUC:                0.515356
+LOG-LOSS REDUCTION (RIG): -59.206457
+AUC:                0.471290
 
 OVERALL RESULTS
 ---------------------------------------
-AUC:                0.515356 (0.0000)
-Accuracy:           0.500715 (0.0000)
-Positive precision: 0.343023 (0.0000)
-Positive recall:    0.489627 (0.0000)
-Negative precision: 0.653521 (0.0000)
-Negative recall:    0.506550 (0.0000)
-Log-loss:           1.394054 (0.0000)
-Log-loss reduction: -50.008349 (0.0000)
-F1 Score:           0.403419 (0.0000)
-AUPRC:              0.356419 (0.0000)
+AUC:                0.471290 (0.0000)
+Accuracy:           0.486409 (0.0000)
+Positive precision: 0.328488 (0.0000)
+Positive recall:    0.468880 (0.0000)
+Negative precision: 0.639437 (0.0000)
+Negative recall:    0.495633 (0.0000)
+Log-loss:           1.479534 (0.0000)
+Log-loss reduction: -59.206457 (0.0000)
+F1 Score:           0.386325 (0.0000)
+AUPRC:              0.314886 (0.0000)
 
 ---------------------------------------
 Physical memory usage(MB): %Number%
