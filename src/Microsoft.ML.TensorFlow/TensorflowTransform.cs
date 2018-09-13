@@ -81,8 +81,9 @@ namespace Microsoft.ML.Transforms
             return new VersionInfo(
                 modelSignature: "TENSFLOW",
                 //verWrittenCur: 0x00010001, // Initial
-                verWrittenCur: 0x00010002,  // Upgraded when change for multiple outputs was implemented.
-                verReadableCur: 0x00010002,
+                //verWrittenCur: 0x00010002,  // Upgraded when change for multiple outputs was implemented.
+                verWrittenCur: 0x00010003,  // Upgraded when change for un-frozen models implemented.
+                verReadableCur: 0x00010003,
                 verWeCanReadBack: 0x00010001,
                 loaderSignature: LoaderSignature);
         }
@@ -117,15 +118,19 @@ namespace Microsoft.ML.Transforms
             // int: number of output columns
             // for each output column
             //   int: id of output column name
-            var isFrozen = ctx.Reader.ReadInt32();
-            if (isFrozen == 1)
+            bool isFrozen = true;
+            bool isNonFrozenModelSupported = ctx.Header.ModelVerReadable >= 0x00010003;
+            if(isNonFrozenModelSupported)
+                isFrozen = ctx.Reader.ReadBoolByte();
+
+            if (isFrozen)
             {
                 byte[] modelBytes = null;
                 if (!ctx.TryLoadBinaryStream("TFModel", r => modelBytes = r.ReadByteArray()))
                     throw env.ExceptDecode();
 
                 var io = ModelInputsOutputs(env, ctx);
-                return new TensorFlowTransform(env, modelBytes, io.Item1, io.Item2, (isFrozen == 1));
+                return new TensorFlowTransform(env, modelBytes, io.Item1, io.Item2, isFrozen);
             }
             else
             {
@@ -162,10 +167,10 @@ namespace Microsoft.ML.Transforms
                     }
                 }
 
-                var session = GetSession(env, tempDirPath, (isFrozen == 1));
+                var session = GetSession(env, tempDirPath, isFrozen);
                 var io = ModelInputsOutputs(env, ctx);
                 Directory.Delete(tempDirPath, true);
-                return new TensorFlowTransform(env, session, io.Item1, io.Item2, (isFrozen == 1), savedModel);
+                return new TensorFlowTransform(env, session, io.Item1, io.Item2, isFrozen, savedModel);
             }
         }
 
@@ -226,16 +231,16 @@ namespace Microsoft.ML.Transforms
             return new TFSession(graph);
         }
 
-        private static TFSession LoadTFSession(string exportDirSavedModel)
+        private static TFSession LoadTFSession(IHostEnvironment env, string exportDirSavedModel)
         {
+            env.CheckValue(exportDirSavedModel, nameof(exportDirSavedModel));
             var sessionOptions = new TFSessionOptions();
             var exportDir = exportDirSavedModel;
             var tags = new string[] { "serve" };
             var graph = new TFGraph();
             var metaGraphDef = new TFBuffer();
 
-            var session = TFSession.FromSavedModel(sessionOptions, null, exportDir, tags, graph, metaGraphDef);
-            return session;
+            return TFSession.FromSavedModel(sessionOptions, null, exportDir, tags, graph, metaGraphDef);
         }
 
         private static TFSession GetSession(IHostEnvironment env, string model, bool isFrozen)
@@ -246,9 +251,7 @@ namespace Microsoft.ML.Transforms
                 return LoadTFSession(env, modelBytes);
             }
             else
-            {
-                return LoadTFSession(model);
-            }
+                return LoadTFSession(env, model);
         }
 
         private static byte[] CheckFileAndRead(IHostEnvironment env, string modelFile)
@@ -357,7 +360,7 @@ namespace Microsoft.ML.Transforms
             _host.AssertValue(ctx);
             ctx.CheckAtModel();
             ctx.SetVersionInfo(GetVersionInfo());
-            ctx.Writer.Write(IsFrozen ? 1 : 0);
+            ctx.Writer.WriteBoolByte(IsFrozen);
 
             // *** Binary format ***
             // int: indicator for frozen models
