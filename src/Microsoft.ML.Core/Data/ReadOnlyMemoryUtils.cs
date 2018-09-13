@@ -5,6 +5,7 @@
 using Microsoft.ML.Runtime.Internal.Utilities;
 using System;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using System.Text;
 
 namespace Microsoft.ML.Runtime.Data
@@ -290,7 +291,7 @@ namespace Microsoft.ML.Runtime.Data
         {
             Contracts.CheckValue(sb, nameof(sb));
             if (!memory.IsEmpty)
-                sb.AppendAll(memory);
+                sb.Append(memory);
         }
 
         public static void AddLowerCaseToStringBuilder(ReadOnlyMemory<char> memory, StringBuilder sb)
@@ -307,14 +308,14 @@ namespace Microsoft.ML.Runtime.Data
                     char ch = CharUtils.ToLowerInvariant(span[j]);
                     if (ch != span[j])
                     {
-                        sb.Append(memory, min, j - min).Append(ch);
+                        sb.Append(span.Slice(min, j - min)).Append(ch);
                         min = j + 1;
                     }
                 }
 
                 Contracts.Assert(j == memory.Length);
                 if (min != j)
-                    sb.Append(memory, min, j - min);
+                    sb.Append(span.Slice(min, j - min));
             }
         }
 
@@ -330,28 +331,15 @@ namespace Microsoft.ML.Runtime.Data
             return false;
         }
 
-        public static StringBuilder AppendAll(this StringBuilder sb, ReadOnlyMemory<char> memory) => Append(sb, memory, 0, memory.Length);
-
-        public static StringBuilder Append(this StringBuilder sb, ReadOnlyMemory<char> memory, int startIndex, int length)
-        {
-            Contracts.Check(startIndex >= 0, nameof(startIndex));
-            Contracts.Check(length >= 0, nameof(length));
-
-            int ichLim = startIndex + length;
-
-            Contracts.Check(memory.Length >= ichLim, nameof(memory));
-
-            var span = memory.Span;
-            for (int index = startIndex; index < ichLim; index++)
-                sb.Append(span[index]);
-
-            return sb;
-        }
-
         public static StringBuilder Append(this StringBuilder sb, ReadOnlySpan<char> span)
         {
-            for (int index = 0; index < span.Length; index++)
-                sb.Append((char)span[index]);
+            unsafe
+            {
+                fixed (char* valueChars = &MemoryMarshal.GetReference(span))
+                {
+                    sb.Append(valueChars, span.Length);
+                }
+            }
 
             return sb;
         }

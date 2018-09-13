@@ -316,7 +316,7 @@ namespace Microsoft.ML.Runtime.TextAnalytics
                 if (!_keepPunctuations && char.IsPunctuation(ch) || !_keepNumbers && char.IsNumber(ch))
                 {
                     // Append everything before ch and ignore ch.
-                    buffer.Append(src, min, i - min);
+                    buffer.Append(span.Slice(min, i - min));
                     min = i + 1;
                     i++;
                     continue;
@@ -326,7 +326,7 @@ namespace Microsoft.ML.Runtime.TextAnalytics
                 {
                     if (IsCombiningDiacritic(ch))
                     {
-                        buffer.Append(src, min, i - min);
+                        buffer.Append(span.Slice(min, i - min));
                         min = i + 1;
                         i++;
                         continue;
@@ -343,7 +343,7 @@ namespace Microsoft.ML.Runtime.TextAnalytics
 
                 if (ch != src.Span[i])
                 {
-                    buffer.Append(src, min, i - min).Append(ch);
+                    buffer.Append(span.Slice(min, i - min)).Append(ch);
                     min = i + 1;
                 }
 
@@ -359,7 +359,7 @@ namespace Microsoft.ML.Runtime.TextAnalytics
             }
             else
             {
-                buffer.Append(src, min, len);
+                buffer.Append(span.Slice(min, len));
                 dst = buffer.ToString().AsMemory();
             }
         }
