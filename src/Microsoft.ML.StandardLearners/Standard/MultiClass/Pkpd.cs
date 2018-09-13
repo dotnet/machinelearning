@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Threading.Tasks;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Internal.Calibration;
@@ -11,8 +9,10 @@ using Microsoft.ML.Runtime.Internal.Internallearn;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Learners;
 using Microsoft.ML.Runtime.Model;
-using System.Collections.Generic;
 using Microsoft.ML.Runtime.Training;
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 [assembly: LoadableClass(Pkpd.Summary, typeof(Pkpd), typeof(Pkpd.Arguments),
     new[] { typeof(SignatureMultiClassClassifierTrainer), typeof(SignatureTrainer) },
@@ -84,12 +84,12 @@ namespace Microsoft.ML.Runtime.Learners
         /// Initializes a new instance of the <see cref="Pkpd"/>
         /// </summary>
         /// <param name="env">The <see cref="IHostEnvironment"/> instance.</param>
-        /// <param name="singleEstimator">An instance of the <see cref="BinaryPredictionTransformer{IModel}"/> used as the base predictor.</param>
+        /// <param name="binaryEstimator">An instance of a binary <see cref="ITrainerEstimator{TTransformer, TPredictor}"/> used as the base trainer.</param>
         /// <param name="calibrator">The <see cref="ICalibratorTrainer"/> used.</param>
         /// <param name="labelColumn">The name of the label colum.</param>
         /// <param name="imputeMissingLabelsAsNegative">Whether to treat missing labels as having negative labels, instead of keeping them missing.</param>
         /// <param name="maxCalibrationExamples">Number of instances to train the calibrator.</param>
-        public Pkpd(IHostEnvironment env, TScalarTrainer singleEstimator, string labelColumn = DefaultColumnNames.Label,
+        public Pkpd(IHostEnvironment env, TScalarTrainer binaryEstimator, string labelColumn = DefaultColumnNames.Label,
             bool imputeMissingLabelsAsNegative = false, ICalibratorTrainer calibrator = null, int maxCalibrationExamples = 1000000000)
            : base(env,
                new Arguments
@@ -97,27 +97,24 @@ namespace Microsoft.ML.Runtime.Learners
                    ImputeMissingLabelsAsNegative = imputeMissingLabelsAsNegative,
                    MaxCalibrationExamples = maxCalibrationExamples,
                },
-               LoadNameValue, labelColumn, singleEstimator, calibrator)
+               LoadNameValue, labelColumn, binaryEstimator, calibrator)
         {
-
+            Host.CheckValue(labelColumn, nameof(labelColumn), "Label column should not be null.");
         }
 
         protected override PkpdPredictor TrainCore(IChannel ch, RoleMappedData data, int count)
         {
             // Train M * (M+1) / 2 models arranged as a lower triangular matrix.
-            var predictors = new IPredictionTransformer<IPredictor>[count][];
             var predModels = new TDistPredictor[count][];
 
-            for (int i = 0; i < predictors.Length; i++)
+            for (int i = 0; i < predModels.Length; i++)
             {
-                predictors[i] = new IPredictionTransformer<IPredictor>[i + 1];
                 predModels[i] = new TDistPredictor[i + 1];
 
                 for (int j = 0; j <= i; j++)
                 {
                     ch.Info($"Training learner ({i},{j})");
-                    predictors[i][j] = TrainOne(ch, GetTrainer(), data, i, j);
-                    predModels[i][j] = (TDistPredictor)predictors[i][j].Model;
+                    predModels[i][j] = TrainOne(ch, GetTrainer(), data, i, j).Model;
                 }
             }
 
@@ -126,7 +123,7 @@ namespace Microsoft.ML.Runtime.Learners
 
         private IPredictionTransformer<TDistPredictor> TrainOne(IChannel ch, TScalarTrainer trainer, RoleMappedData data, int cls1, int cls2)
         {
-            // this should not be necessary when the legacy constructor doesn't exist, and the label colum is not an optional parameter on the
+            // this should not be necessary when the legacy constructor doesn't exist, and the label column is not an optional parameter on the
             // MetaMulticlassTrainer constructor.
             string trainerLabel = data.Schema.Label.Name;
 

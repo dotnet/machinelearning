@@ -2,10 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
@@ -16,8 +12,13 @@ using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Learners;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.Model.Pfa;
-using Newtonsoft.Json.Linq;
 using Microsoft.ML.Runtime.Training;
+using System;
+using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
+using Newtonsoft.Json.Linq;
+
 using System.Collections.Generic;
 
 [assembly: LoadableClass(Ova.Summary, typeof(Ova), typeof(Ova.Arguments),
@@ -75,13 +76,13 @@ namespace Microsoft.ML.Runtime.Learners
         /// Initializes a new instance of <see cref="Ova"/>.
         /// </summary>
         /// <param name="env">The <see cref="IHostEnvironment"/> instance.</param>
-        /// <param name="singleEstimator">An instance of the <see cref="BinaryPredictionTransformer{IModel}"/> used as the base predictor.</param>
+        /// <param name="binaryEstimator">An instance of a binary <see cref="ITrainerEstimator{TTransformer, TPredictor}"/> used as the base trainer.</param>
         /// <param name="calibrator">The <see cref="ICalibratorTrainer"/> used.</param>
         /// <param name="labelColumn">The name of the label colum.</param>
         /// <param name="imputeMissingLabelsAsNegative">Whether to treat missing labels as having negative labels, instead of keeping them missing.</param>
         /// <param name="maxCalibrationExamples">Number of instances to train the calibrator.</param>
         /// <param name="useProbabilities">Use probabilities (vs. raw outputs) to identify top-score category.</param>
-        public Ova(IHostEnvironment env, TScalarTrainer singleEstimator, string labelColumn = DefaultColumnNames.Label,
+        public Ova(IHostEnvironment env, TScalarTrainer binaryEstimator, string labelColumn = DefaultColumnNames.Label,
             bool imputeMissingLabelsAsNegative = false, ICalibratorTrainer calibrator = null,
             int maxCalibrationExamples = 1000000000, bool useProbabilities = true)
          : base(env,
@@ -90,8 +91,9 @@ namespace Microsoft.ML.Runtime.Learners
                    ImputeMissingLabelsAsNegative = imputeMissingLabelsAsNegative,
                    MaxCalibrationExamples = maxCalibrationExamples,
                },
-               LoadNameValue, labelColumn, singleEstimator, calibrator)
+               LoadNameValue, labelColumn, binaryEstimator, calibrator)
         {
+            Host.CheckValue(labelColumn, nameof(labelColumn), "Label column should not be null.");
             _args = (Arguments)Args;
             _args.UseProbabilities = useProbabilities;
         }

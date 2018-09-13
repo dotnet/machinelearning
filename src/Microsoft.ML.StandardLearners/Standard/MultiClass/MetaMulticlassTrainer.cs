@@ -2,8 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Linq;
+using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Data.Conversion;
@@ -11,7 +10,7 @@ using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Calibration;
 using Microsoft.ML.Runtime.Internal.Internallearn;
 using Microsoft.ML.Runtime.Training;
-using Microsoft.ML.Core.Data;
+using System.Linq;
 
 namespace Microsoft.ML.Runtime.Learners
 {
@@ -38,8 +37,7 @@ namespace Microsoft.ML.Runtime.Learners
         }
 
         /// <summary>
-        /// The label column that the trainer expects. Can be <c>null</c>, which indicates that label
-        /// is not used for training.
+        /// The label column that the trainer expects.
         /// </summary>
         public readonly SchemaShape.Column LabelColumn;
 
@@ -79,7 +77,7 @@ namespace Microsoft.ML.Runtime.Learners
             // Create the first trainer so errors in the args surface early.
             _trainer = singleEstimator ?? CreateTrainer();
 
-            Calibrator = calibrator ?? null;
+            Calibrator = calibrator ?? new PlattCalibratorTrainer(env);
 
             if (args.Calibrator != null)
                 Calibrator = args.Calibrator.CreateComponent(Host);
@@ -89,9 +87,10 @@ namespace Microsoft.ML.Runtime.Learners
             Info = new TrainerInfo(normalization: _trainer.Info.NeedNormalization);
 
             OutputColumns = new[]
+
             {
                 new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Vector, NumberType.R4, false),
-                new SchemaShape.Column(DefaultColumnNames.PredictedLabel, SchemaShape.Column.VectorKind.Scalar, NumberType.U4, true)
+                new SchemaShape.Column(DefaultColumnNames.PredictedLabel, SchemaShape.Column.VectorKind.Scalar, LabelColumn.ItemType, LabelColumn.IsKey)
             };
         }
 
@@ -163,16 +162,14 @@ namespace Microsoft.ML.Runtime.Learners
         }
 
         /// <summary>
-        /// 
+        ///  Gets the output columns.
         /// </summary>
-        /// <param name="inputSchema"></param>
-        /// <returns></returns>
+        /// <param name="inputSchema">The input schema. </param>
+        /// <returns>The output <see cref="SchemaShape"/></returns>
         public SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {
             Host.CheckValue(inputSchema, nameof(inputSchema));
 
-            // Special treatment for label column: we allow different types of labels, so the trainers
-            // may define their own requirements on the label column.
             if (LabelColumn != null)
             {
                 if (!inputSchema.TryFindColumn(LabelColumn.Name, out var labelCol))
@@ -192,10 +189,10 @@ namespace Microsoft.ML.Runtime.Learners
         IPredictor ITrainer.Train(TrainContext context) => Train(context);
 
         /// <summary>
-        /// 
+        /// Fits the data to the trainer.
         /// </summary>
-        /// <param name="input"></param>
-        /// <returns></returns>
+        /// <param name="input">The input data to fit to.</param>
+        /// <returns>The transformer.</returns>
         public abstract TTransformer Fit(IDataView input);
     }
 }
