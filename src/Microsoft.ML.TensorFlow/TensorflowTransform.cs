@@ -58,7 +58,6 @@ namespace Microsoft.ML.Transforms
 
         internal readonly TFSession Session;
         internal readonly bool IsFrozen;
-        internal readonly string ModelPath;
         internal readonly Dictionary<string, byte[]> SavedModel;
 
         internal readonly ColumnType[] OutputTypes;
@@ -264,8 +263,18 @@ namespace Microsoft.ML.Transforms
         public TensorFlowTransform(IHostEnvironment env, string model, string[] inputs, string[] outputs) :
             this(env, GetSession(env, model), inputs, outputs, true, null)
         {
-            ModelPath = model;
-            IsFrozen = TensorFlowUtils.IsFrozenTensorFlowModel(ModelPath);
+            IsFrozen = TensorFlowUtils.IsFrozenTensorFlowModel(model);
+            SavedModel = new Dictionary<string, byte[]>();
+
+            if (!IsFrozen)
+            {
+                string[] modelFilePaths = Directory.GetFiles(model, "*", SearchOption.AllDirectories);
+                foreach (var path in modelFilePaths)
+                {
+                    var relativePath = path.Remove(0, model.Length).Trim(Path.DirectorySeparatorChar);
+                    SavedModel[relativePath] = File.ReadAllBytes(path);
+                }
+            }
         }
 
         private TensorFlowTransform(IHostEnvironment env, byte[] modelBytes, string[] inputs, string[] outputs, bool isFrozen) :
@@ -376,7 +385,6 @@ namespace Microsoft.ML.Transforms
             {
                 var buffer = new TFBuffer();
                 Session.Graph.ToGraphDef(buffer);
-
                 ctx.SaveBinaryStream("TFModel", w =>
                 {
                     w.WriteByteArray(buffer.ToArray());
@@ -384,23 +392,10 @@ namespace Microsoft.ML.Transforms
             }
             else
             {
-                var savedModel = new Dictionary<string, byte[]>();
-                if (!string.IsNullOrEmpty(ModelPath))
-                {
-                    string[] modelFilePaths = Directory.GetFiles(ModelPath, "*", SearchOption.AllDirectories);
-                    foreach (var path in modelFilePaths)
-                    {
-                        var relativePath = path.Remove(0, ModelPath.Length).Trim(Path.DirectorySeparatorChar);
-                        savedModel[relativePath] = File.ReadAllBytes(path);
-                    }
-                }
-                else
-                    savedModel = SavedModel;
-
                 ctx.SaveBinaryStream("TFSavedModel", w =>
                 {
-                    w.Write(savedModel.Count);
-                    foreach (var kvp in savedModel)
+                    w.Write(SavedModel.Count);
+                    foreach (var kvp in SavedModel)
                     {
                         w.Write(kvp.Key);
                         w.WriteByteArray(kvp.Value);
