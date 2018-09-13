@@ -1,5 +1,5 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-  <Import Project="..\..\build\ExternalBenchmarkDataFiles.props" /> 
+  <Import Project="$(RepoRoot)\build\ExternalBenchmarkDataFiles.props" /> 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <LangVersion>7.2</LangVersion>
@@ -37,12 +37,12 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
 
-    <TlcResourceFile Update="@(TlcResourceFile)">
+    <BenchmarkFile Update="@(BenchmarkFile)">
       <Link>external\%(Identity)</Link>
-    </TlcResourceFile>
+    </BenchmarkFile>
 
-    <None Condition="Exists('@(TlcResourceFile->'..\data\external\%(Identity)')')"
-                  Include="@(TlcResourceFile->'..\data\external\%(Identity)')">
+    <None Condition="Exists('@(BenchmarkFile->'..\data\external\%(Identity)')')"
+          Include="@(BenchmarkFile->'..\data\external\%(Identity)')">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>  
   </ItemGroup>

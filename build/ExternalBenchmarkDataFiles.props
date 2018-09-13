@@ -1,8 +1,8 @@
 <Project>
   <ItemGroup>
-    <TlcResourceFile Include="MSLRWeb10KTest240kRows.tsv" />
-    <TlcResourceFile Include="MSLRWeb10KTrain720kRows.tsv" />
-    <TlcResourceFile Include="MSLRWeb10KValidate240kRows.tsv" />
-    <TlcResourceFile Include="WikiDetoxAnnotated160kRows.tsv" />
+    <BenchmarkFile Include="MSLRWeb10KTest240kRows.tsv" />
+    <BenchmarkFile Include="MSLRWeb10KTrain720kRows.tsv" />
+    <BenchmarkFile Include="MSLRWeb10KValidate240kRows.tsv" />
+    <BenchmarkFile Include="WikiDetoxAnnotated160kRows.tsv" />
   </ItemGroup>
 </Project>

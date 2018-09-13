@@ -83,12 +83,12 @@
   </ItemGroup>
   
   <ItemGroup Condition="'$(IncludeBenchmarkData)' == 'true'">
-    <TlcResourceFile Update="@(TlcResourceFile)">
-      <Url>http://aka.ms/tlc-resources/benchmarks/%(Identity)</Url>
+    <BenchmarkFile Update="@(BenchmarkFile)">
+      <Url>https://tlcresources.blob.core.windows.net/mslrweb10k/%(Identity)</Url>
       <DestinationFile>$(MSBuildThisFileDirectory)/test/data/external/%(Identity)</DestinationFile>
-    </TlcResourceFile>
+    </BenchmarkFile>
 
-    <TestFile Include="@(TlcResourceFile->'$(MSBuildThisFileDirectory)/test/data/external/%(Identity)')" />
+    <TestFile Include="@(BenchmarkFile->'$(MSBuildThisFileDirectory)/test/data/external/%(Identity)')" />
   </ItemGroup>
 
   <Target Name="DownloadExternalTestFiles" Inputs="@(TestFile)" Outputs="%(TestFile.DestinationFile)">

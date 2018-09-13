@@ -46,6 +46,31 @@ Redistributing the dataset "taxi-fare-test.csv", "taxi-fare-train.csv" with attr
 > 
 > The dataset is provided under terms provided by City of New York: https://opendata.cityofnewyork.us/overview/#termsofuse.
 
+### MSLRWeb10k
+
+This dataset is originally from [Introducing LETOR 4.0 Datasets](http://arxiv.org/abs/1306.2597).
+The dataset is under a CC-by 4.0 license.
+
+> @article{DBLP:journals/corr/QinL13,
+
+>  author    = {Tao Qin and Tie{-}Yan Liu},
+
+>  title     = {Introducing {LETOR} 4.0 Datasets},
+
+>  journal   = {CoRR},
+
+>  volume    = {abs/1306.2597},
+
+>  year      = {2013},
+
+>  url       = {http://arxiv.org/abs/1306.2597},
+
+>  timestamp = {Mon, 01 Jul 2013 20:31:25 +0200},
+
+>  biburl    = {http://dblp.uni-trier.de/rec/bib/journals/corr/QinL13},
+
+>  bibsource = {dblp computer science bibliography, http://dblp.org}
+
 # Images
 
 ### Located in `images` folder
