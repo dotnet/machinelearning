@@ -74,8 +74,13 @@ namespace Microsoft.ML.Tests.Transformers
             var invalidData = ComponentCreation.CreateDataView(Env, wrongCollection);
             var est = data.MakeNewEstimator().
                   Append(row => (
-                  A: row.ScalarString.OneHotEncoding(),
-                  B: row.VectorString.OneHotEncoding()));
+                  A: row.ScalarString.OneHotEncoding(outputKind: CategoricalStaticExtensions.OneHotOutputKind.Ind),
+                  B: row.VectorString.OneHotEncoding(outputKind: CategoricalStaticExtensions.OneHotOutputKind.Ind),
+                  C: row.ScalarString.OneHotEncoding(outputKind: CategoricalStaticExtensions.OneHotOutputKind.Bag),
+                  D: row.VectorString.OneHotEncoding(outputKind: CategoricalStaticExtensions.OneHotOutputKind.Bag),
+                  E: row.ScalarString.OneHotEncoding(outputKind: CategoricalStaticExtensions.OneHotOutputKind.Bin),
+                  F: row.VectorString.OneHotEncoding(outputKind: CategoricalStaticExtensions.OneHotOutputKind.Bin)
+                  ));
 
             TestEstimatorCore(est.AsDynamic, data.AsDynamic, invalidInput: invalidData);
 
@@ -84,7 +89,7 @@ namespace Microsoft.ML.Tests.Transformers
             {
                 var saver = new TextSaver(Env, new TextSaver.Arguments { Silent = true });
                 IDataView savedData = TakeFilter.Create(Env, est.Fit(data).Transform(data).AsDynamic, 4);
-                savedData = new ChooseColumnsTransform(Env, savedData, "A", "B");
+                savedData = new ChooseColumnsTransform(Env, savedData, "A", "B", "C", "D", "E", "F");
                 using (var fs = File.Create(outputPath))
                     DataSaverUtils.SaveDataView(ch, saver, savedData, fs, keepHidden: true);
             }

@@ -116,17 +116,17 @@ namespace Microsoft.ML.Runtime.Data
         public const string UserName = "Categorical Transform";
 
         /// <summary>
-        /// A helper method to create <see cref="CategoricalTransform"/> for public facing API.
+        /// A helper method to create <see cref="CategoricalTransform"/>.
         /// </summary>
         /// <param name="env">Host Environment.</param>
         /// <param name="input">Input <see cref="IDataView"/>. This is the output from previous transform or loader.</param>
         /// <param name="name">Name of the output column.</param>
         /// <param name="source">Name of the column to be transformed. If this is null '<paramref name="name"/>' will be used.</param>
         /// <param name="outputKind">The type of output expected.</param>
-        public static IDataTransform Create(IHostEnvironment env, IDataView input, string name,
+        public static IDataView Create(IHostEnvironment env, IDataView input, string name,
             string source = null, OutputKind outputKind = CategoricalEstimator.Defaults.OutKind)
         {
-            return new CategoricalEstimator(env, name, source, outputKind).Fit(input).Transform(input) as IDataTransform;
+            return new CategoricalEstimator(env, name, source, outputKind).Fit(input).Transform(input) as IDataView;
         }
 
         public static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
@@ -328,11 +328,6 @@ namespace Microsoft.ML.Runtime.Data
             Ind = 2,
 
             /// <summary>
-            /// Output is a key value
-            /// </summary>
-            Key = 3,
-
-            /// <summary>
             /// Output is binary encoded
             /// </summary>
             Bin = 4,
@@ -403,12 +398,12 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         /// <summary>
-        /// The categorical transform operates on text columns. During construction, it passes through the data to build a dictionary of categories.
-        /// It does not do any parsing to the text; for each row it sees, the whole text appearing in the input column is defined as a category.
-        /// The output of the categorical transform is an indicator vector. Each slot in this vector corresponds to a category in the dictionary
-        /// (thus, its length is the size of the built dictionary). In each row, it contains a 1 in the slot corresponding to the category in that row,
-        /// and 0 in the rest of the slots.
+        /// Converts the categorical value into an indicator array by building a dictionary of categories based on the data and using the id in the dictionary as the index in the array
         /// </summary>
+        /// <param name="input">Incoming data.</param>
+        /// <param name="outputKind">Specify output type of indicator array: Multiarray, array or binary encoded data.</param>
+        /// <param name="order">How Id for each value would be assigined: by occurence or by value.</param>
+        /// <param name="maxItems">Maximum number of ids to keep during data scanning.</param>
         public static Vector<float> OneHotEncoding(this Scalar<string> input, OneHotOutputKind outputKind = DefOut, KeyValueOrder order = DefSort, int maxItems = DefMax)
         {
             Contracts.CheckValue(input, nameof(input));
@@ -416,12 +411,12 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         /// <summary>
-        /// The categorical transform operates on text columns. During construction, it passes through the data to build a dictionary of categories.
-        /// It does not do any parsing to the text; for each row it sees, the whole text appearing in the input column is defined as a category.
-        /// The output of the categorical transform is an indicator vector. Each slot in this vector corresponds to a category in the dictionary
-        /// (thus, its length is the size of the built dictionary). In each row, it contains a 1 in the slot corresponding to the category in that row,
-        /// and 0 in the rest of the slots.
+        /// Converts the categorical value into an indicator array by building a dictionary of categories based on the data and using the id in the dictionary as the index in the array
         /// </summary>
+        /// <param name="input">Incoming data.</param>
+        /// <param name="outputKind">Specify output type of indicator array: Multiarray, array or binary encoded data.</param>
+        /// <param name="order">How Id for each value would be assigined: by occurence or by value.</param>
+        /// <param name="maxItems">Maximum number of ids to keep during data scanning.</param>
 
         public static Vector<float> OneHotEncoding(this Vector<string> input, OneHotOutputKind outputKind = DefOut, KeyValueOrder order = DefSort, int maxItems = DefMax)
         {
