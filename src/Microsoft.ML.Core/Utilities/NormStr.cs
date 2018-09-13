@@ -121,7 +121,8 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
             {
                 AssertValid();
 
-                uint hash = Hashing.HashString(str.Span);
+                var span = str.Span;
+                uint hash = Hashing.HashString(span);
                 int ins = GetIns(hash);
                 while (ins >= 0)
                 {
@@ -129,7 +130,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
                     if ((int)Utils.GetLo(meta) == str.Length)
                     {
                         var ns = GetNs(ins);
-                        if (ns.Value.Span.SequenceEqual(str.Span))
+                        if (ns.Value.Span.SequenceEqual(span))
                             return ns;
                     }
                     ins = (int)Utils.GetHi(meta);

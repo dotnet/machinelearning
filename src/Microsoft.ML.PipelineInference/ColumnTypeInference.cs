@@ -168,7 +168,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
                         col.SuggestedType = NumberType.R4;
                         Single first;
 
-                        col.HasHeader = !ReadOnlyMemoryUtils.TryParse(col.RawData[0], out first);
+                        col.HasHeader = !ReadOnlyMemoryUtils.TryParse(col.RawData[0].Span, out first);
                     }
                 }
             }

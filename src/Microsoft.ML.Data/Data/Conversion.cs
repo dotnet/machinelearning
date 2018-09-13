@@ -1056,7 +1056,7 @@ namespace Microsoft.ML.Runtime.Data.Conversion
                 return false;
             }
 
-            return TryParseCore(src, out dst);
+            return TryParseCore(src.Span, out dst);
         }
 
         /// <summary>
@@ -1119,13 +1119,12 @@ namespace Microsoft.ML.Runtime.Data.Conversion
         /// The standard representations are any casing of:
         ///    ?  NaN  NA  N/A
         /// </summary>
-        private bool IsStdMissing(ref TX src)
+        private bool IsStdMissing(ref ReadOnlySpan<char> span)
         {
-            Contracts.Assert(!src.IsEmpty);
+            Contracts.Assert(!span.IsEmpty);
 
             char ch;
-            var span = src.Span;
-            switch (src.Length)
+            switch (span.Length)
             {
                 default:
                     return false;
@@ -1170,7 +1169,8 @@ namespace Microsoft.ML.Runtime.Data.Conversion
         /// </summary>
         public bool TryParseKey(ref TX src, U8 min, U8 max, out U8 dst)
         {
-            Contracts.Check(!IsStdMissing(ref src), "Missing text value cannot be converted to unsigned integer type.");
+            var span = src.Span;
+            Contracts.Check(!IsStdMissing(ref span), "Missing text value cannot be converted to unsigned integer type.");
             Contracts.Assert(min <= max);
 
             // This simply ensures we don't have min == 0 and max == U8.MaxValue. This is illegal since
@@ -1188,7 +1188,7 @@ namespace Microsoft.ML.Runtime.Data.Conversion
 
             // Parse a ulong.
             ulong uu;
-            if (!TryParseCore(src, out uu))
+            if (!TryParseCore(span, out uu))
             {
                 dst = 0;
                 // Return true only for standard forms for NA.
@@ -1205,12 +1205,11 @@ namespace Microsoft.ML.Runtime.Data.Conversion
             return true;
         }
 
-        private bool TryParseCore(ReadOnlyMemory<char> text, out ulong dst)
+        private bool TryParseCore(ReadOnlySpan<char> span, out ulong dst)
         {
             ulong res = 0;
-            var span = text.Span;
             int ich = 0;
-            while (ich < text.Length)
+            while (ich < span.Length)
             {
                 uint d = (uint)span[ich++] - (uint)'0';
                 if (d >= 10)
@@ -1345,7 +1344,7 @@ namespace Microsoft.ML.Runtime.Data.Conversion
             var span = text.Span;
             if (span[0] == '-')
             {
-                if (span.Length == 1 || !TryParseCore(text.Slice(1, text.Length - 1), out val) || (val > ((ulong)max + 1)))
+                if (span.Length == 1 || !TryParseCore(span.Slice(1, text.Length - 1), out val) || (val > ((ulong)max + 1)))
                 {
                     result = null;
                     return;
@@ -1381,10 +1380,11 @@ namespace Microsoft.ML.Runtime.Data.Conversion
         /// </summary>
         public bool TryParse(ref TX src, out R4 dst)
         {
-            if (ReadOnlyMemoryUtils.TryParse(src, out dst))
+            var span = src.Span;
+            if (ReadOnlyMemoryUtils.TryParse(span, out dst))
                 return true;
             dst = R4.NaN;
-            return IsStdMissing(ref src);
+            return IsStdMissing(ref span);
         }
 
         /// <summary>
@@ -1393,10 +1393,11 @@ namespace Microsoft.ML.Runtime.Data.Conversion
         /// </summary>
         public bool TryParse(ref TX src, out R8 dst)
         {
-            if (ReadOnlyMemoryUtils.TryParse(src, out dst))
+            var span = src.Span;
+            if (ReadOnlyMemoryUtils.TryParse(span, out dst))
                 return true;
             dst = R8.NaN;
-            return IsStdMissing(ref src);
+            return IsStdMissing(ref span);
         }
 
         public bool TryParse(ref TX src, out TS dst)
@@ -1409,8 +1410,8 @@ namespace Microsoft.ML.Runtime.Data.Conversion
 
             if (TimeSpan.TryParse(src.ToString(), CultureInfo.InvariantCulture, out dst))
                 return true;
-
-            Contracts.Check(!IsStdMissing(ref src), "Missing values cannot be converted to boolean value.");
+            var span = src.Span;
+            Contracts.Check(!IsStdMissing(ref span), "Missing values cannot be converted to boolean value.");
             return true;
         }
 
@@ -1425,7 +1426,8 @@ namespace Microsoft.ML.Runtime.Data.Conversion
             if (DateTime.TryParse(src.ToString(), CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal, out dst))
                 return true;
 
-            Contracts.Check(!IsStdMissing(ref src), "Missing values cannot be converted to boolean value.");
+            var span = src.Span;
+            Contracts.Check(!IsStdMissing(ref span), "Missing values cannot be converted to boolean value.");
             return true;
         }
 
@@ -1440,7 +1442,8 @@ namespace Microsoft.ML.Runtime.Data.Conversion
             if (DateTimeOffset.TryParse(src.ToString(), CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal, out dst))
                 return true;
 
-            Contracts.Check(!IsStdMissing(ref src), "Missing values cannot be converted to boolean value.");
+            var span = src.Span;
+            Contracts.Check(!IsStdMissing(ref span), "Missing values cannot be converted to boolean value.");
             return true;
         }
 
@@ -1526,10 +1529,11 @@ namespace Microsoft.ML.Runtime.Data.Conversion
         /// </summary>
         public bool TryParse(ref TX src, out BL dst)
         {
-            Contracts.Check(!IsStdMissing(ref src), "Missing text values cannot be converted to bool value.");
+            var span = src.Span;
+
+            Contracts.Check(!IsStdMissing(ref span), "Missing text values cannot be converted to bool value.");
 
             char ch;
-            var span = src.Span;
             switch (src.Length)
             {
                 case 0:
@@ -1677,15 +1681,17 @@ namespace Microsoft.ML.Runtime.Data.Conversion
             if (!TryParse(ref span, out value))
                 Contracts.Assert(value.Equals(default(UG)));
         }
-        public void Convert(ref TX span, ref R4 value)
+        public void Convert(ref TX src, ref R4 value)
         {
+            var span = src.Span;
             if (ReadOnlyMemoryUtils.TryParse(span, out value))
                 return;
             // Unparsable is mapped to NA.
             value = R4.NaN;
         }
-        public void Convert(ref TX span, ref R8 value)
+        public void Convert(ref TX src, ref R8 value)
         {
+            var span = src.Span;
             if (ReadOnlyMemoryUtils.TryParse(span, out value))
                 return;
             // Unparsable is mapped to NA.
@@ -1695,10 +1701,10 @@ namespace Microsoft.ML.Runtime.Data.Conversion
         {
             value = span;
         }
-        public void Convert(ref TX span, ref BL value)
+        public void Convert(ref TX src, ref BL value)
         {
             // When TryParseBL returns false, it should have set value to false.
-            if (!TryParse(ref span, out value))
+            if (!TryParse(ref src, out value))
                 Contracts.Assert(!value);
         }
         public void Convert(ref TX src, ref SB dst)

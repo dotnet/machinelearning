@@ -142,7 +142,7 @@ namespace Microsoft.ML.Runtime.Data
             else
                 index = memory.Span.IndexOfAny(separators);
 
-            if (index >= memory.Length)
+            if (index == -1)
             {
                 left = memory;
                 right = default;
@@ -255,9 +255,9 @@ namespace Microsoft.ML.Runtime.Data
         /// <summary>
         /// This produces zero for an empty string.
         /// </summary>
-        public static bool TryParse(ReadOnlyMemory<char> memory, out Single value)
+        public static bool TryParse(ReadOnlySpan<char> span, out Single value)
         {
-            var res = DoubleParser.Parse(out value, memory.Span);
+            var res = DoubleParser.Parse(out value, span);
             Contracts.Assert(res != DoubleParser.Result.Empty || value == 0);
             return res <= DoubleParser.Result.Empty;
         }
@@ -265,9 +265,9 @@ namespace Microsoft.ML.Runtime.Data
         /// <summary>
         /// This produces zero for an empty string.
         /// </summary>
-        public static bool TryParse(ReadOnlyMemory<char> memory, out Double value)
+        public static bool TryParse(ReadOnlySpan<char> span, out Double value)
         {
-            var res = DoubleParser.Parse(out value, memory.Span);
+            var res = DoubleParser.Parse(out value, span);
             Contracts.Assert(res != DoubleParser.Result.Empty || value == 0);
             return res <= DoubleParser.Result.Empty;
         }
