@@ -126,8 +126,7 @@ namespace Microsoft.ML.Runtime.Data
         public static IDataTransform Create(IHostEnvironment env, IDataView input, string name,
             string source = null, OutputKind outputKind = CategoricalEstimator.Defaults.OutKind)
         {
-            var column = new CategoricalEstimator.ColumnInfo(source ?? name, name, outputKind);
-            return Create(env, input, column) as IDataTransform;
+            return new CategoricalEstimator(env, name, source, outputKind).Fit(input).Transform(input) as IDataTransform;
         }
 
         public static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
@@ -151,13 +150,9 @@ namespace Microsoft.ML.Runtime.Data
                 col.SetTerms(column.Terms);
                 columns.Add(col);
             }
-            return Create(env, input, columns.ToArray()) as IDataTransform;
+            return new CategoricalEstimator(env, columns.ToArray()).Fit(input).Transform(input) as IDataTransform;
         }
 
-        public static IDataView Create(IHostEnvironment env, IDataView input, params CategoricalEstimator.ColumnInfo[] columns)
-        {
-            return new CategoricalEstimator(env, columns).Fit(input).Transform(input);
-        }
     }
 
     public sealed class CategoricalEstimator : IEstimator<ITransformer>
@@ -189,7 +184,12 @@ namespace Microsoft.ML.Runtime.Data
         private readonly ColumnInfo[] _columns;
         private readonly IEstimator<ITransformer> _estimatorChain;
 
-        public CategoricalEstimator(IHostEnvironment env, IDataView input, string name,
+        /// A helper method to create <see cref="CategoricalEstimator"/> for public facing API.
+        /// <param name="env">Host Environment.</param>
+        /// <param name="name">Name of the output column.</param>
+        /// <param name="source">Name of the column to be transformed. If this is null '<paramref name="name"/>' will be used.</param>
+        /// <param name="outputKind">The type of output expected.</param>
+        public CategoricalEstimator(IHostEnvironment env, string name,
             string source = null, CategoricalTransform.OutputKind outputKind = Defaults.OutKind)
             : this(env, new ColumnInfo(source ?? name, name, outputKind))
         {
@@ -242,15 +242,9 @@ namespace Microsoft.ML.Runtime.Data
             }
         }
 
-        public SchemaShape GetOutputSchema(SchemaShape inputSchema)
-        {
-            return _estimatorChain.GetOutputSchema(inputSchema);
-        }
+        public SchemaShape GetOutputSchema(SchemaShape inputSchema) => _estimatorChain.GetOutputSchema(inputSchema);
 
-        public ITransformer Fit(IDataView input)
-        {
-            return _estimatorChain.Fit(input);
-        }
+        public ITransformer Fit(IDataView input) => _estimatorChain.Fit(input);
     }
 
     public static class Categorical
@@ -384,17 +378,6 @@ namespace Microsoft.ML.Runtime.Data
             public PipelineColumn Input { get; }
             public Config Config { get; }
             public ImplVector(PipelineColumn input, Config config) : base(Rec.Inst, input)
-            {
-                Input = input;
-                Config = config;
-            }
-        }
-
-        private sealed class ImplVarVector<T> : VarVector<float>, ICategoricalCol
-        {
-            public PipelineColumn Input { get; }
-            public Config Config { get; }
-            public ImplVarVector(PipelineColumn input, Config config) : base(Rec.Inst, input)
             {
                 Input = input;
                 Config = config;
