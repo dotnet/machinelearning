@@ -77,6 +77,10 @@ namespace Microsoft.ML.Transforms.TensorFlow
                     return NumberType.R4;
                 case TFDataType.Double:
                     return NumberType.R8;
+                case TFDataType.UInt16:
+                    return NumberType.U2;
+                case TFDataType.UInt8:
+                    return NumberType.U1;
                 case TFDataType.UInt32:
                     return NumberType.U4;
                 case TFDataType.UInt64:

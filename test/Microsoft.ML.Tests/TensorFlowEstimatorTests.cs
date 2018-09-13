@@ -5,6 +5,7 @@
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
+using Microsoft.ML.Runtime.ImageAnalytics;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.RunTests;
 using Microsoft.ML.Runtime.Tools;
@@ -136,6 +137,51 @@ namespace Microsoft.ML.Tests
                 Assert.Equal(Maml.Main(new[] { @"showschema loader=Text{col=a:R4:0-3 col=b:R4:0-3} xf=TFTransform{inputs=a inputs=b outputs=c model={model_matmul/frozen_saved_model.pb}} in=f:\2.txt" }), (int)0);
             }
         }
+
+        [Fact]
+        public void TestTensorFlowStatic()
+        {
+            var modelLocation = "cifar_model/frozen_model.pb";
+
+            using (var env = new TlcEnvironment())
+            {
+                var imageHeight = 32;
+                var imageWidth = 32;
+                var dataFile = GetDataPath("images/images.tsv");
+                var imageFolder = Path.GetDirectoryName(dataFile);
+
+                var data = TextLoader.CreateReader(env, ctx => (
+                    imagePath: ctx.LoadText(0),
+                    name: ctx.LoadText(1)))
+                    .Read(new MultiFileSource(dataFile));
+
+                // Note that CamelCase column names are there to match the TF graph node names.
+                var pipe = data.MakeNewEstimator()
+                    .Append(row => (
+                        row.name,
+                        Input: row.imagePath.LoadAsImage(imageFolder).Resize(imageHeight, imageWidth).ExtractPixels(interleaveArgb: true)))
+                    .Append(row => (row.name, Output: row.Input.ApplyTensorFlowGraph(modelLocation)));
+
+                TestEstimatorCore(pipe.AsDynamic, data.AsDynamic);
+
+                var result = pipe.Fit(data).Transform(data).AsDynamic;
+                result.Schema.TryGetColumnIndex("Output", out int output);
+                using (var cursor = result.GetRowCursor(col => col == output))
+                {
+                    var buffer = default(VBuffer<float>);
+                    var getter = cursor.GetGetter<VBuffer<float>>(output);
+                    var numRows = 0;
+                    while (cursor.MoveNext())
+                    {
+                        getter(ref buffer);
+                        Assert.Equal(10, buffer.Length);
+                        numRows += 1;
+                    }
+                    Assert.Equal(3, numRows);
+                }
+            }
+        }
+
 
         private void ValidateTensorFlowTransformer(IDataView result)
         {

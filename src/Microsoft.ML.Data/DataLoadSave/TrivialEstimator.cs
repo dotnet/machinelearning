@@ -30,6 +30,7 @@ namespace Microsoft.ML.Runtime.Data
 
         public TTransformer Fit(IDataView input)
         {
+            Host.CheckValue(input, nameof(input));
             // Validate input schema.
             Transformer.GetOutputSchema(input.Schema);
             return Transformer;

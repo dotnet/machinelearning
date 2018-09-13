@@ -138,7 +138,7 @@ namespace Microsoft.ML.Data.StaticPipe.Runtime
         public sealed class Regression : TrainerEstimatorReconciler
         {
             /// <summary>
-            /// The delegate to create the <see cref="Regression"/> instance.
+            /// The delegate to create the regression trainer instance.
             /// </summary>
             /// <param name="env">The environment with which to create the estimator</param>
             /// <param name="label">The label column name</param>
@@ -198,7 +198,7 @@ namespace Microsoft.ML.Data.StaticPipe.Runtime
         public sealed class BinaryClassifier : TrainerEstimatorReconciler
         {
             /// <summary>
-            /// The delegate to create the <see cref="BinaryClassifier"/> instance.
+            /// The delegate to create the binary classifier trainer instance.
             /// </summary>
             /// <param name="env">The environment with which to create the estimator.</param>
             /// <param name="label">The label column name.</param>
@@ -259,12 +259,12 @@ namespace Microsoft.ML.Data.StaticPipe.Runtime
 
         /// <summary>
         /// A reconciler capable of handling the most common cases for binary classification that does not
-        /// necessarily have with calibrated outputs.
+        /// necessarily have calibrated outputs.
         /// </summary>
         public sealed class BinaryClassifierNoCalibration : TrainerEstimatorReconciler
         {
             /// <summary>
-            /// The delegate to create the <see cref="BinaryClassifier"/> instance.
+            /// The delegate to create the binary classifier trainer instance.
             /// </summary>
             /// <param name="env">The environment with which to create the estimator</param>
             /// <param name="label">The label column name.</param>
@@ -336,5 +336,72 @@ namespace Microsoft.ML.Data.StaticPipe.Runtime
                 public ImplBool(BinaryClassifierNoCalibration rec) : base(rec, rec._inputs) { }
             }
         }
+
+        /// <summary>
+        /// A reconciler for regression capable of handling the most common cases for regression.
+        /// </summary>
+        public sealed class MulticlassClassifier<TVal> : TrainerEstimatorReconciler
+        {
+            /// <summary>
+            /// The delegate to create the multiclass classifier trainer instance.
+            /// </summary>
+            /// <param name="env">The environment with which to create the estimator</param>
+            /// <param name="label">The label column name</param>
+            /// <param name="features">The features column name</param>
+            /// <param name="weights">The weights column name, or <c>null</c> if the reconciler was constructed with <c>null</c> weights</param>
+            /// <returns>A estimator producing columns with the fixed name <see cref="DefaultColumnNames.Score"/> and <see cref="DefaultColumnNames.PredictedLabel"/>.</returns>
+            public delegate IEstimator<ITransformer> EstimatorFactory(IHostEnvironment env, string label, string features, string weights);
+
+            private readonly EstimatorFactory _estFact;
+
+            /// <summary>
+            /// The general output for multiclass classifiers.
+            /// </summary>
+            public (Vector<float> score, Key<uint, TVal> predictedLabel) Output { get; }
+
+            protected override IEnumerable<PipelineColumn> Outputs => new PipelineColumn[] { Output.score, Output.predictedLabel };
+
+            private static readonly string[] _fixedOutputNames = new[] { DefaultColumnNames.Score, DefaultColumnNames.PredictedLabel };
+
+            /// <summary>
+            /// Constructs a new general multiclass classifier reconciler.
+            /// </summary>
+            /// <param name="estimatorFactory">The delegate to create the training estimator. It is assumed that this estimator
+            /// will produce a vector <see cref="float"/> column named <see cref="DefaultColumnNames.Score"/> and a scalar
+            /// key column named <see cref="DefaultColumnNames.PredictedLabel"/>.</param>
+            /// <param name="label">The input label column.</param>
+            /// <param name="features">The input features column.</param>
+            /// <param name="weights">The input weights column, or <c>null</c> if there are no weights.</param>
+            public MulticlassClassifier(EstimatorFactory estimatorFactory, Key<uint, TVal> label, Vector<float> features, Scalar<float> weights)
+                    : base(MakeInputs(Contracts.CheckRef(label, nameof(label)), Contracts.CheckRef(features, nameof(features)), weights),
+                          _fixedOutputNames)
+            {
+                Contracts.CheckValue(estimatorFactory, nameof(estimatorFactory));
+                _estFact = estimatorFactory;
+                Contracts.Assert(_inputs.Length == 2 || _inputs.Length == 3);
+                Output = (new ImplScore(this), new ImplLabel(this));
+            }
+
+            private static PipelineColumn[] MakeInputs(Key<uint, TVal> label, Vector<float> features, Scalar<float> weights)
+                => weights == null ? new PipelineColumn[] { label, features } : new PipelineColumn[] { label, features, weights };
+
+            protected override IEstimator<ITransformer> ReconcileCore(IHostEnvironment env, string[] inputNames)
+            {
+                Contracts.AssertValue(env);
+                env.Assert(Utils.Size(inputNames) == _inputs.Length);
+                return _estFact(env, inputNames[0], inputNames[1], inputNames.Length > 2 ? inputNames[2] : null);
+            }
+
+            private sealed class ImplLabel : Key<uint, TVal>
+            {
+                public ImplLabel(MulticlassClassifier<TVal> rec) : base(rec, rec._inputs) { }
+            }
+
+            private sealed class ImplScore : Vector<float>
+            {
+                public ImplScore(MulticlassClassifier<TVal> rec) : base(rec, rec._inputs) { }
+            }
+        }
+
     }
 }
