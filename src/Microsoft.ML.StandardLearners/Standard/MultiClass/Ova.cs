@@ -77,7 +77,7 @@ namespace Microsoft.ML.Runtime.Learners
         /// </summary>
         /// <param name="env">The <see cref="IHostEnvironment"/> instance.</param>
         /// <param name="binaryEstimator">An instance of a binary <see cref="ITrainerEstimator{TTransformer, TPredictor}"/> used as the base trainer.</param>
-        /// <param name="calibrator">The <see cref="ICalibratorTrainer"/> used.</param>
+        /// <param name="calibrator">The calibrator. If a calibrator is not explicitely provided, it will default to <see cref="PlattCalibratorCalibratorTrainer"/></param>
         /// <param name="labelColumn">The name of the label colum.</param>
         /// <param name="imputeMissingLabelsAsNegative">Whether to treat missing labels as having negative labels, instead of keeping them missing.</param>
         /// <param name="maxCalibrationExamples">Number of instances to train the calibrator.</param>
@@ -124,12 +124,12 @@ namespace Microsoft.ML.Runtime.Learners
             {
                 var calibratedModel = transformer.Model as TScalarPredictor;
 
-                // the validations in the calibrator check for the feature column, in the RoleMappedData
+                // restoring the RoleMappedData, as much as we can.
+                // not having the weight column on the data passed to the TrainCalibrator should be addressed.
                 var trainedData = new RoleMappedData(view, label: trainerLabel, feature: transformer.FeatureColumn);
 
                 if (calibratedModel == null)
-                    // calibratedModel = CalibratorUtils.TrainCalibratorIfNeeded(Host, ch, calibrator, _args.MaxCalibrationExamples, trainer, transformer.Model, data) as TScalarPredictor;
-                    calibratedModel = CalibratorUtils.TrainCalibrator(Host, ch, Calibrator, Args.MaxCalibrationExamples, transformer.Model, trainedData) as TScalarPredictor;
+                   calibratedModel = CalibratorUtils.TrainCalibrator(Host, ch, Calibrator, Args.MaxCalibrationExamples, transformer.Model, trainedData) as TScalarPredictor;
 
                 Host.Check(calibratedModel != null, "Calibrated predictor does not implement the expected interface");
                 return new BinaryPredictionTransformer<TScalarPredictor>(Host, calibratedModel, data.Data.Schema, transformer.FeatureColumn);
