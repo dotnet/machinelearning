@@ -3,6 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Core.Data;
+using Microsoft.ML.Data.StaticPipe.Runtime;
+using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 
 namespace Microsoft.ML.Runtime.Data
@@ -55,6 +59,139 @@ namespace Microsoft.ML.Runtime.Data
             }
 
             return new SchemaShape(result.Values);
+        }
+    }
+
+    public enum KeyValueOrder : byte
+    {
+        /// <summary>
+        /// Terms will be assigned ID in the order in which they appear.
+        /// </summary>
+        Occurence = TermTransform.SortOrder.Occurrence,
+
+        /// <summary>
+        /// Terms will be assigned ID according to their sort via an ordinal comparison for the type.
+        /// </summary>
+        Value = TermTransform.SortOrder.Value
+    }
+
+    /// <summary>
+    /// Information on the result of fitting a to-key transform.
+    /// </summary>
+    /// <typeparam name="T">The type of the values.</typeparam>
+    public sealed class ToKeyFitResult<T>
+    {
+        /// <summary>
+        /// For user defined delegates that accept instances of the containing type.
+        /// </summary>
+        /// <param name="result"></param>
+        public delegate void OnFit(ToKeyFitResult<T> result);
+
+        // At the moment this is empty. Once PR #863 clears, we can change this class to hold the output
+        // key-values metadata.
+
+        internal ToKeyFitResult(TermTransform.TermMap map)
+        {
+        }
+    }
+
+    public static partial class TermStaticExtensions
+    {
+        // I am not certain I see a good way to cover the distinct types beyond complete enumeration.
+        // Raw generics would allow illegal possible inputs, e.g., Scalar<Bitmap>. So, this is a partial
+        // class, and all the public facing extension methods for each possible type are in a T4 generated result.
+
+        private const KeyValueOrder DefSort = (KeyValueOrder)TermTransform.Defaults.Sort;
+        private const int DefMax = TermTransform.Defaults.MaxNumTerms;
+
+        private struct Config
+        {
+            public readonly KeyValueOrder Order;
+            public readonly int Max;
+            public readonly Action<TermTransform.TermMap> OnFit;
+
+            public Config(KeyValueOrder order, int max, Action<TermTransform.TermMap> onFit)
+            {
+                Order = order;
+                Max = max;
+                OnFit = onFit;
+            }
+        }
+
+        private static Action<TermTransform.TermMap> Wrap<T>(ToKeyFitResult<T>.OnFit onFit)
+        {
+            if (onFit == null)
+                return null;
+            // The type T asociated with the delegate will be the actual value type once #863 goes in.
+            // However, until such time as #863 goes in, it would be too awkward to attempt to extract the metadata.
+            // For now construct the useless object then pass it into the delegate.
+            return map => onFit(new ToKeyFitResult<T>(map));
+        }
+
+        private interface ITermCol
+        {
+            PipelineColumn Input { get; }
+            Config Config { get; }
+        }
+
+        private sealed class ImplScalar<T> : Key<uint, T>, ITermCol
+        {
+            public PipelineColumn Input { get; }
+            public Config Config { get; }
+            public ImplScalar(PipelineColumn input, Config config) : base(Rec.Inst, input)
+            {
+                Input = input;
+                Config = config;
+            }
+        }
+
+        private sealed class ImplVector<T> : Vector<Key<uint, T>>, ITermCol
+        {
+            public PipelineColumn Input { get; }
+            public Config Config { get; }
+            public ImplVector(PipelineColumn input, Config config) : base(Rec.Inst, input)
+            {
+                Input = input;
+                Config = config;
+            }
+        }
+
+        private sealed class ImplVarVector<T> : VarVector<Key<uint, T>>, ITermCol
+        {
+            public PipelineColumn Input { get; }
+            public Config Config { get; }
+            public ImplVarVector(PipelineColumn input, Config config) : base(Rec.Inst, input)
+            {
+                Input = input;
+                Config = config;
+            }
+        }
+
+        private sealed class Rec : EstimatorReconciler
+        {
+            public static readonly Rec Inst = new Rec();
+
+            public override IEstimator<ITransformer> Reconcile(IHostEnvironment env, PipelineColumn[] toOutput,
+                IReadOnlyDictionary<PipelineColumn, string> inputNames, IReadOnlyDictionary<PipelineColumn, string> outputNames, IReadOnlyCollection<string> usedNames)
+            {
+                var infos = new TermTransform.ColumnInfo[toOutput.Length];
+                Action<TermTransform> onFit = null;
+                for (int i=0; i<toOutput.Length; ++i)
+                {
+                    var tcol = (ITermCol)toOutput[i];
+                    infos[i] = new TermTransform.ColumnInfo(inputNames[tcol.Input], outputNames[toOutput[i]],
+                        tcol.Config.Max, (TermTransform.SortOrder)tcol.Config.Order);
+                    if (tcol.Config.OnFit != null)
+                    {
+                        int ii = i; // Necessary because if we capture i that will change to toOutput.Length on call.
+                        onFit += tt => tcol.Config.OnFit(tt.GetTermMap(ii));
+                    }
+                }
+                var est = new TermEstimator(env, infos);
+                if (onFit == null)
+                    return est;
+                return est.WithOnFitDelegate(onFit);
+            }
         }
     }
 }

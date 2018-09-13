@@ -31,7 +31,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                 var pipeline = new MyConcatTransform(env, "Features", "SepalLength", "SepalWidth", "PetalLength", "PetalWidth")
                     .Append(new TermEstimator(env, "Label"), TransformerScope.TrainTest)
                     .Append(new MyOva(env, sdcaTrainer))
-                    .Append(new MyKeyToValueTransform(env, "PredictedLabel"));
+                    .Append(new KeyToValueEstimator(env, "PredictedLabel"));
 
                 var model = pipeline.Fit(data);
             }

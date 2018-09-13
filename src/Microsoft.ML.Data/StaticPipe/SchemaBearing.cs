@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data.StaticPipe.Runtime;
 using Microsoft.ML.Runtime;
@@ -18,8 +19,22 @@ namespace Microsoft.ML.Data.StaticPipe
     /// <typeparam name="TTupleShape"></typeparam>
     public abstract class SchemaBearing<TTupleShape>
     {
-        private protected readonly IHostEnvironment Env;
+        protected internal readonly IHostEnvironment Env;
         internal readonly StaticSchemaShape Shape;
+
+        private StaticPipeUtils.IndexHelper<TTupleShape> _indexer;
+        /// <summary>
+        /// The indexer for the object. Note component authors will not access this directly but should instead
+        /// work via the public method <see cref="StaticPipeUtils.IndexHelper{T}.IndexHelper(SchemaBearing{T})"/>
+        /// </summary>
+        internal StaticPipeUtils.IndexHelper<TTupleShape> Indexer
+        {
+            get {
+                if (_indexer == null)
+                    Interlocked.CompareExchange(ref _indexer, new StaticPipeUtils.IndexHelper<TTupleShape>(this), null);
+                return _indexer;
+            }
+        }
 
         /// <summary>
         /// Constructor for a block maker.

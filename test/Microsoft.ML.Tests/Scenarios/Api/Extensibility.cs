@@ -46,7 +46,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                 var scoreRoles = new RoleMappedData(concat, label: "Label", feature: "Features");
                 IDataScorerTransform scorer = ScoreUtils.GetScorer(predictor, scoreRoles, env, trainRoles.Schema);
 
-                var keyToValue = new KeyToValueTransform(env, scorer, "PredictedLabel");
+                var keyToValue = new KeyToValueTransform(env, "PredictedLabel").Transform(scorer);
                 var model = env.CreatePredictionEngine<IrisData, IrisPrediction>(keyToValue);
 
                 var testLoader = TextLoader.ReadFile(env, MakeIrisTextLoaderArgs(), new MultiFileSource(dataPath));

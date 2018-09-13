@@ -160,15 +160,6 @@ namespace FakeStaticPipes
             => _rec.VarVector<Key<uint, T>>(me);
     }
 
-    public static class KeyToVectorTransformExtensions
-    {
-        private static FakeTransformReconciler _rec = new FakeTransformReconciler("KeyToVector");
-
-        public static Vector<float> BagVectorize<T>(this VarVector<Key<T>> me)
-            => _rec.Vector<float>(me);
-        public static Vector<float> BagVectorize<T, TVal>(this VarVector<Key<T, TVal>> me)
-            => _rec.Vector<float>(me);
-    }
 
     public static class TextTransformExtensions
     {
