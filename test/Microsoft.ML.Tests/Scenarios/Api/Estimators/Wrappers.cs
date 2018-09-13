@@ -327,51 +327,6 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         }
     }
 
-    public class MyKeyToValueTransform : IEstimator<TransformWrapper>
-    {
-        private readonly IHostEnvironment _env;
-        private readonly string _name;
-        private readonly string _source;
-
-        public MyKeyToValueTransform(IHostEnvironment env, string name, string source = null)
-        {
-            _env = env;
-            _name = name;
-            _source = source;
-        }
-
-        public TransformWrapper Fit(IDataView input)
-        {
-            var xf = new KeyToValueTransform(_env, input, _name, _source);
-            var empty = new EmptyDataView(_env, input.Schema);
-            var chunk = ApplyTransformUtils.ApplyAllTransformsToData(_env, xf, empty, input);
-            return new TransformWrapper(_env, chunk);
-        }
-
-        public SchemaShape GetOutputSchema(SchemaShape inputSchema)
-        {
-            throw new NotImplementedException();
-        }
-    }
-
-    public sealed class MyPredictionEngine<TSrc, TDst>
-                where TSrc : class
-                where TDst : class, new()
-    {
-        private readonly PredictionEngine<TSrc, TDst> _engine;
-
-        public MyPredictionEngine(IHostEnvironment env, ITransformer pipe)
-        {
-            IDataView dv = env.CreateDataView(new TSrc[0]);
-            _engine = env.CreatePredictionEngine<TSrc, TDst>(pipe.Transform(dv));
-        }
-
-        public TDst Predict(TSrc example)
-        {
-            return _engine.Predict(example);
-        }
-    }
-
     public sealed class MyBinaryClassifierEvaluator
     {
         private readonly IHostEnvironment _env;

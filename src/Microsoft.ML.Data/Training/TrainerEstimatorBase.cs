@@ -40,11 +40,6 @@ namespace Microsoft.ML.Runtime.Training
         /// </summary>
         public readonly SchemaShape.Column WeightColumn;
 
-        /// <summary>
-        /// The columns that will be created by the fitted transformer.
-        /// </summary>
-        protected abstract SchemaShape.Column[] OutputColumns { get; }
-
         protected readonly IHost Host;
 
         /// <summary>
@@ -76,11 +71,16 @@ namespace Microsoft.ML.Runtime.Training
             CheckInputSchema(inputSchema);
 
             var outColumns = inputSchema.Columns.ToDictionary(x => x.Name);
-            foreach (var col in OutputColumns)
+            foreach (var col in GetOutputColumnsCore(inputSchema))
                 outColumns[col.Name] = col;
 
             return new SchemaShape(outColumns.Values);
         }
+
+        /// <summary>
+        /// The columns that will be created by the fitted transformer.
+        /// </summary>
+        protected abstract SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema);
 
         public TModel Train(TrainContext context)
         {

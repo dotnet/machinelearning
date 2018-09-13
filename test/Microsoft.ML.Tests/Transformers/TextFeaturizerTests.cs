@@ -34,17 +34,16 @@ namespace Microsoft.ML.Tests.Transformers
                 .Read(new MultiFileSource(sentimentDataPath))
                 .AsDynamic;
 
-            //var feat = Estimator.MakeNew(data)
-            //     .Append(row => row.text.FeaturizeText(advancedSettings: s => { s.OutputTokens = true; }));
-            var feat = new TextTransform(Env, "text", "Data", advancedSettings: s => { s.OutputTokens = true; });
+            var feat = data.MakeNewEstimator()
+                 .Append(row => row.text.FeaturizeText(advancedSettings: s => { s.OutputTokens = true; }));
 
-            TestEstimatorCore(feat, data.AsDynamic, invalidInput: invalidData);
+            TestEstimatorCore(feat.AsDynamic, data.AsDynamic, invalidInput: invalidData);
 
             var outputPath = GetOutputPath("Text", "featurized.tsv");
             using (var ch = Env.Start("save"))
             {
                 var saver = new TextSaver(Env, new TextSaver.Arguments { Silent = true });
-                IDataView savedData = TakeFilter.Create(Env, feat.Fit(data.AsDynamic).Transform(data.AsDynamic), 4);
+                IDataView savedData = TakeFilter.Create(Env, feat.Fit(data).Transform(data).AsDynamic, 4);
                 savedData = new ChooseColumnsTransform(Env, savedData, "Data", "Data_TransformedText");
 
                 using (var fs = File.Create(outputPath))

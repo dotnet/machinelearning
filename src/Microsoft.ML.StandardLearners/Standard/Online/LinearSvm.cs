@@ -48,7 +48,7 @@ namespace Microsoft.ML.Runtime.Learners
         {
             [Argument(ArgumentType.AtMostOnce, HelpText = "Regularizer constant", ShortName = "lambda", SortOrder = 50)]
             [TGUI(SuggestedSweeps = "0.00001-0.1;log;inc:10")]
-            [TlcModule.SweepableFloatParamAttribute("Lambda", 0.00001f, 0.1f, 10, isLogScale:true)]
+            [TlcModule.SweepableFloatParamAttribute("Lambda", 0.00001f, 0.1f, 10, isLogScale: true)]
             public Float Lambda = (Float)0.001;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Batch size", ShortName = "batch", SortOrder = 190)]
@@ -56,7 +56,7 @@ namespace Microsoft.ML.Runtime.Learners
             public int BatchSize = 1;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Perform projection to unit-ball? Typically used with batch size > 1.", ShortName = "project", SortOrder = 50)]
-            [TlcModule.SweepableDiscreteParam("PerformProjection", null, isBool:true)]
+            [TlcModule.SweepableDiscreteParam("PerformProjection", null, isBool: true)]
             public bool PerformProjection = false;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "No bias")]
@@ -93,7 +93,7 @@ namespace Microsoft.ML.Runtime.Learners
 
             Args = args;
 
-            OutputColumns = new[]
+            _outputColumns = new[]
             {
                 new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false),
                 new SchemaShape.Column(DefaultColumnNames.Probability, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false),
@@ -103,7 +103,9 @@ namespace Microsoft.ML.Runtime.Learners
 
         public override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
 
-        protected override SchemaShape.Column[] OutputColumns { get; }
+        private readonly SchemaShape.Column[] _outputColumns;
+
+        protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema) => _outputColumns;
 
         protected override void CheckLabel(RoleMappedData data)
         {

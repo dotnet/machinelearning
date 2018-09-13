@@ -56,7 +56,7 @@ namespace Microsoft.ML.Runtime.Learners
         {
             LossFunction = args.LossFunction.CreateComponent(env);
 
-            OutputColumns = new[]
+            _outputColumns = new[]
             {
                 new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Vector, NumberType.R4, false)
             };
@@ -64,7 +64,8 @@ namespace Microsoft.ML.Runtime.Learners
 
         public override PredictionKind PredictionKind => PredictionKind.Regression;
 
-        protected override SchemaShape.Column[] OutputColumns { get; }
+        private readonly SchemaShape.Column[] _outputColumns;
+        protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema) => _outputColumns;
 
         protected override void CheckLabel(RoleMappedData data)
         {

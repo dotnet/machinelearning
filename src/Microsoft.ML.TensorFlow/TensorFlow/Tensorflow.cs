@@ -4,8 +4,6 @@
 
 using System;
 using System.Runtime.InteropServices;
-using System.Text;
-using System.Globalization;
 using System.Linq;
 
 // We use this TF_Xxx as the native "TF_Xxx *" as those are opaque
@@ -24,9 +22,7 @@ using TF_Function = System.IntPtr;
 using TF_DeviceList = System.IntPtr;
 
 using size_t = System.UIntPtr;
-using System.Numerics;
 using System.Collections.Generic;
-using System.Linq.Expressions;
 
 #pragma warning disable MSML_GeneralName
 #pragma warning disable MSML_PrivateFieldName

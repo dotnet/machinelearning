@@ -161,6 +161,23 @@ namespace Microsoft.ML.Data.StaticPipe.Runtime
             return retVal;
         }
 
+        /// <summary>
+        /// Given a schema shape defining instance, return the pairs of names and values, based on a recursive
+        /// traversal of the value-tuple. If in that list the value <c>a.b.c</c> is paired with an item <c>x</c>,
+        /// then programmatically <paramref name="record"/> when accessed as <paramref name="record"/><c>.a.b.c</c>
+        /// would be that item <c>x</c>.
+        /// </summary>
+        /// <typeparam name="T">The schema shape defining type.</typeparam>
+        /// <param name="record">The instance of that schema shape defining type, whose items will
+        /// populate the <see cref="KeyValuePair{TKey, TValue}.Value"/> fields of the returned items.</param>
+        /// <param name="pInfo">It is an implementation detail of the value-tuple type that the names
+        /// are not associated with the type at all, but there is instead an illusion propagated within
+        /// Visual Studio, that works via attributes. Programmatic access to this is limited, except that
+        /// a <see cref="TupleElementNamesAttribute"/> is attached to the type in appropriate places, e.g.,
+        /// in a delegate one of the parameters, or the return parameter, or somesuch. If present, the names
+        /// will be extracted from that structure, and if not the default names of <c>Item1</c>, <c>Item2</c>,
+        /// etc. will be used.</param>
+        /// <returns>The set of names and corresponding values.</returns>
         public static KeyValuePair<string, PipelineColumn>[] GetNamesValues<T>(T record, ParameterInfo pInfo)
             => GetNamesValues<T, PipelineColumn>(record, pInfo);
 

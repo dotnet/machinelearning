@@ -15777,9 +15777,7 @@ namespace Microsoft.ML
     namespace Transforms
     {
 
-        /// <summary>
-        /// Transforms the data using the TensorFlow model.
-        /// </summary>
+        /// <include file='../Microsoft.ML.TensorFlow/doc.xml' path='doc/members/member[@name="TensorflowTransform"]/*' />
         public sealed partial class TensorFlowScorer : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.ILearningPipelineItem
         {
 
