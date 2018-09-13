@@ -765,6 +765,15 @@ namespace Microsoft.ML.Transforms.TensorFlow
             }
         }
 
+        // extern TF_Output TF_OperationInput (TF_Input oper_in);
+        [DllImport(NativeBinding.TensorFlowLibrary)]
+        private static extern TFOutput TF_OperationInput(TFInput oper_in);
+
+        public TFOutput GetInput(int idx)
+        {
+            return TF_OperationInput(new TFInput() { Operation = handle, Index = idx });
+        }
+
         [DllImport(NativeBinding.TensorFlowLibrary)]
         private static extern IntPtr TF_OperationName(TF_Operation oper);
 
@@ -1828,15 +1837,6 @@ namespace Microsoft.ML.Transforms.TensorFlow
         /// The index of the output within the Operation
         /// </summary>
         public int Index;
-
-        // extern TF_Output TF_OperationInput (TF_Input oper_in);
-        [DllImport(NativeBinding.TensorFlowLibrary)]
-        private static extern TFOutput TF_OperationInput(TFInput oper_in);
-
-        public TFOutput GetOutput(TFInput operIn)
-        {
-            return TF_OperationInput(operIn);
-        }
 
         // extern TF_DataType TF_OperationInputType (TF_Input oper_in);
         [DllImport(NativeBinding.TensorFlowLibrary)]

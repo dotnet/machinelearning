@@ -187,12 +187,21 @@ namespace Microsoft.ML.Scenarios
             {
                 var model_location = "mnist_model/frozen_saved_model.pb";
                 var schema = TensorFlowUtils.GetModelSchema(env, model_location);
-                Assert.Equal(46, schema.ColumnCount);
+                Assert.Equal(54, schema.ColumnCount);
                 Assert.True(schema.TryGetColumnIndex("Placeholder", out int col));
                 var type = schema.GetColumnType(col).AsVector;
                 Assert.Equal(2, type.DimCount);
                 Assert.Equal(28, type.GetDim(0));
                 Assert.Equal(28, type.GetDim(1));
+                var metadataType = schema.GetMetadataTypeOrNull(TensorFlowUtils.OpType, col);
+                Assert.NotNull(metadataType);
+                Assert.True(metadataType.IsText);
+                DvText opType = default;
+                schema.GetMetadata(TensorFlowUtils.OpType, col, ref opType);
+                Assert.True(opType.EqualsStr("Placeholder"));
+                metadataType = schema.GetMetadataTypeOrNull(TensorFlowUtils.InputOps, col);
+                Assert.Null(metadataType);
+
                 Assert.True(schema.TryGetColumnIndex("conv2d/Conv2D/ReadVariableOp", out col));
                 type = schema.GetColumnType(col).AsVector;
                 Assert.Equal(4, type.DimCount);
@@ -200,10 +209,50 @@ namespace Microsoft.ML.Scenarios
                 Assert.Equal(5, type.GetDim(1));
                 Assert.Equal(1, type.GetDim(2));
                 Assert.Equal(32, type.GetDim(3));
+                metadataType = schema.GetMetadataTypeOrNull(TensorFlowUtils.OpType, col);
+                Assert.NotNull(metadataType);
+                Assert.True(metadataType.IsText);
+                schema.GetMetadata(TensorFlowUtils.OpType, col, ref opType);
+                Assert.True(opType.EqualsStr("Identity"));
+                metadataType = schema.GetMetadataTypeOrNull(TensorFlowUtils.InputOps, col);
+                Assert.NotNull(metadataType);
+                VBuffer<DvText> inputOps = default;
+                schema.GetMetadata(TensorFlowUtils.InputOps, col, ref inputOps);
+                Assert.Equal(1, inputOps.Length);
+                Assert.True(inputOps.Values[0].EqualsStr("conv2d/kernel"));
+
+                Assert.True(schema.TryGetColumnIndex("conv2d/Conv2D", out col));
+                type = schema.GetColumnType(col).AsVector;
+                Assert.Equal(3, type.DimCount);
+                Assert.Equal(28, type.GetDim(0));
+                Assert.Equal(28, type.GetDim(1));
+                Assert.Equal(32, type.GetDim(2));
+                metadataType = schema.GetMetadataTypeOrNull(TensorFlowUtils.OpType, col);
+                Assert.NotNull(metadataType);
+                Assert.True(metadataType.IsText);
+                schema.GetMetadata(TensorFlowUtils.OpType, col, ref opType);
+                Assert.True(opType.EqualsStr("Conv2D"));
+                metadataType = schema.GetMetadataTypeOrNull(TensorFlowUtils.InputOps, col);
+                Assert.NotNull(metadataType);
+                schema.GetMetadata(TensorFlowUtils.InputOps, col, ref inputOps);
+                Assert.Equal(2, inputOps.Length);
+                Assert.True(inputOps.Values[0].EqualsStr("reshape/Reshape"));
+                Assert.True(inputOps.Values[1].EqualsStr("conv2d/Conv2D/ReadVariableOp"));
+
                 Assert.True(schema.TryGetColumnIndex("Softmax", out col));
                 type = schema.GetColumnType(col).AsVector;
                 Assert.Equal(1, type.DimCount);
                 Assert.Equal(10, type.GetDim(0));
+                metadataType = schema.GetMetadataTypeOrNull(TensorFlowUtils.OpType, col);
+                Assert.NotNull(metadataType);
+                Assert.True(metadataType.IsText);
+                schema.GetMetadata(TensorFlowUtils.OpType, col, ref opType);
+                Assert.True(opType.EqualsStr("Softmax"));
+                metadataType = schema.GetMetadataTypeOrNull(TensorFlowUtils.InputOps, col);
+                Assert.NotNull(metadataType);
+                schema.GetMetadata(TensorFlowUtils.InputOps, col, ref inputOps);
+                Assert.Equal(1, inputOps.Length);
+                Assert.True(inputOps.Values[0].EqualsStr("sequential/dense_1/BiasAdd"));
 
                 model_location = "model_matmul/frozen_saved_model.pb";
                 schema = TensorFlowUtils.GetModelSchema(env, model_location);

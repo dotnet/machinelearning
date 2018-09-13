@@ -12,12 +12,13 @@ using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.ImageAnalytics.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Utilities;
 
-using TF_Operation = System.IntPtr;
-
 namespace Microsoft.ML.Transforms.TensorFlow
 {
     public static class TensorFlowUtils
     {
+        public const string OpType = "OpType";
+        public const string InputOps = "InputOps";
+
         // This method is needed for the Pipeline API, since ModuleCatalog does not load entry points that are located
         // in assemblies that aren't directly used in the code. Users who want to use TensorFlow components will have to call
         // TensorFlowUtils.Initialize() before creating the pipeline.
@@ -32,26 +33,46 @@ namespace Microsoft.ML.Transforms.TensorFlow
         private static unsafe ISchema GetModelSchema(IExceptionContext ectx, TFGraph graph)
         {
             var res = new List<KeyValuePair<string, ColumnType>>();
+            var opTypeGetters = new List<MetadataUtils.MetadataGetter<DvText>>();
+            var inputOpsGetters = new List<MetadataUtils.MetadataGetter<VBuffer<DvText>>>();
+            var inputOpsLengths = new List<int>();
             foreach (var oper in graph)
             {
                 if (oper.NumOutputs != 1)
-                    continue;
-
-                if (oper.NumInputs == 0 && oper.OpType != "Placeholder")
                     continue;
 
                 var tfType = oper[0].OutputType;
                 var mlType = Tf2MlNetTypeOrNull(tfType);
                 if (mlType == null)
                     continue;
+
                 var shape = graph.GetTensorShape(oper[0]);
                 var shapeArray = shape.ToIntArray();
+
+                inputOpsLengths.Add(oper.NumInputs);
+                MetadataUtils.MetadataGetter<VBuffer<DvText>> inputOpsGetter = null;
+                if (oper.NumInputs > 0)
+                {
+                    var inputOps = new DvText[oper.NumInputs];
+                    for (int i = 0; i < oper.NumInputs; i++)
+                    {
+                        var input = oper.GetInput(i);
+                        inputOps[i] = new DvText(input.Operation.Name);
+                    }
+                    inputOpsGetter = (int col, ref VBuffer<DvText> dst) => dst = new VBuffer<DvText>(oper.NumInputs, inputOps);
+                }
+                inputOpsGetters.Add(inputOpsGetter);
+
+                var opType = oper.OpType;
+                MetadataUtils.MetadataGetter<DvText> opTypeGetter = (int col, ref DvText dst) => dst = new DvText(opType);
+                opTypeGetters.Add(opTypeGetter);
+
                 var columnType = Utils.Size(shapeArray) > 0 && shapeArray.Skip(1).All(x => x > 0) ?
                     new VectorType(mlType, shapeArray[0] > 0 ? shapeArray : shapeArray.Skip(1).ToArray())
                     : new VectorType(mlType);
                 res.Add(new KeyValuePair<string, ColumnType>(oper.Name, columnType));
             }
-            return new SimpleSchema(ectx, res.ToArray());
+            return new TensorFlowSchema(ectx, res.ToArray(), opTypeGetters.ToArray(), inputOpsGetters.ToArray(), inputOpsLengths.ToArray());
         }
 
         public static ISchema GetModelSchema(IExceptionContext ectx, string modelFile)
@@ -134,6 +155,55 @@ namespace Microsoft.ML.Transforms.TensorFlow
                     return true;
                 default:
                     return false;
+            }
+        }
+
+        private sealed class TensorFlowSchema : SimpleSchemaBase
+        {
+            private readonly MetadataUtils.MetadataGetter<DvText>[] _opTypeGetters;
+            private readonly MetadataUtils.MetadataGetter<VBuffer<DvText>>[] _inputOpsGetters;
+            private readonly int[] _inputOpsLengths;
+
+            public TensorFlowSchema(IExceptionContext ectx, KeyValuePair<string, ColumnType>[] columns,
+                MetadataUtils.MetadataGetter<DvText>[] opTypeGetters, MetadataUtils.MetadataGetter<VBuffer<DvText>>[] inputOpsGetters, int[] inputOpsLengths)
+                : base(ectx, columns)
+            {
+                ectx.CheckParam(Utils.Size(opTypeGetters) == ColumnCount, nameof(opTypeGetters));
+                ectx.CheckParam(Utils.Size(inputOpsGetters) == ColumnCount, nameof(inputOpsGetters));
+                ectx.CheckParam(Utils.Size(inputOpsLengths) == ColumnCount, nameof(inputOpsLengths));
+
+                _opTypeGetters = opTypeGetters;
+                _inputOpsGetters = inputOpsGetters;
+                _inputOpsLengths = inputOpsLengths;
+            }
+
+            protected override void GetMetadataCore<TValue>(string kind, int col, ref TValue value)
+            {
+                Ectx.Assert(0 <= col && col < ColumnCount);
+                if (kind == OpType)
+                    _opTypeGetters[col].Marshal(col, ref value);
+                else if (kind == InputOps && _inputOpsGetters[col] != null)
+                    _inputOpsGetters[col].Marshal(col, ref value);
+                else
+                    throw Ectx.ExceptGetMetadata();
+            }
+
+            protected override ColumnType GetMetadataTypeOrNullCore(string kind, int col)
+            {
+                Ectx.Assert(0 <= col && col < ColumnCount);
+                if (kind == OpType)
+                    return TextType.Instance;
+                if (kind == InputOps && _inputOpsGetters[col] != null)
+                    return new VectorType(TextType.Instance, _inputOpsLengths[col]);
+                return null;
+            }
+
+            protected override IEnumerable<KeyValuePair<string, ColumnType>> GetMetadataTypesCore(int col)
+            {
+                Ectx.Assert(0 <= col && col < ColumnCount);
+                yield return new KeyValuePair<string, ColumnType>(OpType, TextType.Instance);
+                if (_inputOpsGetters[col] != null)
+                    yield return new KeyValuePair<string, ColumnType>(InputOps, new VectorType(TextType.Instance, _inputOpsLengths[col]));
             }
         }
     }
