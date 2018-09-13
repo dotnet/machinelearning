@@ -51,13 +51,14 @@ namespace Microsoft.ML.Transforms
         }
 
         private readonly IHost _host;
-        private static string _savedModel;
         private const string RegistrationName = "TensorFlowTransform";
-        private const string TempSavedModelDirName = "MLNET_TensorFlowTransform_SavedModel";
-        private const string TempSavedModelZipName = "SavedModel.zip";
+        private const string SavedModelVariablesDirName = "variables";
 
         internal readonly TFSession Session;
         internal readonly bool IsFrozen;
+        internal readonly string ModelPath;
+        internal readonly Dictionary<string, byte[]> SavedModel;
+
         internal readonly ColumnType[] OutputTypes;
         internal readonly TFDataType[] TFOutputTypes;
         internal readonly TFDataType[] TFInputTypes;
@@ -126,25 +127,43 @@ namespace Microsoft.ML.Transforms
             }
             else
             {
-                // Load model binary
-                byte[] tfFilesBin = null;
-                var load = ctx.TryLoadBinaryStream("TFSavedModel", br => tfFilesBin = br.ReadByteArray());
+                Dictionary<string, byte[]> savedModel = new Dictionary<string, byte[]>();
+                var load = ctx.TryLoadBinaryStream("TFSavedModel", br =>
+                {
+                    int count = br.ReadInt32();
+                    for (int n = 0; n < count; n++)
+                    {
+                        string key = br.ReadString();
+                        byte[] value = br.ReadByteArray();
+                        savedModel.Add(key, value);
+                    }
+                });
 
-                if (File.Exists(TempSavedModelZipName))
-                    File.Delete(TempSavedModelZipName);
+                var tempDirPath = Path.GetFullPath(Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString()));
+                var tempDirInfo = Directory.CreateDirectory(tempDirPath);
+                foreach (var kvp in savedModel)
+                {
+                    string fileName = Path.Combine(tempDirInfo.FullName, kvp.Key);
+                    if (kvp.Key.StartsWith(SavedModelVariablesDirName))
+                    {
+                        var variabledDirInfo = new DirectoryInfo(Path.Combine(tempDirPath, SavedModelVariablesDirName));
+                        if (!variabledDirInfo.Exists)
+                            Directory.CreateDirectory(variabledDirInfo.FullName);
 
-                File.WriteAllBytes(TempSavedModelZipName, tfFilesBin);
-                _savedModel = Path.GetFullPath(Path.Combine(Path.GetTempPath(), TempSavedModelDirName));
-                DirectoryInfo dir = new DirectoryInfo(_savedModel);
-                if (dir.Exists)
-                    Directory.Delete(_savedModel, true);
+                        var tokens = kvp.Key.Split(Path.DirectorySeparatorChar);
+                        fileName = Path.Combine(variabledDirInfo.FullName, tokens[1]);
+                    }
 
-                ZipFile.ExtractToDirectory(TempSavedModelZipName, _savedModel);
+                    using (var fs = new FileStream(fileName, FileMode.Create, FileAccess.Write))
+                    {
+                        fs.Write(kvp.Value, 0, kvp.Value.Length);
+                    }
+                }
+
+                var session = GetSession(env, tempDirPath, (isFrozen == 1));
                 var io = ModelInputsOutputs(env, ctx);
-                var session = GetSession(env, _savedModel, (isFrozen == 1));
-                File.Delete(TempSavedModelZipName);
-
-                return new TensorFlowTransform(env, session, io.Item1, io.Item2, (isFrozen == 1));
+                Directory.Delete(tempDirPath, true);
+                return new TensorFlowTransform(env, session, io.Item1, io.Item2, (isFrozen == 1), savedModel);
             }
         }
 
@@ -237,22 +256,22 @@ namespace Microsoft.ML.Transforms
         }
 
         public TensorFlowTransform(IHostEnvironment env, string model, string[] inputs, string[] outputs, bool isFrozen = TensorFlowEstimator.Defaults.IsFrozen) :
-            this(env, GetSession(env, model, isFrozen), inputs, outputs, isFrozen)
+            this(env, GetSession(env, model, isFrozen), inputs, outputs, isFrozen, null)
         {
-            if (!isFrozen)
-                _savedModel = model;
+            ModelPath = model;
         }
 
         private TensorFlowTransform(IHostEnvironment env, byte[] modelBytes, string[] inputs, string[] outputs, bool isFrozen) :
-            this(env, LoadTFSession(env, modelBytes), inputs, outputs, isFrozen)
+            this(env, LoadTFSession(env, modelBytes), inputs, outputs, isFrozen, null)
         { }
 
-        private TensorFlowTransform(IHostEnvironment env, TFSession session, string[] inputs, string[] outputs, bool isFrozen)
+        private TensorFlowTransform(IHostEnvironment env, TFSession session, string[] inputs, string[] outputs, bool isFrozen, Dictionary<string, byte[]> savedModel)
         {
             Contracts.CheckValue(env, nameof(env));
             _host = env.Register(nameof(RegistrationName));
             Session = session;
             IsFrozen = isFrozen;
+            SavedModel = savedModel;
 
             foreach (var input in inputs)
             {
@@ -351,18 +370,29 @@ namespace Microsoft.ML.Transforms
             }
             else
             {
-                if (File.Exists(TempSavedModelZipName))
-                    File.Delete(TempSavedModelZipName);
+                var savedModel = new Dictionary<string, byte[]>();
+                if (!string.IsNullOrEmpty(ModelPath))
+                {
+                    string[] modelFilePaths = Directory.GetFiles(ModelPath, "*", SearchOption.AllDirectories);
+                    foreach (var path in modelFilePaths)
+                    {
+                        var relativePath = path.Remove(0, ModelPath.Length).Trim(Path.DirectorySeparatorChar);
+                        savedModel[relativePath] = File.ReadAllBytes(path);
+                    }
+                }
+                else
+                    savedModel = SavedModel;
 
-                ZipFile.CreateFromDirectory(_savedModel, TempSavedModelZipName, CompressionLevel.Fastest, false);
-
-                var byteArray = File.ReadAllBytes(TempSavedModelZipName);
                 ctx.SaveBinaryStream("TFSavedModel", w =>
                 {
-                    w.WriteByteArray(byteArray);
+                    w.Write(savedModel.Count);
+                    foreach (var kvp in savedModel)
+                    {
+                        w.Write(kvp.Key);
+                        w.WriteByteArray(kvp.Value);
+                    }
+                    w.Flush();
                 });
-
-                File.Delete(TempSavedModelZipName);
             }
             _host.AssertNonEmpty(Inputs);
             ctx.Writer.Write(Inputs.Length);
