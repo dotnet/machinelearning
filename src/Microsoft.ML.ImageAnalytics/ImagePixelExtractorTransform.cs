@@ -505,30 +505,30 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
                         if (ex.Interleave)
                         {
                             int idst = 0;
-                            for (int y = 0; y < h; ++y)
-                                for (int x = 0; x < w; x++)
+                            for (int x = 0; x < w; x++)
+                                for (int y = 0; y < h; ++y)
                                 {
-                                    var pb = src.GetPixel(y, x);
+                                    var pb = src.GetPixel(x, y);
                                     if (vb != null)
                                     {
-                                        if (a) { vb[idst++] = (byte)0; }
+                                        if (a) { vb[idst++] = pb.A; }
                                         if (r) { vb[idst++] = pb.R; }
                                         if (g) { vb[idst++] = pb.G; }
                                         if (b) { vb[idst++] = pb.B; }
                                     }
                                     else if (!needScale)
                                     {
-                                        if (a) { vf[idst++] = 0.0f; }
+                                        if (a) { vf[idst++] = pb.A; }
                                         if (r) { vf[idst++] = pb.R; }
                                         if (g) { vf[idst++] = pb.G; }
                                         if (b) { vf[idst++] = pb.B; }
                                     }
                                     else
                                     {
-                                        if (a) { vf[idst++] = 0.0f; }
+                                        if (a) { vf[idst++] = (pb.A - offset) * scale; }
                                         if (r) { vf[idst++] = (pb.R - offset) * scale; }
-                                        if (g) { vf[idst++] = (pb.B - offset) * scale; }
-                                        if (b) { vf[idst++] = (pb.G - offset) * scale; }
+                                        if (g) { vf[idst++] = (pb.G - offset) * scale; }
+                                        if (b) { vf[idst++] = (pb.B - offset) * scale; }
                                     }
                                 }
                             Contracts.Assert(idst == size);
