@@ -582,7 +582,7 @@ namespace Microsoft.ML.Runtime.RunTests
             var dataView = ImportTextData.ImportText(Env, new ImportTextData.Input { InputFile = inputFile }).Data;
 #pragma warning restore 0618
 
-            var cat = CategoricalTransform.Create(Env, dataView, "Categories", "Features");
+            var cat = CategoricalTransform.Create(Env, dataView, "Features", "Categories");
             var fastTrees = new IPredictorModel[3];
             for (int i = 0; i < 3; i++)
             {
