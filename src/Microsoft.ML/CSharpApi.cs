@@ -15788,11 +15788,6 @@ namespace Microsoft.ML
             public string Model { get; set; }
 
             /// <summary>
-            /// Indicator for frozen models
-            /// </summary>
-            public bool IsFrozen { get; set; } = true;
-
-            /// <summary>
             /// The names of the model inputs
             /// </summary>
             public string[] InputColumns { get; set; }

@@ -407,7 +407,7 @@ namespace Microsoft.ML.Scenarios
                 }, cropped);
 
 
-                IDataView trans = TensorFlowTransform.Create(env, pixels, model_location, new[] { "Output" }, new[] { "Input" }, false);
+                IDataView trans = TensorFlowTransform.Create(env, pixels, model_location, new[] { "Output" }, new[] { "Input" });
 
                 trans.Schema.TryGetColumnIndex("Output", out int output);
                 using (var cursor = trans.GetRowCursor(col => col == output))

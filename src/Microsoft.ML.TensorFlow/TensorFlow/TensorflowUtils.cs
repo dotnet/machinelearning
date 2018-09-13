@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using Microsoft.ML.Runtime;
@@ -72,6 +73,18 @@ namespace Microsoft.ML.Transforms.TensorFlow
                 default:
                     return false;
             }
+        }
+
+        // A TensorFlow frozen model is a single file. An un-frozen (SavedModel) on the other hand has a well-defined folder structure.
+        // Given a modelPath, this utility method determines if we should treat it as a frozen model or not
+        internal static bool IsFrozenTensorFlowModel(string modelPath)
+        {
+            FileAttributes attr = File.GetAttributes(modelPath);
+
+            if (attr.HasFlag(FileAttributes.Directory))
+                return false;
+            else
+                return true;
         }
     }
 }

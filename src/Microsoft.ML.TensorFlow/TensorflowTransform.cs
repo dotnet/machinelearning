@@ -42,8 +42,8 @@ namespace Microsoft.ML.Transforms
             [Argument(ArgumentType.Required, HelpText = "TensorFlow model used by the transform. Please see https://www.tensorflow.org/mobile/prepare_models for more details.", SortOrder = 0)]
             public string Model;
 
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Indicator for frozen models", ShortName = "frozen", SortOrder = 1)]
-            public bool IsFrozen = TensorFlowEstimator.Defaults.IsFrozen;
+            //[Argument(ArgumentType.AtMostOnce, HelpText = "Indicator for frozen models", ShortName = "frozen", SortOrder = 1)]
+            //public bool IsFrozen = TensorFlowEstimator.Defaults.IsFrozen;
 
             [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "The names of the model inputs", ShortName = "inputs", SortOrder = 2)]
             public string[] InputColumns;
@@ -96,10 +96,9 @@ namespace Microsoft.ML.Transforms
         /// <param name="model">This is the frozen tensorflow model file. https://www.tensorflow.org/mobile/prepare_models </param>
         /// <param name="names">Name of the output column(s). Keep it same as in the Tensorflow model.</param>
         /// <param name="source">Name of the input column(s). Keep it same as in the Tensorflow model.</param>
-        /// <param name="isFrozen">Indicator for frozen models</param>
-        public static IDataTransform Create(IHostEnvironment env, IDataView input, string model, string[] names, string[] source, bool isFrozen = TensorFlowEstimator.Defaults.IsFrozen)
+        public static IDataTransform Create(IHostEnvironment env, IDataView input, string model, string[] names, string[] source)
         {
-            return new TensorFlowTransform(env, model,  source, names, isFrozen).MakeDataTransform(input);
+            return new TensorFlowTransform(env, model, source, names).MakeDataTransform(input);
         }
 
         // Factory method for SignatureLoadModel.
@@ -120,7 +119,7 @@ namespace Microsoft.ML.Transforms
             //   int: id of output column name
             bool isFrozen = true;
             bool isNonFrozenModelSupported = ctx.Header.ModelVerReadable >= 0x00010003;
-            if(isNonFrozenModelSupported)
+            if (isNonFrozenModelSupported)
                 isFrozen = ctx.Reader.ReadBoolByte();
 
             if (isFrozen)
@@ -167,7 +166,7 @@ namespace Microsoft.ML.Transforms
                     }
                 }
 
-                var session = GetSession(env, tempDirPath, isFrozen);
+                var session = GetSession(env, tempDirPath);
                 var io = ModelInputsOutputs(env, ctx);
                 Directory.Delete(tempDirPath, true);
                 return new TensorFlowTransform(env, session, io.Item1, io.Item2, isFrozen, savedModel);
@@ -182,7 +181,7 @@ namespace Microsoft.ML.Transforms
             env.CheckValue(input, nameof(input));
             env.CheckValue(args.InputColumns, nameof(args.InputColumns));
             env.CheckValue(args.OutputColumns, nameof(args.OutputColumns));
-            return new TensorFlowTransform(env, args.Model,  args.InputColumns,args.OutputColumns, args.IsFrozen).MakeDataTransform(input);
+            return new TensorFlowTransform(env, args.Model, args.InputColumns, args.OutputColumns).MakeDataTransform(input);
         }
 
         // Factory method for SignatureLoadDataTransform.
@@ -243,15 +242,16 @@ namespace Microsoft.ML.Transforms
             return TFSession.FromSavedModel(sessionOptions, null, exportDir, tags, graph, metaGraphDef);
         }
 
-        private static TFSession GetSession(IHostEnvironment env, string model, bool isFrozen)
+        private static TFSession GetSession(IHostEnvironment env, string modelPath)
         {
+            var isFrozen = TensorFlowUtils.IsFrozenTensorFlowModel(modelPath);
             if (isFrozen)
             {
-                byte[] modelBytes = CheckFileAndRead(env, model);
+                byte[] modelBytes = CheckFileAndRead(env, modelPath);
                 return LoadTFSession(env, modelBytes);
             }
             else
-                return LoadTFSession(env, model);
+                return LoadTFSession(env, modelPath);
         }
 
         private static byte[] CheckFileAndRead(IHostEnvironment env, string modelFile)
@@ -261,10 +261,11 @@ namespace Microsoft.ML.Transforms
             return File.ReadAllBytes(modelFile);
         }
 
-        public TensorFlowTransform(IHostEnvironment env, string model, string[] inputs, string[] outputs, bool isFrozen = TensorFlowEstimator.Defaults.IsFrozen) :
-            this(env, GetSession(env, model, isFrozen), inputs, outputs, isFrozen, null)
+        public TensorFlowTransform(IHostEnvironment env, string model, string[] inputs, string[] outputs) :
+            this(env, GetSession(env, model), inputs, outputs, true, null)
         {
             ModelPath = model;
+            IsFrozen = TensorFlowUtils.IsFrozenTensorFlowModel(ModelPath);
         }
 
         private TensorFlowTransform(IHostEnvironment env, byte[] modelBytes, string[] inputs, string[] outputs, bool isFrozen) :
@@ -686,13 +687,8 @@ namespace Microsoft.ML.Transforms
 
     public sealed class TensorFlowEstimator : TrivialEstimator<TensorFlowTransform>
     {
-
-        public static class Defaults
-        {
-            public const bool IsFrozen = true;
-        }
-        public TensorFlowEstimator(IHostEnvironment env, string modelFile, string[] inputs, string[] outputs, bool isFrozen = Defaults.IsFrozen )
-           : this(env, new TensorFlowTransform(env, modelFile,  inputs, outputs, isFrozen))
+        public TensorFlowEstimator(IHostEnvironment env, string modelFile, string[] inputs, string[] outputs)
+           : this(env, new TensorFlowTransform(env, modelFile, inputs, outputs))
         {
         }
 

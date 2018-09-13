@@ -21724,18 +21724,6 @@
           "IsNullable": false
         },
         {
-          "Name": "IsFrozen",
-          "Type": "Bool",
-          "Desc": "Indicator for frozen models",
-          "Aliases": [
-            "frozen"
-          ],
-          "Required": false,
-          "SortOrder": 1.0,
-          "IsNullable": false,
-          "Default": true
-        },
-        {
           "Name": "Data",
           "Type": "DataView",
           "Desc": "Input dataset",

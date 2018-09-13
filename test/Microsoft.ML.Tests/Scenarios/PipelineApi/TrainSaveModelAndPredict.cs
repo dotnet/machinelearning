@@ -74,7 +74,6 @@ namespace Microsoft.ML.Tests.Scenarios.PipelineApi
             pipeline.Add(new TensorFlowScorer()
             {
                 Model = model_location,
-                IsFrozen = false,
                 InputColumns = new[] { "Input" },
                 OutputColumns = new[] { "Output" },
             });
