@@ -49,7 +49,7 @@ namespace Microsoft.ML.Runtime.Learners
 
         public PredictionKind PredictionKind => PredictionKind.MultiClassClassification;
 
-        protected SchemaShape.Column[] OutputColumns { get; }
+        protected SchemaShape.Column[] OutputColumns;
 
         public TrainerInfo Info { get; }
 
@@ -72,7 +72,7 @@ namespace Microsoft.ML.Runtime.Learners
             Args = args;
 
             if (labelColumn != null)
-                LabelColumn = new SchemaShape.Column(labelColumn, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false);
+                LabelColumn = new SchemaShape.Column(labelColumn, SchemaShape.Column.VectorKind.Scalar, NumberType.U4, true);
 
             // Create the first trainer so errors in the args surface early.
             _trainer = singleEstimator ?? CreateTrainer();
@@ -180,10 +180,32 @@ namespace Microsoft.ML.Runtime.Learners
             }
 
             var outColumns = inputSchema.Columns.ToDictionary(x => x.Name);
-            foreach (var col in OutputColumns)
+            foreach (var col in GetOutputColumnsCore(inputSchema))
                 outColumns[col.Name] = col;
 
             return new SchemaShape(outColumns.Values);
+        }
+
+        private SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema)
+        {
+            if (LabelColumn != null)
+            {
+                bool success = inputSchema.TryFindColumn(LabelColumn.Name, out var labelCol);
+                Contracts.Assert(success);
+
+                var metadata = new SchemaShape(labelCol.Metadata.Columns.Where(x => x.Name == MetadataUtils.Kinds.KeyValues));
+                return new[]
+                {
+                    new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Vector, NumberType.R4, false),
+                    new SchemaShape.Column(DefaultColumnNames.PredictedLabel, SchemaShape.Column.VectorKind.Scalar, labelCol.ItemType, labelCol.IsKey, metadata)
+                };
+            }
+            else
+                return new[]
+                    {
+                    new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Vector, NumberType.R4, false),
+                    new SchemaShape.Column(DefaultColumnNames.PredictedLabel, SchemaShape.Column.VectorKind.Scalar, NumberType.U4, true)
+                };
         }
 
         IPredictor ITrainer.Train(TrainContext context) => Train(context);
