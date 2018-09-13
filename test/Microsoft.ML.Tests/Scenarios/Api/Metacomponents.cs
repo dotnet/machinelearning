@@ -5,7 +5,6 @@
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
-using Microsoft.ML.Runtime.Internal.Calibration;
 using Microsoft.ML.Runtime.Learners;
 using Xunit;
 
@@ -39,104 +38,6 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                 // Auto-normalization.
                 NormalizeTransform.CreateIfNeeded(env, ref trainRoles, trainer);
                 var predictor = trainer.Train(new TrainContext(trainRoles));
-            }
-        }
-
-        /// <summary>
-        /// OVA with calibrator argument
-        /// </summary>
-        [Fact]
-        public void New_OVAWithExplicitCalibrator()
-        {
-            var dataPath = GetDataPath(IrisDataPath);
-
-            using (var env = new TlcEnvironment())
-            {
-                var calibrator = new PavCalibratorTrainer(env);
-
-                var data = new TextLoader(env, MakeIrisTextLoaderArgs())
-                    .Read(new MultiFileSource(dataPath));
-
-                var sdcaTrainer = new LinearClassificationTrainer(env, new LinearClassificationTrainer.Arguments { MaxIterations = 100, Shuffle = true, NumThreads = 1 }, "Features", "Label");
-                var pipeline = new MyConcatTransform(env, "Features", "SepalLength", "SepalWidth", "PetalLength", "PetalWidth")
-                    .Append(new TermEstimator(env, "Label"), TransformerScope.TrainTest)
-                    .Append(new Ova(env, sdcaTrainer, "Label", calibrator: calibrator, maxCalibrationExamples: 990000))
-                    .Append(new KeyToValueEstimator(env, "PredictedLabel"));
-
-                var model = pipeline.Fit(data);
-            }
-        }
-
-        /// <summary>
-        /// OVA with all constructor args.
-        /// </summary>
-        [Fact]
-        public void New_OVAWithAllConstructorArgs()
-        {
-            var dataPath = GetDataPath(IrisDataPath);
-
-            using (var env = new TlcEnvironment())
-            {
-                var calibrator = new FixedPlattCalibratorTrainer(env, new FixedPlattCalibratorTrainer.Arguments());
-
-                var data = new TextLoader(env, MakeIrisTextLoaderArgs())
-                    .Read(new MultiFileSource(dataPath));
-
-                var averagePerceptron = new AveragedPerceptronTrainer(env, new AveragedPerceptronTrainer.Arguments { FeatureColumn = "Feature", LabelColumn="Label", Shuffle = true, Calibrator = null });
-                var pipeline = new MyConcatTransform(env, "Features", "SepalLength", "SepalWidth", "PetalLength", "PetalWidth")
-                    .Append(new TermEstimator(env, "Label"), TransformerScope.TrainTest)
-                    .Append(new Ova(env, averagePerceptron, "Label", true, calibrator: calibrator, 10000, true))
-                    .Append(new KeyToValueEstimator(env, "PredictedLabel"));
-
-                var model = pipeline.Fit(data);
-            }
-        }
-
-        /// <summary>
-        /// OVA un-calibrated
-        /// </summary>
-        [Fact]
-        public void New_OVAUncalibrated()
-        {
-            var dataPath = GetDataPath(IrisDataPath);
-
-            using (var env = new TlcEnvironment())
-            {
-                var data = new TextLoader(env, MakeIrisTextLoaderArgs())
-                    .Read(new MultiFileSource(dataPath));
-
-                var sdcaTrainer = new LinearClassificationTrainer(env, new LinearClassificationTrainer.Arguments { MaxIterations = 100, Shuffle = true, NumThreads = 1, Calibrator = null }, "Features", "Label");
-                var pipeline = new MyConcatTransform(env, "Features", "SepalLength", "SepalWidth", "PetalLength", "PetalWidth")
-                    .Append(new TermEstimator(env, "Label"), TransformerScope.TrainTest)
-                    .Append(new Ova(env, sdcaTrainer, useProbabilities: false))
-                    .Append(new KeyToValueEstimator(env, "PredictedLabel"));
-
-                var model = pipeline.Fit(data);
-            }
-        }
-
-        /// <summary>
-        /// Pkpd trainer
-        /// </summary>
-        [Fact]
-        public void New_Pkpd()
-        {
-            var dataPath = GetDataPath(IrisDataPath);
-
-            using (var env = new TlcEnvironment())
-            {
-                var calibrator = new PavCalibratorTrainer(env);
-
-                var data = new TextLoader(env, MakeIrisTextLoaderArgs())
-                    .Read(new MultiFileSource(dataPath));
-
-                var sdcaTrainer = new LinearClassificationTrainer(env, new LinearClassificationTrainer.Arguments { MaxIterations = 100, Shuffle = true, NumThreads = 1 }, "Features", "Label");
-                var pipeline = new MyConcatTransform(env, "Features", "SepalLength", "SepalWidth", "PetalLength", "PetalWidth")
-                    .Append(new TermEstimator(env, "Label"), TransformerScope.TrainTest)
-                    .Append(new Pkpd(env, sdcaTrainer))
-                    .Append(new KeyToValueEstimator(env, "PredictedLabel"));
-
-                var model = pipeline.Fit(data);
             }
         }
     }
