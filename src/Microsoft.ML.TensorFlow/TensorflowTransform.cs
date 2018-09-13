@@ -42,9 +42,6 @@ namespace Microsoft.ML.Transforms
             [Argument(ArgumentType.Required, HelpText = "TensorFlow model used by the transform. Please see https://www.tensorflow.org/mobile/prepare_models for more details.", SortOrder = 0)]
             public string Model;
 
-            //[Argument(ArgumentType.AtMostOnce, HelpText = "Indicator for frozen models", ShortName = "frozen", SortOrder = 1)]
-            //public bool IsFrozen = TensorFlowEstimator.Defaults.IsFrozen;
-
             [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "The names of the model inputs", ShortName = "inputs", SortOrder = 2)]
             public string[] InputColumns;
 
@@ -58,6 +55,7 @@ namespace Microsoft.ML.Transforms
 
         internal readonly TFSession Session;
         internal readonly bool IsFrozen;
+        internal readonly string ModelPath;
         internal readonly Dictionary<string, byte[]> SavedModel;
 
         internal readonly ColumnType[] OutputTypes;
@@ -144,31 +142,38 @@ namespace Microsoft.ML.Transforms
                     }
                 });
 
+                TensorFlowTransform tfTransform;
                 var tempDirPath = Path.GetFullPath(Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString()));
                 var tempDirInfo = Directory.CreateDirectory(tempDirPath);
-                foreach (var kvp in savedModel)
+                try
                 {
-                    string fileName = Path.Combine(tempDirInfo.FullName, kvp.Key);
-                    if (kvp.Key.StartsWith(SavedModelVariablesDirName))
+                    foreach (var kvp in savedModel)
                     {
-                        var variabledDirInfo = new DirectoryInfo(Path.Combine(tempDirPath, SavedModelVariablesDirName));
-                        if (!variabledDirInfo.Exists)
-                            Directory.CreateDirectory(variabledDirInfo.FullName);
+                        string fileName = Path.Combine(tempDirInfo.FullName, kvp.Key);
+                        if (kvp.Key.StartsWith(SavedModelVariablesDirName))
+                        {
+                            var variabledDirInfo = new DirectoryInfo(Path.Combine(tempDirPath, SavedModelVariablesDirName));
+                            if (!variabledDirInfo.Exists)
+                                Directory.CreateDirectory(variabledDirInfo.FullName);
 
-                        var tokens = kvp.Key.Split(Path.DirectorySeparatorChar);
-                        fileName = Path.Combine(variabledDirInfo.FullName, tokens[1]);
-                    }
+                            var tokens = kvp.Key.Split(Path.DirectorySeparatorChar);
+                            fileName = Path.Combine(variabledDirInfo.FullName, tokens[1]);
+                        }
 
-                    using (var fs = new FileStream(fileName, FileMode.Create, FileAccess.Write))
-                    {
-                        fs.Write(kvp.Value, 0, kvp.Value.Length);
+                        using (var fs = new FileStream(fileName, FileMode.Create, FileAccess.Write))
+                        {
+                            fs.Write(kvp.Value, 0, kvp.Value.Length);
+                        }
                     }
+                    var session = GetSession(env, tempDirPath);
+                    var io = ModelInputsOutputs(env, ctx);
+                    tfTransform = new TensorFlowTransform(env, session, io.Item1, io.Item2, isFrozen, savedModel);
                 }
-
-                var session = GetSession(env, tempDirPath);
-                var io = ModelInputsOutputs(env, ctx);
-                Directory.Delete(tempDirPath, true);
-                return new TensorFlowTransform(env, session, io.Item1, io.Item2, isFrozen, savedModel);
+                finally
+                {
+                    Directory.Delete(tempDirPath, true);
+                }
+                return tfTransform;
             }
         }
 
@@ -263,18 +268,8 @@ namespace Microsoft.ML.Transforms
         public TensorFlowTransform(IHostEnvironment env, string model, string[] inputs, string[] outputs) :
             this(env, GetSession(env, model), inputs, outputs, true, null)
         {
+            ModelPath = model;
             IsFrozen = TensorFlowUtils.IsFrozenTensorFlowModel(model);
-            SavedModel = new Dictionary<string, byte[]>();
-
-            if (!IsFrozen)
-            {
-                string[] modelFilePaths = Directory.GetFiles(model, "*", SearchOption.AllDirectories);
-                foreach (var path in modelFilePaths)
-                {
-                    var relativePath = path.Remove(0, model.Length).Trim(Path.DirectorySeparatorChar);
-                    SavedModel[relativePath] = File.ReadAllBytes(path);
-                }
-            }
         }
 
         private TensorFlowTransform(IHostEnvironment env, byte[] modelBytes, string[] inputs, string[] outputs, bool isFrozen) :
@@ -392,10 +387,23 @@ namespace Microsoft.ML.Transforms
             }
             else
             {
+                var savedModel = new Dictionary<string, byte[]>();
+                if (!string.IsNullOrEmpty(ModelPath))
+                {
+                    string[] modelFilePaths = Directory.GetFiles(ModelPath, "*", SearchOption.AllDirectories);
+                    foreach (var path in modelFilePaths)
+                    {
+                        var relativePath = path.Remove(0, ModelPath.Length).Trim(Path.DirectorySeparatorChar);
+                        savedModel[relativePath] = File.ReadAllBytes(path);
+                    }
+                }
+                else
+                    savedModel = SavedModel;
+
                 ctx.SaveBinaryStream("TFSavedModel", w =>
                 {
-                    w.Write(SavedModel.Count);
-                    foreach (var kvp in SavedModel)
+                    w.Write(savedModel.Count);
+                    foreach (var kvp in savedModel)
                     {
                         w.Write(kvp.Key);
                         w.WriteByteArray(kvp.Value);
@@ -720,7 +728,6 @@ namespace Microsoft.ML.Transforms
 
     public static class TensorFlowStaticExtensions
     {
-
         private sealed class OutColumn : Vector<float>
         {
             public PipelineColumn Input { get; }
