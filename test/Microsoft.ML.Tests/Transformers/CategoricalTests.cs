@@ -44,7 +44,6 @@ namespace Microsoft.ML.Tests.Transformers
             public string H;
         }
 
-
         [Fact]
         public void CategoricalWorkout()
         {
@@ -68,10 +67,7 @@ namespace Microsoft.ML.Tests.Transformers
             string dataPath = GetDataPath("breast-cancer.txt");
             var reader = TextLoader.CreateReader(Env, ctx => (
                 ScalarString: ctx.LoadText(1),
-                VectorString: ctx.LoadText(1, 4),
-                ScalarFloat: ctx.LoadFloat(1),
-                VectorFloat: ctx.LoadFloat(1, 4)
-            ));
+                VectorString: ctx.LoadText(1, 4)));
             var data = reader.Read(new MultiFileSource(dataPath));
             var wrongCollection = new[] { new TestClass() { A = 1, B = 2, C = 3, }, new TestClass() { A = 4, B = 5, C = 6 } };
 
@@ -79,9 +75,7 @@ namespace Microsoft.ML.Tests.Transformers
             var est = data.MakeNewEstimator().
                   Append(row => (
                   A: row.ScalarString.OneHotEncoding(),
-                  B: row.VectorString.OneHotEncoding(),
-                  C: row.ScalarFloat.OneHotEncoding(),
-                  D: row.VectorFloat.OneHotEncoding()));
+                  B: row.VectorString.OneHotEncoding()));
 
             TestEstimatorCore(est.AsDynamic, data.AsDynamic, invalidInput: invalidData);
 
@@ -90,7 +84,7 @@ namespace Microsoft.ML.Tests.Transformers
             {
                 var saver = new TextSaver(Env, new TextSaver.Arguments { Silent = true });
                 IDataView savedData = TakeFilter.Create(Env, est.Fit(data).Transform(data).AsDynamic, 4);
-                savedData = new ChooseColumnsTransform(Env, savedData, "A", "B", "C", "D");
+                savedData = new ChooseColumnsTransform(Env, savedData, "A", "B");
                 using (var fs = File.Create(outputPath))
                     DataSaverUtils.SaveDataView(ch, saver, savedData, fs, keepHidden: true);
             }

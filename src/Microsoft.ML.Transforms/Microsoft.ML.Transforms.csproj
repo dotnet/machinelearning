@@ -51,11 +51,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Update="CategoricalStaticExtensions.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>CategoricalStaticExtensions.tt</DependentUpon>
-    </Compile>
     <Compile Update="Properties\Resources.Designer.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
@@ -68,13 +63,6 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Update="CategoricalStaticExtensions.tt">
-      <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>CategoricalStaticExtensions.cs</LastGenOutput>
-    </None>
   </ItemGroup>
 
   <ItemGroup>

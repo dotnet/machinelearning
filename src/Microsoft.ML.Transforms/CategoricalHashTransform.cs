@@ -2,9 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Float = System.Single;
-
-using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Microsoft.ML.Runtime;
@@ -12,8 +10,6 @@ using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Internal.Internallearn;
-using System.Collections.Generic;
 
 [assembly: LoadableClass(CategoricalHashTransform.Summary, typeof(IDataTransform), typeof(CategoricalHashTransform), typeof(CategoricalHashTransform.Arguments), typeof(SignatureDataTransform),
     CategoricalHashTransform.UserName, "CategoricalHashTransform", "CatHashTransform", "CategoricalHash", "CatHash")]
@@ -63,14 +59,11 @@ namespace Microsoft.ML.Runtime.Data
 
                 // We accept N:B:S where N is the new column name, B is the number of bits,
                 // and S is source column names.
-                string extra;
-                if (!base.TryParse(str, out extra))
+                if (!TryParse(str, out string extra))
                     return false;
                 if (extra == null)
                     return true;
-
-                int bits;
-                if (!int.TryParse(extra, out bits))
+                if (!int.TryParse(extra, out int bits))
                     return false;
                 HashBits = bits;
                 return true;
@@ -211,7 +204,7 @@ namespace Microsoft.ML.Runtime.Data
             }
         }
 
-        public static IDataTransform CreateTransformCore(CategoricalTransform.OutputKind argsOutputKind, OneToOneColumn[] columns,
+        private static IDataTransform CreateTransformCore(CategoricalTransform.OutputKind argsOutputKind, OneToOneColumn[] columns,
             List<CategoricalTransform.OutputKind?> columnOutputKinds, IDataTransform input, IHost h, Arguments catHashArgs = null)
         {
             Contracts.CheckValue(columns, nameof(columns));
@@ -230,7 +223,7 @@ namespace Microsoft.ML.Runtime.Data
                         throw h.ExceptUserArg(nameof(Column.Name));
 
                     bool? bag;
-                    CategoricalTransform.OutputKind kind = columnOutputKinds[i].HasValue ? columnOutputKinds[i].Value : argsOutputKind;
+                    CategoricalTransform.OutputKind kind = columnOutputKinds[i] ?? argsOutputKind;
                     switch (kind)
                     {
                         default:
