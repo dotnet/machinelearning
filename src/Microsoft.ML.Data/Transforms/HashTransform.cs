@@ -684,7 +684,6 @@ namespace Microsoft.ML.Runtime.Data
             Contracts.Assert(Utils.IsPowerOfTwo(mask + 1));
             if (value.IsEmpty)
                 return 0;
-            var span = value.Span;
             return (ReadOnlyMemoryUtils.Hash(ReadOnlyMemoryUtils.TrimSpaces(value.Span), Hashing.MurmurRound(seed, (uint)i)) & mask) + 1;
         }
 

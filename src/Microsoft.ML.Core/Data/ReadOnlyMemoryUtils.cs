@@ -42,52 +42,42 @@ namespace Microsoft.ML.Runtime.Data
                 yield break;
             }
 
+            var span = memory.Span;
             if (separators.Length == 1)
             {
                 char chSep = separators[0];
                 for (int ichCur = 0; ;)
                 {
-                    int ichMinLocal = ichCur;
-                    for (; ; ichCur++)
+                    int nextSep = span.IndexOf(chSep);
+                    if (nextSep == -1)
                     {
-                        Contracts.Assert(ichCur <= memory.Length);
-                        if (ichCur >= memory.Length)
-                        {
-                            yield return memory.Slice(ichMinLocal, ichCur - ichMinLocal);
-                            yield break;
-                        }
-                        if (memory.Span[ichCur] == chSep)
-                            break;
+                        yield return memory.Slice(ichCur);
+                        yield break;
                     }
 
-                    yield return memory.Slice(ichMinLocal, ichCur - ichMinLocal);
+                    yield return memory.Slice(ichCur, nextSep);
 
                     // Skip the separator.
-                    ichCur++;
+                    ichCur += nextSep + 1;
+                    span = memory.Slice(ichCur).Span;
                 }
             }
             else
             {
                 for (int ichCur = 0; ;)
                 {
-                    int ichMinLocal = ichCur;
-                    for (; ; ichCur++)
+                    int nextSep = span.IndexOfAny(separators);
+                    if (nextSep == -1)
                     {
-                        Contracts.Assert(ichCur <= memory.Length);
-                        if (ichCur >= memory.Length)
-                        {
-                            yield return memory.Slice(ichMinLocal, ichCur - ichMinLocal);
-                            yield break;
-                        }
-                        // REVIEW: Can this be faster?
-                        if (ContainsChar(memory.Span[ichCur], separators))
-                            break;
+                        yield return memory.Slice(ichCur);
+                        yield break;
                     }
 
-                    yield return memory.Slice(ichMinLocal, ichCur - ichMinLocal);
+                    yield return memory.Slice(ichCur, nextSep);
 
                     // Skip the separator.
-                    ichCur++;
+                    ichCur += nextSep + 1;
+                    span = memory.Slice(ichCur).Span;
                 }
             }
         }
@@ -317,18 +307,6 @@ namespace Microsoft.ML.Runtime.Data
                 if (min != j)
                     sb.Append(span.Slice(min, j - min));
             }
-        }
-
-        private static bool ContainsChar(char ch, char[] rgch)
-        {
-            Contracts.AssertNonEmpty(rgch, nameof(rgch));
-
-            for (int i = 0; i < rgch.Length; i++)
-            {
-                if (rgch[i] == ch)
-                    return true;
-            }
-            return false;
         }
 
         public static StringBuilder Append(this StringBuilder sb, ReadOnlySpan<char> span)
