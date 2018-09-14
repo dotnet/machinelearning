@@ -12,17 +12,17 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 
-namespace Microsoft.ML
+namespace Microsoft.ML.Legacy
 {
     public class PredictionModel
     {
-        private readonly Runtime.EntryPoints.TransformModel _predictorModel;
+        private readonly TransformModel _predictorModel;
         private readonly IHostEnvironment _env;
 
         internal PredictionModel(Stream stream)
         {
             _env = new TlcEnvironment();
-            _predictorModel = new Runtime.EntryPoints.TransformModel(_env, stream);
+            _predictorModel = new TransformModel(_env, stream);
         }
 
         internal TransformModel PredictorModel

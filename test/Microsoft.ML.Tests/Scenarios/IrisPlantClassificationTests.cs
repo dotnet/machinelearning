@@ -2,11 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Data;
-using Microsoft.ML.Models;
+using Microsoft.ML.Legacy.Data;
+using Microsoft.ML.Legacy.Models;
 using Microsoft.ML.Runtime.Api;
-using Microsoft.ML.Trainers;
-using Microsoft.ML.Transforms;
+using Microsoft.ML.Legacy.Trainers;
+using Microsoft.ML.Legacy.Transforms;
 using Xunit;
 
 namespace Microsoft.ML.Scenarios
@@ -18,7 +18,7 @@ namespace Microsoft.ML.Scenarios
         {
             string dataPath = GetDataPath("iris.txt");
 
-            var pipeline = new LearningPipeline(seed: 1, conc: 1);
+            var pipeline = new Legacy.LearningPipeline(seed: 1, conc: 1);
 
             pipeline.Add(new TextLoader(dataPath).CreateFrom<IrisData>(useHeader: false));
             pipeline.Add(new ColumnConcatenator(outputColumn: "Features",
@@ -26,7 +26,7 @@ namespace Microsoft.ML.Scenarios
 
             pipeline.Add(new StochasticDualCoordinateAscentClassifier());
 
-            PredictionModel<IrisData, IrisPrediction> model = pipeline.Train<IrisData, IrisPrediction>();
+            Legacy.PredictionModel<IrisData, IrisPrediction> model = pipeline.Train<IrisData, IrisPrediction>();
 
             IrisPrediction prediction = model.Predict(new IrisData()
             {
@@ -142,7 +142,7 @@ namespace Microsoft.ML.Scenarios
         {
             string dataPath = GetDataPath("iris.txt");
 
-            var pipeline = new LearningPipeline(seed: 1, conc: 1);
+            var pipeline = new Legacy.LearningPipeline(seed: 1, conc: 1);
             pipeline.Add(new TextLoader(dataPath).CreateFrom<IrisData>(useHeader: false));
             pipeline.Add(new ColumnConcatenator(outputColumn: "Features",
                 "SepalLength", "SepalWidth", "PetalLength", "PetalWidth"));

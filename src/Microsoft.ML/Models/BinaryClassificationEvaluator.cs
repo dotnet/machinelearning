@@ -4,9 +4,9 @@
 
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Transforms;
+using Microsoft.ML.Legacy.Transforms;
 
-namespace Microsoft.ML.Models
+namespace Microsoft.ML.Legacy.Models
 {
     public sealed partial class BinaryClassificationEvaluator
     {

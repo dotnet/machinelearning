@@ -9,7 +9,7 @@ using System;
 using System.Collections.Generic;
 using static Microsoft.ML.Runtime.Data.MetricKinds;
 
-namespace Microsoft.ML.Models
+namespace Microsoft.ML.Legacy.Models
 {
     /// <summary>
     /// This class contains the overall metrics computed by cluster evaluators.

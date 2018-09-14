@@ -2,12 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Data;
+using Microsoft.ML.Legacy.Data;
+using Microsoft.ML.Legacy.Trainers;
+using Microsoft.ML.Legacy.Transforms;
 using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.TestFramework;
-using Microsoft.ML.Trainers;
-using Microsoft.ML.Transforms;
 using System.Linq;
 using Xunit;
 using Xunit.Abstractions;
@@ -24,13 +24,13 @@ namespace Microsoft.ML.EntryPoints.Tests
         [Fact]
         public void ConstructorDoesntThrow()
         {
-            Assert.NotNull(new LearningPipeline());
+            Assert.NotNull(new Legacy.LearningPipeline());
         }
 
         [Fact]
         public void CanAddAndRemoveFromPipeline()
         {
-            var pipeline = new LearningPipeline()
+            var pipeline = new Legacy.LearningPipeline()
             {
                 new CategoricalOneHotVectorizer("String1", "String2"),
                 new ColumnConcatenator(outputColumn: "Features", "String1", "String2", "Number1", "Number2"),
@@ -42,7 +42,7 @@ namespace Microsoft.ML.EntryPoints.Tests
             pipeline.Remove(pipeline.ElementAt(2));
             Assert.Equal(2, pipeline.Count);
 
-            pipeline.Add(new Trainers.StochasticDualCoordinateAscentRegressor());
+            pipeline.Add(new Legacy.Trainers.StochasticDualCoordinateAscentRegressor());
             Assert.Equal(3, pipeline.Count);
         }
 
@@ -64,8 +64,8 @@ namespace Microsoft.ML.EntryPoints.Tests
         public void TransformOnlyPipeline()
         {
             const string _dataPath = @"..\..\Data\breast-cancer.txt";
-            var pipeline = new LearningPipeline(seed: 1, conc: 1);
-            pipeline.Add(new ML.Data.TextLoader(_dataPath).CreateFrom<InputData>(useHeader: false));
+            var pipeline = new Legacy.LearningPipeline(seed: 1, conc: 1);
+            pipeline.Add(new ML.Legacy.Data.TextLoader(_dataPath).CreateFrom<InputData>(useHeader: false));
             pipeline.Add(new CategoricalHashOneHotVectorizer("F1") { HashBits = 10, Seed = 314489979, OutputKind = CategoricalTransformOutputKind.Bag });
             var model = pipeline.Train<InputData, TransformedData>();
             var predictionModel = model.Predict(new InputData() { F1 = "5" });
@@ -106,7 +106,7 @@ namespace Microsoft.ML.EntryPoints.Tests
                 Features = new float[] { 0.0f, 1.0f },
                 Label = 0f
             };
-            var pipeline = new LearningPipeline();
+            var pipeline = new Legacy.LearningPipeline();
             pipeline.Add(CollectionDataSource.Create(data));
             pipeline.Add(new FastForestBinaryClassifier());
             var model = pipeline.Train<Data, Prediction>();
@@ -131,7 +131,7 @@ namespace Microsoft.ML.EntryPoints.Tests
                 Features = new float[] { 0.0f, 1.0f },
                 Label = false
             };
-            var pipeline = new LearningPipeline();
+            var pipeline = new Legacy.LearningPipeline();
             pipeline.Add(CollectionDataSource.Create(data));
             pipeline.Add(new FastForestBinaryClassifier());
             var model = pipeline.Train<Data, Prediction>();
@@ -161,7 +161,7 @@ namespace Microsoft.ML.EntryPoints.Tests
                 Features = new float[] { 1.0f, 0.0f },
                 Label = false
             };
-            var pipeline = new LearningPipeline();
+            var pipeline = new Legacy.LearningPipeline();
             pipeline.Add(CollectionDataSource.Create(data));
             pipeline.Add(new FastForestBinaryClassifier());
             var model = pipeline.Train<Data, Prediction>();
@@ -170,7 +170,7 @@ namespace Microsoft.ML.EntryPoints.Tests
         [Fact]
         public void AppendPipeline()
         {
-            var pipeline = new LearningPipeline();
+            var pipeline = new Legacy.LearningPipeline();
             pipeline.Append(new CategoricalOneHotVectorizer("String1", "String2"))
                 .Append(new ColumnConcatenator(outputColumn: "Features", "String1", "String2", "Number1", "Number2"))
                 .Append(new StochasticDualCoordinateAscentRegressor());
