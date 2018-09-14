@@ -134,16 +134,16 @@ namespace Microsoft.ML.Runtime.RunTests
             CheckSameSchemaShape(outSchemaShape, scoredTrainSchemaShape);
         }
 
-        private void CheckSameSchemaShape(SchemaShape first, SchemaShape second)
+        private void CheckSameSchemaShape(SchemaShape promised, SchemaShape delivered)
         {
-            Assert.True(first.Columns.Length == second.Columns.Length);
-            var sortedCols1 = first.Columns.OrderBy(x => x.Name);
-            var sortedCols2 = second.Columns.OrderBy(x => x.Name);
+            Assert.True(promised.Columns.Length == delivered.Columns.Length);
+            var sortedCols1 = promised.Columns.OrderBy(x => x.Name);
+            var sortedCols2 = delivered.Columns.OrderBy(x => x.Name);
 
             foreach (var (x, y) in sortedCols1.Zip(sortedCols2, (x, y) => (x, y)))
             {
                 Assert.Equal(x.Name, y.Name);
-                Assert.True(x.IsCompatibleWith(y), $"Mismatch on {x.Name}");
+                // We want the 'promised' metadata to be a superset of 'delivered'.
                 Assert.True(y.IsCompatibleWith(x), $"Mismatch on {x.Name}");
             }
         }

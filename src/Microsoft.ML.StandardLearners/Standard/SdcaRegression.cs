@@ -63,7 +63,7 @@ namespace Microsoft.ML.Runtime.Learners
             _args = args;
             _outputColumns = new[]
             {
-                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false)
+                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false, new SchemaShape(MetadataForScoreColumn()))
             };
         }
 
