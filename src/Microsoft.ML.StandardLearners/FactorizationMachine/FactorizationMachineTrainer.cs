@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
@@ -30,12 +31,12 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
      [3] https://github.com/wschin/fast-ffm/blob/master/fast-ffm.pdf
     */
     /// <include file='doc.xml' path='doc/members/member[@name="FieldAwareFactorizationMachineBinaryClassifier"]/*' />
-    public sealed class FieldAwareFactorizationMachineTrainer : TrainerBase<FieldAwareFactorizationMachinePredictor>
+    public sealed class FieldAwareFactorizationMachineTrainer : TrainerEstimatorBase<BinaryPredictionTransformer<FieldAwareFactorizationMachinePredictor>, FieldAwareFactorizationMachinePredictor>
     {
-        public const string Summary = "Train a field-aware factorization machine for binary classification";
-        public const string UserName = "Field-aware Factorization Machine";
-        public const string LoadName = "FieldAwareFactorizationMachine";
-        public const string ShortName = "ffm";
+        internal const string Summary = "Train a field-aware factorization machine for binary classification";
+        internal const string UserName = "Field-aware Factorization Machine";
+        internal const string LoadName = "FieldAwareFactorizationMachine";
+        internal const string ShortName = "ffm";
 
         public sealed class Arguments : LearnerInputBaseWithLabel
         {
@@ -74,19 +75,61 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
         }
 
         public override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
-        public override TrainerInfo Info { get; }
-        private readonly int _latentDim;
-        private readonly int _latentDimAligned;
-        private readonly float _lambdaLinear;
-        private readonly float _lambdaLatent;
-        private readonly float _learningRate;
-        private readonly int _numIterations;
-        private readonly bool _norm;
-        private readonly bool _shuffle;
-        private readonly bool _verbose;
-        private readonly float _radius;
 
-        public FieldAwareFactorizationMachineTrainer(IHostEnvironment env, Arguments args) : base(env, LoadName)
+        /// <summary>
+        /// The <see cref="TrainerInfo"/> containing at least the training data for this trainer.
+        /// </summary>
+        public override TrainerInfo Info { get; }
+
+        private int _latentDim;
+        private int _latentDimAligned;
+        private float _lambdaLinear;
+        private float _lambdaLatent;
+        private float _learningRate;
+        private int _numIterations;
+        private bool _norm;
+        private bool _shuffle;
+        private bool _verbose;
+        private float _radius;
+        private SchemaShape.Column[] _outputColumns;
+
+        /// <summary>
+        /// Legacy constructor initializing a new instance of <see cref="FieldAwareFactorizationMachineTrainer"/> through the legacy
+        /// <see cref="Arguments"/> class.
+        /// </summary>
+        /// <param name="env">The private instance of <see cref="IHostEnvironment"/>.</param>
+        /// <param name="args">An instance of the legacy <see cref="Arguments"/> to apply advanced parameters to the algorithm.</param>
+        public FieldAwareFactorizationMachineTrainer(IHostEnvironment env, Arguments args)
+           : base(Contracts.CheckRef(env, nameof(env)).Register(LoadName), MakeFeatureColumn(args.FeatureColumn), MakeLabelColumn(args.LabelColumn))
+        {
+            Initialize(env, args);
+            Info = new TrainerInfo(supportValid: true, supportIncrementalTrain: true);
+        }
+
+        /// <summary>
+        /// Initializing a new instance of <see cref="FieldAwareFactorizationMachineTrainer"/>.
+        /// </summary>
+        /// <param name="env">The private instance of <see cref="IHostEnvironment"/>.</param>
+        /// <param name="labelColumn">The name of the label column.</param>
+        /// <param name="featureColumn">The name of the feature column.</param>
+        /// <param name="advancedSettings">A delegate to apply all the advanced arguments to the algorithm.</param>
+        public FieldAwareFactorizationMachineTrainer(IHostEnvironment env, string labelColumn, string featureColumn, Action<Arguments> advancedSettings)
+           : base(Contracts.CheckRef(env, nameof(env)).Register(LoadName), MakeFeatureColumn(featureColumn), MakeLabelColumn(labelColumn))
+        {
+            var args = new Arguments();
+            advancedSettings?.Invoke(args);
+
+            Initialize(env, args);
+            Info = new TrainerInfo(supportValid: true, supportIncrementalTrain: true);
+        }
+
+        /// <summary>
+        /// Initializes the instance. Shared between the two constructors.
+        /// REVIEW: Once the legacy constructor goes away, this can move to the only constructor and most of the fields can be back to readonly.
+        /// </summary>
+        /// <param name="env"></param>
+        /// <param name="args"></param>
+        private void Initialize(IHostEnvironment env, Arguments args)
         {
             Host.CheckUserArg(args.LatentDim > 0, nameof(args.LatentDim), "Must be positive");
             Host.CheckUserArg(args.LambdaLinear >= 0, nameof(args.LambdaLinear), "Must be non-negative");
@@ -103,7 +146,13 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
             _shuffle = args.Shuffle;
             _verbose = args.Verbose;
             _radius = args.Radius;
-            Info = new TrainerInfo(supportValid: true, supportIncrementalTrain: true);
+
+            _outputColumns = new[]
+            {
+                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false),
+                new SchemaShape.Column(DefaultColumnNames.Probability, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false),
+                new SchemaShape.Column(DefaultColumnNames.PredictedLabel, SchemaShape.Column.VectorKind.Scalar, BoolType.Instance, false)
+            };
         }
 
         private void InitializeTrainingState(int fieldCount, int featureCount, FieldAwareFactorizationMachinePredictor predictor, out float[] linearWeights,
@@ -345,7 +394,7 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
             return new FieldAwareFactorizationMachinePredictor(Host, _norm, fieldCount, totalFeatureCount, _latentDim, linearWeights, latentWeightsAligned);
         }
 
-        public override FieldAwareFactorizationMachinePredictor Train(TrainContext context)
+        protected override FieldAwareFactorizationMachinePredictor TrainModelCore(TrainContext context)
         {
             Host.CheckValue(context, nameof(context));
             var initPredictor = context.InitialPredictor as FieldAwareFactorizationMachinePredictor;
@@ -359,6 +408,23 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
                 ch.Done();
                 return pred;
             }
+        }
+
+        private static SchemaShape.Column MakeWeightColumn(string weightColumn)
+        {
+            if (weightColumn == null)
+                return null;
+            return new SchemaShape.Column(weightColumn, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false);
+        }
+
+        private static SchemaShape.Column MakeFeatureColumn(string featureColumn)
+        {
+            return new SchemaShape.Column(featureColumn, SchemaShape.Column.VectorKind.Vector, NumberType.R4, false);
+        }
+
+        private static SchemaShape.Column MakeLabelColumn(string labelColumn)
+        {
+            return new SchemaShape.Column(labelColumn, SchemaShape.Column.VectorKind.Scalar, BoolType.Instance, false);
         }
 
         [TlcModule.EntryPoint(Name = "Trainers.FieldAwareFactorizationMachineBinaryClassifier",
@@ -376,5 +442,11 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
             return LearnerEntryPointsUtils.Train<Arguments, CommonOutputs.BinaryClassificationOutput>(host, input, () => new FieldAwareFactorizationMachineTrainer(host, input),
                 () => LearnerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.LabelColumn));
         }
+
+        protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema) => _outputColumns;
+
+        protected override BinaryPredictionTransformer<FieldAwareFactorizationMachinePredictor> MakeTransformer(FieldAwareFactorizationMachinePredictor model, ISchema trainSchema)
+        => new BinaryPredictionTransformer<FieldAwareFactorizationMachinePredictor>(Host, model, trainSchema, FeatureColumn.Name);
+
     }
 }
