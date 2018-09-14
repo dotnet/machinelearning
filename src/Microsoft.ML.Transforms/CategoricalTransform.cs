@@ -315,7 +315,7 @@ namespace Microsoft.ML.Runtime.Data
 
     public static class CategoricalStaticExtensions
     {
-        public enum OneHotOutputKind : byte
+        public enum OneHotVectorOutputKind : byte
         {
             /// <summary>
             /// Output is a bag (multi-set) vector
@@ -333,17 +333,30 @@ namespace Microsoft.ML.Runtime.Data
             Bin = 4,
         }
 
+        public enum OneHotScalarOutputKind : byte
+        {
+            /// <summary>
+            /// Output is an indicator vector
+            /// </summary>
+            Ind = 2,
+
+            /// <summary>
+            /// Output is binary encoded
+            /// </summary>
+            Bin = 4,
+        }
+
         private const KeyValueOrder DefSort = (KeyValueOrder)TermEstimator.Defaults.Sort;
         private const int DefMax = TermEstimator.Defaults.MaxNumTerms;
-        private const OneHotOutputKind DefOut = (OneHotOutputKind)CategoricalEstimator.Defaults.OutKind;
+        private const OneHotVectorOutputKind DefOut = (OneHotVectorOutputKind)CategoricalEstimator.Defaults.OutKind;
 
         private struct Config
         {
             public readonly KeyValueOrder Order;
             public readonly int Max;
-            public readonly OneHotOutputKind OutputKind;
+            public readonly OneHotVectorOutputKind OutputKind;
 
-            public Config(OneHotOutputKind outputKind, KeyValueOrder order, int max)
+            public Config(OneHotVectorOutputKind outputKind, KeyValueOrder order, int max)
             {
                 OutputKind = outputKind;
                 Order = order;
@@ -401,13 +414,13 @@ namespace Microsoft.ML.Runtime.Data
         /// Converts the categorical value into an indicator array by building a dictionary of categories based on the data and using the id in the dictionary as the index in the array
         /// </summary>
         /// <param name="input">Incoming data.</param>
-        /// <param name="outputKind">Specify output type of indicator array: Multiarray, array or binary encoded data.</param>
-        /// <param name="order">How Id for each value would be assigined: by occurence or by value.</param>
+        /// <param name="outputKind">Specify output type of indicator array: array or binary encoded data.</param>
+        /// <param name="order">How Id for each value would be assigined: by occurrence or by value.</param>
         /// <param name="maxItems">Maximum number of ids to keep during data scanning.</param>
-        public static Vector<float> OneHotEncoding(this Scalar<string> input, OneHotOutputKind outputKind = DefOut, KeyValueOrder order = DefSort, int maxItems = DefMax)
+        public static Vector<float> OneHotEncoding(this Scalar<string> input, OneHotScalarOutputKind outputKind = (OneHotScalarOutputKind)DefOut, KeyValueOrder order = DefSort, int maxItems = DefMax)
         {
             Contracts.CheckValue(input, nameof(input));
-            return new ImplScalar<string>(input, new Config(outputKind, order, maxItems));
+            return new ImplScalar<string>(input, new Config((OneHotVectorOutputKind)outputKind, order, maxItems));
         }
 
         /// <summary>
@@ -415,10 +428,10 @@ namespace Microsoft.ML.Runtime.Data
         /// </summary>
         /// <param name="input">Incoming data.</param>
         /// <param name="outputKind">Specify output type of indicator array: Multiarray, array or binary encoded data.</param>
-        /// <param name="order">How Id for each value would be assigined: by occurence or by value.</param>
+        /// <param name="order">How Id for each value would be assigined: by occurrence or by value.</param>
         /// <param name="maxItems">Maximum number of ids to keep during data scanning.</param>
 
-        public static Vector<float> OneHotEncoding(this Vector<string> input, OneHotOutputKind outputKind = DefOut, KeyValueOrder order = DefSort, int maxItems = DefMax)
+        public static Vector<float> OneHotEncoding(this Vector<string> input, OneHotVectorOutputKind outputKind = DefOut, KeyValueOrder order = DefSort, int maxItems = DefMax)
         {
             Contracts.CheckValue(input, nameof(input));
             return new ImplVector<string>(input, new Config(outputKind, order, maxItems));

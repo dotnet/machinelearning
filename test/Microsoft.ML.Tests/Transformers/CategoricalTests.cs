@@ -74,12 +74,12 @@ namespace Microsoft.ML.Tests.Transformers
             var invalidData = ComponentCreation.CreateDataView(Env, wrongCollection);
             var est = data.MakeNewEstimator().
                   Append(row => (
-                  A: row.ScalarString.OneHotEncoding(outputKind: CategoricalStaticExtensions.OneHotOutputKind.Ind),
-                  B: row.VectorString.OneHotEncoding(outputKind: CategoricalStaticExtensions.OneHotOutputKind.Ind),
-                  C: row.ScalarString.OneHotEncoding(outputKind: CategoricalStaticExtensions.OneHotOutputKind.Bag),
-                  D: row.VectorString.OneHotEncoding(outputKind: CategoricalStaticExtensions.OneHotOutputKind.Bag),
-                  E: row.ScalarString.OneHotEncoding(outputKind: CategoricalStaticExtensions.OneHotOutputKind.Bin),
-                  F: row.VectorString.OneHotEncoding(outputKind: CategoricalStaticExtensions.OneHotOutputKind.Bin)
+                  A: row.ScalarString.OneHotEncoding(outputKind: CategoricalStaticExtensions.OneHotVectorOutputKind.Ind),
+                  B: row.VectorString.OneHotEncoding(outputKind: CategoricalStaticExtensions.OneHotVectorOutputKind.Ind),
+                  C: row.ScalarString.OneHotEncoding(outputKind: CategoricalStaticExtensions.OneHotVectorOutputKind.Bag),
+                  D: row.VectorString.OneHotEncoding(outputKind: CategoricalStaticExtensions.OneHotVectorOutputKind.Bag),
+                  E: row.ScalarString.OneHotEncoding(outputKind: CategoricalStaticExtensions.OneHotVectorOutputKind.Bin),
+                  F: row.VectorString.OneHotEncoding(outputKind: CategoricalStaticExtensions.OneHotVectorOutputKind.Bin)
                   ));
 
             TestEstimatorCore(est.AsDynamic, data.AsDynamic, invalidInput: invalidData);
