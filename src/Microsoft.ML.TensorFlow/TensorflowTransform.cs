@@ -35,7 +35,7 @@ using Microsoft.ML.Transforms.TensorFlow;
 namespace Microsoft.ML.Transforms
 {
     /// <include file='doc.xml' path='doc/members/member[@name="TensorflowTransform"]/*' />
-    public sealed class TensorFlowTransform : ITransformer, ICanSaveModel
+    public sealed class TensorFlowTransform : ITransformer, ICanSaveModel, IDisposable
     {
         public sealed class Arguments : TransformInputBase
         {
@@ -59,6 +59,7 @@ namespace Microsoft.ML.Transforms
         internal readonly TFSession Session;
         internal readonly bool IsFrozen;
         internal readonly string ModelPath;
+        internal readonly bool IsTemporaryModelPath;
 
         internal readonly ColumnType[] OutputTypes;
         internal readonly TFDataType[] TFOutputTypes;
@@ -97,7 +98,7 @@ namespace Microsoft.ML.Transforms
         /// <param name="source">Name of the input column(s). Keep it same as in the Tensorflow model.</param>
         public static IDataTransform Create(IHostEnvironment env, IDataView input, string model, string[] names, string[] source)
         {
-            return new TensorFlowTransform(env, model, source, names).MakeDataTransform(input);
+            return new TensorFlowTransform(env, model, source, names, false).MakeDataTransform(input);
         }
 
         // Factory method for SignatureLoadModel.
@@ -161,7 +162,7 @@ namespace Microsoft.ML.Transforms
 
                 var session = GetSession(env, tempDirPath);
                 var io = ModelInputsOutputs(env, ctx);
-                return new TensorFlowTransform(env, tempDirPath, io.Item1, io.Item2);
+                return new TensorFlowTransform(env, tempDirPath, io.Item1, io.Item2, true);
             }
         }
 
@@ -173,7 +174,7 @@ namespace Microsoft.ML.Transforms
             env.CheckValue(input, nameof(input));
             env.CheckValue(args.InputColumns, nameof(args.InputColumns));
             env.CheckValue(args.OutputColumns, nameof(args.OutputColumns));
-            return new TensorFlowTransform(env, args.Model, args.InputColumns, args.OutputColumns).MakeDataTransform(input);
+            return new TensorFlowTransform(env, args.Model, args.InputColumns, args.OutputColumns, false).MakeDataTransform(input);
         }
 
         // Factory method for SignatureLoadDataTransform.
@@ -253,11 +254,12 @@ namespace Microsoft.ML.Transforms
             return File.ReadAllBytes(modelFile);
         }
 
-        public TensorFlowTransform(IHostEnvironment env, string model, string[] inputs, string[] outputs) :
+        public TensorFlowTransform(IHostEnvironment env, string model, string[] inputs, string[] outputs, bool isTemporaryModelPath) :
             this(env, GetSession(env, model), inputs, outputs, true)
         {
             ModelPath = model;
             IsFrozen = TensorFlowUtils.IsFrozenTensorFlowModel(model);
+            IsTemporaryModelPath = isTemporaryModelPath;
         }
 
         private TensorFlowTransform(IHostEnvironment env, byte[] modelBytes, string[] inputs, string[] outputs, bool isFrozen) :
@@ -403,6 +405,54 @@ namespace Microsoft.ML.Transforms
             ctx.Writer.Write(Outputs.Length);
             foreach (var colName in Outputs)
                 ctx.SaveNonEmptyString(colName);
+        }
+
+        ~TensorFlowTransform()
+        {
+            Dispose(false);
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        private void Dispose(bool disposing)
+        {
+            // Ensure that the Session is not null and it's handle is not Zero, as it may have already been disposed/finalized.
+            // Technically we shouldn't be calling this if disposing == false, since we're running in finalizer
+            // and the GC doesn't guarantee ordering of finalization of managed objects, but we have to make sure
+            // that the Session is closed before deleting our temporary directory.
+            if (Session?.Handle != IntPtr.Zero)
+            {
+                Session.CloseSession();
+                Session.Dispose();
+            }
+
+            if (!string.IsNullOrEmpty(ModelPath) && IsTemporaryModelPath)
+            {
+                int currentRetry = 0;
+                int maxRetryCount = 5;
+                using (var ch = _host.Start("Delete temp TF SavedModel"))
+                {
+                    for (; ; )
+                    {
+                        try
+                        {
+                            currentRetry++;
+                            Directory.Delete(ModelPath, true);
+                            break;
+                        }
+                        catch (IOException e)
+                        {
+                            if (currentRetry > maxRetryCount)
+                                throw;
+                            ch.Info("Error deleting temporary TF SavedModel. {0}. Retry,", e.Message);
+                        }
+                    }
+                }
+            }
         }
 
         private sealed class Mapper : IRowMapper
@@ -674,7 +724,7 @@ namespace Microsoft.ML.Transforms
     public sealed class TensorFlowEstimator : TrivialEstimator<TensorFlowTransform>
     {
         public TensorFlowEstimator(IHostEnvironment env, string modelFile, string[] inputs, string[] outputs)
-           : this(env, new TensorFlowTransform(env, modelFile, inputs, outputs))
+           : this(env, new TensorFlowTransform(env, modelFile, inputs, outputs, false))
         {
         }
 
