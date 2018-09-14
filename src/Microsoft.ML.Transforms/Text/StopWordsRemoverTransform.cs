@@ -471,7 +471,7 @@ namespace Microsoft.ML.Runtime.TextAnalytics
                         if (src.Values[i].IsEmpty)
                             continue;
                         buffer.Clear();
-                        ReadOnlyMemoryUtils.AddLowerCaseToStringBuilder(src.Values[i], buffer);
+                        ReadOnlyMemoryUtils.AddLowerCaseToStringBuilder(src.Values[i].Span, buffer);
 
                         // REVIEW nihejazi: Consider using a trie for string matching (Aho-Corasick, etc.)
                         if (StopWords[(int)langToUse].Get(buffer) == null)
@@ -711,7 +711,7 @@ namespace Microsoft.ML.Runtime.TextAnalytics
                     if (!stopword.IsEmpty)
                     {
                         buffer.Clear();
-                        ReadOnlyMemoryUtils.AddLowerCaseToStringBuilder(stopwords, buffer);
+                        ReadOnlyMemoryUtils.AddLowerCaseToStringBuilder(stopwords.Span, buffer);
                         stopWordsMap.Add(buffer);
                     }
                     else if (warnEmpty)
@@ -727,7 +727,7 @@ namespace Microsoft.ML.Runtime.TextAnalytics
                 bool warnEmpty = true;
                 foreach (string word in loaderArgs.Stopword)
                 {
-                    var stopword = word.AsMemory();
+                    var stopword = word.AsSpan();
                     stopword = ReadOnlyMemoryUtils.TrimSpaces(stopword);
                     if (!stopword.IsEmpty)
                     {
@@ -763,7 +763,7 @@ namespace Microsoft.ML.Runtime.TextAnalytics
                         if (!src.IsEmpty)
                         {
                             buffer.Clear();
-                            ReadOnlyMemoryUtils.AddLowerCaseToStringBuilder(src, buffer);
+                            ReadOnlyMemoryUtils.AddLowerCaseToStringBuilder(src.Span, buffer);
                             stopWordsMap.Add(buffer);
                         }
                         else if (warnEmpty)
@@ -944,7 +944,7 @@ namespace Microsoft.ML.Runtime.TextAnalytics
                         if (src.Values[i].IsEmpty)
                             continue;
                         buffer.Clear();
-                        ReadOnlyMemoryUtils.AddLowerCaseToStringBuilder(src.Values[i], buffer);
+                        ReadOnlyMemoryUtils.AddLowerCaseToStringBuilder(src.Values[i].Span, buffer);
 
                         // REVIEW nihejazi: Consider using a trie for string matching (Aho-Corasick, etc.)
                         if (_stopWordsMap.Get(buffer) == null)

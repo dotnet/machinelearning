@@ -284,16 +284,15 @@ namespace Microsoft.ML.Runtime.Data
                 sb.Append(memory);
         }
 
-        public static void AddLowerCaseToStringBuilder(ReadOnlyMemory<char> memory, StringBuilder sb)
+        public static void AddLowerCaseToStringBuilder(ReadOnlySpan<char> span, StringBuilder sb)
         {
             Contracts.CheckValue(sb, nameof(sb));
 
-            if (!memory.IsEmpty)
+            if (!span.IsEmpty)
             {
                 int min = 0;
                 int j;
-                var span = memory.Span;
-                for (j = min; j < memory.Length; j++)
+                for (j = min; j < span.Length; j++)
                 {
                     char ch = CharUtils.ToLowerInvariant(span[j]);
                     if (ch != span[j])
@@ -303,7 +302,7 @@ namespace Microsoft.ML.Runtime.Data
                     }
                 }
 
-                Contracts.Assert(j == memory.Length);
+                Contracts.Assert(j == span.Length);
                 if (min != j)
                     sb.Append(span.Slice(min, j - min));
             }
