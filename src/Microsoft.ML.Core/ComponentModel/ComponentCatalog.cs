@@ -314,17 +314,17 @@ namespace Microsoft.ML.Runtime
                 case "libiomp5md.dll":
                 case "libvw.dll":
                 case "matrixinterf.dll":
-                case "Microsoft.ML.neuralnetworks.gpucuda.dll":
-                case "MklImports.dll":
+                case "microsoft.ml.neuralnetworks.gpucuda.dll":
+                case "mklimports.dll":
                 case "microsoft.research.controls.decisiontrees.dll":
-                case "Microsoft.ML.neuralnetworks.sse.dll":
+                case "microsoft.ml.neuralnetworks.sse.dll":
                 case "neuraltreeevaluator.dll":
                 case "optimizationbuilderdotnet.dll":
                 case "parallelcommunicator.dll":
-                case "Microsoft.ML.Runtime.RunTests.dll":
+                case "microsoft.ml.runtime.runtests.dll":
                 case "scopecompiler.dll":
                 case "tbb.dll":
-                case "Internallearnscope.dll":
+                case "internallearnscope.dll":
                 case "unmanagedlib.dll":
                 case "vcclient.dll":
                 case "libxgboost.dll":
@@ -421,10 +421,6 @@ namespace Microsoft.ML.Runtime
                             continue;
                     }
 
-                    // The "" no-op argument is necessary because WriteLine has multiple overloads, and with two strings
-                    // it will be the one that is message/category, rather than format string with
-                    System.Diagnostics.Debug.WriteLine("*** Caching classes in {0}", assembly.FullName, "");
-
                     int added = 0;
                     foreach (LoadableClassAttributeBase attr in assembly.GetCustomAttributes(typeof(LoadableClassAttributeBase)))
                     {
@@ -444,8 +440,6 @@ namespace Microsoft.ML.Runtime
                         AddClass(info, attr.LoadNames);
                         added++;
                     }
-
-                    System.Diagnostics.Debug.WriteLine("    Found {0} entries in {1}", added, assembly.FullName);
                 }
             }
         }
@@ -546,11 +540,7 @@ namespace Microsoft.ML.Runtime
                 if (filter && ShouldSkipPath(path))
                     continue;
                 // Loading the assembly is enough because of our event handler.
-                var assembly = LoadAssembly(path);
-                if (assembly == null)
-                    System.Diagnostics.Debug.WriteLine("*** Loading {0} failed!", path, "");
-                else
-                    System.Diagnostics.Debug.WriteLine("*** Loaded {0}", path, "");
+                LoadAssembly(path);
             }
         }
 
