@@ -58,7 +58,7 @@ namespace Microsoft.ML.Transforms
 
         internal readonly TFSession Session;
         internal readonly bool IsFrozen;
-        internal readonly Dictionary<string, byte[]> SavedModel;
+        internal readonly string ModelPath;
 
         internal readonly ColumnType[] OutputTypes;
         internal readonly TFDataType[] TFOutputTypes;
@@ -170,7 +170,7 @@ namespace Microsoft.ML.Transforms
                 //Directory.Delete(tempDirPath, true);
                 //return new TensorFlowTransform(env, session, io.Item1, io.Item2, isFrozen, savedModel);
 
-                var tempDirPath = Path.GetFullPath(Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString()));
+                var tempDirPath = Path.GetFullPath(Path.Combine(Path.GetTempPath(), "_AG_" + Guid.NewGuid().ToString()));
                 var tempDirInfo = Directory.CreateDirectory(tempDirPath);
 
                 var load = ctx.TryLoadBinaryStream("TFSavedModel", br =>
@@ -201,8 +201,7 @@ namespace Microsoft.ML.Transforms
 
                 var session = GetSession(env, tempDirPath);
                 var io = ModelInputsOutputs(env, ctx);
-                Directory.Delete(tempDirPath, true);
-                return new TensorFlowTransform(env, session, io.Item1, io.Item2, isFrozen, savedModel);
+                return new TensorFlowTransform(env, tempDirPath, io.Item1, io.Item2);
             }
         }
 
@@ -295,27 +294,17 @@ namespace Microsoft.ML.Transforms
         }
 
         public TensorFlowTransform(IHostEnvironment env, string model, string[] inputs, string[] outputs) :
-            this(env, GetSession(env, model), inputs, outputs, true, null)
+            this(env, GetSession(env, model), inputs, outputs, true)
         {
+            ModelPath = model;
             IsFrozen = TensorFlowUtils.IsFrozenTensorFlowModel(model);
-            SavedModel = new Dictionary<string, byte[]>();
-
-            if (!IsFrozen)
-            {
-                string[] modelFilePaths = Directory.GetFiles(model, "*", SearchOption.AllDirectories);
-                foreach (var path in modelFilePaths)
-                {
-                    var relativePath = path.Remove(0, model.Length).Trim(Path.DirectorySeparatorChar);
-                    SavedModel[relativePath] = File.ReadAllBytes(path);
-                }
-            }
         }
 
         private TensorFlowTransform(IHostEnvironment env, byte[] modelBytes, string[] inputs, string[] outputs, bool isFrozen) :
-            this(env, LoadTFSession(env, modelBytes), inputs, outputs, isFrozen, null)
+            this(env, LoadTFSession(env, modelBytes), inputs, outputs, isFrozen)
         { }
 
-        private TensorFlowTransform(IHostEnvironment env, TFSession session, string[] inputs, string[] outputs, bool isFrozen, Dictionary<string, byte[]> savedModel)
+        private TensorFlowTransform(IHostEnvironment env, TFSession session, string[] inputs, string[] outputs, bool isFrozen)
         {
             Contracts.CheckValue(env, nameof(env));
             _host = env.Register(nameof(RegistrationName));
@@ -323,7 +312,6 @@ namespace Microsoft.ML.Transforms
             _host.CheckNonEmpty(outputs, nameof(outputs));
             Session = session;
             IsFrozen = isFrozen;
-            SavedModel = savedModel;
 
             foreach (var input in inputs)
             {
@@ -428,13 +416,23 @@ namespace Microsoft.ML.Transforms
             {
                 ctx.SaveBinaryStream("TFSavedModel", w =>
                 {
-                    w.Write(SavedModel.Count);
-                    foreach (var kvp in SavedModel)
+                    string[] modelFilePaths = Directory.GetFiles(ModelPath, "*", SearchOption.AllDirectories);
+                    w.Write(modelFilePaths.Length);
+
+                    foreach (var fullPath in modelFilePaths)
                     {
-                        w.Write(kvp.Key);
-                        w.WriteByteArray(kvp.Value);
+                        var relativePath = fullPath.Remove(0, ModelPath.Length).Trim(Path.DirectorySeparatorChar);
+                        FileInfo f = new FileInfo(fullPath);
+                        int fileLength = (int)f.Length;
+
+                        w.Write(relativePath);
+                        w.Write(fileLength);
+
+                        using (var fs = new FileStream(fullPath, FileMode.Open))
+                        {
+                            fs.CopyTo(w.BaseStream, fileLength);
+                        }
                     }
-                    w.Flush();
                 });
             }
             _host.AssertNonEmpty(Inputs);
