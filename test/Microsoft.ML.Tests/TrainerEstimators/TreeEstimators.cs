@@ -37,26 +37,12 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 
                 // Pipeline.
                 var pipeline = new TextTransform(env, "SentimentText", "Features")
-                  .Append(new FastTreeBinaryClassificationTrainer(env, "Label", "Features", advancedSettings: s => { s.NumTrees = 10 }));
+                  .Append(new FastTreeBinaryClassificationTrainer(env, "Label", "Features", advancedSettings: s => { s.NumTrees = 10; }));
 
-                // Train.
-                var model = pipeline.Fit(data);
-
-                // Create prediction engine and test predictions.
-                var engine = model.MakePredictionFunction<SentimentData, SentimentPrediction>(env);
-
-                // Take a couple examples out of the test data and run predictions on top.
-                var testData = reader.Read(new MultiFileSource(GetDataPath(SentimentTestPath)))
-                    .AsEnumerable<SentimentData>(env, false);
-                foreach (var input in testData.Take(5))
-                {
-                    var prediction = engine.Predict(input);
-                    // Verify that predictions match and scores are separated from zero.
-                    Assert.Equal(input.Sentiment, prediction.Sentiment);
-                    Assert.True(input.Sentiment && prediction.Score > 1 || !input.Sentiment && prediction.Score < -1);
-                }
+                TestEstimatorCore(pipeline, data);
             }
         }
+
         private static TextLoader.Arguments MakeSentimentTextLoaderArgs()
         {
             return new TextLoader.Arguments()

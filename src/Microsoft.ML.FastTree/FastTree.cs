@@ -155,9 +155,9 @@ namespace Microsoft.ML.Runtime.FastTree
             return Float.PositiveInfinity;
         }
 
-        private static SchemaShape.Column MakeWeightColumn(Optional<string> weightColumn)
+        private static SchemaShape.Column MakeWeightColumn(string weightColumn)
         {
-            if (weightColumn == null || !weightColumn.IsExplicit)
+            if (weightColumn == null)
                 return null;
             return new SchemaShape.Column(weightColumn, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false);
         }
