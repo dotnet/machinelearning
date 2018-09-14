@@ -82,6 +82,31 @@ namespace Microsoft.ML.Transforms.TensorFlow
             return GetModelSchema(ectx, session.Graph);
         }
 
+        public static IEnumerable<(string, string, ColumnType, string[])> GetModelNodes(string modelFile)
+        {
+            var schema = GetModelSchema(null, modelFile);
+
+            for (int i = 0; i < schema.ColumnCount; i++)
+            {
+                var name = schema.GetColumnName(i);
+                var type = schema.GetColumnType(i);
+
+                var metadataType = schema.GetMetadataTypeOrNull(TensorFlowUtils.OpType, i);
+                Contracts.Assert(metadataType != null && metadataType.IsText);
+                DvText opType = default;
+                schema.GetMetadata(TensorFlowUtils.OpType, i, ref opType);
+                metadataType = schema.GetMetadataTypeOrNull(TensorFlowUtils.InputOps, i);
+                VBuffer<DvText> inputOps = default;
+                if (metadataType != null)
+                {
+                    Contracts.Assert(metadataType.IsKnownSizeVector && metadataType.ItemType.IsText);
+                    schema.GetMetadata(TensorFlowUtils.InputOps, i, ref inputOps);
+                }
+                yield return (name, opType.ToString(), type,
+                    Utils.Size(inputOps.Values) > 0 ? inputOps.Values.Select(input => input.ToString()).ToArray() : new string[0]);
+            }
+        }
+
         internal static PrimitiveType Tf2MlNetType(TFDataType type)
         {
             var mlNetType = Tf2MlNetTypeOrNull(type);
