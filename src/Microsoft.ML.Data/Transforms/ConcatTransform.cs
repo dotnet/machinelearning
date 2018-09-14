@@ -130,6 +130,9 @@ namespace Microsoft.ML.Runtime.Data
             private readonly (string name, string alias)[] _inputs;
             public IReadOnlyList<(string name, string alias)> Inputs => _inputs.AsReadOnly();
 
+            /// <summary>
+            /// This denotes a concatenation of all <paramref name="inputNames"/> into column called <paramref name="outputName"/>.
+            /// </summary>
             public ColumnInfo(string outputName, params string[] inputNames)
                 : this(outputName, GetPairs(inputNames))
             {
@@ -141,6 +144,11 @@ namespace Microsoft.ML.Runtime.Data
                 return inputNames.Select(name => (name, (string)null));
             }
 
+            /// <summary>
+            /// This denotes a concatenation of input columns into one column called <paramref name="outputName"/>.
+            /// For each input column, an 'alias' can be specified, to be used in constructing the resulting slot names.
+            /// If the alias is not specified, it defaults to be column name.
+            /// </summary>
             public ColumnInfo(string outputName, IEnumerable<(string name, string alias)> inputs)
             {
                 Contracts.CheckNonEmpty(outputName, nameof(outputName));
@@ -205,11 +213,19 @@ namespace Microsoft.ML.Runtime.Data
 
         public IReadOnlyCollection<ColumnInfo> Columns => _columns.AsReadOnly();
 
+        /// <summary>
+        /// Concatename columns in <paramref name="inputNames"/> into one column <paramref name="outputName"/>.
+        /// Original columns are also preserved.
+        /// The column types must match, and the output column type is always a vector.
+        /// </summary>
         public ConcatTransform(IHostEnvironment env, string outputName, params string[] inputNames)
             : this(env, new ColumnInfo(outputName, inputNames))
         {
         }
 
+        /// <summary>
+        /// Concatenates multiple groups of columns, each group is denoted by one of <paramref name="columns"/>.
+        /// </summary>
         public ConcatTransform(IHostEnvironment env, params ColumnInfo[] columns)
         {
             Contracts.CheckValue(env, nameof(env));
