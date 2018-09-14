@@ -18,7 +18,13 @@ namespace Microsoft.ML.Runtime.FastTree
         where TArgs : BoostedTreeArgs, new()
         where TModel : IPredictorProducing<Float>
     {
-        public BoostingFastTreeTrainerBase(IHostEnvironment env, TArgs args, SchemaShape.Column label) : base(env, args, label)
+        protected BoostingFastTreeTrainerBase(IHostEnvironment env, TArgs args, SchemaShape.Column label) : base(env, args, label)
+        {
+        }
+
+        protected BoostingFastTreeTrainerBase(IHostEnvironment env, SchemaShape.Column label, string featureColumn,
+            string weightColumn = null, string groupIdColumn = null, Action<TArgs> advancedSettings = null)
+            : base(env, label, featureColumn, weightColumn, groupIdColumn, advancedSettings)
         {
         }
 

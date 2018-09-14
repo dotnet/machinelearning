@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Linq;
 using System.Text;
 using Microsoft.ML.Core.Data;
@@ -45,14 +46,39 @@ namespace Microsoft.ML.Runtime.FastTree
         private Test _trainRegressionTest;
         private Test _testRegressionTest;
 
+        /// <summary>
+        /// The type of prediction for the trainer.
+        /// </summary>
         public override PredictionKind PredictionKind => PredictionKind.Regression;
 
-        protected override SchemaShape.Column[] OutputColumns { get; }
+        private readonly SchemaShape.Column[] _outputColumns;
 
+        /// <summary>
+        /// Initializes a new instance of <see cref="FastTreeRegressionTrainer"/> by using the legacy <see cref="Arguments"/> class.
+        /// </summary>
         public FastTreeRegressionTrainer(IHostEnvironment env, Arguments args)
             : base(env, args, MakeLabelColumn(args.LabelColumn))
         {
-            OutputColumns = new[]
+            _outputColumns = new[]
+            {
+                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false)
+            };
+        }
+
+        /// <summary>
+        /// Initializes a new instance of <see cref="FastTreeRegressionTrainer"/>
+        /// </summary>
+        /// <param name="env">The private instance of <see cref="IHostEnvironment"/>.</param>
+        /// <param name="labelColumn">The name of the label column.</param>
+        /// <param name="featureColumn">The name of the feature column.</param>
+        /// <param name="groupIdColumn">The name for the column containing the group ID. </param>
+        /// <param name="weightColumn">The name for the column containing the initial weight.</param>
+        /// <param name="advancedSettings">A delegate to apply all the advanced arguments to the algorithm.</param>
+        public FastTreeRegressionTrainer(IHostEnvironment env, string labelColumn, string featureColumn,
+            string weightColumn = null, string groupIdColumn = null, Action<Arguments> advancedSettings = null)
+            : base(env, MakeLabelColumn(labelColumn), featureColumn, weightColumn, groupIdColumn, advancedSettings)
+        {
+            _outputColumns = new[]
             {
                 new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false)
             };
@@ -139,6 +165,8 @@ namespace Microsoft.ML.Runtime.FastTree
 
         protected override RegressionPredictionTransformer<FastTreeRegressionPredictor> MakeTransformer(FastTreeRegressionPredictor model, ISchema trainSchema)
             => new RegressionPredictionTransformer<FastTreeRegressionPredictor>(Host, model, trainSchema, FeatureColumn.Name);
+
+        protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema) => _outputColumns;
 
         private void AddFullRegressionTests()
         {

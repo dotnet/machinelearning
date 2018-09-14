@@ -7,19 +7,25 @@ using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Learners;
 using Xunit;
 using System.Linq;
+using Microsoft.ML.Runtime.FastTree;
+using Xunit.Abstractions;
+using Microsoft.ML.Runtime.RunTests;
 
-namespace Microsoft.ML.Tests.Scenarios.Api
+namespace Microsoft.ML.Tests.TrainerEstimators
 {
-    public partial class ApiScenariosTests
+    public partial class TreeEstimators : TestDataPipeBase
     {
+
+        public TreeEstimators(ITestOutputHelper output) : base(output)
+        {
+        }
+
+
         /// <summary>
-        /// Start with a dataset in a text file. Run text featurization on text values. 
-        /// Train a linear model over that. (I am thinking sentiment classification.) 
-        /// Out of the result, produce some structure over which you can get predictions programmatically 
-        /// (e.g., the prediction does not happen over a file as it did during training).
+        /// FastTreeBinaryClassification TrainerEstimator test 
         /// </summary>
         [Fact]
-        public void New_SimpleTrainAndPredict()
+        public void FastTreeBinaryEstimator()
         {
             var dataPath = GetDataPath(SentimentDataPath);
             var testDataPath = GetDataPath(SentimentTestPath);
@@ -28,9 +34,10 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             {
                 var reader = new TextLoader(env, MakeSentimentTextLoaderArgs());
                 var data = reader.Read(new MultiFileSource(dataPath));
+
                 // Pipeline.
                 var pipeline = new TextTransform(env, "SentimentText", "Features")
-                    .Append(new LinearClassificationTrainer(env, new LinearClassificationTrainer.Arguments { NumThreads = 1 }, "Features", "Label"));
+                  .Append(new FastTreeBinaryClassificationTrainer(env, "Label", "Features", advancedSettings: s => { s.NumTrees = 10 }));
 
                 // Train.
                 var model = pipeline.Fit(data);
@@ -49,6 +56,19 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                     Assert.True(input.Sentiment && prediction.Score > 1 || !input.Sentiment && prediction.Score < -1);
                 }
             }
+        }
+        private static TextLoader.Arguments MakeSentimentTextLoaderArgs()
+        {
+            return new TextLoader.Arguments()
+            {
+                Separator = "tab",
+                HasHeader = true,
+                Column = new[]
+                {
+                    new TextLoader.Column("Label", DataKind.BL, 0),
+                    new TextLoader.Column("SentimentText", DataKind.Text, 1)
+                }
+            };
         }
     }
 }

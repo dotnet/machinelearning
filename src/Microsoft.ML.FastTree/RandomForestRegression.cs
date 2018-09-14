@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Float = System.Single;
-
 using System;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
@@ -102,32 +100,32 @@ namespace Microsoft.ML.Runtime.FastTree
 
         public override PredictionKind PredictionKind => PredictionKind.Regression;
 
-        protected override void Map(ref VBuffer<Float> src, ref Float dst)
+        protected override void Map(ref VBuffer<float> src, ref float dst)
         {
             if (InputType.VectorSize > 0)
                 Host.Check(src.Length == InputType.VectorSize);
             else
                 Host.Check(src.Length > MaxSplitFeatIdx);
 
-            dst = (Float)TrainedEnsemble.GetOutput(ref src) / TrainedEnsemble.NumTrees;
+            dst = (float)TrainedEnsemble.GetOutput(ref src) / TrainedEnsemble.NumTrees;
         }
 
-        public ValueMapper<VBuffer<Float>, VBuffer<Float>> GetMapper(Float[] quantiles)
+        public ValueMapper<VBuffer<float>, VBuffer<float>> GetMapper(float[] quantiles)
         {
             return
-                (ref VBuffer<Float> src, ref VBuffer<Float> dst) =>
+                (ref VBuffer<float> src, ref VBuffer<float> dst) =>
                 {
                     // REVIEW: Should make this more efficient - it repeatedly allocates too much stuff.
-                    Float[] weights = null;
+                    float[] weights = null;
                     var distribution = TrainedEnsemble.GetDistribution(ref src, _quantileSampleCount, out weights);
                     var qdist = new QuantileStatistics(distribution, weights);
 
                     var values = dst.Values;
                     if (Utils.Size(values) < quantiles.Length)
-                        values = new Float[quantiles.Length];
+                        values = new float[quantiles.Length];
                     for (int i = 0; i < quantiles.Length; i++)
-                        values[i] = qdist.GetQuantile((Float)quantiles[i]);
-                    dst = new VBuffer<Float>(quantiles.Length, values, dst.Indices);
+                        values[i] = qdist.GetQuantile((float)quantiles[i]);
+                    dst = new VBuffer<float>(quantiles.Length, values, dst.Indices);
                 };
         }
 
@@ -149,24 +147,45 @@ namespace Microsoft.ML.Runtime.FastTree
             public bool ShuffleLabels;
         }
 
-        internal const string Summary = "Trains a random forest to fit target values using least-squares.";
+        public override PredictionKind PredictionKind => PredictionKind.Regression;
 
+        internal const string Summary = "Trains a random forest to fit target values using least-squares.";
         internal const string LoadNameValue = "FastForestRegression";
         internal const string UserNameValue = "Fast Forest Regression";
         internal const string ShortName = "ffr";
 
+        private readonly SchemaShape.Column[] _outputColumns;
+
+        /// <summary>
+        /// Initializes a new instance of <see cref="FastForestRegression"/> by using the legacy <see cref="Arguments"/> class.
+        /// </summary>
         public FastForestRegression(IHostEnvironment env, Arguments args)
             : base(env, args, MakeLabelColumn(args.LabelColumn), true)
         {
-            OutputColumns = new[]
+            _outputColumns = new[]
             {
                 new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false)
             };
         }
 
-        public override PredictionKind PredictionKind => PredictionKind.Regression;
-
-        protected override SchemaShape.Column[] OutputColumns { get; }
+        /// <summary>
+        /// Initializes a new instance of <see cref="FastForestRegression"/>
+        /// </summary>
+        /// <param name="env">The private instance of <see cref="IHostEnvironment"/>.</param>
+        /// <param name="labelColumn">The name of the label column.</param>
+        /// <param name="featureColumn">The name of the feature column.</param>
+        /// <param name="groupIdColumn">The name for the column containing the group ID. </param>
+        /// <param name="weightColumn">The name for the column containing the initial weight.</param>
+        /// <param name="advancedSettings">A delegate to apply all the advanced arguments to the algorithm.</param>
+        public FastForestRegression(IHostEnvironment env, string labelColumn, string featureColumn,
+            string groupIdColumn = null, string weightColumn = null, Action<Arguments> advancedSettings = null)
+            : base(env, MakeLabelColumn(labelColumn), featureColumn, weightColumn, groupIdColumn, true, advancedSettings)
+        {
+            _outputColumns = new[]
+            {
+                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false)
+            };
+        }
 
         protected override FastForestRegressionPredictor TrainModelCore(TrainContext context)
         {
@@ -209,6 +228,8 @@ namespace Microsoft.ML.Runtime.FastTree
         {
             return new SchemaShape.Column(labelColumn, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false);
         }
+
+        protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema) => _outputColumns;
 
         private abstract class ObjectiveFunctionImplBase : RandomForestObjectiveFunction
         {

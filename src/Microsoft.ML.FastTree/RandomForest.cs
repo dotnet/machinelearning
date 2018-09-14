@@ -2,8 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Float = System.Single;
-
+using System;
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime.FastTree.Internal;
 
@@ -11,13 +10,26 @@ namespace Microsoft.ML.Runtime.FastTree
 {
     public abstract class RandomForestTrainerBase<TArgs, TTransformer, TModel> : FastTreeTrainerBase<TArgs, TTransformer, TModel>
         where TArgs : FastForestArgumentsBase, new()
-        where TModel : IPredictorProducing<Float>
+        where TModel : IPredictorProducing<float>
         where TTransformer: IPredictionTransformer<TModel>
     {
         private readonly bool _quantileEnabled;
 
+        /// <summary>
+        /// Constructor invoked by the maml code-path.
+        /// </summary>
         protected RandomForestTrainerBase(IHostEnvironment env, TArgs args, SchemaShape.Column label, bool quantileEnabled = false)
             : base(env, args, label)
+        {
+            _quantileEnabled = quantileEnabled;
+        }
+
+        /// <summary>
+        /// Constructor invoked by the API code-path.
+        /// </summary>
+        protected RandomForestTrainerBase(IHostEnvironment env, SchemaShape.Column label, string featureColumn,
+            string weightColumn = null, string groupIdColumn = null, bool quantileEnabled = false, Action<TArgs> advancedSettings = null)
+            : base(env, label, featureColumn, weightColumn, groupIdColumn, advancedSettings)
         {
             _quantileEnabled = quantileEnabled;
         }
