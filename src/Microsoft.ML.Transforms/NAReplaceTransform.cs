@@ -36,7 +36,6 @@ namespace Microsoft.ML.Runtime.Data
 {
     public sealed partial class NAReplaceTransform : OneToOneTransformerBase
     {
-        //IVAN: CLEAN IT
         public enum ReplacementKind : byte
         {
             // REVIEW: What should the full list of options for this transform be?
@@ -140,7 +139,7 @@ namespace Microsoft.ML.Runtime.Data
         internal const string FriendlyName = "NA Replace Transform";
         internal const string ShortName = "NARep";
 
-        private static string TestType(ColumnType type)
+        internal static string TestType(ColumnType type)
         {
             // Item type must have an NA value that exists and is not equal to its default value.
             Func<ColumnType, string> func = TestType<int>;
@@ -225,19 +224,24 @@ namespace Microsoft.ML.Runtime.Data
             var type = inputSchema.GetColumnType(srcCol);
             string reason = TestType(type);
             if (reason != null)
-                //IVAN: not sure about schema mismatch
-                throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", ColumnPairs[col].input, reason, type.ToString());
+                throw Host.ExceptParam(nameof(inputSchema), reason);
         }
 
         public NAReplaceTransform(IHostEnvironment env, IDataView input, params ColumnInfo[] columns)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(NAReplaceTransform)), GetColumnPairs(columns))
         {
-            // Validate input schema.
+            // Check that all the input columns are present and correct.
+            for (int i = 0; i < ColumnPairs.Length; i++)
+            {
+                if (!input.Schema.TryGetColumnIndex(ColumnPairs[i].input, out int srcCol))
+                    throw Host.ExceptSchemaMismatch(nameof(input), "input", ColumnPairs[i].input);
+                CheckInputColumn(input.Schema, i, srcCol);
+            }
             GetReplacementValues(input, columns, out _repValues, out _repIsDefault, out _types);
         }
 
         private NAReplaceTransform(IHost host, ModelLoadContext ctx)
-         : base(host, ctx)
+            : base(host, ctx)
         {
             var columnsLength = ColumnPairs.Length;
             _repValues = new object[columnsLength];
@@ -660,7 +664,6 @@ namespace Microsoft.ML.Runtime.Data
             /// </summary>
             private Delegate ComposeGetterVec<T>(IRow input, int iinfo)
             {
-                //IVAN: check you use corret iinfo or maybe it should be ColMapNewToOld[iinfo] everywhere in code
                 var getSrc = input.GetGetter<VBuffer<T>>(ColMapNewToOld[iinfo]);
                 var isNA = (RefPredicate<T>)_isNAs[iinfo];
                 var isDefault = Conversions.Instance.GetIsDefaultPredicate<T>(_infos[iinfo].TypeSrc.ItemType);
@@ -939,9 +942,9 @@ namespace Microsoft.ML.Runtime.Data
             {
                 if (!inputSchema.TryFindColumn(colInfo.Input, out var col))
                     throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.Input);
-                //IVAN Proper validation, not copypaste from term estimator
-                if ((col.ItemType.ItemType.RawKind == default) || !(col.ItemType.IsVector || col.ItemType.IsPrimitive))
-                    throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.Input);
+                string reason = NAReplaceTransform.TestType(col.ItemType);
+                if (reason != null)
+                    throw _host.ExceptParam(nameof(inputSchema), reason);
                 var metadata = new List<SchemaShape.Column>();
                 if (col.Metadata.TryFindColumn(MetadataUtils.Kinds.SlotNames, out var slotMeta))
                     metadata.Add(slotMeta);
