@@ -14,10 +14,10 @@
         This multi-class trainer accepts binary feature values of type float, i.e., feature values are either true or false.
         Specifically a feature value greater than zero is treated as true.
       </remarks>
-      <seealso cref='Microsoft.ML.Trainers.LogisticRegressionClassifier'/>
-      <seealso cref='Microsoft.ML.Trainers.LightGbmClassifier'/>
-      <seealso cref='Microsoft.ML.Trainers.StochasticDualCoordinateAscentClassifier'/>
-      <seealso cref='Microsoft.ML.Models.OneVersusAll'/>
+      <seealso cref='Microsoft.ML.Legacy.Trainers.LogisticRegressionClassifier'/>
+      <seealso cref='Microsoft.ML.Legacy.Trainers.LightGbmClassifier'/>
+      <seealso cref='Microsoft.ML.Legacy.Trainers.StochasticDualCoordinateAscentClassifier'/>
+      <seealso cref='Microsoft.ML.Legacy.Models.OneVersusAll'/>
     </member>
     <example name="MultiClassNaiveBayesTrainer">
       <example>
@@ -47,10 +47,10 @@
         request caching, as it will be performing multiple passes over the data set.
         These learner will request normalization from the data pipeline if the classifier indicates it would benefit from it.</para>
       </remarks>
-      <seealso cref='Microsoft.ML.Trainers.LogisticRegressionClassifier'/>
-      <seealso cref='Microsoft.ML.Trainers.LightGbmClassifier'/>
-      <seealso cref='Microsoft.ML.Trainers.StochasticDualCoordinateAscentClassifier'/>
-      <seealso cref='Microsoft.ML.Trainers.NaiveBayesClassifier'/>
+      <seealso cref='Microsoft.ML.Legacy.Trainers.LogisticRegressionClassifier'/>
+      <seealso cref='Microsoft.ML.Legacy.Trainers.LightGbmClassifier'/>
+      <seealso cref='Microsoft.ML.Legacy.Trainers.StochasticDualCoordinateAscentClassifier'/>
+      <seealso cref='Microsoft.ML.Legacy.Trainers.NaiveBayesClassifier'/>
       <example>
         <code language="csharp">
           pipeline.Add(OneVersusAll.With(new StochasticDualCoordinateAscentBinaryClassifier()));

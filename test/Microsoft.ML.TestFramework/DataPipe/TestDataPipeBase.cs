@@ -11,7 +11,6 @@ using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Data.IO;
-using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.TestFramework;
@@ -21,6 +20,25 @@ namespace Microsoft.ML.Runtime.RunTests
 {
     public abstract partial class TestDataPipeBase : TestDataViewBase
     {
+        public const string IrisDataPath = "iris.data";
+
+        protected static TextLoader.Arguments MakeIrisTextLoaderArgs()
+        {
+            return new TextLoader.Arguments()
+            {
+                Separator = "comma",
+                HasHeader = true,
+                Column = new[]
+                {
+                    new TextLoader.Column("SepalLength", DataKind.R4, 0),
+                    new TextLoader.Column("SepalWidth", DataKind.R4, 1),
+                    new TextLoader.Column("PetalLength", DataKind.R4, 2),
+                    new TextLoader.Column("PetalWidth",DataKind.R4, 3),
+                    new TextLoader.Column("Label", DataKind.Text, 4)
+                }
+            };
+        }
+
         /// <summary>
         /// 'Workout test' for an estimator.
         /// Checks the following traits:
@@ -134,16 +152,16 @@ namespace Microsoft.ML.Runtime.RunTests
             CheckSameSchemaShape(outSchemaShape, scoredTrainSchemaShape);
         }
 
-        private void CheckSameSchemaShape(SchemaShape first, SchemaShape second)
+        private void CheckSameSchemaShape(SchemaShape promised, SchemaShape delivered)
         {
-            Assert.True(first.Columns.Length == second.Columns.Length);
-            var sortedCols1 = first.Columns.OrderBy(x => x.Name);
-            var sortedCols2 = second.Columns.OrderBy(x => x.Name);
+            Assert.True(promised.Columns.Length == delivered.Columns.Length);
+            var sortedCols1 = promised.Columns.OrderBy(x => x.Name);
+            var sortedCols2 = delivered.Columns.OrderBy(x => x.Name);
 
             foreach (var (x, y) in sortedCols1.Zip(sortedCols2, (x, y) => (x, y)))
             {
                 Assert.Equal(x.Name, y.Name);
-                Assert.True(x.IsCompatibleWith(y), $"Mismatch on {x.Name}");
+                // We want the 'promised' metadata to be a superset of 'delivered'.
                 Assert.True(y.IsCompatibleWith(x), $"Mismatch on {x.Name}");
             }
         }

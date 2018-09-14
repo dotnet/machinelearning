@@ -116,8 +116,8 @@ The enum for compression kind is one byte, and follows this scheme:
 Compression Kind                                               | Code
 ---------------------------------------------------------------|-----
 None                                                           | 0
-DEFLATE (i.e., [RFC1951](http://www.ietf.org/rfc/rfc1951.txt)) | 1
-zlib (i.e., [RFC1950](http://www.ietf.org/rfc/rfc1950.txt))    | 2
+DEFLATE (i.e., [RFC1951](https://www.ietf.org/rfc/rfc1951.txt)) | 1
+zlib (i.e., [RFC1950](https://www.ietf.org/rfc/rfc1950.txt))    | 2
 
 None means no compression. DEFLATE is the default scheme. There is a tendency
 to conflate zlib and DEFLATE, so to be clear: zlib can be (somewhat inexactly)

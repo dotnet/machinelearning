@@ -6,7 +6,6 @@ using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Learners;
 using Xunit;
-using Microsoft.ML.Models;
 
 namespace Microsoft.ML.Tests.Scenarios.Api
 {
@@ -54,8 +53,6 @@ namespace Microsoft.ML.Tests.Scenarios.Api
 
                 var evaluator = new BinaryClassifierMamlEvaluator(env, new BinaryClassifierMamlEvaluator.Arguments() { });
                 var metricsDict = evaluator.Evaluate(dataEval);
-
-                var metrics = BinaryClassificationMetrics.FromMetrics(env, metricsDict["OverallMetrics"], metricsDict["ConfusionMatrix"])[0];
             }
         }
     }

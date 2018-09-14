@@ -3,14 +3,14 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Transforms;
+using Microsoft.ML.Legacy.Transforms;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
 
-namespace Microsoft.ML
+namespace Microsoft.ML.Legacy
 {
     /// <summary>
     /// The debug proxy class for a LearningPipeline.

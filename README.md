@@ -56,7 +56,7 @@ We welcome contributions! Please review our [contribution guide](CONTRIBUTING.md
 
 Please join our community on Gitter [![Join the chat at https://gitter.im/dotnet/mlnet](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/dotnet/mlnet?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
-This project has adopted the code of conduct defined by the [Contributor Covenant](http://contributor-covenant.org/) to clarify expected behavior in our community.
+This project has adopted the code of conduct defined by the [Contributor Covenant](https://contributor-covenant.org/) to clarify expected behavior in our community.
 For more information, see the [.NET Foundation Code of Conduct](https://dotnetfoundation.org/code-of-conduct).
 
 ## Examples
@@ -94,7 +94,7 @@ ML.NET is licensed under the [MIT license](LICENSE).
 
 ## .NET Foundation
 
-ML.NET is a [.NET Foundation](http://www.dotnetfoundation.org/projects) project.
+ML.NET is a [.NET Foundation](https://www.dotnetfoundation.org/projects) project.
 
 There are many .NET related projects on GitHub.
 
