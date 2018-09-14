@@ -13979,7 +13979,7 @@ namespace Microsoft.ML
 
     namespace Transforms
     {
-        public enum NAHandleTransformReplacementKind
+        public enum NAHandleTransformReplacementKind : byte
         {
             DefaultValue = 0,
             Mean = 1,
@@ -14440,7 +14440,7 @@ namespace Microsoft.ML
 
     namespace Transforms
     {
-        public enum NAReplaceTransformReplacementKind
+        public enum NAReplaceTransformReplacementKind : byte
         {
             DefaultValue = 0,
             Mean = 1,
