@@ -25,27 +25,27 @@ namespace Microsoft.ML.EntryPoints.Tests
         [Fact]
         public void ConstructorDoesntThrow()
         {
-            Assert.NotNull(new Data.TextLoader("fakeFile.txt").CreateFrom<Input>());
-            Assert.NotNull(new Data.TextLoader("fakeFile.txt").CreateFrom<Input>(useHeader:true));
-            Assert.NotNull(new Data.TextLoader("fakeFile.txt").CreateFrom<Input>());
-            Assert.NotNull(new Data.TextLoader("fakeFile.txt").CreateFrom<Input>(useHeader: false));
-            Assert.NotNull(new Data.TextLoader("fakeFile.txt").CreateFrom<Input>(useHeader: false, supportSparse: false, trimWhitespace: false));
-            Assert.NotNull(new Data.TextLoader("fakeFile.txt").CreateFrom<Input>(useHeader: false, supportSparse: false));
-            Assert.NotNull(new Data.TextLoader("fakeFile.txt").CreateFrom<Input>(useHeader: false, allowQuotedStrings: false));
+            Assert.NotNull(new Legacy.Data.TextLoader("fakeFile.txt").CreateFrom<Input>());
+            Assert.NotNull(new Legacy.Data.TextLoader("fakeFile.txt").CreateFrom<Input>(useHeader:true));
+            Assert.NotNull(new Legacy.Data.TextLoader("fakeFile.txt").CreateFrom<Input>());
+            Assert.NotNull(new Legacy.Data.TextLoader("fakeFile.txt").CreateFrom<Input>(useHeader: false));
+            Assert.NotNull(new Legacy.Data.TextLoader("fakeFile.txt").CreateFrom<Input>(useHeader: false, supportSparse: false, trimWhitespace: false));
+            Assert.NotNull(new Legacy.Data.TextLoader("fakeFile.txt").CreateFrom<Input>(useHeader: false, supportSparse: false));
+            Assert.NotNull(new Legacy.Data.TextLoader("fakeFile.txt").CreateFrom<Input>(useHeader: false, allowQuotedStrings: false));
 
-            Assert.NotNull(new Data.TextLoader("fakeFile.txt").CreateFrom<InputWithUnderscore>());
+            Assert.NotNull(new Legacy.Data.TextLoader("fakeFile.txt").CreateFrom<InputWithUnderscore>());
         }
 
 
         [Fact]
         public void CanSuccessfullyApplyATransform()
         {
-            var loader = new Data.TextLoader("fakeFile.txt").CreateFrom<Input>();
+            var loader = new Legacy.Data.TextLoader("fakeFile.txt").CreateFrom<Input>();
 
             using (var environment = new TlcEnvironment())
             {
                 Experiment experiment = environment.CreateExperiment();
-                ILearningPipelineDataStep output = loader.ApplyStep(null, experiment) as ILearningPipelineDataStep;
+                Legacy.ILearningPipelineDataStep output = loader.ApplyStep(null, experiment) as Legacy.ILearningPipelineDataStep;
 
                 Assert.NotNull(output.Data);
                 Assert.NotNull(output.Data.VarName);
@@ -57,12 +57,12 @@ namespace Microsoft.ML.EntryPoints.Tests
         public void CanSuccessfullyRetrieveQuotedData()
         {
             string dataPath = GetDataPath("QuotingData.csv");
-            var loader = new Data.TextLoader(dataPath).CreateFrom<QuoteInput>(useHeader: true, separator: ',', allowQuotedStrings: true, supportSparse: false);
+            var loader = new Legacy.Data.TextLoader(dataPath).CreateFrom<QuoteInput>(useHeader: true, separator: ',', allowQuotedStrings: true, supportSparse: false);
             
             using (var environment = new TlcEnvironment())
             {
                 Experiment experiment = environment.CreateExperiment();
-                ILearningPipelineDataStep output = loader.ApplyStep(null, experiment) as ILearningPipelineDataStep;
+                Legacy.ILearningPipelineDataStep output = loader.ApplyStep(null, experiment) as Legacy.ILearningPipelineDataStep;
 
                 experiment.Compile();
                 loader.SetInput(environment, experiment);
@@ -115,12 +115,12 @@ namespace Microsoft.ML.EntryPoints.Tests
         public void CanSuccessfullyRetrieveSparseData()
         {
             string dataPath = GetDataPath("SparseData.txt");
-            var loader = new Data.TextLoader(dataPath).CreateFrom<SparseInput>(useHeader: true, allowQuotedStrings: false, supportSparse: true);
+            var loader = new Legacy.Data.TextLoader(dataPath).CreateFrom<SparseInput>(useHeader: true, allowQuotedStrings: false, supportSparse: true);
 
             using (var environment = new TlcEnvironment())
             {
                 Experiment experiment = environment.CreateExperiment();
-                ILearningPipelineDataStep output = loader.ApplyStep(null, experiment) as ILearningPipelineDataStep;
+                Legacy.ILearningPipelineDataStep output = loader.ApplyStep(null, experiment) as Legacy.ILearningPipelineDataStep;
 
                 experiment.Compile();
                 loader.SetInput(environment, experiment);
@@ -180,12 +180,12 @@ namespace Microsoft.ML.EntryPoints.Tests
         public void CanSuccessfullyTrimSpaces()
         {
             string dataPath = GetDataPath("TrimData.csv");
-            var loader = new Data.TextLoader(dataPath).CreateFrom<QuoteInput>(useHeader: true, separator: ',', allowQuotedStrings: false, supportSparse: false, trimWhitespace: true);
+            var loader = new Legacy.Data.TextLoader(dataPath).CreateFrom<QuoteInput>(useHeader: true, separator: ',', allowQuotedStrings: false, supportSparse: false, trimWhitespace: true);
 
             using (var environment = new TlcEnvironment())
             {
                 Experiment experiment = environment.CreateExperiment();
-                ILearningPipelineDataStep output = loader.ApplyStep(null, experiment) as ILearningPipelineDataStep;
+                Legacy.ILearningPipelineDataStep output = loader.ApplyStep(null, experiment) as Legacy.ILearningPipelineDataStep;
 
                 experiment.Compile();
                 loader.SetInput(environment, experiment);
@@ -227,7 +227,7 @@ namespace Microsoft.ML.EntryPoints.Tests
         [Fact]
         public void ThrowsExceptionWithPropertyName()
         {
-            Exception ex = Assert.Throws<InvalidOperationException>( () => new Data.TextLoader("fakefile.txt").CreateFrom<ModelWithoutColumnAttribute>() );
+            Exception ex = Assert.Throws<InvalidOperationException>( () => new Legacy.Data.TextLoader("fakefile.txt").CreateFrom<ModelWithoutColumnAttribute>() );
             Assert.StartsWith("Field or property String1 is missing ColumnAttribute", ex.Message);
         }
 

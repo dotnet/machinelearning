@@ -56,13 +56,13 @@ namespace Microsoft.ML.Runtime.EntryPoints
                     new TaskInformationBundle {
                         TrainerFunctionName = "BinaryClassifier",
                         TrainerSignatureType = typeof(SignatureBinaryClassifierTrainer),
-                        EvaluatorInput = settings => new Models.BinaryClassificationEvaluator
+                        EvaluatorInput = settings => new Legacy.Models.BinaryClassificationEvaluator
                         {
                             LabelColumn = settings.LabelColumn,
                             NameColumn = settings.NameColumn,
                             WeightColumn = settings.WeightColumn
                         },
-                        EvaluatorOutput = () => new Models.BinaryClassificationEvaluator.Output()
+                        EvaluatorOutput = () => new Legacy.Models.BinaryClassificationEvaluator.Output()
                     }
                 },
                 {
@@ -70,13 +70,13 @@ namespace Microsoft.ML.Runtime.EntryPoints
                     new TaskInformationBundle{
                         TrainerFunctionName = "Classifier",
                         TrainerSignatureType = typeof(SignatureMultiClassClassifierTrainer),
-                        EvaluatorInput = settings => new Models.ClassificationEvaluator
+                        EvaluatorInput = settings => new Legacy.Models.ClassificationEvaluator
                         {
                             LabelColumn = settings.LabelColumn,
                             NameColumn = settings.NameColumn,
                             WeightColumn = settings.WeightColumn
                         },
-                        EvaluatorOutput = () => new Models.ClassificationEvaluator.Output()
+                        EvaluatorOutput = () => new Legacy.Models.ClassificationEvaluator.Output()
                     }
                 },
                 {
@@ -84,14 +84,14 @@ namespace Microsoft.ML.Runtime.EntryPoints
                     new TaskInformationBundle {
                         TrainerFunctionName = "Ranker",
                         TrainerSignatureType = typeof(SignatureRankerTrainer),
-                        EvaluatorInput = settings => new Models.RankerEvaluator
+                        EvaluatorInput = settings => new Legacy.Models.RankerEvaluator
                         {
                             LabelColumn = settings.LabelColumn,
                             NameColumn = settings.NameColumn,
                             WeightColumn = settings.WeightColumn,
                             GroupIdColumn = settings.GroupColumn
                         },
-                        EvaluatorOutput = () => new Models.RankerEvaluator.Output()
+                        EvaluatorOutput = () => new Legacy.Models.RankerEvaluator.Output()
                     }
                 },
                 {
@@ -99,13 +99,13 @@ namespace Microsoft.ML.Runtime.EntryPoints
                     new TaskInformationBundle{
                         TrainerFunctionName = "Regressor",
                         TrainerSignatureType = typeof(SignatureRegressorTrainer),
-                        EvaluatorInput = settings => new Models.RegressionEvaluator
+                        EvaluatorInput = settings => new Legacy.Models.RegressionEvaluator
                         {
                             LabelColumn = settings.LabelColumn,
                             NameColumn = settings.NameColumn,
                             WeightColumn = settings.WeightColumn
                         },
-                        EvaluatorOutput = () => new Models.RegressionEvaluator.Output()
+                        EvaluatorOutput = () => new Legacy.Models.RegressionEvaluator.Output()
                     }
                 },
                 {
@@ -113,13 +113,13 @@ namespace Microsoft.ML.Runtime.EntryPoints
                     new TaskInformationBundle {
                         TrainerFunctionName = "MultiOutputRegressor",
                         TrainerSignatureType = typeof(SignatureMultiOutputRegressorTrainer),
-                        EvaluatorInput = settings => new Models.MultiOutputRegressionEvaluator
+                        EvaluatorInput = settings => new Legacy.Models.MultiOutputRegressionEvaluator
                         {
                             LabelColumn = settings.LabelColumn,
                             NameColumn = settings.NameColumn,
                             WeightColumn = settings.WeightColumn,
                         },
-                        EvaluatorOutput = () => new Models.MultiOutputRegressionEvaluator.Output()
+                        EvaluatorOutput = () => new Legacy.Models.MultiOutputRegressionEvaluator.Output()
                     }
                 },
                 {
@@ -127,13 +127,13 @@ namespace Microsoft.ML.Runtime.EntryPoints
                     new TaskInformationBundle {
                         TrainerFunctionName = "AnomalyDetector",
                         TrainerSignatureType = typeof(SignatureAnomalyDetectorTrainer),
-                        EvaluatorInput = settings => new Models.AnomalyDetectionEvaluator
+                        EvaluatorInput = settings => new Legacy.Models.AnomalyDetectionEvaluator
                         {
                             LabelColumn = settings.LabelColumn,
                             NameColumn = settings.NameColumn,
                             WeightColumn = settings.WeightColumn
                         },
-                        EvaluatorOutput = () => new Models.AnomalyDetectionEvaluator.Output()
+                        EvaluatorOutput = () => new Legacy.Models.AnomalyDetectionEvaluator.Output()
                         }
                 },
                 {
@@ -141,14 +141,14 @@ namespace Microsoft.ML.Runtime.EntryPoints
                     new TaskInformationBundle {
                         TrainerFunctionName = "Clusterer",
                         TrainerSignatureType = typeof(SignatureClusteringTrainer),
-                        EvaluatorInput = settings => new Models.ClusterEvaluator
+                        EvaluatorInput = settings => new Legacy.Models.ClusterEvaluator
                         {
                             LabelColumn = settings.LabelColumn,
                             NameColumn = settings.NameColumn,
                             WeightColumn = settings.WeightColumn,
                             FeatureColumn = settings.FeatureColumn
                         },
-                        EvaluatorOutput = () => new Models.ClusterEvaluator.Output()
+                        EvaluatorOutput = () => new Legacy.Models.ClusterEvaluator.Output()
                     }
                 },
             };
