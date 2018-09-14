@@ -132,44 +132,6 @@ namespace Microsoft.ML.Transforms
             }
             else
             {
-                //Dictionary<string, byte[]> savedModel = new Dictionary<string, byte[]>();
-                //var load = ctx.TryLoadBinaryStream("TFSavedModel", br =>
-                //{
-                //    int count = br.ReadInt32();
-                //    for (int n = 0; n < count; n++)
-                //    {
-                //        string key = br.ReadString();
-                //        byte[] value = br.ReadByteArray();
-                //        savedModel.Add(key, value);
-                //    }
-                //});
-
-                //var tempDirPath = Path.GetFullPath(Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString()));
-                //var tempDirInfo = Directory.CreateDirectory(tempDirPath);
-                //foreach (var kvp in savedModel)
-                //{
-                //    string fileName = Path.Combine(tempDirInfo.FullName, kvp.Key);
-                //    if (kvp.Key.StartsWith(SavedModelVariablesDirName))
-                //    {
-                //        var variabledDirInfo = new DirectoryInfo(Path.Combine(tempDirPath, SavedModelVariablesDirName));
-                //        if (!variabledDirInfo.Exists)
-                //            Directory.CreateDirectory(variabledDirInfo.FullName);
-
-                //        var tokens = kvp.Key.Split(Path.DirectorySeparatorChar);
-                //        fileName = Path.Combine(variabledDirInfo.FullName, tokens[1]);
-                //    }
-
-                //    using (var fs = new FileStream(fileName, FileMode.Create, FileAccess.Write))
-                //    {
-                //        fs.Write(kvp.Value, 0, kvp.Value.Length);
-                //    }
-                //}
-
-                //var session = GetSession(env, tempDirPath);
-                //var io = ModelInputsOutputs(env, ctx);
-                //Directory.Delete(tempDirPath, true);
-                //return new TensorFlowTransform(env, session, io.Item1, io.Item2, isFrozen, savedModel);
-
                 var tempDirPath = Path.GetFullPath(Path.Combine(Path.GetTempPath(), "_AG_" + Guid.NewGuid().ToString()));
                 var tempDirInfo = Directory.CreateDirectory(tempDirPath);
 
