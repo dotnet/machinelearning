@@ -2,12 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Float = System.Single;
-
-using System;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
@@ -21,7 +15,10 @@ using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Learners;
 using Microsoft.ML.Runtime.Numeric;
 using Microsoft.ML.Runtime.Training;
-using System.Collections.Generic;
+using System;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
 [assembly: LoadableClass(typeof(LinearClassificationTrainer), typeof(LinearClassificationTrainer.Arguments),
     new[] { typeof(SignatureBinaryClassifierTrainer), typeof(SignatureTrainer), typeof(SignatureFeatureScorerTrainer) },
@@ -44,7 +41,7 @@ namespace Microsoft.ML.Runtime.Learners
 {
     using ConditionalAttribute = System.Diagnostics.ConditionalAttribute;
     using Stopwatch = System.Diagnostics.Stopwatch;
-    using TScalarPredictor = IPredictorWithFeatureWeights<Float>;
+    using TScalarPredictor = IPredictorWithFeatureWeights<float>;
 
     public abstract class LinearTrainerBase<TPredictor> : TrainerBase<TPredictor>
         where TPredictor : IPredictor
@@ -129,14 +126,14 @@ namespace Microsoft.ML.Runtime.Learners
 
         protected abstract void CheckLabel(RoleMappedData examples, out int weightSetCount);
 
-        protected Float WDot(ref VBuffer<Float> features, ref VBuffer<Float> weights, Float bias)
+        protected float WDot(ref VBuffer<float> features, ref VBuffer<float> weights, float bias)
         {
             return VectorUtils.DotProduct(ref weights, ref features) + bias;
         }
 
-        protected Float WScaledDot(ref VBuffer<Float> features, Double scaling, ref VBuffer<Float> weights, Float bias)
+        protected float WScaledDot(ref VBuffer<float> features, Double scaling, ref VBuffer<float> weights, float bias)
         {
-            return VectorUtils.DotProduct(ref weights, ref features) * (Float)scaling + bias;
+            return VectorUtils.DotProduct(ref weights, ref features) * (float)scaling + bias;
         }
 
         protected virtual int ComputeNumThreads(FloatLabelCursor.Factory cursorFactory)
@@ -164,13 +161,13 @@ namespace Microsoft.ML.Runtime.Learners
             [Argument(ArgumentType.AtMostOnce, HelpText = "L2 regularizer constant. By default the l2 constant is automatically inferred based on data set.", NullName = "<Auto>", ShortName = "l2", SortOrder = 1)]
             [TGUI(Label = "L2 Regularizer Constant", SuggestedSweeps = "<Auto>,1e-7,1e-6,1e-5,1e-4,1e-3,1e-2")]
             [TlcModule.SweepableDiscreteParam("L2Const", new object[] { "<Auto>", 1e-7f, 1e-6f, 1e-5f, 1e-4f, 1e-3f, 1e-2f })]
-            public Float? L2Const;
+            public float? L2Const;
 
             // REVIEW: make the default positive when we know how to consume a sparse model
             [Argument(ArgumentType.AtMostOnce, HelpText = "L1 soft threshold (L1/L2). Note that it is easier to control and sweep using the threshold parameter than the raw L1-regularizer constant. By default the l1 threshold is automatically inferred based on data set.", NullName = "<Auto>", ShortName = "l1", SortOrder = 2)]
             [TGUI(Label = "L1 Soft Threshold", SuggestedSweeps = "<Auto>,0,0.25,0.5,0.75,1")]
             [TlcModule.SweepableDiscreteParam("L1Threshold", new object[] { "<Auto>", 0f, 0.25f, 0.5f, 0.75f, 1f })]
-            public Float? L1Threshold;
+            public float? L1Threshold;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Degree of lock-free parallelism. Defaults to automatic. Determinism not guaranteed.", NullName = "<Auto>", ShortName = "nt,t,threads", SortOrder = 50)]
             [TGUI(Label = "Number of threads", SuggestedSweeps = "<Auto>,1,2,4")]
@@ -179,7 +176,7 @@ namespace Microsoft.ML.Runtime.Learners
             [Argument(ArgumentType.AtMostOnce, HelpText = "The tolerance for the ratio between duality gap and primal loss for convergence checking.", ShortName = "tol")]
             [TGUI(SuggestedSweeps = "0.001, 0.01, 0.1, 0.2")]
             [TlcModule.SweepableDiscreteParam("ConvergenceTolerance", new object[] { 0.001f, 0.01f, 0.1f, 0.2f })]
-            public Float ConvergenceTolerance = 0.1f;
+            public float ConvergenceTolerance = 0.1f;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Maximum number of iterations; set to 1 to simulate online learning. Defaults to automatic.", NullName = "<Auto>", ShortName = "iter")]
             [TGUI(Label = "Max number of iterations", SuggestedSweeps = "<Auto>,10,20,100")]
@@ -196,7 +193,7 @@ namespace Microsoft.ML.Runtime.Learners
             [Argument(ArgumentType.AtMostOnce, HelpText = "The learning rate for adjusting bias from being regularized.", ShortName = "blr")]
             [TGUI(SuggestedSweeps = "0, 0.01, 0.1, 1")]
             [TlcModule.SweepableDiscreteParam("BiasLearningRate", new object[] { 0.0f, 0.01f, 0.1f, 1f })]
-            public Float BiasLearningRate = 0;
+            public float BiasLearningRate = 0;
 
             internal virtual void Check(IHostEnvironment env)
             {
@@ -237,7 +234,7 @@ namespace Microsoft.ML.Runtime.Learners
         // it is not clear if training a linear learner with more than 10^15 examples provides
         // substantial additional benefits in terms of accuracy.
         private const long MaxDualTableSize = 1L << 50;
-        private const Float L2LowerBound = 1e-09f;
+        private const float L2LowerBound = 1e-09f;
         private readonly ArgumentsBase _args;
         protected ISupportSdcaLoss Loss;
 
@@ -250,7 +247,7 @@ namespace Microsoft.ML.Runtime.Learners
             _args.Check(host);
         }
 
-        protected Float WDot(ref VBuffer<Float> features, ref VBuffer<Float> weights, Float bias)
+        protected float WDot(ref VBuffer<float> features, ref VBuffer<float> weights, float bias)
         {
             return VectorUtils.DotProduct(ref weights, ref features) + bias;
         }
@@ -400,19 +397,19 @@ namespace Microsoft.ML.Runtime.Learners
             ch.Assert(_args.L1Threshold.HasValue);
             var l1Threshold = _args.L1Threshold.Value;
             var l1ThresholdZero = l1Threshold == 0;
-            var weights = new VBuffer<Float>[weightSetCount];
-            var bestWeights = new VBuffer<Float>[weightSetCount];
-            var l1IntermediateWeights = l1ThresholdZero ? null : new VBuffer<Float>[weightSetCount];
-            var biasReg = new Float[weightSetCount];
-            var bestBiasReg = new Float[weightSetCount];
-            var biasUnreg = new Float[weightSetCount];
-            var bestBiasUnreg = new Float[weightSetCount];
-            var l1IntermediateBias = l1ThresholdZero ? null : new Float[weightSetCount];
+            var weights = new VBuffer<float>[weightSetCount];
+            var bestWeights = new VBuffer<float>[weightSetCount];
+            var l1IntermediateWeights = l1ThresholdZero ? null : new VBuffer<float>[weightSetCount];
+            var biasReg = new float[weightSetCount];
+            var bestBiasReg = new float[weightSetCount];
+            var biasUnreg = new float[weightSetCount];
+            var bestBiasUnreg = new float[weightSetCount];
+            var l1IntermediateBias = l1ThresholdZero ? null : new float[weightSetCount];
 
             for (int i = 0; i < weightSetCount; i++)
             {
-                weights[i] = VBufferUtils.CreateDense<Float>(numFeatures);
-                bestWeights[i] = VBufferUtils.CreateDense<Float>(numFeatures);
+                weights[i] = VBufferUtils.CreateDense<float>(numFeatures);
+                bestWeights[i] = VBufferUtils.CreateDense<float>(numFeatures);
                 biasReg[i] = 0;
                 bestBiasReg[i] = 0;
                 biasUnreg[i] = 0;
@@ -420,7 +417,7 @@ namespace Microsoft.ML.Runtime.Learners
 
                 if (!l1ThresholdZero)
                 {
-                    l1IntermediateWeights[i] = VBufferUtils.CreateDense<Float>(numFeatures);
+                    l1IntermediateWeights[i] = VBufferUtils.CreateDense<float>(numFeatures);
                     l1IntermediateBias[i] = 0;
                 }
             }
@@ -429,11 +426,11 @@ namespace Microsoft.ML.Runtime.Learners
             Double bestPrimalLoss = Double.PositiveInfinity;
             ch.Assert(_args.L2Const.HasValue);
             var l2Const = _args.L2Const.Value;
-            Float lambdaNInv = 1 / (l2Const * count);
+            float lambdaNInv = 1 / (l2Const * count);
 
             DualsTableBase duals = null;
-            Float[] invariants = null;
-            Float[] featureNormSquared = null;
+            float[] invariants = null;
+            float[] featureNormSquared = null;
 
             if (idToIdx == null)
             {
@@ -446,7 +443,7 @@ namespace Microsoft.ML.Runtime.Learners
                     duals = new StandardArrayDualsTable((int)dualsLength);
                     int invariantsLength = (int)idLoMax + 1;
                     Contracts.Assert(invariantsLength <= Utils.ArrayMaxSize);
-                    invariants = new Float[invariantsLength];
+                    invariants = new float[invariantsLength];
                 }
                 else
                 {
@@ -467,7 +464,7 @@ namespace Microsoft.ML.Runtime.Learners
                 {
                     duals = new StandardArrayDualsTable((int)dualsLength);
                     Contracts.Assert(count <= Utils.ArrayMaxSize);
-                    invariants = new Float[count];
+                    invariants = new float[count];
                 }
                 else
                 {
@@ -594,7 +591,7 @@ namespace Microsoft.ML.Runtime.Learners
                 }
             }
 
-            var bias = new Float[weightSetCount];
+            var bias = new float[weightSetCount];
             if (bestIter > 0)
             {
                 ch.Info("Using best model from iteration {0}.", bestIter);
@@ -611,7 +608,7 @@ namespace Microsoft.ML.Runtime.Learners
             return CreatePredictor(weights, bias);
         }
 
-        protected abstract TModel CreatePredictor(VBuffer<Float>[] weights, Float[] bias);
+        protected abstract TModel CreatePredictor(VBuffer<float>[] weights, float[] bias);
 
         // Assign an upper bound for number of iterations based on data set size first.
         // This ensures SDCA will not run forever...
@@ -630,7 +627,7 @@ namespace Microsoft.ML.Runtime.Learners
         }
 
         // Tune default for l2.
-        protected virtual Float TuneDefaultL2(IChannel ch, int maxIterations, long rowCount, int numThreads)
+        protected virtual float TuneDefaultL2(IChannel ch, int maxIterations, long rowCount, int numThreads)
         {
             Contracts.AssertValue(ch);
             Contracts.Assert(maxIterations > 0);
@@ -641,7 +638,7 @@ namespace Microsoft.ML.Runtime.Learners
             long expectedIterations = Math.Max(2, maxIterations / 2 / numThreads) * numThreads;
             Contracts.Assert(expectedIterations > 0);
             // Suggest the empirically best l2 for good AUC and fast convergence.
-            Float l2 = Math.Max(1e-06f, 20f / (expectedIterations * rowCount));
+            float l2 = Math.Max(1e-06f, 20f / (expectedIterations * rowCount));
             ch.Info("Auto-tuning parameters: L2 = {0}.", l2);
             // REVIEW: Info this line when getting an accurate estimate.
             // ch.Info("Expected to converge in approximately {0} iterations.", expectedIterations * Math.Max(1, -Math.Log10(_args.convergenceTolerance)));
@@ -649,10 +646,10 @@ namespace Microsoft.ML.Runtime.Learners
         }
 
         // Tune default for l1Threshold.
-        private static Float TuneDefaultL1(IChannel ch, int numFeatures)
+        private static float TuneDefaultL1(IChannel ch, int numFeatures)
         {
             Contracts.Assert(numFeatures > 0);
-            Float l1Threshold;
+            float l1Threshold;
             if (numFeatures < 100)
                 l1Threshold = 0;
             else if (numFeatures < 1000)
@@ -723,8 +720,8 @@ namespace Microsoft.ML.Runtime.Learners
         /// binary classification and regression because this quantity is not needed.
         /// </param>
         protected virtual void TrainWithoutLock(IProgressChannelProvider progress, FloatLabelCursor.Factory cursorFactory, IRandom rand,
-            IdToIdxLookup idToIdx, int numThreads, DualsTableBase duals, Float[] biasReg, Float[] invariants, Float lambdaNInv,
-            VBuffer<Float>[] weights, Float[] biasUnreg, VBuffer<Float>[] l1IntermediateWeights, Float[] l1IntermediateBias, Float[] featureNormSquared)
+            IdToIdxLookup idToIdx, int numThreads, DualsTableBase duals, float[] biasReg, float[] invariants, float lambdaNInv,
+            VBuffer<float>[] weights, float[] biasUnreg, VBuffer<float>[] l1IntermediateWeights, float[] l1IntermediateBias, float[] featureNormSquared)
         {
             Contracts.AssertValueOrNull(progress);
             Contracts.Assert(_args.L1Threshold.HasValue);
@@ -749,7 +746,7 @@ namespace Microsoft.ML.Runtime.Learners
                     long idx = getIndexFromId(cursor.Id);
                     var features = cursor.Features;
                     var label = cursor.Label;
-                    Float invariant;
+                    float invariant;
                     if (invariants != null)
                         invariant = invariants[idx];
                     else
@@ -773,7 +770,7 @@ namespace Microsoft.ML.Runtime.Learners
                         var adjustment = l1ThresholdZero ? lr * biasReg[0] : lr * l1IntermediateBias[0];
                         dualUpdate -= adjustment;
                         bool success = false;
-                        duals.ApplyAt(idx, (long index, ref Float value) =>
+                        duals.ApplyAt(idx, (long index, ref float value) =>
                         {
                             success = Interlocked.CompareExchange(ref value, dual + dualUpdate, dual) == dual;
                         });
@@ -876,12 +873,12 @@ namespace Microsoft.ML.Runtime.Learners
             FloatLabelCursor.Factory cursorFactory,
             DualsTableBase duals,
             IdToIdxLookup idToIdx,
-            VBuffer<Float>[] weights,
-            VBuffer<Float>[] bestWeights,
-            Float[] biasUnreg,
-            Float[] bestBiasUnreg,
-            Float[] biasReg,
-            Float[] bestBiasReg,
+            VBuffer<float>[] weights,
+            VBuffer<float>[] bestWeights,
+            float[] biasUnreg,
+            float[] bestBiasUnreg,
+            float[] biasReg,
+            float[] bestBiasReg,
             long count,
             Double[] metrics,
             ref Double bestPrimalLoss,
@@ -954,14 +951,14 @@ namespace Microsoft.ML.Runtime.Learners
             return converged;
         }
 
-        protected virtual Float[] InitializeFeatureNormSquared(int length)
+        protected virtual float[] InitializeFeatureNormSquared(int length)
         {
             return null;
         }
 
-        protected abstract Float GetInstanceWeight(FloatLabelCursor cursor);
+        protected abstract float GetInstanceWeight(FloatLabelCursor cursor);
 
-        protected delegate void Visitor(long index, ref Float value);
+        protected delegate void Visitor(long index, ref float value);
 
         /// <summary>
         /// Encapsulates the common functionality of storing and
@@ -969,7 +966,7 @@ namespace Microsoft.ML.Runtime.Learners
         /// </summary>
         protected abstract class DualsTableBase
         {
-            public abstract Float this[long index] { get; set; }
+            public abstract float this[long index] { get; set; }
             public abstract long Length { get; }
             public abstract void ApplyAt(long index, Visitor manip);
         }
@@ -979,17 +976,17 @@ namespace Microsoft.ML.Runtime.Learners
         /// </summary>
         private sealed class StandardArrayDualsTable : DualsTableBase
         {
-            private Float[] _duals;
+            private float[] _duals;
 
             public override long Length => _duals.Length;
 
             public StandardArrayDualsTable(int length)
             {
                 Contracts.Assert(length <= Utils.ArrayMaxSize);
-                _duals = new Float[length];
+                _duals = new float[length];
             }
 
-            public override Float this[long index]
+            public override float this[long index]
             {
                 get => _duals[(int)index];
                 set => _duals[(int)index] = value;
@@ -1006,17 +1003,17 @@ namespace Microsoft.ML.Runtime.Learners
         /// </summary>
         private sealed class BigArrayDualsTable : DualsTableBase
         {
-            private BigArray<Float> _duals;
+            private BigArray<float> _duals;
 
             public override long Length => _duals.Length;
 
             public BigArrayDualsTable(long length)
             {
                 Contracts.Assert(length <= 1L << 50);
-                _duals = new BigArray<Float>(length);
+                _duals = new BigArray<float>(length);
             }
 
-            public override Float this[long index]
+            public override float this[long index]
             {
                 get => _duals[index];
                 set => _duals[index] = value;
@@ -1024,7 +1021,7 @@ namespace Microsoft.ML.Runtime.Learners
 
             public override void ApplyAt(long index, Visitor manip)
             {
-                BigArray<Float>.Visitor manip2 = (long idx, ref Float value) => manip(idx, ref value);
+                BigArray<float>.Visitor manip2 = (long idx, ref float value) => manip(idx, ref value);
                 _duals.ApplyAt(index, manip2);
             }
         }
@@ -1370,7 +1367,7 @@ namespace Microsoft.ML.Runtime.Learners
             public ISupportSdcaClassificationLossFactory LossFunction = new LogLossFactory();
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Apply weight to the positive class, for imbalanced data", ShortName = "piw")]
-            public Float PositiveInstanceWeight = 1;
+            public float PositiveInstanceWeight = 1;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "The calibrator kind to apply to the predictor. Specify null for no calibration", Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly)]
             public ICalibratorTrainerFactory Calibrator = new PlattCalibratorTrainerFactory();
@@ -1387,7 +1384,7 @@ namespace Microsoft.ML.Runtime.Learners
 
         private readonly ISupportSdcaClassificationLoss _loss;
         private readonly Arguments _args;
-        private readonly Float _positiveInstanceWeight;
+        private readonly float _positiveInstanceWeight;
 
         protected override bool ShuffleData => _args.Shuffle;
 
@@ -1465,15 +1462,15 @@ namespace Microsoft.ML.Runtime.Learners
             return new SchemaShape.Column(featureColumn, SchemaShape.Column.VectorKind.Vector, NumberType.R4, false);
         }
 
-        protected override TScalarPredictor CreatePredictor(VBuffer<Float>[] weights, Float[] bias)
+        protected override TScalarPredictor CreatePredictor(VBuffer<float>[] weights, float[] bias)
         {
             Host.CheckParam(Utils.Size(weights) == 1, nameof(weights));
             Host.CheckParam(Utils.Size(bias) == 1, nameof(bias));
             Host.CheckParam(weights[0].Length > 0, nameof(weights));
 
-            VBuffer<Float> maybeSparseWeights = default;
+            VBuffer<float> maybeSparseWeights = default;
             VBufferUtils.CreateMaybeSparseCopy(ref weights[0], ref maybeSparseWeights,
-                Conversions.Instance.GetIsDefaultPredicate<Float>(NumberType.Float));
+                Conversions.Instance.GetIsDefaultPredicate<float>(NumberType.Float));
 
             var predictor = new LinearBinaryPredictor(Host, ref maybeSparseWeights, bias[0]);
             if (!(_loss is LogLoss))
@@ -1481,7 +1478,7 @@ namespace Microsoft.ML.Runtime.Learners
             return new ParameterMixingCalibratedPredictor(Host, predictor, new PlattCalibrator(Host, -1, 0));
         }
 
-        protected override Float GetInstanceWeight(FloatLabelCursor cursor)
+        protected override float GetInstanceWeight(FloatLabelCursor cursor)
         {
             return cursor.Label > 0 ? cursor.Weight * _positiveInstanceWeight : cursor.Weight;
         }
@@ -1513,7 +1510,7 @@ namespace Microsoft.ML.Runtime.Learners
             [Argument(ArgumentType.AtMostOnce, HelpText = "L2 regularizer constant", ShortName = "l2", SortOrder = 50)]
             [TGUI(Label = "L2 Regularizer Constant", SuggestedSweeps = "1e-7,5e-7,1e-6,5e-6,1e-5")]
             [TlcModule.SweepableDiscreteParam("L2Const", new object[] { 1e-7f, 5e-7f, 1e-6f, 5e-6f, 1e-5f })]
-            public Float L2Const = (Float)1e-6;
+            public float L2Const = (float)1e-6;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Degree of lock-free parallelism. Defaults to automatic depending on data sparseness. Determinism not guaranteed.", ShortName = "nt,t,threads", SortOrder = 50)]
             [TGUI(Label = "Number of threads", SuggestedSweeps = "1,2,4")]
@@ -1538,7 +1535,7 @@ namespace Microsoft.ML.Runtime.Learners
             public bool Shuffle = true;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Apply weight to the positive class, for imbalanced data", ShortName = "piw")]
-            public Float PositiveInstanceWeight = 1;
+            public float PositiveInstanceWeight = 1;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Convergence check frequency (in terms of number of iterations). Default equals number of threads", ShortName = "checkFreq")]
             public int? CheckFrequency;
@@ -1562,13 +1559,13 @@ namespace Microsoft.ML.Runtime.Learners
                     using (var ch = env.Start("Argument Adjustment"))
                     {
                         ch.Warning("{0} {1} set too high; reducing to {1}", nameof(InitLearningRate),
-                            InitLearningRate, InitLearningRate = (Float)0.5 / L2Const);
+                            InitLearningRate, InitLearningRate = (float)0.5 / L2Const);
                         ch.Done();
                     }
                 }
 
                 if (ConvergenceTolerance <= 0)
-                    ConvergenceTolerance = Float.Epsilon;
+                    ConvergenceTolerance = float.Epsilon;
             }
         }
 
@@ -1691,9 +1688,9 @@ namespace Microsoft.ML.Runtime.Learners
                     {
                         while (cursor.MoveNext())
                         {
-                            VBuffer<Float> features = cursor.Features;
-                            Float label = cursor.Label;
-                            Float derivative = cursor.Weight * lossFunc.Derivative(WScaledDot(ref features, weightScaling, ref weights, bias), label); // complexity: O(k)
+                            VBuffer<float> features = cursor.Features;
+                            float label = cursor.Label;
+                            float derivative = cursor.Weight * lossFunc.Derivative(WScaledDot(ref features, weightScaling, ref weights, bias), label); // complexity: O(k)
 
                             //Note that multiplying the gradient by a weight h is not equivalent to doing h updates
                             //on the same instance. A potentially better way to do weighted update is described in
@@ -1704,8 +1701,8 @@ namespace Microsoft.ML.Runtime.Learners
                             Double rate = ilr / (1 + ilr * l2Const * (t++));
                             Double step = -derivative * rate;
                             weightScaling *= 1 - rate * l2Const;
-                            VectorUtils.AddMult(ref features, weights.Values, (Float)(step / weightScaling));
-                            bias += (Float)step;
+                            VectorUtils.AddMult(ref features, weights.Values, (float)(step / weightScaling));
+                            bias += (float)step;
                         }
                         if (e == 1)
                         {
@@ -1723,7 +1720,7 @@ namespace Microsoft.ML.Runtime.Learners
                     {
                         lock (weightsSync)
                         {
-                            VectorUtils.ScaleBy(ref weights, (Float)weightScaling); // normalize the weights
+                            VectorUtils.ScaleBy(ref weights, (float)weightScaling); // normalize the weights
                             weightScaling = 1;
                         }
                     }
@@ -1766,10 +1763,10 @@ namespace Microsoft.ML.Runtime.Learners
                 }
             }
 
-            VectorUtils.ScaleBy(ref weights, (Float)weightScaling); // restore the true weights
+            VectorUtils.ScaleBy(ref weights, (float)weightScaling); // restore the true weights
 
-            VBuffer<Float> maybeSparseWeights = default;
-            VBufferUtils.CreateMaybeSparseCopy(ref weights, ref maybeSparseWeights, Conversions.Instance.GetIsDefaultPredicate<Float>(NumberType.Float));
+            VBuffer<float> maybeSparseWeights = default;
+            VBufferUtils.CreateMaybeSparseCopy(ref weights, ref maybeSparseWeights, Conversions.Instance.GetIsDefaultPredicate<float>(NumberType.Float));
             var pred = new LinearBinaryPredictor(Host, ref maybeSparseWeights, bias);
             if (!(_loss is LogLoss))
                 return pred;
