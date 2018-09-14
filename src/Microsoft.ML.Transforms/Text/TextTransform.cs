@@ -314,12 +314,10 @@ namespace Microsoft.ML.Runtime.Data
 
             if (tparams.NeedInitialSourceColumnConcatTransform && textCols.Length > 1)
             {
-                var xfCols = new ConcatTransform.Column[] { new ConcatTransform.Column() };
-                xfCols[0].Source = textCols;
+                var srcCols = textCols;
                 textCols = new[] { GenerateColumnName(input.Schema, OutputColumn, "InitialConcat") };
-                xfCols[0].Name = textCols[0];
                 tempCols.Add(textCols[0]);
-                view = new ConcatTransform(h, new ConcatTransform.Arguments() { Column = xfCols }, view);
+                view = new ConcatTransform(h, textCols[0], srcCols).Transform(view);
             }
 
             if (tparams.NeedsNormalizeTransform)
@@ -402,15 +400,7 @@ namespace Microsoft.ML.Runtime.Data
             if (tparams.OutputTextTokens)
             {
                 string[] srcCols = wordTokCols ?? textCols;
-                view = new ConcatTransform(h,
-                    new ConcatTransform.Arguments()
-                    {
-                        Column = new[] { new ConcatTransform.Column()
-                        {
-                            Name = string.Format(TransformedTextColFormat, OutputColumn),
-                            Source = srcCols
-                        }}
-                    }, view);
+                view = new ConcatTransform(h, string.Format(TransformedTextColFormat, OutputColumn), srcCols).Transform(view);
             }
 
             if (tparams.CharExtractorFactory != null)
@@ -499,13 +489,11 @@ namespace Microsoft.ML.Runtime.Data
                         srcTaggedCols.Add(new KeyValuePair<string, string>(wordFeatureCol, wordFeatureCol));
                 }
                 if (srcTaggedCols.Count > 0)
-                    view = new ConcatTransform(h, new ConcatTransform.TaggedArguments()
-                    {
-                        Column = new[] { new ConcatTransform.TaggedColumn() {
-                        Name = OutputColumn,
-                        Source = srcTaggedCols.ToArray()
-                    }}
-                    }, view);
+                {
+                    view = new ConcatTransform(h, new ConcatTransform.ColumnInfo(OutputColumn,
+                        srcTaggedCols.Select(kvp => (kvp.Value, kvp.Key))))
+                        .Transform(view);
+                }
             }
 
             view = new DropColumnsTransform(h,
