@@ -2,17 +2,17 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
+using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
+using Microsoft.ML.Runtime.Internal.Internallearn;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Learners;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.Training;
-using Microsoft.ML.Runtime.Internal.Internallearn;
-using Microsoft.ML.Core.Data;
+using System;
 using System.Linq;
+using System.Collections.Generic;
 
 [assembly: LoadableClass(RandomTrainer.Summary, typeof(RandomTrainer), typeof(RandomTrainer.Arguments),
     new[] { typeof(SignatureBinaryClassifierTrainer), typeof(SignatureTrainer) },
@@ -76,13 +76,31 @@ namespace Microsoft.ML.Runtime.Learners
             return new RandomPredictor(Host, Host.Rand.Next());
         }
 
+        internal static IEnumerable<SchemaShape.Column> MetadataForScoreColumn(bool isNormalized = false)
+        {
+            var cols = new List<SchemaShape.Column>();
+            cols.Add(new SchemaShape.Column(MetadataUtils.Kinds.ScoreColumnSetId, SchemaShape.Column.VectorKind.Scalar, NumberType.U4, true));
+            cols.Add(new SchemaShape.Column(MetadataUtils.Kinds.ScoreColumnKind, SchemaShape.Column.VectorKind.Scalar, TextType.Instance, false));
+            cols.Add(new SchemaShape.Column(MetadataUtils.Kinds.ScoreValueKind, SchemaShape.Column.VectorKind.Scalar, TextType.Instance, false));
+            if (isNormalized)
+                cols.Add(new SchemaShape.Column(MetadataUtils.Kinds.IsNormalized, SchemaShape.Column.VectorKind.Scalar, BoolType.Instance, false));
+            return cols;
+        }
+
         public SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {
             Host.CheckValue(inputSchema, nameof(inputSchema));
 
             var outColumns = inputSchema.Columns.ToDictionary(x => x.Name);
-            var newColumn = new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, isKey: false);
-            outColumns[DefaultColumnNames.Score] = newColumn;
+
+            var newColumns = new[]
+            {
+                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false),
+                new SchemaShape.Column(DefaultColumnNames.Probability, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false),
+                new SchemaShape.Column(DefaultColumnNames.PredictedLabel, SchemaShape.Column.VectorKind.Scalar, BoolType.Instance, false, new SchemaShape(MetadataForScoreColumn()))
+            };
+            foreach (SchemaShape.Column column in newColumns)
+                outColumns[column.Name] = column;
 
             return new SchemaShape(outColumns.Values);
         }
@@ -228,24 +246,16 @@ namespace Microsoft.ML.Runtime.Learners
         private static readonly TrainerInfo _info = new TrainerInfo(normalization: false, caching: false);
         public override TrainerInfo Info => _info;
 
-        protected override SchemaShape.Column[] OutputColumns { get; }
+        protected override SchemaShape.Column[] OutputColumns => MakeOutputColumns();
 
         public PriorTrainer(IHostEnvironment env, Arguments args)
-            : base(Contracts.CheckRef(env, nameof(env)).Register(LoadNameValue), MakeFeatureColumn(DefaultColumnNames.Score), MakeFeatureColumn(DefaultColumnNames.Label), null)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(LoadNameValue), MakeFeatureColumn(DefaultColumnNames.Features), MakeLabelColumn(DefaultColumnNames.Label), null)
         {
-            OutputColumns = new[]
-            {
-                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, isKey: false)
-            };
         }
 
         public PriorTrainer(IHost host, SchemaShape.Column feature, SchemaShape.Column label, SchemaShape.Column weight)
             : base(host, feature, label, weight)
         {
-            OutputColumns = new[]
-            {
-                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, isKey: false)
-            };
         }
 
         protected override PriorPredictor TrainModelCore(TrainContext context)
@@ -298,7 +308,17 @@ namespace Microsoft.ML.Runtime.Learners
             => new SchemaShape.Column(featureColumn, SchemaShape.Column.VectorKind.Vector, NumberType.R4, false);
 
         private static SchemaShape.Column MakeLabelColumn(string labelColumn)
-            => new SchemaShape.Column(labelColumn, SchemaShape.Column.VectorKind.Scalar, BoolType.Instance, false);
+            => new SchemaShape.Column(labelColumn, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false);
+
+        private static SchemaShape.Column[] MakeOutputColumns()
+        {
+            return new[]
+            {
+                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false),
+                new SchemaShape.Column(DefaultColumnNames.Probability, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false),
+                new SchemaShape.Column(DefaultColumnNames.PredictedLabel, SchemaShape.Column.VectorKind.Scalar, BoolType.Instance, false, new SchemaShape(MetadataForScoreColumn()))
+            };
+        }
     }
 
     public sealed class PriorPredictor :

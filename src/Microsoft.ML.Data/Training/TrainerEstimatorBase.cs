@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using System.Linq;
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime.Data;
@@ -59,6 +60,17 @@ namespace Microsoft.ML.Runtime.Training
             FeatureColumn = feature;
             LabelColumn = label;
             WeightColumn = weight;
+        }
+
+        protected static IEnumerable<SchemaShape.Column> MetadataForScoreColumn(bool isNormalized = false)
+        {
+            var cols = new List<SchemaShape.Column>();
+            cols.Add(new SchemaShape.Column(MetadataUtils.Kinds.ScoreColumnSetId, SchemaShape.Column.VectorKind.Scalar, NumberType.U4, true));
+            cols.Add(new SchemaShape.Column(MetadataUtils.Kinds.ScoreColumnKind, SchemaShape.Column.VectorKind.Scalar, TextType.Instance, false));
+            cols.Add(new SchemaShape.Column(MetadataUtils.Kinds.ScoreValueKind, SchemaShape.Column.VectorKind.Scalar, TextType.Instance, false));
+            if (isNormalized)
+                cols.Add(new SchemaShape.Column(MetadataUtils.Kinds.IsNormalized, SchemaShape.Column.VectorKind.Scalar, BoolType.Instance, false));
+            return cols;
         }
 
         public TTransformer Fit(IDataView input) => TrainTransformer(input);

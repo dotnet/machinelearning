@@ -36,7 +36,7 @@ namespace Microsoft.ML.Runtime.Data
 
         public TModel Model { get; }
 
-        public PredictionTransformerBase(IHost host, TModel model, ISchema trainSchema, string featureColumn = null)
+        public PredictionTransformerBase(IHost host, TModel model, ISchema trainSchema, string featureColumn)
         {
             Contracts.CheckValue(host, nameof(host));
             Contracts.CheckValueOrNull(featureColumn);
@@ -45,9 +45,12 @@ namespace Microsoft.ML.Runtime.Data
 
             Model = model;
             FeatureColumn = featureColumn;
-            if (!trainSchema.TryGetColumnIndex(featureColumn, out int col) && (featureColumn != null))
+            if (featureColumn == null)
+                FeatureColumnType = null;
+            else if (!trainSchema.TryGetColumnIndex(featureColumn, out int col))
                 throw Host.ExceptSchemaMismatch(nameof(featureColumn), RoleMappedSchema.ColumnRole.Feature.Value, featureColumn);
-            FeatureColumnType = (featureColumn != null) ? trainSchema.GetColumnType(col) : null;
+            else
+                FeatureColumnType = trainSchema.GetColumnType(col);
 
             TrainSchema = trainSchema;
             BindableMapper = ScoreUtils.GetSchemaBindableMapper(Host, model);
@@ -76,10 +79,13 @@ namespace Microsoft.ML.Runtime.Data
             var loader = new BinaryLoader(host, new BinaryLoader.Arguments(), ms);
             TrainSchema = loader.Schema;
 
-            FeatureColumn = ctx.LoadString();
-            if (!TrainSchema.TryGetColumnIndex(FeatureColumn, out int col))
+            FeatureColumn = ctx.LoadStringOrNull();
+            if (FeatureColumn == null)
+                FeatureColumnType = null;
+            else if (!TrainSchema.TryGetColumnIndex(FeatureColumn, out int col))
                 throw Host.ExceptSchemaMismatch(nameof(FeatureColumn), RoleMappedSchema.ColumnRole.Feature.Value, FeatureColumn);
-            FeatureColumnType = TrainSchema.GetColumnType(col);
+            else
+                FeatureColumnType = TrainSchema.GetColumnType(col);
 
             BindableMapper = ScoreUtils.GetSchemaBindableMapper(Host, model);
         }
@@ -88,10 +94,13 @@ namespace Microsoft.ML.Runtime.Data
         {
             Host.CheckValue(inputSchema, nameof(inputSchema));
 
-            if (!inputSchema.TryGetColumnIndex(FeatureColumn, out int col))
-                throw Host.ExceptSchemaMismatch(nameof(inputSchema), RoleMappedSchema.ColumnRole.Feature.Value, FeatureColumn, FeatureColumnType.ToString(), null);
-            if (!inputSchema.GetColumnType(col).Equals(FeatureColumnType))
-                throw Host.ExceptSchemaMismatch(nameof(inputSchema), RoleMappedSchema.ColumnRole.Feature.Value, FeatureColumn, FeatureColumnType.ToString(), inputSchema.GetColumnType(col).ToString());
+            if(FeatureColumn != null)
+            {
+                if (!inputSchema.TryGetColumnIndex(FeatureColumn, out int col))
+                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), RoleMappedSchema.ColumnRole.Feature.Value, FeatureColumn, FeatureColumnType.ToString(), null);
+                if (!inputSchema.GetColumnType(col).Equals(FeatureColumnType))
+                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), RoleMappedSchema.ColumnRole.Feature.Value, FeatureColumn, FeatureColumnType.ToString(), inputSchema.GetColumnType(col).ToString());
+            }
 
             return Transform(new EmptyDataView(Host, inputSchema)).Schema;
         }
@@ -122,7 +131,7 @@ namespace Microsoft.ML.Runtime.Data
                 }
             });
 
-            ctx.SaveString(FeatureColumn);
+            ctx.SaveStringOrNull(FeatureColumn);
         }
     }
 
@@ -134,7 +143,7 @@ namespace Microsoft.ML.Runtime.Data
         public readonly string ThresholdColumn;
         public readonly float Threshold;
 
-        public BinaryPredictionTransformer(IHostEnvironment env, TModel model, ISchema inputSchema, string featureColumn = null,
+        public BinaryPredictionTransformer(IHostEnvironment env, TModel model, ISchema inputSchema, string featureColumn,
             float threshold = 0f, string thresholdColumn = DefaultColumnNames.Score)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(BinaryPredictionTransformer<TModel>)), model, inputSchema, featureColumn)
         {
