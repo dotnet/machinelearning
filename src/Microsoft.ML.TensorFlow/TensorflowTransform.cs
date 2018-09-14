@@ -35,7 +35,7 @@ using Microsoft.ML.Transforms.TensorFlow;
 namespace Microsoft.ML.Transforms
 {
     /// <include file='doc.xml' path='doc/members/member[@name="TensorflowTransform"]/*' />
-    public sealed class TensorFlowTransform : ITransformer, ICanSaveModel
+    public sealed class TensorFlowTransform : ITransformer, ICanSaveModel, IDisposable
     {
         public sealed class Arguments : TransformInputBase
         {
@@ -56,7 +56,7 @@ namespace Microsoft.ML.Transforms
         internal readonly TFSession Session;
         internal readonly bool IsFrozen;
         internal readonly string ModelPath;
-        internal readonly Dictionary<string, byte[]> SavedModel;
+        internal readonly bool IsTemporaryModelPath;
 
         internal readonly ColumnType[] OutputTypes;
         internal readonly TFDataType[] TFOutputTypes;
@@ -95,7 +95,7 @@ namespace Microsoft.ML.Transforms
         /// <param name="source">Name of the input column(s). Keep it same as in the Tensorflow model.</param>
         public static IDataTransform Create(IHostEnvironment env, IDataView input, string model, string[] names, string[] source)
         {
-            return new TensorFlowTransform(env, model, source, names).MakeDataTransform(input);
+            return new TensorFlowTransform(env, model, source, names, false).MakeDataTransform(input);
         }
 
         // Factory method for SignatureLoadModel.
@@ -130,50 +130,36 @@ namespace Microsoft.ML.Transforms
             }
             else
             {
-                Dictionary<string, byte[]> savedModel = new Dictionary<string, byte[]>();
+                var tempDirPath = Path.GetFullPath(Path.Combine(Path.GetTempPath(), "_AG_" + Guid.NewGuid().ToString()));
+                Directory.CreateDirectory(tempDirPath);
+
                 var load = ctx.TryLoadBinaryStream("TFSavedModel", br =>
                 {
                     int count = br.ReadInt32();
                     for (int n = 0; n < count; n++)
                     {
-                        string key = br.ReadString();
-                        byte[] value = br.ReadByteArray();
-                        savedModel.Add(key, value);
+                        string relativeFile = br.ReadString();
+                        long fileLength = br.ReadInt64();
+
+                        string fullFilePath = Path.Combine(tempDirPath, relativeFile);
+                        string fullFileDir = Path.GetDirectoryName(fullFilePath);
+
+                        if (fullFileDir != tempDirPath)
+                        {
+                            Directory.CreateDirectory(fullFileDir);
+                        }
+
+                        using (var fs = new FileStream(fullFilePath, FileMode.Create, FileAccess.Write))
+                        {
+                            long actualRead = br.BaseStream.CopyRange(fs, fileLength);
+                            env.Assert(actualRead == fileLength);
+                        }
                     }
                 });
 
-                TensorFlowTransform tfTransform;
-                var tempDirPath = Path.GetFullPath(Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString()));
-                var tempDirInfo = Directory.CreateDirectory(tempDirPath);
-                try
-                {
-                    foreach (var kvp in savedModel)
-                    {
-                        string fileName = Path.Combine(tempDirInfo.FullName, kvp.Key);
-                        if (kvp.Key.StartsWith(SavedModelVariablesDirName))
-                        {
-                            var variabledDirInfo = new DirectoryInfo(Path.Combine(tempDirPath, SavedModelVariablesDirName));
-                            if (!variabledDirInfo.Exists)
-                                Directory.CreateDirectory(variabledDirInfo.FullName);
-
-                            var tokens = kvp.Key.Split(Path.DirectorySeparatorChar);
-                            fileName = Path.Combine(variabledDirInfo.FullName, tokens[1]);
-                        }
-
-                        using (var fs = new FileStream(fileName, FileMode.Create, FileAccess.Write))
-                        {
-                            fs.Write(kvp.Value, 0, kvp.Value.Length);
-                        }
-                    }
-                    var session = GetSession(env, tempDirPath);
-                    var io = ModelInputsOutputs(env, ctx);
-                    tfTransform = new TensorFlowTransform(env, session, io.Item1, io.Item2, isFrozen, savedModel);
-                }
-                finally
-                {
-                    Directory.Delete(tempDirPath, true);
-                }
-                return tfTransform;
+                var session = GetSession(env, tempDirPath);
+                var io = ModelInputsOutputs(env, ctx);
+                return new TensorFlowTransform(env, tempDirPath, io.Item1, io.Item2, true);
             }
         }
 
@@ -185,7 +171,7 @@ namespace Microsoft.ML.Transforms
             env.CheckValue(input, nameof(input));
             env.CheckValue(args.InputColumns, nameof(args.InputColumns));
             env.CheckValue(args.OutputColumns, nameof(args.OutputColumns));
-            return new TensorFlowTransform(env, args.Model, args.InputColumns, args.OutputColumns).MakeDataTransform(input);
+            return new TensorFlowTransform(env, args.Model, args.InputColumns, args.OutputColumns, false).MakeDataTransform(input);
         }
 
         // Factory method for SignatureLoadDataTransform.
@@ -265,18 +251,19 @@ namespace Microsoft.ML.Transforms
             return File.ReadAllBytes(modelFile);
         }
 
-        public TensorFlowTransform(IHostEnvironment env, string model, string[] inputs, string[] outputs) :
-            this(env, GetSession(env, model), inputs, outputs, true, null)
+        public TensorFlowTransform(IHostEnvironment env, string model, string[] inputs, string[] outputs, bool isTemporaryModelPath) :
+            this(env, GetSession(env, model), inputs, outputs, true)
         {
             ModelPath = model;
             IsFrozen = TensorFlowUtils.IsFrozenTensorFlowModel(model);
+            IsTemporaryModelPath = isTemporaryModelPath;
         }
 
         private TensorFlowTransform(IHostEnvironment env, byte[] modelBytes, string[] inputs, string[] outputs, bool isFrozen) :
-            this(env, LoadTFSession(env, modelBytes), inputs, outputs, isFrozen, null)
+            this(env, LoadTFSession(env, modelBytes), inputs, outputs, isFrozen)
         { }
 
-        private TensorFlowTransform(IHostEnvironment env, TFSession session, string[] inputs, string[] outputs, bool isFrozen, Dictionary<string, byte[]> savedModel)
+        private TensorFlowTransform(IHostEnvironment env, TFSession session, string[] inputs, string[] outputs, bool isFrozen)
         {
             Contracts.CheckValue(env, nameof(env));
             _host = env.Register(nameof(RegistrationName));
@@ -284,7 +271,6 @@ namespace Microsoft.ML.Transforms
             _host.CheckNonEmpty(outputs, nameof(outputs));
             Session = session;
             IsFrozen = isFrozen;
-            SavedModel = savedModel;
 
             foreach (var input in inputs)
             {
@@ -387,28 +373,24 @@ namespace Microsoft.ML.Transforms
             }
             else
             {
-                var savedModel = new Dictionary<string, byte[]>();
-                if (!string.IsNullOrEmpty(ModelPath))
-                {
-                    string[] modelFilePaths = Directory.GetFiles(ModelPath, "*", SearchOption.AllDirectories);
-                    foreach (var path in modelFilePaths)
-                    {
-                        var relativePath = path.Remove(0, ModelPath.Length).Trim(Path.DirectorySeparatorChar);
-                        savedModel[relativePath] = File.ReadAllBytes(path);
-                    }
-                }
-                else
-                    savedModel = SavedModel;
-
                 ctx.SaveBinaryStream("TFSavedModel", w =>
                 {
-                    w.Write(savedModel.Count);
-                    foreach (var kvp in savedModel)
+                    string[] modelFilePaths = Directory.GetFiles(ModelPath, "*", SearchOption.AllDirectories);
+                    w.Write(modelFilePaths.Length);
+
+                    foreach (var fullPath in modelFilePaths)
                     {
-                        w.Write(kvp.Key);
-                        w.WriteByteArray(kvp.Value);
+                        var relativePath = fullPath.Substring(ModelPath.Length + 1);
+                        w.Write(relativePath);
+
+                        using (var fs = new FileStream(fullPath, FileMode.Open))
+                        {
+                            long fileLength = fs.Length;
+                            w.Write(fileLength);
+                            long actualWritten = fs.CopyRange(w.BaseStream, fileLength);
+                            _host.Assert(actualWritten == fileLength);
+                        }
                     }
-                    w.Flush();
                 });
             }
             _host.AssertNonEmpty(Inputs);
@@ -420,6 +402,54 @@ namespace Microsoft.ML.Transforms
             ctx.Writer.Write(Outputs.Length);
             foreach (var colName in Outputs)
                 ctx.SaveNonEmptyString(colName);
+        }
+
+        ~TensorFlowTransform()
+        {
+            Dispose(false);
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        private void Dispose(bool disposing)
+        {
+            // Ensure that the Session is not null and it's handle is not Zero, as it may have already been disposed/finalized.
+            // Technically we shouldn't be calling this if disposing == false, since we're running in finalizer
+            // and the GC doesn't guarantee ordering of finalization of managed objects, but we have to make sure
+            // that the Session is closed before deleting our temporary directory.
+            if (Session?.Handle != IntPtr.Zero)
+            {
+                Session.CloseSession();
+                Session.Dispose();
+            }
+
+            if (!string.IsNullOrEmpty(ModelPath) && IsTemporaryModelPath)
+            {
+                int currentRetry = 0;
+                int maxRetryCount = 5;
+                using (var ch = _host.Start("Delete temp TF SavedModel"))
+                {
+                    for (; ; )
+                    {
+                        try
+                        {
+                            currentRetry++;
+                            Directory.Delete(ModelPath, true);
+                            break;
+                        }
+                        catch (IOException e)
+                        {
+                            if (currentRetry > maxRetryCount)
+                                throw;
+                            ch.Info("Error deleting temporary TF SavedModel. {0}. Retry,", e.Message);
+                        }
+                    }
+                }
+            }
         }
 
         private sealed class Mapper : IRowMapper
@@ -691,7 +721,7 @@ namespace Microsoft.ML.Transforms
     public sealed class TensorFlowEstimator : TrivialEstimator<TensorFlowTransform>
     {
         public TensorFlowEstimator(IHostEnvironment env, string modelFile, string[] inputs, string[] outputs)
-           : this(env, new TensorFlowTransform(env, modelFile, inputs, outputs))
+           : this(env, new TensorFlowTransform(env, modelFile, inputs, outputs, false))
         {
         }
 
