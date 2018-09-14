@@ -7,6 +7,7 @@ using Microsoft.ML.Runtime.FastTree;
 using Microsoft.ML.Runtime.Internal.Calibration;
 using Microsoft.ML.Runtime.Internal.Internallearn;
 using Microsoft.ML.Runtime.Learners;
+using Microsoft.ML.Runtime.RunTests;
 using Microsoft.ML.Runtime.TextAnalytics;
 using System.Collections.Generic;
 using Xunit;
@@ -32,13 +33,10 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         [Fact]
         public void New_IntrospectiveTraining()
         {
-            var dataPath = GetDataPath(SentimentDataPath);
-            var testDataPath = GetDataPath(SentimentTestPath);
-
             using (var env = new TlcEnvironment(seed: 1, conc: 1))
             {
                 var data = new TextLoader(env, MakeSentimentTextLoaderArgs())
-                    .Read(new MultiFileSource(dataPath));
+                    .Read(new MultiFileSource(GetDataPath(TestDatasets.Sentiment.trainFilename)));
 
                 var pipeline = new TextTransform(env, "SentimentText", "Features")
                     .Append(new LinearClassificationTrainer(env, new LinearClassificationTrainer.Arguments { NumThreads = 1 }, "Features", "Label"));

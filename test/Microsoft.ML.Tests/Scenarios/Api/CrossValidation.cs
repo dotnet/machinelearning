@@ -5,6 +5,7 @@
 using Microsoft.ML.Models;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Learners;
+using Microsoft.ML.Runtime.RunTests;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -25,14 +26,13 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         [Fact]
         void CrossValidation()
         {
-            var dataPath = GetDataPath(SentimentDataPath);
-            var testDataPath = GetDataPath(SentimentTestPath);
+            var dataset = TestDatasets.Sentiment;
 
             int numFolds = 5;
             using (var env = new TlcEnvironment(seed: 1, conc: 1))
             {
                 // Pipeline.
-                var loader = TextLoader.ReadFile(env, MakeSentimentTextLoaderArgs(), new MultiFileSource(dataPath));
+                var loader = TextLoader.ReadFile(env, MakeSentimentTextLoaderArgs(), new MultiFileSource(GetDataPath(dataset.trainFilename)));
 
                 var text = TextTransform.Create(env, MakeSentimentTextTransformArgs(false), loader);
                 IDataView trans = new GenerateNumberTransform(env, text, "StratificationColumn");

@@ -135,10 +135,17 @@ namespace Microsoft.ML.Runtime.FastTree
         private readonly SchemaShape.Column[] _outputColumns;
 
         /// <summary>
-        /// Initializes a new instance of <see cref="FastForestClassification"/> by using the legacy <see cref="Arguments"/> class.
+        /// Initializes a new instance of <see cref="FastForestClassification"/>
         /// </summary>
-        public FastForestClassification(IHostEnvironment env, Arguments args)
-            : base(env, args, MakeLabelColumn(args.LabelColumn))
+        /// <param name="env">The private instance of <see cref="IHostEnvironment"/>.</param>
+        /// <param name="labelColumn">The name of the label column.</param>
+        /// <param name="featureColumn">The name of the feature column.</param>
+        /// <param name="groupIdColumn">The name for the column containing the group ID.</param>
+        /// <param name="weightColumn">The name for the column containing the initial weight.</param>
+        /// <param name="advancedSettings">A delegate to apply all the advanced arguments to the algorithm.</param>
+        public FastForestClassification(IHostEnvironment env, string labelColumn, string featureColumn,
+            string groupIdColumn = null, string weightColumn = null, Action<Arguments> advancedSettings = null)
+            : base(env, MakeLabelColumn(labelColumn), featureColumn, weightColumn, groupIdColumn, advancedSettings: advancedSettings)
         {
             _outputColumns = new[]
             {
@@ -149,17 +156,10 @@ namespace Microsoft.ML.Runtime.FastTree
         }
 
         /// <summary>
-        /// Initializes a new instance of <see cref="FastForestClassification"/>
+        /// Initializes a new instance of <see cref="FastForestClassification"/> by using the legacy <see cref="Arguments"/> class.
         /// </summary>
-        /// <param name="env">The private instance of <see cref="IHostEnvironment"/>.</param>
-        /// <param name="labelColumn">The name of the label column.</param>
-        /// <param name="featureColumn">The name of the feature column.</param>
-        /// <param name="groupIdColumn">The name for the column containing the group ID.</param>
-        /// <param name="weightColumn">The name for the column containing the initial weight.</param>
-        /// <param name="advancedSettings">A delegate to apply all the advanced arguments to the algorithm.</param>
-        public FastForestClassification(IHostEnvironment env, string labelColumn, string featureColumn,
-            string groupIdColumn, string weightColumn = null, Action<Arguments> advancedSettings = null)
-            : base(env, MakeLabelColumn(labelColumn), featureColumn, weightColumn, groupIdColumn, advancedSettings: advancedSettings)
+        public FastForestClassification(IHostEnvironment env, Arguments args)
+            : base(env, args, MakeLabelColumn(args.LabelColumn))
         {
             _outputColumns = new[]
             {

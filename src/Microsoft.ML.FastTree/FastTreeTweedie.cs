@@ -49,15 +49,6 @@ namespace Microsoft.ML.Runtime.FastTree
         private SchemaShape.Column[] _outputColumns;
 
         /// <summary>
-        /// Initializes a new instance of <see cref="FastTreeTweedieTrainer"/> by using the legacy <see cref="Arguments"/> class.
-        /// </summary>
-        public FastTreeTweedieTrainer(IHostEnvironment env, Arguments args)
-            : base(env, args, MakeLabelColumn(args.LabelColumn))
-        {
-            Initialize();
-        }
-
-        /// <summary>
         /// Initializes a new instance of <see cref="FastTreeTweedieTrainer"/>
         /// </summary>
         /// <param name="env">The private instance of <see cref="IHostEnvironment"/>.</param>
@@ -69,6 +60,15 @@ namespace Microsoft.ML.Runtime.FastTree
         public FastTreeTweedieTrainer(IHostEnvironment env, string labelColumn, string featureColumn,
             string groupIdColumn, string weightColumn = null, Action<Arguments> advancedSettings = null)
             : base(env, MakeLabelColumn(labelColumn), featureColumn, weightColumn, groupIdColumn, advancedSettings)
+        {
+            Initialize();
+        }
+
+        /// <summary>
+        /// Initializes a new instance of <see cref="FastTreeTweedieTrainer"/> by using the legacy <see cref="Arguments"/> class.
+        /// </summary>
+        public FastTreeTweedieTrainer(IHostEnvironment env, Arguments args)
+            : base(env, args, MakeLabelColumn(args.LabelColumn))
         {
             Initialize();
         }

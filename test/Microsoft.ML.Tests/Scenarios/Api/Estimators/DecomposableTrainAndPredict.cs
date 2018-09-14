@@ -5,6 +5,7 @@
 using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Learners;
+using Microsoft.ML.Runtime.RunTests;
 using System.Linq;
 using Xunit;
 
@@ -23,11 +24,10 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         [Fact]
         void New_DecomposableTrainAndPredict()
         {
-            var dataPath = GetDataPath(IrisDataPath);
             using (var env = new TlcEnvironment())
             {
                 var data = new TextLoader(env, MakeIrisTextLoaderArgs())
-                    .Read(new MultiFileSource(dataPath));
+                    .Read(new MultiFileSource(GetDataPath(TestDatasets.irisData.trainFilename)));
 
                 var pipeline = new MyConcatTransform(env, "Features", "SepalLength", "SepalWidth", "PetalLength", "PetalWidth")
                     .Append(new TermEstimator(env, "Label"), TransformerScope.TrainTest)
@@ -37,7 +37,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                 var model = pipeline.Fit(data).GetModelFor(TransformerScope.Scoring);
                 var engine = model.MakePredictionFunction<IrisDataNoLabel, IrisPrediction>(env);
 
-                var testLoader = TextLoader.ReadFile(env, MakeIrisTextLoaderArgs(), new MultiFileSource(dataPath));
+                var testLoader = TextLoader.ReadFile(env, MakeIrisTextLoaderArgs(), new MultiFileSource(GetDataPath(TestDatasets.irisData.trainFilename)));
                 var testData = testLoader.AsEnumerable<IrisData>(env, false);
                 foreach (var input in testData.Take(20))
                 {

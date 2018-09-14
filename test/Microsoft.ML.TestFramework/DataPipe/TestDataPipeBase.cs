@@ -763,9 +763,6 @@ namespace Microsoft.ML.Runtime.RunTests
 
     public abstract partial class TestDataViewBase : BaseTestBaseline
     {
-        public const string IrisDataPath = "iris.data";
-        public const string SentimentDataPath = "wikipedia-detox-250-line-data.tsv";
-        public const string SentimentTestPath = "wikipedia-detox-250-line-test.tsv";
 
         public class SentimentData
         {

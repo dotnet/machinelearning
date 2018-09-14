@@ -7,6 +7,7 @@ using Microsoft.ML.Runtime.FastTree;
 using Microsoft.ML.Runtime.Internal.Calibration;
 using Microsoft.ML.Runtime.Internal.Internallearn;
 using Microsoft.ML.Runtime.Learners;
+using Microsoft.ML.Runtime.RunTests;
 using Microsoft.ML.Runtime.TextAnalytics;
 using System.Collections.Generic;
 using Xunit;
@@ -40,12 +41,10 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         [Fact]
         public void IntrospectiveTraining()
         {
-            var dataPath = GetDataPath(SentimentDataPath);
-
             using (var env = new TlcEnvironment(seed: 1, conc: 1))
             {
                 // Pipeline
-                var loader = TextLoader.ReadFile(env, MakeSentimentTextLoaderArgs(), new MultiFileSource(dataPath));
+                var loader = TextLoader.ReadFile(env, MakeSentimentTextLoaderArgs(), new MultiFileSource(GetDataPath(TestDatasets.Sentiment.trainFilename)));
 
                 var words = WordBagTransform.Create(env, new WordBagTransform.Arguments()
                 {
@@ -75,12 +74,8 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                 linearPredictor.GetFeatureWeights(ref weights);
 
                 var topicSummary = lda.GetTopicSummary();
-                var treeTrainer = new FastTreeBinaryClassificationTrainer(env,
-                    new FastTreeBinaryClassificationTrainer.Arguments
-                    {
-                        NumTrees = 2
-                    }
-                    );
+                var treeTrainer = new FastTreeBinaryClassificationTrainer(env, DefaultColumnNames.Label, DefaultColumnNames.Features,
+                    advancedSettings: s =>{ s.NumTrees = 2; });
                 var ftPredictor = treeTrainer.Train(new Runtime.TrainContext(trainRoles));
                 FastTreeBinaryPredictor treePredictor;
                 if (ftPredictor is CalibratedPredictorBase calibrator)

@@ -54,18 +54,6 @@ namespace Microsoft.ML.Runtime.FastTree
         private readonly SchemaShape.Column[] _outputColumns;
 
         /// <summary>
-        /// Initializes a new instance of <see cref="FastTreeRegressionTrainer"/> by using the legacy <see cref="Arguments"/> class.
-        /// </summary>
-        public FastTreeRegressionTrainer(IHostEnvironment env, Arguments args)
-            : base(env, args, MakeLabelColumn(args.LabelColumn))
-        {
-            _outputColumns = new[]
-            {
-                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false)
-            };
-        }
-
-        /// <summary>
         /// Initializes a new instance of <see cref="FastTreeRegressionTrainer"/>
         /// </summary>
         /// <param name="env">The private instance of <see cref="IHostEnvironment"/>.</param>
@@ -77,6 +65,18 @@ namespace Microsoft.ML.Runtime.FastTree
         public FastTreeRegressionTrainer(IHostEnvironment env, string labelColumn, string featureColumn,
             string weightColumn = null, string groupIdColumn = null, Action<Arguments> advancedSettings = null)
             : base(env, MakeLabelColumn(labelColumn), featureColumn, weightColumn, groupIdColumn, advancedSettings)
+        {
+            _outputColumns = new[]
+            {
+                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false)
+            };
+        }
+
+        /// <summary>
+        /// Initializes a new instance of <see cref="FastTreeRegressionTrainer"/> by using the legacy <see cref="Arguments"/> class.
+        /// </summary>
+        public FastTreeRegressionTrainer(IHostEnvironment env, Arguments args)
+            : base(env, args, MakeLabelColumn(args.LabelColumn))
         {
             _outputColumns = new[]
             {

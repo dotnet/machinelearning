@@ -6,6 +6,7 @@ using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Learners;
+using Microsoft.ML.Runtime.RunTests;
 using System.Linq;
 using Xunit;
 
@@ -21,11 +22,10 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         [Fact]
         public void New_Metacomponents()
         {
-            var dataPath = GetDataPath(IrisDataPath);
             using (var env = new TlcEnvironment())
             {
                 var data = new TextLoader(env, MakeIrisTextLoaderArgs())
-                    .Read(new MultiFileSource(dataPath));
+                    .Read(new MultiFileSource(GetDataPath(TestDatasets.irisData.trainFilename)));
 
                 var sdcaTrainer = new LinearClassificationTrainer(env, new LinearClassificationTrainer.Arguments { MaxIterations = 100, Shuffle = true, NumThreads = 1 }, "Features", "Label");
                 var pipeline = new MyConcatTransform(env, "Features", "SepalLength", "SepalWidth", "PetalLength", "PetalWidth")
