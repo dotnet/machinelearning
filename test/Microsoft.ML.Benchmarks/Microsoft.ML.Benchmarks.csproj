@@ -34,7 +34,9 @@
     <None Include="..\data\wikipedia-detox-250-line-data.tsv" Link="Input\wikipedia-detox-250-line-data.tsv">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Condition="Exists('..\data\external\WikiDetoxAnnotated160kRows.tsv')" Include="..\data\external\WikiDetoxAnnotated160kRows.tsv" Link="external\WikiDetoxAnnotated160kRows.tsv">
+    <None Condition="Exists('..\data\external\WikiDetoxAnnotated160kRows.tsv')"
+                  Include="..\data\external\WikiDetoxAnnotated160kRows.tsv"
+                  Link="external\WikiDetoxAnnotated160kRows.tsv">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
