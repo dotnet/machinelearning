@@ -33,6 +33,18 @@ namespace Microsoft.ML.Scenarios
         }
 
         [Fact]
+        public void TrainAndPredictSymSGDSentimentModelTest()
+        {
+            var pipeline = PreparePipelineSymSGD();
+            var model = pipeline.Train<SentimentData, SentimentPrediction>();
+            var testData = PrepareTextLoaderTestData();
+            var evaluator = new BinaryClassificationEvaluator();
+            var metrics = evaluator.Evaluate(model, testData);
+            ValidateExamplesSymSGD(model);
+            ValidateBinaryMetricsSymSGD(metrics);
+        }
+
+        [Fact]
         public void TrainAndPredictLightGBMSentimentModelTest()
         {
             var pipeline = PreparePipelineLightGBM();
@@ -175,19 +187,52 @@ namespace Microsoft.ML.Scenarios
             Assert.True(predictions.ElementAt(1).Sentiment.IsTrue);
         }
 
+        private void ValidateBinaryMetricsSymSGD(BinaryClassificationMetrics metrics)
+        {
+
+            Assert.Equal(.8889, metrics.Accuracy, 4);
+            Assert.Equal(1, metrics.Auc, 1);
+            Assert.Equal(0.96, metrics.Auprc, 2);
+            Assert.Equal(1, metrics.Entropy, 3);
+            Assert.Equal(.9, metrics.F1Score, 4);
+            Assert.Equal(.97, metrics.LogLoss, 3);
+            Assert.Equal(3.030, metrics.LogLossReduction, 3);
+            Assert.Equal(1, metrics.NegativePrecision, 3);
+            Assert.Equal(.778, metrics.NegativeRecall, 3);
+            Assert.Equal(.818, metrics.PositivePrecision, 3);
+            Assert.Equal(1, metrics.PositiveRecall);
+
+            var matrix = metrics.ConfusionMatrix;
+            Assert.Equal(2, matrix.Order);
+            Assert.Equal(2, matrix.ClassNames.Count);
+            Assert.Equal("positive", matrix.ClassNames[0]);
+            Assert.Equal("negative", matrix.ClassNames[1]);
+
+            Assert.Equal(9, matrix[0, 0]);
+            Assert.Equal(9, matrix["positive", "positive"]);
+            Assert.Equal(0, matrix[0, 1]);
+            Assert.Equal(0, matrix["positive", "negative"]);
+
+            Assert.Equal(2, matrix[1, 0]);
+            Assert.Equal(2, matrix["negative", "positive"]);
+            Assert.Equal(7, matrix[1, 1]);
+            Assert.Equal(7, matrix["negative", "negative"]);
+
+        }
+
         private void ValidateBinaryMetricsLightGBM(BinaryClassificationMetrics metrics)
         {
 
-            Assert.Equal(.6111, metrics.Accuracy, 4);
-            Assert.Equal(.8, metrics.Auc, 1);
-            Assert.Equal(0.88, metrics.Auprc, 2);
+            Assert.Equal(0.61111111111111116, metrics.Accuracy, 4);
+            Assert.Equal(0.83950617283950613, metrics.Auc, 1);
+            Assert.Equal(0.88324268324268318, metrics.Auprc, 2);
             Assert.Equal(1, metrics.Entropy, 3);
             Assert.Equal(.72, metrics.F1Score, 4);
             Assert.Equal(0.96456100297125325, metrics.LogLoss, 4);
             Assert.Equal(3.5438997028746755, metrics.LogLossReduction, 4);
             Assert.Equal(1, metrics.NegativePrecision, 3);
-            Assert.Equal(.222, metrics.NegativeRecall, 3);
-            Assert.Equal(.562, metrics.PositivePrecision, 3);
+            Assert.Equal(0.22222222222222221, metrics.NegativeRecall, 3);
+            Assert.Equal(0.5625, metrics.PositivePrecision, 3);
             Assert.Equal(1, metrics.PositiveRecall);
 
             var matrix = metrics.ConfusionMatrix;
@@ -338,6 +383,55 @@ namespace Microsoft.ML.Scenarios
             return pipeline;
         }
 
+        private LearningPipeline PreparePipelineSymSGD()
+        {
+            var dataPath = GetDataPath(SentimentDataPath);
+            var pipeline = new LearningPipeline();
+
+            pipeline.Add(new Data.TextLoader(dataPath)
+            {
+                Arguments = new TextLoaderArguments
+                {
+                    Separator = new[] { '\t' },
+                    HasHeader = true,
+                    Column = new[]
+                    {
+                        new TextLoaderColumn()
+                        {
+                            Name = "Label",
+                            Source = new [] { new TextLoaderRange(0) },
+                            Type = Data.DataKind.Num
+                        },
+
+                        new TextLoaderColumn()
+                        {
+                            Name = "SentimentText",
+                            Source = new [] { new TextLoaderRange(1) },
+                            Type = Data.DataKind.Text
+                        }
+                    }
+                }
+            });
+
+            pipeline.Add(new TextFeaturizer("Features", "SentimentText")
+            {
+                KeepDiacritics = false,
+                KeepPunctuations = false,
+                TextCase = TextNormalizerTransformCaseNormalizationMode.Lower,
+                OutputTokens = true,
+                StopWordsRemover = new PredefinedStopWordsRemover(),
+                VectorNormalizer = TextTransformTextNormKind.L2,
+                CharFeatureExtractor = new NGramNgramExtractor() { NgramLength = 3, AllLengths = false },
+                WordFeatureExtractor = new NGramNgramExtractor() { NgramLength = 2, AllLengths = true }
+            });
+
+
+            pipeline.Add(new SymSgdBinaryClassifier() { NumberOfThreads = 1});
+
+            pipeline.Add(new PredictedLabelColumnOriginalValueConverter() { PredictedLabelColumn = "PredictedLabel" });
+            return pipeline;
+        }
+
         private void ValidateExamples(PredictionModel<SentimentData, SentimentPrediction> model, bool useLightGBM = false)
         {
             var sentiments = GetTestData();
@@ -356,6 +450,16 @@ namespace Microsoft.ML.Scenarios
             Assert.Equal(2, predictions.Count());
 
             Assert.True(predictions.ElementAt(0).Sentiment.IsTrue);
+            Assert.True(predictions.ElementAt(1).Sentiment.IsTrue);
+        }
+
+        private void ValidateExamplesSymSGD(PredictionModel<SentimentData, SentimentPrediction> model)
+        {
+            var sentiments = GetTestData();
+            var predictions = model.Predict(sentiments);
+            Assert.Equal(2, predictions.Count());
+
+            Assert.True(predictions.ElementAt(0).Sentiment.IsFalse);
             Assert.True(predictions.ElementAt(1).Sentiment.IsTrue);
         }
 

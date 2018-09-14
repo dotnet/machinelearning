@@ -5,6 +5,7 @@
 using Float = System.Single;
 
 using System;
+using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
@@ -23,10 +24,8 @@ using Microsoft.ML.Runtime.Internal.Internallearn;
 
 namespace Microsoft.ML.Runtime.Learners
 {
-    using TScalarPredictor = IPredictorWithFeatureWeights<Float>;
-
     /// <include file='doc.xml' path='doc/members/member[@name="SDCA"]/*' />
-    public sealed class SdcaRegressionTrainer : SdcaTrainerBase<TScalarPredictor>
+    public sealed class SdcaRegressionTrainer : SdcaTrainerBase<RegressionPredictionTransformer<LinearRegressionPredictor>, LinearRegressionPredictor>
     {
         public const string LoadNameValue = "SDCAR";
         public const string UserNameValue = "Fast Linear Regression (SA-SDCA)";
@@ -53,16 +52,43 @@ namespace Microsoft.ML.Runtime.Learners
 
         public override PredictionKind PredictionKind => PredictionKind.Regression;
 
-        public SdcaRegressionTrainer(IHostEnvironment env, Arguments args)
-            : base(args, env, LoadNameValue)
+        private readonly SchemaShape.Column[] _outputColumns;
+        protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema) => _outputColumns;
+
+        public SdcaRegressionTrainer(IHostEnvironment env, Arguments args, string featureColumn, string labelColumn, string weightColumn = null)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(LoadNameValue), args, MakeFeatureColumn(featureColumn), MakeLabelColumn(labelColumn), MakeWeightColumn(weightColumn))
         {
             _loss = args.LossFunction.CreateComponent(env);
-            base.Loss = _loss;
-            NeedShuffle = args.Shuffle;
+            Loss = _loss;
             _args = args;
+            _outputColumns = new[]
+            {
+                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false)
+            };
         }
 
-        protected override TScalarPredictor CreatePredictor(VBuffer<Float>[] weights, Float[] bias)
+        public SdcaRegressionTrainer(IHostEnvironment env, Arguments args)
+            : this(env, args, args.FeatureColumn, args.LabelColumn)
+        {
+        }
+        private static SchemaShape.Column MakeWeightColumn(string weightColumn)
+        {
+            if (weightColumn == null)
+                return null;
+            return new SchemaShape.Column(weightColumn, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false);
+        }
+
+        private static SchemaShape.Column MakeLabelColumn(string labelColumn)
+        {
+            return new SchemaShape.Column(labelColumn, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false);
+        }
+
+        private static SchemaShape.Column MakeFeatureColumn(string featureColumn)
+        {
+            return new SchemaShape.Column(featureColumn, SchemaShape.Column.VectorKind.Vector, NumberType.R4, false);
+        }
+
+        protected override LinearRegressionPredictor CreatePredictor(VBuffer<Float>[] weights, Float[] bias)
         {
             Host.CheckParam(Utils.Size(weights) == 1, nameof(weights));
             Host.CheckParam(Utils.Size(bias) == 1, nameof(bias));
@@ -116,6 +142,9 @@ namespace Microsoft.ML.Runtime.Learners
             ch.Info("Auto-tuning parameters: L2 = {0}.", l2);
             return l2;
         }
+
+        protected override RegressionPredictionTransformer<LinearRegressionPredictor> MakeTransformer(LinearRegressionPredictor model, ISchema trainSchema)
+            => new RegressionPredictionTransformer<LinearRegressionPredictor>(Host, model, trainSchema, FeatureColumn.Name);
     }
 
     /// <summary>

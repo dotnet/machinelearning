@@ -195,8 +195,7 @@ namespace Microsoft.ML.Runtime.EntryPoints.CodeGen
         }
 
         protected override void GenerateContent(IndentingTextWriter writer, string prefix,
-            ComponentCatalog.LoadableClassInfo component, bool generateEnums,
-            string moduleId)
+            ComponentCatalog.LoadableClassInfo component, string moduleId)
         {
             writer.WriteLine("[Module(");
             _compName = prefix + component.LoadNames[0];
@@ -306,10 +305,6 @@ namespace Microsoft.ML.Runtime.EntryPoints.CodeGen
             writer.WriteLine("}");
         }
 
-        protected override void GenerateEnumValue(IndentingTextWriter w, ComponentCatalog.LoadableClassInfo info)
-        {
-        }
-
         protected override string EnumName(CmdParser.ArgInfo.Arg arg, Type sigType)
         {
             return _compName + "." + base.EnumName(arg, sigType);
@@ -320,43 +315,15 @@ namespace Microsoft.ML.Runtime.EntryPoints.CodeGen
             if (Exclude.Contains(arg.LongName))
                 return;
 
-            if (arg.IsSubComponentItemType)
+            if (IsColumnType(arg))
             {
-                // We need to create a tree with all the subcomponents, unless the subcomponent is a Trainer.
-                Contracts.Assert(arg.ItemType.GetGenericTypeDefinition() == typeof(SubComponent<,>));
-                var types = arg.ItemType.GetGenericArguments();
-                var baseType = types[0];
-                var sigType = types[1];
-                if (sigType == typeof(SignatureDataLoader))
-                    return;
-                if (IsTrainer(sigType))
-                    return;
-                var typeName = EnumName(arg, sigType);
-                GenerateParameterAttribute(w, arg.LongName, arg.DefaultValue != null ? typeName + "." + arg.DefaultValue : null, arg.HelpText, parent, parentType, parentValue);
-                GenerateParameter(w, typeName, arg.LongName + argSuffix);
-                var infos = ComponentCatalog.GetAllDerivedClasses(baseType, sigType);
-                foreach (var info in infos)
-                {
-                    var args = info.CreateArguments();
-                    if (args == null)
-                        continue;
-                    var argInfo = CmdParser.GetArgInfo(args.GetType(), args);
-                    foreach (var a in argInfo.Args)
-                        GenerateMethodSignature(w, a, arg.LongName, typeName, info.LoadNames[0], argSuffix + info.LoadNames[0]);
-                }
+                GenerateParameterAttribute(w, arg.LongName, null, arg.HelpText, parent, parentType, parentValue);
+                GenerateParameter(w, "string", arg.LongName + argSuffix);
             }
             else
             {
-                if (IsColumnType(arg))
-                {
-                    GenerateParameterAttribute(w, arg.LongName, null, arg.HelpText, parent, parentType, parentValue);
-                    GenerateParameter(w, "string", arg.LongName + argSuffix);
-                }
-                else
-                {
-                    GenerateParameterAttribute(w, arg.LongName, Stringify(arg.DefaultValue), arg.HelpText, parent, parentType, parentValue);
-                    GenerateParameter(w, GetCSharpTypeName(arg.ItemType), arg.LongName + argSuffix);
-                }
+                GenerateParameterAttribute(w, arg.LongName, Stringify(arg.DefaultValue), arg.HelpText, parent, parentType, parentValue);
+                GenerateParameter(w, GetCSharpTypeName(arg.ItemType), arg.LongName + argSuffix);
             }
         }
 
@@ -365,37 +332,10 @@ namespace Microsoft.ML.Runtime.EntryPoints.CodeGen
             if (Exclude.Contains(arg.LongName))
                 return;
 
-            if (arg.IsSubComponentItemType)
-            {
-                // We need to create a tree with all the subcomponents, unless the subcomponent is a Trainer.
-                Contracts.Assert(arg.ItemType.GetGenericTypeDefinition() == typeof(SubComponent<,>));
-                var types = arg.ItemType.GetGenericArguments();
-                var baseType = types[0];
-                var sigType = types[1];
-                if (sigType == typeof(SignatureDataLoader))
-                    return;
-                if (IsTrainer(sigType))
-                    return;
-                var typeName = EnumName(arg, sigType);
-                GenerateDictionaryEntry(w, typeName, arg.LongName + argSuffix);
-                var infos = ComponentCatalog.GetAllDerivedClasses(baseType, sigType);
-                foreach (var info in infos)
-                {
-                    var args = info.CreateArguments();
-                    if (args == null)
-                        continue;
-                    var argInfo = CmdParser.GetArgInfo(args.GetType(), args);
-                    foreach (var a in argInfo.Args)
-                        GenerateDictionaryEntry(w, a, argSuffix + info.LoadNames[0]);
-                }
-            }
+            if (IsColumnType(arg))
+                GenerateDictionaryEntry(w, "string", arg.LongName + argSuffix);
             else
-            {
-                if (IsColumnType(arg))
-                    GenerateDictionaryEntry(w, "string", arg.LongName + argSuffix);
-                else
-                    GenerateDictionaryEntry(w, GetCSharpTypeName(arg.ItemType), arg.LongName + argSuffix);
-            }
+                GenerateDictionaryEntry(w, GetCSharpTypeName(arg.ItemType), arg.LongName + argSuffix);
         }
 
         private void GenerateDictionaryEntry(IndentingTextWriter w, string type, string name)
@@ -408,43 +348,16 @@ namespace Microsoft.ML.Runtime.EntryPoints.CodeGen
             if (Exclude.Contains(arg.LongName))
                 return;
 
-            if (arg.IsSubComponentItemType)
+            if (IsColumnType(arg) || IsStringColumnType(arg))
             {
-                // We need to create a tree with all the subcomponents, unless the subcomponent is a Trainer.
-                Contracts.Assert(arg.ItemType.GetGenericTypeDefinition() == typeof(SubComponent<,>));
-                var types = arg.ItemType.GetGenericArguments();
-                var baseType = types[0];
-                var sigType = types[1];
-                if (sigType == typeof(SignatureDataLoader))
-                    return;
-                if (IsTrainer(sigType))
-                    return;
-                var typeName = EnumName(arg, sigType);
-                GenerateImplCall(w, typeName, arg.LongName + argSuffix);
-                var infos = ComponentCatalog.GetAllDerivedClasses(baseType, sigType);
-                foreach (var info in infos)
-                {
-                    var args = info.CreateArguments();
-                    if (args == null)
-                        continue;
-                    var argInfo = CmdParser.GetArgInfo(args.GetType(), args);
-                    foreach (var a in argInfo.Args)
-                        GenerateImplCall(w, a, arg.LongName, typeName, info.LoadNames[0], argSuffix + info.LoadNames[0]);
-                }
+                string name = arg.LongName + argSuffix;
+                if (arg.IsCollection)
+                    w.WriteLine("builder.{0} = ((string)parameters[\"{1}\"]).Split('|');", Capitalize(name), name);
+                else
+                    w.WriteLine("builder.{0} = (string)parameters[\"{1}\"];", Capitalize(name), name);
             }
             else
-            {
-                if (IsColumnType(arg) || IsStringColumnType(arg))
-                {
-                    string name = arg.LongName + argSuffix;
-                    if (arg.IsCollection)
-                        w.WriteLine("builder.{0} = ((string)parameters[\"{1}\"]).Split('|');", Capitalize(name), name);
-                    else
-                        w.WriteLine("builder.{0} = (string)parameters[\"{1}\"];", Capitalize(name), name);
-                }
-                else
-                    GenerateImplCall(w, GetCSharpTypeName(arg.ItemType), arg.LongName + argSuffix);
-            }
+                GenerateImplCall(w, GetCSharpTypeName(arg.ItemType), arg.LongName + argSuffix);
         }
 
         private void GenerateImplCall(IndentingTextWriter w, string type, string name)

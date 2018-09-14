@@ -2,10 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.IO;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
+using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Model;
 
 namespace Microsoft.ML.Runtime.Api
@@ -242,7 +244,8 @@ namespace Microsoft.ML.Runtime.Api
         {
             Contracts.CheckValue(env, nameof(env));
             Contracts.CheckValue(files, nameof(files));
-            return CreateCore<IDataLoader, SignatureDataLoader>(env, settings, files);
+            Type factoryType = typeof(IComponentFactory<IMultiStreamSource, IDataLoader>);
+            return CreateCore<IDataLoader>(env, factoryType, typeof(SignatureDataLoader), settings, files);
         }
 
         /// <summary>
@@ -261,7 +264,7 @@ namespace Microsoft.ML.Runtime.Api
         public static IDataSaver CreateSaver(this IHostEnvironment env, string settings)
         {
             Contracts.CheckValue(env, nameof(env));
-            return CreateCore<IDataSaver, SignatureDataSaver>(env, settings);
+            return CreateCore<IDataSaver>(env, typeof(SignatureDataSaver), settings);
         }
 
         /// <summary>
@@ -282,7 +285,8 @@ namespace Microsoft.ML.Runtime.Api
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(source, nameof(source));
-            return CreateCore<IDataTransform, SignatureDataTransform>(env, settings, source);
+            Type factoryType = typeof(IComponentFactory<IDataView, IDataTransform>);
+            return CreateCore<IDataTransform>(env, factoryType, typeof(SignatureDataTransform), settings, source);
         }
 
         /// <summary>
@@ -304,10 +308,17 @@ namespace Microsoft.ML.Runtime.Api
             env.CheckValue(predictor, nameof(predictor));
             env.CheckValueOrNull(trainSchema);
 
-            var subComponent = SubComponent.Parse<IDataScorerTransform, SignatureDataScorer>(settings);
-            var bindable = ScoreUtils.GetSchemaBindableMapper(env, predictor.Pred, subComponent);
+            Type factoryType = typeof(IComponentFactory<IDataView, ISchemaBoundMapper, RoleMappedSchema, IDataScorerTransform>);
+            Type signatureType = typeof(SignatureDataScorer);
+
+            ICommandLineComponentFactory scorerFactorySettings = CmdParser.CreateComponentFactory(
+                factoryType,
+                signatureType,
+                settings);
+
+            var bindable = ScoreUtils.GetSchemaBindableMapper(env, predictor.Pred, scorerFactorySettings: scorerFactorySettings);
             var mapper = bindable.Bind(env, data.Schema);
-            return CreateCore<IDataScorerTransform, SignatureDataScorer>(env, settings, data.Data, mapper, trainSchema);
+            return CreateCore<IDataScorerTransform>(env, factoryType, signatureType, settings, data.Data, mapper, trainSchema);
         }
 
         /// <summary>
@@ -335,7 +346,7 @@ namespace Microsoft.ML.Runtime.Api
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckNonWhiteSpace(settings, nameof(settings));
-            return CreateCore<IEvaluator, SignatureEvaluator>(env, settings);
+            return CreateCore<IEvaluator>(env, typeof(SignatureEvaluator), settings);
         }
 
         /// <summary>
@@ -360,14 +371,40 @@ namespace Microsoft.ML.Runtime.Api
         internal static ITrainer CreateTrainer(this IHostEnvironment env, string settings, out string loadName)
         {
             Contracts.CheckValue(env, nameof(env));
-            return CreateCore<ITrainer, SignatureTrainer>(env, settings, out loadName);
+            return CreateCore<ITrainer>(env, typeof(SignatureTrainer), settings, out loadName);
         }
 
-        private static TRes CreateCore<TRes, TSig>(IHostEnvironment env, string settings, params object[] extraArgs)
+        private static TRes CreateCore<TRes>(
+            IHostEnvironment env,
+            Type signatureType,
+            string settings,
+            params object[] extraArgs)
+            where TRes : class
+        {
+            return CreateCore<TRes>(env, signatureType, settings, out string loadName, extraArgs);
+        }
+
+        private static TRes CreateCore<TRes>(
+            IHostEnvironment env,
+            Type signatureType,
+            string settings,
+            out string loadName,
+            params object[] extraArgs)
+            where TRes : class
+        {
+            return CreateCore<TRes>(env, typeof(IComponentFactory<TRes>), signatureType, settings, out loadName, extraArgs);
+        }
+
+        private static TRes CreateCore<TRes>(
+            IHostEnvironment env,
+            Type factoryType,
+            Type signatureType,
+            string settings,
+            params object[] extraArgs)
             where TRes : class
         {
             string loadName;
-            return CreateCore<TRes, TSig>(env, settings, out loadName, extraArgs);
+            return CreateCore<TRes>(env, factoryType, signatureType, settings, out loadName, extraArgs);
         }
 
         private static TRes CreateCore<TRes, TArgs, TSig>(IHostEnvironment env, TArgs args, params object[] extraArgs)
@@ -378,15 +415,23 @@ namespace Microsoft.ML.Runtime.Api
             return CreateCore<TRes, TArgs, TSig>(env, args, out loadName, extraArgs);
         }
 
-        private static TRes CreateCore<TRes, TSig>(IHostEnvironment env, string settings, out string loadName, params object[] extraArgs)
+        private static TRes CreateCore<TRes>(
+            IHostEnvironment env,
+            Type factoryType,
+            Type signatureType,
+            string settings,
+            out string loadName,
+            params object[] extraArgs)
             where TRes : class
         {
             Contracts.AssertValue(env);
+            env.AssertValue(factoryType);
+            env.AssertValue(signatureType);
             env.AssertValue(settings, "settings");
 
-            var sc = SubComponent.Parse<TRes, TSig>(settings);
-            loadName = sc.Kind;
-            return sc.CreateInstance(env, extraArgs);
+            var factory = CmdParser.CreateComponentFactory(factoryType, signatureType, settings);
+            loadName = factory.Name;
+            return ComponentCatalog.CreateInstance<TRes>(env, factory.SignatureType, factory.Name, factory.GetSettingsString(), extraArgs);
         }
 
         private static TRes CreateCore<TRes, TArgs, TSig>(IHostEnvironment env, TArgs args, out string loadName, params object[] extraArgs)

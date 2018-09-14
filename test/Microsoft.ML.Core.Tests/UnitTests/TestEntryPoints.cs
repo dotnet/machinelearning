@@ -43,19 +43,9 @@ namespace Microsoft.ML.Runtime.RunTests
                 {
                     Column = new[]
                     {
-                        new TextLoader.Column()
-                        {
-                            Name = "Label",
-                            Source = new [] { new TextLoader.Range() { Min = 0, Max = 0} },
-                            Type = Runtime.Data.DataKind.R4
-                        },
-
-                        new TextLoader.Column()
-                        {
-                            Name = "Features",
-                            Source = new [] { new TextLoader.Range() { Min = 1, Max = 9} },
-                            Type = Runtime.Data.DataKind.R4
-                        }
+                        new TextLoader.Column("Label", DataKind.R4, 0),
+                        new TextLoader.Column("Features", DataKind.R4,
+                            new [] { new TextLoader.Range(1, 9) })
                     }
                 },
 
@@ -74,31 +64,10 @@ namespace Microsoft.ML.Runtime.RunTests
                     HasHeader = true,
                     Column = new[]
                     {
-                        new TextLoader.Column()
-                        {
-                            Name = "Label",
-                            Source = new [] { new TextLoader.Range() { Min = 0, Max = 0} }
-                        },
-
-                        new TextLoader.Column()
-                        {
-                            Name = "F1",
-                            Source = new [] { new TextLoader.Range() { Min = 1, Max = 1} },
-                            Type = Runtime.Data.DataKind.Text
-                        },
-
-                        new TextLoader.Column()
-                        {
-                            Name = "F2",
-                            Source = new [] { new TextLoader.Range() { Min = 2, Max = 2} },
-                            Type = Runtime.Data.DataKind.I4
-                        },
-
-                        new TextLoader.Column()
-                        {
-                            Name = "Rest",
-                            Source = new [] { new TextLoader.Range() { Min = 3, Max = 9} }
-                        }
+                        new TextLoader.Column("Label", type: null, 0),
+                        new TextLoader.Column("F1", DataKind.Text, 1),
+                        new TextLoader.Column("F2", DataKind.I4, 2),
+                        new TextLoader.Column("Rest", type: null, new [] { new TextLoader.Range(3, 9) })
                     }
                 },
 
@@ -265,6 +234,53 @@ namespace Microsoft.ML.Runtime.RunTests
 #endif
         }
 
+        [Fact(Skip = "Execute this test if you want to regenerate ep-list and _manifest.json")]
+        public void RegenerateEntryPointCatalog()
+        {
+            var buildPrefix = GetBuildPrefix();
+            var epListFile = buildPrefix + "_ep-list.tsv";
+            var manifestFile = buildPrefix + "_manifest.json";
+
+            var entryPointsSubDir = Path.Combine("..", "Common", "EntryPoints");
+            var catalog = ModuleCatalog.CreateInstance(Env);
+            var epListPath = GetBaselinePath(entryPointsSubDir, epListFile);
+            DeleteOutputPath(epListPath);
+
+            var regex = new Regex(@"\r\n?|\n", RegexOptions.Compiled);
+            File.WriteAllLines(epListPath, catalog.AllEntryPoints()
+                .Select(x => string.Join("\t",
+                x.Name,
+                regex.Replace(x.Description, ""),
+                x.Method.DeclaringType,
+                x.Method.Name,
+                x.InputType,
+                x.OutputType)
+                .Replace(Environment.NewLine, ""))
+                .OrderBy(x => x));
+
+
+            var jObj = JsonManifestUtils.BuildAllManifests(Env, catalog);
+
+            //clean up the description from the new line characters
+            if (jObj[FieldNames.TopEntryPoints] != null && jObj[FieldNames.TopEntryPoints] is JArray)
+            {
+                foreach (JToken entry in jObj[FieldNames.TopEntryPoints].Children())
+                    if (entry[FieldNames.Desc] != null)
+                        entry[FieldNames.Desc] = regex.Replace(entry[FieldNames.Desc].ToString(), "");
+            }
+            var manifestPath = GetBaselinePath(entryPointsSubDir, manifestFile);
+            DeleteOutputPath(manifestPath);
+
+            using (var file = File.OpenWrite(manifestPath))
+            using (var writer = new StreamWriter(file))
+            using (var jw = new JsonTextWriter(writer))
+            {
+                jw.Formatting = Formatting.Indented;
+                jObj.WriteTo(jw);
+            }
+        }
+
+
         [Fact]
         public void EntryPointCatalog()
         {
@@ -410,7 +426,7 @@ namespace Microsoft.ML.Runtime.RunTests
                         new ScoreModel.Input { Data = splitOutput.TestData[nModels], PredictorModel = predictorModels[i] })
                         .ScoredData;
 
-                individualScores[i] = new CopyColumnsTransform(Env,
+                individualScores[i] = CopyColumnsTransform.Create(Env,
                     new CopyColumnsTransform.Arguments()
                     {
                         Column = new[]
@@ -720,7 +736,7 @@ namespace Microsoft.ML.Runtime.RunTests
                     Column = new[] { new ConcatTransform.Column() { Name = "Features", Source = new[] { "Features1", "Features2" } } }
                 }, data);
 
-                data = new TermTransform(Env, new TermTransform.Arguments()
+                data = TermTransform.Create(Env, new TermTransform.Arguments()
                 {
                     Column = new[]
                     {
@@ -951,19 +967,8 @@ namespace Microsoft.ML.Runtime.RunTests
                     HasHeader = true,
                     Column = new[]
                     {
-                        new TextLoader.Column()
-                        {
-                            Name = "Label",
-                            Source = new [] { new TextLoader.Range() { Min = 0, Max = 0} },
-                            Type = Runtime.Data.DataKind.TX
-                        },
-
-                        new TextLoader.Column()
-                        {
-                            Name = "Text",
-                            Source = new [] { new TextLoader.Range() { Min = 3, Max = 3} },
-                            Type = Runtime.Data.DataKind.TX
-                        }
+                        new TextLoader.Column("Label", DataKind.TX, 0),
+                        new TextLoader.Column("Text", DataKind.TX, 3)
                     }
                 },
 
@@ -1175,19 +1180,8 @@ namespace Microsoft.ML.Runtime.RunTests
                 {
                     Column = new[]
                     {
-                        new TextLoader.Column()
-                        {
-                            Name = "Label",
-                            Source = new [] { new TextLoader.Range() { Min = 0, Max = 0} },
-                            Type = Runtime.Data.DataKind.R4
-                        },
-
-                        new TextLoader.Column()
-                        {
-                            Name = "Features",
-                            Source = new [] { new TextLoader.Range() { Min = 1, Max = 4} },
-                            Type = Runtime.Data.DataKind.R4
-                        }
+                        new TextLoader.Column("Label", DataKind.R4, 0),
+                        new TextLoader.Column("Features", DataKind.R4, new [] { new TextLoader.Range(1, 4) })
                     }
                 },
 
@@ -3427,18 +3421,8 @@ namespace Microsoft.ML.Runtime.RunTests
                     HasHeader = true,
                     Column = new[]
                     {
-                        new TextLoader.Column()
-                        {
-                            Name = "Label",
-                            Source = new [] { new TextLoader.Range() { Min = 0, Max = 0} },
-                        },
-
-                        new TextLoader.Column()
-                        {
-                            Name = "Features",
-                            Source = new [] { new TextLoader.Range() { Min = 1, Max = 9} },
-                            Type = Runtime.Data.DataKind.Num
-                        }
+                        new TextLoader.Column("Label", type: null, 0),
+                        new TextLoader.Column("Features", DataKind.Num, new [] { new TextLoader.Range(1, 9) })
                     }
                 },
 
@@ -3514,12 +3498,7 @@ namespace Microsoft.ML.Runtime.RunTests
                     HasHeader = false,
                     Column = new[]
                     {
-                        new TextLoader.Column()
-                        {
-                            Name = "Features",
-                            Source = new [] { new TextLoader.Range() { Min = 1, Max = 784} },
-                            Type = Runtime.Data.DataKind.R4
-                        }
+                        new TextLoader.Column("Features", DataKind.R4, new [] { new TextLoader.Range(1, 784) })
                     }
                 },
 
@@ -3727,12 +3706,8 @@ namespace Microsoft.ML.Runtime.RunTests
                     SeparatorChars = new []{' '},
                     Column = new[]
                     {
-                        new TextLoader.Column()
-                        {
-                            Name = "Text",
-                            Source = new [] { new TextLoader.Range() { Min = 0, VariableEnd=true, ForceVector=true} },
-                            Type = DataKind.Text
-                        }
+                        new TextLoader.Column("Text", DataKind.Text,
+                            new [] { new TextLoader.Range() { Min = 0, VariableEnd=true, ForceVector=true} })
                     }
                 },
                 InputFile = inputFile,
@@ -3756,6 +3731,19 @@ namespace Microsoft.ML.Runtime.RunTests
                     Assert.True(feat.Values[0] != 0);
                 }
             }
+        }
+
+        [Fact]
+        public void EntryPointTensorFlowTransform()
+        {
+            TestEntryPointPipelineRoutine(GetDataPath("Train-Tiny-28x28.txt"), "col=Label:R4:0 col=Placeholder:R4:1-784",
+                new[] { "Transforms.TensorFlowScorer" },
+                new[]
+                {
+                    @"'InputColumns': [ 'Placeholder' ],
+                      'ModelFile': 'mnist_model/frozen_saved_model.pb',
+                      'OutputColumns': [ 'Softmax' ]"
+                });
         }
     }
 }

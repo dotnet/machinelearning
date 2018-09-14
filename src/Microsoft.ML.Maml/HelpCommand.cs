@@ -12,6 +12,7 @@ using System.Xml.Linq;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Command;
 using Microsoft.ML.Runtime.CommandLine;
+using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Tools;
 
@@ -51,8 +52,8 @@ namespace Microsoft.ML.Runtime.Tools
             [Argument(ArgumentType.Multiple, HelpText = "Extra DLLs", ShortName = "dll")]
             public string[] ExtraAssemblies;
 
-            [Argument(ArgumentType.LastOccurenceWins, Hide = true)]
-            public SubComponent<IGenerator, SignatureModuleGenerator> Generator;
+            [Argument(ArgumentType.LastOccurenceWins, Hide = true, SignatureType = typeof(SignatureModuleGenerator))]
+            public IComponentFactory<string, IGenerator> Generator;
 #pragma warning restore 649 // never assigned
         }
 
@@ -87,9 +88,9 @@ namespace Microsoft.ML.Runtime.Tools
 
             _extraAssemblies = args.ExtraAssemblies;
 
-            if (args.Generator.IsGood())
+            if (args.Generator != null)
             {
-                _generator = args.Generator.CreateInstance(_env, "maml.exe ? " + CmdParser.GetSettings(env, args, new Arguments()));
+                _generator = args.Generator.CreateComponent(_env, "maml.exe ? " + CmdParser.GetSettings(env, args, new Arguments()));
             }
         }
 
@@ -342,9 +343,9 @@ namespace Microsoft.ML.Runtime.Tools
                 return;
 
             // REVIEW: should we replace consecutive spaces with a single space as a preprocessing step?
-            int screenWidth = (columns ?? CmdParser.GetConsoleWindowWidth()) - 1;
+            int screenWidth = (columns ?? Console.BufferWidth) - 1;
 
-            // GetConsoleWindowWidth returns 0 if command redirection operator is used
+            // Console.BufferWidth returns 0 if command redirection operator is used
             if (screenWidth <= 0)
                 screenWidth = 80;
 

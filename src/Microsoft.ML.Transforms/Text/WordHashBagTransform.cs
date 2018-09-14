@@ -81,8 +81,10 @@ namespace Microsoft.ML.Runtime.Data
                 ShortName = "col", SortOrder = 1)]
             public Column[] Column;
 
-            [Argument(ArgumentType.Multiple, HelpText = "Tokenizer to use", ShortName = "tok")]
-            public SubComponent<ITokenizeTransform, SignatureTokenizeTransform> Tokenizer = new SubComponent<ITokenizeTransform, SignatureTokenizeTransform>("Token");
+            [Argument(ArgumentType.Multiple, HelpText = "Tokenizer to use", ShortName = "tok", SignatureType = typeof(SignatureTokenizeTransform))]
+            public IComponentFactory<IDataView, OneToOneColumn[], ITokenizeTransform> Tokenizer =
+                ComponentFactoryUtils.CreateFromFunction<IDataView, OneToOneColumn[], ITokenizeTransform>(
+                    (env, input, columns) => new DelimitedTokenizeTransform(env, new DelimitedTokenizeTransform.TokenizeArguments(), input, columns));
         }
         private const string RegistrationName = "WordHashBagTransform";
 
@@ -96,7 +98,7 @@ namespace Microsoft.ML.Runtime.Data
             h.CheckValue(args, nameof(args));
             h.CheckValue(input, nameof(input));
             h.CheckUserArg(Utils.Size(args.Column) > 0, nameof(args.Column), "Columns must be specified");
-            h.CheckUserArg(args.Tokenizer.IsGood(), nameof(args.Tokenizer), "tokenizer must be specified");
+            h.CheckUserArg(args.Tokenizer != null, nameof(args.Tokenizer), "tokenizer must be specified");
 
             // To each input column to the WordHashBagTransform, a tokenize transform is applied,
             // followed by applying WordHashVectorizeTransform.
@@ -146,7 +148,7 @@ namespace Microsoft.ML.Runtime.Data
                     };
             }
 
-            view = args.Tokenizer.CreateInstance(h, view, tokenizeColumns.ToArray());
+            view = args.Tokenizer.CreateComponent(h, view, tokenizeColumns.ToArray());
 
             var featurizeArgs =
                 new NgramHashExtractorTransform.Arguments
@@ -417,7 +419,7 @@ namespace Microsoft.ML.Runtime.Data
                         Sort = termLoaderArgs.Sort,
                         Column = termCols.ToArray()
                     };
-                view = new TermTransform(h, termArgs, view);
+                view = TermTransform.Create(h, termArgs, view);
 
                 if (termLoaderArgs.DropUnknowns)
                 {

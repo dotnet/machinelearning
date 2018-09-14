@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Internal.Utilities;
+using static Microsoft.ML.Runtime.Api.SchemaDefinition;
 
 namespace Microsoft.ML.Runtime.Api
 {
@@ -23,30 +23,36 @@ namespace Microsoft.ML.Runtime.Api
         public class Column
         {
             public readonly string ColumnName;
-            public readonly FieldInfo FieldInfo;
+            public readonly MemberInfo MemberInfo;
             public readonly ParameterInfo ReturnParameterInfo;
             public readonly ColumnType ColumnType;
             public readonly bool IsComputed;
             public readonly Delegate Generator;
             private readonly Dictionary<string, MetadataInfo> _metadata;
             public Dictionary<string, MetadataInfo> Metadata { get { return _metadata; } }
-            public Type ReturnType {get { return ReturnParameterInfo.ParameterType.GetElementType(); }}
+            public Type ComputedReturnType { get { return ReturnParameterInfo.ParameterType.GetElementType(); } }
+            public Type FieldOrPropertyType => (MemberInfo is FieldInfo) ? (MemberInfo as FieldInfo).FieldType : (MemberInfo as PropertyInfo).PropertyType;
+            public Type OutputType => IsComputed ? ComputedReturnType : FieldOrPropertyType;
 
-            public Column(string columnName, ColumnType columnType, FieldInfo fieldInfo) :
-                this(columnName, columnType, fieldInfo, null, null) { }
+            public Column(string columnName, ColumnType columnType, MemberInfo memberInfo) :
+                this(columnName, columnType, memberInfo, null, null)
+            { }
 
-            public Column(string columnName, ColumnType columnType, FieldInfo fieldInfo,
+            public Column(string columnName, ColumnType columnType, MemberInfo memberInfo,
                 Dictionary<string, MetadataInfo> metadataInfos) :
-                this(columnName, columnType, fieldInfo, null, metadataInfos) { }
+                this(columnName, columnType, memberInfo, null, metadataInfos)
+            { }
 
             public Column(string columnName, ColumnType columnType, Delegate generator) :
-                this(columnName, columnType, null, generator, null) { }
+                this(columnName, columnType, null, generator, null)
+            { }
 
             public Column(string columnName, ColumnType columnType, Delegate generator,
                 Dictionary<string, MetadataInfo> metadataInfos) :
-                this(columnName, columnType, null, generator, metadataInfos) { }
+                this(columnName, columnType, null, generator, metadataInfos)
+            { }
 
-            private Column(string columnName, ColumnType columnType, FieldInfo fieldInfo = null,
+            private Column(string columnName, ColumnType columnType, MemberInfo memberInfo = null,
                 Delegate generator = null, Dictionary<string, MetadataInfo> metadataInfos = null)
             {
                 Contracts.AssertNonEmpty(columnName);
@@ -55,8 +61,8 @@ namespace Microsoft.ML.Runtime.Api
 
                 if (generator == null)
                 {
-                    Contracts.AssertValue(fieldInfo);
-                    FieldInfo = fieldInfo;
+                    Contracts.AssertValue(memberInfo);
+                    MemberInfo = memberInfo;
                 }
                 else
                 {
@@ -95,8 +101,8 @@ namespace Microsoft.ML.Runtime.Api
                 // If Column is computed type, it must have a generator.
                 Contracts.Assert(IsComputed == (Generator != null));
 
-                // Column must have either a generator or a fieldInfo value.
-                Contracts.Assert((Generator == null) != (FieldInfo == null));
+                // Column must have either a generator or a memberInfo value.
+                Contracts.Assert((Generator == null) != (MemberInfo == null));
 
                 // Additional Checks if there is a generator.
                 if (Generator == null)
@@ -115,9 +121,7 @@ namespace Microsoft.ML.Runtime.Api
                 Contracts.Assert(Generator.GetMethodInfo().ReturnType == typeof(void));
 
                 // Checks that the return type of the generator is compatible with ColumnType.
-                bool isVector;
-                DataKind datakind;
-                GetVectorAndKind(ReturnType, "return type", out isVector, out datakind);
+                GetVectorAndKind(ComputedReturnType, "return type", out bool isVector, out DataKind datakind);
                 Contracts.Assert(isVector == ColumnType.IsVector);
                 Contracts.Assert(datakind == ColumnType.ItemType.RawKind);
             }
@@ -131,19 +135,30 @@ namespace Microsoft.ML.Runtime.Api
         }
 
         /// <summary>
-        /// Given a field info on a type, returns whether this appears to be a vector type,
+        /// Given a field or property info on a type, returns whether this appears to be a vector type,
         /// and also the associated data kind for this type. If a data kind could not
         /// be determined, this will throw.
         /// </summary>
-        /// <param name="fieldInfo">The field info to inspect.</param>
+        /// <param name="memberInfo">The field or property info to inspect.</param>
         /// <param name="isVector">Whether this appears to be a vector type.</param>
         /// <param name="kind">The data kind of the type, or items of this type if vector.</param>
-        public static void GetVectorAndKind(FieldInfo fieldInfo, out bool isVector, out DataKind kind)
+        public static void GetVectorAndKind(MemberInfo memberInfo, out bool isVector, out DataKind kind)
         {
-            Contracts.AssertValue(fieldInfo);
-            Type rawFieldType = fieldInfo.FieldType;
-            var name = fieldInfo.Name;
-            GetVectorAndKind(rawFieldType, name, out isVector, out kind);
+            Contracts.AssertValue(memberInfo);
+            switch (memberInfo)
+            {
+                case FieldInfo fieldInfo:
+                    GetVectorAndKind(fieldInfo.FieldType, fieldInfo.Name, out isVector, out kind);
+                    break;
+
+                case PropertyInfo propertyInfo:
+                    GetVectorAndKind(propertyInfo.PropertyType, propertyInfo.Name, out isVector, out kind);
+                    break;
+
+                default:
+                    Contracts.Assert(false);
+                    throw Contracts.ExceptNotSupp("Expected a FieldInfo or a PropertyInfo");
+            }
         }
 
         /// <summary>
@@ -193,13 +208,16 @@ namespace Microsoft.ML.Runtime.Api
                 throw Contracts.ExceptParam(nameof(rawType), "Could not determine an IDataView type for member {0}", name);
         }
 
-        public static InternalSchemaDefinition Create(Type userType, SchemaDefinition userSchemaDefinition = null)
+        public static InternalSchemaDefinition Create(Type userType, Direction direction)
+        {
+            var userSchemaDefinition = SchemaDefinition.Create(userType, direction);
+            return Create(userType, userSchemaDefinition);
+        }
+
+        public static InternalSchemaDefinition Create(Type userType, SchemaDefinition userSchemaDefinition)
         {
             Contracts.AssertValue(userType);
-            Contracts.AssertValueOrNull(userSchemaDefinition);
-
-            if (userSchemaDefinition == null)
-                userSchemaDefinition = SchemaDefinition.Create(userType);
+            Contracts.AssertValue(userSchemaDefinition);
 
             Column[] dstCols = new Column[userSchemaDefinition.Count];
 
@@ -211,23 +229,27 @@ namespace Microsoft.ML.Runtime.Api
 
                 bool isVector;
                 DataKind kind;
-                FieldInfo fieldInfo = null;
+                MemberInfo memberInfo = null;
 
                 if (!col.IsComputed)
                 {
-                    fieldInfo = userType.GetField(col.MemberName);
+                    memberInfo = userType.GetField(col.MemberName);
 
-                    if (fieldInfo == null)
-                        throw Contracts.ExceptParam(nameof(userSchemaDefinition), "No field with name '{0}' found in type '{1}'",
+                    if (memberInfo == null)
+                        memberInfo = userType.GetProperty(col.MemberName);
+
+                    if (memberInfo == null)
+                        throw Contracts.ExceptParam(nameof(userSchemaDefinition), "No field or property with name '{0}' found in type '{1}'",
                             col.MemberName,
                             userType.FullName);
 
                     //Clause to handle the field that may be used to expose the cursor channel.
                     //This field does not need a column.
-                    if (fieldInfo.FieldType == typeof(IChannel))
+                    if ((memberInfo is FieldInfo && (memberInfo as FieldInfo).FieldType == typeof(IChannel)) ||
+                        (memberInfo is PropertyInfo && (memberInfo as PropertyInfo).PropertyType == typeof(IChannel)))
                         continue;
 
-                    GetVectorAndKind(fieldInfo, out isVector, out kind);
+                    GetVectorAndKind(memberInfo, out isVector, out kind);
                 }
                 else
                 {
@@ -268,7 +290,7 @@ namespace Microsoft.ML.Runtime.Api
 
                 dstCols[i] = col.IsComputed ?
                     new Column(colName, colType, col.Generator, col.Metadata)
-                    : new Column(colName, colType, fieldInfo, col.Metadata);
+                    : new Column(colName, colType, memberInfo, col.Metadata);
 
             }
             return new InternalSchemaDefinition(dstCols);

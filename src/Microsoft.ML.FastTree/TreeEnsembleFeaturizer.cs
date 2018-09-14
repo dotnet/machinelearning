@@ -547,8 +547,11 @@ namespace Microsoft.ML.Runtime.Data
     /// <include file='doc.xml' path='doc/members/member[@name="TreeEnsembleFeaturizerTransform"]'/>
     public static class TreeEnsembleFeaturizerTransform
     {
-        public sealed class Arguments : TrainAndScoreTransform.ArgumentsBase<SignatureTreeEnsembleTrainer>
+        public sealed class Arguments : TrainAndScoreTransform.ArgumentsBase
         {
+            [Argument(ArgumentType.Multiple, HelpText = "Trainer to use", ShortName = "tr", NullName = "<None>", SortOrder = 1, SignatureType = typeof(SignatureTreeEnsembleTrainer))]
+            public IComponentFactory<ITrainer> Trainer;
+
             [Argument(ArgumentType.AtMostOnce, IsInputFileName = true, HelpText = "Predictor model file used in scoring",
                 ShortName = "in", SortOrder = 2)]
             public string TrainedModelFile;
@@ -621,7 +624,7 @@ namespace Microsoft.ML.Runtime.Data
 
             host.CheckValue(args, nameof(args));
             host.CheckValue(input, nameof(input));
-            host.CheckUserArg(!string.IsNullOrWhiteSpace(args.TrainedModelFile) || args.Trainer.IsGood(), nameof(args.TrainedModelFile),
+            host.CheckUserArg(!string.IsNullOrWhiteSpace(args.TrainedModelFile) || args.Trainer != null, nameof(args.TrainedModelFile),
                 "Please specify either a trainer or an input model file.");
             host.CheckUserArg(!string.IsNullOrEmpty(args.FeatureColumn), nameof(args.FeatureColumn), "Transform needs an input features column");
 
@@ -631,7 +634,7 @@ namespace Microsoft.ML.Runtime.Data
                 var scorerArgs = new TreeEnsembleFeaturizerBindableMapper.Arguments() { Suffix = args.Suffix };
                 if (!string.IsNullOrWhiteSpace(args.TrainedModelFile))
                 {
-                    if (args.Trainer.IsGood())
+                    if (args.Trainer != null)
                         ch.Warning("Both an input model and a trainer were specified. Using the model file.");
 
                     ch.Trace("Loading model");
@@ -663,23 +666,23 @@ namespace Microsoft.ML.Runtime.Data
                 }
                 else
                 {
-                    ch.Assert(args.Trainer.IsGood());
+                    ch.AssertValue(args.Trainer);
 
                     ch.Trace("Creating TrainAndScoreTransform");
-                    string scorerSettings = CmdParser.GetSettings(ch, scorerArgs,
-                        new TreeEnsembleFeaturizerBindableMapper.Arguments());
-                    var scorer =
-                        new SubComponent<IDataScorerTransform, SignatureDataScorer>(
-                            TreeEnsembleFeaturizerBindableMapper.LoadNameShort, scorerSettings);
 
                     var trainScoreArgs = new TrainAndScoreTransform.Arguments();
                     args.CopyTo(trainScoreArgs);
-                    trainScoreArgs.Trainer = new SubComponent<ITrainer, SignatureTrainer>(args.Trainer.Kind,
-                        args.Trainer.Settings);
+                    trainScoreArgs.Trainer = args.Trainer;
+
+                    trainScoreArgs.Scorer = ComponentFactoryUtils.CreateFromFunction<IDataView, ISchemaBoundMapper, RoleMappedSchema, IDataScorerTransform>(
+                        (e, data, mapper, trainSchema) => Create(e, scorerArgs, data, mapper, trainSchema));
+
+                    var mapperFactory = ComponentFactoryUtils.CreateFromFunction<IPredictor, ISchemaBindableMapper>(
+                            (e, predictor) => new TreeEnsembleFeaturizerBindableMapper(e, scorerArgs, predictor));
 
                     var labelInput = AppendLabelTransform(host, ch, input, trainScoreArgs.LabelColumn, args.LabelPermutationSeed);
-                    trainScoreArgs.Scorer = scorer;
-                    var scoreXf = TrainAndScoreTransform.Create(host, trainScoreArgs, labelInput);
+                    var scoreXf = TrainAndScoreTransform.Create(host, trainScoreArgs, labelInput, mapperFactory);
+
                     if (input == labelInput)
                         return scoreXf;
                     return (IDataTransform)ApplyTransformUtils.ApplyAllTransformsToData(host, scoreXf, input, labelInput);

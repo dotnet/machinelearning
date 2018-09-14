@@ -174,6 +174,49 @@ namespace Microsoft.ML.EntryPoints.Tests
 
         }
 
+        [Fact]
+        public void CanTrainProperties()
+        {
+            var pipeline = new LearningPipeline();
+            var data = new List<IrisDataProperties>() {
+                new IrisDataProperties { SepalLength = 1f, SepalWidth = 1f, PetalLength=0.3f, PetalWidth=5.1f, Label=1},
+                new IrisDataProperties { SepalLength = 1f, SepalWidth = 1f, PetalLength=0.3f, PetalWidth=5.1f, Label=1},
+                new IrisDataProperties { SepalLength = 1.2f, SepalWidth = 0.5f, PetalLength=0.3f, PetalWidth=5.1f, Label=0}
+            };
+            var collection = CollectionDataSource.Create(data);
+
+            pipeline.Add(collection);
+            pipeline.Add(new ColumnConcatenator(outputColumn: "Features",
+                "SepalLength", "SepalWidth", "PetalLength", "PetalWidth"));
+            pipeline.Add(new StochasticDualCoordinateAscentClassifier());
+            PredictionModel<IrisDataProperties, IrisPredictionProperties> model = pipeline.Train<IrisDataProperties, IrisPredictionProperties>();
+
+            IrisPredictionProperties prediction = model.Predict(new IrisDataProperties()
+            {
+                SepalLength = 3.3f,
+                SepalWidth = 1.6f,
+                PetalLength = 0.2f,
+                PetalWidth = 5.1f,
+            });
+
+            pipeline = new LearningPipeline();
+            collection = CollectionDataSource.Create(data.AsEnumerable());
+            pipeline.Add(collection);
+            pipeline.Add(new ColumnConcatenator(outputColumn: "Features",
+                "SepalLength", "SepalWidth", "PetalLength", "PetalWidth"));
+            pipeline.Add(new StochasticDualCoordinateAscentClassifier());
+            model = pipeline.Train<IrisDataProperties, IrisPredictionProperties>();
+
+            prediction = model.Predict(new IrisDataProperties()
+            {
+                SepalLength = 3.3f,
+                SepalWidth = 1.6f,
+                PetalLength = 0.2f,
+                PetalWidth = 5.1f,
+            });
+
+        }
+
         public class Input
         {
             [Column("0")]
@@ -205,6 +248,37 @@ namespace Microsoft.ML.EntryPoints.Tests
         {
             [ColumnName("Score")]
             public float[] PredictedLabels;
+        }
+
+        public class IrisDataProperties
+        {
+            private float _Label;
+            private float _SepalLength;
+            private float _SepalWidth;
+            private float _PetalLength;
+            private float _PetalWidth;
+
+            [Column("0")]
+            public float Label { get { return _Label; } set { _Label = value; } }
+
+            [Column("1")]
+            public float SepalLength { get { return _SepalLength; } set { _SepalLength = value; } }
+
+            [Column("2")]
+            public float SepalWidth { get { return _SepalWidth; } set { _SepalWidth = value; } }
+
+            [Column("3")]
+            public float PetalLength { get { return _PetalLength; } set { _PetalLength = value; } }
+
+            [Column("4")]
+            public float PetalWidth { get { return _PetalWidth; } set { _PetalWidth = value; } }
+        }
+
+        public class IrisPredictionProperties
+        {
+            private float[] _PredictedLabels;
+            [ColumnName("Score")]
+            public float[] PredictedLabels { get { return _PredictedLabels; } set { _PredictedLabels = value; } }
         }
 
         public class ConversionSimpleClass
@@ -257,7 +331,7 @@ namespace Microsoft.ML.EntryPoints.Tests
 
         public bool CompareThroughReflection<T>(T x, T y)
         {
-            foreach (var field in typeof(T).GetFields())
+            foreach (var field in typeof(T).GetFields(BindingFlags.Public | BindingFlags.Instance))
             {
                 var xvalue = field.GetValue(x);
                 var yvalue = field.GetValue(y);
@@ -269,6 +343,25 @@ namespace Microsoft.ML.EntryPoints.Tests
                 else
                 {
                     if (!CompareObjectValues(xvalue, yvalue, field.FieldType))
+                        return false;
+                }
+            }
+            foreach (var property in typeof(T).GetProperties(BindingFlags.Public | BindingFlags.Instance))
+            {
+                // Don't compare properties with private getters and setters
+                if (!property.CanRead || !property.CanWrite || property.GetGetMethod() == null || property.GetSetMethod() == null)
+                    continue;
+
+                var xvalue = property.GetValue(x);
+                var yvalue = property.GetValue(y);
+                if (property.PropertyType.IsArray)
+                {
+                    if (!CompareArrayValues(xvalue as Array, yvalue as Array))
+                        return false;
+                }
+                else
+                {
+                    if (!CompareObjectValues(xvalue, yvalue, property.PropertyType))
                         return false;
                 }
             }
@@ -286,14 +379,6 @@ namespace Microsoft.ML.EntryPoints.Tests
                 if (!CompareObjectValues(x.GetValue(i), y.GetValue(i), x.GetType().GetElementType()))
                     return false;
             return true;
-        }
-
-        public class ClassWithConstField
-        {
-            public const string ConstString = "N";
-            public string fString;
-            public const int ConstInt = 100;
-            public int fInt;
         }
 
         [Fact]
@@ -489,6 +574,50 @@ namespace Microsoft.ML.EntryPoints.Tests
             }
         }
 
+        public class ConversionLossMinValueClassProperties
+        {
+            private int? _fInt;
+            private long? _fLong;
+            private short? _fShort;
+            private sbyte? _fsByte;
+            public int? IntProp { get { return _fInt; } set { _fInt = value; } }
+            public short? ShortProp { get { return _fShort; } set { _fShort = value; } }
+            public sbyte? SByteProp { get { return _fsByte; } set { _fsByte = value; } }
+            public long? LongProp { get { return _fLong; } set { _fLong = value; } }
+        }
+
+        [Fact]
+        public void ConversionMinValueToNullBehaviorProperties()
+        {
+            using (var env = new TlcEnvironment())
+            {
+
+                var data = new List<ConversionLossMinValueClassProperties>
+                {
+                    new ConversionLossMinValueClassProperties() { SByteProp = null, IntProp = null, LongProp = null, ShortProp = null },
+                    new ConversionLossMinValueClassProperties() { SByteProp = sbyte.MinValue, IntProp = int.MinValue, LongProp = long.MinValue, ShortProp = short.MinValue }
+                };
+                foreach (var field in typeof(ConversionLossMinValueClassProperties).GetFields())
+                {
+                    var dataView = ComponentCreation.CreateDataView(env, data);
+                    var enumerator = dataView.AsEnumerable<ConversionLossMinValueClassProperties>(env, false).GetEnumerator();
+                    while (enumerator.MoveNext())
+                    {
+                        Assert.True(enumerator.Current.IntProp == null && enumerator.Current.LongProp == null &&
+                            enumerator.Current.SByteProp == null && enumerator.Current.ShortProp == null);
+                    }
+                }
+            }
+        }
+
+        public class ClassWithConstField
+        {
+            public const string ConstString = "N";
+            public string fString;
+            public const int ConstInt = 100;
+            public int fInt;
+        }
+
         [Fact]
         public void ClassWithConstFieldsConversion()
         {
@@ -503,6 +632,125 @@ namespace Microsoft.ML.EntryPoints.Tests
             {
                 var dataView = ComponentCreation.CreateDataView(env, data);
                 var enumeratorSimple = dataView.AsEnumerable<ClassWithConstField>(env, false).GetEnumerator();
+                var originalEnumerator = data.GetEnumerator();
+                while (enumeratorSimple.MoveNext() && originalEnumerator.MoveNext())
+                    Assert.True(CompareThroughReflection(enumeratorSimple.Current, originalEnumerator.Current));
+                Assert.True(!enumeratorSimple.MoveNext() && !originalEnumerator.MoveNext());
+            }
+        }
+
+
+        public class ClassWithMixOfFieldsAndProperties
+        {
+            public string fString;
+            private int _fInt;
+            public int IntProp { get { return _fInt; } set { _fInt = value; } }
+        }
+
+        [Fact]
+        public void ClassWithMixOfFieldsAndPropertiesConversion()
+        {
+            var data = new List<ClassWithMixOfFieldsAndProperties>()
+            {
+                new ClassWithMixOfFieldsAndProperties(){ IntProp=1, fString ="lala" },
+                new ClassWithMixOfFieldsAndProperties(){ IntProp=-1, fString ="" },
+                new ClassWithMixOfFieldsAndProperties(){ IntProp=0, fString =null }
+            };
+
+            using (var env = new TlcEnvironment())
+            {
+                var dataView = ComponentCreation.CreateDataView(env, data);
+                var enumeratorSimple = dataView.AsEnumerable<ClassWithMixOfFieldsAndProperties>(env, false).GetEnumerator();
+                var originalEnumerator = data.GetEnumerator();
+                while (enumeratorSimple.MoveNext() && originalEnumerator.MoveNext())
+                    Assert.True(CompareThroughReflection(enumeratorSimple.Current, originalEnumerator.Current));
+                Assert.True(!enumeratorSimple.MoveNext() && !originalEnumerator.MoveNext());
+            }
+        }
+
+        public abstract class BaseClassWithInheritedProperties
+        {
+            private string _fString;
+            private byte _fByte;
+            public string StringProp { get { return _fString; } set { _fString = value; } }
+            public abstract long LongProp { get; set; }
+            public virtual byte ByteProp { get { return _fByte; } set { _fByte = value; } }
+        }
+
+
+        public class ClassWithPrivateFieldsAndProperties
+        {
+            public ClassWithPrivateFieldsAndProperties() { seq++; _unusedStaticField++; _unusedPrivateField1 = 100; }
+            static public int seq;
+            static public int _unusedStaticField;
+            private int _unusedPrivateField1;
+            private string _fString;
+
+            [NoColumn]
+            // This property can be used as source for DataView, but not casting from dataview to collection
+            private int UnusedReadOnlyProperty { get { return _unusedPrivateField1; } }
+
+            // This property is ignored because it is private 
+            private int UnusedPrivateProperty { get { return _unusedPrivateField1; } set { _unusedPrivateField1 = value; } }
+
+            [NoColumn]
+            // This property can be used as source for DataView, but not casting from dataview to collection
+            public int UnusedPropertyWithPrivateSetter { get { return _unusedPrivateField1; } private set { _unusedPrivateField1 = value; } }
+
+            [NoColumn]
+            // This property can be used as receptacle for dataview, but not as source for dataview.
+            public int UnusedPropertyWithPrivateGetter { private get { return _unusedPrivateField1; } set { _unusedPrivateField1 = value; } }
+
+            public string StringProp { get { return _fString; } set { _fString = value; } }
+        }
+
+        [Fact]
+        public void ClassWithPrivateFieldsAndPropertiesConversion()
+        {
+            var data = new List<ClassWithPrivateFieldsAndProperties>()
+            {
+                new ClassWithPrivateFieldsAndProperties(){ StringProp ="lala" },
+                new ClassWithPrivateFieldsAndProperties(){ StringProp ="baba" }
+            };
+
+            using (var env = new TlcEnvironment())
+            {
+                var dataView = ComponentCreation.CreateDataView(env, data);
+                var enumeratorSimple = dataView.AsEnumerable<ClassWithPrivateFieldsAndProperties>(env, false).GetEnumerator();
+                var originalEnumerator = data.GetEnumerator();
+                while (enumeratorSimple.MoveNext() && originalEnumerator.MoveNext())
+                {
+                    Assert.True(CompareThroughReflection(enumeratorSimple.Current, originalEnumerator.Current));
+                    Assert.True(enumeratorSimple.Current.UnusedPropertyWithPrivateSetter == 100);
+                }
+                Assert.True(!enumeratorSimple.MoveNext() && !originalEnumerator.MoveNext());
+            }
+        }
+
+        public class ClassWithInheritedProperties : BaseClassWithInheritedProperties
+        {
+            private int _fInt;
+            private long _fLong;
+            private byte _fByte2;
+            public int IntProp { get { return _fInt; } set { _fInt = value; } }
+            public override long LongProp { get { return _fLong; } set { _fLong = value; } }
+            public override byte ByteProp { get { return _fByte2; } set { _fByte2 = value; } }
+        }
+
+        [Fact]
+        public void ClassWithInheritedPropertiesConversion()
+        {
+            var data = new List<ClassWithInheritedProperties>()
+            {
+                new ClassWithInheritedProperties(){ IntProp=1, StringProp ="lala", LongProp=17, ByteProp=3 },
+                new ClassWithInheritedProperties(){ IntProp=-1, StringProp ="", LongProp=2, ByteProp=4 },
+                new ClassWithInheritedProperties(){ IntProp=0, StringProp =null, LongProp=18, ByteProp=5 }
+            };
+
+            using (var env = new TlcEnvironment())
+            {
+                var dataView = ComponentCreation.CreateDataView(env, data);
+                var enumeratorSimple = dataView.AsEnumerable<ClassWithInheritedProperties>(env, false).GetEnumerator();
                 var originalEnumerator = data.GetEnumerator();
                 while (enumeratorSimple.MoveNext() && originalEnumerator.MoveNext())
                     Assert.True(CompareThroughReflection(enumeratorSimple.Current, originalEnumerator.Current));
@@ -607,6 +855,171 @@ namespace Microsoft.ML.EntryPoints.Tests
                     Assert.True(CompareThroughReflection(enumeratorNullable.Current, originalNullalbleEnumerator.Current));
                 }
                 Assert.True(!enumeratorNullable.MoveNext() && !originalNullalbleEnumerator.MoveNext());
+            }
+        }
+        public class ClassWithArrayProperties
+        {
+            private string[] _fString;
+            private int[] _fInt;
+            private uint[] _fuInt;
+            private short[] _fShort;
+            private ushort[] _fuShort;
+            private sbyte[] _fsByte;
+            private byte[] _fByte;
+            private long[] _fLong;
+            private ulong[] _fuLong;
+            private float[] _fFloat;
+            private double[] _fDouble;
+            private bool[] _fBool;
+            public string[] StringProp { get { return _fString; } set { _fString = value; } }
+            public int[] IntProp { get { return _fInt; } set { _fInt = value; } }
+            public uint[] UIntProp { get { return _fuInt; } set { _fuInt = value; } }
+            public short[] ShortProp { get { return _fShort; } set { _fShort = value; } }
+            public ushort[] UShortProp { get { return _fuShort; } set { _fuShort = value; } }
+            public sbyte[] SByteProp { get { return _fsByte; } set { _fsByte = value; } }
+            public byte[] ByteProp { get { return _fByte; } set { _fByte = value; } }
+            public long[] LongProp { get { return _fLong; } set { _fLong = value; } }
+            public ulong[] ULongProp { get { return _fuLong; } set { _fuLong = value; } }
+            public float[] FloatProp { get { return _fFloat; } set { _fFloat = value; } }
+            public double[] DobuleProp { get { return _fDouble; } set { _fDouble = value; } }
+            public bool[] BoolProp { get { return _fBool; } set { _fBool = value; } }
+        }
+
+        public class ClassWithNullableArrayProperties
+        {
+            private string[] _fString;
+            private int?[] _fInt;
+            private uint?[] _fuInt;
+            private short?[] _fShort;
+            private ushort?[] _fuShort;
+            private sbyte?[] _fsByte;
+            private byte?[] _fByte;
+            private long?[] _fLong;
+            private ulong?[] _fuLong;
+            private float?[] _fFloat;
+            private double?[] _fDouble;
+            private bool?[] _fBool;
+
+            public string[] StringProp { get { return _fString; } set { _fString = value; } }
+            public int?[] IntProp { get { return _fInt; } set { _fInt = value; } }
+            public uint?[] UIntProp { get { return _fuInt; } set { _fuInt = value; } }
+            public short?[] ShortProp { get { return _fShort; } set { _fShort = value; } }
+            public ushort?[] UShortProp { get { return _fuShort; } set { _fuShort = value; } }
+            public sbyte?[] SByteProp { get { return _fsByte; } set { _fsByte = value; } }
+            public byte?[] ByteProp { get { return _fByte; } set { _fByte = value; } }
+            public long?[] LongProp { get { return _fLong; } set { _fLong = value; } }
+            public ulong?[] ULongProp { get { return _fuLong; } set { _fuLong = value; } }
+            public float?[] SingleProp { get { return _fFloat; } set { _fFloat = value; } }
+            public double?[] DoubleProp { get { return _fDouble; } set { _fDouble = value; } }
+            public bool?[] BoolProp { get { return _fBool; } set { _fBool = value; } }
+        }
+
+        [Fact]
+        public void RoundTripConversionWithArrayPropertiess()
+        {
+
+            var data = new List<ClassWithArrayProperties>
+            {
+                new ClassWithArrayProperties()
+                {
+                    IntProp = new int[3] { 0, 1, 2 },
+                    FloatProp = new float[3] { -0.99f, 0f, 0.99f },
+                    StringProp = new string[2] { "hola", "lola" },
+                    BoolProp = new bool[2] { true, false },
+                    ByteProp = new byte[3] { 0, 124, 255 },
+                    DobuleProp = new double[3] { -1, 0, 1 },
+                    LongProp = new long[] { 0, 1, 2 },
+                    SByteProp = new sbyte[3] { -127, 127, 0 },
+                    ShortProp = new short[3] { 0, 1225, 32767 },
+                    UIntProp = new uint[2] { 0, uint.MaxValue },
+                    ULongProp = new ulong[2] { ulong.MaxValue, 0 },
+                    UShortProp = new ushort[2] { 0, ushort.MaxValue }
+                },
+                new ClassWithArrayProperties() { IntProp = new int[3] { -2, 1, 0 }, FloatProp = new float[3] { 0.99f, 0f, -0.99f }, StringProp = new string[2] { "", null } },
+                new ClassWithArrayProperties()
+            };
+
+            var nullableData = new List<ClassWithNullableArrayProperties>
+            {
+                new ClassWithNullableArrayProperties()
+                {
+                    IntProp = new int?[3] { null, -1, 1 },
+                    SingleProp = new float?[3] { -0.99f, null, 0.99f },
+                    StringProp = new string[2] { null, "" },
+                    BoolProp = new bool?[3] { true, null, false },
+                    ByteProp = new byte?[4] { 0, 125, null, 255 },
+                    DoubleProp = new double?[3] { -1, null, 1 },
+                    LongProp = new long?[] { null, -1, 1 },
+                    SByteProp = new sbyte?[3] { -127, 127, null },
+                    ShortProp = new short?[3] { 0, null, 32767 },
+                    UIntProp = new uint?[4] { null, 42, 0, uint.MaxValue },
+                    ULongProp = new ulong?[3] { ulong.MaxValue, null, 0 },
+                    UShortProp = new ushort?[3] { 0, null, ushort.MaxValue }
+                },
+                new ClassWithNullableArrayProperties() { IntProp = new int?[3] { -2, 1, 0 }, SingleProp = new float?[3] { 0.99f, 0f, -0.99f }, StringProp = new string[2] { "lola", "hola" } },
+                new ClassWithNullableArrayProperties()
+            };
+
+            using (var env = new TlcEnvironment())
+            {
+                var dataView = ComponentCreation.CreateDataView(env, data);
+                var enumeratorSimple = dataView.AsEnumerable<ClassWithArrayProperties>(env, false).GetEnumerator();
+                var originalEnumerator = data.GetEnumerator();
+                while (enumeratorSimple.MoveNext() && originalEnumerator.MoveNext())
+                {
+                    Assert.True(CompareThroughReflection(enumeratorSimple.Current, originalEnumerator.Current));
+                }
+                Assert.True(!enumeratorSimple.MoveNext() && !originalEnumerator.MoveNext());
+
+                var nullableDataView = ComponentCreation.CreateDataView(env, nullableData);
+                var enumeratorNullable = nullableDataView.AsEnumerable<ClassWithNullableArrayProperties>(env, false).GetEnumerator();
+                var originalNullalbleEnumerator = nullableData.GetEnumerator();
+                while (enumeratorNullable.MoveNext() && originalNullalbleEnumerator.MoveNext())
+                {
+                    Assert.True(CompareThroughReflection(enumeratorNullable.Current, originalNullalbleEnumerator.Current));
+                }
+                Assert.True(!enumeratorNullable.MoveNext() && !originalNullalbleEnumerator.MoveNext());
+            }
+        }
+
+        class ClassWithGetter
+        {
+            private DateTime _dateTime = DateTime.Now;
+            public float Day { get { return _dateTime.Day; } }
+            public int Hour { get { return _dateTime.Hour; } }
+        }
+
+        class ClassWithSetter
+        {
+            public float Day { private get; set; }
+            public int Hour { private get; set; }
+
+            [NoColumn]
+            public float GetDay => Day;
+            [NoColumn]
+            public int GetHour => Hour;
+        }
+
+        [Fact]
+        public void PrivateGetSetProperties()
+        {
+            var data = new List<ClassWithGetter>()
+            {
+                new ClassWithGetter(),
+                new ClassWithGetter(),
+                new ClassWithGetter()
+            };
+
+            using (var env = new TlcEnvironment())
+            {
+                var dataView = ComponentCreation.CreateDataView(env, data);
+                var enumeratorSimple = dataView.AsEnumerable<ClassWithSetter>(env, false).GetEnumerator();
+                var originalEnumerator = data.GetEnumerator();
+                while (enumeratorSimple.MoveNext() && originalEnumerator.MoveNext())
+                {
+                    Assert.True(enumeratorSimple.Current.GetDay == originalEnumerator.Current.Day &&
+                        enumeratorSimple.Current.GetHour == originalEnumerator.Current.Hour);
+                }
             }
         }
     }

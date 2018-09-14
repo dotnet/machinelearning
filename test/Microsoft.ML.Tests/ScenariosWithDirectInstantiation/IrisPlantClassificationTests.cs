@@ -25,41 +25,17 @@ namespace Microsoft.ML.Scenarios
             using (var env = new TlcEnvironment(seed: 1, conc: 1))
             {
                 // Pipeline
-                var loader = new TextLoader(env,
+                var loader = TextLoader.ReadFile(env,
                     new TextLoader.Arguments()
                     {
                         HasHeader = false,
-                        Column = new[] {
-                            new TextLoader.Column()
-                            {
-                                Name = "Label",
-                                Source = new [] { new TextLoader.Range() { Min = 0, Max = 0} },
-                                Type = DataKind.R4
-                            },
-                            new TextLoader.Column()
-                            {
-                                Name = "SepalLength",
-                                Source = new [] { new TextLoader.Range() { Min = 1, Max = 1} },
-                                Type = DataKind.R4
-                            },
-                            new TextLoader.Column()
-                            {
-                                Name = "SepalWidth",
-                                Source = new [] { new TextLoader.Range() { Min = 2, Max = 2} },
-                                Type = DataKind.R4
-                            },
-                            new TextLoader.Column()
-                            {
-                                Name = "PetalLength",
-                                Source = new [] { new TextLoader.Range() { Min = 3, Max = 3} },
-                                Type = DataKind.R4
-                            },
-                            new TextLoader.Column()
-                            {
-                                Name = "PetalWidth",
-                                Source = new [] { new TextLoader.Range() { Min = 4, Max = 4} },
-                                Type = DataKind.R4
-                            }
+                        Column = new[]
+                        {
+                            new TextLoader.Column("Label", DataKind.R4, 0),
+                            new TextLoader.Column("SepalLength", DataKind.R4, 1),
+                            new TextLoader.Column("SepalWidth", DataKind.R4, 2),
+                            new TextLoader.Column("PetalLength", DataKind.R4, 3),
+                            new TextLoader.Column("PetalWidth", DataKind.R4, 4)
                         }
                     }, new MultiFileSource(dataPath));
 

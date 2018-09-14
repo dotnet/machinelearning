@@ -24,7 +24,7 @@ namespace Microsoft.ML.Runtime.Api
             env.AssertValue(data);
             env.AssertValueOrNull(schemaDefinition);
             var internalSchemaDefn = schemaDefinition == null
-                ? InternalSchemaDefinition.Create(typeof(TRow))
+                ? InternalSchemaDefinition.Create(typeof(TRow), SchemaDefinition.Direction.Read)
                 : InternalSchemaDefinition.Create(typeof(TRow), schemaDefinition);
             return new ListDataView<TRow>(env, data, internalSchemaDefn);
         }
@@ -37,7 +37,7 @@ namespace Microsoft.ML.Runtime.Api
             env.AssertValue(data);
             env.AssertValueOrNull(schemaDefinition);
             var internalSchemaDefn = schemaDefinition == null
-                ? InternalSchemaDefinition.Create(typeof(TRow))
+                ? InternalSchemaDefinition.Create(typeof(TRow), SchemaDefinition.Direction.Read)
                 : InternalSchemaDefinition.Create(typeof(TRow), schemaDefinition);
             return new StreamingDataView<TRow>(env, data, internalSchemaDefn);
         }
@@ -118,7 +118,7 @@ namespace Microsoft.ML.Runtime.Api
                     var colType = DataView.Schema.GetColumnType(index);
 
                     var column = DataView._schema.SchemaDefn.Columns[index];
-                    var outputType = column.IsComputed ? column.ReturnType : column.FieldInfo.FieldType;
+                    var outputType = column.OutputType;
                     var genericType = outputType;
                     Func<int, Delegate> del;
 

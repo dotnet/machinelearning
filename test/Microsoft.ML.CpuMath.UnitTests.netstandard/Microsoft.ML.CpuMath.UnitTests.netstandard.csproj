@@ -1,0 +1,15 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Microsoft.ML.CpuMath\Microsoft.ML.CpuMath.csproj " />
+  </ItemGroup>
+
+  <ItemGroup>
+    <NativeAssemblyReference Include="CpuMathNative" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="..\Microsoft.ML.CpuMath.UnitTests.netcoreapp\UnitTests.cs" />
+  </ItemGroup>
+ 
+</Project>

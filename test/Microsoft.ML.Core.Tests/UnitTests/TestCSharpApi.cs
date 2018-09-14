@@ -957,5 +957,42 @@ namespace Microsoft.ML.Runtime.RunTests
                 }
             }
         }
+
+        [Fact]
+        public void TestTensorFlowEntryPoint()
+        {
+            var dataPath = GetDataPath("Train-Tiny-28x28.txt");
+            using (var env = new TlcEnvironment(42))
+            {
+                var experiment = env.CreateExperiment();
+
+                var importInput = new ML.Data.TextLoader(dataPath);
+                importInput.Arguments.Column = new TextLoaderColumn[]
+                {
+                    new TextLoaderColumn { Name = "Label", Source = new[] { new TextLoaderRange(0) } },
+                    new TextLoaderColumn { Name = "Placeholder", Source = new[] { new TextLoaderRange(1, 784) } }
+                };
+                var importOutput = experiment.Add(importInput);
+
+                var tfTransformInput = new ML.Transforms.TensorFlowScorer
+                {
+                    Data = importOutput.Data,
+                    InputColumns = new[] { "Placeholder" },
+                    OutputColumns = new[] { "Softmax" },
+                    ModelFile = "mnist_model/frozen_saved_model.pb"
+                };
+                var tfTransformOutput = experiment.Add(tfTransformInput);
+
+                experiment.Compile();
+                experiment.SetInput(importInput.InputFile, new SimpleFileHandle(env, dataPath, false, false));
+                experiment.Run();
+                var data = experiment.GetOutput(tfTransformOutput.OutputData);
+
+                var schema = data.Schema;
+                Assert.Equal(3, schema.ColumnCount);
+                Assert.Equal("Softmax", schema.GetColumnName(2));
+                Assert.Equal(10, schema.GetColumnType(2).VectorSize);
+            }
+        }
     }
 }

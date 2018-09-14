@@ -407,8 +407,8 @@ namespace Microsoft.ML.Runtime.PipelineInference
                 ch.Info($"Loader options: {settingsString}");
 
                 ch.Info("Inferring recipes");
-                var finalLoader = new TextLoader(h, finalLoaderArgs, sample);
-                var cached = new CacheDataView(h, finalLoader,
+                var finalData = TextLoader.ReadFile(h, finalLoaderArgs, sample);
+                var cached = new CacheDataView(h, finalData,
                     Enumerable.Range(0, finalLoaderArgs.Column.Length).ToArray());
 
                 var purposeColumns = columns.Select((x, i) => new PurposeInference.Column(i, x.Purpose, x.ItemKind)).ToArray();

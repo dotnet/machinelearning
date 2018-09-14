@@ -11,5 +11,10 @@ phases:
     buildScript: build.cmd
     queue:
       name: Hosted VS2017
-      demands:
-        - agent.os -equals Windows_NT
+
+- template: /build/ci/phase-template.yml
+  parameters:
+    name: MacOS
+    buildScript: ./build.sh
+    queue:
+      name: DotNetCore-Mac

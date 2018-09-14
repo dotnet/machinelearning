@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime.Internal.Utilities;
 
 namespace Microsoft.ML.Runtime.Data
@@ -348,6 +349,37 @@ namespace Microsoft.ML.Runtime.Data
             Contracts.CheckValue(schema, nameof(schema));
             var value = default(DvBool);
             return schema.TryGetMetadata(BoolType.Instance, Kinds.IsNormalized, col, ref value) && value.IsTrue;
+        }
+
+        /// <summary>
+        /// Returns whether a column has the <see cref="Kinds.IsNormalized"/> metadata indicated by
+        /// the schema shape.
+        /// </summary>
+        /// <param name="col">The schema shape column to query</param>
+        /// <returns>True if and only if the column has the <see cref="Kinds.IsNormalized"/> metadata
+        /// of a scalar <see cref="BoolType"/> type, which we assume, if set, should be <c>true</c>.</returns>
+        public static bool IsNormalized(this SchemaShape.Column col)
+        {
+            Contracts.CheckValue(col, nameof(col));
+            return col.Metadata.TryFindColumn(Kinds.IsNormalized, out var metaCol)
+                && metaCol.Kind == SchemaShape.Column.VectorKind.Scalar && !metaCol.IsKey
+                && metaCol.ItemType == BoolType.Instance;
+        }
+
+        /// <summary>
+        /// Returns whether a column has the <see cref="Kinds.SlotNames"/> metadata indicated by
+        /// the schema shape.
+        /// </summary>
+        /// <param name="col">The schema shape column to query</param>
+        /// <returns>True if and only if the column is a definite sized vector type, has the
+        /// <see cref="Kinds.SlotNames"/> metadata of definite sized vectors of text.</returns>
+        public static bool HasSlotNames(this SchemaShape.Column col)
+        {
+            Contracts.CheckValue(col, nameof(col));
+            return col.Kind == SchemaShape.Column.VectorKind.Vector
+                && col.Metadata.TryFindColumn(Kinds.SlotNames, out var metaCol)
+                && metaCol.Kind == SchemaShape.Column.VectorKind.Vector && !metaCol.IsKey
+                && metaCol.ItemType == TextType.Instance;
         }
 
         /// <summary>

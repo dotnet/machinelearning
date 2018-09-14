@@ -2,13 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Float = System.Single;
-
-using System;
 using System.Text;
-using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.FastTree;
+using Microsoft.ML.TestFramework;
 
 namespace Microsoft.ML.Runtime.RunTests
 {
@@ -159,6 +156,14 @@ namespace Microsoft.ML.Runtime.RunTests
         public static PredictorAndArgs logisticRegression = new PredictorAndArgs
         {
             Trainer = new SubComponent("LogisticRegression", "l1=1.0 l2=0.1 ot=1e-3 nt=1"),
+            MamlArgs = new[] { "norm=no" },
+            BaselineProgress = true
+        };
+
+        // New.
+        public static PredictorAndArgs symSGD = new PredictorAndArgs
+        {
+            Trainer = new SubComponent("SymSGD", "nt=1"),
             MamlArgs = new[] { "norm=no" },
             BaselineProgress = true
         };
@@ -603,7 +608,7 @@ namespace Microsoft.ML.Runtime.RunTests
             };
         }
 
-        public static PredictorAndArgs DssmDefault(int qryFeaturesCount, int docFeaturesCount, int negativeDocsCount, int numIterations, Float gamma)
+        public static PredictorAndArgs DssmDefault(int qryFeaturesCount, int docFeaturesCount, int negativeDocsCount, int numIterations, float gamma)
         {
             string settings = string.Format("qfeats={0} dfeats={1} negdocs={2} iter={3} gamma={4} accel=sse",
                 qryFeaturesCount, docFeaturesCount, negativeDocsCount, numIterations, gamma);
