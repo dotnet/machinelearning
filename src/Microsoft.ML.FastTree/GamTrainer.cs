@@ -95,12 +95,12 @@ namespace Microsoft.ML.Runtime.FastTree
                                          "no interactions between features.";
         private const string RegisterName = "GamTraining";
 
-        //Parameters of Training
+        //Parameters of training
         protected readonly TArgs Args;
         private readonly double _gainConfidenceInSquaredStandardDeviations;
         private readonly double _entropyCoefficient;
 
-        //Dataset Information
+        //Dataset information
         protected Dataset TrainSet;
         protected Dataset ValidSet;
         /// <summary>
@@ -118,10 +118,10 @@ namespace Microsoft.ML.Runtime.FastTree
         private ObjectiveFunctionBase _objectiveFunction;
         private bool HasWeights => TrainSet?.SampleWeights != null;
 
-        // Training Datastructures
+        // Training datastructures
         private SubGraph _subGraph;
 
-        //Results of Training
+        //Results of training
         protected double MeanEffect;
         protected double[][] BinEffects;
         protected int[] FeatureMap;
@@ -165,10 +165,6 @@ namespace Microsoft.ML.Runtime.FastTree
             InitializeThreads(numThreads);
         }
 
-        /// <summary>
-        /// Load the data off the context and train the model
-        /// </summary>
-        /// <param name="context"></param>
         protected void TrainBase(TrainContext context)
         {
             using (var ch = Host.Start("Training"))
@@ -190,9 +186,6 @@ namespace Microsoft.ML.Runtime.FastTree
             }
         }
 
-        /// <summary>
-        /// Define the ScoreTrackers to use in the calculation.
-        /// </summary>
         private void DefineScoreTrackers()
         {
             TrainSetScore = new ScoreTracker("train", TrainSet, null);
@@ -200,9 +193,6 @@ namespace Microsoft.ML.Runtime.FastTree
                 ValidSetScore = new ScoreTracker("valid", ValidSet, null);
         }
 
-        /// <summary>
-        /// Define the test to use for pruning
-        /// </summary>
         protected abstract void DefinePruningTest();
 
         internal abstract void CheckLabel(RoleMappedData data);
