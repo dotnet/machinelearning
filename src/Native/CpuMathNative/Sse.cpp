@@ -16,7 +16,7 @@
 //
 // Other notes:
 // * AVX methods should end with _vleave() to avoid performance hit. See:
-//   http://stackoverflow.com/questions/7839925/using-avx-cpu-instructions-poor-performance-without-archavx.
+//   https://stackoverflow.com/questions/7839925/using-avx-cpu-instructions-poor-performance-without-archavx.
 // * Keep Avx.cpp in sync with Sse.cpp. Note that Avx.cpp is compiled with /arch:AVX, but Sse.cpp is not.
 
 #include "../Stdafx.h"
@@ -93,7 +93,7 @@ EXPORT_API(bool) ChkAvx()
 	__cpuid(cpuInfo, 1);
 
 	// 28th bit of second integer of Cpu Info denotes whether the Avx is supported in CPU or not 
-	// Reference http://msdn.microsoft.com/en-us/library/hskdteyh(v=vs.100).aspx
+	// Reference https://msdn.microsoft.com/en-us/library/hskdteyh(v=vs.100).aspx
 	return cpuInfo[2] & (1 << 28) || false;
 #else
 	unsigned char buffer[16];

@@ -417,7 +417,7 @@ namespace Microsoft.ML.Runtime.Learners
             // int: number of classes = number of biases
             // Float[]: biases
             // (weight matrix, in CSR if sparse)
-            // (see http://netlib.org/linalg/html_templates/node91.html#SECTION00931100000000000000)
+            // (see https://netlib.org/linalg/html_templates/node91.html#SECTION00931100000000000000)
             // int: number of row start indices (_numClasses + 1 if sparse, 0 if dense)
             // int[]: row start indices
             // int: total number of column indices (0 if dense)
@@ -527,7 +527,7 @@ namespace Microsoft.ML.Runtime.Learners
             // int: number of classes = number of biases
             // Float[]: biases
             // (weight matrix, in CSR if sparse)
-            // (see http://netlib.org/linalg/html_templates/node91.html#SECTION00931100000000000000)
+            // (see https://netlib.org/linalg/html_templates/node91.html#SECTION00931100000000000000)
             // int: number of row start indices (_numClasses + 1 if sparse, 0 if dense)
             // int[]: row start indices
             // int: total number of column indices (0 if dense)

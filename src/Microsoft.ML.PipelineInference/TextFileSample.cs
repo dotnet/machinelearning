@@ -219,7 +219,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
         /// </summary>
         private static bool IsEncodingOkForSampling(byte[] buffer)
         {
-            // First check if a BOM/signature exists (sourced from http://www.unicode.org/faq/utf_bom.html#bom4)
+            // First check if a BOM/signature exists (sourced from https://www.unicode.org/faq/utf_bom.html#bom4)
             if (buffer.Length >= 4 && buffer[0] == 0x00 && buffer[1] == 0x00 && buffer[2] == 0xFE && buffer[3] == 0xFF)
             {
                 // UTF-32, big-endian
@@ -255,7 +255,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
             int sniffLim = Math.Min(1000, buffer.Length);
 
             // Some text files are encoded in UTF8, but have no BOM/signature. Hence the below manually checks for a UTF8 pattern. This code is based off
-            // the top answer at: http://stackoverflow.com/questions/6555015/check-for-invalid-utf8 .
+            // the top answer at: https://stackoverflow.com/questions/6555015/check-for-invalid-utf8 .
             int i = 0;
             bool utf8 = false;
             while (i < sniffLim - 4)

@@ -50,12 +50,12 @@ namespace Microsoft.ML.Runtime.EntryPoints
             var macroNodes = new List<EntryPointNode>();
 
             // Convert label into T,F based on k.
-            var remapper = new ML.Transforms.LabelIndicator
+            var remapper = new Legacy.Transforms.LabelIndicator
             {
                 ClassIndex = k,
                 Column = new[]
                 {
-                    new ML.Transforms.LabelIndicatorTransformColumn
+                    new Legacy.Transforms.LabelIndicatorTransformColumn
                     {
                         ClassIndex = k,
                         Name = label,
@@ -164,13 +164,13 @@ namespace Microsoft.ML.Runtime.EntryPoints
             // Takes in array of models that are binary predictor models and
             // produces single multiclass predictor model.
             var macroExperiment = new Experiment(env);
-            var combinerNode = new Models.OvaModelCombiner
+            var combinerNode = new Legacy.Models.OvaModelCombiner
             {
                 ModelArray = new ArrayVar<IPredictorModel>(predModelVars),
                 TrainingData = new Var<IDataView> { VarName = node.GetInputVariable(nameof(input.TrainingData)).VariableName },
-                Caching = (Models.CachingOptions)input.Caching,
+                Caching = (Legacy.Models.CachingOptions)input.Caching,
                 FeatureColumn = input.FeatureColumn,
-                NormalizeFeatures = (Models.NormalizeOption)input.NormalizeFeatures,
+                NormalizeFeatures = (Legacy.Models.NormalizeOption)input.NormalizeFeatures,
                 LabelColumn = input.LabelColumn,
                 UseProbabilities = input.UseProbabilities
             };
@@ -180,7 +180,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
                 throw new Exception("Cannot find OVA model output.");
 
             // Map macro's output back to OVA combiner (so OVA combiner will set the value on our output variable).
-            var combinerOutput = new Models.OvaModelCombiner.Output { PredictorModel = new Var<IPredictorModel> { VarName = outVariableName } };
+            var combinerOutput = new Legacy.Models.OvaModelCombiner.Output { PredictorModel = new Var<IPredictorModel> { VarName = outVariableName } };
 
             // Add to experiment (must be done AFTER we assign variable name to output).
             macroExperiment.Add(combinerNode, combinerOutput);

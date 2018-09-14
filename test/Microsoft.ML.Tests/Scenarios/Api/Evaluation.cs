@@ -2,12 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.ML.Models;
 using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Learners;
-using Xunit;
-using Microsoft.ML.Models;
 using Microsoft.ML.Runtime.RunTests;
+using Xunit;
+
 
 namespace Microsoft.ML.Tests.Scenarios.Api
 {
@@ -52,8 +53,6 @@ namespace Microsoft.ML.Tests.Scenarios.Api
 
                 var evaluator = new BinaryClassifierMamlEvaluator(env, new BinaryClassifierMamlEvaluator.Arguments() { });
                 var metricsDict = evaluator.Evaluate(dataEval);
-
-                var metrics = BinaryClassificationMetrics.FromMetrics(env, metricsDict["OverallMetrics"], metricsDict["ConfusionMatrix"])[0];
             }
         }
     }
