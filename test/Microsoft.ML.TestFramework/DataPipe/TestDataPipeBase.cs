@@ -21,6 +21,25 @@ namespace Microsoft.ML.Runtime.RunTests
 {
     public abstract partial class TestDataPipeBase : TestDataViewBase
     {
+        public const string IrisDataPath = "iris.data";
+
+        protected static TextLoader.Arguments MakeIrisTextLoaderArgs()
+        {
+            return new TextLoader.Arguments()
+            {
+                Separator = "comma",
+                HasHeader = true,
+                Column = new[]
+                {
+                    new TextLoader.Column("SepalLength", DataKind.R4, 0),
+                    new TextLoader.Column("SepalWidth", DataKind.R4, 1),
+                    new TextLoader.Column("PetalLength", DataKind.R4, 2),
+                    new TextLoader.Column("PetalWidth",DataKind.R4, 3),
+                    new TextLoader.Column("Label", DataKind.Text, 4)
+                }
+            };
+        }
+
         /// <summary>
         /// 'Workout test' for an estimator.
         /// Checks the following traits:
@@ -143,7 +162,6 @@ namespace Microsoft.ML.Runtime.RunTests
             foreach (var (x, y) in sortedCols1.Zip(sortedCols2, (x, y) => (x, y)))
             {
                 Assert.Equal(x.Name, y.Name);
-                Assert.True(x.IsCompatibleWith(y), $"Mismatch on {x.Name}");
                 Assert.True(y.IsCompatibleWith(x), $"Mismatch on {x.Name}");
             }
         }

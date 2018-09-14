@@ -454,42 +454,6 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         }
     }
 
-    public sealed class MyOva : TrainerBase<ScorerWrapper<OvaPredictor>, OvaPredictor>
-    {
-        private readonly ITrainerEstimator<IPredictionTransformer<TScalarPredictor>, TScalarPredictor> _binaryEstimator;
-
-        public MyOva(IHostEnvironment env, ITrainerEstimator<IPredictionTransformer<TScalarPredictor>, TScalarPredictor> estimator,
-            string featureColumn = DefaultColumnNames.Features, string labelColumn = DefaultColumnNames.Label)
-            : base(env, MakeTrainerInfo(estimator), featureColumn, labelColumn)
-        {
-            _binaryEstimator = estimator;
-        }
-
-        public override PredictionKind PredictionKind => PredictionKind.MultiClassClassification;
-
-        private static TrainerInfo MakeTrainerInfo(ITrainerEstimator<IPredictionTransformer<TScalarPredictor>, TScalarPredictor> estimator)
-            => new TrainerInfo(estimator.Info.NeedNormalization, estimator.Info.NeedCalibration, false);
-
-        protected override ScorerWrapper<OvaPredictor> MakeScorer(OvaPredictor predictor, RoleMappedData data)
-            => MakeScorerBasic(predictor, data);
-
-        protected override OvaPredictor TrainCore(TrainContext trainContext)
-        {
-            var trainRoles = trainContext.TrainingSet;
-            trainRoles.CheckMultiClassLabel(out var numClasses);
-
-            var predictors = new IPredictionTransformer<TScalarPredictor>[numClasses];
-            for (int iClass = 0; iClass < numClasses; iClass++)
-            {
-                var data = new LabelIndicatorTransform(_env, trainRoles.Data, iClass, "Label");
-                predictors[iClass] = _binaryEstimator.Fit(data);
-            }
-            var prs = predictors.Select(x => x.Model);
-            var finalPredictor = OvaPredictor.Create(_env.Register("ova"), prs.ToArray());
-            return finalPredictor;
-        }
-    }
-
     public static class MyHelperExtensions
     {
         public static void SaveAsBinary(this IDataView data, IHostEnvironment env, Stream stream)
