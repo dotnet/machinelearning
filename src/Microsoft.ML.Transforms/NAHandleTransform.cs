@@ -20,28 +20,28 @@ namespace Microsoft.ML.Runtime.Data
     /// <include file='doc.xml' path='doc/members/member[@name="NAHandle"]'/>
     public static class NAHandleTransform
     {
-        public enum ReplacementKind
+        public enum ReplacementKind:byte
         {
             /// <summary>
             /// Replace with the default value of the column based on it's type. For example, 'zero' for numeric and 'empty' for string/text columns.
             /// </summary>
             [EnumValueDisplay("Zero/empty")]
-            DefaultValue,
+            DefaultValue=0,
 
             /// <summary>
             /// Replace with the mean value of the column. Supports only numeric/time span/ DateTime columns.
             /// </summary>
-            Mean,
+            Mean=1,
 
             /// <summary>
             /// Replace with the minimum value of the column. Supports only numeric/time span/ DateTime columns.
             /// </summary>
-            Minimum,
+            Minimum = 2,
 
             /// <summary>
             /// Replace with the maximum value of the column. Supports only numeric/time span/ DateTime columns.
             /// </summary>
-            Maximum,
+            Maximum =3,
 
             [HideEnumValue]
             Def = DefaultValue,
@@ -149,19 +149,16 @@ namespace Microsoft.ML.Runtime.Data
                 var addInd = column.ConcatIndicator ?? args.Concat;
                 if (!addInd)
                 {
-                    replaceCols.Add(new NAReplaceTransform.ColumnInfo(column.Source, column.Name, (NAReplaceTransform.ReplacementKind)(column.Kind ?? args.ReplaceWith), column.ImputeBySlot ?? args.ImputeBySlot));
+                    replaceCols.Add(new NAReplaceTransform.ColumnInfo(column.Source, column.Name, (NAReplaceTransform.ColumnInfo.ReplacementMode)(column.Kind ?? args.ReplaceWith), column.ImputeBySlot ?? args.ImputeBySlot));
                     continue;
                 }
 
                 // Check that the indicator column has a type that can be converted to the NAReplaceTransform output type,
                 // so that they can be concatenated.
-                int inputCol;
-                if (!input.Schema.TryGetColumnIndex(column.Source, out inputCol))
+                if (!input.Schema.TryGetColumnIndex(column.Source, out int inputCol))
                     throw h.Except("Column '{0}' does not exist", column.Source);
                 var replaceType = input.Schema.GetColumnType(inputCol);
-                Delegate conv;
-                bool identity;
-                if (!Conversions.Instance.TryGetStandardConversion(BoolType.Instance, replaceType.ItemType, out conv, out identity))
+                if (!Conversions.Instance.TryGetStandardConversion(BoolType.Instance, replaceType.ItemType, out Delegate  conv, out bool identity))
                 {
                     throw h.Except("Cannot concatenate indicator column of type '{0}' to input column of type '{1}'",
                         BoolType.Instance, replaceType.ItemType);
@@ -179,7 +176,7 @@ namespace Microsoft.ML.Runtime.Data
                     naConvCols.Add(new ConvertTransform.Column() { Name = tmpIsMissingColName, Source = tmpIsMissingColName, ResultType = replaceType.ItemType.RawKind });
 
                 // Add the NAReplaceTransform column.
-                replaceCols.Add(new NAReplaceTransform.ColumnInfo(column.Source, tmpReplacementColName, (NAReplaceTransform.ReplacementKind)(column.Kind ?? args.ReplaceWith), column.ImputeBySlot ?? args.ImputeBySlot));
+                replaceCols.Add(new NAReplaceTransform.ColumnInfo(column.Source, tmpReplacementColName, (NAReplaceTransform.ColumnInfo.ReplacementMode)(column.Kind ?? args.ReplaceWith), column.ImputeBySlot ?? args.ImputeBySlot));
 
                 // Add the ConcatTransform column.
                 if (replaceType.IsVector)

@@ -43,11 +43,11 @@ namespace Microsoft.ML.Tests.Transformers
 
             var dataView = ComponentCreation.CreateDataView(Env, data);
             var pipe = new NAReplaceEstimator(Env,
-                new NAReplaceTransform.ColumnInfo("A", "NAA", NAReplaceTransform.ReplacementKind.Mean),
-                new NAReplaceTransform.ColumnInfo("B", "NAB", NAReplaceTransform.ReplacementKind.Default),
-                new NAReplaceTransform.ColumnInfo("C", "NAC", NAReplaceTransform.ReplacementKind.Mean),
-                new NAReplaceTransform.ColumnInfo("D", "NAD", NAReplaceTransform.ReplacementKind.Mean),
-                new NAReplaceTransform.ColumnInfo("E", "NAE", NAReplaceTransform.ReplacementKind.Mean));
+                new NAReplaceTransform.ColumnInfo("A", "NAA", NAReplaceTransform.ColumnInfo.ReplacementMode.Mean),
+                new NAReplaceTransform.ColumnInfo("B", "NAB", NAReplaceTransform.ColumnInfo.ReplacementMode.DefaultValue),
+                new NAReplaceTransform.ColumnInfo("C", "NAC", NAReplaceTransform.ColumnInfo.ReplacementMode.Mean),
+                new NAReplaceTransform.ColumnInfo("D", "NAD", NAReplaceTransform.ColumnInfo.ReplacementMode.Mean),
+                new NAReplaceTransform.ColumnInfo("E", "NAE", NAReplaceTransform.ColumnInfo.ReplacementMode.Mean));
             TestEstimatorCore(pipe, dataView);
             Done();
         }
@@ -74,11 +74,11 @@ namespace Microsoft.ML.Tests.Transformers
 
             var dataView = ComponentCreation.CreateDataView(Env, data);
             var pipe = new NAReplaceEstimator(Env,
-                new NAReplaceTransform.ColumnInfo("A", "NAA", NAReplaceTransform.ReplacementKind.Mean),
-                new NAReplaceTransform.ColumnInfo("B", "NAB", NAReplaceTransform.ReplacementKind.Default),
-                new NAReplaceTransform.ColumnInfo("C", "NAC", NAReplaceTransform.ReplacementKind.Mean),
-                new NAReplaceTransform.ColumnInfo("D", "NAD", NAReplaceTransform.ReplacementKind.Mean),
-                new NAReplaceTransform.ColumnInfo("E", "NAE", NAReplaceTransform.ReplacementKind.Mean));
+                new NAReplaceTransform.ColumnInfo("A", "NAA", NAReplaceTransform.ColumnInfo.ReplacementMode.Mean),
+                new NAReplaceTransform.ColumnInfo("B", "NAB", NAReplaceTransform.ColumnInfo.ReplacementMode.DefaultValue),
+                new NAReplaceTransform.ColumnInfo("C", "NAC", NAReplaceTransform.ColumnInfo.ReplacementMode.Mean),
+                new NAReplaceTransform.ColumnInfo("D", "NAD", NAReplaceTransform.ColumnInfo.ReplacementMode.Mean),
+                new NAReplaceTransform.ColumnInfo("E", "NAE", NAReplaceTransform.ColumnInfo.ReplacementMode.Mean));
 
             var result = pipe.Fit(dataView).Transform(dataView);
             var resultRoles = new RoleMappedData(result);

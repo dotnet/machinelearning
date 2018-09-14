@@ -37,14 +37,14 @@ namespace Microsoft.ML.Runtime.Data
     public sealed partial class NAReplaceTransform : OneToOneTransformerBase
     {
         //IVAN: CLEAN IT
-        public enum ReplacementKind
+        public enum ReplacementKind : byte
         {
             // REVIEW: What should the full list of options for this transform be?
-            DefaultValue,
-            Mean,
-            Minimum,
-            Maximum,
-            SpecifiedValue,
+            DefaultValue = 0,
+            Mean = 1,
+            Minimum = 2,
+            Maximum = 3,
+            SpecifiedValue = 4,
 
             [HideEnumValue]
             Def = DefaultValue,
@@ -151,8 +151,7 @@ namespace Microsoft.ML.Runtime.Data
         private static string TestType<T>(ColumnType type)
         {
             Contracts.Assert(type.ItemType.RawType == typeof(T));
-            RefPredicate<T> isNA;
-            if (!Conversions.Instance.TryGetIsNAPredicate(type.ItemType, out isNA))
+            if (!Conversions.Instance.TryGetIsNAPredicate(type.ItemType, out RefPredicate<T> isNA))
             {
                 return string.Format("Type '{0}' is not supported by {1} since it doesn't have an NA value",
                     type, LoadName);
@@ -169,18 +168,34 @@ namespace Microsoft.ML.Runtime.Data
 
         public class ColumnInfo
         {
+            public enum ReplacementMode : byte
+            {
+                DefaultValue = 0,
+                Mean = 1,
+                Minimum = 2,
+                Maximum = 3,
+            }
+
             public readonly string Input;
             public readonly string Output;
             public readonly bool ImputeBySlot;
-            public readonly ReplacementKind Kind;
+            public readonly ReplacementMode Replacement;
 
-            public ColumnInfo(string input, string output, ReplacementKind kind = ReplacementKind.DefaultValue, bool imputeBySlot = true)
+            /// <summary>
+            /// Description what to do with columns
+            /// </summary>
+            /// <param name="input">Input column</param>
+            /// <param name="output">Output column</param>
+            /// <param name="replacementMode">Strategy how to replace NA value</param>
+            /// <param name="imputeBySlot">If we operate on vector array do we want to find replace value for each slot in vector or for whole vector?</param>
+            public ColumnInfo(string input, string output, ReplacementMode replacementMode = ReplacementMode.DefaultValue, bool imputeBySlot = true)
             {
                 Input = input;
                 Output = output;
                 ImputeBySlot = imputeBySlot;
-                Kind = kind;
+                Replacement = replacementMode;
             }
+
             internal string ReplacementString { get; set; }
         }
 
@@ -188,21 +203,6 @@ namespace Microsoft.ML.Runtime.Data
         {
             Contracts.CheckValue(columns, nameof(columns));
             return columns.Select(x => (x.Input, x.Output)).ToArray();
-        }
-
-        ///IVAN: move to mapper.
-        internal sealed class ColInfo
-        {
-            public readonly string Name;
-            public readonly string Source;
-            public readonly ColumnType TypeSrc;
-
-            public ColInfo(string name, string source, ColumnType type)
-            {
-                Name = name;
-                Source = source;
-                TypeSrc = type;
-            }
         }
 
         // The output column types, parallel to Infos.
@@ -295,7 +295,7 @@ namespace Microsoft.ML.Runtime.Data
             slotIsDefault = new BitArray[columns.Length];
             types = new ColumnType[columns.Length];
             var sources = new int[columns.Length];
-            ReplacementKind?[] imputationModes = new ReplacementKind?[columns.Length];
+            ReplacementKind[] imputationModes = new ReplacementKind[columns.Length];
 
             List<int> columnsToImpute = null;
             // REVIEW: Would like to get rid of the sourceColumns list but seems to be the best way to provide
@@ -308,13 +308,14 @@ namespace Microsoft.ML.Runtime.Data
                 var type = input.Schema.GetColumnType(colSrc);
                 if (type.IsVector)
                     type = new VectorType(type.ItemType.AsPrimitive, type.AsVector);
+                Delegate isNa = GetIsNADelegate(type);
                 types[iinfo] = type;
-                switch (columns[iinfo].Kind)
+                var kind = (ReplacementKind)columns[iinfo].Replacement;
+                switch (kind)
                 {
-                    //IVAN: what to do with you?
-                    //case ReplacementKind.SpecifiedValue:
-                    //    repValues[iinfo] = GetSpecifiedValue(args.Column[iinfo].ReplacementString, _types[iinfo], _isNAs[iinfo]);
-                    //    break;
+                    case ReplacementKind.SpecifiedValue:
+                        repValues[iinfo] = GetSpecifiedValue(columns[iinfo].ReplacementString, _types[iinfo], isNa);
+                        break;
                     case ReplacementKind.DefaultValue:
                         repValues[iinfo] = GetDefault(type);
                         break;
@@ -323,13 +324,13 @@ namespace Microsoft.ML.Runtime.Data
                     case ReplacementKind.Maximum:
                         if (!type.ItemType.IsNumber && !type.ItemType.IsTimeSpan && !type.ItemType.IsDateTime)
                             throw Host.Except("Cannot perform mean imputations on non-numeric '{0}'", type.ItemType);
-                        imputationModes[iinfo] = columns[iinfo].Kind;
+                        imputationModes[iinfo] = kind;
                         Utils.Add(ref columnsToImpute, iinfo);
                         Utils.Add(ref sourceColumns, colSrc);
                         break;
                     default:
                         Host.Assert(false);
-                        throw Host.Except("Internal error, undefined ReplacementKind '{0}' assigned in NAReplaceTransform.", columns[iinfo].Kind);
+                        throw Host.Except("Internal error, undefined ReplacementKind '{0}' assigned in NAReplaceTransform.", columns[iinfo].Replacement);
                 }
             }
 
@@ -406,6 +407,47 @@ namespace Microsoft.ML.Runtime.Data
             return default(T);
         }
 
+        /// <summary>
+        /// Returns the isNA predicate for the respective type.
+        /// </summary>
+        private Delegate GetIsNADelegate(ColumnType type)
+        {
+            Func<ColumnType, Delegate> func = GetIsNADelegate<int>;
+            return Utils.MarshalInvoke(func, type.ItemType.RawType, type);
+        }
+
+        private Delegate GetIsNADelegate<T>(ColumnType type)
+        {
+            return Conversions.Instance.GetIsNAPredicate<T>(type.ItemType);
+        }
+
+        /// <summary>
+        /// Converts a string to its respective value in the corresponding type.
+        /// </summary>
+        private object GetSpecifiedValue(string srcStr, ColumnType dstType, Delegate isNA)
+        {
+            Func<string, ColumnType, RefPredicate<int>, object> func = GetSpecifiedValue<int>;
+            var meth = func.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(dstType.ItemType.RawType);
+            return meth.Invoke(this, new object[] { srcStr, dstType, isNA });
+        }
+
+        private object GetSpecifiedValue<T>(string srcStr, ColumnType dstType, RefPredicate<T> isNA)
+        {
+            var val = default(T);
+            if (!string.IsNullOrEmpty(srcStr))
+            {
+                // Handles converting input strings to correct types.
+                DvText srcTxt = new DvText(srcStr);
+                var strToT = Conversions.Instance.GetStandardConversion<DvText, T>(TextType.Instance, dstType.ItemType, out bool identity);
+                strToT(ref srcTxt, ref val);
+                // Make sure that the srcTxt can legitimately be converted to dstType, throw error otherwise.
+                if (isNA(ref val))
+                    throw Contracts.Except("No conversion of '{0}' to '{1}'", srcStr, dstType.ItemType);
+            }
+
+            return val;
+        }
+
         // Factory method for SignatureDataTransform.
         public static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
         {
@@ -424,7 +466,7 @@ namespace Microsoft.ML.Runtime.Data
 
                 cols[i] = new ColumnInfo(item.Source,
                     item.Name,
-                    item.Kind ?? args.ReplacementKind,
+                    (ColumnInfo.ReplacementMode)(item.Kind ?? args.ReplacementKind),
                     item.Slot ?? args.ImputeBySlot);
                 cols[i].ReplacementString = item.ReplacementString;
             };
@@ -468,8 +510,7 @@ namespace Microsoft.ML.Runtime.Data
             Host.AssertValue(saver);
             Host.Assert(type.RawType == typeof(T) || type.ItemType.RawType == typeof(T));
 
-            int bytesWritten;
-            if (!saver.TryWriteTypeAndValue<T>(stream, type, ref rep, out bytesWritten))
+            if (!saver.TryWriteTypeAndValue<T>(stream, type, ref rep, out int bytesWritten))
                 throw Host.Except("We do not know how to serialize terms of type '{0}'", type);
         }
 
@@ -508,6 +549,21 @@ namespace Microsoft.ML.Runtime.Data
 
         private sealed class Mapper : MapperBase, ISaveAsOnnx
         {
+
+            private sealed class ColInfo
+            {
+                public readonly string Name;
+                public readonly string Source;
+                public readonly ColumnType TypeSrc;
+
+                public ColInfo(string name, string source, ColumnType type)
+                {
+                    Name = name;
+                    Source = source;
+                    TypeSrc = type;
+                }
+            }
+
             private readonly NAReplaceTransform _parent;
             private readonly ColInfo[] _infos;
             // The isNA delegates, parallel to Infos.
@@ -523,22 +579,8 @@ namespace Microsoft.ML.Runtime.Data
                 for (int i = 0; i < _parent.ColumnPairs.Length; i++)
                 {
                     var type = _infos[i].TypeSrc;
-                    _isNAs[i] = GetIsNADelegate(type);
+                    _isNAs[i] = _parent.GetIsNADelegate(type);
                 }
-            }
-
-            /// <summary>
-            /// Returns the isNA predicate for the respective type.
-            /// </summary>
-            private Delegate GetIsNADelegate(ColumnType type)
-            {
-                Func<ColumnType, Delegate> func = GetIsNADelegate<int>;
-                return Utils.MarshalInvoke(func, type.ItemType.RawType, type);
-            }
-
-            private Delegate GetIsNADelegate<T>(ColumnType type)
-            {
-                return Conversions.Instance.GetIsNAPredicate<T>(type.ItemType);
             }
 
             private ColInfo[] CreateInfos(ISchema inputSchema)
@@ -564,24 +606,10 @@ namespace Microsoft.ML.Runtime.Data
                     InputSchema.TryGetColumnIndex(_parent.ColumnPairs[i].input, out int colIndex);
                     Host.Assert(colIndex >= 0);
                     var colMetaInfo = new ColumnMetadataInfo(_parent.ColumnPairs[i].output);
-                    foreach (var type in InputSchema.GetMetadataTypes(colIndex).Where(x => x.Key == MetadataUtils.Kinds.SlotNames || x.Key == MetadataUtils.Kinds.IsNormalized))
-                        Utils.MarshalInvoke(AddMetaGetter<int>, type.Value.RawType, colMetaInfo, InputSchema, type.Key, type.Value, colIndex);
-                    result[i] = new RowMapperColumnInfo(_parent.ColumnPairs[i].output, _parent._types[i], colMetaInfo);
+                    var meta = RowColumnUtils.GetMetadataAsRow(InputSchema, colIndex, x => x == MetadataUtils.Kinds.SlotNames || x == MetadataUtils.Kinds.IsNormalized);
+                    result[i] = new RowMapperColumnInfo(_parent.ColumnPairs[i].output, _parent._types[i], meta);
                 }
                 return result;
-            }
-
-            private int AddMetaGetter<T>(ColumnMetadataInfo colMetaInfo, ISchema schema, string kind, ColumnType ct, int originalCol)
-            {
-                MetadataUtils.MetadataGetter<T> getter = (int col, ref T dst) =>
-                {
-                    // We don't care about 'col': this getter is specialized for a column 'originalCol',
-                    // and 'col' in this case is the 'metadata kind index', not the column index.
-                    schema.GetMetadata<T>(kind, originalCol, ref dst);
-                };
-                var info = new MetadataInfo<T>(ct, getter);
-                colMetaInfo.Add(kind, info);
-                return 0;
             }
 
             protected override Delegate MakeGetter(IRow input, int iinfo, out Action disposer)
@@ -880,7 +908,6 @@ namespace Microsoft.ML.Runtime.Data
                     else
                         node.AddAttribute("imputed_value_floats", Enumerable.Repeat((float)_parent._repValues[iinfo], 1));
                 }
-
                 return true;
             }
         }
@@ -891,11 +918,12 @@ namespace Microsoft.ML.Runtime.Data
         private readonly IHost _host;
         private readonly NAReplaceTransform.ColumnInfo[] _columns;
 
-        public NAReplaceEstimator(IHostEnvironment env, string name, string source = null, NAReplaceTransform.ReplacementKind replacementKind = NAReplaceTransform.ReplacementKind.DefaultValue)
+        public NAReplaceEstimator(IHostEnvironment env, string name, string source = null, NAReplaceTransform.ColumnInfo.ReplacementMode replacementKind = NAReplaceTransform.ColumnInfo.ReplacementMode.DefaultValue)
             : this(env, new NAReplaceTransform.ColumnInfo(source ?? name, name, replacementKind))
         {
 
         }
+
         public NAReplaceEstimator(IHostEnvironment env, params NAReplaceTransform.ColumnInfo[] columns)
         {
             Contracts.CheckValue(env, nameof(env));
