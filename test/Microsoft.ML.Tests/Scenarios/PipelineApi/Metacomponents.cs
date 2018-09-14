@@ -2,10 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Data;
-using Microsoft.ML.Models;
-using Microsoft.ML.Trainers;
-using Microsoft.ML.Transforms;
+using Microsoft.ML.Legacy.Data;
+using Microsoft.ML.Legacy.Models;
+using Microsoft.ML.Legacy.Trainers;
+using Microsoft.ML.Legacy.Transforms;
 using Xunit;
 
 namespace Microsoft.ML.Tests.Scenarios.PipelineApi
@@ -21,7 +21,7 @@ namespace Microsoft.ML.Tests.Scenarios.PipelineApi
         void Metacomponents()
         {
             var dataPath = GetDataPath(IrisDataPath);
-            var pipeline = new LearningPipeline(seed: 1, conc: 1);
+            var pipeline = new Legacy.LearningPipeline(seed: 1, conc: 1);
             pipeline.Add(new TextLoader(dataPath).CreateFrom<IrisData>(useHeader: false));
             pipeline.Add(new Dictionarizer(new[] { "Label" }));
             pipeline.Add(new ColumnConcatenator(outputColumn: "Features",

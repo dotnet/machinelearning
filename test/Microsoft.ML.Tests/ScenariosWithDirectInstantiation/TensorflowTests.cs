@@ -2,12 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.ML.Legacy.Transforms;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.ImageAnalytics;
 using Microsoft.ML.Runtime.LightGBM;
 using Microsoft.ML.Transforms;
+using Microsoft.ML.Transforms.TensorFlow;
 using System.Collections.Generic;
 using System.IO;
 using Xunit;
@@ -66,6 +68,115 @@ namespace Microsoft.ML.Scenarios
 
                     Assert.False(cursor.MoveNext());
 
+                }
+            }
+        }
+
+        [Fact(Skip = "Model files are not available yet")]
+        public void TensorFlowTransformObjectDetectionTest()
+        {
+            var model_location = @"C:\models\TensorFlow\ssd_mobilenet_v1_coco_2018_01_28\frozen_inference_graph.pb";
+            using (var env = new TlcEnvironment(seed: 1, conc: 1))
+            {
+                var dataFile = GetDataPath("images/images.tsv");
+                var imageFolder = Path.GetDirectoryName(dataFile);
+                var data = env.CreateLoader("Text{col=ImagePath:TX:0 col=Name:TX:1}", new MultiFileSource(dataFile));
+                var images = ImageLoaderTransform.Create(env, new ImageLoaderTransform.Arguments()
+                {
+                    Column = new ImageLoaderTransform.Column[1]
+                    {
+                        new ImageLoaderTransform.Column() { Source=  "ImagePath", Name="ImageReal" }
+                    },
+                    ImageFolder = imageFolder
+                }, data);
+                var cropped = ImageResizerTransform.Create(env, new ImageResizerTransform.Arguments()
+                {
+                    Column = new ImageResizerTransform.Column[1]{
+                        new ImageResizerTransform.Column() { Source = "ImageReal", Name= "ImageCropped", ImageHeight =32, ImageWidth = 32, Resizing = ImageResizerTransform.ResizingKind.IsoCrop}
+                    }
+                }, images);
+                var pixels = ImagePixelExtractorTransform.Create(env, new ImagePixelExtractorTransform.Arguments()
+                {
+                    Column = new ImagePixelExtractorTransform.Column[1]{
+                        new ImagePixelExtractorTransform.Column() {  Source= "ImageCropped", Name = "image_tensor", UseAlpha=false, InterleaveArgb=true, Convert = false}
+                    }
+                }, cropped);
+
+                var tf = TensorFlowTransform.Create(env, pixels, model_location,
+                    new[] { "detection_boxes", "detection_scores", "num_detections", "detection_classes" },
+                    new[] { "image_tensor" });
+
+                tf.Schema.TryGetColumnIndex("image_tensor", out int input);
+                tf.Schema.TryGetColumnIndex("detection_boxes", out int boxes);
+                tf.Schema.TryGetColumnIndex("detection_scores", out int scores);
+                tf.Schema.TryGetColumnIndex("num_detections", out int num);
+                tf.Schema.TryGetColumnIndex("detection_classes", out int classes);
+                using (var curs = tf.GetRowCursor(col => col == classes || col == num || col == scores || col == boxes || col == input))
+                {
+                    var getInput = curs.GetGetter<VBuffer<byte>>(input);
+                    var getBoxes = curs.GetGetter<VBuffer<float>>(boxes);
+                    var getScores = curs.GetGetter<VBuffer<float>>(scores);
+                    var getNum = curs.GetGetter<VBuffer<float>>(num);
+                    var getClasses = curs.GetGetter<VBuffer<float>>(classes);
+                    var buffer = default(VBuffer<float>);
+                    var inputBuffer = default(VBuffer<byte>);
+                    while (curs.MoveNext())
+                    {
+                        getInput(ref inputBuffer);
+                        getBoxes(ref buffer);
+                        getScores(ref buffer);
+                        getNum(ref buffer);
+                        getClasses(ref buffer);
+                    }
+                }
+            }
+        }
+
+        [Fact(Skip = "Model files are not available yet")]
+        public void TensorFlowTransformInceptionTest()
+        {
+            var model_location = @"C:\models\TensorFlow\tensorflow_inception_graph.pb";
+            using (var env = new TlcEnvironment(seed: 1, conc: 1))
+            {
+                var dataFile = GetDataPath("images/images.tsv");
+                var imageFolder = Path.GetDirectoryName(dataFile);
+                var data = env.CreateLoader("Text{col=ImagePath:TX:0 col=Name:TX:1}", new MultiFileSource(dataFile));
+                var images = ImageLoaderTransform.Create(env, new ImageLoaderTransform.Arguments()
+                {
+                    Column = new ImageLoaderTransform.Column[1]
+                    {
+                        new ImageLoaderTransform.Column() { Source=  "ImagePath", Name="ImageReal" }
+                    },
+                    ImageFolder = imageFolder
+                }, data);
+                var cropped = ImageResizerTransform.Create(env, new ImageResizerTransform.Arguments()
+                {
+                    Column = new ImageResizerTransform.Column[1]{
+                        new ImageResizerTransform.Column() { Source = "ImageReal", Name= "ImageCropped", ImageHeight =224, ImageWidth = 224, Resizing = ImageResizerTransform.ResizingKind.IsoCrop}
+                    }
+                }, images);
+                var pixels = ImagePixelExtractorTransform.Create(env, new ImagePixelExtractorTransform.Arguments()
+                {
+                    Column = new ImagePixelExtractorTransform.Column[1]{
+                        new ImagePixelExtractorTransform.Column() {  Source= "ImageCropped", Name = "input", UseAlpha=false, InterleaveArgb=true, Convert = true}
+                    }
+                }, cropped);
+
+                var tf = TensorFlowTransform.Create(env, pixels, model_location, "softmax2_pre_activation", "input");
+
+                tf.Schema.TryGetColumnIndex("input", out int input);
+                tf.Schema.TryGetColumnIndex("softmax2_pre_activation", out int b);
+                using (var curs = tf.GetRowCursor(col => col == b || col == input))
+                {
+                    var get = curs.GetGetter<VBuffer<float>>(b);
+                    var getInput = curs.GetGetter<VBuffer<float>>(input);
+                    var buffer = default(VBuffer<float>);
+                    var inputBuffer = default(VBuffer<float>);
+                    while (curs.MoveNext())
+                    {
+                        getInput(ref inputBuffer);
+                        get(ref buffer);
+                    }
                 }
             }
         }
@@ -152,11 +263,52 @@ namespace Microsoft.ML.Scenarios
             }
         }
 
+        [Fact]
+        public void TensorFlowTransformMNISTConvPipelineTest()
+        {
+            var model_location = "mnist_model/frozen_saved_model.pb";
+            var dataPath = GetDataPath("Train-Tiny-28x28.txt");
+
+            var pipeline = new Legacy.LearningPipeline(seed: 1);
+            pipeline.Add(new Microsoft.ML.Legacy.Data.TextLoader(dataPath).CreateFrom<MNISTData>(useHeader: false));
+            pipeline.Add(new Legacy.Transforms.ColumnCopier() { Column = new[] { new CopyColumnsTransformColumn() { Name = "reshape_input", Source = "Placeholder" } } });
+            pipeline.Add(new TensorFlowScorer()
+            {
+                ModelFile = model_location,
+                OutputColumns = new[] { "Softmax", "dense/Relu" },
+                InputColumns = new[] { "Placeholder", "reshape_input" }
+            });
+            pipeline.Add(new Legacy.Transforms.ColumnConcatenator() { Column = new[] { new ConcatTransformColumn() { Name = "Features", Source = new[] { "Placeholder", "dense/Relu" } } } });
+            pipeline.Add(new Legacy.Trainers.LogisticRegressionClassifier());
+            TensorFlowUtils.Initialize();
+            var model = pipeline.Train<MNISTData, MNISTPrediction>();
+
+            var sample1 = new MNISTData()
+            {
+                Placeholder = new float[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 18, 18, 18, 126, 136, 175, 26,
+                    166, 255, 247, 127, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 30, 36, 94, 154, 170, 253, 253, 253, 253, 253,
+                    225, 172, 253, 242, 195, 64, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 49, 238, 253, 253, 253, 253, 253, 253, 253,
+                    253, 251, 93, 82, 82, 56, 39, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 18, 219, 253, 253, 253, 253, 253, 198,
+                    182, 247, 241, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 80, 156, 107, 253, 253, 205, 11, 0,
+                    43, 154, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 14, 1, 154, 253, 90, 0, 0, 0, 0, 0, 0,
+                    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 139, 253, 190, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 11, 190, 253, 70, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 35, 241, 225, 160, 108, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 81, 240, 253, 253, 119, 25, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 45, 186, 253, 253, 150, 27, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 16, 93, 252, 253, 187, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 249, 253, 249, 64, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 46, 130, 183, 253, 253, 207, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 39, 148, 229, 253, 253, 253, 250, 182, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 24, 114, 221, 253, 253, 253, 253, 201, 78, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 23, 66, 213, 253, 253, 253, 253, 198, 81, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 18, 171, 219, 253, 253, 253, 253, 195, 80, 9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 55, 172, 226, 253, 253, 253, 253, 244, 133, 11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 136, 253, 253, 253, 212, 135, 132, 16, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }
+            };
+
+            MNISTPrediction prediction = model.Predict(sample1);
+        }
+
         public class MNISTData
         {
-            [Column("1")]
+            [Column("0")]
             public float Label;
 
+            [Column(ordinal: "1-784")]
             [VectorType(784)]
             public float[] Placeholder;
         }

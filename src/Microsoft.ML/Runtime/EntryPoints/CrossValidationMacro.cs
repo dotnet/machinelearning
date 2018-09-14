@@ -179,7 +179,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
 
             // Split the input data into folds.
             var exp = new Experiment(env);
-            var cvSplit = new Models.CrossValidatorDatasetSplitter();
+            var cvSplit = new Legacy.Models.CrossValidatorDatasetSplitter();
             cvSplit.Data.VarName = node.GetInputVariable("Data").ToJson();
             cvSplit.NumFolds = input.NumFolds;
             cvSplit.StratificationColumn = input.StratificationColumn;
@@ -263,10 +263,10 @@ namespace Microsoft.ML.Runtime.EntryPoints
                 {
                     outputMap.Add(nameof(TrainTestMacro.Output.TransformModel), transformModelVar.VarName);
                     transformModelVars[k] = transformModelVar;
-                    ML.Transforms.ModelCombiner.Output modelCombineOutput = null;
+                    Legacy.Transforms.ModelCombiner.Output modelCombineOutput = null;
                     if (transformModelVarName != null && transformModelVarName.VariableName != null)
                     {
-                        var modelCombine = new ML.Transforms.ModelCombiner
+                        var modelCombine = new Legacy.Transforms.ModelCombiner
                         {
                             Models = new ArrayVar<ITransformModel>(
                                 new Var<ITransformModel>[] {
@@ -285,10 +285,10 @@ namespace Microsoft.ML.Runtime.EntryPoints
                 {
                     outputMap.Add(nameof(TrainTestMacro.Output.PredictorModel), predModelVar.VarName);
                     predModelVars[k] = predModelVar;
-                    ML.Transforms.TwoHeterogeneousModelCombiner.Output modelCombineOutput = null;
+                    Legacy.Transforms.TwoHeterogeneousModelCombiner.Output modelCombineOutput = null;
                     if (transformModelVarName != null && transformModelVarName.VariableName != null)
                     {
-                        var modelCombine = new ML.Transforms.TwoHeterogeneousModelCombiner
+                        var modelCombine = new Legacy.Transforms.TwoHeterogeneousModelCombiner
                         {
                             TransformModel = { VarName = transformModelVarName.VariableName },
                             PredictorModel = predModelVar
@@ -323,59 +323,59 @@ namespace Microsoft.ML.Runtime.EntryPoints
 
             if (input.Outputs.PredictorModel == null)
             {
-                var outModels = new ML.Data.TransformModelArrayConverter
+                var outModels = new Legacy.Data.TransformModelArrayConverter
                 {
                     TransformModel = new ArrayVar<ITransformModel>(transformModelVars)
                 };
-                var outModelsOutput = new ML.Data.TransformModelArrayConverter.Output();
+                var outModelsOutput = new Legacy.Data.TransformModelArrayConverter.Output();
                 outModelsOutput.OutputModel.VarName = node.GetOutputVariableName(nameof(Output.TransformModel));
                 exp.Add(outModels, outModelsOutput);
             }
             else
             {
-                var outModels = new ML.Data.PredictorModelArrayConverter
+                var outModels = new Legacy.Data.PredictorModelArrayConverter
                 {
                     Model = new ArrayVar<IPredictorModel>(predModelVars)
                 };
-                var outModelsOutput = new ML.Data.PredictorModelArrayConverter.Output();
+                var outModelsOutput = new Legacy.Data.PredictorModelArrayConverter.Output();
                 outModelsOutput.OutputModel.VarName = node.GetOutputVariableName(nameof(Output.PredictorModel));
                 exp.Add(outModels, outModelsOutput);
             }
 
             // Convert warnings data views from all folds into an array of data views.
-            var warnings = new ML.Data.IDataViewArrayConverter
+            var warnings = new Legacy.Data.IDataViewArrayConverter
             {
                 Data = new ArrayVar<IDataView>(warningsVars)
             };
-            var warningsOutput = new ML.Data.IDataViewArrayConverter.Output();
+            var warningsOutput = new Legacy.Data.IDataViewArrayConverter.Output();
             exp.Add(warnings, warningsOutput);
 
             // Convert overall metrics data views from all folds into an array of data views.
-            var overallMetrics = new ML.Data.IDataViewArrayConverter
+            var overallMetrics = new Legacy.Data.IDataViewArrayConverter
             {
                 Data = new ArrayVar<IDataView>(overallMetricsVars)
             };
-            var overallMetricsOutput = new ML.Data.IDataViewArrayConverter.Output();
+            var overallMetricsOutput = new Legacy.Data.IDataViewArrayConverter.Output();
             exp.Add(overallMetrics, overallMetricsOutput);
 
             // Convert per instance data views from all folds into an array of data views.
-            var instanceMetrics = new ML.Data.IDataViewArrayConverter
+            var instanceMetrics = new Legacy.Data.IDataViewArrayConverter
             {
                 Data = new ArrayVar<IDataView>(instanceMetricsVars)
             };
-            var instanceMetricsOutput = new ML.Data.IDataViewArrayConverter.Output();
+            var instanceMetricsOutput = new Legacy.Data.IDataViewArrayConverter.Output();
             exp.Add(instanceMetrics, instanceMetricsOutput);
 
-            ML.Data.IDataViewArrayConverter.Output confusionMatricesOutput = null;
+            Legacy.Data.IDataViewArrayConverter.Output confusionMatricesOutput = null;
             if (input.Kind == MacroUtils.TrainerKinds.SignatureBinaryClassifierTrainer ||
                 input.Kind == MacroUtils.TrainerKinds.SignatureMultiClassClassifierTrainer)
             {
                 // Convert confusion matrix data views from all folds into an array of data views.
-                var confusionMatrices = new ML.Data.IDataViewArrayConverter
+                var confusionMatrices = new Legacy.Data.IDataViewArrayConverter
                 {
                     Data = new ArrayVar<IDataView>(confusionMatrixVars)
                 };
-                confusionMatricesOutput = new ML.Data.IDataViewArrayConverter.Output();
+                confusionMatricesOutput = new Legacy.Data.IDataViewArrayConverter.Output();
                 exp.Add(confusionMatrices, confusionMatricesOutput);
             }
 

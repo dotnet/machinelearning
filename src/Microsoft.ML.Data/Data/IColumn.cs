@@ -124,14 +124,13 @@ namespace Microsoft.ML.Runtime.Data
         /// <summary>
         /// Wraps the metadata of a column as a row.
         /// </summary>
-        /// <param name="schema"></param>
-        /// <param name="col"></param>
-        /// <returns></returns>
-        public static IRow GetMetadataAsRow(ISchema schema, int col)
+        public static IRow GetMetadataAsRow(ISchema schema, int col, Func<string, bool> takeMetadata)
         {
             Contracts.CheckValue(schema, nameof(schema));
             Contracts.CheckParam(0 <= col && col < schema.ColumnCount, nameof(col));
-            return new MetadataRow(schema, col);
+            Contracts.CheckValue(takeMetadata, nameof(takeMetadata));
+
+            return new MetadataRow(schema, col, takeMetadata);
         }
 
         /// <summary>
@@ -262,7 +261,7 @@ namespace Microsoft.ML.Runtime.Data
                 get
                 {
                     if (_meta == null)
-                        Interlocked.CompareExchange(ref _meta, new MetadataRow(_row.Schema, _col), null);
+                        Interlocked.CompareExchange(ref _meta, new MetadataRow(_row.Schema, _col, x => true), null);
                     return _meta;
                 }
             }
@@ -314,9 +313,10 @@ namespace Microsoft.ML.Runtime.Data
 
             public IRow Metadata
             {
-                get {
+                get
+                {
                     if (_meta == null)
-                        Interlocked.CompareExchange(ref _meta, new MetadataRow(_schema, _col), null);
+                        Interlocked.CompareExchange(ref _meta, new MetadataRow(_schema, _col, x => true), null);
                     return _meta;
                 }
             }
@@ -403,14 +403,15 @@ namespace Microsoft.ML.Runtime.Data
                 }
             }
 
-            public MetadataRow(ISchema schema, int col)
+            public MetadataRow(ISchema schema, int col, Func<string, bool> takeMetadata)
             {
                 Contracts.CheckValue(schema, nameof(schema));
                 Contracts.CheckParam(0 <= col && col < schema.ColumnCount, nameof(col));
+                Contracts.CheckValue(takeMetadata, nameof(takeMetadata));
 
                 _metaSchema = schema;
                 _col = col;
-                _map = _metaSchema.GetMetadataTypes(_col).ToArray();
+                _map = _metaSchema.GetMetadataTypes(_col).Where(x => takeMetadata(x.Key)).ToArray();
                 _schema = new SchemaImpl(this);
             }
 

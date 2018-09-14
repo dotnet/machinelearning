@@ -157,6 +157,14 @@ phases:
       msbuildVersion: 15.0
     continueOnError: false
 
+  - task: NuGetCommand@2 
+    displayName: Publish Packages to VSTS Feed 
+    inputs:
+      command: push 
+      packagesToPush: $(Build.SourcesDirectory)/bin/packages/**/*.nupkg;!$(Build.SourcesDirectory)/bin/packages/**/*.symbols.nupkg 
+      nuGetFeedType: internal 
+      feedPublish: MachineLearning
+    
   - task: MSBuild@1
     displayName: Publish Packages to MyGet Feed
     inputs:

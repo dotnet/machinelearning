@@ -2,13 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Data;
+using Microsoft.ML.Legacy.Data;
+using Microsoft.ML.Legacy.Trainers;
+using Microsoft.ML.Legacy.Transforms;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.TestFramework;
-using Microsoft.ML.Trainers;
-using Microsoft.ML.Transforms;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -62,7 +62,7 @@ namespace Microsoft.ML.EntryPoints.Tests
             using (var environment = new TlcEnvironment())
             {
                 Experiment experiment = environment.CreateExperiment();
-                ILearningPipelineDataStep output = (ILearningPipelineDataStep)collection.ApplyStep(null, experiment);
+                Legacy.ILearningPipelineDataStep output = (Legacy.ILearningPipelineDataStep)collection.ApplyStep(null, experiment);
 
                 Assert.NotNull(output.Data);
                 Assert.NotNull(output.Data.VarName);
@@ -82,7 +82,7 @@ namespace Microsoft.ML.EntryPoints.Tests
             using (var environment = new TlcEnvironment())
             {
                 Experiment experiment = environment.CreateExperiment();
-                ILearningPipelineDataStep output = collection.ApplyStep(null, experiment) as ILearningPipelineDataStep;
+                Legacy.ILearningPipelineDataStep output = collection.ApplyStep(null, experiment) as Legacy.ILearningPipelineDataStep;
 
                 experiment.Compile();
                 collection.SetInput(environment, experiment);
@@ -134,7 +134,7 @@ namespace Microsoft.ML.EntryPoints.Tests
         [Fact]
         public void CanTrain()
         {
-            var pipeline = new LearningPipeline();
+            var pipeline = new Legacy.LearningPipeline();
             var data = new List<IrisData>() {
                 new IrisData { SepalLength = 1f, SepalWidth = 1f, PetalLength=0.3f, PetalWidth=5.1f, Label=1},
                 new IrisData { SepalLength = 1f, SepalWidth = 1f, PetalLength=0.3f, PetalWidth=5.1f, Label=1},
@@ -146,7 +146,7 @@ namespace Microsoft.ML.EntryPoints.Tests
             pipeline.Add(new ColumnConcatenator(outputColumn: "Features",
                 "SepalLength", "SepalWidth", "PetalLength", "PetalWidth"));
             pipeline.Add(new StochasticDualCoordinateAscentClassifier());
-            PredictionModel<IrisData, IrisPrediction> model = pipeline.Train<IrisData, IrisPrediction>();
+            var model = pipeline.Train<IrisData, IrisPrediction>();
 
             IrisPrediction prediction = model.Predict(new IrisData()
             {
@@ -156,7 +156,7 @@ namespace Microsoft.ML.EntryPoints.Tests
                 PetalWidth = 5.1f,
             });
 
-            pipeline = new LearningPipeline();
+            pipeline = new Legacy.LearningPipeline();
             collection = CollectionDataSource.Create(data.AsEnumerable());
             pipeline.Add(collection);
             pipeline.Add(new ColumnConcatenator(outputColumn: "Features",
@@ -177,7 +177,7 @@ namespace Microsoft.ML.EntryPoints.Tests
         [Fact]
         public void CanTrainProperties()
         {
-            var pipeline = new LearningPipeline();
+            var pipeline = new Legacy.LearningPipeline();
             var data = new List<IrisDataProperties>() {
                 new IrisDataProperties { SepalLength = 1f, SepalWidth = 1f, PetalLength=0.3f, PetalWidth=5.1f, Label=1},
                 new IrisDataProperties { SepalLength = 1f, SepalWidth = 1f, PetalLength=0.3f, PetalWidth=5.1f, Label=1},
@@ -189,7 +189,7 @@ namespace Microsoft.ML.EntryPoints.Tests
             pipeline.Add(new ColumnConcatenator(outputColumn: "Features",
                 "SepalLength", "SepalWidth", "PetalLength", "PetalWidth"));
             pipeline.Add(new StochasticDualCoordinateAscentClassifier());
-            PredictionModel<IrisDataProperties, IrisPredictionProperties> model = pipeline.Train<IrisDataProperties, IrisPredictionProperties>();
+            var model = pipeline.Train<IrisDataProperties, IrisPredictionProperties>();
 
             IrisPredictionProperties prediction = model.Predict(new IrisDataProperties()
             {
@@ -199,7 +199,7 @@ namespace Microsoft.ML.EntryPoints.Tests
                 PetalWidth = 5.1f,
             });
 
-            pipeline = new LearningPipeline();
+            pipeline = new Legacy.LearningPipeline();
             collection = CollectionDataSource.Create(data.AsEnumerable());
             pipeline.Add(collection);
             pipeline.Add(new ColumnConcatenator(outputColumn: "Features",

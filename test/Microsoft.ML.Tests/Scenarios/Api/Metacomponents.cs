@@ -29,7 +29,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                 var trainer = new Ova(env, new Ova.Arguments
                 {
                     PredictorType = ComponentFactoryUtils.CreateFromFunction(
-                        e => new FastTreeBinaryClassificationTrainer(e, new FastTreeBinaryClassificationTrainer.Arguments()))
+                        e => new AveragedPerceptronTrainer(env, new AveragedPerceptronTrainer.Arguments()))
                 });
 
                 IDataView trainData = trainer.Info.WantCaching ? (IDataView)new CacheDataView(env, concat, prefetch: null) : concat;

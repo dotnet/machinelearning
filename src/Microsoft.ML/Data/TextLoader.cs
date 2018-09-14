@@ -12,7 +12,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
 
-namespace Microsoft.ML.Data
+namespace Microsoft.ML.Legacy.Data
 {
     public sealed partial class TextLoaderRange
     {

@@ -2,9 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
+using Microsoft.ML.Runtime.Internal.Calibration;
 using Microsoft.ML.Runtime.Learners;
 using System.Linq;
 using Xunit;
@@ -30,8 +29,8 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                 var sdcaTrainer = new LinearClassificationTrainer(env, new LinearClassificationTrainer.Arguments { MaxIterations = 100, Shuffle = true, NumThreads = 1 }, "Features", "Label");
                 var pipeline = new MyConcatTransform(env, "Features", "SepalLength", "SepalWidth", "PetalLength", "PetalWidth")
                     .Append(new TermEstimator(env, "Label"), TransformerScope.TrainTest)
-                    .Append(new MyOva(env, sdcaTrainer))
-                    .Append(new MyKeyToValueTransform(env, "PredictedLabel"));
+                    .Append(new Ova(env, sdcaTrainer))
+                    .Append(new KeyToValueEstimator(env, "PredictedLabel"));
 
                 var model = pipeline.Fit(data);
             }

@@ -1122,8 +1122,8 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
         private Double _paramA;
         private Double _paramB;
 
-        public const string UserName = "Sigmoid Calibration";
-        public const string LoadName = "PlattCalibration";
+        internal const string UserName = "Sigmoid Calibration";
+        internal const string LoadName = "PlattCalibration";
         internal const string Summary = "This model was introduced by Platt in the paper Probabilistic Outputs for Support Vector Machines "
             + "and Comparisons to Regularized Likelihood Methods";
 
