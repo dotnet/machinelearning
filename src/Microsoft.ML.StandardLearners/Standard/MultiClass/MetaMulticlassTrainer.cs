@@ -10,6 +10,7 @@ using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Calibration;
 using Microsoft.ML.Runtime.Internal.Internallearn;
 using Microsoft.ML.Runtime.Training;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace Microsoft.ML.Runtime.Learners
@@ -85,13 +86,6 @@ namespace Microsoft.ML.Runtime.Learners
             // Regarding caching, no matter what the internal predictor, we're performing many passes
             // simply by virtue of this being a meta-trainer, so we will still cache.
             Info = new TrainerInfo(normalization: _trainer.Info.NeedNormalization);
-
-            OutputColumns = new[]
-
-            {
-                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Vector, NumberType.R4, false),
-                new SchemaShape.Column(DefaultColumnNames.PredictedLabel, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false)
-            };
         }
 
         private TScalarTrainer CreateTrainer()
@@ -173,10 +167,10 @@ namespace Microsoft.ML.Runtime.Learners
             if (LabelColumn != null)
             {
                 if (!inputSchema.TryFindColumn(LabelColumn.Name, out var labelCol))
-                    throw Host.Except($"Label column '{LabelColumn.Name}' is not found");
+                    throw Host.ExceptSchemaMismatch(nameof(labelCol), DefaultColumnNames.PredictedLabel, DefaultColumnNames.PredictedLabel);
 
-                if (!labelCol.IsKey || labelCol.ItemType != NumberType.R4 || labelCol.ItemType != NumberType.R8)
-                    throw Host.ExceptSchemaMismatch(nameof(labelCol), DefaultColumnNames.PredictedLabel, labelCol.Name, "R8, R4 or a Key", labelCol.GetTypeString());
+                if (!LabelColumn.IsCompatibleWith(labelCol))
+                    throw Host.Except($"Label column '{LabelColumn.Name}' is not compatible");
             }
 
             var outColumns = inputSchema.Columns.ToDictionary(x => x.Name);
@@ -193,19 +187,34 @@ namespace Microsoft.ML.Runtime.Learners
                 bool success = inputSchema.TryFindColumn(LabelColumn.Name, out var labelCol);
                 Contracts.Assert(success);
 
-                var metadata = new SchemaShape(labelCol.Metadata.Columns.Where(x => x.Name == MetadataUtils.Kinds.KeyValues));
+                var metadata = new SchemaShape(labelCol.Metadata.Columns.Where(x => x.Name == MetadataUtils.Kinds.KeyValues)
+                                .Concat(MetadataForScoreColumn()));
                 return new[]
                 {
-                    new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Vector, NumberType.R4, false),
-                    new SchemaShape.Column(DefaultColumnNames.PredictedLabel, SchemaShape.Column.VectorKind.Scalar, labelCol.ItemType, labelCol.IsKey, metadata)
+                    new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Vector, NumberType.R4, false, new SchemaShape(MetadataForScoreColumn())),
+                    new SchemaShape.Column(DefaultColumnNames.PredictedLabel, SchemaShape.Column.VectorKind.Scalar, NumberType.U4, true, metadata)
                 };
             }
             else
                 return new[]
-                    {
-                    new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Vector, NumberType.R4, false),
-                    new SchemaShape.Column(DefaultColumnNames.PredictedLabel, SchemaShape.Column.VectorKind.Scalar, NumberType.U4, true)
+                {
+                    new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Vector, NumberType.R4, false, new SchemaShape(MetadataForScoreColumn())),
+                    new SchemaShape.Column(DefaultColumnNames.PredictedLabel, SchemaShape.Column.VectorKind.Scalar, NumberType.U4, true, new SchemaShape(MetadataForScoreColumn()))
                 };
+        }
+
+        /// <summary>
+        /// Normal metadata that we produce for score columns.
+        /// </summary>
+        private static IEnumerable<SchemaShape.Column> MetadataForScoreColumn()
+        {
+            var cols = new List<SchemaShape.Column>();
+            cols.Add(new SchemaShape.Column(MetadataUtils.Kinds.ScoreColumnSetId, SchemaShape.Column.VectorKind.Scalar, NumberType.U4, true));
+            cols.Add(new SchemaShape.Column(MetadataUtils.Kinds.ScoreColumnKind, SchemaShape.Column.VectorKind.Scalar, TextType.Instance, false));
+            cols.Add(new SchemaShape.Column(MetadataUtils.Kinds.SlotNames, SchemaShape.Column.VectorKind.Vector, TextType.Instance, false));
+            cols.Add(new SchemaShape.Column(MetadataUtils.Kinds.ScoreValueKind, SchemaShape.Column.VectorKind.Scalar, TextType.Instance, false));
+
+            return cols;
         }
 
         IPredictor ITrainer.Train(TrainContext context) => Train(context);

@@ -133,10 +133,10 @@ namespace Microsoft.ML.Runtime.Learners
                    calibratedModel = CalibratorUtils.TrainCalibrator(Host, ch, Calibrator, Args.MaxCalibrationExamples, transformer.Model, trainedData) as TDistPredictor;
 
                 Host.Check(calibratedModel != null, "Calibrated predictor does not implement the expected interface");
-                return new BinaryPredictionTransformer<TScalarPredictor>(Host, calibratedModel, data.Data.Schema, transformer.FeatureColumn);
+                return new BinaryPredictionTransformer<TScalarPredictor>(Host, calibratedModel, trainedData.Data.Schema, transformer.FeatureColumn);
             }
 
-            return new BinaryPredictionTransformer<TScalarPredictor>(Host, transformer.Model, data.Data.Schema, transformer.FeatureColumn);
+            return new BinaryPredictionTransformer<TScalarPredictor>(Host, transformer.Model, view.Schema, transformer.FeatureColumn);
         }
 
         private IDataView MapLabels(RoleMappedData data, int cls)

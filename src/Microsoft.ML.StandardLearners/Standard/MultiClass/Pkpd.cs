@@ -135,7 +135,7 @@ namespace Microsoft.ML.Runtime.Learners
             if (calibratedModel == null)
                 calibratedModel = CalibratorUtils.TrainCalibrator(Host, ch, Calibrator, Args.MaxCalibrationExamples, transformer.Model, trainedData) as TDistPredictor;
 
-            return new BinaryPredictionTransformer<TDistPredictor>(Host, calibratedModel, data.Data.Schema, transformer.FeatureColumn);
+            return new BinaryPredictionTransformer<TDistPredictor>(Host, calibratedModel, trainedData.Data.Schema, transformer.FeatureColumn);
         }
 
         private IDataView MapLabels(RoleMappedData data, int cls1, int cls2)

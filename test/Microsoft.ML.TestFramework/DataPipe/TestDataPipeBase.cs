@@ -162,7 +162,6 @@ namespace Microsoft.ML.Runtime.RunTests
             foreach (var (x, y) in sortedCols1.Zip(sortedCols2, (x, y) => (x, y)))
             {
                 Assert.Equal(x.Name, y.Name);
-                Assert.True(x.IsCompatibleWith(y), $"Mismatch on {x.Name}");
                 Assert.True(y.IsCompatibleWith(x), $"Mismatch on {x.Name}");
             }
         }
