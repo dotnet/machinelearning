@@ -1,0 +1,18 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>netcoreapp2.1</TargetFramework>
+    <AssemblyName>DnnAnalyzer</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Microsoft.ML.Core\Microsoft.ML.Core.csproj" />
+    <ProjectReference Include="..\..\Microsoft.ML.TensorFlow\Microsoft.ML.TensorFlow.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <NativeAssemblyReference Include="tensorflow" />
+  </ItemGroup>
+
+</Project>
