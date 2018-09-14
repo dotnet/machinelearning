@@ -569,7 +569,7 @@ namespace Microsoft.ML.Runtime.Learners
 
                         Parallel.For(0, checkFrequency, pOptions,
                                 j => TrainWithoutLock(j == 0 ? pch : null, cursorFactory, rands[iter + j], idToIdx, numThreads, duals, biasReg, invariants, lambdaNInv, weights, biasUnreg, l1IntermediateWeights, l1IntermediateBias, featureNormSquared));
-                        // Don't sync: http://www.cs.utexas.edu/~cjhsieh/dcd_parallel_final.main.pdf
+                        // Don't sync: https://www.cs.utexas.edu/~cjhsieh/dcd_parallel_final.main.pdf
                     }
 
                     iter = numCycles * checkFrequency;
@@ -583,7 +583,7 @@ namespace Microsoft.ML.Runtime.Learners
 
                         Parallel.For(0, residue, pOptions,
                                 j => TrainWithoutLock(j == 0 ? pch : null, cursorFactory, rands[iter + j], idToIdx, numThreads, duals, biasReg, invariants, lambdaNInv, weights, biasUnreg, l1IntermediateWeights, l1IntermediateBias, featureNormSquared));
-                        // Don't sync: http://www.cs.utexas.edu/~cjhsieh/dcd_parallel_final.main.pdf
+                        // Don't sync: https://www.cs.utexas.edu/~cjhsieh/dcd_parallel_final.main.pdf
                     }
 
                     if (convergenceChecked && !converged)
@@ -1672,7 +1672,7 @@ namespace Microsoft.ML.Runtime.Learners
             watch.Start();
 
             //Reference: Leon Bottou. Stochastic Gradient Descent Tricks.
-            //http://research.microsoft.com/pubs/192769/tricks-2012.pdf
+            //https://research.microsoft.com/pubs/192769/tricks-2012.pdf
 
             var trainingTasks = new Action<IRandom, IProgressChannel>[_args.MaxIterations];
             var rands = new IRandom[_args.MaxIterations];

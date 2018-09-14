@@ -18,7 +18,7 @@ The datasets are provided under the original terms that Microsoft received such 
 
 ### UCI Adult Dataset 
 
->Dua, D. and Karra Taniskidou, E. (2017). UCI Machine Learning Repository [http://archive.ics.uci.edu/ml]. Irvine, CA: University of California, School of Information and Computer Science.
+>Dua, D. and Karra Taniskidou, E. (2017). UCI Machine Learning Repository [https://archive.ics.uci.edu/ml]. Irvine, CA: University of California, School of Information and Computer Science.
 >
 >https://archive.ics.uci.edu/ml/datasets/Adult
 
@@ -42,7 +42,7 @@ Redistributing the dataset "breast-cancer.txt" with attribution:
 
 Redistributing the dataset "taxi-fare-test.csv", "taxi-fare-train.csv" with attribution:
 
-> Original source: http://www.nyc.gov/html/tlc/html/about/trip_record_data.shtml
+> Original source: https://www.nyc.gov/html/tlc/html/about/trip_record_data.shtml
 > 
 > The dataset is provided under terms provided by City of New York: https://opendata.cityofnewyork.us/overview/#termsofuse.
 
