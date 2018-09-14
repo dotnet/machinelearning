@@ -122,11 +122,50 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         public const string LoadName = "NAReplaceTransform";
+        private static VersionInfo GetVersionInfo()
+        {
+            return new VersionInfo(
+                // REVIEW: temporary name
+                modelSignature: "NAREP TF",
+                // verWrittenCur: 0x00010001, // Initial
+                verWrittenCur: 0x0010002, // Added imputation methods.
+                verReadableCur: 0x00010002,
+                verWeCanReadBack: 0x00010001,
+                loaderSignature: LoadName);
+        }
+
         internal const string Summary = "Create an output column of the same type and size of the input column, where missing values "
          + "are replaced with either the default value or the mean/min/max value (for non-text columns only).";
 
         internal const string FriendlyName = "NA Replace Transform";
         internal const string ShortName = "NARep";
+
+        private static string TestType(ColumnType type)
+        {
+            // Item type must have an NA value that exists and is not equal to its default value.
+            Func<ColumnType, string> func = TestType<int>;
+            var meth = func.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(type.ItemType.RawType);
+            return (string)meth.Invoke(null, new object[] { type.ItemType });
+        }
+
+        private static string TestType<T>(ColumnType type)
+        {
+            Contracts.Assert(type.ItemType.RawType == typeof(T));
+            RefPredicate<T> isNA;
+            if (!Conversions.Instance.TryGetIsNAPredicate(type.ItemType, out isNA))
+            {
+                return string.Format("Type '{0}' is not supported by {1} since it doesn't have an NA value",
+                    type, LoadName);
+            }
+            var t = default(T);
+            if (isNA(ref t))
+            {
+                // REVIEW: Key values will be handled in a "new key value" transform.
+                return string.Format("Type '{0}' is not supported by {1} since its NA value is equivalent to its default value",
+                    type, LoadName);
+            }
+            return null;
+        }
 
         public class ColumnInfo
         {
@@ -166,6 +205,9 @@ namespace Microsoft.ML.Runtime.Data
             }
         }
 
+        // The output column types, parallel to Infos.
+        private readonly ColumnType[] _types;
+
         // The replacementValues for the columns, parallel to Infos.
         // The elements of this array can be either primitive values or arrays of primitive values. When replacing a scalar valued column in Infos,
         // this array will hold a primitive value. When replacing a vector valued column in Infos, this array will either hold a primitive
@@ -177,36 +219,6 @@ namespace Microsoft.ML.Runtime.Data
         // Marks if the replacement values in given slots of _repValues are the default value.
         // REVIEW: Currently these arrays are constructed on load but could be changed to being constructed lazily.
         private readonly BitArray[] _repIsDefault;
-
-        // The output column types, parallel to Infos.
-        private readonly ColumnType[] _types;
-
-        private string TestType(ColumnType type)
-        {
-            // Item type must have an NA value that exists and is not equal to its default value.
-            Func<ColumnType, string> func = TestType<int>;
-            var meth = func.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(type.ItemType.RawType);
-            return (string)meth.Invoke(null, new object[] { type.ItemType });
-        }
-
-        private static string TestType<T>(ColumnType type)
-        {
-            Contracts.Assert(type.ItemType.RawType == typeof(T));
-            RefPredicate<T> isNA;
-            if (!Conversions.Instance.TryGetIsNAPredicate(type.ItemType, out isNA))
-            {
-                return string.Format("Type '{0}' is not supported by {1} since it doesn't have an NA value",
-                    type, LoadName);
-            }
-            var t = default(T);
-            if (isNA(ref t))
-            {
-                // REVIEW: Key values will be handled in a "new key value" transform.
-                return string.Format("Type '{0}' is not supported by {1} since its NA value is equivalent to its default value",
-                    type, LoadName);
-            }
-            return null;
-        }
 
         protected override void CheckInputColumn(ISchema inputSchema, int col, int srcCol)
         {
@@ -222,6 +234,54 @@ namespace Microsoft.ML.Runtime.Data
         {
             // Validate input schema.
             GetReplacementValues(input, columns, out _repValues, out _repIsDefault, out _types);
+        }
+
+        private NAReplaceTransform(IHost host, ModelLoadContext ctx)
+         : base(host, ctx)
+        {
+            var columnsLength = ColumnPairs.Length;
+            _repValues = new object[columnsLength];
+            _repIsDefault = new BitArray[columnsLength];
+            _types = new ColumnType[columnsLength];
+            var saver = new BinarySaver(Host, new BinarySaver.Arguments());
+            for (int i = 0; i < columnsLength; i++)
+            {
+                if (!saver.TryLoadTypeAndValue(ctx.Reader.BaseStream, out ColumnType savedType, out object repValue))
+                    throw Host.ExceptDecode();
+                _types[i] = savedType;
+                if (savedType.IsVector)
+                {
+                    // REVIEW: The current implementation takes the serialized VBuffer, densifies it, and stores the values array.
+                    // It might be of value to consider storing the VBUffer in order to possibly benefit from sparsity. However, this would
+                    // necessitate a reimplementation of the FillValues code to accomodate sparse VBuffers.
+                    object[] args = new object[] { repValue, _types[i], i };
+                    Func<VBuffer<int>, ColumnType, int, int[]> func = GetValuesArray<int>;
+                    var meth = func.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(savedType.ItemType.RawType);
+                    _repValues[i] = meth.Invoke(this, args);
+                }
+                else
+                    _repValues[i] = repValue;
+
+                Host.Assert(repValue.GetType() == _types[i].RawType || repValue.GetType() == _types[i].ItemType.RawType);
+            }
+        }
+
+        private T[] GetValuesArray<T>(VBuffer<T> src, ColumnType srcType, int iinfo)
+        {
+            Host.Assert(srcType.IsVector);
+            Host.Assert(srcType.VectorSize == src.Length);
+            VBufferUtils.Densify<T>(ref src);
+            RefPredicate<T> defaultPred = Conversions.Instance.GetIsDefaultPredicate<T>(srcType.ItemType);
+            _repIsDefault[iinfo] = new BitArray(srcType.VectorSize);
+            for (int slot = 0; slot < src.Length; slot++)
+            {
+                if (defaultPred(ref src.Values[slot]))
+                    _repIsDefault[iinfo][slot] = true;
+            }
+            T[] valReturn = src.Values;
+            Array.Resize<T>(ref valReturn, srcType.VectorSize);
+            Host.Assert(valReturn.Length == src.Length);
+            return valReturn;
         }
 
         /// <summary>
@@ -346,18 +406,6 @@ namespace Microsoft.ML.Runtime.Data
             return default(T);
         }
 
-        private static VersionInfo GetVersionInfo()
-        {
-            return new VersionInfo(
-                // REVIEW: temporary name
-                modelSignature: "NAREP TF",
-                // verWrittenCur: 0x00010001, // Initial
-                verWrittenCur: 0x0010002, // Added imputation methods.
-                verReadableCur: 0x00010002,
-                verWeCanReadBack: 0x00010001,
-                loaderSignature: LoadName);
-        }
-
         // Factory method for SignatureDataTransform.
         public static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
         {
@@ -453,54 +501,6 @@ namespace Microsoft.ML.Runtime.Data
                 var meth = func.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(repValue.GetType());
                 meth.Invoke(this, args);
             }
-        }
-
-        private NAReplaceTransform(IHost host, ModelLoadContext ctx)
-            : base(host, ctx)
-        {
-            var columnsLength = ColumnPairs.Length;
-            _repValues = new object[columnsLength];
-            _repIsDefault = new BitArray[columnsLength];
-            _types = new ColumnType[columnsLength];
-            var saver = new BinarySaver(Host, new BinarySaver.Arguments());
-            for (int i = 0; i< columnsLength; i++)
-            {
-                if (!saver.TryLoadTypeAndValue(ctx.Reader.BaseStream, out ColumnType savedType, out object repValue))
-                    throw Host.ExceptDecode();
-                _types[i] = savedType;
-                if (savedType.IsVector)
-                {
-                    // REVIEW: The current implementation takes the serialized VBuffer, densifies it, and stores the values array.
-                    // It might be of value to consider storing the VBUffer in order to possibly benefit from sparsity. However, this would
-                    // necessitate a reimplementation of the FillValues code to accomodate sparse VBuffers.
-                    object[] args = new object[] { repValue, _types[i], i };
-                    Func<VBuffer<int>, ColumnType, int, int[]> func = GetValuesArray<int>;
-                    var meth = func.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(savedType.ItemType.RawType);
-                    _repValues[i] = meth.Invoke(this, args);
-                }
-                else
-                    _repValues[i] = repValue;
-
-                Host.Assert(repValue.GetType() == _types[i].RawType || repValue.GetType() == _types[i].ItemType.RawType);
-            }
-        }
-
-        private T[] GetValuesArray<T>(VBuffer<T> src, ColumnType srcType, int iinfo)
-        {
-            Host.Assert(srcType.IsVector);
-            Host.Assert(srcType.VectorSize == src.Length);
-            VBufferUtils.Densify<T>(ref src);
-            RefPredicate<T> defaultPred = Conversions.Instance.GetIsDefaultPredicate<T>(srcType.ItemType);
-            _repIsDefault[iinfo] = new BitArray(srcType.VectorSize);
-            for (int slot = 0; slot < src.Length; slot++)
-            {
-                if (defaultPred(ref src.Values[slot]))
-                    _repIsDefault[iinfo][slot] = true;
-            }
-            T[] valReturn = src.Values;
-            Array.Resize<T>(ref valReturn, srcType.VectorSize);
-            Host.Assert(valReturn.Length == src.Length);
-            return valReturn;
         }
 
         protected override IRowMapper MakeRowMapper(ISchema schema)
