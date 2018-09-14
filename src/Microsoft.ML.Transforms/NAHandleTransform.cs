@@ -135,7 +135,7 @@ namespace Microsoft.ML.Runtime.Data
             h.CheckValue(input, nameof(input));
             h.CheckUserArg(Utils.Size(args.Column) > 0, nameof(args.Column));
 
-            var replaceCols = new List<NAReplaceTransform.Column>();
+            var replaceCols = new List<NAReplaceTransform.ColumnInfo>();
             var naIndicatorCols = new List<NAIndicatorTransform.Column>();
             var naConvCols = new List<ConvertTransform.Column>();
             var concatCols = new List<ConcatTransform.TaggedColumn>();
@@ -149,14 +149,7 @@ namespace Microsoft.ML.Runtime.Data
                 var addInd = column.ConcatIndicator ?? args.Concat;
                 if (!addInd)
                 {
-                    replaceCols.Add(
-                        new NAReplaceTransform.Column()
-                        {
-                            Kind = (NAReplaceTransform.ReplacementKind?)column.Kind,
-                            Name = column.Name,
-                            Source = column.Source,
-                            Slot = column.ImputeBySlot
-                        });
+                    replaceCols.Add(new NAReplaceTransform.ColumnInfo(column.Source, column.Name, (NAReplaceTransform.ReplacementKind)(column.Kind ?? args.ReplaceWith), column.ImputeBySlot ?? args.ImputeBySlot));
                     continue;
                 }
 
@@ -186,14 +179,7 @@ namespace Microsoft.ML.Runtime.Data
                     naConvCols.Add(new ConvertTransform.Column() { Name = tmpIsMissingColName, Source = tmpIsMissingColName, ResultType = replaceType.ItemType.RawKind });
 
                 // Add the NAReplaceTransform column.
-                replaceCols.Add(
-                    new NAReplaceTransform.Column()
-                    {
-                        Kind = (NAReplaceTransform.ReplacementKind?)column.Kind,
-                        Name = tmpReplacementColName,
-                        Source = column.Source,
-                        Slot = column.ImputeBySlot
-                    });
+                replaceCols.Add(new NAReplaceTransform.ColumnInfo(column.Source, tmpReplacementColName, (NAReplaceTransform.ReplacementKind)(column.Kind ?? args.ReplaceWith), column.ImputeBySlot ?? args.ImputeBySlot));
 
                 // Add the ConcatTransform column.
                 if (replaceType.IsVector)
@@ -237,15 +223,8 @@ namespace Microsoft.ML.Runtime.Data
                 h.AssertValue(output);
                 output = new ConvertTransform(h, new ConvertTransform.Arguments() { Column = naConvCols.ToArray() }, output);
             }
-
             // Create the NAReplace transform.
-            output = new NAReplaceTransform(h,
-                new NAReplaceTransform.Arguments()
-                {
-                    Column = replaceCols.ToArray(),
-                    ReplacementKind = (NAReplaceTransform.ReplacementKind)args.ReplaceWith,
-                    ImputeBySlot = args.ImputeBySlot
-                }, output ?? input);
+            output = NAReplaceTransform.Create(env, output ?? input, replaceCols.ToArray());
 
             // Concat the NAReplaceTransform output and the NAIndicatorTransform output.
             if (naIndicatorCols.Count > 0)

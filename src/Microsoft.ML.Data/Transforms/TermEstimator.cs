@@ -15,6 +15,7 @@ namespace Microsoft.ML.Runtime.Data
     {
         private readonly IHost _host;
         private readonly TermTransform.ColumnInfo[] _columns;
+
         public TermEstimator(IHostEnvironment env, string name, string source = null, int maxNumTerms = TermTransform.Defaults.MaxNumTerms, TermTransform.SortOrder sort = TermTransform.Defaults.Sort) :
            this(env, new TermTransform.ColumnInfo(name, source ?? name, maxNumTerms, sort))
         {
