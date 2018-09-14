@@ -4,17 +4,10 @@
 
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data.StaticPipe.Runtime;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Data.IO;
 using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Model;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-
-[assembly: LoadableClass(typeof(ConcatTransformer), null, typeof(SignatureLoadModel),
-    "Concat Transformer Wrapper", ConcatTransformer.LoaderSignature)]
 
 namespace Microsoft.ML.Runtime.Data
 {
@@ -41,11 +34,7 @@ namespace Microsoft.ML.Runtime.Data
         public ITransformer Fit(IDataView input)
         {
             _host.CheckValue(input, nameof(input));
-
-            var xf = new ConcatTransform(_host, input, _name, _source);
-            var empty = new EmptyDataView(_host, input.Schema);
-            var chunk = ApplyTransformUtils.ApplyAllTransformsToData(_host, xf, empty, input);
-            return new ConcatTransformer(_host, chunk);
+            return new ConcatTransform(_host, _name, _source);
         }
 
         private bool HasCategoricals(SchemaShape.Column col)
@@ -121,90 +110,6 @@ namespace Microsoft.ML.Runtime.Data
             result[_name] = CheckInputsAndMakeColumn(inputSchema, _name, _source);
             return new SchemaShape(result.Values);
         }
-    }
-
-    // REVIEW: Note that the presence of this thing is a temporary measure only.
-    // If it is cleaned up by code complete so much the better, but if not we will
-    // have to wait a little bit.
-    internal sealed class ConcatTransformer : ITransformer, ICanSaveModel
-    {
-        public const string LoaderSignature = "ConcatTransformWrapper";
-        private const string TransformDirTemplate = "Step_{0:000}";
-
-        private readonly IHostEnvironment _env;
-        private readonly IDataView _xf;
-
-        internal ConcatTransformer(IHostEnvironment env, IDataView xf)
-        {
-            _env = env;
-            _xf = xf;
-        }
-
-        public ISchema GetOutputSchema(ISchema inputSchema)
-        {
-            var dv = new EmptyDataView(_env, inputSchema);
-            var output = ApplyTransformUtils.ApplyAllTransformsToData(_env, _xf, dv);
-            return output.Schema;
-        }
-
-        public void Save(ModelSaveContext ctx)
-        {
-            ctx.CheckAtModel();
-            ctx.SetVersionInfo(GetVersionInfo());
-
-            var dataPipe = _xf;
-            var transforms = new List<IDataTransform>();
-            while (dataPipe is IDataTransform xf)
-            {
-                // REVIEW: a malicious user could construct a loop in the Source chain, that would
-                // cause this method to iterate forever (and throw something when the list overflows). There's
-                // no way to insulate from ALL malicious behavior.
-                transforms.Add(xf);
-                dataPipe = xf.Source;
-                Contracts.AssertValue(dataPipe);
-            }
-            transforms.Reverse();
-
-            ctx.SaveSubModel("Loader", c => BinaryLoader.SaveInstance(_env, c, dataPipe.Schema));
-
-            ctx.Writer.Write(transforms.Count);
-            for (int i = 0; i < transforms.Count; i++)
-            {
-                var dirName = string.Format(TransformDirTemplate, i);
-                ctx.SaveModel(transforms[i], dirName);
-            }
-        }
-
-        private static VersionInfo GetVersionInfo()
-        {
-            return new VersionInfo(
-                modelSignature: "CCATWRPR",
-                verWrittenCur: 0x00010001, // Initial
-                verReadableCur: 0x00010001,
-                verWeCanReadBack: 0x00010001,
-                loaderSignature: LoaderSignature);
-        }
-
-        public ConcatTransformer(IHostEnvironment env, ModelLoadContext ctx)
-        {
-            ctx.CheckAtModel(GetVersionInfo());
-            int n = ctx.Reader.ReadInt32();
-
-            ctx.LoadModel<IDataLoader, SignatureLoadDataLoader>(env, out var loader, "Loader", new MultiFileSource(null));
-
-            IDataView data = loader;
-            for (int i = 0; i < n; i++)
-            {
-                var dirName = string.Format(TransformDirTemplate, i);
-                ctx.LoadModel<IDataTransform, SignatureLoadDataTransform>(env, out var xf, dirName, data);
-                data = xf;
-            }
-
-            _env = env;
-            _xf = data;
-        }
-
-        public IDataView Transform(IDataView input) => ApplyTransformUtils.ApplyAllTransformsToData(_env, _xf, input);
     }
 
     /// <summary>
