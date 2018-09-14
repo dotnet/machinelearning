@@ -133,30 +133,28 @@ namespace Microsoft.ML.Transforms
             else
             {
                 var tempDirPath = Path.GetFullPath(Path.Combine(Path.GetTempPath(), "_AG_" + Guid.NewGuid().ToString()));
-                var tempDirInfo = Directory.CreateDirectory(tempDirPath);
+                Directory.CreateDirectory(tempDirPath);
 
                 var load = ctx.TryLoadBinaryStream("TFSavedModel", br =>
                 {
                     int count = br.ReadInt32();
                     for (int n = 0; n < count; n++)
                     {
-                        string fileName = br.ReadString();
-                        int fileLength = br.ReadInt32();
+                        string relativeFile = br.ReadString();
+                        long fileLength = br.ReadInt64();
 
-                        string fullFilePath = Path.Combine(tempDirInfo.FullName, fileName);
-                        if (fileName.StartsWith(SavedModelVariablesDirName))
+                        string fullFilePath = Path.Combine(tempDirPath, relativeFile);
+                        string fullFileDir = Path.GetDirectoryName(fullFilePath);
+
+                        if (fullFileDir != tempDirPath)
                         {
-                            var variabledDirInfo = new DirectoryInfo(Path.Combine(tempDirPath, SavedModelVariablesDirName));
-                            if (!variabledDirInfo.Exists)
-                                Directory.CreateDirectory(variabledDirInfo.FullName);
-
-                            var tokens = fileName.Split(Path.DirectorySeparatorChar);
-                            fullFilePath = Path.Combine(variabledDirInfo.FullName, tokens[1]);
+                            Directory.CreateDirectory(fullFileDir);
                         }
 
                         using (var fs = new FileStream(fullFilePath, FileMode.Create, FileAccess.Write))
                         {
-                            br.BaseStream.CopyTo(fs, fileLength);
+                            long actualRead = br.BaseStream.CopyRange(fs, fileLength);
+                            env.Assert(actualRead == fileLength);
                         }
                     }
                 });
@@ -383,16 +381,15 @@ namespace Microsoft.ML.Transforms
 
                     foreach (var fullPath in modelFilePaths)
                     {
-                        var relativePath = fullPath.Remove(0, ModelPath.Length).Trim(Path.DirectorySeparatorChar);
-                        FileInfo f = new FileInfo(fullPath);
-                        int fileLength = (int)f.Length;
-
+                        var relativePath = fullPath.Substring(ModelPath.Length + 1);
                         w.Write(relativePath);
-                        w.Write(fileLength);
 
                         using (var fs = new FileStream(fullPath, FileMode.Open))
                         {
-                            fs.CopyTo(w.BaseStream, fileLength);
+                            long fileLength = fs.Length;
+                            w.Write(fileLength);
+                            long actualWritten = fs.CopyRange(w.BaseStream, fileLength);
+                            _host.Assert(actualWritten == fileLength);
                         }
                     }
                 });
