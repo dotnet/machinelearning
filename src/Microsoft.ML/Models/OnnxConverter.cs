@@ -61,7 +61,7 @@ namespace Microsoft.ML.Legacy.Models
         /// <param name="model">Model that needs to be converted to ONNX format.</param>
         public void Convert(PredictionModel model)
         {
-            using (var environment = new TlcEnvironment())
+            using (var environment = new ConsoleEnvironment())
             {
                 environment.CheckValue(model, nameof(model));
 

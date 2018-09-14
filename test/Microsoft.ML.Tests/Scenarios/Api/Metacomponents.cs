@@ -21,7 +21,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         public void Metacomponents()
         {
             var dataPath = GetDataPath(IrisDataPath);
-            using (var env = new TlcEnvironment())
+            using (var env = new ConsoleEnvironment())
             {
                 var loader = TextLoader.ReadFile(env, MakeIrisTextLoaderArgs(), new MultiFileSource(dataPath));
                 var term = TermTransform.Create(env, loader, "Label");

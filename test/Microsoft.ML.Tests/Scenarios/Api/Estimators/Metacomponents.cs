@@ -21,7 +21,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         public void New_Metacomponents()
         {
             var dataPath = GetDataPath(IrisDataPath);
-            using (var env = new TlcEnvironment())
+            using (var env = new ConsoleEnvironment())
             {
                 var data = new TextLoader(env, MakeIrisTextLoaderArgs())
                     .Read(new MultiFileSource(dataPath));

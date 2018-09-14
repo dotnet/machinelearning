@@ -161,7 +161,7 @@ namespace Microsoft.ML.Legacy
             where TInput : class
             where TOutput : class, new()
         {
-            using (var environment = new TlcEnvironment(seed: _seed, conc: _conc))
+            using (var environment = new ConsoleEnvironment(seed: _seed, conc: _conc))
             {
                 Experiment experiment = environment.CreateExperiment();
                 ILearningPipelineStep step = null;

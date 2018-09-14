@@ -27,7 +27,7 @@ namespace Microsoft.ML.Legacy.Models
             where TInput : class
             where TOutput : class, new()
         {
-            using (var environment = new TlcEnvironment())
+            using (var environment = new ConsoleEnvironment())
             {
                 Experiment subGraph = environment.CreateExperiment();
                 ILearningPipelineStep step = null;
