@@ -120,47 +120,38 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         /// <summary>
-        /// Whether this type is the standard timespan type.
+        /// Whether this type is the standard <see cref="TimeSpan"/> type.
         /// </summary>
         public bool IsTimeSpan
         {
             get
             {
-                if (!(this is TimeSpanType))
-                    return false;
-                // TimeSpanType is a singleton.
-                Contracts.Assert(this == TimeSpanType.Instance);
-                return true;
+                Contracts.Assert((this == TimeSpanType.Instance) == (this is TimeSpanType));
+                return this is TimeSpanType;
             }
         }
 
         /// <summary>
-        /// Whether this type is a DvDateTime.
+        /// Whether this type is a <see cref="DateTime"/>.
         /// </summary>
         public bool IsDateTime
         {
             get
             {
-                if (!(this is DateTimeType))
-                    return false;
-                // DateTimeType is a singleton.
-                Contracts.Assert(this == DateTimeType.Instance);
-                return true;
+                Contracts.Assert((this == DateTimeType.Instance) == (this is DateTimeType));
+                return this is DateTimeType;
             }
         }
 
         /// <summary>
-        /// Whether this type is a DvDateTimeZone.
+        /// Whether this type is a <see cref="DateTimeOffset"/>
         /// </summary>
         public bool IsDateTimeZone
         {
             get
             {
-                if (!(this is DateTimeZoneType))
-                    return false;
-                // DateTimeZoneType is a singleton.
-                Contracts.Assert(this == DateTimeZoneType.Instance);
-                return true;
+                Contracts.Assert((this == DateTimeOffsetType.Instance) == (this is DateTimeOffsetType));
+                return this is DateTimeOffsetType;
             }
         }
 
@@ -319,7 +310,7 @@ namespace Microsoft.ML.Runtime.Data
             if (kind == DataKind.DT)
                 return DateTimeType.Instance;
             if (kind == DataKind.DZ)
-                return DateTimeZoneType.Instance;
+                return DateTimeOffsetType.Instance;
             return NumberType.FromKind(kind);
         }
     }
@@ -605,7 +596,7 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         private DateTimeType()
-            : base(typeof(DvDateTime), DataKind.DT)
+            : base(typeof(DateTime), DataKind.DT)
         {
         }
 
@@ -623,21 +614,21 @@ namespace Microsoft.ML.Runtime.Data
         }
     }
 
-    public sealed class DateTimeZoneType : PrimitiveType
+    public sealed class DateTimeOffsetType : PrimitiveType
     {
-        private static volatile DateTimeZoneType _instance;
-        public static DateTimeZoneType Instance
+        private static volatile DateTimeOffsetType _instance;
+        public static DateTimeOffsetType Instance
         {
             get
             {
                 if (_instance == null)
-                    Interlocked.CompareExchange(ref _instance, new DateTimeZoneType(), null);
+                    Interlocked.CompareExchange(ref _instance, new DateTimeOffsetType(), null);
                 return _instance;
             }
         }
 
-        private DateTimeZoneType()
-            : base(typeof(DvDateTimeZone), DataKind.DZ)
+        private DateTimeOffsetType()
+            : base(typeof(DateTimeOffset), DataKind.DZ)
         {
         }
 
@@ -645,7 +636,7 @@ namespace Microsoft.ML.Runtime.Data
         {
             if (other == this)
                 return true;
-            Contracts.Assert(!(other is DateTimeZoneType));
+            Contracts.Assert(!(other is DateTimeOffsetType));
             return false;
         }
 
@@ -672,7 +663,7 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         private TimeSpanType()
-            : base(typeof(DvTimeSpan), DataKind.TS)
+            : base(typeof(TimeSpan), DataKind.TS)
         {
         }
 

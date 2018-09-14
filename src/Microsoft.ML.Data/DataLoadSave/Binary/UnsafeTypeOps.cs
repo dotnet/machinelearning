@@ -46,7 +46,7 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn
             _type2ops[typeof(UInt64)] = new UInt64UnsafeTypeOps();
             _type2ops[typeof(Single)] = new SingleUnsafeTypeOps();
             _type2ops[typeof(Double)] = new DoubleUnsafeTypeOps();
-            _type2ops[typeof(DvTimeSpan)] = new DvTimeSpanUnsafeTypeOps();
+            _type2ops[typeof(TimeSpan)] = new TimeSpanUnsafeTypeOps();
             _type2ops[typeof(UInt128)] = new UgUnsafeTypeOps();
         }
 
@@ -227,17 +227,21 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn
             public override Double Read(BinaryReader reader) { return reader.ReadDouble(); }
         }
 
-        private sealed class DvTimeSpanUnsafeTypeOps : UnsafeTypeOps<DvTimeSpan>
+        private sealed class TimeSpanUnsafeTypeOps : UnsafeTypeOps<TimeSpan>
         {
             public override int Size { get { return sizeof(Int64); } }
-            public override unsafe void Apply(DvTimeSpan[] array, Action<IntPtr> func)
+            public override unsafe void Apply(TimeSpan[] array, Action<IntPtr> func)
             {
-                fixed (DvTimeSpan* pArray = array)
+                fixed (TimeSpan* pArray = array)
                     func(new IntPtr(pArray));
             }
 
-            public override void Write(DvTimeSpan a, BinaryWriter writer) { writer.Write(a.Ticks.RawValue); }
-            public override DvTimeSpan Read(BinaryReader reader) { return new DvTimeSpan(reader.ReadInt64()); }
+            public override void Write(TimeSpan a, BinaryWriter writer) { writer.Write(a.Ticks); }
+            public override TimeSpan Read(BinaryReader reader)
+            {
+                var ticks = reader.ReadInt64();
+                return new TimeSpan(ticks == long.MinValue ? default : ticks);
+            }
         }
 
         private sealed class UgUnsafeTypeOps : UnsafeTypeOps<UInt128>

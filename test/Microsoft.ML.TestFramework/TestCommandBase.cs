@@ -2033,13 +2033,14 @@ namespace Microsoft.ML.Runtime.RunTests
         [Fact]
         public void DataTypes()
         {
-            //Skip for linux because DATE/TIME format is different.
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-                return;
-
             string idvPath = GetDataPath("datatypes.idv");
+            OutputPath intermediateData = CreateOutputPath("intermediateDatatypes.idv");
             OutputPath textOutputPath = CreateOutputPath("datatypes.txt");
             TestCore("savedata", idvPath, "loader=binary", "saver=text", textOutputPath.Arg("dout"));
+            _step++;
+            TestCore("savedata", idvPath, "loader=binary", "saver=binary", intermediateData.ArgOnly("dout"));
+            _step++;
+            TestCore("savedata", intermediateData.Path, "loader=binary", "saver=text", textOutputPath.Arg("dout"));
             Done();
         }
     }
