@@ -12,7 +12,7 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
     /// This implementation is based on:
     /// Friedman, J., Hastie, T. and Tibshirani, R. (2008) Regularization
     /// Paths for Generalized Linear Models via Coordinate Descent.
-    /// http://www-stat.stanford.edu/~hastie/Papers/glmnet.pdf
+    /// https://www-stat.stanford.edu/~hastie/Papers/glmnet.pdf
     /// </summary>
     /// <remarks>Author was Yasser Ganjisaffar during his internship.</remarks>
     public class LassoBasedEnsembleCompressor : IEnsembleCompressor<short>

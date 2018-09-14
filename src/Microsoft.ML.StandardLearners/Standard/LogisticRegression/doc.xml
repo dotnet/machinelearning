@@ -33,7 +33,7 @@
               L1Weight can be applied to sparse models, when working with high-dimensional data. It pulls small weights associated features
               that are relatively unimportant towards 0.
               L1 regularization is an implementation of OWLQN, based on:
-              <a href="http://citeseer.ist.psu.edu/viewdoc/summary?doi=10.1.1.68.5260">Scalable training of L1-regularized log-linear models</a>
+              <a href="https://citeseer.ist.psu.edu/viewdoc/summary?doi=10.1.1.68.5260">Scalable training of L1-regularized log-linear models</a>
             </description></item>
             <item><description>L2Weight is preferable for data that is not sparse. It pulls large weights towards zero.</description></item>
           </list>
@@ -42,10 +42,10 @@
           An agressive regularization can harm predictive capacity by excluding important variables out of the model. So choosing the optimal values for the regularization parameters is important for the performance of the logistic regression model.
         <para>For more information see:</para>
         <list type='bullet'>
-          <item><description><a href='http://research.microsoft.com/apps/pubs/default.aspx?id=78900'>Scalable Training of L1-Regularized Log-Linear Models</a>.</description></item>
+          <item><description><a href='https://research.microsoft.com/apps/pubs/default.aspx?id=78900'>Scalable Training of L1-Regularized Log-Linear Models</a>.</description></item>
           <item><description><a href='https://msdn.microsoft.com/en-us/magazine/dn904675.aspx'>Test Run - L1 and L2 Regularization for Machine Learning</a>.</description></item>
-          <item><description><a href='http://en.wikipedia.org/wiki/L-BFGS'>Wikipedia: L-BFGS</a>.</description></item>
-          <item><description><a href='http://en.wikipedia.org/wiki/Logistic_regression'>Wikipedia: Logistic regression</a>.</description></item>
+          <item><description><a href='https://en.wikipedia.org/wiki/L-BFGS'>Wikipedia: L-BFGS</a>.</description></item>
+          <item><description><a href='https://en.wikipedia.org/wiki/Logistic_regression'>Wikipedia: Logistic regression</a>.</description></item>
         </list>
       </remarks>
     </member>
