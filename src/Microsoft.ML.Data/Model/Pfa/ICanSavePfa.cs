@@ -35,7 +35,7 @@ namespace Microsoft.ML.Runtime.Model.Pfa
     }
 
     /// <summary>
-    /// This data model component is savable as PFA. See http://dmg.org/pfa/ .
+    /// This data model component is savable as PFA. See https://dmg.org/pfa/ .
     /// </summary>
     public interface ITransformCanSavePfa : ISaveAsPfa, IDataTransform
     {

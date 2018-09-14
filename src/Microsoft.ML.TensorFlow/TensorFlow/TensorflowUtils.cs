@@ -3,7 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.InteropServices;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.ImageAnalytics.EntryPoints;
 
@@ -30,6 +33,10 @@ namespace Microsoft.ML.Transforms.TensorFlow
                     return NumberType.R4;
                 case TFDataType.Double:
                     return NumberType.R8;
+                case TFDataType.UInt16:
+                    return NumberType.U2;
+                case TFDataType.UInt8:
+                    return NumberType.U1;
                 case TFDataType.UInt32:
                     return NumberType.U4;
                 case TFDataType.UInt64:
@@ -57,6 +64,10 @@ namespace Microsoft.ML.Transforms.TensorFlow
             {
                 case TFDataType.Float:
                 case TFDataType.Double:
+                case TFDataType.UInt8:
+                case TFDataType.UInt16:
+                case TFDataType.UInt32:
+                case TFDataType.UInt64:
                     return true;
                 default:
                     return false;

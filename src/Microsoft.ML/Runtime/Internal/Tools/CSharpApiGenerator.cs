@@ -38,7 +38,7 @@ namespace Microsoft.ML.Runtime.Internal.Tools
         private readonly string _regenerate;
         private readonly HashSet<string> _excludedSet;
         private const string RegistrationName = "CSharpApiGenerator";
-        private const string _defaultNamespace = "Microsoft.ML.";
+        private const string _defaultNamespace = "Microsoft.ML.Legacy.";
         private readonly GeneratedClasses _generatedClasses;
 
         public CSharpApiGenerator(IHostEnvironment env, Arguments args, string regenerate)
@@ -109,7 +109,7 @@ namespace Microsoft.ML.Runtime.Internal.Tools
         private void GenerateInputOutput(IndentingTextWriter writer, ModuleCatalog.EntryPointInfo entryPointInfo, ModuleCatalog catalog)
         {
             var classAndMethod = CSharpGeneratorUtils.GetEntryPointMetadata(entryPointInfo);
-            writer.WriteLine($"namespace {classAndMethod.Namespace}");
+            writer.WriteLine($"namespace Legacy.{classAndMethod.Namespace}");
             writer.WriteLine("{");
             writer.Indent();
             GenerateInput(writer, entryPointInfo, catalog);
@@ -376,7 +376,7 @@ namespace Microsoft.ML.Runtime.Internal.Tools
             {
                 classBase += $" : {string.Join(", ", entryPointInfo.InputKinds.Select(CSharpGeneratorUtils.GetCSharpTypeName))}";
                 if (entryPointInfo.InputKinds.Any(t => typeof(ITrainerInput).IsAssignableFrom(t) || typeof(ITransformInput).IsAssignableFrom(t)))
-                    classBase += ", Microsoft.ML.ILearningPipelineItem";
+                    classBase += ", Microsoft.ML.Legacy.ILearningPipelineItem";
             }
 
             GenerateEnums(writer, entryPointInfo.InputType, _defaultNamespace + entryPointMetadata.Namespace);
@@ -391,7 +391,7 @@ namespace Microsoft.ML.Runtime.Internal.Tools
             writer.WriteLine("{");
             writer.Indent();
             writer.WriteLine();
-            if (entryPointInfo.InputKinds != null && entryPointInfo.InputKinds.Any(t => typeof(ILearningPipelineLoader).IsAssignableFrom(t)))
+            if (entryPointInfo.InputKinds != null && entryPointInfo.InputKinds.Any(t => typeof(Legacy.ILearningPipelineLoader).IsAssignableFrom(t)))
                 CSharpGeneratorUtils.GenerateLoaderAddInputMethod(writer, entryPointMetadata.ClassName);
 
             GenerateColumnAddMethods(writer, entryPointInfo.InputType, catalog, entryPointMetadata.ClassName, out Type transformType);

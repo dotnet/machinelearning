@@ -503,70 +503,6 @@ namespace Microsoft.ML.Runtime.CommandLine
             return parser.GetUsageString(env, info, showRsp, columns);
         }
 
-#if CORECLR
-        /// <summary>
-        /// Fix the window width for the Core build to remove the kernel32.dll dependency.
-        /// </summary>
-        /// <returns></returns>
-        public static int GetConsoleWindowWidth()
-        {
-            return 120;
-        }
-#else
-        private const int StdOutputHandle = -11;
-
-        private struct Coord
-        {
-            internal Int16 X;
-            internal Int16 Y;
-        }
-
-        private struct SmallRect
-        {
-            internal Int16 Left;
-            internal Int16 Top;
-            internal Int16 Right;
-            internal Int16 Bottom;
-        }
-
-        private struct ConsoleScreenBufferInfo
-        {
-            internal Coord DwSize;
-            internal Coord DwCursorPosition;
-            internal Int16 WAttributes;
-            internal SmallRect SrWindow;
-            internal Coord DwMaximumWindowSize;
-        }
-
-        [DllImport("kernel32.dll", EntryPoint = "GetStdHandle", SetLastError = true, CharSet = CharSet.Unicode, CallingConvention = CallingConvention.StdCall)]
-        private static extern int GetStdHandle(int nStdHandle);
-
-        [DllImport("kernel32.dll", EntryPoint = "GetConsoleScreenBufferInfo", SetLastError = true, CharSet = CharSet.Unicode, CallingConvention = CallingConvention.StdCall)]
-        private static extern int GetConsoleScreenBufferInfo(int hConsoleOutput, ref ConsoleScreenBufferInfo lpConsoleScreenBufferInfo);
-
-        /// <summary>
-        /// Returns the number of columns in the current console window
-        /// </summary>
-        /// <returns>Returns the number of columns in the current console window</returns>
-        public static int GetConsoleWindowWidth()
-        {
-            int screenWidth;
-            ConsoleScreenBufferInfo csbi = new ConsoleScreenBufferInfo();
-            // Just to remove the warning messages...
-            csbi.DwCursorPosition.X = 0;
-            csbi.DwCursorPosition.Y = 0;
-            csbi.SrWindow.Bottom = 0;
-            csbi.SrWindow.Top = 0;
-            csbi.SrWindow.Left = 0;
-            csbi.SrWindow.Right = 0;
-
-            int rc;
-            rc = GetConsoleScreenBufferInfo(GetStdHandle(StdOutputHandle), ref csbi);
-            screenWidth = csbi.DwSize.X;
-            return screenWidth;
-        }
-#endif
-
         private CmdParser(IHostEnvironment env)
         {
             _host = env.Register("CmdParser");
@@ -1009,7 +945,7 @@ namespace Microsoft.ML.Runtime.CommandLine
         /// </summary>
         private string GetUsageString(IExceptionContext ectx, ArgumentInfo info, bool showRsp = true, int? columns = null)
         {
-            int screenWidth = columns ?? GetConsoleWindowWidth();
+            int screenWidth = columns ?? Console.BufferWidth;
             if (screenWidth <= 0)
                 screenWidth = 80;
 

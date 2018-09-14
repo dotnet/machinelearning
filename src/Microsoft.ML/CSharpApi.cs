@@ -22,1617 +22,1617 @@ namespace Microsoft.ML
     {
         public sealed partial class Experiment
         {
-            public Microsoft.ML.Data.CustomTextLoader.Output Add(Microsoft.ML.Data.CustomTextLoader input)
+            public Microsoft.ML.Legacy.Data.CustomTextLoader.Output Add(Microsoft.ML.Legacy.Data.CustomTextLoader input)
             {
-                var output = new Microsoft.ML.Data.CustomTextLoader.Output();
+                var output = new Microsoft.ML.Legacy.Data.CustomTextLoader.Output();
                 Add(input, output);
                 return output;
             }
 
-            public void Add(Microsoft.ML.Data.CustomTextLoader input, Microsoft.ML.Data.CustomTextLoader.Output output)
+            public void Add(Microsoft.ML.Legacy.Data.CustomTextLoader input, Microsoft.ML.Legacy.Data.CustomTextLoader.Output output)
             {
                 _jsonNodes.Add(Serialize("Data.CustomTextLoader", input, output));
             }
 
-            public Microsoft.ML.Data.DataViewReference.Output Add(Microsoft.ML.Data.DataViewReference input)
+            public Microsoft.ML.Legacy.Data.DataViewReference.Output Add(Microsoft.ML.Legacy.Data.DataViewReference input)
             {
-                var output = new Microsoft.ML.Data.DataViewReference.Output();
+                var output = new Microsoft.ML.Legacy.Data.DataViewReference.Output();
                 Add(input, output);
                 return output;
             }
 
-            public void Add(Microsoft.ML.Data.DataViewReference input, Microsoft.ML.Data.DataViewReference.Output output)
+            public void Add(Microsoft.ML.Legacy.Data.DataViewReference input, Microsoft.ML.Legacy.Data.DataViewReference.Output output)
             {
                 _jsonNodes.Add(Serialize("Data.DataViewReference", input, output));
             }
 
-            public Microsoft.ML.Data.IDataViewArrayConverter.Output Add(Microsoft.ML.Data.IDataViewArrayConverter input)
+            public Microsoft.ML.Legacy.Data.IDataViewArrayConverter.Output Add(Microsoft.ML.Legacy.Data.IDataViewArrayConverter input)
             {
-                var output = new Microsoft.ML.Data.IDataViewArrayConverter.Output();
+                var output = new Microsoft.ML.Legacy.Data.IDataViewArrayConverter.Output();
                 Add(input, output);
                 return output;
             }
 
-            public void Add(Microsoft.ML.Data.IDataViewArrayConverter input, Microsoft.ML.Data.IDataViewArrayConverter.Output output)
+            public void Add(Microsoft.ML.Legacy.Data.IDataViewArrayConverter input, Microsoft.ML.Legacy.Data.IDataViewArrayConverter.Output output)
             {
                 _jsonNodes.Add(Serialize("Data.IDataViewArrayConverter", input, output));
             }
 
-            public Microsoft.ML.Data.PredictorModelArrayConverter.Output Add(Microsoft.ML.Data.PredictorModelArrayConverter input)
+            public Microsoft.ML.Legacy.Data.PredictorModelArrayConverter.Output Add(Microsoft.ML.Legacy.Data.PredictorModelArrayConverter input)
             {
-                var output = new Microsoft.ML.Data.PredictorModelArrayConverter.Output();
+                var output = new Microsoft.ML.Legacy.Data.PredictorModelArrayConverter.Output();
                 Add(input, output);
                 return output;
             }
 
-            public void Add(Microsoft.ML.Data.PredictorModelArrayConverter input, Microsoft.ML.Data.PredictorModelArrayConverter.Output output)
+            public void Add(Microsoft.ML.Legacy.Data.PredictorModelArrayConverter input, Microsoft.ML.Legacy.Data.PredictorModelArrayConverter.Output output)
             {
                 _jsonNodes.Add(Serialize("Data.PredictorModelArrayConverter", input, output));
             }
 
-            public Microsoft.ML.Data.TextLoader.Output Add(Microsoft.ML.Data.TextLoader input)
+            public Microsoft.ML.Legacy.Data.TextLoader.Output Add(Microsoft.ML.Legacy.Data.TextLoader input)
             {
-                var output = new Microsoft.ML.Data.TextLoader.Output();
+                var output = new Microsoft.ML.Legacy.Data.TextLoader.Output();
                 Add(input, output);
                 return output;
             }
 
-            public void Add(Microsoft.ML.Data.TextLoader input, Microsoft.ML.Data.TextLoader.Output output)
+            public void Add(Microsoft.ML.Legacy.Data.TextLoader input, Microsoft.ML.Legacy.Data.TextLoader.Output output)
             {
                 _jsonNodes.Add(Serialize("Data.TextLoader", input, output));
             }
 
-            public Microsoft.ML.Data.TransformModelArrayConverter.Output Add(Microsoft.ML.Data.TransformModelArrayConverter input)
+            public Microsoft.ML.Legacy.Data.TransformModelArrayConverter.Output Add(Microsoft.ML.Legacy.Data.TransformModelArrayConverter input)
             {
-                var output = new Microsoft.ML.Data.TransformModelArrayConverter.Output();
+                var output = new Microsoft.ML.Legacy.Data.TransformModelArrayConverter.Output();
                 Add(input, output);
                 return output;
             }
 
-            public void Add(Microsoft.ML.Data.TransformModelArrayConverter input, Microsoft.ML.Data.TransformModelArrayConverter.Output output)
+            public void Add(Microsoft.ML.Legacy.Data.TransformModelArrayConverter input, Microsoft.ML.Legacy.Data.TransformModelArrayConverter.Output output)
             {
                 _jsonNodes.Add(Serialize("Data.TransformModelArrayConverter", input, output));
             }
 
-            public Microsoft.ML.Models.AnomalyDetectionEvaluator.Output Add(Microsoft.ML.Models.AnomalyDetectionEvaluator input)
+            public Microsoft.ML.Legacy.Models.AnomalyDetectionEvaluator.Output Add(Microsoft.ML.Legacy.Models.AnomalyDetectionEvaluator input)
             {
-                var output = new Microsoft.ML.Models.AnomalyDetectionEvaluator.Output();
+                var output = new Microsoft.ML.Legacy.Models.AnomalyDetectionEvaluator.Output();
                 Add(input, output);
                 return output;
             }
 
-            public void Add(Microsoft.ML.Models.AnomalyDetectionEvaluator input, Microsoft.ML.Models.AnomalyDetectionEvaluator.Output output)
+            public void Add(Microsoft.ML.Legacy.Models.AnomalyDetectionEvaluator input, Microsoft.ML.Legacy.Models.AnomalyDetectionEvaluator.Output output)
             {
                 _jsonNodes.Add(Serialize("Models.AnomalyDetectionEvaluator", input, output));
             }
 
-            public Microsoft.ML.Models.AnomalyPipelineEnsemble.Output Add(Microsoft.ML.Models.AnomalyPipelineEnsemble input)
+            public Microsoft.ML.Legacy.Models.AnomalyPipelineEnsemble.Output Add(Microsoft.ML.Legacy.Models.AnomalyPipelineEnsemble input)
             {
-                var output = new Microsoft.ML.Models.AnomalyPipelineEnsemble.Output();
+                var output = new Microsoft.ML.Legacy.Models.AnomalyPipelineEnsemble.Output();
                 Add(input, output);
                 return output;
             }
 
-            public void Add(Microsoft.ML.Models.AnomalyPipelineEnsemble input, Microsoft.ML.Models.AnomalyPipelineEnsemble.Output output)
+            public void Add(Microsoft.ML.Legacy.Models.AnomalyPipelineEnsemble input, Microsoft.ML.Legacy.Models.AnomalyPipelineEnsemble.Output output)
             {
                 _jsonNodes.Add(Serialize("Models.AnomalyPipelineEnsemble", input, output));
             }
 
-            public Microsoft.ML.Models.BinaryClassificationEvaluator.Output Add(Microsoft.ML.Models.BinaryClassificationEvaluator input)
+            public Microsoft.ML.Legacy.Models.BinaryClassificationEvaluator.Output Add(Microsoft.ML.Legacy.Models.BinaryClassificationEvaluator input)
             {
-                var output = new Microsoft.ML.Models.BinaryClassificationEvaluator.Output();
+                var output = new Microsoft.ML.Legacy.Models.BinaryClassificationEvaluator.Output();
                 Add(input, output);
                 return output;
             }
 
-            public void Add(Microsoft.ML.Models.BinaryClassificationEvaluator input, Microsoft.ML.Models.BinaryClassificationEvaluator.Output output)
+            public void Add(Microsoft.ML.Legacy.Models.BinaryClassificationEvaluator input, Microsoft.ML.Legacy.Models.BinaryClassificationEvaluator.Output output)
             {
                 _jsonNodes.Add(Serialize("Models.BinaryClassificationEvaluator", input, output));
             }
 
-            public Microsoft.ML.Models.BinaryCrossValidator.Output Add(Microsoft.ML.Models.BinaryCrossValidator input)
+            public Microsoft.ML.Legacy.Models.BinaryCrossValidator.Output Add(Microsoft.ML.Legacy.Models.BinaryCrossValidator input)
             {
-                var output = new Microsoft.ML.Models.BinaryCrossValidator.Output();
+                var output = new Microsoft.ML.Legacy.Models.BinaryCrossValidator.Output();
                 Add(input, output);
                 return output;
             }
 
-            public void Add(Microsoft.ML.Models.BinaryCrossValidator input, Microsoft.ML.Models.BinaryCrossValidator.Output output)
+            public void Add(Microsoft.ML.Legacy.Models.BinaryCrossValidator input, Microsoft.ML.Legacy.Models.BinaryCrossValidator.Output output)
             {
                 _jsonNodes.Add(Serialize("Models.BinaryCrossValidator", input, output));
             }
 
-            public Microsoft.ML.Models.BinaryEnsemble.Output Add(Microsoft.ML.Models.BinaryEnsemble input)
+            public Microsoft.ML.Legacy.Models.BinaryEnsemble.Output Add(Microsoft.ML.Legacy.Models.BinaryEnsemble input)
             {
-                var output = new Microsoft.ML.Models.BinaryEnsemble.Output();
+                var output = new Microsoft.ML.Legacy.Models.BinaryEnsemble.Output();
                 Add(input, output);
                 return output;
             }
 
-            public void Add(Microsoft.ML.Models.BinaryEnsemble input, Microsoft.ML.Models.BinaryEnsemble.Output output)
+            public void Add(Microsoft.ML.Legacy.Models.BinaryEnsemble input, Microsoft.ML.Legacy.Models.BinaryEnsemble.Output output)
             {
                 _jsonNodes.Add(Serialize("Models.BinaryEnsemble", input, output));
             }
 
-            public Microsoft.ML.Models.BinaryPipelineEnsemble.Output Add(Microsoft.ML.Models.BinaryPipelineEnsemble input)
+            public Microsoft.ML.Legacy.Models.BinaryPipelineEnsemble.Output Add(Microsoft.ML.Legacy.Models.BinaryPipelineEnsemble input)
             {
-                var output = new Microsoft.ML.Models.BinaryPipelineEnsemble.Output();
+                var output = new Microsoft.ML.Legacy.Models.BinaryPipelineEnsemble.Output();
                 Add(input, output);
                 return output;
             }
 
-            public void Add(Microsoft.ML.Models.BinaryPipelineEnsemble input, Microsoft.ML.Models.BinaryPipelineEnsemble.Output output)
+            public void Add(Microsoft.ML.Legacy.Models.BinaryPipelineEnsemble input, Microsoft.ML.Legacy.Models.BinaryPipelineEnsemble.Output output)
             {
                 _jsonNodes.Add(Serialize("Models.BinaryPipelineEnsemble", input, output));
             }
 
-            public Microsoft.ML.Models.ClassificationEvaluator.Output Add(Microsoft.ML.Models.ClassificationEvaluator input)
+            public Microsoft.ML.Legacy.Models.ClassificationEvaluator.Output Add(Microsoft.ML.Legacy.Models.ClassificationEvaluator input)
             {
-                var output = new Microsoft.ML.Models.ClassificationEvaluator.Output();
+                var output = new Microsoft.ML.Legacy.Models.ClassificationEvaluator.Output();
                 Add(input, output);
                 return output;
             }
 
-            public void Add(Microsoft.ML.Models.ClassificationEvaluator input, Microsoft.ML.Models.ClassificationEvaluator.Output output)
+            public void Add(Microsoft.ML.Legacy.Models.ClassificationEvaluator input, Microsoft.ML.Legacy.Models.ClassificationEvaluator.Output output)
             {
                 _jsonNodes.Add(Serialize("Models.ClassificationEvaluator", input, output));
             }
 
-            public Microsoft.ML.Models.ClusterEvaluator.Output Add(Microsoft.ML.Models.ClusterEvaluator input)
+            public Microsoft.ML.Legacy.Models.ClusterEvaluator.Output Add(Microsoft.ML.Legacy.Models.ClusterEvaluator input)
             {
-                var output = new Microsoft.ML.Models.ClusterEvaluator.Output();
+                var output = new Microsoft.ML.Legacy.Models.ClusterEvaluator.Output();
                 Add(input, output);
                 return output;
             }
 
-            public void Add(Microsoft.ML.Models.ClusterEvaluator input, Microsoft.ML.Models.ClusterEvaluator.Output output)
+            public void Add(Microsoft.ML.Legacy.Models.ClusterEvaluator input, Microsoft.ML.Legacy.Models.ClusterEvaluator.Output output)
             {
                 _jsonNodes.Add(Serialize("Models.ClusterEvaluator", input, output));
             }
 
-            public Microsoft.ML.Models.CrossValidationResultsCombiner.Output Add(Microsoft.ML.Models.CrossValidationResultsCombiner input)
+            public Microsoft.ML.Legacy.Models.CrossValidationResultsCombiner.Output Add(Microsoft.ML.Legacy.Models.CrossValidationResultsCombiner input)
             {
-                var output = new Microsoft.ML.Models.CrossValidationResultsCombiner.Output();
+                var output = new Microsoft.ML.Legacy.Models.CrossValidationResultsCombiner.Output();
                 Add(input, output);
                 return output;
             }
 
-            public void Add(Microsoft.ML.Models.CrossValidationResultsCombiner input, Microsoft.ML.Models.CrossValidationResultsCombiner.Output output)
+            public void Add(Microsoft.ML.Legacy.Models.CrossValidationResultsCombiner input, Microsoft.ML.Legacy.Models.CrossValidationResultsCombiner.Output output)
             {
                 _jsonNodes.Add(Serialize("Models.CrossValidationResultsCombiner", input, output));
             }
 
-            public Microsoft.ML.Models.CrossValidator.Output Add(Microsoft.ML.Models.CrossValidator input)
+            public Microsoft.ML.Legacy.Models.CrossValidator.Output Add(Microsoft.ML.Legacy.Models.CrossValidator input)
             {
-                var output = new Microsoft.ML.Models.CrossValidator.Output();
+                var output = new Microsoft.ML.Legacy.Models.CrossValidator.Output();
                 Add(input, output);
                 return output;
             }
 
-            public void Add(Microsoft.ML.Models.CrossValidator input, Microsoft.ML.Models.CrossValidator.Output output)
+            public void Add(Microsoft.ML.Legacy.Models.CrossValidator input, Microsoft.ML.Legacy.Models.CrossValidator.Output output)
             {
                 _jsonNodes.Add(Serialize("Models.CrossValidator", input, output));
             }
 
-            public Microsoft.ML.Models.CrossValidatorDatasetSplitter.Output Add(Microsoft.ML.Models.CrossValidatorDatasetSplitter input)
+            public Microsoft.ML.Legacy.Models.CrossValidatorDatasetSplitter.Output Add(Microsoft.ML.Legacy.Models.CrossValidatorDatasetSplitter input)
             {
-                var output = new Microsoft.ML.Models.CrossValidatorDatasetSplitter.Output();
+                var output = new Microsoft.ML.Legacy.Models.CrossValidatorDatasetSplitter.Output();
                 Add(input, output);
                 return output;
             }
 
-            public void Add(Microsoft.ML.Models.CrossValidatorDatasetSplitter input, Microsoft.ML.Models.CrossValidatorDatasetSplitter.Output output)
+            public void Add(Microsoft.ML.Legacy.Models.CrossValidatorDatasetSplitter input, Microsoft.ML.Legacy.Models.CrossValidatorDatasetSplitter.Output output)
             {
                 _jsonNodes.Add(Serialize("Models.CrossValidatorDatasetSplitter", input, output));
             }
 
-            public Microsoft.ML.Models.DatasetTransformer.Output Add(Microsoft.ML.Models.DatasetTransformer input)
+            public Microsoft.ML.Legacy.Models.DatasetTransformer.Output Add(Microsoft.ML.Legacy.Models.DatasetTransformer input)
             {
-                var output = new Microsoft.ML.Models.DatasetTransformer.Output();
+                var output = new Microsoft.ML.Legacy.Models.DatasetTransformer.Output();
                 Add(input, output);
                 return output;
             }
 
-            public void Add(Microsoft.ML.Models.DatasetTransformer input, Microsoft.ML.Models.DatasetTransformer.Output output)
+            public void Add(Microsoft.ML.Legacy.Models.DatasetTransformer input, Microsoft.ML.Legacy.Models.DatasetTransformer.Output output)
             {
                 _jsonNodes.Add(Serialize("Models.DatasetTransformer", input, output));
             }
 
-            public Microsoft.ML.Models.EnsembleSummary.Output Add(Microsoft.ML.Models.EnsembleSummary input)
+            public Microsoft.ML.Legacy.Models.EnsembleSummary.Output Add(Microsoft.ML.Legacy.Models.EnsembleSummary input)
             {
-                var output = new Microsoft.ML.Models.EnsembleSummary.Output();
+                var output = new Microsoft.ML.Legacy.Models.EnsembleSummary.Output();
                 Add(input, output);
                 return output;
             }
 
-            public void Add(Microsoft.ML.Models.EnsembleSummary input, Microsoft.ML.Models.EnsembleSummary.Output output)
+            public void Add(Microsoft.ML.Legacy.Models.EnsembleSummary input, Microsoft.ML.Legacy.Models.EnsembleSummary.Output output)
             {
                 _jsonNodes.Add(Serialize("Models.EnsembleSummary", input, output));
             }
 
-            public Microsoft.ML.Models.FixedPlattCalibrator.Output Add(Microsoft.ML.Models.FixedPlattCalibrator input)
+            public Microsoft.ML.Legacy.Models.FixedPlattCalibrator.Output Add(Microsoft.ML.Legacy.Models.FixedPlattCalibrator input)
             {
-                var output = new Microsoft.ML.Models.FixedPlattCalibrator.Output();
+                var output = new Microsoft.ML.Legacy.Models.FixedPlattCalibrator.Output();
                 Add(input, output);
                 return output;
             }
 
-            public void Add(Microsoft.ML.Models.FixedPlattCalibrator input, Microsoft.ML.Models.FixedPlattCalibrator.Output output)
+            public void Add(Microsoft.ML.Legacy.Models.FixedPlattCalibrator input, Microsoft.ML.Legacy.Models.FixedPlattCalibrator.Output output)
             {
                 _jsonNodes.Add(Serialize("Models.FixedPlattCalibrator", input, output));
             }
 
-            public Microsoft.ML.Models.MultiClassPipelineEnsemble.Output Add(Microsoft.ML.Models.MultiClassPipelineEnsemble input)
+            public Microsoft.ML.Legacy.Models.MultiClassPipelineEnsemble.Output Add(Microsoft.ML.Legacy.Models.MultiClassPipelineEnsemble input)
             {
-                var output = new Microsoft.ML.Models.MultiClassPipelineEnsemble.Output();
+                var output = new Microsoft.ML.Legacy.Models.MultiClassPipelineEnsemble.Output();
                 Add(input, output);
                 return output;
             }
 
-            public void Add(Microsoft.ML.Models.MultiClassPipelineEnsemble input, Microsoft.ML.Models.MultiClassPipelineEnsemble.Output output)
+            public void Add(Microsoft.ML.Legacy.Models.MultiClassPipelineEnsemble input, Microsoft.ML.Legacy.Models.MultiClassPipelineEnsemble.Output output)
             {
                 _jsonNodes.Add(Serialize("Models.MultiClassPipelineEnsemble", input, output));
             }
 
-            public Microsoft.ML.Models.MultiOutputRegressionEvaluator.Output Add(Microsoft.ML.Models.MultiOutputRegressionEvaluator input)
+            public Microsoft.ML.Legacy.Models.MultiOutputRegressionEvaluator.Output Add(Microsoft.ML.Legacy.Models.MultiOutputRegressionEvaluator input)
             {
-                var output = new Microsoft.ML.Models.MultiOutputRegressionEvaluator.Output();
+                var output = new Microsoft.ML.Legacy.Models.MultiOutputRegressionEvaluator.Output();
                 Add(input, output);
                 return output;
             }
 
-            public void Add(Microsoft.ML.Models.MultiOutputRegressionEvaluator input, Microsoft.ML.Models.MultiOutputRegressionEvaluator.Output output)
+            public void Add(Microsoft.ML.Legacy.Models.MultiOutputRegressionEvaluator input, Microsoft.ML.Legacy.Models.MultiOutputRegressionEvaluator.Output output)
             {
                 _jsonNodes.Add(Serialize("Models.MultiOutputRegressionEvaluator", input, output));
             }
 
-            public Microsoft.ML.Models.NaiveCalibrator.Output Add(Microsoft.ML.Models.NaiveCalibrator input)
+            public Microsoft.ML.Legacy.Models.NaiveCalibrator.Output Add(Microsoft.ML.Legacy.Models.NaiveCalibrator input)
             {
-                var output = new Microsoft.ML.Models.NaiveCalibrator.Output();
+                var output = new Microsoft.ML.Legacy.Models.NaiveCalibrator.Output();
                 Add(input, output);
                 return output;
             }
 
-            public void Add(Microsoft.ML.Models.NaiveCalibrator input, Microsoft.ML.Models.NaiveCalibrator.Output output)
+            public void Add(Microsoft.ML.Legacy.Models.NaiveCalibrator input, Microsoft.ML.Legacy.Models.NaiveCalibrator.Output output)
             {
                 _jsonNodes.Add(Serialize("Models.NaiveCalibrator", input, output));
             }
 
-            public Microsoft.ML.Models.OneVersusAll.Output Add(Microsoft.ML.Models.OneVersusAll input)
+            public Microsoft.ML.Legacy.Models.OneVersusAll.Output Add(Microsoft.ML.Legacy.Models.OneVersusAll input)
             {
-                var output = new Microsoft.ML.Models.OneVersusAll.Output();
+                var output = new Microsoft.ML.Legacy.Models.OneVersusAll.Output();
                 Add(input, output);
                 return output;
             }
 
-            public void Add(Microsoft.ML.Models.OneVersusAll input, Microsoft.ML.Models.OneVersusAll.Output output)
+            public void Add(Microsoft.ML.Legacy.Models.OneVersusAll input, Microsoft.ML.Legacy.Models.OneVersusAll.Output output)
             {
                 _jsonNodes.Add(Serialize("Models.OneVersusAll", input, output));
             }
 
-            public Microsoft.ML.Models.OnnxConverter.Output Add(Microsoft.ML.Models.OnnxConverter input)
+            public Microsoft.ML.Legacy.Models.OnnxConverter.Output Add(Microsoft.ML.Legacy.Models.OnnxConverter input)
             {
-                var output = new Microsoft.ML.Models.OnnxConverter.Output();
+                var output = new Microsoft.ML.Legacy.Models.OnnxConverter.Output();
                 Add(input, output);
                 return output;
             }
 
-            public void Add(Microsoft.ML.Models.OnnxConverter input, Microsoft.ML.Models.OnnxConverter.Output output)
+            public void Add(Microsoft.ML.Legacy.Models.OnnxConverter input, Microsoft.ML.Legacy.Models.OnnxConverter.Output output)
             {
                 _jsonNodes.Add(Serialize("Models.OnnxConverter", input, output));
             }
 
-            public Microsoft.ML.Models.OvaModelCombiner.Output Add(Microsoft.ML.Models.OvaModelCombiner input)
+            public Microsoft.ML.Legacy.Models.OvaModelCombiner.Output Add(Microsoft.ML.Legacy.Models.OvaModelCombiner input)
             {
-                var output = new Microsoft.ML.Models.OvaModelCombiner.Output();
+                var output = new Microsoft.ML.Legacy.Models.OvaModelCombiner.Output();
                 Add(input, output);
                 return output;
             }
 
-            public void Add(Microsoft.ML.Models.OvaModelCombiner input, Microsoft.ML.Models.OvaModelCombiner.Output output)
+            public void Add(Microsoft.ML.Legacy.Models.OvaModelCombiner input, Microsoft.ML.Legacy.Models.OvaModelCombiner.Output output)
             {
                 _jsonNodes.Add(Serialize("Models.OvaModelCombiner", input, output));
             }
 
-            public Microsoft.ML.Models.PAVCalibrator.Output Add(Microsoft.ML.Models.PAVCalibrator input)
+            public Microsoft.ML.Legacy.Models.PAVCalibrator.Output Add(Microsoft.ML.Legacy.Models.PAVCalibrator input)
             {
-                var output = new Microsoft.ML.Models.PAVCalibrator.Output();
+                var output = new Microsoft.ML.Legacy.Models.PAVCalibrator.Output();
                 Add(input, output);
                 return output;
             }
 
-            public void Add(Microsoft.ML.Models.PAVCalibrator input, Microsoft.ML.Models.PAVCalibrator.Output output)
+            public void Add(Microsoft.ML.Legacy.Models.PAVCalibrator input, Microsoft.ML.Legacy.Models.PAVCalibrator.Output output)
             {
                 _jsonNodes.Add(Serialize("Models.PAVCalibrator", input, output));
             }
 
-            public Microsoft.ML.Models.PipelineSweeper.Output Add(Microsoft.ML.Models.PipelineSweeper input)
+            public Microsoft.ML.Legacy.Models.PipelineSweeper.Output Add(Microsoft.ML.Legacy.Models.PipelineSweeper input)
             {
-                var output = new Microsoft.ML.Models.PipelineSweeper.Output();
+                var output = new Microsoft.ML.Legacy.Models.PipelineSweeper.Output();
                 Add(input, output);
                 return output;
             }
 
-            public void Add(Microsoft.ML.Models.PipelineSweeper input, Microsoft.ML.Models.PipelineSweeper.Output output)
+            public void Add(Microsoft.ML.Legacy.Models.PipelineSweeper input, Microsoft.ML.Legacy.Models.PipelineSweeper.Output output)
             {
                 _jsonNodes.Add(Serialize("Models.PipelineSweeper", input, output));
             }
 
-            public Microsoft.ML.Models.PlattCalibrator.Output Add(Microsoft.ML.Models.PlattCalibrator input)
+            public Microsoft.ML.Legacy.Models.PlattCalibrator.Output Add(Microsoft.ML.Legacy.Models.PlattCalibrator input)
             {
-                var output = new Microsoft.ML.Models.PlattCalibrator.Output();
+                var output = new Microsoft.ML.Legacy.Models.PlattCalibrator.Output();
                 Add(input, output);
                 return output;
             }
 
-            public void Add(Microsoft.ML.Models.PlattCalibrator input, Microsoft.ML.Models.PlattCalibrator.Output output)
+            public void Add(Microsoft.ML.Legacy.Models.PlattCalibrator input, Microsoft.ML.Legacy.Models.PlattCalibrator.Output output)
             {
                 _jsonNodes.Add(Serialize("Models.PlattCalibrator", input, output));
             }
 
-            public Microsoft.ML.Models.QuantileRegressionEvaluator.Output Add(Microsoft.ML.Models.QuantileRegressionEvaluator input)
+            public Microsoft.ML.Legacy.Models.QuantileRegressionEvaluator.Output Add(Microsoft.ML.Legacy.Models.QuantileRegressionEvaluator input)
             {
-                var output = new Microsoft.ML.Models.QuantileRegressionEvaluator.Output();
+                var output = new Microsoft.ML.Legacy.Models.QuantileRegressionEvaluator.Output();
                 Add(input, output);
                 return output;
             }
 
-            public void Add(Microsoft.ML.Models.QuantileRegressionEvaluator input, Microsoft.ML.Models.QuantileRegressionEvaluator.Output output)
+            public void Add(Microsoft.ML.Legacy.Models.QuantileRegressionEvaluator input, Microsoft.ML.Legacy.Models.QuantileRegressionEvaluator.Output output)
             {
                 _jsonNodes.Add(Serialize("Models.QuantileRegressionEvaluator", input, output));
             }
 
-            public Microsoft.ML.Models.RankerEvaluator.Output Add(Microsoft.ML.Models.RankerEvaluator input)
+            public Microsoft.ML.Legacy.Models.RankerEvaluator.Output Add(Microsoft.ML.Legacy.Models.RankerEvaluator input)
             {
-                var output = new Microsoft.ML.Models.RankerEvaluator.Output();
+                var output = new Microsoft.ML.Legacy.Models.RankerEvaluator.Output();
                 Add(input, output);
                 return output;
             }
 
-            public void Add(Microsoft.ML.Models.RankerEvaluator input, Microsoft.ML.Models.RankerEvaluator.Output output)
+            public void Add(Microsoft.ML.Legacy.Models.RankerEvaluator input, Microsoft.ML.Legacy.Models.RankerEvaluator.Output output)
             {
                 _jsonNodes.Add(Serialize("Models.RankerEvaluator", input, output));
             }
 
-            public Microsoft.ML.Models.RegressionEnsemble.Output Add(Microsoft.ML.Models.RegressionEnsemble input)
+            public Microsoft.ML.Legacy.Models.RegressionEnsemble.Output Add(Microsoft.ML.Legacy.Models.RegressionEnsemble input)
             {
-                var output = new Microsoft.ML.Models.RegressionEnsemble.Output();
+                var output = new Microsoft.ML.Legacy.Models.RegressionEnsemble.Output();
                 Add(input, output);
                 return output;
             }
 
-            public void Add(Microsoft.ML.Models.RegressionEnsemble input, Microsoft.ML.Models.RegressionEnsemble.Output output)
+            public void Add(Microsoft.ML.Legacy.Models.RegressionEnsemble input, Microsoft.ML.Legacy.Models.RegressionEnsemble.Output output)
             {
                 _jsonNodes.Add(Serialize("Models.RegressionEnsemble", input, output));
             }
 
-            public Microsoft.ML.Models.RegressionEvaluator.Output Add(Microsoft.ML.Models.RegressionEvaluator input)
+            public Microsoft.ML.Legacy.Models.RegressionEvaluator.Output Add(Microsoft.ML.Legacy.Models.RegressionEvaluator input)
             {
-                var output = new Microsoft.ML.Models.RegressionEvaluator.Output();
+                var output = new Microsoft.ML.Legacy.Models.RegressionEvaluator.Output();
                 Add(input, output);
                 return output;
             }
 
-            public void Add(Microsoft.ML.Models.RegressionEvaluator input, Microsoft.ML.Models.RegressionEvaluator.Output output)
+            public void Add(Microsoft.ML.Legacy.Models.RegressionEvaluator input, Microsoft.ML.Legacy.Models.RegressionEvaluator.Output output)
             {
                 _jsonNodes.Add(Serialize("Models.RegressionEvaluator", input, output));
             }
 
-            public Microsoft.ML.Models.RegressionPipelineEnsemble.Output Add(Microsoft.ML.Models.RegressionPipelineEnsemble input)
+            public Microsoft.ML.Legacy.Models.RegressionPipelineEnsemble.Output Add(Microsoft.ML.Legacy.Models.RegressionPipelineEnsemble input)
             {
-                var output = new Microsoft.ML.Models.RegressionPipelineEnsemble.Output();
+                var output = new Microsoft.ML.Legacy.Models.RegressionPipelineEnsemble.Output();
                 Add(input, output);
                 return output;
             }
 
-            public void Add(Microsoft.ML.Models.RegressionPipelineEnsemble input, Microsoft.ML.Models.RegressionPipelineEnsemble.Output output)
+            public void Add(Microsoft.ML.Legacy.Models.RegressionPipelineEnsemble input, Microsoft.ML.Legacy.Models.RegressionPipelineEnsemble.Output output)
             {
                 _jsonNodes.Add(Serialize("Models.RegressionPipelineEnsemble", input, output));
             }
 
-            public Microsoft.ML.Models.Summarizer.Output Add(Microsoft.ML.Models.Summarizer input)
+            public Microsoft.ML.Legacy.Models.Summarizer.Output Add(Microsoft.ML.Legacy.Models.Summarizer input)
             {
-                var output = new Microsoft.ML.Models.Summarizer.Output();
+                var output = new Microsoft.ML.Legacy.Models.Summarizer.Output();
                 Add(input, output);
                 return output;
             }
 
-            public void Add(Microsoft.ML.Models.Summarizer input, Microsoft.ML.Models.Summarizer.Output output)
+            public void Add(Microsoft.ML.Legacy.Models.Summarizer input, Microsoft.ML.Legacy.Models.Summarizer.Output output)
             {
                 _jsonNodes.Add(Serialize("Models.Summarizer", input, output));
             }
 
-            public Microsoft.ML.Models.SweepResultExtractor.Output Add(Microsoft.ML.Models.SweepResultExtractor input)
+            public Microsoft.ML.Legacy.Models.SweepResultExtractor.Output Add(Microsoft.ML.Legacy.Models.SweepResultExtractor input)
             {
-                var output = new Microsoft.ML.Models.SweepResultExtractor.Output();
+                var output = new Microsoft.ML.Legacy.Models.SweepResultExtractor.Output();
                 Add(input, output);
                 return output;
             }
 
-            public void Add(Microsoft.ML.Models.SweepResultExtractor input, Microsoft.ML.Models.SweepResultExtractor.Output output)
+            public void Add(Microsoft.ML.Legacy.Models.SweepResultExtractor input, Microsoft.ML.Legacy.Models.SweepResultExtractor.Output output)
             {
                 _jsonNodes.Add(Serialize("Models.SweepResultExtractor", input, output));
             }
 
-            public Microsoft.ML.Models.TrainTestBinaryEvaluator.Output Add(Microsoft.ML.Models.TrainTestBinaryEvaluator input)
+            public Microsoft.ML.Legacy.Models.TrainTestBinaryEvaluator.Output Add(Microsoft.ML.Legacy.Models.TrainTestBinaryEvaluator input)
             {
-                var output = new Microsoft.ML.Models.TrainTestBinaryEvaluator.Output();
+                var output = new Microsoft.ML.Legacy.Models.TrainTestBinaryEvaluator.Output();
                 Add(input, output);
                 return output;
             }
 
-            public void Add(Microsoft.ML.Models.TrainTestBinaryEvaluator input, Microsoft.ML.Models.TrainTestBinaryEvaluator.Output output)
+            public void Add(Microsoft.ML.Legacy.Models.TrainTestBinaryEvaluator input, Microsoft.ML.Legacy.Models.TrainTestBinaryEvaluator.Output output)
             {
                 _jsonNodes.Add(Serialize("Models.TrainTestBinaryEvaluator", input, output));
             }
 
-            public Microsoft.ML.Models.TrainTestEvaluator.Output Add(Microsoft.ML.Models.TrainTestEvaluator input)
+            public Microsoft.ML.Legacy.Models.TrainTestEvaluator.Output Add(Microsoft.ML.Legacy.Models.TrainTestEvaluator input)
             {
-                var output = new Microsoft.ML.Models.TrainTestEvaluator.Output();
+                var output = new Microsoft.ML.Legacy.Models.TrainTestEvaluator.Output();
                 Add(input, output);
                 return output;
             }
 
-            public void Add(Microsoft.ML.Models.TrainTestEvaluator input, Microsoft.ML.Models.TrainTestEvaluator.Output output)
+            public void Add(Microsoft.ML.Legacy.Models.TrainTestEvaluator input, Microsoft.ML.Legacy.Models.TrainTestEvaluator.Output output)
             {
                 _jsonNodes.Add(Serialize("Models.TrainTestEvaluator", input, output));
             }
 
-            public Microsoft.ML.Trainers.AveragedPerceptronBinaryClassifier.Output Add(Microsoft.ML.Trainers.AveragedPerceptronBinaryClassifier input)
+            public Microsoft.ML.Legacy.Trainers.AveragedPerceptronBinaryClassifier.Output Add(Microsoft.ML.Legacy.Trainers.AveragedPerceptronBinaryClassifier input)
             {
-                var output = new Microsoft.ML.Trainers.AveragedPerceptronBinaryClassifier.Output();
+                var output = new Microsoft.ML.Legacy.Trainers.AveragedPerceptronBinaryClassifier.Output();
                 Add(input, output);
                 return output;
             }
 
-            public void Add(Microsoft.ML.Trainers.AveragedPerceptronBinaryClassifier input, Microsoft.ML.Trainers.AveragedPerceptronBinaryClassifier.Output output)
+            public void Add(Microsoft.ML.Legacy.Trainers.AveragedPerceptronBinaryClassifier input, Microsoft.ML.Legacy.Trainers.AveragedPerceptronBinaryClassifier.Output output)
             {
                 _jsonNodes.Add(Serialize("Trainers.AveragedPerceptronBinaryClassifier", input, output));
             }
 
-            public Microsoft.ML.Trainers.EnsembleBinaryClassifier.Output Add(Microsoft.ML.Trainers.EnsembleBinaryClassifier input)
+            public Microsoft.ML.Legacy.Trainers.EnsembleBinaryClassifier.Output Add(Microsoft.ML.Legacy.Trainers.EnsembleBinaryClassifier input)
             {
-                var output = new Microsoft.ML.Trainers.EnsembleBinaryClassifier.Output();
+                var output = new Microsoft.ML.Legacy.Trainers.EnsembleBinaryClassifier.Output();
                 Add(input, output);
                 return output;
             }
 
-            public void Add(Microsoft.ML.Trainers.EnsembleBinaryClassifier input, Microsoft.ML.Trainers.EnsembleBinaryClassifier.Output output)
+            public void Add(Microsoft.ML.Legacy.Trainers.EnsembleBinaryClassifier input, Microsoft.ML.Legacy.Trainers.EnsembleBinaryClassifier.Output output)
             {
                 _jsonNodes.Add(Serialize("Trainers.EnsembleBinaryClassifier", input, output));
             }
 
-            public Microsoft.ML.Trainers.EnsembleClassification.Output Add(Microsoft.ML.Trainers.EnsembleClassification input)
+            public Microsoft.ML.Legacy.Trainers.EnsembleClassification.Output Add(Microsoft.ML.Legacy.Trainers.EnsembleClassification input)
             {
-                var output = new Microsoft.ML.Trainers.EnsembleClassification.Output();
+                var output = new Microsoft.ML.Legacy.Trainers.EnsembleClassification.Output();
                 Add(input, output);
                 return output;
             }
 
-            public void Add(Microsoft.ML.Trainers.EnsembleClassification input, Microsoft.ML.Trainers.EnsembleClassification.Output output)
+            public void Add(Microsoft.ML.Legacy.Trainers.EnsembleClassification input, Microsoft.ML.Legacy.Trainers.EnsembleClassification.Output output)
             {
                 _jsonNodes.Add(Serialize("Trainers.EnsembleClassification", input, output));
             }
 
-            public Microsoft.ML.Trainers.EnsembleRegression.Output Add(Microsoft.ML.Trainers.EnsembleRegression input)
+            public Microsoft.ML.Legacy.Trainers.EnsembleRegression.Output Add(Microsoft.ML.Legacy.Trainers.EnsembleRegression input)
             {
-                var output = new Microsoft.ML.Trainers.EnsembleRegression.Output();
+                var output = new Microsoft.ML.Legacy.Trainers.EnsembleRegression.Output();
                 Add(input, output);
                 return output;
             }
 
-            public void Add(Microsoft.ML.Trainers.EnsembleRegression input, Microsoft.ML.Trainers.EnsembleRegression.Output output)
+            public void Add(Microsoft.ML.Legacy.Trainers.EnsembleRegression input, Microsoft.ML.Legacy.Trainers.EnsembleRegression.Output output)
             {
                 _jsonNodes.Add(Serialize("Trainers.EnsembleRegression", input, output));
             }
 
-            public Microsoft.ML.Trainers.FastForestBinaryClassifier.Output Add(Microsoft.ML.Trainers.FastForestBinaryClassifier input)
+            public Microsoft.ML.Legacy.Trainers.FastForestBinaryClassifier.Output Add(Microsoft.ML.Legacy.Trainers.FastForestBinaryClassifier input)
             {
-                var output = new Microsoft.ML.Trainers.FastForestBinaryClassifier.Output();
+                var output = new Microsoft.ML.Legacy.Trainers.FastForestBinaryClassifier.Output();
                 Add(input, output);
                 return output;
             }
 
-            public void Add(Microsoft.ML.Trainers.FastForestBinaryClassifier input, Microsoft.ML.Trainers.FastForestBinaryClassifier.Output output)
+            public void Add(Microsoft.ML.Legacy.Trainers.FastForestBinaryClassifier input, Microsoft.ML.Legacy.Trainers.FastForestBinaryClassifier.Output output)
             {
                 _jsonNodes.Add(Serialize("Trainers.FastForestBinaryClassifier", input, output));
             }
 
-            public Microsoft.ML.Trainers.FastForestRegressor.Output Add(Microsoft.ML.Trainers.FastForestRegressor input)
+            public Microsoft.ML.Legacy.Trainers.FastForestRegressor.Output Add(Microsoft.ML.Legacy.Trainers.FastForestRegressor input)
             {
-                var output = new Microsoft.ML.Trainers.FastForestRegressor.Output();
+                var output = new Microsoft.ML.Legacy.Trainers.FastForestRegressor.Output();
                 Add(input, output);
                 return output;
             }
 
-            public void Add(Microsoft.ML.Trainers.FastForestRegressor input, Microsoft.ML.Trainers.FastForestRegressor.Output output)
+            public void Add(Microsoft.ML.Legacy.Trainers.FastForestRegressor input, Microsoft.ML.Legacy.Trainers.FastForestRegressor.Output output)
             {
                 _jsonNodes.Add(Serialize("Trainers.FastForestRegressor", input, output));
             }
 
-            public Microsoft.ML.Trainers.FastTreeBinaryClassifier.Output Add(Microsoft.ML.Trainers.FastTreeBinaryClassifier input)
+            public Microsoft.ML.Legacy.Trainers.FastTreeBinaryClassifier.Output Add(Microsoft.ML.Legacy.Trainers.FastTreeBinaryClassifier input)
             {
-                var output = new Microsoft.ML.Trainers.FastTreeBinaryClassifier.Output();
+                var output = new Microsoft.ML.Legacy.Trainers.FastTreeBinaryClassifier.Output();
                 Add(input, output);
                 return output;
             }
 
-            public void Add(Microsoft.ML.Trainers.FastTreeBinaryClassifier input, Microsoft.ML.Trainers.FastTreeBinaryClassifier.Output output)
+            public void Add(Microsoft.ML.Legacy.Trainers.FastTreeBinaryClassifier input, Microsoft.ML.Legacy.Trainers.FastTreeBinaryClassifier.Output output)
             {
                 _jsonNodes.Add(Serialize("Trainers.FastTreeBinaryClassifier", input, output));
             }
 
-            public Microsoft.ML.Trainers.FastTreeRanker.Output Add(Microsoft.ML.Trainers.FastTreeRanker input)
+            public Microsoft.ML.Legacy.Trainers.FastTreeRanker.Output Add(Microsoft.ML.Legacy.Trainers.FastTreeRanker input)
             {
-                var output = new Microsoft.ML.Trainers.FastTreeRanker.Output();
+                var output = new Microsoft.ML.Legacy.Trainers.FastTreeRanker.Output();
                 Add(input, output);
                 return output;
             }
 
-            public void Add(Microsoft.ML.Trainers.FastTreeRanker input, Microsoft.ML.Trainers.FastTreeRanker.Output output)
+            public void Add(Microsoft.ML.Legacy.Trainers.FastTreeRanker input, Microsoft.ML.Legacy.Trainers.FastTreeRanker.Output output)
             {
                 _jsonNodes.Add(Serialize("Trainers.FastTreeRanker", input, output));
             }
 
-            public Microsoft.ML.Trainers.FastTreeRegressor.Output Add(Microsoft.ML.Trainers.FastTreeRegressor input)
+            public Microsoft.ML.Legacy.Trainers.FastTreeRegressor.Output Add(Microsoft.ML.Legacy.Trainers.FastTreeRegressor input)
             {
-                var output = new Microsoft.ML.Trainers.FastTreeRegressor.Output();
+                var output = new Microsoft.ML.Legacy.Trainers.FastTreeRegressor.Output();
                 Add(input, output);
                 return output;
             }
 
-            public void Add(Microsoft.ML.Trainers.FastTreeRegressor input, Microsoft.ML.Trainers.FastTreeRegressor.Output output)
+            public void Add(Microsoft.ML.Legacy.Trainers.FastTreeRegressor input, Microsoft.ML.Legacy.Trainers.FastTreeRegressor.Output output)
             {
                 _jsonNodes.Add(Serialize("Trainers.FastTreeRegressor", input, output));
             }
 
-            public Microsoft.ML.Trainers.FastTreeTweedieRegressor.Output Add(Microsoft.ML.Trainers.FastTreeTweedieRegressor input)
+            public Microsoft.ML.Legacy.Trainers.FastTreeTweedieRegressor.Output Add(Microsoft.ML.Legacy.Trainers.FastTreeTweedieRegressor input)
             {
-                var output = new Microsoft.ML.Trainers.FastTreeTweedieRegressor.Output();
+                var output = new Microsoft.ML.Legacy.Trainers.FastTreeTweedieRegressor.Output();
                 Add(input, output);
                 return output;
             }
 
-            public void Add(Microsoft.ML.Trainers.FastTreeTweedieRegressor input, Microsoft.ML.Trainers.FastTreeTweedieRegressor.Output output)
+            public void Add(Microsoft.ML.Legacy.Trainers.FastTreeTweedieRegressor input, Microsoft.ML.Legacy.Trainers.FastTreeTweedieRegressor.Output output)
             {
                 _jsonNodes.Add(Serialize("Trainers.FastTreeTweedieRegressor", input, output));
             }
 
-            public Microsoft.ML.Trainers.FieldAwareFactorizationMachineBinaryClassifier.Output Add(Microsoft.ML.Trainers.FieldAwareFactorizationMachineBinaryClassifier input)
+            public Microsoft.ML.Legacy.Trainers.FieldAwareFactorizationMachineBinaryClassifier.Output Add(Microsoft.ML.Legacy.Trainers.FieldAwareFactorizationMachineBinaryClassifier input)
             {
-                var output = new Microsoft.ML.Trainers.FieldAwareFactorizationMachineBinaryClassifier.Output();
+                var output = new Microsoft.ML.Legacy.Trainers.FieldAwareFactorizationMachineBinaryClassifier.Output();
                 Add(input, output);
                 return output;
             }
 
-            public void Add(Microsoft.ML.Trainers.FieldAwareFactorizationMachineBinaryClassifier input, Microsoft.ML.Trainers.FieldAwareFactorizationMachineBinaryClassifier.Output output)
+            public void Add(Microsoft.ML.Legacy.Trainers.FieldAwareFactorizationMachineBinaryClassifier input, Microsoft.ML.Legacy.Trainers.FieldAwareFactorizationMachineBinaryClassifier.Output output)
             {
                 _jsonNodes.Add(Serialize("Trainers.FieldAwareFactorizationMachineBinaryClassifier", input, output));
             }
 
-            public Microsoft.ML.Trainers.GeneralizedAdditiveModelBinaryClassifier.Output Add(Microsoft.ML.Trainers.GeneralizedAdditiveModelBinaryClassifier input)
+            public Microsoft.ML.Legacy.Trainers.GeneralizedAdditiveModelBinaryClassifier.Output Add(Microsoft.ML.Legacy.Trainers.GeneralizedAdditiveModelBinaryClassifier input)
             {
-                var output = new Microsoft.ML.Trainers.GeneralizedAdditiveModelBinaryClassifier.Output();
+                var output = new Microsoft.ML.Legacy.Trainers.GeneralizedAdditiveModelBinaryClassifier.Output();
                 Add(input, output);
                 return output;
             }
 
-            public void Add(Microsoft.ML.Trainers.GeneralizedAdditiveModelBinaryClassifier input, Microsoft.ML.Trainers.GeneralizedAdditiveModelBinaryClassifier.Output output)
+            public void Add(Microsoft.ML.Legacy.Trainers.GeneralizedAdditiveModelBinaryClassifier input, Microsoft.ML.Legacy.Trainers.GeneralizedAdditiveModelBinaryClassifier.Output output)
             {
                 _jsonNodes.Add(Serialize("Trainers.GeneralizedAdditiveModelBinaryClassifier", input, output));
             }
 
-            public Microsoft.ML.Trainers.GeneralizedAdditiveModelRegressor.Output Add(Microsoft.ML.Trainers.GeneralizedAdditiveModelRegressor input)
+            public Microsoft.ML.Legacy.Trainers.GeneralizedAdditiveModelRegressor.Output Add(Microsoft.ML.Legacy.Trainers.GeneralizedAdditiveModelRegressor input)
             {
-                var output = new Microsoft.ML.Trainers.GeneralizedAdditiveModelRegressor.Output();
+                var output = new Microsoft.ML.Legacy.Trainers.GeneralizedAdditiveModelRegressor.Output();
                 Add(input, output);
                 return output;
             }
 
-            public void Add(Microsoft.ML.Trainers.GeneralizedAdditiveModelRegressor input, Microsoft.ML.Trainers.GeneralizedAdditiveModelRegressor.Output output)
+            public void Add(Microsoft.ML.Legacy.Trainers.GeneralizedAdditiveModelRegressor input, Microsoft.ML.Legacy.Trainers.GeneralizedAdditiveModelRegressor.Output output)
             {
                 _jsonNodes.Add(Serialize("Trainers.GeneralizedAdditiveModelRegressor", input, output));
             }
 
-            public Microsoft.ML.Trainers.KMeansPlusPlusClusterer.Output Add(Microsoft.ML.Trainers.KMeansPlusPlusClusterer input)
+            public Microsoft.ML.Legacy.Trainers.KMeansPlusPlusClusterer.Output Add(Microsoft.ML.Legacy.Trainers.KMeansPlusPlusClusterer input)
             {
-                var output = new Microsoft.ML.Trainers.KMeansPlusPlusClusterer.Output();
+                var output = new Microsoft.ML.Legacy.Trainers.KMeansPlusPlusClusterer.Output();
                 Add(input, output);
                 return output;
             }
 
-            public void Add(Microsoft.ML.Trainers.KMeansPlusPlusClusterer input, Microsoft.ML.Trainers.KMeansPlusPlusClusterer.Output output)
+            public void Add(Microsoft.ML.Legacy.Trainers.KMeansPlusPlusClusterer input, Microsoft.ML.Legacy.Trainers.KMeansPlusPlusClusterer.Output output)
             {
                 _jsonNodes.Add(Serialize("Trainers.KMeansPlusPlusClusterer", input, output));
             }
 
-            public Microsoft.ML.Trainers.LightGbmBinaryClassifier.Output Add(Microsoft.ML.Trainers.LightGbmBinaryClassifier input)
+            public Microsoft.ML.Legacy.Trainers.LightGbmBinaryClassifier.Output Add(Microsoft.ML.Legacy.Trainers.LightGbmBinaryClassifier input)
             {
-                var output = new Microsoft.ML.Trainers.LightGbmBinaryClassifier.Output();
+                var output = new Microsoft.ML.Legacy.Trainers.LightGbmBinaryClassifier.Output();
                 Add(input, output);
                 return output;
             }
 
-            public void Add(Microsoft.ML.Trainers.LightGbmBinaryClassifier input, Microsoft.ML.Trainers.LightGbmBinaryClassifier.Output output)
+            public void Add(Microsoft.ML.Legacy.Trainers.LightGbmBinaryClassifier input, Microsoft.ML.Legacy.Trainers.LightGbmBinaryClassifier.Output output)
             {
                 _jsonNodes.Add(Serialize("Trainers.LightGbmBinaryClassifier", input, output));
             }
 
-            public Microsoft.ML.Trainers.LightGbmClassifier.Output Add(Microsoft.ML.Trainers.LightGbmClassifier input)
+            public Microsoft.ML.Legacy.Trainers.LightGbmClassifier.Output Add(Microsoft.ML.Legacy.Trainers.LightGbmClassifier input)
             {
-                var output = new Microsoft.ML.Trainers.LightGbmClassifier.Output();
+                var output = new Microsoft.ML.Legacy.Trainers.LightGbmClassifier.Output();
                 Add(input, output);
                 return output;
             }
 
-            public void Add(Microsoft.ML.Trainers.LightGbmClassifier input, Microsoft.ML.Trainers.LightGbmClassifier.Output output)
+            public void Add(Microsoft.ML.Legacy.Trainers.LightGbmClassifier input, Microsoft.ML.Legacy.Trainers.LightGbmClassifier.Output output)
             {
                 _jsonNodes.Add(Serialize("Trainers.LightGbmClassifier", input, output));
             }
 
-            public Microsoft.ML.Trainers.LightGbmRanker.Output Add(Microsoft.ML.Trainers.LightGbmRanker input)
+            public Microsoft.ML.Legacy.Trainers.LightGbmRanker.Output Add(Microsoft.ML.Legacy.Trainers.LightGbmRanker input)
             {
-                var output = new Microsoft.ML.Trainers.LightGbmRanker.Output();
+                var output = new Microsoft.ML.Legacy.Trainers.LightGbmRanker.Output();
                 Add(input, output);
                 return output;
             }
 
-            public void Add(Microsoft.ML.Trainers.LightGbmRanker input, Microsoft.ML.Trainers.LightGbmRanker.Output output)
+            public void Add(Microsoft.ML.Legacy.Trainers.LightGbmRanker input, Microsoft.ML.Legacy.Trainers.LightGbmRanker.Output output)
             {
                 _jsonNodes.Add(Serialize("Trainers.LightGbmRanker", input, output));
             }
 
-            public Microsoft.ML.Trainers.LightGbmRegressor.Output Add(Microsoft.ML.Trainers.LightGbmRegressor input)
+            public Microsoft.ML.Legacy.Trainers.LightGbmRegressor.Output Add(Microsoft.ML.Legacy.Trainers.LightGbmRegressor input)
             {
-                var output = new Microsoft.ML.Trainers.LightGbmRegressor.Output();
+                var output = new Microsoft.ML.Legacy.Trainers.LightGbmRegressor.Output();
                 Add(input, output);
                 return output;
             }
 
-            public void Add(Microsoft.ML.Trainers.LightGbmRegressor input, Microsoft.ML.Trainers.LightGbmRegressor.Output output)
+            public void Add(Microsoft.ML.Legacy.Trainers.LightGbmRegressor input, Microsoft.ML.Legacy.Trainers.LightGbmRegressor.Output output)
             {
                 _jsonNodes.Add(Serialize("Trainers.LightGbmRegressor", input, output));
             }
 
-            public Microsoft.ML.Trainers.LinearSvmBinaryClassifier.Output Add(Microsoft.ML.Trainers.LinearSvmBinaryClassifier input)
+            public Microsoft.ML.Legacy.Trainers.LinearSvmBinaryClassifier.Output Add(Microsoft.ML.Legacy.Trainers.LinearSvmBinaryClassifier input)
             {
-                var output = new Microsoft.ML.Trainers.LinearSvmBinaryClassifier.Output();
+                var output = new Microsoft.ML.Legacy.Trainers.LinearSvmBinaryClassifier.Output();
                 Add(input, output);
                 return output;
             }
 
-            public void Add(Microsoft.ML.Trainers.LinearSvmBinaryClassifier input, Microsoft.ML.Trainers.LinearSvmBinaryClassifier.Output output)
+            public void Add(Microsoft.ML.Legacy.Trainers.LinearSvmBinaryClassifier input, Microsoft.ML.Legacy.Trainers.LinearSvmBinaryClassifier.Output output)
             {
                 _jsonNodes.Add(Serialize("Trainers.LinearSvmBinaryClassifier", input, output));
             }
 
-            public Microsoft.ML.Trainers.LogisticRegressionBinaryClassifier.Output Add(Microsoft.ML.Trainers.LogisticRegressionBinaryClassifier input)
+            public Microsoft.ML.Legacy.Trainers.LogisticRegressionBinaryClassifier.Output Add(Microsoft.ML.Legacy.Trainers.LogisticRegressionBinaryClassifier input)
             {
-                var output = new Microsoft.ML.Trainers.LogisticRegressionBinaryClassifier.Output();
+                var output = new Microsoft.ML.Legacy.Trainers.LogisticRegressionBinaryClassifier.Output();
                 Add(input, output);
                 return output;
             }
 
-            public void Add(Microsoft.ML.Trainers.LogisticRegressionBinaryClassifier input, Microsoft.ML.Trainers.LogisticRegressionBinaryClassifier.Output output)
+            public void Add(Microsoft.ML.Legacy.Trainers.LogisticRegressionBinaryClassifier input, Microsoft.ML.Legacy.Trainers.LogisticRegressionBinaryClassifier.Output output)
             {
                 _jsonNodes.Add(Serialize("Trainers.LogisticRegressionBinaryClassifier", input, output));
             }
 
-            public Microsoft.ML.Trainers.LogisticRegressionClassifier.Output Add(Microsoft.ML.Trainers.LogisticRegressionClassifier input)
+            public Microsoft.ML.Legacy.Trainers.LogisticRegressionClassifier.Output Add(Microsoft.ML.Legacy.Trainers.LogisticRegressionClassifier input)
             {
-                var output = new Microsoft.ML.Trainers.LogisticRegressionClassifier.Output();
+                var output = new Microsoft.ML.Legacy.Trainers.LogisticRegressionClassifier.Output();
                 Add(input, output);
                 return output;
             }
 
-            public void Add(Microsoft.ML.Trainers.LogisticRegressionClassifier input, Microsoft.ML.Trainers.LogisticRegressionClassifier.Output output)
+            public void Add(Microsoft.ML.Legacy.Trainers.LogisticRegressionClassifier input, Microsoft.ML.Legacy.Trainers.LogisticRegressionClassifier.Output output)
             {
                 _jsonNodes.Add(Serialize("Trainers.LogisticRegressionClassifier", input, output));
             }
 
-            public Microsoft.ML.Trainers.NaiveBayesClassifier.Output Add(Microsoft.ML.Trainers.NaiveBayesClassifier input)
+            public Microsoft.ML.Legacy.Trainers.NaiveBayesClassifier.Output Add(Microsoft.ML.Legacy.Trainers.NaiveBayesClassifier input)
             {
-                var output = new Microsoft.ML.Trainers.NaiveBayesClassifier.Output();
+                var output = new Microsoft.ML.Legacy.Trainers.NaiveBayesClassifier.Output();
                 Add(input, output);
                 return output;
             }
 
-            public void Add(Microsoft.ML.Trainers.NaiveBayesClassifier input, Microsoft.ML.Trainers.NaiveBayesClassifier.Output output)
+            public void Add(Microsoft.ML.Legacy.Trainers.NaiveBayesClassifier input, Microsoft.ML.Legacy.Trainers.NaiveBayesClassifier.Output output)
             {
                 _jsonNodes.Add(Serialize("Trainers.NaiveBayesClassifier", input, output));
             }
 
-            public Microsoft.ML.Trainers.OnlineGradientDescentRegressor.Output Add(Microsoft.ML.Trainers.OnlineGradientDescentRegressor input)
+            public Microsoft.ML.Legacy.Trainers.OnlineGradientDescentRegressor.Output Add(Microsoft.ML.Legacy.Trainers.OnlineGradientDescentRegressor input)
             {
-                var output = new Microsoft.ML.Trainers.OnlineGradientDescentRegressor.Output();
+                var output = new Microsoft.ML.Legacy.Trainers.OnlineGradientDescentRegressor.Output();
                 Add(input, output);
                 return output;
             }
 
-            public void Add(Microsoft.ML.Trainers.OnlineGradientDescentRegressor input, Microsoft.ML.Trainers.OnlineGradientDescentRegressor.Output output)
+            public void Add(Microsoft.ML.Legacy.Trainers.OnlineGradientDescentRegressor input, Microsoft.ML.Legacy.Trainers.OnlineGradientDescentRegressor.Output output)
             {
                 _jsonNodes.Add(Serialize("Trainers.OnlineGradientDescentRegressor", input, output));
             }
 
-            public Microsoft.ML.Trainers.OrdinaryLeastSquaresRegressor.Output Add(Microsoft.ML.Trainers.OrdinaryLeastSquaresRegressor input)
+            public Microsoft.ML.Legacy.Trainers.OrdinaryLeastSquaresRegressor.Output Add(Microsoft.ML.Legacy.Trainers.OrdinaryLeastSquaresRegressor input)
             {
-                var output = new Microsoft.ML.Trainers.OrdinaryLeastSquaresRegressor.Output();
+                var output = new Microsoft.ML.Legacy.Trainers.OrdinaryLeastSquaresRegressor.Output();
                 Add(input, output);
                 return output;
             }
 
-            public void Add(Microsoft.ML.Trainers.OrdinaryLeastSquaresRegressor input, Microsoft.ML.Trainers.OrdinaryLeastSquaresRegressor.Output output)
+            public void Add(Microsoft.ML.Legacy.Trainers.OrdinaryLeastSquaresRegressor input, Microsoft.ML.Legacy.Trainers.OrdinaryLeastSquaresRegressor.Output output)
             {
                 _jsonNodes.Add(Serialize("Trainers.OrdinaryLeastSquaresRegressor", input, output));
             }
 
-            public Microsoft.ML.Trainers.PcaAnomalyDetector.Output Add(Microsoft.ML.Trainers.PcaAnomalyDetector input)
+            public Microsoft.ML.Legacy.Trainers.PcaAnomalyDetector.Output Add(Microsoft.ML.Legacy.Trainers.PcaAnomalyDetector input)
             {
-                var output = new Microsoft.ML.Trainers.PcaAnomalyDetector.Output();
+                var output = new Microsoft.ML.Legacy.Trainers.PcaAnomalyDetector.Output();
                 Add(input, output);
                 return output;
             }
 
-            public void Add(Microsoft.ML.Trainers.PcaAnomalyDetector input, Microsoft.ML.Trainers.PcaAnomalyDetector.Output output)
+            public void Add(Microsoft.ML.Legacy.Trainers.PcaAnomalyDetector input, Microsoft.ML.Legacy.Trainers.PcaAnomalyDetector.Output output)
             {
                 _jsonNodes.Add(Serialize("Trainers.PcaAnomalyDetector", input, output));
             }
 
-            public Microsoft.ML.Trainers.PoissonRegressor.Output Add(Microsoft.ML.Trainers.PoissonRegressor input)
+            public Microsoft.ML.Legacy.Trainers.PoissonRegressor.Output Add(Microsoft.ML.Legacy.Trainers.PoissonRegressor input)
             {
-                var output = new Microsoft.ML.Trainers.PoissonRegressor.Output();
+                var output = new Microsoft.ML.Legacy.Trainers.PoissonRegressor.Output();
                 Add(input, output);
                 return output;
             }
 
-            public void Add(Microsoft.ML.Trainers.PoissonRegressor input, Microsoft.ML.Trainers.PoissonRegressor.Output output)
+            public void Add(Microsoft.ML.Legacy.Trainers.PoissonRegressor input, Microsoft.ML.Legacy.Trainers.PoissonRegressor.Output output)
             {
                 _jsonNodes.Add(Serialize("Trainers.PoissonRegressor", input, output));
             }
 
-            public Microsoft.ML.Trainers.StochasticDualCoordinateAscentBinaryClassifier.Output Add(Microsoft.ML.Trainers.StochasticDualCoordinateAscentBinaryClassifier input)
+            public Microsoft.ML.Legacy.Trainers.StochasticDualCoordinateAscentBinaryClassifier.Output Add(Microsoft.ML.Legacy.Trainers.StochasticDualCoordinateAscentBinaryClassifier input)
             {
-                var output = new Microsoft.ML.Trainers.StochasticDualCoordinateAscentBinaryClassifier.Output();
+                var output = new Microsoft.ML.Legacy.Trainers.StochasticDualCoordinateAscentBinaryClassifier.Output();
                 Add(input, output);
                 return output;
             }
 
-            public void Add(Microsoft.ML.Trainers.StochasticDualCoordinateAscentBinaryClassifier input, Microsoft.ML.Trainers.StochasticDualCoordinateAscentBinaryClassifier.Output output)
+            public void Add(Microsoft.ML.Legacy.Trainers.StochasticDualCoordinateAscentBinaryClassifier input, Microsoft.ML.Legacy.Trainers.StochasticDualCoordinateAscentBinaryClassifier.Output output)
             {
                 _jsonNodes.Add(Serialize("Trainers.StochasticDualCoordinateAscentBinaryClassifier", input, output));
             }
 
-            public Microsoft.ML.Trainers.StochasticDualCoordinateAscentClassifier.Output Add(Microsoft.ML.Trainers.StochasticDualCoordinateAscentClassifier input)
+            public Microsoft.ML.Legacy.Trainers.StochasticDualCoordinateAscentClassifier.Output Add(Microsoft.ML.Legacy.Trainers.StochasticDualCoordinateAscentClassifier input)
             {
-                var output = new Microsoft.ML.Trainers.StochasticDualCoordinateAscentClassifier.Output();
+                var output = new Microsoft.ML.Legacy.Trainers.StochasticDualCoordinateAscentClassifier.Output();
                 Add(input, output);
                 return output;
             }
 
-            public void Add(Microsoft.ML.Trainers.StochasticDualCoordinateAscentClassifier input, Microsoft.ML.Trainers.StochasticDualCoordinateAscentClassifier.Output output)
+            public void Add(Microsoft.ML.Legacy.Trainers.StochasticDualCoordinateAscentClassifier input, Microsoft.ML.Legacy.Trainers.StochasticDualCoordinateAscentClassifier.Output output)
             {
                 _jsonNodes.Add(Serialize("Trainers.StochasticDualCoordinateAscentClassifier", input, output));
             }
 
-            public Microsoft.ML.Trainers.StochasticDualCoordinateAscentRegressor.Output Add(Microsoft.ML.Trainers.StochasticDualCoordinateAscentRegressor input)
+            public Microsoft.ML.Legacy.Trainers.StochasticDualCoordinateAscentRegressor.Output Add(Microsoft.ML.Legacy.Trainers.StochasticDualCoordinateAscentRegressor input)
             {
-                var output = new Microsoft.ML.Trainers.StochasticDualCoordinateAscentRegressor.Output();
+                var output = new Microsoft.ML.Legacy.Trainers.StochasticDualCoordinateAscentRegressor.Output();
                 Add(input, output);
                 return output;
             }
 
-            public void Add(Microsoft.ML.Trainers.StochasticDualCoordinateAscentRegressor input, Microsoft.ML.Trainers.StochasticDualCoordinateAscentRegressor.Output output)
+            public void Add(Microsoft.ML.Legacy.Trainers.StochasticDualCoordinateAscentRegressor input, Microsoft.ML.Legacy.Trainers.StochasticDualCoordinateAscentRegressor.Output output)
             {
                 _jsonNodes.Add(Serialize("Trainers.StochasticDualCoordinateAscentRegressor", input, output));
             }
 
-            public Microsoft.ML.Trainers.StochasticGradientDescentBinaryClassifier.Output Add(Microsoft.ML.Trainers.StochasticGradientDescentBinaryClassifier input)
+            public Microsoft.ML.Legacy.Trainers.StochasticGradientDescentBinaryClassifier.Output Add(Microsoft.ML.Legacy.Trainers.StochasticGradientDescentBinaryClassifier input)
             {
-                var output = new Microsoft.ML.Trainers.StochasticGradientDescentBinaryClassifier.Output();
+                var output = new Microsoft.ML.Legacy.Trainers.StochasticGradientDescentBinaryClassifier.Output();
                 Add(input, output);
                 return output;
             }
 
-            public void Add(Microsoft.ML.Trainers.StochasticGradientDescentBinaryClassifier input, Microsoft.ML.Trainers.StochasticGradientDescentBinaryClassifier.Output output)
+            public void Add(Microsoft.ML.Legacy.Trainers.StochasticGradientDescentBinaryClassifier input, Microsoft.ML.Legacy.Trainers.StochasticGradientDescentBinaryClassifier.Output output)
             {
                 _jsonNodes.Add(Serialize("Trainers.StochasticGradientDescentBinaryClassifier", input, output));
             }
 
-            public Microsoft.ML.Trainers.SymSgdBinaryClassifier.Output Add(Microsoft.ML.Trainers.SymSgdBinaryClassifier input)
+            public Microsoft.ML.Legacy.Trainers.SymSgdBinaryClassifier.Output Add(Microsoft.ML.Legacy.Trainers.SymSgdBinaryClassifier input)
             {
-                var output = new Microsoft.ML.Trainers.SymSgdBinaryClassifier.Output();
+                var output = new Microsoft.ML.Legacy.Trainers.SymSgdBinaryClassifier.Output();
                 Add(input, output);
                 return output;
             }
 
-            public void Add(Microsoft.ML.Trainers.SymSgdBinaryClassifier input, Microsoft.ML.Trainers.SymSgdBinaryClassifier.Output output)
+            public void Add(Microsoft.ML.Legacy.Trainers.SymSgdBinaryClassifier input, Microsoft.ML.Legacy.Trainers.SymSgdBinaryClassifier.Output output)
             {
                 _jsonNodes.Add(Serialize("Trainers.SymSgdBinaryClassifier", input, output));
             }
 
-            public Microsoft.ML.Transforms.ApproximateBootstrapSampler.Output Add(Microsoft.ML.Transforms.ApproximateBootstrapSampler input)
+            public Microsoft.ML.Legacy.Transforms.ApproximateBootstrapSampler.Output Add(Microsoft.ML.Legacy.Transforms.ApproximateBootstrapSampler input)
             {
-                var output = new Microsoft.ML.Transforms.ApproximateBootstrapSampler.Output();
+                var output = new Microsoft.ML.Legacy.Transforms.ApproximateBootstrapSampler.Output();
                 Add(input, output);
                 return output;
             }
 
-            public void Add(Microsoft.ML.Transforms.ApproximateBootstrapSampler input, Microsoft.ML.Transforms.ApproximateBootstrapSampler.Output output)
+            public void Add(Microsoft.ML.Legacy.Transforms.ApproximateBootstrapSampler input, Microsoft.ML.Legacy.Transforms.ApproximateBootstrapSampler.Output output)
             {
                 _jsonNodes.Add(Serialize("Transforms.ApproximateBootstrapSampler", input, output));
             }
 
-            public Microsoft.ML.Transforms.BinaryPredictionScoreColumnsRenamer.Output Add(Microsoft.ML.Transforms.BinaryPredictionScoreColumnsRenamer input)
+            public Microsoft.ML.Legacy.Transforms.BinaryPredictionScoreColumnsRenamer.Output Add(Microsoft.ML.Legacy.Transforms.BinaryPredictionScoreColumnsRenamer input)
             {
-                var output = new Microsoft.ML.Transforms.BinaryPredictionScoreColumnsRenamer.Output();
+                var output = new Microsoft.ML.Legacy.Transforms.BinaryPredictionScoreColumnsRenamer.Output();
                 Add(input, output);
                 return output;
             }
 
-            public void Add(Microsoft.ML.Transforms.BinaryPredictionScoreColumnsRenamer input, Microsoft.ML.Transforms.BinaryPredictionScoreColumnsRenamer.Output output)
+            public void Add(Microsoft.ML.Legacy.Transforms.BinaryPredictionScoreColumnsRenamer input, Microsoft.ML.Legacy.Transforms.BinaryPredictionScoreColumnsRenamer.Output output)
             {
                 _jsonNodes.Add(Serialize("Transforms.BinaryPredictionScoreColumnsRenamer", input, output));
             }
 
-            public Microsoft.ML.Transforms.BinNormalizer.Output Add(Microsoft.ML.Transforms.BinNormalizer input)
+            public Microsoft.ML.Legacy.Transforms.BinNormalizer.Output Add(Microsoft.ML.Legacy.Transforms.BinNormalizer input)
             {
-                var output = new Microsoft.ML.Transforms.BinNormalizer.Output();
+                var output = new Microsoft.ML.Legacy.Transforms.BinNormalizer.Output();
                 Add(input, output);
                 return output;
             }
 
-            public void Add(Microsoft.ML.Transforms.BinNormalizer input, Microsoft.ML.Transforms.BinNormalizer.Output output)
+            public void Add(Microsoft.ML.Legacy.Transforms.BinNormalizer input, Microsoft.ML.Legacy.Transforms.BinNormalizer.Output output)
             {
                 _jsonNodes.Add(Serialize("Transforms.BinNormalizer", input, output));
             }
 
-            public Microsoft.ML.Transforms.CategoricalHashOneHotVectorizer.Output Add(Microsoft.ML.Transforms.CategoricalHashOneHotVectorizer input)
+            public Microsoft.ML.Legacy.Transforms.CategoricalHashOneHotVectorizer.Output Add(Microsoft.ML.Legacy.Transforms.CategoricalHashOneHotVectorizer input)
             {
-                var output = new Microsoft.ML.Transforms.CategoricalHashOneHotVectorizer.Output();
+                var output = new Microsoft.ML.Legacy.Transforms.CategoricalHashOneHotVectorizer.Output();
                 Add(input, output);
                 return output;
             }
 
-            public void Add(Microsoft.ML.Transforms.CategoricalHashOneHotVectorizer input, Microsoft.ML.Transforms.CategoricalHashOneHotVectorizer.Output output)
+            public void Add(Microsoft.ML.Legacy.Transforms.CategoricalHashOneHotVectorizer input, Microsoft.ML.Legacy.Transforms.CategoricalHashOneHotVectorizer.Output output)
             {
                 _jsonNodes.Add(Serialize("Transforms.CategoricalHashOneHotVectorizer", input, output));
             }
 
-            public Microsoft.ML.Transforms.CategoricalOneHotVectorizer.Output Add(Microsoft.ML.Transforms.CategoricalOneHotVectorizer input)
+            public Microsoft.ML.Legacy.Transforms.CategoricalOneHotVectorizer.Output Add(Microsoft.ML.Legacy.Transforms.CategoricalOneHotVectorizer input)
             {
-                var output = new Microsoft.ML.Transforms.CategoricalOneHotVectorizer.Output();
+                var output = new Microsoft.ML.Legacy.Transforms.CategoricalOneHotVectorizer.Output();
                 Add(input, output);
                 return output;
             }
 
-            public void Add(Microsoft.ML.Transforms.CategoricalOneHotVectorizer input, Microsoft.ML.Transforms.CategoricalOneHotVectorizer.Output output)
+            public void Add(Microsoft.ML.Legacy.Transforms.CategoricalOneHotVectorizer input, Microsoft.ML.Legacy.Transforms.CategoricalOneHotVectorizer.Output output)
             {
                 _jsonNodes.Add(Serialize("Transforms.CategoricalOneHotVectorizer", input, output));
             }
 
-            public Microsoft.ML.Transforms.CharacterTokenizer.Output Add(Microsoft.ML.Transforms.CharacterTokenizer input)
+            public Microsoft.ML.Legacy.Transforms.CharacterTokenizer.Output Add(Microsoft.ML.Legacy.Transforms.CharacterTokenizer input)
             {
-                var output = new Microsoft.ML.Transforms.CharacterTokenizer.Output();
+                var output = new Microsoft.ML.Legacy.Transforms.CharacterTokenizer.Output();
                 Add(input, output);
                 return output;
             }
 
-            public void Add(Microsoft.ML.Transforms.CharacterTokenizer input, Microsoft.ML.Transforms.CharacterTokenizer.Output output)
+            public void Add(Microsoft.ML.Legacy.Transforms.CharacterTokenizer input, Microsoft.ML.Legacy.Transforms.CharacterTokenizer.Output output)
             {
                 _jsonNodes.Add(Serialize("Transforms.CharacterTokenizer", input, output));
             }
 
-            public Microsoft.ML.Transforms.ColumnConcatenator.Output Add(Microsoft.ML.Transforms.ColumnConcatenator input)
+            public Microsoft.ML.Legacy.Transforms.ColumnConcatenator.Output Add(Microsoft.ML.Legacy.Transforms.ColumnConcatenator input)
             {
-                var output = new Microsoft.ML.Transforms.ColumnConcatenator.Output();
+                var output = new Microsoft.ML.Legacy.Transforms.ColumnConcatenator.Output();
                 Add(input, output);
                 return output;
             }
 
-            public void Add(Microsoft.ML.Transforms.ColumnConcatenator input, Microsoft.ML.Transforms.ColumnConcatenator.Output output)
+            public void Add(Microsoft.ML.Legacy.Transforms.ColumnConcatenator input, Microsoft.ML.Legacy.Transforms.ColumnConcatenator.Output output)
             {
                 _jsonNodes.Add(Serialize("Transforms.ColumnConcatenator", input, output));
             }
 
-            public Microsoft.ML.Transforms.ColumnCopier.Output Add(Microsoft.ML.Transforms.ColumnCopier input)
+            public Microsoft.ML.Legacy.Transforms.ColumnCopier.Output Add(Microsoft.ML.Legacy.Transforms.ColumnCopier input)
             {
-                var output = new Microsoft.ML.Transforms.ColumnCopier.Output();
+                var output = new Microsoft.ML.Legacy.Transforms.ColumnCopier.Output();
                 Add(input, output);
                 return output;
             }
 
-            public void Add(Microsoft.ML.Transforms.ColumnCopier input, Microsoft.ML.Transforms.ColumnCopier.Output output)
+            public void Add(Microsoft.ML.Legacy.Transforms.ColumnCopier input, Microsoft.ML.Legacy.Transforms.ColumnCopier.Output output)
             {
                 _jsonNodes.Add(Serialize("Transforms.ColumnCopier", input, output));
             }
 
-            public Microsoft.ML.Transforms.ColumnDropper.Output Add(Microsoft.ML.Transforms.ColumnDropper input)
+            public Microsoft.ML.Legacy.Transforms.ColumnDropper.Output Add(Microsoft.ML.Legacy.Transforms.ColumnDropper input)
             {
-                var output = new Microsoft.ML.Transforms.ColumnDropper.Output();
+                var output = new Microsoft.ML.Legacy.Transforms.ColumnDropper.Output();
                 Add(input, output);
                 return output;
             }
 
-            public void Add(Microsoft.ML.Transforms.ColumnDropper input, Microsoft.ML.Transforms.ColumnDropper.Output output)
+            public void Add(Microsoft.ML.Legacy.Transforms.ColumnDropper input, Microsoft.ML.Legacy.Transforms.ColumnDropper.Output output)
             {
                 _jsonNodes.Add(Serialize("Transforms.ColumnDropper", input, output));
             }
 
-            public Microsoft.ML.Transforms.ColumnSelector.Output Add(Microsoft.ML.Transforms.ColumnSelector input)
+            public Microsoft.ML.Legacy.Transforms.ColumnSelector.Output Add(Microsoft.ML.Legacy.Transforms.ColumnSelector input)
             {
-                var output = new Microsoft.ML.Transforms.ColumnSelector.Output();
+                var output = new Microsoft.ML.Legacy.Transforms.ColumnSelector.Output();
                 Add(input, output);
                 return output;
             }
 
-            public void Add(Microsoft.ML.Transforms.ColumnSelector input, Microsoft.ML.Transforms.ColumnSelector.Output output)
+            public void Add(Microsoft.ML.Legacy.Transforms.ColumnSelector input, Microsoft.ML.Legacy.Transforms.ColumnSelector.Output output)
             {
                 _jsonNodes.Add(Serialize("Transforms.ColumnSelector", input, output));
             }
 
-            public Microsoft.ML.Transforms.ColumnTypeConverter.Output Add(Microsoft.ML.Transforms.ColumnTypeConverter input)
+            public Microsoft.ML.Legacy.Transforms.ColumnTypeConverter.Output Add(Microsoft.ML.Legacy.Transforms.ColumnTypeConverter input)
             {
-                var output = new Microsoft.ML.Transforms.ColumnTypeConverter.Output();
+                var output = new Microsoft.ML.Legacy.Transforms.ColumnTypeConverter.Output();
                 Add(input, output);
                 return output;
             }
 
-            public void Add(Microsoft.ML.Transforms.ColumnTypeConverter input, Microsoft.ML.Transforms.ColumnTypeConverter.Output output)
+            public void Add(Microsoft.ML.Legacy.Transforms.ColumnTypeConverter input, Microsoft.ML.Legacy.Transforms.ColumnTypeConverter.Output output)
             {
                 _jsonNodes.Add(Serialize("Transforms.ColumnTypeConverter", input, output));
             }
 
-            public Microsoft.ML.Transforms.CombinerByContiguousGroupId.Output Add(Microsoft.ML.Transforms.CombinerByContiguousGroupId input)
+            public Microsoft.ML.Legacy.Transforms.CombinerByContiguousGroupId.Output Add(Microsoft.ML.Legacy.Transforms.CombinerByContiguousGroupId input)
             {
-                var output = new Microsoft.ML.Transforms.CombinerByContiguousGroupId.Output();
+                var output = new Microsoft.ML.Legacy.Transforms.CombinerByContiguousGroupId.Output();
                 Add(input, output);
                 return output;
             }
 
-            public void Add(Microsoft.ML.Transforms.CombinerByContiguousGroupId input, Microsoft.ML.Transforms.CombinerByContiguousGroupId.Output output)
+            public void Add(Microsoft.ML.Legacy.Transforms.CombinerByContiguousGroupId input, Microsoft.ML.Legacy.Transforms.CombinerByContiguousGroupId.Output output)
             {
                 _jsonNodes.Add(Serialize("Transforms.CombinerByContiguousGroupId", input, output));
             }
 
-            public Microsoft.ML.Transforms.ConditionalNormalizer.Output Add(Microsoft.ML.Transforms.ConditionalNormalizer input)
+            public Microsoft.ML.Legacy.Transforms.ConditionalNormalizer.Output Add(Microsoft.ML.Legacy.Transforms.ConditionalNormalizer input)
             {
-                var output = new Microsoft.ML.Transforms.ConditionalNormalizer.Output();
+                var output = new Microsoft.ML.Legacy.Transforms.ConditionalNormalizer.Output();
                 Add(input, output);
                 return output;
             }
 
-            public void Add(Microsoft.ML.Transforms.ConditionalNormalizer input, Microsoft.ML.Transforms.ConditionalNormalizer.Output output)
+            public void Add(Microsoft.ML.Legacy.Transforms.ConditionalNormalizer input, Microsoft.ML.Legacy.Transforms.ConditionalNormalizer.Output output)
             {
                 _jsonNodes.Add(Serialize("Transforms.ConditionalNormalizer", input, output));
             }
 
-            public Microsoft.ML.Transforms.DataCache.Output Add(Microsoft.ML.Transforms.DataCache input)
+            public Microsoft.ML.Legacy.Transforms.DataCache.Output Add(Microsoft.ML.Legacy.Transforms.DataCache input)
             {
-                var output = new Microsoft.ML.Transforms.DataCache.Output();
+                var output = new Microsoft.ML.Legacy.Transforms.DataCache.Output();
                 Add(input, output);
                 return output;
             }
 
-            public void Add(Microsoft.ML.Transforms.DataCache input, Microsoft.ML.Transforms.DataCache.Output output)
+            public void Add(Microsoft.ML.Legacy.Transforms.DataCache input, Microsoft.ML.Legacy.Transforms.DataCache.Output output)
             {
                 _jsonNodes.Add(Serialize("Transforms.DataCache", input, output));
             }
 
-            public Microsoft.ML.Transforms.DatasetScorer.Output Add(Microsoft.ML.Transforms.DatasetScorer input)
+            public Microsoft.ML.Legacy.Transforms.DatasetScorer.Output Add(Microsoft.ML.Legacy.Transforms.DatasetScorer input)
             {
-                var output = new Microsoft.ML.Transforms.DatasetScorer.Output();
+                var output = new Microsoft.ML.Legacy.Transforms.DatasetScorer.Output();
                 Add(input, output);
                 return output;
             }
 
-            public void Add(Microsoft.ML.Transforms.DatasetScorer input, Microsoft.ML.Transforms.DatasetScorer.Output output)
+            public void Add(Microsoft.ML.Legacy.Transforms.DatasetScorer input, Microsoft.ML.Legacy.Transforms.DatasetScorer.Output output)
             {
                 _jsonNodes.Add(Serialize("Transforms.DatasetScorer", input, output));
             }
 
-            public Microsoft.ML.Transforms.DatasetTransformScorer.Output Add(Microsoft.ML.Transforms.DatasetTransformScorer input)
+            public Microsoft.ML.Legacy.Transforms.DatasetTransformScorer.Output Add(Microsoft.ML.Legacy.Transforms.DatasetTransformScorer input)
             {
-                var output = new Microsoft.ML.Transforms.DatasetTransformScorer.Output();
+                var output = new Microsoft.ML.Legacy.Transforms.DatasetTransformScorer.Output();
                 Add(input, output);
                 return output;
             }
 
-            public void Add(Microsoft.ML.Transforms.DatasetTransformScorer input, Microsoft.ML.Transforms.DatasetTransformScorer.Output output)
+            public void Add(Microsoft.ML.Legacy.Transforms.DatasetTransformScorer input, Microsoft.ML.Legacy.Transforms.DatasetTransformScorer.Output output)
             {
                 _jsonNodes.Add(Serialize("Transforms.DatasetTransformScorer", input, output));
             }
 
-            public Microsoft.ML.Transforms.Dictionarizer.Output Add(Microsoft.ML.Transforms.Dictionarizer input)
+            public Microsoft.ML.Legacy.Transforms.Dictionarizer.Output Add(Microsoft.ML.Legacy.Transforms.Dictionarizer input)
             {
-                var output = new Microsoft.ML.Transforms.Dictionarizer.Output();
+                var output = new Microsoft.ML.Legacy.Transforms.Dictionarizer.Output();
                 Add(input, output);
                 return output;
             }
 
-            public void Add(Microsoft.ML.Transforms.Dictionarizer input, Microsoft.ML.Transforms.Dictionarizer.Output output)
+            public void Add(Microsoft.ML.Legacy.Transforms.Dictionarizer input, Microsoft.ML.Legacy.Transforms.Dictionarizer.Output output)
             {
                 _jsonNodes.Add(Serialize("Transforms.Dictionarizer", input, output));
             }
 
-            public Microsoft.ML.Transforms.FeatureCombiner.Output Add(Microsoft.ML.Transforms.FeatureCombiner input)
+            public Microsoft.ML.Legacy.Transforms.FeatureCombiner.Output Add(Microsoft.ML.Legacy.Transforms.FeatureCombiner input)
             {
-                var output = new Microsoft.ML.Transforms.FeatureCombiner.Output();
+                var output = new Microsoft.ML.Legacy.Transforms.FeatureCombiner.Output();
                 Add(input, output);
                 return output;
             }
 
-            public void Add(Microsoft.ML.Transforms.FeatureCombiner input, Microsoft.ML.Transforms.FeatureCombiner.Output output)
+            public void Add(Microsoft.ML.Legacy.Transforms.FeatureCombiner input, Microsoft.ML.Legacy.Transforms.FeatureCombiner.Output output)
             {
                 _jsonNodes.Add(Serialize("Transforms.FeatureCombiner", input, output));
             }
 
-            public Microsoft.ML.Transforms.FeatureSelectorByCount.Output Add(Microsoft.ML.Transforms.FeatureSelectorByCount input)
+            public Microsoft.ML.Legacy.Transforms.FeatureSelectorByCount.Output Add(Microsoft.ML.Legacy.Transforms.FeatureSelectorByCount input)
             {
-                var output = new Microsoft.ML.Transforms.FeatureSelectorByCount.Output();
+                var output = new Microsoft.ML.Legacy.Transforms.FeatureSelectorByCount.Output();
                 Add(input, output);
                 return output;
             }
 
-            public void Add(Microsoft.ML.Transforms.FeatureSelectorByCount input, Microsoft.ML.Transforms.FeatureSelectorByCount.Output output)
+            public void Add(Microsoft.ML.Legacy.Transforms.FeatureSelectorByCount input, Microsoft.ML.Legacy.Transforms.FeatureSelectorByCount.Output output)
             {
                 _jsonNodes.Add(Serialize("Transforms.FeatureSelectorByCount", input, output));
             }
 
-            public Microsoft.ML.Transforms.FeatureSelectorByMutualInformation.Output Add(Microsoft.ML.Transforms.FeatureSelectorByMutualInformation input)
+            public Microsoft.ML.Legacy.Transforms.FeatureSelectorByMutualInformation.Output Add(Microsoft.ML.Legacy.Transforms.FeatureSelectorByMutualInformation input)
             {
-                var output = new Microsoft.ML.Transforms.FeatureSelectorByMutualInformation.Output();
+                var output = new Microsoft.ML.Legacy.Transforms.FeatureSelectorByMutualInformation.Output();
                 Add(input, output);
                 return output;
             }
 
-            public void Add(Microsoft.ML.Transforms.FeatureSelectorByMutualInformation input, Microsoft.ML.Transforms.FeatureSelectorByMutualInformation.Output output)
+            public void Add(Microsoft.ML.Legacy.Transforms.FeatureSelectorByMutualInformation input, Microsoft.ML.Legacy.Transforms.FeatureSelectorByMutualInformation.Output output)
             {
                 _jsonNodes.Add(Serialize("Transforms.FeatureSelectorByMutualInformation", input, output));
             }
 
-            public Microsoft.ML.Transforms.GlobalContrastNormalizer.Output Add(Microsoft.ML.Transforms.GlobalContrastNormalizer input)
+            public Microsoft.ML.Legacy.Transforms.GlobalContrastNormalizer.Output Add(Microsoft.ML.Legacy.Transforms.GlobalContrastNormalizer input)
             {
-                var output = new Microsoft.ML.Transforms.GlobalContrastNormalizer.Output();
+                var output = new Microsoft.ML.Legacy.Transforms.GlobalContrastNormalizer.Output();
                 Add(input, output);
                 return output;
             }
 
-            public void Add(Microsoft.ML.Transforms.GlobalContrastNormalizer input, Microsoft.ML.Transforms.GlobalContrastNormalizer.Output output)
+            public void Add(Microsoft.ML.Legacy.Transforms.GlobalContrastNormalizer input, Microsoft.ML.Legacy.Transforms.GlobalContrastNormalizer.Output output)
             {
                 _jsonNodes.Add(Serialize("Transforms.GlobalContrastNormalizer", input, output));
             }
 
-            public Microsoft.ML.Transforms.HashConverter.Output Add(Microsoft.ML.Transforms.HashConverter input)
+            public Microsoft.ML.Legacy.Transforms.HashConverter.Output Add(Microsoft.ML.Legacy.Transforms.HashConverter input)
             {
-                var output = new Microsoft.ML.Transforms.HashConverter.Output();
+                var output = new Microsoft.ML.Legacy.Transforms.HashConverter.Output();
                 Add(input, output);
                 return output;
             }
 
-            public void Add(Microsoft.ML.Transforms.HashConverter input, Microsoft.ML.Transforms.HashConverter.Output output)
+            public void Add(Microsoft.ML.Legacy.Transforms.HashConverter input, Microsoft.ML.Legacy.Transforms.HashConverter.Output output)
             {
                 _jsonNodes.Add(Serialize("Transforms.HashConverter", input, output));
             }
 
-            public Microsoft.ML.Transforms.ImageGrayscale.Output Add(Microsoft.ML.Transforms.ImageGrayscale input)
+            public Microsoft.ML.Legacy.Transforms.ImageGrayscale.Output Add(Microsoft.ML.Legacy.Transforms.ImageGrayscale input)
             {
-                var output = new Microsoft.ML.Transforms.ImageGrayscale.Output();
+                var output = new Microsoft.ML.Legacy.Transforms.ImageGrayscale.Output();
                 Add(input, output);
                 return output;
             }
 
-            public void Add(Microsoft.ML.Transforms.ImageGrayscale input, Microsoft.ML.Transforms.ImageGrayscale.Output output)
+            public void Add(Microsoft.ML.Legacy.Transforms.ImageGrayscale input, Microsoft.ML.Legacy.Transforms.ImageGrayscale.Output output)
             {
                 _jsonNodes.Add(Serialize("Transforms.ImageGrayscale", input, output));
             }
 
-            public Microsoft.ML.Transforms.ImageLoader.Output Add(Microsoft.ML.Transforms.ImageLoader input)
+            public Microsoft.ML.Legacy.Transforms.ImageLoader.Output Add(Microsoft.ML.Legacy.Transforms.ImageLoader input)
             {
-                var output = new Microsoft.ML.Transforms.ImageLoader.Output();
+                var output = new Microsoft.ML.Legacy.Transforms.ImageLoader.Output();
                 Add(input, output);
                 return output;
             }
 
-            public void Add(Microsoft.ML.Transforms.ImageLoader input, Microsoft.ML.Transforms.ImageLoader.Output output)
+            public void Add(Microsoft.ML.Legacy.Transforms.ImageLoader input, Microsoft.ML.Legacy.Transforms.ImageLoader.Output output)
             {
                 _jsonNodes.Add(Serialize("Transforms.ImageLoader", input, output));
             }
 
-            public Microsoft.ML.Transforms.ImagePixelExtractor.Output Add(Microsoft.ML.Transforms.ImagePixelExtractor input)
+            public Microsoft.ML.Legacy.Transforms.ImagePixelExtractor.Output Add(Microsoft.ML.Legacy.Transforms.ImagePixelExtractor input)
             {
-                var output = new Microsoft.ML.Transforms.ImagePixelExtractor.Output();
+                var output = new Microsoft.ML.Legacy.Transforms.ImagePixelExtractor.Output();
                 Add(input, output);
                 return output;
             }
 
-            public void Add(Microsoft.ML.Transforms.ImagePixelExtractor input, Microsoft.ML.Transforms.ImagePixelExtractor.Output output)
+            public void Add(Microsoft.ML.Legacy.Transforms.ImagePixelExtractor input, Microsoft.ML.Legacy.Transforms.ImagePixelExtractor.Output output)
             {
                 _jsonNodes.Add(Serialize("Transforms.ImagePixelExtractor", input, output));
             }
 
-            public Microsoft.ML.Transforms.ImageResizer.Output Add(Microsoft.ML.Transforms.ImageResizer input)
+            public Microsoft.ML.Legacy.Transforms.ImageResizer.Output Add(Microsoft.ML.Legacy.Transforms.ImageResizer input)
             {
-                var output = new Microsoft.ML.Transforms.ImageResizer.Output();
+                var output = new Microsoft.ML.Legacy.Transforms.ImageResizer.Output();
                 Add(input, output);
                 return output;
             }
 
-            public void Add(Microsoft.ML.Transforms.ImageResizer input, Microsoft.ML.Transforms.ImageResizer.Output output)
+            public void Add(Microsoft.ML.Legacy.Transforms.ImageResizer input, Microsoft.ML.Legacy.Transforms.ImageResizer.Output output)
             {
                 _jsonNodes.Add(Serialize("Transforms.ImageResizer", input, output));
             }
 
-            public Microsoft.ML.Transforms.KeyToTextConverter.Output Add(Microsoft.ML.Transforms.KeyToTextConverter input)
+            public Microsoft.ML.Legacy.Transforms.KeyToTextConverter.Output Add(Microsoft.ML.Legacy.Transforms.KeyToTextConverter input)
             {
-                var output = new Microsoft.ML.Transforms.KeyToTextConverter.Output();
+                var output = new Microsoft.ML.Legacy.Transforms.KeyToTextConverter.Output();
                 Add(input, output);
                 return output;
             }
 
-            public void Add(Microsoft.ML.Transforms.KeyToTextConverter input, Microsoft.ML.Transforms.KeyToTextConverter.Output output)
+            public void Add(Microsoft.ML.Legacy.Transforms.KeyToTextConverter input, Microsoft.ML.Legacy.Transforms.KeyToTextConverter.Output output)
             {
                 _jsonNodes.Add(Serialize("Transforms.KeyToTextConverter", input, output));
             }
 
-            public Microsoft.ML.Transforms.LabelColumnKeyBooleanConverter.Output Add(Microsoft.ML.Transforms.LabelColumnKeyBooleanConverter input)
+            public Microsoft.ML.Legacy.Transforms.LabelColumnKeyBooleanConverter.Output Add(Microsoft.ML.Legacy.Transforms.LabelColumnKeyBooleanConverter input)
             {
-                var output = new Microsoft.ML.Transforms.LabelColumnKeyBooleanConverter.Output();
+                var output = new Microsoft.ML.Legacy.Transforms.LabelColumnKeyBooleanConverter.Output();
                 Add(input, output);
                 return output;
             }
 
-            public void Add(Microsoft.ML.Transforms.LabelColumnKeyBooleanConverter input, Microsoft.ML.Transforms.LabelColumnKeyBooleanConverter.Output output)
+            public void Add(Microsoft.ML.Legacy.Transforms.LabelColumnKeyBooleanConverter input, Microsoft.ML.Legacy.Transforms.LabelColumnKeyBooleanConverter.Output output)
             {
                 _jsonNodes.Add(Serialize("Transforms.LabelColumnKeyBooleanConverter", input, output));
             }
 
-            public Microsoft.ML.Transforms.LabelIndicator.Output Add(Microsoft.ML.Transforms.LabelIndicator input)
+            public Microsoft.ML.Legacy.Transforms.LabelIndicator.Output Add(Microsoft.ML.Legacy.Transforms.LabelIndicator input)
             {
-                var output = new Microsoft.ML.Transforms.LabelIndicator.Output();
+                var output = new Microsoft.ML.Legacy.Transforms.LabelIndicator.Output();
                 Add(input, output);
                 return output;
             }
 
-            public void Add(Microsoft.ML.Transforms.LabelIndicator input, Microsoft.ML.Transforms.LabelIndicator.Output output)
+            public void Add(Microsoft.ML.Legacy.Transforms.LabelIndicator input, Microsoft.ML.Legacy.Transforms.LabelIndicator.Output output)
             {
                 _jsonNodes.Add(Serialize("Transforms.LabelIndicator", input, output));
             }
 
-            public Microsoft.ML.Transforms.LabelToFloatConverter.Output Add(Microsoft.ML.Transforms.LabelToFloatConverter input)
+            public Microsoft.ML.Legacy.Transforms.LabelToFloatConverter.Output Add(Microsoft.ML.Legacy.Transforms.LabelToFloatConverter input)
             {
-                var output = new Microsoft.ML.Transforms.LabelToFloatConverter.Output();
+                var output = new Microsoft.ML.Legacy.Transforms.LabelToFloatConverter.Output();
                 Add(input, output);
                 return output;
             }
 
-            public void Add(Microsoft.ML.Transforms.LabelToFloatConverter input, Microsoft.ML.Transforms.LabelToFloatConverter.Output output)
+            public void Add(Microsoft.ML.Legacy.Transforms.LabelToFloatConverter input, Microsoft.ML.Legacy.Transforms.LabelToFloatConverter.Output output)
             {
                 _jsonNodes.Add(Serialize("Transforms.LabelToFloatConverter", input, output));
             }
 
-            public Microsoft.ML.Transforms.LightLda.Output Add(Microsoft.ML.Transforms.LightLda input)
+            public Microsoft.ML.Legacy.Transforms.LightLda.Output Add(Microsoft.ML.Legacy.Transforms.LightLda input)
             {
-                var output = new Microsoft.ML.Transforms.LightLda.Output();
+                var output = new Microsoft.ML.Legacy.Transforms.LightLda.Output();
                 Add(input, output);
                 return output;
             }
 
-            public void Add(Microsoft.ML.Transforms.LightLda input, Microsoft.ML.Transforms.LightLda.Output output)
+            public void Add(Microsoft.ML.Legacy.Transforms.LightLda input, Microsoft.ML.Legacy.Transforms.LightLda.Output output)
             {
                 _jsonNodes.Add(Serialize("Transforms.LightLda", input, output));
             }
 
-            public Microsoft.ML.Transforms.LogMeanVarianceNormalizer.Output Add(Microsoft.ML.Transforms.LogMeanVarianceNormalizer input)
+            public Microsoft.ML.Legacy.Transforms.LogMeanVarianceNormalizer.Output Add(Microsoft.ML.Legacy.Transforms.LogMeanVarianceNormalizer input)
             {
-                var output = new Microsoft.ML.Transforms.LogMeanVarianceNormalizer.Output();
+                var output = new Microsoft.ML.Legacy.Transforms.LogMeanVarianceNormalizer.Output();
                 Add(input, output);
                 return output;
             }
 
-            public void Add(Microsoft.ML.Transforms.LogMeanVarianceNormalizer input, Microsoft.ML.Transforms.LogMeanVarianceNormalizer.Output output)
+            public void Add(Microsoft.ML.Legacy.Transforms.LogMeanVarianceNormalizer input, Microsoft.ML.Legacy.Transforms.LogMeanVarianceNormalizer.Output output)
             {
                 _jsonNodes.Add(Serialize("Transforms.LogMeanVarianceNormalizer", input, output));
             }
 
-            public Microsoft.ML.Transforms.LpNormalizer.Output Add(Microsoft.ML.Transforms.LpNormalizer input)
+            public Microsoft.ML.Legacy.Transforms.LpNormalizer.Output Add(Microsoft.ML.Legacy.Transforms.LpNormalizer input)
             {
-                var output = new Microsoft.ML.Transforms.LpNormalizer.Output();
+                var output = new Microsoft.ML.Legacy.Transforms.LpNormalizer.Output();
                 Add(input, output);
                 return output;
             }
 
-            public void Add(Microsoft.ML.Transforms.LpNormalizer input, Microsoft.ML.Transforms.LpNormalizer.Output output)
+            public void Add(Microsoft.ML.Legacy.Transforms.LpNormalizer input, Microsoft.ML.Legacy.Transforms.LpNormalizer.Output output)
             {
                 _jsonNodes.Add(Serialize("Transforms.LpNormalizer", input, output));
             }
 
-            public Microsoft.ML.Transforms.ManyHeterogeneousModelCombiner.Output Add(Microsoft.ML.Transforms.ManyHeterogeneousModelCombiner input)
+            public Microsoft.ML.Legacy.Transforms.ManyHeterogeneousModelCombiner.Output Add(Microsoft.ML.Legacy.Transforms.ManyHeterogeneousModelCombiner input)
             {
-                var output = new Microsoft.ML.Transforms.ManyHeterogeneousModelCombiner.Output();
+                var output = new Microsoft.ML.Legacy.Transforms.ManyHeterogeneousModelCombiner.Output();
                 Add(input, output);
                 return output;
             }
 
-            public void Add(Microsoft.ML.Transforms.ManyHeterogeneousModelCombiner input, Microsoft.ML.Transforms.ManyHeterogeneousModelCombiner.Output output)
+            public void Add(Microsoft.ML.Legacy.Transforms.ManyHeterogeneousModelCombiner input, Microsoft.ML.Legacy.Transforms.ManyHeterogeneousModelCombiner.Output output)
             {
                 _jsonNodes.Add(Serialize("Transforms.ManyHeterogeneousModelCombiner", input, output));
             }
 
-            public Microsoft.ML.Transforms.MeanVarianceNormalizer.Output Add(Microsoft.ML.Transforms.MeanVarianceNormalizer input)
+            public Microsoft.ML.Legacy.Transforms.MeanVarianceNormalizer.Output Add(Microsoft.ML.Legacy.Transforms.MeanVarianceNormalizer input)
             {
-                var output = new Microsoft.ML.Transforms.MeanVarianceNormalizer.Output();
+                var output = new Microsoft.ML.Legacy.Transforms.MeanVarianceNormalizer.Output();
                 Add(input, output);
                 return output;
             }
 
-            public void Add(Microsoft.ML.Transforms.MeanVarianceNormalizer input, Microsoft.ML.Transforms.MeanVarianceNormalizer.Output output)
+            public void Add(Microsoft.ML.Legacy.Transforms.MeanVarianceNormalizer input, Microsoft.ML.Legacy.Transforms.MeanVarianceNormalizer.Output output)
             {
                 _jsonNodes.Add(Serialize("Transforms.MeanVarianceNormalizer", input, output));
             }
 
-            public Microsoft.ML.Transforms.MinMaxNormalizer.Output Add(Microsoft.ML.Transforms.MinMaxNormalizer input)
+            public Microsoft.ML.Legacy.Transforms.MinMaxNormalizer.Output Add(Microsoft.ML.Legacy.Transforms.MinMaxNormalizer input)
             {
-                var output = new Microsoft.ML.Transforms.MinMaxNormalizer.Output();
+                var output = new Microsoft.ML.Legacy.Transforms.MinMaxNormalizer.Output();
                 Add(input, output);
                 return output;
             }
 
-            public void Add(Microsoft.ML.Transforms.MinMaxNormalizer input, Microsoft.ML.Transforms.MinMaxNormalizer.Output output)
+            public void Add(Microsoft.ML.Legacy.Transforms.MinMaxNormalizer input, Microsoft.ML.Legacy.Transforms.MinMaxNormalizer.Output output)
             {
                 _jsonNodes.Add(Serialize("Transforms.MinMaxNormalizer", input, output));
             }
 
-            public Microsoft.ML.Transforms.MissingValueHandler.Output Add(Microsoft.ML.Transforms.MissingValueHandler input)
+            public Microsoft.ML.Legacy.Transforms.MissingValueHandler.Output Add(Microsoft.ML.Legacy.Transforms.MissingValueHandler input)
             {
-                var output = new Microsoft.ML.Transforms.MissingValueHandler.Output();
+                var output = new Microsoft.ML.Legacy.Transforms.MissingValueHandler.Output();
                 Add(input, output);
                 return output;
             }
 
-            public void Add(Microsoft.ML.Transforms.MissingValueHandler input, Microsoft.ML.Transforms.MissingValueHandler.Output output)
+            public void Add(Microsoft.ML.Legacy.Transforms.MissingValueHandler input, Microsoft.ML.Legacy.Transforms.MissingValueHandler.Output output)
             {
                 _jsonNodes.Add(Serialize("Transforms.MissingValueHandler", input, output));
             }
 
-            public Microsoft.ML.Transforms.MissingValueIndicator.Output Add(Microsoft.ML.Transforms.MissingValueIndicator input)
+            public Microsoft.ML.Legacy.Transforms.MissingValueIndicator.Output Add(Microsoft.ML.Legacy.Transforms.MissingValueIndicator input)
             {
-                var output = new Microsoft.ML.Transforms.MissingValueIndicator.Output();
+                var output = new Microsoft.ML.Legacy.Transforms.MissingValueIndicator.Output();
                 Add(input, output);
                 return output;
             }
 
-            public void Add(Microsoft.ML.Transforms.MissingValueIndicator input, Microsoft.ML.Transforms.MissingValueIndicator.Output output)
+            public void Add(Microsoft.ML.Legacy.Transforms.MissingValueIndicator input, Microsoft.ML.Legacy.Transforms.MissingValueIndicator.Output output)
             {
                 _jsonNodes.Add(Serialize("Transforms.MissingValueIndicator", input, output));
             }
 
-            public Microsoft.ML.Transforms.MissingValuesDropper.Output Add(Microsoft.ML.Transforms.MissingValuesDropper input)
+            public Microsoft.ML.Legacy.Transforms.MissingValuesDropper.Output Add(Microsoft.ML.Legacy.Transforms.MissingValuesDropper input)
             {
-                var output = new Microsoft.ML.Transforms.MissingValuesDropper.Output();
+                var output = new Microsoft.ML.Legacy.Transforms.MissingValuesDropper.Output();
                 Add(input, output);
                 return output;
             }
 
-            public void Add(Microsoft.ML.Transforms.MissingValuesDropper input, Microsoft.ML.Transforms.MissingValuesDropper.Output output)
+            public void Add(Microsoft.ML.Legacy.Transforms.MissingValuesDropper input, Microsoft.ML.Legacy.Transforms.MissingValuesDropper.Output output)
             {
                 _jsonNodes.Add(Serialize("Transforms.MissingValuesDropper", input, output));
             }
 
-            public Microsoft.ML.Transforms.MissingValuesRowDropper.Output Add(Microsoft.ML.Transforms.MissingValuesRowDropper input)
+            public Microsoft.ML.Legacy.Transforms.MissingValuesRowDropper.Output Add(Microsoft.ML.Legacy.Transforms.MissingValuesRowDropper input)
             {
-                var output = new Microsoft.ML.Transforms.MissingValuesRowDropper.Output();
+                var output = new Microsoft.ML.Legacy.Transforms.MissingValuesRowDropper.Output();
                 Add(input, output);
                 return output;
             }
 
-            public void Add(Microsoft.ML.Transforms.MissingValuesRowDropper input, Microsoft.ML.Transforms.MissingValuesRowDropper.Output output)
+            public void Add(Microsoft.ML.Legacy.Transforms.MissingValuesRowDropper input, Microsoft.ML.Legacy.Transforms.MissingValuesRowDropper.Output output)
             {
                 _jsonNodes.Add(Serialize("Transforms.MissingValuesRowDropper", input, output));
             }
 
-            public Microsoft.ML.Transforms.MissingValueSubstitutor.Output Add(Microsoft.ML.Transforms.MissingValueSubstitutor input)
+            public Microsoft.ML.Legacy.Transforms.MissingValueSubstitutor.Output Add(Microsoft.ML.Legacy.Transforms.MissingValueSubstitutor input)
             {
-                var output = new Microsoft.ML.Transforms.MissingValueSubstitutor.Output();
+                var output = new Microsoft.ML.Legacy.Transforms.MissingValueSubstitutor.Output();
                 Add(input, output);
                 return output;
             }
 
-            public void Add(Microsoft.ML.Transforms.MissingValueSubstitutor input, Microsoft.ML.Transforms.MissingValueSubstitutor.Output output)
+            public void Add(Microsoft.ML.Legacy.Transforms.MissingValueSubstitutor input, Microsoft.ML.Legacy.Transforms.MissingValueSubstitutor.Output output)
             {
                 _jsonNodes.Add(Serialize("Transforms.MissingValueSubstitutor", input, output));
             }
 
-            public Microsoft.ML.Transforms.ModelCombiner.Output Add(Microsoft.ML.Transforms.ModelCombiner input)
+            public Microsoft.ML.Legacy.Transforms.ModelCombiner.Output Add(Microsoft.ML.Legacy.Transforms.ModelCombiner input)
             {
-                var output = new Microsoft.ML.Transforms.ModelCombiner.Output();
+                var output = new Microsoft.ML.Legacy.Transforms.ModelCombiner.Output();
                 Add(input, output);
                 return output;
             }
 
-            public void Add(Microsoft.ML.Transforms.ModelCombiner input, Microsoft.ML.Transforms.ModelCombiner.Output output)
+            public void Add(Microsoft.ML.Legacy.Transforms.ModelCombiner input, Microsoft.ML.Legacy.Transforms.ModelCombiner.Output output)
             {
                 _jsonNodes.Add(Serialize("Transforms.ModelCombiner", input, output));
             }
 
-            public Microsoft.ML.Transforms.NGramTranslator.Output Add(Microsoft.ML.Transforms.NGramTranslator input)
+            public Microsoft.ML.Legacy.Transforms.NGramTranslator.Output Add(Microsoft.ML.Legacy.Transforms.NGramTranslator input)
             {
-                var output = new Microsoft.ML.Transforms.NGramTranslator.Output();
+                var output = new Microsoft.ML.Legacy.Transforms.NGramTranslator.Output();
                 Add(input, output);
                 return output;
             }
 
-            public void Add(Microsoft.ML.Transforms.NGramTranslator input, Microsoft.ML.Transforms.NGramTranslator.Output output)
+            public void Add(Microsoft.ML.Legacy.Transforms.NGramTranslator input, Microsoft.ML.Legacy.Transforms.NGramTranslator.Output output)
             {
                 _jsonNodes.Add(Serialize("Transforms.NGramTranslator", input, output));
             }
 
-            public Microsoft.ML.Transforms.NoOperation.Output Add(Microsoft.ML.Transforms.NoOperation input)
+            public Microsoft.ML.Legacy.Transforms.NoOperation.Output Add(Microsoft.ML.Legacy.Transforms.NoOperation input)
             {
-                var output = new Microsoft.ML.Transforms.NoOperation.Output();
+                var output = new Microsoft.ML.Legacy.Transforms.NoOperation.Output();
                 Add(input, output);
                 return output;
             }
 
-            public void Add(Microsoft.ML.Transforms.NoOperation input, Microsoft.ML.Transforms.NoOperation.Output output)
+            public void Add(Microsoft.ML.Legacy.Transforms.NoOperation input, Microsoft.ML.Legacy.Transforms.NoOperation.Output output)
             {
                 _jsonNodes.Add(Serialize("Transforms.NoOperation", input, output));
             }
 
-            public Microsoft.ML.Transforms.OptionalColumnCreator.Output Add(Microsoft.ML.Transforms.OptionalColumnCreator input)
+            public Microsoft.ML.Legacy.Transforms.OptionalColumnCreator.Output Add(Microsoft.ML.Legacy.Transforms.OptionalColumnCreator input)
             {
-                var output = new Microsoft.ML.Transforms.OptionalColumnCreator.Output();
+                var output = new Microsoft.ML.Legacy.Transforms.OptionalColumnCreator.Output();
                 Add(input, output);
                 return output;
             }
 
-            public void Add(Microsoft.ML.Transforms.OptionalColumnCreator input, Microsoft.ML.Transforms.OptionalColumnCreator.Output output)
+            public void Add(Microsoft.ML.Legacy.Transforms.OptionalColumnCreator input, Microsoft.ML.Legacy.Transforms.OptionalColumnCreator.Output output)
             {
                 _jsonNodes.Add(Serialize("Transforms.OptionalColumnCreator", input, output));
             }
 
-            public Microsoft.ML.Transforms.PcaCalculator.Output Add(Microsoft.ML.Transforms.PcaCalculator input)
+            public Microsoft.ML.Legacy.Transforms.PcaCalculator.Output Add(Microsoft.ML.Legacy.Transforms.PcaCalculator input)
             {
-                var output = new Microsoft.ML.Transforms.PcaCalculator.Output();
+                var output = new Microsoft.ML.Legacy.Transforms.PcaCalculator.Output();
                 Add(input, output);
                 return output;
             }
 
-            public void Add(Microsoft.ML.Transforms.PcaCalculator input, Microsoft.ML.Transforms.PcaCalculator.Output output)
+            public void Add(Microsoft.ML.Legacy.Transforms.PcaCalculator input, Microsoft.ML.Legacy.Transforms.PcaCalculator.Output output)
             {
                 _jsonNodes.Add(Serialize("Transforms.PcaCalculator", input, output));
             }
 
-            public Microsoft.ML.Transforms.PredictedLabelColumnOriginalValueConverter.Output Add(Microsoft.ML.Transforms.PredictedLabelColumnOriginalValueConverter input)
+            public Microsoft.ML.Legacy.Transforms.PredictedLabelColumnOriginalValueConverter.Output Add(Microsoft.ML.Legacy.Transforms.PredictedLabelColumnOriginalValueConverter input)
             {
-                var output = new Microsoft.ML.Transforms.PredictedLabelColumnOriginalValueConverter.Output();
+                var output = new Microsoft.ML.Legacy.Transforms.PredictedLabelColumnOriginalValueConverter.Output();
                 Add(input, output);
                 return output;
             }
 
-            public void Add(Microsoft.ML.Transforms.PredictedLabelColumnOriginalValueConverter input, Microsoft.ML.Transforms.PredictedLabelColumnOriginalValueConverter.Output output)
+            public void Add(Microsoft.ML.Legacy.Transforms.PredictedLabelColumnOriginalValueConverter input, Microsoft.ML.Legacy.Transforms.PredictedLabelColumnOriginalValueConverter.Output output)
             {
                 _jsonNodes.Add(Serialize("Transforms.PredictedLabelColumnOriginalValueConverter", input, output));
             }
 
-            public Microsoft.ML.Transforms.RandomNumberGenerator.Output Add(Microsoft.ML.Transforms.RandomNumberGenerator input)
+            public Microsoft.ML.Legacy.Transforms.RandomNumberGenerator.Output Add(Microsoft.ML.Legacy.Transforms.RandomNumberGenerator input)
             {
-                var output = new Microsoft.ML.Transforms.RandomNumberGenerator.Output();
+                var output = new Microsoft.ML.Legacy.Transforms.RandomNumberGenerator.Output();
                 Add(input, output);
                 return output;
             }
 
-            public void Add(Microsoft.ML.Transforms.RandomNumberGenerator input, Microsoft.ML.Transforms.RandomNumberGenerator.Output output)
+            public void Add(Microsoft.ML.Legacy.Transforms.RandomNumberGenerator input, Microsoft.ML.Legacy.Transforms.RandomNumberGenerator.Output output)
             {
                 _jsonNodes.Add(Serialize("Transforms.RandomNumberGenerator", input, output));
             }
 
-            public Microsoft.ML.Transforms.RowRangeFilter.Output Add(Microsoft.ML.Transforms.RowRangeFilter input)
+            public Microsoft.ML.Legacy.Transforms.RowRangeFilter.Output Add(Microsoft.ML.Legacy.Transforms.RowRangeFilter input)
             {
-                var output = new Microsoft.ML.Transforms.RowRangeFilter.Output();
+                var output = new Microsoft.ML.Legacy.Transforms.RowRangeFilter.Output();
                 Add(input, output);
                 return output;
             }
 
-            public void Add(Microsoft.ML.Transforms.RowRangeFilter input, Microsoft.ML.Transforms.RowRangeFilter.Output output)
+            public void Add(Microsoft.ML.Legacy.Transforms.RowRangeFilter input, Microsoft.ML.Legacy.Transforms.RowRangeFilter.Output output)
             {
                 _jsonNodes.Add(Serialize("Transforms.RowRangeFilter", input, output));
             }
 
-            public Microsoft.ML.Transforms.RowSkipAndTakeFilter.Output Add(Microsoft.ML.Transforms.RowSkipAndTakeFilter input)
+            public Microsoft.ML.Legacy.Transforms.RowSkipAndTakeFilter.Output Add(Microsoft.ML.Legacy.Transforms.RowSkipAndTakeFilter input)
             {
-                var output = new Microsoft.ML.Transforms.RowSkipAndTakeFilter.Output();
+                var output = new Microsoft.ML.Legacy.Transforms.RowSkipAndTakeFilter.Output();
                 Add(input, output);
                 return output;
             }
 
-            public void Add(Microsoft.ML.Transforms.RowSkipAndTakeFilter input, Microsoft.ML.Transforms.RowSkipAndTakeFilter.Output output)
+            public void Add(Microsoft.ML.Legacy.Transforms.RowSkipAndTakeFilter input, Microsoft.ML.Legacy.Transforms.RowSkipAndTakeFilter.Output output)
             {
                 _jsonNodes.Add(Serialize("Transforms.RowSkipAndTakeFilter", input, output));
             }
 
-            public Microsoft.ML.Transforms.RowSkipFilter.Output Add(Microsoft.ML.Transforms.RowSkipFilter input)
+            public Microsoft.ML.Legacy.Transforms.RowSkipFilter.Output Add(Microsoft.ML.Legacy.Transforms.RowSkipFilter input)
             {
-                var output = new Microsoft.ML.Transforms.RowSkipFilter.Output();
+                var output = new Microsoft.ML.Legacy.Transforms.RowSkipFilter.Output();
                 Add(input, output);
                 return output;
             }
 
-            public void Add(Microsoft.ML.Transforms.RowSkipFilter input, Microsoft.ML.Transforms.RowSkipFilter.Output output)
+            public void Add(Microsoft.ML.Legacy.Transforms.RowSkipFilter input, Microsoft.ML.Legacy.Transforms.RowSkipFilter.Output output)
             {
                 _jsonNodes.Add(Serialize("Transforms.RowSkipFilter", input, output));
             }
 
-            public Microsoft.ML.Transforms.RowTakeFilter.Output Add(Microsoft.ML.Transforms.RowTakeFilter input)
+            public Microsoft.ML.Legacy.Transforms.RowTakeFilter.Output Add(Microsoft.ML.Legacy.Transforms.RowTakeFilter input)
             {
-                var output = new Microsoft.ML.Transforms.RowTakeFilter.Output();
+                var output = new Microsoft.ML.Legacy.Transforms.RowTakeFilter.Output();
                 Add(input, output);
                 return output;
             }
 
-            public void Add(Microsoft.ML.Transforms.RowTakeFilter input, Microsoft.ML.Transforms.RowTakeFilter.Output output)
+            public void Add(Microsoft.ML.Legacy.Transforms.RowTakeFilter input, Microsoft.ML.Legacy.Transforms.RowTakeFilter.Output output)
             {
                 _jsonNodes.Add(Serialize("Transforms.RowTakeFilter", input, output));
             }
 
-            public Microsoft.ML.Transforms.ScoreColumnSelector.Output Add(Microsoft.ML.Transforms.ScoreColumnSelector input)
+            public Microsoft.ML.Legacy.Transforms.ScoreColumnSelector.Output Add(Microsoft.ML.Legacy.Transforms.ScoreColumnSelector input)
             {
-                var output = new Microsoft.ML.Transforms.ScoreColumnSelector.Output();
+                var output = new Microsoft.ML.Legacy.Transforms.ScoreColumnSelector.Output();
                 Add(input, output);
                 return output;
             }
 
-            public void Add(Microsoft.ML.Transforms.ScoreColumnSelector input, Microsoft.ML.Transforms.ScoreColumnSelector.Output output)
+            public void Add(Microsoft.ML.Legacy.Transforms.ScoreColumnSelector input, Microsoft.ML.Legacy.Transforms.ScoreColumnSelector.Output output)
             {
                 _jsonNodes.Add(Serialize("Transforms.ScoreColumnSelector", input, output));
             }
 
-            public Microsoft.ML.Transforms.Scorer.Output Add(Microsoft.ML.Transforms.Scorer input)
+            public Microsoft.ML.Legacy.Transforms.Scorer.Output Add(Microsoft.ML.Legacy.Transforms.Scorer input)
             {
-                var output = new Microsoft.ML.Transforms.Scorer.Output();
+                var output = new Microsoft.ML.Legacy.Transforms.Scorer.Output();
                 Add(input, output);
                 return output;
             }
 
-            public void Add(Microsoft.ML.Transforms.Scorer input, Microsoft.ML.Transforms.Scorer.Output output)
+            public void Add(Microsoft.ML.Legacy.Transforms.Scorer input, Microsoft.ML.Legacy.Transforms.Scorer.Output output)
             {
                 _jsonNodes.Add(Serialize("Transforms.Scorer", input, output));
             }
 
-            public Microsoft.ML.Transforms.Segregator.Output Add(Microsoft.ML.Transforms.Segregator input)
+            public Microsoft.ML.Legacy.Transforms.Segregator.Output Add(Microsoft.ML.Legacy.Transforms.Segregator input)
             {
-                var output = new Microsoft.ML.Transforms.Segregator.Output();
+                var output = new Microsoft.ML.Legacy.Transforms.Segregator.Output();
                 Add(input, output);
                 return output;
             }
 
-            public void Add(Microsoft.ML.Transforms.Segregator input, Microsoft.ML.Transforms.Segregator.Output output)
+            public void Add(Microsoft.ML.Legacy.Transforms.Segregator input, Microsoft.ML.Legacy.Transforms.Segregator.Output output)
             {
                 _jsonNodes.Add(Serialize("Transforms.Segregator", input, output));
             }
 
-            public Microsoft.ML.Transforms.SentimentAnalyzer.Output Add(Microsoft.ML.Transforms.SentimentAnalyzer input)
+            public Microsoft.ML.Legacy.Transforms.SentimentAnalyzer.Output Add(Microsoft.ML.Legacy.Transforms.SentimentAnalyzer input)
             {
-                var output = new Microsoft.ML.Transforms.SentimentAnalyzer.Output();
+                var output = new Microsoft.ML.Legacy.Transforms.SentimentAnalyzer.Output();
                 Add(input, output);
                 return output;
             }
 
-            public void Add(Microsoft.ML.Transforms.SentimentAnalyzer input, Microsoft.ML.Transforms.SentimentAnalyzer.Output output)
+            public void Add(Microsoft.ML.Legacy.Transforms.SentimentAnalyzer input, Microsoft.ML.Legacy.Transforms.SentimentAnalyzer.Output output)
             {
                 _jsonNodes.Add(Serialize("Transforms.SentimentAnalyzer", input, output));
             }
 
-            public Microsoft.ML.Transforms.TensorFlowScorer.Output Add(Microsoft.ML.Transforms.TensorFlowScorer input)
+            public Microsoft.ML.Legacy.Transforms.TensorFlowScorer.Output Add(Microsoft.ML.Legacy.Transforms.TensorFlowScorer input)
             {
-                var output = new Microsoft.ML.Transforms.TensorFlowScorer.Output();
+                var output = new Microsoft.ML.Legacy.Transforms.TensorFlowScorer.Output();
                 Add(input, output);
                 return output;
             }
 
-            public void Add(Microsoft.ML.Transforms.TensorFlowScorer input, Microsoft.ML.Transforms.TensorFlowScorer.Output output)
+            public void Add(Microsoft.ML.Legacy.Transforms.TensorFlowScorer input, Microsoft.ML.Legacy.Transforms.TensorFlowScorer.Output output)
             {
                 _jsonNodes.Add(Serialize("Transforms.TensorFlowScorer", input, output));
             }
 
-            public Microsoft.ML.Transforms.TextFeaturizer.Output Add(Microsoft.ML.Transforms.TextFeaturizer input)
+            public Microsoft.ML.Legacy.Transforms.TextFeaturizer.Output Add(Microsoft.ML.Legacy.Transforms.TextFeaturizer input)
             {
-                var output = new Microsoft.ML.Transforms.TextFeaturizer.Output();
+                var output = new Microsoft.ML.Legacy.Transforms.TextFeaturizer.Output();
                 Add(input, output);
                 return output;
             }
 
-            public void Add(Microsoft.ML.Transforms.TextFeaturizer input, Microsoft.ML.Transforms.TextFeaturizer.Output output)
+            public void Add(Microsoft.ML.Legacy.Transforms.TextFeaturizer input, Microsoft.ML.Legacy.Transforms.TextFeaturizer.Output output)
             {
                 _jsonNodes.Add(Serialize("Transforms.TextFeaturizer", input, output));
             }
 
-            public Microsoft.ML.Transforms.TextToKeyConverter.Output Add(Microsoft.ML.Transforms.TextToKeyConverter input)
+            public Microsoft.ML.Legacy.Transforms.TextToKeyConverter.Output Add(Microsoft.ML.Legacy.Transforms.TextToKeyConverter input)
             {
-                var output = new Microsoft.ML.Transforms.TextToKeyConverter.Output();
+                var output = new Microsoft.ML.Legacy.Transforms.TextToKeyConverter.Output();
                 Add(input, output);
                 return output;
             }
 
-            public void Add(Microsoft.ML.Transforms.TextToKeyConverter input, Microsoft.ML.Transforms.TextToKeyConverter.Output output)
+            public void Add(Microsoft.ML.Legacy.Transforms.TextToKeyConverter input, Microsoft.ML.Legacy.Transforms.TextToKeyConverter.Output output)
             {
                 _jsonNodes.Add(Serialize("Transforms.TextToKeyConverter", input, output));
             }
 
-            public Microsoft.ML.Transforms.TrainTestDatasetSplitter.Output Add(Microsoft.ML.Transforms.TrainTestDatasetSplitter input)
+            public Microsoft.ML.Legacy.Transforms.TrainTestDatasetSplitter.Output Add(Microsoft.ML.Legacy.Transforms.TrainTestDatasetSplitter input)
             {
-                var output = new Microsoft.ML.Transforms.TrainTestDatasetSplitter.Output();
+                var output = new Microsoft.ML.Legacy.Transforms.TrainTestDatasetSplitter.Output();
                 Add(input, output);
                 return output;
             }
 
-            public void Add(Microsoft.ML.Transforms.TrainTestDatasetSplitter input, Microsoft.ML.Transforms.TrainTestDatasetSplitter.Output output)
+            public void Add(Microsoft.ML.Legacy.Transforms.TrainTestDatasetSplitter input, Microsoft.ML.Legacy.Transforms.TrainTestDatasetSplitter.Output output)
             {
                 _jsonNodes.Add(Serialize("Transforms.TrainTestDatasetSplitter", input, output));
             }
 
-            public Microsoft.ML.Transforms.TreeLeafFeaturizer.Output Add(Microsoft.ML.Transforms.TreeLeafFeaturizer input)
+            public Microsoft.ML.Legacy.Transforms.TreeLeafFeaturizer.Output Add(Microsoft.ML.Legacy.Transforms.TreeLeafFeaturizer input)
             {
-                var output = new Microsoft.ML.Transforms.TreeLeafFeaturizer.Output();
+                var output = new Microsoft.ML.Legacy.Transforms.TreeLeafFeaturizer.Output();
                 Add(input, output);
                 return output;
             }
 
-            public void Add(Microsoft.ML.Transforms.TreeLeafFeaturizer input, Microsoft.ML.Transforms.TreeLeafFeaturizer.Output output)
+            public void Add(Microsoft.ML.Legacy.Transforms.TreeLeafFeaturizer input, Microsoft.ML.Legacy.Transforms.TreeLeafFeaturizer.Output output)
             {
                 _jsonNodes.Add(Serialize("Transforms.TreeLeafFeaturizer", input, output));
             }
 
-            public Microsoft.ML.Transforms.TwoHeterogeneousModelCombiner.Output Add(Microsoft.ML.Transforms.TwoHeterogeneousModelCombiner input)
+            public Microsoft.ML.Legacy.Transforms.TwoHeterogeneousModelCombiner.Output Add(Microsoft.ML.Legacy.Transforms.TwoHeterogeneousModelCombiner input)
             {
-                var output = new Microsoft.ML.Transforms.TwoHeterogeneousModelCombiner.Output();
+                var output = new Microsoft.ML.Legacy.Transforms.TwoHeterogeneousModelCombiner.Output();
                 Add(input, output);
                 return output;
             }
 
-            public void Add(Microsoft.ML.Transforms.TwoHeterogeneousModelCombiner input, Microsoft.ML.Transforms.TwoHeterogeneousModelCombiner.Output output)
+            public void Add(Microsoft.ML.Legacy.Transforms.TwoHeterogeneousModelCombiner input, Microsoft.ML.Legacy.Transforms.TwoHeterogeneousModelCombiner.Output output)
             {
                 _jsonNodes.Add(Serialize("Transforms.TwoHeterogeneousModelCombiner", input, output));
             }
 
-            public Microsoft.ML.Transforms.VectorToImage.Output Add(Microsoft.ML.Transforms.VectorToImage input)
+            public Microsoft.ML.Legacy.Transforms.VectorToImage.Output Add(Microsoft.ML.Legacy.Transforms.VectorToImage input)
             {
-                var output = new Microsoft.ML.Transforms.VectorToImage.Output();
+                var output = new Microsoft.ML.Legacy.Transforms.VectorToImage.Output();
                 Add(input, output);
                 return output;
             }
 
-            public void Add(Microsoft.ML.Transforms.VectorToImage input, Microsoft.ML.Transforms.VectorToImage.Output output)
+            public void Add(Microsoft.ML.Legacy.Transforms.VectorToImage input, Microsoft.ML.Legacy.Transforms.VectorToImage.Output output)
             {
                 _jsonNodes.Add(Serialize("Transforms.VectorToImage", input, output));
             }
 
-            public Microsoft.ML.Transforms.WordEmbeddings.Output Add(Microsoft.ML.Transforms.WordEmbeddings input)
+            public Microsoft.ML.Legacy.Transforms.WordEmbeddings.Output Add(Microsoft.ML.Legacy.Transforms.WordEmbeddings input)
             {
-                var output = new Microsoft.ML.Transforms.WordEmbeddings.Output();
+                var output = new Microsoft.ML.Legacy.Transforms.WordEmbeddings.Output();
                 Add(input, output);
                 return output;
             }
 
-            public void Add(Microsoft.ML.Transforms.WordEmbeddings input, Microsoft.ML.Transforms.WordEmbeddings.Output output)
+            public void Add(Microsoft.ML.Legacy.Transforms.WordEmbeddings input, Microsoft.ML.Legacy.Transforms.WordEmbeddings.Output output)
             {
                 _jsonNodes.Add(Serialize("Transforms.WordEmbeddings", input, output));
             }
 
-            public Microsoft.ML.Transforms.WordTokenizer.Output Add(Microsoft.ML.Transforms.WordTokenizer input)
+            public Microsoft.ML.Legacy.Transforms.WordTokenizer.Output Add(Microsoft.ML.Legacy.Transforms.WordTokenizer input)
             {
-                var output = new Microsoft.ML.Transforms.WordTokenizer.Output();
+                var output = new Microsoft.ML.Legacy.Transforms.WordTokenizer.Output();
                 Add(input, output);
                 return output;
             }
 
-            public void Add(Microsoft.ML.Transforms.WordTokenizer input, Microsoft.ML.Transforms.WordTokenizer.Output output)
+            public void Add(Microsoft.ML.Legacy.Transforms.WordTokenizer input, Microsoft.ML.Legacy.Transforms.WordTokenizer.Output output)
             {
                 _jsonNodes.Add(Serialize("Transforms.WordTokenizer", input, output));
             }
 
         }
     }
-    namespace Data
+    namespace Legacy.Data
     {
 
         /// <summary>
@@ -1665,7 +1665,7 @@ namespace Microsoft.ML
         }
     }
 
-    namespace Data
+    namespace Legacy.Data
     {
 
         /// <summary>
@@ -1692,7 +1692,7 @@ namespace Microsoft.ML
         }
     }
 
-    namespace Data
+    namespace Legacy.Data
     {
 
         /// <summary>
@@ -1719,7 +1719,7 @@ namespace Microsoft.ML
         }
     }
 
-    namespace Data
+    namespace Legacy.Data
     {
 
         /// <summary>
@@ -1746,7 +1746,7 @@ namespace Microsoft.ML
         }
     }
 
-    namespace Data
+    namespace Legacy.Data
     {
 
         public enum DataKind : byte
@@ -1911,7 +1911,7 @@ namespace Microsoft.ML
         /// <summary>
         /// Import a dataset from a text file
         /// </summary>
-        public sealed partial class TextLoader : Microsoft.ML.ILearningPipelineLoader
+        public sealed partial class TextLoader : Microsoft.ML.Legacy.ILearningPipelineLoader
         {
 
             [JsonIgnore]
@@ -1970,7 +1970,7 @@ namespace Microsoft.ML
         }
     }
 
-    namespace Data
+    namespace Legacy.Data
     {
 
         /// <summary>
@@ -1997,7 +1997,7 @@ namespace Microsoft.ML
         }
     }
 
-    namespace Models
+    namespace Legacy.Models
     {
 
         /// <summary>
@@ -2084,7 +2084,7 @@ namespace Microsoft.ML
         }
     }
 
-    namespace Models
+    namespace Legacy.Models
     {
         public enum EnsembleCreatorScoreCombiner
         {
@@ -2122,7 +2122,7 @@ namespace Microsoft.ML
         }
     }
 
-    namespace Models
+    namespace Legacy.Models
     {
 
         /// <summary>
@@ -2219,7 +2219,7 @@ namespace Microsoft.ML
         }
     }
 
-    namespace Models
+    namespace Legacy.Models
     {
 
         public sealed partial class CrossValidationBinaryMacroSubGraphInput
@@ -2309,7 +2309,7 @@ namespace Microsoft.ML
         }
     }
 
-    namespace Models
+    namespace Legacy.Models
     {
         public enum EnsembleCreatorClassifierCombiner
         {
@@ -2353,7 +2353,7 @@ namespace Microsoft.ML
         }
     }
 
-    namespace Models
+    namespace Legacy.Models
     {
 
         /// <summary>
@@ -2385,7 +2385,7 @@ namespace Microsoft.ML
         }
     }
 
-    namespace Models
+    namespace Legacy.Models
     {
 
         /// <summary>
@@ -2472,7 +2472,7 @@ namespace Microsoft.ML
         }
     }
 
-    namespace Models
+    namespace Legacy.Models
     {
 
         /// <summary>
@@ -2549,7 +2549,7 @@ namespace Microsoft.ML
         }
     }
 
-    namespace Models
+    namespace Legacy.Models
     {
         public enum MacroUtilsTrainerKinds
         {
@@ -2642,7 +2642,7 @@ namespace Microsoft.ML
         }
     }
 
-    namespace Models
+    namespace Legacy.Models
     {
 
         public sealed partial class CrossValidationMacroSubGraphInput
@@ -2772,7 +2772,7 @@ namespace Microsoft.ML
         }
     }
 
-    namespace Models
+    namespace Legacy.Models
     {
 
         /// <summary>
@@ -2814,13 +2814,13 @@ namespace Microsoft.ML
         }
     }
 
-    namespace Models
+    namespace Legacy.Models
     {
 
         /// <summary>
         /// Applies a TransformModel to a dataset.
         /// </summary>
-        public sealed partial class DatasetTransformer : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.ILearningPipelineItem
+        public sealed partial class DatasetTransformer : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
 
@@ -2873,7 +2873,7 @@ namespace Microsoft.ML
         }
     }
 
-    namespace Models
+    namespace Legacy.Models
     {
 
         /// <summary>
@@ -2905,13 +2905,13 @@ namespace Microsoft.ML
         }
     }
 
-    namespace Models
+    namespace Legacy.Models
     {
 
         /// <summary>
         /// Apply a Platt calibrator with a fixed slope and offset to an input model
         /// </summary>
-        public sealed partial class FixedPlattCalibrator : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ICalibratorInput, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.ILearningPipelineItem
+        public sealed partial class FixedPlattCalibrator : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ICalibratorInput, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
 
@@ -2979,7 +2979,7 @@ namespace Microsoft.ML
         }
     }
 
-    namespace Models
+    namespace Legacy.Models
     {
 
         /// <summary>
@@ -3011,7 +3011,7 @@ namespace Microsoft.ML
         }
     }
 
-    namespace Models
+    namespace Legacy.Models
     {
 
         /// <summary>
@@ -3084,13 +3084,13 @@ namespace Microsoft.ML
         }
     }
 
-    namespace Models
+    namespace Legacy.Models
     {
 
         /// <summary>
         /// Apply a Naive calibrator to an input model
         /// </summary>
-        public sealed partial class NaiveCalibrator : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ICalibratorInput, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.ILearningPipelineItem
+        public sealed partial class NaiveCalibrator : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ICalibratorInput, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
 
@@ -3148,7 +3148,7 @@ namespace Microsoft.ML
         }
     }
 
-    namespace Models
+    namespace Legacy.Models
     {
         public enum NormalizeOption
         {
@@ -3177,7 +3177,7 @@ namespace Microsoft.ML
         }
 
         /// <include file='../Microsoft.ML.StandardLearners/Standard/MultiClass/doc.xml' path='doc/members/member[@name="OVA"]/*'/>
-        public sealed partial class OneVersusAll : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithWeight, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.ILearningPipelineItem
+        public sealed partial class OneVersusAll : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithWeight, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
 
@@ -3264,7 +3264,7 @@ namespace Microsoft.ML
         }
     }
 
-    namespace Models
+    namespace Legacy.Models
     {
 
         /// <summary>
@@ -3321,13 +3321,13 @@ namespace Microsoft.ML
         }
     }
 
-    namespace Models
+    namespace Legacy.Models
     {
 
         /// <summary>
         /// Combines a sequence of PredictorModels into a single model
         /// </summary>
-        public sealed partial class OvaModelCombiner : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithWeight, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.ILearningPipelineItem
+        public sealed partial class OvaModelCombiner : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithWeight, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
 
@@ -3409,13 +3409,13 @@ namespace Microsoft.ML
         }
     }
 
-    namespace Models
+    namespace Legacy.Models
     {
 
         /// <summary>
         /// Apply a PAV calibrator to an input model
         /// </summary>
-        public sealed partial class PAVCalibrator : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ICalibratorInput, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.ILearningPipelineItem
+        public sealed partial class PAVCalibrator : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ICalibratorInput, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
 
@@ -3473,7 +3473,7 @@ namespace Microsoft.ML
         }
     }
 
-    namespace Models
+    namespace Legacy.Models
     {
 
         /// <summary>
@@ -3571,13 +3571,13 @@ namespace Microsoft.ML
         }
     }
 
-    namespace Models
+    namespace Legacy.Models
     {
 
         /// <summary>
         /// Apply a Platt calibrator to an input model
         /// </summary>
-        public sealed partial class PlattCalibrator : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ICalibratorInput, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.ILearningPipelineItem
+        public sealed partial class PlattCalibrator : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ICalibratorInput, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
 
@@ -3635,7 +3635,7 @@ namespace Microsoft.ML
         }
     }
 
-    namespace Models
+    namespace Legacy.Models
     {
 
         /// <summary>
@@ -3708,7 +3708,7 @@ namespace Microsoft.ML
         }
     }
 
-    namespace Models
+    namespace Legacy.Models
     {
 
         /// <summary>
@@ -3785,7 +3785,7 @@ namespace Microsoft.ML
         }
     }
 
-    namespace Models
+    namespace Legacy.Models
     {
 
         /// <summary>
@@ -3822,7 +3822,7 @@ namespace Microsoft.ML
         }
     }
 
-    namespace Models
+    namespace Legacy.Models
     {
 
         /// <summary>
@@ -3890,7 +3890,7 @@ namespace Microsoft.ML
         }
     }
 
-    namespace Models
+    namespace Legacy.Models
     {
 
         /// <summary>
@@ -3922,7 +3922,7 @@ namespace Microsoft.ML
         }
     }
 
-    namespace Models
+    namespace Legacy.Models
     {
 
         /// <summary>
@@ -3954,7 +3954,7 @@ namespace Microsoft.ML
         }
     }
 
-    namespace Models
+    namespace Legacy.Models
     {
 
         /// <summary>
@@ -3986,7 +3986,7 @@ namespace Microsoft.ML
         }
     }
 
-    namespace Models
+    namespace Legacy.Models
     {
 
         public sealed partial class TrainTestBinaryMacroSubGraphInput
@@ -4071,7 +4071,7 @@ namespace Microsoft.ML
         }
     }
 
-    namespace Models
+    namespace Legacy.Models
     {
 
         public sealed partial class TrainTestMacroSubGraphInput
@@ -4226,12 +4226,12 @@ namespace Microsoft.ML
         }
     }
 
-    namespace Trainers
+    namespace Legacy.Trainers
     {
 
         /// <include file='../Microsoft.ML.StandardLearners/Standard/Online/doc.xml' path='doc/members/member[@name="AP"]/*' />
         /// <include file='../Microsoft.ML.StandardLearners/Standard/Online/doc.xml' path='doc/members/example[@name="AP"]/*' />
-        public sealed partial class AveragedPerceptronBinaryClassifier : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.ILearningPipelineItem
+        public sealed partial class AveragedPerceptronBinaryClassifier : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
 
@@ -4346,12 +4346,12 @@ namespace Microsoft.ML
             /// <summary>
             /// Normalize option for the feature column
             /// </summary>
-            public Microsoft.ML.Models.NormalizeOption NormalizeFeatures { get; set; } = Microsoft.ML.Models.NormalizeOption.Auto;
+            public Microsoft.ML.Legacy.Models.NormalizeOption NormalizeFeatures { get; set; } = Microsoft.ML.Legacy.Models.NormalizeOption.Auto;
 
             /// <summary>
             /// Whether learner should cache input training data
             /// </summary>
-            public Microsoft.ML.Models.CachingOptions Caching { get; set; } = Microsoft.ML.Models.CachingOptions.Auto;
+            public Microsoft.ML.Legacy.Models.CachingOptions Caching { get; set; } = Microsoft.ML.Legacy.Models.CachingOptions.Auto;
 
 
             public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.IBinaryClassificationOutput, Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITrainerOutput
@@ -4391,13 +4391,13 @@ namespace Microsoft.ML
         }
     }
 
-    namespace Trainers
+    namespace Legacy.Trainers
     {
 
         /// <summary>
         /// Train binary ensemble.
         /// </summary>
-        public sealed partial class EnsembleBinaryClassifier : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.ILearningPipelineItem
+        public sealed partial class EnsembleBinaryClassifier : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
 
@@ -4457,12 +4457,12 @@ namespace Microsoft.ML
             /// <summary>
             /// Normalize option for the feature column
             /// </summary>
-            public Microsoft.ML.Models.NormalizeOption NormalizeFeatures { get; set; } = Microsoft.ML.Models.NormalizeOption.Auto;
+            public Microsoft.ML.Legacy.Models.NormalizeOption NormalizeFeatures { get; set; } = Microsoft.ML.Legacy.Models.NormalizeOption.Auto;
 
             /// <summary>
             /// Whether learner should cache input training data
             /// </summary>
-            public Microsoft.ML.Models.CachingOptions Caching { get; set; } = Microsoft.ML.Models.CachingOptions.Auto;
+            public Microsoft.ML.Legacy.Models.CachingOptions Caching { get; set; } = Microsoft.ML.Legacy.Models.CachingOptions.Auto;
 
 
             public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.IBinaryClassificationOutput, Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITrainerOutput
@@ -4502,13 +4502,13 @@ namespace Microsoft.ML
         }
     }
 
-    namespace Trainers
+    namespace Legacy.Trainers
     {
 
         /// <summary>
         /// Train multiclass ensemble.
         /// </summary>
-        public sealed partial class EnsembleClassification : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.ILearningPipelineItem
+        public sealed partial class EnsembleClassification : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
 
@@ -4568,12 +4568,12 @@ namespace Microsoft.ML
             /// <summary>
             /// Normalize option for the feature column
             /// </summary>
-            public Microsoft.ML.Models.NormalizeOption NormalizeFeatures { get; set; } = Microsoft.ML.Models.NormalizeOption.Auto;
+            public Microsoft.ML.Legacy.Models.NormalizeOption NormalizeFeatures { get; set; } = Microsoft.ML.Legacy.Models.NormalizeOption.Auto;
 
             /// <summary>
             /// Whether learner should cache input training data
             /// </summary>
-            public Microsoft.ML.Models.CachingOptions Caching { get; set; } = Microsoft.ML.Models.CachingOptions.Auto;
+            public Microsoft.ML.Legacy.Models.CachingOptions Caching { get; set; } = Microsoft.ML.Legacy.Models.CachingOptions.Auto;
 
 
             public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.IMulticlassClassificationOutput, Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITrainerOutput
@@ -4613,13 +4613,13 @@ namespace Microsoft.ML
         }
     }
 
-    namespace Trainers
+    namespace Legacy.Trainers
     {
 
         /// <summary>
         /// Train regression ensemble.
         /// </summary>
-        public sealed partial class EnsembleRegression : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.ILearningPipelineItem
+        public sealed partial class EnsembleRegression : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
 
@@ -4679,12 +4679,12 @@ namespace Microsoft.ML
             /// <summary>
             /// Normalize option for the feature column
             /// </summary>
-            public Microsoft.ML.Models.NormalizeOption NormalizeFeatures { get; set; } = Microsoft.ML.Models.NormalizeOption.Auto;
+            public Microsoft.ML.Legacy.Models.NormalizeOption NormalizeFeatures { get; set; } = Microsoft.ML.Legacy.Models.NormalizeOption.Auto;
 
             /// <summary>
             /// Whether learner should cache input training data
             /// </summary>
-            public Microsoft.ML.Models.CachingOptions Caching { get; set; } = Microsoft.ML.Models.CachingOptions.Auto;
+            public Microsoft.ML.Legacy.Models.CachingOptions Caching { get; set; } = Microsoft.ML.Legacy.Models.CachingOptions.Auto;
 
 
             public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.IRegressionOutput, Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITrainerOutput
@@ -4724,7 +4724,7 @@ namespace Microsoft.ML
         }
     }
 
-    namespace Trainers
+    namespace Legacy.Trainers
     {
         public enum Bundle : byte
         {
@@ -4736,7 +4736,7 @@ namespace Microsoft.ML
 
         /// <include file='../Microsoft.ML.FastTree/doc.xml' path='doc/members/member[@name="FastForest"]/*' />
         /// <include file='../Microsoft.ML.FastTree/doc.xml' path='doc/members/example[@name="FastForestBinaryClassifier"]/*' />
-        public sealed partial class FastForestBinaryClassifier : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithGroupId, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithWeight, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.ILearningPipelineItem
+        public sealed partial class FastForestBinaryClassifier : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithGroupId, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithWeight, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
 
@@ -4978,12 +4978,12 @@ namespace Microsoft.ML
             /// <summary>
             /// Normalize option for the feature column
             /// </summary>
-            public Microsoft.ML.Models.NormalizeOption NormalizeFeatures { get; set; } = Microsoft.ML.Models.NormalizeOption.Auto;
+            public Microsoft.ML.Legacy.Models.NormalizeOption NormalizeFeatures { get; set; } = Microsoft.ML.Legacy.Models.NormalizeOption.Auto;
 
             /// <summary>
             /// Whether learner should cache input training data
             /// </summary>
-            public Microsoft.ML.Models.CachingOptions Caching { get; set; } = Microsoft.ML.Models.CachingOptions.Auto;
+            public Microsoft.ML.Legacy.Models.CachingOptions Caching { get; set; } = Microsoft.ML.Legacy.Models.CachingOptions.Auto;
 
 
             public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.IBinaryClassificationOutput, Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITrainerOutput
@@ -5023,12 +5023,12 @@ namespace Microsoft.ML
         }
     }
 
-    namespace Trainers
+    namespace Legacy.Trainers
     {
 
         /// <include file='../Microsoft.ML.FastTree/doc.xml' path='doc/members/member[@name="FastForest"]/*' />
         /// <include file='../Microsoft.ML.FastTree/doc.xml' path='doc/members/example[@name="FastForestRegressor"]/*' />
-        public sealed partial class FastForestRegressor : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithGroupId, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithWeight, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.ILearningPipelineItem
+        public sealed partial class FastForestRegressor : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithGroupId, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithWeight, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
 
@@ -5259,12 +5259,12 @@ namespace Microsoft.ML
             /// <summary>
             /// Normalize option for the feature column
             /// </summary>
-            public Microsoft.ML.Models.NormalizeOption NormalizeFeatures { get; set; } = Microsoft.ML.Models.NormalizeOption.Auto;
+            public Microsoft.ML.Legacy.Models.NormalizeOption NormalizeFeatures { get; set; } = Microsoft.ML.Legacy.Models.NormalizeOption.Auto;
 
             /// <summary>
             /// Whether learner should cache input training data
             /// </summary>
-            public Microsoft.ML.Models.CachingOptions Caching { get; set; } = Microsoft.ML.Models.CachingOptions.Auto;
+            public Microsoft.ML.Legacy.Models.CachingOptions Caching { get; set; } = Microsoft.ML.Legacy.Models.CachingOptions.Auto;
 
 
             public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.IRegressionOutput, Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITrainerOutput
@@ -5304,7 +5304,7 @@ namespace Microsoft.ML
         }
     }
 
-    namespace Trainers
+    namespace Legacy.Trainers
     {
         public enum BoostedTreeArgsOptimizationAlgorithmType
         {
@@ -5316,7 +5316,7 @@ namespace Microsoft.ML
 
         /// <include file='../Microsoft.ML.FastTree/doc.xml' path='doc/members/member[@name="FastTree"]/*' />
         /// <include file='../Microsoft.ML.FastTree/doc.xml' path='doc/members/example[@name="FastTreeBinaryClassifier"]/*' />
-        public sealed partial class FastTreeBinaryClassifier : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithGroupId, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithWeight, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.ILearningPipelineItem
+        public sealed partial class FastTreeBinaryClassifier : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithGroupId, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithWeight, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
 
@@ -5656,12 +5656,12 @@ namespace Microsoft.ML
             /// <summary>
             /// Normalize option for the feature column
             /// </summary>
-            public Microsoft.ML.Models.NormalizeOption NormalizeFeatures { get; set; } = Microsoft.ML.Models.NormalizeOption.Auto;
+            public Microsoft.ML.Legacy.Models.NormalizeOption NormalizeFeatures { get; set; } = Microsoft.ML.Legacy.Models.NormalizeOption.Auto;
 
             /// <summary>
             /// Whether learner should cache input training data
             /// </summary>
-            public Microsoft.ML.Models.CachingOptions Caching { get; set; } = Microsoft.ML.Models.CachingOptions.Auto;
+            public Microsoft.ML.Legacy.Models.CachingOptions Caching { get; set; } = Microsoft.ML.Legacy.Models.CachingOptions.Auto;
 
 
             public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.IBinaryClassificationOutput, Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITrainerOutput
@@ -5701,12 +5701,12 @@ namespace Microsoft.ML
         }
     }
 
-    namespace Trainers
+    namespace Legacy.Trainers
     {
 
         /// <include file='../Microsoft.ML.FastTree/doc.xml' path='doc/members/member[@name="FastTree"]/*' />
         /// <include file='../Microsoft.ML.FastTree/doc.xml' path='doc/members/example[@name="FastTreeRanker"]/*' />
-        public sealed partial class FastTreeRanker : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithGroupId, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithWeight, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.ILearningPipelineItem
+        public sealed partial class FastTreeRanker : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithGroupId, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithWeight, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
 
@@ -6081,12 +6081,12 @@ namespace Microsoft.ML
             /// <summary>
             /// Normalize option for the feature column
             /// </summary>
-            public Microsoft.ML.Models.NormalizeOption NormalizeFeatures { get; set; } = Microsoft.ML.Models.NormalizeOption.Auto;
+            public Microsoft.ML.Legacy.Models.NormalizeOption NormalizeFeatures { get; set; } = Microsoft.ML.Legacy.Models.NormalizeOption.Auto;
 
             /// <summary>
             /// Whether learner should cache input training data
             /// </summary>
-            public Microsoft.ML.Models.CachingOptions Caching { get; set; } = Microsoft.ML.Models.CachingOptions.Auto;
+            public Microsoft.ML.Legacy.Models.CachingOptions Caching { get; set; } = Microsoft.ML.Legacy.Models.CachingOptions.Auto;
 
 
             public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.IRankingOutput, Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITrainerOutput
@@ -6126,12 +6126,12 @@ namespace Microsoft.ML
         }
     }
 
-    namespace Trainers
+    namespace Legacy.Trainers
     {
 
         /// <include file='../Microsoft.ML.FastTree/doc.xml' path='doc/members/member[@name="FastTree"]/*' />
         /// <include file='../Microsoft.ML.FastTree/doc.xml' path='doc/members/example[@name="FastTreeRegressor"]/*' />
-        public sealed partial class FastTreeRegressor : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithGroupId, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithWeight, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.ILearningPipelineItem
+        public sealed partial class FastTreeRegressor : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithGroupId, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithWeight, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
 
@@ -6466,12 +6466,12 @@ namespace Microsoft.ML
             /// <summary>
             /// Normalize option for the feature column
             /// </summary>
-            public Microsoft.ML.Models.NormalizeOption NormalizeFeatures { get; set; } = Microsoft.ML.Models.NormalizeOption.Auto;
+            public Microsoft.ML.Legacy.Models.NormalizeOption NormalizeFeatures { get; set; } = Microsoft.ML.Legacy.Models.NormalizeOption.Auto;
 
             /// <summary>
             /// Whether learner should cache input training data
             /// </summary>
-            public Microsoft.ML.Models.CachingOptions Caching { get; set; } = Microsoft.ML.Models.CachingOptions.Auto;
+            public Microsoft.ML.Legacy.Models.CachingOptions Caching { get; set; } = Microsoft.ML.Legacy.Models.CachingOptions.Auto;
 
 
             public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.IRegressionOutput, Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITrainerOutput
@@ -6511,11 +6511,11 @@ namespace Microsoft.ML
         }
     }
 
-    namespace Trainers
+    namespace Legacy.Trainers
     {
 
         /// <include file='../Microsoft.ML.FastTree/doc.xml' path='doc/members/member[@name="FastTreeTweedieRegression"]/*' />
-        public sealed partial class FastTreeTweedieRegressor : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithGroupId, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithWeight, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.ILearningPipelineItem
+        public sealed partial class FastTreeTweedieRegressor : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithGroupId, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithWeight, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
 
@@ -6855,12 +6855,12 @@ namespace Microsoft.ML
             /// <summary>
             /// Normalize option for the feature column
             /// </summary>
-            public Microsoft.ML.Models.NormalizeOption NormalizeFeatures { get; set; } = Microsoft.ML.Models.NormalizeOption.Auto;
+            public Microsoft.ML.Legacy.Models.NormalizeOption NormalizeFeatures { get; set; } = Microsoft.ML.Legacy.Models.NormalizeOption.Auto;
 
             /// <summary>
             /// Whether learner should cache input training data
             /// </summary>
-            public Microsoft.ML.Models.CachingOptions Caching { get; set; } = Microsoft.ML.Models.CachingOptions.Auto;
+            public Microsoft.ML.Legacy.Models.CachingOptions Caching { get; set; } = Microsoft.ML.Legacy.Models.CachingOptions.Auto;
 
 
             public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.IRegressionOutput, Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITrainerOutput
@@ -6900,12 +6900,12 @@ namespace Microsoft.ML
         }
     }
 
-    namespace Trainers
+    namespace Legacy.Trainers
     {
 
         /// <include file='../Microsoft.ML.StandardLearners/FactorizationMachine/doc.xml' path='doc/members/member[@name="FieldAwareFactorizationMachineBinaryClassifier"]/*' />
         /// <include file='../Microsoft.ML.StandardLearners/FactorizationMachine/doc.xml' path='doc/members/example[@name="FieldAwareFactorizationMachineBinaryClassifier"]/*' />
-        public sealed partial class FieldAwareFactorizationMachineBinaryClassifier : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.ILearningPipelineItem
+        public sealed partial class FieldAwareFactorizationMachineBinaryClassifier : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
 
@@ -6978,12 +6978,12 @@ namespace Microsoft.ML
             /// <summary>
             /// Normalize option for the feature column
             /// </summary>
-            public Microsoft.ML.Models.NormalizeOption NormalizeFeatures { get; set; } = Microsoft.ML.Models.NormalizeOption.Auto;
+            public Microsoft.ML.Legacy.Models.NormalizeOption NormalizeFeatures { get; set; } = Microsoft.ML.Legacy.Models.NormalizeOption.Auto;
 
             /// <summary>
             /// Whether learner should cache input training data
             /// </summary>
-            public Microsoft.ML.Models.CachingOptions Caching { get; set; } = Microsoft.ML.Models.CachingOptions.Auto;
+            public Microsoft.ML.Legacy.Models.CachingOptions Caching { get; set; } = Microsoft.ML.Legacy.Models.CachingOptions.Auto;
 
 
             public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.IBinaryClassificationOutput, Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITrainerOutput
@@ -7023,13 +7023,13 @@ namespace Microsoft.ML
         }
     }
 
-    namespace Trainers
+    namespace Legacy.Trainers
     {
 
         /// <summary>
         /// Trains a gradient boosted stump per feature, on all features simultaneously, to fit target values using least-squares. It mantains no interactions between features.
         /// </summary>
-        public sealed partial class GeneralizedAdditiveModelBinaryClassifier : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithWeight, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.ILearningPipelineItem
+        public sealed partial class GeneralizedAdditiveModelBinaryClassifier : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithWeight, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
 
@@ -7135,12 +7135,12 @@ namespace Microsoft.ML
             /// <summary>
             /// Normalize option for the feature column
             /// </summary>
-            public Microsoft.ML.Models.NormalizeOption NormalizeFeatures { get; set; } = Microsoft.ML.Models.NormalizeOption.Auto;
+            public Microsoft.ML.Legacy.Models.NormalizeOption NormalizeFeatures { get; set; } = Microsoft.ML.Legacy.Models.NormalizeOption.Auto;
 
             /// <summary>
             /// Whether learner should cache input training data
             /// </summary>
-            public Microsoft.ML.Models.CachingOptions Caching { get; set; } = Microsoft.ML.Models.CachingOptions.Auto;
+            public Microsoft.ML.Legacy.Models.CachingOptions Caching { get; set; } = Microsoft.ML.Legacy.Models.CachingOptions.Auto;
 
 
             public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.IBinaryClassificationOutput, Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITrainerOutput
@@ -7180,13 +7180,13 @@ namespace Microsoft.ML
         }
     }
 
-    namespace Trainers
+    namespace Legacy.Trainers
     {
 
         /// <summary>
         /// Trains a gradient boosted stump per feature, on all features simultaneously, to fit target values using least-squares. It mantains no interactions between features.
         /// </summary>
-        public sealed partial class GeneralizedAdditiveModelRegressor : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithWeight, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.ILearningPipelineItem
+        public sealed partial class GeneralizedAdditiveModelRegressor : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithWeight, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
 
@@ -7276,12 +7276,12 @@ namespace Microsoft.ML
             /// <summary>
             /// Normalize option for the feature column
             /// </summary>
-            public Microsoft.ML.Models.NormalizeOption NormalizeFeatures { get; set; } = Microsoft.ML.Models.NormalizeOption.Auto;
+            public Microsoft.ML.Legacy.Models.NormalizeOption NormalizeFeatures { get; set; } = Microsoft.ML.Legacy.Models.NormalizeOption.Auto;
 
             /// <summary>
             /// Whether learner should cache input training data
             /// </summary>
-            public Microsoft.ML.Models.CachingOptions Caching { get; set; } = Microsoft.ML.Models.CachingOptions.Auto;
+            public Microsoft.ML.Legacy.Models.CachingOptions Caching { get; set; } = Microsoft.ML.Legacy.Models.CachingOptions.Auto;
 
 
             public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.IRegressionOutput, Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITrainerOutput
@@ -7321,7 +7321,7 @@ namespace Microsoft.ML
         }
     }
 
-    namespace Trainers
+    namespace Legacy.Trainers
     {
         public enum KMeansPlusPlusTrainerInitAlgorithm
         {
@@ -7333,7 +7333,7 @@ namespace Microsoft.ML
 
         /// <include file='../Microsoft.ML.KMeansClustering/doc.xml' path='doc/members/member[@name="KMeans++"]/*' />
         /// <include file='../Microsoft.ML.KMeansClustering/doc.xml' path='doc/members/example[@name="KMeans++"]/*' />
-        public sealed partial class KMeansPlusPlusClusterer : Microsoft.ML.Runtime.EntryPoints.CommonInputs.IUnsupervisedTrainerWithWeight, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.ILearningPipelineItem
+        public sealed partial class KMeansPlusPlusClusterer : Microsoft.ML.Runtime.EntryPoints.CommonInputs.IUnsupervisedTrainerWithWeight, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
 
@@ -7386,12 +7386,12 @@ namespace Microsoft.ML
             /// <summary>
             /// Normalize option for the feature column
             /// </summary>
-            public Microsoft.ML.Models.NormalizeOption NormalizeFeatures { get; set; } = Microsoft.ML.Models.NormalizeOption.Auto;
+            public Microsoft.ML.Legacy.Models.NormalizeOption NormalizeFeatures { get; set; } = Microsoft.ML.Legacy.Models.NormalizeOption.Auto;
 
             /// <summary>
             /// Whether learner should cache input training data
             /// </summary>
-            public Microsoft.ML.Models.CachingOptions Caching { get; set; } = Microsoft.ML.Models.CachingOptions.Auto;
+            public Microsoft.ML.Legacy.Models.CachingOptions Caching { get; set; } = Microsoft.ML.Legacy.Models.CachingOptions.Auto;
 
 
             public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.IClusteringOutput, Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITrainerOutput
@@ -7431,7 +7431,7 @@ namespace Microsoft.ML
         }
     }
 
-    namespace Trainers
+    namespace Legacy.Trainers
     {
         public enum LightGbmArgumentsEvalMetricType
         {
@@ -7450,7 +7450,7 @@ namespace Microsoft.ML
 
         /// <include file='../Microsoft.ML.LightGBM/doc.xml' path='doc/members/member[@name="LightGBM"]/*' />
         /// <include file='../Microsoft.ML.LightGBM/doc.xml' path='doc/members/example[@name="LightGbmBinaryClassifier"]/*' />
-        public sealed partial class LightGbmBinaryClassifier : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithGroupId, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithWeight, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.ILearningPipelineItem
+        public sealed partial class LightGbmBinaryClassifier : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithGroupId, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithWeight, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
 
@@ -7609,12 +7609,12 @@ namespace Microsoft.ML
             /// <summary>
             /// Normalize option for the feature column
             /// </summary>
-            public Microsoft.ML.Models.NormalizeOption NormalizeFeatures { get; set; } = Microsoft.ML.Models.NormalizeOption.Auto;
+            public Microsoft.ML.Legacy.Models.NormalizeOption NormalizeFeatures { get; set; } = Microsoft.ML.Legacy.Models.NormalizeOption.Auto;
 
             /// <summary>
             /// Whether learner should cache input training data
             /// </summary>
-            public Microsoft.ML.Models.CachingOptions Caching { get; set; } = Microsoft.ML.Models.CachingOptions.Auto;
+            public Microsoft.ML.Legacy.Models.CachingOptions Caching { get; set; } = Microsoft.ML.Legacy.Models.CachingOptions.Auto;
 
 
             public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.IBinaryClassificationOutput, Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITrainerOutput
@@ -7654,12 +7654,12 @@ namespace Microsoft.ML
         }
     }
 
-    namespace Trainers
+    namespace Legacy.Trainers
     {
 
         /// <include file='../Microsoft.ML.LightGBM/doc.xml' path='doc/members/member[@name="LightGBM"]/*' />
         /// <include file='../Microsoft.ML.LightGBM/doc.xml' path='doc/members/example[@name="LightGbmClassifier"]/*' />
-        public sealed partial class LightGbmClassifier : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithGroupId, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithWeight, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.ILearningPipelineItem
+        public sealed partial class LightGbmClassifier : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithGroupId, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithWeight, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
 
@@ -7818,12 +7818,12 @@ namespace Microsoft.ML
             /// <summary>
             /// Normalize option for the feature column
             /// </summary>
-            public Microsoft.ML.Models.NormalizeOption NormalizeFeatures { get; set; } = Microsoft.ML.Models.NormalizeOption.Auto;
+            public Microsoft.ML.Legacy.Models.NormalizeOption NormalizeFeatures { get; set; } = Microsoft.ML.Legacy.Models.NormalizeOption.Auto;
 
             /// <summary>
             /// Whether learner should cache input training data
             /// </summary>
-            public Microsoft.ML.Models.CachingOptions Caching { get; set; } = Microsoft.ML.Models.CachingOptions.Auto;
+            public Microsoft.ML.Legacy.Models.CachingOptions Caching { get; set; } = Microsoft.ML.Legacy.Models.CachingOptions.Auto;
 
 
             public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.IMulticlassClassificationOutput, Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITrainerOutput
@@ -7863,12 +7863,12 @@ namespace Microsoft.ML
         }
     }
 
-    namespace Trainers
+    namespace Legacy.Trainers
     {
 
         /// <include file='../Microsoft.ML.LightGBM/doc.xml' path='doc/members/member[@name="LightGBM"]/*' />
         /// <include file='../Microsoft.ML.LightGBM/doc.xml' path='doc/members/example[@name="LightGbmRanker"]/*' />
-        public sealed partial class LightGbmRanker : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithGroupId, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithWeight, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.ILearningPipelineItem
+        public sealed partial class LightGbmRanker : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithGroupId, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithWeight, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
 
@@ -8027,12 +8027,12 @@ namespace Microsoft.ML
             /// <summary>
             /// Normalize option for the feature column
             /// </summary>
-            public Microsoft.ML.Models.NormalizeOption NormalizeFeatures { get; set; } = Microsoft.ML.Models.NormalizeOption.Auto;
+            public Microsoft.ML.Legacy.Models.NormalizeOption NormalizeFeatures { get; set; } = Microsoft.ML.Legacy.Models.NormalizeOption.Auto;
 
             /// <summary>
             /// Whether learner should cache input training data
             /// </summary>
-            public Microsoft.ML.Models.CachingOptions Caching { get; set; } = Microsoft.ML.Models.CachingOptions.Auto;
+            public Microsoft.ML.Legacy.Models.CachingOptions Caching { get; set; } = Microsoft.ML.Legacy.Models.CachingOptions.Auto;
 
 
             public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.IRankingOutput, Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITrainerOutput
@@ -8072,12 +8072,12 @@ namespace Microsoft.ML
         }
     }
 
-    namespace Trainers
+    namespace Legacy.Trainers
     {
 
         /// <include file='../Microsoft.ML.LightGBM/doc.xml' path='doc/members/member[@name="LightGBM"]/*' />
         /// <include file='../Microsoft.ML.LightGBM/doc.xml' path='doc/members/example[@name="LightGbmRegressor"]/*' />
-        public sealed partial class LightGbmRegressor : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithGroupId, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithWeight, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.ILearningPipelineItem
+        public sealed partial class LightGbmRegressor : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithGroupId, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithWeight, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
 
@@ -8236,12 +8236,12 @@ namespace Microsoft.ML
             /// <summary>
             /// Normalize option for the feature column
             /// </summary>
-            public Microsoft.ML.Models.NormalizeOption NormalizeFeatures { get; set; } = Microsoft.ML.Models.NormalizeOption.Auto;
+            public Microsoft.ML.Legacy.Models.NormalizeOption NormalizeFeatures { get; set; } = Microsoft.ML.Legacy.Models.NormalizeOption.Auto;
 
             /// <summary>
             /// Whether learner should cache input training data
             /// </summary>
-            public Microsoft.ML.Models.CachingOptions Caching { get; set; } = Microsoft.ML.Models.CachingOptions.Auto;
+            public Microsoft.ML.Legacy.Models.CachingOptions Caching { get; set; } = Microsoft.ML.Legacy.Models.CachingOptions.Auto;
 
 
             public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.IRegressionOutput, Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITrainerOutput
@@ -8281,13 +8281,13 @@ namespace Microsoft.ML
         }
     }
 
-    namespace Trainers
+    namespace Legacy.Trainers
     {
 
         /// <summary>
         /// Train a linear SVM.
         /// </summary>
-        public sealed partial class LinearSvmBinaryClassifier : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.ILearningPipelineItem
+        public sealed partial class LinearSvmBinaryClassifier : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
 
@@ -8371,12 +8371,12 @@ namespace Microsoft.ML
             /// <summary>
             /// Normalize option for the feature column
             /// </summary>
-            public Microsoft.ML.Models.NormalizeOption NormalizeFeatures { get; set; } = Microsoft.ML.Models.NormalizeOption.Auto;
+            public Microsoft.ML.Legacy.Models.NormalizeOption NormalizeFeatures { get; set; } = Microsoft.ML.Legacy.Models.NormalizeOption.Auto;
 
             /// <summary>
             /// Whether learner should cache input training data
             /// </summary>
-            public Microsoft.ML.Models.CachingOptions Caching { get; set; } = Microsoft.ML.Models.CachingOptions.Auto;
+            public Microsoft.ML.Legacy.Models.CachingOptions Caching { get; set; } = Microsoft.ML.Legacy.Models.CachingOptions.Auto;
 
 
             public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.IBinaryClassificationOutput, Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITrainerOutput
@@ -8416,12 +8416,12 @@ namespace Microsoft.ML
         }
     }
 
-    namespace Trainers
+    namespace Legacy.Trainers
     {
 
         /// <include file='../Microsoft.ML.StandardLearners/Standard/LogisticRegression/doc.xml' path='doc/members/member[@name="LBFGS"]/*' />
         /// <include file='../Microsoft.ML.StandardLearners/Standard/LogisticRegression/doc.xml' path='doc/members/example[@name="LogisticRegressionBinaryClassifier"]/*' />
-        public sealed partial class LogisticRegressionBinaryClassifier : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithWeight, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.ILearningPipelineItem
+        public sealed partial class LogisticRegressionBinaryClassifier : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithWeight, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
 
@@ -8520,12 +8520,12 @@ namespace Microsoft.ML
             /// <summary>
             /// Normalize option for the feature column
             /// </summary>
-            public Microsoft.ML.Models.NormalizeOption NormalizeFeatures { get; set; } = Microsoft.ML.Models.NormalizeOption.Auto;
+            public Microsoft.ML.Legacy.Models.NormalizeOption NormalizeFeatures { get; set; } = Microsoft.ML.Legacy.Models.NormalizeOption.Auto;
 
             /// <summary>
             /// Whether learner should cache input training data
             /// </summary>
-            public Microsoft.ML.Models.CachingOptions Caching { get; set; } = Microsoft.ML.Models.CachingOptions.Auto;
+            public Microsoft.ML.Legacy.Models.CachingOptions Caching { get; set; } = Microsoft.ML.Legacy.Models.CachingOptions.Auto;
 
 
             public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.IBinaryClassificationOutput, Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITrainerOutput
@@ -8565,12 +8565,12 @@ namespace Microsoft.ML
         }
     }
 
-    namespace Trainers
+    namespace Legacy.Trainers
     {
 
         /// <include file='../Microsoft.ML.StandardLearners/Standard/LogisticRegression/doc.xml' path='doc/members/member[@name="LBFGS"]/*' />
         /// <include file='../Microsoft.ML.StandardLearners/Standard/LogisticRegression/doc.xml' path='doc/members/example[@name="LogisticRegressionClassifier"]/*' />
-        public sealed partial class LogisticRegressionClassifier : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithWeight, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.ILearningPipelineItem
+        public sealed partial class LogisticRegressionClassifier : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithWeight, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
 
@@ -8669,12 +8669,12 @@ namespace Microsoft.ML
             /// <summary>
             /// Normalize option for the feature column
             /// </summary>
-            public Microsoft.ML.Models.NormalizeOption NormalizeFeatures { get; set; } = Microsoft.ML.Models.NormalizeOption.Auto;
+            public Microsoft.ML.Legacy.Models.NormalizeOption NormalizeFeatures { get; set; } = Microsoft.ML.Legacy.Models.NormalizeOption.Auto;
 
             /// <summary>
             /// Whether learner should cache input training data
             /// </summary>
-            public Microsoft.ML.Models.CachingOptions Caching { get; set; } = Microsoft.ML.Models.CachingOptions.Auto;
+            public Microsoft.ML.Legacy.Models.CachingOptions Caching { get; set; } = Microsoft.ML.Legacy.Models.CachingOptions.Auto;
 
 
             public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.IMulticlassClassificationOutput, Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITrainerOutput
@@ -8714,12 +8714,12 @@ namespace Microsoft.ML
         }
     }
 
-    namespace Trainers
+    namespace Legacy.Trainers
     {
 
         /// <include file='../Microsoft.ML.StandardLearners/Standard/MultiClass/doc.xml' path='doc/members/member[@name="MultiClassNaiveBayesTrainer"]/*'/>
         /// <include file='../Microsoft.ML.StandardLearners/Standard/MultiClass/doc.xml' path='doc/members/example[@name="MultiClassNaiveBayesTrainer"]/*'/>
-        public sealed partial class NaiveBayesClassifier : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.ILearningPipelineItem
+        public sealed partial class NaiveBayesClassifier : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
 
@@ -8741,12 +8741,12 @@ namespace Microsoft.ML
             /// <summary>
             /// Normalize option for the feature column
             /// </summary>
-            public Microsoft.ML.Models.NormalizeOption NormalizeFeatures { get; set; } = Microsoft.ML.Models.NormalizeOption.Auto;
+            public Microsoft.ML.Legacy.Models.NormalizeOption NormalizeFeatures { get; set; } = Microsoft.ML.Legacy.Models.NormalizeOption.Auto;
 
             /// <summary>
             /// Whether learner should cache input training data
             /// </summary>
-            public Microsoft.ML.Models.CachingOptions Caching { get; set; } = Microsoft.ML.Models.CachingOptions.Auto;
+            public Microsoft.ML.Legacy.Models.CachingOptions Caching { get; set; } = Microsoft.ML.Legacy.Models.CachingOptions.Auto;
 
 
             public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.IMulticlassClassificationOutput, Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITrainerOutput
@@ -8786,12 +8786,12 @@ namespace Microsoft.ML
         }
     }
 
-    namespace Trainers
+    namespace Legacy.Trainers
     {
 
         /// <include file='../Microsoft.ML.StandardLearners/Standard/Online/doc.xml' path='doc/members/member[@name="OGD"]/*' />
         /// <include file='../Microsoft.ML.StandardLearners/Standard/Online/doc.xml' path='doc/members/example[@name="OGD"]/*' />
-        public sealed partial class OnlineGradientDescentRegressor : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.ILearningPipelineItem
+        public sealed partial class OnlineGradientDescentRegressor : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
 
@@ -8895,12 +8895,12 @@ namespace Microsoft.ML
             /// <summary>
             /// Normalize option for the feature column
             /// </summary>
-            public Microsoft.ML.Models.NormalizeOption NormalizeFeatures { get; set; } = Microsoft.ML.Models.NormalizeOption.Auto;
+            public Microsoft.ML.Legacy.Models.NormalizeOption NormalizeFeatures { get; set; } = Microsoft.ML.Legacy.Models.NormalizeOption.Auto;
 
             /// <summary>
             /// Whether learner should cache input training data
             /// </summary>
-            public Microsoft.ML.Models.CachingOptions Caching { get; set; } = Microsoft.ML.Models.CachingOptions.Auto;
+            public Microsoft.ML.Legacy.Models.CachingOptions Caching { get; set; } = Microsoft.ML.Legacy.Models.CachingOptions.Auto;
 
 
             public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.IRegressionOutput, Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITrainerOutput
@@ -8940,11 +8940,11 @@ namespace Microsoft.ML
         }
     }
 
-    namespace Trainers
+    namespace Legacy.Trainers
     {
 
         /// <include file='../Microsoft.ML.HalLearners/doc.xml' path='doc/members/member[@name="OLS"]/*' />
-        public sealed partial class OrdinaryLeastSquaresRegressor : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithWeight, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.ILearningPipelineItem
+        public sealed partial class OrdinaryLeastSquaresRegressor : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithWeight, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
 
@@ -8982,12 +8982,12 @@ namespace Microsoft.ML
             /// <summary>
             /// Normalize option for the feature column
             /// </summary>
-            public Microsoft.ML.Models.NormalizeOption NormalizeFeatures { get; set; } = Microsoft.ML.Models.NormalizeOption.Auto;
+            public Microsoft.ML.Legacy.Models.NormalizeOption NormalizeFeatures { get; set; } = Microsoft.ML.Legacy.Models.NormalizeOption.Auto;
 
             /// <summary>
             /// Whether learner should cache input training data
             /// </summary>
-            public Microsoft.ML.Models.CachingOptions Caching { get; set; } = Microsoft.ML.Models.CachingOptions.Auto;
+            public Microsoft.ML.Legacy.Models.CachingOptions Caching { get; set; } = Microsoft.ML.Legacy.Models.CachingOptions.Auto;
 
 
             public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.IRegressionOutput, Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITrainerOutput
@@ -9027,12 +9027,12 @@ namespace Microsoft.ML
         }
     }
 
-    namespace Trainers
+    namespace Legacy.Trainers
     {
 
         /// <include file='../Microsoft.ML.PCA/doc.xml' path='doc/members/member[@name="PCA"]/*' />
         /// <include file='../Microsoft.ML.PCA/doc.xml' path='doc/members/example[@name="PcaAnomalyDetector"]/*' />
-        public sealed partial class PcaAnomalyDetector : Microsoft.ML.Runtime.EntryPoints.CommonInputs.IUnsupervisedTrainerWithWeight, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.ILearningPipelineItem
+        public sealed partial class PcaAnomalyDetector : Microsoft.ML.Runtime.EntryPoints.CommonInputs.IUnsupervisedTrainerWithWeight, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
 
@@ -9077,12 +9077,12 @@ namespace Microsoft.ML
             /// <summary>
             /// Normalize option for the feature column
             /// </summary>
-            public Microsoft.ML.Models.NormalizeOption NormalizeFeatures { get; set; } = Microsoft.ML.Models.NormalizeOption.Auto;
+            public Microsoft.ML.Legacy.Models.NormalizeOption NormalizeFeatures { get; set; } = Microsoft.ML.Legacy.Models.NormalizeOption.Auto;
 
             /// <summary>
             /// Whether learner should cache input training data
             /// </summary>
-            public Microsoft.ML.Models.CachingOptions Caching { get; set; } = Microsoft.ML.Models.CachingOptions.Auto;
+            public Microsoft.ML.Legacy.Models.CachingOptions Caching { get; set; } = Microsoft.ML.Legacy.Models.CachingOptions.Auto;
 
 
             public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.IAnomalyDetectionOutput, Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITrainerOutput
@@ -9122,12 +9122,12 @@ namespace Microsoft.ML
         }
     }
 
-    namespace Trainers
+    namespace Legacy.Trainers
     {
 
         /// <include file='../Microsoft.ML.StandardLearners/Standard/PoissonRegression/doc.xml' path='doc/members/member[@name="PoissonRegression"]/*' />
         /// <include file='../Microsoft.ML.StandardLearners/Standard/PoissonRegression/doc.xml' path='doc/members/example[@name="PoissonRegression"]/*' />
-        public sealed partial class PoissonRegressor : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithWeight, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.ILearningPipelineItem
+        public sealed partial class PoissonRegressor : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithWeight, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
 
@@ -9221,12 +9221,12 @@ namespace Microsoft.ML
             /// <summary>
             /// Normalize option for the feature column
             /// </summary>
-            public Microsoft.ML.Models.NormalizeOption NormalizeFeatures { get; set; } = Microsoft.ML.Models.NormalizeOption.Auto;
+            public Microsoft.ML.Legacy.Models.NormalizeOption NormalizeFeatures { get; set; } = Microsoft.ML.Legacy.Models.NormalizeOption.Auto;
 
             /// <summary>
             /// Whether learner should cache input training data
             /// </summary>
-            public Microsoft.ML.Models.CachingOptions Caching { get; set; } = Microsoft.ML.Models.CachingOptions.Auto;
+            public Microsoft.ML.Legacy.Models.CachingOptions Caching { get; set; } = Microsoft.ML.Legacy.Models.CachingOptions.Auto;
 
 
             public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.IRegressionOutput, Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITrainerOutput
@@ -9266,12 +9266,12 @@ namespace Microsoft.ML
         }
     }
 
-    namespace Trainers
+    namespace Legacy.Trainers
     {
 
         /// <include file='../Microsoft.ML.StandardLearners/Standard/doc.xml' path='doc/members/member[@name="SDCA"]/*' />
         /// <include file='../Microsoft.ML.StandardLearners/Standard/doc.xml' path='doc/members/example[@name="StochasticDualCoordinateAscentBinaryClassifier"]/*'/>
-        public sealed partial class StochasticDualCoordinateAscentBinaryClassifier : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.ILearningPipelineItem
+        public sealed partial class StochasticDualCoordinateAscentBinaryClassifier : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
 
@@ -9361,12 +9361,12 @@ namespace Microsoft.ML
             /// <summary>
             /// Normalize option for the feature column
             /// </summary>
-            public Microsoft.ML.Models.NormalizeOption NormalizeFeatures { get; set; } = Microsoft.ML.Models.NormalizeOption.Auto;
+            public Microsoft.ML.Legacy.Models.NormalizeOption NormalizeFeatures { get; set; } = Microsoft.ML.Legacy.Models.NormalizeOption.Auto;
 
             /// <summary>
             /// Whether learner should cache input training data
             /// </summary>
-            public Microsoft.ML.Models.CachingOptions Caching { get; set; } = Microsoft.ML.Models.CachingOptions.Auto;
+            public Microsoft.ML.Legacy.Models.CachingOptions Caching { get; set; } = Microsoft.ML.Legacy.Models.CachingOptions.Auto;
 
 
             public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.IBinaryClassificationOutput, Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITrainerOutput
@@ -9406,12 +9406,12 @@ namespace Microsoft.ML
         }
     }
 
-    namespace Trainers
+    namespace Legacy.Trainers
     {
 
         /// <include file='../Microsoft.ML.StandardLearners/Standard/doc.xml' path='doc/members/member[@name="SDCA"]/*' />
         /// <include file='../Microsoft.ML.StandardLearners/Standard/doc.xml' path='doc/members/example[@name="StochasticDualCoordinateAscentClassifier"]/*' />
-        public sealed partial class StochasticDualCoordinateAscentClassifier : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.ILearningPipelineItem
+        public sealed partial class StochasticDualCoordinateAscentClassifier : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
 
@@ -9485,12 +9485,12 @@ namespace Microsoft.ML
             /// <summary>
             /// Normalize option for the feature column
             /// </summary>
-            public Microsoft.ML.Models.NormalizeOption NormalizeFeatures { get; set; } = Microsoft.ML.Models.NormalizeOption.Auto;
+            public Microsoft.ML.Legacy.Models.NormalizeOption NormalizeFeatures { get; set; } = Microsoft.ML.Legacy.Models.NormalizeOption.Auto;
 
             /// <summary>
             /// Whether learner should cache input training data
             /// </summary>
-            public Microsoft.ML.Models.CachingOptions Caching { get; set; } = Microsoft.ML.Models.CachingOptions.Auto;
+            public Microsoft.ML.Legacy.Models.CachingOptions Caching { get; set; } = Microsoft.ML.Legacy.Models.CachingOptions.Auto;
 
 
             public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.IMulticlassClassificationOutput, Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITrainerOutput
@@ -9530,12 +9530,12 @@ namespace Microsoft.ML
         }
     }
 
-    namespace Trainers
+    namespace Legacy.Trainers
     {
 
         /// <include file='../Microsoft.ML.StandardLearners/Standard/doc.xml' path='doc/members/member[@name="SDCA"]/*' />
         /// <include file='../Microsoft.ML.StandardLearners/Standard/doc.xml' path='doc/members/example[@name="StochasticDualCoordinateAscentRegressor"]/*' />
-        public sealed partial class StochasticDualCoordinateAscentRegressor : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.ILearningPipelineItem
+        public sealed partial class StochasticDualCoordinateAscentRegressor : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
 
@@ -9609,12 +9609,12 @@ namespace Microsoft.ML
             /// <summary>
             /// Normalize option for the feature column
             /// </summary>
-            public Microsoft.ML.Models.NormalizeOption NormalizeFeatures { get; set; } = Microsoft.ML.Models.NormalizeOption.Auto;
+            public Microsoft.ML.Legacy.Models.NormalizeOption NormalizeFeatures { get; set; } = Microsoft.ML.Legacy.Models.NormalizeOption.Auto;
 
             /// <summary>
             /// Whether learner should cache input training data
             /// </summary>
-            public Microsoft.ML.Models.CachingOptions Caching { get; set; } = Microsoft.ML.Models.CachingOptions.Auto;
+            public Microsoft.ML.Legacy.Models.CachingOptions Caching { get; set; } = Microsoft.ML.Legacy.Models.CachingOptions.Auto;
 
 
             public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.IRegressionOutput, Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITrainerOutput
@@ -9654,13 +9654,13 @@ namespace Microsoft.ML
         }
     }
 
-    namespace Trainers
+    namespace Legacy.Trainers
     {
 
         /// <summary>
         /// Train an Hogwild SGD binary model.
         /// </summary>
-        public sealed partial class StochasticGradientDescentBinaryClassifier : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithWeight, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.ILearningPipelineItem
+        public sealed partial class StochasticGradientDescentBinaryClassifier : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithWeight, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
 
@@ -9748,12 +9748,12 @@ namespace Microsoft.ML
             /// <summary>
             /// Normalize option for the feature column
             /// </summary>
-            public Microsoft.ML.Models.NormalizeOption NormalizeFeatures { get; set; } = Microsoft.ML.Models.NormalizeOption.Auto;
+            public Microsoft.ML.Legacy.Models.NormalizeOption NormalizeFeatures { get; set; } = Microsoft.ML.Legacy.Models.NormalizeOption.Auto;
 
             /// <summary>
             /// Whether learner should cache input training data
             /// </summary>
-            public Microsoft.ML.Models.CachingOptions Caching { get; set; } = Microsoft.ML.Models.CachingOptions.Auto;
+            public Microsoft.ML.Legacy.Models.CachingOptions Caching { get; set; } = Microsoft.ML.Legacy.Models.CachingOptions.Auto;
 
 
             public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.IBinaryClassificationOutput, Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITrainerOutput
@@ -9793,11 +9793,11 @@ namespace Microsoft.ML
         }
     }
 
-    namespace Trainers
+    namespace Legacy.Trainers
     {
 
         /// <include file='../Microsoft.ML.HalLearners/doc.xml' path='doc/members/member[@name="SymSGD"]/*' />
-        public sealed partial class SymSgdBinaryClassifier : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.ILearningPipelineItem
+        public sealed partial class SymSgdBinaryClassifier : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInputWithLabel, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITrainerInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
 
@@ -9868,12 +9868,12 @@ namespace Microsoft.ML
             /// <summary>
             /// Normalize option for the feature column
             /// </summary>
-            public Microsoft.ML.Models.NormalizeOption NormalizeFeatures { get; set; } = Microsoft.ML.Models.NormalizeOption.Auto;
+            public Microsoft.ML.Legacy.Models.NormalizeOption NormalizeFeatures { get; set; } = Microsoft.ML.Legacy.Models.NormalizeOption.Auto;
 
             /// <summary>
             /// Whether learner should cache input training data
             /// </summary>
-            public Microsoft.ML.Models.CachingOptions Caching { get; set; } = Microsoft.ML.Models.CachingOptions.Auto;
+            public Microsoft.ML.Legacy.Models.CachingOptions Caching { get; set; } = Microsoft.ML.Legacy.Models.CachingOptions.Auto;
 
 
             public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.IBinaryClassificationOutput, Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITrainerOutput
@@ -9913,13 +9913,13 @@ namespace Microsoft.ML
         }
     }
 
-    namespace Transforms
+    namespace Legacy.Transforms
     {
 
         /// <summary>
         /// Approximate bootstrap sampling.
         /// </summary>
-        public sealed partial class ApproximateBootstrapSampler : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.ILearningPipelineItem
+        public sealed partial class ApproximateBootstrapSampler : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
 
@@ -9993,13 +9993,13 @@ namespace Microsoft.ML
         }
     }
 
-    namespace Transforms
+    namespace Legacy.Transforms
     {
 
         /// <summary>
         /// For binary prediction, it renames the PredictedLabel and Score columns to include the name of the positive class.
         /// </summary>
-        public sealed partial class BinaryPredictionScoreColumnsRenamer : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.ILearningPipelineItem
+        public sealed partial class BinaryPredictionScoreColumnsRenamer : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
 
@@ -10058,7 +10058,7 @@ namespace Microsoft.ML
         }
     }
 
-    namespace Transforms
+    namespace Legacy.Transforms
     {
 
         public sealed partial class NormalizeTransformBinColumn : OneToOneColumn<NormalizeTransformBinColumn>, IOneToOneColumn
@@ -10093,7 +10093,7 @@ namespace Microsoft.ML
         /// <summary>
         /// The values are assigned into equidensity bins and a value is mapped to its bin_number/number_of_bins.
         /// </summary>
-        public sealed partial class BinNormalizer : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.ILearningPipelineItem
+        public sealed partial class BinNormalizer : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
             public BinNormalizer()
@@ -10124,15 +10124,15 @@ namespace Microsoft.ML
             
             public void AddColumn(string inputColumn)
             {
-                var list = Column == null ? new List<Microsoft.ML.Transforms.NormalizeTransformBinColumn>() : new List<Microsoft.ML.Transforms.NormalizeTransformBinColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Transforms.NormalizeTransformBinColumn>.Create(inputColumn));
+                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.NormalizeTransformBinColumn>() : new List<Microsoft.ML.Legacy.Transforms.NormalizeTransformBinColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.NormalizeTransformBinColumn>.Create(inputColumn));
                 Column = list.ToArray();
             }
 
             public void AddColumn(string outputColumn, string inputColumn)
             {
-                var list = Column == null ? new List<Microsoft.ML.Transforms.NormalizeTransformBinColumn>() : new List<Microsoft.ML.Transforms.NormalizeTransformBinColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Transforms.NormalizeTransformBinColumn>.Create(outputColumn, inputColumn));
+                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.NormalizeTransformBinColumn>() : new List<Microsoft.ML.Legacy.Transforms.NormalizeTransformBinColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.NormalizeTransformBinColumn>.Create(outputColumn, inputColumn));
                 Column = list.ToArray();
             }
 
@@ -10207,7 +10207,7 @@ namespace Microsoft.ML
         }
     }
 
-    namespace Transforms
+    namespace Legacy.Transforms
     {
         public enum CategoricalTransformOutputKind : byte
         {
@@ -10259,7 +10259,7 @@ namespace Microsoft.ML
 
         /// <include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/member[@name="CategoricalHashOneHotVectorizer"]/*' />
         /// <include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/example[@name="CategoricalHashOneHotVectorizer"]/*' />
-        public sealed partial class CategoricalHashOneHotVectorizer : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.ILearningPipelineItem
+        public sealed partial class CategoricalHashOneHotVectorizer : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
             public CategoricalHashOneHotVectorizer()
@@ -10290,15 +10290,15 @@ namespace Microsoft.ML
             
             public void AddColumn(string inputColumn)
             {
-                var list = Column == null ? new List<Microsoft.ML.Transforms.CategoricalHashTransformColumn>() : new List<Microsoft.ML.Transforms.CategoricalHashTransformColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Transforms.CategoricalHashTransformColumn>.Create(inputColumn));
+                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.CategoricalHashTransformColumn>() : new List<Microsoft.ML.Legacy.Transforms.CategoricalHashTransformColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.CategoricalHashTransformColumn>.Create(inputColumn));
                 Column = list.ToArray();
             }
 
             public void AddColumn(string outputColumn, string inputColumn)
             {
-                var list = Column == null ? new List<Microsoft.ML.Transforms.CategoricalHashTransformColumn>() : new List<Microsoft.ML.Transforms.CategoricalHashTransformColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Transforms.CategoricalHashTransformColumn>.Create(outputColumn, inputColumn));
+                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.CategoricalHashTransformColumn>() : new List<Microsoft.ML.Legacy.Transforms.CategoricalHashTransformColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.CategoricalHashTransformColumn>.Create(outputColumn, inputColumn));
                 Column = list.ToArray();
             }
 
@@ -10383,7 +10383,7 @@ namespace Microsoft.ML
         }
     }
 
-    namespace Transforms
+    namespace Legacy.Transforms
     {
         public enum TermTransformSortOrder : byte
         {
@@ -10433,7 +10433,7 @@ namespace Microsoft.ML
 
         /// <include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/member[@name="CategoricalOneHotVectorizer"]/*' />
         /// <include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/example[@name="CategoricalOneHotVectorizer"]/*' />
-        public sealed partial class CategoricalOneHotVectorizer : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.ILearningPipelineItem
+        public sealed partial class CategoricalOneHotVectorizer : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
             public CategoricalOneHotVectorizer()
@@ -10464,15 +10464,15 @@ namespace Microsoft.ML
             
             public void AddColumn(string inputColumn)
             {
-                var list = Column == null ? new List<Microsoft.ML.Transforms.CategoricalTransformColumn>() : new List<Microsoft.ML.Transforms.CategoricalTransformColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Transforms.CategoricalTransformColumn>.Create(inputColumn));
+                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.CategoricalTransformColumn>() : new List<Microsoft.ML.Legacy.Transforms.CategoricalTransformColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.CategoricalTransformColumn>.Create(inputColumn));
                 Column = list.ToArray();
             }
 
             public void AddColumn(string outputColumn, string inputColumn)
             {
-                var list = Column == null ? new List<Microsoft.ML.Transforms.CategoricalTransformColumn>() : new List<Microsoft.ML.Transforms.CategoricalTransformColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Transforms.CategoricalTransformColumn>.Create(outputColumn, inputColumn));
+                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.CategoricalTransformColumn>() : new List<Microsoft.ML.Legacy.Transforms.CategoricalTransformColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.CategoricalTransformColumn>.Create(outputColumn, inputColumn));
                 Column = list.ToArray();
             }
 
@@ -10557,7 +10557,7 @@ namespace Microsoft.ML
         }
     }
 
-    namespace Transforms
+    namespace Legacy.Transforms
     {
 
         public sealed partial class CharTokenizeTransformColumn : OneToOneColumn<CharTokenizeTransformColumn>, IOneToOneColumn
@@ -10575,7 +10575,7 @@ namespace Microsoft.ML
         }
 
         /// <include file='../Microsoft.ML.Transforms/Text/doc.xml' path='doc/members/member[@name="CharacterTokenizer"]/*' />
-        public sealed partial class CharacterTokenizer : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.ILearningPipelineItem
+        public sealed partial class CharacterTokenizer : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
             public CharacterTokenizer()
@@ -10606,15 +10606,15 @@ namespace Microsoft.ML
             
             public void AddColumn(string inputColumn)
             {
-                var list = Column == null ? new List<Microsoft.ML.Transforms.CharTokenizeTransformColumn>() : new List<Microsoft.ML.Transforms.CharTokenizeTransformColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Transforms.CharTokenizeTransformColumn>.Create(inputColumn));
+                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.CharTokenizeTransformColumn>() : new List<Microsoft.ML.Legacy.Transforms.CharTokenizeTransformColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.CharTokenizeTransformColumn>.Create(inputColumn));
                 Column = list.ToArray();
             }
 
             public void AddColumn(string outputColumn, string inputColumn)
             {
-                var list = Column == null ? new List<Microsoft.ML.Transforms.CharTokenizeTransformColumn>() : new List<Microsoft.ML.Transforms.CharTokenizeTransformColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Transforms.CharTokenizeTransformColumn>.Create(outputColumn, inputColumn));
+                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.CharTokenizeTransformColumn>() : new List<Microsoft.ML.Legacy.Transforms.CharTokenizeTransformColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.CharTokenizeTransformColumn>.Create(outputColumn, inputColumn));
                 Column = list.ToArray();
             }
 
@@ -10679,7 +10679,7 @@ namespace Microsoft.ML
         }
     }
 
-    namespace Transforms
+    namespace Legacy.Transforms
     {
 
         public sealed partial class ConcatTransformColumn : ManyToOneColumn<ConcatTransformColumn>, IManyToOneColumn
@@ -10699,7 +10699,7 @@ namespace Microsoft.ML
         /// <summary>
         /// Concatenates one or more columns of the same item type.
         /// </summary>
-        public sealed partial class ColumnConcatenator : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.ILearningPipelineItem
+        public sealed partial class ColumnConcatenator : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
             public ColumnConcatenator()
@@ -10713,8 +10713,8 @@ namespace Microsoft.ML
             
             public void AddColumn(string name, params string[] source)
             {
-                var list = Column == null ? new List<Microsoft.ML.Transforms.ConcatTransformColumn>() : new List<Microsoft.ML.Transforms.ConcatTransformColumn>(Column);
-                list.Add(ManyToOneColumn<Microsoft.ML.Transforms.ConcatTransformColumn>.Create(name, source));
+                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.ConcatTransformColumn>() : new List<Microsoft.ML.Legacy.Transforms.ConcatTransformColumn>(Column);
+                list.Add(ManyToOneColumn<Microsoft.ML.Legacy.Transforms.ConcatTransformColumn>.Create(name, source));
                 Column = list.ToArray();
             }
 
@@ -10774,7 +10774,7 @@ namespace Microsoft.ML
         }
     }
 
-    namespace Transforms
+    namespace Legacy.Transforms
     {
 
         public sealed partial class CopyColumnsTransformColumn : OneToOneColumn<CopyColumnsTransformColumn>, IOneToOneColumn
@@ -10794,7 +10794,7 @@ namespace Microsoft.ML
         /// <summary>
         /// Duplicates columns from the dataset
         /// </summary>
-        public sealed partial class ColumnCopier : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.ILearningPipelineItem
+        public sealed partial class ColumnCopier : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
             public ColumnCopier()
@@ -10825,15 +10825,15 @@ namespace Microsoft.ML
             
             public void AddColumn(string inputColumn)
             {
-                var list = Column == null ? new List<Microsoft.ML.Transforms.CopyColumnsTransformColumn>() : new List<Microsoft.ML.Transforms.CopyColumnsTransformColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Transforms.CopyColumnsTransformColumn>.Create(inputColumn));
+                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.CopyColumnsTransformColumn>() : new List<Microsoft.ML.Legacy.Transforms.CopyColumnsTransformColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.CopyColumnsTransformColumn>.Create(inputColumn));
                 Column = list.ToArray();
             }
 
             public void AddColumn(string outputColumn, string inputColumn)
             {
-                var list = Column == null ? new List<Microsoft.ML.Transforms.CopyColumnsTransformColumn>() : new List<Microsoft.ML.Transforms.CopyColumnsTransformColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Transforms.CopyColumnsTransformColumn>.Create(outputColumn, inputColumn));
+                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.CopyColumnsTransformColumn>() : new List<Microsoft.ML.Legacy.Transforms.CopyColumnsTransformColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.CopyColumnsTransformColumn>.Create(outputColumn, inputColumn));
                 Column = list.ToArray();
             }
 
@@ -10893,13 +10893,13 @@ namespace Microsoft.ML
         }
     }
 
-    namespace Transforms
+    namespace Legacy.Transforms
     {
 
         /// <summary>
         /// Drops columns from the dataset
         /// </summary>
-        public sealed partial class ColumnDropper : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.ILearningPipelineItem
+        public sealed partial class ColumnDropper : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
 
@@ -10958,13 +10958,13 @@ namespace Microsoft.ML
         }
     }
 
-    namespace Transforms
+    namespace Legacy.Transforms
     {
 
         /// <summary>
         /// Selects a set of columns, dropping all others
         /// </summary>
-        public sealed partial class ColumnSelector : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.ILearningPipelineItem
+        public sealed partial class ColumnSelector : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
 
@@ -11023,7 +11023,7 @@ namespace Microsoft.ML
         }
     }
 
-    namespace Transforms
+    namespace Legacy.Transforms
     {
 
         public sealed partial class ConvertTransformColumn : OneToOneColumn<ConvertTransformColumn>, IOneToOneColumn
@@ -11031,7 +11031,7 @@ namespace Microsoft.ML
             /// <summary>
             /// The result type
             /// </summary>
-            public Microsoft.ML.Data.DataKind? ResultType { get; set; }
+            public Microsoft.ML.Legacy.Data.DataKind? ResultType { get; set; }
 
             /// <summary>
             /// For a key column, this defines the range of values
@@ -11053,7 +11053,7 @@ namespace Microsoft.ML
         /// <summary>
         /// Converts a column to a different type, using standard conversions.
         /// </summary>
-        public sealed partial class ColumnTypeConverter : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.ILearningPipelineItem
+        public sealed partial class ColumnTypeConverter : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
             public ColumnTypeConverter()
@@ -11084,15 +11084,15 @@ namespace Microsoft.ML
             
             public void AddColumn(string inputColumn)
             {
-                var list = Column == null ? new List<Microsoft.ML.Transforms.ConvertTransformColumn>() : new List<Microsoft.ML.Transforms.ConvertTransformColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Transforms.ConvertTransformColumn>.Create(inputColumn));
+                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.ConvertTransformColumn>() : new List<Microsoft.ML.Legacy.Transforms.ConvertTransformColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.ConvertTransformColumn>.Create(inputColumn));
                 Column = list.ToArray();
             }
 
             public void AddColumn(string outputColumn, string inputColumn)
             {
-                var list = Column == null ? new List<Microsoft.ML.Transforms.ConvertTransformColumn>() : new List<Microsoft.ML.Transforms.ConvertTransformColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Transforms.ConvertTransformColumn>.Create(outputColumn, inputColumn));
+                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.ConvertTransformColumn>() : new List<Microsoft.ML.Legacy.Transforms.ConvertTransformColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.ConvertTransformColumn>.Create(outputColumn, inputColumn));
                 Column = list.ToArray();
             }
 
@@ -11105,7 +11105,7 @@ namespace Microsoft.ML
             /// <summary>
             /// The result type
             /// </summary>
-            public Microsoft.ML.Data.DataKind? ResultType { get; set; }
+            public Microsoft.ML.Legacy.Data.DataKind? ResultType { get; set; }
 
             /// <summary>
             /// For a key column, this defines the range of values
@@ -11162,11 +11162,11 @@ namespace Microsoft.ML
         }
     }
 
-    namespace Transforms
+    namespace Legacy.Transforms
     {
 
         /// <include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/member[@name="Group"]/*' />
-        public sealed partial class CombinerByContiguousGroupId : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.ILearningPipelineItem
+        public sealed partial class CombinerByContiguousGroupId : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
 
@@ -11230,7 +11230,7 @@ namespace Microsoft.ML
         }
     }
 
-    namespace Transforms
+    namespace Legacy.Transforms
     {
 
         public sealed partial class NormalizeTransformAffineColumn : OneToOneColumn<NormalizeTransformAffineColumn>, IOneToOneColumn
@@ -11260,7 +11260,7 @@ namespace Microsoft.ML
         /// <summary>
         /// Normalize the columns only if needed
         /// </summary>
-        public sealed partial class ConditionalNormalizer : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.ILearningPipelineItem
+        public sealed partial class ConditionalNormalizer : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
             public ConditionalNormalizer()
@@ -11291,15 +11291,15 @@ namespace Microsoft.ML
             
             public void AddColumn(string inputColumn)
             {
-                var list = Column == null ? new List<Microsoft.ML.Transforms.NormalizeTransformAffineColumn>() : new List<Microsoft.ML.Transforms.NormalizeTransformAffineColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Transforms.NormalizeTransformAffineColumn>.Create(inputColumn));
+                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.NormalizeTransformAffineColumn>() : new List<Microsoft.ML.Legacy.Transforms.NormalizeTransformAffineColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.NormalizeTransformAffineColumn>.Create(inputColumn));
                 Column = list.ToArray();
             }
 
             public void AddColumn(string outputColumn, string inputColumn)
             {
-                var list = Column == null ? new List<Microsoft.ML.Transforms.NormalizeTransformAffineColumn>() : new List<Microsoft.ML.Transforms.NormalizeTransformAffineColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Transforms.NormalizeTransformAffineColumn>.Create(outputColumn, inputColumn));
+                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.NormalizeTransformAffineColumn>() : new List<Microsoft.ML.Legacy.Transforms.NormalizeTransformAffineColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.NormalizeTransformAffineColumn>.Create(outputColumn, inputColumn));
                 Column = list.ToArray();
             }
 
@@ -11369,7 +11369,7 @@ namespace Microsoft.ML
         }
     }
 
-    namespace Transforms
+    namespace Legacy.Transforms
     {
         public enum CacheCachingType
         {
@@ -11381,7 +11381,7 @@ namespace Microsoft.ML
         /// <summary>
         /// Caches using the specified cache option.
         /// </summary>
-        public sealed partial class DataCache : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.ILearningPipelineItem
+        public sealed partial class DataCache : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
 
@@ -11434,7 +11434,7 @@ namespace Microsoft.ML
         }
     }
 
-    namespace Transforms
+    namespace Legacy.Transforms
     {
 
         /// <summary>
@@ -11476,7 +11476,7 @@ namespace Microsoft.ML
         }
     }
 
-    namespace Transforms
+    namespace Legacy.Transforms
     {
 
         /// <summary>
@@ -11513,7 +11513,7 @@ namespace Microsoft.ML
         }
     }
 
-    namespace Transforms
+    namespace Legacy.Transforms
     {
 
         public sealed partial class TermTransformColumn : OneToOneColumn<TermTransformColumn>, IOneToOneColumn
@@ -11553,7 +11553,7 @@ namespace Microsoft.ML
         /// <summary>
         /// Converts input values (words, numbers, etc.) to index in a dictionary.
         /// </summary>
-        public sealed partial class Dictionarizer : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.ILearningPipelineItem
+        public sealed partial class Dictionarizer : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
             public Dictionarizer()
@@ -11584,15 +11584,15 @@ namespace Microsoft.ML
             
             public void AddColumn(string inputColumn)
             {
-                var list = Column == null ? new List<Microsoft.ML.Transforms.TermTransformColumn>() : new List<Microsoft.ML.Transforms.TermTransformColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Transforms.TermTransformColumn>.Create(inputColumn));
+                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.TermTransformColumn>() : new List<Microsoft.ML.Legacy.Transforms.TermTransformColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.TermTransformColumn>.Create(inputColumn));
                 Column = list.ToArray();
             }
 
             public void AddColumn(string outputColumn, string inputColumn)
             {
-                var list = Column == null ? new List<Microsoft.ML.Transforms.TermTransformColumn>() : new List<Microsoft.ML.Transforms.TermTransformColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Transforms.TermTransformColumn>.Create(outputColumn, inputColumn));
+                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.TermTransformColumn>() : new List<Microsoft.ML.Legacy.Transforms.TermTransformColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.TermTransformColumn>.Create(outputColumn, inputColumn));
                 Column = list.ToArray();
             }
 
@@ -11672,13 +11672,13 @@ namespace Microsoft.ML
         }
     }
 
-    namespace Transforms
+    namespace Legacy.Transforms
     {
 
         /// <summary>
         /// Combines all the features into one feature column.
         /// </summary>
-        public sealed partial class FeatureCombiner : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.ILearningPipelineItem
+        public sealed partial class FeatureCombiner : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
 
@@ -11737,12 +11737,12 @@ namespace Microsoft.ML
         }
     }
 
-    namespace Transforms
+    namespace Legacy.Transforms
     {
 
         /// <include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/member[@name="CountFeatureSelection"]/*'/>
         /// <include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/example[@name="CountFeatureSelection"]/*'/>
-        public sealed partial class FeatureSelectorByCount : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.ILearningPipelineItem
+        public sealed partial class FeatureSelectorByCount : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
 
@@ -11806,12 +11806,12 @@ namespace Microsoft.ML
         }
     }
 
-    namespace Transforms
+    namespace Legacy.Transforms
     {
 
         /// <include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/member[@name="MutualInformationFeatureSelection"]/*'/>
         /// <include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/example[@name="MutualInformationFeatureSelection"]/*'/>
-        public sealed partial class FeatureSelectorByMutualInformation : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.ILearningPipelineItem
+        public sealed partial class FeatureSelectorByMutualInformation : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
 
@@ -11885,7 +11885,7 @@ namespace Microsoft.ML
         }
     }
 
-    namespace Transforms
+    namespace Legacy.Transforms
     {
 
         public sealed partial class LpNormNormalizerTransformGcnColumn : OneToOneColumn<LpNormNormalizerTransformGcnColumn>, IOneToOneColumn
@@ -11918,7 +11918,7 @@ namespace Microsoft.ML
         }
 
         /// <include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/member[@name="GcNormalize"]/*' />
-        public sealed partial class GlobalContrastNormalizer : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.ILearningPipelineItem
+        public sealed partial class GlobalContrastNormalizer : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
             public GlobalContrastNormalizer()
@@ -11949,15 +11949,15 @@ namespace Microsoft.ML
             
             public void AddColumn(string inputColumn)
             {
-                var list = Column == null ? new List<Microsoft.ML.Transforms.LpNormNormalizerTransformGcnColumn>() : new List<Microsoft.ML.Transforms.LpNormNormalizerTransformGcnColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Transforms.LpNormNormalizerTransformGcnColumn>.Create(inputColumn));
+                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.LpNormNormalizerTransformGcnColumn>() : new List<Microsoft.ML.Legacy.Transforms.LpNormNormalizerTransformGcnColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.LpNormNormalizerTransformGcnColumn>.Create(inputColumn));
                 Column = list.ToArray();
             }
 
             public void AddColumn(string outputColumn, string inputColumn)
             {
-                var list = Column == null ? new List<Microsoft.ML.Transforms.LpNormNormalizerTransformGcnColumn>() : new List<Microsoft.ML.Transforms.LpNormNormalizerTransformGcnColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Transforms.LpNormNormalizerTransformGcnColumn>.Create(outputColumn, inputColumn));
+                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.LpNormNormalizerTransformGcnColumn>() : new List<Microsoft.ML.Legacy.Transforms.LpNormNormalizerTransformGcnColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.LpNormNormalizerTransformGcnColumn>.Create(outputColumn, inputColumn));
                 Column = list.ToArray();
             }
 
@@ -12032,7 +12032,7 @@ namespace Microsoft.ML
         }
     }
 
-    namespace Transforms
+    namespace Legacy.Transforms
     {
 
         public sealed partial class HashJoinTransformColumn : OneToOneColumn<HashJoinTransformColumn>, IOneToOneColumn
@@ -12076,7 +12076,7 @@ namespace Microsoft.ML
 
         /// <include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/member[@name="HashJoin"]/*' />
         /// <include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/example[@name="HashJoin"]/*' />
-        public sealed partial class HashConverter : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.ILearningPipelineItem
+        public sealed partial class HashConverter : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
             public HashConverter()
@@ -12107,15 +12107,15 @@ namespace Microsoft.ML
             
             public void AddColumn(string inputColumn)
             {
-                var list = Column == null ? new List<Microsoft.ML.Transforms.HashJoinTransformColumn>() : new List<Microsoft.ML.Transforms.HashJoinTransformColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Transforms.HashJoinTransformColumn>.Create(inputColumn));
+                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.HashJoinTransformColumn>() : new List<Microsoft.ML.Legacy.Transforms.HashJoinTransformColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.HashJoinTransformColumn>.Create(inputColumn));
                 Column = list.ToArray();
             }
 
             public void AddColumn(string outputColumn, string inputColumn)
             {
-                var list = Column == null ? new List<Microsoft.ML.Transforms.HashJoinTransformColumn>() : new List<Microsoft.ML.Transforms.HashJoinTransformColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Transforms.HashJoinTransformColumn>.Create(outputColumn, inputColumn));
+                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.HashJoinTransformColumn>() : new List<Microsoft.ML.Legacy.Transforms.HashJoinTransformColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.HashJoinTransformColumn>.Create(outputColumn, inputColumn));
                 Column = list.ToArray();
             }
 
@@ -12195,7 +12195,7 @@ namespace Microsoft.ML
         }
     }
 
-    namespace Transforms
+    namespace Legacy.Transforms
     {
 
         public sealed partial class ImageGrayscaleTransformColumn : OneToOneColumn<ImageGrayscaleTransformColumn>, IOneToOneColumn
@@ -12215,7 +12215,7 @@ namespace Microsoft.ML
         /// <summary>
         /// Convert image into grayscale.
         /// </summary>
-        public sealed partial class ImageGrayscale : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.ILearningPipelineItem
+        public sealed partial class ImageGrayscale : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
             public ImageGrayscale()
@@ -12246,15 +12246,15 @@ namespace Microsoft.ML
             
             public void AddColumn(string inputColumn)
             {
-                var list = Column == null ? new List<Microsoft.ML.Transforms.ImageGrayscaleTransformColumn>() : new List<Microsoft.ML.Transforms.ImageGrayscaleTransformColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Transforms.ImageGrayscaleTransformColumn>.Create(inputColumn));
+                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.ImageGrayscaleTransformColumn>() : new List<Microsoft.ML.Legacy.Transforms.ImageGrayscaleTransformColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.ImageGrayscaleTransformColumn>.Create(inputColumn));
                 Column = list.ToArray();
             }
 
             public void AddColumn(string outputColumn, string inputColumn)
             {
-                var list = Column == null ? new List<Microsoft.ML.Transforms.ImageGrayscaleTransformColumn>() : new List<Microsoft.ML.Transforms.ImageGrayscaleTransformColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Transforms.ImageGrayscaleTransformColumn>.Create(outputColumn, inputColumn));
+                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.ImageGrayscaleTransformColumn>() : new List<Microsoft.ML.Legacy.Transforms.ImageGrayscaleTransformColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.ImageGrayscaleTransformColumn>.Create(outputColumn, inputColumn));
                 Column = list.ToArray();
             }
 
@@ -12314,7 +12314,7 @@ namespace Microsoft.ML
         }
     }
 
-    namespace Transforms
+    namespace Legacy.Transforms
     {
 
         public sealed partial class ImageLoaderTransformColumn : OneToOneColumn<ImageLoaderTransformColumn>, IOneToOneColumn
@@ -12334,7 +12334,7 @@ namespace Microsoft.ML
         /// <summary>
         /// Load images from files.
         /// </summary>
-        public sealed partial class ImageLoader : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.ILearningPipelineItem
+        public sealed partial class ImageLoader : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
             public ImageLoader()
@@ -12365,15 +12365,15 @@ namespace Microsoft.ML
             
             public void AddColumn(string inputColumn)
             {
-                var list = Column == null ? new List<Microsoft.ML.Transforms.ImageLoaderTransformColumn>() : new List<Microsoft.ML.Transforms.ImageLoaderTransformColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Transforms.ImageLoaderTransformColumn>.Create(inputColumn));
+                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.ImageLoaderTransformColumn>() : new List<Microsoft.ML.Legacy.Transforms.ImageLoaderTransformColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.ImageLoaderTransformColumn>.Create(inputColumn));
                 Column = list.ToArray();
             }
 
             public void AddColumn(string outputColumn, string inputColumn)
             {
-                var list = Column == null ? new List<Microsoft.ML.Transforms.ImageLoaderTransformColumn>() : new List<Microsoft.ML.Transforms.ImageLoaderTransformColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Transforms.ImageLoaderTransformColumn>.Create(outputColumn, inputColumn));
+                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.ImageLoaderTransformColumn>() : new List<Microsoft.ML.Legacy.Transforms.ImageLoaderTransformColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.ImageLoaderTransformColumn>.Create(outputColumn, inputColumn));
                 Column = list.ToArray();
             }
 
@@ -12438,7 +12438,7 @@ namespace Microsoft.ML
         }
     }
 
-    namespace Transforms
+    namespace Legacy.Transforms
     {
 
         public sealed partial class ImagePixelExtractorTransformColumn : OneToOneColumn<ImagePixelExtractorTransformColumn>, IOneToOneColumn
@@ -12498,7 +12498,7 @@ namespace Microsoft.ML
         /// <summary>
         /// Extract color plane(s) from an image. Options include scaling, offset and conversion to floating point.
         /// </summary>
-        public sealed partial class ImagePixelExtractor : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.ILearningPipelineItem
+        public sealed partial class ImagePixelExtractor : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
             public ImagePixelExtractor()
@@ -12529,15 +12529,15 @@ namespace Microsoft.ML
             
             public void AddColumn(string inputColumn)
             {
-                var list = Column == null ? new List<Microsoft.ML.Transforms.ImagePixelExtractorTransformColumn>() : new List<Microsoft.ML.Transforms.ImagePixelExtractorTransformColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Transforms.ImagePixelExtractorTransformColumn>.Create(inputColumn));
+                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.ImagePixelExtractorTransformColumn>() : new List<Microsoft.ML.Legacy.Transforms.ImagePixelExtractorTransformColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.ImagePixelExtractorTransformColumn>.Create(inputColumn));
                 Column = list.ToArray();
             }
 
             public void AddColumn(string outputColumn, string inputColumn)
             {
-                var list = Column == null ? new List<Microsoft.ML.Transforms.ImagePixelExtractorTransformColumn>() : new List<Microsoft.ML.Transforms.ImagePixelExtractorTransformColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Transforms.ImagePixelExtractorTransformColumn>.Create(outputColumn, inputColumn));
+                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.ImagePixelExtractorTransformColumn>() : new List<Microsoft.ML.Legacy.Transforms.ImagePixelExtractorTransformColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.ImagePixelExtractorTransformColumn>.Create(outputColumn, inputColumn));
                 Column = list.ToArray();
             }
 
@@ -12637,7 +12637,7 @@ namespace Microsoft.ML
         }
     }
 
-    namespace Transforms
+    namespace Legacy.Transforms
     {
         public enum ImageResizerTransformResizingKind : byte
         {
@@ -12692,7 +12692,7 @@ namespace Microsoft.ML
         /// <summary>
         /// Scales an image to specified dimensions using one of the three scale types: isotropic with padding, isotropic with cropping or anisotropic. In case of isotropic padding, transparent color is used to pad resulting image.
         /// </summary>
-        public sealed partial class ImageResizer : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.ILearningPipelineItem
+        public sealed partial class ImageResizer : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
             public ImageResizer()
@@ -12723,15 +12723,15 @@ namespace Microsoft.ML
             
             public void AddColumn(string inputColumn)
             {
-                var list = Column == null ? new List<Microsoft.ML.Transforms.ImageResizerTransformColumn>() : new List<Microsoft.ML.Transforms.ImageResizerTransformColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Transforms.ImageResizerTransformColumn>.Create(inputColumn));
+                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.ImageResizerTransformColumn>() : new List<Microsoft.ML.Legacy.Transforms.ImageResizerTransformColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.ImageResizerTransformColumn>.Create(inputColumn));
                 Column = list.ToArray();
             }
 
             public void AddColumn(string outputColumn, string inputColumn)
             {
-                var list = Column == null ? new List<Microsoft.ML.Transforms.ImageResizerTransformColumn>() : new List<Microsoft.ML.Transforms.ImageResizerTransformColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Transforms.ImageResizerTransformColumn>.Create(outputColumn, inputColumn));
+                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.ImageResizerTransformColumn>() : new List<Microsoft.ML.Legacy.Transforms.ImageResizerTransformColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.ImageResizerTransformColumn>.Create(outputColumn, inputColumn));
                 Column = list.ToArray();
             }
 
@@ -12811,7 +12811,7 @@ namespace Microsoft.ML
         }
     }
 
-    namespace Transforms
+    namespace Legacy.Transforms
     {
 
         public sealed partial class KeyToValueTransformColumn : OneToOneColumn<KeyToValueTransformColumn>, IOneToOneColumn
@@ -12829,7 +12829,7 @@ namespace Microsoft.ML
         }
 
         /// <include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/member[@name="KeyToText"]/*' />
-        public sealed partial class KeyToTextConverter : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.ILearningPipelineItem
+        public sealed partial class KeyToTextConverter : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
             public KeyToTextConverter()
@@ -12860,15 +12860,15 @@ namespace Microsoft.ML
             
             public void AddColumn(string inputColumn)
             {
-                var list = Column == null ? new List<Microsoft.ML.Transforms.KeyToValueTransformColumn>() : new List<Microsoft.ML.Transforms.KeyToValueTransformColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Transforms.KeyToValueTransformColumn>.Create(inputColumn));
+                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.KeyToValueTransformColumn>() : new List<Microsoft.ML.Legacy.Transforms.KeyToValueTransformColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.KeyToValueTransformColumn>.Create(inputColumn));
                 Column = list.ToArray();
             }
 
             public void AddColumn(string outputColumn, string inputColumn)
             {
-                var list = Column == null ? new List<Microsoft.ML.Transforms.KeyToValueTransformColumn>() : new List<Microsoft.ML.Transforms.KeyToValueTransformColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Transforms.KeyToValueTransformColumn>.Create(outputColumn, inputColumn));
+                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.KeyToValueTransformColumn>() : new List<Microsoft.ML.Legacy.Transforms.KeyToValueTransformColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.KeyToValueTransformColumn>.Create(outputColumn, inputColumn));
                 Column = list.ToArray();
             }
 
@@ -12928,13 +12928,13 @@ namespace Microsoft.ML
         }
     }
 
-    namespace Transforms
+    namespace Legacy.Transforms
     {
 
         /// <summary>
         /// Transforms the label to either key or bool (if needed) to make it suitable for classification.
         /// </summary>
-        public sealed partial class LabelColumnKeyBooleanConverter : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.ILearningPipelineItem
+        public sealed partial class LabelColumnKeyBooleanConverter : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
 
@@ -12998,7 +12998,7 @@ namespace Microsoft.ML
         }
     }
 
-    namespace Transforms
+    namespace Legacy.Transforms
     {
 
         public sealed partial class LabelIndicatorTransformColumn : OneToOneColumn<LabelIndicatorTransformColumn>, IOneToOneColumn
@@ -13023,7 +13023,7 @@ namespace Microsoft.ML
         /// <summary>
         /// Label remapper used by OVA
         /// </summary>
-        public sealed partial class LabelIndicator : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.ILearningPipelineItem
+        public sealed partial class LabelIndicator : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
             public LabelIndicator()
@@ -13054,15 +13054,15 @@ namespace Microsoft.ML
             
             public void AddColumn(string inputColumn)
             {
-                var list = Column == null ? new List<Microsoft.ML.Transforms.LabelIndicatorTransformColumn>() : new List<Microsoft.ML.Transforms.LabelIndicatorTransformColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Transforms.LabelIndicatorTransformColumn>.Create(inputColumn));
+                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.LabelIndicatorTransformColumn>() : new List<Microsoft.ML.Legacy.Transforms.LabelIndicatorTransformColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.LabelIndicatorTransformColumn>.Create(inputColumn));
                 Column = list.ToArray();
             }
 
             public void AddColumn(string outputColumn, string inputColumn)
             {
-                var list = Column == null ? new List<Microsoft.ML.Transforms.LabelIndicatorTransformColumn>() : new List<Microsoft.ML.Transforms.LabelIndicatorTransformColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Transforms.LabelIndicatorTransformColumn>.Create(outputColumn, inputColumn));
+                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.LabelIndicatorTransformColumn>() : new List<Microsoft.ML.Legacy.Transforms.LabelIndicatorTransformColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.LabelIndicatorTransformColumn>.Create(outputColumn, inputColumn));
                 Column = list.ToArray();
             }
 
@@ -13127,13 +13127,13 @@ namespace Microsoft.ML
         }
     }
 
-    namespace Transforms
+    namespace Legacy.Transforms
     {
 
         /// <summary>
         /// Transforms the label to float to make it suitable for regression.
         /// </summary>
-        public sealed partial class LabelToFloatConverter : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.ILearningPipelineItem
+        public sealed partial class LabelToFloatConverter : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
 
@@ -13192,7 +13192,7 @@ namespace Microsoft.ML
         }
     }
 
-    namespace Transforms
+    namespace Legacy.Transforms
     {
 
         public sealed partial class LdaTransformColumn : OneToOneColumn<LdaTransformColumn>, IOneToOneColumn
@@ -13266,7 +13266,7 @@ namespace Microsoft.ML
 
         /// <include file='../Microsoft.ML.Transforms/Text/doc.xml' path='doc/members/member[@name="LightLDA"]/*' />
         /// <include file='../Microsoft.ML.Transforms/Text/doc.xml' path='doc/members/example[@name="LightLDA"]/*' />
-        public sealed partial class LightLda : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.ILearningPipelineItem
+        public sealed partial class LightLda : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
             public LightLda()
@@ -13297,15 +13297,15 @@ namespace Microsoft.ML
             
             public void AddColumn(string inputColumn)
             {
-                var list = Column == null ? new List<Microsoft.ML.Transforms.LdaTransformColumn>() : new List<Microsoft.ML.Transforms.LdaTransformColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Transforms.LdaTransformColumn>.Create(inputColumn));
+                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.LdaTransformColumn>() : new List<Microsoft.ML.Legacy.Transforms.LdaTransformColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.LdaTransformColumn>.Create(inputColumn));
                 Column = list.ToArray();
             }
 
             public void AddColumn(string outputColumn, string inputColumn)
             {
-                var list = Column == null ? new List<Microsoft.ML.Transforms.LdaTransformColumn>() : new List<Microsoft.ML.Transforms.LdaTransformColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Transforms.LdaTransformColumn>.Create(outputColumn, inputColumn));
+                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.LdaTransformColumn>() : new List<Microsoft.ML.Legacy.Transforms.LdaTransformColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.LdaTransformColumn>.Create(outputColumn, inputColumn));
                 Column = list.ToArray();
             }
 
@@ -13431,7 +13431,7 @@ namespace Microsoft.ML
         }
     }
 
-    namespace Transforms
+    namespace Legacy.Transforms
     {
 
         public sealed partial class NormalizeTransformLogNormalColumn : OneToOneColumn<NormalizeTransformLogNormalColumn>, IOneToOneColumn
@@ -13456,7 +13456,7 @@ namespace Microsoft.ML
         /// <summary>
         /// Normalizes the data based on the computed mean and variance of the logarithm of the data.
         /// </summary>
-        public sealed partial class LogMeanVarianceNormalizer : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.ILearningPipelineItem
+        public sealed partial class LogMeanVarianceNormalizer : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
             public LogMeanVarianceNormalizer()
@@ -13487,15 +13487,15 @@ namespace Microsoft.ML
             
             public void AddColumn(string inputColumn)
             {
-                var list = Column == null ? new List<Microsoft.ML.Transforms.NormalizeTransformLogNormalColumn>() : new List<Microsoft.ML.Transforms.NormalizeTransformLogNormalColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Transforms.NormalizeTransformLogNormalColumn>.Create(inputColumn));
+                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.NormalizeTransformLogNormalColumn>() : new List<Microsoft.ML.Legacy.Transforms.NormalizeTransformLogNormalColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.NormalizeTransformLogNormalColumn>.Create(inputColumn));
                 Column = list.ToArray();
             }
 
             public void AddColumn(string outputColumn, string inputColumn)
             {
-                var list = Column == null ? new List<Microsoft.ML.Transforms.NormalizeTransformLogNormalColumn>() : new List<Microsoft.ML.Transforms.NormalizeTransformLogNormalColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Transforms.NormalizeTransformLogNormalColumn>.Create(outputColumn, inputColumn));
+                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.NormalizeTransformLogNormalColumn>() : new List<Microsoft.ML.Legacy.Transforms.NormalizeTransformLogNormalColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.NormalizeTransformLogNormalColumn>.Create(outputColumn, inputColumn));
                 Column = list.ToArray();
             }
 
@@ -13565,7 +13565,7 @@ namespace Microsoft.ML
         }
     }
 
-    namespace Transforms
+    namespace Legacy.Transforms
     {
         public enum LpNormNormalizerTransformNormalizerKind : byte
         {
@@ -13601,7 +13601,7 @@ namespace Microsoft.ML
         }
 
         /// <include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/member[@name="LpNormalize"]/*' />
-        public sealed partial class LpNormalizer : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.ILearningPipelineItem
+        public sealed partial class LpNormalizer : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
             public LpNormalizer()
@@ -13632,15 +13632,15 @@ namespace Microsoft.ML
             
             public void AddColumn(string inputColumn)
             {
-                var list = Column == null ? new List<Microsoft.ML.Transforms.LpNormNormalizerTransformColumn>() : new List<Microsoft.ML.Transforms.LpNormNormalizerTransformColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Transforms.LpNormNormalizerTransformColumn>.Create(inputColumn));
+                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.LpNormNormalizerTransformColumn>() : new List<Microsoft.ML.Legacy.Transforms.LpNormNormalizerTransformColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.LpNormNormalizerTransformColumn>.Create(inputColumn));
                 Column = list.ToArray();
             }
 
             public void AddColumn(string outputColumn, string inputColumn)
             {
-                var list = Column == null ? new List<Microsoft.ML.Transforms.LpNormNormalizerTransformColumn>() : new List<Microsoft.ML.Transforms.LpNormNormalizerTransformColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Transforms.LpNormNormalizerTransformColumn>.Create(outputColumn, inputColumn));
+                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.LpNormNormalizerTransformColumn>() : new List<Microsoft.ML.Legacy.Transforms.LpNormNormalizerTransformColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.LpNormNormalizerTransformColumn>.Create(outputColumn, inputColumn));
                 Column = list.ToArray();
             }
 
@@ -13710,7 +13710,7 @@ namespace Microsoft.ML
         }
     }
 
-    namespace Transforms
+    namespace Legacy.Transforms
     {
 
         /// <summary>
@@ -13742,13 +13742,13 @@ namespace Microsoft.ML
         }
     }
 
-    namespace Transforms
+    namespace Legacy.Transforms
     {
 
         /// <summary>
         /// Normalizes the data based on the computed mean and variance of the data.
         /// </summary>
-        public sealed partial class MeanVarianceNormalizer : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.ILearningPipelineItem
+        public sealed partial class MeanVarianceNormalizer : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
             public MeanVarianceNormalizer()
@@ -13779,15 +13779,15 @@ namespace Microsoft.ML
             
             public void AddColumn(string inputColumn)
             {
-                var list = Column == null ? new List<Microsoft.ML.Transforms.NormalizeTransformAffineColumn>() : new List<Microsoft.ML.Transforms.NormalizeTransformAffineColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Transforms.NormalizeTransformAffineColumn>.Create(inputColumn));
+                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.NormalizeTransformAffineColumn>() : new List<Microsoft.ML.Legacy.Transforms.NormalizeTransformAffineColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.NormalizeTransformAffineColumn>.Create(inputColumn));
                 Column = list.ToArray();
             }
 
             public void AddColumn(string outputColumn, string inputColumn)
             {
-                var list = Column == null ? new List<Microsoft.ML.Transforms.NormalizeTransformAffineColumn>() : new List<Microsoft.ML.Transforms.NormalizeTransformAffineColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Transforms.NormalizeTransformAffineColumn>.Create(outputColumn, inputColumn));
+                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.NormalizeTransformAffineColumn>() : new List<Microsoft.ML.Legacy.Transforms.NormalizeTransformAffineColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.NormalizeTransformAffineColumn>.Create(outputColumn, inputColumn));
                 Column = list.ToArray();
             }
 
@@ -13862,13 +13862,13 @@ namespace Microsoft.ML
         }
     }
 
-    namespace Transforms
+    namespace Legacy.Transforms
     {
 
         /// <summary>
         /// Normalizes the data based on the observed minimum and maximum values of the data.
         /// </summary>
-        public sealed partial class MinMaxNormalizer : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.ILearningPipelineItem
+        public sealed partial class MinMaxNormalizer : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
             public MinMaxNormalizer()
@@ -13899,15 +13899,15 @@ namespace Microsoft.ML
             
             public void AddColumn(string inputColumn)
             {
-                var list = Column == null ? new List<Microsoft.ML.Transforms.NormalizeTransformAffineColumn>() : new List<Microsoft.ML.Transforms.NormalizeTransformAffineColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Transforms.NormalizeTransformAffineColumn>.Create(inputColumn));
+                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.NormalizeTransformAffineColumn>() : new List<Microsoft.ML.Legacy.Transforms.NormalizeTransformAffineColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.NormalizeTransformAffineColumn>.Create(inputColumn));
                 Column = list.ToArray();
             }
 
             public void AddColumn(string outputColumn, string inputColumn)
             {
-                var list = Column == null ? new List<Microsoft.ML.Transforms.NormalizeTransformAffineColumn>() : new List<Microsoft.ML.Transforms.NormalizeTransformAffineColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Transforms.NormalizeTransformAffineColumn>.Create(outputColumn, inputColumn));
+                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.NormalizeTransformAffineColumn>() : new List<Microsoft.ML.Legacy.Transforms.NormalizeTransformAffineColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.NormalizeTransformAffineColumn>.Create(outputColumn, inputColumn));
                 Column = list.ToArray();
             }
 
@@ -13977,7 +13977,7 @@ namespace Microsoft.ML
         }
     }
 
-    namespace Transforms
+    namespace Legacy.Transforms
     {
         public enum NAHandleTransformReplacementKind
         {
@@ -14019,7 +14019,7 @@ namespace Microsoft.ML
 
         /// <include file='../Microsoft.ML.Data/Transforms/doc.xml' path='doc/members/member[@name="NAHandle"]/*' />
         /// <include file='../Microsoft.ML.Data/Transforms/doc.xml' path='doc/members/example[@name="NAHandle"]/*' />
-        public sealed partial class MissingValueHandler : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.ILearningPipelineItem
+        public sealed partial class MissingValueHandler : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
             public MissingValueHandler()
@@ -14050,15 +14050,15 @@ namespace Microsoft.ML
             
             public void AddColumn(string inputColumn)
             {
-                var list = Column == null ? new List<Microsoft.ML.Transforms.NAHandleTransformColumn>() : new List<Microsoft.ML.Transforms.NAHandleTransformColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Transforms.NAHandleTransformColumn>.Create(inputColumn));
+                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.NAHandleTransformColumn>() : new List<Microsoft.ML.Legacy.Transforms.NAHandleTransformColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.NAHandleTransformColumn>.Create(inputColumn));
                 Column = list.ToArray();
             }
 
             public void AddColumn(string outputColumn, string inputColumn)
             {
-                var list = Column == null ? new List<Microsoft.ML.Transforms.NAHandleTransformColumn>() : new List<Microsoft.ML.Transforms.NAHandleTransformColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Transforms.NAHandleTransformColumn>.Create(outputColumn, inputColumn));
+                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.NAHandleTransformColumn>() : new List<Microsoft.ML.Legacy.Transforms.NAHandleTransformColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.NAHandleTransformColumn>.Create(outputColumn, inputColumn));
                 Column = list.ToArray();
             }
 
@@ -14133,7 +14133,7 @@ namespace Microsoft.ML
         }
     }
 
-    namespace Transforms
+    namespace Legacy.Transforms
     {
 
         public sealed partial class NAIndicatorTransformColumn : OneToOneColumn<NAIndicatorTransformColumn>, IOneToOneColumn
@@ -14152,7 +14152,7 @@ namespace Microsoft.ML
 
         /// <include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/member[@name="NAIndicator"]/*' />
         /// <include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/example[@name="NAIndicator"]/*' />
-        public sealed partial class MissingValueIndicator : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.ILearningPipelineItem
+        public sealed partial class MissingValueIndicator : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
             public MissingValueIndicator()
@@ -14183,15 +14183,15 @@ namespace Microsoft.ML
             
             public void AddColumn(string inputColumn)
             {
-                var list = Column == null ? new List<Microsoft.ML.Transforms.NAIndicatorTransformColumn>() : new List<Microsoft.ML.Transforms.NAIndicatorTransformColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Transforms.NAIndicatorTransformColumn>.Create(inputColumn));
+                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.NAIndicatorTransformColumn>() : new List<Microsoft.ML.Legacy.Transforms.NAIndicatorTransformColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.NAIndicatorTransformColumn>.Create(inputColumn));
                 Column = list.ToArray();
             }
 
             public void AddColumn(string outputColumn, string inputColumn)
             {
-                var list = Column == null ? new List<Microsoft.ML.Transforms.NAIndicatorTransformColumn>() : new List<Microsoft.ML.Transforms.NAIndicatorTransformColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Transforms.NAIndicatorTransformColumn>.Create(outputColumn, inputColumn));
+                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.NAIndicatorTransformColumn>() : new List<Microsoft.ML.Legacy.Transforms.NAIndicatorTransformColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.NAIndicatorTransformColumn>.Create(outputColumn, inputColumn));
                 Column = list.ToArray();
             }
 
@@ -14251,7 +14251,7 @@ namespace Microsoft.ML
         }
     }
 
-    namespace Transforms
+    namespace Legacy.Transforms
     {
 
         public sealed partial class NADropTransformColumn : OneToOneColumn<NADropTransformColumn>, IOneToOneColumn
@@ -14270,7 +14270,7 @@ namespace Microsoft.ML
 
         /// <include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/member[@name="NADrop"]/*' />
         /// <include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/example[@name="NADrop"]/*' />
-        public sealed partial class MissingValuesDropper : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.ILearningPipelineItem
+        public sealed partial class MissingValuesDropper : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
             public MissingValuesDropper()
@@ -14301,15 +14301,15 @@ namespace Microsoft.ML
             
             public void AddColumn(string inputColumn)
             {
-                var list = Column == null ? new List<Microsoft.ML.Transforms.NADropTransformColumn>() : new List<Microsoft.ML.Transforms.NADropTransformColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Transforms.NADropTransformColumn>.Create(inputColumn));
+                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.NADropTransformColumn>() : new List<Microsoft.ML.Legacy.Transforms.NADropTransformColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.NADropTransformColumn>.Create(inputColumn));
                 Column = list.ToArray();
             }
 
             public void AddColumn(string outputColumn, string inputColumn)
             {
-                var list = Column == null ? new List<Microsoft.ML.Transforms.NADropTransformColumn>() : new List<Microsoft.ML.Transforms.NADropTransformColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Transforms.NADropTransformColumn>.Create(outputColumn, inputColumn));
+                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.NADropTransformColumn>() : new List<Microsoft.ML.Legacy.Transforms.NADropTransformColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.NADropTransformColumn>.Create(outputColumn, inputColumn));
                 Column = list.ToArray();
             }
 
@@ -14369,12 +14369,12 @@ namespace Microsoft.ML
         }
     }
 
-    namespace Transforms
+    namespace Legacy.Transforms
     {
 
         /// <include file='../Microsoft.ML.Data/Transforms/doc.xml' path='doc/members/member[@name="NAFilter"]/*' />
         /// <include file='../Microsoft.ML.Data/Transforms/doc.xml' path='doc/members/example[@name="NAFilter"]/*' />
-        public sealed partial class MissingValuesRowDropper : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.ILearningPipelineItem
+        public sealed partial class MissingValuesRowDropper : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
 
@@ -14438,7 +14438,7 @@ namespace Microsoft.ML
         }
     }
 
-    namespace Transforms
+    namespace Legacy.Transforms
     {
         public enum NAReplaceTransformReplacementKind
         {
@@ -14481,7 +14481,7 @@ namespace Microsoft.ML
 
         /// <include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/member[@name="NAReplace"]/*' />
         /// <include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/example[@name="NAReplace"]/*' />
-        public sealed partial class MissingValueSubstitutor : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.ILearningPipelineItem
+        public sealed partial class MissingValueSubstitutor : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
             public MissingValueSubstitutor()
@@ -14512,15 +14512,15 @@ namespace Microsoft.ML
             
             public void AddColumn(string inputColumn)
             {
-                var list = Column == null ? new List<Microsoft.ML.Transforms.NAReplaceTransformColumn>() : new List<Microsoft.ML.Transforms.NAReplaceTransformColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Transforms.NAReplaceTransformColumn>.Create(inputColumn));
+                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.NAReplaceTransformColumn>() : new List<Microsoft.ML.Legacy.Transforms.NAReplaceTransformColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.NAReplaceTransformColumn>.Create(inputColumn));
                 Column = list.ToArray();
             }
 
             public void AddColumn(string outputColumn, string inputColumn)
             {
-                var list = Column == null ? new List<Microsoft.ML.Transforms.NAReplaceTransformColumn>() : new List<Microsoft.ML.Transforms.NAReplaceTransformColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Transforms.NAReplaceTransformColumn>.Create(outputColumn, inputColumn));
+                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.NAReplaceTransformColumn>() : new List<Microsoft.ML.Legacy.Transforms.NAReplaceTransformColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.NAReplaceTransformColumn>.Create(outputColumn, inputColumn));
                 Column = list.ToArray();
             }
 
@@ -14590,7 +14590,7 @@ namespace Microsoft.ML
         }
     }
 
-    namespace Transforms
+    namespace Legacy.Transforms
     {
 
         /// <summary>
@@ -14617,7 +14617,7 @@ namespace Microsoft.ML
         }
     }
 
-    namespace Transforms
+    namespace Legacy.Transforms
     {
         public enum NgramTransformWeightingCriteria
         {
@@ -14667,7 +14667,7 @@ namespace Microsoft.ML
         }
 
         /// <include file='../Microsoft.ML.Transforms/Text/doc.xml' path='doc/members/member[@name="NgramTranslator"]/*' />
-        public sealed partial class NGramTranslator : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.ILearningPipelineItem
+        public sealed partial class NGramTranslator : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
             public NGramTranslator()
@@ -14698,15 +14698,15 @@ namespace Microsoft.ML
             
             public void AddColumn(string inputColumn)
             {
-                var list = Column == null ? new List<Microsoft.ML.Transforms.NgramTransformColumn>() : new List<Microsoft.ML.Transforms.NgramTransformColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Transforms.NgramTransformColumn>.Create(inputColumn));
+                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.NgramTransformColumn>() : new List<Microsoft.ML.Legacy.Transforms.NgramTransformColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.NgramTransformColumn>.Create(inputColumn));
                 Column = list.ToArray();
             }
 
             public void AddColumn(string outputColumn, string inputColumn)
             {
-                var list = Column == null ? new List<Microsoft.ML.Transforms.NgramTransformColumn>() : new List<Microsoft.ML.Transforms.NgramTransformColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Transforms.NgramTransformColumn>.Create(outputColumn, inputColumn));
+                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.NgramTransformColumn>() : new List<Microsoft.ML.Legacy.Transforms.NgramTransformColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.NgramTransformColumn>.Create(outputColumn, inputColumn));
                 Column = list.ToArray();
             }
 
@@ -14791,13 +14791,13 @@ namespace Microsoft.ML
         }
     }
 
-    namespace Transforms
+    namespace Legacy.Transforms
     {
 
         /// <summary>
         /// Does nothing.
         /// </summary>
-        public sealed partial class NoOperation : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.ILearningPipelineItem
+        public sealed partial class NoOperation : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
 
@@ -14851,12 +14851,12 @@ namespace Microsoft.ML
         }
     }
 
-    namespace Transforms
+    namespace Legacy.Transforms
     {
 
         /// <include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/member[@name="OptionalColumnTransform"]/*' />
         /// <include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/example[@name="OptionalColumnTransform"]/*' />
-        public sealed partial class OptionalColumnCreator : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.ILearningPipelineItem
+        public sealed partial class OptionalColumnCreator : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
 
@@ -14915,7 +14915,7 @@ namespace Microsoft.ML
         }
     }
 
-    namespace Transforms
+    namespace Legacy.Transforms
     {
 
         public sealed partial class PcaTransformColumn : OneToOneColumn<PcaTransformColumn>, IOneToOneColumn
@@ -14959,7 +14959,7 @@ namespace Microsoft.ML
 
         /// <include file='../Microsoft.ML.PCA/doc.xml' path='doc/members/member[@name="PCA"]/*' />
         /// <include file='../Microsoft.ML.PCA/doc.xml' path='doc/members/example[@name="PcaCalculator"]/*' />
-        public sealed partial class PcaCalculator : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.ILearningPipelineItem
+        public sealed partial class PcaCalculator : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
             public PcaCalculator()
@@ -14990,15 +14990,15 @@ namespace Microsoft.ML
             
             public void AddColumn(string inputColumn)
             {
-                var list = Column == null ? new List<Microsoft.ML.Transforms.PcaTransformColumn>() : new List<Microsoft.ML.Transforms.PcaTransformColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Transforms.PcaTransformColumn>.Create(inputColumn));
+                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.PcaTransformColumn>() : new List<Microsoft.ML.Legacy.Transforms.PcaTransformColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.PcaTransformColumn>.Create(inputColumn));
                 Column = list.ToArray();
             }
 
             public void AddColumn(string outputColumn, string inputColumn)
             {
-                var list = Column == null ? new List<Microsoft.ML.Transforms.PcaTransformColumn>() : new List<Microsoft.ML.Transforms.PcaTransformColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Transforms.PcaTransformColumn>.Create(outputColumn, inputColumn));
+                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.PcaTransformColumn>() : new List<Microsoft.ML.Legacy.Transforms.PcaTransformColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.PcaTransformColumn>.Create(outputColumn, inputColumn));
                 Column = list.ToArray();
             }
 
@@ -15083,13 +15083,13 @@ namespace Microsoft.ML
         }
     }
 
-    namespace Transforms
+    namespace Legacy.Transforms
     {
 
         /// <summary>
         /// Transforms a predicted label column to its original values, unless it is of type bool.
         /// </summary>
-        public sealed partial class PredictedLabelColumnOriginalValueConverter : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.ILearningPipelineItem
+        public sealed partial class PredictedLabelColumnOriginalValueConverter : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
 
@@ -15148,7 +15148,7 @@ namespace Microsoft.ML
         }
     }
 
-    namespace Transforms
+    namespace Legacy.Transforms
     {
 
         public sealed partial class GenerateNumberTransformColumn
@@ -15173,7 +15173,7 @@ namespace Microsoft.ML
         /// <summary>
         /// Adds a column with a generated number sequence.
         /// </summary>
-        public sealed partial class RandomNumberGenerator : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.ILearningPipelineItem
+        public sealed partial class RandomNumberGenerator : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
 
@@ -15242,13 +15242,13 @@ namespace Microsoft.ML
         }
     }
 
-    namespace Transforms
+    namespace Legacy.Transforms
     {
 
         /// <summary>
         /// Filters a dataview on a column of type Single, Double or Key (contiguous). Keeps the values that are in the specified min/max range. NaNs are always filtered out. If the input is a Key type, the min/max are considered percentages of the number of values.
         /// </summary>
-        public sealed partial class RowRangeFilter : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.ILearningPipelineItem
+        public sealed partial class RowRangeFilter : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
 
@@ -15332,13 +15332,13 @@ namespace Microsoft.ML
         }
     }
 
-    namespace Transforms
+    namespace Legacy.Transforms
     {
 
         /// <summary>
         /// Allows limiting input to a subset of rows at an optional offset.  Can be used to implement data paging.
         /// </summary>
-        public sealed partial class RowSkipAndTakeFilter : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.ILearningPipelineItem
+        public sealed partial class RowSkipAndTakeFilter : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
 
@@ -15402,13 +15402,13 @@ namespace Microsoft.ML
         }
     }
 
-    namespace Transforms
+    namespace Legacy.Transforms
     {
 
         /// <summary>
         /// Allows limiting input to a subset of rows by skipping a number of rows.
         /// </summary>
-        public sealed partial class RowSkipFilter : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.ILearningPipelineItem
+        public sealed partial class RowSkipFilter : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
 
@@ -15467,13 +15467,13 @@ namespace Microsoft.ML
         }
     }
 
-    namespace Transforms
+    namespace Legacy.Transforms
     {
 
         /// <summary>
         /// Allows limiting input to a subset of rows by taking N first rows.
         /// </summary>
-        public sealed partial class RowTakeFilter : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.ILearningPipelineItem
+        public sealed partial class RowTakeFilter : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
 
@@ -15532,13 +15532,13 @@ namespace Microsoft.ML
         }
     }
 
-    namespace Transforms
+    namespace Legacy.Transforms
     {
 
         /// <summary>
         /// Selects only the last score columns and the extra columns specified in the arguments.
         /// </summary>
-        public sealed partial class ScoreColumnSelector : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.ILearningPipelineItem
+        public sealed partial class ScoreColumnSelector : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
 
@@ -15597,7 +15597,7 @@ namespace Microsoft.ML
         }
     }
 
-    namespace Transforms
+    namespace Legacy.Transforms
     {
 
         /// <summary>
@@ -15629,7 +15629,7 @@ namespace Microsoft.ML
         }
     }
 
-    namespace Transforms
+    namespace Legacy.Transforms
     {
         public enum UngroupTransformUngroupMode
         {
@@ -15641,7 +15641,7 @@ namespace Microsoft.ML
 
         /// <include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/member[@name="Ungroup"]/*' />
         /// <include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/example[@name="Ungroup"]/*' />
-        public sealed partial class Segregator : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.ILearningPipelineItem
+        public sealed partial class Segregator : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
 
@@ -15705,12 +15705,12 @@ namespace Microsoft.ML
         }
     }
 
-    namespace Transforms
+    namespace Legacy.Transforms
     {
 
         /// <include file='../Microsoft.ML.Transforms/Text/doc.xml' path='doc/members/member[@name="SentimentAnalyzer"]/*' />
         /// <include file='../Microsoft.ML.Transforms/Text/doc.xml' path='doc/members/example[@name="SentimentAnalyzer"]/*' />
-        public sealed partial class SentimentAnalyzer : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.ILearningPipelineItem
+        public sealed partial class SentimentAnalyzer : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
 
@@ -15774,13 +15774,11 @@ namespace Microsoft.ML
         }
     }
 
-    namespace Transforms
+    namespace Legacy.Transforms
     {
 
-        /// <summary>
-        /// Transforms the data using the TensorFlow model.
-        /// </summary>
-        public sealed partial class TensorFlowScorer : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.ILearningPipelineItem
+        /// <include file='../Microsoft.ML.TensorFlow/doc.xml' path='doc/members/member[@name="TensorflowTransform"]/*' />
+        public sealed partial class TensorFlowScorer : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
 
@@ -15849,7 +15847,7 @@ namespace Microsoft.ML
         }
     }
 
-    namespace Transforms
+    namespace Legacy.Transforms
     {
         public enum TextTransformLanguage
         {
@@ -15913,7 +15911,7 @@ namespace Microsoft.ML
 
         /// <include file='../Microsoft.ML.Transforms/Text/doc.xml' path='doc/members/member[@name="TextTransform"]/*' />
         /// <include file='../Microsoft.ML.Transforms/Text/doc.xml' path='doc/members/example[@name="TextTransform"]/*' />
-        public sealed partial class TextFeaturizer : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.ILearningPipelineItem
+        public sealed partial class TextFeaturizer : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
             public TextFeaturizer()
@@ -15927,7 +15925,7 @@ namespace Microsoft.ML
             
             public void AddColumn(string name, params string[] source)
             {
-                Column = ManyToOneColumn<Microsoft.ML.Transforms.TextTransformColumn>.Create(name, source);
+                Column = ManyToOneColumn<Microsoft.ML.Legacy.Transforms.TextTransformColumn>.Create(name, source);
             }
 
 
@@ -16044,12 +16042,12 @@ namespace Microsoft.ML
         }
     }
 
-    namespace Transforms
+    namespace Legacy.Transforms
     {
 
         /// <include file='../Microsoft.ML.Data/Transforms/doc.xml' path='doc/members/member[@name="TextToKey"]/*' />
         /// <include file='../Microsoft.ML.Data/Transforms/doc.xml' path='doc/members/example[@name="TextToKey"]/*' />
-        public sealed partial class TextToKeyConverter : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.ILearningPipelineItem
+        public sealed partial class TextToKeyConverter : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
             public TextToKeyConverter()
@@ -16080,15 +16078,15 @@ namespace Microsoft.ML
             
             public void AddColumn(string inputColumn)
             {
-                var list = Column == null ? new List<Microsoft.ML.Transforms.TermTransformColumn>() : new List<Microsoft.ML.Transforms.TermTransformColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Transforms.TermTransformColumn>.Create(inputColumn));
+                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.TermTransformColumn>() : new List<Microsoft.ML.Legacy.Transforms.TermTransformColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.TermTransformColumn>.Create(inputColumn));
                 Column = list.ToArray();
             }
 
             public void AddColumn(string outputColumn, string inputColumn)
             {
-                var list = Column == null ? new List<Microsoft.ML.Transforms.TermTransformColumn>() : new List<Microsoft.ML.Transforms.TermTransformColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Transforms.TermTransformColumn>.Create(outputColumn, inputColumn));
+                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.TermTransformColumn>() : new List<Microsoft.ML.Legacy.Transforms.TermTransformColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.TermTransformColumn>.Create(outputColumn, inputColumn));
                 Column = list.ToArray();
             }
 
@@ -16168,7 +16166,7 @@ namespace Microsoft.ML
         }
     }
 
-    namespace Transforms
+    namespace Legacy.Transforms
     {
 
         /// <summary>
@@ -16210,11 +16208,11 @@ namespace Microsoft.ML
         }
     }
 
-    namespace Transforms
+    namespace Legacy.Transforms
     {
 
         /// <include file='../Microsoft.ML.FastTree/doc.xml' path='doc/members/member[@name="TreeEnsembleFeaturizerTransform"]/*'/>
-        public sealed partial class TreeLeafFeaturizer : Microsoft.ML.Runtime.EntryPoints.CommonInputs.IFeaturizerInput, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.ILearningPipelineItem
+        public sealed partial class TreeLeafFeaturizer : Microsoft.ML.Runtime.EntryPoints.CommonInputs.IFeaturizerInput, Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
 
@@ -16283,7 +16281,7 @@ namespace Microsoft.ML
         }
     }
 
-    namespace Transforms
+    namespace Legacy.Transforms
     {
 
         /// <summary>
@@ -16315,7 +16313,7 @@ namespace Microsoft.ML
         }
     }
 
-    namespace Transforms
+    namespace Legacy.Transforms
     {
 
         public sealed partial class VectorToImageTransformColumn : OneToOneColumn<VectorToImageTransformColumn>, IOneToOneColumn
@@ -16380,7 +16378,7 @@ namespace Microsoft.ML
         /// <summary>
         /// Converts vector array into image type.
         /// </summary>
-        public sealed partial class VectorToImage : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.ILearningPipelineItem
+        public sealed partial class VectorToImage : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
             public VectorToImage()
@@ -16411,15 +16409,15 @@ namespace Microsoft.ML
             
             public void AddColumn(string inputColumn)
             {
-                var list = Column == null ? new List<Microsoft.ML.Transforms.VectorToImageTransformColumn>() : new List<Microsoft.ML.Transforms.VectorToImageTransformColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Transforms.VectorToImageTransformColumn>.Create(inputColumn));
+                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.VectorToImageTransformColumn>() : new List<Microsoft.ML.Legacy.Transforms.VectorToImageTransformColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.VectorToImageTransformColumn>.Create(inputColumn));
                 Column = list.ToArray();
             }
 
             public void AddColumn(string outputColumn, string inputColumn)
             {
-                var list = Column == null ? new List<Microsoft.ML.Transforms.VectorToImageTransformColumn>() : new List<Microsoft.ML.Transforms.VectorToImageTransformColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Transforms.VectorToImageTransformColumn>.Create(outputColumn, inputColumn));
+                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.VectorToImageTransformColumn>() : new List<Microsoft.ML.Legacy.Transforms.VectorToImageTransformColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.VectorToImageTransformColumn>.Create(outputColumn, inputColumn));
                 Column = list.ToArray();
             }
 
@@ -16524,7 +16522,7 @@ namespace Microsoft.ML
         }
     }
 
-    namespace Transforms
+    namespace Legacy.Transforms
     {
         public enum WordEmbeddingsTransformPretrainedModelKind
         {
@@ -16557,7 +16555,7 @@ namespace Microsoft.ML
 
         /// <include file='../Microsoft.ML.Transforms/Text/doc.xml' path='doc/members/member[@name="WordEmbeddings"]/*' />
         /// <include file='../Microsoft.ML.Transforms/Text/doc.xml' path='doc/members/example[@name="WordEmbeddings"]/*' />
-        public sealed partial class WordEmbeddings : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.ILearningPipelineItem
+        public sealed partial class WordEmbeddings : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
             public WordEmbeddings()
@@ -16588,15 +16586,15 @@ namespace Microsoft.ML
             
             public void AddColumn(string inputColumn)
             {
-                var list = Column == null ? new List<Microsoft.ML.Transforms.WordEmbeddingsTransformColumn>() : new List<Microsoft.ML.Transforms.WordEmbeddingsTransformColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Transforms.WordEmbeddingsTransformColumn>.Create(inputColumn));
+                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.WordEmbeddingsTransformColumn>() : new List<Microsoft.ML.Legacy.Transforms.WordEmbeddingsTransformColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.WordEmbeddingsTransformColumn>.Create(inputColumn));
                 Column = list.ToArray();
             }
 
             public void AddColumn(string outputColumn, string inputColumn)
             {
-                var list = Column == null ? new List<Microsoft.ML.Transforms.WordEmbeddingsTransformColumn>() : new List<Microsoft.ML.Transforms.WordEmbeddingsTransformColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Transforms.WordEmbeddingsTransformColumn>.Create(outputColumn, inputColumn));
+                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.WordEmbeddingsTransformColumn>() : new List<Microsoft.ML.Legacy.Transforms.WordEmbeddingsTransformColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.WordEmbeddingsTransformColumn>.Create(outputColumn, inputColumn));
                 Column = list.ToArray();
             }
 
@@ -16666,7 +16664,7 @@ namespace Microsoft.ML
         }
     }
 
-    namespace Transforms
+    namespace Legacy.Transforms
     {
 
         public sealed partial class DelimitedTokenizeTransformColumn : OneToOneColumn<DelimitedTokenizeTransformColumn>, IOneToOneColumn
@@ -16690,7 +16688,7 @@ namespace Microsoft.ML
 
         /// <include file='../Microsoft.ML.Transforms/Text/doc.xml' path='doc/members/member[@name="WordTokenizer"]/*' />
         /// <include file='../Microsoft.ML.Transforms/Text/doc.xml' path='doc/members/example[@name="WordTokenizer"]/*' />
-        public sealed partial class WordTokenizer : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.ILearningPipelineItem
+        public sealed partial class WordTokenizer : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
             public WordTokenizer()
@@ -16721,15 +16719,15 @@ namespace Microsoft.ML
             
             public void AddColumn(string inputColumn)
             {
-                var list = Column == null ? new List<Microsoft.ML.Transforms.DelimitedTokenizeTransformColumn>() : new List<Microsoft.ML.Transforms.DelimitedTokenizeTransformColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Transforms.DelimitedTokenizeTransformColumn>.Create(inputColumn));
+                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.DelimitedTokenizeTransformColumn>() : new List<Microsoft.ML.Legacy.Transforms.DelimitedTokenizeTransformColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.DelimitedTokenizeTransformColumn>.Create(inputColumn));
                 Column = list.ToArray();
             }
 
             public void AddColumn(string outputColumn, string inputColumn)
             {
-                var list = Column == null ? new List<Microsoft.ML.Transforms.DelimitedTokenizeTransformColumn>() : new List<Microsoft.ML.Transforms.DelimitedTokenizeTransformColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Transforms.DelimitedTokenizeTransformColumn>.Create(outputColumn, inputColumn));
+                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.DelimitedTokenizeTransformColumn>() : new List<Microsoft.ML.Legacy.Transforms.DelimitedTokenizeTransformColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.DelimitedTokenizeTransformColumn>.Create(outputColumn, inputColumn));
                 Column = list.ToArray();
             }
 
@@ -16904,7 +16902,7 @@ namespace Microsoft.ML
             /// <summary>
             /// Kind of trainer for task, such as binary classification trainer, multiclass trainer, etc.
             /// </summary>
-            public Microsoft.ML.Models.MacroUtilsTrainerKinds TrainerKind { get; set; } = Microsoft.ML.Models.MacroUtilsTrainerKinds.SignatureBinaryClassifierTrainer;
+            public Microsoft.ML.Legacy.Models.MacroUtilsTrainerKinds TrainerKind { get; set; } = Microsoft.ML.Legacy.Models.MacroUtilsTrainerKinds.SignatureBinaryClassifierTrainer;
 
             /// <summary>
             /// Arguments for creating terminator, which determines when to stop search.
@@ -17838,7 +17836,7 @@ namespace Microsoft.ML
             /// <summary>
             /// Optimization algorithm to be used (GradientDescent, AcceleratedGradientDescent)
             /// </summary>
-            public Microsoft.ML.Trainers.BoostedTreeArgsOptimizationAlgorithmType OptimizationAlgorithm { get; set; } = Microsoft.ML.Trainers.BoostedTreeArgsOptimizationAlgorithmType.GradientDescent;
+            public Microsoft.ML.Legacy.Trainers.BoostedTreeArgsOptimizationAlgorithmType OptimizationAlgorithm { get; set; } = Microsoft.ML.Legacy.Trainers.BoostedTreeArgsOptimizationAlgorithmType.GradientDescent;
 
             /// <summary>
             /// Early stopping rule. (Validation set (/valid) is required.)
@@ -18003,7 +18001,7 @@ namespace Microsoft.ML
             /// <summary>
             /// Bundle low population bins. Bundle.None(0): no bundling, Bundle.AggregateLowPopulation(1): Bundle low population, Bundle.Adjacent(2): Neighbor low population bundle.
             /// </summary>
-            public Microsoft.ML.Trainers.Bundle Bundling { get; set; } = Microsoft.ML.Trainers.Bundle.None;
+            public Microsoft.ML.Legacy.Trainers.Bundle Bundling { get; set; } = Microsoft.ML.Legacy.Trainers.Bundle.None;
 
             /// <summary>
             /// Maximum number of distinct values (bins) per feature
@@ -18146,12 +18144,12 @@ namespace Microsoft.ML
             /// <summary>
             /// Normalize option for the feature column
             /// </summary>
-            public Microsoft.ML.Models.NormalizeOption NormalizeFeatures { get; set; } = Microsoft.ML.Models.NormalizeOption.Auto;
+            public Microsoft.ML.Legacy.Models.NormalizeOption NormalizeFeatures { get; set; } = Microsoft.ML.Legacy.Models.NormalizeOption.Auto;
 
             /// <summary>
             /// Whether learner should cache input training data
             /// </summary>
-            public Microsoft.ML.Models.CachingOptions Caching { get; set; } = Microsoft.ML.Models.CachingOptions.Auto;
+            public Microsoft.ML.Legacy.Models.CachingOptions Caching { get; set; } = Microsoft.ML.Legacy.Models.CachingOptions.Auto;
 
             internal override string ComponentName => "FastTreeBinaryClassification";
         }
@@ -18226,7 +18224,7 @@ namespace Microsoft.ML
             /// <summary>
             /// Optimization algorithm to be used (GradientDescent, AcceleratedGradientDescent)
             /// </summary>
-            public Microsoft.ML.Trainers.BoostedTreeArgsOptimizationAlgorithmType OptimizationAlgorithm { get; set; } = Microsoft.ML.Trainers.BoostedTreeArgsOptimizationAlgorithmType.GradientDescent;
+            public Microsoft.ML.Legacy.Trainers.BoostedTreeArgsOptimizationAlgorithmType OptimizationAlgorithm { get; set; } = Microsoft.ML.Legacy.Trainers.BoostedTreeArgsOptimizationAlgorithmType.GradientDescent;
 
             /// <summary>
             /// Early stopping rule. (Validation set (/valid) is required.)
@@ -18391,7 +18389,7 @@ namespace Microsoft.ML
             /// <summary>
             /// Bundle low population bins. Bundle.None(0): no bundling, Bundle.AggregateLowPopulation(1): Bundle low population, Bundle.Adjacent(2): Neighbor low population bundle.
             /// </summary>
-            public Microsoft.ML.Trainers.Bundle Bundling { get; set; } = Microsoft.ML.Trainers.Bundle.None;
+            public Microsoft.ML.Legacy.Trainers.Bundle Bundling { get; set; } = Microsoft.ML.Legacy.Trainers.Bundle.None;
 
             /// <summary>
             /// Maximum number of distinct values (bins) per feature
@@ -18534,12 +18532,12 @@ namespace Microsoft.ML
             /// <summary>
             /// Normalize option for the feature column
             /// </summary>
-            public Microsoft.ML.Models.NormalizeOption NormalizeFeatures { get; set; } = Microsoft.ML.Models.NormalizeOption.Auto;
+            public Microsoft.ML.Legacy.Models.NormalizeOption NormalizeFeatures { get; set; } = Microsoft.ML.Legacy.Models.NormalizeOption.Auto;
 
             /// <summary>
             /// Whether learner should cache input training data
             /// </summary>
-            public Microsoft.ML.Models.CachingOptions Caching { get; set; } = Microsoft.ML.Models.CachingOptions.Auto;
+            public Microsoft.ML.Legacy.Models.CachingOptions Caching { get; set; } = Microsoft.ML.Legacy.Models.CachingOptions.Auto;
 
             internal override string ComponentName => "FastTreeRanking";
         }
@@ -18574,7 +18572,7 @@ namespace Microsoft.ML
             /// <summary>
             /// Optimization algorithm to be used (GradientDescent, AcceleratedGradientDescent)
             /// </summary>
-            public Microsoft.ML.Trainers.BoostedTreeArgsOptimizationAlgorithmType OptimizationAlgorithm { get; set; } = Microsoft.ML.Trainers.BoostedTreeArgsOptimizationAlgorithmType.GradientDescent;
+            public Microsoft.ML.Legacy.Trainers.BoostedTreeArgsOptimizationAlgorithmType OptimizationAlgorithm { get; set; } = Microsoft.ML.Legacy.Trainers.BoostedTreeArgsOptimizationAlgorithmType.GradientDescent;
 
             /// <summary>
             /// Early stopping rule. (Validation set (/valid) is required.)
@@ -18739,7 +18737,7 @@ namespace Microsoft.ML
             /// <summary>
             /// Bundle low population bins. Bundle.None(0): no bundling, Bundle.AggregateLowPopulation(1): Bundle low population, Bundle.Adjacent(2): Neighbor low population bundle.
             /// </summary>
-            public Microsoft.ML.Trainers.Bundle Bundling { get; set; } = Microsoft.ML.Trainers.Bundle.None;
+            public Microsoft.ML.Legacy.Trainers.Bundle Bundling { get; set; } = Microsoft.ML.Legacy.Trainers.Bundle.None;
 
             /// <summary>
             /// Maximum number of distinct values (bins) per feature
@@ -18882,12 +18880,12 @@ namespace Microsoft.ML
             /// <summary>
             /// Normalize option for the feature column
             /// </summary>
-            public Microsoft.ML.Models.NormalizeOption NormalizeFeatures { get; set; } = Microsoft.ML.Models.NormalizeOption.Auto;
+            public Microsoft.ML.Legacy.Models.NormalizeOption NormalizeFeatures { get; set; } = Microsoft.ML.Legacy.Models.NormalizeOption.Auto;
 
             /// <summary>
             /// Whether learner should cache input training data
             /// </summary>
-            public Microsoft.ML.Models.CachingOptions Caching { get; set; } = Microsoft.ML.Models.CachingOptions.Auto;
+            public Microsoft.ML.Legacy.Models.CachingOptions Caching { get; set; } = Microsoft.ML.Legacy.Models.CachingOptions.Auto;
 
             internal override string ComponentName => "FastTreeRegression";
         }
@@ -18927,7 +18925,7 @@ namespace Microsoft.ML
             /// <summary>
             /// Optimization algorithm to be used (GradientDescent, AcceleratedGradientDescent)
             /// </summary>
-            public Microsoft.ML.Trainers.BoostedTreeArgsOptimizationAlgorithmType OptimizationAlgorithm { get; set; } = Microsoft.ML.Trainers.BoostedTreeArgsOptimizationAlgorithmType.GradientDescent;
+            public Microsoft.ML.Legacy.Trainers.BoostedTreeArgsOptimizationAlgorithmType OptimizationAlgorithm { get; set; } = Microsoft.ML.Legacy.Trainers.BoostedTreeArgsOptimizationAlgorithmType.GradientDescent;
 
             /// <summary>
             /// Early stopping rule. (Validation set (/valid) is required.)
@@ -19092,7 +19090,7 @@ namespace Microsoft.ML
             /// <summary>
             /// Bundle low population bins. Bundle.None(0): no bundling, Bundle.AggregateLowPopulation(1): Bundle low population, Bundle.Adjacent(2): Neighbor low population bundle.
             /// </summary>
-            public Microsoft.ML.Trainers.Bundle Bundling { get; set; } = Microsoft.ML.Trainers.Bundle.None;
+            public Microsoft.ML.Legacy.Trainers.Bundle Bundling { get; set; } = Microsoft.ML.Legacy.Trainers.Bundle.None;
 
             /// <summary>
             /// Maximum number of distinct values (bins) per feature
@@ -19235,12 +19233,12 @@ namespace Microsoft.ML
             /// <summary>
             /// Normalize option for the feature column
             /// </summary>
-            public Microsoft.ML.Models.NormalizeOption NormalizeFeatures { get; set; } = Microsoft.ML.Models.NormalizeOption.Auto;
+            public Microsoft.ML.Legacy.Models.NormalizeOption NormalizeFeatures { get; set; } = Microsoft.ML.Legacy.Models.NormalizeOption.Auto;
 
             /// <summary>
             /// Whether learner should cache input training data
             /// </summary>
-            public Microsoft.ML.Models.CachingOptions Caching { get; set; } = Microsoft.ML.Models.CachingOptions.Auto;
+            public Microsoft.ML.Legacy.Models.CachingOptions Caching { get; set; } = Microsoft.ML.Legacy.Models.CachingOptions.Auto;
 
             internal override string ComponentName => "FastTreeTweedieRegression";
         }
@@ -19277,7 +19275,7 @@ namespace Microsoft.ML
             /// <summary>
             /// The weighting criteria
             /// </summary>
-            public Microsoft.ML.Transforms.NgramTransformWeightingCriteria Weighting { get; set; } = Microsoft.ML.Transforms.NgramTransformWeightingCriteria.Tf;
+            public Microsoft.ML.Legacy.Transforms.NgramTransformWeightingCriteria Weighting { get; set; } = Microsoft.ML.Legacy.Transforms.NgramTransformWeightingCriteria.Tf;
 
             internal override string ComponentName => "NGram";
         }
@@ -19374,7 +19372,7 @@ namespace Microsoft.ML
             /// <summary>
             /// Data type of the column.
             /// </summary>
-            public Microsoft.ML.Data.DataKind? Type { get; set; }
+            public Microsoft.ML.Legacy.Data.DataKind? Type { get; set; }
 
             /// <summary>
             /// Index of the directory representing this column.
@@ -19397,7 +19395,7 @@ namespace Microsoft.ML
             /// <summary>
             /// Data type of each column.
             /// </summary>
-            public Microsoft.ML.Data.DataKind Type { get; set; } = Microsoft.ML.Data.DataKind.TX;
+            public Microsoft.ML.Legacy.Data.DataKind Type { get; set; } = Microsoft.ML.Legacy.Data.DataKind.TX;
 
             internal override string ComponentName => "SimplePathParser";
         }

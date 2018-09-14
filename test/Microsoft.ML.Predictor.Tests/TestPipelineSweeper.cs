@@ -132,7 +132,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 amls.InferSearchSpace(numTransformLevels);
 
                 // Create macro object
-                var pipelineSweepInput = new Microsoft.ML.Models.PipelineSweeper()
+                var pipelineSweepInput = new Microsoft.ML.Legacy.Models.PipelineSweeper()
                 {
                     BatchSize = batchSize,
                 };

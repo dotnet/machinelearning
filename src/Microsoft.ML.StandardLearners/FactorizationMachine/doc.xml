@@ -17,7 +17,7 @@
         </para>
           <list type='bullet'>
             <item>
-              <description><a href='http://www.csie.ntu.edu.tw/~cjlin/papers/ffm.pdf'>Field-aware Factorization Machines for CTR Prediction</a></description></item>
+              <description><a href='https://www.csie.ntu.edu.tw/~cjlin/papers/ffm.pdf'>Field-aware Factorization Machines for CTR Prediction</a></description></item>
             <item>
               <description><a href='http://jmlr.org/papers/volume12/duchi11a/duchi11a.pdf'>Adaptive Subgradient Methods for Online Learning and Stochastic Optimization</a></description>
             </item>

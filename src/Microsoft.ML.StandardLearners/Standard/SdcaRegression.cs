@@ -51,7 +51,9 @@ namespace Microsoft.ML.Runtime.Learners
         private readonly Arguments _args;
 
         public override PredictionKind PredictionKind => PredictionKind.Regression;
-        protected override SchemaShape.Column[] OutputColumns { get; }
+
+        private readonly SchemaShape.Column[] _outputColumns;
+        protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema) => _outputColumns;
 
         public SdcaRegressionTrainer(IHostEnvironment env, Arguments args, string featureColumn, string labelColumn, string weightColumn = null)
             : base(Contracts.CheckRef(env, nameof(env)).Register(LoadNameValue), args, MakeFeatureColumn(featureColumn), MakeLabelColumn(labelColumn), MakeWeightColumn(weightColumn))
@@ -59,9 +61,9 @@ namespace Microsoft.ML.Runtime.Learners
             _loss = args.LossFunction.CreateComponent(env);
             Loss = _loss;
             _args = args;
-            OutputColumns = new[]
+            _outputColumns = new[]
             {
-                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false)
+                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata()))
             };
         }
 

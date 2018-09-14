@@ -105,7 +105,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
             // Add the scoring node.
             var testingVar = node.GetInputVariable("TestingData");
             var exp = new Experiment(env);
-            var scoreNode = new ML.Transforms.DatasetScorer();
+            var scoreNode = new Legacy.Transforms.DatasetScorer();
             scoreNode.Data.VarName = testingVar.ToJson();
             scoreNode.PredictorModel.VarName = outputVarName;
             var scoreNodeOutput = exp.Add(scoreNode);
@@ -113,9 +113,9 @@ namespace Microsoft.ML.Runtime.EntryPoints
 
             // Add the evaluator node.
             exp.Reset();
-            var evalNode = new Models.BinaryClassificationEvaluator();
+            var evalNode = new Legacy.Models.BinaryClassificationEvaluator();
             evalNode.Data.VarName = scoreNodeOutput.ScoredData.VarName;
-            var evalOutput = new Models.BinaryClassificationEvaluator.Output();
+            var evalOutput = new Legacy.Models.BinaryClassificationEvaluator.Output();
             string outVariableName;
             if (node.OutputMap.TryGetValue("Warnings", out outVariableName))
                 evalOutput.Warnings.VarName = outVariableName;

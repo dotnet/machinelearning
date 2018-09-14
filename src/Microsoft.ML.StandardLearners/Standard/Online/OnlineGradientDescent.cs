@@ -4,7 +4,7 @@
 
 using Float = System.Single;
 
-using System;
+using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
@@ -25,10 +25,9 @@ using Microsoft.ML.Runtime.Internal.Internallearn;
 
 namespace Microsoft.ML.Runtime.Learners
 {
-    using TPredictor = LinearRegressionPredictor;
 
     /// <include file='doc.xml' path='doc/members/member[@name="OGD"]/*' />
-    public sealed class OnlineGradientDescentTrainer : AveragedLinearTrainer<OnlineGradientDescentTrainer.Arguments, TPredictor>
+    public sealed class OnlineGradientDescentTrainer : AveragedLinearTrainer<RegressionPredictionTransformer<LinearRegressionPredictor>, LinearRegressionPredictor>
     {
         internal const string LoadNameValue = "OnlineGradientDescent";
         internal const string UserNameValue = "Stochastic Gradient Descent (Regression)";
@@ -53,19 +52,27 @@ namespace Microsoft.ML.Runtime.Learners
         }
 
         public OnlineGradientDescentTrainer(IHostEnvironment env, Arguments args)
-            : base(args, env, UserNameValue)
+            : base(args, env, UserNameValue, MakeLabelColumn(args.LabelColumn))
         {
             LossFunction = args.LossFunction.CreateComponent(env);
+
+            _outputColumns = new[]
+            {
+                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata()))
+            };
         }
 
-        public override PredictionKind PredictionKind { get { return PredictionKind.Regression; } }
+        public override PredictionKind PredictionKind => PredictionKind.Regression;
+
+        private readonly SchemaShape.Column[] _outputColumns;
+        protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema) => _outputColumns;
 
         protected override void CheckLabel(RoleMappedData data)
         {
             data.CheckRegressionLabel();
         }
 
-        protected override TPredictor CreatePredictor()
+        protected override LinearRegressionPredictor CreatePredictor()
         {
             Contracts.Assert(WeightsScale == 1);
             VBuffer<Float> weights = default(VBuffer<Float>);
@@ -85,6 +92,11 @@ namespace Microsoft.ML.Runtime.Learners
             return new LinearRegressionPredictor(Host, ref weights, bias);
         }
 
+        private static SchemaShape.Column MakeLabelColumn(string labelColumn)
+        {
+            return new SchemaShape.Column(labelColumn, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false);
+        }
+
         [TlcModule.EntryPoint(Name = "Trainers.OnlineGradientDescentRegressor",
             Desc = "Train a Online gradient descent perceptron.",
             UserName = UserNameValue,
@@ -102,5 +114,8 @@ namespace Microsoft.ML.Runtime.Learners
                 () => new OnlineGradientDescentTrainer(host, input),
                 () => LearnerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.LabelColumn));
         }
+
+        protected override RegressionPredictionTransformer<LinearRegressionPredictor> MakeTransformer(LinearRegressionPredictor model, ISchema trainSchema)
+        => new RegressionPredictionTransformer<LinearRegressionPredictor>(Host, model, trainSchema, FeatureColumn.Name);
     }
 }
