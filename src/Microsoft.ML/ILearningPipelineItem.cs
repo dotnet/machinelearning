@@ -6,7 +6,7 @@ using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
 
-namespace Microsoft.ML
+namespace Microsoft.ML.Legacy
 {
     /// <summary>
     /// An item that can be added to the Learning Pipeline.

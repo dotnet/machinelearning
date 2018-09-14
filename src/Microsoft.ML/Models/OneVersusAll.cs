@@ -8,7 +8,7 @@ using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
 using static Microsoft.ML.Runtime.EntryPoints.CommonInputs;
 
-namespace Microsoft.ML.Models
+namespace Microsoft.ML.Legacy.Models
 {
     public sealed partial class OneVersusAll
     {
