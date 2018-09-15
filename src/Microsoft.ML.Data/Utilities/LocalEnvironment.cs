@@ -3,12 +3,14 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.IO;
-using System.Linq;
 
 namespace Microsoft.ML.Runtime.Data
 {
     using Stopwatch = System.Diagnostics.Stopwatch;
+
+    /// <summary>
+    /// An ML.NET environment for local execution.
+    /// </summary>
     public sealed class LocalEnvironment : HostEnvironmentBase<LocalEnvironment>
     {
         private sealed class Channel : ChannelBase
@@ -54,6 +56,18 @@ namespace Microsoft.ML.Runtime.Data
             : base(RandomUtils.Create(seed), verbose: false, conc)
         {
         }
+
+        /// <summary>
+        /// Add a custom listener to the messages of ML.NET components.
+        /// </summary>
+        public void AddListener(Action<IMessageSource, ChannelMessage> listener)
+            => AddListener<ChannelMessage>(listener);
+
+        /// <summary>
+        /// Remove a previously added a custom listener.
+        /// </summary>
+        public void RemoveListener(Action<IMessageSource, ChannelMessage> listener)
+            => RemoveListener<ChannelMessage>(listener);
 
         protected override IFileHandle CreateTempFileCore(IHostEnvironment env, string suffix = null, string prefix = null)
             => base.CreateTempFileCore(env, suffix, "Local_" + prefix);
