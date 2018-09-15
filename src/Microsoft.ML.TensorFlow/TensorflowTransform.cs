@@ -51,7 +51,6 @@ namespace Microsoft.ML.Transforms
 
         private readonly IHost _host;
         private const string RegistrationName = "TensorFlowTransform";
-        private const string SavedModelVariablesDirName = "variables";
 
         internal readonly TFSession Session;
         internal readonly bool IsFrozen;
@@ -106,7 +105,7 @@ namespace Microsoft.ML.Transforms
             ctx.CheckAtModel(GetVersionInfo());
 
             // *** Binary format ***
-            // int: indicator for frozen models
+            // byte: indicator for frozen models
             // stream: tensorFlow model.
             // int: number of input columns
             // for each input column
@@ -119,48 +118,45 @@ namespace Microsoft.ML.Transforms
             if (isNonFrozenModelSupported)
                 isFrozen = ctx.Reader.ReadBoolByte();
 
+            ModelInputsOutputs(env, ctx, out string[] inputs, out string[] outputs);
             if (isFrozen)
             {
                 byte[] modelBytes = null;
                 if (!ctx.TryLoadBinaryStream("TFModel", r => modelBytes = r.ReadByteArray()))
                     throw env.ExceptDecode();
 
-                var io = ModelInputsOutputs(env, ctx);
-                return new TensorFlowTransform(env, modelBytes, io.Item1, io.Item2, isFrozen);
+                return new TensorFlowTransform(env, modelBytes, inputs, outputs, isFrozen);
             }
-            else
+
+            var tempDirPath = Path.GetFullPath(Path.Combine(Path.GetTempPath(), RegistrationName + "_" + Guid.NewGuid()));
+            Directory.CreateDirectory(tempDirPath);
+
+            var load = ctx.TryLoadBinaryStream("TFSavedModel", br =>
             {
-                var tempDirPath = Path.GetFullPath(Path.Combine(Path.GetTempPath(), "_AG_" + Guid.NewGuid().ToString()));
-                Directory.CreateDirectory(tempDirPath);
-
-                var load = ctx.TryLoadBinaryStream("TFSavedModel", br =>
+                int count = br.ReadInt32();
+                for (int n = 0; n < count; n++)
                 {
-                    int count = br.ReadInt32();
-                    for (int n = 0; n < count; n++)
+                    string relativeFile = br.ReadString();
+                    long fileLength = br.ReadInt64();
+
+                    string fullFilePath = Path.Combine(tempDirPath, relativeFile);
+                    string fullFileDir = Path.GetDirectoryName(fullFilePath);
+
+                    if (fullFileDir != tempDirPath)
                     {
-                        string relativeFile = br.ReadString();
-                        long fileLength = br.ReadInt64();
-
-                        string fullFilePath = Path.Combine(tempDirPath, relativeFile);
-                        string fullFileDir = Path.GetDirectoryName(fullFilePath);
-
-                        if (fullFileDir != tempDirPath)
-                        {
-                            Directory.CreateDirectory(fullFileDir);
-                        }
-
-                        using (var fs = new FileStream(fullFilePath, FileMode.Create, FileAccess.Write))
-                        {
-                            long actualRead = br.BaseStream.CopyRange(fs, fileLength);
-                            env.Assert(actualRead == fileLength);
-                        }
+                        Directory.CreateDirectory(fullFileDir);
                     }
-                });
 
-                var session = GetSession(env, tempDirPath);
-                var io = ModelInputsOutputs(env, ctx);
-                return new TensorFlowTransform(env, tempDirPath, io.Item1, io.Item2, true);
-            }
+                    using (var fs = new FileStream(fullFilePath, FileMode.Create, FileAccess.Write))
+                    {
+                        long actualRead = br.BaseStream.CopyRange(fs, fileLength);
+                        env.Assert(actualRead == fileLength);
+                    }
+                }
+            });
+
+            var session = GetSession(env, tempDirPath);
+            return new TensorFlowTransform(env, tempDirPath, inputs, outputs, true);
         }
 
         // Factory method for SignatureDataTransform.
@@ -182,11 +178,11 @@ namespace Microsoft.ML.Transforms
         public static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, ISchema inputSchema)
             => Create(env, ctx).MakeRowMapper(inputSchema);
 
-        private static Tuple<string[], string[]> ModelInputsOutputs(IHostEnvironment env, ModelLoadContext ctx)
+        private static void ModelInputsOutputs(IHostEnvironment env, ModelLoadContext ctx, out string[] inputs, out string[] outputs)
         {
             var numInputs = ctx.Reader.ReadInt32();
             env.CheckDecode(numInputs > 0);
-            string[] inputs = new string[numInputs];
+            inputs = new string[numInputs];
             for (int j = 0; j < inputs.Length; j++)
                 inputs[j] = ctx.LoadNonEmptyString();
 
@@ -196,11 +192,9 @@ namespace Microsoft.ML.Transforms
                 numOutputs = ctx.Reader.ReadInt32();
 
             env.CheckDecode(numOutputs > 0);
-            var outputs = new string[numOutputs];
+            outputs = new string[numOutputs];
             for (int j = 0; j < outputs.Length; j++)
                 outputs[j] = ctx.LoadNonEmptyString();
-
-            return new Tuple<string[], string[]>(inputs, outputs);
         }
 
         private static TFSession LoadTFSession(IHostEnvironment env, byte[] modelBytes)
@@ -354,7 +348,7 @@ namespace Microsoft.ML.Transforms
             ctx.Writer.WriteBoolByte(IsFrozen);
 
             // *** Binary format ***
-            // int: indicator for frozen models
+            // byte: indicator for frozen models
             // stream: tensorFlow model.
             // int: number of input columns
             // for each input column
