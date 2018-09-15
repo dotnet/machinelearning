@@ -10,7 +10,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
-namespace Microsoft.ML.Models
+namespace Microsoft.ML.Legacy.Models
 {
     /// <summary>
     /// Performs Train-Test on a pipeline.

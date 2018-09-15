@@ -15,7 +15,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
     /// the target function "minimum description length".
     /// The algorithm is outlineed in an article
     /// "Multi-Interval Discretization of Continuous-Valued Attributes for Classification Learning"
-    /// [Fayyad, Usama M.; Irani, Keki B. (1993)] http://ijcai.org/Past%20Proceedings/IJCAI-93-VOL2/PDF/022.pdf
+    /// [Fayyad, Usama M.; Irani, Keki B. (1993)] https://ijcai.org/Past%20Proceedings/IJCAI-93-VOL2/PDF/022.pdf
     ///
     /// The class can be used several times sequentially, it is stateful and not thread-safe.
     /// Both Single and Double precision processing is implemented, and is identical.

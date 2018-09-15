@@ -27,7 +27,7 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
      Train a field-aware factorization machine using ADAGRAD (an advanced stochastic gradient method). See references below
      for details. This trainer is essentially faster the one introduced in [2] because of some implemtation tricks[3].
      [1] http://jmlr.org/papers/volume12/duchi11a/duchi11a.pdf
-     [2] http://www.csie.ntu.edu.tw/~cjlin/papers/ffm.pdf
+     [2] https://www.csie.ntu.edu.tw/~cjlin/papers/ffm.pdf
      [3] https://github.com/wschin/fast-ffm/blob/master/fast-ffm.pdf
     */
     /// <include file='doc.xml' path='doc/members/member[@name="FieldAwareFactorizationMachineBinaryClassifier"]/*' />

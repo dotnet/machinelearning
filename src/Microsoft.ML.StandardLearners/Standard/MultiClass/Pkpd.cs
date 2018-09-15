@@ -2,19 +2,17 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Float = System.Single;
-
-using System;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Internal.Calibration;
 using Microsoft.ML.Runtime.Internal.Internallearn;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Learners;
 using Microsoft.ML.Runtime.Model;
+using Microsoft.ML.Runtime.Training;
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 [assembly: LoadableClass(Pkpd.Summary, typeof(Pkpd), typeof(Pkpd.Arguments),
     new[] { typeof(SignatureMultiClassClassifierTrainer), typeof(SignatureTrainer) },
@@ -26,10 +24,11 @@ using Microsoft.ML.Runtime.Model;
 
 namespace Microsoft.ML.Runtime.Learners
 {
-    using TScalarTrainer = ITrainer<IPredictorProducing<Float>>;
-    using TScalarPredictor = IPredictorProducing<Float>;
-    using TDistPredictor = IDistPredictorProducing<Float, Float>;
+
+    using TDistPredictor = IDistPredictorProducing<float, float>;
+    using TScalarTrainer = ITrainerEstimator<IPredictionTransformer<IPredictorProducing<float>>, IPredictorProducing<float>>;
     using CR = RoleMappedSchema.ColumnRole;
+    using TTransformer = MulticlassPredictionTransformer<PkpdPredictor>;
 
     /// <summary>
     /// In this strategy, a binary classification algorithm is trained on each pair of classes.
@@ -54,7 +53,7 @@ namespace Microsoft.ML.Runtime.Learners
     /// L-BFGS history for all classes *simultaneously*, rather than just one-by-one
     /// as would be needed for OVA.
     /// </summary>
-    public sealed class Pkpd : MetaMulticlassTrainer<PkpdPredictor, Pkpd.Arguments>
+    public sealed class Pkpd : MetaMulticlassTrainer<MulticlassPredictionTransformer<PkpdPredictor>, PkpdPredictor>
     {
         internal const string LoadNameValue = "PKPD";
         internal const string UserNameValue = "Pairwise coupling (PKPD)";
@@ -68,94 +67,156 @@ namespace Microsoft.ML.Runtime.Learners
         public sealed class Arguments : ArgumentsBase
         {
         }
-
+        /// <summary>
+        /// Legacy constructor that builds the <see cref="Pkpd"/> trainer supplying the base trainer to use, for the classification task
+        /// through the <see cref="Arguments"/>arguments.
+        /// Developers should instantiate <see cref="Pkpd"/> by supplying the trainer argument directly to the <see cref="Pkpd"/> constructor
+        /// using the other public constructor.
+        /// </summary>
         public Pkpd(IHostEnvironment env, Arguments args)
             : base(env, args, LoadNameValue)
         {
         }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Pkpd"/>
+        /// </summary>
+        /// <param name="env">The <see cref="IHostEnvironment"/> instance.</param>
+        /// <param name="binaryEstimator">An instance of a binary <see cref="ITrainerEstimator{TTransformer, TPredictor}"/> used as the base trainer.</param>
+        /// <param name="calibrator">The calibrator. If a calibrator is not explicitely provided, it will default to <see cref="PlattCalibratorCalibratorTrainer"/></param>
+        /// <param name="labelColumn">The name of the label colum.</param>
+        /// <param name="imputeMissingLabelsAsNegative">Whether to treat missing labels as having negative labels, instead of keeping them missing.</param>
+        /// <param name="maxCalibrationExamples">Number of instances to train the calibrator.</param>
+        public Pkpd(IHostEnvironment env, TScalarTrainer binaryEstimator, string labelColumn = DefaultColumnNames.Label,
+            bool imputeMissingLabelsAsNegative = false, ICalibratorTrainer calibrator = null, int maxCalibrationExamples = 1000000000)
+           : base(env,
+               new Arguments
+               {
+                   ImputeMissingLabelsAsNegative = imputeMissingLabelsAsNegative,
+                   MaxCalibrationExamples = maxCalibrationExamples,
+               },
+               LoadNameValue, labelColumn, binaryEstimator, calibrator)
+        {
+            Host.CheckValue(labelColumn, nameof(labelColumn), "Label column should not be null.");
+        }
+
         protected override PkpdPredictor TrainCore(IChannel ch, RoleMappedData data, int count)
         {
             // Train M * (M+1) / 2 models arranged as a lower triangular matrix.
-            TDistPredictor[][] predictors;
-            predictors = new TDistPredictor[count][];
-            for (int i = 0; i < predictors.Length; i++)
+            var predModels = new TDistPredictor[count][];
+
+            for (int i = 0; i < predModels.Length; i++)
             {
-                predictors[i] = new TDistPredictor[i + 1];
+                predModels[i] = new TDistPredictor[i + 1];
+
                 for (int j = 0; j <= i; j++)
                 {
                     ch.Info($"Training learner ({i},{j})");
-                    predictors[i][j] = TrainOne(ch, GetTrainer(), data, i, j);
+                    predModels[i][j] = TrainOne(ch, GetTrainer(), data, i, j).Model;
                 }
             }
-            return new PkpdPredictor(Host, predictors);
+
+            return new PkpdPredictor(Host, predModels);
         }
 
-        private TDistPredictor TrainOne(IChannel ch, TScalarTrainer trainer, RoleMappedData data, int cls1, int cls2)
+        private IPredictionTransformer<TDistPredictor> TrainOne(IChannel ch, TScalarTrainer trainer, RoleMappedData data, int cls1, int cls2)
         {
-            string dstName;
-            var view = MapLabels(data, cls1, cls2, out dstName);
+            // this should not be necessary when the legacy constructor doesn't exist, and the label column is not an optional parameter on the
+            // MetaMulticlassTrainer constructor.
+            string trainerLabel = data.Schema.Label.Name;
 
-            var roles = data.Schema.GetColumnRoleNames()
-                .Where(kvp => kvp.Key.Value != CR.Label.Value)
-                .Prepend(CR.Label.Bind(dstName));
-            var td = new RoleMappedData(view, roles);
+            var view = MapLabels(data, cls1, cls2);
+            var transformer = trainer.Fit(view);
 
-            var predictor = trainer.Train(td);
+            // the validations in the calibrator check for the feature column, in the RoleMappedData
+            var trainedData = new RoleMappedData(view, label: trainerLabel, feature: transformer.FeatureColumn);
 
-            ICalibratorTrainer calibrator;
-            if (Args.Calibrator == null)
-                calibrator = null;
-            else
-                calibrator = Args.Calibrator.CreateComponent(Host);
-            var res = CalibratorUtils.TrainCalibratorIfNeeded(Host, ch, calibrator, Args.MaxCalibrationExamples,
-                trainer, predictor, td);
-            var dist = res as TDistPredictor;
-            Host.Check(dist != null, "Calibrated predictor does not implement the expected interface");
-            Host.Check(dist is IValueMapperDist, "Calibrated predictor does not implement the IValueMapperDist interface");
-            return dist;
+            var calibratedModel = transformer.Model as TDistPredictor;
+            if (calibratedModel == null)
+                calibratedModel = CalibratorUtils.TrainCalibrator(Host, ch, Calibrator, Args.MaxCalibrationExamples, transformer.Model, trainedData) as TDistPredictor;
+
+            return new BinaryPredictionTransformer<TDistPredictor>(Host, calibratedModel, trainedData.Data.Schema, transformer.FeatureColumn);
         }
 
-        private IDataView MapLabels(RoleMappedData data, int cls1, int cls2, out string dstName)
+        private IDataView MapLabels(RoleMappedData data, int cls1, int cls2)
         {
             var lab = data.Schema.Label;
             Host.Assert(!data.Schema.Schema.IsHidden(lab.Index));
             Host.Assert(lab.Type.KeyCount > 0 || lab.Type == NumberType.R4 || lab.Type == NumberType.R8);
-
-            // Get the destination label column name.
-            dstName = data.Schema.Schema.GetTempColumnName();
 
             if (lab.Type.KeyCount > 0)
             {
                 // Key values are 1-based.
                 uint key1 = (uint)(cls1 + 1);
                 uint key2 = (uint)(cls2 + 1);
-                return MapLabelsCore(NumberType.U4, (ref uint val) => val == key1 || val == key2, data, dstName);
+                return MapLabelsCore(NumberType.U4, (ref uint val) => val == key1 || val == key2, data);
             }
             if (lab.Type == NumberType.R4)
             {
                 float key1 = cls1;
                 float key2 = cls2;
-                return MapLabelsCore(NumberType.R4, (ref float val) => val == key1 || val == key2, data, dstName);
+                return MapLabelsCore(NumberType.R4, (ref float val) => val == key1 || val == key2, data);
             }
             if (lab.Type == NumberType.R8)
             {
                 double key1 = cls1;
                 double key2 = cls2;
-                return MapLabelsCore(NumberType.R8, (ref double val) => val == key1 || val == key2, data, dstName);
+                return MapLabelsCore(NumberType.R8, (ref double val) => val == key1 || val == key2, data);
             }
 
             throw Host.ExceptNotSupp($"Label column type is not supported by PKPD: {lab.Type}");
         }
+
+        /// <summary>
+        /// Fits the data to the transformer
+        /// </summary>
+        /// <param name="input">The input data.</param>
+        /// <returns>The trained predictor.</returns>
+        public override TTransformer Fit(IDataView input)
+        {
+            string featureColumn = null;
+
+            var roles = new KeyValuePair<CR, string>[1];
+            roles[0] = new KeyValuePair<CR, string>(new CR(DefaultColumnNames.Label), LabelColumn.Name);
+            var td = new RoleMappedData(input, roles);
+
+            td.CheckMultiClassLabel(out var numClasses);
+            // Train M * (M+1) / 2 models arranged as a lower triangular matrix.
+            var predictors = new TDistPredictor[numClasses][];
+
+            using (var ch = Host.Start("Fitting"))
+            {
+                for (int i = 0; i < predictors.Length; i++)
+                {
+                    predictors[i] = new TDistPredictor[i + 1];
+
+                    for (int j = 0; j <= i; j++)
+                    {
+                        ch.Info($"Training learner ({i},{j})");
+
+                        // need to capture the featureColum, and it is the same for all the transformers
+                        if (i == 0 && j == 0)
+                        {
+                            var transformer = TrainOne(ch, GetTrainer(), td, i, j);
+                            featureColumn = transformer.FeatureColumn;
+                        }
+
+                        predictors[i][j] = TrainOne(ch, GetTrainer(), td, i, j).Model;
+                    }
+                }
+            }
+
+            return new MulticlassPredictionTransformer<PkpdPredictor>(Host, new PkpdPredictor(Host, predictors), input.Schema, featureColumn, LabelColumn.Name);
+        }
     }
 
     public sealed class PkpdPredictor :
-        PredictorBase<VBuffer<Float>>,
+        PredictorBase<VBuffer<float>>,
         IValueMapper,
         ICanSaveModel
     {
-        public const string LoaderSignature = "PKPDExec";
-        public const string RegistrationName = "PKPDPredictor";
+        internal const string LoaderSignature = "PKPDExec";
+        internal const string RegistrationName = "PKPDPredictor";
 
         private static VersionInfo GetVersionInfo()
         {
@@ -290,7 +351,7 @@ namespace Microsoft.ML.Runtime.Learners
             }
         }
 
-        private void ComputeProbabilities(Double[] buffer, ref Float[] output)
+        private void ComputeProbabilities(Double[] buffer, ref float[] output)
         {
             // Compute the probabilities and store them in the beginning of buffer. Note that this is safe to do since
             // once we've computed the ith probability, we are totally done with the ith row and all previous rows
@@ -304,14 +365,14 @@ namespace Microsoft.ML.Runtime.Learners
             }
 
             if (Utils.Size(output) < _numClasses)
-                output = new Float[_numClasses];
+                output = new float[_numClasses];
 
             // Normalize.
             if (sum <= 0)
                 sum = 1;
 
             for (int i = 0; i < _numClasses; i++)
-                output[i] = (Float)(buffer[i] / sum);
+                output[i] = (float)(buffer[i] / sum);
         }
 
         // Reconcile the predictions - ensure that pij >= pii and pji >= pii (when pii > 0).
@@ -379,16 +440,16 @@ namespace Microsoft.ML.Runtime.Learners
 
         public ValueMapper<TIn, TOut> GetMapper<TIn, TOut>()
         {
-            Host.Check(typeof(TIn) == typeof(VBuffer<Float>));
-            Host.Check(typeof(TOut) == typeof(VBuffer<Float>));
+            Host.Check(typeof(TIn) == typeof(VBuffer<float>));
+            Host.Check(typeof(TOut) == typeof(VBuffer<float>));
 
-            var maps = new ValueMapper<VBuffer<Float>, Float, Float>[_mappers.Length];
+            var maps = new ValueMapper<VBuffer<float>, float, float>[_mappers.Length];
             for (int i = 0; i < _mappers.Length; i++)
-                maps[i] = _mappers[i].GetMapper<VBuffer<Float>, Float, Float>();
+                maps[i] = _mappers[i].GetMapper<VBuffer<float>, float, float>();
 
-            var buffer = new Double[_predictors.Length];
-            ValueMapper<VBuffer<Float>, VBuffer<Float>> del =
-                (ref VBuffer<Float> src, ref VBuffer<Float> dst) =>
+            var buffer = new Double[_numClasses];
+            ValueMapper<VBuffer<float>, VBuffer<float>> del =
+                (ref VBuffer<float> src, ref VBuffer<float> dst) =>
                 {
                     if (InputType.VectorSize > 0)
                         Host.Check(src.Length == InputType.VectorSize);
@@ -397,8 +458,8 @@ namespace Microsoft.ML.Runtime.Learners
                     var tmp = src;
                     Parallel.For(0, maps.Length, i =>
                     {
-                        Float score = 0;
-                        Float prob = 0;
+                        float score = 0;
+                        float prob = 0;
                         maps[i](ref tmp, ref score, ref prob);
                         buffer[i] = prob;
                     });
@@ -406,7 +467,7 @@ namespace Microsoft.ML.Runtime.Learners
                     ReconcilePredictions(buffer);
                     ComputeProbabilities(buffer, ref values);
 
-                    dst = new VBuffer<Float>(_numClasses, values, dst.Indices);
+                    dst = new VBuffer<float>(_numClasses, values, dst.Indices);
                 };
             return (ValueMapper<TIn, TOut>)(Delegate)del;
         }

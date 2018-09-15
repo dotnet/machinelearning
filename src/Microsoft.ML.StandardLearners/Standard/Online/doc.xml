@@ -48,7 +48,7 @@
         </para>
         <para> For more information see:</para>
         <para><a href='https://en.wikipedia.org/wiki/Perceptron'>Wikipedia entry for Perceptron</a></para>
-        <para><a href='http://citeseer.ist.psu.edu/viewdoc/summary?doi=10.1.1.48.8200'>Large Margin Classification Using the Perceptron Algorithm</a></para>
+        <para><a href='https://citeseer.ist.psu.edu/viewdoc/summary?doi=10.1.1.48.8200'>Large Margin Classification Using the Perceptron Algorithm</a></para>
       </remarks>
     </member>
     <example>

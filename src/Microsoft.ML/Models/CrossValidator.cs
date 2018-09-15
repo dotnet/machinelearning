@@ -9,7 +9,7 @@ using Microsoft.ML.Runtime.EntryPoints;
 using System.Collections.Generic;
 using System.IO;
 
-namespace Microsoft.ML.Models
+namespace Microsoft.ML.Legacy.Models
 {
     /// <summary>
     /// Performs cross-validation on a pipeline.
