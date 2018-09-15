@@ -22089,7 +22089,7 @@
     {
       "Name": "Transforms.TextToKeyConverter",
       "Desc": "Converts input values (words, numbers, etc.) to index in a dictionary.",
-      "FriendlyName": "Term Transform",
+      "FriendlyName": "To Key",
       "ShortName": null,
       "Inputs": [
         {
