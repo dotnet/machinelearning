@@ -63,17 +63,6 @@ namespace Microsoft.ML.Runtime.Training
             WeightColumn = weight;
         }
 
-        protected static IEnumerable<SchemaShape.Column> MetadataForScoreColumn(bool isNormalized = false)
-        {
-            var cols = new List<SchemaShape.Column>();
-            cols.Add(new SchemaShape.Column(MetadataUtils.Kinds.ScoreColumnSetId, SchemaShape.Column.VectorKind.Scalar, NumberType.U4, true));
-            cols.Add(new SchemaShape.Column(MetadataUtils.Kinds.ScoreColumnKind, SchemaShape.Column.VectorKind.Scalar, TextType.Instance, false));
-            cols.Add(new SchemaShape.Column(MetadataUtils.Kinds.ScoreValueKind, SchemaShape.Column.VectorKind.Scalar, TextType.Instance, false));
-            if (isNormalized)
-                cols.Add(new SchemaShape.Column(MetadataUtils.Kinds.IsNormalized, SchemaShape.Column.VectorKind.Scalar, BoolType.Instance, false));
-            return cols;
-        }
-
         public TTransformer Fit(IDataView input) => TrainTransformer(input);
 
         public SchemaShape GetOutputSchema(SchemaShape inputSchema)
