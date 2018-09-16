@@ -123,7 +123,7 @@ namespace Microsoft.ML.Scenarios
                 },
                 loader);
 
-                var trans = new WordEmbeddingsTransform(env, new WordEmbeddingsTransform.Arguments()
+                var trans = WordEmbeddingsTransform.Create(env, new WordEmbeddingsTransform.Arguments()
                 {
                     Column = new WordEmbeddingsTransform.Column[1]
                     {

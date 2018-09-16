@@ -7,6 +7,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using Microsoft.ML.Core.Data;
+using Microsoft.ML.Data.StaticPipe.Runtime;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
@@ -21,10 +23,16 @@ using Microsoft.ML.Runtime.Model;
 [assembly: LoadableClass(typeof(WordEmbeddingsTransform), null, typeof(SignatureLoadDataTransform),
     WordEmbeddingsTransform.UserName, WordEmbeddingsTransform.LoaderSignature)]
 
+[assembly: LoadableClass(typeof(WordEmbeddingsTransform), null, typeof(SignatureLoadModel),
+    WordEmbeddingsTransform.UserName, WordEmbeddingsTransform.LoaderSignature)]
+
+[assembly: LoadableClass(typeof(IRowMapper), typeof(WordEmbeddingsTransform), null, typeof(SignatureLoadRowMapper),
+    WordEmbeddingsTransform.UserName, WordEmbeddingsTransform.LoaderSignature)]
+
 namespace Microsoft.ML.Runtime.Data
 {
     /// <include file='doc.xml' path='doc/members/member[@name="WordEmbeddings"]/*' />
-    public sealed class WordEmbeddingsTransform : OneToOneTransformBase
+    public sealed class WordEmbeddingsTransform : OneToOneTransformerBase
     {
         public sealed class Column : OneToOneColumn
         {
@@ -78,10 +86,11 @@ namespace Microsoft.ML.Runtime.Data
         private readonly string _modelFileNameWithPath;
         private readonly Model _currentVocab;
         private static object _embeddingsLock = new object();
-        private readonly VectorType _outputType;
         private readonly bool _customLookup;
-        private readonly int _linesToSkip;
+        public readonly VectorType InputType;
+        public readonly VectorType OutputType;
         private static Dictionary<string, WeakReference<Model>> _vocab = new Dictionary<string, WeakReference<Model>>();
+        public IReadOnlyCollection<(string input, string output)> Columns => ColumnPairs.AsReadOnly();
 
         private sealed class Model
         {
@@ -125,44 +134,68 @@ namespace Microsoft.ML.Runtime.Data
 
         private const int Timeout = 10 * 60 * 1000;
 
-        /// <summary>
-        /// Public constructor corresponding to <see cref="SignatureDataTransform"/>.
-        /// </summary>
-        public WordEmbeddingsTransform(IHostEnvironment env, Arguments args, IDataView input)
-                : base(env, RegistrationName, Contracts.CheckRef(args, nameof(args)).Column,
-                     input, TestIsTextVector)
+        public WordEmbeddingsTransform(IHostEnvironment env, string inputColumn, string outputColumn,
+           PretrainedModelKind? modelKind)
+           : this(env, modelKind, null, new Column() { Source = inputColumn, Name = outputColumn })
         {
-            if (args.ModelKind == null)
-                args.ModelKind = PretrainedModelKind.Sswe;
-            Host.CheckUserArg(!args.ModelKind.HasValue || Enum.IsDefined(typeof(PretrainedModelKind), args.ModelKind), nameof(args.ModelKind));
-            Host.AssertNonEmpty(Infos);
-            Host.Assert(Infos.Length == Utils.Size(args.Column));
+        }
 
-            _customLookup = !string.IsNullOrWhiteSpace(args.CustomLookupTable);
+        public WordEmbeddingsTransform(IHostEnvironment env, PretrainedModelKind? modelKind, string customLookupTable = null, params Column[] columns)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(RegistrationName), GetColumnPairs(columns))
+        {
+            if (modelKind == null)
+                modelKind = PretrainedModelKind.Sswe;
+            env.CheckUserArg(modelKind.HasValue || Enum.IsDefined(typeof(PretrainedModelKind), modelKind), nameof(modelKind));
+
+            bool customLookup = !string.IsNullOrWhiteSpace(customLookupTable);
+            int linesToSkip = 0;
             if (_customLookup)
             {
                 _modelKind = null;
-                _modelFileNameWithPath = args.CustomLookupTable;
+                _modelFileNameWithPath = customLookupTable;
             }
             else
             {
-                _modelKind = args.ModelKind;
-                _modelFileNameWithPath = EnsureModelFile(env, out _linesToSkip, (PretrainedModelKind)_modelKind);
+                _modelKind = modelKind;
+                _modelFileNameWithPath = EnsureModelFile(env, out linesToSkip, (PretrainedModelKind)_modelKind);
             }
 
             Host.CheckNonWhiteSpace(_modelFileNameWithPath, nameof(_modelFileNameWithPath));
-            _currentVocab = GetVocabularyDictionary();
-            _outputType = new VectorType(NumberType.R4, 3 * _currentVocab.Dimension);
-            Metadata.Seal();
+            _currentVocab = GetVocabularyDictionary(linesToSkip);
+            InputType = new VectorType(TextType.Instance);
+            OutputType = new VectorType(NumberType.R4, 3 * _currentVocab.Dimension);
         }
 
-        private WordEmbeddingsTransform(IHost host, ModelLoadContext ctx, IDataView input)
-            : base(host, ctx, input, TestIsTextVector)
+        private static (string input, string output)[] GetColumnPairs(Column[] columns)
+        {
+            Contracts.CheckValue(columns, nameof(columns));
+            return columns.Select(x => (x.Source, x.Name)).ToArray();
+        }
+
+        // Factory method for SignatureDataTransform.
+        public static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
+        {
+            Contracts.CheckValue(env, nameof(env));
+            env.CheckValue(args, nameof(args));
+            env.CheckValue(input, nameof(input));
+
+            if (args.ModelKind == null)
+                args.ModelKind = PretrainedModelKind.Sswe;
+            env.CheckUserArg(!args.ModelKind.HasValue || Enum.IsDefined(typeof(PretrainedModelKind), args.ModelKind), nameof(args.ModelKind));
+
+            env.CheckValue(args.Column, nameof(args.Column));
+
+            return new WordEmbeddingsTransform(env, args.ModelKind, args.CustomLookupTable, args.Column).MakeDataTransform(input);
+        }
+
+        private WordEmbeddingsTransform(IHost host, ModelLoadContext ctx)
+            : base(host, ctx)
         {
             Host.AssertValue(ctx);
-            Host.AssertNonEmpty(Infos);
+            Host.AssertNonEmpty(ColumnPairs);
             _customLookup = ctx.Reader.ReadBoolByte();
 
+            int linesToSkip = 0;
             if (_customLookup)
             {
                 _modelFileNameWithPath = ctx.LoadNonEmptyString();
@@ -171,24 +204,32 @@ namespace Microsoft.ML.Runtime.Data
             else
             {
                 _modelKind = (PretrainedModelKind)ctx.Reader.ReadUInt32();
-                _modelFileNameWithPath = EnsureModelFile(Host, out _linesToSkip, (PretrainedModelKind)_modelKind);
+                _modelFileNameWithPath = EnsureModelFile(Host, out linesToSkip, (PretrainedModelKind)_modelKind);
             }
 
             Host.CheckNonWhiteSpace(_modelFileNameWithPath, nameof(_modelFileNameWithPath));
-            _currentVocab = GetVocabularyDictionary();
-            _outputType = new VectorType(NumberType.R4, 3 * _currentVocab.Dimension);
-            Metadata.Seal();
+            _currentVocab = GetVocabularyDictionary(linesToSkip);
+
+            InputType = new VectorType(PrimitiveType.FromKind(DataKind.Text));
+            OutputType = new VectorType(NumberType.R4, 3 * _currentVocab.Dimension);
         }
 
-        public static WordEmbeddingsTransform Create(IHostEnvironment env, ModelLoadContext ctx, IDataView input)
+        public static WordEmbeddingsTransform Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
             IHost h = env.Register(RegistrationName);
             h.CheckValue(ctx, nameof(ctx));
-            h.CheckValue(input, nameof(input));
             return h.Apply("Loading Model",
-                ch => new WordEmbeddingsTransform(h, ctx, input));
+                ch => new WordEmbeddingsTransform(h, ctx));
         }
+
+        // Factory method for SignatureLoadDataTransform.
+        public static IDataTransform Create(IHostEnvironment env, ModelLoadContext ctx, IDataView input)
+            => Create(env, ctx).MakeDataTransform(input);
+
+        // Factory method for SignatureLoadRowMapper.
+        public static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, ISchema inputSchema)
+            => Create(env, ctx).MakeRowMapper(inputSchema);
 
         public override void Save(ModelSaveContext ctx)
         {
@@ -196,7 +237,7 @@ namespace Microsoft.ML.Runtime.Data
             ctx.CheckAtModel();
             ctx.SetVersionInfo(GetVersionInfo());
 
-            SaveBase(ctx);
+            base.SaveColumns(ctx);
             ctx.Writer.WriteBoolByte(_customLookup);
             if (_customLookup)
                 ctx.SaveString(_modelFileNameWithPath);
@@ -204,81 +245,96 @@ namespace Microsoft.ML.Runtime.Data
                 ctx.Writer.Write((uint)_modelKind);
         }
 
-        protected override ColumnType GetColumnTypeCore(int iinfo)
+        protected override IRowMapper MakeRowMapper(ISchema schema)
+           => new Mapper(this, schema);
+
+        protected override void CheckInputColumn(ISchema inputSchema, int col, int srcCol)
         {
-            Host.Assert(0 <= iinfo && iinfo < Infos.Length);
-            return _outputType;
+            var colType = inputSchema.GetColumnType(srcCol);
+            if (!(colType is VectorType && colType.ItemType.IsText))
+                throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", ColumnPairs[col].input, "Text", inputSchema.GetColumnType(srcCol).ToString());
         }
 
-        protected override Delegate GetGetterCore(IChannel ch, IRow input, int iinfo, out Action disposer)
+        private sealed class Mapper : MapperBase
         {
-            Host.AssertValue(ch);
-            ch.AssertValue(input);
-            ch.Assert(0 <= iinfo && iinfo < Infos.Length);
-            disposer = null;
+            private readonly WordEmbeddingsTransform _parent;
 
-            var info = Infos[iinfo];
-            if (!info.TypeSrc.IsVector)
+            public Mapper(WordEmbeddingsTransform parent, ISchema inputSchema)
+                : base(parent.Host.Register(nameof(Mapper)), parent, inputSchema)
             {
-                throw Host.ExceptParam(nameof(input),
-                    "Text input given, expects a text vector");
+                _parent = parent;
             }
-            return GetGetterVec(ch, input, iinfo);
-        }
 
-        private ValueGetter<VBuffer<float>> GetGetterVec(IChannel ch, IRow input, int iinfo)
-        {
-            Host.AssertValue(ch);
-            ch.AssertValue(input);
-            ch.Assert(0 <= iinfo && iinfo < Infos.Length);
+            public override RowMapperColumnInfo[] GetOutputColumns()
+                => _parent.ColumnPairs.Select(x => new RowMapperColumnInfo(x.output, _parent.OutputType, null)).ToArray();
 
-            var info = Infos[iinfo];
-            ch.Assert(info.TypeSrc.IsVector);
-            ch.Assert(info.TypeSrc.ItemType.IsText);
+            protected override Delegate MakeGetter(IRow input, int iinfo, out Action disposer)
+            {
+                Contracts.AssertValue(input);
+                Contracts.Assert(0 <= iinfo && iinfo < _parent.ColumnPairs.Length);
+                disposer = null;
 
-            var srcGetter = input.GetGetter<VBuffer<DvText>>(info.Source);
-            var src = default(VBuffer<DvText>);
-            int dimension = _currentVocab.Dimension;
-            float[] wordVector = new float[_currentVocab.Dimension];
-
-            return
-                (ref VBuffer<float> dst) =>
+                if (!_parent.InputType.IsVector)
                 {
-                    int deno = 0;
-                    srcGetter(ref src);
-                    var values = dst.Values;
-                    if (Utils.Size(values) != 3 * dimension)
-                        values = new float[3 * dimension];
-                    int offset = 2 * dimension;
-                    for (int i = 0; i < dimension; i++)
+                    throw Host.ExceptParam(nameof(input),
+                        "Text input given, expects a text vector");
+                }
+                return GetGetterVec(input, iinfo);
+            }
+
+            private ValueGetter<VBuffer<float>> GetGetterVec(IRow input, int iinfo)
+            {
+                Contracts.AssertValue(input);
+
+                Contracts.Assert(0 <= iinfo && iinfo < _parent.ColumnPairs.Length);
+
+                Contracts.Assert(_parent.InputType.IsVector);
+                Contracts.Assert(_parent.InputType.ItemType.IsText);
+
+                var srcGetter = input.GetGetter<VBuffer<DvText>>(ColMapNewToOld[iinfo]);
+                var src = default(VBuffer<DvText>);
+                int dimension = _parent._currentVocab.Dimension;
+                float[] wordVector = new float[_parent._currentVocab.Dimension];
+
+                return
+                    (ref VBuffer<float> dst) =>
                     {
-                        values[i] = float.MaxValue;
-                        values[i + dimension] = 0;
-                        values[i + offset] = float.MinValue;
-                    }
-                    for (int word = 0; word < src.Count; word++)
-                    {
-                        if (_currentVocab.GetWordVector(ref src.Values[word], wordVector))
+                        int deno = 0;
+                        srcGetter(ref src);
+                        var values = dst.Values;
+                        if (Utils.Size(values) != 3 * dimension)
+                            values = new float[3 * dimension];
+                        int offset = 2 * dimension;
+                        for (int i = 0; i < dimension; i++)
                         {
-                            deno++;
-                            for (int i = 0; i < dimension; i++)
+                            values[i] = float.MaxValue;
+                            values[i + dimension] = 0;
+                            values[i + offset] = float.MinValue;
+                        }
+                        for (int word = 0; word < src.Count; word++)
+                        {
+                            if (_parent._currentVocab.GetWordVector(ref src.Values[word], wordVector))
                             {
-                                float currentTerm = wordVector[i];
-                                if (values[i] > currentTerm)
-                                    values[i] = currentTerm;
-                                values[dimension + i] += currentTerm;
-                                if (values[offset + i] < currentTerm)
-                                    values[offset + i] = currentTerm;
+                                deno++;
+                                for (int i = 0; i < dimension; i++)
+                                {
+                                    float currentTerm = wordVector[i];
+                                    if (values[i] > currentTerm)
+                                        values[i] = currentTerm;
+                                    values[dimension + i] += currentTerm;
+                                    if (values[offset + i] < currentTerm)
+                                        values[offset + i] = currentTerm;
+                                }
                             }
                         }
-                    }
 
-                    if (deno != 0)
-                        for (int index = 0; index < dimension; index++)
-                            values[index + dimension] /= deno;
+                        if (deno != 0)
+                            for (int index = 0; index < dimension; index++)
+                                values[index + dimension] /= deno;
 
-                    dst = new VBuffer<float>(values.Length, values, dst.Indices);
-                };
+                        dst = new VBuffer<float>(values.Length, values, dst.Indices);
+                    };
+            }
         }
 
         public enum PretrainedModelKind
@@ -359,7 +415,7 @@ namespace Microsoft.ML.Runtime.Data
             throw Host.Except($"Can't map model kind = {kind} to specific file, please refer to https://aka.ms/MLNetIssue for assistance");
         }
 
-        private Model GetVocabularyDictionary()
+        private Model GetVocabularyDictionary(int linesToSkip)
         {
             int dimension = 0;
             if (!File.Exists(_modelFileNameWithPath))
@@ -399,7 +455,7 @@ namespace Microsoft.ML.Runtime.Data
                         string firstLine = sr.ReadLine();
                         while ((line = sr.ReadLine()) != null)
                         {
-                            if (lineNumber >= _linesToSkip)
+                            if (lineNumber >= linesToSkip)
                             {
                                 string[] words = line.TrimEnd().Split(delimiters);
                                 dimension = words.Length - 1;
@@ -439,6 +495,97 @@ namespace Microsoft.ML.Runtime.Data
                 }
                 _vocab[_modelFileNameWithPath] = new WeakReference<Model>(model, false);
                 return model;
+            }
+        }
+    }
+
+    public sealed class WordEmbeddingsEstimator : TrivialEstimator<WordEmbeddingsTransform>
+    {
+        public WordEmbeddingsEstimator(IHostEnvironment env, string inputColumn, string outputColumn,
+           WordEmbeddingsTransform.PretrainedModelKind? modelKind = WordEmbeddingsTransform.PretrainedModelKind.Sswe)
+            : this(env, new WordEmbeddingsTransform(env, inputColumn, outputColumn, modelKind))
+        {
+        }
+
+        public WordEmbeddingsEstimator(IHostEnvironment env,
+            WordEmbeddingsTransform.PretrainedModelKind? modelKind = WordEmbeddingsTransform.PretrainedModelKind.Sswe,
+            string customLookupTable = null, params WordEmbeddingsTransform.Column[] columns)
+            : this(env, new WordEmbeddingsTransform(env, modelKind, customLookupTable, columns))
+        {
+        }
+
+        public WordEmbeddingsEstimator(IHostEnvironment env, WordEmbeddingsTransform transformer)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(WordEmbeddingsEstimator)), transformer)
+        {
+        }
+
+        public override SchemaShape GetOutputSchema(SchemaShape inputSchema)
+        {
+            Host.CheckValue(inputSchema, nameof(inputSchema));
+            var result = inputSchema.Columns.ToDictionary(x => x.Name);
+            foreach (var colInfo in Transformer.Columns)
+            {
+                if (!inputSchema.TryFindColumn(colInfo.input, out var col))
+                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.input);
+                if (!(col.ItemType is TextType) || col.Kind != SchemaShape.Column.VectorKind.VariableVector)
+                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.input, Transformer.InputType.ToString(), col.GetTypeString());
+
+                result[colInfo.output] = new SchemaShape.Column(colInfo.output, SchemaShape.Column.VectorKind.Vector, Transformer.OutputType.ItemType, false);
+            }
+
+            return new SchemaShape(result.Values);
+        }
+    }
+
+    public static class WordEmbeddingsStaticExtensions
+    {
+        public static Vector<float> WordEmbeddings(this Vector<string> input, WordEmbeddingsTransform.PretrainedModelKind modelKind = WordEmbeddingsTransform.PretrainedModelKind.Sswe,
+                string customLookupTable = null)
+        {
+            Contracts.CheckValue(input, nameof(input));
+            return new OutColumn(input, modelKind, customLookupTable);
+        }
+
+        private sealed class OutColumn : Vector<float>
+        {
+            public PipelineColumn Input { get; }
+
+            public OutColumn(Vector<string> input, WordEmbeddingsTransform.PretrainedModelKind modelKind = WordEmbeddingsTransform.PretrainedModelKind.Sswe,
+                string customLookupTable = null)
+                : base(new Reconciler(modelKind, customLookupTable), input)
+            {
+                Input = input;
+            }
+        }
+
+        private sealed class Reconciler : EstimatorReconciler
+        {
+            private readonly WordEmbeddingsTransform.PretrainedModelKind _modelKind;
+            private readonly string _customLookupTable;
+
+            public Reconciler(WordEmbeddingsTransform.PretrainedModelKind modelKind = WordEmbeddingsTransform.PretrainedModelKind.Sswe,
+                string customLookupTable = null)
+            {
+                _modelKind = modelKind;
+                _customLookupTable = customLookupTable;
+            }
+
+            public override IEstimator<ITransformer> Reconcile(IHostEnvironment env,
+                PipelineColumn[] toOutput,
+                IReadOnlyDictionary<PipelineColumn, string> inputNames,
+                IReadOnlyDictionary<PipelineColumn, string> outputNames,
+                IReadOnlyCollection<string> usedNames)
+            {
+                Contracts.Assert(toOutput.Length == 1);
+
+                var cols = new WordEmbeddingsTransform.Column[toOutput.Length];
+                for (int i = 0; i < toOutput.Length; ++i)
+                {
+                    var outCol = (OutColumn)toOutput[i];
+                    cols[i] = new WordEmbeddingsTransform.Column() { Source = inputNames[outCol.Input], Name = outputNames[outCol] };
+                }
+
+                return new WordEmbeddingsEstimator(env, _modelKind, _customLookupTable, cols);
             }
         }
     }

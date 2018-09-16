@@ -107,7 +107,7 @@ namespace Microsoft.ML.Benchmarks
                         WordFeatureExtractor = null,
                     }, loader);
 
-                var trans = new WordEmbeddingsTransform(env,
+                var trans = WordEmbeddingsTransform.Create(env,
                     new WordEmbeddingsTransform.Arguments()
                     {
                         Column = new WordEmbeddingsTransform.Column[1]
