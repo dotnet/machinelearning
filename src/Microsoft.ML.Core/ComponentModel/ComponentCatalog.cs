@@ -336,29 +336,29 @@ namespace Microsoft.ML.Runtime
             string name = Path.GetFileName(path).ToLowerInvariant();
             switch (name)
             {
-            case "cqo.dll":
-            case "fasttreenative.dll":
-            case "libiomp5md.dll":
-            case "libvw.dll":
-            case "matrixinterf.dll":
-            case "Microsoft.ML.neuralnetworks.gpucuda.dll":
-            case "MklImports.dll":
-            case "microsoft.research.controls.decisiontrees.dll":
-            case "Microsoft.ML.neuralnetworks.sse.dll":
-            case "neuraltreeevaluator.dll":
-            case "optimizationbuilderdotnet.dll":
-            case "parallelcommunicator.dll":
-            case "Microsoft.ML.Runtime.RunTests.dll":
-            case "scopecompiler.dll":
-            case "tbb.dll":
-            case "Internallearnscope.dll":
-            case "unmanagedlib.dll":
-            case "vcclient.dll":
-            case "libxgboost.dll":
-            case "zedgraph.dll":
-            case "__scopecodegen__.dll":
-            case "cosmosClientApi.dll":
-                return true;
+                case "cqo.dll":
+                case "fasttreenative.dll":
+                case "libiomp5md.dll":
+                case "libvw.dll":
+                case "matrixinterf.dll":
+                case "Microsoft.ML.neuralnetworks.gpucuda.dll":
+                case "MklImports.dll":
+                case "microsoft.research.controls.decisiontrees.dll":
+                case "Microsoft.ML.neuralnetworks.sse.dll":
+                case "neuraltreeevaluator.dll":
+                case "optimizationbuilderdotnet.dll":
+                case "parallelcommunicator.dll":
+                case "Microsoft.ML.Runtime.RunTests.dll":
+                case "scopecompiler.dll":
+                case "tbb.dll":
+                case "Internallearnscope.dll":
+                case "unmanagedlib.dll":
+                case "vcclient.dll":
+                case "libxgboost.dll":
+                case "zedgraph.dll":
+                case "__scopecodegen__.dll":
+                case "cosmosClientApi.dll":
+                    return true;
             }
 
             foreach (var s in FilePrefixesToAvoid)
@@ -567,14 +567,14 @@ namespace Microsoft.ML.Runtime
 
         private static MethodInfo FindCreateMethod(Type instType, Type loaderType, Type[] parmTypes)
         {
-            var meth = loaderType.GetMethod("Create", parmTypes ?? Type.EmptyTypes);
+            var meth = loaderType.GetMethod("Create", BindingFlags.Public | BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.FlattenHierarchy, null, parmTypes ?? Type.EmptyTypes, null);
             if (meth == null)
                 return null;
             if (meth.DeclaringType != loaderType)
                 return null;
             if (meth.ReturnType != instType)
                 return null;
-            if (!meth.IsPublic || !meth.IsStatic)
+            if (!meth.IsStatic)
                 return null;
             return meth;
         }

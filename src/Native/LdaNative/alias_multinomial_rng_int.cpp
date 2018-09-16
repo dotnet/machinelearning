@@ -42,7 +42,7 @@ namespace wood
         // the following code is equivalent to 
         // return sample < V_[idx] ? idx : K_[idx];
         // but faster, see
-        // http://stackoverflow.com/questions/6754454/speed-difference-between-if-else-and-ternary-operator-in-c
+        // https://stackoverflow.com/questions/6754454/speed-difference-between-if-else-and-ternary-operator-in-c
         int m = -(sample < alias_kv[idx].v_);
         return (idx & m) | (alias_kv[idx].k_ & ~m);
     }
