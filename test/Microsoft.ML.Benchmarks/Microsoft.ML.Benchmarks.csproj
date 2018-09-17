@@ -44,6 +44,6 @@
     <None Condition="Exists('@(BenchmarkFile->'..\data\external\%(Identity)')')"
           Include="@(BenchmarkFile->'..\data\external\%(Identity)')">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>  
+    </None>
   </ItemGroup>
 </Project>

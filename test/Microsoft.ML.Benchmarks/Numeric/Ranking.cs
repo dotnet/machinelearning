@@ -11,7 +11,6 @@ using System.IO;
 
 namespace Microsoft.ML.Benchmarks
 {
-    [WarmupCount(8)] // It helps to reduce the standard deviation of these tests.
     public class Ranking
     {
         private string _mslrWeb10k_Validate;
