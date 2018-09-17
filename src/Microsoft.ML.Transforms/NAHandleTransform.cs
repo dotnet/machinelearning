@@ -249,7 +249,7 @@ namespace Microsoft.ML.Runtime.Data
 
             // Concat the NAReplaceTransform output and the NAIndicatorTransform output.
             if (naIndicatorCols.Count > 0)
-                output = new ConcatTransform(h, new ConcatTransform.TaggedArguments() { Column = concatCols.ToArray() }, output);
+                output = ConcatTransform.Create(h, new ConcatTransform.TaggedArguments() { Column = concatCols.ToArray() }, output);
 
             // Finally, drop the temporary indicator columns.
             if (dropCols.Count > 0)
