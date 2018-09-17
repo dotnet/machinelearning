@@ -62,7 +62,7 @@ namespace Microsoft.ML.Tests
         {
             var dataView = GetBreastCancerDataviewWithTextColumns();
             
-            var pipe = new PriorTrainer(Contracts.CheckRef(Env, nameof(Env)).Register("PriorPredictor"), MakeLabelColumn(DefaultColumnNames.Label), null);
+            var pipe = new PriorTrainer(Contracts.CheckRef(Env, nameof(Env)).Register("PriorPredictor"), "Label");
             TestEstimatorCore(pipe, dataView);
             Done();
         }
