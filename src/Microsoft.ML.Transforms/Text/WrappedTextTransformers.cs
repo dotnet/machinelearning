@@ -24,10 +24,9 @@ namespace Microsoft.ML.Transforms
         /// <param name="env">The environment.</param>
         /// <param name="inputColumn">The column containing text to tokenize.</param>
         /// <param name="outputColumn">The column containing output tokens. Null means <paramref name="inputColumn"/> is replaced.</param>
-        /// <param name="advancedSettings">Any advanced settings to be applied.</param>
-        public WordTokenizer(IHostEnvironment env, string inputColumn, string outputColumn = null,
-            Action<DelimitedTokenizeTransform.Arguments> advancedSettings = null)
-            : this(env, new[] { (inputColumn, outputColumn ?? inputColumn) }, advancedSettings)
+        /// <param name="separators">The separators to use (comma separated).</param>
+        public WordTokenizer(IHostEnvironment env, string inputColumn, string outputColumn = null, string separators = "space")
+            : this(env, new[] { (inputColumn, outputColumn ?? inputColumn) }, separators)
         {
         }
 
@@ -36,18 +35,16 @@ namespace Microsoft.ML.Transforms
         /// </summary>
         /// <param name="env">The environment.</param>
         /// <param name="columns">Pairs of columns to run the tokenization on.</param>
-        /// <param name="advancedSettings">Any advanced settings to be applied.</param>
-        public WordTokenizer(IHostEnvironment env, (string input, string output)[] columns,
-            Action<DelimitedTokenizeTransform.Arguments> advancedSettings = null)
-            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(WordTokenizer)), MakeTransformer(env, columns, advancedSettings))
+        /// <param name="separators">The separators to use (comma separated).</param>
+        public WordTokenizer(IHostEnvironment env, (string input, string output)[] columns, string separators = "space")
+            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(WordTokenizer)), MakeTransformer(env, columns, separators))
         {
         }
 
-        private static TransformWrapper MakeTransformer(IHostEnvironment env, (string input, string output)[] columns, Action<DelimitedTokenizeTransform.Arguments> advancedSettings)
+        private static TransformWrapper MakeTransformer(IHostEnvironment env, (string input, string output)[] columns, string separators)
         {
             Contracts.AssertValue(env);
             env.CheckNonEmpty(columns, nameof(columns));
-            env.CheckValueOrNull(advancedSettings);
             foreach (var (input, output) in columns)
             {
                 env.CheckValue(input, nameof(input));
@@ -55,11 +52,12 @@ namespace Microsoft.ML.Transforms
             }
 
             // Create arguments.
+            // REVIEW: enable multiple separators via something other than parsing strings.
             var args = new DelimitedTokenizeTransform.Arguments
             {
-                Column = columns.Select(x => new DelimitedTokenizeTransform.Column { Source = x.input, Name = x.output }).ToArray()
+                Column = columns.Select(x => new DelimitedTokenizeTransform.Column { Source = x.input, Name = x.output }).ToArray(),
+                TermSeparators = separators
             };
-            advancedSettings?.Invoke(args);
 
             // Create a valid instance of data.
             var schema = new SimpleSchema(env, columns.Select(x => new KeyValuePair<string, ColumnType>(x.input, TextType.Instance)).ToArray());
@@ -72,7 +70,7 @@ namespace Microsoft.ML.Transforms
     /// <summary>
     /// Character tokenizer splits text into sequences of characters using a sliding window.
     /// </summary>
-    public sealed class CharacterTokenizer: TrivialWrapperEstimator
+    public sealed class CharacterTokenizer : TrivialWrapperEstimator
     {
         /// <summary>
         /// Tokenize incoming text in <paramref name="inputColumn"/> and output the tokens as <paramref name="outputColumn"/>.
@@ -80,10 +78,9 @@ namespace Microsoft.ML.Transforms
         /// <param name="env">The environment.</param>
         /// <param name="inputColumn">The column containing text to tokenize.</param>
         /// <param name="outputColumn">The column containing output tokens. Null means <paramref name="inputColumn"/> is replaced.</param>
-        /// <param name="advancedSettings">Any advanced settings to be applied.</param>
-        public CharacterTokenizer(IHostEnvironment env, string inputColumn, string outputColumn = null,
-            Action<CharTokenizeTransform.Arguments> advancedSettings = null)
-            : this(env, new[] { (inputColumn, outputColumn ?? inputColumn) }, advancedSettings)
+        /// <param name="useMarkerCharacters">Whether to use marker characters to separate words.</param>
+        public CharacterTokenizer(IHostEnvironment env, string inputColumn, string outputColumn = null, bool useMarkerCharacters = true)
+            : this (env, new[] { (inputColumn, outputColumn ?? inputColumn) }, useMarkerCharacters)
         {
         }
 
@@ -92,18 +89,16 @@ namespace Microsoft.ML.Transforms
         /// </summary>
         /// <param name="env">The environment.</param>
         /// <param name="columns">Pairs of columns to run the tokenization on.</param>
-        /// <param name="advancedSettings">Any advanced settings to be applied.</param>
-        public CharacterTokenizer(IHostEnvironment env, (string input, string output)[] columns,
-            Action<CharTokenizeTransform.Arguments> advancedSettings = null)
-            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(WordTokenizer)), MakeTransformer(env, columns, advancedSettings))
+        /// <param name="useMarkerCharacters">Whether to use marker characters to separate words.</param>
+        public CharacterTokenizer(IHostEnvironment env, (string input, string output)[] columns, bool useMarkerCharacters = true)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(WordTokenizer)), MakeTransformer(env, columns, useMarkerCharacters))
         {
         }
 
-        private static TransformWrapper MakeTransformer(IHostEnvironment env, (string input, string output)[] columns, Action<CharTokenizeTransform.Arguments> advancedSettings)
+        private static TransformWrapper MakeTransformer(IHostEnvironment env, (string input, string output)[] columns, bool useMarkerChars)
         {
             Contracts.AssertValue(env);
             env.CheckNonEmpty(columns, nameof(columns));
-            env.CheckValueOrNull(advancedSettings);
             foreach (var (input, output) in columns)
             {
                 env.CheckValue(input, nameof(input));
@@ -113,9 +108,9 @@ namespace Microsoft.ML.Transforms
             // Create arguments.
             var args = new CharTokenizeTransform.Arguments
             {
-                Column = columns.Select(x => new CharTokenizeTransform.Column { Source = x.input, Name = x.output }).ToArray()
+                Column = columns.Select(x => new CharTokenizeTransform.Column { Source = x.input, Name = x.output }).ToArray(),
+                UseMarkerChars = useMarkerChars
             };
-            advancedSettings?.Invoke(args);
 
             // Create a valid instance of data.
             var schema = new SimpleSchema(env, columns.Select(x => new KeyValuePair<string, ColumnType>(x.input, TextType.Instance)).ToArray());
