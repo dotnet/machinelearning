@@ -22,7 +22,7 @@ using Microsoft.ML.Runtime.Internal.Internallearn;
 namespace Microsoft.ML.Runtime.Data
 {
     /// <include file='doc.xml' path='doc/members/member[@name="CategoricalOneHotVectorizer"]/*' />
-    public static class CategoricalTransform
+    public sealed class CategoricalTransform : ITransformer
     {
         public enum OutputKind : byte
         {
@@ -153,13 +153,9 @@ namespace Microsoft.ML.Runtime.Data
             return new CategoricalEstimator(env, columns.ToArray()).Fit(input).Transform(input) as IDataTransform;
         }
 
-    }
-
-    public sealed class CategoricalTransformer : ITransformer
-    {
         private readonly TransformerChain<ITransformer> _transformer;
 
-        public CategoricalTransformer(TermEstimator term, IEstimator<ITransformer> keyToVector, IDataView input)
+        public CategoricalTransform(TermEstimator term, IEstimator<ITransformer> keyToVector, IDataView input)
         {
             var chain = term.Append(keyToVector);
             _transformer = chain.Fit(input);
@@ -171,7 +167,7 @@ namespace Microsoft.ML.Runtime.Data
         public IDataView Transform(IDataView input) => _transformer.Transform(input);
     }
 
-    public sealed class CategoricalEstimator : IEstimator<ITransformer>
+    public sealed class CategoricalEstimator : IEstimator<CategoricalTransform>
     {
         public static class Defaults
         {
@@ -257,7 +253,7 @@ namespace Microsoft.ML.Runtime.Data
 
         public SchemaShape GetOutputSchema(SchemaShape inputSchema) => _term.Append(_keyToSomething).GetOutputSchema(inputSchema);
 
-        public ITransformer Fit(IDataView input) => new CategoricalTransformer(_term, _keyToSomething, input);
+        public CategoricalTransform Fit(IDataView input) => new CategoricalTransform(_term, _keyToSomething, input);
 
         internal void WrapTermWithDelegate(Action<TermTransform> onFit)
         {
@@ -459,11 +455,11 @@ namespace Microsoft.ML.Runtime.Data
         /// <param name="order">How Id for each value would be assigined: by occurrence or by value.</param>
         /// <param name="maxItems">Maximum number of ids to keep during data scanning.</param>
         ///         /// <param name="onFit">Called upon fitting with the learnt enumeration on the dataset.</param>
-        public static Vector<float> OneHotEncoding(this Scalar<string> input, OneHotScalarOutputKind outputKind = (OneHotScalarOutputKind)DefOut, KeyValueOrder order = DefSort, 
+        public static Vector<float> OneHotEncoding(this Scalar<string> input, OneHotScalarOutputKind outputKind = (OneHotScalarOutputKind)DefOut, KeyValueOrder order = DefSort,
             int maxItems = DefMax, ToKeyFitResult<ReadOnlyMemory<char>>.OnFit onFit = null)
         {
             Contracts.CheckValue(input, nameof(input));
-            return new ImplScalar<string>(input, new Config((OneHotVectorOutputKind)outputKind, order, maxItems, Wrap(onFit));
+            return new ImplScalar<string>(input, new Config((OneHotVectorOutputKind)outputKind, order, maxItems, Wrap(onFit)));
         }
 
         /// <summary>
