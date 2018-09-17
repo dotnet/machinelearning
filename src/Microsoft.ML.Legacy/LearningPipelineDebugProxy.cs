@@ -25,7 +25,7 @@ namespace Microsoft.ML.Legacy
         private const int MaxSlotNamesToDisplay = 100;
 
         private readonly LearningPipeline _pipeline;
-        private readonly TlcEnvironment _environment;
+        private readonly ConsoleEnvironment _environment;
         private IDataView _preview;
         private Exception _pipelineExecutionException;
         private PipelineItemDebugColumn[] _columns;
@@ -39,7 +39,7 @@ namespace Microsoft.ML.Legacy
             _pipeline = new LearningPipeline();
 
             // use a ConcurrencyFactor of 1 so other threads don't need to run in the debugger
-            _environment = new TlcEnvironment(conc: 1);
+            _environment = new ConsoleEnvironment(conc: 1);
 
             foreach (ILearningPipelineItem item in pipeline)
             {

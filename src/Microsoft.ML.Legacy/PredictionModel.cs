@@ -21,7 +21,7 @@ namespace Microsoft.ML.Legacy
 
         internal PredictionModel(Stream stream)
         {
-            _env = new TlcEnvironment();
+            _env = new ConsoleEnvironment();
             _predictorModel = new TransformModel(_env, stream);
         }
 
@@ -125,7 +125,7 @@ namespace Microsoft.ML.Legacy
             if (stream == null)
                 throw new ArgumentNullException(nameof(stream));
 
-            using (var environment = new TlcEnvironment())
+            using (var environment = new ConsoleEnvironment())
             {
                 BatchPredictionEngine<TInput, TOutput> predictor =
                     environment.CreateBatchPredictionEngine<TInput, TOutput>(stream);

@@ -25,7 +25,7 @@ namespace Microsoft.ML.Legacy.Models
         /// </returns>
         public ClassificationMetrics Evaluate(PredictionModel model, ILearningPipelineLoader testData)
         {
-            using (var environment = new TlcEnvironment())
+            using (var environment = new ConsoleEnvironment())
             {
                 environment.CheckValue(model, nameof(model));
                 environment.CheckValue(testData, nameof(testData));
