@@ -55,7 +55,16 @@ namespace Microsoft.ML.Runtime.Learners
         private static readonly TrainerInfo _info = new TrainerInfo(normalization: false, caching: false);
         public override TrainerInfo Info => _info;
 
-        public RandomTrainer(IHostEnvironment env, Arguments args)
+        /// <summary>
+        /// Initializes RandomTrainer object.
+        /// </summary>
+        /// <param name="env"></param>
+        public RandomTrainer(IHostEnvironment env)
+            : base(env, LoadNameValue)
+        {
+        }
+
+        private RandomTrainer(IHostEnvironment env, Arguments args)
             : base(env, LoadNameValue)
         {
             Host.CheckValue(args, nameof(args));
@@ -235,11 +244,19 @@ namespace Microsoft.ML.Runtime.Learners
         private static readonly TrainerInfo _info = new TrainerInfo(normalization: false, caching: false);
         public override TrainerInfo Info => _info;
 
-        public PriorTrainer(IHostEnvironment env, Arguments args)
+        private PriorTrainer(IHostEnvironment env, Arguments args)
             : base(Contracts.CheckRef(env, nameof(env)).Register(LoadNameValue), MakeFeatureColumn(DefaultColumnNames.Features), MakeLabelColumn(DefaultColumnNames.Label), null)
         {
+            Host.CheckValue(args, nameof(args));
         }
 
+        /// <summary>
+        /// Initializes PriorTrainer object.
+        /// </summary>
+        /// <param name="host"></param>
+        /// <param name="feature"></param>
+        /// <param name="label"></param>
+        /// <param name="weight"> Optional weight parameter. </param>
         public PriorTrainer(IHost host, SchemaShape.Column feature, SchemaShape.Column label, SchemaShape.Column weight)
             : base(host, feature, label, weight)
         {

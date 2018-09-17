@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
@@ -37,6 +38,12 @@ namespace Microsoft.ML.Tests
             }).Data;
         }
 
+        private static SchemaShape.Column MakeFeatureColumn(string featureColumn)
+            => new SchemaShape.Column(featureColumn, SchemaShape.Column.VectorKind.Vector, NumberType.R4, false);
+
+        private static SchemaShape.Column MakeLabelColumn(string labelColumn)
+            => new SchemaShape.Column(labelColumn, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false);
+
         public SimpleEstimatorTests(ITestOutputHelper output) : base(output)
         {
         }
@@ -45,7 +52,7 @@ namespace Microsoft.ML.Tests
         public void TestEstimatorRandom()
         {
             var dataView = GetBreastCancerDataviewWithTextColumns();
-            var pipe = new RandomTrainer(Env, new RandomTrainer.Arguments());
+            var pipe = new RandomTrainer(Env);
 
             // Test only that the schema propagation works.
             // REVIEW: the save/load is not preserving the full state of the random predictor. This is unfortunate, but we don't care too much at this point.
@@ -62,7 +69,7 @@ namespace Microsoft.ML.Tests
                 dataView = env.CreateTransform("Term{col=F1}", dataView);
                 var result = FeatureCombiner.PrepareFeatures(env, new FeatureCombiner.FeatureCombinerInput() { Data = dataView, Features = new[] { "F1", "F2", "Rest" } }).OutputData;
 
-                var pipe = new PriorTrainer(env, new PriorTrainer.Arguments());
+                var pipe = new PriorTrainer(Contracts.CheckRef(env, nameof(env)).Register("PriorPredictor"), MakeFeatureColumn(DefaultColumnNames.Features), MakeLabelColumn(DefaultColumnNames.Label), null);
                 TestEstimatorCore(pipe, result, invalidInput: dataView);
             }
             Done();
