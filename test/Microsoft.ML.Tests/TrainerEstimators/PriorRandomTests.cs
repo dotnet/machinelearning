@@ -38,8 +38,9 @@ namespace Microsoft.ML.Tests
             }).Data;
         }
 
-        private static SchemaShape.Column MakeLabelColumn(string labelColumn)
-            => new SchemaShape.Column(labelColumn, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false);
+        public SimpleEstimatorTests(ITestOutputHelper output) : base(output)
+        {
+        }
 
         [Fact]
         public void TestEstimatorRandom()
