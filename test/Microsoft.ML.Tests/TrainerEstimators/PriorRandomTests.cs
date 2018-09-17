@@ -63,15 +63,12 @@ namespace Microsoft.ML.Tests
         [Fact]
         public void TestEstimatorPrior()
         {
-            using (var env = new TlcEnvironment())
-            {
-                var dataView = GetBreastCancerDataviewWithTextColumns();
-                dataView = env.CreateTransform("Term{col=F1}", dataView);
-                var result = FeatureCombiner.PrepareFeatures(env, new FeatureCombiner.FeatureCombinerInput() { Data = dataView, Features = new[] { "F1", "F2", "Rest" } }).OutputData;
+            var dataView = GetBreastCancerDataviewWithTextColumns();
+            dataView = Env.CreateTransform("Term{col=F1}", dataView);
+            var result = FeatureCombiner.PrepareFeatures(Env, new FeatureCombiner.FeatureCombinerInput() { Data = dataView, Features = new[] { "F1", "F2", "Rest" } }).OutputData;
 
-                var pipe = new PriorTrainer(Contracts.CheckRef(env, nameof(env)).Register("PriorPredictor"), MakeFeatureColumn(DefaultColumnNames.Features), MakeLabelColumn(DefaultColumnNames.Label), null);
-                TestEstimatorCore(pipe, result, invalidInput: dataView);
-            }
+            var pipe = new PriorTrainer(Contracts.CheckRef(Env, nameof(Env)).Register("PriorPredictor"), MakeFeatureColumn(DefaultColumnNames.Features), MakeLabelColumn(DefaultColumnNames.Label), null);
+            TestEstimatorCore(pipe, result, invalidInput: dataView);
             Done();
         }
     }
