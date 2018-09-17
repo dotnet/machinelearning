@@ -8,24 +8,23 @@ using Microsoft.ML.Legacy.Transforms;
 
 namespace Microsoft.ML.Legacy.Models
 {
-    public sealed partial class ClassificationEvaluator
+    public sealed partial class RegressionEvaluator
     {
         /// <summary>
-        /// Computes the quality metrics for the multi-class classification PredictionModel
-        /// using the specified data set.
+        /// Computes the quality metrics for the PredictionModel using the specified data set.
         /// </summary>
         /// <param name="model">
-        /// The trained multi-class classification PredictionModel to be evaluated.
+        /// The trained PredictionModel to be evaluated.
         /// </param>
         /// <param name="testData">
         /// The test data that will be predicted and used to evaluate the model.
         /// </param>
         /// <returns>
-        /// A ClassificationMetrics instance that describes how well the model performed against the test data.
+        /// A RegressionMetrics instance that describes how well the model performed against the test data.
         /// </returns>
-        public ClassificationMetrics Evaluate(PredictionModel model, ILearningPipelineLoader testData)
+        public RegressionMetrics Evaluate(PredictionModel model, ILearningPipelineLoader testData)
         {
-            using (var environment = new TlcEnvironment())
+            using (var environment = new ConsoleEnvironment())
             {
                 environment.CheckValue(model, nameof(model));
                 environment.CheckValue(testData, nameof(testData));
@@ -55,18 +54,13 @@ namespace Microsoft.ML.Legacy.Models
                 experiment.Run();
 
                 IDataView overallMetrics = experiment.GetOutput(evaluteOutput.OverallMetrics);
+
                 if (overallMetrics == null)
                 {
-                    throw environment.Except($"Could not find OverallMetrics in the results returned in {nameof(ClassificationEvaluator)} Evaluate.");
+                    throw environment.Except($"Could not find OverallMetrics in the results returned in {nameof(RegressionEvaluator)} Evaluate.");
                 }
 
-                IDataView confusionMatrix = experiment.GetOutput(evaluteOutput.ConfusionMatrix);
-                if (confusionMatrix == null)
-                {
-                    throw environment.Except($"Could not find ConfusionMatrix in the results returned in {nameof(ClassificationEvaluator)} Evaluate.");
-                }
-
-                var metric = ClassificationMetrics.FromMetrics(environment, overallMetrics, confusionMatrix);
+                var metric = RegressionMetrics.FromOverallMetrics(environment, overallMetrics);
 
                 if (metric.Count != 1)
                     throw environment.Except($"Exactly one metric set was expected but found {metric.Count} metrics");

@@ -129,7 +129,8 @@ namespace Microsoft.ML.Runtime.Data
             public Column[] Column;
         }
 
-        public static IDataView Create(IHostEnvironment env, ModelLoadContext ctx, IDataView input)
+        // Factory method for SignatureLoadDataTransform.
+        private static IDataView Create(IHostEnvironment env, ModelLoadContext ctx, IDataView input)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(ctx, nameof(ctx));
@@ -139,7 +140,8 @@ namespace Microsoft.ML.Runtime.Data
             return transformer.Transform(input);
         }
 
-        public static CopyColumnsTransform Create(IHostEnvironment env, ModelLoadContext ctx)
+        // Factory method for SignatureLoadModel.
+        private static CopyColumnsTransform Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(ctx, nameof(ctx));
@@ -225,7 +227,8 @@ namespace Microsoft.ML.Runtime.Data
                 loaderSignature: LoaderSignature);
         }
 
-        public static CopyColumnsRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, ISchema schema)
+        // Factory method for SignatureLoadRowMapper.
+        private static CopyColumnsRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, ISchema schema)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(ctx, nameof(ctx));

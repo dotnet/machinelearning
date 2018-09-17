@@ -1173,7 +1173,7 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn.ResultProcessor
         protected static void Run(string[] args)
         {
             ResultProcessorArguments cmd = new ResultProcessorArguments();
-            TlcEnvironment env = new TlcEnvironment(42);
+            ConsoleEnvironment env = new ConsoleEnvironment(42);
             List<PredictorResult> predictorResultsList = new List<PredictorResult>();
             PredictionUtil.ParseArguments(env, cmd, PredictionUtil.CombineSettings(args));
 

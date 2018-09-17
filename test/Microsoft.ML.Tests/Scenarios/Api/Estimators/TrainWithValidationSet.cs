@@ -20,7 +20,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             var dataPath = GetDataPath(SentimentDataPath);
             var validationDataPath = GetDataPath(SentimentTestPath);
 
-            using (var env = new TlcEnvironment(seed: 1, conc: 1))
+            using (var env = new LocalEnvironment(seed: 1, conc: 1))
             {
                 // Pipeline.
                 var reader = new TextLoader(env, MakeSentimentTextLoaderArgs());

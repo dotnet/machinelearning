@@ -175,7 +175,7 @@ namespace Microsoft.ML.Runtime.RunTests
         /// </summary>
         protected IDataLoader TestCore(string pathData, bool keepHidden, string[] argsPipe,
             Action<IDataLoader> actLoader = null, string suffix = "", string suffixBase = null, bool checkBaseline = true,
-            bool forceDense = false, bool logCurs = false, TlcEnvironment env = null, bool roundTripText = true,
+            bool forceDense = false, bool logCurs = false, ConsoleEnvironment env = null, bool roundTripText = true,
             bool checkTranspose = false, bool checkId = true, bool baselineSchema = true)
         {
             Contracts.AssertValue(Env);

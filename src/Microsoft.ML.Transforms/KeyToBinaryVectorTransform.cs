@@ -107,7 +107,7 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         // Factory method for SignatureLoadModel.
-        public static KeyToBinaryVectorTransform Create(IHostEnvironment env, ModelLoadContext ctx)
+        private static KeyToBinaryVectorTransform Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
             var host = env.Register(RegistrationName);
@@ -150,11 +150,11 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         // Factory method for SignatureLoadDataTransform.
-        public static IDataTransform Create(IHostEnvironment env, ModelLoadContext ctx, IDataView input)
+        private static IDataTransform Create(IHostEnvironment env, ModelLoadContext ctx, IDataView input)
             => Create(env, ctx).MakeDataTransform(input);
 
         // Factory method for SignatureLoadRowMapper.
-        public static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, ISchema inputSchema)
+        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, ISchema inputSchema)
             => Create(env, ctx).MakeRowMapper(inputSchema);
 
         protected override IRowMapper MakeRowMapper(ISchema schema) => new Mapper(this, schema);

@@ -42,7 +42,7 @@ namespace Microsoft.ML.Runtime.RunTests
         [Fact]
         public void ExceptionSensitivity()
         {
-            var env = new TlcEnvironment();
+            var env = new ConsoleEnvironment();
             // Default sensitivity should be unknown, that is, all bits set.
             Helper(null, MessageSensitivity.Unknown);
             // If we set it to be not sensitive, then the messages should be marked insensitive,
