@@ -9,7 +9,6 @@ using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Data.IO;
-using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Internallearn;
 using Microsoft.ML.Runtime.Learners;
 using Microsoft.ML.Runtime.Model;
@@ -297,33 +296,6 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         {
             var scorer = ScoreUtils.GetScorer(predictor, data, _env, data.Schema);
             return (TTransformer)(new ScorerWrapper<TModel>(_env, scorer, predictor, data.Schema.Feature.Name));
-        }
-    }
-
-    public class MyConcatTransform : IEstimator<TransformWrapper>
-    {
-        private readonly IHostEnvironment _env;
-        private readonly string _name;
-        private readonly string[] _source;
-
-        public MyConcatTransform(IHostEnvironment env, string name, params string[] source)
-        {
-            _env = env;
-            _name = name;
-            _source = source;
-        }
-
-        public TransformWrapper Fit(IDataView input)
-        {
-            var xf = new ConcatTransform(_env, input, _name, _source);
-            var empty = new EmptyDataView(_env, input.Schema);
-            var chunk = ApplyTransformUtils.ApplyAllTransformsToData(_env, xf, empty, input);
-            return new TransformWrapper(_env, chunk);
-        }
-
-        public SchemaShape GetOutputSchema(SchemaShape inputSchema)
-        {
-            throw new NotImplementedException();
         }
     }
 

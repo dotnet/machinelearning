@@ -4,20 +4,12 @@
 
 using System;
 
-namespace Microsoft.ML.Runtime.EntryPoints
+namespace Microsoft.ML.Runtime
 {
     /// <summary>
     /// This is a token interface that all component factories must implement.
     /// </summary>
     public interface IComponentFactory
-    {
-    }
-
-    /// <summary>
-    /// This is a token interface for component classes that don't directly create
-    /// a runtime component, but only need to represent a polymorphic set of arguments.
-    /// </summary>
-    public interface IArgsComponent : IComponentFactory
     {
     }
 
