@@ -218,9 +218,7 @@ namespace Microsoft.ML.Runtime.Data
             for (int i = 0; i < columns.Length; i++)
             {
                 var column = columns[i];
-
                 bool bag;
-
                 CategoricalTransform.OutputKind kind = columns[i].OutputKind;
                 switch (kind)
                 {
