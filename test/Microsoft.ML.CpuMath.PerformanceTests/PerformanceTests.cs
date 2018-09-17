@@ -28,7 +28,7 @@ namespace Microsoft.ML.CpuMath.PerformanceTests
         protected float[] src, dst, original, src1, src2, result;
         protected int[] idx;
 
-        private int seed = DEFAULT_SEED;
+        private int _seed = DEFAULT_SEED;
 
         private float NextFloat(Random rand, int expRange)
         {
@@ -72,8 +72,8 @@ namespace Microsoft.ML.CpuMath.PerformanceTests
             result = new float[LEN];
             idx = new int[IDXLEN];
 
-            seed = GetSeed();
-            Random rand = new Random(seed);
+            _seed = GetSeed();
+            Random rand = new Random(_seed);
 
             for (int i = 0; i < LEN; i++)
             {
