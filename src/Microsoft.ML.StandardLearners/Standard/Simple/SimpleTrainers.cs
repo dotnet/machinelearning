@@ -62,7 +62,7 @@ namespace Microsoft.ML.Runtime.Learners
         {
         }
 
-        private RandomTrainer(IHostEnvironment env, Arguments args)
+        public RandomTrainer(IHostEnvironment env, Arguments args)
             : base(env, LoadNameValue)
         {
             Host.CheckValue(args, nameof(args));
