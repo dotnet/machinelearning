@@ -105,7 +105,7 @@ namespace Microsoft.ML.Runtime.Data
         // At the moment this is empty. Once PR #863 clears, we can change this class to hold the output
         // key-values metadata.
 
-        internal ToKeyFitResult(TermTransform.TermMap map)
+        public ToKeyFitResult(TermTransform.TermMap map)
         {
         }
     }

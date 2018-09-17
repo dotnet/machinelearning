@@ -470,7 +470,7 @@ namespace Microsoft.ML.Runtime.Data
         /// These are the immutable and serializable analogs to the <see cref="Builder"/> used in
         /// training.
         /// </summary>
-        internal abstract class TermMap
+        public abstract class TermMap
         {
             /// <summary>
             /// The item type of the input type, that is, either the input type or,
@@ -501,9 +501,9 @@ namespace Microsoft.ML.Runtime.Data
                 OutputType = new KeyType(DataKind.U4, 0, Count == 0 ? 1 : Count);
             }
 
-            public abstract void Save(ModelSaveContext ctx, IHostEnvironment host, CodecFactory codecFactory);
+            internal abstract void Save(ModelSaveContext ctx, IHostEnvironment host, CodecFactory codecFactory);
 
-            public static TermMap Load(ModelLoadContext ctx, IHostEnvironment ectx, CodecFactory codecFactory)
+            internal static TermMap Load(ModelLoadContext ctx, IHostEnvironment ectx, CodecFactory codecFactory)
             {
                 // *** Binary format ***
                 // byte: map type code
@@ -610,7 +610,7 @@ namespace Microsoft.ML.Runtime.Data
                     return new TextImpl(pool);
                 }
 
-                public override void Save(ModelSaveContext ctx, IHostEnvironment host, CodecFactory codecFactory)
+                internal override void Save(ModelSaveContext ctx, IHostEnvironment host, CodecFactory codecFactory)
                 {
                     // *** Binary format ***
                     // byte: map type code, in this case 'Text' (0)
@@ -685,7 +685,7 @@ namespace Microsoft.ML.Runtime.Data
                     _values = values;
                 }
 
-                public override void Save(ModelSaveContext ctx, IHostEnvironment host, CodecFactory codecFactory)
+                internal override void Save(ModelSaveContext ctx, IHostEnvironment host, CodecFactory codecFactory)
                 {
                     // *** Binary format ***
                     // byte: map type code, in this case 'Codec'
@@ -757,7 +757,7 @@ namespace Microsoft.ML.Runtime.Data
             }
         }
 
-        internal abstract class TermMap<T> : TermMap
+        public abstract class TermMap<T> : TermMap
         {
             protected TermMap(PrimitiveType type, int count)
                 : base(type, count)

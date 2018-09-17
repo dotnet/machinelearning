@@ -702,7 +702,7 @@ namespace Microsoft.ML.Runtime.Data
                 });
         }
 
-        internal TermMap GetTermMap(int iinfo)
+        public TermMap GetTermMap(int iinfo)
         {
             Contracts.Assert(0 <= iinfo && iinfo < _unboundMaps.Length);
             return _unboundMaps[iinfo];
