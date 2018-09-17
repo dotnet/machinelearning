@@ -49,7 +49,7 @@ namespace Microsoft.ML.Tests.Transformers
             }, data.AsDynamic);
 
             var data2 = dynamicData.AssertStatic(Env, ctx => (
-                SentimentText_Features_TransformedText: ctx.Text.Vector,
+                SentimentText_Features_TransformedText: ctx.Text.VarVector,
                 SentimentText: ctx.Text.Scalar,
                 label: ctx.Bool.Scalar));
 

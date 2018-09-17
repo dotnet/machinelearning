@@ -616,14 +616,19 @@ namespace Microsoft.ML.Runtime.Data
     public static class WordEmbeddingsStaticExtensions
     {
         /// <include file='doc.xml' path='doc/members/member[@name="WordEmbeddings"]/*' />
-        public static Vector<float> WordEmbeddings(this Vector<string> input, WordEmbeddingsTransform.PretrainedModelKind modelKind = WordEmbeddingsTransform.PretrainedModelKind.Sswe)
+        /// <param name="input">Vector of tokenized text.</param>
+        /// <param name="modelKind">The pretrained word embedding model.</param>
+        /// <returns></returns>
+        public static Vector<float> WordEmbeddings(this VarVector<string> input, WordEmbeddingsTransform.PretrainedModelKind modelKind = WordEmbeddingsTransform.PretrainedModelKind.Sswe)
         {
             Contracts.CheckValue(input, nameof(input));
             return new OutColumn(input, modelKind);
         }
 
         /// <include file='doc.xml' path='doc/members/member[@name="WordEmbeddings"]/*' />
-        public static Vector<float> WordEmbeddings(this Vector<string> input, string customLookupTable)
+        /// <param name="input">Vector of tokenized text.</param>
+        /// <param name="customLookupTable">The custom word embedding model file.</param>
+        public static Vector<float> WordEmbeddings(this VarVector<string> input, string customLookupTable)
         {
             Contracts.CheckValue(input, nameof(input));
             return new OutColumn(input, customLookupTable);
@@ -633,13 +638,13 @@ namespace Microsoft.ML.Runtime.Data
         {
             public PipelineColumn Input { get; }
 
-            public OutColumn(Vector<string> input, WordEmbeddingsTransform.PretrainedModelKind modelKind = WordEmbeddingsTransform.PretrainedModelKind.Sswe)
+            public OutColumn(VarVector<string> input, WordEmbeddingsTransform.PretrainedModelKind modelKind = WordEmbeddingsTransform.PretrainedModelKind.Sswe)
                 : base(new Reconciler(modelKind), input)
             {
                 Input = input;
             }
 
-            public OutColumn(Vector<string> input, string customLookupTable = null)
+            public OutColumn(VarVector<string> input, string customLookupTable = null)
                 : base(new Reconciler(customLookupTable), input)
             {
                 Input = input;
