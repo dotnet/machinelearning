@@ -188,6 +188,8 @@ namespace Microsoft.ML.Runtime.Data
         public const string UserName = "Term Transform";
         public const string LoaderSignature = "TermTransform";
 
+        public const string FriendlyName = "To Key";
+
         private static VersionInfo GetVersionInfo()
         {
             return new VersionInfo(
@@ -330,7 +332,7 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         // Factory method for SignatureLoadModel.
-        public static TermTransform Create(IHostEnvironment env, ModelLoadContext ctx)
+        private static TermTransform Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
             var host = env.Register(RegistrationName);
@@ -385,11 +387,11 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         // Factory method for SignatureLoadDataTransform.
-        public static IDataTransform Create(IHostEnvironment env, ModelLoadContext ctx, IDataView input)
+        private static IDataTransform Create(IHostEnvironment env, ModelLoadContext ctx, IDataView input)
             => Create(env, ctx).MakeDataTransform(input);
 
         // Factory method for SignatureLoadRowMapper.
-        public static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, ISchema inputSchema)
+        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, ISchema inputSchema)
             => Create(env, ctx).MakeRowMapper(inputSchema);
 
         /// <summary>

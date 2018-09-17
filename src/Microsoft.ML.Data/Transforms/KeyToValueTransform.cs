@@ -112,7 +112,7 @@ namespace Microsoft.ML.Runtime.Data
         /// <summary>
         /// Factory method for SignatureLoadModel.
         /// </summary>
-        public static KeyToValueTransform Create(IHostEnvironment env, ModelLoadContext ctx)
+        private static KeyToValueTransform Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
             var host = env.Register(nameof(KeyToValueTransform));
@@ -129,13 +129,13 @@ namespace Microsoft.ML.Runtime.Data
         /// <summary>
         /// Factory method for SignatureLoadDataTransform.
         /// </summary>
-        public static IDataTransform Create(IHostEnvironment env, ModelLoadContext ctx, IDataView input)
+        private static IDataTransform Create(IHostEnvironment env, ModelLoadContext ctx, IDataView input)
             => Create(env, ctx).MakeDataTransform(input);
 
         /// <summary>
         /// Factory method for SignatureLoadRowMapper.
         /// </summary>
-        public static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, ISchema inputSchema)
+        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, ISchema inputSchema)
             => Create(env, ctx).MakeRowMapper(inputSchema);
 
         public override void Save(ModelSaveContext ctx)
