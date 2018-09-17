@@ -43,9 +43,9 @@ namespace Microsoft.ML.Benchmarks
                 " tr=OVA{p=AveragedPerceptron{iter=10}}" +
                 " out={" + _modelPath_Wiki + "}";
 
-            using (var tlc = new ConsoleEnvironment(verbose: false, sensitivity: MessageSensitivity.None, outWriter: EmptyWriter.Instance))
+            using (var environment = new ConsoleEnvironment(verbose: false, sensitivity: MessageSensitivity.None, outWriter: EmptyWriter.Instance))
             {
-                Maml.MainCore(tlc, cmd, alwaysPrintStacktrace: false);
+                Maml.MainCore(environment, cmd, alwaysPrintStacktrace: false);
             }
         }
 
@@ -60,9 +60,9 @@ namespace Microsoft.ML.Benchmarks
                         " xf=Concat{col=Features:FeaturesText,logged_in,ns}" +
                         " tr=OVA{p=AveragedPerceptron{iter=10}}";
 
-            using (var tlc = new ConsoleEnvironment(verbose: false, sensitivity: MessageSensitivity.None, outWriter: EmptyWriter.Instance))
+            using (var environment = new ConsoleEnvironment(verbose: false, sensitivity: MessageSensitivity.None, outWriter: EmptyWriter.Instance))
             {
-                Maml.MainCore(tlc, cmd, alwaysPrintStacktrace: false);
+                Maml.MainCore(environment, cmd, alwaysPrintStacktrace: false);
             }
         }
 
@@ -76,9 +76,9 @@ namespace Microsoft.ML.Benchmarks
                     " xf=TextTransform{col=FeaturesText:comment wordExtractor=NGramExtractorTransform{ngram=2}}" +
                     " xf=Concat{col=Features:FeaturesText,logged_in,ns} tr=LightGBMMulticlass{}";
 
-            using (var tlc = new ConsoleEnvironment(verbose: false, sensitivity: MessageSensitivity.None, outWriter: EmptyWriter.Instance))
+            using (var environment = new ConsoleEnvironment(verbose: false, sensitivity: MessageSensitivity.None, outWriter: EmptyWriter.Instance))
             {
-                Maml.MainCore(tlc, cmd, alwaysPrintStacktrace: false);
+                Maml.MainCore(environment, cmd, alwaysPrintStacktrace: false);
             }
         }
 
@@ -88,9 +88,9 @@ namespace Microsoft.ML.Benchmarks
             // This benchmark is profiling bulk scoring speed and not training speed. 
             string modelpath = Path.Combine(Directory.GetCurrentDirectory(), @"WikiModel.fold000.zip");
             string cmd = @"Test data=" + _dataPath_Wiki + " in=" + modelpath;
-            using (var tlc = new ConsoleEnvironment(verbose: false, sensitivity: MessageSensitivity.None, outWriter: EmptyWriter.Instance))
+            using (var environment = new ConsoleEnvironment(verbose: false, sensitivity: MessageSensitivity.None, outWriter: EmptyWriter.Instance))
             {
-                Maml.MainCore(tlc, cmd, alwaysPrintStacktrace: false);
+                Maml.MainCore(environment, cmd, alwaysPrintStacktrace: false);
             }
         }
 
@@ -106,9 +106,9 @@ namespace Microsoft.ML.Benchmarks
                 " xf=WordEmbeddingsTransform{col=FeaturesWordEmbedding:FeaturesText_TransformedText model=FastTextWikipedia300D}" +
                 " xf=Concat{col=Features:FeaturesText,FeaturesWordEmbedding,logged_in,ns}";
 
-            using (var tlc = new ConsoleEnvironment(verbose: false, sensitivity: MessageSensitivity.None, outWriter: EmptyWriter.Instance))
+            using (var environment = new ConsoleEnvironment(verbose: false, sensitivity: MessageSensitivity.None, outWriter: EmptyWriter.Instance))
             {
-                Maml.MainCore(tlc, cmd, alwaysPrintStacktrace: false);
+                Maml.MainCore(environment, cmd, alwaysPrintStacktrace: false);
             }
         }
 
@@ -124,9 +124,9 @@ namespace Microsoft.ML.Benchmarks
                 " xf=WordEmbeddingsTransform{col=FeaturesWordEmbedding:FeaturesText_TransformedText model=FastTextWikipedia300D}" +
                 " xf=Concat{col=Features:FeaturesWordEmbedding,logged_in,ns}";
 
-            using (var tlc = new ConsoleEnvironment(verbose: false, sensitivity: MessageSensitivity.None, outWriter: EmptyWriter.Instance))
+            using (var environment = new ConsoleEnvironment(verbose: false, sensitivity: MessageSensitivity.None, outWriter: EmptyWriter.Instance))
             {
-                Maml.MainCore(tlc, cmd, alwaysPrintStacktrace: false);
+                Maml.MainCore(environment, cmd, alwaysPrintStacktrace: false);
             }
         }
     }

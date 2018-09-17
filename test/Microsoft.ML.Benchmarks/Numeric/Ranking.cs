@@ -52,9 +52,9 @@ namespace Microsoft.ML.Benchmarks
                 " tr=FastTreeRanking{}" +
                 " out={" + _modelPath_MSLR + "}";
 
-            using (var tlc = new TlcEnvironment(verbose: false, sensitivity: MessageSensitivity.None, outWriter: EmptyWriter.Instance))
+            using (var environment = new ConsoleEnvironment(verbose: false, sensitivity: MessageSensitivity.None, outWriter: EmptyWriter.Instance))
             {
-                Maml.MainCore(tlc, cmd, alwaysPrintStacktrace: false);
+                Maml.MainCore(environment, cmd, alwaysPrintStacktrace: false);
             }
         }
 
@@ -68,9 +68,9 @@ namespace Microsoft.ML.Benchmarks
                 " xf=HashTransform{col=GroupId} xf=NAHandleTransform{col=Features}" +
                 " tr=FastTreeRanking{}";
 
-            using (var tlc = new TlcEnvironment(verbose: false, sensitivity: MessageSensitivity.None, outWriter: EmptyWriter.Instance))
+            using (var environment = new ConsoleEnvironment(verbose: false, sensitivity: MessageSensitivity.None, outWriter: EmptyWriter.Instance))
             {
-                Maml.MainCore(tlc, cmd, alwaysPrintStacktrace: false);
+                Maml.MainCore(environment, cmd, alwaysPrintStacktrace: false);
             }
         }
 
@@ -85,9 +85,9 @@ namespace Microsoft.ML.Benchmarks
                 " xf=NAHandleTransform{col=Features}" +
                 " tr=LightGBMRanking{}";
 
-            using (var tlc = new TlcEnvironment(verbose: false, sensitivity: MessageSensitivity.None, outWriter: EmptyWriter.Instance))
+            using (var environment = new ConsoleEnvironment(verbose: false, sensitivity: MessageSensitivity.None, outWriter: EmptyWriter.Instance))
             {
-                Maml.MainCore(tlc, cmd, alwaysPrintStacktrace: false);
+                Maml.MainCore(environment, cmd, alwaysPrintStacktrace: false);
             }
         }
 
@@ -96,9 +96,9 @@ namespace Microsoft.ML.Benchmarks
         {
             // This benchmark is profiling bulk scoring speed and not training speed. 
             string cmd = @"Test data=" + _mslrWeb10k_Test + " in="+ _modelPath_MSLR;
-            using (var tlc = new TlcEnvironment(verbose: false, sensitivity: MessageSensitivity.None, outWriter: EmptyWriter.Instance))
+            using (var environment = new ConsoleEnvironment(verbose: false, sensitivity: MessageSensitivity.None, outWriter: EmptyWriter.Instance))
             {
-                Maml.MainCore(tlc, cmd, alwaysPrintStacktrace: false);
+                Maml.MainCore(environment, cmd, alwaysPrintStacktrace: false);
             }
         }
     }
