@@ -534,7 +534,7 @@ namespace Microsoft.ML.Runtime.Data
         /// <param name="opt">Whether to consider the column names specified "optional" or not. If <c>false</c> then any non-empty
         /// values for the column names that does not appear in <paramref name="data"/>'s schema will result in an exception being thrown,
         /// but if <c>true</c> such values will be ignored</param>
-        public RoleMappedData(IDataView data, string label, string feature = null,
+        public RoleMappedData(IDataView data, string label, string feature,
             string group = null, string weight = null, string name = null,
             IEnumerable<KeyValuePair<RoleMappedSchema.ColumnRole, string>> custom = null, bool opt = false)
             : this(Contracts.CheckRef(data, nameof(data)),

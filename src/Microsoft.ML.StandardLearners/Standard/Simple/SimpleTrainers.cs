@@ -257,21 +257,21 @@ namespace Microsoft.ML.Runtime.Learners
         /// <summary>
         /// Initializes PriorTrainer object.
         /// </summary>
-        public PriorTrainer(IHost host, SchemaShape.Column label, SchemaShape.Column weight)
+        public PriorTrainer(IHost host, String labelColumn, String weightColunn = null)
             : base(host, LoadNameValue)
         {
-            Contracts.CheckValue(label, nameof(label));
-            Contracts.CheckValueOrNull(weight);
+            Contracts.CheckValue(labelColumn, nameof(labelColumn));
+            Contracts.CheckValueOrNull(weightColunn);
 
-            _labelColumnName = label.Name.ToString();
-            _weightColumnName = weight != null ? weight.Name.ToString() : null;
+            _labelColumnName = labelColumn;
+            _weightColumnName = weightColunn != null ? weightColunn : null;
         }
 
         public BinaryPredictionTransformer<PriorPredictor> Fit(IDataView input)
         {
             var cachedTrain = Info.WantCaching ? new CacheDataView(Host, input, prefetch: null) : input;
 
-            RoleMappedData trainRoles = new RoleMappedData(cachedTrain, label: _labelColumnName, weight: _weightColumnName);
+            RoleMappedData trainRoles = new RoleMappedData(cachedTrain, feature: null, label: _labelColumnName, weight: _weightColumnName);
             var pred = Train(new TrainContext(trainRoles));
             return new BinaryPredictionTransformer<PriorPredictor>(Host, pred, cachedTrain.Schema, featureColumn: null);
         }
