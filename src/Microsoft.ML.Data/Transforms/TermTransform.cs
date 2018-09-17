@@ -182,6 +182,8 @@ namespace Microsoft.ML.Runtime.Data
         public const string UserName = "Term Transform";
         public const string LoaderSignature = "TermTransform";
 
+        public const string FriendlyName = "To Key";
+
         private static VersionInfo GetVersionInfo()
         {
             return new VersionInfo(

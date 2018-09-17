@@ -297,7 +297,7 @@ namespace Microsoft.ML.Runtime.Data
 
         [TlcModule.EntryPoint(Name = "Transforms.TextToKeyConverter",
             Desc = TermTransform.Summary,
-            UserName = TermTransform.UserName,
+            UserName = TermTransform.FriendlyName,
             XmlInclude = new[] { @"<include file='../Microsoft.ML.Data/Transforms/doc.xml' path='doc/members/member[@name=""TextToKey""]/*' />",
                                  @"<include file='../Microsoft.ML.Data/Transforms/doc.xml' path='doc/members/example[@name=""TextToKey""]/*' />" })]
         public static CommonOutputs.TransformOutput TextToKey(IHostEnvironment env, TermTransform.Arguments input)

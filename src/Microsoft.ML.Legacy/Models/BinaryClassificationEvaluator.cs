@@ -2,13 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Legacy.Transforms;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
+using Microsoft.ML.Legacy.Transforms;
 
 namespace Microsoft.ML.Legacy.Models
 {
-    public sealed partial class ClusterEvaluator
+    public sealed partial class BinaryClassificationEvaluator
     {
         /// <summary>
         /// Computes the quality metrics for the PredictionModel using the specified data set.
@@ -20,11 +20,11 @@ namespace Microsoft.ML.Legacy.Models
         /// The test data that will be predicted and used to evaluate the model.
         /// </param>
         /// <returns>
-        /// A ClusterMetrics instance that describes how well the model performed against the test data.
+        /// A BinaryClassificationMetrics instance that describes how well the model performed against the test data.
         /// </returns>
-        public ClusterMetrics Evaluate(PredictionModel model, ILearningPipelineLoader testData)
+        public BinaryClassificationMetrics Evaluate(PredictionModel model, ILearningPipelineLoader testData)
         {
-            using (var environment = new TlcEnvironment())
+            using (var environment = new ConsoleEnvironment())
             {
                 environment.CheckValue(model, nameof(model));
                 environment.CheckValue(testData, nameof(testData));
@@ -39,7 +39,7 @@ namespace Microsoft.ML.Legacy.Models
 
                 var datasetScorer = new DatasetTransformScorer
                 {
-                    Data = testDataOutput.Data,
+                    Data = testDataOutput.Data
                 };
                 DatasetTransformScorer.Output scoreOutput = experiment.Add(datasetScorer);
 
@@ -54,15 +54,21 @@ namespace Microsoft.ML.Legacy.Models
                 experiment.Run();
 
                 IDataView overallMetrics = experiment.GetOutput(evaluteOutput.OverallMetrics);
-
                 if (overallMetrics == null)
                 {
-                    throw environment.Except($"Could not find OverallMetrics in the results returned in {nameof(ClusterEvaluator)} Evaluate.");
+                    throw environment.Except($"Could not find OverallMetrics in the results returned in {nameof(BinaryClassificationEvaluator)} Evaluate.");
                 }
 
-                var metric = ClusterMetrics.FromOverallMetrics(environment, overallMetrics);
+                IDataView confusionMatrix = experiment.GetOutput(evaluteOutput.ConfusionMatrix);
+                if (confusionMatrix == null)
+                {
+                    throw environment.Except($"Could not find ConfusionMatrix in the results returned in {nameof(BinaryClassificationEvaluator)} Evaluate.");
+                }
 
-                Contracts.Assert(metric.Count == 1, $"Exactly one metric set was expected but found {metric.Count} metrics");
+                var metric = BinaryClassificationMetrics.FromMetrics(environment, overallMetrics, confusionMatrix);
+
+                if (metric.Count != 1)
+                    throw environment.Except($"Exactly one metric set was expected but found {metric.Count} metrics");
 
                 return metric[0];
             }

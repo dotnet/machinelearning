@@ -25,7 +25,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         void DecomposableTrainAndPredict()
         {
             var dataPath = GetDataPath(IrisDataPath);
-            using (var env = new TlcEnvironment())
+            using (var env = new LocalEnvironment())
             {
                 var loader = TextLoader.ReadFile(env, MakeIrisTextLoaderArgs(), new MultiFileSource(dataPath));
                 var term = TermTransform.Create(env, loader, "Label");
