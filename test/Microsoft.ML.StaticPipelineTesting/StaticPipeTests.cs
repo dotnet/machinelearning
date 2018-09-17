@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.ML.Transforms.Text;
 using Microsoft.ML.Data.StaticPipe;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
@@ -402,6 +403,36 @@ namespace Microsoft.ML.StaticPipelineTesting
             Assert.Equal(TextType.Instance, types[1].ItemType);
             Assert.Equal(NumberType.Float, types[2].ItemType);
             Assert.Equal(NumberType.Float, types[3].ItemType);
+        }
+
+        [Fact]
+        public void Tokenize()
+        {
+            var env = new ConsoleEnvironment(seed: 0);
+            var dataPath = GetDataPath("wikipedia-detox-250-line-data.tsv");
+            var reader = TextLoader.CreateReader(env, ctx => (
+                    label: ctx.LoadBool(0),
+                    text: ctx.LoadText(1)), hasHeader: true);
+            var dataSource = new MultiFileSource(dataPath);
+            var data = reader.Read(dataSource);
+
+            var est = data.MakeNewEstimator()
+                .Append(r => (
+                    r.label,
+                    tokens: r.text.TokenizeText(),
+                    chars: r.text.TokenizeIntoCharacters()));
+
+            var tdata = est.Fit(data).Transform(data);
+            var schema = tdata.AsDynamic.Schema;
+
+            Assert.True(schema.TryGetColumnIndex("tokens", out int tokensCol));
+            var type = schema.GetColumnType(tokensCol);
+            Assert.True(type.IsVector && !type.IsKnownSizeVector && type.ItemType.IsText);
+
+            Assert.True(schema.TryGetColumnIndex("chars", out int charsCol));
+            type = schema.GetColumnType(charsCol);
+            Assert.True(type.IsVector && !type.IsKnownSizeVector && type.ItemType.IsKey);
+            Assert.True(type.ItemType.AsKey.RawKind == DataKind.U2);
         }
     }
 }

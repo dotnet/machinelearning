@@ -65,7 +65,7 @@ namespace Microsoft.ML.Transforms.Text
     /// </summary>
     public static class CharacterTokenizerExtensions
     {
-        private sealed class OutPipelineColumn : VarVector<string>
+        private sealed class OutPipelineColumn : VarVector<Key<ushort, string>>
         {
             public readonly Scalar<string> Input;
 
@@ -111,6 +111,6 @@ namespace Microsoft.ML.Transforms.Text
         /// </summary>
         /// <param name="input">The column to apply to.</param>
         /// <param name="useMarkerCharacters">Whether to use marker characters to separate words.</param>
-        public static VarVector<string> TokenizeIntoCharacters(this Scalar<string> input, bool useMarkerCharacters = true) => new OutPipelineColumn(input, useMarkerCharacters);
+        public static VarVector<Key<ushort, string>> TokenizeIntoCharacters(this Scalar<string> input, bool useMarkerCharacters = true) => new OutPipelineColumn(input, useMarkerCharacters);
     }
 }
