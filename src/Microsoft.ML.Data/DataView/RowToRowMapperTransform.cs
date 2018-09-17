@@ -134,15 +134,15 @@ namespace Microsoft.ML.Runtime.Data
     {
         private sealed class Bindings : ColumnBindingsBase
         {
-            private readonly RowToRowMapperTransform _parent;
+            private readonly IRowMapper _mapper;
             public readonly RowMapperColumnInfo[] OutputColInfos;
 
-            public Bindings(ISchema inputSchema, RowToRowMapperTransform parent)
-                : base(inputSchema, true, Contracts.CheckRef(parent, nameof(parent))._mapper.GetOutputColumns().Select(info => info.Name).ToArray())
+            public Bindings(ISchema inputSchema, IRowMapper mapper)
+                : base(inputSchema, true, Contracts.CheckRef(mapper, nameof(mapper)).GetOutputColumns().Select(info => info.Name).ToArray())
             {
-                Contracts.AssertValue(parent);
-                _parent = parent;
-                OutputColInfos = _parent._mapper.GetOutputColumns().ToArray();
+                Contracts.AssertValue(mapper);
+                _mapper = mapper;
+                OutputColInfos = _mapper.GetOutputColumns().ToArray();
             }
 
             protected override ColumnType GetColumnTypeCore(int iinfo)
@@ -168,7 +168,7 @@ namespace Microsoft.ML.Runtime.Data
                 var predicateOut = GetActiveOutputColumns(active);
 
                 // Now map those to active input columns.
-                var predicateIn = _parent._mapper.GetDependencies(predicateOut);
+                var predicateIn = _mapper.GetDependencies(predicateOut);
 
                 // Combine the two sets of input columns.
                 predicateInput =
@@ -255,7 +255,14 @@ namespace Microsoft.ML.Runtime.Data
         {
             Contracts.CheckValue(mapper, nameof(mapper));
             _mapper = mapper;
-            _bindings = new Bindings(input.Schema, this);
+            _bindings = new Bindings(input.Schema, mapper);
+        }
+
+        public static ISchema GetOutputSchema(ISchema inputSchema, IRowMapper mapper)
+        {
+            Contracts.CheckValue(inputSchema, nameof(inputSchema));
+            Contracts.CheckValue(mapper, nameof(mapper));
+            return new Bindings(inputSchema, mapper);
         }
 
         private RowToRowMapperTransform(IHost host, ModelLoadContext ctx, IDataView input)
@@ -265,7 +272,7 @@ namespace Microsoft.ML.Runtime.Data
             // _mapper
 
             ctx.LoadModel<IRowMapper, SignatureLoadRowMapper>(host, out _mapper, "Mapper", input.Schema);
-            _bindings = new Bindings(input.Schema, this);
+            _bindings = new Bindings(input.Schema, _mapper);
         }
 
         public static RowToRowMapperTransform Create(IHostEnvironment env, ModelLoadContext ctx, IDataView input)

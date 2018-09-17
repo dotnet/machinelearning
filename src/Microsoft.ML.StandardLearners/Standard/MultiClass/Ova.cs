@@ -2,12 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Float = System.Single;
-
-using System;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
@@ -18,7 +12,14 @@ using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Learners;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.Model.Pfa;
+using Microsoft.ML.Runtime.Training;
+using System;
+using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
+
+using System.Collections.Generic;
 
 [assembly: LoadableClass(Ova.Summary, typeof(Ova), typeof(Ova.Arguments),
     new[] { typeof(SignatureMultiClassClassifierTrainer), typeof(SignatureTrainer) },
@@ -32,18 +33,21 @@ using Newtonsoft.Json.Linq;
 [assembly: EntryPointModule(typeof(OvaPredictor))]
 namespace Microsoft.ML.Runtime.Learners
 {
+    using TScalarPredictor = IPredictorProducing<float>;
+    using TScalarTrainer = ITrainerEstimator<IPredictionTransformer<IPredictorProducing<float>>, IPredictorProducing<float>>;
+    using TDistPredictor = IDistPredictorProducing<float, float>;
     using CR = RoleMappedSchema.ColumnRole;
-    using TScalarPredictor = IPredictorProducing<Float>;
-    using TScalarTrainer = ITrainer<IPredictorProducing<Float>>;
 
     /// <include file='doc.xml' path='doc/members/member[@name="OVA"]' />
-    public sealed class Ova : MetaMulticlassTrainer<OvaPredictor, Ova.Arguments>
+    public sealed class Ova : MetaMulticlassTrainer<MulticlassPredictionTransformer<OvaPredictor>, OvaPredictor>
     {
         internal const string LoadNameValue = "OVA";
         internal const string UserNameValue = "One-vs-All";
         internal const string Summary = "In this strategy, a binary classification algorithm is used to train one classifier for each class, "
             + "which distinguishes that class from all other classes. Prediction is then performed by running these binary classifiers, "
             + "and choosing the prediction with the highest confidence score.";
+
+        private readonly Arguments _args;
 
         /// <summary>
         /// Arguments passed to OVA.
@@ -55,9 +59,44 @@ namespace Microsoft.ML.Runtime.Learners
             public bool UseProbabilities = true;
         }
 
+        /// <summary>
+        /// Legacy constructor that builds the <see cref="Ova"/> trainer supplying the base trainer to use, for the classification task
+        /// through the <see cref="Arguments"/>arguments.
+        /// Developers should instantiate OVA by supplying the trainer argument directly to the OVA constructor
+        /// using the other public constructor.
+        /// </summary>
+        /// <param name="env">The private <see cref="IHostEnvironment"/> for this estimator.</param>
+        /// <param name="args">The legacy <see cref="Arguments"/></param>
         public Ova(IHostEnvironment env, Arguments args)
             : base(env, args, LoadNameValue)
         {
+            _args = args;
+        }
+
+        /// <summary>
+        /// Initializes a new instance of <see cref="Ova"/>.
+        /// </summary>
+        /// <param name="env">The <see cref="IHostEnvironment"/> instance.</param>
+        /// <param name="binaryEstimator">An instance of a binary <see cref="ITrainerEstimator{TTransformer, TPredictor}"/> used as the base trainer.</param>
+        /// <param name="calibrator">The calibrator. If a calibrator is not explicitely provided, it will default to <see cref="PlattCalibratorCalibratorTrainer"/></param>
+        /// <param name="labelColumn">The name of the label colum.</param>
+        /// <param name="imputeMissingLabelsAsNegative">Whether to treat missing labels as having negative labels, instead of keeping them missing.</param>
+        /// <param name="maxCalibrationExamples">Number of instances to train the calibrator.</param>
+        /// <param name="useProbabilities">Use probabilities (vs. raw outputs) to identify top-score category.</param>
+        public Ova(IHostEnvironment env, TScalarTrainer binaryEstimator, string labelColumn = DefaultColumnNames.Label,
+            bool imputeMissingLabelsAsNegative = false, ICalibratorTrainer calibrator = null,
+            int maxCalibrationExamples = 1000000000, bool useProbabilities = true)
+         : base(env,
+               new Arguments
+               {
+                   ImputeMissingLabelsAsNegative = imputeMissingLabelsAsNegative,
+                   MaxCalibrationExamples = maxCalibrationExamples,
+               },
+               LoadNameValue, labelColumn, binaryEstimator, calibrator)
+        {
+            Host.CheckValue(labelColumn, nameof(labelColumn), "Label column should not be null.");
+            _args = (Arguments)Args;
+            _args.UseProbabilities = useProbabilities;
         }
 
         protected override OvaPredictor TrainCore(IChannel ch, RoleMappedData data, int count)
@@ -67,72 +106,98 @@ namespace Microsoft.ML.Runtime.Learners
             for (int i = 0; i < predictors.Length; i++)
             {
                 ch.Info($"Training learner {i}");
-                predictors[i] = TrainOne(ch, GetTrainer(), data, i);
+                predictors[i] = TrainOne(ch, GetTrainer(), data, i).Model;
             }
-            return OvaPredictor.Create(Host, Args.UseProbabilities, predictors);
+            return OvaPredictor.Create(Host, _args.UseProbabilities, predictors);
         }
 
-        private TScalarPredictor TrainOne(IChannel ch, TScalarTrainer trainer, RoleMappedData data, int cls)
+        private IPredictionTransformer<TScalarPredictor> TrainOne(IChannel ch, TScalarTrainer trainer, RoleMappedData data, int cls)
         {
-            string dstName;
-            var view = MapLabels(data, cls, out dstName);
+            var view = MapLabels(data, cls);
 
-            var roles = data.Schema.GetColumnRoleNames()
-                .Where(kvp => kvp.Key.Value != CR.Label.Value)
-                .Prepend(CR.Label.Bind(dstName));
-            var td = new RoleMappedData(view, roles);
+            string trainerLabel = data.Schema.Label.Name;
 
             // REVIEW: In principle we could support validation sets and the like via the train context, but
             // this is currently unsupported.
-            var predictor = trainer.Train(td);
+            var transformer = trainer.Fit(view);
 
-            if (Args.UseProbabilities)
+            if (_args.UseProbabilities)
             {
-                ICalibratorTrainer calibrator;
-                if (Args.Calibrator == null)
-                    calibrator = null;
-                else
-                    calibrator = Args.Calibrator.CreateComponent(Host);
-                var res = CalibratorUtils.TrainCalibratorIfNeeded(Host, ch, calibrator, Args.MaxCalibrationExamples,
-                    trainer, predictor, td);
-                predictor = res as TScalarPredictor;
-                Host.Check(predictor != null, "Calibrated predictor does not implement the expected interface");
+                var calibratedModel = transformer.Model as TScalarPredictor;
+
+                // REVIEW: restoring the RoleMappedData, as much as we can.
+                // not having the weight column on the data passed to the TrainCalibrator should be addressed.
+                var trainedData = new RoleMappedData(view, label: trainerLabel, feature: transformer.FeatureColumn);
+
+                if (calibratedModel == null)
+                   calibratedModel = CalibratorUtils.TrainCalibrator(Host, ch, Calibrator, Args.MaxCalibrationExamples, transformer.Model, trainedData) as TDistPredictor;
+
+                Host.Check(calibratedModel != null, "Calibrated predictor does not implement the expected interface");
+                return new BinaryPredictionTransformer<TScalarPredictor>(Host, calibratedModel, trainedData.Data.Schema, transformer.FeatureColumn);
             }
-            return predictor;
+
+            return new BinaryPredictionTransformer<TScalarPredictor>(Host, transformer.Model, view.Schema, transformer.FeatureColumn);
         }
 
-        private IDataView MapLabels(RoleMappedData data, int cls, out string dstName)
+        private IDataView MapLabels(RoleMappedData data, int cls)
         {
             var lab = data.Schema.Label;
             Host.Assert(!data.Schema.Schema.IsHidden(lab.Index));
             Host.Assert(lab.Type.KeyCount > 0 || lab.Type == NumberType.R4 || lab.Type == NumberType.R8);
 
-            // Get the destination label column name.
-            dstName = data.Schema.Schema.GetTempColumnName();
-
             if (lab.Type.KeyCount > 0)
             {
                 // Key values are 1-based.
                 uint key = (uint)(cls + 1);
-                return MapLabelsCore(NumberType.U4, (ref uint val) => key == val, data, dstName);
+                return MapLabelsCore(NumberType.U4, (ref uint val) => key == val, data);
             }
             if (lab.Type == NumberType.R4)
             {
-                Float key = cls;
-                return MapLabelsCore(NumberType.R4, (ref float val) => key == val, data, dstName);
+                float key = cls;
+                return MapLabelsCore(NumberType.R4, (ref float val) => key == val, data);
             }
             if (lab.Type == NumberType.R8)
             {
                 Double key = cls;
-                return MapLabelsCore(NumberType.R8, (ref double val) => key == val, data, dstName);
+                return MapLabelsCore(NumberType.R8, (ref double val) => key == val, data);
             }
 
             throw Host.ExceptNotSupp($"Label column type is not supported by OVA: {lab.Type}");
         }
+
+        public override MulticlassPredictionTransformer<OvaPredictor> Fit(IDataView input)
+        {
+            var roles = new KeyValuePair<CR, string>[1];
+            roles[0] = new KeyValuePair<CR, string>(new CR(DefaultColumnNames.Label), LabelColumn.Name);
+            var td = new RoleMappedData(input, roles);
+
+            td.CheckMultiClassLabel(out var numClasses);
+
+            var predictors = new TScalarPredictor[numClasses];
+            string featureColumn = null;
+
+            using (var ch = Host.Start("Fitting"))
+            {
+                for (int i = 0; i < predictors.Length; i++)
+                {
+                    ch.Info($"Training learner {i}");
+
+                    if (i == 0)
+                    {
+                        var transformer = TrainOne(ch, GetTrainer(), td, i);
+                        featureColumn = transformer.FeatureColumn;
+                    }
+
+                    predictors[i] = TrainOne(ch, GetTrainer(), td, i).Model;
+                }
+            }
+
+            return new MulticlassPredictionTransformer<OvaPredictor>(Host, OvaPredictor.Create(Host, _args.UseProbabilities, predictors), input.Schema, featureColumn, LabelColumn.Name);
+        }
     }
 
     public sealed class OvaPredictor :
-        PredictorBase<VBuffer<Float>>,
+        PredictorBase<VBuffer<float>>,
         IValueMapper,
         ICanSaveModel,
         ICanSaveInSourceCode,
@@ -315,8 +380,8 @@ namespace Microsoft.ML.Runtime.Learners
 
         public ValueMapper<TIn, TOut> GetMapper<TIn, TOut>()
         {
-            Host.Check(typeof(TIn) == typeof(VBuffer<Float>));
-            Host.Check(typeof(TOut) == typeof(VBuffer<Float>));
+            Host.Check(typeof(TIn) == typeof(VBuffer<float>));
+            Host.Check(typeof(TOut) == typeof(VBuffer<float>));
 
             return (ValueMapper<TIn, TOut>)(Delegate)_impl.GetMapper();
         }
@@ -366,7 +431,7 @@ namespace Microsoft.ML.Runtime.Learners
             public abstract ColumnType InputType { get; }
             public abstract IValueMapper[] Predictors { get; }
             public abstract bool CanSavePfa { get; }
-            public abstract ValueMapper<VBuffer<Float>, VBuffer<Float>> GetMapper();
+            public abstract ValueMapper<VBuffer<float>, VBuffer<float>> GetMapper();
             public abstract JToken SaveAsPfa(BoundPfaContext ctx, JToken input);
 
             protected bool IsValid(IValueMapper mapper, ref ColumnType inputType)
@@ -416,25 +481,25 @@ namespace Microsoft.ML.Runtime.Learners
                 InputType = inputType;
             }
 
-            public override ValueMapper<VBuffer<Float>, VBuffer<Float>> GetMapper()
+            public override ValueMapper<VBuffer<float>, VBuffer<float>> GetMapper()
             {
-                var maps = new ValueMapper<VBuffer<Float>, Float>[Predictors.Length];
+                var maps = new ValueMapper<VBuffer<float>, float>[Predictors.Length];
                 for (int i = 0; i < Predictors.Length; i++)
-                    maps[i] = Predictors[i].GetMapper<VBuffer<Float>, Float>();
+                    maps[i] = Predictors[i].GetMapper<VBuffer<float>, float>();
 
                 return
-                    (ref VBuffer<Float> src, ref VBuffer<Float> dst) =>
+                    (ref VBuffer<float> src, ref VBuffer<float> dst) =>
                     {
                         if (InputType.VectorSize > 0)
                             Contracts.Check(src.Length == InputType.VectorSize);
 
                         var values = dst.Values;
                         if (Utils.Size(values) < maps.Length)
-                            values = new Float[maps.Length];
+                            values = new float[maps.Length];
 
                         var tmp = src;
                         Parallel.For(0, maps.Length, i => maps[i](ref tmp, ref values[i]));
-                        dst = new VBuffer<Float>(maps.Length, values, dst.Indices);
+                        dst = new VBuffer<float>(maps.Length, values, dst.Indices);
                     };
             }
 
@@ -485,35 +550,35 @@ namespace Microsoft.ML.Runtime.Learners
                 return base.IsValid(mapper, ref inputType) && mapper.DistType == NumberType.Float;
             }
 
-            public override ValueMapper<VBuffer<Float>, VBuffer<Float>> GetMapper()
+            public override ValueMapper<VBuffer<float>, VBuffer<float>> GetMapper()
             {
-                var maps = new ValueMapper<VBuffer<Float>, Float, Float>[Predictors.Length];
+                var maps = new ValueMapper<VBuffer<float>, float, float>[Predictors.Length];
                 for (int i = 0; i < Predictors.Length; i++)
-                    maps[i] = _mappers[i].GetMapper<VBuffer<Float>, Float, Float>();
+                    maps[i] = _mappers[i].GetMapper<VBuffer<float>, float, float>();
 
                 return
-                    (ref VBuffer<Float> src, ref VBuffer<Float> dst) =>
+                    (ref VBuffer<float> src, ref VBuffer<float> dst) =>
                     {
                         if (InputType.VectorSize > 0)
                             Contracts.Check(src.Length == InputType.VectorSize);
 
                         var values = dst.Values;
                         if (Utils.Size(values) < maps.Length)
-                            values = new Float[maps.Length];
+                            values = new float[maps.Length];
 
                         var tmp = src;
                         Parallel.For(0, maps.Length,
                             i =>
                             {
-                                Float score = 0;
+                                float score = 0;
                                 maps[i](ref tmp, ref score, ref values[i]);
                             });
                         Normalize(values, maps.Length);
-                        dst = new VBuffer<Float>(maps.Length, values, dst.Indices);
+                        dst = new VBuffer<float>(maps.Length, values, dst.Indices);
                     };
             }
 
-            private void Normalize(Float[] output, int count)
+            private void Normalize(float[] output, int count)
             {
                 // Clamp to zero and normalize.
                 Double sum = 0;
@@ -529,7 +594,7 @@ namespace Microsoft.ML.Runtime.Learners
                 if (sum > 0)
                 {
                     for (int i = 0; i < count; i++)
-                        output[i] = (Float)(output[i] / sum);
+                        output[i] = (float)(output[i] / sum);
                 }
             }
 

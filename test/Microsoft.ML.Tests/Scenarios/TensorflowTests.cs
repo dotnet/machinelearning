@@ -2,15 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Runtime;
+using Microsoft.ML.Legacy.Trainers;
+using Microsoft.ML.Legacy.Transforms;
 using Microsoft.ML.Runtime.Api;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.ImageAnalytics;
-using Microsoft.ML.Runtime.LightGBM;
-using Microsoft.ML.Trainers;
-using Microsoft.ML.Transforms;
 using Microsoft.ML.Transforms.TensorFlow;
-using System.Collections.Generic;
 using System.IO;
 using Xunit;
 
@@ -27,8 +22,8 @@ namespace Microsoft.ML.Scenarios
             var dataFile = GetDataPath("images/images.tsv");
             var imageFolder = Path.GetDirectoryName(dataFile);
 
-            var pipeline = new LearningPipeline(seed: 1);
-            pipeline.Add(new Microsoft.ML.Data.TextLoader(dataFile).CreateFrom<CifarData>(useHeader: false));
+            var pipeline = new Legacy.LearningPipeline(seed: 1);
+            pipeline.Add(new Microsoft.ML.Legacy.Data.TextLoader(dataFile).CreateFrom<CifarData>(useHeader: false));
             pipeline.Add(new ImageLoader(("ImagePath", "ImageReal"))
             {
                 ImageFolder = imageFolder
@@ -101,8 +96,8 @@ namespace Microsoft.ML.Scenarios
 
             const float mean = 117;
 
-            var pipeline = new LearningPipeline();
-            pipeline.Add(new Data.TextLoader(dataFile).CreateFrom<ImageNetData>(useHeader: false));
+            var pipeline = new Legacy.LearningPipeline();
+            pipeline.Add(new Legacy.Data.TextLoader(dataFile).CreateFrom<ImageNetData>(useHeader: false));
             pipeline.Add(new ImageLoader(("ImagePath", "ImageReal"))
             {
                 ImageFolder = imagesFolder

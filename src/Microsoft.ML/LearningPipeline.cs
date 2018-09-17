@@ -12,7 +12,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 
-namespace Microsoft.ML
+namespace Microsoft.ML.Legacy
 {
     public sealed class ScorerPipelineStep : ILearningPipelineDataStep
     {
@@ -28,8 +28,8 @@ namespace Microsoft.ML
 
     /// <summary>
     /// The <see cref="LearningPipeline"/> class is used to define the steps needed to perform a desired machine learning task.<para/>
-    /// The steps are defined by adding a data loader (e.g. <see cref="TextLoader"/>) followed by zero or more transforms (e.g. <see cref="Microsoft.ML.Transforms.TextFeaturizer"/>)
-    /// and at most one trainer/learner (e.g. <see cref="Microsoft.ML.Trainers.FastTreeBinaryClassifier"/>) in the pipeline.
+    /// The steps are defined by adding a data loader (e.g. <see cref="TextLoader"/>) followed by zero or more transforms (e.g. <see cref="Microsoft.ML.Legacy.Transforms.TextFeaturizer"/>)
+    /// and at most one trainer/learner (e.g. <see cref="Microsoft.ML.Legacy.Trainers.FastTreeBinaryClassifier"/>) in the pipeline.
     ///
     /// </summary>
     /// <example>
@@ -82,25 +82,25 @@ namespace Microsoft.ML
         /// Possible data loader(s), transforms and trainers options are
         /// <para>
         /// Data Loader:
-        ///     <see cref="Microsoft.ML.Data.TextLoader" />
+        ///     <see cref="Microsoft.ML.Legacy.Data.TextLoader" />
         ///     etc.
         /// </para>
         /// <para>
         /// Transforms:
-        ///     <see cref="Microsoft.ML.Transforms.Dictionarizer"/>,
-        ///     <see cref="Microsoft.ML.Transforms.CategoricalOneHotVectorizer"/>
-        ///     <see cref="Microsoft.ML.Transforms.MinMaxNormalizer"/>,
-        ///     <see cref="Microsoft.ML.Transforms.ColumnCopier"/>,
-        ///     <see cref="Microsoft.ML.Transforms.ColumnConcatenator"/>,
-        ///     <see cref="Microsoft.ML.Transforms.TextFeaturizer"/>,
+        ///     <see cref="Microsoft.ML.Legacy.Transforms.Dictionarizer"/>,
+        ///     <see cref="Microsoft.ML.Legacy.Transforms.CategoricalOneHotVectorizer"/>
+        ///     <see cref="Microsoft.ML.Legacy.Transforms.MinMaxNormalizer"/>,
+        ///     <see cref="Microsoft.ML.Legacy.Transforms.ColumnCopier"/>,
+        ///     <see cref="Microsoft.ML.Legacy.Transforms.ColumnConcatenator"/>,
+        ///     <see cref="Microsoft.ML.Legacy.Transforms.TextFeaturizer"/>,
         ///     etc.
         /// </para>
         /// <para>
         /// Trainers:
-        ///     <see cref="Microsoft.ML.Trainers.AveragedPerceptronBinaryClassifier"/>,
-        ///     <see cref="Microsoft.ML.Trainers.LogisticRegressionClassifier"/>,
-        ///     <see cref="Microsoft.ML.Trainers.StochasticDualCoordinateAscentClassifier"/>,
-        ///     <see cref="Microsoft.ML.Trainers.FastTreeRegressor"/>,
+        ///     <see cref="Microsoft.ML.Legacy.Trainers.AveragedPerceptronBinaryClassifier"/>,
+        ///     <see cref="Microsoft.ML.Legacy.Trainers.LogisticRegressionClassifier"/>,
+        ///     <see cref="Microsoft.ML.Legacy.Trainers.StochasticDualCoordinateAscentClassifier"/>,
+        ///     <see cref="Microsoft.ML.Legacy.Trainers.FastTreeRegressor"/>,
         ///     etc.
         /// </para>
         /// For a complete list of transforms and trainers, please see "Microsoft.ML.Transforms" and "Microsoft.ML.Trainers" namespaces.

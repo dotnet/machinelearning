@@ -9,7 +9,7 @@ using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Utilities;
 
-namespace Microsoft.ML.Data
+namespace Microsoft.ML.Legacy.Data
 {
     /// <summary>
     /// Creates data source for pipeline based on provided collection of data.

@@ -93,7 +93,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         /// Accumulates one more value, optionally weighted.
         /// This accumulation procedure is based on the following,
         /// with adjustments as appropriate for weighted instances:
-        /// http://en.wikipedia.org/wiki/Algorithms_for_calculating_variance
+        /// https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance
         /// </summary>
         /// <param name="v">The value</param>
         /// <param name="w">The weight given to this value</param>
@@ -174,7 +174,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
     /// A class for one-pass accumulation of weighted summary statistics, up
     /// to the fourth moment. The accumulative algorithms used here may be
     /// reviewed at
-    /// http://en.wikipedia.org/wiki/Algorithms_for_calculating_variance
+    /// https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance
     /// All quantities are weighted, except for <c>RawCount</c>.
     /// </summary>
     public sealed class SummaryStatistics : SummaryStatisticsBase
@@ -311,7 +311,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         /// Accumulates one more value, optionally weighted.
         /// This accumulation procedure is based on the following,
         /// with adjustments as appropriate for weighted instances:
-        /// http://en.wikipedia.org/wiki/Algorithms_for_calculating_variance
+        /// https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance
         /// </summary>
         /// <param name="v">The value</param>
         /// <param name="w">The weight given to this value</param>

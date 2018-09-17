@@ -2,22 +2,18 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using Microsoft.ML.Runtime;
-using Microsoft.ML;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
 using Newtonsoft.Json.Linq;
+using System.Collections.Generic;
+using System.Linq;
 
 [assembly: LoadableClass(typeof(void), typeof(CrossValidationBinaryMacro), null, typeof(SignatureEntryPointModule), "CrossValidationBinaryMacro")]
 
 namespace Microsoft.ML.Runtime.EntryPoints
 {
-    using Common = Microsoft.ML;
-
     /// <summary>
     /// This macro entry point implements cross validation for binary classification.
     /// </summary>
@@ -99,7 +95,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
 
             // Split the input data into folds.
             var exp = new Experiment(env);
-            var cvSplit = new ML.Models.CrossValidatorDatasetSplitter();
+            var cvSplit = new Legacy.Models.CrossValidatorDatasetSplitter();
             cvSplit.Data.VarName = node.GetInputVariable("Data").ToJson();
             cvSplit.NumFolds = input.NumFolds;
             cvSplit.StratificationColumn = input.StratificationColumn;
@@ -167,43 +163,43 @@ namespace Microsoft.ML.Runtime.EntryPoints
 
             exp.Reset();
 
-            var outModels = new ML.Data.PredictorModelArrayConverter
+            var outModels = new Legacy.Data.PredictorModelArrayConverter
             {
                 Model = new ArrayVar<IPredictorModel>(predModelVars)
             };
-            var outModelsOutput = new ML.Data.PredictorModelArrayConverter.Output();
+            var outModelsOutput = new Legacy.Data.PredictorModelArrayConverter.Output();
             outModelsOutput.OutputModel.VarName = node.GetOutputVariableName(nameof(Output.PredictorModel));
             exp.Add(outModels, outModelsOutput);
 
-            var warnings = new ML.Data.IDataViewArrayConverter
+            var warnings = new Legacy.Data.IDataViewArrayConverter
             {
                 Data = new ArrayVar<IDataView>(warningsVars)
             };
-            var warningsOutput = new ML.Data.IDataViewArrayConverter.Output();
+            var warningsOutput = new Legacy.Data.IDataViewArrayConverter.Output();
             warningsOutput.OutputData.VarName = node.GetOutputVariableName(nameof(Output.Warnings));
             exp.Add(warnings, warningsOutput);
 
-            var overallMetrics = new ML.Data.IDataViewArrayConverter
+            var overallMetrics = new Legacy.Data.IDataViewArrayConverter
             {
                 Data = new ArrayVar<IDataView>(overallMetricsVars)
             };
-            var overallMetricsOutput = new ML.Data.IDataViewArrayConverter.Output();
+            var overallMetricsOutput = new Legacy.Data.IDataViewArrayConverter.Output();
             overallMetricsOutput.OutputData.VarName = node.GetOutputVariableName(nameof(Output.OverallMetrics));
             exp.Add(overallMetrics, overallMetricsOutput);
 
-            var instanceMetrics = new ML.Data.IDataViewArrayConverter
+            var instanceMetrics = new Legacy.Data.IDataViewArrayConverter
             {
                 Data = new ArrayVar<IDataView>(instanceMetricsVars)
             };
-            var instanceMetricsOutput = new ML.Data.IDataViewArrayConverter.Output();
+            var instanceMetricsOutput = new Legacy.Data.IDataViewArrayConverter.Output();
             instanceMetricsOutput.OutputData.VarName = node.GetOutputVariableName(nameof(Output.PerInstanceMetrics));
             exp.Add(instanceMetrics, instanceMetricsOutput);
 
-            var confusionMatrices = new ML.Data.IDataViewArrayConverter
+            var confusionMatrices = new Legacy.Data.IDataViewArrayConverter
             {
                 Data = new ArrayVar<IDataView>(confusionMatrixVars)
             };
-            var confusionMatricesOutput = new ML.Data.IDataViewArrayConverter.Output();
+            var confusionMatricesOutput = new Legacy.Data.IDataViewArrayConverter.Output();
             confusionMatricesOutput.OutputData.VarName = node.GetOutputVariableName(nameof(Output.ConfusionMatrix));
             exp.Add(confusionMatrices, confusionMatricesOutput);
 

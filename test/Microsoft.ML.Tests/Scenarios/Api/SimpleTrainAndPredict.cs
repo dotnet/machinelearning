@@ -96,6 +96,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                 }
             };
         }
+
         private static TextLoader.Arguments MakeSentimentTextLoaderArgs()
         {
             return new TextLoader.Arguments()
