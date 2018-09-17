@@ -12,7 +12,6 @@ using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.Training;
 using System;
 using System.Linq;
-using System.Collections.Generic;
 
 [assembly: LoadableClass(RandomTrainer.Summary, typeof(RandomTrainer), typeof(RandomTrainer.Arguments),
     new[] { typeof(SignatureBinaryClassifierTrainer), typeof(SignatureTrainer) },
