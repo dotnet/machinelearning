@@ -52,7 +52,7 @@ namespace Microsoft.ML.Legacy.Models
 
             public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
             {
-                using (var env = new TlcEnvironment())
+                using (var env = new ConsoleEnvironment())
                 {
                     var subgraph = env.CreateExperiment();
                     subgraph.Add(_trainer);

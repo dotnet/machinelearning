@@ -42,7 +42,7 @@ namespace Microsoft.ML.EntryPoints.Tests
         {
             var loader = new Legacy.Data.TextLoader("fakeFile.txt").CreateFrom<Input>();
 
-            using (var environment = new TlcEnvironment())
+            using (var environment = new ConsoleEnvironment())
             {
                 Experiment experiment = environment.CreateExperiment();
                 Legacy.ILearningPipelineDataStep output = loader.ApplyStep(null, experiment) as Legacy.ILearningPipelineDataStep;
@@ -59,7 +59,7 @@ namespace Microsoft.ML.EntryPoints.Tests
             string dataPath = GetDataPath("QuotingData.csv");
             var loader = new Legacy.Data.TextLoader(dataPath).CreateFrom<QuoteInput>(useHeader: true, separator: ',', allowQuotedStrings: true, supportSparse: false);
             
-            using (var environment = new TlcEnvironment())
+            using (var environment = new ConsoleEnvironment())
             {
                 Experiment experiment = environment.CreateExperiment();
                 Legacy.ILearningPipelineDataStep output = loader.ApplyStep(null, experiment) as Legacy.ILearningPipelineDataStep;
@@ -117,7 +117,7 @@ namespace Microsoft.ML.EntryPoints.Tests
             string dataPath = GetDataPath("SparseData.txt");
             var loader = new Legacy.Data.TextLoader(dataPath).CreateFrom<SparseInput>(useHeader: true, allowQuotedStrings: false, supportSparse: true);
 
-            using (var environment = new TlcEnvironment())
+            using (var environment = new ConsoleEnvironment())
             {
                 Experiment experiment = environment.CreateExperiment();
                 Legacy.ILearningPipelineDataStep output = loader.ApplyStep(null, experiment) as Legacy.ILearningPipelineDataStep;
@@ -182,7 +182,7 @@ namespace Microsoft.ML.EntryPoints.Tests
             string dataPath = GetDataPath("TrimData.csv");
             var loader = new Legacy.Data.TextLoader(dataPath).CreateFrom<QuoteInput>(useHeader: true, separator: ',', allowQuotedStrings: false, supportSparse: false, trimWhitespace: true);
 
-            using (var environment = new TlcEnvironment())
+            using (var environment = new ConsoleEnvironment())
             {
                 Experiment experiment = environment.CreateExperiment();
                 Legacy.ILearningPipelineDataStep output = loader.ApplyStep(null, experiment) as Legacy.ILearningPipelineDataStep;

@@ -93,7 +93,7 @@ namespace Microsoft.ML.Sweeper.RunTests
         [Fact]
         public void TestRandomSweeper()
         {
-            using (var env = new TlcEnvironment(42))
+            using (var env = new ConsoleEnvironment(42))
             {
                 var args = new SweeperBase.ArgumentsBase()
                 {
@@ -135,7 +135,7 @@ namespace Microsoft.ML.Sweeper.RunTests
         public void TestSimpleSweeperAsync()
         {
             var random = new Random(42);
-            using (var env = new TlcEnvironment(42))
+            using (var env = new ConsoleEnvironment(42))
             {
                 int sweeps = 100;
                 var sweeper = new SimpleAsyncSweeper(env, new SweeperBase.ArgumentsBase
@@ -185,7 +185,7 @@ namespace Microsoft.ML.Sweeper.RunTests
         public void TestDeterministicSweeperAsyncCancellation()
         {
             var random = new Random(42);
-            using (var env = new TlcEnvironment(42))
+            using (var env = new ConsoleEnvironment(42))
             {
                 var args = new DeterministicSweeperAsync.Arguments();
                 args.BatchSize = 5;
@@ -237,7 +237,7 @@ namespace Microsoft.ML.Sweeper.RunTests
         public void TestDeterministicSweeperAsync()
         {
             var random = new Random(42);
-            using (var env = new TlcEnvironment(42))
+            using (var env = new ConsoleEnvironment(42))
             {
                 var args = new DeterministicSweeperAsync.Arguments();
                 args.BatchSize = 5;
@@ -308,7 +308,7 @@ namespace Microsoft.ML.Sweeper.RunTests
         public void TestDeterministicSweeperAsyncParallel()
         {
             var random = new Random(42);
-            using (var env = new TlcEnvironment(42))
+            using (var env = new ConsoleEnvironment(42))
             {
                 int batchSize = 5;
                 int sweeps = 20;
@@ -362,7 +362,7 @@ namespace Microsoft.ML.Sweeper.RunTests
         public async Task TestNelderMeadSweeperAsync()
         {
             var random = new Random(42);
-            using (var env = new TlcEnvironment(42))
+            using (var env = new ConsoleEnvironment(42))
             {
                 int batchSize = 5;
                 int sweeps = 40;
@@ -441,7 +441,7 @@ namespace Microsoft.ML.Sweeper.RunTests
         [Fact]
         public void TestRandomGridSweeper()
         {
-            using (var env = new TlcEnvironment(42))
+            using (var env = new ConsoleEnvironment(42))
             {
                 var args = new RandomGridSweeper.Arguments()
                 {
@@ -553,7 +553,7 @@ namespace Microsoft.ML.Sweeper.RunTests
         public void TestNelderMeadSweeper()
         {
             var random = new Random(42);
-            using (var env = new TlcEnvironment(42))
+            using (var env = new ConsoleEnvironment(42))
             {
                 var param = new IComponentFactory<INumericValueGenerator>[] {
                     ComponentFactoryUtils.CreateFromFunction(
@@ -612,7 +612,7 @@ namespace Microsoft.ML.Sweeper.RunTests
             RunMTAThread(() =>
             {
                 var random = new Random(42);
-                using (var env = new TlcEnvironment(42))
+                using (var env = new ConsoleEnvironment(42))
                 {
                     int maxInitSweeps = 5;
                     var args = new SmacSweeper.Arguments()

@@ -51,7 +51,7 @@ namespace Microsoft.ML.StaticPipelineTesting
         [Fact]
         public void SimpleTextLoaderCopyColumnsTest()
         {
-            var env = new TlcEnvironment(new SysRandom(0), verbose: true);
+            var env = new ConsoleEnvironment(0, verbose: true);
 
             const string data = "0 hello 3.14159 -0 2\n"
                 + "1 1 2 4 15";
@@ -131,7 +131,7 @@ namespace Microsoft.ML.StaticPipelineTesting
         [Fact]
         public void AssertStaticSimple()
         {
-            var env = new TlcEnvironment(new SysRandom(0), verbose: true);
+            var env = new ConsoleEnvironment(0, verbose: true);
             var schema = new SimpleSchema(env,
                 P("hello", TextType.Instance),
                 P("my", new VectorType(NumberType.I8, 5)),
@@ -155,7 +155,7 @@ namespace Microsoft.ML.StaticPipelineTesting
         [Fact]
         public void AssertStaticKeys()
         {
-            var env = new TlcEnvironment(new SysRandom(0), verbose: true);
+            var env = new ConsoleEnvironment(0, verbose: true);
             var counted = new MetaCounted();
 
             // We'll test a few things here. First, the case where the key-value metadata is text.
@@ -262,7 +262,7 @@ namespace Microsoft.ML.StaticPipelineTesting
         [Fact]
         public void Normalizer()
         {
-            var env = new TlcEnvironment(seed: 0);
+            var env = new ConsoleEnvironment(seed: 0);
             var dataPath = GetDataPath("external", "winequality-white.csv");
             var dataSource = new MultiFileSource(dataPath);
 
@@ -287,7 +287,7 @@ namespace Microsoft.ML.StaticPipelineTesting
         [Fact]
         public void NormalizerWithOnFit()
         {
-            var env = new TlcEnvironment(seed: 0);
+            var env = new ConsoleEnvironment(seed: 0);
             var dataPath = GetDataPath("external", "winequality-white.csv");
             var dataSource = new MultiFileSource(dataPath);
 
@@ -331,7 +331,7 @@ namespace Microsoft.ML.StaticPipelineTesting
         [Fact]
         public void ToKey()
         {
-            var env = new TlcEnvironment(seed: 0);
+            var env = new ConsoleEnvironment(seed: 0);
             var dataPath = GetDataPath("iris.data");
             var reader = TextLoader.CreateReader(env,
                 c => (label: c.LoadText(4), values: c.LoadFloat(0, 3)),
@@ -369,7 +369,7 @@ namespace Microsoft.ML.StaticPipelineTesting
         [Fact]
         public void ConcatWith()
         {
-            var env = new TlcEnvironment(seed: 0);
+            var env = new ConsoleEnvironment(seed: 0);
             var dataPath = GetDataPath("iris.data");
             var reader = TextLoader.CreateReader(env,
                 c => (label: c.LoadText(4), values: c.LoadFloat(0, 3), value: c.LoadFloat(2)),

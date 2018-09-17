@@ -26,7 +26,7 @@ namespace Microsoft.ML.Runtime.RunTests
         [TestCategory("EntryPoints")]
         public void TestLearn()
         {
-            using (var env = new TlcEnvironment())
+            using (var env = new ConsoleEnvironment())
             {
                 string pathData = GetDataPath("adult.train");
                 string pathDataTest = GetDataPath("adult.test");
@@ -72,7 +72,7 @@ namespace Microsoft.ML.Runtime.RunTests
         [Fact(Skip = "Need CoreTLC specific baseline update")]
         public void TestTextDatasetLearn()
         {
-            using (var env = new TlcEnvironment())
+            using (var env = new ConsoleEnvironment())
             {
                 string pathData = GetDataPath(@"../UnitTest/tweets_labeled_10k_test_validation.tsv");
                 int batchSize = 5;
@@ -96,7 +96,7 @@ namespace Microsoft.ML.Runtime.RunTests
         [Fact]
         public void TestPipelineNodeCloning()
         {
-            using (var env = new TlcEnvironment())
+            using (var env = new ConsoleEnvironment())
             {
                 var lr1 = RecipeInference
                     .AllowedLearners(env, MacroUtils.TrainerKinds.SignatureBinaryClassifierTrainer)
@@ -138,7 +138,7 @@ namespace Microsoft.ML.Runtime.RunTests
             int batchSize = 1;
             int numIterations = 10;
             int numTransformLevels = 3;
-            using (var env = new TlcEnvironment())
+            using (var env = new ConsoleEnvironment())
             {
                 SupportedMetric metric = PipelineSweeperSupportedMetrics.GetSupportedMetric(PipelineSweeperSupportedMetrics.Metrics.Auc);
 
@@ -186,7 +186,7 @@ namespace Microsoft.ML.Runtime.RunTests
             int batchSize = 5;
             int numIterations = 10;
             int numTransformLevels = 1;
-            using (var env = new TlcEnvironment())
+            using (var env = new ConsoleEnvironment())
             {
                 SupportedMetric metric = PipelineSweeperSupportedMetrics.GetSupportedMetric(PipelineSweeperSupportedMetrics.Metrics.AccuracyMicro);
 
@@ -220,7 +220,7 @@ namespace Microsoft.ML.Runtime.RunTests
             int numIterations = 1;
             int numTransformLevels = 2;
             var retainedLearnerNames = new[] { $"LogisticRegressionBinaryClassifier", $"FastTreeBinaryClassifier" };
-            using (var env = new TlcEnvironment())
+            using (var env = new ConsoleEnvironment())
             {
                 SupportedMetric metric = PipelineSweeperSupportedMetrics.GetSupportedMetric(PipelineSweeperSupportedMetrics.Metrics.Auc);
 

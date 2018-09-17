@@ -28,7 +28,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         {
             var dataPath = GetDataPath(IrisDataPath);
 
-            using (var env = new TlcEnvironment())
+            using (var env = new ConsoleEnvironment())
             {
                 var calibrator = new PavCalibratorTrainer(env);
 
@@ -53,7 +53,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             string featNam = "Features";
             string labNam = "Label";
 
-            using (var env = new TlcEnvironment())
+            using (var env = new ConsoleEnvironment())
             {
                 var calibrator = new FixedPlattCalibratorTrainer(env, new FixedPlattCalibratorTrainer.Arguments());
 
@@ -76,7 +76,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         {
             var dataPath = GetDataPath(IrisDataPath);
 
-            using (var env = new TlcEnvironment())
+            using (var env = new ConsoleEnvironment())
             {
                 var data = new TextLoader(env, GetIrisLoaderArgs()).Read(new MultiFileSource(dataPath));
 
@@ -97,7 +97,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         {
             var dataPath = GetDataPath(IrisDataPath);
 
-            using (var env = new TlcEnvironment())
+            using (var env = new ConsoleEnvironment())
             {
                 var calibrator = new PavCalibratorTrainer(env);
 
