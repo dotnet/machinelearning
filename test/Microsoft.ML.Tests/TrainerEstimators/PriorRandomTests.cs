@@ -38,9 +38,6 @@ namespace Microsoft.ML.Tests
             }).Data;
         }
 
-        private static SchemaShape.Column MakeFeatureColumn(string featureColumn)
-            => new SchemaShape.Column(featureColumn, SchemaShape.Column.VectorKind.Vector, NumberType.R4, false);
-
         private static SchemaShape.Column MakeLabelColumn(string labelColumn)
             => new SchemaShape.Column(labelColumn, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false);
 
@@ -64,11 +61,9 @@ namespace Microsoft.ML.Tests
         public void TestEstimatorPrior()
         {
             var dataView = GetBreastCancerDataviewWithTextColumns();
-            dataView = Env.CreateTransform("Term{col=F1}", dataView);
-            var result = FeatureCombiner.PrepareFeatures(Env, new FeatureCombiner.FeatureCombinerInput() { Data = dataView, Features = new[] { "F1", "F2", "Rest" } }).OutputData;
-
-            var pipe = new PriorTrainer(Contracts.CheckRef(Env, nameof(Env)).Register("PriorPredictor"), MakeFeatureColumn(DefaultColumnNames.Features), MakeLabelColumn(DefaultColumnNames.Label), null);
-            TestEstimatorCore(pipe, result, invalidInput: dataView);
+            
+            var pipe = new PriorTrainer(Contracts.CheckRef(Env, nameof(Env)).Register("PriorPredictor"), MakeLabelColumn(DefaultColumnNames.Label), null);
+            TestEstimatorCore(pipe, dataView);
             Done();
         }
     }

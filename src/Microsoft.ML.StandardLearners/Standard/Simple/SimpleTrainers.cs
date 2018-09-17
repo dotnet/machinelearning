@@ -57,7 +57,6 @@ namespace Microsoft.ML.Runtime.Learners
         /// <summary>
         /// Initializes RandomTrainer object.
         /// </summary>
-        /// <param name="env"></param>
         public RandomTrainer(IHostEnvironment env)
             : base(env, LoadNameValue)
         {
@@ -228,8 +227,11 @@ namespace Microsoft.ML.Runtime.Learners
         }
     }
 
-    // Learns the prior distribution for 0/1 class labels and just outputs that.
-    public sealed class PriorTrainer : TrainerEstimatorBase<BinaryPredictionTransformer<PriorPredictor>, PriorPredictor>
+    /// <summary>
+    /// Learns the prior distribution for 0/1 class labels and just outputs that.
+    /// </summary>
+    public sealed class PriorTrainer : TrainerBase<PriorPredictor>,
+        ITrainerEstimator<BinaryPredictionTransformer<PriorPredictor>, PriorPredictor>
     {
         internal const string LoadNameValue = "PriorPredictor";
         internal const string UserNameValue = "Prior Predictor";
@@ -238,13 +240,16 @@ namespace Microsoft.ML.Runtime.Learners
         {
         }
 
+        private readonly String _labelColumnName;
+        private readonly String _weightColumnName;
+
         public override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
 
         private static readonly TrainerInfo _info = new TrainerInfo(normalization: false, caching: false);
         public override TrainerInfo Info => _info;
 
-        private PriorTrainer(IHostEnvironment env, Arguments args)
-            : base(Contracts.CheckRef(env, nameof(env)).Register(LoadNameValue), MakeFeatureColumn(DefaultColumnNames.Features), MakeLabelColumn(DefaultColumnNames.Label), null)
+        public PriorTrainer(IHostEnvironment env, Arguments args)
+            : base(env, LoadNameValue)
         {
             Host.CheckValue(args, nameof(args));
         }
@@ -252,16 +257,26 @@ namespace Microsoft.ML.Runtime.Learners
         /// <summary>
         /// Initializes PriorTrainer object.
         /// </summary>
-        /// <param name="host"></param>
-        /// <param name="feature"></param>
-        /// <param name="label"></param>
-        /// <param name="weight"> Optional weight parameter. </param>
-        public PriorTrainer(IHost host, SchemaShape.Column feature, SchemaShape.Column label, SchemaShape.Column weight)
-            : base(host, feature, label, weight)
+        public PriorTrainer(IHost host, SchemaShape.Column label, SchemaShape.Column weight)
+            : base(host, LoadNameValue)
         {
+            Contracts.CheckValue(label, nameof(label));
+            Contracts.CheckValueOrNull(weight);
+
+            _labelColumnName = label.Name.ToString();
+            _weightColumnName = weight != null ? weight.Name.ToString() : null;
         }
 
-        protected override PriorPredictor TrainModelCore(TrainContext context)
+        public BinaryPredictionTransformer<PriorPredictor> Fit(IDataView input)
+        {
+            var cachedTrain = Info.WantCaching ? new CacheDataView(Host, input, prefetch: null) : input;
+
+            RoleMappedData trainRoles = new RoleMappedData(cachedTrain, label: _labelColumnName, weight: _weightColumnName);
+            var pred = Train(new TrainContext(trainRoles));
+            return new BinaryPredictionTransformer<PriorPredictor>(Host, pred, cachedTrain.Schema, featureColumn: null);
+        }
+
+        public override PriorPredictor Train(TrainContext context)
         {
             Contracts.CheckValue(context, nameof(context));
             var data = context.TrainingSet;
@@ -280,7 +295,7 @@ namespace Microsoft.ML.Runtime.Learners
             {
                 var getLab = cursor.GetLabelFloatGetter(data);
                 var getWeight = colWeight >= 0 ? cursor.GetGetter<float>(colWeight) : null;
-                float lab = default(float);
+                float lab = default;
                 float weight = 1;
                 while (cursor.MoveNext())
                 {
@@ -304,23 +319,28 @@ namespace Microsoft.ML.Runtime.Learners
             return new PriorPredictor(Host, prob);
         }
 
-        protected override BinaryPredictionTransformer<PriorPredictor> MakeTransformer(PriorPredictor model, ISchema trainSchema)
-             => new BinaryPredictionTransformer<PriorPredictor>(Host, model, trainSchema, FeatureColumn.Name);
-
         private static SchemaShape.Column MakeFeatureColumn(string featureColumn)
             => new SchemaShape.Column(featureColumn, SchemaShape.Column.VectorKind.Vector, NumberType.R4, false);
 
         private static SchemaShape.Column MakeLabelColumn(string labelColumn)
             => new SchemaShape.Column(labelColumn, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false);
 
-        protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema)
+        public SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {
-            return new[]
+            Host.CheckValue(inputSchema, nameof(inputSchema));
+
+            var outColumns = inputSchema.Columns.ToDictionary(x => x.Name);
+
+            var newColumns = new[]
             {
                 new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata())),
                 new SchemaShape.Column(DefaultColumnNames.Probability, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata(true))),
                 new SchemaShape.Column(DefaultColumnNames.PredictedLabel, SchemaShape.Column.VectorKind.Scalar, BoolType.Instance, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata()))
             };
+            foreach (SchemaShape.Column column in newColumns)
+                outColumns[column.Name] = column;
+
+            return new SchemaShape(outColumns.Values);
         }
     }
 
