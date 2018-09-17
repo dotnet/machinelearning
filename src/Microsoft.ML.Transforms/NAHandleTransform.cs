@@ -20,18 +20,18 @@ namespace Microsoft.ML.Runtime.Data
     /// <include file='doc.xml' path='doc/members/member[@name="NAHandle"]'/>
     public static class NAHandleTransform
     {
-        public enum ReplacementKind:byte
+        public enum ReplacementKind : byte
         {
             /// <summary>
             /// Replace with the default value of the column based on it's type. For example, 'zero' for numeric and 'empty' for string/text columns.
             /// </summary>
             [EnumValueDisplay("Zero/empty")]
-            DefaultValue=0,
+            DefaultValue = 0,
 
             /// <summary>
             /// Replace with the mean value of the column. Supports only numeric/time span/ DateTime columns.
             /// </summary>
-            Mean=1,
+            Mean = 1,
 
             /// <summary>
             /// Replace with the minimum value of the column. Supports only numeric/time span/ DateTime columns.
@@ -41,7 +41,7 @@ namespace Microsoft.ML.Runtime.Data
             /// <summary>
             /// Replace with the maximum value of the column. Supports only numeric/time span/ DateTime columns.
             /// </summary>
-            Maximum =3,
+            Maximum = 3,
 
             [HideEnumValue]
             Def = DefaultValue,
@@ -158,7 +158,7 @@ namespace Microsoft.ML.Runtime.Data
                 if (!input.Schema.TryGetColumnIndex(column.Source, out int inputCol))
                     throw h.Except("Column '{0}' does not exist", column.Source);
                 var replaceType = input.Schema.GetColumnType(inputCol);
-                if (!Conversions.Instance.TryGetStandardConversion(BoolType.Instance, replaceType.ItemType, out Delegate  conv, out bool identity))
+                if (!Conversions.Instance.TryGetStandardConversion(BoolType.Instance, replaceType.ItemType, out Delegate conv, out bool identity))
                 {
                     throw h.Except("Cannot concatenate indicator column of type '{0}' to input column of type '{1}'",
                         BoolType.Instance, replaceType.ItemType);

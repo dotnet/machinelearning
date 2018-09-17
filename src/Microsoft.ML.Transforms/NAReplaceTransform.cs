@@ -19,6 +19,7 @@ using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.Model.Onnx;
 using Microsoft.ML.Core.Data;
+using Microsoft.ML.Data.StaticPipe.Runtime;
 
 [assembly: LoadableClass(NAReplaceTransform.Summary, typeof(IDataTransform), typeof(NAReplaceTransform), typeof(NAReplaceTransform.Arguments), typeof(SignatureDataTransform),
     NAReplaceTransform.FriendlyName, NAReplaceTransform.LoadName, "NAReplace", NAReplaceTransform.ShortName, DocName = "transform/NAHandle.md")]
@@ -34,6 +35,12 @@ using Microsoft.ML.Core.Data;
 
 namespace Microsoft.ML.Runtime.Data
 {
+    // This transform can transform either scalars or vectors (both fixed and variable size),
+    // creating output columns that are identical to the input columns except for replacing NA values
+    // with either the default value, user input, or imputed values (min/max/mean are currently supported).
+    // Imputation modes are supported for vectors both by slot and across all slots.
+    // REVIEW: May make sense to implement the transform template interface.
+    /// <include file='doc.xml' path='doc/members/member[@name="NAReplace"]/*' />
     public sealed partial class NAReplaceTransform : OneToOneTransformerBase
     {
         public enum ReplacementKind : byte
@@ -113,14 +120,15 @@ namespace Microsoft.ML.Runtime.Data
             public Column[] Column;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "The replacement method to utilize", ShortName = "kind")]
-            public ReplacementKind ReplacementKind = ReplacementKind.DefaultValue;
+            public ReplacementKind ReplacementKind = (ReplacementKind)NAReplaceEstimator.Defaults.ReplacementMode;
 
             // Specifying by-slot imputation for vectors of unknown size will cause a warning, and the imputation will be global.
             [Argument(ArgumentType.AtMostOnce, HelpText = "Whether to impute values by slot", ShortName = "slot")]
-            public bool ImputeBySlot = true;
+            public bool ImputeBySlot = NAReplaceEstimator.Defaults.ImputeBySlot;
         }
 
         public const string LoadName = "NAReplaceTransform";
+
         private static VersionInfo GetVersionInfo()
         {
             return new VersionInfo(
@@ -187,7 +195,8 @@ namespace Microsoft.ML.Runtime.Data
             /// <param name="output">Output column</param>
             /// <param name="replacementMode">Strategy how to replace NA value</param>
             /// <param name="imputeBySlot">If we operate on vector array do we want to find replace value for each slot in vector or for whole vector?</param>
-            public ColumnInfo(string input, string output, ReplacementMode replacementMode = ReplacementMode.DefaultValue, bool imputeBySlot = true)
+            public ColumnInfo(string input, string output, ReplacementMode replacementMode = NAReplaceEstimator.Defaults.ReplacementMode,
+                bool imputeBySlot = NAReplaceEstimator.Defaults.ImputeBySlot)
             {
                 Input = input;
                 Output = output;
@@ -252,6 +261,7 @@ namespace Microsoft.ML.Runtime.Data
             {
                 if (!saver.TryLoadTypeAndValue(ctx.Reader.BaseStream, out ColumnType savedType, out object repValue))
                     throw Host.ExceptDecode();
+                //IVAN: savedType contains _types[iinfo].ItemType not _types[iinfo]
                 _types[i] = savedType;
                 if (savedType.IsVector)
                 {
@@ -918,10 +928,16 @@ namespace Microsoft.ML.Runtime.Data
 
     public sealed class NAReplaceEstimator : IEstimator<NAReplaceTransform>
     {
+        public static class Defaults
+        {
+            public const NAReplaceTransform.ColumnInfo.ReplacementMode ReplacementMode = NAReplaceTransform.ColumnInfo.ReplacementMode.DefaultValue;
+            public const bool ImputeBySlot = true;
+        }
+
         private readonly IHost _host;
         private readonly NAReplaceTransform.ColumnInfo[] _columns;
 
-        public NAReplaceEstimator(IHostEnvironment env, string name, string source = null, NAReplaceTransform.ColumnInfo.ReplacementMode replacementKind = NAReplaceTransform.ColumnInfo.ReplacementMode.DefaultValue)
+        public NAReplaceEstimator(IHostEnvironment env, string name, string source = null, NAReplaceTransform.ColumnInfo.ReplacementMode replacementKind = Defaults.ReplacementMode)
             : this(env, new NAReplaceTransform.ColumnInfo(source ?? name, name, replacementKind))
         {
 
@@ -953,10 +969,150 @@ namespace Microsoft.ML.Runtime.Data
                 var type = !col.ItemType.IsVector ? col.ItemType : new VectorType(col.ItemType.ItemType.AsPrimitive, col.ItemType.AsVector);
                 result[colInfo.Output] = new SchemaShape.Column(colInfo.Output, col.Kind, type, false, new SchemaShape(metadata.ToArray()));
             }
-
             return new SchemaShape(result.Values);
         }
 
         public NAReplaceTransform Fit(IDataView input) => new NAReplaceTransform(_host, input, _columns);
+    }
+
+    /// <summary>
+    /// Extension methods for the static-pipeline over <see cref="PipelineColumn"/> objects.
+    /// </summary>
+    public static class NAReplaceExtensions
+    {
+        private struct Config
+        {
+            public readonly bool ImputeBySlot;
+            public readonly NAReplaceTransform.ColumnInfo.ReplacementMode ReplacementMode;
+
+            public Config(NAReplaceTransform.ColumnInfo.ReplacementMode replacementMode = NAReplaceEstimator.Defaults.ReplacementMode,
+                bool imputeBySlot = NAReplaceEstimator.Defaults.ImputeBySlot)
+            {
+                ImputeBySlot = imputeBySlot;
+                ReplacementMode = replacementMode;
+            }
+        }
+
+        private interface IColInput
+        {
+            PipelineColumn Input { get; }
+            Config Config { get; }
+        }
+
+        private sealed class OutScalar<TValue> : Scalar<TValue>, IColInput
+        {
+            public PipelineColumn Input { get; }
+            public Config Config { get; }
+
+            public OutScalar(Scalar<TValue> input, Config config)
+              : base(Reconciler.Inst, input)
+            {
+                Input = input;
+                Config = config;
+            }
+        }
+
+        private sealed class OutVectorColumn<TValue> : Vector<TValue>, IColInput
+        {
+            public PipelineColumn Input { get; }
+            public Config Config { get; }
+
+            public OutVectorColumn(Vector<TValue> input, Config config)
+              : base(Reconciler.Inst, input)
+            {
+                Input = input;
+                Config = config;
+            }
+
+        }
+
+        private sealed class OutVarVectorColumn<TValue> : VarVector<TValue>, IColInput
+        {
+            public PipelineColumn Input { get; }
+            public Config Config { get; }
+
+            public OutVarVectorColumn(VarVector<TValue> input, Config config)
+                : base(Reconciler.Inst, input)
+            {
+                Input = input;
+                Config = config;
+            }
+        }
+
+        private sealed class Reconciler : EstimatorReconciler
+        {
+            public static Reconciler Inst = new Reconciler();
+
+            private Reconciler() { }
+
+            public override IEstimator<ITransformer> Reconcile(IHostEnvironment env,
+                PipelineColumn[] toOutput,
+                IReadOnlyDictionary<PipelineColumn, string> inputNames,
+                IReadOnlyDictionary<PipelineColumn, string> outputNames,
+                IReadOnlyCollection<string> usedNames)
+            {
+                var infos = new NAReplaceTransform.ColumnInfo[toOutput.Length];
+                for (int i = 0; i < toOutput.Length; ++i)
+                {
+                    var col = (IColInput)toOutput[i];
+                    infos[i] = new NAReplaceTransform.ColumnInfo(inputNames[col.Input], outputNames[toOutput[i]], col.Config.ReplacementMode, col.Config.ImputeBySlot);
+                }
+                return new NAReplaceEstimator(env, infos);
+            }
+        }
+
+        public static Scalar<float> NAReplace(this Scalar<float> input, NAReplaceTransform.ColumnInfo.ReplacementMode replacementMode = NAReplaceEstimator.Defaults.ReplacementMode, bool imputeBySlot = NAReplaceEstimator.Defaults.ImputeBySlot)
+        {
+            Contracts.CheckValue(input, nameof(input));
+            return new OutScalar<float>(input, new Config( replacementMode, imputeBySlot));
+        }
+
+        public static Scalar<double> NAReplace(this Scalar<double> input, NAReplaceTransform.ColumnInfo.ReplacementMode replacementMode = NAReplaceEstimator.Defaults.ReplacementMode, bool imputeBySlot = NAReplaceEstimator.Defaults.ImputeBySlot)
+        {
+            Contracts.CheckValue(input, nameof(input));
+            return new OutScalar<double>(input, new Config(replacementMode, imputeBySlot));
+        }
+
+        public static Scalar<string> NAReplace (this Scalar<string> input, NAReplaceTransform.ColumnInfo.ReplacementMode replacementMode = NAReplaceEstimator.Defaults.ReplacementMode, bool imputeBySlot = NAReplaceEstimator.Defaults.ImputeBySlot)
+        {
+            Contracts.CheckValue(input, nameof(input));
+            return new OutScalar<string>(input, new Config(replacementMode, imputeBySlot));
+        }
+
+        public static Vector<float> NAReplace(this Vector<float> input, NAReplaceTransform.ColumnInfo.ReplacementMode replacementMode = NAReplaceEstimator.Defaults.ReplacementMode, bool imputeBySlot = NAReplaceEstimator.Defaults.ImputeBySlot)
+        {
+            Contracts.CheckValue(input, nameof(input));
+            return new OutVectorColumn<float>(input, new Config(replacementMode, imputeBySlot));
+        }
+
+        public static Vector<double> NAReplace(this Vector<double> input, NAReplaceTransform.ColumnInfo.ReplacementMode replacementMode = NAReplaceEstimator.Defaults.ReplacementMode, bool imputeBySlot = NAReplaceEstimator.Defaults.ImputeBySlot)
+        {
+            Contracts.CheckValue(input, nameof(input));
+            return new OutVectorColumn<double>(input, new Config(replacementMode, imputeBySlot));
+        }
+
+        public static Vector<string> NAReplace(this Vector<string> input, NAReplaceTransform.ColumnInfo.ReplacementMode replacementMode = NAReplaceEstimator.Defaults.ReplacementMode, bool imputeBySlot = NAReplaceEstimator.Defaults.ImputeBySlot)
+        {
+            Contracts.CheckValue(input, nameof(input));
+            return new OutVectorColumn<string>(input, new Config(replacementMode, imputeBySlot));
+        }
+
+        public static VarVector<float> NAReplace(this VarVector<float> input, NAReplaceTransform.ColumnInfo.ReplacementMode replacementMode = NAReplaceEstimator.Defaults.ReplacementMode, bool imputeBySlot = NAReplaceEstimator.Defaults.ImputeBySlot)
+        {
+            Contracts.CheckValue(input, nameof(input));
+            return new OutVarVectorColumn<float>(input, new Config(replacementMode, imputeBySlot));
+        }
+
+        public static VarVector<double> NAReplace(this VarVector<double> input, NAReplaceTransform.ColumnInfo.ReplacementMode replacementMode = NAReplaceEstimator.Defaults.ReplacementMode, bool imputeBySlot = NAReplaceEstimator.Defaults.ImputeBySlot)
+        {
+            Contracts.CheckValue(input, nameof(input));
+            return new OutVarVectorColumn<double>(input, new Config(replacementMode, imputeBySlot));
+        }
+
+        public static VarVector<string> NAReplace<TValue>(this VarVector<string> input, NAReplaceTransform.ColumnInfo.ReplacementMode replacementMode = NAReplaceEstimator.Defaults.ReplacementMode, bool imputeBySlot = NAReplaceEstimator.Defaults.ImputeBySlot)
+        {
+            Contracts.CheckValue(input, nameof(input));
+            return new OutVarVectorColumn<string>(input, new Config(replacementMode, imputeBySlot));
+        }
     }
 }

@@ -4,6 +4,7 @@
 
 using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
+using Microsoft.ML.Runtime.Data.IO;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.RunTests;
 using Microsoft.ML.Runtime.Tools;
@@ -53,12 +54,52 @@ namespace Microsoft.ML.Tests.Transformers
         }
 
         [Fact]
+        public void NAReplaceStatic()
+        {
+            string dataPath = GetDataPath("breast-cancer.txt");
+            var reader = TextLoader.CreateReader(Env, ctx => (
+                ScalarString: ctx.LoadText(1),
+                ScalarFloat: ctx.LoadFloat(1),
+                ScalarDouble: ctx.LoadDouble(1),
+                VectorString: ctx.LoadText(1, 4),
+                VectorFloat: ctx.LoadFloat(1, 4),
+                VectorDoulbe: ctx.LoadDouble(1, 4)
+            ));
+
+            var data = reader.Read(new MultiFileSource(dataPath));
+            var wrongCollection = new[] { new TestClass() { A = 1, B = "A", C = 3, D = new float[2] { 1, 2 }, E = new double[2] { 3, 4 } } };
+            var invalidData = ComponentCreation.CreateDataView(Env, wrongCollection);
+
+            var est = data.MakeNewEstimator().
+                   Append(row => (
+                   A: row.ScalarString.NAReplace(),
+                   B: row.ScalarFloat.NAReplace(NAReplaceTransform.ColumnInfo.ReplacementMode.Maximum),
+                   C: row.ScalarDouble.NAReplace(NAReplaceTransform.ColumnInfo.ReplacementMode.Mean),
+                   D: row.VectorString.NAReplace(),
+                   E: row.VectorFloat.NAReplace(NAReplaceTransform.ColumnInfo.ReplacementMode.Mean),
+                   F: row.VectorDoulbe.NAReplace(NAReplaceTransform.ColumnInfo.ReplacementMode.Minimum)
+                   ));
+
+            TestEstimatorCore(est.AsDynamic, data.AsDynamic, invalidInput: invalidData);
+            var outputPath = GetOutputPath("NAReplace", "featurized.tsv");
+            using (var ch = Env.Start("save"))
+            {
+                var saver = new TextSaver(Env, new TextSaver.Arguments { Silent = true });
+                IDataView savedData = TakeFilter.Create(Env, est.Fit(data).Transform(data).AsDynamic, 4);
+                savedData = new ChooseColumnsTransform(Env, savedData, "A", "B", "C", "D", "E");
+                using (var fs = File.Create(outputPath))
+                    DataSaverUtils.SaveDataView(ch, saver, savedData, fs, keepHidden: true);
+            }
+
+            CheckEquality("NAReplace", "featurized.tsv");
+            Done();
+            Done();
+        }
+
+        [Fact]
         public void TestCommandLine()
         {
-            using (var env = new TlcEnvironment())
-            {
-                Assert.Equal(Maml.Main(new[] { @"showschema loader=Text{col=A:R4:0}  xf=NAReplace{col=C:A} in=f:\2.txt" }), (int)0);
-            }
+            Assert.Equal(Maml.Main(new[] { @"showschema loader=Text{col=A:R4:0}  xf=NAReplace{col=C:A} in=f:\2.txt" }), (int)0);
         }
 
         [Fact]
