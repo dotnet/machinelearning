@@ -19,7 +19,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         void Extensibility()
         {
             var dataPath = GetDataPath(IrisDataPath);
-            using (var env = new TlcEnvironment())
+            using (var env = new LocalEnvironment())
             {
                 var loader = TextLoader.ReadFile(env, MakeIrisTextLoaderArgs(), new MultiFileSource(dataPath));
                 Action<IrisData, IrisData> action = (i, j) =>
@@ -32,7 +32,8 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                 };
                 var lambda = LambdaTransform.CreateMap(env, loader, action);
                 var term = TermTransform.Create(env, lambda, "Label");
-                var concat = new ConcatTransform(env, term, "Features", "SepalLength", "SepalWidth", "PetalLength", "PetalWidth");
+                var concat = new ConcatTransform(env, "Features", "SepalLength", "SepalWidth", "PetalLength", "PetalWidth")
+                    .Transform(term);
 
                 var trainer = new SdcaMultiClassTrainer(env, new SdcaMultiClassTrainer.Arguments { MaxIterations = 100, Shuffle = true, NumThreads = 1 });
 

@@ -64,7 +64,7 @@ Below are some of the highlights from this release.
     * Several options for pretrained embeddings are available:
       [GloVe](https://nlp.stanford.edu/projects/glove/),
       [fastText](https://en.wikipedia.org/wiki/FastText), and
-      [SSWE](http://anthology.aclweb.org/P/P14/P14-1146.pdf). The pretrained model is downloaded automatically on first use.
+      [SSWE](https://anthology.aclweb.org/P/P14/P14-1146.pdf). The pretrained model is downloaded automatically on first use.
     * Documentation can be found
       [here](https://docs.microsoft.com/en-us/dotnet/api/microsoft.ml.transforms.wordembeddings?view=ml-dotnet).
     

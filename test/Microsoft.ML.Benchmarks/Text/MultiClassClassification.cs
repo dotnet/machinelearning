@@ -46,7 +46,7 @@ namespace Microsoft.ML.Benchmarks
             SetupTrainingSpeedTests();
             _modelPath_Wiki = Path.Combine(Directory.GetCurrentDirectory(), @"WikiModel.zip");
             string cmd = @"CV k=5 data=" + _dataPath_Wiki + " loader=TextLoader{quote=- sparse=- col=Label:R4:0 col=rev_id:TX:1 col=comment:TX:2 col=logged_in:BL:4 col=ns:TX:5 col=sample:TX:6 col=split:TX:7 col=year:R4:3 header=+} xf=Convert{col=logged_in type=R4} xf=CategoricalTransform{col=ns} xf=TextTransform{col=FeaturesText:comment wordExtractor=NGramExtractorTransform{ngram=2}} xf=Concat{col=Features:FeaturesText,logged_in,ns} tr=OVA{p=AveragedPerceptron{iter=10}} out={" + _modelPath_Wiki + "}";
-            using (var tlc = new TlcEnvironment(verbose: false, sensitivity: MessageSensitivity.None, outWriter: EmptyWriter.Instance))
+            using (var tlc = new ConsoleEnvironment(verbose: false, sensitivity: MessageSensitivity.None, outWriter: EmptyWriter.Instance))
             {
                 Maml.MainCore(tlc, cmd, alwaysPrintStacktrace: false);
             }
@@ -56,7 +56,7 @@ namespace Microsoft.ML.Benchmarks
         public void CV_Multiclass_WikiDetox_BigramsAndTrichar_OVAAveragedPerceptron()
         {
             string cmd = @"CV k=5 data=" + _dataPath_Wiki + " loader=TextLoader{quote=- sparse=- col=Label:R4:0 col=rev_id:TX:1 col=comment:TX:2 col=logged_in:BL:4 col=ns:TX:5 col=sample:TX:6 col=split:TX:7 col=year:R4:3 header=+} xf=Convert{col=logged_in type=R4} xf=CategoricalTransform{col=ns} xf=TextTransform{col=FeaturesText:comment wordExtractor=NGramExtractorTransform{ngram=2}} xf=Concat{col=Features:FeaturesText,logged_in,ns} tr=OVA{p=AveragedPerceptron{iter=10}}";
-            using (var tlc = new TlcEnvironment(verbose: false, sensitivity: MessageSensitivity.None, outWriter: EmptyWriter.Instance))
+            using (var tlc = new ConsoleEnvironment(verbose: false, sensitivity: MessageSensitivity.None, outWriter: EmptyWriter.Instance))
             {
                 Maml.MainCore(tlc, cmd, alwaysPrintStacktrace: false);
             }
@@ -66,7 +66,7 @@ namespace Microsoft.ML.Benchmarks
         public void CV_Multiclass_WikiDetox_BigramsAndTrichar_LightGBMMulticlass()
         {
             string cmd = @"CV k=5 data=" + _dataPath_Wiki + " loader=TextLoader{quote=- sparse=- col=Label:R4:0 col=rev_id:TX:1 col=comment:TX:2 col=logged_in:BL:4 col=ns:TX:5 col=sample:TX:6 col=split:TX:7 col=year:R4:3 header=+} xf=Convert{col=logged_in type=R4} xf=CategoricalTransform{col=ns} xf=TextTransform{col=FeaturesText:comment wordExtractor=NGramExtractorTransform{ngram=2}} xf=Concat{col=Features:FeaturesText,logged_in,ns} tr=LightGBMMulticlass{}";
-            using (var tlc = new TlcEnvironment(verbose: false, sensitivity: MessageSensitivity.None, outWriter: EmptyWriter.Instance))
+            using (var tlc = new ConsoleEnvironment(verbose: false, sensitivity: MessageSensitivity.None, outWriter: EmptyWriter.Instance))
             {
                 Maml.MainCore(tlc, cmd, alwaysPrintStacktrace: false);
             }
@@ -78,7 +78,7 @@ namespace Microsoft.ML.Benchmarks
             // This benchmark is profiling bulk scoring speed and not training speed. 
             string modelpath = Path.Combine(Directory.GetCurrentDirectory(), @"WikiModel.fold000.zip");
             string cmd = @"Test data=" + _dataPath_Wiki + " in=" + modelpath;
-            using (var tlc = new TlcEnvironment(verbose: false, sensitivity: MessageSensitivity.None, outWriter: EmptyWriter.Instance))
+            using (var tlc = new ConsoleEnvironment(verbose: false, sensitivity: MessageSensitivity.None, outWriter: EmptyWriter.Instance))
             {
                 Maml.MainCore(tlc, cmd, alwaysPrintStacktrace: false);
             }
@@ -88,7 +88,7 @@ namespace Microsoft.ML.Benchmarks
         public void CV_Multiclass_WikiDetox_WordEmbeddings_OVAAveragedPerceptron()
         {
             string cmd = @"CV tr=OVA{p=AveragedPerceptron{iter=10}} k=5 loader=TextLoader{quote=- sparse=- col=Label:R4:0 col=rev_id:TX:1 col=comment:TX:2 col=logged_in:BL:4 col=ns:TX:5 col=sample:TX:6 col=split:TX:7 col=year:R4:3 header=+} data=" + _dataPath_Wiki + " xf=Convert{col=logged_in type=R4} xf=CategoricalTransform{col=ns} xf=TextTransform{col=FeaturesText:comment tokens=+ wordExtractor=NGramExtractorTransform{ngram=2}} xf=WordEmbeddingsTransform{col=FeaturesWordEmbedding:FeaturesText_TransformedText model=FastTextWikipedia300D} xf=Concat{col=Features:FeaturesText,FeaturesWordEmbedding,logged_in,ns}";
-            using (var tlc = new TlcEnvironment(verbose: false, sensitivity: MessageSensitivity.None, outWriter: EmptyWriter.Instance))
+            using (var tlc = new ConsoleEnvironment(verbose: false, sensitivity: MessageSensitivity.None, outWriter: EmptyWriter.Instance))
             {
                 Maml.MainCore(tlc, cmd, alwaysPrintStacktrace: false);
             }
@@ -98,7 +98,7 @@ namespace Microsoft.ML.Benchmarks
         public void CV_Multiclass_WikiDetox_WordEmbeddings_SDCAMC()
         {
             string cmd = @"CV tr=SDCAMC k=5 loader=TextLoader{quote=- sparse=- col=Label:R4:0 col=rev_id:TX:1 col=comment:TX:2 col=logged_in:BL:4 col=ns:TX:5 col=sample:TX:6 col=split:TX:7 col=year:R4:3 header=+} data=" + _dataPath_Wiki + " xf=Convert{col=logged_in type=R4} xf=CategoricalTransform{col=ns} xf=TextTransform{col=FeaturesText:comment tokens=+ wordExtractor={} charExtractor={}} xf=WordEmbeddingsTransform{col=FeaturesWordEmbedding:FeaturesText_TransformedText model=FastTextWikipedia300D} xf=Concat{col=Features:FeaturesWordEmbedding,logged_in,ns}";
-            using (var tlc = new TlcEnvironment(verbose: false, sensitivity: MessageSensitivity.None, outWriter: EmptyWriter.Instance))
+            using (var tlc = new ConsoleEnvironment(verbose: false, sensitivity: MessageSensitivity.None, outWriter: EmptyWriter.Instance))
             {
                 Maml.MainCore(tlc, cmd, alwaysPrintStacktrace: false);
             }

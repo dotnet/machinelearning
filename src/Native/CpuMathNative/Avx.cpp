@@ -16,7 +16,7 @@
 //
 // Other notes:
 // * AVX methods should end with _vleave() to avoid performance hit. See:
-//   http://stackoverflow.com/questions/7839925/using-avx-cpu-instructions-poor-performance-without-archavx.
+//   https://stackoverflow.com/questions/7839925/using-avx-cpu-instructions-poor-performance-without-archavx.
 // * Keep Avx.cpp in sync with Sse.cpp. Note that Avx.cpp is compiled with /arch:AVX, but Sse.cpp is not.
 
 // REVIEW: There is code below that mixes SSE and AVX instructions. Does compiling with /arch:AVX
