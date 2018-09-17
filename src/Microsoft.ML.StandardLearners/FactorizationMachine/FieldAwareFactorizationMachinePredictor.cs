@@ -125,6 +125,9 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
             // float[]: linear coefficients
             // float[]: latent representation of features
 
+            // REVIEW:FAFM needs to store the names of the features, so that they prediction data does not have the
+            // restriciton of the columns needing to be ordered the same as the training data.
+
             Host.Assert(FieldCount > 0);
             Host.Assert(FeatureCount > 0);
             Host.Assert(LatentDim > 0);
@@ -163,9 +166,7 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
         }
 
         public ISchemaBoundMapper Bind(IHostEnvironment env, RoleMappedSchema schema)
-        {
-            return new FieldAwareFactorizationMachineScalarRowMapper(env, schema, new BinaryClassifierSchema(), this);
-        }
+            => new FieldAwareFactorizationMachineScalarRowMapper(env, schema, new BinaryClassifierSchema(), this);
 
         internal void CopyLinearWeightsTo(float[] linearWeights)
         {

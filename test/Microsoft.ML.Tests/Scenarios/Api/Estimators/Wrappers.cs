@@ -177,9 +177,9 @@ namespace Microsoft.ML.Tests.Scenarios.Api
     public class ScorerWrapper<TModel> : TransformWrapper, IPredictionTransformer<TModel>
         where TModel : IPredictor
     {
-        protected readonly string _featureColumn;
+        protected readonly string[] _featureColumn;
 
-        public ScorerWrapper(IHostEnvironment env, IDataView scorer, TModel trainedModel, string featureColumn)
+        public ScorerWrapper(IHostEnvironment env, IDataView scorer, TModel trainedModel, string[] featureColumn)
             : base(env, scorer)
         {
             _featureColumn = featureColumn;
@@ -188,20 +188,20 @@ namespace Microsoft.ML.Tests.Scenarios.Api
 
         public TModel Model { get; }
 
-        public string FeatureColumn => _featureColumn;
+        public string[] FeatureColumn => _featureColumn;
 
-        public ColumnType FeatureColumnType => throw _env.ExceptNotSupp();
+        public ColumnType[] FeatureColumnType => throw _env.ExceptNotSupp();
     }
 
     public class BinaryScorerWrapper<TModel> : ScorerWrapper<TModel>
         where TModel : IPredictor
     {
-        public BinaryScorerWrapper(IHostEnvironment env, TModel model, ISchema inputSchema, string featureColumn, BinaryClassifierScorer.Arguments args)
+        public BinaryScorerWrapper(IHostEnvironment env, TModel model, ISchema inputSchema, string[] featureColumn, BinaryClassifierScorer.Arguments args)
             : base(env, MakeScorer(env, inputSchema, featureColumn, model, args), model, featureColumn)
         {
         }
 
-        private static IDataView MakeScorer(IHostEnvironment env, ISchema schema, string featureColumn, TModel model, BinaryClassifierScorer.Arguments args)
+        private static IDataView MakeScorer(IHostEnvironment env, ISchema schema, string[] featureColumn, TModel model, BinaryClassifierScorer.Arguments args)
         {
             var settings = $"Binary{{{CmdParser.GetSettings(env, args, new BinaryClassifierScorer.Arguments())}}}";
 
@@ -212,7 +212,14 @@ namespace Microsoft.ML.Tests.Scenarios.Api
 
             var bindable = ScoreUtils.GetSchemaBindableMapper(env, model, scorerFactorySettings: scorerFactorySettings);
             var edv = new EmptyDataView(env, schema);
-            var data = new RoleMappedData(edv, "Label", featureColumn, opt: true);
+
+            var roles = new List<KeyValuePair<RoleMappedSchema.ColumnRole, string>>();
+            foreach (var feat in featureColumn)
+                roles.Add(new KeyValuePair<RoleMappedSchema.ColumnRole, string>(RoleMappedSchema.ColumnRole.Feature, feat));
+
+            roles.Add(new KeyValuePair<RoleMappedSchema.ColumnRole, string>(RoleMappedSchema.ColumnRole.Label, "Label"));
+
+            var data = new RoleMappedData(edv, roles, opt: true);
 
             return new BinaryClassifierScorer(env, args, data.Data, bindable.Bind(env, data.Schema), data.Schema);
         }
@@ -295,7 +302,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         protected ScorerWrapper<TModel> MakeScorerBasic(TModel predictor, RoleMappedData data)
         {
             var scorer = ScoreUtils.GetScorer(predictor, data, _env, data.Schema);
-            return (TTransformer)(new ScorerWrapper<TModel>(_env, scorer, predictor, data.Schema.Feature.Name));
+            return (TTransformer)(new ScorerWrapper<TModel>(_env, scorer, predictor, new[] { data.Schema.Feature.Name }));
         }
     }
 

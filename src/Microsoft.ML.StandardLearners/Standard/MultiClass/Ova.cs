@@ -127,7 +127,7 @@ namespace Microsoft.ML.Runtime.Learners
 
                 // REVIEW: restoring the RoleMappedData, as much as we can.
                 // not having the weight column on the data passed to the TrainCalibrator should be addressed.
-                var trainedData = new RoleMappedData(view, label: trainerLabel, feature: transformer.FeatureColumn);
+                var trainedData = new RoleMappedData(view, label: trainerLabel, feature: transformer.FeatureColumn[0]);
 
                 if (calibratedModel == null)
                    calibratedModel = CalibratorUtils.TrainCalibrator(Host, ch, Calibrator, Args.MaxCalibrationExamples, transformer.Model, trainedData) as TDistPredictor;
@@ -185,7 +185,7 @@ namespace Microsoft.ML.Runtime.Learners
                     if (i == 0)
                     {
                         var transformer = TrainOne(ch, GetTrainer(), td, i);
-                        featureColumn = transformer.FeatureColumn;
+                        featureColumn = transformer.FeatureColumn[0];
                     }
 
                     predictors[i] = TrainOne(ch, GetTrainer(), td, i).Model;

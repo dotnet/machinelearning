@@ -129,7 +129,7 @@ namespace Microsoft.ML.Runtime.Learners
             var transformer = trainer.Fit(view);
 
             // the validations in the calibrator check for the feature column, in the RoleMappedData
-            var trainedData = new RoleMappedData(view, label: trainerLabel, feature: transformer.FeatureColumn);
+            var trainedData = new RoleMappedData(view, label: trainerLabel, feature: transformer.FeatureColumn[0]);
 
             var calibratedModel = transformer.Model as TDistPredictor;
             if (calibratedModel == null)
@@ -198,7 +198,7 @@ namespace Microsoft.ML.Runtime.Learners
                         if (i == 0 && j == 0)
                         {
                             var transformer = TrainOne(ch, GetTrainer(), td, i, j);
-                            featureColumn = transformer.FeatureColumn;
+                            featureColumn = transformer.FeatureColumn[0];
                         }
 
                         predictors[i][j] = TrainOne(ch, GetTrainer(), td, i, j).Model;
