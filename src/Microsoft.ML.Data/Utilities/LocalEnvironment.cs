@@ -48,7 +48,7 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         /// <summary>
-        /// Create an ML.NET environment for local execution.
+        /// Create an ML.NET <see cref="IHostEnvironment"/> for local execution.
         /// </summary>
         /// <param name="seed">Random seed. Set to <c>null</c> for a non-deterministic environment.</param>
         /// <param name="conc">Concurrency level. Set to 1 to run single-threaded. Set to 0 to pick automatically.</param>

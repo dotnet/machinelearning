@@ -25,7 +25,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             var dataPath = GetDataPath(SentimentDataPath);
             var testDataPath = GetDataPath(SentimentTestPath);
 
-            using (var env = new ConsoleEnvironment(seed: 1, conc: 1))
+            using (var env = new LocalEnvironment(seed: 1, conc: 1))
             {
                 var trainData = new TextLoader(env, MakeSentimentTextLoaderArgs())
                     .Append(new TextTransform(env, "SentimentText", "Features"))

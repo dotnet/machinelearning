@@ -24,7 +24,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         void New_DecomposableTrainAndPredict()
         {
             var dataPath = GetDataPath(IrisDataPath);
-            using (var env = new ConsoleEnvironment())
+            using (var env = new LocalEnvironment())
             {
                 var data = new TextLoader(env, MakeIrisTextLoaderArgs())
                     .Read(new MultiFileSource(dataPath));

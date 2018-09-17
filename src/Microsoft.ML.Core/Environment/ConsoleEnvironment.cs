@@ -15,7 +15,7 @@ namespace Microsoft.ML.Runtime.Data
 {
     using Stopwatch = System.Diagnostics.Stopwatch;
 
-    public sealed class ConsoleEnvironment : HostEnvironmentBase<ConsoleEnvironment>, IDisposable
+    public sealed class ConsoleEnvironment : HostEnvironmentBase<ConsoleEnvironment>
     {
         public const string ComponentHistoryKey = "ComponentHistory";
 
@@ -359,7 +359,7 @@ namespace Microsoft.ML.Runtime.Data
         private readonly MessageSensitivity _sensitivityFlags;
 
         /// <summary>
-        /// Create an ML.NET environment for local execution, with console feedback.
+        /// Create an ML.NET <see cref="IHostEnvironment"/> for local execution, with console feedback.
         /// </summary>
         /// <param name="seed">Random seed. Set to <c>null</c> for a non-deterministic environment.</param>
         /// <param name="verbose">Set to <c>true</c> for fully verbose logging.</param>
