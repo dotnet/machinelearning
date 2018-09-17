@@ -14,6 +14,7 @@ using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Internal.Internallearn;
+using Microsoft.ML.Runtime.Model;
 
 [assembly: LoadableClass(CategoricalTransform.Summary, typeof(IDataTransform), typeof(CategoricalTransform), typeof(CategoricalTransform.Arguments), typeof(SignatureDataTransform),
     CategoricalTransform.UserName, "CategoricalTransform", "CatTransform", "Categorical", "Cat")]
@@ -22,7 +23,7 @@ using Microsoft.ML.Runtime.Internal.Internallearn;
 namespace Microsoft.ML.Runtime.Data
 {
     /// <include file='doc.xml' path='doc/members/member[@name="CategoricalOneHotVectorizer"]/*' />
-    public sealed class CategoricalTransform : ITransformer
+    public sealed class CategoricalTransform : ITransformer, ICanSaveModel
     {
         public enum OutputKind : byte
         {
@@ -161,10 +162,11 @@ namespace Microsoft.ML.Runtime.Data
             _transformer = chain.Fit(input);
         }
 
-        public ISchema GetOutputSchema(ISchema inputSchema) =>
-            _transformer.GetOutputSchema(inputSchema);
+        public ISchema GetOutputSchema(ISchema inputSchema) => _transformer.GetOutputSchema(inputSchema);
 
         public IDataView Transform(IDataView input) => _transformer.Transform(input);
+
+        public void Save(ModelSaveContext ctx) => _transformer.Save(ctx);
     }
 
     public sealed class CategoricalEstimator : IEstimator<CategoricalTransform>
@@ -437,10 +439,8 @@ namespace Microsoft.ML.Runtime.Data
                     }
                 }
                 var est = new CategoricalEstimator(env, infos);
-                if (onFit == null)
-
-                    return est;
-                est.WrapTermWithDelegate(onFit);
+                if (onFit != null)
+                    est.WrapTermWithDelegate(onFit);
                 return est;
             }
         }
