@@ -27,7 +27,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                     .Read(new MultiFileSource(dataPath));
 
                 var sdcaTrainer = new LinearClassificationTrainer(env, new LinearClassificationTrainer.Arguments { MaxIterations = 100, Shuffle = true, NumThreads = 1 }, "Features", "Label");
-                var pipeline = new MyConcatTransform(env, "Features", "SepalLength", "SepalWidth", "PetalLength", "PetalWidth")
+                var pipeline = new ConcatEstimator(env, "Features", "SepalLength", "SepalWidth", "PetalLength", "PetalWidth")
                     .Append(new TermEstimator(env, "Label"), TransformerScope.TrainTest)
                     .Append(new Ova(env, sdcaTrainer))
                     .Append(new KeyToValueEstimator(env, "PredictedLabel"));

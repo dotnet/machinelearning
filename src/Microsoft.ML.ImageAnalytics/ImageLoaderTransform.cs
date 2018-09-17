@@ -84,7 +84,8 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
                 .MakeDataTransform(data);
         }
 
-        public static ImageLoaderTransform Create(IHostEnvironment env, ModelLoadContext ctx)
+        // Factory method for SignatureLoadModel.
+        private static ImageLoaderTransform Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(ctx, nameof(ctx));
@@ -104,11 +105,11 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
         }
 
         // Factory method for SignatureLoadDataTransform.
-        public static IDataTransform Create(IHostEnvironment env, ModelLoadContext ctx, IDataView input)
+        private static IDataTransform Create(IHostEnvironment env, ModelLoadContext ctx, IDataView input)
             => Create(env, ctx).MakeDataTransform(input);
 
         // Factory method for SignatureLoadRowMapper.
-        public static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, ISchema inputSchema)
+        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, ISchema inputSchema)
             => Create(env, ctx).MakeRowMapper(inputSchema);
 
         protected override void CheckInputColumn(ISchema inputSchema, int col, int srcCol)

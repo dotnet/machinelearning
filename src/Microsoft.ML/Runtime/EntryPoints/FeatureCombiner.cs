@@ -70,7 +70,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
                 // (a key type) as a feature column. We convert that column to a vector so it is no longer valid
                 // as a group id. That's just one example - you get the idea.
                 string nameFeat = DefaultColumnNames.Features;
-                viewTrain = new ConcatTransform(host,
+                viewTrain = ConcatTransform.Create(host,
                     new ConcatTransform.TaggedArguments()
                     {
                         Column =
