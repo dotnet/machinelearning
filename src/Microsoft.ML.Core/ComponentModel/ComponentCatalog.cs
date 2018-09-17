@@ -248,11 +248,6 @@ namespace Microsoft.ML.Runtime
             }
         }
 
-        /// <summary>
-        /// Debug reporting level.
-        /// </summary>
-        public static int DebugLevel = 1;
-
         // Do not initialize this one - the initial null value is used as a "flag" to prime things.
         private static ConcurrentQueue<Assembly> _assemblyQueue;
 
@@ -275,77 +270,8 @@ namespace Microsoft.ML.Runtime
         private static ConcurrentQueue<LoadableClassInfo> _classes = new ConcurrentQueue<LoadableClassInfo>();
         private static ConcurrentDictionary<Type, bool> _signatures = new ConcurrentDictionary<Type, bool>();
 
-        public static string[] FilePrefixesToAvoid = new string[] {
-            "api-ms-win",
-            "clr",
-            "coreclr",
-            "dbgshim",
-            "ext-ms-win",
-            "microsoft.bond.",
-            "microsoft.cosmos.",
-            "microsoft.csharp",
-            "microsoft.data.",
-            "microsoft.hpc.",
-            "microsoft.live.",
-            "microsoft.platformbuilder.",
-            "microsoft.visualbasic",
-            "microsoft.visualstudio.",
-            "microsoft.win32",
-            "microsoft.windowsapicodepack.",
-            "microsoft.windowsazure.",
-            "mscor",
-            "msvc",
-            "petzold.",
-            "roslyn.",
-            "sho",
-            "sni",
-            "sqm",
-            "system.",
-            "zlib",
-        };
-
-        private static bool ShouldSkipPath(string path)
-        {
-            string name = Path.GetFileName(path).ToLowerInvariant();
-            switch (name)
-            {
-                case "cqo.dll":
-                case "fasttreenative.dll":
-                case "libiomp5md.dll":
-                case "libvw.dll":
-                case "matrixinterf.dll":
-                case "microsoft.ml.neuralnetworks.gpucuda.dll":
-                case "mklimports.dll":
-                case "microsoft.research.controls.decisiontrees.dll":
-                case "microsoft.ml.neuralnetworks.sse.dll":
-                case "neuraltreeevaluator.dll":
-                case "optimizationbuilderdotnet.dll":
-                case "parallelcommunicator.dll":
-                case "microsoft.ml.runtime.runtests.dll":
-                case "scopecompiler.dll":
-                case "tbb.dll":
-                case "internallearnscope.dll":
-                case "unmanagedlib.dll":
-                case "vcclient.dll":
-                case "libxgboost.dll":
-                case "zedgraph.dll":
-                case "__scopecodegen__.dll":
-                case "cosmosClientApi.dll":
-                    return true;
-            }
-
-            foreach (var s in FilePrefixesToAvoid)
-            {
-                if (name.StartsWith(s))
-                    return true;
-            }
-
-            return false;
-        }
-
         /// <summary>
-        /// This loads assemblies that are in our "root" directory (where this assembly is) and caches
-        /// information for the loadable classes in loaded assemblies.
+        /// This caches information for the loadable classes in loaded assemblies.
         /// </summary>
         private static void CacheLoadedAssemblies()
         {
@@ -380,19 +306,6 @@ namespace Microsoft.ML.Runtime
                             // Duplicate loading.
                             Console.Error.WriteLine("Duplicate loaded assembly '{0}'", a.FullName);
                         }
-                    }
-
-                    // Load all assemblies in our directory.
-                    var moduleName = typeof(ComponentCatalog).Module.FullyQualifiedName;
-
-                    // If were are loaded in the context of SQL CLR then the FullyQualifiedName and Name properties are set to
-                    // string "<Unknown>" and we skip scanning current directory.
-                    if (moduleName != "<Unknown>")
-                    {
-                        string dir = Path.GetDirectoryName(moduleName);
-                        LoadAssembliesInDir(dir, true);
-                        dir = Path.Combine(dir, "AutoLoad");
-                        LoadAssembliesInDir(dir, true);
                     }
                 }
 
@@ -528,22 +441,6 @@ namespace Microsoft.ML.Runtime
             return meth;
         }
 
-        private static void LoadAssembliesInDir(string dir, bool filter)
-        {
-            if (!Directory.Exists(dir))
-                return;
-
-            // Load all dlls in the given directory.
-            var paths = Directory.EnumerateFiles(dir, "*.dll");
-            foreach (string path in paths)
-            {
-                if (filter && ShouldSkipPath(path))
-                    continue;
-                // Loading the assembly is enough because of our event handler.
-                LoadAssembly(path);
-            }
-        }
-
         private static void CurrentDomainAssemblyLoad(object sender, AssemblyLoadEventArgs args)
         {
             // Don't try to index dynamic generated assembly
@@ -568,116 +465,23 @@ namespace Microsoft.ML.Runtime
         }
 
         /// <summary>
-        /// Given an assembly path, load the assembly.
+        /// Given a fully qualified assembly name, load the assembly.
         /// </summary>
-        public static Assembly LoadAssembly(string path)
+        public static void RegisterAssembly(Assembly assembly)
         {
-            try
+            if (_loadedAssemblies == null || !_loadedAssemblies.ContainsKey(assembly.FullName))
             {
-                return LoadFrom(path);
+                CacheLoadedAssemblies();
             }
-            catch (Exception e)
-            {
-                if (DebugLevel > 2)
-                    Console.Error.WriteLine("Could not load assembly {0}:\n{1}", path, e.ToString());
-                return null;
-            }
-        }
-
-        private static Assembly LoadFrom(string path)
-        {
-            Contracts.CheckNonEmpty(path, nameof(path));
-            return Assembly.LoadFrom(path);
-        }
-
-        /// <summary>
-        /// Make sure the given assemblies are loaded and that their loadable classes have been catalogued.
-        /// </summary>
-        public static void CacheClassesExtra(string[] assemblies)
-        {
-            if (Utils.Size(assemblies) > 0)
-            {
-                lock (_lock)
-                {
-                    foreach (string path in assemblies)
-                    {
-                        if (!_cachedPaths.Add(path))
-                            continue;
-
-                        Exception ex = null;
-                        try
-                        {
-                            // REVIEW: Will LoadFrom ever return null?
-                            var assem = LoadFrom(path);
-                            if (assem != null)
-                                continue;
-                        }
-                        catch (Exception e)
-                        {
-                            ex = e;
-                        }
-
-                        // If it is a zip file, load it that way.
-                        ZipArchive zip;
-                        try
-                        {
-                            zip = ZipFile.OpenRead(path);
-                        }
-                        catch (Exception e)
-                        {
-                            // Couldn't load as an assembly and not a zip, so warn the user.
-                            ex = ex ?? e;
-                            Console.Error.WriteLine("Warning: Could not load '{0}': {1}", path, ex.Message);
-                            continue;
-                        }
-
-                        string dir;
-                        try
-                        {
-                            dir = CreateTempDirectory();
-                        }
-                        catch (Exception e)
-                        {
-                            throw Contracts.ExceptIO(e, "Creating temp directory for extra assembly zip extraction failed: '{0}'", path);
-                        }
-
-                        try
-                        {
-                            zip.ExtractToDirectory(dir);
-                        }
-                        catch (Exception e)
-                        {
-                            throw Contracts.ExceptIO(e, "Extracting extra assembly zip failed: '{0}'", path);
-                        }
-
-                        LoadAssembliesInDir(dir, false);
-                    }
-                }
-            }
-
-            CacheLoadedAssemblies();
-        }
-
-        private static string CreateTempDirectory()
-        {
-            string dir = GetTempPath();
-            Directory.CreateDirectory(dir);
-            return dir;
-        }
-
-        private static string GetTempPath()
-        {
-            Guid guid = Guid.NewGuid();
-            return Path.GetFullPath(Path.Combine(Path.GetTempPath(), "TLC_" + guid.ToString()));
         }
 
         /// <summary>
         /// Return an array containing information for all instantiatable components.
         /// If provided, the given set of assemblies is loaded first.
         /// </summary>
-        public static LoadableClassInfo[] GetAllClasses(string[] assemblies = null)
+        public static LoadableClassInfo[] GetAllClasses()
         {
-            CacheClassesExtra(assemblies);
+            CacheLoadedAssemblies();
 
             return _classes.ToArray();
         }
@@ -686,12 +490,12 @@ namespace Microsoft.ML.Runtime
         /// Return an array containing information for instantiatable components with the given
         /// signature and base type. If provided, the given set of assemblies is loaded first.
         /// </summary>
-        public static LoadableClassInfo[] GetAllDerivedClasses(Type typeBase, Type typeSig, string[] assemblies = null)
+        public static LoadableClassInfo[] GetAllDerivedClasses(Type typeBase, Type typeSig)
         {
             Contracts.CheckValue(typeBase, nameof(typeBase));
             Contracts.CheckValueOrNull(typeSig);
 
-            CacheClassesExtra(assemblies);
+            CacheLoadedAssemblies();
 
             // Apply the default.
             if (typeSig == null)
@@ -706,9 +510,9 @@ namespace Microsoft.ML.Runtime
         /// Return an array containing all the known signature types. If provided, the given set of assemblies
         /// is loaded first.
         /// </summary>
-        public static Type[] GetAllSignatureTypes(string[] assemblies = null)
+        public static Type[] GetAllSignatureTypes()
         {
-            CacheClassesExtra(assemblies);
+            CacheLoadedAssemblies();
 
             return _signatures.Select(kvp => kvp.Key).ToArray();
         }

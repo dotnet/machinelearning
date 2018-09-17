@@ -100,7 +100,7 @@ namespace Microsoft.ML.Runtime.Tools
 
         public void Run(int? columns)
         {
-            ComponentCatalog.CacheClassesExtra(_extraAssemblies);
+            AssemblyLoadingUtils.LoadAndRegister(_extraAssemblies);
 
             using (var ch = _env.Start("Help"))
             using (var sw = new StringWriter(CultureInfo.InvariantCulture))

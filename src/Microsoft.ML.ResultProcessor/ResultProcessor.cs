@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Text.RegularExpressions;
 using Microsoft.ML.Runtime.Command;
@@ -152,7 +153,7 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn.ResultProcessor
         /// <param name="extraAssemblies"></param>
         private Dictionary<string, string> GetDefaultSettings(IHostEnvironment env, string predictorName, string[] extraAssemblies = null)
         {
-            ComponentCatalog.CacheClassesExtra(extraAssemblies);
+            AssemblyLoadingUtils.LoadAndRegister(extraAssemblies);
 
             var cls = ComponentCatalog.GetLoadableClassInfo<SignatureTrainer>(predictorName);
             if (cls == null)
@@ -1185,8 +1186,8 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn.ResultProcessor
 
             if (cmd.IncludePerFoldResults)
                 cmd.PerFoldResultSeparator = "" + PredictionUtil.SepCharFromString(cmd.PerFoldResultSeparator);
-            foreach (var dll in cmd.ExtraAssemblies)
-                ComponentCatalog.LoadAssembly(dll);
+
+            AssemblyLoadingUtils.LoadAndRegister(cmd.ExtraAssemblies);
 
             if (cmd.Metrics.Length == 0)
                 cmd.Metrics = null;

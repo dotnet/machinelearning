@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
@@ -6,6 +6,10 @@
     <DefineConstants>CORECLR</DefineConstants>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="..\Common\AssemblyLoadingUtils.cs" Link="Common\AssemblyLoadingUtils.cs" />
+  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Microsoft.ML.Core\Microsoft.ML.Core.csproj" />
