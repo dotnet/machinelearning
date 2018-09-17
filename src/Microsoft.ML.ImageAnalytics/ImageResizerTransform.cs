@@ -206,7 +206,8 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
             return new ImageResizerTransform(env, cols).MakeDataTransform(input);
         }
 
-        public static ImageResizerTransform Create(IHostEnvironment env, ModelLoadContext ctx)
+        // Factory method for SignatureLoadModel.
+        private static ImageResizerTransform Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
             var host = env.Register(RegistrationName);
@@ -245,11 +246,11 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
         }
 
         // Factory method for SignatureLoadDataTransform.
-        public static IDataTransform Create(IHostEnvironment env, ModelLoadContext ctx, IDataView input)
+        private static IDataTransform Create(IHostEnvironment env, ModelLoadContext ctx, IDataView input)
             => Create(env, ctx).MakeDataTransform(input);
 
         // Factory method for SignatureLoadRowMapper.
-        public static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, ISchema inputSchema)
+        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, ISchema inputSchema)
             => Create(env, ctx).MakeRowMapper(inputSchema);
 
         public override void Save(ModelSaveContext ctx)
@@ -295,7 +296,7 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
             private readonly ImageResizerTransform _parent;
 
             public Mapper(ImageResizerTransform parent, ISchema inputSchema)
-                :base(parent.Host.Register(nameof(Mapper)), parent, inputSchema)
+                : base(parent.Host.Register(nameof(Mapper)), parent, inputSchema)
             {
                 _parent = parent;
             }

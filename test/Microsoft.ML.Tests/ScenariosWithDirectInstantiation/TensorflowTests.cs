@@ -211,7 +211,7 @@ namespace Microsoft.ML.Scenarios
                                     }
                 }, loader);
                 trans = TensorFlowTransform.Create(env, trans, model_location, new[] { "Softmax", "dense/Relu" }, new[] { "Placeholder", "reshape_input" });
-                trans = new ConcatTransform(env, trans, "Features", "Softmax", "dense/Relu");
+                trans = new ConcatTransform(env, "Features", "Softmax", "dense/Relu").Transform(trans);
 
                 var trainer = new LightGbmMulticlassTrainer(env, new LightGbmArguments());
 

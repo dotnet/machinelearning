@@ -7039,17 +7039,6 @@ namespace Microsoft.ML
             public bool UnbalancedSets { get; set; } = false;
 
             /// <summary>
-            /// The calibrator kind to apply to the predictor. Specify null for no calibration
-            /// </summary>
-            [JsonConverter(typeof(ComponentSerializer))]
-            public CalibratorTrainer Calibrator { get; set; } = new PlattCalibratorCalibratorTrainer();
-
-            /// <summary>
-            /// The maximum number of examples to use when training the calibrator
-            /// </summary>
-            public int MaxCalibrationExamples { get; set; } = 1000000;
-
-            /// <summary>
             /// The entropy (regularization) coefficient between 0 and 1
             /// </summary>
             public double EntropyCoefficient { get; set; }
@@ -7111,6 +7100,11 @@ namespace Microsoft.ML
             /// Whether to collectivize features during dataset preparation to speed up training
             /// </summary>
             public bool FeatureFlocks { get; set; } = true;
+
+            /// <summary>
+            /// Enable post-training pruning to avoid overfitting. (a validation set is required)
+            /// </summary>
+            public bool EnablePruning { get; set; } = true;
 
             /// <summary>
             /// Column to use for example weight
@@ -7191,6 +7185,11 @@ namespace Microsoft.ML
 
 
             /// <summary>
+            /// Metric for pruning. (For regression, 1: L1, 2:L2; default L2)
+            /// </summary>
+            public int PruningMetrics { get; set; } = 2;
+
+            /// <summary>
             /// The entropy (regularization) coefficient between 0 and 1
             /// </summary>
             public double EntropyCoefficient { get; set; }
@@ -7252,6 +7251,11 @@ namespace Microsoft.ML
             /// Whether to collectivize features during dataset preparation to speed up training
             /// </summary>
             public bool FeatureFlocks { get; set; } = true;
+
+            /// <summary>
+            /// Enable post-training pruning to avoid overfitting. (a validation set is required)
+            /// </summary>
+            public bool EnablePruning { get; set; } = true;
 
             /// <summary>
             /// Column to use for example weight
