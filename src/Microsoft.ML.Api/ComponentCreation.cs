@@ -439,7 +439,7 @@ namespace Microsoft.ML.Runtime.Api
         {
             env.CheckValue(args, nameof(args));
 
-            var classes = ComponentCatalog.FindLoadableClasses<TArgs, TSig>();
+            var classes = env.ComponentCatalog.FindLoadableClasses<TArgs, TSig>();
             if (classes.Length == 0)
                 throw env.Except("Couldn't find a {0} class that accepts {1} as arguments.", typeof(TRes).Name, typeof(TArgs).FullName);
             if (classes.Length > 1)

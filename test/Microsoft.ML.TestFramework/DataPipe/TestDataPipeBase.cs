@@ -311,7 +311,7 @@ namespace Microsoft.ML.Runtime.RunTests
 
         protected IDataLoader CreatePipeDataLoader(IHostEnvironment env, string pathData, string[] argsPipe, out MultiFileSource files)
         {
-            VerifyArgParsing(argsPipe);
+            VerifyArgParsing(env, argsPipe);
 
             // Default to breast-cancer.txt.
             if (string.IsNullOrEmpty(pathData))
@@ -350,7 +350,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 Failed();
         }
 
-        protected void VerifyArgParsing(string[] strs)
+        protected void VerifyArgParsing(IHostEnvironment env, string[] strs)
         {
             string str = CmdParser.CombineSettings(strs);
             var args = new CompositeDataLoader.Arguments();
@@ -361,18 +361,18 @@ namespace Microsoft.ML.Runtime.RunTests
             }
 
             // For the loader and each transform, verify that custom unparsing is correct.
-            VerifyCustArgs(args.Loader);
+            VerifyCustArgs(env, args.Loader);
             foreach (var kvp in args.Transform)
-                VerifyCustArgs(kvp.Value);
+                VerifyCustArgs(env, kvp.Value);
         }
 
-        protected void VerifyCustArgs<TArg, TRes>(IComponentFactory<TArg, TRes> factory)
+        protected void VerifyCustArgs<TArg, TRes>(IHostEnvironment env, IComponentFactory<TArg, TRes> factory)
             where TRes : class
         {
             if (factory is ICommandLineComponentFactory commandLineFactory)
             {
                 var str = commandLineFactory.GetSettingsString();
-                var info = ComponentCatalog.GetLoadableClassInfo(commandLineFactory.Name, commandLineFactory.SignatureType);
+                var info = env.ComponentCatalog.GetLoadableClassInfo(commandLineFactory.Name, commandLineFactory.SignatureType);
                 Assert.NotNull(info);
                 var def = info.CreateArguments();
 

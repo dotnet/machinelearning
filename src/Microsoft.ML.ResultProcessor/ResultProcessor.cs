@@ -153,9 +153,9 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn.ResultProcessor
         /// <param name="extraAssemblies"></param>
         private Dictionary<string, string> GetDefaultSettings(IHostEnvironment env, string predictorName, string[] extraAssemblies = null)
         {
-            AssemblyLoadingUtils.LoadAndRegister(extraAssemblies);
+            AssemblyLoadingUtils.LoadAndRegister(env, extraAssemblies);
 
-            var cls = ComponentCatalog.GetLoadableClassInfo<SignatureTrainer>(predictorName);
+            var cls = env.ComponentCatalog.GetLoadableClassInfo<SignatureTrainer>(predictorName);
             if (cls == null)
             {
                 Console.Error.WriteLine("Can't load trainer '{0}'", predictorName);
@@ -522,7 +522,7 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn.ResultProcessor
             ICommandLineComponentFactory commandLineTrainer = trainer as ICommandLineComponentFactory;
             Contracts.AssertValue(commandLineTrainer, "ResultProcessor can only work with ICommandLineComponentFactory.");
 
-            trainerClass = ComponentCatalog.GetLoadableClassInfo<SignatureTrainer>(commandLineTrainer.Name);
+            trainerClass = env.ComponentCatalog.GetLoadableClassInfo<SignatureTrainer>(commandLineTrainer.Name);
             trainerArgs = trainerClass.CreateArguments();
             Dictionary<string, string> predictorSettings;
             if (trainerArgs == null)
@@ -679,7 +679,7 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn.ResultProcessor
                 return false;
             }
 
-            commandClass = ComponentCatalog.GetLoadableClassInfo<SignatureCommand>(kind);
+            commandClass = env.ComponentCatalog.GetLoadableClassInfo<SignatureCommand>(kind);
             commandArgs = commandClass.CreateArguments();
             CmdParser.ParseArguments(env, settings, commandArgs);
             return true;
@@ -1187,7 +1187,7 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn.ResultProcessor
             if (cmd.IncludePerFoldResults)
                 cmd.PerFoldResultSeparator = "" + PredictionUtil.SepCharFromString(cmd.PerFoldResultSeparator);
 
-            AssemblyLoadingUtils.LoadAndRegister(cmd.ExtraAssemblies);
+            AssemblyLoadingUtils.LoadAndRegister(env, cmd.ExtraAssemblies);
 
             if (cmd.Metrics.Length == 0)
                 cmd.Metrics = null;

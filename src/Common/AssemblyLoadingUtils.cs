@@ -15,8 +15,10 @@ namespace Microsoft.ML.Runtime
         /// <summary>
         /// Make sure the given assemblies are loaded and that their loadable classes have been catalogued.
         /// </summary>
-        public static void LoadAndRegister(string[] assemblies)
+        public static void LoadAndRegister(IHostEnvironment env, string[] assemblies)
         {
+            Contracts.AssertValue(env);
+
             if (Utils.Size(assemblies) > 0)
             {
                 foreach (string path in assemblies)
@@ -26,7 +28,7 @@ namespace Microsoft.ML.Runtime
                     {
                         // REVIEW: Will LoadFrom ever return null?
                         Contracts.CheckNonEmpty(path, nameof(path));
-                        var assem = LoadAssembly(path);
+                        var assem = LoadAssembly(env, path);
                         if (assem != null)
                             continue;
                     }
@@ -68,7 +70,7 @@ namespace Microsoft.ML.Runtime
                         throw Contracts.ExceptIO(e, "Extracting extra assembly zip failed: '{0}'", path);
                     }
 
-                    LoadAssembliesInDir(dir);
+                    LoadAssembliesInDir(env, dir);
                 }
             }
         }
@@ -86,7 +88,7 @@ namespace Microsoft.ML.Runtime
             return Path.GetFullPath(Path.Combine(Path.GetTempPath(), "MLNET_" + guid.ToString()));
         }
 
-        private static void LoadAssembliesInDir(string dir)
+        private static void LoadAssembliesInDir(IHostEnvironment env, string dir)
         {
             if (!Directory.Exists(dir))
                 return;
@@ -95,19 +97,19 @@ namespace Microsoft.ML.Runtime
             var paths = Directory.EnumerateFiles(dir, "*.dll");
             foreach (string path in paths)
             {
-                LoadAssembly(path);
+                LoadAssembly(env, path);
             }
         }
 
         /// <summary>
         /// Given an assembly path, load the assembly and register it with the ComponentCatalog.
         /// </summary>
-        private static Assembly LoadAssembly(string path)
+        private static Assembly LoadAssembly(IHostEnvironment env, string path)
         {
             try
             {
                 var assembly = Assembly.LoadFrom(path);
-                ComponentCatalog.RegisterAssembly(assembly);
+                env.ComponentCatalog.RegisterAssembly(assembly);
                 return assembly;
             }
             catch (Exception)

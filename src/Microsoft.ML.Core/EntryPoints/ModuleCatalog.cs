@@ -152,7 +152,6 @@ namespace Microsoft.ML.Runtime.EntryPoints
             }
         }
 
-        private static volatile ModuleCatalog _instance;
         private readonly EntryPointInfo[] _entryPoints;
         private readonly Dictionary<string, EntryPointInfo> _entryPointMap;
 
@@ -167,15 +166,15 @@ namespace Microsoft.ML.Runtime.EntryPoints
             return _entryPoints.AsEnumerable();
         }
 
-        private ModuleCatalog(IExceptionContext ectx)
+        private ModuleCatalog(IHostEnvironment env)
         {
-            Contracts.AssertValue(ectx);
+            Contracts.AssertValue(env);
 
             _entryPointMap = new Dictionary<string, EntryPointInfo>();
             _componentMap = new Dictionary<string, ComponentInfo>();
             _components = new List<ComponentInfo>();
 
-            var moduleClasses = ComponentCatalog.FindLoadableClasses<SignatureEntryPointModule>();
+            var moduleClasses = env.ComponentCatalog.FindLoadableClasses<SignatureEntryPointModule>();
             var entryPoints = new List<EntryPointInfo>();
 
             foreach (var lc in moduleClasses)
@@ -189,7 +188,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
                     if (attr == null)
                         continue;
 
-                    var info = new EntryPointInfo(ectx, methodInfo, attr,
+                    var info = new EntryPointInfo(env, methodInfo, attr,
                         methodInfo.GetCustomAttributes(typeof(ObsoleteAttribute), false).FirstOrDefault() as ObsoleteAttribute);
 
                     entryPoints.Add(info);
@@ -205,9 +204,9 @@ namespace Microsoft.ML.Runtime.EntryPoints
 
                 // Scan for components.
                 // First scan ourself, and then all nested types, for component info.
-                ScanForComponents(ectx, type);
+                ScanForComponents(env, type);
                 foreach (var nestedType in type.GetTypeInfo().GetNestedTypes())
-                    ScanForComponents(ectx, nestedType);
+                    ScanForComponents(env, nestedType);
             }
             _entryPoints = entryPoints.ToArray();
         }
@@ -274,17 +273,13 @@ namespace Microsoft.ML.Runtime.EntryPoints
         }
 
         /// <summary>
-        /// Create a module catalog (or reuse the one created before).
+        /// Create a module catalog.
         /// </summary>
-        /// <param name="ectx">The exception context to use to report errors while scanning the assemblies.</param>
-        public static ModuleCatalog CreateInstance(IExceptionContext ectx)
+        /// <param name="env">The host environment and exception context to use to report errors while scanning the assemblies.</param>
+        public static ModuleCatalog CreateInstance(IHostEnvironment env)
         {
-            Contracts.CheckValueOrNull(ectx);
-#pragma warning disable 420 // volatile with Interlocked.CompareExchange.
-            if (_instance == null)
-                Interlocked.CompareExchange(ref _instance, new ModuleCatalog(ectx), null);
-#pragma warning restore 420
-            return _instance;
+            Contracts.CheckValueOrNull(env);
+            return new ModuleCatalog(env);
         }
 
         public bool TryFindEntryPoint(string name, out EntryPointInfo entryPoint)

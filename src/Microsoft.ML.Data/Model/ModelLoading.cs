@@ -213,7 +213,7 @@ namespace Microsoft.ML.Runtime.Model
 
             var args = ConcatArgsRev(extra, this);
 
-            EnsureLoaderAssemblyIsRegistered();
+            EnsureLoaderAssemblyIsRegistered(env.ComponentCatalog);
 
             object tmp;
             string sig = ModelHeader.GetLoaderSig(ref Header);
@@ -249,12 +249,12 @@ namespace Microsoft.ML.Runtime.Model
             return false;
         }
 
-        private void EnsureLoaderAssemblyIsRegistered()
+        private void EnsureLoaderAssemblyIsRegistered(ComponentCatalog catalog)
         {
             if (!string.IsNullOrEmpty(LoaderAssemblyName))
             {
                 var assembly = Assembly.Load(LoaderAssemblyName);
-                ComponentCatalog.RegisterAssembly(assembly);
+                catalog.RegisterAssembly(assembly);
             }
         }
 

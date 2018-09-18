@@ -2,15 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.ML.Runtime.CommandLine;
+using Microsoft.ML.Runtime.Internal.Utilities;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.IO;
-using System.IO.Compression;
 using System.Linq;
 using System.Reflection;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.CommandLine;
 
 // REVIEW: Determine ideal namespace.
 namespace Microsoft.ML.Runtime
@@ -22,8 +20,17 @@ namespace Microsoft.ML.Runtime
     /// types for component instantiation. Each component may also specify an "arguments object" that should
     /// be provided at instantiation time.
     /// </summary>
-    public static class ComponentCatalog
+    public sealed class ComponentCatalog
     {
+        internal ComponentCatalog()
+        {
+            _lock = new object();
+            _cachedAssemblies = new HashSet<string>();
+            _classesByKey = new ConcurrentDictionary<LoadableClassInfo.Key, LoadableClassInfo>();
+            _classes = new ConcurrentQueue<LoadableClassInfo>();
+            _signatures = new ConcurrentDictionary<Type, bool>();
+        }
+
         /// <summary>
         /// Provides information on an instantiatable component, aka, loadable class.
         /// </summary>
@@ -248,114 +255,18 @@ namespace Microsoft.ML.Runtime
             }
         }
 
-        // Do not initialize this one - the initial null value is used as a "flag" to prime things.
-        private static ConcurrentQueue<Assembly> _assemblyQueue;
-
-        // The assemblies that are loaded by Reflection.LoadAssembly or Assembly.Load* after we started tracking
-        // the load events. We will provide assembly resolving for these assemblies. This is created simultaneously
-        // with s_assemblyQueue.
-        private static ConcurrentDictionary<string, Assembly> _loadedAssemblies;
-
-        // This lock protects s_cachedAssemblies and s_cachedPaths only. The collection of ClassInfos is concurrent
+        // This lock protects _cachedAssemblies only. The collection of ClassInfos is concurrent
         // so needs no protection.
-        private static object _lock = new object();
-        private static HashSet<string> _cachedAssemblies = new HashSet<string>();
-        private static HashSet<string> _cachedPaths = new HashSet<string>();
+        private readonly object _lock;
+        private readonly HashSet<string> _cachedAssemblies;
 
         // Map from key/name to loadable class. Note that the same ClassInfo may appear
         // multiple times. For the set of unique infos, use s_classes.
-        private static ConcurrentDictionary<LoadableClassInfo.Key, LoadableClassInfo> _classesByKey = new ConcurrentDictionary<LoadableClassInfo.Key, LoadableClassInfo>();
+        private readonly ConcurrentDictionary<LoadableClassInfo.Key, LoadableClassInfo> _classesByKey;
 
         // The unique ClassInfos and Signatures.
-        private static ConcurrentQueue<LoadableClassInfo> _classes = new ConcurrentQueue<LoadableClassInfo>();
-        private static ConcurrentDictionary<Type, bool> _signatures = new ConcurrentDictionary<Type, bool>();
-
-        /// <summary>
-        /// This caches information for the loadable classes in loaded assemblies.
-        /// </summary>
-        private static void CacheLoadedAssemblies()
-        {
-            // The target assembly is the one containing LoadableClassAttributeBase. If an assembly doesn't reference
-            // the target, then we don't want to scan its assembly attributes (there's no point in doing so).
-            var target = typeof(LoadableClassAttributeBase).Assembly;
-
-            lock (_lock)
-            {
-                if (_assemblyQueue == null)
-                {
-                    // Create the loaded assembly queue and dictionary, set up the AssemblyLoad / AssemblyResolve
-                    // event handlers and populate the queue / dictionary with all assemblies that are currently loaded.
-                    Contracts.Assert(_assemblyQueue == null);
-                    Contracts.Assert(_loadedAssemblies == null);
-
-                    _assemblyQueue = new ConcurrentQueue<Assembly>();
-                    _loadedAssemblies = new ConcurrentDictionary<string, Assembly>();
-
-                    AppDomain.CurrentDomain.AssemblyLoad += CurrentDomainAssemblyLoad;
-                    AppDomain.CurrentDomain.AssemblyResolve += CurrentDomainAssemblyResolve;
-
-                    foreach (Assembly a in AppDomain.CurrentDomain.GetAssemblies())
-                    {
-                        // Ignore dynamic assemblies.
-                        if (a.IsDynamic)
-                            continue;
-
-                        _assemblyQueue.Enqueue(a);
-                        if (!_loadedAssemblies.TryAdd(a.FullName, a))
-                        {
-                            // Duplicate loading.
-                            Console.Error.WriteLine("Duplicate loaded assembly '{0}'", a.FullName);
-                        }
-                    }
-                }
-
-                Contracts.AssertValue(_assemblyQueue);
-                Contracts.AssertValue(_loadedAssemblies);
-
-                Assembly assembly;
-                while (_assemblyQueue.TryDequeue(out assembly))
-                {
-                    if (!_cachedAssemblies.Add(assembly.FullName))
-                        continue;
-
-                    if (assembly != target)
-                    {
-                        bool found = false;
-                        var targetName = target.GetName();
-                        foreach (var name in assembly.GetReferencedAssemblies())
-                        {
-                            if (name.Name == targetName.Name)
-                            {
-                                found = true;
-                                break;
-                            }
-                        }
-                        if (!found)
-                            continue;
-                    }
-
-                    int added = 0;
-                    foreach (LoadableClassAttributeBase attr in assembly.GetCustomAttributes(typeof(LoadableClassAttributeBase)))
-                    {
-                        MethodInfo getter = null;
-                        ConstructorInfo ctor = null;
-                        MethodInfo create = null;
-                        bool requireEnvironment = false;
-                        if (attr.InstanceType != typeof(void) && !TryGetIniters(attr.InstanceType, attr.LoaderType, attr.CtorTypes, out getter, out ctor, out create, out requireEnvironment))
-                        {
-                            Console.Error.WriteLine(
-                                "CacheClassesFromAssembly: can't instantiate loadable class {0} with name {1}",
-                                attr.InstanceType.Name, attr.LoadNames[0]);
-                            Contracts.Assert(getter == null && ctor == null && create == null);
-                        }
-                        var info = new LoadableClassInfo(attr, getter, ctor, create, requireEnvironment);
-
-                        AddClass(info, attr.LoadNames);
-                        added++;
-                    }
-                }
-            }
-        }
+        private readonly ConcurrentQueue<LoadableClassInfo> _classes;
+        private readonly ConcurrentDictionary<Type, bool> _signatures;
 
         private static bool TryGetIniters(Type instType, Type loaderType, Type[] parmTypes,
             out MethodInfo getter, out ConstructorInfo ctor, out MethodInfo create, out bool requireEnvironment)
@@ -385,7 +296,7 @@ namespace Microsoft.ML.Runtime
             return false;
         }
 
-        private static void AddClass(LoadableClassInfo info, string[] loadNames)
+        private void AddClass(LoadableClassInfo info, string[] loadNames)
         {
             _classes.Enqueue(info);
             foreach (var sigType in info.SignatureTypes)
@@ -441,37 +352,45 @@ namespace Microsoft.ML.Runtime
             return meth;
         }
 
-        private static void CurrentDomainAssemblyLoad(object sender, AssemblyLoadEventArgs args)
-        {
-            // Don't try to index dynamic generated assembly
-            if (args.LoadedAssembly.IsDynamic)
-                return;
-            _assemblyQueue.Enqueue(args.LoadedAssembly);
-            if (!_loadedAssemblies.TryAdd(args.LoadedAssembly.FullName, args.LoadedAssembly))
-            {
-                // Duplicate loading.
-                Console.Error.WriteLine("Duplicate loading of the assembly '{0}'", args.LoadedAssembly.FullName);
-            }
-        }
-
-        private static Assembly CurrentDomainAssemblyResolve(object sender, ResolveEventArgs args)
-        {
-            // REVIEW: currently, the resolving happens on exact matches of the full name.
-            // This has proved to work with the C# transform. We might need to change the resolving logic when the need arises.
-            Assembly found;
-            if (_loadedAssemblies.TryGetValue(args.Name, out found))
-                return found;
-            return null;
-        }
-
         /// <summary>
-        /// Given a fully qualified assembly name, load the assembly.
+        /// Registers all the components in the specified assembly by looking for loadable classes
+        /// and adding them to the catalog.
         /// </summary>
-        public static void RegisterAssembly(Assembly assembly)
+        /// <param name="assembly">
+        /// The assembly to register.
+        /// </param>
+        /// <param name="throwOnError">
+        /// true to throw an exception if there are errors with registering the components;
+        /// false to skip any errors.
+        /// </param>
+        public void RegisterAssembly(Assembly assembly, bool throwOnError = true)
         {
-            if (_loadedAssemblies == null || !_loadedAssemblies.ContainsKey(assembly.FullName))
+            lock (_lock)
             {
-                CacheLoadedAssemblies();
+                if (_cachedAssemblies.Add(assembly.FullName))
+                {
+                    foreach (LoadableClassAttributeBase attr in assembly.GetCustomAttributes(typeof(LoadableClassAttributeBase)))
+                    {
+                        MethodInfo getter = null;
+                        ConstructorInfo ctor = null;
+                        MethodInfo create = null;
+                        bool requireEnvironment = false;
+                        if (attr.InstanceType != typeof(void) && !TryGetIniters(attr.InstanceType, attr.LoaderType, attr.CtorTypes, out getter, out ctor, out create, out requireEnvironment))
+                        {
+                            if (throwOnError)
+                            {
+                                throw new InvalidOperationException(string.Format(
+                                    "Can't instantiate loadable class {0} with name {1}",
+                                    attr.InstanceType.Name, attr.LoadNames[0]));
+                            }
+                            Contracts.Assert(getter == null && ctor == null && create == null);
+                        }
+                        var info = new LoadableClassInfo(attr, getter, ctor, create, requireEnvironment);
+
+                        AddClass(info, attr.LoadNames);
+                    }
+
+                }
             }
         }
 
@@ -479,10 +398,8 @@ namespace Microsoft.ML.Runtime
         /// Return an array containing information for all instantiatable components.
         /// If provided, the given set of assemblies is loaded first.
         /// </summary>
-        public static LoadableClassInfo[] GetAllClasses()
+        public LoadableClassInfo[] GetAllClasses()
         {
-            CacheLoadedAssemblies();
-
             return _classes.ToArray();
         }
 
@@ -490,12 +407,10 @@ namespace Microsoft.ML.Runtime
         /// Return an array containing information for instantiatable components with the given
         /// signature and base type. If provided, the given set of assemblies is loaded first.
         /// </summary>
-        public static LoadableClassInfo[] GetAllDerivedClasses(Type typeBase, Type typeSig)
+        public LoadableClassInfo[] GetAllDerivedClasses(Type typeBase, Type typeSig)
         {
             Contracts.CheckValue(typeBase, nameof(typeBase));
             Contracts.CheckValueOrNull(typeSig);
-
-            CacheLoadedAssemblies();
 
             // Apply the default.
             if (typeSig == null)
@@ -510,10 +425,8 @@ namespace Microsoft.ML.Runtime
         /// Return an array containing all the known signature types. If provided, the given set of assemblies
         /// is loaded first.
         /// </summary>
-        public static Type[] GetAllSignatureTypes()
+        public Type[] GetAllSignatureTypes()
         {
-            CacheLoadedAssemblies();
-
             return _signatures.Select(kvp => kvp.Key).ToArray();
         }
 
@@ -530,25 +443,18 @@ namespace Microsoft.ML.Runtime
             return kind;
         }
 
-        private static LoadableClassInfo FindClassCore(LoadableClassInfo.Key key)
+        private LoadableClassInfo FindClassCore(LoadableClassInfo.Key key)
         {
             LoadableClassInfo info;
-            if (_classesByKey.TryGetValue(key, out info))
-                return info;
-
-            CacheLoadedAssemblies();
-
             if (_classesByKey.TryGetValue(key, out info))
                 return info;
 
             return null;
         }
 
-        public static LoadableClassInfo[] FindLoadableClasses(string name)
+        public LoadableClassInfo[] FindLoadableClasses(string name)
         {
             name = name.ToLowerInvariant().Trim();
-
-            CacheLoadedAssemblies();
 
             var res = _classes
                 .Where(ci => ci.LoadNames.Select(n => n.ToLowerInvariant().Trim()).Contains(name))
@@ -556,32 +462,28 @@ namespace Microsoft.ML.Runtime
             return res;
         }
 
-        public static LoadableClassInfo[] FindLoadableClasses<TSig>()
+        public LoadableClassInfo[] FindLoadableClasses<TSig>()
         {
-            CacheLoadedAssemblies();
-
             return _classes
                 .Where(ci => ci.SignatureTypes.Contains(typeof(TSig)))
                 .ToArray();
         }
 
-        public static LoadableClassInfo[] FindLoadableClasses<TArgs, TSig>()
+        public LoadableClassInfo[] FindLoadableClasses<TArgs, TSig>()
         {
             // REVIEW: this and above methods perform a linear search over all the loadable classes.
             // On 6/15/2015, TLC release build contained 431 of them, so adding extra lookups looks unnecessary at this time.
-            CacheLoadedAssemblies();
-
             return _classes
                 .Where(ci => ci.ArgType == typeof(TArgs) && ci.SignatureTypes.Contains(typeof(TSig)))
                 .ToArray();
         }
 
-        public static LoadableClassInfo GetLoadableClassInfo<TSig>(string loadName)
+        public LoadableClassInfo GetLoadableClassInfo<TSig>(string loadName)
         {
             return GetLoadableClassInfo(loadName, typeof(TSig));
         }
 
-        public static LoadableClassInfo GetLoadableClassInfo(string loadName, Type signatureType)
+        public LoadableClassInfo GetLoadableClassInfo(string loadName, Type signatureType)
         {
             Contracts.CheckParam(signatureType.BaseType == typeof(MulticastDelegate), nameof(signatureType), "signatureType must be a delegate type");
             Contracts.CheckValueOrNull(loadName);
@@ -619,7 +521,7 @@ namespace Microsoft.ML.Runtime
             env.CheckValueOrNull(name);
 
             string nameLower = (name ?? "").ToLowerInvariant().Trim();
-            LoadableClassInfo info = FindClassCore(new LoadableClassInfo.Key(nameLower, signatureType));
+            LoadableClassInfo info = env.ComponentCatalog.FindClassCore(new LoadableClassInfo.Key(nameLower, signatureType));
             if (info == null)
             {
                 result = null;
