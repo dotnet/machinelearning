@@ -12,6 +12,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
+using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Data.Conversion;
@@ -25,8 +26,6 @@ using Microsoft.ML.Runtime.Model.Pfa;
 using Microsoft.ML.Runtime.Training;
 using Microsoft.ML.Runtime.TreePredictor;
 using Newtonsoft.Json.Linq;
-using Microsoft.ML.Core.Data;
-using Microsoft.ML.Runtime.EntryPoints;
 
 // All of these reviews apply in general to fast tree and random forest implementations.
 //REVIEW: Decouple train method in Application.cs to have boosting and random forest logic seperate.
@@ -104,10 +103,10 @@ namespace Microsoft.ML.Runtime.FastTree
             Args.LabelColumn = label.Name;
 
             if (weightColumn != null)
-                Args.WeightColumn = Optional<string>.Explicit(weightColumn);
+                Args.WeightColumn = weightColumn;
 
             if (groupIdColumn != null)
-                Args.GroupIdColumn = Optional<string>.Explicit(groupIdColumn);
+                Args.GroupIdColumn = groupIdColumn;
 
             // The discretization step renders this trainer non-parametric, and therefore it does not need normalization.
             // Also since it builds its own internal discretized columnar structures, it cannot benefit from caching.

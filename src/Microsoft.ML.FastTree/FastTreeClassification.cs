@@ -127,6 +127,9 @@ namespace Microsoft.ML.Runtime.FastTree
             string groupIdColumn = null, string weightColumn = null, Action<Arguments> advancedSettings = null)
             : base(env, MakeLabelColumn(labelColumn), featureColumn, weightColumn, groupIdColumn, advancedSettings)
         {
+            // Set the sigmoid parameter to the 2 * learning rate, for traditional FastTreeClassification loss
+            _sigmoidParameter = 2.0 * Args.LearningRates;
+
             _outputColumns = new[]
             {
                 new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata())),

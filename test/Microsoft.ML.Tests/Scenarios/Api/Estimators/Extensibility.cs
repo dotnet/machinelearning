@@ -23,7 +23,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         [Fact]
         void New_Extensibility()
         {
-            var dataPath = GetDataPath(TestDatasets.iris.trainFilename);
+            var dataPath = GetDataPath(TestDatasets.irisData.trainFilename);
 
             using (var env = new LocalEnvironment())
             {
