@@ -151,7 +151,7 @@ namespace Microsoft.ML.Tests.Transformers
         [Fact]
         public void TestCommandLine()
         {
-            Assert.Equal(Maml.Main(new[] { @"showschema loader=Text{col=A:R4:0} xf=Term{col=B:A} xf=KeyToBinary{col=C:B} in=f:\2.txt" }), (int)0);
+            Assert.Equal(0, Maml.Main(new[] { @"showschema loader=Text{col=A:R4:0} xf=Term{col=B:A} xf=KeyToBinary{col=C:B} in=f:\2.txt" }));
         }
 
         [Fact]

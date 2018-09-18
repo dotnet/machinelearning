@@ -48,7 +48,7 @@ namespace Microsoft.ML.Runtime.RunTests
             }
 
             var rpName = basePrefix + "-rp.txt";
-            RunResultProcessorTest(new string[] { consOutPath }, DeleteOutputPath(Category, rpName), null);
+            RunResultProcessorTest(Env, new string[] { consOutPath }, DeleteOutputPath(Category, rpName), null);
             CheckEqualityNormalized(Category, rpName);
             Done();
         }

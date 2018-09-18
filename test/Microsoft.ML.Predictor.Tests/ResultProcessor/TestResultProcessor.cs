@@ -28,7 +28,7 @@ namespace Microsoft.ML.Runtime.RunTests
             string outPath = DeleteOutputPath(SubDirectory, fileName);
             string[] resultFilePaths = SaveResourcesAsFiles(testDataNames);
 
-            RunResultProcessorTest(resultFilePaths, outPath, extraArgs);
+            RunResultProcessorTest(Env, resultFilePaths, outPath, extraArgs);
             CheckEqualityNormalized(SubDirectory, fileName);
 
             Done();

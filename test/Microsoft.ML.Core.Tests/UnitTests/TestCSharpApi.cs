@@ -55,7 +55,7 @@ namespace Microsoft.ML.Runtime.RunTests
         public void TestSimpleTrainExperiment()
         {
             var dataPath = GetDataPath("adult.tiny.with-schema.txt");
-            using (var env = new ConsoleEnvironment())
+            using (var env = CreateConsoleEnvironment())
             {
                 var experiment = env.CreateExperiment();
 
@@ -124,7 +124,7 @@ namespace Microsoft.ML.Runtime.RunTests
         public void TestTrainTestMacro()
         {
             var dataPath = GetDataPath("adult.tiny.with-schema.txt");
-            using (var env = new ConsoleEnvironment())
+            using (var env = CreateConsoleEnvironment())
             {
                 var subGraph = env.CreateExperiment();
 
@@ -196,7 +196,7 @@ namespace Microsoft.ML.Runtime.RunTests
         public void TestCrossValidationBinaryMacro()
         {
             var dataPath = GetDataPath("adult.tiny.with-schema.txt");
-            using (var env = new ConsoleEnvironment())
+            using (var env = CreateConsoleEnvironment())
             {
                 var subGraph = env.CreateExperiment();
 
@@ -411,7 +411,7 @@ namespace Microsoft.ML.Runtime.RunTests
         public void TestCrossValidationMacroWithMultiClass()
         {
             var dataPath = GetDataPath(@"Train-Tiny-28x28.txt");
-            using (var env = new ConsoleEnvironment(42))
+            using (var env = CreateConsoleEnvironment(42))
             {
                 var subGraph = env.CreateExperiment();
 
@@ -540,7 +540,7 @@ namespace Microsoft.ML.Runtime.RunTests
         public void TestCrossValidationMacroMultiClassWithWarnings()
         {
             var dataPath = GetDataPath(@"Train-Tiny-28x28.txt");
-            using (var env = new ConsoleEnvironment(42))
+            using (var env = CreateConsoleEnvironment(42))
             {
                 var subGraph = env.CreateExperiment();
 
@@ -619,7 +619,7 @@ namespace Microsoft.ML.Runtime.RunTests
         public void TestCrossValidationMacroWithStratification()
         {
             var dataPath = GetDataPath(@"breast-cancer.txt");
-            using (var env = new ConsoleEnvironment(42))
+            using (var env = CreateConsoleEnvironment(42))
             {
                 var subGraph = env.CreateExperiment();
 
@@ -715,7 +715,7 @@ namespace Microsoft.ML.Runtime.RunTests
         public void TestCrossValidationMacroWithNonDefaultNames()
         {
             string dataPath = GetDataPath(@"adult.tiny.with-schema.txt");
-            using (var env = new ConsoleEnvironment(42))
+            using (var env = CreateConsoleEnvironment(42))
             {
                 var subGraph = env.CreateExperiment();
 
@@ -844,7 +844,7 @@ namespace Microsoft.ML.Runtime.RunTests
         public void TestOvaMacro()
         {
             var dataPath = GetDataPath(@"iris.txt");
-            using (var env = new ConsoleEnvironment(42))
+            using (var env = CreateConsoleEnvironment(42))
             {
                 // Specify subgraph for OVA
                 var subGraph = env.CreateExperiment();
@@ -903,7 +903,7 @@ namespace Microsoft.ML.Runtime.RunTests
         public void TestOvaMacroWithUncalibratedLearner()
         {
             var dataPath = GetDataPath(@"iris.txt");
-            using (var env = new ConsoleEnvironment(42))
+            using (var env = CreateConsoleEnvironment(42))
             {
                 // Specify subgraph for OVA
                 var subGraph = env.CreateExperiment();
@@ -962,8 +962,10 @@ namespace Microsoft.ML.Runtime.RunTests
         public void TestTensorFlowEntryPoint()
         {
             var dataPath = GetDataPath("Train-Tiny-28x28.txt");
-            using (var env = new ConsoleEnvironment(42))
+            using (var env = CreateConsoleEnvironment(42))
             {
+                env.ComponentCatalog.RegisterAssembly(typeof(TensorFlowTransform).Assembly);
+
                 var experiment = env.CreateExperiment();
 
                 var importInput = new Legacy.Data.TextLoader(dataPath);

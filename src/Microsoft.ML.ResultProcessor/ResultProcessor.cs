@@ -680,6 +680,11 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn.ResultProcessor
             }
 
             commandClass = env.ComponentCatalog.GetLoadableClassInfo<SignatureCommand>(kind);
+            if (commandClass == null)
+            {
+                commandArgs = null;
+                return false;
+            }
             commandArgs = commandClass.CreateArguments();
             CmdParser.ParseArguments(env, settings, commandArgs);
             return true;
@@ -1149,9 +1154,14 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn.ResultProcessor
 
         public static int Main(string[] args)
         {
+            return Main(new ConsoleEnvironment(42), args);
+        }
+
+        public static int Main(IHostEnvironment env, string[] args)
+        {
             try
             {
-                Run(args);
+                Run(env, args);
                 return 0;
             }
             catch (Exception e)
@@ -1171,10 +1181,9 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn.ResultProcessor
             }
         }
 
-        protected static void Run(string[] args)
+        protected static void Run(IHostEnvironment env, string[] args)
         {
             ResultProcessorArguments cmd = new ResultProcessorArguments();
-            ConsoleEnvironment env = new ConsoleEnvironment(42);
             List<PredictorResult> predictorResultsList = new List<PredictorResult>();
             PredictionUtil.ParseArguments(env, cmd, PredictionUtil.CombineSettings(args));
 

@@ -26,7 +26,7 @@ namespace Microsoft.ML.Runtime.RunTests
         [TestCategory("EntryPoints")]
         public void TestLearn()
         {
-            using (var env = new ConsoleEnvironment())
+            using (var env = CreateConsoleEnvironment())
             {
                 string pathData = GetDataPath("adult.train");
                 string pathDataTest = GetDataPath("adult.test");
@@ -96,7 +96,7 @@ namespace Microsoft.ML.Runtime.RunTests
         [Fact]
         public void TestPipelineNodeCloning()
         {
-            using (var env = new ConsoleEnvironment())
+            using (var env = CreateConsoleEnvironment())
             {
                 var lr1 = RecipeInference
                     .AllowedLearners(env, MacroUtils.TrainerKinds.SignatureBinaryClassifierTrainer)
