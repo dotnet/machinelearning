@@ -27,7 +27,8 @@ namespace Microsoft.ML.Tests.Scenarios.Api
 
             using (var env = new LocalEnvironment())
             {
-                var loader = TextLoader.ReadFile(env, MakeIrisTextLoaderArgs(), new MultiFileSource(dataPath));
+                var data = new TextLoader(env, MakeIrisTextLoaderArgs())
+                    .Read(new MultiFileSource(dataPath));
 
                 Action<IrisData, IrisData> action = (i, j) =>
                 {
@@ -37,31 +38,20 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                     j.SepalLength = i.SepalLength;
                     j.SepalWidth = i.SepalWidth;
                 };
-                var lambda = LambdaTransform.CreateMap(env, loader, action);
-                var term = TermTransform.Create(env, lambda, "Label");
-                var concat = new ConcatTransform(env, "Features", "SepalLength", "SepalWidth", "PetalLength", "PetalWidth")
-                    .Transform(term);
+                var pipeline = new ConcatEstimator(env, "Features", "SepalLength", "SepalWidth", "PetalLength", "PetalWidth")
+                    .Append(new MyLambdaTransform<IrisData, IrisData>(env, action), TransformerScope.TrainTest)
+                    .Append(new TermEstimator(env, "Label"), TransformerScope.TrainTest)
+                    .Append(new SdcaMultiClassTrainer(env, new SdcaMultiClassTrainer.Arguments { MaxIterations = 100, Shuffle = true, NumThreads = 1 }, "Features", "Label"))
+                    .Append(new KeyToValueEstimator(env, "PredictedLabel"));
 
-                var trainer = new SdcaMultiClassTrainer(env, new SdcaMultiClassTrainer.Arguments { MaxIterations = 100, Shuffle = true, NumThreads = 1 });
-
-                IDataView trainData = trainer.Info.WantCaching ? (IDataView)new CacheDataView(env, concat, prefetch: null) : concat;
-                var trainRoles = new RoleMappedData(trainData, label: "Label", feature: "Features");
-
-                // Auto-normalization.
-                NormalizeTransform.CreateIfNeeded(env, ref trainRoles, trainer);
-                var predictor = trainer.Train(new Runtime.TrainContext(trainRoles));
-
-                var scoreRoles = new RoleMappedData(concat, label: "Label", feature: "Features");
-                IDataScorerTransform scorer = ScoreUtils.GetScorer(predictor, scoreRoles, env, trainRoles.Schema);
-
-                var keyToValue = new KeyToValueTransform(env, "PredictedLabel").Transform(scorer);
-                var model = env.CreatePredictionEngine<IrisData, IrisPrediction>(keyToValue);
+                var model = pipeline.Fit(data).GetModelFor(TransformerScope.Scoring);
+                var engine = model.MakePredictionFunction<IrisDataNoLabel, IrisPrediction>(env);
 
                 var testLoader = TextLoader.ReadFile(env, MakeIrisTextLoaderArgs(), new MultiFileSource(dataPath));
                 var testData = testLoader.AsEnumerable<IrisData>(env, false);
                 foreach (var input in testData.Take(20))
                 {
-                    var prediction = model.Predict(input);
+                    var prediction = engine.Predict(input);
                     Assert.True(prediction.PredictedLabel == input.Label);
                 }
             }

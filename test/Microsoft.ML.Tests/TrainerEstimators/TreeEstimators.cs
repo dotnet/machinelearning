@@ -56,7 +56,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         /// <summary>
         /// FastTreeBinaryClassification TrainerEstimator test 
         /// </summary>
-        [Fact(Skip ="Checking whether any other tests is failing. Will re-enable prior to check in.")]
+        [Fact]
         public void FastTreeRankerEstimator()
         {
             using (var env = new LocalEnvironment(seed: 1, conc: 1))
@@ -73,6 +73,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                     }
                 });
                 var data = reader.Read(new MultiFileSource(GetDataPath(TestDatasets.adultRanking.trainFilename)));
+
 
                 // Pipeline.
                 var pipeline = new TermEstimator(env, new[]{
