@@ -14,7 +14,6 @@ using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Scoring;
 using Microsoft.ML.OnnxScoring;
-using OnnxShape = System.Collections.Generic.List<long>;
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data.StaticPipe.Runtime;
 
@@ -42,10 +41,10 @@ namespace Microsoft.ML.OnnxScoring
             [Argument(ArgumentType.Required, HelpText = "Path to the onnx model file.", ShortName = "model", SortOrder = 0)]
             public string ModelFile;
 
-            [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "TBD", SortOrder = 1)]
+            [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "Name of the input column.", SortOrder = 1)]
             public string InputColumn;
 
-            [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "TBD", SortOrder = 2)]
+            [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "Name of the output column.", SortOrder = 2)]
             public string OutputColumn;
         }
 
@@ -59,8 +58,8 @@ namespace Microsoft.ML.OnnxScoring
         internal const string ShortName = "Onnx";
         internal const string LoaderSignature = "OnnxTransform";
 
-        public readonly string[] Inputs;
-        public readonly string[] Outputs;
+        public readonly string Input;
+        public readonly string Output;
 
         private static VersionInfo GetVersionInfo()
         {
@@ -121,8 +120,8 @@ namespace Microsoft.ML.OnnxScoring
             else
                 _model = OnnxModel.CreateFromBytes(modelBytes);
 
-            Inputs = new[] { args.InputColumn };
-            Outputs = new[] { args.OutputColumn };
+            Input = args.InputColumn;
+            Output = args.OutputColumn;
             _args = args;
         }
 
@@ -134,11 +133,8 @@ namespace Microsoft.ML.OnnxScoring
         public ISchema GetOutputSchema(ISchema inputSchema)
         {
             _host.CheckValue(inputSchema, nameof(inputSchema));
-            foreach (var input in Inputs)
-            {
-                if (!inputSchema.TryGetColumnIndex(input, out int srcCol))
-                    throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", input);
-            }
+            if (!inputSchema.TryGetColumnIndex(Input, out int srcCol))
+                throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", Input);
 
             var transform = Transform(new EmptyDataView(_host, inputSchema));
             return transform.Schema;
@@ -194,7 +190,7 @@ namespace Microsoft.ML.OnnxScoring
                 int[] dims = outputNodeInfo.Shape.Skip(1).Select(x => (int)x).ToArray();
                 var outputItemType = OnnxUtils.OnnxToMlNetType(outputNodeInfo.Type);
                 _outputColType = new VectorType(outputItemType, dims);
-                _outputColName = _parent.Outputs[0];// outputNodeInfo.Name;
+                _outputColName = _parent.Output;
                 _outputItemRawType = outputItemType.RawType;
                 _host.Assert(_outputItemRawType == _outputColType.ItemType.RawType);
             }
@@ -370,26 +366,25 @@ namespace Microsoft.ML.OnnxScoring
 
         public override SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {
+            // TODO: This function never gets called during the DemoApp
+            // Figure out what checks are necessary here.
             Host.CheckValue(inputSchema, nameof(inputSchema));
             var result = inputSchema.Columns.ToDictionary(x => x.Name);
             var resultDic = inputSchema.Columns.ToDictionary(x => x.Name);
-            for (var i = 0; i < Transformer.Inputs.Length; i++)
-            {
-                var input = Transformer.Inputs[i];
-                if (!inputSchema.TryFindColumn(input, out var col))
-                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", input);
-                if (!(col.Kind == SchemaShape.Column.VectorKind.VariableVector || col.Kind == SchemaShape.Column.VectorKind.Vector))
-                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", input, nameof(VectorType), col.GetTypeString());
-                //var expectedType = OnnxUtils.OnnxToMlNetType(Transformer.TFInputTypes[i]);
-                //if (col.ItemType != expectedType)
-                //    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", input, expectedType.ToString(), col.ItemType.ToString());
-            }
-            //for (var i = 0; i < Transformer.Outputs.Length; i++)
-            //{
-            //    resultDic[Transformer.Outputs[i]] = new SchemaShape.Column(Transformer.Outputs[i],
-            //        Transformer.OutputTypes[i].IsKnownSizeVector ? SchemaShape.Column.VectorKind.Vector
-            //        : SchemaShape.Column.VectorKind.VariableVector, Transformer.OutputTypes[i].ItemType, false);
-            //}
+
+            var input = Transformer.Input;
+            if (!inputSchema.TryFindColumn(input, out var col))
+                throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", input);
+            if (!(col.Kind == SchemaShape.Column.VectorKind.VariableVector || col.Kind == SchemaShape.Column.VectorKind.Vector))
+                throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", input, nameof(VectorType), col.GetTypeString());
+            //var expectedType = OnnxUtils.OnnxToMlNetType(Transformer.TFInputTypes[i]);
+            //if (col.ItemType != expectedType)
+            //    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", input, expectedType.ToString(), col.ItemType.ToString());
+
+            //resultDic[Transformer.Output] = new SchemaShape.Column(Transformer.Output,
+            //    Transformer.OutputTypes[i].IsKnownSizeVector ? SchemaShape.Column.VectorKind.Vector
+            //    : SchemaShape.Column.VectorKind.VariableVector, Transformer.OutputTypes[i].ItemType, false);
+
             return new SchemaShape(resultDic.Values);
         }
     }

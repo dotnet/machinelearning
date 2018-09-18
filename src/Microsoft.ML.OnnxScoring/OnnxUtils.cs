@@ -5,7 +5,6 @@ using System.Linq;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Scoring;
-using OnnxShape = System.Collections.Generic.List<long>;
 
 namespace Microsoft.ML.OnnxScoring
 {
@@ -85,9 +84,11 @@ namespace Microsoft.ML.OnnxScoring
             return new OnnxModel(tempModelFile);
 
             // TODO:
-            // tempModelFile is needed in case the model needs to be saved
-            // Either have to save the modelbytes and delete the temp dir/file,
-            // or keep the dir/file and write proper cleanup when application closes
+            // tempModelFile is needed in case the model needs to be saved.
+            // We have two options:
+            // 1) Keep the modelbytes object, which means extra memory usage
+            // 2) Keep the temp dir/file, which requires proper cleanup when
+            // application closes and also dealing with security issues.
         }
 
         public List<Tensor> Run(List<Tensor> inputTensors)
