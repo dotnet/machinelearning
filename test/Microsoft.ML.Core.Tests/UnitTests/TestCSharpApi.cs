@@ -6,6 +6,7 @@ using Microsoft.ML.Legacy.Data;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.TestFramework;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Xunit;

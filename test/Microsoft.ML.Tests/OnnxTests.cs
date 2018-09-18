@@ -9,6 +9,7 @@ using Microsoft.ML.Legacy.Transforms;
 using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.RunTests;
+using System;
 using System.IO;
 using System.Text.RegularExpressions;
 using Xunit;
