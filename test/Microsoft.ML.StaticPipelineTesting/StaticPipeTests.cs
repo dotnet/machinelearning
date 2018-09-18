@@ -263,7 +263,7 @@ namespace Microsoft.ML.StaticPipelineTesting
         public void Normalizer()
         {
             var env = new ConsoleEnvironment(seed: 0);
-            var dataPath = GetDataPath("external", "winequality-white.csv");
+            var dataPath = GetDataPath("generated_regression_dataset.csv");
             var dataSource = new MultiFileSource(dataPath);
 
             var reader = TextLoader.CreateReader(env,
@@ -288,7 +288,7 @@ namespace Microsoft.ML.StaticPipelineTesting
         public void NormalizerWithOnFit()
         {
             var env = new ConsoleEnvironment(seed: 0);
-            var dataPath = GetDataPath("external", "winequality-white.csv");
+            var dataPath = GetDataPath("generated_regression_dataset.csv");
             var dataSource = new MultiFileSource(dataPath);
 
             var reader = TextLoader.CreateReader(env,

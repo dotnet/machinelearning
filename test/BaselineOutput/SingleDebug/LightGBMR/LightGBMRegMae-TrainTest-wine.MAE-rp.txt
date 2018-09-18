@@ -1,4 +1,0 @@
-LightGBMR
-L1(avg)	L2(avg)	RMS(avg)	Loss-fn(avg)	R Squared	/iter	/lr	/nl	/mil	/v	/nt	/em	Learner Name	Train Dataset	Test Dataset	Results File	Run Time	Physical Memory	Virtual Memory	Command Line	Settings	
-0.407028	0.274963	0.524369	0.274963	0.649369	50	0.2	20	10	+	1	Mae	LightGBMR	%Data%	%Data%	%Output%	99	0	0	maml.exe TrainTest test=%Data% tr=LightGBMR{nt=1 iter=50 em=mae v=+ lr=0.2 mil=10 nl=20} dout=%Output% loader=Text{col=Label:R4:11 col=Features:R4:0-10 sep=; header+} data=%Data% out=%Output% seed=1	/iter:50;/lr:0.2;/nl:20;/mil:10;/v:+;/nt:1;/em:Mae	
-
