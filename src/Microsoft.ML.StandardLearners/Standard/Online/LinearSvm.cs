@@ -260,6 +260,6 @@ namespace Microsoft.ML.Runtime.Learners
         }
 
         protected override BinaryPredictionTransformer<LinearBinaryPredictor> MakeTransformer(LinearBinaryPredictor model, ISchema trainSchema)
-        => new BinaryPredictionTransformer<LinearBinaryPredictor>(Host, model, trainSchema, new[] { FeatureColumn.Name });
+        => new BinaryPredictionTransformer<LinearBinaryPredictor>(Host, model, trainSchema, FeatureColumn.Name);
     }
 }

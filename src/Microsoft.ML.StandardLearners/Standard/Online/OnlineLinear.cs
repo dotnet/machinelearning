@@ -44,7 +44,7 @@ namespace Microsoft.ML.Runtime.Learners
     }
 
     public abstract class OnlineLinearTrainer<TTransformer, TModel> : TrainerEstimatorBase<TTransformer, TModel>
-        where TTransformer : IPredictionTransformer<TModel>
+        where TTransformer : IClassicPredictionTransformer<TModel>
         where TModel : IPredictor
     {
         protected readonly OnlineLinearArguments Args;

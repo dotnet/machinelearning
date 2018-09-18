@@ -147,7 +147,7 @@ namespace Microsoft.ML.Runtime.Learners
     }
 
     public abstract class SdcaTrainerBase<TTransformer, TModel> : StochasticTrainerBase<TTransformer, TModel>
-        where TTransformer : IPredictionTransformer<TModel>
+        where TTransformer : IClassicPredictionTransformer<TModel>
         where TModel : IPredictor
     {
         // REVIEW: Making it even faster and more accurate:
@@ -1490,7 +1490,7 @@ namespace Microsoft.ML.Runtime.Learners
         }
 
         protected override BinaryPredictionTransformer<TScalarPredictor> MakeTransformer(TScalarPredictor model, ISchema trainSchema)
-            => new BinaryPredictionTransformer<TScalarPredictor>(Host, model, trainSchema, new[] { FeatureColumn.Name });
+            => new BinaryPredictionTransformer<TScalarPredictor>(Host, model, trainSchema, FeatureColumn.Name);
 
         public BinaryPredictionTransformer<TScalarPredictor> Train(IDataView trainData, IDataView validationData = null, IPredictor initialPredictor = null) => TrainTransformer(trainData, validationData, initialPredictor);
     }

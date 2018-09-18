@@ -14,15 +14,13 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 {
     public partial class TrainerEstimators : TestDataPipeBase
     {
-        [Fact(Skip ="Disabling to check whether any regressions, will enable prior to check-in")]
+        [Fact]
         public void FieldAwareFactorizationMachine_Estimator()
         {
             var data = new TextLoader(Env, GetFafmBCLoaderArgs())
                     .Read(new MultiFileSource(GetDataPath(TestDatasets.breastCancer.trainFilename)));
 
             IEstimator<ITransformer> est = new FieldAwareFactorizationMachineTrainer(Env, "Label", new[] { "Feature1", "Feature2", "Feature3", "Feature4" });
-
-            //var result = est.Fit(data);
             TestEstimatorCore(est, data);
 
             Done();

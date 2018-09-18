@@ -34,7 +34,7 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
     */
     /// <include file='doc.xml' path='doc/members/member[@name="FieldAwareFactorizationMachineBinaryClassifier"]/*' />
     public sealed class FieldAwareFactorizationMachineTrainer : TrainerBase<FieldAwareFactorizationMachinePredictor>,
-        ITrainerEstimator<BinaryPredictionTransformer<FieldAwareFactorizationMachinePredictor>, FieldAwareFactorizationMachinePredictor>
+        IEstimator<FieldAwareFactorizationMachinePredictionTransformer>
     {
         internal const string Summary = "Train a field-aware factorization machine for binary classification";
         internal const string UserName = "Field-aware Factorization Machine";
@@ -457,7 +457,7 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
                 () => LearnerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.LabelColumn));
         }
 
-        public BinaryPredictionTransformer<FieldAwareFactorizationMachinePredictor> Fit(IDataView input)
+        public FieldAwareFactorizationMachinePredictionTransformer Fit(IDataView input)
         {
             FieldAwareFactorizationMachinePredictor model = null;
 
@@ -484,11 +484,12 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
                 model = pred;
             }
 
-            return new BinaryPredictionTransformer<FieldAwareFactorizationMachinePredictor>(Host, model, input.Schema, FeatureColumns.Select(x => x.Name).ToArray() );
+            return new FieldAwareFactorizationMachinePredictionTransformer(Host, model, input.Schema, FeatureColumns.Select(x => x.Name).ToArray() );
         }
 
         public SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {
+
             Host.CheckValue(inputSchema, nameof(inputSchema));
 
             void CheckColumnsCompatible(SchemaShape.Column column, string defaultName){

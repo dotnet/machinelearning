@@ -3,8 +3,11 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
+using System.IO;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
+using Microsoft.ML.Runtime.Data.IO;
 using Microsoft.ML.Runtime.FactorizationMachine;
 using Microsoft.ML.Runtime.Internal.CpuMath;
 using Microsoft.ML.Runtime.Internal.Internallearn;
@@ -12,6 +15,9 @@ using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
 
 [assembly: LoadableClass(typeof(FieldAwareFactorizationMachinePredictor), null, typeof(SignatureLoadModel), "Field Aware Factorization Machine", FieldAwareFactorizationMachinePredictor.LoaderSignature)]
+
+[assembly: LoadableClass(typeof(FieldAwareFactorizationMachinePredictionTransformer), typeof(FieldAwareFactorizationMachinePredictionTransformer), null, typeof(SignatureLoadModel),
+    "", FieldAwareFactorizationMachinePredictionTransformer.LoaderSignature)]
 
 namespace Microsoft.ML.Runtime.FactorizationMachine
 {
@@ -181,5 +187,162 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
             Host.AssertValue(latentWeights);
             latentWeights.CopyFrom(_latentWeightsAligned);
         }
+    }
+
+    public sealed class FieldAwareFactorizationMachinePredictionTransformer : PredictionTransformerBase<FieldAwareFactorizationMachinePredictor>, ICanSaveModel
+    {
+        public const string LoaderSignature = "FAFMPredXfer";
+
+        /// <summary>
+        /// The name of the feature column used by the prediction transformer.
+        /// </summary>
+        public string[] FeatureColumns { get; }
+
+        /// <summary>
+        /// The type of the prediction transformer
+        /// </summary>
+        public ColumnType[] FeatureColumnTypes { get; }
+
+        private readonly BinaryClassifierScorer _scorer;
+
+        public readonly string ThresholdColumn;
+        public readonly float Threshold;
+
+        public FieldAwareFactorizationMachinePredictionTransformer(IHostEnvironment host, FieldAwareFactorizationMachinePredictor model, ISchema trainSchema,
+            string[] featureColumns, float threshold = 0f, string thresholdColumn = DefaultColumnNames.Score)
+            :base(Contracts.CheckRef(host, nameof(host)).Register(nameof(FieldAwareFactorizationMachinePredictionTransformer)), model, trainSchema)
+        {
+            Host.CheckNonEmpty(thresholdColumn, nameof(thresholdColumn));
+            Threshold = threshold;
+            ThresholdColumn = thresholdColumn;
+
+            Host.CheckValue(featureColumns, nameof(featureColumns));
+            int featCount = featureColumns.Length;
+            Host.Check(featCount >= 0, "Empty features column.");
+
+            FeatureColumns = featureColumns;
+            FeatureColumnTypes = new ColumnType[featCount];
+
+            int i = 0;
+            foreach (var feat in featureColumns)
+            {
+                if (!trainSchema.TryGetColumnIndex(feat, out int col))
+                    throw Host.ExceptSchemaMismatch(nameof(featureColumns), RoleMappedSchema.ColumnRole.Feature.Value, feat);
+                FeatureColumnTypes[i++] = trainSchema.GetColumnType(col);
+            }
+
+            BindableMapper = ScoreUtils.GetSchemaBindableMapper(Host, model);
+
+            var schema = GetSchema();
+            var args = new BinaryClassifierScorer.Arguments { Threshold = Threshold, ThresholdColumn = ThresholdColumn };
+            _scorer = new BinaryClassifierScorer(Host, args, new EmptyDataView(Host, trainSchema), BindableMapper.Bind(Host, schema), schema);
+        }
+
+        public FieldAwareFactorizationMachinePredictionTransformer(IHostEnvironment host, ModelLoadContext ctx)
+            :base(Contracts.CheckRef(host, nameof(host)).Register(nameof(FieldAwareFactorizationMachinePredictionTransformer)), ctx)
+        {
+            // *** Binary format ***
+            // <base info>
+            // ids of strings: feature columns.
+            // float: scorer threshold
+            // id of string: scorer threshold column
+
+            // count of feature columns. FAFM uses more than one.
+            int featCount = Model.FieldCount;
+
+            FeatureColumns = new string[featCount];
+            FeatureColumnTypes = new ColumnType[featCount];
+
+            for (int i = 0; i < featCount; i++)
+            {
+                FeatureColumns[i] = ctx.LoadString();
+                if (!TrainSchema.TryGetColumnIndex(FeatureColumns[i], out int col))
+                    throw Host.ExceptSchemaMismatch(nameof(FeatureColumns), RoleMappedSchema.ColumnRole.Feature.Value, FeatureColumns[i]);
+                FeatureColumnTypes[i] = TrainSchema.GetColumnType(col);
+            }
+
+            Threshold = ctx.Reader.ReadSingle();
+            ThresholdColumn = ctx.LoadString();
+
+            BindableMapper = ScoreUtils.GetSchemaBindableMapper(Host, Model);
+
+            var schema = GetSchema();
+            var args = new BinaryClassifierScorer.Arguments { Threshold = Threshold, ThresholdColumn = ThresholdColumn };
+            _scorer = new BinaryClassifierScorer(Host, args, new EmptyDataView(Host, TrainSchema), BindableMapper.Bind(Host, schema), schema);
+        }
+
+        public override ISchema GetOutputSchema(ISchema inputSchema)
+        {
+            for (int i = 0; i < FeatureColumns.Length; i++)
+            {
+                var feat = FeatureColumns[i];
+                if (!inputSchema.TryGetColumnIndex(feat, out int col))
+                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), RoleMappedSchema.ColumnRole.Feature.Value, feat, FeatureColumnTypes[i].ToString(), null);
+
+                if (!inputSchema.GetColumnType(col).Equals(FeatureColumnTypes[i]))
+                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), RoleMappedSchema.ColumnRole.Feature.Value, feat, FeatureColumnTypes[i].ToString(), inputSchema.GetColumnType(col).ToString());
+            }
+
+            return Transform(new EmptyDataView(Host, inputSchema)).Schema;
+        }
+
+        public override IDataView Transform(IDataView input)
+        {
+            Host.CheckValue(input, nameof(input));
+            return _scorer.ApplyToData(Host, input);
+        }
+
+        public void Save(ModelSaveContext ctx)
+        {
+            Host.CheckValue(ctx, nameof(ctx));
+            ctx.CheckAtModel();
+            ctx.SetVersionInfo(GetVersionInfo());
+
+            // *** Binary format ***
+            // model: prediction model.
+            // stream: empty data view that contains train schema.
+            // ids of strings: feature columns.
+            // float: scorer threshold
+            // id of string: scorer threshold column
+
+            ctx.SaveModel(Model, DirModel);
+            ctx.SaveBinaryStream(DirTransSchema, writer =>
+            {
+                using (var ch = Host.Start("Saving train schema"))
+                {
+                    var saver = new BinarySaver(Host, new BinarySaver.Arguments { Silent = true });
+                    DataSaverUtils.SaveDataView(ch, saver, new EmptyDataView(Host, TrainSchema), writer.BaseStream);
+                }
+            });
+
+            for (int i = 0; i < Model.FieldCount; i++)
+                ctx.SaveString(FeatureColumns[i]);
+
+            ctx.Writer.Write(Threshold);
+            ctx.SaveString(ThresholdColumn);
+        }
+
+        private RoleMappedSchema GetSchema()
+        {
+            var roles = new List<KeyValuePair<RoleMappedSchema.ColumnRole, string>>();
+            foreach (var feat in FeatureColumns)
+                roles.Add(new KeyValuePair<RoleMappedSchema.ColumnRole, string>(RoleMappedSchema.ColumnRole.Feature, feat));
+
+            var schema = new RoleMappedSchema(TrainSchema, roles);
+            return schema;
+        }
+
+        private static VersionInfo GetVersionInfo()
+        {
+            return new VersionInfo(
+                modelSignature: "FAFMPRED",
+                verWrittenCur: 0x00010001, // Initial
+                verReadableCur: 0x00010001,
+                verWeCanReadBack: 0x00010001,
+                loaderSignature: LoaderSignature);
+        }
+
+        private static FieldAwareFactorizationMachinePredictionTransformer Create(IHostEnvironment env, ModelLoadContext ctx)
+            => new FieldAwareFactorizationMachinePredictionTransformer(env, ctx);
     }
 }

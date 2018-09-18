@@ -11,10 +11,14 @@ namespace Microsoft.ML.Runtime
     public interface IPredictionTransformer<out TModel> : ITransformer
         where TModel : IPredictor
     {
-        string[] FeatureColumn { get; }
-
-        ColumnType[] FeatureColumnType { get; }
-
         TModel Model { get; }
+    }
+
+    public interface IClassicPredictionTransformer<out TModel> : IPredictionTransformer<TModel>
+    where TModel : IPredictor
+    {
+        string FeatureColumn { get; }
+
+        ColumnType FeatureColumnType { get; }
     }
 }

@@ -34,7 +34,7 @@ using System.Collections.Generic;
 namespace Microsoft.ML.Runtime.Learners
 {
     using TScalarPredictor = IPredictorProducing<float>;
-    using TScalarTrainer = ITrainerEstimator<IPredictionTransformer<IPredictorProducing<float>>, IPredictorProducing<float>>;
+    using TScalarTrainer = ITrainerEstimator<IClassicPredictionTransformer<IPredictorProducing<float>>, IPredictorProducing<float>>;
     using TDistPredictor = IDistPredictorProducing<float, float>;
     using CR = RoleMappedSchema.ColumnRole;
 
@@ -111,7 +111,7 @@ namespace Microsoft.ML.Runtime.Learners
             return OvaPredictor.Create(Host, _args.UseProbabilities, predictors);
         }
 
-        private IPredictionTransformer<TScalarPredictor> TrainOne(IChannel ch, TScalarTrainer trainer, RoleMappedData data, int cls)
+        private IClassicPredictionTransformer<TScalarPredictor> TrainOne(IChannel ch, TScalarTrainer trainer, RoleMappedData data, int cls)
         {
             var view = MapLabels(data, cls);
 
@@ -127,7 +127,7 @@ namespace Microsoft.ML.Runtime.Learners
 
                 // REVIEW: restoring the RoleMappedData, as much as we can.
                 // not having the weight column on the data passed to the TrainCalibrator should be addressed.
-                var trainedData = new RoleMappedData(view, label: trainerLabel, feature: transformer.FeatureColumn[0]);
+                var trainedData = new RoleMappedData(view, label: trainerLabel, feature: transformer.FeatureColumn);
 
                 if (calibratedModel == null)
                    calibratedModel = CalibratorUtils.TrainCalibrator(Host, ch, Calibrator, Args.MaxCalibrationExamples, transformer.Model, trainedData) as TDistPredictor;
@@ -185,7 +185,7 @@ namespace Microsoft.ML.Runtime.Learners
                     if (i == 0)
                     {
                         var transformer = TrainOne(ch, GetTrainer(), td, i);
-                        featureColumn = transformer.FeatureColumn[0];
+                        featureColumn = transformer.FeatureColumn;
                     }
 
                     predictors[i] = TrainOne(ch, GetTrainer(), td, i).Model;
