@@ -134,6 +134,7 @@ namespace Microsoft.ML.Runtime.FastTree
                 new SchemaShape.Column(DefaultColumnNames.PredictedLabel, SchemaShape.Column.VectorKind.Scalar, BoolType.Instance, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata()))
             };
         }
+        private double _sigmoidParameter;
 
         /// <summary>
         /// Initializes a new instance of <see cref="FastTreeBinaryClassificationTrainer"/> by using the legacy <see cref="Arguments"/> class.
@@ -147,6 +148,8 @@ namespace Microsoft.ML.Runtime.FastTree
                 new SchemaShape.Column(DefaultColumnNames.Probability, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata(true))),
                 new SchemaShape.Column(DefaultColumnNames.PredictedLabel, SchemaShape.Column.VectorKind.Scalar, BoolType.Instance, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata()))
             };
+            // Set the sigmoid parameter to the 2 * learning rate, for traditional FastTreeClassification loss
+            _sigmoidParameter = 2.0 * Args.LearningRates;
         }
 
         public override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
@@ -179,13 +182,24 @@ namespace Microsoft.ML.Runtime.FastTree
             // The correctness of this scaling depends upon the gradient calculation in
             // BinaryClassificationObjectiveFunction.GetGradientInOneQuery being consistent with the
             // description in section 6 of the paper.
-            var cali = new PlattCalibrator(Host, -2 * Args.LearningRates, 0);
+            var cali = new PlattCalibrator(Host, -1 * _sigmoidParameter, 0);
             return new FeatureWeightsCalibratedPredictor(Host, pred, cali);
         }
 
         protected override ObjectiveFunctionBase ConstructObjFunc(IChannel ch)
         {
-            return new ObjectiveImpl(TrainSet, _trainSetLabels, Args, ParallelTraining);
+            return new ObjectiveImpl(
+                TrainSet,
+                _trainSetLabels,
+                Args.LearningRates,
+                Args.Shrinkage,
+                _sigmoidParameter,
+                Args.UnbalancedSets,
+                Args.MaxTreeOutput,
+                Args.GetDerivativesSampleRate,
+                Args.BestStepRankingRegressionTrees,
+                Args.RngSeed,
+                ParallelTraining);
         }
 
         protected override OptimizationAlgorithm ConstructOptimizationAlgorithm(IChannel ch)
@@ -193,7 +207,7 @@ namespace Microsoft.ML.Runtime.FastTree
             OptimizationAlgorithm optimizationAlgorithm = base.ConstructOptimizationAlgorithm(ch);
             if (Args.UseLineSearch)
             {
-                var lossCalculator = new BinaryClassificationTest(optimizationAlgorithm.TrainingScores, _trainSetLabels, Args.LearningRates);
+                var lossCalculator = new BinaryClassificationTest(optimizationAlgorithm.TrainingScores, _trainSetLabels, _sigmoidParameter);
                 // REVIEW: we should makeloss indices an enum in BinaryClassificationTest
                 optimizationAlgorithm.AdjustTreeOutputsOverride = new LineSearch(lossCalculator, Args.UnbalancedSets ? 3 /*Unbalanced  sets  loss*/ : 1 /*normal loss*/, Args.NumPostBracketSteps, Args.MinStepSize);
             }
@@ -220,19 +234,19 @@ namespace Microsoft.ML.Runtime.FastTree
 
         protected override Test ConstructTestForTrainingData()
         {
-            return new BinaryClassificationTest(ConstructScoreTracker(TrainSet), _trainSetLabels, Args.LearningRates);
+            return new BinaryClassificationTest(ConstructScoreTracker(TrainSet), _trainSetLabels, _sigmoidParameter);
         }
 
         protected override void InitializeTests()
         {
             //Always compute training L1/L2 errors
-            TrainTest = new BinaryClassificationTest(ConstructScoreTracker(TrainSet), _trainSetLabels, Args.LearningRates);
+            TrainTest = new BinaryClassificationTest(ConstructScoreTracker(TrainSet), _trainSetLabels, _sigmoidParameter);
             Tests.Add(TrainTest);
 
             if (ValidSet != null)
             {
                 ValidTest = new BinaryClassificationTest(ConstructScoreTracker(ValidSet),
-                    GetClassificationLabelsFromRatings(ValidSet).ToArray(), Args.LearningRates);
+                    GetClassificationLabelsFromRatings(ValidSet).ToArray(), _sigmoidParameter);
                 Tests.Add(ValidTest);
             }
 
@@ -243,7 +257,7 @@ namespace Microsoft.ML.Runtime.FastTree
                 for (int t = 0; t < TestSets.Length; ++t)
                 {
                     bool[] labels = GetClassificationLabelsFromRatings(TestSets[t]).ToArray();
-                    Tests.Add(new BinaryClassificationTest(ConstructScoreTracker(TestSets[t]), labels, Args.LearningRates));
+                    Tests.Add(new BinaryClassificationTest(ConstructScoreTracker(TestSets[t]), labels, _sigmoidParameter));
                 }
             }
 
@@ -274,38 +288,32 @@ namespace Microsoft.ML.Runtime.FastTree
             private readonly long _npos;
             private readonly long _nneg;
             private IParallelTraining _parallelTraining;
+            private readonly double _sigmoidParameter; // Parameter for scaling the loss
 
-            public ObjectiveImpl(Dataset trainSet, bool[] trainSetLabels, BinaryClassificationGamTrainer.Arguments args)
+            public ObjectiveImpl(
+                Dataset trainSet,
+                bool[] trainSetLabels,
+                double learningRate,
+                double shrinkage,
+                double sigmoidParameter,
+                bool unbalancedSets,
+                double maxTreeOutput,
+                int getDerivativesSampleRate,
+                bool bestStepRankingRegressionTrees,
+                int rngSeed,
+                IParallelTraining parallelTraining)
                 : base(
                     trainSet,
-                    args.LearningRates,
-                    0,
-                    args.MaxOutput,
-                    args.GetDerivativesSampleRate,
-                    false,
-                    args.RngSeed)
+                    learningRate,
+                    shrinkage,
+                    maxTreeOutput,
+                    getDerivativesSampleRate,
+                    bestStepRankingRegressionTrees,
+                    rngSeed)
             {
+                _sigmoidParameter = sigmoidParameter;
                 _labels = trainSetLabels;
-                _unbalancedSets = args.UnbalancedSets;
-                if (_unbalancedSets)
-                {
-                    BinaryClassificationTest.ComputeExampleCounts(_labels, out _npos, out _nneg);
-                    Contracts.Check(_nneg > 0 && _npos > 0, "Only one class in training set.");
-                }
-            }
-
-            public ObjectiveImpl(Dataset trainSet, bool[] trainSetLabels, Arguments args, IParallelTraining parallelTraining)
-                : base(
-                    trainSet,
-                    args.LearningRates,
-                    args.Shrinkage,
-                    args.MaxTreeOutput,
-                    args.GetDerivativesSampleRate,
-                    args.BestStepRankingRegressionTrees,
-                    args.RngSeed)
-            {
-                _labels = trainSetLabels;
-                _unbalancedSets = args.UnbalancedSets;
+                _unbalancedSets = unbalancedSets;
                 if (_unbalancedSets)
                 {
                     BinaryClassificationTest.ComputeExampleCounts(_labels, out _npos, out _nneg);
@@ -316,7 +324,6 @@ namespace Microsoft.ML.Runtime.FastTree
 
             protected override void GetGradientInOneQuery(int query, int threadIndex)
             {
-                double sigmoidParam = LearningRate;
                 int begin = Dataset.Boundaries[query];
                 int numDocuments = Dataset.Boundaries[query + 1] - Dataset.Boundaries[query];
 
@@ -341,10 +348,10 @@ namespace Microsoft.ML.Runtime.FastTree
                         {
                             int label = pLabels[i] ? 1 : -1;
                             double recip = pLabels[i] ? recipNpos : recipNneg;
-                            double response = 2.0 * label * sigmoidParam / (1.0 + Math.Exp(2.0 * label * sigmoidParam * pScores[i]));
+                            double response = label * _sigmoidParameter / (1.0 + Math.Exp(label * _sigmoidParameter * pScores[i]));
                             double absResponse = Math.Abs(response);
                             pLambdas[i] = response * recip;
-                            pWeights[i] = absResponse * (2.0 * sigmoidParam - absResponse) * recip;
+                            pWeights[i] = absResponse * (_sigmoidParameter - absResponse) * recip;
                         }
                     }
                 }

@@ -133,7 +133,7 @@ namespace Microsoft.ML.Runtime.FastTree
             // Finally, even the binary classifiers, being logitboost, tend to not benefit from external calibration.
             Info = new TrainerInfo(normalization: false, caching: false, calibration: NeedCalibration, supportValid: true);
             // REVIEW: CLR 4.6 has a bug that is only exposed in Scope, and if we trigger GC.Collect in scope environment
-            // with memory consumption more than 5GB, GC get stuck in infinite loop. So for now let's call GC only if we call things from TlcEnvironment.
+            // with memory consumption more than 5GB, GC get stuck in infinite loop. So for now let's call GC only if we call things from LocalEnvironment.
             AllowGC = (env is HostEnvironmentBase<TlcEnvironment>);
 
             Initialize(env);

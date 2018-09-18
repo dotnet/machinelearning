@@ -18,7 +18,8 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         [Fact]
         public void TrainWithValidationSet()
         {
-            using (var env = new TlcEnvironment(seed: 1, conc: 1))
+
+            using (var env = new LocalEnvironment(seed: 1, conc: 1))
             {
                 // Pipeline
                 var loader = TextLoader.ReadFile(env, MakeSentimentTextLoaderArgs(), new MultiFileSource(GetDataPath(TestDatasets.Sentiment.trainFilename)));

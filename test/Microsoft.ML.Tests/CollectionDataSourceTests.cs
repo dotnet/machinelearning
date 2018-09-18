@@ -59,7 +59,7 @@ namespace Microsoft.ML.EntryPoints.Tests
         public void CanSuccessfullyApplyATransform()
         {
             var collection = CollectionDataSource.Create(new List<Input>() { new Input { Number1 = 1, String1 = "1" } });
-            using (var environment = new TlcEnvironment())
+            using (var environment = new ConsoleEnvironment())
             {
                 Experiment experiment = environment.CreateExperiment();
                 Legacy.ILearningPipelineDataStep output = (Legacy.ILearningPipelineDataStep)collection.ApplyStep(null, experiment);
@@ -79,7 +79,7 @@ namespace Microsoft.ML.EntryPoints.Tests
                 new Input { Number1 = 3, String1 = "3" }
             });
 
-            using (var environment = new TlcEnvironment())
+            using (var environment = new ConsoleEnvironment())
             {
                 Experiment experiment = environment.CreateExperiment();
                 Legacy.ILearningPipelineDataStep output = collection.ApplyStep(null, experiment) as Legacy.ILearningPipelineDataStep;
@@ -484,7 +484,7 @@ namespace Microsoft.ML.EntryPoints.Tests
                 new ConversionNullalbeClass()
             };
 
-            using (var env = new TlcEnvironment())
+            using (var env = new ConsoleEnvironment())
             {
                 var dataView = ComponentCreation.CreateDataView(env, data);
                 var enumeratorSimple = dataView.AsEnumerable<ConversionSimpleClass>(env, false).GetEnumerator();
@@ -517,7 +517,7 @@ namespace Microsoft.ML.EntryPoints.Tests
         [Fact]
         public void ConversionExceptionsBehavior()
         {
-            using (var env = new TlcEnvironment())
+            using (var env = new ConsoleEnvironment())
             {
                 var data = new ConversionNotSupportedMinValueClass[1];
                 foreach (var field in typeof(ConversionNotSupportedMinValueClass).GetFields())
@@ -553,7 +553,7 @@ namespace Microsoft.ML.EntryPoints.Tests
         [Fact]
         public void ConversionMinValueToNullBehavior()
         {
-            using (var env = new TlcEnvironment())
+            using (var env = new ConsoleEnvironment())
             {
 
                 var data = new List<ConversionLossMinValueClass>
@@ -589,7 +589,7 @@ namespace Microsoft.ML.EntryPoints.Tests
         [Fact]
         public void ConversionMinValueToNullBehaviorProperties()
         {
-            using (var env = new TlcEnvironment())
+            using (var env = new ConsoleEnvironment())
             {
 
                 var data = new List<ConversionLossMinValueClassProperties>
@@ -628,7 +628,7 @@ namespace Microsoft.ML.EntryPoints.Tests
                 new ClassWithConstField(){ fInt=0, fString =null }
             };
 
-            using (var env = new TlcEnvironment())
+            using (var env = new ConsoleEnvironment())
             {
                 var dataView = ComponentCreation.CreateDataView(env, data);
                 var enumeratorSimple = dataView.AsEnumerable<ClassWithConstField>(env, false).GetEnumerator();
@@ -657,7 +657,7 @@ namespace Microsoft.ML.EntryPoints.Tests
                 new ClassWithMixOfFieldsAndProperties(){ IntProp=0, fString =null }
             };
 
-            using (var env = new TlcEnvironment())
+            using (var env = new ConsoleEnvironment())
             {
                 var dataView = ComponentCreation.CreateDataView(env, data);
                 var enumeratorSimple = dataView.AsEnumerable<ClassWithMixOfFieldsAndProperties>(env, false).GetEnumerator();
@@ -713,7 +713,7 @@ namespace Microsoft.ML.EntryPoints.Tests
                 new ClassWithPrivateFieldsAndProperties(){ StringProp ="baba" }
             };
 
-            using (var env = new TlcEnvironment())
+            using (var env = new ConsoleEnvironment())
             {
                 var dataView = ComponentCreation.CreateDataView(env, data);
                 var enumeratorSimple = dataView.AsEnumerable<ClassWithPrivateFieldsAndProperties>(env, false).GetEnumerator();
@@ -747,7 +747,7 @@ namespace Microsoft.ML.EntryPoints.Tests
                 new ClassWithInheritedProperties(){ IntProp=0, StringProp =null, LongProp=18, ByteProp=5 }
             };
 
-            using (var env = new TlcEnvironment())
+            using (var env = new ConsoleEnvironment())
             {
                 var dataView = ComponentCreation.CreateDataView(env, data);
                 var enumeratorSimple = dataView.AsEnumerable<ClassWithInheritedProperties>(env, false).GetEnumerator();
@@ -836,7 +836,7 @@ namespace Microsoft.ML.EntryPoints.Tests
                 new ClassWithNullableArrays()
             };
 
-            using (var env = new TlcEnvironment())
+            using (var env = new ConsoleEnvironment())
             {
                 var dataView = ComponentCreation.CreateDataView(env, data);
                 var enumeratorSimple = dataView.AsEnumerable<ClassWithArrays>(env, false).GetEnumerator();
@@ -960,7 +960,7 @@ namespace Microsoft.ML.EntryPoints.Tests
                 new ClassWithNullableArrayProperties()
             };
 
-            using (var env = new TlcEnvironment())
+            using (var env = new ConsoleEnvironment())
             {
                 var dataView = ComponentCreation.CreateDataView(env, data);
                 var enumeratorSimple = dataView.AsEnumerable<ClassWithArrayProperties>(env, false).GetEnumerator();
@@ -1010,7 +1010,7 @@ namespace Microsoft.ML.EntryPoints.Tests
                 new ClassWithGetter()
             };
 
-            using (var env = new TlcEnvironment())
+            using (var env = new ConsoleEnvironment())
             {
                 var dataView = ComponentCreation.CreateDataView(env, data);
                 var enumeratorSimple = dataView.AsEnumerable<ClassWithSetter>(env, false).GetEnumerator();

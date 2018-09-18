@@ -30,7 +30,7 @@ namespace Microsoft.ML.Scenarios
         public void TensorFlowTransformMatrixMultiplicationTest()
         {
             var model_location = "model_matmul/frozen_saved_model.pb";
-            using (var env = new TlcEnvironment(seed: 1, conc: 1))
+            using (var env = new ConsoleEnvironment(seed: 1, conc: 1))
             {
                 // Pipeline
                 var loader = ComponentCreation.CreateDataView(env,
@@ -76,7 +76,7 @@ namespace Microsoft.ML.Scenarios
         public void TensorFlowTransformObjectDetectionTest()
         {
             var model_location = @"C:\models\TensorFlow\ssd_mobilenet_v1_coco_2018_01_28\frozen_inference_graph.pb";
-            using (var env = new TlcEnvironment(seed: 1, conc: 1))
+            using (var env = new ConsoleEnvironment(seed: 1, conc: 1))
             {
                 var dataFile = GetDataPath("images/images.tsv");
                 var imageFolder = Path.GetDirectoryName(dataFile);
@@ -136,7 +136,7 @@ namespace Microsoft.ML.Scenarios
         public void TensorFlowTransformInceptionTest()
         {
             var model_location = @"C:\models\TensorFlow\tensorflow_inception_graph.pb";
-            using (var env = new TlcEnvironment(seed: 1, conc: 1))
+            using (var env = new ConsoleEnvironment(seed: 1, conc: 1))
             {
                 var dataFile = GetDataPath("images/images.tsv");
                 var imageFolder = Path.GetDirectoryName(dataFile);
@@ -185,7 +185,7 @@ namespace Microsoft.ML.Scenarios
         public void TensorFlowTransformMNISTConvTest()
         {
             var model_location = "mnist_model/frozen_saved_model.pb";
-            using (var env = new TlcEnvironment(seed: 1, conc: 1))
+            using (var env = new ConsoleEnvironment(seed: 1, conc: 1))
             {
                 var dataPath = GetDataPath("Train-Tiny-28x28.txt");
                 var testDataPath = GetDataPath("MNIST.Test.tiny.txt");
@@ -211,7 +211,7 @@ namespace Microsoft.ML.Scenarios
                                     }
                 }, loader);
                 trans = TensorFlowTransform.Create(env, trans, model_location, new[] { "Softmax", "dense/Relu" }, new[] { "Placeholder", "reshape_input" });
-                trans = new ConcatTransform(env, trans, "Features", "Softmax", "dense/Relu");
+                trans = new ConcatTransform(env, "Features", "Softmax", "dense/Relu").Transform(trans);
 
                 var trainer = new LightGbmMulticlassTrainer(env, new LightGbmArguments());
 
@@ -324,7 +324,7 @@ namespace Microsoft.ML.Scenarios
         {
             var model_location = "cifar_model/frozen_model.pb";
 
-            using (var env = new TlcEnvironment())
+            using (var env = new ConsoleEnvironment())
             {
                 var imageHeight = 32;
                 var imageWidth = 32;
@@ -378,7 +378,7 @@ namespace Microsoft.ML.Scenarios
         {
             var model_location = "cifar_model/frozen_model.pb";
 
-            using (var env = new TlcEnvironment())
+            using (var env = new ConsoleEnvironment())
             {
                 var imageHeight = 28;
                 var imageWidth = 28;

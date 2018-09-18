@@ -2,13 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.ML.Legacy.Transforms;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Legacy.Transforms;
 
 namespace Microsoft.ML.Legacy.Models
 {
-    public sealed partial class RegressionEvaluator
+    public sealed partial class ClusterEvaluator
     {
         /// <summary>
         /// Computes the quality metrics for the PredictionModel using the specified data set.
@@ -20,11 +20,11 @@ namespace Microsoft.ML.Legacy.Models
         /// The test data that will be predicted and used to evaluate the model.
         /// </param>
         /// <returns>
-        /// A RegressionMetrics instance that describes how well the model performed against the test data.
+        /// A ClusterMetrics instance that describes how well the model performed against the test data.
         /// </returns>
-        public RegressionMetrics Evaluate(PredictionModel model, ILearningPipelineLoader testData)
+        public ClusterMetrics Evaluate(PredictionModel model, ILearningPipelineLoader testData)
         {
-            using (var environment = new TlcEnvironment())
+            using (var environment = new ConsoleEnvironment())
             {
                 environment.CheckValue(model, nameof(model));
                 environment.CheckValue(testData, nameof(testData));
@@ -57,13 +57,12 @@ namespace Microsoft.ML.Legacy.Models
 
                 if (overallMetrics == null)
                 {
-                    throw environment.Except($"Could not find OverallMetrics in the results returned in {nameof(RegressionEvaluator)} Evaluate.");
+                    throw environment.Except($"Could not find OverallMetrics in the results returned in {nameof(ClusterEvaluator)} Evaluate.");
                 }
 
-                var metric = RegressionMetrics.FromOverallMetrics(environment, overallMetrics);
+                var metric = ClusterMetrics.FromOverallMetrics(environment, overallMetrics);
 
-                if (metric.Count != 1)
-                    throw environment.Except($"Exactly one metric set was expected but found {metric.Count} metrics");
+                Contracts.Assert(metric.Count == 1, $"Exactly one metric set was expected but found {metric.Count} metrics");
 
                 return metric[0];
             }

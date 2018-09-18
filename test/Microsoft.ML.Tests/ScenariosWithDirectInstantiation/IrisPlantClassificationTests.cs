@@ -22,7 +22,7 @@ namespace Microsoft.ML.Scenarios
             string dataPath = GetDataPath("iris.txt");
             string testDataPath = dataPath;
 
-            using (var env = new TlcEnvironment(seed: 1, conc: 1))
+            using (var env = new ConsoleEnvironment(seed: 1, conc: 1))
             {
                 // Pipeline
                 var loader = TextLoader.ReadFile(env,
@@ -39,22 +39,22 @@ namespace Microsoft.ML.Scenarios
                         }
                     }, new MultiFileSource(dataPath));
 
-                IDataTransform trans = new ConcatTransform(env, loader, "Features",
-                    "SepalLength", "SepalWidth", "PetalLength", "PetalWidth");
+                IDataView pipeline = new ConcatTransform(env, "Features",
+                    "SepalLength", "SepalWidth", "PetalLength", "PetalWidth").Transform(loader);
 
                 // Normalizer is not automatically added though the trainer has 'NormalizeFeatures' On/Auto
-                trans = NormalizeTransform.CreateMinMaxNormalizer(env, trans, "Features");
+                pipeline = NormalizeTransform.CreateMinMaxNormalizer(env, pipeline, "Features");
 
                 // Train
                 var trainer = new SdcaMultiClassTrainer(env, new SdcaMultiClassTrainer.Arguments() { NumThreads = 1 } );
 
                 // Explicity adding CacheDataView since caching is not working though trainer has 'Caching' On/Auto
-                var cached = new CacheDataView(env, trans, prefetch: null);
+                var cached = new CacheDataView(env, pipeline, prefetch: null);
                 var trainRoles = new RoleMappedData(cached, label: "Label", feature: "Features");
                 var pred = trainer.Train(trainRoles);
 
                 // Get scorer and evaluate the predictions from test data
-                IDataScorerTransform testDataScorer = GetScorer(env, trans, pred, testDataPath);
+                IDataScorerTransform testDataScorer = GetScorer(env, pipeline, pred, testDataPath);
                 var metrics = Evaluate(env, testDataScorer);
                 CompareMatrics(metrics);
 

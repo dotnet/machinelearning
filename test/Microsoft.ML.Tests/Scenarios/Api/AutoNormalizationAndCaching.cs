@@ -21,7 +21,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         {
             var data = GetDataPath(TestDatasets.Sentiment.trainFilename);
 
-            using (var env = new TlcEnvironment(seed: 1, conc: 1))
+            using (var env = new LocalEnvironment(seed: 1, conc: 1))
             {
                 // Pipeline.
                 var loader = TextLoader.ReadFile(env, MakeSentimentTextLoaderArgs(), new MultiFileSource(data));

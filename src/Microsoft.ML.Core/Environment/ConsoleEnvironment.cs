@@ -15,14 +15,14 @@ namespace Microsoft.ML.Runtime.Data
 {
     using Stopwatch = System.Diagnostics.Stopwatch;
 
-    public sealed class TlcEnvironment : HostEnvironmentBase<TlcEnvironment>
+    public sealed class ConsoleEnvironment : HostEnvironmentBase<ConsoleEnvironment>
     {
         public const string ComponentHistoryKey = "ComponentHistory";
 
         private sealed class ConsoleWriter
         {
             private readonly object _lock;
-            private readonly TlcEnvironment _parent;
+            private readonly ConsoleEnvironment _parent;
             private readonly TextWriter _out;
             private readonly TextWriter _err;
 
@@ -34,7 +34,7 @@ namespace Microsoft.ML.Runtime.Data
             private const int _maxDots = 50;
             private int _dots;
 
-            public ConsoleWriter(TlcEnvironment parent, TextWriter outWriter, TextWriter errWriter)
+            public ConsoleWriter(ConsoleEnvironment parent, TextWriter outWriter, TextWriter errWriter)
             {
                 Contracts.AssertValue(parent);
                 Contracts.AssertValue(outWriter);
@@ -331,7 +331,7 @@ namespace Microsoft.ML.Runtime.Data
         private sealed class Channel : ChannelBase
         {
             public readonly Stopwatch Watch;
-            public Channel(TlcEnvironment root, ChannelProviderBase parent, string shortName,
+            public Channel(ConsoleEnvironment root, ChannelProviderBase parent, string shortName,
                 Action<IMessageSource, ChannelMessage> dispatch)
                 : base(root, parent, shortName, dispatch)
             {
@@ -358,20 +358,36 @@ namespace Microsoft.ML.Runtime.Data
         private volatile ConsoleWriter _consoleWriter;
         private readonly MessageSensitivity _sensitivityFlags;
 
-        public TlcEnvironment(int? seed = null, bool verbose = false,
+        /// <summary>
+        /// Create an ML.NET <see cref="IHostEnvironment"/> for local execution, with console feedback.
+        /// </summary>
+        /// <param name="seed">Random seed. Set to <c>null</c> for a non-deterministic environment.</param>
+        /// <param name="verbose">Set to <c>true</c> for fully verbose logging.</param>
+        /// <param name="sensitivity">Allowed message sensitivity.</param>
+        /// <param name="conc">Concurrency level. Set to 1 to run single-threaded. Set to 0 to pick automatically.</param>
+        /// <param name="outWriter">Text writer to print normal messages to.</param>
+        /// <param name="errWriter">Text writer to print error messages to.</param>
+        public ConsoleEnvironment(int? seed = null, bool verbose = false,
             MessageSensitivity sensitivity = MessageSensitivity.All, int conc = 0,
             TextWriter outWriter = null, TextWriter errWriter = null)
             : this(RandomUtils.Create(seed), verbose, sensitivity, conc, outWriter, errWriter)
         {
         }
 
+        // REVIEW: do we really care about custom random? If we do, let's make this ctor public.
         /// <summary>
-        /// This takes ownership of the random number generator.
+        /// Create an ML.NET environment for local execution, with console feedback.
         /// </summary>
-        public TlcEnvironment(IRandom rand, bool verbose = false,
+        /// <param name="rand">An custom source of randomness to use in the environment.</param>
+        /// <param name="verbose">Set to <c>true</c> for fully verbose logging.</param>
+        /// <param name="sensitivity">Allowed message sensitivity.</param>
+        /// <param name="conc">Concurrency level. Set to 1 to run single-threaded. Set to 0 to pick automatically.</param>
+        /// <param name="outWriter">Text writer to print normal messages to.</param>
+        /// <param name="errWriter">Text writer to print error messages to.</param>
+        private ConsoleEnvironment(IRandom rand, bool verbose = false,
             MessageSensitivity sensitivity = MessageSensitivity.All, int conc = 0,
             TextWriter outWriter = null, TextWriter errWriter = null)
-            : base(rand, verbose, conc, nameof(TlcEnvironment))
+            : base(rand, verbose, conc, nameof(ConsoleEnvironment))
         {
             Contracts.CheckValueOrNull(outWriter);
             Contracts.CheckValueOrNull(errWriter);
@@ -401,7 +417,7 @@ namespace Microsoft.ML.Runtime.Data
             return base.CreateTempFileCore(env, suffix, "TLC_" + prefix);
         }
 
-        protected override IHost RegisterCore(HostEnvironmentBase<TlcEnvironment> source, string shortName, string parentFullName, IRandom rand, bool verbose, int? conc)
+        protected override IHost RegisterCore(HostEnvironmentBase<ConsoleEnvironment> source, string shortName, string parentFullName, IRandom rand, bool verbose, int? conc)
         {
             Contracts.AssertValue(rand);
             Contracts.AssertValueOrNull(parentFullName);
@@ -413,7 +429,7 @@ namespace Microsoft.ML.Runtime.Data
         protected override IChannel CreateCommChannel(ChannelProviderBase parent, string name)
         {
             Contracts.AssertValue(parent);
-            Contracts.Assert(parent is TlcEnvironment);
+            Contracts.Assert(parent is ConsoleEnvironment);
             Contracts.AssertNonEmpty(name);
             return new Channel(this, parent, name, GetDispatchDelegate<ChannelMessage>());
         }
@@ -421,7 +437,7 @@ namespace Microsoft.ML.Runtime.Data
         protected override IPipe<TMessage> CreatePipe<TMessage>(ChannelProviderBase parent, string name)
         {
             Contracts.AssertValue(parent);
-            Contracts.Assert(parent is TlcEnvironment);
+            Contracts.Assert(parent is ConsoleEnvironment);
             Contracts.AssertNonEmpty(name);
             return new Pipe<TMessage>(parent, name, GetDispatchDelegate<TMessage>());
         }
@@ -439,11 +455,11 @@ namespace Microsoft.ML.Runtime.Data
 
         private sealed class OutputRedirector : IDisposable
         {
-            private readonly TlcEnvironment _root;
+            private readonly ConsoleEnvironment _root;
             private ConsoleWriter _oldConsoleWriter;
             private readonly ConsoleWriter _newConsoleWriter;
 
-            public OutputRedirector(TlcEnvironment env, TextWriter newOutWriter, TextWriter newErrWriter)
+            public OutputRedirector(ConsoleEnvironment env, TextWriter newOutWriter, TextWriter newErrWriter)
             {
                 Contracts.AssertValue(env);
                 Contracts.AssertValue(newOutWriter);
@@ -467,7 +483,7 @@ namespace Microsoft.ML.Runtime.Data
 
         private sealed class Host : HostBase
         {
-            public Host(HostEnvironmentBase<TlcEnvironment> source, string shortName, string parentFullName, IRandom rand, bool verbose, int? conc)
+            public Host(HostEnvironmentBase<ConsoleEnvironment> source, string shortName, string parentFullName, IRandom rand, bool verbose, int? conc)
                 : base(source, shortName, parentFullName, rand, verbose, conc)
             {
                 IsCancelled = source.IsCancelled;
@@ -489,7 +505,7 @@ namespace Microsoft.ML.Runtime.Data
                 return new Pipe<TMessage>(parent, name, GetDispatchDelegate<TMessage>());
             }
 
-            protected override IHost RegisterCore(HostEnvironmentBase<TlcEnvironment> source, string shortName, string parentFullName, IRandom rand, bool verbose, int? conc)
+            protected override IHost RegisterCore(HostEnvironmentBase<ConsoleEnvironment> source, string shortName, string parentFullName, IRandom rand, bool verbose, int? conc)
             {
                 return new Host(source, shortName, parentFullName, rand, verbose, conc);
             }

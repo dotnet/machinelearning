@@ -25,7 +25,7 @@ namespace Microsoft.ML.Tests
         [Fact]
         public void TestEstimatorChain()
         {
-            using (var env = new TlcEnvironment())
+            using (var env = new ConsoleEnvironment())
             {
                 var dataFile = GetDataPath("images/images.tsv");
                 var imageFolder = Path.GetDirectoryName(dataFile);
@@ -45,7 +45,7 @@ namespace Microsoft.ML.Tests
         [Fact]
         public void TestEstimatorSaveLoad()
         {
-            using (var env = new TlcEnvironment())
+            using (var env = new ConsoleEnvironment())
             {
                 var dataFile = GetDataPath("images/images.tsv");
                 var imageFolder = Path.GetDirectoryName(dataFile);
@@ -78,7 +78,7 @@ namespace Microsoft.ML.Tests
         [Fact]
         public void TestSaveImages()
         {
-            using (var env = new TlcEnvironment())
+            using (var env = new ConsoleEnvironment())
             {
                 var dataFile = GetDataPath("images/images.tsv");
                 var imageFolder = Path.GetDirectoryName(dataFile);
@@ -123,7 +123,7 @@ namespace Microsoft.ML.Tests
         [Fact]
         public void TestGreyscaleTransformImages()
         {
-            using (var env = new TlcEnvironment())
+            using (var env = new ConsoleEnvironment())
             {
                 var imageHeight = 150;
                 var imageWidth = 100;
@@ -186,7 +186,7 @@ namespace Microsoft.ML.Tests
         [Fact]
         public void TestBackAndForthConversionWithAlphaInterleave()
         {
-            using (var env = new TlcEnvironment())
+            using (var env = new ConsoleEnvironment())
             {
                 var imageHeight = 100;
                 var imageWidth = 130;
@@ -269,7 +269,7 @@ namespace Microsoft.ML.Tests
         [Fact]
         public void TestBackAndForthConversionWithoutAlphaInterleave()
         {
-            using (var env = new TlcEnvironment())
+            using (var env = new ConsoleEnvironment())
             {
                 var imageHeight = 100;
                 var imageWidth = 130;
@@ -352,7 +352,7 @@ namespace Microsoft.ML.Tests
         [Fact]
         public void TestBackAndForthConversionWithAlphaNoInterleave()
         {
-            using (var env = new TlcEnvironment())
+            using (var env = new ConsoleEnvironment())
             {
                 var imageHeight = 100;
                 var imageWidth = 130;
@@ -435,7 +435,7 @@ namespace Microsoft.ML.Tests
         [Fact]
         public void TestBackAndForthConversionWithoutAlphaNoInterleave()
         {
-            using (var env = new TlcEnvironment())
+            using (var env = new ConsoleEnvironment())
             {
                 var imageHeight = 100;
                 var imageWidth = 130;
@@ -518,7 +518,7 @@ namespace Microsoft.ML.Tests
         [Fact]
         public void TestBackAndForthConversionWithAlphaInterleaveNoOffset()
         {
-            using (var env = new TlcEnvironment())
+            using (var env = new ConsoleEnvironment())
             {
                 var imageHeight = 100;
                 var imageWidth = 130;
@@ -597,7 +597,7 @@ namespace Microsoft.ML.Tests
         [Fact]
         public void TestBackAndForthConversionWithoutAlphaInterleaveNoOffset()
         {
-            using (var env = new TlcEnvironment())
+            using (var env = new ConsoleEnvironment())
             {
                 var imageHeight = 100;
                 var imageWidth = 130;
@@ -676,7 +676,7 @@ namespace Microsoft.ML.Tests
         [Fact]
         public void TestBackAndForthConversionWithAlphaNoInterleaveNoOffset()
         {
-            using (var env = new TlcEnvironment())
+            using (var env = new ConsoleEnvironment())
             {
                 var imageHeight = 100;
                 var imageWidth = 130;
@@ -755,7 +755,7 @@ namespace Microsoft.ML.Tests
         [Fact]
         public void TestBackAndForthConversionWithoutAlphaNoInterleaveNoOffset()
         {
-            using (var env = new TlcEnvironment())
+            using (var env = new ConsoleEnvironment())
             {
                 var imageHeight = 100;
                 var imageWidth = 130;
