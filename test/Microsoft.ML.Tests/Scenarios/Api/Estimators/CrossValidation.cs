@@ -22,7 +22,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         [Fact]
         void New_CrossValidation()
         {
-            using (var env = new TlcEnvironment(seed: 1, conc: 1))
+            using (var env = new LocalEnvironment(seed: 1, conc: 1))
             {
 
                 var data = new TextLoader(env, MakeSentimentTextLoaderArgs())

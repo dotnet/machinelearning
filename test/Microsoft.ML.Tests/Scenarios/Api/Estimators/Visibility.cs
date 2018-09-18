@@ -21,7 +21,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         [Fact]
         void New_Visibility()
         {
-            using (var env = new TlcEnvironment(seed: 1, conc: 1))
+            using (var env = new LocalEnvironment(seed: 1, conc: 1))
             {
                 var pipeline = new TextLoader(env, MakeSentimentTextLoaderArgs())
                     .Append(new TextTransform(env, "SentimentText", "Features", s => s.OutputTokens = true));

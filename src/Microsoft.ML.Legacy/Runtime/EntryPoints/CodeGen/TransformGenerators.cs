@@ -151,7 +151,7 @@ namespace Microsoft.ML.Runtime.EntryPoints.CodeGen
                 var argumentInfo = CmdParser.GetArgInfo(component.ArgType, component.CreateArguments());
                 foreach (var arg in argumentInfo.Args.Where(a => !a.IsHidden))
                     GenerateImplCall(w, arg, "");
-                w.WriteLine("var env = new TlcEnvironment(1, verbose: true);");
+                w.WriteLine("var env = new LocalEnvironment(1, verbose: true);");
                 w.WriteLine("var view = builder.Create{0}{1}Impl(env, data);", prefix, component.LoadNames[0]);
                 w.WriteLine("return new Tuple<IDataView, DataTransform>(view, new DataTransform(view));");
             }

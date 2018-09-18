@@ -20,7 +20,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         [Fact]
         public void New_Evaluation()
         {
-            using (var env = new TlcEnvironment(seed: 1, conc: 1))
+            using (var env = new LocalEnvironment(seed: 1, conc: 1))
             {
                 var reader = new TextLoader(env, MakeSentimentTextLoaderArgs());
 

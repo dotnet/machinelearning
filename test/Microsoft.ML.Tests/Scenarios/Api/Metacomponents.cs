@@ -22,15 +22,15 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         [Fact]
         public void Metacomponents()
         {
-            using (var env = new TlcEnvironment())
+            using (var env = new LocalEnvironment())
             {
-                var loader = TextLoader.ReadFile(env, MakeIrisTextLoaderArgs(), new MultiFileSource(GetDataPath(TestDatasets.irisData.trainFilename)));
+                var loader = TextLoader.ReadFile(env, MakeIrisTextLoaderArgs(), new MultiFileSource(TestDatasets.iris.trainFilename));
                 var term = TermTransform.Create(env, loader, "Label");
-                var concat = new ConcatTransform(env, term, "Features", "SepalLength", "SepalWidth", "PetalLength", "PetalWidth");
+                var concat = new ConcatTransform(env, "Features", "SepalLength", "SepalWidth", "PetalLength", "PetalWidth").Transform(term);
                 var trainer = new Ova(env, new Ova.Arguments
                 {
                     PredictorType = ComponentFactoryUtils.CreateFromFunction(
-                        e => new FastTreeBinaryClassificationTrainer(e, DefaultColumnNames.Label, DefaultColumnNames.Features))
+                        e => new AveragedPerceptronTrainer(env, new AveragedPerceptronTrainer.Arguments()))
                 });
 
                 IDataView trainData = trainer.Info.WantCaching ? (IDataView)new CacheDataView(env, concat, prefetch: null) : concat;

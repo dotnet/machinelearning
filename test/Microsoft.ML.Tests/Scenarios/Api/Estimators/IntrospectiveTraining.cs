@@ -33,7 +33,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         [Fact]
         public void New_IntrospectiveTraining()
         {
-            using (var env = new TlcEnvironment(seed: 1, conc: 1))
+            using (var env = new LocalEnvironment(seed: 1, conc: 1))
             {
                 var data = new TextLoader(env, MakeSentimentTextLoaderArgs())
                     .Read(new MultiFileSource(GetDataPath(TestDatasets.Sentiment.trainFilename)));

@@ -23,7 +23,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         [Fact]
         void New_FileBasedSavingOfData()
         {
-            using (var env = new TlcEnvironment(seed: 1, conc: 1))
+            using (var env = new LocalEnvironment(seed: 1, conc: 1))
             {
                 var trainData = new TextLoader(env, MakeSentimentTextLoaderArgs())
                     .Append(new TextTransform(env, "SentimentText", "Features"))

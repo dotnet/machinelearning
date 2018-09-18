@@ -21,7 +21,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         [Fact]
         public void New_ReconfigurablePrediction()
         {
-            using (var env = new TlcEnvironment(seed: 1, conc: 1))
+            using (var env = new LocalEnvironment(seed: 1, conc: 1))
             {
                 var dataReader = new TextLoader(env, MakeSentimentTextLoaderArgs());
 
