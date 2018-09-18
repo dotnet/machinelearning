@@ -107,7 +107,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                         }
                     });
 
-                var data = reader.Read(new MultiFileSource(GetDataPath(TestDatasets.winequalitymacro.trainFilename)));
+                var data = reader.Read(new MultiFileSource(GetDataPath(TestDatasets.generatedRegressionDatasetmacro.trainFilename)));
 
                 // Pipeline.
                 var pipeline = new FastTreeRegressionTrainer(env, "Label", "Features", advancedSettings: s => {
