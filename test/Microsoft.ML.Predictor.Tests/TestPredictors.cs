@@ -237,7 +237,7 @@ namespace Microsoft.ML.Runtime.RunTests
         public void BinaryClassifierSymSgdTest()
         {
             //Results sometimes go out of error tolerance on OS X.
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX)) 
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
                 return;
 
             RunOneAllTests(TestLearners.symSGD, TestDatasets.breastCancer, summary: true);
@@ -582,14 +582,7 @@ namespace Microsoft.ML.Runtime.RunTests
             var dataView = ImportTextData.ImportText(Env, new ImportTextData.Input { InputFile = inputFile }).Data;
 #pragma warning restore 0618
 
-            var cat = CategoricalTransform.Create(Env,
-                new CategoricalTransform.Arguments()
-                {
-                    Column = new[]
-                    {
-                        new CategoricalTransform.Column() { Name = "Features", Source = "Categories" }
-                    }
-                }, dataView);
+            var cat = CategoricalTransform.Create(Env, dataView, "Features", "Categories");
             var fastTrees = new IPredictorModel[3];
             for (int i = 0; i < 3; i++)
             {
