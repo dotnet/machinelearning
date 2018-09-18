@@ -20,7 +20,7 @@ using Microsoft.ML.Runtime.Model;
 [assembly: LoadableClass(WordEmbeddingsTransform.Summary, typeof(IDataTransform), typeof(WordEmbeddingsTransform), typeof(WordEmbeddingsTransform.Arguments),
     typeof(SignatureDataTransform), WordEmbeddingsTransform.UserName, "WordEmbeddingsTransform", WordEmbeddingsTransform.ShortName, DocName = "transform/WordEmbeddingsTransform.md")]
 
-[assembly: LoadableClass(WordEmbeddingsTransform.Summary, typeof(IDataView), typeof(WordEmbeddingsTransform), null, typeof(SignatureLoadDataTransform),
+[assembly: LoadableClass(WordEmbeddingsTransform.Summary, typeof(IDataTransform), typeof(WordEmbeddingsTransform), null, typeof(SignatureLoadDataTransform),
     WordEmbeddingsTransform.UserName, WordEmbeddingsTransform.LoaderSignature)]
 
 [assembly: LoadableClass(typeof(WordEmbeddingsTransform), null, typeof(SignatureLoadModel),
