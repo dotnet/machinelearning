@@ -19,6 +19,9 @@ namespace Microsoft.ML.Data.DataLoadSave
     /// </summary>
     internal sealed class FakeSchema : ISchema
     {
+        private const int AllVectorSizes = 10;
+        private const int AllKeySizes = 10;
+
         private readonly IHostEnvironment _env;
         private readonly SchemaShape _shape;
         private readonly Dictionary<string, int> _colMap;
@@ -52,11 +55,11 @@ namespace Microsoft.ML.Data.DataLoadSave
         {
             ColumnType curType = inputCol.ItemType;
             if (inputCol.IsKey)
-                curType = new KeyType(curType.AsPrimitive.RawKind, 0, 10);
+                curType = new KeyType(curType.AsPrimitive.RawKind, 0, AllKeySizes);
             if (inputCol.Kind == SchemaShape.Column.VectorKind.VariableVector)
                 curType = new VectorType(curType.AsPrimitive, 0);
             else if (inputCol.Kind == SchemaShape.Column.VectorKind.Vector)
-                curType = new VectorType(curType.AsPrimitive, 10);
+                curType = new VectorType(curType.AsPrimitive, AllVectorSizes);
             return curType;
         }
 
@@ -81,7 +84,7 @@ namespace Microsoft.ML.Data.DataLoadSave
                 value = default;
         }
 
-        private object GetMetadataVec<TItem>() => new VBuffer<TItem>(10, 0, null, null);
+        private object GetMetadataVec<TItem>() => new VBuffer<TItem>(AllVectorSizes, 0, null, null);
 
         public ColumnType GetMetadataTypeOrNull(string kind, int col)
         {
