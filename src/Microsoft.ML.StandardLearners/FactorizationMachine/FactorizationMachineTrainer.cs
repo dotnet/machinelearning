@@ -116,7 +116,6 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
         private bool _shuffle;
         private bool _verbose;
         private float _radius;
-        private SchemaShape.Column[] _outputColumns;
 
         /// <summary>
         /// Legacy constructor initializing a new instance of <see cref="FieldAwareFactorizationMachineTrainer"/> through the legacy
@@ -159,13 +158,6 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
 
             LabelColumn = new SchemaShape.Column(labelColumn, SchemaShape.Column.VectorKind.Scalar, BoolType.Instance, false);
             WeightColumn = weightColumn != null? new SchemaShape.Column(weightColumn, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false): null;
-
-            _outputColumns = new[]
-            {
-                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false),
-                new SchemaShape.Column(DefaultColumnNames.Probability, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false),
-                new SchemaShape.Column(DefaultColumnNames.PredictedLabel, SchemaShape.Column.VectorKind.Scalar, BoolType.Instance, false)
-            };
         }
 
         /// <summary>
@@ -499,14 +491,25 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
         {
             Host.CheckValue(inputSchema, nameof(inputSchema));
 
-            if (LabelColumn != null)
-            {
-                if (!inputSchema.TryFindColumn(LabelColumn.Name, out var labelCol))
-                    throw Host.ExceptSchemaMismatch(nameof(labelCol), DefaultColumnNames.PredictedLabel, DefaultColumnNames.PredictedLabel);
+            void CheckColumnsCompatible(SchemaShape.Column column, string defaultName){
 
-                if (!LabelColumn.IsCompatibleWith(labelCol))
-                    throw Host.Except($"Label column '{LabelColumn.Name}' is not compatible");
+                if (!inputSchema.TryFindColumn(column.Name, out var col))
+                    throw Host.ExceptSchemaMismatch(nameof(col), defaultName, defaultName);
+
+                if (!column.IsCompatibleWith(col))
+                    throw Host.Except($"{defaultName} column '{column.Name}' is not compatible");
             }
+
+            if (LabelColumn != null)
+                CheckColumnsCompatible(LabelColumn, DefaultColumnNames.Label);
+
+            foreach (var feat in FeatureColumns)
+            {
+                CheckColumnsCompatible(feat, DefaultColumnNames.Features);
+            }
+
+            if (WeightColumn != null)
+                CheckColumnsCompatible(WeightColumn, DefaultColumnNames.Weight);
 
             var outColumns = inputSchema.Columns.ToDictionary(x => x.Name);
             foreach (var col in GetOutputColumnsCore(inputSchema))
@@ -520,12 +523,11 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
             bool success = inputSchema.TryFindColumn(LabelColumn.Name, out var labelCol);
             Contracts.Assert(success);
 
-           // var metadata = new SchemaShape(labelCol.Metadata.Columns.Where(x => x.Name == MetadataUtils.Kinds.KeyValues)
-           //                 .Concat(MetadataForScoreColumn()));
             return new[]
             {
-                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Vector, NumberType.R4, false),
-                new SchemaShape.Column(DefaultColumnNames.PredictedLabel, SchemaShape.Column.VectorKind.Scalar, NumberType.U4, true)
+                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata())),
+                new SchemaShape.Column(DefaultColumnNames.Probability, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata(true))),
+                new SchemaShape.Column(DefaultColumnNames.PredictedLabel, SchemaShape.Column.VectorKind.Scalar, BoolType.Instance, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata()))
             };
         }
     }
