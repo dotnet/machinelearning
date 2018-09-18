@@ -58,8 +58,8 @@ The dataset is under a CC-by 4.0 license.
 >  year      = {2013},
 >  url       = {https://arxiv.org/abs/1306.2597},
 >  timestamp = {Mon, 01 Jul 2013 20:31:25 +0200},
->  biburl    = {http://dblp.uni-trier.de/rec/bib/journals/corr/QinL13},
->  bibsource = {dblp computer science bibliography, http://dblp.org}
+>  biburl    = {https://dblp.uni-trier.de/rec/bib/journals/corr/QinL13},
+>  bibsource = {dblp computer science bibliography, https://dblp.org}}
 
 # Images
 
