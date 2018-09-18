@@ -1,7 +1,23 @@
-<Project Sdk="Microsoft.NET.Sdk">
-
+<Project>
+  <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
+   
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
+	<EnableSonomaServing>true</EnableSonomaServing>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="Microsoft.ML.Scoring" Version="1.0.4-dev46780-sonoma-cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Microsoft.ML.Api\Microsoft.ML.Api.csproj" />
+    <ProjectReference Include="..\Microsoft.ML.Core\Microsoft.ML.Core.csproj" />
+    <ProjectReference Include="..\Microsoft.ML.Data\Microsoft.ML.Data.csproj" />
+  </ItemGroup>
+
+  <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
+   <!-- sonoma attempts to prevent refrence from non-64-bit projects, override the target that does this-->
+  <Target Name="Microsoft_ML_Scoring_CheckPrerequisites"/>
+  
 </Project>
