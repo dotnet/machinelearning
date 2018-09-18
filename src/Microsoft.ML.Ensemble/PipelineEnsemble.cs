@@ -41,13 +41,13 @@ namespace Microsoft.ML.Runtime.Ensemble
 
             public ISchemaBindableMapper Bindable => Parent;
             public RoleMappedSchema InputSchema { get; }
-            public ISchema OutputSchema { get; }
+            public ISchema Schema { get; }
 
             public BoundBase(SchemaBindablePipelineEnsembleBase parent, RoleMappedSchema schema)
             {
                 Parent = parent;
                 InputSchema = schema;
-                OutputSchema = new ScoreMapperSchema(Parent.ScoreType, Parent._scoreColumnKind);
+                Schema = new ScoreMapperSchema(Parent.ScoreType, Parent._scoreColumnKind);
                 _inputColIndices = new HashSet<int>();
                 for (int i = 0; i < Parent._inputCols.Length; i++)
                 {
@@ -73,7 +73,7 @@ namespace Microsoft.ML.Runtime.Ensemble
                         throw Parent.Host.Except("Predictor {0} is not a row to row mapper", i);
 
                     // Make sure there is a score column, and remember its index.
-                    if (!Mappers[i].OutputSchema.TryGetColumnIndex(MetadataUtils.Const.ScoreValueKind.Score, out ScoreCols[i]))
+                    if (!Mappers[i].Schema.TryGetColumnIndex(MetadataUtils.Const.ScoreValueKind.Score, out ScoreCols[i]))
                         throw Parent.Host.Except("Predictor {0} does not contain a score column", i);
 
                     // Get the pipeline.
@@ -88,7 +88,7 @@ namespace Microsoft.ML.Runtime.Ensemble
 
             public Func<int, bool> GetDependencies(Func<int, bool> predicate)
             {
-                for (int i = 0; i < OutputSchema.ColumnCount; i++)
+                for (int i = 0; i < Schema.ColumnCount; i++)
                 {
                     if (predicate(i))
                         return col => _inputColIndices.Contains(col);
@@ -101,9 +101,9 @@ namespace Microsoft.ML.Runtime.Ensemble
                 yield break;
             }
 
-            public IRow GetOutputRow(IRow input, Func<int, bool> predicate, out Action disposer)
+            public IRow GetRow(IRow input, Func<int, bool> predicate, out Action disposer)
             {
-                return new SimpleRow(OutputSchema, input, new[] { CreateScoreGetter(input, predicate, out disposer) });
+                return new SimpleRow(Schema, input, new[] { CreateScoreGetter(input, predicate, out disposer) });
             }
 
             public abstract Delegate CreateScoreGetter(IRow input, Func<int, bool> mapperPredicate, out Action disposer);
@@ -139,7 +139,7 @@ namespace Microsoft.ML.Runtime.Ensemble
                         disposer += disp;
 
                         // Next we get the output row from the predictors. We activate the score column as output predicate.
-                        var predictorRow = Mappers[i].GetOutputRow(pipelineRow, col => col == ScoreCols[i], out disp);
+                        var predictorRow = Mappers[i].GetRow(pipelineRow, col => col == ScoreCols[i], out disp);
                         disposer += disp;
                         getters[i] = predictorRow.GetGetter<T>(ScoreCols[i]);
                     }

@@ -259,7 +259,7 @@ namespace Microsoft.ML.Runtime.Data
             Host.Assert(_bindings.DerivedColumnCount == 0);
             Host.AssertValue(output);
             Host.AssertValue(predicate);
-            Host.Assert(output.Schema == _bindings.RowMapper.OutputSchema);
+            Host.Assert(output.Schema == _bindings.RowMapper.Schema);
 
             return GetGettersFromRow(output, predicate);
         }

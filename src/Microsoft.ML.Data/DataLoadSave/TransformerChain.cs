@@ -48,6 +48,8 @@ namespace Microsoft.ML.Runtime.Data
 
         private const string TransformDirTemplate = "Transform_{0:000}";
 
+        public bool IsRowToRowMapper => _transformers.All(t => t.IsRowToRowMapper);
+
         private static VersionInfo GetVersionInfo()
         {
             return new VersionInfo(
@@ -197,6 +199,21 @@ namespace Microsoft.ML.Runtime.Data
         public IEnumerator<ITransformer> GetEnumerator() => ((IEnumerable<ITransformer>)_transformers).GetEnumerator();
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
+        public IRowToRowMapper GetRowToRowMapper(ISchema inputSchema)
+        {
+            Contracts.CheckValue(inputSchema, nameof(inputSchema));
+            Contracts.Check(IsRowToRowMapper, nameof(GetRowToRowMapper) + " method called despite " + nameof(IsRowToRowMapper) + " being false.");
+
+            IRowToRowMapper[] mappers = new IRowToRowMapper[_transformers.Length];
+            ISchema schema = inputSchema;
+            for (int i = 0; i < mappers.Length; ++i)
+            {
+                mappers[i] = _transformers[i].GetRowToRowMapper(schema);
+                schema = mappers[i].Schema;
+            }
+            return new ChainedRowToRowMapper(inputSchema, mappers);
+        }
     }
 
     /// <summary>

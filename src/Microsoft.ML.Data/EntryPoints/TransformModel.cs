@@ -192,6 +192,8 @@ namespace Microsoft.ML.Runtime.EntryPoints
             private readonly ISchema _rootSchema;
             private readonly IExceptionContext _ectx;
 
+            public ISchema Schema => _chain.Schema;
+
             public CompositeRowToRowMapper(IExceptionContext ectx, IDataView chain, ISchema rootSchema)
             {
                 Contracts.CheckValue(ectx, nameof(ectx));

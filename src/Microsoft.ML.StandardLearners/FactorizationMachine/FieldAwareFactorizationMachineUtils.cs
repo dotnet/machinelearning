@@ -59,7 +59,7 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
 
         public RoleMappedSchema InputSchema { get; }
 
-        public ISchema OutputSchema { get; }
+        public ISchema Schema { get; }
 
         public ISchemaBindableMapper Bindable => _pred;
 
@@ -83,7 +83,7 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
 
             var inputFeatureColumns = _columns.Select(c => new KeyValuePair<RoleMappedSchema.ColumnRole, string>(RoleMappedSchema.ColumnRole.Feature, c.Name)).ToList();
             InputSchema = new RoleMappedSchema(schema.Schema, inputFeatureColumns);
-            OutputSchema = outputSchema;
+            Schema = outputSchema;
 
             _inputColumnIndexes = new List<int>();
             foreach (var kvp in inputFeatureColumns)
@@ -93,7 +93,7 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
             }
         }
 
-        public IRow GetOutputRow(IRow input, Func<int, bool> predicate, out Action action)
+        public IRow GetRow(IRow input, Func<int, bool> predicate, out Action action)
         {
             var latentSum = new AlignedArray(_pred.FieldCount * _pred.FieldCount * _pred.LatentDimAligned, 16);
             var featureBuffer = new VBuffer<float>();
@@ -128,12 +128,12 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
                 getters[1] = probGetter;
             }
 
-            return new SimpleRow(OutputSchema, input, getters);
+            return new SimpleRow(Schema, input, getters);
         }
 
         public Func<int, bool> GetDependencies(Func<int, bool> predicate)
         {
-            if (Enumerable.Range(0, OutputSchema.ColumnCount).Any(predicate))
+            if (Enumerable.Range(0, Schema.ColumnCount).Any(predicate))
                 return index => _inputColumnIndexes.Any(c => c == index);
             else
                 return index => false;

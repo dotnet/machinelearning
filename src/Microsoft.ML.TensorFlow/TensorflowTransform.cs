@@ -288,6 +288,14 @@ namespace Microsoft.ML.Transforms
                 ctx.SaveNonEmptyString(colName);
         }
 
+        public bool IsRowToRowMapper => true;
+
+        public IRowToRowMapper GetRowToRowMapper(ISchema inputSchema)
+        {
+            _host.CheckValue(inputSchema, nameof(inputSchema));
+            return MakeDataTransform(new EmptyDataView(_host, inputSchema));
+        }
+
         private sealed class Mapper : IRowMapper
         {
             private readonly IHost _host;

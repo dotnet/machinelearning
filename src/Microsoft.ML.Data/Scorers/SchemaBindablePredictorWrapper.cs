@@ -194,7 +194,7 @@ namespace Microsoft.ML.Runtime.Data
 
             public RoleMappedSchema InputSchema { get { return _inputSchema; } }
 
-            public ISchema OutputSchema { get { return _outputSchema; } }
+            public ISchema Schema { get { return _outputSchema; } }
 
             public ISchemaBindableMapper Bindable { get { return _parent; } }
 
@@ -213,7 +213,7 @@ namespace Microsoft.ML.Runtime.Data
                 yield return RoleMappedSchema.ColumnRole.Feature.Bind(_inputSchema.Feature.Name);
             }
 
-            public IRow GetOutputRow(IRow input, Func<int, bool> predicate, out Action disposer)
+            public IRow GetRow(IRow input, Func<int, bool> predicate, out Action disposer)
             {
                 Contracts.AssertValue(input);
                 Contracts.AssertValue(predicate);
@@ -480,13 +480,13 @@ namespace Microsoft.ML.Runtime.Data
 
             public RoleMappedSchema InputSchema { get { return _inputSchema; } }
 
-            public ISchema OutputSchema { get { return _outputSchema; } }
+            public ISchema Schema { get { return _outputSchema; } }
 
             public ISchemaBindableMapper Bindable { get { return _parent; } }
 
             public Func<int, bool> GetDependencies(Func<int, bool> predicate)
             {
-                for (int i = 0; i < OutputSchema.ColumnCount; i++)
+                for (int i = 0; i < Schema.ColumnCount; i++)
                 {
                     if (predicate(i) && _inputSchema.Feature != null)
                         return col => col == _inputSchema.Feature.Index;
@@ -555,13 +555,13 @@ namespace Microsoft.ML.Runtime.Data
                 }
             }
 
-            public IRow GetOutputRow(IRow input, Func<int, bool> predicate, out Action disposer)
+            public IRow GetRow(IRow input, Func<int, bool> predicate, out Action disposer)
             {
                 Contracts.AssertValue(input);
-                var active = Utils.BuildArray(OutputSchema.ColumnCount, predicate);
+                var active = Utils.BuildArray(Schema.ColumnCount, predicate);
                 var getters = CreateGetters(input, active);
                 disposer = null;
-                return new SimpleRow(OutputSchema, input, getters);
+                return new SimpleRow(Schema, input, getters);
             }
         }
     }
