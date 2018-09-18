@@ -2,10 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data.StaticPipe.Runtime;
 using Microsoft.ML.Runtime;
@@ -13,11 +9,15 @@ using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 
 [assembly: LoadableClass(KeyToBinaryVectorTransform.Summary, typeof(IDataTransform), typeof(KeyToBinaryVectorTransform), typeof(KeyToBinaryVectorTransform.Arguments), typeof(SignatureDataTransform),
-    "Key To Binary Vector Transform", KeyToBinaryVectorTransform.UserName, "KeyToBinary", "ToVector", DocName = "transform/KeyToBinaryVectorTransform.md")]
+    "Key To Binary Vector Transform", KeyToBinaryVectorTransform.UserName, "KeyToBinary", "ToBinaryVector", DocName = "transform/KeyToBinaryVectorTransform.md")]
 
-[assembly: LoadableClass(KeyToBinaryVectorTransform.Summary, typeof(IDataView), typeof(KeyToBinaryVectorTransform), null, typeof(SignatureLoadDataTransform),
+[assembly: LoadableClass(KeyToBinaryVectorTransform.Summary, typeof(IDataTransform), typeof(KeyToBinaryVectorTransform), null, typeof(SignatureLoadDataTransform),
     "Key To Binary Vector Transform", KeyToBinaryVectorTransform.LoaderSignature)]
 
 [assembly: LoadableClass(KeyToBinaryVectorTransform.Summary, typeof(KeyToBinaryVectorTransform), null, typeof(SignatureLoadModel),
@@ -446,7 +446,7 @@ namespace Microsoft.ML.Runtime.Data
         {
         }
 
-        public KeyToBinaryVectorEstimator(IHostEnvironment env, KeyToBinaryVectorTransform transformer)
+        private KeyToBinaryVectorEstimator(IHostEnvironment env, KeyToBinaryVectorTransform transformer)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(KeyToBinaryVectorEstimator)), transformer)
         {
         }
