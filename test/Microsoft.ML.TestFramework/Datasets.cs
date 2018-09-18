@@ -152,11 +152,11 @@ namespace Microsoft.ML.Runtime.RunTests
             testFilename = "housing.txt"
         };
 
-        public static TestDataset winequalitymacro = new TestDataset
+        public static TestDataset generatedRegressionDatasetmacro = new TestDataset
         {
-            name = "wine",
-            trainFilename = "external/winequality-white.csv",
-            testFilename = "external/winequality-white.csv",
+            name = "generatedRegressionDataset",
+            trainFilename = "generated_regression_dataset.csv",
+            testFilename = "generated_regression_dataset.csv",
             loaderSettings = "col=Label:R4:11 col=Features:R4:0-10 sep=; header+"
         };
 
@@ -167,11 +167,11 @@ namespace Microsoft.ML.Runtime.RunTests
             testFilename = "external/WikiDetoxAnnotated160kRows.tsv"
         };
 
-        public static TestDataset winequality = new TestDataset
+        public static TestDataset generatedRegressionDataset = new TestDataset
         {
-            name = "wine",
-            trainFilename = "external/winequality-white.csv",
-            testFilename = "external/winequality-white.csv",
+            name = "generatedRegressionDataset",
+            trainFilename = "generated_regression_dataset.csv",
+            testFilename = "generated_regression_dataset.csv",
             loaderSettings = "loader=Text{col=Label:R4:11 col=Features:R4:0-10 sep=; header+}"
         };
 

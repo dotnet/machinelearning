@@ -23,7 +23,7 @@ namespace Microsoft.ML.StaticPipelineTesting
         public void SdcaRegression()
         {
             var env = new ConsoleEnvironment(seed: 0);
-            var dataPath = GetDataPath("external", "winequality-white.csv");
+            var dataPath = GetDataPath("generated_regression_dataset.csv");
             var dataSource = new MultiFileSource(dataPath);
 
             var reader = TextLoader.CreateReader(env,
@@ -63,7 +63,7 @@ namespace Microsoft.ML.StaticPipelineTesting
         public void SdcaRegressionNameCollision()
         {
             var env = new ConsoleEnvironment(seed: 0);
-            var dataPath = GetDataPath("external", "winequality-white.csv");
+            var dataPath = GetDataPath("generated_regression_dataset.csv");
             var dataSource = new MultiFileSource(dataPath);
 
             // Here we introduce another column called "Score" to collide with the name of the default output. Heh heh heh...
