@@ -40,19 +40,20 @@ namespace Microsoft.ML.Runtime.Ensemble
             protected readonly int[] ScoreCols;
 
             public ISchemaBindableMapper Bindable => Parent;
-            public RoleMappedSchema InputSchema { get; }
+            public RoleMappedSchema InputRoleMappedSchema { get; }
+            public ISchema InputSchema => InputRoleMappedSchema.Schema;
             public ISchema Schema { get; }
 
             public BoundBase(SchemaBindablePipelineEnsembleBase parent, RoleMappedSchema schema)
             {
                 Parent = parent;
-                InputSchema = schema;
+                InputRoleMappedSchema = schema;
                 Schema = new ScoreMapperSchema(Parent.ScoreType, Parent._scoreColumnKind);
                 _inputColIndices = new HashSet<int>();
                 for (int i = 0; i < Parent._inputCols.Length; i++)
                 {
                     var name = Parent._inputCols[i];
-                    if (!InputSchema.Schema.TryGetColumnIndex(name, out int col))
+                    if (!InputRoleMappedSchema.Schema.TryGetColumnIndex(name, out int col))
                         throw Parent.Host.Except("Schema does not contain required input column '{0}'", name);
                     _inputColIndices.Add(col);
                 }
@@ -159,27 +160,27 @@ namespace Microsoft.ML.Runtime.Ensemble
                 public ValueGetter<Single> GetLabelGetter(IRow input, int i, out Action disposer)
                 {
                     Parent.Host.Assert(0 <= i && i < Mappers.Length);
-                    Parent.Host.Check(Mappers[i].InputSchema.Label != null, "Mapper was not trained using a label column");
+                    Parent.Host.Check(Mappers[i].InputRoleMappedSchema.Label != null, "Mapper was not trained using a label column");
 
                     // The label should be in the output row of the i'th pipeline
-                    var pipelineRow = BoundPipelines[i].GetRow(input, col => col == Mappers[i].InputSchema.Label.Index, out disposer);
-                    return RowCursorUtils.GetLabelGetter(pipelineRow, Mappers[i].InputSchema.Label.Index);
+                    var pipelineRow = BoundPipelines[i].GetRow(input, col => col == Mappers[i].InputRoleMappedSchema.Label.Index, out disposer);
+                    return RowCursorUtils.GetLabelGetter(pipelineRow, Mappers[i].InputRoleMappedSchema.Label.Index);
                 }
 
                 public ValueGetter<Single> GetWeightGetter(IRow input, int i, out Action disposer)
                 {
                     Parent.Host.Assert(0 <= i && i < Mappers.Length);
 
-                    if (Mappers[i].InputSchema.Weight == null)
+                    if (Mappers[i].InputRoleMappedSchema.Weight == null)
                     {
                         ValueGetter<Single> weight = (ref Single dst) => dst = 1;
                         disposer = null;
                         return weight;
                     }
                     // The weight should be in the output row of the i'th pipeline if it exists.
-                    var inputPredicate = Mappers[i].GetDependencies(col => col == Mappers[i].InputSchema.Weight.Index);
+                    var inputPredicate = Mappers[i].GetDependencies(col => col == Mappers[i].InputRoleMappedSchema.Weight.Index);
                     var pipelineRow = BoundPipelines[i].GetRow(input, inputPredicate, out disposer);
-                    return pipelineRow.GetGetter<Single>(Mappers[i].InputSchema.Weight.Index);
+                    return pipelineRow.GetGetter<Single>(Mappers[i].InputRoleMappedSchema.Weight.Index);
                 }
             }
 

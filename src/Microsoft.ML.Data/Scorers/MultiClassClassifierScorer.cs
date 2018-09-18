@@ -248,9 +248,10 @@ namespace Microsoft.ML.Runtime.Data
                 private LabelNameBindableMapper _bindable;
                 private readonly Func<ISchemaBoundMapper, ColumnType, bool> _canWrap;
 
-                public ISchema Schema { get { return _outSchema; } }
+                public ISchema Schema => _outSchema;
 
-                public RoleMappedSchema InputSchema { get { return _mapper.InputSchema; } }
+                public RoleMappedSchema InputRoleMappedSchema => _mapper.InputRoleMappedSchema;
+                public ISchema InputSchema => _mapper.InputSchema;
 
                 public ISchemaBindableMapper Bindable
                 {

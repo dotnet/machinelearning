@@ -169,11 +169,12 @@ namespace Microsoft.ML.Runtime.Data
             private readonly TreeEnsembleFeaturizerBindableMapper _owner;
             private readonly IExceptionContext _ectx;
 
-            public RoleMappedSchema InputSchema { get; }
+            public RoleMappedSchema InputRoleMappedSchema { get; }
 
             public ISchema Schema { get; }
+            public ISchema InputSchema => InputRoleMappedSchema.Schema;
 
-            public ISchemaBindableMapper Bindable { get { return _owner; } }
+            public ISchemaBindableMapper Bindable => _owner;
 
             public BoundMapper(IExceptionContext ectx, TreeEnsembleFeaturizerBindableMapper owner,
                 RoleMappedSchema schema)
@@ -186,7 +187,7 @@ namespace Microsoft.ML.Runtime.Data
                 _ectx = ectx;
 
                 _owner = owner;
-                InputSchema = schema;
+                InputRoleMappedSchema = schema;
 
                 // A vector containing the output of each tree on a given example.
                 var treeValueType = new VectorType(NumberType.Float, _owner._ensemble.NumTrees);
@@ -226,7 +227,7 @@ namespace Microsoft.ML.Runtime.Data
                 if (!treeValueActive && !leafIdActive && !pathIdActive)
                     return delegates;
 
-                var state = new State(_ectx, input, _owner._ensemble, _owner._totalLeafCount, InputSchema.Feature.Index);
+                var state = new State(_ectx, input, _owner._ensemble, _owner._totalLeafCount, InputRoleMappedSchema.Feature.Index);
 
                 // Get the tree value getter.
                 if (treeValueActive)
@@ -391,7 +392,7 @@ namespace Microsoft.ML.Runtime.Data
 
             public IEnumerable<KeyValuePair<RoleMappedSchema.ColumnRole, string>> GetInputColumnRoles()
             {
-                yield return RoleMappedSchema.ColumnRole.Feature.Bind(InputSchema.Feature.Name);
+                yield return RoleMappedSchema.ColumnRole.Feature.Bind(InputRoleMappedSchema.Feature.Name);
             }
 
             public Func<int, bool> GetDependencies(Func<int, bool> predicate)
@@ -399,7 +400,7 @@ namespace Microsoft.ML.Runtime.Data
                 for (int i = 0; i < Schema.ColumnCount; i++)
                 {
                     if (predicate(i))
-                        return col => col == InputSchema.Feature.Index;
+                        return col => col == InputRoleMappedSchema.Feature.Index;
                 }
                 return col => false;
             }

@@ -34,7 +34,7 @@ namespace Microsoft.ML.Runtime.Data
         /// <summary>
         /// The <see cref="RoleMappedSchema"/> that was passed to the <see cref="ISchemaBoundMapper"/> in the binding process.
         /// </summary>
-        RoleMappedSchema InputSchema { get; }
+        RoleMappedSchema InputRoleMappedSchema { get; }
 
         /// <summary>
         /// A property to get back the <see cref="ISchemaBindableMapper"/> that produced this <see cref="ISchemaBoundMapper"/>.
@@ -65,8 +65,14 @@ namespace Microsoft.ML.Runtime.Data
     public interface IRowToRowMapper : ISchematized
     {
         /// <summary>
+        /// Mappers are defined as accepting inputs with this very specific schema.
+        /// </summary>
+        ISchema InputSchema { get; }
+
+        /// <summary>
         /// Given a predicate specifying which columns are needed, return a predicate indicating which input columns are
-        /// needed.
+        /// needed. The domain of the function is defined over the indices of the columns of <see cref="ISchema.ColumnCount"/>
+        /// for <see cref="InputSchema"/>.
         /// </summary>
         Func<int, bool> GetDependencies(Func<int, bool> predicate);
 
@@ -75,9 +81,9 @@ namespace Microsoft.ML.Runtime.Data
         /// The active columns are those for which <paramref name="active"/> returns true. Getting values on inactive
         /// columns of the returned row will throw. Null predicates are disallowed.
         ///
-        /// The <see cref="ISchematized.Schema"/> of <paramref name="input"/> should be exactly the same <see
-        /// cref="ISchema"/>
-        /// that was used to create this object. This method should throw if that is not the case.
+        /// The <see cref="ISchematized.Schema"/> of <paramref name="input"/> should be the same object as
+        /// <see cref="InputSchema"/>. Implementors of this method should throw if that is not the case. Conversely,
+        /// the returned value must have the same schema as <see cref="ISchematized.Schema"/>.
         ///
         /// This method creates a live connection between the input <see cref="IRow"/> and the output <see
         /// cref="IRow"/>. In particular, when the getters of the output <see cref="IRow"/> are invoked, they invoke the

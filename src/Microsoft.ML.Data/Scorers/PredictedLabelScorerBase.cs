@@ -342,7 +342,7 @@ namespace Microsoft.ML.Runtime.Data
             Host.Assert(Bindable is IBindableCanSavePfa);
             var pfaBindable = (IBindableCanSavePfa)Bindable as IBindableCanSavePfa;
 
-            var schema = Bindings.RowMapper.InputSchema;
+            var schema = Bindings.RowMapper.InputRoleMappedSchema;
             int delta = Bindings.DerivedColumnCount;
             Host.Assert(delta == 1);
             string[] outColNames = new string[Bindings.InfoCount - delta];
@@ -371,7 +371,7 @@ namespace Microsoft.ML.Runtime.Data
             Host.Assert(Bindable is IBindableCanSaveOnnx);
             var onnxBindable = (IBindableCanSaveOnnx)Bindable;
 
-            var schema = Bindings.RowMapper.InputSchema;
+            var schema = Bindings.RowMapper.InputRoleMappedSchema;
             int delta = Bindings.DerivedColumnCount;
 
             Host.Assert(delta == 1);

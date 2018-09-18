@@ -233,13 +233,15 @@ namespace Microsoft.ML.Runtime.EntryPoints
                 return pred;
             }
 
+            public ISchema InputSchema => _rootSchema;
+
             public IRow GetRow(IRow input, Func<int, bool> active, out Action disposer)
             {
                 _ectx.Assert(IsCompositeRowToRowMapper(_chain));
                 _ectx.AssertValue(input);
                 _ectx.AssertValue(active);
 
-                _ectx.Check(input.Schema == _rootSchema, "Schema of input row must be the same as the schema the mapper is bound to");
+                _ectx.Check(input.Schema == InputSchema, "Schema of input row must be the same as the schema the mapper is bound to");
 
                 disposer = null;
                 var mappers = new List<IRowToRowMapper>();

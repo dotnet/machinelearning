@@ -57,9 +57,10 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
     {
         private readonly FieldAwareFactorizationMachinePredictor _pred;
 
-        public RoleMappedSchema InputSchema { get; }
+        public RoleMappedSchema InputRoleMappedSchema { get; }
 
         public ISchema Schema { get; }
+        public ISchema InputSchema => InputRoleMappedSchema.Schema;
 
         public ISchemaBindableMapper Bindable => _pred;
 
@@ -82,7 +83,7 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
             _pred = pred;
 
             var inputFeatureColumns = _columns.Select(c => new KeyValuePair<RoleMappedSchema.ColumnRole, string>(RoleMappedSchema.ColumnRole.Feature, c.Name)).ToList();
-            InputSchema = new RoleMappedSchema(schema.Schema, inputFeatureColumns);
+            InputRoleMappedSchema = new RoleMappedSchema(schema.Schema, inputFeatureColumns);
             Schema = outputSchema;
 
             _inputColumnIndexes = new List<int>();
@@ -141,7 +142,7 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
 
         public IEnumerable<KeyValuePair<RoleMappedSchema.ColumnRole, string>> GetInputColumnRoles()
         {
-            return InputSchema.GetColumnRoles().Select(kvp => new KeyValuePair<RoleMappedSchema.ColumnRole, string>(kvp.Key, kvp.Value.Name));
+            return InputRoleMappedSchema.GetColumnRoles().Select(kvp => new KeyValuePair<RoleMappedSchema.ColumnRole, string>(kvp.Key, kvp.Value.Name));
         }
     }
 }

@@ -161,6 +161,8 @@ namespace Microsoft.ML.Runtime.Api
             return _typedSource.GetDependencies(srcPredicate);
         }
 
+        ISchema IRowToRowMapper.InputSchema => _source.Schema;
+
         public IRow GetRow(IRow input, Func<int, bool> active, out Action disposer)
         {
             Host.CheckValue(input, nameof(input));

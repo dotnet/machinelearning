@@ -15,8 +15,8 @@ namespace Microsoft.ML.Runtime.Data
         private readonly IRowToRowMapper[] _innerMappers;
         private static readonly IRowToRowMapper[] _empty = new IRowToRowMapper[0];
 
+        public ISchema InputSchema { get; }
         public ISchema Schema { get; }
-        private readonly ISchema _inputSchema;
 
         /// <summary>
         /// Out of a series of mappers, construct a seemingly unitary mapper that is able to apply them in sequence.
@@ -29,7 +29,7 @@ namespace Microsoft.ML.Runtime.Data
             Contracts.CheckValue(inputSchema, nameof(inputSchema));
             Contracts.CheckValueOrNull(mappers);
             _innerMappers = Utils.Size(mappers) > 0 ? mappers : _empty;
-            _inputSchema = inputSchema;
+            InputSchema = inputSchema;
         }
 
         public Func<int, bool> GetDependencies(Func<int, bool> predicate)
@@ -44,7 +44,7 @@ namespace Microsoft.ML.Runtime.Data
         {
             Contracts.CheckValue(input, nameof(input));
             Contracts.CheckValue(active, nameof(active));
-            Contracts.CheckParam(input.Schema == _inputSchema, nameof(input), "Schema did not match original schema");
+            Contracts.CheckParam(input.Schema == InputSchema, nameof(input), "Schema did not match original schema");
 
             disposer = null;
             if (_innerMappers.Length == 0)
