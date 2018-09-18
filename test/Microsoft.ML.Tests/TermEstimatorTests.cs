@@ -152,7 +152,7 @@ namespace Microsoft.ML.Tests
         [Fact]
         void TestCommandLine()
         {
-            using (var env = new TlcEnvironment())
+            using (var env = new ConsoleEnvironment())
             {
                 Assert.Equal(Maml.Main(new[] { @"showschema loader=Text{col=A:R4:0} xf=Term{col=B:A} in=f:\2.txt" }), (int)0);
             }

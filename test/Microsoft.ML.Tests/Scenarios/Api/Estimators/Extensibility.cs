@@ -23,7 +23,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         void New_Extensibility()
         {
             var dataPath = GetDataPath(IrisDataPath);
-            using (var env = new TlcEnvironment())
+            using (var env = new LocalEnvironment())
             {
                 var data = new TextLoader(env, MakeIrisTextLoaderArgs())
                     .Read(new MultiFileSource(dataPath));
@@ -36,7 +36,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                     j.SepalLength = i.SepalLength;
                     j.SepalWidth = i.SepalWidth;
                 };
-                var pipeline = new MyConcatTransform(env, "Features", "SepalLength", "SepalWidth", "PetalLength", "PetalWidth")
+                var pipeline = new ConcatEstimator(env, "Features", "SepalLength", "SepalWidth", "PetalLength", "PetalWidth")
                     .Append(new MyLambdaTransform<IrisData, IrisData>(env, action), TransformerScope.TrainTest)
                     .Append(new TermEstimator(env, "Label"), TransformerScope.TrainTest)
                     .Append(new SdcaMultiClassTrainer(env, new SdcaMultiClassTrainer.Arguments { MaxIterations = 100, Shuffle = true, NumThreads = 1 }, "Features", "Label"))

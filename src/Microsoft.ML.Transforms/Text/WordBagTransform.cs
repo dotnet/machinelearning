@@ -564,7 +564,7 @@ namespace Microsoft.ML.Runtime.Data
             if (concatCols.Count > 0)
             {
                 var concatArgs = new ConcatTransform.Arguments { Column = concatCols.ToArray() };
-                return new ConcatTransform(env, concatArgs, view);
+                return ConcatTransform.Create(env, concatArgs, view);
             }
 
             return view;

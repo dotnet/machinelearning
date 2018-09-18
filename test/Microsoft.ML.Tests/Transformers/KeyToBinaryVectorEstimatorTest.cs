@@ -129,7 +129,7 @@ namespace Microsoft.ML.Tests.Transformers
             bool normalized = default;
             result.Schema.GetMetadata(MetadataUtils.Kinds.SlotNames, colA, ref slots);
             Assert.True(slots.Length == 6);
-            Assert.Equal(slots.Values.Select(x => x.ToString()), new string[6] { "[0].Bit2", "[0].Bit1", "[0].Bit0", "[1].Bit2", "[1].Bit1", "[1].Bit0" });
+            Assert.Equal(slots.Items().Select(x => x.Value.ToString()), new string[6] { "[0].Bit2", "[0].Bit1", "[0].Bit0", "[1].Bit2", "[1].Bit1", "[1].Bit0" });
 
             types = result.Schema.GetMetadataTypes(colB);
             Assert.Equal(types.Select(x => x.Key), new string[2] { MetadataUtils.Kinds.SlotNames, MetadataUtils.Kinds.IsNormalized });
@@ -151,7 +151,7 @@ namespace Microsoft.ML.Tests.Transformers
         [Fact]
         public void TestCommandLine()
         {
-            using (var env = new TlcEnvironment())
+            using (var env = new ConsoleEnvironment())
             {
                 Assert.Equal(Maml.Main(new[] { @"showschema loader=Text{col=A:R4:0} xf=Term{col=B:A} xf=KeyToBinary{col=C:B} in=f:\2.txt" }), (int)0);
             }

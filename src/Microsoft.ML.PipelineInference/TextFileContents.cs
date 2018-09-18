@@ -115,7 +115,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
             try
             {
                 // No need to provide information from unsuccessful loader, so we create temporary environment and get information from it in case of success
-                using (var loaderEnv = new TlcEnvironment(0, true))
+                using (var loaderEnv = new ConsoleEnvironment(0, true))
                 {
                     var messages = new ConcurrentBag<ChannelMessage>();
                     loaderEnv.AddListener<ChannelMessage>(

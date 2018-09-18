@@ -549,7 +549,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         /// <summary>
         /// Writes what Microsoft calls a UTF-7 encoded number in the binary reader and
         /// writer string methods. For non-negative integers this is equivalent to LEB128
-        /// (see http://en.wikipedia.org/wiki/LEB128).
+        /// (see https://en.wikipedia.org/wiki/LEB128).
         /// </summary>
         public static void WriteLeb128Int(this BinaryWriter writer, ulong value)
         {

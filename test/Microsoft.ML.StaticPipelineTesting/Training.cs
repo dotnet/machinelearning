@@ -22,7 +22,7 @@ namespace Microsoft.ML.StaticPipelineTesting
         [Fact]
         public void SdcaRegression()
         {
-            var env = new TlcEnvironment(seed: 0);
+            var env = new ConsoleEnvironment(seed: 0);
             var dataPath = GetDataPath("external", "winequality-white.csv");
             var dataSource = new MultiFileSource(dataPath);
 
@@ -62,7 +62,7 @@ namespace Microsoft.ML.StaticPipelineTesting
         [Fact]
         public void SdcaRegressionNameCollision()
         {
-            var env = new TlcEnvironment(seed: 0);
+            var env = new ConsoleEnvironment(seed: 0);
             var dataPath = GetDataPath("external", "winequality-white.csv");
             var dataSource = new MultiFileSource(dataPath);
 
@@ -91,7 +91,7 @@ namespace Microsoft.ML.StaticPipelineTesting
         [Fact]
         public void SdcaBinaryClassification()
         {
-            var env = new TlcEnvironment(seed: 0);
+            var env = new ConsoleEnvironment(seed: 0);
             var dataPath = GetDataPath("breast-cancer.txt");
             var dataSource = new MultiFileSource(dataPath);
 
@@ -135,7 +135,7 @@ namespace Microsoft.ML.StaticPipelineTesting
         [Fact]
         public void SdcaBinaryClassificationNoClaibration()
         {
-            var env = new TlcEnvironment(seed: 0);
+            var env = new ConsoleEnvironment(seed: 0);
             var dataPath = GetDataPath("breast-cancer.txt");
             var dataSource = new MultiFileSource(dataPath);
 
@@ -177,7 +177,7 @@ namespace Microsoft.ML.StaticPipelineTesting
         [Fact]
         public void SdcaMulticlass()
         {
-            var env = new TlcEnvironment(seed: 0);
+            var env = new ConsoleEnvironment(seed: 0);
             var dataPath = GetDataPath("iris.txt");
             var dataSource = new MultiFileSource(dataPath);
 

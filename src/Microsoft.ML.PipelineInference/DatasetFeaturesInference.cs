@@ -15,7 +15,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
 {
     /// <summary>
     /// Featurization ideas inspired from:
-    /// http://aad.informatik.uni-freiburg.de/papers/15-NIPS-auto-sklearn-supplementary.pdf
+    /// https://ml.informatik.uni-freiburg.de/papers/15-NIPS-auto-sklearn-supplementary.pdf
     /// </summary>
     public static class DatasetFeatureInference
     {

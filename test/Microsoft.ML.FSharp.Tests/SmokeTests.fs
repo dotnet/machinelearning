@@ -56,9 +56,9 @@ namespace Microsoft.ML.FSharp.Tests
 
 open System
 open Microsoft.ML
-open Microsoft.ML.Data
-open Microsoft.ML.Transforms
-open Microsoft.ML.Trainers
+open Microsoft.ML.Legacy.Data
+open Microsoft.ML.Legacy.Transforms
+open Microsoft.ML.Legacy.Trainers
 open Microsoft.ML.Runtime.Api
 open Xunit
 
@@ -84,7 +84,7 @@ module SmokeTest1 =
 
         let testDataPath = __SOURCE_DIRECTORY__ + @"/../data/wikipedia-detox-250-line-data.tsv"
 
-        let pipeline = LearningPipeline()
+        let pipeline = Legacy.LearningPipeline()
 
         pipeline.Add(
             TextLoader(testDataPath).CreateFrom<SentimentData>(
@@ -93,10 +93,10 @@ module SmokeTest1 =
                         HasHeader = true,
                         Column = [| TextLoaderColumn(Name = "Label", 
                                                      Source = [| TextLoaderRange(0) |], 
-                                                     Type = Nullable (Data.DataKind.Num))
+                                                     Type = Nullable (Legacy.Data.DataKind.Num))
                                     TextLoaderColumn(Name = "SentimentText", 
                                                      Source = [| TextLoaderRange(1) |], 
-                                                     Type = Nullable (Data.DataKind.Text)) |] 
+                                                     Type = Nullable (Legacy.Data.DataKind.Text)) |] 
                     )))
 
         pipeline.Add(
@@ -153,7 +153,7 @@ module SmokeTest2 =
 
         let testDataPath = __SOURCE_DIRECTORY__ + @"/../data/wikipedia-detox-250-line-data.tsv"
 
-        let pipeline = LearningPipeline()
+        let pipeline = Legacy.LearningPipeline()
 
         pipeline.Add(
             TextLoader(testDataPath).CreateFrom<SentimentData>(
@@ -162,10 +162,10 @@ module SmokeTest2 =
                         HasHeader = true,
                         Column = [| TextLoaderColumn(Name = "Label", 
                                                      Source = [| TextLoaderRange(0) |], 
-                                                     Type = Nullable (Data.DataKind.Num))
+                                                     Type = Nullable (Legacy.Data.DataKind.Num))
                                     TextLoaderColumn(Name = "SentimentText", 
                                                      Source = [| TextLoaderRange(1) |], 
-                                                     Type = Nullable (Data.DataKind.Text)) |] 
+                                                     Type = Nullable (Legacy.Data.DataKind.Text)) |] 
                     )))
 
         pipeline.Add(
@@ -219,7 +219,7 @@ module SmokeTest3 =
 
         let testDataPath = __SOURCE_DIRECTORY__ + @"/../data/wikipedia-detox-250-line-data.tsv"
 
-        let pipeline = LearningPipeline()
+        let pipeline = Legacy.LearningPipeline()
 
         pipeline.Add(
             TextLoader(testDataPath).CreateFrom<SentimentData>(
@@ -228,10 +228,10 @@ module SmokeTest3 =
                         HasHeader = true,
                         Column = [| TextLoaderColumn(Name = "Label", 
                                                      Source = [| TextLoaderRange(0) |], 
-                                                     Type = Nullable (Data.DataKind.Num))
+                                                     Type = Nullable (Legacy.Data.DataKind.Num))
                                     TextLoaderColumn(Name = "SentimentText", 
                                                      Source = [| TextLoaderRange(1) |], 
-                                                     Type = Nullable (Data.DataKind.Text)) |] 
+                                                     Type = Nullable (Legacy.Data.DataKind.Text)) |] 
                     )))
 
         pipeline.Add(

@@ -22,7 +22,7 @@ namespace Microsoft.ML.Scenarios
             string modelFilePath = GetOutputPath("PredictHousePriceModelTest.zip");
             ModelHelper.WriteKcHousePriceModel(GetDataPath("kc_house_data.csv"), modelFilePath);
 
-            PredictionModel<HousePriceData, HousePricePrediction> model = await PredictionModel.ReadAsync<HousePriceData, HousePricePrediction>(modelFilePath);
+            var model = await Legacy.PredictionModel.ReadAsync<HousePriceData, HousePricePrediction>(modelFilePath);
 
             HousePricePrediction prediction = model.Predict(new HousePriceData()
             {

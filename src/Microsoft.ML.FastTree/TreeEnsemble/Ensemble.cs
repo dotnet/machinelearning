@@ -71,6 +71,7 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
         public void AddTree(RegressionTree tree) => _trees.Add(tree);
         public void AddTreeAt(RegressionTree tree, int index) => _trees.Insert(index, tree);
         public void RemoveTree(int index) => _trees.RemoveAt(index);
+        // Note: Removes the range, including the index
         public void RemoveAfter(int index) => _trees.RemoveRange(index, NumTrees - index);
         public RegressionTree GetTreeAt(int index) => _trees[index];
 

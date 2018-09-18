@@ -34,8 +34,6 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
             _hash = hash;
         }
 
-        public override string ToString() => Value.ToString();
-
         public override int GetHashCode()
         {
             return (int)_hash;

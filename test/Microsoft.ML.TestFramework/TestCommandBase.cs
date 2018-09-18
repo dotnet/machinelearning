@@ -281,7 +281,7 @@ namespace Microsoft.ML.Runtime.RunTests
             Contracts.AssertValueOrNull(args);
             OutputPath outputPath = ctx.StdoutPath();
             using (var newWriter = OpenWriter(outputPath.Path))
-            using (var env = new TlcEnvironment(42, outWriter: newWriter, errWriter: newWriter))
+            using (var env = new ConsoleEnvironment(42, outWriter: newWriter, errWriter: newWriter))
             {
                 int res;
                 res = MainForTest(env, newWriter, string.Format("{0} {1}", cmdName, args), ctx.BaselineProgress);
@@ -311,7 +311,7 @@ namespace Microsoft.ML.Runtime.RunTests
         /// </param>
         /// <param name="args">The arguments for MAML.</param>
         /// <param name="printProgress">Whether to print the progress summary. If true, progress summary will appear in the end of baseline output file.</param>
-        protected static int MainForTest(TlcEnvironment env, TextWriter writer, string args, bool printProgress = false)
+        protected static int MainForTest(ConsoleEnvironment env, TextWriter writer, string args, bool printProgress = false)
         {
             Contracts.AssertValue(env);
             Contracts.AssertValue(writer);
@@ -480,7 +480,7 @@ namespace Microsoft.ML.Runtime.RunTests
 
         protected void TestPipeFromModel(string dataPath, OutputPath model)
         {
-            using (var env = new TlcEnvironment(new SysRandom(42)))
+            using (var env = new ConsoleEnvironment(42))
             {
                 var files = new MultiFileSource(dataPath);
 
@@ -1956,7 +1956,7 @@ namespace Microsoft.ML.Runtime.RunTests
             string args = $"{loaderArgs} data={trainData} valid={validData} test={validData} {extraArgs} out={model}";
             OutputPath outputPath = StdoutPath();
             using (var newWriter = OpenWriter(outputPath.Path))
-            using (var env = new TlcEnvironment(42, outWriter: newWriter, errWriter: newWriter))
+            using (var env = new ConsoleEnvironment(42, outWriter: newWriter, errWriter: newWriter))
             {
                 int res = MainForTest(env, newWriter, string.Format("{0} {1}", "traintest", args), true);
                 Assert.True(res == 0);
@@ -1977,7 +1977,7 @@ namespace Microsoft.ML.Runtime.RunTests
             string args = $"{loaderArgs} data={trainData} valid={validData} test={validData} {extraArgs} out={model}";
             OutputPath outputPath = StdoutPath();
             using (var newWriter = OpenWriter(outputPath.Path))
-            using (var env = new TlcEnvironment(42, outWriter: newWriter, errWriter: newWriter))
+            using (var env = new ConsoleEnvironment(42, outWriter: newWriter, errWriter: newWriter))
             {
                 int res = MainForTest(env, newWriter, string.Format("{0} {1}", "traintest", args), true);
                 Assert.Equal(0, res);
@@ -1999,7 +1999,7 @@ namespace Microsoft.ML.Runtime.RunTests
             OutputPath outputPath = StdoutPath();
             string args = $"data={data} test={data} valid={data} in={model.Path} cont+" + " " + loaderArgs + " " + extraArgs;
             using (var newWriter = OpenWriter(outputPath.Path))
-            using (var env = new TlcEnvironment(42, outWriter: newWriter, errWriter: newWriter))
+            using (var env = new ConsoleEnvironment(42, outWriter: newWriter, errWriter: newWriter))
             {
                 int res = MainForTest(env, newWriter, string.Format("{0} {1}", "traintest", args), true);
                 Assert.True(res == 0);
@@ -2021,7 +2021,7 @@ namespace Microsoft.ML.Runtime.RunTests
             OutputPath outputPath = StdoutPath();
             string args = $"data={data} test={data} valid={data} in={model.Path} cont+" + " " + loaderArgs + " " + extraArgs;
             using (var newWriter = OpenWriter(outputPath.Path))
-            using (var env = new TlcEnvironment(42, outWriter: newWriter, errWriter: newWriter))
+            using (var env = new ConsoleEnvironment(42, outWriter: newWriter, errWriter: newWriter))
             {
                 int res = MainForTest(env, newWriter, string.Format("{0} {1}", "traintest", args), true);
                 Assert.True(res == 0);

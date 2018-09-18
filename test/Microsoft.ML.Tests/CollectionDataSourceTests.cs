@@ -2,13 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Data;
+using Microsoft.ML.Legacy.Data;
+using Microsoft.ML.Legacy.Trainers;
+using Microsoft.ML.Legacy.Transforms;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.TestFramework;
-using Microsoft.ML.Trainers;
-using Microsoft.ML.Transforms;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -59,10 +59,10 @@ namespace Microsoft.ML.EntryPoints.Tests
         public void CanSuccessfullyApplyATransform()
         {
             var collection = CollectionDataSource.Create(new List<Input>() { new Input { Number1 = 1, String1 = "1" } });
-            using (var environment = new TlcEnvironment())
+            using (var environment = new ConsoleEnvironment())
             {
                 Experiment experiment = environment.CreateExperiment();
-                ILearningPipelineDataStep output = (ILearningPipelineDataStep)collection.ApplyStep(null, experiment);
+                Legacy.ILearningPipelineDataStep output = (Legacy.ILearningPipelineDataStep)collection.ApplyStep(null, experiment);
 
                 Assert.NotNull(output.Data);
                 Assert.NotNull(output.Data.VarName);
@@ -79,10 +79,10 @@ namespace Microsoft.ML.EntryPoints.Tests
                 new Input { Number1 = 3, String1 = "3" }
             });
 
-            using (var environment = new TlcEnvironment())
+            using (var environment = new ConsoleEnvironment())
             {
                 Experiment experiment = environment.CreateExperiment();
-                ILearningPipelineDataStep output = collection.ApplyStep(null, experiment) as ILearningPipelineDataStep;
+                Legacy.ILearningPipelineDataStep output = collection.ApplyStep(null, experiment) as Legacy.ILearningPipelineDataStep;
 
                 experiment.Compile();
                 collection.SetInput(environment, experiment);
@@ -134,7 +134,7 @@ namespace Microsoft.ML.EntryPoints.Tests
         [Fact]
         public void CanTrain()
         {
-            var pipeline = new LearningPipeline();
+            var pipeline = new Legacy.LearningPipeline();
             var data = new List<IrisData>() {
                 new IrisData { SepalLength = 1f, SepalWidth = 1f, PetalLength=0.3f, PetalWidth=5.1f, Label=1},
                 new IrisData { SepalLength = 1f, SepalWidth = 1f, PetalLength=0.3f, PetalWidth=5.1f, Label=1},
@@ -146,7 +146,7 @@ namespace Microsoft.ML.EntryPoints.Tests
             pipeline.Add(new ColumnConcatenator(outputColumn: "Features",
                 "SepalLength", "SepalWidth", "PetalLength", "PetalWidth"));
             pipeline.Add(new StochasticDualCoordinateAscentClassifier());
-            PredictionModel<IrisData, IrisPrediction> model = pipeline.Train<IrisData, IrisPrediction>();
+            var model = pipeline.Train<IrisData, IrisPrediction>();
 
             IrisPrediction prediction = model.Predict(new IrisData()
             {
@@ -156,7 +156,7 @@ namespace Microsoft.ML.EntryPoints.Tests
                 PetalWidth = 5.1f,
             });
 
-            pipeline = new LearningPipeline();
+            pipeline = new Legacy.LearningPipeline();
             collection = CollectionDataSource.Create(data.AsEnumerable());
             pipeline.Add(collection);
             pipeline.Add(new ColumnConcatenator(outputColumn: "Features",
@@ -177,7 +177,7 @@ namespace Microsoft.ML.EntryPoints.Tests
         [Fact]
         public void CanTrainProperties()
         {
-            var pipeline = new LearningPipeline();
+            var pipeline = new Legacy.LearningPipeline();
             var data = new List<IrisDataProperties>() {
                 new IrisDataProperties { SepalLength = 1f, SepalWidth = 1f, PetalLength=0.3f, PetalWidth=5.1f, Label=1},
                 new IrisDataProperties { SepalLength = 1f, SepalWidth = 1f, PetalLength=0.3f, PetalWidth=5.1f, Label=1},
@@ -189,7 +189,7 @@ namespace Microsoft.ML.EntryPoints.Tests
             pipeline.Add(new ColumnConcatenator(outputColumn: "Features",
                 "SepalLength", "SepalWidth", "PetalLength", "PetalWidth"));
             pipeline.Add(new StochasticDualCoordinateAscentClassifier());
-            PredictionModel<IrisDataProperties, IrisPredictionProperties> model = pipeline.Train<IrisDataProperties, IrisPredictionProperties>();
+            var model = pipeline.Train<IrisDataProperties, IrisPredictionProperties>();
 
             IrisPredictionProperties prediction = model.Predict(new IrisDataProperties()
             {
@@ -199,7 +199,7 @@ namespace Microsoft.ML.EntryPoints.Tests
                 PetalWidth = 5.1f,
             });
 
-            pipeline = new LearningPipeline();
+            pipeline = new Legacy.LearningPipeline();
             collection = CollectionDataSource.Create(data.AsEnumerable());
             pipeline.Add(collection);
             pipeline.Add(new ColumnConcatenator(outputColumn: "Features",
@@ -417,8 +417,8 @@ namespace Microsoft.ML.EntryPoints.Tests
                 },
                 new ConversionSimpleClass()
             };
-            
-            using (var env = new TlcEnvironment())
+
+            using (var env = new ConsoleEnvironment())
             {
                 var dataView = ComponentCreation.CreateDataView(env, data);
                 var enumeratorSimple = dataView.AsEnumerable<ConversionSimpleClass>(env, false).GetEnumerator();
@@ -442,7 +442,7 @@ namespace Microsoft.ML.EntryPoints.Tests
         [Fact]
         public void ConversionExceptionsBehavior()
         {
-            using (var env = new TlcEnvironment())
+            using (var env = new ConsoleEnvironment())
             {
                 var data = new ConversionNotSupportedMinValueClass[1];
                 foreach (var field in typeof(ConversionNotSupportedMinValueClass).GetFields())
@@ -496,7 +496,7 @@ namespace Microsoft.ML.EntryPoints.Tests
                 new ClassWithConstField(){ fInt=-1, fString ="" },
             };
 
-            using (var env = new TlcEnvironment())
+            using (var env = new ConsoleEnvironment())
             {
                 var dataView = ComponentCreation.CreateDataView(env, data);
                 var enumeratorSimple = dataView.AsEnumerable<ClassWithConstField>(env, false).GetEnumerator();
@@ -524,7 +524,7 @@ namespace Microsoft.ML.EntryPoints.Tests
                 new ClassWithMixOfFieldsAndProperties(){ IntProp=-1, fString ="" },
             };
 
-            using (var env = new TlcEnvironment())
+            using (var env = new ConsoleEnvironment())
             {
                 var dataView = ComponentCreation.CreateDataView(env, data);
                 var enumeratorSimple = dataView.AsEnumerable<ClassWithMixOfFieldsAndProperties>(env, false).GetEnumerator();
@@ -580,7 +580,7 @@ namespace Microsoft.ML.EntryPoints.Tests
                 new ClassWithPrivateFieldsAndProperties(){ StringProp ="baba" }
             };
 
-            using (var env = new TlcEnvironment())
+            using (var env = new ConsoleEnvironment())
             {
                 var dataView = ComponentCreation.CreateDataView(env, data);
                 var enumeratorSimple = dataView.AsEnumerable<ClassWithPrivateFieldsAndProperties>(env, false).GetEnumerator();
@@ -613,7 +613,7 @@ namespace Microsoft.ML.EntryPoints.Tests
                 new ClassWithInheritedProperties(){ IntProp=-1, StringProp ="", LongProp=2, ByteProp=4 },
             };
 
-            using (var env = new TlcEnvironment())
+            using (var env = new ConsoleEnvironment())
             {
                 var dataView = ComponentCreation.CreateDataView(env, data);
                 var enumeratorSimple = dataView.AsEnumerable<ClassWithInheritedProperties>(env, false).GetEnumerator();
@@ -665,7 +665,8 @@ namespace Microsoft.ML.EntryPoints.Tests
                 new ClassWithArrays()
             };
 
-            using (var env = new TlcEnvironment())
+
+            using (var env = new ConsoleEnvironment())
             {
                 var dataView = ComponentCreation.CreateDataView(env, data);
                 var enumeratorSimple = dataView.AsEnumerable<ClassWithArrays>(env, false).GetEnumerator();
@@ -730,7 +731,7 @@ namespace Microsoft.ML.EntryPoints.Tests
                 new ClassWithArrayProperties()
             };
 
-            using (var env = new TlcEnvironment())
+            using (var env = new ConsoleEnvironment())
             {
                 var dataView = ComponentCreation.CreateDataView(env, data);
                 var enumeratorSimple = dataView.AsEnumerable<ClassWithArrayProperties>(env, false).GetEnumerator();
@@ -771,7 +772,7 @@ namespace Microsoft.ML.EntryPoints.Tests
                 new ClassWithGetter()
             };
 
-            using (var env = new TlcEnvironment())
+            using (var env = new ConsoleEnvironment())
             {
                 var dataView = ComponentCreation.CreateDataView(env, data);
                 var enumeratorSimple = dataView.AsEnumerable<ClassWithSetter>(env, false).GetEnumerator();

@@ -39,7 +39,7 @@ Below are some of the highlights from this release.
     * FFM is a streaming learner so it does not require the entire dataset to
       fit in memory.
     * You can learn more about FFM
-      [here](http://www.csie.ntu.edu.tw/~cjlin/papers/ffm.pdf) and some of the
+      [here](https://www.csie.ntu.edu.tw/~cjlin/papers/ffm.pdf) and some of the
       speedup approaches that are used in ML.NET
       [here](https://github.com/wschin/fast-ffm/blob/master/fast-ffm.pdf).
 
@@ -47,7 +47,7 @@ Below are some of the highlights from this release.
   binary classification, multiclass classification, and regression (#392)
 
     * LightGBM is a tree based gradient boosting machine. It is under the
-      umbrella of the [DMTK](http://github.com/microsoft/dmtk) project at
+      umbrella of the [DMTK](https://github.com/microsoft/dmtk) project at
       Microsoft.
     * The LightGBM repository shows various [comparison
       experiments](https://github.com/Microsoft/LightGBM/blob/6488f319f243f7ff679a8e388a33e758c5802303/docs/Experiments.rst#comparison-experiment)

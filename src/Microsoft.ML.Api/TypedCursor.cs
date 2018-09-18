@@ -549,7 +549,7 @@ namespace Microsoft.ML.Runtime.Api
             where TRow : class, new()
         {
             // REVIEW: Take an env as a parameter.
-            var env = new TlcEnvironment();
+            var env = new ConsoleEnvironment();
             return data.AsCursorable<TRow>(env, ignoreMissingColumns, schemaDefinition);
         }
 
@@ -590,7 +590,7 @@ namespace Microsoft.ML.Runtime.Api
             where TRow : class, new()
         {
             // REVIEW: Take an env as a parameter.
-            var env = new TlcEnvironment();
+            var env = new ConsoleEnvironment();
             return data.AsEnumerable<TRow>(env, reuseRowObject, ignoreMissingColumns, schemaDefinition);
         }
     }

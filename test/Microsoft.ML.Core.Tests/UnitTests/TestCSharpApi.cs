@@ -2,13 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using Microsoft.ML.Data;
+using Microsoft.ML.Legacy.Data;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.TestFramework;
+using System.Collections.Generic;
+using System.Linq;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -24,14 +23,14 @@ namespace Microsoft.ML.Runtime.RunTests
         public void TestSimpleExperiment()
         {
             var dataPath = GetDataPath("adult.tiny.with-schema.txt");
-            using (var env = new TlcEnvironment())
+            using (var env = new ConsoleEnvironment())
             {
                 var experiment = env.CreateExperiment();
 
-                var importInput = new ML.Data.TextLoader(dataPath);
+                var importInput = new Legacy.Data.TextLoader(dataPath);
                 var importOutput = experiment.Add(importInput);
 
-                var normalizeInput = new ML.Transforms.MinMaxNormalizer
+                var normalizeInput = new Legacy.Transforms.MinMaxNormalizer
                 {
                     Data = importOutput.Data
                 };
@@ -55,28 +54,28 @@ namespace Microsoft.ML.Runtime.RunTests
         public void TestSimpleTrainExperiment()
         {
             var dataPath = GetDataPath("adult.tiny.with-schema.txt");
-            using (var env = new TlcEnvironment())
+            using (var env = new ConsoleEnvironment())
             {
                 var experiment = env.CreateExperiment();
 
-                var importInput = new ML.Data.TextLoader(dataPath);
+                var importInput = new Legacy.Data.TextLoader(dataPath);
                 var importOutput = experiment.Add(importInput);
 
-                var catInput = new ML.Transforms.CategoricalOneHotVectorizer
+                var catInput = new Legacy.Transforms.CategoricalOneHotVectorizer
                 {
                     Data = importOutput.Data
                 };
                 catInput.AddColumn("Categories");
                 var catOutput = experiment.Add(catInput);
 
-                var concatInput = new ML.Transforms.ColumnConcatenator
+                var concatInput = new Legacy.Transforms.ColumnConcatenator
                 {
                     Data = catOutput.OutputData
                 };
                 concatInput.AddColumn("Features", "Categories", "NumericFeatures");
                 var concatOutput = experiment.Add(concatInput);
 
-                var sdcaInput = new ML.Trainers.StochasticDualCoordinateAscentBinaryClassifier
+                var sdcaInput = new Legacy.Trainers.StochasticDualCoordinateAscentBinaryClassifier
                 {
                     TrainingData = concatOutput.OutputData,
                     LossFunction = new HingeLossSDCAClassificationLossFunction() { Margin = 1.1f },
@@ -85,14 +84,14 @@ namespace Microsoft.ML.Runtime.RunTests
                 };
                 var sdcaOutput = experiment.Add(sdcaInput);
 
-                var scoreInput = new ML.Transforms.DatasetScorer
+                var scoreInput = new Legacy.Transforms.DatasetScorer
                 {
                     Data = concatOutput.OutputData,
                     PredictorModel = sdcaOutput.PredictorModel
                 };
                 var scoreOutput = experiment.Add(scoreInput);
 
-                var evalInput = new ML.Models.BinaryClassificationEvaluator
+                var evalInput = new Legacy.Models.BinaryClassificationEvaluator
                 {
                     Data = scoreOutput.ScoredData
                 };
@@ -124,22 +123,22 @@ namespace Microsoft.ML.Runtime.RunTests
         public void TestTrainTestMacro()
         {
             var dataPath = GetDataPath("adult.tiny.with-schema.txt");
-            using (var env = new TlcEnvironment())
+            using (var env = new ConsoleEnvironment())
             {
                 var subGraph = env.CreateExperiment();
 
-                var catInput = new ML.Transforms.CategoricalOneHotVectorizer();
+                var catInput = new Legacy.Transforms.CategoricalOneHotVectorizer();
                 catInput.AddColumn("Categories");
                 var catOutput = subGraph.Add(catInput);
 
-                var concatInput = new ML.Transforms.ColumnConcatenator
+                var concatInput = new Legacy.Transforms.ColumnConcatenator
                 {
                     Data = catOutput.OutputData
                 };
                 concatInput.AddColumn("Features", "Categories", "NumericFeatures");
                 var concatOutput = subGraph.Add(concatInput);
 
-                var sdcaInput = new ML.Trainers.StochasticDualCoordinateAscentBinaryClassifier
+                var sdcaInput = new Legacy.Trainers.StochasticDualCoordinateAscentBinaryClassifier
                 {
                     TrainingData = concatOutput.OutputData,
                     LossFunction = new HingeLossSDCAClassificationLossFunction() { Margin = 1.1f },
@@ -148,7 +147,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 };
                 var sdcaOutput = subGraph.Add(sdcaInput);
 
-                var modelCombine = new ML.Transforms.ManyHeterogeneousModelCombiner
+                var modelCombine = new Legacy.Transforms.ManyHeterogeneousModelCombiner
                 {
                     TransformModels = new ArrayVar<ITransformModel>(catOutput.Model, concatOutput.Model),
                     PredictorModel = sdcaOutput.PredictorModel
@@ -157,10 +156,10 @@ namespace Microsoft.ML.Runtime.RunTests
 
                 var experiment = env.CreateExperiment();
 
-                var importInput = new ML.Data.TextLoader(dataPath);
+                var importInput = new Legacy.Data.TextLoader(dataPath);
                 var importOutput = experiment.Add(importInput);
 
-                var trainTestInput = new ML.Models.TrainTestBinaryEvaluator
+                var trainTestInput = new Legacy.Models.TrainTestBinaryEvaluator
                 {
                     TrainingData = importOutput.Data,
                     TestingData = importOutput.Data,
@@ -196,29 +195,29 @@ namespace Microsoft.ML.Runtime.RunTests
         public void TestCrossValidationBinaryMacro()
         {
             var dataPath = GetDataPath("adult.tiny.with-schema.txt");
-            using (var env = new TlcEnvironment())
+            using (var env = new ConsoleEnvironment())
             {
                 var subGraph = env.CreateExperiment();
 
-                var catInput = new ML.Transforms.CategoricalOneHotVectorizer();
+                var catInput = new Legacy.Transforms.CategoricalOneHotVectorizer();
                 catInput.AddColumn("Categories");
                 var catOutput = subGraph.Add(catInput);
 
-                var concatInput = new ML.Transforms.ColumnConcatenator
+                var concatInput = new Legacy.Transforms.ColumnConcatenator
                 {
                     Data = catOutput.OutputData
                 };
                 concatInput.AddColumn("Features", "Categories", "NumericFeatures");
                 var concatOutput = subGraph.Add(concatInput);
 
-                var lrInput = new ML.Trainers.LogisticRegressionBinaryClassifier
+                var lrInput = new Legacy.Trainers.LogisticRegressionBinaryClassifier
                 {
                     TrainingData = concatOutput.OutputData,
                     NumThreads = 1
                 };
                 var lrOutput = subGraph.Add(lrInput);
 
-                var modelCombine = new ML.Transforms.ManyHeterogeneousModelCombiner
+                var modelCombine = new Legacy.Transforms.ManyHeterogeneousModelCombiner
                 {
                     TransformModels = new ArrayVar<ITransformModel>(catOutput.Model, concatOutput.Model),
                     PredictorModel = lrOutput.PredictorModel
@@ -227,10 +226,10 @@ namespace Microsoft.ML.Runtime.RunTests
 
                 var experiment = env.CreateExperiment();
 
-                var importInput = new ML.Data.TextLoader(dataPath);
+                var importInput = new Legacy.Data.TextLoader(dataPath);
                 var importOutput = experiment.Add(importInput);
 
-                var crossValidateBinary = new ML.Models.BinaryCrossValidator
+                var crossValidateBinary = new Legacy.Models.BinaryCrossValidator
                 {
                     Data = importOutput.Data,
                     Nodes = subGraph
@@ -265,19 +264,19 @@ namespace Microsoft.ML.Runtime.RunTests
         public void TestCrossValidationMacro()
         {
             var dataPath = GetDataPath(TestDatasets.winequalitymacro.trainFilename);
-            using (var env = new TlcEnvironment(42))
+            using (var env = new ConsoleEnvironment(42))
             {
                 var subGraph = env.CreateExperiment();
 
-                var nop = new ML.Transforms.NoOperation();
+                var nop = new Legacy.Transforms.NoOperation();
                 var nopOutput = subGraph.Add(nop);
 
-                var generate = new ML.Transforms.RandomNumberGenerator();
-                generate.Column = new[] { new ML.Transforms.GenerateNumberTransformColumn() { Name = "Weight1" } };
+                var generate = new Legacy.Transforms.RandomNumberGenerator();
+                generate.Column = new[] { new Legacy.Transforms.GenerateNumberTransformColumn() { Name = "Weight1" } };
                 generate.Data = nopOutput.OutputData;
                 var generateOutput = subGraph.Add(generate);
 
-                var learnerInput = new ML.Trainers.PoissonRegressor
+                var learnerInput = new Legacy.Trainers.PoissonRegressor
                 {
                     TrainingData = generateOutput.OutputData,
                     NumThreads = 1,
@@ -285,7 +284,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 };
                 var learnerOutput = subGraph.Add(learnerInput);
 
-                var modelCombine = new ML.Transforms.ManyHeterogeneousModelCombiner
+                var modelCombine = new Legacy.Transforms.ManyHeterogeneousModelCombiner
                 {
                     TransformModels = new ArrayVar<ITransformModel>(nopOutput.Model, generateOutput.Model),
                     PredictorModel = learnerOutput.PredictorModel
@@ -293,9 +292,9 @@ namespace Microsoft.ML.Runtime.RunTests
                 var modelCombineOutput = subGraph.Add(modelCombine);
 
                 var experiment = env.CreateExperiment();
-                var importInput = new ML.Data.TextLoader(dataPath)
+                var importInput = new Legacy.Data.TextLoader(dataPath)
                 {
-                    Arguments = new TextLoaderArguments
+                    Arguments = new Legacy.Data.TextLoaderArguments
                     {
                         Separator = new[] { ';' },
                         HasHeader = true,
@@ -305,25 +304,25 @@ namespace Microsoft.ML.Runtime.RunTests
                         {
                             Name = "Label",
                             Source = new [] { new TextLoaderRange(11) },
-                            Type = ML.Data.DataKind.Num
+                            Type = Legacy.Data.DataKind.Num
                         },
 
                         new TextLoaderColumn()
                         {
                             Name = "Features",
                             Source = new [] { new TextLoaderRange(0,10) },
-                            Type = ML.Data.DataKind.Num
+                            Type = Legacy.Data.DataKind.Num
                         }
                     }
                     }
                 };
                 var importOutput = experiment.Add(importInput);
 
-                var crossValidate = new ML.Models.CrossValidator
+                var crossValidate = new Legacy.Models.CrossValidator
                 {
                     Data = importOutput.Data,
                     Nodes = subGraph,
-                    Kind = ML.Models.MacroUtilsTrainerKinds.SignatureRegressorTrainer,
+                    Kind = Legacy.Models.MacroUtilsTrainerKinds.SignatureRegressorTrainer,
                     TransformModel = null,
                     WeightColumn = "Weight1"
                 };
@@ -411,21 +410,21 @@ namespace Microsoft.ML.Runtime.RunTests
         public void TestCrossValidationMacroWithMultiClass()
         {
             var dataPath = GetDataPath(@"Train-Tiny-28x28.txt");
-            using (var env = new TlcEnvironment(42))
+            using (var env = new ConsoleEnvironment(42))
             {
                 var subGraph = env.CreateExperiment();
 
-                var nop = new ML.Transforms.NoOperation();
+                var nop = new Legacy.Transforms.NoOperation();
                 var nopOutput = subGraph.Add(nop);
 
-                var learnerInput = new ML.Trainers.StochasticDualCoordinateAscentClassifier
+                var learnerInput = new Legacy.Trainers.StochasticDualCoordinateAscentClassifier
                 {
                     TrainingData = nopOutput.OutputData,
                     NumThreads = 1
                 };
                 var learnerOutput = subGraph.Add(learnerInput);
 
-                var modelCombine = new ML.Transforms.ManyHeterogeneousModelCombiner
+                var modelCombine = new Legacy.Transforms.ManyHeterogeneousModelCombiner
                 {
                     TransformModels = new ArrayVar<ITransformModel>(nopOutput.Model),
                     PredictorModel = learnerOutput.PredictorModel
@@ -433,14 +432,14 @@ namespace Microsoft.ML.Runtime.RunTests
                 var modelCombineOutput = subGraph.Add(modelCombine);
 
                 var experiment = env.CreateExperiment();
-                var importInput = new ML.Data.TextLoader(dataPath);
+                var importInput = new Legacy.Data.TextLoader(dataPath);
                 var importOutput = experiment.Add(importInput);
 
-                var crossValidate = new ML.Models.CrossValidator
+                var crossValidate = new Legacy.Models.CrossValidator
                 {
                     Data = importOutput.Data,
                     Nodes = subGraph,
-                    Kind = ML.Models.MacroUtilsTrainerKinds.SignatureMultiClassClassifierTrainer,
+                    Kind = Legacy.Models.MacroUtilsTrainerKinds.SignatureMultiClassClassifierTrainer,
                     TransformModel = null
                 };
                 crossValidate.Inputs.Data = nop.Data;
@@ -540,14 +539,14 @@ namespace Microsoft.ML.Runtime.RunTests
         public void TestCrossValidationMacroMultiClassWithWarnings()
         {
             var dataPath = GetDataPath(@"Train-Tiny-28x28.txt");
-            using (var env = new TlcEnvironment(42))
+            using (var env = new ConsoleEnvironment(42))
             {
                 var subGraph = env.CreateExperiment();
 
-                var nop = new ML.Transforms.NoOperation();
+                var nop = new Legacy.Transforms.NoOperation();
                 var nopOutput = subGraph.Add(nop);
 
-                var learnerInput = new ML.Trainers.LogisticRegressionClassifier
+                var learnerInput = new Legacy.Trainers.LogisticRegressionClassifier
                 {
                     TrainingData = nopOutput.OutputData,
                     NumThreads = 1
@@ -555,32 +554,32 @@ namespace Microsoft.ML.Runtime.RunTests
                 var learnerOutput = subGraph.Add(learnerInput);
 
                 var experiment = env.CreateExperiment();
-                var importInput = new ML.Data.TextLoader(dataPath);
+                var importInput = new Legacy.Data.TextLoader(dataPath);
                 var importOutput = experiment.Add(importInput);
 
-                var filter = new ML.Transforms.RowRangeFilter();
+                var filter = new Legacy.Transforms.RowRangeFilter();
                 filter.Data = importOutput.Data;
                 filter.Column = "Label";
                 filter.Min = 0;
                 filter.Max = 5;
                 var filterOutput = experiment.Add(filter);
 
-                var term = new ML.Transforms.TextToKeyConverter();
+                var term = new Legacy.Transforms.TextToKeyConverter();
                 term.Column = new[]
                 {
-                    new ML.Transforms.TermTransformColumn()
+                    new Legacy.Transforms.TermTransformColumn()
                     {
-                        Source = "Label", Name = "Strat", Sort = ML.Transforms.TermTransformSortOrder.Value
+                        Source = "Label", Name = "Strat", Sort = Legacy.Transforms.TermTransformSortOrder.Value
                     }
                 };
                 term.Data = filterOutput.OutputData;
                 var termOutput = experiment.Add(term);
 
-                var crossValidate = new ML.Models.CrossValidator
+                var crossValidate = new Legacy.Models.CrossValidator
                 {
                     Data = termOutput.OutputData,
                     Nodes = subGraph,
-                    Kind = ML.Models.MacroUtilsTrainerKinds.SignatureMultiClassClassifierTrainer,
+                    Kind = Legacy.Models.MacroUtilsTrainerKinds.SignatureMultiClassClassifierTrainer,
                     TransformModel = null,
                     StratificationColumn = "Strat"
                 };
@@ -619,21 +618,21 @@ namespace Microsoft.ML.Runtime.RunTests
         public void TestCrossValidationMacroWithStratification()
         {
             var dataPath = GetDataPath(@"breast-cancer.txt");
-            using (var env = new TlcEnvironment(42))
+            using (var env = new ConsoleEnvironment(42))
             {
                 var subGraph = env.CreateExperiment();
 
-                var nop = new ML.Transforms.NoOperation();
+                var nop = new Legacy.Transforms.NoOperation();
                 var nopOutput = subGraph.Add(nop);
 
-                var learnerInput = new ML.Trainers.StochasticDualCoordinateAscentBinaryClassifier
+                var learnerInput = new Legacy.Trainers.StochasticDualCoordinateAscentBinaryClassifier
                 {
                     TrainingData = nopOutput.OutputData,
                     NumThreads = 1
                 };
                 var learnerOutput = subGraph.Add(learnerInput);
 
-                var modelCombine = new ML.Transforms.ManyHeterogeneousModelCombiner
+                var modelCombine = new Legacy.Transforms.ManyHeterogeneousModelCombiner
                 {
                     TransformModels = new ArrayVar<ITransformModel>(nopOutput.Model),
                     PredictorModel = learnerOutput.PredictorModel
@@ -641,16 +640,16 @@ namespace Microsoft.ML.Runtime.RunTests
                 var modelCombineOutput = subGraph.Add(modelCombine);
 
                 var experiment = env.CreateExperiment();
-                var importInput = new ML.Data.TextLoader(dataPath);
-                importInput.Arguments.Column = new ML.Data.TextLoaderColumn[]
+                var importInput = new Legacy.Data.TextLoader(dataPath);
+                importInput.Arguments.Column = new Legacy.Data.TextLoaderColumn[]
                 {
-                    new ML.Data.TextLoaderColumn { Name = "Label", Source = new[] { new ML.Data.TextLoaderRange(0) } },
-                    new ML.Data.TextLoaderColumn { Name = "Strat", Source = new[] { new ML.Data.TextLoaderRange(1) } },
-                    new ML.Data.TextLoaderColumn { Name = "Features", Source = new[] { new ML.Data.TextLoaderRange(2, 9) } }
+                    new Legacy.Data.TextLoaderColumn { Name = "Label", Source = new[] { new Legacy.Data.TextLoaderRange(0) } },
+                    new Legacy.Data.TextLoaderColumn { Name = "Strat", Source = new[] { new Legacy.Data.TextLoaderRange(1) } },
+                    new Legacy.Data.TextLoaderColumn { Name = "Features", Source = new[] { new Legacy.Data.TextLoaderRange(2, 9) } }
                 };
                 var importOutput = experiment.Add(importInput);
 
-                var crossValidate = new ML.Models.CrossValidator
+                var crossValidate = new Legacy.Models.CrossValidator
                 {
                     Data = importOutput.Data,
                     Nodes = subGraph,
@@ -715,20 +714,20 @@ namespace Microsoft.ML.Runtime.RunTests
         public void TestCrossValidationMacroWithNonDefaultNames()
         {
             string dataPath = GetDataPath(@"adult.tiny.with-schema.txt");
-            using (var env = new TlcEnvironment(42))
+            using (var env = new ConsoleEnvironment(42))
             {
                 var subGraph = env.CreateExperiment();
 
-                var textToKey = new ML.Transforms.TextToKeyConverter();
-                textToKey.Column = new[] { new ML.Transforms.TermTransformColumn() { Name = "Label1", Source = "Label" } };
+                var textToKey = new Legacy.Transforms.TextToKeyConverter();
+                textToKey.Column = new[] { new Legacy.Transforms.TermTransformColumn() { Name = "Label1", Source = "Label" } };
                 var textToKeyOutput = subGraph.Add(textToKey);
 
-                var hash = new ML.Transforms.HashConverter();
-                hash.Column = new[] { new ML.Transforms.HashJoinTransformColumn() { Name = "GroupId1", Source = "Workclass" } };
+                var hash = new Legacy.Transforms.HashConverter();
+                hash.Column = new[] { new Legacy.Transforms.HashJoinTransformColumn() { Name = "GroupId1", Source = "Workclass" } };
                 hash.Data = textToKeyOutput.OutputData;
                 var hashOutput = subGraph.Add(hash);
 
-                var learnerInput = new Trainers.FastTreeRanker
+                var learnerInput = new Legacy.Trainers.FastTreeRanker
                 {
                     TrainingData = hashOutput.OutputData,
                     NumThreads = 1,
@@ -737,7 +736,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 };
                 var learnerOutput = subGraph.Add(learnerInput);
 
-                var modelCombine = new ML.Transforms.ManyHeterogeneousModelCombiner
+                var modelCombine = new Legacy.Transforms.ManyHeterogeneousModelCombiner
                 {
                     TransformModels = new ArrayVar<ITransformModel>(textToKeyOutput.Model, hashOutput.Model),
                     PredictorModel = learnerOutput.PredictorModel
@@ -745,17 +744,17 @@ namespace Microsoft.ML.Runtime.RunTests
                 var modelCombineOutput = subGraph.Add(modelCombine);
 
                 var experiment = env.CreateExperiment();
-                var importInput = new ML.Data.TextLoader(dataPath);
+                var importInput = new Legacy.Data.TextLoader(dataPath);
                 importInput.Arguments.HasHeader = true;
                 importInput.Arguments.Column = new TextLoaderColumn[]
                 {
                     new TextLoaderColumn { Name = "Label", Source = new[] { new TextLoaderRange(0) } },
-                    new TextLoaderColumn { Name = "Workclass", Source = new[] { new TextLoaderRange(1) }, Type = ML.Data.DataKind.Text },
+                    new TextLoaderColumn { Name = "Workclass", Source = new[] { new TextLoaderRange(1) }, Type = Legacy.Data.DataKind.Text },
                     new TextLoaderColumn { Name = "Features", Source = new[] { new TextLoaderRange(9, 14) } }
                 };
                 var importOutput = experiment.Add(importInput);
 
-                var crossValidate = new Models.CrossValidator
+                var crossValidate = new Legacy.Models.CrossValidator
                 {
                     Data = importOutput.Data,
                     Nodes = subGraph,
@@ -763,7 +762,7 @@ namespace Microsoft.ML.Runtime.RunTests
                     LabelColumn = "Label1",
                     GroupColumn = "GroupId1",
                     NameColumn = "Workclass",
-                    Kind = Models.MacroUtilsTrainerKinds.SignatureRankerTrainer
+                    Kind = Legacy.Models.MacroUtilsTrainerKinds.SignatureRankerTrainer
                 };
                 crossValidate.Inputs.Data = textToKey.Data;
                 crossValidate.Outputs.PredictorModel = modelCombineOutput.PredictorModel;
@@ -844,35 +843,35 @@ namespace Microsoft.ML.Runtime.RunTests
         public void TestOvaMacro()
         {
             var dataPath = GetDataPath(@"iris.txt");
-            using (var env = new TlcEnvironment(42))
+            using (var env = new ConsoleEnvironment(42))
             {
                 // Specify subgraph for OVA
                 var subGraph = env.CreateExperiment();
-                var learnerInput = new Trainers.StochasticDualCoordinateAscentBinaryClassifier { NumThreads = 1 };
+                var learnerInput = new Legacy.Trainers.StochasticDualCoordinateAscentBinaryClassifier { NumThreads = 1 };
                 var learnerOutput = subGraph.Add(learnerInput);
                 // Create pipeline with OVA and multiclass scoring.
                 var experiment = env.CreateExperiment();
-                var importInput = new ML.Data.TextLoader(dataPath);
+                var importInput = new Legacy.Data.TextLoader(dataPath);
                 importInput.Arguments.Column = new TextLoaderColumn[]
                 {
                     new TextLoaderColumn { Name = "Label", Source = new[] { new TextLoaderRange(0) } },
                     new TextLoaderColumn { Name = "Features", Source = new[] { new TextLoaderRange(1,4) } }
                 };
                 var importOutput = experiment.Add(importInput);
-                var oneVersusAll = new Models.OneVersusAll
+                var oneVersusAll = new Legacy.Models.OneVersusAll
                 {
                     TrainingData = importOutput.Data,
                     Nodes = subGraph,
                     UseProbabilities = true,
                 };
                 var ovaOutput = experiment.Add(oneVersusAll);
-                var scoreInput = new ML.Transforms.DatasetScorer
+                var scoreInput = new Legacy.Transforms.DatasetScorer
                 {
                     Data = importOutput.Data,
                     PredictorModel = ovaOutput.PredictorModel
                 };
                 var scoreOutput = experiment.Add(scoreInput);
-                var evalInput = new ML.Models.ClassificationEvaluator
+                var evalInput = new Legacy.Models.ClassificationEvaluator
                 {
                     Data = scoreOutput.ScoredData
                 };
@@ -903,35 +902,35 @@ namespace Microsoft.ML.Runtime.RunTests
         public void TestOvaMacroWithUncalibratedLearner()
         {
             var dataPath = GetDataPath(@"iris.txt");
-            using (var env = new TlcEnvironment(42))
+            using (var env = new ConsoleEnvironment(42))
             {
                 // Specify subgraph for OVA
                 var subGraph = env.CreateExperiment();
-                var learnerInput = new Trainers.AveragedPerceptronBinaryClassifier { Shuffle = false };
+                var learnerInput = new Legacy.Trainers.AveragedPerceptronBinaryClassifier { Shuffle = false };
                 var learnerOutput = subGraph.Add(learnerInput);
                 // Create pipeline with OVA and multiclass scoring.
                 var experiment = env.CreateExperiment();
-                var importInput = new ML.Data.TextLoader(dataPath);
+                var importInput = new Legacy.Data.TextLoader(dataPath);
                 importInput.Arguments.Column = new TextLoaderColumn[]
                 {
                     new TextLoaderColumn { Name = "Label", Source = new[] { new TextLoaderRange(0) } },
                     new TextLoaderColumn { Name = "Features", Source = new[] { new TextLoaderRange(1,4) } }
                 };
                 var importOutput = experiment.Add(importInput);
-                var oneVersusAll = new Models.OneVersusAll
+                var oneVersusAll = new Legacy.Models.OneVersusAll
                 {
                     TrainingData = importOutput.Data,
                     Nodes = subGraph,
                     UseProbabilities = true,
                 };
                 var ovaOutput = experiment.Add(oneVersusAll);
-                var scoreInput = new ML.Transforms.DatasetScorer
+                var scoreInput = new Legacy.Transforms.DatasetScorer
                 {
                     Data = importOutput.Data,
                     PredictorModel = ovaOutput.PredictorModel
                 };
                 var scoreOutput = experiment.Add(scoreInput);
-                var evalInput = new ML.Models.ClassificationEvaluator
+                var evalInput = new Legacy.Models.ClassificationEvaluator
                 {
                     Data = scoreOutput.ScoredData
                 };
@@ -962,11 +961,11 @@ namespace Microsoft.ML.Runtime.RunTests
         public void TestTensorFlowEntryPoint()
         {
             var dataPath = GetDataPath("Train-Tiny-28x28.txt");
-            using (var env = new TlcEnvironment(42))
+            using (var env = new ConsoleEnvironment(42))
             {
                 var experiment = env.CreateExperiment();
 
-                var importInput = new ML.Data.TextLoader(dataPath);
+                var importInput = new Legacy.Data.TextLoader(dataPath);
                 importInput.Arguments.Column = new TextLoaderColumn[]
                 {
                     new TextLoaderColumn { Name = "Label", Source = new[] { new TextLoaderRange(0) } },
@@ -974,7 +973,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 };
                 var importOutput = experiment.Add(importInput);
 
-                var tfTransformInput = new ML.Transforms.TensorFlowScorer
+                var tfTransformInput = new Legacy.Transforms.TensorFlowScorer
                 {
                     Data = importOutput.Data,
                     InputColumns = new[] { "Placeholder" },

@@ -259,8 +259,8 @@ namespace Microsoft.ML.Runtime.EntryPoints
             {
                 // Add a node to extract the sweep result.
                 var resultSubgraph = new Experiment(env);
-                var resultNode = new Microsoft.ML.Models.SweepResultExtractor() { State = amlsVarObj };
-                var resultOutput = new Models.SweepResultExtractor.Output() { State = outStateVar, Results = outDvVar };
+                var resultNode = new Microsoft.ML.Legacy.Models.SweepResultExtractor() { State = amlsVarObj };
+                var resultOutput = new Legacy.Models.SweepResultExtractor.Output() { State = outStateVar, Results = outDvVar };
                 resultSubgraph.Add(resultNode, resultOutput);
                 var resultSubgraphNodes = EntryPointNode.ValidateNodes(env, node.Context, resultSubgraph.GetNodes(), node.Catalog);
                 expNodes.AddRange(resultSubgraphNodes);
@@ -291,7 +291,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
 
             // Add recursive macro node
             var macroSubgraph = new Experiment(env);
-            var macroNode = new Models.PipelineSweeper()
+            var macroNode = new Legacy.Models.PipelineSweeper()
             {
                 BatchSize = input.BatchSize,
                 CandidateOutputs = new ArrayVar<IDataView>(pipelineIndicators.ToArray()),
@@ -299,7 +299,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
                 TestingData = testing,
                 State = amlsVarObj
             };
-            var output = new Models.PipelineSweeper.Output() { Results = outDvVar, State = outStateVar };
+            var output = new Legacy.Models.PipelineSweeper.Output() { Results = outDvVar, State = outStateVar };
             macroSubgraph.Add(macroNode, output);
 
             var subgraphNodes = EntryPointNode.ValidateNodes(env, node.Context, macroSubgraph.GetNodes(), node.Catalog);

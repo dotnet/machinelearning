@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.ML.Legacy.Transforms;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
@@ -29,7 +30,7 @@ namespace Microsoft.ML.Scenarios
         public void TensorFlowTransformMatrixMultiplicationTest()
         {
             var model_location = "model_matmul/frozen_saved_model.pb";
-            using (var env = new TlcEnvironment(seed: 1, conc: 1))
+            using (var env = new ConsoleEnvironment(seed: 1, conc: 1))
             {
                 // Pipeline
                 var loader = ComponentCreation.CreateDataView(env,
@@ -75,7 +76,7 @@ namespace Microsoft.ML.Scenarios
         public void TensorFlowTransformObjectDetectionTest()
         {
             var model_location = @"C:\models\TensorFlow\ssd_mobilenet_v1_coco_2018_01_28\frozen_inference_graph.pb";
-            using (var env = new TlcEnvironment(seed: 1, conc: 1))
+            using (var env = new ConsoleEnvironment(seed: 1, conc: 1))
             {
                 var dataFile = GetDataPath("images/images.tsv");
                 var imageFolder = Path.GetDirectoryName(dataFile);
@@ -135,7 +136,7 @@ namespace Microsoft.ML.Scenarios
         public void TensorFlowTransformInceptionTest()
         {
             var model_location = @"C:\models\TensorFlow\tensorflow_inception_graph.pb";
-            using (var env = new TlcEnvironment(seed: 1, conc: 1))
+            using (var env = new ConsoleEnvironment(seed: 1, conc: 1))
             {
                 var dataFile = GetDataPath("images/images.tsv");
                 var imageFolder = Path.GetDirectoryName(dataFile);
@@ -184,7 +185,7 @@ namespace Microsoft.ML.Scenarios
         public void TensorFlowTransformMNISTConvTest()
         {
             var model_location = "mnist_model/frozen_saved_model.pb";
-            using (var env = new TlcEnvironment(seed: 1, conc: 1))
+            using (var env = new ConsoleEnvironment(seed: 1, conc: 1))
             {
                 var dataPath = GetDataPath("Train-Tiny-28x28.txt");
                 var testDataPath = GetDataPath("MNIST.Test.tiny.txt");
@@ -210,7 +211,7 @@ namespace Microsoft.ML.Scenarios
                                     }
                 }, loader);
                 trans = TensorFlowTransform.Create(env, trans, model_location, new[] { "Softmax", "dense/Relu" }, new[] { "Placeholder", "reshape_input" });
-                trans = new ConcatTransform(env, trans, "Features", "Softmax", "dense/Relu");
+                trans = new ConcatTransform(env, "Features", "Softmax", "dense/Relu").Transform(trans);
 
                 var trainer = new LightGbmMulticlassTrainer(env, new LightGbmArguments());
 
@@ -268,17 +269,17 @@ namespace Microsoft.ML.Scenarios
             var model_location = "mnist_model/frozen_saved_model.pb";
             var dataPath = GetDataPath("Train-Tiny-28x28.txt");
 
-            var pipeline = new LearningPipeline(seed: 1);
-            pipeline.Add(new Microsoft.ML.Data.TextLoader(dataPath).CreateFrom<MNISTData>(useHeader: false));
-            pipeline.Add(new Transforms.ColumnCopier() { Column = new[] { new CopyColumnsTransformColumn() { Name = "reshape_input", Source = "Placeholder" } } });
+            var pipeline = new Legacy.LearningPipeline(seed: 1);
+            pipeline.Add(new Microsoft.ML.Legacy.Data.TextLoader(dataPath).CreateFrom<MNISTData>(useHeader: false));
+            pipeline.Add(new Legacy.Transforms.ColumnCopier() { Column = new[] { new CopyColumnsTransformColumn() { Name = "reshape_input", Source = "Placeholder" } } });
             pipeline.Add(new TensorFlowScorer()
             {
                 ModelFile = model_location,
                 OutputColumns = new[] { "Softmax", "dense/Relu" },
                 InputColumns = new[] { "Placeholder", "reshape_input" }
             });
-            pipeline.Add(new Transforms.ColumnConcatenator() { Column = new[] { new ConcatTransformColumn() { Name = "Features", Source = new[] { "Placeholder", "dense/Relu" } } } });
-            pipeline.Add(new Trainers.LogisticRegressionClassifier());
+            pipeline.Add(new Legacy.Transforms.ColumnConcatenator() { Column = new[] { new ConcatTransformColumn() { Name = "Features", Source = new[] { "Placeholder", "dense/Relu" } } } });
+            pipeline.Add(new Legacy.Trainers.LogisticRegressionClassifier());
             TensorFlowUtils.Initialize();
             var model = pipeline.Train<MNISTData, MNISTPrediction>();
 
@@ -323,7 +324,7 @@ namespace Microsoft.ML.Scenarios
         {
             var model_location = "cifar_model/frozen_model.pb";
 
-            using (var env = new TlcEnvironment())
+            using (var env = new ConsoleEnvironment())
             {
                 var imageHeight = 32;
                 var imageWidth = 32;
@@ -377,7 +378,7 @@ namespace Microsoft.ML.Scenarios
         {
             var model_location = "cifar_model/frozen_model.pb";
 
-            using (var env = new TlcEnvironment())
+            using (var env = new ConsoleEnvironment())
             {
                 var imageHeight = 28;
                 var imageWidth = 28;

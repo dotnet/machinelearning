@@ -343,7 +343,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
             // Taking the high 64 bits of the 128 bit result should give us enough bits to get the
             // right answer most of the time. Note, that it's not guaranteed that we always get the
             // right answer. Guaranteeing that takes much more work.... See the paper by David Gay at
-            // http://www.ampl.com/REFS/rounding.pdf.
+            // https://www.ampl.com/REFS/rounding.pdf.
             Contracts.Assert((num & TopTwoBits) != 0);
             Contracts.Assert((mul & TopBit) != 0);
 

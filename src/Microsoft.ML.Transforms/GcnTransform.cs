@@ -38,7 +38,7 @@ namespace Microsoft.ML.Runtime.Data
     ///    Performs the following operation on a vector X:
     ///         Y = (s * X - M) / D, where s is a scale, M is mean and D is either L2 norm or standard deviation.
     ///    Usage examples and Matlab code:
-    ///    <a href="http://www.cs.stanford.edu/~acoates/papers/coatesleeng_aistats_2011.pdf">http://www.cs.stanford.edu/~acoates/papers/coatesleeng_aistats_2011.pdf</a>.
+    ///    <a href="https://www.cs.stanford.edu/~acoates/papers/coatesleeng_aistats_2011.pdf">https://www.cs.stanford.edu/~acoates/papers/coatesleeng_aistats_2011.pdf</a>.
     /// </summary>
     public sealed class LpNormNormalizerTransform : OneToOneTransformBase
     {

@@ -338,7 +338,7 @@ namespace Microsoft.ML.Runtime.Data
             for (int iinfo = 0; iinfo < transformInfos.Length; iinfo++)
             {
                 //Orthonormalize Y in-place using stabilized Gram Schmidt algorithm
-                //Ref: http://en.wikipedia.org/wiki/Gram-Schmidt#Algorithm
+                //Ref: https://en.wikipedia.org/wiki/Gram-Schmidt#Algorithm
                 for (var i = 0; i < oversampledRank[iinfo]; ++i)
                 {
                     var v = y[iinfo][i];
