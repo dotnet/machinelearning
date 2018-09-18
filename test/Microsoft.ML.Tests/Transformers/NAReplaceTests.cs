@@ -72,12 +72,12 @@ namespace Microsoft.ML.Tests.Transformers
 
             var est = data.MakeNewEstimator().
                    Append(row => (
-                   A: row.ScalarString.NAReplace(),
-                   B: row.ScalarFloat.NAReplace(NAReplaceTransform.ColumnInfo.ReplacementMode.Maximum),
-                   C: row.ScalarDouble.NAReplace(NAReplaceTransform.ColumnInfo.ReplacementMode.Mean),
-                   D: row.VectorString.NAReplace(),
-                   E: row.VectorFloat.NAReplace(NAReplaceTransform.ColumnInfo.ReplacementMode.Mean),
-                   F: row.VectorDoulbe.NAReplace(NAReplaceTransform.ColumnInfo.ReplacementMode.Minimum)
+                   A: row.ScalarString.ReplaceWithMissingValues(),
+                   B: row.ScalarFloat.ReplaceWithMissingValues(NAReplaceTransform.ColumnInfo.ReplacementMode.Maximum),
+                   C: row.ScalarDouble.ReplaceWithMissingValues(NAReplaceTransform.ColumnInfo.ReplacementMode.Mean),
+                   D: row.VectorString.ReplaceWithMissingValues(),
+                   E: row.VectorFloat.ReplaceWithMissingValues(NAReplaceTransform.ColumnInfo.ReplacementMode.Mean),
+                   F: row.VectorDoulbe.ReplaceWithMissingValues(NAReplaceTransform.ColumnInfo.ReplacementMode.Minimum)
                    ));
 
             TestEstimatorCore(est.AsDynamic, data.AsDynamic, invalidInput: invalidData);
@@ -92,7 +92,6 @@ namespace Microsoft.ML.Tests.Transformers
             }
 
             CheckEquality("NAReplace", "featurized.tsv");
-            Done();
             Done();
         }
 
