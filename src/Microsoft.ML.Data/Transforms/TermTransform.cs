@@ -23,7 +23,7 @@ using System.Threading;
     typeof(TermTransform.Arguments), typeof(SignatureDataTransform),
     TermTransform.UserName, "Term", "AutoLabel", "TermTransform", "AutoLabelTransform", DocName = "transform/TermTransform.md")]
 
-[assembly: LoadableClass(TermTransform.Summary, typeof(IDataView), typeof(TermTransform), null, typeof(SignatureLoadDataTransform),
+[assembly: LoadableClass(TermTransform.Summary, typeof(IDataTransform), typeof(TermTransform), null, typeof(SignatureLoadDataTransform),
     TermTransform.UserName, TermTransform.LoaderSignature)]
 
 [assembly: LoadableClass(TermTransform.Summary, typeof(TermTransform), null, typeof(SignatureLoadModel),
@@ -101,16 +101,10 @@ namespace Microsoft.ML.Runtime.Data
             // other things, like case insensitive (where appropriate), culturally aware, etc.?
         }
 
-        internal static class Defaults
-        {
-            public const int MaxNumTerms = 1000000;
-            public const SortOrder Sort = SortOrder.Occurrence;
-        }
-
         public abstract class ArgumentsBase : TransformInputBase
         {
             [Argument(ArgumentType.AtMostOnce, HelpText = "Maximum number of terms to keep per column when auto-training", ShortName = "max", SortOrder = 5)]
-            public int MaxNumTerms = Defaults.MaxNumTerms;
+            public int MaxNumTerms = TermEstimator.Defaults.MaxNumTerms;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Comma separated list of terms", SortOrder = 105, Visibility = ArgumentAttribute.VisibilityType.CmdLineOnly)]
             public string Terms;
@@ -134,7 +128,7 @@ namespace Microsoft.ML.Runtime.Data
             // REVIEW: Should we always sort? Opinions are mixed. See work item 7797429.
             [Argument(ArgumentType.AtMostOnce, HelpText = "How items should be ordered when vectorized. By default, they will be in the order encountered. " +
                 "If by value items are sorted according to their default comparison, e.g., text sorting will be case sensitive (e.g., 'A' then 'Z' then 'a').", SortOrder = 113)]
-            public SortOrder Sort = Defaults.Sort;
+            public SortOrder Sort = TermEstimator.Defaults.Sort;
 
             // REVIEW: Should we do this here, or correct the various pieces of code here and in MRS etc. that
             // assume key-values will be string? Once we correct these things perhaps we can see about removing it.
@@ -164,7 +158,7 @@ namespace Microsoft.ML.Runtime.Data
 
         public class ColumnInfo
         {
-            public ColumnInfo(string input, string output, int maxNumTerms = Defaults.MaxNumTerms, SortOrder sort = Defaults.Sort, string[] term = null, bool textKeyValues = false)
+            public ColumnInfo(string input, string output, int maxNumTerms = TermEstimator.Defaults.MaxNumTerms, SortOrder sort = TermEstimator.Defaults.Sort, string[] term = null, bool textKeyValues = false)
             {
                 Input = input;
                 Output = output;
@@ -181,7 +175,7 @@ namespace Microsoft.ML.Runtime.Data
             public readonly string[] Term;
             public readonly bool TextKeyValues;
 
-            internal string Terms { get; set; }
+            protected internal string Terms { get; set; }
         }
 
         public const string Summary = "Converts input values (words, numbers, etc.) to index in a dictionary.";
@@ -406,7 +400,7 @@ namespace Microsoft.ML.Runtime.Data
         /// If by value items are sorted according to their default comparison, e.g., text sorting will be case sensitive (e.g., 'A' then 'Z' then 'a').</param>
         public static IDataView Create(IHostEnvironment env,
             IDataView input, string name, string source = null,
-            int maxNumTerms = Defaults.MaxNumTerms, SortOrder sort = Defaults.Sort) =>
+            int maxNumTerms = TermEstimator.Defaults.MaxNumTerms, SortOrder sort = TermEstimator.Defaults.Sort) =>
             new TermTransform(env, input, new[] { new ColumnInfo(source ?? name, name, maxNumTerms, sort) }).MakeDataTransform(input);
 
         public static IDataTransform Create(IHostEnvironment env, ArgumentsBase args, ColumnBase[] column, IDataView input)
@@ -710,7 +704,7 @@ namespace Microsoft.ML.Runtime.Data
                 });
         }
 
-        internal TermMap GetTermMap(int iinfo)
+        public TermMap GetTermMap(int iinfo)
         {
             Contracts.Assert(0 <= iinfo && iinfo < _unboundMaps.Length);
             return _unboundMaps[iinfo];
