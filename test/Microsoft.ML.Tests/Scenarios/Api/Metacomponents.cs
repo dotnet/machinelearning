@@ -24,7 +24,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         {
             using (var env = new LocalEnvironment())
             {
-                var loader = TextLoader.ReadFile(env, MakeIrisTextLoaderArgs(), new MultiFileSource(TestDatasets.iris.trainFilename));
+                var loader = TextLoader.ReadFile(env, MakeIrisTextLoaderArgs(), new MultiFileSource(GetDataPath(TestDatasets.irisData.trainFilename)));
                 var term = TermTransform.Create(env, loader, "Label");
                 var concat = new ConcatTransform(env, "Features", "SepalLength", "SepalWidth", "PetalLength", "PetalWidth").Transform(term);
                 var trainer = new Ova(env, new Ova.Arguments
