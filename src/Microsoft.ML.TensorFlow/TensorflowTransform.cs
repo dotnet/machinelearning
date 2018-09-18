@@ -170,11 +170,11 @@ namespace Microsoft.ML.Transforms
         }
 
         public TensorFlowTransform(IHostEnvironment env, string modelFile, string[] inputs, string[] outputs) :
-            this(env, CheckFileAndRead(env, modelFile), inputs, outputs, modelFile)
+            this(env, CheckFileAndRead(env, modelFile), inputs, outputs)
         {
         }
 
-        private TensorFlowTransform(IHostEnvironment env, TFSession session, string[] inputs, string[] outputs, string modelFile = null)
+        private TensorFlowTransform(IHostEnvironment env, TFSession session, string[] inputs, string[] outputs)
         {
             Contracts.CheckValue(env, nameof(env));
             _host = env.Register(nameof(RegistrationName));

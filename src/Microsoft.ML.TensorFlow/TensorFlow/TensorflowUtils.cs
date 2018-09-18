@@ -30,47 +30,47 @@ namespace Microsoft.ML.Transforms.TensorFlow
             ImageAnalytics.Initialize();
         }
 
-        private static unsafe ISchema GetModelSchema(IExceptionContext ectx, TFGraph graph)
+        private static ISchema GetModelSchema(IExceptionContext ectx, TFGraph graph)
         {
             var res = new List<KeyValuePair<string, ColumnType>>();
             var opTypeGetters = new List<MetadataUtils.MetadataGetter<DvText>>();
             var inputOpsGetters = new List<MetadataUtils.MetadataGetter<VBuffer<DvText>>>();
             var inputOpsLengths = new List<int>();
-            foreach (var oper in graph)
+            foreach (var op in graph)
             {
-                if (oper.NumOutputs != 1)
-                    continue;
-
-                var tfType = oper[0].OutputType;
+                var tfType = op[0].OutputType;
                 var mlType = Tf2MlNetTypeOrNull(tfType);
+
+                // If the type is not supported in ML.NET then we cannot represent it as a column in an ISchema.
+                // We also cannot output it with a TensorFlowTransform, so we skip it.
                 if (mlType == null)
                     continue;
 
-                var shape = graph.GetTensorShape(oper[0]);
+                var shape = graph.GetTensorShape(op[0]);
                 var shapeArray = shape.ToIntArray();
 
-                inputOpsLengths.Add(oper.NumInputs);
+                inputOpsLengths.Add(op.NumInputs);
                 MetadataUtils.MetadataGetter<VBuffer<DvText>> inputOpsGetter = null;
-                if (oper.NumInputs > 0)
+                if (op.NumInputs > 0)
                 {
-                    var inputOps = new DvText[oper.NumInputs];
-                    for (int i = 0; i < oper.NumInputs; i++)
+                    var inputOps = new DvText[op.NumInputs];
+                    for (int i = 0; i < op.NumInputs; i++)
                     {
-                        var input = oper.GetInput(i);
+                        var input = op.GetInput(i);
                         inputOps[i] = new DvText(input.Operation.Name);
                     }
-                    inputOpsGetter = (int col, ref VBuffer<DvText> dst) => dst = new VBuffer<DvText>(oper.NumInputs, inputOps);
+                    inputOpsGetter = (int col, ref VBuffer<DvText> dst) => dst = new VBuffer<DvText>(op.NumInputs, inputOps);
                 }
                 inputOpsGetters.Add(inputOpsGetter);
 
-                var opType = oper.OpType;
+                var opType = op.OpType;
                 MetadataUtils.MetadataGetter<DvText> opTypeGetter = (int col, ref DvText dst) => dst = new DvText(opType);
                 opTypeGetters.Add(opTypeGetter);
 
                 var columnType = Utils.Size(shapeArray) > 0 && shapeArray.Skip(1).All(x => x > 0) ?
                     new VectorType(mlType, shapeArray[0] > 0 ? shapeArray : shapeArray.Skip(1).ToArray())
                     : new VectorType(mlType);
-                res.Add(new KeyValuePair<string, ColumnType>(oper.Name, columnType));
+                res.Add(new KeyValuePair<string, ColumnType>(op.Name, columnType));
             }
             return new TensorFlowSchema(ectx, res.ToArray(), opTypeGetters.ToArray(), inputOpsGetters.ToArray(), inputOpsLengths.ToArray());
         }
