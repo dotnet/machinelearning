@@ -67,7 +67,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                     Separator ="\t",
                     Column = new[]
                     {
-                        new TextLoader.Column("Label", DataKind.U4, 0),
+                        new TextLoader.Column("Label", DataKind.R4, 0),
                         new TextLoader.Column("Workclass", DataKind.Text, 1),
                         new TextLoader.Column("NumericFeatures", DataKind.R4, new [] { new TextLoader.Range(9, 14) })
                     }
@@ -76,13 +76,10 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 
                 // Pipeline.
                 var pipeline = new TermEstimator(env, new[]{
-                        new TermTransform.ColumnInfo("Workclass", "Group"),
-                        new TermTransform.ColumnInfo("Label", "Label")
-                    }).Append(new FastTreeRankingTrainer(env, "Label", "NumericFeatures", "Group", advancedSettings: s => {
-                      s.NumTrees = 10;
-                      s.NumThreads = 1;
-                      s.NumLeaves = 5;
-                  }));
+                                    new TermTransform.ColumnInfo("Workclass", "Group"),
+                                    new TermTransform.ColumnInfo("Label", "Label0") })
+                    .Append(new FastTreeRankingTrainer(env, "Label0", "NumericFeatures", "Group", 
+                                advancedSettings: s => { s.NumTrees = 10; }));
 
                 TestEstimatorCore(pipeline, data);
             }
