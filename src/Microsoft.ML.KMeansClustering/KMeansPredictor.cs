@@ -12,6 +12,7 @@ using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.KMeans;
 using Microsoft.ML.Runtime.Model;
+using Microsoft.ML.Runtime.Model.Onnx;
 using Microsoft.ML.Runtime.Internal.Internallearn;
 
 [assembly: LoadableClass(typeof(KMeansPredictor), null, typeof(SignatureLoadModel),
@@ -23,7 +24,7 @@ namespace Microsoft.ML.Runtime.KMeans
         PredictorBase<VBuffer<Float>>,
         IValueMapper,
         ICanSaveInTextFormat,
-        ICanSaveModel
+        ISingleCanSaveOnnx
     {
         public const string LoaderSignature = "KMeansPredictor";
 
@@ -44,6 +45,8 @@ namespace Microsoft.ML.Runtime.KMeans
         public override PredictionKind PredictionKind => PredictionKind.Clustering;
         public ColumnType InputType { get; }
         public ColumnType OutputType { get; }
+
+        bool ICanSaveOnnx.CanSaveOnnx => true;
 
         private readonly int _dimensionality;
         private readonly int _k;
@@ -273,6 +276,37 @@ namespace Microsoft.ML.Runtime.KMeans
             for (int i = 0; i < _k; i++)
                 _centroids[i].CopyTo(ref centroids[i]);
             k = _k;
+        }
+
+        public bool SaveAsOnnx(OnnxContext ctx, string[] outputNames, string featureColumn)
+        {
+            // Computation graph of distances to all centriods for a batch of exmples. Note that a centriod is just
+            // the center of a cluster. We use [] to denote the dimension of a variable; for example, X [3, 2] means
+            // that X is a 3-by-2 tensor. In addition, for a matrix X, X^T denotes its transpose.
+            //
+            // Symbols:
+            // l: # of examples
+            // n: # of features per input example
+            // X: input examples, l-by-n tensor.
+            // C: centriods, k-by-n tensor.
+            //
+            // .------------------------------------------------------.
+            // |                                                      |
+            // |                                                      v
+            // X [l, n] --> ReduceSumSquare --> X^2 [l]             Gemm (alpha=-2, transB=1) <-- C [k, n]
+            //                                   |                    |                           |
+            //                                   |                    v                           v
+            //                                   `------> Add <---- -2XC^T [l, k]            ReduceSumSquare
+            //                                             |                                      |
+            //                                             v                                      v
+            //                                             Z [l, k] ----------> Add <------------C^2 [k]
+            //                                                                   |
+            //                                                                   v
+            //                                                                   Y [l, k]
+
+            // Save C^2 as an initializer because it's a constant.
+
+            throw new NotImplementedException();
         }
     }
 }
