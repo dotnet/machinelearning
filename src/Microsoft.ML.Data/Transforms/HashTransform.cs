@@ -228,6 +228,11 @@ namespace Microsoft.ML.Transforms
                 return new VectorType(itemType, srcType.VectorSize);
         }
 
+        /// <summary>
+        /// Constructor for case where you don't need to 'train' transform on data, e.g. InvertHash for all columns set to zero.
+        /// </summary>
+        /// <param name="env">Host Environment.</param>
+        /// <param name="columns">Description of dataset columns and how to process them.</param>
         public HashTransformer(IHostEnvironment env, ColumnInfo[] columns) :
               base(Contracts.CheckRef(env, nameof(env)).Register(RegistrationName), GetColumnPairs(columns))
         {
@@ -303,7 +308,7 @@ namespace Microsoft.ML.Transforms
             }
         }
 
-        internal Delegate GetGetterCore(IRow input, int iinfo, out Action disposer)
+        private Delegate GetGetterCore(IRow input, int iinfo, out Action disposer)
         {
             Host.AssertValue(input);
             Host.Assert(0 <= iinfo && iinfo < _columns.Length);
@@ -1296,6 +1301,9 @@ namespace Microsoft.ML.Transforms
         }
     }
 
+    /// <summary>
+    /// Estimator for <see cref="HashTransformer"/>
+    /// </summary>
     public sealed class HashEstimator : IEstimator<HashTransformer>
     {
         public const int NumBitsMin = 1;
@@ -1312,18 +1320,26 @@ namespace Microsoft.ML.Transforms
         private readonly IHost _host;
         private readonly HashTransformer.ColumnInfo[] _columns;
 
-        public static bool IsColumnTypeValid(ColumnType type)
-        {
-            return (type.ItemType.IsText || type.ItemType.IsKey || type.ItemType == NumberType.R4 || type.ItemType == NumberType.R8);
-        }
+        public static bool IsColumnTypeValid(ColumnType type) => (type.ItemType.IsText || type.ItemType.IsKey || type.ItemType == NumberType.R4 || type.ItemType == NumberType.R8);
+
         internal const string ExpectedColumnType = "Expected Text, Key, Single or Double item type";
 
+        /// <summary>
+        /// Convinence constructor for simple one column case
+        /// </summary>
+        /// <param name="env">Host Environment.</param>
+        /// <param name="inputColumn">Name of the output column.</param>
+        /// <param name="outputColumn">Name of the column to be transformed. If this is null '<paramref name="inputColumn"/>' will be used.</param>
+        /// <param name="hashBits">Number of bits to hash into. Must be between 1 and 31, inclusive.</param>
+        /// <param name="invertHash">Limit the number of keys used to generate the slot name to this many. 0 means no invert hashing, -1 means no limit.</param>
         public HashEstimator(IHostEnvironment env, string inputColumn, string outputColumn = null,
             int hashBits = Defaults.HashBits, int invertHash = Defaults.InvertHash)
             : this(env, new HashTransformer.ColumnInfo(inputColumn, outputColumn ?? inputColumn, hashBits: hashBits, invertHash: invertHash))
         {
         }
 
+        /// <param name="env">Host Environment.</param>
+        /// <param name="columns">Description of dataset columns and how to process them.</param>
         public HashEstimator(IHostEnvironment env, params HashTransformer.ColumnInfo[] columns)
         {
             Contracts.CheckValue(env, nameof(env));
