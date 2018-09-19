@@ -6,6 +6,7 @@ using Microsoft.ML.Data.StaticPipe;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Data.IO;
 using Microsoft.ML.Runtime.RunTests;
+using Microsoft.ML.Transforms;
 using System.IO;
 using Xunit;
 using Xunit.Abstractions;
@@ -51,6 +52,40 @@ namespace Microsoft.ML.Tests.Transformers
             }
 
             CheckEquality("Text", "featurized.tsv");
+            Done();
+        }
+
+        [Fact]
+        public void TextTokenizationWorkout()
+        {
+            string sentimentDataPath = GetDataPath("wikipedia-detox-250-line-data.tsv");
+            var data = TextLoader.CreateReader(Env, ctx => (
+                    label: ctx.LoadBool(0),
+                    text: ctx.LoadText(1)), hasHeader: true)
+                .Read(new MultiFileSource(sentimentDataPath));
+
+            var invalidData = TextLoader.CreateReader(Env, ctx => (
+                    label: ctx.LoadBool(0),
+                    text: ctx.LoadFloat(1)), hasHeader: true)
+                .Read(new MultiFileSource(sentimentDataPath));
+
+            var est = new WordTokenizer(Env, "text", "words")
+                .Append(new CharacterTokenizer(Env, "text", "chars"))
+                .Append(new KeyToValueEstimator(Env, "chars"));
+            TestEstimatorCore(est, data.AsDynamic, invalidInput: invalidData.AsDynamic);
+
+            var outputPath = GetOutputPath("Text", "tokenized.tsv");
+            using (var ch = Env.Start("save"))
+            {
+                var saver = new TextSaver(Env, new TextSaver.Arguments { Silent = true });
+                IDataView savedData = TakeFilter.Create(Env, est.Fit(data.AsDynamic).Transform(data.AsDynamic), 4);
+                savedData = new ChooseColumnsTransform(Env, savedData, "text", "words", "chars");
+
+                using (var fs = File.Create(outputPath))
+                    DataSaverUtils.SaveDataView(ch, saver, savedData, fs, keepHidden: true);
+            }
+
+            CheckEquality("Text", "tokenized.tsv");
             Done();
         }
     }
