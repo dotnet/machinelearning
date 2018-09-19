@@ -88,7 +88,7 @@ namespace Microsoft.ML.Runtime.Data
         public static CommonOutputs.TransformOutput Replace(IHostEnvironment env, NAReplaceTransform.Arguments input)
         {
             var h = EntryPointUtils.CheckArgsAndCreateHost(env, "NAReplace", input);
-            var xf = new NAReplaceTransform(h, input, input.Data);
+            var xf = NAReplaceTransform.Create(h, input, input.Data);
             return new CommonOutputs.TransformOutput()
             {
                 Model = new TransformModel(h, xf, input.Data),
