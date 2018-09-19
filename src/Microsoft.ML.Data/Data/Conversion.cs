@@ -1344,7 +1344,7 @@ namespace Microsoft.ML.Runtime.Data.Conversion
             var span = text.Span;
             if (span[0] == '-')
             {
-                if (span.Length == 1 || !TryParseCore(span.Slice(1, text.Length - 1), out val) || (val > ((ulong)max + 1)))
+                if (span.Length == 1 || !TryParseCore(span.Slice(1), out val) || (val > ((ulong)max + 1)))
                 {
                     result = null;
                     return;
@@ -1356,7 +1356,7 @@ namespace Microsoft.ML.Runtime.Data.Conversion
             }
 
             long sVal;
-            if (!TryParseNonNegative(text.Slice(0), out sVal))
+            if (!TryParseNonNegative(text, out sVal))
             {
                 result = null;
                 return;
@@ -1381,7 +1381,7 @@ namespace Microsoft.ML.Runtime.Data.Conversion
         public bool TryParse(ref TX src, out R4 dst)
         {
             var span = src.Span;
-            if (ReadOnlyMemoryUtils.TryParse(span, out dst))
+            if (DoubleParser.TryParse(span, out dst))
                 return true;
             dst = R4.NaN;
             return IsStdMissing(ref span);
@@ -1394,7 +1394,7 @@ namespace Microsoft.ML.Runtime.Data.Conversion
         public bool TryParse(ref TX src, out R8 dst)
         {
             var span = src.Span;
-            if (ReadOnlyMemoryUtils.TryParse(span, out dst))
+            if (DoubleParser.TryParse(span, out dst))
                 return true;
             dst = R8.NaN;
             return IsStdMissing(ref span);
@@ -1684,7 +1684,7 @@ namespace Microsoft.ML.Runtime.Data.Conversion
         public void Convert(ref TX src, ref R4 value)
         {
             var span = src.Span;
-            if (ReadOnlyMemoryUtils.TryParse(span, out value))
+            if (DoubleParser.TryParse(span, out value))
                 return;
             // Unparsable is mapped to NA.
             value = R4.NaN;
@@ -1692,7 +1692,7 @@ namespace Microsoft.ML.Runtime.Data.Conversion
         public void Convert(ref TX src, ref R8 value)
         {
             var span = src.Span;
-            if (ReadOnlyMemoryUtils.TryParse(span, out value))
+            if (DoubleParser.TryParse(span, out value))
                 return;
             // Unparsable is mapped to NA.
             value = R8.NaN;

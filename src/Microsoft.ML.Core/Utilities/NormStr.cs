@@ -97,7 +97,8 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
                 if (str == null)
                     str = "";
 
-                uint hash = Hashing.HashString(str.AsSpan());
+                var strSpan = str.AsSpan();
+                uint hash = Hashing.HashString(strSpan);
                 int ins = GetIns(hash);
                 while (ins >= 0)
                 {
@@ -105,7 +106,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
                     if ((int)Utils.GetLo(meta) == str.Length)
                     {
                         var ns = GetNs(ins);
-                        if (ReadOnlyMemoryUtils.EqualsStr(str, ns.Value))
+                        if (strSpan.SequenceEqual(ns.Value.Span))
                             return ns;
                     }
                     ins = (int)Utils.GetHi(meta);

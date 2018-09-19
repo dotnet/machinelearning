@@ -119,7 +119,7 @@ namespace Microsoft.ML.Runtime.Data
                         return new TermMap.TextImpl(_pool);
                     // REVIEW: Should write a Sort method in NormStr.Pool to make sorting more memory efficient.
                     var perm = Utils.GetIdentityPermutation(_pool.Count);
-                    Comparison<int> comp = (i, j) => _pool.GetNormStrById(i).Value.Span.CompareTo(_pool.GetNormStrById(j).Value.Span, StringComparison.InvariantCulture);
+                    Comparison<int> comp = (i, j) => _pool.GetNormStrById(i).Value.Span.CompareTo(_pool.GetNormStrById(j).Value.Span, StringComparison.Ordinal);
                     Array.Sort(perm, comp);
 
                     var sortedPool = new NormStr.Pool();
@@ -127,7 +127,7 @@ namespace Microsoft.ML.Runtime.Data
                     {
                         var nstr = sortedPool.Add(_pool.GetNormStrById(perm[i]).Value);
                         Contracts.Assert(nstr.Id == i);
-                        Contracts.Assert(i == 0 || sortedPool.GetNormStrById(i - 1).Value.Span.CompareTo(sortedPool.GetNormStrById(i).Value.Span, StringComparison.InvariantCulture) < 0);
+                        Contracts.Assert(i == 0 || sortedPool.GetNormStrById(i - 1).Value.Span.CompareTo(sortedPool.GetNormStrById(i).Value.Span, StringComparison.Ordinal) < 0);
                     }
                     Contracts.Assert(sortedPool.Count == _pool.Count);
                     return new TermMap.TextImpl(sortedPool);

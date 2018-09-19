@@ -8,6 +8,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Data.Conversion;
+using Microsoft.ML.Runtime.Internal.Utilities;
 
 namespace Microsoft.ML.Runtime.PipelineInference
 {
@@ -168,7 +169,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
                         col.SuggestedType = NumberType.R4;
                         Single first;
 
-                        col.HasHeader = !ReadOnlyMemoryUtils.TryParse(col.RawData[0].Span, out first);
+                        col.HasHeader = !DoubleParser.TryParse(col.RawData[0].Span, out first);
                     }
                 }
             }

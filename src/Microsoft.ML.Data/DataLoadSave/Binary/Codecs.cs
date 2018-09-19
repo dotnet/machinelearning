@@ -406,13 +406,14 @@ namespace Microsoft.ML.Runtime.Data.IO
                 {
                     Contracts.Assert(_index < _entries);
                     int b = _boundaries[_index + 1];
+                    int start = _boundaries[_index] & LengthMask;
                     if (b >= 0)
-                        value = _text.AsMemory().Slice(_boundaries[_index] & LengthMask, (b & LengthMask) - (_boundaries[_index] & LengthMask));
+                        value = _text.AsMemory().Slice(start, (b & LengthMask) - start);
                     else
                     {
                         //For backward compatiblity when NA values existed, treat them
                         //as empty string.
-                        value = "".AsMemory();
+                        value = ReadOnlyMemory<char>.Empty;
                     }
                 }
             }

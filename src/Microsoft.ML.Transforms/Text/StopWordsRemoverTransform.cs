@@ -728,7 +728,7 @@ namespace Microsoft.ML.Runtime.TextAnalytics
                 foreach (string word in loaderArgs.Stopword)
                 {
                     var stopword = word.AsSpan();
-                    stopword = ReadOnlyMemoryUtils.TrimSpaces(stopword);
+                    stopword = stopword.Trim(' ');
                     if (!stopword.IsEmpty)
                     {
                         buffer.Clear();

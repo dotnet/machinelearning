@@ -167,23 +167,6 @@ namespace Microsoft.ML.Runtime.Data
             return memory.Slice(ichMin, ichLim - ichMin);
         }
 
-        public static ReadOnlySpan<char> TrimSpaces(ReadOnlySpan<char> span)
-        {
-            if (span.IsEmpty)
-                return span;
-
-            int ichLim = span.Length;
-            int ichMin = 0;
-            if (span[ichMin] != ' ' && span[ichLim - 1] != ' ')
-                return span;
-
-            while (ichMin < ichLim && span[ichMin] == ' ')
-                ichMin++;
-            while (ichMin < ichLim && span[ichLim - 1] == ' ')
-                ichLim--;
-            return span.Slice(ichMin, ichLim - ichMin);
-        }
-
         /// <summary>
         /// Returns a <see cref="ReadOnlyMemory{T}"/> of <see cref="char"/> with leading and trailing whitespace trimmed.
         /// </summary>
@@ -242,28 +225,6 @@ namespace Microsoft.ML.Runtime.Data
 
             return memory.Slice(0, ichLim);
         }
-
-        /// <summary>
-        /// This produces zero for an empty string.
-        /// </summary>
-        public static bool TryParse(ReadOnlySpan<char> span, out Single value)
-        {
-            var res = DoubleParser.Parse(out value, span);
-            Contracts.Assert(res != DoubleParser.Result.Empty || value == 0);
-            return res <= DoubleParser.Result.Empty;
-        }
-
-        /// <summary>
-        /// This produces zero for an empty string.
-        /// </summary>
-        public static bool TryParse(ReadOnlySpan<char> span, out Double value)
-        {
-            var res = DoubleParser.Parse(out value, span);
-            Contracts.Assert(res != DoubleParser.Result.Empty || value == 0);
-            return res <= DoubleParser.Result.Empty;
-        }
-
-        public static uint Hash(ReadOnlySpan<char> span, uint seed) => Hashing.MurmurHash(seed, span);
 
         public static NormStr AddToPool(ReadOnlyMemory<char> memory, NormStr.Pool pool)
         {

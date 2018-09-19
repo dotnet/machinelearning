@@ -880,7 +880,7 @@ namespace Microsoft.ML.Runtime.Data
                     _quoting = (flags & Options.AllowQuoting) != 0;
                     _sparse = (flags & Options.AllowSparse) != 0;
                     _sb = new StringBuilder();
-                    _blank = String.Empty.AsMemory();
+                    _blank = ReadOnlyMemory<char>.Empty;
                     Fields = new FieldSet();
                 }
 
@@ -910,7 +910,7 @@ namespace Microsoft.ML.Runtime.Data
 
                     ScanInfo scan = new ScanInfo(ref lineSpan, path, line);
                     Contracts.Assert(scan.IchMinBuf <= scan.IchMinNext && scan.IchMinNext <= scan.IchLimBuf);
-                    //var span = lineSpan.Span;
+
                     int src = 0;
                     if (!_sparse)
                     {

@@ -70,6 +70,26 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
             Error = 3
         }
 
+        /// <summary>
+        /// This produces zero for an empty string.
+        /// </summary>
+        public static bool TryParse(ReadOnlySpan<char> span, out Single value)
+        {
+            var res = Parse(out value, span);
+            Contracts.Assert(res != Result.Empty || value == 0);
+            return res <= Result.Empty;
+        }
+
+        /// <summary>
+        /// This produces zero for an empty string.
+        /// </summary>
+        public static bool TryParse(ReadOnlySpan<char> span, out Double value)
+        {
+            var res = Parse(out value, span);
+            Contracts.Assert(res != Result.Empty || value == 0);
+            return res <= Result.Empty;
+        }
+
         public static Result Parse(out Single value, ReadOnlySpan<char> span)
         {
             int ich = 0;
@@ -229,7 +249,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
 #if COMPARE_BCL
             if (!_failed)
             {
-                string str = s.Substring(ichMin, ichEnd - ichMin);
+                string str = span.ToString();
                 Single x;
                 if (!Single.TryParse(str, out x))
                 {
@@ -411,7 +431,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
                 value = -value;
 
 #if COMPARE_BCL
-            string str = s.Substring(ichMin, ichEnd - ichMin);
+            string str = span.ToString();
             Double x;
             if (!Double.TryParse(str, out x))
             {

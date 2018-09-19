@@ -14,7 +14,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.ML.EntryPoints.Tests
 {
-    public class TextLoaderTestPipe : TestDataPipeBase
+    public sealed class TextLoaderTestPipe : TestDataPipeBase
     {
         public TextLoaderTestPipe(ITestOutputHelper output)
             : base(output)
@@ -29,7 +29,7 @@ namespace Microsoft.ML.EntryPoints.Tests
             File.WriteAllLines(pathData, new string[] {
                 string.Format("{0},{1},{2},{3}", sbyte.MinValue, short.MinValue, int.MinValue, long.MinValue),
                 string.Format("{0},{1},{2},{3}", sbyte.MaxValue, short.MaxValue, int.MaxValue, long.MaxValue),
-                "\"\",\"\",\"\",\"\""
+                "\"\",\"\",\"\",\"\"",
             });
 
             var data = TestCore(pathData, true,

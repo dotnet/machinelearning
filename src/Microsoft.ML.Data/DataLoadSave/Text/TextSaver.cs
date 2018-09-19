@@ -122,7 +122,7 @@ namespace Microsoft.ML.Runtime.Data.IO
 
             protected void MapText(ref ReadOnlyMemory<char> src, ref StringBuilder sb)
             {
-                TextSaverUtils.MapText(ref src, ref sb, Sep);
+                TextSaverUtils.MapText(src.Span, ref sb, Sep);
             }
 
             protected void MapTimeSpan(ref TimeSpan src, ref StringBuilder sb)
@@ -796,22 +796,21 @@ namespace Microsoft.ML.Runtime.Data.IO
     internal static class TextSaverUtils
     {
         /// <summary>
-        /// Converts a ReadOnlyMemory to a StringBuilder using TextSaver escaping and string quoting rules.
+        /// Converts a ReadOnlySpan to a StringBuilder using TextSaver escaping and string quoting rules.
         /// </summary>
-        internal static void MapText(ref ReadOnlyMemory<char> src, ref StringBuilder sb, char sep)
+        internal static void MapText(ReadOnlySpan<char> span, ref StringBuilder sb, char sep)
         {
             if (sb == null)
                 sb = new StringBuilder();
             else
                 sb.Clear();
 
-            var span = src.Span;
-            if (src.IsEmpty)
+            if (span.IsEmpty)
                 sb.Append("\"\"");
             else
             {
                 int ichMin = 0;
-                int ichLim = src.Length;
+                int ichLim = span.Length;
                 int ichCur = ichMin;
                 int ichRun = ichCur;
                 bool quoted = false;
@@ -838,14 +837,14 @@ namespace Microsoft.ML.Runtime.Data.IO
                     if (ch == '"')
                     {
                         if (ichRun < ichCur)
-                            sb.Append(src.Slice(ichRun, ichCur - ichRun));
+                            sb.Append(span.Slice(ichRun, ichCur - ichRun));
                         sb.Append("\"\"");
                         ichRun = ichCur + 1;
                     }
                 }
                 Contracts.Assert(ichCur == ichLim);
                 if (ichRun < ichCur)
-                    sb.Append(src.Slice(ichRun, ichCur - ichRun));
+                    sb.Append(span.Slice(ichRun, ichCur - ichRun));
                 if (quoted)
                     sb.Append('"');
             }

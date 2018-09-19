@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using Microsoft.ML.Runtime.Data;
+using Microsoft.ML.Runtime.Internal.Utilities;
 
 namespace Microsoft.ML.Runtime.PipelineInference
 {
@@ -181,7 +182,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
                         foreach (var span in data)
                         {
                             sumLength += span.Length;
-                            seen.Add(ReadOnlyMemoryUtils.Hash(span.Span, 0));
+                            seen.Add(Hashing.MurmurHash(0, span.Span));
                             string spanStr = span.ToString();
                             sumSpaces += spanStr.Count(x => x == ' ');
 
