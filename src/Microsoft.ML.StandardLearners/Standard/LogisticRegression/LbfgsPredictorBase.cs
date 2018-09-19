@@ -7,6 +7,7 @@ using Float = System.Single;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
@@ -14,12 +15,9 @@ using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Numeric;
 using Microsoft.ML.Runtime.Training;
 using Microsoft.ML.Runtime.Internal.Internallearn;
-using Microsoft.ML.Core.Data;
 
 namespace Microsoft.ML.Runtime.Learners
 {
-    //public abstract class LbfgsTrainerBase<TOutput, TPredictor> : TrainerBase<TPredictor>
-    //    where TPredictor : class, IPredictorProducing<TOutput>
     public abstract class LbfgsTrainerBase<TTransformer, TModel> : TrainerEstimatorBase<TTransformer, TModel>
       where TTransformer : IPredictionTransformer<TModel>
       where TModel : IPredictor
@@ -101,9 +99,7 @@ namespace Microsoft.ML.Runtime.Learners
         protected long NumGoodRows;
         protected Double WeightSum;
 
-#pragma warning disable 0649
         private TModel _srcPredictor;
-#pragma warning restore 0649
 
         protected readonly Float L2Weight;
         protected readonly Float L1Weight;
@@ -179,6 +175,7 @@ namespace Microsoft.ML.Runtime.Learners
                     ch.Done();
                 }
             }
+            _srcPredictor = default;
         }
 
         protected virtual int ClassCount => 1;
