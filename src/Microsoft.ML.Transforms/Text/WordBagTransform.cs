@@ -475,7 +475,7 @@ namespace Microsoft.ML.Runtime.Data
     {
         /// <summary>
         /// Whether the extractor transform created by this factory uses the hashing trick
-        /// (by using <see cref="HashConverterTransformer"/> or <see cref="NgramHashTransform"/>, for example).
+        /// (by using <see cref="HashTransformer"/> or <see cref="NgramHashTransform"/>, for example).
         /// </summary>
         bool UseHashingTrick { get; }
 

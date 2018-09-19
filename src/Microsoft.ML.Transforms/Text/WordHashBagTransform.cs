@@ -267,7 +267,7 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         /// <summary>
-        /// This class is a merger of <see cref="HashConverterTransformer.Arguments"/> and
+        /// This class is a merger of <see cref="HashTransformer.Arguments"/> and
         /// <see cref="NgramHashTransform.Arguments"/>, with the ordered option,
         /// the rehashUnigrams option and the allLength option removed.
         /// </summary>
@@ -341,7 +341,7 @@ namespace Microsoft.ML.Runtime.Data
             List<TermTransform.Column> termCols = null;
             if (termLoaderArgs != null)
                 termCols = new List<TermTransform.Column>();
-            var hashColumns = new List<HashConverterTransformer.Column>();
+            var hashColumns = new List<HashTransformer.Column>();
             var ngramHashColumns = new NgramHashTransform.Column[args.Column.Length];
 
             var colCount = args.Column.Length;
@@ -372,7 +372,7 @@ namespace Microsoft.ML.Runtime.Data
                     }
 
                     hashColumns.Add(
-                        new HashConverterTransformer.Column
+                        new HashTransformer.Column
                         {
                             Name = tmpName,
                             Source = termLoaderArgs == null ? column.Source[isrc] : tmpName,
@@ -436,7 +436,7 @@ namespace Microsoft.ML.Runtime.Data
 
             // Args for the Hash function with multiple columns
             var hashArgs =
-                new HashConverterTransformer.Arguments
+                new HashTransformer.Arguments
                 {
                     HashBits = 31,
                     Seed = args.Seed,
@@ -445,7 +445,7 @@ namespace Microsoft.ML.Runtime.Data
                     InvertHash = args.InvertHash
                 };
 
-            view = HashConverterTransformer.Create(h, hashArgs, view);
+            view = HashTransformer.Create(h, hashArgs, view);
 
             // creating the NgramHash function
             var ngramHashArgs =
