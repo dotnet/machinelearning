@@ -2,7 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Api;
+using Microsoft.ML.Data;
+using Microsoft.ML.Data.StaticPipe;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.TestFramework;
@@ -59,14 +60,17 @@ namespace Microsoft.ML.Tests.Scenarios
             var enum4 = data.AsDynamic.GetColumn<string>(env, "stringScalar").ToArray();
             var enum5 = data.AsDynamic.GetColumn<string[]>(env, "stringVector").ToArray();
 
-            var enum6 = data.AsDynamic.GetColumn<float?>(env, "floatScalar").ToArray();
-            var enum7 = data.AsDynamic.GetColumn<float?[]>(env, "floatVector").ToArray();
-
             mustFail(() => data.AsDynamic.GetColumn<float[]>(env, "floatScalar"));
             mustFail(() => data.AsDynamic.GetColumn<int[]>(env, "floatVector"));
             mustFail(() => data.AsDynamic.GetColumn<int>(env, "floatScalar"));
             mustFail(() => data.AsDynamic.GetColumn<int?>(env, "floatScalar"));
             mustFail(() => data.AsDynamic.GetColumn<string>(env, "floatScalar"));
+
+            // Static types.
+            var enum8 = data.GetColumn(r => r.floatScalar);
+            var enum9 = data.GetColumn(r => r.floatVector);
+            var enum10 = data.GetColumn(r => r.stringScalar);
+            var enum11 = data.GetColumn(r => r.stringVector);
         }
     }
 }

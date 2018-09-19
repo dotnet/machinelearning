@@ -6,9 +6,8 @@ using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using System;
 using System.Collections.Generic;
-using System.Text;
 
-namespace Microsoft.ML.Api
+namespace Microsoft.ML.Data
 {
     /// <summary>
     /// Extension metrods that allow to extract values of a single column of an <see cref="IDataView"/> as an
@@ -105,10 +104,6 @@ namespace Microsoft.ML.Api
 
         private static Delegate GetConversionDelegate(Type type, DataKind dataKind)
         {
-            if (type == typeof(float?))
-                return (Func<float, float?>)((float x) => x.IsNA() ? (float?)null : x);
-            else if (type == typeof(double?))
-                return (Func<double, double?>)((double x) => x.IsNA() ? (double?)null : x);
             else if (type == typeof(bool))
                 return (Func<DvBool, bool>)((DvBool x) => (bool)x);
             else if (type == typeof(bool?))
