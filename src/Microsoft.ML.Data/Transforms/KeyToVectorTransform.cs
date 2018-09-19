@@ -280,6 +280,7 @@ namespace Microsoft.ML.Runtime.Data
                     if (!inputSchema.TryGetColumnIndex(_parent.ColumnPairs[i].input, out int colSrc))
                         throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", _parent.ColumnPairs[i].input);
                     var type = inputSchema.GetColumnType(colSrc);
+                    _parent.CheckInputColumn(inputSchema, i, colSrc);
                     infos[i] = new ColInfo(_parent.ColumnPairs[i].output, _parent.ColumnPairs[i].input, type);
                 }
                 return infos;

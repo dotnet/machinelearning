@@ -69,6 +69,7 @@ namespace Microsoft.ML.Runtime.Data
             Contracts.CheckValue(columns, nameof(columns));
             return columns.Select(x => (x.Input, x.Output)).ToArray();
         }
+
         public IReadOnlyCollection<ColumnInfo> Columns => _columns.AsReadOnly();
         private readonly ColumnInfo[] _columns;
 
@@ -209,7 +210,7 @@ namespace Microsoft.ML.Runtime.Data
                     if (!inputSchema.TryGetColumnIndex(_parent.ColumnPairs[i].input, out int colSrc))
                         throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", _parent.ColumnPairs[i].input);
                     var type = inputSchema.GetColumnType(colSrc);
-
+                    _parent.CheckInputColumn(inputSchema, i, colSrc);
                     infos[i] = new ColInfo(_parent.ColumnPairs[i].output, _parent.ColumnPairs[i].input, type);
                 }
                 return infos;
