@@ -1293,12 +1293,11 @@ namespace Microsoft.ML.Runtime.Data.Conversion
         /// <summary>
         /// Returns false if the text is not parsable as an non-negative long or overflows.
         /// </summary>
-        private bool TryParseNonNegative(ReadOnlyMemory<char> text, out long result)
+        private bool TryParseNonNegative(ReadOnlySpan<char> span, out long result)
         {
             long res = 0;
-            var span = text.Span;
             int ich = 0;
-            while (ich < text.Length)
+            while (ich < span.Length)
             {
                 Contracts.Assert(res >= 0);
                 uint d = (uint)span[ich++] - (uint)'0';
@@ -1356,7 +1355,7 @@ namespace Microsoft.ML.Runtime.Data.Conversion
             }
 
             long sVal;
-            if (!TryParseNonNegative(text, out sVal))
+            if (!TryParseNonNegative(span, out sVal))
             {
                 result = null;
                 return;
