@@ -307,14 +307,38 @@ namespace Microsoft.ML.Runtime.Model.Onnx
                 case DataKind.TX:
                     dataType = TensorProto.Types.DataType.String;
                     break;
+                case DataKind.I1:
+                    dataType = TensorProto.Types.DataType.Int8;
+                    break;
+                case DataKind.U1:
+                    dataType = TensorProto.Types.DataType.Uint8;
+                    break;
+                case DataKind.I2:
+                    dataType = TensorProto.Types.DataType.Int16;
+                    break;
+                case DataKind.U2:
+                    dataType = TensorProto.Types.DataType.Uint16;
+                    break;
+                case DataKind.I4:
+                    dataType = TensorProto.Types.DataType.Int32;
+                    break;
                 case DataKind.U4:
                     dataType = TensorProto.Types.DataType.Int64;
+                    break;
+                case DataKind.I8:
+                    dataType = TensorProto.Types.DataType.Int64;
+                    break;
+                case DataKind.U8:
+                    dataType = TensorProto.Types.DataType.Uint64;
                     break;
                 case DataKind.R4:
                     dataType = TensorProto.Types.DataType.Float;
                     break;
+                case DataKind.R8:
+                    dataType = TensorProto.Types.DataType.Double;
+                    break;
                 default:
-                    Contracts.Assert(false, "Unknown type.");
+                    Contracts.Assert(false, "Unsupported type: DataKind " + rawKind.ToString());
                     break;
             }
 

@@ -7,6 +7,8 @@ using Microsoft.ML.Runtime.Data;
 
 namespace Microsoft.ML.Runtime.Model.Onnx
 {
+    public enum OnnxVersion { Latest, Experimental }
+
     /// <summary>
     /// A context for defining a ONNX output. The context internally contains the model-in-progress being built. This
     /// same context object is iteratively given to exportable components via the <see cref="ICanSaveOnnx"/> interface
@@ -98,5 +100,11 @@ namespace Microsoft.ML.Runtime.Model.Onnx
         /// <returns>A node added to the in-progress ONNX graph, that attributes can be set on</returns>
         public OnnxNode CreateNode(string opType, string input, string output, string name, string domain = null)
             => CreateNode(opType, new[] { input }, new[] { output }, name, domain);
+
+        /// <summary>
+        /// Get the targeted ONNX version string. Only two values are allowed now: "latest" and "experimental".
+        /// </summary>
+        /// <returns></returns>
+        public abstract OnnxVersion GetOnnxVersion();
     }
 }

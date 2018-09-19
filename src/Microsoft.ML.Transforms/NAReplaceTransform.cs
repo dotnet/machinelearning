@@ -183,7 +183,7 @@ namespace Microsoft.ML.Runtime.Data
         // The isNA delegates, parallel to Infos.
         private readonly Delegate[] _isNAs;
 
-        public override bool CanSaveOnnx => true;
+        public override bool CanSaveOnnx(OnnxContext ctx) => true;
 
         /// <summary>
         /// Convenience constructor for public facing API.

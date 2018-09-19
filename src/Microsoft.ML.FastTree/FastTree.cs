@@ -2806,7 +2806,7 @@ namespace Microsoft.ML.Runtime.FastTree
         public ColumnType InputType { get; }
         public ColumnType OutputType => NumberType.Float;
         public bool CanSavePfa => true;
-        public bool CanSaveOnnx => true;
+        public bool CanSaveOnnx(OnnxContext ctx) => true;
 
         protected FastTreePredictionWrapper(IHostEnvironment env, string name, Ensemble trainedEnsemble, int numFeatures, string innerArgs)
             : base(env, name)

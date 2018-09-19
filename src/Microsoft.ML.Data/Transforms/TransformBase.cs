@@ -469,7 +469,7 @@ namespace Microsoft.ML.Runtime.Data
 
         public virtual bool CanSavePfa => false;
 
-        public virtual bool CanSaveOnnx => false;
+        public virtual bool CanSaveOnnx(OnnxContext ctx) => false;
 
         protected OneToOneTransformBase(IHostEnvironment env, string name, OneToOneColumn[] column,
             IDataView input, Func<ColumnType, string> testType)
@@ -574,7 +574,7 @@ namespace Microsoft.ML.Runtime.Data
         public void SaveAsOnnx(OnnxContext ctx)
         {
             Host.CheckValue(ctx, nameof(ctx));
-            Host.Assert(CanSaveOnnx);
+            Host.Assert(CanSaveOnnx(ctx));
 
             for (int iinfo = 0; iinfo < Infos.Length; ++iinfo)
             {

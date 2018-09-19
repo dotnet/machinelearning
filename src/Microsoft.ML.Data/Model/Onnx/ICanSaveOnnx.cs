@@ -15,7 +15,7 @@ namespace Microsoft.ML.Runtime.Model.Onnx
         /// only detectable during runtime that would prevent its being savable. (E.g.,
         /// it may wrap some other object that may or may not be savable.)
         /// </summary>
-        bool CanSaveOnnx { get; }
+        bool CanSaveOnnx(OnnxContext ctx);
     }
 
     /// <summary>

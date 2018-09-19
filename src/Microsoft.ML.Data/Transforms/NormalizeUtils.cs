@@ -60,7 +60,7 @@ namespace Microsoft.ML.Runtime.Data
 
         JToken PfaInfo(BoundPfaContext ctx, JToken srcToken);
 
-        bool CanSaveOnnx { get; }
+        bool CanSaveOnnx(OnnxContext ctx);
 
         bool OnnxInfo(OnnxContext ctx, OnnxNode nodeProtoWrapper, int featureCount);
     }

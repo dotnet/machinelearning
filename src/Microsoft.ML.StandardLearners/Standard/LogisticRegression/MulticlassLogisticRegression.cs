@@ -331,7 +331,7 @@ namespace Microsoft.ML.Runtime.Learners
         public ColumnType InputType { get; }
         public ColumnType OutputType { get; }
         public bool CanSavePfa => true;
-        public bool CanSaveOnnx => true;
+        public bool CanSaveOnnx(OnnxContext ctx) => true;
 
         internal MulticlassLogisticRegressionPredictor(IHostEnvironment env, ref VBuffer<Float> weights, int numClasses, int numFeatures, string[] labelNames, LinearModelStatistics stats = null)
             : base(env, RegistrationName)
