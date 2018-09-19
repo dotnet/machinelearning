@@ -1328,13 +1328,6 @@ namespace Microsoft.ML.Transforms
             Contracts.CheckValue(env, nameof(env));
             _host = env.Register(nameof(HashConverter));
             _columns = columns.ToArray();
-            foreach (var col in _columns)
-            {
-                if (col.InvertHash < -1)
-                    throw _host.ExceptParam(nameof(columns), "Value too small, must be -1 or larger");
-                if (col.InvertHash != 0 && col.HashBits >= 31)
-                    throw _host.ExceptParam(nameof(columns), $"Cannot support invertHash for a {0} bit hash. 30 is the maximum possible.", col.HashBits);
-            }
         }
 
         public HashConverterTransformer Fit(IDataView input) => new HashConverterTransformer(_host, input, _columns);
@@ -1354,7 +1347,7 @@ namespace Microsoft.ML.Transforms
                     metadata.Add(slotMeta);
                 if (colInfo.InvertHash != 0)
                     metadata.Add(new SchemaShape.Column(MetadataUtils.Kinds.KeyValues, SchemaShape.Column.VectorKind.Vector, TextType.Instance, false));
-                result[colInfo.Output] = new SchemaShape.Column(colInfo.Output, col.ItemType.IsVector ? SchemaShape.Column.VectorKind.Vector : SchemaShape.Column.VectorKind.Scalar, NumberType.U4, true, new SchemaShape(metadata.ToArray()));
+                result[colInfo.Output] = new SchemaShape.Column(colInfo.Output, col.ItemType.IsVector ? SchemaShape.Column.VectorKind.Vector : SchemaShape.Column.VectorKind.Scalar, NumberType.U4, true, new SchemaShape(metadata));
             }
             return new SchemaShape(result.Values);
         }
