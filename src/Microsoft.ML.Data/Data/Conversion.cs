@@ -1710,7 +1710,7 @@ namespace Microsoft.ML.Runtime.Data.Conversion
         {
             ClearDst(ref dst);
             if (!src.IsEmpty)
-                ReadOnlyMemoryUtils.AddToStringBuilder(src, dst);
+                dst.AppendMemory(src);
         }
 
         public void Convert(ref TX span, ref TS value) => TryParse(ref span, out value);

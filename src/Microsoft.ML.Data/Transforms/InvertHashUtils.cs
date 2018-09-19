@@ -64,7 +64,7 @@ namespace Microsoft.ML.Runtime.Data
                         if (intermediate == 0)
                             return;
                         keyValues.GetItemOrDefault((int)(intermediate - 1), ref value);
-                        ReadOnlyMemoryUtils.AddToStringBuilder(value, dst);
+                        dst.AppendMemory(value);
                     };
             }
 

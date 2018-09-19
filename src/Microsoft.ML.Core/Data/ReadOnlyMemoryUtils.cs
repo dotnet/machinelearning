@@ -208,24 +208,6 @@ namespace Microsoft.ML.Runtime.Data
             return memory.Slice(0, ichLim);
         }
 
-        /// <summary>
-        /// Returns a <see cref="ReadOnlyMemory{T}"/> of <see cref="char"/> with trailing whitespace trimmed.
-        /// </summary>
-        public static ReadOnlyMemory<char> TrimEndWhiteSpace(ReadOnlyMemory<char> memory, ReadOnlySpan<char> span)
-        {
-            if (memory.IsEmpty)
-                return memory;
-
-            int ichLim = memory.Length;
-            if (!char.IsWhiteSpace(span[ichLim - 1]))
-                return memory;
-
-            while (0 < ichLim && char.IsWhiteSpace(span[ichLim - 1]))
-                ichLim--;
-
-            return memory.Slice(0, ichLim);
-        }
-
         public static NormStr AddToPool(ReadOnlyMemory<char> memory, NormStr.Pool pool)
         {
             Contracts.CheckValue(pool, nameof(pool));
@@ -236,13 +218,6 @@ namespace Microsoft.ML.Runtime.Data
         {
             Contracts.CheckValue(pool, nameof(pool));
             return pool.Get(memory);
-        }
-
-        public static void AddToStringBuilder(ReadOnlyMemory<char> memory, StringBuilder sb)
-        {
-            Contracts.CheckValue(sb, nameof(sb));
-            if (!memory.IsEmpty)
-                sb.Append(memory);
         }
 
         public static void AddLowerCaseToStringBuilder(ReadOnlySpan<char> span, StringBuilder sb)
@@ -258,18 +233,27 @@ namespace Microsoft.ML.Runtime.Data
                     char ch = CharUtils.ToLowerInvariant(span[j]);
                     if (ch != span[j])
                     {
-                        sb.Append(span.Slice(min, j - min)).Append(ch);
+                        sb.AppendSpan(span.Slice(min, j - min)).Append(ch);
                         min = j + 1;
                     }
                 }
 
                 Contracts.Assert(j == span.Length);
                 if (min != j)
-                    sb.Append(span.Slice(min, j - min));
+                    sb.AppendSpan(span.Slice(min, j - min));
             }
         }
 
-        public static StringBuilder Append(this StringBuilder sb, ReadOnlySpan<char> span)
+        public static StringBuilder AppendMemory(this StringBuilder sb, ReadOnlyMemory<char> memory)
+        {
+            Contracts.CheckValue(sb, nameof(sb));
+            if (!memory.IsEmpty)
+                sb.AppendSpan(memory.Span);
+
+            return sb;
+        }
+
+        public static StringBuilder AppendSpan(this StringBuilder sb, ReadOnlySpan<char> span)
         {
             unsafe
             {

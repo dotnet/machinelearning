@@ -75,7 +75,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         /// </summary>
         public static bool TryParse(ReadOnlySpan<char> span, out Single value)
         {
-            var res = Parse(out value, span);
+            var res = Parse(span, out value);
             Contracts.Assert(res != Result.Empty || value == 0);
             return res <= Result.Empty;
         }
@@ -90,7 +90,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
             return res <= Result.Empty;
         }
 
-        public static Result Parse(out Single value, ReadOnlySpan<char> span)
+        public static Result Parse(ReadOnlySpan<char> span, out Single value)
         {
             int ich = 0;
             for (; ; ich++)

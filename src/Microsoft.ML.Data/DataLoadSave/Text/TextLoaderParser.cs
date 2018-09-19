@@ -796,6 +796,24 @@ namespace Microsoft.ML.Runtime.Data
                 return rows;
             }
 
+            /// <summary>
+            /// Returns a <see cref="ReadOnlyMemory{T}"/> of <see cref="char"/> with trailing whitespace trimmed.
+            /// </summary>
+            private ReadOnlyMemory<char> TrimEndWhiteSpace(ReadOnlyMemory<char> memory, ReadOnlySpan<char> span)
+            {
+                if (memory.IsEmpty)
+                    return memory;
+
+                int ichLim = memory.Length;
+                if (!char.IsWhiteSpace(span[ichLim - 1]))
+                    return memory;
+
+                while (0 < ichLim && char.IsWhiteSpace(span[ichLim - 1]))
+                    ichLim--;
+
+                return memory.Slice(0, ichLim);
+            }
+
             public void ParseRow(RowSet rows, int irow, Helper helper, bool[] active, string path, long line, string text)
             {
                 Contracts.AssertValue(rows);
@@ -807,7 +825,7 @@ namespace Microsoft.ML.Runtime.Data
                 var lineSpan = text.AsMemory();
                 var span = lineSpan.Span;
                 if ((_flags & Options.TrimWhitespace) != 0)
-                    lineSpan = ReadOnlyMemoryUtils.TrimEndWhiteSpace(lineSpan, span);
+                    lineSpan = TrimEndWhiteSpace(lineSpan, span);
                 try
                 {
                     // Parse the spans into items, ensuring that sparse don't precede non-sparse.
@@ -1082,7 +1100,6 @@ namespace Microsoft.ML.Runtime.Data
                     var text = scan.TextBuf;
                     int ichLim = scan.IchLimBuf;
                     int ichCur = scan.IchMinNext;
-                    //var span = text.Span;
                     if (!_sepContainsSpace)
                     {
                         // Ignore leading spaces
@@ -1157,7 +1174,7 @@ namespace Microsoft.ML.Runtime.Data
                             if (span[ichCur] == '"')
                             {
                                 if (ichCur > ichRun)
-                                    _sb.Append(span.Slice(ichRun, ichCur - ichRun));
+                                    _sb.AppendSpan(span.Slice(ichRun, ichCur - ichRun));
                                 if (++ichCur >= ichLim)
                                     break;
                                 if (span[ichCur] != '"')

@@ -837,14 +837,14 @@ namespace Microsoft.ML.Runtime.Data.IO
                     if (ch == '"')
                     {
                         if (ichRun < ichCur)
-                            sb.Append(span.Slice(ichRun, ichCur - ichRun));
+                            sb.AppendSpan(span.Slice(ichRun, ichCur - ichRun));
                         sb.Append("\"\"");
                         ichRun = ichCur + 1;
                     }
                 }
                 Contracts.Assert(ichCur == ichLim);
                 if (ichRun < ichCur)
-                    sb.Append(span.Slice(ichRun, ichCur - ichRun));
+                    sb.AppendSpan(span.Slice(ichRun, ichCur - ichRun));
                 if (quoted)
                     sb.Append('"');
             }

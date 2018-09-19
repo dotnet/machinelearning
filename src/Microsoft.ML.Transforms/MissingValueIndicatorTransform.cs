@@ -222,7 +222,7 @@ namespace Microsoft.ML.Runtime.Data
                     if (kvp.Value.IsEmpty)
                         sb.Append('[').Append(slot / 2).Append(']');
                     else
-                        ReadOnlyMemoryUtils.AddToStringBuilder(kvp.Value, sb);
+                        sb.AppendMemory(kvp.Value);
 
                     int len = sb.Length;
                     sb.Append(IndicatorSuffix);

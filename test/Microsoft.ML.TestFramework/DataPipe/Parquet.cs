@@ -33,7 +33,7 @@ namespace Microsoft.ML.Runtime.RunTests
         public void TestParquetNull()
         {
             string pathData = GetDataPath(@"Parquet", "test-null.parquet");
-            var ex = Assert.ThrowsAny<Exception>(() => TestCore(pathData, false, new[] { "loader=Parquet{bigIntDates=+}" }, forceDense: true));
+            var ex = Assert.Throws<InvalidOperationException>(() => TestCore(pathData, false, new[] { "loader=Parquet{bigIntDates=+}" }, forceDense: true));
             Assert.Equal("Nullable object must have a value.", ex.Message);
             Done();
         }
