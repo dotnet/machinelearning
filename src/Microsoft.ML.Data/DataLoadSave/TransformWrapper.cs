@@ -31,6 +31,7 @@ namespace Microsoft.ML.Runtime.Data
             _host = env.Register(nameof(TransformWrapper));
             _host.CheckValue(xf, nameof(xf));
             _xf = xf;
+            IsRowToRowMapper = IsChainRowToRowMapper(_xf);
         }
 
         public ISchema GetOutputSchema(ISchema inputSchema)
@@ -102,9 +103,40 @@ namespace Microsoft.ML.Runtime.Data
             }
 
             _xf = data;
+            IsRowToRowMapper = IsChainRowToRowMapper(_xf);
         }
 
         public IDataView Transform(IDataView input) => ApplyTransformUtils.ApplyAllTransformsToData(_host, _xf, input);
+
+        private static bool IsChainRowToRowMapper(IDataView view)
+        {
+            for (; view is IDataTransform xf; view = xf.Source)
+            {
+                if (!(xf is IRowToRowMapper))
+                    return false;
+            }
+            return true;
+        }
+
+        public bool IsRowToRowMapper { get; }
+
+        public IRowToRowMapper GetRowToRowMapper(ISchema inputSchema)
+        {
+            _host.CheckValue(inputSchema, nameof(inputSchema));
+            var input = new EmptyDataView(_host, inputSchema);
+            var revMaps = new List<IRowToRowMapper>();
+            IDataView chain;
+            for (chain = ApplyTransformUtils.ApplyAllTransformsToData(_host, _xf, input); chain is IDataTransform xf; chain = xf.Source)
+            {
+                // Everything in the chain ought to be a row mapper.
+                _host.Assert(xf is IRowToRowMapper);
+                revMaps.Add((IRowToRowMapper)xf);
+            }
+            // The walkback should have ended at the input.
+            Contracts.Assert(chain == input);
+            revMaps.Reverse();
+            return new ChainedRowToRowMapper(inputSchema, revMaps.ToArray());
+        }
     }
 
     /// <summary>
