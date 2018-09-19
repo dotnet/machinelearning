@@ -511,12 +511,12 @@ namespace Microsoft.ML.Runtime.Data
         {
             public readonly ColInfo[] Infos;
             public readonly Dictionary<string, int> NameToInfoIndex;
-            private readonly VBuffer<DvText>[] _slotNames;
+            private readonly VBuffer<ReadOnlyMemory<char>>[] _slotNames;
             // Empty iff either header+ not set in args, or if no header present, or upon load
             // there was no header stored in the model.
-            private readonly DvText _header;
+            private readonly ReadOnlyMemory<char> _header;
 
-            private readonly MetadataUtils.MetadataGetter<VBuffer<DvText>> _getSlotNames;
+            private readonly MetadataUtils.MetadataGetter<VBuffer<ReadOnlyMemory<char>>> _getSlotNames;
 
             private Bindings()
             {
@@ -546,7 +546,7 @@ namespace Microsoft.ML.Runtime.Data
 
                     int inputSize = parent._inputSize;
                     ch.Assert(0 <= inputSize & inputSize < SrcLim);
-                    List<DvText> lines = null;
+                    List<ReadOnlyMemory<char>> lines = null;
                     if (headerFile != null)
                         Cursor.GetSomeLines(headerFile, 1, ref lines);
                     if (needInputSize && inputSize == 0)
@@ -712,11 +712,11 @@ namespace Microsoft.ML.Runtime.Data
                         Infos[iinfoOther] = ColInfo.Create(cols[iinfoOther].Name.Trim(), typeOther, segsNew.ToArray(), true);
                     }
 
-                    _slotNames = new VBuffer<DvText>[Infos.Length];
+                    _slotNames = new VBuffer<ReadOnlyMemory<char>>[Infos.Length];
                     if ((parent.HasHeader || headerFile != null) && Utils.Size(lines) > 0)
                         _header = lines[0];
 
-                    if (_header.HasChars)
+                    if (!_header.IsEmpty)
                         Parser.ParseSlotNames(parent, _header, Infos, _slotNames);
 
                     ch.Done();
@@ -797,12 +797,12 @@ namespace Microsoft.ML.Runtime.Data
                     NameToInfoIndex[name] = iinfo;
                 }
 
-                _slotNames = new VBuffer<DvText>[Infos.Length];
+                _slotNames = new VBuffer<ReadOnlyMemory<char>>[Infos.Length];
 
                 string result = null;
                 ctx.TryLoadTextStream("Header.txt", reader => result = reader.ReadLine());
                 if (!string.IsNullOrEmpty(result))
-                    Parser.ParseSlotNames(parent, _header = new DvText(result), Infos, _slotNames);
+                    Parser.ParseSlotNames(parent, _header = result.AsMemory(), Infos, _slotNames);
             }
 
             public void Save(ModelSaveContext ctx)
@@ -850,7 +850,7 @@ namespace Microsoft.ML.Runtime.Data
                 }
 
                 // Save header in an easily human inspectable separate entry.
-                if (_header.HasChars)
+                if (!_header.IsEmpty)
                     ctx.SaveTextStream("Header.txt", writer => writer.WriteLine(_header.ToString()));
             }
 
@@ -924,7 +924,7 @@ namespace Microsoft.ML.Runtime.Data
                 }
             }
 
-            private void GetSlotNames(int col, ref VBuffer<DvText> dst)
+            private void GetSlotNames(int col, ref VBuffer<ReadOnlyMemory<char>> dst)
             {
                 Contracts.Assert(0 <= col && col < ColumnCount);
 

@@ -168,7 +168,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
     {
         public void ClassifyGithubIssues()
         {
-            var env = new TlcEnvironment(new SysRandom(0), verbose: true);
+            var env = new LocalEnvironment(new SysRandom(0), verbose: true);
 
             string dataPath = "corefx-issues-train.tsv";
 
@@ -228,7 +228,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
     {
         public void ScaleData()
         {
-            var env = new TlcEnvironment(new SysRandom(0), verbose: true);
+            var env = new LocalEnvironment(new SysRandom(0), verbose: true);
 
             string dataPath = "iris.txt";
 

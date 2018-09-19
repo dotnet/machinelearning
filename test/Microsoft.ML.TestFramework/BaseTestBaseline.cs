@@ -133,7 +133,7 @@ namespace Microsoft.ML.Runtime.RunTests
         }
 
         // This method is used by subclass to dispose of disposable objects
-        // such as TlcEnvironment.
+        // such as LocalEnvironment.
         // It is called as a first step in test clean up.
         protected virtual void CleanupCore()
         {

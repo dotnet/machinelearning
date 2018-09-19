@@ -94,7 +94,7 @@ namespace Microsoft.ML.Transforms
         /// <param name="columns">Pairs of columns to run the tokenization on.</param>
         /// <param name="useMarkerCharacters">Whether to use marker characters to separate words.</param>
         public CharacterTokenizer(IHostEnvironment env, (string input, string output)[] columns, bool useMarkerCharacters = true)
-            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(WordTokenizer)), MakeTransformer(env, columns, useMarkerCharacters))
+            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(CharacterTokenizer)), MakeTransformer(env, columns, useMarkerCharacters))
         {
         }
 
