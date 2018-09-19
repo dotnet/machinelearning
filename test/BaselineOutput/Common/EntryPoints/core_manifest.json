@@ -21737,14 +21737,6 @@
           "IsNullable": false
         },
         {
-          "Name": "Data",
-          "Type": "DataView",
-          "Desc": "Input dataset",
-          "Required": true,
-          "SortOrder": 1.0,
-          "IsNullable": false
-        },
-        {
           "Name": "InputColumns",
           "Type": {
             "Kind": "Array",
@@ -21755,7 +21747,15 @@
             "inputs"
           ],
           "Required": true,
-          "SortOrder": 2.0,
+          "SortOrder": 1.0,
+          "IsNullable": false
+        },
+        {
+          "Name": "Data",
+          "Type": "DataView",
+          "Desc": "Input dataset",
+          "Required": true,
+          "SortOrder": 1.0,
           "IsNullable": false
         },
         {
@@ -21769,7 +21769,7 @@
             "outputs"
           ],
           "Required": true,
-          "SortOrder": 3.0,
+          "SortOrder": 2.0,
           "IsNullable": false
         }
       ],

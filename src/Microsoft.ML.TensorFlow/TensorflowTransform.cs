@@ -42,10 +42,10 @@ namespace Microsoft.ML.Transforms
             [Argument(ArgumentType.Required, HelpText = "TensorFlow model used by the transform. Please see https://www.tensorflow.org/mobile/prepare_models for more details.", SortOrder = 0)]
             public string Model;
 
-            [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "The names of the model inputs", ShortName = "inputs", SortOrder = 2)]
+            [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "The names of the model inputs", ShortName = "inputs", SortOrder = 1)]
             public string[] InputColumns;
 
-            [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "The name of the outputs", ShortName = "outputs", SortOrder = 3)]
+            [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "The name of the outputs", ShortName = "outputs", SortOrder = 2)]
             public string[] OutputColumns;
         }
 
@@ -77,9 +77,8 @@ namespace Microsoft.ML.Transforms
             return new VersionInfo(
                 modelSignature: "TENSFLOW",
                 //verWrittenCur: 0x00010001, // Initial
-                //verWrittenCur: 0x00010002,  // Upgraded when change for multiple outputs was implemented.
-                verWrittenCur: 0x00010003,  // Upgraded when change for un-frozen models implemented.
-                verReadableCur: 0x00010003,
+                verWrittenCur: 0x00010002,  // Added Support for Multiple Outputs and SavedModel.
+                verReadableCur: 0x00010002,
                 verWeCanReadBack: 0x00010001,
                 loaderSignature: LoaderSignature);
         }
@@ -113,19 +112,14 @@ namespace Microsoft.ML.Transforms
             // int: number of output columns
             // for each output column
             //   int: id of output column name
-            bool isFrozen = true;
-            bool isNonFrozenModelSupported = ctx.Header.ModelVerReadable >= 0x00010003;
-            if (isNonFrozenModelSupported)
-                isFrozen = ctx.Reader.ReadBoolByte();
-
-            ModelInputsOutputs(env, ctx, out string[] inputs, out string[] outputs);
+            ModelInputsOutputs(env, ctx, out string[] inputs, out string[] outputs, out bool isFrozen);
             if (isFrozen)
             {
                 byte[] modelBytes = null;
                 if (!ctx.TryLoadBinaryStream("TFModel", r => modelBytes = r.ReadByteArray()))
                     throw env.ExceptDecode();
 
-                return new TensorFlowTransform(env, modelBytes, inputs, outputs, isFrozen);
+                return new TensorFlowTransform(env, LoadTFSession(env, modelBytes), inputs, outputs, isFrozen);
             }
 
             var tempDirPath = Path.GetFullPath(Path.Combine(Path.GetTempPath(), RegistrationName + "_" + Guid.NewGuid()));
@@ -178,8 +172,13 @@ namespace Microsoft.ML.Transforms
         private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, ISchema inputSchema)
             => Create(env, ctx).MakeRowMapper(inputSchema);
 
-        private static void ModelInputsOutputs(IHostEnvironment env, ModelLoadContext ctx, out string[] inputs, out string[] outputs)
+        private static void ModelInputsOutputs(IHostEnvironment env, ModelLoadContext ctx, out string[] inputs, out string[] outputs, out bool isFrozen)
         {
+            isFrozen = true;
+            bool isNonFrozenModelSupported = ctx.Header.ModelVerReadable >= 0x00010002;
+            if (isNonFrozenModelSupported)
+                isFrozen = ctx.Reader.ReadBoolByte();
+
             var numInputs = ctx.Reader.ReadInt32();
             env.CheckDecode(numInputs > 0);
             inputs = new string[numInputs];
@@ -252,10 +251,6 @@ namespace Microsoft.ML.Transforms
             IsFrozen = TensorFlowUtils.IsFrozenTensorFlowModel(model);
             IsTemporaryModelPath = isTemporaryModelPath;
         }
-
-        private TensorFlowTransform(IHostEnvironment env, byte[] modelBytes, string[] inputs, string[] outputs, bool isFrozen) :
-            this(env, LoadTFSession(env, modelBytes), inputs, outputs, isFrozen)
-        { }
 
         private TensorFlowTransform(IHostEnvironment env, TFSession session, string[] inputs, string[] outputs, bool isFrozen)
         {
