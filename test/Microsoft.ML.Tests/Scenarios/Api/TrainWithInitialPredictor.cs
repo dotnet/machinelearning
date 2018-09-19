@@ -5,6 +5,7 @@
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Learners;
+using Microsoft.ML.Runtime.RunTests;
 using Xunit;
 
 namespace Microsoft.ML.Tests.Scenarios.Api
@@ -18,12 +19,11 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         [Fact]
         public void TrainWithInitialPredictor()
         {
-            var dataPath = GetDataPath(SentimentDataPath);
 
             using (var env = new LocalEnvironment(seed: 1, conc: 1))
             {
                 // Pipeline
-                var loader = TextLoader.ReadFile(env, MakeSentimentTextLoaderArgs(), new MultiFileSource(dataPath));
+                var loader = TextLoader.ReadFile(env, MakeSentimentTextLoaderArgs(), new MultiFileSource(GetDataPath(TestDatasets.Sentiment.trainFilename)));
 
                 var trans = TextTransform.Create(env, MakeSentimentTextTransformArgs(), loader);
                 var trainData = trans;

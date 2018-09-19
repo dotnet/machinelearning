@@ -6,16 +6,31 @@ using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data.StaticPipe.Runtime;
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
 
 namespace Microsoft.ML.Runtime.Data
 {
     public sealed class TermEstimator : IEstimator<TermTransform>
     {
+        public static class Defaults
+        {
+            public const int MaxNumTerms = 1000000;
+            public const TermTransform.SortOrder Sort = TermTransform.SortOrder.Occurrence;
+        }
+
         private readonly IHost _host;
         private readonly TermTransform.ColumnInfo[] _columns;
-        public TermEstimator(IHostEnvironment env, string name, string source = null, int maxNumTerms = TermTransform.Defaults.MaxNumTerms, TermTransform.SortOrder sort = TermTransform.Defaults.Sort) :
+
+        /// <summary>
+        /// Convenience constructor for public facing API.
+        /// </summary>
+        /// <param name="env">Host Environment.</param>
+        /// <param name="name">Name of the output column.</param>
+        /// <param name="source">Name of the column to be transformed. If this is null '<paramref name="name"/>' will be used.</param>
+        /// <param name="maxNumTerms">Maximum number of terms to keep per column when auto-training.</param>
+        /// <param name="sort">How items should be ordered when vectorized. By default, they will be in the order encountered.
+        /// If by value items are sorted according to their default comparison, e.g., text sorting will be case sensitive (e.g., 'A' then 'Z' then 'a').</param>
+        public TermEstimator(IHostEnvironment env, string name, string source = null, int maxNumTerms = Defaults.MaxNumTerms, TermTransform.SortOrder sort = Defaults.Sort) :
            this(env, new TermTransform.ColumnInfo(name, source ?? name, maxNumTerms, sort))
         {
         }
@@ -47,7 +62,7 @@ namespace Microsoft.ML.Runtime.Data
                 if (!col.IsKey || !col.Metadata.TryFindColumn(MetadataUtils.Kinds.KeyValues, out var kv) || kv.Kind != SchemaShape.Column.VectorKind.Vector)
                 {
                     kv = new SchemaShape.Column(MetadataUtils.Kinds.KeyValues, SchemaShape.Column.VectorKind.Vector,
-                        col.ItemType, col.IsKey);
+                        colInfo.TextKeyValues ? TextType.Instance : col.ItemType, col.IsKey);
                 }
                 Contracts.AssertValue(kv);
 
@@ -90,7 +105,7 @@ namespace Microsoft.ML.Runtime.Data
         // At the moment this is empty. Once PR #863 clears, we can change this class to hold the output
         // key-values metadata.
 
-        internal ToKeyFitResult(TermTransform.TermMap map)
+        public ToKeyFitResult(TermTransform.TermMap map)
         {
         }
     }
@@ -101,8 +116,8 @@ namespace Microsoft.ML.Runtime.Data
         // Raw generics would allow illegal possible inputs, e.g., Scalar<Bitmap>. So, this is a partial
         // class, and all the public facing extension methods for each possible type are in a T4 generated result.
 
-        private const KeyValueOrder DefSort = (KeyValueOrder)TermTransform.Defaults.Sort;
-        private const int DefMax = TermTransform.Defaults.MaxNumTerms;
+        private const KeyValueOrder DefSort = (KeyValueOrder)TermEstimator.Defaults.Sort;
+        private const int DefMax = TermEstimator.Defaults.MaxNumTerms;
 
         private struct Config
         {
@@ -176,7 +191,7 @@ namespace Microsoft.ML.Runtime.Data
             {
                 var infos = new TermTransform.ColumnInfo[toOutput.Length];
                 Action<TermTransform> onFit = null;
-                for (int i=0; i<toOutput.Length; ++i)
+                for (int i = 0; i < toOutput.Length; ++i)
                 {
                     var tcol = (ITermCol)toOutput[i];
                     infos[i] = new TermTransform.ColumnInfo(inputNames[tcol.Input], outputNames[toOutput[i]],
