@@ -53,13 +53,13 @@ namespace Microsoft.ML.Runtime.Data
         {
             Host = host;
 
-            ctx.LoadModel<TModel, SignatureLoadModel>(host, out TModel model, DirModel);
-            Model = model;
-
             // *** Binary format ***
             // model: prediction model.
             // stream: empty data view that contains train schema.
             // id of string: feature column.
+
+            ctx.LoadModel<TModel, SignatureLoadModel>(host, out TModel model, DirModel);
+            Model = model;
 
             // Clone the stream with the schema into memory.
             var ms = new MemoryStream();
@@ -90,9 +90,9 @@ namespace Microsoft.ML.Runtime.Data
         protected void SaveModel(ModelSaveContext ctx)
         {
             // *** Binary format ***
+            // <base info>
             // model: prediction model.
             // stream: empty data view that contains train schema.
-            // id of string: feature column.
 
             ctx.SaveModel(Model, DirModel);
             ctx.SaveBinaryStream(DirTransSchema, writer =>
