@@ -34,7 +34,7 @@ using System.Collections.Generic;
 namespace Microsoft.ML.Runtime.Learners
 {
     using TScalarPredictor = IPredictorProducing<float>;
-    using TScalarTrainer = ITrainerEstimator<IClassicPredictionTransformer<IPredictorProducing<float>>, IPredictorProducing<float>>;
+    using TScalarTrainer = ITrainerEstimator<ISingleFeaturePredictionTransformer<IPredictorProducing<float>>, IPredictorProducing<float>>;
     using TDistPredictor = IDistPredictorProducing<float, float>;
     using CR = RoleMappedSchema.ColumnRole;
 
@@ -111,7 +111,7 @@ namespace Microsoft.ML.Runtime.Learners
             return OvaPredictor.Create(Host, _args.UseProbabilities, predictors);
         }
 
-        private IClassicPredictionTransformer<TScalarPredictor> TrainOne(IChannel ch, TScalarTrainer trainer, RoleMappedData data, int cls)
+        private ISingleFeaturePredictionTransformer<TScalarPredictor> TrainOne(IChannel ch, TScalarTrainer trainer, RoleMappedData data, int cls)
         {
             var view = MapLabels(data, cls);
 

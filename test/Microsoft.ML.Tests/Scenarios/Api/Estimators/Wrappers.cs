@@ -174,7 +174,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         public IDataView Transform(IDataView input) => ApplyTransformUtils.ApplyAllTransformsToData(_env, _xf, input);
     }
 
-    public class ScorerWrapper<TModel> : TransformWrapper, IClassicPredictionTransformer<TModel>
+    public class ScorerWrapper<TModel> : TransformWrapper, ISingleFeaturePredictionTransformer<TModel>
         where TModel : IPredictor
     {
         protected readonly string _featureColumn;

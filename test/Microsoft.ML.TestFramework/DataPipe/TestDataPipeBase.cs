@@ -123,8 +123,8 @@ namespace Microsoft.ML.Runtime.RunTests
                 // and original transformer.
                 // This in turn means that the schema of loaded transformer matches for 
                 // Transform and GetOutputSchema calls.
-                  CheckSameSchemas(scoredTrain.Schema, scoredTrain2.Schema);
-                  CheckSameValues(scoredTrain, scoredTrain2);
+                CheckSameSchemas(scoredTrain.Schema, scoredTrain2.Schema);
+                CheckSameValues(scoredTrain, scoredTrain2);
             };
 
             checkOnData(validFitInput);

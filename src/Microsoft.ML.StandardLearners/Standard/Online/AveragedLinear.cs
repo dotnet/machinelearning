@@ -54,7 +54,7 @@ namespace Microsoft.ML.Runtime.Learners
     }
 
     public abstract class AveragedLinearTrainer<TTransformer, TModel> : OnlineLinearTrainer<TTransformer, TModel>
-        where TTransformer : IClassicPredictionTransformer<TModel>
+        where TTransformer : ISingleFeaturePredictionTransformer<TModel>
         where TModel : IPredictor
     {
         protected readonly new AveragedLinearArguments Args;

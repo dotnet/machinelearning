@@ -199,22 +199,22 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
         public string[] FeatureColumns { get; }
 
         /// <summary>
-        /// The type of the prediction transformer
+        /// The type of the feature columns.
         /// </summary>
         public ColumnType[] FeatureColumnTypes { get; }
 
         private readonly BinaryClassifierScorer _scorer;
 
-        public readonly string ThresholdColumn;
-        public readonly float Threshold;
+        private readonly string _thresholdColumn;
+        private readonly float _threshold;
 
         public FieldAwareFactorizationMachinePredictionTransformer(IHostEnvironment host, FieldAwareFactorizationMachinePredictor model, ISchema trainSchema,
             string[] featureColumns, float threshold = 0f, string thresholdColumn = DefaultColumnNames.Score)
             :base(Contracts.CheckRef(host, nameof(host)).Register(nameof(FieldAwareFactorizationMachinePredictionTransformer)), model, trainSchema)
         {
             Host.CheckNonEmpty(thresholdColumn, nameof(thresholdColumn));
-            Threshold = threshold;
-            ThresholdColumn = thresholdColumn;
+            _threshold = threshold;
+            _thresholdColumn = thresholdColumn;
 
             Host.CheckValue(featureColumns, nameof(featureColumns));
             int featCount = featureColumns.Length;
@@ -234,7 +234,7 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
             BindableMapper = ScoreUtils.GetSchemaBindableMapper(Host, model);
 
             var schema = GetSchema();
-            var args = new BinaryClassifierScorer.Arguments { Threshold = Threshold, ThresholdColumn = ThresholdColumn };
+            var args = new BinaryClassifierScorer.Arguments { Threshold = _threshold, ThresholdColumn = _thresholdColumn };
             _scorer = new BinaryClassifierScorer(Host, args, new EmptyDataView(Host, trainSchema), BindableMapper.Bind(Host, schema), schema);
         }
 
@@ -261,16 +261,21 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
                 FeatureColumnTypes[i] = TrainSchema.GetColumnType(col);
             }
 
-            Threshold = ctx.Reader.ReadSingle();
-            ThresholdColumn = ctx.LoadString();
+            _threshold = ctx.Reader.ReadSingle();
+            _thresholdColumn = ctx.LoadString();
 
             BindableMapper = ScoreUtils.GetSchemaBindableMapper(Host, Model);
 
             var schema = GetSchema();
-            var args = new BinaryClassifierScorer.Arguments { Threshold = Threshold, ThresholdColumn = ThresholdColumn };
+            var args = new BinaryClassifierScorer.Arguments { Threshold = _threshold, ThresholdColumn = _thresholdColumn };
             _scorer = new BinaryClassifierScorer(Host, args, new EmptyDataView(Host, TrainSchema), BindableMapper.Bind(Host, schema), schema);
         }
 
+        /// <summary>
+        /// Gets the <see cref="ISchema"/> result after applying <see cref="Transform(IDataView)"/>.
+        /// </summary>
+        /// <param name="inputSchema">The <see cref="ISchema"/> of the input data.</param>
+        /// <returns>The post transformation <see cref="ISchema"/>.</returns>
         public override ISchema GetOutputSchema(ISchema inputSchema)
         {
             for (int i = 0; i < FeatureColumns.Length; i++)
@@ -286,12 +291,21 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
             return Transform(new EmptyDataView(Host, inputSchema)).Schema;
         }
 
+        /// <summary>
+        /// Applies the transformer to the <paramref name="input"/>, scoring it through the <see cref="BinaryClassifierScorer"/>.
+        /// </summary>
+        /// <param name="input">The data to be scored with the <see cref="FieldAwareFactorizationMachinePredictor"/>.</param>
+        /// <returns>The scored <see cref="IDataView"/>.</returns>
         public override IDataView Transform(IDataView input)
         {
             Host.CheckValue(input, nameof(input));
             return _scorer.ApplyToData(Host, input);
         }
 
+        /// <summary>
+        /// Saves the transformer to file.
+        /// </summary>
+        /// <param name="ctx">The <see cref="ModelSaveContext"/> that facilitates saving to the <see cref="Repository"/>.</param>
         public void Save(ModelSaveContext ctx)
         {
             Host.CheckValue(ctx, nameof(ctx));
@@ -318,8 +332,8 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
             for (int i = 0; i < Model.FieldCount; i++)
                 ctx.SaveString(FeatureColumns[i]);
 
-            ctx.Writer.Write(Threshold);
-            ctx.SaveString(ThresholdColumn);
+            ctx.Writer.Write(_threshold);
+            ctx.SaveString(_thresholdColumn);
         }
 
         private RoleMappedSchema GetSchema()

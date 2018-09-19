@@ -2,9 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.IO;
-using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Data.IO;
@@ -22,6 +20,10 @@ using Microsoft.ML.Runtime.Model;
 namespace Microsoft.ML.Runtime.Data
 {
 
+    /// <summary>
+    /// Base class for transformers with no feature column, or more than one feature columns. 
+    /// </summary>
+    /// <typeparam name="TModel"></typeparam>
     public abstract class PredictionTransformerBase<TModel> : IPredictionTransformer<TModel>
         where TModel : class, IPredictor
     {
@@ -71,13 +73,18 @@ namespace Microsoft.ML.Runtime.Data
             TrainSchema = loader.Schema;
         }
 
+        /// <summary>
+        /// Gets the output schema resulting from the <see cref="Transform(IDataView)"/>
+        /// </summary>
+        /// <param name="inputSchema">The <see cref="ISchema"/> of the input data.</param>
+        /// <returns>The resulting <see cref="ISchema"/>.</returns>
         public abstract ISchema GetOutputSchema(ISchema inputSchema);
 
         /// <summary>
         /// Transforms the input data.
         /// </summary>
-        /// <param name="input"></param>
-        /// <returns></returns>
+        /// <param name="input">The input data.</param>
+        /// <returns>The transformed <see cref="IDataView"/></returns>
         public abstract IDataView Transform(IDataView input);
 
         protected void SaveModel(ModelSaveContext ctx)
@@ -99,7 +106,12 @@ namespace Microsoft.ML.Runtime.Data
         }
     }
 
-        public abstract class ClassicPredictionTransformerBase<TModel> : PredictionTransformerBase<TModel>, IClassicPredictionTransformer<TModel>, ICanSaveModel
+    /// <summary>
+    /// The base class for all the transformers implementing the <see cref="ISingleFeaturePredictionTransformer{TModel}"/>.
+    /// Those are all the transformers that work with one feature column.
+    /// </summary>
+    /// <typeparam name="TModel">The model used to transform the data.</typeparam>
+    public abstract class SingleFeaturePredictionTransformerBase<TModel> : PredictionTransformerBase<TModel>, ISingleFeaturePredictionTransformer<TModel>, ICanSaveModel
         where TModel : class, IPredictor
     {
         /// <summary>
@@ -112,7 +124,7 @@ namespace Microsoft.ML.Runtime.Data
         /// </summary>
         public ColumnType FeatureColumnType { get; }
 
-        public ClassicPredictionTransformerBase(IHost host, TModel model, ISchema trainSchema, string featureColumn)
+        public SingleFeaturePredictionTransformerBase(IHost host, TModel model, ISchema trainSchema, string featureColumn)
             :base(host, model, trainSchema)
         {
             FeatureColumn = featureColumn;
@@ -123,7 +135,7 @@ namespace Microsoft.ML.Runtime.Data
             BindableMapper = ScoreUtils.GetSchemaBindableMapper(Host, model);
         }
 
-        internal ClassicPredictionTransformerBase(IHost host, ModelLoadContext ctx)
+        internal SingleFeaturePredictionTransformerBase(IHost host, ModelLoadContext ctx)
             :base(host, ctx)
         {
             FeatureColumn = ctx.LoadString();
@@ -160,7 +172,11 @@ namespace Microsoft.ML.Runtime.Data
         }
     }
 
-    public sealed class BinaryPredictionTransformer<TModel> : ClassicPredictionTransformerBase<TModel>
+    /// <summary>
+    /// Base class for the <see cref="ISingleFeaturePredictionTransformer{TModel}"/> working on binary classification tasks.
+    /// </summary>
+    /// <typeparam name="TModel">An implementation of the <see cref="IPredictorProducing{TResult}"/></typeparam>
+    public sealed class BinaryPredictionTransformer<TModel> : SingleFeaturePredictionTransformerBase<TModel>
         where TModel : class, IPredictorProducing<float>
     {
         private readonly BinaryClassifierScorer _scorer;
@@ -229,7 +245,11 @@ namespace Microsoft.ML.Runtime.Data
         }
     }
 
-    public sealed class MulticlassPredictionTransformer<TModel> : ClassicPredictionTransformerBase<TModel>
+    /// <summary>
+    /// Base class for the <see cref="ISingleFeaturePredictionTransformer{TModel}"/> working on multi-class classification tasks.
+    /// </summary>
+    /// <typeparam name="TModel">An implementation of the <see cref="IPredictorProducing{TResult}"/></typeparam>
+    public sealed class MulticlassPredictionTransformer<TModel> : SingleFeaturePredictionTransformerBase<TModel>
         where TModel : class, IPredictorProducing<VBuffer<float>>
     {
         private readonly MultiClassClassifierScorer _scorer;
@@ -290,7 +310,11 @@ namespace Microsoft.ML.Runtime.Data
         }
     }
 
-    public sealed class RegressionPredictionTransformer<TModel> : ClassicPredictionTransformerBase<TModel>
+    /// <summary>
+    /// Base class for the <see cref="ISingleFeaturePredictionTransformer{TModel}"/> working on regression tasks.
+    /// </summary>
+    /// <typeparam name="TModel">An implementation of the <see cref="IPredictorProducing{TResult}"/></typeparam>
+    public sealed class RegressionPredictionTransformer<TModel> : SingleFeaturePredictionTransformerBase<TModel>
         where TModel : class, IPredictorProducing<float>
     {
         private readonly GenericScorer _scorer;
