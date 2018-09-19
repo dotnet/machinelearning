@@ -2479,6 +2479,21 @@
           "Required": true,
           "SortOrder": 10.0,
           "IsNullable": false
+        },
+        {
+          "Name": "OnnxVersion",
+          "Type": {
+            "Kind": "Enum",
+            "Values": [
+              "Latest",
+              "Experimental"
+            ]
+          },
+          "Desc": "The targeted ONNX version. It can be either \"latest\" or \"experimental\"",
+          "Required": false,
+          "SortOrder": 11.0,
+          "IsNullable": false,
+          "Default": "Latest"
         }
       ],
       "Outputs": []

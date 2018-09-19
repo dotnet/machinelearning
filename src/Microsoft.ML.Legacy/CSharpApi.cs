@@ -3266,6 +3266,12 @@ namespace Microsoft.ML
 
     namespace Legacy.Models
     {
+        public enum OnnxVersion
+        {
+            Latest = 0,
+            Experimental = 1
+        }
+
 
         /// <summary>
         /// Converts the model to ONNX format.
@@ -3308,6 +3314,11 @@ namespace Microsoft.ML
             /// Model that needs to be converted to ONNX format.
             /// </summary>
             public Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel>();
+
+            /// <summary>
+            /// The targeted ONNX version. It can be either "latest" or "experimental"
+            /// </summary>
+            public OnnxVersion OnnxVersion { get; set; } = OnnxVersion.Latest;
 
             /// <summary>
             /// The data file
