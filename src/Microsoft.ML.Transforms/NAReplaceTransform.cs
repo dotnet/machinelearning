@@ -24,7 +24,7 @@ using System.Text;
 [assembly: LoadableClass(NAReplaceTransform.Summary, typeof(IDataTransform), typeof(NAReplaceTransform), typeof(NAReplaceTransform.Arguments), typeof(SignatureDataTransform),
     NAReplaceTransform.FriendlyName, NAReplaceTransform.LoadName, "NAReplace", NAReplaceTransform.ShortName, DocName = "transform/NAHandle.md")]
 
-[assembly: LoadableClass(NAReplaceTransform.Summary, typeof(IDataView), typeof(NAReplaceTransform), null, typeof(SignatureLoadDataTransform),
+[assembly: LoadableClass(NAReplaceTransform.Summary, typeof(IDataTransform), typeof(NAReplaceTransform), null, typeof(SignatureLoadDataTransform),
     NAReplaceTransform.FriendlyName, NAReplaceTransform.LoadName)]
 
 [assembly: LoadableClass(NAReplaceTransform.Summary, typeof(NAReplaceTransform), null, typeof(SignatureLoadModel),
