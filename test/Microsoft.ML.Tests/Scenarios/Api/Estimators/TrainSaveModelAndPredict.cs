@@ -6,6 +6,7 @@ using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Learners;
+using Microsoft.ML.Runtime.RunTests;
 using System.Linq;
 using Xunit;
 
@@ -22,13 +23,10 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         [Fact]
         public void New_TrainSaveModelAndPredict()
         {
-            var dataPath = GetDataPath(SentimentDataPath);
-            var testDataPath = GetDataPath(SentimentTestPath);
-
             using (var env = new LocalEnvironment(seed: 1, conc: 1))
             {
                 var reader = new TextLoader(env, MakeSentimentTextLoaderArgs());
-                var data = reader.Read(new MultiFileSource(dataPath));
+                var data = reader.Read(new MultiFileSource(GetDataPath(TestDatasets.Sentiment.trainFilename)));
 
                 // Pipeline.
                 var pipeline = new TextTransform(env, "SentimentText", "Features")
@@ -52,7 +50,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                 var engine = loadedModel.MakePredictionFunction<SentimentData, SentimentPrediction>(env);
 
                 // Take a couple examples out of the test data and run predictions on top.
-                var testData = reader.Read(new MultiFileSource(GetDataPath(SentimentTestPath)))
+                var testData = reader.Read(new MultiFileSource(GetDataPath(TestDatasets.Sentiment.testFilename)))
                     .AsEnumerable<SentimentData>(env, false);
                 foreach (var input in testData.Take(5))
                 {

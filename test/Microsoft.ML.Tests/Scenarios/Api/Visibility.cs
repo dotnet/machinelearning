@@ -1,9 +1,10 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-﻿using Microsoft.ML.Runtime.Data;
 using System;
+using Microsoft.ML.Runtime.Data;
+using Microsoft.ML.Runtime.RunTests;
 using Xunit;
 
 namespace Microsoft.ML.Tests.Scenarios.Api
@@ -21,13 +22,10 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         [Fact]
         void Visibility()
         {
-            var dataPath = GetDataPath(SentimentDataPath);
-            var testDataPath = GetDataPath(SentimentTestPath);
-
             using (var env = new LocalEnvironment(seed: 1, conc: 1))
             {
                 // Pipeline.
-                var loader = TextLoader.ReadFile(env, MakeSentimentTextLoaderArgs(), new MultiFileSource(dataPath));
+                var loader = TextLoader.ReadFile(env, MakeSentimentTextLoaderArgs(), new MultiFileSource(GetDataPath(TestDatasets.Sentiment.trainFilename)));
 
                 var trans = TextTransform.Create(env, MakeSentimentTextTransformArgs(false), loader);
                 

@@ -8,6 +8,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using Microsoft.ML.Core.Data;
+using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Data.IO;
@@ -780,6 +781,36 @@ namespace Microsoft.ML.Runtime.RunTests
 
     public abstract partial class TestDataViewBase : BaseTestBaseline
     {
+
+        public class SentimentData
+        {
+            [ColumnName("Label")]
+            public bool Sentiment;
+            public string SentimentText;
+        }
+
+        public class SentimentPrediction
+        {
+            [ColumnName("PredictedLabel")]
+            public bool Sentiment;
+
+            public float Score;
+        }
+
+        private static TextLoader.Arguments MakeSentimentTextLoaderArgs()
+        {
+            return new TextLoader.Arguments()
+            {
+                Separator = "tab",
+                HasHeader = true,
+                Column = new[]
+                {
+                    new TextLoader.Column("Label", DataKind.BL, 0),
+                    new TextLoader.Column("SentimentText", DataKind.Text, 1)
+                }
+            };
+        }
+
         protected bool Failed()
         {
             Contracts.Assert(!IsPassing);
