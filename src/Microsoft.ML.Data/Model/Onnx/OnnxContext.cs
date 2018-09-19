@@ -41,6 +41,13 @@ namespace Microsoft.ML.Runtime.Model.Onnx
         public abstract void RemoveColumn(string colName, bool removeVariable = false);
 
         /// <summary>
+        /// Removes an intermediate variable in ONNX graph. Note that it doesn't clean up the naming connection
+        /// between ML.NET columns and ONNX variables.
+        /// </summary>
+        /// <param name="variableName">ONNX variable to remove.</param>
+        public abstract void RemoveIntermediateVariable(string variableName);
+
+        /// <summary>
         /// Removes an ONNX variable. If removeColumn is true then it also removes the tracking for the <see
         /// cref="IDataView"/> column associated with it.
         /// </summary>

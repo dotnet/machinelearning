@@ -82,6 +82,24 @@ namespace Microsoft.ML.Runtime.Model.Onnx
         }
 
         /// <summary>
+        /// Removes an intermediate variable in ONNX graph.
+        /// </summary>
+        /// <param name="variableName">ONNX variable to remove.</param>
+        public override void RemoveIntermediateVariable(string variableName)
+        {
+            _host.CheckNonEmpty(variableName, nameof(variableName));
+
+            foreach (var val in _intermediateValues)
+            {
+                if (val.Name == variableName)
+                {
+                    _intermediateValues.Remove(val);
+                    break;
+                }
+            }
+        }
+
+        /// <summary>
         /// Removes an ONNX variable. If removeColumn is true then it also removes the
         /// IDataView column associated with it.
         /// </summary>
