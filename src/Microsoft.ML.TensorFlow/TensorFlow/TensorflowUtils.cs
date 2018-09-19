@@ -11,6 +11,7 @@ using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.ImageAnalytics.EntryPoints;
 using System.Security.Principal;
+using System.Security.AccessControl;
 
 namespace Microsoft.ML.Transforms.TensorFlow
 {
@@ -87,29 +88,31 @@ namespace Microsoft.ML.Transforms.TensorFlow
             else
                 return true;
         }
-        internal static void CreateTempDirectory(string tempDir)
+        internal static void CreateTempDirectory(string tempDirPath)
         {
-            WindowsImpersonationContext impersonation = Executor.RevertImpersonation();
+            //if directory exists, do nothing.
+            if (Directory.Exists(tempDirPath))
+                return;
+
+            WindowsIdentity currentIdentity = null;
             try
             {
                 currentIdentity = WindowsIdentity.GetCurrent();
             }
-            finally
-            {
-                Executor.ReImpersonate(impersonation);
-            }
+            catch (PlatformNotSupportedException)
+            { }
 
             if (currentIdentity != null && new WindowsPrincipal(currentIdentity).IsInRole(WindowsBuiltInRole.Administrator))
             {
                 // Create high integrity dir and set no delete policy for all files under the directory.
                 // In case of failure, throw exception.
-                CreateTempDirectoryWithAce(tempDir, currentIdentity.User.ToString());
+                CreateTempDirectoryWithAcl(tempDirPath, currentIdentity.User.ToString());
             }
             else
-                Directory.CreateDirectory(tempDir);
+                Directory.CreateDirectory(tempDirPath);
         }
 
-        private static void CreateTempDirectoryWithAce(string directory, string identity)
+        private static void CreateTempDirectoryWithAcl(string dirPath, string identity)
         {
             // Dacl Sddl string:
             // D: Dacl type
@@ -127,11 +130,22 @@ namespace Microsoft.ML.Transforms.TensorFlow
             // HI High integrity processes only
             string sddl = "D:(D;OI;SD;;;" + identity + ")(A;OICI;FA;;;BA)S:(ML;OI;NW;;;HI)";
 
-            SafeLocalMemHandle acl = null;
-            SafeLocalMemHandle.ConvertStringSecurityDescriptorToSecurityDescriptor(sddl, NativeMethods.SDDL_REVISION_1, out acl, IntPtr.Zero);
+            var dir = Directory.CreateDirectory(dirPath);
+            DirectorySecurity dirSec = new DirectorySecurity();
+            dirSec.SetSecurityDescriptorSddlForm(sddl);
+            dirSec.SetAccessRuleProtection(true, false);  // disable inheritance
+            dir.SetAccessControl(dirSec);
 
-            // Create the directory with the acl
-            NativeMethods.CreateDirectory(directory, acl);
+            // Cleaning out the directory, in case someone managed to sneak in between creation and setting ACL.
+            DirectoryInfo dirInfo = new DirectoryInfo(dirPath);
+            foreach (FileInfo file in dirInfo.GetFiles())
+            {
+                file.Delete();
+            }
+            foreach (DirectoryInfo subDirInfo in dirInfo.GetDirectories())
+            {
+                subDirInfo.Delete(true);
+            }
         }
     }
 }
