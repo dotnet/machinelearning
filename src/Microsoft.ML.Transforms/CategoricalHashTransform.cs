@@ -198,7 +198,7 @@ namespace Microsoft.ML.Runtime.Data
                 return CreateTransformCore(
                     args.OutputKind, args.Column,
                     args.Column.Select(col => col.OutputKind).ToList(),
-                    new HashTransform(h, hashArgs, input),
+                    HashTransform.Create(h, hashArgs, input),
                     h,
                     args);
             }

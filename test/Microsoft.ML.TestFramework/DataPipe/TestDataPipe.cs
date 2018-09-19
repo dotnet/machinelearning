@@ -89,7 +89,7 @@ namespace Microsoft.ML.Runtime.RunTests
             HashTransform.Arguments args = new HashTransform.Arguments();
             args.Column = new HashTransform.Column[] { col };
 
-            var hashTransform = new HashTransform(Env, args, srcView);
+            var hashTransform = HashTransform.Create(Env, args, srcView);
             using (var cursor = hashTransform.GetRowCursor(c => true))
             {
                 var resultGetter = cursor.GetGetter<uint>(1);
@@ -127,7 +127,7 @@ namespace Microsoft.ML.Runtime.RunTests
             HashTransform.Arguments args = new HashTransform.Arguments();
             args.Column = new HashTransform.Column[] { col };
 
-            var hashTransform = new HashTransform(Env, args, srcView);
+            var hashTransform = HashTransform.Create(Env, args, srcView);
             using (var cursor = hashTransform.GetRowCursor(c => true))
             {
                 var resultGetter = cursor.GetGetter<VBuffer<uint>>(1);

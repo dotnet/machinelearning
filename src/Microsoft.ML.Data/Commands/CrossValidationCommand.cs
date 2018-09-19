@@ -332,7 +332,7 @@ namespace Microsoft.ML.Runtime.Data
                     var hashargs = new HashTransform.Arguments();
                     hashargs.Column = new[] { new HashTransform.Column { Source = origStratCol, Name = stratificationColumn } };
                     hashargs.HashBits = 30;
-                    output = new HashTransform(Host, hashargs, input);
+                    output = HashTransform.Create(Host, hashargs, input);
                 }
             }
 

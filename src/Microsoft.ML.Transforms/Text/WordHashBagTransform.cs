@@ -444,7 +444,7 @@ namespace Microsoft.ML.Runtime.Data
                     InvertHash = args.InvertHash
                 };
 
-            view = new HashTransform(h, hashArgs, view);
+            view = HashTransform.Create(h, hashArgs, view);
 
             // creating the NgramHash function
             var ngramHashArgs =
