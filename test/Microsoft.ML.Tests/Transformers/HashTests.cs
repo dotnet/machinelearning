@@ -4,7 +4,11 @@
 
 using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
+using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.RunTests;
+using Microsoft.ML.Runtime.Tools;
+using System.IO;
+using System.Linq;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -23,21 +27,15 @@ namespace Microsoft.ML.Tests.Transformers
             public float C;
         }
 
-       /* private class TestMeta
+        private class TestMeta
         {
             [VectorType(2)]
-            public string[] A;
-            public string B;
+            public float[] A;
+            public float B;
             [VectorType(2)]
-            public int[] C;
-            public int D;
-            [VectorType(2)]
-            public float[] E;
-            public float F;
-            [VectorType(2)]
-            public string[] G;
-            public string H;
-        }*/
+            public double[] C;
+            public double D;
+        }
 
         [Fact]
         public void HashWorkout()
@@ -46,15 +44,87 @@ namespace Microsoft.ML.Tests.Transformers
 
             var dataView = ComponentCreation.CreateDataView(Env, data);
             var pipe = new HashEstimator(Env, new[]{
-                    new HashTransform.ColumnInfo("A", "CatA", hashBits:4, invertHash:-1),
-                    new HashTransform.ColumnInfo("B", "CatB", hashBits:3, ordered:true),
-                    new HashTransform.ColumnInfo("C", "CatC", seed:42),
-                    new HashTransform.ColumnInfo("A", "CatD"),
+                    new HashTransform.ColumnInfo("A", "HashA", hashBits:4, invertHash:-1),
+                    new HashTransform.ColumnInfo("B", "HashB", hashBits:3, ordered:true),
+                    new HashTransform.ColumnInfo("C", "HashC", seed:42),
+                    new HashTransform.ColumnInfo("A", "HashD"),
                 });
 
             TestEstimatorCore(pipe, dataView);
             Done();
         }
 
+        [Fact]
+        public void TestMetadata()
+        {
+
+            var data = new[] {
+                new TestMeta() { A=new float[2] { 3.5f, 2.5f}, B=1, C= new double[2] { 5.1f, 6.1f}, D= 7},
+                new TestMeta() { A=new float[2] { 3.5f, 2.5f}, B=1, C= new double[2] { 5.1f, 6.1f}, D= 7},
+                new TestMeta() { A=new float[2] { 3.5f, 2.5f}, B=1, C= new double[2] { 5.1f, 6.1f}, D= 7}};
+
+
+            var dataView = ComponentCreation.CreateDataView(Env, data);
+            var pipe = new HashEstimator(Env, new[] {
+                new HashTransform.ColumnInfo("A", "HashA", invertHash:1, hashBits:10),
+                new HashTransform.ColumnInfo("A", "HashAUnlim", invertHash:-1, hashBits:10),
+                new HashTransform.ColumnInfo("A", "HashAUnlimOrdered", invertHash:-1, hashBits:10, ordered:true)
+            });
+            var result = pipe.Fit(dataView).Transform(dataView);
+            ValidateMetadata(result);
+            Done();
+        }
+
+        private void ValidateMetadata(IDataView result)
+        {
+
+            Assert.True(result.Schema.TryGetColumnIndex("HashA", out int HashA));
+            Assert.True(result.Schema.TryGetColumnIndex("HashAUnlim", out int HashAUnlim));
+            Assert.True(result.Schema.TryGetColumnIndex("HashAUnlimOrdered", out int HashAUnlimOrdered));
+            VBuffer<DvText> keys = default;
+            var types = result.Schema.GetMetadataTypes(HashA);
+            Assert.Equal(types.Select(x => x.Key), new string[1] { MetadataUtils.Kinds.KeyValues });
+            result.Schema.GetMetadata(MetadataUtils.Kinds.KeyValues, HashA, ref keys);
+            Assert.True(keys.Length == 1024);
+            Assert.Equal(keys.Items().Select(x => x.Value.ToString()), new string[2] {"2.5", "3.5" });
+
+            types = result.Schema.GetMetadataTypes(HashAUnlim);
+            Assert.Equal(types.Select(x => x.Key), new string[1] { MetadataUtils.Kinds.KeyValues });
+            result.Schema.GetMetadata(MetadataUtils.Kinds.KeyValues, HashA, ref keys);
+            Assert.True(keys.Length == 1024);
+            Assert.Equal(keys.Items().Select(x => x.Value.ToString()), new string[2] { "2.5", "3.5" });
+
+            types = result.Schema.GetMetadataTypes(HashAUnlimOrdered);
+            Assert.Equal(types.Select(x => x.Key), new string[1] { MetadataUtils.Kinds.KeyValues });
+            result.Schema.GetMetadata(MetadataUtils.Kinds.KeyValues, HashA, ref keys);
+            Assert.True(keys.Length == 1024);
+            Assert.Equal(keys.Items().Select(x => x.Value.ToString()), new string[2] { "2.5", "3.5" });
+        }
+        [Fact]
+        public void TestCommandLine()
+        {
+            Assert.Equal(Maml.Main(new[] { @"showschema loader=Text{col=A:R4:0} xf=Hash{col=B:A} in=f:\2.txt" }), (int)0);
+        }
+
+        [Fact]
+        public void TestOldSavingAndLoading()
+        {
+            var data = new[] { new TestClass() { A = 1, B = 2, C = 3, }, new TestClass() { A = 4, B = 5, C = 6 } };
+            var dataView = ComponentCreation.CreateDataView(Env, data);
+            var pipe = new HashEstimator(Env, new[]{
+                    new HashTransform.ColumnInfo("A", "HashA", hashBits:4, invertHash:-1),
+                    new HashTransform.ColumnInfo("B", "HashB", hashBits:3, ordered:true),
+                    new HashTransform.ColumnInfo("C", "HashC", seed:42),
+                    new HashTransform.ColumnInfo("A", "HashD"),
+            });
+            var result = pipe.Fit(dataView).Transform(dataView);
+            var resultRoles = new RoleMappedData(result);
+            using (var ms = new MemoryStream())
+            {
+                TrainUtils.SaveModel(Env, Env.Start("saving"), ms, null, resultRoles);
+                ms.Position = 0;
+                var loadedView = ModelFileUtils.LoadTransforms(Env, dataView, ms);
+            }
+        }
     }
 }

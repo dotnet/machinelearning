@@ -2,17 +2,17 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Text;
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Runtime.CompilerServices;
+using System.Text;
 
 [assembly: LoadableClass(HashTransform.Summary, typeof(IDataTransform), typeof(HashTransform), typeof(HashTransform.Arguments), typeof(SignatureDataTransform),
     "Hash Transform", "HashTransform", "Hash", DocName = "transform/HashTransform.md")]
@@ -232,7 +232,6 @@ namespace Microsoft.ML.Runtime.Data
             base(Contracts.CheckRef(env, nameof(env)).Register(RegistrationName), GetColumnPairs(columns))
         {
             _columns = columns.ToArray();
-            //IVAN: Validate input schema
             var types = new ColumnType[_columns.Length];
             List<int> invertIinfos = null;
             List<int> invertHashMaxCounts = null;
@@ -369,7 +368,7 @@ namespace Microsoft.ML.Runtime.Data
             {
                 var item = args.Column[i];
                 var kind = item.InvertHash ?? args.InvertHash;
-                cols[i] = new ColumnInfo(item.Source,
+                cols[i] = new ColumnInfo(item.Source ?? item.Name,
                     item.Name,
                     item.HashBits ?? args.HashBits,
                     item.Seed ?? args.Seed,

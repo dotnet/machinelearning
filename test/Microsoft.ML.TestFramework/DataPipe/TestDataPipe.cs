@@ -83,7 +83,7 @@ namespace Microsoft.ML.Runtime.RunTests
             var srcView = builder.GetDataView();
 
             HashTransform.Column col = new HashTransform.Column();
-            col.Source = "F1";
+            col.Name = "F1";
             col.HashBits = 5;
             col.Seed = 42;
             HashTransform.Arguments args = new HashTransform.Arguments();
