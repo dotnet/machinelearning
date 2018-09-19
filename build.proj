@@ -75,13 +75,9 @@
              Targets="Pack" />
   </Target>
 
-  <ItemGroup>
-    <TestFile Include="$(MSBuildThisFileDirectory)/test/data/external/winequality-white.csv"
-      Url="https://archive.ics.uci.edu/ml/machine-learning-databases/wine-quality/winequality-white.csv"
-      DestinationFile="$(MSBuildThisFileDirectory)test/data/external/winequality-white.csv" />
-    
+  <ItemGroup>  
     <TestFile Condition="'$(IncludeBenchmarkData)' == 'true'" Include="$(MSBuildThisFileDirectory)/test/data/external/WikiDetoxAnnotated160kRows.tsv"
-      Url="http://aka.ms/tlc-resources/benchmarks/WikiDetoxAnnotated160kRows.tsv"
+      Url="https://aka.ms/tlc-resources/benchmarks/WikiDetoxAnnotated160kRows.tsv"
       DestinationFile="$(MSBuildThisFileDirectory)test/data/external/WikiDetoxAnnotated160kRows.tsv" />
   </ItemGroup>
 

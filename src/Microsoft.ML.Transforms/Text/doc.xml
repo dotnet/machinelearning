@@ -112,7 +112,7 @@
       <remarks>
         <para>The Sentiment transform returns the probability that the sentiment of a natural text is positive. </para>
         <para>
-          The model was trained with the <a href="http://anthology.aclweb.org/P/P14/P14-1146.pdf">Sentiment-specific word embedding (SSWE)</a>  and NGramFeaturizer on Twitter sentiment data,
+          The model was trained with the <a href="https://anthology.aclweb.org/P/P14/P14-1146.pdf">Sentiment-specific word embedding (SSWE)</a>  and NGramFeaturizer on Twitter sentiment data,
           similarly to the sentiment analysis part of the
           <a href="https://www.microsoft.com/cognitive-services/en-us/text-analytics-api">Text Analytics cognitive service</a>. 
           The transform outputs a score between 0 and 1 as a sentiment prediction 
@@ -158,7 +158,7 @@
         Latent Dirichlet Allocation is a well-known topic modeling algorithm that infers topical structure from text data,
         and can be used to featurize any text fields as low-dimensional topical vectors. 
         <para>LightLDA is an extremely efficient implementation of LDA developed in MSR-Asia that incorporates a number of 
-         optimization techniques. See <a href="http://arxiv.org/abs/1412.1576">LightLDA: Big Topic Models on Modest Compute Clusters</a>.
+         optimization techniques. See <a href="https://arxiv.org/abs/1412.1576">LightLDA: Big Topic Models on Modest Compute Clusters</a>.
         </para>
         <para>
           With the LDA transform, ML.NET users can train a topic model to produce 1 million topics with 1 million vocabulary
@@ -170,7 +170,7 @@
         <para>
           For more details please see original LightLDA paper, and its open source implementation. 
           <list type="bullet">
-            <item><description><a href="http://arxiv.org/abs/1412.1576"> LightLDA: Big Topic Models on Modest Computer Clusters</a></description></item>
+            <item><description><a href="https://arxiv.org/abs/1412.1576"> LightLDA: Big Topic Models on Modest Computer Clusters</a></description></item>
             <item><description><a href=" https://github.com/Microsoft/LightLDA">LightLDA </a></description></item>
           </list>
         </para>
@@ -190,7 +190,7 @@
       </summary>
       <remarks>
         <para>WordEmbeddings wrap different embedding models, such as GloVe. Users can specify which embedding to use. 
-        The available options are various versions of <a href="https://nlp.stanford.edu/projects/glove/">GloVe Models</a>, <a href="https://en.wikipedia.org/wiki/FastText">fastText</a>, and <a href="http://anthology.aclweb.org/P/P14/P14-1146.pdf">SSWE</a>.
+        The available options are various versions of <a href="https://nlp.stanford.edu/projects/glove/">GloVe Models</a>, <a href="https://en.wikipedia.org/wiki/FastText">fastText</a>, and <a href="https://anthology.aclweb.org/P/P14/P14-1146.pdf">SSWE</a>.
         </para>
         <para>Note: As WordEmbedding requires a column with text vector, e.g. &apos;this&apos;, &apos;is&apos;, &apos;good&apos;, users need to create an input column by
           using the output_tokens=True for TextTransform to convert a column with sentences like &apos;This is good&apos; into &apos;this&apos;, &apos;is&apos;, &apos;good&apos;.

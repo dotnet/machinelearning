@@ -2,10 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Float = System.Single;
-
 using System;
 using System.Linq;
+using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
@@ -25,7 +24,7 @@ using Microsoft.ML.Runtime.Training;
     FastForestClassification.ShortName,
     "ffc")]
 
-[assembly: LoadableClass(typeof(IPredictorProducing<Float>), typeof(FastForestClassificationPredictor), null, typeof(SignatureLoadModel),
+[assembly: LoadableClass(typeof(IPredictorProducing<float>), typeof(FastForestClassificationPredictor), null, typeof(SignatureLoadModel),
     "FastForest Binary Executor",
     FastForestClassificationPredictor.LoaderSignature)]
 
@@ -73,13 +72,15 @@ namespace Microsoft.ML.Runtime.FastTree
 
         protected override uint VerCategoricalSplitSerialized => 0x00010006;
 
+        /// <summary>
+        /// The type of prediction for this trainer.
+        /// </summary>
         public override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
 
         internal FastForestClassificationPredictor(IHostEnvironment env, Ensemble trainedEnsemble, int featureCount,
             string innerArgs)
             : base(env, RegistrationName, trainedEnsemble, featureCount, innerArgs)
-        {
-        }
+        {  }
 
         private FastForestClassificationPredictor(IHostEnvironment env, ModelLoadContext ctx)
             : base(env, RegistrationName, ctx, GetVersionInfo())
@@ -92,7 +93,7 @@ namespace Microsoft.ML.Runtime.FastTree
             ctx.SetVersionInfo(GetVersionInfo());
         }
 
-        public static IPredictorProducing<Float> Create(IHostEnvironment env, ModelLoadContext ctx)
+        public static IPredictorProducing<float> Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(ctx, nameof(ctx));
@@ -108,7 +109,7 @@ namespace Microsoft.ML.Runtime.FastTree
 
     /// <include file='doc.xml' path='doc/members/member[@name="FastForest"]/*' />
     public sealed partial class FastForestClassification :
-        RandomForestTrainerBase<FastForestClassification.Arguments, IPredictorWithFeatureWeights<Float>>
+        RandomForestTrainerBase<FastForestClassification.Arguments, BinaryPredictionTransformer<IPredictorWithFeatureWeights<float>>, IPredictorWithFeatureWeights<float>>
     {
         public sealed class Arguments : FastForestArgumentsBase
         {
@@ -123,21 +124,52 @@ namespace Microsoft.ML.Runtime.FastTree
         }
 
         internal const string LoadNameValue = "FastForestClassification";
-        public const string UserNameValue = "Fast Forest Classification";
-        public const string Summary = "Uses a random forest learner to perform binary classification.";
-        public const string ShortName = "ff";
+        internal const string UserNameValue = "Fast Forest Classification";
+        internal const string Summary = "Uses a random forest learner to perform binary classification.";
+        internal const string ShortName = "ff";
 
         private bool[] _trainSetLabels;
 
         public override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
         private protected override bool NeedCalibration => true;
+        private readonly SchemaShape.Column[] _outputColumns;
 
-        public FastForestClassification(IHostEnvironment env, Arguments args)
-            : base(env, args)
+        /// <summary>
+        /// Initializes a new instance of <see cref="FastForestClassification"/>
+        /// </summary>
+        /// <param name="env">The private instance of <see cref="IHostEnvironment"/>.</param>
+        /// <param name="labelColumn">The name of the label column.</param>
+        /// <param name="featureColumn">The name of the feature column.</param>
+        /// <param name="groupIdColumn">The name for the column containing the group ID.</param>
+        /// <param name="weightColumn">The name for the column containing the initial weight.</param>
+        /// <param name="advancedSettings">A delegate to apply all the advanced arguments to the algorithm.</param>
+        public FastForestClassification(IHostEnvironment env, string labelColumn, string featureColumn,
+            string groupIdColumn = null, string weightColumn = null, Action<Arguments> advancedSettings = null)
+            : base(env, MakeLabelColumn(labelColumn), featureColumn, weightColumn, groupIdColumn, advancedSettings: advancedSettings)
         {
+            _outputColumns = new[]
+            {
+                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false),
+                new SchemaShape.Column(DefaultColumnNames.Probability, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false),
+                new SchemaShape.Column(DefaultColumnNames.PredictedLabel, SchemaShape.Column.VectorKind.Scalar, BoolType.Instance, false)
+            };
         }
 
-        public override IPredictorWithFeatureWeights<Float> Train(TrainContext context)
+        /// <summary>
+        /// Initializes a new instance of <see cref="FastForestClassification"/> by using the legacy <see cref="Arguments"/> class.
+        /// </summary>
+        public FastForestClassification(IHostEnvironment env, Arguments args)
+            : base(env, args, MakeLabelColumn(args.LabelColumn))
+        {
+            _outputColumns = new[]
+            {
+                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false),
+                new SchemaShape.Column(DefaultColumnNames.Probability, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false),
+                new SchemaShape.Column(DefaultColumnNames.PredictedLabel, SchemaShape.Column.VectorKind.Scalar, BoolType.Instance, false)
+            };
+        }
+
+        protected override IPredictorWithFeatureWeights<float> TrainModelCore(TrainContext context)
         {
             Host.CheckValue(context, nameof(context));
             var trainData = context.TrainingSet;
@@ -175,10 +207,20 @@ namespace Microsoft.ML.Runtime.FastTree
             _trainSetLabels = TrainSet.Ratings.Select(x => x >= 1).ToArray(TrainSet.NumDocs);
         }
 
+        private static SchemaShape.Column MakeLabelColumn(string labelColumn)
+        {
+            return new SchemaShape.Column(labelColumn, SchemaShape.Column.VectorKind.Scalar, BoolType.Instance, false);
+        }
+
         protected override Test ConstructTestForTrainingData()
         {
             return new BinaryClassificationTest(ConstructScoreTracker(TrainSet), _trainSetLabels, 1);
         }
+
+        protected override BinaryPredictionTransformer<IPredictorWithFeatureWeights<float>> MakeTransformer(IPredictorWithFeatureWeights<float> model, ISchema trainSchema)
+         => new BinaryPredictionTransformer<IPredictorWithFeatureWeights<float>>(Host, model, trainSchema, FeatureColumn.Name);
+
+        protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema) => _outputColumns;
 
         private sealed class ObjectiveFunctionImpl : RandomForestObjectiveFunction
         {

@@ -2,17 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Models;
+using Microsoft.ML.Legacy.Models;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.FastTree;
 using Microsoft.ML.Runtime.Internal.Calibration;
-using Microsoft.ML.Runtime.Model;
-using Microsoft.ML.Trainers;
-using Microsoft.ML.Transforms;
-using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using Xunit;
 
@@ -26,7 +21,7 @@ namespace Microsoft.ML.Scenarios
             var dataPath = GetDataPath(SentimentDataPath);
             var testDataPath = GetDataPath(SentimentTestPath);
 
-            using (var env = new TlcEnvironment(seed: 1, conc: 1))
+            using (var env = new ConsoleEnvironment(seed: 1, conc: 1))
             {
                 // Pipeline
                 var loader = TextLoader.ReadFile(env,
@@ -60,11 +55,11 @@ namespace Microsoft.ML.Scenarios
                 loader);
 
                 // Train
-                var trainer = new FastTreeBinaryClassificationTrainer(env, new FastTreeBinaryClassificationTrainer.Arguments()
+                var trainer = new FastTreeBinaryClassificationTrainer(env, DefaultColumnNames.Label, DefaultColumnNames.Features, advancedSettings: s=>
                 {
-                    NumLeaves = 5,
-                    NumTrees = 5,
-                    MinDocumentsInLeafs = 2
+                    s.NumLeaves = 5;
+                    s.NumTrees = 5;
+                    s.MinDocumentsInLeafs = 2;
                 });
 
                 var trainRoles = new RoleMappedData(trans, label: "Label", feature: "Features");
@@ -95,7 +90,7 @@ namespace Microsoft.ML.Scenarios
             var dataPath = GetDataPath(SentimentDataPath);
             var testDataPath = GetDataPath(SentimentTestPath);
 
-            using (var env = new TlcEnvironment(seed: 1, conc: 1))
+            using (var env = new ConsoleEnvironment(seed: 1, conc: 1))
             {
                 // Pipeline
                 var loader = TextLoader.ReadFile(env,
@@ -128,7 +123,7 @@ namespace Microsoft.ML.Scenarios
                 },
                 loader);
 
-                var trans = new WordEmbeddingsTransform(env, new WordEmbeddingsTransform.Arguments()
+                var trans = WordEmbeddingsTransform.Create(env, new WordEmbeddingsTransform.Arguments()
                 {
                     Column = new WordEmbeddingsTransform.Column[1]
                     {
@@ -141,12 +136,12 @@ namespace Microsoft.ML.Scenarios
                     ModelKind = WordEmbeddingsTransform.PretrainedModelKind.Sswe,
                 }, text);
                 // Train
-                var trainer = new FastTreeBinaryClassificationTrainer(env, new FastTreeBinaryClassificationTrainer.Arguments()
-                {
-                    NumLeaves = 5,
-                    NumTrees = 5,
-                    MinDocumentsInLeafs = 2
-                });
+                var trainer = new FastTreeBinaryClassificationTrainer(env, DefaultColumnNames.Label, DefaultColumnNames.Features, advancedSettings: s=> 
+                    {
+                        s.NumLeaves = 5;
+                        s.NumTrees = 5;
+                        s.MinDocumentsInLeafs = 2;
+                    });
 
                 var trainRoles = new RoleMappedData(trans, label: "Label", feature: "Features");
                 var pred = trainer.Train(trainRoles);

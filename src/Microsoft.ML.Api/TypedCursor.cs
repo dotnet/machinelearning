@@ -622,7 +622,7 @@ namespace Microsoft.ML.Runtime.Api
     /// </summary>
     public static class CursoringUtils
     {
-        private const string NeedEnvObsoleteMessage = "This method is obsolete. Please use the overload that takes an additional 'env' argument. An environment can be created via new TlcEnvironment().";
+        private const string NeedEnvObsoleteMessage = "This method is obsolete. Please use the overload that takes an additional 'env' argument. An environment can be created via new LocalEnvironment().";
 
         /// <summary>
         /// Generate a strongly-typed cursorable wrapper of the <see cref="IDataView"/>.
@@ -658,7 +658,7 @@ namespace Microsoft.ML.Runtime.Api
             where TRow : class, new()
         {
             // REVIEW: Take an env as a parameter.
-            var env = new TlcEnvironment();
+            var env = new ConsoleEnvironment();
             return data.AsCursorable<TRow>(env, ignoreMissingColumns, schemaDefinition);
         }
 
@@ -699,7 +699,7 @@ namespace Microsoft.ML.Runtime.Api
             where TRow : class, new()
         {
             // REVIEW: Take an env as a parameter.
-            var env = new TlcEnvironment();
+            var env = new ConsoleEnvironment();
             return data.AsEnumerable<TRow>(env, reuseRowObject, ignoreMissingColumns, schemaDefinition);
         }
     }

@@ -2,11 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Data;
-using Microsoft.ML.Models;
+using Microsoft.ML.Legacy.Data;
+using Microsoft.ML.Legacy.Models;
+using Microsoft.ML.Legacy.Trainers;
+using Microsoft.ML.Legacy.Transforms;
 using Microsoft.ML.Runtime.Api;
-using Microsoft.ML.Trainers;
-using Microsoft.ML.Transforms;
 using Xunit;
 
 namespace Microsoft.ML.Scenarios
@@ -18,7 +18,7 @@ namespace Microsoft.ML.Scenarios
         {
             string dataPath = GetDataPath("iris.data");
 
-            var pipeline = new LearningPipeline();
+            var pipeline = new Legacy.LearningPipeline();
 
             pipeline.Add(new TextLoader(dataPath).CreateFrom<IrisDataWithStringLabel>(useHeader: false, separator: ','));
 
@@ -29,7 +29,7 @@ namespace Microsoft.ML.Scenarios
 
             pipeline.Add(new StochasticDualCoordinateAscentClassifier());
 
-            PredictionModel<IrisDataWithStringLabel, IrisPrediction> model = pipeline.Train<IrisDataWithStringLabel, IrisPrediction>();
+            var model = pipeline.Train<IrisDataWithStringLabel, IrisPrediction>();
             string[] scoreLabels;
             model.TryGetScoreLabelNames(out scoreLabels);
 

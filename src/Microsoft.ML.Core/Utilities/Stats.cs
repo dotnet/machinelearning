@@ -199,7 +199,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         }
 
         // Mean refers to the mu parameter. Scale refers to the b parameter.
-        // http://en.wikipedia.org/wiki/Laplace_distribution
+        // https://en.wikipedia.org/wiki/Laplace_distribution
         public static Float SampleFromLaplacian(IRandom rand, Float mean, Float scale)
         {
             Float u = rand.NextSingle();
@@ -215,7 +215,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
 
         /// <summary>
         /// Sample from a standard Cauchy distribution:
-        /// http://en.wikipedia.org/wiki/Lorentzian_function
+        /// https://en.wikipedia.org/wiki/Lorentzian_function
         /// </summary>
         /// <param name="rand"></param>
         /// <returns></returns>

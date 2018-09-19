@@ -21,7 +21,7 @@ namespace Microsoft.ML.Sweeper.Tests
             DiscreteValueGenerator valueGenerator = CreateDiscreteValueGenerator();
 
             using (var writer = new StreamWriter(new MemoryStream()))
-            using (var env = new TlcEnvironment(42, outWriter: writer, errWriter: writer))
+            using (var env = new ConsoleEnvironment(42, outWriter: writer, errWriter: writer))
             {
                 var sweeper = new UniformRandomSweeper(env,
                     new SweeperBase.ArgumentsBase(),
@@ -41,7 +41,7 @@ namespace Microsoft.ML.Sweeper.Tests
             DiscreteValueGenerator valueGenerator = CreateDiscreteValueGenerator();
 
             using (var writer = new StreamWriter(new MemoryStream()))
-            using (var env = new TlcEnvironment(42, outWriter: writer, errWriter: writer))
+            using (var env = new ConsoleEnvironment(42, outWriter: writer, errWriter: writer))
             {
                 var sweeper = new RandomGridSweeper(env,
                     new RandomGridSweeper.Arguments(),
