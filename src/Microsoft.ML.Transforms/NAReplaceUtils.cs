@@ -1597,7 +1597,7 @@ namespace Microsoft.ML.Runtime.Data
                     // If sparsity occurred, fold in a zero.
                     if (ValueCount > (ulong)ValuesProcessed)
                     {
-                        TItem def = default(TItem);
+                        TItem def = default;
                         ProcValueDelegate(ref def);
                     }
                     return _converter.FromLong(Stat);

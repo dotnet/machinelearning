@@ -5,6 +5,7 @@
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Learners;
+using Microsoft.ML.Runtime.RunTests;
 using Xunit;
 
 namespace Microsoft.ML.Tests.Scenarios.Api
@@ -20,15 +21,12 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         [Fact]
         public void New_ReconfigurablePrediction()
         {
-            var dataPath = GetDataPath(SentimentDataPath);
-            var testDataPath = GetDataPath(SentimentTestPath);
-
             using (var env = new LocalEnvironment(seed: 1, conc: 1))
             {
                 var dataReader = new TextLoader(env, MakeSentimentTextLoaderArgs());
 
-                var data = dataReader.Read(new MultiFileSource(dataPath));
-                var testData = dataReader.Read(new MultiFileSource(testDataPath));
+                var data = dataReader.Read(new MultiFileSource(GetDataPath(TestDatasets.Sentiment.trainFilename)));
+                var testData = dataReader.Read(new MultiFileSource(GetDataPath(TestDatasets.Sentiment.testFilename)));
 
                 // Pipeline.
                 var pipeline = new TextTransform(env, "SentimentText", "Features")

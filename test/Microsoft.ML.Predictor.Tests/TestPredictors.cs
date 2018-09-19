@@ -495,7 +495,7 @@ namespace Microsoft.ML.Runtime.RunTests
         public void RegressorLightGBMTest()
         {
             var regPredictors = new[] { TestLearners.LightGBMReg };
-            var regDatasets = new[] { TestDatasets.winequality };
+            var regDatasets = new[] { TestDatasets.generatedRegressionDataset };
             RunAllTests(regPredictors, regDatasets);
             Done();
         }
@@ -509,7 +509,7 @@ namespace Microsoft.ML.Runtime.RunTests
         public void RegressorLightGBMMAETest()
         {
             var regPredictors = new[] { TestLearners.LightGBMRegMae };
-            var regDatasets = new[] { TestDatasets.winequality };
+            var regDatasets = new[] { TestDatasets.generatedRegressionDataset };
             RunAllTests(regPredictors, regDatasets, extraTag: "MAE");
             Done();
         }
@@ -523,7 +523,7 @@ namespace Microsoft.ML.Runtime.RunTests
         public void RegressorLightGBMRMSETest()
         {
             var regPredictors = new[] { TestLearners.LightGBMRegRmse };
-            var regDatasets = new[] { TestDatasets.winequality };
+            var regDatasets = new[] { TestDatasets.generatedRegressionDataset };
             RunAllTests(regPredictors, regDatasets, extraTag: "RMSE");
             Done();
         }
@@ -898,7 +898,7 @@ namespace Microsoft.ML.Runtime.RunTests
         [TestCategory("Regressor")]
         public void RegressorOlsTestOne()
         {
-            Run_TrainTest(TestLearners.Ols, TestDatasets.winequality);
+            Run_TrainTest(TestLearners.Ols, TestDatasets.generatedRegressionDataset);
             Done();
         }
 
@@ -911,7 +911,7 @@ namespace Microsoft.ML.Runtime.RunTests
         public void RegressorSdcaTest()
         {
             var regressionPredictors = new[] { TestLearners.Sdcar, TestLearners.SdcarNorm, TestLearners.SdcarReg };
-            RunAllTests(regressionPredictors, new[] { TestDatasets.winequality });
+            RunAllTests(regressionPredictors, new[] { TestDatasets.generatedRegressionDataset });
             Done();
         }
 
@@ -1532,7 +1532,7 @@ output Out [3] from H all;
         [TestCategory("Anomaly")]
         public void CompareSvmPredictorResultsToLibSvm()
         {
-            using (var env = new TlcEnvironment(1, conc: 1))
+            using (var env = new LocalEnvironment(1, conc: 1))
             {
                 IDataView trainView = new TextLoader(env, new TextLoader.Arguments(), new MultiFileSource(GetDataPath(TestDatasets.mnistOneClass.trainFilename)));
                 trainView =

@@ -5,6 +5,7 @@
 using System;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
+using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Ensemble.OutputCombiners;
 using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.FastTree;
@@ -46,7 +47,7 @@ namespace Microsoft.ML.Runtime.Ensemble.OutputCombiners
             public Arguments()
             {
                 BasePredictorType = ComponentFactoryUtils.CreateFromFunction(
-                    env => new FastTreeBinaryClassificationTrainer(env, new FastTreeBinaryClassificationTrainer.Arguments()));
+                    env => new FastTreeBinaryClassificationTrainer(env, DefaultColumnNames.Label, DefaultColumnNames.Features));
             }
 
             public IBinaryOutputCombiner CreateComponent(IHostEnvironment env) => new Stacking(env, this);

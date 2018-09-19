@@ -1,0 +1,32 @@
+maml.exe TrainTest test=%Data% tr=LightGBMR{nt=1 iter=50 em=mae v=+ lr=0.2 mil=10 nl=20} dout=%Output% loader=Text{col=Label:R4:11 col=Features:R4:0-10 sep=; header+} data=%Data% out=%Output% seed=1
+Not adding a normalizer.
+Auto-tuning parameters: UseCat = False
+LightGBM objective=regression
+Not training a calibrator because it is not needed.
+L1(avg):            3.428896
+L2(avg):            25.236013
+RMS(avg):           5.023546
+Loss-fn(avg):       25.236013
+R Squared:          0.998616
+
+OVERALL RESULTS
+---------------------------------------
+L1(avg):            3.428896 (0.0000)
+L2(avg):            25.236013 (0.0000)
+RMS(avg):           5.023546 (0.0000)
+Loss-fn(avg):       25.236013 (0.0000)
+R Squared:          0.998616 (0.0000)
+
+---------------------------------------
+Physical memory usage(MB): %Number%
+Virtual memory usage(MB): %Number%
+%DateTime%	 Time elapsed(s): %Number%
+
+--- Progress log ---
+[1] 'Loading data for LightGBM' started.
+[1] 'Loading data for LightGBM' finished in %Time%.
+[2] 'Training with LightGBM' started.
+[2] (%Time%)	Iteration: 50	Training-l1: 3.42889585604196
+[2] 'Training with LightGBM' finished in %Time%.
+[3] 'Saving model' started.
+[3] 'Saving model' finished in %Time%.

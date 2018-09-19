@@ -1,4 +1,0 @@
-OLS
-L1(avg)	L2(avg)	RMS(avg)	Loss-fn(avg)	R Squared	Learner Name	Train Dataset	Test Dataset	Results File	Run Time	Physical Memory	Virtual Memory	Command Line	Settings	
-0.583635	0.563155	0.750436	0.563155	0.281869	OLS	%Data%	%Data%	%Output%	99	0	0	maml.exe TrainTest test=%Data% tr=OLS norm=No dout=%Output% loader=Text{col=Label:R4:11 col=Features:R4:0-10 sep=; header+} data=%Data% out=%Output% seed=1		
-
