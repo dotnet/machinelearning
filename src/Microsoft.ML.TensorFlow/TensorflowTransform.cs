@@ -129,7 +129,7 @@ namespace Microsoft.ML.Transforms
             }
 
             var tempDirPath = Path.GetFullPath(Path.Combine(Path.GetTempPath(), RegistrationName + "_" + Guid.NewGuid()));
-            Directory.CreateDirectory(tempDirPath);
+            TensorFlowUtils.CreateTempDirectory(tempDirPath);
 
             var load = ctx.TryLoadBinaryStream("TFSavedModel", br =>
             {
@@ -144,7 +144,7 @@ namespace Microsoft.ML.Transforms
 
                     if (fullFileDir != tempDirPath)
                     {
-                        Directory.CreateDirectory(fullFileDir);
+                        TensorFlowUtils.CreateTempDirectory(fullFileDir);
                     }
 
                     using (var fs = new FileStream(fullFilePath, FileMode.Create, FileAccess.Write))

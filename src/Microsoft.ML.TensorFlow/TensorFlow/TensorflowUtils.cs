@@ -10,6 +10,7 @@ using System.Runtime.InteropServices;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.ImageAnalytics.EntryPoints;
+using System.Security.Principal;
 
 namespace Microsoft.ML.Transforms.TensorFlow
 {
@@ -85,6 +86,52 @@ namespace Microsoft.ML.Transforms.TensorFlow
                 return false;
             else
                 return true;
+        }
+        internal static void CreateTempDirectory(string tempDir)
+        {
+            WindowsImpersonationContext impersonation = Executor.RevertImpersonation();
+            try
+            {
+                currentIdentity = WindowsIdentity.GetCurrent();
+            }
+            finally
+            {
+                Executor.ReImpersonate(impersonation);
+            }
+
+            if (currentIdentity != null && new WindowsPrincipal(currentIdentity).IsInRole(WindowsBuiltInRole.Administrator))
+            {
+                // Create high integrity dir and set no delete policy for all files under the directory.
+                // In case of failure, throw exception.
+                CreateTempDirectoryWithAce(tempDir, currentIdentity.User.ToString());
+            }
+            else
+                Directory.CreateDirectory(tempDir);
+        }
+
+        private static void CreateTempDirectoryWithAce(string directory, string identity)
+        {
+            // Dacl Sddl string:
+            // D: Dacl type
+            // D; Deny access
+            // OI; Object inherit ace
+            // SD; Standard delete function
+            // wIdentity.User Sid of the given user.
+            // A; Allow access
+            // OICI; Object inherit, container inherit
+            // FA File access
+            // BA Built-in administrators
+            // S: Sacl type
+            // ML;; Mandatory Label
+            // NW;;; No write policy
+            // HI High integrity processes only
+            string sddl = "D:(D;OI;SD;;;" + identity + ")(A;OICI;FA;;;BA)S:(ML;OI;NW;;;HI)";
+
+            SafeLocalMemHandle acl = null;
+            SafeLocalMemHandle.ConvertStringSecurityDescriptorToSecurityDescriptor(sddl, NativeMethods.SDDL_REVISION_1, out acl, IntPtr.Zero);
+
+            // Create the directory with the acl
+            NativeMethods.CreateDirectory(directory, acl);
         }
     }
 }
