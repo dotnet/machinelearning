@@ -168,7 +168,7 @@ namespace Microsoft.ML.Runtime.RunTests
             trainFilename = "external/MSLRWeb10KTrain720kRows.tsv",
             validFilename = "external/MSLRWeb10KValidate240kRows.tsv",
             testFilename = "external/MSLRWeb10KTest240kRows.tsv"
-        }
+        };
 
         public static TestDataset Sentiment = new TestDataset
         {
