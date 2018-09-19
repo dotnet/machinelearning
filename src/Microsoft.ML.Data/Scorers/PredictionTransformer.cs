@@ -21,7 +21,7 @@ namespace Microsoft.ML.Runtime.Data
 {
 
     /// <summary>
-    /// Base class for transformers with no feature column, or more than one feature columns. 
+    /// Base class for transformers with no feature column, or more than one feature columns.
     /// </summary>
     /// <typeparam name="TModel"></typeparam>
     public abstract class PredictionTransformerBase<TModel> : IPredictionTransformer<TModel>
