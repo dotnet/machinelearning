@@ -332,7 +332,7 @@ namespace Microsoft.ML.Runtime.Data
                 disposer = null;
                 return GetGetterVec(input, iinfo);
             }
-            
+
             private ValueGetter<VBuffer<float>> GetGetterVec(IRow input, int iinfo)
             {
                 Host.AssertValue(input);
