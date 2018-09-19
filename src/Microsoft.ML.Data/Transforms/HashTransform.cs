@@ -228,11 +228,11 @@ namespace Microsoft.ML.Transforms
                 return new VectorType(itemType, srcType.VectorSize);
         }
 
-        public HashTransformer(IHostEnvironment env, ColumnInfo[] columns):
+        public HashTransformer(IHostEnvironment env, ColumnInfo[] columns) :
               base(Contracts.CheckRef(env, nameof(env)).Register(RegistrationName), GetColumnPairs(columns))
         {
             _columns = columns.ToArray();
-            foreach(var column in _columns)
+            foreach (var column in _columns)
             {
                 if (column.InvertHash != 0)
                     throw Host.ExceptParam(nameof(columns), $"Found colunm with {nameof(column.InvertHash)} set to non zero value, please use { nameof(HashEstimator)} instead");

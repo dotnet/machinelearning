@@ -115,7 +115,7 @@ namespace Microsoft.ML.Runtime.RunTests
         {
             var srcView = builder.GetDataView();
             var col = new HashTransformer.Column();
-            col.Source = "F1V";
+            col.Name = "F1V";
             col.HashBits = 5;
             col.Seed = 42;
             var args = new HashTransformer.Arguments();
