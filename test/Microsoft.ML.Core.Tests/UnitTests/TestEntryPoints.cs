@@ -1698,13 +1698,13 @@ namespace Microsoft.ML.Runtime.RunTests
         [Fact]
         public void EntryPointEvaluateRegression()
         {
-            var dataPath = GetDataPath(TestDatasets.winequalitymacro.trainFilename);
+            var dataPath = GetDataPath(TestDatasets.generatedRegressionDatasetmacro.trainFilename);
             var warningsPath = DeleteOutputPath("warnings.idv");
             var overallMetricsPath = DeleteOutputPath("overall.idv");
             var instanceMetricsPath = DeleteOutputPath("instance.idv");
 
             RunTrainScoreEvaluate("Trainers.StochasticDualCoordinateAscentRegressor", "Models.RegressionEvaluator",
-                dataPath, warningsPath, overallMetricsPath, instanceMetricsPath, loader: TestDatasets.winequalitymacro.loaderSettings);
+                dataPath, warningsPath, overallMetricsPath, instanceMetricsPath, loader: TestDatasets.generatedRegressionDatasetmacro.loaderSettings);
 
             using (var loader = new BinaryLoader(Env, new BinaryLoader.Arguments(), warningsPath))
                 Assert.Equal(0, CountRows(loader));
@@ -1713,7 +1713,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 Assert.Equal(1, CountRows(loader));
 
             using (var loader = new BinaryLoader(Env, new BinaryLoader.Arguments(), instanceMetricsPath))
-                Assert.Equal(975, CountRows(loader));
+                Assert.Equal(103, CountRows(loader));
         }
 
         [Fact]
@@ -1818,7 +1818,7 @@ namespace Microsoft.ML.Runtime.RunTests
         [Fact()]
         public void EntryPointSDCARegression()
         {
-            TestEntryPointRoutine(TestDatasets.winequalitymacro.trainFilename, "Trainers.StochasticDualCoordinateAscentRegressor", loader: TestDatasets.winequalitymacro.loaderSettings);
+            TestEntryPointRoutine(TestDatasets.generatedRegressionDatasetmacro.trainFilename, "Trainers.StochasticDualCoordinateAscentRegressor", loader: TestDatasets.generatedRegressionDatasetmacro.loaderSettings);
         }
 
         [Fact]
@@ -1925,7 +1925,7 @@ namespace Microsoft.ML.Runtime.RunTests
         [Fact]
         public void EntryPointRegressionEnsemble()
         {
-            TestEntryPointRoutine(TestDatasets.winequalitymacro.trainFilename, "Trainers.EnsembleRegression", loader: TestDatasets.winequalitymacro.loaderSettings);
+            TestEntryPointRoutine(TestDatasets.generatedRegressionDatasetmacro.trainFilename, "Trainers.EnsembleRegression", loader: TestDatasets.generatedRegressionDatasetmacro.loaderSettings);
         }
 
         [Fact]
@@ -1943,7 +1943,7 @@ namespace Microsoft.ML.Runtime.RunTests
         [Fact]
         public void EntryPointPoissonRegression()
         {
-            TestEntryPointRoutine(TestDatasets.winequalitymacro.trainFilename, "Trainers.PoissonRegressor", loader: TestDatasets.winequalitymacro.loaderSettings);
+            TestEntryPointRoutine(TestDatasets.generatedRegressionDatasetmacro.trainFilename, "Trainers.PoissonRegressor", loader: TestDatasets.generatedRegressionDatasetmacro.loaderSettings);
         }
 
         [Fact]
