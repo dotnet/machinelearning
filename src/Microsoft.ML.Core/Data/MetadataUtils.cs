@@ -42,12 +42,13 @@ namespace Microsoft.ML.Runtime.Data
             public const string ScoreColumnSetId = "ScoreColumnSetId";
 
             /// <summary>
-            /// Metadata kind that indicates the prediction kind as a string. E.g. "BinaryClassification". The value is typically a DvText.
+            /// Metadata kind that indicates the prediction kind as a string. E.g. "BinaryClassification".
+            /// The value is typically a ReadOnlyMemory&lt;char&gt;.
             /// </summary>
             public const string ScoreColumnKind = "ScoreColumnKind";
 
             /// <summary>
-            /// Metadata kind that indicates the value kind of the score column as a string. E.g. "Score", "PredictedLabel", "Probability". The value is typically a DvText.
+            /// Metadata kind that indicates the value kind of the score column as a string. E.g. "Score", "PredictedLabel", "Probability". The value is typically a ReadOnlyMemory.
             /// </summary>
             public const string ScoreValueKind = "ScoreValueKind";
 
@@ -283,9 +284,9 @@ namespace Microsoft.ML.Runtime.Data
                 var columnType = schema.GetMetadataTypeOrNull(metadataKind, col);
                 if (columnType != null && columnType.IsText)
                 {
-                    DvText val = default(DvText);
+                    ReadOnlyMemory<char> val = default;
                     schema.GetMetadata(metadataKind, col, ref val);
-                    if (val.EqualsStr(value))
+                    if (ReadOnlyMemoryUtils.EqualsStr(value, val))
                         yield return col;
                 }
             }
@@ -295,7 +296,7 @@ namespace Microsoft.ML.Runtime.Data
         /// Returns <c>true</c> if the specified column:
         ///  * is a vector of length N (including 0)
         ///  * has a SlotNames metadata
-        ///  * metadata type is VBuffer&lt;DvText&gt; of length N
+        ///  * metadata type is VBuffer&lt;ReadOnlyMemory&lt;char&gt;&gt; of length N
         /// </summary>
         public static bool HasSlotNames(this ISchema schema, int col, int vectorSize)
         {
@@ -310,14 +311,14 @@ namespace Microsoft.ML.Runtime.Data
                 && type.ItemType.IsText;
         }
 
-        public static void GetSlotNames(RoleMappedSchema schema, RoleMappedSchema.ColumnRole role, int vectorSize, ref VBuffer<DvText> slotNames)
+        public static void GetSlotNames(RoleMappedSchema schema, RoleMappedSchema.ColumnRole role, int vectorSize, ref VBuffer<ReadOnlyMemory<char>> slotNames)
         {
             Contracts.CheckValueOrNull(schema);
             Contracts.CheckParam(vectorSize >= 0, nameof(vectorSize));
 
             IReadOnlyList<ColumnInfo> list;
             if ((list = schema?.GetColumns(role)) == null || list.Count != 1 || !schema.Schema.HasSlotNames(list[0].Index, vectorSize))
-                slotNames = new VBuffer<DvText>(vectorSize, 0, slotNames.Values, slotNames.Indices);
+                slotNames = new VBuffer<ReadOnlyMemory<char>>(vectorSize, 0, slotNames.Values, slotNames.Indices);
             else
                 schema.Schema.GetMetadata(Kinds.SlotNames, list[0].Index, ref slotNames);
         }
@@ -343,12 +344,12 @@ namespace Microsoft.ML.Runtime.Data
         /// <param name="schema">The schema to query</param>
         /// <param name="col">Which column in the schema to query</param>
         /// <returns>True if and only if the column has the <see cref="Kinds.IsNormalized"/> metadata
-        /// set to the scalar value <see cref="DvBool.True"/></returns>
+        /// set to the scalar value true</returns>
         public static bool IsNormalized(this ISchema schema, int col)
         {
             Contracts.CheckValue(schema, nameof(schema));
-            var value = default(DvBool);
-            return schema.TryGetMetadata(BoolType.Instance, Kinds.IsNormalized, col, ref value) && value.IsTrue;
+            var value = default(bool);
+            return schema.TryGetMetadata(BoolType.Instance, Kinds.IsNormalized, col, ref value) && value;
         }
 
         /// <summary>
@@ -436,9 +437,9 @@ namespace Microsoft.ML.Runtime.Data
                 return isValid;
 
             var type = schema.GetMetadataTypeOrNull(MetadataUtils.Kinds.CategoricalSlotRanges, colIndex);
-            if (type?.RawType == typeof(VBuffer<DvInt4>))
+            if (type?.RawType == typeof(VBuffer<int>))
             {
-                VBuffer<DvInt4> catIndices = default(VBuffer<DvInt4>);
+                VBuffer<int> catIndices = default(VBuffer<int>);
                 schema.GetMetadata(MetadataUtils.Kinds.CategoricalSlotRanges, colIndex, ref catIndices);
                 VBufferUtils.Densify(ref catIndices);
                 int columnSlotsCount = schema.GetColumnType(colIndex).AsVector.VectorSizeCore;
@@ -448,19 +449,19 @@ namespace Microsoft.ML.Runtime.Data
                     isValid = true;
                     for (int i = 0; i < catIndices.Values.Length; i += 2)
                     {
-                        if (catIndices.Values[i].RawValue > catIndices.Values[i + 1].RawValue ||
-                            catIndices.Values[i].RawValue <= previousEndIndex ||
-                            catIndices.Values[i].RawValue >= columnSlotsCount ||
-                            catIndices.Values[i + 1].RawValue >= columnSlotsCount)
+                        if (catIndices.Values[i] > catIndices.Values[i + 1] ||
+                            catIndices.Values[i] <= previousEndIndex ||
+                            catIndices.Values[i] >= columnSlotsCount ||
+                            catIndices.Values[i + 1] >= columnSlotsCount)
                         {
                             isValid = false;
                             break;
                         }
 
-                        previousEndIndex = catIndices.Values[i + 1].RawValue;
+                        previousEndIndex = catIndices.Values[i + 1];
                     }
                     if (isValid)
-                        categoricalFeatures = catIndices.Values.Select(val => val.RawValue).ToArray();
+                        categoricalFeatures = catIndices.Values.Select(val => val).ToArray();
                 }
             }
 

@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -9,6 +9,7 @@ using Microsoft.ML.Legacy.Transforms;
 using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.RunTests;
+using System;
 using System.IO;
 using System.Text.RegularExpressions;
 using Xunit;
@@ -27,7 +28,7 @@ namespace Microsoft.ML.Tests
             public float Label;
 
             public float F1;
-            public DvText F2;
+            public ReadOnlyMemory<char> F2;
         }
 
         public class BreastCancerDataAllColumns
@@ -41,7 +42,7 @@ namespace Microsoft.ML.Tests
         public class BreastCancerPrediction
         {
             [ColumnName("PredictedLabel")]
-            public DvBool Cancerous;
+            public bool Cancerous;
         }
 
         public class BreastCancerMCPrediction
