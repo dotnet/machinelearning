@@ -121,7 +121,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
             }
 
             int ichEnd;
-            if (!DoubleParser.TryParse(span.Slice(ich, span.Length - ich), out ichEnd, out value))
+            if (!DoubleParser.TryParse(span.Slice(ich, span.Length - ich), out value, out ichEnd))
             {
                 value = default(Single);
                 return Result.Error;
@@ -169,7 +169,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
             }
 
             int ichEnd;
-            if (!DoubleParser.TryParse(span.Slice(ich, span.Length - ich), out ichEnd, out value))
+            if (!DoubleParser.TryParse(span.Slice(ich, span.Length - ich), out value, out ichEnd))
             {
                 value = default(Double);
                 return Result.Error;
@@ -186,7 +186,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
             return Result.Good;
         }
 
-        public static bool TryParse(ReadOnlySpan<char> span, out int ichEnd, out Single value)
+        public static bool TryParse(ReadOnlySpan<char> span, out Single value, out int ichEnd)
         {
             bool neg = false;
             ulong num = 0;
@@ -275,7 +275,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
             return true;
         }
 
-        public static bool TryParse(ReadOnlySpan<char> span, out int ichEnd, out Double value)
+        public static bool TryParse(ReadOnlySpan<char> span, out Double value, out int ichEnd)
         {
             bool neg = false;
             ulong num = 0;
