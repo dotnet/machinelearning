@@ -85,7 +85,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         /// </summary>
         public static bool TryParse(ReadOnlySpan<char> span, out Double value)
         {
-            var res = Parse(out value, span);
+            var res = Parse(span, out value);
             Contracts.Assert(res != Result.Empty || value == 0);
             return res <= Result.Empty;
         }
@@ -121,7 +121,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
             }
 
             int ichEnd;
-            if (!DoubleParser.TryParse(out value, span.Slice(ich, span.Length - ich), out ichEnd))
+            if (!DoubleParser.TryParse(span.Slice(ich, span.Length - ich), out ichEnd, out value))
             {
                 value = default(Single);
                 return Result.Error;
@@ -138,7 +138,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
             return Result.Good;
         }
 
-        public static Result Parse(out Double value, ReadOnlySpan<char> span)
+        public static Result Parse(ReadOnlySpan<char> span, out Double value)
         {
             int ich = 0;
             for (; ; ich++)
@@ -169,7 +169,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
             }
 
             int ichEnd;
-            if (!DoubleParser.TryParse(out value, span.Slice(ich, span.Length - ich), out ichEnd))
+            if (!DoubleParser.TryParse(span.Slice(ich, span.Length - ich), out ichEnd, out value))
             {
                 value = default(Double);
                 return Result.Error;
@@ -186,7 +186,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
             return Result.Good;
         }
 
-        public static bool TryParse(out Single value, ReadOnlySpan<char> span, out int ichEnd)
+        public static bool TryParse(ReadOnlySpan<char> span, out int ichEnd, out Single value)
         {
             bool neg = false;
             ulong num = 0;
@@ -194,7 +194,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
 
             ichEnd = 0;
             if (!TryParseCore(span, ref ichEnd, ref neg, ref num, ref exp))
-                return TryParseSpecial(out value, span, ref ichEnd);
+                return TryParseSpecial(span, ref ichEnd, out value);
 
             if (num == 0)
             {
@@ -275,7 +275,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
             return true;
         }
 
-        public static bool TryParse(out Double value, ReadOnlySpan<char> span, out int ichEnd)
+        public static bool TryParse(ReadOnlySpan<char> span, out int ichEnd, out Double value)
         {
             bool neg = false;
             ulong num = 0;
@@ -283,7 +283,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
 
             ichEnd = 0;
             if (!TryParseCore(span, ref ichEnd, ref neg, ref num, ref exp))
-                return TryParseSpecial(out value, span, ref ichEnd);
+                return TryParseSpecial(span, ref ichEnd, out value);
 
             if (num == 0)
             {
@@ -458,15 +458,15 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
             return true;
         }
 
-        private static bool TryParseSpecial(out Double value, ReadOnlySpan<char> span, ref int ich)
+        private static bool TryParseSpecial(ReadOnlySpan<char> span, ref int ich, out Double value)
         {
             Single tmp;
-            bool res = TryParseSpecial(out tmp, span, ref ich);
+            bool res = TryParseSpecial(span, ref ich, out tmp);
             value = tmp;
             return res;
         }
 
-        private static bool TryParseSpecial(out Single value, ReadOnlySpan<char> span, ref int ich)
+        private static bool TryParseSpecial(ReadOnlySpan<char> span, ref int ich, out Single value)
         {
             if (ich < span.Length)
             {

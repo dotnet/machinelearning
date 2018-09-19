@@ -645,7 +645,7 @@ namespace Microsoft.ML.Runtime.Numeric
                     double? improvement = null;
                     double x;
                     int end;
-                    if (message != null && DoubleParser.TryParse(out x, message.AsMemory().Span, out end))
+                    if (message != null && DoubleParser.TryParse(message.AsMemory().Span, out end, out x))
                         improvement = x;
 
                     pch.Checkpoint(state.Value, improvement, state.Iter);
