@@ -6,17 +6,25 @@ using Float = System.Single;
 
 using System;
 using System.Linq;
+using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.FastTree.Internal;
 using Microsoft.ML.Runtime.Internal.Internallearn;
 
 namespace Microsoft.ML.Runtime.FastTree
 {
-    public abstract class BoostingFastTreeTrainerBase<TArgs, TPredictor> : FastTreeTrainerBase<TArgs, TPredictor>
+    public abstract class BoostingFastTreeTrainerBase<TArgs, TTransformer, TModel> : FastTreeTrainerBase<TArgs, TTransformer, TModel>
+        where TTransformer : IPredictionTransformer<TModel>
         where TArgs : BoostedTreeArgs, new()
-        where TPredictor : IPredictorProducing<Float>
+        where TModel : IPredictorProducing<Float>
     {
-        public BoostingFastTreeTrainerBase(IHostEnvironment env, TArgs args) : base(env, args)
+        protected BoostingFastTreeTrainerBase(IHostEnvironment env, TArgs args, SchemaShape.Column label) : base(env, args, label)
+        {
+        }
+
+        protected BoostingFastTreeTrainerBase(IHostEnvironment env, SchemaShape.Column label, string featureColumn,
+            string weightColumn = null, string groupIdColumn = null, Action<TArgs> advancedSettings = null)
+            : base(env, label, featureColumn, weightColumn, groupIdColumn, advancedSettings)
         {
         }
 

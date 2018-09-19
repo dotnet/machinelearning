@@ -61,7 +61,7 @@ namespace Microsoft.ML.Benchmarks
         [Benchmark]
         public void TrainSentiment()
         {
-            using (var env = new TlcEnvironment(seed: 1))
+            using (var env = new ConsoleEnvironment(seed: 1))
             {
                 // Pipeline
                 var loader = TextLoader.ReadFile(env,
@@ -107,7 +107,7 @@ namespace Microsoft.ML.Benchmarks
                         WordFeatureExtractor = null,
                     }, loader);
 
-                var trans = new WordEmbeddingsTransform(env,
+                var trans = WordEmbeddingsTransform.Create(env,
                     new WordEmbeddingsTransform.Arguments()
                     {
                         Column = new WordEmbeddingsTransform.Column[1]

@@ -8,6 +8,7 @@ using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.RunTests;
 using Microsoft.ML.Runtime.Tools;
+using System;
 using System.IO;
 using System.Linq;
 using Xunit;
@@ -124,11 +125,11 @@ namespace Microsoft.ML.Tests.Transformers
             Assert.True(result.Schema.TryGetColumnIndex("CatD", out int colD));
             var types = result.Schema.GetMetadataTypes(colA);
             Assert.Equal(types.Select(x => x.Key), new string[1] { MetadataUtils.Kinds.SlotNames });
-            VBuffer<DvText> slots = default;
-            DvBool normalized = default;
+            VBuffer<ReadOnlyMemory<char>> slots = default;
+            bool normalized = default;
             result.Schema.GetMetadata(MetadataUtils.Kinds.SlotNames, colA, ref slots);
             Assert.True(slots.Length == 6);
-            Assert.Equal(slots.Values.Select(x => x.ToString()), new string[6] { "[0].Bit2", "[0].Bit1", "[0].Bit0", "[1].Bit2", "[1].Bit1", "[1].Bit0" });
+            Assert.Equal(slots.Items().Select(x => x.Value.ToString()), new string[6] { "[0].Bit2", "[0].Bit1", "[0].Bit0", "[1].Bit2", "[1].Bit1", "[1].Bit0" });
 
             types = result.Schema.GetMetadataTypes(colB);
             Assert.Equal(types.Select(x => x.Key), new string[2] { MetadataUtils.Kinds.SlotNames, MetadataUtils.Kinds.IsNormalized });
@@ -136,7 +137,7 @@ namespace Microsoft.ML.Tests.Transformers
             Assert.True(slots.Length == 2);
             Assert.Equal(slots.Items().Select(x => x.Value.ToString()), new string[2] { "Bit1", "Bit0" });
             result.Schema.GetMetadata(MetadataUtils.Kinds.IsNormalized, colB, ref normalized);
-            Assert.True(normalized.IsTrue);
+            Assert.True(normalized);
 
             types = result.Schema.GetMetadataTypes(colC);
             Assert.Equal(types.Select(x => x.Key), new string[0]);
@@ -144,16 +145,13 @@ namespace Microsoft.ML.Tests.Transformers
             types = result.Schema.GetMetadataTypes(colD);
             Assert.Equal(types.Select(x => x.Key), new string[1] { MetadataUtils.Kinds.IsNormalized });
             result.Schema.GetMetadata(MetadataUtils.Kinds.IsNormalized, colD, ref normalized);
-            Assert.True(normalized.IsTrue);
+            Assert.True(normalized);
         }
 
         [Fact]
         public void TestCommandLine()
         {
-            using (var env = new TlcEnvironment())
-            {
-                Assert.Equal(Maml.Main(new[] { @"showschema loader=Text{col=A:R4:0} xf=Term{col=B:A} xf=KeyToBinary{col=C:B} in=f:\2.txt" }), (int)0);
-            }
+            Assert.Equal(Maml.Main(new[] { @"showschema loader=Text{col=A:R4:0} xf=Term{col=B:A} xf=KeyToBinary{col=C:B} in=f:\2.txt" }), (int)0);
         }
 
         [Fact]

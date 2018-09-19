@@ -276,61 +276,11 @@ namespace Microsoft.ML.Runtime.Api
                 if (fieldType.IsArray)
                 {
                     Ch.Assert(colType.IsVector);
-                    // VBuffer<DvText> -> String[]
+                    // VBuffer<ReadOnlyMemory<char>> -> String[]
                     if (fieldType.GetElementType() == typeof(string))
                     {
                         Ch.Assert(colType.ItemType.IsText);
-                        return CreateConvertingVBufferSetter<DvText, string>(input, index, poke, peek, x => x.ToString());
-                    }
-                    else if (fieldType.GetElementType() == typeof(bool))
-                    {
-                        Ch.Assert(colType.ItemType.IsBool);
-                        return CreateConvertingVBufferSetter<DvBool, bool>(input, index, poke, peek, x => (bool)x);
-                    }
-                    else if (fieldType.GetElementType() == typeof(bool?))
-                    {
-                        Ch.Assert(colType.ItemType.IsBool);
-                        return CreateConvertingVBufferSetter<DvBool, bool?>(input, index, poke, peek, x => (bool?)x);
-                    }
-                    else if (fieldType.GetElementType() == typeof(int))
-                    {
-                        Ch.Assert(colType.ItemType == NumberType.I4);
-                        return CreateConvertingVBufferSetter<DvInt4, int>(input, index, poke, peek, x => (int)x);
-                    }
-                    else if (fieldType.GetElementType() == typeof(int?))
-                    {
-                        Ch.Assert(colType.ItemType == NumberType.I4);
-                        return CreateConvertingVBufferSetter<DvInt4, int?>(input, index, poke, peek, x => (int?)x);
-                    }
-                    else if (fieldType.GetElementType() == typeof(short))
-                    {
-                        Ch.Assert(colType.ItemType == NumberType.I2);
-                        return CreateConvertingVBufferSetter<DvInt2, short>(input, index, poke, peek, x => (short)x);
-                    }
-                    else if (fieldType.GetElementType() == typeof(short?))
-                    {
-                        Ch.Assert(colType.ItemType == NumberType.I2);
-                        return CreateConvertingVBufferSetter<DvInt2, short?>(input, index, poke, peek, x => (short?)x);
-                    }
-                    else if (fieldType.GetElementType() == typeof(long))
-                    {
-                        Ch.Assert(colType.ItemType == NumberType.I8);
-                        return CreateConvertingVBufferSetter<DvInt8, long>(input, index, poke, peek, x => (long)x);
-                    }
-                    else if (fieldType.GetElementType() == typeof(long?))
-                    {
-                        Ch.Assert(colType.ItemType == NumberType.I8);
-                        return CreateConvertingVBufferSetter<DvInt8, long?>(input, index, poke, peek, x => (long?)x);
-                    }
-                    else if (fieldType.GetElementType() == typeof(sbyte))
-                    {
-                        Ch.Assert(colType.ItemType == NumberType.I1);
-                        return CreateConvertingVBufferSetter<DvInt1, sbyte>(input, index, poke, peek, x => (sbyte)x);
-                    }
-                    else if (fieldType.GetElementType() == typeof(sbyte?))
-                    {
-                        Ch.Assert(colType.ItemType == NumberType.I1);
-                        return CreateConvertingVBufferSetter<DvInt1, sbyte?>(input, index, poke, peek, x => (sbyte?)x);
+                        return CreateConvertingVBufferSetter<ReadOnlyMemory<char>, string>(input, index, poke, peek, x => x.ToString());
                     }
 
                     // VBuffer<T> -> T[]
@@ -344,7 +294,7 @@ namespace Microsoft.ML.Runtime.Api
                 else if (colType.IsVector)
                 {
                     // VBuffer<T> -> VBuffer<T>
-                    // REVIEW: Do we care about accomodating VBuffer<string> -> VBuffer<DvText>?
+                    // REVIEW: Do we care about accomodating VBuffer<string> -> VBuffer<ReadOnlyMemory<char>>?
                     Ch.Assert(fieldType.IsGenericType);
                     Ch.Assert(fieldType.GetGenericTypeDefinition() == typeof(VBuffer<>));
                     Ch.Assert(fieldType.GetGenericArguments()[0] == colType.ItemType.RawType);
@@ -355,71 +305,12 @@ namespace Microsoft.ML.Runtime.Api
                 {
                     if (fieldType == typeof(string))
                     {
-                        // DvText -> String
+                        // ReadOnlyMemory<char> -> String
                         Ch.Assert(colType.IsText);
                         Ch.Assert(peek == null);
-                        return CreateConvertingActionSetter<DvText, string>(input, index, poke, x => x.ToString());
+                        return CreateConvertingActionSetter<ReadOnlyMemory<char>, string>(input, index, poke, x => x.ToString());
                     }
-                    else if (fieldType == typeof(bool))
-                    {
-                        Ch.Assert(colType.IsBool);
-                        Ch.Assert(peek == null);
-                        return CreateConvertingActionSetter<DvBool, bool>(input, index, poke, x => (bool)x);
-                    }
-                    else if (fieldType == typeof(bool?))
-                    {
-                        Ch.Assert(colType.IsBool);
-                        Ch.Assert(peek == null);
-                        return CreateConvertingActionSetter<DvBool, bool?>(input, index, poke, x => (bool?)x);
-                    }
-                    else if (fieldType == typeof(int))
-                    {
-                        Ch.Assert(colType == NumberType.I4);
-                        Ch.Assert(peek == null);
-                        return CreateConvertingActionSetter<DvInt4, int>(input, index, poke, x => (int)x);
-                    }
-                    else if (fieldType == typeof(int?))
-                    {
-                        Ch.Assert(colType == NumberType.I4);
-                        Ch.Assert(peek == null);
-                        return CreateConvertingActionSetter<DvInt4, int?>(input, index, poke, x => (int?)x);
-                    }
-                    else if (fieldType == typeof(short))
-                    {
-                        Ch.Assert(colType == NumberType.I2);
-                        Ch.Assert(peek == null);
-                        return CreateConvertingActionSetter<DvInt2, short>(input, index, poke, x => (short)x);
-                    }
-                    else if (fieldType == typeof(short?))
-                    {
-                        Ch.Assert(colType == NumberType.I2);
-                        Ch.Assert(peek == null);
-                        return CreateConvertingActionSetter<DvInt2, short?>(input, index, poke, x => (short?)x);
-                    }
-                    else if (fieldType == typeof(long))
-                    {
-                        Ch.Assert(colType == NumberType.I8);
-                        Ch.Assert(peek == null);
-                        return CreateConvertingActionSetter<DvInt8, long>(input, index, poke, x => (long)x);
-                    }
-                    else if (fieldType == typeof(long?))
-                    {
-                        Ch.Assert(colType == NumberType.I8);
-                        Ch.Assert(peek == null);
-                        return CreateConvertingActionSetter<DvInt8, long?>(input, index, poke, x => (long?)x);
-                    }
-                    else if (fieldType == typeof(sbyte))
-                    {
-                        Ch.Assert(colType == NumberType.I1);
-                        Ch.Assert(peek == null);
-                        return CreateConvertingActionSetter<DvInt1, sbyte>(input, index, poke, x => (sbyte)x);
-                    }
-                    else if (fieldType == typeof(sbyte?))
-                    {
-                        Ch.Assert(colType == NumberType.I1);
-                        Ch.Assert(peek == null);
-                        return CreateConvertingActionSetter<DvInt1, sbyte?>(input, index, poke, x => (sbyte?)x);
-                    }
+
                     // T -> T
                     if (fieldType.IsGenericType && fieldType.GetGenericTypeDefinition() == typeof(Nullable<>))
                         Ch.Assert(colType.RawType == Nullable.GetUnderlyingType(fieldType));
@@ -622,7 +513,7 @@ namespace Microsoft.ML.Runtime.Api
     /// </summary>
     public static class CursoringUtils
     {
-        private const string NeedEnvObsoleteMessage = "This method is obsolete. Please use the overload that takes an additional 'env' argument. An environment can be created via new TlcEnvironment().";
+        private const string NeedEnvObsoleteMessage = "This method is obsolete. Please use the overload that takes an additional 'env' argument. An environment can be created via new LocalEnvironment().";
 
         /// <summary>
         /// Generate a strongly-typed cursorable wrapper of the <see cref="IDataView"/>.
@@ -658,7 +549,7 @@ namespace Microsoft.ML.Runtime.Api
             where TRow : class, new()
         {
             // REVIEW: Take an env as a parameter.
-            var env = new TlcEnvironment();
+            var env = new ConsoleEnvironment();
             return data.AsCursorable<TRow>(env, ignoreMissingColumns, schemaDefinition);
         }
 
@@ -699,7 +590,7 @@ namespace Microsoft.ML.Runtime.Api
             where TRow : class, new()
         {
             // REVIEW: Take an env as a parameter.
-            var env = new TlcEnvironment();
+            var env = new ConsoleEnvironment();
             return data.AsEnumerable<TRow>(env, reuseRowObject, ignoreMissingColumns, schemaDefinition);
         }
     }

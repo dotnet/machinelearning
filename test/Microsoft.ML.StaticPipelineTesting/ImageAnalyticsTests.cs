@@ -20,7 +20,7 @@ namespace Microsoft.ML.StaticPipelineTesting
         [Fact]
         public void SimpleImageSmokeTest()
         {
-            var env = new TlcEnvironment(new SysRandom(0), verbose: true);
+            var env = new ConsoleEnvironment(0, verbose: true);
 
             var reader = TextLoader.CreateReader(env,
                 ctx => ctx.LoadText(0).LoadAsImage().AsGrayscale().Resize(10, 8).ExtractPixels());

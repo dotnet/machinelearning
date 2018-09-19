@@ -10194,29 +10194,6 @@
           "Default": false
         },
         {
-          "Name": "Calibrator",
-          "Type": {
-            "Kind": "Component",
-            "ComponentKind": "CalibratorTrainer"
-          },
-          "Desc": "The calibrator kind to apply to the predictor. Specify null for no calibration",
-          "Required": false,
-          "SortOrder": 150.0,
-          "IsNullable": false,
-          "Default": {
-            "Name": "PlattCalibrator"
-          }
-        },
-        {
-          "Name": "MaxCalibrationExamples",
-          "Type": "Int",
-          "Desc": "The maximum number of examples to use when training the calibrator",
-          "Required": false,
-          "SortOrder": 150.0,
-          "IsNullable": false,
-          "Default": 1000000
-        },
-        {
           "Name": "EntropyCoefficient",
           "Type": "Float",
           "Desc": "The entropy (regularization) coefficient between 0 and 1",
@@ -10318,6 +10295,18 @@
           "Desc": "Whether to collectivize features during dataset preparation to speed up training",
           "Aliases": [
             "flocks"
+          ],
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": true
+        },
+        {
+          "Name": "EnablePruning",
+          "Type": "Bool",
+          "Desc": "Enable post-training pruning to avoid overfitting. (a validation set is required)",
+          "Aliases": [
+            "pruning"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -10494,6 +10483,18 @@
           "Default": "Auto"
         },
         {
+          "Name": "PruningMetrics",
+          "Type": "Int",
+          "Desc": "Metric for pruning. (For regression, 1: L1, 2:L2; default L2)",
+          "Aliases": [
+            "pmetric"
+          ],
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": 2
+        },
+        {
           "Name": "EntropyCoefficient",
           "Type": "Float",
           "Desc": "The entropy (regularization) coefficient between 0 and 1",
@@ -10595,6 +10596,18 @@
           "Desc": "Whether to collectivize features during dataset preparation to speed up training",
           "Aliases": [
             "flocks"
+          ],
+          "Required": false,
+          "SortOrder": 150.0,
+          "IsNullable": false,
+          "Default": true
+        },
+        {
+          "Name": "EnablePruning",
+          "Type": "Bool",
+          "Desc": "Enable post-training pruning to avoid overfitting. (a validation set is required)",
+          "Aliases": [
+            "pruning"
           ],
           "Required": false,
           "SortOrder": 150.0,
@@ -22086,7 +22099,7 @@
     {
       "Name": "Transforms.TextToKeyConverter",
       "Desc": "Converts input values (words, numbers, etc.) to index in a dictionary.",
-      "FriendlyName": "Term Transform",
+      "FriendlyName": "To Key",
       "ShortName": null,
       "Inputs": [
         {

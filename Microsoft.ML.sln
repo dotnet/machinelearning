@@ -27,7 +27,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.StandardLearne
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.Transforms", "src\Microsoft.ML.Transforms\Microsoft.ML.Transforms.csproj", "{2911A286-ECA4-4730-97A9-DA1FEE2DED97}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML", "src\Microsoft.ML\Microsoft.ML.csproj", "{7288C084-11C0-43BE-AC7F-45DCFEAEEBF6}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.Legacy", "src\Microsoft.ML.Legacy\Microsoft.ML.Legacy.csproj", "{7288C084-11C0-43BE-AC7F-45DCFEAEEBF6}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.KMeansClustering", "src\Microsoft.ML.KMeansClustering\Microsoft.ML.KMeansClustering.csproj", "{F1CAE3AB-4F86-4BC0-BBA8-C4A58E7E8A4A}"
 EndProject

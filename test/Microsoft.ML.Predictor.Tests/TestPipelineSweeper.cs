@@ -117,7 +117,7 @@ namespace Microsoft.ML.Runtime.RunTests
             const int batchSize = 5;
             const int numIterations = 20;
             const int numTransformLevels = 2;
-            using (var env = new TlcEnvironment())
+            using (var env = new ConsoleEnvironment())
             {
                 SupportedMetric metric = PipelineSweeperSupportedMetrics.GetSupportedMetric(PipelineSweeperSupportedMetrics.Metrics.Auc);
 
