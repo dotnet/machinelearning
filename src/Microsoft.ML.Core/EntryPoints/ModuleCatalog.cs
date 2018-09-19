@@ -278,7 +278,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
         /// <param name="env">The host environment and exception context to use to report errors while scanning the assemblies.</param>
         public static ModuleCatalog CreateInstance(IHostEnvironment env)
         {
-            Contracts.CheckValueOrNull(env);
+            Contracts.CheckValue(env, nameof(env));
             return new ModuleCatalog(env);
         }
 

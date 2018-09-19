@@ -95,5 +95,11 @@ namespace Microsoft.ML.TestFramework
             return new ConsoleEnvironment(seed, verbose).
                 AddStandardComponents();
         }
+
+        protected LocalEnvironment CreateLocalEnvironment(int? seed = null, int conc = 0)
+        {
+            return new LocalEnvironment(seed, conc).
+                AddStandardComponents();
+        }
     }
 }

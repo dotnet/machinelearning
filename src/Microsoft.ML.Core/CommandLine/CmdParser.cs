@@ -2209,14 +2209,14 @@ namespace Microsoft.ML.Runtime.CommandLine
                         }
                         return buffer.ToString();
                     }
-                    else if (value is ICommandLineComponentFactory)
-                    {
-                        return value.ToString();
-                    }
-                    else
-                    {
-                        throw env.Except($"IComponentFactory instances either need to be EntryPointComponents or implement {nameof(ICommandLineComponentFactory)}.");
-                    }
+                    //else if (value is ICommandLineComponentFactory)
+                    //{
+                    //    return value.ToString();
+                    //}
+                    //else
+                    //{
+                    //    //throw env.Except($"IComponentFactory instances either need to be EntryPointComponents or implement {nameof(ICommandLineComponentFactory)}.");
+                    //}
                 }
 
                 return value.ToString();

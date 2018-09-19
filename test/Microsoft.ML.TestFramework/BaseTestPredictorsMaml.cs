@@ -207,7 +207,7 @@ namespace Microsoft.ML.Runtime.RunTests
                     rpArgs = new string[] { "opf+" };
 
                 // Run result processor on the console output.
-                RunResultProcessorTest(Env, new string[] { consOutPath.Path }, rpOutPath, rpArgs);
+                RunResultProcessorTest(new string[] { consOutPath.Path }, rpOutPath, rpArgs);
                 CheckEqualityNormalized(dir, rpName);
             }
 
@@ -278,7 +278,7 @@ namespace Microsoft.ML.Runtime.RunTests
             }
         }
 
-        protected void RunResultProcessorTest(IHostEnvironment env, string[] dataFiles, string outPath, string[] extraArgs)
+        protected void RunResultProcessorTest(string[] dataFiles, string outPath, string[] extraArgs)
         {
             Contracts.Assert(IsActive);
 
@@ -295,7 +295,7 @@ namespace Microsoft.ML.Runtime.RunTests
 
             if (extraArgs != null)
                 args.AddRange(extraArgs);
-            ResultProcessor.Main(env, args.ToArray());
+            ResultProcessor.Main(Env, args.ToArray());
         }
 
         private static string GetNamePrefix(string testType, PredictorAndArgs predictor, TestDataset dataset, string extraTag = "")

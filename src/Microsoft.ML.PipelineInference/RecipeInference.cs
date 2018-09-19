@@ -214,6 +214,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
 
             protected MultiClassRecipies(IHostEnvironment host)
             {
+                Contracts.CheckValue(host, nameof(host));
                 Host = host;
             }
 

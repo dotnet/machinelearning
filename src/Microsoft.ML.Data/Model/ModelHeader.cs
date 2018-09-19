@@ -89,7 +89,7 @@ namespace Microsoft.ML.Runtime.Model
         public long FpLim;
 
         // Location of the fully qualified assembly name string (in UTF-16).
-        // Note that it is legal for both to be zero (ex. backwards compat).
+        // Note that it is legal for both to be zero.
         [FieldOffset(0x90)]
         public long FpAssemblyName;
         [FieldOffset(0x98)]
