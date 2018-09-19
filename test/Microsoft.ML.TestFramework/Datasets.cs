@@ -2,11 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Float = System.Single;
-
-using System;
-using Microsoft.ML.Runtime.Numeric;
-
 namespace Microsoft.ML.Runtime.RunTests
 {
     public class TestDataset
@@ -173,6 +168,13 @@ namespace Microsoft.ML.Runtime.RunTests
             trainFilename = "external/MSLRWeb10KTrain720kRows.tsv",
             validFilename = "external/MSLRWeb10KValidate240kRows.tsv",
             testFilename = "external/MSLRWeb10KTest240kRows.tsv"
+        }
+
+        public static TestDataset Sentiment = new TestDataset
+        {
+            name = "sentiment",
+            trainFilename = "wikipedia-detox-250-line-data.tsv",
+            testFilename = "wikipedia-detox-250-line-test.tsv"
         };
 
         public static TestDataset generatedRegressionDataset = new TestDataset
@@ -312,6 +314,13 @@ namespace Microsoft.ML.Runtime.RunTests
             extraSettings = @"/inst Text{header+ sep=, label=14 attr=5-9,1,13,3 threads-}"
         };
 
+        public static TestDataset adultRanking = new TestDataset
+        {
+            name = "adultRanking",
+            trainFilename = "adult.tiny.with-schema.txt",
+            loaderSettings = "loader=Text{header+ sep=tab, col=Label:R4:0 col=Workclass:TX:1 col=Categories:TX:2-8 col=NumericFeatures:R4:9-14}",
+        };
+
         public static TestDataset displayPoisson = new TestDataset
         {
             name = "DisplayPoisson",
@@ -368,6 +377,13 @@ namespace Microsoft.ML.Runtime.RunTests
             testFilename = @"iris.txt",
             loaderSettings = "loader=Text{col=Label:TX:0 col=Features:1-*}",
             mamlExtraSettings = new[] { "xf=Term{col=Label}" },
+        };
+
+        public static TestDataset irisData = new TestDataset()
+        {
+            name = "iris",
+            trainFilename = @"iris.data",
+            loaderSettings = "loader=Text{col=Label:TX:4 col=Features:0-3}"
         };
 
         public static TestDataset irisLabelName = new TestDataset()

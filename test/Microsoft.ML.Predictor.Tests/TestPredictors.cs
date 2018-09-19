@@ -1532,7 +1532,7 @@ output Out [3] from H all;
         [TestCategory("Anomaly")]
         public void CompareSvmPredictorResultsToLibSvm()
         {
-            using (var env = new TlcEnvironment(1, conc: 1))
+            using (var env = new LocalEnvironment(1, conc: 1))
             {
                 IDataView trainView = new TextLoader(env, new TextLoader.Arguments(), new MultiFileSource(GetDataPath(TestDatasets.mnistOneClass.trainFilename)));
                 trainView =
