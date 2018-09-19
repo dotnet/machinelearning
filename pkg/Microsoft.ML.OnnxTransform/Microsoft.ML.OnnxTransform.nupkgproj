@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk" DefaultTargets="Pack">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <PackageDescription>ML.NET component for Sonoma</PackageDescription>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../Microsoft.ML/Microsoft.ML.nupkgproj" />
+    <PackageReference Include="Microsoft.ML.Scoring" Version="1.0.4-dev46780-sonoma-cs" />
+  </ItemGroup>
+
+</Project>

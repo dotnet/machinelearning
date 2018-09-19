@@ -1,0 +1,22 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <IncludeInPackage>Microsoft.ML.TensorFlow</IncludeInPackage>
+    <DefineConstants>CORECLR</DefineConstants>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Microsoft.ML.Core\Microsoft.ML.Core.csproj" />
+    <ProjectReference Include="..\Microsoft.ML.Data\Microsoft.ML.Data.csproj" />
+    <ProjectReference Include="..\Microsoft.ML.ImageAnalytics\Microsoft.ML.ImageAnalytics.csproj" />
+    <PackageReference Include="Microsoft.ML.Scoring" Version="1.0.4-dev46781-sonoma-cs" />
+  </ItemGroup>
+
+
+  <ItemGroup>
+    <Service Include="{B5B31292-0FED-4ACC-9879-329728881CF3}" />
+  </ItemGroup>
+
+</Project>
