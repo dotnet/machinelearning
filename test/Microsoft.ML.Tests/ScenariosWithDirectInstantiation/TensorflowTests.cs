@@ -378,7 +378,7 @@ namespace Microsoft.ML.Scenarios
         {
             var model_location = "cifar_saved_model";
 
-            using (var env = new TlcEnvironment())
+            using (var env = new ConsoleEnvironment())
             {
                 var imageHeight = 32;
                 var imageWidth = 32;
