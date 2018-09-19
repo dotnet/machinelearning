@@ -14,6 +14,7 @@ using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.TextAnalytics;
 using Xunit;
+using Microsoft.ML.Transforms;
 
 namespace Microsoft.ML.Runtime.RunTests
 {
@@ -82,14 +83,14 @@ namespace Microsoft.ML.Runtime.RunTests
             builder.AddColumn("F1", type, data);
             var srcView = builder.GetDataView();
 
-            HashTransform.Column col = new HashTransform.Column();
+            var col = new HashConverterTransformer.Column();
             col.Name = "F1";
             col.HashBits = 5;
             col.Seed = 42;
-            HashTransform.Arguments args = new HashTransform.Arguments();
-            args.Column = new HashTransform.Column[] { col };
+            var args = new HashConverterTransformer.Arguments();
+            args.Column = new HashConverterTransformer.Column[] { col };
 
-            var hashTransform = HashTransform.Create(Env, args, srcView);
+            var hashTransform = HashConverterTransformer.Create(Env, args, srcView);
             using (var cursor = hashTransform.GetRowCursor(c => true))
             {
                 var resultGetter = cursor.GetGetter<uint>(1);
@@ -120,14 +121,14 @@ namespace Microsoft.ML.Runtime.RunTests
         private void TestHashTransformVectorHelper(ArrayDataViewBuilder builder, uint[][] results)
         {
             var srcView = builder.GetDataView();
-            HashTransform.Column col = new HashTransform.Column();
+            var col = new HashConverterTransformer.Column();
             col.Source = "F1V";
             col.HashBits = 5;
             col.Seed = 42;
-            HashTransform.Arguments args = new HashTransform.Arguments();
-            args.Column = new HashTransform.Column[] { col };
+            var args = new HashConverterTransformer.Arguments();
+            args.Column = new HashConverterTransformer.Column[] { col };
 
-            var hashTransform = HashTransform.Create(Env, args, srcView);
+            var hashTransform = HashConverterTransformer.Create(Env, args, srcView);
             using (var cursor = hashTransform.GetRowCursor(c => true))
             {
                 var resultGetter = cursor.GetGetter<VBuffer<uint>>(1);

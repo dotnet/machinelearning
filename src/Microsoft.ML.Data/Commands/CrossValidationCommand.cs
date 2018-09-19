@@ -13,6 +13,7 @@ using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Internal.Calibration;
 using Microsoft.ML.Runtime.Internal.Utilities;
+using Microsoft.ML.Transforms;
 
 [assembly: LoadableClass(typeof(CrossValidationCommand), typeof(CrossValidationCommand.Arguments), typeof(SignatureCommand),
     "Cross Validation", CrossValidationCommand.LoadName)]
@@ -329,10 +330,8 @@ namespace Microsoft.ML.Runtime.Data
                     int inc = 0;
                     while (input.Schema.TryGetColumnIndex(stratificationColumn, out tmp))
                         stratificationColumn = string.Format("{0}_{1:000}", origStratCol, ++inc);
-                    var hashargs = new HashTransform.Arguments();
-                    hashargs.Column = new[] { new HashTransform.Column { Source = origStratCol, Name = stratificationColumn } };
-                    hashargs.HashBits = 30;
-                    output = HashTransform.Create(Host, hashargs, input);
+                    var est = new HashConverter(Host, stratificationColumn, origStratCol, 30);
+                    output = est.Fit(input).Transform(input);
                 }
             }
 

@@ -8,25 +8,26 @@ using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
+using Microsoft.ML.Transforms;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 
-[assembly: LoadableClass(HashTransform.Summary, typeof(IDataTransform), typeof(HashTransform), typeof(HashTransform.Arguments), typeof(SignatureDataTransform),
+[assembly: LoadableClass(HashConverterTransformer.Summary, typeof(IDataTransform), typeof(HashConverterTransformer), typeof(HashConverterTransformer.Arguments), typeof(SignatureDataTransform),
     "Hash Transform", "HashTransform", "Hash", DocName = "transform/HashTransform.md")]
 
-[assembly: LoadableClass(HashTransform.Summary, typeof(IDataTransform), typeof(HashTransform), null, typeof(SignatureLoadDataTransform),
-    "Hash Transform", HashTransform.LoaderSignature)]
+[assembly: LoadableClass(HashConverterTransformer.Summary, typeof(IDataTransform), typeof(HashConverterTransformer), null, typeof(SignatureLoadDataTransform),
+    "Hash Transform", HashConverterTransformer.LoaderSignature)]
 
-[assembly: LoadableClass(HashTransform.Summary, typeof(HashTransform), null, typeof(SignatureLoadModel),
-     "Hash Transform", HashTransform.LoaderSignature)]
+[assembly: LoadableClass(HashConverterTransformer.Summary, typeof(HashConverterTransformer), null, typeof(SignatureLoadModel),
+     "Hash Transform", HashConverterTransformer.LoaderSignature)]
 
-[assembly: LoadableClass(typeof(IRowMapper), typeof(HashTransform), null, typeof(SignatureLoadRowMapper),
-   "Hash Transform", HashTransform.LoaderSignature)]
+[assembly: LoadableClass(typeof(IRowMapper), typeof(HashConverterTransformer), null, typeof(SignatureLoadRowMapper),
+   "Hash Transform", HashConverterTransformer.LoaderSignature)]
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Transforms
 {
     using Conditional = System.Diagnostics.ConditionalAttribute;
 
@@ -35,7 +36,7 @@ namespace Microsoft.ML.Runtime.Data
     /// it hashes each slot separately.
     /// It can hash either text values or key values.
     /// </summary>
-    public sealed class HashTransform : OneToOneTransformerBase
+    public sealed class HashConverterTransformer : OneToOneTransformerBase
     {
         public sealed class Arguments
         {
@@ -45,18 +46,18 @@ namespace Microsoft.ML.Runtime.Data
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Number of bits to hash into. Must be between 1 and 31, inclusive",
                 ShortName = "bits", SortOrder = 2)]
-            public int HashBits = HashEstimator.Defaults.HashBits;
+            public int HashBits = HashConverter.Defaults.HashBits;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Hashing seed")]
-            public uint Seed = HashEstimator.Defaults.Seed;
+            public uint Seed = HashConverter.Defaults.Seed;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Whether the position of each term should be included in the hash",
                 ShortName = "ord")]
-            public bool Ordered = HashEstimator.Defaults.Ordered;
+            public bool Ordered = HashConverter.Defaults.Ordered;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Limit the number of keys used to generate the slot name to this many. 0 means no invert hashing, -1 means no limit.",
                 ShortName = "ih")]
-            public int InvertHash = HashEstimator.Defaults.InvertHash;
+            public int InvertHash = HashConverter.Defaults.InvertHash;
         }
 
         public sealed class Column : OneToOneColumn
@@ -133,11 +134,16 @@ namespace Microsoft.ML.Runtime.Data
             /// <param name="ordered">Whether the position of each term should be included in the hash.</param>
             /// <param name="invertHash">Limit the number of keys used to generate the slot name to this many. 0 means no invert hashing, -1 means no limit.</param>
             public ColumnInfo(string input, string output,
-                int hashBits = HashEstimator.Defaults.HashBits,
-                uint seed = HashEstimator.Defaults.Seed,
-                bool ordered = HashEstimator.Defaults.Ordered,
-                int invertHash = HashEstimator.Defaults.InvertHash)
+                int hashBits = HashConverter.Defaults.HashBits,
+                uint seed = HashConverter.Defaults.Seed,
+                bool ordered = HashConverter.Defaults.Ordered,
+                int invertHash = HashConverter.Defaults.InvertHash)
             {
+                if (invertHash < -1)
+                    throw Contracts.ExceptParam(nameof(invertHash), "Value too small, must be -1 or larger");
+                if (invertHash != 0 && hashBits >= 31)
+                    throw Contracts.ExceptParam(nameof(hashBits), $"Cannot support invertHash for a {0} bit hash. 30 is the maximum possible.", hashBits);
+
                 Input = input;
                 Output = output;
                 HashBits = hashBits;
@@ -155,7 +161,7 @@ namespace Microsoft.ML.Runtime.Data
                 // uint: HashSeed
                 // byte: Ordered
                 HashBits = ctx.Reader.ReadInt32();
-                Contracts.CheckDecode(HashEstimator.NumBitsMin <= HashBits && HashBits < HashEstimator.NumBitsLim);
+                Contracts.CheckDecode(HashConverter.NumBitsMin <= HashBits && HashBits < HashConverter.NumBitsLim);
                 Seed = ctx.Reader.ReadUInt32();
                 Ordered = ctx.Reader.ReadBoolByte();
             }
@@ -167,19 +173,12 @@ namespace Microsoft.ML.Runtime.Data
                 // uint: HashSeed
                 // byte: Ordered
 
-                Contracts.Assert(HashEstimator.NumBitsMin <= HashBits && HashBits < HashEstimator.NumBitsLim);
+                Contracts.Assert(HashConverter.NumBitsMin <= HashBits && HashBits < HashConverter.NumBitsLim);
                 ctx.Writer.Write(HashBits);
 
                 ctx.Writer.Write(Seed);
                 ctx.Writer.WriteBoolByte(Ordered);
             }
-        }
-
-        public static string TestType(ColumnType type)
-        {
-            if (type.ItemType.IsText || type.ItemType.IsKey || type.ItemType == NumberType.R4 || type.ItemType == NumberType.R8)
-                return null;
-            return "Expected Text, Key, Single or Double item type";
         }
 
         private const string RegistrationName = "Hash";
@@ -206,17 +205,17 @@ namespace Microsoft.ML.Runtime.Data
         protected override void CheckInputColumn(ISchema inputSchema, int col, int srcCol)
         {
             var type = inputSchema.GetColumnType(srcCol);
-            string reason = TestType(type);
-            if (reason != null)
-                throw Host.ExceptParam(nameof(inputSchema), reason);
+            if (!HashConverter.IsColumnTypeValid(type))
+                throw Host.ExceptParam(nameof(inputSchema), HashConverter.ExpectedColumnType);
         }
+
         private static (string input, string output)[] GetColumnPairs(ColumnInfo[] columns)
         {
-            Contracts.CheckValue(columns, nameof(columns));
+            Contracts.CheckNonEmpty(columns, nameof(columns));
             return columns.Select(x => (x.Input, x.Output)).ToArray();
         }
 
-        internal ColumnType GetOutputType(ISchema inputSchema, ColumnInfo column)
+        private ColumnType GetOutputType(ISchema inputSchema, ColumnInfo column)
         {
             var keyCount = column.HashBits < 31 ? 1 << column.HashBits : 0;
             inputSchema.TryGetColumnIndex(column.Input, out int srcCol);
@@ -228,7 +227,18 @@ namespace Microsoft.ML.Runtime.Data
                 return new VectorType(itemType, srcType.VectorSize);
         }
 
-        public HashTransform(IHostEnvironment env, IDataView input, ColumnInfo[] columns) :
+        public HashConverterTransformer(IHostEnvironment env, ColumnInfo[] columns):
+              base(Contracts.CheckRef(env, nameof(env)).Register(RegistrationName), GetColumnPairs(columns))
+        {
+            _columns = columns.ToArray();
+            foreach(var column in _columns)
+            {
+                if (column.InvertHash != 0)
+                    throw Host.ExceptParam(nameof(columns), $"Found colunm with {nameof(column.InvertHash)} set to non zero value, please use { nameof(HashConverter)} instead");
+            }
+        }
+
+        internal HashConverterTransformer(IHostEnvironment env, IDataView input, ColumnInfo[] columns) :
             base(Contracts.CheckRef(env, nameof(env)).Register(RegistrationName), GetColumnPairs(columns))
         {
             _columns = columns.ToArray();
@@ -307,7 +317,7 @@ namespace Microsoft.ML.Runtime.Data
         protected override IRowMapper MakeRowMapper(ISchema schema) => new Mapper(this, schema);
 
         // Factory method for SignatureLoadModel.
-        private static HashTransform Create(IHostEnvironment env, ModelLoadContext ctx)
+        private static HashConverterTransformer Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
             var host = env.Register(RegistrationName);
@@ -315,10 +325,10 @@ namespace Microsoft.ML.Runtime.Data
             host.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel(GetVersionInfo());
 
-            return new HashTransform(host, ctx);
+            return new HashConverterTransformer(host, ctx);
         }
 
-        private HashTransform(IHost host, ModelLoadContext ctx)
+        private HashConverterTransformer(IHost host, ModelLoadContext ctx)
           : base(host, ctx)
         {
             var columnsLength = ColumnPairs.Length;
@@ -339,7 +349,7 @@ namespace Microsoft.ML.Runtime.Data
 
             // <prefix handled in static Create method>
             // <base>
-            // Exes
+            // <columns>
             Host.Assert(_columns.Length == ColumnPairs.Length);
             foreach (var col in _columns)
                 col.Save(ctx);
@@ -375,7 +385,7 @@ namespace Microsoft.ML.Runtime.Data
                     item.Ordered ?? args.Ordered,
                     item.InvertHash ?? args.InvertHash);
             };
-            return new HashTransform(env, input, cols).MakeDataTransform(input);
+            return new HashConverterTransformer(env, input, cols).MakeDataTransform(input);
         }
 
         #region Getters
@@ -979,9 +989,9 @@ namespace Microsoft.ML.Runtime.Data
             }
 
             private readonly ColumnType[] _types;
-            private readonly HashTransform _parent;
+            private readonly HashConverterTransformer _parent;
 
-            public Mapper(HashTransform parent, ISchema inputSchema)
+            public Mapper(HashConverterTransformer parent, ISchema inputSchema)
                 : base(parent.Host.Register(nameof(Mapper)), parent, inputSchema)
             {
                 _parent = parent;
@@ -1285,7 +1295,7 @@ namespace Microsoft.ML.Runtime.Data
         }
     }
 
-    public sealed class HashEstimator : IEstimator<HashTransform>
+    public sealed class HashConverter : IEstimator<HashConverterTransformer>
     {
         public const int NumBitsMin = 1;
         public const int NumBitsLim = 32;
@@ -1299,18 +1309,24 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         private readonly IHost _host;
-        private readonly HashTransform.ColumnInfo[] _columns;
+        private readonly HashConverterTransformer.ColumnInfo[] _columns;
 
-        public HashEstimator(IHostEnvironment env, string name, string source = null,
+        public static bool IsColumnTypeValid(ColumnType type)
+        {
+            return (type.ItemType.IsText || type.ItemType.IsKey || type.ItemType == NumberType.R4 || type.ItemType == NumberType.R8);
+        }
+        internal const string ExpectedColumnType = "Expected Text, Key, Single or Double item type";
+
+        public HashConverter(IHostEnvironment env, string name, string source = null,
             int hashBits = Defaults.HashBits, int invertHash = Defaults.InvertHash)
-            : this(env, new HashTransform.ColumnInfo(name, source ?? name, hashBits: hashBits, invertHash: invertHash))
+            : this(env, new HashConverterTransformer.ColumnInfo(name, source ?? name, hashBits: hashBits, invertHash: invertHash))
         {
         }
 
-        public HashEstimator(IHostEnvironment env, params HashTransform.ColumnInfo[] columns)
+        public HashConverter(IHostEnvironment env, params HashConverterTransformer.ColumnInfo[] columns)
         {
             Contracts.CheckValue(env, nameof(env));
-            _host = env.Register(nameof(HashEstimator));
+            _host = env.Register(nameof(HashConverter));
             _columns = columns.ToArray();
             foreach (var col in _columns)
             {
@@ -1321,7 +1337,7 @@ namespace Microsoft.ML.Runtime.Data
             }
         }
 
-        public HashTransform Fit(IDataView input) => new HashTransform(_host, input, _columns);
+        public HashConverterTransformer Fit(IDataView input) => new HashConverterTransformer(_host, input, _columns);
 
         public SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {
@@ -1331,9 +1347,8 @@ namespace Microsoft.ML.Runtime.Data
             {
                 if (!inputSchema.TryFindColumn(colInfo.Input, out var col))
                     throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.Input);
-                string reason = HashTransform.TestType(col.ItemType);
-                if (reason != null)
-                    throw _host.ExceptParam(nameof(inputSchema), reason);
+                if (!IsColumnTypeValid(col.ItemType))
+                    throw _host.ExceptParam(nameof(inputSchema), ExpectedColumnType);
                 var metadata = new List<SchemaShape.Column>();
                 if (col.Metadata.TryFindColumn(MetadataUtils.Kinds.SlotNames, out var slotMeta))
                     metadata.Add(slotMeta);

@@ -7,6 +7,7 @@ using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.RunTests;
 using Microsoft.ML.Runtime.Tools;
+using Microsoft.ML.Transforms;
 using System.IO;
 using System.Linq;
 using Xunit;
@@ -43,11 +44,11 @@ namespace Microsoft.ML.Tests.Transformers
             var data = new[] { new TestClass() { A = 1, B = 2, C = 3, }, new TestClass() { A = 4, B = 5, C = 6 } };
 
             var dataView = ComponentCreation.CreateDataView(Env, data);
-            var pipe = new HashEstimator(Env, new[]{
-                    new HashTransform.ColumnInfo("A", "HashA", hashBits:4, invertHash:-1),
-                    new HashTransform.ColumnInfo("B", "HashB", hashBits:3, ordered:true),
-                    new HashTransform.ColumnInfo("C", "HashC", seed:42),
-                    new HashTransform.ColumnInfo("A", "HashD"),
+            var pipe = new HashConverter(Env, new[]{
+                    new HashConverterTransformer.ColumnInfo("A", "HashA", hashBits:4, invertHash:-1),
+                    new HashConverterTransformer.ColumnInfo("B", "HashB", hashBits:3, ordered:true),
+                    new HashConverterTransformer.ColumnInfo("C", "HashC", seed:42),
+                    new HashConverterTransformer.ColumnInfo("A", "HashD"),
                 });
 
             TestEstimatorCore(pipe, dataView);
@@ -65,10 +66,10 @@ namespace Microsoft.ML.Tests.Transformers
 
 
             var dataView = ComponentCreation.CreateDataView(Env, data);
-            var pipe = new HashEstimator(Env, new[] {
-                new HashTransform.ColumnInfo("A", "HashA", invertHash:1, hashBits:10),
-                new HashTransform.ColumnInfo("A", "HashAUnlim", invertHash:-1, hashBits:10),
-                new HashTransform.ColumnInfo("A", "HashAUnlimOrdered", invertHash:-1, hashBits:10, ordered:true)
+            var pipe = new HashConverter(Env, new[] {
+                new HashConverterTransformer.ColumnInfo("A", "HashA", invertHash:1, hashBits:10),
+                new HashConverterTransformer.ColumnInfo("A", "HashAUnlim", invertHash:-1, hashBits:10),
+                new HashConverterTransformer.ColumnInfo("A", "HashAUnlimOrdered", invertHash:-1, hashBits:10, ordered:true)
             });
             var result = pipe.Fit(dataView).Transform(dataView);
             ValidateMetadata(result);
@@ -111,11 +112,11 @@ namespace Microsoft.ML.Tests.Transformers
         {
             var data = new[] { new TestClass() { A = 1, B = 2, C = 3, }, new TestClass() { A = 4, B = 5, C = 6 } };
             var dataView = ComponentCreation.CreateDataView(Env, data);
-            var pipe = new HashEstimator(Env, new[]{
-                    new HashTransform.ColumnInfo("A", "HashA", hashBits:4, invertHash:-1),
-                    new HashTransform.ColumnInfo("B", "HashB", hashBits:3, ordered:true),
-                    new HashTransform.ColumnInfo("C", "HashC", seed:42),
-                    new HashTransform.ColumnInfo("A", "HashD"),
+            var pipe = new HashConverter(Env, new[]{
+                    new HashConverterTransformer.ColumnInfo("A", "HashA", hashBits:4, invertHash:-1),
+                    new HashConverterTransformer.ColumnInfo("B", "HashB", hashBits:3, ordered:true),
+                    new HashConverterTransformer.ColumnInfo("C", "HashC", seed:42),
+                    new HashConverterTransformer.ColumnInfo("A", "HashD"),
             });
             var result = pipe.Fit(dataView).Transform(dataView);
             var resultRoles = new RoleMappedData(result);

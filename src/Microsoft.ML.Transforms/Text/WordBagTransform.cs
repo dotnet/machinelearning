@@ -13,6 +13,7 @@ using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Utilities;
+using Microsoft.ML.Transforms;
 
 [assembly: LoadableClass(WordBagTransform.Summary, typeof(IDataTransform), typeof(WordBagTransform), typeof(WordBagTransform.Arguments), typeof(SignatureDataTransform),
     "Word Bag Transform", "WordBagTransform", "WordBag")]
@@ -474,7 +475,7 @@ namespace Microsoft.ML.Runtime.Data
     {
         /// <summary>
         /// Whether the extractor transform created by this factory uses the hashing trick
-        /// (by using <see cref="HashTransform"/> or <see cref="NgramHashTransform"/>, for example).
+        /// (by using <see cref="HashConverterTransformer"/> or <see cref="NgramHashTransform"/>, for example).
         /// </summary>
         bool UseHashingTrick { get; }
 
