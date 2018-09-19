@@ -93,6 +93,8 @@ namespace Microsoft.ML.Runtime.Data
         /// <returns>The transformed <see cref="IDataView"/></returns>
         public abstract IDataView Transform(IDataView input);
 
+        public abstract IRowToRowMapper GetRowToRowMapper(ISchema inputSchema);
+
         protected void SaveModel(ModelSaveContext ctx)
         {
             // *** Binary format ***
@@ -187,8 +189,6 @@ namespace Microsoft.ML.Runtime.Data
             SaveModel(ctx);
             ctx.SaveStringOrNull(FeatureColumn);
         }
-
-        public abstract IRowToRowMapper GetRowToRowMapper(ISchema inputSchema);
     }
 
     /// <summary>

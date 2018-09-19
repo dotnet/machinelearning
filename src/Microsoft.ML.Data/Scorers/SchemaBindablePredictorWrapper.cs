@@ -485,7 +485,7 @@ namespace Microsoft.ML.Runtime.Data
             {
                 for (int i = 0; i < Schema.ColumnCount; i++)
                 {
-                    if (predicate(i) && _inputSchema.Feature != null)
+                    if (predicate(i) && InputRoleMappedSchema.Feature != null)
                         return col => col == InputRoleMappedSchema.Feature.Index;
                 }
                 return col => false;

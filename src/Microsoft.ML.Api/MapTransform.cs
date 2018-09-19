@@ -24,8 +24,6 @@ namespace Microsoft.ML.Runtime.Api
         where TDst : class, new()
     {
         private const string RegistrationNameTemplate = "MapTransform<{0}, {1}>";
-
-        private readonly IDataView _source;
         private readonly Action<TSrc, TDst> _mapAction;
         private readonly MergedSchema _schema;
 
@@ -56,12 +54,12 @@ namespace Microsoft.ML.Runtime.Api
             SchemaDefinition inputSchemaDefinition = null, SchemaDefinition outputSchemaDefinition = null)
             : base(env, RegistrationName, saveAction, loadFunc)
         {
-            Host.AssertValue(source, "source");
-            Host.AssertValue(mapAction, "mapAction");
+            Host.AssertValue(source);
+            Host.AssertValue(mapAction);
             Host.AssertValueOrNull(inputSchemaDefinition);
             Host.AssertValueOrNull(outputSchemaDefinition);
 
-            _source = source;
+            Source = source;
             _mapAction = mapAction;
             _inputSchemaDefinition = inputSchemaDefinition;
             _typedSource = TypedCursorable<TSrc>.Create(Host, Source, false, inputSchemaDefinition);
@@ -69,7 +67,7 @@ namespace Microsoft.ML.Runtime.Api
                ? InternalSchemaDefinition.Create(typeof(TDst), SchemaDefinition.Direction.Write)
                : InternalSchemaDefinition.Create(typeof(TDst), outputSchemaDefinition);
 
-            _schema = MergedSchema.Create(_source.Schema, outSchema);
+            _schema = MergedSchema.Create(Source.Schema, outSchema);
         }
 
         /// <summary>
@@ -81,26 +79,20 @@ namespace Microsoft.ML.Runtime.Api
             Host.AssertValue(transform);
             Host.AssertValue(newSource);
 
-            _source = newSource;
+            Source = newSource;
             _mapAction = transform._mapAction;
             _typedSource = TypedCursorable<TSrc>.Create(Host, newSource, false, transform._inputSchemaDefinition);
 
             _schema = MergedSchema.Create(newSource.Schema, transform._schema.AddedSchema);
         }
 
-        public bool CanShuffle
-        {
-            get { return _source.CanShuffle; }
-        }
+        public bool CanShuffle => Source.CanShuffle;
 
-        public ISchema Schema
-        {
-            get { return _schema; }
-        }
+        public ISchema Schema => _schema;
 
         public long? GetRowCount(bool lazy = true)
         {
-            return _source.GetRowCount(lazy);
+            return Source.GetRowCount(lazy);
         }
 
         public IRowCursor GetRowCursor(Func<int, bool> predicate, IRandom rand = null)
@@ -136,10 +128,7 @@ namespace Microsoft.ML.Runtime.Api
             return cursors;
         }
 
-        public IDataView Source
-        {
-            get { return _source; }
-        }
+        public IDataView Source { get; }
 
         public IDataTransform ApplyToData(IHostEnvironment env, IDataView newSource)
         {
@@ -161,13 +150,13 @@ namespace Microsoft.ML.Runtime.Api
             return _typedSource.GetDependencies(srcPredicate);
         }
 
-        ISchema IRowToRowMapper.InputSchema => _source.Schema;
+        ISchema IRowToRowMapper.InputSchema => Source.Schema;
 
         public IRow GetRow(IRow input, Func<int, bool> active, out Action disposer)
         {
             Host.CheckValue(input, nameof(input));
             Host.CheckValue(active, nameof(active));
-            Host.CheckParam(input.Schema == _source.Schema, nameof(input), "Schema of input row must be the same as the schema the mapper is bound to");
+            Host.CheckParam(input.Schema == Source.Schema, nameof(input), "Schema of input row must be the same as the schema the mapper is bound to");
 
             var src = new TSrc();
             var dst = new TDst();
@@ -234,7 +223,7 @@ namespace Microsoft.ML.Runtime.Api
                     () =>
                     {
                         if (!IsGood)
-                            throw Contracts.Except("Getter is called when the cursor is {0}, which is not allowed.", Input.State);
+                            throw Ch.Except("Getter is called when the cursor is {0}, which is not allowed.", Input.State);
                     };
                 return _row.GetGetterCore<TValue>(col, isGood);
             }
@@ -253,7 +242,6 @@ namespace Microsoft.ML.Runtime.Api
 
         private sealed class Row : IRow
         {
-            private readonly ISchema _schema;
             private readonly IRow<TSrc> _input;
             private readonly IRow _appendedRow;
             private readonly bool[] _active;
@@ -269,15 +257,15 @@ namespace Microsoft.ML.Runtime.Api
 
             public long Position => _input.Position;
 
-            public ISchema Schema => _schema;
+            public ISchema Schema { get; }
 
             public Row(IRow<TSrc> input, MapTransform<TSrc, TDst> parent, Func<int, bool> active, TSrc src, TDst dst)
             {
                 _input = input;
                 _parent = parent;
-                _schema = parent.Schema;
+                Schema = parent.Schema;
 
-                _active = Utils.BuildArray(_schema.ColumnCount, active);
+                _active = Utils.BuildArray(Schema.ColumnCount, active);
                 _src = src;
                 _dst = dst;
 
@@ -321,7 +309,7 @@ namespace Microsoft.ML.Runtime.Api
 
             public bool IsColumnActive(int col)
             {
-                _parent.Host.Check(0 <= col && col < _schema.ColumnCount);
+                _parent.Host.Check(0 <= col && col < Schema.ColumnCount);
                 return _active[col];
             }
         }

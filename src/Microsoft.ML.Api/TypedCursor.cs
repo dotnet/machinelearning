@@ -27,6 +27,21 @@ namespace Microsoft.ML.Runtime.Api
     }
 
     /// <summary>
+    /// This interface is an <see cref="IRow"/> with 'stringly typed' binding.
+    /// It can accept values of type <typeparamref name="TRow"/> and present the value as a row.
+    /// </summary>
+    /// <typeparam name="TRow"></typeparam>
+    public interface IInputRow<TRow> : IRow
+        where TRow : class
+    {
+        /// <summary>
+        /// Accepts the fields of the user-supplied <paramref name="row"/> object and publishes the instance as a row.
+        /// </summary>
+        /// <param name="row">The row object. Cannot be null.</param>
+        void AcceptValues(TRow row);
+    }
+
+    /// <summary>
     /// This interface provides cursoring through a <see cref="IDataView"/> via a 'strongly typed' binding.
     /// It can populate the user-supplied object's fields with the values of the current row.
     /// </summary>
@@ -239,11 +254,11 @@ namespace Microsoft.ML.Runtime.Api
             private readonly IRow _input;
             private readonly Action<TRow>[] _setters;
 
-            public long Batch { get { return _input.Batch; } }
+            public long Batch => _input.Batch;
 
-            public long Position { get { return _input.Position; } }
+            public long Position => _input.Position;
 
-            public ISchema Schema { get { return _input.Schema; } }
+            public ISchema Schema => _input.Schema;
 
             public TypedRowBase(TypedCursorable<TRow> parent, IRow input, string channelMessage)
             {

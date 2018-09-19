@@ -30,6 +30,7 @@ namespace Microsoft.ML.Runtime.Data
             Contracts.CheckValueOrNull(mappers);
             _innerMappers = Utils.Size(mappers) > 0 ? mappers : _empty;
             InputSchema = inputSchema;
+            Schema = Utils.Size(mappers) > 0 ? mappers[mappers.Length - 1].Schema : inputSchema;
         }
 
         public Func<int, bool> GetDependencies(Func<int, bool> predicate)
@@ -67,7 +68,7 @@ namespace Microsoft.ML.Runtime.Data
             // computed based on the dependencies of the next one in the chain.
             var deps = new Func<int, bool>[_innerMappers.Length];
             deps[deps.Length - 1] = active;
-            for (int i = deps.Length - 1; i <= 1; --i)
+            for (int i = deps.Length - 1; i >= 1; --i)
                 deps[i - 1] = _innerMappers[i].GetDependencies(deps[i]);
 
             IRow result = input;

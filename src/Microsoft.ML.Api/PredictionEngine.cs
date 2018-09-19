@@ -8,6 +8,8 @@ using System.Collections.Generic;
 using System.IO;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Model;
+using Microsoft.ML.Core.Data;
+using System;
 
 namespace Microsoft.ML.Runtime.Api
 {
@@ -38,21 +40,7 @@ namespace Microsoft.ML.Runtime.Api
 
             // Initialize pipe.
             _srcDataView = DataViewConstructionUtils.CreateFromEnumerable(env, new TSrc[] { }, inputSchemaDefinition);
-
-            // Load transforms.
-            var pipe = env.LoadTransforms(modelStream, _srcDataView);
-
-            // Load predictor (if present) and apply default scorer.
-            // REVIEW: distinguish the case of predictor / no predictor?
-            var predictor = env.LoadPredictorOrNull(modelStream);
-            if (predictor != null)
-            {
-                var roles = ModelFileUtils.LoadRoleMappingsOrNull(env, modelStream);
-                pipe = roles != null
-                    ? env.CreateDefaultScorer(new RoleMappedData(pipe, roles, opt: true), predictor)
-                    : env.CreateDefaultScorer(new RoleMappedData(pipe, label: null, "Features"), predictor);
-            }
-
+            var pipe = DataViewConstructionUtils.LoadPipeWithPredictor(env, modelStream, _srcDataView);
             _pipeEngine = new PipeEngine<TDst>(env, pipe, ignoreMissingColumns, outputSchemaDefinition);
         }
 
@@ -150,24 +138,64 @@ namespace Microsoft.ML.Runtime.Api
         where TSrc : class
         where TDst : class, new()
     {
-        private readonly BatchPredictionEngine<TSrc, TDst> _engine;
+        private readonly DataViewConstructionUtils.InputRow<TSrc> _inputRow;
+        private readonly IRow<TDst> _outputRow;
+        private readonly Action _disposer;
+        private TDst _result;
 
         internal PredictionEngine(IHostEnvironment env, Stream modelStream, bool ignoreMissingColumns,
             SchemaDefinition inputSchemaDefinition = null, SchemaDefinition outputSchemaDefinition = null)
+            : this(env, StreamChecker(env, modelStream), ignoreMissingColumns, inputSchemaDefinition, outputSchemaDefinition)
         {
-            Contracts.CheckValue(env, nameof(env));
-            var singleThreadedEnv = env.Register("SingleThreaded", conc: 1);
-            _engine = new BatchPredictionEngine<TSrc, TDst>(singleThreadedEnv, modelStream, ignoreMissingColumns,
-                inputSchemaDefinition, outputSchemaDefinition);
+        }
+
+        private static Func<ISchema, IRowToRowMapper> StreamChecker(IHostEnvironment env, Stream modelStream)
+        {
+            env.CheckValue(modelStream, nameof(modelStream));
+            return schema =>
+            {
+                var pipe = DataViewConstructionUtils.LoadPipeWithPredictor(env, modelStream, new EmptyDataView(env, schema));
+                var transformer = new TransformWrapper(env, pipe);
+                env.CheckParam(transformer.IsRowToRowMapper, nameof(transformer), "Must be a row to row mapper");
+                return transformer.GetRowToRowMapper(schema);
+            };
         }
 
         internal PredictionEngine(IHostEnvironment env, IDataView dataPipe, bool ignoreMissingColumns,
             SchemaDefinition inputSchemaDefinition = null, SchemaDefinition outputSchemaDefinition = null)
+            : this(env, new TransformWrapper(env, env.CheckRef(dataPipe, nameof(dataPipe))), ignoreMissingColumns, inputSchemaDefinition, outputSchemaDefinition)
+        {
+        }
+
+        internal PredictionEngine(IHostEnvironment env, ITransformer transformer, bool ignoreMissingColumns,
+            SchemaDefinition inputSchemaDefinition = null, SchemaDefinition outputSchemaDefinition = null)
+            : this(env, TransformerChecker(env, transformer), ignoreMissingColumns, inputSchemaDefinition, outputSchemaDefinition)
+        {
+        }
+
+        private static Func<ISchema, IRowToRowMapper> TransformerChecker(IExceptionContext ectx, ITransformer transformer)
+        {
+            ectx.CheckValue(transformer, nameof(transformer));
+            ectx.CheckParam(transformer.IsRowToRowMapper, nameof(transformer), "Must be a row to row mapper");
+            return transformer.GetRowToRowMapper;
+        }
+
+        private PredictionEngine(IHostEnvironment env, Func<ISchema, IRowToRowMapper> makeMapper, bool ignoreMissingColumns,
+                 SchemaDefinition inputSchemaDefinition, SchemaDefinition outputSchemaDefinition)
         {
             Contracts.CheckValue(env, nameof(env));
-            var singleThreadedEnv = env.Register("SingleThreaded", conc: 1);
-            _engine = new BatchPredictionEngine<TSrc, TDst>(singleThreadedEnv, dataPipe, ignoreMissingColumns,
-                inputSchemaDefinition, outputSchemaDefinition);
+            env.AssertValue(makeMapper);
+
+            _inputRow = DataViewConstructionUtils.CreateInputRow<TSrc>(env, inputSchemaDefinition);
+            var mapper = makeMapper(_inputRow.Schema);
+            var cursorable = TypedCursorable<TDst>.Create(env, new EmptyDataView(env, mapper.Schema), ignoreMissingColumns, outputSchemaDefinition);
+            var outputRow = mapper.GetRow(_inputRow, col => true, out _disposer);
+            _outputRow = cursorable.GetRow(outputRow);
+        }
+
+        ~PredictionEngine()
+        {
+            _disposer?.Invoke();
         }
 
         /// <summary>
@@ -178,21 +206,11 @@ namespace Microsoft.ML.Runtime.Api
         public TDst Predict(TSrc example)
         {
             Contracts.CheckValue(example, nameof(example));
-            int count = 0;
-            TDst result = null;
-            foreach (var item in _engine.Predict(new[] { example }, true))
-            {
-                if (count == 0)
-                    result = item;
-
-                count++;
-                if (count > 1)
-                    break;
-            }
-
-            if (count > 1)
-                throw Contracts.Except("Prediction pipeline must return at most one prediction per example. If it isn't, use BatchPredictionEngine.");
-            return result;
+            _inputRow.AcceptValues(example);
+            if (_result == null)
+                _result = new TDst();
+            _outputRow.FillValues(_result);
+            return _result;
         }
     }
 
