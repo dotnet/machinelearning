@@ -5,6 +5,7 @@
 using Float = System.Single;
 
 using System;
+using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
@@ -27,7 +28,7 @@ using Microsoft.ML.Runtime.Internal.Internallearn;
 namespace Microsoft.ML.Runtime.Learners
 {
     /// <include file='doc.xml' path='doc/members/member[@name="PoissonRegression"]/*' />
-    public sealed class PoissonRegression : LbfgsTrainerBase<Float, PoissonRegressionPredictor>
+    public sealed class PoissonRegression : LbfgsTrainerBase<RegressionPredictionTransformer<PoissonRegressionPredictor>, PoissonRegressionPredictor>
     {
         internal const string LoadNameValue = "PoissonRegression";
         internal const string UserNameValue = "Poisson Regression";
@@ -52,6 +53,19 @@ namespace Microsoft.ML.Runtime.Learners
             Contracts.AssertValue(data);
             data.CheckRegressionLabel();
         }
+
+        protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema)
+        {
+            return new[]
+            {
+                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata())),
+                new SchemaShape.Column(DefaultColumnNames.Probability, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata(true))),
+                new SchemaShape.Column(DefaultColumnNames.PredictedLabel, SchemaShape.Column.VectorKind.Scalar, BoolType.Instance, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata()))
+            };
+        }
+
+        protected override RegressionPredictionTransformer<PoissonRegressionPredictor> MakeTransformer(PoissonRegressionPredictor model, ISchema trainSchema)
+            => new RegressionPredictionTransformer<PoissonRegressionPredictor>(Host, model, trainSchema, FeatureColumn.Name);
 
         protected override VBuffer<Float> InitializeWeightsFromPredictor(PoissonRegressionPredictor srcPredictor)
         {

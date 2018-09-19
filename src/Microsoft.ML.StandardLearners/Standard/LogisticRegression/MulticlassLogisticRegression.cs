@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
@@ -38,7 +39,7 @@ namespace Microsoft.ML.Runtime.Learners
 {
     /// <include file = 'doc.xml' path='doc/members/member[@name="LBFGS"]/*' />
     /// <include file = 'doc.xml' path='docs/members/example[@name="LogisticRegressionClassifier"]/*' />
-    public sealed class MulticlassLogisticRegression : LbfgsTrainerBase<VBuffer<Float>, MulticlassLogisticRegressionPredictor>
+    public sealed class MulticlassLogisticRegression : LbfgsTrainerBase<MulticlassPredictionTransformer<MulticlassLogisticRegressionPredictor>, MulticlassLogisticRegressionPredictor>
     {
         public const string LoadNameValue = "MultiClassLogisticRegression";
         internal const string UserNameValue = "Multi-class Logistic Regression";
@@ -277,6 +278,19 @@ namespace Microsoft.ML.Runtime.Learners
             Contracts.Assert(0 <= iLabel && iLabel < _numClasses);
             _prior[iLabel] += weight;
         }
+
+        protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema)
+        {
+            return new[]
+            {
+                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata())),
+                new SchemaShape.Column(DefaultColumnNames.Probability, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata(true))),
+                new SchemaShape.Column(DefaultColumnNames.PredictedLabel, SchemaShape.Column.VectorKind.Scalar, BoolType.Instance, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata()))
+            };
+        }
+
+        protected override MulticlassPredictionTransformer<MulticlassLogisticRegressionPredictor> MakeTransformer(MulticlassLogisticRegressionPredictor model, ISchema trainSchema)
+            => new MulticlassPredictionTransformer<MulticlassLogisticRegressionPredictor>(Host, model, trainSchema, FeatureColumn.Name, LabelColumn.Name);
     }
 
     public sealed class MulticlassLogisticRegressionPredictor :

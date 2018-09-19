@@ -14,17 +14,21 @@ using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Numeric;
 using Microsoft.ML.Runtime.Training;
 using Microsoft.ML.Runtime.Internal.Internallearn;
+using Microsoft.ML.Core.Data;
 
 namespace Microsoft.ML.Runtime.Learners
 {
-    public abstract class LbfgsTrainerBase<TOutput, TPredictor> : TrainerBase<TPredictor>
-        where TPredictor : class, IPredictorProducing<TOutput>
+    //public abstract class LbfgsTrainerBase<TOutput, TPredictor> : TrainerBase<TPredictor>
+    //    where TPredictor : class, IPredictorProducing<TOutput>
+    public abstract class LbfgsTrainerBase<TTransformer, TModel> : TrainerEstimatorBase<TTransformer, TModel>
+      where TTransformer : IPredictionTransformer<TModel>
+      where TModel : IPredictor
     {
         public abstract class ArgumentsBase : LearnerInputBaseWithWeight
         {
             [Argument(ArgumentType.AtMostOnce, HelpText = "L2 regularization weight", ShortName = "l2", SortOrder = 50)]
             [TGUI(Label = "L2 Weight", Description = "Weight of L2 regularizer term", SuggestedSweeps = "0,0.1,1")]
-            [TlcModule.SweepableFloatParamAttribute(0.0f, 1.0f, numSteps:4)]
+            [TlcModule.SweepableFloatParamAttribute(0.0f, 1.0f, numSteps: 4)]
             public Float L2Weight = 1;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "L1 regularization weight", ShortName = "l1", SortOrder = 50)]
@@ -35,7 +39,7 @@ namespace Microsoft.ML.Runtime.Learners
             [Argument(ArgumentType.AtMostOnce, HelpText = "Tolerance parameter for optimization convergence. Lower = slower, more accurate",
                 ShortName = "ot", SortOrder = 50)]
             [TGUI(Label = "Optimization Tolerance", Description = "Threshold for optimizer convergence", SuggestedSweeps = "1e-4,1e-7")]
-            [TlcModule.SweepableDiscreteParamAttribute(new object[] {1e-4f, 1e-7f})]
+            [TlcModule.SweepableDiscreteParamAttribute(new object[] { 1e-4f, 1e-7f })]
             public Float OptTol = (Float)1e-7;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Memory size for L-BFGS. Lower=faster, less accurate",
@@ -70,7 +74,7 @@ namespace Microsoft.ML.Runtime.Learners
             /// </summary>
             [Argument(ArgumentType.LastOccurenceWins, HelpText = "Init weights diameter", ShortName = "initwts", SortOrder = 140)]
             [TGUI(Label = "Initial Weights Scale", SuggestedSweeps = "0,0.1,0.5,1")]
-            [TlcModule.SweepableFloatParamAttribute("InitWtsDiameter", 0.0f, 1.0f, numSteps:5)]
+            [TlcModule.SweepableFloatParamAttribute("InitWtsDiameter", 0.0f, 1.0f, numSteps: 5)]
             public Float InitWtsDiameter = 0;
 
             // Deprecated
@@ -97,7 +101,9 @@ namespace Microsoft.ML.Runtime.Learners
         protected long NumGoodRows;
         protected Double WeightSum;
 
-        private TPredictor _srcPredictor;
+#pragma warning disable 0649
+        private TModel _srcPredictor;
+#pragma warning restore 0649
 
         protected readonly Float L2Weight;
         protected readonly Float L1Weight;
@@ -138,7 +144,7 @@ namespace Microsoft.ML.Runtime.Learners
         public override TrainerInfo Info => _info;
 
         internal LbfgsTrainerBase(ArgumentsBase args, IHostEnvironment env, string name, bool showTrainingStats = false)
-            : base(env, name)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(name), MakeFeatureColumn(args.FeatureColumn), MakeFeatureColumn(args.LabelColumn), MakeWeightColumn(args.WeightColumn))
         {
             Contracts.CheckUserArg(!args.UseThreads || args.NumThreads > 0 || args.NumThreads == null,
                 nameof(args.NumThreads), "numThreads must be positive (or empty for default)");
@@ -283,7 +289,7 @@ namespace Microsoft.ML.Runtime.Learners
             return result;
         }
 
-        protected abstract VBuffer<Float> InitializeWeightsFromPredictor(TPredictor srcPredictor);
+        protected abstract VBuffer<Float> InitializeWeightsFromPredictor(TModel srcPredictor);
 
         protected abstract void CheckLabel(RoleMappedData data);
 
@@ -291,17 +297,20 @@ namespace Microsoft.ML.Runtime.Learners
         {
         }
 
-        protected abstract TPredictor CreatePredictor();
+        protected abstract TModel CreatePredictor();
 
         /// <summary>
         /// The basic training calls the optimizer
         /// </summary>
-        public override TPredictor Train(TrainContext context)
+        protected override TModel TrainModelCore(TrainContext context)
         {
             Contracts.CheckValue(context, nameof(context));
+            Host.CheckParam(context.InitialPredictor == null || context.InitialPredictor is TModel, nameof(context.InitialPredictor));
+
+            if (context.InitialPredictor != null)
+                _srcPredictor = (TModel)context.InitialPredictor;
 
             var data = context.TrainingSet;
-            _srcPredictor = context.TrainingSet as TPredictor;
             data.CheckFeatureFloatVector(out NumFeatures);
             CheckLabel(data);
             data.CheckOptFloatWeight();
@@ -321,7 +330,7 @@ namespace Microsoft.ML.Runtime.Learners
             }
         }
 
-        private void TrainCore(IChannel ch, RoleMappedData data)
+        protected virtual void TrainCore(IChannel ch, RoleMappedData data)
         {
             Host.AssertValue(ch);
             ch.AssertValue(data);
@@ -669,6 +678,19 @@ namespace Microsoft.ML.Runtime.Learners
             Contracts.Check(i == initWeights.Length, featError);
 
             return new VBuffer<Float>(initWeights.Length, initWeights);
+        }
+
+        private static SchemaShape.Column MakeFeatureColumn(string featureColumn)
+            => new SchemaShape.Column(featureColumn, SchemaShape.Column.VectorKind.Vector, NumberType.R4, false);
+
+        private static SchemaShape.Column MakeLabelColumn(string labelColumn)
+            => new SchemaShape.Column(labelColumn, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false);
+
+        private static SchemaShape.Column MakeWeightColumn(string weightColumn)
+        {
+            if (weightColumn == null)
+                return null;
+            return new SchemaShape.Column(weightColumn, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false);
         }
     }
 }
