@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
@@ -10,6 +11,7 @@ using Microsoft.ML.Runtime.FastTree.Internal;
 using Microsoft.ML.Runtime.Internal.Internallearn;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.Training;
+using System;
 
 [assembly: LoadableClass(RegressionGamTrainer.Summary,
     typeof(RegressionGamTrainer), typeof(RegressionGamTrainer.Arguments),
@@ -24,8 +26,7 @@ using Microsoft.ML.Runtime.Training;
 
 namespace Microsoft.ML.Runtime.FastTree
 {
-    public sealed class RegressionGamTrainer :
-    GamTrainerBase<RegressionGamTrainer.Arguments, RegressionGamPredictor>
+    public sealed class RegressionGamTrainer : GamTrainerBase<RegressionGamTrainer.Arguments, RegressionPredictionTransformer<RegressionGamPredictor>, RegressionGamPredictor>
     {
         public partial class Arguments : ArgumentsBase
         {
@@ -41,14 +42,17 @@ namespace Microsoft.ML.Runtime.FastTree
         public override PredictionKind PredictionKind => PredictionKind.Regression;
 
         public RegressionGamTrainer(IHostEnvironment env, Arguments args)
-            : base(env, args) { }
+             : base(env, args, LoadNameValue, TrainerUtils.MakeR4VecLabel(args.LabelColumn)) { }
+
+        public RegressionGamTrainer(IHostEnvironment env, string labelColumn, string featureColumn, string weightColumn = null, Action<Arguments> advancedSettings = null)
+            : base(env, LoadNameValue, TrainerUtils.MakeR4VecLabel(labelColumn), featureColumn, weightColumn, advancedSettings) { }
 
         internal override void CheckLabel(RoleMappedData data)
         {
             data.CheckRegressionLabel();
         }
 
-        public override RegressionGamPredictor Train(TrainContext context)
+        protected override RegressionGamPredictor TrainModelCore(TrainContext context)
         {
             TrainBase(context);
             return new RegressionGamPredictor(Host, InputLength, TrainSet, MeanEffect, BinEffects, FeatureMap);
@@ -65,6 +69,17 @@ namespace Microsoft.ML.Runtime.FastTree
             // Because we specify pruning metrics as L2 by default, the results array will have 1 value
             PruningLossIndex = 0;
             PruningTest = new TestHistory(validTest, PruningLossIndex);
+        }
+
+        protected override RegressionPredictionTransformer<RegressionGamPredictor> MakeTransformer(RegressionGamPredictor model, ISchema trainSchema)
+            => new RegressionPredictionTransformer<RegressionGamPredictor>(Host, model, trainSchema, FeatureColumn.Name);
+
+        protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema)
+        {
+            return new[]
+            {
+                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata()))
+            };
         }
     }
 

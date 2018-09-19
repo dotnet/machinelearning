@@ -132,7 +132,6 @@ namespace Microsoft.ML.Runtime.FastTree
 
         public override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
         private protected override bool NeedCalibration => true;
-        private readonly SchemaShape.Column[] _outputColumns;
 
         /// <summary>
         /// Initializes a new instance of <see cref="FastForestClassification"/>
@@ -147,12 +146,6 @@ namespace Microsoft.ML.Runtime.FastTree
             string groupIdColumn = null, string weightColumn = null, Action<Arguments> advancedSettings = null)
             : base(env, MakeLabelColumn(labelColumn), featureColumn, weightColumn, groupIdColumn, advancedSettings: advancedSettings)
         {
-            _outputColumns = new[]
-            {
-                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false),
-                new SchemaShape.Column(DefaultColumnNames.Probability, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false),
-                new SchemaShape.Column(DefaultColumnNames.PredictedLabel, SchemaShape.Column.VectorKind.Scalar, BoolType.Instance, false)
-            };
         }
 
         /// <summary>
@@ -161,12 +154,6 @@ namespace Microsoft.ML.Runtime.FastTree
         public FastForestClassification(IHostEnvironment env, Arguments args)
             : base(env, args, MakeLabelColumn(args.LabelColumn))
         {
-            _outputColumns = new[]
-            {
-                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false),
-                new SchemaShape.Column(DefaultColumnNames.Probability, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false),
-                new SchemaShape.Column(DefaultColumnNames.PredictedLabel, SchemaShape.Column.VectorKind.Scalar, BoolType.Instance, false)
-            };
         }
 
         protected override IPredictorWithFeatureWeights<float> TrainModelCore(TrainContext context)
@@ -220,7 +207,15 @@ namespace Microsoft.ML.Runtime.FastTree
         protected override BinaryPredictionTransformer<IPredictorWithFeatureWeights<float>> MakeTransformer(IPredictorWithFeatureWeights<float> model, ISchema trainSchema)
          => new BinaryPredictionTransformer<IPredictorWithFeatureWeights<float>>(Host, model, trainSchema, FeatureColumn.Name);
 
-        protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema) => _outputColumns;
+        protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema)
+        {
+            return new[]
+            {
+                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false),
+                new SchemaShape.Column(DefaultColumnNames.Probability, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false),
+                new SchemaShape.Column(DefaultColumnNames.PredictedLabel, SchemaShape.Column.VectorKind.Scalar, BoolType.Instance, false)
+            };
+        }
 
         private sealed class ObjectiveFunctionImpl : RandomForestObjectiveFunction
         {

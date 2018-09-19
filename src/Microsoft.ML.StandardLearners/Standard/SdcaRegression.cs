@@ -52,40 +52,18 @@ namespace Microsoft.ML.Runtime.Learners
 
         public override PredictionKind PredictionKind => PredictionKind.Regression;
 
-        private readonly SchemaShape.Column[] _outputColumns;
-        protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema) => _outputColumns;
-
         public SdcaRegressionTrainer(IHostEnvironment env, Arguments args, string featureColumn, string labelColumn, string weightColumn = null)
-            : base(Contracts.CheckRef(env, nameof(env)).Register(LoadNameValue), args, MakeFeatureColumn(featureColumn), MakeLabelColumn(labelColumn), MakeWeightColumn(weightColumn))
+            : base(Contracts.CheckRef(env, nameof(env)).Register(LoadNameValue), args, TrainerUtils.MakeR4VecFeature(featureColumn),
+                  TrainerUtils.MakeR4ScalarLabel(labelColumn), TrainerUtils.MakeR4ScalarWeightColumn(weightColumn))
         {
             _loss = args.LossFunction.CreateComponent(env);
             Loss = _loss;
             _args = args;
-            _outputColumns = new[]
-            {
-                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata()))
-            };
         }
 
         public SdcaRegressionTrainer(IHostEnvironment env, Arguments args)
             : this(env, args, args.FeatureColumn, args.LabelColumn)
         {
-        }
-        private static SchemaShape.Column MakeWeightColumn(string weightColumn)
-        {
-            if (weightColumn == null)
-                return null;
-            return new SchemaShape.Column(weightColumn, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false);
-        }
-
-        private static SchemaShape.Column MakeLabelColumn(string labelColumn)
-        {
-            return new SchemaShape.Column(labelColumn, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false);
-        }
-
-        private static SchemaShape.Column MakeFeatureColumn(string featureColumn)
-        {
-            return new SchemaShape.Column(featureColumn, SchemaShape.Column.VectorKind.Vector, NumberType.R4, false);
         }
 
         protected override LinearRegressionPredictor CreatePredictor(VBuffer<Float>[] weights, Float[] bias)
@@ -141,6 +119,14 @@ namespace Microsoft.ML.Runtime.Learners
 
             ch.Info("Auto-tuning parameters: L2 = {0}.", l2);
             return l2;
+        }
+
+        protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema)
+        {
+            return new[]
+            {
+                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata()))
+            };
         }
 
         protected override RegressionPredictionTransformer<LinearRegressionPredictor> MakeTransformer(LinearRegressionPredictor model, ISchema trainSchema)

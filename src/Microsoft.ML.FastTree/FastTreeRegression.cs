@@ -51,8 +51,6 @@ namespace Microsoft.ML.Runtime.FastTree
         /// </summary>
         public override PredictionKind PredictionKind => PredictionKind.Regression;
 
-        private readonly SchemaShape.Column[] _outputColumns;
-
         /// <summary>
         /// Initializes a new instance of <see cref="FastTreeRegressionTrainer"/>
         /// </summary>
@@ -64,24 +62,16 @@ namespace Microsoft.ML.Runtime.FastTree
         /// <param name="advancedSettings">A delegate to apply all the advanced arguments to the algorithm.</param>
         public FastTreeRegressionTrainer(IHostEnvironment env, string labelColumn, string featureColumn,
             string weightColumn = null, string groupIdColumn = null, Action<Arguments> advancedSettings = null)
-            : base(env, MakeLabelColumn(labelColumn), featureColumn, weightColumn, groupIdColumn, advancedSettings)
+            : base(env, TrainerUtils.MakeR4ScalarLabel(labelColumn), featureColumn, weightColumn, groupIdColumn, advancedSettings)
         {
-            _outputColumns = new[]
-            {
-                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata()))
-            };
         }
 
         /// <summary>
         /// Initializes a new instance of <see cref="FastTreeRegressionTrainer"/> by using the legacy <see cref="Arguments"/> class.
         /// </summary>
         public FastTreeRegressionTrainer(IHostEnvironment env, Arguments args)
-            : base(env, args, MakeLabelColumn(args.LabelColumn))
+            : base(env, args, TrainerUtils.MakeR4ScalarLabel(args.LabelColumn))
         {
-            _outputColumns = new[]
-            {
-                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata()))
-            };
         }
 
         protected override FastTreeRegressionPredictor TrainModelCore(TrainContext context)
@@ -166,7 +156,13 @@ namespace Microsoft.ML.Runtime.FastTree
         protected override RegressionPredictionTransformer<FastTreeRegressionPredictor> MakeTransformer(FastTreeRegressionPredictor model, ISchema trainSchema)
             => new RegressionPredictionTransformer<FastTreeRegressionPredictor>(Host, model, trainSchema, FeatureColumn.Name);
 
-        protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema) => _outputColumns;
+        protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema)
+        {
+            return new[]
+            {
+                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata()))
+            };
+        }
 
         private void AddFullRegressionTests()
         {

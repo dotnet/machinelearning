@@ -2,12 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Float = System.Single;
-
-using System;
-using System.Collections.Generic;
+using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Internal.Utilities;
+using System;
+using System.Collections.Generic;
+using Float = System.Single;
 
 namespace Microsoft.ML.Runtime.Training
 {
@@ -347,6 +347,41 @@ namespace Microsoft.ML.Runtime.Training
         {
             Contracts.CheckValue(data, nameof(data));
             return GetOptGroupGetter(row, data.Schema);
+        }
+
+        public static SchemaShape.Column MakeBoolScalarLabel(string labelColumn)
+        {
+            return new SchemaShape.Column(labelColumn, SchemaShape.Column.VectorKind.Scalar, BoolType.Instance, false);
+        }
+
+        public static SchemaShape.Column MakeR4ScalarLabel(string labelColumn)
+        {
+            return new SchemaShape.Column(labelColumn, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false);
+        }
+
+        public static SchemaShape.Column MakeU4ScalarLabel(string labelColumn)
+        {
+            return new SchemaShape.Column(labelColumn, SchemaShape.Column.VectorKind.Scalar, NumberType.U4, true);
+        }
+
+        /// <summary>
+        /// The <see cref="SchemaShape.Column"/> for the feature column.
+        /// </summary>
+        /// <param name="featureColumn">name of the feature column</param>
+        public static SchemaShape.Column MakeR4VecFeature(string featureColumn)
+        {
+            return new SchemaShape.Column(featureColumn, SchemaShape.Column.VectorKind.Vector, NumberType.R4, false);
+        }
+
+        /// <summary>
+        /// The <see cref="SchemaShape.Column"/> for the feature column.
+        /// </summary>
+        /// <param name="weightColumn">name of the feature column</param>
+        public static SchemaShape.Column MakeR4ScalarWeightColumn(string weightColumn)
+        {
+            if (weightColumn == null)
+                return null;
+            return new SchemaShape.Column(weightColumn, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false);
         }
     }
 

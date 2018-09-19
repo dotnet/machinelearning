@@ -4,12 +4,15 @@
 
 using System;
 using System.Globalization;
+using System.Linq;
+using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Calibration;
 using Microsoft.ML.Runtime.Learners;
 using Microsoft.ML.Runtime.LightGBM;
+using Microsoft.ML.Runtime.Training;
 
 [assembly: LoadableClass(LightGbmMulticlassTrainer.Summary, typeof(LightGbmMulticlassTrainer), typeof(LightGbmArguments),
     new[] { typeof(SignatureMultiClassClassifierTrainer), typeof(SignatureTrainer) },
@@ -19,7 +22,7 @@ namespace Microsoft.ML.Runtime.LightGBM
 {
 
     /// <include file='doc.xml' path='doc/members/member[@name="LightGBM"]/*' />
-    public sealed class LightGbmMulticlassTrainer : LightGbmTrainerBase<VBuffer<float>, OvaPredictor>
+    public sealed class LightGbmMulticlassTrainer : LightGbmTrainerBase<VBuffer<float>, MulticlassPredictionTransformer<OvaPredictor>, OvaPredictor>
     {
         public const string Summary = "LightGBM Multi Class Classifier";
         public const string LoadNameValue = "LightGBMMulticlass";
@@ -32,7 +35,14 @@ namespace Microsoft.ML.Runtime.LightGBM
         public override PredictionKind PredictionKind => PredictionKind.MultiClassClassification;
 
         public LightGbmMulticlassTrainer(IHostEnvironment env, LightGbmArguments args)
-            : base(env, args, LoadNameValue)
+             : base(env, LoadNameValue, args, TrainerUtils.MakeBoolScalarLabel(args.LabelColumn))
+        {
+            _numClass = -1;
+        }
+
+        public LightGbmMulticlassTrainer(IHostEnvironment env, string labelColumn, string featureColumn,
+            string groupIdColumn = null, string weightColumn = null, Action<LightGbmArguments> advancedSettings = null)
+            : base(env, LoadNameValue, TrainerUtils.MakeBoolScalarLabel(labelColumn), featureColumn, weightColumn, groupIdColumn, advancedSettings)
         {
             _numClass = -1;
         }
@@ -174,6 +184,23 @@ namespace Microsoft.ML.Runtime.LightGBM
             if (!Options.ContainsKey("metric"))
                 Options["metric"] = "multi_error";
         }
+
+        protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema)
+        {
+            bool success = inputSchema.TryFindColumn(LabelColumn.Name, out var labelCol);
+            Contracts.Assert(success);
+
+            var metadata = new SchemaShape(labelCol.Metadata.Columns.Where(x => x.Name == MetadataUtils.Kinds.KeyValues)
+                .Concat(MetadataUtils.GetTrainerOutputMetadata()));
+            return new[]
+            {
+                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Vector, NumberType.R4, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata())),
+                new SchemaShape.Column(DefaultColumnNames.PredictedLabel, SchemaShape.Column.VectorKind.Scalar, NumberType.U4, true, metadata)
+            };
+        }
+
+        protected override MulticlassPredictionTransformer<OvaPredictor> MakeTransformer(OvaPredictor model, ISchema trainSchema)
+            => new MulticlassPredictionTransformer<OvaPredictor>(Host, model, trainSchema, FeatureColumn.Name, LabelColumn.Name);
     }
 
     /// <summary>

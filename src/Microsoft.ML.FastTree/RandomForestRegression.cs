@@ -2,18 +2,18 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
+using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.FastTree;
 using Microsoft.ML.Runtime.FastTree.Internal;
+using Microsoft.ML.Runtime.Internal.Internallearn;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.Training;
-using Microsoft.ML.Runtime.Internal.Internallearn;
-using Microsoft.ML.Core.Data;
+using System;
 
 [assembly: LoadableClass(FastForestRegression.Summary, typeof(FastForestRegression), typeof(FastForestRegression.Arguments),
     new[] { typeof(SignatureRegressorTrainer), typeof(SignatureTrainer), typeof(SignatureTreeEnsembleTrainer), typeof(SignatureFeatureScorerTrainer) },
@@ -154,8 +154,6 @@ namespace Microsoft.ML.Runtime.FastTree
         internal const string UserNameValue = "Fast Forest Regression";
         internal const string ShortName = "ffr";
 
-        private readonly SchemaShape.Column[] _outputColumns;
-
         /// <summary>
         /// Initializes a new instance of <see cref="FastForestRegression"/>
         /// </summary>
@@ -167,24 +165,16 @@ namespace Microsoft.ML.Runtime.FastTree
         /// <param name="advancedSettings">A delegate to apply all the advanced arguments to the algorithm.</param>
         public FastForestRegression(IHostEnvironment env, string labelColumn, string featureColumn,
             string groupIdColumn = null, string weightColumn = null, Action<Arguments> advancedSettings = null)
-            : base(env, MakeLabelColumn(labelColumn), featureColumn, weightColumn, groupIdColumn, true, advancedSettings)
+            : base(env, TrainerUtils.MakeR4ScalarLabel(labelColumn), featureColumn, weightColumn, groupIdColumn, true, advancedSettings)
         {
-            _outputColumns = new[]
-            {
-                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false)
-            };
         }
 
         /// <summary>
         /// Initializes a new instance of <see cref="FastForestRegression"/> by using the legacy <see cref="Arguments"/> class.
         /// </summary>
         public FastForestRegression(IHostEnvironment env, Arguments args)
-            : base(env, args, MakeLabelColumn(args.LabelColumn), true)
+            : base(env, args, TrainerUtils.MakeR4ScalarLabel(args.LabelColumn), true)
         {
-            _outputColumns = new[]
-            {
-                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false)
-            };
         }
 
         protected override FastForestRegressionPredictor TrainModelCore(TrainContext context)
@@ -224,12 +214,13 @@ namespace Microsoft.ML.Runtime.FastTree
         protected override RegressionPredictionTransformer<FastForestRegressionPredictor> MakeTransformer(FastForestRegressionPredictor model, ISchema trainSchema)
          => new RegressionPredictionTransformer<FastForestRegressionPredictor>(Host, model, trainSchema, FeatureColumn.Name);
 
-        private static SchemaShape.Column MakeLabelColumn(string labelColumn)
+        protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema)
         {
-            return new SchemaShape.Column(labelColumn, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false);
+            return new[]
+            {
+                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false)
+            };
         }
-
-        protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema) => _outputColumns;
 
         private abstract class ObjectiveFunctionImplBase : RandomForestObjectiveFunction
         {

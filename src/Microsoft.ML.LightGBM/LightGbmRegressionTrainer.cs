@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
@@ -9,6 +10,8 @@ using Microsoft.ML.Runtime.FastTree;
 using Microsoft.ML.Runtime.FastTree.Internal;
 using Microsoft.ML.Runtime.LightGBM;
 using Microsoft.ML.Runtime.Model;
+using Microsoft.ML.Runtime.Training;
+using System;
 
 [assembly: LoadableClass(LightGbmRegressorTrainer.Summary, typeof(LightGbmRegressorTrainer), typeof(LightGbmArguments),
     new[] { typeof(SignatureRegressorTrainer), typeof(SignatureTrainer), typeof(SignatureTreeEnsembleTrainer) },
@@ -28,7 +31,7 @@ namespace Microsoft.ML.Runtime.LightGBM
 
         private static VersionInfo GetVersionInfo()
         {
-            // REVIEW tfinley(guoke): can we decouple the version from FastTree predictor version ?
+            // REVIEW: can we decouple the version from FastTree predictor version ?
             return new VersionInfo(
                 modelSignature: "LGBSIREG",
                 // verWrittenCur: 0x00010001, // Initial
@@ -71,17 +74,24 @@ namespace Microsoft.ML.Runtime.LightGBM
         }
     }
 
-    public sealed class LightGbmRegressorTrainer : LightGbmTrainerBase<float, LightGbmRegressionPredictor>
+    /// <include file='doc.xml' path='doc/members/member[@name="LightGBM"]/*' />
+    public sealed class LightGbmRegressorTrainer : LightGbmTrainerBase<float, RegressionPredictionTransformer<LightGbmRegressionPredictor>, LightGbmRegressionPredictor>
     {
-        public const string Summary = "LightGBM Regression";
-        public const string LoadNameValue = "LightGBMRegression";
-        public const string ShortName = "LightGBMR";
-        public const string UserNameValue = "LightGBM Regressor";
+        internal const string Summary = "LightGBM Regression";
+        internal const string LoadNameValue = "LightGBMRegression";
+        internal const string ShortName = "LightGBMR";
+        internal const string UserNameValue = "LightGBM Regressor";
 
         public override PredictionKind PredictionKind => PredictionKind.Regression;
 
+        public LightGbmRegressorTrainer(IHostEnvironment env, string labelColumn, string featureColumn,
+            string groupIdColumn = null, string weightColumn = null, Action<LightGbmArguments> advancedSettings = null)
+            : base(env, LoadNameValue, TrainerUtils.MakeR4ScalarLabel(labelColumn), featureColumn, weightColumn, groupIdColumn, advancedSettings)
+        {
+        }
+
         public LightGbmRegressorTrainer(IHostEnvironment env, LightGbmArguments args)
-            : base(env, args, LoadNameValue)
+             : base(env, LoadNameValue, args, TrainerUtils.MakeR4ScalarLabel(args.LabelColumn))
         {
         }
 
@@ -112,6 +122,17 @@ namespace Microsoft.ML.Runtime.LightGBM
             if (!Options.ContainsKey("metric"))
                 Options["metric"] = "l2";
         }
+
+        protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema)
+        {
+            return new[]
+            {
+                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata()))
+            };
+        }
+
+        protected override RegressionPredictionTransformer<LightGbmRegressionPredictor> MakeTransformer(LightGbmRegressionPredictor model, ISchema trainSchema)
+            => new RegressionPredictionTransformer<LightGbmRegressionPredictor>(Host, model, trainSchema, FeatureColumn.Name);
     }
 
     /// <summary>

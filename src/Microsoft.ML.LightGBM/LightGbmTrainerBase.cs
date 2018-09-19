@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Training;
@@ -24,8 +25,9 @@ namespace Microsoft.ML.Runtime.LightGBM
     /// <summary>
     /// Base class for all training with LightGBM.
     /// </summary>
-    public abstract class LightGbmTrainerBase<TOutput, TPredictor> : TrainerBase<TPredictor>
-        where TPredictor : IPredictorProducing<TOutput>
+    public abstract class LightGbmTrainerBase<TOutput, TTransformer, TModel> : TrainerEstimatorBase<TTransformer, TModel>
+        where TTransformer : IPredictionTransformer<TModel>
+        where TModel : IPredictorProducing<TOutput>
     {
         private sealed class CategoricalMetaData
         {
@@ -44,8 +46,8 @@ namespace Microsoft.ML.Runtime.LightGBM
         /// the code is culture agnostic. When retrieving key value from this dictionary as string
         /// please convert to string invariant by string.Format(CultureInfo.InvariantCulture, "{0}", Option[key]).
         /// </summary>
-        private protected readonly Dictionary<string, object> Options;
-        private protected readonly IParallel ParallelTraining;
+        private protected Dictionary<string, object> Options;
+        private protected IParallel ParallelTraining;
 
         // Store _featureCount and _trainedEnsemble to construct predictor.
         private protected int FeatureCount;
@@ -54,18 +56,35 @@ namespace Microsoft.ML.Runtime.LightGBM
         private static readonly TrainerInfo _info = new TrainerInfo(normalization: false, caching: false, supportValid: true);
         public override TrainerInfo Info => _info;
 
-        private protected LightGbmTrainerBase(IHostEnvironment env, LightGbmArguments args, string name)
-            : base(env, name)
+        private protected LightGbmTrainerBase(IHostEnvironment env, string name, SchemaShape.Column label, string featureColumn,
+            string weightColumn = null, string groupIdColumn = null, Action<LightGbmArguments> advancedSettings = null)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(name), TrainerUtils.MakeR4VecFeature(featureColumn), label, TrainerUtils.MakeR4ScalarWeightColumn(weightColumn))
+        {
+            Args = new LightGbmArguments();
+
+            //apply the advanced args, if the user supplied any
+            advancedSettings?.Invoke(Args);
+            Args.LabelColumn = label.Name;
+
+            if (weightColumn != null)
+                Args.WeightColumn = weightColumn;
+
+            if (groupIdColumn != null)
+                Args.GroupIdColumn = groupIdColumn;
+
+            InitParallelTraining();
+        }
+
+        private protected LightGbmTrainerBase(IHostEnvironment env, string name, LightGbmArguments args, SchemaShape.Column label)
+           : base(Contracts.CheckRef(env, nameof(env)).Register(name), TrainerUtils.MakeR4VecFeature(args.FeatureColumn), label, TrainerUtils.MakeR4ScalarWeightColumn(args.WeightColumn))
         {
             Host.CheckValue(args, nameof(args));
 
             Args = args;
-            Options = Args.ToDictionary(Host);
-            ParallelTraining = Args.ParallelTrainer != null ? Args.ParallelTrainer.CreateComponent(env) : new SingleTrainer();
             InitParallelTraining();
         }
 
-        public override TPredictor Train(TrainContext context)
+        protected override TModel TrainModelCore(TrainContext context)
         {
             Host.CheckValue(context, nameof(context));
 
@@ -102,6 +121,9 @@ namespace Microsoft.ML.Runtime.LightGBM
 
         private void InitParallelTraining()
         {
+            Options = Args.ToDictionary(Host);
+            ParallelTraining = Args.ParallelTrainer != null ? Args.ParallelTrainer.CreateComponent(Host) : new SingleTrainer();
+
             if (ParallelTraining.ParallelType() != "serial" && ParallelTraining.NumMachines() > 1)
             {
                 Options["tree_learner"] = ParallelTraining.ParallelType();
@@ -849,7 +871,7 @@ namespace Microsoft.ML.Runtime.LightGBM
             return ret;
         }
 
-        private protected abstract TPredictor CreatePredictor();
+        private protected abstract TModel CreatePredictor();
 
         /// <summary>
         /// This function will be called before training. It will check the label/group and add parameters for specific applications.

@@ -59,7 +59,7 @@ namespace Microsoft.ML.Runtime.FastTree
         /// <param name="advancedSettings">A delegate to apply all the advanced arguments to the algorithm.</param>
         public FastTreeTweedieTrainer(IHostEnvironment env, string labelColumn, string featureColumn,
             string groupIdColumn, string weightColumn = null, Action<Arguments> advancedSettings = null)
-            : base(env, MakeLabelColumn(labelColumn), featureColumn, weightColumn, groupIdColumn, advancedSettings)
+            : base(env, TrainerUtils.MakeR4ScalarLabel(labelColumn), featureColumn, weightColumn, groupIdColumn, advancedSettings)
         {
             Initialize();
         }
@@ -68,7 +68,7 @@ namespace Microsoft.ML.Runtime.FastTree
         /// Initializes a new instance of <see cref="FastTreeTweedieTrainer"/> by using the legacy <see cref="Arguments"/> class.
         /// </summary>
         public FastTreeTweedieTrainer(IHostEnvironment env, Arguments args)
-            : base(env, args, MakeLabelColumn(args.LabelColumn))
+            : base(env, args, TrainerUtils.MakeR4ScalarLabel(args.LabelColumn))
         {
             Initialize();
         }
@@ -302,15 +302,16 @@ namespace Microsoft.ML.Runtime.FastTree
             PrintTestGraph(ch);
         }
 
-        private static SchemaShape.Column MakeLabelColumn(string labelColumn)
-        {
-            return new SchemaShape.Column(labelColumn, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false);
-        }
-
         protected override RegressionPredictionTransformer<FastTreeTweediePredictor> MakeTransformer(FastTreeTweediePredictor model, ISchema trainSchema)
          => new RegressionPredictionTransformer<FastTreeTweediePredictor>(Host, model, trainSchema, FeatureColumn.Name);
 
-        protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema) => _outputColumns;
+        protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema)
+        {
+            return new[]
+            {
+                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata()))
+            };
+        }
 
         private sealed class ObjectiveImpl : ObjectiveFunctionBase, IStepSearch
         {
