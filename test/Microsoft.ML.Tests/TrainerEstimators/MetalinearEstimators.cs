@@ -125,6 +125,6 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                             new TextLoader.Column("Label", DataKind.Text, 4)
                         }
             };
-         }
+        }
     }
 }

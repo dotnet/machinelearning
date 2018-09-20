@@ -70,15 +70,18 @@ namespace Microsoft.ML.Runtime.FastTree
         /// <param name="advancedSettings">A delegate to apply all the advanced arguments to the algorithm.</param>
         public FastTreeRankingTrainer(IHostEnvironment env, string labelColumn, string featureColumn, string groupIdColumn,
             string weightColumn = null, Action<Arguments> advancedSettings = null)
-            : base(env, TrainerUtils.MakeU4ScalarLabel(labelColumn), featureColumn, weightColumn, groupIdColumn, advancedSettings: advancedSettings)
+            : base(env, TrainerUtils.MakeR4ScalarLabel(labelColumn), featureColumn, weightColumn, groupIdColumn, advancedSettings: advancedSettings)
         {
+            Host.CheckValue(labelColumn, nameof(labelColumn));
+            Host.CheckValue(featureColumn, nameof(featureColumn));
+            Host.CheckValue(groupIdColumn, nameof(groupIdColumn));
         }
 
         /// <summary>
         /// Initializes a new instance of <see cref="FastTreeRankingTrainer"/> by using the legacy <see cref="Arguments"/> class.
         /// </summary>
         public FastTreeRankingTrainer(IHostEnvironment env, Arguments args)
-                : base(env, args, TrainerUtils.MakeU4ScalarLabel(args.LabelColumn))
+                : base(env, args, TrainerUtils.MakeR4ScalarLabel(args.LabelColumn))
         {
         }
 

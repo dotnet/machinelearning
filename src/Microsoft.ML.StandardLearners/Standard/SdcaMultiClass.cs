@@ -52,6 +52,9 @@ namespace Microsoft.ML.Runtime.Learners
             : base(Contracts.CheckRef(env, nameof(env)).Register(LoadNameValue), args, TrainerUtils.MakeR4VecFeature(featureColumn),
                  TrainerUtils.MakeU4ScalarLabel(labelColumn), TrainerUtils.MakeR4ScalarWeightColumn(weightColumn))
         {
+            Host.CheckValue(labelColumn, nameof(labelColumn));
+            Host.CheckValue(featureColumn, nameof(featureColumn));
+
             _loss = args.LossFunction.CreateComponent(env);
             Loss = _loss;
             _args = args;

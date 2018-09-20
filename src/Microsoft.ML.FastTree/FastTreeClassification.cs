@@ -127,6 +127,9 @@ namespace Microsoft.ML.Runtime.FastTree
             string groupIdColumn = null, string weightColumn = null, Action<Arguments> advancedSettings = null)
             : base(env, TrainerUtils.MakeBoolScalarLabel(labelColumn), featureColumn, weightColumn, groupIdColumn, advancedSettings)
         {
+            Host.CheckValue(labelColumn, nameof(labelColumn), "labelColumn should not be null.");
+            Host.CheckValue(featureColumn, nameof(featureColumn), "featureColumn should not be null.");
+
             // Set the sigmoid parameter to the 2 * learning rate, for traditional FastTreeClassification loss
             _sigmoidParameter = 2.0 * Args.LearningRates;
         }

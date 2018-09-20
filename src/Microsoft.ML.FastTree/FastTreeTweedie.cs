@@ -58,9 +58,12 @@ namespace Microsoft.ML.Runtime.FastTree
         /// <param name="weightColumn">The name for the column containing the initial weight.</param>
         /// <param name="advancedSettings">A delegate to apply all the advanced arguments to the algorithm.</param>
         public FastTreeTweedieTrainer(IHostEnvironment env, string labelColumn, string featureColumn,
-            string groupIdColumn, string weightColumn = null, Action<Arguments> advancedSettings = null)
+            string groupIdColumn = null, string weightColumn = null, Action<Arguments> advancedSettings = null)
             : base(env, TrainerUtils.MakeR4ScalarLabel(labelColumn), featureColumn, weightColumn, groupIdColumn, advancedSettings)
         {
+            Host.CheckValue(labelColumn, nameof(labelColumn), "labelColumn should not be null.");
+            Host.CheckValue(featureColumn, nameof(featureColumn), "featureColumn should not be null.");
+
             Initialize();
         }
 

@@ -83,10 +83,21 @@ namespace Microsoft.ML.Runtime.LightGBM
 
         public override PredictionKind PredictionKind => PredictionKind.Regression;
 
+        /// <summary>
+        /// Initializes a new instance of <see cref="LightGbmRegressorTrainer"/>
+        /// </summary>
+        /// <param name="env">The private instance of <see cref="IHostEnvironment"/>.</param>
+        /// <param name="labelColumn">The name of the label column.</param>
+        /// <param name="featureColumn">The name of the feature column.</param>
+        /// <param name="groupIdColumn">The name for the column containing the group ID. </param>
+        /// <param name="weightColumn">The name for the column containing the initial weight.</param>
+        /// <param name="advancedSettings">A delegate to apply all the advanced arguments to the algorithm.</param>
         public LightGbmRegressorTrainer(IHostEnvironment env, string labelColumn, string featureColumn,
             string groupIdColumn = null, string weightColumn = null, Action<LightGbmArguments> advancedSettings = null)
             : base(env, LoadNameValue, TrainerUtils.MakeR4ScalarLabel(labelColumn), featureColumn, weightColumn, groupIdColumn, advancedSettings)
         {
+            Host.CheckValue(labelColumn, nameof(labelColumn), "labelColumn should not be null.");
+            Host.CheckValue(featureColumn, nameof(featureColumn), "featureColumn should not be null.");
         }
 
         public LightGbmRegressorTrainer(IHostEnvironment env, LightGbmArguments args)

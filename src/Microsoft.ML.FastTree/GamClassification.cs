@@ -46,15 +46,29 @@ namespace Microsoft.ML.Runtime.FastTree
         public override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
         private protected override bool NeedCalibration => true;
 
+        /// <summary>
+        /// Initializes a new instance of <see cref="BinaryClassificationGamTrainer"/>
+        /// </summary>
         public BinaryClassificationGamTrainer(IHostEnvironment env, Arguments args)
              : base(env, args, LoadNameValue, TrainerUtils.MakeBoolScalarLabel(args.LabelColumn))
         {
             _sigmoidParameter = 1;
         }
 
+        /// <summary>
+        /// Initializes a new instance of <see cref="BinaryClassificationGamTrainer"/>
+        /// </summary>
+        /// <param name="env">The private instance of <see cref="IHostEnvironment"/>.</param>
+        /// <param name="labelColumn">The name of the label column.</param>
+        /// <param name="featureColumn">The name of the feature column.</param>
+        /// <param name="weightColumn">The name for the column containing the initial weight.</param>
+        /// <param name="advancedSettings">A delegate to apply all the advanced arguments to the algorithm.</param>
         public BinaryClassificationGamTrainer(IHostEnvironment env, string labelColumn, string featureColumn, string weightColumn = null, Action<Arguments> advancedSettings = null)
             : base(env, LoadNameValue, TrainerUtils.MakeBoolScalarLabel(labelColumn), featureColumn, weightColumn, advancedSettings)
         {
+            Host.CheckValue(labelColumn, nameof(labelColumn), "labelColumn should not be null.");
+            Host.CheckValue(featureColumn, nameof(featureColumn), "featureColumn should not be null.");
+
             _sigmoidParameter = 1;
         }
 

@@ -2,8 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.FastTree;
+using Microsoft.ML.Runtime.LightGBM;
 using Microsoft.ML.Runtime.RunTests;
 using System.Linq;
 using Xunit;
@@ -25,9 +27,62 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         [Fact]
         public void FastTreeBinaryEstimator()
         {
-            using (var env = new LocalEnvironment(seed: 1, conc: 1))
-            {
-                var reader = new TextLoader(env,
+            var (pipeline, data) = GetBinaryClassificationPipeline();
+
+            pipeline.Append(new FastTreeBinaryClassificationTrainer(Env, "Label", "Features", advancedSettings: s => {
+                    s.NumTrees = 10;
+                    s.NumThreads = 1;
+                    s.NumLeaves = 5;
+                }));
+
+            TestEstimatorCore(pipeline, data);
+        }
+
+        [Fact]
+        public void LightGBMBinaryEstimator()
+        {
+            var (pipeline, data) = GetBinaryClassificationPipeline();
+
+            pipeline.Append(new LightGbmBinaryTrainer(Env, "Label", "Features", advancedSettings: s => {
+                s.NumLeaves = 10;
+                s.NThread = 1;
+                s.MinDataPerLeaf = 2;
+            }));
+
+            TestEstimatorCore(pipeline, data);
+        }
+
+
+        [Fact]
+        public void GAMClassificationEstimator()
+        {
+            var (pipeline, data) = GetBinaryClassificationPipeline();
+
+            pipeline.Append(new BinaryClassificationGamTrainer(Env, "Label", "Features", advancedSettings: s => {
+                s.GainConfidenceLevel = 0;
+                s.NumIterations = 15;
+            }));
+
+            TestEstimatorCore(pipeline, data);
+        }
+
+
+        [Fact]
+        public void FastForestClassificationEstimator()
+        {
+            var (pipeline, data) = GetBinaryClassificationPipeline();
+
+            pipeline.Append(new FastForestClassification(Env, "Label", "Features", advancedSettings: s => {
+                s.NumLeaves = 10;
+                s.NumTrees = 20;
+            }));
+
+            TestEstimatorCore(pipeline, data);
+        }
+
+        private (IEstimator<ITransformer>, IDataView) GetBinaryClassificationPipeline()
+        {
+            var data = new TextLoader(Env,
                     new TextLoader.Arguments()
                     {
                         Separator = "\t",
@@ -37,21 +92,13 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                             new TextLoader.Column("Label", DataKind.BL, 0),
                             new TextLoader.Column("SentimentText", DataKind.Text, 1)
                         }
-                    });
+                    }).Read(new MultiFileSource(GetDataPath(TestDatasets.Sentiment.trainFilename)));
 
-                var data = reader.Read(new MultiFileSource(GetDataPath(TestDatasets.Sentiment.trainFilename)));
+            // Pipeline.
+            var pipeline = new TextTransform(Env, "SentimentText", "Features");
 
-                // Pipeline.
-                var pipeline = new TextTransform(env, "SentimentText", "Features")
-                  .Append(new FastTreeBinaryClassificationTrainer(env, "Label", "Features", advancedSettings: s => {
-                      s.NumTrees = 10;
-                      s.NumThreads = 1;
-                      s.NumLeaves = 5;
-                  }));
-
-                TestEstimatorCore(pipeline, data);
-            }
-        }
+            return (pipeline, data);
+        } 
 
         /// <summary>
         /// FastTreeBinaryClassification TrainerEstimator test 
@@ -59,31 +106,48 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         [Fact]
         public void FastTreeRankerEstimator()
         {
-            using (var env = new LocalEnvironment(seed: 1, conc: 1))
+            var (pipeline, data) = GetRankingPipeline();
+
+            pipeline.Append(new FastTreeRankingTrainer(Env, "Label0", "NumericFeatures", "Group", 
+                                advancedSettings: s => { s.NumTrees = 10; }));
+
+            TestEstimatorCore(pipeline, data);
+        }
+
+        /// <summary>
+        /// FastTreeBinaryClassification TrainerEstimator test 
+        /// </summary>
+        [Fact]
+        public void LightGBMRankerEstimator()
+        {
+            var (pipeline, data) = GetRankingPipeline();
+
+            pipeline.Append(new LightGbmRankingTrainer(Env, "Label0", "NumericFeatures", "Group",
+                                advancedSettings: s => { s.LearningRate = 0.4; }));
+
+            TestEstimatorCore(pipeline, data);
+        }
+
+        private (IEstimator<ITransformer>, IDataView) GetRankingPipeline()
+        {
+            var data = new TextLoader(Env, new TextLoader.Arguments
             {
-                var reader = new TextLoader(env, new TextLoader.Arguments
-                {
-                    HasHeader = true,
-                    Separator ="\t",
-                    Column = new[]
-                    {
+                HasHeader = true,
+                Separator = "\t",
+                Column = new[]
+                     {
                         new TextLoader.Column("Label", DataKind.R4, 0),
                         new TextLoader.Column("Workclass", DataKind.Text, 1),
                         new TextLoader.Column("NumericFeatures", DataKind.R4, new [] { new TextLoader.Range(9, 14) })
                     }
-                });
-                var data = reader.Read(new MultiFileSource(GetDataPath(TestDatasets.adultRanking.trainFilename)));
+            }).Read(new MultiFileSource(GetDataPath(TestDatasets.adultRanking.trainFilename)));
 
-
-                // Pipeline.
-                var pipeline = new TermEstimator(env, new[]{
+            // Pipeline.
+            var pipeline = new TermEstimator(Env, new[]{
                                     new TermTransform.ColumnInfo("Workclass", "Group"),
-                                    new TermTransform.ColumnInfo("Label", "Label0") })
-                    .Append(new FastTreeRankingTrainer(env, "Label0", "NumericFeatures", "Group", 
-                                advancedSettings: s => { s.NumTrees = 10; }));
+                                    new TermTransform.ColumnInfo("Label", "Label0") });
 
-                TestEstimatorCore(pipeline, data);
-            }
+            return (pipeline, data);
         }
 
         /// <summary>
@@ -92,10 +156,86 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         [Fact]
         public void FastTreeRegressorEstimator()
         {
-            using (var env = new LocalEnvironment(seed: 1, conc: 1))
-            {
-                // "loader=Text{col=Label:R4:11 col=Features:R4:0-10 sep=; header+}"
-                var reader = new TextLoader(env,
+
+            // Pipeline.
+            var pipeline = new FastTreeRegressionTrainer(Env, "Label", "Features", advancedSettings: s => {
+                    s.NumTrees = 10;
+                    s.NumThreads = 1;
+                    s.NumLeaves = 5;
+                });
+
+            TestEstimatorCore(pipeline, GetRegressionData());
+        }
+
+        /// <summary>
+        /// FastTreeRegressor TrainerEstimator test 
+        /// </summary>
+        [Fact]
+        public void LightGBMRegressorEstimator()
+        {
+
+            // Pipeline.
+            var pipeline = new LightGbmRegressorTrainer(Env, "Label", "Features", advancedSettings: s => {
+                s.NThread = 1;
+                s.NormalizeFeatures = NormalizeOption.Warn;
+                s.CatL2 = 5; 
+            });
+
+            TestEstimatorCore(pipeline, GetRegressionData());
+        }
+
+
+        /// <summary>
+        /// FastTreeRegressor TrainerEstimator test 
+        /// </summary>
+        [Fact]
+        public void GAMRegressorEstimator()
+        {
+
+            // Pipeline.
+            var pipeline = new RegressionGamTrainer(Env, "Label", "Features", advancedSettings: s => {
+                s.EnablePruning = false;
+                s.NumIterations = 15;
+            });
+
+            TestEstimatorCore(pipeline, GetRegressionData());
+        }
+
+        /// <summary>
+        /// FastTreeRegressor TrainerEstimator test 
+        /// </summary>
+        [Fact]
+        public void TweedieRegressorEstimator()
+        {
+
+            // Pipeline.
+            var pipeline = new FastTreeTweedieTrainer(Env, "Label", "Features", advancedSettings: s => {
+                s.EntropyCoefficient = 0.3;
+                s.OptimizationAlgorithm = BoostedTreeArgs.OptimizationAlgorithmType.AcceleratedGradientDescent;
+            });
+
+            TestEstimatorCore(pipeline, GetRegressionData());
+        }
+
+        /// <summary>
+        /// FastTreeRegressor TrainerEstimator test 
+        /// </summary>
+        [Fact]
+        public void FastForestRegressorEstimator()
+        {
+
+            // Pipeline.
+            var pipeline = new FastForestRegression(Env, "Label", "Features", advancedSettings: s => {
+                s.BaggingSize = 2;
+                s.NumTrees = 10;
+            });
+
+            TestEstimatorCore(pipeline, GetRegressionData());
+        }
+
+        private IDataView GetRegressionData()
+        {
+            return new TextLoader(Env,
                     new TextLoader.Arguments()
                     {
                         Separator = ";",
@@ -105,19 +245,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                             new TextLoader.Column("Label", DataKind.R4, 11),
                             new TextLoader.Column("Features", DataKind.R4, new [] { new TextLoader.Range(0, 10) } )
                         }
-                    });
-
-                var data = reader.Read(new MultiFileSource(GetDataPath(TestDatasets.generatedRegressionDatasetmacro.trainFilename)));
-
-                // Pipeline.
-                var pipeline = new FastTreeRegressionTrainer(env, "Label", "Features", advancedSettings: s => {
-                      s.NumTrees = 10;
-                      s.NumThreads = 1;
-                      s.NumLeaves = 5;
-                  });
-
-                TestEstimatorCore(pipeline, data);
-            }
+                    }).Read(new MultiFileSource(GetDataPath(TestDatasets.generatedRegressionDatasetmacro.trainFilename)));
         }
     }
 }
