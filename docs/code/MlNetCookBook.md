@@ -21,6 +21,7 @@ Please feel free to search this page and use any code that suits your needs.
 
 - [How do I load data from a text file?](#how-do-i-load-data-from-a-text-file)
 - [How do I load data with many columns from a CSV?](#how-do-i-load-data-with-many-columns-from-a-csv)
+- [How do I look at the intermediate data?](#how-do-i-look-at-the-intermediate-data)
 
 ## How do I load data from a text file?
 
@@ -55,7 +56,7 @@ var reader = TextLoader.CreateReader(env, ctx => (
     hasHeader: true);
 
 // Now read the file.
-var data = reader2.Read(new MultiFileSource(dataPath));
+var data = reader.Read(new MultiFileSource(dataPath));
 ```
 
 If the schema of the data is not known at compile time, or too cumbersome, you can revert to the dynamically-typed API: 
@@ -86,7 +87,7 @@ var data = reader.Read(new MultiFileSource(dataPath));
 ## How do I load data with many columns from a CSV?
 `TextLoader` is used to load data from text files. You will need to specify what are the data columns, what are their types, and where to find them in the text file. 
 
-When the input file contains many columns of the same type, intended to also be used together, we recommend reading them as a vector column from the very start: this way the schema of the data is cleaner, and we don't incur unnecessary performance costs.
+When the input file contains many columns of the same type, always intended to be used together, we recommend reading them as a *vector column* from the very start: this way the schema of the data is cleaner, and we don't incur unnecessary performance costs.
 
 Example file (https://github.com/dotnet/machinelearning/blob/master/test/data/generated_regression_dataset.csv):
 ```
@@ -139,4 +140,73 @@ var reader = new TextLoader(env, new TextLoader.Arguments
 
 // Now read the file. 
 var data = reader.Read(new MultiFileSource(dataPath));
+```
+
+## How do I look at the intermediate data?
+
+Oftentimes, when we construct the experiment, we want to make sure that the data processing 'up to a certain moment' produces the results that we want. With ML.NET it is not very easy to do: since all ML.NET operations are lazy, the objects we construct are just 'promises' of data.
+
+We will need to create the cursor and scan the data to obtain the actual values. One way to do this is to use [schema comprehension](SchemaComprehension.md) and map the data to an `IEnumerable` of user-defined objects.
+
+Example file (https://github.com/dotnet/machinelearning/blob/master/test/data/adult.tiny.with-schema.txt):
+```
+Label	Workclass	education	marital-status
+0	Private	11th	Never-married
+0	Private	HS-grad	Married-civ-spouse
+1	Local-gov	Assoc-acdm	Married-civ-spouse
+1	Private	Some-college	Married-civ-spouse
+
+```
+
+```c#
+// Create a new environment for ML.NET operations. It can be used for exception tracking and logging, 
+// as well as the source of randomness.
+var env = new LocalEnvironment();
+
+// Create the reader: define the data columns and where to find them in the text file.
+var reader = TextLoader.CreateReader(env, ctx => (
+        // A boolean column depicting the 'target label'.
+        IsOver50K: ctx.LoadBool(0),
+        // Three text columns.
+        Workclass: ctx.LoadText(1),
+        Education: ctx.LoadText(2),
+        MaritalStatus: ctx.LoadText(3)),
+    hasHeader: true);
+
+// Start creating our processing pipeline. For now, let's just concatenate all the text columns
+// together into one.
+var dataPipeline = reader.MakeNewEstimator()
+    .Append(row =>
+        (
+            row.IsOver50K,
+            AllFeatures: row.Workclass.ConcatWith(row.Education, row.MaritalStatus)
+        ));
+
+// Let's verify that the data has been read correctly. 
+// First, we read the data file.
+var data = reader.Read(new MultiFileSource(dataPath));
+
+// Fit our data pipeline and transform data with it.
+var transformedData = dataPipeline.Fit(data).Transform(data);
+
+// 'transformedData' is a 'promise' of data. Let's actually read it.
+var someRows = transformedData.AsDynamic
+    // Convert to an enumerable of user-defined type. 
+    .AsEnumerable<InspectedRow>(env, reuseRowObject: false)
+    // Take a couple values as an array.
+    .Take(4).ToArray();
+
+// Now we can inspect 'someRows' to see if the data has been read and transformed correctly.
+```
+
+The above code assumes that we defined our `InspectedRow` class as follows:
+```c#
+private class InspectedRow
+{
+    public bool IsOver50K;
+    public string Workclass;
+    public string Education;
+    public string MaritalStatus;
+    public string[] AllFeatures;
+}
 ```
