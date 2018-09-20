@@ -42,8 +42,8 @@ namespace Microsoft.ML.Runtime.Learners
         private Double _lossNormalizer;
 
         public PoissonRegression(IHostEnvironment env, string featureColumn, string labelColumn,
-            string groupIdColumn = null, string weightColumn = null, Action<Arguments> advancedSettings = null)
-            : base(env, featureColumn, labelColumn, weightColumn, groupIdColumn, advancedSettings)
+            string weightColumn = null, Action<Arguments> advancedSettings = null)
+            : base(env, featureColumn, labelColumn, weightColumn, advancedSettings)
         {
         }
 

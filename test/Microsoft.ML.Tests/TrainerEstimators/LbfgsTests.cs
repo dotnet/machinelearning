@@ -21,10 +21,8 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 HasHeader = true,
                 Column = new[]
                 {
-                            new TextLoader.Column("Label", type: null, 0),
-                            new TextLoader.Column("F1", DataKind.Text, 1),
-                            new TextLoader.Column("F2", DataKind.I4, 2),
-                            new TextLoader.Column("Rest", type: null, new [] { new TextLoader.Range(3, 9) })
+                    new TextLoader.Column("Label", DataKind.R4, 0),
+                    new TextLoader.Column("Features", DataKind.R4, new [] { new TextLoader.Range(1, 9) } )
                 }
             }).Read(new MultiFileSource(GetDataPath(TestDatasets.breastCancer.trainFilename)));
         }
@@ -39,12 +37,9 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 Column = new[]
                 {
                     new TextLoader.Column("Label", DataKind.R4, 0),
-                    new TextLoader.Column("SepalLength", DataKind.R4, 1),
-                    new TextLoader.Column("SepalWidth", DataKind.R4, 2),
-                    new TextLoader.Column("PetalLength", DataKind.R4, 3),
-                    new TextLoader.Column("PetalWidth", DataKind.R4, 4)
+                    new TextLoader.Column("Features", DataKind.R4, new [] { new TextLoader.Range(1, 4) } )
                 }
-            }).Read(new MultiFileSource(GetDataPath(TestDatasets.irisData.trainFilename)));
+            }).Read(new MultiFileSource(GetDataPath(TestDatasets.irisLoader.trainFilename)));
         }
 
         private IDataView GetGeneratedRegressionDataview()
@@ -52,25 +47,23 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             return new TextLoader(Env,
             new TextLoader.Arguments()
             {
+                Separator = ";",
                 HasHeader = true,
                 Column = new[]
                 {
                     new TextLoader.Column("Label", DataKind.R4, 11),
                     new TextLoader.Column("Features", DataKind.R4, new [] { new TextLoader.Range(0, 10) } )
                 }
-            }).Read(new MultiFileSource(GetDataPath(TestDatasets.generatedRegressionDatasetmacro.trainFilename)));
+            }).Read(new MultiFileSource(GetDataPath(TestDatasets.generatedRegressionDataset.trainFilename)));
         }
 
         [Fact]
         public void TestEstimatorLogisticRegression()
         {
             var dataView = GetBreastCancerDataview();
-            dataView = Env.CreateTransform("Term{col=F1}", dataView);
-            var data = FeatureCombiner.PrepareFeatures(Env, new FeatureCombiner.FeatureCombinerInput() { Data = dataView, Features = new[] { "F1", "F2", "Rest" } }).OutputData;
-
             //var args = new LogisticRegression.Arguments();
             var pipe = new LogisticRegression(Env, "Features", "Label");
-            TestEstimatorCore(pipe, data);
+            TestEstimatorCore(pipe, dataView);
             Done();
         }
 
@@ -78,10 +71,8 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         public void TestEstimatorMulticlassLogisticRegression()
         {
             var dataView = GetIrisDataview();
-            var data = FeatureCombiner.PrepareFeatures(Env, new FeatureCombiner.FeatureCombinerInput() { Data = dataView, Features = new[] { "SepalLength", "SepalWidth", "PetalLength", "PetalWidth" } }).OutputData;
-
-            var pipe = new LogisticRegression(Env, "Features", "Label");
-            TestEstimatorCore(pipe, data);
+            var pipe = new MulticlassLogisticRegression(Env, "Features", "Label");
+            TestEstimatorCore(pipe, dataView);
             Done();
         }
 
@@ -89,7 +80,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         public void TestEstimatorPoissonRegression()
         {
             var dataView = GetGeneratedRegressionDataview();
-            var pipe = new LogisticRegression(Env, "Features", "Label");
+            var pipe = new PoissonRegression(Env, "Features", "Label");
             TestEstimatorCore(pipe, dataView);
             Done();
         }

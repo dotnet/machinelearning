@@ -50,8 +50,8 @@ namespace Microsoft.ML.Runtime.Learners
         private LinearModelStatistics _stats;
 
         public LogisticRegression(IHostEnvironment env, string featureColumn, string labelColumn,
-            string groupIdColumn = null, string weightColumn = null, Action<Arguments> advancedSettings = null)
-            : base(env, featureColumn, labelColumn, weightColumn, groupIdColumn, advancedSettings)
+            string weightColumn = null, Action<Arguments> advancedSettings = null)
+            : base(env, featureColumn, labelColumn, weightColumn, advancedSettings)
         {
             _posWeight = 0;
             ShowTrainingStats = Args.ShowTrainingStats;

@@ -19,7 +19,7 @@ using Microsoft.ML.Runtime.Internal.Internallearn;
 namespace Microsoft.ML.Runtime.Learners
 {
     public abstract class LbfgsTrainerBase<TArgs, TTransformer, TModel> : TrainerEstimatorBase<TTransformer, TModel>
-      where TTransformer : IPredictionTransformer<TModel>
+      where TTransformer : ISingleFeaturePredictionTransformer<TModel>
       where TModel : IPredictor
       where TArgs : LbfgsTrainerBase<TArgs, TTransformer, TModel>.ArgumentsBase, new ()
     {
@@ -145,7 +145,7 @@ namespace Microsoft.ML.Runtime.Learners
 
         //TODO get the showTrainingStats to work
         internal LbfgsTrainerBase(IHostEnvironment env, string featureColumn, string labelColumn,
-            string weightColumn = null, string groupIdColumn = null, Action<TArgs> advancedSettings = null, bool showTrainingStats = false)
+            string weightColumn = null, Action<TArgs> advancedSettings = null)
             : base(Contracts.CheckRef(env, nameof(env)).Register(RegisterName), MakeFeatureColumn(featureColumn), MakeLabelColumn(labelColumn), MakeWeightColumn(weightColumn))
         {
             Args = new TArgs();
@@ -178,7 +178,7 @@ namespace Microsoft.ML.Runtime.Learners
             Contracts.CheckUserArg(Args.NumThreads == null || Args.NumThreads.Value >= 0, nameof(Args.NumThreads), "Must be non-negative");
             NumThreads = Args.NumThreads;
             DenseOptimizer = Args.DenseOptimizer;
-            ShowTrainingStats = showTrainingStats;
+            ShowTrainingStats = false;
             EnforceNonNegativity = Args.EnforceNonNegativity;
 
             if (EnforceNonNegativity && ShowTrainingStats)
