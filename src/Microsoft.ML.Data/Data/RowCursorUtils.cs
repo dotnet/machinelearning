@@ -394,16 +394,16 @@ namespace Microsoft.ML.Runtime.Data
 
             Contracts.Assert(type != NumberType.R4 && type != NumberType.R8);
 
-            // DvBool type label mapping: True -> 1, False -> 0, NA -> NaN.
+            // boolean type label mapping: True -> 1, False -> 0.
             if (type.IsBool)
             {
-                var getBoolSrc = cursor.GetGetter<DvBool>(labelIndex);
+                var getBoolSrc = cursor.GetGetter<bool>(labelIndex);
                 return
                     (ref Single dst) =>
                     {
-                        DvBool src = DvBool.NA;
+                        bool src = default;
                         getBoolSrc(ref src);
-                        dst = (Single)src;
+                        dst = Convert.ToSingle(src);
                     };
             }
 

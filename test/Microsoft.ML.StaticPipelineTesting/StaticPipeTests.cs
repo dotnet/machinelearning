@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -80,12 +80,11 @@ namespace Microsoft.ML.StaticPipelineTesting
             // Next actually inspect the data.
             using (var cursor = textData.GetRowCursor(c => true))
             {
-                var labelGetter = cursor.GetGetter<DvBool>(labelIdx);
-                var textGetter = cursor.GetGetter<DvText>(textIdx);
+                var textGetter = cursor.GetGetter<ReadOnlyMemory<char>>(textIdx);
                 var numericFeaturesGetter = cursor.GetGetter<VBuffer<float>>(numericFeaturesIdx);
-
-                DvBool labelVal = default;
-                DvText textVal = default;
+                ReadOnlyMemory<char> textVal = default;
+                var labelGetter = cursor.GetGetter<bool>(labelIdx);
+                bool labelVal = default;
                 VBuffer<float> numVal = default;
 
                 void CheckValuesSame(bool bl, string tx, float v0, float v1, float v2)
@@ -93,9 +92,8 @@ namespace Microsoft.ML.StaticPipelineTesting
                     labelGetter(ref labelVal);
                     textGetter(ref textVal);
                     numericFeaturesGetter(ref numVal);
-
-                    Assert.Equal((DvBool)bl, labelVal);
-                    Assert.Equal(new DvText(tx), textVal);
+                    Assert.True(tx.AsSpan().SequenceEqual(textVal.Span));
+                    Assert.Equal((bool)bl, labelVal);
                     Assert.Equal(3, numVal.Length);
                     Assert.Equal(v0, numVal.GetItemOrDefault(0));
                     Assert.Equal(v1, numVal.GetItemOrDefault(1));
@@ -159,13 +157,13 @@ namespace Microsoft.ML.StaticPipelineTesting
             var counted = new MetaCounted();
 
             // We'll test a few things here. First, the case where the key-value metadata is text.
-            var metaValues1 = new VBuffer<DvText>(3, new[] { new DvText("a"), new DvText("b"), new DvText("c") });
+            var metaValues1 = new VBuffer<ReadOnlyMemory<char>>(3, new[] { "a".AsMemory(), "b".AsMemory(), "c".AsMemory() });
             var meta1 = RowColumnUtils.GetColumn(MetadataUtils.Kinds.KeyValues, new VectorType(TextType.Instance, 3), ref metaValues1);
             uint value1 = 2;
             var col1 = RowColumnUtils.GetColumn("stay", new KeyType(DataKind.U4, 0, 3), ref value1, RowColumnUtils.GetRow(counted, meta1));
 
             // Next the case where those values are ints.
-            var metaValues2 = new VBuffer<DvInt4>(3, new DvInt4[] { 1, 2, 3, 4 });
+            var metaValues2 = new VBuffer<int>(3, new int[] { 1, 2, 3, 4 });
             var meta2 = RowColumnUtils.GetColumn(MetadataUtils.Kinds.KeyValues, new VectorType(NumberType.I4, 4), ref metaValues2);
             var value2 = new VBuffer<byte>(2, 0, null, null);
             var col2 = RowColumnUtils.GetColumn("awhile", new VectorType(new KeyType(DataKind.U1, 2, 4), 2), ref value2, RowColumnUtils.GetRow(counted, meta2));

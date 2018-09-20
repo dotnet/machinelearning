@@ -26,7 +26,7 @@ namespace Microsoft.ML.Runtime.Learners
 {
 
     using TDistPredictor = IDistPredictorProducing<float, float>;
-    using TScalarTrainer = ITrainerEstimator<IPredictionTransformer<IPredictorProducing<float>>, IPredictorProducing<float>>;
+    using TScalarTrainer = ITrainerEstimator<ISingleFeaturePredictionTransformer<IPredictorProducing<float>>, IPredictorProducing<float>>;
     using CR = RoleMappedSchema.ColumnRole;
     using TTransformer = MulticlassPredictionTransformer<PkpdPredictor>;
 
@@ -73,7 +73,7 @@ namespace Microsoft.ML.Runtime.Learners
         /// Developers should instantiate <see cref="Pkpd"/> by supplying the trainer argument directly to the <see cref="Pkpd"/> constructor
         /// using the other public constructor.
         /// </summary>
-        public Pkpd(IHostEnvironment env, Arguments args)
+        internal Pkpd(IHostEnvironment env, Arguments args)
             : base(env, args, LoadNameValue)
         {
         }
@@ -119,7 +119,7 @@ namespace Microsoft.ML.Runtime.Learners
             return new PkpdPredictor(Host, predModels);
         }
 
-        private IPredictionTransformer<TDistPredictor> TrainOne(IChannel ch, TScalarTrainer trainer, RoleMappedData data, int cls1, int cls2)
+        private ISingleFeaturePredictionTransformer<TDistPredictor> TrainOne(IChannel ch, TScalarTrainer trainer, RoleMappedData data, int cls1, int cls2)
         {
             // this should not be necessary when the legacy constructor doesn't exist, and the label column is not an optional parameter on the
             // MetaMulticlassTrainer constructor.

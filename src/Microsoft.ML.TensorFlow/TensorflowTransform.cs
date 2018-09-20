@@ -122,6 +122,7 @@ namespace Microsoft.ML.Transforms
             byte[] modelBytes = null;
             if (!ctx.TryLoadBinaryStream("TFModel", r => modelBytes = r.ReadByteArray()))
                 throw env.ExceptDecode();
+            var session = TensorFlowUtils.LoadTFSession(env, modelBytes);
             var numInputs = ctx.Reader.ReadInt32();
             env.CheckDecode(numInputs > 0);
             string[] inputs = new string[numInputs];
@@ -138,7 +139,7 @@ namespace Microsoft.ML.Transforms
             for (int j = 0; j < outputs.Length; j++)
                 outputs[j] = ctx.LoadNonEmptyString();
 
-            return new TensorFlowTransform(env, modelBytes, inputs, outputs);
+            return new TensorFlowTransform(env, session, inputs, outputs);
         }
 
         // Factory method for SignatureDataTransform.
@@ -160,27 +161,12 @@ namespace Microsoft.ML.Transforms
         private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, ISchema inputSchema)
             => Create(env, ctx).MakeRowMapper(inputSchema);
 
-        private TFSession LoadTFSession(byte[] modelBytes)
-        {
-            var graph = new TFGraph();
-            try
-            {
-                graph.Import(modelBytes, "");
-            }
-            catch (Exception ex)
-            {
-#pragma warning disable MSML_NoMessagesForLoadContext
-                throw _host.ExceptDecode(ex, "Tensorflow exception triggered while loading model.");
-#pragma warning restore MSML_NoMessagesForLoadContext
-            }
-            return new TFSession(graph);
-        }
-
-        private static byte[] CheckFileAndRead(IHostEnvironment env, string modelFile)
+        private static TFSession CheckFileAndRead(IHostEnvironment env, string modelFile)
         {
             env.CheckNonWhiteSpace(modelFile, nameof(modelFile));
             env.CheckUserArg(File.Exists(modelFile), nameof(modelFile));
-            return File.ReadAllBytes(modelFile);
+            var bytes = File.ReadAllBytes(modelFile);
+            return TensorFlowUtils.LoadTFSession(env, bytes, modelFile);
         }
 
         public TensorFlowTransform(IHostEnvironment env, string modelFile, string[] inputs, string[] outputs) :
@@ -188,15 +174,14 @@ namespace Microsoft.ML.Transforms
         {
         }
 
-        private TensorFlowTransform(IHostEnvironment env, byte[] modelBytes, string[] inputs, string[] outputs)
+        private TensorFlowTransform(IHostEnvironment env, TFSession session, string[] inputs, string[] outputs)
         {
             Contracts.CheckValue(env, nameof(env));
             _host = env.Register(nameof(RegistrationName));
-            _host.CheckValue(modelBytes, nameof(modelBytes));
+            _host.CheckValue(session, nameof(session));
             _host.CheckNonEmpty(inputs, nameof(inputs));
             _host.CheckNonEmpty(outputs, nameof(outputs));
-
-            Session = LoadTFSession(modelBytes);
+            Session = session;
             foreach (var input in inputs)
             {
                 _host.CheckNonWhiteSpace(input, nameof(inputs));
@@ -204,7 +189,7 @@ namespace Microsoft.ML.Transforms
                     throw _host.ExceptParam(nameof(inputs), $"Input column '{input}' does not exist in the model");
                 var tfInput = new TFOutput(Session.Graph[input]);
                 if (!TensorFlowUtils.IsTypeSupported(tfInput.OutputType))
-                    throw _host.ExceptParam(nameof(modelBytes), $"Input type '{tfInput.OutputType}' of input column '{input}' is not supported in TensorFlow");
+                    throw _host.ExceptParam(nameof(session), $"Input type '{tfInput.OutputType}' of input column '{input}' is not supported in TensorFlow");
             }
 
             var newNames = new HashSet<string>();
