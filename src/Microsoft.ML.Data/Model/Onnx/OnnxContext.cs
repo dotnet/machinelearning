@@ -130,7 +130,7 @@ namespace Microsoft.ML.Runtime.Model.Onnx
         /// <param name="dims">The shape that the floats</param>
         /// <param name="name">A string used as a seed to generate this initializer's name in the ONNX graph.</param>
         /// <returns>The initializer's ONNX name</returns>
-        public abstract string AddInitializer(IEnumerable<float> values, List<long> dims, string name = null);
+        public abstract string AddInitializer(IEnumerable<float> values, IEnumerable<long> dims, string name = null);
 
         /// <summary>
         /// Call this function can declare a global long tensor
@@ -139,7 +139,7 @@ namespace Microsoft.ML.Runtime.Model.Onnx
         /// <param name="dims">The shape that the floats</param>
         /// <param name="name">A string used as a seed to generate this initializer's name in the ONNX graph.</param>
         /// <returns>The initializer's ONNX name</returns>
-        public abstract string AddInitializer(IEnumerable<long> values, List<long> dims, string name = null);
+        public abstract string AddInitializer(IEnumerable<long> values, IEnumerable<long> dims, string name = null);
 
         /// <summary>
         /// Call this function can declare a global long tensor
@@ -148,6 +148,6 @@ namespace Microsoft.ML.Runtime.Model.Onnx
         /// <param name="dims">The shape that the strings</param>
         /// <param name="name">A string used as a seed to generate this initializer's name in the ONNX graph.</param>
         /// <returns>The initializer's ONNX name</returns>
-        public abstract string AddInitializer(IEnumerable<string> values, List<long> dims, string name = null);
+        public abstract string AddInitializer(IEnumerable<string> values, IEnumerable<long> dims, string name = null);
     }
 }

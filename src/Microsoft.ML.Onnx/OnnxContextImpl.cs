@@ -284,7 +284,7 @@ namespace Microsoft.ML.Runtime.Model.Onnx
             return name;
         }
 
-        public override string AddInitializer(IEnumerable<float> values, List<long> dims, string name = null)
+        public override string AddInitializer(IEnumerable<float> values, IEnumerable<long> dims, string name = null)
         {
             _host.CheckValue(values, nameof(values));
             if (dims != null)
@@ -299,7 +299,7 @@ namespace Microsoft.ML.Runtime.Model.Onnx
             return name;
         }
 
-        public override string AddInitializer(IEnumerable<long> values, List<long> dims, string name = null)
+        public override string AddInitializer(IEnumerable<long> values, IEnumerable<long> dims, string name = null)
         {
             _host.CheckValue(values, nameof(values));
             if (dims != null)
@@ -314,7 +314,7 @@ namespace Microsoft.ML.Runtime.Model.Onnx
             return name;
         }
 
-        public override string AddInitializer(IEnumerable<string> values, List<long> dims, string name = null)
+        public override string AddInitializer(IEnumerable<string> values, IEnumerable<long> dims, string name = null)
         {
             _host.CheckValue(values, nameof(values));
             if (dims != null)
