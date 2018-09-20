@@ -234,8 +234,7 @@ namespace Microsoft.ML.Transforms.Text
         /// <param name="keepDiacritics">Whether to keep diacritical marks or remove them.</param>
         /// <param name="keepPunctuations">Whether to keep punctuation marks or remove them.</param>
         /// <param name="keepNumbers">Whether to keep numbers or remove them.</param>
-        /// <returns></returns>
-        public static Scalar<string> Normalize(this Scalar<string> input,
+        public static Scalar<string> NormalizeText(this Scalar<string> input,
             CaseNormalizationMode textCase = CaseNormalizationMode.Lower,
             bool keepDiacritics = false,
             bool keepPunctuations = true,
@@ -311,8 +310,7 @@ namespace Microsoft.ML.Transforms.Text
         /// <param name="allLengths">Whether to include all ngram lengths up to <paramref name="ngramLength"/> or only <paramref name="ngramLength"/>.</param>
         /// <param name="maxNumTerms">Maximum number of ngrams to store in the dictionary.</param>
         /// <param name="weighting">Statistical measure used to evaluate how important a word is to a document in a corpus.</param>
-        /// <returns></returns>
-        public static Vector<float> BagofWords(this Scalar<string> input,
+        public static Vector<float> ToBagofWords(this Scalar<string> input,
             int ngramLength = 1,
             int skipLength = 0,
             bool allLengths = true,
@@ -396,8 +394,7 @@ namespace Microsoft.ML.Transforms.Text
         /// <param name="seed">Hashing seed.</param>
         /// <param name="ordered">Whether the position of each source column should be included in the hash (when there are multiple source columns).</param>
         /// <param name="invertHash">Limit the number of keys used to generate the slot name to this many. 0 means no invert hashing, -1 means no limit.</param>
-        /// <returns></returns>
-        public static Vector<float> BagofHashedWords(this Scalar<string> input,
+        public static Vector<float> ToBagofHashedWords(this Scalar<string> input,
             int hashBits = 16,
             int ngramLength = 1,
             int skipLength = 0,
@@ -467,11 +464,11 @@ namespace Microsoft.ML.Transforms.Text
         }
 
         /// <summary>
-        /// Produces a bag of counts of ngrams (sequences of consecutive words ) in a given text.
+        /// Produces a bag of counts of ngrams (sequences of consecutive words ) in a given tokenized text.
         /// It does so by building a dictionary of ngrams and using the id in the dictionary as the index in the bag.
         ///
-        /// /// <see cref="Ngrams"/> is different from <see cref="WordBagEstimatorExtensions.BagofWords"/>
-        /// in a way that <see cref="Ngrams"/> takes tokenized text as input while <see cref="WordBagEstimatorExtensions.BagofWords"/> tokenizes text internally.
+        /// /// <see cref="ToNgrams"/> is different from <see cref="WordBagEstimatorExtensions.ToBagofWords"/>
+        /// in a way that <see cref="ToNgrams"/> takes tokenized text as input while <see cref="WordBagEstimatorExtensions.ToBagofWords"/> tokenizes text internally.
         /// </summary>
         /// <param name="input">The column to apply to.</param>
         /// <param name="ngramLength">Ngram length.</param>
@@ -479,8 +476,7 @@ namespace Microsoft.ML.Transforms.Text
         /// <param name="allLengths">Whether to include all ngram lengths up to <paramref name="ngramLength"/> or only <paramref name="ngramLength"/>.</param>
         /// <param name="maxNumTerms">Maximum number of ngrams to store in the dictionary.</param>
         /// <param name="weighting">Statistical measure used to evaluate how important a word is to a document in a corpus.</param>
-        /// <returns></returns>
-        public static Vector<float> Ngrams(this VarVector<Key<uint,string>> input,
+        public static Vector<float> ToNgrams(this VarVector<Key<uint,string>> input,
             int ngramLength = 1,
             int skipLength = 0,
             bool allLengths = true,
@@ -553,11 +549,11 @@ namespace Microsoft.ML.Transforms.Text
         }
 
         /// <summary>
-        /// Produces a bag of counts of ngrams (sequences of consecutive words of length 1-n) in a given text.
+        /// Produces a bag of counts of ngrams (sequences of consecutive words of length 1-n) in a given tokenized text.
         /// It does so by hashing each ngram and using the hash value as the index in the bag.
         ///
-        /// <see cref="NgramsHash"/> is different from <see cref="WordHashBagEstimatorExtensions.BagofHashedWords"/>
-        /// in a way that <see cref="NgramsHash"/> takes tokenized text as input while <see cref="WordHashBagEstimatorExtensions.BagofHashedWords"/> tokenizes text internally.
+        /// <see cref="ToNgramsHash"/> is different from <see cref="WordHashBagEstimatorExtensions.ToBagofHashedWords"/>
+        /// in a way that <see cref="ToNgramsHash"/> takes tokenized text as input while <see cref="WordHashBagEstimatorExtensions.ToBagofHashedWords"/> tokenizes text internally.
         /// </summary>
         /// <param name="input">The column to apply to.</param>
         /// <param name="hashBits">Number of bits to hash into. Must be between 1 and 30, inclusive.</param>
@@ -567,8 +563,7 @@ namespace Microsoft.ML.Transforms.Text
         /// <param name="seed">Hashing seed.</param>
         /// <param name="ordered">Whether the position of each source column should be included in the hash (when there are multiple source columns).</param>
         /// <param name="invertHash">Limit the number of keys used to generate the slot name to this many. 0 means no invert hashing, -1 means no limit.</param>
-        /// <returns></returns>
-        public static Vector<float> NgramsHash(this VarVector<Key<uint, string>> input,
+        public static Vector<float> ToNgramsHash(this VarVector<Key<uint, string>> input,
             int hashBits = 16,
             int ngramLength = 2,
             int skipLength = 0,
