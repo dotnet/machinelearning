@@ -183,7 +183,7 @@ namespace Microsoft.ML.Runtime.Data
     }
 
     /// <summary>
-    /// A transform that turns a collection of tokenized text (vector of DvText), or vectors of keys into numerical
+    /// A transform that turns a collection of tokenized text (vector of ReadOnlyMemory), or vectors of keys into numerical
     /// feature vectors. The feature vectors are counts of ngrams (sequences of consecutive *tokens* -words or keys-
     /// of length 1-n).
     /// </summary>
@@ -276,7 +276,7 @@ namespace Microsoft.ML.Runtime.Data
             public Column[] Column;
         }
 
-        internal const string Summary = "A transform that turns a collection of tokenized text (vector of DvText), or vectors of keys into numerical " +
+        internal const string Summary = "A transform that turns a collection of tokenized text ReadOnlyMemory, or vectors of keys into numerical " +
             "feature vectors. The feature vectors are counts of ngrams (sequences of consecutive *tokens* -words or keys- of length 1-n).";
 
         internal const string LoaderSignature = "NgramExtractor";

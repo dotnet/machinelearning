@@ -5,6 +5,7 @@
 using System;
 using System.Linq;
 using System.Text;
+using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
@@ -31,7 +32,8 @@ namespace Microsoft.ML.Runtime.FastTree
     // Yang, Quan, and Zou. "Insurance Premium Prediction via Gradient Tree-Boosted Tweedie Compound Poisson Models."
     // https://arxiv.org/pdf/1508.06378.pdf
     /// <include file='doc.xml' path='doc/members/member[@name="FastTreeTweedieRegression"]/*' />
-    public sealed partial class FastTreeTweedieTrainer : BoostingFastTreeTrainerBase<FastTreeTweedieTrainer.Arguments, FastTreeTweediePredictor>
+    public sealed partial class FastTreeTweedieTrainer
+         : BoostingFastTreeTrainerBase<FastTreeTweedieTrainer.Arguments, RegressionPredictionTransformer<FastTreeTweediePredictor>, FastTreeTweediePredictor>
     {
         public const string LoadNameValue = "FastTreeTweedieRegression";
         public const string UserNameValue = "FastTree (Boosted Trees) Tweedie Regression";
@@ -44,13 +46,34 @@ namespace Microsoft.ML.Runtime.FastTree
 
         public override PredictionKind PredictionKind => PredictionKind.Regression;
 
-        public FastTreeTweedieTrainer(IHostEnvironment env, Arguments args)
-            : base(env, args)
+        private SchemaShape.Column[] _outputColumns;
+
+        /// <summary>
+        /// Initializes a new instance of <see cref="FastTreeTweedieTrainer"/>
+        /// </summary>
+        /// <param name="env">The private instance of <see cref="IHostEnvironment"/>.</param>
+        /// <param name="labelColumn">The name of the label column.</param>
+        /// <param name="featureColumn">The name of the feature column.</param>
+        /// <param name="groupIdColumn">The name for the column containing the group ID. </param>
+        /// <param name="weightColumn">The name for the column containing the initial weight.</param>
+        /// <param name="advancedSettings">A delegate to apply all the advanced arguments to the algorithm.</param>
+        public FastTreeTweedieTrainer(IHostEnvironment env, string labelColumn, string featureColumn,
+            string groupIdColumn, string weightColumn = null, Action<Arguments> advancedSettings = null)
+            : base(env, MakeLabelColumn(labelColumn), featureColumn, weightColumn, groupIdColumn, advancedSettings)
         {
-            Host.CheckUserArg(1 <= Args.Index && Args.Index <= 2, nameof(Args.Index), "Must be in the range [1, 2]");
+            Initialize();
         }
 
-        public override FastTreeTweediePredictor Train(TrainContext context)
+        /// <summary>
+        /// Initializes a new instance of <see cref="FastTreeTweedieTrainer"/> by using the legacy <see cref="Arguments"/> class.
+        /// </summary>
+        internal FastTreeTweedieTrainer(IHostEnvironment env, Arguments args)
+            : base(env, args, MakeLabelColumn(args.LabelColumn))
+        {
+            Initialize();
+        }
+
+        protected override FastTreeTweediePredictor TrainModelCore(TrainContext context)
         {
             Host.CheckValue(context, nameof(context));
             var trainData = context.TrainingSet;
@@ -132,6 +155,16 @@ namespace Microsoft.ML.Runtime.FastTree
         protected override Test ConstructTestForTrainingData()
         {
             return new RegressionTest(ConstructScoreTracker(TrainSet));
+        }
+
+        private void Initialize()
+        {
+            Host.CheckUserArg(1 <= Args.Index && Args.Index <= 2, nameof(Args.Index), "Must be in the range [1, 2]");
+
+            _outputColumns = new[]
+            {
+                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false)
+            };
         }
 
         private void AddFullRegressionTests()
@@ -268,6 +301,16 @@ namespace Microsoft.ML.Runtime.FastTree
             // Keeping it in sync with original FR code
             PrintTestGraph(ch);
         }
+
+        private static SchemaShape.Column MakeLabelColumn(string labelColumn)
+        {
+            return new SchemaShape.Column(labelColumn, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false);
+        }
+
+        protected override RegressionPredictionTransformer<FastTreeTweediePredictor> MakeTransformer(FastTreeTweediePredictor model, ISchema trainSchema)
+         => new RegressionPredictionTransformer<FastTreeTweediePredictor>(Host, model, trainSchema, FeatureColumn.Name);
+
+        protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema) => _outputColumns;
 
         private sealed class ObjectiveImpl : ObjectiveFunctionBase, IStepSearch
         {

@@ -2,8 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Linq;
 using System.Text;
+using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
@@ -32,7 +34,8 @@ using Microsoft.ML.Runtime.Internal.Internallearn;
 namespace Microsoft.ML.Runtime.FastTree
 {
     /// <include file='doc.xml' path='doc/members/member[@name="FastTree"]/*' />
-    public sealed partial class FastTreeRegressionTrainer : BoostingFastTreeTrainerBase<FastTreeRegressionTrainer.Arguments, FastTreeRegressionPredictor>
+    public sealed partial class FastTreeRegressionTrainer
+        : BoostingFastTreeTrainerBase<FastTreeRegressionTrainer.Arguments, RegressionPredictionTransformer<FastTreeRegressionPredictor>, FastTreeRegressionPredictor>
     {
         public const string LoadNameValue = "FastTreeRegression";
         internal const string UserNameValue = "FastTree (Boosted Trees) Regression";
@@ -43,14 +46,45 @@ namespace Microsoft.ML.Runtime.FastTree
         private Test _trainRegressionTest;
         private Test _testRegressionTest;
 
+        /// <summary>
+        /// The type of prediction for the trainer.
+        /// </summary>
         public override PredictionKind PredictionKind => PredictionKind.Regression;
 
-        public FastTreeRegressionTrainer(IHostEnvironment env, Arguments args)
-            : base(env, args)
+        private readonly SchemaShape.Column[] _outputColumns;
+
+        /// <summary>
+        /// Initializes a new instance of <see cref="FastTreeRegressionTrainer"/>
+        /// </summary>
+        /// <param name="env">The private instance of <see cref="IHostEnvironment"/>.</param>
+        /// <param name="labelColumn">The name of the label column.</param>
+        /// <param name="featureColumn">The name of the feature column.</param>
+        /// <param name="groupIdColumn">The name for the column containing the group ID. </param>
+        /// <param name="weightColumn">The name for the column containing the initial weight.</param>
+        /// <param name="advancedSettings">A delegate to apply all the advanced arguments to the algorithm.</param>
+        public FastTreeRegressionTrainer(IHostEnvironment env, string labelColumn, string featureColumn,
+            string weightColumn = null, string groupIdColumn = null, Action<Arguments> advancedSettings = null)
+            : base(env, MakeLabelColumn(labelColumn), featureColumn, weightColumn, groupIdColumn, advancedSettings)
         {
+            _outputColumns = new[]
+            {
+                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata()))
+            };
         }
 
-        public override FastTreeRegressionPredictor Train(TrainContext context)
+        /// <summary>
+        /// Initializes a new instance of <see cref="FastTreeRegressionTrainer"/> by using the legacy <see cref="Arguments"/> class.
+        /// </summary>
+        internal FastTreeRegressionTrainer(IHostEnvironment env, Arguments args)
+            : base(env, args, MakeLabelColumn(args.LabelColumn))
+        {
+            _outputColumns = new[]
+            {
+                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata()))
+            };
+        }
+
+        protected override FastTreeRegressionPredictor TrainModelCore(TrainContext context)
         {
             Host.CheckValue(context, nameof(context));
             var trainData = context.TrainingSet;
@@ -77,6 +111,11 @@ namespace Microsoft.ML.Runtime.FastTree
 
             ch.CheckUserArg((Args.EarlyStoppingRule == null && !Args.EnablePruning) || (Args.EarlyStoppingMetrics >= 1 && Args.EarlyStoppingMetrics <= 2), nameof(Args.EarlyStoppingMetrics),
                     "earlyStoppingMetrics should be 1 or 2. (1: L1, 2: L2)");
+        }
+
+        private static SchemaShape.Column MakeLabelColumn(string labelColumn)
+        {
+            return new SchemaShape.Column(labelColumn, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false);
         }
 
         protected override ObjectiveFunctionBase ConstructObjFunc(IChannel ch)
@@ -123,6 +162,11 @@ namespace Microsoft.ML.Runtime.FastTree
         {
             return new RegressionTest(ConstructScoreTracker(TrainSet));
         }
+
+        protected override RegressionPredictionTransformer<FastTreeRegressionPredictor> MakeTransformer(FastTreeRegressionPredictor model, ISchema trainSchema)
+            => new RegressionPredictionTransformer<FastTreeRegressionPredictor>(Host, model, trainSchema, FeatureColumn.Name);
+
+        protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema) => _outputColumns;
 
         private void AddFullRegressionTests()
         {

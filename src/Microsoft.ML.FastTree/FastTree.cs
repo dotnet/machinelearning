@@ -12,6 +12,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
+using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Data.Conversion;
@@ -43,10 +44,11 @@ namespace Microsoft.ML.Runtime.FastTree
         public static readonly object TrainLock = new object();
     }
 
-    public abstract class FastTreeTrainerBase<TArgs, TPredictor> :
-        TrainerBase<TPredictor>
+    public abstract class FastTreeTrainerBase<TArgs, TTransformer, TModel> :
+        TrainerEstimatorBase<TTransformer, TModel>
+        where TTransformer: ISingleFeaturePredictionTransformer<TModel>
         where TArgs : TreeArgs, new()
-        where TPredictor : IPredictorProducing<Float>
+        where TModel : IPredictorProducing<Float>
     {
         protected readonly TArgs Args;
         protected readonly bool AllowGC;
@@ -87,8 +89,41 @@ namespace Microsoft.ML.Runtime.FastTree
 
         private protected virtual bool NeedCalibration => false;
 
-        private protected FastTreeTrainerBase(IHostEnvironment env, TArgs args)
-            : base(env, RegisterName)
+        /// <summary>
+        /// Constructor to use when instantiating the classing deriving from here through the API.
+        /// </summary>
+        private protected FastTreeTrainerBase(IHostEnvironment env, SchemaShape.Column label, string featureColumn,
+            string weightColumn = null, string groupIdColumn = null, Action<TArgs> advancedSettings = null)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(RegisterName), MakeFeatureColumn(featureColumn), label, MakeWeightColumn(weightColumn))
+        {
+            Args = new TArgs();
+
+            //apply the advanced args, if the user supplied any
+            advancedSettings?.Invoke(Args);
+            Args.LabelColumn = label.Name;
+
+            if (weightColumn != null)
+                Args.WeightColumn = weightColumn;
+
+            if (groupIdColumn != null)
+                Args.GroupIdColumn = groupIdColumn;
+
+            // The discretization step renders this trainer non-parametric, and therefore it does not need normalization.
+            // Also since it builds its own internal discretized columnar structures, it cannot benefit from caching.
+            // Finally, even the binary classifiers, being logitboost, tend to not benefit from external calibration.
+            Info = new TrainerInfo(normalization: false, caching: false, calibration: NeedCalibration, supportValid: true);
+            // REVIEW: CLR 4.6 has a bug that is only exposed in Scope, and if we trigger GC.Collect in scope environment
+            // with memory consumption more than 5GB, GC get stuck in infinite loop. So for now let's call GC only if we call things from LocalEnvironment.
+            AllowGC = (env is HostEnvironmentBase<LocalEnvironment>);
+
+            Initialize(env);
+        }
+
+        /// <summary>
+        /// Legacy constructor that is used when invoking the classsing deriving from this, through maml.
+        /// </summary>
+        private protected FastTreeTrainerBase(IHostEnvironment env, TArgs args, SchemaShape.Column label)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(RegisterName), MakeFeatureColumn(args.FeatureColumn), label, MakeWeightColumn(args.WeightColumn))
         {
             Host.CheckValue(args, nameof(args));
             Args = args;
@@ -96,25 +131,11 @@ namespace Microsoft.ML.Runtime.FastTree
             // Also since it builds its own internal discretized columnar structures, it cannot benefit from caching.
             // Finally, even the binary classifiers, being logitboost, tend to not benefit from external calibration.
             Info = new TrainerInfo(normalization: false, caching: false, calibration: NeedCalibration, supportValid: true);
-            int numThreads = Args.NumThreads ?? Environment.ProcessorCount;
-            if (Host.ConcurrencyFactor > 0 && numThreads > Host.ConcurrencyFactor)
-            {
-                using (var ch = Host.Start("FastTreeTrainerBase"))
-                {
-                    numThreads = Host.ConcurrencyFactor;
-                    ch.Warning("The number of threads specified in trainer arguments is larger than the concurrency factor "
-                        + "setting of the environment. Using {0} training threads instead.", numThreads);
-                    ch.Done();
-                }
-            }
-            ParallelTraining = Args.ParallelTrainer != null ? Args.ParallelTrainer.CreateComponent(env) : new SingleTrainer();
-            ParallelTraining.InitEnvironment();
             // REVIEW: CLR 4.6 has a bug that is only exposed in Scope, and if we trigger GC.Collect in scope environment
-            // with memory consumption more than 5GB, GC get stuck in infinite loop. So for now let's call GC only if we call things from ConsoleEnvironment.
-            AllowGC = (env is HostEnvironmentBase<ConsoleEnvironment>);
-            Tests = new List<Test>();
+            // with memory consumption more than 5GB, GC get stuck in infinite loop. So for now let's call GC only if we call things from LocalEnvironment.
+            AllowGC = (env is HostEnvironmentBase<LocalEnvironment>);
 
-            InitializeThreads(numThreads);
+            Initialize(env);
         }
 
         protected abstract void PrepareLabels(IChannel ch);
@@ -131,6 +152,39 @@ namespace Microsoft.ML.Runtime.FastTree
         protected virtual Float GetMaxLabel()
         {
             return Float.PositiveInfinity;
+        }
+
+        private static SchemaShape.Column MakeWeightColumn(string weightColumn)
+        {
+            if (weightColumn == null)
+                return null;
+            return new SchemaShape.Column(weightColumn, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false);
+        }
+
+        private static SchemaShape.Column MakeFeatureColumn(string featureColumn)
+        {
+            return new SchemaShape.Column(featureColumn, SchemaShape.Column.VectorKind.Vector, NumberType.R4, false);
+        }
+
+        private void Initialize(IHostEnvironment env)
+        {
+            int numThreads = Args.NumThreads ?? Environment.ProcessorCount;
+            if (Host.ConcurrencyFactor > 0 && numThreads > Host.ConcurrencyFactor)
+            {
+                using (var ch = Host.Start("FastTreeTrainerBase"))
+                {
+                    numThreads = Host.ConcurrencyFactor;
+                    ch.Warning("The number of threads specified in trainer arguments is larger than the concurrency factor "
+                        + "setting of the environment. Using {0} training threads instead.", numThreads);
+                    ch.Done();
+                }
+            }
+            ParallelTraining = Args.ParallelTrainer != null ? Args.ParallelTrainer.CreateComponent(env) : new SingleTrainer();
+            ParallelTraining.InitEnvironment();
+
+            Tests = new List<Test>();
+
+            InitializeThreads(numThreads);
         }
 
         protected void ConvertData(RoleMappedData trainData)
@@ -939,7 +993,7 @@ namespace Microsoft.ML.Runtime.FastTree
             return conv;
         }
 
-        protected void GetFeatureNames(RoleMappedData data, ref VBuffer<DvText> names)
+        protected void GetFeatureNames(RoleMappedData data, ref VBuffer<ReadOnlyMemory<char>> names)
         {
             // The existing implementations will have verified this by the time this utility
             // function is called.
@@ -952,11 +1006,11 @@ namespace Microsoft.ML.Runtime.FastTree
             if (sch.HasSlotNames(feat.Index, feat.Type.ValueCount))
                 sch.GetMetadata(MetadataUtils.Kinds.SlotNames, feat.Index, ref names);
             else
-                names = new VBuffer<DvText>(feat.Type.ValueCount, 0, names.Values, names.Indices);
+                names = new VBuffer<ReadOnlyMemory<char>>(feat.Type.ValueCount, 0, names.Values, names.Indices);
         }
 
 #if !CORECLR
-        protected void GetFeatureIniContent(RoleMappedData data, ref VBuffer<DvText> content)
+        protected void GetFeatureIniContent(RoleMappedData data, ref VBuffer<ReadOnlyMemory<char>> content)
         {
             // The existing implementations will have verified this by the time this utility
             // function is called.
@@ -968,7 +1022,7 @@ namespace Microsoft.ML.Runtime.FastTree
             var sch = data.Schema.Schema;
             var type = sch.GetMetadataTypeOrNull(BingBinLoader.IniContentMetadataKind, feat.Index);
             if (type == null || type.VectorSize != feat.Type.ValueCount || !type.IsVector || !type.ItemType.IsText)
-                content = new VBuffer<DvText>(feat.Type.ValueCount, 0, content.Values, content.Indices);
+                content = new VBuffer<ReadOnlyMemory<char>>(feat.Type.ValueCount, 0, content.Values, content.Indices);
             else
                 sch.GetMetadata(BingBinLoader.IniContentMetadataKind, feat.Index, ref content);
         }
@@ -3138,7 +3192,7 @@ namespace Microsoft.ML.Runtime.FastTree
         {
             var gainMap = new FeatureToGainMap(TrainedEnsemble.Trees.ToList(), normalize: true);
 
-            var names = default(VBuffer<DvText>);
+            var names = default(VBuffer<ReadOnlyMemory<char>>);
             MetadataUtils.GetSlotNames(schema, RoleMappedSchema.ColumnRole.Feature, NumFeatures, ref names);
             var ordered = gainMap.OrderByDescending(pair => pair.Value);
             Double max = ordered.FirstOrDefault().Value;
@@ -3170,7 +3224,7 @@ namespace Microsoft.ML.Runtime.FastTree
         {
             Host.AssertValueOrNull(schema);
 
-            var names = default(VBuffer<DvText>);
+            var names = default(VBuffer<ReadOnlyMemory<char>>);
             MetadataUtils.GetSlotNames(schema, RoleMappedSchema.ColumnRole.Feature, NumFeatures, ref names);
 
             int i = 0;
@@ -3190,13 +3244,13 @@ namespace Microsoft.ML.Runtime.FastTree
         /// <summary>
         /// Convert a single tree to code, called recursively
         /// </summary>
-        private void SaveTreeAsCode(RegressionTree tree, TextWriter writer, ref VBuffer<DvText> names)
+        private void SaveTreeAsCode(RegressionTree tree, TextWriter writer, ref VBuffer<ReadOnlyMemory<char>> names)
         {
             ToCSharp(tree, writer, 0, ref names);
         }
 
         // converts a subtree into a C# expression
-        private void ToCSharp(RegressionTree tree, TextWriter writer, int node, ref VBuffer<DvText> names)
+        private void ToCSharp(RegressionTree tree, TextWriter writer, int node, ref VBuffer<ReadOnlyMemory<char>> names)
         {
             if (node < 0)
             {
@@ -3277,7 +3331,7 @@ namespace Microsoft.ML.Runtime.FastTree
 
         public IRow GetSummaryIRowOrNull(RoleMappedSchema schema)
         {
-            var names = default(VBuffer<DvText>);
+            var names = default(VBuffer<ReadOnlyMemory<char>>);
             MetadataUtils.GetSlotNames(schema, RoleMappedSchema.ColumnRole.Feature, NumFeatures, ref names);
             var slotNamesCol = RowColumnUtils.GetColumn(MetadataUtils.Kinds.SlotNames,
                 new VectorType(TextType.Instance, NumFeatures), ref names);

@@ -67,7 +67,7 @@ namespace Microsoft.ML.Runtime.Learners
             };
         }
 
-        public SdcaRegressionTrainer(IHostEnvironment env, Arguments args)
+        internal SdcaRegressionTrainer(IHostEnvironment env, Arguments args)
             : this(env, args, args.FeatureColumn, args.LabelColumn)
         {
         }

@@ -200,7 +200,7 @@ namespace Microsoft.ML.Transforms
         }
 
         private readonly ColumnInfo[] _columns;
-        private readonly VBuffer<DvText>[] _keyValues;
+        private readonly VBuffer<ReadOnlyMemory<char>>[] _keyValues;
         private readonly ColumnType[] _kvTypes;
 
         protected override void CheckInputColumn(ISchema inputSchema, int col, int srcCol)
@@ -294,7 +294,7 @@ namespace Microsoft.ML.Transforms
                             for (int i = 0; i < helpers.Length; ++i)
                                 helpers[i].Process();
                         }
-                        _keyValues = new VBuffer<DvText>[_columns.Length];
+                        _keyValues = new VBuffer<ReadOnlyMemory<char>>[_columns.Length];
                         _kvTypes = new ColumnType[_columns.Length];
                         for (int i = 0; i < helpers.Length; ++i)
                         {
@@ -408,7 +408,7 @@ namespace Microsoft.ML.Transforms
             switch (srcType.RawKind)
             {
                 case DataKind.Text:
-                    return ComposeGetterOneCore(input.GetGetter<DvText>(srcCol), seed, mask);
+                    return ComposeGetterOneCore(input.GetGetter<ReadOnlyMemory<char>>(srcCol), seed, mask);
                 case DataKind.U1:
                     return ComposeGetterOneCore(input.GetGetter<byte>(srcCol), seed, mask);
                 case DataKind.U2:
@@ -425,9 +425,9 @@ namespace Microsoft.ML.Transforms
             }
         }
 
-        private ValueGetter<uint> ComposeGetterOneCore(ValueGetter<DvText> getSrc, uint seed, uint mask)
+        private ValueGetter<uint> ComposeGetterOneCore(ValueGetter<ReadOnlyMemory<char>> getSrc, uint seed, uint mask)
         {
-            DvText src = default;
+            ReadOnlyMemory<char> src = default;
             return
                 (ref uint dst) =>
                 {
@@ -520,7 +520,7 @@ namespace Microsoft.ML.Transforms
             switch (srcType.ItemType.RawKind)
             {
                 case DataKind.Text:
-                    return ComposeGetterVecCore<DvText>(input, iinfo, srcCol, srcType, HashUnord, HashDense, HashSparse);
+                    return ComposeGetterVecCore<ReadOnlyMemory<char>>(input, iinfo, srcCol, srcType, HashUnord, HashDense, HashSparse);
                 case DataKind.U1:
                     return ComposeGetterVecCore<byte>(input, iinfo, srcCol, srcType, HashUnord, HashDense, HashSparse);
                 case DataKind.U2:
@@ -646,28 +646,28 @@ namespace Microsoft.ML.Transforms
 
         #region Core Hash functions, with and without index
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static uint HashCore(uint seed, ref DvText value, uint mask)
+        private static uint HashCore(uint seed, ref ReadOnlyMemory<char> value, uint mask)
         {
             Contracts.Assert(Utils.IsPowerOfTwo(mask + 1));
-            if (!value.HasChars)
+            if (value.IsEmpty)
                 return 0;
-            return (value.Trim().Hash(seed) & mask) + 1;
+            return (Hashing.MurmurHash(seed, value.Span.Trim(' ')) & mask) + 1;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static uint HashCore(uint seed, ref DvText value, int i, uint mask)
+        private static uint HashCore(uint seed, ref ReadOnlyMemory<char> value, int i, uint mask)
         {
             Contracts.Assert(Utils.IsPowerOfTwo(mask + 1));
-            if (!value.HasChars)
+            if (value.IsEmpty)
                 return 0;
-            return (value.Trim().Hash(Hashing.MurmurRound(seed, (uint)i)) & mask) + 1;
+            return (Hashing.MurmurHash(Hashing.MurmurRound(seed, (uint)i), value.Span.Trim(' ')) & mask) + 1;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static uint HashCore(uint seed, ref float value, uint mask)
         {
             Contracts.Assert(Utils.IsPowerOfTwo(mask + 1));
-            if (value.IsNA())
+            if (float.IsNaN(value))
                 return 0;
             // (value == 0 ? 0 : value) takes care of negative 0, its equal to positive 0 according to the IEEE 754 standard
             return (Hashing.MixHash(Hashing.MurmurRound(seed, FloatUtils.GetBits(value == 0 ? 0 : value))) & mask) + 1;
@@ -677,7 +677,7 @@ namespace Microsoft.ML.Transforms
         private static uint HashCore(uint seed, ref float value, int i, uint mask)
         {
             Contracts.Assert(Utils.IsPowerOfTwo(mask + 1));
-            if (value.IsNA())
+            if (float.IsNaN(value))
                 return 0;
             return (Hashing.MixHash(Hashing.MurmurRound(Hashing.MurmurRound(seed, (uint)i),
                 FloatUtils.GetBits(value == 0 ? 0 : value))) & mask) + 1;
@@ -687,7 +687,7 @@ namespace Microsoft.ML.Transforms
         private static uint HashCore(uint seed, ref double value, uint mask)
         {
             Contracts.Assert(Utils.IsPowerOfTwo(mask + 1));
-            if (value.IsNA())
+            if (double.IsNaN(value))
                 return 0;
 
             ulong v = FloatUtils.GetBits(value == 0 ? 0 : value);
@@ -703,7 +703,7 @@ namespace Microsoft.ML.Transforms
         {
             // If the high word is zero, this should produce the same value as the uint version.
             Contracts.Assert(Utils.IsPowerOfTwo(mask + 1));
-            if (value.IsNA())
+            if (double.IsNaN(value))
                 return 0;
 
             ulong v = FloatUtils.GetBits(value == 0 ? 0 : value);
@@ -766,7 +766,7 @@ namespace Microsoft.ML.Transforms
         #endregion Core Hash functions, with and without index
 
         #region Unordered Loop: ignore indices
-        private static void HashUnord(int count, int[] indices, DvText[] src, uint[] dst, uint seed, uint mask)
+        private static void HashUnord(int count, int[] indices, ReadOnlyMemory<char>[] src, uint[] dst, uint seed, uint mask)
         {
             AssertValid(count, src, dst);
 
@@ -824,7 +824,7 @@ namespace Microsoft.ML.Transforms
         #endregion Unordered Loop: ignore indices
 
         #region Dense Loop: ignore indices
-        private static void HashDense(int count, int[] indices, DvText[] src, uint[] dst, uint seed, uint mask)
+        private static void HashDense(int count, int[] indices, ReadOnlyMemory<char>[] src, uint[] dst, uint seed, uint mask)
         {
             AssertValid(count, src, dst);
 
@@ -881,7 +881,7 @@ namespace Microsoft.ML.Transforms
         #endregion Dense Loop: ignore indices
 
         #region Sparse Loop: use indices
-        private static void HashSparse(int count, int[] indices, DvText[] src, uint[] dst, uint seed, uint mask)
+        private static void HashSparse(int count, int[] indices, ReadOnlyMemory<char>[] src, uint[] dst, uint seed, uint mask)
         {
             AssertValid(count, src, dst);
             Contracts.Assert(count <= Utils.Size(indices));
@@ -1024,11 +1024,11 @@ namespace Microsoft.ML.Transforms
             }
             private void AddMetaKeyValues(int i, ColumnMetadataInfo colMetaInfo)
             {
-                MetadataUtils.MetadataGetter<VBuffer<DvText>> getter = (int col, ref VBuffer<DvText> dst) =>
+                MetadataUtils.MetadataGetter<VBuffer<ReadOnlyMemory<char>>> getter = (int col, ref VBuffer<ReadOnlyMemory<char>> dst) =>
                 {
                     _parent._keyValues[i].CopyTo(ref dst);
                 };
-                var info = new MetadataInfo<VBuffer<DvText>>(_parent._kvTypes[i], getter);
+                var info = new MetadataInfo<VBuffer<ReadOnlyMemory<char>>>(_parent._kvTypes[i], getter);
                 colMetaInfo.Add(MetadataUtils.Kinds.KeyValues, info);
             }
 
@@ -1094,9 +1094,9 @@ namespace Microsoft.ML.Transforms
             /// </summary>
             public abstract void Process();
 
-            public abstract VBuffer<DvText> GetKeyValuesMetadata();
+            public abstract VBuffer<ReadOnlyMemory<char>> GetKeyValuesMetadata();
 
-            private sealed class TextEqualityComparer : IEqualityComparer<DvText>
+            private sealed class TextEqualityComparer : IEqualityComparer<ReadOnlyMemory<char>>
             {
                 // REVIEW: Is this sufficiently useful? Should we be using term map, instead?
                 private readonly uint _seed;
@@ -1106,16 +1106,13 @@ namespace Microsoft.ML.Transforms
                     _seed = seed;
                 }
 
-                public bool Equals(DvText x, DvText y)
-                {
-                    return x.Equals(y);
-                }
+                public bool Equals(ReadOnlyMemory<char> x, ReadOnlyMemory<char> y) => x.Span.SequenceEqual(y.Span);
 
-                public int GetHashCode(DvText obj)
+                public int GetHashCode(ReadOnlyMemory<char> obj)
                 {
-                    if (!obj.HasChars)
+                    if (obj.IsEmpty)
                         return 0;
-                    return (int)obj.Trim().Hash(_seed) + 1;
+                    return (int)Hashing.MurmurHash(_seed, obj.Span.Trim(' ')) + 1;
                 }
             }
 
@@ -1142,7 +1139,7 @@ namespace Microsoft.ML.Transforms
             private IEqualityComparer<T> GetSimpleComparer<T>()
             {
                 Contracts.Assert(_srcType.ItemType.RawType == typeof(T));
-                if (typeof(T) == typeof(DvText))
+                if (typeof(T) == typeof(ReadOnlyMemory<char>))
                 {
                     // We are hashing twice, once to assign to the slot, and then again,
                     // to build a set of encountered elements. Obviously we cannot use the
@@ -1182,7 +1179,7 @@ namespace Microsoft.ML.Transforms
                     return GetSimpleComparer<T>();
                 }
 
-                public override VBuffer<DvText> GetKeyValuesMetadata()
+                public override VBuffer<ReadOnlyMemory<char>> GetKeyValuesMetadata()
                 {
                     return Collector.GetMetadata();
                 }

@@ -121,7 +121,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
             var type = schema.GetMetadataTypeOrNull(MetadataUtils.Kinds.KeyValues, col);
             if (type == null || !type.IsKnownSizeVector || !type.ItemType.IsText)
                 return null;
-            var metadata = default(VBuffer<DvText>);
+            var metadata = default(VBuffer<ReadOnlyMemory<char>>);
             schema.GetMetadata(MetadataUtils.Kinds.KeyValues, col, ref metadata);
             if (!metadata.IsDense)
                 return null;
@@ -130,7 +130,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
             for (int i = 0; i < metadata.Length; i++)
             {
                 sb.Append(pre);
-                metadata.Values[i].AddToStringBuilder(sb);
+                sb.AppendMemory(metadata.Values[i]);
                 pre = ",";
             }
             return sb.ToString();

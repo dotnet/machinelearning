@@ -107,7 +107,7 @@ namespace Microsoft.ML.Benchmarks
                         WordFeatureExtractor = null,
                     }, loader);
 
-                var trans = new WordEmbeddingsTransform(env,
+                var trans = WordEmbeddingsTransform.Create(env,
                     new WordEmbeddingsTransform.Arguments()
                     {
                         Column = new WordEmbeddingsTransform.Column[1]
@@ -122,7 +122,7 @@ namespace Microsoft.ML.Benchmarks
                     }, text);
 
                 // Train
-                var trainer = new SdcaMultiClassTrainer(env, new SdcaMultiClassTrainer.Arguments() { MaxIterations = 20 });
+                var trainer = new SdcaMultiClassTrainer(env, new SdcaMultiClassTrainer.Arguments() { MaxIterations = 20 }, "Features", "Label");
                 var trainRoles = new RoleMappedData(trans, label: "Label", feature: "Features");
 
                 var predicted = trainer.Train(trainRoles);

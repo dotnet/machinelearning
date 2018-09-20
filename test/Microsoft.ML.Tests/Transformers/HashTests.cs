@@ -8,6 +8,7 @@ using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.RunTests;
 using Microsoft.ML.Runtime.Tools;
 using Microsoft.ML.Transforms;
+using System;
 using System.IO;
 using System.Linq;
 using Xunit;
@@ -82,7 +83,7 @@ namespace Microsoft.ML.Tests.Transformers
             Assert.True(result.Schema.TryGetColumnIndex("HashA", out int HashA));
             Assert.True(result.Schema.TryGetColumnIndex("HashAUnlim", out int HashAUnlim));
             Assert.True(result.Schema.TryGetColumnIndex("HashAUnlimOrdered", out int HashAUnlimOrdered));
-            VBuffer<DvText> keys = default;
+            VBuffer<ReadOnlyMemory<char>> keys = default;
             var types = result.Schema.GetMetadataTypes(HashA);
             Assert.Equal(types.Select(x => x.Key), new string[1] { MetadataUtils.Kinds.KeyValues });
             result.Schema.GetMetadata(MetadataUtils.Kinds.KeyValues, HashA, ref keys);

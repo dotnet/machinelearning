@@ -43,6 +43,20 @@ namespace Microsoft.ML.Runtime.RunTests
         }
 
         // New.
+        public static PredictorAndArgs binaryPrior = new PredictorAndArgs
+        {
+            Trainer = new SubComponent("PriorPredictor"),
+            Tag = "BinaryPrior"
+        };
+
+        // New.
+        public static PredictorAndArgs binaryRandom = new PredictorAndArgs
+        {
+            Trainer = new SubComponent("RandomPredictor"),
+            Tag = "BinaryRandom"
+        };
+
+        // New.
         public static PredictorAndArgs binarySdca = new PredictorAndArgs
         {
             Trainer = new SubComponent("SDCA", "maxIterations=5 checkFreq=9 nt=1"),
