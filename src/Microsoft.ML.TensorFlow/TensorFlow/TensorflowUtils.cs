@@ -33,8 +33,8 @@ namespace Microsoft.ML.Transforms.TensorFlow
         private static ISchema GetModelSchema(IExceptionContext ectx, TFGraph graph)
         {
             var res = new List<KeyValuePair<string, ColumnType>>();
-            var opTypeGetters = new List<MetadataUtils.MetadataGetter<DvText>>();
-            var inputOpsGetters = new List<MetadataUtils.MetadataGetter<VBuffer<DvText>>>();
+            var opTypeGetters = new List<MetadataUtils.MetadataGetter<ReadOnlyMemory<char>>>();
+            var inputOpsGetters = new List<MetadataUtils.MetadataGetter<VBuffer<ReadOnlyMemory<char>>>>();
             var inputOpsLengths = new List<int>();
             foreach (var op in graph)
             {
@@ -50,21 +50,23 @@ namespace Microsoft.ML.Transforms.TensorFlow
                 var shapeArray = shape.ToIntArray();
 
                 inputOpsLengths.Add(op.NumInputs);
-                MetadataUtils.MetadataGetter<VBuffer<DvText>> inputOpsGetter = null;
+                MetadataUtils.MetadataGetter<VBuffer<ReadOnlyMemory<char>>> inputOpsGetter = null;
                 if (op.NumInputs > 0)
                 {
-                    var inputOps = new DvText[op.NumInputs];
+                    var inputOps = new ReadOnlyMemory<char>[op.NumInputs];
                     for (int i = 0; i < op.NumInputs; i++)
                     {
                         var input = op.GetInput(i);
-                        inputOps[i] = new DvText(input.Operation.Name);
+                        inputOps[i] = new ReadOnlyMemory<char>(input.Operation.Name.ToArray());
                     }
-                    inputOpsGetter = (int col, ref VBuffer<DvText> dst) => dst = new VBuffer<DvText>(op.NumInputs, inputOps);
+                    inputOpsGetter = (int col, ref VBuffer<ReadOnlyMemory<char>> dst) =>
+                        dst = new VBuffer<ReadOnlyMemory<char>>(op.NumInputs, inputOps);
                 }
                 inputOpsGetters.Add(inputOpsGetter);
 
                 var opType = op.OpType;
-                MetadataUtils.MetadataGetter<DvText> opTypeGetter = (int col, ref DvText dst) => dst = new DvText(opType);
+                MetadataUtils.MetadataGetter<ReadOnlyMemory<char>> opTypeGetter =
+                    (int col, ref ReadOnlyMemory<char> dst) => dst = new ReadOnlyMemory<char>(opType.ToArray());
                 opTypeGetters.Add(opTypeGetter);
 
                 var columnType = Utils.Size(shapeArray) > 0 && shapeArray.Skip(1).All(x => x > 0) ?
@@ -93,10 +95,10 @@ namespace Microsoft.ML.Transforms.TensorFlow
 
                 var metadataType = schema.GetMetadataTypeOrNull(TensorFlowUtils.OpType, i);
                 Contracts.Assert(metadataType != null && metadataType.IsText);
-                DvText opType = default;
+                ReadOnlyMemory<char> opType = default;
                 schema.GetMetadata(TensorFlowUtils.OpType, i, ref opType);
                 metadataType = schema.GetMetadataTypeOrNull(TensorFlowUtils.InputOps, i);
-                VBuffer<DvText> inputOps = default;
+                VBuffer<ReadOnlyMemory<char>> inputOps = default;
                 if (metadataType != null)
                 {
                     Contracts.Assert(metadataType.IsKnownSizeVector && metadataType.ItemType.IsText);
@@ -185,12 +187,13 @@ namespace Microsoft.ML.Transforms.TensorFlow
 
         private sealed class TensorFlowSchema : SimpleSchemaBase
         {
-            private readonly MetadataUtils.MetadataGetter<DvText>[] _opTypeGetters;
-            private readonly MetadataUtils.MetadataGetter<VBuffer<DvText>>[] _inputOpsGetters;
+            private readonly MetadataUtils.MetadataGetter<ReadOnlyMemory<char>>[] _opTypeGetters;
+            private readonly MetadataUtils.MetadataGetter<VBuffer<ReadOnlyMemory<char>>>[] _inputOpsGetters;
             private readonly int[] _inputOpsLengths;
 
             public TensorFlowSchema(IExceptionContext ectx, KeyValuePair<string, ColumnType>[] columns,
-                MetadataUtils.MetadataGetter<DvText>[] opTypeGetters, MetadataUtils.MetadataGetter<VBuffer<DvText>>[] inputOpsGetters, int[] inputOpsLengths)
+                MetadataUtils.MetadataGetter<ReadOnlyMemory<char>>[] opTypeGetters,
+                MetadataUtils.MetadataGetter<VBuffer<ReadOnlyMemory<char>>>[] inputOpsGetters, int[] inputOpsLengths)
                 : base(ectx, columns)
             {
                 ectx.CheckParam(Utils.Size(opTypeGetters) == ColumnCount, nameof(opTypeGetters));

@@ -148,7 +148,8 @@ namespace Microsoft.ML.Runtime.Data
             _keyValueGetters = new MetadataUtils.MetadataGetter<VBuffer<ReadOnlyMemory<char>>>[ColumnCount];
         }
 
-        public SimpleSchema(IExceptionContext ectx, KeyValuePair<string, ColumnType>[] columns, Dictionary<string, MetadataUtils.MetadataGetter<VBuffer<DvText>>> keyValues)
+        public SimpleSchema(IExceptionContext ectx, KeyValuePair<string, ColumnType>[] columns,
+            Dictionary<string, MetadataUtils.MetadataGetter<VBuffer<ReadOnlyMemory<char>>>> keyValues)
             : this(ectx, columns)
         {
             foreach (var kvp in keyValues)
