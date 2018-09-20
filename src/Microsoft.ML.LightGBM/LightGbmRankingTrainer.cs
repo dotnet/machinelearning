@@ -97,9 +97,9 @@ namespace Microsoft.ML.Runtime.LightGBM
             string groupIdColumn, string weightColumn = null, Action<LightGbmArguments> advancedSettings = null)
             : base(env, LoadNameValue, TrainerUtils.MakeR4ScalarLabel(labelColumn), featureColumn, weightColumn, groupIdColumn, advancedSettings)
         {
-            Host.CheckValue(labelColumn, nameof(labelColumn), "labelColumn should not be null.");
-            Host.CheckValue(featureColumn, nameof(featureColumn), "featureColumn should not be null.");
-            Host.CheckValue(groupIdColumn, nameof(groupIdColumn), "groupIdColumn should not be null.");
+            Host.CheckNonEmpty(labelColumn, nameof(labelColumn));
+            Host.CheckNonEmpty(featureColumn, nameof(featureColumn));
+            Host.CheckNonEmpty(groupIdColumn, nameof(groupIdColumn));
         }
 
         protected override void CheckDataValid(IChannel ch, RoleMappedData data)

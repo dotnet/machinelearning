@@ -66,8 +66,8 @@ namespace Microsoft.ML.Runtime.FastTree
         public BinaryClassificationGamTrainer(IHostEnvironment env, string labelColumn, string featureColumn, string weightColumn = null, Action<Arguments> advancedSettings = null)
             : base(env, LoadNameValue, TrainerUtils.MakeBoolScalarLabel(labelColumn), featureColumn, weightColumn, advancedSettings)
         {
-            Host.CheckValue(labelColumn, nameof(labelColumn), "labelColumn should not be null.");
-            Host.CheckValue(featureColumn, nameof(featureColumn), "featureColumn should not be null.");
+            Host.CheckNonEmpty(labelColumn, nameof(labelColumn));
+            Host.CheckNonEmpty(featureColumn, nameof(featureColumn));
 
             _sigmoidParameter = 1;
         }

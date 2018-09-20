@@ -64,8 +64,8 @@ namespace Microsoft.ML.Runtime.FastTree
             string weightColumn = null, string groupIdColumn = null, Action<Arguments> advancedSettings = null)
             : base(env, TrainerUtils.MakeR4ScalarLabel(labelColumn), featureColumn, weightColumn, groupIdColumn, advancedSettings)
         {
-            Host.CheckValue(labelColumn, nameof(labelColumn), "labelColumn should not be null.");
-            Host.CheckValue(featureColumn, nameof(featureColumn), "featureColumn should not be null.");
+            Host.CheckNonEmpty(labelColumn, nameof(labelColumn));
+            Host.CheckNonEmpty(featureColumn, nameof(featureColumn));
         }
 
         /// <summary>

@@ -55,8 +55,8 @@ namespace Microsoft.ML.Runtime.FastTree
         public RegressionGamTrainer(IHostEnvironment env, string labelColumn, string featureColumn, string weightColumn = null, Action<Arguments> advancedSettings = null)
             : base(env, LoadNameValue, TrainerUtils.MakeR4ScalarLabel(labelColumn), featureColumn, weightColumn, advancedSettings)
         {
-            Host.CheckValue(labelColumn, nameof(labelColumn), "labelColumn should not be null.");
-            Host.CheckValue(featureColumn, nameof(featureColumn), "featureColumn should not be null.");
+            Host.CheckNonEmpty(labelColumn, nameof(labelColumn));
+            Host.CheckNonEmpty(featureColumn, nameof(featureColumn));
         }
 
         internal override void CheckLabel(RoleMappedData data)

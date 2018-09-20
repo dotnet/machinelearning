@@ -52,8 +52,8 @@ namespace Microsoft.ML.Runtime.LightGBM
             string groupIdColumn = null, string weightColumn = null, Action<LightGbmArguments> advancedSettings = null)
             : base(env, LoadNameValue, TrainerUtils.MakeBoolScalarLabel(labelColumn), featureColumn, weightColumn, groupIdColumn, advancedSettings)
         {
-            Host.CheckValue(labelColumn, nameof(labelColumn), "labelColumn should not be null.");
-            Host.CheckValue(featureColumn, nameof(featureColumn), "featureColumn should not be null.");
+            Host.CheckNonEmpty(labelColumn, nameof(labelColumn));
+            Host.CheckNonEmpty(featureColumn, nameof(featureColumn));
             _numClass = -1;
         }
 
