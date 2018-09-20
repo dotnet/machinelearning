@@ -2,12 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.FastTree;
 using Microsoft.ML.Runtime.Internal.Internallearn.Test;
-using Microsoft.ML.Runtime.Learners;
-using Microsoft.ML.Transforms;
 using System.Globalization;
 using System.IO;
 using System.Threading;
@@ -88,18 +83,6 @@ namespace Microsoft.ML.TestFramework
             if (!string.IsNullOrWhiteSpace(path))
                 File.Delete(path);
             return path;
-        }
-
-        protected ConsoleEnvironment CreateConsoleEnvironment(int? seed = null, bool verbose = false)
-        {
-            return new ConsoleEnvironment(seed, verbose).
-                AddStandardComponents();
-        }
-
-        protected LocalEnvironment CreateLocalEnvironment(int? seed = null, int conc = 0)
-        {
-            return new LocalEnvironment(seed, conc).
-                AddStandardComponents();
         }
     }
 }

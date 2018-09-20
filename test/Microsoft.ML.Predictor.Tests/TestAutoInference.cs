@@ -6,6 +6,7 @@ using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.EntryPoints.JsonUtils;
 using Microsoft.ML.Runtime.PipelineInference;
+using Microsoft.ML.TestFramework;
 using Newtonsoft.Json.Linq;
 using System.Collections.Generic;
 using System.Linq;
@@ -26,7 +27,8 @@ namespace Microsoft.ML.Runtime.RunTests
         [TestCategory("EntryPoints")]
         public void TestLearn()
         {
-            using (var env = CreateConsoleEnvironment())
+            using (var env = new ConsoleEnvironment()
+                .AddStandardComponents()) // AutoInference.InferPipelines uses ComponentCatalog to read text data
             {
                 string pathData = GetDataPath("adult.train");
                 string pathDataTest = GetDataPath("adult.test");
@@ -96,7 +98,8 @@ namespace Microsoft.ML.Runtime.RunTests
         [Fact]
         public void TestPipelineNodeCloning()
         {
-            using (var env = CreateConsoleEnvironment())
+            using (var env = new ConsoleEnvironment()
+                .AddStandardComponents()) // RecipeInference.AllowedLearners uses ComponentCatalog to find all learners
             {
                 var lr1 = RecipeInference
                     .AllowedLearners(env, MacroUtils.TrainerKinds.SignatureBinaryClassifierTrainer)
