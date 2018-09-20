@@ -313,13 +313,11 @@ namespace Microsoft.ML.Runtime.KMeans
             var tensorC = new List<float>();
             foreach (var centriod in _centroids)
                 tensorC.AddRange(centriod.DenseValues());
-            // var nameC = ctx.AddInitializer(tensorC, shapeC, "C");
-            var nameC = "C";
+            var nameC = ctx.AddInitializer(tensorC, shapeC, "C");
 
             // Save C^2 as an initializer because it's a constant.
             var shapeC2 = new[] { _centroidL2s.Length };
-            // var nameC2 = ctx.AddInitializer(_centroidL2s, shapeC2, "C2");
-            var nameC2 = "C2";
+            var nameC2 = ctx.AddInitializer(_centroidL2s, shapeC2, "C2");
 
             // Retrieve the name of X
             var nameX = featureColumn;
@@ -330,8 +328,7 @@ namespace Microsoft.ML.Runtime.KMeans
 
             // Compute -2XC^T. Note that Gemm always takes three inputs. Since we only have two here,
             // a dummpy one is created.
-            var zeroName = "zero";
-            // var zeroName = ctx.AddInitializer(0f, "zero");
+            var zeroName = ctx.AddInitializer(0f, "zero");
             var nameXC2 = ctx.AddIntermediateVariable(null, "XC2", true);
             var gemmNodeXC2 = ctx.CreateNode("Gemm", new[] { nameX, nameC, zeroName}, new[] { nameXC2 }, ctx.GetNodeName("Gemm"));
             gemmNodeXC2.AddAttribute("alpha", -2f);
