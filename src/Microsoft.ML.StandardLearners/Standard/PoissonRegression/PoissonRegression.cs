@@ -28,7 +28,7 @@ using Microsoft.ML.Runtime.Internal.Internallearn;
 namespace Microsoft.ML.Runtime.Learners
 {
     /// <include file='doc.xml' path='doc/members/member[@name="PoissonRegression"]/*' />
-    public sealed class PoissonRegression : LbfgsTrainerBase<RegressionPredictionTransformer<PoissonRegressionPredictor>, PoissonRegressionPredictor>
+    public sealed class PoissonRegression : LbfgsTrainerBase<PoissonRegression.Arguments, RegressionPredictionTransformer<PoissonRegressionPredictor>, PoissonRegressionPredictor>
     {
         internal const string LoadNameValue = "PoissonRegression";
         internal const string UserNameValue = "Poisson Regression";
@@ -41,8 +41,14 @@ namespace Microsoft.ML.Runtime.Learners
 
         private Double _lossNormalizer;
 
+        public PoissonRegression(IHostEnvironment env, string featureColumn, string labelColumn,
+            string groupIdColumn = null, string weightColumn = null, Action<Arguments> advancedSettings = null)
+            : base(env, featureColumn, labelColumn, weightColumn, groupIdColumn, advancedSettings)
+        {
+        }
+
         public PoissonRegression(IHostEnvironment env, Arguments args)
-            : base(args, env, LoadNameValue)
+            : base(env, args)
         {
         }
 
@@ -58,9 +64,7 @@ namespace Microsoft.ML.Runtime.Learners
         {
             return new[]
             {
-                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata())),
-                new SchemaShape.Column(DefaultColumnNames.Probability, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata(true))),
-                new SchemaShape.Column(DefaultColumnNames.PredictedLabel, SchemaShape.Column.VectorKind.Scalar, BoolType.Instance, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata()))
+                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata()))
             };
         }
 

@@ -32,7 +32,7 @@ namespace Microsoft.ML.Runtime.Learners
 
     /// <include file='doc.xml' path='doc/members/member[@name="LBFGS"]/*' />
     /// <include file='doc.xml' path='docs/members/example[@name="LogisticRegressionBinaryClassifier"]/*' />
-    public sealed partial class LogisticRegression : LbfgsTrainerBase<BinaryPredictionTransformer<ParameterMixingCalibratedPredictor>, ParameterMixingCalibratedPredictor>
+    public sealed partial class LogisticRegression : LbfgsTrainerBase<LogisticRegression.Arguments, BinaryPredictionTransformer<ParameterMixingCalibratedPredictor>, ParameterMixingCalibratedPredictor>
     {
         public const string LoadNameValue = "LogisticRegression";
         internal const string UserNameValue = "Logistic Regression";
@@ -49,8 +49,15 @@ namespace Microsoft.ML.Runtime.Learners
         private Double _posWeight;
         private LinearModelStatistics _stats;
 
+        public LogisticRegression(IHostEnvironment env, string featureColumn, string labelColumn,
+            string groupIdColumn = null, string weightColumn = null, Action<Arguments> advancedSettings = null)
+            : base(env, featureColumn, labelColumn, weightColumn, groupIdColumn, advancedSettings)
+        {
+            _posWeight = 0;
+        }
+
         public LogisticRegression(IHostEnvironment env, Arguments args)
-            : base(args, env, LoadNameValue, Contracts.CheckRef(args, nameof(args)).ShowTrainingStats)
+            : base(env, args)
         {
             _posWeight = 0;
         }

@@ -39,7 +39,7 @@ namespace Microsoft.ML.Runtime.Learners
 {
     /// <include file = 'doc.xml' path='doc/members/member[@name="LBFGS"]/*' />
     /// <include file = 'doc.xml' path='docs/members/example[@name="LogisticRegressionClassifier"]/*' />
-    public sealed class MulticlassLogisticRegression : LbfgsTrainerBase<MulticlassPredictionTransformer<MulticlassLogisticRegressionPredictor>, MulticlassLogisticRegressionPredictor>
+    public sealed class MulticlassLogisticRegression : LbfgsTrainerBase<MulticlassLogisticRegression.Arguments, MulticlassPredictionTransformer<MulticlassLogisticRegressionPredictor>, MulticlassLogisticRegressionPredictor>
     {
         public const string LoadNameValue = "MultiClassLogisticRegression";
         internal const string UserNameValue = "Multi-class Logistic Regression";
@@ -70,8 +70,14 @@ namespace Microsoft.ML.Runtime.Learners
 
         protected override int ClassCount => _numClasses;
 
+        public MulticlassLogisticRegression(IHostEnvironment env, string featureColumn, string labelColumn,
+            string groupIdColumn = null, string weightColumn = null, Action<Arguments> advancedSettings = null)
+            : base(env, featureColumn, labelColumn, weightColumn, groupIdColumn, advancedSettings)
+        {
+        }
+
         public MulticlassLogisticRegression(IHostEnvironment env, Arguments args)
-            : base(args, env, LoadNameValue, Contracts.CheckRef(args, nameof(args)).ShowTrainingStats)
+            : base(env, args)
         {
         }
 
@@ -284,7 +290,6 @@ namespace Microsoft.ML.Runtime.Learners
             return new[]
             {
                 new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata())),
-                new SchemaShape.Column(DefaultColumnNames.Probability, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata(true))),
                 new SchemaShape.Column(DefaultColumnNames.PredictedLabel, SchemaShape.Column.VectorKind.Scalar, BoolType.Instance, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata()))
             };
         }

@@ -18,9 +18,10 @@ using Microsoft.ML.Runtime.Internal.Internallearn;
 
 namespace Microsoft.ML.Runtime.Learners
 {
-    public abstract class LbfgsTrainerBase<TTransformer, TModel> : TrainerEstimatorBase<TTransformer, TModel>
+    public abstract class LbfgsTrainerBase<TArgs, TTransformer, TModel> : TrainerEstimatorBase<TTransformer, TModel>
       where TTransformer : IPredictionTransformer<TModel>
       where TModel : IPredictor
+      where TArgs : LbfgsTrainerBase<TArgs, TTransformer, TModel>.ArgumentsBase, new ()
     {
         public abstract class ArgumentsBase : LearnerInputBaseWithWeight
         {
@@ -94,6 +95,8 @@ namespace Microsoft.ML.Runtime.Learners
             public bool EnforceNonNegativity = false;
         }
 
+        private const string RegisterName = "LbfgsTraining";
+
         protected int NumFeatures;
         protected VBuffer<Float> CurrentWeights;
         protected long NumGoodRows;
@@ -101,6 +104,7 @@ namespace Microsoft.ML.Runtime.Learners
 
         private TModel _srcPredictor;
 
+        protected readonly TArgs Args;
         protected readonly Float L2Weight;
         protected readonly Float L1Weight;
         protected readonly Float OptTol;
@@ -139,32 +143,85 @@ namespace Microsoft.ML.Runtime.Learners
         private static readonly TrainerInfo _info = new TrainerInfo(caching: true, supportIncrementalTrain: true);
         public override TrainerInfo Info => _info;
 
-        internal LbfgsTrainerBase(ArgumentsBase args, IHostEnvironment env, string name, bool showTrainingStats = false)
-            : base(Contracts.CheckRef(env, nameof(env)).Register(name), MakeFeatureColumn(args.FeatureColumn), MakeFeatureColumn(args.LabelColumn), MakeWeightColumn(args.WeightColumn))
+        //TODO get the showTrainingStats to work
+        internal LbfgsTrainerBase(IHostEnvironment env, string featureColumn, string labelColumn,
+            string weightColumn = null, string groupIdColumn = null, Action<TArgs> advancedSettings = null, bool showTrainingStats = false)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(RegisterName), MakeFeatureColumn(featureColumn), MakeLabelColumn(labelColumn), MakeWeightColumn(weightColumn))
         {
-            Contracts.CheckUserArg(!args.UseThreads || args.NumThreads > 0 || args.NumThreads == null,
-                nameof(args.NumThreads), "numThreads must be positive (or empty for default)");
+            Args = new TArgs();
 
-            Contracts.CheckUserArg(args.L2Weight >= 0, nameof(args.L2Weight), "Must be non-negative");
-            L2Weight = args.L2Weight;
-            Contracts.CheckUserArg(args.L1Weight >= 0, nameof(args.L1Weight), "Must be non-negative");
-            L1Weight = args.L1Weight;
-            Contracts.CheckUserArg(args.OptTol > 0, nameof(args.OptTol), "Must be positive");
-            OptTol = args.OptTol;
-            Contracts.CheckUserArg(args.MemorySize > 0, nameof(args.MemorySize), "Must be positive");
-            MemorySize = args.MemorySize;
-            Contracts.CheckUserArg(args.MaxIterations > 0, nameof(args.MaxIterations), "Must be positive");
-            MaxIterations = args.MaxIterations;
-            Contracts.CheckUserArg(args.SgdInitializationTolerance >= 0, nameof(args.SgdInitializationTolerance), "Must be non-negative");
-            SgdInitializationTolerance = args.SgdInitializationTolerance;
-            Quiet = args.Quiet;
-            InitWtsDiameter = args.InitWtsDiameter;
-            UseThreads = args.UseThreads;
-            Contracts.CheckUserArg(args.NumThreads == null || args.NumThreads.Value >= 0, nameof(args.NumThreads), "Must be non-negative");
-            NumThreads = args.NumThreads;
-            DenseOptimizer = args.DenseOptimizer;
+            //apply the advanced args, if the user supplied any
+            advancedSettings?.Invoke(Args);
+            Args.FeatureColumn = featureColumn;
+            Args.LabelColumn = labelColumn;
+            if (weightColumn != null)
+                Args.WeightColumn = weightColumn;
+
+            Contracts.CheckUserArg(!Args.UseThreads || Args.NumThreads > 0 || Args.NumThreads == null,
+                        nameof(Args.NumThreads), "numThreads must be positive (or empty for default)");
+
+            Contracts.CheckUserArg(Args.L2Weight >= 0, nameof(Args.L2Weight), "Must be non-negative");
+            L2Weight = Args.L2Weight;
+            Contracts.CheckUserArg(Args.L1Weight >= 0, nameof(Args.L1Weight), "Must be non-negative");
+            L1Weight = Args.L1Weight;
+            Contracts.CheckUserArg(Args.OptTol > 0, nameof(Args.OptTol), "Must be positive");
+            OptTol = Args.OptTol;
+            Contracts.CheckUserArg(Args.MemorySize > 0, nameof(Args.MemorySize), "Must be positive");
+            MemorySize = Args.MemorySize;
+            Contracts.CheckUserArg(Args.MaxIterations > 0, nameof(Args.MaxIterations), "Must be positive");
+            MaxIterations = Args.MaxIterations;
+            Contracts.CheckUserArg(Args.SgdInitializationTolerance >= 0, nameof(Args.SgdInitializationTolerance), "Must be non-negative");
+            SgdInitializationTolerance = Args.SgdInitializationTolerance;
+            Quiet = Args.Quiet;
+            InitWtsDiameter = Args.InitWtsDiameter;
+            UseThreads = Args.UseThreads;
+            Contracts.CheckUserArg(Args.NumThreads == null || Args.NumThreads.Value >= 0, nameof(Args.NumThreads), "Must be non-negative");
+            NumThreads = Args.NumThreads;
+            DenseOptimizer = Args.DenseOptimizer;
             ShowTrainingStats = showTrainingStats;
-            EnforceNonNegativity = args.EnforceNonNegativity;
+            EnforceNonNegativity = Args.EnforceNonNegativity;
+
+            if (EnforceNonNegativity && ShowTrainingStats)
+            {
+                ShowTrainingStats = false;
+                using (var ch = Host.Start("Initialization"))
+                {
+                    ch.Warning("The training statistics cannot be computed with non-negativity constraint.");
+                    ch.Done();
+                }
+            }
+            _srcPredictor = default;
+        }
+
+        internal LbfgsTrainerBase(IHostEnvironment env, TArgs args)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(RegisterName), MakeFeatureColumn(args.FeatureColumn), MakeFeatureColumn(args.LabelColumn), MakeWeightColumn(args.WeightColumn))
+        {
+            Host.CheckValue(args, nameof(args));
+            Args = args;
+
+            Contracts.CheckUserArg(!Args.UseThreads || Args.NumThreads > 0 || Args.NumThreads == null,
+            nameof(Args.NumThreads), "numThreads must be positive (or empty for default)");
+
+            Contracts.CheckUserArg(Args.L2Weight >= 0, nameof(Args.L2Weight), "Must be non-negative");
+            L2Weight = Args.L2Weight;
+            Contracts.CheckUserArg(Args.L1Weight >= 0, nameof(Args.L1Weight), "Must be non-negative");
+            L1Weight = Args.L1Weight;
+            Contracts.CheckUserArg(Args.OptTol > 0, nameof(Args.OptTol), "Must be positive");
+            OptTol = Args.OptTol;
+            Contracts.CheckUserArg(Args.MemorySize > 0, nameof(Args.MemorySize), "Must be positive");
+            MemorySize = Args.MemorySize;
+            Contracts.CheckUserArg(Args.MaxIterations > 0, nameof(Args.MaxIterations), "Must be positive");
+            MaxIterations = Args.MaxIterations;
+            Contracts.CheckUserArg(Args.SgdInitializationTolerance >= 0, nameof(Args.SgdInitializationTolerance), "Must be non-negative");
+            SgdInitializationTolerance = Args.SgdInitializationTolerance;
+            Quiet = Args.Quiet;
+            InitWtsDiameter = Args.InitWtsDiameter;
+            UseThreads = Args.UseThreads;
+            Contracts.CheckUserArg(Args.NumThreads == null || Args.NumThreads.Value >= 0, nameof(Args.NumThreads), "Must be non-negative");
+            NumThreads = Args.NumThreads;
+            DenseOptimizer = Args.DenseOptimizer;
+            //ShowTrainingStats = showTrainingStats; // TODO
+            EnforceNonNegativity = Args.EnforceNonNegativity;
 
             if (EnforceNonNegativity && ShowTrainingStats)
             {
