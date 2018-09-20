@@ -237,12 +237,13 @@ namespace Microsoft.ML.Runtime.Model.Onnx
 
         public static ModelProto MakeModel(List<NodeProto> nodes, string producerName, string name,
             string domain, string producerVersion, long modelVersion, List<ModelArgs> inputs,
-            List<ModelArgs> outputs, List<ModelArgs> intermediateValues)
+            List<ModelArgs> outputs, List<ModelArgs> intermediateValues, List<TensorProto> initializers)
         {
             Contracts.CheckValue(nodes, nameof(nodes));
             Contracts.CheckValue(inputs, nameof(inputs));
             Contracts.CheckValue(outputs, nameof(outputs));
-            Contracts.CheckValue(outputs, nameof(intermediateValues));
+            Contracts.CheckValue(intermediateValues, nameof(intermediateValues));
+            Contracts.CheckValue(initializers, nameof(initializers));
             Contracts.CheckNonEmpty(producerName, nameof(producerName));
             Contracts.CheckNonEmpty(name, nameof(name));
             Contracts.CheckNonEmpty(domain, nameof(domain));
@@ -280,6 +281,8 @@ namespace Microsoft.ML.Runtime.Model.Onnx
                 graph.ValueInfo.Add(val);
                 MakeValue(val, arg.Name, arg.DataType, arg.Dims, arg.DimParams);
             }
+
+            graph.Initializer.AddRange(initializers);
 
             return model;
         }

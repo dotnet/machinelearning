@@ -333,6 +333,6 @@ namespace Microsoft.ML.Runtime.Model.Onnx
         /// Makes the ONNX model based on the context.
         /// </summary>
         public ModelProto MakeModel()
-            => OnnxUtils.MakeModel(_nodes, _producerName, _name, _domain, _producerVersion, _modelVersion, _inputs, _outputs, _intermediateValues);
+            => OnnxUtils.MakeModel(_nodes, _producerName, _name, _domain, _producerVersion, _modelVersion, _inputs, _outputs, _intermediateValues, _initializers);
     }
 }
