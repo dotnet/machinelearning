@@ -2,9 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Float = System.Single;
-
-using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Microsoft.ML.Runtime;
@@ -12,7 +10,6 @@ using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Internal.Internallearn;
 
 [assembly: LoadableClass(CategoricalHashTransform.Summary, typeof(IDataTransform), typeof(CategoricalHashTransform), typeof(CategoricalHashTransform.Arguments), typeof(SignatureDataTransform),
     CategoricalHashTransform.UserName, "CategoricalHashTransform", "CatHashTransform", "CategoricalHash", "CatHash")]
@@ -62,14 +59,11 @@ namespace Microsoft.ML.Runtime.Data
 
                 // We accept N:B:S where N is the new column name, B is the number of bits,
                 // and S is source column names.
-                string extra;
-                if (!base.TryParse(str, out extra))
+                if (!TryParse(str, out string extra))
                     return false;
                 if (extra == null)
                     return true;
-
-                int bits;
-                if (!int.TryParse(extra, out bits))
+                if (!int.TryParse(extra, out int bits))
                     return false;
                 HashBits = bits;
                 return true;
@@ -201,13 +195,80 @@ namespace Microsoft.ML.Runtime.Data
                     };
                 }
 
-                return CategoricalTransform.CreateTransformCore(
+                return CreateTransformCore(
                     args.OutputKind, args.Column,
                     args.Column.Select(col => col.OutputKind).ToList(),
                     new HashTransform(h, hashArgs, input),
                     h,
-                    env,
                     args);
+            }
+        }
+
+        private static IDataTransform CreateTransformCore(CategoricalTransform.OutputKind argsOutputKind, OneToOneColumn[] columns,
+            List<CategoricalTransform.OutputKind?> columnOutputKinds, IDataTransform input, IHost h, Arguments catHashArgs = null)
+        {
+            Contracts.CheckValue(columns, nameof(columns));
+            Contracts.CheckValue(columnOutputKinds, nameof(columnOutputKinds));
+            Contracts.CheckParam(columns.Length == columnOutputKinds.Count, nameof(columns));
+
+            using (var ch = h.Start("Create Transform Core"))
+            {
+                // Create the KeyToVectorTransform, if needed.
+                var cols = new List<KeyToVectorTransform.Column>();
+                bool binaryEncoding = argsOutputKind == CategoricalTransform.OutputKind.Bin;
+                for (int i = 0; i < columns.Length; i++)
+                {
+                    var column = columns[i];
+                    if (!column.TrySanitize())
+                        throw h.ExceptUserArg(nameof(Column.Name));
+
+                    bool? bag;
+                    CategoricalTransform.OutputKind kind = columnOutputKinds[i] ?? argsOutputKind;
+                    switch (kind)
+                    {
+                        default:
+                            throw ch.ExceptUserArg(nameof(Column.OutputKind));
+                        case CategoricalTransform.OutputKind.Key:
+                            continue;
+                        case CategoricalTransform.OutputKind.Bin:
+                            binaryEncoding = true;
+                            bag = false;
+                            break;
+                        case CategoricalTransform.OutputKind.Ind:
+                            bag = false;
+                            break;
+                        case CategoricalTransform.OutputKind.Bag:
+                            bag = true;
+                            break;
+                    }
+                    var col = new KeyToVectorTransform.Column();
+                    col.Name = column.Name;
+                    col.Source = column.Name;
+                    col.Bag = bag;
+                    cols.Add(col);
+                }
+
+                if (cols.Count == 0)
+                    return input;
+
+                IDataTransform transform;
+                if (binaryEncoding)
+                {
+                    if ((catHashArgs?.InvertHash ?? 0) != 0)
+                        ch.Warning("Invert hashing is being used with binary encoding.");
+
+                    var keyToBinaryVecCols = cols.Select(x => new KeyToBinaryVectorTransform.ColumnInfo(x.Source, x.Name)).ToArray();
+                    transform = KeyToBinaryVectorTransform.Create(h, input, keyToBinaryVecCols);
+                }
+                else
+                {
+                    var keyToVecCols = cols.Select(x => new KeyToVectorTransform.ColumnInfo(x.Source, x.Name, x.Bag ?? argsOutputKind == CategoricalTransform.OutputKind.Bag)).ToArray();
+
+                    transform = KeyToVectorTransform.Create(h, input, keyToVecCols);
+                }
+
+                ch.Done();
+                return transform;
             }
         }
     }

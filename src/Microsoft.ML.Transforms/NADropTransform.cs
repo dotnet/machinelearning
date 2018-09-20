@@ -100,7 +100,7 @@ namespace Microsoft.ML.Runtime.Data
                     MetadataUtils.Kinds.IsNormalized, MetadataUtils.Kinds.KeyValues))
                 {
                     // Output does not have missings.
-                    bldr.AddPrimitive(MetadataUtils.Kinds.HasMissingValues, BoolType.Instance, DvBool.False);
+                    bldr.AddPrimitive(MetadataUtils.Kinds.HasMissingValues, BoolType.Instance, false);
                 }
             }
             md.Seal();

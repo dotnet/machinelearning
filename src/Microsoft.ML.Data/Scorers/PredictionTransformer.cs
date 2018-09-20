@@ -17,6 +17,9 @@ using Microsoft.ML.Runtime.Model;
 [assembly: LoadableClass(typeof(RegressionPredictionTransformer<IPredictorProducing<float>>), typeof(RegressionPredictionTransformer), null, typeof(SignatureLoadModel),
     "", RegressionPredictionTransformer.LoaderSignature)]
 
+[assembly: LoadableClass(typeof(RankingPredictionTransformer<IPredictorProducing<float>>), typeof(RankingPredictionTransformer), null, typeof(SignatureLoadModel),
+    "", RankingPredictionTransformer.LoaderSignature)]
+
 namespace Microsoft.ML.Runtime.Data
 {
 
@@ -41,10 +44,19 @@ namespace Microsoft.ML.Runtime.Data
         protected PredictionTransformerBase(IHost host, TModel model, ISchema trainSchema)
         {
             Contracts.CheckValue(host, nameof(host));
+            Contracts.CheckValueOrNull(featureColumn);
             Host = host;
             Host.CheckValue(trainSchema, nameof(trainSchema));
 
             Model = model;
+            FeatureColumn = featureColumn;
+            if (featureColumn == null)
+                FeatureColumnType = null;
+            else if (!trainSchema.TryGetColumnIndex(featureColumn, out int col))
+                throw Host.ExceptSchemaMismatch(nameof(featureColumn), RoleMappedSchema.ColumnRole.Feature.Value, featureColumn);
+            else
+                FeatureColumnType = trainSchema.GetColumnType(col);
+
             TrainSchema = trainSchema;
         }
 
@@ -128,6 +140,9 @@ namespace Microsoft.ML.Runtime.Data
             :base(host, model, trainSchema)
         {
             FeatureColumn = featureColumn;
+
+            if (FeatureColumn == null)
+                FeatureColumnType = null;
             if (!trainSchema.TryGetColumnIndex(featureColumn, out int col))
                 throw Host.ExceptSchemaMismatch(nameof(featureColumn), RoleMappedSchema.ColumnRole.Feature.Value, featureColumn);
             FeatureColumnType = trainSchema.GetColumnType(col);
@@ -138,10 +153,14 @@ namespace Microsoft.ML.Runtime.Data
         internal SingleFeaturePredictionTransformerBase(IHost host, ModelLoadContext ctx)
             :base(host, ctx)
         {
-            FeatureColumn = ctx.LoadString();
-            if (!TrainSchema.TryGetColumnIndex(FeatureColumn, out int col))
+            FeatureColumn = ctx.LoadStringOrNull();
+
+            if (FeatureColumn == null)
+                FeatureColumnType = null;
+            else if (!TrainSchema.TryGetColumnIndex(FeatureColumn, out int col))
                 throw Host.ExceptSchemaMismatch(nameof(FeatureColumn), RoleMappedSchema.ColumnRole.Feature.Value, FeatureColumn);
-            FeatureColumnType = TrainSchema.GetColumnType(col);
+            else
+                FeatureColumnType = TrainSchema.GetColumnType(col);
 
             BindableMapper = ScoreUtils.GetSchemaBindableMapper(Host, Model);
         }
@@ -150,10 +169,13 @@ namespace Microsoft.ML.Runtime.Data
         {
             Host.CheckValue(inputSchema, nameof(inputSchema));
 
-            if (!inputSchema.TryGetColumnIndex(FeatureColumn, out int col))
-                throw Host.ExceptSchemaMismatch(nameof(inputSchema), RoleMappedSchema.ColumnRole.Feature.Value, FeatureColumn, FeatureColumnType.ToString(), null);
-            if (!inputSchema.GetColumnType(col).Equals(FeatureColumnType))
-                throw Host.ExceptSchemaMismatch(nameof(inputSchema), RoleMappedSchema.ColumnRole.Feature.Value, FeatureColumn, FeatureColumnType.ToString(), inputSchema.GetColumnType(col).ToString());
+            if(FeatureColumn != null)
+            {
+                if (!inputSchema.TryGetColumnIndex(FeatureColumn, out int col))
+                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), RoleMappedSchema.ColumnRole.Feature.Value, FeatureColumn, FeatureColumnType.ToString(), null);
+                if (!inputSchema.GetColumnType(col).Equals(FeatureColumnType))
+                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), RoleMappedSchema.ColumnRole.Feature.Value, FeatureColumn, FeatureColumnType.ToString(), inputSchema.GetColumnType(col).ToString());
+            }
 
             return Transform(new EmptyDataView(Host, inputSchema)).Schema;
         }
@@ -168,7 +190,7 @@ namespace Microsoft.ML.Runtime.Data
         protected virtual void SaveCore(ModelSaveContext ctx)
         {
             SaveModel(ctx);
-            ctx.SaveString(FeatureColumn);
+            ctx.SaveStringOrNull(FeatureColumn);
         }
     }
 
@@ -360,6 +382,52 @@ namespace Microsoft.ML.Runtime.Data
         }
     }
 
+    public sealed class RankingPredictionTransformer<TModel> : PredictionTransformerBase<TModel>
+    where TModel : class, IPredictorProducing<float>
+    {
+        private readonly GenericScorer _scorer;
+
+        public RankingPredictionTransformer(IHostEnvironment env, TModel model, ISchema inputSchema, string featureColumn)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(RankingPredictionTransformer<TModel>)), model, inputSchema, featureColumn)
+        {
+            var schema = new RoleMappedSchema(inputSchema, null, featureColumn);
+            _scorer = new GenericScorer(Host, new GenericScorer.Arguments(), new EmptyDataView(Host, inputSchema), BindableMapper.Bind(Host, schema), schema);
+        }
+
+        internal RankingPredictionTransformer(IHostEnvironment env, ModelLoadContext ctx)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(RankingPredictionTransformer<TModel>)), ctx)
+        {
+            var schema = new RoleMappedSchema(TrainSchema, null, FeatureColumn);
+            _scorer = new GenericScorer(Host, new GenericScorer.Arguments(), new EmptyDataView(Host, TrainSchema), BindableMapper.Bind(Host, schema), schema);
+        }
+
+        public override IDataView Transform(IDataView input)
+        {
+            Host.CheckValue(input, nameof(input));
+            return _scorer.ApplyToData(Host, input);
+        }
+
+        protected override void SaveCore(ModelSaveContext ctx)
+        {
+            Contracts.AssertValue(ctx);
+            ctx.SetVersionInfo(GetVersionInfo());
+
+            // *** Binary format ***
+            // <base info>
+            base.SaveCore(ctx);
+        }
+
+        private static VersionInfo GetVersionInfo()
+        {
+            return new VersionInfo(
+                modelSignature: "MC  RANK",
+                verWrittenCur: 0x00010001, // Initial
+                verReadableCur: 0x00010001,
+                verWeCanReadBack: 0x00010001,
+                loaderSignature: RankingPredictionTransformer.LoaderSignature);
+        }
+    }
+
     internal static class BinaryPredictionTransformer
     {
         public const string LoaderSignature = "BinaryPredXfer";
@@ -382,5 +450,13 @@ namespace Microsoft.ML.Runtime.Data
 
         public static RegressionPredictionTransformer<IPredictorProducing<float>> Create(IHostEnvironment env, ModelLoadContext ctx)
             => new RegressionPredictionTransformer<IPredictorProducing<float>>(env, ctx);
+    }
+
+    internal static class RankingPredictionTransformer
+    {
+        public const string LoaderSignature = "RankingPredXfer";
+
+        public static RankingPredictionTransformer<IPredictorProducing<float>> Create(IHostEnvironment env, ModelLoadContext ctx)
+            => new RankingPredictionTransformer<IPredictorProducing<float>>(env, ctx);
     }
 }

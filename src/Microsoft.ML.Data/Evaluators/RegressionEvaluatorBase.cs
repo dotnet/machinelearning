@@ -43,11 +43,11 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         protected override void GetAggregatorConsolidationFuncs(TAgg aggregator, AggregatorDictionaryBase[] dictionaries,
-            out Action<uint, DvText, TAgg> addAgg, out Func<Dictionary<string, IDataView>> consolidate)
+            out Action<uint, ReadOnlyMemory<char>, TAgg> addAgg, out Func<Dictionary<string, IDataView>> consolidate)
         {
             var stratCol = new List<uint>();
-            var stratVal = new List<DvText>();
-            var isWeighted = new List<DvBool>();
+            var stratVal = new List<ReadOnlyMemory<char>>();
+            var isWeighted = new List<bool>();
             var l1 = new List<TMetrics>();
             var l2 = new List<TMetrics>();
             var rms = new List<TMetrics>();
@@ -64,7 +64,7 @@ namespace Microsoft.ML.Runtime.Data
 
                     stratCol.Add(stratColKey);
                     stratVal.Add(stratColVal);
-                    isWeighted.Add(DvBool.False);
+                    isWeighted.Add(false);
                     l1.Add(agg.UnweightedCounters.L1);
                     l2.Add(agg.UnweightedCounters.L2);
                     rms.Add(agg.UnweightedCounters.Rms);
@@ -74,7 +74,7 @@ namespace Microsoft.ML.Runtime.Data
                     {
                         stratCol.Add(stratColKey);
                         stratVal.Add(stratColVal);
-                        isWeighted.Add(DvBool.True);
+                        isWeighted.Add(true);
                         l1.Add(agg.WeightedCounters.L1);
                         l2.Add(agg.WeightedCounters.L2);
                         rms.Add(agg.WeightedCounters.Rms);
