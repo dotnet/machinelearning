@@ -317,7 +317,7 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn.Test
 
             List<Float> originalOutputs = new List<Float>();
             List<Float> originalProbabilities = new List<Float>();
-            var env = new TlcEnvironment(SysRandom.Wrap(RunExperiments.GetRandom(cmd)));
+            var env = new LocalEnvironment(SysRandom.Wrap(RunExperiments.GetRandom(cmd)));
             Instances instances = RunExperiments.CreateTestData(cmd, testDataFilename, dataModel, null, env);
             foreach (Instance instance in instances)
             {

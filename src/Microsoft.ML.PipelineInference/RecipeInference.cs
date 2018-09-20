@@ -99,7 +99,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
                     // if transforms present.
                     if (Transforms.Length > 0)
                     {
-                        var modelCombine = new ML.Transforms.ManyHeterogeneousModelCombiner
+                        var modelCombine = new ML.Legacy.Transforms.ManyHeterogeneousModelCombiner
                         {
                             TransformModels = new ArrayVar<ITransformModel>(transformsModels.ToArray()),
                             PredictorModel = learnerAddResult.Model
@@ -202,7 +202,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
                 TransformInference.SuggestedTransform[] transforms)
             {
                 yield return
-                    new SuggestedRecipe(ToString(), transforms, new SuggestedRecipe.SuggestedLearner[0], Int32.MinValue + 1);
+                    new SuggestedRecipe(ToString(), transforms, new SuggestedRecipe.SuggestedLearner[0], int.MinValue + 1);
             }
 
             public override string ToString() => "Default transforms";
@@ -243,7 +243,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
                 {
                     learner.LoadableClassInfo = ComponentCatalog.GetLoadableClassInfo<SignatureTrainer>(Learners.AveragedPerceptronTrainer.LoadNameValue);
                     learner.Settings = "iter=10";
-                    var epInput = new Trainers.AveragedPerceptronBinaryClassifier
+                    var epInput = new Legacy.Trainers.AveragedPerceptronBinaryClassifier
                     {
                         NumIterations = 10
                     };
@@ -251,7 +251,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
                 }
 
                 yield return
-                    new SuggestedRecipe(ToString(), transforms, new[] { learner }, Int32.MaxValue);
+                    new SuggestedRecipe(ToString(), transforms, new[] { learner }, int.MaxValue);
             }
 
             public override string ToString() => "Text classification optimized for speed and accuracy";
@@ -276,7 +276,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
                     learner.LoadableClassInfo =
                         ComponentCatalog.GetLoadableClassInfo<SignatureTrainer>(FastTreeBinaryClassificationTrainer.LoadNameValue);
                     learner.Settings = "";
-                    var epInput = new Trainers.FastTreeBinaryClassifier();
+                    var epInput = new Legacy.Trainers.FastTreeBinaryClassifier();
                     learner.PipelineNode = new TrainerPipelineNode(epInput);
                 }
 
@@ -304,7 +304,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
                 {
                     learner.LoadableClassInfo =
                         ComponentCatalog.GetLoadableClassInfo<SignatureTrainer>(Learners.LinearClassificationTrainer.LoadNameValue);
-                    var epInput = new Trainers.StochasticDualCoordinateAscentBinaryClassifier();
+                    var epInput = new Legacy.Trainers.StochasticDualCoordinateAscentBinaryClassifier();
                     learner.PipelineNode = new TrainerPipelineNode(epInput);
                 }
 
@@ -327,7 +327,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
                 learner.LoadableClassInfo =
                     ComponentCatalog.GetLoadableClassInfo<SignatureTrainer>(Learners.MultiClassNaiveBayesTrainer.LoadName);
                 learner.Settings = "";
-                var epInput = new Trainers.NaiveBayesClassifier();
+                var epInput = new Legacy.Trainers.NaiveBayesClassifier();
                 learner.PipelineNode = new TrainerPipelineNode(epInput);
                 yield return new SuggestedRecipe(ToString(), transforms, new[] { learner });
             }

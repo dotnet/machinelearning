@@ -4,6 +4,7 @@
 
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Learners;
+using Microsoft.ML.Runtime.RunTests;
 using Xunit;
 
 namespace Microsoft.ML.Tests.Scenarios.Api
@@ -19,10 +20,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         [Fact]
         public void New_Evaluation()
         {
-            var dataPath = GetDataPath(SentimentDataPath);
-            var testDataPath = GetDataPath(SentimentTestPath);
-
-            using (var env = new TlcEnvironment(seed: 1, conc: 1))
+            using (var env = new LocalEnvironment(seed: 1, conc: 1))
             {
                 var reader = new TextLoader(env, MakeSentimentTextLoaderArgs());
 
@@ -32,10 +30,10 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                     .Append(new LinearClassificationTrainer(env, new LinearClassificationTrainer.Arguments { NumThreads = 1 }, "Features", "Label"));
 
                 // Train.
-                var readerModel = pipeline.Fit(new MultiFileSource(dataPath));
+                var readerModel = pipeline.Fit(new MultiFileSource(GetDataPath(TestDatasets.Sentiment.trainFilename)));
 
                 // Evaluate on the test set.
-                var dataEval = readerModel.Read(new MultiFileSource(testDataPath));
+                var dataEval = readerModel.Read(new MultiFileSource(GetDataPath(TestDatasets.Sentiment.validFilename)));
                 var evaluator = new MyBinaryClassifierEvaluator(env, new BinaryClassifierEvaluator.Arguments() { });
                 var metrics = evaluator.Evaluate(dataEval);
             }

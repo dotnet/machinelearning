@@ -2,13 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Data;
-using Microsoft.ML.Models;
+using Microsoft.ML.Legacy;
+using Microsoft.ML.Legacy.Models;
+using Microsoft.ML.Legacy.Trainers;
+using Microsoft.ML.Legacy.Transforms;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Trainers;
-using Microsoft.ML.Transforms;
 using System.Collections.Generic;
 using System.Linq;
 using Xunit;
@@ -178,13 +178,13 @@ namespace Microsoft.ML.Scenarios
             var sentiments = GetTestData();
             var predictions = cv.PredictorModels[0].Predict(sentiments);
             Assert.Equal(2, predictions.Count());
-            Assert.True(predictions.ElementAt(0).Sentiment.IsTrue);
-            Assert.True(predictions.ElementAt(1).Sentiment.IsTrue);
+            Assert.True(predictions.ElementAt(0).Sentiment);
+            Assert.True(predictions.ElementAt(1).Sentiment);
 
             predictions = cv.PredictorModels[1].Predict(sentiments);
             Assert.Equal(2, predictions.Count());
-            Assert.True(predictions.ElementAt(0).Sentiment.IsTrue);
-            Assert.True(predictions.ElementAt(1).Sentiment.IsTrue);
+            Assert.True(predictions.ElementAt(0).Sentiment);
+            Assert.True(predictions.ElementAt(1).Sentiment);
         }
 
         private void ValidateBinaryMetricsSymSGD(BinaryClassificationMetrics metrics)
@@ -285,31 +285,31 @@ namespace Microsoft.ML.Scenarios
             Assert.Equal(2, matrix["negative", "negative"]);
         }
 
-        private LearningPipeline PreparePipeline()
+        private Legacy.LearningPipeline PreparePipeline()
         {
             var dataPath = GetDataPath(SentimentDataPath);
             var pipeline = new LearningPipeline();
 
-            pipeline.Add(new Data.TextLoader(dataPath)
+            pipeline.Add(new Legacy.Data.TextLoader(dataPath)
             {
-                Arguments = new TextLoaderArguments
+                Arguments = new Legacy.Data.TextLoaderArguments
                 {
                     Separator = new[] { '\t' },
                     HasHeader = true,
                     Column = new[]
                     {
-                        new TextLoaderColumn()
+                        new Legacy.Data.TextLoaderColumn()
                         {
                             Name = "Label",
-                            Source = new [] { new TextLoaderRange(0) },
-                            Type = Data.DataKind.Num
+                            Source = new [] { new Legacy.Data.TextLoaderRange(0) },
+                            Type = Legacy.Data.DataKind.Num
                         },
 
-                        new TextLoaderColumn()
+                        new Legacy.Data.TextLoaderColumn()
                         {
                             Name = "SentimentText",
-                            Source = new [] { new TextLoaderRange(1) },
-                            Type = Data.DataKind.Text
+                            Source = new [] { new Legacy.Data.TextLoaderRange(1) },
+                            Type = Legacy.Data.DataKind.Text
                         }
                     }
                 }
@@ -339,26 +339,26 @@ namespace Microsoft.ML.Scenarios
             var dataPath = GetDataPath(SentimentDataPath);
             var pipeline = new LearningPipeline();
 
-            pipeline.Add(new Data.TextLoader(dataPath)
+            pipeline.Add(new Legacy.Data.TextLoader(dataPath)
             {
-                Arguments = new TextLoaderArguments
+                Arguments = new Legacy.Data.TextLoaderArguments
                 {
                     Separator = new[] { '\t' },
                     HasHeader = true,
                     Column = new[]
                     {
-                        new TextLoaderColumn()
+                        new Legacy.Data.TextLoaderColumn()
                         {
                             Name = "Label",
-                            Source = new [] { new TextLoaderRange(0) },
-                            Type = Data.DataKind.Num
+                            Source = new [] { new Legacy.Data.TextLoaderRange(0) },
+                            Type = Legacy.Data.DataKind.Num
                         },
 
-                        new TextLoaderColumn()
+                        new Legacy.Data.TextLoaderColumn()
                         {
                             Name = "SentimentText",
-                            Source = new [] { new TextLoaderRange(1) },
-                            Type = Data.DataKind.Text
+                            Source = new [] { new Legacy.Data.TextLoaderRange(1) },
+                            Type = Legacy.Data.DataKind.Text
                         }
                     }
                 }
@@ -388,26 +388,26 @@ namespace Microsoft.ML.Scenarios
             var dataPath = GetDataPath(SentimentDataPath);
             var pipeline = new LearningPipeline();
 
-            pipeline.Add(new Data.TextLoader(dataPath)
+            pipeline.Add(new Legacy.Data.TextLoader(dataPath)
             {
-                Arguments = new TextLoaderArguments
+                Arguments = new Legacy.Data.TextLoaderArguments
                 {
                     Separator = new[] { '\t' },
                     HasHeader = true,
                     Column = new[]
                     {
-                        new TextLoaderColumn()
+                        new Legacy.Data.TextLoaderColumn()
                         {
                             Name = "Label",
-                            Source = new [] { new TextLoaderRange(0) },
-                            Type = Data.DataKind.Num
+                            Source = new [] { new Legacy.Data.TextLoaderRange(0) },
+                            Type = Legacy.Data.DataKind.Num
                         },
 
-                        new TextLoaderColumn()
+                        new Legacy.Data.TextLoaderColumn()
                         {
                             Name = "SentimentText",
-                            Source = new [] { new TextLoaderRange(1) },
-                            Type = Data.DataKind.Text
+                            Source = new [] { new Legacy.Data.TextLoaderRange(1) },
+                            Type = Legacy.Data.DataKind.Text
                         }
                     }
                 }
@@ -438,8 +438,8 @@ namespace Microsoft.ML.Scenarios
             var predictions = model.Predict(sentiments);
             Assert.Equal(2, predictions.Count());
 
-            Assert.True(predictions.ElementAt(0).Sentiment.IsTrue);
-            Assert.True(predictions.ElementAt(1).Sentiment.IsTrue);
+            Assert.True(predictions.ElementAt(0).Sentiment);
+            Assert.True(predictions.ElementAt(1).Sentiment);
 
         }
 
@@ -449,8 +449,8 @@ namespace Microsoft.ML.Scenarios
             var predictions = model.Predict(sentiments);
             Assert.Equal(2, predictions.Count());
 
-            Assert.True(predictions.ElementAt(0).Sentiment.IsTrue);
-            Assert.True(predictions.ElementAt(1).Sentiment.IsTrue);
+            Assert.True(predictions.ElementAt(0).Sentiment);
+            Assert.True(predictions.ElementAt(1).Sentiment);
         }
 
         private void ValidateExamplesSymSGD(PredictionModel<SentimentData, SentimentPrediction> model)
@@ -459,33 +459,33 @@ namespace Microsoft.ML.Scenarios
             var predictions = model.Predict(sentiments);
             Assert.Equal(2, predictions.Count());
 
-            Assert.True(predictions.ElementAt(0).Sentiment.IsFalse);
-            Assert.True(predictions.ElementAt(1).Sentiment.IsTrue);
+            Assert.False(predictions.ElementAt(0).Sentiment);
+            Assert.True(predictions.ElementAt(1).Sentiment);
         }
 
-        private Data.TextLoader PrepareTextLoaderTestData()
+        private Legacy.Data.TextLoader PrepareTextLoaderTestData()
         {
             var testDataPath = GetDataPath(SentimentTestPath);
-            var testData = new Data.TextLoader(testDataPath)
+            var testData = new Legacy.Data.TextLoader(testDataPath)
             {
-                Arguments = new TextLoaderArguments
+                Arguments = new Legacy.Data.TextLoaderArguments
                 {
                     Separator = new[] { '\t' },
                     HasHeader = true,
                     Column = new[]
                     {
-                        new TextLoaderColumn()
+                        new Legacy.Data.TextLoaderColumn()
                         {
                             Name = "Label",
-                            Source = new [] { new TextLoaderRange(0) },
-                            Type = Data.DataKind.Num
+                            Source = new [] { new Legacy.Data.TextLoaderRange(0) },
+                            Type = Legacy.Data.DataKind.Num
                         },
 
-                        new TextLoaderColumn()
+                        new Legacy.Data.TextLoaderColumn()
                         {
                             Name = "SentimentText",
-                            Source = new [] { new TextLoaderRange(1) },
-                            Type = Data.DataKind.Text
+                            Source = new [] { new Legacy.Data.TextLoaderRange(1) },
+                            Type = Legacy.Data.DataKind.Text
                         }
                     }
                 }
@@ -519,7 +519,7 @@ namespace Microsoft.ML.Scenarios
         public class SentimentPrediction
         {
             [ColumnName("PredictedLabel")]
-            public DvBool Sentiment;
+            public bool Sentiment;
         }
     }
 }

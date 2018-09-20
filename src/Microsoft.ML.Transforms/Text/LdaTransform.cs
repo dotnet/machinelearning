@@ -27,14 +27,14 @@ using Microsoft.ML.Runtime.TextAnalytics;
 namespace Microsoft.ML.Runtime.TextAnalytics
 {
     // LightLDA transform: Big Topic Models on Modest Compute Clusters.
-    // <a href="http://arxiv.org/abs/1412.1576">LightLDA</a> is an implementation of Latent Dirichlet Allocation (LDA).
+    // <a href="https://arxiv.org/abs/1412.1576">LightLDA</a> is an implementation of Latent Dirichlet Allocation (LDA).
     // Previous implementations of LDA such as SparseLDA or AliasLDA allow to achieve massive data and model scales,
     // for example models with tens of billions of parameters to be inferred from billions of documents.
     // However this requires using a cluster of thousands of machines with all ensuing costs to setup and maintain.
     // LightLDA solves this problem in a more cost-effective manner by providing an implementation
     // that is efﬁcient enough for modest clusters with at most tens of machines...
     // For more details please see original LightLDA paper:
-    // http://arxiv.org/abs/1412.1576
+    // https://arxiv.org/abs/1412.1576
     // http://www.www2015.it/documents/proceedings/proceedings/p1351.pdf
     // and open source implementation:
     // https://github.com/Microsoft/LightLDA
@@ -403,7 +403,7 @@ namespace Microsoft.ML.Runtime.TextAnalytics
         public string GetTopicSummary()
         {
             StringWriter writer = new StringWriter();
-            VBuffer<DvText> slotNames = default(VBuffer<DvText>);
+            VBuffer<ReadOnlyMemory<char>> slotNames = default;
             for (int i = 0; i < _ldas.Length; i++)
             {
                 GetSlotNames(i, ref slotNames);
@@ -427,7 +427,7 @@ namespace Microsoft.ML.Runtime.TextAnalytics
             ctx.Writer.Write(sizeof(Float));
             SaveBase(ctx);
             Host.Assert(_ldas.Length == Infos.Length);
-            VBuffer<DvText> slotNames = default(VBuffer<DvText>);
+            VBuffer<ReadOnlyMemory<char>> slotNames = default;
             for (int i = 0; i < _ldas.Length; i++)
             {
                 GetSlotNames(i, ref slotNames);
@@ -435,13 +435,13 @@ namespace Microsoft.ML.Runtime.TextAnalytics
             }
         }
 
-        private void GetSlotNames(int iinfo, ref VBuffer<DvText> dst)
+        private void GetSlotNames(int iinfo, ref VBuffer<ReadOnlyMemory<char>> dst)
         {
             Host.Assert(0 <= iinfo && iinfo < Infos.Length);
             if (Source.Schema.HasSlotNames(Infos[iinfo].Source, Infos[iinfo].TypeSrc.ValueCount))
                 Source.Schema.GetMetadata(MetadataUtils.Kinds.SlotNames, Infos[iinfo].Source, ref dst);
             else
-                dst = default(VBuffer<DvText>);
+                dst = default(VBuffer<ReadOnlyMemory<char>>);
         }
 
         private static string TestType(ColumnType t)
@@ -691,7 +691,7 @@ namespace Microsoft.ML.Runtime.TextAnalytics
                 }
             }
 
-            public Action<TextWriter> GetTopicSummaryWriter(VBuffer<DvText> mapping)
+            public Action<TextWriter> GetTopicSummaryWriter(VBuffer<ReadOnlyMemory<char>> mapping)
             {
                 Action<TextWriter> writeAction;
 
@@ -715,7 +715,7 @@ namespace Microsoft.ML.Runtime.TextAnalytics
                     writeAction =
                         writer =>
                         {
-                            DvText slotName = default(DvText);
+                            ReadOnlyMemory<char> slotName = default;
                             for (int i = 0; i < _ldaTrainer.NumTopic; i++)
                             {
                                 KeyValuePair<int, float>[] topicSummaryVector = _ldaTrainer.GetTopicSummary(i);
@@ -733,7 +733,7 @@ namespace Microsoft.ML.Runtime.TextAnalytics
                 return writeAction;
             }
 
-            public void Save(ModelSaveContext ctx, bool saveText, VBuffer<DvText> mapping)
+            public void Save(ModelSaveContext ctx, bool saveText, VBuffer<ReadOnlyMemory<char>> mapping)
             {
                 Contracts.AssertValue(ctx);
                 long memBlockSize = 0;

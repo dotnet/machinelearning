@@ -140,12 +140,12 @@ namespace Microsoft.ML.Runtime.Data
     /// </summary>
     public sealed class SimpleSchema : SimpleSchemaBase
     {
-        private readonly MetadataUtils.MetadataGetter<VBuffer<DvText>>[] _keyValueGetters;
+        private readonly MetadataUtils.MetadataGetter<VBuffer<ReadOnlyMemory<char>>>[] _keyValueGetters;
 
         public SimpleSchema(IExceptionContext ectx, params KeyValuePair<string, ColumnType>[] columns)
             : base(ectx, columns)
         {
-            _keyValueGetters = new MetadataUtils.MetadataGetter<VBuffer<DvText>>[ColumnCount];
+            _keyValueGetters = new MetadataUtils.MetadataGetter<VBuffer<ReadOnlyMemory<char>>>[ColumnCount];
         }
 
         public SimpleSchema(IExceptionContext ectx, KeyValuePair<string, ColumnType>[] columns, Dictionary<string, MetadataUtils.MetadataGetter<VBuffer<DvText>>> keyValues)

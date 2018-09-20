@@ -75,7 +75,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         [Fact]
         public void SimpleIrisDescisionTrees()
         {
-            var env = new ConsoleEnvironment();
+            var env = new LocalEnvironment();
             string dataPath = "iris.txt";
             // Create reader with specific schema.
             var dataReader = TextLoader.CreateReader(env, dataPath,
@@ -108,7 +108,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         [Fact]
         public void TwitterSentimentAnalysis()
         {
-            var env = new ConsoleEnvironment();
+            var env = new LocalEnvironment();
             var dataPath = "wikipedia-detox-250-line-data.tsv";
             // Load the data into the system.
             var dataReader = TextLoader.CreateReader(env, dataPath,
@@ -136,7 +136,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         [Fact]
         public void TwentyNewsGroups()
         {
-            var env = new ConsoleEnvironment();
+            var env = new LocalEnvironment();
             var dataPath = "20newsGroups.txt";
             // Load the data into the system.
             var dataReader = TextLoader.CreateReader(env, dataPath,
@@ -168,7 +168,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
     {
         public void ClassifyGithubIssues()
         {
-            var env = new TlcEnvironment(new SysRandom(0), verbose: true);
+            var env = new LocalEnvironment(new SysRandom(0), verbose: true);
 
             string dataPath = "corefx-issues-train.tsv";
 
@@ -228,7 +228,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
     {
         public void ScaleData()
         {
-            var env = new TlcEnvironment(new SysRandom(0), verbose: true);
+            var env = new LocalEnvironment(new SysRandom(0), verbose: true);
 
             string dataPath = "iris.txt";
 

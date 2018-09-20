@@ -141,7 +141,7 @@ namespace Microsoft.ML.Runtime
         /// Entry point factory for creating <see cref="IServer"/> instances.
         /// </summary>
         [TlcModule.ComponentKind("Server")]
-        public interface IServerFactory : IArgsComponent, IComponentFactory<IChannel, IServer>
+        public interface IServerFactory : IComponentFactory<IChannel, IServer>
         {
             new IServer CreateComponent(IHostEnvironment env, IChannel ch);
         }

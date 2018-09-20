@@ -11,7 +11,7 @@
     <ProjectReference Include="..\..\src\Microsoft.ML.Maml\Microsoft.ML.Maml.csproj" />
     <ProjectReference Include="..\..\src\Microsoft.ML.Parquet\Microsoft.ML.Parquet.csproj" />
     <ProjectReference Include="..\..\src\Microsoft.ML.ResultProcessor\Microsoft.ML.ResultProcessor.csproj" />
-    <ProjectReference Include="..\..\src\Microsoft.ML\Microsoft.ML.csproj" />
+    <ProjectReference Include="..\..\src\Microsoft.ML.Legacy\Microsoft.ML.Legacy.csproj" />
   </ItemGroup>
 
   <ItemGroup>

@@ -1,8 +1,10 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using Microsoft.ML.Runtime.Data;
+using Microsoft.ML.Runtime.RunTests;
 using Xunit;
 
 namespace Microsoft.ML.Tests.Scenarios.Api
@@ -20,13 +22,12 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         [Fact]
         void New_Visibility()
         {
-            var dataPath = GetDataPath(SentimentDataPath);
-            using (var env = new TlcEnvironment(seed: 1, conc: 1))
+            using (var env = new LocalEnvironment(seed: 1, conc: 1))
             {
                 var pipeline = new TextLoader(env, MakeSentimentTextLoaderArgs())
                     .Append(new TextTransform(env, "SentimentText", "Features", s => s.OutputTokens = true));
 
-                var data = pipeline.FitAndRead(new MultiFileSource(dataPath));
+                var data = pipeline.FitAndRead(new MultiFileSource(GetDataPath(TestDatasets.Sentiment.trainFilename)));
                 // In order to find out available column names, you can go through schema and check
                 // column names and appropriate type for getter.
                 for (int i = 0; i < data.Schema.ColumnCount; i++)
@@ -41,11 +42,11 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                     Assert.True(cursor.Schema.TryGetColumnIndex("Features_TransformedText", out int transformedTextColumn));
                     Assert.True(cursor.Schema.TryGetColumnIndex("Features", out int featureColumn));
 
-                    var originalTextGettter = cursor.GetGetter<DvText>(textColumn);
-                    var transformedTextGettter = cursor.GetGetter<VBuffer<DvText>>(transformedTextColumn);
+                    var originalTextGettter = cursor.GetGetter<ReadOnlyMemory<char>>(textColumn);
+                    var transformedTextGettter = cursor.GetGetter<VBuffer<ReadOnlyMemory<char>>>(transformedTextColumn);
                     var featureGettter = cursor.GetGetter<VBuffer<float>>(featureColumn);
-                    DvText text = default;
-                    VBuffer<DvText> transformedText = default;
+                    ReadOnlyMemory<char> text = default;
+                    VBuffer<ReadOnlyMemory<char>> transformedText = default;
                     VBuffer<float> features = default;
                     while (cursor.MoveNext())
                     {

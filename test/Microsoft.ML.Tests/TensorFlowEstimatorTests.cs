@@ -132,7 +132,7 @@ namespace Microsoft.ML.Tests
         [Fact]
         void TestCommandLine()
         {
-            using (var env = new TlcEnvironment())
+            using (var env = new ConsoleEnvironment())
             {
                 Assert.Equal(Maml.Main(new[] { @"showschema loader=Text{col=a:R4:0-3 col=b:R4:0-3} xf=TFTransform{inputs=a inputs=b outputs=c model={model_matmul/frozen_saved_model.pb}} in=f:\2.txt" }), (int)0);
             }
@@ -143,7 +143,7 @@ namespace Microsoft.ML.Tests
         {
             var modelLocation = "cifar_model/frozen_model.pb";
 
-            using (var env = new TlcEnvironment())
+            using (var env = new ConsoleEnvironment())
             {
                 var imageHeight = 32;
                 var imageWidth = 32;

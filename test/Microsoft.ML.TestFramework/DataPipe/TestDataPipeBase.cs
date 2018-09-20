@@ -8,10 +8,10 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using Microsoft.ML.Core.Data;
+using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Data.IO;
-using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.TestFramework;
@@ -21,6 +21,25 @@ namespace Microsoft.ML.Runtime.RunTests
 {
     public abstract partial class TestDataPipeBase : TestDataViewBase
     {
+        public const string IrisDataPath = "iris.data";
+
+        protected static TextLoader.Arguments MakeIrisTextLoaderArgs()
+        {
+            return new TextLoader.Arguments()
+            {
+                Separator = "comma",
+                HasHeader = true,
+                Column = new[]
+                {
+                    new TextLoader.Column("SepalLength", DataKind.R4, 0),
+                    new TextLoader.Column("SepalWidth", DataKind.R4, 1),
+                    new TextLoader.Column("PetalLength", DataKind.R4, 2),
+                    new TextLoader.Column("PetalWidth",DataKind.R4, 3),
+                    new TextLoader.Column("Label", DataKind.Text, 4)
+                }
+            };
+        }
+
         /// <summary>
         /// 'Workout test' for an estimator.
         /// Checks the following traits:
@@ -134,16 +153,16 @@ namespace Microsoft.ML.Runtime.RunTests
             CheckSameSchemaShape(outSchemaShape, scoredTrainSchemaShape);
         }
 
-        private void CheckSameSchemaShape(SchemaShape first, SchemaShape second)
+        private void CheckSameSchemaShape(SchemaShape promised, SchemaShape delivered)
         {
-            Assert.True(first.Columns.Length == second.Columns.Length);
-            var sortedCols1 = first.Columns.OrderBy(x => x.Name);
-            var sortedCols2 = second.Columns.OrderBy(x => x.Name);
+            Assert.True(promised.Columns.Length == delivered.Columns.Length);
+            var sortedCols1 = promised.Columns.OrderBy(x => x.Name);
+            var sortedCols2 = delivered.Columns.OrderBy(x => x.Name);
 
             foreach (var (x, y) in sortedCols1.Zip(sortedCols2, (x, y) => (x, y)))
             {
                 Assert.Equal(x.Name, y.Name);
-                Assert.True(x.IsCompatibleWith(y), $"Mismatch on {x.Name}");
+                // We want the 'promised' metadata to be a superset of 'delivered'.
                 Assert.True(y.IsCompatibleWith(x), $"Mismatch on {x.Name}");
             }
         }
@@ -157,7 +176,7 @@ namespace Microsoft.ML.Runtime.RunTests
         /// </summary>
         protected IDataLoader TestCore(string pathData, bool keepHidden, string[] argsPipe,
             Action<IDataLoader> actLoader = null, string suffix = "", string suffixBase = null, bool checkBaseline = true,
-            bool forceDense = false, bool logCurs = false, TlcEnvironment env = null, bool roundTripText = true,
+            bool forceDense = false, bool logCurs = false, ConsoleEnvironment env = null, bool roundTripText = true,
             bool checkTranspose = false, bool checkId = true, bool baselineSchema = true)
         {
             Contracts.AssertValue(Env);
@@ -593,8 +612,8 @@ namespace Microsoft.ML.Runtime.RunTests
 
         protected bool CheckMetadataNames(string kind, int size, ISchema sch1, ISchema sch2, int col, bool exactTypes, bool mustBeText)
         {
-            var names1 = default(VBuffer<DvText>);
-            var names2 = default(VBuffer<DvText>);
+            var names1 = default(VBuffer<ReadOnlyMemory<char>>);
+            var names2 = default(VBuffer<ReadOnlyMemory<char>>);
 
             var t1 = sch1.GetMetadataTypeOrNull(kind, col);
             var t2 = sch2.GetMetadataTypeOrNull(kind, col);
@@ -635,7 +654,7 @@ namespace Microsoft.ML.Runtime.RunTests
 
             sch1.GetMetadata(kind, col, ref names1);
             sch2.GetMetadata(kind, col, ref names2);
-            if (!CompareVec(ref names1, ref names2, size, DvText.Identical))
+            if (!CompareVec(ref names1, ref names2, size, (a, b) => a.Span.SequenceEqual(b.Span)))
             {
                 Fail("Different {0} metadata values", kind);
                 return Failed();
@@ -643,7 +662,7 @@ namespace Microsoft.ML.Runtime.RunTests
             return true;
         }
 
-        protected bool CheckMetadataCallFailure(string kind, ISchema sch, int col, ref VBuffer<DvText> names)
+        protected bool CheckMetadataCallFailure(string kind, ISchema sch, int col, ref VBuffer<ReadOnlyMemory<char>> names)
         {
             try
             {
@@ -762,6 +781,36 @@ namespace Microsoft.ML.Runtime.RunTests
 
     public abstract partial class TestDataViewBase : BaseTestBaseline
     {
+
+        public class SentimentData
+        {
+            [ColumnName("Label")]
+            public bool Sentiment;
+            public string SentimentText;
+        }
+
+        public class SentimentPrediction
+        {
+            [ColumnName("PredictedLabel")]
+            public bool Sentiment;
+
+            public float Score;
+        }
+
+        private static TextLoader.Arguments MakeSentimentTextLoaderArgs()
+        {
+            return new TextLoader.Arguments()
+            {
+                Separator = "tab",
+                HasHeader = true,
+                Column = new[]
+                {
+                    new TextLoader.Column("Label", DataKind.BL, 0),
+                    new TextLoader.Column("SentimentText", DataKind.Text, 1)
+                }
+            };
+        }
+
         protected bool Failed()
         {
             Contracts.Assert(!IsPassing);
@@ -1010,19 +1059,19 @@ namespace Microsoft.ML.Runtime.RunTests
                 switch (type.RawKind)
                 {
                     case DataKind.I1:
-                        return GetComparerOne<DvInt1>(r1, r2, col, (x, y) => x.RawValue == y.RawValue);
+                        return GetComparerOne<sbyte>(r1, r2, col, (x, y) => x == y);
                     case DataKind.U1:
                         return GetComparerOne<byte>(r1, r2, col, (x, y) => x == y);
                     case DataKind.I2:
-                        return GetComparerOne<DvInt2>(r1, r2, col, (x, y) => x.RawValue == y.RawValue);
+                        return GetComparerOne<short>(r1, r2, col, (x, y) => x == y);
                     case DataKind.U2:
                         return GetComparerOne<ushort>(r1, r2, col, (x, y) => x == y);
                     case DataKind.I4:
-                        return GetComparerOne<DvInt4>(r1, r2, col, (x, y) => x.RawValue == y.RawValue);
+                        return GetComparerOne<int>(r1, r2, col, (x, y) => x == y);
                     case DataKind.U4:
                         return GetComparerOne<uint>(r1, r2, col, (x, y) => x == y);
                     case DataKind.I8:
-                        return GetComparerOne<DvInt8>(r1, r2, col, (x, y) => x.RawValue == y.RawValue);
+                        return GetComparerOne<long>(r1, r2, col, (x, y) => x == y);
                     case DataKind.U8:
                         return GetComparerOne<ulong>(r1, r2, col, (x, y) => x == y);
                     case DataKind.R4:
@@ -1033,15 +1082,15 @@ namespace Microsoft.ML.Runtime.RunTests
                         else
                             return GetComparerOne<Double>(r1, r2, col, EqualWithEps);
                     case DataKind.Text:
-                        return GetComparerOne<DvText>(r1, r2, col, DvText.Identical);
+                        return GetComparerOne<ReadOnlyMemory<char>>(r1, r2, col, (a ,b) => a.Span.SequenceEqual(b.Span));
                     case DataKind.Bool:
-                        return GetComparerOne<DvBool>(r1, r2, col, (x, y) => x.Equals(y));
+                        return GetComparerOne<bool>(r1, r2, col, (x, y) => x == y);
                     case DataKind.TimeSpan:
-                        return GetComparerOne<DvTimeSpan>(r1, r2, col, (x, y) => x.Equals(y));
+                        return GetComparerOne<TimeSpan>(r1, r2, col, (x, y) => x == y);
                     case DataKind.DT:
-                        return GetComparerOne<DvDateTime>(r1, r2, col, (x, y) => x.Equals(y));
+                        return GetComparerOne<DateTime>(r1, r2, col, (x, y) => x == y);
                     case DataKind.DZ:
-                        return GetComparerOne<DvDateTimeZone>(r1, r2, col, (x, y) => x.Equals(y));
+                        return GetComparerOne<DateTimeOffset>(r1, r2, col, (x, y) => x.Equals(y));
                     case DataKind.UG:
                         return GetComparerOne<UInt128>(r1, r2, col, (x, y) => x.Equals(y));
                     case (DataKind)0:
@@ -1056,19 +1105,19 @@ namespace Microsoft.ML.Runtime.RunTests
                 switch (type.ItemType.RawKind)
                 {
                     case DataKind.I1:
-                        return GetComparerVec<DvInt1>(r1, r2, col, size, (x, y) => x.RawValue == y.RawValue);
+                        return GetComparerVec<sbyte>(r1, r2, col, size, (x, y) => x == y);
                     case DataKind.U1:
                         return GetComparerVec<byte>(r1, r2, col, size, (x, y) => x == y);
                     case DataKind.I2:
-                        return GetComparerVec<DvInt2>(r1, r2, col, size, (x, y) => x.RawValue == y.RawValue);
+                        return GetComparerVec<short>(r1, r2, col, size, (x, y) => x == y);
                     case DataKind.U2:
                         return GetComparerVec<ushort>(r1, r2, col, size, (x, y) => x == y);
                     case DataKind.I4:
-                        return GetComparerVec<DvInt4>(r1, r2, col, size, (x, y) => x.RawValue == y.RawValue);
+                        return GetComparerVec<int>(r1, r2, col, size, (x, y) => x == y);
                     case DataKind.U4:
                         return GetComparerVec<uint>(r1, r2, col, size, (x, y) => x == y);
                     case DataKind.I8:
-                        return GetComparerVec<DvInt8>(r1, r2, col, size, (x, y) => x.RawValue == y.RawValue);
+                        return GetComparerVec<long>(r1, r2, col, size, (x, y) => x == y);
                     case DataKind.U8:
                         return GetComparerVec<ulong>(r1, r2, col, size, (x, y) => x == y);
                     case DataKind.R4:
@@ -1079,15 +1128,15 @@ namespace Microsoft.ML.Runtime.RunTests
                         else
                             return GetComparerVec<Double>(r1, r2, col, size, EqualWithEps);
                     case DataKind.Text:
-                        return GetComparerVec<DvText>(r1, r2, col, size, DvText.Identical);
+                        return GetComparerVec<ReadOnlyMemory<char>>(r1, r2, col, size, (a, b) => a.Span.SequenceEqual(b.Span));
                     case DataKind.Bool:
-                        return GetComparerVec<DvBool>(r1, r2, col, size, (x, y) => x.Equals(y));
+                        return GetComparerVec<bool>(r1, r2, col, size, (x, y) => x == y);
                     case DataKind.TimeSpan:
-                        return GetComparerVec<DvTimeSpan>(r1, r2, col, size, (x, y) => x.Equals(y));
+                        return GetComparerVec<TimeSpan>(r1, r2, col, size, (x, y) => x == y);
                     case DataKind.DT:
-                        return GetComparerVec<DvDateTime>(r1, r2, col, size, (x, y) => x.Equals(y));
+                        return GetComparerVec<DateTime>(r1, r2, col, size, (x, y) => x == y);
                     case DataKind.DZ:
-                        return GetComparerVec<DvDateTimeZone>(r1, r2, col, size, (x, y) => x.Equals(y));
+                        return GetComparerVec<DateTimeOffset>(r1, r2, col, size, (x, y) => x.Equals(y));
                     case DataKind.UG:
                         return GetComparerVec<UInt128>(r1, r2, col, size, (x, y) => x.Equals(y));
                 }

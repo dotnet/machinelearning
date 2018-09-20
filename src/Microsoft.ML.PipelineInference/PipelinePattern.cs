@@ -5,7 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.ML;
+using Microsoft.ML.Legacy;
 using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Data;
 
@@ -106,7 +106,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
             // if transforms present.
             if (Transforms.Length > 0)
             {
-                var modelCombine = new ML.Transforms.ManyHeterogeneousModelCombiner
+                var modelCombine = new Legacy.Transforms.ManyHeterogeneousModelCombiner
                 {
                     TransformModels = new ArrayVar<ITransformModel>(transformsModels.ToArray()),
                     PredictorModel = returnedDataAndModel2?.Model
@@ -130,7 +130,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
 
         // REVIEW: We may want to allow for sweeping with CV in the future, so we will need to add new methods like this, or refactor these in that case.
         public Experiment CreateTrainTestExperiment(IDataView trainData, IDataView testData, MacroUtils.TrainerKinds trainerKind,
-                bool includeTrainingMetrics, out Models.TrainTestEvaluator.Output resultsOutput)
+                bool includeTrainingMetrics, out Legacy.Models.TrainTestEvaluator.Output resultsOutput)
         {
             var graphDef = ToEntryPointGraph();
             var subGraph = graphDef.Graph;
@@ -142,7 +142,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
             var finalOutput = graphDef.ModelOutput;
 
             // TrainTestMacro
-            var trainTestInput = new Models.TrainTestEvaluator
+            var trainTestInput = new Legacy.Models.TrainTestEvaluator
             {
                 TransformModel = null,
                 Nodes = subGraph,
@@ -155,7 +155,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
                         PredictorModel = finalOutput
                     },
                 PipelineId = UniqueId.ToString("N"),
-                Kind = MacroUtils.TrainerKindApiValue<Models.MacroUtilsTrainerKinds>(trainerKind),
+                Kind = MacroUtils.TrainerKindApiValue<Legacy.Models.MacroUtilsTrainerKinds>(trainerKind),
                 IncludeTrainingMetrics = includeTrainingMetrics
             };
 
@@ -169,7 +169,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
             return experiment;
         }
 
-        public Models.TrainTestEvaluator.Output AddAsTrainTest(Var<IDataView> trainData, Var<IDataView> testData,
+        public Legacy.Models.TrainTestEvaluator.Output AddAsTrainTest(Var<IDataView> trainData, Var<IDataView> testData,
             MacroUtils.TrainerKinds trainerKind, Experiment experiment = null, bool includeTrainingMetrics = false)
         {
             experiment = experiment ?? _env.CreateExperiment();
@@ -179,7 +179,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
             var finalOutput = graphDef.ModelOutput;
 
             // TrainTestMacro
-            var trainTestInput = new Models.TrainTestEvaluator
+            var trainTestInput = new Legacy.Models.TrainTestEvaluator
             {
                 Nodes = subGraph,
                 TransformModel = null,
@@ -193,7 +193,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
                     },
                 TrainingData = trainData,
                 TestingData = testData,
-                Kind = MacroUtils.TrainerKindApiValue<Models.MacroUtilsTrainerKinds>(trainerKind),
+                Kind = MacroUtils.TrainerKindApiValue<Legacy.Models.MacroUtilsTrainerKinds>(trainerKind),
                 PipelineId = UniqueId.ToString("N"),
                 IncludeTrainingMetrics = includeTrainingMetrics
             };
@@ -239,17 +239,17 @@ namespace Microsoft.ML.Runtime.PipelineInference
             using (var cursor = data.GetRowCursor(col => true))
             {
                 var getter1 = cursor.GetGetter<double>(metricCol);
-                var getter2 = cursor.GetGetter<DvText>(graphCol);
-                var getter3 = cursor.GetGetter<DvText>(pipelineIdCol);
+                var getter2 = cursor.GetGetter<ReadOnlyMemory<char>>(graphCol);
+                var getter3 = cursor.GetGetter<ReadOnlyMemory<char>>(pipelineIdCol);
                 var getter4 = cursor.GetGetter<double>(trainingMetricCol);
-                var getter5 = cursor.GetGetter<DvText>(firstInputCol);
-                var getter6 = cursor.GetGetter<DvText>(predictorModelCol);
+                var getter5 = cursor.GetGetter<ReadOnlyMemory<char>>(firstInputCol);
+                var getter6 = cursor.GetGetter<ReadOnlyMemory<char>>(predictorModelCol);
                 double metricValue = 0;
                 double trainingMetricValue = 0;
-                DvText graphJson = new DvText();
-                DvText pipelineId = new DvText();
-                DvText firstInput = new DvText();
-                DvText predictorModel = new DvText();
+                ReadOnlyMemory<char> graphJson = default;
+                ReadOnlyMemory<char> pipelineId = default;
+                ReadOnlyMemory<char> firstInput = default;
+                ReadOnlyMemory<char> predictorModel = default;
 
                 while (cursor.MoveNext())
                 {

@@ -182,7 +182,7 @@ namespace Microsoft.ML.Runtime.Data
     }
 
     /// <summary>
-    /// A transform that turns a collection of tokenized text (vector of DvText), or vectors of keys into numerical
+    /// A transform that turns a collection of tokenized text (vector of ReadOnlyMemory), or vectors of keys into numerical
     /// feature vectors. The feature vectors are counts of ngrams (sequences of consecutive *tokens* -words or keys-
     /// of length 1-n).
     /// </summary>
@@ -275,7 +275,7 @@ namespace Microsoft.ML.Runtime.Data
             public Column[] Column;
         }
 
-        internal const string Summary = "A transform that turns a collection of tokenized text (vector of DvText), or vectors of keys into numerical " +
+        internal const string Summary = "A transform that turns a collection of tokenized text ReadOnlyMemory, or vectors of keys into numerical " +
             "feature vectors. The feature vectors are counts of ngrams (sequences of consecutive *tokens* -words or keys- of length 1-n).";
 
         internal const string LoaderSignature = "NgramExtractor";
@@ -564,7 +564,7 @@ namespace Microsoft.ML.Runtime.Data
             if (concatCols.Count > 0)
             {
                 var concatArgs = new ConcatTransform.Arguments { Column = concatCols.ToArray() };
-                return new ConcatTransform(env, concatArgs, view);
+                return ConcatTransform.Create(env, concatArgs, view);
             }
 
             return view;

@@ -7,6 +7,7 @@
 
   <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), Directory.Build.props))\Directory.Build.props" />
 
+  <Import Project="build/ExternalBenchmarkDataFiles.props" />
   <Import Project="$(ToolsDir)VersionTools.targets" Condition="Exists('$(ToolsDir)VersionTools.targets')" />
   <UsingTask TaskName="DownloadFilesFromUrl" AssemblyFile="$(ToolsDir)Microsoft.DotNet.Build.Tasks.dll"/>
   <PropertyGroup>
@@ -78,11 +79,16 @@
   <ItemGroup>
     <TestFile Include="$(MSBuildThisFileDirectory)/test/data/external/winequality-white.csv"
       Url="https://archive.ics.uci.edu/ml/machine-learning-databases/wine-quality/winequality-white.csv"
-      DestinationFile="$(MSBuildThisFileDirectory)test/data/external/winequality-white.csv" />
-    
-    <TestFile Condition="'$(IncludeBenchmarkData)' == 'true'" Include="$(MSBuildThisFileDirectory)/test/data/external/WikiDetoxAnnotated160kRows.tsv"
-      Url="http://aka.ms/tlc-resources/benchmarks/WikiDetoxAnnotated160kRows.tsv"
-      DestinationFile="$(MSBuildThisFileDirectory)test/data/external/WikiDetoxAnnotated160kRows.tsv" />
+      DestinationFile="$(MSBuildThisFileDirectory)test/data/external/winequality-white.csv" />    
+  </ItemGroup>
+  
+  <ItemGroup Condition="'$(IncludeBenchmarkData)' == 'true'">
+    <BenchmarkFile Update="@(BenchmarkFile)">
+      <Url>https://aka.ms/tlc-resources/benchmarks/%(Identity)</Url>
+      <DestinationFile>$(MSBuildThisFileDirectory)/test/data/external/%(Identity)</DestinationFile>
+    </BenchmarkFile>
+
+    <TestFile Include="@(BenchmarkFile->'$(MSBuildThisFileDirectory)/test/data/external/%(Identity)')" />
   </ItemGroup>
 
   <Target Name="DownloadExternalTestFiles" Inputs="@(TestFile)" Outputs="%(TestFile.DestinationFile)">

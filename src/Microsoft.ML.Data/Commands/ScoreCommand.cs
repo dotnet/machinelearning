@@ -12,9 +12,7 @@ using Microsoft.ML.Runtime.Command;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Data.IO;
-using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Model;
 
 [assembly: LoadableClass(ScoreCommand.Summary, typeof(ScoreCommand), typeof(ScoreCommand.Arguments), typeof(SignatureCommand),
     "Score Predictor", "Score")]
@@ -303,10 +301,10 @@ namespace Microsoft.ML.Runtime.Data
             Contracts.AssertValue(mapper);
 
             ComponentCatalog.LoadableClassInfo info = null;
-            DvText scoreKind = default;
+            ReadOnlyMemory<char> scoreKind = default;
             if (mapper.OutputSchema.ColumnCount > 0 &&
                 mapper.OutputSchema.TryGetMetadata(TextType.Instance, MetadataUtils.Kinds.ScoreColumnKind, 0, ref scoreKind) &&
-                scoreKind.HasChars)
+                !scoreKind.IsEmpty)
             {
                 var loadName = scoreKind.ToString();
                 info = ComponentCatalog.GetLoadableClassInfo<SignatureDataScorer>(loadName);

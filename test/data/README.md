@@ -18,7 +18,7 @@ The datasets are provided under the original terms that Microsoft received such 
 
 ### UCI Adult Dataset 
 
->Dua, D. and Karra Taniskidou, E. (2017). UCI Machine Learning Repository [http://archive.ics.uci.edu/ml]. Irvine, CA: University of California, School of Information and Computer Science.
+>Dua, D. and Karra Taniskidou, E. (2017). UCI Machine Learning Repository [https://archive.ics.uci.edu/ml]. Irvine, CA: University of California, School of Information and Computer Science.
 >
 >https://archive.ics.uci.edu/ml/datasets/Adult
 
@@ -42,9 +42,28 @@ Redistributing the dataset "breast-cancer.txt" with attribution:
 
 Redistributing the dataset "taxi-fare-test.csv", "taxi-fare-train.csv" with attribution:
 
-> Original source: http://www.nyc.gov/html/tlc/html/about/trip_record_data.shtml
+> Original source: https://www.nyc.gov/html/tlc/html/about/trip_record_data.shtml
 > 
 > The dataset is provided under terms provided by City of New York: https://opendata.cityofnewyork.us/overview/#termsofuse.
+
+### MSLR-WEB10K, MSLR-WEB30K
+
+This dataset is originally from [Introducing LETOR 4.0 Datasets](https://arxiv.org/abs/1306.2597).
+The dataset is under a CC-by 4.0 license.
+```
+@article{DBLP:journals/corr/QinL13,
+  author    = {Tao Qin and 
+               Tie{-}Yan Liu},
+  title     = {Introducing {LETOR} 4.0 Datasets},
+  journal   = {CoRR},
+  volume    = {abs/1306.2597},
+  year      = {2013},
+  url       = {https://arxiv.org/abs/1306.2597},
+  timestamp = {Mon, 01 Jul 2013 20:31:25 +0200},
+  biburl    = {https://dblp.uni-trier.de/rec/bib/journals/corr/QinL13},
+  bibsource = {dblp computer science bibliography, https://dblp.org}
+}
+```
 
 # Images
 
