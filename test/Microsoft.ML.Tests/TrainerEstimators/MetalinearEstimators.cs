@@ -12,14 +12,8 @@ using Xunit.Abstractions;
 
 namespace Microsoft.ML.Tests.TrainerEstimators
 {
-    public partial class MetalinearEstimators : TestDataPipeBase
+    public partial class TrainerEstimators
     {
-
-        public MetalinearEstimators(ITestOutputHelper output) : base(output)
-        {
-        }
-
-
         /// <summary>
         /// OVA with calibrator argument
         /// </summary>

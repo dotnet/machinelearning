@@ -627,7 +627,7 @@ namespace Microsoft.ML.Runtime.Training
     }
 
     /// <summary>
-    /// This supports Weight (float), Group (ulong), and Id (DvInt8) columns.
+    /// This supports Weight (float), Group (ulong), and Id (UInt128) columns.
     /// </summary>
     public class StandardScalarCursor : TrainingCursorBase
     {

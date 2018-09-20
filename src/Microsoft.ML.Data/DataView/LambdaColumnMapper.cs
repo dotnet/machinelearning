@@ -18,7 +18,7 @@ namespace Microsoft.ML.Runtime.Data
         // REVIEW: It would be nice to support propagation of select metadata.
         public static IDataView Create<TSrc, TDst>(IHostEnvironment env, string name, IDataView input,
             string src, string dst, ColumnType typeSrc, ColumnType typeDst, ValueMapper<TSrc, TDst> mapper,
-            ValueGetter<VBuffer<DvText>> keyValueGetter = null, ValueGetter<VBuffer<DvText>> slotNamesGetter = null)
+            ValueGetter<VBuffer<ReadOnlyMemory<char>>> keyValueGetter = null, ValueGetter<VBuffer<ReadOnlyMemory<char>>> slotNamesGetter = null)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckNonEmpty(name, nameof(name));
@@ -69,7 +69,7 @@ namespace Microsoft.ML.Runtime.Data
             else
             {
                 Func<IHostEnvironment, string, IDataView, Column, ColumnType, ValueMapper<int, int>,
-                    ValueMapper<int, int>, ValueGetter<VBuffer<DvText>>, ValueGetter<VBuffer<DvText>>,
+                    ValueMapper<int, int>, ValueGetter<VBuffer<ReadOnlyMemory<char>>>, ValueGetter<VBuffer<ReadOnlyMemory<char>>>,
                     Impl<int, int, int>> del = CreateImpl<int, int, int>;
                 var meth = del.GetMethodInfo().GetGenericMethodDefinition()
                     .MakeGenericMethod(typeOrig.RawType, typeof(TSrc), typeof(TDst));
@@ -82,7 +82,7 @@ namespace Microsoft.ML.Runtime.Data
         private static Impl<T1, T2, T3> CreateImpl<T1, T2, T3>(
             IHostEnvironment env, string name, IDataView input, Column col,
             ColumnType typeDst, ValueMapper<T1, T2> map1, ValueMapper<T2, T3> map2,
-            ValueGetter<VBuffer<DvText>> keyValueGetter, ValueGetter<VBuffer<DvText>> slotNamesGetter)
+            ValueGetter<VBuffer<ReadOnlyMemory<char>>> keyValueGetter, ValueGetter<VBuffer<ReadOnlyMemory<char>>> slotNamesGetter)
         {
             return new Impl<T1, T2, T3>(env, name, input, col, typeDst, map1, map2, keyValueGetter);
         }
@@ -104,7 +104,7 @@ namespace Microsoft.ML.Runtime.Data
 
             public Impl(IHostEnvironment env, string name, IDataView input, OneToOneColumn col,
                 ColumnType typeDst, ValueMapper<T1, T2> map1, ValueMapper<T2, T3> map2 = null,
-                ValueGetter<VBuffer<DvText>> keyValueGetter = null, ValueGetter<VBuffer<DvText>> slotNamesGetter = null)
+                ValueGetter<VBuffer<ReadOnlyMemory<char>>> keyValueGetter = null, ValueGetter<VBuffer<ReadOnlyMemory<char>>> slotNamesGetter = null)
                 : base(env, name, new[] { col }, input, x => null)
             {
                 Host.Assert(typeDst.RawType == typeof(T3));
@@ -122,15 +122,15 @@ namespace Microsoft.ML.Runtime.Data
                         if (keyValueGetter != null)
                         {
                             Host.Assert(_typeDst.ItemType.KeyCount > 0);
-                            MetadataUtils.MetadataGetter<VBuffer<DvText>> mdGetter =
-                                (int c, ref VBuffer<DvText> dst) => keyValueGetter(ref dst);
+                            MetadataUtils.MetadataGetter<VBuffer<ReadOnlyMemory<char>>> mdGetter =
+                                (int c, ref VBuffer<ReadOnlyMemory<char>> dst) => keyValueGetter(ref dst);
                             bldr.AddGetter(MetadataUtils.Kinds.KeyValues, new VectorType(TextType.Instance, _typeDst.ItemType.KeyCount), mdGetter);
                         }
                         if (slotNamesGetter != null)
                         {
                             Host.Assert(_typeDst.VectorSize > 0);
-                            MetadataUtils.MetadataGetter<VBuffer<DvText>> mdGetter =
-                                (int c, ref VBuffer<DvText> dst) => slotNamesGetter(ref dst);
+                            MetadataUtils.MetadataGetter<VBuffer<ReadOnlyMemory<char>>> mdGetter =
+                                (int c, ref VBuffer<ReadOnlyMemory<char>> dst) => slotNamesGetter(ref dst);
                             bldr.AddGetter(MetadataUtils.Kinds.SlotNames, new VectorType(TextType.Instance, _typeDst.VectorSize), mdGetter);
                         }
                     }

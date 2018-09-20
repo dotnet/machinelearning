@@ -931,18 +931,17 @@ namespace Microsoft.ML.Runtime.FastTree
             // A useful test in this case would be a model trained with:
             // maml.exe train data=Samples\breast-cancer-withheader.txt loader=text{header+ col=Label:0 col=F1:1-4 col=F2:4 col=F3:5-*}
             //    xf =expr{col=F2 expr=x:0.0} xf=concat{col=Features:F1,F2,F3} tr=gam out=bubba2.zip
-
             // Write out the intercept
             writer.WriteLine("-1\tIntercept");
 
-            var names = default(VBuffer<DvText>);
+            var names = default(VBuffer<ReadOnlyMemory<char>>);
             MetadataUtils.GetSlotNames(schema, RoleMappedSchema.ColumnRole.Feature, _inputLength, ref names);
 
             for (int internalIndex = 0; internalIndex < _numFeatures; internalIndex++)
             {
                 int featureIndex = _featureMap[internalIndex];
                 var name = names.GetItemOrDefault(featureIndex);
-                writer.WriteLine(name.HasChars ? "{0}\t{1}" : "{0}\tFeature {0}", featureIndex, name);
+                writer.WriteLine(!name.IsEmpty ? "{0}\t{1}" : "{0}\tFeature {0}", featureIndex, name);
             }
 
             writer.WriteLine();
@@ -1017,7 +1016,7 @@ namespace Microsoft.ML.Runtime.FastTree
                 private readonly GamPredictorBase _pred;
                 private readonly RoleMappedData _data;
 
-                private readonly VBuffer<DvText> _featNames;
+                private readonly VBuffer<ReadOnlyMemory<char>> _featNames;
                 // The scores.
                 private readonly float[] _scores;
                 // The labels.
@@ -1061,7 +1060,7 @@ namespace Microsoft.ML.Runtime.FastTree
                     if (schema.Schema.HasSlotNames(schema.Feature.Index, len))
                         schema.Schema.GetMetadata(MetadataUtils.Kinds.SlotNames, schema.Feature.Index, ref _featNames);
                     else
-                        _featNames = VBufferUtils.CreateEmpty<DvText>(len);
+                        _featNames = VBufferUtils.CreateEmpty<ReadOnlyMemory<char>>(len);
 
                     var numFeatures = _pred._binEffects.Length;
                     _binDocsList = new List<int>[numFeatures][];

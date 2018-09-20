@@ -609,7 +609,7 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
                     for (int i = 0; i < numParts; ++i)
                     {
                         cumulative += fraction[i];
-                        thresh[i] = (int)(cumulative * Int32.MaxValue);
+                        thresh[i] = (int)(cumulative * int.MaxValue);
                         if (fraction[i] == 0.0)
                             thresh[i]--;
                     }
