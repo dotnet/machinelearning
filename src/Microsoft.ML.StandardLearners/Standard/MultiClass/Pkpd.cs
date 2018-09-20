@@ -73,7 +73,7 @@ namespace Microsoft.ML.Runtime.Learners
         /// Developers should instantiate <see cref="Pkpd"/> by supplying the trainer argument directly to the <see cref="Pkpd"/> constructor
         /// using the other public constructor.
         /// </summary>
-        public Pkpd(IHostEnvironment env, Arguments args)
+        internal Pkpd(IHostEnvironment env, Arguments args)
             : base(env, args, LoadNameValue)
         {
         }

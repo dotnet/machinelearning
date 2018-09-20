@@ -75,7 +75,7 @@ namespace Microsoft.ML.Runtime.FastTree
         /// <summary>
         /// Initializes a new instance of <see cref="FastTreeRegressionTrainer"/> by using the legacy <see cref="Arguments"/> class.
         /// </summary>
-        public FastTreeRegressionTrainer(IHostEnvironment env, Arguments args)
+        internal FastTreeRegressionTrainer(IHostEnvironment env, Arguments args)
             : base(env, args, MakeLabelColumn(args.LabelColumn))
         {
             _outputColumns = new[]
