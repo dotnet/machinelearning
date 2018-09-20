@@ -35,7 +35,7 @@ using Microsoft.ML.Transforms.TensorFlow;
 namespace Microsoft.ML.Transforms
 {
     /// <include file='doc.xml' path='doc/members/member[@name="TensorflowTransform"]/*' />
-    public sealed class TensorFlowTransform : ITransformer, ICanSaveModel, IDisposable
+    public sealed class TensorFlowTransform : ITransformer, ICanSaveModel
     {
         public sealed class Arguments : TransformInputBase
         {
@@ -112,7 +112,7 @@ namespace Microsoft.ML.Transforms
             // int: number of output columns
             // for each output column
             //   int: id of output column name
-            ModelInputsOutputs(env, ctx, out string[] inputs, out string[] outputs, out bool isFrozen);
+            GetModelInfo(env, ctx, out string[] inputs, out string[] outputs, out bool isFrozen);
             if (isFrozen)
             {
                 byte[] modelBytes = null;
@@ -172,7 +172,7 @@ namespace Microsoft.ML.Transforms
         private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, ISchema inputSchema)
             => Create(env, ctx).MakeRowMapper(inputSchema);
 
-        private static void ModelInputsOutputs(IHostEnvironment env, ModelLoadContext ctx, out string[] inputs, out string[] outputs, out bool isFrozen)
+        private static void GetModelInfo(IHostEnvironment env, ModelLoadContext ctx, out string[] inputs, out string[] outputs, out bool isFrozen)
         {
             isFrozen = true;
             bool isNonFrozenModelSupported = ctx.Header.ModelVerReadable >= 0x00010002;
@@ -396,12 +396,6 @@ namespace Microsoft.ML.Transforms
         ~TensorFlowTransform()
         {
             Dispose(false);
-        }
-
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
         }
 
         private void Dispose(bool disposing)
