@@ -612,8 +612,8 @@ namespace Microsoft.ML.Runtime.RunTests
 
         protected bool CheckMetadataNames(string kind, int size, ISchema sch1, ISchema sch2, int col, bool exactTypes, bool mustBeText)
         {
-            var names1 = default(VBuffer<DvText>);
-            var names2 = default(VBuffer<DvText>);
+            var names1 = default(VBuffer<ReadOnlyMemory<char>>);
+            var names2 = default(VBuffer<ReadOnlyMemory<char>>);
 
             var t1 = sch1.GetMetadataTypeOrNull(kind, col);
             var t2 = sch2.GetMetadataTypeOrNull(kind, col);
@@ -654,7 +654,7 @@ namespace Microsoft.ML.Runtime.RunTests
 
             sch1.GetMetadata(kind, col, ref names1);
             sch2.GetMetadata(kind, col, ref names2);
-            if (!CompareVec(ref names1, ref names2, size, DvText.Identical))
+            if (!CompareVec(ref names1, ref names2, size, (a, b) => a.Span.SequenceEqual(b.Span)))
             {
                 Fail("Different {0} metadata values", kind);
                 return Failed();
@@ -662,7 +662,7 @@ namespace Microsoft.ML.Runtime.RunTests
             return true;
         }
 
-        protected bool CheckMetadataCallFailure(string kind, ISchema sch, int col, ref VBuffer<DvText> names)
+        protected bool CheckMetadataCallFailure(string kind, ISchema sch, int col, ref VBuffer<ReadOnlyMemory<char>> names)
         {
             try
             {
@@ -1059,19 +1059,19 @@ namespace Microsoft.ML.Runtime.RunTests
                 switch (type.RawKind)
                 {
                     case DataKind.I1:
-                        return GetComparerOne<DvInt1>(r1, r2, col, (x, y) => x.RawValue == y.RawValue);
+                        return GetComparerOne<sbyte>(r1, r2, col, (x, y) => x == y);
                     case DataKind.U1:
                         return GetComparerOne<byte>(r1, r2, col, (x, y) => x == y);
                     case DataKind.I2:
-                        return GetComparerOne<DvInt2>(r1, r2, col, (x, y) => x.RawValue == y.RawValue);
+                        return GetComparerOne<short>(r1, r2, col, (x, y) => x == y);
                     case DataKind.U2:
                         return GetComparerOne<ushort>(r1, r2, col, (x, y) => x == y);
                     case DataKind.I4:
-                        return GetComparerOne<DvInt4>(r1, r2, col, (x, y) => x.RawValue == y.RawValue);
+                        return GetComparerOne<int>(r1, r2, col, (x, y) => x == y);
                     case DataKind.U4:
                         return GetComparerOne<uint>(r1, r2, col, (x, y) => x == y);
                     case DataKind.I8:
-                        return GetComparerOne<DvInt8>(r1, r2, col, (x, y) => x.RawValue == y.RawValue);
+                        return GetComparerOne<long>(r1, r2, col, (x, y) => x == y);
                     case DataKind.U8:
                         return GetComparerOne<ulong>(r1, r2, col, (x, y) => x == y);
                     case DataKind.R4:
@@ -1082,15 +1082,15 @@ namespace Microsoft.ML.Runtime.RunTests
                         else
                             return GetComparerOne<Double>(r1, r2, col, EqualWithEps);
                     case DataKind.Text:
-                        return GetComparerOne<DvText>(r1, r2, col, DvText.Identical);
+                        return GetComparerOne<ReadOnlyMemory<char>>(r1, r2, col, (a ,b) => a.Span.SequenceEqual(b.Span));
                     case DataKind.Bool:
-                        return GetComparerOne<DvBool>(r1, r2, col, (x, y) => x.Equals(y));
+                        return GetComparerOne<bool>(r1, r2, col, (x, y) => x == y);
                     case DataKind.TimeSpan:
-                        return GetComparerOne<DvTimeSpan>(r1, r2, col, (x, y) => x.Equals(y));
+                        return GetComparerOne<TimeSpan>(r1, r2, col, (x, y) => x == y);
                     case DataKind.DT:
-                        return GetComparerOne<DvDateTime>(r1, r2, col, (x, y) => x.Equals(y));
+                        return GetComparerOne<DateTime>(r1, r2, col, (x, y) => x == y);
                     case DataKind.DZ:
-                        return GetComparerOne<DvDateTimeZone>(r1, r2, col, (x, y) => x.Equals(y));
+                        return GetComparerOne<DateTimeOffset>(r1, r2, col, (x, y) => x.Equals(y));
                     case DataKind.UG:
                         return GetComparerOne<UInt128>(r1, r2, col, (x, y) => x.Equals(y));
                     case (DataKind)0:
@@ -1105,19 +1105,19 @@ namespace Microsoft.ML.Runtime.RunTests
                 switch (type.ItemType.RawKind)
                 {
                     case DataKind.I1:
-                        return GetComparerVec<DvInt1>(r1, r2, col, size, (x, y) => x.RawValue == y.RawValue);
+                        return GetComparerVec<sbyte>(r1, r2, col, size, (x, y) => x == y);
                     case DataKind.U1:
                         return GetComparerVec<byte>(r1, r2, col, size, (x, y) => x == y);
                     case DataKind.I2:
-                        return GetComparerVec<DvInt2>(r1, r2, col, size, (x, y) => x.RawValue == y.RawValue);
+                        return GetComparerVec<short>(r1, r2, col, size, (x, y) => x == y);
                     case DataKind.U2:
                         return GetComparerVec<ushort>(r1, r2, col, size, (x, y) => x == y);
                     case DataKind.I4:
-                        return GetComparerVec<DvInt4>(r1, r2, col, size, (x, y) => x.RawValue == y.RawValue);
+                        return GetComparerVec<int>(r1, r2, col, size, (x, y) => x == y);
                     case DataKind.U4:
                         return GetComparerVec<uint>(r1, r2, col, size, (x, y) => x == y);
                     case DataKind.I8:
-                        return GetComparerVec<DvInt8>(r1, r2, col, size, (x, y) => x.RawValue == y.RawValue);
+                        return GetComparerVec<long>(r1, r2, col, size, (x, y) => x == y);
                     case DataKind.U8:
                         return GetComparerVec<ulong>(r1, r2, col, size, (x, y) => x == y);
                     case DataKind.R4:
@@ -1128,15 +1128,15 @@ namespace Microsoft.ML.Runtime.RunTests
                         else
                             return GetComparerVec<Double>(r1, r2, col, size, EqualWithEps);
                     case DataKind.Text:
-                        return GetComparerVec<DvText>(r1, r2, col, size, DvText.Identical);
+                        return GetComparerVec<ReadOnlyMemory<char>>(r1, r2, col, size, (a, b) => a.Span.SequenceEqual(b.Span));
                     case DataKind.Bool:
-                        return GetComparerVec<DvBool>(r1, r2, col, size, (x, y) => x.Equals(y));
+                        return GetComparerVec<bool>(r1, r2, col, size, (x, y) => x == y);
                     case DataKind.TimeSpan:
-                        return GetComparerVec<DvTimeSpan>(r1, r2, col, size, (x, y) => x.Equals(y));
+                        return GetComparerVec<TimeSpan>(r1, r2, col, size, (x, y) => x == y);
                     case DataKind.DT:
-                        return GetComparerVec<DvDateTime>(r1, r2, col, size, (x, y) => x.Equals(y));
+                        return GetComparerVec<DateTime>(r1, r2, col, size, (x, y) => x == y);
                     case DataKind.DZ:
-                        return GetComparerVec<DvDateTimeZone>(r1, r2, col, size, (x, y) => x.Equals(y));
+                        return GetComparerVec<DateTimeOffset>(r1, r2, col, size, (x, y) => x.Equals(y));
                     case DataKind.UG:
                         return GetComparerVec<UInt128>(r1, r2, col, size, (x, y) => x.Equals(y));
                 }

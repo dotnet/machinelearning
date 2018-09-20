@@ -239,17 +239,17 @@ namespace Microsoft.ML.Runtime.PipelineInference
             using (var cursor = data.GetRowCursor(col => true))
             {
                 var getter1 = cursor.GetGetter<double>(metricCol);
-                var getter2 = cursor.GetGetter<DvText>(graphCol);
-                var getter3 = cursor.GetGetter<DvText>(pipelineIdCol);
+                var getter2 = cursor.GetGetter<ReadOnlyMemory<char>>(graphCol);
+                var getter3 = cursor.GetGetter<ReadOnlyMemory<char>>(pipelineIdCol);
                 var getter4 = cursor.GetGetter<double>(trainingMetricCol);
-                var getter5 = cursor.GetGetter<DvText>(firstInputCol);
-                var getter6 = cursor.GetGetter<DvText>(predictorModelCol);
+                var getter5 = cursor.GetGetter<ReadOnlyMemory<char>>(firstInputCol);
+                var getter6 = cursor.GetGetter<ReadOnlyMemory<char>>(predictorModelCol);
                 double metricValue = 0;
                 double trainingMetricValue = 0;
-                DvText graphJson = new DvText();
-                DvText pipelineId = new DvText();
-                DvText firstInput = new DvText();
-                DvText predictorModel = new DvText();
+                ReadOnlyMemory<char> graphJson = default;
+                ReadOnlyMemory<char> pipelineId = default;
+                ReadOnlyMemory<char> firstInput = default;
+                ReadOnlyMemory<char> predictorModel = default;
 
                 while (cursor.MoveNext())
                 {

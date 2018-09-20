@@ -70,7 +70,7 @@ namespace Microsoft.ML.Runtime.Data
         private readonly string[] _names;
         private readonly ColumnType[] _types;
         private readonly Dictionary<string, int> _columnNameMap;
-        private readonly MetadataUtils.MetadataGetter<VBuffer<DvText>>[] _keyValueGetters;
+        private readonly MetadataUtils.MetadataGetter<VBuffer<ReadOnlyMemory<char>>>[] _keyValueGetters;
 
         public int ColumnCount => _types.Length;
 
@@ -91,10 +91,10 @@ namespace Microsoft.ML.Runtime.Data
                     throw ectx.ExceptParam(nameof(columns), $"Duplicate column name: '{columns[i].Key}'");
                 _columnNameMap[columns[i].Key] = i;
             }
-            _keyValueGetters = new MetadataUtils.MetadataGetter<VBuffer<DvText>>[ColumnCount];
+            _keyValueGetters = new MetadataUtils.MetadataGetter<VBuffer<ReadOnlyMemory<char>>>[ColumnCount];
         }
 
-        public SimpleSchema(IExceptionContext ectx, KeyValuePair<string, ColumnType>[] columns, Dictionary<string, MetadataUtils.MetadataGetter<VBuffer<DvText>>> keyValues)
+        public SimpleSchema(IExceptionContext ectx, KeyValuePair<string, ColumnType>[] columns, Dictionary<string, MetadataUtils.MetadataGetter<VBuffer<ReadOnlyMemory<char>>>> keyValues)
             : this(ectx, columns)
         {
             foreach (var kvp in keyValues)

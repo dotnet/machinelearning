@@ -8,6 +8,7 @@ using System.Text;
 using Google.Protobuf;
 using Microsoft.ML.Runtime.UniversalModelFormat.Onnx;
 using Microsoft.ML.Runtime.Data;
+using System;
 
 namespace Microsoft.ML.Runtime.Model.Onnx
 {
@@ -186,13 +187,13 @@ namespace Microsoft.ML.Runtime.Model.Onnx
         public static void NodeAddAttributes(NodeProto node, string argName, IEnumerable<long> value)
             => node.Attribute.Add(MakeAttribute(argName, value));
 
-        public static void NodeAddAttributes(NodeProto node, string argName, DvText value)
+        public static void NodeAddAttributes(NodeProto node, string argName, ReadOnlyMemory<char> value)
             => node.Attribute.Add(MakeAttribute(argName, StringToByteString(value)));
 
         public static void NodeAddAttributes(NodeProto node, string argName, string[] value)
             => node.Attribute.Add(MakeAttribute(argName, StringToByteString(value)));
 
-        public static void NodeAddAttributes(NodeProto node, string argName, IEnumerable<DvText> value)
+        public static void NodeAddAttributes(NodeProto node, string argName, IEnumerable<ReadOnlyMemory<char>> value)
             => node.Attribute.Add(MakeAttribute(argName, StringToByteString(value)));
 
         public static void NodeAddAttributes(NodeProto node, string argName, IEnumerable<string> value)
@@ -210,8 +211,8 @@ namespace Microsoft.ML.Runtime.Model.Onnx
         public static void NodeAddAttributes(NodeProto node, string argName, bool value)
             => node.Attribute.Add(MakeAttribute(argName, value));
 
-        private static ByteString StringToByteString(DvText str) => ByteString.CopyFrom(Encoding.UTF8.GetBytes(str.ToString()));
-        private static IEnumerable<ByteString> StringToByteString(IEnumerable<DvText> str)
+        private static ByteString StringToByteString(ReadOnlyMemory<char> str) => ByteString.CopyFrom(Encoding.UTF8.GetBytes(str.ToString()));
+        private static IEnumerable<ByteString> StringToByteString(IEnumerable<ReadOnlyMemory<char>> str)
             => str.Select(s => ByteString.CopyFrom(Encoding.UTF8.GetBytes(s.ToString())));
 
         private static IEnumerable<ByteString> StringToByteString(IEnumerable<string> str)
@@ -253,7 +254,7 @@ namespace Microsoft.ML.Runtime.Model.Onnx
             model.Domain = domain;
             model.ProducerName = producerName;
             model.ProducerVersion = producerVersion;
-            model.IrVersion = (long)Version.IrVersion;
+            model.IrVersion = (long)UniversalModelFormat.Onnx.Version.IrVersion;
             model.ModelVersion = modelVersion;
             model.OpsetImport.Add(new OperatorSetIdProto() { Domain = "ai.onnx.ml", Version = 1 });
             model.OpsetImport.Add(new OperatorSetIdProto() { Domain = "", Version = 7 });

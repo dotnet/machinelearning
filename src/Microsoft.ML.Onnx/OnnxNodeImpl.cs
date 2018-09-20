@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.UniversalModelFormat.Onnx;
@@ -30,11 +31,11 @@ namespace Microsoft.ML.Runtime.Model.Onnx
             => OnnxUtils.NodeAddAttributes(_node, argName, value);
         public override void AddAttribute(string argName, IEnumerable<long> value)
             => OnnxUtils.NodeAddAttributes(_node, argName, value);
-        public override void AddAttribute(string argName, DvText value)
+        public override void AddAttribute(string argName, ReadOnlyMemory<char> value)
             => OnnxUtils.NodeAddAttributes(_node, argName, value);
         public override void AddAttribute(string argName, string[] value)
             => OnnxUtils.NodeAddAttributes(_node, argName, value);
-        public override void AddAttribute(string argName, IEnumerable<DvText> value)
+        public override void AddAttribute(string argName, IEnumerable<ReadOnlyMemory<char>> value)
             => OnnxUtils.NodeAddAttributes(_node, argName, value);
         public override void AddAttribute(string argName, IEnumerable<string> value)
             => OnnxUtils.NodeAddAttributes(_node, argName, value);
