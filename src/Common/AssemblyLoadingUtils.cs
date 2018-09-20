@@ -75,6 +75,28 @@ namespace Microsoft.ML.Runtime
             }
         }
 
+        public static IDisposable CreateAssemblyRegistrar(IHostEnvironment env, string loadAssembliesPath = null)
+        {
+            Contracts.CheckValue(env, nameof(env));
+            env.CheckValueOrNull(loadAssembliesPath);
+
+            return new AssemblyRegistrar(env, loadAssembliesPath);
+        }
+
+        public static void RegisterCurrentLoadedAssemblies(IHostEnvironment env)
+        {
+            Contracts.CheckValue(env, nameof(env));
+
+            foreach (Assembly a in AppDomain.CurrentDomain.GetAssemblies())
+            {
+                // Ignore dynamic assemblies.
+                if (a.IsDynamic)
+                    continue;
+
+                env.ComponentCatalog.RegisterAssembly(a);
+            }
+        }
+
         private static string CreateTempDirectory()
         {
             string dir = GetTempPath();
@@ -115,6 +137,41 @@ namespace Microsoft.ML.Runtime
             catch (Exception)
             {
                 return null;
+            }
+        }
+
+        private sealed class AssemblyRegistrar : IDisposable
+        {
+            private readonly IHostEnvironment _env;
+
+            public AssemblyRegistrar(IHostEnvironment env, string path)
+            {
+                _env = env;
+
+                RegisterCurrentLoadedAssemblies(_env);
+
+                if (!string.IsNullOrEmpty(path))
+                {
+                    LoadAssembliesInDir(_env, path);
+                    path = Path.Combine(path, "AutoLoad");
+                    LoadAssembliesInDir(_env, path);
+                }
+
+                AppDomain.CurrentDomain.AssemblyLoad += CurrentDomainAssemblyLoad;
+            }
+
+            public void Dispose()
+            {
+                AppDomain.CurrentDomain.AssemblyLoad -= CurrentDomainAssemblyLoad;
+            }
+
+            private void CurrentDomainAssemblyLoad(object sender, AssemblyLoadEventArgs args)
+            {
+                // Don't try to index dynamic generated assembly
+                if (args.LoadedAssembly.IsDynamic)
+                    return;
+
+                _env.ComponentCatalog.RegisterAssembly(args.LoadedAssembly);
             }
         }
     }
