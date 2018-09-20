@@ -69,9 +69,10 @@ namespace Microsoft.ML.Transforms.TensorFlow
                     (int col, ref ReadOnlyMemory<char> dst) => dst = new ReadOnlyMemory<char>(opType.ToArray());
                 opTypeGetters.Add(opTypeGetter);
 
-                var columnType = Utils.Size(shapeArray) > 0 && shapeArray.Skip(1).All(x => x > 0) ?
-                    new VectorType(mlType, shapeArray[0] > 0 ? shapeArray : shapeArray.Skip(1).ToArray())
-                    : new VectorType(mlType);
+                var columnType = Utils.Size(shapeArray) == 1 && shapeArray[0] == -1 ? new VectorType(mlType) :
+                    Utils.Size(shapeArray) > 0 && shapeArray.Skip(1).All(x => x > 0) ?
+                        new VectorType(mlType, shapeArray[0] > 0 ? shapeArray : shapeArray.Skip(1).ToArray())
+                        : new VectorType(mlType);
                 res.Add(new KeyValuePair<string, ColumnType>(op.Name, columnType));
             }
             return new TensorFlowSchema(ectx, res.ToArray(), opTypeGetters.ToArray(), inputOpsGetters.ToArray(), inputOpsLengths.ToArray());
