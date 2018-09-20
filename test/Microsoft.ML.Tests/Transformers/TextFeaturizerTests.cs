@@ -140,7 +140,10 @@ namespace Microsoft.ML.Tests.Transformers
 
             var est = new WordBagEstimator(Env, "text", "bag_of_words").
                 Append(new WordHashBagEstimator(Env, "text", "bag_of_wordshash"));
-            //TestEstimatorCore(est, data.AsDynamic, invalidInput: invalidData.AsDynamic);
+            
+            // The following call fails because of the following issue
+            // https://github.com/dotnet/machinelearning/issues/969
+            // TestEstimatorCore(est, data.AsDynamic, invalidInput: invalidData.AsDynamic);
 
             var outputPath = GetOutputPath("Text", "bag_of_words.tsv");
             using (var ch = Env.Start("save"))
@@ -175,7 +178,10 @@ namespace Microsoft.ML.Tests.Transformers
                 .Append(new TermEstimator(Env, "text", "terms"))
                 .Append(new NgramEstimator(Env, "terms", "ngrams"))
                 .Append(new NgramHashEstimator(Env, "terms", "ngramshash"));
-            //TestEstimatorCore(est, data.AsDynamic, invalidInput: invalidData.AsDynamic);
+            
+            // The following call fails because of the following issue
+            // https://github.com/dotnet/machinelearning/issues/969
+            // TestEstimatorCore(est, data.AsDynamic, invalidInput: invalidData.AsDynamic);
 
             var outputPath = GetOutputPath("Text", "ngrams.tsv");
             using (var ch = Env.Start("save"))

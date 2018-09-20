@@ -262,7 +262,7 @@ namespace Microsoft.ML.Transforms
     }
 
     /// <summary>
-    /// Produces a bag of counts of ngrams (sequences of consecutive words ) in a given text.
+    /// Produces a bag of counts of ngrams (sequences of consecutive words) in a given text.
     /// It does so by building a dictionary of ngrams and using the id in the dictionary as the index in the bag.
     /// </summary>
     public sealed class WordBagEstimator : TrainedWrapperEstimatorBase
@@ -275,7 +275,7 @@ namespace Microsoft.ML.Transforms
         private readonly NgramTransform.WeightingCriteria _weighting;
 
         /// <summary>
-        /// Produces a bag of counts of ngrams (sequences of consecutive words ) in <paramref name="inputColumn"/>
+        /// Produces a bag of counts of ngrams (sequences of consecutive words) in <paramref name="inputColumn"/>
         /// and outputs bag of word vector as <paramref name="outputColumn"/>
         /// </summary>
         /// <param name="env">The environment.</param>
@@ -299,7 +299,7 @@ namespace Microsoft.ML.Transforms
         }
 
         /// <summary>
-        /// Produces a bag of counts of ngrams (sequences of consecutive words ) in <paramref name="inputColumns"/>
+        /// Produces a bag of counts of ngrams (sequences of consecutive words) in <paramref name="inputColumns"/>
         /// and outputs bag of word vector as <paramref name="outputColumn"/>
         /// </summary>
         /// <param name="env">The environment.</param>
@@ -323,7 +323,7 @@ namespace Microsoft.ML.Transforms
         }
 
         /// <summary>
-        /// Produces a bag of counts of ngrams (sequences of consecutive words ) in <paramref name="columns.inputs"/>
+        /// Produces a bag of counts of ngrams (sequences of consecutive words) in <paramref name="columns.inputs"/>
         /// and outputs bag of word vector for each output in <paramref name="columns.output"/>
         /// </summary>
         /// <param name="env">The environment.</param>
@@ -517,7 +517,7 @@ namespace Microsoft.ML.Transforms
         private readonly NgramTransform.WeightingCriteria _weighting;
 
         /// <summary>
-        /// Produces a bag of counts of ngrams (sequences of consecutive words ) in <paramref name="inputColumn"/>
+        /// Produces a bag of counts of ngrams (sequences of consecutive words) in <paramref name="inputColumn"/>
         /// and outputs bag of word vector as <paramref name="outputColumn"/>
         /// </summary>
         /// <param name="env">The environment.</param>
@@ -541,7 +541,7 @@ namespace Microsoft.ML.Transforms
         }
 
         /// <summary>
-        /// Produces a bag of counts of ngrams (sequences of consecutive words ) in <paramref name="columns.inputs"/>
+        /// Produces a bag of counts of ngrams (sequences of consecutive words) in <paramref name="columns.inputs"/>
         /// and outputs bag of word vector for each output in <paramref name="columns.output"/>
         /// </summary>
         /// <param name="env">The environment.</param>
