@@ -85,17 +85,7 @@ namespace Microsoft.ML.Transforms
                 PcaNum = _pcaNum
             };
 
-            var typesmapping = new Dictionary<string, ColumnType>();
-            foreach (var (inputColumn, outputColumn) in _columns)
-            {
-                input.Schema.TryGetColumnIndex(inputColumn, out int col);
-                typesmapping[inputColumn] = new VectorType(NumberType.R4, input.Schema.GetColumnType(col).VectorSize);
-            }
-
-            var schema = new SimpleSchema(Host, typesmapping.ToArray());
-            var emptyData = new EmptyDataView(Host, schema);
-
-            return new TransformWrapper(Host, new WhiteningTransform(Host, args, emptyData));
+            return new TransformWrapper(Host, new WhiteningTransform(Host, args, input));
         }
     }
 
@@ -150,16 +140,26 @@ namespace Microsoft.ML.Transforms
 
         /// <include file='doc.xml' path='doc/members/member[@name="Whitening"]/*'/>
         /// <param name="input">The column to apply to.</param>
-        /// <param name="kind">Whitening kind (PCA/ZCA).</param>
         /// <param name="eps">Scaling regularizer.</param>
         /// <param name="maxRows">Max number of rows.</param>
         /// <param name="saveInverse">Whether to save inverse (recovery) matrix.</param>
         /// <param name="pcaNum">PCA components to retain.</param>
-        public static Vector<float> Whiten(this Vector<float> input,
-            WhiteningKind kind = WhiteningKind.Zca,
+        public static Vector<float> PcaWhitening(this Vector<float> input,
             float eps = (float)1e-5,
             int maxRows = 100 * 1000,
             bool saveInverse = false,
-            int pcaNum = 0) => new OutPipelineColumn(input, kind, eps, maxRows, saveInverse, pcaNum);
+            int pcaNum = 0) => new OutPipelineColumn(input, WhiteningKind.Pca, eps, maxRows, saveInverse, pcaNum);
+
+        /// <include file='doc.xml' path='doc/members/member[@name="Whitening"]/*'/>
+        /// <param name="input">The column to apply to.</param>
+        /// <param name="eps">Scaling regularizer.</param>
+        /// <param name="maxRows">Max number of rows.</param>
+        /// <param name="saveInverse">Whether to save inverse (recovery) matrix.</param>
+        /// <param name="pcaNum">PCA components to retain.</param>
+        public static Vector<float> ZcaWhitening(this Vector<float> input,
+            float eps = (float)1e-5,
+            int maxRows = 100 * 1000,
+            bool saveInverse = false,
+            int pcaNum = 0) => new OutPipelineColumn(input, WhiteningKind.Zca, eps, maxRows, saveInverse, pcaNum);
     }
 }

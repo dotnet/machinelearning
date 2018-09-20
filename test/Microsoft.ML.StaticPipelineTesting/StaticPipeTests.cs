@@ -449,8 +449,9 @@ namespace Microsoft.ML.StaticPipelineTesting
             var est = reader.MakeNewEstimator()
                 .Append(r => (r.label, 
                               lpnorm: r.features.LpNormalize(),
-                              gcnorm: r.features.GcNormalize(),
-                              whitened: r.features.Whiten()));
+                              gcnorm: r.features.GlobalContrastNormalize(),
+                              zcawhitened: r.features.ZcaWhitening(),
+                              pcswhitened: r.features.PcaWhitening()));
             var tdata = est.Fit(data).Transform(data);
             var schema = tdata.AsDynamic.Schema;
 
@@ -462,8 +463,12 @@ namespace Microsoft.ML.StaticPipelineTesting
             type = schema.GetColumnType(gcnormCol);
             Assert.True(type.IsVector && type.IsKnownSizeVector && type.ItemType.IsNumber);
 
-            Assert.True(schema.TryGetColumnIndex("whitened", out int whitenedCol));
-            type = schema.GetColumnType(whitenedCol);
+            Assert.True(schema.TryGetColumnIndex("zcawhitened", out int zcawhitenedCol));
+            type = schema.GetColumnType(zcawhitenedCol);
+            Assert.True(type.IsVector && type.IsKnownSizeVector && type.ItemType.IsNumber);
+
+            Assert.True(schema.TryGetColumnIndex("pcswhitened", out int pcswhitenedCol));
+            type = schema.GetColumnType(pcswhitenedCol);
             Assert.True(type.IsVector && type.IsKnownSizeVector && type.ItemType.IsNumber);
         }
     }

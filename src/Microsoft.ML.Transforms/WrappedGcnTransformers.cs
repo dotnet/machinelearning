@@ -62,7 +62,7 @@ namespace Microsoft.ML.Transforms
     }
 
     /// <include file='doc.xml' path='doc/members/member[@name="GcNormalize"]/*'/>
-    public sealed class GcNormalizer : TrivialWrapperEstimator
+    public sealed class GlobalContrastNormalizer : TrivialWrapperEstimator
     {
         /// <include file='doc.xml' path='doc/members/member[@name="GcNormalize"]/*'/>
         /// <param name="env">The environment.</param>
@@ -71,7 +71,7 @@ namespace Microsoft.ML.Transforms
         /// <param name="subMean">Subtract mean from each value before normalizing.</param>
         /// <param name="useStdDev">Normalize by standard deviation rather than L2 norm.</param>
         /// <param name="scale">Scale features by this value.</param>
-        public GcNormalizer(IHostEnvironment env, string inputColumn, string outputColumn = null, bool subMean = true, bool useStdDev = false, float scale = 1)
+        public GlobalContrastNormalizer(IHostEnvironment env, string inputColumn, string outputColumn = null, bool subMean = true, bool useStdDev = false, float scale = 1)
             : this(env, new[] { (inputColumn, outputColumn ?? inputColumn) }, subMean, useStdDev , scale)
         {
         }
@@ -82,8 +82,8 @@ namespace Microsoft.ML.Transforms
         /// <param name="subMean">Subtract mean from each value before normalizing.</param>
         /// <param name="useStdDev">Normalize by standard deviation rather than L2 norm.</param>
         /// <param name="scale">Scale features by this value.</param>
-        public GcNormalizer(IHostEnvironment env, (string input, string output)[] columns, bool subMean = true, bool useStdDev = false, float scale = 1)
-            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(GcNormalizer)), MakeTransformer(env, columns, subMean, useStdDev, scale))
+        public GlobalContrastNormalizer(IHostEnvironment env, (string input, string output)[] columns, bool subMean = true, bool useStdDev = false, float scale = 1)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(GlobalContrastNormalizer)), MakeTransformer(env, columns, subMean, useStdDev, scale))
         {
         }
 
@@ -204,16 +204,16 @@ namespace Microsoft.ML.Transforms
                 foreach (var outCol in toOutput)
                     pairs.Add((inputNames[((OutPipelineColumn)outCol).Input], outputNames[outCol]));
 
-                return new GcNormalizer(env, pairs.ToArray(), _subMean, _useStdDev, _scale);
+                return new GlobalContrastNormalizer(env, pairs.ToArray(), _subMean, _useStdDev, _scale);
             }
         }
 
-        /// <include file='doc.xml' path='doc/members/member[@name="LpNormalize"]/*'/>
+        /// <include file='doc.xml' path='doc/members/member[@name="GcNormalize"]/*'/>
         /// <param name="input">The column to apply to.</param>
         /// <param name="subMean">Subtract mean from each value before normalizing.</param>
         /// <param name="useStdDev">Normalize by standard deviation rather than L2 norm.</param>
         /// <param name="scale">Scale features by this value.</param>
-        public static Vector<float> GcNormalize(this Vector<float> input,
+        public static Vector<float> GlobalContrastNormalize(this Vector<float> input,
             bool subMean = true,
             bool useStdDev = false,
             float scale = 1) => new OutPipelineColumn(input, subMean, useStdDev, scale);
