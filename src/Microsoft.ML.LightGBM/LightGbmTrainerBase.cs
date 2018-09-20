@@ -2,12 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Training;
+using System;
+using System.Collections.Generic;
 
 namespace Microsoft.ML.Runtime.LightGBM
 {
@@ -65,6 +65,7 @@ namespace Microsoft.ML.Runtime.LightGBM
             //apply the advanced args, if the user supplied any
             advancedSettings?.Invoke(Args);
             Args.LabelColumn = label.Name;
+            Args.FeatureColumn = featureColumn;
 
             if (weightColumn != null)
                 Args.WeightColumn = weightColumn;

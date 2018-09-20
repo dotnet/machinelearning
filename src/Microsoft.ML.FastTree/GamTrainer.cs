@@ -2,11 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading;
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Command;
@@ -21,6 +16,11 @@ using Microsoft.ML.Runtime.Internal.Internallearn;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.Training;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Threading;
 using Timer = Microsoft.ML.Runtime.FastTree.Internal.Timer;
 
 [assembly: LoadableClass(typeof(GamPredictorBase.VisualizationCommand), typeof(GamPredictorBase.VisualizationCommand.Arguments), typeof(SignatureCommand),
@@ -30,8 +30,8 @@ using Timer = Microsoft.ML.Runtime.FastTree.Internal.Timer;
 
 namespace Microsoft.ML.Runtime.FastTree
 {
-    using SplitInfo = LeastSquaresRegressionTreeLearner.SplitInfo;
     using AutoResetEvent = System.Threading.AutoResetEvent;
+    using SplitInfo = LeastSquaresRegressionTreeLearner.SplitInfo;
 
     /// <summary>
     /// Generalized Additive Model Learner.

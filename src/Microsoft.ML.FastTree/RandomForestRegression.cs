@@ -58,8 +58,7 @@ namespace Microsoft.ML.Runtime.FastTree
 
         protected override uint VerCategoricalSplitSerialized => 0x00010006;
 
-        public FastForestRegressionPredictor(IHostEnvironment env, Ensemble trainedEnsemble, int featureCount,
-            string innerArgs, int samplesCount)
+        public FastForestRegressionPredictor(IHostEnvironment env, Ensemble trainedEnsemble, int featureCount, string innerArgs, int samplesCount)
             : base(env, RegistrationName, trainedEnsemble, featureCount, innerArgs)
         {
             _quantileSampleCount = samplesCount;
