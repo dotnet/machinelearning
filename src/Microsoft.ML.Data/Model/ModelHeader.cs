@@ -403,6 +403,10 @@ namespace Microsoft.ML.Runtime.Model
                     Contracts.CheckDecode(header.CbStringTable == 0);
                     Contracts.CheckDecode(header.FpStringChars == 0);
                     Contracts.CheckDecode(header.CbStringChars == 0);
+                    if (header.VerWritten < VerAssemblyNameSupported || header.FpAssemblyName == 0)
+                    {
+                        Contracts.CheckDecode(header.FpTail == header.FpModel + header.CbModel);
+                    }
                 }
                 else
                 {
@@ -414,27 +418,32 @@ namespace Microsoft.ML.Runtime.Model
                     Contracts.CheckDecode(header.FpStringChars == header.FpStringTable + header.CbStringTable);
                     Contracts.CheckDecode(header.CbStringChars % sizeof(char) == 0);
                     Contracts.CheckDecode(header.FpStringChars + header.CbStringChars >= header.FpStringChars);
-                    Contracts.CheckDecode(header.FpTail == header.FpStringChars + header.CbStringChars);
-                }
-
-                if (header.FpAssemblyName == 0)
-                {
-                    Contracts.CheckDecode(header.CbAssemblyName == 0);
-
-                    if (header.FpStringTable == 0)
-                    {
-                        Contracts.CheckDecode(header.FpTail == header.FpModel + header.CbModel);
-                    }
-                    else
+                    if (header.VerWritten < VerAssemblyNameSupported || header.FpAssemblyName == 0)
                     {
                         Contracts.CheckDecode(header.FpTail == header.FpStringChars + header.CbStringChars);
                     }
                 }
-                else
+
+                if (header.VerWritten >= VerAssemblyNameSupported)
                 {
-                    Contracts.CheckDecode(header.FpAssemblyName == header.FpStringChars + header.CbStringChars);
-                    Contracts.CheckDecode(header.CbAssemblyName % sizeof(char) == 0);
-                    Contracts.CheckDecode(header.FpTail == header.FpAssemblyName + header.CbAssemblyName);
+                    if (header.FpAssemblyName == 0)
+                    {
+                        Contracts.CheckDecode(header.CbAssemblyName == 0);
+                    }
+                    else
+                    {
+                        // the assembly name always immediately after the string table, if there is one
+                        if (header.FpStringTable == 0)
+                        {
+                            Contracts.CheckDecode(header.FpAssemblyName == header.FpModel + header.CbModel);
+                        }
+                        else
+                        {
+                            Contracts.CheckDecode(header.FpAssemblyName == header.FpStringChars + header.CbStringChars);
+                        }
+                        Contracts.CheckDecode(header.CbAssemblyName % sizeof(char) == 0);
+                        Contracts.CheckDecode(header.FpTail == header.FpAssemblyName + header.CbAssemblyName);
+                    }
                 }
 
                 Contracts.CheckDecode(header.FpLim == header.FpTail + sizeof(ulong));
@@ -507,10 +516,6 @@ namespace Microsoft.ML.Runtime.Model
                     }
                     Contracts.CheckDecode(offset == header.CbStringChars);
                     Contracts.CheckDecode(header.FpStringChars + header.CbStringChars == reader.FpCur() - fpMin);
-                    Contracts.CheckDecode(header.FpTail == reader.FpCur() - fpMin);
-
-                    ulong tail = reader.ReadUInt64();
-                    Contracts.CheckDecode(tail == TailSignatureValue, "Corrupt model file tail");
                 }
 
                 if (header.VerWritten >= VerAssemblyNameSupported && header.FpAssemblyName != 0)
@@ -529,6 +534,11 @@ namespace Microsoft.ML.Runtime.Model
                 {
                     loaderAssemblyName = null;
                 }
+
+                Contracts.CheckDecode(header.FpTail == reader.FpCur() - fpMin);
+
+                ulong tail = reader.ReadUInt64();
+                Contracts.CheckDecode(tail == TailSignatureValue, "Corrupt model file tail");
 
                 ex = null;
 
@@ -605,16 +615,16 @@ namespace Microsoft.ML.Runtime.Model
         public readonly uint VerWrittenCur;
         public readonly uint VerReadableCur;
         public readonly uint VerWeCanReadBack;
+        public readonly string LoaderAssemblyName;
         public readonly string LoaderSignature;
         public readonly string LoaderSignatureAlt;
-        public readonly string LoaderAssemblyName;
 
         /// <summary>
         /// Construct version info with a string value for modelSignature. The string must be 8 characters
         /// all less than 0x100. Spaces are mapped to zero. This assumes little-endian.
         /// </summary>
         public VersionInfo(string modelSignature, uint verWrittenCur, uint verReadableCur, uint verWeCanReadBack,
-            string loaderSignature = null, string loaderSignatureAlt = null, string loaderAssemblyName = null)
+            string loaderAssemblyName, string loaderSignature = null, string loaderSignatureAlt = null)
         {
             Contracts.Check(Utils.Size(modelSignature) == 8, "Model signature must be eight characters");
             ModelSignature = 0;
@@ -630,9 +640,9 @@ namespace Microsoft.ML.Runtime.Model
             VerWrittenCur = verWrittenCur;
             VerReadableCur = verReadableCur;
             VerWeCanReadBack = verWeCanReadBack;
+            LoaderAssemblyName = loaderAssemblyName;
             LoaderSignature = loaderSignature;
             LoaderSignatureAlt = loaderSignatureAlt;
-            LoaderAssemblyName = loaderAssemblyName;
         }
     }
 }

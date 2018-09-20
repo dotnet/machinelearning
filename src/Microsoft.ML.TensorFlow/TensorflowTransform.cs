@@ -76,7 +76,8 @@ namespace Microsoft.ML.Transforms
                 verWrittenCur: 0x00010002,  // Upgraded when change for multiple outputs was implemented.
                 verReadableCur: 0x00010002,
                 verWeCanReadBack: 0x00010001,
-                loaderSignature: LoaderSignature);
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(TensorFlowTransform).Assembly.FullName);
         }
 
         /// <summary>

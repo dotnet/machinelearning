@@ -93,7 +93,8 @@ namespace Microsoft.ML.Runtime.Data
                 verWrittenCur: 0x00010001, // Initial
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
-                loaderSignature: LoaderSignature);
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(CopyColumnsTransform).Assembly.FullName);
         }
 
         public CopyColumnsTransform(IHostEnvironment env, params (string source, string name)[] columns)
@@ -224,7 +225,8 @@ namespace Microsoft.ML.Runtime.Data
                 verWrittenCur: 0x00010001, // Initial
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
-                loaderSignature: LoaderSignature);
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(CopyColumnsRowMapper).Assembly.FullName);
         }
 
         // Factory method for SignatureLoadRowMapper.

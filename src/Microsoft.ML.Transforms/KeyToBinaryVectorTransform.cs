@@ -59,7 +59,8 @@ namespace Microsoft.ML.Runtime.Data
                 verWrittenCur: 0x00000001, // Initial
                 verReadableCur: 0x00000001,
                 verWeCanReadBack: 0x00000001,
-                loaderSignature: LoaderSignature);
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(KeyToBinaryVectorTransform).Assembly.FullName);
         }
 
         private const string RegistrationName = "KeyToBinary";

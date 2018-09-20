@@ -185,7 +185,8 @@ namespace Microsoft.ML.Runtime.Data
                 verWrittenCur: 0x00010002, // Invert hash key values, hash fix
                 verReadableCur: 0x00010002,
                 verWeCanReadBack: 0x00010002,
-                loaderSignature: LoaderSignature);
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(HashTransform).Assembly.FullName);
         }
 
         private readonly ColInfoEx[] _exes;

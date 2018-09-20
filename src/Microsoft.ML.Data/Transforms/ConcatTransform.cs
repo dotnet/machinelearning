@@ -243,7 +243,8 @@ namespace Microsoft.ML.Runtime.Data
                 verReadableCur: 0x00010002,
                 verWeCanReadBack: 0x00010001,
                 loaderSignature: LoaderSignature,
-                loaderSignatureAlt: LoaderSignatureOld);
+                loaderSignatureAlt: LoaderSignatureOld,
+                loaderAssemblyName: typeof(ConcatTransform).Assembly.FullName);
         }
 
         private const int VersionAddedAliases = 0x00010002;

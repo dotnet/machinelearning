@@ -377,7 +377,8 @@ namespace Microsoft.ML.Runtime.Ensemble
                 verWrittenCur: 0x00010002, // Save predictor models in a subdirectory
                 verReadableCur: 0x00010002,
                 verWeCanReadBack: 0x00010001,
-                loaderSignature: LoaderSignature);
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(SchemaBindablePipelineEnsembleBase).Assembly.FullName);
         }
         public const string UserName = "Pipeline Ensemble";
         public const string LoaderSignature = "PipelineEnsemble";

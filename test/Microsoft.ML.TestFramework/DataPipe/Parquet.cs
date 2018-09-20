@@ -9,6 +9,11 @@ namespace Microsoft.ML.Runtime.RunTests
 {
     public sealed partial class TestParquet : TestDataPipeBase
     {
+        protected override void InitializeCore()
+        {
+            base.InitializeCore();
+            Env.ComponentCatalog.RegisterAssembly(typeof(ParquetLoader).Assembly);
+        }
 
         [Fact]
         public void TestParquetPrimitiveDataTypes()

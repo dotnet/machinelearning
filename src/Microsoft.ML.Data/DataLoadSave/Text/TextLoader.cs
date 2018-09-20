@@ -960,7 +960,8 @@ namespace Microsoft.ML.Runtime.Data
                 verWrittenCur: 0x0001000B, // Header now retained if used and present
                 verReadableCur: 0x0001000A,
                 verWeCanReadBack: 0x00010009,
-                loaderSignature: LoaderSignature);
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(TextLoader).Assembly.FullName);
         }
 
         /// <summary>

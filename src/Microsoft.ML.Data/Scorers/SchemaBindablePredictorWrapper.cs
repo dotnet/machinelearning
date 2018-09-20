@@ -242,7 +242,8 @@ namespace Microsoft.ML.Runtime.Data
                 verWrittenCur: 0x00010002, // ISchemaBindableWrapper update
                 verReadableCur: 0x00010002,
                 verWeCanReadBack: 0x00010002,
-                loaderSignature: LoaderSignature);
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(SchemaBindablePredictorWrapper).Assembly.FullName);
         }
 
         private readonly string _scoreColumnKind;
@@ -353,7 +354,8 @@ namespace Microsoft.ML.Runtime.Data
                 verWrittenCur: 0x00010002, // ISchemaBindableWrapper update
                 verReadableCur: 0x00010002,
                 verWeCanReadBack: 0x00010002,
-                loaderSignature: LoaderSignature);
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(SchemaBindableBinaryPredictorWrapper).Assembly.FullName);
         }
 
         private readonly IValueMapperDist _distMapper;
@@ -581,7 +583,8 @@ namespace Microsoft.ML.Runtime.Data
                 verWrittenCur: 0x00010002, // ISchemaBindableWrapper update
                 verReadableCur: 0x00010002,
                 verWeCanReadBack: 0x00010002,
-                loaderSignature: LoaderSignature);
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(SchemaBindableQuantileRegressionPredictor).Assembly.FullName);
         }
 
         private readonly IQuantileValueMapper _qpred;
