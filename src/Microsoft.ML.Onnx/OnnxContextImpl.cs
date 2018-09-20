@@ -13,11 +13,12 @@ namespace Microsoft.ML.Runtime.Model.Onnx
     /// <summary>
     /// A context for defining a ONNX output.
     /// </summary>
-    internal sealed class OnnxContextImpl : OnnxContext
+    public sealed class OnnxContextImpl : OnnxContext
     {
         private readonly List<NodeProto> _nodes;
         private readonly List<OnnxUtils.ModelArgs> _inputs;
         // The map from IDataView column names to variable names.
+        private readonly List<TensorProto> _initializers;
         private readonly List<OnnxUtils.ModelArgs> _intermediateValues;
         private readonly List<OnnxUtils.ModelArgs> _outputs;
         private readonly Dictionary<string, string> _columnNameMap;
@@ -43,6 +44,7 @@ namespace Microsoft.ML.Runtime.Model.Onnx
             _nodes = new List<NodeProto>();
             _intermediateValues = new List<OnnxUtils.ModelArgs>();
             _inputs = new List<OnnxUtils.ModelArgs>();
+            _initializers = new List<TensorProto>();
             _outputs = new List<OnnxUtils.ModelArgs>();
             _columnNameMap = new Dictionary<string, string>();
             _variableNames = new HashSet<string>();
@@ -244,6 +246,87 @@ namespace Microsoft.ML.Runtime.Model.Onnx
 
             colName = AddVariable(colName);
             _inputs.Add(OnnxUtils.GetModelArgs(type, colName));
+        }
+
+        /// <summary>
+        /// Adds constant tensors into the graph.
+        /// </summary>
+        public override string AddInitializer(float value, string name = null)
+        {
+            if (name != null)
+                name = AddVariable(name);
+            else
+                name = AddVariable("initializer");
+
+            _initializers.Add(OnnxUtils.MakeFloat(name, value));
+            return name;
+        }
+
+        public override string AddInitializer(string value, string name = null)
+        {
+            if (name != null)
+                name = AddVariable(name);
+            else
+                name = AddVariable("initializer");
+
+            _initializers.Add(OnnxUtils.MakeString(name, value));
+            return name;
+        }
+
+        public override string AddInitializer(long value, string name = null)
+        {
+            if (name != null)
+                name = AddVariable(name);
+            else
+                name = AddVariable("initializer");
+
+            _initializers.Add(OnnxUtils.MakeInt64(name, value));
+            return name;
+        }
+
+        public override string AddInitializer(IEnumerable<float> values, List<long> dims, string name = null)
+        {
+            _host.CheckValue(values, nameof(values));
+            if (dims != null)
+                _host.Check(dims.Aggregate((x, y) => x * y) == values.Count(), "Number of elements doesn't match tensor size");
+
+            if (name != null)
+                name = AddVariable(name);
+            else
+                name = AddVariable("initializer");
+
+            _initializers.Add(OnnxUtils.MakeFloats(name, values, dims));
+            return name;
+        }
+
+        public override string AddInitializer(IEnumerable<long> values, List<long> dims, string name = null)
+        {
+            _host.CheckValue(values, nameof(values));
+            if (dims != null)
+                _host.Check(dims.Aggregate((x, y) => x * y) == values.Count(), "Number of elements doesn't match tensor size");
+
+            if (name != null)
+                name = AddVariable(name);
+            else
+                name = AddVariable("initializer");
+
+            _initializers.Add(OnnxUtils.MakeInt64s(name, values, dims));
+            return name;
+        }
+
+        public override string AddInitializer(IEnumerable<string> values, List<long> dims, string name = null)
+        {
+            _host.CheckValue(values, nameof(values));
+            if (dims != null)
+                _host.Check(dims.Aggregate((x, y) => x * y) == values.Count(), "Number of elements doesn't match tensor size");
+
+            if (name != null)
+                name = AddVariable(name);
+            else
+                name = AddVariable("initializer");
+
+            _initializers.Add(OnnxUtils.MakeStrings(name, values, dims));
+            return name;
         }
 
         /// <summary>

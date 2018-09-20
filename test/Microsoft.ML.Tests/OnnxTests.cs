@@ -8,7 +8,9 @@ using Microsoft.ML.Legacy.Trainers;
 using Microsoft.ML.Legacy.Transforms;
 using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
+using Microsoft.ML.Runtime.Model.Onnx;
 using Microsoft.ML.Runtime.RunTests;
+using System.Collections.Generic;
 using System.IO;
 using System.Text.RegularExpressions;
 using Xunit;
@@ -48,6 +50,21 @@ namespace Microsoft.ML.Tests
         {
             [ColumnName("Score")]
             public float[] Scores;
+        }
+
+        [Fact]
+        public void InitializerCreationTest()
+        {
+            using (var env = new ConsoleEnvironment())
+            {
+                var ctx = new OnnxContextImpl(env, "model", "ML.NET", "0", 0, "com.test");
+                ctx.AddInitializer(9.4f, "float");
+                ctx.AddInitializer(17L, "int64");
+                ctx.AddInitializer("36", "int64");
+                ctx.AddInitializer(new List<float> { 9.4f, 1.7f, 3.6f }, new List<long> { 3 }, "floats");
+                ctx.AddInitializer(new List<long> { 94L, 17L, 36L }, new List<long> { 3 }, "int64s");
+                ctx.AddInitializer(new List<string> { "94" , "17", "36" }, new List<long> { 3 }, "strings");
+            }
         }
 
         [Fact]
