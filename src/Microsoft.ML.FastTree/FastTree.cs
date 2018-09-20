@@ -993,7 +993,7 @@ namespace Microsoft.ML.Runtime.FastTree
             return conv;
         }
 
-        protected void GetFeatureNames(RoleMappedData data, ref VBuffer<DvText> names)
+        protected void GetFeatureNames(RoleMappedData data, ref VBuffer<ReadOnlyMemory<char>> names)
         {
             // The existing implementations will have verified this by the time this utility
             // function is called.
@@ -1006,11 +1006,11 @@ namespace Microsoft.ML.Runtime.FastTree
             if (sch.HasSlotNames(feat.Index, feat.Type.ValueCount))
                 sch.GetMetadata(MetadataUtils.Kinds.SlotNames, feat.Index, ref names);
             else
-                names = new VBuffer<DvText>(feat.Type.ValueCount, 0, names.Values, names.Indices);
+                names = new VBuffer<ReadOnlyMemory<char>>(feat.Type.ValueCount, 0, names.Values, names.Indices);
         }
 
 #if !CORECLR
-        protected void GetFeatureIniContent(RoleMappedData data, ref VBuffer<DvText> content)
+        protected void GetFeatureIniContent(RoleMappedData data, ref VBuffer<ReadOnlyMemory<char>> content)
         {
             // The existing implementations will have verified this by the time this utility
             // function is called.
@@ -1022,7 +1022,7 @@ namespace Microsoft.ML.Runtime.FastTree
             var sch = data.Schema.Schema;
             var type = sch.GetMetadataTypeOrNull(BingBinLoader.IniContentMetadataKind, feat.Index);
             if (type == null || type.VectorSize != feat.Type.ValueCount || !type.IsVector || !type.ItemType.IsText)
-                content = new VBuffer<DvText>(feat.Type.ValueCount, 0, content.Values, content.Indices);
+                content = new VBuffer<ReadOnlyMemory<char>>(feat.Type.ValueCount, 0, content.Values, content.Indices);
             else
                 sch.GetMetadata(BingBinLoader.IniContentMetadataKind, feat.Index, ref content);
         }
@@ -3192,7 +3192,7 @@ namespace Microsoft.ML.Runtime.FastTree
         {
             var gainMap = new FeatureToGainMap(TrainedEnsemble.Trees.ToList(), normalize: true);
 
-            var names = default(VBuffer<DvText>);
+            var names = default(VBuffer<ReadOnlyMemory<char>>);
             MetadataUtils.GetSlotNames(schema, RoleMappedSchema.ColumnRole.Feature, NumFeatures, ref names);
             var ordered = gainMap.OrderByDescending(pair => pair.Value);
             Double max = ordered.FirstOrDefault().Value;
@@ -3224,7 +3224,7 @@ namespace Microsoft.ML.Runtime.FastTree
         {
             Host.AssertValueOrNull(schema);
 
-            var names = default(VBuffer<DvText>);
+            var names = default(VBuffer<ReadOnlyMemory<char>>);
             MetadataUtils.GetSlotNames(schema, RoleMappedSchema.ColumnRole.Feature, NumFeatures, ref names);
 
             int i = 0;
@@ -3244,13 +3244,13 @@ namespace Microsoft.ML.Runtime.FastTree
         /// <summary>
         /// Convert a single tree to code, called recursively
         /// </summary>
-        private void SaveTreeAsCode(RegressionTree tree, TextWriter writer, ref VBuffer<DvText> names)
+        private void SaveTreeAsCode(RegressionTree tree, TextWriter writer, ref VBuffer<ReadOnlyMemory<char>> names)
         {
             ToCSharp(tree, writer, 0, ref names);
         }
 
         // converts a subtree into a C# expression
-        private void ToCSharp(RegressionTree tree, TextWriter writer, int node, ref VBuffer<DvText> names)
+        private void ToCSharp(RegressionTree tree, TextWriter writer, int node, ref VBuffer<ReadOnlyMemory<char>> names)
         {
             if (node < 0)
             {
@@ -3331,7 +3331,7 @@ namespace Microsoft.ML.Runtime.FastTree
 
         public IRow GetSummaryIRowOrNull(RoleMappedSchema schema)
         {
-            var names = default(VBuffer<DvText>);
+            var names = default(VBuffer<ReadOnlyMemory<char>>);
             MetadataUtils.GetSlotNames(schema, RoleMappedSchema.ColumnRole.Feature, NumFeatures, ref names);
             var slotNamesCol = RowColumnUtils.GetColumn(MetadataUtils.Kinds.SlotNames,
                 new VectorType(TextType.Instance, NumFeatures), ref names);
