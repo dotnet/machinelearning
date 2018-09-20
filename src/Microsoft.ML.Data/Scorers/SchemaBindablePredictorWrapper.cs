@@ -678,7 +678,7 @@ namespace Microsoft.ML.Runtime.Data
         private sealed class Schema : ScoreMapperSchemaBase
         {
             private readonly string[] _slotNames;
-            private readonly MetadataUtils.MetadataGetter<VBuffer<DvText>> _getSlotNames;
+            private readonly MetadataUtils.MetadataGetter<VBuffer<ReadOnlyMemory<char>>> _getSlotNames;
 
             public Schema(ColumnType scoreType, Double[] quantiles)
                 : base(scoreType, MetadataUtils.Const.ScoreColumnKind.QuantileRegression)
@@ -737,7 +737,7 @@ namespace Microsoft.ML.Runtime.Data
                 return new VectorType(NumberType.Float, _slotNames.Length);
             }
 
-            private void GetSlotNames(int iinfo, ref VBuffer<DvText> dst)
+            private void GetSlotNames(int iinfo, ref VBuffer<ReadOnlyMemory<char>> dst)
             {
                 Contracts.Assert(iinfo == 0);
                 Contracts.Assert(Utils.Size(_slotNames) > 0);
@@ -745,10 +745,10 @@ namespace Microsoft.ML.Runtime.Data
                 int size = Utils.Size(_slotNames);
                 var values = dst.Values;
                 if (Utils.Size(values) < size)
-                    values = new DvText[size];
+                    values = new ReadOnlyMemory<char>[size];
                 for (int i = 0; i < _slotNames.Length; i++)
-                    values[i] = new DvText(_slotNames[i]);
-                dst = new VBuffer<DvText>(size, values, dst.Indices);
+                    values[i] = _slotNames[i].AsMemory();
+                dst = new VBuffer<ReadOnlyMemory<char>>(size, values, dst.Indices);
             }
         }
     }

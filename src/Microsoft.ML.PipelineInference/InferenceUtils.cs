@@ -52,14 +52,21 @@ namespace Microsoft.ML.Runtime.PipelineInference
             data = data.Take(1000);
             using (var cursor = data.GetRowCursor(index => index == label.ColumnIndex))
             {
-                ValueGetter<DvText> getter = DataViewUtils.PopulateGetterArray(cursor, new List<int> { label.ColumnIndex })[0];
+                ValueGetter<ReadOnlyMemory<char>> getter = DataViewUtils.PopulateGetterArray(cursor, new List<int> { label.ColumnIndex })[0];
                 while (cursor.MoveNext())
                 {
-                    var currentLabel = new DvText();
+                    var currentLabel = default(ReadOnlyMemory<char>);
                     getter(ref currentLabel);
                     string currentLabelString = currentLabel.ToString();
                     if (!String.IsNullOrEmpty(currentLabelString) && !uniqueLabelValues.Contains(currentLabelString))
+                    {
+                        //Missing values in float and doubles are converted to "NaN" in text and they should not
+                        //be treated as label values.
+                        if ((label.ItemKind == DataKind.R4 || label.ItemKind == DataKind.R8) && currentLabelString == "?")
+                            continue;
+
                         uniqueLabelValues.Add(currentLabelString);
+                    }
                 }
             }
 

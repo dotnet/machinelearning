@@ -92,11 +92,11 @@ namespace Microsoft.ML.Legacy
                     var n = dataView.Schema.GetColumnType(colIndex).VectorSize;
                     if (dataView.Schema.HasSlotNames(colIndex, n))
                     {
-                        var slots = default(VBuffer<DvText>);
+                        var slots = default(VBuffer<ReadOnlyMemory<char>>);
                         dataView.Schema.GetMetadata(MetadataUtils.Kinds.SlotNames, colIndex, ref slots);
 
                         bool appendEllipse = false;
-                        IEnumerable<DvText> slotNames = slots.Items(true).Select(x => x.Value);
+                        IEnumerable<ReadOnlyMemory<char>> slotNames = slots.Items(true).Select(x => x.Value);
                         if (slots.Length > MaxSlotNamesToDisplay)
                         {
                             appendEllipse = true;
@@ -175,7 +175,7 @@ namespace Microsoft.ML.Legacy
 
                 var getters = DataViewUtils.PopulateGetterArray(cursor, colIndices);
 
-                var row = new DvText[colCount];
+                var row = new ReadOnlyMemory<char>[colCount];
                 while (cursor.MoveNext() && i < MaxDisplayRows)
                 {
                     for (int column = 0; column < colCount; column++)

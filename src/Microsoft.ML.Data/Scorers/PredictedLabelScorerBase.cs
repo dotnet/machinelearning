@@ -39,8 +39,8 @@ namespace Microsoft.ML.Runtime.Data
             // The ScoreColumnKind metadata value for all score columns.
             public readonly string ScoreColumnKind;
 
-            private readonly MetadataUtils.MetadataGetter<DvText> _getScoreColumnKind;
-            private readonly MetadataUtils.MetadataGetter<DvText> _getScoreValueKind;
+            private readonly MetadataUtils.MetadataGetter<ReadOnlyMemory<char>> _getScoreColumnKind;
+            private readonly MetadataUtils.MetadataGetter<ReadOnlyMemory<char>> _getScoreValueKind;
             private readonly IRow _predColMetadata;
 
             private BindingsImpl(ISchema input, ISchemaBoundRowMapper mapper, string suffix, string scoreColumnKind,
@@ -251,17 +251,17 @@ namespace Microsoft.ML.Runtime.Data
                 base.GetMetadataCore<TValue>(kind, iinfo, ref value);
             }
 
-            private void GetScoreColumnKind(int iinfo, ref DvText dst)
+            private void GetScoreColumnKind(int iinfo, ref ReadOnlyMemory<char> dst)
             {
                 Contracts.Assert(0 <= iinfo && iinfo < InfoCount);
-                dst = new DvText(ScoreColumnKind);
+                dst = ScoreColumnKind.AsMemory();
             }
 
-            private void GetScoreValueKind(int iinfo, ref DvText dst)
+            private void GetScoreValueKind(int iinfo, ref ReadOnlyMemory<char> dst)
             {
                 // This should only get called for the derived column.
                 Contracts.Assert(0 <= iinfo && iinfo < DerivedColumnCount);
-                dst = new DvText(MetadataUtils.Const.ScoreValueKind.PredictedLabel);
+                dst = MetadataUtils.Const.ScoreValueKind.PredictedLabel.AsMemory();
             }
 
             public override Func<int, bool> GetActiveMapperColumns(bool[] active)

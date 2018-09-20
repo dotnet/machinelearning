@@ -171,7 +171,7 @@ namespace Microsoft.ML.Runtime.TextAnalytics
                 // Slot names should propagate.
                 using (var bldr = md.BuildMetadata(iinfo, Source.Schema, info.Source, MetadataUtils.Kinds.SlotNames))
                 {
-                    bldr.AddGetter<VBuffer<DvText>>(MetadataUtils.Kinds.KeyValues,
+                    bldr.AddGetter<VBuffer<ReadOnlyMemory<char>>>(MetadataUtils.Kinds.KeyValues,
                         MetadataUtils.GetNamesType(_type.ItemType.KeyCount), GetKeyValues);
                 }
             }
@@ -181,7 +181,7 @@ namespace Microsoft.ML.Runtime.TextAnalytics
         /// <summary>
         /// Get the key values (chars) corresponding to keys in the output columns.
         /// </summary>
-        private void GetKeyValues(int iinfo, ref VBuffer<DvText> dst)
+        private void GetKeyValues(int iinfo, ref VBuffer<ReadOnlyMemory<char>> dst)
         {
             Host.Assert(0 <= iinfo && iinfo < Infos.Length);
 
@@ -211,10 +211,10 @@ namespace Microsoft.ML.Runtime.TextAnalytics
 
             var values = dst.Values;
             if (Utils.Size(values) < CharsCount)
-                values = new DvText[CharsCount];
+                values = new ReadOnlyMemory<char>[CharsCount];
             for (int i = 0; i < CharsCount; i++)
-                values[i] = new DvText(keyValuesStr, keyValuesBoundaries[i], keyValuesBoundaries[i + 1]);
-            dst = new VBuffer<DvText>(CharsCount, values, dst.Indices);
+                values[i] = keyValuesStr.AsMemory().Slice(keyValuesBoundaries[i], keyValuesBoundaries[i + 1] - keyValuesBoundaries[i]);
+            dst = new VBuffer<ReadOnlyMemory<char>>(CharsCount, values, dst.Indices);
         }
 
         private void AppendCharRepr(char c, StringBuilder bldr)
@@ -368,14 +368,14 @@ namespace Microsoft.ML.Runtime.TextAnalytics
             Host.AssertValue(input);
             Host.Assert(Infos[iinfo].TypeSrc.IsText);
 
-            var getSrc = GetSrcGetter<DvText>(input, iinfo);
-            var src = default(DvText);
+            var getSrc = GetSrcGetter<ReadOnlyMemory<char>>(input, iinfo);
+            var src = default(ReadOnlyMemory<char>);
             return
                 (ref VBuffer<ushort> dst) =>
                 {
                     getSrc(ref src);
 
-                    var len = src.HasChars ? (_useMarkerChars ? src.Length + TextMarkersCount : src.Length) : 0;
+                    var len = !src.IsEmpty ? (_useMarkerChars ? src.Length + TextMarkersCount : src.Length) : 0;
                     var values = dst.Values;
                     if (len > 0)
                     {
@@ -385,8 +385,9 @@ namespace Microsoft.ML.Runtime.TextAnalytics
                         int index = 0;
                         if (_useMarkerChars)
                             values[index++] = TextStartMarker;
+                        var span = src.Span;
                         for (int ich = 0; ich < src.Length; ich++)
-                            values[index++] = src[ich];
+                            values[index++] = span[ich];
                         if (_useMarkerChars)
                             values[index++] = TextEndMarker;
                         Contracts.Assert(index == len);
@@ -405,8 +406,8 @@ namespace Microsoft.ML.Runtime.TextAnalytics
             int cv = Infos[iinfo].TypeSrc.VectorSize;
             Contracts.Assert(cv >= 0);
 
-            var getSrc = GetSrcGetter<VBuffer<DvText>>(input, iinfo);
-            var src = default(VBuffer<DvText>);
+            var getSrc = GetSrcGetter<VBuffer<ReadOnlyMemory<char>>>(input, iinfo);
+            var src = default(VBuffer<ReadOnlyMemory<char>>);
 
             ValueGetter<VBuffer<ushort>> getterWithStartEndSep = (ref VBuffer<ushort> dst) =>
                 {
@@ -415,7 +416,7 @@ namespace Microsoft.ML.Runtime.TextAnalytics
                     int len = 0;
                     for (int i = 0; i < src.Count; i++)
                     {
-                        if (src.Values[i].HasChars)
+                        if (!src.Values[i].IsEmpty)
                         {
                             len += src.Values[i].Length;
                             if (_useMarkerChars)
@@ -432,12 +433,13 @@ namespace Microsoft.ML.Runtime.TextAnalytics
                         int index = 0;
                         for (int i = 0; i < src.Count; i++)
                         {
-                            if (!src.Values[i].HasChars)
+                            if (src.Values[i].IsEmpty)
                                 continue;
                             if (_useMarkerChars)
                                 values[index++] = TextStartMarker;
+                            var span = src.Values[i].Span;
                             for (int ich = 0; ich < src.Values[i].Length; ich++)
-                                values[index++] = src.Values[i][ich];
+                                values[index++] = span[ich];
                             if (_useMarkerChars)
                                 values[index++] = TextEndMarker;
                         }
@@ -455,7 +457,7 @@ namespace Microsoft.ML.Runtime.TextAnalytics
 
                     for (int i = 0; i < src.Count; i++)
                     {
-                        if (src.Values[i].HasChars)
+                        if (!src.Values[i].IsEmpty)
                         {
                             len += src.Values[i].Length;
 
@@ -475,10 +477,10 @@ namespace Microsoft.ML.Runtime.TextAnalytics
 
                         int index = 0;
 
-                        // VBuffer<DvText> can be a result of either concatenating text columns together
+                        // ReadOnlyMemory can be a result of either concatenating text columns together
                         // or application of word tokenizer before char tokenizer in TextTransform.
                         //
-                        // Considering VBuffer<DvText> as a single text stream.
+                        // Considering VBuffer<ReadOnlyMemory> as a single text stream.
                         // Therefore, prepend and append start and end markers only once i.e. at the start and at end of vector.
                         // Insert UnitSeparator after every piece of text in the vector.
                         if (_useMarkerChars)
@@ -486,16 +488,15 @@ namespace Microsoft.ML.Runtime.TextAnalytics
 
                         for (int i = 0; i < src.Count; i++)
                         {
-                            if (!src.Values[i].HasChars)
+                            if (src.Values[i].IsEmpty)
                                 continue;
 
                             if (i > 0)
                                 values[index++] = UnitSeparator;
 
+                            var span = src.Values[i].Span;
                             for (int ich = 0; ich < src.Values[i].Length; ich++)
-                            {
-                                values[index++] = src.Values[i][ich];
-                            }
+                                values[index++] = span[ich];
                         }
 
                         if (_useMarkerChars)

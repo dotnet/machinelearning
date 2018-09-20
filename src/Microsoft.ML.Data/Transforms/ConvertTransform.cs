@@ -247,7 +247,7 @@ namespace Microsoft.ML.Runtime.Data
                 using (var bldr = md.BuildMetadata(iinfo, Source.Schema, info.Source, PassThrough))
                 {
                     if (info.TypeSrc.IsBool && _exes[iinfo].TypeDst.ItemType.IsNumber)
-                        bldr.AddPrimitive(MetadataUtils.Kinds.IsNormalized, BoolType.Instance, DvBool.True);
+                        bldr.AddPrimitive(MetadataUtils.Kinds.IsNormalized, BoolType.Instance, true);
                 }
             }
             md.Seal();

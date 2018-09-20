@@ -557,7 +557,7 @@ namespace Microsoft.ML.Runtime.Data
                     Host.Check(typeSrc.RawType == typeof(TFloat));
                     bldr.AddPrimitive("CdfMean", typeSrc, Mean);
                     bldr.AddPrimitive("CdfStdDev", typeSrc, Stddev);
-                    bldr.AddPrimitive("CdfUseLog", BoolType.Instance, (DvBool)UseLog);
+                    bldr.AddPrimitive("CdfUseLog", BoolType.Instance, UseLog);
                 }
             }
 
@@ -590,7 +590,7 @@ namespace Microsoft.ML.Runtime.Data
                     Host.Check(typeSrc.ItemType.RawType == typeof(TFloat));
                     bldr.AddGetter<VBuffer<TFloat>>("CdfMean", typeSrc, MeanMetadataGetter);
                     bldr.AddGetter<VBuffer<TFloat>>("CdfStdDev", typeSrc, StddevMetadataGetter);
-                    bldr.AddPrimitive("CdfUseLog", BoolType.Instance, (DvBool)UseLog);
+                    bldr.AddPrimitive("CdfUseLog", BoolType.Instance, UseLog);
                 }
 
                 private void MeanMetadataGetter(int col, ref VBuffer<TFloat> dst)

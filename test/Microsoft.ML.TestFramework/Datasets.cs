@@ -162,6 +162,14 @@ namespace Microsoft.ML.Runtime.RunTests
             testFilename = "external/WikiDetoxAnnotated160kRows.tsv"
         };
 
+        public static TestDataset MSLRWeb = new TestDataset
+        {
+            name = "MSLRWeb",
+            trainFilename = "external/MSLRWeb10KTrain720kRows.tsv",
+            validFilename = "external/MSLRWeb10KValidate240kRows.tsv",
+            testFilename = "external/MSLRWeb10KTest240kRows.tsv"
+        };
+
         public static TestDataset Sentiment = new TestDataset
         {
             name = "sentiment",

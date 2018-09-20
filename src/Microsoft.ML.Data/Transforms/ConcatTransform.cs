@@ -126,7 +126,6 @@ namespace Microsoft.ML.Runtime.Data
         public sealed class ColumnInfo
         {
             public readonly string Output;
-
             private readonly (string name, string alias)[] _inputs;
             public IReadOnlyList<(string name, string alias)> Inputs => _inputs.AsReadOnly();
 
@@ -231,7 +230,6 @@ namespace Microsoft.ML.Runtime.Data
             Contracts.CheckValue(env, nameof(env));
             _host = env.Register(nameof(ConcatTransform));
             Contracts.CheckValue(columns, nameof(columns));
-
             _columns = columns.ToArray();
         }
 
@@ -568,20 +566,20 @@ namespace Microsoft.ML.Runtime.Data
 
                     var metadata = new ColumnMetadataInfo(_columnInfo.Output);
                     if (_isNormalized)
-                        metadata.Add(MetadataUtils.Kinds.IsNormalized, new MetadataInfo<DvBool>(BoolType.Instance, GetIsNormalized));
+                        metadata.Add(MetadataUtils.Kinds.IsNormalized, new MetadataInfo<bool>(BoolType.Instance, GetIsNormalized));
                     if (_hasSlotNames)
-                        metadata.Add(MetadataUtils.Kinds.SlotNames, new MetadataInfo<VBuffer<DvText>>(_slotNamesType, GetSlotNames));
+                        metadata.Add(MetadataUtils.Kinds.SlotNames, new MetadataInfo<VBuffer<ReadOnlyMemory<char>>>(_slotNamesType, GetSlotNames));
                     if (_hasCategoricals)
-                        metadata.Add(MetadataUtils.Kinds.CategoricalSlotRanges, new MetadataInfo<VBuffer<DvInt4>>(_categoricalRangeType, GetCategoricalSlotRanges));
+                        metadata.Add(MetadataUtils.Kinds.CategoricalSlotRanges, new MetadataInfo<VBuffer<int>>(_categoricalRangeType, GetCategoricalSlotRanges));
 
                     return new RowMapperColumnInfo(_columnInfo.Output, OutputType, metadata);
                 }
 
-                private void GetIsNormalized(int col, ref DvBool value) => value = _isNormalized;
+                private void GetIsNormalized(int col, ref bool value) => value = _isNormalized;
 
-                private void GetCategoricalSlotRanges(int iiinfo, ref VBuffer<DvInt4> dst)
+                private void GetCategoricalSlotRanges(int iiinfo, ref VBuffer<int> dst)
                 {
-                    List<DvInt4> allValues = new List<DvInt4>();
+                    List<int> allValues = new List<int>();
                     int slotCount = 0;
                     for (int i = 0; i < SrcIndices.Length; i++)
                     {
@@ -602,10 +600,10 @@ namespace Microsoft.ML.Runtime.Data
 
                     Contracts.Assert(allValues.Count > 0);
 
-                    dst = new VBuffer<DvInt4>(allValues.Count, allValues.ToArray());
+                    dst = new VBuffer<int>(allValues.Count, allValues.ToArray());
                 }
 
-                private void GetSlotNames(int iinfo, ref VBuffer<DvText> dst)
+                private void GetSlotNames(int iinfo, ref VBuffer<ReadOnlyMemory<char>> dst)
                 {
                     Contracts.Assert(!_isIdentity);
                     Contracts.Assert(OutputType.VectorSize > 0);
@@ -613,11 +611,11 @@ namespace Microsoft.ML.Runtime.Data
                     Contracts.AssertValue(_slotNamesType);
                     Contracts.Assert(_slotNamesType.VectorSize == OutputType.VectorSize);
 
-                    var bldr = BufferBuilder<DvText>.CreateDefault();
+                    var bldr = BufferBuilder<ReadOnlyMemory<char>>.CreateDefault();
                     bldr.Reset(_slotNamesType.VectorSize, dense: false);
 
                     var sb = new StringBuilder();
-                    var names = default(VBuffer<DvText>);
+                    var names = default(VBuffer<ReadOnlyMemory<char>>);
                     int slot = 0;
                     for (int i = 0; i < _srcTypes.Length; i++)
                     {
@@ -628,7 +626,7 @@ namespace Microsoft.ML.Runtime.Data
                         var nameSrc = _columnInfo.Inputs[i].alias ?? colName;
                         if (!typeSrc.IsVector)
                         {
-                            bldr.AddFeature(slot++, new DvText(nameSrc));
+                            bldr.AddFeature(slot++, nameSrc.AsMemory());
                             continue;
                         }
 
@@ -643,11 +641,11 @@ namespace Microsoft.ML.Runtime.Data
                             int len = sb.Length;
                             foreach (var kvp in names.Items())
                             {
-                                if (!kvp.Value.HasChars)
+                                if (kvp.Value.IsEmpty)
                                     continue;
                                 sb.Length = len;
-                                kvp.Value.AddToStringBuilder(sb);
-                                bldr.AddFeature(slot + kvp.Key, new DvText(sb.ToString()));
+                                sb.AppendMemory(kvp.Value);
+                                bldr.AddFeature(slot + kvp.Key, sb.ToString().AsMemory());
                             }
                         }
                         slot += _srcTypes[i].VectorSize;
