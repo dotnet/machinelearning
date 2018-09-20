@@ -75,8 +75,8 @@ namespace Microsoft.ML.Scenarios
                 var sentiments = GetTestData();
                 var predictions = model.Predict(sentiments, false);
                 Assert.Equal(2, predictions.Count());
-                Assert.True(predictions.ElementAt(0).Sentiment.IsTrue);
-                Assert.True(predictions.ElementAt(1).Sentiment.IsTrue);
+                Assert.True(predictions.ElementAt(0).Sentiment);
+                Assert.True(predictions.ElementAt(1).Sentiment);
 
                 // Get feature importance based on feature gain during training
                 var summary = ((FeatureWeightsCalibratedPredictor)pred).GetSummaryInKeyValuePairs(trainRoles.Schema);
@@ -158,8 +158,8 @@ namespace Microsoft.ML.Scenarios
                 var sentiments = GetTestData();
                 var predictions = model.Predict(sentiments, false);
                 Assert.Equal(2, predictions.Count());
-                Assert.True(predictions.ElementAt(0).Sentiment.IsTrue);
-                Assert.True(predictions.ElementAt(1).Sentiment.IsTrue);
+                Assert.True(predictions.ElementAt(0).Sentiment);
+                Assert.True(predictions.ElementAt(1).Sentiment);
 
                 // Get feature importance based on feature gain during training
                 var summary = ((FeatureWeightsCalibratedPredictor)pred).GetSummaryInKeyValuePairs(trainRoles.Schema);

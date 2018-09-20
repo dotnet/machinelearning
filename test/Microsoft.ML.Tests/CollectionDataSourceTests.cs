@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -94,7 +94,7 @@ namespace Microsoft.ML.EntryPoints.Tests
                 using (var cursor = data.GetRowCursor((a => true)))
                 {
                     var IDGetter = cursor.GetGetter<float>(0);
-                    var TextGetter = cursor.GetGetter<DvText>(1);
+                    var TextGetter = cursor.GetGetter<ReadOnlyMemory<char>>(1);
 
                     Assert.True(cursor.MoveNext());
 
@@ -102,7 +102,7 @@ namespace Microsoft.ML.EntryPoints.Tests
                     IDGetter(ref ID);
                     Assert.Equal(1, ID);
 
-                    DvText Text = new DvText();
+                    ReadOnlyMemory<char> Text = new ReadOnlyMemory<char>();
                     TextGetter(ref Text);
                     Assert.Equal("1", Text.ToString());
 
@@ -112,7 +112,7 @@ namespace Microsoft.ML.EntryPoints.Tests
                     IDGetter(ref ID);
                     Assert.Equal(2, ID);
 
-                    Text = new DvText();
+                    Text = new ReadOnlyMemory<char>();
                     TextGetter(ref Text);
                     Assert.Equal("2", Text.ToString());
 
@@ -122,7 +122,7 @@ namespace Microsoft.ML.EntryPoints.Tests
                     IDGetter(ref ID);
                     Assert.Equal(3, ID);
 
-                    Text = new DvText();
+                    Text = new ReadOnlyMemory<char>();
                     TextGetter(ref Text);
                     Assert.Equal("3", Text.ToString());
 
@@ -294,29 +294,13 @@ namespace Microsoft.ML.EntryPoints.Tests
             public float fFloat;
             public double fDouble;
             public bool fBool;
-            public string fString;
-        }
-
-        public class ConversionNullalbeClass
-        {
-            public int? fInt;
-            public uint? fuInt;
-            public short? fShort;
-            public ushort? fuShort;
-            public sbyte? fsByte;
-            public byte? fByte;
-            public long? fLong;
-            public ulong? fuLong;
-            public float? fFloat;
-            public double? fDouble;
-            public bool? fBool;
-            public string fString;
+            public string fString="";
         }
 
         public bool CompareObjectValues(object x, object y, Type type)
         {
-            // By default behaviour for DvText is to be empty string, while for string is null.
-            // So if we do roundtrip string-> DvText -> string all null string become empty strings.
+            // By default behaviour for ReadOnlyMemory is to be empty string, while for string is null.
+            // So if we do roundtrip string-> ReadOnlyMemory -> string all null string become empty strings.
             // Therefore replace all null values to empty string if field is string.
             if (type == typeof(string) && x == null)
                 x = "";
@@ -434,56 +418,6 @@ namespace Microsoft.ML.EntryPoints.Tests
                 new ConversionSimpleClass()
             };
 
-            var dataNullable = new List<ConversionNullalbeClass>
-            {
-                new ConversionNullalbeClass()
-                {
-                    fInt = int.MaxValue - 1,
-                    fuInt = uint.MaxValue - 1,
-                    fBool = true,
-                    fsByte = sbyte.MaxValue - 1,
-                    fByte = byte.MaxValue - 1,
-                    fDouble = double.MaxValue - 1,
-                    fFloat = float.MaxValue - 1,
-                    fLong = long.MaxValue - 1,
-                    fuLong = ulong.MaxValue - 1,
-                    fShort = short.MaxValue - 1,
-                    fuShort = ushort.MaxValue - 1,
-                    fString = "ha"
-                },
-                new ConversionNullalbeClass()
-                {
-                    fInt = int.MaxValue,
-                    fuInt = uint.MaxValue,
-                    fBool = true,
-                    fsByte = sbyte.MaxValue,
-                    fByte = byte.MaxValue,
-                    fDouble = double.MaxValue,
-                    fFloat = float.MaxValue,
-                    fLong = long.MaxValue,
-                    fuLong = ulong.MaxValue,
-                    fShort = short.MaxValue,
-                    fuShort = ushort.MaxValue,
-                    fString = "ooh"
-                },
-                new ConversionNullalbeClass()
-                {
-                    fInt = int.MinValue + 1,
-                    fuInt = uint.MinValue,
-                    fBool = false,
-                    fsByte = sbyte.MinValue + 1,
-                    fByte = byte.MinValue,
-                    fDouble = double.MinValue + 1,
-                    fFloat = float.MinValue + 1,
-                    fLong = long.MinValue + 1,
-                    fuLong = ulong.MinValue,
-                    fShort = short.MinValue + 1,
-                    fuShort = ushort.MinValue,
-                    fString = ""
-                },
-                new ConversionNullalbeClass()
-            };
-
             using (var env = new ConsoleEnvironment())
             {
                 var dataView = ComponentCreation.CreateDataView(env, data);
@@ -494,15 +428,6 @@ namespace Microsoft.ML.EntryPoints.Tests
                     Assert.True(CompareThroughReflection(enumeratorSimple.Current, originalEnumerator.Current));
                 }
                 Assert.True(!enumeratorSimple.MoveNext() && !originalEnumerator.MoveNext());
-
-                dataView = ComponentCreation.CreateDataView(env, dataNullable);
-                var enumeratorNullable = dataView.AsEnumerable<ConversionNullalbeClass>(env, false).GetEnumerator();
-                var originalNullableEnumerator = dataNullable.GetEnumerator();
-                while (enumeratorNullable.MoveNext() && originalNullableEnumerator.MoveNext())
-                {
-                    Assert.True(CompareThroughReflection(enumeratorNullable.Current, originalNullableEnumerator.Current));
-                }
-                Assert.True(!enumeratorNullable.MoveNext() && !originalNullableEnumerator.MoveNext());
             }
         }
 
@@ -542,38 +467,6 @@ namespace Microsoft.ML.EntryPoints.Tests
             }
         }
 
-        public class ConversionLossMinValueClass
-        {
-            public int? fInt;
-            public long? fLong;
-            public short? fShort;
-            public sbyte? fSByte;
-        }
-
-        [Fact]
-        public void ConversionMinValueToNullBehavior()
-        {
-            using (var env = new ConsoleEnvironment())
-            {
-
-                var data = new List<ConversionLossMinValueClass>
-                {
-                    new ConversionLossMinValueClass() { fSByte = null, fInt = null, fLong = null, fShort = null },
-                    new ConversionLossMinValueClass() { fSByte = sbyte.MinValue, fInt = int.MinValue, fLong = long.MinValue, fShort = short.MinValue }
-                };
-                foreach (var field in typeof(ConversionLossMinValueClass).GetFields())
-                {
-                    var dataView = ComponentCreation.CreateDataView(env, data);
-                    var enumerator = dataView.AsEnumerable<ConversionLossMinValueClass>(env, false).GetEnumerator();
-                    while (enumerator.MoveNext())
-                    {
-                        Assert.True(enumerator.Current.fInt == null && enumerator.Current.fLong == null &&
-                            enumerator.Current.fSByte == null && enumerator.Current.fShort == null);
-                    }
-                }
-            }
-        }
-
         public class ConversionLossMinValueClassProperties
         {
             private int? _fInt;
@@ -584,30 +477,6 @@ namespace Microsoft.ML.EntryPoints.Tests
             public short? ShortProp { get { return _fShort; } set { _fShort = value; } }
             public sbyte? SByteProp { get { return _fsByte; } set { _fsByte = value; } }
             public long? LongProp { get { return _fLong; } set { _fLong = value; } }
-        }
-
-        [Fact]
-        public void ConversionMinValueToNullBehaviorProperties()
-        {
-            using (var env = new ConsoleEnvironment())
-            {
-
-                var data = new List<ConversionLossMinValueClassProperties>
-                {
-                    new ConversionLossMinValueClassProperties() { SByteProp = null, IntProp = null, LongProp = null, ShortProp = null },
-                    new ConversionLossMinValueClassProperties() { SByteProp = sbyte.MinValue, IntProp = int.MinValue, LongProp = long.MinValue, ShortProp = short.MinValue }
-                };
-                foreach (var field in typeof(ConversionLossMinValueClassProperties).GetFields())
-                {
-                    var dataView = ComponentCreation.CreateDataView(env, data);
-                    var enumerator = dataView.AsEnumerable<ConversionLossMinValueClassProperties>(env, false).GetEnumerator();
-                    while (enumerator.MoveNext())
-                    {
-                        Assert.True(enumerator.Current.IntProp == null && enumerator.Current.LongProp == null &&
-                            enumerator.Current.SByteProp == null && enumerator.Current.ShortProp == null);
-                    }
-                }
-            }
         }
 
         public class ClassWithConstField
@@ -625,7 +494,6 @@ namespace Microsoft.ML.EntryPoints.Tests
             {
                 new ClassWithConstField(){ fInt=1, fString ="lala" },
                 new ClassWithConstField(){ fInt=-1, fString ="" },
-                new ClassWithConstField(){ fInt=0, fString =null }
             };
 
             using (var env = new ConsoleEnvironment())
@@ -654,7 +522,6 @@ namespace Microsoft.ML.EntryPoints.Tests
             {
                 new ClassWithMixOfFieldsAndProperties(){ IntProp=1, fString ="lala" },
                 new ClassWithMixOfFieldsAndProperties(){ IntProp=-1, fString ="" },
-                new ClassWithMixOfFieldsAndProperties(){ IntProp=0, fString =null }
             };
 
             using (var env = new ConsoleEnvironment())
@@ -744,7 +611,6 @@ namespace Microsoft.ML.EntryPoints.Tests
             {
                 new ClassWithInheritedProperties(){ IntProp=1, StringProp ="lala", LongProp=17, ByteProp=3 },
                 new ClassWithInheritedProperties(){ IntProp=-1, StringProp ="", LongProp=2, ByteProp=4 },
-                new ClassWithInheritedProperties(){ IntProp=0, StringProp =null, LongProp=18, ByteProp=5 }
             };
 
             using (var env = new ConsoleEnvironment())
@@ -774,22 +640,6 @@ namespace Microsoft.ML.EntryPoints.Tests
             public bool[] fBool;
         }
 
-        public class ClassWithNullableArrays
-        {
-            public string[] fString;
-            public int?[] fInt;
-            public uint?[] fuInt;
-            public short?[] fShort;
-            public ushort?[] fuShort;
-            public sbyte?[] fsByte;
-            public byte?[] fByte;
-            public long?[] fLong;
-            public ulong?[] fuLong;
-            public float?[] fFloat;
-            public double?[] fDouble;
-            public bool?[] fBool;
-        }
-
         [Fact]
         public void RoundTripConversionWithArrays()
         {
@@ -801,7 +651,7 @@ namespace Microsoft.ML.EntryPoints.Tests
                     fInt = new int[3] { 0, 1, 2 },
                     fFloat = new float[3] { -0.99f, 0f, 0.99f },
                     fString = new string[2] { "hola", "lola" },
-                    fBool = new bool[2] { true, false },
+
                     fByte = new byte[3] { 0, 124, 255 },
                     fDouble = new double[3] { -1, 0, 1 },
                     fLong = new long[] { 0, 1, 2 },
@@ -815,26 +665,6 @@ namespace Microsoft.ML.EntryPoints.Tests
                 new ClassWithArrays()
             };
 
-            var nullableData = new List<ClassWithNullableArrays>
-            {
-                new ClassWithNullableArrays()
-                {
-                    fInt = new int?[3] { null, -1, 1 },
-                    fFloat = new float?[3] { -0.99f, null, 0.99f },
-                    fString = new string[2] { null, "" },
-                    fBool = new bool?[3] { true, null, false },
-                    fByte = new byte?[4] { 0, 125, null, 255 },
-                    fDouble = new double?[3] { -1, null, 1 },
-                    fLong = new long?[] { null, -1, 1 },
-                    fsByte = new sbyte?[3] { -127, 127, null },
-                    fShort = new short?[3] { 0, null, 32767 },
-                    fuInt = new uint?[4] { null, 42, 0, uint.MaxValue },
-                    fuLong = new ulong?[3] { ulong.MaxValue, null, 0 },
-                    fuShort = new ushort?[3] { 0, null, ushort.MaxValue }
-                },
-                new ClassWithNullableArrays() { fInt = new int?[3] { -2, 1, 0 }, fFloat = new float?[3] { 0.99f, 0f, -0.99f }, fString = new string[2] { "lola", "hola" } },
-                new ClassWithNullableArrays()
-            };
 
             using (var env = new ConsoleEnvironment())
             {
@@ -846,15 +676,6 @@ namespace Microsoft.ML.EntryPoints.Tests
                     Assert.True(CompareThroughReflection(enumeratorSimple.Current, originalEnumerator.Current));
                 }
                 Assert.True(!enumeratorSimple.MoveNext() && !originalEnumerator.MoveNext());
-
-                var nullableDataView = ComponentCreation.CreateDataView(env, nullableData);
-                var enumeratorNullable = nullableDataView.AsEnumerable<ClassWithNullableArrays>(env, false).GetEnumerator();
-                var originalNullalbleEnumerator = nullableData.GetEnumerator();
-                while (enumeratorNullable.MoveNext() && originalNullalbleEnumerator.MoveNext())
-                {
-                    Assert.True(CompareThroughReflection(enumeratorNullable.Current, originalNullalbleEnumerator.Current));
-                }
-                Assert.True(!enumeratorNullable.MoveNext() && !originalNullalbleEnumerator.MoveNext());
             }
         }
         public class ClassWithArrayProperties
@@ -885,35 +706,6 @@ namespace Microsoft.ML.EntryPoints.Tests
             public bool[] BoolProp { get { return _fBool; } set { _fBool = value; } }
         }
 
-        public class ClassWithNullableArrayProperties
-        {
-            private string[] _fString;
-            private int?[] _fInt;
-            private uint?[] _fuInt;
-            private short?[] _fShort;
-            private ushort?[] _fuShort;
-            private sbyte?[] _fsByte;
-            private byte?[] _fByte;
-            private long?[] _fLong;
-            private ulong?[] _fuLong;
-            private float?[] _fFloat;
-            private double?[] _fDouble;
-            private bool?[] _fBool;
-
-            public string[] StringProp { get { return _fString; } set { _fString = value; } }
-            public int?[] IntProp { get { return _fInt; } set { _fInt = value; } }
-            public uint?[] UIntProp { get { return _fuInt; } set { _fuInt = value; } }
-            public short?[] ShortProp { get { return _fShort; } set { _fShort = value; } }
-            public ushort?[] UShortProp { get { return _fuShort; } set { _fuShort = value; } }
-            public sbyte?[] SByteProp { get { return _fsByte; } set { _fsByte = value; } }
-            public byte?[] ByteProp { get { return _fByte; } set { _fByte = value; } }
-            public long?[] LongProp { get { return _fLong; } set { _fLong = value; } }
-            public ulong?[] ULongProp { get { return _fuLong; } set { _fuLong = value; } }
-            public float?[] SingleProp { get { return _fFloat; } set { _fFloat = value; } }
-            public double?[] DoubleProp { get { return _fDouble; } set { _fDouble = value; } }
-            public bool?[] BoolProp { get { return _fBool; } set { _fBool = value; } }
-        }
-
         [Fact]
         public void RoundTripConversionWithArrayPropertiess()
         {
@@ -939,27 +731,6 @@ namespace Microsoft.ML.EntryPoints.Tests
                 new ClassWithArrayProperties()
             };
 
-            var nullableData = new List<ClassWithNullableArrayProperties>
-            {
-                new ClassWithNullableArrayProperties()
-                {
-                    IntProp = new int?[3] { null, -1, 1 },
-                    SingleProp = new float?[3] { -0.99f, null, 0.99f },
-                    StringProp = new string[2] { null, "" },
-                    BoolProp = new bool?[3] { true, null, false },
-                    ByteProp = new byte?[4] { 0, 125, null, 255 },
-                    DoubleProp = new double?[3] { -1, null, 1 },
-                    LongProp = new long?[] { null, -1, 1 },
-                    SByteProp = new sbyte?[3] { -127, 127, null },
-                    ShortProp = new short?[3] { 0, null, 32767 },
-                    UIntProp = new uint?[4] { null, 42, 0, uint.MaxValue },
-                    ULongProp = new ulong?[3] { ulong.MaxValue, null, 0 },
-                    UShortProp = new ushort?[3] { 0, null, ushort.MaxValue }
-                },
-                new ClassWithNullableArrayProperties() { IntProp = new int?[3] { -2, 1, 0 }, SingleProp = new float?[3] { 0.99f, 0f, -0.99f }, StringProp = new string[2] { "lola", "hola" } },
-                new ClassWithNullableArrayProperties()
-            };
-
             using (var env = new ConsoleEnvironment())
             {
                 var dataView = ComponentCreation.CreateDataView(env, data);
@@ -970,15 +741,6 @@ namespace Microsoft.ML.EntryPoints.Tests
                     Assert.True(CompareThroughReflection(enumeratorSimple.Current, originalEnumerator.Current));
                 }
                 Assert.True(!enumeratorSimple.MoveNext() && !originalEnumerator.MoveNext());
-
-                var nullableDataView = ComponentCreation.CreateDataView(env, nullableData);
-                var enumeratorNullable = nullableDataView.AsEnumerable<ClassWithNullableArrayProperties>(env, false).GetEnumerator();
-                var originalNullalbleEnumerator = nullableData.GetEnumerator();
-                while (enumeratorNullable.MoveNext() && originalNullalbleEnumerator.MoveNext())
-                {
-                    Assert.True(CompareThroughReflection(enumeratorNullable.Current, originalNullalbleEnumerator.Current));
-                }
-                Assert.True(!enumeratorNullable.MoveNext() && !originalNullalbleEnumerator.MoveNext());
             }
         }
 

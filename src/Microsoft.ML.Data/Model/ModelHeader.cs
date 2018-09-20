@@ -150,7 +150,7 @@ namespace Microsoft.ML.Runtime.Model
                 Contracts.Assert(header.FpStringChars == header.FpStringTable + header.CbStringTable);
                 foreach (var ns in pool)
                 {
-                    foreach (var ch in ns.Value)
+                    foreach (var ch in ns.Value.Span)
                         writer.Write((short)ch);
                 }
                 header.CbStringChars = writer.FpCur() - header.FpStringChars - fpMin;

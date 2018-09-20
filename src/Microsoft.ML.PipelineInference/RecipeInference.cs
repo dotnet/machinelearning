@@ -202,7 +202,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
                 TransformInference.SuggestedTransform[] transforms)
             {
                 yield return
-                    new SuggestedRecipe(ToString(), transforms, new SuggestedRecipe.SuggestedLearner[0], Int32.MinValue + 1);
+                    new SuggestedRecipe(ToString(), transforms, new SuggestedRecipe.SuggestedLearner[0], int.MinValue + 1);
             }
 
             public override string ToString() => "Default transforms";
@@ -251,7 +251,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
                 }
 
                 yield return
-                    new SuggestedRecipe(ToString(), transforms, new[] { learner }, Int32.MaxValue);
+                    new SuggestedRecipe(ToString(), transforms, new[] { learner }, int.MaxValue);
             }
 
             public override string ToString() => "Text classification optimized for speed and accuracy";
