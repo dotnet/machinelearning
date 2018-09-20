@@ -47,7 +47,7 @@ namespace Microsoft.ML.Runtime.Learners
 
         public override PredictionKind PredictionKind => PredictionKind.MultiClassClassification;
 
-        internal SdcaMultiClassTrainer(IHostEnvironment env, Arguments args,
+        public SdcaMultiClassTrainer(IHostEnvironment env, Arguments args,
             string featureColumn, string labelColumn, string weightColumn = null)
             : base(Contracts.CheckRef(env, nameof(env)).Register(LoadNameValue), args, MakeFeatureColumn(featureColumn), MakeLabelColumn(labelColumn), MakeWeightColumn(weightColumn))
         {
@@ -70,7 +70,7 @@ namespace Microsoft.ML.Runtime.Learners
             };
         }
 
-        public SdcaMultiClassTrainer(IHostEnvironment env, Arguments args)
+        internal SdcaMultiClassTrainer(IHostEnvironment env, Arguments args)
             : this(env, args, args.FeatureColumn, args.LabelColumn)
         {
         }
