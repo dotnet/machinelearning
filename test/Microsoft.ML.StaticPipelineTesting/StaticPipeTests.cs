@@ -7,6 +7,7 @@ using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Data.IO;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.TestFramework;
+using Microsoft.ML.Transforms;
 using Microsoft.ML.Transforms.Text;
 using System;
 using System.Collections.Generic;
@@ -516,6 +517,35 @@ namespace Microsoft.ML.StaticPipelineTesting
 
             Assert.True(schema.TryGetColumnIndex("ngramshash", out int ngramshashCol));
             type = schema.GetColumnType(ngramshashCol);
+            Assert.True(type.IsVector && type.IsKnownSizeVector && type.ItemType.IsNumber);
+        }
+
+        [Fact]
+        public void FeatureSelection()
+        {
+            var env = new ConsoleEnvironment(seed: 0);
+            var dataPath = GetDataPath("wikipedia-detox-250-line-data.tsv");
+            var reader = TextLoader.CreateReader(env, ctx => (
+                    label: ctx.LoadBool(0),
+                    text: ctx.LoadText(1)), hasHeader: true);
+            var dataSource = new MultiFileSource(dataPath);
+            var data = reader.Read(dataSource);
+
+            var est = data.MakeNewEstimator()
+                .Append(r => (
+                    r.label,
+                    countfeatures: r.text.ToBagofWords().SelectFeaturesBasedOnCount(count: 10),
+                    mifeatures: r.text.ToBagofWords().SelectFeaturesBasedOnMutualInformation(labelColumn: "label")));
+
+            var tdata = est.Fit(data).Transform(data);
+            var schema = tdata.AsDynamic.Schema;
+
+            Assert.True(schema.TryGetColumnIndex("countfeatures", out int countfeaturesCol));
+            var type = schema.GetColumnType(countfeaturesCol);
+            Assert.True(type.IsVector && type.IsKnownSizeVector && type.ItemType.IsNumber);
+
+            Assert.True(schema.TryGetColumnIndex("mifeatures", out int mifeaturesCol));
+            type = schema.GetColumnType(mifeaturesCol);
             Assert.True(type.IsVector && type.IsKnownSizeVector && type.ItemType.IsNumber);
         }
     }
