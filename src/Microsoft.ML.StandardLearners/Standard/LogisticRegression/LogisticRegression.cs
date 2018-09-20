@@ -54,12 +54,14 @@ namespace Microsoft.ML.Runtime.Learners
             : base(env, featureColumn, labelColumn, weightColumn, groupIdColumn, advancedSettings)
         {
             _posWeight = 0;
+            ShowTrainingStats = Args.ShowTrainingStats;
         }
 
         public LogisticRegression(IHostEnvironment env, Arguments args)
             : base(env, args)
         {
             _posWeight = 0;
+            ShowTrainingStats = Args.ShowTrainingStats;
         }
 
         public override PredictionKind PredictionKind => PredictionKind.BinaryClassification;

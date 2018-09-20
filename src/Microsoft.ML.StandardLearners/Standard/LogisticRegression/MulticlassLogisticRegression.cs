@@ -74,11 +74,13 @@ namespace Microsoft.ML.Runtime.Learners
             string groupIdColumn = null, string weightColumn = null, Action<Arguments> advancedSettings = null)
             : base(env, featureColumn, labelColumn, weightColumn, groupIdColumn, advancedSettings)
         {
+            ShowTrainingStats = Args.ShowTrainingStats;
         }
 
         public MulticlassLogisticRegression(IHostEnvironment env, Arguments args)
             : base(env, args)
         {
+            ShowTrainingStats = Args.ShowTrainingStats;
         }
 
         public override PredictionKind PredictionKind => PredictionKind.MultiClassClassification;

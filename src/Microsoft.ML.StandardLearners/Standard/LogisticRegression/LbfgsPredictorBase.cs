@@ -101,6 +101,7 @@ namespace Microsoft.ML.Runtime.Learners
         protected VBuffer<Float> CurrentWeights;
         protected long NumGoodRows;
         protected Double WeightSum;
+        protected bool ShowTrainingStats;
 
         private TModel _srcPredictor;
 
@@ -117,7 +118,6 @@ namespace Microsoft.ML.Runtime.Learners
         protected readonly int? NumThreads;
         protected readonly bool DenseOptimizer;
         protected readonly long MaxNormalizationExamples;
-        protected readonly bool ShowTrainingStats;
         protected readonly bool EnforceNonNegativity;
 
         // The training data, when NOT using multiple threads.
@@ -220,7 +220,7 @@ namespace Microsoft.ML.Runtime.Learners
             Contracts.CheckUserArg(Args.NumThreads == null || Args.NumThreads.Value >= 0, nameof(Args.NumThreads), "Must be non-negative");
             NumThreads = Args.NumThreads;
             DenseOptimizer = Args.DenseOptimizer;
-            //ShowTrainingStats = showTrainingStats; // TODO
+            ShowTrainingStats = false;
             EnforceNonNegativity = Args.EnforceNonNegativity;
 
             if (EnforceNonNegativity && ShowTrainingStats)
