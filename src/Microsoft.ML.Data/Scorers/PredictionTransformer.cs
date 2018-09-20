@@ -44,19 +44,11 @@ namespace Microsoft.ML.Runtime.Data
         protected PredictionTransformerBase(IHost host, TModel model, ISchema trainSchema)
         {
             Contracts.CheckValue(host, nameof(host));
-            Contracts.CheckValueOrNull(featureColumn);
+
             Host = host;
             Host.CheckValue(trainSchema, nameof(trainSchema));
 
             Model = model;
-            FeatureColumn = featureColumn;
-            if (featureColumn == null)
-                FeatureColumnType = null;
-            else if (!trainSchema.TryGetColumnIndex(featureColumn, out int col))
-                throw Host.ExceptSchemaMismatch(nameof(featureColumn), RoleMappedSchema.ColumnRole.Feature.Value, featureColumn);
-            else
-                FeatureColumnType = trainSchema.GetColumnType(col);
-
             TrainSchema = trainSchema;
         }
 
@@ -103,7 +95,6 @@ namespace Microsoft.ML.Runtime.Data
         {
             // *** Binary format ***
             // <base info>
-            // model: prediction model.
             // stream: empty data view that contains train schema.
 
             ctx.SaveModel(Model, DirModel);
@@ -141,11 +132,13 @@ namespace Microsoft.ML.Runtime.Data
         {
             FeatureColumn = featureColumn;
 
-            if (FeatureColumn == null)
+            FeatureColumn = featureColumn;
+            if (featureColumn == null)
                 FeatureColumnType = null;
-            if (!trainSchema.TryGetColumnIndex(featureColumn, out int col))
+            else if (!trainSchema.TryGetColumnIndex(featureColumn, out int col))
                 throw Host.ExceptSchemaMismatch(nameof(featureColumn), RoleMappedSchema.ColumnRole.Feature.Value, featureColumn);
-            FeatureColumnType = trainSchema.GetColumnType(col);
+            else
+                FeatureColumnType = trainSchema.GetColumnType(col);
 
             BindableMapper = ScoreUtils.GetSchemaBindableMapper(Host, model);
         }
@@ -382,7 +375,7 @@ namespace Microsoft.ML.Runtime.Data
         }
     }
 
-    public sealed class RankingPredictionTransformer<TModel> : PredictionTransformerBase<TModel>
+    public sealed class RankingPredictionTransformer<TModel> : SingleFeaturePredictionTransformerBase<TModel>
     where TModel : class, IPredictorProducing<float>
     {
         private readonly GenericScorer _scorer;
