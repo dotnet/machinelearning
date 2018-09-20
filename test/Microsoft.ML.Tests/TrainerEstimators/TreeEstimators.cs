@@ -2,25 +2,17 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.FastTree;
 using Microsoft.ML.Runtime.LightGBM;
 using Microsoft.ML.Runtime.RunTests;
 using System.Linq;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Microsoft.ML.Tests.TrainerEstimators
 {
-    public partial class TreeEstimators : TestDataPipeBase
+    public partial class TrainerEstimators : TestDataPipeBase
     {
-
-        public TreeEstimators(ITestOutputHelper output) : base(output)
-        {
-        }
-
-
         /// <summary>
         /// FastTreeBinaryClassification TrainerEstimator test 
         /// </summary>
@@ -36,6 +28,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 }));
 
             TestEstimatorCore(pipeline, data);
+            Done();
         }
 
         [Fact]
@@ -50,6 +43,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             }));
 
             TestEstimatorCore(pipeline, data);
+            Done();
         }
 
 
@@ -64,6 +58,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             }));
 
             TestEstimatorCore(pipeline, data);
+            Done();
         }
 
 
@@ -78,27 +73,8 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             }));
 
             TestEstimatorCore(pipeline, data);
+            Done();
         }
-
-        private (IEstimator<ITransformer>, IDataView) GetBinaryClassificationPipeline()
-        {
-            var data = new TextLoader(Env,
-                    new TextLoader.Arguments()
-                    {
-                        Separator = "\t",
-                        HasHeader = true,
-                        Column = new[]
-                        {
-                            new TextLoader.Column("Label", DataKind.BL, 0),
-                            new TextLoader.Column("SentimentText", DataKind.Text, 1)
-                        }
-                    }).Read(new MultiFileSource(GetDataPath(TestDatasets.Sentiment.trainFilename)));
-
-            // Pipeline.
-            var pipeline = new TextTransform(Env, "SentimentText", "Features");
-
-            return (pipeline, data);
-        } 
 
         /// <summary>
         /// FastTreeBinaryClassification TrainerEstimator test 
@@ -112,6 +88,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                                 advancedSettings: s => { s.NumTrees = 10; }));
 
             TestEstimatorCore(pipeline, data);
+            Done();
         }
 
         /// <summary>
@@ -126,28 +103,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                                 advancedSettings: s => { s.LearningRate = 0.4; }));
 
             TestEstimatorCore(pipeline, data);
-        }
-
-        private (IEstimator<ITransformer>, IDataView) GetRankingPipeline()
-        {
-            var data = new TextLoader(Env, new TextLoader.Arguments
-            {
-                HasHeader = true,
-                Separator = "\t",
-                Column = new[]
-                     {
-                        new TextLoader.Column("Label", DataKind.R4, 0),
-                        new TextLoader.Column("Workclass", DataKind.Text, 1),
-                        new TextLoader.Column("NumericFeatures", DataKind.R4, new [] { new TextLoader.Range(9, 14) })
-                    }
-            }).Read(new MultiFileSource(GetDataPath(TestDatasets.adultRanking.trainFilename)));
-
-            // Pipeline.
-            var pipeline = new TermEstimator(Env, new[]{
-                                    new TermTransform.ColumnInfo("Workclass", "Group"),
-                                    new TermTransform.ColumnInfo("Label", "Label0") });
-
-            return (pipeline, data);
+            Done();
         }
 
         /// <summary>
@@ -164,7 +120,8 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                     s.NumLeaves = 5;
                 });
 
-            TestEstimatorCore(pipeline, GetRegressionData());
+            TestEstimatorCore(pipeline, GetRegressionPipeline());
+            Done();
         }
 
         /// <summary>
@@ -181,7 +138,8 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 s.CatL2 = 5; 
             });
 
-            TestEstimatorCore(pipeline, GetRegressionData());
+            TestEstimatorCore(pipeline, GetRegressionPipeline());
+            Done();
         }
 
 
@@ -198,7 +156,8 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 s.NumIterations = 15;
             });
 
-            TestEstimatorCore(pipeline, GetRegressionData());
+            TestEstimatorCore(pipeline, GetRegressionPipeline());
+            Done();
         }
 
         /// <summary>
@@ -214,7 +173,8 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 s.OptimizationAlgorithm = BoostedTreeArgs.OptimizationAlgorithmType.AcceleratedGradientDescent;
             });
 
-            TestEstimatorCore(pipeline, GetRegressionData());
+            TestEstimatorCore(pipeline, GetRegressionPipeline());
+            Done();
         }
 
         /// <summary>
@@ -230,22 +190,23 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 s.NumTrees = 10;
             });
 
-            TestEstimatorCore(pipeline, GetRegressionData());
+            TestEstimatorCore(pipeline, GetRegressionPipeline());
+            Done();
         }
 
-        private IDataView GetRegressionData()
+        /// <summary>
+        /// FastTreeRegressor TrainerEstimator test 
+        /// </summary>
+        [Fact]
+        public void LightGbmMultiClassEstimator()
         {
-            return new TextLoader(Env,
-                    new TextLoader.Arguments()
-                    {
-                        Separator = ";",
-                        HasHeader = true,
-                        Column = new[]
-                        {
-                            new TextLoader.Column("Label", DataKind.R4, 11),
-                            new TextLoader.Column("Features", DataKind.R4, new [] { new TextLoader.Range(0, 10) } )
-                        }
-                    }).Read(new MultiFileSource(GetDataPath(TestDatasets.generatedRegressionDatasetmacro.trainFilename)));
+            var (pipeline, data) = GetMultiClassPipeline();
+
+            pipeline.Append(new LightGbmMulticlassTrainer(Env, "Label", "Features", advancedSettings: s => { s.LearningRate = 0.4; }))
+                    .Append(new KeyToValueEstimator(Env, "PredictedLabel"));
+
+            TestEstimatorCore(pipeline, data);
+            Done();
         }
     }
 }

@@ -20,21 +20,15 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         [Fact]
         public void OVAWithExplicitCalibrator()
         {
-            var dataPath = GetDataPath(IrisDataPath);
+            var (pipeline, data) = GetMultiClassPipeline();
+            var calibrator = new PavCalibratorTrainer(Env);
 
-            using (var env = new ConsoleEnvironment())
-            {
-                var calibrator = new PavCalibratorTrainer(env);
+            var sdcaTrainer = new LinearClassificationTrainer(Env, new LinearClassificationTrainer.Arguments { MaxIterations = 100, Shuffle = true, NumThreads = 1 }, "Features", "Label");
+            pipeline.Append(new Ova(Env, sdcaTrainer, "Label", calibrator: calibrator, maxCalibrationExamples: 990000))
+                    .Append(new KeyToValueEstimator(Env, "PredictedLabel"));
 
-                var data = new TextLoader(env, GetIrisLoaderArgs()).Read(new MultiFileSource(dataPath));
-
-                var sdcaTrainer = new LinearClassificationTrainer(env, new LinearClassificationTrainer.Arguments { MaxIterations = 100, Shuffle = true, NumThreads = 1 }, "Features", "Label");
-                var pipeline = new TermEstimator(env, "Label")
-                    .Append(new Ova(env, sdcaTrainer, "Label", calibrator: calibrator, maxCalibrationExamples: 990000))
-                    .Append(new KeyToValueEstimator(env, "PredictedLabel"));
-
-                TestEstimatorCore(pipeline, data);
-            }
+            TestEstimatorCore(pipeline, data);
+            Done();
         }
 
         /// <summary>
@@ -43,23 +37,15 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         [Fact]
         public void OVAWithAllConstructorArgs()
         {
-            var dataPath = GetDataPath(IrisDataPath);
-            string featNam = "Features";
-            string labNam = "Label";
+            var (pipeline, data) = GetMultiClassPipeline();
+            var calibrator = new PlattCalibratorTrainer(Env);
+            var averagePerceptron = new AveragedPerceptronTrainer(Env, new AveragedPerceptronTrainer.Arguments { FeatureColumn = "Features", LabelColumn = "Label", Shuffle = true, Calibrator = null });
 
-            using (var env = new ConsoleEnvironment())
-            {
-                var calibrator = new FixedPlattCalibratorTrainer(env, new FixedPlattCalibratorTrainer.Arguments());
+            pipeline.Append(new Ova(Env, averagePerceptron, "Label", true, calibrator: calibrator, 10000, true))
+                    .Append(new KeyToValueEstimator(Env, "PredictedLabel"));
 
-                var data = new TextLoader(env, GetIrisLoaderArgs()).Read(new MultiFileSource(dataPath));
-
-                var averagePerceptron = new AveragedPerceptronTrainer(env, new AveragedPerceptronTrainer.Arguments { FeatureColumn = featNam, LabelColumn = labNam, Shuffle = true, Calibrator = null });
-                var pipeline = new TermEstimator(env, labNam)
-                    .Append(new Ova(env, averagePerceptron, labNam, true, calibrator: calibrator, 10000, true))
-                    .Append(new KeyToValueEstimator(env, "PredictedLabel"));
-
-                 TestEstimatorCore(pipeline, data);
-            }
+            TestEstimatorCore(pipeline, data);
+            Done();
         }
 
         /// <summary>
@@ -68,19 +54,15 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         [Fact]
         public void OVAUncalibrated()
         {
-            var dataPath = GetDataPath(IrisDataPath);
+            var (pipeline, data) = GetMultiClassPipeline();
 
-            using (var env = new ConsoleEnvironment())
-            {
-                var data = new TextLoader(env, GetIrisLoaderArgs()).Read(new MultiFileSource(dataPath));
+            var sdcaTrainer = new LinearClassificationTrainer(Env, new LinearClassificationTrainer.Arguments { MaxIterations = 100, Shuffle = true, NumThreads = 1, Calibrator = null }, "Features", "Label");
 
-                var sdcaTrainer = new LinearClassificationTrainer(env, new LinearClassificationTrainer.Arguments { MaxIterations = 100, Shuffle = true, NumThreads = 1, Calibrator = null }, "Features", "Label");
-                var pipeline = new TermEstimator(env, "Label")
-                    .Append(new Ova(env, sdcaTrainer, useProbabilities: false))
-                    .Append(new KeyToValueEstimator(env, "PredictedLabel"));
+            pipeline.Append(new Ova(Env, sdcaTrainer, useProbabilities: false))
+                    .Append(new KeyToValueEstimator(Env, "PredictedLabel"));
 
-                TestEstimatorCore(pipeline, data);
-            }
+            TestEstimatorCore(pipeline, data);
+            Done();
         }
 
         /// <summary>
@@ -89,36 +71,14 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         [Fact(Skip = "The test fails the check for valid input to fit")]
         public void Pkpd()
         {
-            var dataPath = GetDataPath(IrisDataPath);
+            var (pipeline, data) = GetMultiClassPipeline(); 
 
-            using (var env = new ConsoleEnvironment())
-            {
-                var calibrator = new PavCalibratorTrainer(env);
+            var sdcaTrainer = new LinearClassificationTrainer(Env, new LinearClassificationTrainer.Arguments { MaxIterations = 100, Shuffle = true, NumThreads = 1 }, "Features", "Label");
+            pipeline.Append(new Pkpd(Env, sdcaTrainer))
+                    .Append(new KeyToValueEstimator(Env, "PredictedLabel"));
 
-                var data = new TextLoader(env, GetIrisLoaderArgs())
-                    .Read(new MultiFileSource(dataPath));
-
-                var sdcaTrainer = new LinearClassificationTrainer(env, new LinearClassificationTrainer.Arguments { MaxIterations = 100, Shuffle = true, NumThreads = 1 }, "Features", "Label");
-                var pipeline = new TermEstimator(env, "Label")
-                    .Append(new Pkpd(env, sdcaTrainer))
-                    .Append(new KeyToValueEstimator(env, "PredictedLabel"));
-
-                TestEstimatorCore(pipeline, data);
-            }
-        }
-
-        private TextLoader.Arguments GetIrisLoaderArgs()
-        {
-            return new TextLoader.Arguments()
-            {
-                Separator = "comma",
-                HasHeader = true,
-                Column = new[]
-                        {
-                            new TextLoader.Column("Features", DataKind.R4, new [] { new TextLoader.Range(0, 3) }),
-                            new TextLoader.Column("Label", DataKind.Text, 4)
-                        }
-            };
+            TestEstimatorCore(pipeline, data);
+            Done();
         }
     }
 }

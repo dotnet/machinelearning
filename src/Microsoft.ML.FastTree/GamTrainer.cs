@@ -37,7 +37,7 @@ namespace Microsoft.ML.Runtime.FastTree
     /// Generalized Additive Model Learner.
     /// </summary>
     public abstract partial class GamTrainerBase<TArgs, TTransformer, TPredictor> : TrainerEstimatorBase<TTransformer, TPredictor>
-        where TTransformer: IPredictionTransformer<TPredictor>
+        where TTransformer: ISingleFeaturePredictionTransformer<TPredictor>
         where TArgs : GamTrainerBase<TArgs, TTransformer, TPredictor>.ArgumentsBase, new()
         where TPredictor : IPredictorProducing<float>
     {

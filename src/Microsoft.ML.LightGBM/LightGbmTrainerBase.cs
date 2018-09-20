@@ -26,7 +26,7 @@ namespace Microsoft.ML.Runtime.LightGBM
     /// Base class for all training with LightGBM.
     /// </summary>
     public abstract class LightGbmTrainerBase<TOutput, TTransformer, TModel> : TrainerEstimatorBase<TTransformer, TModel>
-        where TTransformer : IPredictionTransformer<TModel>
+        where TTransformer : ISingleFeaturePredictionTransformer<TModel>
         where TModel : IPredictorProducing<TOutput>
     {
         private sealed class CategoricalMetaData
