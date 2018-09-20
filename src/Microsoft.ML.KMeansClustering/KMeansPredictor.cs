@@ -313,11 +313,11 @@ namespace Microsoft.ML.Runtime.KMeans
             var tensorC = new List<float>();
             foreach (var centriod in _centroids)
                 tensorC.AddRange(centriod.DenseValues());
-            var nameC = ctx.AddInitializer(tensorC, shapeC, "C");
+            var nameC = "C"; // ctx.AddInitializer(tensorC, shapeC, "C");
 
             // Save C^2 as an initializer because it's a constant.
             var shapeC2 = new[] { _centroidL2s.Length };
-            var nameC2 = ctx.AddInitializer(_centroidL2s, shapeC2, "C2");
+            var nameC2 = "C2"; // ctx.AddInitializer(_centroidL2s, shapeC2, "C2");
 
             // Retrieve the name of X
             var nameX = featureColumn;
@@ -328,19 +328,25 @@ namespace Microsoft.ML.Runtime.KMeans
 
             // Compute -2XC^T. Note that Gemm always takes three inputs. Since we only have two here,
             // a dummpy one is created.
-            var zeroName = ctx.AddInitializer(0f, "zero");
+            var zeroName = "zero"; // ctx.AddInitializer(0f, "zero");
             var nameXC2 = ctx.AddIntermediateVariable(null, "XC2", true);
             var gemmNodeXC2 = ctx.CreateNode("Gemm", new[] { nameX, nameC, zeroName}, new[] { nameXC2 }, ctx.GetNodeName("Gemm"));
             gemmNodeXC2.AddAttribute("alpha", -2f);
             gemmNodeXC2.AddAttribute("transB", 1);
 
             // Compute Z = X^2 - 2XC^T
-            var nameZ = ctx.AddIntermediateVariable(null, "Z", true);
+            var nameZ = "Z"; // ctx.AddIntermediateVariable(null, "Z", true);
             var addNodeZ = ctx.CreateNode("Add", new[] { nameX2, nameXC2 }, new[] { nameZ }, ctx.GetNodeName("Add"));
 
             // Compute Y = Z + C^2
-            var nameY = ctx.AddIntermediateVariable(null, "Y", true);
+            var nameY = outputNames[1];
             var addNodeY = ctx.CreateNode("Add", new[] { nameZ, nameC2 }, new[] { nameY }, ctx.GetNodeName("Add"));
+
+            // Compute the most-matched cluster index
+            var nameL = outputNames[0];
+            var predictNodeL = ctx.CreateNode("ArgMax", nameY, nameL, ctx.GetNodeName("ArgMax"));
+            predictNodeL.AddAttribute("axis", 1);
+            predictNodeL.AddAttribute("keepdims", 0);
 
             return true;
         }
