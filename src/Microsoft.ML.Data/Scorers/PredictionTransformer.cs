@@ -420,7 +420,8 @@ namespace Microsoft.ML.Runtime.Data
                 verWrittenCur: 0x00010001, // Initial
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
-                loaderSignature: RankingPredictionTransformer.LoaderSignature);
+                loaderSignature: RankingPredictionTransformer.LoaderSignature,
+                loaderAssemblyName: typeof(RankingPredictionTransformer<>).Assembly.FullName);
         }
     }
 
