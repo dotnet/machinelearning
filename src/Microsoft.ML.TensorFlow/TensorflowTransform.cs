@@ -50,13 +50,11 @@ namespace Microsoft.ML.Transforms
         }
 
         private readonly IHost _host;
+        private readonly string _savedModelPath;
+        private readonly bool _isTemporarySavedModel;
         private const string RegistrationName = "TensorFlowTransform";
 
         internal readonly TFSession Session;
-        internal readonly bool IsFrozen;
-        internal readonly string ModelPath;
-        internal readonly bool IsTemporaryModelPath;
-
         internal readonly ColumnType[] OutputTypes;
         internal readonly TFDataType[] TFOutputTypes;
         internal readonly TFDataType[] TFInputTypes;
@@ -88,12 +86,12 @@ namespace Microsoft.ML.Transforms
         /// </summary>
         /// <param name="env">Host Environment.</param>
         /// <param name="input">Input <see cref="IDataView"/>. This is the output from previous transform or loader.</param>
-        /// <param name="model">This is the frozen tensorflow model file. https://www.tensorflow.org/mobile/prepare_models </param>
+        /// <param name="model">Path to the TensorFlow model. </param>
         /// <param name="names">Name of the output column(s). Keep it same as in the Tensorflow model.</param>
         /// <param name="source">Name of the input column(s). Keep it same as in the Tensorflow model.</param>
         public static IDataTransform Create(IHostEnvironment env, IDataView input, string model, string[] names, string[] source)
         {
-            return new TensorFlowTransform(env, model, source, names, false).MakeDataTransform(input);
+            return new TensorFlowTransform(env, TensorFlowUtils.GetSession(env, model), source, names, TensorFlowUtils.IsSavedModel(model) ? model : null, false).MakeDataTransform(input);
         }
 
         // Factory method for SignatureLoadModel.
@@ -119,7 +117,7 @@ namespace Microsoft.ML.Transforms
                 if (!ctx.TryLoadBinaryStream("TFModel", r => modelBytes = r.ReadByteArray()))
                     throw env.ExceptDecode();
 
-                return new TensorFlowTransform(env, LoadTFSession(env, modelBytes), inputs, outputs, isFrozen);
+                return new TensorFlowTransform(env, TensorFlowUtils.LoadTFSession(env, modelBytes), inputs, outputs, null, false);
             }
 
             var tempDirPath = Path.GetFullPath(Path.Combine(Path.GetTempPath(), RegistrationName + "_" + Guid.NewGuid()));
@@ -149,8 +147,7 @@ namespace Microsoft.ML.Transforms
                 }
             });
 
-            var session = GetSession(env, tempDirPath);
-            return new TensorFlowTransform(env, tempDirPath, inputs, outputs, true);
+            return new TensorFlowTransform(env, TensorFlowUtils.GetSession(env, tempDirPath), inputs, outputs, tempDirPath, true);
         }
 
         // Factory method for SignatureDataTransform.
@@ -161,7 +158,8 @@ namespace Microsoft.ML.Transforms
             env.CheckValue(input, nameof(input));
             env.CheckValue(args.InputColumns, nameof(args.InputColumns));
             env.CheckValue(args.OutputColumns, nameof(args.OutputColumns));
-            return new TensorFlowTransform(env, args.Model, args.InputColumns, args.OutputColumns, false).MakeDataTransform(input);
+
+            return new TensorFlowTransform(env, TensorFlowUtils.GetSession(env, args.Model), args.InputColumns, args.OutputColumns, TensorFlowUtils.IsSavedModel(args.Model) ? args.Model : null, false).MakeDataTransform(input);
         }
 
         // Factory method for SignatureLoadDataTransform.
@@ -196,70 +194,16 @@ namespace Microsoft.ML.Transforms
                 outputs[j] = ctx.LoadNonEmptyString();
         }
 
-        private static TFSession LoadTFSession(IHostEnvironment env, byte[] modelBytes)
-        {
-            env.CheckValue(modelBytes, nameof(modelBytes));
-            var graph = new TFGraph();
-            try
-            {
-                graph.Import(modelBytes, "");
-            }
-            catch (Exception ex)
-            {
-#pragma warning disable MSML_NoMessagesForLoadContext
-                throw env.ExceptDecode(ex, "Tensorflow exception triggered while loading model.");
-#pragma warning restore MSML_NoMessagesForLoadContext
-            }
-            return new TFSession(graph);
-        }
-
-        private static TFSession LoadTFSession(IHostEnvironment env, string exportDirSavedModel)
-        {
-            env.CheckValue(exportDirSavedModel, nameof(exportDirSavedModel));
-            var sessionOptions = new TFSessionOptions();
-            var exportDir = exportDirSavedModel;
-            var tags = new string[] { "serve" };
-            var graph = new TFGraph();
-            var metaGraphDef = new TFBuffer();
-
-            return TFSession.FromSavedModel(sessionOptions, null, exportDir, tags, graph, metaGraphDef);
-        }
-
-        private static TFSession GetSession(IHostEnvironment env, string modelPath)
-        {
-            var isFrozen = TensorFlowUtils.IsFrozenTensorFlowModel(modelPath);
-            if (isFrozen)
-            {
-                byte[] modelBytes = CheckFileAndRead(env, modelPath);
-                return LoadTFSession(env, modelBytes);
-            }
-            else
-                return LoadTFSession(env, modelPath);
-        }
-
-        private static byte[] CheckFileAndRead(IHostEnvironment env, string modelFile)
-        {
-            env.CheckNonWhiteSpace(modelFile, nameof(modelFile));
-            env.CheckUserArg(File.Exists(modelFile), nameof(modelFile));
-            return File.ReadAllBytes(modelFile);
-        }
-
-        public TensorFlowTransform(IHostEnvironment env, string model, string[] inputs, string[] outputs, bool isTemporaryModelPath) :
-            this(env, GetSession(env, model), inputs, outputs, true)
-        {
-            ModelPath = model;
-            IsFrozen = TensorFlowUtils.IsFrozenTensorFlowModel(model);
-            IsTemporaryModelPath = isTemporaryModelPath;
-        }
-
-        private TensorFlowTransform(IHostEnvironment env, TFSession session, string[] inputs, string[] outputs, bool isFrozen)
+        internal TensorFlowTransform(IHostEnvironment env, TFSession session, string[] inputs, string[] outputs, string savedModelPath, bool isTemporarySavedModel)
         {
             Contracts.CheckValue(env, nameof(env));
             _host = env.Register(nameof(RegistrationName));
             _host.CheckNonEmpty(inputs, nameof(inputs));
             _host.CheckNonEmpty(outputs, nameof(outputs));
+
             Session = session;
-            IsFrozen = isFrozen;
+            _savedModelPath = savedModelPath;
+            _isTemporarySavedModel = isTemporarySavedModel;
 
             foreach (var input in inputs)
             {
@@ -340,7 +284,6 @@ namespace Microsoft.ML.Transforms
             _host.AssertValue(ctx);
             ctx.CheckAtModel();
             ctx.SetVersionInfo(GetVersionInfo());
-            ctx.Writer.WriteBoolByte(IsFrozen);
 
             // *** Binary format ***
             // byte: indicator for frozen models
@@ -351,7 +294,9 @@ namespace Microsoft.ML.Transforms
             // int: number of output columns
             // for each output column
             //   int: id of output column name
-            if (IsFrozen)
+            var isFrozen = string.IsNullOrEmpty(_savedModelPath);
+            ctx.Writer.WriteBoolByte(isFrozen);
+            if (isFrozen)
             {
                 var buffer = new TFBuffer();
                 Session.Graph.ToGraphDef(buffer);
@@ -364,12 +309,12 @@ namespace Microsoft.ML.Transforms
             {
                 ctx.SaveBinaryStream("TFSavedModel", w =>
                 {
-                    string[] modelFilePaths = Directory.GetFiles(ModelPath, "*", SearchOption.AllDirectories);
+                    string[] modelFilePaths = Directory.GetFiles(_savedModelPath, "*", SearchOption.AllDirectories);
                     w.Write(modelFilePaths.Length);
 
                     foreach (var fullPath in modelFilePaths)
                     {
-                        var relativePath = fullPath.Substring(ModelPath.Length + 1);
+                        var relativePath = fullPath.Substring(_savedModelPath.Length + 1);
                         w.Write(relativePath);
 
                         using (var fs = new FileStream(fullPath, FileMode.Open))
@@ -410,7 +355,7 @@ namespace Microsoft.ML.Transforms
                 Session.Dispose();
             }
 
-            if (!string.IsNullOrEmpty(ModelPath) && IsTemporaryModelPath)
+            if (!string.IsNullOrEmpty(_savedModelPath) && _isTemporarySavedModel)
             {
                 int currentRetry = 0;
                 int maxRetryCount = 5;
@@ -421,7 +366,7 @@ namespace Microsoft.ML.Transforms
                         try
                         {
                             currentRetry++;
-                            Directory.Delete(ModelPath, true);
+                            Directory.Delete(_savedModelPath, true);
                             break;
                         }
                         catch (IOException e)
@@ -703,8 +648,8 @@ namespace Microsoft.ML.Transforms
 
     public sealed class TensorFlowEstimator : TrivialEstimator<TensorFlowTransform>
     {
-        public TensorFlowEstimator(IHostEnvironment env, string modelFile, string[] inputs, string[] outputs)
-           : this(env, new TensorFlowTransform(env, modelFile, inputs, outputs, false))
+        public TensorFlowEstimator(IHostEnvironment env, string model, string[] inputs, string[] outputs)
+           : this(env, new TensorFlowTransform(env, TensorFlowUtils.GetSession(env, model), inputs, outputs, TensorFlowUtils.IsSavedModel(model) ? model : null, false))
         {
         }
 

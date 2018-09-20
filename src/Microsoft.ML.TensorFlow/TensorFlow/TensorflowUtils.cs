@@ -78,16 +78,13 @@ namespace Microsoft.ML.Transforms.TensorFlow
         }
 
         // A TensorFlow frozen model is a single file. An un-frozen (SavedModel) on the other hand has a well-defined folder structure.
-        // Given a modelPath, this utility method determines if we should treat it as a frozen model or not
-        internal static bool IsFrozenTensorFlowModel(string modelPath)
+        // Given a modelPath, this utility method determines if we should treat it as a SavedModel or not
+        internal static bool IsSavedModel(string modelPath)
         {
             FileAttributes attr = File.GetAttributes(modelPath);
-
-            if (attr.HasFlag(FileAttributes.Directory))
-                return false;
-            else
-                return true;
+            return attr.HasFlag(FileAttributes.Directory);
         }
+
         internal static void CreateTempDirectory(string tempDirPath)
         {
             //if directory exists, do nothing.
@@ -146,6 +143,48 @@ namespace Microsoft.ML.Transforms.TensorFlow
             {
                 subDirInfo.Delete(true);
             }
+        }
+        internal static TFSession GetSession(IHostEnvironment env, string modelPath)
+        {
+            if (IsSavedModel(modelPath))
+                return LoadTFSession(env, modelPath);
+
+            byte[] modelBytes = CheckFileAndRead(env, modelPath);
+            return LoadTFSession(env, modelBytes);
+        }
+        private static byte[] CheckFileAndRead(IHostEnvironment env, string modelFile)
+        {
+            env.CheckNonWhiteSpace(modelFile, nameof(modelFile));
+            env.CheckUserArg(File.Exists(modelFile), nameof(modelFile));
+            return File.ReadAllBytes(modelFile);
+        }
+        internal static TFSession LoadTFSession(IHostEnvironment env, byte[] modelBytes)
+        {
+            env.CheckValue(modelBytes, nameof(modelBytes));
+            var graph = new TFGraph();
+            try
+            {
+                graph.Import(modelBytes, "");
+            }
+            catch (Exception ex)
+            {
+#pragma warning disable MSML_NoMessagesForLoadContext
+                throw env.ExceptDecode(ex, "Tensorflow exception triggered while loading model.");
+#pragma warning restore MSML_NoMessagesForLoadContext
+            }
+            return new TFSession(graph);
+        }
+
+        private static TFSession LoadTFSession(IHostEnvironment env, string exportDirSavedModel)
+        {
+            env.CheckValue(exportDirSavedModel, nameof(exportDirSavedModel));
+            var sessionOptions = new TFSessionOptions();
+            var exportDir = exportDirSavedModel;
+            var tags = new string[] { "serve" };
+            var graph = new TFGraph();
+            var metaGraphDef = new TFBuffer();
+
+            return TFSession.FromSavedModel(sessionOptions, null, exportDir, tags, graph, metaGraphDef);
         }
     }
 }
