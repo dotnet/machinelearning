@@ -116,7 +116,6 @@ namespace Microsoft.ML.Transforms
                 byte[] modelBytes = null;
                 if (!ctx.TryLoadBinaryStream("TFModel", r => modelBytes = r.ReadByteArray()))
                     throw env.ExceptDecode();
-
                 return new TensorFlowTransform(env, TensorFlowUtils.LoadTFSession(env, modelBytes), inputs, outputs, null, false);
             }
 
@@ -133,7 +132,6 @@ namespace Microsoft.ML.Transforms
 
                     string fullFilePath = Path.Combine(tempDirPath, relativeFile);
                     string fullFileDir = Path.GetDirectoryName(fullFilePath);
-
                     if (fullFileDir != tempDirPath)
                     {
                         TensorFlowUtils.CreateTempDirectory(fullFileDir);
@@ -198,6 +196,7 @@ namespace Microsoft.ML.Transforms
         {
             Contracts.CheckValue(env, nameof(env));
             _host = env.Register(nameof(RegistrationName));
+            _host.CheckValue(session, nameof(session));
             _host.CheckNonEmpty(inputs, nameof(inputs));
             _host.CheckNonEmpty(outputs, nameof(outputs));
 

@@ -9,14 +9,10 @@ using Microsoft.ML.Runtime.RunTests;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.ML.Tests.Transformers
+namespace Microsoft.ML.Tests.TrainerEstimators
 {
-    public sealed class SdcaTests : TestDataPipeBase
+    public partial class TrainerEstimators
     {
-        public SdcaTests(ITestOutputHelper helper) : base(helper)
-        {
-        }
-
         [Fact]
         public void SdcaWorkout()
         {
