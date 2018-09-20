@@ -142,7 +142,7 @@ namespace Microsoft.ML.Runtime.FastTree
         /// <summary>
         /// Initializes a new instance of <see cref="FastTreeBinaryClassificationTrainer"/> by using the legacy <see cref="Arguments"/> class.
         /// </summary>
-        public FastTreeBinaryClassificationTrainer(IHostEnvironment env, Arguments args)
+        internal FastTreeBinaryClassificationTrainer(IHostEnvironment env, Arguments args)
             : base(env, args, MakeLabelColumn(args.LabelColumn))
         {
             _outputColumns = new[]
