@@ -14,6 +14,7 @@ using Microsoft.ML.Runtime.KMeans;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.Model.Onnx;
 using Microsoft.ML.Runtime.Internal.Internallearn;
+using System.Collections.Generic;
 
 [assembly: LoadableClass(typeof(KMeansPredictor), null, typeof(SignatureLoadModel),
     "KMeans predictor", KMeansPredictor.LoaderSignature)]
@@ -289,24 +290,62 @@ namespace Microsoft.ML.Runtime.KMeans
             // n: # of features per input example
             // X: input examples, l-by-n tensor.
             // C: centriods, k-by-n tensor.
+            // C^2: 2-norm of all centriod vectors, its shape is [k].
+            // Y: 2-norm of difference between examples and centriods, l-by-k tensor. The value at i-th row and k-th
+            // column row, Y[i,k], is the distance from example i to centrioid k.
             //
             // .------------------------------------------------------.
             // |                                                      |
             // |                                                      v
             // X [l, n] --> ReduceSumSquare --> X^2 [l]             Gemm (alpha=-2, transB=1) <-- C [k, n]
-            //                                   |                    |                           |
-            //                                   |                    v                           v
-            //                                   `------> Add <---- -2XC^T [l, k]            ReduceSumSquare
-            //                                             |                                      |
-            //                                             v                                      v
+            //                                   |                    |
+            //                                   |                    v
+            //                                   `------> Add <---- -2XC^T [l, k]
+            //                                             |
+            //                                             v
             //                                             Z [l, k] ----------> Add <------------C^2 [k]
             //                                                                   |
             //                                                                   v
             //                                                                   Y [l, k]
 
-            // Save C^2 as an initializer because it's a constant.
+            // Allocate C, which is a constant tensor in prediction phase
+            var shapeC = new long[] { _centroids.Length, _centroids[0].Length };
+            var tensorC = new List<float>();
+            foreach (var centriod in _centroids)
+                tensorC.AddRange(centriod.DenseValues());
+            // var nameC = ctx.AddInitializer(tensorC, shapeC, "C");
+            var nameC = "C";
 
-            throw new NotImplementedException();
+            // Save C^2 as an initializer because it's a constant.
+            var shapeC2 = new[] { _centroidL2s.Length };
+            // var nameC2 = ctx.AddInitializer(_centroidL2s, shapeC2, "C2");
+            var nameC2 = "C2";
+
+            // Retrieve the name of X
+            var nameX = featureColumn;
+
+            // Compute X^2 from X
+            var nameX2 = ctx.AddIntermediateVariable(null , "X2", true);
+            var reduceNodeX2 = ctx.CreateNode("ReduceSumSquare", nameX, nameX2, ctx.GetNodeName("ReduceSumSquare"));
+
+            // Compute -2XC^T. Note that Gemm always takes three inputs. Since we only have two here,
+            // a dummpy one is created.
+            var zeroName = "zero";
+            // var zeroName = ctx.AddInitializer(0f, "zero");
+            var nameXC2 = ctx.AddIntermediateVariable(null, "XC2", true);
+            var gemmNodeXC2 = ctx.CreateNode("Gemm", new[] { nameX, nameC, zeroName}, new[] { nameXC2 }, ctx.GetNodeName("Gemm"));
+            gemmNodeXC2.AddAttribute("alpha", -2f);
+            gemmNodeXC2.AddAttribute("transB", 1);
+
+            // Compute Z = X^2 - 2XC^T
+            var nameZ = ctx.AddIntermediateVariable(null, "Z", true);
+            var addNodeZ = ctx.CreateNode("Add", new[] { nameX2, nameXC2 }, new[] { nameZ }, ctx.GetNodeName("Add"));
+
+            // Compute Y = Z + C^2
+            var nameY = ctx.AddIntermediateVariable(null, "Y", true);
+            var addNodeY = ctx.CreateNode("Add", new[] { nameZ, nameC2 }, new[] { nameY }, ctx.GetNodeName("Add"));
+
+            return true;
         }
     }
 }
