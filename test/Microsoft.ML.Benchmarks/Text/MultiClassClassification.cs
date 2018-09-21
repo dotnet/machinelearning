@@ -51,7 +51,7 @@ namespace Microsoft.ML.Benchmarks
                     " xf=CategoricalTransform{col=ns}" +
                     " xf=TextTransform{col=FeaturesText:comment wordExtractor=NGramExtractorTransform{ngram=2}}" +
                     " xf=Concat{col=Features:FeaturesText,logged_in,ns}" +
-                    "tr=LightGBMMulticlass{iter=10}";
+                    " tr=LightGBMMulticlass{iter=10}";
 
             using (var environment = new ConsoleEnvironment(verbose: false, sensitivity: MessageSensitivity.None, outWriter: EmptyWriter.Instance))
             {

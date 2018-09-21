@@ -14,7 +14,7 @@ namespace Microsoft.ML.Benchmarks
         {
             Add(DefaultConfig.Instance
                 .With(Job.Default
-                    .WithWarmupCount(1) // for our time consuming benchmarks 1 warmup iteration is enough
+                    .WithWarmupCount(1)
                     .WithMaxIterationCount(20)
                     .With(Program.CreateToolchain()))
                 .With(new ExtraMetricColumn())

@@ -16,7 +16,7 @@ namespace Microsoft.ML.Benchmarks
                 .With(Job.Default
                     .WithWarmupCount(0)
                     .WithIterationCount(1)
-                    .WithLaunchCount(3)
+                    .WithLaunchCount(3)  // BDN will start 3 dedicated processes, each of them will just run given benchmark once, without any warm up to mimic the real world.
                     .With(Program.CreateToolchain()))
                 .With(new ExtraMetricColumn())
                 .With(MemoryDiagnoser.Default));
