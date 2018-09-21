@@ -87,6 +87,13 @@ namespace Microsoft.ML.Runtime.KMeans
         public override TrainerInfo Info { get; }
         public override PredictionKind PredictionKind => PredictionKind.Clustering;
 
+        /// <summary>
+        /// Initializes a new instance of <see cref="KMeansPlusPlusTrainer"/>
+        /// </summary>
+        /// <param name="env">The private instance of <see cref="IHostEnvironment"/>.</param>
+        /// <param name="featureColumn">The name of the feature column.</param>
+        /// <param name="weightColumn">The name for the column containing the initial weight.</param>
+        /// <param name="advancedSettings">A delegate to apply all the advanced arguments to the algorithm.</param>
         public KMeansPlusPlusTrainer(IHostEnvironment env, string featureColumn, string weightColumn = null, Action<Arguments> advancedSettings = null)
             : this(env, null, featureColumn, weightColumn, advancedSettings)
         {
@@ -102,7 +109,7 @@ namespace Microsoft.ML.Runtime.KMeans
         private KMeansPlusPlusTrainer(IHostEnvironment env, Arguments args, string featureColumn, string weightColumn, Action<Arguments> advancedSettings = null)
             : base(Contracts.CheckRef(env, nameof(env)).Register(LoadNameValue), MakeFeatureColumn(featureColumn), null, MakeWeightColumn(weightColumn))
         {
-            if (args == null && advancedSettings == null)
+            if (args == null)
                 args = new Arguments();
 
             if (advancedSettings != null)
@@ -260,7 +267,17 @@ namespace Microsoft.ML.Runtime.KMeans
         {
             return new[]
             {
-                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata()))
+                new SchemaShape.Column(DefaultColumnNames.Score,
+                        SchemaShape.Column.VectorKind.Vector,
+                        NumberType.R4,
+                        false,
+                        new SchemaShape(MetadataUtils.GetTrainerOutputMetadata())),
+
+                new SchemaShape.Column(DefaultColumnNames.PredictedLabel,
+                        SchemaShape.Column.VectorKind.Scalar,
+                        NumberType.U4,
+                        true,
+                        new SchemaShape(MetadataUtils.GetTrainerOutputMetadata()))
             };
         }
 
