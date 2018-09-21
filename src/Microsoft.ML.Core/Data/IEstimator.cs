@@ -229,14 +229,14 @@ namespace Microsoft.ML.Core.Data
 
     /// <summary>
     /// The transformer is a component that transforms data.
-    /// It also supports 'schema propagation' to answer the question of 'how the data with this schema look after you transform it?'.
+    /// It also supports 'schema propagation' to answer the question of 'how will the data with this schema look, after you transform it?'.
     /// </summary>
     public interface ITransformer
     {
         /// <summary>
         /// Schema propagation for transformers.
         /// Returns the output schema of the data, if the input schema is like the one provided.
-        /// Throws <see cref="SchemaException"/> iff the input schema is not valid for the transformer.
+        /// Throws <see cref="SchemaException"/> if the input schema is not valid for the transformer.
         /// </summary>
         ISchema GetOutputSchema(ISchema inputSchema);
 

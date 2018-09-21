@@ -11,7 +11,7 @@ namespace Microsoft.ML.Runtime.FastTree
     public abstract class RandomForestTrainerBase<TArgs, TTransformer, TModel> : FastTreeTrainerBase<TArgs, TTransformer, TModel>
         where TArgs : FastForestArgumentsBase, new()
         where TModel : IPredictorProducing<float>
-        where TTransformer: IPredictionTransformer<TModel>
+        where TTransformer: ISingleFeaturePredictionTransformer<TModel>
     {
         private readonly bool _quantileEnabled;
 

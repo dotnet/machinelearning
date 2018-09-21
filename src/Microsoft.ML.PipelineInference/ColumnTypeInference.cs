@@ -8,6 +8,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Data.Conversion;
+using Microsoft.ML.Runtime.Internal.Utilities;
 
 namespace Microsoft.ML.Runtime.PipelineInference
 {
@@ -38,7 +39,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
 
         private class IntermediateColumn
         {
-            private readonly DvText[] _data;
+            private readonly ReadOnlyMemory<char>[] _data;
             private readonly int _columnId;
             private PrimitiveType _suggestedType;
             private bool? _hasHeader;
@@ -60,13 +61,13 @@ namespace Microsoft.ML.Runtime.PipelineInference
                 set { _hasHeader = value; }
             }
 
-            public IntermediateColumn(DvText[] data, int columnId)
+            public IntermediateColumn(ReadOnlyMemory<char>[] data, int columnId)
             {
                 _data = data;
                 _columnId = columnId;
             }
 
-            public DvText[] RawData { get { return _data; } }
+            public ReadOnlyMemory<char>[] RawData { get { return _data; } }
         }
 
         public struct Column
@@ -88,9 +89,9 @@ namespace Microsoft.ML.Runtime.PipelineInference
             public readonly Column[] Columns;
             public readonly bool HasHeader;
             public readonly bool IsSuccess;
-            public readonly DvText[][] Data;
+            public readonly ReadOnlyMemory<char>[][] Data;
 
-            private InferenceResult(bool isSuccess, Column[] columns, bool hasHeader, DvText[][] data)
+            private InferenceResult(bool isSuccess, Column[] columns, bool hasHeader, ReadOnlyMemory<char>[][] data)
             {
                 IsSuccess = isSuccess;
                 Columns = columns;
@@ -98,7 +99,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
                 Data = data;
             }
 
-            public static InferenceResult Success(Column[] columns, bool hasHeader, DvText[][] data)
+            public static InferenceResult Success(Column[] columns, bool hasHeader, ReadOnlyMemory<char>[][] data)
             {
                 return new InferenceResult(true, columns, hasHeader, data);
             }
@@ -132,7 +133,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
                         if (!col.RawData.Skip(1)
                             .All(x =>
                                 {
-                                    DvBool value;
+                                    bool value;
                                     return Conversions.Instance.TryParse(ref x, out value);
                                 })
                             )
@@ -141,7 +142,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
                         }
 
                         col.SuggestedType = BoolType.Instance;
-                        DvBool first;
+                        bool first;
 
                         col.HasHeader = !Conversions.Instance.TryParse(ref col.RawData[0], out first);
                     }
@@ -168,7 +169,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
                         col.SuggestedType = NumberType.R4;
                         Single first;
 
-                        col.HasHeader = !col.RawData[0].TryParse(out first);
+                        col.HasHeader = !DoubleParser.TryParse(col.RawData[0].Span, out first);
                     }
                 }
             }
@@ -187,7 +188,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
                     }
                 }
 
-                private bool? IsLookLikeHeader(DvText value)
+                private bool? IsLookLikeHeader(ReadOnlyMemory<char> value)
                 {
                     var v = value.ToString();
                     if (v.Length > 100)
@@ -264,7 +265,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
 
             // Read all the data into memory.
             // List items are rows of the dataset.
-            var data = new List<DvText[]>();
+            var data = new List<ReadOnlyMemory<char>[]>();
             using (var cursor = idv.GetRowCursor(col => true))
             {
                 int columnIndex;
@@ -272,26 +273,26 @@ namespace Microsoft.ML.Runtime.PipelineInference
                 Contracts.Assert(found);
                 var colType = cursor.Schema.GetColumnType(columnIndex);
                 Contracts.Assert(colType.ItemType.IsText);
-                ValueGetter<VBuffer<DvText>> vecGetter = null;
-                ValueGetter<DvText> oneGetter = null;
+                ValueGetter<VBuffer<ReadOnlyMemory<char>>> vecGetter = null;
+                ValueGetter<ReadOnlyMemory<char>> oneGetter = null;
                 bool isVector = colType.IsVector;
                 if (isVector)
-                    vecGetter = cursor.GetGetter<VBuffer<DvText>>(columnIndex);
+                    vecGetter = cursor.GetGetter<VBuffer<ReadOnlyMemory<char>>>(columnIndex);
                 else
                 {
                     Contracts.Assert(args.ColumnCount == 1);
-                    oneGetter = cursor.GetGetter<DvText>(columnIndex);
+                    oneGetter = cursor.GetGetter<ReadOnlyMemory<char>>(columnIndex);
                 }
 
-                VBuffer<DvText> line = default(VBuffer<DvText>);
-                DvText tsValue = default(DvText);
+                VBuffer<ReadOnlyMemory<char>> line = default;
+                ReadOnlyMemory<char> tsValue = default;
                 while (cursor.MoveNext())
                 {
                     if (isVector)
                     {
                         vecGetter(ref line);
                         Contracts.Assert(line.Length == args.ColumnCount);
-                        var values = new DvText[args.ColumnCount];
+                        var values = new ReadOnlyMemory<char>[args.ColumnCount];
                         line.CopyTo(values);
                         data.Add(values);
                     }
