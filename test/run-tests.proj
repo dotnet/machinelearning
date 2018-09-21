@@ -2,15 +2,15 @@
   <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), Directory.Build.props))\Directory.Build.props" />
 
   <ItemGroup>
-    <Project Include="$(MSBuildThisFileDirectory)**\*.csproj" />
-    <Project Include="$(MSBuildThisFileDirectory)**\*.fsproj" />
+    <Project Include="$(MSBuildThisFileDirectory)Microsoft.ML.Predictor.Tests\*.csproj" />
+    <!--<Project Include="$(MSBuildThisFileDirectory)**\*.fsproj" />-->
   </ItemGroup>
 
   <Target Name="RunTests">
     <Message Importance="High" Text="Running tests ..." />
     <MSBuild Targets="VSTest"
              Projects="@(Project)"
-             Properties="VSTestNoBuild=true" />
+             Properties="VSTestNoBuild=true;VSTestTestCaseFilter=Microsoft.ML.Runtime.RunTests.TestAutoInference" />
   </Target>
 
   <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), Directory.Build.targets))\Directory.Build.targets" />

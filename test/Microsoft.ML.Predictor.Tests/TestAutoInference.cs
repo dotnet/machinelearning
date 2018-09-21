@@ -142,24 +142,29 @@ namespace Microsoft.ML.Runtime.RunTests
             int batchSize = 1;
             int numIterations = 10;
             int numTransformLevels = 3;
-            using (var env = new LocalEnvironment()
+            using (var env = new ConsoleEnvironment()
                 .AddStandardComponents()) // AutoInference uses ComponentCatalog to find all learners
             {
                 SupportedMetric metric = PipelineSweeperSupportedMetrics.GetSupportedMetric(PipelineSweeperSupportedMetrics.Metrics.Auc);
-
+                Trace("ERIC");
+                
                 // Using the simple, uniform random sampling (with replacement) brain
                 PipelineOptimizerBase autoMlBrain = new UniformRandomEngine(env);
+                Trace("ERIC");
 
                 // Run initial experiments
                 var amls = AutoInference.InferPipelines(env, autoMlBrain, pathData, "", out var _, numTransformLevels, batchSize,
                     metric, out var bestPipeline, numOfSampleRows, new IterationTerminator(numIterations),
                     MacroUtils.TrainerKinds.SignatureBinaryClassifierTrainer);
+                Trace("ERIC");
 
                 // Clear results
                 amls.ClearEvaluatedPipelines();
+                Trace("ERIC");
 
                 // Get space, remove transforms and all but one learner, freeze hyperparameters on learner.
                 var space = amls.GetSearchSpace();
+                Trace("ERIC");
                 var transforms = space.Item1.Where(t =>
                     t.ExpertType != typeof(TransformInference.Experts.Categorical)).ToArray();
                 var learners = new[] { space.Item2.First() };
@@ -167,12 +172,15 @@ namespace Microsoft.ML.Runtime.RunTests
                 var frozenParamValue = hyperParam.RawValue;
                 hyperParam.Frozen = true;
                 amls.UpdateSearchSpace(learners, transforms);
+                Trace("ERIC");
 
                 // Allow for one more iteration
                 amls.UpdateTerminator(new IterationTerminator(numIterations + 1));
+                Trace("ERIC");
 
                 // Do learning. Only retained learner should be left in all pipelines.
                 bestPipeline = amls.InferPipelines(numTransformLevels, batchSize, numOfSampleRows);
+                Trace("ERIC");
 
                 // Make sure all pipelines have retained learner
                 Assert.True(amls.GetAllEvaluatedPipelines().All(p => p.Learner.LearnerName == learners[0].LearnerName));
@@ -181,6 +189,14 @@ namespace Microsoft.ML.Runtime.RunTests
                 Assert.NotNull(bestPipeline);
                 Assert.Equal(bestPipeline.Learner.PipelineNode.SweepParams.First().RawValue, frozenParamValue);
             }
+        }
+
+        int _traceCount;
+        private void Trace(string message)
+        {
+            message = $"{message}: { _traceCount++}";
+            System.Console.WriteLine(message);
+            Log(message);
         }
 
         [Fact(Skip = "Dataset not available.")]
