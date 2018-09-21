@@ -27,7 +27,7 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn
 
             private readonly FeatureNameCollection _collection;
 
-            private readonly MetadataUtils.MetadataGetter<VBuffer<DvText>> _getSlotNames;
+            private readonly MetadataUtils.MetadataGetter<VBuffer<ReadOnlyMemory<char>>> _getSlotNames;
 
             public int ColumnCount => 1;
 
@@ -86,21 +86,21 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn
                 return name == RoleMappedSchema.ColumnRole.Feature.Value;
             }
 
-            private void GetSlotNames(int col, ref VBuffer<DvText> dst)
+            private void GetSlotNames(int col, ref VBuffer<ReadOnlyMemory<char>> dst)
             {
                 Contracts.Assert(col == 0);
 
-                var nameList = new List<DvText>();
+                var nameList = new List<ReadOnlyMemory<char>>();
                 var indexList = new List<int>();
                 foreach (var kvp in _collection.GetNonDefaultFeatureNames())
                 {
-                    nameList.Add(new DvText(kvp.Value));
+                    nameList.Add(kvp.Value.AsMemory());
                     indexList.Add(kvp.Key);
                 }
 
                 var vals = dst.Values;
                 if (Utils.Size(vals) < nameList.Count)
-                    vals = new DvText[nameList.Count];
+                    vals = new ReadOnlyMemory<char>[nameList.Count];
                 Array.Copy(nameList.ToArray(), vals, nameList.Count);
                 if (nameList.Count < _collection.Count)
                 {
@@ -108,10 +108,10 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn
                     if (Utils.Size(indices) < indexList.Count)
                         indices = new int[indexList.Count];
                     Array.Copy(indexList.ToArray(), indices, indexList.Count);
-                    dst = new VBuffer<DvText>(_collection.Count, nameList.Count, vals, indices);
+                    dst = new VBuffer<ReadOnlyMemory<char>>(_collection.Count, nameList.Count, vals, indices);
                 }
                 else
-                    dst = new VBuffer<DvText>(_collection.Count, vals, dst.Indices);
+                    dst = new VBuffer<ReadOnlyMemory<char>>(_collection.Count, vals, dst.Indices);
             }
         }
 
@@ -193,15 +193,15 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn
             Contracts.CheckParam(schema.Feature != null, nameof(schema), "Cannot create feature name collection if we have no features");
             Contracts.CheckParam(schema.Feature.Type.ValueCount > 0, nameof(schema), "Cannot create feature name collection if our features are not of known size");
 
-            VBuffer<DvText> slotNames = default(VBuffer<DvText>);
+            VBuffer<ReadOnlyMemory<char>> slotNames = default;
             int len = schema.Feature.Type.ValueCount;
             if (schema.Schema.HasSlotNames(schema.Feature.Index, len))
                 schema.Schema.GetMetadata(MetadataUtils.Kinds.SlotNames, schema.Feature.Index, ref slotNames);
             else
-                slotNames = VBufferUtils.CreateEmpty<DvText>(len);
+                slotNames = VBufferUtils.CreateEmpty<ReadOnlyMemory<char>>(len);
             string[] names = new string[slotNames.Count];
             for (int i = 0; i < slotNames.Count; ++i)
-                names[i] = slotNames.Values[i].HasChars ? slotNames.Values[i].ToString() : null;
+                names[i] = !slotNames.Values[i].IsEmpty ? slotNames.Values[i].ToString() : null;
             if (slotNames.IsDense)
                 return new Dense(names.Length, names);
 
@@ -225,7 +225,7 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn
                 loaderSignature: LoaderSignature);
         }
 
-        public static void Save(ModelSaveContext ctx, ref VBuffer<DvText> names)
+        public static void Save(ModelSaveContext ctx, ref VBuffer<ReadOnlyMemory<char>> names)
         {
             Contracts.AssertValue(ctx);
             ctx.CheckAtModel();

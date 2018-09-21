@@ -179,10 +179,10 @@ namespace Microsoft.ML.Runtime.Data.IO
             }
 
             // Gatekeeper to ensure T is a type that is supported by UnsafeTypeCodec.
-            // Throws an exception if T is neither a DvTimeSpan nor a NumberType.
+            // Throws an exception if T is neither a TimeSpan nor a NumberType.
             private static ColumnType UnsafeColumnType(Type type)
             {
-                return type == typeof(DvTimeSpan) ? (ColumnType)TimeSpanType.Instance : NumberType.FromType(type);
+                return type == typeof(TimeSpan) ? (ColumnType)TimeSpanType.Instance : NumberType.FromType(type);
             }
 
             public UnsafeTypeCodec(CodecFactory factory)
@@ -305,9 +305,8 @@ namespace Microsoft.ML.Runtime.Data.IO
             }
         }
 
-        private sealed class DvTextCodec : SimpleCodec<DvText>
+        private sealed class TextCodec : SimpleCodec<ReadOnlyMemory<char>>
         {
-            private const int MissingBit = unchecked((int)0x80000000);
             private const int LengthMask = unchecked((int)0x7FFFFFFF);
 
             public override string LoadName
@@ -320,43 +319,38 @@ namespace Microsoft.ML.Runtime.Data.IO
             // int[entries]: The non-decreasing end-boundary character index array, with high bit set for "missing" values.
             // string: The UTF-8 encoded string, with the standard LEB128 byte-length preceeding it.
 
-            public DvTextCodec(CodecFactory factory)
+            public TextCodec(CodecFactory factory)
                 : base(factory, TextType.Instance)
             {
             }
 
-            public override IValueWriter<DvText> OpenWriter(Stream stream)
+            public override IValueWriter<ReadOnlyMemory<char>> OpenWriter(Stream stream)
             {
                 return new Writer(this, stream);
             }
 
-            public override IValueReader<DvText> OpenReader(Stream stream, int items)
+            public override IValueReader<ReadOnlyMemory<char>> OpenReader(Stream stream, int items)
             {
                 return new Reader(this, stream, items);
             }
 
-            private sealed class Writer : ValueWriterBase<DvText>
+            private sealed class Writer : ValueWriterBase<ReadOnlyMemory<char>>
             {
                 private StringBuilder _builder;
                 private List<int> _boundaries;
 
-                public Writer(DvTextCodec codec, Stream stream)
+                public Writer(TextCodec codec, Stream stream)
                     : base(codec.Factory, stream)
                 {
                     _builder = new StringBuilder();
                     _boundaries = new List<int>();
                 }
 
-                public override void Write(ref DvText value)
+                public override void Write(ref ReadOnlyMemory<char> value)
                 {
                     Contracts.Check(_builder != null, "writer was already committed");
-                    if (value.IsNA)
-                        _boundaries.Add(_builder.Length | MissingBit);
-                    else
-                    {
-                        value.AddToStringBuilder(_builder);
-                        _boundaries.Add(_builder.Length);
-                    }
+                    _builder.AppendMemory(value);
+                    _boundaries.Add(_builder.Length);
                 }
 
                 public override void Commit()
@@ -378,14 +372,14 @@ namespace Microsoft.ML.Runtime.Data.IO
                 }
             }
 
-            private sealed class Reader : ValueReaderBase<DvText>
+            private sealed class Reader : ValueReaderBase<ReadOnlyMemory<char>>
             {
                 private readonly int _entries;
                 private readonly int[] _boundaries;
                 private int _index;
                 private string _text;
 
-                public Reader(DvTextCodec codec, Stream stream, int items)
+                public Reader(TextCodec codec, Stream stream, int items)
                     : base(codec.Factory, stream)
                 {
                     _entries = Reader.ReadInt32();
@@ -408,29 +402,34 @@ namespace Microsoft.ML.Runtime.Data.IO
                     Contracts.Check(++_index < _entries, "reader already read all values");
                 }
 
-                public override void Get(ref DvText value)
+                public override void Get(ref ReadOnlyMemory<char> value)
                 {
                     Contracts.Assert(_index < _entries);
                     int b = _boundaries[_index + 1];
-                    if (b < 0)
-                        value = DvText.NA;
+                    int start = _boundaries[_index] & LengthMask;
+                    if (b >= 0)
+                        value = _text.AsMemory().Slice(start, (b & LengthMask) - start);
                     else
-                        value = new DvText(_text, _boundaries[_index] & LengthMask, b & LengthMask);
+                    {
+                        //For backward compatiblity when NA values existed, treat them
+                        //as empty string.
+                        value = ReadOnlyMemory<char>.Empty;
+                    }
                 }
             }
         }
 
         /// <summary>
-        /// This is an older boolean code that reads from a form that serialized
-        /// 1 bit per value. The new encoding (implemented by a different codec)
+        /// This is a boolean code that reads from a form that serialized
+        /// 1 bit per value. The old encoding (implemented by a different codec)
         /// uses 2 bits per value so NA values can be supported.
         /// </summary>
-        private sealed class OldBoolCodec : SimpleCodec<DvBool>
+        private sealed class BoolCodec : SimpleCodec<bool>
         {
             // *** Binary block format ***
             // Packed bits.
 
-            public OldBoolCodec(CodecFactory factory)
+            public BoolCodec(CodecFactory factory)
                 : base(factory, BoolType.Instance)
             {
             }
@@ -440,94 +439,33 @@ namespace Microsoft.ML.Runtime.Data.IO
                 get { return typeof(bool).Name; }
             }
 
-            public override IValueWriter<DvBool> OpenWriter(Stream stream)
-            {
-                Contracts.Assert(false, "This older form only supports reading");
-                throw Contracts.ExceptNotSupp("Writing single bit booleans no longer supported");
-            }
-
-            public override IValueReader<DvBool> OpenReader(Stream stream, int items)
-            {
-                return new Reader(this, stream, items);
-            }
-
-            private sealed class Reader : ValueReaderBase<DvBool>
-            {
-                private byte _currentBits;
-                private int _currentIndex;
-                private int _remaining;
-
-                public Reader(OldBoolCodec codec, Stream stream, int items)
-                    : base(codec.Factory, stream)
-                {
-                    _remaining = items;
-                    _currentIndex = -1;
-                }
-
-                public override void MoveNext()
-                {
-                    Contracts.Assert(0 < _remaining, "already consumed all values");
-                    --_remaining;
-                    if ((_currentIndex = (_currentIndex + 1) & 7) == 0)
-                        _currentBits = Reader.ReadByte();
-                    else
-                        _currentBits >>= 1;
-                }
-
-                public override void Get(ref DvBool value)
-                {
-                    Contracts.Assert(0 <= _currentIndex, "have not moved in");
-                    Contracts.Assert(_currentIndex < 8);
-                    value = (_currentBits & 1) != 0;
-                }
-            }
-        }
-
-        private sealed class BoolCodec : SimpleCodec<DvBool>
-        {
-            // *** Binary block format ***
-            // Pack 16 values into 32 bits, with 00 for false, 01 for true and 10 for NA.
-
-            public BoolCodec(CodecFactory factory)
-                : base(factory, BoolType.Instance)
-            {
-            }
-
-            public override IValueWriter<DvBool> OpenWriter(Stream stream)
+            public override IValueWriter<bool> OpenWriter(Stream stream)
             {
                 return new Writer(this, stream);
             }
 
-            public override IValueReader<DvBool> OpenReader(Stream stream, int items)
+            private sealed class Writer : ValueWriterBase<bool>
             {
-                return new Reader(this, stream, items);
-            }
-
-            private sealed class Writer : ValueWriterBase<DvBool>
-            {
-                // Pack 16 values into 32 bits.
-                private int _currentBits;
+                // Pack 8 values into 8 bits.
+                private byte _currentBits;
                 private long _numWritten;
-                private int _currentIndex;
+                private byte _currentIndex;
 
                 public Writer(BoolCodec codec, Stream stream)
                     : base(codec.Factory, stream)
                 {
                 }
 
-                public override void Write(ref DvBool value)
+                public override void Write(ref bool value)
                 {
-                    Contracts.Assert(0 <= _currentIndex && _currentIndex < 32);
-                    Contracts.Assert((_currentIndex & 1) == 0);
+                    Contracts.Assert(0 <= _currentIndex && _currentIndex < 8);
 
                     _numWritten++;
-                    if (value.IsTrue)
-                        _currentBits |= 1 << _currentIndex;
-                    else if (!value.IsFalse)
-                        _currentBits |= 2 << _currentIndex;
+                    if (value)
+                        _currentBits |= (byte)(1 << _currentIndex);
 
-                    _currentIndex += 2;
-                    if (_currentIndex == 32)
+                    _currentIndex++;
+                    if (_currentIndex == 8)
                     {
                         Writer.Write(_currentBits);
                         _currentBits = 0;
@@ -553,13 +491,71 @@ namespace Microsoft.ML.Runtime.Data.IO
                 }
             }
 
-            private sealed class Reader : ValueReaderBase<DvBool>
+            public override IValueReader<bool> OpenReader(Stream stream, int items)
+            {
+                return new Reader(this, stream, items);
+            }
+
+            private sealed class Reader : ValueReaderBase<bool>
+            {
+                private byte _currentBits;
+                private int _currentIndex;
+                private int _remaining;
+
+                public Reader(BoolCodec codec, Stream stream, int items)
+                    : base(codec.Factory, stream)
+                {
+                    _remaining = items;
+                    _currentIndex = -1;
+                }
+
+                public override void MoveNext()
+                {
+                    Contracts.Assert(0 < _remaining, "already consumed all values");
+                    --_remaining;
+                    if ((_currentIndex = (_currentIndex + 1) & 7) == 0)
+                        _currentBits = Reader.ReadByte();
+                    else
+                        _currentBits >>= 1;
+                }
+
+                public override void Get(ref bool value)
+                {
+                    Contracts.Assert(0 <= _currentIndex, "have not moved in");
+                    Contracts.Assert(_currentIndex < 8);
+                    value = (_currentBits & 1) != 0;
+                }
+            }
+        }
+
+        private sealed class OldBoolCodec : SimpleCodec<bool>
+        {
+            // *** Binary block format ***
+            // Pack 16 values into 32 bits, with 00 for false, 01 for true and 10 for NA.
+
+            public OldBoolCodec(CodecFactory factory)
+                : base(factory, BoolType.Instance)
+            {
+            }
+
+            public override IValueWriter<bool> OpenWriter(Stream stream)
+            {
+                Contracts.Assert(false, "This older form only supports reading");
+                throw Contracts.ExceptNotSupp("Writing single bit booleans no longer supported");
+            }
+
+            public override IValueReader<bool> OpenReader(Stream stream, int items)
+            {
+                return new Reader(this, stream, items);
+            }
+
+            private sealed class Reader : ValueReaderBase<bool>
             {
                 private int _currentBits;
                 private int _currentSlot;
                 private int _remaining;
 
-                public Reader(BoolCodec codec, Stream stream, int items)
+                public Reader(OldBoolCodec codec, Stream stream, int items)
                     : base(codec.Factory, stream)
                 {
                     _remaining = items;
@@ -576,20 +572,20 @@ namespace Microsoft.ML.Runtime.Data.IO
                         _currentBits = (int)((uint)_currentBits >> 2);
                 }
 
-                public override void Get(ref DvBool value)
+                public override void Get(ref bool value)
                 {
                     Contracts.Assert(0 <= _currentSlot, "have not moved in");
                     Contracts.Assert(_currentSlot < 16);
                     switch (_currentBits & 0x3)
                     {
                     case 0x0:
-                        value = DvBool.False;
+                        value = false;
                         break;
                     case 0x1:
-                        value = DvBool.True;
+                        value = true;
                         break;
                     case 0x2:
-                        value = DvBool.NA;
+                        value = false;
                         break;
                     default:
                         throw Contracts.ExceptDecode("Invalid bit pattern in BoolCodec");
@@ -598,24 +594,24 @@ namespace Microsoft.ML.Runtime.Data.IO
             }
         }
 
-        private sealed class DateTimeCodec : SimpleCodec<DvDateTime>
+        private sealed class DateTimeCodec : SimpleCodec<DateTime>
         {
             public DateTimeCodec(CodecFactory factory)
                 : base(factory, DateTimeType.Instance)
             {
             }
 
-            public override IValueWriter<DvDateTime> OpenWriter(Stream stream)
+            public override IValueWriter<DateTime> OpenWriter(Stream stream)
             {
                 return new Writer(this, stream);
             }
 
-            public override IValueReader<DvDateTime> OpenReader(Stream stream, int items)
+            public override IValueReader<DateTime> OpenReader(Stream stream, int items)
             {
                 return new Reader(this, stream, items);
             }
 
-            private sealed class Writer : ValueWriterBase<DvDateTime>
+            private sealed class Writer : ValueWriterBase<DateTime>
             {
                 private long _numWritten;
 
@@ -624,11 +620,9 @@ namespace Microsoft.ML.Runtime.Data.IO
                 {
                 }
 
-                public override void Write(ref DvDateTime value)
+                public override void Write(ref DateTime value)
                 {
-                    var ticks = value.Ticks.RawValue;
-                    Contracts.Assert(ticks == DvInt8.RawNA || (ulong)ticks <= DvDateTime.MaxTicks);
-                    Writer.Write(ticks);
+                    Writer.Write(value.Ticks);
                     _numWritten++;
                 }
 
@@ -639,14 +633,14 @@ namespace Microsoft.ML.Runtime.Data.IO
 
                 public override long GetCommitLengthEstimate()
                 {
-                    return _numWritten * sizeof(Int64);
+                    return _numWritten * sizeof(long);
                 }
             }
 
-            private sealed class Reader : ValueReaderBase<DvDateTime>
+            private sealed class Reader : ValueReaderBase<DateTime>
             {
                 private int _remaining;
-                private DvDateTime _value;
+                private DateTime _value;
 
                 public Reader(DateTimeCodec codec, Stream stream, int items)
                     : base(codec.Factory, stream)
@@ -657,74 +651,64 @@ namespace Microsoft.ML.Runtime.Data.IO
                 public override void MoveNext()
                 {
                     Contracts.Assert(_remaining > 0, "already consumed all values");
-                    var value = Reader.ReadInt64();
-                    Contracts.CheckDecode(value == DvInt8.RawNA || (ulong)value <= DvDateTime.MaxTicks);
-                    _value = new DvDateTime(value);
+
+                    var ticks = Reader.ReadInt64();
+                    _value = new DateTime(ticks == long.MinValue ? default : ticks);
                     _remaining--;
                 }
 
-                public override void Get(ref DvDateTime value)
+                public override void Get(ref DateTime value)
                 {
                     value = _value;
                 }
             }
         }
 
-        private sealed class DateTimeZoneCodec : SimpleCodec<DvDateTimeZone>
+        private sealed class DateTimeOffsetCodec : SimpleCodec<DateTimeOffset>
         {
-            private readonly MadeObjectPool<short[]> _shortBufferPool;
             private readonly MadeObjectPool<long[]> _longBufferPool;
+            private readonly MadeObjectPool<short[]> _shortBufferPool;
 
-            public DateTimeZoneCodec(CodecFactory factory)
-                : base(factory, DateTimeZoneType.Instance)
+            public DateTimeOffsetCodec(CodecFactory factory)
+                : base(factory, DateTimeOffsetType.Instance)
             {
-                _shortBufferPool = new MadeObjectPool<short[]>(() => null);
                 _longBufferPool = new MadeObjectPool<long[]>(() => null);
+                _shortBufferPool = new MadeObjectPool<short[]>(() => null);
             }
 
-            public override IValueWriter<DvDateTimeZone> OpenWriter(Stream stream)
+            public override IValueWriter<DateTimeOffset> OpenWriter(Stream stream)
             {
                 return new Writer(this, stream);
             }
 
-            public override IValueReader<DvDateTimeZone> OpenReader(Stream stream, int items)
+            public override IValueReader<DateTimeOffset> OpenReader(Stream stream, int items)
             {
                 return new Reader(this, stream, items);
             }
 
-            private sealed class Writer : ValueWriterBase<DvDateTimeZone>
+            private sealed class Writer : ValueWriterBase<DateTimeOffset>
             {
                 private List<short> _offsets;
                 private List<long> _ticks;
 
-                public Writer(DateTimeZoneCodec codec, Stream stream)
+                public Writer(DateTimeOffsetCodec codec, Stream stream)
                     : base(codec.Factory, stream)
                 {
                     _offsets = new List<short>();
                     _ticks = new List<long>();
                 }
 
-                public override void Write(ref DvDateTimeZone value)
+                public override void Write(ref DateTimeOffset value)
                 {
                     Contracts.Assert(_offsets != null, "writer was already committed");
 
-                    var ticks = value.ClockDateTime.Ticks;
-                    var offset = value.OffsetMinutes;
+                    _ticks.Add(value.DateTime.Ticks);
 
-                    _ticks.Add(ticks.RawValue);
-                    if (ticks.IsNA)
-                    {
-                        Contracts.Assert(offset.IsNA);
-                        _offsets.Add(0);
-                    }
-                    else
-                    {
-                        Contracts.Assert(
-                            offset.RawValue >= DvDateTimeZone.MinMinutesOffset &&
-                            offset.RawValue <= DvDateTimeZone.MaxMinutesOffset);
-                        Contracts.Assert(0 <= ticks.RawValue && ticks.RawValue <= DvDateTime.MaxTicks);
-                        _offsets.Add(offset.RawValue);
-                    }
+                    //DateTimeOffset exposes its offset as a TimeSpan, but internally it uses short and in minutes.
+                    //https://github.com/dotnet/coreclr/blob/9499b08eefd895158c3f3c7834e185a73619128d/src/System.Private.CoreLib/shared/System/DateTimeOffset.cs#L51-L53
+                    //https://github.com/dotnet/coreclr/blob/9499b08eefd895158c3f3c7834e185a73619128d/src/System.Private.CoreLib/shared/System/DateTimeOffset.cs#L286-L292
+                    //From everything online(ISO8601, RFC3339, SQL Server doc, the offset supports the range -14 to 14 hours, and only supports minute precision.
+                    _offsets.Add((short)(value.Offset.TotalMinutes));
                 }
 
                 public override void Commit()
@@ -740,13 +724,13 @@ namespace Microsoft.ML.Runtime.Data.IO
 
                 public override long GetCommitLengthEstimate()
                 {
-                    return (long)_offsets.Count * (sizeof(Int64) + sizeof(Int16));
+                    return (long)_offsets.Count * (sizeof(long) + sizeof(short));
                 }
             }
 
-            private sealed class Reader : ValueReaderBase<DvDateTimeZone>
+            private sealed class Reader : ValueReaderBase<DateTimeOffset>
             {
-                private readonly DateTimeZoneCodec _codec;
+                private readonly DateTimeOffsetCodec _codec;
 
                 private readonly int _entries;
                 private short[] _offsets;
@@ -754,7 +738,7 @@ namespace Microsoft.ML.Runtime.Data.IO
                 private int _index;
                 private bool _disposed;
 
-                public Reader(DateTimeZoneCodec codec, Stream stream, int items)
+                public Reader(DateTimeOffsetCodec codec, Stream stream, int items)
                     : base(codec.Factory, stream)
                 {
                     _codec = codec;
@@ -764,17 +748,12 @@ namespace Microsoft.ML.Runtime.Data.IO
                     _offsets = _codec._shortBufferPool.Get();
                     Utils.EnsureSize(ref _offsets, _entries, false);
                     for (int i = 0; i < _entries; i++)
-                    {
                         _offsets[i] = Reader.ReadInt16();
-                        Contracts.CheckDecode(DvDateTimeZone.MinMinutesOffset <= _offsets[i] && _offsets[i] <= DvDateTimeZone.MaxMinutesOffset);
-                    }
+
                     _ticks = _codec._longBufferPool.Get();
                     Utils.EnsureSize(ref _ticks, _entries, false);
                     for (int i = 0; i < _entries; i++)
-                    {
                         _ticks[i] = Reader.ReadInt64();
-                        Contracts.CheckDecode(_ticks[i] == DvInt8.RawNA || (ulong)_ticks[i] <= DvDateTime.MaxTicks);
-                    }
                 }
 
                 public override void MoveNext()
@@ -783,10 +762,12 @@ namespace Microsoft.ML.Runtime.Data.IO
                     Contracts.Check(++_index < _entries, "reader already read all values");
                 }
 
-                public override void Get(ref DvDateTimeZone value)
+                public override void Get(ref DateTimeOffset value)
                 {
                     Contracts.Assert(!_disposed);
-                    value = new DvDateTimeZone(_ticks[_index], _offsets[_index]);
+                    var ticks = _ticks[_index];
+                    var offset = _offsets[_index];
+                    value = new DateTimeOffset(new DateTime(ticks == long.MinValue ? default : ticks), new TimeSpan(0, offset == short.MinValue ? default : offset, 0));
                 }
 
                 public override void Dispose()

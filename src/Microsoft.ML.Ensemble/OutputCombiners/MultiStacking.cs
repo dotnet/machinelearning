@@ -57,7 +57,7 @@ namespace Microsoft.ML.Runtime.Ensemble.OutputCombiners
                     env => new Ova(env, new Ova.Arguments()
                     {
                         PredictorType = ComponentFactoryUtils.CreateFromFunction(
-                             e => new AveragedPerceptronTrainer(e, new AveragedPerceptronTrainer.Arguments()))
+                            e => new FastTreeBinaryClassificationTrainer(e, DefaultColumnNames.Label, DefaultColumnNames.Features))
                     }));
             }
         }

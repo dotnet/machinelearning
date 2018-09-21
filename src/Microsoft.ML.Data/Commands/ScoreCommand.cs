@@ -301,10 +301,10 @@ namespace Microsoft.ML.Runtime.Data
             Contracts.AssertValue(mapper);
 
             ComponentCatalog.LoadableClassInfo info = null;
-            DvText scoreKind = default;
+            ReadOnlyMemory<char> scoreKind = default;
             if (mapper.OutputSchema.ColumnCount > 0 &&
                 mapper.OutputSchema.TryGetMetadata(TextType.Instance, MetadataUtils.Kinds.ScoreColumnKind, 0, ref scoreKind) &&
-                scoreKind.HasChars)
+                !scoreKind.IsEmpty)
             {
                 var loadName = scoreKind.ToString();
                 info = ComponentCatalog.GetLoadableClassInfo<SignatureDataScorer>(loadName);
