@@ -74,7 +74,7 @@ namespace Microsoft.ML.Runtime.Api
             return pipe;
         }
 
-        public sealed class InputRow<TRow> : InputRowBase<TRow>, IInputRow<TRow>
+        public sealed class InputRow<TRow> : InputRowBase<TRow>, IRowBackedBy<TRow>
             where TRow : class
         {
             private TRow _value;
@@ -101,7 +101,7 @@ namespace Microsoft.ML.Runtime.Api
                 return peeks;
             }
 
-            public void AcceptValues(TRow row)
+            public void ExtractValues(TRow row)
             {
                 Host.CheckValue(row, nameof(row));
                 _value = row;
@@ -115,12 +115,16 @@ namespace Microsoft.ML.Runtime.Api
 
             private void IdGetter(ref UInt128 val) => val = new UInt128((ulong)Position, 0);
 
-            protected override TRow GetCurrentRowObject() => _value;
+            protected override TRow GetCurrentRowObject()
+            {
+                Host.Check(Position >= 0, "Can't call a getter on an inactive cursor.");
+                return _value;
+            }
         }
 
         /// <summary>
         /// A row that consumes items of type <typeparamref name="TRow"/>, and provides an <see cref="IRow"/>. This
-        /// is in contrast to <see cref="IRow{TRow}"/> which consumes a data view row and publishes them as the output type.
+        /// is in contrast to <see cref="IRowReadableAs{TRow}"/> which consumes a data view row and publishes them as the output type.
         /// </summary>
         /// <typeparam name="TRow">The input data type.</typeparam>
         public abstract class InputRowBase<TRow> : IRow
@@ -265,7 +269,7 @@ namespace Microsoft.ML.Runtime.Api
             {
                 var peek = peekDel as Peek<TRow, VBuffer<TDst>>;
                 Host.AssertValue(peek);
-                VBuffer<TDst> buf = default(VBuffer<TDst>);
+                VBuffer<TDst> buf = default;
                 return (ValueGetter<VBuffer<TDst>>)((ref VBuffer<TDst> dst) =>
                 {
                     // The peek for a VBuffer is just a simple assignment, so there is
@@ -362,6 +366,10 @@ namespace Microsoft.ML.Runtime.Api
 
             public abstract class DataViewCursorBase : InputRowBase<TRow>, IRowCursor
             {
+                // There is no real concept of multiple inheritance and for various reasons it was better to
+                // descend from the row class as opposed to wrapping it, so much of this class is regrettably
+                // copied from RootCursorBase.
+
                 protected readonly DataViewBase<TRow> DataView;
                 protected readonly IChannel Ch;
 

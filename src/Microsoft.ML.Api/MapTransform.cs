@@ -242,7 +242,7 @@ namespace Microsoft.ML.Runtime.Api
 
         private sealed class Row : IRow
         {
-            private readonly IRow<TSrc> _input;
+            private readonly IRowReadableAs<TSrc> _input;
             private readonly IRow _appendedRow;
             private readonly bool[] _active;
 
@@ -259,7 +259,7 @@ namespace Microsoft.ML.Runtime.Api
 
             public ISchema Schema { get; }
 
-            public Row(IRow<TSrc> input, MapTransform<TSrc, TDst> parent, Func<int, bool> active, TSrc src, TDst dst)
+            public Row(IRowReadableAs<TSrc> input, MapTransform<TSrc, TDst> parent, Func<int, bool> active, TSrc src, TDst dst)
             {
                 _input = input;
                 _parent = parent;

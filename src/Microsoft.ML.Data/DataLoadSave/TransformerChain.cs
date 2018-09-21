@@ -212,7 +212,7 @@ namespace Microsoft.ML.Runtime.Data
                 mappers[i] = _transformers[i].GetRowToRowMapper(schema);
                 schema = mappers[i].Schema;
             }
-            return new ChainedRowToRowMapper(inputSchema, mappers);
+            return new CompositeRowToRowMapper(inputSchema, mappers);
         }
     }
 

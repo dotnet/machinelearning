@@ -139,7 +139,7 @@ namespace Microsoft.ML.Runtime.Api
         where TDst : class, new()
     {
         private readonly DataViewConstructionUtils.InputRow<TSrc> _inputRow;
-        private readonly IRow<TDst> _outputRow;
+        private readonly IRowReadableAs<TDst> _outputRow;
         private readonly Action _disposer;
         private TDst _result;
 
@@ -206,7 +206,7 @@ namespace Microsoft.ML.Runtime.Api
         public TDst Predict(TSrc example)
         {
             Contracts.CheckValue(example, nameof(example));
-            _inputRow.AcceptValues(example);
+            _inputRow.ExtractValues(example);
             if (_result == null)
                 _result = new TDst();
             _outputRow.FillValues(_result);

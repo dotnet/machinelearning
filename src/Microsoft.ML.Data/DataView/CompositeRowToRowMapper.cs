@@ -10,7 +10,7 @@ namespace Microsoft.ML.Runtime.Data
     /// <summary>
     /// A row-to-row mapper that is the result of a chained application of multiple mappers.
     /// </summary>
-    public sealed class ChainedRowToRowMapper : IRowToRowMapper
+    public sealed class CompositeRowToRowMapper : IRowToRowMapper
     {
         private readonly IRowToRowMapper[] _innerMappers;
         private static readonly IRowToRowMapper[] _empty = new IRowToRowMapper[0];
@@ -24,7 +24,7 @@ namespace Microsoft.ML.Runtime.Data
         /// <param name="inputSchema">The input schema.</param>
         /// <param name="mappers">The sequence of mappers to wrap. An empty or <c>null</c> argument
         /// is legal, and counts as being a no-op application.</param>
-        public ChainedRowToRowMapper(ISchema inputSchema, IRowToRowMapper[] mappers)
+        public CompositeRowToRowMapper(ISchema inputSchema, IRowToRowMapper[] mappers)
         {
             Contracts.CheckValue(inputSchema, nameof(inputSchema));
             Contracts.CheckValueOrNull(mappers);

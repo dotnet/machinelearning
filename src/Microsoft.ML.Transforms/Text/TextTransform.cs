@@ -601,7 +601,7 @@ namespace Microsoft.ML.Runtime.Data
                 // The walkback should have ended at the input.
                 Contracts.Assert(chain == input);
                 revMaps.Reverse();
-                return new ChainedRowToRowMapper(inputSchema, revMaps.ToArray());
+                return new CompositeRowToRowMapper(inputSchema, revMaps.ToArray());
             }
 
             public void Save(ModelSaveContext ctx)
