@@ -196,7 +196,7 @@ namespace Microsoft.ML.Runtime.Model.Onnx
         /// </summary>
         /// <param name="colName">IDataView column name.</param>
         /// <returns>Unique variable name.</returns>
-        private string AddVariable(string colName)
+        public override string AddVariable(string colName)
         {
             _host.CheckNonEmpty(colName, nameof(colName));
             _columnNameMap[colName] = GetUniqueName(colName, _variableNames.Contains);
@@ -244,6 +244,28 @@ namespace Microsoft.ML.Runtime.Model.Onnx
 
             colName = AddVariable(colName);
             _inputs.Add(OnnxUtils.GetModelArgs(type, colName));
+        }
+
+        /// <summary>
+        /// Retrieve the shape of an ONNX variable
+        /// </summary>
+        /// <param name="variableName">The ONNX name of the returned shape</param>
+        /// <returns>The shape of the retrieved variable</returns>
+        public override List<long> RetrieveShape(string variableName)
+        {
+            foreach (var arg in _inputs)
+                if (arg.Name == variableName)
+                    return arg.Dims;
+
+            foreach (var arg in _intermediateValues)
+                if (arg.Name == variableName)
+                    return arg.Dims;
+
+            foreach (var arg in _outputs)
+                if (arg.Name == variableName)
+                    return arg.Dims;
+
+            return null;
         }
 
         /// <summary>

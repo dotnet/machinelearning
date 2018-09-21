@@ -49,6 +49,8 @@ namespace Microsoft.ML.Runtime.Model.Onnx
         /// <param name="removeColumn">IDataView column to stop tracking</param>
         public abstract void RemoveVariable(string variableName, bool removeColumn);
 
+        public abstract string AddVariable(string colName);
+
         /// <summary>
         /// ONNX variables are referred to by name. At each stage of a ML.NET pipeline, the corresponding
         /// <see cref="IDataView"/>'s column names will map to a variable in the ONNX graph if the intermediate steps
@@ -98,5 +100,12 @@ namespace Microsoft.ML.Runtime.Model.Onnx
         /// <returns>A node added to the in-progress ONNX graph, that attributes can be set on</returns>
         public OnnxNode CreateNode(string opType, string input, string output, string name, string domain = null)
             => CreateNode(opType, new[] { input }, new[] { output }, name, domain);
+
+        /// <summary>
+        /// Retrieve the shape of an ONNX variable
+        /// </summary>
+        /// <param name="variableName">The ONNX name of the returned shape</param>
+        /// <returns>The shape of the retrieved variable</returns>
+        public abstract List<long> RetrieveShape(string variableName);
     }
 }
