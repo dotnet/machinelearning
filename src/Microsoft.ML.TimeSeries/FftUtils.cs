@@ -158,7 +158,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             CceFormat = 57        /* Complex conjugate-even */
         }
 
-        private const string DllName = "MklImports.dll";
+        private const string DllName = "MklImports";
 
         // See: https://software.intel.com/en-us/node/521976#8CD904AB-244B-42E4-820A-CC2376E776B8
         [DllImport(DllName, EntryPoint = "DftiCreateDescriptor")]
