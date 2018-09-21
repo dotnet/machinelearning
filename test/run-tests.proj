@@ -10,7 +10,7 @@
     <Message Importance="High" Text="Running tests ..." />
     <MSBuild Targets="VSTest"
              Projects="@(Project)"
-             Properties="VSTestNoBuild=true;VSTestTestCaseFilter=Microsoft.ML.Runtime.RunTests.TestAutoInference" />
+             Properties="VSTestNoBuild=true" />
   </Target>
 
   <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), Directory.Build.targets))\Directory.Build.targets" />
