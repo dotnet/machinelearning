@@ -46,7 +46,7 @@ namespace Microsoft.ML.Runtime.FastTree
         public override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
         private protected override bool NeedCalibration => true;
 
-        public BinaryClassificationGamTrainer(IHostEnvironment env, Arguments args)
+        internal BinaryClassificationGamTrainer(IHostEnvironment env, Arguments args)
             : base(env, args)
         {
             _sigmoidParameter = 1;
