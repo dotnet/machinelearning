@@ -14,7 +14,7 @@ using Microsoft.ML.Runtime.Internal.Internallearn;
 namespace Microsoft.ML.Runtime.FastTree
 {
     public abstract class BoostingFastTreeTrainerBase<TArgs, TTransformer, TModel> : FastTreeTrainerBase<TArgs, TTransformer, TModel>
-        where TTransformer : IPredictionTransformer<TModel>
+        where TTransformer : ISingleFeaturePredictionTransformer<TModel>
         where TArgs : BoostedTreeArgs, new()
         where TModel : IPredictorProducing<Float>
     {

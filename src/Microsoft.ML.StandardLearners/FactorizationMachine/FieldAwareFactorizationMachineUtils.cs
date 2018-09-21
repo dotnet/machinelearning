@@ -101,8 +101,12 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
             var featureIndexBuffer = new int[_pred.FeatureCount];
             var featureValueBuffer = new float[_pred.FeatureCount];
             var inputGetters = new ValueGetter<VBuffer<float>>[_pred.FieldCount];
-            for (int f = 0; f < _pred.FieldCount; f++)
-                inputGetters[f] = input.GetGetter<VBuffer<float>>(_inputColumnIndexes[f]);
+
+            if (predicate(0) || predicate(1))
+            {
+                for (int f = 0; f < _pred.FieldCount; f++)
+                    inputGetters[f] = input.GetGetter<VBuffer<float>>(_inputColumnIndexes[f]);
+            }
 
             action = null;
             var getters = new Delegate[2];
