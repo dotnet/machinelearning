@@ -454,9 +454,9 @@ namespace Microsoft.ML.Runtime
             var parmTypesWithEnv = Utils.Concat(new Type[1] { typeof(IHostEnvironment) }, parmTypes);
             if (Utils.Size(parmTypes) == 0 && (getter = FindInstanceGetter(instType, loaderType)) != null)
                 return true;
-            if (instType.IsAssignableFrom(loaderType) && (ctor = loaderType.GetConstructor(parmTypes ?? Type.EmptyTypes)) != null)
+            if (instType.IsAssignableFrom(loaderType) && (ctor = loaderType.GetConstructor(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic, null, parmTypes ?? Type.EmptyTypes, null)) != null)
                 return true;
-            if (instType.IsAssignableFrom(loaderType) && (ctor = loaderType.GetConstructor(parmTypesWithEnv ?? Type.EmptyTypes)) != null)
+            if (instType.IsAssignableFrom(loaderType) && (ctor = loaderType.GetConstructor(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic, null, parmTypesWithEnv ?? Type.EmptyTypes, null)) != null)
             {
                 requireEnvironment = true;
                 return true;

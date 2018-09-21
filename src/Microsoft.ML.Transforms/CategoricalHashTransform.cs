@@ -10,6 +10,7 @@ using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Utilities;
+using Microsoft.ML.Transforms;
 
 [assembly: LoadableClass(CategoricalHashTransform.Summary, typeof(IDataTransform), typeof(CategoricalHashTransform), typeof(CategoricalHashTransform.Arguments), typeof(SignatureDataTransform),
     CategoricalHashTransform.UserName, "CategoricalHashTransform", "CatHashTransform", "CategoricalHash", "CatHash")]
@@ -91,7 +92,7 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         /// <summary>
-        /// This class is a merger of <see cref="HashTransform.Arguments"/> and <see cref="KeyToVectorTransform.Arguments"/>
+        /// This class is a merger of <see cref="HashTransformer.Arguments"/> and <see cref="KeyToVectorTransform.Arguments"/>
         /// with join option removed
         /// </summary>
         public sealed class Arguments : TransformInputBase
@@ -169,13 +170,13 @@ namespace Microsoft.ML.Runtime.Data
                     throw h.ExceptUserArg(nameof(args.HashBits), "Number of bits must be between 1 and {0}", NumBitsLim - 1);
 
                 // creating the Hash function
-                var hashArgs = new HashTransform.Arguments
+                var hashArgs = new HashTransformer.Arguments
                 {
                     HashBits = args.HashBits,
                     Seed = args.Seed,
                     Ordered = args.Ordered,
                     InvertHash = args.InvertHash,
-                    Column = new HashTransform.Column[args.Column.Length]
+                    Column = new HashTransformer.Column[args.Column.Length]
                 };
                 for (int i = 0; i < args.Column.Length; i++)
                 {
@@ -184,7 +185,7 @@ namespace Microsoft.ML.Runtime.Data
                         throw h.ExceptUserArg(nameof(Column.Name));
                     h.Assert(!string.IsNullOrWhiteSpace(column.Name));
                     h.Assert(!string.IsNullOrWhiteSpace(column.Source));
-                    hashArgs.Column[i] = new HashTransform.Column
+                    hashArgs.Column[i] = new HashTransformer.Column
                     {
                         HashBits = column.HashBits,
                         Seed = column.Seed,
@@ -198,7 +199,7 @@ namespace Microsoft.ML.Runtime.Data
                 return CreateTransformCore(
                     args.OutputKind, args.Column,
                     args.Column.Select(col => col.OutputKind).ToList(),
-                    new HashTransform(h, hashArgs, input),
+                    HashTransformer.Create(h, hashArgs, input),
                     h,
                     args);
             }
