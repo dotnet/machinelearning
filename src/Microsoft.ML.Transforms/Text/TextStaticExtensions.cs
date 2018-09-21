@@ -572,4 +572,122 @@ namespace Microsoft.ML.Transforms.Text
             bool ordered = true,
             int invertHash = 0) => new OutPipelineColumn(input, hashBits, ngramLength, skipLength, allLengths, seed, ordered, invertHash);
     }
+
+    /// <summary>
+    /// Extensions for statically typed <see cref="LdaEstimator"/>.
+    /// </summary>
+    public static class LdaEstimatorExtensions
+    {
+        private sealed class OutPipelineColumn : Vector<float>
+        {
+            public readonly Vector<float> Input;
+
+            public OutPipelineColumn(Vector<float> input,
+                int numTopic,
+                float alphaSum,
+                Single beta,
+                int mhstep,
+                int numIterations,
+                int likelihoodInterval,
+                int numMaxDocToken,
+                int? numThreads,
+                int numSummaryTermPerTopic,
+                int numBurninIterations,
+                bool resetRandomGenerator,
+                bool outputTopicWordSummary)
+                : base(new Reconciler(numTopic, alphaSum, beta, mhstep, numIterations, likelihoodInterval, numMaxDocToken, numThreads,
+                    numSummaryTermPerTopic, numBurninIterations, resetRandomGenerator, outputTopicWordSummary), input)
+            {
+                Input = input;
+            }
+        }
+
+        private sealed class Reconciler : EstimatorReconciler
+        {
+            private readonly int _numTopic;
+            private readonly float _alphaSum;
+            private readonly Single _beta;
+            private readonly int _mhstep;
+            private readonly int _numIterations;
+            private readonly int _likelihoodInterval;
+            private readonly int _numMaxDocToken;
+            private readonly int? _numThreads;
+            private readonly int _numSummaryTermPerTopic;
+            private readonly int _numBurninIterations;
+            private readonly bool _resetRandomGenerator;
+            private readonly bool _outputTopicWordSummary;
+
+            public Reconciler(int numTopic,
+                float alphaSum,
+                Single beta,
+                int mhstep,
+                int numIterations,
+                int likelihoodInterval,
+                int numMaxDocToken,
+                int? numThreads,
+                int numSummaryTermPerTopic,
+                int numBurninIterations,
+                bool resetRandomGenerator,
+                bool outputTopicWordSummary)
+            {
+                _numTopic = numTopic;
+                _alphaSum = alphaSum;
+                _beta = beta;
+                _mhstep = mhstep;
+                _numIterations = numIterations;
+                _likelihoodInterval = likelihoodInterval;
+                _numMaxDocToken = numMaxDocToken;
+                _numThreads = numThreads;
+                _numSummaryTermPerTopic = numSummaryTermPerTopic;
+                _numBurninIterations = numBurninIterations;
+                _resetRandomGenerator = resetRandomGenerator;
+                _outputTopicWordSummary = outputTopicWordSummary;
+            }
+
+            public override IEstimator<ITransformer> Reconcile(IHostEnvironment env,
+                PipelineColumn[] toOutput,
+                IReadOnlyDictionary<PipelineColumn, string> inputNames,
+                IReadOnlyDictionary<PipelineColumn, string> outputNames,
+                IReadOnlyCollection<string> usedNames)
+            {
+                Contracts.Assert(toOutput.Length == 1);
+
+                var pairs = new List<(string input, string output)>();
+                foreach (var outCol in toOutput)
+                    pairs.Add((inputNames[((OutPipelineColumn)outCol).Input], outputNames[outCol]));
+
+                return new LdaEstimator(env, pairs.ToArray(), _numTopic, _alphaSum, _beta, _mhstep, _numIterations, _likelihoodInterval, _numMaxDocToken, _numThreads,
+                    _numSummaryTermPerTopic, _numBurninIterations, _resetRandomGenerator, _outputTopicWordSummary);
+            }
+        }
+
+        /// <include file='doc.xml' path='doc/members/member[@name="LightLDA"]/*' />
+        /// <param name="input">The column to apply to.</param>
+        /// <param name="numTopic">The number of topics in the LDA.</param>
+        /// <param name="alphaSum">Dirichlet prior on document-topic vectors.</param>
+        /// <param name="beta">Dirichlet prior on vocab-topic vectors.</param>
+        /// <param name="mhstep">Number of Metropolis Hasting step.</param>
+        /// <param name="numIterations">Number of iterations.</param>
+        /// <param name="likelihoodInterval">Compute log likelihood over local dataset on this iteration interval.</param>
+        /// <param name="numMaxDocToken">The threshold of maximum count of tokens per doc.</param>
+        /// <param name="numThreads">The number of training threads. Default value depends on number of logical processors..</param>
+        /// <param name="numSummaryTermPerTopic">The number of words to summarize the topic.</param>
+        /// <param name="numBurninIterations">The number of burn-in iterations.</param>
+        /// <param name="resetRandomGenerator">Reset the random number generator for each document.</param>
+        /// <param name="outputTopicWordSummary">Whether to output the topic-word summary in text format.</param>
+        public static Vector<float> ToLdaTopicVector(this Vector<float> input,
+            int numTopic = 100,
+            float alphaSum = 100,
+            Single beta = 0.01f,
+            int mhstep = 4,
+            int numIterations = 200,
+            int likelihoodInterval = 5,
+            int numMaxDocToken = 512,
+            int? numThreads = null,
+            int numSummaryTermPerTopic = 10,
+            int numBurninIterations = 10,
+            bool resetRandomGenerator = false,
+            bool outputTopicWordSummary = false) => new OutPipelineColumn(input, numTopic, alphaSum, beta, mhstep, numIterations, likelihoodInterval, numMaxDocToken, numThreads,
+                    numSummaryTermPerTopic, numBurninIterations, resetRandomGenerator, outputTopicWordSummary);
+    }
 }

@@ -197,5 +197,39 @@ namespace Microsoft.ML.Tests.Transformers
             CheckEquality("Text", "ngrams.tsv");
             Done();
         }
+
+        [Fact(Skip = "LdaNative dll is missing in ML.Net")]
+        public void LdaWorkout()
+        {
+            string sentimentDataPath = GetDataPath("wikipedia-detox-250-line-data.tsv");
+            var data = TextLoader.CreateReader(Env, ctx => (
+                    label: ctx.LoadBool(0),
+                    text: ctx.LoadText(1)), hasHeader: true)
+                .Read(new MultiFileSource(sentimentDataPath));
+
+            var invalidData = TextLoader.CreateReader(Env, ctx => (
+                    label: ctx.LoadBool(0),
+                    text: ctx.LoadFloat(1)), hasHeader: true)
+                .Read(new MultiFileSource(sentimentDataPath));
+
+            var est = new WordBagEstimator(Env, "text", "bag_of_words").
+                Append(new LdaEstimator(Env, "bag_of_words", "topics"));
+
+            TestEstimatorCore(est, data.AsDynamic, invalidInput: invalidData.AsDynamic);
+
+            var outputPath = GetOutputPath("Text", "ldatopics.tsv");
+            using (var ch = Env.Start("save"))
+            {
+                var saver = new TextSaver(Env, new TextSaver.Arguments { Silent = true });
+                IDataView savedData = TakeFilter.Create(Env, est.Fit(data.AsDynamic).Transform(data.AsDynamic), 4);
+                savedData = new ChooseColumnsTransform(Env, savedData, "topics");
+
+                using (var fs = File.Create(outputPath))
+                    DataSaverUtils.SaveDataView(ch, saver, savedData, fs, keepHidden: true);
+            }
+
+            CheckEquality("Text", "ldatopics.tsv");
+            Done();
+        }
     }
 }

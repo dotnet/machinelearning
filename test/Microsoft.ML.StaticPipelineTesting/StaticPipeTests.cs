@@ -518,5 +518,29 @@ namespace Microsoft.ML.StaticPipelineTesting
             type = schema.GetColumnType(ngramshashCol);
             Assert.True(type.IsVector && type.IsKnownSizeVector && type.ItemType.IsNumber);
         }
+
+        [Fact(Skip = "LdaNative dll is missing in ML.Net")]
+        public void LdaTopicModel()
+        {
+            var env = new ConsoleEnvironment(seed: 0);
+            var dataPath = GetDataPath("wikipedia-detox-250-line-data.tsv");
+            var reader = TextLoader.CreateReader(env, ctx => (
+                    label: ctx.LoadBool(0),
+                    text: ctx.LoadText(1)), hasHeader: true);
+            var dataSource = new MultiFileSource(dataPath);
+            var data = reader.Read(dataSource);
+
+            var est = data.MakeNewEstimator()
+                .Append(r => (
+                    r.label,
+                    topics: r.text.ToBagofWords().ToLdaTopicVector(numTopic: 10)));
+
+            var tdata = est.Fit(data).Transform(data);
+            var schema = tdata.AsDynamic.Schema;
+
+            Assert.True(schema.TryGetColumnIndex("topics", out int topicsCol));
+            var type = schema.GetColumnType(topicsCol);
+            Assert.True(type.IsVector && type.IsKnownSizeVector && type.ItemType.IsNumber);
+        }
     }
 }
