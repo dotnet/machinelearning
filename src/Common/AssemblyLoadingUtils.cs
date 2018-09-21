@@ -70,7 +70,7 @@ namespace Microsoft.ML.Runtime
                         throw Contracts.ExceptIO(e, "Extracting extra assembly zip failed: '{0}'", path);
                     }
 
-                    LoadAssembliesInDir(env, dir);
+                    LoadAssembliesInDir(env, dir, false);
                 }
             }
         }
@@ -110,7 +110,75 @@ namespace Microsoft.ML.Runtime
             return Path.GetFullPath(Path.Combine(Path.GetTempPath(), "MLNET_" + guid.ToString()));
         }
 
-        private static void LoadAssembliesInDir(IHostEnvironment env, string dir)
+        private static readonly string[] _filePrefixesToAvoid = new string[] {
+            "api-ms-win",
+            "clr",
+            "coreclr",
+            "dbgshim",
+            "ext-ms-win",
+            "microsoft.bond.",
+            "microsoft.cosmos.",
+            "microsoft.csharp",
+            "microsoft.data.",
+            "microsoft.hpc.",
+            "microsoft.live.",
+            "microsoft.platformbuilder.",
+            "microsoft.visualbasic",
+            "microsoft.visualstudio.",
+            "microsoft.win32",
+            "microsoft.windowsapicodepack.",
+            "microsoft.windowsazure.",
+            "mscor",
+            "msvc",
+            "petzold.",
+            "roslyn.",
+            "sho",
+            "sni",
+            "sqm",
+            "system.",
+            "zlib",
+        };
+
+        private static bool ShouldSkipPath(string path)
+        {
+            string name = Path.GetFileName(path).ToLowerInvariant();
+            switch (name)
+            {
+                case "cqo.dll":
+                case "fasttreenative.dll":
+                case "libiomp5md.dll":
+                case "libvw.dll":
+                case "matrixinterf.dll":
+                case "microsoft.ml.neuralnetworks.gpucuda.dll":
+                case "mklimports.dll":
+                case "microsoft.research.controls.decisiontrees.dll":
+                case "microsoft.ml.neuralnetworks.sse.dll":
+                case "neuraltreeevaluator.dll":
+                case "optimizationbuilderdotnet.dll":
+                case "parallelcommunicator.dll":
+                case "microsoft.ml.runtime.runtests.dll":
+                case "scopecompiler.dll":
+                case "tbb.dll":
+                case "internallearnscope.dll":
+                case "unmanagedlib.dll":
+                case "vcclient.dll":
+                case "libxgboost.dll":
+                case "zedgraph.dll":
+                case "__scopecodegen__.dll":
+                case "cosmosClientApi.dll":
+                    return true;
+            }
+
+            foreach (var s in _filePrefixesToAvoid)
+            {
+                if (name.StartsWith(s))
+                    return true;
+            }
+
+            return false;
+        }
+
+        private static void LoadAssembliesInDir(IHostEnvironment env, string dir, bool filter)
         {
             if (!Directory.Exists(dir))
                 return;
@@ -119,6 +187,9 @@ namespace Microsoft.ML.Runtime
             var paths = Directory.EnumerateFiles(dir, "*.dll");
             foreach (string path in paths)
             {
+                if (filter && ShouldSkipPath(path))
+                    continue;
+
                 LoadAssembly(env, path);
             }
         }
@@ -152,9 +223,9 @@ namespace Microsoft.ML.Runtime
 
                 if (!string.IsNullOrEmpty(path))
                 {
-                    LoadAssembliesInDir(_env, path);
+                    LoadAssembliesInDir(_env, path, true);
                     path = Path.Combine(path, "AutoLoad");
-                    LoadAssembliesInDir(_env, path);
+                    LoadAssembliesInDir(_env, path, true);
                 }
 
                 AppDomain.CurrentDomain.AssemblyLoad += CurrentDomainAssemblyLoad;

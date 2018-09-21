@@ -126,8 +126,9 @@ namespace Microsoft.ML.Legacy
                 throw new ArgumentNullException(nameof(stream));
 
             using (var environment = new ConsoleEnvironment())
-            using (AssemblyLoadingUtils.CreateAssemblyRegistrar(environment))
             {
+                AssemblyLoadingUtils.RegisterCurrentLoadedAssemblies(environment);
+
                 BatchPredictionEngine<TInput, TOutput> predictor =
                     environment.CreateBatchPredictionEngine<TInput, TOutput>(stream);
 
