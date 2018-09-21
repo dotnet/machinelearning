@@ -232,22 +232,15 @@ namespace Microsoft.ML.Runtime.Model.Onnx
                 if (end.Schema.IsHidden(i))
                     continue;
 
-                var idataviewColumnName = end.Schema.GetColumnName(i);;
-                if (_outputsToDrop.Contains(idataviewColumnName) || _inputsToDrop.Contains(idataviewColumnName))
+                var idataviewColumnName = end.Schema.GetColumnName(i);
+
+                if (_outputsToDrop.Contains(idataviewColumnName))
                     continue;
 
                 var variableName = ctx.TryGetVariableName(idataviewColumnName);
-                if (variableName != null)
-                {
-                    ctx.AddOutputVariable(end.Schema.GetColumnType(i), variableName);
-
-                    // For each transform, its exporter function may declare all the transform's outputs as intermediate
-                    // variables inside the computation graph. Therefore, the outputs of the last transofrm would be generated twice;
-                    // one happens in that transform's exporter function and the other one right above at AddOutputVariable(...).
-                    // To avoid duplicated variables, we remove those defined by transform's exporter here.
-                    ctx.RemoveIntermediateVariable(variableName);
-                }
-
+                var trueVariableName = ctx.AddVariable(idataviewColumnName);
+                ctx.CreateNode("Identity", variableName, trueVariableName, ctx.GetNodeName("Identity"));
+                ctx.AddOutputVariable(end.Schema.GetColumnType(i), trueVariableName);
             }
 
             var model = ctx.MakeModel();

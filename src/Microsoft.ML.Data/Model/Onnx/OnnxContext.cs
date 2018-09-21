@@ -24,6 +24,13 @@ namespace Microsoft.ML.Runtime.Model.Onnx
         public abstract string GetNodeName(string prefix);
 
         /// <summary>
+        /// Determine if a string has been used as ONNX variable name somewhere.
+        /// </summary>
+        /// <param name="variableName">examined string</param>
+        /// <returns>True if the input argument has been used to denote an ONNX variable. Otherwise, False.</returns>
+        public abstract bool IsDefined(string variableName);
+
+        /// <summary>
         /// Looks up whether a given data view column has a mapping in the ONNX context. Once confirmed, callers can
         /// safely call <see cref="GetVariableName(string)"/>.
         /// </summary>
@@ -39,13 +46,6 @@ namespace Microsoft.ML.Runtime.Model.Onnx
         /// variable is created through <see cref="AddIntermediateVariable(ColumnType, string, bool)"/>before realizing
         /// the transform cannot actually save as ONNX.</param>
         public abstract void RemoveColumn(string colName, bool removeVariable = false);
-
-        /// <summary>
-        /// Removes an intermediate variable in ONNX graph. Note that it doesn't clean up the naming connection
-        /// between ML.NET columns and ONNX variables.
-        /// </summary>
-        /// <param name="variableName">ONNX variable to remove.</param>
-        public abstract void RemoveIntermediateVariable(string variableName);
 
         /// <summary>
         /// Removes an ONNX variable. If removeColumn is true then it also removes the tracking for the <see
