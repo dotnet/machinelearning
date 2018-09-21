@@ -128,7 +128,7 @@ namespace Microsoft.ML.Runtime.Data
         public ColumnType FeatureColumnType { get; }
 
         public SingleFeaturePredictionTransformerBase(IHost host, TModel model, ISchema trainSchema, string featureColumn)
-            :base(host, model, trainSchema)
+            : base(host, model, trainSchema)
         {
             FeatureColumn = featureColumn;
 
@@ -144,7 +144,7 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         internal SingleFeaturePredictionTransformerBase(IHost host, ModelLoadContext ctx)
-            :base(host, ctx)
+            : base(host, ctx)
         {
             FeatureColumn = ctx.LoadStringOrNull();
 
@@ -162,7 +162,7 @@ namespace Microsoft.ML.Runtime.Data
         {
             Host.CheckValue(inputSchema, nameof(inputSchema));
 
-            if(FeatureColumn != null)
+            if (FeatureColumn != null)
             {
                 if (!inputSchema.TryGetColumnIndex(FeatureColumn, out int col))
                     throw Host.ExceptSchemaMismatch(nameof(inputSchema), RoleMappedSchema.ColumnRole.Feature.Value, FeatureColumn, FeatureColumnType.ToString(), null);
