@@ -74,7 +74,8 @@ namespace Microsoft.ML.Runtime.RunTests
         [Fact(Skip = "Need CoreTLC specific baseline update")]
         public void TestTextDatasetLearn()
         {
-            using (var env = new ConsoleEnvironment())
+            using (var env = new ConsoleEnvironment()
+                .AddStandardComponents()) // AutoInference uses ComponentCatalog to find all learners
             {
                 string pathData = GetDataPath(@"../UnitTest/tweets_labeled_10k_test_validation.tsv");
                 int batchSize = 5;
@@ -141,15 +142,16 @@ namespace Microsoft.ML.Runtime.RunTests
             int batchSize = 1;
             int numIterations = 10;
             int numTransformLevels = 3;
-            using (var env = new ConsoleEnvironment())
+            using (var env = new LocalEnvironment()
+                .AddStandardComponents()) // AutoInference uses ComponentCatalog to find all learners
             {
                 SupportedMetric metric = PipelineSweeperSupportedMetrics.GetSupportedMetric(PipelineSweeperSupportedMetrics.Metrics.Auc);
 
                 // Using the simple, uniform random sampling (with replacement) brain
-                PipelineOptimizerBase autoMlBrain = new UniformRandomEngine(Env);
+                PipelineOptimizerBase autoMlBrain = new UniformRandomEngine(env);
 
                 // Run initial experiments
-                var amls = AutoInference.InferPipelines(Env, autoMlBrain, pathData, "", out var _, numTransformLevels, batchSize,
+                var amls = AutoInference.InferPipelines(env, autoMlBrain, pathData, "", out var _, numTransformLevels, batchSize,
                     metric, out var bestPipeline, numOfSampleRows, new IterationTerminator(numIterations),
                     MacroUtils.TrainerKinds.SignatureBinaryClassifierTrainer);
 
@@ -189,15 +191,16 @@ namespace Microsoft.ML.Runtime.RunTests
             int batchSize = 5;
             int numIterations = 10;
             int numTransformLevels = 1;
-            using (var env = new ConsoleEnvironment())
+            using (var env = new ConsoleEnvironment()
+                .AddStandardComponents()) // AutoInference uses ComponentCatalog to find all learners
             {
                 SupportedMetric metric = PipelineSweeperSupportedMetrics.GetSupportedMetric(PipelineSweeperSupportedMetrics.Metrics.AccuracyMicro);
 
                 // Using the simple, uniform random sampling (with replacement) brain
-                PipelineOptimizerBase autoMlBrain = new UniformRandomEngine(Env);
+                PipelineOptimizerBase autoMlBrain = new UniformRandomEngine(env);
 
                 // Run initial experiments
-                var amls = AutoInference.InferPipelines(Env, autoMlBrain, pathData, "", out var _, numTransformLevels, batchSize,
+                var amls = AutoInference.InferPipelines(env, autoMlBrain, pathData, "", out var _, numTransformLevels, batchSize,
                 metric, out var bestPipeline, numOfSampleRows, new IterationTerminator(numIterations),
                 MacroUtils.TrainerKinds.SignatureRegressorTrainer);
 
@@ -223,15 +226,16 @@ namespace Microsoft.ML.Runtime.RunTests
             int numIterations = 1;
             int numTransformLevels = 2;
             var retainedLearnerNames = new[] { $"LogisticRegressionBinaryClassifier", $"FastTreeBinaryClassifier" };
-            using (var env = new ConsoleEnvironment())
+            using (var env = new ConsoleEnvironment()
+                .AddStandardComponents()) // AutoInference uses ComponentCatalog to find all learners
             {
                 SupportedMetric metric = PipelineSweeperSupportedMetrics.GetSupportedMetric(PipelineSweeperSupportedMetrics.Metrics.Auc);
 
                 // Using the simple, uniform random sampling (with replacement) brain.
-                PipelineOptimizerBase autoMlBrain = new UniformRandomEngine(Env);
+                PipelineOptimizerBase autoMlBrain = new UniformRandomEngine(env);
 
                 // Run initial experiment.
-                var amls = AutoInference.InferPipelines(Env, autoMlBrain, pathData, "", out var _,
+                var amls = AutoInference.InferPipelines(env, autoMlBrain, pathData, "", out var _,
                 numTransformLevels, batchSize, metric, out var _, numOfSampleRows,
                 new IterationTerminator(numIterations), MacroUtils.TrainerKinds.SignatureBinaryClassifierTrainer);
 
