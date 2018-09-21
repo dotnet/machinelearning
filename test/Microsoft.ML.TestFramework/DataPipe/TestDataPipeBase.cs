@@ -96,7 +96,6 @@ namespace Microsoft.ML.Runtime.RunTests
             }
 
             var transformer = estimator.Fit(validFitInput);
-            // Check whether it's a mapper.
             // Save and reload.
             string modelPath = GetOutputPath(TestName + "-model.zip");
             using (var fs = File.Create(modelPath))
@@ -112,12 +111,16 @@ namespace Microsoft.ML.Runtime.RunTests
             {
                 var schema = transformer.GetOutputSchema(data.Schema);
 
-                // If it's a row to row mapper, then the output name.
+                // If it's a row to row mapper, then the output schema should be the same.
                 if (transformer.IsRowToRowMapper)
                 {
                     var mapper = transformer.GetRowToRowMapper(data.Schema);
                     Check(mapper.InputSchema == data.Schema, "InputSchemas were not identical to actual input schema");
                     CheckSameSchemas(schema, mapper.Schema);
+                }
+                else
+                {
+                    mustFail(() => transformer.GetRowToRowMapper(data.Schema));
                 }
 
                 // Loaded transformer needs to have the same schema propagation.
