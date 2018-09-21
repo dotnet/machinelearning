@@ -11,7 +11,7 @@
     <ProjectReference Include="..\Microsoft.ML.Core\Microsoft.ML.Core.csproj" />
     <ProjectReference Include="..\Microsoft.ML.Data\Microsoft.ML.Data.csproj" />
     <ProjectReference Include="..\Microsoft.ML.ImageAnalytics\Microsoft.ML.ImageAnalytics.csproj" />
-    <PackageReference Include="Microsoft.ML.Scoring" Version="1.0.4-dev46781-sonoma-cs" />
+    <PackageReference Include="Microsoft.ML.Scoring" Version="1.0.4-dev47509" />
   </ItemGroup>
 
 
