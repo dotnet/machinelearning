@@ -34,16 +34,7 @@ namespace Microsoft.ML.Runtime.Data
         Zca
     }
 
-    /// <summary>
-    /// Implements PCA (Principal Component Analysis) and ZCA (Zero phase Component Analysis) whitening.
-    /// The whitening process consists of 2 steps:
-    /// 1. Decorrelation of the input data. Input data is assumed to have zero mean.
-    /// 2. Rescale decorrelated features to have unit variance.
-    /// That is, PCA whitening is essentially just a PCA + rescale.
-    /// ZCA whitening tries to make resulting data to look more like input data by rotating it back to the
-    /// original input space.
-    /// More information: <a href="http://ufldl.stanford.edu/wiki/index.php/Whitening">http://ufldl.stanford.edu/wiki/index.php/Whitening</a>
-    /// </summary>
+    /// <include file='doc.xml' path='doc/members/member[@name="Whitening"]/*'/>
     public sealed class WhiteningTransform : OneToOneTransformBase
     {
         private static class Defaults

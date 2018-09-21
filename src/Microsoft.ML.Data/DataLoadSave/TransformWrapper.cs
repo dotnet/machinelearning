@@ -110,24 +110,24 @@ namespace Microsoft.ML.Runtime.Data
     /// <summary>
     /// Estimator for trained wrapped transformers.
     /// </summary>
-    internal abstract class TrainedWrapperEstimatorBase : IEstimator<TransformWrapper>
+    public abstract class TrainedWrapperEstimatorBase : IEstimator<TransformWrapper>
     {
-        private readonly IHost _host;
+        protected readonly IHost Host;
 
         protected TrainedWrapperEstimatorBase(IHost host)
         {
             Contracts.CheckValue(host, nameof(host));
-            _host = host;
+            Host = host;
         }
 
         public abstract TransformWrapper Fit(IDataView input);
 
         public SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {
-            _host.CheckValue(inputSchema, nameof(inputSchema));
+            Host.CheckValue(inputSchema, nameof(inputSchema));
 
-            var fakeSchema = new FakeSchema(_host, inputSchema);
-            var transformer = Fit(new EmptyDataView(_host, fakeSchema));
+            var fakeSchema = new FakeSchema(Host, inputSchema);
+            var transformer = Fit(new EmptyDataView(Host, fakeSchema));
             return SchemaShape.Create(transformer.GetOutputSchema(fakeSchema));
         }
     }
