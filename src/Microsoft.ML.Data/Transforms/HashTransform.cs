@@ -197,7 +197,7 @@ namespace Microsoft.ML.Transforms
                 verReadableCur: 0x00010002,
                 verWeCanReadBack: 0x00010002,
                 loaderSignature: LoaderSignature,
-                loaderAssemblyName: typeof(HashTransform).Assembly.FullName);
+                loaderAssemblyName: typeof(HashTransformer).Assembly.FullName);
         }
 
         private readonly ColumnInfo[] _columns;
