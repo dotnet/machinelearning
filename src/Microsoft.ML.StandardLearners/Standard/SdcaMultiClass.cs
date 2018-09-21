@@ -70,7 +70,7 @@ namespace Microsoft.ML.Runtime.Learners
             };
         }
 
-        public SdcaMultiClassTrainer(IHostEnvironment env, Arguments args)
+        internal SdcaMultiClassTrainer(IHostEnvironment env, Arguments args)
             : this(env, args, args.FeatureColumn, args.LabelColumn)
         {
         }

@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.IO;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
@@ -23,53 +22,48 @@ using Microsoft.ML.Runtime.Model;
 
 namespace Microsoft.ML.Runtime.Data
 {
-    public abstract class PredictionTransformerBase<TModel> : IPredictionTransformer<TModel>, ICanSaveModel
+
+    /// <summary>
+    /// Base class for transformers with no feature column, or more than one feature columns.
+    /// </summary>
+    /// <typeparam name="TModel"></typeparam>
+    public abstract class PredictionTransformerBase<TModel> : IPredictionTransformer<TModel>
         where TModel : class, IPredictor
     {
-        private const string DirModel = "Model";
-        private const string DirTransSchema = "TrainSchema";
-
-        protected readonly IHost Host;
-        protected readonly ISchemaBindableMapper BindableMapper;
-        protected readonly ISchema TrainSchema;
-
-        public string FeatureColumn { get; }
-
-        public ColumnType FeatureColumnType { get; }
-
+        /// <summary>
+        /// The model.
+        /// </summary>
         public TModel Model { get; }
 
-        public PredictionTransformerBase(IHost host, TModel model, ISchema trainSchema, string featureColumn)
+        protected const string DirModel = "Model";
+        protected const string DirTransSchema = "TrainSchema";
+        protected readonly IHost Host;
+        protected ISchemaBindableMapper BindableMapper;
+        protected ISchema TrainSchema;
+
+        protected PredictionTransformerBase(IHost host, TModel model, ISchema trainSchema)
         {
             Contracts.CheckValue(host, nameof(host));
-            Contracts.CheckValueOrNull(featureColumn);
+
             Host = host;
             Host.CheckValue(trainSchema, nameof(trainSchema));
 
             Model = model;
-            FeatureColumn = featureColumn;
-            if (featureColumn == null)
-                FeatureColumnType = null;
-            else if (!trainSchema.TryGetColumnIndex(featureColumn, out int col))
-                throw Host.ExceptSchemaMismatch(nameof(featureColumn), RoleMappedSchema.ColumnRole.Feature.Value, featureColumn);
-            else
-                FeatureColumnType = trainSchema.GetColumnType(col);
-
             TrainSchema = trainSchema;
-            BindableMapper = ScoreUtils.GetSchemaBindableMapper(Host, model);
         }
 
-        internal PredictionTransformerBase(IHost host, ModelLoadContext ctx)
+        protected PredictionTransformerBase(IHost host, ModelLoadContext ctx)
+
         {
             Host = host;
-
-            ctx.LoadModel<TModel, SignatureLoadModel>(host, out TModel model, DirModel);
-            Model = model;
 
             // *** Binary format ***
             // model: prediction model.
             // stream: empty data view that contains train schema.
             // id of string: feature column.
+
+            ctx.LoadModel<TModel, SignatureLoadModel>(host, out TModel model, DirModel);
+            Model = model;
 
             // Clone the stream with the schema into memory.
             var ms = new MemoryStream();
@@ -81,8 +75,79 @@ namespace Microsoft.ML.Runtime.Data
             ms.Position = 0;
             var loader = new BinaryLoader(host, new BinaryLoader.Arguments(), ms);
             TrainSchema = loader.Schema;
+        }
 
+        /// <summary>
+        /// Gets the output schema resulting from the <see cref="Transform(IDataView)"/>
+        /// </summary>
+        /// <param name="inputSchema">The <see cref="ISchema"/> of the input data.</param>
+        /// <returns>The resulting <see cref="ISchema"/>.</returns>
+        public abstract ISchema GetOutputSchema(ISchema inputSchema);
+
+        /// <summary>
+        /// Transforms the input data.
+        /// </summary>
+        /// <param name="input">The input data.</param>
+        /// <returns>The transformed <see cref="IDataView"/></returns>
+        public abstract IDataView Transform(IDataView input);
+
+        protected void SaveModel(ModelSaveContext ctx)
+        {
+            // *** Binary format ***
+            // <base info>
+            // stream: empty data view that contains train schema.
+
+            ctx.SaveModel(Model, DirModel);
+            ctx.SaveBinaryStream(DirTransSchema, writer =>
+            {
+                using (var ch = Host.Start("Saving train schema"))
+                {
+                    var saver = new BinarySaver(Host, new BinarySaver.Arguments { Silent = true });
+                    DataSaverUtils.SaveDataView(ch, saver, new EmptyDataView(Host, TrainSchema), writer.BaseStream);
+                }
+            });
+        }
+    }
+
+    /// <summary>
+    /// The base class for all the transformers implementing the <see cref="ISingleFeaturePredictionTransformer{TModel}"/>.
+    /// Those are all the transformers that work with one feature column.
+    /// </summary>
+    /// <typeparam name="TModel">The model used to transform the data.</typeparam>
+    public abstract class SingleFeaturePredictionTransformerBase<TModel> : PredictionTransformerBase<TModel>, ISingleFeaturePredictionTransformer<TModel>, ICanSaveModel
+        where TModel : class, IPredictor
+    {
+        /// <summary>
+        /// The name of the feature column used by the prediction transformer.
+        /// </summary>
+        public string FeatureColumn { get; }
+
+        /// <summary>
+        /// The type of the prediction transformer
+        /// </summary>
+        public ColumnType FeatureColumnType { get; }
+
+        public SingleFeaturePredictionTransformerBase(IHost host, TModel model, ISchema trainSchema, string featureColumn)
+            :base(host, model, trainSchema)
+        {
+            FeatureColumn = featureColumn;
+
+            FeatureColumn = featureColumn;
+            if (featureColumn == null)
+                FeatureColumnType = null;
+            else if (!trainSchema.TryGetColumnIndex(featureColumn, out int col))
+                throw Host.ExceptSchemaMismatch(nameof(featureColumn), RoleMappedSchema.ColumnRole.Feature.Value, featureColumn);
+            else
+                FeatureColumnType = trainSchema.GetColumnType(col);
+
+            BindableMapper = ScoreUtils.GetSchemaBindableMapper(Host, model);
+        }
+
+        internal SingleFeaturePredictionTransformerBase(IHost host, ModelLoadContext ctx)
+            :base(host, ctx)
+        {
             FeatureColumn = ctx.LoadStringOrNull();
+
             if (FeatureColumn == null)
                 FeatureColumnType = null;
             else if (!TrainSchema.TryGetColumnIndex(FeatureColumn, out int col))
@@ -90,10 +155,10 @@ namespace Microsoft.ML.Runtime.Data
             else
                 FeatureColumnType = TrainSchema.GetColumnType(col);
 
-            BindableMapper = ScoreUtils.GetSchemaBindableMapper(Host, model);
+            BindableMapper = ScoreUtils.GetSchemaBindableMapper(Host, Model);
         }
 
-        public ISchema GetOutputSchema(ISchema inputSchema)
+        public override ISchema GetOutputSchema(ISchema inputSchema)
         {
             Host.CheckValue(inputSchema, nameof(inputSchema));
 
@@ -108,8 +173,6 @@ namespace Microsoft.ML.Runtime.Data
             return Transform(new EmptyDataView(Host, inputSchema)).Schema;
         }
 
-        public abstract IDataView Transform(IDataView input);
-
         public void Save(ModelSaveContext ctx)
         {
             Host.CheckValue(ctx, nameof(ctx));
@@ -119,26 +182,16 @@ namespace Microsoft.ML.Runtime.Data
 
         protected virtual void SaveCore(ModelSaveContext ctx)
         {
-            // *** Binary format ***
-            // model: prediction model.
-            // stream: empty data view that contains train schema.
-            // id of string: feature column.
-
-            ctx.SaveModel(Model, DirModel);
-            ctx.SaveBinaryStream(DirTransSchema, writer =>
-            {
-                using (var ch = Host.Start("Saving train schema"))
-                {
-                    var saver = new BinarySaver(Host, new BinarySaver.Arguments { Silent = true });
-                    DataSaverUtils.SaveDataView(ch, saver, new EmptyDataView(Host, TrainSchema), writer.BaseStream);
-                }
-            });
-
+            SaveModel(ctx);
             ctx.SaveStringOrNull(FeatureColumn);
         }
     }
 
-    public sealed class BinaryPredictionTransformer<TModel> : PredictionTransformerBase<TModel>
+    /// <summary>
+    /// Base class for the <see cref="ISingleFeaturePredictionTransformer{TModel}"/> working on binary classification tasks.
+    /// </summary>
+    /// <typeparam name="TModel">An implementation of the <see cref="IPredictorProducing{TResult}"/></typeparam>
+    public sealed class BinaryPredictionTransformer<TModel> : SingleFeaturePredictionTransformerBase<TModel>
         where TModel : class, IPredictorProducing<float>
     {
         private readonly BinaryClassifierScorer _scorer;
@@ -207,7 +260,11 @@ namespace Microsoft.ML.Runtime.Data
         }
     }
 
-    public sealed class MulticlassPredictionTransformer<TModel> : PredictionTransformerBase<TModel>
+    /// <summary>
+    /// Base class for the <see cref="ISingleFeaturePredictionTransformer{TModel}"/> working on multi-class classification tasks.
+    /// </summary>
+    /// <typeparam name="TModel">An implementation of the <see cref="IPredictorProducing{TResult}"/></typeparam>
+    public sealed class MulticlassPredictionTransformer<TModel> : SingleFeaturePredictionTransformerBase<TModel>
         where TModel : class, IPredictorProducing<VBuffer<float>>
     {
         private readonly MultiClassClassifierScorer _scorer;
@@ -268,7 +325,11 @@ namespace Microsoft.ML.Runtime.Data
         }
     }
 
-    public sealed class RegressionPredictionTransformer<TModel> : PredictionTransformerBase<TModel>
+    /// <summary>
+    /// Base class for the <see cref="ISingleFeaturePredictionTransformer{TModel}"/> working on regression tasks.
+    /// </summary>
+    /// <typeparam name="TModel">An implementation of the <see cref="IPredictorProducing{TResult}"/></typeparam>
+    public sealed class RegressionPredictionTransformer<TModel> : SingleFeaturePredictionTransformerBase<TModel>
         where TModel : class, IPredictorProducing<float>
     {
         private readonly GenericScorer _scorer;
@@ -314,7 +375,7 @@ namespace Microsoft.ML.Runtime.Data
         }
     }
 
-    public sealed class RankingPredictionTransformer<TModel> : PredictionTransformerBase<TModel>
+    public sealed class RankingPredictionTransformer<TModel> : SingleFeaturePredictionTransformerBase<TModel>
     where TModel : class, IPredictorProducing<float>
     {
         private readonly GenericScorer _scorer;

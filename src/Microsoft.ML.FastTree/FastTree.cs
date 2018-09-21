@@ -46,7 +46,7 @@ namespace Microsoft.ML.Runtime.FastTree
 
     public abstract class FastTreeTrainerBase<TArgs, TTransformer, TModel> :
         TrainerEstimatorBase<TTransformer, TModel>
-        where TTransformer: IPredictionTransformer<TModel>
+        where TTransformer: ISingleFeaturePredictionTransformer<TModel>
         where TArgs : TreeArgs, new()
         where TModel : IPredictorProducing<Float>
     {
