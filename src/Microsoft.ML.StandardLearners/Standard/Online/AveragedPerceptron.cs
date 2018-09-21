@@ -95,9 +95,7 @@ namespace Microsoft.ML.Runtime.Learners
         }
 
         private static SchemaShape.Column MakeLabelColumn(string labelColumn)
-        {
-            return new SchemaShape.Column(labelColumn, SchemaShape.Column.VectorKind.Scalar, BoolType.Instance, false);
-        }
+            => new SchemaShape.Column(labelColumn, SchemaShape.Column.VectorKind.Scalar, BoolType.Instance, false);
 
         protected override LinearBinaryPredictor CreatePredictor()
         {

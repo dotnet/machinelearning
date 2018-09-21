@@ -66,7 +66,7 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
             // list (that is, NaN is considered to be ordered "below" any other value for the purpose of
             // a sort, including negative infinity). So when checking if values contains no NaN values, it
             // suffices to check only the first item.
-            if (valArray[0].IsNA())
+            if (double.IsNaN(valArray[0]))
                 return -1;
             int idist = 0; // Index into the "distinct" arrays.
             if (!values.IsDense && valArray[0] > 0)

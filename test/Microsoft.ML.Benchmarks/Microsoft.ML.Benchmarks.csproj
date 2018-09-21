@@ -1,4 +1,5 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="$(RepoRoot)\build\ExternalBenchmarkDataFiles.props" /> 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <LangVersion>7.2</LangVersion>
@@ -22,6 +23,7 @@
   </ItemGroup>
   <ItemGroup>
     <NativeAssemblyReference Include="CpuMathNative" />
+    <NativeAssemblyReference Include="FastTreeNative" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Input\" />
@@ -34,9 +36,13 @@
     <None Include="..\data\wikipedia-detox-250-line-data.tsv" Link="Input\wikipedia-detox-250-line-data.tsv">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Condition="Exists('..\data\external\WikiDetoxAnnotated160kRows.tsv')"
-                  Include="..\data\external\WikiDetoxAnnotated160kRows.tsv"
-                  Link="external\WikiDetoxAnnotated160kRows.tsv">
+
+    <BenchmarkFile Update="@(BenchmarkFile)">
+      <Link>external\%(Identity)</Link>
+    </BenchmarkFile>
+
+    <None Condition="Exists('@(BenchmarkFile->'..\data\external\%(Identity)')')"
+          Include="@(BenchmarkFile->'..\data\external\%(Identity)')">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>

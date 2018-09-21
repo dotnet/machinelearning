@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -114,12 +114,9 @@ namespace Microsoft.ML.Runtime.Data
                 }
             }
 
-            public bool GetWordVector(ref DvText word, float[] wordVector)
+            public bool GetWordVector(ref ReadOnlyMemory<char> word, float[] wordVector)
             {
-                if (word.IsNA)
-                    return false;
-                string rawWord = word.GetRawUnderlyingBufferInfo(out int ichMin, out int ichLim);
-                NormStr str = _pool.Get(rawWord, ichMin, ichLim);
+                NormStr str = _pool.Get(word);
                 if (str != null)
                 {
                     _wordVectors.CopyTo(str.Id * Dimension, wordVector, Dimension);
@@ -339,15 +336,14 @@ namespace Microsoft.ML.Runtime.Data
             private ValueGetter<VBuffer<float>> GetGetterVec(IRow input, int iinfo)
             {
                 Host.AssertValue(input);
-
                 Host.Assert(0 <= iinfo && iinfo < _parent.ColumnPairs.Length);
 
                 var colType = input.Schema.GetColumnType(ColMapNewToOld[iinfo]);
                 Host.Assert(colType.IsVector);
                 Host.Assert(colType.ItemType.IsText);
 
-                var srcGetter = input.GetGetter<VBuffer<DvText>>(ColMapNewToOld[iinfo]);
-                var src = default(VBuffer<DvText>);
+                var srcGetter = input.GetGetter<VBuffer<ReadOnlyMemory<char>>>(ColMapNewToOld[iinfo]);
+                var src = default(VBuffer<ReadOnlyMemory<char>>);
                 int dimension = _parent._currentVocab.Dimension;
                 float[] wordVector = new float[_parent._currentVocab.Dimension];
 

@@ -147,14 +147,14 @@ namespace Microsoft.ML.Tests
                 var result = transformer.Transform(term);
                 result.Schema.TryGetColumnIndex("T", out int termIndex);
                 result.Schema.TryGetColumnIndex("T1", out int copyIndex);
-                var names1 = default(VBuffer<DvText>);
-                var names2 = default(VBuffer<DvText>);
+                var names1 = default(VBuffer<ReadOnlyMemory<char>>);
+                var names2 = default(VBuffer<ReadOnlyMemory<char>>);
                 var type1 = result.Schema.GetColumnType(termIndex);
                 int size = type1.ItemType.IsKey ? type1.ItemType.KeyCount : -1;
                 var type2 = result.Schema.GetColumnType(copyIndex);
                 result.Schema.GetMetadata(MetadataUtils.Kinds.KeyValues, termIndex, ref names1);
                 result.Schema.GetMetadata(MetadataUtils.Kinds.KeyValues, copyIndex, ref names2);
-                Assert.True(CompareVec(ref names1, ref names2, size, DvText.Identical));
+                Assert.True(CompareVec(ref names1, ref names2, size, (a, b) => a.Span.SequenceEqual(b.Span)));
             }
         }
 
@@ -171,16 +171,16 @@ namespace Microsoft.ML.Tests
         {
             using (var cursor = result.GetRowCursor(x => true))
             {
-                DvInt4 avalue = 0;
-                DvInt4 bvalue = 0;
-                DvInt4 dvalue = 0;
-                DvInt4 evalue = 0;
-                DvInt4 fvalue = 0;
-                var aGetter = cursor.GetGetter<DvInt4>(0);
-                var bGetter = cursor.GetGetter<DvInt4>(1);
-                var dGetter = cursor.GetGetter<DvInt4>(3);
-                var eGetter = cursor.GetGetter<DvInt4>(4);
-                var fGetter = cursor.GetGetter<DvInt4>(5);
+                int avalue = 0;
+                int bvalue = 0;
+                int dvalue = 0;
+                int evalue = 0;
+                int fvalue = 0;
+                var aGetter = cursor.GetGetter<int>(0);
+                var bGetter = cursor.GetGetter<int>(1);
+                var dGetter = cursor.GetGetter<int>(3);
+                var eGetter = cursor.GetGetter<int>(4);
+                var fGetter = cursor.GetGetter<int>(5);
                 while (cursor.MoveNext())
                 {
                     aGetter(ref avalue);

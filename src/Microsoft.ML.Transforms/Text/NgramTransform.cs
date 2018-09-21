@@ -303,7 +303,7 @@ namespace Microsoft.ML.Runtime.Data
 
             ctx.Writer.Write(sizeof(Float));
             SaveBase(ctx);
-            var ngramsNames = default(VBuffer<DvText>);
+            var ngramsNames = default(VBuffer<ReadOnlyMemory<char>>);
             for (int i = 0; i < _exes.Length; i++)
             {
                 _exes[i].Save(ctx);
@@ -358,7 +358,7 @@ namespace Microsoft.ML.Runtime.Data
                     if (_ngramMaps[iinfo].Count > 0)
                     {
                         slotNamesTypes[iinfo] = new VectorType(TextType.Instance, _ngramMaps[iinfo].Count);
-                        bldr.AddGetter<VBuffer<DvText>>(MetadataUtils.Kinds.SlotNames,
+                        bldr.AddGetter<VBuffer<ReadOnlyMemory<char>>>(MetadataUtils.Kinds.SlotNames,
                             slotNamesTypes[iinfo], GetSlotNames);
                     }
                 }
@@ -366,7 +366,7 @@ namespace Microsoft.ML.Runtime.Data
             md.Seal();
         }
 
-        private void GetSlotNames(int iinfo, ref VBuffer<DvText> dst)
+        private void GetSlotNames(int iinfo, ref VBuffer<ReadOnlyMemory<char>> dst)
         {
             Host.Assert(0 <= iinfo && iinfo < Infos.Length);
             Host.Assert(_slotNamesTypes[iinfo] != null);
@@ -374,7 +374,7 @@ namespace Microsoft.ML.Runtime.Data
             var keyCount = Infos[iinfo].TypeSrc.ItemType.KeyCount;
             Host.Assert(Source.Schema.HasKeyNames(Infos[iinfo].Source, keyCount));
 
-            var unigramNames = new VBuffer<DvText>();
+            var unigramNames = new VBuffer<ReadOnlyMemory<char>>();
 
             // Get the key values of the unigrams.
             Source.Schema.GetMetadata(MetadataUtils.Kinds.KeyValues, Infos[iinfo].Source, ref unigramNames);
@@ -397,13 +397,13 @@ namespace Microsoft.ML.Runtime.Data
                 // Get the unigrams composing the current ngram.
                 ComposeNgramString(ngram, n, sb, keyCount,
                     unigramNames.GetItemOrDefault);
-                values[slot] = new DvText(sb.ToString());
+                values[slot] = sb.ToString().AsMemory();
             }
 
-            dst = new VBuffer<DvText>(ngramCount, values, dst.Indices);
+            dst = new VBuffer<ReadOnlyMemory<char>>(ngramCount, values, dst.Indices);
         }
 
-        private delegate void TermGetter(int index, ref DvText term);
+        private delegate void TermGetter(int index, ref ReadOnlyMemory<char> term);
 
         private void ComposeNgramString(uint[] ngram, int count, StringBuilder sb, int keyCount, TermGetter termGetter)
         {
@@ -412,7 +412,7 @@ namespace Microsoft.ML.Runtime.Data
             Host.Assert(keyCount > 0);
 
             sb.Clear();
-            DvText term = default(DvText);
+            ReadOnlyMemory<char> term = default;
             string sep = "";
             for (int iterm = 0; iterm < count; iterm++)
             {
@@ -424,7 +424,7 @@ namespace Microsoft.ML.Runtime.Data
                 else
                 {
                     termGetter((int)unigram - 1, ref term);
-                    term.AddToStringBuilder(sb);
+                    sb.AppendMemory(term);
                 }
             }
         }

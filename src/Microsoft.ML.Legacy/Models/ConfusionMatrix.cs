@@ -52,7 +52,7 @@ namespace Microsoft.ML.Legacy.Models
             }
 
             IRowCursor cursor = confusionMatrix.GetRowCursor(col => col == countColumn);
-            var slots = default(VBuffer<DvText>);
+            var slots = default(VBuffer<ReadOnlyMemory<char>>);
             confusionMatrix.Schema.GetMetadata(MetadataUtils.Kinds.SlotNames, countColumn, ref slots);
             string[] classNames = new string[slots.Count];
             for (int i = 0; i < slots.Count; i++)

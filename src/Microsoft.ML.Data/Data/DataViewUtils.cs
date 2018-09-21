@@ -1312,14 +1312,14 @@ namespace Microsoft.ML.Runtime.Data
             }
         }
 
-        public static ValueGetter<DvText>[] PopulateGetterArray(IRowCursor cursor, List<int> colIndices)
+        public static ValueGetter<ReadOnlyMemory<char>>[] PopulateGetterArray(IRowCursor cursor, List<int> colIndices)
         {
             var n = colIndices.Count;
-            var getters = new ValueGetter<DvText>[n];
+            var getters = new ValueGetter<ReadOnlyMemory<char>>[n];
 
             for (int i = 0; i < n; i++)
             {
-                ValueGetter<DvText> getter;
+                ValueGetter<ReadOnlyMemory<char>> getter;
                 var srcColIndex = colIndices[i];
 
                 var colType = cursor.Schema.GetColumnType(srcColIndex);
@@ -1340,7 +1340,7 @@ namespace Microsoft.ML.Runtime.Data
             return getters;
         }
 
-        public static ValueGetter<DvText> GetSingleValueGetter<T>(IRow cursor, int i, ColumnType colType)
+        public static ValueGetter<ReadOnlyMemory<char>> GetSingleValueGetter<T>(IRow cursor, int i, ColumnType colType)
         {
             var floatGetter = cursor.GetGetter<T>(i);
             T v = default(T);
@@ -1359,18 +1359,18 @@ namespace Microsoft.ML.Runtime.Data
             }
 
             StringBuilder dst = null;
-            ValueGetter<DvText> getter =
-                (ref DvText value) =>
+            ValueGetter<ReadOnlyMemory<char>> getter =
+                (ref ReadOnlyMemory<char> value) =>
                 {
                     floatGetter(ref v);
                     conversion(ref v, ref dst);
                     string text = dst.ToString();
-                    value = new DvText(text);
+                    value = text.AsMemory();
                 };
             return getter;
         }
 
-        public static ValueGetter<DvText> GetVectorFlatteningGetter<T>(IRow cursor, int colIndex, ColumnType colType)
+        public static ValueGetter<ReadOnlyMemory<char>> GetVectorFlatteningGetter<T>(IRow cursor, int colIndex, ColumnType colType)
         {
             var vecGetter = cursor.GetGetter<VBuffer<T>>(colIndex);
             var vbuf = default(VBuffer<T>);
@@ -1378,8 +1378,8 @@ namespace Microsoft.ML.Runtime.Data
             ValueMapper<T, StringBuilder> conversion;
             Conversions.Instance.TryGetStringConversion<T>(colType, out conversion);
             StringBuilder dst = null;
-            ValueGetter<DvText> getter =
-                (ref DvText value) =>
+            ValueGetter<ReadOnlyMemory<char>> getter =
+                (ref ReadOnlyMemory<char> value) =>
                 {
                     vecGetter(ref vbuf);
 
@@ -1393,7 +1393,7 @@ namespace Microsoft.ML.Runtime.Data
                                 conversion(ref v, ref dst);
                                 return dst.ToString();
                             }));
-                    value = new DvText(string.Format("<{0}{1}>", stringRep, suffix));
+                    value = string.Format("<{0}{1}>", stringRep, suffix).AsMemory();
                 };
             return getter;
         }
