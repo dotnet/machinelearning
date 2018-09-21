@@ -91,7 +91,7 @@ namespace Microsoft.ML.Transforms
         /// <param name="source">Name of the input column(s). Keep it same as in the Tensorflow model.</param>
         public static IDataTransform Create(IHostEnvironment env, IDataView input, string model, string[] names, string[] source)
         {
-            return new TensorFlowTransform(env, TensorFlowUtils.GetSession(env, model), source, names, TensorFlowUtils.IsSavedModel(model) ? model : null, false).MakeDataTransform(input);
+            return new TensorFlowTransform(env, TensorFlowUtils.GetSession(env, model), source, names, TensorFlowUtils.IsSavedModel(env, model) ? model : null, false).MakeDataTransform(input);
         }
 
         // Factory method for SignatureLoadModel.
@@ -120,7 +120,7 @@ namespace Microsoft.ML.Transforms
             }
 
             var tempDirPath = Path.GetFullPath(Path.Combine(Path.GetTempPath(), RegistrationName + "_" + Guid.NewGuid()));
-            TensorFlowUtils.CreateTempDirectory(tempDirPath);
+            TensorFlowUtils.CreateFolderWithAclIfNotExists(env, tempDirPath);
 
             var load = ctx.TryLoadBinaryStream("TFSavedModel", br =>
             {
@@ -134,7 +134,7 @@ namespace Microsoft.ML.Transforms
                     string fullFileDir = Path.GetDirectoryName(fullFilePath);
                     if (fullFileDir != tempDirPath)
                     {
-                        TensorFlowUtils.CreateTempDirectory(fullFileDir);
+                        TensorFlowUtils.CreateFolderWithAclIfNotExists(env, fullFileDir);
                     }
 
                     using (var fs = new FileStream(fullFilePath, FileMode.Create, FileAccess.Write))
@@ -157,7 +157,7 @@ namespace Microsoft.ML.Transforms
             env.CheckValue(args.InputColumns, nameof(args.InputColumns));
             env.CheckValue(args.OutputColumns, nameof(args.OutputColumns));
 
-            return new TensorFlowTransform(env, TensorFlowUtils.GetSession(env, args.Model), args.InputColumns, args.OutputColumns, TensorFlowUtils.IsSavedModel(args.Model) ? args.Model : null, false).MakeDataTransform(input);
+            return new TensorFlowTransform(env, TensorFlowUtils.GetSession(env, args.Model), args.InputColumns, args.OutputColumns, TensorFlowUtils.IsSavedModel(env, args.Model) ? args.Model : null, false).MakeDataTransform(input);
         }
 
         // Factory method for SignatureLoadDataTransform.
@@ -648,7 +648,7 @@ namespace Microsoft.ML.Transforms
     public sealed class TensorFlowEstimator : TrivialEstimator<TensorFlowTransform>
     {
         public TensorFlowEstimator(IHostEnvironment env, string model, string[] inputs, string[] outputs)
-           : this(env, new TensorFlowTransform(env, TensorFlowUtils.GetSession(env, model), inputs, outputs, TensorFlowUtils.IsSavedModel(model) ? model : null, false))
+           : this(env, new TensorFlowTransform(env, TensorFlowUtils.GetSession(env, model), inputs, outputs, TensorFlowUtils.IsSavedModel(env, model) ? model : null, false))
         {
         }
 

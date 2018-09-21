@@ -2,17 +2,17 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.ML.Runtime;
+using Microsoft.ML.Runtime.Data;
+using Microsoft.ML.Runtime.ImageAnalytics.EntryPoints;
+using Microsoft.ML.Runtime.Internal.Utilities;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.ImageAnalytics.EntryPoints;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using System.Security.Principal;
 using System.Security.AccessControl;
+using System.Security.Principal;
 
 namespace Microsoft.ML.Transforms.TensorFlow
 {
@@ -171,18 +171,28 @@ namespace Microsoft.ML.Transforms.TensorFlow
 
             return TFSession.FromSavedModel(sessionOptions, null, exportDir, tags, graph, metaGraphDef);
         }
+
         // A TensorFlow frozen model is a single file. An un-frozen (SavedModel) on the other hand has a well-defined folder structure.
         // Given a modelPath, this utility method determines if we should treat it as a SavedModel or not
-        internal static bool IsSavedModel(string modelPath)
+        internal static bool IsSavedModel(IHostEnvironment env, string modelPath)
         {
+            env.CheckNonWhiteSpace(modelPath, nameof(modelPath));
             FileAttributes attr = File.GetAttributes(modelPath);
             return attr.HasFlag(FileAttributes.Directory);
         }
 
-        internal static void CreateTempDirectory(string tempDirPath)
+        // Currently used in TensorFlowTransform to protect temporary folders used when working with TensorFlow's SavedModel format.
+        // Models are considered executable code, so we need to ACL tthe temp folders for high-rights process (so low-rights process can’t access it).
+        /// <summary>
+        ///  Given a folder path, create it with proper ACL if it doesn't exist.
+        ///  Fails if the folder name is empty, or can't create the folder.
+        /// </summary>
+        internal static void CreateFolderWithAclIfNotExists(IHostEnvironment env, string folder)
         {
+            env.CheckNonWhiteSpace(folder, nameof(folder));
+
             //if directory exists, do nothing.
-            if (Directory.Exists(tempDirPath))
+            if (Directory.Exists(folder))
                 return;
 
             WindowsIdentity currentIdentity = null;
@@ -197,13 +207,22 @@ namespace Microsoft.ML.Transforms.TensorFlow
             {
                 // Create high integrity dir and set no delete policy for all files under the directory.
                 // In case of failure, throw exception.
-                CreateTempDirectoryWithAcl(tempDirPath, currentIdentity.User.ToString());
+                CreateTempDirectoryWithAcl(folder, currentIdentity.User.ToString());
             }
             else
-                Directory.CreateDirectory(tempDirPath);
+            {
+                try
+                {
+                    Directory.CreateDirectory(folder);
+                }
+                catch (Exception exc)
+                {
+                    throw Contracts.ExceptParam(nameof(folder), $"Failed to create folder for the provided path: {folder}. \nException: {exc.Message}");
+                }
+            }
         }
 
-        private static void CreateTempDirectoryWithAcl(string dirPath, string identity)
+        private static void CreateTempDirectoryWithAcl(string folder, string identity)
         {
             // Dacl Sddl string:
             // D: Dacl type
@@ -221,38 +240,42 @@ namespace Microsoft.ML.Transforms.TensorFlow
             // HI High integrity processes only
             string sddl = "D:(D;OI;SD;;;" + identity + ")(A;OICI;FA;;;BA)S:(ML;OI;NW;;;HI)";
 
-            var dir = Directory.CreateDirectory(dirPath);
-            DirectorySecurity dirSec = new DirectorySecurity();
-            dirSec.SetSecurityDescriptorSddlForm(sddl);
-            dirSec.SetAccessRuleProtection(true, false);  // disable inheritance
-            dir.SetAccessControl(dirSec);
+            try
+            {
+                var dir = Directory.CreateDirectory(folder);
+                DirectorySecurity dirSec = new DirectorySecurity();
+                dirSec.SetSecurityDescriptorSddlForm(sddl);
+                dirSec.SetAccessRuleProtection(true, false);  // disable inheritance
+                dir.SetAccessControl(dirSec);
 
-            // Cleaning out the directory, in case someone managed to sneak in between creation and setting ACL.
-            DirectoryInfo dirInfo = new DirectoryInfo(dirPath);
-            foreach (FileInfo file in dirInfo.GetFiles())
-            {
-                file.Delete();
+                // Cleaning out the directory, in case someone managed to sneak in between creation and setting ACL.
+                DirectoryInfo dirInfo = new DirectoryInfo(folder);
+                foreach (FileInfo file in dirInfo.GetFiles())
+                {
+                    file.Delete();
+                }
+                foreach (DirectoryInfo subDirInfo in dirInfo.GetDirectories())
+                {
+                    subDirInfo.Delete(true);
+                }
             }
-            foreach (DirectoryInfo subDirInfo in dirInfo.GetDirectories())
+            catch (Exception exc)
             {
-                subDirInfo.Delete(true);
+                throw Contracts.ExceptParam(nameof(folder), $"Failed to create folder for the provided path: {folder}. \nException: {exc.Message}");
             }
         }
 
         internal static TFSession GetSession(IHostEnvironment env, string modelPath)
         {
-            if (IsSavedModel(modelPath))
+            if (IsSavedModel(env, modelPath))
+            {
+                env.CheckUserArg(Directory.Exists(modelPath), nameof(modelPath));
                 return LoadTFSession(env, modelPath);
+            }
 
-            return CheckFileAndRead(env, modelPath);
-        }
-
-        private static TFSession CheckFileAndRead(IHostEnvironment env, string modelFile)
-        {
-            env.CheckNonWhiteSpace(modelFile, nameof(modelFile));
-            env.CheckUserArg(File.Exists(modelFile), nameof(modelFile));
-            var bytes = File.ReadAllBytes(modelFile);
-            return LoadTFSession(env, bytes, modelFile);
+            env.CheckUserArg(File.Exists(modelPath), nameof(modelPath));
+            var bytes = File.ReadAllBytes(modelPath);
+            return LoadTFSession(env, bytes, modelPath);
         }
 
         internal static unsafe void FetchData<T>(IntPtr data, T[] result)

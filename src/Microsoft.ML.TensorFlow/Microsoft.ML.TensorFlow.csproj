@@ -8,8 +8,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="System.IO.FileSystem.AccessControl" Version="4.5.0" />
-    <PackageReference Include="System.Security.Principal.Windows" Version="4.5.0" />
+    <PackageReference Include="System.IO.FileSystem.AccessControl" Version="$(SystemIOFileSystemAccessControl)" />
+    <PackageReference Include="System.Security.Principal.Windows" Version="$(SystemSecurityPrincipalWindow)" />
   </ItemGroup>
 
   <ItemGroup>
