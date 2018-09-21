@@ -520,32 +520,42 @@ namespace Microsoft.ML.StaticPipelineTesting
             Assert.True(type.IsVector && type.IsKnownSizeVector && type.ItemType.IsNumber);
         }
 
+
         [Fact]
-        public void FeatureSelection()
+        public void LpGcNormAndWhitening()
         {
             var env = new ConsoleEnvironment(seed: 0);
-            var dataPath = GetDataPath("wikipedia-detox-250-line-data.tsv");
-            var reader = TextLoader.CreateReader(env, ctx => (
-                    label: ctx.LoadBool(0),
-                    text: ctx.LoadText(1)), hasHeader: true);
+            var dataPath = GetDataPath("generated_regression_dataset.csv");
             var dataSource = new MultiFileSource(dataPath);
+
+            var reader = TextLoader.CreateReader(env,
+                c => (label: c.LoadFloat(11), features: c.LoadFloat(0, 10)),
+                separator: ';', hasHeader: true);
             var data = reader.Read(dataSource);
 
-            var est = data.MakeNewEstimator()
-                .Append(r => (
-                    r.label,
-                    countfeatures: r.text.ToBagofWords().SelectFeaturesBasedOnCount(count: 10),
-                    mifeatures: r.text.ToBagofWords().SelectFeaturesBasedOnMutualInformation(labelColumn: "label")));
-
+            var est = reader.MakeNewEstimator()
+                .Append(r => (r.label, 
+                              lpnorm: r.features.LpNormalize(),
+                              gcnorm: r.features.GlobalContrastNormalize(),
+                              zcawhitened: r.features.ZcaWhitening(),
+                              pcswhitened: r.features.PcaWhitening()));
             var tdata = est.Fit(data).Transform(data);
             var schema = tdata.AsDynamic.Schema;
 
-            Assert.True(schema.TryGetColumnIndex("countfeatures", out int countfeaturesCol));
-            var type = schema.GetColumnType(countfeaturesCol);
+            Assert.True(schema.TryGetColumnIndex("lpnorm", out int lpnormCol));
+            var type = schema.GetColumnType(lpnormCol);
             Assert.True(type.IsVector && type.IsKnownSizeVector && type.ItemType.IsNumber);
 
-            Assert.True(schema.TryGetColumnIndex("mifeatures", out int mifeaturesCol));
-            type = schema.GetColumnType(mifeaturesCol);
+            Assert.True(schema.TryGetColumnIndex("gcnorm", out int gcnormCol));
+            type = schema.GetColumnType(gcnormCol);
+            Assert.True(type.IsVector && type.IsKnownSizeVector && type.ItemType.IsNumber);
+
+            Assert.True(schema.TryGetColumnIndex("zcawhitened", out int zcawhitenedCol));
+            type = schema.GetColumnType(zcawhitenedCol);
+            Assert.True(type.IsVector && type.IsKnownSizeVector && type.ItemType.IsNumber);
+
+            Assert.True(schema.TryGetColumnIndex("pcswhitened", out int pcswhitenedCol));
+            type = schema.GetColumnType(pcswhitenedCol);
             Assert.True(type.IsVector && type.IsKnownSizeVector && type.ItemType.IsNumber);
         }
     }

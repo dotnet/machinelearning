@@ -167,7 +167,8 @@ namespace Microsoft.ML.Transforms.Text
         /// </summary>
         /// <param name="input">The column to apply to.</param>
         /// <param name="language">Langauge of the input text.</param>
-        public static VarVector<string> RemoveStopwords(this VarVector<string> input, Language language = Language.English) => new OutPipelineColumn(input, language);
+        public static VarVector<string> RemoveStopwords(this VarVector<string> input,
+            Language language = Language.English) => new OutPipelineColumn(input, language);
     }
 
     /// <summary>
@@ -250,7 +251,12 @@ namespace Microsoft.ML.Transforms.Text
         {
             public readonly Scalar<string> Input;
 
-            public OutPipelineColumn(Scalar<string> input, int ngramLength, int skipLength, bool allLengths, int maxNumTerms, NgramTransform.WeightingCriteria weighting)
+            public OutPipelineColumn(Scalar<string> input,
+                int ngramLength,
+                int skipLength,
+                bool allLengths,
+                int maxNumTerms,
+                NgramTransform.WeightingCriteria weighting)
                 : base(new Reconciler(ngramLength, skipLength, allLengths, maxNumTerms, weighting), input)
             {
                 Input = input;
@@ -315,7 +321,8 @@ namespace Microsoft.ML.Transforms.Text
             int skipLength = 0,
             bool allLengths = true,
             int maxNumTerms = 10000000,
-            NgramTransform.WeightingCriteria weighting = NgramTransform.WeightingCriteria.Tf) => new OutPipelineColumn(input, ngramLength, skipLength, allLengths, maxNumTerms, weighting);
+            NgramTransform.WeightingCriteria weighting = NgramTransform.WeightingCriteria.Tf)
+                => new OutPipelineColumn(input, ngramLength, skipLength, allLengths, maxNumTerms, weighting);
     }
 
     /// <summary>
@@ -327,7 +334,14 @@ namespace Microsoft.ML.Transforms.Text
         {
             public readonly Scalar<string> Input;
 
-            public OutPipelineColumn(Scalar<string> input, int hashBits, int ngramLength, int skipLength, bool allLengths, uint seed, bool ordered, int invertHash)
+            public OutPipelineColumn(Scalar<string> input,
+                int hashBits,
+                int ngramLength,
+                int skipLength,
+                bool allLengths,
+                uint seed,
+                bool ordered,
+                int invertHash)
                 : base(new Reconciler(hashBits, ngramLength, skipLength, allLengths, seed, ordered, invertHash), input)
             {
                 Input = input;
@@ -413,7 +427,12 @@ namespace Microsoft.ML.Transforms.Text
         {
             public readonly VarVector<Key<uint, string>> Input;
 
-            public OutPipelineColumn(VarVector<Key<uint, string>> input, int ngramLength, int skipLength, bool allLengths, int maxNumTerms, NgramTransform.WeightingCriteria weighting)
+            public OutPipelineColumn(VarVector<Key<uint, string>> input,
+                int ngramLength,
+                int skipLength,
+                bool allLengths,
+                int maxNumTerms,
+                NgramTransform.WeightingCriteria weighting)
                 : base(new Reconciler(ngramLength, skipLength, allLengths, maxNumTerms, weighting), input)
             {
                 Input = input;
@@ -481,7 +500,8 @@ namespace Microsoft.ML.Transforms.Text
             int skipLength = 0,
             bool allLengths = true,
             int maxNumTerms = 10000000,
-            NgramTransform.WeightingCriteria weighting = NgramTransform.WeightingCriteria.Tf) => new OutPipelineColumn(input, ngramLength, skipLength, allLengths, maxNumTerms, weighting);
+            NgramTransform.WeightingCriteria weighting = NgramTransform.WeightingCriteria.Tf)
+                => new OutPipelineColumn(input, ngramLength, skipLength, allLengths, maxNumTerms, weighting);
     }
 
     /// <summary>
