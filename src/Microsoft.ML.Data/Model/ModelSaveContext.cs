@@ -185,6 +185,11 @@ namespace Microsoft.ML.Runtime.Model
             Writer.Write(Strings.Add(str).Id);
         }
 
+        public void SaveString(ReadOnlyMemory<char> str)
+        {
+            Writer.Write(Strings.Add(str).Id);
+        }
+
         /// <summary>
         /// Puts a string into the context pool, and writes the integer code of the string ID
         /// to the write stream.
@@ -192,6 +197,11 @@ namespace Microsoft.ML.Runtime.Model
         public void SaveNonEmptyString(string str)
         {
             _ectx.CheckParam(!string.IsNullOrEmpty(str), nameof(str));
+            Writer.Write(Strings.Add(str).Id);
+        }
+
+        public void SaveNonEmptyString(ReadOnlyMemory<Char> str)
+        {
             Writer.Write(Strings.Add(str).Id);
         }
 

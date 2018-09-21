@@ -115,7 +115,7 @@ namespace Microsoft.ML.Runtime.Data
 
             public abstract void Train(IExceptionContext ectx, IRowCursor cursor, int colTerm, int colValue);
 
-            public abstract Delegate GetGetter(ValueGetter<DvText> getSrc);
+            public abstract Delegate GetGetter(ValueGetter<ReadOnlyMemory<char>> getSrc);
         }
 
         /// <summary>
@@ -146,22 +146,18 @@ namespace Microsoft.ML.Runtime.Data
                 ectx.Assert(0 <= colValue && colValue < cursor.Schema.ColumnCount);
                 ectx.Assert(cursor.Schema.GetColumnType(colValue).Equals(Type));
 
-                var getTerm = cursor.GetGetter<DvText>(colTerm);
+                var getTerm = cursor.GetGetter<ReadOnlyMemory<char>>(colTerm);
                 var getValue = cursor.GetGetter<TRes>(colValue);
                 var terms = new NormStr.Pool();
                 var values = new List<TRes>();
 
-                DvText term = default(DvText);
+                ReadOnlyMemory<char> term = default;
                 while (cursor.MoveNext())
                 {
                     getTerm(ref term);
                     // REVIEW: Should we trim?
-                    term = term.Trim();
-                    // REVIEW: Should we handle mapping "missing" to something?
-                    if (term.IsNA)
-                        throw ectx.Except("Missing term in lookup data around row: {0}", values.Count);
-
-                    var nstr = term.AddToPool(terms);
+                    term = ReadOnlyMemoryUtils.TrimSpaces(term);
+                    var nstr = ReadOnlyMemoryUtils.AddToPool(term, terms);
                     if (nstr.Id != values.Count)
                         throw ectx.Except("Duplicate term in lookup data: '{0}'", nstr);
 
@@ -179,7 +175,7 @@ namespace Microsoft.ML.Runtime.Data
             /// <summary>
             /// Given the term getter, produce a value getter from this value map.
             /// </summary>
-            public override Delegate GetGetter(ValueGetter<DvText> getTerm)
+            public override Delegate GetGetter(ValueGetter<ReadOnlyMemory<char>> getTerm)
             {
                 Contracts.Assert(_terms != null);
                 Contracts.Assert(_values != null);
@@ -188,15 +184,15 @@ namespace Microsoft.ML.Runtime.Data
                 return GetGetterCore(getTerm);
             }
 
-            private ValueGetter<TRes> GetGetterCore(ValueGetter<DvText> getTerm)
+            private ValueGetter<TRes> GetGetterCore(ValueGetter<ReadOnlyMemory<char>> getTerm)
             {
-                var src = default(DvText);
+                var src = default(ReadOnlyMemory<char>);
                 return
                     (ref TRes dst) =>
                     {
                         getTerm(ref src);
-                        src = src.Trim();
-                        var nstr = src.FindInPool(_terms);
+                        src = ReadOnlyMemoryUtils.TrimSpaces(src);
+                        var nstr = ReadOnlyMemoryUtils.FindInPool(src, _terms);
                         if (nstr == null)
                             GetMissing(ref dst);
                         else
@@ -225,11 +221,13 @@ namespace Microsoft.ML.Runtime.Data
                 // REVIEW: This uses the fact that standard conversions map NA to NA to get the NA for TRes.
                 // We should probably have a mapping from type to its bad value somewhere, perhaps in Conversions.
                 bool identity;
-                ValueMapper<DvText, TRes> conv;
-                if (Conversions.Instance.TryGetStandardConversion<DvText, TRes>(TextType.Instance, type,
+                ValueMapper<ReadOnlyMemory<char>, TRes> conv;
+                if (Conversions.Instance.TryGetStandardConversion<ReadOnlyMemory<char>, TRes>(TextType.Instance, type,
                     out conv, out identity))
                 {
-                    var bad = DvText.NA;
+                    //Empty string will map to NA for R4 and R8, the only two types that can
+                    //handle missing values.
+                    var bad = String.Empty.AsMemory();
                     conv(ref bad, ref _badValue);
                 }
             }
@@ -374,9 +372,9 @@ namespace Microsoft.ML.Runtime.Data
                 var data = TextLoader.ReadFile(host, txtArgs, new MultiFileSource(filename));
                 using (var cursor = data.GetRowCursor(c => true))
                 {
-                    var getTerm = cursor.GetGetter<DvText>(0);
-                    var getVal = cursor.GetGetter<DvText>(1);
-                    DvText txt = default(DvText);
+                    var getTerm = cursor.GetGetter<ReadOnlyMemory<char>>(0);
+                    var getVal = cursor.GetGetter<ReadOnlyMemory<char>>(1);
+                    ReadOnlyMemory<char> txt = default;
 
                     using (var ch = host.Start("Creating Text Lookup Loader"))
                     {
@@ -405,7 +403,7 @@ namespace Microsoft.ML.Runtime.Data
                             //If parsing as a ulong fails, we increment the counter for the non-key values.
                             else
                             {
-                                var term = default(DvText);
+                                var term = default(ReadOnlyMemory<char>);
                                 getTerm(ref term);
                                 if (countNonKeys < 5)
                                     ch.Warning("Term '{0}' in mapping file is mapped to non key value '{1}'", term, txt);
@@ -703,7 +701,7 @@ namespace Microsoft.ML.Runtime.Data
             Host.Assert(0 <= iinfo && iinfo < Infos.Length);
             disposer = null;
 
-            var getSrc = GetSrcGetter<DvText>(input, iinfo);
+            var getSrc = GetSrcGetter<ReadOnlyMemory<char>>(input, iinfo);
             return _valueMap.GetGetter(getSrc);
         }
     }

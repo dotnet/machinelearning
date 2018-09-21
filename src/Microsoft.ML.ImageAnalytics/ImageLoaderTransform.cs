@@ -31,7 +31,7 @@ using System.Text;
 namespace Microsoft.ML.Runtime.ImageAnalytics
 {
     /// <summary>
-    /// Transform which takes one or many columns of type <see cref="DvText"/> and loads them as <see cref="ImageType"/>
+    /// Transform which takes one or many columns of type ReadOnlyMemory and loads them as <see cref="ImageType"/>
     /// </summary>
     public sealed class ImageLoaderTransform : OneToOneTransformerBase
     {
@@ -165,8 +165,8 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
                 Contracts.Assert(0 <= iinfo && iinfo < _parent.ColumnPairs.Length);
 
                 disposer = null;
-                var getSrc = input.GetGetter<DvText>(ColMapNewToOld[iinfo]);
-                DvText src = default;
+                var getSrc = input.GetGetter<ReadOnlyMemory<char>>(ColMapNewToOld[iinfo]);
+                ReadOnlyMemory<char> src = default;
                 ValueGetter<Bitmap> del =
                     (ref Bitmap dst) =>
                     {

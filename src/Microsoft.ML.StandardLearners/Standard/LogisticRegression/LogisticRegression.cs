@@ -141,7 +141,7 @@ namespace Microsoft.ML.Runtime.Learners
             var featureColIdx = cursorFactory.Data.Schema.Feature.Index;
             var schema = cursorFactory.Data.Data.Schema;
             var featureLength = CurrentWeights.Length - BiasCount;
-            var namesSpans = VBufferUtils.CreateEmpty<DvText>(featureLength);
+            var namesSpans = VBufferUtils.CreateEmpty<ReadOnlyMemory<char>>(featureLength);
             if (schema.HasSlotNames(featureColIdx, featureLength))
                 schema.GetMetadata(MetadataUtils.Kinds.SlotNames, featureColIdx, ref namesSpans);
             Host.Assert(namesSpans.Length == featureLength);

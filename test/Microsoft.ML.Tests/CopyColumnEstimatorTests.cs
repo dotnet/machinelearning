@@ -38,7 +38,7 @@ namespace Microsoft.ML.Tests
         void TestWorking()
         {
             var data = new[] { new TestClass() { A = 1, B = 2, C = 3, }, new TestClass() { A = 4, B = 5, C = 6 } };
-            using (var env = new TlcEnvironment())
+            using (var env = new ConsoleEnvironment())
             {
                 var dataView = ComponentCreation.CreateDataView(env, data);
                 var est = new CopyColumnsEstimator(env, new[] { ("A", "D"), ("B", "E"), ("A", "F") });
@@ -52,7 +52,7 @@ namespace Microsoft.ML.Tests
         void TestBadOriginalSchema()
         {
             var data = new[] { new TestClass() { A = 1, B = 2, C = 3, }, new TestClass() { A = 4, B = 5, C = 6 } };
-            using (var env = new TlcEnvironment())
+            using (var env = new ConsoleEnvironment())
             {
                 var dataView = ComponentCreation.CreateDataView(env, data);
                 var est = new CopyColumnsEstimator(env, new[] { ("D", "A"), ("B", "E") });
@@ -72,7 +72,7 @@ namespace Microsoft.ML.Tests
         {
             var data = new[] { new TestClass() { A = 1, B = 2, C = 3, }, new TestClass() { A = 4, B = 5, C = 6 } };
             var xydata = new[] { new TestClassXY() { X = 10, Y = 100 }, new TestClassXY() { X = -1, Y = -100 } };
-            using (var env = new TlcEnvironment())
+            using (var env = new ConsoleEnvironment())
             {
                 var dataView = ComponentCreation.CreateDataView(env, data);
                 var xyDataView = ComponentCreation.CreateDataView(env, xydata);
@@ -93,7 +93,7 @@ namespace Microsoft.ML.Tests
         void TestSavingAndLoading()
         {
             var data = new[] { new TestClass() { A = 1, B = 2, C = 3, }, new TestClass() { A = 4, B = 5, C = 6 } };
-            using (var env = new TlcEnvironment())
+            using (var env = new ConsoleEnvironment())
             {
                 var dataView = ComponentCreation.CreateDataView(env, data);
                 var est = new CopyColumnsEstimator(env, new[] { ("A", "D"), ("B", "E"), ("A", "F") });
@@ -114,7 +114,7 @@ namespace Microsoft.ML.Tests
         void TestOldSavingAndLoading()
         {
             var data = new[] { new TestClass() { A = 1, B = 2, C = 3, }, new TestClass() { A = 4, B = 5, C = 6 } };
-            using (var env = new TlcEnvironment())
+            using (var env = new ConsoleEnvironment())
             {
                 var dataView = ComponentCreation.CreateDataView(env, data);
                 var est = new CopyColumnsEstimator(env, new[] { ("A", "D"), ("B", "E"), ("A", "F") });
@@ -135,7 +135,7 @@ namespace Microsoft.ML.Tests
         void TestMetadataCopy()
         {
             var data = new[] { new TestMetaClass() { Term = "A", NotUsed = 1 }, new TestMetaClass() { Term = "B" }, new TestMetaClass() { Term = "C" } };
-            using (var env = new TlcEnvironment())
+            using (var env = new ConsoleEnvironment())
             {
                 var dataView = ComponentCreation.CreateDataView(env, data);
                 var term = TermTransform.Create(env, new TermTransform.Arguments()
@@ -147,21 +147,21 @@ namespace Microsoft.ML.Tests
                 var result = transformer.Transform(term);
                 result.Schema.TryGetColumnIndex("T", out int termIndex);
                 result.Schema.TryGetColumnIndex("T1", out int copyIndex);
-                var names1 = default(VBuffer<DvText>);
-                var names2 = default(VBuffer<DvText>);
+                var names1 = default(VBuffer<ReadOnlyMemory<char>>);
+                var names2 = default(VBuffer<ReadOnlyMemory<char>>);
                 var type1 = result.Schema.GetColumnType(termIndex);
                 int size = type1.ItemType.IsKey ? type1.ItemType.KeyCount : -1;
                 var type2 = result.Schema.GetColumnType(copyIndex);
                 result.Schema.GetMetadata(MetadataUtils.Kinds.KeyValues, termIndex, ref names1);
                 result.Schema.GetMetadata(MetadataUtils.Kinds.KeyValues, copyIndex, ref names2);
-                Assert.True(CompareVec(ref names1, ref names2, size, DvText.Identical));
+                Assert.True(CompareVec(ref names1, ref names2, size, (a, b) => a.Span.SequenceEqual(b.Span)));
             }
         }
 
         [Fact]
         void TestCommandLine()
         {
-            using (var env = new TlcEnvironment())
+            using (var env = new ConsoleEnvironment())
             {
                 Assert.Equal(Maml.Main(new[] { @"showschema loader=Text{col=A:R4:0} xf=copy{col=B:A} in=f:\1.txt" }), (int)0);
             }
@@ -171,16 +171,16 @@ namespace Microsoft.ML.Tests
         {
             using (var cursor = result.GetRowCursor(x => true))
             {
-                DvInt4 avalue = 0;
-                DvInt4 bvalue = 0;
-                DvInt4 dvalue = 0;
-                DvInt4 evalue = 0;
-                DvInt4 fvalue = 0;
-                var aGetter = cursor.GetGetter<DvInt4>(0);
-                var bGetter = cursor.GetGetter<DvInt4>(1);
-                var dGetter = cursor.GetGetter<DvInt4>(3);
-                var eGetter = cursor.GetGetter<DvInt4>(4);
-                var fGetter = cursor.GetGetter<DvInt4>(5);
+                int avalue = 0;
+                int bvalue = 0;
+                int dvalue = 0;
+                int evalue = 0;
+                int fvalue = 0;
+                var aGetter = cursor.GetGetter<int>(0);
+                var bGetter = cursor.GetGetter<int>(1);
+                var dGetter = cursor.GetGetter<int>(3);
+                var eGetter = cursor.GetGetter<int>(4);
+                var fGetter = cursor.GetGetter<int>(5);
                 while (cursor.MoveNext())
                 {
                     aGetter(ref avalue);

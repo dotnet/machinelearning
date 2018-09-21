@@ -146,7 +146,6 @@ namespace Microsoft.ML.Runtime.Data
             EntryPointNode node)
         {
             var schema = input.Data.Schema;
-            DvBool isNormalized = DvBool.False;
             var columnsToNormalize = new List<NormalizeTransform.AffineColumn>();
             foreach (var column in input.Column)
             {

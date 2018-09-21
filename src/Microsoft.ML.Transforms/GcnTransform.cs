@@ -311,7 +311,7 @@ namespace Microsoft.ML.Runtime.Data
         /// <param name="input">Input <see cref="IDataView"/>. This is the output from previous transform or loader.</param>
         /// <param name="name">Name of the output column.</param>
         /// <param name="source">Name of the column to be transformed. If this is null '<paramref name="name"/>' will be used.</param>
-        ///         /// <param name="normKind">The norm to use to normalize each sample.</param>
+        /// <param name="normKind">The norm to use to normalize each sample.</param>
         /// <param name="subMean">Subtract mean from each value before normalizing.</param>
         public static IDataTransform CreateLpNormNormalizer(IHostEnvironment env,
             IDataView input,
@@ -413,7 +413,7 @@ namespace Microsoft.ML.Runtime.Data
             for (int iinfo = 0; iinfo < Infos.Length; iinfo++)
             {
                 using (var bldr = md.BuildMetadata(iinfo, Source.Schema, Infos[iinfo].Source, MetadataUtils.Kinds.SlotNames))
-                    bldr.AddPrimitive(MetadataUtils.Kinds.IsNormalized, BoolType.Instance, DvBool.True);
+                    bldr.AddPrimitive(MetadataUtils.Kinds.IsNormalized, BoolType.Instance, true);
             }
             md.Seal();
         }

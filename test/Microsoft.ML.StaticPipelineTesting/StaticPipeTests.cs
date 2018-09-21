@@ -1,13 +1,14 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Data.StaticPipe;
-using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Data.IO;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.TestFramework;
+using Microsoft.ML.Transforms;
+using Microsoft.ML.Transforms.Text;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -51,7 +52,7 @@ namespace Microsoft.ML.StaticPipelineTesting
         [Fact]
         public void SimpleTextLoaderCopyColumnsTest()
         {
-            var env = new TlcEnvironment(new SysRandom(0), verbose: true);
+            var env = new ConsoleEnvironment(0, verbose: true);
 
             const string data = "0 hello 3.14159 -0 2\n"
                 + "1 1 2 4 15";
@@ -80,12 +81,11 @@ namespace Microsoft.ML.StaticPipelineTesting
             // Next actually inspect the data.
             using (var cursor = textData.GetRowCursor(c => true))
             {
-                var labelGetter = cursor.GetGetter<DvBool>(labelIdx);
-                var textGetter = cursor.GetGetter<DvText>(textIdx);
+                var textGetter = cursor.GetGetter<ReadOnlyMemory<char>>(textIdx);
                 var numericFeaturesGetter = cursor.GetGetter<VBuffer<float>>(numericFeaturesIdx);
-
-                DvBool labelVal = default;
-                DvText textVal = default;
+                ReadOnlyMemory<char> textVal = default;
+                var labelGetter = cursor.GetGetter<bool>(labelIdx);
+                bool labelVal = default;
                 VBuffer<float> numVal = default;
 
                 void CheckValuesSame(bool bl, string tx, float v0, float v1, float v2)
@@ -93,9 +93,8 @@ namespace Microsoft.ML.StaticPipelineTesting
                     labelGetter(ref labelVal);
                     textGetter(ref textVal);
                     numericFeaturesGetter(ref numVal);
-
-                    Assert.Equal((DvBool)bl, labelVal);
-                    Assert.Equal(new DvText(tx), textVal);
+                    Assert.True(tx.AsSpan().SequenceEqual(textVal.Span));
+                    Assert.Equal((bool)bl, labelVal);
                     Assert.Equal(3, numVal.Length);
                     Assert.Equal(v0, numVal.GetItemOrDefault(0));
                     Assert.Equal(v1, numVal.GetItemOrDefault(1));
@@ -131,7 +130,7 @@ namespace Microsoft.ML.StaticPipelineTesting
         [Fact]
         public void AssertStaticSimple()
         {
-            var env = new TlcEnvironment(new SysRandom(0), verbose: true);
+            var env = new ConsoleEnvironment(0, verbose: true);
             var schema = new SimpleSchema(env,
                 P("hello", TextType.Instance),
                 P("my", new VectorType(NumberType.I8, 5)),
@@ -155,17 +154,17 @@ namespace Microsoft.ML.StaticPipelineTesting
         [Fact]
         public void AssertStaticKeys()
         {
-            var env = new TlcEnvironment(new SysRandom(0), verbose: true);
+            var env = new ConsoleEnvironment(0, verbose: true);
             var counted = new MetaCounted();
 
             // We'll test a few things here. First, the case where the key-value metadata is text.
-            var metaValues1 = new VBuffer<DvText>(3, new[] { new DvText("a"), new DvText("b"), new DvText("c") });
+            var metaValues1 = new VBuffer<ReadOnlyMemory<char>>(3, new[] { "a".AsMemory(), "b".AsMemory(), "c".AsMemory() });
             var meta1 = RowColumnUtils.GetColumn(MetadataUtils.Kinds.KeyValues, new VectorType(TextType.Instance, 3), ref metaValues1);
             uint value1 = 2;
             var col1 = RowColumnUtils.GetColumn("stay", new KeyType(DataKind.U4, 0, 3), ref value1, RowColumnUtils.GetRow(counted, meta1));
 
             // Next the case where those values are ints.
-            var metaValues2 = new VBuffer<DvInt4>(3, new DvInt4[] { 1, 2, 3, 4 });
+            var metaValues2 = new VBuffer<int>(3, new int[] { 1, 2, 3, 4 });
             var meta2 = RowColumnUtils.GetColumn(MetadataUtils.Kinds.KeyValues, new VectorType(NumberType.I4, 4), ref metaValues2);
             var value2 = new VBuffer<byte>(2, 0, null, null);
             var col2 = RowColumnUtils.GetColumn("awhile", new VectorType(new KeyType(DataKind.U1, 2, 4), 2), ref value2, RowColumnUtils.GetRow(counted, meta2));
@@ -262,8 +261,8 @@ namespace Microsoft.ML.StaticPipelineTesting
         [Fact]
         public void Normalizer()
         {
-            var env = new TlcEnvironment(seed: 0);
-            var dataPath = GetDataPath("external", "winequality-white.csv");
+            var env = new ConsoleEnvironment(seed: 0);
+            var dataPath = GetDataPath("generated_regression_dataset.csv");
             var dataSource = new MultiFileSource(dataPath);
 
             var reader = TextLoader.CreateReader(env,
@@ -287,8 +286,8 @@ namespace Microsoft.ML.StaticPipelineTesting
         [Fact]
         public void NormalizerWithOnFit()
         {
-            var env = new TlcEnvironment(seed: 0);
-            var dataPath = GetDataPath("external", "winequality-white.csv");
+            var env = new ConsoleEnvironment(seed: 0);
+            var dataPath = GetDataPath("generated_regression_dataset.csv");
             var dataSource = new MultiFileSource(dataPath);
 
             var reader = TextLoader.CreateReader(env,
@@ -331,7 +330,7 @@ namespace Microsoft.ML.StaticPipelineTesting
         [Fact]
         public void ToKey()
         {
-            var env = new TlcEnvironment(seed: 0);
+            var env = new ConsoleEnvironment(seed: 0);
             var dataPath = GetDataPath("iris.data");
             var reader = TextLoader.CreateReader(env,
                 c => (label: c.LoadText(4), values: c.LoadFloat(0, 3)),
@@ -369,7 +368,7 @@ namespace Microsoft.ML.StaticPipelineTesting
         [Fact]
         public void ConcatWith()
         {
-            var env = new TlcEnvironment(seed: 0);
+            var env = new ConsoleEnvironment(seed: 0);
             var dataPath = GetDataPath("iris.data");
             var reader = TextLoader.CreateReader(env,
                 c => (label: c.LoadText(4), values: c.LoadFloat(0, 3), value: c.LoadFloat(2)),
@@ -402,6 +401,162 @@ namespace Microsoft.ML.StaticPipelineTesting
             Assert.Equal(TextType.Instance, types[1].ItemType);
             Assert.Equal(NumberType.Float, types[2].ItemType);
             Assert.Equal(NumberType.Float, types[3].ItemType);
+        }
+
+        [Fact]
+        public void Tokenize()
+        {
+            var env = new ConsoleEnvironment(seed: 0);
+            var dataPath = GetDataPath("wikipedia-detox-250-line-data.tsv");
+            var reader = TextLoader.CreateReader(env, ctx => (
+                    label: ctx.LoadBool(0),
+                    text: ctx.LoadText(1)), hasHeader: true);
+            var dataSource = new MultiFileSource(dataPath);
+            var data = reader.Read(dataSource);
+
+            var est = data.MakeNewEstimator()
+                .Append(r => (
+                    r.label,
+                    tokens: r.text.TokenizeText(),
+                    chars: r.text.TokenizeIntoCharacters()));
+
+            var tdata = est.Fit(data).Transform(data);
+            var schema = tdata.AsDynamic.Schema;
+
+            Assert.True(schema.TryGetColumnIndex("tokens", out int tokensCol));
+            var type = schema.GetColumnType(tokensCol);
+            Assert.True(type.IsVector && !type.IsKnownSizeVector && type.ItemType.IsText);
+
+            Assert.True(schema.TryGetColumnIndex("chars", out int charsCol));
+            type = schema.GetColumnType(charsCol);
+            Assert.True(type.IsVector && !type.IsKnownSizeVector && type.ItemType.IsKey);
+            Assert.True(type.ItemType.AsKey.RawKind == DataKind.U2);
+        }
+
+        [Fact]
+        public void NormalizeTextAndRemoveStopWords()
+        {
+            var env = new ConsoleEnvironment(seed: 0);
+            var dataPath = GetDataPath("wikipedia-detox-250-line-data.tsv");
+            var reader = TextLoader.CreateReader(env, ctx => (
+                    label: ctx.LoadBool(0),
+                    text: ctx.LoadText(1)), hasHeader: true);
+            var dataSource = new MultiFileSource(dataPath);
+            var data = reader.Read(dataSource);
+
+            var est = data.MakeNewEstimator()
+                .Append(r => (
+                    r.label,
+                    normalized_text: r.text.NormalizeText(),
+                    words_without_stopwords: r.text.TokenizeText().RemoveStopwords()));
+
+            var tdata = est.Fit(data).Transform(data);
+            var schema = tdata.AsDynamic.Schema;
+
+            Assert.True(schema.TryGetColumnIndex("words_without_stopwords", out int stopwordsCol));
+            var type = schema.GetColumnType(stopwordsCol);
+            Assert.True(type.IsVector && !type.IsKnownSizeVector && type.ItemType.IsText);
+
+            Assert.True(schema.TryGetColumnIndex("normalized_text", out int normTextCol));
+            type = schema.GetColumnType(normTextCol);
+            Assert.True(type.IsText && !type.IsVector);
+        }
+
+        [Fact]
+        public void ConvertToWordBag()
+        {
+            var env = new ConsoleEnvironment(seed: 0);
+            var dataPath = GetDataPath("wikipedia-detox-250-line-data.tsv");
+            var reader = TextLoader.CreateReader(env, ctx => (
+                    label: ctx.LoadBool(0),
+                    text: ctx.LoadText(1)), hasHeader: true);
+            var dataSource = new MultiFileSource(dataPath);
+            var data = reader.Read(dataSource);
+
+            var est = data.MakeNewEstimator()
+                .Append(r => (
+                    r.label,
+                    bagofword: r.text.ToBagofWords(),
+                    bagofhashedword: r.text.ToBagofHashedWords()));
+
+            var tdata = est.Fit(data).Transform(data);
+            var schema = tdata.AsDynamic.Schema;
+
+            Assert.True(schema.TryGetColumnIndex("bagofword", out int bagofwordCol));
+            var type = schema.GetColumnType(bagofwordCol);
+            Assert.True(type.IsVector && type.IsKnownSizeVector && type.ItemType.IsNumber);
+
+            Assert.True(schema.TryGetColumnIndex("bagofhashedword", out int bagofhashedwordCol));
+            type = schema.GetColumnType(bagofhashedwordCol);
+            Assert.True(type.IsVector && type.IsKnownSizeVector && type.ItemType.IsNumber);
+        }
+
+        [Fact]
+        public void Ngrams()
+        {
+            var env = new ConsoleEnvironment(seed: 0);
+            var dataPath = GetDataPath("wikipedia-detox-250-line-data.tsv");
+            var reader = TextLoader.CreateReader(env, ctx => (
+                    label: ctx.LoadBool(0),
+                    text: ctx.LoadText(1)), hasHeader: true);
+            var dataSource = new MultiFileSource(dataPath);
+            var data = reader.Read(dataSource);
+
+            var est = data.MakeNewEstimator()
+                .Append(r => (
+                    r.label,
+                    ngrams: r.text.TokenizeText().ToKey().ToNgrams(),
+                    ngramshash: r.text.TokenizeText().ToKey().ToNgramsHash()));
+
+            var tdata = est.Fit(data).Transform(data);
+            var schema = tdata.AsDynamic.Schema;
+
+            Assert.True(schema.TryGetColumnIndex("ngrams", out int ngramsCol));
+            var type = schema.GetColumnType(ngramsCol);
+            Assert.True(type.IsVector && type.IsKnownSizeVector && type.ItemType.IsNumber);
+
+            Assert.True(schema.TryGetColumnIndex("ngramshash", out int ngramshashCol));
+            type = schema.GetColumnType(ngramshashCol);
+            Assert.True(type.IsVector && type.IsKnownSizeVector && type.ItemType.IsNumber);
+        }
+
+
+        [Fact]
+        public void LpGcNormAndWhitening()
+        {
+            var env = new ConsoleEnvironment(seed: 0);
+            var dataPath = GetDataPath("generated_regression_dataset.csv");
+            var dataSource = new MultiFileSource(dataPath);
+
+            var reader = TextLoader.CreateReader(env,
+                c => (label: c.LoadFloat(11), features: c.LoadFloat(0, 10)),
+                separator: ';', hasHeader: true);
+            var data = reader.Read(dataSource);
+
+            var est = reader.MakeNewEstimator()
+                .Append(r => (r.label, 
+                              lpnorm: r.features.LpNormalize(),
+                              gcnorm: r.features.GlobalContrastNormalize(),
+                              zcawhitened: r.features.ZcaWhitening(),
+                              pcswhitened: r.features.PcaWhitening()));
+            var tdata = est.Fit(data).Transform(data);
+            var schema = tdata.AsDynamic.Schema;
+
+            Assert.True(schema.TryGetColumnIndex("lpnorm", out int lpnormCol));
+            var type = schema.GetColumnType(lpnormCol);
+            Assert.True(type.IsVector && type.IsKnownSizeVector && type.ItemType.IsNumber);
+
+            Assert.True(schema.TryGetColumnIndex("gcnorm", out int gcnormCol));
+            type = schema.GetColumnType(gcnormCol);
+            Assert.True(type.IsVector && type.IsKnownSizeVector && type.ItemType.IsNumber);
+
+            Assert.True(schema.TryGetColumnIndex("zcawhitened", out int zcawhitenedCol));
+            type = schema.GetColumnType(zcawhitenedCol);
+            Assert.True(type.IsVector && type.IsKnownSizeVector && type.ItemType.IsNumber);
+
+            Assert.True(schema.TryGetColumnIndex("pcswhitened", out int pcswhitenedCol));
+            type = schema.GetColumnType(pcswhitenedCol);
+            Assert.True(type.IsVector && type.IsKnownSizeVector && type.ItemType.IsNumber);
         }
     }
 }
