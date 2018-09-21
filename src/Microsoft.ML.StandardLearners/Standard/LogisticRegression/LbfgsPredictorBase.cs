@@ -106,19 +106,19 @@ namespace Microsoft.ML.Runtime.Learners
         private TModel _srcPredictor;
 
         protected readonly TArgs Args;
-        protected readonly Float L2Weight;
-        protected readonly Float L1Weight;
-        protected readonly Float OptTol;
-        protected readonly int MemorySize;
-        protected readonly int MaxIterations;
-        protected readonly Float SgdInitializationTolerance;
-        protected readonly bool Quiet;
-        protected readonly Float InitWtsDiameter;
-        protected readonly bool UseThreads;
-        protected readonly int? NumThreads;
-        protected readonly bool DenseOptimizer;
-        protected readonly long MaxNormalizationExamples;
-        protected readonly bool EnforceNonNegativity;
+        protected Float L2Weight;
+        protected Float L1Weight;
+        protected Float OptTol;
+        protected int MemorySize;
+        protected int MaxIterations;
+        protected Float SgdInitializationTolerance;
+        protected bool Quiet;
+        protected Float InitWtsDiameter;
+        protected bool UseThreads;
+        protected int? NumThreads;
+        protected bool DenseOptimizer;
+        protected long MaxNormalizationExamples;
+        protected bool EnforceNonNegativity;
 
         // The training data, when NOT using multiple threads.
         private RoleMappedData _data;
@@ -157,40 +157,7 @@ namespace Microsoft.ML.Runtime.Learners
             if (weightColumn != null)
                 Args.WeightColumn = weightColumn;
 
-            Contracts.CheckUserArg(!Args.UseThreads || Args.NumThreads > 0 || Args.NumThreads == null,
-                        nameof(Args.NumThreads), "numThreads must be positive (or empty for default)");
-
-            Contracts.CheckUserArg(Args.L2Weight >= 0, nameof(Args.L2Weight), "Must be non-negative");
-            L2Weight = Args.L2Weight;
-            Contracts.CheckUserArg(Args.L1Weight >= 0, nameof(Args.L1Weight), "Must be non-negative");
-            L1Weight = Args.L1Weight;
-            Contracts.CheckUserArg(Args.OptTol > 0, nameof(Args.OptTol), "Must be positive");
-            OptTol = Args.OptTol;
-            Contracts.CheckUserArg(Args.MemorySize > 0, nameof(Args.MemorySize), "Must be positive");
-            MemorySize = Args.MemorySize;
-            Contracts.CheckUserArg(Args.MaxIterations > 0, nameof(Args.MaxIterations), "Must be positive");
-            MaxIterations = Args.MaxIterations;
-            Contracts.CheckUserArg(Args.SgdInitializationTolerance >= 0, nameof(Args.SgdInitializationTolerance), "Must be non-negative");
-            SgdInitializationTolerance = Args.SgdInitializationTolerance;
-            Quiet = Args.Quiet;
-            InitWtsDiameter = Args.InitWtsDiameter;
-            UseThreads = Args.UseThreads;
-            Contracts.CheckUserArg(Args.NumThreads == null || Args.NumThreads.Value >= 0, nameof(Args.NumThreads), "Must be non-negative");
-            NumThreads = Args.NumThreads;
-            DenseOptimizer = Args.DenseOptimizer;
-            ShowTrainingStats = false;
-            EnforceNonNegativity = Args.EnforceNonNegativity;
-
-            if (EnforceNonNegativity && ShowTrainingStats)
-            {
-                ShowTrainingStats = false;
-                using (var ch = Host.Start("Initialization"))
-                {
-                    ch.Warning("The training statistics cannot be computed with non-negativity constraint.");
-                    ch.Done();
-                }
-            }
-            _srcPredictor = default;
+            InitArguments();
         }
 
         internal LbfgsTrainerBase(IHostEnvironment env, TArgs args)
@@ -199,28 +166,31 @@ namespace Microsoft.ML.Runtime.Learners
             Host.CheckValue(args, nameof(args));
             Args = args;
 
-            Contracts.CheckUserArg(!Args.UseThreads || Args.NumThreads > 0 || Args.NumThreads == null,
-            nameof(Args.NumThreads), "numThreads must be positive (or empty for default)");
+            InitArguments();
+        }
 
+        protected void InitArguments()
+        {
+            Contracts.CheckUserArg(!Args.UseThreads || Args.NumThreads > 0 || Args.NumThreads == null,
+                        nameof(Args.NumThreads), "numThreads must be positive (or empty for default)");
             Contracts.CheckUserArg(Args.L2Weight >= 0, nameof(Args.L2Weight), "Must be non-negative");
-            L2Weight = Args.L2Weight;
             Contracts.CheckUserArg(Args.L1Weight >= 0, nameof(Args.L1Weight), "Must be non-negative");
-            L1Weight = Args.L1Weight;
             Contracts.CheckUserArg(Args.OptTol > 0, nameof(Args.OptTol), "Must be positive");
-            OptTol = Args.OptTol;
             Contracts.CheckUserArg(Args.MemorySize > 0, nameof(Args.MemorySize), "Must be positive");
-            MemorySize = Args.MemorySize;
             Contracts.CheckUserArg(Args.MaxIterations > 0, nameof(Args.MaxIterations), "Must be positive");
-            MaxIterations = Args.MaxIterations;
             Contracts.CheckUserArg(Args.SgdInitializationTolerance >= 0, nameof(Args.SgdInitializationTolerance), "Must be non-negative");
+            Contracts.CheckUserArg(Args.NumThreads == null || Args.NumThreads.Value >= 0, nameof(Args.NumThreads), "Must be non-negative");
+
+            L2Weight = Args.L2Weight;
+            OptTol = Args.OptTol;
+            MemorySize = Args.MemorySize;
+            MaxIterations = Args.MaxIterations;
             SgdInitializationTolerance = Args.SgdInitializationTolerance;
             Quiet = Args.Quiet;
             InitWtsDiameter = Args.InitWtsDiameter;
             UseThreads = Args.UseThreads;
-            Contracts.CheckUserArg(Args.NumThreads == null || Args.NumThreads.Value >= 0, nameof(Args.NumThreads), "Must be non-negative");
             NumThreads = Args.NumThreads;
             DenseOptimizer = Args.DenseOptimizer;
-            ShowTrainingStats = false;
             EnforceNonNegativity = Args.EnforceNonNegativity;
 
             if (EnforceNonNegativity && ShowTrainingStats)
@@ -232,6 +202,8 @@ namespace Microsoft.ML.Runtime.Learners
                     ch.Done();
                 }
             }
+
+            ShowTrainingStats = false;
             _srcPredictor = default;
         }
 
@@ -735,10 +707,14 @@ namespace Microsoft.ML.Runtime.Learners
         }
 
         private static SchemaShape.Column MakeFeatureColumn(string featureColumn)
-            => new SchemaShape.Column(featureColumn, SchemaShape.Column.VectorKind.Vector, NumberType.R4, false);
+        {
+            return new SchemaShape.Column(featureColumn, SchemaShape.Column.VectorKind.Vector, NumberType.R4, false);
+        }
 
         private static SchemaShape.Column MakeLabelColumn(string labelColumn)
-            => new SchemaShape.Column(labelColumn, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false);
+        {
+            return new SchemaShape.Column(labelColumn, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false);
+        }
 
         private static SchemaShape.Column MakeWeightColumn(string weightColumn)
         {

@@ -74,6 +74,9 @@ namespace Microsoft.ML.Runtime.Learners
             string weightColumn = null, Action<Arguments> advancedSettings = null)
             : base(env, featureColumn, labelColumn, weightColumn, advancedSettings)
         {
+            Host.CheckNonEmpty(featureColumn, nameof(featureColumn));
+            Host.CheckNonEmpty(labelColumn, nameof(labelColumn));
+
             ShowTrainingStats = Args.ShowTrainingStats;
         }
 
