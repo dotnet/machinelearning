@@ -433,6 +433,93 @@ namespace Microsoft.ML.StaticPipelineTesting
             Assert.True(type.ItemType.AsKey.RawKind == DataKind.U2);
         }
 
+        [Fact]
+        public void NormalizeTextAndRemoveStopWords()
+        {
+            var env = new ConsoleEnvironment(seed: 0);
+            var dataPath = GetDataPath("wikipedia-detox-250-line-data.tsv");
+            var reader = TextLoader.CreateReader(env, ctx => (
+                    label: ctx.LoadBool(0),
+                    text: ctx.LoadText(1)), hasHeader: true);
+            var dataSource = new MultiFileSource(dataPath);
+            var data = reader.Read(dataSource);
+
+            var est = data.MakeNewEstimator()
+                .Append(r => (
+                    r.label,
+                    normalized_text: r.text.NormalizeText(),
+                    words_without_stopwords: r.text.TokenizeText().RemoveStopwords()));
+
+            var tdata = est.Fit(data).Transform(data);
+            var schema = tdata.AsDynamic.Schema;
+
+            Assert.True(schema.TryGetColumnIndex("words_without_stopwords", out int stopwordsCol));
+            var type = schema.GetColumnType(stopwordsCol);
+            Assert.True(type.IsVector && !type.IsKnownSizeVector && type.ItemType.IsText);
+
+            Assert.True(schema.TryGetColumnIndex("normalized_text", out int normTextCol));
+            type = schema.GetColumnType(normTextCol);
+            Assert.True(type.IsText && !type.IsVector);
+        }
+
+        [Fact]
+        public void ConvertToWordBag()
+        {
+            var env = new ConsoleEnvironment(seed: 0);
+            var dataPath = GetDataPath("wikipedia-detox-250-line-data.tsv");
+            var reader = TextLoader.CreateReader(env, ctx => (
+                    label: ctx.LoadBool(0),
+                    text: ctx.LoadText(1)), hasHeader: true);
+            var dataSource = new MultiFileSource(dataPath);
+            var data = reader.Read(dataSource);
+
+            var est = data.MakeNewEstimator()
+                .Append(r => (
+                    r.label,
+                    bagofword: r.text.ToBagofWords(),
+                    bagofhashedword: r.text.ToBagofHashedWords()));
+
+            var tdata = est.Fit(data).Transform(data);
+            var schema = tdata.AsDynamic.Schema;
+
+            Assert.True(schema.TryGetColumnIndex("bagofword", out int bagofwordCol));
+            var type = schema.GetColumnType(bagofwordCol);
+            Assert.True(type.IsVector && type.IsKnownSizeVector && type.ItemType.IsNumber);
+
+            Assert.True(schema.TryGetColumnIndex("bagofhashedword", out int bagofhashedwordCol));
+            type = schema.GetColumnType(bagofhashedwordCol);
+            Assert.True(type.IsVector && type.IsKnownSizeVector && type.ItemType.IsNumber);
+        }
+
+        [Fact]
+        public void Ngrams()
+        {
+            var env = new ConsoleEnvironment(seed: 0);
+            var dataPath = GetDataPath("wikipedia-detox-250-line-data.tsv");
+            var reader = TextLoader.CreateReader(env, ctx => (
+                    label: ctx.LoadBool(0),
+                    text: ctx.LoadText(1)), hasHeader: true);
+            var dataSource = new MultiFileSource(dataPath);
+            var data = reader.Read(dataSource);
+
+            var est = data.MakeNewEstimator()
+                .Append(r => (
+                    r.label,
+                    ngrams: r.text.TokenizeText().ToKey().ToNgrams(),
+                    ngramshash: r.text.TokenizeText().ToKey().ToNgramsHash()));
+
+            var tdata = est.Fit(data).Transform(data);
+            var schema = tdata.AsDynamic.Schema;
+
+            Assert.True(schema.TryGetColumnIndex("ngrams", out int ngramsCol));
+            var type = schema.GetColumnType(ngramsCol);
+            Assert.True(type.IsVector && type.IsKnownSizeVector && type.ItemType.IsNumber);
+
+            Assert.True(schema.TryGetColumnIndex("ngramshash", out int ngramshashCol));
+            type = schema.GetColumnType(ngramshashCol);
+            Assert.True(type.IsVector && type.IsKnownSizeVector && type.ItemType.IsNumber);
+        }
+
 
         [Fact]
         public void LpGcNormAndWhitening()
