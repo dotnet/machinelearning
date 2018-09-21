@@ -159,34 +159,33 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
         }
 
         private const string DllName = "MklImports.dll";
-        private const string DllProxyName = "MklImports.dll";
 
         // See: https://software.intel.com/en-us/node/521976#8CD904AB-244B-42E4-820A-CC2376E776B8
-        [DllImport(DllProxyName, EntryPoint = "DftiCreateDescriptor")]
+        [DllImport(DllName, EntryPoint = "DftiCreateDescriptor")]
         private static extern int CreateDescriptor(out IntPtr desc, ConfigValue precision, ConfigValue domain, int dimension, int length);
 
         // See: https://software.intel.com/en-us/node/521977
-        [DllImport(DllProxyName, EntryPoint = "DftiCommitDescriptor")]
+        [DllImport(DllName, EntryPoint = "DftiCommitDescriptor")]
         private static extern int CommitDescriptor(IntPtr desc);
 
         // See: https://software.intel.com/en-us/node/521978
-        [DllImport(DllProxyName, EntryPoint = "DftiFreeDescriptor")]
+        [DllImport(DllName, EntryPoint = "DftiFreeDescriptor")]
         private static extern int FreeDescriptor(ref IntPtr desc);
 
         // See: https://software.intel.com/en-us/node/521981
-        [DllImport(DllProxyName, EntryPoint = "DftiSetValue")]
+        [DllImport(DllName, EntryPoint = "DftiSetValue")]
         private static extern int SetValue(IntPtr desc, ConfigParam configParam, ConfigValue configValue);
 
         // See: https://software.intel.com/en-us/node/521984
-        [DllImport(DllProxyName, EntryPoint = "DftiComputeForward")]
+        [DllImport(DllName, EntryPoint = "DftiComputeForward")]
         private static extern int ComputeForward(IntPtr desc, [In] double[] inputRe, [In] double[] inputIm, [Out] double[] outputRe, [Out] double[] outputIm);
 
         // See: https://software.intel.com/en-us/node/521985
-        [DllImport(DllProxyName, EntryPoint = "DftiComputeBackward")]
+        [DllImport(DllName, EntryPoint = "DftiComputeBackward")]
         private static extern int ComputeBackward(IntPtr desc, [In] double[] inputRe, [In] double[] inputIm, [Out] double[] outputRe, [Out] double[] outputIm);
 
         // See: https://software.intel.com/en-us/node/521990
-        [DllImport(DllProxyName, EntryPoint = "DftiErrorMessage")]
+        [DllImport(DllName, EntryPoint = "DftiErrorMessage")]
         private static extern byte[] ErrorMessage(int status);
 
         private static void CheckStatus(int status)
@@ -281,7 +280,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
                     FreeDescriptor(ref descriptor);
             }
 
-            // REVIEW saamizad: for some reason the native backward scaling for DFTI in MKL does not work.
+            // For some reason the native backward scaling for DFTI in MKL does not work.
             // Therefore here, we manually re-scale the output.
             // Ideally, the command
             // status = SetValue(descriptor, ConfigParam.BackwardScale, __arglist(scale));

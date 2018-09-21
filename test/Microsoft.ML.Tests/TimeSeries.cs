@@ -61,9 +61,60 @@ namespace Microsoft.ML.Tests
                 0, 5, 0.4999999995, 5.12000001382404E-08};
                 int index = 0;
                 while (enumerator.MoveNext() && index < expectedValues.Count)
-                { 
+                {
                     row = enumerator.Current;
 
+                    Assert.Equal(expectedValues[index++], row.Change[0]);
+                    Assert.Equal(expectedValues[index++], row.Change[1]);
+                    Assert.Equal(expectedValues[index++], row.Change[2]);
+                    Assert.Equal(expectedValues[index++], row.Change[3]);
+                }
+            }
+        }
+
+        [Fact]
+        public void ChangePointDetectionWithSeasonality()
+        {
+            using (var env = new ConsoleEnvironment(conc: 1))
+            {
+                const int ChangeHistorySize = 2000;
+                const int SeasonalitySize = 1000;
+                const int NumberOfSeasonsInTraining = 5;
+                const int MaxTrainingSize = NumberOfSeasonsInTraining * SeasonalitySize;
+
+                List<Data> data = new List<Data>();
+                var dataView = env.CreateStreamingDataView(data);
+
+                var args = new SsaChangePointDetector.Arguments()
+                {
+                    Confidence = 95,
+                    Source = "Value",
+                    Name = "Change",
+                    ChangeHistoryLength = ChangeHistorySize,
+                    Data = dataView,
+                    TrainingWindowSize = MaxTrainingSize,
+                    SeasonalWindowSize = SeasonalitySize
+                };
+
+                for (int j = 0; j < NumberOfSeasonsInTraining; j++)
+                    for (int i = 0; i < SeasonalitySize; i++)
+                        data.Add(new Data(i));
+
+                Random rng = new Random();
+                for (int i = 0; i < ChangeHistorySize; i++)
+                    data.Add(new Data(i * 100));
+
+                var detector = TimeSeriesProcessing.SsaChangePointDetector(env, args);
+                var output = detector.Model.Apply(env, dataView);
+                var enumerator = output.AsEnumerable<Prediction>(env, true).GetEnumerator();
+                Prediction row = null;
+                List<double> expectedValues = new List<double>(10 * 4) { 0, 0, 0.5, 0, 0, 1, 0.15865526383236372,
+                    0, 0, 2.0000000015037389, 0.011390874461660316, 0, 0, 2.999999994948737, 0.039202668437011035, 0};
+
+                int index = 0;
+                while (enumerator.MoveNext() && index < expectedValues.Count)
+                {
+                    row = enumerator.Current;
                     Assert.Equal(expectedValues[index++], row.Change[0]);
                     Assert.Equal(expectedValues[index++], row.Change[1]);
                     Assert.Equal(expectedValues[index++], row.Change[2]);

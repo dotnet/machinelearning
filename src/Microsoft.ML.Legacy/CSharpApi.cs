@@ -478,6 +478,102 @@ namespace Microsoft.ML
                 _jsonNodes.Add(Serialize("Models.TrainTestEvaluator", input, output));
             }
 
+            public Microsoft.ML.Legacy.TimeSeriesProcessing.ExponentialAverage.Output Add(Microsoft.ML.Legacy.TimeSeriesProcessing.ExponentialAverage input)
+            {
+                var output = new Microsoft.ML.Legacy.TimeSeriesProcessing.ExponentialAverage.Output();
+                Add(input, output);
+                return output;
+            }
+
+            public void Add(Microsoft.ML.Legacy.TimeSeriesProcessing.ExponentialAverage input, Microsoft.ML.Legacy.TimeSeriesProcessing.ExponentialAverage.Output output)
+            {
+                _jsonNodes.Add(Serialize("TimeSeriesProcessing.ExponentialAverage", input, output));
+            }
+
+            public Microsoft.ML.Legacy.TimeSeriesProcessing.IidChangePointDetector.Output Add(Microsoft.ML.Legacy.TimeSeriesProcessing.IidChangePointDetector input)
+            {
+                var output = new Microsoft.ML.Legacy.TimeSeriesProcessing.IidChangePointDetector.Output();
+                Add(input, output);
+                return output;
+            }
+
+            public void Add(Microsoft.ML.Legacy.TimeSeriesProcessing.IidChangePointDetector input, Microsoft.ML.Legacy.TimeSeriesProcessing.IidChangePointDetector.Output output)
+            {
+                _jsonNodes.Add(Serialize("TimeSeriesProcessing.IidChangePointDetector", input, output));
+            }
+
+            public Microsoft.ML.Legacy.TimeSeriesProcessing.IidSpikeDetector.Output Add(Microsoft.ML.Legacy.TimeSeriesProcessing.IidSpikeDetector input)
+            {
+                var output = new Microsoft.ML.Legacy.TimeSeriesProcessing.IidSpikeDetector.Output();
+                Add(input, output);
+                return output;
+            }
+
+            public void Add(Microsoft.ML.Legacy.TimeSeriesProcessing.IidSpikeDetector input, Microsoft.ML.Legacy.TimeSeriesProcessing.IidSpikeDetector.Output output)
+            {
+                _jsonNodes.Add(Serialize("TimeSeriesProcessing.IidSpikeDetector", input, output));
+            }
+
+            public Microsoft.ML.Legacy.TimeSeriesProcessing.PercentileThresholdTransform.Output Add(Microsoft.ML.Legacy.TimeSeriesProcessing.PercentileThresholdTransform input)
+            {
+                var output = new Microsoft.ML.Legacy.TimeSeriesProcessing.PercentileThresholdTransform.Output();
+                Add(input, output);
+                return output;
+            }
+
+            public void Add(Microsoft.ML.Legacy.TimeSeriesProcessing.PercentileThresholdTransform input, Microsoft.ML.Legacy.TimeSeriesProcessing.PercentileThresholdTransform.Output output)
+            {
+                _jsonNodes.Add(Serialize("TimeSeriesProcessing.PercentileThresholdTransform", input, output));
+            }
+
+            public Microsoft.ML.Legacy.TimeSeriesProcessing.PValueTransform.Output Add(Microsoft.ML.Legacy.TimeSeriesProcessing.PValueTransform input)
+            {
+                var output = new Microsoft.ML.Legacy.TimeSeriesProcessing.PValueTransform.Output();
+                Add(input, output);
+                return output;
+            }
+
+            public void Add(Microsoft.ML.Legacy.TimeSeriesProcessing.PValueTransform input, Microsoft.ML.Legacy.TimeSeriesProcessing.PValueTransform.Output output)
+            {
+                _jsonNodes.Add(Serialize("TimeSeriesProcessing.PValueTransform", input, output));
+            }
+
+            public Microsoft.ML.Legacy.TimeSeriesProcessing.SlidingWindowTransform.Output Add(Microsoft.ML.Legacy.TimeSeriesProcessing.SlidingWindowTransform input)
+            {
+                var output = new Microsoft.ML.Legacy.TimeSeriesProcessing.SlidingWindowTransform.Output();
+                Add(input, output);
+                return output;
+            }
+
+            public void Add(Microsoft.ML.Legacy.TimeSeriesProcessing.SlidingWindowTransform input, Microsoft.ML.Legacy.TimeSeriesProcessing.SlidingWindowTransform.Output output)
+            {
+                _jsonNodes.Add(Serialize("TimeSeriesProcessing.SlidingWindowTransform", input, output));
+            }
+
+            public Microsoft.ML.Legacy.TimeSeriesProcessing.SsaChangePointDetector.Output Add(Microsoft.ML.Legacy.TimeSeriesProcessing.SsaChangePointDetector input)
+            {
+                var output = new Microsoft.ML.Legacy.TimeSeriesProcessing.SsaChangePointDetector.Output();
+                Add(input, output);
+                return output;
+            }
+
+            public void Add(Microsoft.ML.Legacy.TimeSeriesProcessing.SsaChangePointDetector input, Microsoft.ML.Legacy.TimeSeriesProcessing.SsaChangePointDetector.Output output)
+            {
+                _jsonNodes.Add(Serialize("TimeSeriesProcessing.SsaChangePointDetector", input, output));
+            }
+
+            public Microsoft.ML.Legacy.TimeSeriesProcessing.SsaSpikeDetector.Output Add(Microsoft.ML.Legacy.TimeSeriesProcessing.SsaSpikeDetector input)
+            {
+                var output = new Microsoft.ML.Legacy.TimeSeriesProcessing.SsaSpikeDetector.Output();
+                Add(input, output);
+                return output;
+            }
+
+            public void Add(Microsoft.ML.Legacy.TimeSeriesProcessing.SsaSpikeDetector input, Microsoft.ML.Legacy.TimeSeriesProcessing.SsaSpikeDetector.Output output)
+            {
+                _jsonNodes.Add(Serialize("TimeSeriesProcessing.SsaSpikeDetector", input, output));
+            }
+
             public Microsoft.ML.Legacy.Trainers.AveragedPerceptronBinaryClassifier.Output Add(Microsoft.ML.Legacy.Trainers.AveragedPerceptronBinaryClassifier input)
             {
                 var output = new Microsoft.ML.Legacy.Trainers.AveragedPerceptronBinaryClassifier.Output();
@@ -4222,6 +4318,759 @@ namespace Microsoft.ML
                 /// </summary>
                 public Var<Microsoft.ML.Runtime.Data.IDataView> TrainingConfusionMatrix { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
 
+            }
+        }
+    }
+
+    namespace Legacy.TimeSeriesProcessing
+    {
+
+        /// <summary>
+        /// Applies a Exponential average on a time series.
+        /// </summary>
+        public sealed partial class ExponentialAverage : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
+        {
+
+
+            /// <summary>
+            /// The name of the source column
+            /// </summary>
+            public string Source { get; set; }
+
+            /// <summary>
+            /// The name of the new column
+            /// </summary>
+            public string Name { get; set; }
+
+            /// <summary>
+            /// Coefficient d in: d m(y_t) = d * y_t + (1-d) * m(y_(t-1)), it should be in [0, 1].
+            /// </summary>
+            public float Decay { get; set; } = 0.9f;
+
+            /// <summary>
+            /// Input dataset
+            /// </summary>
+            public Var<Microsoft.ML.Runtime.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+
+
+            public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITransformOutput
+            {
+                /// <summary>
+                /// Transformed dataset
+                /// </summary>
+                public Var<Microsoft.ML.Runtime.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+
+                /// <summary>
+                /// Transform model
+                /// </summary>
+                public Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel>();
+
+            }
+            public Var<IDataView> GetInputData() => Data;
+            
+            public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
+            {
+                if (previousStep != null)
+                {
+                    if (!(previousStep is ILearningPipelineDataStep dataStep))
+                    {
+                        throw new InvalidOperationException($"{ nameof(ExponentialAverage)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
+                    }
+
+                    Data = dataStep.Data;
+                }
+                Output output = experiment.Add(this);
+                return new ExponentialAveragePipelineStep(output);
+            }
+
+            private class ExponentialAveragePipelineStep : ILearningPipelineDataStep
+            {
+                public ExponentialAveragePipelineStep(Output output)
+                {
+                    Data = output.OutputData;
+                    Model = output.Model;
+                }
+
+                public Var<IDataView> Data { get; }
+                public Var<ITransformModel> Model { get; }
+            }
+        }
+    }
+
+    namespace Legacy.TimeSeriesProcessing
+    {
+        public enum SequentialAnomalyDetectionTransformBaseSingleIidAnomalyDetectionBaseStateMartingaleType : byte
+        {
+            None = 0,
+            Power = 1,
+            Mixture = 2
+        }
+
+
+        /// <summary>
+        /// This transform detects the change-points in an i.i.d. sequence using adaptive kernel density estimation and martingales.
+        /// </summary>
+        public sealed partial class IidChangePointDetector : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
+        {
+
+
+            /// <summary>
+            /// The name of the source column.
+            /// </summary>
+            public string Source { get; set; }
+
+            /// <summary>
+            /// The name of the new column.
+            /// </summary>
+            public string Name { get; set; }
+
+            /// <summary>
+            /// The change history length.
+            /// </summary>
+            public int ChangeHistoryLength { get; set; } = 20;
+
+            /// <summary>
+            /// The confidence for change point detection in the range [0, 100].
+            /// </summary>
+            public double Confidence { get; set; } = 95d;
+
+            /// <summary>
+            /// The martingale used for scoring.
+            /// </summary>
+            public SequentialAnomalyDetectionTransformBaseSingleIidAnomalyDetectionBaseStateMartingaleType Martingale { get; set; } = SequentialAnomalyDetectionTransformBaseSingleIidAnomalyDetectionBaseStateMartingaleType.Power;
+
+            /// <summary>
+            /// The epsilon parameter for the Power martingale.
+            /// </summary>
+            public double PowerMartingaleEpsilon { get; set; } = 0.1d;
+
+            /// <summary>
+            /// Input dataset
+            /// </summary>
+            public Var<Microsoft.ML.Runtime.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+
+
+            public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITransformOutput
+            {
+                /// <summary>
+                /// Transformed dataset
+                /// </summary>
+                public Var<Microsoft.ML.Runtime.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+
+                /// <summary>
+                /// Transform model
+                /// </summary>
+                public Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel>();
+
+            }
+            public Var<IDataView> GetInputData() => Data;
+            
+            public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
+            {
+                if (previousStep != null)
+                {
+                    if (!(previousStep is ILearningPipelineDataStep dataStep))
+                    {
+                        throw new InvalidOperationException($"{ nameof(IidChangePointDetector)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
+                    }
+
+                    Data = dataStep.Data;
+                }
+                Output output = experiment.Add(this);
+                return new IidChangePointDetectorPipelineStep(output);
+            }
+
+            private class IidChangePointDetectorPipelineStep : ILearningPipelineDataStep
+            {
+                public IidChangePointDetectorPipelineStep(Output output)
+                {
+                    Data = output.OutputData;
+                    Model = output.Model;
+                }
+
+                public Var<IDataView> Data { get; }
+                public Var<ITransformModel> Model { get; }
+            }
+        }
+    }
+
+    namespace Legacy.TimeSeriesProcessing
+    {
+        public enum SequentialAnomalyDetectionTransformBaseSingleIidAnomalyDetectionBaseStateAnomalySide : byte
+        {
+            Positive = 0,
+            Negative = 1,
+            TwoSided = 2
+        }
+
+
+        /// <summary>
+        /// This transform detects the spikes in a i.i.d. sequence using adaptive kernel density estimation.
+        /// </summary>
+        public sealed partial class IidSpikeDetector : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
+        {
+
+
+            /// <summary>
+            /// The name of the source column.
+            /// </summary>
+            public string Source { get; set; }
+
+            /// <summary>
+            /// The name of the new column.
+            /// </summary>
+            public string Name { get; set; }
+
+            /// <summary>
+            /// The argument that determines whether to detect positive or negative anomalies, or both.
+            /// </summary>
+            public SequentialAnomalyDetectionTransformBaseSingleIidAnomalyDetectionBaseStateAnomalySide Side { get; set; } = SequentialAnomalyDetectionTransformBaseSingleIidAnomalyDetectionBaseStateAnomalySide.TwoSided;
+
+            /// <summary>
+            /// The size of the sliding window for computing the p-value.
+            /// </summary>
+            public int PvalueHistoryLength { get; set; } = 100;
+
+            /// <summary>
+            /// The confidence for spike detection in the range [0, 100].
+            /// </summary>
+            public double Confidence { get; set; } = 99d;
+
+            /// <summary>
+            /// Input dataset
+            /// </summary>
+            public Var<Microsoft.ML.Runtime.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+
+
+            public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITransformOutput
+            {
+                /// <summary>
+                /// Transformed dataset
+                /// </summary>
+                public Var<Microsoft.ML.Runtime.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+
+                /// <summary>
+                /// Transform model
+                /// </summary>
+                public Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel>();
+
+            }
+            public Var<IDataView> GetInputData() => Data;
+            
+            public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
+            {
+                if (previousStep != null)
+                {
+                    if (!(previousStep is ILearningPipelineDataStep dataStep))
+                    {
+                        throw new InvalidOperationException($"{ nameof(IidSpikeDetector)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
+                    }
+
+                    Data = dataStep.Data;
+                }
+                Output output = experiment.Add(this);
+                return new IidSpikeDetectorPipelineStep(output);
+            }
+
+            private class IidSpikeDetectorPipelineStep : ILearningPipelineDataStep
+            {
+                public IidSpikeDetectorPipelineStep(Output output)
+                {
+                    Data = output.OutputData;
+                    Model = output.Model;
+                }
+
+                public Var<IDataView> Data { get; }
+                public Var<ITransformModel> Model { get; }
+            }
+        }
+    }
+
+    namespace Legacy.TimeSeriesProcessing
+    {
+
+        /// <summary>
+        /// Detects the values of time-series that are in the top percentile of the sliding window.
+        /// </summary>
+        public sealed partial class PercentileThresholdTransform : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
+        {
+
+
+            /// <summary>
+            /// The name of the source column
+            /// </summary>
+            public string Source { get; set; }
+
+            /// <summary>
+            /// The name of the new column
+            /// </summary>
+            public string Name { get; set; }
+
+            /// <summary>
+            /// The percentile value for thresholding in the range [0, 100]
+            /// </summary>
+            public double Percentile { get; set; } = 1d;
+
+            /// <summary>
+            /// The size of the sliding window for computing the percentile threshold. The default value is set to 1.
+            /// </summary>
+            public int WindowSize { get; set; } = 1;
+
+            /// <summary>
+            /// Input dataset
+            /// </summary>
+            public Var<Microsoft.ML.Runtime.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+
+
+            public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITransformOutput
+            {
+                /// <summary>
+                /// Transformed dataset
+                /// </summary>
+                public Var<Microsoft.ML.Runtime.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+
+                /// <summary>
+                /// Transform model
+                /// </summary>
+                public Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel>();
+
+            }
+            public Var<IDataView> GetInputData() => Data;
+            
+            public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
+            {
+                if (previousStep != null)
+                {
+                    if (!(previousStep is ILearningPipelineDataStep dataStep))
+                    {
+                        throw new InvalidOperationException($"{ nameof(PercentileThresholdTransform)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
+                    }
+
+                    Data = dataStep.Data;
+                }
+                Output output = experiment.Add(this);
+                return new PercentileThresholdTransformPipelineStep(output);
+            }
+
+            private class PercentileThresholdTransformPipelineStep : ILearningPipelineDataStep
+            {
+                public PercentileThresholdTransformPipelineStep(Output output)
+                {
+                    Data = output.OutputData;
+                    Model = output.Model;
+                }
+
+                public Var<IDataView> Data { get; }
+                public Var<ITransformModel> Model { get; }
+            }
+        }
+    }
+
+    namespace Legacy.TimeSeriesProcessing
+    {
+
+        /// <summary>
+        /// This P-Value transform calculates the p-value of the current input in the sequence with regard to the values in the sliding window.
+        /// </summary>
+        public sealed partial class PValueTransform : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
+        {
+
+
+            /// <summary>
+            /// The name of the source column
+            /// </summary>
+            public string Source { get; set; }
+
+            /// <summary>
+            /// The name of the new column
+            /// </summary>
+            public string Name { get; set; }
+
+            /// <summary>
+            /// The seed value of the random generator
+            /// </summary>
+            public int Seed { get; set; }
+
+            /// <summary>
+            /// The flag that determines whether the p-values are calculated on the positive side
+            /// </summary>
+            public bool PositiveSide { get; set; } = true;
+
+            /// <summary>
+            /// The size of the sliding window for computing the p-value
+            /// </summary>
+            public int WindowSize { get; set; } = 1;
+
+            /// <summary>
+            /// The size of the initial window for computing the p-value. The default value is set to 0, which means there is no initial window considered.
+            /// </summary>
+            public int InitialWindowSize { get; set; }
+
+            /// <summary>
+            /// Input dataset
+            /// </summary>
+            public Var<Microsoft.ML.Runtime.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+
+
+            public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITransformOutput
+            {
+                /// <summary>
+                /// Transformed dataset
+                /// </summary>
+                public Var<Microsoft.ML.Runtime.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+
+                /// <summary>
+                /// Transform model
+                /// </summary>
+                public Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel>();
+
+            }
+            public Var<IDataView> GetInputData() => Data;
+            
+            public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
+            {
+                if (previousStep != null)
+                {
+                    if (!(previousStep is ILearningPipelineDataStep dataStep))
+                    {
+                        throw new InvalidOperationException($"{ nameof(PValueTransform)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
+                    }
+
+                    Data = dataStep.Data;
+                }
+                Output output = experiment.Add(this);
+                return new PValueTransformPipelineStep(output);
+            }
+
+            private class PValueTransformPipelineStep : ILearningPipelineDataStep
+            {
+                public PValueTransformPipelineStep(Output output)
+                {
+                    Data = output.OutputData;
+                    Model = output.Model;
+                }
+
+                public Var<IDataView> Data { get; }
+                public Var<ITransformModel> Model { get; }
+            }
+        }
+    }
+
+    namespace Legacy.TimeSeriesProcessing
+    {
+        public enum SlidingWindowTransformBaseSingleBeginOptions : byte
+        {
+            NaNValues = 0,
+            FirstValue = 1
+        }
+
+
+        /// <summary>
+        /// Returns the last values for a time series [y(t-d-l+1), y(t-d-l+2), ..., y(t-l-1), y(t-l)] where d is the size of the window, l the lag and y is a Float.
+        /// </summary>
+        public sealed partial class SlidingWindowTransform : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
+        {
+
+
+            /// <summary>
+            /// The name of the source column
+            /// </summary>
+            public string Source { get; set; }
+
+            /// <summary>
+            /// The name of the new column
+            /// </summary>
+            public string Name { get; set; }
+
+            /// <summary>
+            /// The size of the sliding window for computing the moving average
+            /// </summary>
+            public int WindowSize { get; set; } = 2;
+
+            /// <summary>
+            /// Lag between current observation and last observation from the sliding window
+            /// </summary>
+            public int Lag { get; set; } = 1;
+
+            /// <summary>
+            /// Define how to populate the first rows of the produced series
+            /// </summary>
+            public SlidingWindowTransformBaseSingleBeginOptions Begin { get; set; } = SlidingWindowTransformBaseSingleBeginOptions.NaNValues;
+
+            /// <summary>
+            /// Input dataset
+            /// </summary>
+            public Var<Microsoft.ML.Runtime.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+
+
+            public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITransformOutput
+            {
+                /// <summary>
+                /// Transformed dataset
+                /// </summary>
+                public Var<Microsoft.ML.Runtime.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+
+                /// <summary>
+                /// Transform model
+                /// </summary>
+                public Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel>();
+
+            }
+            public Var<IDataView> GetInputData() => Data;
+            
+            public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
+            {
+                if (previousStep != null)
+                {
+                    if (!(previousStep is ILearningPipelineDataStep dataStep))
+                    {
+                        throw new InvalidOperationException($"{ nameof(SlidingWindowTransform)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
+                    }
+
+                    Data = dataStep.Data;
+                }
+                Output output = experiment.Add(this);
+                return new SlidingWindowTransformPipelineStep(output);
+            }
+
+            private class SlidingWindowTransformPipelineStep : ILearningPipelineDataStep
+            {
+                public SlidingWindowTransformPipelineStep(Output output)
+                {
+                    Data = output.OutputData;
+                    Model = output.Model;
+                }
+
+                public Var<IDataView> Data { get; }
+                public Var<ITransformModel> Model { get; }
+            }
+        }
+    }
+
+    namespace Legacy.TimeSeriesProcessing
+    {
+        public enum ErrorFunctionUtilsErrorFunction : byte
+        {
+            SignedDifference = 0,
+            AbsoluteDifference = 1,
+            SignedProportion = 2,
+            AbsoluteProportion = 3,
+            SquaredDifference = 4
+        }
+
+        public enum SequentialAnomalyDetectionTransformBaseSingleSsaAnomalyDetectionBaseStateMartingaleType : byte
+        {
+            None = 0,
+            Power = 1,
+            Mixture = 2
+        }
+
+
+        /// <summary>
+        /// This transform detects the change-points in a seasonal time-series using Singular Spectrum Analysis (SSA).
+        /// </summary>
+        public sealed partial class SsaChangePointDetector : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
+        {
+
+
+            /// <summary>
+            /// The name of the source column.
+            /// </summary>
+            public string Source { get; set; }
+
+            /// <summary>
+            /// The name of the new column.
+            /// </summary>
+            public string Name { get; set; }
+
+            /// <summary>
+            /// The change history length.
+            /// </summary>
+            public int ChangeHistoryLength { get; set; } = 20;
+
+            /// <summary>
+            /// The number of points from the beginning of the sequence used for training.
+            /// </summary>
+            public int TrainingWindowSize { get; set; } = 100;
+
+            /// <summary>
+            /// The confidence for change point detection in the range [0, 100].
+            /// </summary>
+            public double Confidence { get; set; } = 95d;
+
+            /// <summary>
+            /// An upper bound on the largest relevant seasonality in the input time-series.
+            /// </summary>
+            public int SeasonalWindowSize { get; set; } = 10;
+
+            /// <summary>
+            /// The function used to compute the error between the expected and the observed value.
+            /// </summary>
+            public ErrorFunctionUtilsErrorFunction ErrorFunction { get; set; } = ErrorFunctionUtilsErrorFunction.SignedDifference;
+
+            /// <summary>
+            /// The martingale used for scoring.
+            /// </summary>
+            public SequentialAnomalyDetectionTransformBaseSingleSsaAnomalyDetectionBaseStateMartingaleType Martingale { get; set; } = SequentialAnomalyDetectionTransformBaseSingleSsaAnomalyDetectionBaseStateMartingaleType.Power;
+
+            /// <summary>
+            /// The epsilon parameter for the Power martingale.
+            /// </summary>
+            public double PowerMartingaleEpsilon { get; set; } = 0.1d;
+
+            /// <summary>
+            /// Input dataset
+            /// </summary>
+            public Var<Microsoft.ML.Runtime.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+
+
+            public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITransformOutput
+            {
+                /// <summary>
+                /// Transformed dataset
+                /// </summary>
+                public Var<Microsoft.ML.Runtime.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+
+                /// <summary>
+                /// Transform model
+                /// </summary>
+                public Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel>();
+
+            }
+            public Var<IDataView> GetInputData() => Data;
+            
+            public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
+            {
+                if (previousStep != null)
+                {
+                    if (!(previousStep is ILearningPipelineDataStep dataStep))
+                    {
+                        throw new InvalidOperationException($"{ nameof(SsaChangePointDetector)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
+                    }
+
+                    Data = dataStep.Data;
+                }
+                Output output = experiment.Add(this);
+                return new SsaChangePointDetectorPipelineStep(output);
+            }
+
+            private class SsaChangePointDetectorPipelineStep : ILearningPipelineDataStep
+            {
+                public SsaChangePointDetectorPipelineStep(Output output)
+                {
+                    Data = output.OutputData;
+                    Model = output.Model;
+                }
+
+                public Var<IDataView> Data { get; }
+                public Var<ITransformModel> Model { get; }
+            }
+        }
+    }
+
+    namespace Legacy.TimeSeriesProcessing
+    {
+        public enum SequentialAnomalyDetectionTransformBaseSingleSsaAnomalyDetectionBaseStateAnomalySide : byte
+        {
+            Positive = 0,
+            Negative = 1,
+            TwoSided = 2
+        }
+
+
+        /// <summary>
+        /// This transform detects the spikes in a seasonal time-series using Singular Spectrum Analysis (SSA).
+        /// </summary>
+        public sealed partial class SsaSpikeDetector : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
+        {
+
+
+            /// <summary>
+            /// The name of the source column.
+            /// </summary>
+            public string Source { get; set; }
+
+            /// <summary>
+            /// The name of the new column.
+            /// </summary>
+            public string Name { get; set; }
+
+            /// <summary>
+            /// The argument that determines whether to detect positive or negative anomalies, or both.
+            /// </summary>
+            public SequentialAnomalyDetectionTransformBaseSingleSsaAnomalyDetectionBaseStateAnomalySide Side { get; set; } = SequentialAnomalyDetectionTransformBaseSingleSsaAnomalyDetectionBaseStateAnomalySide.TwoSided;
+
+            /// <summary>
+            /// The size of the sliding window for computing the p-value.
+            /// </summary>
+            public int PvalueHistoryLength { get; set; } = 100;
+
+            /// <summary>
+            /// The number of points from the beginning of the sequence used for training.
+            /// </summary>
+            public int TrainingWindowSize { get; set; } = 100;
+
+            /// <summary>
+            /// The confidence for spike detection in the range [0, 100].
+            /// </summary>
+            public double Confidence { get; set; } = 99d;
+
+            /// <summary>
+            /// An upper bound on the largest relevant seasonality in the input time-series.
+            /// </summary>
+            public int SeasonalWindowSize { get; set; } = 10;
+
+            /// <summary>
+            /// The function used to compute the error between the expected and the observed value.
+            /// </summary>
+            public ErrorFunctionUtilsErrorFunction ErrorFunction { get; set; } = ErrorFunctionUtilsErrorFunction.SignedDifference;
+
+            /// <summary>
+            /// Input dataset
+            /// </summary>
+            public Var<Microsoft.ML.Runtime.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+
+
+            public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITransformOutput
+            {
+                /// <summary>
+                /// Transformed dataset
+                /// </summary>
+                public Var<Microsoft.ML.Runtime.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
+
+                /// <summary>
+                /// Transform model
+                /// </summary>
+                public Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel>();
+
+            }
+            public Var<IDataView> GetInputData() => Data;
+            
+            public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
+            {
+                if (previousStep != null)
+                {
+                    if (!(previousStep is ILearningPipelineDataStep dataStep))
+                    {
+                        throw new InvalidOperationException($"{ nameof(SsaSpikeDetector)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
+                    }
+
+                    Data = dataStep.Data;
+                }
+                Output output = experiment.Add(this);
+                return new SsaSpikeDetectorPipelineStep(output);
+            }
+
+            private class SsaSpikeDetectorPipelineStep : ILearningPipelineDataStep
+            {
+                public SsaSpikeDetectorPipelineStep(Output output)
+                {
+                    Data = output.OutputData;
+                    Model = output.Model;
+                }
+
+                public Var<IDataView> Data { get; }
+                public Var<ITransformModel> Model { get; }
             }
         }
     }
