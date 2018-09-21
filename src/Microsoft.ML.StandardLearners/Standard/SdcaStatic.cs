@@ -7,6 +7,7 @@ using Microsoft.ML.Data.StaticPipe;
 using Microsoft.ML.Data.StaticPipe.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Internal.Calibration;
+using Microsoft.ML.Runtime.Training;
 
 namespace Microsoft.ML.Runtime.Learners
 {
@@ -71,6 +72,7 @@ namespace Microsoft.ML.Runtime.Learners
         /// <summary>
         /// Predict a target using a linear binary classification model trained with the SDCA trainer, and log-loss.
         /// </summary>
+        /// <param name="ctx">The binary classification context trainer object.</param>
         /// <param name="label">The label, or dependent variable.</param>
         /// <param name="features">The features, or independent variables.</param>
         /// <param name="weights">The optional example weights.</param>
@@ -84,8 +86,9 @@ namespace Microsoft.ML.Runtime.Learners
         /// result in any way; it is only a way for the caller to be informed about what was learnt.</param>
         /// <returns>The set of output columns including in order the predicted binary classification score (which will range
         /// from negative to positive infinity), the calibrated prediction (from 0 to 1), and the predicted label.</returns>
-        public static (Scalar<float> score, Scalar<float> probability, Scalar<bool> predictedLabel)
-            PredictSdcaBinaryClassification(this Scalar<bool> label, Vector<float> features, Scalar<float> weights = null,
+        public static (Scalar<float> score, Scalar<float> probability, Scalar<bool> predictedLabel) Sdca(
+                this BinaryClassificationContext.BinaryClassificationTrainers ctx,
+                Scalar<bool> label, Vector<float> features, Scalar<float> weights = null,
                 float? l2Const = null,
                 float? l1Threshold = null,
                 int? maxIterations = null,
@@ -132,6 +135,7 @@ namespace Microsoft.ML.Runtime.Learners
         /// Note that because we cannot be sure that all loss functions will produce naturally calibrated outputs, setting
         /// a custom loss function will not produce a calibrated probability column.
         /// </summary>
+        /// <param name="ctx">The binary classification context trainer object.</param>
         /// <param name="label">The label, or dependent variable.</param>
         /// <param name="features">The features, or independent variables.</param>
         /// /// <param name="loss">The custom loss.</param>
@@ -146,9 +150,10 @@ namespace Microsoft.ML.Runtime.Learners
         /// result in any way; it is only a way for the caller to be informed about what was learnt.</param>
         /// <returns>The set of output columns including in order the predicted binary classification score (which will range
         /// from negative to positive infinity), and the predicted label.</returns>
-        /// <seealso cref="PredictSdcaBinaryClassification(Scalar{bool}, Vector{float}, Scalar{float}, float?, float?, int?, Action{LinearBinaryPredictor, ParameterMixingCalibratedPredictor})"/>
-        public static (Scalar<float> score, Scalar<bool> predictedLabel)
-            PredictSdcaBinaryClassification(this Scalar<bool> label, Vector<float> features,
+        /// <seealso cref="Sdca(BinaryClassificationContext.BinaryClassificationTrainers, Scalar{bool}, Vector{float}, Scalar{float}, float?, float?, int?, Action{LinearBinaryPredictor, ParameterMixingCalibratedPredictor})"/>
+        public static (Scalar<float> score, Scalar<bool> predictedLabel) Sdca(
+                this BinaryClassificationContext.BinaryClassificationTrainers ctx,
+                Scalar<bool> label, Vector<float> features,
                 ISupportSdcaClassificationLoss loss,
                 Scalar<float> weights = null,
                 float? l2Const = null,
