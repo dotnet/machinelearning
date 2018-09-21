@@ -13,91 +13,91 @@ namespace Microsoft.ML.CpuMath.PerformanceTests
     {
         [Benchmark]
         public void AddScalarU()
-            => AvxIntrinsics.AddScalarU(DEFAULT_SCALE, new Span<float>(dst, 0, LEN));
+            => AvxIntrinsics.AddScalarU(DefaultScale, new Span<float>(dst, 0, Length));
 
         [Benchmark]
         public void ScaleU()
-            => AvxIntrinsics.ScaleU(DEFAULT_SCALE, new Span<float>(dst, 0, LEN));
+            => AvxIntrinsics.ScaleU(DefaultScale, new Span<float>(dst, 0, Length));
 
         [Benchmark]
         public void ScaleSrcU()
-            => AvxIntrinsics.ScaleSrcU(DEFAULT_SCALE, new Span<float>(src, 0, LEN), new Span<float>(dst, 0, LEN));
+            => AvxIntrinsics.ScaleSrcU(DefaultScale, new Span<float>(src, 0, Length), new Span<float>(dst, 0, Length));
 
         [Benchmark]
         public void ScaleAddU()
-            => AvxIntrinsics.ScaleAddU(DEFAULT_SCALE, DEFAULT_SCALE, new Span<float>(dst, 0, LEN));
+            => AvxIntrinsics.ScaleAddU(DefaultScale, DefaultScale, new Span<float>(dst, 0, Length));
 
         [Benchmark]
         public void AddScaleU()
-            => AvxIntrinsics.AddScaleU(DEFAULT_SCALE, new Span<float>(src, 0, LEN), new Span<float>(dst, 0, LEN));
+            => AvxIntrinsics.AddScaleU(DefaultScale, new Span<float>(src, 0, Length), new Span<float>(dst, 0, Length));
 
         [Benchmark]
         public void AddScaleSU()
-            => AvxIntrinsics.AddScaleSU(DEFAULT_SCALE, new Span<float>(src), new Span<int>(idx, 0, IDXLEN), new Span<float>(dst));
+            => AvxIntrinsics.AddScaleSU(DefaultScale, new Span<float>(src), new Span<int>(idx, 0, IndexLength), new Span<float>(dst));
 
         [Benchmark]
         public void AddScaleCopyU()
-            => AvxIntrinsics.AddScaleCopyU(DEFAULT_SCALE, new Span<float>(src, 0, LEN), new Span<float>(dst, 0, LEN), new Span<float>(result, 0, LEN));
+            => AvxIntrinsics.AddScaleCopyU(DefaultScale, new Span<float>(src, 0, Length), new Span<float>(dst, 0, Length), new Span<float>(result, 0, Length));
 
         [Benchmark]
         public void AddU()
-            => AvxIntrinsics.AddU(new Span<float>(src, 0, LEN), new Span<float>(dst, 0, LEN));
+            => AvxIntrinsics.AddU(new Span<float>(src, 0, Length), new Span<float>(dst, 0, Length));
 
         [Benchmark]
         public void AddSU()
-            => AvxIntrinsics.AddSU(new Span<float>(src), new Span<int>(idx, 0, IDXLEN), new Span<float>(dst));
+            => AvxIntrinsics.AddSU(new Span<float>(src), new Span<int>(idx, 0, IndexLength), new Span<float>(dst));
 
         [Benchmark]
         public void MulElementWiseU()
-            => AvxIntrinsics.MulElementWiseU(new Span<float>(src1, 0, LEN), new Span<float>(src2, 0, LEN),
-                                            new Span<float>(dst, 0, LEN));
+            => AvxIntrinsics.MulElementWiseU(new Span<float>(src1, 0, Length), new Span<float>(src2, 0, Length),
+                                            new Span<float>(dst, 0, Length));
 
         [Benchmark]
         public float SumU()
-            => AvxIntrinsics.SumU(new Span<float>(src, 0, LEN));
+            => AvxIntrinsics.SumU(new Span<float>(src, 0, Length));
 
         [Benchmark]
         public float SumSqU()
-            => AvxIntrinsics.SumSqU(new Span<float>(src, 0, LEN));
+            => AvxIntrinsics.SumSqU(new Span<float>(src, 0, Length));
 
         [Benchmark]
         public float SumSqDiffU()
-            => AvxIntrinsics.SumSqDiffU(DEFAULT_SCALE, new Span<float>(src, 0, LEN));
+            => AvxIntrinsics.SumSqDiffU(DefaultScale, new Span<float>(src, 0, Length));
 
        [Benchmark]
         public float SumAbsU()
-            => AvxIntrinsics.SumAbsU(new Span<float>(src, 0, LEN));
+            => AvxIntrinsics.SumAbsU(new Span<float>(src, 0, Length));
 
         [Benchmark]
         public float SumAbsDiffU()
-            => AvxIntrinsics.SumAbsDiffU(DEFAULT_SCALE, new Span<float>(src, 0, LEN));
+            => AvxIntrinsics.SumAbsDiffU(DefaultScale, new Span<float>(src, 0, Length));
 
         [Benchmark]
         public float MaxAbsU()
-            => AvxIntrinsics.MaxAbsU(new Span<float>(src, 0, LEN));
+            => AvxIntrinsics.MaxAbsU(new Span<float>(src, 0, Length));
 
         [Benchmark]
         public float MaxAbsDiffU()
-            => AvxIntrinsics.MaxAbsDiffU(DEFAULT_SCALE, new Span<float>(src, 0, LEN));
+            => AvxIntrinsics.MaxAbsDiffU(DefaultScale, new Span<float>(src, 0, Length));
 
         [Benchmark]
         public float DotU()
-            => AvxIntrinsics.DotU(new Span<float>(src, 0, LEN), new Span<float>(dst, 0, LEN));
+            => AvxIntrinsics.DotU(new Span<float>(src, 0, Length), new Span<float>(dst, 0, Length));
 
         [Benchmark]
         public float DotSU()
-            => AvxIntrinsics.DotSU(new Span<float>(src), new Span<float>(dst), new Span<int>(idx, 0, IDXLEN));
+            => AvxIntrinsics.DotSU(new Span<float>(src), new Span<float>(dst), new Span<int>(idx, 0, IndexLength));
 
         [Benchmark]
         public float Dist2()
-            => AvxIntrinsics.Dist2(new Span<float>(src, 0, LEN), new Span<float>(dst, 0, LEN));
+            => AvxIntrinsics.Dist2(new Span<float>(src, 0, Length), new Span<float>(dst, 0, Length));
 
         [Benchmark]
         public void SdcaL1UpdateU()
-            => AvxIntrinsics.SdcaL1UpdateU(DEFAULT_SCALE, new Span<float>(src, 0, LEN), DEFAULT_SCALE, new Span<float>(dst, 0, LEN), new Span<float>(result, 0, LEN));
+            => AvxIntrinsics.SdcaL1UpdateU(DefaultScale, new Span<float>(src, 0, Length), DefaultScale, new Span<float>(dst, 0, Length), new Span<float>(result, 0, Length));
 
         [Benchmark]
         public void SdcaL1UpdateSU()
-            => AvxIntrinsics.SdcaL1UpdateSU(DEFAULT_SCALE, new Span<float>(src, 0, IDXLEN), new Span<int>(idx, 0, IDXLEN), DEFAULT_SCALE, new Span<float>(dst), new Span<float>(result));
+            => AvxIntrinsics.SdcaL1UpdateSU(DefaultScale, new Span<float>(src, 0, IndexLength), new Span<int>(idx, 0, IndexLength), DefaultScale, new Span<float>(dst), new Span<float>(result));
     }
 }
