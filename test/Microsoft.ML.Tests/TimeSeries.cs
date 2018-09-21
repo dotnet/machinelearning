@@ -57,7 +57,7 @@ namespace Microsoft.ML.Tests
                 var output = detector.Model.Apply(env, dataView);
                 var enumerator = output.AsEnumerable<Prediction>(env, true).GetEnumerator();
                 Prediction row = null;
-                List<double> expectedValues = new List<double>(10 * 4) { 0, 5, 0.5, 5.1200000000000114E-08, 0, 5, 0.4999999995, 5.1200000046080209E-08, 0, 5, 0.4999999995, 5.1200000092160303E-08,
+                List<double> expectedValues = new List<double>() { 0, 5, 0.5, 5.1200000000000114E-08, 0, 5, 0.4999999995, 5.1200000046080209E-08, 0, 5, 0.4999999995, 5.1200000092160303E-08,
                 0, 5, 0.4999999995, 5.12000001382404E-08};
                 int index = 0;
                 while (enumerator.MoveNext() && index < expectedValues.Count)
@@ -100,7 +100,6 @@ namespace Microsoft.ML.Tests
                     for (int i = 0; i < SeasonalitySize; i++)
                         data.Add(new Data(i));
 
-                Random rng = new Random();
                 for (int i = 0; i < ChangeHistorySize; i++)
                     data.Add(new Data(i * 100));
 
@@ -108,7 +107,7 @@ namespace Microsoft.ML.Tests
                 var output = detector.Model.Apply(env, dataView);
                 var enumerator = output.AsEnumerable<Prediction>(env, true).GetEnumerator();
                 Prediction row = null;
-                List<double> expectedValues = new List<double>(10 * 4) { 0, 0, 0.5, 0, 0, 1, 0.15865526383236372,
+                List<double> expectedValues = new List<double>() { 0, 0, 0.5, 0, 0, 1, 0.15865526383236372,
                     0, 0, 2.0000000015037389, 0.011390874461660316, 0, 0, 2.999999994948737, 0.039202668437011035, 0};
 
                 int index = 0;
