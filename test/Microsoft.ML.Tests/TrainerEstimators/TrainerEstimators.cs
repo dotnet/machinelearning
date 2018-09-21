@@ -19,7 +19,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         }
 
         /// <summary>
-        /// FastTreeBinaryClassification TrainerEstimator test 
+        /// KMeans TrainerEstimator test 
         /// </summary>
         [Fact]
         public void KMeansEstimator()
