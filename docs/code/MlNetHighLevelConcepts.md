@@ -12,6 +12,7 @@ This document is going to cover the following ML.NET concepts:
 - *Transformer*, represented as `ITransformer` interface.
   - In one sentence, a transformer is a component that takes data, does some work on it, and return new 'transformed' data.
   - For example, you can think of a machine learning model as a transformer that takes features and returns predictions.
+  - Another example, 'text tokenizer' would take a single text column and output a vector column with individual 'words' extracted out of the texts.
 - *Data reader*, represented as an `IDataReader<T>` interface.
   - The data reader is ML.NET component to 'create' data: it takes an instance of `T` and returns data out of it. 
   - For example, a *TextLoader* is an `IDataReader<FileSource>`: it takes the file source and produces data. 
@@ -62,7 +63,7 @@ no actual computation will happen: only after you get a cursor from `newData` an
 
 ### Transformer chains
 
-A useful property of a transformer is that *you can phrase a sequential application of transformers as yet another transformer*""
+A useful property of a transformer is that *you can phrase a sequential application of transformers as yet another transformer*:
 
 ```c#
 var fullTransformer = transformer1.Append(transformer2).Append(transformer3);
@@ -107,6 +108,7 @@ public interface IEstimator<out TTransformer>
 You can easily imagine how *a sequence of estimators can be phrased as an estimator* of its own. In ML.NET, we rely on this property to create 'learning pipelines' that chain together different estimators:
 
 ```c#
+var env = new LocalEnvironment(); // Initialize the ML.NET environment.
 var estimator = new ConcatEstimator(env, "Features", "SepalLength", "SepalWidth", "PetalLength", "PetalWidth")
     .Append(new ToKeyEstimator(env, "Label"))
     .Append(new SdcaMultiClassTrainer(env, "Features", "Label")) // This is the actual 'machine learning algorithm'.

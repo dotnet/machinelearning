@@ -55,7 +55,7 @@ var reader = TextLoader.CreateReader(env, ctx => (
         MaritalStatus: ctx.LoadText(3)),
     hasHeader: true);
 
-// Now read the file.
+// Now read the file (remember though, readers are lazy, so the actual reading will happen when the data is accessed).
 var data = reader.Read(new MultiFileSource(dataPath));
 ```
 
@@ -80,7 +80,7 @@ var reader = new TextLoader(env, new TextLoader.Arguments
     HasHeader = true
 });
 
-// Now read the file.
+// Now read the file (remember though, readers are lazy, so the actual reading will happen when the data is accessed).
 var data = reader.Read(new MultiFileSource(dataPath));
 ```
 
@@ -114,7 +114,7 @@ var reader = TextLoader.CreateReader(env, ctx => (
     separator: ',');
 
 
-// Now read the file.
+// Now read the file (remember though, readers are lazy, so the actual reading will happen when the data is accessed).
 var data = reader.Read(new MultiFileSource(dataPath));
 ```
 
@@ -138,7 +138,7 @@ var reader = new TextLoader(env, new TextLoader.Arguments
     Separator = ","
 });
 
-// Now read the file. 
+// Now read the file (remember though, readers are lazy, so the actual reading will happen when the data is accessed).
 var data = reader.Read(new MultiFileSource(dataPath));
 ```
 
