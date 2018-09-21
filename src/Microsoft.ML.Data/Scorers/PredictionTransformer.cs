@@ -20,6 +20,9 @@ using Microsoft.ML.Runtime.Model;
 [assembly: LoadableClass(typeof(RankingPredictionTransformer<IPredictorProducing<float>>), typeof(RankingPredictionTransformer), null, typeof(SignatureLoadModel),
     "", RankingPredictionTransformer.LoaderSignature)]
 
+[assembly: LoadableClass(typeof(ClusteringPredictionTransformer<IPredictorProducing<VBuffer<float>>>), typeof(ClusteringPredictionTransformer), null, typeof(SignatureLoadModel),
+    "", ClusteringPredictionTransformer.LoaderSignature)]
+
 namespace Microsoft.ML.Runtime.Data
 {
 
@@ -375,6 +378,10 @@ namespace Microsoft.ML.Runtime.Data
         }
     }
 
+    /// <summary>
+    /// Base class for the <see cref="ISingleFeaturePredictionTransformer{TModel}"/> working on ranking tasks.
+    /// </summary>
+    /// <typeparam name="TModel">An implmentation of a <see cref="IPredictorProducing{TResult}"/>, where TResult is <see cref="VBuffer{Float}"/></typeparam>
     public sealed class RankingPredictionTransformer<TModel> : SingleFeaturePredictionTransformerBase<TModel>
     where TModel : class, IPredictorProducing<float>
     {
@@ -421,6 +428,65 @@ namespace Microsoft.ML.Runtime.Data
         }
     }
 
+    /// <summary>
+    /// Base class for the <see cref="ISingleFeaturePredictionTransformer{TModel}"/> working on clustering tasks.
+    /// </summary>
+    /// <typeparam name="TModel">An implementation of the <see cref="IPredictorProducing{TResult}"/></typeparam>
+    public sealed class ClusteringPredictionTransformer<TModel> : SingleFeaturePredictionTransformerBase<TModel>
+        where TModel : class, IPredictorProducing<VBuffer<float>>
+    {
+        private readonly ClusteringScorer _scorer;
+
+        public ClusteringPredictionTransformer(IHostEnvironment env, TModel model, ISchema inputSchema, string featureColumn,
+            float threshold = 0f, string thresholdColumn = DefaultColumnNames.Score)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(ClusteringPredictionTransformer<TModel>)), model, inputSchema, featureColumn)
+        {
+            Host.CheckNonEmpty(thresholdColumn, nameof(thresholdColumn));
+            var schema = new RoleMappedSchema(inputSchema, null, featureColumn);
+
+            var args = new ClusteringScorer.Arguments();
+            _scorer = new ClusteringScorer(Host, args, new EmptyDataView(Host, inputSchema), BindableMapper.Bind(Host, schema), schema);
+        }
+
+        public ClusteringPredictionTransformer(IHostEnvironment env, ModelLoadContext ctx)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(ClusteringPredictionTransformer<TModel>)), ctx)
+        {
+            // *** Binary format ***
+            // <base info>
+
+            var schema = new RoleMappedSchema(TrainSchema, null, FeatureColumn);
+            var args = new ClusteringScorer.Arguments();
+            _scorer = new ClusteringScorer(Host, args, new EmptyDataView(Host, TrainSchema), BindableMapper.Bind(Host, schema), schema);
+        }
+
+        public override IDataView Transform(IDataView input)
+        {
+            Host.CheckValue(input, nameof(input));
+            return _scorer.ApplyToData(Host, input);
+        }
+
+        protected override void SaveCore(ModelSaveContext ctx)
+        {
+            Contracts.AssertValue(ctx);
+            ctx.SetVersionInfo(GetVersionInfo());
+
+            // *** Binary format ***
+            // <base info>
+            // id of string: scorer threshold column
+            base.SaveCore(ctx);
+        }
+
+        private static VersionInfo GetVersionInfo()
+        {
+            return new VersionInfo(
+                modelSignature: "CLUSPRED",
+                verWrittenCur: 0x00010001, // Initial
+                verReadableCur: 0x00010001,
+                verWeCanReadBack: 0x00010001,
+                loaderSignature: BinaryPredictionTransformer.LoaderSignature);
+        }
+    }
+
     internal static class BinaryPredictionTransformer
     {
         public const string LoaderSignature = "BinaryPredXfer";
@@ -451,5 +517,13 @@ namespace Microsoft.ML.Runtime.Data
 
         public static RankingPredictionTransformer<IPredictorProducing<float>> Create(IHostEnvironment env, ModelLoadContext ctx)
             => new RankingPredictionTransformer<IPredictorProducing<float>>(env, ctx);
+    }
+
+    internal static class ClusteringPredictionTransformer
+    {
+        public const string LoaderSignature = "ClusteringPredXfer";
+
+        public static ClusteringPredictionTransformer<IPredictorProducing<VBuffer<float>>> Create(IHostEnvironment env, ModelLoadContext ctx)
+            => new ClusteringPredictionTransformer<IPredictorProducing<VBuffer<float>>>(env, ctx);
     }
 }

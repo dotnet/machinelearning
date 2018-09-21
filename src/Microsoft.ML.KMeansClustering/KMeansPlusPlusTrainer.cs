@@ -17,6 +17,7 @@ using Microsoft.ML.Runtime.Numeric;
 using Microsoft.ML.Runtime.Training;
 using Microsoft.ML.Runtime.Internal.Internallearn;
 using Microsoft.ML.Runtime.EntryPoints;
+using Microsoft.ML.Core.Data;
 
 [assembly: LoadableClass(KMeansPlusPlusTrainer.Summary, typeof(KMeansPlusPlusTrainer), typeof(KMeansPlusPlusTrainer.Arguments),
     new[] { typeof(SignatureClusteringTrainer), typeof(SignatureTrainer) },
@@ -29,7 +30,7 @@ using Microsoft.ML.Runtime.EntryPoints;
 namespace Microsoft.ML.Runtime.KMeans
 {
     /// <include file='./doc.xml' path='doc/members/member[@name="KMeans++"]/*' />
-    public class KMeansPlusPlusTrainer : TrainerBase<KMeansPredictor>
+    public class KMeansPlusPlusTrainer : TrainerEstimatorBase<ClusteringPredictionTransformer<KMeansPredictor>, KMeansPredictor>
     {
         public const string LoadNameValue = "KMeansPlusPlus";
         internal const string UserNameValue = "KMeans++ Clustering";
@@ -81,15 +82,37 @@ namespace Microsoft.ML.Runtime.KMeans
         private readonly long _accelMemBudgetMb;
         private readonly InitAlgorithm _initAlgorithm;
         private readonly int _numThreads;
+        private readonly string _featureColumn;
 
         public override TrainerInfo Info { get; }
         public override PredictionKind PredictionKind => PredictionKind.Clustering;
 
-        public KMeansPlusPlusTrainer(IHostEnvironment env, Arguments args)
-            : base(env, LoadNameValue)
+        public KMeansPlusPlusTrainer(IHostEnvironment env, string featureColumn, string weightColumn = null, Action<Arguments> advancedSettings = null)
+            : this(env, null, featureColumn, weightColumn, advancedSettings)
         {
-            Host.CheckValue(args, nameof(args));
+
+        }
+
+        internal KMeansPlusPlusTrainer(IHostEnvironment env, Arguments args)
+            : this(env, args, args.FeatureColumn, args.WeightColumn, null)
+        {
+
+        }
+
+        private KMeansPlusPlusTrainer(IHostEnvironment env, Arguments args, string featureColumn, string weightColumn, Action<Arguments> advancedSettings = null)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(LoadNameValue), MakeFeatureColumn(featureColumn), null, MakeWeightColumn(weightColumn))
+        {
+            if (args == null && advancedSettings == null)
+                args = new Arguments();
+
+            if (advancedSettings != null)
+                advancedSettings.Invoke(args);
+
             Host.CheckUserArg(args.K > 0, nameof(args.K), "Must be positive");
+
+            // is this even necessary, if there is only one column, for example
+            Host.CheckNonEmpty(featureColumn, nameof(featureColumn));
+            _featureColumn = featureColumn;
 
             _k = args.K;
 
@@ -110,7 +133,7 @@ namespace Microsoft.ML.Runtime.KMeans
             Info = new TrainerInfo();
         }
 
-        public override KMeansPredictor Train(TrainContext context)
+        protected override KMeansPredictor TrainModelCore(TrainContext context)
         {
             Host.CheckValue(context, nameof(context));
             var data = context.TrainingSet;
@@ -203,6 +226,18 @@ namespace Microsoft.ML.Runtime.KMeans
             return Math.Max(1, maxThreads);
         }
 
+        private static SchemaShape.Column MakeWeightColumn(string weightColumn)
+        {
+            if (weightColumn == null)
+                return null;
+            return new SchemaShape.Column(weightColumn, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false);
+        }
+
+        private static SchemaShape.Column MakeFeatureColumn(string featureColumn)
+        {
+            return new SchemaShape.Column(featureColumn, SchemaShape.Column.VectorKind.Vector, NumberType.R4, false);
+        }
+
         [TlcModule.EntryPoint(Name = "Trainers.KMeansPlusPlusClusterer",
             Desc = Summary,
             UserName = UserNameValue,
@@ -220,6 +255,17 @@ namespace Microsoft.ML.Runtime.KMeans
                 () => new KMeansPlusPlusTrainer(host, input),
                 getWeight: () => LearnerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.WeightColumn));
         }
+
+        protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema)
+        {
+            return new[]
+            {
+                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata()))
+            };
+        }
+
+        protected override ClusteringPredictionTransformer<KMeansPredictor> MakeTransformer(KMeansPredictor model, ISchema trainSchema)
+        => new ClusteringPredictionTransformer<KMeansPredictor>(Host, model, trainSchema, _featureColumn);
     }
 
     internal static class KMeansPlusPlusInit
