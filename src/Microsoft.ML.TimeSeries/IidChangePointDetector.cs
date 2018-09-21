@@ -1,6 +1,8 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
-// The .NET Foundation licenses this file to you under the MIT license.
-// See the LICENSE file in the project root for more information.
+﻿//------------------------------------------------------------------------------
+// <copyright company="Microsoft Corporation">
+//     Copyright (c) Microsoft Corporation. All rights reserved.
+// </copyright>
+//------------------------------------------------------------------------------
 
 using System;
 using Microsoft.ML.Runtime;
@@ -20,7 +22,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
     /// <summary>
     /// This class implements the change point detector transform for an i.i.d. sequence based on adaptive kernel density estimation and martingales.
     /// </summary>
-    public sealed class IidChangePointDetector : IidAnomalyDetectionBase
+    public sealed class IidChangePointDetector : IidAnomalyDetectionBase, ITransformTemplate
     {
         internal const string Summary = "This transform detects the change-points in an i.i.d. sequence using adaptive kernel density estimation and martingales.";
         public const string LoaderSignature = "IidChangePointDetector";
@@ -65,6 +67,18 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
                 PowerMartingaleEpsilon = args.PowerMartingaleEpsilon;
                 AlertOn = SequentialAnomalyDetectionTransformBase<float, State>.AlertingScore.MartingaleScore;
             }
+
+            public BaseArguments(IidChangePointDetector transform)
+            {
+                Source = transform.InputColumnName;
+                Name = transform.OutputColumnName;
+                Side = AnomalySide.TwoSided;
+                WindowSize = transform.WindowSize;
+                Martingale = transform.Martingale;
+                PowerMartingaleEpsilon = transform.PowerMartingaleEpsilon;
+                AlertOn = AlertingScore.MartingaleScore;
+                AlertThreshold = transform.AlertThreshold;
+            }
         }
 
         private static VersionInfo GetVersionInfo()
@@ -81,29 +95,34 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
         {
             switch (Martingale)
             {
-            case MartingaleType.None:
-                AlertThreshold = Double.MaxValue;
-                break;
-            case MartingaleType.Power:
-                AlertThreshold = Math.Exp(WindowSize * LogPowerMartigaleBettingFunc(1 - args.Confidence / 100, PowerMartingaleEpsilon));
-                break;
-            case MartingaleType.Mixture:
-                AlertThreshold = Math.Exp(WindowSize * LogMixtureMartigaleBettingFunc(1 - args.Confidence / 100));
-                break;
-            default:
-                throw Host.ExceptParam(nameof(args.Martingale),
-                    "The martingale type can be only (0) None, (1) Power or (2) Mixture.");
+                case MartingaleType.None:
+                    AlertThreshold = Double.MaxValue;
+                    break;
+                case MartingaleType.Power:
+                    AlertThreshold = Math.Exp(WindowSize * LogPowerMartigaleBettingFunc(1 - args.Confidence / 100, PowerMartingaleEpsilon));
+                    break;
+                case MartingaleType.Mixture:
+                    AlertThreshold = Math.Exp(WindowSize * LogMixtureMartigaleBettingFunc(1 - args.Confidence / 100));
+                    break;
+                default:
+                    throw Host.ExceptParam(nameof(args.Martingale),
+                        "The martingale type can be only (0) None, (1) Power or (2) Mixture.");
             }
         }
 
         public IidChangePointDetector(IHostEnvironment env, ModelLoadContext ctx, IDataView input)
-            : base(env, ctx, LoaderSignature,  input)
+            : base(env, ctx, LoaderSignature, input)
         {
             // *** Binary format ***
             // <base>
 
             Host.CheckDecode(ThresholdScore == AlertingScore.MartingaleScore);
             Host.CheckDecode(Side == AnomalySide.TwoSided);
+        }
+
+        private IidChangePointDetector(IHostEnvironment env, IidChangePointDetector transform, IDataView newSource)
+            : base(new BaseArguments(transform), LoaderSignature, env, newSource)
+        {
         }
 
         public override void Save(ModelSaveContext ctx)
@@ -119,6 +138,11 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             // <base>
 
             base.Save(ctx);
+        }
+
+        public IDataTransform ApplyToData(IHostEnvironment env, IDataView newSource)
+        {
+            return new IidChangePointDetector(env, this, newSource);
         }
     }
 }
