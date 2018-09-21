@@ -405,6 +405,9 @@ namespace Microsoft.ML.Transforms
                         throw _host.Except($"Column {_parent.Inputs[i]} doesn't exist");
 
                     var type = inputSchema.GetColumnType(_inputColIndices[i]);
+                    if (type.IsVector && type.VectorSize == 0)
+                        throw _host.Except($"Variable length input columns not supported");
+
                     _isInputVector[i] = type.IsVector;
                     var expectedType = TensorFlowUtils.Tf2MlNetType(_parent.TFInputTypes[i]);
                     if (type.ItemType != expectedType)
@@ -667,7 +670,7 @@ namespace Microsoft.ML.Transforms
                 var input = Transformer.Inputs[i];
                 if (!inputSchema.TryFindColumn(input, out var col))
                     throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", input);
-                if (!(col.Kind == SchemaShape.Column.VectorKind.VariableVector || col.Kind == SchemaShape.Column.VectorKind.Vector))
+                if (!(col.Kind == SchemaShape.Column.VectorKind.Vector))
                     throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", input, nameof(VectorType), col.GetTypeString());
                 var expectedType = TensorFlowUtils.Tf2MlNetType(Transformer.TFInputTypes[i]);
                 if (col.ItemType != expectedType)
