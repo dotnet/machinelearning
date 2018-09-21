@@ -70,9 +70,17 @@ namespace Microsoft.ML.Runtime.Learners
 
         protected override int ClassCount => _numClasses;
 
+        /// <summary>
+        /// Initializes a new instance of <see cref="MulticlassLogisticRegression"/>
+        /// </summary>
+        /// <param name="env">The private instance of <see cref="IHostEnvironment"/>.</param>
+        /// <param name="labelColumn">The name of the label column.</param>
+        /// <param name="featureColumn">The name of the feature column.</param>
+        /// <param name="weightColumn">The name for the column containing the initial weight.</param>
+        /// <param name="advancedSettings">A delegate to apply all the advanced arguments to the algorithm.</param>
         public MulticlassLogisticRegression(IHostEnvironment env, string featureColumn, string labelColumn,
             string weightColumn = null, Action<Arguments> advancedSettings = null)
-            : base(env, featureColumn, labelColumn, weightColumn, advancedSettings)
+            : base(env, featureColumn, MakeLabelColumn(labelColumn), weightColumn, advancedSettings)
         {
             Host.CheckNonEmpty(featureColumn, nameof(featureColumn));
             Host.CheckNonEmpty(labelColumn, nameof(labelColumn));
@@ -80,8 +88,11 @@ namespace Microsoft.ML.Runtime.Learners
             ShowTrainingStats = Args.ShowTrainingStats;
         }
 
+        /// <summary>
+        /// Initializes a new instance of <see cref="MulticlassLogisticRegression"/>
+        /// </summary>
         public MulticlassLogisticRegression(IHostEnvironment env, Arguments args)
-            : base(env, args)
+            : base(env, args, MakeLabelColumn(args.LabelColumn))
         {
             ShowTrainingStats = Args.ShowTrainingStats;
         }
@@ -303,6 +314,9 @@ namespace Microsoft.ML.Runtime.Learners
                 new SchemaShape.Column(DefaultColumnNames.PredictedLabel, SchemaShape.Column.VectorKind.Scalar, NumberType.U4, true, metadata)
             };
         }
+
+        private static SchemaShape.Column MakeLabelColumn(string labelColumn)
+            => new SchemaShape.Column(labelColumn, SchemaShape.Column.VectorKind.Scalar, NumberType.U4, true);
 
         protected override MulticlassPredictionTransformer<MulticlassLogisticRegressionPredictor> MakeTransformer(MulticlassLogisticRegressionPredictor model, ISchema trainSchema)
             => new MulticlassPredictionTransformer<MulticlassLogisticRegressionPredictor>(Host, model, trainSchema, FeatureColumn.Name, LabelColumn.Name);

@@ -41,18 +41,32 @@ namespace Microsoft.ML.Runtime.Learners
 
         private Double _lossNormalizer;
 
+        /// <summary>
+        /// Initializes a new instance of <see cref="PoissonRegression"/>
+        /// </summary>
+        /// <param name="env">The private instance of <see cref="IHostEnvironment"/>.</param>
+        /// <param name="labelColumn">The name of the label column.</param>
+        /// <param name="featureColumn">The name of the feature column.</param>
+        /// <param name="weightColumn">The name for the column containing the initial weight.</param>
+        /// <param name="advancedSettings">A delegate to apply all the advanced arguments to the algorithm.</param>
         public PoissonRegression(IHostEnvironment env, string featureColumn, string labelColumn,
             string weightColumn = null, Action<Arguments> advancedSettings = null)
-            : base(env, featureColumn, labelColumn, weightColumn, advancedSettings)
+            : base(env, featureColumn, MakeLabelColumn(labelColumn), weightColumn, advancedSettings)
         {
             Host.CheckNonEmpty(featureColumn, nameof(featureColumn));
             Host.CheckNonEmpty(labelColumn, nameof(labelColumn));
         }
 
+        /// <summary>
+        /// Initializes a new instance of <see cref="PoissonRegression"/>
+        /// </summary>
         public PoissonRegression(IHostEnvironment env, Arguments args)
-            : base(env, args)
+            : base(env, args, MakeLabelColumn(args.LabelColumn))
         {
         }
+
+        private static SchemaShape.Column MakeLabelColumn(string labelColumn)
+            => new SchemaShape.Column(labelColumn, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false);
 
         public override PredictionKind PredictionKind => PredictionKind.Regression;
 

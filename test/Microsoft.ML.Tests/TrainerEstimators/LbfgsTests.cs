@@ -61,8 +61,8 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         public void TestEstimatorLogisticRegression()
         {
             var dataView = GetBreastCancerDataview();
-            //var args = new LogisticRegression.Arguments();
-            var pipe = new LogisticRegression(Env, "Features", "Label");
+            var pipe = new TermEstimator(Env, "Label")
+                .Append(new LogisticRegression(Env, "Features", "Label"));
             TestEstimatorCore(pipe, dataView);
             Done();
         }
@@ -71,7 +71,8 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         public void TestEstimatorMulticlassLogisticRegression()
         {
             var dataView = GetIrisDataview();
-            var pipe = new MulticlassLogisticRegression(Env, "Features", "Label");
+            var pipe = new TermEstimator(Env, "Label")
+                .Append(new MulticlassLogisticRegression(Env, "Features", "Label"));
             TestEstimatorCore(pipe, dataView);
             Done();
         }

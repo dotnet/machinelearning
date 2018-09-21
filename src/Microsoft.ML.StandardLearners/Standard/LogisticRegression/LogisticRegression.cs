@@ -49,9 +49,17 @@ namespace Microsoft.ML.Runtime.Learners
         private Double _posWeight;
         private LinearModelStatistics _stats;
 
+        /// <summary>
+        /// Initializes a new instance of <see cref="LogisticRegression"/>
+        /// </summary>
+        /// <param name="env">The private instance of <see cref="IHostEnvironment"/>.</param>
+        /// <param name="labelColumn">The name of the label column.</param>
+        /// <param name="featureColumn">The name of the feature column.</param>
+        /// <param name="weightColumn">The name for the column containing the initial weight.</param>
+        /// <param name="advancedSettings">A delegate to apply all the advanced arguments to the algorithm.</param>
         public LogisticRegression(IHostEnvironment env, string featureColumn, string labelColumn,
             string weightColumn = null, Action<Arguments> advancedSettings = null)
-            : base(env, featureColumn, labelColumn, weightColumn, advancedSettings)
+            : base(env, featureColumn, MakeLabelColumn(labelColumn), weightColumn, advancedSettings)
         {
             Host.CheckNonEmpty(featureColumn, nameof(featureColumn));
             Host.CheckNonEmpty(labelColumn, nameof(labelColumn));
@@ -60,12 +68,18 @@ namespace Microsoft.ML.Runtime.Learners
             ShowTrainingStats = Args.ShowTrainingStats;
         }
 
+        /// <summary>
+        /// Initializes a new instance of <see cref="LogisticRegression"/>
+        /// </summary>
         public LogisticRegression(IHostEnvironment env, Arguments args)
-            : base(env, args)
+            : base(env, args, MakeLabelColumn(args.LabelColumn))
         {
             _posWeight = 0;
             ShowTrainingStats = Args.ShowTrainingStats;
         }
+
+        private static SchemaShape.Column MakeLabelColumn(string labelColumn)
+            => new SchemaShape.Column(labelColumn, SchemaShape.Column.VectorKind.Scalar, NumberType.U4, true);
 
         public override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
 

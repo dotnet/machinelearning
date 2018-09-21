@@ -106,19 +106,19 @@ namespace Microsoft.ML.Runtime.Learners
         private TModel _srcPredictor;
 
         protected readonly TArgs Args;
-        protected Float L2Weight;
-        protected Float L1Weight;
-        protected Float OptTol;
-        protected int MemorySize;
-        protected int MaxIterations;
-        protected Float SgdInitializationTolerance;
-        protected bool Quiet;
-        protected Float InitWtsDiameter;
-        protected bool UseThreads;
-        protected int? NumThreads;
-        protected bool DenseOptimizer;
-        protected long MaxNormalizationExamples;
-        protected bool EnforceNonNegativity;
+        protected readonly Float L2Weight;
+        protected readonly Float L1Weight;
+        protected readonly Float OptTol;
+        protected readonly int MemorySize;
+        protected readonly int MaxIterations;
+        protected readonly Float SgdInitializationTolerance;
+        protected readonly bool Quiet;
+        protected readonly Float InitWtsDiameter;
+        protected readonly bool UseThreads;
+        protected readonly int? NumThreads;
+        protected readonly bool DenseOptimizer;
+        protected readonly long MaxNormalizationExamples;
+        protected readonly bool EnforceNonNegativity;
 
         // The training data, when NOT using multiple threads.
         private RoleMappedData _data;
@@ -143,36 +143,49 @@ namespace Microsoft.ML.Runtime.Learners
         private static readonly TrainerInfo _info = new TrainerInfo(caching: true, supportIncrementalTrain: true);
         public override TrainerInfo Info => _info;
 
-        //TODO get the showTrainingStats to work
-        internal LbfgsTrainerBase(IHostEnvironment env, string featureColumn, string labelColumn,
+        internal LbfgsTrainerBase(IHostEnvironment env, string featureColumn, SchemaShape.Column labelColumn,
             string weightColumn = null, Action<TArgs> advancedSettings = null)
-            : base(Contracts.CheckRef(env, nameof(env)).Register(RegisterName), MakeFeatureColumn(featureColumn), MakeLabelColumn(labelColumn), MakeWeightColumn(weightColumn))
+            : base(Contracts.CheckRef(env, nameof(env)).Register(RegisterName), MakeFeatureColumn(featureColumn), labelColumn, MakeWeightColumn(weightColumn))
         {
             Args = new TArgs();
 
             //apply the advanced args, if the user supplied any
             advancedSettings?.Invoke(Args);
             Args.FeatureColumn = featureColumn;
-            Args.LabelColumn = labelColumn;
+            Args.LabelColumn = labelColumn.Name;
             if (weightColumn != null)
                 Args.WeightColumn = weightColumn;
 
-            InitArguments();
+            InitArguments(ref L2Weight, ref L1Weight, ref OptTol, ref MemorySize, ref MaxIterations, ref SgdInitializationTolerance, ref Quiet,
+                ref InitWtsDiameter, ref UseThreads, ref NumThreads, ref DenseOptimizer, ref MaxNormalizationExamples, ref EnforceNonNegativity);
         }
 
-        internal LbfgsTrainerBase(IHostEnvironment env, TArgs args)
-            : base(Contracts.CheckRef(env, nameof(env)).Register(RegisterName), MakeFeatureColumn(args.FeatureColumn), MakeFeatureColumn(args.LabelColumn), MakeWeightColumn(args.WeightColumn))
+        internal LbfgsTrainerBase(IHostEnvironment env, TArgs args, SchemaShape.Column labelColumn)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(RegisterName), MakeFeatureColumn(args.FeatureColumn), labelColumn, MakeWeightColumn(args.WeightColumn))
         {
             Host.CheckValue(args, nameof(args));
             Args = args;
 
-            InitArguments();
+            InitArguments(ref L2Weight, ref L1Weight, ref OptTol, ref MemorySize, ref MaxIterations, ref SgdInitializationTolerance, ref Quiet,
+                ref InitWtsDiameter, ref UseThreads, ref NumThreads, ref DenseOptimizer, ref MaxNormalizationExamples, ref EnforceNonNegativity);
         }
 
-        protected void InitArguments()
+        private void InitArguments( ref Float l2Weight,
+            ref Float l1Weight,
+            ref Float optTol,
+            ref int memorySize,
+            ref int maxIterations,
+            ref Float sgdInitializationTolerance,
+            ref bool quiet,
+            ref Float initWtsDiameter,
+            ref bool useThreads,
+            ref int? numThreads,
+            ref bool denseOptimizer,
+            ref long maxNormalizationExamples,
+            ref bool enforceNonNegativity)
         {
             Contracts.CheckUserArg(!Args.UseThreads || Args.NumThreads > 0 || Args.NumThreads == null,
-                        nameof(Args.NumThreads), "numThreads must be positive (or empty for default)");
+                nameof(Args.NumThreads), "numThreads must be positive (or empty for default)");
             Contracts.CheckUserArg(Args.L2Weight >= 0, nameof(Args.L2Weight), "Must be non-negative");
             Contracts.CheckUserArg(Args.L1Weight >= 0, nameof(Args.L1Weight), "Must be non-negative");
             Contracts.CheckUserArg(Args.OptTol > 0, nameof(Args.OptTol), "Must be positive");
@@ -181,19 +194,20 @@ namespace Microsoft.ML.Runtime.Learners
             Contracts.CheckUserArg(Args.SgdInitializationTolerance >= 0, nameof(Args.SgdInitializationTolerance), "Must be non-negative");
             Contracts.CheckUserArg(Args.NumThreads == null || Args.NumThreads.Value >= 0, nameof(Args.NumThreads), "Must be non-negative");
 
-            L2Weight = Args.L2Weight;
-            OptTol = Args.OptTol;
-            MemorySize = Args.MemorySize;
-            MaxIterations = Args.MaxIterations;
-            SgdInitializationTolerance = Args.SgdInitializationTolerance;
-            Quiet = Args.Quiet;
-            InitWtsDiameter = Args.InitWtsDiameter;
-            UseThreads = Args.UseThreads;
-            NumThreads = Args.NumThreads;
-            DenseOptimizer = Args.DenseOptimizer;
-            EnforceNonNegativity = Args.EnforceNonNegativity;
+            l2Weight = Args.L2Weight;
+            l1Weight = Args.L1Weight;
+            optTol = Args.OptTol;
+            memorySize = Args.MemorySize;
+            maxIterations = Args.MaxIterations;
+            sgdInitializationTolerance = Args.SgdInitializationTolerance;
+            quiet = Args.Quiet;
+            initWtsDiameter = Args.InitWtsDiameter;
+            useThreads = Args.UseThreads;
+            numThreads = Args.NumThreads;
+            denseOptimizer = Args.DenseOptimizer;
+            enforceNonNegativity = Args.EnforceNonNegativity;
 
-            if (EnforceNonNegativity && ShowTrainingStats)
+            if (enforceNonNegativity && ShowTrainingStats)
             {
                 ShowTrainingStats = false;
                 using (var ch = Host.Start("Initialization"))
@@ -707,14 +721,7 @@ namespace Microsoft.ML.Runtime.Learners
         }
 
         private static SchemaShape.Column MakeFeatureColumn(string featureColumn)
-        {
-            return new SchemaShape.Column(featureColumn, SchemaShape.Column.VectorKind.Vector, NumberType.R4, false);
-        }
-
-        private static SchemaShape.Column MakeLabelColumn(string labelColumn)
-        {
-            return new SchemaShape.Column(labelColumn, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false);
-        }
+            => new SchemaShape.Column(featureColumn, SchemaShape.Column.VectorKind.Vector, NumberType.R4, false);
 
         private static SchemaShape.Column MakeWeightColumn(string weightColumn)
         {
