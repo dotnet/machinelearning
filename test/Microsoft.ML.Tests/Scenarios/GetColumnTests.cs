@@ -6,6 +6,7 @@ using Microsoft.ML.Data;
 using Microsoft.ML.Data.StaticPipe;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
+using Microsoft.ML.Runtime.RunTests;
 using Microsoft.ML.TestFramework;
 using System;
 using System.Linq;
@@ -24,7 +25,8 @@ namespace Microsoft.ML.Tests.Scenarios
         [Fact]
         public void TestGetColumn()
         {
-            var path = GetDataPath("breast-cancer.txt");
+            
+            var path = GetDataPath(TestDatasets.breastCancer.trainFilename);
             var env = new LocalEnvironment();
             var data = TextLoader.CreateReader(env, ctx => (
                 floatScalar: ctx.LoadFloat(1),

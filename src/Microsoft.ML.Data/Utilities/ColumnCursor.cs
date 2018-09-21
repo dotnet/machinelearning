@@ -10,7 +10,7 @@ using System.Collections.Generic;
 namespace Microsoft.ML.Data
 {
     /// <summary>
-    /// Extension metrods that allow to extract values of a single column of an <see cref="IDataView"/> as an
+    /// Extension methods that allow to extract values of a single column of an <see cref="IDataView"/> as an
     /// <see cref="IEnumerable{T}"/>.
     /// </summary>
     public static class ColumnCursorExtensions
@@ -22,7 +22,6 @@ namespace Microsoft.ML.Data
         /// <param name="data">The data view to get the column from.</param>
         /// <param name="env">The current host environment.</param>
         /// <param name="columnName">The name of the column to extract.</param>
-        /// <returns></returns>
         public static IEnumerable<T> GetColumn<T>(this IDataView data, IHostEnvironment env, string columnName)
         {
             Contracts.CheckValue(env, nameof(env));
