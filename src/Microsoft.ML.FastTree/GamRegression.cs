@@ -41,7 +41,7 @@ namespace Microsoft.ML.Runtime.FastTree
 
         public override PredictionKind PredictionKind => PredictionKind.Regression;
 
-        public RegressionGamTrainer(IHostEnvironment env, Arguments args)
+        internal RegressionGamTrainer(IHostEnvironment env, Arguments args)
              : base(env, args, LoadNameValue, TrainerUtils.MakeR4ScalarLabel(args.LabelColumn)) { }
 
         /// <summary>

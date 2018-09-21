@@ -92,7 +92,7 @@ namespace Microsoft.ML.Runtime.LightGBM
 
         public override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
 
-        public LightGbmBinaryTrainer(IHostEnvironment env, LightGbmArguments args)
+        internal LightGbmBinaryTrainer(IHostEnvironment env, LightGbmArguments args)
              : base(env, LoadNameValue, args, TrainerUtils.MakeBoolScalarLabel(args.LabelColumn))
         {
         }

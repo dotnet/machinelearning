@@ -79,7 +79,7 @@ namespace Microsoft.ML.Runtime.LightGBM
 
         public override PredictionKind PredictionKind => PredictionKind.Ranking;
 
-        public LightGbmRankingTrainer(IHostEnvironment env, LightGbmArguments args)
+        internal LightGbmRankingTrainer(IHostEnvironment env, LightGbmArguments args)
              : base(env, LoadNameValue, args, TrainerUtils.MakeR4ScalarLabel(args.LabelColumn))
         {
         }

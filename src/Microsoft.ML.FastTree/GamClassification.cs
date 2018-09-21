@@ -49,7 +49,7 @@ namespace Microsoft.ML.Runtime.FastTree
         /// <summary>
         /// Initializes a new instance of <see cref="BinaryClassificationGamTrainer"/>
         /// </summary>
-        public BinaryClassificationGamTrainer(IHostEnvironment env, Arguments args)
+        internal BinaryClassificationGamTrainer(IHostEnvironment env, Arguments args)
              : base(env, args, LoadNameValue, TrainerUtils.MakeBoolScalarLabel(args.LabelColumn))
         {
             _sigmoidParameter = 1;

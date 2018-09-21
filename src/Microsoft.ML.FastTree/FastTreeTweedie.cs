@@ -70,7 +70,7 @@ namespace Microsoft.ML.Runtime.FastTree
         /// <summary>
         /// Initializes a new instance of <see cref="FastTreeTweedieTrainer"/> by using the legacy <see cref="Arguments"/> class.
         /// </summary>
-        public FastTreeTweedieTrainer(IHostEnvironment env, Arguments args)
+        internal FastTreeTweedieTrainer(IHostEnvironment env, Arguments args)
             : base(env, args, TrainerUtils.MakeR4ScalarLabel(args.LabelColumn))
         {
             Initialize();

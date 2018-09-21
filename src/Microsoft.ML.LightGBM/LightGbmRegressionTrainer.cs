@@ -100,7 +100,7 @@ namespace Microsoft.ML.Runtime.LightGBM
             Host.CheckNonEmpty(featureColumn, nameof(featureColumn));
         }
 
-        public LightGbmRegressorTrainer(IHostEnvironment env, LightGbmArguments args)
+        internal LightGbmRegressorTrainer(IHostEnvironment env, LightGbmArguments args)
              : base(env, LoadNameValue, args, TrainerUtils.MakeR4ScalarLabel(args.LabelColumn))
         {
         }
