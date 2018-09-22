@@ -18,6 +18,6 @@
     <MicrosoftCSharpVersion>4.5.0</MicrosoftCSharpVersion>
     <SystemCompositionVersion>1.2.0</SystemCompositionVersion>
     <SystemIOFileSystemAccessControl>4.5.0</SystemIOFileSystemAccessControl>
-    <SystemSecurityPrincipalWindow>4.5.0</SystemSecurityPrincipalWindow>
+    <SystemSecurityPrincipalWindows>4.5.0</SystemSecurityPrincipalWindows>
   </PropertyGroup>
 </Project>
