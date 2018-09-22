@@ -197,74 +197,74 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             }
         }
 
-        public static void Add(float a, float[] dst, int count)
+        public static void Add(float src, float[] dst, int count)
         {
             Contracts.AssertNonEmpty(dst);
             Contracts.Assert(count > 0);
             Contracts.Assert(count <= dst.Length);
 
-            Add(a, new Span<float>(dst, 0, count));
+            Add(src, new Span<float>(dst, 0, count));
         }
 
-        private static void Add(float a, Span<float> dst)
+        private static void Add(float src, Span<float> dst)
         {
             if (Avx.IsSupported)
             {
-                AvxIntrinsics.AddScalarU(a, dst);
+                AvxIntrinsics.AddScalarU(src, dst);
             }
             else if (Sse.IsSupported)
             {
-                SseIntrinsics.AddScalarU(a, dst);
+                SseIntrinsics.AddScalarU(src, dst);
             }
             else
             {
                 for (int i = 0; i < dst.Length; i++)
                 {
-                    dst[i] += a;
+                    dst[i] += src;
                 }
             }
         }
 
-        public static void Scale(float a, float[] dst, int count)
+        public static void Scale(float src, float[] dst, int count)
         {
             Contracts.AssertNonEmpty(dst);
             Contracts.Assert(count > 0);
             Contracts.Assert(count <= dst.Length);
 
-            Scale(a, new Span<float>(dst, 0, count));
+            Scale(src, new Span<float>(dst, 0, count));
         }
 
-        public static void Scale(float a, float[] dst, int offset, int count)
+        public static void Scale(float src, float[] dst, int offset, int count)
         {
             Contracts.AssertNonEmpty(dst);
             Contracts.Assert(count > 0);
             Contracts.Assert(offset >= 0);
             Contracts.Assert(offset < (dst.Length - count));
 
-            Scale(a, new Span<float>(dst, offset, count));
+            Scale(src, new Span<float>(dst, offset, count));
         }
 
-        private static void Scale(float a, Span<float> dst)
+        private static void Scale(float src, Span<float> dst)
         {
             if (Avx.IsSupported)
             {
-                AvxIntrinsics.ScaleU(a, dst);
+                AvxIntrinsics.ScaleU(src, dst);
             }
             else if (Sse.IsSupported)
             {
-                SseIntrinsics.ScaleU(a, dst);
+                SseIntrinsics.ScaleU(src, dst);
             }
             else
             {
                 for (int i = 0; i < dst.Length; i++)
                 {
-                    dst[i] *= a;
+                    dst[i] *= src;
                 }
             }
         }
 
         // dst = a * src
-        public static void Scale(float a, float[] src, float[] dst, int count)
+        public static void Scale(float src, float[] src, float[] dst, int count)
         {
             Contracts.AssertNonEmpty(src);
             Contracts.AssertNonEmpty(dst);
