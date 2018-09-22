@@ -5,11 +5,13 @@
 using System;
 using Microsoft.ML.Data.StaticPipe;
 using Microsoft.ML.Data.StaticPipe.Runtime;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Internal.Calibration;
+using Microsoft.ML.Runtime.Learners;
 using Microsoft.ML.Runtime.Training;
 
-namespace Microsoft.ML.Runtime.Learners
+namespace Microsoft.ML.Trainers
 {
     /// <summary>
     /// Extension methods and utilities for instantiating SDCA trainer estimators inside statically typed pipelines.
@@ -19,6 +21,7 @@ namespace Microsoft.ML.Runtime.Learners
         /// <summary>
         /// Predict a target using a linear regression model trained with the SDCA trainer.
         /// </summary>
+        /// <param name="ctx">The regression context trainer object.</param>
         /// <param name="label">The label, or dependent variable.</param>
         /// <param name="features">The features, or independent variables.</param>
         /// <param name="weights">The optional example weights.</param>
@@ -32,7 +35,8 @@ namespace Microsoft.ML.Runtime.Learners
         /// the linear model that was trained.  Note that this action cannot change the result in any way; it is only a way for the caller to
         /// be informed about what was learnt.</param>
         /// <returns>The predicted output.</returns>
-        public static Scalar<float> PredictSdcaRegression(this Scalar<float> label, Vector<float> features, Scalar<float> weights = null,
+        public static Scalar<float> Sdca(this RegressionContext.RegressionTrainers ctx,
+            Scalar<float> label, Vector<float> features, Scalar<float> weights = null,
             float? l2Const = null,
             float? l1Threshold = null,
             int? maxIterations = null,
@@ -205,6 +209,7 @@ namespace Microsoft.ML.Runtime.Learners
         /// <summary>
         /// Predict a target using a linear multiclass classification model trained with the SDCA trainer.
         /// </summary>
+        /// <param name="ctx">The multiclass classification context trainer object.</param>
         /// <param name="label">The label, or dependent variable.</param>
         /// <param name="features">The features, or independent variables.</param>
         /// /// <param name="loss">The custom loss.</param>
@@ -219,7 +224,9 @@ namespace Microsoft.ML.Runtime.Learners
         /// result in any way; it is only a way for the caller to be informed about what was learnt.</param>
         /// <returns>The set of output columns including in order the predicted per-class likelihoods (between 0 and 1, and summing up to 1), and the predicted label.</returns>
         public static (Vector<float> score, Key<uint, TVal> predictedLabel)
-            PredictSdcaClassification<TVal>(this Key<uint, TVal> label, Vector<float> features,
+            Sdca<TVal>(this MulticlassClassificationContext.MulticlassClassificationTrainers ctx,
+                Key<uint, TVal> label,
+                Vector<float> features,
                 ISupportSdcaClassificationLoss loss = null,
                 Scalar<float> weights = null,
                 float? l2Const = null,
