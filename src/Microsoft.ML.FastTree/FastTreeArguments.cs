@@ -2,11 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.FastTree;
 using Microsoft.ML.Runtime.Internal.Internallearn;
+using System;
 
 [assembly: EntryPointModule(typeof(FastTreeBinaryClassificationTrainer.Arguments))]
 [assembly: EntryPointModule(typeof(FastTreeRegressionTrainer.Arguments))]
