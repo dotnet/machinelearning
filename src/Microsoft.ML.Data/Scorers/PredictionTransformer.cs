@@ -41,6 +41,8 @@ namespace Microsoft.ML.Runtime.Data
         protected ISchemaBindableMapper BindableMapper;
         protected ISchema TrainSchema;
 
+        public abstract bool IsRowToRowMapper { get; }
+
         protected PredictionTransformerBase(IHost host, TModel model, ISchema trainSchema)
         {
             Contracts.CheckValue(host, nameof(host));
@@ -90,6 +92,8 @@ namespace Microsoft.ML.Runtime.Data
         /// <param name="input">The input data.</param>
         /// <returns>The transformed <see cref="IDataView"/></returns>
         public abstract IDataView Transform(IDataView input);
+
+        public abstract IRowToRowMapper GetRowToRowMapper(ISchema inputSchema);
 
         protected void SaveModel(ModelSaveContext ctx)
         {
@@ -234,6 +238,14 @@ namespace Microsoft.ML.Runtime.Data
             return _scorer.ApplyToData(Host, input);
         }
 
+        public override bool IsRowToRowMapper => true;
+
+        public override IRowToRowMapper GetRowToRowMapper(ISchema inputSchema)
+        {
+            Host.CheckValue(inputSchema, nameof(inputSchema));
+            return (IRowToRowMapper)_scorer.ApplyToData(Host, new EmptyDataView(Host, inputSchema));
+        }
+
         protected override void SaveCore(ModelSaveContext ctx)
         {
             Contracts.AssertValue(ctx);
@@ -301,6 +313,14 @@ namespace Microsoft.ML.Runtime.Data
             return _scorer.ApplyToData(Host, input);
         }
 
+        public override bool IsRowToRowMapper => true;
+
+        public override IRowToRowMapper GetRowToRowMapper(ISchema inputSchema)
+        {
+            Host.CheckValue(inputSchema, nameof(inputSchema));
+            return (IRowToRowMapper)_scorer.ApplyToData(Host, new EmptyDataView(Host, inputSchema));
+        }
+
         protected override void SaveCore(ModelSaveContext ctx)
         {
             Contracts.AssertValue(ctx);
@@ -354,6 +374,14 @@ namespace Microsoft.ML.Runtime.Data
             return _scorer.ApplyToData(Host, input);
         }
 
+        public override bool IsRowToRowMapper => true;
+
+        public override IRowToRowMapper GetRowToRowMapper(ISchema inputSchema)
+        {
+            Host.CheckValue(inputSchema, nameof(inputSchema));
+            return (IRowToRowMapper)_scorer.ApplyToData(Host, new EmptyDataView(Host, inputSchema));
+        }
+
         protected override void SaveCore(ModelSaveContext ctx)
         {
             Contracts.AssertValue(ctx);
@@ -398,6 +426,14 @@ namespace Microsoft.ML.Runtime.Data
         {
             Host.CheckValue(input, nameof(input));
             return _scorer.ApplyToData(Host, input);
+        }
+
+        public override bool IsRowToRowMapper => true;
+
+        public override IRowToRowMapper GetRowToRowMapper(ISchema inputSchema)
+        {
+            Host.CheckValue(inputSchema, nameof(inputSchema));
+            return (IRowToRowMapper)_scorer.ApplyToData(Host, new EmptyDataView(Host, inputSchema));
         }
 
         protected override void SaveCore(ModelSaveContext ctx)

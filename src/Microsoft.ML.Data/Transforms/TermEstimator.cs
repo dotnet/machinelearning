@@ -25,8 +25,8 @@ namespace Microsoft.ML.Runtime.Data
         /// Convenience constructor for public facing API.
         /// </summary>
         /// <param name="env">Host Environment.</param>
-        /// <param name="inputColumn">Name of the output column.</param>
-        /// <param name="outputColumn">Name of the column to be transformed. If this is null '<paramref name="inputColumn"/>' will be used.</param>
+        /// <param name="inputColumn">Name of the column to be transformed.</param>
+        /// <param name="outputColumn">Name of the output column. If this is null '<paramref name="inputColumn"/>' will be used.</param>
         /// <param name="maxNumTerms">Maximum number of terms to keep per column when auto-training.</param>
         /// <param name="sort">How items should be ordered when vectorized. By default, they will be in the order encountered.
         /// If by value items are sorted according to their default comparison, e.g., text sorting will be case sensitive (e.g., 'A' then 'Z' then 'a').</param>

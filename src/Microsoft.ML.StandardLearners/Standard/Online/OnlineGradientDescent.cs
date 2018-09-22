@@ -52,7 +52,7 @@ namespace Microsoft.ML.Runtime.Learners
         }
 
         public OnlineGradientDescentTrainer(IHostEnvironment env, Arguments args)
-            : base(args, env, UserNameValue, MakeLabelColumn(args.LabelColumn))
+            : base(args, env, UserNameValue, TrainerUtils.MakeR4ScalarLabel(args.LabelColumn))
         {
             LossFunction = args.LossFunction.CreateComponent(env);
 
@@ -90,11 +90,6 @@ namespace Microsoft.ML.Runtime.Learners
                 bias = TotalBias / (Float)NumWeightUpdates;
             }
             return new LinearRegressionPredictor(Host, ref weights, bias);
-        }
-
-        private static SchemaShape.Column MakeLabelColumn(string labelColumn)
-        {
-            return new SchemaShape.Column(labelColumn, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false);
         }
 
         [TlcModule.EntryPoint(Name = "Trainers.OnlineGradientDescentRegressor",

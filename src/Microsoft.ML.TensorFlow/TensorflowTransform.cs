@@ -378,6 +378,13 @@ namespace Microsoft.ML.Transforms
                 }
             }
         }
+        public bool IsRowToRowMapper => true;
+
+        public IRowToRowMapper GetRowToRowMapper(ISchema inputSchema)
+        {
+            _host.CheckValue(inputSchema, nameof(inputSchema));
+            return MakeDataTransform(new EmptyDataView(_host, inputSchema));
+        }
 
         private sealed class Mapper : IRowMapper
         {

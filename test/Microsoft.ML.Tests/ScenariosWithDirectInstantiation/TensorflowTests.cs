@@ -303,7 +303,7 @@ namespace Microsoft.ML.Scenarios
                 trans = TensorFlowTransform.Create(env, trans, model_location, new[] { "Softmax", "dense/Relu" }, new[] { "Placeholder", "reshape_input" });
                 trans = new ConcatTransform(env, "Features", "Softmax", "dense/Relu").Transform(trans);
 
-                var trainer = new LightGbmMulticlassTrainer(env, new LightGbmArguments());
+                var trainer = new LightGbmMulticlassTrainer(env, "Label", "Features");
 
                 var cached = new CacheDataView(env, trans, prefetch: null);
                 var trainRoles = new RoleMappedData(cached, label: "Label", feature: "Features");
