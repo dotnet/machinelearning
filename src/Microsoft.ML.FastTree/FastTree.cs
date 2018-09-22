@@ -2,16 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Float = System.Single;
-
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
-using System.Text;
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
@@ -26,6 +16,15 @@ using Microsoft.ML.Runtime.Model.Pfa;
 using Microsoft.ML.Runtime.Training;
 using Microsoft.ML.Runtime.TreePredictor;
 using Newtonsoft.Json.Linq;
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
+using System.Text;
+using Float = System.Single;
 
 // All of these reviews apply in general to fast tree and random forest implementations.
 //REVIEW: Decouple train method in Application.cs to have boosting and random forest logic seperate.
@@ -46,7 +45,7 @@ namespace Microsoft.ML.Runtime.FastTree
 
     public abstract class FastTreeTrainerBase<TArgs, TTransformer, TModel> :
         TrainerEstimatorBase<TTransformer, TModel>
-        where TTransformer: IPredictionTransformer<TModel>
+        where TTransformer: ISingleFeaturePredictionTransformer<TModel>
         where TArgs : TreeArgs, new()
         where TModel : IPredictorProducing<Float>
     {
@@ -90,7 +89,7 @@ namespace Microsoft.ML.Runtime.FastTree
         private protected virtual bool NeedCalibration => false;
 
         /// <summary>
-        /// Constructor to use when instantiating the classing deriving from here through the API.
+        /// Constructor to use when instantiating the classes deriving from here through the API.
         /// </summary>
         private protected FastTreeTrainerBase(IHostEnvironment env, SchemaShape.Column label, string featureColumn,
             string weightColumn = null, string groupIdColumn = null, Action<TArgs> advancedSettings = null)
@@ -101,6 +100,7 @@ namespace Microsoft.ML.Runtime.FastTree
             //apply the advanced args, if the user supplied any
             advancedSettings?.Invoke(Args);
             Args.LabelColumn = label.Name;
+            Args.FeatureColumn = featureColumn;
 
             if (weightColumn != null)
                 Args.WeightColumn = weightColumn;
@@ -120,7 +120,7 @@ namespace Microsoft.ML.Runtime.FastTree
         }
 
         /// <summary>
-        /// Legacy constructor that is used when invoking the classsing deriving from this, through maml.
+        /// Legacy constructor that is used when invoking the classes deriving from this, through maml.
         /// </summary>
         private protected FastTreeTrainerBase(IHostEnvironment env, TArgs args, SchemaShape.Column label)
             : base(Contracts.CheckRef(env, nameof(env)).Register(RegisterName), MakeFeatureColumn(args.FeatureColumn), label, MakeWeightColumn(args.WeightColumn))

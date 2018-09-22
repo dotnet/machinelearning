@@ -5,6 +5,7 @@
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Data.IO;
 using Microsoft.ML.Runtime.RunTests;
+using Microsoft.ML.Transforms;
 using System.IO;
 using Xunit;
 using Xunit.Abstractions;
@@ -101,6 +102,41 @@ namespace Microsoft.ML.Tests.Transformers
             CheckSameValues(data1, data2);
             CheckSameValues(data1, data3);
 
+            Done();
+        }
+
+        [Fact]
+        public void LpGcNormAndWhiteningWorkout()
+        {
+            var env = new ConsoleEnvironment(seed: 0);
+            string dataSource = GetDataPath("generated_regression_dataset.csv");
+            var data = TextLoader.CreateReader(env,
+                c => (label: c.LoadFloat(11), features: c.LoadFloat(0, 10)),
+                separator: ';', hasHeader: true)
+                .Read(new MultiFileSource(dataSource));
+
+            var invalidData = TextLoader.CreateReader(env,
+                c => (label: c.LoadFloat(11), features: c.LoadText(0, 10)),
+                separator: ';', hasHeader: true)
+                .Read(new MultiFileSource(dataSource));
+
+            var est = new LpNormalizer(env, "features", "lpnorm")
+                .Append(new GlobalContrastNormalizer(env, "features", "gcnorm"))
+                .Append(new Whitening(env, "features", "whitened"));
+            TestEstimatorCore(est, data.AsDynamic, invalidInput: invalidData.AsDynamic);
+
+            var outputPath = GetOutputPath("Text", "lpnorm_gcnorm_whitened.tsv");
+            using (var ch = Env.Start("save"))
+            {
+                var saver = new TextSaver(Env, new TextSaver.Arguments { Silent = true, OutputHeader = false });
+                IDataView savedData = TakeFilter.Create(Env, est.Fit(data.AsDynamic).Transform(data.AsDynamic), 4);
+                savedData = new ChooseColumnsTransform(Env, savedData, "lpnorm", "gcnorm", "whitened");
+
+                using (var fs = File.Create(outputPath))
+                    DataSaverUtils.SaveDataView(ch, saver, savedData, fs, keepHidden: true);
+            }
+
+            CheckEquality("Text", "lpnorm_gcnorm_whitened.tsv");
             Done();
         }
     }

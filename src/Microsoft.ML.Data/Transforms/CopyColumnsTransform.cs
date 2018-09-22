@@ -208,6 +208,14 @@ namespace Microsoft.ML.Runtime.Data
         {
             return CreateRowToRowMapper(input);
         }
+
+        public bool IsRowToRowMapper => true;
+
+        public IRowToRowMapper GetRowToRowMapper(ISchema inputSchema)
+        {
+            _host.CheckValue(inputSchema, nameof(inputSchema));
+            return CreateRowToRowMapper(new EmptyDataView(_host, inputSchema));
+        }
     }
 
     internal sealed class CopyColumnsRowMapper : IRowMapper, ISaveAsOnnx

@@ -415,6 +415,14 @@ namespace Microsoft.ML.Runtime.Data
             return RowToRowMapperTransform.GetOutputSchema(inputSchema, MakeRowMapper(inputSchema));
         }
 
+        public bool IsRowToRowMapper => true;
+
+        public IRowToRowMapper GetRowToRowMapper(ISchema inputSchema)
+        {
+            _host.CheckValue(inputSchema, nameof(inputSchema));
+            return new RowToRowMapperTransform(_host, new EmptyDataView(_host, inputSchema), MakeRowMapper(inputSchema));
+        }
+
         private sealed class Mapper : IRowMapper, ISaveAsOnnx, ISaveAsPfa
         {
             private readonly IHost _host;

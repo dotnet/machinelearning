@@ -584,6 +584,26 @@ namespace Microsoft.ML.Runtime.Data
                 return ApplyTransformUtils.ApplyAllTransformsToData(_host, _xf, input);
             }
 
+            public bool IsRowToRowMapper => true;
+
+            public IRowToRowMapper GetRowToRowMapper(ISchema inputSchema)
+            {
+                _host.CheckValue(inputSchema, nameof(inputSchema));
+                var input = new EmptyDataView(_host, inputSchema);
+                var revMaps = new List<IRowToRowMapper>();
+                IDataView chain;
+                for (chain = ApplyTransformUtils.ApplyAllTransformsToData(_host, _xf, input); chain is IDataTransform xf; chain = xf.Source)
+                {
+                    // Everything in the chain ought to be a row mapper.
+                    _host.Assert(xf is IRowToRowMapper);
+                    revMaps.Add((IRowToRowMapper)xf);
+                }
+                // The walkback should have ended at the input.
+                Contracts.Assert(chain == input);
+                revMaps.Reverse();
+                return new CompositeRowToRowMapper(inputSchema, revMaps.ToArray());
+            }
+
             public void Save(ModelSaveContext ctx)
             {
                 _host.CheckValue(ctx, nameof(ctx));
