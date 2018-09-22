@@ -7,6 +7,7 @@ using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Internal.Calibration;
 using Microsoft.ML.Runtime.Learners;
+using Microsoft.ML.Runtime.Training;
 using System;
 using Xunit;
 using Xunit.Abstractions;
@@ -94,6 +95,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var env = new ConsoleEnvironment(seed: 0);
             var dataPath = GetDataPath("breast-cancer.txt");
             var dataSource = new MultiFileSource(dataPath);
+            var ctx = new BinaryClassificationContext(env);
 
             var reader = TextLoader.CreateReader(env,
                 c => (label: c.LoadBool(0), features: c.LoadFloat(1, 9)));
@@ -102,7 +104,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             ParameterMixingCalibratedPredictor cali = null;
 
             var est = reader.MakeNewEstimator()
-                .Append(r => (r.label, preds: r.label.PredictSdcaBinaryClassification(r.features,
+                .Append(r => (r.label, preds: ctx.Trainers.Sdca(r.label, r.features,
                     maxIterations: 2,
                     onFit: (p, c) => { pred = p; cali = c; })));
 
@@ -118,7 +120,7 @@ namespace Microsoft.ML.StaticPipelineTesting
 
             var data = model.Read(dataSource);
 
-            var metrics = BinaryClassifierEvaluator.Evaluate(data, r => r.label, r => r.preds);
+            var metrics = ctx.Evaluate(data, r => r.label, r => r.preds);
             // Run a sanity check against a few of the metrics.
             Assert.InRange(metrics.Accuracy, 0, 1);
             Assert.InRange(metrics.Auc, 0, 1);
@@ -138,6 +140,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var env = new ConsoleEnvironment(seed: 0);
             var dataPath = GetDataPath("breast-cancer.txt");
             var dataSource = new MultiFileSource(dataPath);
+            var ctx = new BinaryClassificationContext(env);
 
             var reader = TextLoader.CreateReader(env,
                 c => (label: c.LoadBool(0), features: c.LoadFloat(1, 9)));
@@ -148,7 +151,7 @@ namespace Microsoft.ML.StaticPipelineTesting
 
             // With a custom loss function we no longer get calibrated predictions.
             var est = reader.MakeNewEstimator()
-                .Append(r => (r.label, preds: r.label.PredictSdcaBinaryClassification(r.features,
+                .Append(r => (r.label, preds: ctx.Trainers.Sdca(r.label, r.features,
                 maxIterations: 2,
                 loss: loss, onFit: p => pred = p)));
 
@@ -162,7 +165,7 @@ namespace Microsoft.ML.StaticPipelineTesting
 
             var data = model.Read(dataSource);
 
-            var metrics = BinaryClassifierEvaluator.Evaluate(data, r => r.label, r => r.preds);
+            var metrics = ctx.Evaluate(data, r => r.label, r => r.preds);
             // Run a sanity check against a few of the metrics.
             Assert.InRange(metrics.Accuracy, 0, 1);
             Assert.InRange(metrics.Auc, 0, 1);
