@@ -231,6 +231,7 @@ namespace Microsoft.ML.Runtime.Data
         /// <param name="data">The data to evaluate.</param>
         /// <param name="label">The name of the label column.</param>
         /// <param name="score">The name of the predicted score column.</param>
+        /// <returns>The evaluation metrics for these outputs.</returns>
         public Result Evaluate(
             IDataView data,
             string label,

@@ -604,7 +604,6 @@ namespace Microsoft.ML.Runtime.Data
         /// <param name="label">The name of the label column in <paramref name="data"/>.</param>
         /// <param name="score">The name of the score column in <paramref name="data"/>.</param>
         /// <param name="predictedLabel">The name of the predicted label column in <paramref name="data"/>.</param>
-        /// <returns>The evaluation results for these uncalibrated outputs.</returns>
         /// <returns>The evaluation results for these outputs.</returns>
         public Result Evaluate(IDataView data, string label, string score, string predictedLabel)
         {
