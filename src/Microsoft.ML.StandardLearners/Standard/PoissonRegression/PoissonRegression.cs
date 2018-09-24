@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Float = System.Single;
-
 using System;
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime;
@@ -51,7 +49,7 @@ namespace Microsoft.ML.Runtime.Learners
         /// <param name="advancedSettings">A delegate to apply all the advanced arguments to the algorithm.</param>
         public PoissonRegression(IHostEnvironment env, string featureColumn, string labelColumn,
             string weightColumn = null, Action<Arguments> advancedSettings = null)
-            : base(env, featureColumn, MakeLabelColumn(labelColumn), weightColumn, advancedSettings)
+            : base(env, featureColumn, TrainerUtils.MakeR4ScalarLabel(labelColumn), weightColumn, advancedSettings)
         {
             Host.CheckNonEmpty(featureColumn, nameof(featureColumn));
             Host.CheckNonEmpty(labelColumn, nameof(labelColumn));
@@ -61,12 +59,9 @@ namespace Microsoft.ML.Runtime.Learners
         /// Initializes a new instance of <see cref="PoissonRegression"/>
         /// </summary>
         public PoissonRegression(IHostEnvironment env, Arguments args)
-            : base(env, args, MakeLabelColumn(args.LabelColumn))
+            : base(env, args, TrainerUtils.MakeR4ScalarLabel(args.LabelColumn))
         {
         }
-
-        private static SchemaShape.Column MakeLabelColumn(string labelColumn)
-            => new SchemaShape.Column(labelColumn, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false);
 
         public override PredictionKind PredictionKind => PredictionKind.Regression;
 
@@ -87,13 +82,13 @@ namespace Microsoft.ML.Runtime.Learners
         protected override RegressionPredictionTransformer<PoissonRegressionPredictor> MakeTransformer(PoissonRegressionPredictor model, ISchema trainSchema)
             => new RegressionPredictionTransformer<PoissonRegressionPredictor>(Host, model, trainSchema, FeatureColumn.Name);
 
-        protected override VBuffer<Float> InitializeWeightsFromPredictor(PoissonRegressionPredictor srcPredictor)
+        protected override VBuffer<float> InitializeWeightsFromPredictor(PoissonRegressionPredictor srcPredictor)
         {
             Contracts.AssertValue(srcPredictor);
             return InitializeWeights(srcPredictor.Weights2, new[] { srcPredictor.Bias });
         }
 
-        protected override void PreTrainingProcessInstance(Float label, ref VBuffer<Float> feat, Float weight)
+        protected override void PreTrainingProcessInstance(float label, ref VBuffer<float> feat, float weight)
         {
             if (!(label >= 0))
                 throw Contracts.Except("Poisson regression must regress to a non-negative label, but label {0} encountered", label);
@@ -101,9 +96,9 @@ namespace Microsoft.ML.Runtime.Learners
         }
 
         //Make sure _lossnormalizer is added only once
-        protected override Float DifferentiableFunction(ref VBuffer<Float> x, ref VBuffer<Float> gradient, IProgressChannelProvider progress)
+        protected override float DifferentiableFunction(ref VBuffer<float> x, ref VBuffer<float> gradient, IProgressChannelProvider progress)
         {
-            return base.DifferentiableFunction(ref x, ref gradient, progress) + (Float)(_lossNormalizer / NumGoodRows);
+            return base.DifferentiableFunction(ref x, ref gradient, progress) + (float)(_lossNormalizer / NumGoodRows);
         }
 
         // Poisson: p(y;lambda) = lambda^y * exp(-lambda) / y!
@@ -116,16 +111,16 @@ namespace Microsoft.ML.Runtime.Learners
         // Goal is to find w that maximizes
         // Note: We negate the above in ordrer to minimize
 
-        protected override Float AccumulateOneGradient(ref VBuffer<Float> feat, Float label, Float weight,
-            ref VBuffer<Float> x, ref VBuffer<Float> grad, ref Float[] scratch)
+        protected override float AccumulateOneGradient(ref VBuffer<float> feat, float label, float weight,
+            ref VBuffer<float> x, ref VBuffer<float> grad, ref float[] scratch)
         {
-            Float bias = 0;
+            float bias = 0;
             x.GetItemOrDefault(0, ref bias);
-            Float dot = VectorUtils.DotProductWithOffset(ref x, 1, ref feat) + bias;
-            Float lambda = MathUtils.ExpSlow(dot);
+            float dot = VectorUtils.DotProductWithOffset(ref x, 1, ref feat) + bias;
+            float lambda = MathUtils.ExpSlow(dot);
 
-            Float y = label;
-            Float mult = -(y - lambda) * weight;
+            float y = label;
+            float mult = -(y - lambda) * weight;
             VectorUtils.AddMultWithOffset(ref feat, mult, ref grad, 1);
             // Due to the call to EnsureBiases, we know this region is dense.
             Contracts.Assert(grad.Count >= BiasCount && (grad.IsDense || grad.Indices[BiasCount - 1] == BiasCount - 1));
@@ -133,26 +128,26 @@ namespace Microsoft.ML.Runtime.Learners
             // From the computer's perspective exp(infinity)==infinity
             // so inf-inf=nan, but in reality, infinity is just a large
             // number we can't represent, and exp(X)-X for X=inf is just inf.
-            if (Float.IsPositiveInfinity(lambda))
-                return Float.PositiveInfinity;
+            if (float.IsPositiveInfinity(lambda))
+                return float.PositiveInfinity;
             return -(y * dot - lambda) * weight;
         }
 
         protected override PoissonRegressionPredictor CreatePredictor()
         {
-            VBuffer<Float> weights = default(VBuffer<Float>);
+            VBuffer<float> weights = default(VBuffer<float>);
             CurrentWeights.CopyTo(ref weights, 1, CurrentWeights.Length - 1);
-            Float bias = 0;
+            float bias = 0;
             CurrentWeights.GetItemOrDefault(0, ref bias);
             return new PoissonRegressionPredictor(Host, ref weights, bias);
         }
 
-        protected override void ComputeTrainingStatistics(IChannel ch, FloatLabelCursor.Factory factory, Float loss, int numParams)
+        protected override void ComputeTrainingStatistics(IChannel ch, FloatLabelCursor.Factory factory, float loss, int numParams)
         {
             // No-op by design.
         }
 
-        protected override void ProcessPriorDistribution(Float label, Float weight)
+        protected override void ProcessPriorDistribution(float label, float weight)
         {
             // No-op by design.
         }

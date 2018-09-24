@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Float = System.Single;
-
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -80,7 +78,7 @@ namespace Microsoft.ML.Runtime.Learners
         /// <param name="advancedSettings">A delegate to apply all the advanced arguments to the algorithm.</param>
         public MulticlassLogisticRegression(IHostEnvironment env, string featureColumn, string labelColumn,
             string weightColumn = null, Action<Arguments> advancedSettings = null)
-            : base(env, featureColumn, MakeLabelColumn(labelColumn), weightColumn, advancedSettings)
+            : base(env, featureColumn, TrainerUtils.MakeU4ScalarLabel(labelColumn), weightColumn, advancedSettings)
         {
             Host.CheckNonEmpty(featureColumn, nameof(featureColumn));
             Host.CheckNonEmpty(labelColumn, nameof(labelColumn));
@@ -92,7 +90,7 @@ namespace Microsoft.ML.Runtime.Learners
         /// Initializes a new instance of <see cref="MulticlassLogisticRegression"/>
         /// </summary>
         public MulticlassLogisticRegression(IHostEnvironment env, Arguments args)
-            : base(env, args, MakeLabelColumn(args.LabelColumn))
+            : base(env, args, TrainerUtils.MakeU4ScalarLabel(args.LabelColumn))
         {
             ShowTrainingStats = Args.ShowTrainingStats;
         }
@@ -166,42 +164,42 @@ namespace Microsoft.ML.Runtime.Learners
 
         //Override default termination criterion MeanRelativeImprovementCriterion with
         protected override Optimizer InitializeOptimizer(IChannel ch, FloatLabelCursor.Factory cursorFactory,
-            out VBuffer<Float> init, out ITerminationCriterion terminationCriterion)
+            out VBuffer<float> init, out ITerminationCriterion terminationCriterion)
         {
             var opt = base.InitializeOptimizer(ch, cursorFactory, out init, out terminationCriterion);
 
             // MeanImprovementCriterion:
             //   Terminates when the geometrically-weighted average improvement falls below the tolerance
-            terminationCriterion = new MeanImprovementCriterion(OptTol, (Float)0.25, MaxIterations);
+            terminationCriterion = new MeanImprovementCriterion(OptTol, (float)0.25, MaxIterations);
 
             return opt;
         }
 
-        protected override Float AccumulateOneGradient(ref VBuffer<Float> feat, Float label, Float weight,
-            ref VBuffer<Float> x, ref VBuffer<Float> grad, ref Float[] scores)
+        protected override float AccumulateOneGradient(ref VBuffer<float> feat, float label, float weight,
+            ref VBuffer<float> x, ref VBuffer<float> grad, ref float[] scores)
         {
             if (Utils.Size(scores) < _numClasses)
-                scores = new Float[_numClasses];
+                scores = new float[_numClasses];
 
-            Float bias = 0;
+            float bias = 0;
             for (int c = 0, start = _numClasses; c < _numClasses; c++, start += NumFeatures)
             {
                 x.GetItemOrDefault(c, ref bias);
                 scores[c] = bias + VectorUtils.DotProductWithOffset(ref x, start, ref feat);
             }
 
-            Float logZ = MathUtils.SoftMax(scores, _numClasses);
-            Float datumLoss = logZ;
+            float logZ = MathUtils.SoftMax(scores, _numClasses);
+            float datumLoss = logZ;
 
             int lab = (int)label;
             Contracts.Assert(0 <= lab && lab < _numClasses);
             for (int c = 0, start = _numClasses; c < _numClasses; c++, start += NumFeatures)
             {
-                Float probLabel = lab == c ? 1 : 0;
+                float probLabel = lab == c ? 1 : 0;
                 datumLoss -= probLabel * scores[c];
 
-                Float modelProb = MathUtils.ExpSlow(scores[c] - logZ);
-                Float mult = weight * (modelProb - probLabel);
+                float modelProb = MathUtils.ExpSlow(scores[c] - logZ);
+                float mult = weight * (modelProb - probLabel);
                 VectorUtils.AddMultWithOffset(ref feat, mult, ref grad, start);
                 // Due to the call to EnsureBiases, we know this region is dense.
                 Contracts.Assert(grad.Count >= BiasCount && (grad.IsDense || grad.Indices[BiasCount - 1] == BiasCount - 1));
@@ -212,7 +210,7 @@ namespace Microsoft.ML.Runtime.Learners
             return weight * datumLoss;
         }
 
-        protected override VBuffer<Float> InitializeWeightsFromPredictor(MulticlassLogisticRegressionPredictor srcPredictor)
+        protected override VBuffer<float> InitializeWeightsFromPredictor(MulticlassLogisticRegressionPredictor srcPredictor)
         {
             Contracts.AssertValue(srcPredictor);
             Contracts.Assert(srcPredictor.InputType.VectorSize > 0);
@@ -240,7 +238,7 @@ namespace Microsoft.ML.Runtime.Learners
             return new MulticlassLogisticRegressionPredictor(Host, ref CurrentWeights, _numClasses, NumFeatures, _labelNames, _stats);
         }
 
-        protected override void ComputeTrainingStatistics(IChannel ch, FloatLabelCursor.Factory cursorFactory, Float loss, int numParams)
+        protected override void ComputeTrainingStatistics(IChannel ch, FloatLabelCursor.Factory cursorFactory, float loss, int numParams)
         {
             Contracts.AssertValue(ch);
             Contracts.AssertValue(cursorFactory);
@@ -253,7 +251,7 @@ namespace Microsoft.ML.Runtime.Learners
 
             ch.Info("Model trained with {0} training examples.", NumGoodRows);
             // Compute deviance: start with loss function.
-            Float deviance = (Float)(2 * loss * WeightSum);
+            float deviance = (float)(2 * loss * WeightSum);
 
             if (L2Weight > 0)
             {
@@ -269,21 +267,21 @@ namespace Microsoft.ML.Runtime.Learners
                 // The bias term is not regularized.
                 Double regLoss = 0;
                 VBufferUtils.ForEachDefined(ref CurrentWeights, (ind, value) => { if (ind >= BiasCount) regLoss += Math.Abs(value); });
-                deviance -= (Float)regLoss * L1Weight * 2;
+                deviance -= (float)regLoss * L1Weight * 2;
             }
 
             ch.Info("Residual Deviance: \t{0}", deviance);
 
             // Compute null deviance, i.e., the deviance of null hypothesis.
             // Cap the prior positive rate at 1e-15.
-            Float nullDeviance = 0;
+            float nullDeviance = 0;
             for (int iLabel = 0; iLabel < _numClasses; iLabel++)
             {
                 Contracts.Assert(_prior[iLabel] >= 0);
                 if (_prior[iLabel] == 0)
                     continue;
 
-                nullDeviance -= (Float)(2 * _prior[iLabel] * Math.Log(_prior[iLabel] / WeightSum));
+                nullDeviance -= (float)(2 * _prior[iLabel] * Math.Log(_prior[iLabel] / WeightSum));
             }
             ch.Info("Null Deviance:    \t{0}", nullDeviance);
 
@@ -294,7 +292,7 @@ namespace Microsoft.ML.Runtime.Learners
             _stats = new LinearModelStatistics(Host, NumGoodRows, numParams, deviance, nullDeviance);
         }
 
-        protected override void ProcessPriorDistribution(Float label, Float weight)
+        protected override void ProcessPriorDistribution(float label, float weight)
         {
             int iLabel = (int)label;
             Contracts.Assert(0 <= iLabel && iLabel < _numClasses);
@@ -315,9 +313,6 @@ namespace Microsoft.ML.Runtime.Learners
             };
         }
 
-        private static SchemaShape.Column MakeLabelColumn(string labelColumn)
-            => new SchemaShape.Column(labelColumn, SchemaShape.Column.VectorKind.Scalar, NumberType.U4, true);
-
         protected override MulticlassPredictionTransformer<MulticlassLogisticRegressionPredictor> MakeTransformer(MulticlassLogisticRegressionPredictor model, ISchema trainSchema)
             => new MulticlassPredictionTransformer<MulticlassLogisticRegressionPredictor>(Host, model, trainSchema, FeatureColumn.Name, LabelColumn.Name);
 
@@ -327,16 +322,17 @@ namespace Microsoft.ML.Runtime.Learners
         private static IEnumerable<SchemaShape.Column> MetadataForScoreColumn()
         {
             var cols = new List<SchemaShape.Column>();
-            cols.Add(new SchemaShape.Column(MetadataUtils.Kinds.ScoreColumnSetId, SchemaShape.Column.VectorKind.Scalar, NumberType.U4, true));
-            cols.Add(new SchemaShape.Column(MetadataUtils.Kinds.ScoreColumnKind, SchemaShape.Column.VectorKind.Scalar, TextType.Instance, false));
+            foreach (SchemaShape.Column col in MetadataUtils.GetTrainerOutputMetadata())
+            {
+                cols.Add(col);
+            }
             cols.Add(new SchemaShape.Column(MetadataUtils.Kinds.SlotNames, SchemaShape.Column.VectorKind.Vector, TextType.Instance, false));
-            cols.Add(new SchemaShape.Column(MetadataUtils.Kinds.ScoreValueKind, SchemaShape.Column.VectorKind.Scalar, TextType.Instance, false));
             return cols;
         }
     }
 
     public sealed class MulticlassLogisticRegressionPredictor :
-        PredictorBase<VBuffer<Float>>,
+        PredictorBase<VBuffer<float>>,
         IValueMapper,
         ICanSaveInTextFormat,
         ICanSaveInSourceCode,
@@ -371,8 +367,8 @@ namespace Microsoft.ML.Runtime.Learners
         // The label names used to write model summary. Either null or of length _numClasses.
         private readonly string[] _labelNames;
 
-        private readonly Float[] _biases;
-        private readonly VBuffer<Float>[] _weights;
+        private readonly float[] _biases;
+        private readonly VBuffer<float>[] _weights;
         private readonly LinearModelStatistics _stats;
 
         // This stores the _weights matrix in dense format for performance.
@@ -381,7 +377,7 @@ namespace Microsoft.ML.Runtime.Learners
         // When the _weights matrix is dense to begin with, then _weights == _weightsDense at all times after construction.
         // When _weights is sparse, then this remains null until we see the first sparse instance,
         // at which point it is initialized.
-        private volatile VBuffer<Float>[] _weightsDense;
+        private volatile VBuffer<float>[] _weightsDense;
 
         public override PredictionKind PredictionKind => PredictionKind.MultiClassClassification;
         public ColumnType InputType { get; }
@@ -389,7 +385,7 @@ namespace Microsoft.ML.Runtime.Learners
         public bool CanSavePfa => true;
         public bool CanSaveOnnx => true;
 
-        internal MulticlassLogisticRegressionPredictor(IHostEnvironment env, ref VBuffer<Float> weights, int numClasses, int numFeatures, string[] labelNames, LinearModelStatistics stats = null)
+        internal MulticlassLogisticRegressionPredictor(IHostEnvironment env, ref VBuffer<float> weights, int numClasses, int numFeatures, string[] labelNames, LinearModelStatistics stats = null)
             : base(env, RegistrationName)
         {
             Contracts.Assert(weights.Length == numClasses + numClasses * numFeatures);
@@ -402,17 +398,17 @@ namespace Microsoft.ML.Runtime.Learners
             // (i.e.: in "row major", if we encode each weight vector as a row of a matrix)
             Contracts.Assert(weights.Length == _numClasses + _numClasses * _numFeatures);
 
-            _biases = new Float[_numClasses];
+            _biases = new float[_numClasses];
             for (int i = 0; i < _biases.Length; i++)
                 weights.GetItemOrDefault(i, ref _biases[i]);
-            _weights = new VBuffer<Float>[_numClasses];
+            _weights = new VBuffer<float>[_numClasses];
             for (int i = 0; i < _weights.Length; i++)
                 weights.CopyTo(ref _weights[i], _numClasses + i * _numFeatures, _numFeatures);
             if (_weights.All(v => v.IsDense))
                 _weightsDense = _weights;
 
-            InputType = new VectorType(NumberType.Float, _numFeatures);
-            OutputType = new VectorType(NumberType.Float, _numClasses);
+            InputType = new VectorType(NumberType.R4, _numFeatures);
+            OutputType = new VectorType(NumberType.R4, _numClasses);
 
             Contracts.Assert(labelNames == null || labelNames.Length == numClasses);
             _labelNames = labelNames;
@@ -432,7 +428,7 @@ namespace Microsoft.ML.Runtime.Learners
         /// <param name="numFeatures">The logical length of the feature vector.</param>
         /// <param name="labelNames">The optional label names. If specified not null, it should have the same length as <paramref name="numClasses"/>.</param>
         /// <param name="stats">The model statistics.</param>
-        public MulticlassLogisticRegressionPredictor(IHostEnvironment env, VBuffer<Float>[] weights, Float[] bias, int numClasses, int numFeatures, string[] labelNames, LinearModelStatistics stats = null)
+        public MulticlassLogisticRegressionPredictor(IHostEnvironment env, VBuffer<float>[] weights, float[] bias, int numClasses, int numFeatures, string[] labelNames, LinearModelStatistics stats = null)
             : base(env, RegistrationName)
         {
             Contracts.CheckValue(weights, nameof(weights));
@@ -443,8 +439,8 @@ namespace Microsoft.ML.Runtime.Learners
             _numFeatures = numFeatures;
             Contracts.Check(Utils.Size(weights) == _numClasses);
             Contracts.Check(Utils.Size(bias) == _numClasses);
-            _weights = new VBuffer<Float>[_numClasses];
-            _biases = new Float[_numClasses];
+            _weights = new VBuffer<float>[_numClasses];
+            _biases = new float[_numClasses];
             for (int iClass = 0; iClass < _numClasses; iClass++)
             {
                 Contracts.Assert(weights[iClass].Length == _numFeatures);
@@ -455,8 +451,8 @@ namespace Microsoft.ML.Runtime.Learners
             if (_weights.All(v => v.IsDense))
                 _weightsDense = _weights;
 
-            InputType = new VectorType(NumberType.Float, _numFeatures);
-            OutputType = new VectorType(NumberType.Float, _numClasses);
+            InputType = new VectorType(NumberType.R4, _numFeatures);
+            OutputType = new VectorType(NumberType.R4, _numClasses);
 
             Contracts.Assert(labelNames == null || labelNames.Length == numClasses);
             _labelNames = labelNames;
@@ -471,7 +467,7 @@ namespace Microsoft.ML.Runtime.Learners
             // *** Binary format ***
             // int: number of features
             // int: number of classes = number of biases
-            // Float[]: biases
+            // float[]: biases
             // (weight matrix, in CSR if sparse)
             // (see https://netlib.org/linalg/html_templates/node91.html#SECTION00931100000000000000)
             // int: number of row start indices (_numClasses + 1 if sparse, 0 if dense)
@@ -479,7 +475,7 @@ namespace Microsoft.ML.Runtime.Learners
             // int: total number of column indices (0 if dense)
             // int[]: column index of each non-zero weight
             // int: total number of non-zero weights  (same as number of column indices if sparse, num of classes * num of features if dense)
-            // Float[]: non-zero weights
+            // float[]: non-zero weights
             // int[]: Id of label names (optional, in a separate stream)
             // LinearModelStatistics: model statistics (optional, in a separate stream)
 
@@ -500,11 +496,11 @@ namespace Microsoft.ML.Runtime.Learners
                 Host.CheckDecode(numIndices == 0);
                 int numWeights = ctx.Reader.ReadInt32();
                 Host.CheckDecode(numWeights == _numClasses * _numFeatures);
-                _weights = new VBuffer<Float>[_numClasses];
+                _weights = new VBuffer<float>[_numClasses];
                 for (int i = 0; i < _weights.Length; i++)
                 {
                     var w = ctx.Reader.ReadFloatArray(_numFeatures);
-                    _weights[i] = new VBuffer<Float>(_numFeatures, w);
+                    _weights[i] = new VBuffer<float>(_numFeatures, w);
                 }
                 _weightsDense = _weights;
             }
@@ -529,16 +525,16 @@ namespace Microsoft.ML.Runtime.Learners
                 int numValues = ctx.Reader.ReadInt32();
                 Host.CheckDecode(numValues == numIndices);
 
-                _weights = new VBuffer<Float>[_numClasses];
+                _weights = new VBuffer<float>[_numClasses];
                 for (int i = 0; i < _weights.Length; i++)
                 {
-                    Float[] values = ctx.Reader.ReadFloatArray(starts[i + 1] - starts[i]);
-                    _weights[i] = new VBuffer<Float>(_numFeatures, Utils.Size(values), values, indices[i]);
+                    float[] values = ctx.Reader.ReadFloatArray(starts[i + 1] - starts[i]);
+                    _weights[i] = new VBuffer<float>(_numFeatures, Utils.Size(values), values, indices[i]);
                 }
             }
             WarnOnOldNormalizer(ctx, GetType(), Host);
-            InputType = new VectorType(NumberType.Float, _numFeatures);
-            OutputType = new VectorType(NumberType.Float, _numClasses);
+            InputType = new VectorType(NumberType.R4, _numFeatures);
+            OutputType = new VectorType(NumberType.R4, _numClasses);
 
             // REVIEW: Should not save the label names duplicately with the predictor again.
             // Get it from the label column schema metadata instead.
@@ -581,7 +577,7 @@ namespace Microsoft.ML.Runtime.Learners
             // *** Binary format ***
             // int: number of features
             // int: number of classes = number of biases
-            // Float[]: biases
+            // float[]: biases
             // (weight matrix, in CSR if sparse)
             // (see https://netlib.org/linalg/html_templates/node91.html#SECTION00931100000000000000)
             // int: number of row start indices (_numClasses + 1 if sparse, 0 if dense)
@@ -589,7 +585,7 @@ namespace Microsoft.ML.Runtime.Learners
             // int: total number of column indices (0 if dense)
             // int[]: column index of each non-zero weight
             // int: total number of non-zero weights  (same as number of column indices if sparse, num of classes * num of features if dense)
-            // Float[]: non-zero weights
+            // float[]: non-zero weights
             // bool: whether label names are present
             // int[]: Id of label names (optional, in a separate stream)
             // LinearModelStatistics: model statistics (optional, in a separate stream)
@@ -702,7 +698,7 @@ namespace Microsoft.ML.Runtime.Learners
         }
 
         // REVIEW: Destroy.
-        private static int NonZeroCount(ref VBuffer<Float> vector)
+        private static int NonZeroCount(ref VBuffer<float> vector)
         {
             if (!vector.IsDense)
                 return vector.Count;
@@ -717,22 +713,22 @@ namespace Microsoft.ML.Runtime.Learners
 
         public ValueMapper<TSrc, TDst> GetMapper<TSrc, TDst>()
         {
-            Host.Check(typeof(TSrc) == typeof(VBuffer<Float>), "Invalid source type in GetMapper");
-            Host.Check(typeof(TDst) == typeof(VBuffer<Float>), "Invalid destination type in GetMapper");
+            Host.Check(typeof(TSrc) == typeof(VBuffer<float>), "Invalid source type in GetMapper");
+            Host.Check(typeof(TDst) == typeof(VBuffer<float>), "Invalid destination type in GetMapper");
 
-            ValueMapper<VBuffer<Float>, VBuffer<Float>> del =
-                (ref VBuffer<Float> src, ref VBuffer<Float> dst) =>
+            ValueMapper<VBuffer<float>, VBuffer<float>> del =
+                (ref VBuffer<float> src, ref VBuffer<float> dst) =>
                 {
                     Host.Check(src.Length == _numFeatures);
 
                     var values = dst.Values;
                     PredictCore(ref src, ref values);
-                    dst = new VBuffer<Float>(_numClasses, values, dst.Indices);
+                    dst = new VBuffer<float>(_numClasses, values, dst.Indices);
                 };
             return (ValueMapper<TSrc, TDst>)(Delegate)del;
         }
 
-        private void PredictCore(ref VBuffer<Float> src, ref Float[] dst)
+        private void PredictCore(ref VBuffer<float> src, ref float[] dst)
         {
             Host.Check(src.Length == _numFeatures, "src length should equal the number of features");
             var weights = _weights;
@@ -740,7 +736,7 @@ namespace Microsoft.ML.Runtime.Learners
                 weights = DensifyWeights();
 
             if (Utils.Size(dst) < _numClasses)
-                dst = new Float[_numClasses];
+                dst = new float[_numClasses];
 
             for (int i = 0; i < _biases.Length; i++)
                 dst[i] = _biases[i] + VectorUtils.DotProduct(ref weights[i], ref src);
@@ -748,7 +744,7 @@ namespace Microsoft.ML.Runtime.Learners
             Calibrate(dst);
         }
 
-        private VBuffer<Float>[] DensifyWeights()
+        private VBuffer<float>[] DensifyWeights()
         {
             if (_weightsDense == null)
             {
@@ -756,7 +752,7 @@ namespace Microsoft.ML.Runtime.Learners
                 {
                     if (_weightsDense == null)
                     {
-                        var weightsDense = new VBuffer<Float>[_numClasses];
+                        var weightsDense = new VBuffer<float>[_numClasses];
                         for (int i = 0; i < _weights.Length; i++)
                         {
                             // Haven't yet created dense version of the weights.
@@ -775,13 +771,13 @@ namespace Microsoft.ML.Runtime.Learners
             return _weightsDense;
         }
 
-        private void Calibrate(Float[] dst)
+        private void Calibrate(float[] dst)
         {
             Host.Assert(Utils.Size(dst) >= _numClasses);
 
             // scores are in log-space; convert and fix underflow/overflow
             // TODO:   re-normalize probabilities to account for underflow/overflow?
-            Float softmax = MathUtils.SoftMax(dst, _numClasses);
+            float softmax = MathUtils.SoftMax(dst, _numClasses);
             for (int i = 0; i < _numClasses; ++i)
                 dst[i] = MathUtils.ExpSlow(dst[i] - softmax);
         }
@@ -795,8 +791,8 @@ namespace Microsoft.ML.Runtime.Learners
 
             foreach (var namedValues in GetSummaryInKeyValuePairs(schema))
             {
-                Host.Assert(namedValues.Value is Float);
-                writer.WriteLine("\t{0}\t{1}", namedValues.Key, (Float)namedValues.Value);
+                Host.Assert(namedValues.Value is float);
+                writer.WriteLine("\t{0}\t{1}", namedValues.Key, (float)namedValues.Value);
             }
 
             if (_stats != null)
@@ -917,7 +913,7 @@ namespace Microsoft.ML.Runtime.Learners
         /// be expanded as necessary to accomodate the data.</param>
         /// <param name="numClasses">Set to the rank, which is also the logical length
         /// of <paramref name="weights"/>.</param>
-        public void GetWeights(ref VBuffer<Float>[] weights, out int numClasses)
+        public void GetWeights(ref VBuffer<float>[] weights, out int numClasses)
         {
             numClasses = _numClasses;
             Utils.EnsureSize(ref weights, _numClasses, _numClasses);
@@ -925,7 +921,7 @@ namespace Microsoft.ML.Runtime.Learners
                 _weights[i].CopyTo(ref weights[i]);
         }
 
-        internal IEnumerable<Float> DenseWeightsEnumerable()
+        internal IEnumerable<float> DenseWeightsEnumerable()
         {
             Contracts.Assert(_weights.Length == _biases.Length);
 
@@ -938,7 +934,7 @@ namespace Microsoft.ML.Runtime.Learners
             }
         }
 
-        internal IEnumerable<Float> BiasesEnumerable()
+        internal IEnumerable<float> BiasesEnumerable()
         {
             return _biases;
         }
