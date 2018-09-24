@@ -6,6 +6,7 @@ using Microsoft.ML.Data.StaticPipe;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Data.IO;
 using Microsoft.ML.Runtime.Internal.Utilities;
+using Microsoft.ML.Runtime.RunTests;
 using Microsoft.ML.TestFramework;
 using Microsoft.ML.Transforms;
 using Microsoft.ML.Transforms.Text;
@@ -13,6 +14,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
+using System.Linq;
 using System.Text;
 using Xunit;
 using Xunit.Abstractions;
@@ -301,7 +303,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             ImmutableArray<ImmutableArray<float>> bb;
 
             var est = reader.MakeNewEstimator()
-                .Append(r => (r, 
+                .Append(r => (r,
                     ncdf: r.NormalizeByCumulativeDistribution(onFit: (m, s) => mm = m),
                     n: r.NormalizeByMeanVar(onFit: (s, o) => { ss = s; Assert.Empty(o); }),
                     b: r.NormalizeByBinning(onFit: b => bb = b)));
@@ -534,7 +536,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var data = reader.Read(dataSource);
 
             var est = reader.MakeNewEstimator()
-                .Append(r => (r.label, 
+                .Append(r => (r.label,
                               lpnorm: r.features.LpNormalize(),
                               gcnorm: r.features.GlobalContrastNormalize(),
                               zcawhitened: r.features.ZcaWhitening(),
@@ -557,6 +559,36 @@ namespace Microsoft.ML.StaticPipelineTesting
             Assert.True(schema.TryGetColumnIndex("pcswhitened", out int pcswhitenedCol));
             type = schema.GetColumnType(pcswhitenedCol);
             Assert.True(type.IsVector && type.IsKnownSizeVector && type.ItemType.IsNumber);
+        }
+
+        [Fact]
+        public void TrainTestSplit()
+        {
+            var env = new ConsoleEnvironment(seed: 0);
+            var dataPath = GetDataPath(TestDatasets.iris.trainFilename);
+            var dataSource = new MultiFileSource(dataPath);
+
+            var ctx = new BinaryClassificationContext(env);
+
+            var reader = TextLoader.CreateReader(env,
+                c => (label: c.LoadFloat(0), features: c.LoadFloat(1, 4)));
+            var data = reader.Read(dataSource);
+
+            var (train, test) = ctx.TrainTestSplit(data, 0.5);
+
+            // Just make sure that the train is about the same size as the test set.
+            var trainCount = train.GetColumn(r => r.label).Count();
+            var testCount = test.GetColumn(r => r.label).Count();
+
+            Assert.InRange(trainCount * 1.0 / testCount, 0.8, 1.2);
+
+            // Now stratify by label. Silly thing to do.
+            (train, test) = ctx.TrainTestSplit(data, 0.5, stratificationColumn: r => r.label);
+            var trainLabels = train.GetColumn(r => r.label).Distinct();
+            var testLabels = test.GetColumn(r => r.label).Distinct();
+            Assert.True(trainLabels.Count() > 0);
+            Assert.True(testLabels.Count() > 0);
+            Assert.False(trainLabels.Intersect(testLabels).Any());
         }
     }
 }
