@@ -58,7 +58,7 @@ namespace Microsoft.ML.Runtime.Learners
         /// <summary>
         /// Initializes a new instance of <see cref="PoissonRegression"/>
         /// </summary>
-        public PoissonRegression(IHostEnvironment env, Arguments args)
+        internal PoissonRegression(IHostEnvironment env, Arguments args)
             : base(env, args, TrainerUtils.MakeR4ScalarLabel(args.LabelColumn))
         {
         }

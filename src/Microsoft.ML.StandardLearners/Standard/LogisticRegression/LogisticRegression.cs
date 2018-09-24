@@ -69,7 +69,7 @@ namespace Microsoft.ML.Runtime.Learners
         /// <summary>
         /// Initializes a new instance of <see cref="LogisticRegression"/>
         /// </summary>
-        public LogisticRegression(IHostEnvironment env, Arguments args)
+        internal LogisticRegression(IHostEnvironment env, Arguments args)
             : base(env, args, TrainerUtils.MakeR4ScalarLabel(args.LabelColumn))
         {
             _posWeight = 0;

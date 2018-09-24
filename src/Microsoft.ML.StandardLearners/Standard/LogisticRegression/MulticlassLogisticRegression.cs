@@ -89,7 +89,7 @@ namespace Microsoft.ML.Runtime.Learners
         /// <summary>
         /// Initializes a new instance of <see cref="MulticlassLogisticRegression"/>
         /// </summary>
-        public MulticlassLogisticRegression(IHostEnvironment env, Arguments args)
+        internal MulticlassLogisticRegression(IHostEnvironment env, Arguments args)
             : base(env, args, TrainerUtils.MakeU4ScalarLabel(args.LabelColumn))
         {
             ShowTrainingStats = Args.ShowTrainingStats;
