@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Security;
+using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
@@ -131,7 +132,7 @@ namespace Microsoft.ML.Runtime.SymSgd
             return examplesToFeedTrain;
         }
 
-        public override TPredictor Train(TrainContext context)
+        protected override TPredictor TrainModelCore(TrainContext context)
         {
             Host.CheckValue(context, nameof(context));
             TPredictor pred;
@@ -161,29 +162,33 @@ namespace Microsoft.ML.Runtime.SymSgd
         /// <param name="advancedSettings">A delegate to apply all the advanced arguments to the algorithm.</param>
         public SymSgdClassificationTrainer(IHostEnvironment env, string featureColumn, string labelColumn,
             string weightColumn = null, Action<Arguments> advancedSettings = null)
-            : this(env, ArgsInit(featureColumn, labelColumn, weightColumn, advancedSettings))
-        {
-        }
-
-        public SymSgdClassificationTrainer(IHostEnvironment env, Arguments args)
-            : base(env, LoadNameValue)
-        {
-            args.Check(Host);
-            _args = args;
-            Info = new TrainerInfo();
-        }
-
-        private static Arguments ArgsInit(string featureColumn, string labelColumn,
-            string weightColumn, Action<Arguments> advancedSettings)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(LoadNameValue), TrainerUtils.MakeR4VecFeature(featureColumn),
+                  TrainerUtils.MakeR4ScalarLabel(labelColumn), TrainerUtils.MakeR4ScalarWeightColumn(weightColumn))
         {
             var args = new Arguments();
 
             //apply the advanced args, if the user supplied any
+            args.Check(Host);
             advancedSettings?.Invoke(args);
             args.FeatureColumn = featureColumn;
             args.LabelColumn = labelColumn;
-            args.WeightColumn = weightColumn;
-            return args;
+            // TODO:
+            //args.WeightColumn = weightColumn;
+
+            _args = args;
+            Info = new TrainerInfo();
+        }
+
+        /// <summary>
+        /// Initializes a new instance of <see cref="SymSgdClassificationTrainer"/>
+        /// </summary>
+        internal SymSgdClassificationTrainer(IHostEnvironment env, Arguments args)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(LoadNameValue), TrainerUtils.MakeR4VecFeature(args.FeatureColumn),
+                  TrainerUtils.MakeR4ScalarLabel(args.LabelColumn), TrainerUtils.MakeR4ScalarWeightColumn(null))
+        {
+            args.Check(Host);
+            _args = args;
+            Info = new TrainerInfo();
         }
 
         private TPredictor CreatePredictor(VBuffer<float> weights, float bias)
@@ -195,6 +200,19 @@ namespace Microsoft.ML.Runtime.SymSgd
                 Conversions.Instance.GetIsDefaultPredicate<float>(NumberType.R4));
             var predictor = new LinearBinaryPredictor(Host, ref maybeSparseWeights, bias);
             return new ParameterMixingCalibratedPredictor(Host, predictor, new PlattCalibrator(Host, -1, 0));
+        }
+
+        protected override BinaryPredictionTransformer<TPredictor> MakeTransformer(TPredictor model, ISchema trainSchema)
+             => new BinaryPredictionTransformer<TPredictor>(Host, model, trainSchema, FeatureColumn.Name);
+
+        protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema)
+        {
+            return new[]
+            {
+                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata())),
+                new SchemaShape.Column(DefaultColumnNames.Probability, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata(true))),
+                new SchemaShape.Column(DefaultColumnNames.PredictedLabel, SchemaShape.Column.VectorKind.Scalar, BoolType.Instance, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata()))
+            };
         }
 
         [TlcModule.EntryPoint(Name = "Trainers.SymSgdBinaryClassifier",
