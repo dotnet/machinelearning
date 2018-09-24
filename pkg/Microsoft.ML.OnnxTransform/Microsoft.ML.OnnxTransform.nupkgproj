@@ -7,7 +7,7 @@
 
   <ItemGroup>
     <ProjectReference Include="../Microsoft.ML/Microsoft.ML.nupkgproj" />
-    <PackageReference Include="Microsoft.ML.Scoring" Version="1.0.4-dev47509" />
+    <PackageReference Include="Microsoft.ML.Scoring" Version="$(MicrosoftMLScoring)"/>
   </ItemGroup>
 
 </Project>

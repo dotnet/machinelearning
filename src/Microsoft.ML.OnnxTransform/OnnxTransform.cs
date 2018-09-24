@@ -128,7 +128,7 @@ namespace Microsoft.ML.OnnxScoring
             var outputNodeInfo = Model.GetOutputsInfo().Where(x => x.Name == args.OutputColumn).First();
             var type = OnnxUtils.OnnxToMlNetType(outputNodeInfo.Type);
             var shape = outputNodeInfo.Shape;
-            var dims = shape.Count > 0 ? shape.Skip(shape[0] < 0 ? 1 : 0).Select( x => (int)x ).ToArray() : new[] { 0 };
+            var dims = shape.Count > 0 ? shape.Skip(shape[0] < 0 ? 1 : 0).Select(x => (int)x).ToArray() : new[] { 0 };
             OutputTypes = new ColumnType[1];
             OutputTypes[0] = new VectorType(type, dims);
             _args = args;
@@ -171,6 +171,14 @@ namespace Microsoft.ML.OnnxScoring
             ctx.SaveBinaryStream("OnnxModel", w => { w.WriteByteArray(Model.ToByteArray()); });
             ctx.SaveNonEmptyString(_args.InputColumn);
             ctx.SaveNonEmptyString(_args.OutputColumn);
+        }
+
+        public bool IsRowToRowMapper => true;
+
+        public IRowToRowMapper GetRowToRowMapper(ISchema inputSchema)
+        {
+            _host.CheckValue(inputSchema, nameof(inputSchema));
+            return MakeDataTransform(new EmptyDataView(_host, inputSchema));
         }
 
         internal sealed class Mapper : IRowMapper
@@ -243,10 +251,9 @@ namespace Microsoft.ML.OnnxScoring
                 _host.AssertValue(input);
                 _host.Assert(typeof(T) == _outputItemRawType);
 
-                _idvToTensorAdapter.InitializeValueGetters(input);
-
                 ValueGetter<VBuffer<T>> valuegetter = (ref VBuffer<T> dst) =>
                 {
+                    _idvToTensorAdapter.InitializeValueGetters(input);
                     var inputTensors = new List<Tensor> { _idvToTensorAdapter.GetTensor() };
                     var outputTensors = _parent.Model.Run(inputTensors);
                     Contracts.Assert(outputTensors.Count() > 0);
