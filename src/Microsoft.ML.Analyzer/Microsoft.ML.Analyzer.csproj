@@ -5,22 +5,6 @@
     <IncludeAnalyzerInPackage>Microsoft.ML</IncludeAnalyzerInPackage>
   </PropertyGroup>
 
-  <Target Name="PrepareAnalyzerPackageAssets"
-          AfterTargets="Build">
-
-    <ItemGroup>
-      <PackageAsset Include="$(TargetPath)"
-                    RelativePath="$(IncludeAnalyzerInPackage)\analyzers\dotnet\cs" />
-      <PackageAsset Include="@(DebugSymbolsProjectOutputGroupOutput)"
-                    RelativePath="$(IncludeAnalyzerInPackage)\analyzers\dotnet\cs" />
-    </ItemGroup>
-
-    <Copy SourceFiles="@(PackageAsset)"
-          DestinationFolder="$(PackageAssetsPath)%(PackageAsset.RelativePath)" />
-
-  </Target>
-
-
   <ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="$(MicrosoftCodeAnalysisCSharpVersion)" />
     <PackageReference Include="Microsoft.CSharp" Version="$(MicrosoftCSharpVersion)" />
