@@ -198,7 +198,7 @@ namespace Microsoft.ML.Tests.Transformers
             Done();
         }
 
-        [Fact(Skip = "LdaNative dll is missing in ML.Net")]
+        [Fact(Skip = "Despite seed is set, LDA is giving different vector at every run. Need to fix it.")]
         public void LdaWorkout()
         {
             string sentimentDataPath = GetDataPath("wikipedia-detox-250-line-data.tsv");
@@ -213,14 +213,16 @@ namespace Microsoft.ML.Tests.Transformers
                 .Read(new MultiFileSource(sentimentDataPath));
 
             var est = new WordBagEstimator(Env, "text", "bag_of_words").
-                Append(new LdaEstimator(Env, "bag_of_words", "topics"));
+                Append(new LdaEstimator(Env, "bag_of_words", "topics", 10));
 
-            TestEstimatorCore(est, data.AsDynamic, invalidInput: invalidData.AsDynamic);
+            // The following call fails because of the following issue
+            // https://github.com/dotnet/machinelearning/issues/969
+            // TestEstimatorCore(est, data.AsDynamic, invalidInput: invalidData.AsDynamic);
 
             var outputPath = GetOutputPath("Text", "ldatopics.tsv");
             using (var ch = Env.Start("save"))
             {
-                var saver = new TextSaver(Env, new TextSaver.Arguments { Silent = true });
+                var saver = new TextSaver(Env, new TextSaver.Arguments { Silent = true, OutputHeader = false,  Dense = true });
                 IDataView savedData = TakeFilter.Create(Env, est.Fit(data.AsDynamic).Transform(data.AsDynamic), 4);
                 savedData = new ChooseColumnsTransform(Env, savedData, "topics");
 

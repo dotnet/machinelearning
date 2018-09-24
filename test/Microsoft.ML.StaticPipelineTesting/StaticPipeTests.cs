@@ -559,7 +559,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             Assert.True(type.IsVector && type.IsKnownSizeVector && type.ItemType.IsNumber);
         }
 
-        [Fact(Skip = "LdaNative dll is missing in ML.Net")]
+        [Fact]
         public void LdaTopicModel()
         {
             var env = new ConsoleEnvironment(seed: 0);
@@ -573,7 +573,9 @@ namespace Microsoft.ML.StaticPipelineTesting
             var est = data.MakeNewEstimator()
                 .Append(r => (
                     r.label,
-                    topics: r.text.ToBagofWords().ToLdaTopicVector(numTopic: 10)));
+                    topics: r.text.ToBagofWords().ToLdaTopicVector(numTopic: 10, advancedSettings: s => {
+                        s.AlphaSum = 10;
+                    })));
 
             var tdata = est.Fit(data).Transform(data);
             var schema = tdata.AsDynamic.Schema;

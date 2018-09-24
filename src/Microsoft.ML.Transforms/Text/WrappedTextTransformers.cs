@@ -10,6 +10,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using static Microsoft.ML.Runtime.TextAnalytics.LdaTransform;
 using static Microsoft.ML.Runtime.TextAnalytics.StopWordsRemoverTransform;
 using static Microsoft.ML.Runtime.TextAnalytics.TextNormalizerTransform;
 
@@ -736,64 +737,22 @@ namespace Microsoft.ML.Transforms
     /// <include file='doc.xml' path='doc/members/member[@name="LightLDA"]/*' />
     public sealed class LdaEstimator : TrainedWrapperEstimatorBase
     {
-        private readonly (string input, string output)[] _columns;
-        private readonly int _numTopic;
-        private readonly float _alphaSum;
-        private readonly Single _beta;
-        private readonly int _mhstep;
-        private readonly int _numIterations;
-        private readonly int _likelihoodInterval;
-        private readonly int _numMaxDocToken;
-        private readonly int? _numThreads;
-        private readonly int _numSummaryTermPerTopic;
-        private readonly int _numBurninIterations;
-        private readonly bool _resetRandomGenerator;
-        private readonly bool _outputTopicWordSummary;
+        private readonly LdaTransform.Arguments _args;
 
         /// <include file='doc.xml' path='doc/members/member[@name="LightLDA"]/*' />
         /// <param name="env">The environment.</param>
         /// <param name="inputColumn">The column containing text to tokenize.</param>
         /// <param name="outputColumn">The column containing output tokens. Null means <paramref name="inputColumn"/> is replaced.</param>
         /// <param name="numTopic">The number of topics in the LDA.</param>
-        /// <param name="alphaSum">Dirichlet prior on document-topic vectors.</param>
-        /// <param name="beta">Dirichlet prior on vocab-topic vectors.</param>
-        /// <param name="mhstep">Number of Metropolis Hasting step.</param>
-        /// <param name="numIterations">Number of iterations.</param>
-        /// <param name="likelihoodInterval">Compute log likelihood over local dataset on this iteration interval.</param>
-        /// <param name="numMaxDocToken">The threshold of maximum count of tokens per doc.</param>
-        /// <param name="numThreads">The number of training threads. Default value depends on number of logical processors..</param>
-        /// <param name="numSummaryTermPerTopic">The number of words to summarize the topic.</param>
-        /// <param name="numBurninIterations">The number of burn-in iterations.</param>
-        /// <param name="resetRandomGenerator">Reset the random number generator for each document.</param>
-        /// <param name="outputTopicWordSummary">Whether to output the topic-word summary in text format.</param>
+        /// <param name="advancedSettings">A delegate to apply all the advanced arguments to the algorithm.</param>
         public LdaEstimator(IHostEnvironment env,
             string inputColumn,
             string outputColumn = null,
             int numTopic = 100,
-            float alphaSum = 100,
-            Single beta = 0.01f,
-            int mhstep = 4,
-            int numIterations = 200,
-            int likelihoodInterval = 5,
-            int numMaxDocToken = 512,
-            int? numThreads = null,
-            int numSummaryTermPerTopic = 10,
-            int numBurninIterations = 10,
-            bool resetRandomGenerator = false,
-            bool outputTopicWordSummary = false)
+            Action<LdaTransform.Arguments> advancedSettings = null)
             : this(env, new[] { (inputColumn, outputColumn ?? inputColumn) },
                     numTopic,
-                    alphaSum,
-                    beta,
-                    mhstep,
-                    numIterations,
-                    likelihoodInterval,
-                    numMaxDocToken,
-                    numThreads,
-                    numSummaryTermPerTopic,
-                    numBurninIterations,
-                    resetRandomGenerator,
-                    outputTopicWordSummary)
+                    advancedSettings)
         {
         }
 
@@ -801,68 +760,23 @@ namespace Microsoft.ML.Transforms
         /// <param name="env">The environment.</param>
         /// <param name="columns">Pairs of columns to compute LDA.</param>
         /// <param name="numTopic">The number of topics in the LDA.</param>
-        /// <param name="alphaSum">Dirichlet prior on document-topic vectors.</param>
-        /// <param name="beta">Dirichlet prior on vocab-topic vectors.</param>
-        /// <param name="mhstep">Number of Metropolis Hasting step.</param>
-        /// <param name="numIterations">Number of iterations.</param>
-        /// <param name="likelihoodInterval">Compute log likelihood over local dataset on this iteration interval.</param>
-        /// <param name="numMaxDocToken">The threshold of maximum count of tokens per doc.</param>
-        /// <param name="numThreads">The number of training threads. Default value depends on number of logical processors..</param>
-        /// <param name="numSummaryTermPerTopic">The number of words to summarize the topic.</param>
-        /// <param name="numBurninIterations">The number of burn-in iterations.</param>
-        /// <param name="resetRandomGenerator">Reset the random number generator for each document.</param>
-        /// <param name="outputTopicWordSummary">Whether to output the topic-word summary in text format.</param>
+        /// <param name="advancedSettings">A delegate to apply all the advanced arguments to the algorithm.</param>
         public LdaEstimator(IHostEnvironment env,
             (string input, string output)[] columns,
             int numTopic = 100,
-            float alphaSum = 100,
-            Single beta = 0.01f,
-            int mhstep = 4,
-            int numIterations = 200,
-            int likelihoodInterval = 5,
-            int numMaxDocToken = 512,
-            int? numThreads = null,
-            int numSummaryTermPerTopic = 10,
-            int numBurninIterations = 10,
-            bool resetRandomGenerator = false,
-            bool outputTopicWordSummary = false)
+            Action<LdaTransform.Arguments> advancedSettings = null)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(LdaEstimator)))
         {
-            _columns = columns;
-            _numTopic = numTopic;
-            _alphaSum = alphaSum;
-            _beta = beta;
-            _mhstep = mhstep;
-            _numIterations = numIterations;
-            _likelihoodInterval = likelihoodInterval;
-            _numMaxDocToken = numMaxDocToken;
-            _numThreads = numThreads;
-            _numSummaryTermPerTopic = numSummaryTermPerTopic;
-            _numBurninIterations = numBurninIterations;
-            _resetRandomGenerator = resetRandomGenerator;
-            _outputTopicWordSummary = outputTopicWordSummary;
+            _args = new LdaTransform.Arguments();
+            _args.Column = columns.Select(x => new LdaTransform.Column { Source = x.input, Name = x.output }).ToArray();
+            _args.NumTopic = numTopic;
+
+            advancedSettings?.Invoke(_args);
         }
 
         public override TransformWrapper Fit(IDataView input)
         {
-            var args = new LdaTransform.Arguments
-            {
-                Column = _columns.Select(x => new LdaTransform.Column { Source = x.input, Name = x.output }).ToArray(),
-                NumTopic = _numTopic,
-                AlphaSum = _alphaSum,
-                Beta = _beta,
-                Mhstep = _mhstep,
-                NumIterations = _numIterations,
-                LikelihoodInterval = _likelihoodInterval,
-                NumMaxDocToken = _numMaxDocToken,
-                NumThreads = _numThreads,
-                NumSummaryTermPerTopic = _numSummaryTermPerTopic,
-                NumBurninIterations = _numBurninIterations,
-                ResetRandomGenerator = _resetRandomGenerator,
-                OutputTopicWordSummary = _outputTopicWordSummary
-            };
-
-            return new TransformWrapper(Host, new LdaTransform(Host, args, input));
+            return new TransformWrapper(Host, new LdaTransform(Host, _args, input));
         }
     }
 }
