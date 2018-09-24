@@ -27,7 +27,7 @@ namespace Microsoft.ML.Scenarios
             public float[] b;
         }
 
-        [Fact]
+        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // TensorFlow is 64-bit only
         public void TensorFlowTransformMatrixMultiplicationTest()
         {
             var model_location = "model_matmul/frozen_saved_model.pb";
@@ -182,7 +182,7 @@ namespace Microsoft.ML.Scenarios
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // TensorFlow is 64-bit only
         public void TensorFlowInputsOutputsSchemaTest()
         {
             using (var env = new ConsoleEnvironment(seed: 1, conc: 1))
@@ -271,7 +271,7 @@ namespace Microsoft.ML.Scenarios
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // TensorFlow is 64-bit only
         public void TensorFlowTransformMNISTConvTest()
         {
             var model_location = "mnist_model/frozen_saved_model.pb";
@@ -590,7 +590,7 @@ namespace Microsoft.ML.Scenarios
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // TensorFlow is 64-bit only
         public void TensorFlowTransformMNISTConvSavedModelTest()
         {
             var model_location = "mnist_model";
@@ -672,7 +672,7 @@ namespace Microsoft.ML.Scenarios
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // TensorFlow is 64-bit only
         public void TensorFlowTransformMNISTConvPipelineTest()
         {
             var model_location = "mnist_model/frozen_saved_model.pb";
@@ -728,7 +728,7 @@ namespace Microsoft.ML.Scenarios
             public float[] PredictedLabels;
         }
 
-        [Fact]
+        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // TensorFlow is 64-bit only
         public void TensorFlowTransformCifar()
         {
             var model_location = "cifar_model/frozen_model.pb";
@@ -789,7 +789,7 @@ namespace Microsoft.ML.Scenarios
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // TensorFlow is 64-bit only
         public void TensorFlowTransformCifarSavedModel()
         {
             var model_location = "cifar_saved_model";
