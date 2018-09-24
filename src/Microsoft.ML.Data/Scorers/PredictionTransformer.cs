@@ -523,12 +523,6 @@ namespace Microsoft.ML.Runtime.Data
                 verWeCanReadBack: 0x00010001,
                 loaderSignature: ClusteringPredictionTransformer.LoaderSignature);
         }
-
-        public override IRowToRowMapper GetRowToRowMapper(ISchema inputSchema)
-        {
-            Host.CheckValue(inputSchema, nameof(inputSchema));
-            return (IRowToRowMapper)_scorer.ApplyToData(Host, new EmptyDataView(Host, inputSchema));
-        }
     }
 
     internal static class BinaryPredictionTransformer
