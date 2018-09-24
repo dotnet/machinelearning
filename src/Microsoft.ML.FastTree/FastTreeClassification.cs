@@ -120,18 +120,43 @@ namespace Microsoft.ML.Runtime.FastTree
         /// <param name="env">The private instance of <see cref="IHostEnvironment"/>.</param>
         /// <param name="labelColumn">The name of the label column.</param>
         /// <param name="featureColumn">The name of the feature column.</param>
-        /// <param name="groupIdColumn">The name for the column containing the group ID. </param>
         /// <param name="weightColumn">The name for the column containing the initial weight.</param>
         /// <param name="advancedSettings">A delegate to apply all the advanced arguments to the algorithm.</param>
-        public FastTreeBinaryClassificationTrainer(IHostEnvironment env, string labelColumn, string featureColumn,
-            string groupIdColumn = null, string weightColumn = null, Action<Arguments> advancedSettings = null)
-            : base(env, TrainerUtils.MakeBoolScalarLabel(labelColumn), featureColumn, weightColumn, groupIdColumn, advancedSettings)
+        /// <param name="learningRates"></param>
+        /// <param name="minDocumentsInLeafs"></param>
+        /// <param name="numLeaves"></param>
+        /// <param name="numTrees"></param>
+        public FastTreeBinaryClassificationTrainer(IHostEnvironment env,
+            string labelColumn,
+            string featureColumn,
+            string weightColumn = null,
+            int numLeaves = 20,
+            int numTrees = 100,
+            int minDocumentsInLeafs = 10,
+            double learningRates = 0.2,
+            Action<Arguments> advancedSettings = null)
+            : base(env, TrainerUtils.MakeBoolScalarLabel(labelColumn), featureColumn, weightColumn, null, advancedSettings)
         {
             Host.CheckNonEmpty(labelColumn, nameof(labelColumn));
             Host.CheckNonEmpty(featureColumn, nameof(featureColumn));
 
             // Set the sigmoid parameter to the 2 * learning rate, for traditional FastTreeClassification loss
             _sigmoidParameter = 2.0 * Args.LearningRates;
+
+            //take a quick snapshot at the defaults, for comparison with the current args values
+            var snapshot = new Arguments();
+
+            // Check that the user didn't supply different parameters in the args, from what it specified directly.
+            TrainerUtils.CheckArgsAndAdvancedSettingMismatch(numLeaves, snapshot.NumLeaves, Args.NumLeaves, nameof(numLeaves));
+            TrainerUtils.CheckArgsAndAdvancedSettingMismatch(numTrees, snapshot.NumTrees, Args.NumTrees, nameof(numTrees));
+            TrainerUtils.CheckArgsAndAdvancedSettingMismatch(minDocumentsInLeafs, snapshot.MinDocumentsInLeafs, Args.MinDocumentsInLeafs, nameof(minDocumentsInLeafs));
+            TrainerUtils.CheckArgsAndAdvancedSettingMismatch(numLeaves, snapshot.NumLeaves, Args.NumLeaves, nameof(numLeaves));
+
+            //override with the directly provided values.
+            Args.NumLeaves = numLeaves;
+            Args.NumTrees = numTrees;
+            Args.MinDocumentsInLeafs = minDocumentsInLeafs;
+            Args.LearningRates = learningRates;
         }
 
         /// <summary>

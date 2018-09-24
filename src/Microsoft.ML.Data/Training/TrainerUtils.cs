@@ -4,6 +4,7 @@
 
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime.Data;
+using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using System;
 using System.Collections.Generic;
@@ -381,6 +382,27 @@ namespace Microsoft.ML.Runtime.Training
             if (weightColumn == null)
                 return null;
             return new SchemaShape.Column(weightColumn, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false);
+        }
+
+        /// <summary>
+        /// Check that the label, feature, weights is not supplied in the args the constructor.
+        /// Those parameters should be internal if they are not used from the maml help code path.
+        /// </summary>
+        public static void CheckArgumesDefaultColNames(string colName, string argValue, string directValue)
+        {
+            if (directValue == null)
+                return;
+
+            if (argValue != directValue)
+                throw Contracts.Except($"Don't supply a value for the {colName} column in the arguments, as it will be ignored. Specify them in the loader, or constructor instead instead.");
+        }
+
+        public static void CheckArgsAndAdvancedSettingMismatch<T>(T methodParam, T defaultVal, T setting, string argName)
+        {
+            // if, after applying the advancedArgs delegate, the args are different that the default value
+            // and are also different than the value supplied directly to the xtension method, warn the user.
+            if (!setting.Equals(defaultVal) && !setting.Equals(methodParam))
+                Console.WriteLine($"The value supplied to advanced settings , is different than the value supplied directly. Using value {setting} for {argName}");
         }
     }
 

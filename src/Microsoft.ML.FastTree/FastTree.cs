@@ -99,6 +99,13 @@ namespace Microsoft.ML.Runtime.FastTree
 
             //apply the advanced args, if the user supplied any
             advancedSettings?.Invoke(Args);
+
+            // check that the users didn't specify different label, group, feature, weights in the args, from what they supplied directly
+            TrainerUtils.CheckArgumesDefaultColNames(DefaultColumnNames.Label, Args.LabelColumn, label.Name);
+            TrainerUtils.CheckArgumesDefaultColNames(DefaultColumnNames.Features, Args.FeatureColumn, featureColumn);
+            TrainerUtils.CheckArgumesDefaultColNames(DefaultColumnNames.GroupId, Args.GroupIdColumn, groupIdColumn);
+            TrainerUtils.CheckArgumesDefaultColNames(DefaultColumnNames.Weight, Args.WeightColumn, weightColumn);
+
             Args.LabelColumn = label.Name;
             Args.FeatureColumn = featureColumn;
 

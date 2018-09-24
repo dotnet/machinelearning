@@ -46,9 +46,9 @@ namespace Microsoft.ML.Trainers
             Contracts.CheckValue(label, nameof(label));
             Contracts.CheckValue(features, nameof(features));
             Contracts.CheckValueOrNull(weights);
-            Contracts.CheckParam(!(l2Const < 0), nameof(l2Const), "Must not be negative");
-            Contracts.CheckParam(!(l1Threshold < 0), nameof(l1Threshold), "Must not be negative");
-            Contracts.CheckParam(!(maxIterations < 1), nameof(maxIterations), "Must be positive if specified");
+            Contracts.CheckParam(l2Const >= 0, nameof(l2Const), "Must not be negative");
+            Contracts.CheckParam(l1Threshold >= 0, nameof(l1Threshold), "Must not be negative");
+            Contracts.CheckParam(maxIterations > 0, nameof(maxIterations), "Must be positive if specified");
             Contracts.CheckValueOrNull(loss);
             Contracts.CheckValueOrNull(onFit);
 
