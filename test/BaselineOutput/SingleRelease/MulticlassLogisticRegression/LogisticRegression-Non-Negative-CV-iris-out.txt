@@ -1,0 +1,106 @@
+maml.exe CV tr=MulticlassLogisticRegression{l1=0.001 l2=0.1 ot=1e-3 nt=1 nn=+} threads=- norm=No dout=%Output% data=%Data% seed=1
+Not adding a normalizer.
+Beginning optimization
+num vars: 15
+improvement criterion: Mean Improvement
+L1 regularization selected 11 of 15 weights.
+Not training a calibrator because it is not needed.
+Not adding a normalizer.
+Beginning optimization
+num vars: 15
+improvement criterion: Mean Improvement
+L1 regularization selected 11 of 15 weights.
+Not training a calibrator because it is not needed.
+
+Confusion table
+          ||========================
+PREDICTED ||     0 |     1 |     2 | Recall
+TRUTH     ||========================
+        0 ||    21 |     0 |     0 | 1.0000
+        1 ||     0 |    29 |     1 | 0.9667
+        2 ||     0 |     2 |    26 | 0.9286
+          ||========================
+Precision ||1.0000 |0.9355 |0.9630 |
+Accuracy(micro-avg): 0.962025
+Accuracy(macro-avg): 0.965079
+Log-loss:           0.129858
+Log-loss reduction: 88.059239
+
+Confusion table
+          ||========================
+PREDICTED ||     0 |     1 |     2 | Recall
+TRUTH     ||========================
+        0 ||    29 |     0 |     0 | 1.0000
+        1 ||     0 |    18 |     2 | 0.9000
+        2 ||     0 |     0 |    22 | 1.0000
+          ||========================
+Precision ||1.0000 |1.0000 |0.9167 |
+Accuracy(micro-avg): 0.971831
+Accuracy(macro-avg): 0.966667
+Log-loss:           0.125563
+Log-loss reduction: 88.434327
+
+OVERALL RESULTS
+---------------------------------------
+Accuracy(micro-avg): 0.966928 (0.0049)
+Accuracy(macro-avg): 0.965873 (0.0008)
+Log-loss:           0.127710 (0.0021)
+Log-loss reduction: 88.246783 (0.1875)
+
+---------------------------------------
+Warning: There is no NA value for type 'Text'. The missing key value will be mapped to the default value of 'Text'
+Warning: There is no NA value for type 'Text'. The missing key value will be mapped to the default value of 'Text'
+Warning: There is no NA value for type 'Text'. The missing key value will be mapped to the default value of 'Text'
+Warning: There is no NA value for type 'Text'. The missing key value will be mapped to the default value of 'Text'
+Physical memory usage(MB): %Number%
+Virtual memory usage(MB): %Number%
+%DateTime%	 Time elapsed(s): %Number%
+
+--- Progress log ---
+[1] 'LBFGS data prep' started.
+[1] 'LBFGS data prep' finished in %Time%.
+[2] 'LBFGS Optimizer' started.
+[2] (%Time%)	0 iterations	Loss: 1.0986123085022
+[2] (%Time%)	1 iterations	Loss: 1.00646448135376	Improvement: 0.09215
+[2] (%Time%)	2 iterations	Loss: 0.909583747386932	Improvement: 0.09593
+[2] (%Time%)	3 iterations	Loss: 0.525106191635132	Improvement: 0.3158
+[2] (%Time%)	4 iterations	Loss: 0.400520384311676	Improvement: 0.1718
+[2] (%Time%)	5 iterations	Loss: 0.332601189613342	Improvement: 0.09382
+[2] (%Time%)	6 iterations	Loss: 0.281388521194458	Improvement: 0.06186
+[2] (%Time%)	7 iterations	Loss: 0.237996473908424	Improvement: 0.04801
+[2] (%Time%)	8 iterations	Loss: 0.212298363447189	Improvement: 0.03128
+[2] (%Time%)	9 iterations	Loss: 0.199792444705963	Improvement: 0.0172
+[2] (%Time%)	10 iterations	Loss: 0.194789424538612	Improvement: 0.008052
+[2] (%Time%)	11 iterations	Loss: 0.193230450153351	Improvement: 0.003182
+[2] (%Time%)	12 iterations	Loss: 0.192447692155838	Improvement: 0.001383
+[2] (%Time%)	13 iterations	Loss: 0.189304739236832	Improvement: 0.002703
+[2] (%Time%)	14 iterations	Loss: 0.187662661075592	Improvement: 0.001907
+[2] (%Time%)	15 iterations	Loss: 0.185374572873116	Improvement: 0.002193
+[2] (%Time%)	16 iterations	Loss: 0.18364554643631	Improvement: 0.001845
+[2] (%Time%)	17 iterations	Loss: 0.180794909596443	Improvement: 0.002599
+[2] (%Time%)	18 iterations	Loss: 0.178908497095108	Improvement: 0.002065
+[2] (%Time%)	19 iterations	Loss: 0.175620675086975	Improvement: 0.002982
+[2] (%Time%)	20 iterations	Loss: 0.174758642911911	Improvement: 0.001392
+[2] (%Time%)	21 iterations	Loss: 0.173962101340294	Improvement: 0.0009454
+[2] 'LBFGS Optimizer' finished in %Time%.
+[3] 'LBFGS data prep #2' started.
+[3] 'LBFGS data prep #2' finished in %Time%.
+[4] 'LBFGS Optimizer #2' started.
+[4] (%Time%)	0 iterations	Loss: 1.0986123085022
+[4] (%Time%)	1 iterations	Loss: 1.05856335163116	Improvement: 0.04005
+[4] (%Time%)	2 iterations	Loss: 1.00281620025635	Improvement: 0.05261
+[4] (%Time%)	3 iterations	Loss: 0.97780430316925	Improvement: 0.03158
+[4] (%Time%)	4 iterations	Loss: 0.752716302871704	Improvement: 0.1773
+[4] (%Time%)	5 iterations	Loss: 0.542387366294861	Improvement: 0.2021
+[4] (%Time%)	6 iterations	Loss: 0.443084180355072	Improvement: 0.125
+[4] (%Time%)	7 iterations	Loss: 0.343867212533951	Improvement: 0.1057
+[4] (%Time%)	8 iterations	Loss: 0.284590691328049	Improvement: 0.07087
+[4] (%Time%)	9 iterations	Loss: 0.254261910915375	Improvement: 0.04046
+[4] (%Time%)	10 iterations	Loss: 0.224356189370155	Improvement: 0.03255
+[4] (%Time%)	11 iterations	Loss: 0.215291574597359	Improvement: 0.01493
+[4] (%Time%)	12 iterations	Loss: 0.212821274995804	Improvement: 0.005586
+[4] (%Time%)	13 iterations	Loss: 0.212086588144302	Improvement: 0.001948
+[4] (%Time%)	14 iterations	Loss: 0.21061946451664	Improvement: 0.001587
+[4] (%Time%)	15 iterations	Loss: 0.209799557924271	Improvement: 0.001012
+[4] (%Time%)	16 iterations	Loss: 0.209267094731331	Improvement: 0.0006523
+[4] 'LBFGS Optimizer #2' finished in %Time%.

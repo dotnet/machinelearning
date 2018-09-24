@@ -553,7 +553,7 @@ namespace Microsoft.ML.Runtime.RunTests
             return res;
         }
 
-        protected bool CheckEqualityFromPathsCore(string relPath, string basePath, string outPath, int skip = 0, decimal precision = 10000000)
+        protected bool CheckEqualityFromPathsCore(string relPath, string basePath, string outPath, int skip = 0, decimal precision = 10000)
         {
             Contracts.Assert(skip >= 0);
 
