@@ -72,7 +72,7 @@ namespace Microsoft.ML.Runtime.HalLearners
         /// <param name="featureColumn">The name of the feature column.</param>
         /// <param name="weightColumn">The name for the column containing the initial weight.</param>
         /// <param name="advancedSettings">A delegate to apply all the advanced arguments to the algorithm.</param>
-        internal OlsLinearRegressionTrainer(IHostEnvironment env, string featureColumn, string labelColumn,
+        public OlsLinearRegressionTrainer(IHostEnvironment env, string featureColumn, string labelColumn,
             string weightColumn = null, Action<Arguments> advancedSettings = null)
             : this(env, ArgsInit(featureColumn, labelColumn, weightColumn, advancedSettings))
         {
@@ -81,7 +81,7 @@ namespace Microsoft.ML.Runtime.HalLearners
         /// <summary>
         /// Initializes a new instance of <see cref="OlsLinearRegressionTrainer"/>
         /// </summary>
-        public OlsLinearRegressionTrainer(IHostEnvironment env, Arguments args)
+        internal OlsLinearRegressionTrainer(IHostEnvironment env, Arguments args)
             : base(Contracts.CheckRef(env, nameof(env)).Register(LoadNameValue), MakeFeatureColumn(args.FeatureColumn), MakeLabelColumn(args.LabelColumn), MakeWeightColumn(args.WeightColumn))
         {
             Host.CheckValue(args, nameof(args));
