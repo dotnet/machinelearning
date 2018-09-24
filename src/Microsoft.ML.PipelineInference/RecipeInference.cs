@@ -527,7 +527,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
         public static SuggestedRecipe.SuggestedLearner[] AllowedLearners(IHostEnvironment env, MacroUtils.TrainerKinds trainerKind)
         {
             //not all learners advertised in the API are available in CORE.
-            var catalog = ModuleCatalog.CreateInstance(env);
+            var catalog = env.ComponentCatalog;
             var availableLearnersList = catalog.AllEntryPoints().Where(
                 x => x.InputKinds?.FirstOrDefault(i => i == typeof(CommonInputs.ITrainerInput)) != null);
 
