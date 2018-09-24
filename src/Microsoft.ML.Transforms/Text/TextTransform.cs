@@ -228,7 +228,7 @@ namespace Microsoft.ML.Runtime.Data
             }
 
             // If we're performing language auto detection, or either of our extractors aren't hashing then
-            // we need all the input text concatenated into a single Vect<DvText>, for the LanguageDetectionTransform
+            // we need all the input text concatenated into a single ReadOnlyMemory, for the LanguageDetectionTransform
             // to operate on the entire text vector, and for the Dictionary feature extractor to build its bound dictionary
             // correctly.
             public bool NeedInitialSourceColumnConcatTransform
@@ -582,6 +582,26 @@ namespace Microsoft.ML.Runtime.Data
             {
                 _host.CheckValue(input, nameof(input));
                 return ApplyTransformUtils.ApplyAllTransformsToData(_host, _xf, input);
+            }
+
+            public bool IsRowToRowMapper => true;
+
+            public IRowToRowMapper GetRowToRowMapper(ISchema inputSchema)
+            {
+                _host.CheckValue(inputSchema, nameof(inputSchema));
+                var input = new EmptyDataView(_host, inputSchema);
+                var revMaps = new List<IRowToRowMapper>();
+                IDataView chain;
+                for (chain = ApplyTransformUtils.ApplyAllTransformsToData(_host, _xf, input); chain is IDataTransform xf; chain = xf.Source)
+                {
+                    // Everything in the chain ought to be a row mapper.
+                    _host.Assert(xf is IRowToRowMapper);
+                    revMaps.Add((IRowToRowMapper)xf);
+                }
+                // The walkback should have ended at the input.
+                Contracts.Assert(chain == input);
+                revMaps.Reverse();
+                return new CompositeRowToRowMapper(inputSchema, revMaps.ToArray());
             }
 
             public void Save(ModelSaveContext ctx)

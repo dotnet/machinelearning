@@ -178,13 +178,13 @@ namespace Microsoft.ML.Scenarios
             var sentiments = GetTestData();
             var predictions = cv.PredictorModels[0].Predict(sentiments);
             Assert.Equal(2, predictions.Count());
-            Assert.True(predictions.ElementAt(0).Sentiment.IsTrue);
-            Assert.True(predictions.ElementAt(1).Sentiment.IsTrue);
+            Assert.True(predictions.ElementAt(0).Sentiment);
+            Assert.True(predictions.ElementAt(1).Sentiment);
 
             predictions = cv.PredictorModels[1].Predict(sentiments);
             Assert.Equal(2, predictions.Count());
-            Assert.True(predictions.ElementAt(0).Sentiment.IsTrue);
-            Assert.True(predictions.ElementAt(1).Sentiment.IsTrue);
+            Assert.True(predictions.ElementAt(0).Sentiment);
+            Assert.True(predictions.ElementAt(1).Sentiment);
         }
 
         private void ValidateBinaryMetricsSymSGD(BinaryClassificationMetrics metrics)
@@ -438,8 +438,8 @@ namespace Microsoft.ML.Scenarios
             var predictions = model.Predict(sentiments);
             Assert.Equal(2, predictions.Count());
 
-            Assert.True(predictions.ElementAt(0).Sentiment.IsTrue);
-            Assert.True(predictions.ElementAt(1).Sentiment.IsTrue);
+            Assert.True(predictions.ElementAt(0).Sentiment);
+            Assert.True(predictions.ElementAt(1).Sentiment);
 
         }
 
@@ -449,8 +449,8 @@ namespace Microsoft.ML.Scenarios
             var predictions = model.Predict(sentiments);
             Assert.Equal(2, predictions.Count());
 
-            Assert.True(predictions.ElementAt(0).Sentiment.IsTrue);
-            Assert.True(predictions.ElementAt(1).Sentiment.IsTrue);
+            Assert.True(predictions.ElementAt(0).Sentiment);
+            Assert.True(predictions.ElementAt(1).Sentiment);
         }
 
         private void ValidateExamplesSymSGD(PredictionModel<SentimentData, SentimentPrediction> model)
@@ -459,8 +459,8 @@ namespace Microsoft.ML.Scenarios
             var predictions = model.Predict(sentiments);
             Assert.Equal(2, predictions.Count());
 
-            Assert.True(predictions.ElementAt(0).Sentiment.IsFalse);
-            Assert.True(predictions.ElementAt(1).Sentiment.IsTrue);
+            Assert.False(predictions.ElementAt(0).Sentiment);
+            Assert.True(predictions.ElementAt(1).Sentiment);
         }
 
         private Legacy.Data.TextLoader PrepareTextLoaderTestData()
@@ -519,7 +519,7 @@ namespace Microsoft.ML.Scenarios
         public class SentimentPrediction
         {
             [ColumnName("PredictedLabel")]
-            public DvBool Sentiment;
+            public bool Sentiment;
         }
     }
 }

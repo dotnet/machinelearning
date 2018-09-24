@@ -2,11 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading;
+using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Command;
 using Microsoft.ML.Runtime.CommandLine;
@@ -20,6 +16,11 @@ using Microsoft.ML.Runtime.Internal.Internallearn;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.Training;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Threading;
 using Timer = Microsoft.ML.Runtime.FastTree.Internal.Timer;
 
 [assembly: LoadableClass(typeof(GamPredictorBase.VisualizationCommand), typeof(GamPredictorBase.VisualizationCommand.Arguments), typeof(SignatureCommand),
@@ -29,16 +30,16 @@ using Timer = Microsoft.ML.Runtime.FastTree.Internal.Timer;
 
 namespace Microsoft.ML.Runtime.FastTree
 {
-    using Float = System.Single;
-    using SplitInfo = LeastSquaresRegressionTreeLearner.SplitInfo;
     using AutoResetEvent = System.Threading.AutoResetEvent;
+    using SplitInfo = LeastSquaresRegressionTreeLearner.SplitInfo;
 
     /// <summary>
     /// Generalized Additive Model Learner.
     /// </summary>
-    public abstract partial class GamTrainerBase<TArgs, TPredictor> : TrainerBase<TPredictor>
-        where TArgs : GamTrainerBase<TArgs, TPredictor>.ArgumentsBase, new()
-        where TPredictor : IPredictorProducing<Float>
+    public abstract partial class GamTrainerBase<TArgs, TTransformer, TPredictor> : TrainerEstimatorBase<TTransformer, TPredictor>
+        where TTransformer: ISingleFeaturePredictionTransformer<TPredictor>
+        where TArgs : GamTrainerBase<TArgs, TTransformer, TPredictor>.ArgumentsBase, new()
+        where TPredictor : IPredictorProducing<float>
     {
         public abstract class ArgumentsBase : LearnerInputBaseWithWeight
         {
@@ -129,10 +130,31 @@ namespace Microsoft.ML.Runtime.FastTree
         public override TrainerInfo Info { get; }
         private protected virtual bool NeedCalibration => false;
 
-        protected readonly IParallelTraining ParallelTraining;
+        protected IParallelTraining ParallelTraining;
 
-        private protected GamTrainerBase(IHostEnvironment env, TArgs args)
-            : base(env, RegisterName)
+        private protected GamTrainerBase(IHostEnvironment env, string name, SchemaShape.Column label, string featureColumn,
+            string weightColumn = null, Action<TArgs> advancedSettings = null)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(name), TrainerUtils.MakeR4VecFeature(featureColumn), label, TrainerUtils.MakeR4ScalarWeightColumn(weightColumn))
+        {
+            Args = new TArgs();
+
+            //apply the advanced args, if the user supplied any
+            advancedSettings?.Invoke(Args);
+            Args.LabelColumn = label.Name;
+
+            if (weightColumn != null)
+                Args.WeightColumn = weightColumn;
+
+            Info = new TrainerInfo(normalization: false, calibration: NeedCalibration, caching: false, supportValid: true);
+            _gainConfidenceInSquaredStandardDeviations = Math.Pow(ProbabilityFunctions.Probit(1 - (1 - Args.GainConfidenceLevel) * 0.5), 2);
+            _entropyCoefficient = Args.EntropyCoefficient * 1e-6;
+
+            InitializeThreads();
+        }
+
+        private protected GamTrainerBase(IHostEnvironment env, TArgs args, string name, SchemaShape.Column label)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(name), TrainerUtils.MakeR4VecFeature(args.FeatureColumn),
+                  label, TrainerUtils.MakeR4ScalarWeightColumn(args.WeightColumn))
         {
             Contracts.CheckValue(env, nameof(env));
             Host.CheckValue(args, nameof(args));
@@ -146,23 +168,12 @@ namespace Microsoft.ML.Runtime.FastTree
             Host.CheckParam(0 < args.MinDocuments, nameof(args.MinDocuments), "Must be positive.");
 
             Args = args;
+
             Info = new TrainerInfo(normalization: false, calibration: NeedCalibration, caching: false, supportValid: true);
             _gainConfidenceInSquaredStandardDeviations = Math.Pow(ProbabilityFunctions.Probit(1 - (1 - Args.GainConfidenceLevel) * 0.5), 2);
             _entropyCoefficient = Args.EntropyCoefficient * 1e-6;
 
-            ParallelTraining = new SingleTrainer();
-
-            int numThreads = args.NumThreads ?? Environment.ProcessorCount;
-            if (Host.ConcurrencyFactor > 0 && numThreads > Host.ConcurrencyFactor)
-                using (var ch = Host.Start("GamTrainer"))
-                {
-                    numThreads = Host.ConcurrencyFactor;
-                    ch.Warning("The number of threads specified in trainer arguments is larger than the concurrency factor "
-                        + "setting of the environment. Using {0} training threads instead.", numThreads);
-                    ch.Done();
-                }
-
-            InitializeThreads(numThreads);
+            InitializeThreads();
         }
 
         protected void TrainBase(TrainContext context)
@@ -204,7 +215,7 @@ namespace Microsoft.ML.Runtime.FastTree
             CheckLabel(trainData);
 
             var useTranspose = UseTranspose(Args.DiskTranspose, trainData);
-            var instanceConverter = new ExamplesToFastTreeBins(Host, Args.MaxBins, useTranspose, !Args.FeatureFlocks, Args.MinDocuments, Float.PositiveInfinity);
+            var instanceConverter = new ExamplesToFastTreeBins(Host, Args.MaxBins, useTranspose, !Args.FeatureFlocks, Args.MinDocuments, float.PositiveInfinity);
 
             ParallelTraining.InitEnvironment();
             TrainSet = instanceConverter.FindBinsAndReturnDataset(trainData, PredictionKind, ParallelTraining, null, false);
@@ -512,8 +523,20 @@ namespace Microsoft.ML.Runtime.FastTree
             }
         }
 
-        private void InitializeThreads(int numThreads)
+        private void InitializeThreads()
         {
+            ParallelTraining = new SingleTrainer();
+
+            int numThreads = Args.NumThreads ?? Environment.ProcessorCount;
+            if (Host.ConcurrencyFactor > 0 && numThreads > Host.ConcurrencyFactor)
+                using (var ch = Host.Start("GamTrainer"))
+                {
+                    numThreads = Host.ConcurrencyFactor;
+                    ch.Warning("The number of threads specified in trainer arguments is larger than the concurrency factor "
+                        + "setting of the environment. Using {0} training threads instead.", numThreads);
+                    ch.Done();
+                }
+
             ThreadTaskManager.Initialize(numThreads);
         }
 
@@ -593,7 +616,7 @@ namespace Microsoft.ML.Runtime.FastTree
         }
     }
 
-    public abstract class GamPredictorBase : PredictorBase<Float>,
+    public abstract class GamPredictorBase : PredictorBase<float>,
         IValueMapper, ICanSaveModel, ICanSaveInTextFormat, ICanSaveSummary
     {
         private readonly double[][] _binUpperBounds;
@@ -763,14 +786,14 @@ namespace Microsoft.ML.Runtime.FastTree
 
         public ValueMapper<TIn, TOut> GetMapper<TIn, TOut>()
         {
-            Host.Check(typeof(TIn) == typeof(VBuffer<Float>));
-            Host.Check(typeof(TOut) == typeof(Float));
+            Host.Check(typeof(TIn) == typeof(VBuffer<float>));
+            Host.Check(typeof(TOut) == typeof(float));
 
-            ValueMapper<VBuffer<Float>, Float> del = Map;
+            ValueMapper<VBuffer<float>, float> del = Map;
             return (ValueMapper<TIn, TOut>)(Delegate)del;
         }
 
-        private void Map(ref VBuffer<Float> features, ref Float response)
+        private void Map(ref VBuffer<float> features, ref float response)
         {
             Host.CheckParam(features.Length == _inputLength, nameof(features), "Bad length of input");
 
@@ -795,7 +818,7 @@ namespace Microsoft.ML.Runtime.FastTree
                 }
             }
 
-            response = (Float)value;
+            response = (float)value;
         }
 
         /// <summary>
@@ -803,21 +826,21 @@ namespace Microsoft.ML.Runtime.FastTree
         /// <paramref name="builder"/> is used as a buffer to accumulate the contributions across trees.
         /// If <paramref name="builder"/> is null, it will be created, otherwise it will be reused.
         /// </summary>
-        internal void GetFeatureContributions(ref VBuffer<Float> features, ref VBuffer<Float> contribs, ref BufferBuilder<Float> builder)
+        internal void GetFeatureContributions(ref VBuffer<float> features, ref VBuffer<float> contribs, ref BufferBuilder<float> builder)
         {
             if (builder == null)
                 builder = new BufferBuilder<float>(R4Adder.Instance);
 
             // The model is Intercept + Features
             builder.Reset(features.Length + 1, false);
-            builder.AddFeature(0, (Float)_intercept);
+            builder.AddFeature(0, (float)_intercept);
 
             if (features.IsDense)
             {
                 for (int i = 0; i < features.Count; ++i)
                 {
                     if (_inputFeatureToDatasetFeatureMap.TryGetValue(i, out int j))
-                        builder.AddFeature(i+1, (Float) GetBinEffect(j, features.Values[i]));
+                        builder.AddFeature(i+1, (float) GetBinEffect(j, features.Values[i]));
                 }
             }
             else
@@ -840,7 +863,7 @@ namespace Microsoft.ML.Runtime.FastTree
                         else
                             // For features not defined, the impact is the impact at 0
                             value = GetBinEffect(i, 0);
-                        builder.AddFeature(i + 1, (Float)value);
+                        builder.AddFeature(i + 1, (float)value);
                     }
                 }
             }
@@ -850,7 +873,7 @@ namespace Microsoft.ML.Runtime.FastTree
             return;
         }
 
-        internal double GetFeatureBinsAndScore(ref VBuffer<Float> features, int[] bins)
+        internal double GetFeatureBinsAndScore(ref VBuffer<float> features, int[] bins)
         {
             Host.CheckParam(features.Length == _inputLength, nameof(features));
             Host.CheckParam(Utils.Size(bins) == _numFeatures, nameof(bins));
@@ -908,24 +931,23 @@ namespace Microsoft.ML.Runtime.FastTree
             // A useful test in this case would be a model trained with:
             // maml.exe train data=Samples\breast-cancer-withheader.txt loader=text{header+ col=Label:0 col=F1:1-4 col=F2:4 col=F3:5-*}
             //    xf =expr{col=F2 expr=x:0.0} xf=concat{col=Features:F1,F2,F3} tr=gam out=bubba2.zip
-
             // Write out the intercept
             writer.WriteLine("-1\tIntercept");
 
-            var names = default(VBuffer<DvText>);
+            var names = default(VBuffer<ReadOnlyMemory<char>>);
             MetadataUtils.GetSlotNames(schema, RoleMappedSchema.ColumnRole.Feature, _inputLength, ref names);
 
             for (int internalIndex = 0; internalIndex < _numFeatures; internalIndex++)
             {
                 int featureIndex = _featureMap[internalIndex];
                 var name = names.GetItemOrDefault(featureIndex);
-                writer.WriteLine(name.HasChars ? "{0}\t{1}" : "{0}\tFeature {0}", featureIndex, name);
+                writer.WriteLine(!name.IsEmpty ? "{0}\t{1}" : "{0}\tFeature {0}", featureIndex, name);
             }
 
             writer.WriteLine();
             writer.WriteLine("Per feature binned effects:");
             writer.WriteLine("Feature Index\tFeature Value Bin Upper Bound\tOutput (effect on label)");
-            writer.WriteLine($"{-1:D}\t{Float.MaxValue:R}\t{_intercept:R}");
+            writer.WriteLine($"{-1:D}\t{float.MaxValue:R}\t{_intercept:R}");
             for (int internalIndex = 0; internalIndex < _numFeatures; internalIndex++)
             {
                 int featureIndex = _featureMap[internalIndex];
@@ -994,7 +1016,7 @@ namespace Microsoft.ML.Runtime.FastTree
                 private readonly GamPredictorBase _pred;
                 private readonly RoleMappedData _data;
 
-                private readonly VBuffer<DvText> _featNames;
+                private readonly VBuffer<ReadOnlyMemory<char>> _featNames;
                 // The scores.
                 private readonly float[] _scores;
                 // The labels.
@@ -1038,7 +1060,7 @@ namespace Microsoft.ML.Runtime.FastTree
                     if (schema.Schema.HasSlotNames(schema.Feature.Index, len))
                         schema.Schema.GetMetadata(MetadataUtils.Kinds.SlotNames, schema.Feature.Index, ref _featNames);
                     else
-                        _featNames = VBufferUtils.CreateEmpty<DvText>(len);
+                        _featNames = VBufferUtils.CreateEmpty<ReadOnlyMemory<char>>(len);
 
                     var numFeatures = _pred._binEffects.Length;
                     _binDocsList = new List<int>[numFeatures][];
@@ -1106,7 +1128,7 @@ namespace Microsoft.ML.Runtime.FastTree
                         var deltaEffect = effect - effects[bin];
                         effects[bin] = effect;
                         foreach (var docIndex in _binDocsList[internalIndex][bin])
-                            _scores[docIndex] += (Float)deltaEffect;
+                            _scores[docIndex] += (float)deltaEffect;
                         return checked(++_version);
                     }
                 }

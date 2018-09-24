@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -128,7 +129,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
                 if (labelType.IsKey &&
                     trainRms.Schema.HasKeyNames(trainRms.Label.Index, labelType.KeyCount))
                 {
-                    VBuffer<DvText> keyValues = default(VBuffer<DvText>);
+                    VBuffer<ReadOnlyMemory<char>> keyValues = default;
                     trainRms.Schema.GetMetadata(MetadataUtils.Kinds.KeyValues, trainRms.Label.Index,
                         ref keyValues);
                     return keyValues.DenseValues().Select(v => v.ToString()).ToArray();

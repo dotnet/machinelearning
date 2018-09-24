@@ -19,7 +19,7 @@ namespace Microsoft.ML.Runtime.Data
         public abstract void Combine(ref T dst, T src);
     }
 
-    public sealed class TextCombiner : Combiner<DvText>
+    public sealed class TextCombiner : Combiner<ReadOnlyMemory<char>>
     {
         private static volatile TextCombiner _instance;
         public static TextCombiner Instance
@@ -36,8 +36,8 @@ namespace Microsoft.ML.Runtime.Data
         {
         }
 
-        public override bool IsDefault(DvText value) { return value.Length == 0; }
-        public override void Combine(ref DvText dst, DvText src)
+        public override bool IsDefault(ReadOnlyMemory<char> value) { return value.Length == 0; }
+        public override void Combine(ref ReadOnlyMemory<char> dst, ReadOnlyMemory<char> src)
         {
             Contracts.Check(IsDefault(dst));
             dst = src;

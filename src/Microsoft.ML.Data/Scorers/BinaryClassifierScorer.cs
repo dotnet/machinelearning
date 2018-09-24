@@ -93,7 +93,7 @@ namespace Microsoft.ML.Runtime.Data
             if (rowMapper == null)
                 return false; // We could cover this case, but it is of no practical worth as far as I see, so I decline to do so.
 
-            ISchema outSchema = mapper.OutputSchema;
+            ISchema outSchema = mapper.Schema;
             int scoreIdx;
             if (!outSchema.TryGetColumnIndex(MetadataUtils.Const.ScoreValueKind.Score, out scoreIdx))
                 return false; // The mapper doesn't even publish a score column to attach the metadata to.
@@ -223,7 +223,7 @@ namespace Microsoft.ML.Runtime.Data
         protected override Delegate GetPredictedLabelGetter(IRow output, out Delegate scoreGetter)
         {
             Host.AssertValue(output);
-            Host.Assert(output.Schema == Bindings.RowMapper.OutputSchema);
+            Host.Assert(output.Schema == Bindings.RowMapper.Schema);
             Host.Assert(output.IsColumnActive(Bindings.ScoreColumnIndex));
 
             ValueGetter<Float> mapperScoreGetter = output.GetGetter<Float>(Bindings.ScoreColumnIndex);
@@ -250,8 +250,8 @@ namespace Microsoft.ML.Runtime.Data
                 return predFnAsKey;
             }
 
-            ValueGetter<DvBool> predFn =
-                (ref DvBool dst) =>
+            ValueGetter<bool> predFn =
+                (ref bool dst) =>
                 {
                     EnsureCachedPosition(ref cachedPosition, ref score, output, mapperScoreGetter);
                     GetPredictedLabelCore(score, ref dst);
@@ -259,9 +259,10 @@ namespace Microsoft.ML.Runtime.Data
             return predFn;
         }
 
-        private void GetPredictedLabelCore(Float score, ref DvBool value)
+        private void GetPredictedLabelCore(Float score, ref bool value)
         {
-            value = score > _threshold ? DvBool.True : score <= _threshold ? DvBool.False : DvBool.NA;
+            //Behavior for NA values is undefined.
+            value = score > _threshold;
         }
 
         private void GetPredictedLabelCoreAsKey(Float score, ref uint value)

@@ -5,6 +5,7 @@
 using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Learners;
+using Microsoft.ML.Runtime.RunTests;
 using System.Linq;
 using Xunit;
 
@@ -23,7 +24,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         [Fact]
         void New_DecomposableTrainAndPredict()
         {
-            var dataPath = GetDataPath(IrisDataPath);
+            var dataPath = GetDataPath(TestDatasets.irisData.trainFilename);
             using (var env = new LocalEnvironment())
             {
                 var data = new TextLoader(env, MakeIrisTextLoaderArgs())

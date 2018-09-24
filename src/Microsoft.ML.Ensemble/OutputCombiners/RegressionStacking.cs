@@ -49,7 +49,7 @@ namespace Microsoft.ML.Runtime.Ensemble.OutputCombiners
             public Arguments()
             {
                 BasePredictorType = ComponentFactoryUtils.CreateFromFunction(
-                    env => new FastTreeRegressionTrainer(env, new FastTreeRegressionTrainer.Arguments()));
+                    env => new FastTreeRegressionTrainer(env, DefaultColumnNames.Label, DefaultColumnNames.Features));
             }
 
             public IRegressionOutputCombiner CreateComponent(IHostEnvironment env) => new RegressionStacking(env, this);

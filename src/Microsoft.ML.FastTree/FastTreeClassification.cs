@@ -2,11 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Float = System.Single;
-
-using System;
-using System.Collections.Generic;
-using System.Linq;
+using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
@@ -16,6 +12,9 @@ using Microsoft.ML.Runtime.Internal.Calibration;
 using Microsoft.ML.Runtime.Internal.Internallearn;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.Training;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
 [assembly: LoadableClass(FastTreeBinaryClassificationTrainer.Summary, typeof(FastTreeBinaryClassificationTrainer), typeof(FastTreeBinaryClassificationTrainer.Arguments),
     new[] { typeof(SignatureBinaryClassifierTrainer), typeof(SignatureTrainer), typeof(SignatureTreeEnsembleTrainer), typeof(SignatureFeatureScorerTrainer) },
@@ -36,7 +35,7 @@ using Microsoft.ML.Runtime.Training;
     "fastrank",
     "fastrankwrapper")]
 
-[assembly: LoadableClass(typeof(IPredictorProducing<Float>), typeof(FastTreeBinaryPredictor), null, typeof(SignatureLoadModel),
+[assembly: LoadableClass(typeof(IPredictorProducing<float>), typeof(FastTreeBinaryPredictor), null, typeof(SignatureLoadModel),
     "FastTree Binary Executor",
     FastTreeBinaryPredictor.LoaderSignature)]
 
@@ -84,7 +83,7 @@ namespace Microsoft.ML.Runtime.FastTree
             ctx.SetVersionInfo(GetVersionInfo());
         }
 
-        public static IPredictorProducing<Float> Create(IHostEnvironment env, ModelLoadContext ctx)
+        public static IPredictorProducing<float> Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(ctx, nameof(ctx));
@@ -102,8 +101,11 @@ namespace Microsoft.ML.Runtime.FastTree
 
     /// <include file = 'doc.xml' path='doc/members/member[@name="FastTree"]/*' />
     public sealed partial class FastTreeBinaryClassificationTrainer :
-        BoostingFastTreeTrainerBase<FastTreeBinaryClassificationTrainer.Arguments, IPredictorWithFeatureWeights<Float>>
+        BoostingFastTreeTrainerBase<FastTreeBinaryClassificationTrainer.Arguments, BinaryPredictionTransformer<IPredictorWithFeatureWeights<float>>, IPredictorWithFeatureWeights<float>>
     {
+        /// <summary>
+        /// The LoadName for the assembly containing the trainer.
+        /// </summary>
         public const string LoadNameValue = "FastTreeBinaryClassification";
         internal const string UserNameValue = "FastTree (Boosted Trees) Classification";
         internal const string Summary = "Uses a logit-boost boosted tree learner to perform binary classification.";
@@ -112,8 +114,31 @@ namespace Microsoft.ML.Runtime.FastTree
         private bool[] _trainSetLabels;
         private double _sigmoidParameter;
 
-        public FastTreeBinaryClassificationTrainer(IHostEnvironment env, Arguments args)
-            : base(env, args)
+        /// <summary>
+        /// Initializes a new instance of <see cref="FastTreeBinaryClassificationTrainer"/>
+        /// </summary>
+        /// <param name="env">The private instance of <see cref="IHostEnvironment"/>.</param>
+        /// <param name="labelColumn">The name of the label column.</param>
+        /// <param name="featureColumn">The name of the feature column.</param>
+        /// <param name="groupIdColumn">The name for the column containing the group ID. </param>
+        /// <param name="weightColumn">The name for the column containing the initial weight.</param>
+        /// <param name="advancedSettings">A delegate to apply all the advanced arguments to the algorithm.</param>
+        public FastTreeBinaryClassificationTrainer(IHostEnvironment env, string labelColumn, string featureColumn,
+            string groupIdColumn = null, string weightColumn = null, Action<Arguments> advancedSettings = null)
+            : base(env, TrainerUtils.MakeBoolScalarLabel(labelColumn), featureColumn, weightColumn, groupIdColumn, advancedSettings)
+        {
+            Host.CheckNonEmpty(labelColumn, nameof(labelColumn));
+            Host.CheckNonEmpty(featureColumn, nameof(featureColumn));
+
+            // Set the sigmoid parameter to the 2 * learning rate, for traditional FastTreeClassification loss
+            _sigmoidParameter = 2.0 * Args.LearningRates;
+        }
+
+        /// <summary>
+        /// Initializes a new instance of <see cref="FastTreeBinaryClassificationTrainer"/> by using the legacy <see cref="Arguments"/> class.
+        /// </summary>
+        internal FastTreeBinaryClassificationTrainer(IHostEnvironment env, Arguments args)
+            : base(env, args, TrainerUtils.MakeBoolScalarLabel(args.LabelColumn))
         {
             // Set the sigmoid parameter to the 2 * learning rate, for traditional FastTreeClassification loss
             _sigmoidParameter = 2.0 * Args.LearningRates;
@@ -121,7 +146,7 @@ namespace Microsoft.ML.Runtime.FastTree
 
         public override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
 
-        public override IPredictorWithFeatureWeights<Float> Train(TrainContext context)
+        protected override IPredictorWithFeatureWeights<float> TrainModelCore(TrainContext context)
         {
             Host.CheckValue(context, nameof(context));
             var trainData = context.TrainingSet;
@@ -237,6 +262,20 @@ namespace Microsoft.ML.Runtime.FastTree
                 }
             }
         }
+
+        protected override BinaryPredictionTransformer<IPredictorWithFeatureWeights<float>> MakeTransformer(IPredictorWithFeatureWeights<float> model, ISchema trainSchema)
+        => new BinaryPredictionTransformer<IPredictorWithFeatureWeights<float>>(Host, model, trainSchema, FeatureColumn.Name);
+
+        protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema)
+        {
+            return new[]
+            {
+                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata())),
+                new SchemaShape.Column(DefaultColumnNames.Probability, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata(true))),
+                new SchemaShape.Column(DefaultColumnNames.PredictedLabel, SchemaShape.Column.VectorKind.Scalar, BoolType.Instance, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata()))
+            };
+        }
+
         internal sealed class ObjectiveImpl : ObjectiveFunctionBase, IStepSearch
         {
             private readonly bool[] _labels;

@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -92,17 +92,17 @@ namespace Microsoft.ML.Runtime.Data
             return new Aggregator(Host, classNames, numClasses, schema.Weight != null, _outputTopKAcc, stratName);
         }
 
-        private DvText[] GetClassNames(RoleMappedSchema schema)
+        private ReadOnlyMemory<char>[] GetClassNames(RoleMappedSchema schema)
         {
-            DvText[] names;
+            ReadOnlyMemory<char>[] names;
             // Get the label names from the score column if they exist, or use the default names.
             var scoreInfo = schema.GetUniqueColumn(MetadataUtils.Const.ScoreValueKind.Score);
             var mdType = schema.Schema.GetMetadataTypeOrNull(MetadataUtils.Kinds.SlotNames, scoreInfo.Index);
-            var labelNames = default(VBuffer<DvText>);
+            var labelNames = default(VBuffer<ReadOnlyMemory<char>>);
             if (mdType != null && mdType.IsKnownSizeVector && mdType.ItemType.IsText)
             {
                 schema.Schema.GetMetadata(MetadataUtils.Kinds.SlotNames, scoreInfo.Index, ref labelNames);
-                names = new DvText[labelNames.Length];
+                names = new ReadOnlyMemory<char>[labelNames.Length];
                 labelNames.CopyTo(names);
             }
             else
@@ -111,7 +111,7 @@ namespace Microsoft.ML.Runtime.Data
                 Host.Assert(Utils.Size(score) == 1);
                 Host.Assert(score[0].Type.VectorSize > 0);
                 int numClasses = score[0].Type.VectorSize;
-                names = Enumerable.Range(0, numClasses).Select(i => new DvText(i.ToString())).ToArray();
+                names = Enumerable.Range(0, numClasses).Select(i => i.ToString().AsMemory()).ToArray();
             }
             return names;
         }
@@ -137,23 +137,21 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         protected override void GetAggregatorConsolidationFuncs(Aggregator aggregator, AggregatorDictionaryBase[] dictionaries,
-            out Action<uint, DvText, Aggregator> addAgg, out Func<Dictionary<string, IDataView>> consolidate)
+            out Action<uint, ReadOnlyMemory<char>, Aggregator> addAgg, out Func<Dictionary<string, IDataView>> consolidate)
         {
             var stratCol = new List<uint>();
-            var stratVal = new List<DvText>();
-            var isWeighted = new List<DvBool>();
-
+            var stratVal = new List<ReadOnlyMemory<char>>();
+            var isWeighted = new List<bool>();
             var microAcc = new List<double>();
             var macroAcc = new List<double>();
             var logLoss = new List<double>();
             var logLossRed = new List<double>();
             var topKAcc = new List<double>();
             var perClassLogLoss = new List<double[]>();
-
             var counts = new List<double[]>();
             var weights = new List<double[]>();
             var confStratCol = new List<uint>();
-            var confStratVal = new List<DvText>();
+            var confStratVal = new List<ReadOnlyMemory<char>>();
 
             bool hasStrats = Utils.Size(dictionaries) > 0;
             bool hasWeight = aggregator.Weighted;
@@ -167,7 +165,7 @@ namespace Microsoft.ML.Runtime.Data
 
                     stratCol.Add(stratColKey);
                     stratVal.Add(stratColVal);
-                    isWeighted.Add(DvBool.False);
+                    isWeighted.Add(false);
                     microAcc.Add(agg.UnweightedCounters.MicroAvgAccuracy);
                     macroAcc.Add(agg.UnweightedCounters.MacroAvgAccuracy);
                     logLoss.Add(agg.UnweightedCounters.LogLoss);
@@ -184,7 +182,7 @@ namespace Microsoft.ML.Runtime.Data
                     {
                         stratCol.Add(stratColKey);
                         stratVal.Add(stratColVal);
-                        isWeighted.Add(DvBool.True);
+                        isWeighted.Add(true);
                         microAcc.Add(agg.WeightedCounters.MicroAvgAccuracy);
                         macroAcc.Add(agg.WeightedCounters.MacroAvgAccuracy);
                         logLoss.Add(agg.WeightedCounters.LogLoss);
@@ -221,9 +219,9 @@ namespace Microsoft.ML.Runtime.Data
                         confDvBldr.AddColumn(MetricKinds.ColumnNames.StratCol, GetKeyValueGetter(dictionaries), 0, dictionaries.Length, confStratCol.ToArray());
                         confDvBldr.AddColumn(MetricKinds.ColumnNames.StratVal, TextType.Instance, confStratVal.ToArray());
                     }
-                    ValueGetter<VBuffer<DvText>> getSlotNames =
-                        (ref VBuffer<DvText> dst) =>
-                            dst = new VBuffer<DvText>(aggregator.ClassNames.Length, aggregator.ClassNames);
+                    ValueGetter<VBuffer<ReadOnlyMemory<char>>> getSlotNames =
+                        (ref VBuffer<ReadOnlyMemory<char>> dst) =>
+                            dst = new VBuffer<ReadOnlyMemory<char>>(aggregator.ClassNames.Length, aggregator.ClassNames);
                     confDvBldr.AddColumn(MetricKinds.ColumnNames.Count, getSlotNames, NumberType.R8, counts.ToArray());
 
                     if (hasWeight)
@@ -372,9 +370,9 @@ namespace Microsoft.ML.Runtime.Data
             private long _numUnknownClassInstances;
             private long _numNegOrNonIntegerLabels;
 
-            public readonly DvText[] ClassNames;
+            public readonly ReadOnlyMemory<char>[] ClassNames;
 
-            public Aggregator(IHostEnvironment env, DvText[] classNames, int scoreVectorSize, bool weighted, int? outputTopKAcc, string stratName)
+            public Aggregator(IHostEnvironment env, ReadOnlyMemory<char>[] classNames, int scoreVectorSize, bool weighted, int? outputTopKAcc, string stratName)
                 : base(env, stratName)
             {
                 Host.Assert(outputTopKAcc == null || outputTopKAcc > 0);
@@ -488,15 +486,15 @@ namespace Microsoft.ML.Runtime.Data
                 return warnings;
             }
 
-            public void GetSlotNames(ref VBuffer<DvText> slotNames)
+            public void GetSlotNames(ref VBuffer<ReadOnlyMemory<char>> slotNames)
             {
                 var values = slotNames.Values;
                 if (Utils.Size(values) < ClassNames.Length)
-                    values = new DvText[ClassNames.Length];
+                    values = new ReadOnlyMemory<char>[ClassNames.Length];
 
                 for (int i = 0; i < ClassNames.Length; i++)
-                    values[i] = new DvText(string.Format("(class {0})", ClassNames[i]));
-                slotNames = new VBuffer<DvText>(ClassNames.Length, values);
+                    values[i] = string.Format("(class {0})", ClassNames[i]).AsMemory();
+                slotNames = new VBuffer<ReadOnlyMemory<char>>(ClassNames.Length, values);
             }
         }
 
@@ -600,62 +598,37 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         /// <summary>
-        /// Evaluates scored regression data.
+        /// Evaluates scored multiclass classification data.
         /// </summary>
-        /// <typeparam name="T">The shape type for the input data.</typeparam>
-        /// <typeparam name="TKey">The value type for the key label.</typeparam>
-        /// <param name="data">The data to evaluate.</param>
-        /// <param name="label">The index delegate for the label column.</param>
-        /// <param name="pred">The index delegate for columns from prediction of a multi-class classifier.
-        /// Under typical scenarios, this will just be the same tuple of results returned from the trainer.</param>
-        /// <param name="topK">If given a positive value, the <see cref="Result.TopKAccuracy"/> will be filled with
-        /// the top-K accuracy, that is, the accuracy assuming we consider an example with the correct class within
-        /// the top-K values as being stored "correctly."</param>
+        /// <param name="data">The scored data.</param>
+        /// <param name="label">The name of the label column in <paramref name="data"/>.</param>
+        /// <param name="score">The name of the score column in <paramref name="data"/>.</param>
+        /// <param name="predictedLabel">The name of the predicted label column in <paramref name="data"/>.</param>
         /// <returns>The evaluation results for these outputs.</returns>
-        public static Result Evaluate<T, TKey>(
-            DataView<T> data,
-            Func<T, Key<uint, TKey>> label,
-            Func<T, (Vector<float> score, Key<uint, TKey> predictedLabel)> pred,
-            int topK = 0)
+        public Result Evaluate(IDataView data, string label, string score, string predictedLabel)
         {
-            Contracts.CheckValue(data, nameof(data));
-            var env = StaticPipeUtils.GetEnvironment(data);
-            Contracts.AssertValue(env);
-            env.CheckValue(label, nameof(label));
-            env.CheckValue(pred, nameof(pred));
-            env.CheckParam(topK >= 0, nameof(topK), "Must not be negative.");
+            Host.CheckValue(data, nameof(data));
+            Host.CheckNonEmpty(label, nameof(label));
+            Host.CheckNonEmpty(score, nameof(score));
+            Host.CheckNonEmpty(predictedLabel, nameof(predictedLabel));
 
-            var indexer = StaticPipeUtils.GetIndexer(data);
-            string labelName = indexer.Get(label(indexer.Indices));
-            (var scoreCol, var predCol) = pred(indexer.Indices);
-            Contracts.CheckParam(scoreCol != null, nameof(pred), "Indexing delegate resulted in null score column.");
-            Contracts.CheckParam(predCol != null, nameof(pred), "Indexing delegate resulted in null predicted label column.");
-            string scoreName = indexer.Get(scoreCol);
-            string predName = indexer.Get(predCol);
+            var roles = new RoleMappedData(data, opt: false,
+                RoleMappedSchema.ColumnRole.Label.Bind(label),
+                RoleMappedSchema.CreatePair(MetadataUtils.Const.ScoreValueKind.Score, score),
+                RoleMappedSchema.CreatePair(MetadataUtils.Const.ScoreValueKind.PredictedLabel, predictedLabel));
 
-            var args = new Arguments() { };
-            if (topK > 0)
-                args.OutputTopKAcc = topK;
-
-            var eval = new MultiClassClassifierEvaluator(env, args);
-
-            var roles = new RoleMappedData(data.AsDynamic, opt: false,
-                RoleMappedSchema.ColumnRole.Label.Bind(labelName),
-                RoleMappedSchema.CreatePair(MetadataUtils.Const.ScoreValueKind.Score, scoreName),
-                RoleMappedSchema.CreatePair(MetadataUtils.Const.ScoreValueKind.PredictedLabel, predName));
-
-            var resultDict = eval.Evaluate(roles);
-            env.Assert(resultDict.ContainsKey(MetricKinds.OverallMetrics));
+            var resultDict = Evaluate(roles);
+            Host.Assert(resultDict.ContainsKey(MetricKinds.OverallMetrics));
             var overall = resultDict[MetricKinds.OverallMetrics];
 
             Result result;
             using (var cursor = overall.GetRowCursor(i => true))
             {
                 var moved = cursor.MoveNext();
-                env.Assert(moved);
-                result = new Result(env, cursor, topK);
+                Host.Assert(moved);
+                result = new Result(Host, cursor, _outputTopKAcc ?? 0);
                 moved = cursor.MoveNext();
-                env.Assert(!moved);
+                Host.Assert(!moved);
             }
             return result;
         }
@@ -691,7 +664,7 @@ namespace Microsoft.ML.Runtime.Data
         private const float Epsilon = (float)1e-15;
 
         private readonly int _numClasses;
-        private readonly DvText[] _classNames;
+        private readonly ReadOnlyMemory<char>[] _classNames;
         private readonly ColumnType[] _types;
 
         public MultiClassPerInstanceEvaluator(IHostEnvironment env, ISchema schema, ColumnInfo scoreInfo, string labelCol)
@@ -704,13 +677,13 @@ namespace Microsoft.ML.Runtime.Data
 
             if (schema.HasSlotNames(ScoreIndex, _numClasses))
             {
-                var classNames = default(VBuffer<DvText>);
+                var classNames = default(VBuffer<ReadOnlyMemory<char>>);
                 schema.GetMetadata(MetadataUtils.Kinds.SlotNames, ScoreIndex, ref classNames);
-                _classNames = new DvText[_numClasses];
+                _classNames = new ReadOnlyMemory<char>[_numClasses];
                 classNames.CopyTo(_classNames);
             }
             else
-                _classNames = Utils.BuildArray(_numClasses, i => new DvText(i.ToString()));
+                _classNames = Utils.BuildArray(_numClasses, i => i.ToString().AsMemory());
 
             var key = new KeyType(DataKind.U4, 0, _numClasses);
             _types[AssignedCol] = key;
@@ -733,12 +706,12 @@ namespace Microsoft.ML.Runtime.Data
             Host.CheckDecode(_numClasses > 0);
             if (ctx.Header.ModelVerWritten > VerInitial)
             {
-                _classNames = new DvText[_numClasses];
+                _classNames = new ReadOnlyMemory<char>[_numClasses];
                 for (int i = 0; i < _numClasses; i++)
-                    _classNames[i] = new DvText(ctx.LoadNonEmptyString());
+                    _classNames[i] = ctx.LoadNonEmptyString().AsMemory();
             }
             else
-                _classNames = Utils.BuildArray(_numClasses, i => new DvText(i.ToString()));
+                _classNames = Utils.BuildArray(_numClasses, i => i.ToString().AsMemory());
 
             _types = new ColumnType[4];
             var key = new KeyType(DataKind.U4, 0, _numClasses);
@@ -898,19 +871,19 @@ namespace Microsoft.ML.Runtime.Data
 
             var assignedColKeyValues = new ColumnMetadataInfo(Assigned);
             var keyValueType = new VectorType(TextType.Instance, _numClasses);
-            assignedColKeyValues.Add(MetadataUtils.Kinds.KeyValues, new MetadataInfo<VBuffer<DvText>>(keyValueType, CreateKeyValueGetter()));
+            assignedColKeyValues.Add(MetadataUtils.Kinds.KeyValues, new MetadataInfo<VBuffer<ReadOnlyMemory<char>>>(keyValueType, CreateKeyValueGetter()));
             infos[AssignedCol] = new RowMapperColumnInfo(Assigned, _types[AssignedCol], assignedColKeyValues);
 
             infos[LogLossCol] = new RowMapperColumnInfo(LogLoss, _types[LogLossCol], null);
 
             var slotNamesType = new VectorType(TextType.Instance, _numClasses);
             var sortedScores = new ColumnMetadataInfo(SortedScores);
-            sortedScores.Add(MetadataUtils.Kinds.SlotNames, new MetadataInfo<VBuffer<DvText>>(slotNamesType,
+            sortedScores.Add(MetadataUtils.Kinds.SlotNames, new MetadataInfo<VBuffer<ReadOnlyMemory<char>>>(slotNamesType,
                 CreateSlotNamesGetter(_numClasses, "Score")));
             var sortedClasses = new ColumnMetadataInfo(SortedClasses);
-            sortedClasses.Add(MetadataUtils.Kinds.SlotNames, new MetadataInfo<VBuffer<DvText>>(slotNamesType,
+            sortedClasses.Add(MetadataUtils.Kinds.SlotNames, new MetadataInfo<VBuffer<ReadOnlyMemory<char>>>(slotNamesType,
                 CreateSlotNamesGetter(_numClasses, "Class")));
-            sortedClasses.Add(MetadataUtils.Kinds.KeyValues, new MetadataInfo<VBuffer<DvText>>(keyValueType, CreateKeyValueGetter()));
+            sortedClasses.Add(MetadataUtils.Kinds.KeyValues, new MetadataInfo<VBuffer<ReadOnlyMemory<char>>>(keyValueType, CreateKeyValueGetter()));
 
             infos[SortedScoresCol] = new RowMapperColumnInfo(SortedScores, _types[SortedScoresCol], sortedScores);
             infos[SortedClassesCol] = new RowMapperColumnInfo(SortedClasses, _types[SortedClassesCol], sortedClasses);
@@ -918,31 +891,31 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         // REVIEW: Figure out how to avoid having the column name in each slot name.
-        private MetadataUtils.MetadataGetter<VBuffer<DvText>> CreateSlotNamesGetter(int numTopClasses, string suffix)
+        private MetadataUtils.MetadataGetter<VBuffer<ReadOnlyMemory<char>>> CreateSlotNamesGetter(int numTopClasses, string suffix)
         {
             return
-                (int col, ref VBuffer<DvText> dst) =>
+                (int col, ref VBuffer<ReadOnlyMemory<char>> dst) =>
                 {
                     var values = dst.Values;
                     if (Utils.Size(values) < numTopClasses)
-                        values = new DvText[numTopClasses];
+                        values = new ReadOnlyMemory<char>[numTopClasses];
                     for (int i = 1; i <= numTopClasses; i++)
-                        values[i - 1] = new DvText(string.Format("#{0} {1}", i, suffix));
-                    dst = new VBuffer<DvText>(numTopClasses, values);
+                        values[i - 1] = string.Format("#{0} {1}", i, suffix).AsMemory();
+                    dst = new VBuffer<ReadOnlyMemory<char>>(numTopClasses, values);
                 };
         }
 
-        private MetadataUtils.MetadataGetter<VBuffer<DvText>> CreateKeyValueGetter()
+        private MetadataUtils.MetadataGetter<VBuffer<ReadOnlyMemory<char>>> CreateKeyValueGetter()
         {
             return
-                (int col, ref VBuffer<DvText> dst) =>
+                (int col, ref VBuffer<ReadOnlyMemory<char>> dst) =>
                 {
                     var values = dst.Values;
                     if (Utils.Size(values) < _numClasses)
-                        values = new DvText[_numClasses];
+                        values = new ReadOnlyMemory<char>[_numClasses];
                     for (int i = 0; i < _numClasses; i++)
                         values[i] = _classNames[i];
-                    dst = new VBuffer<DvText>(_numClasses, values);
+                    dst = new VBuffer<ReadOnlyMemory<char>>(_numClasses, values);
                 };
         }
 
@@ -1149,9 +1122,9 @@ namespace Microsoft.ML.Runtime.Data
             var labelType = perInst.Schema.GetColumnType(labelCol);
             if (labelType.IsKey && (!perInst.Schema.HasKeyNames(labelCol, labelType.KeyCount) || labelType.RawKind != DataKind.U4))
             {
-                perInst = LambdaColumnMapper.Create(Host, "ConvertToLong", perInst, schema.Label.Name,
-                    schema.Label.Name, perInst.Schema.GetColumnType(labelCol), NumberType.I8,
-                    (ref uint src, ref DvInt8 dst) => dst = src == 0 ? DvInt8.NA : src - 1 + (long)labelType.AsKey.Min);
+                perInst = LambdaColumnMapper.Create(Host, "ConvertToDouble", perInst, schema.Label.Name,
+                    schema.Label.Name, perInst.Schema.GetColumnType(labelCol), NumberType.R8,
+                    (ref uint src, ref double dst) => dst = src == 0 ? double.NaN : src - 1 + (double)labelType.AsKey.Min);
             }
 
             var perInstSchema = perInst.Schema;

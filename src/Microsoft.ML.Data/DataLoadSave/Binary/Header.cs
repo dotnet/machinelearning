@@ -34,8 +34,9 @@ namespace Microsoft.ML.Runtime.Data.IO
         //public const ulong WriterVersion = 0x0001000100010002; // Codec changes.
         //public const ulong WriterVersion = 0x0001000100010003; // Slot names.
         //public const ulong WriterVersion = 0x0001000100010004; // Column metadata.
-        public const ulong WriterVersion = 0x0001000100010005; // "NA" DvText support.
-        public const ulong CanBeReadByVersion = 0x0001000100010005;
+        //public const ulong WriterVersion = 0x0001000100010005; // "NA" DvText support.
+        public const ulong WriterVersion = 0x0001000100010006; // Replace DvTypes with .NET Standard data types.
+        public const ulong CanBeReadByVersion = 0x0001000100010006;
 
         internal static string VersionToString(ulong v)
         {

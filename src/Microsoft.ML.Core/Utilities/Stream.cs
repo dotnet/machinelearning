@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Float = System.Single;
-
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -178,7 +176,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         /// <summary>
         /// Writes a length prefixed array of Floats.
         /// </summary>
-        public static void WriteFloatArray(this BinaryWriter writer, Float[] values)
+        public static void WriteFloatArray(this BinaryWriter writer, float[] values)
         {
             Contracts.AssertValue(writer);
             Contracts.AssertValueOrNull(values);
@@ -197,7 +195,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         /// <summary>
         /// Writes a length prefixed array of Floats.
         /// </summary>
-        public static void WriteFloatArray(this BinaryWriter writer, Float[] values, int count)
+        public static void WriteFloatArray(this BinaryWriter writer, float[] values, int count)
         {
             Contracts.AssertValue(writer);
             Contracts.AssertValueOrNull(values);
@@ -211,7 +209,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         /// <summary>
         /// Writes a specified number of floats starting at the specified index from an array.
         /// </summary>
-        public static void WriteFloatArray(this BinaryWriter writer, Float[] values, int start, int count)
+        public static void WriteFloatArray(this BinaryWriter writer, float[] values, int start, int count)
         {
             Contracts.AssertValue(writer);
             Contracts.AssertValue(values);
@@ -225,7 +223,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         /// <summary>
         /// Writes a length prefixed array of Floats.
         /// </summary>
-        public static void WriteFloatArray(this BinaryWriter writer, IEnumerable<Float> values, int count)
+        public static void WriteFloatArray(this BinaryWriter writer, IEnumerable<float> values, int count)
         {
             Contracts.AssertValue(writer);
             Contracts.AssertValue(values);
@@ -244,7 +242,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         /// <summary>
         /// Writes an array of Floats without the length prefix.
         /// </summary>
-        public static void WriteFloatsNoCount(this BinaryWriter writer, Float[] values, int count)
+        public static void WriteFloatsNoCount(this BinaryWriter writer, float[] values, int count)
         {
             Contracts.AssertValue(writer);
             Contracts.AssertValueOrNull(values);
@@ -257,7 +255,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         /// <summary>
         /// Writes a length prefixed array of singles.
         /// </summary>
-        public static void WriteSingleArray(this BinaryWriter writer, Single[] values)
+        public static void WriteSingleArray(this BinaryWriter writer, float[] values)
         {
             Contracts.AssertValue(writer);
             Contracts.AssertValueOrNull(values);
@@ -276,7 +274,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         /// <summary>
         /// Writes a length prefixed array of singles.
         /// </summary>
-        public static void WriteSingleArray(this BinaryWriter writer, Single[] values, int count)
+        public static void WriteSingleArray(this BinaryWriter writer, float[] values, int count)
         {
             Contracts.AssertValue(writer);
             Contracts.AssertValueOrNull(values);
@@ -290,7 +288,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         /// <summary>
         /// Writes an array of singles without the length prefix.
         /// </summary>
-        public static void WriteSinglesNoCount(this BinaryWriter writer, Single[] values, int count)
+        public static void WriteSinglesNoCount(this BinaryWriter writer, float[] values, int count)
         {
             Contracts.AssertValue(writer);
             Contracts.AssertValueOrNull(values);
@@ -303,7 +301,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         /// <summary>
         /// Writes a length prefixed array of doubles.
         /// </summary>
-        public static void WriteDoubleArray(this BinaryWriter writer, Double[] values)
+        public static void WriteDoubleArray(this BinaryWriter writer, double[] values)
         {
             Contracts.AssertValue(writer);
             Contracts.AssertValueOrNull(values);
@@ -315,14 +313,14 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
             }
 
             writer.Write(values.Length);
-            foreach (Double val in values)
+            foreach (double val in values)
                 writer.Write(val);
         }
 
         /// <summary>
         /// Writes a length prefixed array of doubles.
         /// </summary>
-        public static void WriteDoubleArray(this BinaryWriter writer, Double[] values, int count)
+        public static void WriteDoubleArray(this BinaryWriter writer, double[] values, int count)
         {
             Contracts.AssertValue(writer);
             Contracts.AssertValueOrNull(values);
@@ -336,7 +334,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         /// <summary>
         /// Writes an array of doubles without the length prefix.
         /// </summary>
-        public static void WriteDoublesNoCount(this BinaryWriter writer, Double[] values, int count)
+        public static void WriteDoublesNoCount(this BinaryWriter writer, double[] values, int count)
         {
             Contracts.AssertValue(writer);
             Contracts.AssertValueOrNull(values);
@@ -427,7 +425,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
             }
         }
 
-        public static long WriteSByteStream(this BinaryWriter writer, IEnumerable<SByte> e)
+        public static long WriteSByteStream(this BinaryWriter writer, IEnumerable<sbyte> e)
         {
             long c = 0;
             foreach (var v in e)
@@ -438,7 +436,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
             return c;
         }
 
-        public static long WriteByteStream(this BinaryWriter writer, IEnumerable<Byte> e)
+        public static long WriteByteStream(this BinaryWriter writer, IEnumerable<byte> e)
         {
             long c = 0;
             foreach (var v in e)
@@ -449,7 +447,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
             return c;
         }
 
-        public static long WriteIntStream(this BinaryWriter writer, IEnumerable<Int32> e)
+        public static long WriteIntStream(this BinaryWriter writer, IEnumerable<int> e)
         {
             long c = 0;
             foreach (var v in e)
@@ -460,7 +458,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
             return c;
         }
 
-        public static long WriteUIntStream(this BinaryWriter writer, IEnumerable<UInt32> e)
+        public static long WriteUIntStream(this BinaryWriter writer, IEnumerable<uint> e)
         {
             long c = 0;
             foreach (var v in e)
@@ -471,7 +469,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
             return c;
         }
 
-        public static long WriteShortStream(this BinaryWriter writer, IEnumerable<Int16> e)
+        public static long WriteShortStream(this BinaryWriter writer, IEnumerable<short> e)
         {
             long c = 0;
             foreach (var v in e)
@@ -482,7 +480,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
             return c;
         }
 
-        public static long WriteUShortStream(this BinaryWriter writer, IEnumerable<UInt16> e)
+        public static long WriteUShortStream(this BinaryWriter writer, IEnumerable<ushort> e)
         {
             long c = 0;
             foreach (var v in e)
@@ -493,7 +491,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
             return c;
         }
 
-        public static long WriteLongStream(this BinaryWriter writer, IEnumerable<Int64> e)
+        public static long WriteLongStream(this BinaryWriter writer, IEnumerable<long> e)
         {
             long c = 0;
             foreach (var v in e)
@@ -504,7 +502,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
             return c;
         }
 
-        public static long WriteULongStream(this BinaryWriter writer, IEnumerable<UInt64> e)
+        public static long WriteULongStream(this BinaryWriter writer, IEnumerable<long> e)
         {
             long c = 0;
             foreach (var v in e)
@@ -515,7 +513,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
             return c;
         }
 
-        public static long WriteSingleStream(this BinaryWriter writer, IEnumerable<Single> e)
+        public static long WriteSingleStream(this BinaryWriter writer, IEnumerable<float> e)
         {
             long c = 0;
             foreach (var v in e)
@@ -526,7 +524,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
             return c;
         }
 
-        public static long WriteDoubleStream(this BinaryWriter writer, IEnumerable<Double> e)
+        public static long WriteDoubleStream(this BinaryWriter writer, IEnumerable<double> e)
         {
             long c = 0;
             foreach (var v in e)
@@ -606,12 +604,12 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
             return b != 0;
         }
 
-        public static Float ReadFloat(this BinaryReader reader)
+        public static float ReadFloat(this BinaryReader reader)
         {
             return reader.ReadSingle();
         }
 
-        public static Float[] ReadFloatArray(this BinaryReader reader)
+        public static float[] ReadFloatArray(this BinaryReader reader)
         {
             Contracts.AssertValue(reader);
 
@@ -620,16 +618,16 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
             return ReadFloatArray(reader, size);
         }
 
-        public static Float[] ReadFloatArray(this BinaryReader reader, int size)
+        public static float[] ReadFloatArray(this BinaryReader reader, int size)
         {
             Contracts.AssertValue(reader);
             Contracts.Assert(size >= 0);
 
             if (size == 0)
                 return null;
-            var values = new Float[size];
+            var values = new float[size];
 
-            long bufferSizeInBytes = (long)size * sizeof(Float);
+            long bufferSizeInBytes = (long)size * sizeof(float);
             if (bufferSizeInBytes < _bulkReadThresholdInBytes)
             {
                 for (int i = 0; i < size; i++)
@@ -649,14 +647,14 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
             return values;
         }
 
-        public static void ReadFloatArray(this BinaryReader reader, Float[] array, int start, int count)
+        public static void ReadFloatArray(this BinaryReader reader, float[] array, int start, int count)
         {
             Contracts.AssertValue(reader);
             Contracts.AssertValue(array);
             Contracts.Assert(0 <= start && start < array.Length);
             Contracts.Assert(0 < count && count <= array.Length - start);
 
-            long bufferReadLengthInBytes = (long)count * sizeof(Float);
+            long bufferReadLengthInBytes = (long)count * sizeof(float);
             if (bufferReadLengthInBytes < _bulkReadThresholdInBytes)
             {
                 for (int i = 0; i < count; i++)
@@ -668,15 +666,15 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
                 {
                     fixed (void* dst = array)
                     {
-                        long bufferBeginOffsetInBytes = (long)start * sizeof(Float);
-                        long bufferSizeInBytes = ((long)array.Length - start) * sizeof(Float);
+                        long bufferBeginOffsetInBytes = (long)start * sizeof(float);
+                        long bufferSizeInBytes = ((long)array.Length - start) * sizeof(float);
                         ReadBytes(reader, (byte*)dst + bufferBeginOffsetInBytes, bufferSizeInBytes, bufferReadLengthInBytes);
                     }
                 }
             }
         }
 
-        public static Single[] ReadSingleArray(this BinaryReader reader)
+        public static float[] ReadSingleArray(this BinaryReader reader)
         {
             Contracts.AssertValue(reader);
             int size = reader.ReadInt32();
@@ -684,15 +682,15 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
             return ReadSingleArray(reader, size);
         }
 
-        public static Single[] ReadSingleArray(this BinaryReader reader, int size)
+        public static float[] ReadSingleArray(this BinaryReader reader, int size)
         {
             Contracts.AssertValue(reader);
             Contracts.Assert(size >= 0);
             if (size == 0)
                 return null;
-            var values = new Single[size];
+            var values = new float[size];
 
-            long bufferSizeInBytes = (long)size * sizeof(Single);
+            long bufferSizeInBytes = (long)size * sizeof(float);
             if (bufferSizeInBytes < _bulkReadThresholdInBytes)
             {
                 for (int i = 0; i < size; i++)
@@ -712,7 +710,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
             return values;
         }
 
-        public static Double[] ReadDoubleArray(this BinaryReader reader)
+        public static double[] ReadDoubleArray(this BinaryReader reader)
         {
             Contracts.AssertValue(reader);
 
@@ -721,15 +719,15 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
             return ReadDoubleArray(reader, size);
         }
 
-        public static Double[] ReadDoubleArray(this BinaryReader reader, int size)
+        public static double[] ReadDoubleArray(this BinaryReader reader, int size)
         {
             Contracts.AssertValue(reader);
             Contracts.Assert(size >= 0);
             if (size == 0)
                 return null;
-            var values = new Double[size];
+            var values = new double[size];
 
-            long bufferSizeInBytes = (long)size * sizeof(Double);
+            long bufferSizeInBytes = (long)size * sizeof(double);
             if (bufferSizeInBytes < _bulkReadThresholdInBytes)
             {
                 for (int i = 0; i < size; i++)

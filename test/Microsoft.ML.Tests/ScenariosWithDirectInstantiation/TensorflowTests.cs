@@ -10,6 +10,7 @@ using Microsoft.ML.Runtime.ImageAnalytics;
 using Microsoft.ML.Runtime.LightGBM;
 using Microsoft.ML.Transforms;
 using Microsoft.ML.Transforms.TensorFlow;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using Xunit;
@@ -182,6 +183,95 @@ namespace Microsoft.ML.Scenarios
         }
 
         [Fact]
+        public void TensorFlowInputsOutputsSchemaTest()
+        {
+            using (var env = new ConsoleEnvironment(seed: 1, conc: 1))
+            {
+                var model_location = "mnist_model/frozen_saved_model.pb";
+                var schema = TensorFlowUtils.GetModelSchema(env, model_location);
+                Assert.Equal(54, schema.ColumnCount);
+                Assert.True(schema.TryGetColumnIndex("Placeholder", out int col));
+                var type = schema.GetColumnType(col).AsVector;
+                Assert.Equal(2, type.DimCount);
+                Assert.Equal(28, type.GetDim(0));
+                Assert.Equal(28, type.GetDim(1));
+                var metadataType = schema.GetMetadataTypeOrNull(TensorFlowUtils.OpType, col);
+                Assert.NotNull(metadataType);
+                Assert.True(metadataType.IsText);
+                ReadOnlyMemory<char> opType = default;
+                schema.GetMetadata(TensorFlowUtils.OpType, col, ref opType);
+                Assert.Equal("Placeholder", opType.ToString());
+                metadataType = schema.GetMetadataTypeOrNull(TensorFlowUtils.InputOps, col);
+                Assert.Null(metadataType);
+
+                Assert.True(schema.TryGetColumnIndex("conv2d/Conv2D/ReadVariableOp", out col));
+                type = schema.GetColumnType(col).AsVector;
+                Assert.Equal(4, type.DimCount);
+                Assert.Equal(5, type.GetDim(0));
+                Assert.Equal(5, type.GetDim(1));
+                Assert.Equal(1, type.GetDim(2));
+                Assert.Equal(32, type.GetDim(3));
+                metadataType = schema.GetMetadataTypeOrNull(TensorFlowUtils.OpType, col);
+                Assert.NotNull(metadataType);
+                Assert.True(metadataType.IsText);
+                schema.GetMetadata(TensorFlowUtils.OpType, col, ref opType);
+                Assert.Equal("Identity", opType.ToString());
+                metadataType = schema.GetMetadataTypeOrNull(TensorFlowUtils.InputOps, col);
+                Assert.NotNull(metadataType);
+                VBuffer<ReadOnlyMemory<char>> inputOps = default;
+                schema.GetMetadata(TensorFlowUtils.InputOps, col, ref inputOps);
+                Assert.Equal(1, inputOps.Length);
+                Assert.Equal("conv2d/kernel", inputOps.Values[0].ToString());
+
+                Assert.True(schema.TryGetColumnIndex("conv2d/Conv2D", out col));
+                type = schema.GetColumnType(col).AsVector;
+                Assert.Equal(3, type.DimCount);
+                Assert.Equal(28, type.GetDim(0));
+                Assert.Equal(28, type.GetDim(1));
+                Assert.Equal(32, type.GetDim(2));
+                metadataType = schema.GetMetadataTypeOrNull(TensorFlowUtils.OpType, col);
+                Assert.NotNull(metadataType);
+                Assert.True(metadataType.IsText);
+                schema.GetMetadata(TensorFlowUtils.OpType, col, ref opType);
+                Assert.Equal("Conv2D", opType.ToString());
+                metadataType = schema.GetMetadataTypeOrNull(TensorFlowUtils.InputOps, col);
+                Assert.NotNull(metadataType);
+                schema.GetMetadata(TensorFlowUtils.InputOps, col, ref inputOps);
+                Assert.Equal(2, inputOps.Length);
+                Assert.Equal("reshape/Reshape", inputOps.Values[0].ToString());
+                Assert.Equal("conv2d/Conv2D/ReadVariableOp", inputOps.Values[1].ToString());
+
+                Assert.True(schema.TryGetColumnIndex("Softmax", out col));
+                type = schema.GetColumnType(col).AsVector;
+                Assert.Equal(1, type.DimCount);
+                Assert.Equal(10, type.GetDim(0));
+                metadataType = schema.GetMetadataTypeOrNull(TensorFlowUtils.OpType, col);
+                Assert.NotNull(metadataType);
+                Assert.True(metadataType.IsText);
+                schema.GetMetadata(TensorFlowUtils.OpType, col, ref opType);
+                Assert.Equal("Softmax", opType.ToString());
+                metadataType = schema.GetMetadataTypeOrNull(TensorFlowUtils.InputOps, col);
+                Assert.NotNull(metadataType);
+                schema.GetMetadata(TensorFlowUtils.InputOps, col, ref inputOps);
+                Assert.Equal(1, inputOps.Length);
+                Assert.Equal("sequential/dense_1/BiasAdd", inputOps.Values[0].ToString());
+
+                model_location = "model_matmul/frozen_saved_model.pb";
+                schema = TensorFlowUtils.GetModelSchema(env, model_location);
+                char name = 'a';
+                for (int i = 0; i < schema.ColumnCount; i++)
+                {
+                    Assert.Equal(name.ToString(), schema.GetColumnName(i));
+                    type = schema.GetColumnType(i).AsVector;
+                    Assert.Equal(2, type.DimCount);
+                    Assert.Equal(2, type.GetDim(0));
+                    Assert.Equal(2, type.GetDim(1));
+                    name++;
+                }
+            }
+        }
+
+        [Fact]
         public void TensorFlowTransformMNISTConvTest()
         {
             var model_location = "mnist_model/frozen_saved_model.pb";
@@ -213,7 +303,7 @@ namespace Microsoft.ML.Scenarios
                 trans = TensorFlowTransform.Create(env, trans, model_location, new[] { "Softmax", "dense/Relu" }, new[] { "Placeholder", "reshape_input" });
                 trans = new ConcatTransform(env, "Features", "Softmax", "dense/Relu").Transform(trans);
 
-                var trainer = new LightGbmMulticlassTrainer(env, new LightGbmArguments());
+                var trainer = new LightGbmMulticlassTrainer(env, "Label", "Features");
 
                 var cached = new CacheDataView(env, trans, prefetch: null);
                 var trainRoles = new RoleMappedData(cached, label: "Label", feature: "Features");

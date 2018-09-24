@@ -147,7 +147,7 @@ namespace Microsoft.ML.Runtime.Learners
     }
 
     public abstract class SdcaTrainerBase<TTransformer, TModel> : StochasticTrainerBase<TTransformer, TModel>
-        where TTransformer : IPredictionTransformer<TModel>
+        where TTransformer : ISingleFeaturePredictionTransformer<TModel>
         where TModel : IPredictor
     {
         // REVIEW: Making it even faster and more accurate:
