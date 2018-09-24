@@ -10,6 +10,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
@@ -18,6 +19,7 @@ using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.Command;
 using Microsoft.ML.Runtime.EntryPoints;
+using Microsoft.ML.Transforms;
 
 [assembly: LoadableClass(ConvertTransform.Summary, typeof(ConvertTransform), typeof(ConvertTransform.Arguments), typeof(SignatureDataTransform),
     ConvertTransform.UserName, ConvertTransform.ShortName, "ConvertTransform", DocName = "transform/ConvertTransform.md")]
@@ -30,7 +32,7 @@ using Microsoft.ML.Runtime.EntryPoints;
 
 [assembly: EntryPointModule(typeof(TypeConversion))]
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Transforms
 {
     public sealed class ConvertTransform : OneToOneTransformBase
     {
@@ -261,14 +263,14 @@ namespace Microsoft.ML.Runtime.Data
             var typeDst = _exes[iinfo].TypeDst;
             switch (kind)
             {
-            case MetadataUtils.Kinds.SlotNames:
-                Host.Assert(typeSrc.VectorSize == typeDst.VectorSize);
-                return typeDst.IsKnownSizeVector;
-            case MetadataUtils.Kinds.KeyValues:
-                return typeSrc.ItemType.IsKey && typeDst.ItemType.IsKey && typeSrc.ItemType.KeyCount > 0 &&
-                    typeSrc.ItemType.KeyCount == typeDst.ItemType.KeyCount;
-            case MetadataUtils.Kinds.IsNormalized:
-                return typeSrc.ItemType.IsNumber && typeDst.ItemType.IsNumber;
+                case MetadataUtils.Kinds.SlotNames:
+                    Host.Assert(typeSrc.VectorSize == typeDst.VectorSize);
+                    return typeDst.IsKnownSizeVector;
+                case MetadataUtils.Kinds.KeyValues:
+                    return typeSrc.ItemType.IsKey && typeDst.ItemType.IsKey && typeSrc.ItemType.KeyCount > 0 &&
+                        typeSrc.ItemType.KeyCount == typeDst.ItemType.KeyCount;
+                case MetadataUtils.Kinds.IsNormalized:
+                    return typeSrc.ItemType.IsNumber && typeDst.ItemType.IsNumber;
             }
             return false;
         }
@@ -650,4 +652,221 @@ namespace Microsoft.ML.Runtime.Data
             };
         }
     }
+
+    public sealed class ConvertTransformer : OneToOneTransformerBase
+    {
+        internal const string Summary = "Converts a column to a different type, using standard conversions.";
+        internal const string UserName = "Convert Transform";
+        internal const string ShortName = "Convert";
+
+        public const string LoaderSignature = "ConvertTransform";
+        internal const string LoaderSignatureOld = "ConvertFunction";
+        private static VersionInfo GetVersionInfo()
+        {
+            return new VersionInfo(
+                modelSignature: "CONVERTF",
+                // verWrittenCur: 0x00010001, // Initial
+                verWrittenCur: 0x00010002, // Added support for keyRange
+                verReadableCur: 0x00010002,
+                verWeCanReadBack: 0x00010001,
+                loaderSignature: LoaderSignature,
+                loaderSignatureAlt: LoaderSignatureOld);
+        }
+
+        private const string RegistrationName = "Convert";
+
+        /// <summary>
+        /// Describes how the transformer handles one column pair.
+        /// </summary>
+        public sealed class ColumnInfo
+        {
+            public readonly string Input;
+            public readonly string Output;
+            public readonly DataKind ResultType;
+            public readonly KeyRange KeyRange;
+
+            public ColumnInfo(string input, string output, DataKind resultType, KeyRange keyRange = null)
+            {
+
+            }
+        }
+
+        private static (string input, string output)[] GetColumnPairs(ColumnInfo[] columns)
+        {
+            Contracts.CheckNonEmpty(columns, nameof(columns));
+            return columns.Select(x => (x.Input, x.Output)).ToArray();
+        }
+
+        public ConvertTransformer(IHostEnvironment env, IDataView input, ColumnInfo[] columns) :
+            base(Contracts.CheckRef(env, nameof(env)).Register(RegistrationName), GetColumnPairs(columns))
+        {
+            for (int i = 0; i < columns.Length; i++)
+            {
+                if (!input.Schema.TryGetColumnIndex(ColumnPairs[i].input, out int srcCol))
+                    throw Host.ExceptSchemaMismatch(nameof(input), "input", ColumnPairs[i].input);
+                if (!CheckIsConvertable(input.Schema, srcCol, columns[i].ResultType, columns[i].KeyRange))
+                {
+                    throw Host.ExceptParam(nameof(input), "Source column '{0}' is not of compatible type", input.Schema.GetColumnName(srcCol));
+                }
+            }
+        }
+
+        private static bool TryCreateEx(IExceptionContext ectx, ColInfo info, DataKind kind, KeyRange range, out PrimitiveType itemType, out ColInfoEx ex)
+        {
+            ectx.AssertValue(info);
+            ectx.Assert(Enum.IsDefined(typeof(DataKind), kind));
+
+            ex = null;
+
+            var typeSrc = info.TypeSrc;
+            if (range != null)
+            {
+                itemType = TypeParsingUtils.ConstructKeyType(kind, range);
+                if (!typeSrc.ItemType.IsKey && !typeSrc.ItemType.IsText)
+                    return false;
+            }
+            else if (!typeSrc.ItemType.IsKey)
+                itemType = PrimitiveType.FromKind(kind);
+            else if (!KeyType.IsValidDataKind(kind))
+            {
+                itemType = PrimitiveType.FromKind(kind);
+                return false;
+            }
+            else
+            {
+                var key = typeSrc.ItemType.AsKey;
+                ectx.Assert(KeyType.IsValidDataKind(key.RawKind));
+                int count = key.Count;
+                // Technically, it's an error for the counts not to match, but we'll let the Conversions
+                // code return false below. There's a possibility we'll change the standard conversions to
+                // map out of bounds values to zero, in which case, this is the right thing to do.
+                ulong max = kind.ToMaxInt();
+                if ((ulong)count > max)
+                    count = (int)max;
+                itemType = new KeyType(kind, key.Min, count, key.Contiguous);
+            }
+
+            // Ensure that the conversion is legal. We don't actually cache the delegate here. It will get
+            // re-fetched by the utils code when needed.
+            bool identity;
+            Delegate del;
+            if (!Conversions.Instance.TryGetStandardConversion(typeSrc.ItemType, itemType, out del, out identity))
+                return false;
+
+            ColumnType typeDst = itemType;
+            if (typeSrc.IsVector)
+                typeDst = new VectorType(itemType, typeSrc.AsVector);
+
+            // An output column is transposable iff the input column was transposable.
+            VectorType slotType = null;
+            if (info.SlotTypeSrc != null)
+                slotType = new VectorType(itemType, info.SlotTypeSrc);
+
+            ex = new ColInfoEx(kind, range != null, typeDst, slotType);
+            return true;
+        }
+
+        private bool CheckIsConvertable(ISchema schema, int srcCol, DataKind resultType, KeyRange range)
+        {
+            PrimitiveType itemType;
+            var srcType = schema.GetColumnType(srcCol);
+            if (range != null)
+            {
+                itemType = TypeParsingUtils.ConstructKeyType(resultType, range);
+                if (!srcType.ItemType.IsKey && !srcType.ItemType.IsText)
+                    return false;
+            }
+            else if (!srcType.ItemType.IsKey)
+                itemType = PrimitiveType.FromKind(resultType);
+            else if (!KeyType.IsValidDataKind(resultType))
+            {
+                itemType = PrimitiveType.FromKind(resultType);
+                return false;
+            }
+            else
+            {
+                var key = srcType.ItemType.AsKey;
+                Host.Assert(KeyType.IsValidDataKind(key.RawKind));
+                int count = key.Count;
+                // Technically, it's an error for the counts not to match, but we'll let the Conversions
+                // code return false below. There's a possibility we'll change the standard conversions to
+                // map out of bounds values to zero, in which case, this is the right thing to do.
+                ulong max = resultType.ToMaxInt();
+                if ((ulong)count > max)
+                    count = (int)max;
+                itemType = new KeyType(resultType, key.Min, count, key.Contiguous);
+            }
+
+            // Ensure that the conversion is legal. We don't actually cache the delegate here. It will get
+            // re-fetched by the utils code when needed.
+            bool identity;
+            Delegate del;
+            if (!Conversions.Instance.TryGetStandardConversion(srcType.ItemType, itemType, out del, out identity))
+                return false;
+
+            ColumnType typeDst = itemType;
+            if (srcType.IsVector)
+                typeDst = new VectorType(itemType, srcType.AsVector);
+
+            // An output column is transposable iff the input column was transposable.
+            VectorType slotType = null;
+            if (info.SlotTypeSrc != null)
+                slotType = new VectorType(itemType, info.SlotTypeSrc);
+
+        }
+
+        public override void Save(ModelSaveContext ctx)
+        {
+            throw new NotImplementedException();
+        }
+
+        protected override IRowMapper MakeRowMapper(ISchema schema)
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    public sealed class ConvertEstimator : IEstimator<ConvertTransformer>
+    {
+        private readonly IHost _host;
+        private readonly ConvertTransformer.ColumnInfo[] _columns;
+
+        /// <summary>
+        /// Convinence constructor for simple one column case
+        /// </summary>
+        /// <param name="env">Host Environment.</param>
+        /// <param name="inputColumn">Name of the output column.</param>
+        /// <param name="outputColumn">Name of the column to be transformed. If this is null '<paramref name="inputColumn"/>' will be used.</param>
+        /// <param name="resultType">The expected type of the converted column.</param>
+        public ConvertEstimator(IHostEnvironment env,
+            string inputColumn, string outputColumn,
+            DataKind resultType)
+            : this(env, new ConvertTransformer.ColumnInfo(inputColumn, outputColumn ?? inputColumn, resultType))
+        {
+        }
+
+        public ConvertEstimator(IHostEnvironment env, params ConvertTransformer.ColumnInfo[] columns)
+        {
+            Contracts.CheckValue(env, nameof(env));
+            _host = env.Register(nameof(ConvertEstimator));
+            _columns = columns.ToArray();
+        }
+
+        public ConvertTransformer Fit(IDataView input) => new ConvertTransformer(_host, input, _columns);
+
+        public SchemaShape GetOutputSchema(SchemaShape inputSchema)
+        {
+            _host.CheckValue(inputSchema, nameof(inputSchema));
+            var result = inputSchema.Columns.ToDictionary(x => x.Name);
+            foreach (var colInfo in _columns)
+            {
+                if (!inputSchema.TryFindColumn(colInfo.Input, out var col))
+                    throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.Input);
+                var metadata = new List<SchemaShape.Column>();
+                result[colInfo.Output] = new SchemaShape.Column(colInfo.Output, col.Kind, col.ItemType, false, col.Metadata);
+            }
+            return new SchemaShape(result.Values);
+        }
+    }
+
 }
