@@ -495,6 +495,14 @@ namespace Microsoft.ML.Runtime.Data
             _scorer = new ClusteringScorer(Host, args, new EmptyDataView(Host, TrainSchema), BindableMapper.Bind(Host, schema), schema);
         }
 
+        public override bool IsRowToRowMapper => true;
+
+        public override IRowToRowMapper GetRowToRowMapper(ISchema inputSchema)
+        {
+            Host.CheckValue(inputSchema, nameof(inputSchema));
+            return (IRowToRowMapper)_scorer.ApplyToData(Host, new EmptyDataView(Host, inputSchema));
+        }
+
         public override IDataView Transform(IDataView input)
         {
             Host.CheckValue(input, nameof(input));

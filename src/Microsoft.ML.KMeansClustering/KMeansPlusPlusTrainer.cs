@@ -107,7 +107,7 @@ namespace Microsoft.ML.Runtime.KMeans
         }
 
         private KMeansPlusPlusTrainer(IHostEnvironment env, Arguments args, string featureColumn, string weightColumn, Action<Arguments> advancedSettings = null)
-            : base(Contracts.CheckRef(env, nameof(env)).Register(LoadNameValue), MakeFeatureColumn(featureColumn), null, MakeWeightColumn(weightColumn))
+            : base(Contracts.CheckRef(env, nameof(env)).Register(LoadNameValue), TrainerUtils.MakeR4VecFeature(featureColumn), null, TrainerUtils.MakeR4ScalarWeightColumn(weightColumn))
         {
             if (args == null)
                 args = new Arguments();
@@ -231,18 +231,6 @@ namespace Microsoft.ML.Runtime.KMeans
                 maxThreads = Math.Min(maxThreads, argNumThreads.Value);
 
             return Math.Max(1, maxThreads);
-        }
-
-        private static SchemaShape.Column MakeWeightColumn(string weightColumn)
-        {
-            if (weightColumn == null)
-                return null;
-            return new SchemaShape.Column(weightColumn, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false);
-        }
-
-        private static SchemaShape.Column MakeFeatureColumn(string featureColumn)
-        {
-            return new SchemaShape.Column(featureColumn, SchemaShape.Column.VectorKind.Vector, NumberType.R4, false);
         }
 
         [TlcModule.EntryPoint(Name = "Trainers.KMeansPlusPlusClusterer",
