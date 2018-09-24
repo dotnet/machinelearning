@@ -78,7 +78,7 @@ namespace Microsoft.ML.Tests
             var xyData = new List<TestDataXY> { new TestDataXY() { A = new float[inputsize] } };
             var stringData = new List<TestDataDifferntType> { new TestDataDifferntType() { data_0 = new string[inputsize] } };
             var sizeData = new List<TestDataSize> { new TestDataSize() { data_0 = new float[2] } };
-            var pipe = new OnnxEstimator(Env, modelFile, new[] { "data_0" }, new[] { "softmaxout_1" });
+            var pipe = new OnnxEstimator(Env, modelFile, "data_0", "softmaxout_1");
 
             var invalidDataWrongNames = ComponentCreation.CreateDataView(Env, xyData);
             var invalidDataWrongTypes = ComponentCreation.CreateDataView(Env, stringData);
@@ -114,8 +114,8 @@ namespace Microsoft.ML.Tests
                     }
                 }));
 
-            var inputNames = new[] { "data_0" };
-            var outputNames = new[] { "softmaxout_1" };
+            var inputNames = "data_0";
+            var outputNames = "softmaxout_1";
             var est = new OnnxEstimator(Env, modelFile, inputNames, outputNames);
             var transformer = est.Fit(dataView);
             var result = transformer.Transform(dataView);
@@ -127,7 +127,7 @@ namespace Microsoft.ML.Tests
                 var loadedView = ModelFileUtils.LoadTransforms(Env, dataView, ms);
                 //ValidateTensorFlowTransformer(loadedView);
 
-                loadedView.Schema.TryGetColumnIndex(outputNames[0], out int softMaxOut1);
+                loadedView.Schema.TryGetColumnIndex(outputNames, out int softMaxOut1);
                 using (var cursor = loadedView.GetRowCursor(col => col == softMaxOut1))
                 {
                     VBuffer<float> softMaxValue = default;
