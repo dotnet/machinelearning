@@ -500,7 +500,8 @@ namespace Microsoft.ML.Runtime.HalLearners
                 verWrittenCur: 0x00010001,
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
-                loaderSignature: LoaderSignature);
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(OlsLinearRegressionPredictor).Assembly.FullName);
         }
 
         // The following will be null iff RSquaredAdjusted is NaN.

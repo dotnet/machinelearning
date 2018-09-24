@@ -307,7 +307,8 @@ namespace Microsoft.ML.Runtime.PCA
                 verWrittenCur: 0x00010001, // Initial
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
-                loaderSignature: LoaderSignature);
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(PcaPredictor).Assembly.FullName);
         }
 
         private readonly int _dimension;

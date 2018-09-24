@@ -20,10 +20,13 @@ namespace Microsoft.ML.Runtime.Model
         public const ulong SignatureValue = 0x4C45444F4D004C4DUL;
         public const ulong TailSignatureValue = 0x4D4C004D4F44454CUL;
 
+        private const uint VerAssemblyNameSupported = 0x00010002;
+
         // These are private since they change over time. If we make them public we risk
         // another assembly containing a "copy" of their value when the other assembly
         // was compiled, which might not match the code that can load this.
-        private const uint VerWrittenCur = 0x00010001;
+        //private const uint VerWrittenCur = 0x00010001; // Initial
+        private const uint VerWrittenCur = 0x00010002; // Added AssemblyName
         private const uint VerReadableCur = 0x00010001;
         private const uint VerWeCanReadBack = 0x00010001;
 
@@ -85,7 +88,13 @@ namespace Microsoft.ML.Runtime.Model
         [FieldOffset(0x88)]
         public long FpLim;
 
-        // Lots of padding....
+        // Location of the fully qualified assembly name string (in UTF-16).
+        // Note that it is legal for both to be zero.
+        [FieldOffset(0x90)]
+        public long FpAssemblyName;
+        [FieldOffset(0x98)]
+        public uint CbAssemblyName;
+
         public const int Size = 0x0100;
 
         // Utilities for writing.
@@ -116,7 +125,7 @@ namespace Microsoft.ML.Runtime.Model
         /// The current writer position should be the end of the model blob. Records the model size, writes the string table,
         /// completes and writes the header, and writes the tail.
         /// </summary>
-        public static void EndWrite(BinaryWriter writer, long fpMin, ref ModelHeader header, NormStr.Pool pool = null)
+        public static void EndWrite(BinaryWriter writer, long fpMin, ref ModelHeader header, NormStr.Pool pool = null, string loaderAssemblyName = null)
         {
             Contracts.CheckValue(writer, nameof(writer));
             Contracts.CheckParam(fpMin >= 0, nameof(fpMin));
@@ -157,7 +166,26 @@ namespace Microsoft.ML.Runtime.Model
                 Contracts.Assert(offset == header.CbStringChars);
             }
 
+            WriteLoaderAssemblyName(writer, fpMin, ref header, loaderAssemblyName);
+
             WriteHeaderAndTailCore(writer, fpMin, ref header);
+        }
+
+        private static void WriteLoaderAssemblyName(BinaryWriter writer, long fpMin, ref ModelHeader header, string loaderAssemblyName)
+        {
+            if (!string.IsNullOrEmpty(loaderAssemblyName))
+            {
+                header.FpAssemblyName = writer.FpCur() - fpMin;
+                header.CbAssemblyName = (uint)loaderAssemblyName.Length * sizeof(char);
+
+                foreach (var ch in loaderAssemblyName)
+                    writer.Write((short)ch);
+            }
+            else
+            {
+                header.FpAssemblyName = 0;
+                header.CbAssemblyName = 0;
+            }
         }
 
         /// <summary>
@@ -289,7 +317,7 @@ namespace Microsoft.ML.Runtime.Model
         /// Read the model header, strings, etc from reader. Also validates the header (throws if bad).
         /// Leaves the reader position at the beginning of the model blob.
         /// </summary>
-        public static void BeginRead(out long fpMin, out ModelHeader header, out string[] strings, BinaryReader reader)
+        public static void BeginRead(out long fpMin, out ModelHeader header, out string[] strings, out string loaderAssemblyName, BinaryReader reader)
         {
             fpMin = reader.FpCur();
 
@@ -298,7 +326,7 @@ namespace Microsoft.ML.Runtime.Model
             ModelHeader.MarshalFromBytes(out header, headerBytes);
 
             Exception ex;
-            if (!ModelHeader.TryValidate(ref header, reader, fpMin, out strings, out ex))
+            if (!ModelHeader.TryValidate(ref header, reader, fpMin, out strings, out loaderAssemblyName, out ex))
                 throw ex;
 
             reader.Seek(header.FpModel + fpMin);
@@ -375,7 +403,10 @@ namespace Microsoft.ML.Runtime.Model
                     Contracts.CheckDecode(header.CbStringTable == 0);
                     Contracts.CheckDecode(header.FpStringChars == 0);
                     Contracts.CheckDecode(header.CbStringChars == 0);
-                    Contracts.CheckDecode(header.FpTail == header.FpModel + header.CbModel);
+                    if (header.VerWritten < VerAssemblyNameSupported || header.FpAssemblyName == 0)
+                    {
+                        Contracts.CheckDecode(header.FpTail == header.FpModel + header.CbModel);
+                    }
                 }
                 else
                 {
@@ -387,8 +418,34 @@ namespace Microsoft.ML.Runtime.Model
                     Contracts.CheckDecode(header.FpStringChars == header.FpStringTable + header.CbStringTable);
                     Contracts.CheckDecode(header.CbStringChars % sizeof(char) == 0);
                     Contracts.CheckDecode(header.FpStringChars + header.CbStringChars >= header.FpStringChars);
-                    Contracts.CheckDecode(header.FpTail == header.FpStringChars + header.CbStringChars);
+                    if (header.VerWritten < VerAssemblyNameSupported || header.FpAssemblyName == 0)
+                    {
+                        Contracts.CheckDecode(header.FpTail == header.FpStringChars + header.CbStringChars);
+                    }
                 }
+
+                if (header.VerWritten >= VerAssemblyNameSupported)
+                {
+                    if (header.FpAssemblyName == 0)
+                    {
+                        Contracts.CheckDecode(header.CbAssemblyName == 0);
+                    }
+                    else
+                    {
+                        // the assembly name always immediately after the string table, if there is one
+                        if (header.FpStringTable == 0)
+                        {
+                            Contracts.CheckDecode(header.FpAssemblyName == header.FpModel + header.CbModel);
+                        }
+                        else
+                        {
+                            Contracts.CheckDecode(header.FpAssemblyName == header.FpStringChars + header.CbStringChars);
+                        }
+                        Contracts.CheckDecode(header.CbAssemblyName % sizeof(char) == 0);
+                        Contracts.CheckDecode(header.FpTail == header.FpAssemblyName + header.CbAssemblyName);
+                    }
+                }
+
                 Contracts.CheckDecode(header.FpLim == header.FpTail + sizeof(ulong));
                 Contracts.CheckDecode(size == 0 || size >= header.FpLim);
 
@@ -405,7 +462,7 @@ namespace Microsoft.ML.Runtime.Model
         /// <summary>
         /// Checks the validity of the header, reads the string table, etc.
         /// </summary>
-        public static bool TryValidate(ref ModelHeader header, BinaryReader reader, long fpMin, out string[] strings, out Exception ex)
+        public static bool TryValidate(ref ModelHeader header, BinaryReader reader, long fpMin, out string[] strings, out string loaderAssemblyName, out Exception ex)
         {
             Contracts.CheckValue(reader, nameof(reader));
             Contracts.Check(fpMin >= 0);
@@ -413,62 +470,85 @@ namespace Microsoft.ML.Runtime.Model
             if (!TryValidate(ref header, reader.BaseStream.Length - fpMin, out ex))
             {
                 strings = null;
+                loaderAssemblyName = null;
                 return false;
-            }
-
-            if (header.FpStringTable == 0)
-            {
-                // No strings.
-                strings = null;
-                ex = null;
-                return true;
             }
 
             try
             {
                 long fpOrig = reader.FpCur();
-                reader.Seek(header.FpStringTable + fpMin);
-                Contracts.Assert(reader.FpCur() == header.FpStringTable + fpMin);
 
-                long cstr = header.CbStringTable / sizeof(long);
-                Contracts.Assert(cstr < int.MaxValue);
-                long[] offsets = reader.ReadLongArray((int)cstr);
-                Contracts.Assert(header.FpStringChars == reader.FpCur() - fpMin);
-                Contracts.CheckDecode(offsets[cstr - 1] == header.CbStringChars);
-
-                strings = new string[cstr];
-                long offset = 0;
-                var sb = new StringBuilder();
-                for (int i = 0; i < offsets.Length; i++)
+                StringBuilder sb = null;
+                if (header.FpStringTable == 0)
                 {
-                    Contracts.CheckDecode(header.FpStringChars + offset == reader.FpCur() - fpMin);
-
-                    long offsetPrev = offset;
-                    offset = offsets[i];
-                    Contracts.CheckDecode(offsetPrev <= offset & offset <= header.CbStringChars);
-                    Contracts.CheckDecode(offset % sizeof(char) == 0);
-                    long cch = (offset - offsetPrev) / sizeof(char);
-                    Contracts.CheckDecode(cch < int.MaxValue);
-
-                    sb.Clear();
-                    for (long ich = 0; ich < cch; ich++)
-                        sb.Append((char)reader.ReadUInt16());
-                    strings[i] = sb.ToString();
+                    // No strings.
+                    strings = null;
                 }
-                Contracts.CheckDecode(offset == header.CbStringChars);
-                Contracts.CheckDecode(header.FpStringChars + header.CbStringChars == reader.FpCur() - fpMin);
+                else
+                {
+                    reader.Seek(header.FpStringTable + fpMin);
+                    Contracts.Assert(reader.FpCur() == header.FpStringTable + fpMin);
+
+                    long cstr = header.CbStringTable / sizeof(long);
+                    Contracts.Assert(cstr < int.MaxValue);
+                    long[] offsets = reader.ReadLongArray((int)cstr);
+                    Contracts.Assert(header.FpStringChars == reader.FpCur() - fpMin);
+                    Contracts.CheckDecode(offsets[cstr - 1] == header.CbStringChars);
+
+                    strings = new string[cstr];
+                    long offset = 0;
+                    sb = new StringBuilder();
+                    for (int i = 0; i < offsets.Length; i++)
+                    {
+                        Contracts.CheckDecode(header.FpStringChars + offset == reader.FpCur() - fpMin);
+
+                        long offsetPrev = offset;
+                        offset = offsets[i];
+                        Contracts.CheckDecode(offsetPrev <= offset & offset <= header.CbStringChars);
+                        Contracts.CheckDecode(offset % sizeof(char) == 0);
+                        long cch = (offset - offsetPrev) / sizeof(char);
+                        Contracts.CheckDecode(cch < int.MaxValue);
+
+                        sb.Clear();
+                        for (long ich = 0; ich < cch; ich++)
+                            sb.Append((char)reader.ReadUInt16());
+                        strings[i] = sb.ToString();
+                    }
+                    Contracts.CheckDecode(offset == header.CbStringChars);
+                    Contracts.CheckDecode(header.FpStringChars + header.CbStringChars == reader.FpCur() - fpMin);
+                }
+
+                if (header.VerWritten >= VerAssemblyNameSupported && header.FpAssemblyName != 0)
+                {
+                    reader.Seek(header.FpAssemblyName + fpMin);
+                    int assemblyNameLength = (int)header.CbAssemblyName / sizeof(char);
+
+                    sb = sb != null ? sb.Clear() : new StringBuilder(assemblyNameLength);
+
+                    for (long ich = 0; ich < assemblyNameLength; ich++)
+                        sb.Append((char)reader.ReadUInt16());
+
+                    loaderAssemblyName = sb.ToString();
+                }
+                else
+                {
+                    loaderAssemblyName = null;
+                }
+
                 Contracts.CheckDecode(header.FpTail == reader.FpCur() - fpMin);
 
                 ulong tail = reader.ReadUInt64();
                 Contracts.CheckDecode(tail == TailSignatureValue, "Corrupt model file tail");
 
-                reader.Seek(fpOrig);
                 ex = null;
+
+                reader.Seek(fpOrig);
                 return true;
             }
             catch (Exception e)
             {
                 strings = null;
+                loaderAssemblyName = null;
                 ex = e;
                 return false;
             }
@@ -529,12 +609,13 @@ namespace Microsoft.ML.Runtime.Model
     /// This is used to simplify version checking boiler-plate code. It is an optional
     /// utility type.
     /// </summary>
-    public struct VersionInfo
+    public readonly struct VersionInfo
     {
         public readonly ulong ModelSignature;
         public readonly uint VerWrittenCur;
         public readonly uint VerReadableCur;
         public readonly uint VerWeCanReadBack;
+        public readonly string LoaderAssemblyName;
         public readonly string LoaderSignature;
         public readonly string LoaderSignatureAlt;
 
@@ -543,7 +624,7 @@ namespace Microsoft.ML.Runtime.Model
         /// all less than 0x100. Spaces are mapped to zero. This assumes little-endian.
         /// </summary>
         public VersionInfo(string modelSignature, uint verWrittenCur, uint verReadableCur, uint verWeCanReadBack,
-            string loaderSignature = null, string loaderSignatureAlt = null)
+            string loaderAssemblyName, string loaderSignature = null, string loaderSignatureAlt = null)
         {
             Contracts.Check(Utils.Size(modelSignature) == 8, "Model signature must be eight characters");
             ModelSignature = 0;
@@ -559,17 +640,7 @@ namespace Microsoft.ML.Runtime.Model
             VerWrittenCur = verWrittenCur;
             VerReadableCur = verReadableCur;
             VerWeCanReadBack = verWeCanReadBack;
-            LoaderSignature = loaderSignature;
-            LoaderSignatureAlt = loaderSignatureAlt;
-        }
-
-        public VersionInfo(ulong modelSignature, uint verWrittenCur, uint verReadableCur, uint verWeCanReadBack,
-            string loaderSignature = null, string loaderSignatureAlt = null)
-        {
-            ModelSignature = modelSignature;
-            VerWrittenCur = verWrittenCur;
-            VerReadableCur = verReadableCur;
-            VerWeCanReadBack = verWeCanReadBack;
+            LoaderAssemblyName = loaderAssemblyName;
             LoaderSignature = loaderSignature;
             LoaderSignatureAlt = loaderSignatureAlt;
         }

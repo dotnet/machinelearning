@@ -138,7 +138,8 @@ namespace Microsoft.ML.Runtime.Data
                 verWrittenCur: 0x0010002, // Added imputation methods.
                 verReadableCur: 0x00010002,
                 verWeCanReadBack: 0x00010001,
-                loaderSignature: LoadName);
+                loaderSignature: LoadName,
+                loaderAssemblyName: typeof(NAReplaceTransform).Assembly.FullName);
         }
 
         internal const string Summary = "Create an output column of the same type and size of the input column, where missing values "

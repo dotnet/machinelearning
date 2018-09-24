@@ -277,7 +277,8 @@ namespace Microsoft.ML.Runtime.Data
                 verWrittenCur: 0x00010002, // Dropped sizeof(Float).
                 verReadableCur: 0x00010002,
                 verWeCanReadBack: 0x00010002,
-                loaderSignature: LoaderSignature);
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(TermLookupTransform).Assembly.FullName);
         }
 
         // This is the byte array containing the binary .idv file contents for the lookup data.

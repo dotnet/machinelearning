@@ -420,7 +420,14 @@ namespace Microsoft.ML.Scenarios
                 var imageWidth = 32;
                 var dataFile = GetDataPath("images/images.tsv");
                 var imageFolder = Path.GetDirectoryName(dataFile);
-                var data = env.CreateLoader("Text{col=ImagePath:TX:0 col=Name:TX:1}", new MultiFileSource(dataFile));
+                var data = TextLoader.Create(env, new TextLoader.Arguments()
+                {
+                    Column = new[]
+                    {
+                        new TextLoader.Column("ImagePath", DataKind.TX, 0),
+                        new TextLoader.Column("Name", DataKind.TX, 1),
+                    }
+                }, new MultiFileSource(dataFile));
                 var images = ImageLoaderTransform.Create(env, new ImageLoaderTransform.Arguments()
                 {
                     Column = new ImageLoaderTransform.Column[1]
@@ -474,8 +481,14 @@ namespace Microsoft.ML.Scenarios
                 var imageWidth = 28;
                 var dataFile = GetDataPath("images/images.tsv");
                 var imageFolder = Path.GetDirectoryName(dataFile);
-                var data = env.CreateLoader("Text{col=ImagePath:TX:0 col=Name:TX:1}", new MultiFileSource(dataFile));
-
+                var data = TextLoader.Create(env, new TextLoader.Arguments()
+                {
+                    Column = new[]
+                    {
+                        new TextLoader.Column("ImagePath", DataKind.TX, 0),
+                        new TextLoader.Column("Name", DataKind.TX, 1),
+                    }
+                }, new MultiFileSource(dataFile));
                 var images = ImageLoaderTransform.Create(env, new ImageLoaderTransform.Arguments()
                 {
                     Column = new ImageLoaderTransform.Column[1]
