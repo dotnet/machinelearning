@@ -32,7 +32,7 @@ namespace Microsoft.ML
         public (IDataView trainSet, IDataView testSet) TrainTestSplit(IDataView data, double testFraction = 0.1, string stratificationColumn = null)
         {
             Host.CheckValue(data, nameof(data));
-            Host.CheckParam(0 < testFraction && testFraction < 1, nameof(testFraction), "Must be between 0 and 1");
+            Host.CheckParam(0 < testFraction && testFraction < 1, nameof(testFraction), "Must be between 0 and 1 exclusive");
             Host.CheckValueOrNull(stratificationColumn);
 
             // We need to handle two cases: if the stratification column is provided, we use hashJoin to

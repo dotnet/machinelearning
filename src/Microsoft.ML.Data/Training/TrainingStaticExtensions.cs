@@ -35,11 +35,18 @@ namespace Microsoft.ML
         {
             var env = StaticPipeUtils.GetEnvironment(data);
             Contracts.AssertValue(env);
-            env.CheckParam(0 < testFraction && testFraction < 1, nameof(testFraction), "Must be between 0 and 1");
+            env.CheckParam(0 < testFraction && testFraction < 1, nameof(testFraction), "Must be between 0 and 1 exclusive");
             env.CheckValueOrNull(stratificationColumn);
 
-            var indexer = StaticPipeUtils.GetIndexer(data);
-            string stratName = indexer?.Get(stratificationColumn(indexer.Indices));
+            string stratName = null;
+
+            if (stratificationColumn != null)
+            {
+                var indexer = StaticPipeUtils.GetIndexer(data);
+                var column = stratificationColumn(indexer.Indices);
+                env.CheckParam(column != null, nameof(stratificationColumn), "Stratification column not found");
+                stratName = indexer.Get(column);
+            }
 
             var (trainData, testData) = context.TrainTestSplit(data.AsDynamic, testFraction, stratName);
             return (new DataView<T>(env, trainData, data.Shape), new DataView<T>(env, testData, data.Shape));
