@@ -196,21 +196,6 @@ namespace Microsoft.ML.Transforms
         /// <include file='doc.xml' path='doc/members/member[@name="CountFeatureSelection"]' />
         /// <param name="input">The column to apply to.</param>
         /// <param name="count">If the count of non-default values for a slot is greater than or equal to this threshold, the slot is preserved.</param>
-        public static Vector<int> SelectFeaturesBasedOnCount(this Vector<int> input, long count = 1) => new OutPipelineColumnVec<int>(input, count);
-
-        /// <include file='doc.xml' path='doc/members/member[@name="CountFeatureSelection"]' />
-        /// <param name="input">The column to apply to.</param>
-        /// <param name="count">If the count of non-default values for a slot is greater than or equal to this threshold, the slot is preserved.</param>
-        public static Vector<long> SelectFeaturesBasedOnCount(this Vector<long> input, long count = 1) => new OutPipelineColumnVec<long>(input, count);
-
-        /// <include file='doc.xml' path='doc/members/member[@name="CountFeatureSelection"]' />
-        /// <param name="input">The column to apply to.</param>
-        /// <param name="count">If the count of non-default values for a slot is greater than or equal to this threshold, the slot is preserved.</param>
-        public static Vector<bool> SelectFeaturesBasedOnCount(this Vector<bool> input, long count = 1) => new OutPipelineColumnVec<bool>(input, count);
-
-        /// <include file='doc.xml' path='doc/members/member[@name="CountFeatureSelection"]' />
-        /// <param name="input">The column to apply to.</param>
-        /// <param name="count">If the count of non-default values for a slot is greater than or equal to this threshold, the slot is preserved.</param>
         public static Vector<string> SelectFeaturesBasedOnCount(this Vector<string> input, long count = 1) => new OutPipelineColumnVec<string>(input, count);
 
         /// <include file='doc.xml' path='doc/members/member[@name="CountFeatureSelection"]' />
@@ -222,21 +207,6 @@ namespace Microsoft.ML.Transforms
         /// <param name="input">The column to apply to.</param>
         /// <param name="count">If the count of non-default values for a slot is greater than or equal to this threshold, the slot is preserved.</param>
         public static Scalar<double> SelectFeaturesBasedOnCount(this Scalar<double> input, long count = 1) => new OutPipelineColumn<double>(input, count);
-
-        /// <include file='doc.xml' path='doc/members/member[@name="CountFeatureSelection"]' />
-        /// <param name="input">The column to apply to.</param>
-        /// <param name="count">If the count of non-default values for a slot is greater than or equal to this threshold, the slot is preserved.</param>
-        public static Scalar<int> SelectFeaturesBasedOnCount(this Scalar<int> input, long count = 1) => new OutPipelineColumn<int>(input, count);
-
-        /// <include file='doc.xml' path='doc/members/member[@name="CountFeatureSelection"]' />
-        /// <param name="input">The column to apply to.</param>
-        /// <param name="count">If the count of non-default values for a slot is greater than or equal to this threshold, the slot is preserved.</param>
-        public static Scalar<long> SelectFeaturesBasedOnCount(this Scalar<long> input, long count = 1) => new OutPipelineColumn<long>(input, count);
-
-        /// <include file='doc.xml' path='doc/members/member[@name="CountFeatureSelection"]' />
-        /// <param name="input">The column to apply to.</param>
-        /// <param name="count">If the count of non-default values for a slot is greater than or equal to this threshold, the slot is preserved.</param>
-        public static Scalar<bool> SelectFeaturesBasedOnCount(this Scalar<bool> input, long count = 1) => new OutPipelineColumn<bool>(input, count);
 
         /// <include file='doc.xml' path='doc/members/member[@name="CountFeatureSelection"]' />
         /// <param name="input">The column to apply to.</param>
