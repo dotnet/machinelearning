@@ -67,15 +67,17 @@ namespace Microsoft.ML.Runtime.HalLearners
         /// <summary>
         /// Initializes a new instance of <see cref="OlsLinearRegressionTrainer"/>
         /// </summary>
-        /// <param name="env">The private instance of <see cref="IHostEnvironment"/>.</param>
+        /// <param name="env">The environment to use.</param>
         /// <param name="labelColumn">The name of the label column.</param>
         /// <param name="featureColumn">The name of the feature column.</param>
-        /// <param name="weightColumn">The name for the column containing the initial weight.</param>
+        /// <param name="weightColumn">The name for the example weight column.</param>
         /// <param name="advancedSettings">A delegate to apply all the advanced arguments to the algorithm.</param>
         public OlsLinearRegressionTrainer(IHostEnvironment env, string featureColumn, string labelColumn,
             string weightColumn = null, Action<Arguments> advancedSettings = null)
             : this(env, ArgsInit(featureColumn, labelColumn, weightColumn, advancedSettings))
         {
+            Host.CheckNonEmpty(featureColumn, nameof(featureColumn));
+            Host.CheckNonEmpty(labelColumn, nameof(labelColumn));
         }
 
         /// <summary>
@@ -96,7 +98,7 @@ namespace Microsoft.ML.Runtime.HalLearners
         {
             var args = new Arguments();
 
-            //apply the advanced args, if the user supplied any
+            // Apply the advanced args, if the user supplied any.
             advancedSettings?.Invoke(args);
             args.FeatureColumn = featureColumn;
             args.LabelColumn = labelColumn;
