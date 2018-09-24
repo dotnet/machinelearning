@@ -38,7 +38,7 @@ namespace Microsoft.ML
             // We need to handle two cases: if the stratification column is provided, we use hashJoin to
             // build a single hash of it. If it is not, we generate a random number.
 
-            if (stratificationColumn != null)
+            if (stratificationColumn == null)
             {
                 stratificationColumn = data.Schema.GetTempColumnName("StratificationColumn");
                 data = new GenerateNumberTransform(Host, data, stratificationColumn);
