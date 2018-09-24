@@ -4,6 +4,7 @@
 
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
+using Microsoft.ML.Transforms;
 
 namespace Microsoft.ML
 {
@@ -16,6 +17,72 @@ namespace Microsoft.ML
     {
         protected readonly IHost Host;
         internal IHostEnvironment Environment => Host;
+
+        /// <summary>
+        /// Split the dataset into the train set and test set according to the given fraction.
+        /// Respects the <paramref name="stratificationColumn"/> if provided.
+        /// </summary>
+        /// <param name="data">The dataset to split.</param>
+        /// <param name="testFraction">The fraction of data to go into the test set.</param>
+        /// <param name="stratificationColumn">Optional stratification column.</param>
+        /// <remarks>If two examples share the same value of the <paramref name="stratificationColumn"/> (if provided),
+        /// they are guaranteed to appear in the same subset (train or test). Use this to make sure there is no label leakage from
+        /// train to the test set.</remarks>
+        /// <returns>A pair of datasets, for the train and test set.</returns>
+        public (IDataView trainSet, IDataView testSet) TrainTestSplit(IDataView data, double testFraction = 0.1, string stratificationColumn = null)
+        {
+            Host.CheckValue(data, nameof(data));
+            Host.CheckParam(0 < testFraction && testFraction < 1, nameof(testFraction), "Must be between 0 and 1");
+            Host.CheckValueOrNull(stratificationColumn);
+
+            // We need to handle two cases: if the stratification column is provided, we use hashJoin to
+            // build a single hash of it. If it is not, we generate a random number.
+
+            if (stratificationColumn != null)
+            {
+                stratificationColumn = data.Schema.GetTempColumnName("StratificationColumn");
+                data = new GenerateNumberTransform(Host, data, stratificationColumn);
+            }
+            else
+            {
+                if (!data.Schema.TryGetColumnIndex(stratificationColumn, out int stratCol))
+                    throw Host.ExceptSchemaMismatch(nameof(stratificationColumn), "stratification", stratificationColumn);
+
+                var type = data.Schema.GetColumnType(stratCol);
+                if (!RangeFilter.IsValidRangeFilterColumnType(Host, type))
+                {
+                    // Hash the stratification column.
+                    // REVIEW: this could currently crash, since Hash only accepts a limited set
+                    // of column types. It used to be HashJoin, but we should probably extend Hash
+                    // instead of having two hash transformations.
+                    var origStratCol = stratificationColumn;
+                    int tmp;
+                    int inc = 0;
+
+                    // Generate a new column with the hashed stratification column.
+                    while (data.Schema.TryGetColumnIndex(stratificationColumn, out tmp))
+                        stratificationColumn = string.Format("{0}_{1:000}", origStratCol, ++inc);
+                    data = new HashEstimator(Host, origStratCol, stratificationColumn, 30).Fit(data).Transform(data);
+                }
+            }
+
+            var trainFilter = new RangeFilter(Host, new RangeFilter.Arguments()
+            {
+                Column = stratificationColumn,
+                Min = 0,
+                Max = testFraction,
+                Complement = true
+            }, data);
+            var testFilter = new RangeFilter(Host, new RangeFilter.Arguments()
+            {
+                Column = stratificationColumn,
+                Min = 0,
+                Max = testFraction,
+                Complement = false
+            }, data);
+
+            return (trainFilter, testFilter);
+        }
 
         protected TrainContextBase(IHostEnvironment env, string registrationName)
         {

@@ -558,5 +558,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             type = schema.GetColumnType(pcswhitenedCol);
             Assert.True(type.IsVector && type.IsKnownSizeVector && type.ItemType.IsNumber);
         }
+        //
+        //[Fact]
     }
 }
