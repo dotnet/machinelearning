@@ -59,12 +59,35 @@ namespace Microsoft.ML.Runtime.FastTree
         /// <param name="featureColumn">The name of the feature column.</param>
         /// <param name="weightColumn">The name for the column containing the initial weight.</param>
         /// <param name="advancedSettings">A delegate to apply all the advanced arguments to the algorithm.</param>
-        public FastTreeRegressionTrainer(IHostEnvironment env, string labelColumn, string featureColumn,
-            string weightColumn = null, Action<Arguments> advancedSettings = null)
+        /// <param name="learningRates">The learning rate.</param>
+        /// <param name="minDocumentsInLeafs">The minimal number of documents allowed in a leaf of a regression tree, out of the subsampled data.</param>
+        /// <param name="numLeaves">The max number of leaves in each regression tree.</param>
+        /// <param name="numTrees">Total number of decision trees to create in the ensemble.</param>
+        public FastTreeRegressionTrainer(IHostEnvironment env,
+            string labelColumn,
+            string featureColumn,
+            string weightColumn = null,
+            int numLeaves = 20,
+            int numTrees = 100,
+            int minDocumentsInLeafs = 10,
+            double learningRates = 0.2,
+            Action<Arguments> advancedSettings = null)
             : base(env, TrainerUtils.MakeR4ScalarLabel(labelColumn), featureColumn, weightColumn, null, advancedSettings)
         {
             Host.CheckNonEmpty(labelColumn, nameof(labelColumn));
             Host.CheckNonEmpty(featureColumn, nameof(featureColumn));
+
+            if (advancedSettings != null)
+            {
+                //take a quick snapshot at the defaults, for comparison with the current args values
+                var snapshot = new Arguments();
+
+                // Check that the user didn't supply different parameters in the args, from what it specified directly.
+                TrainerUtils.CheckArgsAndAdvancedSettingMismatch(numLeaves, snapshot.NumLeaves, Args.NumLeaves, nameof(numLeaves));
+                TrainerUtils.CheckArgsAndAdvancedSettingMismatch(numTrees, snapshot.NumTrees, Args.NumTrees, nameof(numTrees));
+                TrainerUtils.CheckArgsAndAdvancedSettingMismatch(minDocumentsInLeafs, snapshot.MinDocumentsInLeafs, Args.MinDocumentsInLeafs, nameof(minDocumentsInLeafs));
+                TrainerUtils.CheckArgsAndAdvancedSettingMismatch(numLeaves, snapshot.NumLeaves, Args.NumLeaves, nameof(numLeaves));
+            }
         }
 
         /// <summary>

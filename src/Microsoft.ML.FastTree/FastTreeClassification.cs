@@ -122,10 +122,10 @@ namespace Microsoft.ML.Runtime.FastTree
         /// <param name="featureColumn">The name of the feature column.</param>
         /// <param name="weightColumn">The name for the column containing the initial weight.</param>
         /// <param name="advancedSettings">A delegate to apply all the advanced arguments to the algorithm.</param>
-        /// <param name="learningRates"></param>
-        /// <param name="minDocumentsInLeafs"></param>
-        /// <param name="numLeaves"></param>
-        /// <param name="numTrees"></param>
+        /// <param name="learningRates">The learning rate.</param>
+        /// <param name="minDocumentsInLeafs">The minimal number of documents allowed in a leaf of a regression tree, out of the subsampled data.</param>
+        /// <param name="numLeaves">The max number of leaves in each regression tree.</param>
+        /// <param name="numTrees">Total number of decision trees to create in the ensemble.</param>
         public FastTreeBinaryClassificationTrainer(IHostEnvironment env,
             string labelColumn,
             string featureColumn,
@@ -143,14 +143,17 @@ namespace Microsoft.ML.Runtime.FastTree
             // Set the sigmoid parameter to the 2 * learning rate, for traditional FastTreeClassification loss
             _sigmoidParameter = 2.0 * Args.LearningRates;
 
-            //take a quick snapshot at the defaults, for comparison with the current args values
-            var snapshot = new Arguments();
+            if (advancedSettings != null)
+            {
+                //take a quick snapshot at the defaults, for comparison with the current args values
+                var snapshot = new Arguments();
 
-            // Check that the user didn't supply different parameters in the args, from what it specified directly.
-            TrainerUtils.CheckArgsAndAdvancedSettingMismatch(numLeaves, snapshot.NumLeaves, Args.NumLeaves, nameof(numLeaves));
-            TrainerUtils.CheckArgsAndAdvancedSettingMismatch(numTrees, snapshot.NumTrees, Args.NumTrees, nameof(numTrees));
-            TrainerUtils.CheckArgsAndAdvancedSettingMismatch(minDocumentsInLeafs, snapshot.MinDocumentsInLeafs, Args.MinDocumentsInLeafs, nameof(minDocumentsInLeafs));
-            TrainerUtils.CheckArgsAndAdvancedSettingMismatch(numLeaves, snapshot.NumLeaves, Args.NumLeaves, nameof(numLeaves));
+                // Check that the user didn't supply different parameters in the args, from what it specified directly.
+                TrainerUtils.CheckArgsAndAdvancedSettingMismatch(numLeaves, snapshot.NumLeaves, Args.NumLeaves, nameof(numLeaves));
+                TrainerUtils.CheckArgsAndAdvancedSettingMismatch(numTrees, snapshot.NumTrees, Args.NumTrees, nameof(numTrees));
+                TrainerUtils.CheckArgsAndAdvancedSettingMismatch(minDocumentsInLeafs, snapshot.MinDocumentsInLeafs, Args.MinDocumentsInLeafs, nameof(minDocumentsInLeafs));
+                TrainerUtils.CheckArgsAndAdvancedSettingMismatch(learningRates, snapshot.LearningRates, Args.LearningRates, nameof(learningRates));
+            }
 
             //override with the directly provided values.
             Args.NumLeaves = numLeaves;

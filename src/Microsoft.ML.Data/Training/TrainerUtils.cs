@@ -388,13 +388,10 @@ namespace Microsoft.ML.Runtime.Training
         /// Check that the label, feature, weights is not supplied in the args the constructor.
         /// Those parameters should be internal if they are not used from the maml help code path.
         /// </summary>
-        public static void CheckArgumesDefaultColNames(string colName, string argValue, string directValue)
+        public static void CheckArgumesDefaultColNames(string defaultColName, string argValue)
         {
-            if (directValue == null)
-                return;
-
-            if (argValue != directValue)
-                throw Contracts.Except($"Don't supply a value for the {colName} column in the arguments, as it will be ignored. Specify them in the loader, or constructor instead instead.");
+            if (argValue != defaultColName)
+                throw Contracts.Except($"Don't supply a value for the {defaultColName} column in the arguments, as it will be ignored. Specify them in the loader, or constructor instead instead.");
         }
 
         public static void CheckArgsAndAdvancedSettingMismatch<T>(T methodParam, T defaultVal, T setting, string argName)
