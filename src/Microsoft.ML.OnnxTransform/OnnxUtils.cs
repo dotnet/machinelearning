@@ -104,14 +104,14 @@ namespace Microsoft.ML.OnnxScoring
             return File.ReadAllBytes(_modelFile);
         }
 
-        private OnnxNodeInfo[] GetInputsInfo()
+        public OnnxNodeInfo[] GetInputsInfo()
         {
             return DictToNodesInfo(
                     _modelManager.GetInputTypeDict(_modelName, _ignoredVersion),
                     _modelManager.GetInputShapesDict(_modelName, _ignoredVersion));
         }
 
-        private OnnxNodeInfo[] GetOutputsInfo()
+        public OnnxNodeInfo[] GetOutputsInfo()
         {
             return DictToNodesInfo(
                     _modelManager.GetOutputTypeDict(_modelName, _ignoredVersion),
@@ -130,7 +130,7 @@ namespace Microsoft.ML.OnnxScoring
                           typeDict.Keys.SequenceEqual(shapeDict.Keys);
             Contracts.Assert(sameKey, "Type and shape dictionaries should have the same keys");
             return typeDict.Select(kv => new OnnxNodeInfo(
-                        name: kv.Key, type: kv.Value, shape: shapeDict[kv.Key])).ToArray();
+                        name: kv.Key, type: kv.Value, shape: shapeDict[kv.Key])).OrderBy(x => x.Name).ToArray();
         }
     }
 

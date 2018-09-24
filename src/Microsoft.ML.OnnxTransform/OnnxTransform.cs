@@ -51,7 +51,7 @@ namespace Microsoft.ML.OnnxScoring
 
         private readonly IHost _host;
         private readonly Arguments _args;
-        private readonly OnnxModel _model;
+        internal readonly OnnxModel Model;
         private const string RegistrationName = "OnnxTransform";
 
         internal const string Summary = "Transforms the data using the Onnx model.";
@@ -61,6 +61,7 @@ namespace Microsoft.ML.OnnxScoring
 
         public readonly string[] Inputs;
         public readonly string[] Outputs;
+        public readonly ColumnType[] OutputTypes;
 
         private static VersionInfo GetVersionInfo()
         {
@@ -116,13 +117,20 @@ namespace Microsoft.ML.OnnxScoring
             {
                 _host.CheckNonWhiteSpace(args.ModelFile, nameof(args.ModelFile));
                 _host.CheckUserArg(File.Exists(args.ModelFile), nameof(args.ModelFile));
-                _model = new OnnxModel(args.ModelFile);
+                Model = new OnnxModel(args.ModelFile);
             }
             else
-                _model = OnnxModel.CreateFromBytes(modelBytes);
+                Model = OnnxModel.CreateFromBytes(modelBytes);
 
             Inputs = new[] { args.InputColumn };
             Outputs = new[] { args.OutputColumn };
+
+            var outputNodeInfo = Model.GetOutputsInfo().Where(x => x.Name == args.OutputColumn).First();
+            var type = OnnxUtils.OnnxToMlNetType(outputNodeInfo.Type);
+            var shape = outputNodeInfo.Shape;
+            var dims = shape.Count > 0 ? shape.Skip(shape[0] < 0 ? 1 : 0).Select( x => (int)x ).ToArray() : new[] { 0 };
+            OutputTypes = new ColumnType[1];
+            OutputTypes[0] = new VectorType(type, dims);
             _args = args;
         }
 
@@ -160,7 +168,7 @@ namespace Microsoft.ML.OnnxScoring
             ctx.CheckAtModel();
             ctx.SetVersionInfo(GetVersionInfo());
 
-            ctx.SaveBinaryStream("OnnxModel", w => { w.WriteByteArray(_model.ToByteArray()); });
+            ctx.SaveBinaryStream("OnnxModel", w => { w.WriteByteArray(Model.ToByteArray()); });
             ctx.SaveNonEmptyString(_args.InputColumn);
             ctx.SaveNonEmptyString(_args.OutputColumn);
         }
@@ -184,7 +192,7 @@ namespace Microsoft.ML.OnnxScoring
                 _host.CheckValue(parent, nameof(parent));
 
                 _parent = parent;
-                var model = _parent._model;
+                var model = _parent.Model;
                 _idvToTensorAdapter = new IdvToTensorAdapter(inputSchema, parent._args,
                                             model.ModelInfo.InputsInfo[0]);
 
@@ -240,7 +248,7 @@ namespace Microsoft.ML.OnnxScoring
                 ValueGetter<VBuffer<T>> valuegetter = (ref VBuffer<T> dst) =>
                 {
                     var inputTensors = new List<Tensor> { _idvToTensorAdapter.GetTensor() };
-                    var outputTensors = _parent._model.Run(inputTensors);
+                    var outputTensors = _parent.Model.Run(inputTensors);
                     Contracts.Assert(outputTensors.Count() > 0);
 
                     var values = dst.Values;
@@ -380,16 +388,17 @@ namespace Microsoft.ML.OnnxScoring
                     throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", input);
                 if (!(col.Kind == SchemaShape.Column.VectorKind.VariableVector || col.Kind == SchemaShape.Column.VectorKind.Vector))
                     throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", input, nameof(VectorType), col.GetTypeString());
-                //var expectedType = OnnxUtils.OnnxToMlNetType(Transformer.TFInputTypes[i]);
-                //if (col.ItemType != expectedType)
-                //    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", input, expectedType.ToString(), col.ItemType.ToString());
+                var inputNodeInfo = Transformer.Model.GetInputsInfo().Where(x => x.Name == input).First();
+                var expectedType = OnnxUtils.OnnxToMlNetType(inputNodeInfo.Type);
+                if (col.ItemType != expectedType)
+                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", input, expectedType.ToString(), col.ItemType.ToString());
             }
-            //for (var i = 0; i < Transformer.Outputs.Length; i++)
-            //{
-            //    resultDic[Transformer.Outputs[i]] = new SchemaShape.Column(Transformer.Outputs[i],
-            //        Transformer.OutputTypes[i].IsKnownSizeVector ? SchemaShape.Column.VectorKind.Vector
-            //        : SchemaShape.Column.VectorKind.VariableVector, Transformer.OutputTypes[i].ItemType, false);
-            //}
+            for (var i = 0; i < Transformer.Outputs.Length; i++)
+            {
+                resultDic[Transformer.Outputs[i]] = new SchemaShape.Column(Transformer.Outputs[i],
+                    Transformer.OutputTypes[i].IsKnownSizeVector ? SchemaShape.Column.VectorKind.Vector
+                    : SchemaShape.Column.VectorKind.VariableVector, Transformer.OutputTypes[i].ItemType, false);
+            }
             return new SchemaShape(resultDic.Values);
         }
     }

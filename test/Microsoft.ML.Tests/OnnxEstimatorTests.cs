@@ -147,7 +147,7 @@ namespace Microsoft.ML.Tests
         {
             var modelFile = "squeezenet/00000001/model.onnx";
 
-            using (var env = new ConsoleEnvironment())
+            using (var env = new ConsoleEnvironment(null, false, 0, 1, null, null) )
             {
                 var imageHeight = 224;
                 var imageWidth = 224;
@@ -163,8 +163,8 @@ namespace Microsoft.ML.Tests
                 var pipe = data.MakeNewEstimator()
                     .Append(row => (
                         row.name,
-                        Input: row.imagePath.LoadAsImage(imageFolder).Resize(imageHeight, imageWidth).ExtractPixels(interleaveArgb: true)))
-                    .Append(row => (row.name, Output: row.Input.ApplyOnnxModel(modelFile)));
+                        data_0: row.imagePath.LoadAsImage(imageFolder).Resize(imageHeight, imageWidth).ExtractPixels(interleaveArgb: true)))
+                    .Append(row => (row.name, softmaxout_1: row.data_0.ApplyOnnxModel(modelFile)));
 
                 TestEstimatorCore(pipe.AsDynamic, data.AsDynamic);
 
