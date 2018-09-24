@@ -96,7 +96,6 @@ namespace Microsoft.ML.Benchmarks
         }
     }
 
-    [Config(typeof(PredictConfig))]
     public class MultiClassClassificationTest
     {
         private string _dataPath_Wiki;

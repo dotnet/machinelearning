@@ -64,7 +64,6 @@ namespace Microsoft.ML.Benchmarks
         }
     }
 
-    [Config(typeof(PredictConfig))]
     public class RankingTest
     {
         private string _mslrWeb10k_Validate;
