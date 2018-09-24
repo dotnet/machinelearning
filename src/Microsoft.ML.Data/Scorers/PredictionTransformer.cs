@@ -50,11 +50,12 @@ namespace Microsoft.ML.Runtime.Data
         protected PredictionTransformerBase(IHost host, TModel model, ISchema trainSchema)
         {
             Contracts.CheckValue(host, nameof(host));
-
             Host = host;
-            Host.CheckValue(trainSchema, nameof(trainSchema));
 
+            Host.CheckValue(trainSchema, nameof(trainSchema));
             Model = model;
+
+            Host.CheckValue(trainSchema, nameof(trainSchema));
             TrainSchema = trainSchema;
         }
 
@@ -152,6 +153,13 @@ namespace Microsoft.ML.Runtime.Data
 
         protected override TScorer Scorer { get; set; }
 
+        /// <summary>
+        /// Initializes a new reference of <see cref="SingleFeaturePredictionTransformerBase{TModel, TScorer}"/>.
+        /// </summary>
+        /// <param name="host">The local instance of <see cref="IHost"/>.</param>
+        /// <param name="model">The model used for scoring.</param>
+        /// <param name="trainSchema">The schema of the training data.</param>
+        /// <param name="featureColumn">The feature column name.</param>
         public SingleFeaturePredictionTransformerBase(IHost host, TModel model, ISchema trainSchema, string featureColumn)
             : base(host, model, trainSchema)
         {
@@ -166,6 +174,8 @@ namespace Microsoft.ML.Runtime.Data
                 FeatureColumnType = trainSchema.GetColumnType(col);
 
             BindableMapper = ScoreUtils.GetSchemaBindableMapper(Host, model);
+
+            GetScorer();
         }
 
         internal SingleFeaturePredictionTransformerBase(IHost host, ModelLoadContext ctx)
@@ -211,7 +221,7 @@ namespace Microsoft.ML.Runtime.Data
             ctx.SaveStringOrNull(FeatureColumn);
         }
 
-        protected GenericScorer GetGenericScorer()
+        protected virtual GenericScorer GetScorer()
         {
             var schema = new RoleMappedSchema(TrainSchema, null, FeatureColumn);
             return new GenericScorer(Host, new GenericScorer.Arguments(), new EmptyDataView(Host, TrainSchema), BindableMapper.Bind(Host, schema), schema);
@@ -233,12 +243,10 @@ namespace Microsoft.ML.Runtime.Data
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(BinaryPredictionTransformer<TModel>)), model, inputSchema, featureColumn)
         {
             Host.CheckNonEmpty(thresholdColumn, nameof(thresholdColumn));
-            var schema = new RoleMappedSchema(inputSchema, null, featureColumn);
             Threshold = threshold;
             ThresholdColumn = thresholdColumn;
 
-            var args = new BinaryClassifierScorer.Arguments { Threshold = Threshold, ThresholdColumn = ThresholdColumn };
-            Scorer = new BinaryClassifierScorer(Host, args, new EmptyDataView(Host, inputSchema), BindableMapper.Bind(Host, schema), schema);
+            SetScorer();
         }
 
         public BinaryPredictionTransformer(IHostEnvironment env, ModelLoadContext ctx)
@@ -251,7 +259,11 @@ namespace Microsoft.ML.Runtime.Data
 
             Threshold = ctx.Reader.ReadSingle();
             ThresholdColumn = ctx.LoadString();
+            SetScorer();
+        }
 
+        private void SetScorer()
+        {
             var schema = new RoleMappedSchema(TrainSchema, null, FeatureColumn);
             var args = new BinaryClassifierScorer.Arguments { Threshold = Threshold, ThresholdColumn = ThresholdColumn };
             Scorer = new BinaryClassifierScorer(Host, args, new EmptyDataView(Host, TrainSchema), BindableMapper.Bind(Host, schema), schema);
@@ -298,9 +310,7 @@ namespace Microsoft.ML.Runtime.Data
             Host.CheckValueOrNull(labelColumn);
 
             _trainLabelColumn = labelColumn;
-            var schema = new RoleMappedSchema(inputSchema, labelColumn, featureColumn);
-            var args = new MultiClassClassifierScorer.Arguments();
-            Scorer = new MultiClassClassifierScorer(Host, args, new EmptyDataView(Host, inputSchema), BindableMapper.Bind(Host, schema), schema);
+            SetScorer();
         }
 
         public MulticlassPredictionTransformer(IHostEnvironment env, ModelLoadContext ctx)
@@ -311,7 +321,11 @@ namespace Microsoft.ML.Runtime.Data
             // id of string: train label column
 
             _trainLabelColumn = ctx.LoadStringOrNull();
+            SetScorer();
+        }
 
+        private void SetScorer()
+        {
             var schema = new RoleMappedSchema(TrainSchema, _trainLabelColumn, FeatureColumn);
             var args = new MultiClassClassifierScorer.Arguments();
             Scorer = new MultiClassClassifierScorer(Host, args, new EmptyDataView(Host, TrainSchema), BindableMapper.Bind(Host, schema), schema);
@@ -351,13 +365,11 @@ namespace Microsoft.ML.Runtime.Data
         public RegressionPredictionTransformer(IHostEnvironment env, TModel model, ISchema inputSchema, string featureColumn)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(RegressionPredictionTransformer<TModel>)), model, inputSchema, featureColumn)
         {
-            Scorer = GetGenericScorer();
         }
 
         internal RegressionPredictionTransformer(IHostEnvironment env, ModelLoadContext ctx)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(RegressionPredictionTransformer<TModel>)), ctx)
         {
-            Scorer = GetGenericScorer();
         }
 
         protected override void SaveCore(ModelSaveContext ctx)
@@ -387,13 +399,11 @@ namespace Microsoft.ML.Runtime.Data
         public RankingPredictionTransformer(IHostEnvironment env, TModel model, ISchema inputSchema, string featureColumn)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(RankingPredictionTransformer<TModel>)), model, inputSchema, featureColumn)
         {
-            Scorer = GetGenericScorer();
         }
 
         internal RankingPredictionTransformer(IHostEnvironment env, ModelLoadContext ctx)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(RankingPredictionTransformer<TModel>)), ctx)
         {
-            Scorer = GetGenericScorer();
         }
 
         protected override void SaveCore(ModelSaveContext ctx)
