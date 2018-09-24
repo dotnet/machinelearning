@@ -222,6 +222,30 @@ namespace Microsoft.ML.Transforms.TensorFlow
             }
         }
 
+        internal static void DeleteFolderWithRetries(IHostEnvironment env, string folder)
+        {
+            int currentRetry = 0;
+            int maxRetryCount = 10;
+            using (var ch = env.Start("Delete folder"))
+            {
+                for (; ; )
+                {
+                    try
+                    {
+                        currentRetry++;
+                        Directory.Delete(folder, true);
+                        break;
+                    }
+                    catch (IOException e)
+                    {
+                        if (currentRetry > maxRetryCount)
+                            throw;
+                        ch.Info("Error deleting folder. {0}. Retry,", e.Message);
+                    }
+                }
+            }
+        }
+
         private static void CreateTempDirectoryWithAcl(string folder, string identity)
         {
             // Dacl Sddl string:

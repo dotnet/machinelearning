@@ -121,31 +121,37 @@ namespace Microsoft.ML.Transforms
 
             var tempDirPath = Path.GetFullPath(Path.Combine(Path.GetTempPath(), RegistrationName + "_" + Guid.NewGuid()));
             TensorFlowUtils.CreateFolderWithAclIfNotExists(env, tempDirPath);
-
-            var load = ctx.TryLoadBinaryStream("TFSavedModel", br =>
+            try
             {
-                int count = br.ReadInt32();
-                for (int n = 0; n < count; n++)
+                var load = ctx.TryLoadBinaryStream("TFSavedModel", br =>
                 {
-                    string relativeFile = br.ReadString();
-                    long fileLength = br.ReadInt64();
-
-                    string fullFilePath = Path.Combine(tempDirPath, relativeFile);
-                    string fullFileDir = Path.GetDirectoryName(fullFilePath);
-                    if (fullFileDir != tempDirPath)
+                    int count = br.ReadInt32();
+                    for (int n = 0; n < count; n++)
                     {
-                        TensorFlowUtils.CreateFolderWithAclIfNotExists(env, fullFileDir);
-                    }
+                        string relativeFile = br.ReadString();
+                        long fileLength = br.ReadInt64();
 
-                    using (var fs = new FileStream(fullFilePath, FileMode.Create, FileAccess.Write))
-                    {
-                        long actualRead = br.BaseStream.CopyRange(fs, fileLength);
-                        env.Assert(actualRead == fileLength);
+                        string fullFilePath = Path.Combine(tempDirPath, relativeFile);
+                        string fullFileDir = Path.GetDirectoryName(fullFilePath);
+                        if (fullFileDir != tempDirPath)
+                        {
+                            TensorFlowUtils.CreateFolderWithAclIfNotExists(env, fullFileDir);
+                        }
+                        using (var fs = new FileStream(fullFilePath, FileMode.Create, FileAccess.Write))
+                        {
+                            long actualRead = br.BaseStream.CopyRange(fs, fileLength);
+                            env.Assert(actualRead == fileLength);
+                        }
                     }
-                }
-            });
+                });
 
-            return new TensorFlowTransform(env, TensorFlowUtils.GetSession(env, tempDirPath), inputs, outputs, tempDirPath, true);
+                return new TensorFlowTransform(env, TensorFlowUtils.GetSession(env, tempDirPath), inputs, outputs, tempDirPath, true);
+            }
+            catch (Exception)
+            {
+                TensorFlowUtils.DeleteFolderWithRetries(env, tempDirPath);
+                throw;
+            }
         }
 
         // Factory method for SignatureDataTransform.
@@ -348,33 +354,19 @@ namespace Microsoft.ML.Transforms
             // Technically we shouldn't be calling this if disposing == false, since we're running in finalizer
             // and the GC doesn't guarantee ordering of finalization of managed objects, but we have to make sure
             // that the Session is closed before deleting our temporary directory.
-            if (Session?.Handle != IntPtr.Zero)
+            try
             {
-                Session.CloseSession();
-                Session.Dispose();
-            }
-
-            if (!string.IsNullOrEmpty(_savedModelPath) && _isTemporarySavedModel)
-            {
-                int currentRetry = 0;
-                int maxRetryCount = 5;
-                using (var ch = _host.Start("Delete temp TF SavedModel"))
+                if (Session?.Handle != IntPtr.Zero)
                 {
-                    for (; ; )
-                    {
-                        try
-                        {
-                            currentRetry++;
-                            Directory.Delete(_savedModelPath, true);
-                            break;
-                        }
-                        catch (IOException e)
-                        {
-                            if (currentRetry > maxRetryCount)
-                                throw;
-                            ch.Info("Error deleting temporary TF SavedModel. {0}. Retry,", e.Message);
-                        }
-                    }
+                    Session.CloseSession();
+                    Session.Dispose();
+                }
+            }
+            finally
+            {
+                if (!string.IsNullOrEmpty(_savedModelPath) && _isTemporarySavedModel)
+                {
+                    TensorFlowUtils.DeleteFolderWithRetries(_host, _savedModelPath);
                 }
             }
         }
