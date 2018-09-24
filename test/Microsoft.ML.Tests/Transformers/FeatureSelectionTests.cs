@@ -38,7 +38,7 @@ namespace Microsoft.ML.Tests.Transformers
                 .Append(new CountFeatureSelector(Env, "bag_of_words", "bag_of_words_count", 10)
                 .Append(new MutualInformationFeatureSelector(Env, "bag_of_words", "bag_of_words_mi", labelColumn: "label")));
 
-            var outputPath = GetOutputPath("Text", "featureselection.tsv");
+            var outputPath = GetOutputPath("FeatureSelection", "featureselection.tsv");
             using (var ch = Env.Start("save"))
             {
                 var saver = new TextSaver(Env, new TextSaver.Arguments { Silent = true });
@@ -49,7 +49,7 @@ namespace Microsoft.ML.Tests.Transformers
                     DataSaverUtils.SaveDataView(ch, saver, savedData, fs, keepHidden: true);
             }
 
-            CheckEquality("Text", "featureselection.tsv");
+            CheckEquality("FeatureSelection", "featureselection.tsv");
             Done();
         }
     }

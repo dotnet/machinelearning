@@ -574,7 +574,7 @@ namespace Microsoft.ML.StaticPipelineTesting
                 .Append(r => (
                     r.label,
                     bag_of_words_count: r.text.ToBagofWords().SelectFeaturesBasedOnCount(10),
-                    bag_of_words_mi: r.text.ToBagofWords().SelectFeaturesBasedOnMutualInformation("label")));
+                    bag_of_words_mi: r.text.ToBagofWords().SelectFeaturesBasedOnMutualInformation(r.label)));
 
             var tdata = est.Fit(data).Transform(data);
             var schema = tdata.AsDynamic.Schema;
