@@ -70,10 +70,10 @@ namespace Microsoft.ML.Runtime.RunTests
                 return _testCmd.CheckEquality(_dir, _name);
             }
 
-            public bool CheckEqualityNormalized()
+            public bool CheckEqualityNormalized(decimal precision = 10000000)
             {
                 Contracts.Assert(CanBeBaselined);
-                return _testCmd.CheckEqualityNormalized(_dir, _name);
+                return _testCmd.CheckEqualityNormalized(_dir, _name, precision: precision);
             }
 
             public string ArgStr(string name)
