@@ -36,7 +36,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 HasHeader = true,
                 Column = new[]
                 {
-                    new TextLoader.Column("Label", DataKind.R4, 0),
+                    new TextLoader.Column("Label", DataKind.Text, 0),
                     new TextLoader.Column("Features", DataKind.R4, new [] { new TextLoader.Range(1, 4) } )
                 }
             }).Read(new MultiFileSource(GetDataPath(TestDatasets.irisLoader.trainFilename)));
@@ -61,8 +61,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         public void TestEstimatorLogisticRegression()
         {
             var dataView = GetBreastCancerDataview();
-            var pipe = new TermEstimator(Env, "Label")
-                .Append(new LogisticRegression(Env, "Features", "Label"));
+            var pipe = new LogisticRegression(Env, "Features", "Label");
             TestEstimatorCore(pipe, dataView);
             Done();
         }
@@ -71,9 +70,9 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         public void TestEstimatorMulticlassLogisticRegression()
         {
             var dataView = GetIrisDataview();
-            var pipe = new TermEstimator(Env, "Label")
-                .Append(new MulticlassLogisticRegression(Env, "Features", "Label"));
-            TestEstimatorCore(pipe, dataView);
+            var data = (new TermEstimator(Env, "Label")).Fit(dataView).Transform(dataView);
+            var pipe = new MulticlassLogisticRegression(Env, "Features", "Label");
+            TestEstimatorCore(pipe, data);
             Done();
         }
 

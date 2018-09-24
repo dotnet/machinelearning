@@ -79,7 +79,7 @@ namespace Microsoft.ML.Runtime.Learners
         }
 
         private static SchemaShape.Column MakeLabelColumn(string labelColumn)
-            => new SchemaShape.Column(labelColumn, SchemaShape.Column.VectorKind.Scalar, NumberType.U4, true);
+            => new SchemaShape.Column(labelColumn, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false);
 
         public override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
 
