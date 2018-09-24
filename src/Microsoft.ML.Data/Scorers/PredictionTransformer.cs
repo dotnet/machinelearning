@@ -134,6 +134,8 @@ namespace Microsoft.ML.Runtime.Data
         /// </summary>
         public ColumnType FeatureColumnType { get; }
 
+        public override bool IsRowToRowMapper => true;
+
         public SingleFeaturePredictionTransformerBase(IHost host, TModel model, ISchema trainSchema, string featureColumn)
             :base(host, model, trainSchema)
         {
@@ -241,8 +243,6 @@ namespace Microsoft.ML.Runtime.Data
             return _scorer.ApplyToData(Host, input);
         }
 
-        public override bool IsRowToRowMapper => true;
-
         public override IRowToRowMapper GetRowToRowMapper(ISchema inputSchema)
         {
             Host.CheckValue(inputSchema, nameof(inputSchema));
@@ -316,8 +316,6 @@ namespace Microsoft.ML.Runtime.Data
             return _scorer.ApplyToData(Host, input);
         }
 
-        public override bool IsRowToRowMapper => true;
-
         public override IRowToRowMapper GetRowToRowMapper(ISchema inputSchema)
         {
             Host.CheckValue(inputSchema, nameof(inputSchema));
@@ -377,8 +375,6 @@ namespace Microsoft.ML.Runtime.Data
             return _scorer.ApplyToData(Host, input);
         }
 
-        public override bool IsRowToRowMapper => true;
-
         public override IRowToRowMapper GetRowToRowMapper(ISchema inputSchema)
         {
             Host.CheckValue(inputSchema, nameof(inputSchema));
@@ -434,8 +430,6 @@ namespace Microsoft.ML.Runtime.Data
             Host.CheckValue(input, nameof(input));
             return _scorer.ApplyToData(Host, input);
         }
-
-        public override bool IsRowToRowMapper => true;
 
         public override IRowToRowMapper GetRowToRowMapper(ISchema inputSchema)
         {
@@ -528,6 +522,12 @@ namespace Microsoft.ML.Runtime.Data
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
                 loaderSignature: ClusteringPredictionTransformer.LoaderSignature);
+        }
+
+        public override IRowToRowMapper GetRowToRowMapper(ISchema inputSchema)
+        {
+            Host.CheckValue(inputSchema, nameof(inputSchema));
+            return (IRowToRowMapper)_scorer.ApplyToData(Host, new EmptyDataView(Host, inputSchema));
         }
     }
 
