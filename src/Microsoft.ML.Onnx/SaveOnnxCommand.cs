@@ -239,7 +239,7 @@ namespace Microsoft.ML.Runtime.Model.Onnx
 
                 var variableName = ctx.TryGetVariableName(idataviewColumnName);
                 var trueVariableName = ctx.AddVariable(idataviewColumnName);
-                ctx.CreateNode("Identity", variableName, trueVariableName, ctx.GetNodeName("Identity"));
+                ctx.CreateNode("Identity", variableName, trueVariableName, ctx.GetNodeName("Identity"), "");
                 ctx.AddOutputVariable(end.Schema.GetColumnType(i), trueVariableName);
             }
 
