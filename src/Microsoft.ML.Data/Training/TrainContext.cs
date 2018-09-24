@@ -2,9 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Transforms;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Microsoft.ML
 {
@@ -35,6 +39,87 @@ namespace Microsoft.ML
             Host.CheckParam(0 < testFraction && testFraction < 1, nameof(testFraction), "Must be between 0 and 1 exclusive");
             Host.CheckValueOrNull(stratificationColumn);
 
+            EnsureStratificationColumn(ref data, ref stratificationColumn);
+
+            var trainFilter = new RangeFilter(Host, new RangeFilter.Arguments()
+            {
+                Column = stratificationColumn,
+                Min = 0,
+                Max = testFraction,
+                Complement = true
+            }, data);
+            var testFilter = new RangeFilter(Host, new RangeFilter.Arguments()
+            {
+                Column = stratificationColumn,
+                Min = 0,
+                Max = testFraction,
+                Complement = false
+            }, data);
+
+            return (trainFilter, testFilter);
+        }
+
+        /// <summary>
+        /// Train the <paramref name="estimator"/> on <paramref name="numFolds"/> folds of the data sequentially.
+        /// Return each model and each scored test dataset.
+        /// </summary>
+        protected (IDataView scoredTestSet, ITransformer model)[] CrossValidateTrain(IDataView data, IEstimator<ITransformer> estimator,
+            int numFolds, string stratificationColumn)
+        {
+            Host.CheckValue(data, nameof(data));
+            Host.CheckValue(estimator, nameof(estimator));
+            Host.CheckParam(numFolds > 1, nameof(numFolds), "Must be more than 1");
+            Host.CheckValueOrNull(stratificationColumn);
+
+            EnsureStratificationColumn(ref data, ref stratificationColumn);
+
+            Func<int, (IDataView scores, ITransformer model)> foldFunction =
+                fold =>
+                {
+                    var trainFilter = new RangeFilter(Host, new RangeFilter.Arguments
+                    {
+                        Column = stratificationColumn,
+                        Min = (double)fold / numFolds,
+                        Max = (double)(fold + 1) / numFolds,
+                        Complement = true
+                    }, data);
+                    var testFilter = new RangeFilter(Host, new RangeFilter.Arguments
+                    {
+                        Column = stratificationColumn,
+                        Min = (double)fold / numFolds,
+                        Max = (double)(fold + 1) / numFolds,
+                        Complement = false
+                    }, data);
+
+                    var model = estimator.Fit(trainFilter);
+                    var scoredTest = model.Transform(testFilter);
+                    return (scoredTest, model);
+                };
+
+            // Sequential per-fold training.
+            // REVIEW: we could have a parallel implementation here. We would need to
+            // spawn off a separate host per fold in that case.
+            var result = new List<(IDataView scores, ITransformer model)>();
+            for (int fold = 0; fold < numFolds; fold++)
+                foldFunction(fold);
+
+            return result.ToArray();
+        }
+
+        protected TrainContextBase(IHostEnvironment env, string registrationName)
+        {
+            Contracts.CheckValue(env, nameof(env));
+            env.CheckNonEmpty(registrationName, nameof(registrationName));
+            Host = env.Register(registrationName);
+        }
+
+        /// <summary>
+        /// Make sure the provided <paramref name="stratificationColumn"/> is valid
+        /// for <see cref="RangeFilter"/>, hash it if needed, or introduce a new one
+        /// if needed.
+        /// </summary>
+        private void EnsureStratificationColumn(ref IDataView data, ref string stratificationColumn)
+        {
             // We need to handle two cases: if the stratification column is provided, we use hashJoin to
             // build a single hash of it. If it is not, we generate a random number.
 
@@ -65,30 +150,6 @@ namespace Microsoft.ML
                     data = new HashEstimator(Host, origStratCol, stratificationColumn, 30).Fit(data).Transform(data);
                 }
             }
-
-            var trainFilter = new RangeFilter(Host, new RangeFilter.Arguments()
-            {
-                Column = stratificationColumn,
-                Min = 0,
-                Max = testFraction,
-                Complement = true
-            }, data);
-            var testFilter = new RangeFilter(Host, new RangeFilter.Arguments()
-            {
-                Column = stratificationColumn,
-                Min = 0,
-                Max = testFraction,
-                Complement = false
-            }, data);
-
-            return (trainFilter, testFilter);
-        }
-
-        protected TrainContextBase(IHostEnvironment env, string registrationName)
-        {
-            Contracts.CheckValue(env, nameof(env));
-            env.CheckNonEmpty(registrationName, nameof(registrationName));
-            Host = env.Register(registrationName);
         }
 
         /// <summary>
@@ -208,6 +269,22 @@ namespace Microsoft.ML
             var eval = new BinaryClassifierEvaluator(Host, new BinaryClassifierEvaluator.Arguments() { });
             return eval.Evaluate(data, label, score, predictedLabel);
         }
+
+        public (BinaryClassifierEvaluator.Result metrics, ITransformer model, IDataView scoredTestData)[] CrossValidateNonCalibrated(
+            IDataView data, IEstimator<ITransformer> estimator, int numFolds = 5, string labelColumn = DefaultColumnNames.Label, string stratificationColumn = null)
+        {
+            Host.CheckNonEmpty(labelColumn, nameof(labelColumn));
+            var result = CrossValidateTrain(data, estimator, numFolds, stratificationColumn);
+            return result.Select(x => (EvaluateNonCalibrated(x.scoredTestSet, labelColumn), x.model, x.scoredTestSet)).ToArray();
+        }
+
+        public (BinaryClassifierEvaluator.CalibratedResult metrics, ITransformer model, IDataView scoredTestData)[] CrossValidate(
+            IDataView data, IEstimator<ITransformer> estimator, int numFolds = 5, string labelColumn = DefaultColumnNames.Label, string stratificationColumn = null)
+        {
+            Host.CheckNonEmpty(labelColumn, nameof(labelColumn));
+            var result = CrossValidateTrain(data, estimator, numFolds, stratificationColumn);
+            return result.Select(x => (Evaluate(x.scoredTestSet, labelColumn), x.model, x.scoredTestSet)).ToArray();
+        }
     }
 
     /// <summary>
@@ -259,6 +336,14 @@ namespace Microsoft.ML
             var eval = new MultiClassClassifierEvaluator(Host, args);
             return eval.Evaluate(data, label, score, predictedLabel);
         }
+
+        public (MultiClassClassifierEvaluator.Result metrics, ITransformer model, IDataView scoredTestData)[] CrossValidate(
+            IDataView data, IEstimator<ITransformer> estimator, int numFolds = 5, string labelColumn = DefaultColumnNames.Label, string stratificationColumn = null)
+        {
+            Host.CheckNonEmpty(labelColumn, nameof(labelColumn));
+            var result = CrossValidateTrain(data, estimator, numFolds, stratificationColumn);
+            return result.Select(x => (Evaluate(x.scoredTestSet, labelColumn), x.model, x.scoredTestSet)).ToArray();
+        }
     }
 
     /// <summary>
@@ -300,6 +385,14 @@ namespace Microsoft.ML
 
             var eval = new RegressionEvaluator(Host, new RegressionEvaluator.Arguments() { });
             return eval.Evaluate(data, label, score);
+        }
+
+        public (RegressionEvaluator.Result metrics, ITransformer model, IDataView scoredTestData)[] CrossValidate(
+            IDataView data, IEstimator<ITransformer> estimator, int numFolds = 5, string labelColumn = DefaultColumnNames.Label, string stratificationColumn = null)
+        {
+            Host.CheckNonEmpty(labelColumn, nameof(labelColumn));
+            var result = CrossValidateTrain(data, estimator, numFolds, stratificationColumn);
+            return result.Select(x => (Evaluate(x.scoredTestSet, labelColumn), x.model, x.scoredTestSet)).ToArray();
         }
     }
 }

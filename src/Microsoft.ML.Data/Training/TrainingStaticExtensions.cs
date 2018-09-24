@@ -2,9 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data.StaticPipe;
 using Microsoft.ML.Data.StaticPipe.Runtime;
 using Microsoft.ML.Runtime;
+using Microsoft.ML.Runtime.Data;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -50,6 +52,32 @@ namespace Microsoft.ML
 
             var (trainData, testData) = context.TrainTestSplit(data.AsDynamic, testFraction, stratName);
             return (new DataView<T>(env, trainData, data.Shape), new DataView<T>(env, testData, data.Shape));
+        }
+
+        /// <summary>
+        /// Runs a sequential cross-validation by training <paramref name="estimator"/>
+        /// on <paramref name="data"/> in <paramref name="numFolds"/> folds.
+        /// </summary>
+        /// <typeparam name="TInShape">The input schema shape.</typeparam>
+        /// <typeparam name="TOutShape">The output schema shape.</typeparam>
+        /// <typeparam name="TTransformer">The type of the trained model.</typeparam>
+        /// <param name="context"></param>
+        /// <param name="data"></param>
+        /// <param name="estimator"></param>
+        /// <param name="label"></param>
+        /// <param name="numFolds"></param>
+        /// <param name="stratificationColumn"></param>
+        /// <returns></returns>
+        public static (RegressionEvaluator.Result metrics, Transformer<TInShape, TOutShape, TTransformer> model, DataView<TOutShape> scoredTestData)[] CrossValidate<TInShape, TOutShape, TTransformer>(
+            this RegressionContext context,
+            DataView<TInShape> data,
+            Estimator<TInShape, TOutShape, TTransformer> estimator,
+            Func<TOutShape, Scalar<float>> label,
+            int numFolds = 5,
+            Func<TOutShape, PipelineColumn> stratificationColumn = null)
+            where TTransformer : class, ITransformer
+        {
+
         }
     }
 }
