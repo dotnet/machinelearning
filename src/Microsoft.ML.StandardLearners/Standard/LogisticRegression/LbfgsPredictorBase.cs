@@ -196,7 +196,7 @@ namespace Microsoft.ML.Runtime.Learners
         {
             var args = new TArgs();
 
-            //apply the advanced args, if the user supplied any
+            // Apply the advanced args, if the user supplied any.
             advancedSettings?.Invoke(args);
             args.FeatureColumn = featureColumn;
             args.LabelColumn = labelColumn.Name;
