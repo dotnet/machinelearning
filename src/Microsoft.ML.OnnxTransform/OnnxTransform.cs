@@ -59,9 +59,9 @@ namespace Microsoft.ML.OnnxScoring
         internal const string ShortName = "Onnx";
         internal const string LoaderSignature = "OnnxTransform";
 
-        public readonly string[] Inputs;
-        public readonly string[] Outputs;
-        public readonly ColumnType[] OutputTypes;
+        public readonly string Input;
+        public readonly string Output;
+        public readonly ColumnType OutputType;
 
         private static VersionInfo GetVersionInfo()
         {
@@ -122,15 +122,14 @@ namespace Microsoft.ML.OnnxScoring
             else
                 Model = OnnxModel.CreateFromBytes(modelBytes);
 
-            Inputs = new[] { args.InputColumn };
-            Outputs = new[] { args.OutputColumn };
+            Input = args.InputColumn;
+            Output = args.OutputColumn;
 
             var outputNodeInfo = Model.GetOutputsInfo().Where(x => x.Name == args.OutputColumn).First();
             var type = OnnxUtils.OnnxToMlNetType(outputNodeInfo.Type);
             var shape = outputNodeInfo.Shape;
             var dims = shape.Count > 0 ? shape.Skip(shape[0] < 0 ? 1 : 0).Select( x => (int)x ).ToArray() : new[] { 0 };
-            OutputTypes = new ColumnType[1];
-            OutputTypes[0] = new VectorType(type, dims);
+            OutputType = new VectorType(type, dims);
             _args = args;
         }
 
@@ -142,11 +141,8 @@ namespace Microsoft.ML.OnnxScoring
         public ISchema GetOutputSchema(ISchema inputSchema)
         {
             _host.CheckValue(inputSchema, nameof(inputSchema));
-            foreach (var input in Inputs)
-            {
-                if (!inputSchema.TryGetColumnIndex(input, out int srcCol))
-                    throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", input);
-            }
+            if (!inputSchema.TryGetColumnIndex(Input, out int srcCol))
+                throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", Input);
 
             var transform = Transform(new EmptyDataView(_host, inputSchema));
             return transform.Schema;
@@ -202,7 +198,7 @@ namespace Microsoft.ML.OnnxScoring
                 int[] dims = outputNodeInfo.Shape.Skip(1).Select(x => (int)x).ToArray();
                 var outputItemType = OnnxUtils.OnnxToMlNetType(outputNodeInfo.Type);
                 _outputColType = new VectorType(outputItemType, dims);
-                _outputColName = _parent.Outputs[0];// outputNodeInfo.Name;
+                _outputColName = _parent.Output;
                 _outputItemRawType = outputItemType.RawType;
                 _host.Assert(_outputItemRawType == _outputColType.ItemType.RawType);
             }
@@ -366,8 +362,8 @@ namespace Microsoft.ML.OnnxScoring
     }
     public sealed class OnnxEstimator : TrivialEstimator<OnnxTransform>
     {
-        public OnnxEstimator(IHostEnvironment env, string modelFile, string[] inputs, string[] outputs)
-           : this(env, new OnnxTransform(env, modelFile, inputs[0], outputs[0]))
+        public OnnxEstimator(IHostEnvironment env, string modelFile, string input, string output)
+           : this(env, new OnnxTransform(env, modelFile, input, output))
         {
         }
 
@@ -381,24 +377,21 @@ namespace Microsoft.ML.OnnxScoring
             Host.CheckValue(inputSchema, nameof(inputSchema));
             var result = inputSchema.Columns.ToDictionary(x => x.Name);
             var resultDic = inputSchema.Columns.ToDictionary(x => x.Name);
-            for (var i = 0; i < Transformer.Inputs.Length; i++)
-            {
-                var input = Transformer.Inputs[i];
-                if (!inputSchema.TryFindColumn(input, out var col))
-                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", input);
-                if (!(col.Kind == SchemaShape.Column.VectorKind.VariableVector || col.Kind == SchemaShape.Column.VectorKind.Vector))
-                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", input, nameof(VectorType), col.GetTypeString());
-                var inputNodeInfo = Transformer.Model.GetInputsInfo().Where(x => x.Name == input).First();
-                var expectedType = OnnxUtils.OnnxToMlNetType(inputNodeInfo.Type);
-                if (col.ItemType != expectedType)
-                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", input, expectedType.ToString(), col.ItemType.ToString());
-            }
-            for (var i = 0; i < Transformer.Outputs.Length; i++)
-            {
-                resultDic[Transformer.Outputs[i]] = new SchemaShape.Column(Transformer.Outputs[i],
-                    Transformer.OutputTypes[i].IsKnownSizeVector ? SchemaShape.Column.VectorKind.Vector
-                    : SchemaShape.Column.VectorKind.VariableVector, Transformer.OutputTypes[i].ItemType, false);
-            }
+
+            var input = Transformer.Input;
+            if (!inputSchema.TryFindColumn(input, out var col))
+                throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", input);
+            if (!(col.Kind == SchemaShape.Column.VectorKind.VariableVector || col.Kind == SchemaShape.Column.VectorKind.Vector))
+                throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", input, nameof(VectorType), col.GetTypeString());
+            var inputNodeInfo = Transformer.Model.GetInputsInfo().Where(x => x.Name == input).First();
+            var expectedType = OnnxUtils.OnnxToMlNetType(inputNodeInfo.Type);
+            if (col.ItemType != expectedType)
+                throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", input, expectedType.ToString(), col.ItemType.ToString());
+
+            resultDic[Transformer.Output] = new SchemaShape.Column(Transformer.Output,
+                Transformer.OutputType.IsKnownSizeVector ? SchemaShape.Column.VectorKind.Vector
+                : SchemaShape.Column.VectorKind.VariableVector, Transformer.OutputType.ItemType, false);
+
             return new SchemaShape(resultDic.Values);
         }
     }
@@ -436,7 +429,7 @@ namespace Microsoft.ML.OnnxScoring
                 Contracts.Assert(toOutput.Length == 1);
 
                 var outCol = (OutColumn)toOutput[0];
-                return new OnnxEstimator(env, _modelFile, new[] { inputNames[outCol.Input] }, new[] { outputNames[outCol] });
+                return new OnnxEstimator(env, _modelFile, inputNames[outCol.Input], outputNames[outCol]);
             }
         }
 
