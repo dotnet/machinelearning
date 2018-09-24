@@ -7,6 +7,10 @@ This project contains performance benchmarks.
 **Pre-requisite:** On a clean repo, `build.cmd` at the root installs the right version of dotnet.exe and builds the solution. You need to build the solution in `Release` with native dependencies. 
 
     build.cmd -release -buildNative
+    
+Moreover, to run some of the benchmarks you have to download external dependencies.
+
+    build.cmd -- /t:DownloadExternalTestFiles /p:IncludeBenchmarkData=true
 
 1. Navigate to the benchmarks directory (machinelearning\test\Microsoft.ML.Benchmarks)
 
