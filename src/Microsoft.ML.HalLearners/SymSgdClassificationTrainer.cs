@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Float = System.Single;
-
 using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
@@ -26,16 +24,14 @@ using Microsoft.ML.Runtime.Training;
     SymSgdClassificationTrainer.LoadNameValue,
     SymSgdClassificationTrainer.ShortName)]
 
-[assembly: LoadableClass(typeof(void), typeof(SymSgdClassificationTrainer), null, typeof(SignatureEntryPointModule), "SymSGD")]
+[assembly: LoadableClass(typeof(void), typeof(SymSgdClassificationTrainer), null, typeof(SignatureEntryPointModule), SymSgdClassificationTrainer.LoadNameValue)]
 
 namespace Microsoft.ML.Runtime.SymSgd
 {
-    using TPredictor = IPredictorWithFeatureWeights<Float>;
+    using TPredictor = IPredictorWithFeatureWeights<float>;
 
     /// <include file='doc.xml' path='doc/members/member[@name="SymSGD"]/*' />
-    public sealed class SymSgdClassificationTrainer :
-        TrainerBase<TPredictor>,
-        ITrainer<TPredictor>
+    public sealed class SymSgdClassificationTrainer : TrainerEstimatorBase<BinaryPredictionTransformer<TPredictor>, TPredictor>
     {
         public const string LoadNameValue = "SymbolicSGD";
         public const string UserNameValue = "Symbolic SGD (binary)";
@@ -78,7 +74,7 @@ namespace Microsoft.ML.Runtime.SymSgd
             public bool Shuffle = true;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Apply weight to the positive class, for imbalanced data", ShortName = "piw")]
-            public Float PositiveInstanceWeight = 1;
+            public float PositiveInstanceWeight = 1;
 
             public void Check(IExceptionContext ectx)
             {
@@ -155,6 +151,20 @@ namespace Microsoft.ML.Runtime.SymSgd
 
         public override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
 
+        /// <summary>
+        /// Initializes a new instance of <see cref="SymSgdClassificationTrainer"/>
+        /// </summary>
+        /// <param name="env">The private instance of <see cref="IHostEnvironment"/>.</param>
+        /// <param name="labelColumn">The name of the label column.</param>
+        /// <param name="featureColumn">The name of the feature column.</param>
+        /// <param name="weightColumn">The name for the column containing the initial weight.</param>
+        /// <param name="advancedSettings">A delegate to apply all the advanced arguments to the algorithm.</param>
+        public SymSgdClassificationTrainer(IHostEnvironment env, string featureColumn, string labelColumn,
+            string weightColumn = null, Action<Arguments> advancedSettings = null)
+            : this(env, ArgsInit(featureColumn, labelColumn, weightColumn, advancedSettings))
+        {
+        }
+
         public SymSgdClassificationTrainer(IHostEnvironment env, Arguments args)
             : base(env, LoadNameValue)
         {
@@ -163,13 +173,26 @@ namespace Microsoft.ML.Runtime.SymSgd
             Info = new TrainerInfo();
         }
 
-        private TPredictor CreatePredictor(VBuffer<Float> weights, Float bias)
+        private static Arguments ArgsInit(string featureColumn, string labelColumn,
+            string weightColumn, Action<Arguments> advancedSettings)
+        {
+            var args = new Arguments();
+
+            //apply the advanced args, if the user supplied any
+            advancedSettings?.Invoke(args);
+            args.FeatureColumn = featureColumn;
+            args.LabelColumn = labelColumn;
+            args.WeightColumn = weightColumn;
+            return args;
+        }
+
+        private TPredictor CreatePredictor(VBuffer<float> weights, float bias)
         {
             Host.CheckParam(weights.Length > 0, nameof(weights));
 
-            VBuffer<Float> maybeSparseWeights = default;
+            VBuffer<float> maybeSparseWeights = default;
             VBufferUtils.CreateMaybeSparseCopy(ref weights, ref maybeSparseWeights,
-                Conversions.Instance.GetIsDefaultPredicate<Float>(NumberType.Float));
+                Conversions.Instance.GetIsDefaultPredicate<float>(NumberType.R4));
             var predictor = new LinearBinaryPredictor(Host, ref maybeSparseWeights, bias);
             return new ParameterMixingCalibratedPredictor(Host, predictor, new PlattCalibrator(Host, -1, 0));
         }
@@ -496,9 +519,9 @@ namespace Microsoft.ML.Runtime.SymSgd
                         continue;
                     }
 
-                    // We assume that cursor.Features.values are represented by Float and cursor.Features.indices are represented by int
+                    // We assume that cursor.Features.values are represented by float and cursor.Features.indices are represented by int
                     // We conservatively assume that an instance is sparse and therefore, it has an array of Floats and ints for values and indices
-                    int perNonZeroInBytes = sizeof(Float) + sizeof(int);
+                    int perNonZeroInBytes = sizeof(float) + sizeof(int);
                     if (featureCount > _trainer.AcceleratedMemoryBudgetBytes / perNonZeroInBytes)
                     {
                         // Hopefully this never happens. But the memorySize must >= perNonZeroInBytes * length(the longest instance).
