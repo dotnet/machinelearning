@@ -13,10 +13,8 @@ namespace Microsoft.ML.Benchmarks
         public TrainConfig()
         {
             Add(DefaultConfig.Instance
-                .With(Job.Default
-                    .WithWarmupCount(0)
-                    .WithIterationCount(1)
-                    .WithLaunchCount(3)  // BDN will start 3 dedicated processes, each of them will just run given benchmark once, without any warm up to mimic the real world.
+                .With(Job.Dry // the "Dry" job runs the benchmark exactly once, without any warmup to mimic real-world scenario
+                    .WithLaunchCount(3)  // BDN will run 3 dedicated processes, sequentially
                     .With(Program.CreateToolchain()))
                 .With(new ExtraMetricColumn())
                 .With(MemoryDiagnoser.Default));
