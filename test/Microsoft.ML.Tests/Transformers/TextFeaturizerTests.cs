@@ -198,7 +198,7 @@ namespace Microsoft.ML.Tests.Transformers
             Done();
         }
 
-        [Fact(Skip = "Despite seed is set, LDA is giving different vector at every run. Need to fix it.")]
+        [Fact]
         public void LdaWorkout()
         {
             string sentimentDataPath = GetDataPath("wikipedia-detox-250-line-data.tsv");
@@ -213,7 +213,10 @@ namespace Microsoft.ML.Tests.Transformers
                 .Read(new MultiFileSource(sentimentDataPath));
 
             var est = new WordBagEstimator(Env, "text", "bag_of_words").
-                Append(new LdaEstimator(Env, "bag_of_words", "topics", 10));
+                Append(new LdaEstimator(Env, "bag_of_words", "topics", 10, advancedSettings: s => {
+                    s.NumIterations = 10;
+                    s.ResetRandomGenerator = true;
+                }));
 
             // The following call fails because of the following issue
             // https://github.com/dotnet/machinelearning/issues/969
