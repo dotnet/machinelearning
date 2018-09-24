@@ -11,24 +11,20 @@ namespace Microsoft.ML.CpuMath.PerformanceTests
 {
     public abstract class PerformanceTests
     {
-        private const int EXP_MAX = 127;
-        private const int EXP_MIN = 0;
-        private const int EXP_RANGE = EXP_MAX / 8;
+        private const int ExponentMax = 127;
+        private const int ExponentMin = 0;
+        private const int ExponentRange = ExponentMax / 8;
 
-        protected const int IDXLEN = 1000003;
-        protected const int LEN = 1000003;
+        protected const int IndexLength = 1000003;
+        protected const int Length = 1000003;
         
-        private const int DEFAULT_SEED = 253421;
-        protected const float DEFAULT_SCALE = 1.11f;
-
-        protected const int DEFAULT_CROW = 500;
-        protected const int DEFAULT_CCOL = 2000;
-        protected const bool ADD = true;
+        private const int DefaultSeed = 253421;
+        protected const float DefaultScale = 1.11f;
 
         protected float[] src, dst, original, src1, src2, result;
         protected int[] idx;
 
-        private int seed = DEFAULT_SEED;
+        private int _seed = DefaultSeed;
 
         private float NextFloat(Random rand, int expRange)
         {
@@ -39,7 +35,7 @@ namespace Microsoft.ML.CpuMath.PerformanceTests
 
         private int GetSeed()
         {
-            int seed = DEFAULT_SEED;
+            int seed = DefaultSeed;
             string CPUMATH_SEED = Environment.GetEnvironmentVariable("CPUMATH_SEED");
 
             if (CPUMATH_SEED != null)
@@ -52,7 +48,7 @@ namespace Microsoft.ML.CpuMath.PerformanceTests
                     }
                     else
                     {
-                        seed = DEFAULT_SEED;
+                        seed = DefaultSeed;
                     }
                 }
             }
@@ -64,30 +60,30 @@ namespace Microsoft.ML.CpuMath.PerformanceTests
         [GlobalSetup]
         public void Setup()
         {
-            src = new float[LEN];
-            dst = new float[LEN];
-            src1 = new float[LEN];
-            src2 = new float[LEN];
-            original = new float[LEN];
-            result = new float[LEN];
-            idx = new int[IDXLEN];
+            src = new float[Length];
+            dst = new float[Length];
+            src1 = new float[Length];
+            src2 = new float[Length];
+            original = new float[Length];
+            result = new float[Length];
+            idx = new int[IndexLength];
 
-            seed = GetSeed();
-            Random rand = new Random(seed);
+            _seed = GetSeed();
+            Random rand = new Random(_seed);
 
-            for (int i = 0; i < LEN; i++)
+            for (int i = 0; i < Length; i++)
             {
-                src[i] = NextFloat(rand, EXP_RANGE);
-                dst[i] = NextFloat(rand, EXP_RANGE);
+                src[i] = NextFloat(rand, ExponentRange);
+                dst[i] = NextFloat(rand, ExponentRange);
                 original[i] = dst[i];
                 result[i] = dst[i];
-                src1[i] = NextFloat(rand, EXP_RANGE);
-                src2[i] = NextFloat(rand, EXP_RANGE);
+                src1[i] = NextFloat(rand, ExponentRange);
+                src2[i] = NextFloat(rand, ExponentRange);
             }
 
-            for (int i = 0; i < IDXLEN; i++)
+            for (int i = 0; i < IndexLength; i++)
             {
-                idx[i] = rand.Next(0, LEN);
+                idx[i] = rand.Next(0, Length);
             }
         }
 

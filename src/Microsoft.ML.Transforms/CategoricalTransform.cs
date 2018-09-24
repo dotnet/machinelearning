@@ -167,6 +167,14 @@ namespace Microsoft.ML.Runtime.Data
         public IDataView Transform(IDataView input) => _transformer.Transform(input);
 
         public void Save(ModelSaveContext ctx) => _transformer.Save(ctx);
+
+        public bool IsRowToRowMapper => _transformer.IsRowToRowMapper;
+
+        public IRowToRowMapper GetRowToRowMapper(ISchema inputSchema)
+        {
+            Contracts.CheckValue(inputSchema, nameof(inputSchema));
+            return _transformer.GetRowToRowMapper(inputSchema);
+        }
     }
 
     public sealed class CategoricalEstimator : IEstimator<CategoricalTransform>
