@@ -26,26 +26,6 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             Sse.StaticCast<int, float>(Sse2.SetAllVector128(0x7FFFFFFF)) :
             Sse.SetAllVector128(BitConverter.Int32BitsToSingle(0x7FFFFFFF));
 
-        // The count of bytes in Vector128<T>, corresponding to _cbAlign in AlignedArray
-        private const int Vector128Alignment = 16;
-
-        [MethodImplAttribute(MethodImplOptions.AggressiveInlining)]
-        private static bool HasCompatibleAlignment(AlignedArray alignedArray)
-        {
-            Contracts.AssertValue(alignedArray);
-            Contracts.Assert(alignedArray.Size > 0);
-            return (alignedArray.CbAlign % Vector128Alignment) == 0;
-        }
-
-        [MethodImplAttribute(MethodImplOptions.AggressiveInlining)]
-        private static unsafe float* GetAlignedBase(AlignedArray alignedArray, float* unalignedBase)
-        {
-            Contracts.AssertValue(alignedArray);
-            float* alignedBase = unalignedBase + alignedArray.GetBase((long)unalignedBase);
-            Contracts.Assert(((long)alignedBase & (Vector128Alignment - 1)) == 0);
-            return alignedBase;
-        }
-
         [MethodImplAttribute(MethodImplOptions.AggressiveInlining)]
         internal static unsafe Vector128<float> Load1(float* src, int* idx)
              => Sse.SetScalarVector128(src[idx[0]]);
@@ -72,7 +52,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         }
 
         [MethodImplAttribute(MethodImplOptions.AggressiveInlining)]
-       internal static Vector128<float> VectorSum128(in Vector128<float> vector)
+        internal static Vector128<float> VectorSum128(in Vector128<float> vector)
         {
             if (Sse3.IsSupported)
             {
@@ -117,19 +97,15 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         }
 
         // Multiply matrix times vector into vector.
-        public static unsafe void MatMulA(bool add, AlignedArray mat, AlignedArray src, AlignedArray dst, int crow, int ccol)
+        public static unsafe void MatMulA(bool add, float[] mat, float[] src, float[] dst, int crow, int ccol)
         {
-            Contracts.Assert(HasCompatibleAlignment(mat));
-            Contracts.Assert(HasCompatibleAlignment(src));
-            Contracts.Assert(HasCompatibleAlignment(dst));
-
             fixed (float* pSrcStart = &src.Items[0])
             fixed (float* pDstStart = &dst.Items[0])
             fixed (float* pMatStart = &mat.Items[0])
             {
-                float* psrc = GetAlignedBase(src, pSrcStart);
-                float* pdst = GetAlignedBase(dst, pDstStart);
-                float* pmat = GetAlignedBase(mat, pMatStart);
+                float* psrc = pSrcStart;
+                float* pdst = pDstStart;
+                float* pmat = pMatStart;
 
                 float* pSrcEnd = psrc + ccol;
                 float* pDstEnd = pdst + crow;
@@ -182,13 +158,9 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         }
 
         // Partial sparse source vector.
-        public static unsafe void MatMulPA(bool add, AlignedArray mat, int[] rgposSrc, AlignedArray src,
-                                        int posMin, int iposMin, int iposEnd, AlignedArray dst, int crow, int ccol)
+        public static unsafe void MatMulPA(bool add, float[] mat, int[] rgposSrc, float[] src,
+                                        int posMin, int iposMin, int iposEnd, float[] dst, int crow, int ccol)
         {
-            Contracts.Assert(HasCompatibleAlignment(mat));
-            Contracts.Assert(HasCompatibleAlignment(src));
-            Contracts.Assert(HasCompatibleAlignment(dst));
-
             // REVIEW: For extremely sparse inputs, interchanging the loops would
             // likely be more efficient.
             fixed (float* pSrcStart = &src.Items[0])
@@ -196,9 +168,9 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             fixed (float* pMatStart = &mat.Items[0])
             fixed (int* pposSrc = &rgposSrc[0])
             {
-                float* psrc = GetAlignedBase(src, pSrcStart);
-                float* pdst = GetAlignedBase(dst, pDstStart);
-                float* pmat = GetAlignedBase(mat, pMatStart);
+                float* psrc = pSrcStart;
+                float* pdst = pDstStart;
+                float* pmat = pMatStart;
 
                 int* pposMin = pposSrc + iposMin;
                 int* pposEnd = pposSrc + iposEnd;
@@ -239,19 +211,15 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             }
         }
 
-        public static unsafe void MatMulTranA(bool add, AlignedArray mat, AlignedArray src, AlignedArray dst, int crow, int ccol)
+        public static unsafe void MatMulTranA(bool add, float[] mat, float[] src, float[] dst, int crow, int ccol)
         {
-            Contracts.Assert(HasCompatibleAlignment(mat));
-            Contracts.Assert(HasCompatibleAlignment(src));
-            Contracts.Assert(HasCompatibleAlignment(dst));
-
             fixed (float* pSrcStart = &src.Items[0])
             fixed (float* pDstStart = &dst.Items[0])
             fixed (float* pMatStart = &mat.Items[0])
             {
-                float* psrc = GetAlignedBase(src, pSrcStart);
-                float* pdst = GetAlignedBase(dst, pDstStart);
-                float* pmat = GetAlignedBase(mat, pMatStart);
+                float* psrc = pSrcStart;
+                float* pdst = pDstStart;
+                float* pmat = pMatStart;
 
                 float* pSrcEnd = psrc + ccol;
                 float* pDstEnd = pdst + crow;
@@ -341,21 +309,17 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         }
 
         // Partial sparse source vector.
-        public static unsafe void MatMulTranPA(bool add, AlignedArray mat, int[] rgposSrc, AlignedArray src,
-                                        int posMin, int iposMin, int iposEnd, AlignedArray dst, int crow)
+        public static unsafe void MatMulTranPA(bool add, float[] mat, int[] rgposSrc, float[] src,
+                                        int posMin, int iposMin, int iposEnd, float[] dst, int crow)
         {
-            Contracts.Assert(HasCompatibleAlignment(mat));
-            Contracts.Assert(HasCompatibleAlignment(src));
-            Contracts.Assert(HasCompatibleAlignment(dst));
-
             fixed (float* pSrcStart = &src.Items[0])
             fixed (float* pDstStart = &dst.Items[0])
             fixed (float* pMatStart = &mat.Items[0])
             fixed (int* pposSrc = &rgposSrc[0])
             {
-                float* psrc = GetAlignedBase(src, pSrcStart);
-                float* pdst = GetAlignedBase(dst, pDstStart);
-                float* pmat = GetAlignedBase(mat, pMatStart);
+                float* psrc = pSrcStart;
+                float* pdst = pDstStart;
+                float* pmat = pMatStart;
 
                 int* ppos = pposSrc + iposMin;
                 int* pposEnd = pposSrc + iposEnd;

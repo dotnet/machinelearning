@@ -10,13 +10,13 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 {
     public static partial class CpuMathUtils
     {
-        // The count of bytes in Vector128<T>, corresponding to _cbAlign in AlignedArray
+        // The count of bytes in Vector128<T>, corresponding to _cbAlign in float[]
         private const int Vector128Alignment = 16;
 
-        // The count of bytes in Vector256<T>, corresponding to _cbAlign in AlignedArray
+        // The count of bytes in Vector256<T>, corresponding to _cbAlign in float[]
         private const int Vector256Alignment = 32;
 
-        // The count of bytes in a 32-bit float, corresponding to _cbAlign in AlignedArray
+        // The count of bytes in a 32-bit float, corresponding to _cbAlign in float[]
         private const int FloatAlignment = 4;
 
         // If neither AVX nor SSE is supported, return basic alignment for a 4-byte float.
@@ -24,48 +24,48 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         public static int GetVectorAlignment()
             => Avx.IsSupported ? Vector256Alignment : (Sse.IsSupported ? Vector128Alignment : FloatAlignment);
 
-        public static void MatTimesSrc(bool tran, bool add, AlignedArray mat, AlignedArray src, AlignedArray dst, int crun)
+        public static void MatTimesSrc(bool tran, bool add, float[] mat, float[] src, float[] dst, int crun)
         {
-            Contracts.Assert(mat.Size == dst.Size * src.Size);
+            Contracts.Assert(mat.Length == dst.Length * src.Length);
             Contracts.Assert(crun >= 0);
 
             if (Avx.IsSupported)
             {
                 if (!tran)
                 {
-                    Contracts.Assert(crun <= dst.Size);
-                    AvxIntrinsics.MatMulX(add, mat, src, dst, crun, src.Size);
+                    Contracts.Assert(crun <= dst.Length);
+                    AvxIntrinsics.MatMulX(add, mat, src, dst, crun, src.Length);
                 }
                 else
                 {
-                    Contracts.Assert(crun <= src.Size);
-                    AvxIntrinsics.MatMulTranX(add, mat, src, dst, dst.Size, crun);
+                    Contracts.Assert(crun <= src.Length);
+                    AvxIntrinsics.MatMulTranX(add, mat, src, dst, dst.Length, crun);
                 }
             }
             else if (Sse.IsSupported)
             {
                 if (!tran)
                 {
-                    Contracts.Assert(crun <= dst.Size);
-                    SseIntrinsics.MatMulA(add, mat, src, dst, crun, src.Size);
+                    Contracts.Assert(crun <= dst.Length);
+                    SseIntrinsics.MatMulA(add, mat, src, dst, crun, src.Length);
                 }
                 else
                 {
-                    Contracts.Assert(crun <= src.Size);
-                    SseIntrinsics.MatMulTranA(add, mat, src, dst, dst.Size, crun);
+                    Contracts.Assert(crun <= src.Length);
+                    SseIntrinsics.MatMulTranA(add, mat, src, dst, dst.Length, crun);
                 }
             }
             else
             {
                 if (!tran)
                 {
-                    Contracts.Assert(crun <= dst.Size);
+                    Contracts.Assert(crun <= dst.Length);
                     for (int i = 0; i < crun; i++)
                     {
                         float dotProduct = 0;
-                        for (int j = 0; j < src.Size; j++)
+                        for (int j = 0; j < src.Length; j++)
                         {
-                            dotProduct += mat[i * src.Size + j] * src[j];
+                            dotProduct += mat[i * src.Length + j] * src[j];
                         }
 
                         if (add)
@@ -80,13 +80,13 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                 }
                 else
                 {
-                    Contracts.Assert(crun <= src.Size);
-                    for (int i = 0; i < dst.Size; i++)
+                    Contracts.Assert(crun <= src.Length);
+                    for (int i = 0; i < dst.Length; i++)
                     {
                         float dotProduct = 0;
                         for (int j = 0; j < crun; j++)
                         {
-                            dotProduct += mat[j * src.Size + i] * src[j];
+                            dotProduct += mat[j * src.Length + i] * src[j];
                         }
 
                         if (add)
@@ -102,14 +102,14 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             }
         }
 
-        public static void MatTimesSrc(bool tran, bool add, AlignedArray mat, int[] rgposSrc, AlignedArray srcValues,
-            int posMin, int iposMin, int iposLim, AlignedArray dst, int crun)
+        public static void MatTimesSrc(bool tran, bool add, float[] mat, int[] rgposSrc, float[] srcValues,
+            int posMin, int iposMin, int iposLim, float[] dst, int crun)
         {
             Contracts.AssertValue(rgposSrc);
             Contracts.Assert(iposMin >= 0);
             Contracts.Assert(iposMin <= iposLim);
             Contracts.Assert(iposLim <= rgposSrc.Length);
-            Contracts.Assert(mat.Size == dst.Size * srcValues.Size);
+            Contracts.Assert(mat.Length == dst.Length * srcValues.Length);
 
             if (iposMin >= iposLim)
             {
@@ -125,40 +125,40 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             {
                 if (!tran)
                 {
-                    Contracts.Assert(crun <= dst.Size);
-                    AvxIntrinsics.MatMulPX(add, mat, rgposSrc, srcValues, posMin, iposMin, iposLim, dst, crun, srcValues.Size);
+                    Contracts.Assert(crun <= dst.Length);
+                    AvxIntrinsics.MatMulPX(add, mat, rgposSrc, srcValues, posMin, iposMin, iposLim, dst, crun, srcValues.Length);
                 }
                 else
                 {
-                    Contracts.Assert(crun <= srcValues.Size);
-                    AvxIntrinsics.MatMulTranPX(add, mat, rgposSrc, srcValues, posMin, iposMin, iposLim, dst, dst.Size);
+                    Contracts.Assert(crun <= srcValues.Length);
+                    AvxIntrinsics.MatMulTranPX(add, mat, rgposSrc, srcValues, posMin, iposMin, iposLim, dst, dst.Length);
                 }
             }
             else if (Sse.IsSupported)
             {
                 if (!tran)
                 {
-                    Contracts.Assert(crun <= dst.Size);
-                    SseIntrinsics.MatMulPA(add, mat, rgposSrc, srcValues, posMin, iposMin, iposLim, dst, crun, srcValues.Size);
+                    Contracts.Assert(crun <= dst.Length);
+                    SseIntrinsics.MatMulPA(add, mat, rgposSrc, srcValues, posMin, iposMin, iposLim, dst, crun, srcValues.Length);
                 }
                 else
                 {
-                    Contracts.Assert(crun <= srcValues.Size);
-                    SseIntrinsics.MatMulTranPA(add, mat, rgposSrc, srcValues, posMin, iposMin, iposLim, dst, dst.Size);
+                    Contracts.Assert(crun <= srcValues.Length);
+                    SseIntrinsics.MatMulTranPA(add, mat, rgposSrc, srcValues, posMin, iposMin, iposLim, dst, dst.Length);
                 }
             }
             else
             {
                 if (!tran)
                 {
-                    Contracts.Assert(crun <= dst.Size);
+                    Contracts.Assert(crun <= dst.Length);
                     for (int i = 0; i < crun; i++)
                     {
                         float dotProduct = 0;
                         for (int j = iposMin; j < iposLim; j++)
                         {
                             int col = rgposSrc[j] - posMin;
-                            dotProduct += mat[i * srcValues.Size + col] * srcValues[col];
+                            dotProduct += mat[i * srcValues.Length + col] * srcValues[col];
                         }
 
                         if (add)
@@ -173,14 +173,14 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                 }
                 else
                 {
-                    Contracts.Assert(crun <= srcValues.Size);
-                    for (int i = 0; i < dst.Size; i++)
+                    Contracts.Assert(crun <= srcValues.Length);
+                    for (int i = 0; i < dst.Length; i++)
                     {
                         float dotProduct = 0;
                         for (int j = iposMin; j < iposLim; j++)
                         {
                             int col = rgposSrc[j] - posMin;
-                            dotProduct += mat[col * dst.Size + i] * srcValues[col];
+                            dotProduct += mat[col * dst.Length + i] * srcValues[col];
                         }
 
                         if (add)
@@ -947,22 +947,22 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             }
         }
 
-        public static void ZeroMatrixItems(AlignedArray dst, int ccol, int cfltRow, int[] indices)
+        public static void ZeroMatrixItems(float[] dst, int ccol, int cfltRow, int[] indices)
         {
             Contracts.Assert(ccol > 0);
             Contracts.Assert(ccol <= cfltRow);
 
             if (ccol == cfltRow)
             {
-                ZeroItemsU(dst, dst.Size, indices, indices.Length);
+                ZeroItemsU(dst, dst.Length, indices, indices.Length);
             }
             else
             {
-                ZeroMatrixItemsCore(dst, dst.Size, ccol, cfltRow, indices, indices.Length);
+                ZeroMatrixItemsCore(dst, dst.Length, ccol, cfltRow, indices, indices.Length);
             }
         }
 
-        private static unsafe void ZeroItemsU(AlignedArray dst, int c, int[] indices, int cindices)
+        private static unsafe void ZeroItemsU(float[] dst, int c, int[] indices, int cindices)
         {
             fixed (float* pdst = &dst.Items[0])
             fixed (int* pidx = &indices[0])
@@ -977,7 +977,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             }
         }
 
-        private static unsafe void ZeroMatrixItemsCore(AlignedArray dst, int c, int ccol, int cfltRow, int[] indices, int cindices)
+        private static unsafe void ZeroMatrixItemsCore(float[] dst, int c, int ccol, int cfltRow, int[] indices, int cindices)
         {
             fixed (float* pdst = &dst.Items[0])
             fixed (int* pidx = &indices[0])
