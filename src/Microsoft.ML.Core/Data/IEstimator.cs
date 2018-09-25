@@ -245,6 +245,21 @@ namespace Microsoft.ML.Core.Data
         /// Note that <see cref="IDataView"/>'s are lazy, so no actual transformations happen here, just schema validation.
         /// </summary>
         IDataView Transform(IDataView input);
+
+        /// <summary>
+        /// Whether a call to <see cref="GetRowToRowMapper(ISchema)"/> should succeed, on an
+        /// appropriate schema.
+        /// </summary>
+        bool IsRowToRowMapper { get; }
+
+        /// <summary>
+        /// Constructs a row-to-row mapper based on an input schema. If <see cref="IsRowToRowMapper"/>
+        /// is <c>false</c>, then an exception should be thrown. If the input schema is in any way
+        /// unsuitable for constructing the mapper, an exception should likewise be thrown.
+        /// </summary>
+        /// <param name="inputSchema">The input schema for which we should get the mapper.</param>
+        /// <returns>The row to row mapper.</returns>
+        IRowToRowMapper GetRowToRowMapper(ISchema inputSchema);
     }
 
     /// <summary>
