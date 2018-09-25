@@ -161,7 +161,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
         private const string DllName = "MklImports";
 
         // See: https://software.intel.com/en-us/node/521976#8CD904AB-244B-42E4-820A-CC2376E776B8
-        [DllImport(DllName, EntryPoint = "DftiCreateDescriptor", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(DllName, EntryPoint = "DftiCreateDescriptor", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Auto)]
         private static extern int CreateDescriptor(out IntPtr desc, ConfigValue precision, ConfigValue domain, int dimension, int length);
 
         // See: https://software.intel.com/en-us/node/521977
@@ -173,15 +173,15 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
         private static extern int FreeDescriptor(ref IntPtr desc);
 
         // See: https://software.intel.com/en-us/node/521981
-        [DllImport(DllName, EntryPoint = "DftiSetValue", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(DllName, EntryPoint = "DftiSetValue", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Auto)]
         private static extern int SetValue(IntPtr desc, ConfigParam configParam, ConfigValue configValue);
 
         // See: https://software.intel.com/en-us/node/521984
-        [DllImport(DllName, EntryPoint = "DftiComputeForward", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(DllName, EntryPoint = "DftiComputeForward", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Auto)]
         private static extern int ComputeForward(IntPtr desc, [In] double[] inputRe, [In] double[] inputIm, [Out] double[] outputRe, [Out] double[] outputIm);
 
         // See: https://software.intel.com/en-us/node/521985
-        [DllImport(DllName, EntryPoint = "DftiComputeBackward", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(DllName, EntryPoint = "DftiComputeBackward", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Auto)]
         private static extern int ComputeBackward(IntPtr desc, [In] double[] inputRe, [In] double[] inputIm, [Out] double[] outputRe, [Out] double[] outputIm);
 
         // See: https://software.intel.com/en-us/node/521990
