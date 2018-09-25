@@ -181,7 +181,7 @@ namespace Microsoft.ML.Runtime.SymSgd
         /// </summary>
         internal SymSgdClassificationTrainer(IHostEnvironment env, Arguments args)
             : base(Contracts.CheckRef(env, nameof(env)).Register(LoadNameValue), TrainerUtils.MakeR4VecFeature(args.FeatureColumn),
-                  TrainerUtils.MakeR4ScalarLabel(args.LabelColumn), TrainerUtils.MakeR4ScalarWeightColumn(null))
+                  TrainerUtils.MakeBoolScalarLabel(args.LabelColumn), TrainerUtils.MakeR4ScalarWeightColumn(null))
         {
             args.Check(Host);
             _args = args;
