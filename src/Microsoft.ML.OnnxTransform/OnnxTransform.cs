@@ -197,7 +197,7 @@ namespace Microsoft.ML.OnnxScoring
 
                 _parent = parent;
                 var model = _parent.Model;
-                _idvToTensorAdapter = new IdvToTensorAdapter(inputSchema, parent._args,
+                _idvToTensorAdapter = new IdvToTensorAdapter(inputSchema, parent._args.InputColumn,
                                             model.ModelInfo.InputsInfo[0]);
 
                 // TODO: Remove assumption below
@@ -265,107 +265,6 @@ namespace Microsoft.ML.OnnxScoring
                 return valuegetter;
             }
         }
-
-        /// <summary>
-        /// IdvToTensorAdapter adapts an Idv (row-iterator interface) to a tensor-iterator interface.
-        /// For an Idv, you'd need to create a cursor and iterate over it to get each rows of the Idv.
-        /// After adaptation, you'd call GetTensor() on the IdvToTensorAdapter object to get the Tensor equivalent of
-        /// each row.
-        /// </summary>
-        internal sealed class IdvToTensorAdapter
-        {
-            // Idv information
-            private readonly string _idvColumnName;
-            internal readonly int IdvColumnIndex;
-            private readonly bool _idvIsVectorColumn;
-            public readonly ColumnType IdvColumnType;
-
-            // Onnx tensor information
-            private readonly OnnxShape _onnxTensorShape;
-
-            private ITensorValueGetter _tensorValueGetter;
-
-            public IdvToTensorAdapter(ISchema idvSchema, string idvColumnName,
-                                        OnnxModel.OnnxNodeInfo onnxInputNodeInfo)
-            {
-                _idvColumnName = idvColumnName;
-                if (!idvSchema.TryGetColumnIndex(_idvColumnName, out IdvColumnIndex))
-                    throw Contracts.Except($"Column '{_idvColumnName}' does not exist");
-                IdvColumnType = idvSchema.GetColumnType(IdvColumnIndex);
-                _idvIsVectorColumn = IdvColumnType.IsVector;
-                _onnxTensorShape = onnxInputNodeInfo.Shape;
-
-                // TODO: Check that the idv and tensor sizes match
-                // TODO: Check type matches
-
-                // TODO: Add Yaels shape logic here
-                if (_onnxTensorShape[0] == -1)
-                    _onnxTensorShape[0] = 1;
-            }
-
-            public void InitializeValueGetters(IRow idvRow)
-            {
-                var type = IdvColumnType.ItemType.RawType;
-                _tensorValueGetter = Utils.MarshalInvoke(
-                    CreateTensorValueGetter<int>, type, idvRow, _idvIsVectorColumn, IdvColumnIndex, _onnxTensorShape);
-            }
-
-            public Tensor GetTensor()
-            {
-                return _tensorValueGetter.GetTensor();
-            }
-
-            private ITensorValueGetter CreateTensorValueGetter<T>(IRow input, bool isVector, int colIndex, OnnxShape tensorShape)
-            {
-                if (isVector)
-                    return new TensorValueGetterVec<T>(input, colIndex, tensorShape);
-                else
-                    return new TensorValueGetter<T>(input, colIndex);
-            }
-
-            private interface ITensorValueGetter
-            {
-                Tensor GetTensor();
-            }
-
-            private class TensorValueGetter<T> : ITensorValueGetter
-            {
-                private readonly ValueGetter<T> _srcgetter;
-
-                public TensorValueGetter(IRow input, int colIndex)
-                {
-                    _srcgetter = input.GetGetter<T>(colIndex);
-                }
-                public Tensor GetTensor()
-                {
-                    var scalar = default(T);
-                    _srcgetter(ref scalar);
-                    return OnnxUtils.CreateScalarTensor(scalar);
-                }
-            }
-
-            private class TensorValueGetterVec<T> : ITensorValueGetter
-            {
-                private readonly ValueGetter<VBuffer<T>> _srcgetter;
-                private readonly OnnxShape _tensorShape;
-                private VBuffer<T> _vBuffer;
-                private VBuffer<T> _vBufferDense;
-                public TensorValueGetterVec(IRow input, int colIndex, OnnxShape tensorShape)
-                {
-                    _srcgetter = input.GetGetter<VBuffer<T>>(colIndex);
-                    _tensorShape = tensorShape;
-                    _vBuffer = default;
-                    _vBufferDense = default;
-                }
-                public Tensor GetTensor()
-                {
-                    _srcgetter(ref _vBuffer);
-                    _vBuffer.CopyToDense(ref _vBufferDense);
-                    return OnnxUtils.CreateTensor(_vBufferDense.Values, _tensorShape);
-                }
-            }
-        }
-
     }
     public sealed class OnnxEstimator : TrivialEstimator<OnnxTransform>
     {
