@@ -158,9 +158,8 @@ namespace Microsoft.ML.Runtime.SymSgd
         /// <param name="env">The private instance of <see cref="IHostEnvironment"/>.</param>
         /// <param name="labelColumn">The name of the label column.</param>
         /// <param name="featureColumn">The name of the feature column.</param>
-        /// <param name="l2Regularization">The coefficient for L2 regularization term.</param>
         /// <param name="advancedSettings">A delegate to apply all the advanced arguments to the algorithm.</param>
-        public SymSgdClassificationTrainer(IHostEnvironment env, string featureColumn, string labelColumn, float l2Regularization = 0, Action<Arguments> advancedSettings = null)
+        public SymSgdClassificationTrainer(IHostEnvironment env, string featureColumn, string labelColumn, Action<Arguments> advancedSettings = null)
             : base(Contracts.CheckRef(env, nameof(env)).Register(LoadNameValue), TrainerUtils.MakeR4VecFeature(featureColumn),
                   TrainerUtils.MakeBoolScalarLabel(labelColumn))
         {
@@ -171,7 +170,6 @@ namespace Microsoft.ML.Runtime.SymSgd
             advancedSettings?.Invoke(_args);
             _args.FeatureColumn = featureColumn;
             _args.LabelColumn = labelColumn;
-            _args.L2Regularization = l2Regularization;
 
             Info = new TrainerInfo();
         }
