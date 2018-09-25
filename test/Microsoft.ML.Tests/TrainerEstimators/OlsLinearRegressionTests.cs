@@ -14,25 +14,10 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 {
     public partial class TrainerEstimators
     {
-        private IDataView GetGeneratedRegressionDataview()
-        {
-            return new TextLoader(Env,
-            new TextLoader.Arguments()
-            {
-                Separator = ";",
-                HasHeader = true,
-                Column = new[]
-                {
-                    new TextLoader.Column("Label", DataKind.R4, 11),
-                    new TextLoader.Column("Features", DataKind.R4, new [] { new TextLoader.Range(0, 10) } )
-                }
-            }).Read(new MultiFileSource(GetDataPath(TestDatasets.generatedRegressionDataset.trainFilename)));
-        }
-
         [Fact]
         public void TestEstimatorOlsLinearRegression()
         {
-            var dataView = GetGeneratedRegressionDataview();
+            var dataView = GetRegressionPipeline();
             var pipe = new OlsLinearRegressionTrainer(Env, "Features", "Label");
             TestEstimatorCore(pipe, dataView);
             Done();
