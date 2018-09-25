@@ -793,7 +793,7 @@ namespace Microsoft.ML.Runtime.Learners
         /// </summary>
         public void SaveAsText(TextWriter writer, RoleMappedSchema schema)
         {
-            writer.WriteLine(nameof(MulticlassLogisticRegression));
+            writer.WriteLine(nameof(MulticlassLogisticRegression) + " bias and non-zero weights");
 
             foreach (var namedValues in GetSummaryInKeyValuePairs(schema))
             {
