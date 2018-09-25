@@ -7,6 +7,7 @@ using Microsoft.ML.Data.StaticPipe.Runtime;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Internal.Utilities;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -15,48 +16,31 @@ namespace Microsoft.ML.Transforms
     /// <include file='doc.xml' path='doc/members/member[@name="PCA"]/*' />
     public sealed class PcaEstimator : TrainedWrapperEstimatorBase
     {
-        private readonly (string input, string output)[] _columns;
-        private readonly string _weightColumn;
-        private readonly int _rank;
-        private readonly int _oversampling;
-        private readonly bool _center;
-        private readonly int _seed;
+        private readonly PcaTransform.Arguments _args;
 
         /// <include file='doc.xml' path='doc/members/member[@name="PCA"]/*' />
         /// <param name="env">The environment.</param>
         /// <param name="inputColumn">Input column to apply PCA on.</param>
         /// <param name="outputColumn">Output column. Null means <paramref name="inputColumn"/> is replaced.</param>
-        /// <param name="weightColumn">The name of the weight column.</param>
         /// <param name="rank">The number of components in the PCA.</param>
-        /// <param name="oversampling">Oversampling parameter for randomized PCA training.</param>
-        /// <param name="center">If enabled, data is centered to be zero mean.</param>
-        /// <param name="seed">The seed for random number generation.</param>
+        /// <param name="advancedSettings">A delegate to apply all the advanced arguments to the algorithm.</param>
         public PcaEstimator(IHostEnvironment env,
             string inputColumn,
             string outputColumn = null,
-            string weightColumn = null,
-            int rank = 20,
-            int oversampling = 20,
-            bool center = true,
-            int seed = 0)
-            : this(env, new[] { (inputColumn, outputColumn ?? inputColumn) }, weightColumn, rank, oversampling, center, seed)
+            int rank = PcaTransform.Defaults.Rank,
+            Action<PcaTransform.Arguments> advancedSettings = null)
+            : this(env, new[] { (inputColumn, outputColumn ?? inputColumn) }, rank, advancedSettings)
         {
         }
 
         /// <include file='doc.xml' path='doc/members/member[@name="PCA"]/*' />
         /// <param name="env">The environment.</param>
         /// <param name="columns">Pairs of columns to run the PCA on.</param>
-        /// <param name="weightColumn">The name of the weight column.</param>
         /// <param name="rank">The number of components in the PCA.</param>
-        /// <param name="oversampling">Oversampling parameter for randomized PCA training.</param>
-        /// <param name="center">If enabled, data is centered to be zero mean.</param>
-        /// <param name="seed">The seed for random number generation.</param>
+        /// <param name="advancedSettings">A delegate to apply all the advanced arguments to the algorithm.</param>
         public PcaEstimator(IHostEnvironment env, (string input, string output)[] columns,
-            string weightColumn = null,
-            int rank = 20,
-            int oversampling = 20,
-            bool center = true,
-            int seed = 0)
+            int rank = PcaTransform.Defaults.Rank,
+            Action<PcaTransform.Arguments> advancedSettings = null)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(LpNormalizer)))
         {
             foreach (var (input, output) in columns)
@@ -65,27 +49,16 @@ namespace Microsoft.ML.Transforms
                 Host.CheckValue(output, nameof(input));
             }
 
-            _columns = columns;
-            _weightColumn = weightColumn;
-            _rank = rank;
-            _oversampling = oversampling;
-            _center = center;
-            _seed = seed;
+            _args = new PcaTransform.Arguments();
+            _args.Column = columns.Select(x => new PcaTransform.Column { Source = x.input, Name = x.output }).ToArray();
+            _args.Rank = rank;
+
+            advancedSettings?.Invoke(_args);
         }
 
         public override TransformWrapper Fit(IDataView input)
         {
-            var args = new PcaTransform.Arguments
-            {
-                Column = _columns.Select(x => new PcaTransform.Column { Source = x.input, Name = x.output }).ToArray(),
-                WeightColumn = _weightColumn,
-                Rank = _rank,
-                Oversampling = _oversampling,
-                Center = _center,
-                Seed = _seed,
-            };
-
-            return new TransformWrapper(Host, new PcaTransform(Host, args, input));
+            return new TransformWrapper(Host, new PcaTransform(Host, _args, input));
         }
     }
 
@@ -94,25 +67,12 @@ namespace Microsoft.ML.Transforms
     /// </summary>
     public static class PcaEstimatorExtensions
     {
-        private sealed class OutPipelineColumnWithWeights : Vector<float>
-        {
-            public readonly Vector<float> Input;
-            public readonly Vector<float> WeightColumn;
-
-            public OutPipelineColumnWithWeights(Vector<float> input, Vector<float> weightColumn, int rank, int oversampling, bool center, int seed)
-                : base(new Reconciler(weightColumn, rank, oversampling, center, seed), input, weightColumn)
-            {
-                Input = input;
-                WeightColumn = weightColumn;
-            }
-        }
-
         private sealed class OutPipelineColumn : Vector<float>
         {
             public readonly Vector<float> Input;
 
-            public OutPipelineColumn(Vector<float> input, int rank, int oversampling, bool center, int seed)
-                : base(new Reconciler(null, rank, oversampling, center, seed), input)
+            public OutPipelineColumn(Vector<float> input, int rank, Action<PcaTransform.Arguments> advancedSettings)
+                : base(new Reconciler(null, rank, advancedSettings), input)
             {
                 Input = input;
             }
@@ -120,19 +80,13 @@ namespace Microsoft.ML.Transforms
 
         private sealed class Reconciler : EstimatorReconciler
         {
-            private readonly PipelineColumn _weightColumn;
             private readonly int _rank;
-            private readonly int _oversampling;
-            private readonly bool _center;
-            private readonly int _seed;
+            private readonly Action<PcaTransform.Arguments> _advancedSettings;
 
-            public Reconciler(PipelineColumn weightColumn, int rank, int oversampling, bool center, int seed)
+            public Reconciler(PipelineColumn weightColumn, int rank, Action<PcaTransform.Arguments> advancedSettings)
             {
-                _weightColumn = weightColumn;
                 _rank = rank;
-                _oversampling = oversampling;
-                _center = center;
-                _seed = seed;
+                _advancedSettings = advancedSettings;
             }
 
             public override IEstimator<ITransformer> Reconcile(IHostEnvironment env,
@@ -147,40 +101,16 @@ namespace Microsoft.ML.Transforms
                 foreach (var outCol in toOutput)
                     pairs.Add((inputNames[((OutPipelineColumn)outCol).Input], outputNames[outCol]));
 
-                string weightColName = null;
-                if (_weightColumn != null)
-                {
-                    weightColName = inputNames[_weightColumn];
-                }
-
-                return new PcaEstimator(env, pairs.ToArray(), weightColName, _rank, _oversampling, _center, _seed);
+                return new PcaEstimator(env, pairs.ToArray(), _rank, _advancedSettings);
             }
         }
 
         /// <include file='doc.xml' path='doc/members/member[@name="Whitening"]/*'/>
         /// <param name="input">The column to apply PCA to.</param>
         /// <param name="rank">The number of components in the PCA.</param>
-        /// <param name="oversampling">Oversampling parameter for randomized PCA training.</param>
-        /// <param name="center">If enabled, data is centered to be zero mean.</param>
-        /// <param name="seed">The seed for random number generation.</param>
+        /// <param name="advancedSettings">A delegate to apply all the advanced arguments to the algorithm.</param>
         public static Vector<float> ToPrincipalComponents(this Vector<float> input,
-            int rank = 20,
-            int oversampling = 20,
-            bool center = true,
-            int seed = 0) => new OutPipelineColumn(input, rank, oversampling, center, seed);
-
-        /// <include file='doc.xml' path='doc/members/member[@name="Whitening"]/*'/>
-        /// <param name="input">The column to apply PCA to.</param>
-        /// <param name="weightColumn">The name of the weight column.</param>
-        /// <param name="rank">The number of components in the PCA.</param>
-        /// <param name="oversampling">Oversampling parameter for randomized PCA training.</param>
-        /// <param name="center">If enabled, data is centered to be zero mean.</param>
-        /// <param name="seed">The seed for random number generation.</param>
-        public static Vector<float> ToPrincipalComponents(this Vector<float> input,
-            Vector<float> weightColumn,
-            int rank = 20,
-            int oversampling = 20,
-            bool center = true,
-            int seed = 0) => new OutPipelineColumnWithWeights(input, weightColumn, rank, oversampling, center, seed);
+            int rank = PcaTransform.Defaults.Rank,
+            Action<PcaTransform.Arguments> advancedSettings = null) => new OutPipelineColumn(input, rank, advancedSettings);
     }
 }

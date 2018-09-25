@@ -20,7 +20,7 @@ namespace Microsoft.ML.Tests.Transformers
         }
 
         [Fact]
-        public void TestPca()
+        public void PcaWorkout()
         {
             var env = new ConsoleEnvironment(seed: 1, conc: 1);
             string dataSource = GetDataPath("generated_regression_dataset.csv");
@@ -34,8 +34,13 @@ namespace Microsoft.ML.Tests.Transformers
                 separator: ';', hasHeader: true)
                 .Read(new MultiFileSource(dataSource));
 
-            var est = new PcaEstimator(env, "features", "pca", null, rank: 5, seed: 1);
-            //TestEstimatorCore(est, data.AsDynamic, invalidInput: invalidData.AsDynamic);
+            var est = new PcaEstimator(env, "features", "pca", rank: 5, advancedSettings: s => {
+                    s.Seed = 1;
+                });
+
+            // The following call fails because of the following issue
+            // https://github.com/dotnet/machinelearning/issues/969
+            // TestEstimatorCore(est, data.AsDynamic, invalidInput: invalidData.AsDynamic);
 
             var outputPath = GetOutputPath("PCA", "pca.tsv");
             using (var ch = env.Start("save"))
