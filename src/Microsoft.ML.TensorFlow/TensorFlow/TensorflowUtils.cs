@@ -162,20 +162,21 @@ namespace Microsoft.ML.Transforms.TensorFlow
 
         private static TFSession LoadTFSession(IHostEnvironment env, string exportDirSavedModel)
         {
+            Contracts.Check(env != null, nameof(env));
             env.CheckValue(exportDirSavedModel, nameof(exportDirSavedModel));
             var sessionOptions = new TFSessionOptions();
-            var exportDir = exportDirSavedModel;
             var tags = new string[] { "serve" };
             var graph = new TFGraph();
             var metaGraphDef = new TFBuffer();
 
-            return TFSession.FromSavedModel(sessionOptions, null, exportDir, tags, graph, metaGraphDef);
+            return TFSession.FromSavedModel(sessionOptions, null, exportDirSavedModel, tags, graph, metaGraphDef);
         }
 
         // A TensorFlow frozen model is a single file. An un-frozen (SavedModel) on the other hand has a well-defined folder structure.
         // Given a modelPath, this utility method determines if we should treat it as a SavedModel or not
         internal static bool IsSavedModel(IHostEnvironment env, string modelPath)
         {
+            Contracts.Check(env != null, nameof(env));
             env.CheckNonWhiteSpace(modelPath, nameof(modelPath));
             FileAttributes attr = File.GetAttributes(modelPath);
             return attr.HasFlag(FileAttributes.Directory);
@@ -189,6 +190,7 @@ namespace Microsoft.ML.Transforms.TensorFlow
         /// </summary>
         internal static void CreateFolderWithAclIfNotExists(IHostEnvironment env, string folder)
         {
+            Contracts.Check(env != null, nameof(env));
             env.CheckNonWhiteSpace(folder, nameof(folder));
 
             //if directory exists, do nothing.
@@ -224,6 +226,7 @@ namespace Microsoft.ML.Transforms.TensorFlow
 
         internal static void DeleteFolderWithRetries(IHostEnvironment env, string folder)
         {
+            Contracts.Check(env != null, nameof(env));
             int currentRetry = 0;
             int maxRetryCount = 10;
             using (var ch = env.Start("Delete folder"))
@@ -291,6 +294,7 @@ namespace Microsoft.ML.Transforms.TensorFlow
 
         internal static TFSession GetSession(IHostEnvironment env, string modelPath)
         {
+            Contracts.Check(env != null, nameof(env));
             if (IsSavedModel(env, modelPath))
             {
                 env.CheckUserArg(Directory.Exists(modelPath), nameof(modelPath));
