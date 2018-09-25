@@ -59,10 +59,10 @@ namespace Microsoft.ML.Trainers
                 var trainer = new FieldAwareFactorizationMachineTrainer(env, labelCol, featureCols, advancedSettings:
                     args =>
                     {
+                        advancedSettings?.Invoke(args);
                         args.LearningRate = learningRate;
                         args.Iters = numIterations;
                         args.LatentDim = numLatentDimensions;
-                        advancedSettings?.Invoke(args);
                     });
                 if (onFit != null)
                     return trainer.WithOnFitDelegate(trans => onFit(trans.Model));
