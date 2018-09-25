@@ -7,7 +7,6 @@ using Float = System.Single;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using Microsoft.ML.Runtime.CommandLine;
 
 namespace Microsoft.ML.Runtime.RunTests
 {
@@ -15,6 +14,8 @@ namespace Microsoft.ML.Runtime.RunTests
     using Microsoft.ML.Runtime.EntryPoints;
     using Microsoft.ML.Runtime.FastTree;
     using Microsoft.ML.Runtime.FastTree.Internal;
+    using Microsoft.ML.Runtime.LightGBM;
+    using Microsoft.ML.Runtime.SymSgd;
     using Microsoft.ML.TestFramework;
     using System.Linq;
     using System.Runtime.InteropServices;
@@ -27,6 +28,20 @@ namespace Microsoft.ML.Runtime.RunTests
     /// </summary>
     public sealed partial class TestPredictors : BaseTestPredictors
     {
+        protected override void InitializeCore()
+        {
+            base.InitializeCore();
+            InitializeEnvironment(Env);
+        }
+
+        protected override void InitializeEnvironment(IHostEnvironment environment)
+        {
+            base.InitializeEnvironment(environment);
+
+            environment.ComponentCatalog.RegisterAssembly(typeof(LightGbmBinaryPredictor).Assembly);
+            environment.ComponentCatalog.RegisterAssembly(typeof(SymSgdClassificationTrainer).Assembly);
+        }
+
         /// <summary>
         /// Get a list of datasets for binary classifier base test.
         /// </summary>
