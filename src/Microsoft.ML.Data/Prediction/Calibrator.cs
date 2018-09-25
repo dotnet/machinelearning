@@ -332,7 +332,8 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
                 verWrittenCur: 0x00010001, // Initial
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
-                loaderSignature: LoaderSignature);
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(CalibratedPredictor).Assembly.FullName);
         }
         private static VersionInfo GetVersionInfoBulk()
         {
@@ -341,7 +342,8 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
                 verWrittenCur: 0x00010001, // Initial
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
-                loaderSignature: LoaderSignature);
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(CalibratedPredictor).Assembly.FullName);
         }
 
         private CalibratedPredictor(IHostEnvironment env, ModelLoadContext ctx)
@@ -393,7 +395,8 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
                 verWrittenCur: 0x00010001, // Initial
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
-                loaderSignature: LoaderSignature);
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(FeatureWeightsCalibratedPredictor).Assembly.FullName);
         }
 
         private FeatureWeightsCalibratedPredictor(IHostEnvironment env, ModelLoadContext ctx)
@@ -455,7 +458,8 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
                 verWrittenCur: 0x00010001, // Initial
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
-                loaderSignature: LoaderSignature);
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(ParameterMixingCalibratedPredictor).Assembly.FullName);
         }
 
         private ParameterMixingCalibratedPredictor(IHostEnvironment env, ModelLoadContext ctx)
@@ -608,7 +612,8 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
                 verWrittenCur: 0x00010001, // Initial
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
-                loaderSignature: LoaderSignature);
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(SchemaBindableCalibratedPredictor).Assembly.FullName);
         }
 
         /// <summary>
@@ -967,7 +972,8 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
                 verWrittenCur: 0x00010001, // Initial
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
-                loaderSignature: LoaderSignature);
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(NaiveCalibrator).Assembly.FullName);
         }
 
         private readonly IHost _host;
@@ -1334,7 +1340,8 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
                 verWrittenCur: 0x00010001, // Initial
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
-                loaderSignature: LoaderSignature);
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(PlattCalibrator).Assembly.FullName);
         }
 
         private readonly IHost _host;
@@ -1569,7 +1576,8 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
                 verWrittenCur: 0x00010001, // Initial
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
-                loaderSignature: LoaderSignature);
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(PavCalibrator).Assembly.FullName);
         }
 
         // Epsilon for 0-comparisons

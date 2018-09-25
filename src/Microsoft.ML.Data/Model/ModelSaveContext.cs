@@ -24,7 +24,7 @@ namespace Microsoft.ML.Runtime.Model
         public readonly RepositoryWriter Repository;
 
         /// <summary>
-        /// When in repository mode, this is the direcory we're reading from. Null means the root
+        /// When in repository mode, this is the directory we're reading from. Null means the root
         /// of the repository. It is always null in single-stream mode.
         /// </summary>
         public readonly string Directory;
@@ -58,6 +58,11 @@ namespace Microsoft.ML.Runtime.Model
         /// Exception context provided by Repository (can be null).
         /// </summary>
         private readonly IExceptionContext _ectx;
+
+        /// <summary>
+        /// The assembly name where the loader resides.
+        /// </summary>
+        private string _loaderAssemblyName;
 
         /// <summary>
         /// Returns whether this context is in repository mode (true) or single-stream mode (false).
@@ -131,6 +136,7 @@ namespace Microsoft.ML.Runtime.Model
         public void SetVersionInfo(VersionInfo ver)
         {
             ModelHeader.SetVersionInfo(ref Header, ver);
+            _loaderAssemblyName = ver.LoaderAssemblyName;
         }
 
         public void SaveTextStream(string name, Action<TextWriter> action)
@@ -212,7 +218,7 @@ namespace Microsoft.ML.Runtime.Model
         public void Done()
         {
             _ectx.Check(Header.ModelSignature != 0, "ModelSignature not specified!");
-            ModelHeader.EndWrite(Writer, FpMin, ref Header, Strings);
+            ModelHeader.EndWrite(Writer, FpMin, ref Header, Strings, _loaderAssemblyName);
             Dispose();
         }
 

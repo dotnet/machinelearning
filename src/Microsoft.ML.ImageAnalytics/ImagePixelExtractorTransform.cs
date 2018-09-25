@@ -298,7 +298,8 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
                 verWrittenCur: 0x00010002, // Swith from OpenCV to Bitmap
                 verReadableCur: 0x00010002,
                 verWeCanReadBack: 0x00010002,
-                loaderSignature: LoaderSignature);
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(ImagePixelExtractorTransform).Assembly.FullName);
         }
 
         private const string RegistrationName = "ImagePixelExtractor";

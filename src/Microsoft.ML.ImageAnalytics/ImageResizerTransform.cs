@@ -155,7 +155,8 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
                 verWrittenCur: 0x00010003, // No more sizeof(float)
                 verReadableCur: 0x00010003,
                 verWeCanReadBack: 0x00010003,
-                loaderSignature: LoaderSignature);
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(ImageResizerTransform).Assembly.FullName);
         }
 
         private const string RegistrationName = "ImageScaler";

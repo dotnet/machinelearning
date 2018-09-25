@@ -144,7 +144,8 @@ namespace Microsoft.ML.Runtime.Data
                 verWrittenCur: 0x00010002, // Get rid of writing float size in model context
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
-                loaderSignature: LoaderSignature);
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(KeyToVectorTransform).Assembly.FullName);
         }
 
         public override void Save(ModelSaveContext ctx)
