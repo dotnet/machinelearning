@@ -34,9 +34,9 @@ namespace Microsoft.ML.Runtime.SymSgd
     /// <include file='doc.xml' path='doc/members/member[@name="SymSGD"]/*' />
     public sealed class SymSgdClassificationTrainer : TrainerEstimatorBase<BinaryPredictionTransformer<TPredictor>, TPredictor>
     {
-        public const string LoadNameValue = "SymbolicSGD";
-        public const string UserNameValue = "Symbolic SGD (binary)";
-        public const string ShortName = "SymSGD";
+        internal const string LoadNameValue = "SymbolicSGD";
+        internal const string UserNameValue = "Symbolic SGD (binary)";
+        internal const string ShortName = "SymSGD";
 
         public sealed class Arguments : LearnerInputBaseWithLabel
         {
@@ -163,19 +163,16 @@ namespace Microsoft.ML.Runtime.SymSgd
         public SymSgdClassificationTrainer(IHostEnvironment env, string featureColumn, string labelColumn,
             string weightColumn = null, Action<Arguments> advancedSettings = null)
             : base(Contracts.CheckRef(env, nameof(env)).Register(LoadNameValue), TrainerUtils.MakeR4VecFeature(featureColumn),
-                  TrainerUtils.MakeR4ScalarLabel(labelColumn), TrainerUtils.MakeR4ScalarWeightColumn(weightColumn))
+                  TrainerUtils.MakeBoolScalarLabel(labelColumn), TrainerUtils.MakeR4ScalarWeightColumn(weightColumn))
         {
-            var args = new Arguments();
+            _args = new Arguments();
 
-            //apply the advanced args, if the user supplied any
-            args.Check(Host);
-            advancedSettings?.Invoke(args);
-            args.FeatureColumn = featureColumn;
-            args.LabelColumn = labelColumn;
-            // TODO:
-            //args.WeightColumn = weightColumn;
+            // Apply the advanced args, if the user supplied any.
+            _args.Check(Host);
+            advancedSettings?.Invoke(_args);
+            _args.FeatureColumn = featureColumn;
+            _args.LabelColumn = labelColumn;
 
-            _args = args;
             Info = new TrainerInfo();
         }
 
