@@ -516,12 +516,12 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
         {
             private readonly SchemaBindableCalibratedPredictor _parent;
             private readonly ISchemaBoundRowMapper _predictor;
-            private readonly ISchema _outputSchema;
             private readonly int _scoreCol;
 
             public ISchemaBindableMapper Bindable => _parent;
-            public RoleMappedSchema InputSchema => _predictor.InputSchema;
-            public ISchema OutputSchema => _outputSchema;
+            public RoleMappedSchema InputRoleMappedSchema => _predictor.InputRoleMappedSchema;
+            public ISchema InputSchema => _predictor.InputSchema;
+            public ISchema Schema { get; }
 
             public Bound(IHostEnvironment env, SchemaBindableCalibratedPredictor parent, RoleMappedSchema schema)
             {
@@ -530,16 +530,16 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
                 _parent = parent;
                 _predictor = _parent._bindable.Bind(env, schema) as ISchemaBoundRowMapper;
                 env.Check(_predictor != null, "Predictor is not a row-to-row mapper");
-                if (!_predictor.OutputSchema.TryGetColumnIndex(MetadataUtils.Const.ScoreValueKind.Score, out _scoreCol))
+                if (!_predictor.Schema.TryGetColumnIndex(MetadataUtils.Const.ScoreValueKind.Score, out _scoreCol))
                     throw env.Except("Predictor does not output a score");
-                var scoreType = _predictor.OutputSchema.GetColumnType(_scoreCol);
+                var scoreType = _predictor.Schema.GetColumnType(_scoreCol);
                 env.Check(!scoreType.IsVector && scoreType.IsNumber);
-                _outputSchema = new BinaryClassifierSchema();
+                Schema = new BinaryClassifierSchema();
             }
 
             public Func<int, bool> GetDependencies(Func<int, bool> predicate)
             {
-                for (int i = 0; i < OutputSchema.ColumnCount; i++)
+                for (int i = 0; i < Schema.ColumnCount; i++)
                 {
                     if (predicate(i))
                         return _predictor.GetDependencies(col => true);
@@ -552,10 +552,10 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
                 return _predictor.GetInputColumnRoles();
             }
 
-            public IRow GetOutputRow(IRow input, Func<int, bool> predicate, out Action disposer)
+            public IRow GetRow(IRow input, Func<int, bool> predicate, out Action disposer)
             {
                 Func<int, bool> predictorPredicate = col => false;
-                for (int i = 0; i < _outputSchema.ColumnCount; i++)
+                for (int i = 0; i < Schema.ColumnCount; i++)
                 {
                     if (predicate(i))
                     {
@@ -563,18 +563,18 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
                         break;
                     }
                 }
-                var predictorRow = _predictor.GetOutputRow(input, predictorPredicate, out disposer);
-                var getters = new Delegate[_outputSchema.ColumnCount];
-                for (int i = 0; i < _outputSchema.ColumnCount - 1; i++)
+                var predictorRow = _predictor.GetRow(input, predictorPredicate, out disposer);
+                var getters = new Delegate[Schema.ColumnCount];
+                for (int i = 0; i < Schema.ColumnCount - 1; i++)
                 {
                     var type = predictorRow.Schema.GetColumnType(i);
                     if (!predicate(i))
                         continue;
                     getters[i] = Utils.MarshalInvoke(GetPredictorGetter<int>, type.RawType, predictorRow, i);
                 }
-                if (predicate(_outputSchema.ColumnCount - 1))
-                    getters[_outputSchema.ColumnCount - 1] = GetProbGetter(predictorRow);
-                return new SimpleRow(_outputSchema, predictorRow, getters);
+                if (predicate(Schema.ColumnCount - 1))
+                    getters[Schema.ColumnCount - 1] = GetProbGetter(predictorRow);
+                return new SimpleRow(Schema, predictorRow, getters);
             }
 
             private Delegate GetPredictorGetter<T>(IRow input, int col)
@@ -719,7 +719,7 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
 
             var bindable = ScoreUtils.GetSchemaBindableMapper(env, predictor);
             var bound = bindable.Bind(env, schema);
-            var outputSchema = bound.OutputSchema;
+            var outputSchema = bound.Schema;
             int scoreCol;
             if (!outputSchema.TryGetColumnIndex(MetadataUtils.Const.ScoreValueKind.Score, out scoreCol))
             {

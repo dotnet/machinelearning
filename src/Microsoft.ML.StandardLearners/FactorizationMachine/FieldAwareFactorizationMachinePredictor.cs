@@ -302,6 +302,14 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
             return _scorer.ApplyToData(Host, input);
         }
 
+        public override bool IsRowToRowMapper => true;
+
+        public override IRowToRowMapper GetRowToRowMapper(ISchema inputSchema)
+        {
+            Host.CheckValue(inputSchema, nameof(inputSchema));
+            return (IRowToRowMapper)_scorer.ApplyToData(Host, new EmptyDataView(Host, inputSchema));
+        }
+
         /// <summary>
         /// Saves the transformer to file.
         /// </summary>
