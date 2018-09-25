@@ -360,6 +360,8 @@ namespace Microsoft.ML.Runtime.Data
             return predicateInput;
         }
 
+        ISchema IRowToRowMapper.InputSchema => Source.Schema;
+
         public IRow GetRow(IRow input, Func<int, bool> active, out Action disposer)
         {
             Host.CheckValue(input, nameof(input));

@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Microsoft.ML.Core.Data;
-using Microsoft.ML.Data.StaticPipe.Runtime;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
@@ -17,6 +16,8 @@ using Microsoft.ML.Runtime.Internal.Internallearn;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.TextAnalytics;
+using Microsoft.ML.StaticPipe;
+using Microsoft.ML.StaticPipe.Runtime;
 
 [assembly: LoadableClass(TextTransform.Summary, typeof(IDataTransform), typeof(TextTransform), typeof(TextTransform.Arguments), typeof(SignatureDataTransform),
     TextTransform.UserName, "TextTransform", TextTransform.LoaderSignature)]
@@ -582,6 +583,26 @@ namespace Microsoft.ML.Runtime.Data
             {
                 _host.CheckValue(input, nameof(input));
                 return ApplyTransformUtils.ApplyAllTransformsToData(_host, _xf, input);
+            }
+
+            public bool IsRowToRowMapper => true;
+
+            public IRowToRowMapper GetRowToRowMapper(ISchema inputSchema)
+            {
+                _host.CheckValue(inputSchema, nameof(inputSchema));
+                var input = new EmptyDataView(_host, inputSchema);
+                var revMaps = new List<IRowToRowMapper>();
+                IDataView chain;
+                for (chain = ApplyTransformUtils.ApplyAllTransformsToData(_host, _xf, input); chain is IDataTransform xf; chain = xf.Source)
+                {
+                    // Everything in the chain ought to be a row mapper.
+                    _host.Assert(xf is IRowToRowMapper);
+                    revMaps.Add((IRowToRowMapper)xf);
+                }
+                // The walkback should have ended at the input.
+                Contracts.Assert(chain == input);
+                revMaps.Reverse();
+                return new CompositeRowToRowMapper(inputSchema, revMaps.ToArray());
             }
 
             public void Save(ModelSaveContext ctx)

@@ -16,7 +16,7 @@ namespace Microsoft.ML.Runtime.Api
     /// It can populate the user-supplied object's fields with the values of the current row.
     /// </summary>
     /// <typeparam name="TRow">The user-defined type that is being populated while cursoring.</typeparam>
-    public interface IRow<TRow> : IRow
+    public interface IRowReadableAs<TRow> : IRow
         where TRow : class
     {
         /// <summary>
@@ -27,11 +27,27 @@ namespace Microsoft.ML.Runtime.Api
     }
 
     /// <summary>
+    /// This interface is an <see cref="IRow"/> with 'strongly typed' binding.
+    /// It can accept values of type <typeparamref name="TRow"/> and present the value as a row.
+    /// </summary>
+    /// <typeparam name="TRow">The user-defined type that provides the values while cursoring.</typeparam>
+    public interface IRowBackedBy<TRow> : IRow
+        where TRow : class
+    {
+        /// <summary>
+        /// Accepts the fields of the user-supplied <paramref name="row"/> object and publishes the instance as a row.
+        /// If the row is accessed prior to any object being set, then the data accessors on the row should throw.
+        /// </summary>
+        /// <param name="row">The row object. Cannot be <c>null</c>.</param>
+        void ExtractValues(TRow row);
+    }
+
+    /// <summary>
     /// This interface provides cursoring through a <see cref="IDataView"/> via a 'strongly typed' binding.
     /// It can populate the user-supplied object's fields with the values of the current row.
     /// </summary>
     /// <typeparam name="TRow">The user-defined type that is being populated while cursoring.</typeparam>
-    public interface IRowCursor<TRow> : IRow<TRow>, ICursor
+    public interface IRowCursor<TRow> : IRowReadableAs<TRow>, ICursor
         where TRow : class
     {
     }
@@ -159,7 +175,7 @@ namespace Microsoft.ML.Runtime.Api
             return GetCursor(x => false, randomSeed);
         }
 
-        public IRow<TRow> GetRow(IRow input)
+        public IRowReadableAs<TRow> GetRow(IRow input)
         {
             return new TypedRow(this, input);
         }
@@ -233,17 +249,17 @@ namespace Microsoft.ML.Runtime.Api
             return new TypedCursorable<TRow>(env, data, ignoreMissingColumns, outSchema);
         }
 
-        private abstract class TypedRowBase : IRow<TRow>
+        private abstract class TypedRowBase : IRowReadableAs<TRow>
         {
             protected readonly IChannel Ch;
             private readonly IRow _input;
             private readonly Action<TRow>[] _setters;
 
-            public long Batch { get { return _input.Batch; } }
+            public long Batch => _input.Batch;
 
-            public long Position { get { return _input.Position; } }
+            public long Position => _input.Position;
 
-            public ISchema Schema { get { return _input.Schema; } }
+            public ISchema Schema => _input.Schema;
 
             public TypedRowBase(TypedCursorable<TRow> parent, IRow input, string channelMessage)
             {

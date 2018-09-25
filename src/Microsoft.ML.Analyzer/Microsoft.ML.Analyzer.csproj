@@ -2,6 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard1.3</TargetFramework>
+    <IncludeAnalyzerInPackage>Microsoft.ML</IncludeAnalyzerInPackage>
   </PropertyGroup>
 
   <ItemGroup>
