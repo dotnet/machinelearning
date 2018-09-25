@@ -24,7 +24,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         public static int GetVectorAlignment()
             => Avx.IsSupported ? Vector256Alignment : (Sse.IsSupported ? Vector128Alignment : FloatAlignment);
 
-        public static void MatTimessource(bool transpose, bool add, AlignedArray mat, AlignedArray source, AlignedArray destination, int crun)
+        public static void MatTimesSource(bool transpose, bool add, AlignedArray mat, AlignedArray source, AlignedArray destination, int crun)
         {
             Contracts.Assert(mat.Size == destination.Size * source.Size);
             Contracts.Assert(crun >= 0);
@@ -102,7 +102,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             }
         }
 
-        public static void MatTimessource(bool transpose, bool add, AlignedArray mat, int[] rgpossource, AlignedArray sourceValues,
+        public static void MatTimesSource(bool transpose, bool add, AlignedArray mat, int[] rgpossource, AlignedArray sourceValues,
             int posMin, int iposMin, int iposLim, AlignedArray destination, int crun)
         {
             Contracts.AssertValue(rgpossource);
