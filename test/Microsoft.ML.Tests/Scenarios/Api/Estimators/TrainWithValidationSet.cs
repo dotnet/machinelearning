@@ -4,6 +4,7 @@
 
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Learners;
+using Microsoft.ML.Runtime.RunTests;
 using Xunit;
 
 namespace Microsoft.ML.Tests.Scenarios.Api
@@ -17,20 +18,17 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         [Fact]
         public void New_TrainWithValidationSet()
         {
-            var dataPath = GetDataPath(SentimentDataPath);
-            var validationDataPath = GetDataPath(SentimentTestPath);
-
-            using (var env = new TlcEnvironment(seed: 1, conc: 1))
+            using (var env = new LocalEnvironment(seed: 1, conc: 1))
             {
                 // Pipeline.
                 var reader = new TextLoader(env, MakeSentimentTextLoaderArgs());
                 var pipeline = new TextTransform(env, "SentimentText", "Features");
 
                 // Train the pipeline, prepare train and validation set.
-                var data = reader.Read(new MultiFileSource(dataPath));
+                var data = reader.Read(new MultiFileSource(GetDataPath(TestDatasets.Sentiment.trainFilename)));
                 var preprocess = pipeline.Fit(data);
                 var trainData = preprocess.Transform(data);
-                var validData = preprocess.Transform(reader.Read(new MultiFileSource(validationDataPath)));
+                var validData = preprocess.Transform(reader.Read(new MultiFileSource(GetDataPath(TestDatasets.Sentiment.testFilename))));
 
                 // Train model with validation set.
                 var trainer = new LinearClassificationTrainer(env, new LinearClassificationTrainer.Arguments(), "Features", "Label");

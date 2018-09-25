@@ -5,6 +5,7 @@
 using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Learners;
+using Microsoft.ML.Runtime.RunTests;
 using System.Linq;
 using Xunit;
 
@@ -24,13 +25,12 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         [Fact]
         void DecomposableTrainAndPredict()
         {
-            var dataPath = GetDataPath(IrisDataPath);
-            using (var env = new TlcEnvironment())
+            using (var env = new LocalEnvironment())
             {
-                var loader = TextLoader.ReadFile(env, MakeIrisTextLoaderArgs(), new MultiFileSource(dataPath));
+                var loader = TextLoader.ReadFile(env, MakeIrisTextLoaderArgs(), new MultiFileSource(GetDataPath(TestDatasets.irisData.trainFilename)));
                 var term = TermTransform.Create(env, loader, "Label");
                 var concat = new ConcatTransform(env, "Features", "SepalLength", "SepalWidth", "PetalLength", "PetalWidth").Transform(term);
-                var trainer = new SdcaMultiClassTrainer(env, new SdcaMultiClassTrainer.Arguments { MaxIterations = 100, Shuffle = true, NumThreads = 1 });
+                var trainer = new SdcaMultiClassTrainer(env, new SdcaMultiClassTrainer.Arguments { MaxIterations = 100, Shuffle = true, NumThreads = 1 }, "Features", "Label");
 
                 IDataView trainData = trainer.Info.WantCaching ? (IDataView)new CacheDataView(env, concat, prefetch: null) : concat;
                 var trainRoles = new RoleMappedData(trainData, label: "Label", feature: "Features");
@@ -47,8 +47,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                 var keyToValue = new KeyToValueTransform(env, "PredictedLabel").Transform(newScorer);
                 var model = env.CreatePredictionEngine<IrisDataNoLabel, IrisPrediction>(keyToValue);
 
-                var testLoader = TextLoader.ReadFile(env, MakeIrisTextLoaderArgs(), new MultiFileSource(dataPath));
-                var testData = testLoader.AsEnumerable<IrisDataNoLabel>(env, false);
+                var testData = loader.AsEnumerable<IrisDataNoLabel>(env, false);
                 foreach (var input in testData.Take(20))
                 {
                     var prediction = model.Predict(input);

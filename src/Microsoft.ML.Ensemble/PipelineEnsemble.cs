@@ -40,19 +40,20 @@ namespace Microsoft.ML.Runtime.Ensemble
             protected readonly int[] ScoreCols;
 
             public ISchemaBindableMapper Bindable => Parent;
-            public RoleMappedSchema InputSchema { get; }
-            public ISchema OutputSchema { get; }
+            public RoleMappedSchema InputRoleMappedSchema { get; }
+            public ISchema InputSchema => InputRoleMappedSchema.Schema;
+            public ISchema Schema { get; }
 
             public BoundBase(SchemaBindablePipelineEnsembleBase parent, RoleMappedSchema schema)
             {
                 Parent = parent;
-                InputSchema = schema;
-                OutputSchema = new ScoreMapperSchema(Parent.ScoreType, Parent._scoreColumnKind);
+                InputRoleMappedSchema = schema;
+                Schema = new ScoreMapperSchema(Parent.ScoreType, Parent._scoreColumnKind);
                 _inputColIndices = new HashSet<int>();
                 for (int i = 0; i < Parent._inputCols.Length; i++)
                 {
                     var name = Parent._inputCols[i];
-                    if (!InputSchema.Schema.TryGetColumnIndex(name, out int col))
+                    if (!InputRoleMappedSchema.Schema.TryGetColumnIndex(name, out int col))
                         throw Parent.Host.Except("Schema does not contain required input column '{0}'", name);
                     _inputColIndices.Add(col);
                 }
@@ -73,7 +74,7 @@ namespace Microsoft.ML.Runtime.Ensemble
                         throw Parent.Host.Except("Predictor {0} is not a row to row mapper", i);
 
                     // Make sure there is a score column, and remember its index.
-                    if (!Mappers[i].OutputSchema.TryGetColumnIndex(MetadataUtils.Const.ScoreValueKind.Score, out ScoreCols[i]))
+                    if (!Mappers[i].Schema.TryGetColumnIndex(MetadataUtils.Const.ScoreValueKind.Score, out ScoreCols[i]))
                         throw Parent.Host.Except("Predictor {0} does not contain a score column", i);
 
                     // Get the pipeline.
@@ -88,7 +89,7 @@ namespace Microsoft.ML.Runtime.Ensemble
 
             public Func<int, bool> GetDependencies(Func<int, bool> predicate)
             {
-                for (int i = 0; i < OutputSchema.ColumnCount; i++)
+                for (int i = 0; i < Schema.ColumnCount; i++)
                 {
                     if (predicate(i))
                         return col => _inputColIndices.Contains(col);
@@ -101,9 +102,9 @@ namespace Microsoft.ML.Runtime.Ensemble
                 yield break;
             }
 
-            public IRow GetOutputRow(IRow input, Func<int, bool> predicate, out Action disposer)
+            public IRow GetRow(IRow input, Func<int, bool> predicate, out Action disposer)
             {
-                return new SimpleRow(OutputSchema, input, new[] { CreateScoreGetter(input, predicate, out disposer) });
+                return new SimpleRow(Schema, input, new[] { CreateScoreGetter(input, predicate, out disposer) });
             }
 
             public abstract Delegate CreateScoreGetter(IRow input, Func<int, bool> mapperPredicate, out Action disposer);
@@ -139,7 +140,7 @@ namespace Microsoft.ML.Runtime.Ensemble
                         disposer += disp;
 
                         // Next we get the output row from the predictors. We activate the score column as output predicate.
-                        var predictorRow = Mappers[i].GetOutputRow(pipelineRow, col => col == ScoreCols[i], out disp);
+                        var predictorRow = Mappers[i].GetRow(pipelineRow, col => col == ScoreCols[i], out disp);
                         disposer += disp;
                         getters[i] = predictorRow.GetGetter<T>(ScoreCols[i]);
                     }
@@ -159,27 +160,27 @@ namespace Microsoft.ML.Runtime.Ensemble
                 public ValueGetter<Single> GetLabelGetter(IRow input, int i, out Action disposer)
                 {
                     Parent.Host.Assert(0 <= i && i < Mappers.Length);
-                    Parent.Host.Check(Mappers[i].InputSchema.Label != null, "Mapper was not trained using a label column");
+                    Parent.Host.Check(Mappers[i].InputRoleMappedSchema.Label != null, "Mapper was not trained using a label column");
 
                     // The label should be in the output row of the i'th pipeline
-                    var pipelineRow = BoundPipelines[i].GetRow(input, col => col == Mappers[i].InputSchema.Label.Index, out disposer);
-                    return RowCursorUtils.GetLabelGetter(pipelineRow, Mappers[i].InputSchema.Label.Index);
+                    var pipelineRow = BoundPipelines[i].GetRow(input, col => col == Mappers[i].InputRoleMappedSchema.Label.Index, out disposer);
+                    return RowCursorUtils.GetLabelGetter(pipelineRow, Mappers[i].InputRoleMappedSchema.Label.Index);
                 }
 
                 public ValueGetter<Single> GetWeightGetter(IRow input, int i, out Action disposer)
                 {
                     Parent.Host.Assert(0 <= i && i < Mappers.Length);
 
-                    if (Mappers[i].InputSchema.Weight == null)
+                    if (Mappers[i].InputRoleMappedSchema.Weight == null)
                     {
                         ValueGetter<Single> weight = (ref Single dst) => dst = 1;
                         disposer = null;
                         return weight;
                     }
                     // The weight should be in the output row of the i'th pipeline if it exists.
-                    var inputPredicate = Mappers[i].GetDependencies(col => col == Mappers[i].InputSchema.Weight.Index);
+                    var inputPredicate = Mappers[i].GetDependencies(col => col == Mappers[i].InputRoleMappedSchema.Weight.Index);
                     var pipelineRow = BoundPipelines[i].GetRow(input, inputPredicate, out disposer);
-                    return pipelineRow.GetGetter<Single>(Mappers[i].InputSchema.Weight.Index);
+                    return pipelineRow.GetGetter<Single>(Mappers[i].InputRoleMappedSchema.Weight.Index);
                 }
             }
 

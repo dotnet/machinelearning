@@ -2,28 +2,37 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Reflection;
-using System.Text;
-using System.IO;
-using System.Linq;
+using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Data.IO;
 using Microsoft.ML.Runtime.Data.Conversion;
+using Microsoft.ML.Runtime.Data.IO;
 using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.Model.Onnx;
+using Microsoft.ML.StaticPipe;
+using Microsoft.ML.StaticPipe.Runtime;
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Reflection;
+using System.Text;
 
-[assembly: LoadableClass(typeof(NAReplaceTransform), typeof(NAReplaceTransform.Arguments), typeof(SignatureDataTransform),
-   NAReplaceTransform.FriendlyName, NAReplaceTransform.LoadName, "NAReplace", NAReplaceTransform.ShortName, DocName = "transform/NAHandle.md")]
+[assembly: LoadableClass(NAReplaceTransform.Summary, typeof(IDataTransform), typeof(NAReplaceTransform), typeof(NAReplaceTransform.Arguments), typeof(SignatureDataTransform),
+    NAReplaceTransform.FriendlyName, NAReplaceTransform.LoadName, "NAReplace", NAReplaceTransform.ShortName, DocName = "transform/NAHandle.md")]
 
-[assembly: LoadableClass(typeof(NAReplaceTransform), null, typeof(SignatureLoadDataTransform),
+[assembly: LoadableClass(NAReplaceTransform.Summary, typeof(IDataTransform), typeof(NAReplaceTransform), null, typeof(SignatureLoadDataTransform),
     NAReplaceTransform.FriendlyName, NAReplaceTransform.LoadName)]
+
+[assembly: LoadableClass(NAReplaceTransform.Summary, typeof(NAReplaceTransform), null, typeof(SignatureLoadModel),
+    NAReplaceTransform.FriendlyName, NAReplaceTransform.LoadName)]
+
+[assembly: LoadableClass(typeof(IRowMapper), typeof(NAReplaceTransform), null, typeof(SignatureLoadRowMapper),
+   NAReplaceTransform.FriendlyName, NAReplaceTransform.LoadName)]
 
 namespace Microsoft.ML.Runtime.Data
 {
@@ -33,16 +42,16 @@ namespace Microsoft.ML.Runtime.Data
     // Imputation modes are supported for vectors both by slot and across all slots.
     // REVIEW: May make sense to implement the transform template interface.
     /// <include file='doc.xml' path='doc/members/member[@name="NAReplace"]/*' />
-    public sealed partial class NAReplaceTransform : OneToOneTransformBase
+    public sealed partial class NAReplaceTransform : OneToOneTransformerBase
     {
-        public enum ReplacementKind
+        public enum ReplacementKind : byte
         {
             // REVIEW: What should the full list of options for this transform be?
-            DefaultValue,
-            Mean,
-            Minimum,
-            Maximum,
-            SpecifiedValue,
+            DefaultValue = 0,
+            Mean = 1,
+            Minimum = 2,
+            Maximum = 3,
+            SpecifiedValue = 4,
 
             [HideEnumValue]
             Def = DefaultValue,
@@ -112,14 +121,15 @@ namespace Microsoft.ML.Runtime.Data
             public Column[] Column;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "The replacement method to utilize", ShortName = "kind")]
-            public ReplacementKind ReplacementKind = ReplacementKind.DefaultValue;
+            public ReplacementKind ReplacementKind = (ReplacementKind)NAReplaceEstimator.Defaults.ReplacementMode;
 
             // Specifying by-slot imputation for vectors of unknown size will cause a warning, and the imputation will be global.
             [Argument(ArgumentType.AtMostOnce, HelpText = "Whether to impute values by slot", ShortName = "slot")]
-            public bool ImputeBySlot = true;
+            public bool ImputeBySlot = NAReplaceEstimator.Defaults.ImputeBySlot;
         }
 
         public const string LoadName = "NAReplaceTransform";
+
         private static VersionInfo GetVersionInfo()
         {
             return new VersionInfo(
@@ -133,12 +143,12 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         internal const string Summary = "Create an output column of the same type and size of the input column, where missing values "
-            + "are replaced with either the default value or the mean/min/max value (for non-text columns only).";
+         + "are replaced with either the default value or the mean/min/max value (for non-text columns only).";
 
         internal const string FriendlyName = "NA Replace Transform";
         internal const string ShortName = "NARep";
 
-        private static string TestType(ColumnType type)
+        internal static string TestType(ColumnType type)
         {
             // Item type must have an NA value that exists and is not equal to its default value.
             Func<ColumnType, string> func = TestType<int>;
@@ -149,8 +159,7 @@ namespace Microsoft.ML.Runtime.Data
         private static string TestType<T>(ColumnType type)
         {
             Contracts.Assert(type.ItemType.RawType == typeof(T));
-            RefPredicate<T> isNA;
-            if (!Conversions.Instance.TryGetIsNAPredicate(type.ItemType, out isNA))
+            if (!Conversions.Instance.TryGetIsNAPredicate(type.ItemType, out RefPredicate<T> isNA))
             {
                 return string.Format("Type '{0}' is not supported by {1} since it doesn't have an NA value",
                     type, LoadName);
@@ -165,8 +174,50 @@ namespace Microsoft.ML.Runtime.Data
             return null;
         }
 
+        public class ColumnInfo
+        {
+            public enum ReplacementMode : byte
+            {
+                DefaultValue = 0,
+                Mean = 1,
+                Minimum = 2,
+                Maximum = 3,
+            }
+
+            public readonly string Input;
+            public readonly string Output;
+            public readonly bool ImputeBySlot;
+            public readonly ReplacementMode Replacement;
+
+            /// <summary>
+            /// Describes how the transformer handles one column pair.
+            /// </summary>
+            /// <param name="input">Name of input column.</param>
+            /// <param name="output">Name of output column.</param>
+            /// <param name="replacementMode">What to replace the missing value with.</param>
+            /// <param name="imputeBySlot">If true, per-slot imputation of replacement is performed.
+            /// Otherwise, replacement value is imputed for the entire vector column. This setting is ignored for scalars and variable vectors,
+            /// where imputation is always for the entire column.</param>
+            public ColumnInfo(string input, string output, ReplacementMode replacementMode = NAReplaceEstimator.Defaults.ReplacementMode,
+                bool imputeBySlot = NAReplaceEstimator.Defaults.ImputeBySlot)
+            {
+                Input = input;
+                Output = output;
+                ImputeBySlot = imputeBySlot;
+                Replacement = replacementMode;
+            }
+
+            internal string ReplacementString { get; set; }
+        }
+
+        private static (string input, string output)[] GetColumnPairs(ColumnInfo[] columns)
+        {
+            Contracts.CheckValue(columns, nameof(columns));
+            return columns.Select(x => (x.Input, x.Output)).ToArray();
+        }
+
         // The output column types, parallel to Infos.
-        private readonly ColumnType[] _types;
+        private readonly ColumnType[] _replaceTypes;
 
         // The replacementValues for the columns, parallel to Infos.
         // The elements of this array can be either primitive values or arrays of primitive values. When replacing a scalar valued column in Infos,
@@ -178,89 +229,56 @@ namespace Microsoft.ML.Runtime.Data
 
         // Marks if the replacement values in given slots of _repValues are the default value.
         // REVIEW: Currently these arrays are constructed on load but could be changed to being constructed lazily.
-        private BitArray[] _repIsDefault;
+        private readonly BitArray[] _repIsDefault;
 
-        // The isNA delegates, parallel to Infos.
-        private readonly Delegate[] _isNAs;
-
-        public override bool CanSaveOnnx => true;
-
-        /// <summary>
-        /// Convenience constructor for public facing API.
-        /// </summary>
-        /// <param name="env">Host Environment.</param>
-        /// <param name="input">Input <see cref="IDataView"/>. This is the output from previous transform or loader.</param>
-        /// <param name="name">Name of the output column.</param>
-        /// <param name="source">Name of the column to be transformed. If this is null '<paramref name="name"/>' will be used.</param>
-        /// <param name="replacementKind">The replacement method to utilize.</param>
-        public NAReplaceTransform(IHostEnvironment env, IDataView input, string name, string source = null, ReplacementKind replacementKind = ReplacementKind.DefaultValue)
-            : this(env, new Arguments() { Column = new[] { new Column() { Source = source ?? name, Name = name } }, ReplacementKind = replacementKind }, input)
+        protected override void CheckInputColumn(ISchema inputSchema, int col, int srcCol)
         {
+            var type = inputSchema.GetColumnType(srcCol);
+            string reason = TestType(type);
+            if (reason != null)
+                throw Host.ExceptParam(nameof(inputSchema), reason);
         }
 
-        /// <summary>
-        /// Public constructor corresponding to SignatureDataTransform.
-        /// </summary>
-        public NAReplaceTransform(IHostEnvironment env, Arguments args, IDataView input)
-            : base(env, LoadName, Contracts.CheckRef(args, nameof(args)).Column,
-                input, TestType)
+        public NAReplaceTransform(IHostEnvironment env, IDataView input, params ColumnInfo[] columns)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(NAReplaceTransform)), GetColumnPairs(columns))
         {
-            Host.CheckValue(args, nameof(args));
-            Host.AssertNonEmpty(Infos);
-            Host.Assert(Infos.Length == Utils.Size(args.Column));
-
-            GetInfoAndMetadata(out _types, out _isNAs);
-            GetReplacementValues(args, out _repValues, out _repIsDefault);
-        }
-
-        private NAReplaceTransform(IHost host, ModelLoadContext ctx, IDataView input)
-            : base(host, ctx, input, TestType)
-        {
-            Host.AssertValue(ctx);
-            Host.AssertNonEmpty(Infos);
-
-            GetInfoAndMetadata(out _types, out _isNAs);
-
-            // *** Binary format ***
-            // <base>
-            // for each column:
-            //   type and value
-            _repValues = new object[Infos.Length];
-            _repIsDefault = new BitArray[Infos.Length];
-            var saver = new BinarySaver(Host, new BinarySaver.Arguments());
-            for (int iinfo = 0; iinfo < Infos.Length; iinfo++)
+            // Check that all the input columns are present and correct.
+            for (int i = 0; i < ColumnPairs.Length; i++)
             {
-                object repValue;
-                ColumnType repType;
-                if (!saver.TryLoadTypeAndValue(ctx.Reader.BaseStream, out repType, out repValue))
-                    throw Host.ExceptDecode();
-                if (!_types[iinfo].ItemType.Equals(repType.ItemType))
-                    throw Host.ExceptParam(nameof(input), "Decoded serialization of type '{0}' does not match expected ColumnType of '{1}'", repType.ItemType, _types[iinfo].ItemType);
-                // If type is a vector and the value is not either a scalar or a vector of the same size, throw an error.
-                if (repType.IsVector)
-                {
-                    if (!_types[iinfo].IsVector)
-                        throw Host.ExceptParam(nameof(input), "Decoded serialization of type '{0}' cannot be a vector when Columntype is a scalar of type '{1}'", repType, _types[iinfo]);
-                    if (!_types[iinfo].IsKnownSizeVector)
-                        throw Host.ExceptParam(nameof(input), "Decoded serialization for unknown size vector '{0}' must be a scalar instead of type '{1}'", _types[iinfo], repType);
-                    if (_types[iinfo].VectorSize != repType.VectorSize)
-                    {
-                        throw Host.ExceptParam(nameof(input), "Decoded serialization of type '{0}' must be a scalar or a vector of the same size as Columntype '{1}'",
-                            repType, _types[iinfo]);
-                    }
+                if (!input.Schema.TryGetColumnIndex(ColumnPairs[i].input, out int srcCol))
+                    throw Host.ExceptSchemaMismatch(nameof(input), "input", ColumnPairs[i].input);
+                CheckInputColumn(input.Schema, i, srcCol);
+            }
+            GetReplacementValues(input, columns, out _repValues, out _repIsDefault, out _replaceTypes);
+        }
 
+        private NAReplaceTransform(IHost host, ModelLoadContext ctx)
+            : base(host, ctx)
+        {
+            var columnsLength = ColumnPairs.Length;
+            _repValues = new object[columnsLength];
+            _repIsDefault = new BitArray[columnsLength];
+            _replaceTypes = new ColumnType[columnsLength];
+            var saver = new BinarySaver(Host, new BinarySaver.Arguments());
+            for (int i = 0; i < columnsLength; i++)
+            {
+                if (!saver.TryLoadTypeAndValue(ctx.Reader.BaseStream, out ColumnType savedType, out object repValue))
+                    throw Host.ExceptDecode();
+                _replaceTypes[i] = savedType;
+                if (savedType.IsVector)
+                {
                     // REVIEW: The current implementation takes the serialized VBuffer, densifies it, and stores the values array.
                     // It might be of value to consider storing the VBUffer in order to possibly benefit from sparsity. However, this would
                     // necessitate a reimplementation of the FillValues code to accomodate sparse VBuffers.
-                    object[] args = new object[] { repValue, _types[iinfo], iinfo };
+                    object[] args = new object[] { repValue, _replaceTypes[i], i };
                     Func<VBuffer<int>, ColumnType, int, int[]> func = GetValuesArray<int>;
-                    var meth = func.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(repType.ItemType.RawType);
-                    _repValues[iinfo] = meth.Invoke(this, args);
+                    var meth = func.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(savedType.ItemType.RawType);
+                    _repValues[i] = meth.Invoke(this, args);
                 }
                 else
-                    _repValues[iinfo] = repValue;
+                    _repValues[i] = repValue;
 
-                Host.Assert(repValue.GetType() == _types[iinfo].RawType || repValue.GetType() == _types[iinfo].ItemType.RawType);
+                Host.Assert(repValue.GetType() == _replaceTypes[i].RawType || repValue.GetType() == _replaceTypes[i].ItemType.RawType);
             }
         }
 
@@ -282,105 +300,53 @@ namespace Microsoft.ML.Runtime.Data
             return valReturn;
         }
 
-        public static NAReplaceTransform Create(IHostEnvironment env, ModelLoadContext ctx, IDataView input)
-        {
-            Contracts.CheckValue(env, nameof(env));
-            var h = env.Register(LoadName);
-            h.CheckValue(ctx, nameof(ctx));
-            h.CheckValue(input, nameof(input));
-            ctx.CheckAtModel(GetVersionInfo());
-            return h.Apply("Loading Model", ch => new NAReplaceTransform(h, ctx, input));
-        }
-
-        public override void Save(ModelSaveContext ctx)
-        {
-            Host.CheckValue(ctx, nameof(ctx));
-            ctx.CheckAtModel();
-            ctx.SetVersionInfo(GetVersionInfo());
-
-            // *** Binary format ***
-            // <base>
-            // for each column:
-            //   type and value
-            SaveBase(ctx);
-            var saver = new BinarySaver(Host, new BinarySaver.Arguments());
-            for (int iinfo = 0; iinfo < _types.Length; iinfo++)
-            {
-                var repValue = _repValues[iinfo];
-                var repType = _types[iinfo].ItemType;
-                if (_repIsDefault[iinfo] != null)
-                {
-                    Host.Assert(repValue is Array);
-                    Func<int[], VBuffer<int>> function = CreateVBuffer<int>;
-                    var method = function.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(_types[iinfo].ItemType.RawType);
-                    repValue = method.Invoke(this, new object[] { _repValues[iinfo] });
-                    repType = _types[iinfo];
-                }
-                Host.Assert(!(repValue is Array));
-                object[] args = new object[] { ctx.Writer.BaseStream, saver, repType, repValue };
-                Action<Stream, BinarySaver, ColumnType, int> func = WriteTypeAndValue<int>;
-                Host.Assert(repValue.GetType() == _types[iinfo].RawType || repValue.GetType() == _types[iinfo].ItemType.RawType);
-                var meth = func.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(repValue.GetType());
-                meth.Invoke(this, args);
-            }
-        }
-
-        private VBuffer<T> CreateVBuffer<T>(T[] array)
-        {
-            Host.AssertValue(array);
-            return new VBuffer<T>(array.Length, array);
-        }
-
-        private void WriteTypeAndValue<T>(Stream stream, BinarySaver saver, ColumnType type, T rep)
-        {
-            Host.AssertValue(stream);
-            Host.AssertValue(saver);
-            Host.Assert(type.RawType == typeof(T) || type.ItemType.RawType == typeof(T));
-
-            int bytesWritten;
-            if (!saver.TryWriteTypeAndValue<T>(stream, type, ref rep, out bytesWritten))
-                throw Host.Except("We do not know how to serialize terms of type '{0}'", type);
-        }
-
         /// <summary>
         /// Fill the repValues array with the correct replacement values based on the user-given replacement kinds.
         /// Vectors default to by-slot imputation unless otherwise specified, except for unknown sized vectors
         /// which force across-slot imputation.
         /// </summary>
-        private void GetReplacementValues(Arguments args, out object[] repValues, out BitArray[] slotIsDefault)
+        private void GetReplacementValues(IDataView input, ColumnInfo[] columns, out object[] repValues, out BitArray[] slotIsDefault, out ColumnType[] types)
         {
-            repValues = new object[Infos.Length];
-            slotIsDefault = new BitArray[Infos.Length];
-
-            ReplacementKind?[] imputationModes = new ReplacementKind?[Infos.Length];
+            repValues = new object[columns.Length];
+            slotIsDefault = new BitArray[columns.Length];
+            types = new ColumnType[columns.Length];
+            var sources = new int[columns.Length];
+            ReplacementKind[] imputationModes = new ReplacementKind[columns.Length];
 
             List<int> columnsToImpute = null;
             // REVIEW: Would like to get rid of the sourceColumns list but seems to be the best way to provide
             // the cursor with what columns to cursor through.
             HashSet<int> sourceColumns = null;
-            for (int iinfo = 0; iinfo < Infos.Length; iinfo++)
+            for (int iinfo = 0; iinfo < columns.Length; iinfo++)
             {
-                ReplacementKind kind = args.Column[iinfo].Kind ?? args.ReplacementKind;
+                input.Schema.TryGetColumnIndex(columns[iinfo].Input, out int colSrc);
+                sources[iinfo] = colSrc;
+                var type = input.Schema.GetColumnType(colSrc);
+                if (type.IsVector)
+                    type = new VectorType(type.ItemType.AsPrimitive, type.AsVector);
+                Delegate isNa = GetIsNADelegate(type);
+                types[iinfo] = type;
+                var kind = (ReplacementKind)columns[iinfo].Replacement;
                 switch (kind)
                 {
-                case ReplacementKind.SpecifiedValue:
-                    repValues[iinfo] = GetSpecifiedValue(args.Column[iinfo].ReplacementString, _types[iinfo], _isNAs[iinfo]);
-                    break;
-                case ReplacementKind.DefaultValue:
-                    repValues[iinfo] = GetDefault(_types[iinfo]);
-                    break;
-                case ReplacementKind.Mean:
-                case ReplacementKind.Min:
-                case ReplacementKind.Max:
-                    if (!_types[iinfo].ItemType.IsNumber && !_types[iinfo].ItemType.IsTimeSpan && !_types[iinfo].ItemType.IsDateTime)
-                        throw Host.Except("Cannot perform mean imputations on non-numeric '{0}'", _types[iinfo].ItemType);
-                    imputationModes[iinfo] = kind;
-                    Utils.Add(ref columnsToImpute, iinfo);
-                    Utils.Add(ref sourceColumns, Infos[iinfo].Source);
-                    break;
-                default:
-                    Host.Assert(false);
-                    throw Host.Except("Internal error, undefined ReplacementKind '{0}' assigned in NAReplaceTransform.", kind);
+                    case ReplacementKind.SpecifiedValue:
+                        repValues[iinfo] = GetSpecifiedValue(columns[iinfo].ReplacementString, _replaceTypes[iinfo], isNa);
+                        break;
+                    case ReplacementKind.DefaultValue:
+                        repValues[iinfo] = GetDefault(type);
+                        break;
+                    case ReplacementKind.Mean:
+                    case ReplacementKind.Minimum:
+                    case ReplacementKind.Maximum:
+                        if (!type.ItemType.IsNumber && !type.ItemType.IsTimeSpan && !type.ItemType.IsDateTime)
+                            throw Host.Except("Cannot perform mean imputations on non-numeric '{0}'", type.ItemType);
+                        imputationModes[iinfo] = kind;
+                        Utils.Add(ref columnsToImpute, iinfo);
+                        Utils.Add(ref sourceColumns, colSrc);
+                        break;
+                    default:
+                        Host.Assert(false);
+                        throw Host.Except("Internal error, undefined ReplacementKind '{0}' assigned in NAReplaceTransform.", columns[iinfo].Replacement);
                 }
             }
 
@@ -390,20 +356,21 @@ namespace Microsoft.ML.Runtime.Data
 
             // Impute values.
             using (var ch = Host.Start("Computing Statistics"))
-            using (var cursor = Source.GetRowCursor(sourceColumns.Contains))
+            using (var cursor = input.GetRowCursor(sourceColumns.Contains))
             {
                 StatAggregator[] statAggregators = new StatAggregator[columnsToImpute.Count];
                 for (int ii = 0; ii < columnsToImpute.Count; ii++)
                 {
                     int iinfo = columnsToImpute[ii];
-                    bool bySlot = args.Column[ii].Slot ?? args.ImputeBySlot;
-                    if (_types[iinfo].IsVector && !_types[iinfo].IsKnownSizeVector && bySlot)
+                    bool bySlot = columns[ii].ImputeBySlot;
+                    if (types[iinfo].IsVector && !types[iinfo].IsKnownSizeVector && bySlot)
                     {
                         ch.Warning("By-slot imputation can not be done on variable-length column");
                         bySlot = false;
                     }
-                    statAggregators[ii] = CreateStatAggregator(ch, _types[iinfo], imputationModes[iinfo], bySlot,
-                        cursor, Infos[iinfo].Source);
+
+                    statAggregators[ii] = CreateStatAggregator(ch, types[iinfo], imputationModes[iinfo], bySlot,
+                        cursor, sources[iinfo]);
                 }
 
                 while (cursor.MoveNext())
@@ -425,8 +392,8 @@ namespace Microsoft.ML.Runtime.Data
                 if (repValues[slot] is Array)
                 {
                     Func<ColumnType, int[], BitArray> func = ComputeDefaultSlots<int>;
-                    var meth = func.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(_types[slot].ItemType.RawType);
-                    slotIsDefault[slot] = (BitArray)meth.Invoke(this, new object[] { _types[slot], repValues[slot] });
+                    var meth = func.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(types[slot].ItemType.RawType);
+                    slotIsDefault[slot] = (BitArray)meth.Invoke(this, new object[] { types[slot], repValues[slot] });
                 }
             }
         }
@@ -442,31 +409,6 @@ namespace Microsoft.ML.Runtime.Data
                     defaultSlots[slot] = true;
             }
             return defaultSlots;
-        }
-
-        private void GetInfoAndMetadata(out ColumnType[] types, out Delegate[] isNAs)
-        {
-            var md = Metadata;
-            types = new ColumnType[Infos.Length];
-            isNAs = new Delegate[Infos.Length];
-            for (int iinfo = 0; iinfo < Infos.Length; iinfo++)
-            {
-                var type = Infos[iinfo].TypeSrc;
-
-                if (!type.IsVector)
-                    types[iinfo] = type;
-                else
-                    types[iinfo] = new VectorType(type.ItemType.AsPrimitive, type.AsVector);
-
-                isNAs[iinfo] = GetIsNADelegate(type);
-
-                // Pass through slot name metadata and normalization data.
-                using (var bldr = md.BuildMetadata(iinfo, Source.Schema, Infos[iinfo].Source,
-                    MetadataUtils.Kinds.SlotNames, MetadataUtils.Kinds.IsNormalized))
-                {
-                }
-            }
-            md.Seal();
         }
 
         private object GetDefault(ColumnType type)
@@ -495,12 +437,6 @@ namespace Microsoft.ML.Runtime.Data
             return Conversions.Instance.GetIsNAPredicate<T>(type.ItemType);
         }
 
-        protected override ColumnType GetColumnTypeCore(int iinfo)
-        {
-            Host.Assert(0 <= iinfo & iinfo < Infos.Length);
-            return _types[iinfo];
-        }
-
         /// <summary>
         /// Converts a string to its respective value in the corresponding type.
         /// </summary>
@@ -517,9 +453,8 @@ namespace Microsoft.ML.Runtime.Data
             if (!string.IsNullOrEmpty(srcStr))
             {
                 // Handles converting input strings to correct types.
-                DvText srcTxt = new DvText(srcStr);
-                bool identity;
-                var strToT = Conversions.Instance.GetStandardConversion<DvText, T>(TextType.Instance, dstType.ItemType, out identity);
+                var srcTxt = srcStr.AsMemory();
+                var strToT = Conversions.Instance.GetStandardConversion<ReadOnlyMemory<char>, T>(TextType.Instance, dstType.ItemType, out bool identity);
                 strToT(ref srcTxt, ref val);
                 // Make sure that the srcTxt can legitimately be converted to dstType, throw error otherwise.
                 if (isNA(ref val))
@@ -529,367 +464,678 @@ namespace Microsoft.ML.Runtime.Data
             return val;
         }
 
-        protected override Delegate GetGetterCore(IChannel ch, IRow input, int iinfo, out Action disposer)
+        // Factory method for SignatureDataTransform.
+        public static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
         {
-            Host.AssertValueOrNull(ch);
-            Host.AssertValue(input);
-            Host.Assert(0 <= iinfo && iinfo < Infos.Length);
-            disposer = null;
+            Contracts.CheckValue(env, nameof(env));
+            env.CheckValue(args, nameof(args));
+            env.CheckValue(input, nameof(input));
 
-            if (!Infos[iinfo].TypeSrc.IsVector)
-                return ComposeGetterOne(input, iinfo);
-            return ComposeGetterVec(input, iinfo);
-        }
-
-        /// <summary>
-        /// Getter generator for single valued inputs.
-        /// </summary>
-        private Delegate ComposeGetterOne(IRow input, int iinfo)
-            => Utils.MarshalInvoke(ComposeGetterOne<int>, Infos[iinfo].TypeSrc.RawType, input, iinfo);
-
-        /// <summary>
-        ///  Replaces NA values for scalars.
-        /// </summary>
-        private Delegate ComposeGetterOne<T>(IRow input, int iinfo)
-        {
-            var getSrc = GetSrcGetter<T>(input, iinfo);
-            var src = default(T);
-            var isNA = (RefPredicate<T>)_isNAs[iinfo];
-            Host.Assert(_repValues[iinfo] is T);
-            T rep = (T)_repValues[iinfo];
-            ValueGetter<T> getter;
-
-            return getter =
-                (ref T dst) =>
-                {
-                    getSrc(ref src);
-                    dst = isNA(ref src) ? rep : src;
-                };
-        }
-
-        /// <summary>
-        /// Getter generator for vector valued inputs.
-        /// </summary>
-        private Delegate ComposeGetterVec(IRow input, int iinfo)
-            => Utils.MarshalInvoke(ComposeGetterVec<int>, Infos[iinfo].TypeSrc.ItemType.RawType, input, iinfo);
-
-        /// <summary>
-        ///  Replaces NA values for vectors.
-        /// </summary>
-        private Delegate ComposeGetterVec<T>(IRow input, int iinfo)
-        {
-            var getSrc = GetSrcGetter<VBuffer<T>>(input, iinfo);
-            var isNA = (RefPredicate<T>)_isNAs[iinfo];
-            var isDefault = Conversions.Instance.GetIsDefaultPredicate<T>(input.Schema.GetColumnType(Infos[iinfo].Source).ItemType);
-
-            var src = default(VBuffer<T>);
-            ValueGetter<VBuffer<T>> getter;
-
-            if (_repIsDefault[iinfo] == null)
+            env.CheckValue(args.Column, nameof(args.Column));
+            var cols = new ColumnInfo[args.Column.Length];
+            for (int i = 0; i < cols.Length; i++)
             {
-                // One replacement value for all slots.
-                Host.Assert(_repValues[iinfo] is T);
-                T rep = (T)_repValues[iinfo];
-                bool repIsDefault = isDefault(ref rep);
+                var item = args.Column[i];
+                var kind = item.Kind ?? args.ReplacementKind;
+                if (!Enum.IsDefined(typeof(ReplacementKind), kind))
+                    throw env.ExceptUserArg(nameof(args.ReplacementKind), "Undefined sorting criteria '{0}' detected for column '{1}'", kind, item.Name);
+
+                cols[i] = new ColumnInfo(item.Source,
+                    item.Name,
+                    (ColumnInfo.ReplacementMode)(item.Kind ?? args.ReplacementKind),
+                    item.Slot ?? args.ImputeBySlot);
+                cols[i].ReplacementString = item.ReplacementString;
+            };
+            return new NAReplaceTransform(env, input, cols).MakeDataTransform(input);
+        }
+
+        public static IDataTransform Create(IHostEnvironment env, IDataView input, params ColumnInfo[] columns)
+        {
+            return new NAReplaceTransform(env, input, columns).MakeDataTransform(input);
+        }
+
+        // Factory method for SignatureLoadModel.
+        public static NAReplaceTransform Create(IHostEnvironment env, ModelLoadContext ctx)
+        {
+            Contracts.CheckValue(env, nameof(env));
+            var host = env.Register(LoadName);
+
+            host.CheckValue(ctx, nameof(ctx));
+            ctx.CheckAtModel(GetVersionInfo());
+
+            return new NAReplaceTransform(host, ctx);
+        }
+
+        // Factory method for SignatureLoadDataTransform.
+        public static IDataTransform Create(IHostEnvironment env, ModelLoadContext ctx, IDataView input)
+            => Create(env, ctx).MakeDataTransform(input);
+
+        // Factory method for SignatureLoadRowMapper.
+        public static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, ISchema inputSchema)
+            => Create(env, ctx).MakeRowMapper(inputSchema);
+
+        private VBuffer<T> CreateVBuffer<T>(T[] array)
+        {
+            Host.AssertValue(array);
+            return new VBuffer<T>(array.Length, array);
+        }
+
+        private void WriteTypeAndValue<T>(Stream stream, BinarySaver saver, ColumnType type, T rep)
+        {
+            Host.AssertValue(stream);
+            Host.AssertValue(saver);
+            Host.Assert(type.RawType == typeof(T) || type.ItemType.RawType == typeof(T));
+
+            if (!saver.TryWriteTypeAndValue<T>(stream, type, ref rep, out int bytesWritten))
+                throw Host.Except("We do not know how to serialize terms of type '{0}'", type);
+        }
+
+        public override void Save(ModelSaveContext ctx)
+        {
+            Host.CheckValue(ctx, nameof(ctx));
+
+            ctx.CheckAtModel();
+            ctx.SetVersionInfo(GetVersionInfo());
+
+            SaveColumns(ctx);
+            var saver = new BinarySaver(Host, new BinarySaver.Arguments());
+            for (int iinfo = 0; iinfo < _replaceTypes.Length; iinfo++)
+            {
+                var repValue = _repValues[iinfo];
+                var repType = _replaceTypes[iinfo].ItemType;
+                if (_repIsDefault[iinfo] != null)
+                {
+                    Host.Assert(repValue is Array);
+                    Func<int[], VBuffer<int>> function = CreateVBuffer<int>;
+                    var method = function.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(repType.RawType);
+                    repValue = method.Invoke(this, new object[] { _repValues[iinfo] });
+                    repType = _replaceTypes[iinfo];
+                }
+                Host.Assert(!(repValue is Array));
+                object[] args = new object[] { ctx.Writer.BaseStream, saver, repType, repValue };
+                Action<Stream, BinarySaver, ColumnType, int> func = WriteTypeAndValue<int>;
+                Host.Assert(repValue.GetType() == _replaceTypes[iinfo].RawType || repValue.GetType() == _replaceTypes[iinfo].ItemType.RawType);
+                var meth = func.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(repValue.GetType());
+                meth.Invoke(this, args);
+            }
+        }
+
+        protected override IRowMapper MakeRowMapper(ISchema schema)
+            => new Mapper(this, schema);
+
+        private sealed class Mapper : MapperBase, ISaveAsOnnx
+        {
+
+            private sealed class ColInfo
+            {
+                public readonly string Name;
+                public readonly string Source;
+                public readonly ColumnType TypeSrc;
+
+                public ColInfo(string name, string source, ColumnType type)
+                {
+                    Name = name;
+                    Source = source;
+                    TypeSrc = type;
+                }
+            }
+
+            private readonly NAReplaceTransform _parent;
+            private readonly ColInfo[] _infos;
+            private readonly ColumnType[] _types;
+            // The isNA delegates, parallel to Infos.
+            private readonly Delegate[] _isNAs;
+            public bool CanSaveOnnx => true;
+
+            public Mapper(NAReplaceTransform parent, ISchema inputSchema)
+             : base(parent.Host.Register(nameof(Mapper)), parent, inputSchema)
+            {
+                _parent = parent;
+                _infos = CreateInfos(inputSchema);
+                _types = new ColumnType[_parent.ColumnPairs.Length];
+                _isNAs = new Delegate[_parent.ColumnPairs.Length];
+                for (int i = 0; i < _parent.ColumnPairs.Length; i++)
+                {
+                    var type = _infos[i].TypeSrc;
+                    if (type.IsVector)
+                        type = new VectorType(type.ItemType.AsPrimitive, type.AsVector);
+                    var repType = _parent._repIsDefault[i] != null ? _parent._replaceTypes[i] : _parent._replaceTypes[i].ItemType;
+                    if (!type.ItemType.Equals(repType.ItemType))
+                        throw Host.ExceptParam(nameof(InputSchema), "Column '{0}' item type '{1}' does not match expected ColumnType of '{2}'",
+                            _infos[i].Source, _parent._replaceTypes[i].ItemType.ToString(), _infos[i].TypeSrc);
+                    // If type is a vector and the value is not either a scalar or a vector of the same size, throw an error.
+                    if (repType.IsVector)
+                    {
+                        if (!type.IsVector)
+                            throw Host.ExceptParam(nameof(inputSchema), "Column '{0}' item type '{1}' cannot be a vector when Columntype is a scalar of type '{2}'",
+                                _infos[i].Source, repType, type);
+                        if (!type.IsKnownSizeVector)
+                            throw Host.ExceptParam(nameof(inputSchema), "Column '{0}' is unknown size vector '{1}' must be a scalar instead of type '{2}'", _infos[i].Source, type, parent._replaceTypes[i]);
+                        if (type.VectorSize != repType.VectorSize)
+                            throw Host.ExceptParam(nameof(inputSchema), "Column '{0}' item type '{1}' must be a scalar or a vector of the same size as Columntype '{2}'",
+                                 _infos[i].Source, repType, type);
+                    }
+                    _types[i] = type;
+                    _isNAs[i] = _parent.GetIsNADelegate(type);
+                }
+            }
+
+            private ColInfo[] CreateInfos(ISchema inputSchema)
+            {
+                Host.AssertValue(inputSchema);
+                var infos = new ColInfo[_parent.ColumnPairs.Length];
+                for (int i = 0; i < _parent.ColumnPairs.Length; i++)
+                {
+                    if (!inputSchema.TryGetColumnIndex(_parent.ColumnPairs[i].input, out int colSrc))
+                        throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", _parent.ColumnPairs[i].input);
+                    _parent.CheckInputColumn(inputSchema, i, colSrc);
+                    var type = inputSchema.GetColumnType(colSrc);
+                    infos[i] = new ColInfo(_parent.ColumnPairs[i].output, _parent.ColumnPairs[i].input, type);
+                }
+                return infos;
+            }
+
+            public override RowMapperColumnInfo[] GetOutputColumns()
+            {
+                var result = new RowMapperColumnInfo[_parent.ColumnPairs.Length];
+                for (int i = 0; i < _parent.ColumnPairs.Length; i++)
+                {
+                    InputSchema.TryGetColumnIndex(_parent.ColumnPairs[i].input, out int colIndex);
+                    Host.Assert(colIndex >= 0);
+                    var colMetaInfo = new ColumnMetadataInfo(_parent.ColumnPairs[i].output);
+                    var meta = RowColumnUtils.GetMetadataAsRow(InputSchema, colIndex, x => x == MetadataUtils.Kinds.SlotNames || x == MetadataUtils.Kinds.IsNormalized);
+                    result[i] = new RowMapperColumnInfo(_parent.ColumnPairs[i].output, _types[i], meta);
+                }
+                return result;
+            }
+
+            protected override Delegate MakeGetter(IRow input, int iinfo, out Action disposer)
+            {
+                Host.AssertValue(input);
+                Host.Assert(0 <= iinfo && iinfo < _infos.Length);
+                disposer = null;
+
+                if (!_infos[iinfo].TypeSrc.IsVector)
+                    return ComposeGetterOne(input, iinfo);
+                return ComposeGetterVec(input, iinfo);
+            }
+
+            /// <summary>
+            /// Getter generator for single valued inputs.
+            /// </summary>
+            private Delegate ComposeGetterOne(IRow input, int iinfo)
+                => Utils.MarshalInvoke(ComposeGetterOne<int>, _infos[iinfo].TypeSrc.RawType, input, iinfo);
+
+            /// <summary>
+            ///  Replaces NA values for scalars.
+            /// </summary>
+            private Delegate ComposeGetterOne<T>(IRow input, int iinfo)
+            {
+                var getSrc = input.GetGetter<T>(ColMapNewToOld[iinfo]);
+                var src = default(T);
+                var isNA = (RefPredicate<T>)_isNAs[iinfo];
+                Host.Assert(_parent._repValues[iinfo] is T);
+                T rep = (T)_parent._repValues[iinfo];
+                ValueGetter<T> getter;
+
                 return getter =
-                    (ref VBuffer<T> dst) =>
+                    (ref T dst) =>
                     {
                         getSrc(ref src);
-                        FillValues(ref src, ref dst, isNA, rep, repIsDefault);
+                        dst = isNA(ref src) ? rep : src;
                     };
             }
 
-            // Replacement values by slot.
-            Host.Assert(_repValues[iinfo] is T[]);
-            // The replacement array.
-            T[] repArray = (T[])_repValues[iinfo];
+            /// <summary>
+            /// Getter generator for vector valued inputs.
+            /// </summary>
+            private Delegate ComposeGetterVec(IRow input, int iinfo)
+                => Utils.MarshalInvoke(ComposeGetterVec<int>, _infos[iinfo].TypeSrc.ItemType.RawType, input, iinfo);
 
-            return getter =
-                (ref VBuffer<T> dst) =>
-                {
-                    getSrc(ref src);
-                    Host.Check(src.Length == repArray.Length);
-                    FillValues(ref src, ref dst, isNA, repArray, _repIsDefault[iinfo]);
-                };
-        }
-
-        protected override bool SaveAsOnnxCore(OnnxContext ctx, int iinfo, ColInfo info, string srcVariableName, string dstVariableName)
-        {
-            DataKind rawKind;
-            var type = Infos[iinfo].TypeSrc;
-            if (type.IsVector)
-                rawKind = type.AsVector.ItemType.RawKind;
-            else if (type.IsKey)
-                rawKind = type.AsKey.RawKind;
-            else
-                rawKind = type.RawKind;
-
-            if (rawKind != DataKind.R4)
-                return false;
-
-            string opType = "Imputer";
-            var node = ctx.CreateNode(opType, srcVariableName, dstVariableName, ctx.GetNodeName(opType));
-            node.AddAttribute("replaced_value_float", Single.NaN);
-
-            if (!Infos[iinfo].TypeSrc.IsVector)
-                node.AddAttribute("imputed_value_floats", Enumerable.Repeat((float)_repValues[iinfo], 1));
-            else
+            /// <summary>
+            ///  Replaces NA values for vectors.
+            /// </summary>
+            private Delegate ComposeGetterVec<T>(IRow input, int iinfo)
             {
-                if (_repIsDefault[iinfo] != null)
-                    node.AddAttribute("imputed_value_floats", (float[])_repValues[iinfo]);
-                else
-                    node.AddAttribute("imputed_value_floats", Enumerable.Repeat((float)_repValues[iinfo], 1));
-            }
+                var getSrc = input.GetGetter<VBuffer<T>>(ColMapNewToOld[iinfo]);
+                var isNA = (RefPredicate<T>)_isNAs[iinfo];
+                var isDefault = Conversions.Instance.GetIsDefaultPredicate<T>(_infos[iinfo].TypeSrc.ItemType);
 
-            return true;
-        }
-
-        protected override VectorType GetSlotTypeCore(int iinfo)
-        {
-            Host.Assert(0 <= iinfo && iinfo < Infos.Length);
-            return Infos[iinfo].SlotTypeSrc;
-        }
-
-        protected override ISlotCursor GetSlotCursorCore(int iinfo)
-        {
-            Host.Assert(0 <= iinfo && iinfo < Infos.Length);
-            Host.AssertValue(Infos[iinfo].SlotTypeSrc);
-
-            ISlotCursor cursor = InputTranspose.GetSlotCursor(Infos[iinfo].Source);
-            var type = GetSlotTypeCore(iinfo);
-            Host.AssertValue(type);
-            return Utils.MarshalInvoke(GetSlotCursorCore<int>, type.ItemType.RawType, this, iinfo, cursor, type);
-        }
-
-        private ISlotCursor GetSlotCursorCore<T>(NAReplaceTransform parent, int iinfo, ISlotCursor cursor, VectorType type)
-            => new SlotCursor<T>(parent, iinfo, cursor, type);
-
-        private sealed class SlotCursor<T> : SynchronizedCursorBase<ISlotCursor>, ISlotCursor
-        {
-            private readonly ValueGetter<VBuffer<T>> _getter;
-            private readonly VectorType _type;
-
-            public SlotCursor(NAReplaceTransform parent, int iinfo, ISlotCursor cursor, VectorType type)
-                : base(parent.Host, cursor)
-            {
-                Ch.Assert(0 <= iinfo && iinfo < parent.Infos.Length);
-                Ch.AssertValue(cursor);
-                Ch.AssertValue(type);
-                var srcGetter = cursor.GetGetter<T>();
-                _type = type;
-                _getter = CreateGetter(parent, iinfo, cursor, type);
-            }
-
-            private ValueGetter<VBuffer<T>> CreateGetter(NAReplaceTransform parent, int iinfo, ISlotCursor cursor, VectorType type)
-            {
                 var src = default(VBuffer<T>);
                 ValueGetter<VBuffer<T>> getter;
 
-                var getSrc = cursor.GetGetter<T>();
-                var isNA = (RefPredicate<T>)parent._isNAs[iinfo];
-                var isDefault = Conversions.Instance.GetIsDefaultPredicate<T>(type.ItemType);
-
-                if (parent._repIsDefault[iinfo] == null)
+                if (_parent._repIsDefault[iinfo] == null)
                 {
                     // One replacement value for all slots.
-                    Ch.Assert(parent._repValues[iinfo] is T);
-                    T rep = (T)parent._repValues[iinfo];
+                    Host.Assert(_parent._repValues[iinfo] is T);
+                    T rep = (T)_parent._repValues[iinfo];
                     bool repIsDefault = isDefault(ref rep);
-
-                    return (ref VBuffer<T> dst) =>
-                    {
-                        getSrc(ref src);
-                        parent.FillValues(ref src, ref dst, isNA, rep, repIsDefault);
-                    };
+                    return getter =
+                        (ref VBuffer<T> dst) =>
+                        {
+                            getSrc(ref src);
+                            FillValues(ref src, ref dst, isNA, rep, repIsDefault);
+                        };
                 }
 
                 // Replacement values by slot.
-                Ch.Assert(parent._repValues[iinfo] is T[]);
+                Host.Assert(_parent._repValues[iinfo] is T[]);
                 // The replacement array.
-                T[] repArray = (T[])parent._repValues[iinfo];
+                T[] repArray = (T[])_parent._repValues[iinfo];
 
                 return getter =
                     (ref VBuffer<T> dst) =>
                     {
                         getSrc(ref src);
-                        Ch.Check(0 <= Position && Position < repArray.Length);
-                        T rep = repArray[(int)Position];
-                        parent.FillValues(ref src, ref dst, isNA, rep, isDefault(ref rep));
+                        Host.Check(src.Length == repArray.Length);
+                        FillValues(ref src, ref dst, isNA, repArray, _parent._repIsDefault[iinfo]);
                     };
             }
 
-            public VectorType GetSlotType() => _type;
-
-            public ValueGetter<VBuffer<TValue>> GetGetter<TValue>()
+            /// <summary>
+            ///  Fills values for vectors where there is one replacement value.
+            /// </summary>
+            private void FillValues<T>(ref VBuffer<T> src, ref VBuffer<T> dst, RefPredicate<T> isNA, T rep, bool repIsDefault)
             {
-                ValueGetter<VBuffer<TValue>> getter = _getter as ValueGetter<VBuffer<TValue>>;
-                if (getter == null)
-                    throw Ch.Except("Invalid TValue: '{0}'", typeof(TValue));
-                return getter;
+                Host.AssertValue(isNA);
+
+                int srcSize = src.Length;
+                int srcCount = src.Count;
+                var srcValues = src.Values;
+                Host.Assert(Utils.Size(srcValues) >= srcCount);
+                var srcIndices = src.Indices;
+
+                var dstValues = dst.Values;
+                var dstIndices = dst.Indices;
+
+                // If the values array is not large enough, allocate sufficient space.
+                // Note: We can't set the max to srcSize as vectors can be of variable lengths.
+                Utils.EnsureSize(ref dstValues, srcCount, keepOld: false);
+
+                int iivDst = 0;
+                if (src.IsDense)
+                {
+                    // The source vector is dense.
+                    Host.Assert(srcSize == srcCount);
+
+                    for (int ivSrc = 0; ivSrc < srcCount; ivSrc++)
+                    {
+                        var srcVal = srcValues[ivSrc];
+
+                        // The output for dense inputs is always dense.
+                        // Note: Theoretically, one could imagine a dataset with NA values that one wished to replace with
+                        // the default value, resulting in more than half of the indices being the default value.
+                        // In this case, changing the dst vector to be sparse would be more memory efficient -- the current decision
+                        // is it is not worth handling this case at the expense of running checks that will almost always not be triggered.
+                        dstValues[ivSrc] = isNA(ref srcVal) ? rep : srcVal;
+                    }
+                    iivDst = srcCount;
+                }
+                else
+                {
+                    // The source vector is sparse.
+                    Host.Assert(Utils.Size(srcIndices) >= srcCount);
+                    Host.Assert(srcCount < srcSize);
+
+                    // Allocate more space if necessary.
+                    // REVIEW: One thing that changing the code to simply ensure that there are srcCount indices in the arrays
+                    // does is over-allocate space if the replacement value is the default value in a dataset with a
+                    // signficiant amount of NA values -- is it worth handling allocation of memory for this case?
+                    Utils.EnsureSize(ref dstIndices, srcCount, keepOld: false);
+
+                    // Note: ivPrev is only used for asserts.
+                    int ivPrev = -1;
+                    for (int iivSrc = 0; iivSrc < srcCount; iivSrc++)
+                    {
+                        Host.Assert(iivDst <= iivSrc);
+                        var srcVal = srcValues[iivSrc];
+                        int iv = srcIndices[iivSrc];
+                        Host.Assert(ivPrev < iv & iv < srcSize);
+                        ivPrev = iv;
+
+                        if (!isNA(ref srcVal))
+                        {
+                            dstValues[iivDst] = srcVal;
+                            dstIndices[iivDst++] = iv;
+                        }
+                        else if (!repIsDefault)
+                        {
+                            // Allow for further sparsification.
+                            dstValues[iivDst] = rep;
+                            dstIndices[iivDst++] = iv;
+                        }
+                    }
+                    Host.Assert(iivDst <= srcCount);
+                }
+                Host.Assert(0 <= iivDst);
+                Host.Assert(repIsDefault || iivDst == srcCount);
+                dst = new VBuffer<T>(srcSize, iivDst, dstValues, dstIndices);
+            }
+
+            /// <summary>
+            ///  Fills values for vectors where there is slot-wise replacement values.
+            /// </summary>
+            private void FillValues<T>(ref VBuffer<T> src, ref VBuffer<T> dst, RefPredicate<T> isNA, T[] rep, BitArray repIsDefault)
+            {
+                Host.AssertValue(rep);
+                Host.Assert(rep.Length == src.Length);
+                Host.AssertValue(repIsDefault);
+                Host.Assert(repIsDefault.Length == src.Length);
+                Host.AssertValue(isNA);
+
+                int srcSize = src.Length;
+                int srcCount = src.Count;
+                var srcValues = src.Values;
+                Host.Assert(Utils.Size(srcValues) >= srcCount);
+                var srcIndices = src.Indices;
+
+                var dstValues = dst.Values;
+                var dstIndices = dst.Indices;
+
+                // If the values array is not large enough, allocate sufficient space.
+                Utils.EnsureSize(ref dstValues, srcCount, srcSize, keepOld: false);
+
+                int iivDst = 0;
+                Host.Assert(Utils.Size(srcValues) >= srcCount);
+                if (src.IsDense)
+                {
+                    // The source vector is dense.
+                    Host.Assert(srcSize == srcCount);
+
+                    for (int ivSrc = 0; ivSrc < srcCount; ivSrc++)
+                    {
+                        var srcVal = srcValues[ivSrc];
+
+                        // The output for dense inputs is always dense.
+                        // Note: Theoretically, one could imagine a dataset with NA values that one wished to replace with
+                        // the default value, resulting in more than half of the indices being the default value.
+                        // In this case, changing the dst vector to be sparse would be more memory efficient -- the current decision
+                        // is it is not worth handling this case at the expense of running checks that will almost always not be triggered.
+                        dstValues[ivSrc] = isNA(ref srcVal) ? rep[ivSrc] : srcVal;
+                    }
+                    iivDst = srcCount;
+                }
+                else
+                {
+                    // The source vector is sparse.
+                    Host.Assert(Utils.Size(srcIndices) >= srcCount);
+                    Host.Assert(srcCount < srcSize);
+
+                    // Allocate more space if necessary.
+                    // REVIEW: One thing that changing the code to simply ensure that there are srcCount indices in the arrays
+                    // does is over-allocate space if the replacement value is the default value in a dataset with a
+                    // signficiant amount of NA values -- is it worth handling allocation of memory for this case?
+                    Utils.EnsureSize(ref dstIndices, srcCount, srcSize, keepOld: false);
+
+                    // Note: ivPrev is only used for asserts.
+                    int ivPrev = -1;
+                    for (int iivSrc = 0; iivSrc < srcCount; iivSrc++)
+                    {
+                        Host.Assert(iivDst <= iivSrc);
+                        var srcVal = srcValues[iivSrc];
+                        int iv = srcIndices[iivSrc];
+                        Host.Assert(ivPrev < iv & iv < srcSize);
+                        ivPrev = iv;
+
+                        if (!isNA(ref srcVal))
+                        {
+                            dstValues[iivDst] = srcVal;
+                            dstIndices[iivDst++] = iv;
+                        }
+                        else if (!repIsDefault[iv])
+                        {
+                            // Allow for further sparsification.
+                            dstValues[iivDst] = rep[iv];
+                            dstIndices[iivDst++] = iv;
+                        }
+                    }
+                    Host.Assert(iivDst <= srcCount);
+                }
+                Host.Assert(0 <= iivDst);
+                dst = new VBuffer<T>(srcSize, iivDst, dstValues, dstIndices);
+            }
+
+            public void SaveAsOnnx(OnnxContext ctx)
+            {
+                Host.CheckValue(ctx, nameof(ctx));
+
+                for (int iinfo = 0; iinfo < _infos.Length; ++iinfo)
+                {
+                    ColInfo info = _infos[iinfo];
+                    string sourceColumnName = info.Source;
+                    if (!ctx.ContainsColumn(sourceColumnName))
+                    {
+                        ctx.RemoveColumn(info.Name, false);
+                        continue;
+                    }
+
+                    if (!SaveAsOnnxCore(ctx, iinfo, info, ctx.GetVariableName(sourceColumnName),
+                        ctx.AddIntermediateVariable(_parent._replaceTypes[iinfo], info.Name)))
+                    {
+                        ctx.RemoveColumn(info.Name, true);
+                    }
+                }
+            }
+
+            private bool SaveAsOnnxCore(OnnxContext ctx, int iinfo, ColInfo info, string srcVariableName, string dstVariableName)
+            {
+                DataKind rawKind;
+                var type = _infos[iinfo].TypeSrc;
+                if (type.IsVector)
+                    rawKind = type.AsVector.ItemType.RawKind;
+                else if (type.IsKey)
+                    rawKind = type.AsKey.RawKind;
+                else
+                    rawKind = type.RawKind;
+
+                if (rawKind != DataKind.R4)
+                    return false;
+
+                string opType = "Imputer";
+                var node = ctx.CreateNode(opType, srcVariableName, dstVariableName, ctx.GetNodeName(opType));
+                node.AddAttribute("replaced_value_float", Single.NaN);
+
+                if (!_infos[iinfo].TypeSrc.IsVector)
+                    node.AddAttribute("imputed_value_floats", Enumerable.Repeat((float)_parent._repValues[iinfo], 1));
+                else
+                {
+                    if (_parent._repIsDefault[iinfo] != null)
+                        node.AddAttribute("imputed_value_floats", (float[])_parent._repValues[iinfo]);
+                    else
+                        node.AddAttribute("imputed_value_floats", Enumerable.Repeat((float)_parent._repValues[iinfo], 1));
+                }
+                return true;
+            }
+        }
+    }
+
+    public sealed class NAReplaceEstimator : IEstimator<NAReplaceTransform>
+    {
+        public static class Defaults
+        {
+            public const NAReplaceTransform.ColumnInfo.ReplacementMode ReplacementMode = NAReplaceTransform.ColumnInfo.ReplacementMode.DefaultValue;
+            public const bool ImputeBySlot = true;
+        }
+
+        private readonly IHost _host;
+        private readonly NAReplaceTransform.ColumnInfo[] _columns;
+
+        public NAReplaceEstimator(IHostEnvironment env, string name, string source = null, NAReplaceTransform.ColumnInfo.ReplacementMode replacementKind = Defaults.ReplacementMode)
+            : this(env, new NAReplaceTransform.ColumnInfo(source ?? name, name, replacementKind))
+        {
+
+        }
+
+        public NAReplaceEstimator(IHostEnvironment env, params NAReplaceTransform.ColumnInfo[] columns)
+        {
+            Contracts.CheckValue(env, nameof(env));
+            _host = env.Register(nameof(NAReplaceEstimator));
+            _columns = columns;
+        }
+
+        public SchemaShape GetOutputSchema(SchemaShape inputSchema)
+        {
+            _host.CheckValue(inputSchema, nameof(inputSchema));
+            var result = inputSchema.Columns.ToDictionary(x => x.Name);
+            foreach (var colInfo in _columns)
+            {
+                if (!inputSchema.TryFindColumn(colInfo.Input, out var col))
+                    throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.Input);
+                string reason = NAReplaceTransform.TestType(col.ItemType);
+                if (reason != null)
+                    throw _host.ExceptParam(nameof(inputSchema), reason);
+                var metadata = new List<SchemaShape.Column>();
+                if (col.Metadata.TryFindColumn(MetadataUtils.Kinds.SlotNames, out var slotMeta))
+                    metadata.Add(slotMeta);
+                if (col.Metadata.TryFindColumn(MetadataUtils.Kinds.IsNormalized, out var normalized))
+                    metadata.Add(normalized);
+                var type = !col.ItemType.IsVector ? col.ItemType : new VectorType(col.ItemType.ItemType.AsPrimitive, col.ItemType.AsVector);
+                result[colInfo.Output] = new SchemaShape.Column(colInfo.Output, col.Kind, type, false, new SchemaShape(metadata.ToArray()));
+            }
+            return new SchemaShape(result.Values);
+        }
+
+        public NAReplaceTransform Fit(IDataView input) => new NAReplaceTransform(_host, input, _columns);
+    }
+
+    /// <summary>
+    /// Extension methods for the static-pipeline over <see cref="PipelineColumn"/> objects.
+    /// </summary>
+    public static class NAReplaceExtensions
+    {
+        private struct Config
+        {
+            public readonly bool ImputeBySlot;
+            public readonly NAReplaceTransform.ColumnInfo.ReplacementMode ReplacementMode;
+
+            public Config(NAReplaceTransform.ColumnInfo.ReplacementMode replacementMode = NAReplaceEstimator.Defaults.ReplacementMode,
+                bool imputeBySlot = NAReplaceEstimator.Defaults.ImputeBySlot)
+            {
+                ImputeBySlot = imputeBySlot;
+                ReplacementMode = replacementMode;
             }
         }
 
-        /// <summary>
-        ///  Fills values for vectors where there is one replacement value.
-        /// </summary>
-        private void FillValues<T>(ref VBuffer<T> src, ref VBuffer<T> dst, RefPredicate<T> isNA, T rep, bool repIsDefault)
+        private interface IColInput
         {
-            Host.AssertValue(isNA);
-
-            int srcSize = src.Length;
-            int srcCount = src.Count;
-            var srcValues = src.Values;
-            Host.Assert(Utils.Size(srcValues) >= srcCount);
-            var srcIndices = src.Indices;
-
-            var dstValues = dst.Values;
-            var dstIndices = dst.Indices;
-
-            // If the values array is not large enough, allocate sufficient space.
-            // Note: We can't set the max to srcSize as vectors can be of variable lengths.
-            Utils.EnsureSize(ref dstValues, srcCount, keepOld: false);
-
-            int iivDst = 0;
-            if (src.IsDense)
-            {
-                // The source vector is dense.
-                Host.Assert(srcSize == srcCount);
-
-                for (int ivSrc = 0; ivSrc < srcCount; ivSrc++)
-                {
-                    var srcVal = srcValues[ivSrc];
-
-                    // The output for dense inputs is always dense.
-                    // Note: Theoretically, one could imagine a dataset with NA values that one wished to replace with
-                    // the default value, resulting in more than half of the indices being the default value.
-                    // In this case, changing the dst vector to be sparse would be more memory efficient -- the current decision
-                    // is it is not worth handling this case at the expense of running checks that will almost always not be triggered.
-                    dstValues[ivSrc] = isNA(ref srcVal) ? rep : srcVal;
-                }
-                iivDst = srcCount;
-            }
-            else
-            {
-                // The source vector is sparse.
-                Host.Assert(Utils.Size(srcIndices) >= srcCount);
-                Host.Assert(srcCount < srcSize);
-
-                // Allocate more space if necessary.
-                // REVIEW: One thing that changing the code to simply ensure that there are srcCount indices in the arrays
-                // does is over-allocate space if the replacement value is the default value in a dataset with a
-                // signficiant amount of NA values -- is it worth handling allocation of memory for this case?
-                Utils.EnsureSize(ref dstIndices, srcCount, keepOld: false);
-
-                // Note: ivPrev is only used for asserts.
-                int ivPrev = -1;
-                for (int iivSrc = 0; iivSrc < srcCount; iivSrc++)
-                {
-                    Host.Assert(iivDst <= iivSrc);
-                    var srcVal = srcValues[iivSrc];
-                    int iv = srcIndices[iivSrc];
-                    Host.Assert(ivPrev < iv & iv < srcSize);
-                    ivPrev = iv;
-
-                    if (!isNA(ref srcVal))
-                    {
-                        dstValues[iivDst] = srcVal;
-                        dstIndices[iivDst++] = iv;
-                    }
-                    else if (!repIsDefault)
-                    {
-                        // Allow for further sparsification.
-                        dstValues[iivDst] = rep;
-                        dstIndices[iivDst++] = iv;
-                    }
-                }
-                Host.Assert(iivDst <= srcCount);
-            }
-            Host.Assert(0 <= iivDst);
-            Host.Assert(repIsDefault || iivDst == srcCount);
-            dst = new VBuffer<T>(srcSize, iivDst, dstValues, dstIndices);
+            PipelineColumn Input { get; }
+            Config Config { get; }
         }
 
-        /// <summary>
-        ///  Fills values for vectors where there is slot-wise replacement values.
-        /// </summary>
-        private void FillValues<T>(ref VBuffer<T> src, ref VBuffer<T> dst, RefPredicate<T> isNA, T[] rep, BitArray repIsDefault)
+        private sealed class OutScalar<TValue> : Scalar<TValue>, IColInput
         {
-            Host.AssertValue(rep);
-            Host.Assert(rep.Length == src.Length);
-            Host.AssertValue(repIsDefault);
-            Host.Assert(repIsDefault.Length == src.Length);
-            Host.AssertValue(isNA);
+            public PipelineColumn Input { get; }
+            public Config Config { get; }
 
-            int srcSize = src.Length;
-            int srcCount = src.Count;
-            var srcValues = src.Values;
-            Host.Assert(Utils.Size(srcValues) >= srcCount);
-            var srcIndices = src.Indices;
-
-            var dstValues = dst.Values;
-            var dstIndices = dst.Indices;
-
-            // If the values array is not large enough, allocate sufficient space.
-            Utils.EnsureSize(ref dstValues, srcCount, srcSize, keepOld: false);
-
-            int iivDst = 0;
-            Host.Assert(Utils.Size(srcValues) >= srcCount);
-            if (src.IsDense)
+            public OutScalar(Scalar<TValue> input, Config config)
+              : base(Reconciler.Inst, input)
             {
-                // The source vector is dense.
-                Host.Assert(srcSize == srcCount);
-
-                for (int ivSrc = 0; ivSrc < srcCount; ivSrc++)
-                {
-                    var srcVal = srcValues[ivSrc];
-
-                    // The output for dense inputs is always dense.
-                    // Note: Theoretically, one could imagine a dataset with NA values that one wished to replace with
-                    // the default value, resulting in more than half of the indices being the default value.
-                    // In this case, changing the dst vector to be sparse would be more memory efficient -- the current decision
-                    // is it is not worth handling this case at the expense of running checks that will almost always not be triggered.
-                    dstValues[ivSrc] = isNA(ref srcVal) ? rep[ivSrc] : srcVal;
-                }
-                iivDst = srcCount;
+                Input = input;
+                Config = config;
             }
-            else
+        }
+
+        private sealed class OutVectorColumn<TValue> : Vector<TValue>, IColInput
+        {
+            public PipelineColumn Input { get; }
+            public Config Config { get; }
+
+            public OutVectorColumn(Vector<TValue> input, Config config)
+              : base(Reconciler.Inst, input)
             {
-                // The source vector is sparse.
-                Host.Assert(Utils.Size(srcIndices) >= srcCount);
-                Host.Assert(srcCount < srcSize);
-
-                // Allocate more space if necessary.
-                // REVIEW: One thing that changing the code to simply ensure that there are srcCount indices in the arrays
-                // does is over-allocate space if the replacement value is the default value in a dataset with a
-                // signficiant amount of NA values -- is it worth handling allocation of memory for this case?
-                Utils.EnsureSize(ref dstIndices, srcCount, srcSize, keepOld: false);
-
-                // Note: ivPrev is only used for asserts.
-                int ivPrev = -1;
-                for (int iivSrc = 0; iivSrc < srcCount; iivSrc++)
-                {
-                    Host.Assert(iivDst <= iivSrc);
-                    var srcVal = srcValues[iivSrc];
-                    int iv = srcIndices[iivSrc];
-                    Host.Assert(ivPrev < iv & iv < srcSize);
-                    ivPrev = iv;
-
-                    if (!isNA(ref srcVal))
-                    {
-                        dstValues[iivDst] = srcVal;
-                        dstIndices[iivDst++] = iv;
-                    }
-                    else if (!repIsDefault[iv])
-                    {
-                        // Allow for further sparsification.
-                        dstValues[iivDst] = rep[iv];
-                        dstIndices[iivDst++] = iv;
-                    }
-                }
-                Host.Assert(iivDst <= srcCount);
+                Input = input;
+                Config = config;
             }
-            Host.Assert(0 <= iivDst);
-            dst = new VBuffer<T>(srcSize, iivDst, dstValues, dstIndices);
+
+        }
+
+        private sealed class OutVarVectorColumn<TValue> : VarVector<TValue>, IColInput
+        {
+            public PipelineColumn Input { get; }
+            public Config Config { get; }
+
+            public OutVarVectorColumn(VarVector<TValue> input, Config config)
+                : base(Reconciler.Inst, input)
+            {
+                Input = input;
+                Config = config;
+            }
+        }
+
+        private sealed class Reconciler : EstimatorReconciler
+        {
+            public static Reconciler Inst = new Reconciler();
+
+            private Reconciler() { }
+
+            public override IEstimator<ITransformer> Reconcile(IHostEnvironment env,
+                PipelineColumn[] toOutput,
+                IReadOnlyDictionary<PipelineColumn, string> inputNames,
+                IReadOnlyDictionary<PipelineColumn, string> outputNames,
+                IReadOnlyCollection<string> usedNames)
+            {
+                var infos = new NAReplaceTransform.ColumnInfo[toOutput.Length];
+                for (int i = 0; i < toOutput.Length; ++i)
+                {
+                    var col = (IColInput)toOutput[i];
+                    infos[i] = new NAReplaceTransform.ColumnInfo(inputNames[col.Input], outputNames[toOutput[i]], col.Config.ReplacementMode, col.Config.ImputeBySlot);
+                }
+                return new NAReplaceEstimator(env, infos);
+            }
+        }
+
+        public static Scalar<float> ReplaceWithMissingValues(this Scalar<float> input, NAReplaceTransform.ColumnInfo.ReplacementMode replacementMode = NAReplaceEstimator.Defaults.ReplacementMode, bool imputeBySlot = NAReplaceEstimator.Defaults.ImputeBySlot)
+        {
+            Contracts.CheckValue(input, nameof(input));
+            return new OutScalar<float>(input, new Config(replacementMode, imputeBySlot));
+        }
+
+        public static Scalar<double> ReplaceWithMissingValues(this Scalar<double> input, NAReplaceTransform.ColumnInfo.ReplacementMode replacementMode = NAReplaceEstimator.Defaults.ReplacementMode, bool imputeBySlot = NAReplaceEstimator.Defaults.ImputeBySlot)
+        {
+            Contracts.CheckValue(input, nameof(input));
+            return new OutScalar<double>(input, new Config(replacementMode, imputeBySlot));
+        }
+
+        public static Scalar<string> ReplaceWithMissingValues(this Scalar<string> input, NAReplaceTransform.ColumnInfo.ReplacementMode replacementMode = NAReplaceEstimator.Defaults.ReplacementMode, bool imputeBySlot = NAReplaceEstimator.Defaults.ImputeBySlot)
+        {
+            Contracts.CheckValue(input, nameof(input));
+            return new OutScalar<string>(input, new Config(replacementMode, imputeBySlot));
+        }
+
+        public static Vector<float> ReplaceWithMissingValues(this Vector<float> input, NAReplaceTransform.ColumnInfo.ReplacementMode replacementMode = NAReplaceEstimator.Defaults.ReplacementMode, bool imputeBySlot = NAReplaceEstimator.Defaults.ImputeBySlot)
+        {
+            Contracts.CheckValue(input, nameof(input));
+            return new OutVectorColumn<float>(input, new Config(replacementMode, imputeBySlot));
+        }
+
+        public static Vector<double> ReplaceWithMissingValues(this Vector<double> input, NAReplaceTransform.ColumnInfo.ReplacementMode replacementMode = NAReplaceEstimator.Defaults.ReplacementMode, bool imputeBySlot = NAReplaceEstimator.Defaults.ImputeBySlot)
+        {
+            Contracts.CheckValue(input, nameof(input));
+            return new OutVectorColumn<double>(input, new Config(replacementMode, imputeBySlot));
+        }
+
+        public static Vector<string> ReplaceWithMissingValues(this Vector<string> input, NAReplaceTransform.ColumnInfo.ReplacementMode replacementMode = NAReplaceEstimator.Defaults.ReplacementMode, bool imputeBySlot = NAReplaceEstimator.Defaults.ImputeBySlot)
+        {
+            Contracts.CheckValue(input, nameof(input));
+            return new OutVectorColumn<string>(input, new Config(replacementMode, imputeBySlot));
+        }
+
+        public static VarVector<float> ReplaceWithMissingValues(this VarVector<float> input, NAReplaceTransform.ColumnInfo.ReplacementMode replacementMode = NAReplaceEstimator.Defaults.ReplacementMode, bool imputeBySlot = NAReplaceEstimator.Defaults.ImputeBySlot)
+        {
+            Contracts.CheckValue(input, nameof(input));
+            return new OutVarVectorColumn<float>(input, new Config(replacementMode, imputeBySlot));
+        }
+
+        public static VarVector<double> NAReplace(this VarVector<double> input, NAReplaceTransform.ColumnInfo.ReplacementMode replacementMode = NAReplaceEstimator.Defaults.ReplacementMode, bool imputeBySlot = NAReplaceEstimator.Defaults.ImputeBySlot)
+        {
+            Contracts.CheckValue(input, nameof(input));
+            return new OutVarVectorColumn<double>(input, new Config(replacementMode, imputeBySlot));
+        }
+
+        public static VarVector<string> ReplaceWithMissingValues<TValue>(this VarVector<string> input, NAReplaceTransform.ColumnInfo.ReplacementMode replacementMode = NAReplaceEstimator.Defaults.ReplacementMode, bool imputeBySlot = NAReplaceEstimator.Defaults.ImputeBySlot)
+        {
+            Contracts.CheckValue(input, nameof(input));
+            return new OutVarVectorColumn<string>(input, new Config(replacementMode, imputeBySlot));
         }
     }
 }

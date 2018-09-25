@@ -22,7 +22,7 @@ namespace Microsoft.ML.Scenarios
             string dataPath = GetDataPath("iris.txt");
             string testDataPath = dataPath;
 
-            using (var env = new TlcEnvironment(seed: 1, conc: 1))
+            using (var env = new ConsoleEnvironment(seed: 1, conc: 1))
             {
                 // Pipeline
                 var loader = TextLoader.ReadFile(env,
@@ -46,7 +46,7 @@ namespace Microsoft.ML.Scenarios
                 pipeline = NormalizeTransform.CreateMinMaxNormalizer(env, pipeline, "Features");
 
                 // Train
-                var trainer = new SdcaMultiClassTrainer(env, new SdcaMultiClassTrainer.Arguments() { NumThreads = 1 } );
+                var trainer = new SdcaMultiClassTrainer(env, new SdcaMultiClassTrainer.Arguments() { NumThreads = 1 }, "Features", "Label");
 
                 // Explicity adding CacheDataView since caching is not working though trainer has 'Caching' On/Auto
                 var cached = new CacheDataView(env, pipeline, prefetch: null);

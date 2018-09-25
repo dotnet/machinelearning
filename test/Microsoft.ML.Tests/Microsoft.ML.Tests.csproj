@@ -17,21 +17,22 @@
     <ProjectReference Include="..\..\src\Microsoft.ML.StandardLearners\Microsoft.ML.StandardLearners.csproj" />
     <ProjectReference Include="..\..\src\Microsoft.ML.Onnx\Microsoft.ML.Onnx.csproj" />
     <ProjectReference Include="..\..\src\Microsoft.ML.TensorFlow\Microsoft.ML.TensorFlow.csproj" />
-    <ProjectReference Include="..\..\src\Microsoft.ML\Microsoft.ML.csproj" />
+    <ProjectReference Include="..\..\src\Microsoft.ML.Legacy\Microsoft.ML.Legacy.csproj" />
     <ProjectReference Include="..\Microsoft.ML.Predictor.Tests\Microsoft.ML.Predictor.Tests.csproj" />
     <ProjectReference Include="..\Microsoft.ML.TestFramework\Microsoft.ML.TestFramework.csproj" />
   </ItemGroup>
-  
+
   <ItemGroup>
     <NativeAssemblyReference Include="CpuMathNative" />
     <NativeAssemblyReference Include="FastTreeNative" />
+    <NativeAssemblyReference Include="FactorizationMachineNative" />
     <NativeAssemblyReference Include="LdaNative" />
     <NativeAssemblyReference Include="SymSgdNative" />
     <NativeAssemblyReference Include="MklImports" />
     <NativeAssemblyReference Include="tensorflow" />
     <NativeAssemblyReference Condition="'$(OS)' != 'Windows_NT'" Include="tensorflow_framework" />
   </ItemGroup>
-  
+
   <ItemGroup>
     <None Include="Scenarios\Api\AspirationalExamples.cs" />
   </ItemGroup>

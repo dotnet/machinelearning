@@ -21,7 +21,7 @@ namespace Microsoft.ML.Scenarios
             var dataPath = GetDataPath(SentimentDataPath);
             var testDataPath = GetDataPath(SentimentTestPath);
 
-            using (var env = new TlcEnvironment(seed: 1, conc: 1))
+            using (var env = new ConsoleEnvironment(seed: 1, conc: 1))
             {
                 // Pipeline
                 var loader = TextLoader.ReadFile(env,
@@ -55,11 +55,11 @@ namespace Microsoft.ML.Scenarios
                 loader);
 
                 // Train
-                var trainer = new FastTreeBinaryClassificationTrainer(env, new FastTreeBinaryClassificationTrainer.Arguments()
+                var trainer = new FastTreeBinaryClassificationTrainer(env, DefaultColumnNames.Label, DefaultColumnNames.Features, advancedSettings: s=>
                 {
-                    NumLeaves = 5,
-                    NumTrees = 5,
-                    MinDocumentsInLeafs = 2
+                    s.NumLeaves = 5;
+                    s.NumTrees = 5;
+                    s.MinDocumentsInLeafs = 2;
                 });
 
                 var trainRoles = new RoleMappedData(trans, label: "Label", feature: "Features");
@@ -75,8 +75,8 @@ namespace Microsoft.ML.Scenarios
                 var sentiments = GetTestData();
                 var predictions = model.Predict(sentiments, false);
                 Assert.Equal(2, predictions.Count());
-                Assert.True(predictions.ElementAt(0).Sentiment.IsTrue);
-                Assert.True(predictions.ElementAt(1).Sentiment.IsTrue);
+                Assert.True(predictions.ElementAt(0).Sentiment);
+                Assert.True(predictions.ElementAt(1).Sentiment);
 
                 // Get feature importance based on feature gain during training
                 var summary = ((FeatureWeightsCalibratedPredictor)pred).GetSummaryInKeyValuePairs(trainRoles.Schema);
@@ -90,7 +90,7 @@ namespace Microsoft.ML.Scenarios
             var dataPath = GetDataPath(SentimentDataPath);
             var testDataPath = GetDataPath(SentimentTestPath);
 
-            using (var env = new TlcEnvironment(seed: 1, conc: 1))
+            using (var env = new ConsoleEnvironment(seed: 1, conc: 1))
             {
                 // Pipeline
                 var loader = TextLoader.ReadFile(env,
@@ -123,7 +123,7 @@ namespace Microsoft.ML.Scenarios
                 },
                 loader);
 
-                var trans = new WordEmbeddingsTransform(env, new WordEmbeddingsTransform.Arguments()
+                var trans = WordEmbeddingsTransform.Create(env, new WordEmbeddingsTransform.Arguments()
                 {
                     Column = new WordEmbeddingsTransform.Column[1]
                     {
@@ -136,12 +136,12 @@ namespace Microsoft.ML.Scenarios
                     ModelKind = WordEmbeddingsTransform.PretrainedModelKind.Sswe,
                 }, text);
                 // Train
-                var trainer = new FastTreeBinaryClassificationTrainer(env, new FastTreeBinaryClassificationTrainer.Arguments()
-                {
-                    NumLeaves = 5,
-                    NumTrees = 5,
-                    MinDocumentsInLeafs = 2
-                });
+                var trainer = new FastTreeBinaryClassificationTrainer(env, DefaultColumnNames.Label, DefaultColumnNames.Features, advancedSettings: s=> 
+                    {
+                        s.NumLeaves = 5;
+                        s.NumTrees = 5;
+                        s.MinDocumentsInLeafs = 2;
+                    });
 
                 var trainRoles = new RoleMappedData(trans, label: "Label", feature: "Features");
                 var pred = trainer.Train(trainRoles);
@@ -158,8 +158,8 @@ namespace Microsoft.ML.Scenarios
                 var sentiments = GetTestData();
                 var predictions = model.Predict(sentiments, false);
                 Assert.Equal(2, predictions.Count());
-                Assert.True(predictions.ElementAt(0).Sentiment.IsTrue);
-                Assert.True(predictions.ElementAt(1).Sentiment.IsTrue);
+                Assert.True(predictions.ElementAt(0).Sentiment);
+                Assert.True(predictions.ElementAt(1).Sentiment);
 
                 // Get feature importance based on feature gain during training
                 var summary = ((FeatureWeightsCalibratedPredictor)pred).GetSummaryInKeyValuePairs(trainRoles.Schema);
