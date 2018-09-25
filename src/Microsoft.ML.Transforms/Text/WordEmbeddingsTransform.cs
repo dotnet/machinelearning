@@ -16,6 +16,7 @@ using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Internallearn;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
+using Microsoft.ML.Runtime.Model.Onnx;
 
 [assembly: LoadableClass(WordEmbeddingsTransform.Summary, typeof(IDataTransform), typeof(WordEmbeddingsTransform), typeof(WordEmbeddingsTransform.Arguments),
     typeof(SignatureDataTransform), WordEmbeddingsTransform.UserName, "WordEmbeddingsTransform", WordEmbeddingsTransform.ShortName, DocName = "transform/WordEmbeddingsTransform.md")]
@@ -93,14 +94,14 @@ namespace Microsoft.ML.Runtime.Data
 
         private sealed class Model
         {
-            private readonly BigArray<float> _wordVectors;
+            public readonly BigArray<float> WordVectors;
             private readonly NormStr.Pool _pool;
             public readonly int Dimension;
 
             public Model(int dimension)
             {
                 Dimension = dimension;
-                _wordVectors = new BigArray<float>();
+                WordVectors = new BigArray<float>();
                 _pool = new NormStr.Pool();
             }
 
@@ -110,7 +111,7 @@ namespace Microsoft.ML.Runtime.Data
                 if (_pool.Get(word) == null)
                 {
                     _pool.Add(word);
-                    _wordVectors.AddRange(wordVector, Dimension);
+                    WordVectors.AddRange(wordVector, Dimension);
                 }
             }
 
@@ -119,11 +120,27 @@ namespace Microsoft.ML.Runtime.Data
                 NormStr str = _pool.Get(word);
                 if (str != null)
                 {
-                    _wordVectors.CopyTo(str.Id * Dimension, wordVector, Dimension);
+                    WordVectors.CopyTo(str.Id * Dimension, wordVector, Dimension);
                     return true;
                 }
                 return false;
             }
+
+			public long GetNumWords()
+			{
+				return _pool.LongCount();
+			}
+
+			public List<string> GetWordLabels()
+			{
+				var labels = new List<string>();
+				foreach(var label in _pool)
+				{
+					labels.Add(label.Value.ToString());
+				}
+				return labels;
+			}
+
         }
 
         /// <summary>
@@ -303,7 +320,7 @@ namespace Microsoft.ML.Runtime.Data
                 throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", ColumnPairs[col].input, "Text", inputSchema.GetColumnType(srcCol).ToString());
         }
 
-        private sealed class Mapper : MapperBase
+        private sealed class Mapper : MapperBase, ISaveAsOnnx
         {
             private readonly WordEmbeddingsTransform _parent;
             private readonly VectorType _outputType;
@@ -322,10 +339,92 @@ namespace Microsoft.ML.Runtime.Data
                 _outputType = new VectorType(NumberType.R4, 3 * _parent._currentVocab.Dimension);
             }
 
-            public override RowMapperColumnInfo[] GetOutputColumns()
+			public bool CanSaveOnnx => true;
+
+			public override RowMapperColumnInfo[] GetOutputColumns()
                 => _parent.ColumnPairs.Select(x => new RowMapperColumnInfo(x.output, _outputType, null)).ToArray();
 
-            protected override Delegate MakeGetter(IRow input, int iinfo, out Action disposer)
+			public void SaveAsOnnx(OnnxContext ctx)
+			{
+				foreach (var column in _parent.Columns)
+				{
+					var srcVariableName = ctx.GetVariableName(column.input);
+					var schema = _parent.GetOutputSchema(InputSchema);
+					schema.TryGetColumnIndex(column.output, out int colIndex);
+					var dstVariableName = ctx.AddIntermediateVariable(schema.GetColumnType(colIndex), column.output);
+					SaveAsOnnxCore(ctx, srcVariableName, dstVariableName);
+				}
+			}
+
+			private void SaveAsOnnxCore(OnnxContext ctx, string srcVariableName, string dstVariableName)
+			{
+				// Converts 1 column that is taken as input to the transform into one column of output
+				//
+				// Symbols:
+				// j: # of features per word in the pretrained model
+				// n: # of input words
+				// X: word input, n tensor
+				// k: # of words in pretrained model (known when transform is created)
+				// S: word labels, k tensor (known when transform is created)
+				// D: word embeddings, k-by-j tensor(known when transform is created)
+				//
+				// X[n]-- > LabelEncoder(classes_strings = S[k], default_int64 = 1)             D[k, j]->Initializer
+				//								|									                    |
+				//								Y[n]													|
+				//								|                                                       |
+				//								------------->(indices) Gather(data) < ------------------
+				//														|
+				//													 W[n, j]
+				//												  /     |      \
+				//						 ---------------------- /       |        \----------------------
+				//						/                               |                                \
+				//					ReduceMin(axis = 0)         ReduceMean(axis = 0)         ReduceMax(axis = 0)
+				//						|                                |                                |
+				//						J[j]                           K[j]                             L[j]
+				//						|                                |                                |
+				//						 -----------------------------Concat-----------------------------
+				//													     |
+				//													 P[j * 3]
+
+				// Allocate D, a constant tensor
+				var shapeD = new long[] { _parent._currentVocab.GetNumWords(), _parent._currentVocab.Dimension };
+				var tensorD = _parent._currentVocab.WordVectors;
+				var nameD = "D"; // ctx.AddInitializer(tensorD, shapeD, "D");
+
+				// Retrieve name of X
+				var nameX = srcVariableName;
+
+				// Do label encoding
+				var nameY = ctx.AddIntermediateVariable(null, "Y", true);
+				var nodeY = ctx.CreateNode("LabelEncoder", nameX, nameY, ctx.GetNodeName("LabelEncoder"));
+				nodeY.AddAttribute("classes_strings", _parent._currentVocab.GetWordLabels());
+				nodeY.AddAttribute("default_int64", 1);
+
+				// Do gather
+				var nameW = ctx.AddIntermediateVariable(null, "W", true);
+				var nodeW = ctx.CreateNode("Gather", new[] { nameY, nameD }, new[] { nameW }, ctx.GetNodeName("Gather"));
+
+				// Do reduce min
+				var nameJ = ctx.AddIntermediateVariable(null, "J", true);
+				var nodeJ = ctx.CreateNode("ReduceMin", nameW, nameJ, ctx.GetNodeName("ReduceMin"));
+				nodeJ.AddAttribute("axis", 0);
+
+				// Do reduce mean
+				var nameK = ctx.AddIntermediateVariable(null, "K", true);
+				var nodeK = ctx.CreateNode("ReduceMin", nameW, nameK, ctx.GetNodeName("ReduceMin"));
+				nodeK.AddAttribute("axis", 0);
+
+				// Do reduce max
+				var nameL = ctx.AddIntermediateVariable(null, "L", true);
+				var nodeL = ctx.CreateNode("ReduceMin", nameW, nameL, ctx.GetNodeName("ReduceMin"));
+				nodeL.AddAttribute("axis", 0);
+
+				// Do concat
+				var nameP = dstVariableName;
+				var nodeP = ctx.CreateNode("Concat", new[] { nameJ, nameK, nameL }, new[] { nameP }, ctx.GetNodeName("Concat"));
+			}
+
+			protected override Delegate MakeGetter(IRow input, int iinfo, out Action disposer)
             {
                 Host.AssertValue(input);
                 Host.Assert(0 <= iinfo && iinfo < _parent.ColumnPairs.Length);
