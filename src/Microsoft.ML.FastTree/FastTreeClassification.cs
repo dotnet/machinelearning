@@ -145,21 +145,7 @@ namespace Microsoft.ML.Runtime.FastTree
             _sigmoidParameter = 2.0 * Args.LearningRates;
 
             if (advancedSettings != null)
-            {
-                using (var ch = Host.Start("Validating advanced settings."))
-                {
-                    //take a quick snapshot at the defaults, for comparison with the current args values
-                    var snapshot = new Arguments();
-
-                    // Check that the user didn't supply different parameters in the args, from what it specified directly.
-                    TrainerUtils.CheckArgsAndAdvancedSettingMismatch(ch, numLeaves, snapshot.NumLeaves, Args.NumLeaves, nameof(numLeaves));
-                    TrainerUtils.CheckArgsAndAdvancedSettingMismatch(ch, numTrees, snapshot.NumTrees, Args.NumTrees, nameof(numTrees));
-                    TrainerUtils.CheckArgsAndAdvancedSettingMismatch(ch, minDocumentsInLeafs, snapshot.MinDocumentsInLeafs, Args.MinDocumentsInLeafs, nameof(minDocumentsInLeafs));
-                    TrainerUtils.CheckArgsAndAdvancedSettingMismatch(ch, learningRate, snapshot.LearningRates, Args.LearningRates, nameof(learningRate));
-
-                    ch.Done();
-                }
-            }
+                CheckArgsAndAdvancedSettingMismatch(numLeaves, numTrees, minDocumentsInLeafs, learningRate, new Arguments(), Args);
 
             //override with the directly provided values.
             Args.NumLeaves = numLeaves;

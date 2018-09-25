@@ -93,7 +93,7 @@ namespace Microsoft.ML.Runtime.FastTree
         /// </summary>
         private protected FastTreeTrainerBase(IHostEnvironment env, SchemaShape.Column label, string featureColumn,
             string weightColumn = null, string groupIdColumn = null, Action<TArgs> advancedSettings = null)
-            : base(Contracts.CheckRef(env, nameof(env)).Register(RegisterName), MakeFeatureColumn(featureColumn), label, MakeWeightColumn(weightColumn))
+            : base(Contracts.CheckRef(env, nameof(env)).Register(RegisterName), TrainerUtils.MakeR4VecFeature(featureColumn), label, TrainerUtils.MakeR4ScalarWeightColumn(weightColumn))
         {
             Args = new TArgs();
 
@@ -127,7 +127,7 @@ namespace Microsoft.ML.Runtime.FastTree
         /// Legacy constructor that is used when invoking the classes deriving from this, through maml.
         /// </summary>
         private protected FastTreeTrainerBase(IHostEnvironment env, TArgs args, SchemaShape.Column label)
-            : base(Contracts.CheckRef(env, nameof(env)).Register(RegisterName), MakeFeatureColumn(args.FeatureColumn), label, MakeWeightColumn(args.WeightColumn))
+            : base(Contracts.CheckRef(env, nameof(env)).Register(RegisterName), TrainerUtils.MakeR4VecFeature(args.FeatureColumn), label, TrainerUtils.MakeR4ScalarWeightColumn(args.WeightColumn))
         {
             Host.CheckValue(args, nameof(args));
             Args = args;
@@ -158,16 +158,32 @@ namespace Microsoft.ML.Runtime.FastTree
             return Float.PositiveInfinity;
         }
 
-        private static SchemaShape.Column MakeWeightColumn(string weightColumn)
+        /// <summary>
+        /// If, after applying the advancedSettings delegate, the args are different that the default value
+        /// and are also different than the value supplied directly to the xtension method, warn the user
+        /// about which value is being used.
+        /// The parameters that appear here, numTrees, minDocumentsInLeafs, numLeaves, learningRate are the ones the users are most likely to tune.
+        /// This list should follow the one in the constructor, and the extension methods on the <see cref="TrainContextBase"/>.
+        /// REVIEW: we should somehow mark the arguments that are set apart in those two places. Currently they stand out by their sort order annotation.
+        /// </summary>
+        protected void CheckArgsAndAdvancedSettingMismatch(int numLeaves,
+            int numTrees,
+            int minDocumentsInLeafs,
+            double learningRate,
+            BoostedTreeArgs snapshot,
+            BoostedTreeArgs currentArgs)
         {
-            if (weightColumn == null)
-                return null;
-            return new SchemaShape.Column(weightColumn, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false);
-        }
+            using (var ch = Host.Start("Comparing advanced settings with the directly provided values."))
+            {
 
-        private static SchemaShape.Column MakeFeatureColumn(string featureColumn)
-        {
-            return new SchemaShape.Column(featureColumn, SchemaShape.Column.VectorKind.Vector, NumberType.R4, false);
+                // Check that the user didn't supply different parameters in the args, from what it specified directly.
+                TrainerUtils.CheckArgsAndAdvancedSettingMismatch(ch, numLeaves, snapshot.NumLeaves, currentArgs.NumLeaves, nameof(numLeaves));
+                TrainerUtils.CheckArgsAndAdvancedSettingMismatch(ch, numTrees, snapshot.NumTrees, currentArgs.NumTrees, nameof(numTrees));
+                TrainerUtils.CheckArgsAndAdvancedSettingMismatch(ch, minDocumentsInLeafs, snapshot.MinDocumentsInLeafs, currentArgs.MinDocumentsInLeafs, nameof(minDocumentsInLeafs));
+                TrainerUtils.CheckArgsAndAdvancedSettingMismatch(ch, learningRate, snapshot.LearningRates, currentArgs.LearningRates, nameof(learningRate));
+
+                ch.Done();
+            }
         }
 
         private void Initialize(IHostEnvironment env)
