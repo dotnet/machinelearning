@@ -2,12 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Runtime;
+using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.EntryPoints;
-using Microsoft.ML.Runtime.HalLearners;
-using Microsoft.ML.Runtime.Learners;
 using Microsoft.ML.Runtime.RunTests;
+using Microsoft.ML.Runtime.SymSgd;
 using Xunit;
 
 namespace Microsoft.ML.Tests.TrainerEstimators
@@ -15,10 +13,10 @@ namespace Microsoft.ML.Tests.TrainerEstimators
     public partial class TrainerEstimators
     {
         [Fact]
-        public void TestEstimatorOlsLinearRegression()
+        public void TestEstimatorSymSgdClassificationTrainer()
         {
-            var dataView = GetRegressionPipeline();
-            var pipe = new OlsLinearRegressionTrainer(Env, "Features", "Label");
+            (var pipe, var dataView) = GetBinaryClassificationPipeline();
+            pipe.Append(new SymSgdClassificationTrainer(Env, "Features", "Label"));
             TestEstimatorCore(pipe, dataView);
             Done();
         }
