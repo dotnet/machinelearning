@@ -3,13 +3,13 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using Microsoft.ML.Data.StaticPipe;
-using Microsoft.ML.Data.StaticPipe.Runtime;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Internal.Calibration;
 using Microsoft.ML.Runtime.Learners;
 using Microsoft.ML.Runtime.Training;
+using Microsoft.ML.StaticPipe;
+using Microsoft.ML.StaticPipe.Runtime;
 
 namespace Microsoft.ML.Trainers
 {

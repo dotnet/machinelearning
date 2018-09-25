@@ -22,6 +22,12 @@ namespace Microsoft.ML.Runtime.RunTests
         {
         }
 
+        protected override void InitializeCore()
+        {
+            base.InitializeCore();
+            Env.ComponentCatalog.RegisterAssembly(typeof(AutoInference).Assembly);
+        }
+
         [Fact]
         public void PipelineSweeperBasic()
         {

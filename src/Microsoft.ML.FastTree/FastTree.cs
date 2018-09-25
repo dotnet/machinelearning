@@ -826,7 +826,7 @@ namespace Microsoft.ML.Runtime.FastTree
         {
             Contracts.AssertValue(ch);
             ch.Trace("Host = {0}", Environment.MachineName);
-            ch.Trace("CommandLine = {0}", CmdParser.GetSettings(ch, Args, new TArgs()));
+            ch.Trace("CommandLine = {0}", CmdParser.GetSettings(Host, Args, new TArgs()));
             ch.Trace("GCSettings.IsServerGC = {0}", System.Runtime.GCSettings.IsServerGC);
             ch.Trace("{0}", Args);
         }
