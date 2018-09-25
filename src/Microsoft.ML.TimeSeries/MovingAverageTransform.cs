@@ -59,7 +59,8 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
                 verWrittenCur: 0x00010001,
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
-                loaderSignature: LoaderSignature);
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(MovingAverageTransform).Assembly.FullName);
         }
 
         // _weights is null means a uniform moving average is computed.

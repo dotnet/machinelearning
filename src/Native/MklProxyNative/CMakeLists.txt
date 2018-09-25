@@ -1,0 +1,21 @@
+project (MklProxyNative)
+
+set(SOURCES
+    MklProxyNative.cpp
+)
+
+find_library(MKL_LIBRARY MklImports HINTS ${MKL_LIB_PATH})
+if(NOT WIN32)
+    list(APPEND SOURCES ${VERSION_FILE_PATH})
+    if(NOT APPLE)
+        SET(CMAKE_SKIP_BUILD_RPATH  FALSE)
+        SET(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE)
+        SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
+        SET(CMAKE_INSTALL_RPATH "$ORIGIN/")
+    endif()
+endif()
+
+add_library(MklProxyNative SHARED ${SOURCES} ${RESOURCES})
+target_link_libraries(MklProxyNative PUBLIC ${MKL_LIBRARY})
+
+install_library_and_symbols (MklProxyNative)

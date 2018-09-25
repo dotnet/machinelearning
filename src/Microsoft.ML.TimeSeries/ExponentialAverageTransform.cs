@@ -51,7 +51,8 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
                 verWrittenCur: 0x00010001,
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
-                loaderSignature: LoaderSignature);
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(ExponentialAverageTransform).Assembly.FullName);
         }
 
         private readonly Single _decay;
