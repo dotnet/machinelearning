@@ -21729,12 +21729,9 @@
       "ShortName": "TFTransform",
       "Inputs": [
         {
-          "Name": "ModelFile",
+          "Name": "Model",
           "Type": "String",
-          "Desc": "This is the frozen protobuf model file. Please see https://www.tensorflow.org/mobile/prepare_models for more details.",
-          "Aliases": [
-            "model"
-          ],
+          "Desc": "TensorFlow model used by the transform. Please see https://www.tensorflow.org/mobile/prepare_models for more details.",
           "Required": true,
           "SortOrder": 0.0,
           "IsNullable": false
