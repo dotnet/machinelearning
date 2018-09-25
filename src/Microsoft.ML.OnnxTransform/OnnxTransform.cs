@@ -16,7 +16,6 @@ using Microsoft.ML.Scoring;
 using Microsoft.ML.OnnxScoring;
 using Microsoft.ML.StaticPipe;
 using Microsoft.ML.StaticPipe.Runtime;
-using OnnxShape = System.Collections.Generic.List<long>;
 using Microsoft.ML.Core.Data;
 
 [assembly: LoadableClass(OnnxTransform.Summary, typeof(IDataTransform), typeof(OnnxTransform),
