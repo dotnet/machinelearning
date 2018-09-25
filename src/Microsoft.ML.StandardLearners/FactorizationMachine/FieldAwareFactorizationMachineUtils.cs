@@ -57,9 +57,10 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
     {
         private readonly FieldAwareFactorizationMachinePredictor _pred;
 
-        public RoleMappedSchema InputSchema { get; }
+        public RoleMappedSchema InputRoleMappedSchema { get; }
 
-        public ISchema OutputSchema { get; }
+        public ISchema Schema { get; }
+        public ISchema InputSchema => InputRoleMappedSchema.Schema;
 
         public ISchemaBindableMapper Bindable => _pred;
 
@@ -82,8 +83,8 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
             _pred = pred;
 
             var inputFeatureColumns = _columns.Select(c => new KeyValuePair<RoleMappedSchema.ColumnRole, string>(RoleMappedSchema.ColumnRole.Feature, c.Name)).ToList();
-            InputSchema = new RoleMappedSchema(schema.Schema, inputFeatureColumns);
-            OutputSchema = outputSchema;
+            InputRoleMappedSchema = new RoleMappedSchema(schema.Schema, inputFeatureColumns);
+            Schema = outputSchema;
 
             _inputColumnIndexes = new List<int>();
             foreach (var kvp in inputFeatureColumns)
@@ -93,7 +94,7 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
             }
         }
 
-        public IRow GetOutputRow(IRow input, Func<int, bool> predicate, out Action action)
+        public IRow GetRow(IRow input, Func<int, bool> predicate, out Action action)
         {
             var latentSum = new AlignedArray(_pred.FieldCount * _pred.FieldCount * _pred.LatentDimAligned, 16);
             var featureBuffer = new VBuffer<float>();
@@ -128,12 +129,12 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
                 getters[1] = probGetter;
             }
 
-            return new SimpleRow(OutputSchema, input, getters);
+            return new SimpleRow(Schema, input, getters);
         }
 
         public Func<int, bool> GetDependencies(Func<int, bool> predicate)
         {
-            if (Enumerable.Range(0, OutputSchema.ColumnCount).Any(predicate))
+            if (Enumerable.Range(0, Schema.ColumnCount).Any(predicate))
                 return index => _inputColumnIndexes.Any(c => c == index);
             else
                 return index => false;
@@ -141,7 +142,7 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
 
         public IEnumerable<KeyValuePair<RoleMappedSchema.ColumnRole, string>> GetInputColumnRoles()
         {
-            return InputSchema.GetColumnRoles().Select(kvp => new KeyValuePair<RoleMappedSchema.ColumnRole, string>(kvp.Key, kvp.Value.Name));
+            return InputRoleMappedSchema.GetColumnRoles().Select(kvp => new KeyValuePair<RoleMappedSchema.ColumnRole, string>(kvp.Key, kvp.Value.Name));
         }
     }
 }
