@@ -292,7 +292,8 @@ namespace Microsoft.ML.Runtime.Data
                 verWrittenCur: 0x00010001, // Initial
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
-                loaderSignature: AnomalyPredictionTransformer.LoaderSignature);
+                loaderSignature: AnomalyPredictionTransformer.LoaderSignature,
+                loaderAssemblyName: typeof(AnomalyPredictionTransformer<>).Assembly.FullName);
         }
     }
 
