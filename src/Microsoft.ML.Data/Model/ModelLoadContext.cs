@@ -40,6 +40,14 @@ namespace Microsoft.ML.Runtime.Model
         public readonly string[] Strings;
 
         /// <summary>
+        /// The name of the assembly that the loader lives in.
+        /// </summary>
+        /// <remarks>
+        /// This may be null or empty if one was never written to the model, or is an older model version.
+        /// </remarks>
+        public readonly string LoaderAssemblyName;
+
+        /// <summary>
         /// The main stream's model header.
         /// </summary>
         public ModelHeader Header;
@@ -76,7 +84,7 @@ namespace Microsoft.ML.Runtime.Model
             Reader = new BinaryReader(ent.Stream, Encoding.UTF8, leaveOpen: true);
             try
             {
-                ModelHeader.BeginRead(out FpMin, out Header, out Strings, Reader);
+                ModelHeader.BeginRead(out FpMin, out Header, out Strings, out LoaderAssemblyName, Reader);
             }
             catch
             {
@@ -97,7 +105,7 @@ namespace Microsoft.ML.Runtime.Model
             Repository = null;
             Directory = null;
             Reader = reader;
-            ModelHeader.BeginRead(out FpMin, out Header, out Strings, Reader);
+            ModelHeader.BeginRead(out FpMin, out Header, out Strings, out LoaderAssemblyName, Reader);
         }
 
         public void CheckAtModel()

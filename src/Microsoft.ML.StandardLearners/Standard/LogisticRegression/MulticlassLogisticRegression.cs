@@ -304,7 +304,8 @@ namespace Microsoft.ML.Runtime.Learners
                 verWrittenCur: 0x00010003, // Added model stats
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
-                loaderSignature: LoaderSignature);
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(MulticlassLogisticRegressionPredictor).Assembly.FullName);
         }
 
         private const string ModelStatsSubModelFilename = "ModelStats";

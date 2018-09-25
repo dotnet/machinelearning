@@ -81,7 +81,7 @@ namespace Microsoft.ML.Runtime.Training
         /// For trainers for performing binary classification.
         /// </summary>
         /// <remarks>
-        /// Component authors that have written binary classification.
+        /// Component authors that have written binary classification. They are great people.
         /// </remarks>
         public BinaryClassificationTrainers Trainers { get; }
 
@@ -139,6 +139,99 @@ namespace Microsoft.ML.Runtime.Training
 
             var eval = new BinaryClassifierEvaluator(Host, new BinaryClassifierEvaluator.Arguments() { });
             return eval.Evaluate(data, label, score, predictedLabel);
+        }
+    }
+
+    /// <summary>
+    /// The central context for multiclass classification trainers.
+    /// </summary>
+    public sealed class MulticlassClassificationContext : TrainContextBase
+    {
+        /// <summary>
+        /// For trainers for performing multiclass classification.
+        /// </summary>
+        public MulticlassClassificationTrainers Trainers { get; }
+
+        public MulticlassClassificationContext(IHostEnvironment env)
+            : base(env, nameof(MulticlassClassificationContext))
+        {
+            Trainers = new MulticlassClassificationTrainers(this);
+        }
+
+        public sealed class MulticlassClassificationTrainers : ContextInstantiatorBase
+        {
+            internal MulticlassClassificationTrainers(MulticlassClassificationContext ctx)
+                : base(ctx)
+            {
+            }
+        }
+
+        /// <summary>
+        /// Evaluates scored multiclass classification data.
+        /// </summary>
+        /// <param name="data">The scored data.</param>
+        /// <param name="label">The name of the label column in <paramref name="data"/>.</param>
+        /// <param name="score">The name of the score column in <paramref name="data"/>.</param>
+        /// <param name="predictedLabel">The name of the predicted label column in <paramref name="data"/>.</param>
+        /// <param name="topK">If given a positive value, the <see cref="MultiClassClassifierEvaluator.Result.TopKAccuracy"/> will be filled with
+        /// the top-K accuracy, that is, the accuracy assuming we consider an example with the correct class within
+        /// the top-K values as being stored "correctly."</param>
+        /// <returns>The evaluation results for these calibrated outputs.</returns>
+        public MultiClassClassifierEvaluator.Result Evaluate(IDataView data, string label, string score = DefaultColumnNames.Score,
+            string predictedLabel = DefaultColumnNames.PredictedLabel, int topK = 0)
+        {
+            Host.CheckValue(data, nameof(data));
+            Host.CheckNonEmpty(label, nameof(label));
+            Host.CheckNonEmpty(score, nameof(score));
+            Host.CheckNonEmpty(predictedLabel, nameof(predictedLabel));
+
+            var args = new MultiClassClassifierEvaluator.Arguments() { };
+            if (topK > 0)
+                args.OutputTopKAcc = topK;
+            var eval = new MultiClassClassifierEvaluator(Host, args);
+            return eval.Evaluate(data, label, score, predictedLabel);
+        }
+    }
+
+    /// <summary>
+    /// The central context for regression trainers.
+    /// </summary>
+    public sealed class RegressionContext : TrainContextBase
+    {
+        /// <summary>
+        /// For trainers for performing regression.
+        /// </summary>
+        public RegressionTrainers Trainers { get; }
+
+        public RegressionContext(IHostEnvironment env)
+            : base(env, nameof(RegressionContext))
+        {
+            Trainers = new RegressionTrainers(this);
+        }
+
+        public sealed class RegressionTrainers : ContextInstantiatorBase
+        {
+            internal RegressionTrainers(RegressionContext ctx)
+                : base(ctx)
+            {
+            }
+        }
+
+        /// <summary>
+        /// Evaluates scored regression data.
+        /// </summary>
+        /// <param name="data">The scored data.</param>
+        /// <param name="label">The name of the label column in <paramref name="data"/>.</param>
+        /// <param name="score">The name of the score column in <paramref name="data"/>.</param>
+        /// <returns>The evaluation results for these calibrated outputs.</returns>
+        public RegressionEvaluator.Result Evaluate(IDataView data, string label, string score = DefaultColumnNames.Score)
+        {
+            Host.CheckValue(data, nameof(data));
+            Host.CheckNonEmpty(label, nameof(label));
+            Host.CheckNonEmpty(score, nameof(score));
+
+            var eval = new RegressionEvaluator(Host, new RegressionEvaluator.Arguments() { });
+            return eval.Evaluate(data, label, score);
         }
     }
 }

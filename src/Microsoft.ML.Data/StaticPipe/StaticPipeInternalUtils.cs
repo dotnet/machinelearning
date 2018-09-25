@@ -11,7 +11,7 @@ using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Internal.Utilities;
 
-namespace Microsoft.ML.Data.StaticPipe.Runtime
+namespace Microsoft.ML.StaticPipe.Runtime
 {
     /// <summary>
     /// Utility functions useful for the internal implementations of the key pipeline utilities.
