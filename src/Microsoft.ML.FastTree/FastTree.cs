@@ -101,10 +101,7 @@ namespace Microsoft.ML.Runtime.FastTree
             advancedSettings?.Invoke(Args);
 
             // check that the users didn't specify different label, group, feature, weights in the args, from what they supplied directly
-            TrainerUtils.CheckArgsDefaultColNames(Host, DefaultColumnNames.Label, Args.LabelColumn);
-            TrainerUtils.CheckArgsDefaultColNames(Host, DefaultColumnNames.Features, Args.FeatureColumn);
-            TrainerUtils.CheckArgsDefaultColNames(Host, DefaultColumnNames.GroupId, Args.GroupIdColumn);
-            TrainerUtils.CheckArgsDefaultColNames(Host, DefaultColumnNames.Weight, Args.WeightColumn);
+            TrainerUtils.CheckArgsHaveDefaultColNames(Host, Args);
 
             Args.LabelColumn = label.Name;
             Args.FeatureColumn = featureColumn;
@@ -251,10 +248,7 @@ namespace Microsoft.ML.Runtime.FastTree
             bestIteration = Ensemble.NumTrees;
             return false;
         }
-        protected virtual int GetBestIteration(IChannel ch)
-        {
-            return Ensemble.NumTrees;
-        }
+        protected virtual int GetBestIteration(IChannel ch) => Ensemble.NumTrees;
 
         protected virtual void InitializeThreads(int numThreads)
         {
@@ -314,10 +308,7 @@ namespace Microsoft.ML.Runtime.FastTree
         /// it to print specific test graph header.
         /// </summary>
         /// <returns> string representation of test graph header </returns>
-        protected virtual string GetTestGraphHeader()
-        {
-            return string.Empty;
-        }
+        protected virtual string GetTestGraphHeader() => string.Empty;
 
         /// <summary>
         /// A virtual method that is used to print a single line of test graph.
@@ -325,10 +316,7 @@ namespace Microsoft.ML.Runtime.FastTree
         /// it to print a specific line of test graph after a new iteration is finished.
         /// </summary>
         /// <returns> string representation of a line of test graph </returns>
-        protected virtual string GetTestGraphLine()
-        {
-            return string.Empty;
-        }
+        protected virtual string GetTestGraphLine() => string.Empty;
 
         /// <summary>
         /// A virtual method that is used to compute test results after each iteration is finished.
