@@ -6,6 +6,7 @@ using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Learners;
 using Microsoft.ML.Runtime.RunTests;
+using Microsoft.ML.TestFramework;
 using System.Linq;
 using Xunit;
 
@@ -25,7 +26,8 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         [Fact]
         void DecomposableTrainAndPredict()
         {
-            using (var env = new LocalEnvironment())
+            using (var env = new LocalEnvironment()
+                .AddStandardComponents()) // ScoreUtils.GetScorer requires scorers to be registered in the ComponentCatalog
             {
                 var loader = TextLoader.ReadFile(env, MakeIrisTextLoaderArgs(), new MultiFileSource(GetDataPath(TestDatasets.irisData.trainFilename)));
                 var term = TermTransform.Create(env, loader, "Label");

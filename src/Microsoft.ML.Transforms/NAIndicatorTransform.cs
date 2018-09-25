@@ -59,7 +59,8 @@ namespace Microsoft.ML.Runtime.Data
                 verWrittenCur: 0x00010001, // Initial
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
-                loaderSignature: LoaderSignature);
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(NAIndicatorTransform).Assembly.FullName);
         }
 
         internal const string Summary = "Create a boolean output column with the same number of slots as the input column, where the output value"

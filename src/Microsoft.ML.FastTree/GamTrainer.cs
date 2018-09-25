@@ -979,11 +979,11 @@ namespace Microsoft.ML.Runtime.FastTree
                 [Argument(ArgumentType.AtMostOnce, HelpText = "Whether to open the GAM visualization page URL", ShortName = "o", SortOrder = 3)]
                 public bool Open = true;
 
-                internal Arguments SetServerIfNeeded(IExceptionContext ectx)
+                internal Arguments SetServerIfNeeded(IHostEnvironment env)
                 {
                     // We assume that if someone invoked this, they really did mean to start the web server.
-                    if (ectx != null && Server == null)
-                        Server = ServerChannel.CreateDefaultServerFactoryOrNull(ectx);
+                    if (env != null && Server == null)
+                        Server = ServerChannel.CreateDefaultServerFactoryOrNull(env);
                     return this;
                 }
             }
