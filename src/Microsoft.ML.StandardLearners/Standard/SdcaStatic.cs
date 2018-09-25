@@ -236,7 +236,7 @@ namespace Microsoft.ML.Trainers
         {
             Contracts.CheckValue(label, nameof(label));
             Contracts.CheckValue(features, nameof(features));
-            Contracts.CheckValue(loss, nameof(loss));
+            Contracts.CheckValueOrNull(loss);
             Contracts.CheckValueOrNull(weights);
             Contracts.CheckParam(!(l2Const < 0), nameof(l2Const), "Must not be negative");
             Contracts.CheckParam(!(l1Threshold < 0), nameof(l1Threshold), "Must not be negative");

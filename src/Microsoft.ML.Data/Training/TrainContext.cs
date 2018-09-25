@@ -101,7 +101,7 @@ namespace Microsoft.ML
             // spawn off a separate host per fold in that case.
             var result = new List<(IDataView scores, ITransformer model)>();
             for (int fold = 0; fold < numFolds; fold++)
-                foldFunction(fold);
+                result.Add(foldFunction(fold));
 
             return result.ToArray();
         }
@@ -270,6 +270,20 @@ namespace Microsoft.ML
             return eval.Evaluate(data, label, score, predictedLabel);
         }
 
+        /// <summary>
+        /// Run cross-validation over <paramref name="numFolds"/> folds of <paramref name="data"/>, by fitting <paramref name="estimator"/>,
+        /// and respecting <paramref name="stratificationColumn"/> if provided.
+        /// Then evaluate each sub-model against <paramref name="labelColumn"/> and return metrics.
+        /// </summary>
+        /// <param name="data">The data to run cross-validation on.</param>
+        /// <param name="estimator">The estimator to fit.</param>
+        /// <param name="numFolds">Number of cross-validation folds.</param>
+        /// <param name="labelColumn">The label column (for evaluation).</param>
+        /// <param name="stratificationColumn">Optional stratification column.</param>
+        /// <remarks>If two examples share the same value of the <paramref name="stratificationColumn"/> (if provided),
+        /// they are guaranteed to appear in the same subset (train or test). Use this to make sure there is no label leakage from
+        /// train to the test set.</remarks>
+        /// <returns>Per-fold results: metrics, models, scored datasets.</returns>
         public (BinaryClassifierEvaluator.Result metrics, ITransformer model, IDataView scoredTestData)[] CrossValidateNonCalibrated(
             IDataView data, IEstimator<ITransformer> estimator, int numFolds = 5, string labelColumn = DefaultColumnNames.Label, string stratificationColumn = null)
         {
@@ -278,6 +292,20 @@ namespace Microsoft.ML
             return result.Select(x => (EvaluateNonCalibrated(x.scoredTestSet, labelColumn), x.model, x.scoredTestSet)).ToArray();
         }
 
+        /// <summary>
+        /// Run cross-validation over <paramref name="numFolds"/> folds of <paramref name="data"/>, by fitting <paramref name="estimator"/>,
+        /// and respecting <paramref name="stratificationColumn"/> if provided.
+        /// Then evaluate each sub-model against <paramref name="labelColumn"/> and return metrics.
+        /// </summary>
+        /// <param name="data">The data to run cross-validation on.</param>
+        /// <param name="estimator">The estimator to fit.</param>
+        /// <param name="numFolds">Number of cross-validation folds.</param>
+        /// <param name="labelColumn">The label column (for evaluation).</param>
+        /// <param name="stratificationColumn">Optional stratification column.</param>
+        /// <remarks>If two examples share the same value of the <paramref name="stratificationColumn"/> (if provided),
+        /// they are guaranteed to appear in the same subset (train or test). Use this to make sure there is no label leakage from
+        /// train to the test set.</remarks>
+        /// <returns>Per-fold results: metrics, models, scored datasets.</returns>
         public (BinaryClassifierEvaluator.CalibratedResult metrics, ITransformer model, IDataView scoredTestData)[] CrossValidate(
             IDataView data, IEstimator<ITransformer> estimator, int numFolds = 5, string labelColumn = DefaultColumnNames.Label, string stratificationColumn = null)
         {
@@ -337,6 +365,20 @@ namespace Microsoft.ML
             return eval.Evaluate(data, label, score, predictedLabel);
         }
 
+        /// <summary>
+        /// Run cross-validation over <paramref name="numFolds"/> folds of <paramref name="data"/>, by fitting <paramref name="estimator"/>,
+        /// and respecting <paramref name="stratificationColumn"/> if provided.
+        /// Then evaluate each sub-model against <paramref name="labelColumn"/> and return metrics.
+        /// </summary>
+        /// <param name="data">The data to run cross-validation on.</param>
+        /// <param name="estimator">The estimator to fit.</param>
+        /// <param name="numFolds">Number of cross-validation folds.</param>
+        /// <param name="labelColumn">The label column (for evaluation).</param>
+        /// <param name="stratificationColumn">Optional stratification column.</param>
+        /// <remarks>If two examples share the same value of the <paramref name="stratificationColumn"/> (if provided),
+        /// they are guaranteed to appear in the same subset (train or test). Use this to make sure there is no label leakage from
+        /// train to the test set.</remarks>
+        /// <returns>Per-fold results: metrics, models, scored datasets.</returns>
         public (MultiClassClassifierEvaluator.Result metrics, ITransformer model, IDataView scoredTestData)[] CrossValidate(
             IDataView data, IEstimator<ITransformer> estimator, int numFolds = 5, string labelColumn = DefaultColumnNames.Label, string stratificationColumn = null)
         {
@@ -387,6 +429,20 @@ namespace Microsoft.ML
             return eval.Evaluate(data, label, score);
         }
 
+        /// <summary>
+        /// Run cross-validation over <paramref name="numFolds"/> folds of <paramref name="data"/>, by fitting <paramref name="estimator"/>,
+        /// and respecting <paramref name="stratificationColumn"/> if provided.
+        /// Then evaluate each sub-model against <paramref name="labelColumn"/> and return metrics.
+        /// </summary>
+        /// <param name="data">The data to run cross-validation on.</param>
+        /// <param name="estimator">The estimator to fit.</param>
+        /// <param name="numFolds">Number of cross-validation folds.</param>
+        /// <param name="labelColumn">The label column (for evaluation).</param>
+        /// <param name="stratificationColumn">Optional stratification column.</param>
+        /// <remarks>If two examples share the same value of the <paramref name="stratificationColumn"/> (if provided),
+        /// they are guaranteed to appear in the same subset (train or test). Use this to make sure there is no label leakage from
+        /// train to the test set.</remarks>
+        /// <returns>Per-fold results: metrics, models, scored datasets.</returns>
         public (RegressionEvaluator.Result metrics, ITransformer model, IDataView scoredTestData)[] CrossValidate(
             IDataView data, IEstimator<ITransformer> estimator, int numFolds = 5, string labelColumn = DefaultColumnNames.Label, string stratificationColumn = null)
         {
