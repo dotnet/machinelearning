@@ -122,7 +122,7 @@ namespace Microsoft.ML.Runtime.FastTree
         /// <param name="featureColumn">The name of the feature column.</param>
         /// <param name="weightColumn">The name for the column containing the initial weight.</param>
         /// <param name="advancedSettings">A delegate to apply all the advanced arguments to the algorithm.</param>
-        /// <param name="learningRates">The learning rate.</param>
+        /// <param name="learningRate">The learning rate.</param>
         /// <param name="minDocumentsInLeafs">The minimal number of documents allowed in a leaf of a regression tree, out of the subsampled data.</param>
         /// <param name="numLeaves">The max number of leaves in each regression tree.</param>
         /// <param name="numTrees">Total number of decision trees to create in the ensemble.</param>
@@ -130,10 +130,10 @@ namespace Microsoft.ML.Runtime.FastTree
             string labelColumn,
             string featureColumn,
             string weightColumn = null,
-            int numLeaves = 20,
-            int numTrees = 100,
-            int minDocumentsInLeafs = 10,
-            double learningRates = 0.2,
+            int numLeaves = Defaults.NumLeaves,
+            int numTrees = Defaults.NumTrees,
+            int minDocumentsInLeafs = Defaults.MinDocumentsInLeafs,
+            double learningRate = Defaults.LearningRates,
             Action<Arguments> advancedSettings = null)
             : base(env, TrainerUtils.MakeBoolScalarLabel(labelColumn), featureColumn, weightColumn, null, advancedSettings)
         {
@@ -145,21 +145,26 @@ namespace Microsoft.ML.Runtime.FastTree
 
             if (advancedSettings != null)
             {
-                //take a quick snapshot at the defaults, for comparison with the current args values
-                var snapshot = new Arguments();
+                using (var ch = Host.Start("Validating advanced settings."))
+                {
+                    //take a quick snapshot at the defaults, for comparison with the current args values
+                    var snapshot = new Arguments();
 
-                // Check that the user didn't supply different parameters in the args, from what it specified directly.
-                TrainerUtils.CheckArgsAndAdvancedSettingMismatch(numLeaves, snapshot.NumLeaves, Args.NumLeaves, nameof(numLeaves));
-                TrainerUtils.CheckArgsAndAdvancedSettingMismatch(numTrees, snapshot.NumTrees, Args.NumTrees, nameof(numTrees));
-                TrainerUtils.CheckArgsAndAdvancedSettingMismatch(minDocumentsInLeafs, snapshot.MinDocumentsInLeafs, Args.MinDocumentsInLeafs, nameof(minDocumentsInLeafs));
-                TrainerUtils.CheckArgsAndAdvancedSettingMismatch(learningRates, snapshot.LearningRates, Args.LearningRates, nameof(learningRates));
+                    // Check that the user didn't supply different parameters in the args, from what it specified directly.
+                    TrainerUtils.CheckArgsAndAdvancedSettingMismatch(ch, numLeaves, snapshot.NumLeaves, Args.NumLeaves, nameof(numLeaves));
+                    TrainerUtils.CheckArgsAndAdvancedSettingMismatch(ch, numTrees, snapshot.NumTrees, Args.NumTrees, nameof(numTrees));
+                    TrainerUtils.CheckArgsAndAdvancedSettingMismatch(ch, minDocumentsInLeafs, snapshot.MinDocumentsInLeafs, Args.MinDocumentsInLeafs, nameof(minDocumentsInLeafs));
+                    TrainerUtils.CheckArgsAndAdvancedSettingMismatch(ch, learningRate, snapshot.LearningRates, Args.LearningRates, nameof(learningRate));
+
+                    ch.Done();
+                }
             }
 
             //override with the directly provided values.
             Args.NumLeaves = numLeaves;
             Args.NumTrees = numTrees;
             Args.MinDocumentsInLeafs = minDocumentsInLeafs;
-            Args.LearningRates = learningRates;
+            Args.LearningRates = learningRate;
         }
 
         /// <summary>

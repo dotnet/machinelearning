@@ -195,6 +195,13 @@ namespace Microsoft.ML.Runtime.Learners
             [TlcModule.SweepableDiscreteParam("BiasLearningRate", new object[] { 0.0f, 0.01f, 0.1f, 1f })]
             public float BiasLearningRate = 0;
 
+            internal static class Defaults
+            {
+                internal const float L2Const = 1e-7f;
+                internal const float L1Threshold = 0f;
+                internal const int MaxIterations = 100;
+            }
+
             internal virtual void Check(IHostEnvironment env)
             {
                 Contracts.AssertValue(env);

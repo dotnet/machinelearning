@@ -13,6 +13,7 @@ using Microsoft.ML.Runtime.Training;
 
 namespace Microsoft.ML.Trainers
 {
+    using ArgumentDefaults = SdcaTrainerBase<RegressionPredictionTransformer<LinearRegressionPredictor>, LinearRegressionPredictor>.ArgumentsBase.Defaults;
     /// <summary>
     /// Extension methods and utilities for instantiating SDCA trainer estimators inside statically typed pipelines.
     /// </summary>
@@ -37,9 +38,9 @@ namespace Microsoft.ML.Trainers
         /// <returns>The predicted output.</returns>
         public static Scalar<float> Sdca(this RegressionContext.RegressionTrainers ctx,
             Scalar<float> label, Vector<float> features, Scalar<float> weights = null,
-            float? l2Const = null,
-            float? l1Threshold = null,
-            int? maxIterations = null,
+            float l2Const = ArgumentDefaults.L2Const,
+            float l1Threshold = ArgumentDefaults.L1Threshold,
+            int maxIterations = ArgumentDefaults.MaxIterations,
             ISupportSdcaRegressionLoss loss = null,
             Action<LinearRegressionPredictor> onFit = null)
         {
@@ -93,9 +94,9 @@ namespace Microsoft.ML.Trainers
         public static (Scalar<float> score, Scalar<float> probability, Scalar<bool> predictedLabel) Sdca(
                 this BinaryClassificationContext.BinaryClassificationTrainers ctx,
                 Scalar<bool> label, Vector<float> features, Scalar<float> weights = null,
-                float? l2Const = null,
-                float? l1Threshold = null,
-                int? maxIterations = null,
+                float l2Const = ArgumentDefaults.L2Const,
+                float l1Threshold = ArgumentDefaults.L1Threshold,
+                int maxIterations = ArgumentDefaults.MaxIterations,
                 Action<LinearBinaryPredictor, ParameterMixingCalibratedPredictor> onFit = null)
         {
             Contracts.CheckValue(label, nameof(label));
@@ -154,15 +155,15 @@ namespace Microsoft.ML.Trainers
         /// result in any way; it is only a way for the caller to be informed about what was learnt.</param>
         /// <returns>The set of output columns including in order the predicted binary classification score (which will range
         /// from negative to positive infinity), and the predicted label.</returns>
-        /// <seealso cref="Sdca(BinaryClassificationContext.BinaryClassificationTrainers, Scalar{bool}, Vector{float}, Scalar{float}, float?, float?, int?, Action{LinearBinaryPredictor, ParameterMixingCalibratedPredictor})"/>
+        /// <seealso cref="Sdca(BinaryClassificationContext.BinaryClassificationTrainers, Scalar{bool}, Vector{float}, Scalar{float}, float, float, int, Action{LinearBinaryPredictor, ParameterMixingCalibratedPredictor})"/>
         public static (Scalar<float> score, Scalar<bool> predictedLabel) Sdca(
                 this BinaryClassificationContext.BinaryClassificationTrainers ctx,
                 Scalar<bool> label, Vector<float> features,
                 ISupportSdcaClassificationLoss loss,
                 Scalar<float> weights = null,
-                float? l2Const = null,
-                float? l1Threshold = null,
-                int? maxIterations = null,
+                float l2Const = ArgumentDefaults.L2Const,
+                float l1Threshold = ArgumentDefaults.L1Threshold,
+                int maxIterations = ArgumentDefaults.MaxIterations,
                 Action<LinearBinaryPredictor> onFit = null
             )
         {
