@@ -1215,7 +1215,7 @@ namespace Microsoft.ML.Runtime.RunTests
                     Column = new[] { new ConcatTransform.Column() { Name = "Features", Source = new[] { "Features1", "Features2" } } }
                 }, data);
 
-                var mlr = new MulticlassLogisticRegression(Env, new MulticlassLogisticRegression.Arguments());
+                var mlr = new MulticlassLogisticRegression(Env, "Features", "Label");
                 var rmd = new RoleMappedData(data, "Label", "Features");
 
                 predictorModels[i] = new PredictorModel(Env, rmd, data, mlr.Train(rmd));
@@ -3742,7 +3742,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 new[]
                 {
                     @"'InputColumns': [ 'Placeholder' ],
-                      'ModelFile': 'mnist_model/frozen_saved_model.pb',
+                      'Model': 'mnist_model/frozen_saved_model.pb',
                       'OutputColumns': [ 'Softmax' ]"
                 });
         }
