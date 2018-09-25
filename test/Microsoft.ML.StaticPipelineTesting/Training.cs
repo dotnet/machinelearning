@@ -277,7 +277,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             IPredictorWithFeatureWeights<float> pred = null;
 
             var est = reader.MakeNewEstimator()
-                .Append(r => (r.label, preds: ctx.Trainers.FastTree(r.label, r.features,
+                .Append(r => (r.label, preds: ctx.Trainers.LightGbm(r.label, r.features,
                     numBoostRound: 10,
                     numLeaves: 5,
                     learningRate: 0.01,

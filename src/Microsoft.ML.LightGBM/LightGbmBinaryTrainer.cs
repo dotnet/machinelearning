@@ -106,26 +106,30 @@ namespace Microsoft.ML.Runtime.LightGBM
         /// <param name="featureColumn">The name of the feature column.</param>
         /// <param name="weightColumn">The name for the column containing the initial weight.</param>
         /// <param name="advancedSettings">A delegate to apply all the advanced arguments to the algorithm.</param>
-        /// <param name="learningRate"></param>
-        /// <param name="minDataPerLeaf"></param>
-        /// <param name="numBoostRound"></param>
-        /// <param name="numLeaves"></param>
+        /// <param name="numLeaves">The number of leaves to use.</param>
+        /// <param name="numBoostRound">Number of iterations.</param>
+        /// <param name="minDataPerLeaf">The minimal number of documents allowed in a leaf of the tree, out of the subsampled data.</param>
+        /// <param name="learningRate">The learning rate.</param>
         public LightGbmBinaryTrainer(IHostEnvironment env, string labelColumn, string featureColumn,
             string weightColumn = null,
             int? numLeaves = null,
             int? minDataPerLeaf = null,
             double? learningRate = null,
-            int numBoostRound = 100,
+            int numBoostRound = LightGbmArguments.Defaults.NumBoostRound,
             Action<LightGbmArguments> advancedSettings = null)
             : base(env, LoadNameValue, TrainerUtils.MakeBoolScalarLabel(labelColumn), featureColumn, weightColumn, null, advancedSettings)
         {
             Host.CheckNonEmpty(labelColumn, nameof(labelColumn));
             Host.CheckNonEmpty(featureColumn, nameof(featureColumn));
 
+            if (advancedSettings != null)
+                CheckArgsAndAdvancedSettingMismatch(numLeaves, minDataPerLeaf, learningRate, numBoostRound, new LightGbmArguments(), Args);
+
             // override with the directly provided values
             Args.NumBoostRound = numBoostRound;
             Args.NumLeaves = numLeaves ?? Args.NumLeaves;
             Args.LearningRate = learningRate ?? Args.LearningRate;
+            Args.MinDataPerLeaf = minDataPerLeaf ?? Args.MinDataPerLeaf;
         }
 
         private protected override IPredictorWithFeatureWeights<float> CreatePredictor()

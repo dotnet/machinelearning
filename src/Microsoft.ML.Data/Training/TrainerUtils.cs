@@ -4,6 +4,7 @@
 
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime.Data;
+using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using System;
 using System.Collections.Generic;
@@ -384,13 +385,35 @@ namespace Microsoft.ML.Runtime.Training
         }
 
         /// <summary>
-        /// Check that the label, feature, weights is not supplied in the args of the constructor.
-        /// Those parameters should be internal if they are not used from the maml help code path.
+        /// Check that the label, feature, weights, groupId column names are not supplied in the args of the constructor, through the advancedSettings parameter,
+        /// for cases when the public constructor is called.
+        /// The recommendation is to set the column names directly.
         /// </summary>
-        public static void CheckArgsDefaultColNames(IHost env, string defaultColName, string argValue)
+        public static void CheckArgsHaveDefaultColNames(IHostEnvironment host, LearnerInputBaseWithGroupId args)
         {
-            if (argValue != defaultColName)
-                throw env.Except($"Don't supply a value for the {defaultColName} column in the arguments, as it will be ignored. Specify them in the loader, or constructor instead instead.");
+            Action<string, string> checkArgColName = (defaultColName, argValue) =>
+            {
+                if (argValue != defaultColName)
+                    throw host.Except($"Don't supply a value for the {defaultColName} column in the arguments, as it will be ignored. Specify them in the loader, or constructor instead instead.");
+            };
+
+            // check that the users didn't specify different label, group, feature, weights in the args, from what they supplied directly
+            checkArgColName(DefaultColumnNames.Label, args.LabelColumn);
+            checkArgColName(DefaultColumnNames.Features, args.FeatureColumn);
+            checkArgColName(DefaultColumnNames.Weight, args.WeightColumn);
+
+            if (args.GroupIdColumn != null)
+                checkArgColName(DefaultColumnNames.GroupId, args.GroupIdColumn);
+        }
+
+        /// <summary>
+        /// If, after applying the advancedArgs delegate, the args are different that the default value
+        /// and are also different than the value supplied directly to the xtension method, warn the user.
+        /// </summary>
+        public static void CheckArgsAndAdvancedSettingMismatch<T>(IChannel channel, T methodParam, T defaultVal, T setting, string argName)
+        {
+            if (!setting.Equals(defaultVal) && !setting.Equals(methodParam))
+                channel.Warning($"The value supplied to advanced settings , is different than the value supplied directly. Using value {setting} for {argName}");
         }
     }
 
