@@ -346,12 +346,12 @@ namespace Microsoft.ML.Runtime.Data
 
 			public void SaveAsOnnx(OnnxContext ctx)
 			{
-				foreach (var column in _parent.Columns)
+				foreach (var (input, output) in _parent.Columns)
 				{
-					var srcVariableName = ctx.GetVariableName(column.input);
+					var srcVariableName = ctx.GetVariableName(input);
 					var schema = _parent.GetOutputSchema(InputSchema);
-					schema.TryGetColumnIndex(column.output, out int colIndex);
-					var dstVariableName = ctx.AddIntermediateVariable(schema.GetColumnType(colIndex), column.output);
+					schema.TryGetColumnIndex(output, out int colIndex);
+					var dstVariableName = ctx.AddIntermediateVariable(schema.GetColumnType(colIndex), output);
 					SaveAsOnnxCore(ctx, srcVariableName, dstVariableName);
 				}
 			}
@@ -389,33 +389,33 @@ namespace Microsoft.ML.Runtime.Data
 				// Allocate D, a constant tensor
 				var shapeD = new long[] { _parent._currentVocab.GetNumWords(), _parent._currentVocab.Dimension };
 				var tensorD = _parent._currentVocab.WordVectors;
-				var nameD = "D"; // ctx.AddInitializer(tensorD, shapeD, "D");
+				var nameD = "WordEmbeddingWeights"; // ctx.AddInitializer(tensorD, shapeD, "WordEmbeddingWeights");
 
 				// Retrieve name of X
 				var nameX = srcVariableName;
 
 				// Do label encoding
-				var nameY = ctx.AddIntermediateVariable(null, "Y", true);
+				var nameY = ctx.AddIntermediateVariable(null, "LabelEncodedInput", true);
 				var nodeY = ctx.CreateNode("LabelEncoder", nameX, nameY, ctx.GetNodeName("LabelEncoder"));
 				nodeY.AddAttribute("classes_strings", _parent._currentVocab.GetWordLabels());
 				nodeY.AddAttribute("default_int64", 1);
 
 				// Do gather
-				var nameW = ctx.AddIntermediateVariable(null, "W", true);
+				var nameW = ctx.AddIntermediateVariable(null, "WeightsOfInput", true);
 				var nodeW = ctx.CreateNode("Gather", new[] { nameY, nameD }, new[] { nameW }, ctx.GetNodeName("Gather"));
 
 				// Do reduce min
-				var nameJ = ctx.AddIntermediateVariable(null, "J", true);
+				var nameJ = ctx.AddIntermediateVariable(null, "MinWeights", true);
 				var nodeJ = ctx.CreateNode("ReduceMin", nameW, nameJ, ctx.GetNodeName("ReduceMin"));
 				nodeJ.AddAttribute("axis", 0);
 
 				// Do reduce mean
-				var nameK = ctx.AddIntermediateVariable(null, "K", true);
+				var nameK = ctx.AddIntermediateVariable(null, "MeanWeights", true);
 				var nodeK = ctx.CreateNode("ReduceMin", nameW, nameK, ctx.GetNodeName("ReduceMin"));
 				nodeK.AddAttribute("axis", 0);
 
 				// Do reduce max
-				var nameL = ctx.AddIntermediateVariable(null, "L", true);
+				var nameL = ctx.AddIntermediateVariable(null, "MaxWeights", true);
 				var nodeL = ctx.CreateNode("ReduceMin", nameW, nameL, ctx.GetNodeName("ReduceMin"));
 				nodeL.AddAttribute("axis", 0);
 
