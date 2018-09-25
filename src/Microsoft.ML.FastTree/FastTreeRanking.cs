@@ -2,20 +2,21 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.InteropServices;
-using System.Text;
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.FastTree;
 using Microsoft.ML.Runtime.FastTree.Internal;
+using Microsoft.ML.Runtime.Internal.Internallearn;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
-using Microsoft.ML.Runtime.Internal.Internallearn;
+using Microsoft.ML.Runtime.Training;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Runtime.InteropServices;
+using System.Text;
 
 // REVIEW: Do we really need all these names?
 [assembly: LoadableClass(FastTreeRankingTrainer.Summary, typeof(FastTreeRankingTrainer), typeof(FastTreeRankingTrainer.Arguments),
@@ -58,8 +59,6 @@ namespace Microsoft.ML.Runtime.FastTree
         /// </summary>
         public override PredictionKind PredictionKind => PredictionKind.Ranking;
 
-        private readonly SchemaShape.Column[] _outputColumns;
-
         /// <summary>
         /// Initializes a new instance of <see cref="FastTreeRankingTrainer"/>
         /// </summary>
@@ -71,24 +70,19 @@ namespace Microsoft.ML.Runtime.FastTree
         /// <param name="advancedSettings">A delegate to apply all the advanced arguments to the algorithm.</param>
         public FastTreeRankingTrainer(IHostEnvironment env, string labelColumn, string featureColumn, string groupIdColumn,
             string weightColumn = null, Action<Arguments> advancedSettings = null)
-            : base(env, MakeLabelColumn(labelColumn), featureColumn, weightColumn, groupIdColumn, advancedSettings: advancedSettings)
+            : base(env, TrainerUtils.MakeR4ScalarLabel(labelColumn), featureColumn, weightColumn, groupIdColumn, advancedSettings: advancedSettings)
         {
-            _outputColumns = new[]
-            {
-                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata()))
-            };
+            Host.CheckNonEmpty(labelColumn, nameof(labelColumn));
+            Host.CheckNonEmpty(featureColumn, nameof(featureColumn));
+            Host.CheckNonEmpty(groupIdColumn, nameof(groupIdColumn));
         }
 
         /// <summary>
         /// Initializes a new instance of <see cref="FastTreeRankingTrainer"/> by using the legacy <see cref="Arguments"/> class.
         /// </summary>
-        public FastTreeRankingTrainer(IHostEnvironment env, Arguments args)
-                : base(env, args, MakeLabelColumn(args.LabelColumn))
+        internal FastTreeRankingTrainer(IHostEnvironment env, Arguments args)
+                : base(env, args, TrainerUtils.MakeR4ScalarLabel(args.LabelColumn))
         {
-            _outputColumns = new[]
-            {
-                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata()))
-            };
         }
 
         protected override float GetMaxLabel()
@@ -156,11 +150,6 @@ namespace Microsoft.ML.Runtime.FastTree
                 "earlyStoppingMetrics should be 1 or 3.");
 
             base.CheckArgs(ch);
-        }
-
-        private static SchemaShape.Column MakeLabelColumn(string labelColumn)
-        {
-            return new SchemaShape.Column(labelColumn, SchemaShape.Column.VectorKind.Scalar, NumberType.U4, true);
         }
 
         protected override void Initialize(IChannel ch)
@@ -446,7 +435,13 @@ namespace Microsoft.ML.Runtime.FastTree
         protected override RankingPredictionTransformer<FastTreeRankingPredictor> MakeTransformer(FastTreeRankingPredictor model, ISchema trainSchema)
         => new RankingPredictionTransformer<FastTreeRankingPredictor>(Host, model, trainSchema, FeatureColumn.Name);
 
-        protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema) => _outputColumns;
+        protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema)
+        {
+            return new[]
+           {
+                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata()))
+            };
+        }
 
         public sealed class LambdaRankObjectiveFunction : ObjectiveFunctionBase, IStepSearch
         {
@@ -1100,7 +1095,8 @@ namespace Microsoft.ML.Runtime.FastTree
                 verWrittenCur: 0x00010005, // Categorical splits.
                 verReadableCur: 0x00010004,
                 verWeCanReadBack: 0x00010001,
-                loaderSignature: LoaderSignature);
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(FastTreeRankingPredictor).Assembly.FullName);
         }
 
         protected override uint VerNumFeaturesSerialized => 0x00010002;

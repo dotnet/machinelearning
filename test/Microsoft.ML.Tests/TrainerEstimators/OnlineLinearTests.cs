@@ -4,19 +4,14 @@
 
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime.Data;
+using Microsoft.ML.Runtime.FactorizationMachine;
 using Microsoft.ML.Runtime.Learners;
-using Microsoft.ML.Runtime.RunTests;
 using Xunit;
-using Xunit.Abstractions;
 
-namespace Microsoft.ML.Tests.Transformers
+namespace Microsoft.ML.Tests.TrainerEstimators
 {
-    public sealed class OnlineLinearTests : TestDataPipeBase
+    public partial class TrainerEstimators
     {
-        public OnlineLinearTests(ITestOutputHelper helper) : base(helper)
-        {
-        }
-
         [Fact(Skip = "AP is now uncalibrated but advertises as calibrated")]
         public void OnlineLinearWorkout()
         {

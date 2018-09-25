@@ -9,7 +9,7 @@ using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 
-namespace Microsoft.ML.Data.StaticPipe.Runtime
+namespace Microsoft.ML.StaticPipe.Runtime
 {
     /// <summary>
     /// A schema shape with names corresponding to a type parameter in one of the typed variants

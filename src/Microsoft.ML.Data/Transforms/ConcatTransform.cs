@@ -243,7 +243,8 @@ namespace Microsoft.ML.Runtime.Data
                 verReadableCur: 0x00010002,
                 verWeCanReadBack: 0x00010001,
                 loaderSignature: LoaderSignature,
-                loaderSignatureAlt: LoaderSignatureOld);
+                loaderSignatureAlt: LoaderSignatureOld,
+                loaderAssemblyName: typeof(ConcatTransform).Assembly.FullName);
         }
 
         private const int VersionAddedAliases = 0x00010002;
@@ -413,6 +414,14 @@ namespace Microsoft.ML.Runtime.Data
             _host.CheckValue(inputSchema, nameof(inputSchema));
             var mapper = MakeRowMapper(inputSchema);
             return RowToRowMapperTransform.GetOutputSchema(inputSchema, MakeRowMapper(inputSchema));
+        }
+
+        public bool IsRowToRowMapper => true;
+
+        public IRowToRowMapper GetRowToRowMapper(ISchema inputSchema)
+        {
+            _host.CheckValue(inputSchema, nameof(inputSchema));
+            return new RowToRowMapperTransform(_host, new EmptyDataView(_host, inputSchema), MakeRowMapper(inputSchema));
         }
 
         private sealed class Mapper : IRowMapper, ISaveAsOnnx, ISaveAsPfa

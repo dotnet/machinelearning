@@ -88,6 +88,15 @@ namespace Microsoft.ML.Runtime.Data
             // By default, there are no extra checks.
         }
 
+        public bool IsRowToRowMapper => true;
+
+        public IRowToRowMapper GetRowToRowMapper(ISchema inputSchema)
+        {
+            Host.CheckValue(inputSchema, nameof(inputSchema));
+            var simplerMapper = MakeRowMapper(inputSchema);
+            return new RowToRowMapperTransform(Host, new EmptyDataView(Host, inputSchema), simplerMapper);
+        }
+
         protected abstract IRowMapper MakeRowMapper(ISchema schema);
 
         public ISchema GetOutputSchema(ISchema inputSchema)

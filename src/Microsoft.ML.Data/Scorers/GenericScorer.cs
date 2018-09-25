@@ -53,7 +53,7 @@ namespace Microsoft.ML.Runtime.Data
                 Contracts.AssertValueOrNull(suffix);
                 // We don't actually depend on this invariant, but if this assert fires it means the bindable
                 // did the wrong thing.
-                Contracts.Assert(mapper.InputSchema.Schema == input);
+                Contracts.Assert(mapper.InputSchema == input);
 
                 return new Bindings(input, mapper, suffix, user);
             }
@@ -73,7 +73,7 @@ namespace Microsoft.ML.Runtime.Data
                 var mapper = bindable.Bind(env, new RoleMappedSchema(input, roles));
                 // We don't actually depend on this invariant, but if this assert fires it means the bindable
                 // did the wrong thing.
-                Contracts.Assert(mapper.InputSchema.Schema == input);
+                Contracts.Assert(mapper.InputRoleMappedSchema.Schema == input);
 
                 var rowMapper = mapper as ISchemaBoundRowMapper;
                 Contracts.Check(rowMapper != null, "Predictor expected to be a RowMapper!");
@@ -130,7 +130,8 @@ namespace Microsoft.ML.Runtime.Data
                 verWrittenCur: 0x00010001, // Initial
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
-                loaderSignature: LoaderSignature);
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(GenericScorer).Assembly.FullName);
         }
 
         private const string RegistrationName = "GenericScore";
@@ -205,7 +206,7 @@ namespace Microsoft.ML.Runtime.Data
             Host.Assert(Bindable is IBindableCanSavePfa);
             var pfaBindable = (IBindableCanSavePfa)Bindable;
 
-            var schema = _bindings.RowMapper.InputSchema;
+            var schema = _bindings.RowMapper.InputRoleMappedSchema;
             Host.Assert(_bindings.DerivedColumnCount == 0);
             string[] outColNames = new string[_bindings.InfoCount];
             for (int iinfo = 0; iinfo < _bindings.InfoCount; ++iinfo)
@@ -220,7 +221,7 @@ namespace Microsoft.ML.Runtime.Data
             Host.Assert(Bindable is IBindableCanSaveOnnx);
             var onnxBindable = (IBindableCanSaveOnnx)Bindable;
 
-            var schema = _bindings.RowMapper.InputSchema;
+            var schema = _bindings.RowMapper.InputRoleMappedSchema;
             Host.Assert(_bindings.DerivedColumnCount == 0);
             string[] outVariableNames = new string[_bindings.InfoCount];
             for (int iinfo = 0; iinfo < _bindings.InfoCount; ++iinfo)
@@ -259,7 +260,7 @@ namespace Microsoft.ML.Runtime.Data
             Host.Assert(_bindings.DerivedColumnCount == 0);
             Host.AssertValue(output);
             Host.AssertValue(predicate);
-            Host.Assert(output.Schema == _bindings.RowMapper.OutputSchema);
+            Host.Assert(output.Schema == _bindings.RowMapper.Schema);
 
             return GetGettersFromRow(output, predicate);
         }
