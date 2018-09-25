@@ -42,10 +42,10 @@ namespace Microsoft.ML.OnnxScoring
             [Argument(ArgumentType.Required, HelpText = "Path to the onnx model file.", ShortName = "model", SortOrder = 0)]
             public string ModelFile;
 
-            [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "TBD", SortOrder = 1)]
+            [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "Name of the input column.", SortOrder = 1)]
             public string InputColumn;
 
-            [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "TBD", SortOrder = 2)]
+            [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "Name of the output column.", SortOrder = 2)]
             public string OutputColumn;
         }
 
@@ -177,7 +177,7 @@ namespace Microsoft.ML.OnnxScoring
             return MakeDataTransform(new EmptyDataView(_host, inputSchema));
         }
 
-        internal sealed class Mapper : IRowMapper
+        private sealed class Mapper : IRowMapper
         {
             private readonly IHost _host;
             private readonly OnnxTransform _parent;
@@ -285,15 +285,15 @@ namespace Microsoft.ML.OnnxScoring
 
             private ITensorValueGetter _tensorValueGetter;
 
-            public IdvToTensorAdapter(ISchema idvSchema, Arguments transformArgs,
-                                        OnnxModel.OnnxNodeInfo inputInfo)
+            public IdvToTensorAdapter(ISchema idvSchema, string idvColumnName,
+                                        OnnxModel.OnnxNodeInfo onnxInputNodeInfo)
             {
-                _idvColumnName = transformArgs.InputColumn;
+                _idvColumnName = idvColumnName;
                 if (!idvSchema.TryGetColumnIndex(_idvColumnName, out IdvColumnIndex))
                     throw Contracts.Except($"Column '{_idvColumnName}' does not exist");
                 IdvColumnType = idvSchema.GetColumnType(IdvColumnIndex);
                 _idvIsVectorColumn = IdvColumnType.IsVector;
-                _onnxTensorShape = inputInfo.Shape;
+                _onnxTensorShape = onnxInputNodeInfo.Shape;
 
                 // TODO: Check that the idv and tensor sizes match
                 // TODO: Check type matches
