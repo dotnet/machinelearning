@@ -55,7 +55,10 @@ namespace Microsoft.ML.Runtime.Tools
 
         private static int MainWithProgress(string args)
         {
+            string currentDirectory = Path.GetDirectoryName(typeof(Maml).Module.FullyQualifiedName);
+
             using (var env = CreateEnvironment())
+            using (AssemblyLoadingUtils.CreateAssemblyRegistrar(env, currentDirectory))
             using (var progressCancel = new CancellationTokenSource())
             {
                 var progressTrackerTask = Task.Run(() => TrackProgress(env, progressCancel.Token));
