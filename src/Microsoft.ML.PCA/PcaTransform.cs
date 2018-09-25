@@ -29,7 +29,7 @@ namespace Microsoft.ML.Runtime.Data
     /// <include file='doc.xml' path='doc/members/member[@name="PCA"]/*' />
     public sealed class PcaTransform : OneToOneTransformBase
     {
-        public static class Defaults
+        internal static class Defaults
         {
             public const string WeightColumn = null;
             public const int Rank = 20;
@@ -37,6 +37,7 @@ namespace Microsoft.ML.Runtime.Data
             public const bool Center = true;
             public const int Seed = 0;
         }
+
         public sealed class Arguments : TransformInputBase
         {
             [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "New column definition(s) (optional form: name:src)", ShortName = "col", SortOrder = 1)]

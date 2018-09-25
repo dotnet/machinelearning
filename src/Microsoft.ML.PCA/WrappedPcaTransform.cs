@@ -4,14 +4,12 @@
 
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data.StaticPipe.Runtime;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Microsoft.ML.Transforms
+namespace Microsoft.ML.Runtime.Data
 {
     /// <include file='doc.xml' path='doc/members/member[@name="PCA"]/*' />
     public sealed class PcaEstimator : TrainedWrapperEstimatorBase
@@ -41,7 +39,7 @@ namespace Microsoft.ML.Transforms
         public PcaEstimator(IHostEnvironment env, (string input, string output)[] columns,
             int rank = PcaTransform.Defaults.Rank,
             Action<PcaTransform.Arguments> advancedSettings = null)
-            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(LpNormalizer)))
+            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(PcaEstimator)))
         {
             foreach (var (input, output) in columns)
             {
