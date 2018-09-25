@@ -353,7 +353,7 @@ namespace Microsoft.ML.Runtime.Model.Onnx
             return new ModelArgs(name, dataType, dimsLocal, dimsParamLocal);
         }
 
-        // Make int64 scalar in ONNX from native C# number
+        // Make long scalar in ONNX from native C# number
         public static TensorProto MakeInt64(string name, long value)
         {
             var tensor = new TensorProto();
@@ -363,7 +363,7 @@ namespace Microsoft.ML.Runtime.Model.Onnx
             return tensor;
         }
 
-        // Make float vector (i.e., 1-D tensor) with dims=null. Otherwise, dims is used as the shape of the produced tensor.
+        // Make long vector (i.e., 1-D tensor) with dims=null. Otherwise, dims is used as the shape of the produced tensor.
         public static TensorProto MakeInt64s(string name, IEnumerable<long> values, IEnumerable<long> dims = null)
         {
             var tensor = new TensorProto();
@@ -401,7 +401,7 @@ namespace Microsoft.ML.Runtime.Model.Onnx
             return tensor;
         }
 
-        // Make float scalar in ONNX from native C# number
+        // Make string scalar in ONNX from native C# number
         public static TensorProto MakeString(string name, string value)
         {
             var tensor = new TensorProto();
@@ -411,7 +411,7 @@ namespace Microsoft.ML.Runtime.Model.Onnx
             return tensor;
         }
 
-        // Make float vector (i.e., 1-D tensor) with dims=null. Otherwise, dims is used as the shape of the produced tensor.
+        // Make string vector (i.e., 1-D tensor) with dims=null. Otherwise, dims is used as the shape of the produced tensor.
         public static TensorProto MakeStrings(string name, IEnumerable<string> values, IEnumerable<long> dims = null)
         {
             var tensor = new TensorProto();

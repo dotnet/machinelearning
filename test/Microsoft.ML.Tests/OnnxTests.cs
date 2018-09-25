@@ -91,6 +91,7 @@ namespace Microsoft.ML.Tests
                 Assert.True(stringScalar.StringData[0].ToStringUtf8() == "36");
 
                 var floatsTensor = model.Graph.Initializer[3];
+                Assert.True(floatsTensor.Name == "floats");
                 Assert.True(floatsTensor.Dims.Count == 2);
                 Assert.True(floatsTensor.Dims[0] == 1);
                 Assert.True(floatsTensor.Dims[1] == 3);
@@ -100,6 +101,7 @@ namespace Microsoft.ML.Tests
                 Assert.True(floatsTensor.FloatData[2] == 3.6f);
 
                 var int64sTensor = model.Graph.Initializer[4];
+                Assert.True(int64sTensor.Name == "int64s");
                 Assert.True(int64sTensor.Dims.Count == 2);
                 Assert.True(int64sTensor.Dims[0] == 1);
                 Assert.True(int64sTensor.Dims[1] == 3);
@@ -109,6 +111,7 @@ namespace Microsoft.ML.Tests
                 Assert.True(int64sTensor.Int64Data[2] == 36L);
 
                 var stringsTensor = model.Graph.Initializer[5];
+                Assert.True(stringsTensor.Name == "strings");
                 Assert.True(stringsTensor.Dims.Count == 2);
                 Assert.True(stringsTensor.Dims[0] == 1);
                 Assert.True(stringsTensor.Dims[1] == 3);

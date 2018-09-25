@@ -108,7 +108,7 @@ namespace Microsoft.ML.Runtime.Model.Onnx
         public abstract string AddInitializer(float value, string name = null);
 
         /// <summary>
-        /// Call this function can declare a global int64
+        /// Call this function can declare a global long
         /// </summary>
         /// <param name="value">The long number which is going to be added into the ONNX graph</param>
         /// <param name="name">A string used as a seed to generate this initializer's name in the ONNX graph.</param>
@@ -142,7 +142,7 @@ namespace Microsoft.ML.Runtime.Model.Onnx
         public abstract string AddInitializer(IEnumerable<long> values, IEnumerable<long> dims, string name = null);
 
         /// <summary>
-        /// Call this function can declare a global long tensor
+        /// Call this function can declare a global string tensor
         /// </summary>
         /// <param name="values">The strings which are going to be added into the ONNX graph</param>
         /// <param name="dims">The shape that the strings</param>

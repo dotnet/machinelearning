@@ -13,7 +13,7 @@ namespace Microsoft.ML.Runtime.Model.Onnx
     /// <summary>
     /// A context for defining a ONNX output.
     /// </summary>
-    public sealed class OnnxContextImpl : OnnxContext
+    internal sealed class OnnxContextImpl : OnnxContext
     {
         private readonly List<NodeProto> _nodes;
         private readonly List<OnnxUtils.ModelArgs> _inputs;
