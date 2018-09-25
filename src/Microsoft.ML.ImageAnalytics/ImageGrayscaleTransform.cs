@@ -10,6 +10,8 @@ using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.ImageAnalytics;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
+using Microsoft.ML.StaticPipe;
+using Microsoft.ML.StaticPipe.Runtime;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -73,7 +75,8 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
                 verWrittenCur: 0x00010001, // Initial
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
-                loaderSignature: LoaderSignature);
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(ImageGrayscaleTransform).Assembly.FullName);
         }
 
         private const string RegistrationName = "ImageGrayscale";
@@ -97,7 +100,8 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
                 .MakeDataTransform(input);
         }
 
-        public static ImageGrayscaleTransform Create(IHostEnvironment env, ModelLoadContext ctx)
+        // Factory method for SignatureLoadModel.
+        private static ImageGrayscaleTransform Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
             var host = env.Register(RegistrationName);
@@ -112,11 +116,11 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
         }
 
         // Factory method for SignatureLoadDataTransform.
-        public static IDataTransform Create(IHostEnvironment env, ModelLoadContext ctx, IDataView input)
+        private static IDataTransform Create(IHostEnvironment env, ModelLoadContext ctx, IDataView input)
             => Create(env, ctx).MakeDataTransform(input);
 
         // Factory method for SignatureLoadRowMapper.
-        public static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, ISchema inputSchema)
+        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, ISchema inputSchema)
             => Create(env, ctx).MakeRowMapper(inputSchema);
 
         public override void Save(ModelSaveContext ctx)
@@ -155,7 +159,7 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
             private ImageGrayscaleTransform _parent;
 
             public Mapper(ImageGrayscaleTransform parent, ISchema inputSchema)
-                :base(parent.Host.Register(nameof(Mapper)), parent, inputSchema)
+                : base(parent.Host.Register(nameof(Mapper)), parent, inputSchema)
             {
                 _parent = parent;
             }
@@ -220,17 +224,61 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
             var result = inputSchema.Columns.ToDictionary(x => x.Name);
             foreach (var colInfo in Transformer.Columns)
             {
-                var col = inputSchema.FindColumn(colInfo.input);
-
-                if (col == null)
+                if (!inputSchema.TryFindColumn(colInfo.input, out var col))
                     throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.input);
                 if (!(col.ItemType is ImageType) || col.Kind != SchemaShape.Column.VectorKind.Scalar)
                     throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.input, new ImageType().ToString(), col.GetTypeString());
 
-                result[colInfo.output] = new SchemaShape.Column(colInfo.output, col.Kind, col.ItemType, col.IsKey, col.MetadataKinds);
+                result[colInfo.output] = new SchemaShape.Column(colInfo.output, col.Kind, col.ItemType, col.IsKey, col.Metadata);
             }
 
             return new SchemaShape(result.Values);
+        }
+
+        private interface IColInput
+        {
+            PipelineColumn Input { get; }
+        }
+
+        internal sealed class OutPipelineColumn<T> : Scalar<T>, IColInput
+        {
+            public PipelineColumn Input { get; }
+
+            public OutPipelineColumn(Scalar<T> input)
+    : base(Reconciler.Inst, input)
+            {
+                Contracts.AssertValue(input);
+                Contracts.Assert(typeof(T) == typeof(Bitmap) || typeof(T) == typeof(UnknownSizeBitmap));
+                Input = input;
+            }
+        }
+
+        /// <summary>
+        /// Reconciler to an <see cref="ImageGrayscaleEstimator"/> for the <see cref="PipelineColumn"/>.
+        /// </summary>
+        /// <remarks>Because we want to use the same reconciler for </remarks>
+        /// <see cref="ImageStaticPipe.AsGrayscale(Scalar{Bitmap})"/>
+        /// <see cref="ImageStaticPipe.AsGrayscale(Scalar{UnknownSizeBitmap})"/>
+        private sealed class Reconciler : EstimatorReconciler
+        {
+            public static Reconciler Inst = new Reconciler();
+
+            private Reconciler() { }
+
+            public override IEstimator<ITransformer> Reconcile(IHostEnvironment env,
+                PipelineColumn[] toOutput,
+                IReadOnlyDictionary<PipelineColumn, string> inputNames,
+                IReadOnlyDictionary<PipelineColumn, string> outputNames,
+                IReadOnlyCollection<string> usedNames)
+            {
+                var cols = new (string input, string output)[toOutput.Length];
+                for (int i = 0; i < toOutput.Length; ++i)
+                {
+                    var outCol = (IColInput)toOutput[i];
+                    cols[i] = (inputNames[outCol.Input], outputNames[toOutput[i]]);
+                }
+                return new ImageGrayscaleEstimator(env, cols);
+            }
         }
     }
 }

@@ -6,5 +6,8 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\Microsoft.ML.Sweeper\Microsoft.ML.Sweeper.csproj" />
     <ProjectReference Include="..\Microsoft.ML.TestFramework\Microsoft.ML.TestFramework.csproj" />
+
+    <NativeAssemblyReference Include="FastTreeNative" />
+    <NativeAssemblyReference Include="CpuMathNative" />
   </ItemGroup>
 </Project>

@@ -2,10 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Data;
-using Microsoft.ML.Models;
-using Microsoft.ML.Trainers;
-using Microsoft.ML.Transforms;
+using Microsoft.ML.Legacy.Data;
+using Microsoft.ML.Legacy.Models;
+using Microsoft.ML.Legacy.Trainers;
+using Microsoft.ML.Legacy.Transforms;
 using Xunit;
 
 namespace Microsoft.ML.Scenarios
@@ -17,7 +17,7 @@ namespace Microsoft.ML.Scenarios
         {
             string dataPath = GetDataPath("kc_house_data.csv");
 
-            var pipeline = new LearningPipeline();
+            var pipeline = new Legacy.LearningPipeline();
 
             pipeline.Add(new TextLoader(dataPath).CreateFrom<HousePriceData>(useHeader: true, separator: ','));
 
@@ -32,7 +32,7 @@ namespace Microsoft.ML.Scenarios
                 "NumericalFeatures", "CategoryFeatures"));
             pipeline.Add(new StochasticDualCoordinateAscentRegressor());
 
-            PredictionModel<HousePriceData, HousePricePrediction> model = pipeline.Train<HousePriceData, HousePricePrediction>();
+            var model = pipeline.Train<HousePriceData, HousePricePrediction>();
 
             HousePricePrediction prediction = model.Predict(new HousePriceData()
             {

@@ -109,7 +109,8 @@ namespace Microsoft.ML.Runtime.Data
                 verWrittenCur: 0x00010002, // Add Schema to Model Context
                 verReadableCur: 0x00010002,
                 verWeCanReadBack: 0x00010001,
-                loaderSignature: LoaderSignature);
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(ParquetLoader).Assembly.FullName);
         }
 
         public ParquetLoader(IHostEnvironment env, Arguments args, IMultiStreamSource files)
@@ -358,7 +359,7 @@ namespace Microsoft.ML.Runtime.Data
                 case DataType.Decimal:
                     return NumberType.R8;
                 case DataType.DateTimeOffset:
-                    return DateTimeZoneType.Instance;
+                    return DateTimeOffsetType.Instance;
                 case DataType.Interval:
                     return TimeSpanType.Instance;
                 default:
@@ -495,31 +496,31 @@ namespace Microsoft.ML.Runtime.Data
                 switch (parquetType)
                 {
                     case DataType.Boolean:
-                        return CreateGetterDelegateCore<bool?, DvBool>(col, _parquetConversions.Conv);
+                        return CreateGetterDelegateCore<bool, bool>(col, _parquetConversions.Conv);
                     case DataType.Byte:
                         return CreateGetterDelegateCore<byte, byte>(col, _parquetConversions.Conv);
                     case DataType.SignedByte:
-                        return CreateGetterDelegateCore<sbyte?, DvInt1>(col, _parquetConversions.Conv);
+                        return CreateGetterDelegateCore<sbyte?, sbyte>(col, _parquetConversions.Conv);
                     case DataType.UnsignedByte:
                         return CreateGetterDelegateCore<byte, byte>(col, _parquetConversions.Conv);
                     case DataType.Short:
-                        return CreateGetterDelegateCore<short?, DvInt2>(col, _parquetConversions.Conv);
+                        return CreateGetterDelegateCore<short?, short>(col, _parquetConversions.Conv);
                     case DataType.UnsignedShort:
                         return CreateGetterDelegateCore<ushort, ushort>(col, _parquetConversions.Conv);
                     case DataType.Int16:
-                        return CreateGetterDelegateCore<short?, DvInt2>(col, _parquetConversions.Conv);
+                        return CreateGetterDelegateCore<short?, short>(col, _parquetConversions.Conv);
                     case DataType.UnsignedInt16:
                         return CreateGetterDelegateCore<ushort, ushort>(col, _parquetConversions.Conv);
                     case DataType.Int32:
-                        return CreateGetterDelegateCore<int?, DvInt4>(col, _parquetConversions.Conv);
+                        return CreateGetterDelegateCore<int?, int>(col, _parquetConversions.Conv);
                     case DataType.Int64:
-                        return CreateGetterDelegateCore<long?, DvInt8>(col, _parquetConversions.Conv);
+                        return CreateGetterDelegateCore<long?, long>(col, _parquetConversions.Conv);
                     case DataType.Int96:
                         return CreateGetterDelegateCore<BigInteger, UInt128>(col, _parquetConversions.Conv);
                     case DataType.ByteArray:
                         return CreateGetterDelegateCore<byte[], VBuffer<Byte>>(col, _parquetConversions.Conv);
                     case DataType.String:
-                        return CreateGetterDelegateCore<string, DvText>(col, _parquetConversions.Conv);
+                        return CreateGetterDelegateCore<string, ReadOnlyMemory<char>>(col, _parquetConversions.Conv);
                     case DataType.Float:
                         return CreateGetterDelegateCore<float?, Single>(col, _parquetConversions.Conv);
                     case DataType.Double:
@@ -527,11 +528,11 @@ namespace Microsoft.ML.Runtime.Data
                     case DataType.Decimal:
                         return CreateGetterDelegateCore<decimal?, Double>(col, _parquetConversions.Conv);
                     case DataType.DateTimeOffset:
-                        return CreateGetterDelegateCore<DateTimeOffset, DvDateTimeZone>(col, _parquetConversions.Conv);
+                        return CreateGetterDelegateCore<DateTimeOffset, DateTimeOffset>(col, _parquetConversions.Conv);
                     case DataType.Interval:
-                        return CreateGetterDelegateCore<Interval, DvTimeSpan>(col, _parquetConversions.Conv);
+                        return CreateGetterDelegateCore<Interval, TimeSpan>(col, _parquetConversions.Conv);
                     default:
-                        return CreateGetterDelegateCore<IList, DvText>(col, _parquetConversions.Conv);
+                        return CreateGetterDelegateCore<IList, ReadOnlyMemory<char>>(col, _parquetConversions.Conv);
                 }
             }
 
@@ -678,17 +679,17 @@ namespace Microsoft.ML.Runtime.Data
 
             public void Conv(ref byte[] src, ref VBuffer<Byte> dst) => dst = src != null ? new VBuffer<byte>(src.Length, src) : new VBuffer<byte>(0, new byte[0]);
 
-            public void Conv(ref sbyte? src, ref DvInt1 dst) => dst = src ?? DvInt1.NA;
+            public void Conv(ref sbyte? src, ref sbyte dst) => dst = (sbyte)src;
 
             public void Conv(ref byte src, ref byte dst) => dst = src;
 
-            public void Conv(ref short? src, ref DvInt2 dst) => dst = src ?? DvInt2.NA;
+            public void Conv(ref short? src, ref short dst) => dst = (short)src;
 
             public void Conv(ref ushort src, ref ushort dst) => dst = src;
 
-            public void Conv(ref int? src, ref DvInt4 dst) => dst = src ?? DvInt4.NA;
+            public void Conv(ref int? src, ref int dst) => dst = (int)src;
 
-            public void Conv(ref long? src, ref DvInt8 dst) => dst = src ?? DvInt8.NA;
+            public void Conv(ref long? src, ref long dst) => dst = (long)src;
 
             public void Conv(ref float? src, ref Single dst) => dst = src ?? Single.NaN;
 
@@ -696,13 +697,14 @@ namespace Microsoft.ML.Runtime.Data
 
             public void Conv(ref decimal? src, ref Double dst) => dst = src != null ? Decimal.ToDouble((decimal)src) : Double.NaN;
 
-            public void Conv(ref string src, ref DvText dst) => dst = new DvText(src);
+            public void Conv(ref string src, ref ReadOnlyMemory<char> dst) => dst = src.AsMemory();
 
-            public void Conv(ref bool? src, ref DvBool dst) => dst = src ?? DvBool.NA;
+            //Behavior for NA values is undefined.
+            public void Conv(ref bool src, ref bool dst) => dst = src;
 
-            public void Conv(ref DateTimeOffset src, ref DvDateTimeZone dst) => dst = src;
+            public void Conv(ref DateTimeOffset src, ref DateTimeOffset dst) => dst = src;
 
-            public void Conv(ref IList src, ref DvText dst) => dst = new DvText(ConvertListToString(src));
+            public void Conv(ref IList src, ref ReadOnlyMemory<char> dst) => dst = ConvertListToString(src).AsMemory();
 
             /// <summary>
             ///  Converts a System.Numerics.BigInteger value to a UInt128 data type value.
@@ -727,22 +729,13 @@ namespace Microsoft.ML.Runtime.Data
             }
 
             /// <summary>
-            /// Converts a Parquet Interval data type value to a DvTimeSpan data type value.
+            /// Converts a Parquet Interval data type value to a TimeSpan data type value.
             /// </summary>
             /// <param name="src">Parquet Interval value (int : months, int : days, int : milliseconds).</param>
-            /// <param name="dst">DvTimeSpan object.</param>
-            public void Conv(ref Interval src, ref DvTimeSpan dst)
+            /// <param name="dst">TimeSpan object.</param>
+            public void Conv(ref Interval src, ref TimeSpan dst)
             {
-                try
-                {
-                    dst = new DvTimeSpan(TimeSpan.FromDays(src.Months * 30 + src.Days) + TimeSpan.FromMilliseconds(src.Millis));
-                }
-                catch (Exception ex)
-                {
-                    // Handle TimeSpan OverflowException
-                    _ch.Error("Cannot convert Inteval to DvTimeSpan. Exception : '{0}'", ex.Message);
-                    dst = DvTimeSpan.NA;
-                }
+                dst = TimeSpan.FromDays(src.Months * 30 + src.Days) + TimeSpan.FromMilliseconds(src.Millis);
             }
 
             private string ConvertListToString(IList list)

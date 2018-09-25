@@ -2,7 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Data;
+using Microsoft.ML.Legacy.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
@@ -13,7 +13,7 @@ namespace Microsoft.ML.TestFramework
 {
     public static class ModelHelper
     {
-        private static TlcEnvironment s_environment = new TlcEnvironment(seed: 1);
+        private static ConsoleEnvironment s_environment = new ConsoleEnvironment(seed: 1);
         private static ITransformModel s_housePriceModel;
 
         public static void WriteKcHousePriceModel(string dataPath, string outputModelPath)
@@ -57,7 +57,7 @@ namespace Microsoft.ML.TestFramework
         private static ITransformModel CreateKcHousePricePredictorModel(string dataPath)
         {
             Experiment experiment = s_environment.CreateExperiment();
-            var importData = new Data.TextLoader(dataPath)
+            var importData = new Legacy.Data.TextLoader(dataPath)
             {
                 Arguments = new TextLoaderArguments
                 {
@@ -69,147 +69,147 @@ namespace Microsoft.ML.TestFramework
                         {
                             Name = "Id",
                             Source = new [] { new TextLoaderRange(0) },
-                            Type = Data.DataKind.Text
+                            Type =  Legacy.Data.DataKind.Text
                         },
 
                         new TextLoaderColumn()
                         {
                             Name = "Date",
                             Source = new [] { new TextLoaderRange(1) },
-                            Type = Data.DataKind.Text
+                            Type =  Legacy.Data.DataKind.Text
                         },
 
                         new TextLoaderColumn()
                         {
                             Name = "Label",
                             Source = new [] { new TextLoaderRange(2) },
-                            Type = Data.DataKind.Num
+                            Type =  Legacy.Data.DataKind.Num
                         },
 
                         new TextLoaderColumn()
                         {
                             Name = "Bedrooms",
                             Source = new [] { new TextLoaderRange(3) },
-                            Type = Data.DataKind.Num
+                            Type =  Legacy.Data.DataKind.Num
                         },
 
                         new TextLoaderColumn()
                         {
                             Name = "Bathrooms",
                             Source = new [] { new TextLoaderRange(4) },
-                            Type = Data.DataKind.Num
+                            Type =  Legacy.Data.DataKind.Num
                         },
 
                         new TextLoaderColumn()
                         {
                             Name = "SqftLiving",
                             Source = new [] { new TextLoaderRange(5) },
-                            Type = Data.DataKind.Num
+                            Type =  Legacy.Data.DataKind.Num
                         },
 
                         new TextLoaderColumn()
                         {
                             Name = "SqftLot",
                             Source = new [] { new TextLoaderRange(6) },
-                            Type = Data.DataKind.Num
+                            Type =  Legacy.Data.DataKind.Num
                         },
 
                         new TextLoaderColumn()
                         {
                             Name = "Floors",
                             Source = new [] { new TextLoaderRange(7) },
-                            Type = Data.DataKind.Num
+                            Type =  Legacy.Data.DataKind.Num
                         },
 
                         new TextLoaderColumn()
                         {
                             Name = "Waterfront",
                             Source = new [] { new TextLoaderRange(8) },
-                            Type = Data.DataKind.Num
+                            Type =  Legacy.Data.DataKind.Num
                         },
 
                         new TextLoaderColumn()
                         {
                             Name = "View",
                             Source = new [] { new TextLoaderRange(9) },
-                            Type = Data.DataKind.Num
+                            Type =  Legacy.Data.DataKind.Num
                         },
 
                         new TextLoaderColumn()
                         {
                             Name = "Condition",
                             Source = new [] { new TextLoaderRange(10) },
-                            Type = Data.DataKind.Num
+                            Type =  Legacy.Data.DataKind.Num
                         },
 
                         new TextLoaderColumn()
                         {
                             Name = "Grade",
                             Source = new [] { new TextLoaderRange(11) },
-                            Type = Data.DataKind.Num
+                            Type =  Legacy.Data.DataKind.Num
                         },
 
                         new TextLoaderColumn()
                         {
                             Name = "SqftAbove",
                             Source = new [] { new TextLoaderRange(12) },
-                            Type = Data.DataKind.Num
+                            Type =  Legacy.Data.DataKind.Num
                         },
 
                         new TextLoaderColumn()
                         {
                             Name = "SqftBasement",
                             Source = new [] { new TextLoaderRange(13) },
-                            Type = Data.DataKind.Num
+                            Type =  Legacy.Data.DataKind.Num
                         },
 
                         new TextLoaderColumn()
                         {
                             Name = "YearBuilt",
                             Source = new [] { new TextLoaderRange(14) },
-                            Type = Data.DataKind.Num
+                            Type =  Legacy.Data.DataKind.Num
                         },
 
                         new TextLoaderColumn()
                         {
                             Name = "YearRenovated",
                             Source = new [] { new TextLoaderRange(15) },
-                            Type = Data.DataKind.Num
+                            Type =  Legacy.Data.DataKind.Num
                         },
 
                         new TextLoaderColumn()
                         {
                             Name = "Zipcode",
                             Source = new [] { new TextLoaderRange(16) },
-                            Type = Data.DataKind.Num
+                            Type =  Legacy.Data.DataKind.Num
                         },
 
                         new TextLoaderColumn()
                         {
                             Name = "Lat",
                             Source = new [] { new TextLoaderRange(17) },
-                            Type = Data.DataKind.Num
+                            Type =  Legacy.Data.DataKind.Num
                         },
 
                         new TextLoaderColumn()
                         {
                             Name = "Long",
                             Source = new [] { new TextLoaderRange(18) },
-                            Type = Data.DataKind.Num
+                            Type =  Legacy.Data.DataKind.Num
                         },
 
                         new TextLoaderColumn()
                         {
                             Name = "SqftLiving15",
                             Source = new [] { new TextLoaderRange(19) },
-                            Type = Data.DataKind.Num
+                            Type =  Legacy.Data.DataKind.Num
                         },
 
                         new TextLoaderColumn()
                         {
                             Name = "SqftLot15",
                             Source = new [] { new TextLoaderRange(20) },
-                            Type = Data.DataKind.Num
+                            Type =  Legacy.Data.DataKind.Num
                         },
                     }
                 }
@@ -219,38 +219,38 @@ namespace Microsoft.ML.TestFramework
                 //
             };
 
-            Data.TextLoader.Output imported = experiment.Add(importData);
-            var numericalConcatenate = new Transforms.ColumnConcatenator();
+            Legacy.Data.TextLoader.Output imported = experiment.Add(importData);
+            var numericalConcatenate = new Legacy.Transforms.ColumnConcatenator();
             numericalConcatenate.Data = imported.Data;
             numericalConcatenate.AddColumn("NumericalFeatures", "SqftLiving", "SqftLot", "SqftAbove", "SqftBasement", "Lat", "Long", "SqftLiving15", "SqftLot15");
-            Transforms.ColumnConcatenator.Output numericalConcatenated = experiment.Add(numericalConcatenate);
+            Legacy.Transforms.ColumnConcatenator.Output numericalConcatenated = experiment.Add(numericalConcatenate);
 
-            var categoryConcatenate = new Transforms.ColumnConcatenator();
+            var categoryConcatenate = new Legacy.Transforms.ColumnConcatenator();
             categoryConcatenate.Data = numericalConcatenated.OutputData;
             categoryConcatenate.AddColumn("CategoryFeatures", "Bedrooms", "Bathrooms", "Floors", "Waterfront", "View", "Condition", "Grade", "YearBuilt", "YearRenovated", "Zipcode");
-            Transforms.ColumnConcatenator.Output categoryConcatenated = experiment.Add(categoryConcatenate);
+            Legacy.Transforms.ColumnConcatenator.Output categoryConcatenated = experiment.Add(categoryConcatenate);
 
-            var categorize = new Transforms.CategoricalOneHotVectorizer();
+            var categorize = new Legacy.Transforms.CategoricalOneHotVectorizer();
             categorize.AddColumn("CategoryFeatures");
             categorize.Data = categoryConcatenated.OutputData;
-            Transforms.CategoricalOneHotVectorizer.Output categorized = experiment.Add(categorize);
+            Legacy.Transforms.CategoricalOneHotVectorizer.Output categorized = experiment.Add(categorize);
 
-            var featuresConcatenate = new Transforms.ColumnConcatenator();
+            var featuresConcatenate = new Legacy.Transforms.ColumnConcatenator();
             featuresConcatenate.Data = categorized.OutputData;
             featuresConcatenate.AddColumn("Features", "NumericalFeatures", "CategoryFeatures");
-            Transforms.ColumnConcatenator.Output featuresConcatenated = experiment.Add(featuresConcatenate);
+            Legacy.Transforms.ColumnConcatenator.Output featuresConcatenated = experiment.Add(featuresConcatenate);
 
-            var learner = new Trainers.StochasticDualCoordinateAscentRegressor();
+            var learner = new Legacy.Trainers.StochasticDualCoordinateAscentRegressor();
             learner.TrainingData = featuresConcatenated.OutputData;
             learner.NumThreads = 1;
-            Trainers.StochasticDualCoordinateAscentRegressor.Output learnerOutput = experiment.Add(learner);
+            Legacy.Trainers.StochasticDualCoordinateAscentRegressor.Output learnerOutput = experiment.Add(learner);
 
-            var combineModels = new Transforms.ManyHeterogeneousModelCombiner();
+            var combineModels = new Legacy.Transforms.ManyHeterogeneousModelCombiner();
             combineModels.TransformModels = new ArrayVar<ITransformModel>(numericalConcatenated.Model, categoryConcatenated.Model, categorized.Model, featuresConcatenated.Model);
             combineModels.PredictorModel = learnerOutput.PredictorModel;
-            Transforms.ManyHeterogeneousModelCombiner.Output combinedModels = experiment.Add(combineModels);
+            Legacy.Transforms.ManyHeterogeneousModelCombiner.Output combinedModels = experiment.Add(combineModels);
 
-            var scorer = new Transforms.Scorer
+            var scorer = new Legacy.Transforms.Scorer
             {
                 PredictorModel = combinedModels.PredictorModel
             };

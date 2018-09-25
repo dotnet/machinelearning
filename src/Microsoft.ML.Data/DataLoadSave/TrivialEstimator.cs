@@ -28,7 +28,13 @@ namespace Microsoft.ML.Runtime.Data
             Transformer = transformer;
         }
 
-        public TTransformer Fit(IDataView input) => Transformer;
+        public TTransformer Fit(IDataView input)
+        {
+            Host.CheckValue(input, nameof(input));
+            // Validate input schema.
+            Transformer.GetOutputSchema(input.Schema);
+            return Transformer;
+        }
 
         public abstract SchemaShape GetOutputSchema(SchemaShape inputSchema);
     }

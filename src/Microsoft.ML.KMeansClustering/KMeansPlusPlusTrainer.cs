@@ -671,7 +671,7 @@ namespace Microsoft.ML.Runtime.KMeans
         }
 
         /// <summary>
-        /// KMeans|| Implementation, see http://theory.stanford.edu/~sergei/papers/vldb12-kmpar.pdf
+        /// KMeans|| Implementation, see https://theory.stanford.edu/~sergei/papers/vldb12-kmpar.pdf
         /// This algorithm will require:
         /// - (k * overSampleFactor * rounds * diminsionality * 4) bytes for the final sampled clusters.
         /// - (k * overSampleFactor * numThreads * diminsionality * 4) bytes for the per-round sampling.
@@ -1357,7 +1357,7 @@ namespace Microsoft.ML.Runtime.KMeans
             int neededPerThreadWorkStates = numThreads == 1 ? 0 : numThreads;
 
             // Accelerating KMeans requires the following data structures.
-            // The algorithm is based on the YinYang KMeans algorithm [ICML'15], http://research.microsoft.com/apps/pubs/default.aspx?id=252149
+            // The algorithm is based on the YinYang KMeans algorithm [ICML'15], https://research.microsoft.com/apps/pubs/default.aspx?id=252149
             // These data structures are allocated only as allowed by the _accelMemBudgetMb parameter
             // if _accelMemBudgetMb is zero, then the algorithm below reduces to the original KMeans++ implementation
             int bytesPerCluster =
@@ -1483,7 +1483,7 @@ namespace Microsoft.ML.Runtime.KMeans
         /// it expects to be able to sample numSamples * numThreads.
         ///
         /// This is based on the 'A-Res' algorithm in 'Weighted Random Sampling', 2005; Efraimidis, Spirakis:
-        /// http://utopia.duth.gr/~pefraimi/research/data/2007EncOfAlg.pdf
+        /// https://utopia.duth.gr/~pefraimi/research/data/2007EncOfAlg.pdf
         /// </summary>
         public static RowStats ParallelWeightedReservoirSample(
             IHost host, int numThreads,

@@ -4,6 +4,7 @@
 
 using System;
 using System.IO;
+using System.Reflection;
 using System.Text;
 using Microsoft.ML.Runtime.Internal.Utilities;
 
@@ -212,6 +213,8 @@ namespace Microsoft.ML.Runtime.Model
 
             var args = ConcatArgsRev(extra, this);
 
+            EnsureLoaderAssemblyIsRegistered(env.ComponentCatalog);
+
             object tmp;
             string sig = ModelHeader.GetLoaderSig(ref Header);
             if (!string.IsNullOrWhiteSpace(sig) &&
@@ -244,6 +247,15 @@ namespace Microsoft.ML.Runtime.Model
             Reader.BaseStream.Position = FpMin;
             result = null;
             return false;
+        }
+
+        private void EnsureLoaderAssemblyIsRegistered(ComponentCatalog catalog)
+        {
+            if (!string.IsNullOrEmpty(LoaderAssemblyName))
+            {
+                var assembly = Assembly.Load(LoaderAssemblyName);
+                catalog.RegisterAssembly(assembly);
+            }
         }
 
         private static object[] ConcatArgsRev(object[] args2, params object[] args1)

@@ -2,12 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Float = System.Single;
-
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
@@ -15,17 +10,29 @@ using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.Model.Onnx;
 using Microsoft.ML.Runtime.Model.Pfa;
+using Microsoft.ML.StaticPipe;
+using Microsoft.ML.StaticPipe.Runtime;
 using Newtonsoft.Json.Linq;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 
-[assembly: LoadableClass(KeyToVectorTransform.Summary, typeof(KeyToVectorTransform), typeof(KeyToVectorTransform.Arguments), typeof(SignatureDataTransform),
-    "Key To Vector Transform", "KeyToVectorTransform", "KeyToVector", "ToVector", DocName = "transform/KeyToVectorTransform.md")]
+[assembly: LoadableClass(KeyToVectorTransform.Summary, typeof(IDataTransform), typeof(KeyToVectorTransform), typeof(KeyToVectorTransform.Arguments), typeof(SignatureDataTransform),
+    "Key To Vector Transform", KeyToVectorTransform.UserName, "KeyToVector", "ToVector", DocName = "transform/KeyToVectorTransform.md")]
 
-[assembly: LoadableClass(KeyToVectorTransform.Summary, typeof(KeyToVectorTransform), null, typeof(SignatureLoadDataTransform),
+[assembly: LoadableClass(KeyToVectorTransform.Summary, typeof(IDataTransform), typeof(KeyToVectorTransform), null, typeof(SignatureLoadDataTransform),
     "Key To Vector Transform", KeyToVectorTransform.LoaderSignature)]
+
+[assembly: LoadableClass(KeyToVectorTransform.Summary, typeof(KeyToVectorTransform), null, typeof(SignatureLoadModel),
+    KeyToVectorTransform.UserName, KeyToVectorTransform.LoaderSignature)]
+
+[assembly: LoadableClass(typeof(IRowMapper), typeof(KeyToVectorTransform), null, typeof(SignatureLoadRowMapper),
+   KeyToVectorTransform.UserName, KeyToVectorTransform.LoaderSignature)]
 
 namespace Microsoft.ML.Runtime.Data
 {
-    public sealed class KeyToVectorTransform : OneToOneTransformBase
+    public sealed class KeyToVectorTransform : OneToOneTransformerBase
     {
         public abstract class ColumnBase : OneToOneColumn
         {
@@ -69,12 +76,6 @@ namespace Microsoft.ML.Runtime.Data
                 return TryUnparseCore(sb);
             }
         }
-
-        private static class Defaults
-        {
-            public const bool Bag = false;
-        }
-
         public sealed class Arguments
         {
             [Argument(ArgumentType.Multiple, HelpText = "New column definition(s) (optional form: name:src)", ShortName = "col", SortOrder = 1)]
@@ -82,121 +83,69 @@ namespace Microsoft.ML.Runtime.Data
 
             [Argument(ArgumentType.AtMostOnce,
                 HelpText = "Whether to combine multiple indicator vectors into a single bag vector instead of concatenating them. This is only relevant when the input is a vector.")]
-            public bool Bag = Defaults.Bag;
+            public bool Bag = KeyToVectorEstimator.Defaults.Bag;
         }
 
-        internal const string Summary = "Converts a key column to an indicator vector.";
-
-        public const string LoaderSignature = "KeyToVectorTransform";
-        private static VersionInfo GetVersionInfo()
+        public class ColumnInfo
         {
-            return new VersionInfo(
-                modelSignature: "KEY2VECT",
-                verWrittenCur: 0x00010001, // Initial
-                verReadableCur: 0x00010001,
-                verWeCanReadBack: 0x00010001,
-                loaderSignature: LoaderSignature);
+            public readonly string Input;
+            public readonly string Output;
+            public readonly bool Bag;
+
+            public ColumnInfo(string input, string output, bool bag = KeyToVectorEstimator.Defaults.Bag)
+            {
+                Input = input;
+                Output = output;
+                Bag = bag;
+            }
         }
 
         private const string RegistrationName = "KeyToVector";
 
-        // These arrays are parallel to Infos.
-        // * _bag indicates whether vector inputs should have their output indicator vectors added
-        //   (instead of concatenated). This is faithful to what the user specified in the Arguments
-        //   and is persisted.
-        // * _concat is whether, given the current input, there are multiple output instance vectors
-        //   to concatenate. If _bag[i] is true, then _concat[i] will be false. If _bag[i] is false,
-        //   _concat[i] will be true iff the input is a vector with either unknown length or length
-        //   bigger than one. In the other cases (non-vector input and vector of length one), there
-        //   is only one resulting indicator vector so no need to concatenate anything.
-        // * _types contains the output column types.
-        // * _slotNamesTypes contains the metadata types for slot name metadata. _slotNamesTypes[i] will
-        //   be null if slot names are not available for the given column (eg, in the variable size case,
-        //   or when the source doesn't have key names).
-        private readonly bool[] _bag;
-        private readonly bool[] _concat;
-        private readonly VectorType[] _types;
+        public IReadOnlyCollection<ColumnInfo> Columns => _columns.AsReadOnly();
+        private readonly ColumnInfo[] _columns;
 
-        /// <summary>
-        /// Convenience constructor for public facing API.
-        /// </summary>
-        /// <param name="env">Host Environment.</param>
-        /// <param name="input">Input <see cref="IDataView"/>. This is the output from previous transform or loader.</param>
-        /// <param name="name">Name of the output column.</param>
-        /// <param name="source">Name of the input column.  If this is null '<paramref name="name"/>' will be used.</param>
-        /// <param name="bag">Whether to combine multiple indicator vectors into a single bag vector instead of concatenating them. This is only relevant when the input is a vector.</param>
-        public KeyToVectorTransform(IHostEnvironment env,
-            IDataView input,
-            string name,
-            string source = null,
-            bool bag = Defaults.Bag)
-            : this(env, new Arguments() { Column = new[] { new Column() { Source = source ?? name, Name = name } }, Bag = bag }, input)
+        private static (string input, string output)[] GetColumnPairs(ColumnInfo[] columns)
         {
+            Contracts.CheckValue(columns, nameof(columns));
+            return columns.Select(x => (x.Input, x.Output)).ToArray();
         }
 
-        /// <summary>
-        /// Public constructor corresponding to SignatureDataTransform.
-        /// </summary>
-        public KeyToVectorTransform(IHostEnvironment env, Arguments args, IDataView input)
-            : base(env, RegistrationName, Contracts.CheckRef(args, nameof(args)).Column,
-                input, TestIsKey)
+        private string TestIsKey(ColumnType type)
         {
-            Host.AssertNonEmpty(Infos);
-            Host.Assert(Infos.Length == Utils.Size(args.Column));
-
-            _bag = new bool[Infos.Length];
-            _concat = new bool[Infos.Length];
-            _types = new VectorType[Infos.Length];
-            for (int i = 0; i < Infos.Length; i++)
-            {
-                var item = args.Column[i];
-                _bag[i] = item.Bag ?? args.Bag;
-                ComputeType(this, Source.Schema, i, Infos[i], _bag[i], Metadata,
-                    out _types[i], out _concat[i]);
-            }
-            Metadata.Seal();
+            if (type.ItemType.KeyCount > 0)
+                return null;
+            return "key type of known cardinality";
         }
 
-        private KeyToVectorTransform(IHost host, ModelLoadContext ctx, IDataView input)
-            : base(host, ctx, input, TestIsKey)
+        protected override void CheckInputColumn(ISchema inputSchema, int col, int srcCol)
         {
-            Host.AssertValue(ctx);
-
-            // *** Binary format ***
-            // <prefix handled in static Create method>
-            // <base>
-            // for each added column
-            //   byte: bag as 0/1
-            Host.AssertNonEmpty(Infos);
-            int size = Infos.Length;
-            _bag = new bool[size];
-            _concat = new bool[Infos.Length];
-            _types = new VectorType[size];
-            for (int i = 0; i < size; i++)
-            {
-                _bag[i] = ctx.Reader.ReadBoolByte();
-                ComputeType(this, Source.Schema, i, Infos[i], _bag[i], Metadata,
-                    out _types[i], out _concat[i]);
-            }
-            Metadata.Seal();
+            var type = inputSchema.GetColumnType(srcCol);
+            string reason = TestIsKey(type);
+            if (reason != null)
+                throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", ColumnPairs[col].input, reason, type.ToString());
         }
 
-        public static KeyToVectorTransform Create(IHostEnvironment env, ModelLoadContext ctx, IDataView input)
+        public KeyToVectorTransform(IHostEnvironment env, params ColumnInfo[] columns) :
+            base(Contracts.CheckRef(env, nameof(env)).Register(RegistrationName), GetColumnPairs(columns))
         {
-            Contracts.CheckValue(env, nameof(env));
-            var h = env.Register(RegistrationName);
-            h.CheckValue(ctx, nameof(ctx));
-            h.CheckValue(input, nameof(input));
-            return h.Apply("Loading Model",
-                ch =>
-                {
-                    // *** Binary format ***
-                    // int: sizeof(Float)
-                    // <remainder handled in ctors>
-                    int cbFloat = ctx.Reader.ReadInt32();
-                    ch.CheckDecode(cbFloat == sizeof(Float));
-                    return new KeyToVectorTransform(h, ctx, input);
-                });
+            _columns = columns.ToArray();
+        }
+
+        public const string LoaderSignature = "KeyToVectorTransform";
+        public const string UserName = "KeyToVectorTransform";
+        internal const string Summary = "Converts a key column to an indicator vector.";
+
+        private static VersionInfo GetVersionInfo()
+        {
+            return new VersionInfo(
+                modelSignature: "KEY2VECT",
+                //verWrittenCur: 0x00010001, // Initial
+                verWrittenCur: 0x00010002, // Get rid of writing float size in model context
+                verReadableCur: 0x00010001,
+                verWeCanReadBack: 0x00010001,
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(KeyToVectorTransform).Assembly.FullName);
         }
 
         public override void Save(ModelSaveContext ctx)
@@ -204,395 +153,870 @@ namespace Microsoft.ML.Runtime.Data
             Host.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel();
             ctx.SetVersionInfo(GetVersionInfo());
-
             // *** Binary format ***
-            // int: sizeof(Float)
             // <base>
             // for each added column
             //   byte: bag as 0/1
-            ctx.Writer.Write(sizeof(Float));
-            SaveBase(ctx);
+            SaveColumns(ctx);
 
-            Host.Assert(_bag.Length == Infos.Length);
-            for (int i = 0; i < _bag.Length; i++)
-                ctx.Writer.WriteBoolByte(_bag[i]);
+            Host.Assert(_columns.Length == ColumnPairs.Length);
+            for (int i = 0; i < _columns.Length; i++)
+                ctx.Writer.WriteBoolByte(_columns[i].Bag);
         }
 
-        public override bool CanSavePfa => true;
-        public override bool CanSaveOnnx => true;
-
-        protected override JToken SaveAsPfaCore(BoundPfaContext ctx, int iinfo, ColInfo info, JToken srcToken)
+        // Factory method for SignatureLoadModel.
+        private static KeyToVectorTransform Create(IHostEnvironment env, ModelLoadContext ctx)
         {
-            Contracts.AssertValue(ctx);
-            Contracts.Assert(0 <= iinfo && iinfo < Infos.Length);
-            Contracts.Assert(Infos[iinfo] == info);
-            Contracts.AssertValue(srcToken);
-            Contracts.Assert(CanSavePfa);
+            Contracts.CheckValue(env, nameof(env));
+            var host = env.Register(RegistrationName);
 
-            int keyCount = info.TypeSrc.ItemType.KeyCount;
-            Host.Assert(keyCount > 0);
-            // If the input type is scalar, we can just use the fanout function.
-            if (!info.TypeSrc.IsVector)
-                return PfaUtils.Call("cast.fanoutDouble", srcToken, 0, keyCount, false);
+            host.CheckValue(ctx, nameof(ctx));
+            ctx.CheckAtModel(GetVersionInfo());
 
-            JToken arrType = PfaUtils.Type.Array(PfaUtils.Type.Double);
-            if (_concat[iinfo])
-            {
-                // The concatenation case. We can still use fanout, but we just append them all together.
-                return PfaUtils.Call("a.flatMap", srcToken,
-                    PfaContext.CreateFuncBlock(new JArray() { PfaUtils.Param("k", PfaUtils.Type.Int) },
-                    arrType, PfaUtils.Call("cast.fanoutDouble", "k", 0, keyCount, false)));
-            }
-
-            // The bag case, while the most useful, is the most elaborate and difficult: we create
-            // an all-zero array and then add items to it.
-            const string funcName = "keyToVecUpdate";
-            if (!ctx.Pfa.ContainsFunc(funcName))
-            {
-                var toFunc = PfaContext.CreateFuncBlock(
-                    new JArray() { PfaUtils.Param("v", PfaUtils.Type.Double) }, PfaUtils.Type.Double,
-                    PfaUtils.Call("+", "v", 1));
-
-                ctx.Pfa.AddFunc(funcName,
-                    new JArray(PfaUtils.Param("a", arrType), PfaUtils.Param("i", PfaUtils.Type.Int)),
-                    arrType, PfaUtils.If(PfaUtils.Call(">=", "i", 0),
-                    PfaUtils.Index("a", "i").AddReturn("to", toFunc), "a"));
-            }
-
-            return PfaUtils.Call("a.fold", srcToken,
-                PfaUtils.Call("cast.fanoutDouble", -1, 0, keyCount, false), PfaUtils.FuncRef("u." + funcName));
+            return new KeyToVectorTransform(host, ctx);
         }
 
-        protected override bool SaveAsOnnxCore(OnnxContext ctx, int iinfo, ColInfo info, string srcVariableName, string dstVariableName)
+        private static ModelLoadContext ReadFloatFromCtx(IHostEnvironment env, ModelLoadContext ctx)
         {
-            string opType = "OneHotEncoder";
-            var node = ctx.CreateNode(opType, srcVariableName, dstVariableName, ctx.GetNodeName(opType));
-            node.AddAttribute("cats_int64s", Enumerable.Range(1, info.TypeSrc.ItemType.KeyCount).Select(x => (long)x));
-            node.AddAttribute("zeros", true);
-            return true;
+            if (ctx.Header.ModelVerWritten == 0x00010001)
+            {
+                int cbFloat = ctx.Reader.ReadInt32();
+                env.CheckDecode(cbFloat == sizeof(float));
+            }
+            return ctx;
         }
 
-        // Computes the column type and whether multiple indicator vectors need to be concatenated.
-        // Also populates the metadata.
-        private static void ComputeType(KeyToVectorTransform trans, ISchema input, int iinfo, ColInfo info, bool bag,
-            MetadataDispatcher md, out VectorType type, out bool concat)
+        private KeyToVectorTransform(IHost host, ModelLoadContext ctx)
+          : base(host, ReadFloatFromCtx(host, ctx))
         {
-            Contracts.AssertValue(trans);
-            Contracts.AssertValue(input);
-            Contracts.AssertValue(info);
-            Contracts.Assert(info.TypeSrc.ItemType.IsKey);
-            Contracts.AssertValue(md);
+            var columnsLength = ColumnPairs.Length;
+            // *** Binary format ***
+            // <base>
+            // for each added column
+            //   byte: bag as 0/1
+            var bags = new bool[columnsLength];
+            bags = ctx.Reader.ReadBoolArray(columnsLength);
 
-            int size = info.TypeSrc.ItemType.KeyCount;
-            Contracts.Assert(size > 0);
+            _columns = new ColumnInfo[columnsLength];
+            for (int i = 0; i < columnsLength; i++)
+                _columns[i] = new ColumnInfo(ColumnPairs[i].input, ColumnPairs[i].output, bags[i]);
+        }
 
-            // See if the source has key names.
-            var typeNames = input.GetMetadataTypeOrNull(MetadataUtils.Kinds.KeyValues, info.Source);
-            if (typeNames == null || !typeNames.IsKnownSizeVector || !typeNames.ItemType.IsText ||
-                typeNames.VectorSize != size)
+        public static IDataTransform Create(IHostEnvironment env, IDataView input, params ColumnInfo[] columns) =>
+             new KeyToVectorTransform(env, columns).MakeDataTransform(input);
+
+        // Factory method for SignatureDataTransform.
+        private static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
+        {
+            Contracts.CheckValue(env, nameof(env));
+            env.CheckValue(args, nameof(args));
+            env.CheckValue(input, nameof(input));
+
+            env.CheckValue(args.Column, nameof(args.Column));
+            var cols = new ColumnInfo[args.Column.Length];
+            using (var ch = env.Start("ValidateArgs"))
             {
-                typeNames = null;
-            }
-
-            // Don't pass through any source column metadata.
-            using (var bldr = md.BuildMetadata(iinfo))
-            {
-                if (bag || info.TypeSrc.ValueCount == 1)
+                for (int i = 0; i < cols.Length; i++)
                 {
-                    // Output is a single vector computed as the sum of the output indicator vectors.
-                    concat = false;
-                    type = new VectorType(NumberType.Float, size);
-                    if (typeNames != null)
-                        bldr.AddGetter<VBuffer<DvText>>(MetadataUtils.Kinds.SlotNames, typeNames, trans.GetKeyNames);
-                }
-                else
-                {
-                    // Output is the concatenation of the multiple output indicator vectors.
-                    concat = true;
-                    type = new VectorType(NumberType.Float, info.TypeSrc.ValueCount, size);
-                    if (typeNames != null && type.VectorSize > 0)
-                    {
-                        bldr.AddGetter<VBuffer<DvText>>(MetadataUtils.Kinds.SlotNames,
-                            new VectorType(TextType.Instance, type), trans.GetSlotNames);
-                    }
-                }
+                    var item = args.Column[i];
 
-                if (!bag && info.TypeSrc.ValueCount > 0)
-                {
-                    bldr.AddGetter<VBuffer<DvInt4>>(MetadataUtils.Kinds.CategoricalSlotRanges,
-                        MetadataUtils.GetCategoricalType(info.TypeSrc.ValueCount), trans.GetCategoricalSlotRanges);
-                }
-
-                if (!bag || info.TypeSrc.ValueCount == 1)
-                    bldr.AddPrimitive(MetadataUtils.Kinds.IsNormalized, BoolType.Instance, DvBool.True);
-            }
-        }
-
-        protected override ColumnType GetColumnTypeCore(int iinfo)
-        {
-            Host.Assert(0 <= iinfo & iinfo < _types.Length);
-            return _types[iinfo];
-        }
-
-        private void GetCategoricalSlotRanges(int iinfo, ref VBuffer<DvInt4> dst)
-        {
-            Host.Assert(0 <= iinfo && iinfo < Infos.Length);
-
-            var info = Infos[iinfo];
-
-            Host.Assert(info.TypeSrc.ValueCount > 0);
-
-            DvInt4[] ranges = new DvInt4[info.TypeSrc.ValueCount * 2];
-            int size = info.TypeSrc.ItemType.KeyCount;
-
-            ranges[0] = 0;
-            ranges[1] = size - 1;
-            for (int i = 2; i < ranges.Length; i += 2)
-            {
-                ranges[i] = ranges[i - 1] + 1;
-                ranges[i + 1] = ranges[i] + size - 1;
-            }
-
-            dst = new VBuffer<DvInt4>(ranges.Length, ranges);
-        }
-
-        // Used for slot names when appropriate.
-        private void GetKeyNames(int iinfo, ref VBuffer<DvText> dst)
-        {
-            Host.Assert(0 <= iinfo && iinfo < Infos.Length);
-            Host.Assert(!_concat[iinfo]);
-
-            // Slot names are just the key value names.
-            Source.Schema.GetMetadata(MetadataUtils.Kinds.KeyValues, Infos[iinfo].Source, ref dst);
-        }
-
-        // Combines source key names and slot names to produce final slot names.
-        private void GetSlotNames(int iinfo, ref VBuffer<DvText> dst)
-        {
-            Host.Assert(0 <= iinfo && iinfo < Infos.Length);
-            Host.Assert(_concat[iinfo]);
-            Host.Assert(_types[iinfo].IsKnownSizeVector);
-
-            // Size one should have been treated the same as Bag (by the caller).
-            // Variable size should have thrown (by the caller).
-            var typeSrc = Infos[iinfo].TypeSrc;
-            Host.Assert(typeSrc.VectorSize > 1);
-
-            // Get the source slot names, defaulting to empty text.
-            var namesSlotSrc = default(VBuffer<DvText>);
-            var typeSlotSrc = Source.Schema.GetMetadataTypeOrNull(MetadataUtils.Kinds.SlotNames, Infos[iinfo].Source);
-            if (typeSlotSrc != null && typeSlotSrc.VectorSize == typeSrc.VectorSize && typeSlotSrc.ItemType.IsText)
-            {
-                Source.Schema.GetMetadata(MetadataUtils.Kinds.SlotNames, Infos[iinfo].Source, ref namesSlotSrc);
-                Host.Check(namesSlotSrc.Length == typeSrc.VectorSize);
-            }
-            else
-                namesSlotSrc = VBufferUtils.CreateEmpty<DvText>(typeSrc.VectorSize);
-
-            int keyCount = typeSrc.ItemType.KeyCount;
-            int slotLim = _types[iinfo].VectorSize;
-            Host.Assert(slotLim == (long)typeSrc.VectorSize * keyCount);
-
-            // Get the source key names, in an array (since we will use them multiple times).
-            var namesKeySrc = default(VBuffer<DvText>);
-            Source.Schema.GetMetadata(MetadataUtils.Kinds.KeyValues, Infos[iinfo].Source, ref namesKeySrc);
-            Host.Check(namesKeySrc.Length == keyCount);
-            var keys = new DvText[keyCount];
-            namesKeySrc.CopyTo(keys);
-
-            var values = dst.Values;
-            if (Utils.Size(values) < slotLim)
-                values = new DvText[slotLim];
-
-            var sb = new StringBuilder();
-            int slot = 0;
-            foreach (var kvpSlot in namesSlotSrc.Items(all: true))
-            {
-                Contracts.Assert(slot == (long)kvpSlot.Key * keyCount);
-                sb.Clear();
-                if (kvpSlot.Value.HasChars)
-                    kvpSlot.Value.AddToStringBuilder(sb);
-                else
-                    sb.Append('[').Append(kvpSlot.Key).Append(']');
-                sb.Append('.');
-
-                int len = sb.Length;
-                foreach (var key in keys)
-                {
-                    sb.Length = len;
-                    key.AddToStringBuilder(sb);
-                    values[slot++] = new DvText(sb.ToString());
-                }
-            }
-            Host.Assert(slot == slotLim);
-
-            dst = new VBuffer<DvText>(slotLim, values, dst.Indices);
-        }
-
-        protected override Delegate GetGetterCore(IChannel ch, IRow input, int iinfo, out Action disposer)
-        {
-            Host.AssertValueOrNull(ch);
-            Host.AssertValue(input);
-            Host.Assert(0 <= iinfo && iinfo < Infos.Length);
-            disposer = null;
-
-            var info = Infos[iinfo];
-            if (!info.TypeSrc.IsVector)
-                return MakeGetterOne(input, iinfo);
-            if (_bag[iinfo])
-                return MakeGetterBag(input, iinfo);
-            return MakeGetterInd(input, iinfo);
-        }
-
-        /// <summary>
-        /// This is for the singleton case. This should be equivalent to both Bag and Ord over
-        /// a vector of size one.
-        /// </summary>
-        private ValueGetter<VBuffer<Float>> MakeGetterOne(IRow input, int iinfo)
-        {
-            Host.AssertValue(input);
-            Host.Assert(Infos[iinfo].TypeSrc.IsKey);
-            Host.Assert(Infos[iinfo].TypeSrc.KeyCount == _types[iinfo].VectorSize);
-
-            int size = Infos[iinfo].TypeSrc.KeyCount;
-            Host.Assert(size > 0);
-
-            var getSrc = RowCursorUtils.GetGetterAs<uint>(NumberType.U4, input, Infos[iinfo].Source);
-            var src = default(uint);
-            return
-                (ref VBuffer<Float> dst) =>
-                {
-                    getSrc(ref src);
-                    if (src == 0 || src > size)
-                    {
-                        dst = new VBuffer<Float>(size, 0, dst.Values, dst.Indices);
-                        return;
-                    }
-
-                    var values = dst.Values;
-                    var indices = dst.Indices;
-                    if (Utils.Size(values) < 1)
-                        values = new Float[1];
-                    if (Utils.Size(indices) < 1)
-                        indices = new int[1];
-                    values[0] = 1;
-                    indices[0] = (int)src - 1;
-
-                    dst = new VBuffer<Float>(size, 1, values, indices);
+                    cols[i] = new ColumnInfo(item.Source ?? item.Name,
+                        item.Name,
+                        item.Bag ?? args.Bag);
                 };
+            }
+            return new KeyToVectorTransform(env, cols).MakeDataTransform(input);
         }
 
-        /// <summary>
-        /// This is for the bagging case - vector input and outputs should be added.
-        /// </summary>
-        private ValueGetter<VBuffer<Float>> MakeGetterBag(IRow input, int iinfo)
+        // Factory method for SignatureLoadDataTransform.
+        private static IDataTransform Create(IHostEnvironment env, ModelLoadContext ctx, IDataView input)
+            => Create(env, ctx).MakeDataTransform(input);
+
+        // Factory method for SignatureLoadRowMapper.
+        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, ISchema inputSchema)
+            => Create(env, ctx).MakeRowMapper(inputSchema);
+
+        protected override IRowMapper MakeRowMapper(ISchema schema) => new Mapper(this, schema);
+
+        private sealed class Mapper : MapperBase, ISaveAsOnnx, ISaveAsPfa
         {
-            Host.AssertValue(input);
-            Host.Assert(Infos[iinfo].TypeSrc.IsVector);
-            Host.Assert(Infos[iinfo].TypeSrc.ItemType.IsKey);
-            Host.Assert(_bag[iinfo]);
-            Host.Assert(Infos[iinfo].TypeSrc.ItemType.KeyCount == _types[iinfo].VectorSize);
+            private sealed class ColInfo
+            {
+                public readonly string Name;
+                public readonly string Source;
+                public readonly ColumnType TypeSrc;
 
-            var info = Infos[iinfo];
-            int size = info.TypeSrc.ItemType.KeyCount;
-            Host.Assert(size > 0);
-
-            int cv = info.TypeSrc.VectorSize;
-            Host.Assert(cv >= 0);
-
-            var getSrc = RowCursorUtils.GetVecGetterAs<uint>(NumberType.U4, input, info.Source);
-            var src = default(VBuffer<uint>);
-            var bldr = BufferBuilder<float>.CreateDefault();
-            return
-                (ref VBuffer<Float> dst) =>
+                public ColInfo(string name, string source, ColumnType type)
                 {
-                    bldr.Reset(size, false);
+                    Name = name;
+                    Source = source;
+                    TypeSrc = type;
+                }
+            }
 
-                    getSrc(ref src);
-                    Host.Check(cv == 0 || src.Length == cv);
+            private readonly KeyToVectorTransform _parent;
+            private readonly ColInfo[] _infos;
+            private readonly VectorType[] _types;
 
-                    // The indices are irrelevant in the bagging case.
-                    var values = src.Values;
-                    int count = src.Count;
-                    for (int slot = 0; slot < count; slot++)
-                    {
-                        uint key = values[slot] - 1;
-                        if (key < size)
-                            bldr.AddFeature((int)key, 1);
-                    }
-
-                    bldr.GetResult(ref dst);
-                };
-        }
-
-        /// <summary>
-        /// This is for the indicator (non-bagging) case - vector input and outputs should be concatenated.
-        /// </summary>
-        private ValueGetter<VBuffer<Float>> MakeGetterInd(IRow input, int iinfo)
-        {
-            Host.AssertValue(input);
-            Host.Assert(Infos[iinfo].TypeSrc.IsVector);
-            Host.Assert(Infos[iinfo].TypeSrc.ItemType.IsKey);
-            Host.Assert(!_bag[iinfo]);
-
-            var info = Infos[iinfo];
-            int size = info.TypeSrc.ItemType.KeyCount;
-            Host.Assert(size > 0);
-
-            int cv = info.TypeSrc.VectorSize;
-            Host.Assert(cv >= 0);
-            Host.Assert(_types[iinfo].VectorSize == size * cv);
-
-            var getSrc = RowCursorUtils.GetVecGetterAs<uint>(NumberType.U4, input, info.Source);
-            var src = default(VBuffer<uint>);
-            return
-                (ref VBuffer<Float> dst) =>
+            public Mapper(KeyToVectorTransform parent, ISchema inputSchema)
+                : base(parent.Host.Register(nameof(Mapper)), parent, inputSchema)
+            {
+                _parent = parent;
+                _infos = CreateInfos(inputSchema);
+                _types = new VectorType[_parent.ColumnPairs.Length];
+                for (int i = 0; i < _parent.ColumnPairs.Length; i++)
                 {
-                    getSrc(ref src);
-                    int lenSrc = src.Length;
-                    Host.Check(lenSrc == cv || cv == 0);
-
-                    // Since we generate values in order, no need for a builder.
-                    var valuesDst = dst.Values;
-                    var indicesDst = dst.Indices;
-
-                    int lenDst = checked(size * lenSrc);
-                    int cntSrc = src.Count;
-                    if (Utils.Size(valuesDst) < cntSrc)
-                        valuesDst = new Float[cntSrc];
-                    if (Utils.Size(indicesDst) < cntSrc)
-                        indicesDst = new int[cntSrc];
-
-                    var values = src.Values;
-                    int count = 0;
-                    if (src.IsDense)
-                    {
-                        Host.Assert(lenSrc == cntSrc);
-                        for (int slot = 0; slot < cntSrc; slot++)
-                        {
-                            Host.Assert(count < cntSrc);
-                            uint key = values[slot] - 1;
-                            if (key >= (uint)size)
-                                continue;
-                            valuesDst[count] = 1;
-                            indicesDst[count++] = slot * size + (int)key;
-                        }
-                    }
+                    if (_parent._columns[i].Bag || _infos[i].TypeSrc.ValueCount == 1)
+                        _types[i] = new VectorType(NumberType.Float, _infos[i].TypeSrc.ItemType.KeyCount);
                     else
+                        _types[i] = new VectorType(NumberType.Float, _infos[i].TypeSrc.ValueCount, _infos[i].TypeSrc.ItemType.KeyCount);
+                }
+            }
+
+            private ColInfo[] CreateInfos(ISchema inputSchema)
+            {
+                Host.AssertValue(inputSchema);
+                var infos = new ColInfo[_parent.ColumnPairs.Length];
+                for (int i = 0; i < _parent.ColumnPairs.Length; i++)
+                {
+                    if (!inputSchema.TryGetColumnIndex(_parent.ColumnPairs[i].input, out int colSrc))
+                        throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", _parent.ColumnPairs[i].input);
+                    var type = inputSchema.GetColumnType(colSrc);
+                    _parent.CheckInputColumn(inputSchema, i, colSrc);
+                    infos[i] = new ColInfo(_parent.ColumnPairs[i].output, _parent.ColumnPairs[i].input, type);
+                }
+                return infos;
+            }
+
+            public override RowMapperColumnInfo[] GetOutputColumns()
+            {
+                var result = new RowMapperColumnInfo[_parent.ColumnPairs.Length];
+                for (int i = 0; i < _parent.ColumnPairs.Length; i++)
+                {
+                    InputSchema.TryGetColumnIndex(_parent.ColumnPairs[i].input, out int colIndex);
+                    Host.Assert(colIndex >= 0);
+                    var colMetaInfo = new ColumnMetadataInfo(_parent.ColumnPairs[i].output);
+                    AddMetadata(i, colMetaInfo);
+                    result[i] = new RowMapperColumnInfo(_parent.ColumnPairs[i].output, _types[i], colMetaInfo);
+                }
+                return result;
+            }
+
+            private void AddMetadata(int i, ColumnMetadataInfo colMetaInfo)
+            {
+                InputSchema.TryGetColumnIndex(_infos[i].Source, out int srcCol);
+                var srcType = _infos[i].TypeSrc;
+                var typeNames = InputSchema.GetMetadataTypeOrNull(MetadataUtils.Kinds.KeyValues, srcCol);
+                if (typeNames == null || !typeNames.IsKnownSizeVector || !typeNames.ItemType.IsText ||
+                    typeNames.VectorSize != _infos[i].TypeSrc.ItemType.KeyCount)
+                {
+                    typeNames = null;
+                }
+                if (_parent._columns[i].Bag || _infos[i].TypeSrc.ValueCount == 1)
+                {
+                    if (typeNames != null)
                     {
-                        var indices = src.Indices;
-                        for (int islot = 0; islot < cntSrc; islot++)
+                        MetadataUtils.MetadataGetter<VBuffer<ReadOnlyMemory<char>>> getter = (int col, ref VBuffer<ReadOnlyMemory<char>> dst) =>
                         {
-                            Host.Assert(count < cntSrc);
-                            uint key = values[islot] - 1;
-                            if (key >= (uint)size)
-                                continue;
-                            valuesDst[count] = 1;
-                            indicesDst[count++] = indices[islot] * size + (int)key;
-                        }
+                            InputSchema.GetMetadata(MetadataUtils.Kinds.KeyValues, srcCol, ref dst);
+                        };
+                        var info = new MetadataInfo<VBuffer<ReadOnlyMemory<char>>>(typeNames, getter);
+                        colMetaInfo.Add(MetadataUtils.Kinds.SlotNames, info);
                     }
-                    dst = new VBuffer<Float>(lenDst, count, valuesDst, indicesDst);
-                };
+                }
+                else
+                {
+                    if (typeNames != null && _types[i].IsKnownSizeVector)
+                    {
+                        MetadataUtils.MetadataGetter<VBuffer<ReadOnlyMemory<char>>> getter = (int col, ref VBuffer<ReadOnlyMemory<char>> dst) =>
+                        {
+                            GetSlotNames(i, ref dst);
+                        };
+                        var info = new MetadataInfo<VBuffer<ReadOnlyMemory<char>>>(new VectorType(TextType.Instance, _types[i]), getter);
+                        colMetaInfo.Add(MetadataUtils.Kinds.SlotNames, info);
+                    }
+                }
+
+                if (!_parent._columns[i].Bag && srcType.ValueCount > 0)
+                {
+                    MetadataUtils.MetadataGetter<VBuffer<int>> getter = (int col, ref VBuffer<int> dst) =>
+                    {
+                        GetCategoricalSlotRanges(i, ref dst);
+                    };
+                    var info = new MetadataInfo<VBuffer<int>>(MetadataUtils.GetCategoricalType(_infos[i].TypeSrc.ValueCount), getter);
+                    colMetaInfo.Add(MetadataUtils.Kinds.CategoricalSlotRanges, info);
+                }
+
+                if (!_parent._columns[i].Bag || srcType.ValueCount == 1)
+                {
+                    MetadataUtils.MetadataGetter<bool> getter = (int col, ref bool dst) =>
+                    {
+                        dst = true;
+                    };
+                    var info = new MetadataInfo<bool>(BoolType.Instance, getter);
+                    colMetaInfo.Add(MetadataUtils.Kinds.IsNormalized, info);
+                }
+            }
+
+            // Combines source key names and slot names to produce final slot names.
+            private void GetSlotNames(int iinfo, ref VBuffer<ReadOnlyMemory<char>> dst)
+            {
+                Host.Assert(0 <= iinfo && iinfo < _infos.Length);
+                Host.Assert(_types[iinfo].IsKnownSizeVector);
+
+                // Size one should have been treated the same as Bag (by the caller).
+                // Variable size should have thrown (by the caller).
+                var typeSrc = _infos[iinfo].TypeSrc;
+                Host.Assert(typeSrc.VectorSize > 1);
+
+                // Get the source slot names, defaulting to empty text.
+                var namesSlotSrc = default(VBuffer<ReadOnlyMemory<char>>);
+                InputSchema.TryGetColumnIndex(_infos[iinfo].Source, out int srcCol);
+                Host.Assert(srcCol >= 0);
+                var typeSlotSrc = InputSchema.GetMetadataTypeOrNull(MetadataUtils.Kinds.SlotNames, srcCol);
+                if (typeSlotSrc != null && typeSlotSrc.VectorSize == typeSrc.VectorSize && typeSlotSrc.ItemType.IsText)
+                {
+                    InputSchema.GetMetadata(MetadataUtils.Kinds.SlotNames, srcCol, ref namesSlotSrc);
+                    Host.Check(namesSlotSrc.Length == typeSrc.VectorSize);
+                }
+                else
+                    namesSlotSrc = VBufferUtils.CreateEmpty<ReadOnlyMemory<char>>(typeSrc.VectorSize);
+
+                int keyCount = typeSrc.ItemType.ItemType.KeyCount;
+                int slotLim = _types[iinfo].VectorSize;
+                Host.Assert(slotLim == (long)typeSrc.VectorSize * keyCount);
+
+                // Get the source key names, in an array (since we will use them multiple times).
+                var namesKeySrc = default(VBuffer<ReadOnlyMemory<char>>);
+                InputSchema.GetMetadata(MetadataUtils.Kinds.KeyValues, srcCol, ref namesKeySrc);
+                Host.Check(namesKeySrc.Length == keyCount);
+                var keys = new ReadOnlyMemory<char>[keyCount];
+                namesKeySrc.CopyTo(keys);
+
+                var values = dst.Values;
+                if (Utils.Size(values) < slotLim)
+                    values = new ReadOnlyMemory<char>[slotLim];
+
+                var sb = new StringBuilder();
+                int slot = 0;
+                foreach (var kvpSlot in namesSlotSrc.Items(all: true))
+                {
+                    Contracts.Assert(slot == (long)kvpSlot.Key * keyCount);
+                    sb.Clear();
+                    if (!kvpSlot.Value.IsEmpty)
+                        sb.AppendMemory(kvpSlot.Value);
+                    else
+                        sb.Append('[').Append(kvpSlot.Key).Append(']');
+                    sb.Append('.');
+
+                    int len = sb.Length;
+                    foreach (var key in keys)
+                    {
+                        sb.Length = len;
+                        sb.AppendMemory(key);
+                        values[slot++] = sb.ToString().AsMemory();
+                    }
+                }
+                Host.Assert(slot == slotLim);
+
+                dst = new VBuffer<ReadOnlyMemory<char>>(slotLim, values, dst.Indices);
+            }
+
+            private void GetCategoricalSlotRanges(int iinfo, ref VBuffer<int> dst)
+            {
+                Host.Assert(0 <= iinfo && iinfo < _infos.Length);
+
+                var info = _infos[iinfo];
+
+                Host.Assert(info.TypeSrc.ValueCount > 0);
+
+                int[] ranges = new int[info.TypeSrc.ValueCount * 2];
+                int size = info.TypeSrc.ItemType.KeyCount;
+
+                ranges[0] = 0;
+                ranges[1] = size - 1;
+                for (int i = 2; i < ranges.Length; i += 2)
+                {
+                    ranges[i] = ranges[i - 1] + 1;
+                    ranges[i + 1] = ranges[i] + size - 1;
+                }
+
+                dst = new VBuffer<int>(ranges.Length, ranges);
+            }
+
+            protected override Delegate MakeGetter(IRow input, int iinfo, out Action disposer)
+            {
+                Host.AssertValue(input);
+                Host.Assert(0 <= iinfo && iinfo < _infos.Length);
+                disposer = null;
+
+                var info = _infos[iinfo];
+                if (!info.TypeSrc.IsVector)
+                    return MakeGetterOne(input, iinfo);
+                if (_parent._columns[iinfo].Bag)
+                    return MakeGetterBag(input, iinfo);
+                return MakeGetterInd(input, iinfo);
+            }
+
+            /// <summary>
+            /// This is for the singleton case. This should be equivalent to both Bag and Ord over
+            /// a vector of size one.
+            /// </summary>
+            private ValueGetter<VBuffer<float>> MakeGetterOne(IRow input, int iinfo)
+            {
+                Host.AssertValue(input);
+                Host.Assert(_infos[iinfo].TypeSrc.IsKey);
+                Host.Assert(_infos[iinfo].TypeSrc.KeyCount == _types[iinfo].VectorSize);
+
+                int size = _infos[iinfo].TypeSrc.KeyCount;
+                Host.Assert(size > 0);
+                input.Schema.TryGetColumnIndex(_infos[iinfo].Source, out int srcCol);
+                Host.Assert(srcCol >= 0);
+                var getSrc = RowCursorUtils.GetGetterAs<uint>(NumberType.U4, input, srcCol);
+                var src = default(uint);
+                return
+                    (ref VBuffer<float> dst) =>
+                    {
+                        getSrc(ref src);
+                        if (src == 0 || src > size)
+                        {
+                            dst = new VBuffer<float>(size, 0, dst.Values, dst.Indices);
+                            return;
+                        }
+
+                        var values = dst.Values;
+                        var indices = dst.Indices;
+                        if (Utils.Size(values) < 1)
+                            values = new float[1];
+                        if (Utils.Size(indices) < 1)
+                            indices = new int[1];
+                        values[0] = 1;
+                        indices[0] = (int)src - 1;
+
+                        dst = new VBuffer<float>(size, 1, values, indices);
+                    };
+            }
+
+            /// <summary>
+            /// This is for the bagging case - vector input and outputs should be added.
+            /// </summary>
+            private ValueGetter<VBuffer<float>> MakeGetterBag(IRow input, int iinfo)
+            {
+                Host.AssertValue(input);
+                Host.Assert(_infos[iinfo].TypeSrc.IsVector);
+                Host.Assert(_infos[iinfo].TypeSrc.ItemType.IsKey);
+                Host.Assert(_parent._columns[iinfo].Bag);
+                Host.Assert(_infos[iinfo].TypeSrc.ItemType.KeyCount == _types[iinfo].VectorSize);
+
+                var info = _infos[iinfo];
+                int size = info.TypeSrc.ItemType.KeyCount;
+                Host.Assert(size > 0);
+
+                int cv = info.TypeSrc.VectorSize;
+                Host.Assert(cv >= 0);
+                input.Schema.TryGetColumnIndex(info.Source, out int srcCol);
+                Host.Assert(srcCol >= 0);
+                var getSrc = RowCursorUtils.GetVecGetterAs<uint>(NumberType.U4, input, srcCol);
+                var src = default(VBuffer<uint>);
+                var bldr = BufferBuilder<float>.CreateDefault();
+                return
+                    (ref VBuffer<float> dst) =>
+                    {
+                        bldr.Reset(size, false);
+
+                        getSrc(ref src);
+                        Host.Check(cv == 0 || src.Length == cv);
+
+                        // The indices are irrelevant in the bagging case.
+                        var values = src.Values;
+                        int count = src.Count;
+                        for (int slot = 0; slot < count; slot++)
+                        {
+                            uint key = values[slot] - 1;
+                            if (key < size)
+                                bldr.AddFeature((int)key, 1);
+                        }
+
+                        bldr.GetResult(ref dst);
+                    };
+            }
+
+            /// <summary>
+            /// This is for the indicator (non-bagging) case - vector input and outputs should be concatenated.
+            /// </summary>
+            private ValueGetter<VBuffer<float>> MakeGetterInd(IRow input, int iinfo)
+            {
+                Host.AssertValue(input);
+                Host.Assert(_infos[iinfo].TypeSrc.IsVector);
+                Host.Assert(_infos[iinfo].TypeSrc.ItemType.IsKey);
+                Host.Assert(!_parent._columns[iinfo].Bag);
+
+                var info = _infos[iinfo];
+                int size = info.TypeSrc.ItemType.KeyCount;
+                Host.Assert(size > 0);
+
+                int cv = info.TypeSrc.VectorSize;
+                Host.Assert(cv >= 0);
+                Host.Assert(_types[iinfo].VectorSize == size * cv);
+                input.Schema.TryGetColumnIndex(info.Source, out int srcCol);
+                var getSrc = RowCursorUtils.GetVecGetterAs<uint>(NumberType.U4, input, srcCol);
+                var src = default(VBuffer<uint>);
+                return
+                    (ref VBuffer<float> dst) =>
+                    {
+                        getSrc(ref src);
+                        int lenSrc = src.Length;
+                        Host.Check(lenSrc == cv || cv == 0);
+
+                        // Since we generate values in order, no need for a builder.
+                        var valuesDst = dst.Values;
+                        var indicesDst = dst.Indices;
+
+                        int lenDst = checked(size * lenSrc);
+                        int cntSrc = src.Count;
+                        if (Utils.Size(valuesDst) < cntSrc)
+                            valuesDst = new float[cntSrc];
+                        if (Utils.Size(indicesDst) < cntSrc)
+                            indicesDst = new int[cntSrc];
+
+                        var values = src.Values;
+                        int count = 0;
+                        if (src.IsDense)
+                        {
+                            Host.Assert(lenSrc == cntSrc);
+                            for (int slot = 0; slot < cntSrc; slot++)
+                            {
+                                Host.Assert(count < cntSrc);
+                                uint key = values[slot] - 1;
+                                if (key >= (uint)size)
+                                    continue;
+                                valuesDst[count] = 1;
+                                indicesDst[count++] = slot * size + (int)key;
+                            }
+                        }
+                        else
+                        {
+                            var indices = src.Indices;
+                            for (int islot = 0; islot < cntSrc; islot++)
+                            {
+                                Host.Assert(count < cntSrc);
+                                uint key = values[islot] - 1;
+                                if (key >= (uint)size)
+                                    continue;
+                                valuesDst[count] = 1;
+                                indicesDst[count++] = indices[islot] * size + (int)key;
+                            }
+                        }
+                        dst = new VBuffer<float>(lenDst, count, valuesDst, indicesDst);
+                    };
+            }
+
+            public bool CanSaveOnnx => true;
+
+            public bool CanSavePfa => true;
+
+            public void SaveAsOnnx(OnnxContext ctx)
+            {
+                Host.CheckValue(ctx, nameof(ctx));
+
+                for (int iinfo = 0; iinfo < _infos.Length; ++iinfo)
+                {
+                    ColInfo info = _infos[iinfo];
+                    string sourceColumnName = info.Source;
+                    if (!ctx.ContainsColumn(sourceColumnName))
+                    {
+                        ctx.RemoveColumn(info.Name, false);
+                        continue;
+                    }
+
+                    if (!SaveAsOnnxCore(ctx, iinfo, info, ctx.GetVariableName(sourceColumnName),
+                        ctx.AddIntermediateVariable(_types[iinfo], info.Name)))
+                    {
+                        ctx.RemoveColumn(info.Name, true);
+                    }
+                }
+            }
+
+            public void SaveAsPfa(BoundPfaContext ctx)
+            {
+                Host.CheckValue(ctx, nameof(ctx));
+
+                var toHide = new List<string>();
+                var toDeclare = new List<KeyValuePair<string, JToken>>();
+
+                for (int iinfo = 0; iinfo < _infos.Length; ++iinfo)
+                {
+                    var info = _infos[iinfo];
+                    var srcName = info.Source;
+                    string srcToken = ctx.TokenOrNullForName(srcName);
+                    if (srcToken == null)
+                    {
+                        toHide.Add(info.Name);
+                        continue;
+                    }
+                    var result = SaveAsPfaCore(ctx, iinfo, info, srcToken);
+                    if (result == null)
+                    {
+                        toHide.Add(info.Name);
+                        continue;
+                    }
+                    toDeclare.Add(new KeyValuePair<string, JToken>(info.Name, result));
+                }
+                ctx.Hide(toHide.ToArray());
+                ctx.DeclareVar(toDeclare.ToArray());
+            }
+
+            private JToken SaveAsPfaCore(BoundPfaContext ctx, int iinfo, ColInfo info, JToken srcToken)
+            {
+                Contracts.AssertValue(ctx);
+                Contracts.Assert(0 <= iinfo && iinfo < _infos.Length);
+                Contracts.Assert(_infos[iinfo] == info);
+                Contracts.AssertValue(srcToken);
+                Contracts.Assert(CanSavePfa);
+
+                int keyCount = info.TypeSrc.ItemType.KeyCount;
+                Host.Assert(keyCount > 0);
+                // If the input type is scalar, we can just use the fanout function.
+                if (!info.TypeSrc.IsVector)
+                    return PfaUtils.Call("cast.fanoutDouble", srcToken, 0, keyCount, false);
+
+                JToken arrType = PfaUtils.Type.Array(PfaUtils.Type.Double);
+                if (_parent._columns[iinfo].Bag || info.TypeSrc.ValueCount == 1)
+                {
+                    // The concatenation case. We can still use fanout, but we just append them all together.
+                    return PfaUtils.Call("a.flatMap", srcToken,
+                        PfaContext.CreateFuncBlock(new JArray() { PfaUtils.Param("k", PfaUtils.Type.Int) },
+                        arrType, PfaUtils.Call("cast.fanoutDouble", "k", 0, keyCount, false)));
+                }
+
+                // The bag case, while the most useful, is the most elaborate and difficult: we create
+                // an all-zero array and then add items to it.
+                const string funcName = "keyToVecUpdate";
+                if (!ctx.Pfa.ContainsFunc(funcName))
+                {
+                    var toFunc = PfaContext.CreateFuncBlock(
+                        new JArray() { PfaUtils.Param("v", PfaUtils.Type.Double) }, PfaUtils.Type.Double,
+                        PfaUtils.Call("+", "v", 1));
+
+                    ctx.Pfa.AddFunc(funcName,
+                        new JArray(PfaUtils.Param("a", arrType), PfaUtils.Param("i", PfaUtils.Type.Int)),
+                        arrType, PfaUtils.If(PfaUtils.Call(">=", "i", 0),
+                        PfaUtils.Index("a", "i").AddReturn("to", toFunc), "a"));
+                }
+
+                return PfaUtils.Call("a.fold", srcToken,
+                    PfaUtils.Call("cast.fanoutDouble", -1, 0, keyCount, false), PfaUtils.FuncRef("u." + funcName));
+            }
+
+            private bool SaveAsOnnxCore(OnnxContext ctx, int iinfo, ColInfo info, string srcVariableName, string dstVariableName)
+            {
+                string opType = "OneHotEncoder";
+                var node = ctx.CreateNode(opType, srcVariableName, dstVariableName, ctx.GetNodeName(opType));
+                node.AddAttribute("cats_int64s", Enumerable.Range(1, info.TypeSrc.ItemType.KeyCount).Select(x => (long)x));
+                node.AddAttribute("zeros", true);
+                return true;
+            }
+        }
+    }
+
+    public sealed class KeyToVectorEstimator : TrivialEstimator<KeyToVectorTransform>
+    {
+        public static class Defaults
+        {
+            public const bool Bag = false;
+        }
+
+        public KeyToVectorEstimator(IHostEnvironment env, params KeyToVectorTransform.ColumnInfo[] columns)
+            : this(env, new KeyToVectorTransform(env, columns))
+        {
+        }
+
+        public KeyToVectorEstimator(IHostEnvironment env, string name, string source = null, bool bag = Defaults.Bag)
+            : this(env, new KeyToVectorTransform(env, new KeyToVectorTransform.ColumnInfo(source ?? name, name, bag)))
+        {
+        }
+
+        private KeyToVectorEstimator(IHostEnvironment env, KeyToVectorTransform transformer)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(KeyToVectorEstimator)), transformer)
+        {
+        }
+
+        public override SchemaShape GetOutputSchema(SchemaShape inputSchema)
+        {
+            Host.CheckValue(inputSchema, nameof(inputSchema));
+            var result = inputSchema.Columns.ToDictionary(x => x.Name);
+            foreach (var colInfo in Transformer.Columns)
+            {
+                if (!inputSchema.TryFindColumn(colInfo.Input, out var col))
+                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.Input);
+                if ((col.ItemType.ItemType.RawKind == default) || !(col.ItemType.IsVector || col.ItemType.IsPrimitive))
+                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.Input);
+
+                var metadata = new List<SchemaShape.Column>();
+                if (col.Metadata.TryFindColumn(MetadataUtils.Kinds.KeyValues, out var keyMeta))
+                    if (col.Kind != SchemaShape.Column.VectorKind.VariableVector && keyMeta.ItemType.IsText)
+                        metadata.Add(new SchemaShape.Column(MetadataUtils.Kinds.SlotNames, SchemaShape.Column.VectorKind.Vector, keyMeta.ItemType, false));
+                if (!colInfo.Bag && (col.Kind == SchemaShape.Column.VectorKind.Scalar || col.Kind == SchemaShape.Column.VectorKind.Vector))
+                    metadata.Add(new SchemaShape.Column(MetadataUtils.Kinds.CategoricalSlotRanges, SchemaShape.Column.VectorKind.Vector, NumberType.I4, false));
+                if (!colInfo.Bag || (col.Kind == SchemaShape.Column.VectorKind.Scalar))
+                    metadata.Add(new SchemaShape.Column(MetadataUtils.Kinds.IsNormalized, SchemaShape.Column.VectorKind.Scalar, BoolType.Instance, false));
+
+                result[colInfo.Output] = new SchemaShape.Column(colInfo.Output, SchemaShape.Column.VectorKind.Vector, NumberType.R4, false, new SchemaShape(metadata));
+            }
+
+            return new SchemaShape(result.Values);
+        }
+    }
+
+    /// <summary>
+    /// Extension methods for the static-pipeline over <see cref="PipelineColumn"/> objects.
+    /// </summary>
+    public static class KeyToVectorExtensions
+    {
+        private interface IColInput
+        {
+            PipelineColumn Input { get; }
+            bool Bag { get; }
+        }
+
+        private sealed class OutVectorColumn<TKey, TValue> : Vector<float>, IColInput
+        {
+            public PipelineColumn Input { get; }
+            public bool Bag { get; }
+
+            public OutVectorColumn(Key<TKey, TValue> input)
+             : base(Reconciler.Inst, input)
+            {
+                Input = input;
+                Bag = false;
+            }
+
+            public OutVectorColumn(Vector<Key<TKey, TValue>> input, bool bag)
+                : base(Reconciler.Inst, input)
+            {
+                Input = input;
+                Bag = bag;
+            }
+
+            public OutVectorColumn(VarVector<Key<TKey, TValue>> input)
+             : base(Reconciler.Inst, input)
+            {
+                Input = input;
+                Bag = true;
+            }
+        }
+
+        private sealed class OutVarVectorColumn<TKey, TValue> : VarVector<float>, IColInput
+        {
+            public PipelineColumn Input { get; }
+            public bool Bag { get; }
+
+            public OutVarVectorColumn(VarVector<Key<TKey, TValue>> input)
+            : base(Reconciler.Inst, input)
+            {
+                Input = input;
+                Bag = false;
+            }
+        }
+
+        private sealed class OutVectorColumn<TKey> : Vector<float>, IColInput
+        {
+            public PipelineColumn Input { get; }
+            public bool Bag { get; }
+
+            public OutVectorColumn(Key<TKey> input)
+             : base(Reconciler.Inst, input)
+            {
+                Input = input;
+                Bag = false;
+            }
+
+            public OutVectorColumn(Vector<Key<TKey>> input, bool bag)
+                : base(Reconciler.Inst, input)
+            {
+                Input = input;
+                Bag = bag;
+            }
+
+            public OutVectorColumn(VarVector<Key<TKey>> input)
+             : base(Reconciler.Inst, input)
+            {
+                Input = input;
+                Bag = true;
+            }
+        }
+
+        private sealed class OutVarVectorColumn<TKey> : VarVector<float>, IColInput
+        {
+            public PipelineColumn Input { get; }
+            public bool Bag { get; }
+
+            public OutVarVectorColumn(VarVector<Key<TKey>> input)
+            : base(Reconciler.Inst, input)
+            {
+                Input = input;
+                Bag = false;
+            }
+        }
+
+        private sealed class Reconciler : EstimatorReconciler
+        {
+            public static Reconciler Inst = new Reconciler();
+
+            private Reconciler() { }
+
+            public override IEstimator<ITransformer> Reconcile(IHostEnvironment env,
+                PipelineColumn[] toOutput,
+                IReadOnlyDictionary<PipelineColumn, string> inputNames,
+                IReadOnlyDictionary<PipelineColumn, string> outputNames,
+                IReadOnlyCollection<string> usedNames)
+            {
+                var infos = new KeyToVectorTransform.ColumnInfo[toOutput.Length];
+                for (int i = 0; i < toOutput.Length; ++i)
+                {
+                    var col = (IColInput)toOutput[i];
+                    infos[i] = new KeyToVectorTransform.ColumnInfo(inputNames[col.Input], outputNames[toOutput[i]], col.Bag);
+                }
+                return new KeyToVectorEstimator(env, infos);
+            }
+        }
+
+        /// <summary>
+        /// Takes a column of key type of known cardinality and produces an indicator vector of floats.
+        /// Each key value of the input is used to create an indicator vector: the indicator vector is the length of the key cardinality,
+        /// where all values are 0, except for the entry corresponding to the value of the key, which is 1.
+        /// If the key value is missing, then all values are 0. Naturally this tends to generate very sparse vectors.
+        /// </summary>
+        public static Vector<float> ToVector<TKey, TValue>(this Key<TKey, TValue> input)
+        {
+            Contracts.CheckValue(input, nameof(input));
+            return new OutVectorColumn<TKey, TValue>(input);
+        }
+
+        /// <summary>
+        /// Takes a column of key type of known cardinality and produces an indicator vector of floats.
+        /// Each key value of the input is used to create an indicator vector: the indicator vector is the length of the key cardinality,
+        /// where all values are 0, except for the entry corresponding to the value of the key, which is 1.
+        /// If the key value is missing, then all values are 0. Naturally this tends to generate very sparse vectors.
+        /// </summary>
+        public static Vector<float> ToVector<TKey, TValue>(this Vector<Key<TKey, TValue>> input)
+        {
+            Contracts.CheckValue(input, nameof(input));
+            return new OutVectorColumn<TKey, TValue>(input, false);
+        }
+
+        /// <summary>
+        /// Takes a column of key type of known cardinality and produces an indicator vector of floats.
+        /// Each key value of the input is used to create an indicator vector: the indicator vector is the length of the key cardinality,
+        /// where all values are 0, except for the entry corresponding to the value of the key, which is 1.
+        /// If the key value is missing, then all values are 0. Naturally this tends to generate very sparse vectors.
+        /// In this case then the indicator vectors for all values in the column will be simply added together,
+        /// to produce the final vector with type equal to the key cardinality; so, in all cases, whether vector or scalar,
+        /// the output column will be a vector type of length equal to that cardinality.
+        /// </summary>
+        public static VarVector<float> ToVector<TKey, TValue>(this VarVector<Key<TKey, TValue>> input)
+        {
+            Contracts.CheckValue(input, nameof(input));
+            return new OutVarVectorColumn<TKey, TValue>(input);
+        }
+
+        /// <summary>
+        /// Takes a column of key type of known cardinality and produces an indicator vector of floats.
+        /// Each key value of the input is used to create an indicator vector: the indicator vector is the length of the key cardinality,
+        /// where all values are 0, except for the entry corresponding to the value of the key, which is 1.
+        /// If the key value is missing, then all values are 0. Naturally this tends to generate very sparse vectors.
+        /// In this case then the indicator vectors for all values in the column will be simply added together,
+        /// to produce the final vector with type equal to the key cardinality; so, in all cases, whether vector or scalar,
+        /// the output column will be a vector type of length equal to that cardinality.
+        /// </summary>
+        public static Vector<float> ToBaggedVector<TKey, TValue>(this Vector<Key<TKey, TValue>> input)
+        {
+            Contracts.CheckValue(input, nameof(input));
+            return new OutVectorColumn<TKey, TValue>(input, true);
+        }
+
+        /// <summary>
+        /// Takes a column of key type of known cardinality and produces an indicator vector of floats.
+        /// Each key value of the input is used to create an indicator vector: the indicator vector is the length of the key cardinality,
+        /// where all values are 0, except for the entry corresponding to the value of the key, which is 1.
+        /// If the key value is missing, then all values are 0. Naturally this tends to generate very sparse vectors.
+        /// In this case then the indicator vectors for all values in the column will be simply added together,
+        /// to produce the final vector with type equal to the key cardinality; so, in all cases, whether vector or scalar,
+        /// the output column will be a vector type of length equal to that cardinality.
+        /// </summary>
+        public static Vector<float> ToBaggedVector<TKey, TValue>(this VarVector<Key<TKey, TValue>> input)
+        {
+            Contracts.CheckValue(input, nameof(input));
+            return new OutVectorColumn<TKey, TValue>(input);
+        }
+
+        /// <summary>
+        /// Takes a column of key type of known cardinality and produces an indicator vector of floats.
+        /// Each key value of the input is used to create an indicator vector: the indicator vector is the length of the key cardinality,
+        /// where all values are 0, except for the entry corresponding to the value of the key, which is 1.
+        /// If the key value is missing, then all values are 0. Naturally this tends to generate very sparse vectors.
+        /// </summary>
+        public static Vector<float> ToVector<TKey>(this Key<TKey> input)
+        {
+            Contracts.CheckValue(input, nameof(input));
+            return new OutVectorColumn<TKey>(input);
+        }
+
+        /// <summary>
+        /// Takes a column of key type of known cardinality and produces an indicator vector of floats.
+        /// Each key value of the input is used to create an indicator vector: the indicator vector is the length of the key cardinality,
+        /// where all values are 0, except for the entry corresponding to the value of the key, which is 1.
+        /// If the key value is missing, then all values are 0. Naturally this tends to generate very sparse vectors.
+        /// </summary>
+        public static Vector<float> ToVector<TKey>(this Vector<Key<TKey>> input)
+        {
+            Contracts.CheckValue(input, nameof(input));
+            return new OutVectorColumn<TKey>(input, false);
+        }
+
+        /// <summary>
+        /// Takes a column of key type of known cardinality and produces an indicator vector of floats.
+        /// Each key value of the input is used to create an indicator vector: the indicator vector is the length of the key cardinality,
+        /// where all values are 0, except for the entry corresponding to the value of the key, which is 1.
+        /// If the key value is missing, then all values are 0. Naturally this tends to generate very sparse vectors.
+        /// In this case then the indicator vectors for all values in the column will be simply added together,
+        /// to produce the final vector with type equal to the key cardinality; so, in all cases, whether vector or scalar,
+        /// the output column will be a vector type of length equal to that cardinality.
+        /// </summary>
+        public static VarVector<float> ToVector<TKey>(this VarVector<Key<TKey>> input)
+        {
+            Contracts.CheckValue(input, nameof(input));
+            return new OutVarVectorColumn<TKey>(input);
+        }
+
+        /// <summary>
+        /// Takes a column of key type of known cardinality and produces an indicator vector of floats.
+        /// Each key value of the input is used to create an indicator vector: the indicator vector is the length of the key cardinality,
+        /// where all values are 0, except for the entry corresponding to the value of the key, which is 1.
+        /// If the key value is missing, then all values are 0. Naturally this tends to generate very sparse vectors.
+        /// In this case then the indicator vectors for all values in the column will be simply added together,
+        /// to produce the final vector with type equal to the key cardinality; so, in all cases, whether vector or scalar,
+        /// the output column will be a vector type of length equal to that cardinality.
+        /// </summary>
+        public static Vector<float> ToBaggedVector<TKey>(this Vector<Key<TKey>> input)
+        {
+            Contracts.CheckValue(input, nameof(input));
+            return new OutVectorColumn<TKey>(input, true);
+        }
+
+        /// <summary>
+        /// Takes a column of key type of known cardinality and produces an indicator vector of floats.
+        /// Each key value of the input is used to create an indicator vector: the indicator vector is the length of the key cardinality,
+        /// where all values are 0, except for the entry corresponding to the value of the key, which is 1.
+        /// If the key value is missing, then all values are 0. Naturally this tends to generate very sparse vectors.
+        /// In this case then the indicator vectors for all values in the column will be simply added together,
+        /// to produce the final vector with type equal to the key cardinality; so, in all cases, whether vector or scalar,
+        /// the output column will be a vector type of length equal to that cardinality.
+        /// </summary>
+        public static Vector<float> ToBaggedVector<TKey>(this VarVector<Key<TKey>> input)
+        {
+            Contracts.CheckValue(input, nameof(input));
+            return new OutVectorColumn<TKey>(input);
         }
     }
 }

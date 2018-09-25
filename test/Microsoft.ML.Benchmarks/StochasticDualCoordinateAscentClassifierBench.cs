@@ -4,13 +4,13 @@
 
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Engines;
-using Microsoft.ML.Models;
+using Microsoft.ML.Legacy.Models;
+using Microsoft.ML.Legacy.Trainers;
+using Microsoft.ML.Legacy.Transforms;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Learners;
-using Microsoft.ML.Trainers;
-using Microsoft.ML.Transforms;
 using System.Collections.Generic;
 using System.Globalization;
 
@@ -31,7 +31,7 @@ namespace Microsoft.ML.Benchmarks
             PetalWidth = 5.1f,
         };
 
-        private PredictionModel<IrisData, IrisPrediction> _trainedModel;
+        private Legacy.PredictionModel<IrisData, IrisPrediction> _trainedModel;
         private IrisData[][] _batches;
         private ClassificationMetrics _metrics;
 
@@ -44,13 +44,13 @@ namespace Microsoft.ML.Benchmarks
         }
 
         [Benchmark]
-        public PredictionModel<IrisData, IrisPrediction> TrainIris() => Train(_dataPath);
+        public Legacy.PredictionModel<IrisData, IrisPrediction> TrainIris() => Train(_dataPath);
 
-        private PredictionModel<IrisData, IrisPrediction> Train(string dataPath)
+        private Legacy.PredictionModel<IrisData, IrisPrediction> Train(string dataPath)
         {
-            var pipeline = new LearningPipeline();
+            var pipeline = new Legacy.LearningPipeline();
 
-            pipeline.Add(new Data.TextLoader(dataPath).CreateFrom<IrisData>(useHeader: true));
+            pipeline.Add(new Legacy.Data.TextLoader(dataPath).CreateFrom<IrisData>(useHeader: true));
             pipeline.Add(new ColumnConcatenator(outputColumn: "Features", "SepalLength", "SepalWidth", "PetalLength", "PetalWidth"));
 
             pipeline.Add(new StochasticDualCoordinateAscentClassifier());
@@ -61,7 +61,7 @@ namespace Microsoft.ML.Benchmarks
         [Benchmark]
         public void TrainSentiment()
         {
-            using (var env = new TlcEnvironment(seed: 1))
+            using (var env = new ConsoleEnvironment(seed: 1))
             {
                 // Pipeline
                 var loader = TextLoader.ReadFile(env,
@@ -107,7 +107,7 @@ namespace Microsoft.ML.Benchmarks
                         WordFeatureExtractor = null,
                     }, loader);
 
-                var trans = new WordEmbeddingsTransform(env,
+                var trans = WordEmbeddingsTransform.Create(env,
                     new WordEmbeddingsTransform.Arguments()
                     {
                         Column = new WordEmbeddingsTransform.Column[1]
@@ -122,7 +122,7 @@ namespace Microsoft.ML.Benchmarks
                     }, text);
 
                 // Train
-                var trainer = new SdcaMultiClassTrainer(env, new SdcaMultiClassTrainer.Arguments() { MaxIterations = 20 });
+                var trainer = new SdcaMultiClassTrainer(env, new SdcaMultiClassTrainer.Arguments() { MaxIterations = 20 }, "Features", "Label");
                 var trainRoles = new RoleMappedData(trans, label: "Label", feature: "Features");
 
                 var predicted = trainer.Train(trainRoles);
@@ -136,7 +136,7 @@ namespace Microsoft.ML.Benchmarks
             _trainedModel = Train(_dataPath);
             _consumer.Consume(_trainedModel.Predict(_example));
 
-            var testData = new Data.TextLoader(_dataPath).CreateFrom<IrisData>(useHeader: true);
+            var testData = new Legacy.Data.TextLoader(_dataPath).CreateFrom<IrisData>(useHeader: true);
             var evaluator = new ClassificationEvaluator();
             _metrics = evaluator.Evaluate(_trainedModel, testData);
 

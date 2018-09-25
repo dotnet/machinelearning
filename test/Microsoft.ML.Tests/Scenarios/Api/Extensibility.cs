@@ -1,6 +1,8 @@
 ﻿using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Learners;
+using Microsoft.ML.Runtime.RunTests;
+using Microsoft.ML.TestFramework;
 using System;
 using System.Linq;
 using Xunit;
@@ -18,10 +20,10 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         [Fact]
         void Extensibility()
         {
-            var dataPath = GetDataPath(IrisDataPath);
-            using (var env = new TlcEnvironment())
+            using (var env = new LocalEnvironment()
+                .AddStandardComponents()) // ScoreUtils.GetScorer requires scorers to be registered in the ComponentCatalog
             {
-                var loader = TextLoader.ReadFile(env, MakeIrisTextLoaderArgs(), new MultiFileSource(dataPath));
+                var loader = TextLoader.ReadFile(env, MakeIrisTextLoaderArgs(), new MultiFileSource(GetDataPath(TestDatasets.irisData.trainFilename)));
                 Action<IrisData, IrisData> action = (i, j) =>
                 {
                     j.Label = i.Label;
@@ -31,10 +33,11 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                     j.SepalWidth = i.SepalWidth;
                 };
                 var lambda = LambdaTransform.CreateMap(env, loader, action);
-                var term = new TermTransform(env, lambda, "Label");
-                var concat = new ConcatTransform(env, term, "Features", "SepalLength", "SepalWidth", "PetalLength", "PetalWidth");
+                var term = TermTransform.Create(env, lambda, "Label");
+                var concat = new ConcatTransform(env, "Features", "SepalLength", "SepalWidth", "PetalLength", "PetalWidth")
+                    .Transform(term);
 
-                var trainer = new SdcaMultiClassTrainer(env, new SdcaMultiClassTrainer.Arguments { MaxIterations = 100, Shuffle = true, NumThreads = 1 });
+                var trainer = new SdcaMultiClassTrainer(env, new SdcaMultiClassTrainer.Arguments { MaxIterations = 100, Shuffle = true, NumThreads = 1 }, "Features", "Label");
 
                 IDataView trainData = trainer.Info.WantCaching ? (IDataView)new CacheDataView(env, concat, prefetch: null) : concat;
                 var trainRoles = new RoleMappedData(trainData, label: "Label", feature: "Features");
@@ -46,10 +49,10 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                 var scoreRoles = new RoleMappedData(concat, label: "Label", feature: "Features");
                 IDataScorerTransform scorer = ScoreUtils.GetScorer(predictor, scoreRoles, env, trainRoles.Schema);
 
-                var keyToValue = new KeyToValueTransform(env, scorer, "PredictedLabel");
+                var keyToValue = new KeyToValueTransform(env, "PredictedLabel").Transform(scorer);
                 var model = env.CreatePredictionEngine<IrisData, IrisPrediction>(keyToValue);
 
-                var testLoader = TextLoader.ReadFile(env, MakeIrisTextLoaderArgs(), new MultiFileSource(dataPath));
+                var testLoader = TextLoader.ReadFile(env, MakeIrisTextLoaderArgs(), new MultiFileSource(GetDataPath(TestDatasets.irisData.trainFilename)));
                 var testData = testLoader.AsEnumerable<IrisData>(env, false);
                 foreach (var input in testData.Take(20))
                 {

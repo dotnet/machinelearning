@@ -6,7 +6,6 @@ using BenchmarkDotNet.Attributes;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Internal.Calibration;
 using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.KMeans;
 using Microsoft.ML.Runtime.Learners;
 
@@ -19,7 +18,7 @@ namespace Microsoft.ML.Benchmarks
         [Benchmark]
         public ParameterMixingCalibratedPredictor TrainKMeansAndLR()
         {
-            using (var env = new TlcEnvironment(seed: 1))
+            using (var env = new ConsoleEnvironment(seed: 1))
             {
                 // Pipeline
                 var loader = TextLoader.ReadFile(env,
@@ -46,16 +45,10 @@ namespace Microsoft.ML.Benchmarks
                         }
                     }, new MultiFileSource(_dataPath));
 
-                IDataTransform trans = CategoricalTransform.Create(env, new CategoricalTransform.Arguments
-                {
-                    Column = new[]
-                    {
-                        new CategoricalTransform.Column { Name = "CatFeatures", Source = "CatFeatures" }
-                    }
-                }, loader);
+                IDataView trans = CategoricalTransform.Create(env, loader, "CatFeatures");
 
                 trans = NormalizeTransform.CreateMinMaxNormalizer(env, trans, "NumFeatures");
-                trans = new ConcatTransform(env, trans, "Features", "NumFeatures", "CatFeatures");
+                trans = new ConcatTransform(env, "Features", "NumFeatures", "CatFeatures").Transform(trans);
                 trans = TrainAndScoreTransform.Create(env, new TrainAndScoreTransform.Arguments
                 {
                     Trainer = ComponentFactoryUtils.CreateFromFunction(host =>
@@ -65,7 +58,7 @@ namespace Microsoft.ML.Benchmarks
                         })),
                     FeatureColumn = "Features"
                 }, trans);
-                trans = new ConcatTransform(env, trans, "Features", "Features", "Score");
+                trans = new ConcatTransform(env, "Features", "Features", "Score").Transform(trans);
 
                 // Train
                 var trainer = new LogisticRegression(env, new LogisticRegression.Arguments() { EnforceNonNegativity = true, OptTol = 1e-3f });

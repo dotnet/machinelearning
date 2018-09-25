@@ -184,7 +184,8 @@ namespace Microsoft.ML.Runtime.Data
                 verWrittenCur: 0x00010001, // Initial
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
-                loaderSignature: LoaderSignature);
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(PcaTransform).Assembly.FullName);
         }
 
         // These are parallel to Infos.
@@ -338,7 +339,7 @@ namespace Microsoft.ML.Runtime.Data
             for (int iinfo = 0; iinfo < transformInfos.Length; iinfo++)
             {
                 //Orthonormalize Y in-place using stabilized Gram Schmidt algorithm
-                //Ref: http://en.wikipedia.org/wiki/Gram-Schmidt#Algorithm
+                //Ref: https://en.wikipedia.org/wiki/Gram-Schmidt#Algorithm
                 for (var i = 0; i < oversampledRank[iinfo]; ++i)
                 {
                     var v = y[iinfo][i];

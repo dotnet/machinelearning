@@ -1,14 +1,15 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Data;
-using Microsoft.ML.Models;
+using Microsoft.ML.Legacy.Data;
+using Microsoft.ML.Legacy.Models;
+using Microsoft.ML.Legacy.Trainers;
+using Microsoft.ML.Legacy.Transforms;
 using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.RunTests;
-using Microsoft.ML.Trainers;
-using Microsoft.ML.Transforms;
+using System;
 using System.IO;
 using System.Text.RegularExpressions;
 using Xunit;
@@ -27,7 +28,7 @@ namespace Microsoft.ML.Tests
             public float Label;
 
             public float F1;
-            public DvText F2;
+            public ReadOnlyMemory<char> F2;
         }
 
         public class BreastCancerDataAllColumns
@@ -41,7 +42,7 @@ namespace Microsoft.ML.Tests
         public class BreastCancerPrediction
         {
             [ColumnName("PredictedLabel")]
-            public DvBool Cancerous;
+            public bool Cancerous;
         }
 
         public class BreastCancerMCPrediction
@@ -54,9 +55,9 @@ namespace Microsoft.ML.Tests
         public void BinaryClassificationFastTreeSaveModelToOnnxTest()
         {
             string dataPath = GetDataPath(@"breast-cancer.txt");
-            var pipeline = new LearningPipeline();
+            var pipeline = new Legacy.LearningPipeline();
 
-            pipeline.Add(new Data.TextLoader(dataPath)
+            pipeline.Add(new Legacy.Data.TextLoader(dataPath)
             {
                 Arguments = new TextLoaderArguments
                 {
@@ -68,21 +69,21 @@ namespace Microsoft.ML.Tests
                         {
                             Name = "Label",
                             Source = new [] { new TextLoaderRange(0) },
-                            Type = Data.DataKind.Num
+                            Type = Legacy.Data.DataKind.Num
                         },
 
                         new TextLoaderColumn()
                         {
                             Name = "F1",
                             Source = new [] { new TextLoaderRange(1, 1) },
-                            Type = Data.DataKind.Num
+                            Type = Legacy.Data.DataKind.Num
                         },
 
                         new TextLoaderColumn()
                         {
                             Name = "F2",
                             Source = new [] { new TextLoaderRange(2, 2) },
-                            Type = Data.DataKind.TX
+                            Type = Legacy.Data.DataKind.TX
                         }
                     }
                 }
@@ -126,9 +127,9 @@ namespace Microsoft.ML.Tests
         public void BinaryClassificationLightGBMSaveModelToOnnxTest()
         {
             string dataPath = GetDataPath(@"breast-cancer.txt");
-            var pipeline = new LearningPipeline();
+            var pipeline = new Legacy.LearningPipeline();
 
-            pipeline.Add(new Data.TextLoader(dataPath)
+            pipeline.Add(new Legacy.Data.TextLoader(dataPath)
             {
                 Arguments = new TextLoaderArguments
                 {
@@ -140,14 +141,14 @@ namespace Microsoft.ML.Tests
                         {
                             Name = "Label",
                             Source = new [] { new TextLoaderRange(0) },
-                            Type = Data.DataKind.Num
+                            Type = Legacy.Data.DataKind.Num
                         },
 
                         new TextLoaderColumn()
                         {
                             Name = "Features",
                             Source = new [] { new TextLoaderRange(1, 9) },
-                            Type = Data.DataKind.Num
+                            Type = Legacy.Data.DataKind.Num
                         }
                     }
                 }
@@ -187,9 +188,9 @@ namespace Microsoft.ML.Tests
         public void BinaryClassificationLRSaveModelToOnnxTest()
         {
             string dataPath = GetDataPath(@"breast-cancer.txt");
-            var pipeline = new LearningPipeline();
+            var pipeline = new Legacy.LearningPipeline();
 
-            pipeline.Add(new Data.TextLoader(dataPath)
+            pipeline.Add(new Legacy.Data.TextLoader(dataPath)
             {
                 Arguments = new TextLoaderArguments
                 {
@@ -201,14 +202,14 @@ namespace Microsoft.ML.Tests
                         {
                             Name = "Label",
                             Source = new [] { new TextLoaderRange(0) },
-                            Type = Data.DataKind.Num
+                            Type = Legacy.Data.DataKind.Num
                         },
 
                         new TextLoaderColumn()
                         {
                             Name = "Features",
                             Source = new [] { new TextLoaderRange(1, 9) },
-                            Type = Data.DataKind.Num
+                            Type = Legacy.Data.DataKind.Num
                         }
                     }
                 }
@@ -248,9 +249,9 @@ namespace Microsoft.ML.Tests
         public void MultiClassificationLRSaveModelToOnnxTest()
         {
             string dataPath = GetDataPath(@"breast-cancer.txt");
-            var pipeline = new LearningPipeline();
+            var pipeline = new Legacy.LearningPipeline();
 
-            pipeline.Add(new Data.TextLoader(dataPath)
+            pipeline.Add(new Legacy.Data.TextLoader(dataPath)
             {
                 Arguments = new TextLoaderArguments
                 {
@@ -262,14 +263,14 @@ namespace Microsoft.ML.Tests
                         {
                             Name = "Label",
                             Source = new [] { new TextLoaderRange(0) },
-                            Type = Data.DataKind.Num
+                            Type = Legacy.Data.DataKind.Num
                         },
 
                         new TextLoaderColumn()
                         {
                             Name = "Features",
                             Source = new [] { new TextLoaderRange(1, 9) },
-                            Type = Data.DataKind.Num
+                            Type = Legacy.Data.DataKind.Num
                         }
                     }
                 }

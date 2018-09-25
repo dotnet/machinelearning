@@ -1,0 +1,52 @@
+maml.exe CV tr=RandomPredictor threads=- dout=%Output% data=%Data% seed=1 n=1
+Not adding a normalizer.
+Not training a calibrator because it is not needed.
+Not adding a normalizer.
+Not training a calibrator because it is not needed.
+TEST POSITIVE RATIO:	0.3702 (134.0/(134.0+228.0))
+Confusion table
+          ||======================
+PREDICTED || positive | negative | Recall
+TRUTH     ||======================
+ positive ||       67 |       67 | 0.5000
+ negative ||      116 |      112 | 0.4912
+          ||======================
+Precision ||   0.3661 |   0.6257 |
+OVERALL 0/1 ACCURACY: 0.494475
+LOG LOSS/instance:  1.411189
+Test-set entropy (prior Log-Loss/instance): 0.950799
+LOG-LOSS REDUCTION (RIG): -48.421356
+AUC:                0.521242
+TEST POSITIVE RATIO:	0.3175 (107.0/(107.0+230.0))
+Confusion table
+          ||======================
+PREDICTED || positive | negative | Recall
+TRUTH     ||======================
+ positive ||       50 |       57 | 0.4673
+ negative ||      113 |      117 | 0.5087
+          ||======================
+Precision ||   0.3067 |   0.6724 |
+OVERALL 0/1 ACCURACY: 0.495549
+LOG LOSS/instance:  1.451172
+Test-set entropy (prior Log-Loss/instance): 0.901650
+LOG-LOSS REDUCTION (RIG): -60.946260
+AUC:                0.484884
+
+OVERALL RESULTS
+---------------------------------------
+AUC:                0.503063 (0.0182)
+Accuracy:           0.495012 (0.0005)
+Positive precision: 0.336434 (0.0297)
+Positive recall:    0.483645 (0.0164)
+Negative precision: 0.649056 (0.0234)
+Negative recall:    0.499962 (0.0087)
+Log-loss:           1.431181 (0.0200)
+Log-loss reduction: -54.683808 (6.2625)
+F1 Score:           0.396542 (0.0262)
+AUPRC:              0.348911 (0.0260)
+
+---------------------------------------
+Physical memory usage(MB): %Number%
+Virtual memory usage(MB): %Number%
+%DateTime%	 Time elapsed(s): %Number%
+

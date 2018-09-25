@@ -1,4 +1,4 @@
-﻿//////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////
 //    Command Line Argument Parser
 //    ----------------------------
 //    Usage
@@ -414,7 +414,7 @@ namespace Microsoft.ML.Runtime.CommandLine
         }
 
         // REVIEW: Add a method for cloning arguments, instead of going to text and back.
-        public static string GetSettings(IExceptionContext ectx, object values, object defaults, SettingsFlags flags = SettingsFlags.Default)
+        public static string GetSettings(IHostEnvironment env, object values, object defaults, SettingsFlags flags = SettingsFlags.Default)
         {
             Type t1 = values.GetType();
             Type t2 = defaults.GetType();
@@ -430,7 +430,7 @@ namespace Microsoft.ML.Runtime.CommandLine
                 return null;
 
             var info = GetArgumentInfo(t, defaults);
-            return GetSettingsCore(ectx, info, values, flags);
+            return GetSettingsCore(env, info, values, flags);
         }
 
         public static IEnumerable<KeyValuePair<string, string>> GetSettingPairs(IHostEnvironment env, object values, object defaults, SettingsFlags flags = SettingsFlags.None)
@@ -502,70 +502,6 @@ namespace Microsoft.ML.Runtime.CommandLine
             var parser = new CmdParser(env);
             return parser.GetUsageString(env, info, showRsp, columns);
         }
-
-#if CORECLR
-        /// <summary>
-        /// Fix the window width for the Core build to remove the kernel32.dll dependency.
-        /// </summary>
-        /// <returns></returns>
-        public static int GetConsoleWindowWidth()
-        {
-            return 120;
-        }
-#else
-        private const int StdOutputHandle = -11;
-
-        private struct Coord
-        {
-            internal Int16 X;
-            internal Int16 Y;
-        }
-
-        private struct SmallRect
-        {
-            internal Int16 Left;
-            internal Int16 Top;
-            internal Int16 Right;
-            internal Int16 Bottom;
-        }
-
-        private struct ConsoleScreenBufferInfo
-        {
-            internal Coord DwSize;
-            internal Coord DwCursorPosition;
-            internal Int16 WAttributes;
-            internal SmallRect SrWindow;
-            internal Coord DwMaximumWindowSize;
-        }
-
-        [DllImport("kernel32.dll", EntryPoint = "GetStdHandle", SetLastError = true, CharSet = CharSet.Unicode, CallingConvention = CallingConvention.StdCall)]
-        private static extern int GetStdHandle(int nStdHandle);
-
-        [DllImport("kernel32.dll", EntryPoint = "GetConsoleScreenBufferInfo", SetLastError = true, CharSet = CharSet.Unicode, CallingConvention = CallingConvention.StdCall)]
-        private static extern int GetConsoleScreenBufferInfo(int hConsoleOutput, ref ConsoleScreenBufferInfo lpConsoleScreenBufferInfo);
-
-        /// <summary>
-        /// Returns the number of columns in the current console window
-        /// </summary>
-        /// <returns>Returns the number of columns in the current console window</returns>
-        public static int GetConsoleWindowWidth()
-        {
-            int screenWidth;
-            ConsoleScreenBufferInfo csbi = new ConsoleScreenBufferInfo();
-            // Just to remove the warning messages...
-            csbi.DwCursorPosition.X = 0;
-            csbi.DwCursorPosition.Y = 0;
-            csbi.SrWindow.Bottom = 0;
-            csbi.SrWindow.Top = 0;
-            csbi.SrWindow.Left = 0;
-            csbi.SrWindow.Right = 0;
-
-            int rc;
-            rc = GetConsoleScreenBufferInfo(GetStdHandle(StdOutputHandle), ref csbi);
-            screenWidth = csbi.DwSize.X;
-            return screenWidth;
-        }
-#endif
 
         private CmdParser(IHostEnvironment env)
         {
@@ -830,14 +766,6 @@ namespace Microsoft.ML.Runtime.CommandLine
                     continue;
                 }
 
-                if (arg.IsSubComponentItemType)
-                {
-                    hadError |= !arg.SetValue(this, ref values[arg.Index], value, tag, destination);
-                    if (!IsCurlyGroup(value) && i + 1 < strs.Length && IsCurlyGroup(strs[i + 1]))
-                        hadError |= !arg.SetValue(this, ref values[arg.Index], strs[++i], "", destination);
-                    continue;
-                }
-
                 if (arg.IsCustomItemType)
                 {
                     hadError |= !arg.SetValue(this, ref values[arg.Index], value, tag, destination);
@@ -934,20 +862,20 @@ namespace Microsoft.ML.Runtime.CommandLine
             return !hadError;
         }
 
-        private static string GetSettingsCore(IExceptionContext ectx, ArgumentInfo info, object values, SettingsFlags flags)
+        private static string GetSettingsCore(IHostEnvironment env, ArgumentInfo info, object values, SettingsFlags flags)
         {
             StringBuilder sb = new StringBuilder();
 
             if (info.ArgDef != null)
             {
                 var val = info.ArgDef.GetValue(values);
-                info.ArgDef.AppendSetting(ectx, sb, val, flags);
+                info.ArgDef.AppendSetting(env, sb, val, flags);
             }
 
             foreach (Argument arg in info.Args)
             {
                 var val = arg.GetValue(values);
-                arg.AppendSetting(ectx, sb, val, flags);
+                arg.AppendSetting(env, sb, val, flags);
             }
 
             return sb.ToString();
@@ -958,7 +886,7 @@ namespace Microsoft.ML.Runtime.CommandLine
         /// It deals with custom "unparse" functionality, as well as quoting. It also appends to a StringBuilder
         /// instead of returning a string.
         /// </summary>
-        private static void AppendCustomItem(IExceptionContext ectx, ArgumentInfo info, object values, SettingsFlags flags, StringBuilder sb)
+        private static void AppendCustomItem(IHostEnvironment env, ArgumentInfo info, object values, SettingsFlags flags, StringBuilder sb)
         {
             int ich = sb.Length;
             // We always call unparse, even when NoUnparse is specified, since Unparse can "cleanse", which
@@ -974,13 +902,13 @@ namespace Microsoft.ML.Runtime.CommandLine
             if (info.ArgDef != null)
             {
                 var val = info.ArgDef.GetValue(values);
-                info.ArgDef.AppendSetting(ectx, sb, val, flags);
+                info.ArgDef.AppendSetting(env, sb, val, flags);
             }
 
             foreach (Argument arg in info.Args)
             {
                 var val = arg.GetValue(values);
-                arg.AppendSetting(ectx, sb, val, flags);
+                arg.AppendSetting(env, sb, val, flags);
             }
 
             string str = sb.ToString(ich, sb.Length - ich);
@@ -988,14 +916,14 @@ namespace Microsoft.ML.Runtime.CommandLine
             CmdQuoter.QuoteValue(str, sb, force: true);
         }
 
-        private IEnumerable<KeyValuePair<string, string>> GetSettingPairsCore(IExceptionContext ectx, ArgumentInfo info, object values, SettingsFlags flags)
+        private IEnumerable<KeyValuePair<string, string>> GetSettingPairsCore(IHostEnvironment env, ArgumentInfo info, object values, SettingsFlags flags)
         {
             StringBuilder buffer = new StringBuilder();
             foreach (Argument arg in info.Args)
             {
                 string key = arg.GetKey(flags);
                 object value = arg.GetValue(values);
-                foreach (string val in arg.GetSettingStrings(ectx, value, buffer))
+                foreach (string val in arg.GetSettingStrings(env, value, buffer))
                     yield return new KeyValuePair<string, string>(key, val);
             }
         }
@@ -1015,13 +943,13 @@ namespace Microsoft.ML.Runtime.CommandLine
         /// <summary>
         /// A user friendly usage string describing the command line argument syntax.
         /// </summary>
-        private string GetUsageString(IExceptionContext ectx, ArgumentInfo info, bool showRsp = true, int? columns = null)
+        private string GetUsageString(IHostEnvironment env, ArgumentInfo info, bool showRsp = true, int? columns = null)
         {
-            int screenWidth = columns ?? GetConsoleWindowWidth();
+            int screenWidth = columns ?? Console.BufferWidth;
             if (screenWidth <= 0)
                 screenWidth = 80;
 
-            ArgumentHelpStrings[] strings = GetAllHelpStrings(ectx, info, showRsp);
+            ArgumentHelpStrings[] strings = GetAllHelpStrings(env, info, showRsp);
 
             int maxParamLen = 0;
             foreach (ArgumentHelpStrings helpString in strings)
@@ -1111,17 +1039,17 @@ namespace Microsoft.ML.Runtime.CommandLine
             currentColumn = 0;
         }
 
-        private static ArgumentHelpStrings[] GetAllHelpStrings(IExceptionContext ectx, ArgumentInfo info, bool showRsp)
+        private ArgumentHelpStrings[] GetAllHelpStrings(IHostEnvironment env, ArgumentInfo info, bool showRsp)
         {
             List<ArgumentHelpStrings> strings = new List<ArgumentHelpStrings>();
 
             if (info.ArgDef != null)
-                strings.Add(GetHelpStrings(ectx, info.ArgDef));
+                strings.Add(GetHelpStrings(env, info.ArgDef));
 
             foreach (Argument arg in info.Args)
             {
                 if (!arg.IsHidden)
-                    strings.Add(GetHelpStrings(ectx, arg));
+                    strings.Add(GetHelpStrings(env, arg));
             }
 
             if (showRsp)
@@ -1130,9 +1058,9 @@ namespace Microsoft.ML.Runtime.CommandLine
             return strings.ToArray();
         }
 
-        private static ArgumentHelpStrings GetHelpStrings(IExceptionContext ectx, Argument arg)
+        private ArgumentHelpStrings GetHelpStrings(IHostEnvironment env, Argument arg)
         {
-            return new ArgumentHelpStrings(arg.GetSyntaxHelp(), arg.GetFullHelpText(ectx));
+            return new ArgumentHelpStrings(arg.GetSyntaxHelp(), arg.GetFullHelpText(env, this));
         }
 
         private bool LexFileArguments(string fileName, out string[] arguments)
@@ -1395,7 +1323,6 @@ namespace Microsoft.ML.Runtime.CommandLine
                 public bool IsDefault { get { return _arg.IsDefault; } }
                 public bool IsHidden { get { return _arg.IsHidden; } }
                 public bool IsCollection { get { return _arg.IsCollection; } }
-                public bool IsSubComponentItemType { get { return _arg.IsSubComponentItemType; } }
                 public bool IsTaggedCollection { get { return _arg.IsTaggedCollection; } }
                 // Used for help and composing settings strings.
                 public object DefaultValue { get { return _arg.DefaultValue; } }
@@ -1486,12 +1413,6 @@ namespace Microsoft.ML.Runtime.CommandLine
                         bldr.Append(']');
                         return bldr.ToString();
                     }
-                    else if (type.IsGenericEx(typeof(SubComponent<,>)))
-                    {
-                        var genArgs = type.GetGenericTypeArgumentsEx();
-                        Contracts.Assert(Utils.Size(genArgs) == 2);
-                        return $"{ComponentCatalog.SignatureToString(genArgs[1])} ⇒ {genArgs[0].Name}";
-                    }
                     else
                         return type.Name;
                 }
@@ -1574,7 +1495,6 @@ namespace Microsoft.ML.Runtime.CommandLine
             public readonly bool IsDefault;
             public readonly bool IsHidden;
             public readonly bool IsCollection;
-            public readonly bool IsSubComponentItemType;
             public readonly bool IsTaggedCollection;
             public readonly bool IsComponentFactory;
 
@@ -1629,9 +1549,7 @@ namespace Microsoft.ML.Runtime.CommandLine
                 if (defaults != null && !IsRequired)
                     DefaultValue = field.GetValue(defaults);
 
-                if (typeof(SubComponent).IsAssignableFrom(ItemValueType))
-                    IsSubComponentItemType = true;
-                else if (typeof(IComponentFactory).IsAssignableFrom(ItemValueType))
+                if (typeof(IComponentFactory).IsAssignableFrom(ItemValueType))
                     IsComponentFactory = true;
                 else if (!IsValidItemType(ItemValueType))
                 {
@@ -1658,7 +1576,6 @@ namespace Microsoft.ML.Runtime.CommandLine
                 }
 
                 Contracts.Check(!IsCollection || AllowMultiple, "Collection arguments must allow multiple");
-                Contracts.Check(!IsSingleSubComponent || AllowMultiple, "SubComponent arguments must allow multiple");
                 Contracts.Check(!Unique || IsCollection, "Unique only applicable to collection arguments");
             }
 
@@ -1681,7 +1598,7 @@ namespace Microsoft.ML.Runtime.CommandLine
                 {
                     // Make sure all collections have a non-null.
                     // REVIEW: Should we really do this? Or should all code be able to handle null arrays?
-                    // Should we also set null strings to ""? SubComponent?
+                    // Should we also set null strings to ""?
                     if (IsCollection && Field.GetValue(destination) == null)
                         Field.SetValue(destination, Array.CreateInstance(ItemType, 0));
                     return ReportMissingRequiredArgument(owner, val);
@@ -1689,34 +1606,7 @@ namespace Microsoft.ML.Runtime.CommandLine
 
                 var values = val.Values;
                 bool error = false;
-                if (IsSingleSubComponent)
-                {
-                    bool haveKind = false;
-                    var com = SubComponent.Create(ItemType);
-                    for (int i = 0; i < Utils.Size(values);)
-                    {
-                        string str = (string)values[i].Value;
-                        if (str.StartsWith("{"))
-                        {
-                            i++;
-                            continue;
-                        }
-                        if (haveKind)
-                        {
-                            owner.Report("Duplicate component kind for argument {0}", LongName);
-                            error = true;
-                        }
-                        com.Kind = str;
-                        haveKind = true;
-                        values.RemoveAt(i);
-                    }
-
-                    if (Utils.Size(values) > 0)
-                        com.Settings = values.Select(x => (string)x.Value).ToArray();
-
-                    Field.SetValue(destination, com);
-                }
-                else if (IsSingleComponentFactory)
+                if (IsSingleComponentFactory)
                 {
                     bool haveName = false;
                     string name = null;
@@ -1756,53 +1646,6 @@ namespace Microsoft.ML.Runtime.CommandLine
                     {
                         owner.Report("There was an error creating the ComponentFactory. Ensure '{0}' is configured correctly.", LongName);
                         error = true;
-                    }
-                }
-                else if (IsMultiSubComponent)
-                {
-                    // REVIEW: the kind should not be separated from settings: everything related
-                    // to one item should go into one value, not multiple values
-                    if (IsTaggedCollection)
-                    {
-                        // Tagged collection of SubComponents
-                        var comList = new List<KeyValuePair<string, SubComponent>>();
-
-                        for (int i = 0; i < Utils.Size(values);)
-                        {
-                            var com = SubComponent.Create(ItemValueType);
-                            string tag = values[i].Key;
-                            com.Kind = (string)values[i++].Value;
-                            if (i < values.Count && IsCurlyGroup((string)values[i].Value) && string.IsNullOrEmpty(values[i].Key))
-                                com.Settings = new string[] { (string)values[i++].Value };
-                            comList.Add(new KeyValuePair<string, SubComponent>(tag, com));
-                        }
-
-                        var arr = Array.CreateInstance(ItemType, comList.Count);
-                        for (int i = 0; i < arr.Length; i++)
-                        {
-                            var kvp = Activator.CreateInstance(ItemType, comList[i].Key, comList[i].Value);
-                            arr.SetValue(kvp, i);
-                        }
-
-                        Field.SetValue(destination, arr);
-                    }
-                    else
-                    {
-                        // Collection of SubComponents
-                        var comList = new List<SubComponent>();
-                        for (int i = 0; i < Utils.Size(values);)
-                        {
-                            var com = SubComponent.Create(ItemValueType);
-                            com.Kind = (string)values[i++].Value;
-                            if (i < values.Count && IsCurlyGroup((string)values[i].Value))
-                                com.Settings = new string[] { (string)values[i++].Value };
-                            comList.Add(com);
-                        }
-
-                        var arr = Array.CreateInstance(ItemValueType, comList.Count);
-                        for (int i = 0; i < arr.Length; i++)
-                            arr.SetValue(comList[i], i);
-                        Field.SetValue(destination, arr);
                     }
                 }
                 else if (IsMultiComponentFactory)
@@ -1951,7 +1794,7 @@ namespace Microsoft.ML.Runtime.CommandLine
                     }
                     val.Values.Add(new KeyValuePair<string, object>(tag, newValue));
                 }
-                else if (IsSingleSubComponent || IsComponentFactory)
+                else if (IsComponentFactory)
                 {
                     Contracts.Assert(newValue is string || newValue == null);
                     Contracts.Assert((string)newValue != "");
@@ -1994,14 +1837,12 @@ namespace Microsoft.ML.Runtime.CommandLine
                         return true;
                     if (type == typeof(string))
                         return true;
-                    if (IsSubComponentItemType)
-                        return true;
 
                     ReportBadArgumentValue(owner, data);
                     return false;
                 }
 
-                if (IsSubComponentItemType || IsComponentFactory)
+                if (IsComponentFactory)
                 {
                     value = data;
                     return true;
@@ -2153,7 +1994,7 @@ namespace Microsoft.ML.Runtime.CommandLine
                 return false;
             }
 
-            private void AppendHelpValue(IExceptionContext ectx, StringBuilder builder, object value)
+            private void AppendHelpValue(IHostEnvironment env, CmdParser owner, StringBuilder builder, object value)
             {
                 if (value == null)
                     builder.Append("{}");
@@ -2165,19 +2006,19 @@ namespace Microsoft.ML.Runtime.CommandLine
                     foreach (object o in (System.Array)value)
                     {
                         builder.Append(pre);
-                        AppendHelpValue(ectx, builder, o);
+                        AppendHelpValue(env, owner, builder, o);
                         pre = ", ";
                     }
                 }
                 else if (value is IComponentFactory)
                 {
                     string name;
-                    var catalog = ModuleCatalog.CreateInstance(ectx);
+                    var catalog = owner._catalog.Value;
                     var type = value.GetType();
                     bool success = catalog.TryGetComponentShortName(type, out name);
                     Contracts.Assert(success);
 
-                    var settings = GetSettings(ectx, value, Activator.CreateInstance(type));
+                    var settings = GetSettings(env, value, Activator.CreateInstance(type));
                     builder.Append(name);
                     if (!string.IsNullOrWhiteSpace(settings))
                     {
@@ -2194,7 +2035,7 @@ namespace Microsoft.ML.Runtime.CommandLine
             }
 
             // If value differs from the default, appends the setting to sb.
-            public void AppendSetting(IExceptionContext ectx, StringBuilder sb, object value, SettingsFlags flags)
+            public void AppendSetting(IHostEnvironment env, StringBuilder sb, object value, SettingsFlags flags)
             {
                 object def = DefaultValue;
                 if (!IsCollection)
@@ -2202,13 +2043,13 @@ namespace Microsoft.ML.Runtime.CommandLine
                     if (value == null)
                     {
                         if (def != null || IsRequired)
-                            AppendSettingCore(ectx, sb, "", flags);
+                            AppendSettingCore(env, sb, "", flags);
                     }
                     else if (def == null || !value.Equals(def))
                     {
                         var buffer = new StringBuilder();
-                        if (!(value is IComponentFactory) || (GetString(ectx, value, buffer) != GetString(ectx, def, buffer)))
-                            AppendSettingCore(ectx, sb, value, flags);
+                        if (!(value is IComponentFactory) || (GetString(env, value, buffer) != GetString(env, def, buffer)))
+                            AppendSettingCore(env, sb, value, flags);
                     }
                     return;
                 }
@@ -2235,10 +2076,10 @@ namespace Microsoft.ML.Runtime.CommandLine
                 }
 
                 foreach (object x in vals)
-                    AppendSettingCore(ectx, sb, x, flags);
+                    AppendSettingCore(env, sb, x, flags);
             }
 
-            private void AppendSettingCore(IExceptionContext ectx, StringBuilder sb, object value, SettingsFlags flags)
+            private void AppendSettingCore(IHostEnvironment env, StringBuilder sb, object value, SettingsFlags flags)
             {
                 if (sb.Length > 0)
                     sb.Append(" ");
@@ -2259,11 +2100,11 @@ namespace Microsoft.ML.Runtime.CommandLine
                 else if (value is bool)
                     sb.Append((bool)value ? "+" : "-");
                 else if (IsCustomItemType)
-                    AppendCustomItem(ectx, _infoCustom, value, flags, sb);
+                    AppendCustomItem(env, _infoCustom, value, flags, sb);
                 else if (IsComponentFactory)
                 {
                     var buffer = new StringBuilder();
-                    sb.Append(GetString(ectx, value, buffer));
+                    sb.Append(GetString(env, value, buffer));
                 }
                 else
                     sb.Append(value.ToString());
@@ -2288,7 +2129,7 @@ namespace Microsoft.ML.Runtime.CommandLine
 
             // If value differs from the default, return the string representation of 'value',
             // or an IEnumerable of string representations if 'value' is an array.
-            public IEnumerable<string> GetSettingStrings(IExceptionContext ectx, object value, StringBuilder buffer)
+            public IEnumerable<string> GetSettingStrings(IHostEnvironment env, object value, StringBuilder buffer)
             {
                 object def = DefaultValue;
 
@@ -2297,12 +2138,12 @@ namespace Microsoft.ML.Runtime.CommandLine
                     if (value == null)
                     {
                         if (def != null || IsRequired)
-                            yield return GetString(ectx, value, buffer);
+                            yield return GetString(env, value, buffer);
                     }
                     else if (def == null || !value.Equals(def))
                     {
-                        if (!(value is IComponentFactory) || (GetString(ectx, value, buffer) != GetString(ectx, def, buffer)))
-                            yield return GetString(ectx, value, buffer);
+                        if (!(value is IComponentFactory) || (GetString(env, value, buffer) != GetString(env, def, buffer)))
+                            yield return GetString(env, value, buffer);
                     }
                     yield break;
                 }
@@ -2330,10 +2171,10 @@ namespace Microsoft.ML.Runtime.CommandLine
                 }
 
                 foreach (object x in vals)
-                    yield return GetString(ectx, x, buffer);
+                    yield return GetString(env, x, buffer);
             }
 
-            private string GetString(IExceptionContext ectx, object value, StringBuilder buffer)
+            private string GetString(IHostEnvironment env, object value, StringBuilder buffer)
             {
                 if (value == null)
                     return "{}";
@@ -2351,12 +2192,13 @@ namespace Microsoft.ML.Runtime.CommandLine
                 if (value is IComponentFactory)
                 {
                     string name;
-                    var catalog = ModuleCatalog.CreateInstance(ectx);
+                    // TODO: ModuleCatalog should be on env
+                    var catalog = ModuleCatalog.CreateInstance(env);
                     var type = value.GetType();
                     bool isModuleComponent = catalog.TryGetComponentShortName(type, out name);
                     if (isModuleComponent)
                     {
-                        var settings = GetSettings(ectx, value, Activator.CreateInstance(type));
+                        var settings = GetSettings(env, value, Activator.CreateInstance(type));
                         buffer.Clear();
                         buffer.Append(name);
                         if (!string.IsNullOrWhiteSpace(settings))
@@ -2367,20 +2209,12 @@ namespace Microsoft.ML.Runtime.CommandLine
                         }
                         return buffer.ToString();
                     }
-                    else if (value is ICommandLineComponentFactory)
-                    {
-                        return value.ToString();
-                    }
-                    else
-                    {
-                        throw ectx.Except($"IComponentFactory instances either need to be EntryPointComponents or implement {nameof(ICommandLineComponentFactory)}.");
-                    }
                 }
 
                 return value.ToString();
             }
 
-            public string GetFullHelpText(IExceptionContext ectx)
+            public string GetFullHelpText(IHostEnvironment env, CmdParser owner)
             {
                 if (IsHidden)
                     return null;
@@ -2407,7 +2241,7 @@ namespace Microsoft.ML.Runtime.CommandLine
                     if (builder.Length > 0)
                         builder.Append(" ");
                     builder.Append("Default value:'");
-                    AppendHelpValue(ectx, builder, DefaultValue);
+                    AppendHelpValue(env, owner, builder, DefaultValue);
                     builder.Append('\'');
                 }
                 if (Utils.Size(ShortNames) != 0)
@@ -2471,8 +2305,6 @@ namespace Microsoft.ML.Runtime.CommandLine
                         bldr.Append("=<guid>");
                     else if (type == typeof(System.DateTime))
                         bldr.Append("=<datetime>");
-                    else if (IsSubComponentItemType)
-                        bldr.Append("=<name>{<options>}");
                     else if (IsComponentFactory)
                         bldr.Append("=<name>{<options>}");
                     else if (IsCustomItemType)
@@ -2510,14 +2342,6 @@ namespace Microsoft.ML.Runtime.CommandLine
 
             public bool Unique {
                 get { return 0 != (Kind & ArgumentType.Unique); }
-            }
-
-            public bool IsSingleSubComponent {
-                get { return IsSubComponentItemType && !Field.FieldType.IsArray; }
-            }
-
-            public bool IsMultiSubComponent {
-                get { return IsSubComponentItemType && Field.FieldType.IsArray; }
             }
 
             public bool IsSingleComponentFactory

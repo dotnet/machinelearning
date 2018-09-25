@@ -18,7 +18,7 @@ Along with these ML capabilities this first release of ML.NET also brings the fi
 
 ML.NET runs on Windows, Linux, and macOS - any platform where 64 bit [.NET Core](https://github.com/dotnet/core) or later is available.
 
-The current release is 0.4. Check out the [release notes](docs/release-notes/0.4/release-0.4.md).
+The current release is 0.5. Check out the [release notes](docs/release-notes/0.5/release-0.5.md).
 
 First ensure you have installed [.NET Core 2.0](https://www.microsoft.com/net/learn/get-started) or later. ML.NET also works on the .NET Framework. Note that ML.NET currently must run in a 64 bit process.
 
@@ -44,9 +44,9 @@ To build ML.NET from source please visit our [developers guide](docs/project-doc
 
 |    | x64 Debug | x64 Release |
 |:---|----------------:|------------------:|
-|**Linux**|[![x64-debug](https://dotnet.visualstudio.com/public/_apis/build/status/104?branch=master)](https://dotnet.visualstudio.com/DotNet-Public/_build/latest?definitionId=104&branch=master)|[![x64-release](https://dotnet.visualstudio.com/public/_apis/build/status/104?branch=master)](https://dotnet.visualstudio.com/DotNet-Public/_build/latest?definitionId=104&branch=master)|
-|**macOS**|[![x64-debug](https://dotnet.visualstudio.com/public/_apis/build/status/104?branch=master)](https://dotnet.visualstudio.com/DotNet-Public/_build/latest?definitionId=104&branch=master)|[![x64-release](https://dotnet.visualstudio.com/public/_apis/build/status/104?branch=master)](https://dotnet.visualstudio.com/DotNet-Public/_build/latest?definitionId=104&branch=master)|
-|**Windows**|[![x64-debug](https://dotnet.visualstudio.com/public/_apis/build/status/104?branch=master)](https://dotnet.visualstudio.com/DotNet-Public/_build/latest?definitionId=104&branch=master)|[![x64-release](https://dotnet.visualstudio.com/public/_apis/build/status/104?branch=master)](https://dotnet.visualstudio.com/DotNet-Public/_build/latest?definitionId=104&branch=master)|
+|**Linux**|[![x64-debug](https://dnceng.visualstudio.com/public/_apis/build/status/dotnet/machinelearning/MachineLearning-CI?branchName=master)](https://dnceng.visualstudio.com/DotNet-Public/_build/latest?definitionId=104&branch=master)|[![x64-release](https://dnceng.visualstudio.com/public/_apis/build/status/dotnet/machinelearning/MachineLearning-CI?branchName=master)](https://dnceng.visualstudio.com/DotNet-Public/_build/latest?definitionId=104&branch=master)|
+|**macOS**|[![x64-debug](https://dnceng.visualstudio.com/public/_apis/build/status/dotnet/machinelearning/MachineLearning-CI?branchName=master)](https://dnceng.visualstudio.com/DotNet-Public/_build/latest?definitionId=104&branch=master)|[![x64-release](https://dnceng.visualstudio.com/public/_apis/build/status/dotnet/machinelearning/MachineLearning-CI?branchName=master)](https://dnceng.visualstudio.com/DotNet-Public/_build/latest?definitionId=104&branch=master)|
+|**Windows**|[![x64-debug](https://dnceng.visualstudio.com/public/_apis/build/status/dotnet/machinelearning/MachineLearning-CI?branchName=master)](https://dnceng.visualstudio.com/DotNet-Public/_build/latest?definitionId=104&branch=master)|[![x64-release](https://dnceng.visualstudio.com/public/_apis/build/status/dotnet/machinelearning/MachineLearning-CI?branchName=master)](https://dnceng.visualstudio.com/DotNet-Public/_build/latest?definitionId=104&branch=master)|
 
 ## Contributing
 
@@ -56,7 +56,7 @@ We welcome contributions! Please review our [contribution guide](CONTRIBUTING.md
 
 Please join our community on Gitter [![Join the chat at https://gitter.im/dotnet/mlnet](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/dotnet/mlnet?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
-This project has adopted the code of conduct defined by the [Contributor Covenant](http://contributor-covenant.org/) to clarify expected behavior in our community.
+This project has adopted the code of conduct defined by the [Contributor Covenant](https://contributor-covenant.org/) to clarify expected behavior in our community.
 For more information, see the [.NET Foundation Code of Conduct](https://dotnetfoundation.org/code-of-conduct).
 
 ## Examples
@@ -94,7 +94,7 @@ ML.NET is licensed under the [MIT license](LICENSE).
 
 ## .NET Foundation
 
-ML.NET is a [.NET Foundation](http://www.dotnetfoundation.org/projects) project.
+ML.NET is a [.NET Foundation](https://www.dotnetfoundation.org/projects) project.
 
 There are many .NET related projects on GitHub.
 

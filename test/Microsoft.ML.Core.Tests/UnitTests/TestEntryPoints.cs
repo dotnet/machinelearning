@@ -15,11 +15,17 @@ using Microsoft.ML.Runtime.Ensemble.OutputCombiners;
 using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.EntryPoints.JsonUtils;
 using Microsoft.ML.Runtime.FastTree;
+using Microsoft.ML.Runtime.ImageAnalytics;
 using Microsoft.ML.Runtime.Internal.Calibration;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Learners;
+using Microsoft.ML.Runtime.LightGBM;
+using Microsoft.ML.Runtime.Model.Onnx;
 using Microsoft.ML.Runtime.PCA;
+using Microsoft.ML.Runtime.PipelineInference;
+using Microsoft.ML.Runtime.SymSgd;
 using Microsoft.ML.Runtime.TextAnalytics;
+using Microsoft.ML.Transforms;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Xunit;
@@ -44,7 +50,7 @@ namespace Microsoft.ML.Runtime.RunTests
                     Column = new[]
                     {
                         new TextLoader.Column("Label", DataKind.R4, 0),
-                        new TextLoader.Column("Features", DataKind.R4, 
+                        new TextLoader.Column("Features", DataKind.R4,
                             new [] { new TextLoader.Range(1, 9) })
                     }
                 },
@@ -237,37 +243,19 @@ namespace Microsoft.ML.Runtime.RunTests
         [Fact(Skip = "Execute this test if you want to regenerate ep-list and _manifest.json")]
         public void RegenerateEntryPointCatalog()
         {
+            var (epListContents, jObj) = BuildManifests();
+
             var buildPrefix = GetBuildPrefix();
             var epListFile = buildPrefix + "_ep-list.tsv";
-            var manifestFile = buildPrefix + "_manifest.json";
 
             var entryPointsSubDir = Path.Combine("..", "Common", "EntryPoints");
             var catalog = ModuleCatalog.CreateInstance(Env);
             var epListPath = GetBaselinePath(entryPointsSubDir, epListFile);
             DeleteOutputPath(epListPath);
 
-            var regex = new Regex(@"\r\n?|\n", RegexOptions.Compiled);
-            File.WriteAllLines(epListPath, catalog.AllEntryPoints()
-                .Select(x => string.Join("\t",
-                x.Name,
-                regex.Replace(x.Description, ""),
-                x.Method.DeclaringType,
-                x.Method.Name,
-                x.InputType,
-                x.OutputType)
-                .Replace(Environment.NewLine, ""))
-                .OrderBy(x => x));
+            File.WriteAllLines(epListPath, epListContents);
 
-
-            var jObj = JsonManifestUtils.BuildAllManifests(Env, catalog);
-
-            //clean up the description from the new line characters
-            if (jObj[FieldNames.TopEntryPoints] != null && jObj[FieldNames.TopEntryPoints] is JArray)
-            {
-                foreach (JToken entry in jObj[FieldNames.TopEntryPoints].Children())
-                    if (entry[FieldNames.Desc] != null)
-                        entry[FieldNames.Desc] = regex.Replace(entry[FieldNames.Desc].ToString(), "");
-            }
+            var manifestFile = buildPrefix + "_manifest.json";
             var manifestPath = GetBaselinePath(entryPointsSubDir, manifestFile);
             DeleteOutputPath(manifestPath);
 
@@ -280,42 +268,23 @@ namespace Microsoft.ML.Runtime.RunTests
             }
         }
 
-
         [Fact]
         public void EntryPointCatalog()
         {
+            var (epListContents, jObj) = BuildManifests();
+
             var buildPrefix = GetBuildPrefix();
             var epListFile = buildPrefix + "_ep-list.tsv";
-            var manifestFile = buildPrefix + "_manifest.json";
 
             var entryPointsSubDir = Path.Combine("..", "Common", "EntryPoints");
             var catalog = ModuleCatalog.CreateInstance(Env);
             var path = DeleteOutputPath(entryPointsSubDir, epListFile);
 
-            var regex = new Regex(@"\r\n?|\n", RegexOptions.Compiled);
-            File.WriteAllLines(path, catalog.AllEntryPoints()
-                .Select(x => string.Join("\t",
-                x.Name,
-                regex.Replace(x.Description, ""),
-                x.Method.DeclaringType,
-                x.Method.Name,
-                x.InputType,
-                x.OutputType)
-                .Replace(Environment.NewLine, ""))
-                .OrderBy(x => x));
+            File.WriteAllLines(path, epListContents);
 
             CheckEquality(entryPointsSubDir, epListFile);
 
-            var jObj = JsonManifestUtils.BuildAllManifests(Env, catalog);
-
-            //clean up the description from the new line characters
-            if (jObj[FieldNames.TopEntryPoints] != null && jObj[FieldNames.TopEntryPoints] is JArray)
-            {
-                foreach (JToken entry in jObj[FieldNames.TopEntryPoints].Children())
-                    if (entry[FieldNames.Desc] != null)
-                        entry[FieldNames.Desc] = regex.Replace(entry[FieldNames.Desc].ToString(), "");
-            }
-
+            var manifestFile = buildPrefix + "_manifest.json";
             var jPath = DeleteOutputPath(entryPointsSubDir, manifestFile);
             using (var file = File.OpenWrite(jPath))
             using (var writer = new StreamWriter(file))
@@ -329,12 +298,48 @@ namespace Microsoft.ML.Runtime.RunTests
             Done();
         }
 
+        private (IEnumerable<string> epListContents, JObject manifest) BuildManifests()
+        {
+            Env.ComponentCatalog.RegisterAssembly(typeof(LightGbmBinaryPredictor).Assembly);
+            Env.ComponentCatalog.RegisterAssembly(typeof(TensorFlowTransform).Assembly);
+            Env.ComponentCatalog.RegisterAssembly(typeof(ImageLoaderTransform).Assembly);
+            Env.ComponentCatalog.RegisterAssembly(typeof(SymSgdClassificationTrainer).Assembly);
+            Env.ComponentCatalog.RegisterAssembly(typeof(AutoInference).Assembly);
+            Env.ComponentCatalog.RegisterAssembly(typeof(SaveOnnxCommand).Assembly);
+
+            var catalog = ModuleCatalog.CreateInstance(Env);
+
+            var regex = new Regex(@"\r\n?|\n", RegexOptions.Compiled);
+            var epListContents = catalog.AllEntryPoints()
+                .Select(x => string.Join("\t",
+                x.Name,
+                regex.Replace(x.Description, ""),
+                x.Method.DeclaringType,
+                x.Method.Name,
+                x.InputType,
+                x.OutputType)
+                .Replace(Environment.NewLine, ""))
+                .OrderBy(x => x);
+
+            var manifest = JsonManifestUtils.BuildAllManifests(Env, catalog);
+
+            //clean up the description from the new line characters
+            if (manifest[FieldNames.TopEntryPoints] != null && manifest[FieldNames.TopEntryPoints] is JArray)
+            {
+                foreach (JToken entry in manifest[FieldNames.TopEntryPoints].Children())
+                    if (entry[FieldNames.Desc] != null)
+                        entry[FieldNames.Desc] = regex.Replace(entry[FieldNames.Desc].ToString(), "");
+            }
+
+            return (epListContents, manifest);
+        }
+
         [Fact]
         public void EntryPointInputBuilderOptionals()
         {
-            var catelog = ModuleCatalog.CreateInstance(Env);
+            var catalog = ModuleCatalog.CreateInstance(Env);
 
-            InputBuilder ib1 = new InputBuilder(Env, typeof(LogisticRegression.Arguments), catelog);
+            InputBuilder ib1 = new InputBuilder(Env, typeof(LogisticRegression.Arguments), catalog);
             // Ensure that InputBuilder unwraps the Optional<string> correctly.
             var weightType = ib1.GetFieldTypeOrNull("WeightColumn");
             Assert.True(weightType.Equals(typeof(string)));
@@ -699,7 +704,7 @@ namespace Microsoft.ML.Runtime.RunTests
             calibratedLrModel = Calibrate.Pav(Env, input).PredictorModel;
 
             // This tests that the SchemaBindableCalibratedPredictor doesn't get confused if its sub-predictor is already calibrated.
-            var fastForest = new FastForestClassification(Env, new FastForestClassification.Arguments());
+            var fastForest = new FastForestClassification(Env, "Label", "Features");
             var rmd = new RoleMappedData(splitOutput.TrainData[0], "Label", "Features");
             var ffModel = new PredictorModel(Env, rmd, splitOutput.TrainData[0], fastForest.Train(rmd));
             var calibratedFfModel = Calibrate.Platt(Env,
@@ -731,12 +736,12 @@ namespace Microsoft.ML.Runtime.RunTests
                     NewDim = 10,
                     UseSin = false
                 }, data);
-                data = new ConcatTransform(Env, new ConcatTransform.Arguments()
+                data = ConcatTransform.Create(Env, new ConcatTransform.Arguments()
                 {
                     Column = new[] { new ConcatTransform.Column() { Name = "Features", Source = new[] { "Features1", "Features2" } } }
                 }, data);
 
-                data = new TermTransform(Env, new TermTransform.Arguments()
+                data = TermTransform.Create(Env, new TermTransform.Arguments()
                 {
                     Column = new[]
                     {
@@ -825,9 +830,9 @@ namespace Microsoft.ML.Runtime.RunTests
             Assert.True(hasScoreCol, "Data scored with binary ensemble does not have a score column");
             var type = binaryScored.Schema.GetMetadataTypeOrNull(MetadataUtils.Kinds.ScoreColumnKind, scoreIndex);
             Assert.True(type != null && type.IsText, "Binary ensemble scored data does not have correct type of metadata.");
-            var kind = default(DvText);
+            var kind = default(ReadOnlyMemory<char>);
             binaryScored.Schema.GetMetadata(MetadataUtils.Kinds.ScoreColumnKind, scoreIndex, ref kind);
-            Assert.True(kind.EqualsStr(MetadataUtils.Const.ScoreColumnKind.BinaryClassification),
+            Assert.True(ReadOnlyMemoryUtils.EqualsStr(MetadataUtils.Const.ScoreColumnKind.BinaryClassification, kind),
                 $"Binary ensemble scored data column type should be '{MetadataUtils.Const.ScoreColumnKind.BinaryClassification}', but is instead '{kind}'");
 
             hasScoreCol = regressionScored.Schema.TryGetColumnIndex(MetadataUtils.Const.ScoreValueKind.Score, out scoreIndex);
@@ -835,7 +840,7 @@ namespace Microsoft.ML.Runtime.RunTests
             type = regressionScored.Schema.GetMetadataTypeOrNull(MetadataUtils.Kinds.ScoreColumnKind, scoreIndex);
             Assert.True(type != null && type.IsText, "Regression ensemble scored data does not have correct type of metadata.");
             regressionScored.Schema.GetMetadata(MetadataUtils.Kinds.ScoreColumnKind, scoreIndex, ref kind);
-            Assert.True(kind.EqualsStr(MetadataUtils.Const.ScoreColumnKind.Regression),
+            Assert.True(ReadOnlyMemoryUtils.EqualsStr(MetadataUtils.Const.ScoreColumnKind.Regression, kind),
                 $"Regression ensemble scored data column type should be '{MetadataUtils.Const.ScoreColumnKind.Regression}', but is instead '{kind}'");
 
             hasScoreCol = anomalyScored.Schema.TryGetColumnIndex(MetadataUtils.Const.ScoreValueKind.Score, out scoreIndex);
@@ -843,7 +848,7 @@ namespace Microsoft.ML.Runtime.RunTests
             type = anomalyScored.Schema.GetMetadataTypeOrNull(MetadataUtils.Kinds.ScoreColumnKind, scoreIndex);
             Assert.True(type != null && type.IsText, "Anomaly detection ensemble scored data does not have correct type of metadata.");
             anomalyScored.Schema.GetMetadata(MetadataUtils.Kinds.ScoreColumnKind, scoreIndex, ref kind);
-            Assert.True(kind.EqualsStr(MetadataUtils.Const.ScoreColumnKind.AnomalyDetection),
+            Assert.True(ReadOnlyMemoryUtils.EqualsStr(MetadataUtils.Const.ScoreColumnKind.AnomalyDetection, kind),
                 $"Anomaly detection ensemble scored data column type should be '{MetadataUtils.Const.ScoreColumnKind.AnomalyDetection}', but is instead '{kind}'");
 
             var modelPath = DeleteOutputPath("SavePipe", "PipelineEnsembleModel.zip");
@@ -975,13 +980,13 @@ namespace Microsoft.ML.Runtime.RunTests
                 InputFile = inputFile
             }).Data;
 
-            ValueMapper<DvText, DvBool> labelToBinary =
-                (ref DvText src, ref DvBool dst) =>
+            ValueMapper<ReadOnlyMemory<char>, bool> labelToBinary =
+                (ref ReadOnlyMemory<char> src, ref bool dst) =>
                 {
-                    if (src.EqualsStr("Sport"))
-                        dst = DvBool.True;
+                    if (ReadOnlyMemoryUtils.EqualsStr("Sport", src))
+                        dst = true;
                     else
-                        dst = DvBool.False;
+                        dst = false;
                 };
             dataView = LambdaColumnMapper.Create(Env, "TextToBinaryLabel", dataView, "Label", "Label",
                 TextType.Instance, BoolType.Instance, labelToBinary);
@@ -1205,7 +1210,7 @@ namespace Microsoft.ML.Runtime.RunTests
                     NewDim = 10,
                     UseSin = false
                 }, data);
-                data = new ConcatTransform(Env, new ConcatTransform.Arguments()
+                data = ConcatTransform.Create(Env, new ConcatTransform.Arguments()
                 {
                     Column = new[] { new ConcatTransform.Column() { Name = "Features", Source = new[] { "Features1", "Features2" } } }
                 }, data);
@@ -1535,16 +1540,16 @@ namespace Microsoft.ML.Runtime.RunTests
             {
                 using (var cursor = loader.GetRowCursor(col => true))
                 {
-                    DvText cat = default(DvText);
-                    DvText catValue = default(DvText);
+                    ReadOnlyMemory<char> cat = default;
+                    ReadOnlyMemory<char> catValue = default;
                     uint catKey = 0;
 
                     bool success = loader.Schema.TryGetColumnIndex("Cat", out int catCol);
                     Assert.True(success);
-                    var catGetter = cursor.GetGetter<DvText>(catCol);
+                    var catGetter = cursor.GetGetter<ReadOnlyMemory<char>>(catCol);
                     success = loader.Schema.TryGetColumnIndex("CatValue", out int catValueCol);
                     Assert.True(success);
-                    var catValueGetter = cursor.GetGetter<DvText>(catValueCol);
+                    var catValueGetter = cursor.GetGetter<ReadOnlyMemory<char>>(catValueCol);
                     success = loader.Schema.TryGetColumnIndex("Key", out int keyCol);
                     Assert.True(success);
                     var keyGetter = cursor.GetGetter<uint>(keyCol);
@@ -1698,13 +1703,13 @@ namespace Microsoft.ML.Runtime.RunTests
         [Fact]
         public void EntryPointEvaluateRegression()
         {
-            var dataPath = GetDataPath(TestDatasets.winequalitymacro.trainFilename);
+            var dataPath = GetDataPath(TestDatasets.generatedRegressionDatasetmacro.trainFilename);
             var warningsPath = DeleteOutputPath("warnings.idv");
             var overallMetricsPath = DeleteOutputPath("overall.idv");
             var instanceMetricsPath = DeleteOutputPath("instance.idv");
 
             RunTrainScoreEvaluate("Trainers.StochasticDualCoordinateAscentRegressor", "Models.RegressionEvaluator",
-                dataPath, warningsPath, overallMetricsPath, instanceMetricsPath, loader: TestDatasets.winequalitymacro.loaderSettings);
+                dataPath, warningsPath, overallMetricsPath, instanceMetricsPath, loader: TestDatasets.generatedRegressionDatasetmacro.loaderSettings);
 
             using (var loader = new BinaryLoader(Env, new BinaryLoader.Arguments(), warningsPath))
                 Assert.Equal(0, CountRows(loader));
@@ -1713,7 +1718,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 Assert.Equal(1, CountRows(loader));
 
             using (var loader = new BinaryLoader(Env, new BinaryLoader.Arguments(), instanceMetricsPath))
-                Assert.Equal(975, CountRows(loader));
+                Assert.Equal(103, CountRows(loader));
         }
 
         [Fact]
@@ -1794,12 +1799,14 @@ namespace Microsoft.ML.Runtime.RunTests
         [Fact]
         public void EntryPointLightGbmBinary()
         {
+            Env.ComponentCatalog.RegisterAssembly(typeof(LightGbmBinaryPredictor).Assembly);
             TestEntryPointRoutine("breast-cancer.txt", "Trainers.LightGbmBinaryClassifier");
         }
 
         [Fact]
         public void EntryPointLightGbmMultiClass()
         {
+            Env.ComponentCatalog.RegisterAssembly(typeof(LightGbmBinaryPredictor).Assembly);
             TestEntryPointRoutine(GetDataPath(@"iris.txt"), "Trainers.LightGbmClassifier");
         }
 
@@ -1818,7 +1825,7 @@ namespace Microsoft.ML.Runtime.RunTests
         [Fact()]
         public void EntryPointSDCARegression()
         {
-            TestEntryPointRoutine(TestDatasets.winequalitymacro.trainFilename, "Trainers.StochasticDualCoordinateAscentRegressor", loader: TestDatasets.winequalitymacro.loaderSettings);
+            TestEntryPointRoutine(TestDatasets.generatedRegressionDatasetmacro.trainFilename, "Trainers.StochasticDualCoordinateAscentRegressor", loader: TestDatasets.generatedRegressionDatasetmacro.loaderSettings);
         }
 
         [Fact]
@@ -1925,7 +1932,7 @@ namespace Microsoft.ML.Runtime.RunTests
         [Fact]
         public void EntryPointRegressionEnsemble()
         {
-            TestEntryPointRoutine(TestDatasets.winequalitymacro.trainFilename, "Trainers.EnsembleRegression", loader: TestDatasets.winequalitymacro.loaderSettings);
+            TestEntryPointRoutine(TestDatasets.generatedRegressionDatasetmacro.trainFilename, "Trainers.EnsembleRegression", loader: TestDatasets.generatedRegressionDatasetmacro.loaderSettings);
         }
 
         [Fact]
@@ -1943,7 +1950,7 @@ namespace Microsoft.ML.Runtime.RunTests
         [Fact]
         public void EntryPointPoissonRegression()
         {
-            TestEntryPointRoutine(TestDatasets.winequalitymacro.trainFilename, "Trainers.PoissonRegressor", loader: TestDatasets.winequalitymacro.loaderSettings);
+            TestEntryPointRoutine(TestDatasets.generatedRegressionDatasetmacro.trainFilename, "Trainers.PoissonRegressor", loader: TestDatasets.generatedRegressionDatasetmacro.loaderSettings);
         }
 
         [Fact]
@@ -1968,7 +1975,6 @@ namespace Microsoft.ML.Runtime.RunTests
                 {
                     "Transforms.ColumnTypeConverter",
                     "Transforms.ColumnTypeConverter",
-                    "Transforms.ColumnTypeConverter",
                 },
                 new[]
                 {
@@ -1984,7 +1990,7 @@ namespace Microsoft.ML.Runtime.RunTests
                       {
                         'Name': 'Feat',
                         'Source': 'FT',
-                        'Type': 'I1'
+                        'Type': 'R4'
                       },
                       {
                         'Name': 'Key1',
@@ -1994,18 +2000,11 @@ namespace Microsoft.ML.Runtime.RunTests
                       ]",
                     @"'Column': [
                       {
-                        'Name': 'Ints',
+                        'Name': 'Doubles',
                         'Source': 'Feat'
                       }
                       ],
-                      'Type': 'I4'",
-                    @"'Column': [
-                      {
-                        'Name': 'Floats',
-                        'Source': 'Ints'
-                      }
-                      ],
-                      'Type': 'Num'",
+                      'Type': 'R8'",
                 });
         }
 
@@ -3606,18 +3605,18 @@ namespace Microsoft.ML.Runtime.RunTests
             {
                 using (var cursor = loader.GetRowCursor(col => true))
                 {
-                    DvText predictedLabel = default(DvText);
+                    ReadOnlyMemory<char> predictedLabel = default;
 
                     var success = loader.Schema.TryGetColumnIndex("PredictedLabel", out int predictedLabelCol);
                     Assert.True(success);
-                    var predictedLabelGetter = cursor.GetGetter<DvText>(predictedLabelCol);
+                    var predictedLabelGetter = cursor.GetGetter<ReadOnlyMemory<char>>(predictedLabelCol);
 
                     while (cursor.MoveNext())
                     {
                         predictedLabelGetter(ref predictedLabel);
-                        Assert.True(predictedLabel.EqualsStr("Iris-setosa")
-                            || predictedLabel.EqualsStr("Iris-versicolor")
-                            || predictedLabel.EqualsStr("Iris-virginica"));
+                        Assert.True(ReadOnlyMemoryUtils.EqualsStr("Iris-setosa", predictedLabel)
+                            || ReadOnlyMemoryUtils.EqualsStr("Iris-versicolor", predictedLabel)
+                            || ReadOnlyMemoryUtils.EqualsStr("Iris-virginica", predictedLabel));
                     }
                 }
             }
@@ -3736,13 +3735,15 @@ namespace Microsoft.ML.Runtime.RunTests
         [Fact]
         public void EntryPointTensorFlowTransform()
         {
+            Env.ComponentCatalog.RegisterAssembly(typeof(TensorFlowTransform).Assembly);
+
             TestEntryPointPipelineRoutine(GetDataPath("Train-Tiny-28x28.txt"), "col=Label:R4:0 col=Placeholder:R4:1-784",
                 new[] { "Transforms.TensorFlowScorer" },
                 new[]
                 {
                     @"'InputColumns': [ 'Placeholder' ],
-                      'ModelFile': 'mnist_model/frozen_saved_model.pb',
-                      'OutputColumn': 'Softmax'"
+                      'Model': 'mnist_model/frozen_saved_model.pb',
+                      'OutputColumns': [ 'Softmax' ]"
                 });
         }
     }
