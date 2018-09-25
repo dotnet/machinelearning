@@ -8,17 +8,17 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 {
     public static partial class CpuMathUtils
     {
-        // The count of bytes in Vector128<T>, corresponding to _cbAlign in AlignedArray
+        // The count of bytes in Vector128<T>, corresponding to _cbAlign in float[]
         private const int Vector128Alignment = 16;
 
         [MethodImplAttribute(MethodImplOptions.AggressiveInlining)]
         public static int GetVectorAlignment()
             => Vector128Alignment;
 
-        public static void MatTimesSrc(bool tran, bool add, AlignedArray mat, AlignedArray src, AlignedArray dst, int crun) => SseUtils.MatTimesSrc(tran, add, mat, src, dst, crun);
+        public static void MatTimesSrc(bool tran, bool add, float[] mat, float[] src, float[] dst, int crun) => SseUtils.MatTimesSrc(tran, add, mat, src, dst, crun);
 
-        public static void MatTimesSrc(bool tran, bool add, AlignedArray mat, int[] rgposSrc, AlignedArray srcValues,
-            int posMin, int iposMin, int iposLim, AlignedArray dst, int crun) => SseUtils.MatTimesSrc(tran, add, mat, rgposSrc, srcValues, posMin, iposMin, iposLim, dst, crun);
+        public static void MatTimesSrc(bool tran, bool add, float[] mat, int[] rgposSrc, float[] srcValues,
+            int posMin, int iposMin, int iposLim, float[] dst, int crun) => SseUtils.MatTimesSrc(tran, add, mat, rgposSrc, srcValues, posMin, iposMin, iposLim, dst, crun);
 
         public static void Add(float a, float[] dst, int count) => SseUtils.Add(a, dst, count);
 
@@ -80,7 +80,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
         public static float L2DistSquared(float[] a, float[] b, int count) => SseUtils.L2DistSquared(a, b, count);
 
-        public static void ZeroMatrixItems(AlignedArray dst, int ccol, int cfltRow, int[] indices) => SseUtils.ZeroMatrixItems(dst, ccol, cfltRow, indices);
+        public static void ZeroMatrixItems(float[] dst, int ccol, int cfltRow, int[] indices) => SseUtils.ZeroMatrixItems(dst, ccol, cfltRow, indices);
 
         public static void SdcaL1UpdateDense(float primalUpdate, int length, float[] src, float threshold, float[] v, float[] w)
             => SseUtils.SdcaL1UpdateDense(primalUpdate, length, src, threshold, v, w);

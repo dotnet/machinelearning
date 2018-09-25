@@ -94,10 +94,10 @@ namespace Microsoft.ML.Runtime.Data
             public readonly int SrcDim;
 
             // the matrix containing the random fourier vectors
-            public readonly AlignedArray RndFourierVectors;
+            public readonly float[] RndFourierVectors;
 
             // the random rotations
-            public readonly AlignedArray RotationTerms;
+            public readonly float[] RotationTerms;
 
             private readonly IFourierDistributionSampler _matrixGenerator;
             private readonly bool _useSin;
@@ -123,8 +123,8 @@ namespace Microsoft.ML.Runtime.Data
 
                 int roundedUpD = RoundUp(NewDim, _cfltAlign);
                 int roundedUpNumFeatures = RoundUp(SrcDim, _cfltAlign);
-                RndFourierVectors = new AlignedArray(roundedUpD * roundedUpNumFeatures, CpuMathUtils.GetVectorAlignment());
-                RotationTerms = _useSin ? null : new AlignedArray(roundedUpD, CpuMathUtils.GetVectorAlignment());
+                RndFourierVectors = new float[roundedUpD * roundedUpNumFeatures];
+                RotationTerms = _useSin ? null : new float[roundedUpD];
 
                 InitializeFourierCoefficients(roundedUpNumFeatures, roundedUpD);
             }
@@ -159,8 +159,8 @@ namespace Microsoft.ML.Runtime.Data
                 // initialize the transform matrix
                 int roundedUpD = RoundUp(NewDim, _cfltAlign);
                 int roundedUpNumFeatures = RoundUp(SrcDim, _cfltAlign);
-                RndFourierVectors = new AlignedArray(roundedUpD * roundedUpNumFeatures, CpuMathUtils.GetVectorAlignment());
-                RotationTerms = _useSin ? null : new AlignedArray(roundedUpD, CpuMathUtils.GetVectorAlignment());
+                RndFourierVectors = new float[roundedUpD * roundedUpNumFeatures];
+                RotationTerms = _useSin ? null : new float[roundedUpD];
                 InitializeFourierCoefficients(roundedUpNumFeatures, roundedUpD);
             }
 
@@ -499,8 +499,8 @@ namespace Microsoft.ML.Runtime.Data
             var getSrc = GetSrcGetter<VBuffer<Float>>(input, iinfo);
             var src = default(VBuffer<Float>);
 
-            var featuresAligned = new AlignedArray(RoundUp(Infos[iinfo].TypeSrc.ValueCount, _cfltAlign), CpuMathUtils.GetVectorAlignment());
-            var productAligned = new AlignedArray(RoundUp(_transformInfos[iinfo].NewDim, _cfltAlign), CpuMathUtils.GetVectorAlignment());
+            var featuresAligned = new float[RoundUp(Infos[iinfo].TypeSrc.ValueCount, _cfltAlign)];
+            var productAligned = new float[RoundUp(_transformInfos[iinfo].NewDim, _cfltAlign)];
 
             return
                 (ref VBuffer<Float> dst) =>
@@ -515,8 +515,8 @@ namespace Microsoft.ML.Runtime.Data
             var getSrc = GetSrcGetter<Float>(input, iinfo);
             var src = default(Float);
 
-            var featuresAligned = new AlignedArray(RoundUp(1, _cfltAlign), CpuMathUtils.GetVectorAlignment());
-            var productAligned = new AlignedArray(RoundUp(_transformInfos[iinfo].NewDim, _cfltAlign), CpuMathUtils.GetVectorAlignment());
+            var featuresAligned = new float[RoundUp(1, _cfltAlign)];
+            var productAligned = new float[RoundUp(_transformInfos[iinfo].NewDim, _cfltAlign)];
 
             var oneDimensionalVector = new VBuffer<Float>(1, new Float[] { 0 });
 
@@ -530,7 +530,7 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         private static void TransformFeatures(IHost host, ref VBuffer<Float> src, ref VBuffer<Float> dst, TransformInfo transformInfo,
-            AlignedArray featuresAligned, AlignedArray productAligned)
+            float[] featuresAligned, float[] productAligned)
         {
             Contracts.AssertValue(host, "host");
             host.Check(src.Length == transformInfo.SrcDim, "column does not have the expected dimensionality.");
@@ -552,7 +552,7 @@ namespace Microsoft.ML.Runtime.Data
 
             if (src.IsDense)
             {
-                featuresAligned.CopyFrom(src.Values, 0, src.Length);
+                Array.Copy(src.Values, 0, featuresAligned, 0, src.Length);
                 CpuMathUtils.MatTimesSrc(false, false, transformInfo.RndFourierVectors, featuresAligned, productAligned,
                     transformInfo.NewDim);
             }
@@ -560,7 +560,12 @@ namespace Microsoft.ML.Runtime.Data
             {
                 // This overload of MatTimesSrc ignores the values in slots that are not in src.Indices, so there is
                 // no need to zero them out.
-                featuresAligned.CopyFrom(src.Indices, src.Values, 0, 0, src.Count, zeroItems: false);
+                for (int ipos = 0; ipos < src.Count; ++ipos)
+                {
+                    int iv = src.Indices[ipos];
+                    featuresAligned[iv] = src.Values[ipos];
+                }
+
                 CpuMathUtils.MatTimesSrc(false, false, transformInfo.RndFourierVectors, src.Indices, featuresAligned, 0, 0,
                     src.Count, productAligned, transformInfo.NewDim);
             }

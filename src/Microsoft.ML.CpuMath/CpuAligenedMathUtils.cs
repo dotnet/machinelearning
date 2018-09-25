@@ -16,7 +16,6 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 #if DEBUG
             var mat = values as TMatrix;
             Contracts.AssertValue(mat);
-            Contracts.Assert((mat.Items.CbAlign % CpuMathUtils.GetVectorAlignment()) == 0);
 #endif
         }
 
@@ -29,7 +28,6 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 #if DEBUG
             CpuAlignedVector vec = values as CpuAlignedVector;
             Contracts.AssertValue(vec);
-            Contracts.Assert((vec.Items.CbAlign % CpuMathUtils.GetVectorAlignment()) == 0);
 #endif
         }
 
@@ -69,8 +67,8 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             AssertCompatible(mat);
             AssertCompatibleCore(mat, src, dst);
             var m = A(mat);
-            Contracts.Assert(m.ColCountPhy == A(src).Items.Size);
-            Contracts.Assert(m.RowCountPhy == A(dst).Items.Size);
+            Contracts.Assert(m.ColCountPhy == A(src).Items.Length);
+            Contracts.Assert(m.RowCountPhy == A(dst).Items.Length);
         }
 
         /// <summary>

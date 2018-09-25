@@ -31,7 +31,7 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
         internal int LatentDim { get; }
         internal int LatentDimAligned { get; }
         private readonly float[] _linearWeights;
-        private readonly AlignedArray _latentWeightsAligned;
+        private readonly float[] _latentWeightsAligned;
 
         private static VersionInfo GetVersionInfo()
         {
@@ -45,14 +45,14 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
         }
 
         internal FieldAwareFactorizationMachinePredictor(IHostEnvironment env, bool norm, int fieldCount, int featureCount, int latentDim,
-            float[] linearWeights, AlignedArray latentWeightsAligned) : base(env, LoaderSignature)
+            float[] linearWeights, float[] latentWeightsAligned) : base(env, LoaderSignature)
         {
             Host.Assert(fieldCount > 0);
             Host.Assert(featureCount > 0);
             Host.Assert(latentDim > 0);
             Host.Assert(Utils.Size(linearWeights) == featureCount);
             LatentDimAligned = FieldAwareFactorizationMachineUtils.GetAlignedVectorLength(latentDim);
-            Host.Assert(latentWeightsAligned.Size == checked(featureCount * fieldCount * LatentDimAligned));
+            Host.Assert(latentWeightsAligned.Length == checked(featureCount * fieldCount * LatentDimAligned));
 
             _norm = norm;
             FieldCount = fieldCount;
@@ -93,7 +93,7 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
             FeatureCount = featureCount;
             LatentDim = latentDim;
             _linearWeights = linearWeights;
-            _latentWeightsAligned = new AlignedArray(FeatureCount * FieldCount * LatentDimAligned, 16);
+            _latentWeightsAligned = new float[FeatureCount * FieldCount * LatentDimAligned];
             for (int j = 0; j < FeatureCount; j++)
             {
                 for (int f = 0; f < FieldCount; f++)
@@ -139,7 +139,7 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
             Host.Assert(FeatureCount > 0);
             Host.Assert(LatentDim > 0);
             Host.Assert(Utils.Size(_linearWeights) == FeatureCount);
-            Host.Assert(_latentWeightsAligned.Size == FeatureCount * FieldCount * LatentDimAligned);
+            Host.Assert(_latentWeightsAligned.Length == FeatureCount * FieldCount * LatentDimAligned);
 
             ctx.Writer.Write(_norm);
             ctx.Writer.Write(FieldCount);
@@ -161,7 +161,7 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
         }
 
         internal float CalculateResponse(ValueGetter<VBuffer<float>>[] getters, VBuffer<float> featureBuffer,
-            int[] featureFieldBuffer, int[] featureIndexBuffer, float[] featureValueBuffer, AlignedArray latentSum)
+            int[] featureFieldBuffer, int[] featureIndexBuffer, float[] featureValueBuffer, float[] latentSum)
         {
             int count = 0;
             float modelResponse = 0;
@@ -182,11 +182,11 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
             Array.Copy(_linearWeights, linearWeights, _linearWeights.Length);
         }
 
-        internal void CopyLatentWeightsTo(AlignedArray latentWeights)
+        internal void CopyLatentWeightsTo(float[] latentWeights)
         {
             Host.AssertValue(_latentWeightsAligned);
             Host.AssertValue(latentWeights);
-            latentWeights.CopyFrom(_latentWeightsAligned);
+            Array.Copy(_latentWeightsAligned, 0, latentWeights, 0, latentWeights.Length);
         }
     }
 

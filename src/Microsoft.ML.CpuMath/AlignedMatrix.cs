@@ -20,18 +20,15 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
     /// </summary>
     public sealed class CpuAlignedVector : ICpuVector
     {
-        private readonly AlignedArray _items;
-        private readonly int _size; // The logical size.
-
         /// <summary>
         /// The value count.
         /// </summary>
-        public int ValueCount { get { return _size; } }
+        public int ValueCount { get; }
 
         /// <summary>
         /// The logical size of the vector.
         /// </summary>
-        public int VectorSize { get { return _size; } }
+        public int VectorSize { get { return ValueCount; } }
 
         // Round cflt up to a multiple of cfltAlign.
         private static int RoundUp(int cflt, int cfltAlign)
@@ -58,8 +55,8 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
             int cfltAlign = cbAlign / sizeof(Float);
             int cflt = RoundUp(size, cfltAlign);
-            _items = new AlignedArray(cflt, cbAlign);
-            _size = size;
+            Items = new float[cflt];
+            ValueCount = size;
             AssertValid();
         }
 
@@ -71,26 +68,18 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         private void AssertValid()
         {
 #if DEBUG
-            Contracts.Assert(0 < _size && _size <= _items.Size);
+            Contracts.Assert(0 < ValueCount && ValueCount <= Items.Length);
 
             // The padding, [_size, _items.Size), should contain zeros.
-            for (int i = _size; i < _items.Size; i++)
-                Contracts.Assert(_items[i] == 0);
+            for (int i = ValueCount; i < Items.Length; i++)
+                Contracts.Assert(Items[i] == 0);
 #endif
         }
 
         /// <summary>
         /// The physical AligenedArray items.
         /// </summary>
-        public AlignedArray Items { get { return _items; } }
-
-        /// <summary>
-        /// The alignment.
-        /// </summary>
-        public int CbAlign
-        {
-            get { return _items.CbAlign; }
-        }
+        public float[] Items { get; }
 
         /// <summary>
         /// Set and get the value of the vector at the given index.
@@ -101,13 +90,13 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         {
             get
             {
-                Contracts.Assert(0 <= index && index < _size);
-                return _items[index];
+                Contracts.Assert(0 <= index && index < ValueCount);
+                return Items[index];
             }
             set
             {
-                Contracts.Assert(0 <= index && index < _size);
-                _items[index] = value;
+                Contracts.Assert(0 <= index && index < ValueCount);
+                Items[index] = value;
             }
         }
 
@@ -118,8 +107,8 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         /// <returns>The value at the given index</returns>
         public Float GetValue(int i)
         {
-            Contracts.Assert(0 <= i && i < _size);
-            return _items[i];
+            Contracts.Assert(0 <= i && i < ValueCount);
+            return Items[i];
         }
 
         /// <summary>
@@ -129,8 +118,8 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         public void Randomize(Func<Float> rand)
         {
             Contracts.AssertValue(rand);
-            for (int i = 0; i < _size; i++)
-                _items[i] = rand();
+            for (int i = 0; i < ValueCount; i++)
+                Items[i] = rand();
         }
 
         /// <summary>
@@ -138,7 +127,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         /// </summary>
         public void Zero()
         {
-            _items.ZeroItems();
+            Array.Clear(Items, 0, Items.Length);
         }
 
         /// <summary>
@@ -149,9 +138,9 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         public void CopyTo(Float[] dst, ref int ivDst)
         {
             Contracts.AssertValue(dst);
-            Contracts.Assert(0 <= ivDst && ivDst <= dst.Length - _size);
-            _items.CopyTo(dst, ivDst, _size);
-            ivDst += _size;
+            Contracts.Assert(0 <= ivDst && ivDst <= dst.Length - ValueCount);
+            Array.Copy(Items, 0, dst, ivDst, ValueCount);
+            ivDst += ValueCount;
         }
 
         /// <summary>
@@ -166,9 +155,9 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         {
             Contracts.AssertValue(dst);
             Contracts.Assert(0 <= count && count <= dst.Length);
-            Contracts.Assert(0 <= ivSrc && ivSrc <= _size - count);
+            Contracts.Assert(0 <= ivSrc && ivSrc <= ValueCount - count);
             Contracts.Assert(0 <= ivDst && ivDst <= dst.Length - count);
-            _items.CopyTo(ivSrc, dst, ivDst, count);
+            Array.Copy(Items, ivSrc, dst, ivDst, count);
         }
 
         /// <summary>
@@ -179,9 +168,9 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         public void CopyFrom(Float[] src, ref int index)
         {
             Contracts.AssertValue(src);
-            Contracts.Assert(0 <= index && index <= src.Length - _size);
-            _items.CopyFrom(src, index, _size);
-            index += _size;
+            Contracts.Assert(0 <= index && index <= src.Length - ValueCount);
+            Array.Copy(src, index, Items, 0, ValueCount);
+            index += ValueCount;
         }
 
         /// <summary>
@@ -196,9 +185,9 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         {
             Contracts.AssertValue(src);
             Contracts.Assert(0 <= count && count <= src.Length);
-            Contracts.Assert(0 <= ivDst && ivDst <= _size - count);
+            Contracts.Assert(0 <= ivDst && ivDst <= ValueCount - count);
             Contracts.Assert(0 <= ivSrc && ivSrc <= src.Length - count);
-            _items.CopyFrom(ivDst, src, ivSrc, _size);
+            Array.Copy(src , ivSrc , Items, ivDst, ValueCount);
         }
 
         /// <summary>
@@ -208,8 +197,8 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         public void CopyFrom(CpuAlignedVector src)
         {
             Contracts.AssertValue(src);
-            Contracts.Assert(src._size == _size);
-            _items.CopyFrom(src._items);
+            Contracts.Assert(src.ValueCount == ValueCount);
+            Array.Copy(src.Items, 0, Items, 0, Items.Length);
         }
 
         /// <summary>
@@ -217,8 +206,8 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         /// </summary>
         public IEnumerator<Float> GetEnumerator()
         {
-            for (int i = 0; i < _size; i++)
-                yield return _items[i];
+            for (int i = 0; i < ValueCount; i++)
+                yield return Items[i];
         }
 
         IEnumerator IEnumerable.GetEnumerator()
@@ -241,7 +230,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         // (RunLenPhy - RunLen) padding slots. There are an addition (RunCntPhy - RunCnt) padding runs of length
         // RunLenPhy, which are entirely zero. Any native code should be able to assume and should maintain
         // these invariants.
-        public AlignedArray Items { get; }
+        public float[] Items { get; }
 
         protected readonly int FloatAlign; // The alignment.
 
@@ -315,7 +304,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
             RunLenPhy = RoundUp(runLen, FloatAlign);
             RunCntPhy = RoundUp(runCnt, FloatAlign);
-            Items = new AlignedArray(RunLenPhy * RunCntPhy, cbAlign);
+            Items = new float[RunLenPhy * RunCntPhy];
 
             AssertValid();
         }
@@ -326,7 +315,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 #if DEBUG
             Contracts.Assert(0 < RunLen && RunLen <= RunLenPhy);
             Contracts.Assert(0 < RunCnt && RunCnt <= RunCntPhy);
-            Contracts.Assert(RunLenPhy * RunCntPhy == Items.Size);
+            Contracts.Assert(RunLenPhy * RunCntPhy == Items.Length);
 
             // Assert that the padding at the end of each run contains zeros.
             for (int i = 0; i < RunCnt; i++)
@@ -369,7 +358,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         /// </summary>
         public void Zero()
         {
-            Items.ZeroItems();
+            Array.Clear(Items, 0, Items.Length);
         }
 
         /// <summary>
@@ -385,7 +374,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             Contracts.Assert(src.RunCnt == RunCnt);
             Contracts.Assert(src.RunLenPhy == RunLenPhy);
             Contracts.Assert(src.RunCntPhy == RunCntPhy);
-            Items.CopyFrom(src.Items);
+            Array.Copy(src.Items, 0, Items, 0, Items.Length);
         }
     }
 
@@ -433,7 +422,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             if (ColCount == ColCountPhy)
             {
                 // Can copy all at once.
-                Items.CopyTo(0, dst, ivDst, ValueCount);
+                Array.Copy(Items, 0, dst, ivDst, ValueCount);
                 ivDst += ValueCount;
             }
             else
@@ -442,7 +431,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                 int ivSrc = 0;
                 for (int row = 0; row < RowCount; row++)
                 {
-                    Items.CopyTo(ivSrc, dst, ivDst, ColCount);
+                    Array.Copy(Items, ivSrc, dst, ivDst, ColCount);
                     ivSrc += ColCountPhy;
                     ivDst += ColCount;
                 }
@@ -461,14 +450,14 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
             if (ColCount == ColCountPhy)
             {
-                Items.CopyFrom(src, ivSrc, ValueCount);
+                Array.Copy(src, ivSrc, Items, 0, ValueCount);
                 ivSrc += ValueCount;
             }
             else
             {
                 for (int row = 0; row < RowCount; row++)
                 {
-                    Items.CopyFrom(row * ColCountPhy, src, ivSrc, ColCount);
+                    Array.Copy(src, ivSrc , Items, row * ColCountPhy, ColCount);
                     ivSrc += ColCount;
                 }
             }
@@ -536,7 +525,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             Contracts.Assert(0 <= row && row < RowCount);
             Contracts.Assert(0 <= ivDst && ivDst <= dst.Length - ColCount);
 
-            Items.CopyTo(row * ColCountPhy, dst, ivDst, ColCount);
+            Array.Copy(Items, row * ColCountPhy, dst, ivDst, ColCount);
             ivDst += ColCount;
         }
 

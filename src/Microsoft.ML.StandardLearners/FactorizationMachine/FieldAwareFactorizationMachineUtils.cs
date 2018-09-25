@@ -96,7 +96,7 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
 
         public IRow GetRow(IRow input, Func<int, bool> predicate, out Action action)
         {
-            var latentSum = new AlignedArray(_pred.FieldCount * _pred.FieldCount * _pred.LatentDimAligned, 16);
+            var latentSum = new float[_pred.FieldCount * _pred.FieldCount * _pred.LatentDimAligned];
             var featureBuffer = new VBuffer<float>();
             var featureFieldBuffer = new int[_pred.FeatureCount];
             var featureIndexBuffer = new int[_pred.FeatureCount];

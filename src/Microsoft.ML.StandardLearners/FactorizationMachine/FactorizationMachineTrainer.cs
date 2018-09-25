@@ -186,12 +186,12 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
         }
 
         private void InitializeTrainingState(int fieldCount, int featureCount, FieldAwareFactorizationMachinePredictor predictor, out float[] linearWeights,
-            out AlignedArray latentWeightsAligned, out float[] linearAccumulatedSquaredGrads, out AlignedArray latentAccumulatedSquaredGradsAligned)
+            out float[] latentWeightsAligned, out float[] linearAccumulatedSquaredGrads, out float[] latentAccumulatedSquaredGradsAligned)
         {
             linearWeights = new float[featureCount];
-            latentWeightsAligned = new AlignedArray(featureCount * fieldCount * _latentDimAligned, 16);
+            latentWeightsAligned = new float[featureCount * fieldCount * _latentDimAligned];
             linearAccumulatedSquaredGrads = new float[featureCount];
-            latentAccumulatedSquaredGradsAligned = new AlignedArray(featureCount * fieldCount * _latentDimAligned, 16);
+            latentAccumulatedSquaredGradsAligned = new float[featureCount * fieldCount * _latentDimAligned];
 
             if (predictor == null)
             {
@@ -247,8 +247,8 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
             return -sign * MathUtils.Sigmoid(-margin);
         }
 
-        private static double CalculateAvgLoss(IChannel ch, RoleMappedData data, bool norm, float[] linearWeights, AlignedArray latentWeightsAligned,
-            int latentDimAligned, AlignedArray latentSum, int[] featureFieldBuffer, int[] featureIndexBuffer, float[] featureValueBuffer, VBuffer<float> buffer, ref long badExampleCount)
+        private static double CalculateAvgLoss(IChannel ch, RoleMappedData data, bool norm, float[] linearWeights, float[] latentWeightsAligned,
+            int latentDimAligned, float[] latentSum, int[] featureFieldBuffer, int[] featureIndexBuffer, float[] featureValueBuffer, VBuffer<float> buffer, ref long badExampleCount)
         {
             var featureColumns = data.Schema.GetColumns(RoleMappedSchema.ColumnRole.Feature);
             Func<int, bool> pred = c => featureColumns.Select(ci => ci.Index).Contains(c) || c == data.Schema.Label.Index || (data.Schema.Weight != null && c == data.Schema.Weight.Index);
@@ -339,7 +339,7 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
             var featureValueBuffer = new float[totalFeatureCount];
             var featureIndexBuffer = new int[totalFeatureCount];
             var featureFieldBuffer = new int[totalFeatureCount];
-            var latentSum = new AlignedArray(fieldCount * fieldCount * _latentDimAligned, 16);
+            var latentSum = new float[fieldCount * fieldCount * _latentDimAligned];
             var metricNames = new List<string>() { "Training-loss" };
             if (validData != null)
                 metricNames.Add("Validation-loss");
@@ -356,7 +356,7 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
             });
             Func<int, bool> pred = c => fieldColumnIndexes.Contains(c) || c == data.Schema.Label.Index || (data.Schema.Weight != null && c == data.Schema.Weight.Index);
             InitializeTrainingState(fieldCount, totalFeatureCount, predictor, out float[] linearWeights,
-                out AlignedArray latentWeightsAligned, out float[] linearAccSqGrads, out AlignedArray latentAccSqGradsAligned);
+                out float[] latentWeightsAligned, out float[] linearAccSqGrads, out float[] latentAccSqGradsAligned);
 
             // refer to Algorithm 3 in https://github.com/wschin/fast-ffm/blob/master/fast-ffm.pdf
             while (iter++ < _numIterations)
