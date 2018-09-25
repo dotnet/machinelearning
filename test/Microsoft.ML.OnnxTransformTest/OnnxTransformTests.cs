@@ -1,4 +1,4 @@
-﻿using Microsoft.ML.Core.Data;
+using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.ImageAnalytics;
@@ -14,9 +14,10 @@ using Xunit.Abstractions;
 using System.Runtime.InteropServices;
 using Microsoft.ML.OnnxScoring;
 
+
 namespace Microsoft.ML.Tests
 {
-    public class OnnxEstimatorTests : TestDataPipeBase
+    public class OnnxTransformTests : TestDataPipeBase
     {
 
         private const int inputsize = 150528;
@@ -46,11 +47,11 @@ namespace Microsoft.ML.Tests
         {
             var samplevector = new float[inputsize];
             for (int i = 0; i < inputsize; i++)
-                samplevector[i] = (i / (inputsize *1.01f));
+                samplevector[i] = (i / (inputsize * 1.01f));
             return samplevector;
         }
 
-        public OnnxEstimatorTests(ITestOutputHelper output) : base(output)
+        public OnnxTransformTests(ITestOutputHelper output) : base(output)
         {
         }
 
@@ -147,7 +148,7 @@ namespace Microsoft.ML.Tests
         {
             var modelFile = "squeezenet/00000001/model.onnx";
 
-            using (var env = new ConsoleEnvironment(null, false, 0, 1, null, null) )
+            using (var env = new ConsoleEnvironment(null, false, 0, 1, null, null))
             {
                 var imageHeight = 224;
                 var imageWidth = 224;
@@ -169,7 +170,7 @@ namespace Microsoft.ML.Tests
                 TestEstimatorCore(pipe.AsDynamic, data.AsDynamic);
 
                 var result = pipe.Fit(data).Transform(data).AsDynamic;
-                result.Schema.TryGetColumnIndex("Output", out int output);
+                result.Schema.TryGetColumnIndex("softmaxout_1", out int output);
                 using (var cursor = result.GetRowCursor(col => col == output))
                 {
                     var buffer = default(VBuffer<float>);
@@ -178,7 +179,7 @@ namespace Microsoft.ML.Tests
                     while (cursor.MoveNext())
                     {
                         getter(ref buffer);
-                        Assert.Equal(10, buffer.Length);
+                        Assert.Equal(1000, buffer.Length);
                         numRows += 1;
                     }
                     Assert.Equal(3, numRows);
@@ -187,3 +188,4 @@ namespace Microsoft.ML.Tests
         }
     }
 }
+
