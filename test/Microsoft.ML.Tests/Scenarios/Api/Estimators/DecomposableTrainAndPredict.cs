@@ -6,6 +6,7 @@ using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Learners;
 using Microsoft.ML.Runtime.RunTests;
+using Microsoft.ML.TestFramework;
 using System.Linq;
 using Xunit;
 
@@ -25,34 +26,26 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         void New_DecomposableTrainAndPredict()
         {
             var dataPath = GetDataPath(TestDatasets.irisData.trainFilename);
-            using (var env = new LocalEnvironment())
+            using (var env = new LocalEnvironment()
+                .AddStandardComponents()) // ScoreUtils.GetScorer requires scorers to be registered in the ComponentCatalog
             {
-                var loader = TextLoader.ReadFile(env, MakeIrisTextLoaderArgs(), new MultiFileSource(dataPath));
-                var term = TermTransform.Create(env, loader, "Label");
-                var concat = new ConcatTransform(env, "Features", "SepalLength", "SepalWidth", "PetalLength", "PetalWidth").Transform(term);
-                var trainer = new SdcaMultiClassTrainer(env, new SdcaMultiClassTrainer.Arguments { MaxIterations = 100, Shuffle = true, NumThreads = 1 });
+                var data = new TextLoader(env, MakeIrisTextLoaderArgs())
+                    .Read(new MultiFileSource(dataPath));
 
-                IDataView trainData = trainer.Info.WantCaching ? (IDataView)new CacheDataView(env, concat, prefetch: null) : concat;
-                var trainRoles = new RoleMappedData(trainData, label: "Label", feature: "Features");
+                var pipeline = new ConcatEstimator(env, "Features", "SepalLength", "SepalWidth", "PetalLength", "PetalWidth")
+                    .Append(new TermEstimator(env, "Label"), TransformerScope.TrainTest)
+                    .Append(new SdcaMultiClassTrainer(env, new SdcaMultiClassTrainer.Arguments { MaxIterations = 100, Shuffle = true, NumThreads = 1 }, "Features", "Label"))
+                    .Append(new KeyToValueEstimator(env, "PredictedLabel"));
 
-                // Auto-normalization.
-                NormalizeTransform.CreateIfNeeded(env, ref trainRoles, trainer);
-                var predictor = trainer.Train(new Runtime.TrainContext(trainRoles));
-
-                var scoreRoles = new RoleMappedData(concat, label: "Label", feature: "Features");
-                IDataScorerTransform scorer = ScoreUtils.GetScorer(predictor, scoreRoles, env, trainRoles.Schema);
-
-                // Cut out term transform from pipeline.
-                var newScorer = ApplyTransformUtils.ApplyAllTransformsToData(env, scorer, loader, term);
-                var keyToValue = new KeyToValueTransform(env, "PredictedLabel").Transform(newScorer);
-                var model = env.CreatePredictionEngine<IrisDataNoLabel, IrisPrediction>(keyToValue);
+                var model = pipeline.Fit(data).GetModelFor(TransformerScope.Scoring);
+                var engine = model.MakePredictionFunction<IrisDataNoLabel, IrisPrediction>(env);
 
                 var testLoader = TextLoader.ReadFile(env, MakeIrisTextLoaderArgs(), new MultiFileSource(dataPath));
-                var testData = testLoader.AsEnumerable<IrisDataNoLabel>(env, false);
+                var testData = testLoader.AsEnumerable<IrisData>(env, false);
                 foreach (var input in testData.Take(20))
                 {
-                    var prediction = model.Predict(input);
-                    Assert.True(prediction.PredictedLabel == "Iris-setosa");
+                    var prediction = engine.Predict(input);
+                    Assert.True(prediction.PredictedLabel == input.Label);
                 }
             }
         }

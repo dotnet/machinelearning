@@ -15798,9 +15798,9 @@ namespace Microsoft.ML
 
 
             /// <summary>
-            /// This is the frozen protobuf model file. Please see https://www.tensorflow.org/mobile/prepare_models for more details.
+            /// TensorFlow model used by the transform. Please see https://www.tensorflow.org/mobile/prepare_models for more details.
             /// </summary>
-            public string ModelFile { get; set; }
+            public string Model { get; set; }
 
             /// <summary>
             /// The names of the model inputs

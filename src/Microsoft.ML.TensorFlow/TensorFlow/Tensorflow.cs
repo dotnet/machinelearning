@@ -23,6 +23,7 @@ using TF_DeviceList = System.IntPtr;
 
 using size_t = System.UIntPtr;
 using System.Collections.Generic;
+using System.Collections;
 
 #pragma warning disable MSML_GeneralName
 #pragma warning disable MSML_PrivateFieldName
@@ -492,7 +493,7 @@ namespace Microsoft.ML.Transforms.TensorFlow
     /// "hot", and add a "sub" operation there the result will be "demo/hot/sub".
     /// </para>
     /// </remarks>
-    internal partial class TFGraph : TFDisposableThreadSafe
+    internal partial class TFGraph : TFDisposableThreadSafe, IEnumerable<TFOperation>
     {
         // extern TF_Graph * TF_NewGraph ();
         [DllImport(NativeBinding.TensorFlowLibrary)]
@@ -696,6 +697,33 @@ namespace Microsoft.ML.Transforms.TensorFlow
             IntPtr len;
             return TF_GraphDebugString(Handle, out len);
         }
+
+        [DllImport(NativeBinding.TensorFlowLibrary)]
+        private static unsafe extern TF_Operation TF_GraphNextOperation(TF_Graph graph, ref IntPtr pos);
+
+        /// <summary>
+        /// Returns the enumerator that returns all the TFOperations in a graph.
+        /// </summary>
+        /// <returns>The enumerator.</returns>
+        private IEnumerable<TFOperation> GetEnumerable()
+        {
+            if (handle == IntPtr.Zero)
+                ObjectDisposedException();
+            IntPtr token = IntPtr.Zero;
+            IntPtr operll;
+            while ((operll = TF_GraphNextOperation(handle, ref token)) != IntPtr.Zero)
+                yield return new TFOperation(this, operll);
+        }
+
+        public IEnumerator<TFOperation> GetEnumerator()
+        {
+            return GetEnumerable().GetEnumerator();
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
+        }
     }
 
     /// <summary>
@@ -736,6 +764,48 @@ namespace Microsoft.ML.Transforms.TensorFlow
                 return new TFOutput(this, idx);
             }
         }
+
+        // extern TF_Output TF_OperationInput (TF_Input oper_in);
+        [DllImport(NativeBinding.TensorFlowLibrary)]
+        private static extern TFOutput TF_OperationInput(TFInput oper_in);
+
+        public TFOutput GetInput(int idx)
+        {
+            return TF_OperationInput(new TFInput() { Operation = handle, Index = idx });
+        }
+
+        [DllImport(NativeBinding.TensorFlowLibrary)]
+        private static extern IntPtr TF_OperationName(TF_Operation oper);
+
+        /// <summary>
+        /// The name for this operation/
+        /// </summary>
+        /// <value>The name.</value>
+        public string Name => handle == IntPtr.Zero ? "<ObjectDisposed>" : TF_OperationName(handle).GetStr();
+
+        [DllImport(NativeBinding.TensorFlowLibrary)]
+        private static extern IntPtr TF_OperationOpType(TF_Operation oper);
+
+        public string OpType => handle == IntPtr.Zero ? "<ObjectDisposedException>" : TF_OperationOpType(handle).GetStr();
+
+        [DllImport(NativeBinding.TensorFlowLibrary)]
+        private static extern int TF_OperationNumOutputs(TF_Operation oper);
+
+        /// <summary>
+        /// Gets the number of outputs on this operation.
+        /// </summary>
+        /// <value>The number outputs.</value>
+        public int NumOutputs => handle == IntPtr.Zero ? -1 : TF_OperationNumOutputs(handle);
+
+        [DllImport(NativeBinding.TensorFlowLibrary)]
+        private static extern int TF_OperationNumInputs(TF_Operation oper);
+
+        /// <summary>
+        /// Gets the number of inputs for this operation.
+        /// Import a serialized graph into this graph, using the specified importing options.
+        /// </summary>
+        /// <value>The number inputs.</value>
+        public int NumInputs => TF_OperationNumInputs(handle);
     }
 
     /// <summary>
@@ -1112,7 +1182,7 @@ namespace Microsoft.ML.Transforms.TensorFlow
         /// here: https://github.com/tensorflow/tensorflow/blob/master/tensorflow/python/saved_model/README.md
         /// </para>
         /// </remarks>
-        public TFSession FromSavedModel(TFSessionOptions sessionOptions, TFBuffer runOptions, string exportDir, string[] tags, TFGraph graph, TFBuffer metaGraphDef, TFStatus status = null)
+        public static TFSession FromSavedModel(TFSessionOptions sessionOptions, TFBuffer runOptions, string exportDir, string[] tags, TFGraph graph, TFBuffer metaGraphDef, TFStatus status = null)
         {
             if (graph == null)
                 throw new ArgumentNullException(nameof(graph));
@@ -1767,15 +1837,6 @@ namespace Microsoft.ML.Transforms.TensorFlow
         /// The index of the output within the Operation
         /// </summary>
         public int Index;
-
-        // extern TF_Output TF_OperationInput (TF_Input oper_in);
-        [DllImport(NativeBinding.TensorFlowLibrary)]
-        private static extern TFOutput TF_OperationInput(TFInput oper_in);
-
-        public TFOutput GetOutput(TFInput operIn)
-        {
-            return TF_OperationInput(operIn);
-        }
 
         // extern TF_DataType TF_OperationInputType (TF_Input oper_in);
         [DllImport(NativeBinding.TensorFlowLibrary)]

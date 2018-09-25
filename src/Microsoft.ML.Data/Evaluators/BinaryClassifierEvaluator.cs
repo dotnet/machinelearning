@@ -5,8 +5,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.ML.Data.StaticPipe;
-using Microsoft.ML.Data.StaticPipe.Runtime;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
@@ -921,104 +919,75 @@ namespace Microsoft.ML.Runtime.Data
         /// <summary>
         /// Evaluates scored binary classification data.
         /// </summary>
-        /// <typeparam name="T">The shape type for the input data.</typeparam>
-        /// <param name="data">The data to evaluate.</param>
-        /// <param name="label">The index delegate for the label column.</param>
-        /// <param name="pred">The index delegate for columns from calibrated prediction of a binary classifier.
-        /// Under typical scenarios, this will just be the same tuple of results returned from the trainer.</param>
+        /// <param name="data">The scored data.</param>
+        /// <param name="label">The name of the label column in <paramref name="data"/>.</param>
+        /// <param name="score">The name of the score column in <paramref name="data"/>.</param>
+        /// <param name="probability">The name of the probability column in <paramref name="data"/>, the calibrated version of <paramref name="score"/>.</param>
+        /// <param name="predictedLabel">The name of the predicted label column in <paramref name="data"/>.</param>
         /// <returns>The evaluation results for these calibrated outputs.</returns>
-        public static CalibratedResult Evaluate<T>(
-            DataView<T> data,
-            Func<T, Scalar<bool>> label,
-            Func<T, (Scalar<float> score, Scalar<float> probability, Scalar<bool> predictedLabel)> pred)
+        public CalibratedResult Evaluate(IDataView data, string label, string score, string probability, string predictedLabel)
         {
-            Contracts.CheckValue(data, nameof(data));
-            var env = StaticPipeUtils.GetEnvironment(data);
-            Contracts.AssertValue(env);
-            env.CheckValue(label, nameof(label));
-            env.CheckValue(pred, nameof(pred));
+            Host.CheckValue(data, nameof(data));
+            Host.CheckNonEmpty(label, nameof(label));
+            Host.CheckNonEmpty(score, nameof(score));
+            Host.CheckNonEmpty(probability, nameof(probability));
+            Host.CheckNonEmpty(predictedLabel, nameof(predictedLabel));
 
-            var indexer = StaticPipeUtils.GetIndexer(data);
-            string labelName = indexer.Get(label(indexer.Indices));
-            (var scoreCol, var probCol, var predCol) = pred(indexer.Indices);
-            Contracts.CheckParam(scoreCol != null, nameof(pred), "Indexing delegate resulted in null score column.");
-            Contracts.CheckParam(probCol != null, nameof(pred), "Indexing delegate resulted in null probability column.");
-            Contracts.CheckParam(predCol != null, nameof(pred), "Indexing delegate resulted in null predicted label column.");
-            string scoreName = indexer.Get(scoreCol);
-            string probName = indexer.Get(probCol);
-            string predName = indexer.Get(predCol);
+            var roles = new RoleMappedData(data, opt: false,
+                RoleMappedSchema.ColumnRole.Label.Bind(label),
+                RoleMappedSchema.CreatePair(MetadataUtils.Const.ScoreValueKind.Score, score),
+                RoleMappedSchema.CreatePair(MetadataUtils.Const.ScoreValueKind.Probability, probability),
+                RoleMappedSchema.CreatePair(MetadataUtils.Const.ScoreValueKind.PredictedLabel, predictedLabel));
 
-            var eval = new BinaryClassifierEvaluator(env, new Arguments() { });
-
-            var roles = new RoleMappedData(data.AsDynamic, opt: false,
-                RoleMappedSchema.ColumnRole.Label.Bind(labelName),
-                RoleMappedSchema.CreatePair(MetadataUtils.Const.ScoreValueKind.Score, scoreName),
-                RoleMappedSchema.CreatePair(MetadataUtils.Const.ScoreValueKind.Probability, probName),
-                RoleMappedSchema.CreatePair(MetadataUtils.Const.ScoreValueKind.PredictedLabel, predName));
-
-            var resultDict = eval.Evaluate(roles);
-            env.Assert(resultDict.ContainsKey(MetricKinds.OverallMetrics));
+            var resultDict = Evaluate(roles);
+            Host.Assert(resultDict.ContainsKey(MetricKinds.OverallMetrics));
             var overall = resultDict[MetricKinds.OverallMetrics];
 
             CalibratedResult result;
             using (var cursor = overall.GetRowCursor(i => true))
             {
                 var moved = cursor.MoveNext();
-                env.Assert(moved);
-                result = new CalibratedResult(env, cursor);
+                Host.Assert(moved);
+                result = new CalibratedResult(Host, cursor);
                 moved = cursor.MoveNext();
-                env.Assert(!moved);
+                Host.Assert(!moved);
             }
             return result;
         }
 
         /// <summary>
-        /// Evaluates scored binary classification data.
+        /// Evaluates scored binary classification data, without probability-based metrics.
         /// </summary>
-        /// <typeparam name="T">The shape type for the input data.</typeparam>
-        /// <param name="data">The data to evaluate.</param>
-        /// <param name="label">The index delegate for the label column.</param>
-        /// <param name="pred">The index delegate for columns from calibrated prediction of a binary classifier.
-        /// Under typical scenarios, this will just be the same tuple of results returned from the trainer.</param>
+        /// <param name="data">The scored data.</param>
+        /// <param name="label">The name of the label column in <paramref name="data"/>.</param>
+        /// <param name="score">The name of the score column in <paramref name="data"/>.</param>
+        /// <param name="predictedLabel">The name of the predicted label column in <paramref name="data"/>.</param>
         /// <returns>The evaluation results for these uncalibrated outputs.</returns>
-        public static Result Evaluate<T>(
-            DataView<T> data,
-            Func<T, Scalar<bool>> label,
-            Func<T, (Scalar<float> score, Scalar<bool> predictedLabel)> pred)
+        /// <seealso cref="Evaluate(IDataView, string, string, string)"/>
+        public Result Evaluate(IDataView data, string label, string score, string predictedLabel)
         {
-            Contracts.CheckValue(data, nameof(data));
-            var env = StaticPipeUtils.GetEnvironment(data);
-            Contracts.AssertValue(env);
-            env.CheckValue(label, nameof(label));
-            env.CheckValue(pred, nameof(pred));
+            Host.CheckValue(data, nameof(data));
+            Host.CheckNonEmpty(label, nameof(label));
+            Host.CheckNonEmpty(score, nameof(score));
+            Host.CheckNonEmpty(predictedLabel, nameof(predictedLabel));
 
-            var indexer = StaticPipeUtils.GetIndexer(data);
-            string labelName = indexer.Get(label(indexer.Indices));
-            (var scoreCol, var predCol) = pred(indexer.Indices);
-            Contracts.CheckParam(scoreCol != null, nameof(pred), "Indexing delegate resulted in null score column.");
-            Contracts.CheckParam(predCol != null, nameof(pred), "Indexing delegate resulted in null predicted label column.");
-            string scoreName = indexer.Get(scoreCol);
-            string predName = indexer.Get(predCol);
+            var roles = new RoleMappedData(data, opt: false,
+                RoleMappedSchema.ColumnRole.Label.Bind(label),
+                RoleMappedSchema.CreatePair(MetadataUtils.Const.ScoreValueKind.Score, score),
+                RoleMappedSchema.CreatePair(MetadataUtils.Const.ScoreValueKind.PredictedLabel, predictedLabel));
 
-            var eval = new BinaryClassifierEvaluator(env, new Arguments() { });
-
-            var roles = new RoleMappedData(data.AsDynamic, opt: false,
-                RoleMappedSchema.ColumnRole.Label.Bind(labelName),
-                RoleMappedSchema.CreatePair(MetadataUtils.Const.ScoreValueKind.Score, scoreName),
-                RoleMappedSchema.CreatePair(MetadataUtils.Const.ScoreValueKind.PredictedLabel, predName));
-
-            var resultDict = eval.Evaluate(roles);
-            env.Assert(resultDict.ContainsKey(MetricKinds.OverallMetrics));
+            var resultDict = Evaluate(roles);
+            Host.Assert(resultDict.ContainsKey(MetricKinds.OverallMetrics));
             var overall = resultDict[MetricKinds.OverallMetrics];
 
             Result result;
             using (var cursor = overall.GetRowCursor(i => true))
             {
                 var moved = cursor.MoveNext();
-                env.Assert(moved);
-                result = new Result(env, cursor);
+                Host.Assert(moved);
+                result = new Result(Host, cursor);
                 moved = cursor.MoveNext();
-                env.Assert(!moved);
+                Host.Assert(!moved);
             }
             return result;
         }
@@ -1034,7 +1003,8 @@ namespace Microsoft.ML.Runtime.Data
                 verWrittenCur: 0x00010001, // Initial
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
-                loaderSignature: LoaderSignature);
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(BinaryPerInstanceEvaluator).Assembly.FullName);
         }
 
         private const int AssignedCol = 0;

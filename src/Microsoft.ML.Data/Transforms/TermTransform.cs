@@ -193,7 +193,8 @@ namespace Microsoft.ML.Runtime.Data
                 verWrittenCur: 0x00010003, // Generalize to multiple types beyond text
                 verReadableCur: 0x00010003,
                 verWeCanReadBack: 0x00010001,
-                loaderSignature: LoaderSignature);
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(TermTransform).Assembly.FullName);
         }
 
         private const uint VerNonTextTypesSupported = 0x00010003;
@@ -224,7 +225,8 @@ namespace Microsoft.ML.Runtime.Data
                 verWrittenCur: 0x00010002, // Generalize to multiple types beyond text
                 verReadableCur: 0x00010002,
                 verWeCanReadBack: 0x00010001,
-                loaderSignature: TermManagerLoaderSignature);
+                loaderSignature: TermManagerLoaderSignature,
+                loaderAssemblyName: typeof(TermTransform).Assembly.FullName);
         }
 
         private readonly TermMap[] _unboundMaps;

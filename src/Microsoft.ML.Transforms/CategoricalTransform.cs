@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Microsoft.ML.Core.Data;
-using Microsoft.ML.Data.StaticPipe.Runtime;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
@@ -15,6 +14,8 @@ using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Internal.Internallearn;
 using Microsoft.ML.Runtime.Model;
+using Microsoft.ML.StaticPipe;
+using Microsoft.ML.StaticPipe.Runtime;
 
 [assembly: LoadableClass(CategoricalTransform.Summary, typeof(IDataTransform), typeof(CategoricalTransform), typeof(CategoricalTransform.Arguments), typeof(SignatureDataTransform),
     CategoricalTransform.UserName, "CategoricalTransform", "CatTransform", "Categorical", "Cat")]
@@ -167,6 +168,14 @@ namespace Microsoft.ML.Runtime.Data
         public IDataView Transform(IDataView input) => _transformer.Transform(input);
 
         public void Save(ModelSaveContext ctx) => _transformer.Save(ctx);
+
+        public bool IsRowToRowMapper => _transformer.IsRowToRowMapper;
+
+        public IRowToRowMapper GetRowToRowMapper(ISchema inputSchema)
+        {
+            Contracts.CheckValue(inputSchema, nameof(inputSchema));
+            return _transformer.GetRowToRowMapper(inputSchema);
+        }
     }
 
     public sealed class CategoricalEstimator : IEstimator<CategoricalTransform>

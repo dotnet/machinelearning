@@ -241,7 +241,8 @@ namespace Microsoft.ML.Runtime.Data
                 verWrittenCur: 0x00010001, // Initial
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
-                loaderSignature: LoaderSignature);
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(RowToRowMapperTransform).Assembly.FullName);
         }
 
         public override ISchema Schema { get { return _bindings; } }
@@ -359,6 +360,8 @@ namespace Microsoft.ML.Runtime.Data
             _bindings.GetActive(predicate, out predicateInput);
             return predicateInput;
         }
+
+        ISchema IRowToRowMapper.InputSchema => Source.Schema;
 
         public IRow GetRow(IRow input, Func<int, bool> active, out Action disposer)
         {

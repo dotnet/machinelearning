@@ -2,11 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Data.StaticPipe;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Data.IO;
 using Microsoft.ML.Runtime.Internal.Utilities;
+using Microsoft.ML.StaticPipe;
 using Microsoft.ML.TestFramework;
+using Microsoft.ML.Transforms;
 using Microsoft.ML.Transforms.Text;
 using System;
 using System.Collections.Generic;
@@ -300,7 +301,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             ImmutableArray<ImmutableArray<float>> bb;
 
             var est = reader.MakeNewEstimator()
-                .Append(r => (r, 
+                .Append(r => (r,
                     ncdf: r.NormalizeByCumulativeDistribution(onFit: (m, s) => mm = m),
                     n: r.NormalizeByMeanVar(onFit: (s, o) => { ss = s; Assert.Empty(o); }),
                     b: r.NormalizeByBinning(onFit: b => bb = b)));
@@ -430,6 +431,158 @@ namespace Microsoft.ML.StaticPipelineTesting
             type = schema.GetColumnType(charsCol);
             Assert.True(type.IsVector && !type.IsKnownSizeVector && type.ItemType.IsKey);
             Assert.True(type.ItemType.AsKey.RawKind == DataKind.U2);
+        }
+
+        [Fact]
+        public void NormalizeTextAndRemoveStopWords()
+        {
+            var env = new ConsoleEnvironment(seed: 0);
+            var dataPath = GetDataPath("wikipedia-detox-250-line-data.tsv");
+            var reader = TextLoader.CreateReader(env, ctx => (
+                    label: ctx.LoadBool(0),
+                    text: ctx.LoadText(1)), hasHeader: true);
+            var dataSource = new MultiFileSource(dataPath);
+            var data = reader.Read(dataSource);
+
+            var est = data.MakeNewEstimator()
+                .Append(r => (
+                    r.label,
+                    normalized_text: r.text.NormalizeText(),
+                    words_without_stopwords: r.text.TokenizeText().RemoveStopwords()));
+
+            var tdata = est.Fit(data).Transform(data);
+            var schema = tdata.AsDynamic.Schema;
+
+            Assert.True(schema.TryGetColumnIndex("words_without_stopwords", out int stopwordsCol));
+            var type = schema.GetColumnType(stopwordsCol);
+            Assert.True(type.IsVector && !type.IsKnownSizeVector && type.ItemType.IsText);
+
+            Assert.True(schema.TryGetColumnIndex("normalized_text", out int normTextCol));
+            type = schema.GetColumnType(normTextCol);
+            Assert.True(type.IsText && !type.IsVector);
+        }
+
+        [Fact]
+        public void ConvertToWordBag()
+        {
+            var env = new ConsoleEnvironment(seed: 0);
+            var dataPath = GetDataPath("wikipedia-detox-250-line-data.tsv");
+            var reader = TextLoader.CreateReader(env, ctx => (
+                    label: ctx.LoadBool(0),
+                    text: ctx.LoadText(1)), hasHeader: true);
+            var dataSource = new MultiFileSource(dataPath);
+            var data = reader.Read(dataSource);
+
+            var est = data.MakeNewEstimator()
+                .Append(r => (
+                    r.label,
+                    bagofword: r.text.ToBagofWords(),
+                    bagofhashedword: r.text.ToBagofHashedWords()));
+
+            var tdata = est.Fit(data).Transform(data);
+            var schema = tdata.AsDynamic.Schema;
+
+            Assert.True(schema.TryGetColumnIndex("bagofword", out int bagofwordCol));
+            var type = schema.GetColumnType(bagofwordCol);
+            Assert.True(type.IsVector && type.IsKnownSizeVector && type.ItemType.IsNumber);
+
+            Assert.True(schema.TryGetColumnIndex("bagofhashedword", out int bagofhashedwordCol));
+            type = schema.GetColumnType(bagofhashedwordCol);
+            Assert.True(type.IsVector && type.IsKnownSizeVector && type.ItemType.IsNumber);
+        }
+
+        [Fact]
+        public void Ngrams()
+        {
+            var env = new ConsoleEnvironment(seed: 0);
+            var dataPath = GetDataPath("wikipedia-detox-250-line-data.tsv");
+            var reader = TextLoader.CreateReader(env, ctx => (
+                    label: ctx.LoadBool(0),
+                    text: ctx.LoadText(1)), hasHeader: true);
+            var dataSource = new MultiFileSource(dataPath);
+            var data = reader.Read(dataSource);
+
+            var est = data.MakeNewEstimator()
+                .Append(r => (
+                    r.label,
+                    ngrams: r.text.TokenizeText().ToKey().ToNgrams(),
+                    ngramshash: r.text.TokenizeText().ToKey().ToNgramsHash()));
+
+            var tdata = est.Fit(data).Transform(data);
+            var schema = tdata.AsDynamic.Schema;
+
+            Assert.True(schema.TryGetColumnIndex("ngrams", out int ngramsCol));
+            var type = schema.GetColumnType(ngramsCol);
+            Assert.True(type.IsVector && type.IsKnownSizeVector && type.ItemType.IsNumber);
+
+            Assert.True(schema.TryGetColumnIndex("ngramshash", out int ngramshashCol));
+            type = schema.GetColumnType(ngramshashCol);
+            Assert.True(type.IsVector && type.IsKnownSizeVector && type.ItemType.IsNumber);
+        }
+
+
+        [Fact]
+        public void LpGcNormAndWhitening()
+        {
+            var env = new ConsoleEnvironment(seed: 0);
+            var dataPath = GetDataPath("generated_regression_dataset.csv");
+            var dataSource = new MultiFileSource(dataPath);
+
+            var reader = TextLoader.CreateReader(env,
+                c => (label: c.LoadFloat(11), features: c.LoadFloat(0, 10)),
+                separator: ';', hasHeader: true);
+            var data = reader.Read(dataSource);
+
+            var est = reader.MakeNewEstimator()
+                .Append(r => (r.label,
+                              lpnorm: r.features.LpNormalize(),
+                              gcnorm: r.features.GlobalContrastNormalize(),
+                              zcawhitened: r.features.ZcaWhitening(),
+                              pcswhitened: r.features.PcaWhitening()));
+            var tdata = est.Fit(data).Transform(data);
+            var schema = tdata.AsDynamic.Schema;
+
+            Assert.True(schema.TryGetColumnIndex("lpnorm", out int lpnormCol));
+            var type = schema.GetColumnType(lpnormCol);
+            Assert.True(type.IsVector && type.IsKnownSizeVector && type.ItemType.IsNumber);
+
+            Assert.True(schema.TryGetColumnIndex("gcnorm", out int gcnormCol));
+            type = schema.GetColumnType(gcnormCol);
+            Assert.True(type.IsVector && type.IsKnownSizeVector && type.ItemType.IsNumber);
+
+            Assert.True(schema.TryGetColumnIndex("zcawhitened", out int zcawhitenedCol));
+            type = schema.GetColumnType(zcawhitenedCol);
+            Assert.True(type.IsVector && type.IsKnownSizeVector && type.ItemType.IsNumber);
+
+            Assert.True(schema.TryGetColumnIndex("pcswhitened", out int pcswhitenedCol));
+            type = schema.GetColumnType(pcswhitenedCol);
+            Assert.True(type.IsVector && type.IsKnownSizeVector && type.ItemType.IsNumber);
+        }
+
+        [Fact]
+        public void LdaTopicModel()
+        {
+            var env = new ConsoleEnvironment(seed: 0);
+            var dataPath = GetDataPath("wikipedia-detox-250-line-data.tsv");
+            var reader = TextLoader.CreateReader(env, ctx => (
+                    label: ctx.LoadBool(0),
+                    text: ctx.LoadText(1)), hasHeader: true);
+            var dataSource = new MultiFileSource(dataPath);
+            var data = reader.Read(dataSource);
+
+            var est = data.MakeNewEstimator()
+                .Append(r => (
+                    r.label,
+                    topics: r.text.ToBagofWords().ToLdaTopicVector(numTopic: 10, advancedSettings: s => {
+                        s.AlphaSum = 10;
+                    })));
+
+            var tdata = est.Fit(data).Transform(data);
+            var schema = tdata.AsDynamic.Schema;
+
+            Assert.True(schema.TryGetColumnIndex("topics", out int topicsCol));
+            var type = schema.GetColumnType(topicsCol);
+            Assert.True(type.IsVector && type.IsKnownSizeVector && type.ItemType.IsNumber);
         }
     }
 }
