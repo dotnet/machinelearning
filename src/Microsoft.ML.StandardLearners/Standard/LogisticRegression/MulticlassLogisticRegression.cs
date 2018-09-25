@@ -698,10 +698,21 @@ namespace Microsoft.ML.Runtime.Learners
         private static int NonZeroCount(ref VBuffer<float> vector)
         {
             int count = 0;
-            for (int i = 0; i < vector.Length; i++)
+            if (!vector.IsDense)
             {
-                if (vector.Values[i] != 0)
-                    count++;
+                for (int i = 0; i < vector.Count; i++)
+                {
+                    if (vector.Values[i] != 0)
+                        count++;
+                }
+            }
+            else
+            {
+                for (int i = 0; i < vector.Length; i++)
+                {
+                    if (vector.Values[i] != 0)
+                        count++;
+                }
             }
             return count;
         }
