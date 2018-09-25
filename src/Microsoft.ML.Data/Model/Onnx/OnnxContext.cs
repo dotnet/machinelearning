@@ -7,7 +7,7 @@ using Microsoft.ML.Runtime.Data;
 
 namespace Microsoft.ML.Runtime.Model.Onnx
 {
-    public enum OnnxVersion { Latest, Experimental }
+    public enum OnnxVersion { Stable=0, Experimental=1 }
 
     /// <summary>
     /// A context for defining a ONNX output. The context internally contains the model-in-progress being built. This
@@ -102,7 +102,7 @@ namespace Microsoft.ML.Runtime.Model.Onnx
             => CreateNode(opType, new[] { input }, new[] { output }, name, domain);
 
         /// <summary>
-        /// Get the targeted ONNX version string. Only two values are allowed now: "latest" and "experimental".
+        /// Get the targeted ONNX version string. Only two values are allowed now: "Stable" and "Experimental".
         /// </summary>
         /// <returns></returns>
         public abstract OnnxVersion GetOnnxVersion();
