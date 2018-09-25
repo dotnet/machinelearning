@@ -6,10 +6,10 @@
   </PropertyGroup>
 
   <ItemGroup>
-	<PackageReference Include="System.IO.FileSystem.AccessControl" Version="$(SystemIOFileSystemAccessControl)" />
-	<PackageReference Include="System.Security.Principal.Windows" Version="$(SystemSecurityPrincipalWindows)" />
-	<ProjectReference Include="../Microsoft.ML/Microsoft.ML.nupkgproj" />    
-	<ProjectReference Include="../Microsoft.ML.TensorFlow.Redist/Microsoft.ML.TensorFlow.Redist.nupkgproj" />
+    <PackageReference Include="System.IO.FileSystem.AccessControl" Version="$(SystemIOFileSystemAccessControl)" />
+    <PackageReference Include="System.Security.Principal.Windows" Version="$(SystemSecurityPrincipalWindows)" />
+    <ProjectReference Include="../Microsoft.ML/Microsoft.ML.nupkgproj" />
+    <ProjectReference Include="../Microsoft.ML.TensorFlow.Redist/Microsoft.ML.TensorFlow.Redist.nupkgproj" />
   </ItemGroup>
 
 </Project>
