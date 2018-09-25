@@ -12,9 +12,7 @@ using Microsoft.ML.Runtime.Command;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Data.IO;
-using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Model;
 
 [assembly: LoadableClass(ScoreCommand.Summary, typeof(ScoreCommand), typeof(ScoreCommand.Arguments), typeof(SignatureCommand),
     "Score Predictor", "Score")]
@@ -122,7 +120,7 @@ namespace Microsoft.ML.Runtime.Data
             var mapper = bindable.Bind(Host, schema);
 
             if (scorer == null)
-                scorer = ScoreUtils.GetScorerComponent(mapper);
+                scorer = ScoreUtils.GetScorerComponent(Host, mapper);
 
             loader = CompositeDataLoader.ApplyTransform(Host, loader, "Scorer", scorer.ToString(),
                 (env, view) => scorer.CreateComponent(env, view, mapper, trainSchema));
@@ -286,7 +284,7 @@ namespace Microsoft.ML.Runtime.Data
             mapper = bindable.Bind(env, schema);
             if (scorerFactory != null)
                 return scorerFactory;
-            return GetScorerComponent(mapper);
+            return GetScorerComponent(env, mapper);
         }
 
         /// <summary>
@@ -294,22 +292,25 @@ namespace Microsoft.ML.Runtime.Data
         /// metadata on the first column of the mapper. If that text is found and maps to a scorer loadable class,
         /// that component is used. Otherwise, the GenericScorer is used.
         /// </summary>
+        /// <param name="environment">The host environment.</param>.
         /// <param name="mapper">The schema bound mapper to get the default scorer.</param>.
         /// <param name="suffix">An optional suffix to append to the default column names.</param>
         public static TScorerFactory GetScorerComponent(
+            IHostEnvironment environment,
             ISchemaBoundMapper mapper,
             string suffix = null)
         {
+            Contracts.CheckValue(environment, nameof(environment));
             Contracts.AssertValue(mapper);
 
             ComponentCatalog.LoadableClassInfo info = null;
-            DvText scoreKind = default;
-            if (mapper.OutputSchema.ColumnCount > 0 &&
-                mapper.OutputSchema.TryGetMetadata(TextType.Instance, MetadataUtils.Kinds.ScoreColumnKind, 0, ref scoreKind) &&
-                scoreKind.HasChars)
+            ReadOnlyMemory<char> scoreKind = default;
+            if (mapper.Schema.ColumnCount > 0 &&
+                mapper.Schema.TryGetMetadata(TextType.Instance, MetadataUtils.Kinds.ScoreColumnKind, 0, ref scoreKind) &&
+                !scoreKind.IsEmpty)
             {
                 var loadName = scoreKind.ToString();
-                info = ComponentCatalog.GetLoadableClassInfo<SignatureDataScorer>(loadName);
+                info = environment.ComponentCatalog.GetLoadableClassInfo<SignatureDataScorer>(loadName);
                 if (info == null || !typeof(IDataScorerTransform).IsAssignableFrom(info.Type))
                     info = null;
             }

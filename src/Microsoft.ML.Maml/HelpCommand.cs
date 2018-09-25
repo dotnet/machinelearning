@@ -51,8 +51,8 @@ namespace Microsoft.ML.Runtime.Tools
             [Argument(ArgumentType.Multiple, HelpText = "Extra DLLs", ShortName = "dll")]
             public string[] ExtraAssemblies;
 
-            [Argument(ArgumentType.LastOccurenceWins, Hide = true)]
-            public SubComponent<IGenerator, SignatureModuleGenerator> Generator;
+            [Argument(ArgumentType.LastOccurenceWins, Hide = true, SignatureType = typeof(SignatureModuleGenerator))]
+            public IComponentFactory<string, IGenerator> Generator;
 #pragma warning restore 649 // never assigned
         }
 
@@ -87,9 +87,9 @@ namespace Microsoft.ML.Runtime.Tools
 
             _extraAssemblies = args.ExtraAssemblies;
 
-            if (args.Generator.IsGood())
+            if (args.Generator != null)
             {
-                _generator = args.Generator.CreateInstance(_env, "maml.exe ? " + CmdParser.GetSettings(env, args, new Arguments()));
+                _generator = args.Generator.CreateComponent(_env, "maml.exe ? " + CmdParser.GetSettings(env, args, new Arguments()));
             }
         }
 
@@ -100,7 +100,7 @@ namespace Microsoft.ML.Runtime.Tools
 
         public void Run(int? columns)
         {
-            ComponentCatalog.CacheClassesExtra(_extraAssemblies);
+            AssemblyLoadingUtils.LoadAndRegister(_env, _extraAssemblies);
 
             using (var ch = _env.Start("Help"))
             using (var sw = new StringWriter(CultureInfo.InvariantCulture))
@@ -137,7 +137,7 @@ namespace Microsoft.ML.Runtime.Tools
             // Note that we don't check IsHidden here. The current policy is when IsHidden is true, we don't
             // show the item in "list all" functionality, but will still show help when explicitly requested.
 
-            var infos = ComponentCatalog.FindLoadableClasses(name)
+            var infos = _env.ComponentCatalog.FindLoadableClasses(name)
                 .OrderBy(x => ComponentCatalog.SignatureToString(x.SignatureTypes[0]).ToLowerInvariant());
             var kinds = new StringBuilder();
             var components = new List<Component>();
@@ -188,7 +188,7 @@ namespace Microsoft.ML.Runtime.Tools
         {
             string sig = _kind?.ToLowerInvariant();
 
-            var infos = ComponentCatalog.GetAllClasses()
+            var infos = _env.ComponentCatalog.GetAllClasses()
                 .OrderBy(info => info.LoadNames[0].ToLowerInvariant())
                 .ThenBy(info => ComponentCatalog.SignatureToString(info.SignatureTypes[0]).ToLowerInvariant());
             var components = new List<Component>();
@@ -256,7 +256,7 @@ namespace Microsoft.ML.Runtime.Tools
             else
             {
                 kind = _kind.ToLowerInvariant();
-                var sigs = ComponentCatalog.GetAllSignatureTypes();
+                var sigs = _env.ComponentCatalog.GetAllSignatureTypes();
                 typeSig = sigs.FirstOrDefault(t => ComponentCatalog.SignatureToString(t).ToLowerInvariant() == kind);
                 if (typeSig == null)
                 {
@@ -272,7 +272,7 @@ namespace Microsoft.ML.Runtime.Tools
                 writer.WriteLine("Available components for kind '{0}':", ComponentCatalog.SignatureToString(typeSig));
             }
 
-            var infos = ComponentCatalog.GetAllDerivedClasses(typeRes, typeSig)
+            var infos = _env.ComponentCatalog.GetAllDerivedClasses(typeRes, typeSig)
                 .Where(x => !x.IsHidden)
                 .OrderBy(x => x.LoadNames[0].ToLowerInvariant());
             using (writer.Nest())
@@ -322,7 +322,7 @@ namespace Microsoft.ML.Runtime.Tools
 
         private void ListKinds(IndentingTextWriter writer)
         {
-            var sigs = ComponentCatalog.GetAllSignatureTypes()
+            var sigs = _env.ComponentCatalog.GetAllSignatureTypes()
                 .Select(ComponentCatalog.SignatureToString)
                 .OrderBy(x => x);
 
@@ -342,9 +342,9 @@ namespace Microsoft.ML.Runtime.Tools
                 return;
 
             // REVIEW: should we replace consecutive spaces with a single space as a preprocessing step?
-            int screenWidth = (columns ?? CmdParser.GetConsoleWindowWidth()) - 1;
+            int screenWidth = (columns ?? Console.BufferWidth) - 1;
 
-            // GetConsoleWindowWidth returns 0 if command redirection operator is used
+            // Console.BufferWidth returns 0 if command redirection operator is used
             if (screenWidth <= 0)
                 screenWidth = 80;
 

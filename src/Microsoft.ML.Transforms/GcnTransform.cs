@@ -38,7 +38,7 @@ namespace Microsoft.ML.Runtime.Data
     ///    Performs the following operation on a vector X:
     ///         Y = (s * X - M) / D, where s is a scale, M is mean and D is either L2 norm or standard deviation.
     ///    Usage examples and Matlab code:
-    ///    <a href="http://www.cs.stanford.edu/~acoates/papers/coatesleeng_aistats_2011.pdf">http://www.cs.stanford.edu/~acoates/papers/coatesleeng_aistats_2011.pdf</a>.
+    ///    <a href="https://www.cs.stanford.edu/~acoates/papers/coatesleeng_aistats_2011.pdf">https://www.cs.stanford.edu/~acoates/papers/coatesleeng_aistats_2011.pdf</a>.
     /// </summary>
     public sealed class LpNormNormalizerTransform : OneToOneTransformBase
     {
@@ -236,7 +236,8 @@ namespace Microsoft.ML.Runtime.Data
                 verReadableCur: 0x00010002,
                 verWeCanReadBack: 0x00010001,
                 loaderSignature: LoaderSignature,
-                loaderSignatureAlt: LoaderSignatureOld);
+                loaderSignatureAlt: LoaderSignatureOld,
+                loaderAssemblyName: typeof(LpNormNormalizerTransform).Assembly.FullName);
         }
 
         private const string RegistrationName = "LpNormNormalizer";
@@ -311,7 +312,7 @@ namespace Microsoft.ML.Runtime.Data
         /// <param name="input">Input <see cref="IDataView"/>. This is the output from previous transform or loader.</param>
         /// <param name="name">Name of the output column.</param>
         /// <param name="source">Name of the column to be transformed. If this is null '<paramref name="name"/>' will be used.</param>
-        ///         /// <param name="normKind">The norm to use to normalize each sample.</param>
+        /// <param name="normKind">The norm to use to normalize each sample.</param>
         /// <param name="subMean">Subtract mean from each value before normalizing.</param>
         public static IDataTransform CreateLpNormNormalizer(IHostEnvironment env,
             IDataView input,
@@ -413,7 +414,7 @@ namespace Microsoft.ML.Runtime.Data
             for (int iinfo = 0; iinfo < Infos.Length; iinfo++)
             {
                 using (var bldr = md.BuildMetadata(iinfo, Source.Schema, Infos[iinfo].Source, MetadataUtils.Kinds.SlotNames))
-                    bldr.AddPrimitive(MetadataUtils.Kinds.IsNormalized, BoolType.Instance, DvBool.True);
+                    bldr.AddPrimitive(MetadataUtils.Kinds.IsNormalized, BoolType.Instance, true);
             }
             md.Seal();
         }

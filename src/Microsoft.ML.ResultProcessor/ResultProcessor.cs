@@ -12,7 +12,6 @@ using System.Text.RegularExpressions;
 using Microsoft.ML.Runtime.Command;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.Tools;
@@ -152,9 +151,9 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn.ResultProcessor
         /// <param name="extraAssemblies"></param>
         private Dictionary<string, string> GetDefaultSettings(IHostEnvironment env, string predictorName, string[] extraAssemblies = null)
         {
-            ComponentCatalog.CacheClassesExtra(extraAssemblies);
+            AssemblyLoadingUtils.LoadAndRegister(env, extraAssemblies);
 
-            var cls = ComponentCatalog.GetLoadableClassInfo<SignatureTrainer>(predictorName);
+            var cls = env.ComponentCatalog.GetLoadableClassInfo<SignatureTrainer>(predictorName);
             if (cls == null)
             {
                 Console.Error.WriteLine("Can't load trainer '{0}'", predictorName);
@@ -433,12 +432,12 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn.ResultProcessor
             {
                 if (Utils.Size(chainArgs.Command) == 0)
                     return null;
-                var acceptableCommand = chainArgs.Command.FirstOrDefault(x =>
-                    string.Equals(x.Kind, "CV", StringComparison.OrdinalIgnoreCase) ||
-                    string.Equals(x.Kind, "TrainTest", StringComparison.OrdinalIgnoreCase) ||
-                    string.Equals(x.Kind, "Test", StringComparison.OrdinalIgnoreCase));
+                var acceptableCommand = chainArgs.Command.Cast<ICommandLineComponentFactory>().FirstOrDefault(x =>
+                    string.Equals(x.Name, "CV", StringComparison.OrdinalIgnoreCase) ||
+                    string.Equals(x.Name, "TrainTest", StringComparison.OrdinalIgnoreCase) ||
+                    string.Equals(x.Name, "Test", StringComparison.OrdinalIgnoreCase));
                 if (acceptableCommand == null || !ParseCommandArguments(env,
-                    acceptableCommand.Kind + " " + acceptableCommand.SubComponentSettings, out commandArgs, out command, trimExe))
+                    acceptableCommand.Name + " " + acceptableCommand.GetSettingsString(), out commandArgs, out command, trimExe))
                 {
                     return null;
                 }
@@ -521,7 +520,7 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn.ResultProcessor
             ICommandLineComponentFactory commandLineTrainer = trainer as ICommandLineComponentFactory;
             Contracts.AssertValue(commandLineTrainer, "ResultProcessor can only work with ICommandLineComponentFactory.");
 
-            trainerClass = ComponentCatalog.GetLoadableClassInfo<SignatureTrainer>(commandLineTrainer.Name);
+            trainerClass = env.ComponentCatalog.GetLoadableClassInfo<SignatureTrainer>(commandLineTrainer.Name);
             trainerArgs = trainerClass.CreateArguments();
             Dictionary<string, string> predictorSettings;
             if (trainerArgs == null)
@@ -678,7 +677,12 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn.ResultProcessor
                 return false;
             }
 
-            commandClass = ComponentCatalog.GetLoadableClassInfo<SignatureCommand>(kind);
+            commandClass = env.ComponentCatalog.GetLoadableClassInfo<SignatureCommand>(kind);
+            if (commandClass == null)
+            {
+                commandArgs = null;
+                return false;
+            }
             commandArgs = commandClass.CreateArguments();
             CmdParser.ParseArguments(env, settings, commandArgs);
             return true;
@@ -1148,9 +1152,14 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn.ResultProcessor
 
         public static int Main(string[] args)
         {
+            return Main(new ConsoleEnvironment(42), args);
+        }
+
+        public static int Main(IHostEnvironment env, string[] args)
+        {
             try
             {
-                Run(args);
+                Run(env, args);
                 return 0;
             }
             catch (Exception e)
@@ -1170,10 +1179,9 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn.ResultProcessor
             }
         }
 
-        protected static void Run(string[] args)
+        protected static void Run(IHostEnvironment env, string[] args)
         {
             ResultProcessorArguments cmd = new ResultProcessorArguments();
-            TlcEnvironment env = new TlcEnvironment(42);
             List<PredictorResult> predictorResultsList = new List<PredictorResult>();
             PredictionUtil.ParseArguments(env, cmd, PredictionUtil.CombineSettings(args));
 
@@ -1185,8 +1193,8 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn.ResultProcessor
 
             if (cmd.IncludePerFoldResults)
                 cmd.PerFoldResultSeparator = "" + PredictionUtil.SepCharFromString(cmd.PerFoldResultSeparator);
-            foreach (var dll in cmd.ExtraAssemblies)
-                ComponentCatalog.LoadAssembly(dll);
+
+            AssemblyLoadingUtils.LoadAndRegister(env, cmd.ExtraAssemblies);
 
             if (cmd.Metrics.Length == 0)
                 cmd.Metrics = null;

@@ -19,6 +19,8 @@ namespace Microsoft.ML.Core.Data
     {
         public readonly Column[] Columns;
 
+        private static readonly SchemaShape _empty = new SchemaShape(Enumerable.Empty<Column>());
+
         public sealed class Column
         {
             public enum VectorKind
@@ -48,14 +50,14 @@ namespace Microsoft.ML.Core.Data
             /// </summary>
             public readonly bool IsKey;
             /// <summary>
-            /// The metadata kinds that are present for this column.
+            /// The metadata that is present for this column.
             /// </summary>
-            public readonly string[] MetadataKinds;
+            public readonly SchemaShape Metadata;
 
-            public Column(string name, VectorKind vecKind, ColumnType itemType, bool isKey, string[] metadataKinds = null)
+            public Column(string name, VectorKind vecKind, ColumnType itemType, bool isKey, SchemaShape metadata = null)
             {
                 Contracts.CheckNonEmpty(name, nameof(name));
-                Contracts.CheckValueOrNull(metadataKinds);
+                Contracts.CheckValueOrNull(metadata);
                 Contracts.CheckParam(!itemType.IsKey, nameof(itemType), "Item type cannot be a key");
                 Contracts.CheckParam(!itemType.IsVector, nameof(itemType), "Item type cannot be a vector");
 
@@ -65,7 +67,7 @@ namespace Microsoft.ML.Core.Data
                 Kind = vecKind;
                 ItemType = itemType;
                 IsKey = isKey;
-                MetadataKinds = metadataKinds ?? new string[0];
+                Metadata = metadata ?? _empty;
             }
 
             /// <summary>
@@ -74,7 +76,8 @@ namespace Microsoft.ML.Core.Data
             ///
             /// Namely, it returns true iff:
             ///  - The <see cref="Name"/>, <see cref="Kind"/>, <see cref="ItemType"/>, <see cref="IsKey"/> fields match.
-            ///  - The <see cref="MetadataKinds"/> of <paramref name="inputColumn"/> is a superset of our <see cref="MetadataKinds"/>.
+            ///  - The columns of <see cref="Metadata"/> of <paramref name="inputColumn"/> is a superset of our <see cref="Metadata"/> columns.
+            ///  - Each such metadata column is itself compatible with the input metadata column.
             /// </summary>
             public bool IsCompatibleWith(Column inputColumn)
             {
@@ -87,8 +90,13 @@ namespace Microsoft.ML.Core.Data
                     return false;
                 if (IsKey != inputColumn.IsKey)
                     return false;
-                if (inputColumn.MetadataKinds.Except(MetadataKinds).Any())
-                    return false;
+                foreach (var metaCol in Metadata.Columns)
+                {
+                    if (!inputColumn.Metadata.TryFindColumn(metaCol.Name, out var inputMetaCol))
+                        return false;
+                    if (!metaCol.IsCompatibleWith(inputMetaCol))
+                        return false;
+                }
                 return true;
             }
 
@@ -109,6 +117,25 @@ namespace Microsoft.ML.Core.Data
         {
             Contracts.CheckValue(columns, nameof(columns));
             Columns = columns.ToArray();
+            Contracts.CheckParam(columns.All(c => c != null), nameof(columns), "No items should be null.");
+        }
+
+        private static void GetColumnArgs(ColumnType type,
+            out Column.VectorKind vecKind,
+            out ColumnType itemType,
+            out bool isKey)
+        {
+            if (type.IsKnownSizeVector)
+                vecKind = Column.VectorKind.Vector;
+            else if (type.IsVector)
+                vecKind = Column.VectorKind.VariableVector;
+            else
+                vecKind = Column.VectorKind.Scalar;
+
+            itemType = type.ItemType;
+            if (type.ItemType.IsKey)
+                itemType = PrimitiveType.FromKind(type.ItemType.RawKind);
+            isKey = type.ItemType.IsKey;
         }
 
         /// <summary>
@@ -123,36 +150,30 @@ namespace Microsoft.ML.Core.Data
             {
                 if (!schema.IsHidden(iCol))
                 {
-                    Column.VectorKind vecKind;
-                    var type = schema.GetColumnType(iCol);
-                    if (type.IsKnownSizeVector)
-                        vecKind = Column.VectorKind.Vector;
-                    else if (type.IsVector)
-                        vecKind = Column.VectorKind.VariableVector;
-                    else
-                        vecKind = Column.VectorKind.Scalar;
-
-                    ColumnType itemType = type.ItemType;
-                    if (type.ItemType.IsKey)
-                        itemType = PrimitiveType.FromKind(type.ItemType.RawKind);
-                    var isKey = type.ItemType.IsKey;
-
-                    var metadataNames = schema.GetMetadataTypes(iCol)
-                        .Select(kvp => kvp.Key)
-                        .ToArray();
-                    cols.Add(new Column(schema.GetColumnName(iCol), vecKind, itemType, isKey, metadataNames));
+                    // First create the metadata.
+                    var mCols = new List<Column>();
+                    foreach (var metaNameType in schema.GetMetadataTypes(iCol))
+                    {
+                        GetColumnArgs(metaNameType.Value, out var mVecKind, out var mItemType, out var mIsKey);
+                        mCols.Add(new Column(metaNameType.Key, mVecKind, mItemType, mIsKey));
+                    }
+                    var metadata = mCols.Count > 0 ? new SchemaShape(mCols) : _empty;
+                    // Next create the single column.
+                    GetColumnArgs(schema.GetColumnType(iCol), out var vecKind, out var itemType, out var isKey);
+                    cols.Add(new Column(schema.GetColumnName(iCol), vecKind, itemType, isKey, metadata));
                 }
             }
-            return new SchemaShape(cols.ToArray());
+            return new SchemaShape(cols);
         }
 
         /// <summary>
-        /// Returns the column with a specified <paramref name="name"/>, and <c>null</c> if there is no such column.
+        /// Returns if there is a column with a specified <paramref name="name"/> and if so stores it in <paramref name="column"/>.
         /// </summary>
-        public Column FindColumn(string name)
+        public bool TryFindColumn(string name, out Column column)
         {
             Contracts.CheckValue(name, nameof(name));
-            return Columns.FirstOrDefault(x => x.Name == name);
+            column = Columns.FirstOrDefault(x => x.Name == name);
+            return column != null;
         }
 
         // REVIEW: I think we should have an IsCompatible method to check if it's OK to use one schema shape
@@ -192,11 +213,10 @@ namespace Microsoft.ML.Core.Data
     public interface IDataReaderEstimator<in TSource, out TReader>
         where TReader : IDataReader<TSource>
     {
+        // REVIEW: you could consider the transformer to take a different <typeparamref name="TSource"/>, but we don't have such components
+        // yet, so why complicate matters?
         /// <summary>
         /// Train and return a data reader.
-        ///
-        /// REVIEW: you could consider the transformer to take a different <typeparamref name="TSource"/>, but we don't have such components
-        /// yet, so why complicate matters?
         /// </summary>
         TReader Fit(TSource input);
 
@@ -209,14 +229,14 @@ namespace Microsoft.ML.Core.Data
 
     /// <summary>
     /// The transformer is a component that transforms data.
-    /// It also supports 'schema propagation' to answer the question of 'how the data with this schema look after you transform it?'.
+    /// It also supports 'schema propagation' to answer the question of 'how will the data with this schema look, after you transform it?'.
     /// </summary>
     public interface ITransformer
     {
         /// <summary>
         /// Schema propagation for transformers.
         /// Returns the output schema of the data, if the input schema is like the one provided.
-        /// Throws <see cref="SchemaException"/> iff the input schema is not valid for the transformer.
+        /// Throws <see cref="SchemaException"/> if the input schema is not valid for the transformer.
         /// </summary>
         ISchema GetOutputSchema(ISchema inputSchema);
 
@@ -225,6 +245,21 @@ namespace Microsoft.ML.Core.Data
         /// Note that <see cref="IDataView"/>'s are lazy, so no actual transformations happen here, just schema validation.
         /// </summary>
         IDataView Transform(IDataView input);
+
+        /// <summary>
+        /// Whether a call to <see cref="GetRowToRowMapper(ISchema)"/> should succeed, on an
+        /// appropriate schema.
+        /// </summary>
+        bool IsRowToRowMapper { get; }
+
+        /// <summary>
+        /// Constructs a row-to-row mapper based on an input schema. If <see cref="IsRowToRowMapper"/>
+        /// is <c>false</c>, then an exception should be thrown. If the input schema is in any way
+        /// unsuitable for constructing the mapper, an exception should likewise be thrown.
+        /// </summary>
+        /// <param name="inputSchema">The input schema for which we should get the mapper.</param>
+        /// <returns>The row to row mapper.</returns>
+        IRowToRowMapper GetRowToRowMapper(ISchema inputSchema);
     }
 
     /// <summary>

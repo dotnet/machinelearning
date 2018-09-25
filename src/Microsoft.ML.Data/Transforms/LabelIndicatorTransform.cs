@@ -39,7 +39,8 @@ namespace Microsoft.ML.Runtime.Data
                 verWrittenCur: 0x00010001, // Initial
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
-                loaderSignature: LoaderSignature);
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(LabelIndicatorTransform).Assembly.FullName);
         }
 
         public sealed class Column : OneToOneColumn
@@ -174,7 +175,7 @@ namespace Microsoft.ML.Runtime.Data
             return GetGetter(ch, input, iinfo);
         }
 
-        private ValueGetter<DvBool> GetGetter(IChannel ch, IRow input, int iinfo)
+        private ValueGetter<bool> GetGetter(IChannel ch, IRow input, int iinfo)
         {
             Host.AssertValue(ch);
             ch.AssertValue(input);
@@ -190,7 +191,7 @@ namespace Microsoft.ML.Runtime.Data
                 uint cls = (uint)(_classIndex[iinfo] + 1);
 
                 return
-                    (ref DvBool dst) =>
+                    (ref bool dst) =>
                     {
                         srcGetter(ref src);
                         dst = src == cls;
@@ -202,7 +203,7 @@ namespace Microsoft.ML.Runtime.Data
                 var src = default(float);
 
                 return
-                    (ref DvBool dst) =>
+                    (ref bool dst) =>
                     {
                         srcGetter(ref src);
                         dst = src == _classIndex[iinfo];
@@ -214,7 +215,7 @@ namespace Microsoft.ML.Runtime.Data
                 var src = default(double);
 
                 return
-                    (ref DvBool dst) =>
+                    (ref bool dst) =>
                     {
                         srcGetter(ref src);
                         dst = src == _classIndex[iinfo];

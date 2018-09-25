@@ -2,24 +2,19 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Float = System.Single;
-
-using System;
-using System.Collections.Generic;
-using System.IO;
-using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Data.IO;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Model;
-using Microsoft.ML.Runtime.TextAnalytics;
+using System;
 using Xunit;
-using System.Runtime.InteropServices;
 
 namespace Microsoft.ML.Runtime.RunTests
 {
     public sealed partial class TestParquet : TestDataPipeBase
     {
+        protected override void InitializeCore()
+        {
+            base.InitializeCore();
+            Env.ComponentCatalog.RegisterAssembly(typeof(ParquetLoader).Assembly);
+        }
 
         [Fact]
         public void TestParquetPrimitiveDataTypes()
@@ -33,7 +28,8 @@ namespace Microsoft.ML.Runtime.RunTests
         public void TestParquetNull()
         {
             string pathData = GetDataPath(@"Parquet", "test-null.parquet");
-            TestCore(pathData, false, new[] { "loader=Parquet{bigIntDates=+}" }, forceDense: true);
+            var ex = Assert.Throws<InvalidOperationException>(() => TestCore(pathData, false, new[] { "loader=Parquet{bigIntDates=+}" }, forceDense: true));
+            Assert.Equal("Nullable object must have a value.", ex.Message);
             Done();
         }
     }

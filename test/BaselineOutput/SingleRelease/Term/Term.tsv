@@ -1,0 +1,29 @@
+#@ TextLoader{
+#@   header+
+#@   sep=tab
+#@   col=float1:R4:0
+#@   col=float4:R4:1-4
+#@   col=double1:R8:5
+#@   col=double4:R8:6-9
+#@   col=int1:I4:10
+#@   col=text1:TX:11
+#@   col=text2:TX:12-13
+#@   col=TermFloat1:U4[0-9]:14
+#@   col=TermFloat4:U4[0-29]:15-18
+#@   col=TermDouble1:U4[0-9]:19
+#@   col=TermDouble4:U4[0-29]:20-23
+#@   col=TermInt1:U4[0-9]:24
+#@   col=TermText1:U4[0-3]:25
+#@   col=TermText2:U4[0-10]:26-27
+#@ }
+float1	age	fnlwgt	education-num	capital-gain	double1	age	fnlwgt	education-num	capital-gain	int1	text1	workclass	education	TermFloat1	age	fnlwgt	education-num	capital-gain	TermDouble1	age	fnlwgt	education-num	capital-gain	TermInt1	TermText1	workclass	education
+25	25	226802	7	0	25	25	226802	7	0	25	Private	Private	11th	0	0	1	2	3	0	0	1	2	3	0	0	0	1
+38	38	89814	9	0	38	38	89814	9	0	38	Private	Private	HS-grad	1	4	5	6	3	1	4	5	6	3	1	0	0	2
+28	28	336951	12	0	28	28	336951	12	0	28	Local-gov	Local-gov	Assoc-acdm	2	7	8	9	3	2	7	8	9	3	2	1	3	4
+44	44	160323	10	7688	44	44	160323	10	7688	44	Private	Private	Some-college	3	10	11	12	13	3	10	11	12	13	3	0	0	5
+18	18	103497	10	0	18	18	103497	10	0	18	?	?	Some-college	4	14	15	12	3	4	14	15	12	3	4	2	6	5
+34	34	198693	6	0	34	34	198693	6	0	34	Private	Private	10th	5	16	17	18	3	5	16	17	18	3	5	0	0	7
+29	29	227026	9	0	29	29	227026	9	0	29	?	?	HS-grad	6	19	20	6	3	6	19	20	6	3	6	2	6	2
+63	63	104626	15	3103	63	63	104626	15	3103	63	Self-emp-not-inc	Self-emp-not-inc	Prof-school	7	21	22	23	24	7	21	22	23	24	7	3	8	9
+24	24	369667	10	0	24	24	369667	10	0	24	Private	Private	Some-college	8	25	26	12	3	8	25	26	12	3	8	0	0	5
+55	55	104996	4	0	55	55	104996	4	0	55	Private	Private	7th-8th	9	27	28	29	3	9	27	28	29	3	9	0	0	10

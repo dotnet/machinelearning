@@ -6,6 +6,7 @@ using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Data.IO;
 using Microsoft.ML.Runtime.Learners;
+using Microsoft.ML.Runtime.RunTests;
 using Xunit;
 
 namespace Microsoft.ML.Tests.Scenarios.Api
@@ -22,14 +23,11 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         [Fact]
         void New_FileBasedSavingOfData()
         {
-            var dataPath = GetDataPath(SentimentDataPath);
-            var testDataPath = GetDataPath(SentimentTestPath);
-
-            using (var env = new TlcEnvironment(seed: 1, conc: 1))
+            using (var env = new LocalEnvironment(seed: 1, conc: 1))
             {
                 var trainData = new TextLoader(env, MakeSentimentTextLoaderArgs())
-                    .Append(new MyTextTransform(env, MakeSentimentTextTransformArgs()))
-                    .FitAndRead(new MultiFileSource(dataPath));
+                    .Append(new TextTransform(env, "SentimentText", "Features"))
+                    .FitAndRead(new MultiFileSource(GetDataPath(TestDatasets.Sentiment.trainFilename)));
 
                 using (var file = env.CreateOutputFile("i.idv"))
                     trainData.SaveAsBinary(env, file.CreateWriteStream());

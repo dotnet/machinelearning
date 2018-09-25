@@ -25,7 +25,7 @@ namespace Microsoft.ML.Runtime.TextAnalytics
 {
     /// <summary>
     /// A text normalization transform that allows normalizing text case, removing diacritical marks, punctuation marks and/or numbers.
-    /// The transform operates on text input as well as vector of tokens/text (vector of DvText).
+    /// The transform operates on text input as well as vector of tokens/text (vector of ReadOnlyMemory).
     /// </summary>
     public sealed class TextNormalizerTransform : OneToOneTransformBase
     {
@@ -76,7 +76,7 @@ namespace Microsoft.ML.Runtime.TextAnalytics
         }
 
         internal const string Summary = "A text normalization transform that allows normalizing text case, removing diacritical marks, punctuation marks and/or numbers." +
-            " The transform operates on text input as well as vector of tokens/text (vector of DvText).";
+            " The transform operates on text input as well as vector of tokens/text (vector of ReadOnlyMemory).";
 
         public const string LoaderSignature = "TextNormalizerTransform";
         private static VersionInfo GetVersionInfo()
@@ -86,7 +86,8 @@ namespace Microsoft.ML.Runtime.TextAnalytics
                 verWrittenCur: 0x00010001, // Initial
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
-                loaderSignature: LoaderSignature);
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(TextNormalizerTransform).Assembly.FullName);
         }
 
         private const string RegistrationName = "TextNormalizer";
@@ -256,31 +257,31 @@ namespace Microsoft.ML.Runtime.TextAnalytics
             return MakeGetterOne(input, iinfo);
         }
 
-        private ValueGetter<DvText> MakeGetterOne(IRow input, int iinfo)
+        private ValueGetter<ReadOnlyMemory<char>> MakeGetterOne(IRow input, int iinfo)
         {
             Contracts.Assert(Infos[iinfo].TypeSrc.IsText);
-            var getSrc = GetSrcGetter<DvText>(input, iinfo);
+            var getSrc = GetSrcGetter<ReadOnlyMemory<char>>(input, iinfo);
             Host.AssertValue(getSrc);
-            var src = default(DvText);
+            var src = default(ReadOnlyMemory<char>);
             var buffer = new StringBuilder();
             return
-                (ref DvText dst) =>
+                (ref ReadOnlyMemory<char> dst) =>
                 {
                     getSrc(ref src);
                     NormalizeSrc(ref src, ref dst, buffer);
                 };
         }
 
-        private ValueGetter<VBuffer<DvText>> MakeGetterVec(IRow input, int iinfo)
+        private ValueGetter<VBuffer<ReadOnlyMemory<char>>> MakeGetterVec(IRow input, int iinfo)
         {
-            var getSrc = GetSrcGetter<VBuffer<DvText>>(input, iinfo);
+            var getSrc = GetSrcGetter<VBuffer<ReadOnlyMemory<char>>>(input, iinfo);
             Host.AssertValue(getSrc);
-            var src = default(VBuffer<DvText>);
+            var src = default(VBuffer<ReadOnlyMemory<char>>);
             var buffer = new StringBuilder();
-            var list = new List<DvText>();
-            var temp = default(DvText);
+            var list = new List<ReadOnlyMemory<char>>();
+            var temp = default(ReadOnlyMemory<char>);
             return
-                (ref VBuffer<DvText> dst) =>
+                (ref VBuffer<ReadOnlyMemory<char>> dst) =>
                 {
                     getSrc(ref src);
                     list.Clear();
@@ -295,11 +296,11 @@ namespace Microsoft.ML.Runtime.TextAnalytics
                 };
         }
 
-        private void NormalizeSrc(ref DvText src, ref DvText dst, StringBuilder buffer)
+        private void NormalizeSrc(ref ReadOnlyMemory<char> src, ref ReadOnlyMemory<char> dst, StringBuilder buffer)
         {
             Host.AssertValue(buffer);
 
-            if (!src.HasChars)
+            if (src.IsEmpty)
             {
                 dst = src;
                 return;
@@ -307,18 +308,16 @@ namespace Microsoft.ML.Runtime.TextAnalytics
 
             buffer.Clear();
 
-            int ichMin;
-            int ichLim;
-            string text = src.GetRawUnderlyingBufferInfo(out ichMin, out ichLim);
-            int i = ichMin;
-            int min = ichMin;
-            while (i < ichLim)
+            int i = 0;
+            int min = 0;
+            var span = src.Span;
+            while (i < src.Length)
             {
-                char ch = text[i];
+                char ch = span[i];
                 if (!_keepPunctuations && char.IsPunctuation(ch) || !_keepNumbers && char.IsNumber(ch))
                 {
                     // Append everything before ch and ignore ch.
-                    buffer.Append(text, min, i - min);
+                    buffer.AppendSpan(span.Slice(min, i - min));
                     min = i + 1;
                     i++;
                     continue;
@@ -328,7 +327,7 @@ namespace Microsoft.ML.Runtime.TextAnalytics
                 {
                     if (IsCombiningDiacritic(ch))
                     {
-                        buffer.Append(text, min, i - min);
+                        buffer.AppendSpan(span.Slice(min, i - min));
                         min = i + 1;
                         i++;
                         continue;
@@ -343,26 +342,26 @@ namespace Microsoft.ML.Runtime.TextAnalytics
                 else if (_case == CaseNormalizationMode.Upper)
                     ch = CharUtils.ToUpperInvariant(ch);
 
-                if (ch != text[i])
+                if (ch != src.Span[i])
                 {
-                    buffer.Append(text, min, i - min).Append(ch);
+                    buffer.AppendSpan(span.Slice(min, i - min)).Append(ch);
                     min = i + 1;
                 }
 
                 i++;
             }
 
-            Host.Assert(i == ichLim);
+            Host.Assert(i == src.Length);
             int len = i - min;
-            if (ichMin == min)
+            if (min == 0)
             {
                 Host.Assert(src.Length == len);
                 dst = src;
             }
             else
             {
-                buffer.Append(text, min, len);
-                dst = new DvText(buffer.ToString());
+                buffer.AppendSpan(span.Slice(min, len));
+                dst = buffer.ToString().AsMemory();
             }
         }
 

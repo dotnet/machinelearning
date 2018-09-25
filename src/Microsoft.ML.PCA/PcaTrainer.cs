@@ -36,7 +36,7 @@ namespace Microsoft.ML.Runtime.PCA
 
     /// <summary>
     /// This trainer trains an approximate PCA using Randomized SVD algorithm
-    /// Reference: http://web.stanford.edu/group/mmds/slides2010/Martinsson.pdf
+    /// Reference: https://web.stanford.edu/group/mmds/slides2010/Martinsson.pdf
     /// </summary>
     /// <remarks>
     /// This PCA can be made into Kernel PCA by using Random Fourier Features transform
@@ -93,7 +93,7 @@ namespace Microsoft.ML.Runtime.PCA
             _seed = args.Seed ?? Host.Rand.Next();
         }
 
-        //Note: the notations used here are the same as in http://web.stanford.edu/group/mmds/slides2010/Martinsson.pdf (pg. 9)
+        //Note: the notations used here are the same as in https://web.stanford.edu/group/mmds/slides2010/Martinsson.pdf (pg. 9)
         public override PcaPredictor Train(TrainContext context)
         {
             Host.CheckValue(context, nameof(context));
@@ -134,7 +134,7 @@ namespace Microsoft.ML.Runtime.PCA
                 ch.Warning("Skipped {0} instances with missing features/weights during training", numBad);
 
             //Orthonormalize Y in-place using stabilized Gram Schmidt algorithm.
-            //Ref: http://en.wikipedia.org/wiki/Gram-Schmidt#Algorithm
+            //Ref: https://en.wikipedia.org/wiki/Gram-Schmidt#Algorithm
             for (var i = 0; i < oversampledRank; ++i)
             {
                 var v = y[i];
@@ -307,7 +307,8 @@ namespace Microsoft.ML.Runtime.PCA
                 verWrittenCur: 0x00010001, // Initial
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
-                loaderSignature: LoaderSignature);
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(PcaPredictor).Assembly.FullName);
         }
 
         private readonly int _dimension;

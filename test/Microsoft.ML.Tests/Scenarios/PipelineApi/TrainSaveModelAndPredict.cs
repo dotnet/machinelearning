@@ -2,9 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Data;
-using Microsoft.ML.Trainers;
-using Microsoft.ML.Transforms;
+using Microsoft.ML.Legacy.Data;
+using Microsoft.ML.Legacy.Trainers;
+using Microsoft.ML.Legacy.Transforms;
 using Xunit;
 
 namespace Microsoft.ML.Tests.Scenarios.PipelineApi
@@ -22,7 +22,7 @@ namespace Microsoft.ML.Tests.Scenarios.PipelineApi
         {
             var dataPath = GetDataPath(SentimentDataPath);
             var testDataPath = GetDataPath(SentimentDataPath);
-            var pipeline = new LearningPipeline();
+            var pipeline = new Legacy.LearningPipeline();
 
             pipeline.Add(new TextLoader(dataPath).CreateFrom<SentimentData>());
             pipeline.Add(MakeSentimentTextTransform());
@@ -33,10 +33,9 @@ namespace Microsoft.ML.Tests.Scenarios.PipelineApi
             var modelName = "trainSaveAndPredictdModel.zip";
             DeleteOutputPath(modelName);
             await model.WriteAsync(modelName);
-            var loadedModel = await PredictionModel.ReadAsync<SentimentData, SentimentPrediction>(modelName);
+            var loadedModel = await Legacy.PredictionModel.ReadAsync<SentimentData, SentimentPrediction>(modelName);
             var singlePrediction = loadedModel.Predict(new SentimentData() { SentimentText = "Not big fan of this." });
             Assert.True(singlePrediction.Sentiment);
-
         }
     }
 }

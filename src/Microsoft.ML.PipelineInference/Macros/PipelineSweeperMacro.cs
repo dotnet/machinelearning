@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.ML.Runtime;
@@ -101,12 +102,12 @@ namespace Microsoft.ML.Runtime.EntryPoints
             else
             {
                 var builder = new ArrayDataViewBuilder(env);
-                builder.AddColumn(col1.Key, (PrimitiveType)col1.Value, rows.Select(r => new DvText(r.GraphJson)).ToArray());
+                builder.AddColumn(col1.Key, (PrimitiveType)col1.Value, rows.Select(r => r.GraphJson.AsMemory()).ToArray());
                 builder.AddColumn(col2.Key, (PrimitiveType)col2.Value, rows.Select(r => r.MetricValue).ToArray());
-                builder.AddColumn(col3.Key, (PrimitiveType)col3.Value, rows.Select(r => new DvText(r.PipelineId)).ToArray());
+                builder.AddColumn(col3.Key, (PrimitiveType)col3.Value, rows.Select(r => r.PipelineId.AsMemory()).ToArray());
                 builder.AddColumn(col4.Key, (PrimitiveType)col4.Value, rows.Select(r => r.TrainingMetricValue).ToArray());
-                builder.AddColumn(col5.Key, (PrimitiveType)col5.Value, rows.Select(r => new DvText(r.FirstInput)).ToArray());
-                builder.AddColumn(col6.Key, (PrimitiveType)col6.Value, rows.Select(r => new DvText(r.PredictorModel)).ToArray());
+                builder.AddColumn(col5.Key, (PrimitiveType)col5.Value, rows.Select(r => r.FirstInput.AsMemory()).ToArray());
+                builder.AddColumn(col6.Key, (PrimitiveType)col6.Value, rows.Select(r => r.PredictorModel.AsMemory()).ToArray());
                 outputView = builder.GetDataView();
             }
             return new Output { Results = outputView, State = autoMlState };
@@ -258,8 +259,8 @@ namespace Microsoft.ML.Runtime.EntryPoints
             {
                 // Add a node to extract the sweep result.
                 var resultSubgraph = new Experiment(env);
-                var resultNode = new Microsoft.ML.Models.SweepResultExtractor() { State = amlsVarObj };
-                var resultOutput = new Models.SweepResultExtractor.Output() { State = outStateVar, Results = outDvVar };
+                var resultNode = new Microsoft.ML.Legacy.Models.SweepResultExtractor() { State = amlsVarObj };
+                var resultOutput = new Legacy.Models.SweepResultExtractor.Output() { State = outStateVar, Results = outDvVar };
                 resultSubgraph.Add(resultNode, resultOutput);
                 var resultSubgraphNodes = EntryPointNode.ValidateNodes(env, node.Context, resultSubgraph.GetNodes(), node.Catalog);
                 expNodes.AddRange(resultSubgraphNodes);
@@ -290,7 +291,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
 
             // Add recursive macro node
             var macroSubgraph = new Experiment(env);
-            var macroNode = new Models.PipelineSweeper()
+            var macroNode = new Legacy.Models.PipelineSweeper()
             {
                 BatchSize = input.BatchSize,
                 CandidateOutputs = new ArrayVar<IDataView>(pipelineIndicators.ToArray()),
@@ -298,7 +299,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
                 TestingData = testing,
                 State = amlsVarObj
             };
-            var output = new Models.PipelineSweeper.Output() { Results = outDvVar, State = outStateVar };
+            var output = new Legacy.Models.PipelineSweeper.Output() { Results = outDvVar, State = outStateVar };
             macroSubgraph.Add(macroNode, output);
 
             var subgraphNodes = EntryPointNode.ValidateNodes(env, node.Context, macroSubgraph.GetNodes(), node.Catalog);

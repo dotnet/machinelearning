@@ -22,6 +22,12 @@ namespace Microsoft.ML.Runtime.RunTests
         {
         }
 
+        protected override void InitializeCore()
+        {
+            base.InitializeCore();
+            Env.ComponentCatalog.RegisterAssembly(typeof(AutoInference).Assembly);
+        }
+
         [Fact]
         public void PipelineSweeperBasic()
         {
@@ -117,7 +123,7 @@ namespace Microsoft.ML.Runtime.RunTests
             const int batchSize = 5;
             const int numIterations = 20;
             const int numTransformLevels = 2;
-            using (var env = new TlcEnvironment())
+            using (var env = new ConsoleEnvironment())
             {
                 SupportedMetric metric = PipelineSweeperSupportedMetrics.GetSupportedMetric(PipelineSweeperSupportedMetrics.Metrics.Auc);
 
@@ -132,7 +138,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 amls.InferSearchSpace(numTransformLevels);
 
                 // Create macro object
-                var pipelineSweepInput = new Microsoft.ML.Models.PipelineSweeper()
+                var pipelineSweepInput = new Microsoft.ML.Legacy.Models.PipelineSweeper()
                 {
                     BatchSize = batchSize,
                 };

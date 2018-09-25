@@ -7,7 +7,6 @@ using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Command;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Calibration;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
@@ -95,7 +94,7 @@ namespace Microsoft.ML.Runtime.Data
             using (var ch = Host.Start(LoadName))
             using (var server = InitServer(ch))
             {
-                var settings = CmdParser.GetSettings(ch, Args, new Arguments());
+                var settings = CmdParser.GetSettings(Host, Args, new Arguments());
                 string cmd = string.Format("maml.exe {0} {1}", LoadName, settings);
                 ch.Info(cmd);
 

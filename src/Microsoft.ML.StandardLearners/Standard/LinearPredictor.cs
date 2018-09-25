@@ -347,7 +347,7 @@ namespace Microsoft.ML.Runtime.Learners
         {
             var cols = new List<IColumn>();
 
-            var names = default(VBuffer<DvText>);
+            var names = default(VBuffer<ReadOnlyMemory<char>>);
             MetadataUtils.GetSlotNames(schema, RoleMappedSchema.ColumnRole.Feature, Weight.Length, ref names);
             var slotNamesCol = RowColumnUtils.GetColumn(MetadataUtils.Kinds.SlotNames,
                 new VectorType(TextType.Instance, Weight.Length), ref names);
@@ -409,7 +409,8 @@ namespace Microsoft.ML.Runtime.Learners
                 verWrittenCur: 0x00020002, // Added model statistics
                 verReadableCur: 0x00020001,
                 verWeCanReadBack: 0x00020001,
-                loaderSignature: LoaderSignature);
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(LinearBinaryPredictor).Assembly.FullName);
         }
 
         /// <summary>
@@ -487,9 +488,7 @@ namespace Microsoft.ML.Runtime.Learners
             ctx.SetVersionInfo(GetVersionInfo());
         }
 
-        public override PredictionKind PredictionKind {
-            get { return PredictionKind.BinaryClassification; }
-        }
+        public override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
 
         /// <summary>
         /// Combine a bunch of models into one by averaging parameters
@@ -531,7 +530,7 @@ namespace Microsoft.ML.Runtime.Learners
             if (_stats == null)
                 return null;
             var cols = new List<IColumn>();
-            var names = default(VBuffer<DvText>);
+            var names = default(VBuffer<ReadOnlyMemory<char>>);
             MetadataUtils.GetSlotNames(schema, RoleMappedSchema.ColumnRole.Feature, Weight.Length, ref names);
 
             // Add the stat columns.
@@ -599,7 +598,8 @@ namespace Microsoft.ML.Runtime.Learners
                 verWrittenCur: 0x00020001, // Fixed sparse serialization
                 verReadableCur: 0x00020001,
                 verWeCanReadBack: 0x00020001,
-                loaderSignature: LoaderSignature);
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(LinearRegressionPredictor).Assembly.FullName);
         }
 
         /// <summary>
@@ -681,7 +681,8 @@ namespace Microsoft.ML.Runtime.Learners
                 verWrittenCur: 0x00020001, // Fixed sparse serialization
                 verReadableCur: 0x00020001,
                 verWeCanReadBack: 0x00020001,
-                loaderSignature: LoaderSignature);
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(PoissonRegressionPredictor).Assembly.FullName);
         }
 
         internal PoissonRegressionPredictor(IHostEnvironment env, ref VBuffer<Float> weights, Float bias)
