@@ -196,7 +196,7 @@ namespace Microsoft.ML.Runtime.Model.Onnx
         /// </summary>
         /// <param name="colName">IDataView column name.</param>
         /// <returns>Unique variable name.</returns>
-        public override string AddVariable(string colName)
+        private string AddVariable(string colName)
         {
             _host.CheckNonEmpty(colName, nameof(colName));
             _columnNameMap[colName] = GetUniqueName(colName, _variableNames.Contains);

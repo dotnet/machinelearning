@@ -712,7 +712,7 @@ namespace Microsoft.ML.Runtime.Data
 
                 // If Bag is true, the output of ONNX LabelEncoder needs to be fed into ONNX ReduceSum because
                 // default ONNX LabelEncoder just matches the behavior of Bag=false.
-                var encodedVariableName = _parent._columns[iinfo].Bag ? ctx.AddVariable("encoded") : dstVariableName;
+                var encodedVariableName = _parent._columns[iinfo].Bag ? ctx.AddIntermediateVariable(null, "encoded", true) : dstVariableName;
 
                 string opType = "OneHotEncoder";
                 var node = ctx.CreateNode(opType, srcVariableName, encodedVariableName, ctx.GetNodeName(opType));

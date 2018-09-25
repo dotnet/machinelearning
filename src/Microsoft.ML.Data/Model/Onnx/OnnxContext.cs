@@ -49,8 +49,6 @@ namespace Microsoft.ML.Runtime.Model.Onnx
         /// <param name="removeColumn">IDataView column to stop tracking</param>
         public abstract void RemoveVariable(string variableName, bool removeColumn);
 
-        public abstract string AddVariable(string colName);
-
         /// <summary>
         /// ONNX variables are referred to by name. At each stage of a ML.NET pipeline, the corresponding
         /// <see cref="IDataView"/>'s column names will map to a variable in the ONNX graph if the intermediate steps
