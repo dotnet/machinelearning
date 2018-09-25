@@ -12,12 +12,16 @@ namespace Microsoft.ML.Benchmarks
     {
         public RecommendedConfig()
         {
-            Add(DefaultConfig.Instance
-                .With(GetJobDefinition().With(CreateToolchain()))
-                .With(new ExtraMetricColumn())
-                .With(MemoryDiagnoser.Default));
+            Add(DefaultConfig.Instance); // this config contains all of the basic settings (exporters, columns etc)
 
-            UnionRule = ConfigUnionRule.AlwaysUseLocal;
+            Add(GetJobDefinition() // jod defines how many times given benchmark should be executed
+                .With(CreateToolchain())); // toolchain is responsible for generating, building and running dedicated executable per benchmark
+
+            Add(new ExtraMetricColumn()); // an extra colum that can display additional metric reported by the benchmarks
+
+            UnionRule = ConfigUnionRule.AlwaysUseLocal; // global config can be overwritten with local (the one set via [ConfigAttribute])
+
+            Add(MemoryDiagnoser.Default);
         }
 
         protected virtual Job GetJobDefinition()
@@ -35,7 +39,7 @@ namespace Microsoft.ML.Benchmarks
 
             return new Toolchain(
                 tfm,
-                new ProjectGenerator(tfm),
+                new ProjectGenerator(tfm), // custom generator that copies native dependencies
                 csProj.Builder,
                 csProj.Executor);
         }
