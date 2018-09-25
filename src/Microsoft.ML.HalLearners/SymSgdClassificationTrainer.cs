@@ -2,12 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Float = System.Single;
-
 using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Security;
+using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
@@ -26,20 +25,18 @@ using Microsoft.ML.Runtime.Training;
     SymSgdClassificationTrainer.LoadNameValue,
     SymSgdClassificationTrainer.ShortName)]
 
-[assembly: LoadableClass(typeof(void), typeof(SymSgdClassificationTrainer), null, typeof(SignatureEntryPointModule), "SymSGD")]
+[assembly: LoadableClass(typeof(void), typeof(SymSgdClassificationTrainer), null, typeof(SignatureEntryPointModule), SymSgdClassificationTrainer.LoadNameValue)]
 
 namespace Microsoft.ML.Runtime.SymSgd
 {
-    using TPredictor = IPredictorWithFeatureWeights<Float>;
+    using TPredictor = IPredictorWithFeatureWeights<float>;
 
     /// <include file='doc.xml' path='doc/members/member[@name="SymSGD"]/*' />
-    public sealed class SymSgdClassificationTrainer :
-        TrainerBase<TPredictor>,
-        ITrainer<TPredictor>
+    public sealed class SymSgdClassificationTrainer : TrainerEstimatorBase<BinaryPredictionTransformer<TPredictor>, TPredictor>
     {
-        public const string LoadNameValue = "SymbolicSGD";
-        public const string UserNameValue = "Symbolic SGD (binary)";
-        public const string ShortName = "SymSGD";
+        internal const string LoadNameValue = "SymbolicSGD";
+        internal const string UserNameValue = "Symbolic SGD (binary)";
+        internal const string ShortName = "SymSGD";
 
         public sealed class Arguments : LearnerInputBaseWithLabel
         {
@@ -78,7 +75,7 @@ namespace Microsoft.ML.Runtime.SymSgd
             public bool Shuffle = true;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Apply weight to the positive class, for imbalanced data", ShortName = "piw")]
-            public Float PositiveInstanceWeight = 1;
+            public float PositiveInstanceWeight = 1;
 
             public void Check(IExceptionContext ectx)
             {
@@ -135,7 +132,7 @@ namespace Microsoft.ML.Runtime.SymSgd
             return examplesToFeedTrain;
         }
 
-        public override TPredictor Train(TrainContext context)
+        protected override TPredictor TrainModelCore(TrainContext context)
         {
             Host.CheckValue(context, nameof(context));
             TPredictor pred;
@@ -155,23 +152,62 @@ namespace Microsoft.ML.Runtime.SymSgd
 
         public override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
 
-        public SymSgdClassificationTrainer(IHostEnvironment env, Arguments args)
-            : base(env, LoadNameValue)
+        /// <summary>
+        /// Initializes a new instance of <see cref="SymSgdClassificationTrainer"/>
+        /// </summary>
+        /// <param name="env">The private instance of <see cref="IHostEnvironment"/>.</param>
+        /// <param name="labelColumn">The name of the label column.</param>
+        /// <param name="featureColumn">The name of the feature column.</param>
+        /// <param name="advancedSettings">A delegate to apply all the advanced arguments to the algorithm.</param>
+        public SymSgdClassificationTrainer(IHostEnvironment env, string featureColumn, string labelColumn, Action<Arguments> advancedSettings = null)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(LoadNameValue), TrainerUtils.MakeR4VecFeature(featureColumn),
+                  TrainerUtils.MakeBoolScalarLabel(labelColumn))
+        {
+            _args = new Arguments();
+
+            // Apply the advanced args, if the user supplied any.
+            _args.Check(Host);
+            advancedSettings?.Invoke(_args);
+            _args.FeatureColumn = featureColumn;
+            _args.LabelColumn = labelColumn;
+
+            Info = new TrainerInfo();
+        }
+
+        /// <summary>
+        /// Initializes a new instance of <see cref="SymSgdClassificationTrainer"/>
+        /// </summary>
+        internal SymSgdClassificationTrainer(IHostEnvironment env, Arguments args)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(LoadNameValue), TrainerUtils.MakeR4VecFeature(args.FeatureColumn),
+                  TrainerUtils.MakeBoolScalarLabel(args.LabelColumn))
         {
             args.Check(Host);
             _args = args;
             Info = new TrainerInfo();
         }
 
-        private TPredictor CreatePredictor(VBuffer<Float> weights, Float bias)
+        private TPredictor CreatePredictor(VBuffer<float> weights, float bias)
         {
             Host.CheckParam(weights.Length > 0, nameof(weights));
 
-            VBuffer<Float> maybeSparseWeights = default;
+            VBuffer<float> maybeSparseWeights = default;
             VBufferUtils.CreateMaybeSparseCopy(ref weights, ref maybeSparseWeights,
-                Conversions.Instance.GetIsDefaultPredicate<Float>(NumberType.Float));
+                Conversions.Instance.GetIsDefaultPredicate<float>(NumberType.R4));
             var predictor = new LinearBinaryPredictor(Host, ref maybeSparseWeights, bias);
             return new ParameterMixingCalibratedPredictor(Host, predictor, new PlattCalibrator(Host, -1, 0));
+        }
+
+        protected override BinaryPredictionTransformer<TPredictor> MakeTransformer(TPredictor model, ISchema trainSchema)
+             => new BinaryPredictionTransformer<TPredictor>(Host, model, trainSchema, FeatureColumn.Name);
+
+        protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema)
+        {
+            return new[]
+            {
+                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata())),
+                new SchemaShape.Column(DefaultColumnNames.Probability, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata(true))),
+                new SchemaShape.Column(DefaultColumnNames.PredictedLabel, SchemaShape.Column.VectorKind.Scalar, BoolType.Instance, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata()))
+            };
         }
 
         [TlcModule.EntryPoint(Name = "Trainers.SymSgdBinaryClassifier",
@@ -496,9 +532,9 @@ namespace Microsoft.ML.Runtime.SymSgd
                         continue;
                     }
 
-                    // We assume that cursor.Features.values are represented by Float and cursor.Features.indices are represented by int
+                    // We assume that cursor.Features.values are represented by float and cursor.Features.indices are represented by int
                     // We conservatively assume that an instance is sparse and therefore, it has an array of Floats and ints for values and indices
-                    int perNonZeroInBytes = sizeof(Float) + sizeof(int);
+                    int perNonZeroInBytes = sizeof(float) + sizeof(int);
                     if (featureCount > _trainer.AcceleratedMemoryBudgetBytes / perNonZeroInBytes)
                     {
                         // Hopefully this never happens. But the memorySize must >= perNonZeroInBytes * length(the longest instance).
