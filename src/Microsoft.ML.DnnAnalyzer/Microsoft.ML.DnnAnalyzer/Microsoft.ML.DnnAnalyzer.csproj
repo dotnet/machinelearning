@@ -4,7 +4,6 @@
     <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp2.0</TargetFramework>
     <AssemblyName>DnnAnalyzer</AssemblyName>
-    <IncludeInPackage>Microsoft.ML.TensorFlow</IncludeInPackage>
   </PropertyGroup>
 
   <ItemGroup>
