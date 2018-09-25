@@ -8,6 +8,7 @@ using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using System.Collections.Generic;
 using System.Linq;
+using static Microsoft.ML.Runtime.Data.MutualInformationFeatureSelectionTransform;
 
 namespace Microsoft.ML.Transforms
 {
@@ -68,9 +69,9 @@ namespace Microsoft.ML.Transforms
         public MutualInformationFeatureSelector(IHostEnvironment env,
             string inputColumn,
             string outputColumn = null,
-            string labelColumn = DefaultColumnNames.Label,
-            int slotsInOutput = 1000,
-            int numBins = 256)
+            string labelColumn = Defaults.LabelColumn,
+            int slotsInOutput = Defaults.SlotsInOutput,
+            int numBins = Defaults.NumBins)
             : this(env, new[] { (inputColumn, outputColumn ?? inputColumn) }, labelColumn, slotsInOutput, numBins)
         {
         }
@@ -83,9 +84,9 @@ namespace Microsoft.ML.Transforms
         /// <param name="columns">Columns to use for feature selection.</param>
         public MutualInformationFeatureSelector(IHostEnvironment env,
             (string input, string output)[] columns,
-            string labelColumn = DefaultColumnNames.Label,
-            int slotsInOutput = 1000,
-            int numBins = 256)
+            string labelColumn = Defaults.LabelColumn,
+            int slotsInOutput = Defaults.SlotsInOutput,
+            int numBins = Defaults.NumBins)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(CountFeatureSelector)))
         {
             _labelColumn = labelColumn;
