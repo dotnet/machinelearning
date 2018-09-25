@@ -38,7 +38,6 @@ namespace Microsoft.ML.OnnxScoring
     {
         public sealed class Arguments : TransformInputBase
         {
-
             [Argument(ArgumentType.Required, HelpText = "Path to the onnx model file.", ShortName = "model", SortOrder = 0)]
             public string ModelFile;
 
