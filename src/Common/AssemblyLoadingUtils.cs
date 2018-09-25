@@ -89,11 +89,7 @@ namespace Microsoft.ML.Runtime
 
             foreach (Assembly a in AppDomain.CurrentDomain.GetAssemblies())
             {
-                // Ignore dynamic assemblies.
-                if (a.IsDynamic)
-                    continue;
-
-                env.ComponentCatalog.RegisterAssembly(a);
+                TryRegisterAssembly(env.ComponentCatalog, a);
             }
         }
 
@@ -171,7 +167,7 @@ namespace Microsoft.ML.Runtime
 
             foreach (var s in _filePrefixesToAvoid)
             {
-                if (name.StartsWith(s))
+                if (name.StartsWith(s, StringComparison.OrdinalIgnoreCase))
                     return true;
             }
 
@@ -183,14 +179,20 @@ namespace Microsoft.ML.Runtime
             if (!Directory.Exists(dir))
                 return;
 
-            // Load all dlls in the given directory.
-            var paths = Directory.EnumerateFiles(dir, "*.dll");
-            foreach (string path in paths)
+            using (var ch = env.Start("LoadAssembliesInDir"))
             {
-                if (filter && ShouldSkipPath(path))
-                    continue;
+                // Load all dlls in the given directory.
+                var paths = Directory.EnumerateFiles(dir, "*.dll");
+                foreach (string path in paths)
+                {
+                    if (filter && ShouldSkipPath(path))
+                    {
+                        ch.Info($"Skipping assembly '{path}' because its name was filtered.");
+                        continue;
+                    }
 
-                LoadAssembly(env, path);
+                    LoadAssembly(env, path);
+                }
             }
         }
 
@@ -199,16 +201,59 @@ namespace Microsoft.ML.Runtime
         /// </summary>
         private static Assembly LoadAssembly(IHostEnvironment env, string path)
         {
+            Assembly assembly = null;
             try
             {
-                var assembly = Assembly.LoadFrom(path);
-                env.ComponentCatalog.RegisterAssembly(assembly);
-                return assembly;
+                assembly = Assembly.LoadFrom(path);
             }
-            catch (Exception)
+            catch (Exception e)
             {
+                using (var ch = env.Start("LoadAssembly"))
+                {
+                    ch.Error("Could not load assembly {0}:\n{1}", path, e.ToString());
+                }
                 return null;
             }
+
+            if (assembly != null)
+            {
+                TryRegisterAssembly(env.ComponentCatalog, assembly);
+            }
+
+            return assembly;
+        }
+
+        /// <summary>
+        /// Checks whether <paramref name="assembly"/> references the assembly containing LoadableClassAttributeBase,
+        /// and therefore can contain components.
+        /// </summary>
+        private static bool CanContainComponents(Assembly assembly)
+        {
+            var targetFullName = typeof(LoadableClassAttributeBase).Assembly.GetName().FullName;
+
+            bool found = false;
+            foreach (var name in assembly.GetReferencedAssemblies())
+            {
+                if (name.FullName == targetFullName)
+                {
+                    found = true;
+                    break;
+                }
+            }
+
+            return found;
+        }
+
+        private static void TryRegisterAssembly(ComponentCatalog catalog, Assembly assembly)
+        {
+            // Don't try to index dynamic generated assembly
+            if (assembly.IsDynamic)
+                return;
+
+            if (!CanContainComponents(assembly))
+                return;
+
+            catalog.RegisterAssembly(assembly);
         }
 
         private sealed class AssemblyRegistrar : IDisposable
@@ -238,11 +283,7 @@ namespace Microsoft.ML.Runtime
 
             private void CurrentDomainAssemblyLoad(object sender, AssemblyLoadEventArgs args)
             {
-                // Don't try to index dynamic generated assembly
-                if (args.LoadedAssembly.IsDynamic)
-                    return;
-
-                _env.ComponentCatalog.RegisterAssembly(args.LoadedAssembly);
+                TryRegisterAssembly(_env.ComponentCatalog, args.LoadedAssembly);
             }
         }
     }

@@ -27,7 +27,7 @@ namespace Microsoft.ML.Runtime.Model
         // was compiled, which might not match the code that can load this.
         //private const uint VerWrittenCur = 0x00010001; // Initial
         private const uint VerWrittenCur = 0x00010002; // Added AssemblyName
-        private const uint VerReadableCur = 0x00010001;
+        private const uint VerReadableCur = 0x00010002;
         private const uint VerWeCanReadBack = 0x00010001;
 
         [FieldOffset(0x00)]

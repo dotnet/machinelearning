@@ -389,7 +389,6 @@ namespace Microsoft.ML.Runtime
 
                         AddClass(info, attr.LoadNames);
                     }
-
                 }
             }
         }
