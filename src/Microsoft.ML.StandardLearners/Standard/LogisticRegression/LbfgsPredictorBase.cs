@@ -37,7 +37,7 @@ namespace Microsoft.ML.Runtime.Learners
                 ShortName = "ot", SortOrder = 50)]
             [TGUI(Label = "Optimization Tolerance", Description = "Threshold for optimizer convergence", SuggestedSweeps = "1e-4,1e-7")]
             [TlcModule.SweepableDiscreteParamAttribute(new object[] { 1e-4f, 1e-7f })]
-            public float OptTol = (float)1e-7;
+            public float OptTol = 1e-7f;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Memory size for L-BFGS. Lower=faster, less accurate",
                 ShortName = "m", SortOrder = 50)]
@@ -93,7 +93,7 @@ namespace Microsoft.ML.Runtime.Learners
             public bool EnforceNonNegativity = false;
         }
 
-        private const string RegisterName = "LbfgsTraining";
+        private const string RegisterName = nameof(LbfgsTrainerBase<TArgs, TTransformer, TModel>);
 
         protected int NumFeatures;
         protected VBuffer<float> CurrentWeights;
@@ -226,7 +226,7 @@ namespace Microsoft.ML.Runtime.Learners
             {
                 float[] initWeights = new float[BiasCount + WeightCount];
                 for (int j = 0; j < initWeights.Length; j++)
-                    initWeights[j] = InitWtsDiameter * (Host.Rand.NextSingle() - (float)0.5);
+                    initWeights[j] = InitWtsDiameter * (Host.Rand.NextSingle() - 0.5f);
                 init = new VBuffer<float>(initWeights.Length, initWeights);
             }
             else if (SgdInitializationTolerance > 0)

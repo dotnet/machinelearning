@@ -37,7 +37,8 @@ namespace Microsoft.ML.Runtime.Learners
 {
     /// <include file = 'doc.xml' path='doc/members/member[@name="LBFGS"]/*' />
     /// <include file = 'doc.xml' path='docs/members/example[@name="LogisticRegressionClassifier"]/*' />
-    public sealed class MulticlassLogisticRegression : LbfgsTrainerBase<MulticlassLogisticRegression.Arguments, MulticlassPredictionTransformer<MulticlassLogisticRegressionPredictor>, MulticlassLogisticRegressionPredictor>
+    public sealed class MulticlassLogisticRegression : LbfgsTrainerBase<MulticlassLogisticRegression.Arguments,
+        MulticlassPredictionTransformer<MulticlassLogisticRegressionPredictor>, MulticlassLogisticRegressionPredictor>
     {
         public const string LoadNameValue = "MultiClassLogisticRegression";
         internal const string UserNameValue = "Multi-class Logistic Regression";
@@ -170,7 +171,7 @@ namespace Microsoft.ML.Runtime.Learners
 
             // MeanImprovementCriterion:
             //   Terminates when the geometrically-weighted average improvement falls below the tolerance
-            terminationCriterion = new MeanImprovementCriterion(OptTol, (float)0.25, MaxIterations);
+            terminationCriterion = new MeanImprovementCriterion(OptTol, 0.25f, MaxIterations);
 
             return opt;
         }
@@ -321,12 +322,8 @@ namespace Microsoft.ML.Runtime.Learners
         /// </summary>
         private static IEnumerable<SchemaShape.Column> MetadataForScoreColumn()
         {
-            var cols = new List<SchemaShape.Column>();
-            foreach (SchemaShape.Column col in MetadataUtils.GetTrainerOutputMetadata())
-            {
-                cols.Add(col);
-            }
-            cols.Add(new SchemaShape.Column(MetadataUtils.Kinds.SlotNames, SchemaShape.Column.VectorKind.Vector, TextType.Instance, false));
+            var cols = new List<SchemaShape.Column>(){new SchemaShape.Column(MetadataUtils.Kinds.SlotNames, SchemaShape.Column.VectorKind.Vector, TextType.Instance, false)};
+            cols.AddRange(MetadataUtils.GetTrainerOutputMetadata());
             return cols;
         }
     }
@@ -700,8 +697,6 @@ namespace Microsoft.ML.Runtime.Learners
         // REVIEW: Destroy.
         private static int NonZeroCount(ref VBuffer<float> vector)
         {
-            if (!vector.IsDense)
-                return vector.Count;
             int count = 0;
             for (int i = 0; i < vector.Length; i++)
             {
@@ -787,7 +782,7 @@ namespace Microsoft.ML.Runtime.Learners
         /// </summary>
         public void SaveAsText(TextWriter writer, RoleMappedSchema schema)
         {
-            writer.WriteLine("MulticlassLogisticRegression bias and non-zero weights");
+            writer.WriteLine(nameof(MulticlassLogisticRegression));
 
             foreach (var namedValues in GetSummaryInKeyValuePairs(schema))
             {
