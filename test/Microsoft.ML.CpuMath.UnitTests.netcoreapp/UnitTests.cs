@@ -17,7 +17,6 @@ namespace Microsoft.ML.CpuMath.UnitTests
         private readonly float[][] _testMatrices;
         private readonly float[][] _testSrcVectors;
         private readonly float[][] _testDstVectors;
-        private readonly int _vectorAlignment = CpuMathUtils.GetVectorAlignment();
         private readonly FloatEqualityComparer _comparer;
         private readonly FloatEqualityComparerForMatMul _matMulComparer;
 
@@ -458,31 +457,11 @@ namespace Microsoft.ML.CpuMath.UnitTests
 
         [Theory]
         [InlineData(0, 393.96f)]
-        [InlineData(1, 390.67f)]
-        public void SumAbsUTest(int test, float expected)
-        {
-            float[] src = (float[])_testArrays[test].Clone();
-            var actual = CpuMathUtils.SumAbs(src, src.Length);
-            Assert.Equal(expected, actual, 2);
-        }
-
-        [Theory]
-        [InlineData(0, 393.96f)]
         [InlineData(1, 392.37f)]
         public void SumAbsDiffUTest(int test, float expected)
         {
             float[] src = (float[])_testArrays[test].Clone();
             var actual = CpuMathUtils.SumAbs(DefaultScale, src, 0, src.Length);
-            Assert.Equal(expected, actual, 2);
-        }
-
-        [Theory]
-        [InlineData(0, 106.37f)]
-        [InlineData(1, 106.37f)]
-        public void MaxAbsUTest(int test, float expected)
-        {
-            float[] src = (float[])_testArrays[test].Clone();
-            var actual = CpuMathUtils.MaxAbs(src, src.Length);
             Assert.Equal(expected, actual, 2);
         }
 
@@ -548,34 +527,6 @@ namespace Microsoft.ML.CpuMath.UnitTests
 
             var actual = CpuMathUtils.L2DistSquared(src, dst, dst.Length);
             Assert.Equal(expected, actual, 0);
-        }
-
-        [Theory]
-        [InlineData(0, new int[] { 0, 2, 5, 6 }, new float[] { 0f, 2f, 0f, 4f, 5f, 0f, 0f, 8f })]
-        [InlineData(1, new int[] { 0, 2, 5, 6, 8, 11, 12, 13, 14 }, new float[] { 0f, 2f, 0f, 4f, 5f, 0f, 0f, 8f, 0f, 10f, 11f, 0f, 0f, 0f, 0f, 16f })]
-        public void ZeroItemsUTest(int test, int[] idx, float[] expected)
-        {
-            float[] src = new float[8 + 8 * test];
-            Array.Copy(_testSrcVectors[test], 0, src, 0, src.Length);
-
-            CpuMathUtils.ZeroMatrixItems(src, src.Length, src.Length, idx);
-            float[] actual = new float[src.Length];
-            Array.Copy(src, 0, actual, 0, src.Length);
-            Assert.Equal(expected, actual, _comparer);
-        }
-
-        [Theory]
-        [InlineData(0, new int[] { 0, 2, 5 }, new float[] { 0f, 2f, 0f, 4f, 5f, 6f, 0f, 8f })]
-        [InlineData(1, new int[] { 0, 2, 5, 6, 8, 11, 12, 13 }, new float[] { 0f, 2f, 0f, 4f, 5f, 0f, 0f, 8f, 9f, 0f, 11f, 12f, 0f, 0f, 0f, 16f })]
-        public void ZeroMatrixItemsCoreTest(int test, int[] idx, float[] expected)
-        {
-            float[] src = new float[8 + 8 * test];
-            Array.Copy(_testSrcVectors[test], 0, src, 0, src.Length);
-
-            CpuMathUtils.ZeroMatrixItems(src, src.Length / 2 - 1, src.Length / 2, idx);
-            float[] actual = new float[src.Length];
-            Array.Copy(src, 0 , actual, 0, src.Length);
-            Assert.Equal(expected, actual, _comparer);
         }
 
         [Theory]

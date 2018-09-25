@@ -121,12 +121,10 @@ namespace Microsoft.ML.Runtime.Data
                     generator = args.MatrixGenerator;
                 _matrixGenerator = generator.CreateComponent(host, avgDist);
 
-                int roundedUpD = RoundUp(NewDim, _cfltAlign);
-                int roundedUpNumFeatures = RoundUp(SrcDim, _cfltAlign);
-                RndFourierVectors = new float[roundedUpD * roundedUpNumFeatures];
-                RotationTerms = _useSin ? null : new float[roundedUpD];
+                RndFourierVectors = new float[NewDim * SrcDim];
+                RotationTerms = _useSin ? null : new float[NewDim];
 
-                InitializeFourierCoefficients(roundedUpNumFeatures, roundedUpD);
+                InitializeFourierCoefficients(SrcDim, NewDim);
             }
 
             public TransformInfo(IHostEnvironment env, ModelLoadContext ctx, int colValueCount, string directoryName)
@@ -157,11 +155,9 @@ namespace Microsoft.ML.Runtime.Data
                     ctx.LoadModelOrNull<IFourierDistributionSampler, SignatureLoadModel>(env, out _matrixGenerator, directoryName));
 
                 // initialize the transform matrix
-                int roundedUpD = RoundUp(NewDim, _cfltAlign);
-                int roundedUpNumFeatures = RoundUp(SrcDim, _cfltAlign);
-                RndFourierVectors = new float[roundedUpD * roundedUpNumFeatures];
-                RotationTerms = _useSin ? null : new float[roundedUpD];
-                InitializeFourierCoefficients(roundedUpNumFeatures, roundedUpD);
+                RndFourierVectors = new float[NewDim * SrcDim];
+                RotationTerms = _useSin ? null : new float[NewDim];
+                InitializeFourierCoefficients(SrcDim, NewDim);
             }
 
             public void Save(ModelSaveContext ctx, string directoryName)
@@ -229,8 +225,6 @@ namespace Microsoft.ML.Runtime.Data
         private readonly TransformInfo[] _transformInfos;
 
         private const string RegistrationName = "Rff";
-        private static readonly int _cfltAlign = CpuMathUtils.GetVectorAlignment() / sizeof(float);
-
         private static string TestColumnType(ColumnType type)
         {
             if (type.ItemType == NumberType.Float && type.ValueCount > 0)
@@ -333,18 +327,6 @@ namespace Microsoft.ML.Runtime.Data
             SaveBase(ctx);
             for (int i = 0; i < _transformInfos.Length; i++)
                 _transformInfos[i].Save(ctx, string.Format("MatrixGenerator{0}", i));
-        }
-
-        // Round cflt up to a multiple of cfltAlign.
-        private static int RoundUp(int cflt, int cfltAlign)
-        {
-            Contracts.Assert(0 < cflt);
-            // cfltAlign should be a power of two.
-            Contracts.Assert(0 < cfltAlign && (cfltAlign & (cfltAlign - 1)) == 0);
-
-            // Determine the number of "blobs" of size cfltAlign.
-            int cblob = (cflt + cfltAlign - 1) / cfltAlign;
-            return cblob * cfltAlign;
         }
 
         private static Float[] Train(IHost host, ColInfo[] infos, Arguments args, IDataView trainingData)
@@ -499,8 +481,8 @@ namespace Microsoft.ML.Runtime.Data
             var getSrc = GetSrcGetter<VBuffer<Float>>(input, iinfo);
             var src = default(VBuffer<Float>);
 
-            var featuresAligned = new float[RoundUp(Infos[iinfo].TypeSrc.ValueCount, _cfltAlign)];
-            var productAligned = new float[RoundUp(_transformInfos[iinfo].NewDim, _cfltAlign)];
+            var featuresAligned = new float[Infos[iinfo].TypeSrc.ValueCount];
+            var productAligned = new float[_transformInfos[iinfo].NewDim];
 
             return
                 (ref VBuffer<Float> dst) =>
@@ -515,8 +497,8 @@ namespace Microsoft.ML.Runtime.Data
             var getSrc = GetSrcGetter<Float>(input, iinfo);
             var src = default(Float);
 
-            var featuresAligned = new float[RoundUp(1, _cfltAlign)];
-            var productAligned = new float[RoundUp(_transformInfos[iinfo].NewDim, _cfltAlign)];
+            var featuresAligned = new float[1];
+            var productAligned = new float[_transformInfos[iinfo].NewDim];
 
             var oneDimensionalVector = new VBuffer<Float>(1, new Float[] { 0 });
 
