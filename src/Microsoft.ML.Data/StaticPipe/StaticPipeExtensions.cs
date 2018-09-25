@@ -4,11 +4,11 @@
 
 using Microsoft.ML.Runtime.Data;
 using System;
-using Microsoft.ML.Data.StaticPipe.Runtime;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Core.Data;
+using Microsoft.ML.StaticPipe.Runtime;
 
-namespace Microsoft.ML.Data.StaticPipe
+namespace Microsoft.ML.StaticPipe
 {
     public static class StaticPipeExtensions
     {

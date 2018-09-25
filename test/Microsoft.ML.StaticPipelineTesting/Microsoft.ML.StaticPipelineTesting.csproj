@@ -15,5 +15,6 @@
     </ProjectReference>
 
     <NativeAssemblyReference Include="CpuMathNative" />
+    <NativeAssemblyReference Include="LdaNative" />
   </ItemGroup>
 </Project>

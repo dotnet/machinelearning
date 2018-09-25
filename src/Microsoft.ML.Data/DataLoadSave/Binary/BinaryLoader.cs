@@ -778,7 +778,8 @@ namespace Microsoft.ML.Runtime.Data.IO
                 verWrittenCur: 0x00010003, // Number of blocks to put in the shuffle pool
                 verReadableCur: 0x00010003,
                 verWeCanReadBack: 0x00010001,
-                loaderSignature: LoaderSignature);
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(BinaryLoader).Assembly.FullName);
         }
 
         private BinaryLoader(Arguments args, IHost host, Stream stream, bool leaveOpen)
