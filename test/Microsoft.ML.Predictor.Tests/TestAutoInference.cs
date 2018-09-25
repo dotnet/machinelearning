@@ -27,7 +27,7 @@ namespace Microsoft.ML.Runtime.RunTests
         [TestCategory("EntryPoints")]
         public void TestLearn()
         {
-            using (var env = new LocalEnvironment()
+            using (var env = new ConsoleEnvironment()
                 .AddStandardComponents()) // AutoInference.InferPipelines uses ComponentCatalog to read text data
             {
                 string pathData = GetDataPath("adult.train");
@@ -74,7 +74,7 @@ namespace Microsoft.ML.Runtime.RunTests
         [Fact(Skip = "Need CoreTLC specific baseline update")]
         public void TestTextDatasetLearn()
         {
-            using (var env = new LocalEnvironment()
+            using (var env = new ConsoleEnvironment()
                 .AddStandardComponents()) // AutoInference uses ComponentCatalog to find all learners
             {
                 string pathData = GetDataPath(@"../UnitTest/tweets_labeled_10k_test_validation.tsv");
@@ -99,7 +99,7 @@ namespace Microsoft.ML.Runtime.RunTests
         [Fact]
         public void TestPipelineNodeCloning()
         {
-            using (var env = new LocalEnvironment()
+            using (var env = new ConsoleEnvironment()
                 .AddStandardComponents()) // RecipeInference.AllowedLearners uses ComponentCatalog to find all learners
             {
                 var lr1 = RecipeInference
@@ -142,7 +142,7 @@ namespace Microsoft.ML.Runtime.RunTests
             int batchSize = 1;
             int numIterations = 10;
             int numTransformLevels = 3;
-            using (var env = new LocalEnvironment()
+            using (var env = new ConsoleEnvironment()
                 .AddStandardComponents()) // AutoInference uses ComponentCatalog to find all learners
             {
                 SupportedMetric metric = PipelineSweeperSupportedMetrics.GetSupportedMetric(PipelineSweeperSupportedMetrics.Metrics.Auc);
@@ -191,7 +191,7 @@ namespace Microsoft.ML.Runtime.RunTests
             int batchSize = 5;
             int numIterations = 10;
             int numTransformLevels = 1;
-            using (var env = new LocalEnvironment()
+            using (var env = new ConsoleEnvironment()
                 .AddStandardComponents()) // AutoInference uses ComponentCatalog to find all learners
             {
                 SupportedMetric metric = PipelineSweeperSupportedMetrics.GetSupportedMetric(PipelineSweeperSupportedMetrics.Metrics.AccuracyMicro);
@@ -226,7 +226,7 @@ namespace Microsoft.ML.Runtime.RunTests
             int numIterations = 1;
             int numTransformLevels = 2;
             var retainedLearnerNames = new[] { $"LogisticRegressionBinaryClassifier", $"FastTreeBinaryClassifier" };
-            using (var env = new LocalEnvironment()
+            using (var env = new ConsoleEnvironment()
                 .AddStandardComponents()) // AutoInference uses ComponentCatalog to find all learners
             {
                 SupportedMetric metric = PipelineSweeperSupportedMetrics.GetSupportedMetric(PipelineSweeperSupportedMetrics.Metrics.Auc);
