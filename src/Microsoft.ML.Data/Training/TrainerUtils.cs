@@ -382,6 +382,16 @@ namespace Microsoft.ML.Runtime.Training
                 return null;
             return new SchemaShape.Column(weightColumn, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false);
         }
+
+        /// <summary>
+        /// Check that the label, feature, weights is not supplied in the args of the constructor.
+        /// Those parameters should be internal if they are not used from the maml help code path.
+        /// </summary>
+        public static void CheckArgsDefaultColNames(IHost env, string defaultColName, string argValue)
+        {
+            if (argValue != defaultColName)
+                throw env.Except($"Don't supply a value for the {defaultColName} column in the arguments, as it will be ignored. Specify them in the loader, or constructor instead instead.");
+        }
     }
 
     /// <summary>

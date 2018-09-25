@@ -103,15 +103,28 @@ namespace Microsoft.ML.Runtime.LightGBM
         /// <param name="env">The private instance of <see cref="IHostEnvironment"/>.</param>
         /// <param name="labelColumn">The name of the label column.</param>
         /// <param name="featureColumn">The name of the feature column.</param>
-        /// <param name="groupIdColumn">The name for the column containing the group ID. </param>
         /// <param name="weightColumn">The name for the column containing the initial weight.</param>
         /// <param name="advancedSettings">A delegate to apply all the advanced arguments to the algorithm.</param>
+        /// <param name="learningRate"></param>
+        /// <param name="minDataPerLeaf"></param>
+        /// <param name="numBoostRound"></param>
+        /// <param name="numLeaves"></param>
         public LightGbmBinaryTrainer(IHostEnvironment env, string labelColumn, string featureColumn,
-            string groupIdColumn = null, string weightColumn = null, Action<LightGbmArguments> advancedSettings = null)
-            : base(env, LoadNameValue, TrainerUtils.MakeBoolScalarLabel(labelColumn), featureColumn, weightColumn, groupIdColumn, advancedSettings)
+            string weightColumn = null,
+            int? numLeaves = null,
+            int? minDataPerLeaf = null,
+            double? learningRate = null,
+            int numBoostRound = 100,
+            Action<LightGbmArguments> advancedSettings = null)
+            : base(env, LoadNameValue, TrainerUtils.MakeBoolScalarLabel(labelColumn), featureColumn, weightColumn, null, advancedSettings)
         {
             Host.CheckNonEmpty(labelColumn, nameof(labelColumn));
             Host.CheckNonEmpty(featureColumn, nameof(featureColumn));
+
+            // override with the directly provided values
+            Args.NumBoostRound = numBoostRound;
+            Args.NumLeaves = numLeaves ?? Args.NumLeaves;
+            Args.LearningRate = learningRate ?? Args.LearningRate;
         }
 
         private protected override IPredictorWithFeatureWeights<float> CreatePredictor()

@@ -64,6 +64,13 @@ namespace Microsoft.ML.Runtime.LightGBM
 
             //apply the advanced args, if the user supplied any
             advancedSettings?.Invoke(Args);
+
+            // check that the users didn't specify different label, group, feature, weights in the args, from what they supplied directly
+            TrainerUtils.CheckArgsDefaultColNames(Host, DefaultColumnNames.Label, Args.LabelColumn);
+            TrainerUtils.CheckArgsDefaultColNames(Host, DefaultColumnNames.Features, Args.FeatureColumn);
+            TrainerUtils.CheckArgsDefaultColNames(Host, DefaultColumnNames.GroupId, Args.GroupIdColumn);
+            TrainerUtils.CheckArgsDefaultColNames(Host, DefaultColumnNames.Weight, Args.WeightColumn);
+
             Args.LabelColumn = label.Name;
             Args.FeatureColumn = featureColumn;
 
