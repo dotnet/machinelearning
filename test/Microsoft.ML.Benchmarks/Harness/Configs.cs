@@ -1,5 +1,4 @@
 ﻿using BenchmarkDotNet.Configs;
-using BenchmarkDotNet.Diagnosers;
 using BenchmarkDotNet.Jobs;
 using BenchmarkDotNet.Toolchains;
 using BenchmarkDotNet.Toolchains.CsProj;
@@ -20,8 +19,6 @@ namespace Microsoft.ML.Benchmarks
             Add(new ExtraMetricColumn()); // an extra colum that can display additional metric reported by the benchmarks
 
             UnionRule = ConfigUnionRule.AlwaysUseLocal; // global config can be overwritten with local (the one set via [ConfigAttribute])
-
-            Add(MemoryDiagnoser.Default);
         }
 
         protected virtual Job GetJobDefinition()

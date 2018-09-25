@@ -29,7 +29,15 @@ Moreover, to run some of the benchmarks you have to download external dependenci
     dotnet run -c Release -- --filter namespace.typeName.methodName
 ```
 
-4. To find out more about supported command line arguments run
+4. GC Statistics
+
+To get the total number of allocated managed memory please pass additional console argument: `--memory` or just `-m`. This feature is disabled by default because it requires an additional iteration (which is expensive for time consuming benchmarks).
+
+|       Gen 0 |      Gen 1 |     Gen 2 | Allocated |
+|------------:|-----------:|----------:|----------:|
+| 175000.0000 | 33000.0000 | 7000.0000 | 238.26 MB |
+
+5. To find out more about supported command line arguments run
 
 ```log
     dotnet run -c Release -- --help
