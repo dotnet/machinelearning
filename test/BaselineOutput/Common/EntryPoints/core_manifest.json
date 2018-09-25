@@ -2485,15 +2485,15 @@
           "Type": {
             "Kind": "Enum",
             "Values": [
-              "Latest",
+              "Stable",
               "Experimental"
             ]
           },
-          "Desc": "The targeted ONNX version. It can be either \"latest\" or \"experimental\"",
+          "Desc": "The targeted ONNX version. It can be either \"Stable\" or \"Experimental\"",
           "Required": false,
           "SortOrder": 11.0,
           "IsNullable": false,
-          "Default": "Latest"
+          "Default": "Stable"
         }
       ],
       "Outputs": []

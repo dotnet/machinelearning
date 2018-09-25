@@ -3268,7 +3268,7 @@ namespace Microsoft.ML
     {
         public enum OnnxVersion
         {
-            Latest = 0,
+            Stable = 0,
             Experimental = 1
         }
 
@@ -3316,9 +3316,9 @@ namespace Microsoft.ML
             public Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel>();
 
             /// <summary>
-            /// The targeted ONNX version. It can be either "latest" or "experimental"
+            /// The targeted ONNX version. It can be either "Stable" or "Experimental"
             /// </summary>
-            public OnnxVersion OnnxVersion { get; set; } = OnnxVersion.Latest;
+            public OnnxVersion OnnxVersion { get; set; } = OnnxVersion.Stable;
 
             /// <summary>
             /// The data file
