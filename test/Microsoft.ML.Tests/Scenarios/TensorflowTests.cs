@@ -44,7 +44,7 @@ namespace Microsoft.ML.Scenarios
 
             pipeline.Add(new TensorFlowScorer()
             {
-                ModelFile = model_location,
+                Model = model_location,
                 InputColumns = new[] { "Input" },
                 OutputColumns = new[] { "Output" }
             });
@@ -121,7 +121,7 @@ namespace Microsoft.ML.Scenarios
 
             pipeline.Add(new TensorFlowScorer()
             {
-                ModelFile = model_location,
+                Model = model_location,
                 InputColumns = new[] { inputTensorName },
                 OutputColumns = new[] { outputTensorName }
             });

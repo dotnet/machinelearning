@@ -8,7 +8,6 @@ using System.Drawing;
 using System.Linq;
 using System.Text;
 using Microsoft.ML.Core.Data;
-using Microsoft.ML.Data.StaticPipe.Runtime;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
@@ -17,6 +16,8 @@ using Microsoft.ML.Runtime.ImageAnalytics;
 using Microsoft.ML.Runtime.Internal.Internallearn;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
+using Microsoft.ML.StaticPipe;
+using Microsoft.ML.StaticPipe.Runtime;
 
 [assembly: LoadableClass(ImageResizerTransform.Summary, typeof(IDataTransform), typeof(ImageResizerTransform), typeof(ImageResizerTransform.Arguments),
     typeof(SignatureDataTransform), ImageResizerTransform.UserName, "ImageResizerTransform", "ImageResizer")]
@@ -154,7 +155,8 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
                 verWrittenCur: 0x00010003, // No more sizeof(float)
                 verReadableCur: 0x00010003,
                 verWeCanReadBack: 0x00010003,
-                loaderSignature: LoaderSignature);
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(ImageResizerTransform).Assembly.FullName);
         }
 
         private const string RegistrationName = "ImageScaler";

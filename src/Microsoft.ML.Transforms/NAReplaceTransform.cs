@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Core.Data;
-using Microsoft.ML.Data.StaticPipe.Runtime;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
@@ -13,6 +12,8 @@ using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.Model.Onnx;
+using Microsoft.ML.StaticPipe;
+using Microsoft.ML.StaticPipe.Runtime;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -138,7 +139,8 @@ namespace Microsoft.ML.Runtime.Data
                 verWrittenCur: 0x0010002, // Added imputation methods.
                 verReadableCur: 0x00010002,
                 verWeCanReadBack: 0x00010001,
-                loaderSignature: LoadName);
+                loaderSignature: LoadName,
+                loaderAssemblyName: typeof(NAReplaceTransform).Assembly.FullName);
         }
 
         internal const string Summary = "Create an output column of the same type and size of the input column, where missing values "
