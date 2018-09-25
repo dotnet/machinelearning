@@ -584,5 +584,28 @@ namespace Microsoft.ML.StaticPipelineTesting
             var type = schema.GetColumnType(topicsCol);
             Assert.True(type.IsVector && type.IsKnownSizeVector && type.ItemType.IsNumber);
         }
+
+        [Fact]
+        public void PrincipalComponentAnalysis()
+        {
+            var env = new ConsoleEnvironment(seed: 0);
+            var dataPath = GetDataPath("generated_regression_dataset.csv");
+            var dataSource = new MultiFileSource(dataPath);
+
+            var reader = TextLoader.CreateReader(env,
+                c => (label: c.LoadFloat(11), features: c.LoadFloat(0, 10)),
+                separator: ';', hasHeader: true);
+            var data = reader.Read(dataSource);
+
+            var est = reader.MakeNewEstimator()
+                .Append(r => (r.label,
+                              pca: r.features.ToPrincipalComponents(rank: 5)));
+            var tdata = est.Fit(data).Transform(data);
+            var schema = tdata.AsDynamic.Schema;
+
+            Assert.True(schema.TryGetColumnIndex("pca", out int pcaCol));
+            var type = schema.GetColumnType(pcaCol);
+            Assert.True(type.IsVector && type.IsKnownSizeVector && type.ItemType.IsNumber);
+        }
     }
 }
