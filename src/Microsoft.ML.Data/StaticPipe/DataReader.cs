@@ -3,11 +3,11 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Core.Data;
-using Microsoft.ML.Data.StaticPipe.Runtime;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
+using Microsoft.ML.StaticPipe.Runtime;
 
-namespace Microsoft.ML.Data.StaticPipe
+namespace Microsoft.ML.StaticPipe
 {
     public sealed class DataReader<TIn, TTupleShape> : SchemaBearing<TTupleShape>
     {

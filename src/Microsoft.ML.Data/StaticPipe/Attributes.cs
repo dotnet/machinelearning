@@ -4,7 +4,7 @@
 
 using System;
 
-namespace Microsoft.ML.Data.StaticPipe
+namespace Microsoft.ML.StaticPipe
 {
     /// <summary>
     /// An indicator to the analyzer that this type parameter ought to be a valid schema-shape object (e.g., a leaf-tuple, or
