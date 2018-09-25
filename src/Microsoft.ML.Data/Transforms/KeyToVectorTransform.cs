@@ -708,7 +708,10 @@ namespace Microsoft.ML.Runtime.Data
 
             private bool SaveAsOnnxCore(OnnxContext ctx, int iinfo, ColInfo info, string srcVariableName, string dstVariableName)
             {
-                var shape = ctx.RetrieveShape(srcVariableName);
+                var shape = ctx.RetrieveShapeOrNull(srcVariableName);
+                // Make sure that shape must present for calculating the reduction axes. The shape here is generally not null
+                // because inputs and outputs of a transform are declared with shapes.
+                Contracts.CheckValue(shape, nameof(shape));
 
                 // If Bag is true, the output of ONNX LabelEncoder needs to be fed into ONNX ReduceSum because
                 // default ONNX LabelEncoder just matches the behavior of Bag=false.
@@ -725,7 +728,7 @@ namespace Microsoft.ML.Runtime.Data
                     // Note that one input feature got expended to an one-hot vector.
                     opType = "ReduceSum";
                     var reduceNode = ctx.CreateNode(opType, encodedVariableName, dstVariableName, ctx.GetNodeName(opType), "");
-                    reduceNode.AddAttribute("axes", new long[] { ctx.RetrieveShape(srcVariableName).Count - 1});
+                    reduceNode.AddAttribute("axes", new long[] { shape.Count - 1});
                     reduceNode.AddAttribute("keepdims", 0);
                 }
                 return true;

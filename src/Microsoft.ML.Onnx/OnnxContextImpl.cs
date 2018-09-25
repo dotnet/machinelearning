@@ -247,11 +247,11 @@ namespace Microsoft.ML.Runtime.Model.Onnx
         }
 
         /// <summary>
-        /// Retrieve the shape of an ONNX variable
+        /// Retrieve the shape of an ONNX variable. Returns null if no shape for the specified variable can be found.
         /// </summary>
         /// <param name="variableName">The ONNX name of the returned shape</param>
         /// <returns>The shape of the retrieved variable</returns>
-        public override List<long> RetrieveShape(string variableName)
+        public override List<long> RetrieveShapeOrNull(string variableName)
         {
             foreach (var arg in _inputs)
                 if (arg.Name == variableName)
