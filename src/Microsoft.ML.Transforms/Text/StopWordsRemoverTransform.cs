@@ -235,7 +235,8 @@ namespace Microsoft.ML.Runtime.TextAnalytics
                 verWrittenCur: 0x00010001, // Initial
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
-                loaderSignature: LoaderSignature);
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(StopWordsRemoverTransform).Assembly.FullName);
         }
 
         private readonly bool?[] _resourcesExist;
@@ -602,10 +603,11 @@ namespace Microsoft.ML.Runtime.TextAnalytics
                 verWrittenCur: 0x00010001, // Initial
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
-                loaderSignature: LoaderSignature);
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(CustomStopWordsRemoverTransform).Assembly.FullName);
         }
 
-        public const string StopwrodsManagerLoaderSignature = "CustomStopWordsManager";
+        public const string StopwordsManagerLoaderSignature = "CustomStopWordsManager";
         private static VersionInfo GetStopwrodsManagerVersionInfo()
         {
             return new VersionInfo(
@@ -613,7 +615,8 @@ namespace Microsoft.ML.Runtime.TextAnalytics
                 verWrittenCur: 0x00010001, // Initial
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
-                loaderSignature: StopwrodsManagerLoaderSignature);
+                loaderSignature: StopwordsManagerLoaderSignature,
+                loaderAssemblyName: typeof(CustomStopWordsRemoverTransform).Assembly.FullName);
         }
 
         private static readonly ColumnType _outputType = new VectorType(TextType.Instance);

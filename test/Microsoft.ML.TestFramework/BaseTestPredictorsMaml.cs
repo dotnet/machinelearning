@@ -295,7 +295,7 @@ namespace Microsoft.ML.Runtime.RunTests
 
             if (extraArgs != null)
                 args.AddRange(extraArgs);
-            ResultProcessor.Main(args.ToArray());
+            ResultProcessor.Main(Env, args.ToArray());
         }
 
         private static string GetNamePrefix(string testType, PredictorAndArgs predictor, TestDataset dataset, string extraTag = "")

@@ -271,7 +271,8 @@ namespace Microsoft.ML.Runtime.Data
                 verWrittenCur: 0x00010001, // Initial
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
-                loaderSignature: BinaryPredictionTransformer.LoaderSignature);
+                loaderSignature: BinaryPredictionTransformer.LoaderSignature,
+                loaderAssemblyName: typeof(BinaryPredictionTransformer<>).Assembly.FullName);
         }
     }
 
@@ -342,7 +343,8 @@ namespace Microsoft.ML.Runtime.Data
                 verWrittenCur: 0x00010001, // Initial
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
-                loaderSignature: MulticlassPredictionTransformer.LoaderSignature);
+                loaderSignature: MulticlassPredictionTransformer.LoaderSignature,
+                loaderAssemblyName: typeof(MulticlassPredictionTransformer<>).Assembly.FullName);
         }
     }
 
@@ -398,7 +400,8 @@ namespace Microsoft.ML.Runtime.Data
                 verWrittenCur: 0x00010001, // Initial
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
-                loaderSignature: RegressionPredictionTransformer.LoaderSignature);
+                loaderSignature: RegressionPredictionTransformer.LoaderSignature,
+                loaderAssemblyName: typeof(RegressionPredictionTransformer<>).Assembly.FullName);
         }
     }
 
@@ -454,7 +457,8 @@ namespace Microsoft.ML.Runtime.Data
                 verWrittenCur: 0x00010001, // Initial
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
-                loaderSignature: RankingPredictionTransformer.LoaderSignature);
+                loaderSignature: RankingPredictionTransformer.LoaderSignature,
+                loaderAssemblyName: typeof(RankingPredictionTransformer<>).Assembly.FullName);
         }
     }
 

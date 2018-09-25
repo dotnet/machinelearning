@@ -75,7 +75,8 @@ namespace Microsoft.ML.Runtime.TextAnalytics
                 verWrittenCur: 0x00010002,  // Updated to use UnitSeparator <US> character instead of using <ETX><STX> for vector inputs.
                 verReadableCur: 0x00010002,
                 verWeCanReadBack: 0x00010001,
-                loaderSignature: LoaderSignature);
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(CharTokenizeTransform).Assembly.FullName);
         }
 
         // Controls whether to mark the beginning/end of each row/slot with TextStartMarker/TextEndMarker.
