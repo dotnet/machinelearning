@@ -43,9 +43,9 @@ namespace Microsoft.ML.Runtime.EntryPoints.JsonUtils
         private readonly FieldInfo[] _fields;
         private readonly bool[] _wasSet;
         private readonly Attributes[] _attrs;
-        private readonly ModuleCatalog _catalog;
+        private readonly ComponentCatalog _catalog;
 
-        public InputBuilder(IExceptionContext ectx, Type inputType, ModuleCatalog catalog)
+        public InputBuilder(IExceptionContext ectx, Type inputType, ComponentCatalog catalog)
         {
             Contracts.CheckValue(ectx, nameof(ectx));
             _ectx = ectx;
@@ -337,12 +337,12 @@ namespace Microsoft.ML.Runtime.EntryPoints.JsonUtils
                     else if (typeof(IComponentFactory).IsAssignableFrom(type))
                     {
                         // Handle component factories.
-                        bool success = _catalog.TryFindComponent(type, out ModuleCatalog.ComponentInfo instanceInfo);
+                        bool success = _catalog.TryFindComponent(type, out ComponentCatalog.ComponentInfo instanceInfo);
                         Contracts.Assert(success);
                         var builder = new InputBuilder(_ectx, type, _catalog);
                         var instSettings = builder.GetJsonObject(instanceVal, inputBindingMap, inputMap);
 
-                        ModuleCatalog.ComponentInfo defaultInfo = null;
+                        ComponentCatalog.ComponentInfo defaultInfo = null;
                         JObject defSettings = new JObject();
                         if (defaultsVal != null)
                         {
@@ -390,7 +390,7 @@ namespace Microsoft.ML.Runtime.EntryPoints.JsonUtils
             return optObj.IsExplicit;
         }
 
-        private static object ParseJsonValue(IExceptionContext ectx, Type type, Attributes attributes, JToken value, ModuleCatalog catalog)
+        private static object ParseJsonValue(IExceptionContext ectx, Type type, Attributes attributes, JToken value, ComponentCatalog catalog)
         {
             Contracts.AssertValue(ectx);
             ectx.AssertValue(type);
@@ -452,7 +452,7 @@ namespace Microsoft.ML.Runtime.EntryPoints.JsonUtils
                     case TlcModule.DataKind.Array:
                         var ja = value as JArray;
                         ectx.Check(ja != null, "Expected array value");
-                        Func<IExceptionContext, JArray, Attributes, ModuleCatalog, object> makeArray = MakeArray<int>;
+                        Func<IExceptionContext, JArray, Attributes, ComponentCatalog, object> makeArray = MakeArray<int>;
                         return Utils.MarshalInvoke(makeArray, type.GetElementType(), ectx, ja, attributes, catalog);
                     case TlcModule.DataKind.Int:
                         if (type == typeof(long))
@@ -470,7 +470,7 @@ namespace Microsoft.ML.Runtime.EntryPoints.JsonUtils
                         throw ectx.ExceptNotSupp();
                     case TlcModule.DataKind.Dictionary:
                         ectx.Check(value is JObject, "Expected object value");
-                        Func<IExceptionContext, JObject, Attributes, ModuleCatalog, object> makeDict = MakeDictionary<int>;
+                        Func<IExceptionContext, JObject, Attributes, ComponentCatalog, object> makeDict = MakeDictionary<int>;
                         return Utils.MarshalInvoke(makeDict, type.GetGenericArguments()[1], ectx, (JObject)value, attributes, catalog);
                     case TlcModule.DataKind.Component:
                         var jo = value as JObject;
@@ -534,7 +534,7 @@ namespace Microsoft.ML.Runtime.EntryPoints.JsonUtils
             return value;
         }
 
-        private static IComponentFactory GetComponentJson(IExceptionContext ectx, Type signatureType, string name, JObject settings, ModuleCatalog catalog)
+        private static IComponentFactory GetComponentJson(IExceptionContext ectx, Type signatureType, string name, JObject settings, ComponentCatalog catalog)
         {
             Contracts.AssertValue(ectx);
             ectx.AssertValue(signatureType);
@@ -545,7 +545,7 @@ namespace Microsoft.ML.Runtime.EntryPoints.JsonUtils
             if (!catalog.TryGetComponentKind(signatureType, out string kind))
                 throw ectx.Except($"Component type '{signatureType}' is not a valid signature type.");
 
-            if (!catalog.TryFindComponent(kind, name, out ModuleCatalog.ComponentInfo component))
+            if (!catalog.TryFindComponent(kind, name, out ComponentCatalog.ComponentInfo component))
             {
                 var available = catalog.GetAllComponents(kind).Select(x => $"'{x.Name}'");
                 throw ectx.Except($"Component '{name}' of kind '{kind}' is not found. Available components are: {string.Join(", ", available)}");
@@ -567,7 +567,7 @@ namespace Microsoft.ML.Runtime.EntryPoints.JsonUtils
             return inputBuilder.GetInstance() as IComponentFactory;
         }
 
-        private static object MakeArray<T>(IExceptionContext ectx, JArray jArray, Attributes attributes, ModuleCatalog catalog)
+        private static object MakeArray<T>(IExceptionContext ectx, JArray jArray, Attributes attributes, ComponentCatalog catalog)
         {
             Contracts.AssertValue(ectx);
             ectx.AssertValue(jArray);
@@ -578,7 +578,7 @@ namespace Microsoft.ML.Runtime.EntryPoints.JsonUtils
             return array;
         }
 
-        private static object MakeDictionary<T>(IExceptionContext ectx, JObject jDict, Attributes attributes, ModuleCatalog catalog)
+        private static object MakeDictionary<T>(IExceptionContext ectx, JObject jDict, Attributes attributes, ComponentCatalog catalog)
         {
             Contracts.AssertValue(ectx);
             ectx.AssertValue(jDict);
