@@ -53,7 +53,6 @@ namespace Microsoft.ML.Scenarios
             pipeline.Add(new TextToKeyConverter("Label"));
             pipeline.Add(new StochasticDualCoordinateAscentClassifier());
 
-            TensorFlowUtils.Initialize();
             var model = pipeline.Train<CifarData, CifarPrediction>();
             string[] scoreLabels;
             model.TryGetScoreLabelNames(out scoreLabels);
@@ -129,8 +128,6 @@ namespace Microsoft.ML.Scenarios
             pipeline.Add(new ColumnConcatenator(outputColumn: "Features", inputColumns: outputTensorName));
             pipeline.Add(new TextToKeyConverter("Label"));
             pipeline.Add(new StochasticDualCoordinateAscentClassifier());
-
-            TensorFlowUtils.Initialize();
 
             var model = pipeline.Train<ImageNetData, ImageNetPrediction>();
             string[] scoreLabels;

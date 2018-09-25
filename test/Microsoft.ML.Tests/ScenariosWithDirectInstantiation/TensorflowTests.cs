@@ -370,7 +370,7 @@ namespace Microsoft.ML.Scenarios
             });
             pipeline.Add(new Legacy.Transforms.ColumnConcatenator() { Column = new[] { new ConcatTransformColumn() { Name = "Features", Source = new[] { "Placeholder", "dense/Relu" } } } });
             pipeline.Add(new Legacy.Trainers.LogisticRegressionClassifier());
-            TensorFlowUtils.Initialize();
+
             var model = pipeline.Train<MNISTData, MNISTPrediction>();
 
             var sample1 = new MNISTData()
