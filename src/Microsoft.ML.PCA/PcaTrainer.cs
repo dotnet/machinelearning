@@ -42,7 +42,7 @@ namespace Microsoft.ML.Runtime.PCA
     /// <remarks>
     /// This PCA can be made into Kernel PCA by using Random Fourier Features transform
     /// </remarks>
-    public sealed class RandomizedPcaTrainer : TrainerEstimatorBase<BinaryPredictionTransformer<PcaPredictor>, PcaPredictor>
+    public sealed class RandomizedPcaTrainer : TrainerEstimatorBase<AnomalyPredictionTransformer<PcaPredictor>, PcaPredictor>
     {
         public const string LoadNameValue = "pcaAnomaly";
         internal const string UserNameValue = "PCA Anomaly Detector";
@@ -335,8 +335,8 @@ namespace Microsoft.ML.Runtime.PCA
             };
         }
 
-        protected override BinaryPredictionTransformer<PcaPredictor> MakeTransformer(PcaPredictor model, ISchema trainSchema)
-            => new BinaryPredictionTransformer<PcaPredictor>(Host, model, trainSchema, _featureColumn);
+        protected override AnomalyPredictionTransformer<PcaPredictor> MakeTransformer(PcaPredictor model, ISchema trainSchema)
+            => new AnomalyPredictionTransformer<PcaPredictor>(Host, model, trainSchema, _featureColumn);
 
         [TlcModule.EntryPoint(Name = "Trainers.PcaAnomalyDetector",
             Desc = "Train an PCA Anomaly model.",
