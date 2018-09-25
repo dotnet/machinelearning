@@ -16,28 +16,20 @@ namespace Microsoft.ML.Trainers
     {
         public static Scalar<float> FastTree(this RegressionContext.RegressionTrainers ctx,
             Scalar<float> label, Vector<float> features, Scalar<float> weights = null,
-            int numLeaves = 20,
-            int numTrees = 100,
-            int minDocumentsInLeafs = 10,
-            double learningRates= 0.2,
+            int numLeaves = Defaults.NumLeaves,
+            int numTrees = Defaults.NumTrees,
+            int minDocumentsInLeafs = Defaults.MinDocumentsInLeafs,
+            double learningRate= Defaults.LearningRates,
             Action<FastTreeRegressionTrainer.Arguments> advancedSettings = null,
             Action<FastTreeRegressionPredictor> onFit = null)
         {
-            Contracts.CheckValue(label, nameof(label));
-            Contracts.CheckValue(features, nameof(features));
-            Contracts.CheckValueOrNull(weights);
-            Contracts.CheckParam(numLeaves >= 2, nameof(numLeaves), "Must be at least 2.");
-            Contracts.CheckParam(numTrees > 0, nameof(numTrees), "Must be positive");
-            Contracts.CheckParam(minDocumentsInLeafs > 0, nameof(minDocumentsInLeafs), "Must be positive");
-            Contracts.CheckParam(learningRates > 0, nameof(learningRates), "Must be positive");
-            Contracts.CheckValueOrNull(advancedSettings);
-            Contracts.CheckValueOrNull(onFit);
+            CheckUserValues(label, features, weights, numLeaves, numTrees, minDocumentsInLeafs, learningRate, advancedSettings, onFit);
 
             var rec = new TrainerEstimatorReconciler.Regression(
                (env, labelName, featuresName, weightsName) =>
                {
                    var trainer = new FastTreeRegressionTrainer(env, labelName, featuresName, weightsName, numLeaves,
-                       numTrees, minDocumentsInLeafs, learningRates, advancedSettings);
+                       numTrees, minDocumentsInLeafs, learningRate, advancedSettings);
                    if (onFit != null)
                        return trainer.WithOnFitDelegate(trans => onFit(trans.Model));
                    return trainer;
@@ -48,28 +40,20 @@ namespace Microsoft.ML.Trainers
 
         public static (Scalar<float> score, Scalar<float> probability, Scalar<bool> predictedLabel) FastTree(this BinaryClassificationContext.BinaryClassificationTrainers ctx,
             Scalar<bool> label, Vector<float> features, Scalar<float> weights = null,
-            int numLeaves = 20,
-            int numTrees = 100,
-            int minDocumentsInLeafs = 10,
-            double learningRates = 0.2,
+            int numLeaves = Defaults.NumLeaves,
+            int numTrees = Defaults.NumTrees,
+            int minDocumentsInLeafs = Defaults.MinDocumentsInLeafs,
+            double learningRate = Defaults.LearningRates,
             Action<FastTreeBinaryClassificationTrainer.Arguments> advancedSettings = null,
             Action<IPredictorWithFeatureWeights<float>> onFit = null)
         {
-            Contracts.CheckValue(label, nameof(label));
-            Contracts.CheckValue(features, nameof(features));
-            Contracts.CheckValueOrNull(weights);
-            Contracts.CheckParam(numLeaves >= 2, nameof(numLeaves), "Must be at least 2.");
-            Contracts.CheckParam(numTrees > 0, nameof(numTrees), "Must be positive");
-            Contracts.CheckParam(minDocumentsInLeafs > 0, nameof(minDocumentsInLeafs), "Must be positive");
-            Contracts.CheckParam(learningRates > 0, nameof(learningRates), "Must be positive");
-            Contracts.CheckValueOrNull(advancedSettings);
-            Contracts.CheckValueOrNull(onFit);
+            CheckUserValues(label, features, weights, numLeaves, numTrees, minDocumentsInLeafs, learningRate, advancedSettings, onFit);
 
             var rec = new TrainerEstimatorReconciler.BinaryClassifier(
                (env, labelName, featuresName, weightsName) =>
                {
                    var trainer = new FastTreeBinaryClassificationTrainer(env, labelName, featuresName, weightsName, numLeaves,
-                       numTrees, minDocumentsInLeafs, learningRates,  advancedSettings);
+                       numTrees, minDocumentsInLeafs, learningRate,  advancedSettings);
 
                 if (onFit != null)
                     return trainer.WithOnFitDelegate(trans => onFit(trans.Model));
@@ -78,6 +62,25 @@ namespace Microsoft.ML.Trainers
                }, label, features, weights);
 
             return rec.Output;
+        }
+
+        private static void CheckUserValues<TVal, TArgs, TPred>(Scalar<TVal> label, Vector<float> features, Scalar<float> weights = null,
+            int numLeaves = Defaults.NumLeaves,
+            int numTrees = Defaults.NumTrees,
+            int minDocumentsInLeafs = Defaults.MinDocumentsInLeafs,
+            double learningRate = Defaults.LearningRates,
+            Action<TArgs> advancedSettings = null,
+            Action<TPred> onFit = null)
+        {
+            Contracts.CheckValue(label, nameof(label));
+            Contracts.CheckValue(features, nameof(features));
+            Contracts.CheckValueOrNull(weights);
+            Contracts.CheckParam(numLeaves >= 2, nameof(numLeaves), "Must be at least 2.");
+            Contracts.CheckParam(numTrees > 0, nameof(numTrees), "Must be positive");
+            Contracts.CheckParam(minDocumentsInLeafs > 0, nameof(minDocumentsInLeafs), "Must be positive");
+            Contracts.CheckParam(learningRate > 0, nameof(learningRate), "Must be positive");
+            Contracts.CheckValueOrNull(advancedSettings);
+            Contracts.CheckValueOrNull(onFit);
         }
     }
 }

@@ -388,18 +388,18 @@ namespace Microsoft.ML.Runtime.Training
         /// Check that the label, feature, weights is not supplied in the args the constructor.
         /// Those parameters should be internal if they are not used from the maml help code path.
         /// </summary>
-        public static void CheckArgumesDefaultColNames(string defaultColName, string argValue)
+        public static void CheckArgsDefaultColNames(IHost env, string defaultColName, string argValue)
         {
             if (argValue != defaultColName)
-                throw Contracts.Except($"Don't supply a value for the {defaultColName} column in the arguments, as it will be ignored. Specify them in the loader, or constructor instead instead.");
+                throw env.Except($"Don't supply a value for the {defaultColName} column in the arguments, as it will be ignored. Specify them in the loader, or constructor instead instead.");
         }
 
-        public static void CheckArgsAndAdvancedSettingMismatch<T>(T methodParam, T defaultVal, T setting, string argName)
+        public static void CheckArgsAndAdvancedSettingMismatch<T>(IChannel channel, T methodParam, T defaultVal, T setting, string argName)
         {
             // if, after applying the advancedArgs delegate, the args are different that the default value
             // and are also different than the value supplied directly to the xtension method, warn the user.
             if (!setting.Equals(defaultVal) && !setting.Equals(methodParam))
-                Console.WriteLine($"The value supplied to advanced settings , is different than the value supplied directly. Using value {setting} for {argName}");
+                channel.Warning($"The value supplied to advanced settings , is different than the value supplied directly. Using value {setting} for {argName}");
         }
     }
 
