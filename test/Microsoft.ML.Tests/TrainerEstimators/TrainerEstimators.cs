@@ -25,7 +25,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         public void KMeansEstimator()
         {
             string featureColumn = "NumericFeatures";
-            string weightColumn = "Weights";
+            string weights = "Weights";
 
             var reader = new TextLoader(Env, new TextLoader.Arguments
             {
@@ -34,17 +34,19 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 Column = new[]
                 {
                     new TextLoader.Column(featureColumn, DataKind.R4, new [] { new TextLoader.Range(1, 784) }),
-                    new TextLoader.Column(weightColumn, DataKind.R4, 0)
+                    new TextLoader.Column(weights, DataKind.R4, 0)
                 }
             });
             var data = reader.Read(new MultiFileSource(GetDataPath(TestDatasets.mnistTiny28.trainFilename)));
 
 
             // Pipeline.
-            var pipeline = new KMeansPlusPlusTrainer(Env, featureColumn, weightColumn,
+            var pipeline = new KMeansPlusPlusTrainer(Env, featureColumn, weightColumn: weights,
                             advancedSettings: s => { s.InitAlgorithm = KMeansPlusPlusTrainer.InitAlgorithm.KMeansParallel; });
 
             TestEstimatorCore(pipeline, data);
+
+            Done();
         }
 
         private (IEstimator<ITransformer>, IDataView) GetBinaryClassificationPipeline()

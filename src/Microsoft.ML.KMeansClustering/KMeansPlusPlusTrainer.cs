@@ -44,12 +44,18 @@ namespace Microsoft.ML.Runtime.KMeans
             KMeansParallel = 2
         }
 
+        internal static class Defaults{
+
+            /// <value>The number of clusters.</value>
+            internal const int K = 5;
+        }
+
         public class Arguments : UnsupervisedLearnerInputBaseWithWeight
         {
             [Argument(ArgumentType.AtMostOnce, HelpText = "The number of clusters", SortOrder = 50)]
             [TGUI(SuggestedSweeps = "5,10,20,40")]
             [TlcModule.SweepableDiscreteParam("K", new object[] { 5, 10, 20, 40 })]
-            public int K = 5;
+            public int K = Defaults.K;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Cluster initialization algorithm", ShortName = "init")]
             public InitAlgorithm InitAlgorithm = InitAlgorithm.KMeansParallel;
@@ -90,12 +96,13 @@ namespace Microsoft.ML.Runtime.KMeans
         /// </summary>
         /// <param name="env">The private instance of <see cref="IHostEnvironment"/>.</param>
         /// <param name="featureColumn">The name of the feature column.</param>
-        /// <param name="weightColumn">The name for the column containing the initial weight.</param>
+        /// <param name="weightColumn">The name for the column containing the example weights.</param>
         /// <param name="advancedSettings">A delegate to apply all the advanced arguments to the algorithm.</param>
-        public KMeansPlusPlusTrainer(IHostEnvironment env, string featureColumn, string weightColumn = null, Action<Arguments> advancedSettings = null)
-            : this(env, null, featureColumn, weightColumn, advancedSettings)
+        /// <param name="clustersCount">The number of clusters.</param>
+        public KMeansPlusPlusTrainer(IHostEnvironment env, string featureColumn, int clustersCount = Defaults.K, string weightColumn = null, Action<Arguments> advancedSettings = null)
+            : this(env, new Arguments(), featureColumn, weightColumn, advancedSettings)
         {
-
+            _k = clustersCount;
         }
 
         internal KMeansPlusPlusTrainer(IHostEnvironment env, Arguments args)
@@ -107,15 +114,13 @@ namespace Microsoft.ML.Runtime.KMeans
         private KMeansPlusPlusTrainer(IHostEnvironment env, Arguments args, string featureColumn, string weightColumn, Action<Arguments> advancedSettings = null)
             : base(Contracts.CheckRef(env, nameof(env)).Register(LoadNameValue), TrainerUtils.MakeR4VecFeature(featureColumn), null, TrainerUtils.MakeR4ScalarWeightColumn(weightColumn))
         {
-            if (args == null)
-                args = new Arguments();
+            Host.CheckValue(args, nameof(args));
 
             if (advancedSettings != null)
                 advancedSettings.Invoke(args);
 
             Host.CheckUserArg(args.K > 0, nameof(args.K), "Must be positive");
 
-            // is this even necessary, if there is only one column, for example
             Host.CheckNonEmpty(featureColumn, nameof(featureColumn));
             _featureColumn = featureColumn;
 
