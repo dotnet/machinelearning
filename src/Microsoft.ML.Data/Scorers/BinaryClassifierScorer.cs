@@ -298,6 +298,6 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         private static bool OutputTypeMatches(ColumnType scoreType)
-        => scoreType == NumberType.Float;
+            => scoreType == NumberType.Float;
     }
 }

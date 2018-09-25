@@ -20,6 +20,9 @@ using Microsoft.ML.Runtime.Model;
 [assembly: LoadableClass(typeof(RankingPredictionTransformer<IPredictorProducing<float>>), typeof(RankingPredictionTransformer), null, typeof(SignatureLoadModel),
     "", RankingPredictionTransformer.LoaderSignature)]
 
+[assembly: LoadableClass(typeof(AnomalyPredictionTransformer<IPredictorProducing<float>>), typeof(AnomalyPredictionTransformer), null, typeof(SignatureLoadModel),
+    "", AnomalyPredictionTransformer.LoaderSignature)]
+
 namespace Microsoft.ML.Runtime.Data
 {
 
@@ -174,8 +177,6 @@ namespace Microsoft.ML.Runtime.Data
                 FeatureColumnType = trainSchema.GetColumnType(col);
 
             BindableMapper = ScoreUtils.GetSchemaBindableMapper(Host, model);
-
-            GetScorer();
         }
 
         internal SingleFeaturePredictionTransformerBase(IHost host, ModelLoadContext ctx)
@@ -221,10 +222,77 @@ namespace Microsoft.ML.Runtime.Data
             ctx.SaveStringOrNull(FeatureColumn);
         }
 
-        protected virtual GenericScorer GetScorer()
+        protected virtual GenericScorer GetGenericScorer()
         {
             var schema = new RoleMappedSchema(TrainSchema, null, FeatureColumn);
             return new GenericScorer(Host, new GenericScorer.Arguments(), new EmptyDataView(Host, TrainSchema), BindableMapper.Bind(Host, schema), schema);
+        }
+    }
+
+    /// <summary>
+    /// Base class for the <see cref="ISingleFeaturePredictionTransformer{TModel}"/> working on anomaly detection tasks.
+    /// </summary>
+    /// <typeparam name="TModel">An implementation of the <see cref="IPredictorProducing{TResult}"/></typeparam>
+    public sealed class AnomalyPredictionTransformer<TModel> : SingleFeaturePredictionTransformerBase<TModel, BinaryClassifierScorer>
+        where TModel : class, IPredictorProducing<float>
+    {
+        public readonly string ThresholdColumn;
+        public readonly float Threshold;
+
+        public AnomalyPredictionTransformer(IHostEnvironment env, TModel model, ISchema inputSchema, string featureColumn,
+            float threshold = 0f, string thresholdColumn = DefaultColumnNames.Score)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(BinaryPredictionTransformer<TModel>)), model, inputSchema, featureColumn)
+        {
+            Host.CheckNonEmpty(thresholdColumn, nameof(thresholdColumn));
+            Threshold = threshold;
+            ThresholdColumn = thresholdColumn;
+
+            SetScorer();
+        }
+
+        public AnomalyPredictionTransformer(IHostEnvironment env, ModelLoadContext ctx)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(BinaryPredictionTransformer<TModel>)), ctx)
+        {
+            // *** Binary format ***
+            // <base info>
+            // float: scorer threshold
+            // id of string: scorer threshold column
+
+            Threshold = ctx.Reader.ReadSingle();
+            ThresholdColumn = ctx.LoadString();
+            SetScorer();
+        }
+
+        private void SetScorer()
+        {
+            var schema = new RoleMappedSchema(TrainSchema, null, FeatureColumn);
+            var args = new BinaryClassifierScorer.Arguments { Threshold = Threshold, ThresholdColumn = ThresholdColumn };
+            Scorer = new BinaryClassifierScorer(Host, args, new EmptyDataView(Host, TrainSchema), BindableMapper.Bind(Host, schema), schema);
+        }
+
+        protected override void SaveCore(ModelSaveContext ctx)
+        {
+            Contracts.AssertValue(ctx);
+            ctx.SetVersionInfo(GetVersionInfo());
+
+            // *** Binary format ***
+            // <base info>
+            // float: scorer threshold
+            // id of string: scorer threshold column
+            base.SaveCore(ctx);
+
+            ctx.Writer.Write(Threshold);
+            ctx.SaveString(ThresholdColumn);
+        }
+
+        private static VersionInfo GetVersionInfo()
+        {
+            return new VersionInfo(
+                modelSignature: "ANOMPRED",
+                verWrittenCur: 0x00010001, // Initial
+                verReadableCur: 0x00010001,
+                verWeCanReadBack: 0x00010001,
+                loaderSignature: AnomalyPredictionTransformer.LoaderSignature);
         }
     }
 
@@ -367,11 +435,13 @@ namespace Microsoft.ML.Runtime.Data
         public RegressionPredictionTransformer(IHostEnvironment env, TModel model, ISchema inputSchema, string featureColumn)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(RegressionPredictionTransformer<TModel>)), model, inputSchema, featureColumn)
         {
+            Scorer = GetGenericScorer();
         }
 
         internal RegressionPredictionTransformer(IHostEnvironment env, ModelLoadContext ctx)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(RegressionPredictionTransformer<TModel>)), ctx)
         {
+            Scorer = GetGenericScorer();
         }
 
         protected override void SaveCore(ModelSaveContext ctx)
@@ -387,7 +457,7 @@ namespace Microsoft.ML.Runtime.Data
         private static VersionInfo GetVersionInfo()
         {
             return new VersionInfo(
-                modelSignature: "MC  PRED",
+                modelSignature: "REG PRED",
                 verWrittenCur: 0x00010001, // Initial
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
@@ -396,17 +466,23 @@ namespace Microsoft.ML.Runtime.Data
         }
     }
 
+    /// <summary>
+    /// Base class for the <see cref="ISingleFeaturePredictionTransformer{TModel}"/> working on ranking tasks.
+    /// </summary>
+    /// <typeparam name="TModel">An implementation of the <see cref="IPredictorProducing{TResult}"/></typeparam>
     public sealed class RankingPredictionTransformer<TModel> : SingleFeaturePredictionTransformerBase<TModel, GenericScorer>
     where TModel : class, IPredictorProducing<float>
     {
         public RankingPredictionTransformer(IHostEnvironment env, TModel model, ISchema inputSchema, string featureColumn)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(RankingPredictionTransformer<TModel>)), model, inputSchema, featureColumn)
         {
+            Scorer = GetGenericScorer();
         }
 
         internal RankingPredictionTransformer(IHostEnvironment env, ModelLoadContext ctx)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(RankingPredictionTransformer<TModel>)), ctx)
         {
+            Scorer = GetGenericScorer();
         }
 
         protected override void SaveCore(ModelSaveContext ctx)
@@ -422,7 +498,7 @@ namespace Microsoft.ML.Runtime.Data
         private static VersionInfo GetVersionInfo()
         {
             return new VersionInfo(
-                modelSignature: "MC  RANK",
+                modelSignature: "RANK PRED",
                 verWrittenCur: 0x00010001, // Initial
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
@@ -461,5 +537,13 @@ namespace Microsoft.ML.Runtime.Data
 
         public static RankingPredictionTransformer<IPredictorProducing<float>> Create(IHostEnvironment env, ModelLoadContext ctx)
             => new RankingPredictionTransformer<IPredictorProducing<float>>(env, ctx);
+    }
+
+    internal static class AnomalyPredictionTransformer
+    {
+        public const string LoaderSignature = "AnomalyPredXfer";
+
+        public static AnomalyPredictionTransformer<IPredictorProducing<float>> Create(IHostEnvironment env, ModelLoadContext ctx)
+            => new AnomalyPredictionTransformer<IPredictorProducing<float>>(env, ctx);
     }
 }
