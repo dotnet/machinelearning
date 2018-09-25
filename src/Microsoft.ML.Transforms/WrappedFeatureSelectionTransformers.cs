@@ -41,11 +41,8 @@ namespace Microsoft.ML.Transforms
 
         public override TransformWrapper Fit(IDataView input)
         {
-            var dataview = CopyColumnsTransform.Create(Host, new CopyColumnsTransform.Arguments()
-            {
-                Column = _columns.Select(x => new CopyColumnsTransform.Column { Source = x.input, Name = x.output }).ToArray(),
-            }, input);
-
+            var copyColumn = new CopyColumnsEstimator(Host, _columns);
+            var dataview = copyColumn.Fit(input).Transform(input);
             var names = _columns.Select(x => x.output).ToArray();
             return new TransformWrapper(Host, CountFeatureSelectionTransform.Create(Host, dataview, _count, names));
         }
