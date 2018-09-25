@@ -26,7 +26,7 @@ In the meanwhile, we are looking for contributions.  An easy place to start is t
 We already provide text/NLP and image processing functionnalities that will be expanded
 * Text  (*)
   * Natural language text preprocessing such as improving tokenization features, adding part-of-speech tagging, and sentence boundary disambiguation
-  * Pre-trained text models (beyond current n-gram text handling) such as pre-trained WordEmbedding that can improve the extraction of semantic or sentiment features from text
+  * Pre-trained text models (beyond current n-gram and pre-trained WordEmbedding text handling) that can further improve the extraction of semantic or sentiment features from text
 * Image  (*)
   * Image preprocessing such as loading, resizing, and normalization of images
   * Image featurization, including industry-standard pre-trained ImageNet neural models, such as ResNet and AlexNet
