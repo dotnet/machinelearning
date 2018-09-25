@@ -6,8 +6,6 @@ using Float = System.Single;
 
 using System;
 using System.Collections.Generic;
-using Microsoft.ML.Data.StaticPipe.Runtime;
-using Microsoft.ML.Data.StaticPipe;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
@@ -219,65 +217,43 @@ namespace Microsoft.ML.Runtime.Data
                 double Fetch(string name) => Fetch<double>(ectx, overallResult, name);
                 L1 = Fetch(RegressionEvaluator.L1);
                 L2 = Fetch(RegressionEvaluator.L2);
-                Rms= Fetch(RegressionEvaluator.Rms);
+                Rms = Fetch(RegressionEvaluator.Rms);
                 LossFn = Fetch(RegressionEvaluator.Loss);
                 RSquared = Fetch(RegressionEvaluator.RSquared);
             }
         }
 
-        private sealed class TrivialLossFactory : ISupportRegressionLossFactory
-        {
-            private readonly IRegressionLoss _loss;
-            public TrivialLossFactory(IRegressionLoss loss) => _loss = loss;
-            public IRegressionLoss CreateComponent(IHostEnvironment env) => _loss;
-        }
-
         /// <summary>
         /// Evaluates scored regression data.
         /// </summary>
-        /// <typeparam name="T">The shape type for the input data.</typeparam>
         /// <param name="data">The data to evaluate.</param>
-        /// <param name="label">The index delegate for the label column.</param>
-        /// <param name="score">The index delegate for the predicted score column.</param>
-        /// <param name="loss">Potentially custom loss function. If left unspecified defaults to <see cref="SquaredLoss"/>.</param>
-        /// <returns>The evaluation results for these outputs.</returns>
-        public static Result Evaluate<T>(
-            DataView<T> data,
-            Func<T, Scalar<float>> label,
-            Func<T, Scalar<float>> score,
-            IRegressionLoss loss = null)
+        /// <param name="label">The name of the label column.</param>
+        /// <param name="score">The name of the predicted score column.</param>
+        /// <returns>The evaluation metrics for these outputs.</returns>
+        public Result Evaluate(
+            IDataView data,
+            string label,
+            string score)
         {
-            Contracts.CheckValue(data, nameof(data));
-            var env = StaticPipeUtils.GetEnvironment(data);
-            Contracts.AssertValue(env);
-            env.CheckValue(label, nameof(label));
-            env.CheckValue(score, nameof(score));
+            Host.CheckValue(data, nameof(data));
+            Host.CheckNonEmpty(label, nameof(label));
+            Host.CheckNonEmpty(score, nameof(score));
+            var roles = new RoleMappedData(data, opt: false,
+                RoleMappedSchema.ColumnRole.Label.Bind(label),
+                RoleMappedSchema.CreatePair(MetadataUtils.Const.ScoreValueKind.Score, score));
 
-            var indexer = StaticPipeUtils.GetIndexer(data);
-            string labelName = indexer.Get(label(indexer.Indices));
-            string scoreName = indexer.Get(score(indexer.Indices));
-
-            var args = new Arguments() { };
-            if (loss != null)
-                args.LossFunction = new TrivialLossFactory(loss);
-            var eval = new RegressionEvaluator(env, args);
-
-            var roles = new RoleMappedData(data.AsDynamic, opt: false,
-                RoleMappedSchema.ColumnRole.Label.Bind(labelName),
-                RoleMappedSchema.CreatePair(MetadataUtils.Const.ScoreValueKind.Score, scoreName));
-
-            var resultDict = eval.Evaluate(roles);
-            env.Assert(resultDict.ContainsKey(MetricKinds.OverallMetrics));
+            var resultDict = Evaluate(roles);
+            Host.Assert(resultDict.ContainsKey(MetricKinds.OverallMetrics));
             var overall = resultDict[MetricKinds.OverallMetrics];
 
             Result result;
             using (var cursor = overall.GetRowCursor(i => true))
             {
                 var moved = cursor.MoveNext();
-                env.Assert(moved);
-                result = new Result(env, cursor);
+                Host.Assert(moved);
+                result = new Result(Host, cursor);
                 moved = cursor.MoveNext();
-                env.Assert(!moved);
+                Host.Assert(!moved);
             }
             return result;
         }
@@ -293,7 +269,8 @@ namespace Microsoft.ML.Runtime.Data
                 verWrittenCur: 0x00010001, // Initial
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
-                loaderSignature: LoaderSignature);
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(RegressionPerInstanceEvaluator).Assembly.FullName);
         }
 
         private const int L1Col = 0;

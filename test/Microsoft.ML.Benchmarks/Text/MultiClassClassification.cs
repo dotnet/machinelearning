@@ -11,42 +11,18 @@ using System.IO;
 
 namespace Microsoft.ML.Benchmarks
 {
-    public class MultiClassClassification
+    [Config(typeof(TrainConfig))]
+    public class MultiClassClassificationTrain
     {
         private string _dataPath_Wiki;
-        private string _modelPath_Wiki;
 
-        [GlobalSetup(Targets = new string[] {
-            nameof(CV_Multiclass_WikiDetox_BigramsAndTrichar_OVAAveragedPerceptron),
-            nameof(CV_Multiclass_WikiDetox_BigramsAndTrichar_LightGBMMulticlass),
-            nameof(CV_Multiclass_WikiDetox_WordEmbeddings_OVAAveragedPerceptron),
-            nameof(CV_Multiclass_WikiDetox_WordEmbeddings_SDCAMC)})]
+        [GlobalSetup]
         public void SetupTrainingSpeedTests()
         {
             _dataPath_Wiki = Path.GetFullPath(TestDatasets.WikiDetox.trainFilename);
 
             if (!File.Exists(_dataPath_Wiki))
                 throw new FileNotFoundException(string.Format(Helpers.DatasetNotFound, _dataPath_Wiki));           
-        }
-
-        [GlobalSetup(Target = nameof(Test_Multiclass_WikiDetox_BigramsAndTrichar_OVAAveragedPerceptron))]
-        public void SetupScoringSpeedTests()
-        {
-            SetupTrainingSpeedTests();
-            _modelPath_Wiki = Path.Combine(Directory.GetCurrentDirectory(), @"WikiModel.zip");
-
-            string cmd = @"CV k=5 data=" + _dataPath_Wiki +
-                " loader=TextLoader{quote=- sparse=- col=Label:R4:0 col=rev_id:TX:1 col=comment:TX:2 col=logged_in:BL:4 col=ns:TX:5 col=sample:TX:6 col=split:TX:7 col=year:R4:3 header=+} xf=Convert{col=logged_in type=R4}" +
-                " xf=CategoricalTransform{col=ns}" +
-                " xf=TextTransform{col=FeaturesText:comment wordExtractor=NGramExtractorTransform{ngram=2}}" +
-                " xf=Concat{col=Features:FeaturesText,logged_in,ns}" +
-                " tr=OVA{p=AveragedPerceptron{iter=10}}" +
-                " out={" + _modelPath_Wiki + "}";
-
-            using (var environment = new ConsoleEnvironment(verbose: false, sensitivity: MessageSensitivity.None, outWriter: EmptyWriter.Instance))
-            {
-                Maml.MainCore(environment, cmd, alwaysPrintStacktrace: false);
-            }
         }
 
         [Benchmark]
@@ -74,20 +50,9 @@ namespace Microsoft.ML.Benchmarks
                     " xf=Convert{col=logged_in type=R4}" +
                     " xf=CategoricalTransform{col=ns}" +
                     " xf=TextTransform{col=FeaturesText:comment wordExtractor=NGramExtractorTransform{ngram=2}}" +
-                    " xf=Concat{col=Features:FeaturesText,logged_in,ns} tr=LightGBMMulticlass{}";
+                    " xf=Concat{col=Features:FeaturesText,logged_in,ns}" +
+                    " tr=LightGBMMulticlass{iter=10}";
 
-            using (var environment = new ConsoleEnvironment(verbose: false, sensitivity: MessageSensitivity.None, outWriter: EmptyWriter.Instance))
-            {
-                Maml.MainCore(environment, cmd, alwaysPrintStacktrace: false);
-            }
-        }
-
-        [Benchmark]
-        public void Test_Multiclass_WikiDetox_BigramsAndTrichar_OVAAveragedPerceptron()
-        {
-            // This benchmark is profiling bulk scoring speed and not training speed. 
-            string modelpath = Path.Combine(Directory.GetCurrentDirectory(), @"WikiModel.fold000.zip");
-            string cmd = @"Test data=" + _dataPath_Wiki + " in=" + modelpath;
             using (var environment = new ConsoleEnvironment(verbose: false, sensitivity: MessageSensitivity.None, outWriter: EmptyWriter.Instance))
             {
                 Maml.MainCore(environment, cmd, alwaysPrintStacktrace: false);
@@ -124,6 +89,49 @@ namespace Microsoft.ML.Benchmarks
                 " xf=WordEmbeddingsTransform{col=FeaturesWordEmbedding:FeaturesText_TransformedText model=FastTextWikipedia300D}" +
                 " xf=Concat{col=Features:FeaturesWordEmbedding,logged_in,ns}";
 
+            using (var environment = new ConsoleEnvironment(verbose: false, sensitivity: MessageSensitivity.None, outWriter: EmptyWriter.Instance))
+            {
+                Maml.MainCore(environment, cmd, alwaysPrintStacktrace: false);
+            }
+        }
+    }
+
+    [Config(typeof(PredictConfig))]
+    public class MultiClassClassificationTest
+    {
+        private string _dataPath_Wiki;
+        private string _modelPath_Wiki;
+
+        [GlobalSetup]
+        public void SetupScoringSpeedTests()
+        {
+            _dataPath_Wiki = Path.GetFullPath(TestDatasets.WikiDetox.trainFilename);
+
+            if (!File.Exists(_dataPath_Wiki))
+                throw new FileNotFoundException(string.Format(Helpers.DatasetNotFound, _dataPath_Wiki));
+
+            _modelPath_Wiki = Path.Combine(Directory.GetCurrentDirectory(), @"WikiModel.zip");
+
+            string cmd = @"CV k=5 data=" + _dataPath_Wiki +
+                " loader=TextLoader{quote=- sparse=- col=Label:R4:0 col=rev_id:TX:1 col=comment:TX:2 col=logged_in:BL:4 col=ns:TX:5 col=sample:TX:6 col=split:TX:7 col=year:R4:3 header=+} xf=Convert{col=logged_in type=R4}" +
+                " xf=CategoricalTransform{col=ns}" +
+                " xf=TextTransform{col=FeaturesText:comment wordExtractor=NGramExtractorTransform{ngram=2}}" +
+                " xf=Concat{col=Features:FeaturesText,logged_in,ns}" +
+                " tr=OVA{p=AveragedPerceptron{iter=10}}" +
+                " out={" + _modelPath_Wiki + "}";
+
+            using (var environment = new ConsoleEnvironment(verbose: false, sensitivity: MessageSensitivity.None, outWriter: EmptyWriter.Instance))
+            {
+                Maml.MainCore(environment, cmd, alwaysPrintStacktrace: false);
+            }
+        }
+
+        [Benchmark]
+        public void Test_Multiclass_WikiDetox_BigramsAndTrichar_OVAAveragedPerceptron()
+        {
+            // This benchmark is profiling bulk scoring speed and not training speed. 
+            string modelpath = Path.Combine(Directory.GetCurrentDirectory(), @"WikiModel.fold000.zip");
+            string cmd = @"Test data=" + _dataPath_Wiki + " in=" + modelpath;
             using (var environment = new ConsoleEnvironment(verbose: false, sensitivity: MessageSensitivity.None, outWriter: EmptyWriter.Instance))
             {
                 Maml.MainCore(environment, cmd, alwaysPrintStacktrace: false);
