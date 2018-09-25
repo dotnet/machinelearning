@@ -74,17 +74,17 @@ namespace Microsoft.ML.OnnxScoring
         }
 
         // Factory method for SignatureDataTransform
-        public static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
+        private static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
         {
             return new OnnxTransform(env, args).MakeDataTransform(input);
         }
 
         // Factory method for SignatureLoadDataTransform
-        public static IDataTransform Create(IHostEnvironment env, ModelLoadContext ctx, IDataView input)
+        private static IDataTransform Create(IHostEnvironment env, ModelLoadContext ctx, IDataView input)
             => Create(env, ctx).MakeDataTransform(input);
 
         // Factory method for SignatureLoadModel.
-        public static OnnxTransform Create(IHostEnvironment env, ModelLoadContext ctx)
+        private static OnnxTransform Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(ctx, nameof(ctx));
@@ -102,7 +102,7 @@ namespace Microsoft.ML.OnnxScoring
         }
 
         // Factory method for SignatureLoadRowMapper.
-        public static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, ISchema inputSchema)
+        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, ISchema inputSchema)
             => Create(env, ctx).MakeRowMapper(inputSchema);
 
         private OnnxTransform(IHostEnvironment env, Arguments args, byte[] modelBytes = null)
