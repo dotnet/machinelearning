@@ -21,7 +21,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         {
             var (pipeline, data) = GetBinaryClassificationPipeline();
 
-            pipeline.Append(new FastTreeBinaryClassificationTrainer(Env, "Label", "Features",numTrees:10, numLeaves:5,  advancedSettings: s => {
+            pipeline.Append(new FastTreeBinaryClassificationTrainer(Env, "Label", "Features", numTrees:10, numLeaves:5,  advancedSettings: s => {
                     s.NumThreads = 1;
                 }));
 
