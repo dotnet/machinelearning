@@ -1,11 +1,13 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Scoring;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using Microsoft.ML.StaticPipe;
+
 using OnnxShape = System.Collections.Generic.List<long>;
 
 namespace Microsoft.ML.OnnxScoring
