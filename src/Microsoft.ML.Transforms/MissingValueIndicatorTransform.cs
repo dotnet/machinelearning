@@ -59,7 +59,8 @@ namespace Microsoft.ML.Runtime.Data
                 loaderSignature: LoaderSignature,
                 // This is an older name and can be removed once we don't care about old code
                 // being able to load this.
-                loaderSignatureAlt: "MissingFeatureFunction");
+                loaderSignatureAlt: "MissingFeatureFunction",
+                loaderAssemblyName: typeof(MissingValueIndicatorTransform).Assembly.FullName);
         }
 
         private const string RegistrationName = "MissingIndicator";

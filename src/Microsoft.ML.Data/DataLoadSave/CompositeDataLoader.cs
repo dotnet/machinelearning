@@ -71,7 +71,8 @@ namespace Microsoft.ML.Runtime.Data
                 verWrittenCur: 0x00010002, // Added transform tags and args strings
                 verReadableCur: 0x00010002,
                 verWeCanReadBack: 0x00010001,
-                loaderSignature: LoaderSignature);
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(CompositeDataLoader).Assembly.FullName);
         }
 
         // The composition of loader plus transforms in order.

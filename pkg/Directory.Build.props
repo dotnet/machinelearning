@@ -31,6 +31,7 @@
 
   <ItemGroup>
     <Content Include="$(PackageAssetsPath)$(PackageIdFolderName)\lib\**\*" Pack="true" PackagePath="lib" />
+    <Content Include="$(PackageAssetsPath)$(PackageIdFolderName)\analyzers\**\*" Pack="true" PackagePath="analyzers" />
     <Content Include="$(PackageAssetsPath)$(PackageIdFolderName)\runtimes\**\*" Pack="true" PackagePath="runtimes" />
   </ItemGroup>
 
