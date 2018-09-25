@@ -978,9 +978,9 @@ namespace Microsoft.ML.Runtime.RunTests
                 var tfTransformInput = new Legacy.Transforms.TensorFlowScorer
                 {
                     Data = importOutput.Data,
+                    Model = "mnist_model/frozen_saved_model.pb",
                     InputColumns = new[] { "Placeholder" },
                     OutputColumns = new[] { "Softmax" },
-                    ModelFile = "mnist_model/frozen_saved_model.pb"
                 };
                 var tfTransformOutput = experiment.Add(tfTransformInput);
 

@@ -1182,7 +1182,7 @@ namespace Microsoft.ML.Transforms.TensorFlow
         /// here: https://github.com/tensorflow/tensorflow/blob/master/tensorflow/python/saved_model/README.md
         /// </para>
         /// </remarks>
-        public TFSession FromSavedModel(TFSessionOptions sessionOptions, TFBuffer runOptions, string exportDir, string[] tags, TFGraph graph, TFBuffer metaGraphDef, TFStatus status = null)
+        public static TFSession FromSavedModel(TFSessionOptions sessionOptions, TFBuffer runOptions, string exportDir, string[] tags, TFGraph graph, TFBuffer metaGraphDef, TFStatus status = null)
         {
             if (graph == null)
                 throw new ArgumentNullException(nameof(graph));

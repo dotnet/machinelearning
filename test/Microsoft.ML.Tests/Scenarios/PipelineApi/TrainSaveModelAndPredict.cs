@@ -36,7 +36,6 @@ namespace Microsoft.ML.Tests.Scenarios.PipelineApi
             var loadedModel = await Legacy.PredictionModel.ReadAsync<SentimentData, SentimentPrediction>(modelName);
             var singlePrediction = loadedModel.Predict(new SentimentData() { SentimentText = "Not big fan of this." });
             Assert.True(singlePrediction.Sentiment);
-
         }
     }
 }
