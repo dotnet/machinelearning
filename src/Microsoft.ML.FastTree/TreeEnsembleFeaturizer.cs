@@ -53,7 +53,7 @@ namespace Microsoft.ML.Runtime.Data
 
         private sealed class BoundMapper : ISchemaBoundRowMapper
         {
-            private sealed class Schema : ISchema
+            private sealed class SchemaImpl : ISchema
             {
                 private readonly IExceptionContext _ectx;
                 private readonly string[] _names;
@@ -63,7 +63,7 @@ namespace Microsoft.ML.Runtime.Data
 
                 public int ColumnCount { get { return _types.Length; } }
 
-                public Schema(IExceptionContext ectx, TreeEnsembleFeaturizerBindableMapper parent,
+                public SchemaImpl(IExceptionContext ectx, TreeEnsembleFeaturizerBindableMapper parent,
                     ColumnType treeValueColType, ColumnType leafIdColType, ColumnType pathIdColType)
                 {
                     Contracts.CheckValueOrNull(ectx);
@@ -135,20 +135,20 @@ namespace Microsoft.ML.Runtime.Data
                     _ectx.CheckParam(0 <= col && col < ColumnCount, nameof(col));
 
                     if ((col == PathIdx || col == LeafIdx) && kind == MetadataUtils.Kinds.IsNormalized)
-                        MetadataUtils.Marshal<DvBool, TValue>(IsNormalized, col, ref value);
+                        MetadataUtils.Marshal<bool, TValue>(IsNormalized, col, ref value);
                     else if (kind == MetadataUtils.Kinds.SlotNames)
                     {
                         switch (col)
                         {
                             case TreeIdx:
-                                MetadataUtils.Marshal<VBuffer<DvText>, TValue>(_parent.GetTreeSlotNames, col, ref value);
+                                MetadataUtils.Marshal<VBuffer<ReadOnlyMemory<char>>, TValue>(_parent.GetTreeSlotNames, col, ref value);
                                 break;
                             case LeafIdx:
-                                MetadataUtils.Marshal<VBuffer<DvText>, TValue>(_parent.GetLeafSlotNames, col, ref value);
+                                MetadataUtils.Marshal<VBuffer<ReadOnlyMemory<char>>, TValue>(_parent.GetLeafSlotNames, col, ref value);
                                 break;
                             default:
                                 Contracts.Assert(col == PathIdx);
-                                MetadataUtils.Marshal<VBuffer<DvText>, TValue>(_parent.GetPathSlotNames, col, ref value);
+                                MetadataUtils.Marshal<VBuffer<ReadOnlyMemory<char>>, TValue>(_parent.GetPathSlotNames, col, ref value);
                                 break;
                         }
                     }
@@ -156,9 +156,9 @@ namespace Microsoft.ML.Runtime.Data
                         throw _ectx.ExceptGetMetadata();
                 }
 
-                private void IsNormalized(int iinfo, ref DvBool dst)
+                private void IsNormalized(int iinfo, ref bool dst)
                 {
-                    dst = DvBool.True;
+                    dst = true;
                 }
             }
 
@@ -167,15 +167,14 @@ namespace Microsoft.ML.Runtime.Data
             private const int PathIdx = 2;
 
             private readonly TreeEnsembleFeaturizerBindableMapper _owner;
-            private readonly RoleMappedSchema _inputSchema;
-            private readonly ISchema _outputSchema;
             private readonly IExceptionContext _ectx;
 
-            public RoleMappedSchema InputSchema { get { return _inputSchema; } }
+            public RoleMappedSchema InputRoleMappedSchema { get; }
 
-            public ISchema OutputSchema { get { return _outputSchema; } }
+            public ISchema Schema { get; }
+            public ISchema InputSchema => InputRoleMappedSchema.Schema;
 
-            public ISchemaBindableMapper Bindable { get { return _owner; } }
+            public ISchemaBindableMapper Bindable => _owner;
 
             public BoundMapper(IExceptionContext ectx, TreeEnsembleFeaturizerBindableMapper owner,
                 RoleMappedSchema schema)
@@ -188,7 +187,7 @@ namespace Microsoft.ML.Runtime.Data
                 _ectx = ectx;
 
                 _owner = owner;
-                _inputSchema = schema;
+                InputRoleMappedSchema = schema;
 
                 // A vector containing the output of each tree on a given example.
                 var treeValueType = new VectorType(NumberType.Float, _owner._ensemble.NumTrees);
@@ -203,15 +202,15 @@ namespace Microsoft.ML.Runtime.Data
                 // which means that #internal = #leaf - 1.
                 // Therefore, the number of internal nodes in the ensemble is #leaf - #trees.
                 var pathIdType = new VectorType(NumberType.Float, _owner._totalLeafCount - _owner._ensemble.NumTrees);
-                _outputSchema = new Schema(ectx, owner, treeValueType, leafIdType, pathIdType);
+                Schema = new SchemaImpl(ectx, owner, treeValueType, leafIdType, pathIdType);
             }
 
-            public IRow GetOutputRow(IRow input, Func<int, bool> predicate, out Action disposer)
+            public IRow GetRow(IRow input, Func<int, bool> predicate, out Action disposer)
             {
                 _ectx.CheckValue(input, nameof(input));
                 _ectx.CheckValue(predicate, nameof(predicate));
                 disposer = null;
-                return new SimpleRow(_outputSchema, input, CreateGetters(input, predicate));
+                return new SimpleRow(Schema, input, CreateGetters(input, predicate));
             }
 
             private Delegate[] CreateGetters(IRow input, Func<int, bool> predicate)
@@ -228,7 +227,7 @@ namespace Microsoft.ML.Runtime.Data
                 if (!treeValueActive && !leafIdActive && !pathIdActive)
                     return delegates;
 
-                var state = new State(_ectx, input, _owner._ensemble, _owner._totalLeafCount, _inputSchema.Feature.Index);
+                var state = new State(_ectx, input, _owner._ensemble, _owner._totalLeafCount, InputRoleMappedSchema.Feature.Index);
 
                 // Get the tree value getter.
                 if (treeValueActive)
@@ -393,15 +392,15 @@ namespace Microsoft.ML.Runtime.Data
 
             public IEnumerable<KeyValuePair<RoleMappedSchema.ColumnRole, string>> GetInputColumnRoles()
             {
-                yield return RoleMappedSchema.ColumnRole.Feature.Bind(_inputSchema.Feature.Name);
+                yield return RoleMappedSchema.ColumnRole.Feature.Bind(InputRoleMappedSchema.Feature.Name);
             }
 
             public Func<int, bool> GetDependencies(Func<int, bool> predicate)
             {
-                for (int i = 0; i < OutputSchema.ColumnCount; i++)
+                for (int i = 0; i < Schema.ColumnCount; i++)
                 {
                     if (predicate(i))
-                        return col => col == _inputSchema.Feature.Index;
+                        return col => col == InputRoleMappedSchema.Feature.Index;
                 }
                 return col => false;
             }
@@ -478,48 +477,48 @@ namespace Microsoft.ML.Runtime.Data
             return totalLeafCount;
         }
 
-        private void GetTreeSlotNames(int col, ref VBuffer<DvText> dst)
+        private void GetTreeSlotNames(int col, ref VBuffer<ReadOnlyMemory<char>> dst)
         {
             var numTrees = _ensemble.NumTrees;
 
             var names = dst.Values;
             if (Utils.Size(names) < numTrees)
-                names = new DvText[numTrees];
+                names = new ReadOnlyMemory<char>[numTrees];
 
             for (int t = 0; t < numTrees; t++)
-                names[t] = new DvText(string.Format("Tree{0:000}", t));
+                names[t] = string.Format("Tree{0:000}", t).AsMemory();
 
-            dst = new VBuffer<DvText>(numTrees, names, dst.Indices);
+            dst = new VBuffer<ReadOnlyMemory<char>>(numTrees, names, dst.Indices);
         }
 
-        private void GetLeafSlotNames(int col, ref VBuffer<DvText> dst)
+        private void GetLeafSlotNames(int col, ref VBuffer<ReadOnlyMemory<char>> dst)
         {
             var numTrees = _ensemble.NumTrees;
 
             var names = dst.Values;
             if (Utils.Size(names) < _totalLeafCount)
-                names = new DvText[_totalLeafCount];
+                names = new ReadOnlyMemory<char>[_totalLeafCount];
 
             int i = 0;
             int t = 0;
             foreach (var tree in _ensemble.GetTrees())
             {
                 for (int l = 0; l < tree.NumLeaves; l++)
-                    names[i++] = new DvText(string.Format("Tree{0:000}Leaf{1:000}", t, l));
+                    names[i++] = string.Format("Tree{0:000}Leaf{1:000}", t, l).AsMemory();
                 t++;
             }
             _host.Assert(i == _totalLeafCount);
-            dst = new VBuffer<DvText>(_totalLeafCount, names, dst.Indices);
+            dst = new VBuffer<ReadOnlyMemory<char>>(_totalLeafCount, names, dst.Indices);
         }
 
-        private void GetPathSlotNames(int col, ref VBuffer<DvText> dst)
+        private void GetPathSlotNames(int col, ref VBuffer<ReadOnlyMemory<char>> dst)
         {
             var numTrees = _ensemble.NumTrees;
 
             var totalNodeCount = _totalLeafCount - numTrees;
             var names = dst.Values;
             if (Utils.Size(names) < totalNodeCount)
-                names = new DvText[totalNodeCount];
+                names = new ReadOnlyMemory<char>[totalNodeCount];
 
             int i = 0;
             int t = 0;
@@ -527,11 +526,11 @@ namespace Microsoft.ML.Runtime.Data
             {
                 var numLeaves = tree.NumLeaves;
                 for (int l = 0; l < tree.NumLeaves - 1; l++)
-                    names[i++] = new DvText(string.Format("Tree{0:000}Node{1:000}", t, l));
+                    names[i++] = string.Format("Tree{0:000}Node{1:000}", t, l).AsMemory();
                 t++;
             }
             _host.Assert(i == totalNodeCount);
-            dst = new VBuffer<DvText>(totalNodeCount, names, dst.Indices);
+            dst = new VBuffer<ReadOnlyMemory<char>>(totalNodeCount, names, dst.Indices);
         }
 
         public ISchemaBoundMapper Bind(IHostEnvironment env, RoleMappedSchema schema)

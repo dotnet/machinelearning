@@ -150,7 +150,7 @@ namespace Microsoft.ML.Runtime.Transforms
             env.CheckValue(input, nameof(input));
 
             var h = EntryPointUtils.CheckArgsAndCreateHost(env, "WordEmbeddings", input);
-            var view = new WordEmbeddingsTransform(h, input, input.Data);
+            var view = WordEmbeddingsTransform.Create(h, input, input.Data);
             return new CommonOutputs.TransformOutput()
             {
                 Model = new TransformModel(h, view, input.Data),

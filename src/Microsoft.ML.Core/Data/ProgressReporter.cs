@@ -17,7 +17,7 @@ namespace Microsoft.ML.Runtime.Data
     public static class ProgressReporting
     {
         /// <summary>
-        /// The progress channel for <see cref="TlcEnvironment"/>.
+        /// The progress channel for <see cref="ConsoleEnvironment"/>.
         /// This is coupled with a <see cref="ProgressTracker"/> that aggregates all events and returns them on demand.
         /// </summary>
         public sealed class ProgressChannel : IProgressChannel

@@ -2,11 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
+using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Command;
 using Microsoft.ML.Runtime.CommandLine;
@@ -20,28 +16,12 @@ using Microsoft.ML.Runtime.Internal.Internallearn;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.Training;
-
-[assembly: LoadableClass(RegressionGamTrainer.Summary,
-    typeof(RegressionGamTrainer), typeof(RegressionGamTrainer.Arguments),
-    new[] { typeof(SignatureRegressorTrainer), typeof(SignatureTrainer), typeof(SignatureFeatureScorerTrainer) },
-    RegressionGamTrainer.UserNameValue,
-    RegressionGamTrainer.LoadNameValue,
-    RegressionGamTrainer.ShortName, DocName = "trainer/GAM.md")]
-
-[assembly: LoadableClass(BinaryClassificationGamTrainer.Summary,
-    typeof(BinaryClassificationGamTrainer), typeof(BinaryClassificationGamTrainer.Arguments),
-    new[] { typeof(SignatureBinaryClassifierTrainer), typeof(SignatureTrainer), typeof(SignatureFeatureScorerTrainer) },
-    BinaryClassificationGamTrainer.UserNameValue,
-    BinaryClassificationGamTrainer.LoadNameValue,
-    BinaryClassificationGamTrainer.ShortName, DocName = "trainer/GAM.md")]
-
-[assembly: LoadableClass(typeof(RegressionGamPredictor), null, typeof(SignatureLoadModel),
-    "GAM Regression Predictor",
-    RegressionGamPredictor.LoaderSignature)]
-
-[assembly: LoadableClass(typeof(BinaryClassGamPredictor), null, typeof(SignatureLoadModel),
-    "GAM Binary Class Predictor",
-    BinaryClassGamPredictor.LoaderSignature)]
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Threading;
+using Timer = Microsoft.ML.Runtime.FastTree.Internal.Timer;
 
 [assembly: LoadableClass(typeof(GamPredictorBase.VisualizationCommand), typeof(GamPredictorBase.VisualizationCommand.Arguments), typeof(SignatureCommand),
     "GAM Vizualization Command", GamPredictorBase.VisualizationCommand.LoadName, "gamviz", DocName = "command/GamViz.md")]
@@ -50,111 +30,16 @@ using Microsoft.ML.Runtime.Training;
 
 namespace Microsoft.ML.Runtime.FastTree
 {
-    using Float = System.Single;
-    using SplitInfo = LeastSquaresRegressionTreeLearner.SplitInfo;
     using AutoResetEvent = System.Threading.AutoResetEvent;
-
-    public sealed class RegressionGamTrainer :
-        GamTrainerBase<RegressionGamTrainer.Arguments, RegressionGamPredictor>
-    {
-        public partial class Arguments : ArgumentsBase
-        {
-        }
-
-        internal const string LoadNameValue = "RegressionGamTrainer";
-        internal const string UserNameValue = "Generalized Additive Model for Regression";
-        internal const string ShortName = "gamr";
-
-        public override PredictionKind PredictionKind => PredictionKind.Regression;
-
-        public RegressionGamTrainer(IHostEnvironment env, Arguments args)
-            : base(env, args) { }
-
-        internal override void CheckLabel(RoleMappedData data)
-        {
-            data.CheckRegressionLabel();
-        }
-
-        private protected override RegressionGamPredictor CreatePredictor()
-        {
-            return new RegressionGamPredictor(Host, InputLength, TrainSet, BinEffects, FeatureMap);
-        }
-
-        protected override ObjectiveFunctionBase CreateObjectiveFunction()
-        {
-            return new FastTreeRegressionTrainer.ObjectiveImpl(TrainSet, Args);
-        }
-    }
-
-    public sealed class BinaryClassificationGamTrainer :
-        GamTrainerBase<BinaryClassificationGamTrainer.Arguments, BinaryClassGamPredictor>
-    {
-        public sealed class Arguments : ArgumentsBase
-        {
-            [Argument(ArgumentType.LastOccurenceWins, HelpText = "Should we use derivatives optimized for unbalanced sets", ShortName = "us")]
-            [TGUI(Label = "Optimize for unbalanced")]
-            public bool UnbalancedSets = false;
-
-            [Argument(ArgumentType.AtMostOnce, HelpText = "The calibrator kind to apply to the predictor. Specify null for no calibration", Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly)]
-            public ICalibratorTrainerFactory Calibrator = new PlattCalibratorTrainerFactory();
-
-            [Argument(ArgumentType.AtMostOnce, HelpText = "The maximum number of examples to use when training the calibrator", Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly)]
-            public int MaxCalibrationExamples = 1000000;
-        }
-
-        internal const string LoadNameValue = "BinaryClassificationGamTrainer";
-        internal const string UserNameValue = "Generalized Additive Model for Binary Classification";
-        internal const string ShortName = "gam";
-
-        public override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
-        private protected override bool NeedCalibration => true;
-
-        public BinaryClassificationGamTrainer(IHostEnvironment env, Arguments args)
-            : base(env, args) { }
-
-        internal override void CheckLabel(RoleMappedData data)
-        {
-            data.CheckBinaryLabel();
-        }
-
-        private bool[] ConvertTargetsToBool(double[] targets)
-        {
-            bool[] boolArray = new bool[targets.Length];
-            int innerLoopSize = 1 + targets.Length / BlockingThreadPool.NumThreads;
-            var actions = new Action[(int)Math.Ceiling(1.0 * targets.Length / innerLoopSize)];
-            var actionIndex = 0;
-            for (int d = 0; d < targets.Length; d += innerLoopSize)
-            {
-                var fromDoc = d;
-                var toDoc = Math.Min(d + innerLoopSize, targets.Length);
-                actions[actionIndex++] = () =>
-                {
-                    for (int doc = fromDoc; doc < toDoc; doc++)
-                        boolArray[doc] = targets[doc] > 0;
-                };
-            }
-            Parallel.Invoke(new ParallelOptions { MaxDegreeOfParallelism = BlockingThreadPool.NumThreads }, actions);
-            return boolArray;
-        }
-
-        private protected override BinaryClassGamPredictor CreatePredictor()
-        {
-            return new BinaryClassGamPredictor(Host, InputLength, TrainSet, BinEffects, FeatureMap);
-        }
-
-        protected override ObjectiveFunctionBase CreateObjectiveFunction()
-        {
-            return new FastTreeBinaryClassificationTrainer.ObjectiveImpl(TrainSet, ConvertTargetsToBool(TrainSet.Targets), Args);
-        }
-
-    }
+    using SplitInfo = LeastSquaresRegressionTreeLearner.SplitInfo;
 
     /// <summary>
     /// Generalized Additive Model Learner.
     /// </summary>
-    public abstract partial class GamTrainerBase<TArgs, TPredictor> : TrainerBase<TPredictor>
-        where TArgs : GamTrainerBase<TArgs, TPredictor>.ArgumentsBase, new()
-        where TPredictor : GamPredictorBase
+    public abstract partial class GamTrainerBase<TArgs, TTransformer, TPredictor> : TrainerEstimatorBase<TTransformer, TPredictor>
+        where TTransformer: ISingleFeaturePredictionTransformer<TPredictor>
+        where TArgs : GamTrainerBase<TArgs, TTransformer, TPredictor>.ArgumentsBase, new()
+        where TPredictor : IPredictorProducing<float>
     {
         public abstract class ArgumentsBase : LearnerInputBaseWithWeight
         {
@@ -201,6 +86,9 @@ namespace Microsoft.ML.Runtime.FastTree
 
             [Argument(ArgumentType.LastOccurenceWins, HelpText = "Whether to collectivize features during dataset preparation to speed up training", ShortName = "flocks", Hide = true)]
             public bool FeatureFlocks = true;
+
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Enable post-training pruning to avoid overfitting. (a validation set is required)", ShortName = "pruning")]
+            public bool EnablePruning = true;
         }
 
         internal const string Summary = "Trains a gradient boosted stump per feature, on all features simultaneously, " +
@@ -208,28 +96,65 @@ namespace Microsoft.ML.Runtime.FastTree
                                          "no interactions between features.";
         private const string RegisterName = "GamTraining";
 
-        //Parameters of Training
-        internal readonly TArgs Args;
+        //Parameters of training
+        protected readonly TArgs Args;
         private readonly double _gainConfidenceInSquaredStandardDeviations;
         private readonly double _entropyCoefficient;
 
-        //Dataset Information
-        internal Dataset TrainSet;
+        //Dataset information
+        protected Dataset TrainSet;
+        protected Dataset ValidSet;
+        /// <summary>
+        /// Whether a validation set was passed in
+        /// </summary>
+        protected bool HasValidSet => ValidSet != null;
+        protected ScoreTracker TrainSetScore;
+        protected ScoreTracker ValidSetScore;
+        protected TestHistory PruningTest;
+        protected int PruningLossIndex;
         protected int InputLength;
         private LeastSquaresRegressionTreeLearner.LeafSplitCandidates _leafSplitCandidates;
         private SufficientStatsBase[] _histogram;
+        private ILeafSplitStatisticsCalculator _leafSplitHelper;
+        private ObjectiveFunctionBase _objectiveFunction;
+        private bool HasWeights => TrainSet?.SampleWeights != null;
 
-        protected bool HasWeights => TrainSet?.SampleWeights != null;
+        // Training datastructures
+        private SubGraph _subGraph;
 
-        //Results of Training
+        //Results of training
+        protected double MeanEffect;
         protected double[][] BinEffects;
         protected int[] FeatureMap;
 
         public override TrainerInfo Info { get; }
         private protected virtual bool NeedCalibration => false;
 
-        private protected GamTrainerBase(IHostEnvironment env, TArgs args)
-            : base(env, RegisterName)
+        protected IParallelTraining ParallelTraining;
+
+        private protected GamTrainerBase(IHostEnvironment env, string name, SchemaShape.Column label, string featureColumn,
+            string weightColumn = null, Action<TArgs> advancedSettings = null)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(name), TrainerUtils.MakeR4VecFeature(featureColumn), label, TrainerUtils.MakeR4ScalarWeightColumn(weightColumn))
+        {
+            Args = new TArgs();
+
+            //apply the advanced args, if the user supplied any
+            advancedSettings?.Invoke(Args);
+            Args.LabelColumn = label.Name;
+
+            if (weightColumn != null)
+                Args.WeightColumn = weightColumn;
+
+            Info = new TrainerInfo(normalization: false, calibration: NeedCalibration, caching: false, supportValid: true);
+            _gainConfidenceInSquaredStandardDeviations = Math.Pow(ProbabilityFunctions.Probit(1 - (1 - Args.GainConfidenceLevel) * 0.5), 2);
+            _entropyCoefficient = Args.EntropyCoefficient * 1e-6;
+
+            InitializeThreads();
+        }
+
+        private protected GamTrainerBase(IHostEnvironment env, TArgs args, string name, SchemaShape.Column label)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(name), TrainerUtils.MakeR4VecFeature(args.FeatureColumn),
+                  label, TrainerUtils.MakeR4ScalarWeightColumn(args.WeightColumn))
         {
             Contracts.CheckValue(env, nameof(env));
             Host.CheckValue(args, nameof(args));
@@ -240,57 +165,63 @@ namespace Microsoft.ML.Runtime.FastTree
             Host.CheckParam(0 <= args.GainConfidenceLevel && args.GainConfidenceLevel < 1, nameof(args.GainConfidenceLevel), "Must be in [0, 1).");
             Host.CheckParam(0 < args.MaxBins, nameof(args.MaxBins), "Must be posittive.");
             Host.CheckParam(0 < args.NumIterations, nameof(args.NumIterations), "Must be positive.");
+            Host.CheckParam(0 < args.MinDocuments, nameof(args.MinDocuments), "Must be positive.");
 
             Args = args;
-            Info = new TrainerInfo(normalization: false, calibration: NeedCalibration, caching: false);
+
+            Info = new TrainerInfo(normalization: false, calibration: NeedCalibration, caching: false, supportValid: true);
             _gainConfidenceInSquaredStandardDeviations = Math.Pow(ProbabilityFunctions.Probit(1 - (1 - Args.GainConfidenceLevel) * 0.5), 2);
             _entropyCoefficient = Args.EntropyCoefficient * 1e-6;
-            int numThreads = args.NumThreads ?? Environment.ProcessorCount;
-            if (Host.ConcurrencyFactor > 0 && numThreads > Host.ConcurrencyFactor)
-            {
-                using (var ch = Host.Start("GamTrainer"))
-                {
-                    numThreads = Host.ConcurrencyFactor;
-                    ch.Warning("The number of threads specified in trainer arguments is larger than the concurrency factor "
-                        + "setting of the environment. Using {0} training threads instead.", numThreads);
-                    ch.Done();
-                }
-            }
 
-            InitializeThreads(numThreads);
+            InitializeThreads();
         }
 
-        public sealed override TPredictor Train(TrainContext context)
+        protected void TrainBase(TrainContext context)
         {
             using (var ch = Host.Start("Training"))
             {
                 ch.CheckValue(context, nameof(context));
-                ConvertData(context.TrainingSet);
+
+                // Create the datasets
+                ConvertData(context.TrainingSet, context.ValidationSet);
+
+                // Define scoring and testing
+                DefineScoreTrackers();
+                if (HasValidSet)
+                    DefinePruningTest();
                 InputLength = context.TrainingSet.Schema.Feature.Type.ValueCount;
+
                 TrainCore(ch);
-                var pred = CreatePredictor();
+
                 ch.Done();
-                return pred;
             }
         }
 
-        private protected abstract TPredictor CreatePredictor();
+        private void DefineScoreTrackers()
+        {
+            TrainSetScore = new ScoreTracker("train", TrainSet, null);
+            if (HasValidSet)
+                ValidSetScore = new ScoreTracker("valid", ValidSet, null);
+        }
+
+        protected abstract void DefinePruningTest();
 
         internal abstract void CheckLabel(RoleMappedData data);
 
-        private void ConvertData(RoleMappedData trainData)
+        private void ConvertData(RoleMappedData trainData, RoleMappedData validationData)
         {
             trainData.CheckFeatureFloatVector();
             trainData.CheckOptFloatWeight();
             CheckLabel(trainData);
 
             var useTranspose = UseTranspose(Args.DiskTranspose, trainData);
-            var instanceConverter = new ExamplesToFastTreeBins(Host, Args.MaxBins, useTranspose, !Args.FeatureFlocks, Args.MinDocuments, Float.PositiveInfinity);
+            var instanceConverter = new ExamplesToFastTreeBins(Host, Args.MaxBins, useTranspose, !Args.FeatureFlocks, Args.MinDocuments, float.PositiveInfinity);
 
-            var parallelTraining = new SingleTrainer();
-            parallelTraining.InitEnvironment();
-            TrainSet = instanceConverter.FindBinsAndReturnDataset(trainData, PredictionKind, parallelTraining, null, false);
+            ParallelTraining.InitEnvironment();
+            TrainSet = instanceConverter.FindBinsAndReturnDataset(trainData, PredictionKind, ParallelTraining, null, false);
             FeatureMap = instanceConverter.FeatureMap;
+            if (validationData != null)
+                ValidSet = instanceConverter.GetCompatibleDataset(validationData, PredictionKind, null, false);
             Host.Assert(FeatureMap == null || FeatureMap.Length == TrainSet.NumFeatures);
         }
 
@@ -315,13 +246,17 @@ namespace Microsoft.ML.Runtime.FastTree
                 using (Timer.Time(TimerEvent.TotalInitialization))
                     Initialize(ch);
                 using (Timer.Time(TimerEvent.TotalTrain))
-                    TrainOnData(ch);
+                    TrainMainEffectsModel(ch);
 
                 ch.Done();
             }
         }
 
-        private void TrainOnData(IChannel ch)
+        /// <summary>
+        /// Training algorithm for the single-feature functions f(x)
+        /// </summary>
+        /// <param name="ch">The channel to write to</param>
+        private void TrainMainEffectsModel(IChannel ch)
         {
             Contracts.AssertValue(ch);
             int iterations = Args.NumIterations;
@@ -330,29 +265,29 @@ namespace Microsoft.ML.Runtime.FastTree
 
             using (var pch = Host.StartProgressChannel("GAM training"))
             {
+                _objectiveFunction = CreateObjectiveFunction();
+                var sumWeights = HasWeights ? TrainSet.SampleWeights.Sum() : 0;
+
                 int iteration = 0;
-                var scores = new double[TrainSet.NumDocs];
-                Array.Clear(scores, 0, scores.Length);
-                var obj = CreateObjectiveFunction();
-
                 pch.SetHeader(new ProgressHeader("iterations"), e => e.SetProgress(0, iteration, iterations));
-
                 for (int i = iteration; iteration < iterations; iteration++)
                 {
                     using (Timer.Time(TimerEvent.Iteration))
                     {
-                        var gradient = obj.GetGradient(ch, scores);
+                        var gradient = _objectiveFunction.GetGradient(ch, TrainSetScore.Scores);
                         var sumTargets = gradient.Sum();
 
-                        SumUpsAcrossFlocks(gradient, sumTargets);
-                        TrainOnEachFeature(gradient, scores, sumTargets);
-                        scores = UpdateScores();
+                        SumUpsAcrossFlocks(gradient, sumTargets, sumWeights);
+                        TrainOnEachFeature(gradient, TrainSetScore.Scores, sumTargets, sumWeights, iteration);
+                        UpdateScores(iteration);
                     }
                 }
             }
+
+            CombineGraphs(ch);
         }
 
-        private void SumUpsAcrossFlocks(double[] gradient, double sumTargets)
+        private void SumUpsAcrossFlocks(double[] gradient, double sumTargets, double sumWeights)
         {
             var sumupTask = ThreadTaskManager.MakeTask(
                (flockIndex) =>
@@ -362,7 +297,7 @@ namespace Microsoft.ML.Runtime.FastTree
                              null,
                              TrainSet.NumDocs,
                              sumTargets,
-                             0,
+                             sumWeights,
                              gradient,
                              TrainSet.SampleWeights,
                              null);
@@ -371,87 +306,210 @@ namespace Microsoft.ML.Runtime.FastTree
             sumupTask.RunTask();
         }
 
-        private void TrainOnEachFeature(double[] gradient, double[] scores, double sumTargets)
+        private void TrainOnEachFeature(double[] gradient, double[] scores, double sumTargets, double sumWeights, int iteration)
         {
             var trainTask = ThreadTaskManager.MakeTask(
                 (feature) =>
                 {
-                    TrainingIteration(feature, gradient, scores, sumTargets);
+                    TrainingIteration(feature, gradient, scores, sumTargets, sumWeights, iteration);
                 }, TrainSet.NumFeatures);
             trainTask.RunTask();
         }
-        private void TrainingIteration(int globalFeatureIndex, double[] gradient, double[] scores, double sumTargets)
+        private void TrainingIteration(int globalFeatureIndex, double[] gradient, double[] scores,
+            double sumTargets, double sumWeights, int iteration)
         {
             int flockIndex;
             int subFeatureIndex;
             TrainSet.MapFeatureToFlockAndSubFeature(globalFeatureIndex, out flockIndex, out subFeatureIndex);
 
-            _histogram[flockIndex].FillSplitCandidates(TrainSet, sumTargets,
-                _leafSplitCandidates, globalFeatureIndex,
-                 0, _gainConfidenceInSquaredStandardDeviations, _entropyCoefficient);
+            // Compute the split for the feature
+            _histogram[flockIndex].FindBestSplitForFeature(_leafSplitHelper, _leafSplitCandidates,
+                _leafSplitCandidates.Targets.Length, sumTargets, sumWeights,
+                globalFeatureIndex, flockIndex, subFeatureIndex, Args.MinDocuments, HasWeights,
+                _gainConfidenceInSquaredStandardDeviations, _entropyCoefficient,
+                TrainSet.Flocks[flockIndex].Trust(subFeatureIndex), 0);
 
+            // Adjust the model
             if (_leafSplitCandidates.FeatureSplitInfo[globalFeatureIndex].Gain > 0)
-                AddOutputsToBins(globalFeatureIndex, flockIndex, subFeatureIndex);
+                ConvertTreeToGraph(globalFeatureIndex, iteration);
         }
 
-        private double[] UpdateScores()
+        /// <summary>
+        /// Update scores for all tracked datasets
+        /// </summary>
+        private void UpdateScores(int iteration)
         {
-            int numThreads = BlockingThreadPool.NumThreads;
-            int extras = TrainSet.NumDocs % numThreads;
-            int documentsPerThread = TrainSet.NumDocs / numThreads;
-            int[] division = new int[numThreads + 1];
-            division[0] = 0;
-            for (int t = 0; t < extras; t++)
-                division[t + 1] = division[t] + documentsPerThread + 1;
-            for (int t = extras; t < numThreads; t++)
-                division[t + 1] = division[t] + documentsPerThread;
+            // Pass scores by reference to be updated and manually trigger the update callbacks
+            UpdateScoresForSet(TrainSet, TrainSetScore.Scores, iteration);
+            TrainSetScore.SendScoresUpdatedMessage();
 
-            var scores = new double[TrainSet.NumDocs];
+            if (HasValidSet)
+            {
+                UpdateScoresForSet(ValidSet, ValidSetScore.Scores, iteration);
+                ValidSetScore.SendScoresUpdatedMessage();
+            }
+        }
+
+        /// <summary>
+        /// Updates the scores for a dataset.
+        /// </summary>
+        /// <param name="dataset">The dataset to use.</param>
+        /// <param name="scores">The current scores for this dataset</param>
+        /// <param name="iteration">The iteration of the algorithm.
+        /// Used to look up the sub-graph to use to update the score.</param>
+        /// <returns></returns>
+        private void UpdateScoresForSet(Dataset dataset, double[] scores, int iteration)
+        {
+            DefineDocumentThreadBlocks(dataset.NumDocs, BlockingThreadPool.NumThreads, out int[] threadBlocks);
+
             var updateTask = ThreadTaskManager.MakeTask(
                 (threadIndex) =>
                 {
-                    int startIndexInclusive = division[threadIndex];
-                    int endIndexExclusive = division[threadIndex + 1];
-                    Array.Clear(scores, startIndexInclusive, endIndexExclusive - startIndexInclusive);
+                    int startIndexInclusive = threadBlocks[threadIndex];
+                    int endIndexExclusive = threadBlocks[threadIndex + 1];
+                    for (int featureIndex = 0; featureIndex < _subGraph.Splits.Length; featureIndex++)
+                    {
+                        var featureIndexer = dataset.GetIndexer(featureIndex);
+                        for (int doc = startIndexInclusive; doc < endIndexExclusive; doc++)
+                        {
+                            if (featureIndexer[doc] <= _subGraph.Splits[featureIndex][iteration].SplitPoint)
+                                scores[doc] += _subGraph.Splits[featureIndex][iteration].LteValue;
+                            else
+                                scores[doc] += _subGraph.Splits[featureIndex][iteration].GtValue;
+                        }
+                    }
+                }, BlockingThreadPool.NumThreads);
+            updateTask.RunTask();
+        }
+
+        /// <summary>
+        /// Combine the single-feature single-tree graphs to a single-feature model
+        /// </summary>
+        private void CombineGraphs(IChannel ch)
+        {
+            // Prune backwards to the best iteration
+            int bestIteration = Args.NumIterations;
+            if (Args.EnablePruning && PruningTest != null)
+            {
+                ch.Info("Pruning");
+                var finalResult = PruningTest.ComputeTests().ToArray()[PruningLossIndex];
+                string lossFunctionName = finalResult.LossFunctionName;
+                double bestLoss = finalResult.FinalValue;
+                if (PruningTest != null)
+                {
+                    bestIteration = PruningTest.BestIteration;
+                    bestLoss = PruningTest.BestResult.FinalValue;
+                }
+                if (bestIteration != Args.NumIterations)
+                    ch.Info($"Best Iteration ({lossFunctionName}): {bestIteration} @ {bestLoss:G6} (vs {Args.NumIterations} @ {finalResult.FinalValue:G6}).");
+                else
+                    ch.Info("No pruning necessary. More iterations may be necessary.");
+            }
+
+            // Combine the graphs to compute the per-feature (binned) Effects
+            BinEffects = new double[TrainSet.NumFeatures][];
+            for (int featureIndex = 0; featureIndex < TrainSet.NumFeatures; featureIndex++)
+            {
+                TrainSet.MapFeatureToFlockAndSubFeature(featureIndex, out int flockIndex, out int subFeatureIndex);
+                int numOfBins = TrainSet.Flocks[flockIndex].BinCount(subFeatureIndex);
+                BinEffects[featureIndex] = new double[numOfBins];
+
+                for (int iteration = 0; iteration < bestIteration; iteration++)
+                {
+                    var splitPoint = _subGraph.Splits[featureIndex][iteration].SplitPoint;
+                    for (int bin = 0; bin <= splitPoint; bin++)
+                        BinEffects[featureIndex][bin] += _subGraph.Splits[featureIndex][iteration].LteValue;
+                    for (int bin = (int)splitPoint + 1; bin < numOfBins; bin++)
+                        BinEffects[featureIndex][bin] += _subGraph.Splits[featureIndex][iteration].GtValue;
+                }
+            }
+
+            // Center the graph around zero
+            CenterGraph();
+        }
+
+        /// <summary>
+        /// Distribute the documents into blocks to be computed on each thread
+        /// </summary>
+        /// <param name="numDocs">The number of documents in the dataset</param>
+        /// <param name="blocks">An array containing the starting point for each thread;
+        /// the next position is the exclusive ending point for the thread.</param>
+        /// <param name="numThreads">The number of threads used.</param>
+        private void DefineDocumentThreadBlocks(int numDocs, int numThreads, out int[] blocks)
+        {
+            int extras = numDocs % numThreads;
+            int documentsPerThread = numDocs / numThreads;
+            blocks = new int[numThreads + 1];
+            blocks[0] = 0;
+            for (int t = 0; t < extras; t++)
+                blocks[t + 1] = blocks[t] + documentsPerThread + 1;
+            for (int t = extras; t < numThreads; t++)
+                blocks[t + 1] = blocks[t] + documentsPerThread;
+        }
+
+        /// <summary>
+        /// Center the graph using the mean response per feature on the training set.
+        /// </summary>
+        private void CenterGraph()
+        {
+            // Define this once
+            DefineDocumentThreadBlocks(TrainSet.NumDocs, BlockingThreadPool.NumThreads, out int[] trainThreadBlocks);
+
+            // Compute the mean of each Effect
+            var meanEffects = new double[BinEffects.Length];
+            var updateTask = ThreadTaskManager.MakeTask(
+                (threadIndex) =>
+                {
+                    int startIndexInclusive = trainThreadBlocks[threadIndex];
+                    int endIndexExclusive = trainThreadBlocks[threadIndex + 1];
                     for (int featureIndex = 0; featureIndex < BinEffects.Length; featureIndex++)
                     {
                         var featureIndexer = TrainSet.GetIndexer(featureIndex);
-                        var binEffect = BinEffects[featureIndex];
                         for (int doc = startIndexInclusive; doc < endIndexExclusive; doc++)
-                            scores[doc] += binEffect[featureIndexer[doc]];
+                        {
+                            var bin = featureIndexer[doc];
+                            double totalEffect;
+                            double newTotalEffect;
+                            do
+                            {
+                                totalEffect = meanEffects[featureIndex];
+                                newTotalEffect = totalEffect + BinEffects[featureIndex][bin];
+
+                            } while (totalEffect !=
+                                     Interlocked.CompareExchange(ref meanEffects[featureIndex], newTotalEffect, totalEffect));
+                            // Update the shared effect, being careful of threading
+                        }
                     }
-                }, numThreads);
+                }, BlockingThreadPool.NumThreads);
             updateTask.RunTask();
-            return scores;
+
+            // Compute the intercept and center each graph
+            MeanEffect = 0.0;
+            for (int featureIndex = 0; featureIndex < BinEffects.Length; featureIndex++)
+            {
+                // Compute the mean effect
+                meanEffects[featureIndex] /= TrainSet.NumDocs;
+
+                // Shift the mean from the bins into the intercept
+                MeanEffect += meanEffects[featureIndex];
+                for (int bin=0; bin < BinEffects[featureIndex].Length; ++bin)
+                    BinEffects[featureIndex][bin] -= meanEffects[featureIndex];
+            }
         }
 
-        private void AddOutputsToBins(int globalFeatureIndex, int flockIndex, int subFeatureIndex)
+        private void ConvertTreeToGraph(int globalFeatureIndex, int iteration)
         {
-            int numOfBins = TrainSet.Flocks[flockIndex].BinCount(subFeatureIndex);
             SplitInfo splitinfo = _leafSplitCandidates.FeatureSplitInfo[globalFeatureIndex];
-            double lessThanEffect = splitinfo.LteOutput * Args.LearningRates;
-            double greaterThanEffect = splitinfo.GTOutput * Args.LearningRates;
-
-            var binEffect = BinEffects[globalFeatureIndex];
-            for (int bin = 0; bin <= splitinfo.Threshold; bin++)
-                binEffect[bin] += lessThanEffect;
-            for (int bin = (int)splitinfo.Threshold + 1; bin < numOfBins; bin++)
-                binEffect[bin] += greaterThanEffect;
+            _subGraph.Splits[globalFeatureIndex][iteration].SplitPoint = splitinfo.Threshold;
+            _subGraph.Splits[globalFeatureIndex][iteration].LteValue = Args.LearningRates * splitinfo.LteOutput;
+            _subGraph.Splits[globalFeatureIndex][iteration].GtValue = Args.LearningRates * splitinfo.GTOutput;
         }
 
         private void InitializeGamHistograms()
         {
             _histogram = new SufficientStatsBase[TrainSet.Flocks.Length];
-            BinEffects = new double[TrainSet.NumFeatures][];
             for (int i = 0; i < TrainSet.Flocks.Length; i++)
                 _histogram[i] = TrainSet.Flocks[i].CreateSufficientStats(HasWeights);
-            for (int i = 0; i < TrainSet.NumFeatures; i++)
-            {
-                int flockIndex;
-                int subFeatureIndex;
-                TrainSet.MapFeatureToFlockAndSubFeature(i, out flockIndex, out subFeatureIndex);
-                BinEffects[i] = new double[TrainSet.Flocks[flockIndex].BinCount(subFeatureIndex)];
-            }
         }
 
         private void Initialize(IChannel ch)
@@ -459,107 +517,117 @@ namespace Microsoft.ML.Runtime.FastTree
             using (Timer.Time(TimerEvent.InitializeTraining))
             {
                 InitializeGamHistograms();
+                _subGraph = new SubGraph(TrainSet.NumFeatures, Args.NumIterations);
                 _leafSplitCandidates = new LeastSquaresRegressionTreeLearner.LeafSplitCandidates(TrainSet);
+                _leafSplitHelper = new LeafSplitHelper(HasWeights);
             }
         }
 
-        private void InitializeThreads(int numThreads)
+        private void InitializeThreads()
         {
+            ParallelTraining = new SingleTrainer();
+
+            int numThreads = Args.NumThreads ?? Environment.ProcessorCount;
+            if (Host.ConcurrencyFactor > 0 && numThreads > Host.ConcurrencyFactor)
+                using (var ch = Host.Start("GamTrainer"))
+                {
+                    numThreads = Host.ConcurrencyFactor;
+                    ch.Warning("The number of threads specified in trainer arguments is larger than the concurrency factor "
+                        + "setting of the environment. Using {0} training threads instead.", numThreads);
+                    ch.Done();
+                }
+
             ThreadTaskManager.Initialize(numThreads);
         }
 
         protected abstract ObjectiveFunctionBase CreateObjectiveFunction();
-    }
 
-    public class BinaryClassGamPredictor : GamPredictorBase
-    {
-        public const string LoaderSignature = "BinaryClassGamPredictor";
-        public override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
-
-        public BinaryClassGamPredictor(IHostEnvironment env, int inputLength, Dataset trainset, double[][] binEffects, int[] featureMap = null)
-            : base(env, LoaderSignature, inputLength, trainset, binEffects, featureMap) { }
-
-        private BinaryClassGamPredictor(IHostEnvironment env, ModelLoadContext ctx)
-            : base(env, LoaderSignature, ctx) { }
-
-        public static VersionInfo GetVersionInfo()
+        private class LeafSplitHelper : ILeafSplitStatisticsCalculator
         {
-            return new VersionInfo(
-                modelSignature: "GAM BINP",
-                verWrittenCur: 0x00010001,
-                verReadableCur: 0x00010001,
-                verWeCanReadBack: 0x00010001,
-                loaderSignature: LoaderSignature);
+            private bool _hasWeights;
+
+            public LeafSplitHelper(bool hasWeights)
+            {
+                _hasWeights = hasWeights;
+            }
+
+            /// <summary>
+            /// Returns the split gain for a particular leaf. Used on two leaves to calculate
+            /// the squared error gain for a particular leaf.
+            /// </summary>
+            /// <param name="count">Number of documents in this leaf</param>
+            /// <param name="sumTargets">Sum of the target values for this leaf</param>
+            /// <param name="sumWeights">Sum of the weights for this leaf, not meaningful if
+            /// <see cref="HasWeights"/> is <c>false</c></param>
+            /// <returns>The gain in least squared error</returns>
+            public double GetLeafSplitGain(int count, double sumTargets, double sumWeights)
+            {
+                if (!_hasWeights)
+                    return (sumTargets * sumTargets) / count;
+                return -4.0 * (Math.Abs(sumTargets) + sumWeights);
+            }
+
+            /// <summary>
+            /// Calculates the output value for a leaf after splitting.
+            /// </summary>
+            /// <param name="count">Number of documents in this leaf</param>
+            /// <param name="sumTargets">Sum of the target values for this leaf</param>
+            /// <param name="sumWeights">Sum of the weights for this leaf, not meaningful if
+            /// <see cref="HasWeights"/> is <c>false</c></param>
+            /// <returns>The output value for a leaf</returns>
+            public double CalculateSplittedLeafOutput(int count, double sumTargets, double sumWeights)
+            {
+                if (!_hasWeights)
+                    return sumTargets / count;
+                Contracts.Assert(sumWeights != 0);
+                return sumTargets / sumWeights;
+            }
         }
 
-        public static BinaryClassGamPredictor Create(IHostEnvironment env, ModelLoadContext ctx)
+        private struct SubGraph
         {
-            Contracts.CheckValue(env, nameof(env));
-            env.CheckValue(ctx, nameof(ctx));
-            ctx.CheckAtModel(GetVersionInfo());
 
-            return new BinaryClassGamPredictor(env, ctx);
-        }
+            public Stump[][] Splits;
 
-        public override void Save(ModelSaveContext ctx)
-        {
-            Host.CheckValue(ctx, nameof(ctx));
-            ctx.CheckAtModel();
-            ctx.SetVersionInfo(GetVersionInfo());
-            base.Save(ctx);
-        }
-    }
+            public SubGraph(int numFeatures, int numIterations)
+            {
+                Splits = new Stump[numFeatures][];
+                for (int i =0; i < numFeatures; ++i)
+                {
+                    Splits[i] = new Stump[numIterations];
+                    for (int j = 0; j < numIterations; j++)
+                        Splits[i][j] = new Stump(0, 0, 0);
+                }
+            }
 
-    public class RegressionGamPredictor : GamPredictorBase
-    {
-        public const string LoaderSignature = "RegressionGamPredictor";
-        public override PredictionKind PredictionKind => PredictionKind.Regression;
+            public struct Stump
+            {
+                public uint SplitPoint;
+                public double LteValue;
+                public double GtValue;
 
-        public RegressionGamPredictor(IHostEnvironment env, int inputLength, Dataset trainset, double[][] binEffects, int[] featureMap = null)
-            : base(env, LoaderSignature, inputLength, trainset, binEffects, featureMap) { }
-
-        private RegressionGamPredictor(IHostEnvironment env, ModelLoadContext ctx)
-            : base(env, LoaderSignature, ctx) { }
-
-        public static VersionInfo GetVersionInfo()
-        {
-            return new VersionInfo(
-                modelSignature: "GAM REGP",
-                verWrittenCur: 0x00010001,
-                verReadableCur: 0x00010001,
-                verWeCanReadBack: 0x00010001,
-                loaderSignature: LoaderSignature);
-        }
-
-        public static RegressionGamPredictor Create(IHostEnvironment env, ModelLoadContext ctx)
-        {
-            Contracts.CheckValue(env, nameof(env));
-            env.CheckValue(ctx, nameof(ctx));
-            ctx.CheckAtModel(GetVersionInfo());
-
-            return new RegressionGamPredictor(env, ctx);
-        }
-
-        public override void Save(ModelSaveContext ctx)
-        {
-            Host.CheckValue(ctx, nameof(ctx));
-            ctx.CheckAtModel();
-            ctx.SetVersionInfo(GetVersionInfo());
-            base.Save(ctx);
+                public Stump(uint splitPoint, double lteValue, double gtValue)
+                {
+                    SplitPoint = splitPoint;
+                    LteValue = lteValue;
+                    GtValue = gtValue;
+                }
+            }
         }
     }
 
-    public abstract class GamPredictorBase : PredictorBase<Float>,
-        IValueMapper, ICanSaveModel, ICanSaveInTextFormat
+    public abstract class GamPredictorBase : PredictorBase<float>,
+        IValueMapper, ICanSaveModel, ICanSaveInTextFormat, ICanSaveSummary
     {
         private readonly double[][] _binUpperBounds;
         private readonly double[][] _binEffects;
+        private readonly double _intercept;
         private readonly int _numFeatures;
         private readonly ColumnType _inputType;
         // These would be the bins for a totally sparse input.
-        private readonly int[] _baseBins;
-        // The base output would be the output from a totally sparse input.
-        private readonly double _baseOutput;
+        private readonly int[] _binsAtAllZero;
+        // The output value for all zeros
+        private readonly double _valueAtAllZero;
 
         private readonly int[] _featureMap;
         private readonly int _inputLength;
@@ -569,7 +637,8 @@ namespace Microsoft.ML.Runtime.FastTree
 
         public ColumnType OutputType => NumberType.Float;
 
-        private protected GamPredictorBase(IHostEnvironment env, string name, int inputLength, Dataset trainSet, double[][] binEffects, int[] featureMap)
+        private protected GamPredictorBase(IHostEnvironment env, string name,
+            int inputLength, Dataset trainSet, double meanEffect, double[][] binEffects, int[] featureMap)
             : base(env, name)
         {
             Host.CheckValue(trainSet, nameof(trainSet));
@@ -583,6 +652,8 @@ namespace Microsoft.ML.Runtime.FastTree
             _numFeatures = binEffects.Length;
             _inputType = new VectorType(NumberType.Float, _inputLength);
             _featureMap = featureMap;
+
+            _intercept = meanEffect;
 
             //No features were filtered.
             if (_featureMap == null)
@@ -603,7 +674,7 @@ namespace Microsoft.ML.Runtime.FastTree
             _binEffects = new double[_numFeatures][];
             var newBinEffects = new List<double>();
             var newBinBoundaries = new List<double>();
-            _baseBins = new int[_numFeatures];
+            _binsAtAllZero = new int[_numFeatures];
 
             for (int i = 0; i < _numFeatures; i++)
             {
@@ -623,11 +694,14 @@ namespace Microsoft.ML.Runtime.FastTree
                         value = element;
                     }
                 }
+
                 newBinBoundaries.Add(binUpperBound[binEffect.Length - 1]);
                 newBinEffects.Add(binEffect[binEffect.Length - 1]);
                 _binUpperBounds[i] = newBinBoundaries.ToArray();
+
+                // Center the effect around 0, and move the mean into the intercept
                 _binEffects[i] = newBinEffects.ToArray();
-                _baseOutput += GetBinEffect(i, 0, out _baseBins[i]);
+                _valueAtAllZero += _binEffects[i][0];
                 newBinEffects.Clear();
                 newBinBoundaries.Clear();
             }
@@ -644,11 +718,11 @@ namespace Microsoft.ML.Runtime.FastTree
             Host.CheckDecode(_numFeatures >= 0);
             _inputLength = reader.ReadInt32();
             Host.CheckDecode(_inputLength >= 0);
-            _baseOutput = reader.ReadDouble();
+            _intercept = reader.ReadDouble();
 
             _binEffects = new double[_numFeatures][];
             _binUpperBounds = new double[_numFeatures][];
-            _baseBins = new int[_numFeatures];
+            _binsAtAllZero = new int[_numFeatures];
             for (int i = 0; i < _numFeatures; i++)
             {
                 _binEffects[i] = reader.ReadDoubleArray();
@@ -661,7 +735,7 @@ namespace Microsoft.ML.Runtime.FastTree
                 // but due to differences in JIT over time and other considerations,
                 // it's possible that the sum may change even in the absence of
                 // model corruption.
-                GetBinEffect(i, 0, out _baseBins[i]);
+                _valueAtAllZero += GetBinEffect(i, 0, out _binsAtAllZero[i]);
             }
             int len = reader.ReadInt32();
             Host.CheckDecode(len >= 0);
@@ -691,7 +765,7 @@ namespace Microsoft.ML.Runtime.FastTree
             Host.Assert(_numFeatures >= 0);
             ctx.Writer.Write(_inputLength);
             Host.Assert(_inputLength >= 0);
-            ctx.Writer.Write(_baseOutput);
+            ctx.Writer.Write(_intercept);
             for (int i = 0; i < _numFeatures; i++)
                 ctx.Writer.WriteDoubleArray(_binEffects[i]);
             int diff = _binEffects.Sum(e => e.Take(e.Length - 1).Select((ef, i) => ef != e[i + 1] ? 1 : 0).Sum());
@@ -712,38 +786,39 @@ namespace Microsoft.ML.Runtime.FastTree
 
         public ValueMapper<TIn, TOut> GetMapper<TIn, TOut>()
         {
-            Host.Check(typeof(TIn) == typeof(VBuffer<Float>));
-            Host.Check(typeof(TOut) == typeof(Float));
+            Host.Check(typeof(TIn) == typeof(VBuffer<float>));
+            Host.Check(typeof(TOut) == typeof(float));
 
-            ValueMapper<VBuffer<Float>, Float> del = Map;
+            ValueMapper<VBuffer<float>, float> del = Map;
             return (ValueMapper<TIn, TOut>)(Delegate)del;
         }
 
-        private void Map(ref VBuffer<Float> src, ref Float dst)
+        private void Map(ref VBuffer<float> features, ref float response)
         {
-            Host.CheckParam(src.Length == _inputLength, nameof(src), "Bad length of input");
-            double output;
-            if (src.IsDense)
+            Host.CheckParam(features.Length == _inputLength, nameof(features), "Bad length of input");
+
+            double value = _intercept;
+            if (features.IsDense)
             {
-                output = 0;
-                for (int i = 0; i < src.Count; ++i)
+                for (int i = 0; i < features.Count; ++i)
                 {
-                    int j;
-                    if (_inputFeatureToDatasetFeatureMap.TryGetValue(i, out j))
-                        output += GetBinEffect(j, src.Values[i]);
+                    if (_inputFeatureToDatasetFeatureMap.TryGetValue(i, out int j))
+                        value += GetBinEffect(j, features.Values[i]);
                 }
             }
             else
             {
-                output = _baseOutput;
-                for (int i = 0; i < src.Count; ++i)
+                // Add in the precomputed results for all features
+                value += _valueAtAllZero;
+                for (int i = 0; i < features.Count; ++i)
                 {
-                    int j;
-                    if (_inputFeatureToDatasetFeatureMap.TryGetValue(src.Indices[i], out j))
-                        output += GetBinEffect(j, src.Values[i]) - GetBinEffect(j, 0);
+                    if (_inputFeatureToDatasetFeatureMap.TryGetValue(features.Indices[i], out int j))
+                        // Add the value and subtract the value at zero that was previously accounted for
+                        value += GetBinEffect(j, features.Values[i]) - GetBinEffect(j, 0);
                 }
             }
-            dst = (Float)output;
+
+            response = (float)value;
         }
 
         /// <summary>
@@ -751,56 +826,82 @@ namespace Microsoft.ML.Runtime.FastTree
         /// <paramref name="builder"/> is used as a buffer to accumulate the contributions across trees.
         /// If <paramref name="builder"/> is null, it will be created, otherwise it will be reused.
         /// </summary>
-        internal void GetFeatureContributions(ref VBuffer<Float> features, ref VBuffer<Float> contribs, ref BufferBuilder<Float> builder)
+        internal void GetFeatureContributions(ref VBuffer<float> features, ref VBuffer<float> contribs, ref BufferBuilder<float> builder)
         {
             if (builder == null)
                 builder = new BufferBuilder<float>(R4Adder.Instance);
-            builder.Reset(features.Length, false);
 
-            for (int h = 0; h < _binEffects.Length; h++)
-                builder.AddFeature(h, (float)GetBinEffect(h, features.Values[h]));
+            // The model is Intercept + Features
+            builder.Reset(features.Length + 1, false);
+            builder.AddFeature(0, (float)_intercept);
 
-            return;
-        }
-
-        internal double GetFeatureBinsAndScore(ref VBuffer<Float> features, int[] bins)
-        {
-            Host.CheckParam(features.Length == _inputLength, nameof(features));
-            Host.CheckParam(Utils.Size(bins) == _numFeatures, nameof(bins));
-
-            double output;
             if (features.IsDense)
             {
-                output = 0;
                 for (int i = 0; i < features.Count; ++i)
                 {
-                    int j;
-                    if (_inputFeatureToDatasetFeatureMap.TryGetValue(i, out j))
-                    {
-                        int binIndex;
-                        output += GetBinEffect(j, features.Values[i], out binIndex);
-                        bins[j] = binIndex;
-                    }
+                    if (_inputFeatureToDatasetFeatureMap.TryGetValue(i, out int j))
+                        builder.AddFeature(i+1, (float) GetBinEffect(j, features.Values[i]));
                 }
             }
             else
             {
-                output = _baseOutput;
-                Array.Copy(_baseBins, bins, _numFeatures);
-
-                for (int i = 0; i < features.Count; ++i)
+                int k = -1;
+                int index = features.Indices[++k];
+                for (int i = 0; i < _numFeatures; ++i)
                 {
-                    int j;
-                    // Where we have a sparse output,
-                    if (_inputFeatureToDatasetFeatureMap.TryGetValue(features.Indices[i], out j))
+                    if (_inputFeatureToDatasetFeatureMap.TryGetValue(i, out int j))
                     {
-                        int index = Algorithms.FindFirstGE(_binUpperBounds[j], features.Values[i]);
-                        output += _binEffects[j][index];
-                        bins[j] = index;
+                        double value;
+                        if (i == index)
+                        {
+                            // Get the computed value
+                            value = GetBinEffect(j, features.Values[index]);
+                            // Increment index to the next feature
+                            if (k < features.Indices.Length - 1)
+                                index = features.Indices[++k];
+                        }
+                        else
+                            // For features not defined, the impact is the impact at 0
+                            value = GetBinEffect(i, 0);
+                        builder.AddFeature(i + 1, (float)value);
                     }
                 }
             }
-            return output;
+
+            builder.GetResult(ref contribs);
+
+            return;
+        }
+
+        internal double GetFeatureBinsAndScore(ref VBuffer<float> features, int[] bins)
+        {
+            Host.CheckParam(features.Length == _inputLength, nameof(features));
+            Host.CheckParam(Utils.Size(bins) == _numFeatures, nameof(bins));
+
+            double value = _intercept;
+            if (features.IsDense)
+            {
+                for (int i = 0; i < features.Count; ++i)
+                {
+                    if (_inputFeatureToDatasetFeatureMap.TryGetValue(i, out int j))
+                        value += GetBinEffect(j, features.Values[i], out bins[j]);
+                }
+            }
+            else
+            {
+                // Add in the precomputed results for all features
+                value += _valueAtAllZero;
+                Array.Copy(_binsAtAllZero, bins, _numFeatures);
+
+                // Update the results for features we have
+                for (int i = 0; i < features.Count; ++i)
+                {
+                    if (_inputFeatureToDatasetFeatureMap.TryGetValue(features.Indices[i], out int j))
+                        // Add the value and subtract the value at zero that was previously accounted for
+                        value += GetBinEffect(j, features.Values[i], out bins[j]) - GetBinEffect(j, 0);
+                }
+            }
+            return value;
         }
 
         private double GetBinEffect(int featureIndex, double featureValue)
@@ -823,27 +924,30 @@ namespace Microsoft.ML.Runtime.FastTree
             Host.CheckValueOrNull(schema);
 
             writer.WriteLine("\xfeffFeature index table"); // add BOM to tell excel this is UTF-8
-            writer.WriteLine($"Number of features:\t{_numFeatures:D}");
+            writer.WriteLine($"Number of features:\t{_numFeatures+1:D}");
             writer.WriteLine("Feature Index\tFeature Name");
 
             // REVIEW: We really need some unit tests around text exporting (for this, and other learners).
             // A useful test in this case would be a model trained with:
             // maml.exe train data=Samples\breast-cancer-withheader.txt loader=text{header+ col=Label:0 col=F1:1-4 col=F2:4 col=F3:5-*}
             //    xf =expr{col=F2 expr=x:0.0} xf=concat{col=Features:F1,F2,F3} tr=gam out=bubba2.zip
+            // Write out the intercept
+            writer.WriteLine("-1\tIntercept");
 
-            var names = default(VBuffer<DvText>);
+            var names = default(VBuffer<ReadOnlyMemory<char>>);
             MetadataUtils.GetSlotNames(schema, RoleMappedSchema.ColumnRole.Feature, _inputLength, ref names);
 
             for (int internalIndex = 0; internalIndex < _numFeatures; internalIndex++)
             {
                 int featureIndex = _featureMap[internalIndex];
                 var name = names.GetItemOrDefault(featureIndex);
-                writer.WriteLine(name.HasChars ? "{0}\t{1}" : "{0}\tFeature {0}", featureIndex, name);
+                writer.WriteLine(!name.IsEmpty ? "{0}\t{1}" : "{0}\tFeature {0}", featureIndex, name);
             }
 
             writer.WriteLine();
             writer.WriteLine("Per feature binned effects:");
             writer.WriteLine("Feature Index\tFeature Value Bin Upper Bound\tOutput (effect on label)");
+            writer.WriteLine($"{-1:D}\t{float.MaxValue:R}\t{_intercept:R}");
             for (int internalIndex = 0; internalIndex < _numFeatures; internalIndex++)
             {
                 int featureIndex = _featureMap[internalIndex];
@@ -853,6 +957,11 @@ namespace Microsoft.ML.Runtime.FastTree
                 for (int i = 0; i < effects.Length; ++i)
                     writer.WriteLine($"{featureIndex:D}\t{boundaries[i]:R}\t{effects[i]:R}");
             }
+        }
+
+        public void SaveSummary(TextWriter writer, RoleMappedSchema schema)
+        {
+            SaveAsText(writer, schema);
         }
 
         /// <summary>
@@ -907,7 +1016,7 @@ namespace Microsoft.ML.Runtime.FastTree
                 private readonly GamPredictorBase _pred;
                 private readonly RoleMappedData _data;
 
-                private readonly VBuffer<DvText> _featNames;
+                private readonly VBuffer<ReadOnlyMemory<char>> _featNames;
                 // The scores.
                 private readonly float[] _scores;
                 // The labels.
@@ -951,7 +1060,7 @@ namespace Microsoft.ML.Runtime.FastTree
                     if (schema.Schema.HasSlotNames(schema.Feature.Index, len))
                         schema.Schema.GetMetadata(MetadataUtils.Kinds.SlotNames, schema.Feature.Index, ref _featNames);
                     else
-                        _featNames = VBufferUtils.CreateEmpty<DvText>(len);
+                        _featNames = VBufferUtils.CreateEmpty<ReadOnlyMemory<char>>(len);
 
                     var numFeatures = _pred._binEffects.Length;
                     _binDocsList = new List<int>[numFeatures][];
@@ -1019,7 +1128,7 @@ namespace Microsoft.ML.Runtime.FastTree
                         var deltaEffect = effect - effects[bin];
                         effects[bin] = effect;
                         foreach (var docIndex in _binDocsList[internalIndex][bin])
-                            _scores[docIndex] += (Float)deltaEffect;
+                            _scores[docIndex] += (float)deltaEffect;
                         return checked(++_version);
                     }
                 }
@@ -1302,8 +1411,7 @@ namespace Microsoft.ML.Runtime.FastTree
             return LearnerEntryPointsUtils.Train<BinaryClassificationGamTrainer.Arguments, CommonOutputs.BinaryClassificationOutput>(host, input,
                 () => new BinaryClassificationGamTrainer(host, input),
                 () => LearnerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.LabelColumn),
-                () => LearnerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.WeightColumn),
-                calibrator: input.Calibrator, maxCalibrationExamples: input.MaxCalibrationExamples);
+                () => LearnerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.WeightColumn));
         }
     }
 }

@@ -473,19 +473,19 @@ namespace Microsoft.ML.Runtime.Data
             {
                 var colInfo = _parent._columns[iinfo];
                 var result = new ColumnMetadataInfo(colInfo.Output);
-                result.Add(MetadataUtils.Kinds.IsNormalized, new MetadataInfo<DvBool>(BoolType.Instance, IsNormalizedGetter));
+                result.Add(MetadataUtils.Kinds.IsNormalized, new MetadataInfo<bool>(BoolType.Instance, IsNormalizedGetter));
                 if (InputSchema.HasSlotNames(ColMapNewToOld[iinfo], colInfo.InputType.VectorSize))
                 {
-                    MetadataUtils.MetadataGetter<VBuffer<DvText>> getter = (int col, ref VBuffer<DvText> slotNames) =>
+                    MetadataUtils.MetadataGetter<VBuffer<ReadOnlyMemory<char>>> getter = (int col, ref VBuffer<ReadOnlyMemory<char>> slotNames) =>
                         InputSchema.GetMetadata(MetadataUtils.Kinds.SlotNames, ColMapNewToOld[iinfo], ref slotNames);
                     var metaType = InputSchema.GetMetadataTypeOrNull(MetadataUtils.Kinds.SlotNames, ColMapNewToOld[iinfo]);
                     Contracts.AssertValue(metaType);
-                    result.Add(MetadataUtils.Kinds.SlotNames, new MetadataInfo<VBuffer<DvText>>(metaType, getter));
+                    result.Add(MetadataUtils.Kinds.SlotNames, new MetadataInfo<VBuffer<ReadOnlyMemory<char>>>(metaType, getter));
                 }
                 return result;
             }
 
-            private void IsNormalizedGetter(int col, ref DvBool dst)
+            private void IsNormalizedGetter(int col, ref bool dst)
             {
                 dst = true;
             }

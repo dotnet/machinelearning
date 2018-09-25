@@ -53,7 +53,7 @@ namespace Microsoft.ML.Runtime.Learners
         }
 
         public AveragedPerceptronTrainer(IHostEnvironment env, Arguments args)
-            : base(args, env, UserNameValue, MakeLabelColumn(args.LabelColumn))
+            : base(args, env, UserNameValue, TrainerUtils.MakeBoolScalarLabel(args.LabelColumn))
         {
             _args = args;
             LossFunction = _args.LossFunction.CreateComponent(env);
@@ -92,11 +92,6 @@ namespace Microsoft.ML.Runtime.Learners
 
             if (!labelCol.IsKey && labelCol.ItemType != NumberType.R4 && labelCol.ItemType != NumberType.R8 && !labelCol.ItemType.IsBool)
                 error();
-        }
-
-        private static SchemaShape.Column MakeLabelColumn(string labelColumn)
-        {
-            return new SchemaShape.Column(labelColumn, SchemaShape.Column.VectorKind.Scalar, BoolType.Instance, false);
         }
 
         protected override LinearBinaryPredictor CreatePredictor()

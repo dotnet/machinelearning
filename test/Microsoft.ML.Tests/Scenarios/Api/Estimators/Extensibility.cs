@@ -5,6 +5,7 @@
 using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Learners;
+using Microsoft.ML.Runtime.RunTests;
 using System;
 using System.Linq;
 using Xunit;
@@ -22,8 +23,9 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         [Fact]
         void New_Extensibility()
         {
-            var dataPath = GetDataPath(IrisDataPath);
-            using (var env = new TlcEnvironment())
+            var dataPath = GetDataPath(TestDatasets.irisData.trainFilename);
+
+            using (var env = new LocalEnvironment())
             {
                 var data = new TextLoader(env, MakeIrisTextLoaderArgs())
                     .Read(new MultiFileSource(dataPath));

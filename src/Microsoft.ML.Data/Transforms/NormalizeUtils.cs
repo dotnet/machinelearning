@@ -11,7 +11,7 @@ using Microsoft.ML.Runtime.Model.Onnx;
 using Microsoft.ML.Runtime.Model.Pfa;
 using Newtonsoft.Json.Linq;
 using System.Collections.Generic;
-using Microsoft.ML.Data.StaticPipe.Runtime;
+using Microsoft.ML.StaticPipe;
 
 [assembly: LoadableClass(typeof(void), typeof(Normalize), null, typeof(SignatureEntryPointModule), "Normalize")]
 
@@ -146,7 +146,6 @@ namespace Microsoft.ML.Runtime.Data
             EntryPointNode node)
         {
             var schema = input.Data.Schema;
-            DvBool isNormalized = DvBool.False;
             var columnsToNormalize = new List<NormalizeTransform.AffineColumn>();
             foreach (var column in input.Column)
             {

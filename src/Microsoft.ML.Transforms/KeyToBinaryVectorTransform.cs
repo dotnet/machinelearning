@@ -2,22 +2,23 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using Microsoft.ML.Core.Data;
-using Microsoft.ML.Data.StaticPipe.Runtime;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
+using Microsoft.ML.StaticPipe;
+using Microsoft.ML.StaticPipe.Runtime;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 
 [assembly: LoadableClass(KeyToBinaryVectorTransform.Summary, typeof(IDataTransform), typeof(KeyToBinaryVectorTransform), typeof(KeyToBinaryVectorTransform.Arguments), typeof(SignatureDataTransform),
-    "Key To Binary Vector Transform", KeyToBinaryVectorTransform.UserName, "KeyToBinary", "ToVector", DocName = "transform/KeyToBinaryVectorTransform.md")]
+    "Key To Binary Vector Transform", KeyToBinaryVectorTransform.UserName, "KeyToBinary", "ToBinaryVector", DocName = "transform/KeyToBinaryVectorTransform.md")]
 
-[assembly: LoadableClass(KeyToBinaryVectorTransform.Summary, typeof(IDataView), typeof(KeyToBinaryVectorTransform), null, typeof(SignatureLoadDataTransform),
+[assembly: LoadableClass(KeyToBinaryVectorTransform.Summary, typeof(IDataTransform), typeof(KeyToBinaryVectorTransform), null, typeof(SignatureLoadDataTransform),
     "Key To Binary Vector Transform", KeyToBinaryVectorTransform.LoaderSignature)]
 
 [assembly: LoadableClass(KeyToBinaryVectorTransform.Summary, typeof(KeyToBinaryVectorTransform), null, typeof(SignatureLoadModel),
@@ -69,6 +70,7 @@ namespace Microsoft.ML.Runtime.Data
             Contracts.CheckValue(columns, nameof(columns));
             return columns.Select(x => (x.Input, x.Output)).ToArray();
         }
+
         public IReadOnlyCollection<ColumnInfo> Columns => _columns.AsReadOnly();
         private readonly ColumnInfo[] _columns;
 
@@ -209,7 +211,7 @@ namespace Microsoft.ML.Runtime.Data
                     if (!inputSchema.TryGetColumnIndex(_parent.ColumnPairs[i].input, out int colSrc))
                         throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", _parent.ColumnPairs[i].input);
                     var type = inputSchema.GetColumnType(colSrc);
-
+                    _parent.CheckInputColumn(inputSchema, i, colSrc);
                     infos[i] = new ColInfo(_parent.ColumnPairs[i].output, _parent.ColumnPairs[i].input, type);
                 }
                 return infos;
@@ -246,46 +248,46 @@ namespace Microsoft.ML.Runtime.Data
                 {
                     if (typeNames != null)
                     {
-                        MetadataUtils.MetadataGetter<VBuffer<DvText>> getter = (int col, ref VBuffer<DvText> dst) =>
+                        MetadataUtils.MetadataGetter<VBuffer<ReadOnlyMemory<char>>> getter = (int col, ref VBuffer<ReadOnlyMemory<char>> dst) =>
                         {
                             GenerateBitSlotName(i, ref dst);
                         };
-                        var info = new MetadataInfo<VBuffer<DvText>>(new VectorType(TextType.Instance, _types[i]), getter);
+                        var info = new MetadataInfo<VBuffer<ReadOnlyMemory<char>>>(new VectorType(TextType.Instance, _types[i]), getter);
                         colMetaInfo.Add(MetadataUtils.Kinds.SlotNames, info);
                     }
-                    MetadataUtils.MetadataGetter<DvBool> normalizeGetter = (int col, ref DvBool dst) =>
+                    MetadataUtils.MetadataGetter<bool> normalizeGetter = (int col, ref bool dst) =>
                     {
                         dst = true;
                     };
-                    var normalizeInfo = new MetadataInfo<DvBool>(BoolType.Instance, normalizeGetter);
+                    var normalizeInfo = new MetadataInfo<bool>(BoolType.Instance, normalizeGetter);
                     colMetaInfo.Add(MetadataUtils.Kinds.IsNormalized, normalizeInfo);
                 }
                 else
                 {
                     if (typeNames != null && _types[i].IsKnownSizeVector)
                     {
-                        MetadataUtils.MetadataGetter<VBuffer<DvText>> getter = (int col, ref VBuffer<DvText> dst) =>
+                        MetadataUtils.MetadataGetter<VBuffer<ReadOnlyMemory<char>>> getter = (int col, ref VBuffer<ReadOnlyMemory<char>> dst) =>
                         {
                             GetSlotNames(i, ref dst);
                         };
-                        var info = new MetadataInfo<VBuffer<DvText>>(new VectorType(TextType.Instance, _types[i]), getter);
+                        var info = new MetadataInfo<VBuffer<ReadOnlyMemory<char>>>(new VectorType(TextType.Instance, _types[i]), getter);
                         colMetaInfo.Add(MetadataUtils.Kinds.SlotNames, info);
                     }
                 }
             }
 
-            private void GenerateBitSlotName(int iinfo, ref VBuffer<DvText> dst)
+            private void GenerateBitSlotName(int iinfo, ref VBuffer<ReadOnlyMemory<char>> dst)
             {
                 const string slotNamePrefix = "Bit";
-                var bldr = new BufferBuilder<DvText>(TextCombiner.Instance);
+                var bldr = new BufferBuilder<ReadOnlyMemory<char>>(TextCombiner.Instance);
                 bldr.Reset(_bitsPerKey[iinfo], true);
                 for (int i = 0; i < _bitsPerKey[iinfo]; i++)
-                    bldr.AddFeature(i, new DvText(slotNamePrefix + (_bitsPerKey[iinfo] - i - 1)));
+                    bldr.AddFeature(i, (slotNamePrefix + (_bitsPerKey[iinfo] - i - 1)).AsMemory());
 
                 bldr.GetResult(ref dst);
             }
 
-            private void GetSlotNames(int iinfo, ref VBuffer<DvText> dst)
+            private void GetSlotNames(int iinfo, ref VBuffer<ReadOnlyMemory<char>> dst)
             {
                 Host.Assert(0 <= iinfo && iinfo < _infos.Length);
                 Host.Assert(_types[iinfo].IsKnownSizeVector);
@@ -295,7 +297,7 @@ namespace Microsoft.ML.Runtime.Data
                 Host.Assert(typeSrc.VectorSize > 1);
 
                 // Get the source slot names, defaulting to empty text.
-                var namesSlotSrc = default(VBuffer<DvText>);
+                var namesSlotSrc = default(VBuffer<ReadOnlyMemory<char>>);
                 InputSchema.TryGetColumnIndex(_infos[iinfo].Source, out int srcCol);
                 Host.Assert(srcCol >= 0);
                 var typeSlotSrc = InputSchema.GetMetadataTypeOrNull(MetadataUtils.Kinds.SlotNames, srcCol);
@@ -305,25 +307,25 @@ namespace Microsoft.ML.Runtime.Data
                     Host.Check(namesSlotSrc.Length == typeSrc.VectorSize);
                 }
                 else
-                    namesSlotSrc = VBufferUtils.CreateEmpty<DvText>(typeSrc.VectorSize);
+                    namesSlotSrc = VBufferUtils.CreateEmpty<ReadOnlyMemory<char>>(typeSrc.VectorSize);
 
                 int slotLim = _types[iinfo].VectorSize;
                 Host.Assert(slotLim == (long)typeSrc.VectorSize * _bitsPerKey[iinfo]);
 
                 var values = dst.Values;
                 if (Utils.Size(values) < slotLim)
-                    values = new DvText[slotLim];
+                    values = new ReadOnlyMemory<char>[slotLim];
 
                 var sb = new StringBuilder();
                 int slot = 0;
-                VBuffer<DvText> bits = default;
+                VBuffer<ReadOnlyMemory<char>> bits = default;
                 GenerateBitSlotName(iinfo, ref bits);
                 foreach (var kvpSlot in namesSlotSrc.Items(all: true))
                 {
                     Contracts.Assert(slot == (long)kvpSlot.Key * _bitsPerKey[iinfo]);
                     sb.Clear();
-                    if (kvpSlot.Value.HasChars)
-                        kvpSlot.Value.AddToStringBuilder(sb);
+                    if (!kvpSlot.Value.IsEmpty)
+                        sb.AppendMemory(kvpSlot.Value);
                     else
                         sb.Append('[').Append(kvpSlot.Key).Append(']');
                     sb.Append('.');
@@ -332,13 +334,13 @@ namespace Microsoft.ML.Runtime.Data
                     foreach (var key in bits.Values)
                     {
                         sb.Length = len;
-                        key.AddToStringBuilder(sb);
-                        values[slot++] = new DvText(sb.ToString());
+                        sb.AppendMemory(key);
+                        values[slot++] = sb.ToString().AsMemory();
                     }
                 }
                 Host.Assert(slot == slotLim);
 
-                dst = new VBuffer<DvText>(slotLim, values, dst.Indices);
+                dst = new VBuffer<ReadOnlyMemory<char>>(slotLim, values, dst.Indices);
             }
 
             protected override Delegate MakeGetter(IRow input, int iinfo, out Action disposer)
@@ -446,7 +448,7 @@ namespace Microsoft.ML.Runtime.Data
         {
         }
 
-        public KeyToBinaryVectorEstimator(IHostEnvironment env, KeyToBinaryVectorTransform transformer)
+        private KeyToBinaryVectorEstimator(IHostEnvironment env, KeyToBinaryVectorTransform transformer)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(KeyToBinaryVectorEstimator)), transformer)
         {
         }
