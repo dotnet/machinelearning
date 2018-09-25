@@ -6,6 +6,7 @@
 
   <PropertyGroup>
     <Configuration Condition="'$(Configuration)'==''">Debug</Configuration>
+    <Configurations>Debug;Release;Debug-Intrinsics;Release-Intrinsics</Configurations>
     <Platform Condition="'$(Platform)'==''">AnyCPU</Platform>
     <NativeTargetArchitecture Condition="'$(NativeTargetArchitecture)' == ''">x64</NativeTargetArchitecture>
     <PlatformConfig>$(Platform).$(Configuration)</PlatformConfig>
