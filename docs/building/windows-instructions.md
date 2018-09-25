@@ -5,10 +5,11 @@ You can build ML.NET either via the command line or by using Visual Studio.
 
 ## Required Software
 
-1. **[Visual Studio 2017](https://www.visualstudio.com/downloads/) (Community, Professional, Enterprise)**.  The Community version is completely free.
+1. **[Visual Studio 2017](https://www.visualstudio.com/downloads/) (Community, Professional, Enterprise)** version 18.5.4 or higher. The Community version is completely free.
 2. **[CMake](https://cmake.org/)** must be installed from [the CMake download page](https://cmake.org/download/#latest) and added to your path.
 
 ### Visual Studio 2017
+The minimum supported Visual Studio version is 15.8.4.
 
 #### Visual Studio 2017 - 'Workloads' based install
 
