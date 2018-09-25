@@ -42,6 +42,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             var pipeline = new RandomizedPcaTrainer(Env, featureColumn, rank:10);
 
             TestEstimatorCore(pipeline, data);
+            Done();
         }
 
         private (IEstimator<ITransformer>, IDataView) GetBinaryClassificationPipeline()
