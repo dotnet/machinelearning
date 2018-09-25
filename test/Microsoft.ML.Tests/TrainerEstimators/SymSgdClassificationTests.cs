@@ -15,7 +15,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         [Fact]
         public void TestEstimatorSymSgdClassificationTrainer()
         {
-            (IEstimator<ITransformer> pipe, IDataView dataView) = GetBinaryClassificationPipeline();
+            (var pipe, var dataView) = GetBinaryClassificationPipeline();
             pipe.Append(new SymSgdClassificationTrainer(Env, "Features", "Label"));
             TestEstimatorCore(pipe, dataView);
             Done();

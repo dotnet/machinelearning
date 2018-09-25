@@ -158,12 +158,10 @@ namespace Microsoft.ML.Runtime.SymSgd
         /// <param name="env">The private instance of <see cref="IHostEnvironment"/>.</param>
         /// <param name="labelColumn">The name of the label column.</param>
         /// <param name="featureColumn">The name of the feature column.</param>
-        /// <param name="weightColumn">The name for the column containing the initial weight.</param>
         /// <param name="advancedSettings">A delegate to apply all the advanced arguments to the algorithm.</param>
-        public SymSgdClassificationTrainer(IHostEnvironment env, string featureColumn, string labelColumn,
-            string weightColumn = null, Action<Arguments> advancedSettings = null)
+        public SymSgdClassificationTrainer(IHostEnvironment env, string featureColumn, string labelColumn, Action<Arguments> advancedSettings = null)
             : base(Contracts.CheckRef(env, nameof(env)).Register(LoadNameValue), TrainerUtils.MakeR4VecFeature(featureColumn),
-                  TrainerUtils.MakeBoolScalarLabel(labelColumn), TrainerUtils.MakeR4ScalarWeightColumn(weightColumn))
+                  TrainerUtils.MakeBoolScalarLabel(labelColumn))
         {
             _args = new Arguments();
 
@@ -181,7 +179,7 @@ namespace Microsoft.ML.Runtime.SymSgd
         /// </summary>
         internal SymSgdClassificationTrainer(IHostEnvironment env, Arguments args)
             : base(Contracts.CheckRef(env, nameof(env)).Register(LoadNameValue), TrainerUtils.MakeR4VecFeature(args.FeatureColumn),
-                  TrainerUtils.MakeBoolScalarLabel(args.LabelColumn), TrainerUtils.MakeR4ScalarWeightColumn(null))
+                  TrainerUtils.MakeBoolScalarLabel(args.LabelColumn))
         {
             args.Check(Host);
             _args = args;
