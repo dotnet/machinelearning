@@ -15,11 +15,17 @@ using Microsoft.ML.Runtime.Ensemble.OutputCombiners;
 using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.EntryPoints.JsonUtils;
 using Microsoft.ML.Runtime.FastTree;
+using Microsoft.ML.Runtime.ImageAnalytics;
 using Microsoft.ML.Runtime.Internal.Calibration;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Learners;
+using Microsoft.ML.Runtime.LightGBM;
+using Microsoft.ML.Runtime.Model.Onnx;
 using Microsoft.ML.Runtime.PCA;
+using Microsoft.ML.Runtime.PipelineInference;
+using Microsoft.ML.Runtime.SymSgd;
 using Microsoft.ML.Runtime.TextAnalytics;
+using Microsoft.ML.Transforms;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Xunit;
@@ -237,37 +243,19 @@ namespace Microsoft.ML.Runtime.RunTests
         [Fact(Skip = "Execute this test if you want to regenerate ep-list and _manifest.json")]
         public void RegenerateEntryPointCatalog()
         {
+            var (epListContents, jObj) = BuildManifests();
+
             var buildPrefix = GetBuildPrefix();
             var epListFile = buildPrefix + "_ep-list.tsv";
-            var manifestFile = buildPrefix + "_manifest.json";
 
             var entryPointsSubDir = Path.Combine("..", "Common", "EntryPoints");
             var catalog = ModuleCatalog.CreateInstance(Env);
             var epListPath = GetBaselinePath(entryPointsSubDir, epListFile);
             DeleteOutputPath(epListPath);
 
-            var regex = new Regex(@"\r\n?|\n", RegexOptions.Compiled);
-            File.WriteAllLines(epListPath, catalog.AllEntryPoints()
-                .Select(x => string.Join("\t",
-                x.Name,
-                regex.Replace(x.Description, ""),
-                x.Method.DeclaringType,
-                x.Method.Name,
-                x.InputType,
-                x.OutputType)
-                .Replace(Environment.NewLine, ""))
-                .OrderBy(x => x));
+            File.WriteAllLines(epListPath, epListContents);
 
-
-            var jObj = JsonManifestUtils.BuildAllManifests(Env, catalog);
-
-            //clean up the description from the new line characters
-            if (jObj[FieldNames.TopEntryPoints] != null && jObj[FieldNames.TopEntryPoints] is JArray)
-            {
-                foreach (JToken entry in jObj[FieldNames.TopEntryPoints].Children())
-                    if (entry[FieldNames.Desc] != null)
-                        entry[FieldNames.Desc] = regex.Replace(entry[FieldNames.Desc].ToString(), "");
-            }
+            var manifestFile = buildPrefix + "_manifest.json";
             var manifestPath = GetBaselinePath(entryPointsSubDir, manifestFile);
             DeleteOutputPath(manifestPath);
 
@@ -280,42 +268,23 @@ namespace Microsoft.ML.Runtime.RunTests
             }
         }
 
-
         [Fact]
         public void EntryPointCatalog()
         {
+            var (epListContents, jObj) = BuildManifests();
+
             var buildPrefix = GetBuildPrefix();
             var epListFile = buildPrefix + "_ep-list.tsv";
-            var manifestFile = buildPrefix + "_manifest.json";
 
             var entryPointsSubDir = Path.Combine("..", "Common", "EntryPoints");
             var catalog = ModuleCatalog.CreateInstance(Env);
             var path = DeleteOutputPath(entryPointsSubDir, epListFile);
 
-            var regex = new Regex(@"\r\n?|\n", RegexOptions.Compiled);
-            File.WriteAllLines(path, catalog.AllEntryPoints()
-                .Select(x => string.Join("\t",
-                x.Name,
-                regex.Replace(x.Description, ""),
-                x.Method.DeclaringType,
-                x.Method.Name,
-                x.InputType,
-                x.OutputType)
-                .Replace(Environment.NewLine, ""))
-                .OrderBy(x => x));
+            File.WriteAllLines(path, epListContents);
 
             CheckEquality(entryPointsSubDir, epListFile);
 
-            var jObj = JsonManifestUtils.BuildAllManifests(Env, catalog);
-
-            //clean up the description from the new line characters
-            if (jObj[FieldNames.TopEntryPoints] != null && jObj[FieldNames.TopEntryPoints] is JArray)
-            {
-                foreach (JToken entry in jObj[FieldNames.TopEntryPoints].Children())
-                    if (entry[FieldNames.Desc] != null)
-                        entry[FieldNames.Desc] = regex.Replace(entry[FieldNames.Desc].ToString(), "");
-            }
-
+            var manifestFile = buildPrefix + "_manifest.json";
             var jPath = DeleteOutputPath(entryPointsSubDir, manifestFile);
             using (var file = File.OpenWrite(jPath))
             using (var writer = new StreamWriter(file))
@@ -329,12 +298,48 @@ namespace Microsoft.ML.Runtime.RunTests
             Done();
         }
 
+        private (IEnumerable<string> epListContents, JObject manifest) BuildManifests()
+        {
+            Env.ComponentCatalog.RegisterAssembly(typeof(LightGbmBinaryPredictor).Assembly);
+            Env.ComponentCatalog.RegisterAssembly(typeof(TensorFlowTransform).Assembly);
+            Env.ComponentCatalog.RegisterAssembly(typeof(ImageLoaderTransform).Assembly);
+            Env.ComponentCatalog.RegisterAssembly(typeof(SymSgdClassificationTrainer).Assembly);
+            Env.ComponentCatalog.RegisterAssembly(typeof(AutoInference).Assembly);
+            Env.ComponentCatalog.RegisterAssembly(typeof(SaveOnnxCommand).Assembly);
+
+            var catalog = ModuleCatalog.CreateInstance(Env);
+
+            var regex = new Regex(@"\r\n?|\n", RegexOptions.Compiled);
+            var epListContents = catalog.AllEntryPoints()
+                .Select(x => string.Join("\t",
+                x.Name,
+                regex.Replace(x.Description, ""),
+                x.Method.DeclaringType,
+                x.Method.Name,
+                x.InputType,
+                x.OutputType)
+                .Replace(Environment.NewLine, ""))
+                .OrderBy(x => x);
+
+            var manifest = JsonManifestUtils.BuildAllManifests(Env, catalog);
+
+            //clean up the description from the new line characters
+            if (manifest[FieldNames.TopEntryPoints] != null && manifest[FieldNames.TopEntryPoints] is JArray)
+            {
+                foreach (JToken entry in manifest[FieldNames.TopEntryPoints].Children())
+                    if (entry[FieldNames.Desc] != null)
+                        entry[FieldNames.Desc] = regex.Replace(entry[FieldNames.Desc].ToString(), "");
+            }
+
+            return (epListContents, manifest);
+        }
+
         [Fact]
         public void EntryPointInputBuilderOptionals()
         {
-            var catelog = ModuleCatalog.CreateInstance(Env);
+            var catalog = ModuleCatalog.CreateInstance(Env);
 
-            InputBuilder ib1 = new InputBuilder(Env, typeof(LogisticRegression.Arguments), catelog);
+            InputBuilder ib1 = new InputBuilder(Env, typeof(LogisticRegression.Arguments), catalog);
             // Ensure that InputBuilder unwraps the Optional<string> correctly.
             var weightType = ib1.GetFieldTypeOrNull("WeightColumn");
             Assert.True(weightType.Equals(typeof(string)));
@@ -1794,12 +1799,14 @@ namespace Microsoft.ML.Runtime.RunTests
         [Fact]
         public void EntryPointLightGbmBinary()
         {
+            Env.ComponentCatalog.RegisterAssembly(typeof(LightGbmBinaryPredictor).Assembly);
             TestEntryPointRoutine("breast-cancer.txt", "Trainers.LightGbmBinaryClassifier");
         }
 
         [Fact]
         public void EntryPointLightGbmMultiClass()
         {
+            Env.ComponentCatalog.RegisterAssembly(typeof(LightGbmBinaryPredictor).Assembly);
             TestEntryPointRoutine(GetDataPath(@"iris.txt"), "Trainers.LightGbmClassifier");
         }
 
@@ -3728,12 +3735,14 @@ namespace Microsoft.ML.Runtime.RunTests
         [Fact]
         public void EntryPointTensorFlowTransform()
         {
+            Env.ComponentCatalog.RegisterAssembly(typeof(TensorFlowTransform).Assembly);
+
             TestEntryPointPipelineRoutine(GetDataPath("Train-Tiny-28x28.txt"), "col=Label:R4:0 col=Placeholder:R4:1-784",
                 new[] { "Transforms.TensorFlowScorer" },
                 new[]
                 {
                     @"'InputColumns': [ 'Placeholder' ],
-                      'ModelFile': 'mnist_model/frozen_saved_model.pb',
+                      'Model': 'mnist_model/frozen_saved_model.pb',
                       'OutputColumns': [ 'Softmax' ]"
                 });
         }

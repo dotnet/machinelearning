@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Data.StaticPipe;
-using Microsoft.ML.Data.StaticPipe.Runtime;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
@@ -598,62 +596,37 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         /// <summary>
-        /// Evaluates scored regression data.
+        /// Evaluates scored multiclass classification data.
         /// </summary>
-        /// <typeparam name="T">The shape type for the input data.</typeparam>
-        /// <typeparam name="TKey">The value type for the key label.</typeparam>
-        /// <param name="data">The data to evaluate.</param>
-        /// <param name="label">The index delegate for the label column.</param>
-        /// <param name="pred">The index delegate for columns from prediction of a multi-class classifier.
-        /// Under typical scenarios, this will just be the same tuple of results returned from the trainer.</param>
-        /// <param name="topK">If given a positive value, the <see cref="Result.TopKAccuracy"/> will be filled with
-        /// the top-K accuracy, that is, the accuracy assuming we consider an example with the correct class within
-        /// the top-K values as being stored "correctly."</param>
+        /// <param name="data">The scored data.</param>
+        /// <param name="label">The name of the label column in <paramref name="data"/>.</param>
+        /// <param name="score">The name of the score column in <paramref name="data"/>.</param>
+        /// <param name="predictedLabel">The name of the predicted label column in <paramref name="data"/>.</param>
         /// <returns>The evaluation results for these outputs.</returns>
-        public static Result Evaluate<T, TKey>(
-            DataView<T> data,
-            Func<T, Key<uint, TKey>> label,
-            Func<T, (Vector<float> score, Key<uint, TKey> predictedLabel)> pred,
-            int topK = 0)
+        public Result Evaluate(IDataView data, string label, string score, string predictedLabel)
         {
-            Contracts.CheckValue(data, nameof(data));
-            var env = StaticPipeUtils.GetEnvironment(data);
-            Contracts.AssertValue(env);
-            env.CheckValue(label, nameof(label));
-            env.CheckValue(pred, nameof(pred));
-            env.CheckParam(topK >= 0, nameof(topK), "Must not be negative.");
+            Host.CheckValue(data, nameof(data));
+            Host.CheckNonEmpty(label, nameof(label));
+            Host.CheckNonEmpty(score, nameof(score));
+            Host.CheckNonEmpty(predictedLabel, nameof(predictedLabel));
 
-            var indexer = StaticPipeUtils.GetIndexer(data);
-            string labelName = indexer.Get(label(indexer.Indices));
-            (var scoreCol, var predCol) = pred(indexer.Indices);
-            Contracts.CheckParam(scoreCol != null, nameof(pred), "Indexing delegate resulted in null score column.");
-            Contracts.CheckParam(predCol != null, nameof(pred), "Indexing delegate resulted in null predicted label column.");
-            string scoreName = indexer.Get(scoreCol);
-            string predName = indexer.Get(predCol);
+            var roles = new RoleMappedData(data, opt: false,
+                RoleMappedSchema.ColumnRole.Label.Bind(label),
+                RoleMappedSchema.CreatePair(MetadataUtils.Const.ScoreValueKind.Score, score),
+                RoleMappedSchema.CreatePair(MetadataUtils.Const.ScoreValueKind.PredictedLabel, predictedLabel));
 
-            var args = new Arguments() { };
-            if (topK > 0)
-                args.OutputTopKAcc = topK;
-
-            var eval = new MultiClassClassifierEvaluator(env, args);
-
-            var roles = new RoleMappedData(data.AsDynamic, opt: false,
-                RoleMappedSchema.ColumnRole.Label.Bind(labelName),
-                RoleMappedSchema.CreatePair(MetadataUtils.Const.ScoreValueKind.Score, scoreName),
-                RoleMappedSchema.CreatePair(MetadataUtils.Const.ScoreValueKind.PredictedLabel, predName));
-
-            var resultDict = eval.Evaluate(roles);
-            env.Assert(resultDict.ContainsKey(MetricKinds.OverallMetrics));
+            var resultDict = Evaluate(roles);
+            Host.Assert(resultDict.ContainsKey(MetricKinds.OverallMetrics));
             var overall = resultDict[MetricKinds.OverallMetrics];
 
             Result result;
             using (var cursor = overall.GetRowCursor(i => true))
             {
                 var moved = cursor.MoveNext();
-                env.Assert(moved);
-                result = new Result(env, cursor, topK);
+                Host.Assert(moved);
+                result = new Result(Host, cursor, _outputTopKAcc ?? 0);
                 moved = cursor.MoveNext();
-                env.Assert(!moved);
+                Host.Assert(!moved);
             }
             return result;
         }
@@ -671,7 +644,8 @@ namespace Microsoft.ML.Runtime.Data
                 verWrittenCur: 0x00010002, // Serialize the class names
                 verReadableCur: 0x00010002,
                 verWeCanReadBack: 0x00010001,
-                loaderSignature: LoaderSignature);
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(MultiClassPerInstanceEvaluator).Assembly.FullName);
         }
 
         private const int AssignedCol = 0;

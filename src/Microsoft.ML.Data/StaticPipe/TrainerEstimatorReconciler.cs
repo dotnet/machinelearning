@@ -9,7 +9,7 @@ using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Internal.Utilities;
 
-namespace Microsoft.ML.Data.StaticPipe.Runtime
+namespace Microsoft.ML.StaticPipe.Runtime
 {
     /// <summary>
     /// General purpose reconciler for a typical case with trainers, where they accept some generally
@@ -19,7 +19,7 @@ namespace Microsoft.ML.Data.StaticPipe.Runtime
     /// </summary>
     public abstract class TrainerEstimatorReconciler : EstimatorReconciler
     {
-        private readonly PipelineColumn[] _inputs;
+        protected readonly PipelineColumn[] Inputs;
         private readonly string[] _outputNames;
 
         /// <summary>
@@ -38,7 +38,7 @@ namespace Microsoft.ML.Data.StaticPipe.Runtime
             Contracts.CheckValue(inputs, nameof(inputs));
             Contracts.CheckValue(outputNames, nameof(outputNames));
 
-            _inputs = inputs;
+            Inputs = inputs;
             _outputNames = outputNames;
         }
 
@@ -71,7 +71,7 @@ namespace Microsoft.ML.Data.StaticPipe.Runtime
             env.AssertValue(usedNames);
 
             // The reconciler should have been called with all the input columns having names.
-            env.Assert(inputNames.Keys.All(_inputs.Contains) && _inputs.All(inputNames.Keys.Contains));
+            env.Assert(inputNames.Keys.All(Inputs.Contains) && Inputs.All(inputNames.Keys.Contains));
             // The output name map should contain only outputs as their keys. Yet, it is possible not all
             // outputs will be required in which case these will both be subsets of those outputs indicated
             // at construction.
@@ -105,7 +105,7 @@ namespace Microsoft.ML.Data.StaticPipe.Runtime
             }
 
             // Map the inputs to the names.
-            string[] mappedInputNames = _inputs.Select(c => inputNames[c]).ToArray();
+            string[] mappedInputNames = Inputs.Select(c => inputNames[c]).ToArray();
             // Finally produce the trainer.
             var trainerEst = ReconcileCore(env, mappedInputNames);
             if (result == null)
@@ -172,7 +172,7 @@ namespace Microsoft.ML.Data.StaticPipe.Runtime
             {
                 Contracts.CheckValue(estimatorFactory, nameof(estimatorFactory));
                 _estFact = estimatorFactory;
-                Contracts.Assert(_inputs.Length == 2 || _inputs.Length == 3);
+                Contracts.Assert(Inputs.Length == 2 || Inputs.Length == 3);
                 Score = new Impl(this);
             }
 
@@ -182,13 +182,13 @@ namespace Microsoft.ML.Data.StaticPipe.Runtime
             protected override IEstimator<ITransformer> ReconcileCore(IHostEnvironment env, string[] inputNames)
             {
                 Contracts.AssertValue(env);
-                env.Assert(Utils.Size(inputNames) == _inputs.Length);
+                env.Assert(Utils.Size(inputNames) == Inputs.Length);
                 return _estFact(env, inputNames[0], inputNames[1], inputNames.Length > 2 ? inputNames[2] : null);
             }
 
             private sealed class Impl : Scalar<float>
             {
-                public Impl(Regression rec) : base(rec, rec._inputs) { }
+                public Impl(Regression rec) : base(rec, rec.Inputs) { }
             }
         }
 
@@ -231,7 +231,7 @@ namespace Microsoft.ML.Data.StaticPipe.Runtime
             {
                 Contracts.CheckValue(estimatorFactory, nameof(estimatorFactory));
                 _estFact = estimatorFactory;
-                Contracts.Assert(_inputs.Length == 2 || _inputs.Length == 3);
+                Contracts.Assert(Inputs.Length == 2 || Inputs.Length == 3);
 
                 Output = (new Impl(this), new Impl(this), new ImplBool(this));
             }
@@ -242,18 +242,18 @@ namespace Microsoft.ML.Data.StaticPipe.Runtime
             protected override IEstimator<ITransformer> ReconcileCore(IHostEnvironment env, string[] inputNames)
             {
                 Contracts.AssertValue(env);
-                env.Assert(Utils.Size(inputNames) == _inputs.Length);
+                env.Assert(Utils.Size(inputNames) == Inputs.Length);
                 return _estFact(env, inputNames[0], inputNames[1], inputNames.Length > 2 ? inputNames[2] : null);
             }
 
             private sealed class Impl : Scalar<float>
             {
-                public Impl(BinaryClassifier rec) : base(rec, rec._inputs) { }
+                public Impl(BinaryClassifier rec) : base(rec, rec.Inputs) { }
             }
 
             private sealed class ImplBool : Scalar<bool>
             {
-                public ImplBool(BinaryClassifier rec) : base(rec, rec._inputs) { }
+                public ImplBool(BinaryClassifier rec) : base(rec, rec.Inputs) { }
             }
         }
 
@@ -306,7 +306,7 @@ namespace Microsoft.ML.Data.StaticPipe.Runtime
             {
                 Contracts.CheckValue(estimatorFactory, nameof(estimatorFactory));
                 _estFact = estimatorFactory;
-                Contracts.Assert(_inputs.Length == 2 || _inputs.Length == 3);
+                Contracts.Assert(Inputs.Length == 2 || Inputs.Length == 3);
 
                 Output = (new Impl(this), new ImplBool(this));
 
@@ -322,18 +322,18 @@ namespace Microsoft.ML.Data.StaticPipe.Runtime
             protected override IEstimator<ITransformer> ReconcileCore(IHostEnvironment env, string[] inputNames)
             {
                 Contracts.AssertValue(env);
-                env.Assert(Utils.Size(inputNames) == _inputs.Length);
+                env.Assert(Utils.Size(inputNames) == Inputs.Length);
                 return _estFact(env, inputNames[0], inputNames[1], inputNames.Length > 2 ? inputNames[2] : null);
             }
 
             private sealed class Impl : Scalar<float>
             {
-                public Impl(BinaryClassifierNoCalibration rec) : base(rec, rec._inputs) { }
+                public Impl(BinaryClassifierNoCalibration rec) : base(rec, rec.Inputs) { }
             }
 
             private sealed class ImplBool : Scalar<bool>
             {
-                public ImplBool(BinaryClassifierNoCalibration rec) : base(rec, rec._inputs) { }
+                public ImplBool(BinaryClassifierNoCalibration rec) : base(rec, rec.Inputs) { }
             }
         }
 
@@ -378,7 +378,7 @@ namespace Microsoft.ML.Data.StaticPipe.Runtime
             {
                 Contracts.CheckValue(estimatorFactory, nameof(estimatorFactory));
                 _estFact = estimatorFactory;
-                Contracts.Assert(_inputs.Length == 2 || _inputs.Length == 3);
+                Contracts.Assert(Inputs.Length == 2 || Inputs.Length == 3);
                 Output = (new ImplScore(this), new ImplLabel(this));
             }
 
@@ -388,18 +388,18 @@ namespace Microsoft.ML.Data.StaticPipe.Runtime
             protected override IEstimator<ITransformer> ReconcileCore(IHostEnvironment env, string[] inputNames)
             {
                 Contracts.AssertValue(env);
-                env.Assert(Utils.Size(inputNames) == _inputs.Length);
+                env.Assert(Utils.Size(inputNames) == Inputs.Length);
                 return _estFact(env, inputNames[0], inputNames[1], inputNames.Length > 2 ? inputNames[2] : null);
             }
 
             private sealed class ImplLabel : Key<uint, TVal>
             {
-                public ImplLabel(MulticlassClassifier<TVal> rec) : base(rec, rec._inputs) { }
+                public ImplLabel(MulticlassClassifier<TVal> rec) : base(rec, rec.Inputs) { }
             }
 
             private sealed class ImplScore : Vector<float>
             {
-                public ImplScore(MulticlassClassifier<TVal> rec) : base(rec, rec._inputs) { }
+                public ImplScore(MulticlassClassifier<TVal> rec) : base(rec, rec.Inputs) { }
             }
         }
 
