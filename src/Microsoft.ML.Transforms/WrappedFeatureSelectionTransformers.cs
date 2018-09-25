@@ -23,7 +23,7 @@ namespace Microsoft.ML.Transforms
         /// <param name="inputColumn">The input column to apply feature selection on.</param>
         /// <param name="outputColumn">The output column. Null means <paramref name="inputColumn"/> is used.</param>
         /// <param name="count">If the count of non-default values for a slot is greater than or equal to this threshold, the slot is preserved.</param>
-        public CountFeatureSelector(IHostEnvironment env, string inputColumn, string outputColumn = null, long count = 1)
+        public CountFeatureSelector(IHostEnvironment env, string inputColumn, string outputColumn = null, long count = CountFeatureSelectionTransform.Defaults.Count)
             : this(env, new[] { (inputColumn, outputColumn ?? inputColumn) }, count)
         {
         }
@@ -32,7 +32,7 @@ namespace Microsoft.ML.Transforms
         /// <param name="env">The environment.</param>
         /// <param name="count">If the count of non-default values for a slot is greater than or equal to this threshold, the slot is preserved.</param>
         /// <param name="columns">Columns to use for feature selection.</param>
-        public CountFeatureSelector(IHostEnvironment env, (string input, string output)[] columns, long count = 1)
+        public CountFeatureSelector(IHostEnvironment env, (string input, string output)[] columns, long count = CountFeatureSelectionTransform.Defaults.Count)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(CountFeatureSelector)))
         {
             _count = count;
@@ -65,7 +65,7 @@ namespace Microsoft.ML.Transforms
         /// <param name="outputColumn">The output column. Null means <paramref name="inputColumn"/> is used.</param>
         /// <param name="labelColumn">Column to use for labels.</param>
         /// <param name="slotsInOutput">The maximum number of slots to preserve in output.</param>
-        /// <param name="numBins">Max number of bins for R4/R8 columns, power of 2 recommended.</param>
+        /// <param name="numBins">Max number of bins for float/double columns, power of 2 recommended.</param>
         public MutualInformationFeatureSelector(IHostEnvironment env,
             string inputColumn,
             string outputColumn = null,
@@ -80,7 +80,7 @@ namespace Microsoft.ML.Transforms
         /// <param name="env">The environment.</param>
         /// <param name="labelColumn">Column to use for labels.</param>
         /// <param name="slotsInOutput">The maximum number of slots to preserve in output.</param>
-        /// <param name="numBins">Max number of bins for R4/R8 columns, power of 2 recommended.</param>
+        /// <param name="numBins">Max number of bins for float/double columns, power of 2 recommended.</param>
         /// <param name="columns">Columns to use for feature selection.</param>
         public MutualInformationFeatureSelector(IHostEnvironment env,
             (string input, string output)[] columns,
@@ -97,11 +97,8 @@ namespace Microsoft.ML.Transforms
 
         public override TransformWrapper Fit(IDataView input)
         {
-            var dataview = CopyColumnsTransform.Create(Host, new CopyColumnsTransform.Arguments()
-            {
-                Column = _columns.Select(x => new CopyColumnsTransform.Column { Source = x.input, Name = x.output }).ToArray(),
-            }, input);
-
+            var copyColumn = new CopyColumnsEstimator(Host, _columns);
+            var dataview = copyColumn.Fit(input).Transform(input);
             var names = _columns.Select(x => x.output).ToArray();
             return new TransformWrapper(Host, MutualInformationFeatureSelectionTransform.Create(Host, dataview, _labelColumn, _slotsInOutput, _numBins, names));
         }
@@ -138,7 +135,7 @@ namespace Microsoft.ML.Transforms
                 IReadOnlyDictionary<PipelineColumn, string> outputNames,
                 IReadOnlyCollection<string> usedNames)
             {
-                Contracts.Assert(toOutput.Length == 1);
+                env.Assert(toOutput.Length == 1);
 
                 var pairs = new List<(string input, string output)>();
                 foreach (var outCol in toOutput)
@@ -151,17 +148,20 @@ namespace Microsoft.ML.Transforms
         /// <include file='doc.xml' path='doc/members/member[@name="CountFeatureSelection"]' />
         /// <param name="input">The column to apply to.</param>
         /// <param name="count">If the count of non-default values for a slot is greater than or equal to this threshold, the slot is preserved.</param>
-        public static Vector<float> SelectFeaturesBasedOnCount(this Vector<float> input, long count = 1) => new OutPipelineColumn<float>(input, count);
+        public static Vector<float> SelectFeaturesBasedOnCount(this Vector<float> input,
+            long count = CountFeatureSelectionTransform.Defaults.Count) => new OutPipelineColumn<float>(input, count);
 
         /// <include file='doc.xml' path='doc/members/member[@name="CountFeatureSelection"]' />
         /// <param name="input">The column to apply to.</param>
         /// <param name="count">If the count of non-default values for a slot is greater than or equal to this threshold, the slot is preserved.</param>
-        public static Vector<double> SelectFeaturesBasedOnCount(this Vector<double> input, long count = 1) => new OutPipelineColumn<double>(input, count);
+        public static Vector<double> SelectFeaturesBasedOnCount(this Vector<double> input,
+            long count = CountFeatureSelectionTransform.Defaults.Count) => new OutPipelineColumn<double>(input, count);
 
         /// <include file='doc.xml' path='doc/members/member[@name="CountFeatureSelection"]' />
         /// <param name="input">The column to apply to.</param>
         /// <param name="count">If the count of non-default values for a slot is greater than or equal to this threshold, the slot is preserved.</param>
-        public static Vector<string> SelectFeaturesBasedOnCount(this Vector<string> input, long count = 1) => new OutPipelineColumn<string>(input, count);
+        public static Vector<string> SelectFeaturesBasedOnCount(this Vector<string> input,
+            long count = CountFeatureSelectionTransform.Defaults.Count) => new OutPipelineColumn<string>(input, count);
     }
 
     /// <summary>
@@ -222,66 +222,66 @@ namespace Microsoft.ML.Transforms
         /// <param name="input">The column to apply to.</param>
         /// <param name="labelColumn">Column to use for labels.</param>
         /// <param name="slotsInOutput">The maximum number of slots to preserve in output.</param>
-        /// <param name="numBins">Max number of bins for R4/R8 columns, power of 2 recommended.</param>
+        /// <param name="numBins">Max number of bins for float/double columns, power of 2 recommended.</param>
         public static Vector<float> SelectFeaturesBasedOnMutualInformation(
             this Vector<float> input,
             Scalar<bool> labelColumn,
-            int slotsInOutput = 1000,
-            int numBins = 256) => new OutPipelineColumn<float>(input, labelColumn, slotsInOutput, numBins);
+            int slotsInOutput = Defaults.SlotsInOutput,
+            int numBins = Defaults.NumBins) => new OutPipelineColumn<float>(input, labelColumn, slotsInOutput, numBins);
 
         /// <include file='doc.xml' path='doc/members/member[@name="MutualInformationFeatureSelection"]/*' />
         /// <param name="input">The column to apply to.</param>
         /// <param name="labelColumn">Column to use for labels.</param>
         /// <param name="slotsInOutput">The maximum number of slots to preserve in output.</param>
-        /// <param name="numBins">Max number of bins for R4/R8 columns, power of 2 recommended.</param>
+        /// <param name="numBins">Max number of bins for float/double columns, power of 2 recommended.</param>
         public static Vector<float> SelectFeaturesBasedOnMutualInformation(
             this Vector<float> input,
             Scalar<float> labelColumn,
-            int slotsInOutput = 1000,
-            int numBins = 256) => new OutPipelineColumn<float>(input, labelColumn, slotsInOutput, numBins);
+            int slotsInOutput = Defaults.SlotsInOutput,
+            int numBins = Defaults.NumBins) => new OutPipelineColumn<float>(input, labelColumn, slotsInOutput, numBins);
 
         /// <include file='doc.xml' path='doc/members/member[@name="MutualInformationFeatureSelection"]/*' />
         /// <param name="input">The column to apply to.</param>
         /// <param name="labelColumn">Column to use for labels.</param>
         /// <param name="slotsInOutput">The maximum number of slots to preserve in output.</param>
-        /// <param name="numBins">Max number of bins for R4/R8 columns, power of 2 recommended.</param>
+        /// <param name="numBins">Max number of bins for float/double columns, power of 2 recommended.</param>
         public static Vector<double> SelectFeaturesBasedOnMutualInformation(
             this Vector<double> input,
             Scalar<bool> labelColumn,
-            int slotsInOutput = 1000,
-            int numBins = 256) => new OutPipelineColumn<double>(input, labelColumn, slotsInOutput, numBins);
+            int slotsInOutput = Defaults.SlotsInOutput,
+            int numBins = Defaults.NumBins) => new OutPipelineColumn<double>(input, labelColumn, slotsInOutput, numBins);
 
         /// <include file='doc.xml' path='doc/members/member[@name="MutualInformationFeatureSelection"]/*' />
         /// <param name="input">The column to apply to.</param>
         /// <param name="labelColumn">Column to use for labels.</param>
         /// <param name="slotsInOutput">The maximum number of slots to preserve in output.</param>
-        /// <param name="numBins">Max number of bins for R4/R8 columns, power of 2 recommended.</param>
+        /// <param name="numBins">Max number of bins for float/double columns, power of 2 recommended.</param>
         public static Vector<double> SelectFeaturesBasedOnMutualInformation(
             this Vector<double> input,
             Scalar<float> labelColumn,
-            int slotsInOutput = 1000,
-            int numBins = 256) => new OutPipelineColumn<double>(input, labelColumn, slotsInOutput, numBins);
+            int slotsInOutput = Defaults.SlotsInOutput,
+            int numBins = Defaults.NumBins) => new OutPipelineColumn<double>(input, labelColumn, slotsInOutput, numBins);
 
         /// <include file='doc.xml' path='doc/members/member[@name="MutualInformationFeatureSelection"]/*' />
         /// <param name="input">The column to apply to.</param>
         /// <param name="labelColumn">Column to use for labels.</param>
         /// <param name="slotsInOutput">The maximum number of slots to preserve in output.</param>
-        /// <param name="numBins">Max number of bins for R4/R8 columns, power of 2 recommended.</param>
+        /// <param name="numBins">Max number of bins for float/double columns, power of 2 recommended.</param>
         public static Vector<bool> SelectFeaturesBasedOnMutualInformation(
             this Vector<bool> input,
             Scalar<bool> labelColumn,
-            int slotsInOutput = 1000,
-            int numBins = 256) => new OutPipelineColumn<bool>(input, labelColumn, slotsInOutput, numBins);
+            int slotsInOutput = Defaults.SlotsInOutput,
+            int numBins = Defaults.NumBins) => new OutPipelineColumn<bool>(input, labelColumn, slotsInOutput, numBins);
 
         /// <include file='doc.xml' path='doc/members/member[@name="MutualInformationFeatureSelection"]/*' />
         /// <param name="input">The column to apply to.</param>
         /// <param name="labelColumn">Column to use for labels.</param>
         /// <param name="slotsInOutput">The maximum number of slots to preserve in output.</param>
-        /// <param name="numBins">Max number of bins for R4/R8 columns, power of 2 recommended.</param>
+        /// <param name="numBins">Max number of bins for float/double columns, power of 2 recommended.</param>
         public static Vector<bool> SelectFeaturesBasedOnMutualInformation(
             this Vector<bool> input,
             Scalar<float> labelColumn,
-            int slotsInOutput = 1000,
-            int numBins = 256) => new OutPipelineColumn<bool>(input, labelColumn, slotsInOutput, numBins);
+            int slotsInOutput = Defaults.SlotsInOutput,
+            int numBins = Defaults.NumBins) => new OutPipelineColumn<bool>(input, labelColumn, slotsInOutput, numBins);
     }
 }

@@ -21,7 +21,7 @@ namespace Microsoft.ML.Tests.Transformers
         }
 
         [Fact]
-        public void CountBaseFeatureSelectionWorkout()
+        public void FeatureSelectionWorkout()
         {
             string sentimentDataPath = GetDataPath("wikipedia-detox-250-line-data.tsv");
             var data = TextLoader.CreateReader(Env, ctx => (
