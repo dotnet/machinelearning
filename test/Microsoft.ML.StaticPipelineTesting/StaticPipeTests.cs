@@ -2,10 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Data.StaticPipe;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Data.IO;
 using Microsoft.ML.Runtime.Internal.Utilities;
+using Microsoft.ML.StaticPipe;
 using Microsoft.ML.TestFramework;
 using Microsoft.ML.Transforms;
 using Microsoft.ML.Transforms.Text;
@@ -301,7 +301,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             ImmutableArray<ImmutableArray<float>> bb;
 
             var est = reader.MakeNewEstimator()
-                .Append(r => (r, 
+                .Append(r => (r,
                     ncdf: r.NormalizeByCumulativeDistribution(onFit: (m, s) => mm = m),
                     n: r.NormalizeByMeanVar(onFit: (s, o) => { ss = s; Assert.Empty(o); }),
                     b: r.NormalizeByBinning(onFit: b => bb = b)));
@@ -534,7 +534,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var data = reader.Read(dataSource);
 
             var est = reader.MakeNewEstimator()
-                .Append(r => (r.label, 
+                .Append(r => (r.label,
                               lpnorm: r.features.LpNormalize(),
                               gcnorm: r.features.GlobalContrastNormalize(),
                               zcawhitened: r.features.ZcaWhitening(),

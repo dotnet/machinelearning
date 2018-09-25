@@ -47,8 +47,8 @@ namespace Microsoft.ML.Analyzer
                     DiagnosticSeverity.Error, isEnabledByDefault: true, description: Description);
         }
 
-        private const string AttributeName = "Microsoft.ML.Data.StaticPipe.IsShapeAttribute";
-        private const string LeafTypeName = "Microsoft.ML.Data.StaticPipe.Runtime.PipelineColumn";
+        private const string AttributeName = "Microsoft.ML.StaticPipe.IsShapeAttribute";
+        private const string LeafTypeName = "Microsoft.ML.StaticPipe.PipelineColumn";
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics =>
             ImmutableArray.Create(ShapeDiagnostic.Rule, ShapeParameterDiagnostic.Rule);
