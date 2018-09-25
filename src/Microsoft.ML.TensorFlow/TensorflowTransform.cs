@@ -38,7 +38,7 @@ namespace Microsoft.ML.Transforms
     /// <include file='doc.xml' path='doc/members/member[@name="TensorflowTransform"]/*' />
     public sealed class TensorFlowTransform : ITransformer, ICanSaveModel
     {
-        public sealed class Arguments : TransformInputBase
+        public class Arguments : TransformInputBase
         {
             [Argument(ArgumentType.Required, HelpText = "TensorFlow model used by the transform. Please see https://www.tensorflow.org/mobile/prepare_models for more details.", SortOrder = 0)]
             public string Model;
@@ -48,6 +48,39 @@ namespace Microsoft.ML.Transforms
 
             [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "The name of the outputs", ShortName = "outputs", SortOrder = 2)]
             public string[] OutputColumns;
+        }
+
+        public sealed class TrainingArguments
+        {
+            [Argument(ArgumentType.Required, HelpText = "Directory for saving intermediate model state and temporary files.", SortOrder = 3)]
+            public string WrokingDir;
+
+            [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "Training labels.", ShortName = "OptimizationOp", SortOrder = 4)]
+            public string LabeLColumn = DefaultColumnNames.Label;
+
+            [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "The name of the optimization operation in the TensorFlow graph.", ShortName = "OptimizationOp", SortOrder = 4)]
+            public string OptimizationOperation;
+
+            [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "The name of the operation in the TensorFlow graph to compute training loss (Optional)", ShortName = "LossOp", SortOrder = 5)]
+            public string LossOperation;
+
+            [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "The name of the operation in the TensorFlow graph to compute performance metric during training (Optional)", ShortName = "MetricOp", SortOrder = 6)]
+            public string MetricOperation;
+
+            [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "Number of samples to use for training.", SortOrder = 7)]
+            public int BatchSize = 64;
+
+            [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "Number of training iterations.", SortOrder = 7)]
+            public int Epoch = 10;
+
+            [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "The name of the operation in the TensorFlow graph which sets optimizer learning rate (Optional).", SortOrder = 8)]
+            public string LearningRateOperation;
+
+            [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "Learning rate to use during optimization.", SortOrder = 8)]
+            public float LearningRate = 0.01f;
+
+            [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "Shuffle data before each iteration.", SortOrder = 8)]
+            public bool Shuffle = true;
         }
 
         private readonly IHost _host;
@@ -94,6 +127,26 @@ namespace Microsoft.ML.Transforms
         public static IDataTransform Create(IHostEnvironment env, IDataView input, string model, string[] names, string[] source)
         {
             return new TensorFlowTransform(env, TensorFlowUtils.GetSession(env, model), source, names, TensorFlowUtils.IsSavedModel(env, model) ? model : null, false).MakeDataTransform(input);
+        }
+
+        /// <summary>
+        /// Utility method to create <see cref="TensorFlowTransform"/> with retraining capabilities.
+        /// </summary>
+        /// <param name="env">Host Environment.</param>
+        /// <param name="input">Input <see cref="IDataView"/>. This is the output from previous transform or loader.</param>
+        /// <param name="model">Path to the TensorFlow model. </param>
+        /// <param name="names">Name of the output column(s). Keep it same as in the Tensorflow model.</param>
+        /// <param name="source">Name of the input column(s). Keep it same as in the Tensorflow model.</param>
+        /// <param name="args">Argument object containing training related parameters.</param>
+        /// <returns></returns>
+        public static IDataTransform Create(IHostEnvironment env, IDataView input, string model, string[] names, string[] source, TrainingArguments args)
+        {
+            // Shuffling fails because ShuffleTransform is not RowToRowMapper
+            //if(args.Shuffle)
+            //{
+            //    input = new ShuffleTransform(env, new ShuffleTransform.Arguments(), input);
+            //}
+            return new TensorFlowTransform(env, model, names, source, args, input).MakeDataTransform(input);
         }
 
         // Factory method for SignatureLoadModel.
@@ -166,6 +219,164 @@ namespace Microsoft.ML.Transforms
             env.CheckValue(args.OutputColumns, nameof(args.OutputColumns));
 
             return new TensorFlowTransform(env, TensorFlowUtils.GetSession(env, args.Model), args.InputColumns, args.OutputColumns, TensorFlowUtils.IsSavedModel(env, args.Model) ? args.Model : null, false).MakeDataTransform(input);
+        }
+
+        internal TensorFlowTransform(IHostEnvironment env, string model, string[] names, string[] source, TrainingArguments args, IDataView input)
+            : this(env, TensorFlowUtils.GetSession(env, model), source, names, TensorFlowUtils.IsSavedModel(env, model) ? model : null, false)
+        {
+
+            Contracts.CheckValue(env, nameof(env));
+            env.CheckValue(args, nameof(args));
+            env.CheckValue(input, nameof(input));
+            env.CheckNonEmpty(args.WrokingDir, nameof(args.WrokingDir));
+            env.CheckNonEmpty(args.OptimizationOperation, nameof(args.OptimizationOperation));
+
+            TrainCore(args, input);
+        }
+
+        private void TrainCore(TrainingArguments args, IDataView input)
+        {
+            var inputsForTraining = new string[Inputs.Length + 1];
+            var inputColIndices = new int[inputsForTraining.Length];
+            var isInputVector = new bool[inputsForTraining.Length];
+            var tfInputTypes = new TFDataType[inputsForTraining.Length];
+            var tfInputShapes = new TFShape[inputsForTraining.Length];
+
+            for (int i = 0; i < Inputs.Length; i++)
+            {
+                inputsForTraining[i] = Inputs[i];
+            }
+
+            inputsForTraining[inputsForTraining.Length - 1] = args.LabeLColumn;
+
+            var inputSchema = input.Schema;
+            for (int i = 0; i < inputsForTraining.Length; i++)
+            {
+                if (!inputSchema.TryGetColumnIndex(inputsForTraining[i], out inputColIndices[i]))
+                    throw _host.Except($"Column {inputsForTraining[i]} doesn't exist");
+
+                var type = inputSchema.GetColumnType(inputColIndices[i]);
+                isInputVector[i] = type.IsVector;
+
+                var tfInput = new TFOutput(Graph[inputsForTraining[i]]);
+                tfInputTypes[i] = tfInput.OutputType;
+                tfInputShapes[i] = Graph.GetTensorShape(tfInput);
+                if (tfInputShapes[i].NumDimensions != -1)
+                {
+                    var newShape = new long[tfInputShapes[i].NumDimensions];
+                    newShape[0] = tfInputShapes[i][0] == -1 ? args.BatchSize : tfInputShapes[i][0];
+
+                    for (int j = 1; j < tfInputShapes[i].NumDimensions; j++)
+                        newShape[j] = tfInputShapes[i][j];
+                    tfInputShapes[i] = new TFShape(newShape);
+                }
+
+                var expectedType = TensorFlowUtils.Tf2MlNetType(tfInputTypes[i]);
+                if (type.ItemType != expectedType)
+                    throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", inputsForTraining[i], expectedType.ToString(), type.ToString());
+            }
+
+            var fetchList = new List<string>();
+            if (args.LossOperation != null)
+                fetchList.Add(args.LossOperation);
+            if (args.MetricOperation != null)
+                fetchList.Add(args.MetricOperation);
+
+            for (int epoch = 0; epoch < args.Epoch; epoch++)
+            {
+                using (var cursor = input.GetRowCursor(a => true))
+                {
+                    var srcTensorGetters = GetTensorValueGetters(cursor, inputColIndices, isInputVector, tfInputTypes, tfInputShapes);
+
+                    float loss=0;
+                    float metric=0;
+                    int rows = 0;
+                    bool isDataLeft = false;
+                    using (var ch = _host.Start("Training TensorFlow model..."))
+                    {
+                        while (cursor.MoveNext())
+                        {
+                            rows++;
+                            for (int i = 0; i < inputColIndices.Length; i++)
+                            {
+                                isDataLeft = true;
+                                srcTensorGetters[i].BufferTrainingData();
+                            }
+
+                            if ((rows % args.BatchSize) == 0)
+                            {
+                                isDataLeft = false;
+                                (loss, metric) = TrainBatch(inputColIndices, inputsForTraining, srcTensorGetters, fetchList, args);
+                            }
+                        }
+                        if (isDataLeft)
+                        {
+                            isDataLeft = false;
+                            ch.Warning("Not training on the last batch. The batch size is less than {0}.", args.BatchSize);
+                        }
+                        ch.Info("Loss: {0}, Metric: {1}", fetchList.Count > 0 ? loss.ToString("#.####") : "None",
+                                fetchList.Count > 1 ? metric.ToString("#.####") : "None");
+                    }
+                }
+            }
+        }
+
+        private (float loss, float metric) TrainBatch(int[] inputColIndices,
+            string[] inputsForTraining,
+            ITensorValueGetter[] srcTensorGetters,
+            List<string> fetchList,
+            TrainingArguments args)
+        {
+            float loss = 0;
+            float metric = 0;
+            var runner = Session.GetRunner();
+            for (int i = 0; i < inputColIndices.Length; i++)
+            {
+                var inputName = inputsForTraining[i];
+                runner.AddInput(inputName, srcTensorGetters[i].GetBufferedBatchTensor());
+            }
+            if (args.LearningRateOperation != null)
+                runner.AddInput(args.LearningRateOperation, new TFTensor(args.LearningRate));
+            runner.AddTarget(args.OptimizationOperation);
+
+            if (fetchList.Count > 0)
+                runner.Fetch(fetchList.ToArray());
+
+            var tensor = runner.Run();
+            loss = tensor.Length > 0 ? (float)tensor[0].GetValue() : 0.0f;
+            metric = tensor.Length > 1 ? (float)tensor[1].GetValue() : 0.0f;
+
+            return (loss, metric);
+        }
+
+        private static ITensorValueGetter CreateTensorValueGetter<T>(IRow input, bool isVector, int colIndex, TFShape tfShape)
+        {
+            if (isVector)
+                return new TensorValueGetterVec<T>(input, colIndex, tfShape);
+            else
+                return new TensorValueGetter<T>(input, colIndex, tfShape);
+        }
+
+        private static ITensorValueGetter CreateTensorValueGetter(IRow input, TFDataType tfType, bool isVector, int colIndex, TFShape tfShape)
+        {
+            var type = TFTensor.TypeFromTensorType(tfType);
+            Contracts.AssertValue(type);
+            return Utils.MarshalInvoke(CreateTensorValueGetter<int>, type, input, isVector, colIndex, tfShape);
+        }
+
+        private static ITensorValueGetter[] GetTensorValueGetters(IRow input,
+            int[] inputColIndices,
+            bool[] isInputVector,
+            TFDataType[] tfInputTypes,
+            TFShape[] tfInputShapes)
+        {
+            var srcTensorGetters = new ITensorValueGetter[inputColIndices.Length];
+            for (int i = 0; i < inputColIndices.Length; i++)
+            {
+                int colIndex = inputColIndices[i];
+                srcTensorGetters[i] = CreateTensorValueGetter(input, tfInputTypes[i], isInputVector[i], colIndex, tfInputShapes[i]);
+            }
+            return srcTensorGetters;
         }
 
         // Factory method for SignatureLoadDataTransform.
@@ -258,7 +469,7 @@ namespace Microsoft.ML.Transforms
             {
                 var tfOutput = new TFOutput(Graph[Outputs[i]]);
                 var shape = Graph.GetTensorShape(tfOutput);
-                int[] dims = shape.NumDimensions > 0 ? shape.ToIntArray().Skip(shape[0] == -1 ? BatchSize : 0).ToArray() : new[] { 0 };
+                int[] dims = shape.NumDimensions > 0 ? shape.ToIntArray().Skip(shape[0] == -1 ? 1 : 0).ToArray() : new[] { 0 };
                 var type = TensorFlowUtils.Tf2MlNetType(tfOutput.OutputType);
                 OutputTypes[i] = new VectorType(type, dims);
                 TFOutputTypes[i] = tfOutput.OutputType;
@@ -460,33 +671,6 @@ namespace Microsoft.ML.Transforms
                 _parent.Save(ctx);
             }
 
-            private ITensorValueGetter CreateTensorValueGetter<T>(IRow input, bool isVector, int colIndex, TFShape tfShape)
-            {
-                if (isVector)
-                    return new TensorValueGetterVec<T>(input, colIndex, tfShape);
-                else
-                    return new TensorValueGetter<T>(input, colIndex);
-            }
-
-            private ITensorValueGetter CreateTensorValueGetter(IRow input, TFDataType tfType, bool isVector, int colIndex, TFShape tfShape)
-            {
-                var type = TFTensor.TypeFromTensorType(tfType);
-                _host.AssertValue(type);
-                return Utils.MarshalInvoke(CreateTensorValueGetter<int>, type, input, isVector, colIndex, tfShape);
-            }
-
-            private ITensorValueGetter[] GetTensorValueGetters(IRow input)
-            {
-                _host.Assert(input.Schema == _schema);
-                var srcTensorGetters = new ITensorValueGetter[_inputColIndices.Length];
-                for (int i = 0; i < _inputColIndices.Length; i++)
-                {
-                    int colIndex = _inputColIndices[i];
-                    srcTensorGetters[i] = CreateTensorValueGetter(input, _parent.TFInputTypes[i], _isInputVector[i], colIndex, _fullySpecifiedShapes[i]);
-                }
-                return srcTensorGetters;
-            }
-
             private class OutputCache
             {
                 public long Position;
@@ -512,7 +696,7 @@ namespace Microsoft.ML.Transforms
                     {
                         var type = TFTensor.TypeFromTensorType(_parent.TFOutputTypes[i]);
                         _host.Assert(type == _parent.OutputTypes[i].ItemType.RawType);
-                        var srcTensorGetters = GetTensorValueGetters(input);
+                        var srcTensorGetters = GetTensorValueGetters(input, _inputColIndices, _isInputVector, _parent.TFInputTypes, _fullySpecifiedShapes);
                         valueGetters[i] = Utils.MarshalInvoke(MakeGetter<int>, type, input, i, srcTensorGetters, activeOutputColNames, outputCache);
                     }
                 }
@@ -583,50 +767,6 @@ namespace Microsoft.ML.Transforms
                     info[i] = new RowMapperColumnInfo(_parent.Outputs[i], _parent.OutputTypes[i], null);
                 return info;
             }
-
-            private interface ITensorValueGetter
-            {
-                TFTensor GetTensor();
-            }
-
-            private class TensorValueGetter<T> : ITensorValueGetter
-            {
-                private readonly ValueGetter<T> _srcgetter;
-
-                public TensorValueGetter(IRow input, int colIndex)
-                {
-                    _srcgetter = input.GetGetter<T>(colIndex);
-                }
-                public TFTensor GetTensor()
-                {
-                    var scalar = default(T);
-                    _srcgetter(ref scalar);
-                    return TFTensor.CreateScalar(scalar);
-                }
-            }
-
-            private class TensorValueGetterVec<T> : ITensorValueGetter
-            {
-                private readonly ValueGetter<VBuffer<T>> _srcgetter;
-                private readonly TFShape _tfShape;
-                private VBuffer<T> _vBuffer;
-                private VBuffer<T> _vBufferDense;
-
-                public TensorValueGetterVec(IRow input, int colIndex, TFShape tfShape)
-                {
-                    _srcgetter = input.GetGetter<VBuffer<T>>(colIndex);
-                    _tfShape = tfShape;
-                    _vBuffer = default;
-                    _vBufferDense = default;
-                }
-
-                public TFTensor GetTensor()
-                {
-                    _srcgetter(ref _vBuffer);
-                    _vBuffer.CopyToDense(ref _vBufferDense);
-                    return TFTensor.Create(_vBufferDense.Values, _vBufferDense.Length, _tfShape);
-                }
-            }
         }
 
         [TlcModule.EntryPoint(Name = "Transforms.TensorFlowScorer",
@@ -646,6 +786,89 @@ namespace Microsoft.ML.Transforms
                 Model = new TransformModel(h, view, input.Data),
                 OutputData = view
             };
+        }
+
+        private interface ITensorValueGetter
+        {
+            TFTensor GetTensor();
+
+            void BufferTrainingData();
+
+            TFTensor GetBufferedBatchTensor();
+        }
+
+        private class TensorValueGetter<T> : ITensorValueGetter
+        {
+            private readonly ValueGetter<T> _srcgetter;
+            private readonly List<T> _bufferedData;
+            private readonly TFShape _tfShape;
+
+            public TensorValueGetter(IRow input, int colIndex, TFShape tfShape)
+            {
+                _srcgetter = input.GetGetter<T>(colIndex);
+                _tfShape = tfShape;
+                _bufferedData = new List<T>();
+            }
+
+            public TFTensor GetTensor()
+            {
+                var scalar = default(T);
+                _srcgetter(ref scalar);
+                return TFTensor.CreateScalar(scalar);
+            }
+
+            public void BufferTrainingData()
+            {
+                var scalar = default(T);
+                _srcgetter(ref scalar);
+                _bufferedData.Add(scalar);
+            }
+
+            public TFTensor GetBufferedBatchTensor()
+            {
+                var tensor = TFTensor.Create(_bufferedData.ToArray(), _bufferedData.Count, _tfShape);
+                _bufferedData.Clear();
+                return tensor;
+            }
+        }
+
+        private class TensorValueGetterVec<T> : ITensorValueGetter
+        {
+            private readonly ValueGetter<VBuffer<T>> _srcgetter;
+            private readonly TFShape _tfShape;
+            private VBuffer<T> _vBuffer;
+            private VBuffer<T> _vBufferDense;
+            private readonly List<T> _bufferedData;
+
+            public TensorValueGetterVec(IRow input, int colIndex, TFShape tfShape)
+            {
+                _srcgetter = input.GetGetter<VBuffer<T>>(colIndex);
+                _tfShape = tfShape;
+                _vBuffer = default;
+                _vBufferDense = default;
+                _bufferedData = new List<T>();
+            }
+
+            public TFTensor GetTensor()
+            {
+                _srcgetter(ref _vBuffer);
+                _vBuffer.CopyToDense(ref _vBufferDense);
+                return TFTensor.Create(_vBufferDense.Values, _vBufferDense.Length, _tfShape);
+            }
+
+            public void BufferTrainingData()
+            {
+                _srcgetter(ref _vBuffer);
+                _vBuffer.CopyToDense(ref _vBufferDense);
+                _bufferedData.AddRange(_vBufferDense.DenseValues());
+            }
+
+            public TFTensor GetBufferedBatchTensor()
+            {
+                var tensor = TFTensor.Create(_bufferedData.ToArray(), _bufferedData.Count, _tfShape);
+                _bufferedData.Clear();
+                return tensor;
+            }
         }
     }
 
