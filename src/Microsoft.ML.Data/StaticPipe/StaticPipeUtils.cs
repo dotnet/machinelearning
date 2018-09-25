@@ -114,7 +114,7 @@ namespace Microsoft.ML.Data.StaticPipe.Runtime
                 nameof(input), "Bug detected where column producing object was yielding columns with dependencies.");
 
             // This holds the mappings of columns to names and back. Note that while the same column could be used on
-            // the *output*, e.g., you could hypothetically have `(a: r.Foo, b: r.Foo)`, we treat that as the last thing
+            // the *output*, for example, you could hypothetically have `(a: r.Foo, b: r.Foo)`, we treat that as the last thing
             // that is done.
             var nameMap = new BidirectionalDictionary<string, PipelineColumn>();
 

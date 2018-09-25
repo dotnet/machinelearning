@@ -180,7 +180,7 @@ namespace Microsoft.ML.Runtime.Data
         /// <summary>
         /// Learns a function based on a discretization of the input values. The observed values for each slot are
         /// analyzed, and the range of numbers is partitioned into monotonically increasing bins. An attempt is made
-        /// to make these bins equal in population, but under some circumstances this may be impossible (e.g., a slot
+        /// to make these bins equal in population, but under some circumstances this may be impossible (for example, a slot
         /// with a very dominant mode). The way the mapping works is, if there are <c>N</c> bins in a slot, and a value
         /// falls in the range of bin <c>n</c> (indexed from 0), the output value is <c>n / (N - 1)</c>, and then possibly
         /// subtracting off the binned value for what 0 would have been if <paramref name="fixZero"/> is true.
@@ -205,7 +205,7 @@ namespace Microsoft.ML.Runtime.Data
         /// <summary>
         /// Learns a function based on a discretization of the input values. The observed values for each slot are
         /// analyzed, and the range of numbers is partitioned into monotonically increasing bins. An attempt is made
-        /// to make these bins equal in population, but under some circumstances this may be impossible (e.g., a slot
+        /// to make these bins equal in population, but under some circumstances this may be impossible (for example, a slot
         /// with a very dominant mode). The way the mapping works is, if there are <c>N</c> bins in a slot, and a value
         /// falls in the range of bin <c>n</c> (indexed from 0), the output value is <c>n / (N - 1)</c>, and then possibly
         /// subtracting off the binned value for what 0 would have been if <paramref name="fixZero"/> is true.

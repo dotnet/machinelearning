@@ -35,7 +35,7 @@ Below are some of the highlights from this release.
       parallelizing
       [SGD](https://en.wikipedia.org/wiki/Stochastic_gradient_descent)
       (Stochastic Gradient Descent). This enables it to sometimes perform
-      faster than existing SGD implementations (e.g. [Hogwild
+      faster than existing SGD implementations (for example, [Hogwild
       SGD](https://docs.microsoft.com/en-us/dotnet/api/microsoft.ml.trainers.stochasticgradientdescentbinaryclassifier?view=ml-dotnet)).
     * SymSGD is available for binary classification, but can be used in
       multiclass classification with

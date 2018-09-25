@@ -512,7 +512,7 @@ namespace Microsoft.ML.Runtime.RunTests
 
         /// <summary>
         /// Multiple commands we sometimes expect to produce the same stdout,
-        /// e.g., rerunning. If you want to move on to another stdout comparison
+        /// for example, rerunning. If you want to move on to another stdout comparison
         /// file, increment this.
         /// </summary>
         protected int _step;

@@ -342,7 +342,7 @@ namespace Microsoft.ML.Transforms
                             throw Contracts.Except($"Input shape mismatch: Input '{_parent.Inputs[i]}' has shape {originalShape.ToString()}, but input data is of length {type.ValueCount}.");
 
                         // If the shape is multi-dimensional, we should be able to create the length of the vector by plugging
-                        // in a single value for the unknown shapes. E.g., if the shape is [?,?,3], then there should exist a value
+                        // in a single value for the unknown shapes. For example, if the shape is [?,?,3], then there should exist a value
                         // d such that d*d*3 is equal to the length of the input column.
                         var d = originalShape.NumDimensions > 2 ? Math.Pow(type.ValueCount / valCount, 1.0 / (originalShape.NumDimensions - 2)) : 1;
                         if (originalShape.NumDimensions > 2 && d - (int)d != 0)

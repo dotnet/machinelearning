@@ -229,7 +229,7 @@ namespace Microsoft.ML.Transforms
         }
 
         /// <summary>
-        /// Constructor for case where you don't need to 'train' transform on data, e.g. InvertHash for all columns set to zero.
+        /// Constructor for case where you don't need to 'train' transform on data, for example, InvertHash for all columns set to zero.
         /// </summary>
         /// <param name="env">Host Environment.</param>
         /// <param name="columns">Description of dataset columns and how to process them.</param>

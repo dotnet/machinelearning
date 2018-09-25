@@ -473,7 +473,7 @@ namespace Microsoft.ML.Runtime.Data
                 if (charFeatureCol != null && wordFeatureCol != null)
                 {
                     // If we're producing both char and word grams, then we need to disambiguate
-                    // between them (e.g. the word 'a' vs. the char gram 'a').
+                    // between them (for example, the word 'a' vs. the char gram 'a').
                     srcTaggedCols.Add(new KeyValuePair<string, string>("Char", charFeatureCol));
                     srcTaggedCols.Add(new KeyValuePair<string, string>("Word", wordFeatureCol));
                 }

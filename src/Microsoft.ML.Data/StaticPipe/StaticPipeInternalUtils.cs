@@ -24,7 +24,7 @@ namespace Microsoft.ML.Data.StaticPipe.Runtime
         /// </summary>
         /// <param name="fakeReconciler">This is a data-reconciler that always reconciles to a <c>null</c> object</param>
         /// <typeparam name="T">A type of either <see cref="ValueTuple"/> or one of the major <see cref="PipelineColumn"/> subclasses
-        /// (e.g., <see cref="Scalar{T}"/>, <see cref="Vector{T}"/>, etc.)</typeparam>
+        /// (for example, <see cref="Scalar{T}"/>, <see cref="Vector{T}"/>, etc.)</typeparam>
         /// <returns>An instance of <typeparamref name="T"/> where all <see cref="PipelineColumn"/> fields have the provided reconciler</returns>
         public static T MakeAnalysisInstance<T>(out ReaderReconciler<int> fakeReconciler)
         {
@@ -173,7 +173,7 @@ namespace Microsoft.ML.Data.StaticPipe.Runtime
         /// <param name="pInfo">It is an implementation detail of the value-tuple type that the names
         /// are not associated with the type at all, but there is instead an illusion propagated within
         /// Visual Studio, that works via attributes. Programmatic access to this is limited, except that
-        /// a <see cref="TupleElementNamesAttribute"/> is attached to the type in appropriate places, e.g.,
+        /// a <see cref="TupleElementNamesAttribute"/> is attached to the type in appropriate places, for example,
         /// in a delegate one of the parameters, or the return parameter, or somesuch. If present, the names
         /// will be extracted from that structure, and if not the default names of <c>Item1</c>, <c>Item2</c>,
         /// etc. will be used.</param>

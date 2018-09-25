@@ -25,10 +25,10 @@ namespace Microsoft.ML.Runtime.Training
 
         /// <summary>
         /// Subclasses of <see cref="TrainContext"/> will provide little "extension method" hookable objects
-        /// (e.g., something like <see cref="BinaryClassificationContext.Trainers"/>). User code will only
+        /// (for example, something like <see cref="BinaryClassificationContext.Trainers"/>). User code will only
         /// interact with these objects by invoking the extension methods. The actual component code can work
         /// through <see cref="TrainContextComponentUtils"/> to get more "hidden" information from this object,
-        /// e.g., the environment.
+        /// for example, the environment.
         /// </summary>
         public abstract class ContextInstantiatorBase
         {

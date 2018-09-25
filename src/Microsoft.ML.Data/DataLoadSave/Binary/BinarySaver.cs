@@ -519,7 +519,7 @@ namespace Microsoft.ML.Runtime.Data.IO
                                 expectedPosition++;
                                 // REVIEW: Right now the number of rows per block is fixed, so we
                                 // write the same value each time. In some future state, it may be that this
-                                // is relaxed, with possibly some tradeoffs (e.g., inability to randomly seek).
+                                // is relaxed, with possibly some tradeoffs (for example, inability to randomly seek).
                                 writer.WriteLeb128Int((ulong)rowsPerBlock);
                                 expectedPosition += Utils.Leb128IntLength((uint)rowsPerBlock);
                                 // Offset of the lookup table.

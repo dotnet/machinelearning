@@ -285,7 +285,7 @@ namespace Microsoft.ML.Runtime
 
         /// <summary>
         /// The primary metric to optimize.
-        /// This metric is usually an aggregate value for the run, e.g. AUC, accuracy etc.
+        /// This metric is usually an aggregate value for the run, for example, AUC, accuracy etc.
         /// By default, smart sweeping algorithms will maximize this metric.
         /// If you want to minimize, either negate this value or change the option in the arguments of the sweeper constructor.
         /// </summary>

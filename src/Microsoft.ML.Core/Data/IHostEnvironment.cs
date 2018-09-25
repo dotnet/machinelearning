@@ -219,7 +219,7 @@ namespace Microsoft.ML.Runtime
     /// <summary>
     /// General utility extension methods for objects in the "host" universe, i.e.,
     /// <see cref="IHostEnvironment"/>, <see cref="IHost"/>, and <see cref="IChannel"/>
-    /// that do not belong in more specific areas, e.g., <see cref="Contracts"/> or
+    /// that do not belong in more specific areas, for example, <see cref="Contracts"/> or
     /// component creation.
     /// </summary>
     public static class HostExtensions
