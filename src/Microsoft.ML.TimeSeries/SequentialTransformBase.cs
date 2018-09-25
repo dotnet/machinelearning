@@ -44,7 +44,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
         /// </summary>
         public abstract class StateBase
         {
-            // REVIEW saamizad : Ideally this class should be private. However, due to the current constraints with the LambdaTransform, we need to have
+            // Ideally this class should be private. However, due to the current constraints with the LambdaTransform, we need to have
             // access to the state class when inheriting from SequentialTransformBase.
             protected IHost Host;
 

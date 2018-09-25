@@ -102,7 +102,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
 
         public static void CountGreaterOrEqualValues(FixedSizeQueue<Single> others, Single theValue, out int greaterVals, out int equalVals, out int totalVals)
         {
-            // REVIEW saamizad : the current linear algorithm for counting greater and equal elements takes O(n),
+            // The current linear algorithm for counting greater and equal elements takes O(n),
             // but it can be improved to O(log n) if a separate Binary Search Tree data structure is used.
 
             greaterVals = 1;
