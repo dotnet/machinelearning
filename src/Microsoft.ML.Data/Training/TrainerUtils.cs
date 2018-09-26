@@ -402,14 +402,16 @@ namespace Microsoft.ML.Runtime.Training
             checkArgColName(DefaultColumnNames.Features, args.FeatureColumn);
             checkArgColName(DefaultColumnNames.Weight, args.WeightColumn);
 
-            if(args.GroupIdColumn != null)
+            if (args.GroupIdColumn != null)
                 checkArgColName(DefaultColumnNames.GroupId, args.GroupIdColumn);
         }
 
+        /// <summary>
+        /// If, after applying the advancedArgs delegate, the args are different that the default value
+        /// and are also different than the value supplied directly to the xtension method, warn the user.
+        /// </summary>
         public static void CheckArgsAndAdvancedSettingMismatch<T>(IChannel channel, T methodParam, T defaultVal, T setting, string argName)
         {
-            // if, after applying the advancedArgs delegate, the args are different that the default value
-            // and are also different than the value supplied directly to the xtension method, warn the user.
             if (!setting.Equals(defaultVal) && !setting.Equals(methodParam))
                 channel.Warning($"The value supplied to advanced settings , is different than the value supplied directly. Using value {setting} for {argName}");
         }
