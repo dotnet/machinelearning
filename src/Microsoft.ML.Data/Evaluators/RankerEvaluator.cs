@@ -41,17 +41,17 @@ namespace Microsoft.ML.Runtime.Data
             public bool OutputGroupSummary;
         }
 
-        public const string LoadName = "RankingEvaluator";
+        internal const string LoadName = "RankingEvaluator";
 
         public const string Ndcg = "NDCG";
         public const string Dcg = "DCG";
         public const string MaxDcg = "MaxDCG";
 
-        /// <summary>
+        /// <value>
         /// The ranking evaluator outputs a data view by this name, which contains metrics aggregated per group.
         /// It contains four columns: GroupId, NDCG, DCG and MaxDCG. Each row in the data view corresponds to one
         /// group in the scored data.
-        /// </summary>
+        /// </value>
         public const string GroupSummary = "GroupSummary";
 
         private const string GroupId = "GroupId";
@@ -232,6 +232,40 @@ namespace Microsoft.ML.Runtime.Data
                         result.Add(GroupSummary, groupDvBldr.GetDataView());
                     return result;
                 };
+        }
+
+        /// <summary>
+        /// Evaluates scored regression data.
+        /// </summary>
+        /// <param name="data">The data to evaluate.</param>
+        /// <param name="label">The name of the label column.</param>
+        /// <param name="groupId">The name of the groupId column.</param>
+        /// <param name="score">The name of the predicted score column.</param>
+        /// <returns>The evaluation metrics for these outputs.</returns>
+        public Result Evaluate(IDataView data, string label, string groupId, string score)
+        {
+            Host.CheckValue(data, nameof(data));
+            Host.CheckNonEmpty(label, nameof(label));
+            Host.CheckNonEmpty(score, nameof(score));
+            var roles = new RoleMappedData(data, opt: false,
+                RoleMappedSchema.ColumnRole.Label.Bind(label),
+                RoleMappedSchema.ColumnRole.Group.Bind(groupId),
+                RoleMappedSchema.CreatePair(MetadataUtils.Const.ScoreValueKind.Score, score));
+
+            var resultDict = Evaluate(roles);
+            Host.Assert(resultDict.ContainsKey(MetricKinds.OverallMetrics));
+            var overall = resultDict[MetricKinds.OverallMetrics];
+
+            Result result;
+            using (var cursor = overall.GetRowCursor(i => true))
+            {
+                var moved = cursor.MoveNext();
+                Host.Assert(moved);
+                result = new Result(Host, cursor);
+                moved = cursor.MoveNext();
+                Host.Assert(!moved);
+            }
+            return result;
         }
 
         public sealed class Aggregator : AggregatorBase
@@ -507,6 +541,48 @@ namespace Microsoft.ML.Runtime.Data
                 for (int i = 0; i < UnweightedCounters.TruncationLevel; i++)
                     values[i] = string.Format("@{0}", i + 1).AsMemory();
                 slotNames = new VBuffer<ReadOnlyMemory<char>>(UnweightedCounters.TruncationLevel, values);
+            }
+        }
+
+        public sealed class Result
+        {
+            /// <summary>
+            /// Normalized Discounted Cumulative Gain
+            /// <a href="https://github.com/dotnet/machinelearning/tree/master/docs/images/ndcg.png"></a>
+            /// </summary>
+            public double[] Ndcg { get; }
+
+            /// <summary>
+            /// <a href="https://en.wikipedia.org/wiki/Discounted_cumulative_gain">Discounted Cumulative gain</a>
+            /// is the sum of the gains, for all the instances i, normalized by the natural logarithm of the instance + 1.
+            /// Note that unline the Wikipedia article, ML.Net uses the natural logarithm.
+            /// <a href="https://github.com/dotnet/machinelearning/tree/master/docs/images/dcg.png"></a>
+            /// </summary>
+            public double[] Dcg { get; }
+
+            /// <summary>
+            /// MaxDcgs is the value of <see cref="Dcg"/> when the documents are ordered in the ideal order from most relevant to least relevant.
+            /// In case there are ties in scores, metrics are computed in a pessimistic fashion. In other words, if two or more results get the same score,
+            /// for the purpose of computing DCG and NDCG they are ordered from least relevant to most relevant.
+            /// </summary>
+            public double[] MaxDcg { get; }
+
+            private static T Fetch<T>(IExceptionContext ectx, IRow row, string name)
+            {
+                if (!row.Schema.TryGetColumnIndex(name, out int col))
+                    throw ectx.Except($"Could not find column '{name}'");
+                T val = default;
+                row.GetGetter<T>(col)(ref val);
+                return val;
+            }
+
+            internal Result(IExceptionContext ectx, IRow overallResult)
+            {
+                double[] Fetch(string name) => Fetch<double[]>(ectx, overallResult, name);
+
+                Dcg = Fetch(RankerEvaluator.Dcg);
+                Ndcg = Fetch(RankerEvaluator.Ndcg);
+                MaxDcg = Fetch(RankerEvaluator.MaxDcg);
             }
         }
     }
