@@ -439,7 +439,7 @@ namespace Microsoft.ML.StaticPipe.Runtime
             /// <param name="features">The input features column.</param>
             /// <param name="weights">The input weights column, or <c>null</c> if there are no weights.</param>
             /// <param name="groupId">The input groupId column.</param>
-            public Ranker(EstimatorFactory estimatorFactory, Scalar<float> label, Vector<float> features, Scalar<float> weights, Scalar<float> groupId)
+            public Ranker(EstimatorFactory estimatorFactory, Scalar<float> label, Vector<float> features, Scalar<float> groupId, Scalar<float> weights)
                     : base(MakeInputs(Contracts.CheckRef(label, nameof(label)),
                         Contracts.CheckRef(features, nameof(features)),
                         Contracts.CheckRef(groupId, nameof(groupId)),

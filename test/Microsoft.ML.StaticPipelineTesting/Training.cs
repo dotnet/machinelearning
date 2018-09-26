@@ -343,5 +343,44 @@ namespace Microsoft.ML.StaticPipelineTesting
             Assert.Equal(metrics.Rms * metrics.Rms, metrics.L2, 5);
             Assert.InRange(metrics.LossFn, 0, double.PositiveInfinity);
         }
+
+        [Fact]
+        public void FastTreeRanking()
+        {
+            var env = new ConsoleEnvironment(seed: 0);
+            var dataPath = GetDataPath(TestDatasets.adultRanking.trainFilename);
+            var dataSource = new MultiFileSource(dataPath);
+
+            var ctx = new RankerContext(env);
+
+            var reader = TextLoader.CreateReader(env,
+                c => (label: c.LoadFloat(0), features: c.LoadFloat(9, 14), groupId: c.LoadText(1)),
+                separator: ';', hasHeader: true);
+
+            FastTreeRankingPredictor pred = null;
+
+            var est = reader.MakeNewEstimator()
+                .Append(r => (r.label, r.features, r.groupId.ToKey()))
+                .Append(r => (r.label, r.groupId, score: ctx.Trainers.FastTree(r.label, r.features, r.groupId,
+                onFit: (p) => { pred = p; })));
+
+            var pipe = reader.Append(est);
+
+            Assert.Null(pred);
+            var model = pipe.Fit(dataSource);
+            Assert.NotNull(pred);
+            // 11 input features, so we ought to have 11 weights.
+            VBuffer<float> weights = new VBuffer<float>();
+            pred.GetFeatureWeights(ref weights);
+            Assert.Equal(11, weights.Length);
+
+            var data = model.Read(dataSource);
+
+            var metrics = ctx.Evaluate(data, r => r.label, r => r.score, new PoissonLoss());
+            // Run a sanity check against a few of the metrics.
+            //Assert.InRange(metrics.Dcg, 0, double.PositiveInfinity);
+            //Assert.InRange(metrics.Ndcg, 0, double.PositiveInfinity);
+            //Assert.InRange(metrics.MaxDcg, 0, double.PositiveInfinity);
+        }
     }
 }
