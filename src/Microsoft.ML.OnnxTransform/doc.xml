@@ -28,7 +28,7 @@
             <description>The name of the output column should match the output column node in the ONNX model.</description>
           </item>
           <item>
-            <description>Currently, float and double are the only acceptable data types for input/output.</description>
+            <description>Currently, float is only acceptable data type for input/output.</description>
           </item>
           <item>
             Upon success, the transform will introduce a new column in <see cref="IDataView"/> with to the output name specified.
