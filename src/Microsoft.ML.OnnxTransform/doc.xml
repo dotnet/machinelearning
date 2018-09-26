@@ -65,7 +65,7 @@
                 using (var cursor = result.GetRowCursor(col => col == output))
                 {
                     var buffer = default(VBuffer&lt;float&gt;);
-                    var getter = cursor.GetGetter&lt;VBuffer&lt;float&gt&gt(output);
+                    var getter = cursor.GetGetter&lt;VBuffer&lt;float&gt;&gt;(output);
                     var numRows = 0;
                     while (cursor.MoveNext())
                     {
