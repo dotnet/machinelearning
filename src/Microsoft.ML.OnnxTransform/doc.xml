@@ -4,89 +4,80 @@
 
     <member name="OnnxTransform">
       <summary>
-        Extracts hidden layers&apos; values from a pre-trained Onnx model.
+        Scores ONNX v1.2 models ML.NET.
       </summary>
       <remarks>
         <para>
-          The OnnxTransform extracts the specified outputs from the operations computed on the graph (given the input(s)) using a pre-trained <a href="https://www.tensorflow.org">Onnx</a> model.
-          The transform takes as input the Tensorflow model together with the names of the inputs to the model and names of the operations for which output values will be extracted from the model.
+          The OnnxTransform provides ability to score ONNX machine learning models. See <a href="https://onnx.ai/">Onnx</a>.
+          The transform takes as input the ONNX model, as well as IDV formatted feature vectors, to produce a vector-valued column of generated scores.
         </para>
 
-        <para>
-          This transform requires the <a href="https://dotnet.myget.org/feed/dotnet-core/package/nuget/Microsoft.ML.TensorFlow/0.5.0-preview-26830-5">Microsoft.ML.TensorFlow</a> nuget to be installed.
-          The TensorflowTransform has following assumptions regarding the input, output and processing of data.
-        </para>
         <list type="number">
           <item>
             <description>
-              The transform currently accepts the <a href="https://www.tensorflow.org/mobile/prepare_models">frozen TensorFlow model</a> file as input.
+              The transform currently accepts the <a href="https://github.com/onnx/models">ONNX Model Zoo</a> models as input.
             </description>
           </item>
           <item>
             <description>The transform supports scoring only one example at a time.</description>
           </item>
           <item>
-            <description>The name of input column(s) should match the name of input(s) in Tensorflow model.</description>
+            <description>The name of input column should match the name of input node in ONNX model.</description>
           </item>
           <item>
-            <description>The name of each output column should match one of the operations in the Tensorflow graph.</description>
+            <description>The name of the output column should match the output column node in the ONNX model.</description>
           </item>
           <item>
             <description>Currently, float and double are the only acceptable data types for input/output.</description>
           </item>
           <item>
-            Upon success, the transform will introduce a new column in <see cref="IDataView"/> corresponding to each output column specified.
+            Upon success, the transform will introduce a new column in <see cref="IDataView"/> with to the output name specified.
           </item>
         </list>
 
-        The inputs and outputs of a TensorFlow model can be obtained using the <a href="https://github.com/tensorflow/tensorflow/tree/master/tensorflow/tools/graph_transforms/README.md#inspecting-graphs">
-          <code>summarize_graph</code> tool
+        The inputs and outputs of an ONNX model can be obtained using the <a href="https://electronjs.org/apps/netron">
+          <code>Netron</code> tool
         </a>.
 
       </remarks>
       <example>
         <code language="csharp">
-          pipeline.Add(new TextLoader(dataFile).CreateFrom&lt;MNISTData&gt;(useHeader: false));
-          pipeline.Add(new ColumnCopier(("NumericImageVec", "Input");
-          pipeline.Add(new TensorFlowScorer()
-          {
-            ModelFile = model_location;
-            InputColumns = new []{ "Input" };
-            OutputColumns = "Output"
+              var imageHeight = 224;
+                var imageWidth = 224;
+                var dataFile = GetDataPath("images/images.tsv");
+                var imageFolder = Path.GetDirectoryName(dataFile);
+
+                var data = TextLoader.CreateReader(env, ctx => (
+                    imagePath: ctx.LoadText(0),
+                    name: ctx.LoadText(1)))
+                    .Read(new MultiFileSource(dataFile));
+
+                var pipe = data.MakeNewEstimator()
+                    .Append(row => (
+                        row.name,
+                        data_0: row.imagePath.LoadAsImage(imageFolder).Resize(imageHeight, imageWidth).ExtractPixels(interleaveArgb: true)))
+                    .Append(row => (row.name, softmaxout_1: row.data_0.ApplyOnnxModel(modelFile)));
+
+                TestEstimatorCore(pipe.AsDynamic, data.AsDynamic);
+
+                var result = pipe.Fit(data).Transform(data).AsDynamic;
+                result.Schema.TryGetColumnIndex("softmaxout_1", out int output);
+                using (var cursor = result.GetRowCursor(col => col == output))
+                {
+                    var buffer = default(VBuffer<float>);
+                    var getter = cursor.GetGetter<VBuffer<float>>(output);
+                    var numRows = 0;
+                    while (cursor.MoveNext())
+                    {
+                        getter(ref buffer);
+                        numRows += 1;
+                    }
+                    System.Console.Writeline("Number of rows scored=" + numRows);
+                }
+            }
           }
         </code>
       </example>
-      <example>
-        <code language="csharp">
-          var pipeline = new LearningPipeline(seed: 1);
-          pipeline.Add(new TextLoader(dataFile).CreateFrom&lt;CifarData&gt;(useHeader: false));
-          pipeline.Add(new ImageLoader(("ImagePath", "ImageReal"))
-          {
-            ImageFolder = imageFolder
-          });
-
-          pipeline.Add(new ImageResizer(("ImageReal", "ImageCropped"))
-          {
-            ImageHeight = imageHeight,
-            ImageWidth = imageWidth,
-            Resizing = ImageResizerTransformResizingKind.IsoCrop
-          });
-
-          pipeline.Add(new ImagePixelExtractor(("ImageCropped", "Input"))
-          {
-            UseAlpha = false,
-            InterleaveArgb = true
-          });
-
-          pipeline.Add(new TensorFlowScorer()
-          {
-            ModelFile = model_location,
-            InputColumns = new[] { "Input" },
-            OutputColumns = "Output"
-          });
-        </code>
-    </example>
     </member>
-
   </members>
 </doc>

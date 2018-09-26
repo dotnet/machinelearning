@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <PackageDescription>ML.NET component for Sonoma</PackageDescription>
+    <PackageDescription>ML.NET component for Microsoft.ML.Scoring library</PackageDescription>
   </PropertyGroup>
 
   <ItemGroup>
