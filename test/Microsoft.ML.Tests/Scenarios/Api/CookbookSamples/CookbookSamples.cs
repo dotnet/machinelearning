@@ -19,6 +19,7 @@ using Microsoft.ML.Runtime.Training;
 using System.IO;
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime.Api;
+using Microsoft.ML.Runtime.Learners;
 
 namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
 {
@@ -190,15 +191,16 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
                     // Train the multi-class SDCA model to predict the label using features.
                     // Note that the label is a text, so it needs to be converted to key using 'ToKey' estimator.
                     Predictions: classification.Trainers.Sdca(r.Label.ToKey(), r.Features)))
-                    // Apply the inverse conversion from 'predictedLabel' key back to string value.
-                    // Note that the final output column is only one, and we didn't assign a name to it.
-                    // In this case, ML.NET auto-assigns the name 'Data' to the produced column.
-                    .Append(r => r.Predictions.predictedLabel.ToValue());
+                // Apply the inverse conversion from 'predictedLabel' key back to string value.
+                // Note that the final output column is only one, and we didn't assign a name to it.
+                // In this case, ML.NET auto-assigns the name 'Data' to the produced column.
+                .Append(r => r.Predictions.predictedLabel.ToValue());
 
             // Train the model.
             var model = learningPipeline.Fit(trainData).AsDynamic;
             return model;
         }
+
         private void PredictOnIris(ITransformer model)
         {
             // Create a new environment for ML.NET operations. It can be used for exception tracking and logging, 
@@ -225,6 +227,66 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
         [Fact]
         public void TrainAndPredictOnIris()
             => PredictOnIris(TrainOnIris(GetDataPath("iris.data")));
+
+        private void TrainAndInspectWeights(string dataPath)
+        {
+            // Create a new environment for ML.NET operations. It can be used for exception tracking and logging, 
+            // as well as the source of randomness.
+            var env = new LocalEnvironment();
+
+            // We know that this is a classification task, so we create a multiclass classification context: it will give us the algorithms
+            // we need, as well as the evaluation procedure.
+            var classification = new MulticlassClassificationContext(env);
+
+            // Step one: read the data as an IDataView.
+            // First, we define the reader: specify the data columns and where to find them in the text file.
+            var reader = TextLoader.CreateReader(env, ctx => (
+                    // The four features of the Iris dataset.
+                    SepalLength: ctx.LoadFloat(0),
+                    SepalWidth: ctx.LoadFloat(1),
+                    PetalLength: ctx.LoadFloat(2),
+                    PetalWidth: ctx.LoadFloat(3),
+                    // Label: kind of iris.
+                    Label: ctx.LoadText(4)
+                ),
+                // Default separator is tab, but the dataset has comma.
+                separator: ',');
+
+            // Retrieve the training data.
+            var trainData = reader.Read(new MultiFileSource(dataPath));
+
+            // This is the predictor ('weights collection') that we will train.
+            MulticlassLogisticRegressionPredictor predictor = null;
+            // Build the training pipeline.
+            var learningPipeline = reader.MakeNewEstimator()
+                .Append(r => (
+                    r.Label,
+                    // Concatenate all the features together into one column 'Features'.
+                    Features: r.SepalLength.ConcatWith(r.SepalWidth, r.PetalLength, r.PetalWidth)))
+                .Append(r => (
+                    r.Label,
+                    // Train the multi-class SDCA model to predict the label using features.
+                    // Note that the label is a text, so it needs to be converted to key using 'ToKey' estimator.
+                    Predictions: classification.Trainers.Sdca(r.Label.ToKey(), r.Features, 
+                        // When the model is trained, the below delegate is going to be called.
+                        // We use that to memorize the predictor object.
+                        onFit: p => predictor = p)));
+
+            // Train the model. During this call our 'onFit' delegate will be invoked,
+            // and our 'predictor' will be set.
+            var model = learningPipeline.Fit(trainData);
+
+            // Now we can use 'predictor' to look at the weights.
+            // 'weights' will be an array of weight vectors, one vector per class.
+            // Our problem has 3 classes, so numClasses will be 3, and weights will contain
+            // 3 vectors (of 4 values each).
+            VBuffer<float>[] weights = null;
+            predictor.GetWeights(ref weights, out int numClasses);
+        }
+
+        [Fact]
+        public void InspectModelWeights()
+            => TrainAndInspectWeights(GetDataPath(TestDatasets.generatedRegressionDataset.trainFilename));
 
         private class IrisInput
         {

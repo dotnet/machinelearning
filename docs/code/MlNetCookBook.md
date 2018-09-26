@@ -27,6 +27,8 @@ Please feel free to search this page and use any code that suits your needs.
 - [How do I save and load the model?](#how-do-i-save-and-load-the-model)
 - [How do I use the model to make one prediction?](#how-do-i-use-the-model-to-make-one-prediction)
 - [What if my training data is not in a text file?](#what-if-my-training-data-is-not-in-a-text-file)
+- [I want to look at my model's coefficients](#i-want-to-look-at-my-models-coefficients)
+- [What is normalization and why do I need to care?](#what-is-normalization-and-why-do-i-need-to-care)
 
 ## How do I load data from a text file?
 
@@ -378,7 +380,7 @@ var learningPipeline = reader.MakeNewEstimator()
         // Apply the inverse conversion from 'predictedLabel' key back to string value.
         // Note that the final output column is only one, and we didn't assign a name to it.
         // In this case, ML.NET auto-assigns the name 'Data' to the produced column.
-        .Append(r => r.Predictions.predictedLabel.ToValue());
+    .Append(r => r.Predictions.predictedLabel.ToValue());
 
 // Train the model.
 var model = learningPipeline.Fit(trainData).AsDynamic;
@@ -502,4 +504,68 @@ var staticModel = staticLearningPipeline.Fit(staticData);
 
 // Note that dynamicModel should be the same as staticModel.AsDynamic (give or take random variance from
 // the training procedure).
+```
+
+## I want to look at my model's coefficients
+
+Oftentimes, once a model is trained, we are also interested on 'what it has learned'. 
+
+For example, if the linear model assigned zero weight to a feature that we consider important, it could indicate some problem with modeling. The weights of the linear model can also be used as a poor man's estimation of 'feature importance'.
+
+In the static pipeline API, we provide a set of `onFit` delegates that allow introspection of the individual transformers as they are trained.
+
+This is how we can extract the learned parameters out of the model that we trained:
+```c#
+// Create a new environment for ML.NET operations. It can be used for exception tracking and logging, 
+// as well as the source of randomness.
+var env = new LocalEnvironment();
+
+// We know that this is a classification task, so we create a multiclass classification context: it will give us the algorithms
+// we need, as well as the evaluation procedure.
+var classification = new MulticlassClassificationContext(env);
+
+// Step one: read the data as an IDataView.
+// First, we define the reader: specify the data columns and where to find them in the text file.
+var reader = TextLoader.CreateReader(env, ctx => (
+        // The four features of the Iris dataset.
+        SepalLength: ctx.LoadFloat(0),
+        SepalWidth: ctx.LoadFloat(1),
+        PetalLength: ctx.LoadFloat(2),
+        PetalWidth: ctx.LoadFloat(3),
+        // Label: kind of iris.
+        Label: ctx.LoadText(4)
+    ),
+    // Default separator is tab, but the dataset has comma.
+    separator: ',');
+
+// Retrieve the training data.
+var trainData = reader.Read(new MultiFileSource(dataPath));
+
+// This is the predictor ('weights collection') that we will train.
+MulticlassLogisticRegressionPredictor predictor = null;
+// Build the training pipeline.
+var learningPipeline = reader.MakeNewEstimator()
+    .Append(r => (
+        r.Label,
+        // Concatenate all the features together into one column 'Features'.
+        Features: r.SepalLength.ConcatWith(r.SepalWidth, r.PetalLength, r.PetalWidth)))
+    .Append(r => (
+        r.Label,
+        // Train the multi-class SDCA model to predict the label using features.
+        // Note that the label is a text, so it needs to be converted to key using 'ToKey' estimator.
+        Predictions: classification.Trainers.Sdca(r.Label.ToKey(), r.Features, 
+            // When the model is trained, the below delegate is going to be called.
+            // We use that to memorize the predictor object.
+            onFit: p => predictor = p)));
+
+// Train the model. During this call our 'onFit' delegate will be invoked,
+// and our 'predictor' will be set.
+var model = learningPipeline.Fit(trainData);
+
+// Now we can use 'predictor' to look at the weights.
+// 'weights' will be an array of weight vectors, one vector per class.
+// Our problem has 3 classes, so numClasses will be 3, and weights will contain
+// 3 vectors (of 4 values each).
+VBuffer<float>[] weights = null;
+predictor.GetWeights(ref weights, out int numClasses);
 ```
