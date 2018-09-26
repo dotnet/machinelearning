@@ -14,6 +14,7 @@ using Microsoft.ML.Runtime.RunTests;
 using Microsoft.ML.Runtime.Training;
 using Microsoft.ML.Trainers;
 using System;
+using System.Linq;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -74,7 +75,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var dataPath = GetDataPath(TestDatasets.generatedRegressionDataset.trainFilename);
             var dataSource = new MultiFileSource(dataPath);
             var ctx = new RegressionContext(env);
-            
+
             // Here we introduce another column called "Score" to collide with the name of the default output. Heh heh heh...
             var reader = TextLoader.CreateReader(env,
                 c => (label: c.LoadFloat(11), features: c.LoadFloat(0, 10), Score: c.LoadText(2)),
@@ -262,6 +263,30 @@ namespace Microsoft.ML.StaticPipelineTesting
             var metrics = ctx.Evaluate(data, r => r.label, r => r.preds, 2);
             Assert.True(metrics.LogLoss > 0);
             Assert.True(metrics.TopKAccuracy > 0);
+        }
+
+        [Fact]
+        public void CrossValidate()
+        {
+            var env = new ConsoleEnvironment(seed: 0);
+            var dataPath = GetDataPath(TestDatasets.iris.trainFilename);
+            var dataSource = new MultiFileSource(dataPath);
+
+            var ctx = new MulticlassClassificationContext(env);
+            var reader = TextLoader.CreateReader(env,
+                c => (label: c.LoadText(0), features: c.LoadFloat(1, 4)));
+
+            var est = reader.MakeNewEstimator()
+                .Append(r => (label: r.label.ToKey(), r.features))
+                .Append(r => (r.label, preds: ctx.Trainers.Sdca(
+                    r.label,
+                    r.features,
+                    maxIterations: 2)));
+
+            var results = ctx.CrossValidate(reader.Read(dataSource), est, r => r.label)
+                .Select(x => x.metrics).ToArray();
+            Assert.Equal(5, results.Length);
+            Assert.True(results.All(x => x.LogLoss > 0));
         }
 
         [Fact]
