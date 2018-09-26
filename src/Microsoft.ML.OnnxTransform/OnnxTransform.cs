@@ -19,7 +19,7 @@ using Microsoft.ML.StaticPipe.Runtime;
 using Microsoft.ML.Core.Data;
 
 [assembly: LoadableClass(OnnxTransform.Summary, typeof(IDataTransform), typeof(OnnxTransform),
-    typeof(OnnxTransform.Arguments), typeof(SignatureDataTransform), OnnxTransform.UserName, OnnxTransform.ShortName)]
+    typeof(OnnxTransform.Arguments), typeof(SignatureDataTransform), OnnxTransform.UserName, OnnxTransform.ShortName, "OnnxTransform", "OnnxScorer")]
 
 [assembly: LoadableClass(OnnxTransform.Summary, typeof(IDataTransform), typeof(OnnxTransform),
     null, typeof(SignatureLoadDataTransform), OnnxTransform.UserName, OnnxTransform.LoaderSignature)]
@@ -54,7 +54,7 @@ namespace Microsoft.ML.OnnxScoring
         private const string RegistrationName = "OnnxTransform";
 
         internal const string Summary = "Transforms the data using the Onnx model.";
-        internal const string UserName = "OnnxTransform";
+        internal const string UserName = "ONNX Scoring Transform";
         internal const string ShortName = "Onnx";
         internal const string LoaderSignature = "OnnxTransform";
 

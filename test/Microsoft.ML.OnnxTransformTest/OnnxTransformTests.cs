@@ -207,7 +207,10 @@ namespace Microsoft.ML.Tests
         {
             using (var env = new ConsoleEnvironment())
             {
-                Assert.Equal(Maml.Main(new[] { @"showschema loader=Text{col=a:R4:0-3 col=b:R4:0-3} xf=OnnxTransform{inputs=a inputs=b outputs=c model={model_matmul/frozen_saved_model.pb}} in=f:\2.txt" }), (int)0);
+                //var x = Maml.Main(new[] { @"showschema loader=Text{col=data_0:R4:0-150527} xf=OnnxTransform{InputColumn=data_0 OutputColumn=softmaxout_1 model={squeezenet/00000001/model.onnxb}}" });
+                var x = Maml.Main(new[] { @"showschema loader=Text{col=data_0:R4:0-150527} xf=Onnx{InputColumn=data_0 OutputColumn=softmaxout_1 model={squeezenet/00000001/model.onnx}}" });
+                //Assert.Equal(Maml.Main(new[] { @"showschema loader=Text{col=a:R4:0-3 col=b:R4:0-3} xf=TFTransform{inputs=a inputs=b outputs=c model={model_matmul/frozen_saved_model.pb}}" }), (int)0);
+                Assert.Equal(0, x);
             }
         }
     }
