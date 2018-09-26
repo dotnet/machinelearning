@@ -151,13 +151,13 @@ enum ConfigValue
 	CceFormat = 57        /* Complex conjugate-even */
 };
 
-extern "C" EXPORT_API(int) DftiSetValue(void *handle, ConfigParam config_param, ...);
-extern "C" EXPORT_API(int) DftiCreateDescriptor(void **handle, ConfigValue precision, ConfigValue domain, int dim, ...);
-extern "C" EXPORT_API(int) DftiCommitDescriptor(void *handle);
-extern "C" EXPORT_API(char *) DftiErrorMessage(int status);
-extern "C" EXPORT_API(int) DftiFreeDescriptor(void **handle);
-extern "C" EXPORT_API(int) DftiComputeForward(void *handle, ...);
-extern "C" EXPORT_API(int) DftiComputeBackward(void *handle, ...);
+EXPORT_API(int) DftiSetValue(void *handle, ConfigParam config_param, ...);
+EXPORT_API(int) DftiCreateDescriptor(void **handle, ConfigValue precision, ConfigValue domain, int dim, ...);
+EXPORT_API(int) DftiCommitDescriptor(void *handle);
+EXPORT_API(char *) DftiErrorMessage(int status);
+EXPORT_API(int) DftiFreeDescriptor(void **handle);
+EXPORT_API(int) DftiComputeForward(void *handle, ...);
+EXPORT_API(int) DftiComputeBackward(void *handle, ...);
 
 EXPORT_API(int) MKLDftiSetValue(void *handle, ConfigParam config_param, int config_val) {
 
