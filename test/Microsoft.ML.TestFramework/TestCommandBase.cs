@@ -70,7 +70,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 return _testCmd.CheckEquality(_dir, _name);
             }
 
-            public bool CheckEqualityNormalized(decimal precision = 10000000)
+            public bool CheckEqualityNormalized(decimal precision = tolerance)
             {
                 Contracts.Assert(CanBeBaselined);
                 return _testCmd.CheckEqualityNormalized(_dir, _name, precision: precision);
