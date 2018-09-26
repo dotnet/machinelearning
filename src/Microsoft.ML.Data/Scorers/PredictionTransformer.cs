@@ -515,11 +515,9 @@ namespace Microsoft.ML.Runtime.Data
     /// Base class for the <see cref="ISingleFeaturePredictionTransformer{TModel}"/> working on clustering tasks.
     /// </summary>
     /// <typeparam name="TModel">An implementation of the <see cref="IPredictorProducing{TResult}"/></typeparam>
-    public sealed class ClusteringPredictionTransformer<TModel> : SingleFeaturePredictionTransformerBase<TModel>
+    public sealed class ClusteringPredictionTransformer<TModel> : SingleFeaturePredictionTransformerBase<TModel, ClusteringScorer>
         where TModel : class, IPredictorProducing<VBuffer<float>>
     {
-        private readonly ClusteringScorer _scorer;
-
         public ClusteringPredictionTransformer(IHostEnvironment env, TModel model, ISchema inputSchema, string featureColumn,
             float threshold = 0f, string thresholdColumn = DefaultColumnNames.Score)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(ClusteringPredictionTransformer<TModel>)), model, inputSchema, featureColumn)
@@ -528,7 +526,7 @@ namespace Microsoft.ML.Runtime.Data
             var schema = new RoleMappedSchema(inputSchema, null, featureColumn);
 
             var args = new ClusteringScorer.Arguments();
-            _scorer = new ClusteringScorer(Host, args, new EmptyDataView(Host, inputSchema), BindableMapper.Bind(Host, schema), schema);
+            Scorer = new ClusteringScorer(Host, args, new EmptyDataView(Host, inputSchema), BindableMapper.Bind(Host, schema), schema);
         }
 
         public ClusteringPredictionTransformer(IHostEnvironment env, ModelLoadContext ctx)
@@ -539,21 +537,7 @@ namespace Microsoft.ML.Runtime.Data
 
             var schema = new RoleMappedSchema(TrainSchema, null, FeatureColumn);
             var args = new ClusteringScorer.Arguments();
-            _scorer = new ClusteringScorer(Host, args, new EmptyDataView(Host, TrainSchema), BindableMapper.Bind(Host, schema), schema);
-        }
-
-        public override bool IsRowToRowMapper => true;
-
-        public override IRowToRowMapper GetRowToRowMapper(ISchema inputSchema)
-        {
-            Host.CheckValue(inputSchema, nameof(inputSchema));
-            return (IRowToRowMapper)_scorer.ApplyToData(Host, new EmptyDataView(Host, inputSchema));
-        }
-
-        public override IDataView Transform(IDataView input)
-        {
-            Host.CheckValue(input, nameof(input));
-            return _scorer.ApplyToData(Host, input);
+            Scorer = new ClusteringScorer(Host, args, new EmptyDataView(Host, TrainSchema), BindableMapper.Bind(Host, schema), schema);
         }
 
         protected override void SaveCore(ModelSaveContext ctx)
