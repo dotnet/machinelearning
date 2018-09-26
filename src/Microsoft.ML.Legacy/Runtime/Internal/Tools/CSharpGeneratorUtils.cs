@@ -28,7 +28,7 @@ namespace Microsoft.ML.Runtime.Internal.Tools
             }
         }
 
-        public static EntryPointGenerationMetadata GetEntryPointMetadata(ModuleCatalog.EntryPointInfo entryPointInfo)
+        public static EntryPointGenerationMetadata GetEntryPointMetadata(ComponentCatalog.EntryPointInfo entryPointInfo)
         {
             var split = entryPointInfo.Name.Split('.');
             Contracts.Check(split.Length == 2);
@@ -84,7 +84,7 @@ namespace Microsoft.ML.Runtime.Internal.Tools
             return $"Var<{GetCSharpTypeName(outputType)}>";
         }
 
-        public static string GetInputType(ModuleCatalog catalog, Type inputType, GeneratedClasses generatedClasses, string rootNameSpace)
+        public static string GetInputType(ComponentCatalog catalog, Type inputType, GeneratedClasses generatedClasses, string rootNameSpace)
         {
             if (inputType.IsGenericType && inputType.GetGenericTypeDefinition() == typeof(Var<>))
                 return $"Var<{GetCSharpTypeName(inputType.GetGenericTypeArgumentsEx()[0])}>";
@@ -196,7 +196,7 @@ namespace Microsoft.ML.Runtime.Internal.Tools
             }
         }
 
-        public static string GetValue(ModuleCatalog catalog, Type fieldType, object fieldValue,
+        public static string GetValue(ComponentCatalog catalog, Type fieldType, object fieldValue,
             GeneratedClasses generatedClasses, string rootNameSpace)
         {
             if (fieldType.IsGenericType && fieldType.GetGenericTypeDefinition() == typeof(Var<>))
@@ -300,7 +300,7 @@ namespace Microsoft.ML.Runtime.Internal.Tools
                     return $"'{GetCharAsString((char)fieldValue)}'";
                 case TlcModule.DataKind.Component:
                     var type = fieldValue.GetType();
-                    ModuleCatalog.ComponentInfo componentInfo;
+                    ComponentCatalog.ComponentInfo componentInfo;
                     if (!catalog.TryFindComponent(fieldType, type, out componentInfo))
                         return null;
                     object defaultComponent = null;
@@ -344,7 +344,7 @@ namespace Microsoft.ML.Runtime.Internal.Tools
             return "\"" + dst + "\"";
         }
 
-        public static string GetComponentName(ModuleCatalog.ComponentInfo component)
+        public static string GetComponentName(ComponentCatalog.ComponentInfo component)
         {
             return $"{Capitalize(component.Name)}{component.Kind}";
         }

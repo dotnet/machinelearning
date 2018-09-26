@@ -2,44 +2,31 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Learners;
 using Microsoft.ML.Runtime.RunTests;
 using Xunit;
-using Xunit.Abstractions;
 
-namespace Microsoft.ML.Tests
+namespace Microsoft.ML.Tests.TrainerEstimators
 {
-    public class SimpleEstimatorTests : TestDataPipeBase
+    public partial class TrainerEstimators
     {
         private IDataView GetBreastCancerDataviewWithTextColumns()
         {
-            var dataPath = GetDataPath("breast-cancer.txt");
-            var inputFile = new SimpleFileHandle(Env, dataPath, false, false);
-            return ImportTextData.TextLoader(Env, new ImportTextData.LoaderInput()
-            {
-                Arguments =
-                {
-                    HasHeader = true,
-                    Column = new[]
+            return new TextLoader(Env,
+                    new TextLoader.Arguments()
                     {
-                        new TextLoader.Column("Label", type: null, 0),
-                        new TextLoader.Column("F1", DataKind.Text, 1),
-                        new TextLoader.Column("F2", DataKind.I4, 2),
-                        new TextLoader.Column("Rest", type: null, new [] { new TextLoader.Range(3, 9) })
-                    }
-                },
-
-                InputFile = inputFile
-            }).Data;
-        }
-
-        public SimpleEstimatorTests(ITestOutputHelper output) : base(output)
-        {
+                        HasHeader = true,
+                        Column = new[]
+                        {
+                            new TextLoader.Column("Label", type: null, 0),
+                            new TextLoader.Column("F1", DataKind.Text, 1),
+                            new TextLoader.Column("F2", DataKind.I4, 2),
+                            new TextLoader.Column("Rest", type: null, new [] { new TextLoader.Range(3, 9) })
+                        }
+                    }).Read(new MultiFileSource(GetDataPath(TestDatasets.breastCancer.trainFilename)));
         }
 
         [Fact]

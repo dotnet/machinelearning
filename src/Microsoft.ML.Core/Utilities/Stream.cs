@@ -30,6 +30,30 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
             writer.Close();
         }
 
+        /// <summary>
+        /// Similar to Stream.CopyTo but takes a length rather than assuming copy to end.  Returns amount copied.
+        /// </summary>
+        /// <param name="source">Source stream to copy from</param>
+        /// <param name="destination">Destination stream to copy to</param>
+        /// <param name="length">Number of bytes to copy</param>
+        /// <param name="bufferSize">Size of buffer to use when copying, default is 81920 to match that of Stream</param>
+        /// <returns>number of bytes copied</returns>
+        public static long CopyRange(this Stream source, Stream destination, long length, int bufferSize = 81920)
+        {
+            // should use ArrayPool once we can take that dependency
+            byte[] buffer = new byte[bufferSize];
+            int read;
+            long remaining = length;
+            while (remaining != 0 &&
+                   (read = source.Read(buffer, 0, (int)Math.Min(buffer.Length, remaining))) != 0)
+            {
+                destination.Write(buffer, 0, read);
+                remaining -= read;
+            }
+
+            return length - remaining;
+        }
+
         public static void WriteBoolByte(this BinaryWriter writer, bool x)
         {
             Contracts.AssertValue(writer);
