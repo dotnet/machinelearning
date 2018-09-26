@@ -25,8 +25,8 @@ Please feel free to search this page and use any code that suits your needs.
 - [How do I train a regression model?](#how-do-i-train-a-regression-model)
 - [How do I verify the model quality?](#how-do-i-verify-the-model-quality)
 - [How do I save and load the model?](#how-do-i-save-and-load-the-model)
-- [How do I use the model to make one prediction?]("#how-do-i-use-the-model-to-make-one-prediction")
-- [What if my training data is not in a text file?]("#what-if-my-training-data-is-not-in-a-text-file")
+- [How do I use the model to make one prediction?](#how-do-i-use-the-model-to-make-one-prediction)
+- [What if my training data is not in a text file?](#what-if-my-training-data-is-not-in-a-text-file)
 
 ## How do I load data from a text file?
 
