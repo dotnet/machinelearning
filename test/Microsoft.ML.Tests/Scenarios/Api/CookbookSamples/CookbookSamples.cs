@@ -7,6 +7,7 @@ using Microsoft.ML.StaticPipe;
 using Microsoft.ML.Data;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Runtime.RunTests;
+using Microsoft.ML.Runtime.FastTree;
 using Microsoft.ML.TestFramework;
 using System;
 using System.Collections.Generic;
@@ -17,6 +18,7 @@ using System.Linq;
 using Microsoft.ML.Runtime.Training;
 using System.IO;
 using Microsoft.ML.Core.Data;
+using Microsoft.ML.Runtime.Api;
 
 namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
 {
@@ -149,5 +151,174 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
         public void TrainRegressionModel()
             => TrainRegression(GetDataPath(TestDatasets.generatedRegressionDataset.trainFilename), GetDataPath(TestDatasets.generatedRegressionDataset.testFilename),
                 DeleteOutputPath("cook_model.zip"));
+
+        private ITransformer TrainOnIris(string irisDataPath)
+        {
+            // Create a new environment for ML.NET operations. It can be used for exception tracking and logging, 
+            // as well as the source of randomness.
+            var env = new LocalEnvironment();
+
+            // We know that this is a classification task, so we create a multiclass classification context: it will give us the algorithms
+            // we need, as well as the evaluation procedure.
+            var classification = new MulticlassClassificationContext(env);
+
+            // Step one: read the data as an IDataView.
+            // First, we define the reader: specify the data columns and where to find them in the text file.
+            var reader = TextLoader.CreateReader(env, ctx => (
+                    // The four features of the Iris dataset.
+                    SepalLength: ctx.LoadFloat(0),
+                    SepalWidth: ctx.LoadFloat(1),
+                    PetalLength: ctx.LoadFloat(2),
+                    PetalWidth: ctx.LoadFloat(3),
+                    // Label: kind of iris.
+                    Label: ctx.LoadText(4)
+                ),
+                // Default separator is tab, but the dataset has comma.
+                separator: ',');
+
+            // Retrieve the training data.
+            var trainData = reader.Read(new MultiFileSource(irisDataPath));
+
+            // Build the training pipeline.
+            var learningPipeline = reader.MakeNewEstimator()
+                .Append(r => (
+                    r.Label,
+                    // Concatenate all the features together into one column 'Features'.
+                    Features: r.SepalLength.ConcatWith(r.SepalWidth, r.PetalLength, r.PetalWidth)))
+                .Append(r => (
+                    r.Label,
+                    // Train the multi-class SDCA model to predict the label using features.
+                    // Note that the label is a text, so it needs to be converted to key using 'ToKey' estimator.
+                    Predictions: classification.Trainers.Sdca(r.Label.ToKey(), r.Features)))
+                    // Apply the inverse conversion from 'predictedLabel' key back to string value.
+                    // Note that the final output column is only one, and we didn't assign a name to it.
+                    // In this case, ML.NET auto-assigns the name 'Data' to the produced column.
+                    .Append(r => r.Predictions.predictedLabel.ToValue());
+
+            // Train the model.
+            var model = learningPipeline.Fit(trainData).AsDynamic;
+            return model;
+        }
+        private void PredictOnIris(ITransformer model)
+        {
+            // Create a new environment for ML.NET operations. It can be used for exception tracking and logging, 
+            // as well as the source of randomness.
+            var env = new LocalEnvironment();
+
+            // Use the model for one-time prediction.
+            // Make the prediction function object. Note that, on average, this call takes around 200x longer
+            // than one prediction, so you might want to cache and reuse the prediction function, instead of
+            // creating one per prediction.
+            var predictionFunc = model.MakePredictionFunction<IrisInput, IrisPrediction>(env);
+
+            // Obtain the prediction. Remember that 'Predict' is not reentrant. If you want to use multiple threads
+            // for simultaneous prediction, make sure each thread is using its own PredictionFunction.
+            var prediction = predictionFunc.Predict(new IrisInput
+            {
+                SepalLength = 4.1f,
+                SepalWidth = 0.1f,
+                PetalLength = 3.2f,
+                PetalWidth = 1.4f
+            });
+        }
+
+        [Fact]
+        public void TrainAndPredictOnIris()
+            => PredictOnIris(TrainOnIris(GetDataPath("iris.data")));
+
+        private class IrisInput
+        {
+            // Unfortunately, we still need the dummy 'Label' column to be present.
+            [ColumnName("Label")]
+            public string IgnoredLabel { get; set; }
+            public float SepalLength { get; set; }
+            public float SepalWidth { get; set; }
+            public float PetalLength { get; set; }
+            public float PetalWidth { get; set; }
+        }
+
+        private IEnumerable<CustomerChurnInfo> GetChurnInfo()
+        {
+            var r = new Random(454);
+            return Enumerable.Range(0, 500)
+                .Select(x => new CustomerChurnInfo
+                {
+                    HasChurned = x % 2 == 0 || (r.NextDouble() < 0.05),
+                    DemographicCategory = (x % 10).ToString(),
+                    LastVisits = new float[] { x, x * 2, x * 3, x * 4, x * 5 }
+                });
+        }
+
+        [Fact]
+        public void TrainOnAutoGeneratedData()
+        {
+            // Create a new environment for ML.NET operations. It can be used for exception tracking and logging, 
+            // as well as the source of randomness.
+            var env = new LocalEnvironment();
+
+            // Step one: read the data as an IDataView.
+            // Let's assume that 'GetChurnData()' fetches and returns the training data from somewhere.
+            IEnumerable<CustomerChurnInfo> churnData = GetChurnInfo();
+
+            // Turn the data into the ML.NET data view.
+            // We can use CreateDataView or CreateStreamingDataView, depending on whether 'churnData' is an IList, 
+            // or merely an IEnumerable.
+            var trainData = env.CreateStreamingDataView(churnData);
+
+            // Now note that 'trainData' is just an IDataView, so we face a choice here: either declare the static type
+            // and proceed in the statically typed fashion, or keep dynamic types and build a dynamic pipeline.
+            // We demonstrate both below.
+
+            // We know that this is a binary classification task, so we create a binary classification context: it will give us the algorithms
+            // we need, as well as the evaluation procedure.
+            var classification = new BinaryClassificationContext(env);
+
+            // Build the learning pipeline. 
+            // In our case, we will one-hot encode the demographic category, and concatenate that with the number of visits.
+            // We apply our FastTree binary classifier to predict the 'HasChurned' label.
+
+            var dynamicLearningPipeline = new CategoricalEstimator(env, "DemographicCategory")
+                .Append(new ConcatEstimator(env, "Features", "DemographicCategory", "LastVisits"))
+                .Append(new FastTreeBinaryClassificationTrainer(env, "HasChurned", "Features", numTrees: 20));
+
+            var dynamicModel = dynamicLearningPipeline.Fit(trainData);
+
+            // Build the same learning pipeline, but statically typed.
+            // First, transition to the statically-typed data view.
+            var staticData = trainData.AssertStatic(env, c => (
+                    HasChurned: c.Bool.Scalar,
+                    DemographicCategory: c.Text.Scalar,
+                    LastVisits: c.R4.Vector));
+
+            // Build the pipeline, same as the one above.
+            var staticLearningPipeline = staticData.MakeNewEstimator()
+                .Append(r => (
+                    r.HasChurned,
+                    Features: r.DemographicCategory.OneHotEncoding().ConcatWith(r.LastVisits)))
+                .Append(r => classification.Trainers.FastTree(r.HasChurned, r.Features, numTrees: 20));
+
+            var staticModel = staticLearningPipeline.Fit(staticData);
+
+            // Note that dynamicModel should be the same as staticModel.AsDynamic (give or take random variance from
+            // the training procedure).
+
+            var qualityMetrics = classification.Evaluate(dynamicModel.Transform(trainData), "HasChurned");
+        }
+
+        private class CustomerChurnInfo
+        {
+            public string CustomerID { get; set; }
+            public bool HasChurned { get; set; }
+            public string DemographicCategory { get; set; }
+            // Visits during last 5 days, latest to newest.
+            [VectorType(5)]
+            public float[] LastVisits { get; set; }
+        }
+
+        private class IrisPrediction
+        {
+            [ColumnName("Data")]
+            public string PredictedClass { get; set; }
+        }
     }
 }
