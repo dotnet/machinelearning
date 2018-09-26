@@ -157,6 +157,7 @@ namespace Microsoft.ML.Runtime
                 case "parallelcommunicator.dll":
                 case "microsoft.ml.runtime.runtests.dll":
                 case "scopecompiler.dll":
+                case "symsgdnative.dll":
                 case "tbb.dll":
                 case "internallearnscope.dll":
                 case "unmanagedlib.dll":
