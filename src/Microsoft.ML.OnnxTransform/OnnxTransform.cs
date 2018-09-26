@@ -253,14 +253,9 @@ namespace Microsoft.ML.OnnxScoring
             {
                 disposer = null;
                 var getters = new Delegate[1];
-                using (var ch = _host.Start("CreateGetters"))
-                {
-                    if (activeOutput(0))
-                        getters[0] = Utils.MarshalInvoke(MakeGetter<int>, _outputItemRawType, input);
-
-                    ch.Done();
-                    return getters;
-                }
+                if (activeOutput(0))
+                    getters[0] = Utils.MarshalInvoke(MakeGetter<int>, _outputItemRawType, input);
+                return getters;
             }
 
             private Delegate MakeGetter<T>(IRow input)

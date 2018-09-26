@@ -62,12 +62,13 @@ namespace Microsoft.ML.Tests
         {
             if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                 return;
+
             var modelFile = "squeezenet/00000001/model.onnx";
 
             var samplevector = getSampleArrayData();
 
             var dataView = ComponentCreation.CreateDataView(Env,
-                new List<TestData>(new TestData[] {
+                new TestData[] {
                     new TestData()
                     {
                         data_0 = samplevector
@@ -76,7 +77,7 @@ namespace Microsoft.ML.Tests
                      {
                         data_0 = samplevector
                      }
-                }));
+                });
 
             var xyData = new List<TestDataXY> { new TestDataXY() { A = new float[inputSize] } };
             var stringData = new List<TestDataDifferntType> { new TestDataDifferntType() { data_0 = new string[inputSize] } };
@@ -110,12 +111,12 @@ namespace Microsoft.ML.Tests
             var samplevector = getSampleArrayData();
 
             var dataView = ComponentCreation.CreateDataView(Env,
-                new List<TestData>(new TestData[] {
+                new TestData[] {
                     new TestData()
                     {
                         data_0 = samplevector
                     }
-                }));
+                });
 
             var inputNames = "data_0";
             var outputNames = "softmaxout_1";
@@ -128,7 +129,6 @@ namespace Microsoft.ML.Tests
                 TrainUtils.SaveModel(Env, Env.Start("saving"), ms, null, resultRoles);
                 ms.Position = 0;
                 var loadedView = ModelFileUtils.LoadTransforms(Env, dataView, ms);
-                //ValidateTensorFlowTransformer(loadedView);
 
                 loadedView.Schema.TryGetColumnIndex(outputNames, out int softMaxOut1);
                 using (var cursor = loadedView.GetRowCursor(col => col == softMaxOut1))
@@ -147,13 +147,13 @@ namespace Microsoft.ML.Tests
                             if (i == 0)
                                 Assert.InRange(val, 0.00004, 0.00005);
                             if (i == 1)
-                                Assert.InRange(val,   0.003844, 0.003845);
+                                Assert.InRange(val, 0.003844, 0.003845);
                             if (i == 999)
                                 Assert.InRange(val, 0.0029566, 0.0029567);
                             i++;
                         }
                     }
-                    Assert.InRange (sum, 1.0, 1.00001);
+                    Assert.InRange(sum, 1.0, 1.00001);
                 }
             }
         }
