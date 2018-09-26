@@ -249,7 +249,7 @@ namespace Microsoft.ML.Runtime.RunTests
             var epListFile = buildPrefix + "_ep-list.tsv";
 
             var entryPointsSubDir = Path.Combine("..", "Common", "EntryPoints");
-            var catalog = ModuleCatalog.CreateInstance(Env);
+            var catalog = Env.ComponentCatalog;
             var epListPath = GetBaselinePath(entryPointsSubDir, epListFile);
             DeleteOutputPath(epListPath);
 
@@ -277,7 +277,7 @@ namespace Microsoft.ML.Runtime.RunTests
             var epListFile = buildPrefix + "_ep-list.tsv";
 
             var entryPointsSubDir = Path.Combine("..", "Common", "EntryPoints");
-            var catalog = ModuleCatalog.CreateInstance(Env);
+            var catalog = Env.ComponentCatalog;
             var path = DeleteOutputPath(entryPointsSubDir, epListFile);
 
             File.WriteAllLines(path, epListContents);
@@ -308,7 +308,7 @@ namespace Microsoft.ML.Runtime.RunTests
             Env.ComponentCatalog.RegisterAssembly(typeof(SaveOnnxCommand).Assembly);
             Env.ComponentCatalog.RegisterAssembly(typeof(TimeSeriesProcessing.TimeSeriesProcessing).Assembly);
 
-            var catalog = ModuleCatalog.CreateInstance(Env);
+            var catalog = Env.ComponentCatalog;
 
             var regex = new Regex(@"\r\n?|\n", RegexOptions.Compiled);
             var epListContents = catalog.AllEntryPoints()
@@ -338,7 +338,7 @@ namespace Microsoft.ML.Runtime.RunTests
         [Fact]
         public void EntryPointInputBuilderOptionals()
         {
-            var catalog = ModuleCatalog.CreateInstance(Env);
+            var catalog = Env.ComponentCatalog;
 
             InputBuilder ib1 = new InputBuilder(Env, typeof(LogisticRegression.Arguments), catalog);
             // Ensure that InputBuilder unwraps the Optional<string> correctly.
@@ -559,7 +559,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 }";
 
             JObject graph = JObject.Parse(inputGraph);
-            var catalog = ModuleCatalog.CreateInstance(Env);
+            var catalog = Env.ComponentCatalog;
             var runner = new GraphRunner(Env, catalog, graph[FieldNames.Nodes] as JArray);
 
             var dataPath = GetDataPath("breast-cancer.txt");
@@ -663,7 +663,7 @@ namespace Microsoft.ML.Runtime.RunTests
         //        }";
 
         //    JObject graph = JObject.Parse(inputGraph);
-        //    var catalog = ModuleCatalog.CreateInstance(Env);
+        //    var catalog = Env.ComponentCatalog;
         //    var runner = new GraphRunner(Env, catalog, graph[FieldNames.Nodes] as JArray);
 
         //    var dv1_data = new[]
@@ -2308,8 +2308,8 @@ namespace Microsoft.ML.Runtime.RunTests
         [Fact]
         public void TestInputBuilderBasicArgs()
         {
-            var catalog = ModuleCatalog.CreateInstance(Env);
-            bool success = catalog.TryFindEntryPoint("Transforms.MinMaxNormalizer", out ModuleCatalog.EntryPointInfo info);
+            var catalog = Env.ComponentCatalog;
+            bool success = catalog.TryFindEntryPoint("Transforms.MinMaxNormalizer", out ComponentCatalog.EntryPointInfo info);
             Assert.True(success);
             var inputBuilder = new InputBuilder(Env, info.InputType, catalog);
 
@@ -2365,8 +2365,8 @@ namespace Microsoft.ML.Runtime.RunTests
         [Fact]
         public void TestInputBuilderComponentFactories()
         {
-            var catalog = ModuleCatalog.CreateInstance(Env);
-            bool success = catalog.TryFindEntryPoint("Trainers.StochasticDualCoordinateAscentBinaryClassifier", out ModuleCatalog.EntryPointInfo info);
+            var catalog = Env.ComponentCatalog;
+            bool success = catalog.TryFindEntryPoint("Trainers.StochasticDualCoordinateAscentBinaryClassifier", out ComponentCatalog.EntryPointInfo info);
             Assert.True(success);
             var inputBuilder = new InputBuilder(Env, info.InputType, catalog);
 
@@ -2481,7 +2481,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 }";
 
             JObject graph = JObject.Parse(inputGraph);
-            var catalog = ModuleCatalog.CreateInstance(Env);
+            var catalog = Env.ComponentCatalog;
             var runner = new GraphRunner(Env, catalog, graph[FieldNames.Nodes] as JArray);
 
             var dataPath = GetDataPath("breast-cancer.txt");
@@ -2577,7 +2577,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 }";
 
             JObject graph = JObject.Parse(inputGraph);
-            var catalog = ModuleCatalog.CreateInstance(Env);
+            var catalog = Env.ComponentCatalog;
             var runner = new GraphRunner(Env, catalog, graph[FieldNames.Nodes] as JArray);
 
             var dataPath = GetDataPath("breast-cancer.txt");
@@ -2685,7 +2685,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 }";
 
             JObject graph = JObject.Parse(inputGraph);
-            var catalog = ModuleCatalog.CreateInstance(Env);
+            var catalog = Env.ComponentCatalog;
             var runner = new GraphRunner(Env, catalog, graph[FieldNames.Nodes] as JArray);
 
             var dataPath = GetDataPath("breast-cancer.txt");
@@ -2790,7 +2790,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 }";
 
             JObject graph = JObject.Parse(inputGraph);
-            var catalog = ModuleCatalog.CreateInstance(Env);
+            var catalog = Env.ComponentCatalog;
             var runner = new GraphRunner(Env, catalog, graph[FieldNames.Nodes] as JArray);
 
             var dataPath = GetDataPath("breast-cancer.txt");
@@ -2951,7 +2951,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 }";
 
             JObject graph = JObject.Parse(inputGraph);
-            var catalog = ModuleCatalog.CreateInstance(Env);
+            var catalog = Env.ComponentCatalog;
             var runner = new GraphRunner(Env, catalog, graph[FieldNames.Nodes] as JArray);
 
             var dataPath = GetDataPath("breast-cancer.txt");
@@ -3146,7 +3146,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 }";
 
             JObject graph = JObject.Parse(inputGraph);
-            var catalog = ModuleCatalog.CreateInstance(Env);
+            var catalog = Env.ComponentCatalog;
             var runner = new GraphRunner(Env, catalog, graph[FieldNames.Nodes] as JArray);
 
             var dataPath = GetDataPath("breast-cancer.txt");
@@ -3269,7 +3269,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 }";
 
             JObject graphJson = JObject.Parse(inputGraph);
-            var catalog = ModuleCatalog.CreateInstance(Env);
+            var catalog = Env.ComponentCatalog;
             var graph = new EntryPointGraph(Env, catalog, graphJson[FieldNames.Nodes] as JArray);
             Assert.True(graph.Macros.All(x => x.CanStart()));
         }
@@ -3324,7 +3324,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 }";
 
             JObject graphJson = JObject.Parse(inputGraph);
-            var catalog = ModuleCatalog.CreateInstance(Env);
+            var catalog = Env.ComponentCatalog;
             var graph = new EntryPointGraph(Env, catalog, graphJson[FieldNames.Nodes] as JArray);
             // Serialize the nodes with ToJson() and then executing them to ensure serialization working correctly.
             var nodes = new JArray(graph.AllNodes.Select(node => node.ToJson()));
@@ -3384,7 +3384,7 @@ namespace Microsoft.ML.Runtime.RunTests
                   ]
                 }";
             JObject graphJson = JObject.Parse(inputGraph);
-            var catalog = ModuleCatalog.CreateInstance(Env);
+            var catalog = Env.ComponentCatalog;
             var graph = new EntryPointGraph(Env, catalog, graphJson[FieldNames.Nodes] as JArray);
             for (int i = 0; i < 2; i++)
             {
