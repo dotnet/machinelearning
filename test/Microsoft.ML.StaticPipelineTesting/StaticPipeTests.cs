@@ -2,10 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Data.StaticPipe;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Data.IO;
 using Microsoft.ML.Runtime.Internal.Utilities;
+using Microsoft.ML.StaticPipe;
 using Microsoft.ML.TestFramework;
 using Microsoft.ML.Transforms;
 using Microsoft.ML.Transforms.Text;
@@ -301,7 +301,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             ImmutableArray<ImmutableArray<float>> bb;
 
             var est = reader.MakeNewEstimator()
-                .Append(r => (r, 
+                .Append(r => (r,
                     ncdf: r.NormalizeByCumulativeDistribution(onFit: (m, s) => mm = m),
                     n: r.NormalizeByMeanVar(onFit: (s, o) => { ss = s; Assert.Empty(o); }),
                     b: r.NormalizeByBinning(onFit: b => bb = b)));
@@ -534,7 +534,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var data = reader.Read(dataSource);
 
             var est = reader.MakeNewEstimator()
-                .Append(r => (r.label, 
+                .Append(r => (r.label,
                               lpnorm: r.features.LpNormalize(),
                               gcnorm: r.features.GlobalContrastNormalize(),
                               zcawhitened: r.features.ZcaWhitening(),
@@ -582,6 +582,35 @@ namespace Microsoft.ML.StaticPipelineTesting
 
             Assert.True(schema.TryGetColumnIndex("topics", out int topicsCol));
             var type = schema.GetColumnType(topicsCol);
+            Assert.True(type.IsVector && type.IsKnownSizeVector && type.ItemType.IsNumber);
+        }
+
+        [Fact]
+        public void FeatureSelection()
+        {
+            var env = new ConsoleEnvironment(seed: 0);
+            var dataPath = GetDataPath("wikipedia-detox-250-line-data.tsv");
+            var reader = TextLoader.CreateReader(env, ctx => (
+                    label: ctx.LoadBool(0),
+                    text: ctx.LoadText(1)), hasHeader: true);
+            var dataSource = new MultiFileSource(dataPath);
+            var data = reader.Read(dataSource);
+
+            var est = data.MakeNewEstimator()
+                .Append(r => (
+                    r.label,
+                    bag_of_words_count: r.text.ToBagofWords().SelectFeaturesBasedOnCount(10),
+                    bag_of_words_mi: r.text.ToBagofWords().SelectFeaturesBasedOnMutualInformation(r.label)));
+
+            var tdata = est.Fit(data).Transform(data);
+            var schema = tdata.AsDynamic.Schema;
+
+            Assert.True(schema.TryGetColumnIndex("bag_of_words_count", out int bagofwordCountCol));
+            var type = schema.GetColumnType(bagofwordCountCol);
+            Assert.True(type.IsVector && type.IsKnownSizeVector && type.ItemType.IsNumber);
+
+            Assert.True(schema.TryGetColumnIndex("bag_of_words_mi", out int bagofwordMiCol));
+            type = schema.GetColumnType(bagofwordMiCol);
             Assert.True(type.IsVector && type.IsKnownSizeVector && type.ItemType.IsNumber);
         }
     }

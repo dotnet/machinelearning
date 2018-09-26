@@ -1,8 +1,8 @@
 ﻿using Microsoft.ML.Core.Data;
-using Microsoft.ML.Data.StaticPipe;
-using Microsoft.ML.Data.StaticPipe.Runtime;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
+using Microsoft.ML.StaticPipe;
+using Microsoft.ML.StaticPipe.Runtime;
 using System;
 using System.Collections.Generic;
 using System.Linq;

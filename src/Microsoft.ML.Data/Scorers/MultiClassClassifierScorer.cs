@@ -48,7 +48,8 @@ namespace Microsoft.ML.Runtime.Data
                 verWrittenCur: 0x00010003, // ISchemaBindableMapper update
                 verReadableCur: 0x00010003,
                 verWeCanReadBack: 0x00010003,
-                loaderSignature: LoaderSignature);
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(MultiClassClassifierScorer).Assembly.FullName);
         }
 
         private const string RegistrationName = "MultiClassClassifierScore";
@@ -88,7 +89,8 @@ namespace Microsoft.ML.Runtime.Data
                     verWrittenCur: 0x00010002, // Added metadataKind
                     verReadableCur: 0x00010002,
                     verWeCanReadBack: 0x00010001,
-                    loaderSignature: LoaderSignature);
+                    loaderSignature: LoaderSignature,
+                    loaderAssemblyName: typeof(LabelNameBindableMapper).Assembly.FullName);
             }
 
             private const int VersionAddedMetadataKind = 0x00010002;
