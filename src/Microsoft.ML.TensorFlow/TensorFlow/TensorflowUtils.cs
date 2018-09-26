@@ -21,17 +21,6 @@ namespace Microsoft.ML.Transforms.TensorFlow
         public const string OpType = "OpType";
         public const string InputOps = "InputOps";
 
-        // This method is needed for the Pipeline API, since ModuleCatalog does not load entry points that are located
-        // in assemblies that aren't directly used in the code. Users who want to use TensorFlow components will have to call
-        // TensorFlowUtils.Initialize() before creating the pipeline.
-        /// <summary>
-        /// Initialize the TensorFlow environment. Call this method before adding TensorFlow components to a learning pipeline.
-        /// </summary>
-        public static void Initialize()
-        {
-            ImageAnalytics.Initialize();
-        }
-
         private static ISchema GetModelSchema(IExceptionContext ectx, TFGraph graph)
         {
             var res = new List<KeyValuePair<string, ColumnType>>();

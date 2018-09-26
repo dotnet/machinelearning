@@ -10,7 +10,7 @@ phases:
     name: Windows_NT
     buildScript: build.cmd
     queue:
-      name: Hosted VS2017
+      name: DotNetCore-Windows 
 
 - template: /build/ci/phase-template.yml
   parameters:
