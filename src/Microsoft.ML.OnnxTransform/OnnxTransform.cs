@@ -203,11 +203,32 @@ namespace Microsoft.ML.OnnxScoring
                 // TODO: Remove assumption below
                 // Assume first output dimension is 1
                 var outputNodeInfo = model.ModelInfo.OutputsInfo[0];
+                var inputNodeInfo = model.ModelInfo.InputsInfo[0];
                 int[] dims = outputNodeInfo.Shape.Skip(1).Select(x => (int)x).ToArray();
                 var outputItemType = OnnxUtils.OnnxToMlNetType(outputNodeInfo.Type);
+                var inputShape = inputNodeInfo.Shape;
                 _outputColType = new VectorType(outputItemType, dims);
                 _outputColName = _parent.Output;
                 _outputItemRawType = outputItemType.RawType;
+
+                int inColIndex;
+                if (!inputSchema.TryGetColumnIndex(_parent.Input, out inColIndex))
+                    throw _host.Except($"Column {_parent.Input} doesn't exist");
+
+                var type = inputSchema.GetColumnType(inColIndex);
+                if (type.IsVector && type.VectorSize == 0)
+                    throw _host.Except($"Variable length input columns not supported");
+
+                if (type.ItemType != outputItemType)
+                    throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", _parent.Input, outputItemType.ToString(), type.ToString());
+
+                // If the column is one dimension we make sure that the total size of the TF shape matches.
+                // Compute the total size of the known dimensions of the shape.
+                int valCount = inputShape.Select(x => (int) x).Where(x => x > 0).Aggregate((x, y) => x * y);
+                // The column length should be divisible by this, so that the other dimensions can be integral.
+                if (type.ValueCount % valCount != 0)
+                    throw Contracts.Except($"Input shape mismatch: Input '{_outputColName}' has shape {String.Join(",", inputShape)}, but input data is of length {type.ValueCount}.");
+
                 _host.Assert(_outputItemRawType == _outputColType.ItemType.RawType);
             }
 
@@ -247,7 +268,7 @@ namespace Microsoft.ML.OnnxScoring
                 _host.AssertValue(input);
                 _host.Assert(typeof(T) == _outputItemRawType);
 
-                ValueGetter<VBuffer<T>> valuegetter = (ref VBuffer<T> dst) =>
+                ValueGetter<VBuffer<T>> valueGetter = (ref VBuffer<T> dst) =>
                 {
                     _idvToTensorAdapter.InitializeValueGetters(input);
                     var inputTensors = new List<Tensor> { _idvToTensorAdapter.GetTensor() };
@@ -262,7 +283,7 @@ namespace Microsoft.ML.OnnxScoring
                     dst = new VBuffer<T>(values.Length, values, dst.Indices);
                 };
 
-                return valuegetter;
+                return valueGetter;
             }
         }
     }
@@ -296,7 +317,7 @@ namespace Microsoft.ML.OnnxScoring
 
             resultDic[Transformer.Output] = new SchemaShape.Column(Transformer.Output,
                 Transformer.OutputType.IsKnownSizeVector ? SchemaShape.Column.VectorKind.Vector
-                : SchemaShape.Column.VectorKind.VariableVector, Transformer.OutputType.ItemType, false);
+                : SchemaShape.Column.VectorKind.VariableVector, NumberType.R4, false);
 
             return new SchemaShape(resultDic.Values);
         }

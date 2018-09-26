@@ -1,29 +1,32 @@
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
 using Microsoft.ML.Core.Data;
+using Microsoft.ML.OnnxScoring;
 using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.ImageAnalytics;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.RunTests;
 using Microsoft.ML.Runtime.Tools;
-using Microsoft.ML.Transforms;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Runtime.InteropServices;
 using Xunit;
 using Xunit.Abstractions;
-using System.Runtime.InteropServices;
-using Microsoft.ML.OnnxScoring;
 
 namespace Microsoft.ML.Tests
 {
     public class OnnxTransformTests : TestDataPipeBase
     {
 
-        private const int inputsize = 150528;
+        private const int inputSize = 150528;
 
         private class TestData
         {
-            [VectorType(inputsize)]
+            [VectorType(inputSize)]
             public float[] data_0;
         }
         private class TestDataSize
@@ -33,20 +36,20 @@ namespace Microsoft.ML.Tests
         }
         private class TestDataXY
         {
-            [VectorType(inputsize)]
+            [VectorType(inputSize)]
             public float[] A;
         }
         private class TestDataDifferntType
         {
-            [VectorType(inputsize)]
+            [VectorType(inputSize)]
             public string[] data_0;
         }
 
         private float[] getSampleArrayData()
         {
-            var samplevector = new float[inputsize];
-            for (int i = 0; i < inputsize; i++)
-                samplevector[i] = (i / (inputsize * 1.01f));
+            var samplevector = new float[inputSize];
+            for (int i = 0; i < inputSize; i++)
+                samplevector[i] = (i / (inputSize * 1.01f));
             return samplevector;
         }
 
@@ -57,7 +60,7 @@ namespace Microsoft.ML.Tests
         [Fact]
         void TestSimpleCase()
         {
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                 return;
             var modelFile = "squeezenet/00000001/model.onnx";
 
@@ -71,12 +74,12 @@ namespace Microsoft.ML.Tests
                     },
                      new TestData()
                      {
-                    data_0 = samplevector
+                        data_0 = samplevector
                      }
                 }));
 
-            var xyData = new List<TestDataXY> { new TestDataXY() { A = new float[inputsize] } };
-            var stringData = new List<TestDataDifferntType> { new TestDataDifferntType() { data_0 = new string[inputsize] } };
+            var xyData = new List<TestDataXY> { new TestDataXY() { A = new float[inputSize] } };
+            var stringData = new List<TestDataDifferntType> { new TestDataDifferntType() { data_0 = new string[inputSize] } };
             var sizeData = new List<TestDataSize> { new TestDataSize() { data_0 = new float[2] } };
             var pipe = new OnnxEstimator(Env, modelFile, "data_0", "softmaxout_1");
 
@@ -84,13 +87,13 @@ namespace Microsoft.ML.Tests
             var invalidDataWrongTypes = ComponentCreation.CreateDataView(Env, stringData);
             var invalidDataWrongVectorSize = ComponentCreation.CreateDataView(Env, sizeData);
             TestEstimatorCore(pipe, dataView, invalidInput: invalidDataWrongNames);
-            //TestEstimatorCore(pipe, dataView, invalidInput: invalidDataWrongTypes);
+            TestEstimatorCore(pipe, dataView, invalidInput: invalidDataWrongTypes);
 
             pipe.GetOutputSchema(SchemaShape.Create(invalidDataWrongVectorSize.Schema));
             try
             {
                 pipe.Fit(invalidDataWrongVectorSize);
-                //Assert.False(true);
+                Assert.False(true);
             }
             catch (ArgumentOutOfRangeException) { }
             catch (InvalidOperationException) { }
@@ -99,7 +102,7 @@ namespace Microsoft.ML.Tests
         [Fact]
         void TestOldSavingAndLoading()
         {
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                 return;
 
             var modelFile = "squeezenet/00000001/model.onnx";
@@ -158,7 +161,7 @@ namespace Microsoft.ML.Tests
         [Fact]
         public void OnnxStatic()
         {
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                 return;
 
             var modelFile = "squeezenet/00000001/model.onnx";
@@ -205,11 +208,12 @@ namespace Microsoft.ML.Tests
         [Fact]
         void TestCommandLine()
         {
+            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                return;
+
             using (var env = new ConsoleEnvironment())
             {
-                //var x = Maml.Main(new[] { @"showschema loader=Text{col=data_0:R4:0-150527} xf=OnnxTransform{InputColumn=data_0 OutputColumn=softmaxout_1 model={squeezenet/00000001/model.onnxb}}" });
                 var x = Maml.Main(new[] { @"showschema loader=Text{col=data_0:R4:0-150527} xf=Onnx{InputColumn=data_0 OutputColumn=softmaxout_1 model={squeezenet/00000001/model.onnx}}" });
-                //Assert.Equal(Maml.Main(new[] { @"showschema loader=Text{col=a:R4:0-3 col=b:R4:0-3} xf=TFTransform{inputs=a inputs=b outputs=c model={model_matmul/frozen_saved_model.pb}}" }), (int)0);
                 Assert.Equal(0, x);
             }
         }
