@@ -80,9 +80,6 @@ namespace Microsoft.ML.Runtime.Training
         /// <summary>
         /// For trainers for performing binary classification.
         /// </summary>
-        /// <remarks>
-        /// Component authors that have written binary classification. They are great people.
-        /// </remarks>
         public BinaryClassificationTrainers Trainers { get; }
 
         public BinaryClassificationContext(IHostEnvironment env)
@@ -139,6 +136,58 @@ namespace Microsoft.ML.Runtime.Training
 
             var eval = new BinaryClassifierEvaluator(Host, new BinaryClassifierEvaluator.Arguments() { });
             return eval.Evaluate(data, label, score, predictedLabel);
+        }
+    }
+
+    /// <summary>
+    /// The central context for clustering trainers.
+    /// </summary>
+    public sealed class ClusteringContext : TrainContextBase
+    {
+        /// <summary>
+        /// For trainers for performing clustering.
+        /// </summary>
+        public ClusteringTrainers Trainers { get; }
+
+        public ClusteringContext(IHostEnvironment env)
+            : base(env, nameof(ClusteringContext))
+        {
+            Trainers = new ClusteringTrainers(this);
+        }
+
+        public sealed class ClusteringTrainers : ContextInstantiatorBase
+        {
+            internal ClusteringTrainers(ClusteringContext ctx)
+                : base(ctx)
+            {
+            }
+        }
+
+        /// <summary>
+        /// Evaluates scored clustering data.
+        /// </summary>
+        /// <param name="data">The scored data.</param>
+        /// <param name="label">The name of the label column in <paramref name="data"/>.</param>
+        /// <param name="score">The name of the score column in <paramref name="data"/>.</param>
+        /// <param name="features"></param>
+        /// <param name="calcuateDbi"></param>
+        /// <param name="predictedLabel">The name of the predicted label column in <paramref name="data"/>.</param>
+        /// <returns>The evaluation results for these calibrated outputs.</returns>
+        public ClusteringEvaluator.Result Evaluate(IDataView data, string label,
+            string score = DefaultColumnNames.Score,
+            string predictedLabel = DefaultColumnNames.PredictedLabel,
+            string features = null, bool calcuateDbi = false )
+        {
+            Host.CheckValue(data, nameof(data));
+            Host.CheckNonEmpty(label, nameof(label));
+            Host.CheckNonEmpty(score, nameof(score));
+            Host.CheckNonEmpty(predictedLabel, nameof(predictedLabel));
+
+            if(calcuateDbi)
+                Host.CheckNonEmpty(features, nameof(features), "The features column name is needed, if you want to calculate the Dbi metric.");
+
+            var eval = new ClusteringEvaluator(Host, new ClusteringEvaluator.Arguments() { CalculateDbi = calcuateDbi });
+            return eval.Evaluate(data, label, score, predictedLabel, features);
         }
     }
 

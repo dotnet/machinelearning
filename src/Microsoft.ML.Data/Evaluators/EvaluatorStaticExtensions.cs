@@ -85,6 +85,50 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         /// <summary>
+        /// Evaluates scored clustering prediction data.
+        /// </summary>
+        /// <typeparam name="T">The shape type for the input data.</typeparam>
+        /// <param name="ctx">The regression context.</param>
+        /// <param name="data">The data to evaluate.</param>
+        /// <param name="label">The index delegate for the label column.</param>
+        /// <param name="score">The index delegate for the predicted score column.</param>
+        /// <param name="predictedLabel">The index delegate for the predictedLabel column.</param>
+        /// <param name="features"></param>
+        /// <param name="calculateDbi"></param>
+        /// <returns>The evaluation metrics.</returns>
+        public static ClusteringEvaluator.Result Evaluate<T>(
+            this ClusteringContext ctx,
+            DataView<T> data,
+            Func<T, Key<uint>> label,
+            Func<T, Vector<float>> score,
+            Func<T, Key<uint>> predictedLabel,
+            Func<T, Vector<float>> features = null,
+            bool calculateDbi = false)
+        {
+            Contracts.CheckValue(data, nameof(data));
+            var env = StaticPipeUtils.GetEnvironment(data);
+            Contracts.AssertValue(env);
+            env.CheckValue(label, nameof(label));
+            env.CheckValue(score, nameof(score));
+
+            var indexer = StaticPipeUtils.GetIndexer(data);
+            string labelName = indexer.Get(label(indexer.Indices));
+            string scoreName = indexer.Get(score(indexer.Indices));
+            string predictedLabelName = indexer.Get(predictedLabel(indexer.Indices));
+            string featuresName = null;
+
+            if (features != null || calculateDbi)
+            {
+                env.CheckRef(features, nameof(features), "The features column name is needed, if you want to calculate the Dbi metric.");
+                featuresName = indexer.Get(features(indexer.Indices));
+            }
+
+            var args = new ClusteringEvaluator.Arguments() { CalculateDbi = calculateDbi };
+
+            return new ClusteringEvaluator(env, args).Evaluate(data.AsDynamic, labelName, scoreName, predictedLabelName, featuresName);
+        }
+
+        /// <summary>
         /// Evaluates scored multiclass classification data.
         /// </summary>
         /// <typeparam name="T">The shape type for the input data.</typeparam>
@@ -136,7 +180,7 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         /// <summary>
-        /// Evaluates scored multiclass classification data.
+        /// Evaluates scored regression data.
         /// </summary>
         /// <typeparam name="T">The shape type for the input data.</typeparam>
         /// <param name="ctx">The regression context.</param>

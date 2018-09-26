@@ -6,6 +6,7 @@ using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.FactorizationMachine;
 using Microsoft.ML.Runtime.Internal.Calibration;
+using Microsoft.ML.Runtime.KMeans;
 using Microsoft.ML.Runtime.Learners;
 using Microsoft.ML.Runtime.RunTests;
 using Microsoft.ML.Runtime.Training;
@@ -71,7 +72,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var dataPath = GetDataPath(TestDatasets.generatedRegressionDataset.trainFilename);
             var dataSource = new MultiFileSource(dataPath);
             var ctx = new RegressionContext(env);
-            
+
             // Here we introduce another column called "Score" to collide with the name of the default output. Heh heh heh...
             var reader = TextLoader.CreateReader(env,
                 c => (label: c.LoadFloat(11), features: c.LoadFloat(0, 10), Score: c.LoadText(2)),
@@ -259,6 +260,46 @@ namespace Microsoft.ML.StaticPipelineTesting
             var metrics = ctx.Evaluate(data, r => r.label, r => r.preds, 2);
             Assert.True(metrics.LogLoss > 0);
             Assert.True(metrics.TopKAccuracy > 0);
+        }
+
+        [Fact]
+        public void KMeans()
+        {
+            var env = new ConsoleEnvironment(seed: 0);
+            var dataPath = GetDataPath(TestDatasets.iris.trainFilename);
+            var dataSource = new MultiFileSource(dataPath);
+
+            var ctx = new ClusteringContext(env);
+            var reader = TextLoader.CreateReader(env,
+                c => (label: c.LoadText(0), features: c.LoadFloat(1, 4)));
+
+            KMeansPredictor pred = null;
+
+            var est = reader.MakeNewEstimator()
+                 .Append(r => (label: r.label.ToKey(), r.features))
+                 .Append(r => (r.label, r.features, preds: ctx.Trainers.KMeans(r.features, clustersCount: 3, onFit: p => pred = p)));
+
+            var pipe = reader.Append(est);
+
+            Assert.Null(pred);
+            var model = pipe.Fit(dataSource);
+            Assert.NotNull(pred);
+
+            VBuffer<float>[] centroids = default;
+            int k;
+            pred.GetClusterCentroids(ref centroids, out k);
+
+            Assert.True(k == 3);
+
+            var data = model.Read(dataSource);
+
+            var metrics = ctx.Evaluate(data, r => r.label, r => r.preds.score, r => r.preds.predictedLabel, r => r.features, true);
+            Assert.NotNull(metrics);
+
+            Assert.InRange(metrics.AvgMinScore, 0.5262, 0.5264);
+            Assert.InRange(metrics.Nmi, 0.73, 0.77);
+            Assert.InRange(metrics.Dbi, 0.662, 0.667);
+
         }
     }
 }
