@@ -256,7 +256,7 @@ namespace Microsoft.ML.Runtime.Model.Onnx
             if (name != null)
                 name = AddVariable(name);
             else
-                name = AddVariable("initializer");
+                name = AddVariable("float");
 
             _initializers.Add(OnnxUtils.MakeFloat(name, value));
             return name;
@@ -267,7 +267,7 @@ namespace Microsoft.ML.Runtime.Model.Onnx
             if (name != null)
                 name = AddVariable(name);
             else
-                name = AddVariable("initializer");
+                name = AddVariable("string");
 
             _initializers.Add(OnnxUtils.MakeString(name, value));
             return name;
@@ -278,7 +278,7 @@ namespace Microsoft.ML.Runtime.Model.Onnx
             if (name != null)
                 name = AddVariable(name);
             else
-                name = AddVariable("initializer");
+                name = AddVariable("int64");
 
             _initializers.Add(OnnxUtils.MakeInt64(name, value));
             return name;
@@ -293,7 +293,7 @@ namespace Microsoft.ML.Runtime.Model.Onnx
             if (name != null)
                 name = AddVariable(name);
             else
-                name = AddVariable("initializer");
+                name = AddVariable("floats");
 
             _initializers.Add(OnnxUtils.MakeFloats(name, values, dims));
             return name;
@@ -308,7 +308,7 @@ namespace Microsoft.ML.Runtime.Model.Onnx
             if (name != null)
                 name = AddVariable(name);
             else
-                name = AddVariable("initializer");
+                name = AddVariable("int64s");
 
             _initializers.Add(OnnxUtils.MakeInt64s(name, values, dims));
             return name;
@@ -323,7 +323,7 @@ namespace Microsoft.ML.Runtime.Model.Onnx
             if (name != null)
                 name = AddVariable(name);
             else
-                name = AddVariable("initializer");
+                name = AddVariable("strings");
 
             _initializers.Add(OnnxUtils.MakeStrings(name, values, dims));
             return name;
