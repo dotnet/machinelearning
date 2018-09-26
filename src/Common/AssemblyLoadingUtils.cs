@@ -140,9 +140,12 @@ namespace Microsoft.ML.Runtime
             string name = Path.GetFileName(path).ToLowerInvariant();
             switch (name)
             {
+                case "cpumathnative.dll":
                 case "cqo.dll":
                 case "fasttreenative.dll":
+                case "factorizationmachinenative.dll":
                 case "libiomp5md.dll":
+                case "ldanative.dll":
                 case "libvw.dll":
                 case "matrixinterf.dll":
                 case "microsoft.ml.neuralnetworks.gpucuda.dll":
@@ -179,20 +182,16 @@ namespace Microsoft.ML.Runtime
             if (!Directory.Exists(dir))
                 return;
 
-            using (var ch = env.Start("LoadAssembliesInDir"))
+            // Load all dlls in the given directory.
+            var paths = Directory.EnumerateFiles(dir, "*.dll");
+            foreach (string path in paths)
             {
-                // Load all dlls in the given directory.
-                var paths = Directory.EnumerateFiles(dir, "*.dll");
-                foreach (string path in paths)
+                if (filter && ShouldSkipPath(path))
                 {
-                    if (filter && ShouldSkipPath(path))
-                    {
-                        ch.Info($"Skipping assembly '{path}' because its name was filtered.");
-                        continue;
-                    }
-
-                    LoadAssembly(env, path);
+                    continue;
                 }
+
+                LoadAssembly(env, path);
             }
         }
 
@@ -206,12 +205,8 @@ namespace Microsoft.ML.Runtime
             {
                 assembly = Assembly.LoadFrom(path);
             }
-            catch (Exception e)
+            catch (Exception)
             {
-                using (var ch = env.Start("LoadAssembly"))
-                {
-                    ch.Error("Could not load assembly {0}:\n{1}", path, e.ToString());
-                }
                 return null;
             }
 
