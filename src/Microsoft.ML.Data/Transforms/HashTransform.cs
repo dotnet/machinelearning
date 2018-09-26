@@ -116,7 +116,7 @@ namespace Microsoft.ML.Transforms
             }
         }
 
-        public sealed class ColumnInfo
+        public class ColumnInfo
         {
             public readonly string Input;
             public readonly string Output;
