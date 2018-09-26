@@ -23,6 +23,8 @@ Please feel free to search this page and use any code that suits your needs.
 - [How do I load data with many columns from a CSV?](#how-do-i-load-data-with-many-columns-from-a-csv)
 - [How do I look at the intermediate data?](#how-do-i-look-at-the-intermediate-data)
 - [How do I train a regression model?](#how-do-i-train-a-regression-model)
+- [How do I verify the model quality?](#how-do-i-verify-the-model-quality)
+- [How do I save and load the model?](#how-do-i-save-and-load-the-model)
 
 ## How do I load data from a text file?
 
@@ -149,6 +151,10 @@ Oftentimes, when we construct the experiment, we want to make sure that the data
 
 We will need to create the cursor and scan the data to obtain the actual values. One way to do this is to use [schema comprehension](SchemaComprehension.md) and map the data to an `IEnumerable` of user-defined objects.
 
+Another mechanism that lets you inspect the intermediate data is the `GetColumn<T>` extension method. It lets you look at the contents of one column of your data in a form of an `IEnumerable`.
+
+Here is all of this in action:
+
 Example file (https://github.com/dotnet/machinelearning/blob/master/test/data/adult.tiny.with-schema.txt):
 ```
 Label	Workclass	education	marital-status
@@ -198,6 +204,18 @@ var someRows = transformedData.AsDynamic
     .Take(4).ToArray();
 
 // Now we can inspect 'someRows' to see if the data has been read and transformed correctly.
+
+// Extract the 'AllFeatures' column.
+// This will give the entire dataset: make sure to only take several row
+// in case the dataset is huge.
+var featureColumns = transformedData.GetColumn(r => r.AllFeatures)
+    .Take(20).ToArray();
+
+// The same extension method also applies to the dynamic-typed data, except you have to
+// specify the column name and type:
+var dynamicData = transformedData.AsDynamic;
+var sameFeatureColumns = dynamicData.GetColumn<string[]>(env, "AllFeatures")
+    .Take(20).ToArray();
 ```
 
 The above code assumes that we defined our `InspectedRow` class as follows:
@@ -212,21 +230,6 @@ private class InspectedRow
 }
 ```
 
-Another mechanism that lets you inspect the intermediate data is the `GetColumn<T>` extension method. It lets you look at the contents of one column of your data in a form of an `IEnumerable`. This code works for the same data pipeline as above:
-```c#
-// Extract the 'AllFeatures' column.
-// This will give the entire dataset: make sure to only take several row
-// in case the dataset is huge.
-var featureColumns = transformedData.GetColumn(r => r.AllFeatures)
-    .Take(20).ToArray();
-
-// The same extension method also applies to the dynamic-typed data, except you have to
-// specify the column name and type:
-var dynamicData = transformedData.AsDynamic;
-var sameFeatureColumns = dynamicData.GetColumn<string[]>(env, "AllFeatures")
-    .Take(20).ToArray();
-```
-
 ## How do I train a regression model?
 
 Generally, in order to train any model in ML.NET, you will go through three steps:
@@ -236,8 +239,90 @@ Generally, in order to train any model in ML.NET, you will go through three step
 
 Example file (https://github.com/dotnet/machinelearning/blob/master/test/data/generated_regression_dataset.csv):
 ```
--2.75,0.77,-0.61,0.14,1.39,0.38,-0.53,-0.50,-2.13,-0.39,0.46,140.66
--0.61,-0.37,-0.12,0.55,-1.00,0.84,-0.02,1.30,-0.24,-0.50,-2.12,148.12
--0.85,-0.91,1.81,0.02,-0.78,-1.41,-1.09,-0.65,0.90,-0.37,-0.22,402.20
-0.28,1.05,-0.24,0.30,-0.99,0.19,0.32,-0.95,-1.19,-0.63,0.75,443.51
+feature_0;feature_1;feature_2;feature_3;feature_4;feature_5;feature_6;feature_7;feature_8;feature_9;feature_10;target
+-2.75;0.77;-0.61;0.14;1.39;0.38;-0.53;-0.50;-2.13;-0.39;0.46;140.66
+-0.61;-0.37;-0.12;0.55;-1.00;0.84;-0.02;1.30;-0.24;-0.50;-2.12;148.12
+-0.85;-0.91;1.81;0.02;-0.78;-1.41;-1.09;-0.65;0.90;-0.37;-0.22;402.20
 ```
+
+In the file above, the last column (12th) is label that we predict, and all the preceding ones are features.
+
+```c#
+// Create a new environment for ML.NET operations. It can be used for exception tracking and logging, 
+// as well as the source of randomness.
+var env = new LocalEnvironment();
+
+// Step one: read the data as an IDataView.
+// First, we define the reader: specify the data columns and where to find them in the text file.
+var reader = TextLoader.CreateReader(env, ctx => (
+        // We read the first 11 values as a single float vector.
+        FeatureVector: ctx.LoadFloat(0, 10),
+        // Separately, read the target variable.
+        Target: ctx.LoadFloat(11)
+    ),
+    // The data file has header.
+    hasHeader: true,
+    // Default separator is tab, but we need a semicolon.
+    separator: ';');
+
+
+// Now read the file (remember though, readers are lazy, so the actual reading will happen when the data is accessed).
+var trainData = reader.Read(new MultiFileSource(trainDataPath));
+
+// Step two: define the learning pipeline. 
+// We know that this is a regression task, so we create a regression context: it will give us the algorithms
+// we need, as well as the evaluation procedure.
+var regression = new RegressionContext(env);
+
+// We 'start' the pipeline with the output of the reader.
+var learningPipeline = reader.MakeNewEstimator()
+    // Now we can add any 'training steps' to it. In our case we want to 'normalize' the data (rescale to be
+    // between -1 and 1 for all examples), and then train the model.
+    .Append(r => (
+        // Retain the 'Target' column for evaluation purposes.
+        r.Target,
+        // We choose the SDCA regression trainer. Note that we normalize the 'FeatureVector' right here in
+        // the the same call.
+        Prediction: regression.Trainers.Sdca(label: r.Target, features: r.FeatureVector.Normalize())));
+
+// Step three. Train the pipeline.
+var model = learningPipeline.Fit(trainData);
+```
+
+## How do I verify the model quality?
+
+This is the first question that arises after you train the model: how good it actually is?
+For each of the machine learning tasks, there is a set of 'metrics' that can describe how good the model is: it could be log-loss or F1 score for classification, RMS or L1 loss for regression etc.
+
+You can use the corresponding 'context' of the task to evaluate the model.
+
+Assuming the example above was used to train the model, here's how you calculate the metrics.
+```c#
+// Read the test dataset.
+var testData = reader.Read(new MultiFileSource(testDataPath));
+// Calculate metrics of the model on the test data.
+// We are using the 'regression' context object here to perform evaluation.
+var metrics = regression.Evaluate(model.Transform(testData), label: r => r.Target, score: r => r.Prediction);
+```
+
+## How do I save and load the model?
+
+Assuming that the model metrics look good to you, it's time to 'operationalize' the model. This is where ML.NET really shines: the `model` object you just built is ready for immediate consumption, it will apply all the same steps that it has 'learned' during training, and it can be persisted and reused in different environments.
+
+Here's what you do to save the model to a file, and reload it (potentially in a different context).
+
+```c#
+using (var stream = File.Create(modelPath))
+{
+    // Saving and loading happens to 'dynamic' models, so the static typing is lost in the process.
+    model.AsDynamic.SaveTo(env, stream);
+}
+
+// Potentially, the lines below can be in a different process altogether.
+
+// When you load the model, it's a 'dynamic' transformer. 
+ITransformer loadedModel;
+using (var stream = File.OpenRead(modelPath))
+    loadedModel = TransformerChain.LoadFrom(env, stream);
+```
+

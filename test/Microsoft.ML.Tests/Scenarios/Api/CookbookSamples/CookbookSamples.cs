@@ -3,8 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Data.StaticPipe;
+using Microsoft.ML.StaticPipe;
 using Microsoft.ML.Data;
+using Microsoft.ML.Trainers;
 using Microsoft.ML.Runtime.RunTests;
 using Microsoft.ML.TestFramework;
 using System;
@@ -13,6 +14,9 @@ using System.Text;
 using Xunit;
 using Xunit.Abstractions;
 using System.Linq;
+using Microsoft.ML.Runtime.Training;
+using System.IO;
+using Microsoft.ML.Core.Data;
 
 namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
 {
@@ -76,5 +80,74 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
         public void InspectIntermediateDataGetColumn()
             => IntermediateData(GetDataPath("adult.tiny.with-schema.txt"));
 
+
+        private void TrainRegression(string trainDataPath, string testDataPath, string modelPath)
+        {
+            // Create a new environment for ML.NET operations. It can be used for exception tracking and logging, 
+            // as well as the source of randomness.
+            var env = new LocalEnvironment();
+
+            // Step one: read the data as an IDataView.
+            // First, we define the reader: specify the data columns and where to find them in the text file.
+            var reader = TextLoader.CreateReader(env, ctx => (
+                    // We read the first 11 values as a single float vector.
+                    FeatureVector: ctx.LoadFloat(0, 10),
+                    // Separately, read the target variable.
+                    Target: ctx.LoadFloat(11)
+                ),
+                // The data file has header.
+                hasHeader: true,
+                // Default separator is tab, but we need a semicolon.
+                separator: ';');
+
+
+            // Now read the file (remember though, readers are lazy, so the actual reading will happen when the data is accessed).
+            var trainData = reader.Read(new MultiFileSource(trainDataPath));
+
+            // Step two: define the learning pipeline. 
+            // We know that this is a regression task, so we create a regression context: it will give us the algorithms
+            // we need, as well as the evaluation procedure.
+            var regression = new RegressionContext(env);
+
+            // We 'start' the pipeline with the output of the reader.
+            var learningPipeline = reader.MakeNewEstimator()
+                // Now we can add any 'training steps' to it. In our case we want to 'normalize' the data (rescale to be
+                // between -1 and 1 for all examples), and then train the model.
+                .Append(r => (
+                    // Retain the 'Target' column for evaluation purposes.
+                    r.Target,
+                    // We choose the SDCA regression trainer. Note that we normalize the 'FeatureVector' right here in
+                    // the the same call.
+                    Prediction: regression.Trainers.Sdca(label: r.Target, features: r.FeatureVector.Normalize())));
+
+            var fx = trainData.GetColumn(x => x.FeatureVector);
+
+            // Step three. Train the pipeline.
+            var model = learningPipeline.Fit(trainData);
+
+            // Read the test dataset.
+            var testData = reader.Read(new MultiFileSource(testDataPath));
+            // Calculate metrics of the model on the test data.
+            // We are using the 'regression' context object here to perform evaluation.
+            var metrics = regression.Evaluate(model.Transform(testData), label: r => r.Target, score: r => r.Prediction);
+
+            using (var stream = File.Create(modelPath))
+            {
+                // Saving and loading happens to 'dynamic' models, so the static typing is lost in the process.
+                model.AsDynamic.SaveTo(env, stream);
+            }
+
+            // Potentially, the lines below can be in a different process altogether.
+
+            // When you load the model, it's a 'dynamic' transformer. 
+            ITransformer loadedModel;
+            using (var stream = File.OpenRead(modelPath))
+                loadedModel = TransformerChain.LoadFrom(env, stream);
+        }
+
+        [Fact]
+        public void TrainRegressionModel()
+            => TrainRegression(GetDataPath(TestDatasets.generatedRegressionDataset.trainFilename), GetDataPath(TestDatasets.generatedRegressionDataset.testFilename),
+                DeleteOutputPath("cook_model.zip"));
     }
 }
