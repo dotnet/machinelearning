@@ -35,8 +35,8 @@
           </item>
         </list>
 
-        The inputs and outputs of an ONNX model can be obtained using the <a href="https://electronjs.org/apps/netron">
-          <code>Netron</code> tool
+        The inputs and outputs of an ONNX model can be obtained using the <a href="https://electronjs.org/apps/netron"> 
+          <code>Netron</code> tool.
         </a>.
 
       </remarks>
