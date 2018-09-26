@@ -3316,7 +3316,7 @@ namespace Microsoft.ML
             public Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel>();
 
             /// <summary>
-            /// The targeted ONNX version. It can be either "Stable" or "Experimental"
+            /// The targeted ONNX version. It can be either "Stable" or "Experimental". If "Experimentab" is used, models produced can contain components not officially defined in ONNX standard.
             /// </summary>
             public OnnxVersion OnnxVersion { get; set; } = OnnxVersion.Stable;
 

@@ -58,7 +58,7 @@ namespace Microsoft.ML.Runtime.Model.Onnx
             [Argument(ArgumentType.Required, Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly, HelpText = "Model that needs to be converted to ONNX format.", SortOrder = 10)]
             public ITransformModel Model;
 
-            [Argument(ArgumentType.AtMostOnce, HelpText = "The targeted ONNX version. It can be either \"Stable\" or \"Experimental\"", SortOrder = 11)]
+            [Argument(ArgumentType.AtMostOnce, HelpText = "The targeted ONNX version. It can be either \"Stable\" or \"Experimental\". If \"Experimentab\" is used, models produced can contain components not officially defined in ONNX standard.", SortOrder = 11)]
             public OnnxVersion OnnxVersion;
         }
 
