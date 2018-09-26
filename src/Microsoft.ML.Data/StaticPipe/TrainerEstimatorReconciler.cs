@@ -338,25 +338,24 @@ namespace Microsoft.ML.StaticPipe.Runtime
         }
 
         /// <summary>
-        /// A reconciler capable of handling the most common cases for binary classification that does not
-        /// necessarily have calibrated outputs.
+        /// A reconciler capable of handling clustering.
         /// </summary>
         public sealed class Clustering : TrainerEstimatorReconciler
         {
             /// <summary>
-            /// The delegate to create the binary classifier trainer instance.
+            /// The delegate to create the clustering trainer instance.
             /// </summary>
-            /// <param name="env">The environment with which to create the estimator</param>
+            /// <param name="env">The environment with which to create the estimator.</param>
             /// <param name="features">The features column name.</param>
             /// <param name="weights">The weights column name, or <c>null</c> if the reconciler was constructed with <c>null</c> weights.</param>
-            /// <returns>A binary classification trainer estimator.</returns>
+            /// <returns>A clustering trainer estimator.</returns>
             public delegate IEstimator<ITransformer> EstimatorFactory(IHostEnvironment env, string features, string weights);
 
             private readonly EstimatorFactory _estFact;
             private static readonly string[] _fixedOutputNames = new[] { DefaultColumnNames.Score, DefaultColumnNames.PredictedLabel };
 
             /// <summary>
-            /// The general output for binary classifiers.
+            /// The general output for clustering.
             /// </summary>
             public (Vector<float> score, Key<uint> predictedLabel) Output { get; }
 
@@ -366,10 +365,11 @@ namespace Microsoft.ML.StaticPipe.Runtime
             protected override IEnumerable<PipelineColumn> Outputs => new PipelineColumn[] { Output.score, Output.predictedLabel };
 
             /// <summary>
-            /// Constructs a new general binary classifier reconciler.
+            /// Constructs a new general clustering reconciler.
             /// </summary>
             /// <param name="estimatorFactory">The delegate to create the training estimator. It is assumed that this estimator
-            /// will produce a single new scalar <see cref="float"/> column named <see cref="DefaultColumnNames.Score"/>.</param>
+            /// will produce a new scalar <see cref="float"/> column named <see cref="DefaultColumnNames.Score"/> and a <see cref="Key{UInt32}"/>
+            /// named PredictedLabel.</param>
             /// <param name="features">The input features column.</param>
             /// <param name="weights">The input weights column, or <c>null</c> if there are no weights.</param>
             public Clustering(EstimatorFactory estimatorFactory, Vector<float> features, Scalar<float> weights)

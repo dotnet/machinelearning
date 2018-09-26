@@ -59,8 +59,8 @@ namespace Microsoft.ML.Runtime.Data
         /// <param name="label">The name of the label column in <paramref name="data"/>.</param>
         /// <param name="score">The name of the score column in <paramref name="data"/>.</param>
         /// <param name="predictedLabel">The name of the predicted label column in <paramref name="data"/>.</param>
-        /// <param name="features"></param>
-        /// <returns>The evaluation results for these calibrated outputs.</returns>
+        /// <param name="features">The name of the feature column in <paramref name="data"/>.</param>
+        /// <returns>The evaluation results.</returns>
         public Result Evaluate(IDataView data, string label, string score, string predictedLabel, string features = null)
         {
             Host.CheckValue(data, nameof(data));

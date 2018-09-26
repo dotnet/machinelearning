@@ -145,10 +145,13 @@ namespace Microsoft.ML.Runtime.Training
     public sealed class ClusteringContext : TrainContextBase
     {
         /// <summary>
-        /// For trainers for performing clustering.
+        /// List of trainers for performing clustering.
         /// </summary>
         public ClusteringTrainers Trainers { get; }
 
+        /// <summary>
+        /// The clustering context.
+        /// </summary>
         public ClusteringContext(IHostEnvironment env)
             : base(env, nameof(ClusteringContext))
         {
@@ -169,10 +172,10 @@ namespace Microsoft.ML.Runtime.Training
         /// <param name="data">The scored data.</param>
         /// <param name="label">The name of the label column in <paramref name="data"/>.</param>
         /// <param name="score">The name of the score column in <paramref name="data"/>.</param>
-        /// <param name="features"></param>
-        /// <param name="calcuateDbi"></param>
+        /// <param name="features">The name of the feature column in <paramref name="data"/>.</param>
+        /// <param name="calcuateDbi">Indicates whether or not to calculate the <see cref="ClusteringEvaluator.Result.Dbi"/> metric.</param>
         /// <param name="predictedLabel">The name of the predicted label column in <paramref name="data"/>.</param>
-        /// <returns>The evaluation results for these calibrated outputs.</returns>
+        /// <returns>The evaluation result.</returns>
         public ClusteringEvaluator.Result Evaluate(IDataView data, string label,
             string score = DefaultColumnNames.Score,
             string predictedLabel = DefaultColumnNames.PredictedLabel,

@@ -88,13 +88,13 @@ namespace Microsoft.ML.Runtime.Data
         /// Evaluates scored clustering prediction data.
         /// </summary>
         /// <typeparam name="T">The shape type for the input data.</typeparam>
-        /// <param name="ctx">The regression context.</param>
+        /// <param name="ctx">The clustering context.</param>
         /// <param name="data">The data to evaluate.</param>
         /// <param name="label">The index delegate for the label column.</param>
         /// <param name="score">The index delegate for the predicted score column.</param>
         /// <param name="predictedLabel">The index delegate for the predictedLabel column.</param>
-        /// <param name="features"></param>
-        /// <param name="calculateDbi"></param>
+        /// <param name="features">The index delegate for the features column.</param>
+        /// <param name="calculateDbi">Indicates whether to calculate the <see cref="ClusteringEvaluator.Result.Dbi"/>metric.</param>
         /// <returns>The evaluation metrics.</returns>
         public static ClusteringEvaluator.Result Evaluate<T>(
             this ClusteringContext ctx,
