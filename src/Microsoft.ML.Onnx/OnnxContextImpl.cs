@@ -253,33 +253,21 @@ namespace Microsoft.ML.Runtime.Model.Onnx
         /// </summary>
         public override string AddInitializer(float value, string name = null)
         {
-            if (name != null)
-                name = AddVariable(name);
-            else
-                name = AddVariable("float");
-
+            name = AddVariable(name ?? "float");
             _initializers.Add(OnnxUtils.MakeFloat(name, value));
             return name;
         }
 
         public override string AddInitializer(string value, string name = null)
         {
-            if (name != null)
-                name = AddVariable(name);
-            else
-                name = AddVariable("string");
-
+            name = AddVariable(name ?? "string");
             _initializers.Add(OnnxUtils.MakeString(name, value));
             return name;
         }
 
         public override string AddInitializer(long value, string name = null)
         {
-            if (name != null)
-                name = AddVariable(name);
-            else
-                name = AddVariable("int64");
-
+            name = AddVariable(name ?? "int64");
             _initializers.Add(OnnxUtils.MakeInt64(name, value));
             return name;
         }
@@ -290,11 +278,7 @@ namespace Microsoft.ML.Runtime.Model.Onnx
             if (dims != null)
                 _host.Check(dims.Aggregate((x, y) => x * y) == values.Count(), "Number of elements doesn't match tensor size");
 
-            if (name != null)
-                name = AddVariable(name);
-            else
-                name = AddVariable("floats");
-
+            name = AddVariable(name ?? "floats");
             _initializers.Add(OnnxUtils.MakeFloats(name, values, dims));
             return name;
         }
@@ -305,11 +289,7 @@ namespace Microsoft.ML.Runtime.Model.Onnx
             if (dims != null)
                 _host.Check(dims.Aggregate((x, y) => x * y) == values.Count(), "Number of elements doesn't match tensor size");
 
-            if (name != null)
-                name = AddVariable(name);
-            else
-                name = AddVariable("int64s");
-
+            name = AddVariable(name ?? "int64s");
             _initializers.Add(OnnxUtils.MakeInt64s(name, values, dims));
             return name;
         }
@@ -320,11 +300,7 @@ namespace Microsoft.ML.Runtime.Model.Onnx
             if (dims != null)
                 _host.Check(dims.Aggregate((x, y) => x * y) == values.Count(), "Number of elements doesn't match tensor size");
 
-            if (name != null)
-                name = AddVariable(name);
-            else
-                name = AddVariable("strings");
-
+            name = AddVariable(name ?? "strings");
             _initializers.Add(OnnxUtils.MakeStrings(name, values, dims));
             return name;
         }
