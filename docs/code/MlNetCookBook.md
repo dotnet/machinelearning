@@ -22,6 +22,7 @@ Please feel free to search this page and use any code that suits your needs.
 - [How do I load data from a text file?](#how-do-i-load-data-from-a-text-file)
 - [How do I load data with many columns from a CSV?](#how-do-i-load-data-with-many-columns-from-a-csv)
 - [How do I look at the intermediate data?](#how-do-i-look-at-the-intermediate-data)
+- [How do I train a regression model?](#how-do-i-train-a-regression-model)
 
 ## How do I load data from a text file?
 
@@ -105,10 +106,10 @@ var env = new LocalEnvironment();
 
 // Create the reader: define the data columns and where to find them in the text file.
 var reader = TextLoader.CreateReader(env, ctx => (
-        // We read the first 10 values as a single float vector.
-        FeatureVector: ctx.LoadFloat(0, 9),
+        // We read the first 11 values as a single float vector.
+        FeatureVector: ctx.LoadFloat(0, 10),
         // Separately, read the target variable.
-        Target: ctx.LoadFloat(10)
+        Target: ctx.LoadFloat(11)
     ),
     // Default separator is tab, but we need a comma.
     separator: ',');
@@ -209,4 +210,34 @@ private class InspectedRow
     public string MaritalStatus;
     public string[] AllFeatures;
 }
+```
+
+Another mechanism that lets you inspect the intermediate data is the `GetColumn<T>` extension method. It lets you look at the contents of one column of your data in a form of an `IEnumerable`. This code works for the same data pipeline as above:
+```c#
+// Extract the 'AllFeatures' column.
+// This will give the entire dataset: make sure to only take several row
+// in case the dataset is huge.
+var featureColumns = transformedData.GetColumn(r => r.AllFeatures)
+    .Take(20).ToArray();
+
+// The same extension method also applies to the dynamic-typed data, except you have to
+// specify the column name and type:
+var dynamicData = transformedData.AsDynamic;
+var sameFeatureColumns = dynamicData.GetColumn<string[]>(env, "AllFeatures")
+    .Take(20).ToArray();
+```
+
+## How do I train a regression model?
+
+Generally, in order to train any model in ML.NET, you will go through three steps:
+1. Figure out how the training data gets into ML.NET in a form of an `IDataView`
+2. Build the 'learning pipeline' as a sequence of elementary 'operators' (estimators).
+3. Call `Fit` on the pipeline to obtain the trained model.
+
+Example file (https://github.com/dotnet/machinelearning/blob/master/test/data/generated_regression_dataset.csv):
+```
+-2.75,0.77,-0.61,0.14,1.39,0.38,-0.53,-0.50,-2.13,-0.39,0.46,140.66
+-0.61,-0.37,-0.12,0.55,-1.00,0.84,-0.02,1.30,-0.24,-0.50,-2.12,148.12
+-0.85,-0.91,1.81,0.02,-0.78,-1.41,-1.09,-0.65,0.90,-0.37,-0.22,402.20
+0.28,1.05,-0.24,0.30,-0.99,0.19,0.32,-0.95,-1.19,-0.63,0.75,443.51
 ```
