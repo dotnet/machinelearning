@@ -29,7 +29,8 @@ namespace Microsoft.ML.Runtime.Api
                 verWrittenCur: 0x00010001,
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
-                loaderSignature: LoaderSignature);
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(SerializableLambdaTransform).Assembly.FullName);
         }
 
         public const string LoaderSignature = "UserLambdaMapTransform";

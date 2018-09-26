@@ -48,9 +48,9 @@ namespace Microsoft.ML.Analyzer.Tests
             string p(string i = "") => string.IsNullOrEmpty(i) ? "" : $" of item {i}";
 
             var expected = new DiagnosticResult[] {
-                diagTp.CreateDiagnosticResult(18, 24, "T"),
-                diagTp.CreateDiagnosticResult(41, 24, "T"),
-                diag.CreateDiagnosticResult(55, 26, p("text")),
+                diagTp.CreateDiagnosticResult(17, 24, "T"),
+                diagTp.CreateDiagnosticResult(40, 24, "T"),
+                diag.CreateDiagnosticResult(54, 26, p("text")),
             };
 
             VerifyCSharpDiagnostic(SourceChained, expected);

@@ -6,7 +6,6 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
-using System.Threading;
 
 namespace Microsoft.ML.Runtime.Data
 {
@@ -382,6 +381,8 @@ namespace Microsoft.ML.Runtime.Data
 
         public bool IsCancelled { get; protected set; }
 
+        public ComponentCatalog ComponentCatalog { get; }
+
         public override int Depth => 0;
 
         protected bool IsDisposed => _tempFiles == null;
@@ -402,6 +403,7 @@ namespace Microsoft.ML.Runtime.Data
             _tempLock = new object();
             _tempFiles = new List<IFileHandle>();
             Root = this as TEnv;
+            ComponentCatalog = new ComponentCatalog();
         }
 
         /// <summary>
@@ -422,6 +424,7 @@ namespace Microsoft.ML.Runtime.Data
             Root = source.Root;
             ListenerDict = source.ListenerDict;
             ProgressTracker = source.ProgressTracker;
+            ComponentCatalog = source.ComponentCatalog;
         }
 
         /// <summary>
