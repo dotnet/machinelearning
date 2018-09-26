@@ -9,10 +9,12 @@ using Microsoft.ML.Runtime.FastTree;
 using Microsoft.ML.Runtime.Internal.Calibration;
 using Microsoft.ML.Runtime.Internal.Internallearn;
 using Microsoft.ML.Runtime.Learners;
+using Microsoft.ML.Runtime.LightGBM;
 using Microsoft.ML.Runtime.RunTests;
 using Microsoft.ML.Runtime.Training;
 using Microsoft.ML.Trainers;
 using System;
+using System.Linq;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -73,7 +75,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var dataPath = GetDataPath(TestDatasets.generatedRegressionDataset.trainFilename);
             var dataSource = new MultiFileSource(dataPath);
             var ctx = new RegressionContext(env);
-            
+
             // Here we introduce another column called "Score" to collide with the name of the default output. Heh heh heh...
             var reader = TextLoader.CreateReader(env,
                 c => (label: c.LoadFloat(11), features: c.LoadFloat(0, 10), Score: c.LoadText(2)),
@@ -264,6 +266,30 @@ namespace Microsoft.ML.StaticPipelineTesting
         }
 
         [Fact]
+        public void CrossValidate()
+        {
+            var env = new ConsoleEnvironment(seed: 0);
+            var dataPath = GetDataPath(TestDatasets.iris.trainFilename);
+            var dataSource = new MultiFileSource(dataPath);
+
+            var ctx = new MulticlassClassificationContext(env);
+            var reader = TextLoader.CreateReader(env,
+                c => (label: c.LoadText(0), features: c.LoadFloat(1, 4)));
+
+            var est = reader.MakeNewEstimator()
+                .Append(r => (label: r.label.ToKey(), r.features))
+                .Append(r => (r.label, preds: ctx.Trainers.Sdca(
+                    r.label,
+                    r.features,
+                    maxIterations: 2)));
+
+            var results = ctx.CrossValidate(reader.Read(dataSource), est, r => r.label)
+                .Select(x => x.metrics).ToArray();
+            Assert.Equal(5, results.Length);
+            Assert.True(results.All(x => x.LogLoss > 0));
+        }
+
+        [Fact]
         public void FastTreeBinaryClassification()
         {
             var env = new ConsoleEnvironment(seed: 0);
@@ -320,6 +346,88 @@ namespace Microsoft.ML.StaticPipelineTesting
             var est = reader.MakeNewEstimator()
                 .Append(r => (r.label, score: ctx.Trainers.FastTree(r.label, r.features,
                     numTrees: 10,
+                    numLeaves: 5,
+                    onFit: (p) => { pred = p; })));
+
+            var pipe = reader.Append(est);
+
+            Assert.Null(pred);
+            var model = pipe.Fit(dataSource);
+            Assert.NotNull(pred);
+            // 11 input features, so we ought to have 11 weights.
+            VBuffer<float> weights = new VBuffer<float>();
+            pred.GetFeatureWeights(ref weights);
+            Assert.Equal(11, weights.Length);
+
+            var data = model.Read(dataSource);
+
+            var metrics = ctx.Evaluate(data, r => r.label, r => r.score, new PoissonLoss());
+            // Run a sanity check against a few of the metrics.
+            Assert.InRange(metrics.L1, 0, double.PositiveInfinity);
+            Assert.InRange(metrics.L2, 0, double.PositiveInfinity);
+            Assert.InRange(metrics.Rms, 0, double.PositiveInfinity);
+            Assert.Equal(metrics.Rms * metrics.Rms, metrics.L2, 5);
+            Assert.InRange(metrics.LossFn, 0, double.PositiveInfinity);
+        }
+
+        [Fact]
+        public void LightGbmBinaryClassification()
+        {
+            var env = new ConsoleEnvironment(seed: 0);
+            var dataPath = GetDataPath(TestDatasets.breastCancer.trainFilename);
+            var dataSource = new MultiFileSource(dataPath);
+            var ctx = new BinaryClassificationContext(env);
+
+            var reader = TextLoader.CreateReader(env,
+                c => (label: c.LoadBool(0), features: c.LoadFloat(1, 9)));
+
+            IPredictorWithFeatureWeights<float> pred = null;
+
+            var est = reader.MakeNewEstimator()
+                .Append(r => (r.label, preds: ctx.Trainers.LightGbm(r.label, r.features,
+                    numBoostRound: 10,
+                    numLeaves: 5,
+                    learningRate: 0.01,
+                    onFit: (p) => { pred = p; })));
+
+            var pipe = reader.Append(est);
+
+            Assert.Null(pred);
+            var model = pipe.Fit(dataSource);
+            Assert.NotNull(pred);
+
+            // 9 input features, so we ought to have 9 weights.
+            VBuffer<float> weights = new VBuffer<float>();
+            pred.GetFeatureWeights(ref weights);
+            Assert.Equal(9, weights.Length);
+
+            var data = model.Read(dataSource);
+
+            var metrics = ctx.Evaluate(data, r => r.label, r => r.preds);
+            // Run a sanity check against a few of the metrics.
+            Assert.InRange(metrics.Accuracy, 0, 1);
+            Assert.InRange(metrics.Auc, 0, 1);
+            Assert.InRange(metrics.Auprc, 0, 1);
+        }
+
+        [Fact]
+        public void LightGbmRegression()
+        {
+            var env = new ConsoleEnvironment(seed: 0);
+            var dataPath = GetDataPath(TestDatasets.generatedRegressionDataset.trainFilename);
+            var dataSource = new MultiFileSource(dataPath);
+
+            var ctx = new RegressionContext(env);
+
+            var reader = TextLoader.CreateReader(env,
+                c => (label: c.LoadFloat(11), features: c.LoadFloat(0, 10)),
+                separator: ';', hasHeader: true);
+
+            LightGbmRegressionPredictor pred = null;
+
+            var est = reader.MakeNewEstimator()
+                .Append(r => (r.label, score: ctx.Trainers.LightGbm(r.label, r.features,
+                    numBoostRound: 10,
                     numLeaves: 5,
                     onFit: (p) => { pred = p; })));
 
