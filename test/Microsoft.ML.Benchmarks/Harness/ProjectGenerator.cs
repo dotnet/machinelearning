@@ -26,6 +26,21 @@ namespace Microsoft.ML.Benchmarks.Harness
         {
         }
 
+        protected override void GenerateNuGetConfig(ArtifactsPaths artifactsPaths)
+        {
+            // BDN ignores Directory.Build.props file which in case of ML.NET contains the NuGet feeds
+            // so we need a nuget.config file to be able to restore "mlnetmkldeps" dependency
+            File.WriteAllText(artifactsPaths.NuGetConfigPath,
+@"<?xml version=""1.0"" encoding=""utf-8""?>
+<configuration>
+ <packageSources>
+    <clear />
+    <add key=""nuget"" value=""https://api.nuget.org/v3/index.json"" />
+    <add key=""net core"" value="" https://dotnet.myget.org/F/dotnet-core/api/v3/index.json"" />
+ </packageSources>
+</configuration>");
+        }
+
         protected override void CopyAllRequiredFiles(ArtifactsPaths artifactsPaths)
         {
             base.CopyAllRequiredFiles(artifactsPaths);
