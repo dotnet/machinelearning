@@ -30,7 +30,7 @@ namespace Microsoft.ML.Runtime.Data
         public const string UserName = "Mutual Information Feature Selection Transform";
         public const string ShortName = "MIFeatureSelection";
 
-        private static class Defaults
+        public static class Defaults
         {
             public const string LabelColumn = DefaultColumnNames.Label;
             public const int SlotsInOutput = 1000;
