@@ -30,7 +30,7 @@ namespace Microsoft.ML.Runtime.Data
         Num = R4,
 
         TX = 11,
-#pragma warning disable MSML_GeneralName // The data kind enum has its own logic, independnet of C# naming conventions.
+#pragma warning disable MSML_GeneralName // The data kind enum has its own logic, independent of C# naming conventions.
         TXT = TX,
         Text = TX,
 
@@ -55,7 +55,7 @@ namespace Microsoft.ML.Runtime.Data
     public static class DataKindExtensions
     {
         public const DataKind KindMin = DataKind.I1;
-        public const DataKind KindLim = DataKind.UG + 1;
+        public const DataKind KindLim = DataKind.U16 + 1;
         public const int KindCount = KindLim - KindMin;
 
         /// <summary>
@@ -141,19 +141,19 @@ namespace Microsoft.ML.Runtime.Data
             switch (kind)
             {
                 case DataKind.I1:
-                    return typeof(DvInt1);
+                    return typeof(sbyte);
                 case DataKind.U1:
                     return typeof(byte);
                 case DataKind.I2:
-                    return typeof(DvInt2);
+                    return typeof(short);
                 case DataKind.U2:
                     return typeof(ushort);
                 case DataKind.I4:
-                    return typeof(DvInt4);
+                    return typeof(int);
                 case DataKind.U4:
                     return typeof(uint);
                 case DataKind.I8:
-                    return typeof(DvInt8);
+                    return typeof(long);
                 case DataKind.U8:
                     return typeof(ulong);
                 case DataKind.R4:
@@ -161,15 +161,15 @@ namespace Microsoft.ML.Runtime.Data
                 case DataKind.R8:
                     return typeof(Double);
                 case DataKind.TX:
-                    return typeof(DvText);
+                    return typeof(ReadOnlyMemory<char>);
                 case DataKind.BL:
-                    return typeof(DvBool);
+                    return typeof(bool);
                 case DataKind.TS:
-                    return typeof(DvTimeSpan);
+                    return typeof(TimeSpan);
                 case DataKind.DT:
-                    return typeof(DvDateTime);
+                    return typeof(DateTime);
                 case DataKind.DZ:
-                    return typeof(DvDateTimeZone);
+                    return typeof(DateTimeOffset);
                 case DataKind.UG:
                     return typeof(UInt128);
             }
@@ -185,35 +185,35 @@ namespace Microsoft.ML.Runtime.Data
             Contracts.CheckValueOrNull(type);
 
             // REVIEW: Make this more efficient. Should we have a global dictionary?
-            if (type == typeof(DvInt1) || type == typeof(sbyte) || type == typeof(sbyte?))
+            if (type == typeof(sbyte))
                 kind = DataKind.I1;
-            else if (type == typeof(byte) || type == typeof(byte?))
+            else if (type == typeof(byte))
                 kind = DataKind.U1;
-            else if (type == typeof(DvInt2)|| type== typeof(short) || type == typeof(short?))
+            else if (type == typeof(short))
                 kind = DataKind.I2;
-            else if (type == typeof(ushort)|| type == typeof(ushort?))
+            else if (type == typeof(ushort))
                 kind = DataKind.U2;
-            else if (type == typeof(DvInt4) || type == typeof(int)|| type == typeof(int?))
+            else if (type == typeof(int))
                 kind = DataKind.I4;
-            else if (type == typeof(uint)|| type == typeof(uint?))
+            else if (type == typeof(uint))
                 kind = DataKind.U4;
-            else if (type == typeof(DvInt8) || type==typeof(long)|| type == typeof(long?))
+            else if (type == typeof(long))
                 kind = DataKind.I8;
-            else if (type == typeof(ulong)|| type == typeof(ulong?))
+            else if (type == typeof(ulong))
                 kind = DataKind.U8;
-            else if (type == typeof(Single)|| type == typeof(Single?))
+            else if (type == typeof(Single))
                 kind = DataKind.R4;
-            else if (type == typeof(Double)|| type == typeof(Double?))
+            else if (type == typeof(Double))
                 kind = DataKind.R8;
-            else if (type == typeof(DvText))
+            else if (type == typeof(ReadOnlyMemory<char>) || type == typeof(string))
                 kind = DataKind.TX;
-            else if (type == typeof(DvBool) || type == typeof(bool) || type == typeof(bool?))
+            else if (type == typeof(bool))
                 kind = DataKind.BL;
-            else if (type == typeof(DvTimeSpan))
+            else if (type == typeof(TimeSpan))
                 kind = DataKind.TS;
-            else if (type == typeof(DvDateTime))
+            else if (type == typeof(DateTime))
                 kind = DataKind.DT;
-            else if (type == typeof(DvDateTimeZone))
+            else if (type == typeof(DateTimeOffset))
                 kind = DataKind.DZ;
             else if (type == typeof(UInt128))
                 kind = DataKind.UG;

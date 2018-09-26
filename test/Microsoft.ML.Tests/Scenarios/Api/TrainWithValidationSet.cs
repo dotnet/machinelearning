@@ -4,6 +4,7 @@
 
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.FastTree;
+using Microsoft.ML.Runtime.RunTests;
 using Xunit;
 
 namespace Microsoft.ML.Tests.Scenarios.Api
@@ -17,13 +18,11 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         [Fact]
         public void TrainWithValidationSet()
         {
-            var dataPath = GetDataPath(SentimentDataPath);
-            var validationDataPath = GetDataPath(SentimentTestPath);
 
-            using (var env = new TlcEnvironment(seed: 1, conc: 1))
+            using (var env = new LocalEnvironment(seed: 1, conc: 1))
             {
                 // Pipeline
-                var loader = TextLoader.ReadFile(env, MakeSentimentTextLoaderArgs(), new MultiFileSource(dataPath));
+                var loader = TextLoader.ReadFile(env, MakeSentimentTextLoaderArgs(), new MultiFileSource(GetDataPath(TestDatasets.Sentiment.trainFilename)));
 
                 var trans = TextTransform.Create(env, MakeSentimentTextTransformArgs(), loader);
                 var trainData = trans;
@@ -33,7 +32,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                 // to create another loader, or to save the loader to model file and then reload.
 
                 // A new one is not always feasible, but this time it is.
-                var validLoader = TextLoader.ReadFile(env, MakeSentimentTextLoaderArgs(), new MultiFileSource(validationDataPath));
+                var validLoader = TextLoader.ReadFile(env, MakeSentimentTextLoaderArgs(), new MultiFileSource(GetDataPath(TestDatasets.Sentiment.testFilename)));
                 var validData = ApplyTransformUtils.ApplyAllTransformsToData(env, trainData, validLoader);
 
                 // Cache both datasets.
@@ -41,10 +40,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                 var cachedValid = new CacheDataView(env, validData, prefetch: null);
 
                 // Train.
-                var trainer = new FastTreeBinaryClassificationTrainer(env, new FastTreeBinaryClassificationTrainer.Arguments
-                {
-                    NumTrees = 3
-                });
+                var trainer = new FastTreeBinaryClassificationTrainer(env, DefaultColumnNames.Label, DefaultColumnNames.Features, numTrees: 3);
                 var trainRoles = new RoleMappedData(cachedTrain, label: "Label", feature: "Features");
                 var validRoles = new RoleMappedData(cachedValid, label: "Label", feature: "Features");
                 trainer.Train(new Runtime.TrainContext(trainRoles, validRoles));

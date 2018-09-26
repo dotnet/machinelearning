@@ -59,7 +59,8 @@ namespace Microsoft.ML.Runtime.Data
                 verWrittenCur: 0x00010001, // Initial
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
-                loaderSignature: LoaderSignature);
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(NADropTransform).Assembly.FullName);
         }
 
         private const string RegistrationName = "DropNAs";
@@ -100,7 +101,7 @@ namespace Microsoft.ML.Runtime.Data
                     MetadataUtils.Kinds.IsNormalized, MetadataUtils.Kinds.KeyValues))
                 {
                     // Output does not have missings.
-                    bldr.AddPrimitive(MetadataUtils.Kinds.HasMissingValues, BoolType.Instance, DvBool.False);
+                    bldr.AddPrimitive(MetadataUtils.Kinds.HasMissingValues, BoolType.Instance, false);
                 }
             }
             md.Seal();

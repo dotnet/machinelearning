@@ -99,7 +99,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
                     // if transforms present.
                     if (Transforms.Length > 0)
                     {
-                        var modelCombine = new ML.Transforms.ManyHeterogeneousModelCombiner
+                        var modelCombine = new ML.Legacy.Transforms.ManyHeterogeneousModelCombiner
                         {
                             TransformModels = new ArrayVar<ITransformModel>(transformsModels.ToArray()),
                             PredictorModel = learnerAddResult.Model
@@ -128,13 +128,13 @@ namespace Microsoft.ML.Runtime.PipelineInference
             }
         }
 
-        private static IEnumerable<Recipe> GetRecipes()
+        private static IEnumerable<Recipe> GetRecipes(IHostEnvironment env)
         {
             yield return new DefaultRecipe();
-            yield return new BalancedTextClassificationRecipe();
-            yield return new AccuracyFocusedRecipe();
-            yield return new ExplorationComboRecipe();
-            yield return new TreeLeafRecipe();
+            yield return new BalancedTextClassificationRecipe(env);
+            yield return new AccuracyFocusedRecipe(env);
+            yield return new ExplorationComboRecipe(env);
+            yield return new TreeLeafRecipe(env);
         }
 
         public abstract class Recipe
@@ -202,7 +202,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
                 TransformInference.SuggestedTransform[] transforms)
             {
                 yield return
-                    new SuggestedRecipe(ToString(), transforms, new SuggestedRecipe.SuggestedLearner[0], Int32.MinValue + 1);
+                    new SuggestedRecipe(ToString(), transforms, new SuggestedRecipe.SuggestedLearner[0], int.MinValue + 1);
             }
 
             public override string ToString() => "Default transforms";
@@ -210,6 +210,14 @@ namespace Microsoft.ML.Runtime.PipelineInference
 
         public abstract class MultiClassRecipies : Recipe
         {
+            protected IHostEnvironment Host { get; }
+
+            protected MultiClassRecipies(IHostEnvironment host)
+            {
+                Contracts.CheckValue(host, nameof(host));
+                Host = host;
+            }
+
             public override List<Type> AllowedTransforms() => base.AllowedTransforms().Where(
                 expert =>
                     expert != typeof(TransformInference.Experts.Text) &&
@@ -227,6 +235,11 @@ namespace Microsoft.ML.Runtime.PipelineInference
 
         public sealed class BalancedTextClassificationRecipe : MultiClassRecipies
         {
+            public BalancedTextClassificationRecipe(IHostEnvironment host)
+                : base(host)
+            {
+            }
+
             public override List<Type> QualifierTransforms()
                 => new List<Type> { typeof(TransformInference.Experts.TextBiGramTriGram) };
 
@@ -236,14 +249,14 @@ namespace Microsoft.ML.Runtime.PipelineInference
                 SuggestedRecipe.SuggestedLearner learner = new SuggestedRecipe.SuggestedLearner();
                 if (predictorType == typeof(SignatureMultiClassClassifierTrainer))
                 {
-                    learner.LoadableClassInfo = ComponentCatalog.GetLoadableClassInfo<SignatureTrainer>("OVA");
+                    learner.LoadableClassInfo = Host.ComponentCatalog.GetLoadableClassInfo<SignatureTrainer>("OVA");
                     learner.Settings = "p=AveragedPerceptron{iter=10}";
                 }
                 else
                 {
-                    learner.LoadableClassInfo = ComponentCatalog.GetLoadableClassInfo<SignatureTrainer>(Learners.AveragedPerceptronTrainer.LoadNameValue);
+                    learner.LoadableClassInfo = Host.ComponentCatalog.GetLoadableClassInfo<SignatureTrainer>(Learners.AveragedPerceptronTrainer.LoadNameValue);
                     learner.Settings = "iter=10";
-                    var epInput = new Trainers.AveragedPerceptronBinaryClassifier
+                    var epInput = new Legacy.Trainers.AveragedPerceptronBinaryClassifier
                     {
                         NumIterations = 10
                     };
@@ -251,7 +264,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
                 }
 
                 yield return
-                    new SuggestedRecipe(ToString(), transforms, new[] { learner }, Int32.MaxValue);
+                    new SuggestedRecipe(ToString(), transforms, new[] { learner }, int.MaxValue);
             }
 
             public override string ToString() => "Text classification optimized for speed and accuracy";
@@ -259,6 +272,11 @@ namespace Microsoft.ML.Runtime.PipelineInference
 
         public sealed class AccuracyFocusedRecipe : MultiClassRecipies
         {
+            public AccuracyFocusedRecipe(IHostEnvironment host)
+                : base(host)
+            {
+            }
+
             public override List<Type> QualifierTransforms()
                 => new List<Type> { typeof(TransformInference.Experts.TextUniGramTriGram) };
 
@@ -268,15 +286,15 @@ namespace Microsoft.ML.Runtime.PipelineInference
                 SuggestedRecipe.SuggestedLearner learner = new SuggestedRecipe.SuggestedLearner();
                 if (predictorType == typeof(SignatureMultiClassClassifierTrainer))
                 {
-                    learner.LoadableClassInfo = ComponentCatalog.GetLoadableClassInfo<SignatureTrainer>("OVA");
+                    learner.LoadableClassInfo = Host.ComponentCatalog.GetLoadableClassInfo<SignatureTrainer>("OVA");
                     learner.Settings = "p=FastTreeBinaryClassification";
                 }
                 else
                 {
                     learner.LoadableClassInfo =
-                        ComponentCatalog.GetLoadableClassInfo<SignatureTrainer>(FastTreeBinaryClassificationTrainer.LoadNameValue);
+                        Host.ComponentCatalog.GetLoadableClassInfo<SignatureTrainer>(FastTreeBinaryClassificationTrainer.LoadNameValue);
                     learner.Settings = "";
-                    var epInput = new Trainers.FastTreeBinaryClassifier();
+                    var epInput = new Legacy.Trainers.FastTreeBinaryClassifier();
                     learner.PipelineNode = new TrainerPipelineNode(epInput);
                 }
 
@@ -288,6 +306,11 @@ namespace Microsoft.ML.Runtime.PipelineInference
 
         public sealed class ExplorationComboRecipe : MultiClassRecipies
         {
+            public ExplorationComboRecipe(IHostEnvironment host)
+                : base(host)
+            {
+            }
+
             public override List<Type> QualifierTransforms()
                 => new List<Type> { typeof(TransformInference.Experts.SdcaTransform) };
 
@@ -298,13 +321,13 @@ namespace Microsoft.ML.Runtime.PipelineInference
                 if (predictorType == typeof(SignatureMultiClassClassifierTrainer))
                 {
                     learner.LoadableClassInfo =
-                        ComponentCatalog.GetLoadableClassInfo<SignatureTrainer>(Learners.SdcaMultiClassTrainer.LoadNameValue);
+                        Host.ComponentCatalog.GetLoadableClassInfo<SignatureTrainer>(Learners.SdcaMultiClassTrainer.LoadNameValue);
                 }
                 else
                 {
                     learner.LoadableClassInfo =
-                        ComponentCatalog.GetLoadableClassInfo<SignatureTrainer>(Learners.LinearClassificationTrainer.LoadNameValue);
-                    var epInput = new Trainers.StochasticDualCoordinateAscentBinaryClassifier();
+                        Host.ComponentCatalog.GetLoadableClassInfo<SignatureTrainer>(Learners.LinearClassificationTrainer.LoadNameValue);
+                    var epInput = new Legacy.Trainers.StochasticDualCoordinateAscentBinaryClassifier();
                     learner.PipelineNode = new TrainerPipelineNode(epInput);
                 }
 
@@ -317,6 +340,11 @@ namespace Microsoft.ML.Runtime.PipelineInference
 
         public sealed class TreeLeafRecipe : MultiClassRecipies
         {
+            public TreeLeafRecipe(IHostEnvironment host)
+                : base(host)
+            {
+            }
+
             public override List<Type> QualifierTransforms()
                 => new List<Type> { typeof(TransformInference.Experts.NaiveBayesTransform) };
 
@@ -325,9 +353,9 @@ namespace Microsoft.ML.Runtime.PipelineInference
             {
                 SuggestedRecipe.SuggestedLearner learner = new SuggestedRecipe.SuggestedLearner();
                 learner.LoadableClassInfo =
-                    ComponentCatalog.GetLoadableClassInfo<SignatureTrainer>(Learners.MultiClassNaiveBayesTrainer.LoadName);
+                    Host.ComponentCatalog.GetLoadableClassInfo<SignatureTrainer>(Learners.MultiClassNaiveBayesTrainer.LoadName);
                 learner.Settings = "";
-                var epInput = new Trainers.NaiveBayesClassifier();
+                var epInput = new Legacy.Trainers.NaiveBayesClassifier();
                 learner.PipelineNode = new TrainerPipelineNode(epInput);
                 yield return new SuggestedRecipe(ToString(), transforms, new[] { learner });
             }
@@ -403,7 +431,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
                     AllowQuoting = splitResult.AllowQuote
                 };
 
-                settingsString = CommandLine.CmdParser.GetSettings(ch, finalLoaderArgs, new TextLoader.Arguments());
+                settingsString = CommandLine.CmdParser.GetSettings(h, finalLoaderArgs, new TextLoader.Arguments());
                 ch.Info($"Loader options: {settingsString}");
 
                 ch.Info("Inferring recipes");
@@ -440,7 +468,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
             using (var ch = h.Start("InferRecipes"))
             {
                 var list = new List<SuggestedRecipe>();
-                foreach (var recipe in GetRecipes())
+                foreach (var recipe in GetRecipes(h))
                     list.AddRange(recipe.Apply(transformInferenceResult, predictorType, ch));
 
                 if (list.Count == 0)
@@ -499,7 +527,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
         public static SuggestedRecipe.SuggestedLearner[] AllowedLearners(IHostEnvironment env, MacroUtils.TrainerKinds trainerKind)
         {
             //not all learners advertised in the API are available in CORE.
-            var catalog = ModuleCatalog.CreateInstance(env);
+            var catalog = env.ComponentCatalog;
             var availableLearnersList = catalog.AllEntryPoints().Where(
                 x => x.InputKinds?.FirstOrDefault(i => i == typeof(CommonInputs.ITrainerInput)) != null);
 

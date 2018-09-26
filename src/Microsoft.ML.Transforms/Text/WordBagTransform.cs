@@ -13,6 +13,7 @@ using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Utilities;
+using Microsoft.ML.Transforms;
 
 [assembly: LoadableClass(WordBagTransform.Summary, typeof(IDataTransform), typeof(WordBagTransform), typeof(WordBagTransform.Arguments), typeof(SignatureDataTransform),
     "Word Bag Transform", "WordBagTransform", "WordBag")]
@@ -182,7 +183,7 @@ namespace Microsoft.ML.Runtime.Data
     }
 
     /// <summary>
-    /// A transform that turns a collection of tokenized text (vector of DvText), or vectors of keys into numerical
+    /// A transform that turns a collection of tokenized text (vector of ReadOnlyMemory), or vectors of keys into numerical
     /// feature vectors. The feature vectors are counts of ngrams (sequences of consecutive *tokens* -words or keys-
     /// of length 1-n).
     /// </summary>
@@ -275,7 +276,7 @@ namespace Microsoft.ML.Runtime.Data
             public Column[] Column;
         }
 
-        internal const string Summary = "A transform that turns a collection of tokenized text (vector of DvText), or vectors of keys into numerical " +
+        internal const string Summary = "A transform that turns a collection of tokenized text ReadOnlyMemory, or vectors of keys into numerical " +
             "feature vectors. The feature vectors are counts of ngrams (sequences of consecutive *tokens* -words or keys- of length 1-n).";
 
         internal const string LoaderSignature = "NgramExtractor";
@@ -360,7 +361,7 @@ namespace Microsoft.ML.Runtime.Data
                         naDropArgs.Column[iinfo] = new NADropTransform.Column { Name = column.Name, Source = column.Name };
                 }
 
-                view = new TermTransform(h, termArgs, view);
+                view = TermTransform.Create(h, termArgs, view);
                 if (naDropArgs != null)
                     view = new NADropTransform(h, naDropArgs, view);
             }
@@ -474,7 +475,7 @@ namespace Microsoft.ML.Runtime.Data
     {
         /// <summary>
         /// Whether the extractor transform created by this factory uses the hashing trick
-        /// (by using <see cref="HashTransform"/> or <see cref="NgramHashTransform"/>, for example).
+        /// (by using <see cref="HashTransformer"/> or <see cref="NgramHashTransform"/>, for example).
         /// </summary>
         bool UseHashingTrick { get; }
 
@@ -564,7 +565,7 @@ namespace Microsoft.ML.Runtime.Data
             if (concatCols.Count > 0)
             {
                 var concatArgs = new ConcatTransform.Arguments { Column = concatCols.ToArray() };
-                return new ConcatTransform(env, concatArgs, view);
+                return ConcatTransform.Create(env, concatArgs, view);
             }
 
             return view;

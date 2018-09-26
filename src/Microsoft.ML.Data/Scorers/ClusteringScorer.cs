@@ -37,7 +37,8 @@ namespace Microsoft.ML.Runtime.Data
                 verWrittenCur: 0x00010003, // ISchemaBindableMapper update
                 verReadableCur: 0x00010003,
                 verWeCanReadBack: 0x00010003,
-                loaderSignature: LoaderSignature);
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(ClusteringScorer).Assembly.FullName);
         }
 
         private const string RegistrationName = "ClusteringScore";
@@ -93,7 +94,7 @@ namespace Microsoft.ML.Runtime.Data
         protected override Delegate GetPredictedLabelGetter(IRow output, out Delegate scoreGetter)
         {
             Contracts.AssertValue(output);
-            Contracts.Assert(output.Schema == Bindings.RowMapper.OutputSchema);
+            Contracts.Assert(output.Schema == Bindings.RowMapper.Schema);
             Contracts.Assert(output.IsColumnActive(Bindings.ScoreColumnIndex));
 
             ValueGetter<VBuffer<Float>> mapperScoreGetter = output.GetGetter<VBuffer<Float>>(Bindings.ScoreColumnIndex);

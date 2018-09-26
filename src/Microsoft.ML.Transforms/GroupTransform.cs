@@ -65,7 +65,8 @@ namespace Microsoft.ML.Runtime.Data
                  verWrittenCur: 0x00010001, // Initial
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
-                loaderSignature: LoaderSignature);
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(GroupTransform).Assembly.FullName);
         }
 
         // REVIEW: maybe we want to have an option to keep all non-group scalar columns, as opposed to
@@ -426,7 +427,6 @@ namespace Microsoft.ML.Runtime.Data
                 public readonly Func<bool> IsSameKey;
 
                 private static Func<bool> MakeSameChecker<T>(IRow row, int col)
-                    where T : IEquatable<T>
                 {
                     T oldValue = default(T);
                     T newValue = default(T);
@@ -436,7 +436,16 @@ namespace Microsoft.ML.Runtime.Data
                         () =>
                         {
                             getter(ref newValue);
-                            bool result = first || oldValue.Equals(newValue);
+                            bool result;
+
+                            if ((typeof(IEquatable<T>).IsAssignableFrom(typeof(T))))
+                                result = oldValue.Equals(newValue);
+                            else if ((typeof(ReadOnlyMemory<char>).IsAssignableFrom(typeof(T))))
+                                result = ((ReadOnlyMemory<char>)(object)oldValue).Span.SequenceEqual(((ReadOnlyMemory<char>)(object)newValue).Span);
+                            else
+                                Contracts.Check(result = false, "Invalid type.");
+
+                            result = result || first;
                             oldValue = newValue;
                             first = false;
                             return result;

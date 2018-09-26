@@ -7,6 +7,8 @@ using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Learners;
 using Xunit;
 using System.Linq;
+using Microsoft.ML.Runtime.FastTree;
+using Microsoft.ML.Runtime.RunTests;
 
 namespace Microsoft.ML.Tests.Scenarios.Api
 {
@@ -21,13 +23,12 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         [Fact]
         public void SimpleTrainAndPredict()
         {
-            var dataPath = GetDataPath(SentimentDataPath);
-            var testDataPath = GetDataPath(SentimentTestPath);
+            var dataset = TestDatasets.Sentiment;
 
-            using (var env = new TlcEnvironment(seed: 1, conc: 1))
+            using (var env = new LocalEnvironment(seed: 1, conc: 1))
             {
                 // Pipeline
-                var loader = TextLoader.ReadFile(env, MakeSentimentTextLoaderArgs(), new MultiFileSource(dataPath));
+                var loader = TextLoader.ReadFile(env, MakeSentimentTextLoaderArgs(), new MultiFileSource(GetDataPath(dataset.trainFilename)));
 
                 var trans = TextTransform.Create(env, MakeSentimentTextTransformArgs(), loader);
 
@@ -48,7 +49,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                 var model = env.CreatePredictionEngine<SentimentData, SentimentPrediction>(scorer);
 
                 // Take a couple examples out of the test data and run predictions on top.
-                var testLoader = TextLoader.ReadFile(env, MakeSentimentTextLoaderArgs(), new MultiFileSource(GetDataPath(SentimentTestPath)));
+                var testLoader = TextLoader.ReadFile(env, MakeSentimentTextLoaderArgs(), new MultiFileSource(GetDataPath(dataset.testFilename)));
                 var testData = testLoader.AsEnumerable<SentimentData>(env, false);
                 foreach (var input in testData.Take(5))
                 {
@@ -96,6 +97,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                 }
             };
         }
+
         private static TextLoader.Arguments MakeSentimentTextLoaderArgs()
         {
             return new TextLoader.Arguments()

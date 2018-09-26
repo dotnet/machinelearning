@@ -64,97 +64,135 @@ namespace Microsoft.ML.Runtime.Data
     /// An <see cref="ISchema"/> that takes all column names and types as constructor parameters.
     /// The columns do not have metadata.
     /// </summary>
-    public sealed class SimpleSchema : ISchema
+    public abstract class SimpleSchemaBase : ISchema
     {
-        private readonly IExceptionContext _ectx;
+        protected readonly IExceptionContext Ectx;
         private readonly string[] _names;
-        private readonly ColumnType[] _types;
-        private readonly Dictionary<string, int> _columnNameMap;
-        private readonly MetadataUtils.MetadataGetter<VBuffer<DvText>>[] _keyValueGetters;
+        protected readonly ColumnType[] Types;
+        protected readonly Dictionary<string, int> ColumnNameMap;
 
-        public int ColumnCount => _types.Length;
+        public int ColumnCount => Types.Length;
 
-        public SimpleSchema(IExceptionContext ectx, params KeyValuePair<string, ColumnType>[] columns)
+        protected SimpleSchemaBase(IExceptionContext ectx, params KeyValuePair<string, ColumnType>[] columns)
         {
             Contracts.CheckValueOrNull(ectx);
-            _ectx = ectx;
-            _ectx.CheckNonEmpty(columns, nameof(columns));
+            Ectx = ectx;
+            Ectx.CheckValue(columns, nameof(columns));
 
             _names = new string[columns.Length];
-            _types = new ColumnType[columns.Length];
-            _columnNameMap = new Dictionary<string, int>();
+            Types = new ColumnType[columns.Length];
+            ColumnNameMap = new Dictionary<string, int>();
             for (int i = 0; i < columns.Length; i++)
             {
                 _names[i] = columns[i].Key;
-                _types[i] = columns[i].Value;
-                if (_columnNameMap.ContainsKey(columns[i].Key))
+                Types[i] = columns[i].Value;
+                if (ColumnNameMap.ContainsKey(columns[i].Key))
                     throw ectx.ExceptParam(nameof(columns), $"Duplicate column name: '{columns[i].Key}'");
-                _columnNameMap[columns[i].Key] = i;
+                ColumnNameMap[columns[i].Key] = i;
             }
-            _keyValueGetters = new MetadataUtils.MetadataGetter<VBuffer<DvText>>[ColumnCount];
         }
 
-        public SimpleSchema(IExceptionContext ectx, KeyValuePair<string, ColumnType>[] columns, Dictionary<string, MetadataUtils.MetadataGetter<VBuffer<DvText>>> keyValues)
+        public bool TryGetColumnIndex(string name, out int col)
+        {
+            return ColumnNameMap.TryGetValue(name, out col);
+        }
+
+        public string GetColumnName(int col)
+        {
+            Ectx.CheckParam(0 <= col && col < ColumnCount, nameof(col));
+            return _names[col];
+        }
+
+        public ColumnType GetColumnType(int col)
+        {
+            Ectx.CheckParam(0 <= col && col < ColumnCount, nameof(col));
+            return Types[col];
+        }
+
+        public IEnumerable<KeyValuePair<string, ColumnType>> GetMetadataTypes(int col)
+        {
+            Ectx.Assert(0 <= col && col < ColumnCount);
+            return GetMetadataTypesCore(col);
+        }
+
+        protected abstract IEnumerable<KeyValuePair<string, ColumnType>> GetMetadataTypesCore(int col);
+
+        public ColumnType GetMetadataTypeOrNull(string kind, int col)
+        {
+            Ectx.CheckParam(0 <= col && col < ColumnCount, nameof(col));
+            return GetMetadataTypeOrNullCore(kind, col);
+        }
+
+        protected abstract ColumnType GetMetadataTypeOrNullCore(string kind, int col);
+
+        public void GetMetadata<TValue>(string kind, int col, ref TValue value)
+        {
+            Ectx.CheckParam(0 <= col && col < ColumnCount, nameof(col));
+            GetMetadataCore(kind, col, ref value);
+        }
+
+        protected abstract void GetMetadataCore<TValue>(string kind, int col, ref TValue value);
+    }
+
+    /// <summary>
+    /// An <see cref="ISchema"/> that takes all column names and types as constructor parameters.
+    /// The columns can optionally have text <see cref="MetadataUtils.Kinds.KeyValues"/> metadata.
+    /// </summary>
+    public sealed class SimpleSchema : SimpleSchemaBase
+    {
+        private readonly MetadataUtils.MetadataGetter<VBuffer<ReadOnlyMemory<char>>>[] _keyValueGetters;
+
+        public SimpleSchema(IExceptionContext ectx, params KeyValuePair<string, ColumnType>[] columns)
+            : base(ectx, columns)
+        {
+            _keyValueGetters = new MetadataUtils.MetadataGetter<VBuffer<ReadOnlyMemory<char>>>[ColumnCount];
+        }
+
+        public SimpleSchema(IExceptionContext ectx, KeyValuePair<string, ColumnType>[] columns,
+            Dictionary<string, MetadataUtils.MetadataGetter<VBuffer<ReadOnlyMemory<char>>>> keyValues)
             : this(ectx, columns)
         {
             foreach (var kvp in keyValues)
             {
                 var name = kvp.Key;
                 var getter = kvp.Value;
-                if (!_columnNameMap.TryGetValue(name, out int col))
-                    throw _ectx.ExceptParam(nameof(keyValues), $"Output schema does not contain column '{name}'");
-                if (!_types[col].ItemType.IsKey)
-                    throw _ectx.ExceptParam(nameof(keyValues), $"Column '{name}' is not a key column, so it cannot have key value metadata");
+                if (!ColumnNameMap.TryGetValue(name, out int col))
+                    throw Ectx.ExceptParam(nameof(keyValues), $"Output schema does not contain column '{name}'");
+                if (!Types[col].ItemType.IsKey)
+                    throw Ectx.ExceptParam(nameof(keyValues), $"Column '{name}' is not a key column, so it cannot have key value metadata");
                 _keyValueGetters[col] = getter;
             }
         }
 
-        public bool TryGetColumnIndex(string name, out int col)
+        protected override IEnumerable<KeyValuePair<string, ColumnType>> GetMetadataTypesCore(int col)
         {
-            return _columnNameMap.TryGetValue(name, out col);
-        }
-
-        public string GetColumnName(int col)
-        {
-            _ectx.CheckParam(0 <= col && col < ColumnCount, nameof(col));
-            return _names[col];
-        }
-
-        public ColumnType GetColumnType(int col)
-        {
-            _ectx.CheckParam(0 <= col && col < ColumnCount, nameof(col));
-            return _types[col];
-        }
-
-        public IEnumerable<KeyValuePair<string, ColumnType>> GetMetadataTypes(int col)
-        {
-            _ectx.CheckParam(0 <= col && col < ColumnCount, nameof(col));
+            Ectx.Assert(0 <= col && col < ColumnCount);
             if (_keyValueGetters[col] != null)
             {
-                _ectx.Assert(_types[col].ItemType.IsKey);
+                Ectx.Assert(Types[col].ItemType.IsKey);
                 yield return new KeyValuePair<string, ColumnType>(MetadataUtils.Kinds.KeyValues,
-                    new VectorType(TextType.Instance, _types[col].ItemType.KeyCount));
+                    new VectorType(TextType.Instance, Types[col].ItemType.KeyCount));
             }
         }
 
-        public ColumnType GetMetadataTypeOrNull(string kind, int col)
+        protected override ColumnType GetMetadataTypeOrNullCore(string kind, int col)
         {
-            _ectx.CheckParam(0 <= col && col < ColumnCount, nameof(col));
+            Ectx.Assert(0 <= col && col < ColumnCount);
             if (kind == MetadataUtils.Kinds.KeyValues && _keyValueGetters[col] != null)
             {
-                _ectx.Assert(_types[col].ItemType.IsKey);
-                return new VectorType(TextType.Instance, _types[col].ItemType.KeyCount);
+                Ectx.Assert(Types[col].ItemType.IsKey);
+                return new VectorType(TextType.Instance, Types[col].ItemType.KeyCount);
             }
             return null;
         }
 
-        public void GetMetadata<TValue>(string kind, int col, ref TValue value)
+        protected override void GetMetadataCore<TValue>(string kind, int col, ref TValue value)
         {
-            _ectx.CheckParam(0 <= col && col < ColumnCount, nameof(col));
+            Ectx.Assert(0 <= col && col < ColumnCount);
             if (kind == MetadataUtils.Kinds.KeyValues && _keyValueGetters[col] != null)
                 _keyValueGetters[col].Marshal(col, ref value);
             else
-                throw _ectx.ExceptGetMetadata();
+                throw Ectx.ExceptGetMetadata();
         }
     }
 }

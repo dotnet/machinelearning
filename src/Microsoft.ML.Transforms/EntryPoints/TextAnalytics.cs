@@ -74,7 +74,7 @@ namespace Microsoft.ML.Runtime.Transforms
         public static CommonOutputs.TransformOutput TermTransform(IHostEnvironment env, TermTransform.Arguments input)
         {
             var h = EntryPointUtils.CheckArgsAndCreateHost(env, "TermTransform", input);
-            var xf = new TermTransform(h, input, input.Data);
+            var xf = Data.TermTransform.Create(h, input, input.Data);
             return new CommonOutputs.TransformOutput()
             {
                 Model = new TransformModel(h, xf, input.Data),
@@ -150,7 +150,7 @@ namespace Microsoft.ML.Runtime.Transforms
             env.CheckValue(input, nameof(input));
 
             var h = EntryPointUtils.CheckArgsAndCreateHost(env, "WordEmbeddings", input);
-            var view = new WordEmbeddingsTransform(h, input, input.Data);
+            var view = WordEmbeddingsTransform.Create(h, input, input.Data);
             return new CommonOutputs.TransformOutput()
             {
                 Model = new TransformModel(h, view, input.Data),

@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Runtime.RunTests;
-using Microsoft.ML.TestFramework;
 using System.IO;
 using Xunit;
 using Xunit.Abstractions;
@@ -19,7 +18,7 @@ namespace Microsoft.ML.Tests
         [Fact(Skip = "Execute this test if you want to regenerate CSharpApi file")]
         public void RegenerateCSharpApi()
         {
-            var basePath = GetDataPath("../../src/Microsoft.ML/CSharpApi.cs");
+            var basePath = GetDataPath("../../src/Microsoft.ML.Legacy/CSharpApi.cs");
             Runtime.Tools.Maml.Main(new[] { $"? generator=cs{{csFilename={basePath}}}" });
         }
 
@@ -29,7 +28,7 @@ namespace Microsoft.ML.Tests
             var dataPath = GetOutputPath("Api.cs");
             Runtime.Tools.Maml.Main(new[] { $"? generator=cs{{csFilename={dataPath}}}" });
 
-            var basePath = GetDataPath("../../src/Microsoft.ML/CSharpApi.cs");
+            var basePath = GetDataPath("../../src/Microsoft.ML.Legacy/CSharpApi.cs");
             using (StreamReader baseline = OpenReader(basePath))
             using (StreamReader result = OpenReader(dataPath))
             {

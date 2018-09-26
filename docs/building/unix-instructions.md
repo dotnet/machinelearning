@@ -45,7 +45,7 @@ On macOS a few components are needed which are not provided by a default develop
 * gcc
 * All the requirements necessary to run .NET Core 2.0 applications. To view macOS prerequisites click [here](https://docs.microsoft.com/en-us/dotnet/core/macos-prerequisites?tabs=netcore2x).
 
-One way of obtaining CMake and gcc is via [Homebrew](http://brew.sh):
+One way of obtaining CMake and gcc is via [Homebrew](https://brew.sh):
 ```sh
 $ brew install cmake
 $ brew install gcc

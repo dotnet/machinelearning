@@ -26,11 +26,12 @@ namespace Microsoft.ML.Runtime.RunTests
     {
         private readonly ITestOutputHelper _output;
 
-        protected BaseTestBaseline(ITestOutputHelper helper): base(helper)
+        protected BaseTestBaseline(ITestOutputHelper helper) : base(helper)
         {
             _output = helper;
-            ITest test = (ITest)helper.GetType().GetField("test", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(helper); 
-            TestName = test.TestCase.TestMethod.Method.Name; 
+            ITest test = (ITest)helper.GetType().GetField("test", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(helper);
+            FullTestName = test.TestCase.TestMethod.TestClass.Class.Name + "." + test.TestCase.TestMethod.Method.Name;
+            TestName = test.TestCase.TestMethod.Method.Name;
             Init();
         }
 
@@ -87,11 +88,12 @@ namespace Microsoft.ML.Runtime.RunTests
 
         // The writer to write to test log files.
         protected StreamWriter LogWriter;
-        protected TlcEnvironment Env;
+        protected ConsoleEnvironment Env;
         private bool _normal;
         private bool _passed;
 
         public string TestName { get; set; }
+        public string FullTestName { get; set; }
 
         public void Init()
         {
@@ -103,10 +105,11 @@ namespace Microsoft.ML.Runtime.RunTests
             // Find the sample data and baselines.
             _baseDir = Path.Combine(RootDir, _baselineRootRelPath);
 
-            string logPath = Path.Combine(logDir, TestName + LogSuffix);
+            string logPath = Path.Combine(logDir, FullTestName + LogSuffix);
             LogWriter = OpenWriter(logPath);
             _passed = true;
-            Env = new TlcEnvironment(42, outWriter: LogWriter, errWriter: LogWriter);
+            Env = new ConsoleEnvironment(42, outWriter: LogWriter, errWriter: LogWriter)
+                .AddStandardComponents();
             InitializeCore();
         }
 
@@ -131,7 +134,7 @@ namespace Microsoft.ML.Runtime.RunTests
         }
 
         // This method is used by subclass to dispose of disposable objects
-        // such as TlcEnvironment.
+        // such as LocalEnvironment.
         // It is called as a first step in test clean up.
         protected virtual void CleanupCore()
         {
@@ -855,7 +858,7 @@ namespace Microsoft.ML.Runtime.RunTests
         /// </summary>
         protected static int MainForTest(string args)
         {
-            using (var env = new TlcEnvironment())
+            using (var env = new ConsoleEnvironment())
             {
                 int result = Maml.MainCore(env, args, false);
                 return result;

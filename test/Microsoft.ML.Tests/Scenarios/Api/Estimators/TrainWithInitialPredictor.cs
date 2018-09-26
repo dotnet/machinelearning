@@ -2,8 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Learners;
+using Microsoft.ML.Runtime.RunTests;
 using Xunit;
 
 namespace Microsoft.ML.Tests.Scenarios.Api
@@ -17,14 +19,13 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         [Fact]
         public void New_TrainWithInitialPredictor()
         {
-            var dataPath = GetDataPath(SentimentDataPath);
 
-            using (var env = new TlcEnvironment(seed: 1, conc: 1))
+            using (var env = new LocalEnvironment(seed: 1, conc: 1))
             {
-                var data = new TextLoader(env, MakeSentimentTextLoaderArgs()).Read(new MultiFileSource(dataPath));
+                var data = new TextLoader(env, MakeSentimentTextLoaderArgs()).Read(new MultiFileSource(GetDataPath(TestDatasets.Sentiment.trainFilename)));
 
                 // Pipeline.
-                var pipeline = new MyTextTransform(env, MakeSentimentTextTransformArgs());
+                var pipeline = new TextTransform(env, "SentimentText", "Features");
 
                 // Train the pipeline, prepare train set.
                 var trainData = pipeline.FitAndTransform(data);
@@ -37,8 +38,10 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                 var firstModel = trainer.Fit(trainData);
 
                 // Train the second predictor on the same data.
-                var secondTrainer = new MyAveragedPerceptron(env, new AveragedPerceptronTrainer.Arguments(), "Features", "Label");
-                var finalModel = secondTrainer.Train(trainData, firstModel.Model);
+                var secondTrainer = new AveragedPerceptronTrainer(env, new AveragedPerceptronTrainer.Arguments());
+
+                var trainRoles = new RoleMappedData(trainData, label: "Label", feature: "Features");
+                var finalModel = secondTrainer.Train(new TrainContext(trainRoles, initialPredictor: firstModel.Model));
             }
         }
     }

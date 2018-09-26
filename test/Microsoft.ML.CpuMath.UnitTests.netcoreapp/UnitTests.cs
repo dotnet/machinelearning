@@ -21,7 +21,7 @@ namespace Microsoft.ML.CpuMath.UnitTests
         private readonly FloatEqualityComparer _comparer;
         private readonly FloatEqualityComparerForMatMul _matMulComparer;
 
-        private const float DEFAULT_SCALE = 1.7f;
+        private const float DefaultScale = 1.7f;
 
         public CpuMathUtilsUnitTests()
         {
@@ -222,10 +222,10 @@ namespace Microsoft.ML.CpuMath.UnitTests
 
             for (int i = 0; i < expected.Length; i++)
             {
-                expected[i] += DEFAULT_SCALE;
+                expected[i] += DefaultScale;
             }
 
-            CpuMathUtils.Add(DEFAULT_SCALE, dst, dst.Length);
+            CpuMathUtils.Add(DefaultScale, dst, dst.Length);
             var actual = dst;
             Assert.Equal(expected, actual, _comparer);
         }
@@ -240,10 +240,10 @@ namespace Microsoft.ML.CpuMath.UnitTests
 
             for (int i = 0; i < expected.Length; i++)
             {
-                expected[i] *= DEFAULT_SCALE;
+                expected[i] *= DefaultScale;
             }
 
-            CpuMathUtils.Scale(DEFAULT_SCALE, dst, dst.Length);
+            CpuMathUtils.Scale(DefaultScale, dst, dst.Length);
             var actual = dst;
             Assert.Equal(expected, actual, _comparer);
         }
@@ -259,10 +259,10 @@ namespace Microsoft.ML.CpuMath.UnitTests
 
             for (int i = 0; i < expected.Length; i++)
             {
-                expected[i] *= DEFAULT_SCALE;
+                expected[i] *= DefaultScale;
             }
 
-            CpuMathUtils.Scale(DEFAULT_SCALE, src, dst, dst.Length);
+            CpuMathUtils.Scale(DefaultScale, src, dst, dst.Length);
             var actual = dst;
             Assert.Equal(expected, actual, _comparer);
         }
@@ -277,10 +277,10 @@ namespace Microsoft.ML.CpuMath.UnitTests
 
             for (int i = 0; i < expected.Length; i++)
             {
-                expected[i] = DEFAULT_SCALE * (dst[i] + DEFAULT_SCALE);
+                expected[i] = DefaultScale * (dst[i] + DefaultScale);
             }
 
-            CpuMathUtils.ScaleAdd(DEFAULT_SCALE, DEFAULT_SCALE, dst, dst.Length);
+            CpuMathUtils.ScaleAdd(DefaultScale, DefaultScale, dst, dst.Length);
             var actual = dst;
             Assert.Equal(expected, actual, _comparer);
         }
@@ -296,10 +296,10 @@ namespace Microsoft.ML.CpuMath.UnitTests
 
             for (int i = 0; i < expected.Length; i++)
             {
-                expected[i] *= (1 + DEFAULT_SCALE);
+                expected[i] *= (1 + DefaultScale);
             }
 
-            CpuMathUtils.AddScale(DEFAULT_SCALE, src, dst, dst.Length);
+            CpuMathUtils.AddScale(DefaultScale, src, dst, dst.Length);
             var actual = dst;
             Assert.Equal(expected, actual, _comparer);
         }
@@ -324,7 +324,7 @@ namespace Microsoft.ML.CpuMath.UnitTests
             expected[13] = -21.337f;
             expected[14] = 35.782f;
 
-            CpuMathUtils.AddScale(DEFAULT_SCALE, src, idx, dst, idx.Length);
+            CpuMathUtils.AddScale(DefaultScale, src, idx, dst, idx.Length);
             var actual = dst;
             Assert.Equal(expected, actual, _comparer);
         }
@@ -341,10 +341,10 @@ namespace Microsoft.ML.CpuMath.UnitTests
 
             for (int i = 0; i < expected.Length; i++)
             {
-                expected[i] *= (1 + DEFAULT_SCALE);
+                expected[i] *= (1 + DefaultScale);
             }
 
-            CpuMathUtils.AddScaleCopy(DEFAULT_SCALE, src, dst, result, dst.Length);
+            CpuMathUtils.AddScaleCopy(DefaultScale, src, dst, result, dst.Length);
             var actual = result;
             Assert.Equal(expected, actual, _comparer);
         }
@@ -452,7 +452,7 @@ namespace Microsoft.ML.CpuMath.UnitTests
         public void SumSqDiffUTest(int test, float expected)
         {
             float[] src = (float[])_testArrays[test].Clone();
-            var actual = CpuMathUtils.SumSq(DEFAULT_SCALE, src, 0, src.Length);
+            var actual = CpuMathUtils.SumSq(DefaultScale, src, 0, src.Length);
             Assert.Equal(expected, actual, 2);
         }
 
@@ -472,7 +472,7 @@ namespace Microsoft.ML.CpuMath.UnitTests
         public void SumAbsDiffUTest(int test, float expected)
         {
             float[] src = (float[])_testArrays[test].Clone();
-            var actual = CpuMathUtils.SumAbs(DEFAULT_SCALE, src, 0, src.Length);
+            var actual = CpuMathUtils.SumAbs(DefaultScale, src, 0, src.Length);
             Assert.Equal(expected, actual, 2);
         }
 
@@ -492,7 +492,7 @@ namespace Microsoft.ML.CpuMath.UnitTests
         public void MaxAbsDiffUTest(int test, float expected)
         {
             float[] src = (float[])_testArrays[test].Clone();
-            var actual = CpuMathUtils.MaxAbsDiff(DEFAULT_SCALE, src, src.Length);
+            var actual = CpuMathUtils.MaxAbsDiff(DefaultScale, src, src.Length);
             Assert.Equal(expected, actual, 2);
         }
 
@@ -590,11 +590,11 @@ namespace Microsoft.ML.CpuMath.UnitTests
 
             for (int i = 0; i < expected.Length; i++)
             {
-                float value = src[i] * (1 + DEFAULT_SCALE);
-                expected[i] = Math.Abs(value) > DEFAULT_SCALE ? (value > 0 ? value - DEFAULT_SCALE : value + DEFAULT_SCALE) : 0;
+                float value = src[i] * (1 + DefaultScale);
+                expected[i] = Math.Abs(value) > DefaultScale ? (value > 0 ? value - DefaultScale : value + DefaultScale) : 0;
             }
 
-            CpuMathUtils.SdcaL1UpdateDense(DEFAULT_SCALE, src.Length, src, DEFAULT_SCALE, v, w);
+            CpuMathUtils.SdcaL1UpdateDense(DefaultScale, src.Length, src, DefaultScale, v, w);
             var actual = w;
             Assert.Equal(expected, actual, _comparer);
         }
@@ -613,11 +613,11 @@ namespace Microsoft.ML.CpuMath.UnitTests
             for (int i = 0; i < idx.Length; i++)
             {
                 int index = idx[i];
-                float value = v[index] + src[i] * DEFAULT_SCALE;
-                expected[index] = Math.Abs(value) > DEFAULT_SCALE ? (value > 0 ? value - DEFAULT_SCALE : value + DEFAULT_SCALE) : 0;
+                float value = v[index] + src[i] * DefaultScale;
+                expected[index] = Math.Abs(value) > DefaultScale ? (value > 0 ? value - DefaultScale : value + DefaultScale) : 0;
             }
 
-            CpuMathUtils.SdcaL1UpdateSparse(DEFAULT_SCALE, src.Length, src, idx, idx.Length, DEFAULT_SCALE, v, w);
+            CpuMathUtils.SdcaL1UpdateSparse(DefaultScale, src.Length, src, idx, idx.Length, DefaultScale, v, w);
             var actual = w;
             Assert.Equal(expected, actual, _comparer);
         }

@@ -729,7 +729,13 @@ namespace Microsoft.ML.Runtime.Data.IO
         /// <summary>
         /// Upper inclusive bound of versions this reader can read.
         /// </summary>
-        private const ulong ReaderVersion = MissingTextVersion;
+        private const ulong ReaderVersion = StandardDataTypesVersion;
+
+        /// <summary>
+        /// The first version that removes DvTypes and uses .NET standard
+        /// data types.
+        /// </summary>
+        private const ulong StandardDataTypesVersion = 0x0001000100010006;
 
         /// <summary>
         /// The first version of the format that accomodated DvText.NA.
@@ -772,7 +778,8 @@ namespace Microsoft.ML.Runtime.Data.IO
                 verWrittenCur: 0x00010003, // Number of blocks to put in the shuffle pool
                 verReadableCur: 0x00010003,
                 verWeCanReadBack: 0x00010001,
-                loaderSignature: LoaderSignature);
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(BinaryLoader).Assembly.FullName);
         }
 
         private BinaryLoader(Arguments args, IHost host, Stream stream, bool leaveOpen)

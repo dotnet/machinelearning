@@ -67,7 +67,7 @@ namespace Microsoft.ML.Runtime
 
         /// <summary>
         /// There are many ways to estimate quantile. This implementations is based on R-8, SciPy-(1/3,1/3)
-        /// http://en.wikipedia.org/wiki/Quantile#Estimating_the_quantiles_of_a_population
+        /// https://en.wikipedia.org/wiki/Quantile#Estimating_the_quantiles_of_a_population
         /// </summary>
         public Float GetQuantile(Float p)
         {
@@ -131,7 +131,7 @@ namespace Microsoft.ML.Runtime
             }
 
             // This implementations is based on R-8, SciPy-(1/3,1/3)
-            // http://en.wikipedia.org/wiki/Quantile#Estimating_the_quantiles_of_a_population
+            // https://en.wikipedia.org/wiki/Quantile#Estimating_the_quantiles_of_a_population
             var h = (_weights == null) ? (weightedLength + oneThird) * p + oneThird : weightedLength * p;
 
             if (_weights == null)

@@ -16,7 +16,7 @@ namespace Microsoft.ML.Runtime.Api
     /// It can populate the user-supplied object's fields with the values of the current row.
     /// </summary>
     /// <typeparam name="TRow">The user-defined type that is being populated while cursoring.</typeparam>
-    public interface IRow<TRow> : IRow
+    public interface IRowReadableAs<TRow> : IRow
         where TRow : class
     {
         /// <summary>
@@ -27,11 +27,27 @@ namespace Microsoft.ML.Runtime.Api
     }
 
     /// <summary>
+    /// This interface is an <see cref="IRow"/> with 'strongly typed' binding.
+    /// It can accept values of type <typeparamref name="TRow"/> and present the value as a row.
+    /// </summary>
+    /// <typeparam name="TRow">The user-defined type that provides the values while cursoring.</typeparam>
+    public interface IRowBackedBy<TRow> : IRow
+        where TRow : class
+    {
+        /// <summary>
+        /// Accepts the fields of the user-supplied <paramref name="row"/> object and publishes the instance as a row.
+        /// If the row is accessed prior to any object being set, then the data accessors on the row should throw.
+        /// </summary>
+        /// <param name="row">The row object. Cannot be <c>null</c>.</param>
+        void ExtractValues(TRow row);
+    }
+
+    /// <summary>
     /// This interface provides cursoring through a <see cref="IDataView"/> via a 'strongly typed' binding.
     /// It can populate the user-supplied object's fields with the values of the current row.
     /// </summary>
     /// <typeparam name="TRow">The user-defined type that is being populated while cursoring.</typeparam>
-    public interface IRowCursor<TRow> : IRow<TRow>, ICursor
+    public interface IRowCursor<TRow> : IRowReadableAs<TRow>, ICursor
         where TRow : class
     {
     }
@@ -159,7 +175,7 @@ namespace Microsoft.ML.Runtime.Api
             return GetCursor(x => false, randomSeed);
         }
 
-        public IRow<TRow> GetRow(IRow input)
+        public IRowReadableAs<TRow> GetRow(IRow input)
         {
             return new TypedRow(this, input);
         }
@@ -233,17 +249,17 @@ namespace Microsoft.ML.Runtime.Api
             return new TypedCursorable<TRow>(env, data, ignoreMissingColumns, outSchema);
         }
 
-        private abstract class TypedRowBase : IRow<TRow>
+        private abstract class TypedRowBase : IRowReadableAs<TRow>
         {
             protected readonly IChannel Ch;
             private readonly IRow _input;
             private readonly Action<TRow>[] _setters;
 
-            public long Batch { get { return _input.Batch; } }
+            public long Batch => _input.Batch;
 
-            public long Position { get { return _input.Position; } }
+            public long Position => _input.Position;
 
-            public ISchema Schema { get { return _input.Schema; } }
+            public ISchema Schema => _input.Schema;
 
             public TypedRowBase(TypedCursorable<TRow> parent, IRow input, string channelMessage)
             {
@@ -276,61 +292,11 @@ namespace Microsoft.ML.Runtime.Api
                 if (fieldType.IsArray)
                 {
                     Ch.Assert(colType.IsVector);
-                    // VBuffer<DvText> -> String[]
+                    // VBuffer<ReadOnlyMemory<char>> -> String[]
                     if (fieldType.GetElementType() == typeof(string))
                     {
                         Ch.Assert(colType.ItemType.IsText);
-                        return CreateConvertingVBufferSetter<DvText, string>(input, index, poke, peek, x => x.ToString());
-                    }
-                    else if (fieldType.GetElementType() == typeof(bool))
-                    {
-                        Ch.Assert(colType.ItemType.IsBool);
-                        return CreateConvertingVBufferSetter<DvBool, bool>(input, index, poke, peek, x => (bool)x);
-                    }
-                    else if (fieldType.GetElementType() == typeof(bool?))
-                    {
-                        Ch.Assert(colType.ItemType.IsBool);
-                        return CreateConvertingVBufferSetter<DvBool, bool?>(input, index, poke, peek, x => (bool?)x);
-                    }
-                    else if (fieldType.GetElementType() == typeof(int))
-                    {
-                        Ch.Assert(colType.ItemType == NumberType.I4);
-                        return CreateConvertingVBufferSetter<DvInt4, int>(input, index, poke, peek, x => (int)x);
-                    }
-                    else if (fieldType.GetElementType() == typeof(int?))
-                    {
-                        Ch.Assert(colType.ItemType == NumberType.I4);
-                        return CreateConvertingVBufferSetter<DvInt4, int?>(input, index, poke, peek, x => (int?)x);
-                    }
-                    else if (fieldType.GetElementType() == typeof(short))
-                    {
-                        Ch.Assert(colType.ItemType == NumberType.I2);
-                        return CreateConvertingVBufferSetter<DvInt2, short>(input, index, poke, peek, x => (short)x);
-                    }
-                    else if (fieldType.GetElementType() == typeof(short?))
-                    {
-                        Ch.Assert(colType.ItemType == NumberType.I2);
-                        return CreateConvertingVBufferSetter<DvInt2, short?>(input, index, poke, peek, x => (short?)x);
-                    }
-                    else if (fieldType.GetElementType() == typeof(long))
-                    {
-                        Ch.Assert(colType.ItemType == NumberType.I8);
-                        return CreateConvertingVBufferSetter<DvInt8, long>(input, index, poke, peek, x => (long)x);
-                    }
-                    else if (fieldType.GetElementType() == typeof(long?))
-                    {
-                        Ch.Assert(colType.ItemType == NumberType.I8);
-                        return CreateConvertingVBufferSetter<DvInt8, long?>(input, index, poke, peek, x => (long?)x);
-                    }
-                    else if (fieldType.GetElementType() == typeof(sbyte))
-                    {
-                        Ch.Assert(colType.ItemType == NumberType.I1);
-                        return CreateConvertingVBufferSetter<DvInt1, sbyte>(input, index, poke, peek, x => (sbyte)x);
-                    }
-                    else if (fieldType.GetElementType() == typeof(sbyte?))
-                    {
-                        Ch.Assert(colType.ItemType == NumberType.I1);
-                        return CreateConvertingVBufferSetter<DvInt1, sbyte?>(input, index, poke, peek, x => (sbyte?)x);
+                        return CreateConvertingVBufferSetter<ReadOnlyMemory<char>, string>(input, index, poke, peek, x => x.ToString());
                     }
 
                     // VBuffer<T> -> T[]
@@ -344,7 +310,7 @@ namespace Microsoft.ML.Runtime.Api
                 else if (colType.IsVector)
                 {
                     // VBuffer<T> -> VBuffer<T>
-                    // REVIEW: Do we care about accomodating VBuffer<string> -> VBuffer<DvText>?
+                    // REVIEW: Do we care about accomodating VBuffer<string> -> VBuffer<ReadOnlyMemory<char>>?
                     Ch.Assert(fieldType.IsGenericType);
                     Ch.Assert(fieldType.GetGenericTypeDefinition() == typeof(VBuffer<>));
                     Ch.Assert(fieldType.GetGenericArguments()[0] == colType.ItemType.RawType);
@@ -355,71 +321,12 @@ namespace Microsoft.ML.Runtime.Api
                 {
                     if (fieldType == typeof(string))
                     {
-                        // DvText -> String
+                        // ReadOnlyMemory<char> -> String
                         Ch.Assert(colType.IsText);
                         Ch.Assert(peek == null);
-                        return CreateConvertingActionSetter<DvText, string>(input, index, poke, x => x.ToString());
+                        return CreateConvertingActionSetter<ReadOnlyMemory<char>, string>(input, index, poke, x => x.ToString());
                     }
-                    else if (fieldType == typeof(bool))
-                    {
-                        Ch.Assert(colType.IsBool);
-                        Ch.Assert(peek == null);
-                        return CreateConvertingActionSetter<DvBool, bool>(input, index, poke, x => (bool)x);
-                    }
-                    else if (fieldType == typeof(bool?))
-                    {
-                        Ch.Assert(colType.IsBool);
-                        Ch.Assert(peek == null);
-                        return CreateConvertingActionSetter<DvBool, bool?>(input, index, poke, x => (bool?)x);
-                    }
-                    else if (fieldType == typeof(int))
-                    {
-                        Ch.Assert(colType == NumberType.I4);
-                        Ch.Assert(peek == null);
-                        return CreateConvertingActionSetter<DvInt4, int>(input, index, poke, x => (int)x);
-                    }
-                    else if (fieldType == typeof(int?))
-                    {
-                        Ch.Assert(colType == NumberType.I4);
-                        Ch.Assert(peek == null);
-                        return CreateConvertingActionSetter<DvInt4, int?>(input, index, poke, x => (int?)x);
-                    }
-                    else if (fieldType == typeof(short))
-                    {
-                        Ch.Assert(colType == NumberType.I2);
-                        Ch.Assert(peek == null);
-                        return CreateConvertingActionSetter<DvInt2, short>(input, index, poke, x => (short)x);
-                    }
-                    else if (fieldType == typeof(short?))
-                    {
-                        Ch.Assert(colType == NumberType.I2);
-                        Ch.Assert(peek == null);
-                        return CreateConvertingActionSetter<DvInt2, short?>(input, index, poke, x => (short?)x);
-                    }
-                    else if (fieldType == typeof(long))
-                    {
-                        Ch.Assert(colType == NumberType.I8);
-                        Ch.Assert(peek == null);
-                        return CreateConvertingActionSetter<DvInt8, long>(input, index, poke, x => (long)x);
-                    }
-                    else if (fieldType == typeof(long?))
-                    {
-                        Ch.Assert(colType == NumberType.I8);
-                        Ch.Assert(peek == null);
-                        return CreateConvertingActionSetter<DvInt8, long?>(input, index, poke, x => (long?)x);
-                    }
-                    else if (fieldType == typeof(sbyte))
-                    {
-                        Ch.Assert(colType == NumberType.I1);
-                        Ch.Assert(peek == null);
-                        return CreateConvertingActionSetter<DvInt1, sbyte>(input, index, poke, x => (sbyte)x);
-                    }
-                    else if (fieldType == typeof(sbyte?))
-                    {
-                        Ch.Assert(colType == NumberType.I1);
-                        Ch.Assert(peek == null);
-                        return CreateConvertingActionSetter<DvInt1, sbyte?>(input, index, poke, x => (sbyte?)x);
-                    }
+
                     // T -> T
                     if (fieldType.IsGenericType && fieldType.GetGenericTypeDefinition() == typeof(Nullable<>))
                         Ch.Assert(colType.RawType == Nullable.GetUnderlyingType(fieldType));
@@ -622,7 +529,7 @@ namespace Microsoft.ML.Runtime.Api
     /// </summary>
     public static class CursoringUtils
     {
-        private const string NeedEnvObsoleteMessage = "This method is obsolete. Please use the overload that takes an additional 'env' argument. An environment can be created via new TlcEnvironment().";
+        private const string NeedEnvObsoleteMessage = "This method is obsolete. Please use the overload that takes an additional 'env' argument. An environment can be created via new LocalEnvironment().";
 
         /// <summary>
         /// Generate a strongly-typed cursorable wrapper of the <see cref="IDataView"/>.
@@ -658,7 +565,7 @@ namespace Microsoft.ML.Runtime.Api
             where TRow : class, new()
         {
             // REVIEW: Take an env as a parameter.
-            var env = new TlcEnvironment();
+            var env = new ConsoleEnvironment();
             return data.AsCursorable<TRow>(env, ignoreMissingColumns, schemaDefinition);
         }
 
@@ -699,7 +606,7 @@ namespace Microsoft.ML.Runtime.Api
             where TRow : class, new()
         {
             // REVIEW: Take an env as a parameter.
-            var env = new TlcEnvironment();
+            var env = new ConsoleEnvironment();
             return data.AsEnumerable<TRow>(env, reuseRowObject, ignoreMissingColumns, schemaDefinition);
         }
     }
