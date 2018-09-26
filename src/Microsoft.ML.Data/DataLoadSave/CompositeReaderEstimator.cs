@@ -55,5 +55,4 @@ namespace Microsoft.ML.Runtime.Data
             return new CompositeReaderEstimator<TSource, TNewTrans>(_start, _estimatorChain.Append(estimator));
         }
     }
-
 }

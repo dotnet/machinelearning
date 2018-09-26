@@ -46,7 +46,7 @@ namespace Microsoft.ML.Runtime.Data
             int scoreSize = scoreInfo.Type.VectorSize;
             var type = schema.Schema.GetMetadataTypeOrNull(MetadataUtils.Kinds.SlotNames, scoreInfo.Index);
             Host.Check(type != null && type.IsKnownSizeVector && type.ItemType.IsText, "Quantile regression score column must have slot names");
-            var quantiles = default(VBuffer<DvText>);
+            var quantiles = default(VBuffer<ReadOnlyMemory<char>>);
             schema.Schema.GetMetadata(MetadataUtils.Kinds.SlotNames, scoreInfo.Index, ref quantiles);
             Host.Assert(quantiles.IsDense && quantiles.Length == scoreSize);
 
@@ -73,7 +73,7 @@ namespace Microsoft.ML.Runtime.Data
             var scoreInfo = schema.GetUniqueColumn(MetadataUtils.Const.ScoreValueKind.Score);
             var t = scoreInfo.Type;
             Host.Assert(t.VectorSize > 0 && (t.ItemType == NumberType.R4 || t.ItemType == NumberType.R8));
-            var slotNames = default(VBuffer<DvText>);
+            var slotNames = default(VBuffer<ReadOnlyMemory<char>>);
             t = schema.Schema.GetMetadataTypeOrNull(MetadataUtils.Kinds.SlotNames, scoreInfo.Index);
             if (t != null && t.VectorSize == scoreInfo.Type.VectorSize && t.ItemType.IsText)
                 schema.Schema.GetMetadata(MetadataUtils.Kinds.SlotNames, scoreInfo.Index, ref slotNames);
@@ -205,14 +205,14 @@ namespace Microsoft.ML.Runtime.Data
             private readonly Counters _counters;
             private readonly Counters _weightedCounters;
 
-            private VBuffer<DvText> _slotNames;
+            private VBuffer<ReadOnlyMemory<char>> _slotNames;
 
             public override CountersBase UnweightedCounters { get { return _counters; } }
 
             public override CountersBase WeightedCounters { get { return _weightedCounters; } }
 
             public Aggregator(IHostEnvironment env, IRegressionLoss lossFunction, bool weighted, int size,
-                ref VBuffer<DvText> slotNames, string stratName)
+                ref VBuffer<ReadOnlyMemory<char>> slotNames, string stratName)
                 : base(env, lossFunction, weighted, stratName)
             {
                 Host.Assert(size > 0);
@@ -242,8 +242,8 @@ namespace Microsoft.ML.Runtime.Data
                 Host.AssertValue(dvBldr);
                 if (_slotNames.Length > 0)
                 {
-                    ValueGetter<VBuffer<DvText>> getSlotNames =
-                        (ref VBuffer<DvText> dst) => dst = _slotNames;
+                    ValueGetter<VBuffer<ReadOnlyMemory<char>>> getSlotNames =
+                        (ref VBuffer<ReadOnlyMemory<char>> dst) => dst = _slotNames;
                     dvBldr.AddColumn(metricName, getSlotNames, NumberType.R8, metric);
                 }
                 else
@@ -262,7 +262,8 @@ namespace Microsoft.ML.Runtime.Data
                 verWrittenCur: 0x00010001, // Initial
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
-                loaderSignature: LoaderSignature);
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(QuantileRegressionPerInstanceEvaluator).Assembly.FullName);
         }
 
         private const int L1Col = 0;
@@ -272,10 +273,10 @@ namespace Microsoft.ML.Runtime.Data
         public const string L2 = "L2-loss";
 
         private readonly int _scoreSize;
-        private readonly DvText[] _quantiles;
+        private readonly ReadOnlyMemory<char>[] _quantiles;
         private readonly ColumnType _outputType;
 
-        public QuantileRegressionPerInstanceEvaluator(IHostEnvironment env, ISchema schema, string scoreCol, string labelCol, int scoreSize, DvText[] quantiles)
+        public QuantileRegressionPerInstanceEvaluator(IHostEnvironment env, ISchema schema, string scoreCol, string labelCol, int scoreSize, ReadOnlyMemory<char>[] quantiles)
             : base(env, schema, scoreCol, labelCol)
         {
             Host.CheckParam(scoreSize > 0, nameof(scoreSize), "must be greater than 0");
@@ -299,9 +300,9 @@ namespace Microsoft.ML.Runtime.Data
 
             _scoreSize = ctx.Reader.ReadInt32();
             Host.CheckDecode(_scoreSize > 0);
-            _quantiles = new DvText[_scoreSize];
+            _quantiles = new ReadOnlyMemory<char>[_scoreSize];
             for (int i = 0; i < _scoreSize; i++)
-                _quantiles[i] = new DvText(ctx.LoadNonEmptyString());
+                _quantiles[i] = ctx.LoadNonEmptyString().AsMemory();
             _outputType = new VectorType(NumberType.R8, _scoreSize);
         }
 
@@ -344,26 +345,26 @@ namespace Microsoft.ML.Runtime.Data
 
             var slotNamesType = new VectorType(TextType.Instance, _scoreSize);
             var l1Metadata = new ColumnMetadataInfo(L1);
-            l1Metadata.Add(MetadataUtils.Kinds.SlotNames, new MetadataInfo<VBuffer<DvText>>(slotNamesType, CreateSlotNamesGetter(L1)));
+            l1Metadata.Add(MetadataUtils.Kinds.SlotNames, new MetadataInfo<VBuffer<ReadOnlyMemory<char>>>(slotNamesType, CreateSlotNamesGetter(L1)));
             var l2Metadata = new ColumnMetadataInfo(L2);
-            l2Metadata.Add(MetadataUtils.Kinds.SlotNames, new MetadataInfo<VBuffer<DvText>>(slotNamesType, CreateSlotNamesGetter(L2)));
+            l2Metadata.Add(MetadataUtils.Kinds.SlotNames, new MetadataInfo<VBuffer<ReadOnlyMemory<char>>>(slotNamesType, CreateSlotNamesGetter(L2)));
 
             infos[L1Col] = new RowMapperColumnInfo(L1, _outputType, l1Metadata);
             infos[L2Col] = new RowMapperColumnInfo(L2, _outputType, l2Metadata);
             return infos;
         }
 
-        private MetadataUtils.MetadataGetter<VBuffer<DvText>> CreateSlotNamesGetter(string prefix)
+        private MetadataUtils.MetadataGetter<VBuffer<ReadOnlyMemory<char>>> CreateSlotNamesGetter(string prefix)
         {
             return
-                (int col, ref VBuffer<DvText> dst) =>
+                (int col, ref VBuffer<ReadOnlyMemory<char>> dst) =>
                 {
                     var values = dst.Values;
                     if (Utils.Size(values) < _scoreSize)
-                        values = new DvText[_scoreSize];
+                        values = new ReadOnlyMemory<char>[_scoreSize];
                     for (int i = 0; i < _scoreSize; i++)
-                        values[i] = new DvText(string.Format("{0} ({1})", prefix, _quantiles[i]));
-                    dst = new VBuffer<DvText>(_scoreSize, values);
+                        values[i] = string.Format("{0} ({1})", prefix, _quantiles[i]).AsMemory();
+                    dst = new VBuffer<ReadOnlyMemory<char>>(_scoreSize, values);
                 };
         }
 

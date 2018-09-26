@@ -5,8 +5,8 @@
 using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Learners;
+using Microsoft.ML.Runtime.RunTests;
 using Xunit;
-using Microsoft.ML.Models;
 
 namespace Microsoft.ML.Tests.Scenarios.Api
 {
@@ -21,13 +21,10 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         [Fact]
         public void Evaluation()
         {
-            var dataPath = GetDataPath(SentimentDataPath);
-            var testDataPath = GetDataPath(SentimentTestPath);
-
-            using (var env = new TlcEnvironment(seed: 1, conc: 1))
+            using (var env = new LocalEnvironment(seed: 1, conc: 1))
             {
                 // Pipeline
-                var loader = TextLoader.ReadFile(env, MakeSentimentTextLoaderArgs(), new MultiFileSource(dataPath));
+                var loader = TextLoader.ReadFile(env, MakeSentimentTextLoaderArgs(), new MultiFileSource(GetDataPath(TestDatasets.Sentiment.trainFilename)));
 
                 var trans = TextTransform.Create(env, MakeSentimentTextTransformArgs(), loader);
 
@@ -47,15 +44,13 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                 var model = env.CreatePredictionEngine<SentimentData, SentimentPrediction>(scorer);
 
                 // Take a couple examples out of the test data and run predictions on top.
-                var testLoader = TextLoader.ReadFile(env, MakeSentimentTextLoaderArgs(), new MultiFileSource(GetDataPath(SentimentTestPath)));
+                var testLoader = TextLoader.ReadFile(env, MakeSentimentTextLoaderArgs(), new MultiFileSource(GetDataPath(TestDatasets.irisData.validFilename)));
                 var testData = testLoader.AsEnumerable<SentimentData>(env, false);
 
                 var dataEval = new RoleMappedData(scorer, label: "Label", feature: "Features", opt: true);
 
                 var evaluator = new BinaryClassifierMamlEvaluator(env, new BinaryClassifierMamlEvaluator.Arguments() { });
                 var metricsDict = evaluator.Evaluate(dataEval);
-
-                var metrics = BinaryClassificationMetrics.FromMetrics(env, metricsDict["OverallMetrics"], metricsDict["ConfusionMatrix"])[0];
             }
         }
     }

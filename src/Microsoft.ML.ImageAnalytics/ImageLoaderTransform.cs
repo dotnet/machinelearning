@@ -10,6 +10,8 @@ using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.ImageAnalytics;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
+using Microsoft.ML.StaticPipe;
+using Microsoft.ML.StaticPipe.Runtime;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -30,7 +32,7 @@ using System.Text;
 namespace Microsoft.ML.Runtime.ImageAnalytics
 {
     /// <summary>
-    /// Transform which takes one or many columns of type <see cref="DvText"/> and loads them as <see cref="ImageType"/>
+    /// Transform which takes one or many columns of type ReadOnlyMemory and loads them as <see cref="ImageType"/>
     /// </summary>
     public sealed class ImageLoaderTransform : OneToOneTransformerBase
     {
@@ -83,7 +85,8 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
                 .MakeDataTransform(data);
         }
 
-        public static ImageLoaderTransform Create(IHostEnvironment env, ModelLoadContext ctx)
+        // Factory method for SignatureLoadModel.
+        private static ImageLoaderTransform Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(ctx, nameof(ctx));
@@ -103,11 +106,11 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
         }
 
         // Factory method for SignatureLoadDataTransform.
-        public static IDataTransform Create(IHostEnvironment env, ModelLoadContext ctx, IDataView input)
+        private static IDataTransform Create(IHostEnvironment env, ModelLoadContext ctx, IDataView input)
             => Create(env, ctx).MakeDataTransform(input);
 
         // Factory method for SignatureLoadRowMapper.
-        public static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, ISchema inputSchema)
+        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, ISchema inputSchema)
             => Create(env, ctx).MakeRowMapper(inputSchema);
 
         protected override void CheckInputColumn(ISchema inputSchema, int col, int srcCol)
@@ -139,7 +142,8 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
                 verWrittenCur: 0x00010002, // Swith from OpenCV to Bitmap
                 verReadableCur: 0x00010002,
                 verWeCanReadBack: 0x00010002,
-                loaderSignature: LoaderSignature);
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(ImageLoaderTransform).Assembly.FullName);
         }
 
         protected override IRowMapper MakeRowMapper(ISchema schema)
@@ -163,8 +167,8 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
                 Contracts.Assert(0 <= iinfo && iinfo < _parent.ColumnPairs.Length);
 
                 disposer = null;
-                var getSrc = input.GetGetter<DvText>(ColMapNewToOld[iinfo]);
-                DvText src = default;
+                var getSrc = input.GetGetter<ReadOnlyMemory<char>>(ColMapNewToOld[iinfo]);
+                ReadOnlyMemory<char> src = default;
                 ValueGetter<Bitmap> del =
                     (ref Bitmap dst) =>
                     {
@@ -227,9 +231,7 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
             var result = inputSchema.Columns.ToDictionary(x => x.Name);
             foreach (var (input, output) in Transformer.Columns)
             {
-                var col = inputSchema.FindColumn(input);
-
-                if (col == null)
+                if (!inputSchema.TryFindColumn(input, out var col))
                     throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", input);
                 if (!col.ItemType.IsText || col.Kind != SchemaShape.Column.VectorKind.Scalar)
                     throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", input, TextType.Instance.ToString(), col.GetTypeString());
@@ -238,6 +240,63 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
             }
 
             return new SchemaShape(result.Values);
+        }
+
+        internal sealed class OutPipelineColumn : Scalar<UnknownSizeBitmap>
+        {
+            private readonly Scalar<string> _input;
+
+            public OutPipelineColumn(Scalar<string> path, string relativeTo)
+                : base(new Reconciler(relativeTo), path)
+            {
+                Contracts.AssertValue(path);
+                _input = path;
+            }
+
+            /// <summary>
+            /// Reconciler to an <see cref="ImageLoaderEstimator"/> for the <see cref="PipelineColumn"/>.
+            /// </summary>
+            /// <remarks>
+            /// We must create a new reconciler per call, because the relative path of <see cref="ImageLoaderTransform.Arguments.ImageFolder"/>
+            /// is considered a transform-wide option, as it is not specified in <see cref="ImageLoaderTransform.Column"/>. However, we still
+            /// implement <see cref="IEquatable{T}"/> so the analyzer can still equate two of these things if they happen to share the same
+            /// path, so we can be a bit more efficient with respect to our estimator declarations.
+            /// </remarks>
+            /// <see cref="ImageStaticPipe.LoadAsImage(Scalar{string}, string)"/>
+            private sealed class Reconciler : EstimatorReconciler, IEquatable<Reconciler>
+            {
+                private readonly string _relTo;
+
+                public Reconciler(string relativeTo)
+                {
+                    Contracts.AssertValueOrNull(relativeTo);
+                    _relTo = relativeTo;
+                }
+
+                public bool Equals(Reconciler other)
+                    => other != null && other._relTo == _relTo;
+
+                public override bool Equals(object obj)
+                    => obj is Reconciler other && Equals(other);
+
+                public override int GetHashCode()
+                    => _relTo?.GetHashCode() ?? 0;
+
+                public override IEstimator<ITransformer> Reconcile(IHostEnvironment env,
+                    PipelineColumn[] toOutput,
+                    IReadOnlyDictionary<PipelineColumn, string> inputNames,
+                    IReadOnlyDictionary<PipelineColumn, string> outputNames,
+                    IReadOnlyCollection<string> usedNames)
+                {
+                    var cols = new (string input, string output)[toOutput.Length];
+                    for (int i = 0; i < toOutput.Length; ++i)
+                    {
+                        var outCol = (OutPipelineColumn)toOutput[i];
+                        cols[i] = (inputNames[outCol._input], outputNames[outCol]);
+                    }
+                    return new ImageLoaderEstimator(env, _relTo, cols);
+                }
+            }
         }
     }
 }

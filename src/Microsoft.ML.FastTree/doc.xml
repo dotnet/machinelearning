@@ -31,7 +31,7 @@
         <para>For more information see:</para>
         <list type="bullet">
           <item><description><a href='https://en.wikipedia.org/wiki/Gradient_boosting#Gradient_tree_boosting'>Wikipedia: Gradient boosting (Gradient tree boosting).</a></description></item>
-          <item><description><a href='http://projecteuclid.org/DPubS?service=UI&amp;version=1.0&amp;verb=Display&amp;handle=euclid.aos/1013203451'>Greedy function approximation: A gradient boosting machine.</a></description></item>
+          <item><description><a href='https://projecteuclid.org/DPubS?service=UI&amp;version=1.0&amp;verb=Display&amp;handle=euclid.aos/1013203451'>Greedy function approximation: A gradient boosting machine.</a></description></item>
         </list>  
     </remarks>
     </member>
@@ -96,7 +96,7 @@
          Each tree in a decision forest outputs a Gaussian distribution.</para>
          <para>For more see: </para>
         <list  type='bullet'>
-          <item><description><a href='http://en.wikipedia.org/wiki/Random_forest'>Wikipedia: Random forest</a></description></item>
+          <item><description><a href='https://en.wikipedia.org/wiki/Random_forest'>Wikipedia: Random forest</a></description></item>
           <item><description><a href='http://jmlr.org/papers/volume7/meinshausen06a/meinshausen06a.pdf'>Quantile regression forest</a></description></item>
           <item><description><a href='https://blogs.technet.microsoft.com/machinelearning/2014/09/10/from-stumps-to-trees-to-forests/'>From Stumps to Trees to Forests</a></description></item>
         </list>
@@ -138,7 +138,7 @@
         Insurance Premium Prediction via Gradient Tree-Boosted Tweedie Compound Poisson Models.</a> from Yang, Quan, and Zou. 
         <para>For an introduction to Gradient Boosting, and more information, see:</para>
         <para><a href='https://en.wikipedia.org/wiki/Gradient_boosting#Gradient_tree_boosting'>Wikipedia: Gradient boosting (Gradient tree boosting)</a></para>
-        <para><a href='http://projecteuclid.org/DPubS?service=UI&amp;version=1.0&amp;verb=Display&amp;handle=euclid.aos/1013203451'>Greedy function approximation: A gradient boosting machine</a></para>
+        <para><a href='https://projecteuclid.org/DPubS?service=UI&amp;version=1.0&amp;verb=Display&amp;handle=euclid.aos/1013203451'>Greedy function approximation: A gradient boosting machine</a></para>
       </remarks>
     </member>
 

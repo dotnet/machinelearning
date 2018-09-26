@@ -44,26 +44,28 @@ namespace Microsoft.ML.Runtime.Data.IO
             _loadNameToCodecCreator = new Dictionary<string, GetCodecFromStreamDelegate>();
             _simpleCodecTypeMap = new Dictionary<DataKind, IValueCodec>();
             // Register the current codecs.
-            RegisterSimpleCodec(new UnsafeTypeCodec<DvInt1>(this));
+            RegisterSimpleCodec(new UnsafeTypeCodec<sbyte>(this));
             RegisterSimpleCodec(new UnsafeTypeCodec<byte>(this));
-            RegisterSimpleCodec(new UnsafeTypeCodec<DvInt2>(this));
+            RegisterSimpleCodec(new UnsafeTypeCodec<short>(this));
             RegisterSimpleCodec(new UnsafeTypeCodec<ushort>(this));
-            RegisterSimpleCodec(new UnsafeTypeCodec<DvInt4>(this));
+            RegisterSimpleCodec(new UnsafeTypeCodec<int>(this));
             RegisterSimpleCodec(new UnsafeTypeCodec<uint>(this));
-            RegisterSimpleCodec(new UnsafeTypeCodec<DvInt8>(this));
+            RegisterSimpleCodec(new UnsafeTypeCodec<long>(this));
             RegisterSimpleCodec(new UnsafeTypeCodec<ulong>(this));
-            RegisterSimpleCodec(new UnsafeTypeCodec<Single>(this));
-            RegisterSimpleCodec(new UnsafeTypeCodec<Double>(this));
-            RegisterSimpleCodec(new UnsafeTypeCodec<DvTimeSpan>(this));
-            RegisterSimpleCodec(new DvTextCodec(this));
+            RegisterSimpleCodec(new UnsafeTypeCodec<float>(this));
+            RegisterSimpleCodec(new UnsafeTypeCodec<double>(this));
+            RegisterSimpleCodec(new UnsafeTypeCodec<TimeSpan>(this));
+            RegisterSimpleCodec(new TextCodec(this));
             RegisterSimpleCodec(new BoolCodec(this));
             RegisterSimpleCodec(new DateTimeCodec(this));
-            RegisterSimpleCodec(new DateTimeZoneCodec(this));
+            RegisterSimpleCodec(new DateTimeOffsetCodec(this));
             RegisterSimpleCodec(new UnsafeTypeCodec<UInt128>(this));
 
-            // Register the old boolean reading codec.
-            var oldBool = new OldBoolCodec(this);
-            RegisterOtherCodec(oldBool.LoadName, oldBool.GetCodec);
+            // Register the old type system reading codec.
+            RegisterOtherCodec("DvBool", new OldBoolCodec(this).GetCodec);
+            RegisterOtherCodec("DvDateTimeZone", new DateTimeOffsetCodec(this).GetCodec);
+            RegisterOtherCodec("DvDateTime", new DateTimeCodec(this).GetCodec);
+            RegisterOtherCodec("DvTimeSpan", new UnsafeTypeCodec<TimeSpan>(this).GetCodec);
 
             RegisterOtherCodec("VBuffer", GetVBufferCodec);
             RegisterOtherCodec("Key", GetKeyCodec);

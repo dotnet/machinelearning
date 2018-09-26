@@ -236,7 +236,8 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
                 verWrittenCur: 0x00010002, // Swith from OpenCV to Bitmap
                 verReadableCur: 0x00010002,
                 verWeCanReadBack: 0x00010002,
-                loaderSignature: LoaderSignature);
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(VectorToImageTransform).Assembly.FullName);
         }
 
         private const string RegistrationName = "VectorToImageConverter";
@@ -386,7 +387,7 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
                             float alpha = 0;
                             if (ex.Interleave)
                             {
-                                if (ex.Alpha) position++;
+                                if (ex.Alpha) alpha = Convert.ToSingle(values[position++]);
                                 if (ex.Red) red = Convert.ToSingle(values[position++]);
                                 if (ex.Green) green = Convert.ToSingle(values[position++]);
                                 if (ex.Blue) blue = Convert.ToSingle(values[position++]);
@@ -405,10 +406,10 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
                             else
                             {
                                 pixel = Color.FromArgb(
-                                    (int)((alpha - offset) * scale),
-                                    (int)((red - offset) * scale),
-                                    (int)((green - offset) * scale),
-                                    (int)((blue - offset) * scale));
+                                    ex.Alpha ? (int)Math.Round((alpha - offset) * scale) : 0,
+                                    (int)Math.Round((red - offset) * scale),
+                                    (int)Math.Round((green - offset) * scale),
+                                    (int)Math.Round((blue - offset) * scale));
                             }
                             dst.SetPixel(x, y, pixel);
                         }

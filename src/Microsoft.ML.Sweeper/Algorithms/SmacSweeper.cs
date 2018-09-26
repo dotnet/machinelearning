@@ -137,13 +137,13 @@ namespace Microsoft.ML.Runtime.Sweeper
             using (IChannel ch = _host.Start("Single training"))
             {
                 // Set relevant random forest arguments.
-                FastForestRegression.Arguments args = new FastForestRegression.Arguments();
-                args.FeatureFraction = _args.SplitRatio;
-                args.NumTrees = _args.NumOfTrees;
-                args.MinDocumentsInLeafs = _args.NMinForSplit;
-
                 // Train random forest.
-                var trainer = new FastForestRegression(_host, args);
+                var trainer = new FastForestRegression(_host, DefaultColumnNames.Label, DefaultColumnNames.Features, advancedSettings: s =>
+                    {
+                        s.FeatureFraction = _args.SplitRatio;
+                        s.NumTrees = _args.NumOfTrees;
+                        s.MinDocumentsInLeafs = _args.NMinForSplit;
+                    });
                 var predictor = trainer.Train(data);
 
                 // Return random forest predictor.

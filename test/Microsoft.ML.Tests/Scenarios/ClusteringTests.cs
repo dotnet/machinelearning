@@ -1,9 +1,6 @@
-﻿using Microsoft.ML.Data;
-using Microsoft.ML.Models;
+﻿using Microsoft.ML.Legacy.Transforms;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Api;
-using Microsoft.ML.Trainers;
-using Microsoft.ML.Transforms;
 using System;
 using System.Collections.Generic;
 using Xunit;
@@ -17,8 +14,8 @@ namespace Microsoft.ML.Scenarios
         {
             string dataPath = GetDataPath(@"external/20newsgroups.txt");
 
-            var pipeline = new LearningPipeline(seed: 1, conc: 1);
-            pipeline.Add(new TextLoader(dataPath).CreateFrom<NewsData>(useHeader: false, allowQuotedStrings: true, supportSparse: false));
+            var pipeline = new Legacy.LearningPipeline(seed: 1, conc: 1);
+            pipeline.Add(new Legacy.Data.TextLoader(dataPath).CreateFrom<NewsData>(useHeader: false, allowQuotedStrings: true, supportSparse: false));
             pipeline.Add(new ColumnConcatenator("AllText", "Subject", "Content"));
             pipeline.Add(new TextFeaturizer("Features", "AllText")
             {
@@ -31,7 +28,7 @@ namespace Microsoft.ML.Scenarios
                 WordFeatureExtractor = new NGramNgramExtractor() { NgramLength = 1, AllLengths = true }
             });
 
-            pipeline.Add(new KMeansPlusPlusClusterer() { K = 20 });
+            pipeline.Add(new Legacy.Trainers.KMeansPlusPlusClusterer() { K = 20 });
             var model = pipeline.Train<NewsData, ClusteringPrediction>();
             var gunResult = model.Predict(new NewsData() { Subject = "Let's disscuss gun control", Content = @"The United States has 88.8 guns per 100 people, or about 270,000,000 guns, which is the highest total and per capita number in the world. 22% of Americans own one or more guns (35% of men and 12% of women). America's pervasive gun culture stems in part from its colonial history, revolutionary roots, frontier expansion, and the Second Amendment, which states: ""A well regulated militia,
                 being necessary to the security of a free State,
@@ -105,9 +102,9 @@ Until the day your dog can talk, you'll never likely hear him pronounce ""I love
                     }
                 };
             }
-            var pipeline = new LearningPipeline(seed: 1, conc: 1);
-            pipeline.Add(CollectionDataSource.Create(data));
-            pipeline.Add(new KMeansPlusPlusClusterer() { K = k });
+            var pipeline = new Legacy.LearningPipeline(seed: 1, conc: 1);
+            pipeline.Add(Legacy.Data.CollectionDataSource.Create(data));
+            pipeline.Add(new Legacy.Trainers.KMeansPlusPlusClusterer() { K = k });
             var model = pipeline.Train<ClusteringData, ClusteringPrediction>();
             //validate that initial points we pick up as centers of cluster during data generation belong to different clusters.
             var labels = new HashSet<uint>();
@@ -118,9 +115,9 @@ Until the day your dog can talk, you'll never likely hear him pronounce ""I love
                 labels.Add(scores.SelectedClusterId);
             }
 
-            var evaluator = new ClusterEvaluator();
-            var testData = CollectionDataSource.Create(clusters);
-            ClusterMetrics metrics = evaluator.Evaluate(model, testData);
+            var evaluator = new Legacy.Models.ClusterEvaluator();
+            var testData = Legacy.Data.CollectionDataSource.Create(clusters);
+            var metrics = evaluator.Evaluate(model, testData);
 
             //Label is not specified, so NMI would be equal to NaN
             Assert.Equal(metrics.Nmi, double.NaN);

@@ -7,7 +7,7 @@ using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.ImageAnalytics;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.RunTests;
-using Microsoft.ML.TestFramework;
+using System;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -25,12 +25,25 @@ namespace Microsoft.ML.Tests
         [Fact]
         public void TestEstimatorChain()
         {
-            using (var env = new TlcEnvironment())
+            using (var env = new ConsoleEnvironment())
             {
                 var dataFile = GetDataPath("images/images.tsv");
                 var imageFolder = Path.GetDirectoryName(dataFile);
-                var data = env.CreateLoader("Text{col=ImagePath:TX:0 col=Name:TX:1}", new MultiFileSource(dataFile));
-                var invalidData = env.CreateLoader("Text{col=ImagePath:R4:0}", new MultiFileSource(dataFile));
+                var data = TextLoader.Create(env, new TextLoader.Arguments()
+                {
+                    Column = new[]
+                    {
+                        new TextLoader.Column("ImagePath", DataKind.TX, 0),
+                        new TextLoader.Column("Name", DataKind.TX, 1),
+                    }
+                }, new MultiFileSource(dataFile));
+                var invalidData = TextLoader.Create(env, new TextLoader.Arguments()
+                {
+                    Column = new[]
+                    {
+                        new TextLoader.Column("ImagePath", DataKind.R4, 0),
+                    }
+                }, new MultiFileSource(dataFile));
 
                 var pipe = new ImageLoaderEstimator(env, imageFolder, ("ImagePath", "ImageReal"))
                     .Append(new ImageResizerEstimator(env, "ImageReal", "ImageReal", 100, 100))
@@ -45,11 +58,18 @@ namespace Microsoft.ML.Tests
         [Fact]
         public void TestEstimatorSaveLoad()
         {
-            using (var env = new TlcEnvironment())
+            using (var env = new ConsoleEnvironment())
             {
                 var dataFile = GetDataPath("images/images.tsv");
                 var imageFolder = Path.GetDirectoryName(dataFile);
-                var data = env.CreateLoader("Text{col=ImagePath:TX:0 col=Name:TX:1}", new MultiFileSource(dataFile));
+                var data = TextLoader.Create(env, new TextLoader.Arguments()
+                {
+                    Column = new[]
+                    {
+                        new TextLoader.Column("ImagePath", DataKind.TX, 0),
+                        new TextLoader.Column("Name", DataKind.TX, 1),
+                    }
+                }, new MultiFileSource(dataFile));
 
                 var pipe = new ImageLoaderEstimator(env, imageFolder, ("ImagePath", "ImageReal"))
                     .Append(new ImageResizerEstimator(env, "ImageReal", "ImageReal", 100, 100))
@@ -78,11 +98,18 @@ namespace Microsoft.ML.Tests
         [Fact]
         public void TestSaveImages()
         {
-            using (var env = new TlcEnvironment())
+            using (var env = new ConsoleEnvironment())
             {
                 var dataFile = GetDataPath("images/images.tsv");
                 var imageFolder = Path.GetDirectoryName(dataFile);
-                var data = env.CreateLoader("Text{col=ImagePath:TX:0 col=Name:TX:1}", new MultiFileSource(dataFile));
+                var data = TextLoader.Create(env, new TextLoader.Arguments()
+                {
+                    Column = new[]
+                    {
+                        new TextLoader.Column("ImagePath", DataKind.TX, 0),
+                        new TextLoader.Column("Name", DataKind.TX, 1),
+                    }
+                }, new MultiFileSource(dataFile));
                 var images = ImageLoaderTransform.Create(env, new ImageLoaderTransform.Arguments()
                 {
                     Column = new ImageLoaderTransform.Column[1]
@@ -103,8 +130,8 @@ namespace Microsoft.ML.Tests
                 cropped.Schema.TryGetColumnIndex("ImageCropped", out int cropBitmapColumn);
                 using (var cursor = cropped.GetRowCursor((x) => true))
                 {
-                    var pathGetter = cursor.GetGetter<DvText>(pathColumn);
-                    DvText path = default;
+                    var pathGetter = cursor.GetGetter<ReadOnlyMemory<char>>(pathColumn);
+                    ReadOnlyMemory<char> path = default;
                     var bitmapCropGetter = cursor.GetGetter<Bitmap>(cropBitmapColumn);
                     Bitmap bitmap = default;
                     while (cursor.MoveNext())
@@ -123,13 +150,20 @@ namespace Microsoft.ML.Tests
         [Fact]
         public void TestGreyscaleTransformImages()
         {
-            using (var env = new TlcEnvironment())
+            using (var env = new ConsoleEnvironment())
             {
                 var imageHeight = 150;
                 var imageWidth = 100;
                 var dataFile = GetDataPath("images/images.tsv");
                 var imageFolder = Path.GetDirectoryName(dataFile);
-                var data = env.CreateLoader("Text{col=ImagePath:TX:0 col=Name:TX:1}", new MultiFileSource(dataFile));
+                var data = TextLoader.Create(env, new TextLoader.Arguments()
+                {
+                    Column = new[]
+                    {
+                        new TextLoader.Column("ImagePath", DataKind.TX, 0),
+                        new TextLoader.Column("Name", DataKind.TX, 1),
+                    }
+                }, new MultiFileSource(dataFile));
                 var images = ImageLoaderTransform.Create(env, new ImageLoaderTransform.Arguments()
                 {
                     Column = new ImageLoaderTransform.Column[1]
@@ -184,15 +218,22 @@ namespace Microsoft.ML.Tests
         }
 
         [Fact]
-        public void TestBackAndForthConversion()
+        public void TestBackAndForthConversionWithAlphaInterleave()
         {
-            using (var env = new TlcEnvironment())
+            using (var env = new ConsoleEnvironment())
             {
                 var imageHeight = 100;
                 var imageWidth = 130;
                 var dataFile = GetDataPath("images/images.tsv");
                 var imageFolder = Path.GetDirectoryName(dataFile);
-                var data = env.CreateLoader("Text{col=ImagePath:TX:0 col=Name:TX:1}", new MultiFileSource(dataFile));
+                var data = TextLoader.Create(env, new TextLoader.Arguments()
+                {
+                    Column = new[]
+                    {
+                        new TextLoader.Column("ImagePath", DataKind.TX, 0),
+                        new TextLoader.Column("Name", DataKind.TX, 1),
+                    }
+                }, new MultiFileSource(dataFile));
                 var images = ImageLoaderTransform.Create(env, new ImageLoaderTransform.Arguments()
                 {
                     Column = new ImageLoaderTransform.Column[1]
@@ -210,6 +251,9 @@ namespace Microsoft.ML.Tests
 
                 var pixels = ImagePixelExtractorTransform.Create(env, new ImagePixelExtractorTransform.Arguments()
                 {
+                    InterleaveArgb = true,
+                    Offset = 127.5f,
+                    Scale = 2f / 255,
                     Column = new ImagePixelExtractorTransform.Column[1]{
                         new ImagePixelExtractorTransform.Column() {  Source= "ImageCropped", Name = "ImagePixels", UseAlpha=true}
                     }
@@ -217,12 +261,15 @@ namespace Microsoft.ML.Tests
 
                 IDataView backToBitmaps = new VectorToImageTransform(env, new VectorToImageTransform.Arguments()
                 {
+                    InterleaveArgb = true,
+                    Offset = -1f,
+                    Scale = 255f / 2,
                     Column = new VectorToImageTransform.Column[1]{
                         new VectorToImageTransform.Column() {  Source= "ImagePixels", Name = "ImageRestored" , ImageHeight=imageHeight, ImageWidth=imageWidth, ContainsAlpha=true}
                     }
                 }, pixels);
 
-                var fname = nameof(TestBackAndForthConversion) + "_model.zip";
+                var fname = nameof(TestBackAndForthConversionWithAlphaInterleave) + "_model.zip";
 
                 var fh = env.CreateOutputFile(fname);
                 using (var ch = env.Start("save"))
@@ -250,7 +297,623 @@ namespace Microsoft.ML.Tests
                         for (int x = 0; x < imageWidth; x++)
                             for (int y = 0; y < imageHeight; y++)
                             {
-                                Assert.True(croppedBitmap.GetPixel(x, y) == restoredBitmap.GetPixel(x, y));
+                                var c = croppedBitmap.GetPixel(x, y);
+                                var r = restoredBitmap.GetPixel(x, y);
+                                Assert.True(c == r);
+                            }
+                    }
+                }
+            }
+            Done();
+        }
+
+        [Fact]
+        public void TestBackAndForthConversionWithoutAlphaInterleave()
+        {
+            using (var env = new ConsoleEnvironment())
+            {
+                var imageHeight = 100;
+                var imageWidth = 130;
+                var dataFile = GetDataPath("images/images.tsv");
+                var imageFolder = Path.GetDirectoryName(dataFile);
+                var data = TextLoader.Create(env, new TextLoader.Arguments()
+                {
+                    Column = new[]
+                    {
+                        new TextLoader.Column("ImagePath", DataKind.TX, 0),
+                        new TextLoader.Column("Name", DataKind.TX, 1),
+                    }
+                }, new MultiFileSource(dataFile));
+                var images = ImageLoaderTransform.Create(env, new ImageLoaderTransform.Arguments()
+                {
+                    Column = new ImageLoaderTransform.Column[1]
+                    {
+                        new ImageLoaderTransform.Column() { Source=  "ImagePath", Name="ImageReal" }
+                    },
+                    ImageFolder = imageFolder
+                }, data);
+                var cropped = ImageResizerTransform.Create(env, new ImageResizerTransform.Arguments()
+                {
+                    Column = new ImageResizerTransform.Column[1]{
+                        new ImageResizerTransform.Column() { Source = "ImageReal", Name= "ImageCropped", ImageHeight =imageHeight, ImageWidth = imageWidth, Resizing = ImageResizerTransform.ResizingKind.IsoCrop}
+                    }
+                }, images);
+
+                var pixels = ImagePixelExtractorTransform.Create(env, new ImagePixelExtractorTransform.Arguments()
+                {
+                    InterleaveArgb = true,
+                    Offset = 127.5f,
+                    Scale = 2f / 255,
+                    Column = new ImagePixelExtractorTransform.Column[1]{
+                        new ImagePixelExtractorTransform.Column() {  Source= "ImageCropped", Name = "ImagePixels", UseAlpha=false}
+                    }
+                }, cropped);
+
+                IDataView backToBitmaps = new VectorToImageTransform(env, new VectorToImageTransform.Arguments()
+                {
+                    InterleaveArgb = true,
+                    Offset = -1f,
+                    Scale = 255f / 2,
+                    Column = new VectorToImageTransform.Column[1]{
+                        new VectorToImageTransform.Column() {  Source= "ImagePixels", Name = "ImageRestored" , ImageHeight=imageHeight, ImageWidth=imageWidth, ContainsAlpha=false}
+                    }
+                }, pixels);
+
+                var fname = nameof(TestBackAndForthConversionWithoutAlphaInterleave) + "_model.zip";
+
+                var fh = env.CreateOutputFile(fname);
+                using (var ch = env.Start("save"))
+                    TrainUtils.SaveModel(env, ch, fh, null, new RoleMappedData(backToBitmaps));
+
+                backToBitmaps = ModelFileUtils.LoadPipeline(env, fh.OpenReadStream(), new MultiFileSource(dataFile));
+                DeleteOutputPath(fname);
+
+
+                backToBitmaps.Schema.TryGetColumnIndex("ImageRestored", out int bitmapColumn);
+                backToBitmaps.Schema.TryGetColumnIndex("ImageCropped", out int cropBitmapColumn);
+                using (var cursor = backToBitmaps.GetRowCursor((x) => true))
+                {
+                    var bitmapGetter = cursor.GetGetter<Bitmap>(bitmapColumn);
+                    Bitmap restoredBitmap = default;
+
+                    var bitmapCropGetter = cursor.GetGetter<Bitmap>(cropBitmapColumn);
+                    Bitmap croppedBitmap = default;
+                    while (cursor.MoveNext())
+                    {
+                        bitmapGetter(ref restoredBitmap);
+                        Assert.NotNull(restoredBitmap);
+                        bitmapCropGetter(ref croppedBitmap);
+                        Assert.NotNull(croppedBitmap);
+                        for (int x = 0; x < imageWidth; x++)
+                            for (int y = 0; y < imageHeight; y++)
+                            {
+                                var c = croppedBitmap.GetPixel(x, y);
+                                var r = restoredBitmap.GetPixel(x, y);
+                                Assert.True(c.R == r.R && c.G == r.G && c.B == r.B);
+                            }
+                    }
+                }
+            }
+            Done();
+        }
+
+        [Fact]
+        public void TestBackAndForthConversionWithAlphaNoInterleave()
+        {
+            using (var env = new ConsoleEnvironment())
+            {
+                var imageHeight = 100;
+                var imageWidth = 130;
+                var dataFile = GetDataPath("images/images.tsv");
+                var imageFolder = Path.GetDirectoryName(dataFile);
+                var data = TextLoader.Create(env, new TextLoader.Arguments()
+                {
+                    Column = new[]
+                    {
+                        new TextLoader.Column("ImagePath", DataKind.TX, 0),
+                        new TextLoader.Column("Name", DataKind.TX, 1),
+                    }
+                }, new MultiFileSource(dataFile));
+                var images = ImageLoaderTransform.Create(env, new ImageLoaderTransform.Arguments()
+                {
+                    Column = new ImageLoaderTransform.Column[1]
+                    {
+                        new ImageLoaderTransform.Column() { Source=  "ImagePath", Name="ImageReal" }
+                    },
+                    ImageFolder = imageFolder
+                }, data);
+                var cropped = ImageResizerTransform.Create(env, new ImageResizerTransform.Arguments()
+                {
+                    Column = new ImageResizerTransform.Column[1]{
+                        new ImageResizerTransform.Column() { Source = "ImageReal", Name= "ImageCropped", ImageHeight =imageHeight, ImageWidth = imageWidth, Resizing = ImageResizerTransform.ResizingKind.IsoCrop}
+                    }
+                }, images);
+
+                var pixels = ImagePixelExtractorTransform.Create(env, new ImagePixelExtractorTransform.Arguments()
+                {
+                    InterleaveArgb = false,
+                    Offset = 127.5f,
+                    Scale = 2f / 255,
+                    Column = new ImagePixelExtractorTransform.Column[1]{
+                        new ImagePixelExtractorTransform.Column() {  Source= "ImageCropped", Name = "ImagePixels", UseAlpha=true}
+                    }
+                }, cropped);
+
+                IDataView backToBitmaps = new VectorToImageTransform(env, new VectorToImageTransform.Arguments()
+                {
+                    InterleaveArgb = false,
+                    Offset = -1f,
+                    Scale = 255f / 2,
+                    Column = new VectorToImageTransform.Column[1]{
+                        new VectorToImageTransform.Column() {  Source= "ImagePixels", Name = "ImageRestored" , ImageHeight=imageHeight, ImageWidth=imageWidth, ContainsAlpha=true}
+                    }
+                }, pixels);
+
+                var fname = nameof(TestBackAndForthConversionWithAlphaNoInterleave) + "_model.zip";
+
+                var fh = env.CreateOutputFile(fname);
+                using (var ch = env.Start("save"))
+                    TrainUtils.SaveModel(env, ch, fh, null, new RoleMappedData(backToBitmaps));
+
+                backToBitmaps = ModelFileUtils.LoadPipeline(env, fh.OpenReadStream(), new MultiFileSource(dataFile));
+                DeleteOutputPath(fname);
+
+
+                backToBitmaps.Schema.TryGetColumnIndex("ImageRestored", out int bitmapColumn);
+                backToBitmaps.Schema.TryGetColumnIndex("ImageCropped", out int cropBitmapColumn);
+                using (var cursor = backToBitmaps.GetRowCursor((x) => true))
+                {
+                    var bitmapGetter = cursor.GetGetter<Bitmap>(bitmapColumn);
+                    Bitmap restoredBitmap = default;
+
+                    var bitmapCropGetter = cursor.GetGetter<Bitmap>(cropBitmapColumn);
+                    Bitmap croppedBitmap = default;
+                    while (cursor.MoveNext())
+                    {
+                        bitmapGetter(ref restoredBitmap);
+                        Assert.NotNull(restoredBitmap);
+                        bitmapCropGetter(ref croppedBitmap);
+                        Assert.NotNull(croppedBitmap);
+                        for (int x = 0; x < imageWidth; x++)
+                            for (int y = 0; y < imageHeight; y++)
+                            {
+                                var c = croppedBitmap.GetPixel(x, y);
+                                var r = restoredBitmap.GetPixel(x, y);
+                                Assert.True(c == r);
+                            }
+                    }
+                }
+            }
+            Done();
+        }
+
+        [Fact]
+        public void TestBackAndForthConversionWithoutAlphaNoInterleave()
+        {
+            using (var env = new ConsoleEnvironment())
+            {
+                var imageHeight = 100;
+                var imageWidth = 130;
+                var dataFile = GetDataPath("images/images.tsv");
+                var imageFolder = Path.GetDirectoryName(dataFile);
+                var data = TextLoader.Create(env, new TextLoader.Arguments()
+                {
+                    Column = new[]
+                    {
+                        new TextLoader.Column("ImagePath", DataKind.TX, 0),
+                        new TextLoader.Column("Name", DataKind.TX, 1),
+                    }
+                }, new MultiFileSource(dataFile));
+                var images = ImageLoaderTransform.Create(env, new ImageLoaderTransform.Arguments()
+                {
+                    Column = new ImageLoaderTransform.Column[1]
+                    {
+                        new ImageLoaderTransform.Column() { Source=  "ImagePath", Name="ImageReal" }
+                    },
+                    ImageFolder = imageFolder
+                }, data);
+                var cropped = ImageResizerTransform.Create(env, new ImageResizerTransform.Arguments()
+                {
+                    Column = new ImageResizerTransform.Column[1]{
+                        new ImageResizerTransform.Column() { Source = "ImageReal", Name= "ImageCropped", ImageHeight =imageHeight, ImageWidth = imageWidth, Resizing = ImageResizerTransform.ResizingKind.IsoCrop}
+                    }
+                }, images);
+
+                var pixels = ImagePixelExtractorTransform.Create(env, new ImagePixelExtractorTransform.Arguments()
+                {
+                    InterleaveArgb = false,
+                    Offset = 127.5f,
+                    Scale = 2f / 255,
+                    Column = new ImagePixelExtractorTransform.Column[1]{
+                        new ImagePixelExtractorTransform.Column() {  Source= "ImageCropped", Name = "ImagePixels", UseAlpha=false}
+                    }
+                }, cropped);
+
+                IDataView backToBitmaps = new VectorToImageTransform(env, new VectorToImageTransform.Arguments()
+                {
+                    InterleaveArgb = false,
+                    Offset = -1f,
+                    Scale = 255f / 2,
+                    Column = new VectorToImageTransform.Column[1]{
+                        new VectorToImageTransform.Column() {  Source= "ImagePixels", Name = "ImageRestored" , ImageHeight=imageHeight, ImageWidth=imageWidth, ContainsAlpha=false}
+                    }
+                }, pixels);
+
+                var fname = nameof(TestBackAndForthConversionWithoutAlphaNoInterleave) + "_model.zip";
+
+                var fh = env.CreateOutputFile(fname);
+                using (var ch = env.Start("save"))
+                    TrainUtils.SaveModel(env, ch, fh, null, new RoleMappedData(backToBitmaps));
+
+                backToBitmaps = ModelFileUtils.LoadPipeline(env, fh.OpenReadStream(), new MultiFileSource(dataFile));
+                DeleteOutputPath(fname);
+
+
+                backToBitmaps.Schema.TryGetColumnIndex("ImageRestored", out int bitmapColumn);
+                backToBitmaps.Schema.TryGetColumnIndex("ImageCropped", out int cropBitmapColumn);
+                using (var cursor = backToBitmaps.GetRowCursor((x) => true))
+                {
+                    var bitmapGetter = cursor.GetGetter<Bitmap>(bitmapColumn);
+                    Bitmap restoredBitmap = default;
+
+                    var bitmapCropGetter = cursor.GetGetter<Bitmap>(cropBitmapColumn);
+                    Bitmap croppedBitmap = default;
+                    while (cursor.MoveNext())
+                    {
+                        bitmapGetter(ref restoredBitmap);
+                        Assert.NotNull(restoredBitmap);
+                        bitmapCropGetter(ref croppedBitmap);
+                        Assert.NotNull(croppedBitmap);
+                        for (int x = 0; x < imageWidth; x++)
+                            for (int y = 0; y < imageHeight; y++)
+                            {
+                                var c = croppedBitmap.GetPixel(x, y);
+                                var r = restoredBitmap.GetPixel(x, y);
+                                Assert.True(c.R == r.R && c.G == r.G && c.B == r.B);
+                            }
+                    }
+                }
+            }
+            Done();
+        }
+
+        [Fact]
+        public void TestBackAndForthConversionWithAlphaInterleaveNoOffset()
+        {
+            using (var env = new ConsoleEnvironment())
+            {
+                var imageHeight = 100;
+                var imageWidth = 130;
+                var dataFile = GetDataPath("images/images.tsv");
+                var imageFolder = Path.GetDirectoryName(dataFile);
+                var data = TextLoader.Create(env, new TextLoader.Arguments()
+                {
+                    Column = new[]
+                    {
+                        new TextLoader.Column("ImagePath", DataKind.TX, 0),
+                        new TextLoader.Column("Name", DataKind.TX, 1),
+                    }
+                }, new MultiFileSource(dataFile));
+                var images = ImageLoaderTransform.Create(env, new ImageLoaderTransform.Arguments()
+                {
+                    Column = new ImageLoaderTransform.Column[1]
+                    {
+                        new ImageLoaderTransform.Column() { Source=  "ImagePath", Name="ImageReal" }
+                    },
+                    ImageFolder = imageFolder
+                }, data);
+                var cropped = ImageResizerTransform.Create(env, new ImageResizerTransform.Arguments()
+                {
+                    Column = new ImageResizerTransform.Column[1]{
+                        new ImageResizerTransform.Column() { Source = "ImageReal", Name= "ImageCropped", ImageHeight =imageHeight, ImageWidth = imageWidth, Resizing = ImageResizerTransform.ResizingKind.IsoCrop}
+                    }
+                }, images);
+
+                var pixels = ImagePixelExtractorTransform.Create(env, new ImagePixelExtractorTransform.Arguments()
+                {
+                    InterleaveArgb = true,
+                    Column = new ImagePixelExtractorTransform.Column[1]{
+                        new ImagePixelExtractorTransform.Column() {  Source= "ImageCropped", Name = "ImagePixels", UseAlpha=true}
+                    }
+                }, cropped);
+
+                IDataView backToBitmaps = new VectorToImageTransform(env, new VectorToImageTransform.Arguments()
+                {
+                    InterleaveArgb = true,
+                    Column = new VectorToImageTransform.Column[1]{
+                        new VectorToImageTransform.Column() {  Source= "ImagePixels", Name = "ImageRestored" , ImageHeight=imageHeight, ImageWidth=imageWidth, ContainsAlpha=true}
+                    }
+                }, pixels);
+
+                var fname = nameof(TestBackAndForthConversionWithAlphaInterleaveNoOffset) + "_model.zip";
+
+                var fh = env.CreateOutputFile(fname);
+                using (var ch = env.Start("save"))
+                    TrainUtils.SaveModel(env, ch, fh, null, new RoleMappedData(backToBitmaps));
+
+                backToBitmaps = ModelFileUtils.LoadPipeline(env, fh.OpenReadStream(), new MultiFileSource(dataFile));
+                DeleteOutputPath(fname);
+
+
+                backToBitmaps.Schema.TryGetColumnIndex("ImageRestored", out int bitmapColumn);
+                backToBitmaps.Schema.TryGetColumnIndex("ImageCropped", out int cropBitmapColumn);
+                using (var cursor = backToBitmaps.GetRowCursor((x) => true))
+                {
+                    var bitmapGetter = cursor.GetGetter<Bitmap>(bitmapColumn);
+                    Bitmap restoredBitmap = default;
+
+                    var bitmapCropGetter = cursor.GetGetter<Bitmap>(cropBitmapColumn);
+                    Bitmap croppedBitmap = default;
+                    while (cursor.MoveNext())
+                    {
+                        bitmapGetter(ref restoredBitmap);
+                        Assert.NotNull(restoredBitmap);
+                        bitmapCropGetter(ref croppedBitmap);
+                        Assert.NotNull(croppedBitmap);
+                        for (int x = 0; x < imageWidth; x++)
+                            for (int y = 0; y < imageHeight; y++)
+                            {
+                                var c = croppedBitmap.GetPixel(x, y);
+                                var r = restoredBitmap.GetPixel(x, y);
+                                Assert.True(c == r);
+                            }
+                    }
+                }
+            }
+            Done();
+        }
+
+        [Fact]
+        public void TestBackAndForthConversionWithoutAlphaInterleaveNoOffset()
+        {
+            using (var env = new ConsoleEnvironment())
+            {
+                var imageHeight = 100;
+                var imageWidth = 130;
+                var dataFile = GetDataPath("images/images.tsv");
+                var imageFolder = Path.GetDirectoryName(dataFile);
+                var data = TextLoader.Create(env, new TextLoader.Arguments()
+                {
+                    Column = new[]
+                    {
+                        new TextLoader.Column("ImagePath", DataKind.TX, 0),
+                        new TextLoader.Column("Name", DataKind.TX, 1),
+                    }
+                }, new MultiFileSource(dataFile));
+                var images = ImageLoaderTransform.Create(env, new ImageLoaderTransform.Arguments()
+                {
+                    Column = new ImageLoaderTransform.Column[1]
+                    {
+                        new ImageLoaderTransform.Column() { Source=  "ImagePath", Name="ImageReal" }
+                    },
+                    ImageFolder = imageFolder
+                }, data);
+                var cropped = ImageResizerTransform.Create(env, new ImageResizerTransform.Arguments()
+                {
+                    Column = new ImageResizerTransform.Column[1]{
+                        new ImageResizerTransform.Column() { Source = "ImageReal", Name= "ImageCropped", ImageHeight =imageHeight, ImageWidth = imageWidth, Resizing = ImageResizerTransform.ResizingKind.IsoCrop}
+                    }
+                }, images);
+
+                var pixels = ImagePixelExtractorTransform.Create(env, new ImagePixelExtractorTransform.Arguments()
+                {
+                    InterleaveArgb = true,
+                    Column = new ImagePixelExtractorTransform.Column[1]{
+                        new ImagePixelExtractorTransform.Column() {  Source= "ImageCropped", Name = "ImagePixels", UseAlpha=false}
+                    }
+                }, cropped);
+
+                IDataView backToBitmaps = new VectorToImageTransform(env, new VectorToImageTransform.Arguments()
+                {
+                    InterleaveArgb = true,
+                    Column = new VectorToImageTransform.Column[1]{
+                        new VectorToImageTransform.Column() {  Source= "ImagePixels", Name = "ImageRestored" , ImageHeight=imageHeight, ImageWidth=imageWidth, ContainsAlpha=false}
+                    }
+                }, pixels);
+
+                var fname = nameof(TestBackAndForthConversionWithoutAlphaInterleaveNoOffset) + "_model.zip";
+
+                var fh = env.CreateOutputFile(fname);
+                using (var ch = env.Start("save"))
+                    TrainUtils.SaveModel(env, ch, fh, null, new RoleMappedData(backToBitmaps));
+
+                backToBitmaps = ModelFileUtils.LoadPipeline(env, fh.OpenReadStream(), new MultiFileSource(dataFile));
+                DeleteOutputPath(fname);
+
+
+                backToBitmaps.Schema.TryGetColumnIndex("ImageRestored", out int bitmapColumn);
+                backToBitmaps.Schema.TryGetColumnIndex("ImageCropped", out int cropBitmapColumn);
+                using (var cursor = backToBitmaps.GetRowCursor((x) => true))
+                {
+                    var bitmapGetter = cursor.GetGetter<Bitmap>(bitmapColumn);
+                    Bitmap restoredBitmap = default;
+
+                    var bitmapCropGetter = cursor.GetGetter<Bitmap>(cropBitmapColumn);
+                    Bitmap croppedBitmap = default;
+                    while (cursor.MoveNext())
+                    {
+                        bitmapGetter(ref restoredBitmap);
+                        Assert.NotNull(restoredBitmap);
+                        bitmapCropGetter(ref croppedBitmap);
+                        Assert.NotNull(croppedBitmap);
+                        for (int x = 0; x < imageWidth; x++)
+                            for (int y = 0; y < imageHeight; y++)
+                            {
+                                var c = croppedBitmap.GetPixel(x, y);
+                                var r = restoredBitmap.GetPixel(x, y);
+                                Assert.True(c.R == r.R && c.G == r.G && c.B == r.B);
+                            }
+                    }
+                }
+            }
+            Done();
+        }
+
+        [Fact]
+        public void TestBackAndForthConversionWithAlphaNoInterleaveNoOffset()
+        {
+            using (var env = new ConsoleEnvironment())
+            {
+                var imageHeight = 100;
+                var imageWidth = 130;
+                var dataFile = GetDataPath("images/images.tsv");
+                var imageFolder = Path.GetDirectoryName(dataFile);
+                var data = TextLoader.Create(env, new TextLoader.Arguments()
+                {
+                    Column = new[]
+                    {
+                        new TextLoader.Column("ImagePath", DataKind.TX, 0),
+                        new TextLoader.Column("Name", DataKind.TX, 1),
+                    }
+                }, new MultiFileSource(dataFile));
+                var images = ImageLoaderTransform.Create(env, new ImageLoaderTransform.Arguments()
+                {
+                    Column = new ImageLoaderTransform.Column[1]
+                    {
+                        new ImageLoaderTransform.Column() { Source=  "ImagePath", Name="ImageReal" }
+                    },
+                    ImageFolder = imageFolder
+                }, data);
+                var cropped = ImageResizerTransform.Create(env, new ImageResizerTransform.Arguments()
+                {
+                    Column = new ImageResizerTransform.Column[1]{
+                        new ImageResizerTransform.Column() { Source = "ImageReal", Name= "ImageCropped", ImageHeight =imageHeight, ImageWidth = imageWidth, Resizing = ImageResizerTransform.ResizingKind.IsoCrop}
+                    }
+                }, images);
+
+                var pixels = ImagePixelExtractorTransform.Create(env, new ImagePixelExtractorTransform.Arguments()
+                {
+                    InterleaveArgb = false,
+                    Column = new ImagePixelExtractorTransform.Column[1]{
+                        new ImagePixelExtractorTransform.Column() {  Source= "ImageCropped", Name = "ImagePixels", UseAlpha=true}
+                    }
+                }, cropped);
+
+                IDataView backToBitmaps = new VectorToImageTransform(env, new VectorToImageTransform.Arguments()
+                {
+                    InterleaveArgb = false,
+                    Column = new VectorToImageTransform.Column[1]{
+                        new VectorToImageTransform.Column() {  Source= "ImagePixels", Name = "ImageRestored" , ImageHeight=imageHeight, ImageWidth=imageWidth, ContainsAlpha=true}
+                    }
+                }, pixels);
+
+                var fname = nameof(TestBackAndForthConversionWithAlphaNoInterleaveNoOffset) + "_model.zip";
+
+                var fh = env.CreateOutputFile(fname);
+                using (var ch = env.Start("save"))
+                    TrainUtils.SaveModel(env, ch, fh, null, new RoleMappedData(backToBitmaps));
+
+                backToBitmaps = ModelFileUtils.LoadPipeline(env, fh.OpenReadStream(), new MultiFileSource(dataFile));
+                DeleteOutputPath(fname);
+
+
+                backToBitmaps.Schema.TryGetColumnIndex("ImageRestored", out int bitmapColumn);
+                backToBitmaps.Schema.TryGetColumnIndex("ImageCropped", out int cropBitmapColumn);
+                using (var cursor = backToBitmaps.GetRowCursor((x) => true))
+                {
+                    var bitmapGetter = cursor.GetGetter<Bitmap>(bitmapColumn);
+                    Bitmap restoredBitmap = default;
+
+                    var bitmapCropGetter = cursor.GetGetter<Bitmap>(cropBitmapColumn);
+                    Bitmap croppedBitmap = default;
+                    while (cursor.MoveNext())
+                    {
+                        bitmapGetter(ref restoredBitmap);
+                        Assert.NotNull(restoredBitmap);
+                        bitmapCropGetter(ref croppedBitmap);
+                        Assert.NotNull(croppedBitmap);
+                        for (int x = 0; x < imageWidth; x++)
+                            for (int y = 0; y < imageHeight; y++)
+                            {
+                                var c = croppedBitmap.GetPixel(x, y);
+                                var r = restoredBitmap.GetPixel(x, y);
+                                Assert.True(c == r);
+                            }
+                    }
+                }
+            }
+            Done();
+        }
+
+        [Fact]
+        public void TestBackAndForthConversionWithoutAlphaNoInterleaveNoOffset()
+        {
+            using (var env = new ConsoleEnvironment())
+            {
+                var imageHeight = 100;
+                var imageWidth = 130;
+                var dataFile = GetDataPath("images/images.tsv");
+                var imageFolder = Path.GetDirectoryName(dataFile);
+                var data = TextLoader.Create(env, new TextLoader.Arguments()
+                {
+                    Column = new[]
+                    {
+                        new TextLoader.Column("ImagePath", DataKind.TX, 0),
+                        new TextLoader.Column("Name", DataKind.TX, 1),
+                    }
+                }, new MultiFileSource(dataFile));
+                var images = ImageLoaderTransform.Create(env, new ImageLoaderTransform.Arguments()
+                {
+                    Column = new ImageLoaderTransform.Column[1]
+                    {
+                        new ImageLoaderTransform.Column() { Source=  "ImagePath", Name="ImageReal" }
+                    },
+                    ImageFolder = imageFolder
+                }, data);
+                var cropped = ImageResizerTransform.Create(env, new ImageResizerTransform.Arguments()
+                {
+                    Column = new ImageResizerTransform.Column[1]{
+                        new ImageResizerTransform.Column() { Source = "ImageReal", Name= "ImageCropped", ImageHeight =imageHeight, ImageWidth = imageWidth, Resizing = ImageResizerTransform.ResizingKind.IsoCrop}
+                    }
+                }, images);
+
+                var pixels = ImagePixelExtractorTransform.Create(env, new ImagePixelExtractorTransform.Arguments()
+                {
+                    InterleaveArgb = false,
+                    Column = new ImagePixelExtractorTransform.Column[1]{
+                        new ImagePixelExtractorTransform.Column() {  Source= "ImageCropped", Name = "ImagePixels", UseAlpha=false}
+                    }
+                }, cropped);
+
+                IDataView backToBitmaps = new VectorToImageTransform(env, new VectorToImageTransform.Arguments()
+                {
+                    InterleaveArgb = false,
+                    Column = new VectorToImageTransform.Column[1]{
+                        new VectorToImageTransform.Column() {  Source= "ImagePixels", Name = "ImageRestored" , ImageHeight=imageHeight, ImageWidth=imageWidth, ContainsAlpha=false}
+                    }
+                }, pixels);
+
+                var fname = nameof(TestBackAndForthConversionWithoutAlphaNoInterleaveNoOffset) + "_model.zip";
+
+                var fh = env.CreateOutputFile(fname);
+                using (var ch = env.Start("save"))
+                    TrainUtils.SaveModel(env, ch, fh, null, new RoleMappedData(backToBitmaps));
+
+                backToBitmaps = ModelFileUtils.LoadPipeline(env, fh.OpenReadStream(), new MultiFileSource(dataFile));
+                DeleteOutputPath(fname);
+
+
+                backToBitmaps.Schema.TryGetColumnIndex("ImageRestored", out int bitmapColumn);
+                backToBitmaps.Schema.TryGetColumnIndex("ImageCropped", out int cropBitmapColumn);
+                using (var cursor = backToBitmaps.GetRowCursor((x) => true))
+                {
+                    var bitmapGetter = cursor.GetGetter<Bitmap>(bitmapColumn);
+                    Bitmap restoredBitmap = default;
+
+                    var bitmapCropGetter = cursor.GetGetter<Bitmap>(cropBitmapColumn);
+                    Bitmap croppedBitmap = default;
+                    while (cursor.MoveNext())
+                    {
+                        bitmapGetter(ref restoredBitmap);
+                        Assert.NotNull(restoredBitmap);
+                        bitmapCropGetter(ref croppedBitmap);
+                        Assert.NotNull(croppedBitmap);
+                        for (int x = 0; x < imageWidth; x++)
+                            for (int y = 0; y < imageHeight; y++)
+                            {
+                                var c = croppedBitmap.GetPixel(x, y);
+                                var r = restoredBitmap.GetPixel(x, y);
+                                Assert.True(c.R == r.R && c.G == r.G && c.B == r.B);
                             }
                     }
                 }

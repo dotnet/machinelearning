@@ -2,28 +2,21 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Float = System.Single;
-
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Internal.Internallearn;
+using Microsoft.ML.TestFramework;
 using Xunit;
 
 namespace Microsoft.ML.Runtime.RunTests
 {
-    
     public sealed class TestEarlyStoppingCriteria
     {
         private IEarlyStoppingCriterion CreateEarlyStoppingCriterion(string name, string args, bool lowerIsBetter)
         {
+            var env = new ConsoleEnvironment()
+                .AddStandardComponents();
             var sub = new SubComponent<IEarlyStoppingCriterion, SignatureEarlyStoppingCriterion>(name, args);
-            return sub.CreateInstance(new TlcEnvironment(), lowerIsBetter);
+            return sub.CreateInstance(env, lowerIsBetter);
         }
 
         [Fact]
@@ -36,7 +29,7 @@ namespace Microsoft.ML.Runtime.RunTests
 
             for (int i=0; i<100; i++)
             {
-                Float score = 0.001f * i;
+                float score = 0.001f * i;
                 shouldStop = cr.CheckScore(score, 0, out isBestCandidate);
                 Assert.True(isBestCandidate);
                 Assert.False(shouldStop);
@@ -61,7 +54,7 @@ namespace Microsoft.ML.Runtime.RunTests
 
             for (int i = 0; i < 100; i++)
             {
-                Float score = 0.001f * i;
+                float score = 0.001f * i;
                 shouldStop = cr.CheckScore(score, 0, out isBestCandidate);
                 Assert.True(isBestCandidate);
                Assert.False(shouldStop);
@@ -86,7 +79,7 @@ namespace Microsoft.ML.Runtime.RunTests
 
             for (int i = 0; i < 100; i++)
             {
-                Float score = 0.001f * i;
+                float score = 0.001f * i;
                 shouldStop = cr.CheckScore(score, score, out isBestCandidate);
                 Assert.True(isBestCandidate);
                Assert.False(shouldStop);
@@ -122,7 +115,7 @@ namespace Microsoft.ML.Runtime.RunTests
 
             for (int i = 0; i < 100; i++)
             {
-                Float score = 0.001f * i;
+                float score = 0.001f * i;
                 shouldStop = cr.CheckScore(score, score, out isBestCandidate);
                 Assert.True(isBestCandidate);
                Assert.False(shouldStop);
@@ -159,7 +152,7 @@ namespace Microsoft.ML.Runtime.RunTests
 
             for (int i = 0; i < 100; i++)
             {
-                Float score = 0.001f * i;
+                float score = 0.001f * i;
                 shouldStop = cr.CheckScore(score, 0, out isBestCandidate);
                 Assert.True(isBestCandidate);
                Assert.False(shouldStop);
@@ -167,7 +160,7 @@ namespace Microsoft.ML.Runtime.RunTests
 
             for (int i = 0; i < windowSize - 1; i++)
             {
-                Float score = 0.09f - 0.001f * i;
+                float score = 0.09f - 0.001f * i;
                 shouldStop = cr.CheckScore(score, 0, out isBestCandidate);
                Assert.False(isBestCandidate);
                Assert.False(shouldStop);

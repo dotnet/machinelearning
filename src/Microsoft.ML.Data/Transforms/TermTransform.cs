@@ -1,15 +1,7 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#pragma warning disable 420 // volatile with Interlocked.CompareExchange
-
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
@@ -20,16 +12,28 @@ using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.Model.Onnx;
 using Microsoft.ML.Runtime.Model.Pfa;
 using Newtonsoft.Json.Linq;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Text;
+using System.Threading;
 
-[assembly: LoadableClass(TermTransform.Summary, typeof(TermTransform), typeof(TermTransform.Arguments), typeof(SignatureDataTransform),
+[assembly: LoadableClass(TermTransform.Summary, typeof(IDataTransform), typeof(TermTransform),
+    typeof(TermTransform.Arguments), typeof(SignatureDataTransform),
     TermTransform.UserName, "Term", "AutoLabel", "TermTransform", "AutoLabelTransform", DocName = "transform/TermTransform.md")]
 
-[assembly: LoadableClass(TermTransform.Summary, typeof(TermTransform), null, typeof(SignatureLoadDataTransform),
+[assembly: LoadableClass(TermTransform.Summary, typeof(IDataTransform), typeof(TermTransform), null, typeof(SignatureLoadDataTransform),
+    TermTransform.UserName, TermTransform.LoaderSignature)]
+
+[assembly: LoadableClass(TermTransform.Summary, typeof(TermTransform), null, typeof(SignatureLoadModel),
+    TermTransform.UserName, TermTransform.LoaderSignature)]
+
+[assembly: LoadableClass(typeof(IRowMapper), typeof(TermTransform), null, typeof(SignatureLoadRowMapper),
     TermTransform.UserName, TermTransform.LoaderSignature)]
 
 namespace Microsoft.ML.Runtime.Data
 {
-
     // TermTransform builds up term vocabularies (dictionaries).
     // Notes:
     // * Each column builds/uses exactly one "vocabulary" (dictionary).
@@ -37,7 +41,7 @@ namespace Microsoft.ML.Runtime.Data
     // * The Key value is the one-based index of the item in the dictionary.
     // * Not found is assigned the value zero.
     /// <include file='doc.xml' path='doc/members/member[@name="TextToKey"]/*' />
-    public sealed partial class TermTransform : OneToOneTransformBase, ITransformTemplate
+    public sealed partial class TermTransform : OneToOneTransformerBase
     {
         public abstract class ColumnBase : OneToOneColumn
         {
@@ -97,16 +101,10 @@ namespace Microsoft.ML.Runtime.Data
             // other things, like case insensitive (where appropriate), culturally aware, etc.?
         }
 
-        private static class Defaults
-        {
-            public const int MaxNumTerms = 1000000;
-            public const SortOrder Sort = SortOrder.Occurrence;
-        }
-
         public abstract class ArgumentsBase : TransformInputBase
         {
             [Argument(ArgumentType.AtMostOnce, HelpText = "Maximum number of terms to keep per column when auto-training", ShortName = "max", SortOrder = 5)]
-            public int MaxNumTerms = Defaults.MaxNumTerms;
+            public int MaxNumTerms = TermEstimator.Defaults.MaxNumTerms;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Comma separated list of terms", SortOrder = 105, Visibility = ArgumentAttribute.VisibilityType.CmdLineOnly)]
             public string Terms;
@@ -130,7 +128,7 @@ namespace Microsoft.ML.Runtime.Data
             // REVIEW: Should we always sort? Opinions are mixed. See work item 7797429.
             [Argument(ArgumentType.AtMostOnce, HelpText = "How items should be ordered when vectorized. By default, they will be in the order encountered. " +
                 "If by value items are sorted according to their default comparison, e.g., text sorting will be case sensitive (e.g., 'A' then 'Z' then 'a').", SortOrder = 113)]
-            public SortOrder Sort = Defaults.Sort;
+            public SortOrder Sort = TermEstimator.Defaults.Sort;
 
             // REVIEW: Should we do this here, or correct the various pieces of code here and in MRS etc. that
             // assume key-values will be string? Once we correct these things perhaps we can see about removing it.
@@ -144,9 +142,47 @@ namespace Microsoft.ML.Runtime.Data
             public Column[] Column;
         }
 
+        internal sealed class ColInfo
+        {
+            public readonly string Name;
+            public readonly string Source;
+            public readonly ColumnType TypeSrc;
+
+            public ColInfo(string name, string source, ColumnType type)
+            {
+                Name = name;
+                Source = source;
+                TypeSrc = type;
+            }
+        }
+
+        public class ColumnInfo
+        {
+            public ColumnInfo(string input, string output, int maxNumTerms = TermEstimator.Defaults.MaxNumTerms, SortOrder sort = TermEstimator.Defaults.Sort, string[] term = null, bool textKeyValues = false)
+            {
+                Input = input;
+                Output = output;
+                Sort = sort;
+                MaxNumTerms = maxNumTerms;
+                Term = term;
+                TextKeyValues = textKeyValues;
+            }
+
+            public readonly string Input;
+            public readonly string Output;
+            public readonly SortOrder Sort;
+            public readonly int MaxNumTerms;
+            public readonly string[] Term;
+            public readonly bool TextKeyValues;
+
+            protected internal string Terms { get; set; }
+        }
+
         public const string Summary = "Converts input values (words, numbers, etc.) to index in a dictionary.";
         public const string UserName = "Term Transform";
         public const string LoaderSignature = "TermTransform";
+
+        public const string FriendlyName = "To Key";
 
         private static VersionInfo GetVersionInfo()
         {
@@ -157,31 +193,14 @@ namespace Microsoft.ML.Runtime.Data
                 verWrittenCur: 0x00010003, // Generalize to multiple types beyond text
                 verReadableCur: 0x00010003,
                 verWeCanReadBack: 0x00010001,
-                loaderSignature: LoaderSignature);
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(TermTransform).Assembly.FullName);
         }
 
         private const uint VerNonTextTypesSupported = 0x00010003;
         private const uint VerManagerNonTextTypesSupported = 0x00010002;
 
         public const string TermManagerLoaderSignature = "TermManager";
-        private static VersionInfo GetTermManagerVersionInfo()
-        {
-            return new VersionInfo(
-                modelSignature: "TERM MAN",
-                //verWrittenCur: 0x00010001, // Initial
-                verWrittenCur: 0x00010002, // Generalize to multiple types beyond text
-                verReadableCur: 0x00010002,
-                verWeCanReadBack: 0x00010001,
-                loaderSignature: TermManagerLoaderSignature);
-        }
-
-        // These are parallel to Infos.
-        private readonly ColumnType[] _types;
-        private readonly BoundTermMap[] _termMap;
-        private readonly bool[] _textMetadata;
-
-        private const string RegistrationName = "Term";
-
         private static volatile MemoryStreamPool _codecFactoryPool;
         private volatile CodecFactory _codecFactory;
 
@@ -198,9 +217,178 @@ namespace Microsoft.ML.Runtime.Data
                 return _codecFactory;
             }
         }
+        private static VersionInfo GetTermManagerVersionInfo()
+        {
+            return new VersionInfo(
+                modelSignature: "TERM MAN",
+                //verWrittenCur: 0x00010001, // Initial
+                verWrittenCur: 0x00010002, // Generalize to multiple types beyond text
+                verReadableCur: 0x00010002,
+                verWeCanReadBack: 0x00010001,
+                loaderSignature: TermManagerLoaderSignature,
+                loaderAssemblyName: typeof(TermTransform).Assembly.FullName);
+        }
 
-        public override bool CanSavePfa => true;
-        public override bool CanSaveOnnx => true;
+        private readonly TermMap[] _unboundMaps;
+        private readonly bool[] _textMetadata;
+        private const string RegistrationName = "Term";
+
+        private static (string input, string output)[] GetColumnPairs(ColumnInfo[] columns)
+        {
+            Contracts.CheckValue(columns, nameof(columns));
+            return columns.Select(x => (x.Input, x.Output)).ToArray();
+        }
+
+        internal string TestIsKnownDataKind(ColumnType type)
+        {
+            if (type.ItemType.RawKind != default && (type.IsVector || type.IsPrimitive))
+                return null;
+            return "standard type or a vector of standard type";
+        }
+
+        private ColInfo[] CreateInfos(ISchema inputSchema)
+        {
+            Host.AssertValue(inputSchema);
+            var infos = new ColInfo[ColumnPairs.Length];
+            for (int i = 0; i < ColumnPairs.Length; i++)
+            {
+                if (!inputSchema.TryGetColumnIndex(ColumnPairs[i].input, out int colSrc))
+                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", ColumnPairs[i].input);
+                var type = inputSchema.GetColumnType(colSrc);
+                string reason = TestIsKnownDataKind(type);
+                if (reason != null)
+                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", ColumnPairs[i].input, reason, type.ToString());
+                infos[i] = new ColInfo(ColumnPairs[i].output, ColumnPairs[i].input, type);
+            }
+            return infos;
+        }
+
+        public TermTransform(IHostEnvironment env, IDataView input,
+            params ColumnInfo[] columns) :
+            this(env, input, columns, null, null, null)
+        { }
+
+        private TermTransform(IHostEnvironment env, IDataView input,
+            ColumnInfo[] columns,
+            string file = null, string termsColumn = null,
+            IComponentFactory<IMultiStreamSource, IDataLoader> loaderFactory = null)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(RegistrationName), GetColumnPairs(columns))
+        {
+            using (var ch = Host.Start("Training"))
+            {
+                var infos = CreateInfos(input.Schema);
+                _unboundMaps = Train(Host, ch, infos, file, termsColumn, loaderFactory, columns, input);
+                _textMetadata = new bool[_unboundMaps.Length];
+                for (int iinfo = 0; iinfo < columns.Length; ++iinfo)
+                {
+                    _textMetadata[iinfo] = columns[iinfo].TextKeyValues;
+                }
+                ch.Assert(_unboundMaps.Length == columns.Length);
+                ch.Done();
+            }
+        }
+
+        // Factory method for SignatureDataTransform.
+        public static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
+        {
+            Contracts.CheckValue(env, nameof(env));
+            env.CheckValue(args, nameof(args));
+            env.CheckValue(input, nameof(input));
+
+            env.CheckValue(args.Column, nameof(args.Column));
+            var cols = new ColumnInfo[args.Column.Length];
+            using (var ch = env.Start("ValidateArgs"))
+            {
+                if ((args.Term != null || !string.IsNullOrEmpty(args.Terms)) &&
+                  (!string.IsNullOrWhiteSpace(args.DataFile) || args.Loader != null ||
+                      !string.IsNullOrWhiteSpace(args.TermsColumn)))
+                {
+                    ch.Warning("Explicit term list specified. Data file arguments will be ignored");
+                }
+                if (!Enum.IsDefined(typeof(SortOrder), args.Sort))
+                    throw ch.ExceptUserArg(nameof(args.Sort), "Undefined sorting criteria '{0}' detected", args.Sort);
+
+                for (int i = 0; i < cols.Length; i++)
+                {
+                    var item = args.Column[i];
+                    var sortOrder = item.Sort ?? args.Sort;
+                    if (!Enum.IsDefined(typeof(SortOrder), sortOrder))
+                        throw env.ExceptUserArg(nameof(args.Sort), "Undefined sorting criteria '{0}' detected for column '{1}'", sortOrder, item.Name);
+
+                    cols[i] = new ColumnInfo(item.Source,
+                        item.Name,
+                        item.MaxNumTerms ?? args.MaxNumTerms,
+                        sortOrder,
+                        item.Term,
+                        item.TextKeyValues ?? args.TextKeyValues);
+                    cols[i].Terms = item.Terms;
+                };
+            }
+            return new TermTransform(env, input, cols, args.DataFile, args.TermsColumn, args.Loader).MakeDataTransform(input);
+        }
+
+        // Factory method for SignatureLoadModel.
+        private static TermTransform Create(IHostEnvironment env, ModelLoadContext ctx)
+        {
+            Contracts.CheckValue(env, nameof(env));
+            var host = env.Register(RegistrationName);
+
+            host.CheckValue(ctx, nameof(ctx));
+            ctx.CheckAtModel(GetVersionInfo());
+
+            return new TermTransform(host, ctx);
+        }
+
+        private TermTransform(IHost host, ModelLoadContext ctx)
+           : base(host, ctx)
+        {
+            var columnsLength = ColumnPairs.Length;
+
+            if (ctx.Header.ModelVerWritten >= VerNonTextTypesSupported)
+                _textMetadata = ctx.Reader.ReadBoolArray(columnsLength);
+            else
+                _textMetadata = new bool[columnsLength]; // No need to set in this case. They're all text.
+
+            const string dir = "Vocabulary";
+            var termMap = new TermMap[columnsLength];
+            bool b = ctx.TryProcessSubModel(dir,
+            c =>
+            {
+                // *** Binary format ***
+                // int: number of term maps (should equal number of columns)
+                // for each term map:
+                //   byte: code identifying the term map type (0 text, 1 codec)
+                //   <data>: type specific format, see TermMap save/load methods
+
+                host.CheckValue(c, nameof(ctx));
+                c.CheckAtModel(GetTermManagerVersionInfo());
+                int cmap = c.Reader.ReadInt32();
+                host.CheckDecode(cmap == columnsLength);
+                if (c.Header.ModelVerWritten >= VerManagerNonTextTypesSupported)
+                {
+                    for (int i = 0; i < columnsLength; ++i)
+                        termMap[i] = TermMap.Load(c, host, CodecFactory);
+                }
+                else
+                {
+                    for (int i = 0; i < columnsLength; ++i)
+                        termMap[i] = TermMap.TextImpl.Create(c, host);
+                }
+            });
+#pragma warning disable MSML_NoMessagesForLoadContext // Vaguely useful.
+            if (!b)
+                throw host.ExceptDecode("Missing {0} model", dir);
+#pragma warning restore MSML_NoMessagesForLoadContext
+            _unboundMaps = termMap;
+        }
+
+        // Factory method for SignatureLoadDataTransform.
+        private static IDataTransform Create(IHostEnvironment env, ModelLoadContext ctx, IDataView input)
+            => Create(env, ctx).MakeDataTransform(input);
+
+        // Factory method for SignatureLoadRowMapper.
+        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, ISchema inputSchema)
+            => Create(env, ctx).MakeRowMapper(inputSchema);
 
         /// <summary>
         /// Convenience constructor for public facing API.
@@ -212,106 +400,52 @@ namespace Microsoft.ML.Runtime.Data
         /// <param name="maxNumTerms">Maximum number of terms to keep per column when auto-training.</param>
         /// <param name="sort">How items should be ordered when vectorized. By default, they will be in the order encountered.
         /// If by value items are sorted according to their default comparison, e.g., text sorting will be case sensitive (e.g., 'A' then 'Z' then 'a').</param>
-        public TermTransform(IHostEnvironment env,
-            IDataView input,
-            string name,
-            string source = null,
-            int maxNumTerms = Defaults.MaxNumTerms,
-            SortOrder sort = Defaults.Sort)
-            : this(env, new Arguments() { Column = new[] { new Column() { Source = source ?? name, Name = name } }, MaxNumTerms = maxNumTerms, Sort = sort }, input)
-        {
-        }
+        public static IDataView Create(IHostEnvironment env,
+            IDataView input, string name, string source = null,
+            int maxNumTerms = TermEstimator.Defaults.MaxNumTerms, SortOrder sort = TermEstimator.Defaults.Sort) =>
+            new TermTransform(env, input, new[] { new ColumnInfo(source ?? name, name, maxNumTerms, sort) }).MakeDataTransform(input);
 
-        /// <summary>
-        /// Public constructor corresponding to SignatureDataTransform.
-        /// </summary>
-        public TermTransform(IHostEnvironment env, Arguments args, IDataView input)
-            : this(args, Contracts.CheckRef(args, nameof(args)).Column, env, input)
+        public static IDataTransform Create(IHostEnvironment env, ArgumentsBase args, ColumnBase[] column, IDataView input)
         {
-        }
-
-        /// <summary>
-        /// Re-apply constructor.
-        /// </summary>
-        private TermTransform(IHostEnvironment env, TermTransform transform, IDataView newSource)
-            : base(env, RegistrationName, transform, newSource, TestIsKnownDataKind)
-        {
-            Host.AssertNonEmpty(Infos);
-            Host.Assert(Infos.Length == transform.Infos.Length);
-
-            _textMetadata = transform._textMetadata;
-            _termMap = new BoundTermMap[Infos.Length];
-            for (int iinfo = 0; iinfo < Infos.Length; ++iinfo)
+            return Create(env, new Arguments()
             {
-                TermMap map = transform._termMap[iinfo].Map;
-                if (!map.ItemType.Equals(Infos[iinfo].TypeSrc.ItemType))
+                Column = column.Select(x => new Column()
                 {
-                    // Column with the same name, but different types.
-                    throw Host.Except(
-                        "For column '{0}', term map was trained on items of type '{1}' but being applied to type '{2}'",
-                        Infos[iinfo].Name, map.ItemType, Infos[iinfo].TypeSrc.ItemType);
-                }
-                _termMap[iinfo] = map.Bind(this, iinfo);
-            }
-            _types = ComputeTypesAndMetadata();
-        }
-
-        public IDataTransform ApplyToData(IHostEnvironment env, IDataView newSource)
-        {
-            return new TermTransform(env, this, newSource);
+                    MaxNumTerms = x.MaxNumTerms,
+                    Name = x.Name,
+                    Sort = x.Sort,
+                    Source = x.Source,
+                    Term = x.Term,
+                    Terms = x.Terms,
+                    TextKeyValues = x.TextKeyValues
+                }).ToArray(),
+                Data = args.Data,
+                DataFile = args.DataFile,
+                Loader = args.Loader,
+                MaxNumTerms = args.MaxNumTerms,
+                Sort = args.Sort,
+                Term = args.Term,
+                Terms = args.Terms,
+                TermsColumn = args.TermsColumn,
+                TextKeyValues = args.TextKeyValues
+            }, input);
         }
 
         /// <summary>
-        /// Public constructor for compositional forms.
+        /// Utility method to create the file-based <see cref="TermMap"/>.
         /// </summary>
-        public TermTransform(ArgumentsBase args, ColumnBase[] column, IHostEnvironment env, IDataView input)
-            : base(env, RegistrationName, column, input, TestIsKnownDataKind)
-        {
-            Host.CheckValue(args, nameof(args));
-            Host.AssertNonEmpty(Infos);
-            Host.Assert(Infos.Length == Utils.Size(column));
-
-            using (var ch = Host.Start("Training"))
-            {
-                TermMap[] unboundMaps = Train(Host, ch, Infos, args, column, Source);
-                ch.Assert(unboundMaps.Length == Infos.Length);
-                _textMetadata = new bool[unboundMaps.Length];
-                _termMap = new BoundTermMap[unboundMaps.Length];
-                for (int iinfo = 0; iinfo < Infos.Length; ++iinfo)
-                {
-                    _textMetadata[iinfo] = column[iinfo].TextKeyValues ?? args.TextKeyValues;
-                    _termMap[iinfo] = unboundMaps[iinfo].Bind(this, iinfo);
-                }
-                _types = ComputeTypesAndMetadata();
-                ch.Done();
-            }
-        }
-
-        private static string TestIsKnownDataKind(ColumnType type)
-        {
-            if (type.ItemType.RawKind != default(DataKind) && (type.IsVector || type.IsPrimitive))
-                return null;
-            return "Expected standard type or a vector of standard type";
-        }
-
-        /// <summary>
-        /// Utility method to create the file-based <see cref="TermMap"/> if the <see cref="ArgumentsBase.DataFile"/>
-        /// argument of <paramref name="args"/> was present.
-        /// </summary>
-        private static TermMap CreateFileTermMap(IHostEnvironment env, IChannel ch, ArgumentsBase args, Builder bldr)
+        private static TermMap CreateFileTermMap(IHostEnvironment env, IChannel ch, string file, string termsColumn,
+            IComponentFactory<IMultiStreamSource, IDataLoader> loaderFactory, Builder bldr)
         {
             Contracts.AssertValue(ch);
             ch.AssertValue(env);
-            ch.AssertValue(args);
-            ch.Assert(!string.IsNullOrWhiteSpace(args.DataFile));
+            ch.Assert(!string.IsNullOrWhiteSpace(file));
             ch.AssertValue(bldr);
 
-            string file = args.DataFile;
             // First column using the file.
-            string src = args.TermsColumn;
+            string src = termsColumn;
             IMultiStreamSource fileSource = new MultiFileSource(file);
 
-            var loaderFactory = args.Loader;
             // If the user manually specifies a loader, or this is already a pre-processed binary
             // file, then we assume the user knows what they're doing and do not attempt to convert
             // to the desired type ourselves.
@@ -330,7 +464,7 @@ namespace Microsoft.ML.Runtime.Data
                 if (isBinary || isTranspose)
                 {
                     ch.Assert(isBinary != isTranspose);
-                    ch.CheckUserArg(!string.IsNullOrWhiteSpace(src), nameof(args.TermsColumn),
+                    ch.CheckUserArg(!string.IsNullOrWhiteSpace(src), nameof(termsColumn),
                         "Must be specified");
                     if (isBinary)
                         termData = new BinaryLoader(env, new BinaryLoader.Arguments(), fileSource);
@@ -363,10 +497,10 @@ namespace Microsoft.ML.Runtime.Data
 
             int colSrc;
             if (!termData.Schema.TryGetColumnIndex(src, out colSrc))
-                throw ch.ExceptUserArg(nameof(args.TermsColumn), "Unknown column '{0}'", src);
+                throw ch.ExceptUserArg(nameof(termsColumn), "Unknown column '{0}'", src);
             var typeSrc = termData.Schema.GetColumnType(colSrc);
             if (!autoConvert && !typeSrc.Equals(bldr.ItemType))
-                throw ch.ExceptUserArg(nameof(args.TermsColumn), "Must be of type '{0}' but was '{1}'", bldr.ItemType, typeSrc);
+                throw ch.ExceptUserArg(nameof(termsColumn), "Must be of type '{0}' but was '{1}'", bldr.ItemType, typeSrc);
 
             using (var cursor = termData.GetRowCursor(col => col == colSrc))
             using (var pch = env.StartProgressChannel("Building term dictionary from file"))
@@ -396,24 +530,14 @@ namespace Microsoft.ML.Runtime.Data
         /// This builds the <see cref="TermMap"/> instances per column.
         /// </summary>
         private static TermMap[] Train(IHostEnvironment env, IChannel ch, ColInfo[] infos,
-            ArgumentsBase args, ColumnBase[] column, IDataView trainingData)
+            string file, string termsColumn,
+            IComponentFactory<IMultiStreamSource, IDataLoader> loaderFactory, ColumnInfo[] columns, IDataView trainingData)
         {
             Contracts.AssertValue(env);
             env.AssertValue(ch);
             ch.AssertValue(infos);
-            ch.AssertValue(args);
-            ch.AssertValue(column);
+            ch.AssertValue(columns);
             ch.AssertValue(trainingData);
-
-            if ((args.Term != null || !string.IsNullOrEmpty(args.Terms)) &&
-                (!string.IsNullOrWhiteSpace(args.DataFile) || args.Loader != null ||
-                    !string.IsNullOrWhiteSpace(args.TermsColumn)))
-            {
-                ch.Warning("Explicit term list specified. Data file arguments will be ignored");
-            }
-
-            if (!Enum.IsDefined(typeof(SortOrder), args.Sort))
-                throw ch.ExceptUserArg(nameof(args.Sort), "Undefined sorting criteria '{0}' detected", args.Sort);
 
             TermMap termsFromFile = null;
             var termMap = new TermMap[infos.Length];
@@ -424,36 +548,28 @@ namespace Microsoft.ML.Runtime.Data
             for (int iinfo = 0; iinfo < infos.Length; iinfo++)
             {
                 // First check whether we have a terms argument, and handle it appropriately.
-                var terms = new DvText(column[iinfo].Terms);
-                var termsArray = column[iinfo].Term;
-                if (!terms.HasChars && termsArray == null)
-                {
-                    terms = new DvText(args.Terms);
-                    termsArray = args.Term;
-                }
+                var terms = columns[iinfo].Terms.AsMemory();
+                var termsArray = columns[iinfo].Term;
 
-                terms = terms.Trim();
-                if (terms.HasChars || (termsArray != null && termsArray.Length > 0))
+                terms = ReadOnlyMemoryUtils.TrimSpaces(terms);
+                if (!terms.IsEmpty || (termsArray != null && termsArray.Length > 0))
                 {
                     // We have terms! Pass it in.
-                    var sortOrder = column[iinfo].Sort ?? args.Sort;
-                    if (!Enum.IsDefined(typeof(SortOrder), sortOrder))
-                        throw ch.ExceptUserArg(nameof(args.Sort), "Undefined sorting criteria '{0}' detected for column '{1}'", sortOrder, infos[iinfo].Name);
-
+                    var sortOrder = columns[iinfo].Sort;
                     var bldr = Builder.Create(infos[iinfo].TypeSrc, sortOrder);
-                    if(terms.HasChars)
+                    if (!terms.IsEmpty)
                         bldr.ParseAddTermArg(ref terms, ch);
                     else
                         bldr.ParseAddTermArg(termsArray, ch);
                     termMap[iinfo] = bldr.Finish();
                 }
-                else if (!string.IsNullOrWhiteSpace(args.DataFile))
+                else if (!string.IsNullOrWhiteSpace(file))
                 {
                     // First column using this file.
                     if (termsFromFile == null)
                     {
-                        var bldr = Builder.Create(infos[iinfo].TypeSrc, column[iinfo].Sort ?? args.Sort);
-                        termsFromFile = CreateFileTermMap(env, ch, args, bldr);
+                        var bldr = Builder.Create(infos[iinfo].TypeSrc, columns[iinfo].Sort);
+                        termsFromFile = CreateFileTermMap(env, ch, file, termsColumn, loaderFactory, bldr);
                     }
                     if (!termsFromFile.ItemType.Equals(infos[iinfo].TypeSrc.ItemType))
                     {
@@ -462,7 +578,7 @@ namespace Microsoft.ML.Runtime.Data
                         // a complicated feature would be, and also because it's difficult to see how we
                         // can logically reconcile "reinterpretation" for different types with the resulting
                         // data view having an actual type.
-                        throw ch.ExceptUserArg(nameof(args.DataFile), "Data file terms loaded as type '{0}' but mismatches column '{1}' item type '{2}'",
+                        throw ch.ExceptUserArg(nameof(file), "Data file terms loaded as type '{0}' but mismatches column '{1}' item type '{2}'",
                             termsFromFile.ItemType, infos[iinfo].Name, infos[iinfo].TypeSrc.ItemType);
                     }
                     termMap[iinfo] = termsFromFile;
@@ -470,9 +586,10 @@ namespace Microsoft.ML.Runtime.Data
                 else
                 {
                     // Auto train this column. Leave the term map null for now, but set the lim appropriately.
-                    lims[iinfo] = column[iinfo].MaxNumTerms ?? args.MaxNumTerms;
+                    lims[iinfo] = columns[iinfo].MaxNumTerms;
                     ch.CheckUserArg(lims[iinfo] > 0, nameof(Column.MaxNumTerms), "Must be positive");
-                    Utils.Add(ref toTrain, infos[iinfo].Source);
+                    Contracts.Check(trainingData.Schema.TryGetColumnIndex(infos[iinfo].Source, out int colIndex));
+                    Utils.Add(ref toTrain, colIndex);
                     ++trainsNeeded;
                 }
             }
@@ -497,9 +614,10 @@ namespace Microsoft.ML.Runtime.Data
                     {
                         if (termMap[iinfo] != null)
                             continue;
-                        var bldr = Builder.Create(infos[iinfo].TypeSrc, column[iinfo].Sort ?? args.Sort);
+                        var bldr = Builder.Create(infos[iinfo].TypeSrc, columns[iinfo].Sort);
                         trainerInfo[itrainer] = iinfo;
-                        trainer[itrainer++] = Trainer.Create(cursor, infos[iinfo].Source, false, lims[iinfo], bldr);
+                        trainingData.Schema.TryGetColumnIndex(infos[iinfo].Source, out int colIndex);
+                        trainer[itrainer++] = Trainer.Create(cursor, colIndex, false, lims[iinfo], bldr);
                     }
                     ch.Assert(itrainer == trainer.Length);
                     pch.SetHeader(header,
@@ -548,116 +666,17 @@ namespace Microsoft.ML.Runtime.Data
             return termMap;
         }
 
-        // Computes the types of the columns.
-        private ColumnType[] ComputeTypesAndMetadata()
-        {
-            Contracts.Assert(Utils.Size(Infos) > 0);
-            Contracts.Assert(Utils.Size(Infos) == Utils.Size(_termMap));
-
-            var md = Metadata;
-            var types = new ColumnType[Infos.Length];
-            for (int iinfo = 0; iinfo < types.Length; iinfo++)
-            {
-                Contracts.Assert(types[iinfo] == null);
-
-                var info = Infos[iinfo];
-                KeyType keyType = _termMap[iinfo].Map.OutputType;
-                Host.Assert(keyType.KeyCount > 0);
-                if (info.TypeSrc.IsVector)
-                    types[iinfo] = new VectorType(keyType, info.TypeSrc.AsVector);
-                else
-                    types[iinfo] = keyType;
-
-                // Inherit slot names from source.
-                using (var bldr = md.BuildMetadata(iinfo, Source.Schema, info.Source, MetadataUtils.Kinds.SlotNames))
-                {
-                    // Add key values metadata. It is legal to not add anything, in which case
-                    // this builder performs no operations except passing slot names.
-                    _termMap[iinfo].AddMetadata(bldr);
-                }
-            }
-            md.Seal();
-            return types;
-        }
-
-        private TermTransform(IHost host, ModelLoadContext ctx, IDataView input)
-            : base(host, ctx, input, TestIsKnownDataKind)
-        {
-            Host.AssertValue(ctx);
-
-            // *** Binary format ***
-            // for each term map:
-            //   bool(byte): whether this column should present key value metadata as text
-
-            int cinfo = Infos.Length;
-            Host.Assert(cinfo > 0);
-
-            if (ctx.Header.ModelVerWritten >= VerNonTextTypesSupported)
-                _textMetadata = ctx.Reader.ReadBoolArray(cinfo);
-            else
-                _textMetadata = new bool[cinfo]; // No need to set in this case. They're all text.
-
-            const string dir = "Vocabulary";
-            TermMap[] termMap = new TermMap[cinfo];
-            bool b = ctx.TryProcessSubModel(dir,
-                c =>
-                {
-                    // *** Binary format ***
-                    // int: number of term maps (should equal number of columns)
-                    // for each term map:
-                    //   byte: code identifying the term map type (0 text, 1 codec)
-                    //   <data>: type specific format, see TermMap save/load methods
-
-                    Host.CheckValue(c, nameof(ctx));
-                    c.CheckAtModel(GetTermManagerVersionInfo());
-                    int cmap = c.Reader.ReadInt32();
-                    Host.CheckDecode(cmap == cinfo);
-                    if (c.Header.ModelVerWritten >= VerManagerNonTextTypesSupported)
-                    {
-                        for (int i = 0; i < cinfo; ++i)
-                            termMap[i] = TermMap.Load(c, host, this);
-                    }
-                    else
-                    {
-                        for (int i = 0; i < cinfo; ++i)
-                            termMap[i] = TermMap.TextImpl.Create(c, host);
-                    }
-                });
-#pragma warning disable MSML_NoMessagesForLoadContext // Vaguely useful.
-            if (!b)
-                throw Host.ExceptDecode("Missing {0} model", dir);
-#pragma warning restore MSML_NoMessagesForLoadContext
-            _termMap = new BoundTermMap[cinfo];
-            for (int i = 0; i < cinfo; ++i)
-                _termMap[i] = termMap[i].Bind(this, i);
-
-            _types = ComputeTypesAndMetadata();
-        }
-
-        public static TermTransform Create(IHostEnvironment env, ModelLoadContext ctx, IDataView input)
-        {
-            Contracts.CheckValue(env, nameof(env));
-            env.CheckValue(ctx, nameof(ctx));
-            ctx.CheckAtModel(GetVersionInfo());
-            env.CheckValue(input, nameof(input));
-            env.CheckValue(env, nameof(env));
-            var h = env.Register(RegistrationName);
-            return h.Apply("Loading Model", ch => new TermTransform(h, ctx, input));
-        }
-
         public override void Save(ModelSaveContext ctx)
         {
             Host.CheckValue(ctx, nameof(ctx));
+
             ctx.CheckAtModel();
             ctx.SetVersionInfo(GetVersionInfo());
 
-            // *** Binary format ***
-            // for each term map:
-            //   bool(byte): whether this column should present key value metadata as text
-            SaveBase(ctx);
+            SaveColumns(ctx);
 
-            Host.Assert(_termMap.Length == Infos.Length);
-            Host.Assert(_textMetadata.Length == Infos.Length);
+            Host.Assert(_unboundMaps.Length == _textMetadata.Length);
+            Host.Assert(_textMetadata.Length == ColumnPairs.Length);
             ctx.Writer.WriteBoolBytesNoCount(_textMetadata, _textMetadata.Length);
 
             // REVIEW: Should we do separate sub models for each dictionary?
@@ -674,85 +693,205 @@ namespace Microsoft.ML.Runtime.Data
                     Host.CheckValue(c, nameof(ctx));
                     c.CheckAtModel();
                     c.SetVersionInfo(GetTermManagerVersionInfo());
-                    c.Writer.Write(_termMap.Length);
-                    foreach (var term in _termMap)
-                        term.Map.Save(c, this);
+                    c.Writer.Write(_unboundMaps.Length);
+                    foreach (var term in _unboundMaps)
+                        term.Save(c, Host, CodecFactory);
 
                     c.SaveTextStream("Terms.txt",
                         writer =>
                         {
-                            foreach (var map in _termMap)
+                            foreach (var map in _unboundMaps)
                                 map.WriteTextTerms(writer);
                         });
                 });
         }
 
-        protected override JToken SaveAsPfaCore(BoundPfaContext ctx, int iinfo, ColInfo info, JToken srcToken)
+        public TermMap GetTermMap(int iinfo)
         {
-            Contracts.AssertValue(ctx);
-            Contracts.Assert(0 <= iinfo && iinfo < Infos.Length);
-            Contracts.Assert(Infos[iinfo] == info);
-            Contracts.AssertValue(srcToken);
-            Contracts.Assert(CanSavePfa);
+            Contracts.Assert(0 <= iinfo && iinfo < _unboundMaps.Length);
+            return _unboundMaps[iinfo];
+        }
 
-            if (!info.TypeSrc.ItemType.IsText)
-                return null;
-            var terms = default(VBuffer<DvText>);
-            TermMap<DvText> map = (TermMap<DvText>)_termMap[iinfo].Map;
-            map.GetTerms(ref terms);
-            var jsonMap = new JObject();
-            foreach (var kv in terms.Items())
-                jsonMap[kv.Value.ToString()] = kv.Key;
-            string cellName = ctx.DeclareCell(
-                "TermMap", PfaUtils.Type.Map(PfaUtils.Type.Int), jsonMap);
-            JObject cellRef = PfaUtils.Cell(cellName);
+        protected override IRowMapper MakeRowMapper(ISchema schema)
+          => new Mapper(this, schema);
 
-            if (info.TypeSrc.IsVector)
+        private sealed class Mapper : MapperBase, ISaveAsOnnx, ISaveAsPfa
+        {
+            private readonly ColumnType[] _types;
+            private readonly TermTransform _parent;
+            private readonly ColInfo[] _infos;
+
+            private readonly BoundTermMap[] _termMap;
+
+            public bool CanSaveOnnx => true;
+
+            public bool CanSavePfa => true;
+
+            public Mapper(TermTransform parent, ISchema inputSchema)
+               : base(parent.Host.Register(nameof(Mapper)), parent, inputSchema)
             {
-                var funcName = ctx.GetFreeFunctionName("mapTerm");
-                ctx.Pfa.AddFunc(funcName, new JArray(PfaUtils.Param("term", PfaUtils.Type.String)),
-                    PfaUtils.Type.Int, PfaUtils.If(PfaUtils.Call("map.containsKey", cellRef, "term"), PfaUtils.Index(cellRef, "term"), -1));
-                var funcRef = PfaUtils.FuncRef("u." + funcName);
-                return PfaUtils.Call("a.map", srcToken, funcRef);
+                _parent = parent;
+                _infos = _parent.CreateInfos(inputSchema);
+                _types = new ColumnType[_parent.ColumnPairs.Length];
+                for (int i = 0; i < _parent.ColumnPairs.Length; i++)
+                {
+                    var type = _infos[i].TypeSrc;
+                    KeyType keyType = _parent._unboundMaps[i].OutputType;
+                    ColumnType colType;
+                    if (type.IsVector)
+                        colType = new VectorType(keyType, type.AsVector);
+                    else
+                        colType = keyType;
+                    _types[i] = colType;
+                }
+                _termMap = new BoundTermMap[_parent.ColumnPairs.Length];
+                for (int iinfo = 0; iinfo < _parent.ColumnPairs.Length; ++iinfo)
+                {
+                    _termMap[iinfo] = Bind(Host, inputSchema, _parent._unboundMaps[iinfo], _infos, _parent._textMetadata, iinfo);
+                }
             }
-            return PfaUtils.If(PfaUtils.Call("map.containsKey", cellRef, srcToken), PfaUtils.Index(cellRef, srcToken), -1);
-        }
 
-        protected override bool SaveAsOnnxCore(OnnxContext ctx, int iinfo, ColInfo info, string srcVariableName, string dstVariableName)
-        {
-            if (!info.TypeSrc.ItemType.IsText)
-                return false;
+            public override RowMapperColumnInfo[] GetOutputColumns()
+            {
+                var result = new RowMapperColumnInfo[_parent.ColumnPairs.Length];
+                for (int i = 0; i < _parent.ColumnPairs.Length; i++)
+                {
+                    InputSchema.TryGetColumnIndex(_parent.ColumnPairs[i].input, out int colIndex);
+                    Host.Assert(colIndex >= 0);
+                    var colMetaInfo = new ColumnMetadataInfo(_parent.ColumnPairs[i].output);
+                    _termMap[i].AddMetadata(colMetaInfo);
 
-            var terms = default(VBuffer<DvText>);
-            TermMap<DvText> map = (TermMap<DvText>)_termMap[iinfo].Map;
-            map.GetTerms(ref terms);
-            string opType = "LabelEncoder";
-            var node = ctx.CreateNode(opType, srcVariableName, dstVariableName, ctx.GetNodeName(opType));
-            node.AddAttribute("classes_strings", terms.DenseValues());
-            node.AddAttribute("default_int64", -1);
-            //default_string needs to be an empty string but there is a BUG in Lotus that
-            //throws a validation error when default_string is empty. As a work around, set
-            //default_string to a space.
-            node.AddAttribute("default_string", " ");
-            return true;
-        }
+                    foreach (var type in InputSchema.GetMetadataTypes(colIndex).Where(x => x.Key == MetadataUtils.Kinds.SlotNames))
+                        Utils.MarshalInvoke(AddMetaGetter<int>, type.Value.RawType, colMetaInfo, InputSchema, type.Key, type.Value, colIndex);
+                    result[i] = new RowMapperColumnInfo(_parent.ColumnPairs[i].output, _types[i], colMetaInfo);
+                }
+                return result;
+            }
 
-        protected override ColumnType GetColumnTypeCore(int iinfo)
-        {
-            Host.Assert(0 <= iinfo & iinfo < _types.Length);
-            var type = _types[iinfo];
-            Host.Assert(type != null);
-            return type;
-        }
+            private int AddMetaGetter<T>(ColumnMetadataInfo colMetaInfo, ISchema schema, string kind, ColumnType ct, int originalCol)
+            {
+                MetadataUtils.MetadataGetter<T> getter = (int col, ref T dst) =>
+                {
+                    // We don't care about 'col': this getter is specialized for a column 'originalCol',
+                    // and 'col' in this case is the 'metadata kind index', not the column index.
+                    schema.GetMetadata<T>(kind, originalCol, ref dst);
+                };
+                var info = new MetadataInfo<T>(ct, getter);
+                colMetaInfo.Add(kind, info);
+                return 0;
+            }
 
-        protected override Delegate GetGetterCore(IChannel ch, IRow input, int iinfo, out Action disposer)
-        {
-            Host.AssertValueOrNull(ch);
-            Host.AssertValue(input);
-            Host.Assert(0 <= iinfo && iinfo < Infos.Length);
-            disposer = null;
+            protected override Delegate MakeGetter(IRow input, int iinfo, out Action disposer)
+            {
+                Contracts.AssertValue(input);
+                Contracts.Assert(0 <= iinfo && iinfo < _parent.ColumnPairs.Length);
+                disposer = null;
+                var type = _termMap[iinfo].Map.OutputType;
+                return Utils.MarshalInvoke(MakeGetter<int>, type.RawType, input, iinfo);
+            }
 
-            return _termMap[iinfo].GetMappingGetter(input);
+            private Delegate MakeGetter<T>(IRow row, int src) => _termMap[src].GetMappingGetter(row);
+
+            private bool SaveAsOnnxCore(OnnxContext ctx, int iinfo, ColInfo info, string srcVariableName, string dstVariableName)
+            {
+                if (!info.TypeSrc.ItemType.IsText)
+                    return false;
+
+                var terms = default(VBuffer<ReadOnlyMemory<char>>);
+                TermMap<ReadOnlyMemory<char>> map = (TermMap<ReadOnlyMemory<char>>)_termMap[iinfo].Map;
+                map.GetTerms(ref terms);
+                string opType = "LabelEncoder";
+                var node = ctx.CreateNode(opType, srcVariableName, dstVariableName, ctx.GetNodeName(opType));
+                node.AddAttribute("classes_strings", terms.DenseValues());
+                node.AddAttribute("default_int64", -1);
+                //default_string needs to be an empty string but there is a BUG in Lotus that
+                //throws a validation error when default_string is empty. As a work around, set
+                //default_string to a space.
+                node.AddAttribute("default_string", " ");
+                return true;
+            }
+
+            public void SaveAsOnnx(OnnxContext ctx)
+            {
+                Host.CheckValue(ctx, nameof(ctx));
+
+                for (int iinfo = 0; iinfo < _infos.Length; ++iinfo)
+                {
+                    ColInfo info = _infos[iinfo];
+                    string sourceColumnName = info.Source;
+                    if (!ctx.ContainsColumn(sourceColumnName))
+                    {
+                        ctx.RemoveColumn(info.Name, false);
+                        continue;
+                    }
+
+                    if (!SaveAsOnnxCore(ctx, iinfo, info, ctx.GetVariableName(sourceColumnName),
+                        ctx.AddIntermediateVariable(_types[iinfo], info.Name)))
+                    {
+                        ctx.RemoveColumn(info.Name, true);
+                    }
+                }
+            }
+
+            public void SaveAsPfa(BoundPfaContext ctx)
+            {
+                Host.CheckValue(ctx, nameof(ctx));
+
+                var toHide = new List<string>();
+                var toDeclare = new List<KeyValuePair<string, JToken>>();
+
+                for (int iinfo = 0; iinfo < _infos.Length; ++iinfo)
+                {
+                    var info = _infos[iinfo];
+                    var srcName = info.Source;
+                    string srcToken = ctx.TokenOrNullForName(srcName);
+                    if (srcToken == null)
+                    {
+                        toHide.Add(info.Name);
+                        continue;
+                    }
+                    var result = SaveAsPfaCore(ctx, iinfo, info, srcToken);
+                    if (result == null)
+                    {
+                        toHide.Add(info.Name);
+                        continue;
+                    }
+                    toDeclare.Add(new KeyValuePair<string, JToken>(info.Name, result));
+                }
+                ctx.Hide(toHide.ToArray());
+                ctx.DeclareVar(toDeclare.ToArray());
+            }
+
+            private JToken SaveAsPfaCore(BoundPfaContext ctx, int iinfo, ColInfo info, JToken srcToken)
+            {
+                Contracts.AssertValue(ctx);
+                Contracts.Assert(0 <= iinfo && iinfo < _infos.Length);
+                Contracts.Assert(_infos[iinfo] == info);
+                Contracts.AssertValue(srcToken);
+                //Contracts.Assert(CanSavePfa);
+
+                if (!info.TypeSrc.ItemType.IsText)
+                    return null;
+                var terms = default(VBuffer<ReadOnlyMemory<char>>);
+                TermMap<ReadOnlyMemory<char>> map = (TermMap<ReadOnlyMemory<char>>)_termMap[iinfo].Map;
+                map.GetTerms(ref terms);
+                var jsonMap = new JObject();
+                foreach (var kv in terms.Items())
+                    jsonMap[kv.Value.ToString()] = kv.Key;
+                string cellName = ctx.DeclareCell(
+                    "TermMap", PfaUtils.Type.Map(PfaUtils.Type.Int), jsonMap);
+                JObject cellRef = PfaUtils.Cell(cellName);
+
+                if (info.TypeSrc.IsVector)
+                {
+                    var funcName = ctx.GetFreeFunctionName("mapTerm");
+                    ctx.Pfa.AddFunc(funcName, new JArray(PfaUtils.Param("term", PfaUtils.Type.String)),
+                        PfaUtils.Type.Int, PfaUtils.If(PfaUtils.Call("map.containsKey", cellRef, "term"), PfaUtils.Index(cellRef, "term"), -1));
+                    var funcRef = PfaUtils.FuncRef("u." + funcName);
+                    return PfaUtils.Call("a.map", srcToken, funcRef);
+                }
+                return PfaUtils.If(PfaUtils.Call("map.containsKey", cellRef, srcToken), PfaUtils.Index(cellRef, srcToken), -1);
+            }
         }
     }
 }

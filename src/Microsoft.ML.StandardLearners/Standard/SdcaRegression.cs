@@ -27,9 +27,9 @@ namespace Microsoft.ML.Runtime.Learners
     /// <include file='doc.xml' path='doc/members/member[@name="SDCA"]/*' />
     public sealed class SdcaRegressionTrainer : SdcaTrainerBase<RegressionPredictionTransformer<LinearRegressionPredictor>, LinearRegressionPredictor>
     {
-        public const string LoadNameValue = "SDCAR";
-        public const string UserNameValue = "Fast Linear Regression (SA-SDCA)";
-        public const string ShortName = "sasdcar";
+        internal const string LoadNameValue = "SDCAR";
+        internal const string UserNameValue = "Fast Linear Regression (SA-SDCA)";
+        internal const string ShortName = "sasdcar";
         internal const string Summary = "The SDCA linear regression trainer.";
 
         public sealed class Arguments : ArgumentsBase
@@ -51,39 +51,22 @@ namespace Microsoft.ML.Runtime.Learners
         private readonly Arguments _args;
 
         public override PredictionKind PredictionKind => PredictionKind.Regression;
-        protected override SchemaShape.Column[] OutputColumns { get; }
 
         public SdcaRegressionTrainer(IHostEnvironment env, Arguments args, string featureColumn, string labelColumn, string weightColumn = null)
-            : base(Contracts.CheckRef(env, nameof(env)).Register(LoadNameValue), args, MakeFeatureColumn(featureColumn), MakeLabelColumn(labelColumn), MakeWeightColumn(weightColumn))
+            : base(Contracts.CheckRef(env, nameof(env)).Register(LoadNameValue), args, TrainerUtils.MakeR4VecFeature(featureColumn),
+                  TrainerUtils.MakeR4ScalarLabel(labelColumn), TrainerUtils.MakeR4ScalarWeightColumn(weightColumn))
         {
+            Host.CheckValue(labelColumn, nameof(labelColumn));
+            Host.CheckValue(featureColumn, nameof(featureColumn));
+
             _loss = args.LossFunction.CreateComponent(env);
             Loss = _loss;
             _args = args;
-            OutputColumns = new[]
-            {
-                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false)
-            };
         }
 
-        public SdcaRegressionTrainer(IHostEnvironment env, Arguments args)
+        internal SdcaRegressionTrainer(IHostEnvironment env, Arguments args)
             : this(env, args, args.FeatureColumn, args.LabelColumn)
         {
-        }
-        private static SchemaShape.Column MakeWeightColumn(string weightColumn)
-        {
-            if (weightColumn == null)
-                return null;
-            return new SchemaShape.Column(weightColumn, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false);
-        }
-
-        private static SchemaShape.Column MakeLabelColumn(string labelColumn)
-        {
-            return new SchemaShape.Column(labelColumn, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false);
-        }
-
-        private static SchemaShape.Column MakeFeatureColumn(string featureColumn)
-        {
-            return new SchemaShape.Column(featureColumn, SchemaShape.Column.VectorKind.Vector, NumberType.R4, false);
         }
 
         protected override LinearRegressionPredictor CreatePredictor(VBuffer<Float>[] weights, Float[] bias)
@@ -139,6 +122,14 @@ namespace Microsoft.ML.Runtime.Learners
 
             ch.Info("Auto-tuning parameters: L2 = {0}.", l2);
             return l2;
+        }
+
+        protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema)
+        {
+            return new[]
+            {
+                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata()))
+            };
         }
 
         protected override RegressionPredictionTransformer<LinearRegressionPredictor> MakeTransformer(LinearRegressionPredictor model, ISchema trainSchema)

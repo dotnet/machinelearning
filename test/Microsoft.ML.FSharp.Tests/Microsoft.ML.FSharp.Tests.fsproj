@@ -42,7 +42,6 @@
     <ProjectReference Include="..\..\src\Microsoft.ML.StandardLearners\Microsoft.ML.StandardLearners.csproj" />
     <ProjectReference Include="..\..\src\Microsoft.ML.Sweeper\Microsoft.ML.Sweeper.csproj" />
     <ProjectReference Include="..\..\src\Microsoft.ML.Transforms\Microsoft.ML.Transforms.csproj" />
-    <ProjectReference Include="..\..\src\Microsoft.ML\Microsoft.ML.csproj" />
   </ItemGroup>
   <ItemGroup>
     <NativeAssemblyReference Include="FastTreeNative" />

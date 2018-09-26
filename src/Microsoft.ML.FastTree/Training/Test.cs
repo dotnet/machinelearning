@@ -196,7 +196,7 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
     public class TestHistory : Test
     {
         public readonly Test SimpleTest;
-        protected readonly int LossIndex;
+        public readonly int LossIndex;
         protected IList<TestResult[]> History;
         protected int Iteration { get; private set; }
 
@@ -590,13 +590,13 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
         private readonly bool[] _binaryLabels;
         private readonly double _recipNpos;
         private readonly double _recipNneg;
-        private readonly double _learningRate;
+        private readonly double _sigmoidParameter;
 
-        public BinaryClassificationTest(ScoreTracker scoreTracker, bool[] binaryLabels, double learningRate)
+        public BinaryClassificationTest(ScoreTracker scoreTracker, bool[] binaryLabels, double sigmoidParameter)
             : base(scoreTracker)
         {
             _binaryLabels = binaryLabels;
-            _learningRate = learningRate;
+            _sigmoidParameter = sigmoidParameter;
 
             Contracts.Check(scoreTracker.Dataset.NumDocs == binaryLabels.Length, "Mismatch between dataset and labels");
 
@@ -676,7 +676,7 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
 
                         const double documentWeight = 1.0;
                         bool correct = !(label ^ predictedClass);
-                        double loss = Math.Log(1.0 + Math.Exp(-2.0 * _learningRate * (label ? 1 : -1) * scores[i]));
+                        double loss = Math.Log(1.0 + Math.Exp(-1.0 * _sigmoidParameter * (label ? 1 : -1) * scores[i]));
 
                         errorRate += (correct ? 0 : 1) * documentWeight;
                         lossRate += loss * documentWeight;

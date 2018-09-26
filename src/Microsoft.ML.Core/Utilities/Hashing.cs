@@ -11,6 +11,8 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
 {
     public static class Hashing
     {
+        private const uint _defaultSeed = (5381 << 16) + 5381;
+
         public static uint CombineHash(uint u1, uint u2)
         {
             return ((u1 << 7) | (u1 >> 25)) ^ u2;
@@ -62,24 +64,10 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         }
 
         /// <summary>
-        /// Hash the characters in a string. This MUST produce the same result as the other
-        /// overloads (with equivalent characters).
+        /// Hash the characters in a <see cref="ReadOnlySpan{T}"/> of <see cref="char"/>.
+        /// This MUST produce the same result as the other overloads (with equivalent characters).
         /// </summary>
-        public static uint HashString(string str)
-        {
-            Contracts.AssertValue(str);
-            return MurmurHash((5381 << 16) + 5381, str, 0, str.Length);
-        }
-
-        /// <summary>
-        /// Hash the characters in a sub-string. This MUST produce the same result
-        /// as HashString(str.SubString(ichMin, ichLim - ichMin)).
-        /// </summary>
-        public static uint HashString(string str, int ichMin, int ichLim)
-        {
-            Contracts.Assert(0 <= ichMin & ichMin <= ichLim & ichLim <= Utils.Size(str));
-            return MurmurHash((5381 << 16) + 5381, str, ichMin, ichLim);
-        }
+        public static uint HashString(ReadOnlySpan<char> str) => MurmurHash(_defaultSeed, str);
 
         /// <summary>
         /// Hash the characters in a string builder. This MUST produce the same result
@@ -88,12 +76,12 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         public static uint HashString(StringBuilder sb)
         {
             Contracts.AssertValue(sb);
-            return MurmurHash((5381 << 16) + 5381, sb, 0, sb.Length);
+            return MurmurHash(_defaultSeed, sb, 0, sb.Length);
         }
 
         public static uint HashSequence(uint[] sequence, int min, int lim)
         {
-            return MurmurHash((5381 << 16) + 5381, sequence, min, lim);
+            return MurmurHash(_defaultSeed, sequence, min, lim);
         }
 
         /// <summary>
@@ -125,23 +113,21 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         /// * 0x0800 to 0xFFFF : 1110xxxx 10xxxxxx 10xxxxxx
         /// NOTE: This MUST match the StringBuilder version below.
         /// </summary>
-        public static uint MurmurHash(uint hash, string data, int ichMin, int ichLim, bool toUpper = false)
+        public static uint MurmurHash(uint hash, ReadOnlySpan<char> span, bool toUpper = false)
         {
-            Contracts.Assert(0 <= ichMin & ichMin <= ichLim & ichLim <= Utils.Size(data));
-
             // Byte length (in pseudo UTF-8 form).
             int len = 0;
 
             // Current bits, value and count.
             ulong cur = 0;
             int bits = 0;
-            for (int ich = ichMin; ich < ichLim; ich++)
+            for (int ich = 0; ich < span.Length; ich++)
             {
                 Contracts.Assert((bits & 0x7) == 0);
                 Contracts.Assert((uint)bits <= 24);
                 Contracts.Assert(cur <= 0x00FFFFFF);
 
-                uint ch = toUpper ? char.ToUpperInvariant(data[ich]) : data[ich];
+                uint ch = toUpper ? char.ToUpperInvariant(span[ich]) : span[ich];
                 if (ch <= 0x007F)
                 {
                     cur |= ch << bits;
@@ -256,7 +242,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
             // Final mixing ritual for the hash.
             hash = MixHash(hash);
 
-            Contracts.Assert(hash == MurmurHash(seed, data.ToString(), 0, data.Length));
+            Contracts.Assert(hash == MurmurHash(seed, data.ToString().AsSpan()));
             return hash;
         }
 
