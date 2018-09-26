@@ -70,7 +70,8 @@ namespace Microsoft.ML.Runtime.Data
                 loaderSignature: LoaderSignature,
                 // This is an older name and can be removed once we don't care about old code
                 // being able to load this.
-                loaderSignatureAlt: "MissingFeatureFilter");
+                loaderSignatureAlt: "MissingFeatureFilter",
+                loaderAssemblyName: typeof(NAFilter).Assembly.FullName);
         }
 
         private readonly ColInfo[] _infos;

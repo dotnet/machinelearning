@@ -113,9 +113,9 @@ namespace Microsoft.ML.Runtime.RunTests
             /// ToString is overrided by CmdParser.GetSettings which is of primary for this test
             /// </summary>
             /// <returns></returns>
-            public string ToString(IExceptionContext ectx)
+            public string ToString(IHostEnvironment env)
             {
-                return CmdParser.GetSettings(ectx, this, new SimpleArg(), SettingsFlags.None);
+                return CmdParser.GetSettings(env, this, new SimpleArg(), SettingsFlags.None);
             }
 
             public override bool Equals(object obj)

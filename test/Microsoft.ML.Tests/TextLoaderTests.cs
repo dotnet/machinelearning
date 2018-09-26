@@ -347,6 +347,15 @@ namespace Microsoft.ML.EntryPoints.Tests
             Assert.StartsWith("Field or property String1 is missing ColumnAttribute", ex.Message);
         }
 
+        [Fact]
+        public void CanSuccessfullyColumnNameProperty()
+        {
+            var loader = new Legacy.Data.TextLoader("fakefile.txt").CreateFrom<ModelWithColumnNameAttribute>();
+            Assert.Equal("Col1",loader.Arguments.Column[0].Name); 
+            Assert.Equal("Col2",loader.Arguments.Column[1].Name);
+            Assert.Equal("String_3",loader.Arguments.Column[2].Name);
+        }
+
         public class QuoteInput
         {
             [Column("0")]
@@ -395,6 +404,17 @@ namespace Microsoft.ML.EntryPoints.Tests
         public class ModelWithoutColumnAttribute
         {
             public string String1;
+        }
+
+        public class ModelWithColumnNameAttribute
+        {
+            [Column("0", "Col1")]
+            public string String_1;
+            [Column("1")]
+            [ColumnName("Col2")]
+            public string String_2;
+            [Column("3")]            
+            public string String_3;
         }
     }
 }
