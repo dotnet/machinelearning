@@ -25,12 +25,12 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                     if (!tran)
                     {
                         Contracts.Assert(0 <= crun && crun <= dst.Length);
-                        Thunk.MatMulA(add, pmat, psrc, pdst, crun, src.Length);
+                        Thunk.MatMul(add, pmat, psrc, pdst, crun, src.Length);
                     }
                     else
                     {
                         Contracts.Assert(0 <= crun && crun <= src.Length);
-                        Thunk.MatMulTranA(add, pmat, psrc, pdst, dst.Length, crun);
+                        Thunk.MatMulTran(add, pmat, psrc, pdst, dst.Length, crun);
                     }
                 }
             }
@@ -60,12 +60,12 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                     if (!tran)
                     {
                         Contracts.Assert(0 <= crun && crun <= dst.Length);
-                        Thunk.MatMulPA(add, pmat, ppossrc, psrc, posMin, iposMin, iposLim, pdst, crun, srcValues.Length);
+                        Thunk.MatMulP(add, pmat, ppossrc, psrc, posMin, iposMin, iposLim, pdst, crun, srcValues.Length);
                     }
                     else
                     {
                         Contracts.Assert(0 <= crun && crun <= srcValues.Length);
-                        Thunk.MatMulTranPA(add, pmat, ppossrc, psrc, posMin, iposMin, iposLim, pdst, dst.Length);
+                        Thunk.MatMulTranP(add, pmat, ppossrc, psrc, posMin, iposMin, iposLim, pdst, dst.Length);
                     }
                 }
             }

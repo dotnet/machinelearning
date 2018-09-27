@@ -103,8 +103,8 @@ EXPORT_API(void) MatMulX(bool add, _In_ const float * pmat, _In_ const float * p
 
         __m128 sum = _mm_add_ps(_get_lo(res0), _get_hi(res0));
         if (add)
-            sum = _mm_add_ps(sum, _mm_load_ps(pd));
-        _mm_store_ps(pd, sum);
+            sum = _mm_add_ps(sum, _mm_loadu_ps(pd));
+        _mm_storeu_ps(pd, sum);
     }
 
     _vleave();
@@ -322,7 +322,7 @@ EXPORT_API(void) MatMulTranX(bool add, _In_ const float * pmat, _In_ const float
     // We do 4-way unrolling
     if (!add)
     {
-        __m128 h01 = _mm_load_ps(ps);
+        __m128 h01 = _mm_loadu_ps(ps);
         // Replicate each slot of x01 into its own register.
         __m128 h11 = _mm_shuffle_ps(h01, h01, 0x55);
         __m128 h21 = _mm_shuffle_ps(h01, h01, 0xAA);
@@ -357,7 +357,7 @@ EXPORT_API(void) MatMulTranX(bool add, _In_ const float * pmat, _In_ const float
 
     for (; ps < psLim; ps += 4)
     {
-        __m128 h01 = _mm_load_ps(ps);
+        __m128 h01 = _mm_loadu_ps(ps);
         // Replicate each slot of x01 into its own register.
         __m128 h11 = _mm_shuffle_ps(h01, h01, 0x55);
         __m128 h21 = _mm_shuffle_ps(h01, h01, 0xAA);
@@ -1284,7 +1284,7 @@ EXPORT_API(float) SumX(const float * ps, int c)
     return ret;
 }
 
-EXPORT_API(void) ScaleAdadeltaX(_Inout_ float * mat, _Inout_ float * accGrads, _Inout_ float * accUpdates, float decay, float cond, _In_ const float * grads, int size)
+EXPORT_API(void) ScaledadeltaX(_Inout_ float * mat, _Inout_ float * accGrads, _Inout_ float * accUpdates, float decay, float cond, _In_ const float * grads, int size)
 {
     float * pm = mat;
     float * pmLim = pm + size;

@@ -47,12 +47,12 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                 if (!tran)
                 {
                     Contracts.Assert(crun <= dst.Length);
-                    SseIntrinsics.MatMulA(add, mat, src, dst, crun, src.Length);
+                    SseIntrinsics.MatMul(add, mat, src, dst, crun, src.Length);
                 }
                 else
                 {
                     Contracts.Assert(crun <= src.Length);
-                    SseIntrinsics.MatMulTranA(add, mat, src, dst, dst.Length, crun);
+                    SseIntrinsics.MatMulTran(add, mat, src, dst, dst.Length, crun);
                 }
             }
             else
@@ -139,12 +139,12 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                 if (!tran)
                 {
                     Contracts.Assert(crun <= dst.Length);
-                    SseIntrinsics.MatMulPA(add, mat, rgposSrc, srcValues, posMin, iposMin, iposLim, dst, crun, srcValues.Length);
+                    SseIntrinsics.MatMulP(add, mat, rgposSrc, srcValues, posMin, iposMin, iposLim, dst, crun, srcValues.Length);
                 }
                 else
                 {
                     Contracts.Assert(crun <= srcValues.Length);
-                    SseIntrinsics.MatMulTranPA(add, mat, rgposSrc, srcValues, posMin, iposMin, iposLim, dst, dst.Length);
+                    SseIntrinsics.MatMulTranP(add, mat, rgposSrc, srcValues, posMin, iposMin, iposLim, dst, dst.Length);
                 }
             }
             else

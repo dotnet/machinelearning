@@ -48,7 +48,7 @@ EXPORT_API(void) CalculateIntermediateVariablesNative(int fieldCount, int latent
 
         for (int k = 0; k + 4 <= d; k += 4)
         {
-            const __m128 _v = _mm_load_ps(vjf + k);
+            const __m128 _v = _mm_loadu_ps(vjf + k);
             _tmp = _mm_sub_ps(_tmp, _mm_mul_ps(_mm_mul_ps(_v, _v), _xx));
         }
 
@@ -62,10 +62,10 @@ EXPORT_API(void) CalculateIntermediateVariablesNative(int fieldCount, int latent
             // q_f,f' += v_j,f' * x
             for (int k = 0; k + 4 <= d; k += 4)
             {
-                const __m128 _v = _mm_load_ps(vjfprime + k);
-                __m128 _q = _mm_load_ps(qffprime + k);
+                const __m128 _v = _mm_loadu_ps(vjfprime + k);
+                __m128 _q = _mm_loadu_ps(qffprime + k);
                 _q = _mm_add_ps(_q, _mm_mul_ps(_v, _x));
-                _mm_store_ps(qffprime + k, _q);
+                _mm_storeu_ps(qffprime + k, _q);
             }
         }
     }
@@ -76,7 +76,7 @@ EXPORT_API(void) CalculateIntermediateVariablesNative(int fieldCount, int latent
         const float * qff = pq + f * m * d + f * d;
         for (int k = 0; k + 4 <= d; k += 4)
         {
-            __m128 _qff = _mm_load_ps(qff + k);
+            __m128 _qff = _mm_loadu_ps(qff + k);
 
             // Intra-field interactions. 
             _tmp = _mm_add_ps(_tmp, _mm_mul_ps(_qff, _qff));
@@ -91,8 +91,8 @@ EXPORT_API(void) CalculateIntermediateVariablesNative(int fieldCount, int latent
             for (int k = 0; k + 4 <= d; k += 4)
             {
                 // Inter-field interaction.
-                __m128 _qffprime = _mm_load_ps(qffprime + k);
-                __m128 _qfprimef = _mm_load_ps(qfprimef + k);
+                __m128 _qffprime = _mm_loadu_ps(qffprime + k);
+                __m128 _qfprimef = _mm_loadu_ps(qfprimef + k);
                 _y = _mm_add_ps(_y, _mm_mul_ps(_qffprime, _qfprimef));
             }
         }
@@ -153,8 +153,8 @@ EXPORT_API(void) CalculateGradientAndUpdateNative(float lambdaLinear, float lamb
 
             for (int k = 0; k + 4 <= d; k += 4)
             {
-                __m128 _v = _mm_load_ps(vjfprime + k);
-                __m128 _q = _mm_load_ps(qfprimef + k);
+                __m128 _v = _mm_loadu_ps(vjfprime + k);
+                __m128 _q = _mm_loadu_ps(qfprimef + k);
 
                 // Calculate L2-norm regularization's gradient.
                 __m128 _g = _mm_mul_ps(_lambdav, _v);
@@ -167,12 +167,12 @@ EXPORT_API(void) CalculateGradientAndUpdateNative(float lambdaLinear, float lamb
                 _g = _mm_mul_ps(_wei, _g);
 
                 // Accumulate the gradient of latent vectors.
-                const __m128 _h = _mm_add_ps(_mm_load_ps(hvjfprime + k), _mm_mul_ps(_g, _g));
+                const __m128 _h = _mm_add_ps(_mm_loadu_ps(hvjfprime + k), _mm_mul_ps(_g, _g));
 
                 // Perform ADAGRAD update rule to adjust latent vector.
                 _v = _mm_sub_ps(_v, _mm_mul_ps(_lr, _mm_mul_ps(_mm_rsqrt_ps(_h), _g)));
-                _mm_store_ps(vjfprime + k, _v);
-                _mm_store_ps(hvjfprime + k, _h);
+                _mm_storeu_ps(vjfprime + k, _v);
+                _mm_storeu_ps(hvjfprime + k, _h);
             }
         }
     }

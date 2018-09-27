@@ -97,7 +97,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         }
 
         // Multiply matrix times vector into vector.
-        public static unsafe void MatMulA(bool add, float[] mat, float[] src, float[] dst, int crow, int ccol)
+        public static unsafe void MatMul(bool add, float[] mat, float[] src, float[] dst, int crow, int ccol)
         {
             fixed (float* pSrcStart = &src.Items[0])
             fixed (float* pDstStart = &dst.Items[0])
@@ -158,7 +158,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         }
 
         // Partial sparse source vector.
-        public static unsafe void MatMulPA(bool add, float[] mat, int[] rgposSrc, float[] src,
+        public static unsafe void MatMulP(bool add, float[] mat, int[] rgposSrc, float[] src,
                                         int posMin, int iposMin, int iposEnd, float[] dst, int crow, int ccol)
         {
             // REVIEW: For extremely sparse inputs, interchanging the loops would
@@ -211,7 +211,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             }
         }
 
-        public static unsafe void MatMulTranA(bool add, float[] mat, float[] src, float[] dst, int crow, int ccol)
+        public static unsafe void MatMulTran(bool add, float[] mat, float[] src, float[] dst, int crow, int ccol)
         {
             fixed (float* pSrcStart = &src.Items[0])
             fixed (float* pDstStart = &dst.Items[0])
@@ -309,7 +309,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         }
 
         // Partial sparse source vector.
-        public static unsafe void MatMulTranPA(bool add, float[] mat, int[] rgposSrc, float[] src,
+        public static unsafe void MatMulTranP(bool add, float[] mat, int[] rgposSrc, float[] src,
                                         int posMin, int iposMin, int iposEnd, float[] dst, int crow)
         {
             fixed (float* pSrcStart = &src.Items[0])

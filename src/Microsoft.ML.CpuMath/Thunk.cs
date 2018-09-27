@@ -16,13 +16,13 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         public static extern bool ChkAvx();
 
         [DllImport(NativePath), SuppressUnmanagedCodeSecurity]
-        public static extern void MatMulA(bool add, /*const*/ float* pmat, /*const*/ float* psrc, float* pdst, int crow, int ccol);
+        public static extern void MatMul(bool add, /*const*/ float* pmat, /*const*/ float* psrc, float* pdst, int crow, int ccol);
 
         [DllImport(NativePath), SuppressUnmanagedCodeSecurity]
         public static extern void MatMulX(bool add, /*const*/ float* pmat, /*const*/ float* psrc, float* pdst, int crow, int ccol);
 
         [DllImport(NativePath), SuppressUnmanagedCodeSecurity]
-        public static extern void MatMulPA(bool add, /*const*/ float* pmat, /*const*/ int* pposSrc, /*const*/ float* psrc,
+        public static extern void MatMulP(bool add, /*const*/ float* pmat, /*const*/ int* pposSrc, /*const*/ float* psrc,
             int posMin, int iposMin, int iposLim, float* pdst, int crow, int ccol);
         [DllImport(NativePath), SuppressUnmanagedCodeSecurity]
         public static extern void MatMulPX(bool add, /*const*/ float* pmat, /*const*/ int* pposSrc, /*const*/ float* psrc,
@@ -65,12 +65,12 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         // and columns from that perspective. Alternatively, crow is the number of rows in the transpose of pmat
         // (thought of as row-major order).
         [DllImport(NativePath), SuppressUnmanagedCodeSecurity]
-        public static extern void MatMulTranA(bool add, /*const*/ float* pmat, /*const*/ float* psrc, float* pdst, int crow, int ccol);
+        public static extern void MatMulTran(bool add, /*const*/ float* pmat, /*const*/ float* psrc, float* pdst, int crow, int ccol);
         [DllImport(NativePath), SuppressUnmanagedCodeSecurity]
         public static extern void MatMulTranX(bool add, /*const*/ float* pmat, /*const*/ float* psrc, float* pdst, int crow, int ccol);
 
         [DllImport(NativePath), SuppressUnmanagedCodeSecurity]
-        public static extern void MatMulTranPA(bool add, /*const*/ float* pmat, /*const*/ int* pposSrc, /*const*/ float* psrc,
+        public static extern void MatMulTranP(bool add, /*const*/ float* pmat, /*const*/ int* pposSrc, /*const*/ float* psrc,
             int posMin, int iposMin, int iposLim, float* pdst, int crow);
         [DllImport(NativePath), SuppressUnmanagedCodeSecurity]
         public static extern void MatMulTranPX(bool add, /*const*/ float* pmat, /*const*/ int* pposSrc, /*const*/ float* psrc,
@@ -109,12 +109,12 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             /*const*/ float* perrors, float* perrorsPrev, /*const*/ float* pvaluesPrev, int crow, int ccol);
 
         [DllImport(NativePath), SuppressUnmanagedCodeSecurity]
-        public static extern void AddXYTranA(float a, /*const*/ float* px, /*const*/ float* py, float* pmat, int crow, int ccol, float decay);
+        public static extern void AddXYTran(float a, /*const*/ float* px, /*const*/ float* py, float* pmat, int crow, int ccol, float decay);
         [DllImport(NativePath), SuppressUnmanagedCodeSecurity]
         public static extern void AddXYTranX(float a, /*const*/ float* px, /*const*/ float* py, float* pmat, int crow, int ccol, float decay);
 
         [DllImport(NativePath), SuppressUnmanagedCodeSecurity]
-        public static extern void AddXYTranPA(float a, /*const*/ float* px, /*const*/ int* pposY, /*const*/ float* pvaluesY,
+        public static extern void AddXYTranP(float a, /*const*/ float* px, /*const*/ int* pposY, /*const*/ float* pvaluesY,
             int posMinY, int iposMinY, int iposLimY, float* pmat, int crow, int ccol);
         [DllImport(NativePath), SuppressUnmanagedCodeSecurity]
         public static extern void AddXYTranPX(float a, /*const*/ float* px, /*const*/ int* pposY, /*const*/ float* pvaluesY,
@@ -141,12 +141,12 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             /*const*/ int* pmprowrun, /*const*/ int* pruns, float* pcoefs, int crow);
 
         [DllImport(NativePath), SuppressUnmanagedCodeSecurity]
-        public static extern void AddXYTranMomA(float a, /*const*/ float* px, /*const*/ float* py, float* pmat, float momentum, float* pdel, int crow, int ccol);
+        public static extern void AddXYTranMom(float a, /*const*/ float* px, /*const*/ float* py, float* pmat, float momentum, float* pdel, int crow, int ccol);
         [DllImport(NativePath), SuppressUnmanagedCodeSecurity]
         public static extern void AddXYTranMomX(float a, /*const*/ float* px, /*const*/ float* py, float* pmat, float momentum, float* pdel, int crow, int ccol);
 
         [DllImport(NativePath), SuppressUnmanagedCodeSecurity]
-        public static extern void AddXYTranGradA(/*const*/ float* px, /*const*/ float* py, float* pmat, float* paccGrads, float* paccUpdates,
+        public static extern void AddXYTranGrad(/*const*/ float* px, /*const*/ float* py, float* pmat, float* paccGrads, float* paccUpdates,
             float decay, float cond, int crow, int ccol);
         [DllImport(NativePath), SuppressUnmanagedCodeSecurity]
         public static extern void AddXYTranGradX(/*const*/ float* px, /*const*/ float* py, float* pmat, float* paccGrads, float* paccUpdates,
@@ -160,7 +160,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             float* pcoefs, float* paccGrads, float* paccUpdates, float decay, float cond, int crow);
 
         [DllImport(NativePath), SuppressUnmanagedCodeSecurity]
-        public static extern void AddXYTranGradPA(/*const*/ float* px, /*const*/ int* pposY, /*const*/ float* pvaluesY,
+        public static extern void AddXYTranGradP(/*const*/ float* px, /*const*/ int* pposY, /*const*/ float* pvaluesY,
             int posMinY, int iposMinY, int iposLimY, float* pmat, float* paccGrads, float* paccUpdates,
             float decay, float cond, int crow, int ccol);
         [DllImport(NativePath), SuppressUnmanagedCodeSecurity]
@@ -171,7 +171,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         [DllImport(NativePath), SuppressUnmanagedCodeSecurity]
         public static extern void ScaleU(float a, float* pd, int c);
         [DllImport(NativePath), SuppressUnmanagedCodeSecurity]
-        public static extern void ScaleA(float a, float* pd, int c);
+        public static extern void Scale(float a, float* pd, int c);
         [DllImport(NativePath), SuppressUnmanagedCodeSecurity]
         public static extern void ScaleX(float a, float* pd, int c);
         [DllImport(NativePath), SuppressUnmanagedCodeSecurity]
@@ -180,7 +180,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         public static extern void ScaleAddU(float a, float b, float* pd, int c);
 
         [DllImport(NativePath), SuppressUnmanagedCodeSecurity]
-        public static extern void ScaleMaxNormA(float maxNorm, float* pmat, int crow, int ccol);
+        public static extern void ScaleMaxNorm(float maxNorm, float* pmat, int crow, int ccol);
         [DllImport(NativePath), SuppressUnmanagedCodeSecurity]
         public static extern void ScaleMaxNormX(float maxNorm, float* pmat, int crow, int ccol);
         [DllImport(NativePath), SuppressUnmanagedCodeSecurity]
@@ -191,7 +191,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         public static extern void ScaleMaxNormCU(float maxNorm, int kernCount, int kernSize, float* pmat);
 
         [DllImport(NativePath), SuppressUnmanagedCodeSecurity]
-        public static extern void AddScaleA(float a, /*const*/ float* ps, float* pd, int c);
+        public static extern void AddScale(float a, /*const*/ float* ps, float* pd, int c);
         [DllImport(NativePath), SuppressUnmanagedCodeSecurity]
         public static extern void AddScaleU(float a, /*const*/ float* ps, float* pd, int c);
         [DllImport(NativePath), SuppressUnmanagedCodeSecurity]
@@ -201,18 +201,18 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         [DllImport(NativePath), SuppressUnmanagedCodeSecurity]
         public static extern void AddScaleCopyU(float a, /*const*/ float* ps, /*const*/ float* pd, float* pr, int c);
         [DllImport(NativePath), SuppressUnmanagedCodeSecurity]
-        public static extern void AddScaleMomA(float a, /*const*/ float* ps, float* pd, float momentum, float* pdel, int c);
+        public static extern void AddScaleMom(float a, /*const*/ float* ps, float* pd, float momentum, float* pdel, int c);
         [DllImport(NativePath), SuppressUnmanagedCodeSecurity]
         public static extern void AddScaleMomX(float a, /*const*/ float* ps, float* pd, float momentum, float* pdel, int c);
 
         [DllImport(NativePath), SuppressUnmanagedCodeSecurity]
-        public static extern void AddScaleGradA(/*const*/ float* ps, float* pd, float* paccGrads, float* paccUpdates,
+        public static extern void AddScaleGrad(/*const*/ float* ps, float* pd, float* paccGrads, float* paccUpdates,
             float decay, float cond, int c);
         [DllImport(NativePath), SuppressUnmanagedCodeSecurity]
         public static extern void AddScaleGradX(/*const*/ float* ps, float* pd, float* paccGrads, float* paccUpdates,
             float decay, float cond, int c);
         [DllImport(NativePath), SuppressUnmanagedCodeSecurity]
-        public static extern void AddScaleMultiA(int count, /*const*/ float* ps, float* pd, float* paccGrads,
+        public static extern void AddScaleMulti(int count, /*const*/ float* ps, float* pd, float* paccGrads,
             float* paccUpdates, float decay, float cond, int size);
         [DllImport(NativePath), SuppressUnmanagedCodeSecurity]
         public static extern void AddScalarU(float a, float* pd, int c);
@@ -220,7 +220,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         [DllImport(NativePath), SuppressUnmanagedCodeSecurity]
         public static extern void AddU(/*const*/ float* ps, float* pd, int c);
         [DllImport(NativePath), SuppressUnmanagedCodeSecurity]
-        public static extern void AddA(/*const*/ float* ps, float* pd, int c);
+        public static extern void Add(/*const*/ float* ps, float* pd, int c);
         [DllImport(NativePath), SuppressUnmanagedCodeSecurity]
         public static extern void AddX(/*const*/ float* ps, float* pd, int c);
 
@@ -228,7 +228,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         public static extern void AddSU(/*const*/ float* ps, /*const*/ int* pi, float* pd, int c);
 
         [DllImport(NativePath), SuppressUnmanagedCodeSecurity]
-        public static extern float SumA(/*const*/ float* ps, int c);
+        public static extern float Sum(/*const*/ float* ps, int c);
         [DllImport(NativePath), SuppressUnmanagedCodeSecurity]
         public static extern float SumU(/*const*/ float* ps, int c);
         [DllImport(NativePath), SuppressUnmanagedCodeSecurity]
@@ -262,17 +262,17 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         public static extern float Dist2(/*const*/ float* px, /*const*/ float* py, int c);
 
         [DllImport(NativePath), SuppressUnmanagedCodeSecurity]
-        public static extern void ApplySigmoidA(/*const*/ float* ps, float* pd, int c);
+        public static extern void ApplySigmoid(/*const*/ float* ps, float* pd, int c);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void ApplySigmoidX(/*const*/ float* ps, float* pd, int c)
         {
-            ApplySigmoidA(ps, pd, c);
+            ApplySigmoid(ps, pd, c);
         }
 
         [DllImport(NativePath), SuppressUnmanagedCodeSecurity]
         public static extern void ApplySoftMaxU(float* ps, float* pd, int c);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void ApplySoftMaxA(float* ps, float* pd, int c)
+        public static void ApplySoftMax(float* ps, float* pd, int c)
         {
             ApplySoftMaxU(ps, pd, c);
         }
@@ -283,27 +283,27 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         }
 
         [DllImport(NativePath), SuppressUnmanagedCodeSecurity]
-        public static extern void ApplyRectifiedLinearA(float* ps, float* pd, int c);
+        public static extern void ApplyRectifiedLinear(float* ps, float* pd, int c);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void ApplyRectifiedLinearX(float* ps, float* pd, int c)
         {
-            ApplyRectifiedLinearA(ps, pd, c);
+            ApplyRectifiedLinear(ps, pd, c);
         }
 
         [DllImport(NativePath), SuppressUnmanagedCodeSecurity]
-        public static extern void ApplySquareA(float* ps, float* pd, int c);
+        public static extern void ApplySquare(float* ps, float* pd, int c);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void ApplySquareX(float* ps, float* pd, int c)
         {
-            ApplySquareA(ps, pd, c);
+            ApplySquare(ps, pd, c);
         }
 
         [DllImport(NativePath), SuppressUnmanagedCodeSecurity]
-        public static extern void ApplySqrtA(float* ps, float* pd, int c);
+        public static extern void ApplySqrt(float* ps, float* pd, int c);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void ApplySqrtX(float* ps, float* pd, int c)
         {
-            ApplySqrtA(ps, pd, c);
+            ApplySqrt(ps, pd, c);
         }
 
         [DllImport(NativePath), SuppressUnmanagedCodeSecurity]
@@ -320,19 +320,19 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         }
 
         [DllImport(NativePath), SuppressUnmanagedCodeSecurity]
-        public static extern void ApplyAbsA(float* ps, float* pd, int c);
+        public static extern void ApplyAbs(float* ps, float* pd, int c);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void ApplyAbsX(float* ps, float* pd, int c)
         {
-            ApplyAbsA(ps, pd, c);
+            ApplyAbs(ps, pd, c);
         }
 
         [DllImport(NativePath), SuppressUnmanagedCodeSecurity]
-        public static extern void ApplyTanhA(float* ps, float* pd, int c);
+        public static extern void ApplyTanh(float* ps, float* pd, int c);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void ApplyTanhX(float* ps, float* pd, int c)
         {
-            ApplyTanhA(ps, pd, c);
+            ApplyTanh(ps, pd, c);
         }
 
         [DllImport(NativePath), SuppressUnmanagedCodeSecurity]
@@ -344,35 +344,35 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         }
 
         [DllImport(NativePath), SuppressUnmanagedCodeSecurity]
-        public static extern void ApplySigmoidDerivativeA(/*const*/ float* pv, float* pg, int c);
+        public static extern void ApplySigmoidDerivative(/*const*/ float* pv, float* pg, int c);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void ApplySigmoidDerivativeX(/*const*/ float* pv, float* pg, int c)
         {
-            ApplySigmoidDerivativeA(pv, pg, c);
+            ApplySigmoidDerivative(pv, pg, c);
         }
 
         [DllImport(NativePath), SuppressUnmanagedCodeSecurity]
-        public static extern void ApplyRectifiedLinearDerivativeA(/*const*/ float* pv, float* pg, int c);
+        public static extern void ApplyRectifiedLinearDerivative(/*const*/ float* pv, float* pg, int c);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void ApplyRectifiedLinearDerivativeX(/*const*/ float* pv, float* pg, int c)
         {
-            ApplyRectifiedLinearDerivativeA(pv, pg, c);
+            ApplyRectifiedLinearDerivative(pv, pg, c);
         }
 
         [DllImport(NativePath), SuppressUnmanagedCodeSecurity]
-        public static extern void ApplySquareDerivativeA(/*const*/ float* px, /*const*/ float* py, float* pg, int c, bool drop);
+        public static extern void ApplySquareDerivative(/*const*/ float* px, /*const*/ float* py, float* pg, int c, bool drop);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void ApplySquareDerivativeX(/*const*/ float* px, /*const*/ float* py, float* pg, int c, bool drop)
         {
-            ApplySquareDerivativeA(px, py, pg, c, drop);
+            ApplySquareDerivative(px, py, pg, c, drop);
         }
 
         [DllImport(NativePath), SuppressUnmanagedCodeSecurity]
-        public static extern void ApplySqrtDerivativeA(/*const*/ float* pv, float* pg, int c);
+        public static extern void ApplySqrtDerivative(/*const*/ float* pv, float* pg, int c);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void ApplySqrtDerivativeX(/*const*/ float* pv, float* pg, int c)
         {
-            ApplySqrtDerivativeA(pv, pg, c);
+            ApplySqrtDerivative(pv, pg, c);
         }
 
         [DllImport(NativePath), SuppressUnmanagedCodeSecurity]
@@ -389,27 +389,27 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         }
 
         [DllImport(NativePath), SuppressUnmanagedCodeSecurity]
-        public static extern void ApplyAbsDerivativeA(/*const*/ float* px, /*const*/ float* py, float* pg, int c, bool drop);
+        public static extern void ApplyAbsDerivative(/*const*/ float* px, /*const*/ float* py, float* pg, int c, bool drop);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void ApplyAbsDerivativeX(/*const*/ float* px, /*const*/ float* py, float* pg, int c, bool drop)
         {
-            ApplyAbsDerivativeA(px, py, pg, c, drop);
+            ApplyAbsDerivative(px, py, pg, c, drop);
         }
 
         [DllImport(NativePath), SuppressUnmanagedCodeSecurity]
-        public static extern void ApplyTanhDerivativeA(/*const*/ float* pv, float* pg, int c);
+        public static extern void ApplyTanhDerivative(/*const*/ float* pv, float* pg, int c);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void ApplyTanhDerivativeX(/*const*/ float* pv, float* pg, int c)
         {
-            ApplyTanhDerivativeA(pv, pg, c);
+            ApplyTanhDerivative(pv, pg, c);
         }
 
         [DllImport(NativePath), SuppressUnmanagedCodeSecurity]
-        public static extern void ApplyBoundedRectifiedLinearDerivativeA(/*const*/ float* pv, float* pg, int c);
+        public static extern void ApplyBoundedRectifiedLinearDerivative(/*const*/ float* pv, float* pg, int c);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void ApplyBoundedRectifiedLinearDerivativeX(/*const*/ float* pv, float* pg, int c)
         {
-            ApplyBoundedRectifiedLinearDerivativeA(pv, pg, c);
+            ApplyBoundedRectifiedLinearDerivative(pv, pg, c);
         }
 
         [DllImport(NativePath), SuppressUnmanagedCodeSecurity]
@@ -424,11 +424,11 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         public static extern void SdcaL1UpdateSU(float primalUpdate, /*const*/ float* ps, /*const*/ int* pi, float threshold, float* pd1, float* pd2, int c);
 
         [DllImport(NativePath), SuppressUnmanagedCodeSecurity]
-        public static extern void ScaleAdadeltaU(float* mat, float* accGrads, float* accUpdates, float decay, float cond, float* grads, int size);
+        public static extern void ScaledadeltaU(float* mat, float* accGrads, float* accUpdates, float decay, float cond, float* grads, int size);
         [DllImport(NativePath), SuppressUnmanagedCodeSecurity]
-        public static extern void ScaleAdadeltaA(float* mat, float* accGrads, float* accUpdates, float decay, float cond, float* grads, int size);
+        public static extern void Scaledadelta(float* mat, float* accGrads, float* accUpdates, float decay, float cond, float* grads, int size);
         [DllImport(NativePath), SuppressUnmanagedCodeSecurity]
-        public static extern void ScaleAdadeltaX(float* mat, float* accGrads, float* accUpdates, float decay, float cond, float* grads, int size);
+        public static extern void ScaledadeltaX(float* mat, float* accGrads, float* accUpdates, float decay, float cond, float* grads, int size);
 
 #if !CORECLR
         // In CoreCLR we use Buffer.MemoryCopy directly instead of

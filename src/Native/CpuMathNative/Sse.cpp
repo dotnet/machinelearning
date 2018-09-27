@@ -105,7 +105,7 @@ EXPORT_API(bool) ChkAvx()
 }
 
 // Multiply matrix times vector into vector.
-EXPORT_API(void) MatMulA(bool add, _In_ const float * pmat, _In_ const float * psrc, _Inout_ float * pdst, int crow, int ccol)
+EXPORT_API(void) MatMul(bool add, _In_ const float * pmat, _In_ const float * psrc, _Inout_ float * pdst, int crow, int ccol)
 {
     const float * psLim = psrc + ccol;
     const float * pdLim = pdst + crow;
@@ -119,11 +119,11 @@ EXPORT_API(void) MatMulA(bool add, _In_ const float * pmat, _In_ const float * p
         for (const float * ps = psrc; ps < psLim; ps += 4, pm += 4)
         {
             const float * pmTmp;
-            __m128 x01 = _mm_load_ps(pmTmp = pm);
-            __m128 x11 = _mm_load_ps(pmTmp += ccol);
-            __m128 x21 = _mm_load_ps(pmTmp += ccol);
-            __m128 x31 = _mm_load_ps(pmTmp += ccol);
-            __m128 x02 = _mm_load_ps(ps);
+            __m128 x01 = _mm_loadu_ps(pmTmp = pm);
+            __m128 x11 = _mm_loadu_ps(pmTmp += ccol);
+            __m128 x21 = _mm_loadu_ps(pmTmp += ccol);
+            __m128 x31 = _mm_loadu_ps(pmTmp += ccol);
+            __m128 x02 = _mm_loadu_ps(ps);
             x01 = _mm_mul_ps(x01, x02);
             x11 = _mm_mul_ps(x11, x02);
             x21 = _mm_mul_ps(x21, x02);
@@ -140,13 +140,13 @@ EXPORT_API(void) MatMulA(bool add, _In_ const float * pmat, _In_ const float * p
         res0 = _mm_hadd_ps(res0, res2);
 
         if (add)
-            res0 = _mm_add_ps(res0, _mm_load_ps(pd));
-        _mm_store_ps(pd, res0);
+            res0 = _mm_add_ps(res0, _mm_loadu_ps(pd));
+        _mm_storeu_ps(pd, res0);
     }
 }
 
 // Partial sparse source vector.
-EXPORT_API(void) MatMulPA(bool add, _In_ const float * pmat, _In_ const int * pposSrc, _In_ const float * psrc,
+EXPORT_API(void) MatMulP(bool add, _In_ const float * pmat, _In_ const int * pposSrc, _In_ const float * psrc,
     int posMin, int iposMin, int iposLim, _Inout_ float * pdst, int crow, int ccol)
 {
     // REVIEW: For extremely sparse inputs, interchanging the loops would
@@ -172,8 +172,8 @@ EXPORT_API(void) MatMulPA(bool add, _In_ const float * pmat, _In_ const int * pp
         }
 
         if (add)
-            res = _mm_add_ps(res, _mm_load_ps(pd));
-        _mm_store_ps(pd, res);
+            res = _mm_add_ps(res, _mm_loadu_ps(pd));
+        _mm_storeu_ps(pd, res);
     }
 }
 
@@ -478,7 +478,7 @@ EXPORT_API(void) RespNormU(bool add, float alpha, float beta, bool avgOverFullKe
     }
 }
 
-EXPORT_API(void) MatMulTranA(bool add, _In_ const float * pmat, _In_ const float * psrc, _Inout_ float * pdst, int crow, int ccol)
+EXPORT_API(void) MatMulTran(bool add, _In_ const float * pmat, _In_ const float * psrc, _Inout_ float * pdst, int crow, int ccol)
 {
     const float * psLim = psrc + ccol;
     const float * pdLim = pdst + crow;
@@ -487,7 +487,7 @@ EXPORT_API(void) MatMulTranA(bool add, _In_ const float * pmat, _In_ const float
 
     if (!add)
     {
-        __m128 x01 = _mm_load_ps(ps);
+        __m128 x01 = _mm_loadu_ps(ps);
         // Replicate each slot of x01 into its own register.
         __m128 x11 = _mm_shuffle_ps(x01, x01, 0x55);
         __m128 x21 = _mm_shuffle_ps(x01, x01, 0xAA);
@@ -497,10 +497,10 @@ EXPORT_API(void) MatMulTranA(bool add, _In_ const float * pmat, _In_ const float
         for (float * pd = pdst; pd < pdLim; pd += 4, pm += 4)
         {
             const float * pmTmp;
-            __m128 x02 = _mm_load_ps(pmTmp = pm);
-            __m128 x12 = _mm_load_ps(pmTmp += crow);
-            __m128 x22 = _mm_load_ps(pmTmp += crow);
-            __m128 x32 = _mm_load_ps(pmTmp += crow);
+            __m128 x02 = _mm_loadu_ps(pmTmp = pm);
+            __m128 x12 = _mm_loadu_ps(pmTmp += crow);
+            __m128 x22 = _mm_loadu_ps(pmTmp += crow);
+            __m128 x32 = _mm_loadu_ps(pmTmp += crow);
             x02 = _mm_mul_ps(x01, x02);
             x12 = _mm_mul_ps(x11, x12);
             x22 = _mm_mul_ps(x21, x22);
@@ -508,7 +508,7 @@ EXPORT_API(void) MatMulTranA(bool add, _In_ const float * pmat, _In_ const float
             x02 = _mm_add_ps(x02, x12);
             x22 = _mm_add_ps(x22, x32);
             x02 = _mm_add_ps(x02, x22);
-            _mm_store_ps(pd, x02);
+            _mm_storeu_ps(pd, x02);
         }
 
         pm += 3 * crow;
@@ -516,7 +516,7 @@ EXPORT_API(void) MatMulTranA(bool add, _In_ const float * pmat, _In_ const float
 
     for (; ps < psLim; ps += 4)
     {
-        __m128 x01 = _mm_load_ps(ps);
+        __m128 x01 = _mm_loadu_ps(ps);
         // Replicate each slot of x01 into its own register.
         __m128 x11 = _mm_shuffle_ps(x01, x01, 0x55);
         __m128 x21 = _mm_shuffle_ps(x01, x01, 0xAA);
@@ -525,11 +525,11 @@ EXPORT_API(void) MatMulTranA(bool add, _In_ const float * pmat, _In_ const float
         for (float * pd = pdst; pd < pdLim; pd += 4, pm += 4)
         {
             const float * pmTmp;
-            __m128 x02 = _mm_load_ps(pmTmp = pm);
-            __m128 x12 = _mm_load_ps(pmTmp += crow);
-            __m128 x22 = _mm_load_ps(pmTmp += crow);
-            __m128 x32 = _mm_load_ps(pmTmp += crow);
-            __m128 x3 = _mm_load_ps(pd);
+            __m128 x02 = _mm_loadu_ps(pmTmp = pm);
+            __m128 x12 = _mm_loadu_ps(pmTmp += crow);
+            __m128 x22 = _mm_loadu_ps(pmTmp += crow);
+            __m128 x32 = _mm_loadu_ps(pmTmp += crow);
+            __m128 x3 = _mm_loadu_ps(pd);
             x02 = _mm_mul_ps(x01, x02);
             x12 = _mm_mul_ps(x11, x12);
             x22 = _mm_mul_ps(x21, x22);
@@ -538,7 +538,7 @@ EXPORT_API(void) MatMulTranA(bool add, _In_ const float * pmat, _In_ const float
             x22 = _mm_add_ps(x22, x32);
             x02 = _mm_add_ps(x02, x22);
             x3 = _mm_add_ps(x02, x3);
-            _mm_store_ps(pd, x3);
+            _mm_storeu_ps(pd, x3);
         }
 
         pm += 3 * crow;
@@ -546,7 +546,7 @@ EXPORT_API(void) MatMulTranA(bool add, _In_ const float * pmat, _In_ const float
 }
 
 // Partial sparse source vector.
-EXPORT_API(void) MatMulTranPA(bool add, _In_ const float * pmat, _In_ const int * pposSrc, _In_ const float * psrc,
+EXPORT_API(void) MatMulTranP(bool add, _In_ const float * pmat, _In_ const int * pposSrc, _In_ const float * psrc,
     int posMin, int iposMin, int iposLim, _Inout_ float * pdst, int crow)
 {
     const int * ppos = pposSrc + iposMin;
@@ -560,9 +560,9 @@ EXPORT_API(void) MatMulTranPA(bool add, _In_ const float * pmat, _In_ const int 
         __m128 x0 = _mm_set1_ps(psrc[col]);
         for (float * pd = pdst; pd < pdLim; pd += 4, pm += 4)
         {
-            __m128 x1 = _mm_load_ps(pm);
+            __m128 x1 = _mm_loadu_ps(pm);
             x1 = _mm_mul_ps(x1, x0);
-            _mm_store_ps(pd, x1);
+            _mm_storeu_ps(pd, x1);
         }
     }
 
@@ -574,11 +574,11 @@ EXPORT_API(void) MatMulTranPA(bool add, _In_ const float * pmat, _In_ const int 
         const float * pm = pmat + col * crow;
         for (float * pd = pdst; pd < pdLim; pd += 4, pm += 4)
         {
-            __m128 x1 = _mm_load_ps(pm);
-            __m128 x2 = _mm_load_ps(pd);
+            __m128 x1 = _mm_loadu_ps(pm);
+            __m128 x2 = _mm_loadu_ps(pd);
             x1 = _mm_mul_ps(x1, x0);
             x2 = _mm_add_ps(x2, x1);
-            _mm_store_ps(pd, x2);
+            _mm_storeu_ps(pd, x2);
         }
     }
 }
@@ -920,7 +920,7 @@ EXPORT_API(void) RespNormBackU(bool add, float alpha, float beta, bool avgOverFu
 }
 
 template <bool useDecay>
-void AddXYTranACore(float a, _In_ const float * px, _In_ const float * py, _Inout_ float * pmat, int crow, int ccol, float decay)
+void AddXYTranCore(float a, _In_ const float * px, _In_ const float * py, _Inout_ float * pmat, int crow, int ccol, float decay)
 {
     const float * pyBase = py;
     const float * pxLim = px + crow;
@@ -937,14 +937,14 @@ void AddXYTranACore(float a, _In_ const float * px, _In_ const float * py, _Inou
         __m128 x1 = _mm_set1_ps(r);
         for (; py + 16 <= pyLim; py += 16, pm += 16)
         {
-            __m128 x02 = _mm_load_ps(py);
-            __m128 x12 = _mm_load_ps(py + 4);
-            __m128 x22 = _mm_load_ps(py + 8);
-            __m128 x32 = _mm_load_ps(py + 12);
-            __m128 x03 = _mm_load_ps(pm);
-            __m128 x13 = _mm_load_ps(pm + 4);
-            __m128 x23 = _mm_load_ps(pm + 8);
-            __m128 x33 = _mm_load_ps(pm + 12);
+            __m128 x02 = _mm_loadu_ps(py);
+            __m128 x12 = _mm_loadu_ps(py + 4);
+            __m128 x22 = _mm_loadu_ps(py + 8);
+            __m128 x32 = _mm_loadu_ps(py + 12);
+            __m128 x03 = _mm_loadu_ps(pm);
+            __m128 x13 = _mm_loadu_ps(pm + 4);
+            __m128 x23 = _mm_loadu_ps(pm + 8);
+            __m128 x33 = _mm_loadu_ps(pm + 12);
             x02 = _mm_mul_ps(x1, x02);
             x12 = _mm_mul_ps(x1, x12);
             x22 = _mm_mul_ps(x1, x22);
@@ -960,30 +960,30 @@ void AddXYTranACore(float a, _In_ const float * px, _In_ const float * py, _Inou
             x13 = _mm_add_ps(x12, x13);
             x23 = _mm_add_ps(x22, x23);
             x33 = _mm_add_ps(x32, x33);
-            _mm_store_ps(pm, x03);
-            _mm_store_ps(pm + 4, x13);
-            _mm_store_ps(pm + 8, x23);
-            _mm_store_ps(pm + 12, x33);
+            _mm_storeu_ps(pm, x03);
+            _mm_storeu_ps(pm + 4, x13);
+            _mm_storeu_ps(pm + 8, x23);
+            _mm_storeu_ps(pm + 12, x33);
         }
         for (; py < pyLim; py += 4, pm += 4)
         {
-            __m128 x02 = _mm_load_ps(py);
-            __m128 x03 = _mm_load_ps(pm);
+            __m128 x02 = _mm_loadu_ps(py);
+            __m128 x03 = _mm_loadu_ps(pm);
             x02 = _mm_mul_ps(x1, x02);
             if (useDecay)
                 x03 = _mm_mul_ps(wd, x03);
             x03 = _mm_add_ps(x02, x03);
-            _mm_store_ps(pm, x03);
+            _mm_storeu_ps(pm, x03);
         }
     }
 }
 
-EXPORT_API(void) AddXYTranA(float a, _In_ const float * px, _In_ const float * py, _Inout_ float * pmat, int crow, int ccol, float decay)
+EXPORT_API(void) AddXYTran(float a, _In_ const float * px, _In_ const float * py, _Inout_ float * pmat, int crow, int ccol, float decay)
 {
     if (decay == 0)
-        AddXYTranACore<false>(a, px, py, pmat, crow, ccol, decay);
+        AddXYTranCore<false>(a, px, py, pmat, crow, ccol, decay);
     else
-        AddXYTranACore<true>(a, px, py, pmat, crow, ccol, decay);
+        AddXYTranCore<true>(a, px, py, pmat, crow, ccol, decay);
 }
 
 // Partial sparse source vector.
@@ -1005,7 +1005,7 @@ EXPORT_API(void) AddXYTranPA(float a, _In_ const float * px, _In_ const int * pp
         float * pm2 = pm1 + ccol;
         float * pm3 = pm2 + ccol;
 
-        __m128 x1 = _mm_load_ps(px);
+        __m128 x1 = _mm_loadu_ps(px);
         x1 = _mm_mul_ps(x1, x0);
 
         for (const int * ppos = pposMin; ppos < pposLim; ppos++)
@@ -1043,7 +1043,7 @@ EXPORT_API(void) AddXYTranPA(float a, _In_ const float * px, _In_ const int * pp
         float * pm0 = pm + col;
         for (const float * px0 = px; px0 < pxLim; px0 += 4, pm0 += d4)
         {
-            __m128 x1 = _mm_load_ps(px0);
+            __m128 x1 = _mm_loadu_ps(px0);
             __m128 x3 = _mm_setr_ps(pm0[0], pm0[d1], pm0[d2], pm0[d3]);
             x1 = _mm_mul_ps(x1, x2);
             x3 = _mm_add_ps(x3, x1);
@@ -1188,7 +1188,7 @@ EXPORT_API(void) AddXYTranDU(float a, _In_ const float * px, _In_ const float * 
 }
 
 // With momentum.
-EXPORT_API(void) AddXYTranMomA(float a, _In_ const float * px, _In_ const float * py, _Inout_ float * pmat, float momentum, _Inout_ float * pdel, int crow, int ccol)
+EXPORT_API(void) AddXYTranMom(float a, _In_ const float * px, _In_ const float * py, _Inout_ float * pmat, float momentum, _Inout_ float * pdel, int crow, int ccol)
 {
     const float * pyBase = py;
     const float * pxLim = px + crow;
@@ -1204,16 +1204,16 @@ EXPORT_API(void) AddXYTranMomA(float a, _In_ const float * px, _In_ const float 
         __m128 x1 = _mm_set1_ps(r);
         for (py = pyBase; py < pyLim; pm += 4, pd += 4, py += 4)
         {
-            __m128 x2 = _mm_load_ps(py);
-            __m128 x3 = _mm_load_ps(pd);
-            __m128 x4 = _mm_load_ps(pm);
+            __m128 x2 = _mm_loadu_ps(py);
+            __m128 x3 = _mm_loadu_ps(pd);
+            __m128 x4 = _mm_loadu_ps(pm);
             x2 = _mm_mul_ps(x1, x2);
             x3 = _mm_mul_ps(x0, x3);
             x3 = _mm_add_ps(x2, x3);
             x4 = _mm_add_ps(x3, x4);
 
-            _mm_store_ps(pd, x3);
-            _mm_store_ps(pm, x4);
+            _mm_storeu_ps(pd, x3);
+            _mm_storeu_ps(pm, x4);
         }
     }
 }
@@ -1249,7 +1249,7 @@ __forceinline void UpdateAdadelta(__m128& coef, __m128& ag, __m128& au, __m128& 
 }
 
 // For Adadelta.
-EXPORT_API(void) AddXYTranGradA(_In_ const float * px, _In_ const float * py, _Inout_ float * pmat, _Inout_ float * paccGrads, _Inout_ float * paccUpdates,
+EXPORT_API(void) AddXYTranGrad(_In_ const float * px, _In_ const float * py, _Inout_ float * pmat, _Inout_ float * paccGrads, _Inout_ float * paccUpdates,
     float decay, float cond, int crow, int ccol)
 {
     const float * pyBase = py;
@@ -1269,17 +1269,17 @@ EXPORT_API(void) AddXYTranGradA(_In_ const float * px, _In_ const float * py, _I
         __m128 x1 = _mm_set1_ps(r);
         for (py = pyBase; py < pyLim; pm += 4, pag += 4, pau += 4, py += 4)
         {
-            __m128 x2 = _mm_load_ps(py);
-            __m128 ag = _mm_load_ps(pag);
-            __m128 au = _mm_load_ps(pau);
-            __m128 coef = _mm_load_ps(pm);
+            __m128 x2 = _mm_loadu_ps(py);
+            __m128 ag = _mm_loadu_ps(pag);
+            __m128 au = _mm_loadu_ps(pau);
+            __m128 coef = _mm_loadu_ps(pm);
             x2 = _mm_mul_ps(x1, x2);        // x2 == g
 
             UpdateAdadelta(coef, ag, au, x2, dec, decc, c);
 
-            _mm_store_ps(pm, coef);
-            _mm_store_ps(pag, ag);
-            _mm_store_ps(pau, au);
+            _mm_storeu_ps(pm, coef);
+            _mm_storeu_ps(pag, ag);
+            _mm_storeu_ps(pau, au);
         }
     }
 }
@@ -1348,7 +1348,7 @@ EXPORT_API(void) AddXYTranGradRU(_In_ const float * px, _In_ const float * py, _
 }
 
 // For Adadelta, partial sparse source vector.
-EXPORT_API(void) AddXYTranGradPA(_In_ const float * px, _In_ const int * pposY, _In_ const float * pvaluesY,
+EXPORT_API(void) AddXYTranGradP(_In_ const float * px, _In_ const int * pposY, _In_ const float * pvaluesY,
     int posMinY, int iposMinY, int iposLimY, _Inout_ float * pmat, _Inout_ float * paccGrads, _Inout_ float * paccUpdates,
     float decay, float cond, int crow, int ccol)
 {
@@ -1377,7 +1377,7 @@ EXPORT_API(void) AddXYTranGradPA(_In_ const float * px, _In_ const int * pposY, 
         float * pau2 = pau1 + ccol;
         float * pau3 = pau2 + ccol;
 
-        __m128 x1 = _mm_load_ps(px);
+        __m128 x1 = _mm_loadu_ps(px);
 
         for (const int * ppos = pposMin; ppos < pposLim; ppos++)
         {
@@ -1449,16 +1449,16 @@ EXPORT_API(void) ScaleU(float a, _Inout_ float * pd, int c)
     }
 }
 
-EXPORT_API(void) ScaleA(float a, _Inout_ float * pd, int c)
+EXPORT_API(void) Scale(float a, _Inout_ float * pd, int c)
 {
     float * pdLim = pd + c;
 
     __m128 x1 = _mm_set1_ps(a);
     for (; pd < pdLim; pd += 4)
     {
-        __m128 x2 = _mm_load_ps(pd);
+        __m128 x2 = _mm_loadu_ps(pd);
         x2 = _mm_mul_ps(x1, x2);
-        _mm_store_ps(pd, x2);
+        _mm_storeu_ps(pd, x2);
     }
 }
 
@@ -1506,7 +1506,7 @@ EXPORT_API(void) ScaleAddU(float a, float b, _Inout_ float * pd, int c)
     }
 }
 
-EXPORT_API(void) ScaleMaxNormA(float maxNorm, _Inout_ float * pmat, int crow, int ccol)
+EXPORT_API(void) ScaleMaxNorm(float maxNorm, _Inout_ float * pmat, int crow, int ccol)
 {
     float * pm = pmat;
     float maxNormSq = maxNorm * maxNorm;
@@ -1518,7 +1518,7 @@ EXPORT_API(void) ScaleMaxNormA(float maxNorm, _Inout_ float * pmat, int crow, in
         float * pmLim = pm + ccol;
         for (; pm < pmLim; pm += 4)
         {
-            __m128 x1 = _mm_load_ps(pm);
+            __m128 x1 = _mm_loadu_ps(pm);
             x1 = _mm_mul_ps(x1, x1);
             rowNorm = _mm_add_ps(x1, rowNorm);
         }
@@ -1538,9 +1538,9 @@ EXPORT_API(void) ScaleMaxNormA(float maxNorm, _Inout_ float * pmat, int crow, in
 #endif
             for (pm = pms; pm < pmLim; pm += 4)
             {
-                __m128 x1 = _mm_load_ps(pm);
+                __m128 x1 = _mm_loadu_ps(pm);
                 x1 = _mm_mul_ps(x1, scale);
-                _mm_store_ps(pm, x1);
+                _mm_storeu_ps(pm, x1);
             }
         }
     }
@@ -1618,18 +1618,18 @@ EXPORT_API(void) ScaleMaxNormCU(float maxNorm, int kernCount, int kernSize, _Ino
     }
 }
 
-EXPORT_API(void) AddScaleA(float a, _In_ const float * ps, _Inout_ float * pd, int c)
+EXPORT_API(void) AddScale(float a, _In_ const float * ps, _Inout_ float * pd, int c)
 {
     float * pdLim = pd + c;
 
     __m128 x1 = _mm_set1_ps(a);
     for (; pd < pdLim; pd += 4, ps += 4)
     {
-        __m128 x2 = _mm_load_ps(ps);
-        __m128 x3 = _mm_load_ps(pd);
+        __m128 x2 = _mm_loadu_ps(ps);
+        __m128 x3 = _mm_loadu_ps(pd);
         x2 = _mm_mul_ps(x1, x2);
         x3 = _mm_add_ps(x2, x3);
-        _mm_store_ps(pd, x3);
+        _mm_storeu_ps(pd, x3);
     }
 }
 
@@ -1699,7 +1699,7 @@ EXPORT_API(void) AddScaleSU(float a, _In_ const float * ps, _In_ const int * pi,
         pd[*pi] += a * *ps;
 }
 
-EXPORT_API(void) AddScaleMomA(float a, _In_ const float * ps, _Inout_ float * pd, float momentum, _Inout_ float * pe, int c)
+EXPORT_API(void) AddScaleMom(float a, _In_ const float * ps, _Inout_ float * pd, float momentum, _Inout_ float * pe, int c)
 {
     float * pdLim = pd + c;
 
@@ -1707,19 +1707,19 @@ EXPORT_API(void) AddScaleMomA(float a, _In_ const float * ps, _Inout_ float * pd
     __m128 x1 = _mm_set1_ps(a);
     for (; pd < pdLim; pd += 4, pe += 4, ps += 4)
     {
-        __m128 x2 = _mm_load_ps(ps);
-        __m128 x3 = _mm_load_ps(pe);
-        __m128 x4 = _mm_load_ps(pd);
+        __m128 x2 = _mm_loadu_ps(ps);
+        __m128 x3 = _mm_loadu_ps(pe);
+        __m128 x4 = _mm_loadu_ps(pd);
         x2 = _mm_mul_ps(x1, x2);
         x3 = _mm_mul_ps(x0, x3);
         x3 = _mm_add_ps(x2, x3);
         x4 = _mm_add_ps(x3, x4);
-        _mm_store_ps(pe, x3);
-        _mm_store_ps(pd, x4);
+        _mm_storeu_ps(pe, x3);
+        _mm_storeu_ps(pd, x4);
     }
 }
 
-EXPORT_API(void) AddScaleGradA(_In_ const float * ps, _Inout_ float * pd, _Inout_ float * paccGrads, _Inout_ float * paccUpdates,
+EXPORT_API(void) AddScaleGrad(_In_ const float * ps, _Inout_ float * pd, _Inout_ float * paccGrads, _Inout_ float * paccUpdates,
     float decay, float cond, int c)
 {
     float * pdLim = pd + c;
@@ -1729,24 +1729,24 @@ EXPORT_API(void) AddScaleGradA(_In_ const float * ps, _Inout_ float * pd, _Inout
     __m128 cnd = _mm_set1_ps(cond);
     for (; pd < pdLim; pd += 4, ps += 4, paccGrads += 4, paccUpdates += 4)
     {
-        __m128 g = _mm_load_ps(ps);
-        __m128 ag = _mm_load_ps(paccGrads);
-        __m128 au = _mm_load_ps(paccUpdates);
-        __m128 coef = _mm_load_ps(pd);
+        __m128 g = _mm_loadu_ps(ps);
+        __m128 ag = _mm_loadu_ps(paccGrads);
+        __m128 au = _mm_loadu_ps(paccUpdates);
+        __m128 coef = _mm_loadu_ps(pd);
 
         UpdateAdadelta(coef, ag, au, g, dec, decc, cnd);
 
-        _mm_store_ps(pd, coef);
-        _mm_store_ps(paccGrads, ag);
-        _mm_store_ps(paccUpdates, au);
+        _mm_storeu_ps(pd, coef);
+        _mm_storeu_ps(paccGrads, ag);
+        _mm_storeu_ps(paccUpdates, au);
     }
 }
 
-EXPORT_API(void) AddScaleMultiA(int count, _In_ const float * ps, _Inout_ float * pd, _Inout_ float * paccGrads, _Inout_ float * paccUpdates,
+EXPORT_API(void) AddScaleMulti(int count, _In_ const float * ps, _Inout_ float * pd, _Inout_ float * paccGrads, _Inout_ float * paccUpdates,
     float decay, float cond, int size)
 {
     if (1 == count)
-        AddScaleGradA(ps, pd, paccGrads, paccUpdates, decay, cond, size);
+        AddScaleGrad(ps, pd, paccGrads, paccUpdates, decay, cond, size);
     else
     {
         float * pdLim = pd + size;
@@ -1761,32 +1761,32 @@ EXPORT_API(void) AddScaleMultiA(int count, _In_ const float * ps, _Inout_ float 
             // REVIEW: unroll?
             for (int i = 0; i < count; i++, ps1 += size)
             {
-                __m128 x1 = _mm_load_ps(ps1);
+                __m128 x1 = _mm_loadu_ps(ps1);
                 g = _mm_add_ps(x1, g);
             }
-            __m128 ag = _mm_load_ps(paccGrads);
-            __m128 au = _mm_load_ps(paccUpdates);
-            __m128 coef = _mm_load_ps(pd);
+            __m128 ag = _mm_loadu_ps(paccGrads);
+            __m128 au = _mm_loadu_ps(paccUpdates);
+            __m128 coef = _mm_loadu_ps(pd);
 
             UpdateAdadelta(coef, ag, au, g, dec, decc, cnd);
 
-            _mm_store_ps(pd, coef);
-            _mm_store_ps(paccGrads, ag);
-            _mm_store_ps(paccUpdates, au);
+            _mm_storeu_ps(pd, coef);
+            _mm_storeu_ps(paccGrads, ag);
+            _mm_storeu_ps(paccUpdates, au);
         }
     }
 }
 
-EXPORT_API(void) AddA(_In_ const float * ps, _Inout_ float * pd, int c)
+EXPORT_API(void) Add(_In_ const float * ps, _Inout_ float * pd, int c)
 {
     float * pdLim = pd + c;
 
     for (; pd < pdLim; pd += 4, ps += 4)
     {
-        __m128 x1 = _mm_load_ps(ps);
-        __m128 x2 = _mm_load_ps(pd);
+        __m128 x1 = _mm_loadu_ps(ps);
+        __m128 x2 = _mm_loadu_ps(pd);
         x2 = _mm_add_ps(x1, x2);
-        _mm_store_ps(pd, x2);
+        _mm_storeu_ps(pd, x2);
     }
 }
 
@@ -1864,13 +1864,13 @@ EXPORT_API(void) MulElementWiseSU(_In_ const float * ps1, _In_ const float * ps2
         pd[*pi] = ps1[*pi] * ps2[*pi];    
 }
 
-EXPORT_API(float) SumA(const float * ps, int c)
+EXPORT_API(float) Sum(const float * ps, int c)
 {
     const float * psLim = ps + c;
 
     __m128 res = _mm_setzero_ps();
     for (; ps < psLim; ps += 4)
-        res = _mm_add_ps(res, _mm_load_ps(ps));
+        res = _mm_add_ps(res, _mm_loadu_ps(ps));
 
     res = _mm_hadd_ps(res, res);
     res = _mm_hadd_ps(res, res);
@@ -2142,7 +2142,7 @@ float ExpFast(float arg)
 
 // Implements a fast approximation of sigmoid/tanh.
 template<bool isTanh>
-void ApplySigmoidCoreA(_In_ const float * ps, _Inout_ float * pd, int c)
+void ApplySigmoidCore(_In_ const float * ps, _Inout_ float * pd, int c)
 {
     float * pdLim = pd + c;
 
@@ -2163,7 +2163,7 @@ void ApplySigmoidCoreA(_In_ const float * ps, _Inout_ float * pd, int c)
     for (; pd < pdLim; ps += 4, pd += 4)
     {
         // Get the argument, capture its sign and take its absolute value.
-        __m128 xArg = _mm_load_ps(ps);
+        __m128 xArg = _mm_loadu_ps(ps);
         // maskNaN is set to zero if xArg is not NaN and set equal to xArg otherwise.
         __m128 maskNaN = _mm_and_ps(_mm_cmpneq_ps(xArg, xArg), xArg);
         __m128 xSign = _mm_and_ps(xArg, cSign);
@@ -2243,7 +2243,7 @@ void ApplySigmoidCoreA(_In_ const float * ps, _Inout_ float * pd, int c)
             x2 = _mm_or_ps(x2, xSign);
         }
 
-        _mm_store_ps(pd, x2);
+        _mm_storeu_ps(pd, x2);
     }
 
     // If we overshot, back fill with zero! Since tanh(0) = 0, we only need to do this for sigmoid.
@@ -2254,9 +2254,9 @@ void ApplySigmoidCoreA(_In_ const float * ps, _Inout_ float * pd, int c)
     }
 }
 
-EXPORT_API(void) ApplySigmoidA(_In_ const float * ps, _Inout_ float * pd, int c)
+EXPORT_API(void) ApplySigmoid(_In_ const float * ps, _Inout_ float * pd, int c)
 {
-    ApplySigmoidCoreA<false>(ps, pd, c);
+    ApplySigmoidCore<false>(ps, pd, c);
 }
 
 EXPORT_API(void) ApplySoftMaxU(_In_ const float * ps, _Inout_ float * pd, int c)
@@ -2289,42 +2289,42 @@ EXPORT_API(void) ApplySoftMaxU(_In_ const float * ps, _Inout_ float * pd, int c)
         *q /= sum;
 }
 
-EXPORT_API(void) ApplyRectifiedLinearA(_In_ const float * ps, _Inout_ float * pd, int c)
+EXPORT_API(void) ApplyRectifiedLinear(_In_ const float * ps, _Inout_ float * pd, int c)
 {
     const float * psLim = ps + c;
 
     __m128 cZero = _mm_set1_ps(0.0f);
     for (; ps < psLim; ps += 4, pd += 4)
     {
-        __m128 x1 = _mm_load_ps(ps);
+        __m128 x1 = _mm_loadu_ps(ps);
         x1 = _mm_max_ps(x1, cZero);
-        _mm_store_ps(pd, x1);
+        _mm_storeu_ps(pd, x1);
     }
 }
 
-EXPORT_API(void) ApplySquareA(_In_ const float * ps, _Inout_ float * pd, int c)
+EXPORT_API(void) ApplySquare(_In_ const float * ps, _Inout_ float * pd, int c)
 {
     const float * psLim = ps + c;
 
     for (; ps < psLim; ps += 4, pd += 4)
     {
-        __m128 x1 = _mm_load_ps(ps);
+        __m128 x1 = _mm_loadu_ps(ps);
         x1 = _mm_mul_ps(x1, x1);
-        _mm_store_ps(pd, x1);
+        _mm_storeu_ps(pd, x1);
     }
 }
 
-EXPORT_API(void) ApplySqrtA(_In_ const float * ps, _Inout_ float * pd, int c)
+EXPORT_API(void) ApplySqrt(_In_ const float * ps, _Inout_ float * pd, int c)
 {
     const float * psLim = ps + c;
 
     __m128 cZero = _mm_set1_ps(0.0f);
     for (; ps < psLim; ps += 4, pd += 4)
     {
-        __m128 x1 = _mm_load_ps(ps);
+        __m128 x1 = _mm_loadu_ps(ps);
         x1 = _mm_max_ps(x1, cZero);
         x1 = _mm_sqrt_ps(x1);
-        _mm_store_ps(pd, x1);
+        _mm_storeu_ps(pd, x1);
     }
 }
 
@@ -2346,22 +2346,22 @@ EXPORT_API(void) ApplySoftRectifiedLinearU(_In_ const float * ps, _Inout_ float 
     }
 }
 
-EXPORT_API(void) ApplyAbsA(_In_ const float * ps, _Inout_ float * pd, int c)
+EXPORT_API(void) ApplyAbs(_In_ const float * ps, _Inout_ float * pd, int c)
 {
     const float * psLim = ps + c;
 
     __m128 mask = _mm_castsi128_ps(_mm_set1_epi32(0x7FFFFFFF));
     for (; ps < psLim; ps += 4, pd += 4)
     {
-        __m128 x1 = _mm_load_ps(ps);
+        __m128 x1 = _mm_loadu_ps(ps);
         x1 = _mm_and_ps(x1, mask);
-        _mm_store_ps(pd, x1);
+        _mm_storeu_ps(pd, x1);
     }
 }
 
-EXPORT_API(void) ApplyTanhA(_In_ const float * ps, _Inout_ float * pd, int c)
+EXPORT_API(void) ApplyTanh(_In_ const float * ps, _Inout_ float * pd, int c)
 {
-    ApplySigmoidCoreA<true>(ps, pd, c);
+    ApplySigmoidCore<true>(ps, pd, c);
 }
 
 EXPORT_API(void) ApplyBoundedRectifiedLinearA(_In_ const float * ps, _Inout_ float * pd, int c)
@@ -2372,14 +2372,14 @@ EXPORT_API(void) ApplyBoundedRectifiedLinearA(_In_ const float * ps, _Inout_ flo
     __m128 cOne = _mm_set1_ps(1.0f);
     for (; ps < psLim; ps += 4, pd += 4)
     {
-        __m128 x1 = _mm_load_ps(ps);
+        __m128 x1 = _mm_loadu_ps(ps);
         x1 = _mm_max_ps(x1, cZero);
         x1 = _mm_min_ps(x1, cOne);
-        _mm_store_ps(pd, x1);
+        _mm_storeu_ps(pd, x1);
     }
 }
 
-EXPORT_API(void) ApplySigmoidDerivativeA(_In_ const float * pv, _Inout_ float * pg, int c)
+EXPORT_API(void) ApplySigmoidDerivative(_In_ const float * pv, _Inout_ float * pg, int c)
 {
     float * pgLim = pg + c;
 
@@ -2387,31 +2387,31 @@ EXPORT_API(void) ApplySigmoidDerivativeA(_In_ const float * pv, _Inout_ float * 
     __m128 cOne = _mm_set1_ps(1.0f);
     for (; pg < pgLim; pg += 4, pv += 4)
     {
-        __m128 x1 = _mm_load_ps(pv);
-        __m128 x2 = _mm_load_ps(pg);
+        __m128 x1 = _mm_loadu_ps(pv);
+        __m128 x2 = _mm_loadu_ps(pg);
         __m128 x3 = _mm_sub_ps(cOne, x1);
         x1 = _mm_mul_ps(x1, x3);
         x2 = _mm_mul_ps(x2, x1);
-        _mm_store_ps(pg, x2);
+        _mm_storeu_ps(pg, x2);
     }
 }
 
-EXPORT_API(void) ApplyRectifiedLinearDerivativeA(_In_ const float * pv, _Inout_ float * pg, int c)
+EXPORT_API(void) ApplyRectifiedLinearDerivative(_In_ const float * pv, _Inout_ float * pg, int c)
 {
     float * pgLim = pg + c;
 
     __m128 cZero = _mm_set1_ps(0.0f);
     for (; pg < pgLim; pg += 4, pv += 4)
     {
-        __m128 x1 = _mm_load_ps(pv);
-        __m128 x2 = _mm_load_ps(pg);
+        __m128 x1 = _mm_loadu_ps(pv);
+        __m128 x2 = _mm_loadu_ps(pg);
         x1 = _mm_cmpgt_ps(x1, cZero);
         x2 = _mm_and_ps(x2, x1);
-        _mm_store_ps(pg, x2);
+        _mm_storeu_ps(pg, x2);
     }
 }
 
-EXPORT_API(void) ApplySquareDerivativeA(_In_ const float * px, _In_opt_ const float * py, _Inout_ float * pg, int c, bool drop)
+EXPORT_API(void) ApplySquareDerivative(_In_ const float * px, _In_opt_ const float * py, _Inout_ float * pg, int c, bool drop)
 {
     float * pgLim = pg + c;
 
@@ -2420,29 +2420,29 @@ EXPORT_API(void) ApplySquareDerivativeA(_In_ const float * px, _In_opt_ const fl
         __m128 cZero = _mm_set1_ps(0.0f);
         for (; pg < pgLim; pg += 4, px += 4, py += 4)
         {
-            __m128 x0 = _mm_cmpgt_ps(_mm_load_ps(py), cZero);
-            __m128 x1 = _mm_load_ps(px);
-            __m128 x2 = _mm_load_ps(pg);
+            __m128 x0 = _mm_cmpgt_ps(_mm_loadu_ps(py), cZero);
+            __m128 x1 = _mm_loadu_ps(px);
+            __m128 x2 = _mm_loadu_ps(pg);
             x1 = _mm_add_ps(x1, x1);
             x2 = _mm_mul_ps(x2, x1);
             x2 = _mm_and_ps(x2, x0);
-            _mm_store_ps(pg, x2);
+            _mm_storeu_ps(pg, x2);
         }
     }
     else
     {
         for (; pg < pgLim; pg += 4, px += 4)
         {
-            __m128 x1 = _mm_load_ps(px);
-            __m128 x2 = _mm_load_ps(pg);
+            __m128 x1 = _mm_loadu_ps(px);
+            __m128 x2 = _mm_loadu_ps(pg);
             x1 = _mm_add_ps(x1, x1);
             x2 = _mm_mul_ps(x2, x1);
-            _mm_store_ps(pg, x2);
+            _mm_storeu_ps(pg, x2);
         }
     }
 }
 
-EXPORT_API(void) ApplySqrtDerivativeA(_In_ const float * pv, _Inout_ float * pg, int c)
+EXPORT_API(void) ApplySqrtDerivative(_In_ const float * pv, _Inout_ float * pg, int c)
 {
     float * pgLim = pg + c;
     static const float smallValue = 1e-10F;
@@ -2451,14 +2451,14 @@ EXPORT_API(void) ApplySqrtDerivativeA(_In_ const float * pv, _Inout_ float * pg,
     __m128 cSmall = _mm_set1_ps(smallValue);
     for (; pg < pgLim; pg += 4, pv += 4)
     {
-        __m128 x1 = _mm_load_ps(pv);
-        __m128 x2 = _mm_load_ps(pg);
+        __m128 x1 = _mm_loadu_ps(pv);
+        __m128 x2 = _mm_loadu_ps(pg);
         __m128 x3 = _mm_cmpgt_ps(x1, cZero);
         x1 = _mm_max_ps(x1, cSmall);
         x1 = _mm_add_ps(x1, x1);
         x2 = _mm_and_ps(x2, x3);
         x2 = _mm_div_ps(x2, x1);
-        _mm_store_ps(pg, x2);
+        _mm_storeu_ps(pg, x2);
     }
 }
 
@@ -2477,7 +2477,7 @@ EXPORT_API(void) ApplySoftRectifiedLinearDerivativeU(_In_opt_ const float * px, 
         *pg *= 1 - ExpFast(-*py);
 }
 
-EXPORT_API(void) ApplyAbsDerivativeA(_In_ const float * px, _In_opt_ const float * py, _Inout_ float * pg, int c, bool drop)
+EXPORT_API(void) ApplyAbsDerivative(_In_ const float * px, _In_opt_ const float * py, _Inout_ float * pg, int c, bool drop)
 {
     float * pgLim = pg + c;
 
@@ -2487,30 +2487,30 @@ EXPORT_API(void) ApplyAbsDerivativeA(_In_ const float * px, _In_opt_ const float
     {
         for (; pg < pgLim; pg += 4, px += 4, py += 4)
         {
-            __m128 x1 = _mm_and_ps(_mm_load_ps(px), cSign);
-            __m128 x2 = _mm_cmpgt_ps(_mm_load_ps(py), cZero);
-            __m128 x3 = _mm_load_ps(pg);
+            __m128 x1 = _mm_and_ps(_mm_loadu_ps(px), cSign);
+            __m128 x2 = _mm_cmpgt_ps(_mm_loadu_ps(py), cZero);
+            __m128 x3 = _mm_loadu_ps(pg);
             x3 = _mm_xor_ps(x3, x1);
             x3 = _mm_and_ps(x3, x2);
-            _mm_store_ps(pg, x3);
+            _mm_storeu_ps(pg, x3);
         }
     }
     else
     {
         for (; pg < pgLim; pg += 4, px += 4)
         {
-            __m128 x0 = _mm_load_ps(px);
+            __m128 x0 = _mm_loadu_ps(px);
             __m128 x1 = _mm_and_ps(x0, cSign);
             __m128 x2 = _mm_cmpneq_ps(x0, cZero);
-            __m128 x3 = _mm_load_ps(pg);
+            __m128 x3 = _mm_loadu_ps(pg);
             x3 = _mm_xor_ps(x3, x1);
             x3 = _mm_and_ps(x3, x2);
-            _mm_store_ps(pg, x3);
+            _mm_storeu_ps(pg, x3);
         }
     }
 }
 
-EXPORT_API(void) ApplyTanhDerivativeA(_In_ const float * pv, _Inout_ float * pg, int c)
+EXPORT_API(void) ApplyTanhDerivative(_In_ const float * pv, _Inout_ float * pg, int c)
 {
     float * pgLim = pg + c;
 
@@ -2518,16 +2518,16 @@ EXPORT_API(void) ApplyTanhDerivativeA(_In_ const float * pv, _Inout_ float * pg,
     __m128 cOne = _mm_set1_ps(1.0f);
     for (; pg < pgLim; pg += 4, pv += 4)
     {
-        __m128 x1 = _mm_load_ps(pv);
-        __m128 x2 = _mm_load_ps(pg);
+        __m128 x1 = _mm_loadu_ps(pv);
+        __m128 x2 = _mm_loadu_ps(pg);
         x1 = _mm_mul_ps(x1, x1);
         x1 = _mm_sub_ps(cOne, x1);
         x2 = _mm_mul_ps(x2, x1);
-        _mm_store_ps(pg, x2);
+        _mm_storeu_ps(pg, x2);
     }
 }
 
-EXPORT_API(void) ApplyBoundedRectifiedLinearDerivativeA(_In_ const float * pv, _Inout_ float * pg, int c)
+EXPORT_API(void) ApplyBoundedRectifiedLinearDerivative(_In_ const float * pv, _Inout_ float * pg, int c)
 {
     float * pgLim = pg + c;
 
@@ -2535,11 +2535,11 @@ EXPORT_API(void) ApplyBoundedRectifiedLinearDerivativeA(_In_ const float * pv, _
     __m128 cOne = _mm_set1_ps(1.0f);
     for (; pg < pgLim; pg += 4, pv += 4)
     {
-        __m128 x1 = _mm_load_ps(pv);
-        __m128 x2 = _mm_load_ps(pg);
+        __m128 x1 = _mm_loadu_ps(pv);
+        __m128 x2 = _mm_loadu_ps(pg);
         x2 = _mm_and_ps(x2, _mm_cmpgt_ps(x1, cZero));
         x2 = _mm_and_ps(x2, _mm_cmplt_ps(x1, cOne));
-        _mm_store_ps(pg, x2);
+        _mm_storeu_ps(pg, x2);
     }
 }
 
@@ -2645,7 +2645,7 @@ EXPORT_API(void) SdcaL1UpdateSU(float primalUpdate, _In_ const float * ps, _In_ 
     }
 }
 
-EXPORT_API(void) ScaleAdadeltaU(_Inout_ float * mat, _Inout_ float * accGrads, _Inout_ float * accUpdates, float decay, float cond, _In_ const float * grads, int size)
+EXPORT_API(void) ScaledadeltaU(_Inout_ float * mat, _Inout_ float * accGrads, _Inout_ float * accUpdates, float decay, float cond, _In_ const float * grads, int size)
 {
     float * pm = mat;
     float * pmLim = pm + size;
@@ -2684,7 +2684,7 @@ EXPORT_API(void) ScaleAdadeltaU(_Inout_ float * mat, _Inout_ float * accGrads, _
     }
 }
 
-EXPORT_API(void) ScaleAdadeltaA(_Inout_ float * mat, _Inout_ float * accGrads, _Inout_ float * accUpdates, float decay, float cond, _Inout_ float * grads, int size)
+EXPORT_API(void) Scaledadelta(_Inout_ float * mat, _Inout_ float * accGrads, _Inout_ float * accUpdates, float decay, float cond, _Inout_ float * grads, int size)
 {
     float * pm = mat;
     float * pmLim = pm + size;
@@ -2698,15 +2698,15 @@ EXPORT_API(void) ScaleAdadeltaA(_Inout_ float * mat, _Inout_ float * accGrads, _
 
     for (; pm < pmLim; pm += 4, pag += 4, pau += 4, pg += 4)
     {
-        __m128 g = _mm_load_ps(pg);
-        __m128 ag = _mm_load_ps(pag);
-        __m128 au = _mm_load_ps(pau);
-        __m128 coef = _mm_load_ps(pm);
+        __m128 g = _mm_loadu_ps(pg);
+        __m128 ag = _mm_loadu_ps(pag);
+        __m128 au = _mm_loadu_ps(pau);
+        __m128 coef = _mm_loadu_ps(pm);
 
         UpdateAdadelta(coef, ag, au, g, dec, decc, c);
 
-        _mm_store_ps(pm, coef);
-        _mm_store_ps(pag, ag);
-        _mm_store_ps(pau, au);
+        _mm_storeu_ps(pm, coef);
+        _mm_storeu_ps(pag, ag);
+        _mm_storeu_ps(pau, au);
     }
 }
