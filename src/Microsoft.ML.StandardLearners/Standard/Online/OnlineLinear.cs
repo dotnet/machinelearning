@@ -24,7 +24,7 @@ namespace Microsoft.ML.Runtime.Learners
         [Argument(ArgumentType.AtMostOnce, HelpText = "Number of iterations", ShortName = "iter", SortOrder = 50)]
         [TGUI(Label = "Number of Iterations", Description = "Number of training iterations through data", SuggestedSweeps = "1,10,100")]
         [TlcModule.SweepableLongParamAttribute("NumIterations", 1, 100, stepSize: 10, isLogScale: true)]
-        public int NumIterations = DefaultArgs.NumIterations;
+        public int NumIterations = OnlineDefaultArgs.NumIterations;
 
         [Argument(ArgumentType.AtMostOnce, HelpText = "Initial Weights and bias, comma-separated", ShortName = "initweights")]
         [TGUI(NoSweep = true)]
@@ -42,7 +42,7 @@ namespace Microsoft.ML.Runtime.Learners
         [Argument(ArgumentType.AtMostOnce, HelpText = "Size of cache when trained in Scope", ShortName = "cache")]
         public int StreamingCacheSize = 1000000;
 
-        internal static class DefaultArgs
+        internal class OnlineDefaultArgs
         {
             internal const int NumIterations = 1;
         }
@@ -83,7 +83,7 @@ namespace Microsoft.ML.Runtime.Learners
         protected virtual bool NeedCalibration => false;
 
         protected OnlineLinearTrainer(OnlineLinearArguments args, IHostEnvironment env, string name, SchemaShape.Column label)
-            : base(Contracts.CheckRef(env, nameof(env)).Register(name), MakeFeatureColumn(args.FeatureColumn), label, MakeWeightColumn(args.InitialWeights))
+            : base(Contracts.CheckRef(env, nameof(env)).Register(name), TrainerUtils.MakeR4VecFeature(args.FeatureColumn), label, TrainerUtils.MakeR4ScalarWeightColumn(args.InitialWeights))
         {
             Contracts.CheckValue(args, nameof(args));
             Contracts.CheckUserArg(args.NumIterations > 0, nameof(args.NumIterations), UserErrorPositive);
@@ -160,18 +160,6 @@ namespace Microsoft.ML.Runtime.Learners
         protected abstract TModel CreatePredictor();
 
         protected abstract void CheckLabel(RoleMappedData data);
-
-        private static SchemaShape.Column MakeWeightColumn(string weightColumn)
-        {
-            if (weightColumn == null)
-                return null;
-            return new SchemaShape.Column(weightColumn, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false);
-        }
-
-        private static SchemaShape.Column MakeFeatureColumn(string featureColumn)
-        {
-            return new SchemaShape.Column(featureColumn, SchemaShape.Column.VectorKind.Vector, NumberType.R4, false);
-        }
 
         protected virtual void TrainCore(IChannel ch, RoleMappedData data)
         {

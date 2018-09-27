@@ -40,10 +40,10 @@ namespace Microsoft.ML.Trainers
                 this BinaryClassificationContext.BinaryClassificationTrainers ctx,
                 IClassificationLoss lossFunction,
                 Scalar<bool> label, Vector<float> features, Scalar<float> weights = null,
-                float learningRate = AveragedLinearArguments.DefaultAveragedArgs.LearningRate,
-                bool decreaseLearningRate = AveragedLinearArguments.DefaultAveragedArgs.DecreaseLearningRate,
-                float l2RegularizerWeight = AveragedLinearArguments.DefaultAveragedArgs.L2RegularizerWeight,
-                int numIterations = OnlineLinearArguments.DefaultArgs.NumIterations,
+                float learningRate = AveragedLinearArguments.AveragedDefaultArgs.LearningRate,
+                bool decreaseLearningRate = AveragedLinearArguments.AveragedDefaultArgs.DecreaseLearningRate,
+                float l2RegularizerWeight = AveragedLinearArguments.AveragedDefaultArgs.L2RegularizerWeight,
+                int numIterations = AveragedLinearArguments.AveragedDefaultArgs.NumIterations,
                 Action<LinearBinaryPredictor> onFit = null
             )
         {
@@ -105,15 +105,13 @@ namespace Microsoft.ML.Trainers
         }
 
         /// <summary>
-        /// Predict a target using a linear binary classification model trained with the AveragePerceptron trainer, and a custom loss.
-        /// Note that because we cannot be sure that all loss functions will produce naturally calibrated outputs, setting
-        /// a custom loss function will not produce a calibrated probability column.
+        /// Predict a target using a linear regression model trained with the <see cref="Runtime.Learners.OnlineGradientDescentTrainer"/> trainer.
         /// </summary>
-        /// <param name="ctx">The binary classification context trainer object.</param>
+        /// <param name="ctx">The regression context trainer object.</param>
         /// <param name="label">The label, or dependent variable.</param>
         /// <param name="features">The features, or independent variables.</param>
         /// <param name="weights">The optional example weights.</param>
-        /// <param name="lossFunction">The custom loss.</param>
+        /// <param name="lossFunction">The custom loss. Defaults to <see cref="SquaredLoss"/> if not provided.</param>
         /// <param name="learningRate">The learning Rate.</param>
         /// <param name="decreaseLearningRate">Decrease learning rate as iterations progress.</param>
         /// <param name="l2RegularizerWeight">L2 Regularization Weight.</param>
@@ -125,66 +123,32 @@ namespace Microsoft.ML.Trainers
         /// result in any way; it is only a way for the caller to be informed about what was learnt.</param>
         /// <returns>The set of output columns including in order the predicted binary classification score (which will range
         /// from negative to positive infinity), and the predicted label.</returns>
-        /// <seealso cref="AveragedPerceptronTrainer"/>.
-        /// <returns>The set of output columns including in order the predicted per-class likelihoods (between 0 and 1, and summing up to 1), and the predicted label.</returns>
-        public static (Scalar<float> score, Scalar<float> probability, Scalar<bool> predictedLabel)
-            AveragedPerceptron(this BinaryClassificationContext.BinaryClassificationTrainers ctx,
-                Scalar<bool> label,
-                Vector<float> features,
-                IClassificationLoss lossFunction = null,
-                Scalar<float> weights = null,
-                float learningRate = AveragedLinearArguments.DefaultAveragedArgs.LearningRate,
-                bool decreaseLearningRate = AveragedLinearArguments.DefaultAveragedArgs.DecreaseLearningRate,
-                float l2RegularizerWeight = AveragedLinearArguments.DefaultAveragedArgs.L2RegularizerWeight,
-                int numIterations = OnlineLinearArguments.DefaultArgs.NumIterations,
-                Action<LinearBinaryPredictor> onFit = null)
+        /// <seealso cref="OnlineGradientDescentTrainer"/>.
+        /// <returns>The predicted output.</returns>
+        public static Scalar<float> OnlineGradientDescent(this RegressionContext.RegressionTrainers ctx,
+            Scalar<float> label,
+            Vector<float> features,
+            Scalar<float> weights = null,
+            IRegressionLoss lossFunction = null,
+            float learningRate = OnlineGradientDescentTrainer.Arguments.OgdDefaultArgs.LearningRate,
+            bool decreaseLearningRate = OnlineGradientDescentTrainer.Arguments.OgdDefaultArgs.DecreaseLearningRate,
+            float l2RegularizerWeight = OnlineGradientDescentTrainer.Arguments.OgdDefaultArgs.L2RegularizerWeight,
+            int numIterations = OnlineGradientDescentTrainer.Arguments.OgdDefaultArgs.NumIterations,
+            Action<LinearRegressionPredictor> onFit = null)
         {
-            Contracts.CheckValue(label, nameof(label));
-            Contracts.CheckValue(features, nameof(features));
-            Contracts.CheckValueOrNull(weights);
-            Contracts.CheckParam(learningRate > 0, nameof(learningRate), "Must be positive.");
-            Contracts.CheckParam(0 <= l2RegularizerWeight && l2RegularizerWeight < 0.5, nameof(l2RegularizerWeight), "must be in range [0, 0.5)");
-
-            Contracts.CheckParam(numIterations > 1, nameof(numIterations), "Must be greater than one, if specified.");
-            Contracts.CheckValueOrNull(onFit);
-
-            var args = new AveragedPerceptronTrainer.Arguments()
-            {
-                LearningRate = learningRate,
-                DecreaseLearningRate = decreaseLearningRate,
-                L2RegularizerWeight = l2RegularizerWeight,
-                NumIterations = numIterations
-            };
-
-            if (lossFunction != null)
-                args.LossFunction = new TrivialClassificationLossFactory(lossFunction);
-
-            var rec = new TrainerEstimatorReconciler.BinaryClassifier(
+            var rec = new TrainerEstimatorReconciler.Regression(
                 (env, labelName, featuresName, weightsName) =>
                 {
-                    args.FeatureColumn = featuresName;
-                    args.LabelColumn = labelName;
-                    args.InitialWeights = weightsName;
+                    var trainer = new OnlineGradientDescentTrainer(env, labelName, featuresName, learningRate,
+                        decreaseLearningRate, l2RegularizerWeight, numIterations, weightsName, lossFunction);
 
-                    var trainer = new AveragedPerceptronTrainer(env, args);
                     if (onFit != null)
-                    {
                         return trainer.WithOnFitDelegate(trans => onFit(trans.Model));
-                        /*
-                        return trainer.WithOnFitDelegate(trans =>
-                        {
-                            // Under the default log-loss we assume a calibrated predictor.
-                            var model = trans.Model;
-                            var cali = (ParameterMixingCalibratedPredictor)model;
-                            var pred = (LinearBinaryPredictor)cali.SubPredictor;
-                            onFit(pred, cali);
-                        });
-                        */
-                    }
+
                     return trainer;
                 }, label, features, weights);
 
-            return rec.Output;
+            return rec.Score;
         }
 
         private sealed class TrivialClassificationLossFactory : ISupportClassificationLossFactory
