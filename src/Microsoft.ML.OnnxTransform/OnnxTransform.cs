@@ -13,7 +13,7 @@ using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Scoring;
-using Microsoft.ML.OnnxScoring;
+using Microsoft.ML.Transforms;
 using Microsoft.ML.StaticPipe;
 using Microsoft.ML.StaticPipe.Runtime;
 using Microsoft.ML.Core.Data;
@@ -32,7 +32,7 @@ using Microsoft.ML.Core.Data;
 
 [assembly: EntryPointModule(typeof(OnnxTransform))]
 
-namespace Microsoft.ML.OnnxScoring
+namespace Microsoft.ML.Transforms
 {
     public sealed class OnnxTransform : ITransformer, ICanSaveModel
     {

@@ -10,7 +10,7 @@ using Microsoft.ML.StaticPipe;
 
 using OnnxShape = System.Collections.Generic.List<long>;
 
-namespace Microsoft.ML.OnnxScoring
+namespace Microsoft.ML.Transforms
 {
     /// <summary>
     /// IdvToTensorAdapter adapts an Idv (row-iterator interface) to a tensor-iterator interface.
