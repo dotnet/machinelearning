@@ -404,18 +404,18 @@ namespace Microsoft.ML.StaticPipe.Runtime
         }
 
         /// <summary>
-        /// A reconciler for regression capable of handling the most common cases for regression.
+        /// A reconciler for ranking capable of handling the most common cases for ranking.
         /// </summary>
-        public sealed class Ranker : TrainerEstimatorReconciler
+        public sealed class Ranker<TVal> : TrainerEstimatorReconciler
         {
             /// <summary>
-            /// The delegate to create the regression trainer instance.
+            /// The delegate to create the ranking trainer instance.
             /// </summary>
             /// <param name="env">The environment with which to create the estimator</param>
             /// <param name="label">The label column name</param>
             /// <param name="features">The features column name</param>
             /// <param name="weights">The weights column name, or <c>null</c> if the reconciler was constructed with <c>null</c> weights</param>
-            /// <param name="groupId">The groupID column name.</param>
+            /// <param name="groupId">The groupId column name.</param>
             /// <returns>A estimator producing columns with the fixed name <see cref="DefaultColumnNames.Score"/>.</returns>
             public delegate IEstimator<ITransformer> EstimatorFactory(IHostEnvironment env, string label, string features, string weights, string groupId);
 
@@ -439,7 +439,7 @@ namespace Microsoft.ML.StaticPipe.Runtime
             /// <param name="features">The input features column.</param>
             /// <param name="weights">The input weights column, or <c>null</c> if there are no weights.</param>
             /// <param name="groupId">The input groupId column.</param>
-            public Ranker(EstimatorFactory estimatorFactory, Scalar<float> label, Vector<float> features, Scalar<float> groupId, Scalar<float> weights)
+            public Ranker(EstimatorFactory estimatorFactory, Scalar<float> label, Vector<float> features, Key<uint, TVal> groupId, Scalar<float> weights)
                     : base(MakeInputs(Contracts.CheckRef(label, nameof(label)),
                         Contracts.CheckRef(features, nameof(features)),
                         Contracts.CheckRef(groupId, nameof(groupId)),
@@ -448,11 +448,11 @@ namespace Microsoft.ML.StaticPipe.Runtime
             {
                 Contracts.CheckValue(estimatorFactory, nameof(estimatorFactory));
                 _estFact = estimatorFactory;
-                Contracts.Assert(Inputs.Length == 2 || Inputs.Length == 3);
+                Contracts.Assert(Inputs.Length == 3 || Inputs.Length == 4);
                 Score = new Impl(this);
             }
 
-            private static PipelineColumn[] MakeInputs(Scalar<float> label, Vector<float> features, Scalar<float> weights, Scalar<float> groupId)
+            private static PipelineColumn[] MakeInputs(Scalar<float> label, Vector<float> features, Key<uint, TVal> groupId, Scalar<float> weights)
                 => weights == null ? new PipelineColumn[] { label, features, groupId } : new PipelineColumn[] { label, features, groupId, weights };
 
             protected override IEstimator<ITransformer> ReconcileCore(IHostEnvironment env, string[] inputNames)
@@ -464,7 +464,7 @@ namespace Microsoft.ML.StaticPipe.Runtime
 
             private sealed class Impl : Scalar<float>
             {
-                public Impl(Ranker rec) : base(rec, rec.Inputs) { }
+                public Impl(Ranker<TVal> rec) : base(rec, rec.Inputs) { }
             }
         }
     }

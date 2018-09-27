@@ -172,17 +172,18 @@ namespace Microsoft.ML.Runtime.Data
         /// Evaluates scored ranking data.
         /// </summary>
         /// <typeparam name="T">The shape type for the input data.</typeparam>
-        /// <param name="ctx">The regression context.</param>
+        /// <typeparam name="TVal">The type of data, before being converted to a key.</typeparam>
+        /// <param name="ctx">The ranking context.</param>
         /// <param name="data">The data to evaluate.</param>
         /// <param name="label">The index delegate for the label column.</param>
         /// <param name="groupId">The index delegate for the groupId column. </param>
         /// <param name="score">The index delegate for predicted score column.</param>
         /// <returns>The evaluation metrics.</returns>
-        public static RankerEvaluator.Result Evaluate<T>(
-            this RegressionContext ctx,
+        public static RankerEvaluator.Result Evaluate<T, TVal>(
+            this RankerContext ctx,
             DataView<T> data,
             Func<T, Scalar<float>> label,
-            Func<T, Scalar<float>> groupId,
+            Func<T, Key<uint, TVal>> groupId,
             Func<T, Scalar<float>> score)
         {
             Contracts.CheckValue(data, nameof(data));

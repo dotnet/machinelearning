@@ -355,32 +355,34 @@ namespace Microsoft.ML.StaticPipelineTesting
 
             var reader = TextLoader.CreateReader(env,
                 c => (label: c.LoadFloat(0), features: c.LoadFloat(9, 14), groupId: c.LoadText(1)),
-                separator: ';', hasHeader: true);
+                separator: '\t', hasHeader: true);
 
             FastTreeRankingPredictor pred = null;
 
             var est = reader.MakeNewEstimator()
-                .Append(r => (r.label, r.features, r.groupId.ToKey()))
-                .Append(r => (r.label, r.groupId, score: ctx.Trainers.FastTree(r.label, r.features, r.groupId,
-                onFit: (p) => { pred = p; })));
+                .Append(r => (r.label, r.features, groupId: r.groupId.ToKey()))
+                .Append(r => (r.label, r.groupId, score: ctx.Trainers.FastTree(r.label, r.features, r.groupId, onFit: (p) => { pred = p; })));
 
             var pipe = reader.Append(est);
 
             Assert.Null(pred);
             var model = pipe.Fit(dataSource);
             Assert.NotNull(pred);
-            // 11 input features, so we ought to have 11 weights.
-            VBuffer<float> weights = new VBuffer<float>();
-            pred.GetFeatureWeights(ref weights);
-            Assert.Equal(11, weights.Length);
 
             var data = model.Read(dataSource);
 
-            var metrics = ctx.Evaluate(data, r => r.label, r => r.score, new PoissonLoss());
-            // Run a sanity check against a few of the metrics.
-            //Assert.InRange(metrics.Dcg, 0, double.PositiveInfinity);
-            //Assert.InRange(metrics.Ndcg, 0, double.PositiveInfinity);
-            //Assert.InRange(metrics.MaxDcg, 0, double.PositiveInfinity);
+            var metrics = ctx.Evaluate(data, r => r.label, r => r.groupId, r => r.score);
+            Assert.NotNull(metrics);
+
+            Assert.True(metrics.Ndcg.Length == metrics.Dcg.Length && metrics.Dcg.Length == 3);
+
+            Assert.InRange(metrics.Dcg[0], 1.4, 1.6);
+            Assert.InRange(metrics.Dcg[1], 1.4, 1.8);
+            Assert.InRange(metrics.Dcg[2], 1.4, 1.8);
+
+            Assert.InRange(metrics.Ndcg[0], 36.5, 37);
+            Assert.InRange(metrics.Ndcg[1], 36.5, 37);
+            Assert.InRange(metrics.Ndcg[2], 36.5, 37);
         }
     }
 }

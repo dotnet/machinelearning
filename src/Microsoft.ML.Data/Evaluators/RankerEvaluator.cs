@@ -578,11 +578,11 @@ namespace Microsoft.ML.Runtime.Data
 
             internal Result(IExceptionContext ectx, IRow overallResult)
             {
-                double[] Fetch(string name) => Fetch<double[]>(ectx, overallResult, name);
+                VBuffer<double> Fetch(string name) => Fetch<VBuffer<double>>(ectx, overallResult, name);
 
-                Dcg = Fetch(RankerEvaluator.Dcg);
-                Ndcg = Fetch(RankerEvaluator.Ndcg);
-                MaxDcg = Fetch(RankerEvaluator.MaxDcg);
+                Dcg = Fetch(RankerEvaluator.Dcg).Values;
+                Ndcg = Fetch(RankerEvaluator.Ndcg).Values;
+                // MaxDcg = Fetch(RankerEvaluator.MaxDcg).Values;
             }
         }
     }

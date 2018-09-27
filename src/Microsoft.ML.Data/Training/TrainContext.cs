@@ -260,7 +260,7 @@ namespace Microsoft.ML.Runtime.Training
         }
 
         /// <summary>
-        /// Evaluates scored regression data.
+        /// Evaluates scored ranking data.
         /// </summary>
         /// <param name="data">The scored data.</param>
         /// <param name="label">The name of the label column in <paramref name="data"/>.</param>
@@ -272,6 +272,7 @@ namespace Microsoft.ML.Runtime.Training
             Host.CheckValue(data, nameof(data));
             Host.CheckNonEmpty(label, nameof(label));
             Host.CheckNonEmpty(score, nameof(score));
+            Host.CheckNonEmpty(groupId, nameof(groupId));
 
             var eval = new RankerEvaluator(Host, new RankerEvaluator.Arguments() { });
             return eval.Evaluate(data, label, groupId, score);

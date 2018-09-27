@@ -124,8 +124,8 @@ namespace Microsoft.ML.Trainers
         /// the linear model that was trained. Note that this action cannot change the result in any way;
         /// it is only a way for the caller to be informed about what was learnt.</param>
         /// <returns>The Score output column indicating the predicted value.</returns>
-        public static Scalar<float> FastTree(this RankerContext.RankerTrainers ctx,
-            Scalar<float> label, Vector<float> features, Key<float> groupId, Scalar<float> weights = null,
+        public static Scalar<float> FastTree<TVal>(this RankerContext.RankerTrainers ctx,
+            Scalar<float> label, Vector<float> features, Key<uint, TVal> groupId, Scalar<float> weights = null,
             int numLeaves = Defaults.NumLeaves,
             int numTrees = Defaults.NumTrees,
             int minDocumentsInLeafs = Defaults.MinDocumentsInLeafs,
@@ -135,7 +135,7 @@ namespace Microsoft.ML.Trainers
         {
             CheckUserValues(label, features, weights, numLeaves, numTrees, minDocumentsInLeafs, learningRate, advancedSettings, onFit);
 
-            var rec = new TrainerEstimatorReconciler.Ranker(
+            var rec = new TrainerEstimatorReconciler.Ranker<TVal>(
                (env, labelName, featuresName, groupIdName,  weightsName) =>
                {
                    var trainer = new FastTreeRankingTrainer(env, labelName, featuresName, groupIdName, weightsName,advancedSettings);
