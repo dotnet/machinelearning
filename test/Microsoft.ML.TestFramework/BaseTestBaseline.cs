@@ -24,7 +24,7 @@ namespace Microsoft.ML.Runtime.RunTests
     /// </summary>
     public abstract partial class BaseTestBaseline : BaseTestClass, IDisposable
     {
-        public const decimal tolerance = 10000000;
+        public const decimal Tolerance = 10_000_000;
         private readonly ITestOutputHelper _output;
 
         protected BaseTestBaseline(ITestOutputHelper helper) : base(helper)
@@ -375,12 +375,12 @@ namespace Microsoft.ML.Runtime.RunTests
         /// Check whether two files are same ignoring volatile differences (path, dates, times, etc).
         /// Returns true if the check passes.
         /// </summary>
-        protected bool CheckEqualityNormalized(string dir, string name, string nameBase = null, decimal precision = tolerance)
+        protected bool CheckEqualityNormalized(string dir, string name, string nameBase = null, decimal precision = Tolerance)
         {
             return CheckEqualityCore(dir, name, nameBase ?? name, true, precision);
         }
 
-        protected bool CheckEqualityCore(string dir, string name, string nameBase, bool normalize, decimal precision = tolerance)
+        protected bool CheckEqualityCore(string dir, string name, string nameBase, bool normalize, decimal precision = Tolerance)
         {
             Contracts.Assert(IsActive);
             Contracts.AssertValue(dir); // Can be empty.
@@ -524,7 +524,7 @@ namespace Microsoft.ML.Runtime.RunTests
         /// skipping the given number of lines on the output, and finding the corresponding line
         /// in the baseline.
         /// </summary>
-        protected bool CheckEqualityNormalized(string dir, string name, string suffix, int skip, decimal precision = tolerance)
+        protected bool CheckEqualityNormalized(string dir, string name, string suffix, int skip, decimal precision = Tolerance)
         {
             Contracts.Assert(IsActive);
             Contracts.AssertValue(dir); // Can be empty.
@@ -554,7 +554,7 @@ namespace Microsoft.ML.Runtime.RunTests
             return res;
         }
 
-        protected bool CheckEqualityFromPathsCore(string relPath, string basePath, string outPath, int skip = 0, decimal precision = tolerance)
+        protected bool CheckEqualityFromPathsCore(string relPath, string basePath, string outPath, int skip = 0, decimal precision = Tolerance)
         {
             Contracts.Assert(skip >= 0);
 

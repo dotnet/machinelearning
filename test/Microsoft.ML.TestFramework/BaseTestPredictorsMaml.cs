@@ -90,7 +90,7 @@ namespace Microsoft.ML.Runtime.RunTests
         /// <summary>
         /// Run the predictor with given args and check if it adds up
         /// </summary>
-        protected void Run(RunContext ctx, decimal precision = tolerance)
+        protected void Run(RunContext ctx, decimal precision = Tolerance)
         {
             Contracts.Assert(IsActive);
             List<string> args = new List<string>();
@@ -351,7 +351,7 @@ namespace Microsoft.ML.Runtime.RunTests
         /// Run TrainTest, CV, and TrainSaveTest for a single predictor on a single dataset.
         /// </summary>
         protected void RunOneAllTests(PredictorAndArgs predictor, TestDataset dataset,
-            string[] extraSettings = null, string extraTag = "", bool summary = false, decimal precision = tolerance)
+            string[] extraSettings = null, string extraTag = "", bool summary = false, decimal precision = Tolerance)
         {
             Contracts.Assert(IsActive);
             Run_TrainTest(predictor, dataset, extraSettings, extraTag, summary: summary, precision: precision);
@@ -383,7 +383,7 @@ namespace Microsoft.ML.Runtime.RunTests
         /// Run a train-test unit test
         /// </summary>
         protected void Run_TrainTest(PredictorAndArgs predictor, TestDataset dataset,
-            string[] extraSettings = null, string extraTag = "", bool expectFailure = false, bool summary = false, bool saveAsIni = false, decimal precision = tolerance)
+            string[] extraSettings = null, string extraTag = "", bool expectFailure = false, bool summary = false, bool saveAsIni = false, decimal precision = Tolerance)
         {
             RunContext ctx = new RunContext(this, Cmd.TrainTest, predictor, dataset, extraSettings, extraTag, expectFailure: expectFailure, summary: summary, saveAsIni: saveAsIni);
             Run(ctx, precision);
@@ -421,7 +421,7 @@ namespace Microsoft.ML.Runtime.RunTests
         /// <paramref name="useTest"/> is set.
         /// </summary>
         protected void Run_CV(PredictorAndArgs predictor, TestDataset dataset,
-            string[] extraSettings = null, string extraTag = "", bool useTest = false, decimal precision = tolerance)
+            string[] extraSettings = null, string extraTag = "", bool useTest = false, decimal precision = Tolerance)
         {
             if (useTest)
             {
