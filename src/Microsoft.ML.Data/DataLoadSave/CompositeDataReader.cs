@@ -88,6 +88,12 @@ namespace Microsoft.ML.Runtime.Data
     public static class CompositeDataReader
     {
         /// <summary>
+        /// Save the contents to a stream, as a "model file".
+        /// </summary>
+        public static void SaveTo<TSource>(this IDataReader<TSource> reader, IHostEnvironment env, Stream outputStream)
+            => new CompositeDataReader<TSource, ITransformer>(reader).SaveTo(env, outputStream);
+
+        /// <summary>
         /// Load the pipeline from stream.
         /// </summary>
         public static CompositeDataReader<IMultiStreamSource, ITransformer> LoadFrom(IHostEnvironment env, Stream stream)
