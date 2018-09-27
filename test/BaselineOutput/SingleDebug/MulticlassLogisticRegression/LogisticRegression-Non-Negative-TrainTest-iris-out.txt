@@ -1,0 +1,65 @@
+maml.exe TrainTest test=%Data% tr=MulticlassLogisticRegression{l1=0.001 l2=0.1 ot=1e-3 nt=1 nn=+} norm=No dout=%Output% data=%Data% out=%Output% seed=1
+Not adding a normalizer.
+Beginning optimization
+num vars: 15
+improvement criterion: Mean Improvement
+L1 regularization selected 13 of 15 weights.
+Not training a calibrator because it is not needed.
+
+Confusion table
+          ||========================
+PREDICTED ||     0 |     1 |     2 | Recall
+TRUTH     ||========================
+        0 ||    50 |     0 |     0 | 1.0000
+        1 ||     0 |    48 |     2 | 0.9600
+        2 ||     0 |     1 |    49 | 0.9800
+          ||========================
+Precision ||1.0000 |0.9796 |0.9608 |
+Accuracy(micro-avg): 0.980000
+Accuracy(macro-avg): 0.980000
+Log-loss:           0.095534
+Log-loss reduction: 91.304142
+
+OVERALL RESULTS
+---------------------------------------
+Accuracy(micro-avg): 0.980000 (0.0000)
+Accuracy(macro-avg): 0.980000 (0.0000)
+Log-loss:           0.095534 (0.0000)
+Log-loss reduction: 91.304142 (0.0000)
+
+---------------------------------------
+Physical memory usage(MB): %Number%
+Virtual memory usage(MB): %Number%
+%DateTime%	 Time elapsed(s): %Number%
+
+--- Progress log ---
+[1] 'LBFGS data prep' started.
+[1] 'LBFGS data prep' finished in %Time%.
+[2] 'LBFGS Optimizer' started.
+[2] (%Time%)	0 iterations	Loss: 1.0986123085022
+[2] (%Time%)	1 iterations	Loss: 1.06389963626862	Improvement: 0.03471
+[2] (%Time%)	2 iterations	Loss: 1.01654124259949	Improvement: 0.04483
+[2] (%Time%)	3 iterations	Loss: 0.944314062595367	Improvement: 0.0657
+[2] (%Time%)	4 iterations	Loss: 0.668209552764893	Improvement: 0.2241
+[2] (%Time%)	5 iterations	Loss: 0.553279459476471	Improvement: 0.1421
+[2] (%Time%)	6 iterations	Loss: 0.427209556102753	Improvement: 0.1301
+[2] (%Time%)	7 iterations	Loss: 0.33543187379837	Improvement: 0.1014
+[2] (%Time%)	8 iterations	Loss: 0.271388441324234	Improvement: 0.07337
+[2] (%Time%)	9 iterations	Loss: 0.218755051493645	Improvement: 0.05782
+[2] (%Time%)	10 iterations	Loss: 0.192830204963684	Improvement: 0.0339
+[2] (%Time%)	11 iterations	Loss: 0.184821993112564	Improvement: 0.01448
+[2] (%Time%)	12 iterations	Loss: 0.182577073574066	Improvement: 0.005304
+[2] (%Time%)	13 iterations	Loss: 0.180941790342331	Improvement: 0.002552
+[2] (%Time%)	14 iterations	Loss: 0.178911954164505	Improvement: 0.00216
+[2] (%Time%)	15 iterations	Loss: 0.171350136399269	Improvement: 0.006211
+[2] (%Time%)	16 iterations	Loss: 0.157612159848213	Improvement: 0.01186
+[2] (%Time%)	17 iterations	Loss: 0.15358293056488	Improvement: 0.005986
+[2] (%Time%)	18 iterations	Loss: 0.151476576924324	Improvement: 0.003076
+[2] (%Time%)	19 iterations	Loss: 0.146950766444206	Improvement: 0.004163
+[2] (%Time%)	20 iterations	Loss: 0.143808200955391	Improvement: 0.003398
+[2] (%Time%)	21 iterations	Loss: 0.141508430242538	Improvement: 0.002574
+[2] (%Time%)	22 iterations	Loss: 0.140696823596954	Improvement: 0.001252
+[2] (%Time%)	23 iterations	Loss: 0.140071913599968	Improvement: 0.0007818
+[2] 'LBFGS Optimizer' finished in %Time%.
+[3] 'Saving model' started.
+[3] 'Saving model' finished in %Time%.
