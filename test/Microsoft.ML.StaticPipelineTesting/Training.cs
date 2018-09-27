@@ -144,7 +144,7 @@ namespace Microsoft.ML.StaticPipelineTesting
         }
 
         [Fact]
-        public void SdcaBinaryClassificationNoClaibration()
+        public void SdcaBinaryClassificationNoCalibration()
         {
             var env = new ConsoleEnvironment(seed: 0);
             var dataPath = GetDataPath(TestDatasets.breastCancer.trainFilename);
@@ -160,9 +160,9 @@ namespace Microsoft.ML.StaticPipelineTesting
 
             // With a custom loss function we no longer get calibrated predictions.
             var est = reader.MakeNewEstimator()
-                .Append(r => (r.label, preds: ctx.Trainers.Sdca(r.label, r.features,
-                maxIterations: 2,
-                loss: loss, onFit: p => pred = p)));
+                .Append(r => (r.label, preds: ctx.Trainers.AveragedPerceptron(loss, r.label, r.features,
+                numIterations: 2,
+                onFit: p => pred = p)));
 
             var pipe = reader.Append(est);
 
@@ -184,6 +184,83 @@ namespace Microsoft.ML.StaticPipelineTesting
             var schema = data.AsDynamic.Schema;
             for (int c = 0; c < schema.ColumnCount; ++c)
                 Console.WriteLine($"{schema.GetColumnName(c)}, {schema.GetColumnType(c)}");
+        }
+
+        [Fact]
+        public void AveragePerceptron()
+        {
+            var env = new ConsoleEnvironment(seed: 0);
+            var dataPath = GetDataPath(TestDatasets.breastCancer.trainFilename);
+            var dataSource = new MultiFileSource(dataPath);
+            var ctx = new BinaryClassificationContext(env);
+
+            var reader = TextLoader.CreateReader(env,
+                c => (label: c.LoadBool(0), features: c.LoadFloat(1, 9)));
+
+            LinearBinaryPredictor pred = null;
+            // ParameterMixingCalibratedPredictor cali = null;
+
+            var est = reader.MakeNewEstimator()
+                .Append(r => (r.label, preds: ctx.Trainers.AveragedPerceptron(r.label, r.features,
+                    numIterations: 2,
+                    onFit: (p) => { pred = p; })));
+
+            var pipe = reader.Append(est);
+
+            Assert.Null(pred);
+            //Assert.Null(cali);
+            var model = pipe.Fit(dataSource);
+            Assert.NotNull(pred);
+            //Assert.NotNull(cali);
+            // 9 input features, so we ought to have 9 weights.
+            Assert.Equal(9, pred.Weights2.Count);
+
+            var data = model.Read(dataSource);
+
+            var metrics = ctx.Evaluate(data, r => r.label, r => r.preds);
+            // Run a sanity check against a few of the metrics.
+            Assert.InRange(metrics.Accuracy, 0, 1);
+            Assert.InRange(metrics.Auc, 0, 1);
+            Assert.InRange(metrics.Auprc, 0, 1);
+            Assert.InRange(metrics.LogLoss, 0, double.PositiveInfinity);
+            Assert.InRange(metrics.Entropy, 0, double.PositiveInfinity);
+        }
+
+        [Fact]
+        public void AveragePerceptronNoCalibration()
+        {
+            var env = new ConsoleEnvironment(seed: 0);
+            var dataPath = GetDataPath(TestDatasets.breastCancer.trainFilename);
+            var dataSource = new MultiFileSource(dataPath);
+            var ctx = new BinaryClassificationContext(env);
+
+            var reader = TextLoader.CreateReader(env,
+                c => (label: c.LoadBool(0), features: c.LoadFloat(1, 9)));
+
+            LinearBinaryPredictor pred = null;
+
+            var loss = new HingeLoss(new HingeLoss.Arguments() { Margin = 1 });
+
+            // With a custom loss function we no longer get calibrated predictions.
+            var est = reader.MakeNewEstimator()
+                .Append(r => (r.label, preds: ctx.Trainers.AveragedPerceptron(loss, r.label, r.features,
+                numIterations: 2, onFit: p => pred = p)));
+
+            var pipe = reader.Append(est);
+
+            Assert.Null(pred);
+            var model = pipe.Fit(dataSource);
+            Assert.NotNull(pred);
+            // 9 input features, so we ought to have 9 weights.
+            Assert.Equal(9, pred.Weights2.Count);
+
+            var data = model.Read(dataSource);
+
+            var metrics = ctx.Evaluate(data, r => r.label, r => r.preds);
+            // Run a sanity check against a few of the metrics.
+            Assert.InRange(metrics.Accuracy, 0, 1);
+            Assert.InRange(metrics.Auc, 0, 1);
+            Assert.InRange(metrics.Auprc, 0, 1);
         }
 
         [Fact]

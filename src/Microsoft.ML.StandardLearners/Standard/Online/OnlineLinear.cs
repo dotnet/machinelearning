@@ -24,7 +24,7 @@ namespace Microsoft.ML.Runtime.Learners
         [Argument(ArgumentType.AtMostOnce, HelpText = "Number of iterations", ShortName = "iter", SortOrder = 50)]
         [TGUI(Label = "Number of Iterations", Description = "Number of training iterations through data", SuggestedSweeps = "1,10,100")]
         [TlcModule.SweepableLongParamAttribute("NumIterations", 1, 100, stepSize: 10, isLogScale: true)]
-        public int NumIterations = 1;
+        public int NumIterations = DefaultArgs.NumIterations;
 
         [Argument(ArgumentType.AtMostOnce, HelpText = "Initial Weights and bias, comma-separated", ShortName = "initweights")]
         [TGUI(NoSweep = true)]
@@ -41,6 +41,11 @@ namespace Microsoft.ML.Runtime.Learners
 
         [Argument(ArgumentType.AtMostOnce, HelpText = "Size of cache when trained in Scope", ShortName = "cache")]
         public int StreamingCacheSize = 1000000;
+
+        internal static class DefaultArgs
+        {
+            internal const int NumIterations = 1;
+        }
     }
 
     public abstract class OnlineLinearTrainer<TTransformer, TModel> : TrainerEstimatorBase<TTransformer, TModel>
