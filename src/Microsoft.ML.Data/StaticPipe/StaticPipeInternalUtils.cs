@@ -9,6 +9,7 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime;
+using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Internal.Utilities;
 
 namespace Microsoft.ML.StaticPipe.Runtime
@@ -75,7 +76,7 @@ namespace Microsoft.ML.StaticPipe.Runtime
                 var methods = typeof(ValueTuple).GetMethods()
                     .Where(m => m.Name == methodName && m.ContainsGenericParameters)
                     .OrderBy(m => m.GetGenericArguments().Length).Take(7)
-                    .Concat(new[] { typeof(AnalyzeUtil).GetMethod(nameof(UnstructedCreate)) }).ToArray();
+                    .ToArray().AppendElement(typeof(AnalyzeUtil).GetMethod(nameof(UnstructedCreate)));
                 return methods;
             }
 
