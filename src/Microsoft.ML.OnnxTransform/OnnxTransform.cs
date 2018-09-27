@@ -73,8 +73,14 @@ namespace Microsoft.ML.Transforms
 	        loaderAssemblyName: typeof(OnnxTransform).Assembly.FullName);
         }
 
+        public static IDataTransform Create(IHostEnvironment env, IDataView input, string modelFile, string inputColumn, string outputColumn)
+        {
+            var args = new Arguments { ModelFile = modelFile, InputColumn = inputColumn, OutputColumn = outputColumn };
+            return Create(env, args, input);
+        }
+
         // Factory method for SignatureDataTransform
-        private static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
+        public static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
         {
             return new OnnxTransform(env, args).MakeDataTransform(input);
         }
