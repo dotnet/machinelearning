@@ -1047,7 +1047,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         }
 
         // REVIEW NEEDED: The second argument "length" is unused even in the existing code.
-        public static void SdcaL1UpdateSparse(float primalUpdate, int length, float[] source, int[] indices, int count, float threshold, float[] v, float[] w)
+        public static void SdcaL1UpdateSparse(float primalUpdate, float[] source, int[] indices, int count, float threshold, float[] v, float[] w)
         {
             Contracts.AssertNonEmpty(source);
             Contracts.AssertNonEmpty(indices);
@@ -1056,9 +1056,6 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             Contracts.Assert(count > 0);
             Contracts.Assert(count <= source.Length);
             Contracts.Assert(count <= indices.Length);
-            Contracts.Assert(count < length);
-            Contracts.Assert(length <= v.Length);
-            Contracts.Assert(length <= w.Length);
 
             SdcaL1UpdateSparse(primalUpdate, new Span<float>(source, 0, count), new Span<int>(indices, 0, count), threshold, new Span<float>(v), new Span<float>(w));
         }
