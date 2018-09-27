@@ -146,7 +146,7 @@ namespace Microsoft.ML.Runtime.Data
             where TNewLast : class, ITransformer
         {
             Contracts.CheckValue(transformer, nameof(transformer));
-            return new TransformerChain<TNewLast>(_transformers.Append(transformer).ToArray(), _scopes.Append(scope).ToArray());
+            return new TransformerChain<TNewLast>(_transformers.Concat(new[] { transformer }).ToArray(), _scopes.Concat(new[] { scope }).ToArray());
         }
 
         public void Save(ModelSaveContext ctx)

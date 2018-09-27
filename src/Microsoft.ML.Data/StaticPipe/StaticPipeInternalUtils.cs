@@ -75,7 +75,7 @@ namespace Microsoft.ML.StaticPipe.Runtime
                 var methods = typeof(ValueTuple).GetMethods()
                     .Where(m => m.Name == methodName && m.ContainsGenericParameters)
                     .OrderBy(m => m.GetGenericArguments().Length).Take(7)
-                    .Append(typeof(AnalyzeUtil).GetMethod(nameof(UnstructedCreate))).ToArray();
+                    .Concat(new[] { typeof(AnalyzeUtil).GetMethod(nameof(UnstructedCreate)) }).ToArray();
                 return methods;
             }
 

@@ -72,7 +72,7 @@ namespace Microsoft.ML.Runtime.Data
             where TNewTrans : class, ITransformer
         {
             Contracts.CheckValue(estimator, nameof(estimator));
-            return new EstimatorChain<TNewTrans>(_estimators.Append(estimator).ToArray(), _scopes.Append(scope).ToArray());
+            return new EstimatorChain<TNewTrans>(_estimators.Concat(new[] { estimator }).ToArray(), _scopes.Concat(new[] { scope }).ToArray());
         }
     }
 }
