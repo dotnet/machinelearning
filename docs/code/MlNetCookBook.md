@@ -29,6 +29,9 @@ Please feel free to search this page and use any code that suits your needs.
 - [What if my training data is not in a text file?](#what-if-my-training-data-is-not-in-a-text-file)
 - [I want to look at my model's coefficients](#i-want-to-look-at-my-models-coefficients)
 - [What is normalization and why do I need to care?](#what-is-normalization-and-why-do-i-need-to-care)
+- [How do I train my model on categorical data?](#how-do-i-train-my-model-on-categorical-data)
+- [How do I train my model on textual data?](#how-do-i-train-my-model-on-textual-data)
+- [How do I train using cross-validation?](#how-do-i-train-using-cross-validation)
 
 ## How do I load data from a text file?
 
@@ -568,4 +571,137 @@ var model = learningPipeline.Fit(trainData);
 // 3 vectors (of 4 values each).
 VBuffer<float>[] weights = null;
 predictor.GetWeights(ref weights, out int numClasses);
+```
+
+## What is normalization and why do I need to care?
+
+In ML.NET we expose a number of [parametric and non-parametric algorithms](https://machinelearningmastery.com/parametric-and-nonparametric-machine-learning-algorithms/).
+
+Typically, parametric learners hold certain assumptions about the training data, and if they are not met, the training is greatly hampered (or sometimes becomes completely impossible).
+
+Most commonly, the assumption are that
+- All the features have values roughly on the same scale;
+- Feature values are not too large, and not too small.
+
+Violating the first assumption above can cause the learner to train a sub-optimal model (or even a completely useless one). Violating the second assumption can cause arithmetic error accumulation, which typically breaks the training process altogether.
+
+As a general rule, *if you use a parametric learner, you need to make sure your training data is correctly scaled*. 
+
+ML.NET offers several built-in scaling algorithms, or 'normalizers':
+- MinMax normalizer: for each feature, we learn the minimum and maximum value of it, and then linearly rescale it so that the values fit between -1 and 1.
+- MeanVar normalizer: for each feature, compute the mean and variance, and then linearly rescale it to zero-mean, unit-variance.
+- CDF normalizer: for each feature, compute the mean and variance, and then replace each value `x` with `Cdf(x)`, where `Cdf` is the cumulative density function of normal distribution with these mean and variance. 
+- Binning normalizer: discretize the feature value into `N` 'buckets', and then replace each value with the index of the bucket, divided by `N-1`.
+
+These normalizers all have different properties and tradeoffs, but it's not *that* big of a deal if you use one over another. Just make sure you use a normalizer when training linear models or other parametric models. 
+
+An important parameter of ML.NET normalizers is called `fixZero`. If `fixZero` is true, zero input is always mapped to zero output. This is very important when you handle sparse data: if we don't preserve zeroes, we will turn all sparse data into dense, which is usually a bad idea.
+
+It is a good practice to include the normalizer directly in the ML.NET learning pipeline: this way you are sure that the normalization
+- is only trained on the training data, and not on your test data,
+- is correctly applied to all the new incoming data, without the need for extra pre-processing at prediction time.
+
+Here's a snippet of code that demonstrates normalization in learning pipelines. It assumes the Iris dataset:
+```c#
+// Create a new environment for ML.NET operations. It can be used for exception tracking and logging, 
+// as well as the source of randomness.
+var env = new LocalEnvironment();
+
+// Define the reader: specify the data columns and where to find them in the text file.
+var reader = TextLoader.CreateReader(env, ctx => (
+        // The four features of the Iris dataset will be grouped together as one Features column.
+        Features: ctx.LoadFloat(0, 3),
+        // Label: kind of iris.
+        Label: ctx.LoadText(4)
+    ),
+    // Default separator is tab, but the dataset has comma.
+    separator: ',');
+
+// Read the training data.
+var trainData = reader.Read(new MultiFileSource(dataPath));
+
+// Apply all kinds of standard ML.NET normalization to the raw features.
+var pipeline = reader.MakeNewEstimator()
+    .Append(r => (
+        MinMaxNormalized: r.Features.Normalize(fixZero: true),
+        MeanVarNormalized: r.Features.NormalizeByMeanVar(fixZero: false),
+        CdfNormalized: r.Features.NormalizeByCumulativeDistribution(),
+        BinNormalized: r.Features.NormalizeByBinning(maxBins: 256),
+    ));
+
+// Let's train our pipeline of normalizers, and then apply it to the same data.
+var normalizedData = pipeline.Fit(trainData).Transform(trainData);
+
+// Inspect one column of the resulting dataset.
+var meanVarValues = normalizedData.GetColumn(r => r.MeanVarNormalized).ToArray();
+```
+
+## How do I train my model on textual data?
+
+Generally speaking, *all ML.NET learners expect the features as a float vector*. So, if some of your data is not natively a float, you will need to convert to floats. 
+
+If we want to learn on textual data, we need to 'extract features' out of the texts. There is an entire research area of NLP (Natural Language Processing) that handles this. In ML.NET we offer some basic mechanisms of text feature extraction:
+- Text normalization (removing punctuation, diacritics, switching to lowercase etc.)
+- Separator-based tokenization.
+- Stopword removal.
+- Ngram and skip-gram extraction.
+- TF-IDF rescaling.
+- Bag of words conversion.
+
+ML.NET offers a "one-stop shop" operation called `TextFeaturizer`, that runs a combination of above steps as one big 'text featurization'. We have tested it extensively on text datasets, and we're confident that it performs reasonably well without the need to deep-dive into the operations. 
+
+However, we also offer a selection of elementary operations that let you customize your NLP processing. Here's the example below where we use them.
+
+Wikipedia detox dataset:
+```
+Sentiment   SentimentText
+1      Stop trolling, zapatancas, calling me a liar merely demonstartes that you arer Zapatancas. You may choose to chase every legitimate editor from this site and ignore me but I am an editor with a record that isnt 99% trolling and therefore my wishes are not to be completely ignored by a sockpuppet like yourself. The consensus is overwhelmingly against you and your trollin g lover Zapatancas,  
+1    ::::: Why are you threatening me? I'm not being disruptive, its you who is being disruptive.   
+0   " *::Your POV and propaganda pushing is dully noted. However listing interesting facts in a netral and unacusitory tone is not POV. You seem to be confusing Censorship with POV monitoring. I see nothing POV expressed in the listing of intersting facts. If you want to contribute more facts or edit wording of the cited fact to make them sound more netral then go ahead. No need to CENSOR interesting factual information. "
+0     ::::::::This is a gross exaggeration. Nobody is setting a kangaroo court. There was a simple addition concerning the airline. It is the only one disputed here.   
+```
+
+```c#
+// Create a new environment for ML.NET operations. It can be used for exception tracking and logging, 
+// as well as the source of randomness.
+var env = new LocalEnvironment();
+
+// Define the reader: specify the data columns and where to find them in the text file.
+var reader = TextLoader.CreateReader(env, ctx => (
+        IsToxic: ctx.LoadBool(0),
+        Message: ctx.LoadText(1)
+    ), hasHeader: true);
+
+// Read the data.
+var data = reader.Read(new MultiFileSource(dataPath));
+
+// Inspect the message texts that are read from the file.
+var messageTexts = data.GetColumn(x => x.Message).Take(20).ToArray();
+
+// Apply various kinds of text operations supported by ML.NET.
+var learningPipeline = reader.MakeNewEstimator()
+    .Append(r => (
+        // One-stop shop to run the full text featurization.
+        TextFeatures: r.Message.FeaturizeText(),
+
+        // NLP pipeline 1: bag of words.
+        BagOfWords: r.Message.NormalizeText().ToBagofWords(),
+
+        // NLP pipeline 2: bag of bigrams.
+        BagOfBigrams: r.Message.NormalizeText().ToBagofWords(ngramLength: 2, allLengths: false),
+
+        // NLP pipeline 3: bag of tri-character sequences.
+        BagOfTrichar: r.Message.TokenizeIntoCharacters().ToNgrams(ngramLength: 3),
+
+        // NLP pipeline 4: word embeddings.
+        Embeddings: r.Message.NormalizeText().TokenizeText().WordEmbeddings(WordEmbeddingsTransform.PretrainedModelKind.GloVeTwitter25D)
+    ));
+
+// Let's train our pipeline, and then apply it to the same data.
+// Note that even on a small dataset of 70KB the pipeline above can take up to a minute to completely train.
+var transformedData = learningPipeline.Fit(data).Transform(data);
+
+// Inspect some columns of the resulting dataset.
+var embeddings = transformedData.GetColumn(x => x.Embeddings).Take(10).ToArray();
+var unigrams = transformedData.GetColumn(x => x.BagOfWords).Take(10).ToArray();
 ```

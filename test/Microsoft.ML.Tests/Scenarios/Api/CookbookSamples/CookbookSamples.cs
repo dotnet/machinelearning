@@ -6,6 +6,8 @@ using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.StaticPipe;
 using Microsoft.ML.Data;
 using Microsoft.ML.Trainers;
+using Microsoft.ML.Transforms;
+using Microsoft.ML.Transforms.Text;
 using Microsoft.ML.Runtime.RunTests;
 using Microsoft.ML.Runtime.FastTree;
 using Microsoft.ML.TestFramework;
@@ -267,7 +269,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
                     r.Label,
                     // Train the multi-class SDCA model to predict the label using features.
                     // Note that the label is a text, so it needs to be converted to key using 'ToKey' estimator.
-                    Predictions: classification.Trainers.Sdca(r.Label.ToKey(), r.Features, 
+                    Predictions: classification.Trainers.Sdca(r.Label.ToKey(), r.Features,
                         // When the model is trained, the below delegate is going to be called.
                         // We use that to memorize the predictor object.
                         onFit: p => predictor = p)));
@@ -286,7 +288,46 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
 
         [Fact]
         public void InspectModelWeights()
-            => TrainAndInspectWeights(GetDataPath(TestDatasets.generatedRegressionDataset.trainFilename));
+            => TrainAndInspectWeights(GetDataPath("iris.data"));
+
+        private void NormalizationWorkout(string dataPath)
+        {
+            // Create a new environment for ML.NET operations. It can be used for exception tracking and logging, 
+            // as well as the source of randomness.
+            var env = new LocalEnvironment();
+
+            // Define the reader: specify the data columns and where to find them in the text file.
+            var reader = TextLoader.CreateReader(env, ctx => (
+                    // The four features of the Iris dataset will be grouped together as one Features column.
+                    Features: ctx.LoadFloat(0, 3),
+                    // Label: kind of iris.
+                    Label: ctx.LoadText(4)
+                ),
+                // Default separator is tab, but the dataset has comma.
+                separator: ',');
+
+            // Read the training data.
+            var trainData = reader.Read(new MultiFileSource(dataPath));
+
+            // Apply all kinds of standard ML.NET normalization to the raw features.
+            var pipeline = reader.MakeNewEstimator()
+                .Append(r => (
+                    MinMaxNormalized: r.Features.Normalize(fixZero: true),
+                    MeanVarNormalized: r.Features.NormalizeByMeanVar(fixZero: false),
+                    CdfNormalized: r.Features.NormalizeByCumulativeDistribution(),
+                    BinNormalized: r.Features.NormalizeByBinning(maxBins: 256)
+                ));
+
+            // Let's train our pipeline of normalizers, and then apply it to the same data.
+            var normalizedData = pipeline.Fit(trainData).Transform(trainData);
+
+            // Inspect one column of the resulting dataset.
+            var meanVarValues = normalizedData.GetColumn(r => r.MeanVarNormalized).ToArray();
+        }
+
+        [Fact]
+        public void Normalization()
+            => NormalizationWorkout(GetDataPath("iris.data"));
 
         private class IrisInput
         {
@@ -366,6 +407,56 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
 
             var qualityMetrics = classification.Evaluate(dynamicModel.Transform(trainData), "HasChurned");
         }
+
+        private void TextFeaturizationOn(string dataPath)
+        {
+            // Create a new environment for ML.NET operations. It can be used for exception tracking and logging, 
+            // as well as the source of randomness.
+            var env = new LocalEnvironment();
+
+            // Define the reader: specify the data columns and where to find them in the text file.
+            var reader = TextLoader.CreateReader(env, ctx => (
+                    IsToxic: ctx.LoadBool(0),
+                    Message: ctx.LoadText(1)
+                ), hasHeader: true);
+
+            // Read the data.
+            var data = reader.Read(new MultiFileSource(dataPath));
+
+            // Inspect the message texts that are read from the file.
+            var messageTexts = data.GetColumn(x => x.Message).Take(20).ToArray();
+
+            // Apply various kinds of text operations supported by ML.NET.
+            var learningPipeline = reader.MakeNewEstimator()
+                .Append(r => (
+                    // One-stop shop to run the full text featurization.
+                    TextFeatures: r.Message.FeaturizeText(),
+
+                    // NLP pipeline 1: bag of words.
+                    BagOfWords: r.Message.NormalizeText().ToBagofWords(),
+
+                    // NLP pipeline 2: bag of bigrams.
+                    BagOfBigrams: r.Message.NormalizeText().ToBagofWords(ngramLength: 2, allLengths: false),
+
+                    // NLP pipeline 3: bag of tri-character sequences.
+                    BagOfTrichar: r.Message.TokenizeIntoCharacters().ToNgrams(ngramLength: 3),
+
+                    // NLP pipeline 4: word embeddings.
+                    Embeddings: r.Message.NormalizeText().TokenizeText().WordEmbeddings(WordEmbeddingsTransform.PretrainedModelKind.GloVeTwitter25D)
+                ));
+
+            // Let's train our pipeline, and then apply it to the same data.
+            // Note that even on a small dataset of 70KB the pipeline above can take up to a minute to completely train.
+            var transformedData = learningPipeline.Fit(data).Transform(data);
+
+            // Inspect some columns of the resulting dataset.
+            var embeddings = transformedData.GetColumn(x => x.Embeddings).Take(10).ToArray();
+            var unigrams = transformedData.GetColumn(x => x.BagOfWords).Take(10).ToArray();
+        }
+
+        [Fact(Skip = "This test is running for one minute")]
+        public void TextFeaturization()
+            => TextFeaturizationOn(GetDataPath("wikipedia-detox-250-line-data.tsv"));
 
         private class CustomerChurnInfo
         {
