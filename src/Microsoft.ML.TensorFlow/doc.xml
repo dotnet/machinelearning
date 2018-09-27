@@ -8,13 +8,13 @@
       </summary>
       <remarks>
         <para>
-          The TensorflowTransform extracts the specified outputs from the operations computed on the graph (given the input(s)) using a pre-trained <a href="https://www.tensorflow.org">Tensorflow</a> model.
-          The transform takes as input the Tensorflow model together with the names of the inputs to the model and names of the operations for which output values will be extracted from the model.
+          The TensorFlowTransform extracts specified outputs using a pre-trained <a href="https://www.tensorflow.org">Tensorflow</a> model.
+          The transform takes as inputs the pre-trained Tensorflow model, the names of the input nodes, and names of the output nodes whose values we want to extract. 
         </para>
 
         <para>
           This transform requires the <a href="https://dotnet.myget.org/feed/dotnet-core/package/nuget/Microsoft.ML.TensorFlow">Microsoft.ML.TensorFlow</a> nuget to be installed.
-          The TensorflowTransform has following assumptions regarding the input, output and processing of data.
+          The TensorFlowTransform has the following assumptions regarding input, output and processing of data.
         </para>
         <list type="number">
           <item>
@@ -26,10 +26,10 @@
             <description>The transform supports scoring only one example at a time.</description>
           </item>
           <item>
-            <description>The name of input column(s) should match the name of input(s) in Tensorflow model.</description>
+            <description>The name of input column(s) should match the name of input(s) in TensorFlow model.</description>
           </item>
           <item>
-            <description>The name of each output column should match one of the operations in the Tensorflow graph.</description>
+            <description>The name of each output column should match one of the operations in the TensorFlow graph.</description>
           </item>
           <item>
             <description>Currently, float and double are the only acceptable data types for input/output.</description>
