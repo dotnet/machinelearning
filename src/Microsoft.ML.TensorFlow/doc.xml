@@ -13,13 +13,13 @@
         </para>
 
         <para>
-          This transform requires the <a href="https://dotnet.myget.org/feed/dotnet-core/package/nuget/Microsoft.ML.TensorFlow/0.5.0-preview-26830-5">Microsoft.ML.TensorFlow</a> nuget to be installed.
+          This transform requires the <a href="https://dotnet.myget.org/feed/dotnet-core/package/nuget/Microsoft.ML.TensorFlow">Microsoft.ML.TensorFlow</a> nuget to be installed.
           The TensorflowTransform has following assumptions regarding the input, output and processing of data.
         </para>
         <list type="number">
           <item>
             <description>
-              The transform currently accepts the <a href="https://www.tensorflow.org/mobile/prepare_models">frozen TensorFlow model</a> file as input.
+              For the input model, currently the TensorFlowTransform supports both the <a href="https://www.tensorflow.org/mobile/prepare_models">Frozen model</a> format and also the <a href="https://www.tensorflow.org/guide/saved_model#build_and_load_a_savedmodel">SavedModel</a> format.
             </description>
           </item>
           <item>
@@ -35,7 +35,7 @@
             <description>Currently, float and double are the only acceptable data types for input/output.</description>
           </item>
           <item>
-            Upon success, the transform will introduce a new column in <see cref="IDataView"/> corresponding to each output column specified.
+            <description>Upon success, the transform will introduce a new column in <see cref="IDataView"/> corresponding to each output column specified.</description>
           </item>
         </list>
 
@@ -50,16 +50,16 @@
           pipeline.Add(new ColumnCopier(("NumericImageVec", "Input");
           pipeline.Add(new TensorFlowScorer()
           {
-            ModelFile = model_location;
-            InputColumns = new []{ "Input" };
-            OutputColumns = "Output"
+            Model = model_location;
+            InputColumns = new[] { "Input" };
+            OutputColumns = new[] { "Output" };
           }
         </code>
       </example>
       <example>
         <code language="csharp">
-          var pipeline = new LearningPipeline(seed: 1);
-          pipeline.Add(new TextLoader(dataFile).CreateFrom&lt;CifarData&gt;(useHeader: false));
+          var pipeline = new Legacy.LearningPipeline(seed: 1);
+          pipeline.Add(new Microsoft.ML.Legacy.Data.TextLoader(dataFile).CreateFrom&lt;CifarData&gt;(useHeader: false));
           pipeline.Add(new ImageLoader(("ImagePath", "ImageReal"))
           {
             ImageFolder = imageFolder
@@ -80,10 +80,11 @@
 
           pipeline.Add(new TensorFlowScorer()
           {
-            ModelFile = model_location,
+            Model = model_location,
             InputColumns = new[] { "Input" },
-            OutputColumns = "Output"
+            OutputColumns = new[] { "Output" }
           });
+
         </code>
     </example>
     </member>
