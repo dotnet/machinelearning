@@ -194,6 +194,9 @@ namespace Microsoft.ML.Runtime.Data
         }
     }
 
+    /// <summary>
+    /// Estimator which takes set of columns and produce for each column indicator array. Use hashing to determine indicator position.
+    /// </summary>
     public sealed class CategoricalHashEstimator : IEstimator<CategoricalHashTransform>
     {
         internal static class Defaults

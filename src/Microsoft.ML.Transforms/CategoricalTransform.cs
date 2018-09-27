@@ -177,7 +177,9 @@ namespace Microsoft.ML.Runtime.Data
             return _transformer.GetRowToRowMapper(inputSchema);
         }
     }
-
+    /// <summary>
+    /// Estimator which takes set of columns and produce for each column indicator array.
+    /// </summary>
     public sealed class CategoricalEstimator : IEstimator<CategoricalTransform>
     {
         internal static class Defaults
