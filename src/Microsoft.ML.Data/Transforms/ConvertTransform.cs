@@ -671,7 +671,8 @@ namespace Microsoft.ML.Transforms
                 verReadableCur: 0x00010002,
                 verWeCanReadBack: 0x00010001,
                 loaderSignature: LoaderSignature,
-                loaderSignatureAlt: LoaderSignatureOld);
+                loaderSignatureAlt: LoaderSignatureOld,
+                loaderAssemblyName: typeof(ConvertTransformer).Assembly.FullName);
         }
 
         private const string RegistrationName = "Convert";
@@ -705,71 +706,24 @@ namespace Microsoft.ML.Transforms
             {
                 if (!input.Schema.TryGetColumnIndex(ColumnPairs[i].input, out int srcCol))
                     throw Host.ExceptSchemaMismatch(nameof(input), "input", ColumnPairs[i].input);
-                if (!CheckIsConvertable(input.Schema, srcCol, columns[i].ResultType, columns[i].KeyRange))
+                if (!CheckIsConvertable(input.Schema, srcCol, columns[i].ResultType, columns[i].KeyRange, out PrimitiveType itemType))
                 {
                     throw Host.ExceptParam(nameof(input), "Source column '{0}' is not of compatible type", input.Schema.GetColumnName(srcCol));
                 }
+                var srcType = input.Schema.GetColumnType(srcCol);
+                ColumnType typeDst = itemType;
+                if (srcType.IsVector)
+                    typeDst = new VectorType(itemType, srcType.AsVector);
+
+                /*// An output column is transposable iff the input column was transposable.
+                VectorType slotType = null;
+                if (info.SlotTypeSrc != null)
+                    slotType = new VectorType(itemType, info.SlotTypeSrc);*/
             }
         }
 
-        private static bool TryCreateEx(IExceptionContext ectx, ColInfo info, DataKind kind, KeyRange range, out PrimitiveType itemType, out ColInfoEx ex)
+        private bool CheckIsConvertable(ISchema schema, int srcCol, DataKind resultType, KeyRange range, out PrimitiveType itemType)
         {
-            ectx.AssertValue(info);
-            ectx.Assert(Enum.IsDefined(typeof(DataKind), kind));
-
-            ex = null;
-
-            var typeSrc = info.TypeSrc;
-            if (range != null)
-            {
-                itemType = TypeParsingUtils.ConstructKeyType(kind, range);
-                if (!typeSrc.ItemType.IsKey && !typeSrc.ItemType.IsText)
-                    return false;
-            }
-            else if (!typeSrc.ItemType.IsKey)
-                itemType = PrimitiveType.FromKind(kind);
-            else if (!KeyType.IsValidDataKind(kind))
-            {
-                itemType = PrimitiveType.FromKind(kind);
-                return false;
-            }
-            else
-            {
-                var key = typeSrc.ItemType.AsKey;
-                ectx.Assert(KeyType.IsValidDataKind(key.RawKind));
-                int count = key.Count;
-                // Technically, it's an error for the counts not to match, but we'll let the Conversions
-                // code return false below. There's a possibility we'll change the standard conversions to
-                // map out of bounds values to zero, in which case, this is the right thing to do.
-                ulong max = kind.ToMaxInt();
-                if ((ulong)count > max)
-                    count = (int)max;
-                itemType = new KeyType(kind, key.Min, count, key.Contiguous);
-            }
-
-            // Ensure that the conversion is legal. We don't actually cache the delegate here. It will get
-            // re-fetched by the utils code when needed.
-            bool identity;
-            Delegate del;
-            if (!Conversions.Instance.TryGetStandardConversion(typeSrc.ItemType, itemType, out del, out identity))
-                return false;
-
-            ColumnType typeDst = itemType;
-            if (typeSrc.IsVector)
-                typeDst = new VectorType(itemType, typeSrc.AsVector);
-
-            // An output column is transposable iff the input column was transposable.
-            VectorType slotType = null;
-            if (info.SlotTypeSrc != null)
-                slotType = new VectorType(itemType, info.SlotTypeSrc);
-
-            ex = new ColInfoEx(kind, range != null, typeDst, slotType);
-            return true;
-        }
-
-        private bool CheckIsConvertable(ISchema schema, int srcCol, DataKind resultType, KeyRange range)
-        {
-            PrimitiveType itemType;
             var srcType = schema.GetColumnType(srcCol);
             if (range != null)
             {
@@ -800,20 +754,7 @@ namespace Microsoft.ML.Transforms
 
             // Ensure that the conversion is legal. We don't actually cache the delegate here. It will get
             // re-fetched by the utils code when needed.
-            bool identity;
-            Delegate del;
-            if (!Conversions.Instance.TryGetStandardConversion(srcType.ItemType, itemType, out del, out identity))
-                return false;
-
-            ColumnType typeDst = itemType;
-            if (srcType.IsVector)
-                typeDst = new VectorType(itemType, srcType.AsVector);
-
-            // An output column is transposable iff the input column was transposable.
-            VectorType slotType = null;
-            if (info.SlotTypeSrc != null)
-                slotType = new VectorType(itemType, info.SlotTypeSrc);
-
+            return Conversions.Instance.TryGetStandardConversion(srcType.ItemType, itemType, out Delegate del, out bool identity);
         }
 
         public override void Save(ModelSaveContext ctx)
