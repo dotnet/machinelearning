@@ -206,14 +206,14 @@ namespace Microsoft.ML.Transforms
             return File.ReadAllBytes(_modelFile);
         }
 
-        public OnnxNodeInfo[] GetInputsInfo()
+        private OnnxNodeInfo[] GetInputsInfo()
         {
             return DictToNodesInfo(
                     _modelManager.GetInputTypeDict(_modelName, _ignoredVersion),
                     _modelManager.GetInputShapesDict(_modelName, _ignoredVersion));
         }
 
-        public OnnxNodeInfo[] GetOutputsInfo()
+        private OnnxNodeInfo[] GetOutputsInfo()
         {
             return DictToNodesInfo(
                     _modelManager.GetOutputTypeDict(_modelName, _ignoredVersion),
