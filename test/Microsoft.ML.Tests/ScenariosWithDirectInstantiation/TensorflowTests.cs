@@ -429,7 +429,6 @@ namespace Microsoft.ML.Scenarios
 
                 var args = new TensorFlowTransform.TrainingArguments()
                 {
-                    WrokingDir = @"E:\Tensorflow\WorkingDir",
                     LabeLColumn = "Label",
                     OptimizationOperation = "SGDOptimizer",
                     LossOperation = "Loss",
@@ -455,8 +454,8 @@ namespace Microsoft.ML.Scenarios
                 IDataScorerTransform testDataScorer = GetScorer(env, trans, pred, testDataPath);
                 var metrics = Evaluate(env, testDataScorer);
 
-                Assert.Equal(0.46956521739130436, metrics.AccuracyMicro, 2);
-                Assert.Equal(0.44761904761904764, metrics.AccuracyMacro, 2);
+                Assert.Equal(0.58260869565217388, metrics.AccuracyMicro, 2);
+                Assert.Equal(0.25374149659863943, metrics.AccuracyMacro, 2);
 
                 // Create prediction engine and test predictions
                 var model = env.CreatePredictionEngine<MNISTData, MNISTPrediction>(testDataScorer);

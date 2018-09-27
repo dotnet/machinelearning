@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Text;
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
@@ -52,9 +53,6 @@ namespace Microsoft.ML.Transforms
 
         public sealed class TrainingArguments
         {
-            [Argument(ArgumentType.Required, HelpText = "Directory for saving intermediate model state and temporary files.", SortOrder = 3)]
-            public string WrokingDir;
-
             [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "Training labels.", ShortName = "OptimizationOp", SortOrder = 4)]
             public string LabeLColumn = DefaultColumnNames.Label;
 
@@ -71,7 +69,7 @@ namespace Microsoft.ML.Transforms
             public int BatchSize = 64;
 
             [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "Number of training iterations.", SortOrder = 7)]
-            public int Epoch = 10;
+            public int Epoch = 5;
 
             [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "The name of the operation in the TensorFlow graph which sets optimizer learning rate (Optional).", SortOrder = 8)]
             public string LearningRateOperation;
@@ -228,13 +226,15 @@ namespace Microsoft.ML.Transforms
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(args, nameof(args));
             env.CheckValue(input, nameof(input));
-            env.CheckNonEmpty(args.WrokingDir, nameof(args.WrokingDir));
             env.CheckNonEmpty(args.OptimizationOperation, nameof(args.OptimizationOperation));
 
-            TrainCore(args, input);
+            if (TensorFlowUtils.IsSavedModel(env, model))
+                TrainCore(args, model, input);
+            else
+                throw env.ExceptNotSupp("TensorFlowTransform: Re-Training of TensorFlow model is only possible for un-frozen model.");
         }
 
-        private void TrainCore(TrainingArguments args, IDataView input)
+        private void TrainCore(TrainingArguments args, string model, IDataView input)
         {
             var inputsForTraining = new string[Inputs.Length + 1];
             var inputColIndices = new int[inputsForTraining.Length];
@@ -319,6 +319,61 @@ namespace Microsoft.ML.Transforms
                     }
                 }
             }
+            UpdateModelOnDisk(model);
+        }
+
+        /// <summary>
+        /// Updates the model on the disk.
+        /// After retraining Session and Graphs are both up-to-date
+        /// However model on disk is not which is used to serialzed to ML.Net stream
+        /// </summary>
+        private void UpdateModelOnDisk(string modelDir)
+        {
+            // Save the model on disk
+            var path = Path.Combine(modelDir, "mlnet_model");
+            Session.GetRunner().AddInput("save/Const", TFTensor.CreateString(Encoding.UTF8.GetBytes(path)))
+                    .AddTarget("save/control_dependency").Run();
+
+            // Preserve original files
+            var variablesPath = Path.Combine(modelDir, "variables");
+            var archivePath = Path.Combine(variablesPath + "-" + DateTime.Now.Ticks.ToString());
+            Directory.CreateDirectory(archivePath);
+            foreach (var f in Directory.GetFiles(variablesPath))
+                File.Copy(f, Path.Combine(archivePath, Path.GetFileName(f)));
+
+            string[] modelFilePaths = null;
+
+            // There are two ways parameters are saved depending on
+            // either `saver_def = tf.train.Saver().as_saver_def()` was called in Python before `tf.saved_model.simple_save` or not.
+            // If `saver_def = tf.train.Saver().as_saver_def()` was called files are saved in top directory.
+            // If not then temporary directory is created in current directory which starts with `mlnet_model`
+            // and files are saved there.
+            var tmpParamDir = Directory.GetDirectories(modelDir, "mlnet_model*");
+            if (tmpParamDir != null && tmpParamDir.Length > 0)
+                modelFilePaths = Directory.GetFiles(tmpParamDir[0]);
+            else
+                modelFilePaths = Directory.GetFiles(modelDir, "mlnet_model*");
+
+            foreach (var file in modelFilePaths)
+            {
+                if (file.EndsWith(".data-00000-of-00001"))
+                {
+                    var destination = Path.Combine(variablesPath, "variables.data-00000-of-00001");
+                    if (File.Exists(destination))
+                        File.Delete(destination);
+                    Directory.Move(file, destination);
+                }
+                if (file.EndsWith(".index"))
+                {
+                    var destination = Path.Combine(variablesPath, "variables.index");
+                    if (File.Exists(destination))
+                        File.Delete(destination);
+                    Directory.Move(file, Path.Combine(variablesPath, "variables.index"));
+                }
+            }
+
+            if (tmpParamDir != null && tmpParamDir.Length > 0)
+                Directory.Delete(tmpParamDir[0], true);
         }
 
         private (float loss, float metric) TrainBatch(int[] inputColIndices,
@@ -527,7 +582,14 @@ namespace Microsoft.ML.Transforms
             {
                 ctx.SaveBinaryStream("TFSavedModel", w =>
                 {
-                    string[] modelFilePaths = Directory.GetFiles(_savedModelPath, "*", SearchOption.AllDirectories);
+                    // only these files need to be saved.
+                    string[] modelFilePaths =
+                    {
+                        Path.Combine(_savedModelPath, "saved_model.pb"),
+                        Path.Combine(_savedModelPath, "variables", "variables.data-00000-of-00001"),
+                        Path.Combine(_savedModelPath, "variables", "variables.index"),
+                    };
+
                     w.Write(modelFilePaths.Length);
 
                     foreach (var fullPath in modelFilePaths)
@@ -800,14 +862,23 @@ namespace Microsoft.ML.Transforms
         private class TensorValueGetter<T> : ITensorValueGetter
         {
             private readonly ValueGetter<T> _srcgetter;
-            private readonly List<T> _bufferedData;
+            private readonly T[] _bufferedData;
             private readonly TFShape _tfShape;
+            private int _position;
 
             public TensorValueGetter(IRow input, int colIndex, TFShape tfShape)
             {
                 _srcgetter = input.GetGetter<T>(colIndex);
                 _tfShape = tfShape;
-                _bufferedData = new List<T>();
+                long size = 0;
+                _position = 0;
+                if (tfShape.dims.Length != 0)
+                {
+                    size = 1;
+                    foreach (var dim in tfShape.dims)
+                        size *= dim;
+                }
+                _bufferedData = new T[size];
             }
 
             public TFTensor GetTensor()
@@ -821,13 +892,13 @@ namespace Microsoft.ML.Transforms
             {
                 var scalar = default(T);
                 _srcgetter(ref scalar);
-                _bufferedData.Add(scalar);
+                _bufferedData[_position++] = scalar;
             }
 
             public TFTensor GetBufferedBatchTensor()
             {
-                var tensor = TFTensor.Create(_bufferedData.ToArray(), _bufferedData.Count, _tfShape);
-                _bufferedData.Clear();
+                var tensor = TFTensor.Create(_bufferedData.ToArray(), _bufferedData.Length, _tfShape);
+                _position = 0;
                 return tensor;
             }
         }
@@ -838,7 +909,8 @@ namespace Microsoft.ML.Transforms
             private readonly TFShape _tfShape;
             private VBuffer<T> _vBuffer;
             private VBuffer<T> _vBufferDense;
-            private readonly List<T> _bufferedData;
+            private readonly T[] _bufferedData;
+            private int _position;
 
             public TensorValueGetterVec(IRow input, int colIndex, TFShape tfShape)
             {
@@ -846,7 +918,16 @@ namespace Microsoft.ML.Transforms
                 _tfShape = tfShape;
                 _vBuffer = default;
                 _vBufferDense = default;
-                _bufferedData = new List<T>();
+
+                long size = 0;
+                _position = 0;
+                if (tfShape.dims.Length != 0)
+                {
+                    size = 1;
+                    foreach (var dim in tfShape.dims)
+                        size *= dim;
+                }
+                _bufferedData = new T[size];
             }
 
             public TFTensor GetTensor()
@@ -860,13 +941,14 @@ namespace Microsoft.ML.Transforms
             {
                 _srcgetter(ref _vBuffer);
                 _vBuffer.CopyToDense(ref _vBufferDense);
-                _bufferedData.AddRange(_vBufferDense.DenseValues());
+                Array.Copy(_vBufferDense.Values, 0, _bufferedData, _position, _vBuffer.Length);
+                _position += _vBuffer.Length;
             }
 
             public TFTensor GetBufferedBatchTensor()
             {
-                var tensor = TFTensor.Create(_bufferedData.ToArray(), _bufferedData.Count, _tfShape);
-                _bufferedData.Clear();
+                var tensor = TFTensor.Create(_bufferedData.ToArray(), _bufferedData.Length, _tfShape);
+                _position = 0;
                 return tensor;
             }
         }

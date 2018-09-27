@@ -268,7 +268,7 @@ namespace Microsoft.ML.Transforms.TensorFlow
     {
         // extern TF_Status * TF_NewStatus ();
         [DllImport(NativeBinding.TensorFlowLibrary)]
-        private static extern unsafe TF_Status TF_NewStatus();
+        internal static extern unsafe TF_Status TF_NewStatus();
 
         /// <summary>
         /// Per-thread global status that you can use if you do not need to create a new instance of this object.
@@ -290,7 +290,7 @@ namespace Microsoft.ML.Transforms.TensorFlow
 
         // extern void TF_DeleteStatus (TF_Status *);
         [DllImport(NativeBinding.TensorFlowLibrary)]
-        private static extern unsafe void TF_DeleteStatus(TF_Status status);
+        internal static extern unsafe void TF_DeleteStatus(TF_Status status);
 
         internal override void NativeDispose(IntPtr handle)
         {
@@ -313,7 +313,7 @@ namespace Microsoft.ML.Transforms.TensorFlow
 
         // extern TF_Code TF_GetCode (const TF_Status *s);
         [DllImport(NativeBinding.TensorFlowLibrary)]
-        private static extern unsafe TFCode TF_GetCode(TF_Status s);
+        internal static extern unsafe TFCode TF_GetCode(TF_Status s);
 
         /// <summary>
         /// Gets the status code for the status code.
@@ -2237,5 +2237,20 @@ namespace Microsoft.ML.Transforms.TensorFlow
         {
             return shape.AsTensor();
         }
+    }
+
+    internal class TFString
+    {
+        // extern size_t TF_StringEncode (const char *src, size_t src_len, char *dst, size_t dst_len, TF_Status *status);
+        [DllImport(NativeBinding.TensorFlowLibrary)]
+        internal static extern unsafe size_t TF_StringEncode(byte* src, size_t src_len, sbyte* dst, size_t dst_len, TF_Status status);
+
+        // extern size_t TF_StringDecode (const char *src, size_t src_len, const char **dst, size_t *dst_len, TF_Status *status);
+        [DllImport(NativeBinding.TensorFlowLibrary)]
+        internal static extern unsafe size_t TF_StringDecode(sbyte* src, size_t src_len, sbyte** dst, size_t* dst_len, TF_Status status);
+
+        // extern size_t TF_StringEncodedSize (size_t len);
+        [DllImport(NativeBinding.TensorFlowLibrary)]
+        internal static extern size_t TF_StringEncodedSize(size_t len);
     }
 }

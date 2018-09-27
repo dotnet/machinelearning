@@ -409,6 +409,32 @@ namespace Microsoft.ML.Transforms.TensorFlow
         /// <param name="data">Data.</param>
         public TFTensor(Complex[] data) : base(SetupTensor(TFDataType.Complex128, data, size: 16)) { }
 
+        public static unsafe TFTensor CreateString(byte[] buffer)
+        {
+            if (buffer == null)
+                throw new ArgumentNullException(nameof(buffer));
+            //
+            // TF_STRING tensors are encoded with a table of 8-byte offsets followed by
+            // TF_StringEncode-encoded bytes.
+            //
+            var size = TFString.TF_StringEncodedSize((UIntPtr)buffer.Length);
+            IntPtr handle = TF_AllocateTensor(TFDataType.String, IntPtr.Zero, 0, (UIntPtr)((ulong)size + 8));
+
+            // Clear offset table
+            IntPtr dst = TF_TensorData(handle);
+            Marshal.WriteInt64(dst, 0);
+            var status = TFStatus.TF_NewStatus();
+            fixed (byte* src = &buffer[0])
+            {
+                TFString.TF_StringEncode(src, (UIntPtr)buffer.Length, (sbyte*)(dst + 8), size, status);
+                var ok = TFStatus.TF_GetCode(status) == TFCode.Ok;
+                TFStatus.TF_DeleteStatus(status);
+                if (!ok)
+                    return null;
+            }
+            return new TFTensor(handle);
+        }
+
         // Convenience function to factor out the setup of a new tensor from an array
         internal static IntPtr SetupTensor(TFDataType dt, long[] dims, Array data, int count, int size)
         {
