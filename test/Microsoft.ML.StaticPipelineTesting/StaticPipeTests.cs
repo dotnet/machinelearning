@@ -2,10 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Data.StaticPipe;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Data.IO;
 using Microsoft.ML.Runtime.Internal.Utilities;
+using Microsoft.ML.Runtime.RunTests;
+using Microsoft.ML.StaticPipe;
 using Microsoft.ML.TestFramework;
 using Microsoft.ML.Transforms;
 using Microsoft.ML.Transforms.Text;
@@ -13,6 +14,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
+using System.Linq;
 using System.Text;
 using Xunit;
 using Xunit.Abstractions;
@@ -301,7 +303,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             ImmutableArray<ImmutableArray<float>> bb;
 
             var est = reader.MakeNewEstimator()
-                .Append(r => (r, 
+                .Append(r => (r,
                     ncdf: r.NormalizeByCumulativeDistribution(onFit: (m, s) => mm = m),
                     n: r.NormalizeByMeanVar(onFit: (s, o) => { ss = s; Assert.Empty(o); }),
                     b: r.NormalizeByBinning(onFit: b => bb = b)));
@@ -534,7 +536,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var data = reader.Read(dataSource);
 
             var est = reader.MakeNewEstimator()
-                .Append(r => (r.label, 
+                .Append(r => (r.label,
                               lpnorm: r.features.LpNormalize(),
                               gcnorm: r.features.GlobalContrastNormalize(),
                               zcawhitened: r.features.ZcaWhitening(),
@@ -556,6 +558,114 @@ namespace Microsoft.ML.StaticPipelineTesting
 
             Assert.True(schema.TryGetColumnIndex("pcswhitened", out int pcswhitenedCol));
             type = schema.GetColumnType(pcswhitenedCol);
+            Assert.True(type.IsVector && type.IsKnownSizeVector && type.ItemType.IsNumber);
+        }
+
+        [Fact]
+        public void LdaTopicModel()
+        {
+            var env = new ConsoleEnvironment(seed: 0);
+            var dataPath = GetDataPath("wikipedia-detox-250-line-data.tsv");
+            var reader = TextLoader.CreateReader(env, ctx => (
+                    label: ctx.LoadBool(0),
+                    text: ctx.LoadText(1)), hasHeader: true);
+            var dataSource = new MultiFileSource(dataPath);
+            var data = reader.Read(dataSource);
+
+            var est = data.MakeNewEstimator()
+                .Append(r => (
+                    r.label,
+                    topics: r.text.ToBagofWords().ToLdaTopicVector(numTopic: 10, advancedSettings: s => {
+                        s.AlphaSum = 10;
+                    })));
+
+            var tdata = est.Fit(data).Transform(data);
+            var schema = tdata.AsDynamic.Schema;
+
+            Assert.True(schema.TryGetColumnIndex("topics", out int topicsCol));
+            var type = schema.GetColumnType(topicsCol);
+            Assert.True(type.IsVector && type.IsKnownSizeVector && type.ItemType.IsNumber);
+        }
+
+        [Fact]
+        public void FeatureSelection()
+        {
+            var env = new ConsoleEnvironment(seed: 0);
+            var dataPath = GetDataPath("wikipedia-detox-250-line-data.tsv");
+            var reader = TextLoader.CreateReader(env, ctx => (
+                    label: ctx.LoadBool(0),
+                    text: ctx.LoadText(1)), hasHeader: true);
+            var dataSource = new MultiFileSource(dataPath);
+            var data = reader.Read(dataSource);
+
+            var est = data.MakeNewEstimator()
+                .Append(r => (
+                    r.label,
+                    bag_of_words_count: r.text.ToBagofWords().SelectFeaturesBasedOnCount(10),
+                    bag_of_words_mi: r.text.ToBagofWords().SelectFeaturesBasedOnMutualInformation(r.label)));
+
+            var tdata = est.Fit(data).Transform(data);
+            var schema = tdata.AsDynamic.Schema;
+
+            Assert.True(schema.TryGetColumnIndex("bag_of_words_count", out int bagofwordCountCol));
+            var type = schema.GetColumnType(bagofwordCountCol);
+            Assert.True(type.IsVector && type.IsKnownSizeVector && type.ItemType.IsNumber);
+
+            Assert.True(schema.TryGetColumnIndex("bag_of_words_mi", out int bagofwordMiCol));
+            type = schema.GetColumnType(bagofwordMiCol);
+            Assert.True(type.IsVector && type.IsKnownSizeVector && type.ItemType.IsNumber);
+        }
+
+        [Fact]
+        public void TrainTestSplit()
+        {
+            var env = new ConsoleEnvironment(seed: 0);
+            var dataPath = GetDataPath(TestDatasets.iris.trainFilename);
+            var dataSource = new MultiFileSource(dataPath);
+
+            var ctx = new BinaryClassificationContext(env);
+
+            var reader = TextLoader.CreateReader(env,
+                c => (label: c.LoadFloat(0), features: c.LoadFloat(1, 4)));
+            var data = reader.Read(dataSource);
+
+            var (train, test) = ctx.TrainTestSplit(data, 0.5);
+
+            // Just make sure that the train is about the same size as the test set.
+            var trainCount = train.GetColumn(r => r.label).Count();
+            var testCount = test.GetColumn(r => r.label).Count();
+
+            Assert.InRange(trainCount * 1.0 / testCount, 0.8, 1.2);
+
+            // Now stratify by label. Silly thing to do.
+            (train, test) = ctx.TrainTestSplit(data, 0.5, stratificationColumn: r => r.label);
+            var trainLabels = train.GetColumn(r => r.label).Distinct();
+            var testLabels = test.GetColumn(r => r.label).Distinct();
+            Assert.True(trainLabels.Count() > 0);
+            Assert.True(testLabels.Count() > 0);
+            Assert.False(trainLabels.Intersect(testLabels).Any());
+        }
+
+        [Fact]
+        public void PrincipalComponentAnalysis()
+        {
+            var env = new ConsoleEnvironment(seed: 0);
+            var dataPath = GetDataPath("generated_regression_dataset.csv");
+            var dataSource = new MultiFileSource(dataPath);
+
+            var reader = TextLoader.CreateReader(env,
+                c => (label: c.LoadFloat(11), features: c.LoadFloat(0, 10)),
+                separator: ';', hasHeader: true);
+            var data = reader.Read(dataSource);
+
+            var est = reader.MakeNewEstimator()
+                .Append(r => (r.label,
+                              pca: r.features.ToPrincipalComponents(rank: 5)));
+            var tdata = est.Fit(data).Transform(data);
+            var schema = tdata.AsDynamic.Schema;
+
+            Assert.True(schema.TryGetColumnIndex("pca", out int pcaCol));
+            var type = schema.GetColumnType(pcaCol);
             Assert.True(type.IsVector && type.IsKnownSizeVector && type.ItemType.IsNumber);
         }
     }

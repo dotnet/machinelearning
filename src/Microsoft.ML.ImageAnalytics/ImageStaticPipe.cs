@@ -4,7 +4,7 @@
 
 using System;
 using System.Drawing;
-using Microsoft.ML.Data.StaticPipe.Runtime;
+using Microsoft.ML.StaticPipe;
 
 namespace Microsoft.ML.Runtime.ImageAnalytics
 {

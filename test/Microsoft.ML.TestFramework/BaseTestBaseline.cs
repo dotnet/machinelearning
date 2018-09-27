@@ -24,6 +24,7 @@ namespace Microsoft.ML.Runtime.RunTests
     /// </summary>
     public abstract partial class BaseTestBaseline : BaseTestClass, IDisposable
     {
+        public const decimal Tolerance = 10_000_000;
         private readonly ITestOutputHelper _output;
 
         protected BaseTestBaseline(ITestOutputHelper helper) : base(helper)
@@ -108,7 +109,8 @@ namespace Microsoft.ML.Runtime.RunTests
             string logPath = Path.Combine(logDir, FullTestName + LogSuffix);
             LogWriter = OpenWriter(logPath);
             _passed = true;
-            Env = new ConsoleEnvironment(42, outWriter: LogWriter, errWriter: LogWriter);
+            Env = new ConsoleEnvironment(42, outWriter: LogWriter, errWriter: LogWriter)
+                .AddStandardComponents();
             InitializeCore();
         }
 
@@ -373,12 +375,12 @@ namespace Microsoft.ML.Runtime.RunTests
         /// Check whether two files are same ignoring volatile differences (path, dates, times, etc).
         /// Returns true if the check passes.
         /// </summary>
-        protected bool CheckEqualityNormalized(string dir, string name, string nameBase = null)
+        protected bool CheckEqualityNormalized(string dir, string name, string nameBase = null, decimal precision = Tolerance)
         {
-            return CheckEqualityCore(dir, name, nameBase ?? name, true);
+            return CheckEqualityCore(dir, name, nameBase ?? name, true, precision);
         }
 
-        protected bool CheckEqualityCore(string dir, string name, string nameBase, bool normalize)
+        protected bool CheckEqualityCore(string dir, string name, string nameBase, bool normalize, decimal precision = Tolerance)
         {
             Contracts.Assert(IsActive);
             Contracts.AssertValue(dir); // Can be empty.
@@ -405,7 +407,7 @@ namespace Microsoft.ML.Runtime.RunTests
             if (!CheckBaseFile(basePath))
                 return false;
 
-            bool res = CheckEqualityFromPathsCore(relPath, basePath, outPath);
+            bool res = CheckEqualityFromPathsCore(relPath, basePath, outPath, precision: precision);
 
             // No need to keep the raw (unnormalized) output file.
             if (normalize && res)
@@ -522,7 +524,7 @@ namespace Microsoft.ML.Runtime.RunTests
         /// skipping the given number of lines on the output, and finding the corresponding line
         /// in the baseline.
         /// </summary>
-        protected bool CheckEqualityNormalized(string dir, string name, string suffix, int skip)
+        protected bool CheckEqualityNormalized(string dir, string name, string suffix, int skip, decimal precision = Tolerance)
         {
             Contracts.Assert(IsActive);
             Contracts.AssertValue(dir); // Can be empty.
@@ -543,7 +545,7 @@ namespace Microsoft.ML.Runtime.RunTests
             if (!CheckBaseFile(basePath))
                 return false;
 
-            bool res = CheckEqualityFromPathsCore(relPath, basePath, outPath, skip);
+            bool res = CheckEqualityFromPathsCore(relPath, basePath, outPath, skip, precision);
 
             // No need to keep the raw (unnormalized) output file.
             if (res)
@@ -552,7 +554,7 @@ namespace Microsoft.ML.Runtime.RunTests
             return res;
         }
 
-        protected bool CheckEqualityFromPathsCore(string relPath, string basePath, string outPath, int skip = 0, decimal precision = 10000000)
+        protected bool CheckEqualityFromPathsCore(string relPath, string basePath, string outPath, int skip = 0, decimal precision = Tolerance)
         {
             Contracts.Assert(skip >= 0);
 

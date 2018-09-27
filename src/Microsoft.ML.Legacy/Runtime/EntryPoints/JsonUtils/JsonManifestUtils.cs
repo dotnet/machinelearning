@@ -23,7 +23,7 @@ namespace Microsoft.ML.Runtime.EntryPoints.JsonUtils
         /// </summary>
         /// <param name="ectx">The exception context to use</param>
         /// <param name="catalog">The module catalog</param>
-        public static JObject BuildAllManifests(IExceptionContext ectx, ModuleCatalog catalog)
+        public static JObject BuildAllManifests(IExceptionContext ectx, ComponentCatalog catalog)
         {
             Contracts.CheckValueOrNull(ectx);
             ectx.CheckValue(catalog, nameof(catalog));
@@ -87,7 +87,7 @@ namespace Microsoft.ML.Runtime.EntryPoints.JsonUtils
             return jResult;
         }
 
-        private static JObject BuildComponentManifest(IExceptionContext ectx, ModuleCatalog.ComponentInfo componentInfo, ModuleCatalog catalog)
+        private static JObject BuildComponentManifest(IExceptionContext ectx, ComponentCatalog.ComponentInfo componentInfo, ComponentCatalog catalog)
         {
             Contracts.AssertValueOrNull(ectx);
             ectx.AssertValue(componentInfo);
@@ -103,7 +103,7 @@ namespace Microsoft.ML.Runtime.EntryPoints.JsonUtils
             return result;
         }
 
-        public static JObject BuildEntryPointManifest(IExceptionContext ectx, ModuleCatalog.EntryPointInfo entryPointInfo, ModuleCatalog catalog)
+        public static JObject BuildEntryPointManifest(IExceptionContext ectx, ComponentCatalog.EntryPointInfo entryPointInfo, ComponentCatalog catalog)
         {
             Contracts.CheckValueOrNull(ectx);
             ectx.CheckValue(entryPointInfo, nameof(entryPointInfo));
@@ -137,7 +137,7 @@ namespace Microsoft.ML.Runtime.EntryPoints.JsonUtils
             return result;
         }
 
-        private static JArray BuildInputManifest(IExceptionContext ectx, Type inputType, ModuleCatalog catalog)
+        private static JArray BuildInputManifest(IExceptionContext ectx, Type inputType, ComponentCatalog catalog)
         {
             Contracts.AssertValueOrNull(ectx);
             ectx.AssertValue(inputType);
@@ -258,7 +258,7 @@ namespace Microsoft.ML.Runtime.EntryPoints.JsonUtils
             return new JArray(inputs.OrderBy(x => x.Key).Select(x => x.Value).ToArray());
         }
 
-        private static JArray BuildOutputManifest(IExceptionContext ectx, Type outputType, ModuleCatalog catalog)
+        private static JArray BuildOutputManifest(IExceptionContext ectx, Type outputType, ComponentCatalog catalog)
         {
             Contracts.AssertValueOrNull(ectx);
             ectx.AssertValue(outputType);
@@ -286,7 +286,7 @@ namespace Microsoft.ML.Runtime.EntryPoints.JsonUtils
             return new JArray(outputs.OrderBy(x => x.Key).Select(x => x.Value).ToArray());
         }
 
-        private static JToken BuildTypeToken(IExceptionContext ectx, FieldInfo fieldInfo, Type type, ModuleCatalog catalog)
+        private static JToken BuildTypeToken(IExceptionContext ectx, FieldInfo fieldInfo, Type type, ComponentCatalog catalog)
         {
             Contracts.AssertValueOrNull(ectx);
             ectx.AssertValue(type);
@@ -378,7 +378,7 @@ namespace Microsoft.ML.Runtime.EntryPoints.JsonUtils
             }
         }
 
-        private static JToken BuildValueToken(IExceptionContext ectx, object value, Type valueType, ModuleCatalog catalog)
+        private static JToken BuildValueToken(IExceptionContext ectx, object value, Type valueType, ComponentCatalog catalog)
         {
             Contracts.AssertValueOrNull(ectx);
             ectx.AssertValueOrNull(value);
@@ -437,14 +437,14 @@ namespace Microsoft.ML.Runtime.EntryPoints.JsonUtils
         /// This is an inherently fragile setup in case when the factory is not trivial, but it will work well for 'property bag' factories
         /// that we are currently using.
         /// </summary>
-        private static JToken BuildComponentToken(IExceptionContext ectx, IComponentFactory value, ModuleCatalog catalog)
+        private static JToken BuildComponentToken(IExceptionContext ectx, IComponentFactory value, ComponentCatalog catalog)
         {
             Contracts.AssertValueOrNull(ectx);
             ectx.AssertValue(value);
             ectx.AssertValue(catalog);
 
             var type = value.GetType();
-            ModuleCatalog.ComponentInfo componentInfo;
+            ComponentCatalog.ComponentInfo componentInfo;
             if (!catalog.TryFindComponent(type, out componentInfo))
             {
                 // The default component is not in the catalog. This is, technically, allowed, but it means that there's no JSON representation
@@ -463,7 +463,7 @@ namespace Microsoft.ML.Runtime.EntryPoints.JsonUtils
             catch (MissingMemberException ex)
             {
                 // There was no default constructor found.
-                // This should never happen, since ModuleCatalog would error out if there is no default ctor.
+                // This should never happen, since ComponentCatalog would error out if there is no default ctor.
                 ectx.Assert(false);
                 throw ectx.Except(ex, "Couldn't find default constructor");
             }
