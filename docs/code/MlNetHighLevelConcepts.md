@@ -53,7 +53,7 @@ Most transformers in ML.NET tend to operate on one *input column* at a time, and
 
 It is also common that the input and output column names are the same. In this case, the old column is 'replaced' with the new one. For example, a `new HashTransformer("foo")` would take the values from column "foo", hash them and 'put them back' into "foo". 
 
-Any transformer will, of course, produce a new data when `Transform` is called: remember, datasets are immutable.
+Any transformer will, of course, produce a new data view when `Transform` is called: remember, data views are immutable.
 
 Another important consideration is that, because data is lazily evaluated, *transformers are lazy too*. Essentially, after you call
 ```c#
@@ -127,7 +127,7 @@ Once we obtain the model (which is a *transformer* that we either trained via `F
 
 Of course, we can reduce this to the batch prediction:
 - Create a data view with exactly one row.
-- Call `model.Transform(data)` to obtain the 'predicted dataset'.
+- Call `model.Transform(data)` to obtain the 'predicted data view'.
 - Get a cursor over the resulting data.
 - Advance the cursor one step to get to the first (and only) row.
 - Extract the predicted values out of it.
