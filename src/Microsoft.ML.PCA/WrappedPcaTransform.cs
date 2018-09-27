@@ -104,7 +104,7 @@ namespace Microsoft.ML.Runtime.Data
             }
         }
 
-        /// <summary>Replace current vector with it's princpal components. Can significantly reduce size of vector.</summary>
+        /// <summary>Replace current vector with it's principal components. Can significantly reduce size of vector.</summary>
         /// <include file='doc.xml' path='doc/members/member[@name="PCA"]/*'/>
         /// <param name="input">The column to apply PCA to.</param>
         /// <param name="rank">The number of components in the PCA.</param>

@@ -710,7 +710,7 @@ namespace Microsoft.ML.Runtime.Data
         /// </summary>
         /// <param name="input">Input data.</param>
         /// <param name="otherInputs">Additional data.</param>
-        /// <param name="advancedSettings">Delegate which allow you to set transformation settings.</param>
+        /// <param name="advancedSettings">Delegate which allows you to set transformation settings.</param>
         /// <returns></returns>
         public static Vector<float> FeaturizeText(this Scalar<string> input, Scalar<string>[] otherInputs = null, Action<TextTransform.Settings> advancedSettings = null)
         {
