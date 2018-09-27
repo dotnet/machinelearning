@@ -180,7 +180,7 @@ namespace Microsoft.ML.Runtime.Data
 
     public sealed class CategoricalEstimator : IEstimator<CategoricalTransform>
     {
-        public static class Defaults
+        internal static class Defaults
         {
             public const CategoricalTransform.OutputKind OutKind = CategoricalTransform.OutputKind.Ind;
         }
@@ -204,7 +204,7 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         private readonly IHost _host;
-        private readonly IEstimator<ITransformer> _keyToSomething;
+        private readonly IEstimator<ITransformer> _toVector;
         private TermEstimator _term;
 
         /// A helper method to create <see cref="CategoricalEstimator"/> for public facing API.
@@ -251,18 +251,18 @@ namespace Microsoft.ML.Runtime.Data
                 cols.Add((column.Output, column.Output, bag));
                 if (binaryEncoding)
                 {
-                    _keyToSomething = new KeyToBinaryVectorEstimator(_host, cols.Select(x => new KeyToBinaryVectorTransform.ColumnInfo(x.input, x.output)).ToArray());
+                    _toVector = new KeyToBinaryVectorEstimator(_host, cols.Select(x => new KeyToBinaryVectorTransform.ColumnInfo(x.input, x.output)).ToArray());
                 }
                 else
                 {
-                    _keyToSomething = new KeyToVectorEstimator(_host, cols.Select(x => new KeyToVectorTransform.ColumnInfo(x.input, x.output, x.bag)).ToArray());
+                    _toVector = new KeyToVectorEstimator(_host, cols.Select(x => new KeyToVectorTransform.ColumnInfo(x.input, x.output, x.bag)).ToArray());
                 }
             }
         }
 
-        public SchemaShape GetOutputSchema(SchemaShape inputSchema) => _term.Append(_keyToSomething).GetOutputSchema(inputSchema);
+        public SchemaShape GetOutputSchema(SchemaShape inputSchema) => _term.Append(_toVector).GetOutputSchema(inputSchema);
 
-        public CategoricalTransform Fit(IDataView input) => new CategoricalTransform(_term, _keyToSomething, input);
+        public CategoricalTransform Fit(IDataView input) => new CategoricalTransform(_term, _toVector, input);
 
         internal void WrapTermWithDelegate(Action<TermTransform> onFit)
         {

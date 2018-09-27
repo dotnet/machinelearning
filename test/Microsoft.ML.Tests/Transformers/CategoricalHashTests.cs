@@ -99,9 +99,9 @@ namespace Microsoft.ML.Tests.Transformers
         public void TestMetadataPropagation()
         {
             var data = new[] {
-                new TestMeta() { A=new string[2] { "A", "B"}, B="C", C= new float[2] { 1.0f,2.0f}, D = 1.0f , E= new string[2]{ "A","D"}, F="D"},
-                new TestMeta() { A=new string[2] { "A", "B"}, B="C",C=new float[2] { 3.0f,4.0f}, D = -1.0f ,E= new string[2]{"E", "A"}, F="E"},
-                new TestMeta() { A=new string[2] { "A", "B"}, B="C",C=new float[2] { 5.0f,6.0f}, D = 1.0f ,E= new string[2]{ "D", "E"}, F="D"} };
+                new TestMeta() { A = new string[2] { "A", "B"}, B = "C", C= new float[2] { 1.0f,2.0f}, D = 1.0f , E= new string[2]{"A","D"}, F="D"},
+                new TestMeta() { A = new string[2] { "A", "B"}, B = "C", C =new float[2] { 3.0f,4.0f}, D = -1.0f, E= new string[2]{"E","A"}, F="E"},
+                new TestMeta() { A = new string[2] { "A", "B"}, B = "C", C =new float[2] { 5.0f,6.0f}, D = 1.0f , E= new string[2]{"D","E"}, F="D"} };
 
 
             var dataView = ComponentCreation.CreateDataView(Env, data);

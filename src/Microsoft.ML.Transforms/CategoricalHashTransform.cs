@@ -21,7 +21,6 @@ using System.Text;
 
 namespace Microsoft.ML.Runtime.Data
 {
-
     public sealed class CategoricalHashTransform : ITransformer, ICanSaveModel
     {
         public sealed class Column : OneToOneColumn
@@ -148,7 +147,7 @@ namespace Microsoft.ML.Runtime.Data
             return new CategoricalHashEstimator(env, name, source, outputKind).Fit(input).Transform(input) as IDataView;
         }
 
-        public static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
+        internal static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
         {
             Contracts.CheckValue(env, nameof(env));
             var h = env.Register("Categorical");
@@ -174,7 +173,7 @@ namespace Microsoft.ML.Runtime.Data
 
         private readonly TransformerChain<ITransformer> _transformer;
 
-        public CategoricalHashTransform(HashEstimator hash, IEstimator<ITransformer> keyToVector, IDataView input)
+        internal CategoricalHashTransform(HashEstimator hash, IEstimator<ITransformer> keyToVector, IDataView input)
         {
             var chain = hash.Append(keyToVector);
             _transformer = chain.Fit(input);
@@ -197,7 +196,7 @@ namespace Microsoft.ML.Runtime.Data
 
     public sealed class CategoricalHashEstimator : IEstimator<CategoricalHashTransform>
     {
-        public static class Defaults
+        internal static class Defaults
         {
             public const int HashBits = 16;
             public const uint Seed = 314489979;
@@ -222,7 +221,7 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         private readonly IHost _host;
-        private readonly IEstimator<ITransformer> _keyToSomething;
+        private readonly IEstimator<ITransformer> _toVector;
         private HashEstimator _hash;
 
         /// A helper method to create <see cref="CategoricalHashEstimator"/> for public facing API.
@@ -272,19 +271,19 @@ namespace Microsoft.ML.Runtime.Data
                     {
                         if ((column.InvertHash) != 0)
                             ch.Warning("Invert hashing is being used with binary encoding.");
-                        _keyToSomething = new KeyToBinaryVectorEstimator(_host, cols.Select(x => new KeyToBinaryVectorTransform.ColumnInfo(x.input, x.output)).ToArray());
+                        _toVector = new KeyToBinaryVectorEstimator(_host, cols.Select(x => new KeyToBinaryVectorTransform.ColumnInfo(x.input, x.output)).ToArray());
                     }
                     else
                     {
-                        _keyToSomething = new KeyToVectorEstimator(_host, cols.Select(x => new KeyToVectorTransform.ColumnInfo(x.input, x.output, x.bag)).ToArray());
+                        _toVector = new KeyToVectorEstimator(_host, cols.Select(x => new KeyToVectorTransform.ColumnInfo(x.input, x.output, x.bag)).ToArray());
                     }
                 }
             }
         }
 
-        public SchemaShape GetOutputSchema(SchemaShape inputSchema) => _hash.Append(_keyToSomething).GetOutputSchema(inputSchema);
+        public SchemaShape GetOutputSchema(SchemaShape inputSchema) => _hash.Append(_toVector).GetOutputSchema(inputSchema);
 
-        public CategoricalHashTransform Fit(IDataView input) => new CategoricalHashTransform(_hash, _keyToSomething, input);
+        public CategoricalHashTransform Fit(IDataView input) => new CategoricalHashTransform(_hash, _toVector, input);
     }
 
     public static class CategoricalHashStaticExtensions
