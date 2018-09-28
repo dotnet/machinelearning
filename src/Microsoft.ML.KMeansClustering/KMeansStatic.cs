@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.KMeans;
 using Microsoft.ML.StaticPipe.Runtime;
@@ -34,16 +35,22 @@ namespace Microsoft.ML.StaticPipe
            Action<KMeansPlusPlusTrainer.Arguments> advancedSettings = null,
            Action<KMeansPredictor> onFit = null)
         {
-               var rec = new TrainerEstimatorReconciler.Clustering(
-               (env, featuresName, weightsName) =>
-               {
-                   var trainer = new KMeansPlusPlusTrainer(env, featuresName, clustersCount, weightsName, advancedSettings);
+            Contracts.CheckValue(features, nameof(features));
+            Contracts.CheckValueOrNull(weights);
+            Contracts.CheckParam(clustersCount > 1, nameof(clustersCount), "If provided, must be greater than 1.");
+            Contracts.CheckValueOrNull(onFit);
+            Contracts.CheckValueOrNull(advancedSettings);
 
-                   if (onFit != null)
-                       return trainer.WithOnFitDelegate(trans => onFit(trans.Model));
-                   else
-                       return trainer;
-               }, features, weights);
+            var rec = new TrainerEstimatorReconciler.Clustering(
+            (env, featuresName, weightsName) =>
+            {
+                var trainer = new KMeansPlusPlusTrainer(env, featuresName, clustersCount, weightsName, advancedSettings);
+
+                if (onFit != null)
+                    return trainer.WithOnFitDelegate(trans => onFit(trans.Model));
+                else
+                    return trainer;
+            }, features, weights);
 
             return rec.Output;
         }

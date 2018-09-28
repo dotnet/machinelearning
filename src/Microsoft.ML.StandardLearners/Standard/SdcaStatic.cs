@@ -158,7 +158,7 @@ namespace Microsoft.ML.StaticPipe
         /// <param name="ctx">The binary classification context trainer object.</param>
         /// <param name="label">The label, or dependent variable.</param>
         /// <param name="features">The features, or independent variables.</param>
-        /// /// <param name="loss">The custom loss.</param>
+        /// <param name="loss">The custom loss.</param>
         /// <param name="weights">The optional example weights.</param>
         /// <param name="l2Const">The L2 regularization hyperparameter.</param>
         /// <param name="l1Threshold">The L1 regularization hyperparameter. Higher values will tend to lead to more sparse model.</param>
@@ -198,7 +198,7 @@ namespace Microsoft.ML.StaticPipe
                 L2Const = l2Const,
                 L1Threshold = l1Threshold,
                 MaxIterations = maxIterations,
-                LossFunction = new TrivialClassificationLossFactory(loss)
+                LossFunction = new TrivialSdcaClassificationLossFactory(loss)
             };
 
             var rec = new TrainerEstimatorReconciler.BinaryClassifierNoCalibration(
@@ -231,7 +231,7 @@ namespace Microsoft.ML.StaticPipe
         /// <param name="ctx">The multiclass classification context trainer object.</param>
         /// <param name="label">The label, or dependent variable.</param>
         /// <param name="features">The features, or independent variables.</param>
-        /// /// <param name="loss">The custom loss.</param>
+        /// <param name="loss">The custom loss.</param>
         /// <param name="weights">The optional example weights.</param>
         /// <param name="l2Const">The L2 regularization hyperparameter.</param>
         /// <param name="l1Threshold">The L1 regularization hyperparameter. Higher values will tend to lead to more sparse model.</param>
@@ -270,7 +270,7 @@ namespace Microsoft.ML.StaticPipe
             };
 
             if (loss != null)
-                args.LossFunction = new TrivialClassificationLossFactory(loss);
+                args.LossFunction = new TrivialSdcaClassificationLossFactory(loss);
 
             var rec = new TrainerEstimatorReconciler.MulticlassClassifier<TVal>(
                 (env, labelName, featuresName, weightsName) =>
@@ -285,11 +285,11 @@ namespace Microsoft.ML.StaticPipe
         }
     }
 
-    internal sealed class TrivialClassificationLossFactory : ISupportSdcaClassificationLossFactory
+    internal sealed class TrivialSdcaClassificationLossFactory : ISupportSdcaClassificationLossFactory
     {
         private readonly ISupportSdcaClassificationLoss _loss;
 
-        public TrivialClassificationLossFactory(ISupportSdcaClassificationLoss loss)
+        public TrivialSdcaClassificationLossFactory(ISupportSdcaClassificationLoss loss)
         {
             _loss = loss;
         }

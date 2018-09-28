@@ -1359,7 +1359,7 @@ namespace Microsoft.ML.Runtime.Learners
     public sealed class LinearClassificationTrainer : SdcaTrainerBase<BinaryPredictionTransformer<TScalarPredictor>, TScalarPredictor>
     {
         public const string LoadNameValue = "SDCA";
-        public const string UserNameValue = "Fast Linear (SA-SDCA)";
+        internal const string UserNameValue = "Fast Linear (SA-SDCA)";
 
         public sealed class Arguments : ArgumentsBase
         {

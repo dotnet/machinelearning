@@ -17,7 +17,7 @@
     <MicrosoftCodeAnalysisCSharpVersion>2.9.0</MicrosoftCodeAnalysisCSharpVersion>
     <MicrosoftCSharpVersion>4.5.0</MicrosoftCSharpVersion>
     <SystemCompositionVersion>1.2.0</SystemCompositionVersion>
-    <MicrosoftMLScoring>1.0.4-dev48825</MicrosoftMLScoring>
+    <MicrosoftMLScoring>1.1.0</MicrosoftMLScoring>
     <SystemIOFileSystemAccessControl>4.5.0</SystemIOFileSystemAccessControl>
     <SystemSecurityPrincipalWindows>4.5.0</SystemSecurityPrincipalWindows>
   </PropertyGroup>
