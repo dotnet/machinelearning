@@ -46,10 +46,22 @@ namespace Microsoft.ML.Runtime.Learners
         /// <param name="labelColumn">The name of the label column.</param>
         /// <param name="featureColumn">The name of the feature column.</param>
         /// <param name="weightColumn">The name for the example weight column.</param>
+        /// <param name="enforceNoNegativity">Enforce non-negative weights.</param>
+        /// <param name="l1Weight">Weight of L1 regularizer term.</param>
+        /// <param name="l2Weight">Weight of L2 regularizer term.</param>
+        /// <param name="memorySize">Memory size for <see cref="LogisticRegression"/>. Lower=faster, less accurate.</param>
+        /// <param name="optimizationTolerance">Threshold for optimizer convergence.</param>
         /// <param name="advancedSettings">A delegate to apply all the advanced arguments to the algorithm.</param>
         public PoissonRegression(IHostEnvironment env, string featureColumn, string labelColumn,
-            string weightColumn = null, Action<Arguments> advancedSettings = null)
-            : base(env, featureColumn, TrainerUtils.MakeR4ScalarLabel(labelColumn), weightColumn, advancedSettings)
+            string weightColumn = null,
+            float l1Weight = Arguments.Defaults.L1Weight,
+            float l2Weight = Arguments.Defaults.L2Weight,
+            float optimizationTolerance = Arguments.Defaults.OptTol,
+            int memorySize = Arguments.Defaults.MemorySize,
+            bool enforceNoNegativity = Arguments.Defaults.EnforceNonNegativity,
+            Action<Arguments> advancedSettings = null)
+            : base(env, featureColumn, TrainerUtils.MakeR4ScalarLabel(labelColumn), weightColumn, advancedSettings,
+                   l1Weight, l2Weight, optimizationTolerance, memorySize, enforceNoNegativity)
         {
             Host.CheckNonEmpty(featureColumn, nameof(featureColumn));
             Host.CheckNonEmpty(labelColumn, nameof(labelColumn));
