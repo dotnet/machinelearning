@@ -12,7 +12,7 @@ using Microsoft.ML.Runtime.Model;
 
 namespace Microsoft.ML.Runtime.TimeSeriesProcessing
 {
-    // This base class and its children classes generate one output column of type VBuffer<Double> to output 3 different anomaly scores as well as
+    // REVIEW: This base class and its children classes generate one output column of type VBuffer<Double> to output 3 different anomaly scores as well as
     // the alert flag. Ideally these 4 output information should be put in four seaparate columns instead of one VBuffer<> column. However, this is not currently
     // possible due to our design restriction. This must be fixed in the next version and will potentially affect the children classes.
 

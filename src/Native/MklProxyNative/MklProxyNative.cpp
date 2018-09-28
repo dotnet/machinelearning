@@ -152,9 +152,6 @@ enum ConfigValue
 
 EXPORT_API(int) DftiSetValue(void *handle, ConfigParam config_param, ...);
 EXPORT_API(int) DftiCreateDescriptor(void **handle, ConfigValue precision, ConfigValue domain, int dim, ...);
-EXPORT_API(int) DftiCommitDescriptor(void *handle);
-EXPORT_API(char *) DftiErrorMessage(int status);
-EXPORT_API(int) DftiFreeDescriptor(void **handle);
 EXPORT_API(int) DftiComputeForward(void *handle, ...);
 EXPORT_API(int) DftiComputeBackward(void *handle, ...);
 
@@ -166,21 +163,6 @@ EXPORT_API(int) MKLDftiSetValue(void *handle, ConfigParam config_param, int conf
 EXPORT_API(int) MKLDftiCreateDescriptor(void **handle, ConfigValue precision, ConfigValue domain, int dim, int sizes)
 {
 	return DftiCreateDescriptor(handle, precision,domain, dim, sizes);
-}
-
-EXPORT_API(int) MKLDftiCommitDescriptor(void *handle)
-{
-	return DftiCommitDescriptor(handle);
-}
-
-EXPORT_API(char *) MKLDftiErrorMessage(int status)
-{
-	return DftiErrorMessage(status);
-}
-
-EXPORT_API(int) MKLDftiFreeDescriptor(void **handle)
-{
-	return DftiFreeDescriptor(handle);
 }
 
 EXPORT_API(int) MKLDftiComputeForward(void *handle, double *inputRe, double * inputIm, double * outputRe, double * outputIm) {

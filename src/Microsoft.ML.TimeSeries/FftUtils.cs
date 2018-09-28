@@ -158,34 +158,35 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             CceFormat = 57        /* Complex conjugate-even */
         }
 
-        private const string DllName = "MklProxyNative";
+        private const string DllName = "MklImports";
+        private const string DllProxyName = "MklProxyNative";
 
         // See: https://software.intel.com/en-us/node/521976#8CD904AB-244B-42E4-820A-CC2376E776B8
-        [DllImport(DllName, EntryPoint = "MKLDftiCreateDescriptor", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Auto)]
+        [DllImport(DllProxyName, EntryPoint = "MKLDftiCreateDescriptor", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Auto)]
         private static extern int CreateDescriptor(out IntPtr desc, ConfigValue precision, ConfigValue domain, int dimension, int length);
 
         // See: https://software.intel.com/en-us/node/521977
-        [DllImport(DllName, EntryPoint = "MKLDftiCommitDescriptor")]
+        [DllImport(DllName, EntryPoint = "DftiCommitDescriptor")]
         private static extern int CommitDescriptor(IntPtr desc);
 
         // See: https://software.intel.com/en-us/node/521978
-        [DllImport(DllName, EntryPoint = "MKLDftiFreeDescriptor")]
+        [DllImport(DllName, EntryPoint = "DftiFreeDescriptor")]
         private static extern int FreeDescriptor(ref IntPtr desc);
 
         // See: https://software.intel.com/en-us/node/521981
-        [DllImport(DllName, EntryPoint = "MKLDftiSetValue", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Auto)]
+        [DllImport(DllProxyName, EntryPoint = "MKLDftiSetValue", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Auto)]
         private static extern int SetValue(IntPtr desc, ConfigParam configParam, ConfigValue configValue);
 
         // See: https://software.intel.com/en-us/node/521984
-        [DllImport(DllName, EntryPoint = "MKLDftiComputeForward", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Auto)]
+        [DllImport(DllProxyName, EntryPoint = "MKLDftiComputeForward", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Auto)]
         private static extern int ComputeForward(IntPtr desc, [In] double[] inputRe, [In] double[] inputIm, [Out] double[] outputRe, [Out] double[] outputIm);
 
         // See: https://software.intel.com/en-us/node/521985
-        [DllImport(DllName, EntryPoint = "MKLDftiComputeBackward", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Auto)]
+        [DllImport(DllProxyName, EntryPoint = "MKLDftiComputeBackward", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Auto)]
         private static extern int ComputeBackward(IntPtr desc, [In] double[] inputRe, [In] double[] inputIm, [Out] double[] outputRe, [Out] double[] outputIm);
 
         // See: https://software.intel.com/en-us/node/521990
-        [DllImport(DllName, EntryPoint = "MKLDftiErrorMessage")]
+        [DllImport(DllName, EntryPoint = "DftiErrorMessage")]
         private static extern byte[] ErrorMessage(int status);
 
         private static void CheckStatus(int status)
