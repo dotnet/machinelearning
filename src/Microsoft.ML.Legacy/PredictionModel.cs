@@ -127,7 +127,7 @@ namespace Microsoft.ML.Legacy
 
             using (var environment = new ConsoleEnvironment())
             {
-                AssemblyLoadingUtils.RegisterCurrentLoadedAssemblies(environment);
+                AssemblyRegistration.RegisterAssemblies(environment);
 
                 BatchPredictionEngine<TInput, TOutput> predictor =
                     environment.CreateBatchPredictionEngine<TInput, TOutput>(stream);
