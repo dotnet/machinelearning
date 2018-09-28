@@ -456,7 +456,7 @@ namespace Microsoft.ML.Runtime.Data
         /// Converts the categorical value into an indicator array by building a dictionary of categories based on the data and using the id in the dictionary as the index in the array.
         /// </summary>
         /// <param name="input">Incoming data.</param>
-        /// <param name="outputKind">Specify output type of indicator array: array or binary encoded data.</param>
+        /// <param name="outputKind">Specify the output type of indicator array: array or binary encoded data.</param>
         /// <param name="order">How the Id for each value would be assigined: by occurrence or by value.</param>
         /// <param name="maxItems">Maximum number of ids to keep during data scanning.</param>
         /// <param name="onFit">Called upon fitting with the learnt enumeration on the dataset.</param>
@@ -471,7 +471,7 @@ namespace Microsoft.ML.Runtime.Data
         /// Converts the categorical value into an indicator array by building a dictionary of categories based on the data and using the id in the dictionary as the index in the array.
         /// </summary>
         /// <param name="input">Incoming data.</param>
-        /// <param name="outputKind">Specify output type of indicator array: Multiarray, array or binary encoded data.</param>
+        /// <param name="outputKind">Specify the output type of indicator array: Multiarray, array or binary encoded data.</param>
         /// <param name="order">How the Id for each value would be assigined: by occurrence or by value.</param>
         /// <param name="maxItems">Maximum number of ids to keep during data scanning.</param>
         /// <param name="onFit">Called upon fitting with the learnt enumeration on the dataset.</param>
