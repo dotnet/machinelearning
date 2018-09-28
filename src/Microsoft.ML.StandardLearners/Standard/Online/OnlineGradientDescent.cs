@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Float = System.Single;
-
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
@@ -117,8 +115,8 @@ namespace Microsoft.ML.Runtime.Learners
         protected override LinearRegressionPredictor CreatePredictor()
         {
             Contracts.Assert(WeightsScale == 1);
-            VBuffer<Float> weights = default(VBuffer<Float>);
-            Float bias;
+            VBuffer<float> weights = default(VBuffer<float>);
+            float bias;
 
             if (!Args.Averaged)
             {
@@ -128,8 +126,8 @@ namespace Microsoft.ML.Runtime.Learners
             else
             {
                 TotalWeights.CopyTo(ref weights);
-                VectorUtils.ScaleBy(ref weights, 1 / (Float)NumWeightUpdates);
-                bias = TotalBias / (Float)NumWeightUpdates;
+                VectorUtils.ScaleBy(ref weights, 1 / (float)NumWeightUpdates);
+                bias = TotalBias / (float)NumWeightUpdates;
             }
             return new LinearRegressionPredictor(Host, ref weights, bias);
         }
