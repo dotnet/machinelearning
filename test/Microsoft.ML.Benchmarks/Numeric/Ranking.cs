@@ -26,10 +26,10 @@ namespace Microsoft.ML.Benchmarks
             _mslrWeb10k_Train = Path.GetFullPath(TestDatasets.MSLRWeb.trainFilename);
             
             if (!File.Exists(_mslrWeb10k_Validate))
-                throw new FileNotFoundException(string.Format(Helpers.DatasetNotFound, _mslrWeb10k_Validate));
+                throw new FileNotFoundException(string.Format(Errors.DatasetNotFound, _mslrWeb10k_Validate));
 
             if (!File.Exists(_mslrWeb10k_Train))
-                throw new FileNotFoundException(string.Format(Helpers.DatasetNotFound, _mslrWeb10k_Train));
+                throw new FileNotFoundException(string.Format(Errors.DatasetNotFound, _mslrWeb10k_Train));
         }
 
         [Benchmark]
@@ -81,13 +81,13 @@ namespace Microsoft.ML.Benchmarks
             _mslrWeb10k_Train = Path.GetFullPath(TestDatasets.MSLRWeb.trainFilename);
 
             if (!File.Exists(_mslrWeb10k_Test))
-                throw new FileNotFoundException(string.Format(Helpers.DatasetNotFound, _mslrWeb10k_Test));
+                throw new FileNotFoundException(string.Format(Errors.DatasetNotFound, _mslrWeb10k_Test));
 
             if (!File.Exists(_mslrWeb10k_Validate))
-                throw new FileNotFoundException(string.Format(Helpers.DatasetNotFound, _mslrWeb10k_Validate));
+                throw new FileNotFoundException(string.Format(Errors.DatasetNotFound, _mslrWeb10k_Validate));
 
             if (!File.Exists(_mslrWeb10k_Train))
-                throw new FileNotFoundException(string.Format(Helpers.DatasetNotFound, _mslrWeb10k_Train));
+                throw new FileNotFoundException(string.Format(Errors.DatasetNotFound, _mslrWeb10k_Train));
 
             _modelPath_MSLR = Path.Combine(Directory.GetCurrentDirectory(), @"FastTreeRankingModel.zip");
 

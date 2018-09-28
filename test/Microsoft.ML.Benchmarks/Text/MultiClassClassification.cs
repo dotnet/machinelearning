@@ -23,7 +23,7 @@ namespace Microsoft.ML.Benchmarks
             _dataPath_Wiki = Path.GetFullPath(TestDatasets.WikiDetox.trainFilename);
 
             if (!File.Exists(_dataPath_Wiki))
-                throw new FileNotFoundException(string.Format(Helpers.DatasetNotFound, _dataPath_Wiki));           
+                throw new FileNotFoundException(string.Format(Errors.DatasetNotFound, _dataPath_Wiki));           
         }
 
         [Benchmark]
@@ -108,7 +108,7 @@ namespace Microsoft.ML.Benchmarks
             _dataPath_Wiki = Path.GetFullPath(TestDatasets.WikiDetox.trainFilename);
 
             if (!File.Exists(_dataPath_Wiki))
-                throw new FileNotFoundException(string.Format(Helpers.DatasetNotFound, _dataPath_Wiki));
+                throw new FileNotFoundException(string.Format(Errors.DatasetNotFound, _dataPath_Wiki));
 
             _modelPath_Wiki = Path.Combine(Directory.GetCurrentDirectory(), @"WikiModel.zip");
 

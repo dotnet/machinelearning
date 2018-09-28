@@ -13,7 +13,7 @@ namespace Microsoft.ML.Benchmarks
         {
             Add(DefaultConfig.Instance); // this config contains all of the basic settings (exporters, columns etc)
 
-            Add(GetJobDefinition() // jod defines how many times given benchmark should be executed
+            Add(GetJobDefinition() // job defines how many times given benchmark should be executed
                 .With(CreateToolchain())); // toolchain is responsible for generating, building and running dedicated executable per benchmark
 
             Add(new ExtraMetricColumn()); // an extra colum that can display additional metric reported by the benchmarks

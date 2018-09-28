@@ -3,7 +3,6 @@
   <ItemGroup>
     <ProjectReference Include="..\Microsoft.ML.Benchmarks\Microsoft.ML.Benchmarks.csproj" />
 
-    <NativeAssemblyReference Include="FastTreeNative" />
     <NativeAssemblyReference Include="CpuMathNative" />
   </ItemGroup>
 </Project>

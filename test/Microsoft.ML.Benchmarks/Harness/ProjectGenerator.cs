@@ -7,7 +7,10 @@ using BenchmarkDotNet.Loggers;
 using BenchmarkDotNet.Running;
 using BenchmarkDotNet.Toolchains;
 using BenchmarkDotNet.Toolchains.CsProj;
+using System;
 using System.IO;
+using System.Linq;
+using System.Text;
 
 namespace Microsoft.ML.Benchmarks.Harness
 {
@@ -48,9 +51,15 @@ namespace Microsoft.ML.Benchmarks.Harness
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include=""{GetProjectFilePath(buildPartition.RepresentativeBenchmarkCase.Descriptor.Type, logger).FullName}"" />
-    <NativeAssemblyReference Include=""CpuMathNative"" />
-    <NativeAssemblyReference Include=""FastTreeNative"" />
+    {GenerateNativeReferences(buildPartition, logger)}
   </ItemGroup>
 </Project>");
+
+        private string GenerateNativeReferences(BuildPartition buildPartition, ILogger logger)
+        {
+            var csproj = GetProjectFilePath(buildPartition.RepresentativeBenchmarkCase.Descriptor.Type, logger);
+
+            return string.Join(Environment.NewLine, File.ReadAllLines(csproj.FullName).Where(line => line.Contains("<NativeAssemblyReference")));
+        }
     }
 }
