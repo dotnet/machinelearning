@@ -46,7 +46,7 @@ namespace Microsoft.ML.Runtime.Data
             [Argument(ArgumentType.AtMostOnce,
                 HelpText = "Comma separated set of term separator(s). Commonly: 'space', 'comma', 'semicolon' or other single character.",
                 ShortName = "sep")]
-            public char[] TermSeparators;
+            public string TermSeparators;
 
             public static Column Parse(string str)
             {
@@ -72,7 +72,9 @@ namespace Microsoft.ML.Runtime.Data
             [Argument(ArgumentType.AtMostOnce,
                 HelpText = "Comma separated set of term separator(s). Commonly: 'space', 'comma', 'semicolon' or other single character.",
                 ShortName = "sep")]
-            public char[] TermSeparators = new[] { ' ' };
+            public string TermSeparators = "space";
+
+            public char[] CharArrayTermSeparators;
         }
 
         public sealed class Arguments : ArgumentsBase
@@ -94,13 +96,14 @@ namespace Microsoft.ML.Runtime.Data
 
             public ColInfoEx(Arguments args, int iinfo)
             {
-                Separators = args.Column[iinfo].TermSeparators ?? args.TermSeparators;
+                // Use character array separator if any otherwise default to the comma separated string
+                Separators = args.CharArrayTermSeparators ?? PredictionUtil.SeparatorFromString(args.Column[iinfo].TermSeparators ?? args.TermSeparators);
                 Contracts.CheckUserArg(Utils.Size(Separators) > 0, nameof(args.TermSeparators));
             }
 
             public ColInfoEx(ArgumentsBase args)
             {
-                Separators = args.TermSeparators;
+                Separators = args.CharArrayTermSeparators ?? PredictionUtil.SeparatorFromString(args.TermSeparators);
                 Contracts.CheckUserArg(Utils.Size(Separators) > 0, nameof(args.TermSeparators));
             }
 

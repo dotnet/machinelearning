@@ -59,7 +59,7 @@ namespace Microsoft.ML.Transforms
             var args = new DelimitedTokenizeTransform.Arguments
             {
                 Column = columns.Select(x => new DelimitedTokenizeTransform.Column { Source = x.input, Name = x.output }).ToArray(),
-                TermSeparators = separators ?? new[] { ' ' }
+                CharArrayTermSeparators = separators
             };
 
             // Create a valid instance of data.

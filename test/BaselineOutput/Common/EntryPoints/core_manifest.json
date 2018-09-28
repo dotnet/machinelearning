@@ -22831,10 +22831,7 @@
               "Fields": [
                 {
                   "Name": "TermSeparators",
-                  "Type": {
-                    "Kind": "Array",
-                    "ItemType": "Char"
-                  },
+                  "Type": "String",
                   "Desc": "Comma separated set of term separator(s). Commonly: 'space', 'comma', 'semicolon' or other single character.",
                   "Aliases": [
                     "sep"
@@ -22890,10 +22887,7 @@
         },
         {
           "Name": "TermSeparators",
-          "Type": {
-            "Kind": "Array",
-            "ItemType": "Char"
-          },
+          "Type": "String",
           "Desc": "Comma separated set of term separator(s). Commonly: 'space', 'comma', 'semicolon' or other single character.",
           "Aliases": [
             "sep"
@@ -22901,9 +22895,7 @@
           "Required": false,
           "SortOrder": 150.0,
           "IsNullable": false,
-          "Default": [
-            " "
-          ]
+          "Default": "space"
         }
       ],
       "Outputs": [
