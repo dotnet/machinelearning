@@ -28,9 +28,9 @@ namespace Microsoft.ML.Runtime.RunTests
     /// </summary>
     public sealed partial class TestPredictors : BaseTestPredictors
     {
-        protected override void InitializeCore()
+        protected override void Initialize()
         {
-            base.InitializeCore();
+            base.Initialize();
             InitializeEnvironment(Env);
         }
 

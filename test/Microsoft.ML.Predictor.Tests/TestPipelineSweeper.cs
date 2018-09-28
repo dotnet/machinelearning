@@ -22,9 +22,9 @@ namespace Microsoft.ML.Runtime.RunTests
         {
         }
 
-        protected override void InitializeCore()
+        protected override void Initialize()
         {
-            base.InitializeCore();
+            base.Initialize();
             Env.ComponentCatalog.RegisterAssembly(typeof(AutoInference).Assembly);
         }
 

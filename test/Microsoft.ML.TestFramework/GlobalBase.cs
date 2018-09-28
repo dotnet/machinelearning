@@ -11,6 +11,7 @@
 //    }
 
 using System;
+using System.Management;
 using System.Runtime.InteropServices;
 using Xunit;
 
@@ -27,6 +28,41 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn.Test
             // HACK: ensure MklImports is loaded very early in the tests so it doesn't deadlock while loading it later.
             // See https://github.com/dotnet/machinelearning/issues/1073
             Mkl.PptrfInternal(Mkl.Layout.RowMajor, Mkl.UpLo.Up, 0, Array.Empty<double>());
+
+            PrintCpuInfo();
+        }
+
+        private static void PrintCpuInfo()
+        {
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                ManagementClass clsMgtClass = new ManagementClass("Win32_Processor");
+                ManagementObjectCollection colMgtObjCol = clsMgtClass.GetInstances();
+
+                foreach (ManagementObject objMgtObj in colMgtObjCol)
+                {
+                    foreach (var property in objMgtObj.Properties)
+                    {
+                        Console.WriteLine("CPU Property " + property.Name + " = " + property.Value);
+
+                    }
+                }
+
+                double totalCapacity = 0;
+                ObjectQuery objectQuery = new ObjectQuery("select * from Win32_PhysicalMemory");
+                ManagementObjectSearcher searcher = new ManagementObjectSearcher(objectQuery);
+                ManagementObjectCollection vals = searcher.Get();
+
+                foreach (ManagementObject val in vals)
+                {
+                    totalCapacity += System.Convert.ToDouble(val.GetPropertyValue("Capacity"));
+                }
+
+                Console.WriteLine("Total Machine Memory = " + totalCapacity.ToString() + " Bytes");
+                Console.WriteLine("Total Machine Memory = " + (totalCapacity / 1024) + " KiloBytes");
+                Console.WriteLine("Total Machine Memory = " + (totalCapacity / 1048576) + "    MegaBytes");
+                Console.WriteLine("Total Machine Memory = " + (totalCapacity / 1073741824) + " GigaBytes");
+            }
         }
 
         private static class Mkl

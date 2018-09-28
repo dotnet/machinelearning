@@ -9,7 +9,6 @@ using Microsoft.ML.TestFramework;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -24,20 +23,8 @@ namespace Microsoft.ML.Runtime.RunTests
     /// </summary>
     public abstract partial class BaseTestBaseline : BaseTestClass, IDisposable
     {
-        private readonly ITestOutputHelper _output;
-
-        protected BaseTestBaseline(ITestOutputHelper helper) : base(helper)
+        protected BaseTestBaseline(ITestOutputHelper output) : base(output)
         {
-            _output = helper;
-            ITest test = (ITest)helper.GetType().GetField("test", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(helper);
-            FullTestName = test.TestCase.TestMethod.TestClass.Class.Name + "." + test.TestCase.TestMethod.Method.Name;
-            TestName = test.TestCase.TestMethod.Method.Name;
-            Init();
-        }
-
-        void IDisposable.Dispose()
-        {
-            Cleanup();
         }
 
         internal const string RawSuffix = ".raw";
@@ -92,11 +79,10 @@ namespace Microsoft.ML.Runtime.RunTests
         private bool _normal;
         private bool _passed;
 
-        public string TestName { get; set; }
-        public string FullTestName { get; set; }
-
-        public void Init()
+        protected override void Initialize()
         {
+            base.Initialize();
+
             // Create the output and log directories.
             Contracts.Check(Directory.Exists(Path.Combine(RootDir, TestDir, "BaselineOutput")));
             string logDir = Path.Combine(OutDir, _logRootRelPath);
@@ -110,15 +96,17 @@ namespace Microsoft.ML.Runtime.RunTests
             _passed = true;
             Env = new ConsoleEnvironment(42, outWriter: LogWriter, errWriter: LogWriter)
                 .AddStandardComponents();
-            InitializeCore();
         }
 
-        public void Cleanup()
+        // This method is used by subclass to dispose of disposable objects
+        // such as LocalEnvironment.
+        // It is called as a first step in test clean up.
+        protected override void Cleanup()
         {
-            // REVIEW: Is there a way to determine whether the test completed normally?
-            // Requiring tests to call Done() is hokey.
+            if (Env != null)
+                Env.Dispose();
+            Env = null;
 
-            CleanupCore();
             Contracts.Assert(IsActive);
             Log("Test {0}: {1}: {2}", TestName,
                 _normal ? "completed normally" : "aborted",
@@ -127,20 +115,8 @@ namespace Microsoft.ML.Runtime.RunTests
             Contracts.AssertValue(LogWriter);
             LogWriter.Dispose();
             LogWriter = null;
-        }
 
-        protected virtual void InitializeCore()
-        {
-        }
-
-        // This method is used by subclass to dispose of disposable objects
-        // such as LocalEnvironment.
-        // It is called as a first step in test clean up.
-        protected virtual void CleanupCore()
-        {
-            if (Env != null)
-                Env.Dispose();
-            Env = null;
+            base.Cleanup();
         }
 
         protected bool IsActive { get { return LogWriter != null; } }
@@ -209,7 +185,7 @@ namespace Microsoft.ML.Runtime.RunTests
             Contracts.Assert(IsActive);
             Contracts.AssertValue(LogWriter);
             LogWriter.WriteLine(msg);
-            _output.WriteLine(msg);
+            Output.WriteLine(msg);
         }
 
         protected void Log(string fmt, params object[] args)
@@ -217,7 +193,7 @@ namespace Microsoft.ML.Runtime.RunTests
             Contracts.Assert(IsActive);
             Contracts.AssertValue(LogWriter);
             LogWriter.WriteLine(fmt, args);
-            _output.WriteLine(fmt, args);
+            Output.WriteLine(fmt, args);
         }
 
         protected string GetBaselineDir(string subDir)
