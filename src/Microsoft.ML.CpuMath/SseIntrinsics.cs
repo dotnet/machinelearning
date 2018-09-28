@@ -125,11 +125,11 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                     {
                         float* pMatTemp = pMatCurrent;
 
-                        Vector128<float> x01 = Sse.LoadAlignedVector128(pMatTemp);
-                        Vector128<float> x11 = Sse.LoadAlignedVector128(pMatTemp += ccol);
-                        Vector128<float> x21 = Sse.LoadAlignedVector128(pMatTemp += ccol);
-                        Vector128<float> x31 = Sse.LoadAlignedVector128(pMatTemp += ccol);
-                        Vector128<float> x02 = Sse.LoadAlignedVector128(pSrcCurrent);
+                        Vector128<float> x01 = Sse.LoadVector128(pMatTemp);
+                        Vector128<float> x11 = Sse.LoadVector128(pMatTemp += ccol);
+                        Vector128<float> x21 = Sse.LoadVector128(pMatTemp += ccol);
+                        Vector128<float> x31 = Sse.LoadVector128(pMatTemp += ccol);
+                        Vector128<float> x02 = Sse.LoadVector128(pSrcCurrent);
 
                         res0 = Sse.Add(res0, Sse.Multiply(x01, x02));
                         res1 = Sse.Add(res1, Sse.Multiply(x11, x02));
@@ -147,7 +147,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
                     if (add)
                     {
-                        res0 = Sse.Add(res0, Sse.LoadAlignedVector128(pDstCurrent));
+                        res0 = Sse.Add(res0, Sse.LoadVector128(pDstCurrent));
                     }
                     Sse.StoreAligned(pDstCurrent, res0);
 
@@ -201,7 +201,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
                     if (add)
                     {
-                        result = Sse.Add(result, Sse.LoadAlignedVector128(pDstCurrent));
+                        result = Sse.Add(result, Sse.LoadVector128(pDstCurrent));
                     }
                     Sse.StoreAligned(pDstCurrent, result);
 
@@ -228,7 +228,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
                 if (!add)
                 {
-                    Vector128<float> x01 = Sse.LoadAlignedVector128(pSrcCurrent);
+                    Vector128<float> x01 = Sse.LoadVector128(pSrcCurrent);
                     // Replicate each 32-bit slot of x01 (ABCD) into its own register.
                     Vector128<float> x11 = Sse.Shuffle(x01, x01, 0x55); // B
                     Vector128<float> x21 = Sse.Shuffle(x01, x01, 0xAA); // C
@@ -242,10 +242,10 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                     while (pDstCurrent < pDstEnd)
                     {
                         float* pMatTemp = pMatCurrent;
-                        Vector128<float> x02 = Sse.LoadAlignedVector128(pMatTemp);
-                        Vector128<float> x12 = Sse.LoadAlignedVector128(pMatTemp += crow);
-                        Vector128<float> x22 = Sse.LoadAlignedVector128(pMatTemp += crow);
-                        Vector128<float> x32 = Sse.LoadAlignedVector128(pMatTemp += crow);
+                        Vector128<float> x02 = Sse.LoadVector128(pMatTemp);
+                        Vector128<float> x12 = Sse.LoadVector128(pMatTemp += crow);
+                        Vector128<float> x22 = Sse.LoadVector128(pMatTemp += crow);
+                        Vector128<float> x32 = Sse.LoadVector128(pMatTemp += crow);
 
                         x02 = Sse.Multiply(x01, x02);
                         x12 = Sse.Multiply(x11, x12);
@@ -267,7 +267,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
                 while (pSrcCurrent < pSrcEnd)
                 {
-                    Vector128<float> x01 = Sse.LoadAlignedVector128(pSrcCurrent);
+                    Vector128<float> x01 = Sse.LoadVector128(pSrcCurrent);
                     // Replicate each 32-bit slot of x01 (ABCD) into its own register.
                     Vector128<float> x11 = Sse.Shuffle(x01, x01, 0x55); // B
                     Vector128<float> x21 = Sse.Shuffle(x01, x01, 0xAA); // C
@@ -280,11 +280,11 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                     {
                         float* pMatTemp = pMatCurrent;
 
-                        Vector128<float> x02 = Sse.LoadAlignedVector128(pMatTemp);
-                        Vector128<float> x12 = Sse.LoadAlignedVector128(pMatTemp += crow);
-                        Vector128<float> x22 = Sse.LoadAlignedVector128(pMatTemp += crow);
-                        Vector128<float> x32 = Sse.LoadAlignedVector128(pMatTemp += crow);
-                        Vector128<float> x3 = Sse.LoadAlignedVector128(pDstCurrent);
+                        Vector128<float> x02 = Sse.LoadVector128(pMatTemp);
+                        Vector128<float> x12 = Sse.LoadVector128(pMatTemp += crow);
+                        Vector128<float> x22 = Sse.LoadVector128(pMatTemp += crow);
+                        Vector128<float> x32 = Sse.LoadVector128(pMatTemp += crow);
+                        Vector128<float> x3 = Sse.LoadVector128(pDstCurrent);
 
                         x02 = Sse.Multiply(x01, x02);
                         x12 = Sse.Multiply(x11, x12);
@@ -336,7 +336,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
                     while (pDstCurrent < pDstEnd)
                     {
-                        Vector128<float> x1 = Sse.LoadAlignedVector128(pMatCurrent);
+                        Vector128<float> x1 = Sse.LoadVector128(pMatCurrent);
                         x1 = Sse.Multiply(x1, x0);
                         Sse.StoreAligned(pDstCurrent, x1);
 
@@ -356,8 +356,8 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
                     while (pDstCurrent < pDstEnd)
                     {
-                        Vector128<float> x1 = Sse.LoadAlignedVector128(pMatCurrent);
-                        Vector128<float> x2 = Sse.LoadAlignedVector128(pDstCurrent);
+                        Vector128<float> x1 = Sse.LoadVector128(pMatCurrent);
+                        Vector128<float> x2 = Sse.LoadVector128(pDstCurrent);
                         x1 = Sse.Multiply(x1, x0);
                         x2 = Sse.Add(x2, x1);
                         Sse.StoreAligned(pDstCurrent, x2);

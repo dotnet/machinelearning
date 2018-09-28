@@ -115,11 +115,11 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                     {
                         float* pMatTemp = pMatCurrent;
 
-                        Vector256<float> x01 = Avx.LoadAlignedVector256(pMatTemp);
-                        Vector256<float> x11 = Avx.LoadAlignedVector256(pMatTemp += ccol);
-                        Vector256<float> x21 = Avx.LoadAlignedVector256(pMatTemp += ccol);
-                        Vector256<float> x31 = Avx.LoadAlignedVector256(pMatTemp += ccol);
-                        Vector256<float> x02 = Avx.LoadAlignedVector256(pSrcCurrent);
+                        Vector256<float> x01 = Avx.LoadVector256(pMatTemp);
+                        Vector256<float> x11 = Avx.LoadVector256(pMatTemp += ccol);
+                        Vector256<float> x21 = Avx.LoadVector256(pMatTemp += ccol);
+                        Vector256<float> x31 = Avx.LoadVector256(pMatTemp += ccol);
+                        Vector256<float> x02 = Avx.LoadVector256(pSrcCurrent);
 
                         res0 = Avx.Add(res0, Avx.Multiply(x01, x02));
                         res1 = Avx.Add(res1, Avx.Multiply(x11, x02));
@@ -138,7 +138,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                     Vector128<float> sum = Sse.Add(Avx.GetLowerHalf(res0), GetHigh(in res0));
                     if (add)
                     {
-                        sum = Sse.Add(sum, Sse.LoadAlignedVector128(pDstCurrent));
+                        sum = Sse.Add(sum, Sse.LoadVector128(pDstCurrent));
                     }
                     Sse.StoreAligned(pDstCurrent, sum);
 
@@ -194,7 +194,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
                     if (add)
                     {
-                        result = Avx.Add(result, Avx.LoadAlignedVector256(pDstCurrent));
+                        result = Avx.Add(result, Avx.LoadVector256(pDstCurrent));
                     }
                     Avx.StoreAligned(pDstCurrent, result);
 
@@ -222,7 +222,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                 // We do 4-way unrolling
                 if (!add)
                 {
-                    Vector128<float> h01 = Sse.LoadAlignedVector128(pSrcCurrent);
+                    Vector128<float> h01 = Sse.LoadVector128(pSrcCurrent);
                     // Replicate each slot of h01 (ABCD) into its own register.
                     Vector128<float> h11 = Sse.Shuffle(h01, h01, 0x55); // B
                     Vector128<float> h21 = Sse.Shuffle(h01, h01, 0xAA); // C
@@ -241,10 +241,10 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                     while (pDstCurrent < pDstEnd)
                     {
                         float* pMatTemp = pMatCurrent;
-                        Vector256<float> x02 = Avx.LoadAlignedVector256(pMatTemp);
-                        Vector256<float> x12 = Avx.LoadAlignedVector256(pMatTemp += crow);
-                        Vector256<float> x22 = Avx.LoadAlignedVector256(pMatTemp += crow);
-                        Vector256<float> x32 = Avx.LoadAlignedVector256(pMatTemp += crow);
+                        Vector256<float> x02 = Avx.LoadVector256(pMatTemp);
+                        Vector256<float> x12 = Avx.LoadVector256(pMatTemp += crow);
+                        Vector256<float> x22 = Avx.LoadVector256(pMatTemp += crow);
+                        Vector256<float> x32 = Avx.LoadVector256(pMatTemp += crow);
 
                         x02 = Avx.Multiply(x01, x02);
                         x12 = Avx.Multiply(x11, x12);
@@ -266,7 +266,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
                 while (pSrcCurrent < pSrcEnd)
                 {
-                    Vector128<float> h01 = Sse.LoadAlignedVector128(pSrcCurrent);
+                    Vector128<float> h01 = Sse.LoadVector128(pSrcCurrent);
                     // Replicate each slot of h01 (ABCD) into its own register.
                     Vector128<float> h11 = Sse.Shuffle(h01, h01, 0x55); // B
                     Vector128<float> h21 = Sse.Shuffle(h01, h01, 0xAA); // C
@@ -284,11 +284,11 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                     {
                         float* pMatTemp = pMatCurrent;
 
-                        Vector256<float> x02 = Avx.LoadAlignedVector256(pMatTemp);
-                        Vector256<float> x12 = Avx.LoadAlignedVector256(pMatTemp += crow);
-                        Vector256<float> x22 = Avx.LoadAlignedVector256(pMatTemp += crow);
-                        Vector256<float> x32 = Avx.LoadAlignedVector256(pMatTemp += crow);
-                        Vector256<float> x3 = Avx.LoadAlignedVector256(pDstCurrent);
+                        Vector256<float> x02 = Avx.LoadVector256(pMatTemp);
+                        Vector256<float> x12 = Avx.LoadVector256(pMatTemp += crow);
+                        Vector256<float> x22 = Avx.LoadVector256(pMatTemp += crow);
+                        Vector256<float> x32 = Avx.LoadVector256(pMatTemp += crow);
+                        Vector256<float> x3 = Avx.LoadVector256(pDstCurrent);
 
                         x02 = Avx.Multiply(x01, x02);
                         x12 = Avx.Multiply(x11, x12);
@@ -340,7 +340,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
                     while (pDstCurrent < pDstEnd)
                     {
-                        Vector256<float> x1 = Avx.LoadAlignedVector256(pMatCurrent);
+                        Vector256<float> x1 = Avx.LoadVector256(pMatCurrent);
                         x1 = Avx.Multiply(x1, x0);
                         Avx.StoreAligned(pDstCurrent, x1);
 
@@ -360,8 +360,8 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
                     while (pDstCurrent < pDstEnd)
                     {
-                        Vector256<float> x1 = Avx.LoadAlignedVector256(pMatCurrent);
-                        Vector256<float> x2 = Avx.LoadAlignedVector256(pDstCurrent);
+                        Vector256<float> x1 = Avx.LoadVector256(pMatCurrent);
+                        Vector256<float> x2 = Avx.LoadVector256(pDstCurrent);
                         x1 = Avx.Multiply(x1, x0);
                         x2 = Avx.Add(x2, x1);
                         Avx.StoreAligned(pDstCurrent, x2);
