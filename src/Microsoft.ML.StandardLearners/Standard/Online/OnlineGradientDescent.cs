@@ -50,8 +50,8 @@ namespace Microsoft.ML.Runtime.Learners
 
             internal class OgdDefaultArgs : AveragedDefaultArgs
             {
-               internal new const float LearningRate = 0.1f;
-               internal new const bool DecreaseLearningRate = true;
+                internal new const float LearningRate = 0.1f;
+                internal new const bool DecreaseLearningRate = true;
             }
         }
 
@@ -71,7 +71,7 @@ namespace Microsoft.ML.Runtime.Learners
             string labelColumn,
             string featureColumn,
             float learningRate = Arguments.OgdDefaultArgs.LearningRate,
-            bool decreaseLearningRate =Arguments.OgdDefaultArgs.DecreaseLearningRate,
+            bool decreaseLearningRate = Arguments.OgdDefaultArgs.DecreaseLearningRate,
             float l2RegularizerWeight = Arguments.OgdDefaultArgs.L2RegularizerWeight,
             int numIterations = Arguments.OgdDefaultArgs.NumIterations,
             string weightsColumn = null,
