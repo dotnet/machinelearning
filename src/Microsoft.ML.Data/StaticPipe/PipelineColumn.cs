@@ -142,4 +142,19 @@ namespace Microsoft.ML.StaticPipe
 
         public override string ToString() => $"{nameof(VarKey<T>)}<{typeof(T).Name}>";
     }
+
+    /// <summary>
+    /// For representing a custom <see cref="ColumnType"/>.
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    public abstract class Custom<T>: PipelineColumn
+    {
+        protected Custom(Reconciler reconciler, params PipelineColumn[] dependencies)
+            : base(reconciler, dependencies)
+        {
+        }
+
+        public override string ToString() => $"{nameof(Custom<T>)}<{typeof(T).Name}>";
+    }
+
 }
