@@ -16676,7 +16676,7 @@ namespace Microsoft.ML
             /// <summary>
             /// Comma separated set of term separator(s). Commonly: 'space', 'comma', 'semicolon' or other single character.
             /// </summary>
-            public string TermSeparators { get; set; }
+            public char[] TermSeparators { get; set; } = { ' ' };
 
             /// <summary>
             /// Name of the new column
@@ -16744,7 +16744,7 @@ namespace Microsoft.ML
             /// <summary>
             /// Comma separated set of term separator(s). Commonly: 'space', 'comma', 'semicolon' or other single character.
             /// </summary>
-            public string TermSeparators { get; set; } = "space";
+            public char[] TermSeparators { get; set; } = { ' ' };
 
             /// <summary>
             /// Input dataset
