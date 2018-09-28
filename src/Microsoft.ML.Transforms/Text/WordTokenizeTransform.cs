@@ -46,7 +46,7 @@ namespace Microsoft.ML.Runtime.Data
             [Argument(ArgumentType.AtMostOnce,
                 HelpText = "Comma separated set of term separator(s). Commonly: 'space', 'comma', 'semicolon' or other single character.",
                 ShortName = "sep")]
-            public char[] TermSeparators = new[] { ' ' };
+            public char[] TermSeparators;
 
             public static Column Parse(string str)
             {

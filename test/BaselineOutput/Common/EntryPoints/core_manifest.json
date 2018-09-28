@@ -22842,9 +22842,7 @@
                   "Required": false,
                   "SortOrder": 150.0,
                   "IsNullable": false,
-                  "Default": [
-                    " "
-                  ]
+                  "Default": null
                 },
                 {
                   "Name": "Name",

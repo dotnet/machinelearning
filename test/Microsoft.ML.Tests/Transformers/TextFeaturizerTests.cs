@@ -89,6 +89,33 @@ namespace Microsoft.ML.Tests.Transformers
             Done();
         }
 
+        [Fact]
+        public void TokenizeWithSeparator()
+        {
+            string sentimentDataPath = GetDataPath("wikipedia-detox-250-line-data.tsv");
+            var data = TextLoader.CreateReader(Env, ctx => (
+                    label: ctx.LoadBool(0),
+                    text: ctx.LoadText(1)), hasHeader: true)
+                .Read(new MultiFileSource(sentimentDataPath)).AsDynamic;
+
+            var est = new WordTokenizer(Env, "text", "words", separators: new[] { ' ', '?', '!', '.', ','});
+            var outdata = TakeFilter.Create(Env, est.Fit(data).Transform(data), 4);
+            var savedData = new ChooseColumnsTransform(Env, outdata, "words");
+
+
+            var saver = new TextSaver(Env, new TextSaver.Arguments { Silent = true });
+
+            var outputPath = GetOutputPath("Text", "tokenizedWithSeparators.tsv");
+            using (var ch = Env.Start("save"))
+            {
+
+                using (var fs = File.Create(outputPath))
+                    DataSaverUtils.SaveDataView(ch, saver, savedData, fs, keepHidden: true);
+            }
+
+            CheckEquality("Text", "tokenizedWithSeparators.tsv");
+            Done();
+        }
 
         [Fact]
         public void TextNormalizationAndStopwordRemoverWorkout()

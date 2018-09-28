@@ -28,7 +28,7 @@ namespace Microsoft.ML.Transforms
         /// <param name="env">The environment.</param>
         /// <param name="inputColumn">The column containing text to tokenize.</param>
         /// <param name="outputColumn">The column containing output tokens. Null means <paramref name="inputColumn"/> is replaced.</param>
-        /// <param name="separators">The separators to use.</param>
+        /// <param name="separators">The separators to use (uses space character by default).</param>
         public WordTokenizer(IHostEnvironment env, string inputColumn, string outputColumn = null, char[] separators = null)
             : this(env, new[] { (inputColumn, outputColumn ?? inputColumn) }, separators)
         {
@@ -39,7 +39,7 @@ namespace Microsoft.ML.Transforms
         /// </summary>
         /// <param name="env">The environment.</param>
         /// <param name="columns">Pairs of columns to run the tokenization on.</param>
-        /// <param name="separators">The separators to use.</param>
+        /// <param name="separators">The separators to use (uses space character by default).</param>
         public WordTokenizer(IHostEnvironment env, (string input, string output)[] columns, char[] separators = null)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(WordTokenizer)), MakeTransformer(env, columns, separators))
         {
@@ -56,7 +56,6 @@ namespace Microsoft.ML.Transforms
             }
 
             // Create arguments.
-            // REVIEW: enable multiple separators via something other than parsing strings.
             var args = new DelimitedTokenizeTransform.Arguments
             {
                 Column = columns.Select(x => new DelimitedTokenizeTransform.Column { Source = x.input, Name = x.output }).ToArray(),
