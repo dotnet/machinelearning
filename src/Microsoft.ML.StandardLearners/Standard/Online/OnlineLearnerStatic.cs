@@ -46,15 +46,7 @@ namespace Microsoft.ML.StaticPipe
                 Action<LinearBinaryPredictor> onFit = null
             )
         {
-            Contracts.CheckValue(label, nameof(label));
-            Contracts.CheckValue(features, nameof(features));
-            Contracts.CheckValue(lossFunction, nameof(lossFunction));
-            Contracts.CheckValueOrNull(weights);
-            Contracts.CheckParam(learningRate > 0, nameof(learningRate), "Must be positive.");
-            Contracts.CheckParam(0 <= l2RegularizerWeight && l2RegularizerWeight < 0.5, nameof(l2RegularizerWeight), "must be in range [0, 0.5)");
-
-            Contracts.CheckParam(numIterations > 1, nameof(numIterations), "Must be greater than one, if specified.");
-            Contracts.CheckValueOrNull(onFit);
+            OnlineLinearStaticUtils.CheckUserParams(label, features, weights, learningRate, l2RegularizerWeight, numIterations, onFit);
 
             bool hasProbs = lossFunction is HingeLoss;
 
@@ -141,6 +133,9 @@ namespace Microsoft.ML.StaticPipe
             int numIterations = OnlineGradientDescentTrainer.Arguments.OgdDefaultArgs.NumIterations,
             Action<LinearRegressionPredictor> onFit = null)
         {
+            OnlineLinearStaticUtils.CheckUserParams(label, features, weights, learningRate, l2RegularizerWeight, numIterations, onFit);
+            Contracts.CheckValueOrNull(lossFunction);
+
             var rec = new TrainerEstimatorReconciler.Regression(
                 (env, labelName, featuresName, weightsName) =>
                 {
@@ -154,6 +149,26 @@ namespace Microsoft.ML.StaticPipe
                 }, label, features, weights);
 
             return rec.Score;
+        }
+    }
+
+    internal static class OnlineLinearStaticUtils{
+
+        internal static void CheckUserParams(PipelineColumn label,
+            PipelineColumn features,
+            PipelineColumn weights,
+            float learningRate,
+            float l2RegularizerWeight,
+            int numIterations,
+            Delegate onFit)
+        {
+            Contracts.CheckValue(label, nameof(label));
+            Contracts.CheckValue(features, nameof(features));
+            Contracts.CheckValueOrNull(weights);
+            Contracts.CheckParam(learningRate > 0, nameof(learningRate), "Must be positive.");
+            Contracts.CheckParam(0 <= l2RegularizerWeight && l2RegularizerWeight < 0.5, nameof(l2RegularizerWeight), "must be in range [0, 0.5)");
+            Contracts.CheckParam(numIterations > 1, nameof(numIterations), "Must be greater than one, if specified.");
+            Contracts.CheckValueOrNull(onFit);
         }
     }
 }
