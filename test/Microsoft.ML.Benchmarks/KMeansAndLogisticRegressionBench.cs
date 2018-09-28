@@ -52,9 +52,9 @@ namespace Microsoft.ML.Benchmarks
                 trans = TrainAndScoreTransform.Create(env, new TrainAndScoreTransform.Arguments
                 {
                     Trainer = ComponentFactoryUtils.CreateFromFunction(host =>
-                        new KMeansPlusPlusTrainer(host, new KMeansPlusPlusTrainer.Arguments()
+                        new KMeansPlusPlusTrainer(host, "Features", advancedSettings: s=> 
                         {
-                            K = 100
+                            s.K = 100;
                         })),
                     FeatureColumn = "Features"
                 }, trans);
