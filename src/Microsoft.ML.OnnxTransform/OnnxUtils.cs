@@ -1,3 +1,7 @@
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Internal.Utilities;
@@ -10,7 +14,7 @@ using Microsoft.ML.StaticPipe;
 
 using OnnxShape = System.Collections.Generic.List<long>;
 
-namespace Microsoft.ML.OnnxScoring
+namespace Microsoft.ML.Transforms
 {
     /// <summary>
     /// IdvToTensorAdapter adapts an Idv (row-iterator interface) to a tensor-iterator interface.
@@ -206,14 +210,14 @@ namespace Microsoft.ML.OnnxScoring
             return File.ReadAllBytes(_modelFile);
         }
 
-        public OnnxNodeInfo[] GetInputsInfo()
+        private OnnxNodeInfo[] GetInputsInfo()
         {
             return DictToNodesInfo(
                     _modelManager.GetInputTypeDict(_modelName, _ignoredVersion),
                     _modelManager.GetInputShapesDict(_modelName, _ignoredVersion));
         }
 
-        public OnnxNodeInfo[] GetOutputsInfo()
+        private OnnxNodeInfo[] GetOutputsInfo()
         {
             return DictToNodesInfo(
                     _modelManager.GetOutputTypeDict(_modelName, _ignoredVersion),

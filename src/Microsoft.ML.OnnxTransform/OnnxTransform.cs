@@ -13,7 +13,7 @@ using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Scoring;
-using Microsoft.ML.OnnxScoring;
+using Microsoft.ML.Transforms;
 using Microsoft.ML.StaticPipe;
 using Microsoft.ML.StaticPipe.Runtime;
 using Microsoft.ML.Core.Data;
@@ -32,7 +32,7 @@ using Microsoft.ML.Core.Data;
 
 [assembly: EntryPointModule(typeof(OnnxTransform))]
 
-namespace Microsoft.ML.OnnxScoring
+namespace Microsoft.ML.Transforms
 {
     public sealed class OnnxTransform : ITransformer, ICanSaveModel
     {
@@ -73,8 +73,14 @@ namespace Microsoft.ML.OnnxScoring
 	        loaderAssemblyName: typeof(OnnxTransform).Assembly.FullName);
         }
 
+        public static IDataTransform Create(IHostEnvironment env, IDataView input, string modelFile, string inputColumn, string outputColumn)
+        {
+            var args = new Arguments { ModelFile = modelFile, InputColumn = inputColumn, OutputColumn = outputColumn };
+            return Create(env, args, input);
+        }
+
         // Factory method for SignatureDataTransform
-        private static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
+        public static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
         {
             return new OnnxTransform(env, args).MakeDataTransform(input);
         }
@@ -122,10 +128,16 @@ namespace Microsoft.ML.OnnxScoring
             else
                 Model = OnnxModel.CreateFromBytes(modelBytes);
 
+            var modelInfo = Model.ModelInfo;
+            if (modelInfo.InputsInfo.Length != 1)
+                throw env.Except($"OnnxTransform supports Onnx models with one input. The provided model has ${modelInfo.InputsInfo.Length} input(s).");
+            if (modelInfo.OutputsInfo.Length != 1)
+                throw env.Except($"OnnxTransform supports Onnx models with one output. The provided model has ${modelInfo.OutputsInfo.Length} output(s).");
+
             Input = args.InputColumn;
             Output = args.OutputColumn;
 
-            var outputNodeInfo = Model.GetOutputsInfo().Where(x => x.Name == args.OutputColumn).First();
+            var outputNodeInfo = Model.ModelInfo.OutputsInfo[0];
             var type = OnnxUtils.OnnxToMlNetType(outputNodeInfo.Type);
             var shape = outputNodeInfo.Shape;
             var dims = shape.Count > 0 ? shape.Skip(shape[0] < 0 ? 1 : 0).Select( x => (int) x ).ToArray() : new[] { 0 };
@@ -305,7 +317,7 @@ namespace Microsoft.ML.OnnxScoring
                 throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", input);
             if (!(col.Kind == SchemaShape.Column.VectorKind.VariableVector || col.Kind == SchemaShape.Column.VectorKind.Vector))
                 throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", input, nameof(VectorType), col.GetTypeString());
-            var inputNodeInfo = Transformer.Model.GetInputsInfo().Where(x => x.Name == input).First();
+            var inputNodeInfo = Transformer.Model.ModelInfo.InputsInfo[0];
             var expectedType = OnnxUtils.OnnxToMlNetType(inputNodeInfo.Type);
             if (col.ItemType != expectedType)
                 throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", input, expectedType.ToString(), col.ItemType.ToString());

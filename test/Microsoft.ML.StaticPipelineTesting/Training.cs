@@ -8,10 +8,11 @@ using Microsoft.ML.Runtime.FactorizationMachine;
 using Microsoft.ML.Runtime.FastTree;
 using Microsoft.ML.Runtime.Internal.Calibration;
 using Microsoft.ML.Runtime.Internal.Internallearn;
+using Microsoft.ML.Runtime.KMeans;
 using Microsoft.ML.Runtime.Learners;
 using Microsoft.ML.Runtime.LightGBM;
 using Microsoft.ML.Runtime.RunTests;
-using Microsoft.ML.Runtime.Training;
+using Microsoft.ML.StaticPipe;
 using Microsoft.ML.Trainers;
 using System;
 using System.Linq;
@@ -144,7 +145,7 @@ namespace Microsoft.ML.StaticPipelineTesting
         }
 
         [Fact]
-        public void SdcaBinaryClassificationNoClaibration()
+        public void SdcaBinaryClassificationNoCalibration()
         {
             var env = new ConsoleEnvironment(seed: 0);
             var dataPath = GetDataPath(TestDatasets.breastCancer.trainFilename);
@@ -184,6 +185,42 @@ namespace Microsoft.ML.StaticPipelineTesting
             var schema = data.AsDynamic.Schema;
             for (int c = 0; c < schema.ColumnCount; ++c)
                 Console.WriteLine($"{schema.GetColumnName(c)}, {schema.GetColumnType(c)}");
+        }
+
+        [Fact]
+        public void AveragePerceptronNoCalibration()
+        {
+            var env = new ConsoleEnvironment(seed: 0);
+            var dataPath = GetDataPath(TestDatasets.breastCancer.trainFilename);
+            var dataSource = new MultiFileSource(dataPath);
+            var ctx = new BinaryClassificationContext(env);
+
+            var reader = TextLoader.CreateReader(env,
+                c => (label: c.LoadBool(0), features: c.LoadFloat(1, 9)));
+
+            LinearBinaryPredictor pred = null;
+
+            var loss = new HingeLoss(new HingeLoss.Arguments() { Margin = 1 });
+
+            var est = reader.MakeNewEstimator()
+                .Append(r => (r.label, preds: ctx.Trainers.AveragedPerceptron(loss, r.label, r.features,
+                numIterations: 2, onFit: p => pred = p)));
+
+            var pipe = reader.Append(est);
+
+            Assert.Null(pred);
+            var model = pipe.Fit(dataSource);
+            Assert.NotNull(pred);
+            // 9 input features, so we ought to have 9 weights.
+            Assert.Equal(9, pred.Weights2.Count);
+
+            var data = model.Read(dataSource);
+
+            var metrics = ctx.Evaluate(data, r => r.label, r => r.preds);
+            // Run a sanity check against a few of the metrics.
+            Assert.InRange(metrics.Accuracy, 0, 1);
+            Assert.InRange(metrics.Auc, 0, 1);
+            Assert.InRange(metrics.Auprc, 0, 1);
         }
 
         [Fact]
@@ -450,6 +487,227 @@ namespace Microsoft.ML.StaticPipelineTesting
             Assert.InRange(metrics.Rms, 0, double.PositiveInfinity);
             Assert.Equal(metrics.Rms * metrics.Rms, metrics.L2, 5);
             Assert.InRange(metrics.LossFn, 0, double.PositiveInfinity);
+        }
+
+        [Fact]
+        public void PoissonRegression()
+        {
+            var env = new ConsoleEnvironment(seed: 0);
+            var dataPath = GetDataPath(TestDatasets.generatedRegressionDataset.trainFilename);
+            var dataSource = new MultiFileSource(dataPath);
+
+            var ctx = new RegressionContext(env);
+
+            var reader = TextLoader.CreateReader(env,
+                c => (label: c.LoadFloat(11), features: c.LoadFloat(0, 10)),
+                separator: ';', hasHeader: true);
+
+            PoissonRegressionPredictor pred = null;
+
+            var est = reader.MakeNewEstimator()
+                .Append(r => (r.label, score: ctx.Trainers.PoissonRegression(r.label, r.features,
+                    l1Weight: 2,
+                    enoforceNoNegativity: true,
+                    onFit: (p) => { pred = p; })));
+
+            var pipe = reader.Append(est);
+
+            Assert.Null(pred);
+            var model = pipe.Fit(dataSource);
+            Assert.NotNull(pred);
+            // 11 input features, so we ought to have 11 weights.
+            VBuffer<float> weights = new VBuffer<float>();
+            pred.GetFeatureWeights(ref weights);
+            Assert.Equal(11, weights.Length);
+
+            var data = model.Read(dataSource);
+
+            var metrics = ctx.Evaluate(data, r => r.label, r => r.score, new PoissonLoss());
+            // Run a sanity check against a few of the metrics.
+            Assert.InRange(metrics.L1, 0, double.PositiveInfinity);
+            Assert.InRange(metrics.L2, 0, double.PositiveInfinity);
+            Assert.InRange(metrics.Rms, 0, double.PositiveInfinity);
+            Assert.Equal(metrics.Rms * metrics.Rms, metrics.L2, 5);
+            Assert.InRange(metrics.LossFn, 0, double.PositiveInfinity);
+        }
+
+        [Fact]
+        public void LogisticRegressionBinaryClassification()
+        {
+            var env = new ConsoleEnvironment(seed: 0);
+            var dataPath = GetDataPath(TestDatasets.breastCancer.trainFilename);
+            var dataSource = new MultiFileSource(dataPath);
+            var ctx = new BinaryClassificationContext(env);
+
+            var reader = TextLoader.CreateReader(env,
+                c => (label: c.LoadBool(0), features: c.LoadFloat(1, 9)));
+
+            IPredictorWithFeatureWeights<float> pred = null;
+
+            var est = reader.MakeNewEstimator()
+                .Append(r => (r.label, preds: ctx.Trainers.LogisticRegressionBinaryClassifier(r.label, r.features,
+                    l1Weight: 10,
+                    onFit: (p) => { pred = p; })));
+
+            var pipe = reader.Append(est);
+
+            Assert.Null(pred);
+            var model = pipe.Fit(dataSource);
+            Assert.NotNull(pred);
+
+            // 9 input features, so we ought to have 9 weights.
+            VBuffer<float> weights = new VBuffer<float>();
+            pred.GetFeatureWeights(ref weights);
+            Assert.Equal(9, weights.Length);
+
+            var data = model.Read(dataSource);
+
+            var metrics = ctx.Evaluate(data, r => r.label, r => r.preds);
+            // Run a sanity check against a few of the metrics.
+            Assert.InRange(metrics.Accuracy, 0, 1);
+            Assert.InRange(metrics.Auc, 0, 1);
+            Assert.InRange(metrics.Auprc, 0, 1);
+        }
+
+        [Fact]
+        public void MulticlassLogisticRegression()
+        {
+            var env = new ConsoleEnvironment(seed: 0);
+            var dataPath = GetDataPath(TestDatasets.iris.trainFilename);
+            var dataSource = new MultiFileSource(dataPath);
+
+            var ctx = new MulticlassClassificationContext(env);
+            var reader = TextLoader.CreateReader(env,
+                c => (label: c.LoadText(0), features: c.LoadFloat(1, 4)));
+
+            MulticlassLogisticRegressionPredictor pred = null;
+
+            // With a custom loss function we no longer get calibrated predictions.
+            var est = reader.MakeNewEstimator()
+                .Append(r => (label: r.label.ToKey(), r.features))
+                .Append(r => (r.label, preds: ctx.Trainers.MultiClassLogisticRegression(
+                    r.label,
+                    r.features, onFit: p => pred = p)));
+
+            var pipe = reader.Append(est);
+
+            Assert.Null(pred);
+            var model = pipe.Fit(dataSource);
+            Assert.NotNull(pred);
+            VBuffer<float>[] weights = default;
+            pred.GetWeights(ref weights, out int n);
+            Assert.True(n == 3 && n == weights.Length);
+            foreach (var w in weights)
+                Assert.True(w.Length == 4);
+
+            var data = model.Read(dataSource);
+
+            // Just output some data on the schema for fun.
+            var schema = data.AsDynamic.Schema;
+            for (int c = 0; c < schema.ColumnCount; ++c)
+                Console.WriteLine($"{schema.GetColumnName(c)}, {schema.GetColumnType(c)}");
+
+            var metrics = ctx.Evaluate(data, r => r.label, r => r.preds, 2);
+            Assert.True(metrics.LogLoss > 0);
+            Assert.True(metrics.TopKAccuracy > 0);
+        }
+
+        [Fact]
+        public void OnlineGradientDescent()
+        {
+            var env = new ConsoleEnvironment(seed: 0);
+            var dataPath = GetDataPath(TestDatasets.generatedRegressionDataset.trainFilename);
+            var dataSource = new MultiFileSource(dataPath);
+
+            var ctx = new RegressionContext(env);
+
+            var reader = TextLoader.CreateReader(env,
+                c => (label: c.LoadFloat(11), features: c.LoadFloat(0, 10)),
+                separator: ';', hasHeader: true);
+
+            LinearRegressionPredictor pred = null;
+
+            var loss = new SquaredLoss();
+
+            var est = reader.MakeNewEstimator()
+                .Append(r => (r.label, score: ctx.Trainers.OnlineGradientDescent(r.label, r.features, 
+               // lossFunction:loss,
+                onFit: (p) => { pred = p; })));
+
+            var pipe = reader.Append(est);
+
+            Assert.Null(pred);
+            var model = pipe.Fit(dataSource);
+            Assert.NotNull(pred);
+            // 11 input features, so we ought to have 11 weights.
+            VBuffer<float> weights = new VBuffer<float>();
+            pred.GetFeatureWeights(ref weights);
+            Assert.Equal(11, weights.Length);
+
+            var data = model.Read(dataSource);
+
+            var metrics = ctx.Evaluate(data, r => r.label, r => r.score, new PoissonLoss());
+            // Run a sanity check against a few of the metrics.
+            Assert.InRange(metrics.L1, 0, double.PositiveInfinity);
+            Assert.InRange(metrics.L2, 0, double.PositiveInfinity);
+            Assert.InRange(metrics.Rms, 0, double.PositiveInfinity);
+            Assert.Equal(metrics.Rms * metrics.Rms, metrics.L2, 5);
+            Assert.InRange(metrics.LossFn, 0, double.PositiveInfinity);
+        }
+
+        [Fact]
+        public void KMeans()
+        {
+            var env = new ConsoleEnvironment(seed: 0);
+            var dataPath = GetDataPath(TestDatasets.iris.trainFilename);
+            var dataSource = new MultiFileSource(dataPath);
+
+            var ctx = new ClusteringContext(env);
+            var reader = TextLoader.CreateReader(env,
+                c => (label: c.LoadText(0), features: c.LoadFloat(1, 4)));
+
+            KMeansPredictor pred = null;
+
+            var est = reader.MakeNewEstimator()
+                 .Append(r => (label: r.label.ToKey(), r.features))
+                 .Append(r => (r.label, r.features, preds: ctx.Trainers.KMeans(r.features, clustersCount: 3, onFit: p => pred = p)));
+
+            var pipe = reader.Append(est);
+
+            Assert.Null(pred);
+            var model = pipe.Fit(dataSource);
+            Assert.NotNull(pred);
+
+            VBuffer<float>[] centroids = default;
+            int k;
+            pred.GetClusterCentroids(ref centroids, out k);
+
+            Assert.True(k == 3);
+
+            var data = model.Read(dataSource);
+
+            var metrics = ctx.Evaluate(data, r => r.preds.score, r => r.label, r => r.features);
+            Assert.NotNull(metrics);
+
+            Assert.InRange(metrics.AvgMinScore, 0.5262, 0.5264);
+            Assert.InRange(metrics.Nmi, 0.73, 0.77);
+            Assert.InRange(metrics.Dbi, 0.662, 0.667);
+
+            metrics = ctx.Evaluate(data, r => r.preds.score, label: r => r.label);
+            Assert.NotNull(metrics);
+
+            Assert.InRange(metrics.AvgMinScore, 0.5262, 0.5264);
+            Assert.True(metrics.Dbi == 0.0);
+
+            metrics = ctx.Evaluate(data, r => r.preds.score, features: r => r.features);
+            Assert.True(double.IsNaN(metrics.Nmi));
+
+            metrics = ctx.Evaluate(data, r => r.preds.score);
+            Assert.NotNull(metrics);
+            Assert.InRange(metrics.AvgMinScore, 0.5262, 0.5264);
+            Assert.True(double.IsNaN(metrics.Nmi));
+            Assert.True(metrics.Dbi == 0.0);
+
         }
     }
 }
