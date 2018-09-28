@@ -8,6 +8,7 @@ using Microsoft.ML.Runtime.FactorizationMachine;
 using Microsoft.ML.Runtime.FastTree;
 using Microsoft.ML.Runtime.Internal.Calibration;
 using Microsoft.ML.Runtime.Internal.Internallearn;
+using Microsoft.ML.Runtime.KMeans;
 using Microsoft.ML.Runtime.Learners;
 using Microsoft.ML.Runtime.LightGBM;
 using Microsoft.ML.Runtime.RunTests;
@@ -450,6 +451,61 @@ namespace Microsoft.ML.StaticPipelineTesting
             Assert.InRange(metrics.Rms, 0, double.PositiveInfinity);
             Assert.Equal(metrics.Rms * metrics.Rms, metrics.L2, 5);
             Assert.InRange(metrics.LossFn, 0, double.PositiveInfinity);
+        }
+
+        [Fact]
+        public void KMeans()
+        {
+            var env = new ConsoleEnvironment(seed: 0);
+            var dataPath = GetDataPath(TestDatasets.iris.trainFilename);
+            var dataSource = new MultiFileSource(dataPath);
+
+            var ctx = new ClusteringContext(env);
+            var reader = TextLoader.CreateReader(env,
+                c => (label: c.LoadText(0), features: c.LoadFloat(1, 4)));
+
+            KMeansPredictor pred = null;
+
+            var est = reader.MakeNewEstimator()
+                 .Append(r => (label: r.label.ToKey(), r.features))
+                 .Append(r => (r.label, r.features, preds: ctx.Trainers.KMeans(r.features, clustersCount: 3, onFit: p => pred = p)));
+
+            var pipe = reader.Append(est);
+
+            Assert.Null(pred);
+            var model = pipe.Fit(dataSource);
+            Assert.NotNull(pred);
+
+            VBuffer<float>[] centroids = default;
+            int k;
+            pred.GetClusterCentroids(ref centroids, out k);
+
+            Assert.True(k == 3);
+
+            var data = model.Read(dataSource);
+
+            var metrics = ctx.Evaluate(data, r => r.preds.score, r => r.label, r => r.features);
+            Assert.NotNull(metrics);
+
+            Assert.InRange(metrics.AvgMinScore, 0.5262, 0.5264);
+            Assert.InRange(metrics.Nmi, 0.73, 0.77);
+            Assert.InRange(metrics.Dbi, 0.662, 0.667);
+
+            metrics = ctx.Evaluate(data, r => r.preds.score, label: r => r.label);
+            Assert.NotNull(metrics);
+
+            Assert.InRange(metrics.AvgMinScore, 0.5262, 0.5264);
+            Assert.True(metrics.Dbi == 0.0);
+
+            metrics = ctx.Evaluate(data, r => r.preds.score, features: r => r.features);
+            Assert.True(double.IsNaN(metrics.Nmi));
+
+            metrics = ctx.Evaluate(data, r => r.preds.score);
+            Assert.NotNull(metrics);
+            Assert.InRange(metrics.AvgMinScore, 0.5262, 0.5264);
+            Assert.True(double.IsNaN(metrics.Nmi));
+            Assert.True(metrics.Dbi == 0.0);
+
         }
     }
 }
