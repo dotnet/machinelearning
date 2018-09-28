@@ -187,11 +187,7 @@ namespace Microsoft.ML.Runtime.Data
 
         public bool IsRowToRowMapper => _transformer.IsRowToRowMapper;
 
-        public IRowToRowMapper GetRowToRowMapper(ISchema inputSchema)
-        {
-            Contracts.CheckValue(inputSchema, nameof(inputSchema));
-            return _transformer.GetRowToRowMapper(inputSchema);
-        }
+        public IRowToRowMapper GetRowToRowMapper(ISchema inputSchema) => _transformer.GetRowToRowMapper(inputSchema);
     }
 
     /// <summary>
@@ -208,8 +204,9 @@ namespace Microsoft.ML.Runtime.Data
             public const CategoricalTransform.OutputKind OutputKind = CategoricalTransform.OutputKind.Bag;
         }
 
-        public sealed class ColumnInfo : HashTransformer.ColumnInfo
+        public sealed class ColumnInfo
         {
+            public readonly HashTransformer.ColumnInfo HashInfo;
             public readonly CategoricalTransform.OutputKind OutputKind;
             public ColumnInfo(string input, string output,
                 CategoricalTransform.OutputKind outputKind = Defaults.OutputKind,
@@ -217,8 +214,8 @@ namespace Microsoft.ML.Runtime.Data
                 uint seed = Defaults.Seed,
                 bool ordered = Defaults.Ordered,
                 int invertHash = Defaults.InvertHash)
-                : base(input, output, hashBits, seed, ordered, invertHash)
             {
+                HashInfo = new HashTransformer.ColumnInfo(input, output, hashBits, seed, ordered, invertHash);
                 OutputKind = outputKind;
             }
         }
@@ -242,7 +239,7 @@ namespace Microsoft.ML.Runtime.Data
         {
             Contracts.CheckValue(env, nameof(env));
             _host = env.Register(nameof(TermEstimator));
-            _hash = new HashEstimator(_host, columns);
+            _hash = new HashEstimator(_host, columns.Select(x => x.HashInfo).ToArray());
             using (var ch = _host.Start(nameof(CategoricalHashEstimator)))
             {
                 var cols = new List<(string input, string output, bool bag)>();
@@ -269,10 +266,10 @@ namespace Microsoft.ML.Runtime.Data
                             bag = true;
                             break;
                     }
-                    cols.Add((column.Output, column.Output, bag));
+                    cols.Add((column.HashInfo.Output, column.HashInfo.Output, bag));
                     if (binaryEncoding)
                     {
-                        if ((column.InvertHash) != 0)
+                        if ((column.HashInfo.InvertHash) != 0)
                             ch.Warning("Invert hashing is being used with binary encoding.");
                         _toVector = new KeyToBinaryVectorEstimator(_host, cols.Select(x => new KeyToBinaryVectorTransform.ColumnInfo(x.input, x.output)).ToArray());
                     }

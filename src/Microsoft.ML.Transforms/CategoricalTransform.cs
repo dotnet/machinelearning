@@ -171,11 +171,7 @@ namespace Microsoft.ML.Runtime.Data
 
         public bool IsRowToRowMapper => _transformer.IsRowToRowMapper;
 
-        public IRowToRowMapper GetRowToRowMapper(ISchema inputSchema)
-        {
-            Contracts.CheckValue(inputSchema, nameof(inputSchema));
-            return _transformer.GetRowToRowMapper(inputSchema);
-        }
+        public IRowToRowMapper GetRowToRowMapper(ISchema inputSchema) => _transformer.GetRowToRowMapper(inputSchema);
     }
     /// <summary>
     /// Estimator which takes set of columns and produce for each column indicator array.
