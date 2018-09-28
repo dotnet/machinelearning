@@ -26,8 +26,8 @@ namespace Microsoft.ML.StaticPipe
         /// <param name="features">The features, or independent variables.</param>
         /// <param name="weights">The optional example weights.</param>
         /// <param name="enoforceNoNegativity">Enforce non-negative weights.</param>
-        /// <param name="l1Weight">Weight of L1 regularizer term.</param>
-        /// <param name="l2Weight">Weight of L2 regularizer term.</param>
+        /// <param name="l1Weight">Weight of L1 regularization term.</param>
+        /// <param name="l2Weight">Weight of L2 regularization term.</param>
         /// <param name="memorySize">Memory size for <see cref="Microsoft.ML.Runtime.Learners.LogisticRegression"/>. Lower=faster, less accurate.</param>
         /// <param name="optimizationTolerance">Threshold for optimizer convergence.</param>
         /// <param name="onFit">A delegate that is called every time the
@@ -79,8 +79,8 @@ namespace Microsoft.ML.StaticPipe
         /// <param name="features">The features, or independent variables.</param>
         /// <param name="weights">The optional example weights.</param>
         /// <param name="enoforceNoNegativity">Enforce non-negative weights.</param>
-        /// <param name="l1Weight">Weight of L1 regularizer term.</param>
-        /// <param name="l2Weight">Weight of L2 regularizer term.</param>
+        /// <param name="l1Weight">Weight of L1 regularization term.</param>
+        /// <param name="l2Weight">Weight of L2 regularization term.</param>
         /// <param name="memorySize">Memory size for <see cref="Microsoft.ML.Runtime.Learners.LogisticRegression"/>. Lower=faster, less accurate.</param>
         /// <param name="optimizationTolerance">Threshold for optimizer convergence.</param>
         /// <param name="onFit">A delegate that is called every time the
@@ -132,8 +132,8 @@ namespace Microsoft.ML.StaticPipe
         /// <param name="features">The features, or independent variables.</param>
         /// <param name="weights">The optional example weights.</param>
         /// <param name="enoforceNoNegativity">Enforce non-negative weights.</param>
-        /// <param name="l1Weight">Weight of L1 regularizer term.</param>
-        /// <param name="l2Weight">Weight of L2 regularizer term.</param>
+        /// <param name="l1Weight">Weight of L1 regularization term.</param>
+        /// <param name="l2Weight">Weight of L2 regularization term.</param>
         /// <param name="memorySize">Memory size for <see cref="Microsoft.ML.Runtime.Learners.LogisticRegression"/>. Lower=faster, less accurate.</param>
         /// <param name="optimizationTolerance">Threshold for optimizer convergence.</param>
         /// <param name="onFit">A delegate that is called every time the

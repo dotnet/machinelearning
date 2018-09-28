@@ -25,7 +25,7 @@ namespace Microsoft.ML.StaticPipe
         /// <param name="weights">The optional example weights.</param>
         /// <param name="learningRate">The learning Rate.</param>
         /// <param name="decreaseLearningRate">Decrease learning rate as iterations progress.</param>
-        /// <param name="l2RegularizerWeight">L2 Regularization Weight.</param>
+        /// <param name="l2RegularizerWeight">L2 regularization weight.</param>
         /// <param name="numIterations">Number of training iterations through the data.</param>
         /// <param name="onFit">A delegate that is called every time the
         /// <see cref="Estimator{TTupleInShape, TTupleOutShape, TTransformer}.Fit(DataView{TTupleInShape})"/> method is called on the
@@ -111,7 +111,7 @@ namespace Microsoft.ML.StaticPipe
         /// <param name="lossFunction">The custom loss. Defaults to <see cref="SquaredLoss"/> if not provided.</param>
         /// <param name="learningRate">The learning Rate.</param>
         /// <param name="decreaseLearningRate">Decrease learning rate as iterations progress.</param>
-        /// <param name="l2RegularizerWeight">L2 Regularization Weight.</param>
+        /// <param name="l2RegularizerWeight">L2 regularization weight.</param>
         /// <param name="numIterations">Number of training iterations through the data.</param>
         /// <param name="onFit">A delegate that is called every time the
         /// <see cref="Estimator{TTupleInShape, TTupleOutShape, TTransformer}.Fit(DataView{TTupleInShape})"/> method is called on the
