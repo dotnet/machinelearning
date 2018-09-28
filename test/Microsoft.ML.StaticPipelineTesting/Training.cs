@@ -11,7 +11,7 @@ using Microsoft.ML.Runtime.Internal.Internallearn;
 using Microsoft.ML.Runtime.Learners;
 using Microsoft.ML.Runtime.LightGBM;
 using Microsoft.ML.Runtime.RunTests;
-using Microsoft.ML.Runtime.Training;
+using Microsoft.ML.StaticPipe;
 using Microsoft.ML.Trainers;
 using System;
 using System.Linq;
@@ -544,7 +544,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             IPredictorWithFeatureWeights<float> pred = null;
 
             var est = reader.MakeNewEstimator()
-                .Append(r => (r.label, preds: ctx.Trainers.LogisticRegression(r.label, r.features,
+                .Append(r => (r.label, preds: ctx.Trainers.LogisticRegressionBinaryClassifier(r.label, r.features,
                     l1Weight: 10,
                     onFit: (p) => { pred = p; })));
 

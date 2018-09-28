@@ -7,11 +7,9 @@ using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Internal.Calibration;
 using Microsoft.ML.Runtime.Learners;
-using Microsoft.ML.Runtime.Training;
-using Microsoft.ML.StaticPipe;
 using Microsoft.ML.StaticPipe.Runtime;
 
-namespace Microsoft.ML.Trainers
+namespace Microsoft.ML.StaticPipe
 {
     using Arguments = LogisticRegression.Arguments;
 
@@ -21,7 +19,7 @@ namespace Microsoft.ML.Trainers
     public static partial class BinaryClassificationTrainers
     {
         /// <summary>
-        ///  Predict a target using a linear binary classification model trained with the <see cref="Runtime.Learners.LogisticRegression"/> trainer.
+        ///  Predict a target using a linear binary classification model trained with the <see cref="Microsoft.ML.Runtime.Learners.LogisticRegression"/> trainer.
         /// </summary>
         /// <param name="ctx">The binary classificaiton context trainer object.</param>
         /// <param name="label">The label, or dependent variable.</param>
@@ -30,7 +28,7 @@ namespace Microsoft.ML.Trainers
         /// <param name="enoforceNoNegativity">Enforce non-negative weights.</param>
         /// <param name="l1Weight">Weight of L1 regularizer term.</param>
         /// <param name="l2Weight">Weight of L2 regularizer term.</param>
-        /// <param name="memorySize">Memory size for <see cref="Runtime.Learners.LogisticRegression"/>. Lower=faster, less accurate.</param>
+        /// <param name="memorySize">Memory size for <see cref="Microsoft.ML.Runtime.Learners.LogisticRegression"/>. Lower=faster, less accurate.</param>
         /// <param name="optimizationTolerance">Threshold for optimizer convergence.</param>
         /// <param name="onFit">A delegate that is called every time the
         /// <see cref="Estimator{TTupleInShape, TTupleOutShape, TTransformer}.Fit(DataView{TTupleInShape})"/> method is called on the
@@ -49,7 +47,7 @@ namespace Microsoft.ML.Trainers
             bool enoforceNoNegativity = Arguments.Defaults.EnforceNonNegativity,
             Action<ParameterMixingCalibratedPredictor> onFit = null)
         {
-            LbfgsStaticsUtils.ValidateParams(label, features, weights, l1Weight, l2Weight, optimizationTolerance, memorySize, enoforceNoNegativity, onFit);
+            LbfgsStaticUtils.ValidateParams(label, features, weights, l1Weight, l2Weight, optimizationTolerance, memorySize, enoforceNoNegativity, onFit);
 
             var rec = new TrainerEstimatorReconciler.BinaryClassifier(
                 (env, labelName, featuresName, weightsName) =>
@@ -74,7 +72,7 @@ namespace Microsoft.ML.Trainers
     {
 
         /// <summary>
-        /// Predict a target using a linear regression model trained with the <see cref="Runtime.Learners.LogisticRegression"/> trainer.
+        /// Predict a target using a linear regression model trained with the <see cref="Microsoft.ML.Runtime.Learners.LogisticRegression"/> trainer.
         /// </summary>
         /// <param name="ctx">The regression context trainer object.</param>
         /// <param name="label">The label, or dependent variable.</param>
@@ -83,7 +81,7 @@ namespace Microsoft.ML.Trainers
         /// <param name="enoforceNoNegativity">Enforce non-negative weights.</param>
         /// <param name="l1Weight">Weight of L1 regularizer term.</param>
         /// <param name="l2Weight">Weight of L2 regularizer term.</param>
-        /// <param name="memorySize">Memory size for <see cref="Runtime.Learners.LogisticRegression"/>. Lower=faster, less accurate.</param>
+        /// <param name="memorySize">Memory size for <see cref="Microsoft.ML.Runtime.Learners.LogisticRegression"/>. Lower=faster, less accurate.</param>
         /// <param name="optimizationTolerance">Threshold for optimizer convergence.</param>
         /// <param name="onFit">A delegate that is called every time the
         /// <see cref="Estimator{TTupleInShape, TTupleOutShape, TTransformer}.Fit(DataView{TTupleInShape})"/> method is called on the
@@ -102,7 +100,7 @@ namespace Microsoft.ML.Trainers
             bool enoforceNoNegativity = Arguments.Defaults.EnforceNonNegativity,
             Action<PoissonRegressionPredictor> onFit = null)
         {
-            LbfgsStaticsUtils.ValidateParams(label, features, weights, l1Weight, l2Weight, optimizationTolerance, memorySize, enoforceNoNegativity, onFit);
+            LbfgsStaticUtils.ValidateParams(label, features, weights, l1Weight, l2Weight, optimizationTolerance, memorySize, enoforceNoNegativity, onFit);
 
             var rec = new TrainerEstimatorReconciler.Regression(
                 (env, labelName, featuresName, weightsName) =>
@@ -127,7 +125,7 @@ namespace Microsoft.ML.Trainers
     {
 
         /// <summary>
-        /// Predict a target using a linear multiclass classification model trained with the <see cref="Runtime.Learners.MulticlassLogisticRegression"/> trainer.
+        /// Predict a target using a linear multiclass classification model trained with the <see cref="Microsoft.ML.Runtime.Learners.MulticlassLogisticRegression"/> trainer.
         /// </summary>
         /// <param name="ctx">The multiclass classification context trainer object.</param>
         /// <param name="label">The label, or dependent variable.</param>
@@ -136,7 +134,7 @@ namespace Microsoft.ML.Trainers
         /// <param name="enoforceNoNegativity">Enforce non-negative weights.</param>
         /// <param name="l1Weight">Weight of L1 regularizer term.</param>
         /// <param name="l2Weight">Weight of L2 regularizer term.</param>
-        /// <param name="memorySize">Memory size for <see cref="Runtime.Learners.LogisticRegression"/>. Lower=faster, less accurate.</param>
+        /// <param name="memorySize">Memory size for <see cref="Microsoft.ML.Runtime.Learners.LogisticRegression"/>. Lower=faster, less accurate.</param>
         /// <param name="optimizationTolerance">Threshold for optimizer convergence.</param>
         /// <param name="onFit">A delegate that is called every time the
         /// <see cref="Estimator{TTupleInShape, TTupleOutShape, TTransformer}.Fit(DataView{TTupleInShape})"/> method is called on the
@@ -156,7 +154,7 @@ namespace Microsoft.ML.Trainers
             bool enoforceNoNegativity = Arguments.Defaults.EnforceNonNegativity,
             Action<MulticlassLogisticRegressionPredictor> onFit = null)
         {
-            LbfgsStaticsUtils.ValidateParams(label, features, weights, l1Weight, l2Weight, optimizationTolerance, memorySize, enoforceNoNegativity, onFit);
+            LbfgsStaticUtils.ValidateParams(label, features, weights, l1Weight, l2Weight, optimizationTolerance, memorySize, enoforceNoNegativity, onFit);
 
             var rec = new TrainerEstimatorReconciler.MulticlassClassifier<TVal>(
                 (env, labelName, featuresName, weightsName) =>
@@ -174,7 +172,7 @@ namespace Microsoft.ML.Trainers
 
     }
 
-    internal sealed class LbfgsStaticsUtils{
+    internal static class LbfgsStaticUtils{
 
         internal static void ValidateParams(PipelineColumn label,
             Vector<float> features,
