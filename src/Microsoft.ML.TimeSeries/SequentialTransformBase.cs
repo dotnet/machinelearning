@@ -255,7 +255,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             Contracts.AssertValue(Host);
             Host.CheckParam(initialWindowSize >= 0, nameof(initialWindowSize), "Must be non-negative.");
             Host.CheckParam(windowSize >= 0, nameof(windowSize), "Must be non-negative.");
-            // REVIEW tfinley: Very bad design. This base class is responsible for reporting errors on
+            // REVIEW: Very bad design. This base class is responsible for reporting errors on
             // the arguments, but the arguments themselves are not derived form any base class.
             Host.CheckNonEmpty(inputColumnName, nameof(PercentileThresholdTransform.Arguments.Source));
             Host.CheckNonEmpty(outputColumnName, nameof(PercentileThresholdTransform.Arguments.Source));

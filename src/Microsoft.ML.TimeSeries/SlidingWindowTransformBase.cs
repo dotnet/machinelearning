@@ -149,7 +149,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
                     value = _parentSliding._nanValue;
                     break;
                 case BeginOptions.FirstValue:
-                    // REVIEW xadupre: will complete the implementation
+                    // REVIEW: will complete the implementation
                     // if the design looks good
                     throw new NotImplementedException();
                 }

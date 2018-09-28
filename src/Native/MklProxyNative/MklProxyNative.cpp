@@ -155,8 +155,8 @@ EXPORT_API(int) DftiCreateDescriptor(void **handle, ConfigValue precision, Confi
 EXPORT_API(int) DftiComputeForward(void *handle, ...);
 EXPORT_API(int) DftiComputeBackward(void *handle, ...);
 
-EXPORT_API(int) MKLDftiSetValue(void *handle, ConfigParam config_param, int config_val) {
-
+EXPORT_API(int) MKLDftiSetValue(void *handle, ConfigParam config_param, int config_val)
+{
 	return DftiSetValue(handle, config_param, config_val);
 }
 
@@ -165,12 +165,12 @@ EXPORT_API(int) MKLDftiCreateDescriptor(void **handle, ConfigValue precision, Co
 	return DftiCreateDescriptor(handle, precision,domain, dim, sizes);
 }
 
-EXPORT_API(int) MKLDftiComputeForward(void *handle, double *inputRe, double * inputIm, double * outputRe, double * outputIm) {
-
+EXPORT_API(int) MKLDftiComputeForward(void *handle, double *inputRe, double * inputIm, double * outputRe, double * outputIm)
+{
 	return DftiComputeForward(handle, inputRe, inputIm, outputRe, outputIm);
 }
 
-EXPORT_API(int) MKLDftiComputeBackward(void *handle, double *inputRe, double * inputIm, double * outputRe, double * outputIm) {
-
+EXPORT_API(int) MKLDftiComputeBackward(void *handle, double *inputRe, double * inputIm, double * outputRe, double * outputIm)
+{
 	return DftiComputeBackward(handle, inputRe, inputIm, outputRe, outputIm);
 }

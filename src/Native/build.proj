@@ -102,9 +102,9 @@
     <ItemGroup>
       <NativePackageAsset Include="$(NativeAssetsBuiltPath)\$(NativeLibPrefix)MklImports$(NativeLibExtension)"
                           RelativePath="Microsoft.ML.HalLearners\runtimes\$(PackageRid)\native" /> 
-						  
+
       <NativePackageAsset Include="$(NativeAssetsBuiltPath)\$(NativeLibPrefix)MklImports$(NativeLibExtension)"
-                          RelativePath="Microsoft.ML.TimeSeries\runtimes\$(PackageRid)\native" /> 						  
+                          RelativePath="Microsoft.ML.TimeSeries\runtimes\$(PackageRid)\native" /> 
     </ItemGroup>
     
     <Copy SourceFiles="@(NativePackageAsset)"
