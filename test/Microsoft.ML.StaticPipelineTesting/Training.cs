@@ -160,9 +160,9 @@ namespace Microsoft.ML.StaticPipelineTesting
 
             // With a custom loss function we no longer get calibrated predictions.
             var est = reader.MakeNewEstimator()
-                .Append(r => (r.label, preds: ctx.Trainers.AveragedPerceptron(loss, r.label, r.features,
-                numIterations: 2,
-                onFit: p => pred = p)));
+                .Append(r => (r.label, preds: ctx.Trainers.Sdca(r.label, r.features,
+                maxIterations: 2,
+                loss: loss, onFit: p => pred = p)));
 
             var pipe = reader.Append(est);
 

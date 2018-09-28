@@ -174,20 +174,20 @@ namespace Microsoft.ML.Runtime.Learners
             Host.CheckValue(args, nameof(args));
             Args = args;
 
-            Contracts.CheckUserArg(!Args.UseThreads || Args.NumThreads > 0 || Args.NumThreads == null,
+            Host.CheckUserArg(!Args.UseThreads || Args.NumThreads > 0 || Args.NumThreads == null,
                 nameof(Args.NumThreads), "numThreads must be positive (or empty for default)");
-            Contracts.CheckUserArg(Args.L2Weight >= 0, nameof(Args.L2Weight), "Must be non-negative");
-            Contracts.CheckUserArg(Args.L1Weight >= 0, nameof(Args.L1Weight), "Must be non-negative");
-            Contracts.CheckUserArg(Args.OptTol > 0, nameof(Args.OptTol), "Must be positive");
-            Contracts.CheckUserArg(Args.MemorySize > 0, nameof(Args.MemorySize), "Must be positive");
-            Contracts.CheckUserArg(Args.MaxIterations > 0, nameof(Args.MaxIterations), "Must be positive");
-            Contracts.CheckUserArg(Args.SgdInitializationTolerance >= 0, nameof(Args.SgdInitializationTolerance), "Must be non-negative");
-            Contracts.CheckUserArg(Args.NumThreads == null || Args.NumThreads.Value >= 0, nameof(Args.NumThreads), "Must be non-negative");
+            Host.CheckUserArg(Args.L2Weight >= 0, nameof(Args.L2Weight), "Must be non-negative");
+            Host.CheckUserArg(Args.L1Weight >= 0, nameof(Args.L1Weight), "Must be non-negative");
+            Host.CheckUserArg(Args.OptTol > 0, nameof(Args.OptTol), "Must be positive");
+            Host.CheckUserArg(Args.MemorySize > 0, nameof(Args.MemorySize), "Must be positive");
+            Host.CheckUserArg(Args.MaxIterations > 0, nameof(Args.MaxIterations), "Must be positive");
+            Host.CheckUserArg(Args.SgdInitializationTolerance >= 0, nameof(Args.SgdInitializationTolerance), "Must be non-negative");
+            Host.CheckUserArg(Args.NumThreads == null || Args.NumThreads.Value >= 0, nameof(Args.NumThreads), "Must be non-negative");
 
-            Contracts.CheckParam(l2Weight >= 0, nameof(l2Weight), "Must be non-negative, if provided.");
-            Contracts.CheckParam(l1Weight >= 0, nameof(l1Weight), "Must be non-negative, if provided");
-            Contracts.CheckParam(optimizationTolerance > 0, nameof(optimizationTolerance), "Must be positive, if provided.");
-            Contracts.CheckParam(memorySize > 0, nameof(memorySize), "Must be positive, if provided.");
+            Host.CheckParam(!(l2Weight < 0), nameof(l2Weight), "Must be non-negative, if provided.");
+            Host.CheckParam(!(l1Weight < 0), nameof(l1Weight), "Must be non-negative, if provided");
+            Host.CheckParam(!(optimizationTolerance <= 0), nameof(optimizationTolerance), "Must be positive, if provided.");
+            Host.CheckParam(!(memorySize <= 0), nameof(memorySize), "Must be positive, if provided.");
 
             // Review: Warn about the overriding behavior
             L2Weight = l2Weight ?? Args.L2Weight;
