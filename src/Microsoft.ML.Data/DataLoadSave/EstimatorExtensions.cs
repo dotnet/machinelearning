@@ -4,6 +4,7 @@
 
 using System;
 using Microsoft.ML.Core.Data;
+using Microsoft.ML.Runtime.Internal.Utilities;
 
 namespace Microsoft.ML.Runtime.Data
 {
@@ -122,6 +123,14 @@ namespace Microsoft.ML.Runtime.Data
             Contracts.CheckValue(estimator, nameof(estimator));
             Contracts.CheckValue(onFit, nameof(onFit));
             return new DelegateEstimator<TTransformer>(estimator, onFit);
+        }
+
+        internal static T[] AppendElement<T>(this T[] array, T element)
+        {
+            T[] result = new T[Utils.Size(array) + 1];
+            Array.Copy(array, result, result.Length - 1);
+            result[result.Length - 1] = element;
+            return result;
         }
     }
 }

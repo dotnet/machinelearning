@@ -209,9 +209,6 @@ namespace Microsoft.ML
         /// <summary>
         /// For trainers for performing binary classification.
         /// </summary>
-        /// <remarks>
-        /// Component authors that have written binary classification. They are great people.
-        /// </remarks>
         public BinaryClassificationTrainers Trainers { get; }
 
         public BinaryClassificationContext(IHostEnvironment env)
@@ -312,6 +309,62 @@ namespace Microsoft.ML
             Host.CheckNonEmpty(labelColumn, nameof(labelColumn));
             var result = CrossValidateTrain(data, estimator, numFolds, stratificationColumn);
             return result.Select(x => (Evaluate(x.scoredTestSet, labelColumn), x.model, x.scoredTestSet)).ToArray();
+        }
+    }
+
+    /// <summary>
+    /// The central context for clustering trainers.
+    /// </summary>
+    public sealed class ClusteringContext : TrainContextBase
+    {
+        /// <summary>
+        /// List of trainers for performing clustering.
+        /// </summary>
+        public ClusteringTrainers Trainers { get; }
+
+        /// <summary>
+        /// The clustering context.
+        /// </summary>
+        public ClusteringContext(IHostEnvironment env)
+            : base(env, nameof(ClusteringContext))
+        {
+            Trainers = new ClusteringTrainers(this);
+        }
+
+        public sealed class ClusteringTrainers : ContextInstantiatorBase
+        {
+            internal ClusteringTrainers(ClusteringContext ctx)
+                : base(ctx)
+            {
+            }
+        }
+
+        /// <summary>
+        /// Evaluates scored clustering data.
+        /// </summary>
+        /// <param name="data">The scored data.</param>
+        /// <param name="score">The name of the score column in <paramref name="data"/>.</param>
+        /// <param name="label">The name of the optional label column in <paramref name="data"/>.
+        /// If present, the <see cref="ClusteringEvaluator.Result.Nmi"/> metric will be computed.</param>
+        /// <param name="features">The name of the optional features column in <paramref name="data"/>.
+        /// If present, the <see cref="ClusteringEvaluator.Result.Dbi"/> metric will be computed.</param>
+        /// <returns>The evaluation result.</returns>
+        public ClusteringEvaluator.Result Evaluate(IDataView data,
+            string label = null,
+            string score = DefaultColumnNames.Score,
+            string features = null )
+        {
+            Host.CheckValue(data, nameof(data));
+            Host.CheckNonEmpty(score, nameof(score));
+
+            if(features != null)
+                Host.CheckNonEmpty(features, nameof(features), "The features column name should be non-empty, if provided, if you want to calculate the Dbi metric.");
+
+            if (label != null)
+                Host.CheckNonEmpty(label, nameof(label), "The features column name should be non-empty, if provided, if you want to calculate the Nmi metric.");
+
+            var eval = new ClusteringEvaluator(Host, new ClusteringEvaluator.Arguments() { CalculateDbi = !string.IsNullOrEmpty(features) });
+            return eval.Evaluate(data, score, label, features);
         }
     }
 
