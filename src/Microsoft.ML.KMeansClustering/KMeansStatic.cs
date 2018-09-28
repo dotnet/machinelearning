@@ -4,11 +4,10 @@
 
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.KMeans;
-using Microsoft.ML.StaticPipe;
 using Microsoft.ML.StaticPipe.Runtime;
 using System;
 
-namespace Microsoft.ML.Trainers
+namespace Microsoft.ML.StaticPipe
 {
     /// <summary>
     /// The trainer context extensions for the <see cref="KMeansPlusPlusTrainer"/>.
