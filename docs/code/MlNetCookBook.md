@@ -32,6 +32,44 @@ Please feel free to search this page and use any code that suits your needs.
 - [How do I train my model on categorical data?](#how-do-i-train-my-model-on-categorical-data)
 - [How do I train my model on textual data?](#how-do-i-train-my-model-on-textual-data)
 - [How do I train using cross-validation?](#how-do-i-train-using-cross-validation)
+- [Can I mix and match static and dynamic pipelines?](#can-i-mix-and-match-static-and-dynamic-pipelines)
+
+### General questions about the samples
+
+As this document is reviewed, we found that certain general clarifications are in order about all the samples together. We try to address them in this section.
+
+- *My compiler fails to find some of the methods that are present in the samples!*
+This is because we rely on extension methods a lot, and they only become available after you say `using TheRightNamespace`.
+We are still re-organizing the namespaces, and trying to improve the story. In the meantime, the following namespaces prove useful for extension methods:
+```csharp
+using Microsoft.ML.Data;
+using Microsoft.ML.StaticPipe;
+using Microsoft.ML.Trainers;
+using Microsoft.ML.Transforms;
+```
+
+- *Why is there two ways of doing things? Which one is better, static or dynamic?*
+We don't know yet, that's why we have two ways! 
+
+If you are loading an existing model from a stream, there's no need to use static types (and it's also pretty hard to do). Also, if the data view's schema is only known at runtime, there is no way to use static types. In other scenarios we tend to prefer the static types, since this way gives you compiler support: it's more likely that, if your code compiles, it will also work as intended.
+
+- *Why do we call `reader.MakeNewEstimator` to create a pipeline?*
+In the static pipeline, we need to know the two 'schema' types: the input and the output to the pipeline.
+One of them is already known: typically, the output schema of `reader` (which is the same as the schema of `reader.Read()`) is also the input schema of the learning pipeline. 
+
+The call to `x.MakeNewEstimator` is only using the `x`'s *schema* to create an empty pipeline, it doesn't use anything else from `x`. So, the following three lines would create the exactly same (empty) pipeline:
+```csharp
+var p1 = reader.MakeNewEstimator();
+var p2 = reader.Read(dataLocation).MakeNewEstimator();
+var p3 = p1.MakeNewEstimator();
+```
+
+- *Can we use `reader` to read more than one file?*
+Absolutely! This is why we separated `reader` from the data. This is completely legitimate (and recommended):
+```csharp
+var trainData = reader.Read(trainDataLocation);
+var testData = reader.Read(testDataLocation);
+```
 
 ## How do I load data from a text file?
 
@@ -39,18 +77,17 @@ Please feel free to search this page and use any code that suits your needs.
 
 Note that it's perfectly acceptable to read only some columns of a file, or read the same column multiple times.
 
-Example file (https://github.com/dotnet/machinelearning/blob/master/test/data/adult.tiny.with-schema.txt):
+[Example file](../../test/data/adult.tiny.with-schema.txt):
 ```
 Label	Workclass	education	marital-status
 0	Private	11th	Never-married
 0	Private	HS-grad	Married-civ-spouse
 1	Local-gov	Assoc-acdm	Married-civ-spouse
 1	Private	Some-college	Married-civ-spouse
-
 ```
 
 This is how you can read this data:
-```c#
+```csharp
 // Create a new environment for ML.NET operations. It can be used for exception tracking and logging, 
 // as well as the source of randomness.
 var env = new LocalEnvironment();
@@ -70,7 +107,7 @@ var data = reader.Read(new MultiFileSource(dataPath));
 ```
 
 If the schema of the data is not known at compile time, or too cumbersome, you can revert to the dynamically-typed API: 
-```c#
+```csharp
 // Create a new environment for ML.NET operations. It can be used for exception tracking and logging, 
 // as well as the source of randomness.
 var env = new LocalEnvironment();
@@ -99,7 +136,7 @@ var data = reader.Read(new MultiFileSource(dataPath));
 
 When the input file contains many columns of the same type, always intended to be used together, we recommend reading them as a *vector column* from the very start: this way the schema of the data is cleaner, and we don't incur unnecessary performance costs.
 
-Example file (https://github.com/dotnet/machinelearning/blob/master/test/data/generated_regression_dataset.csv):
+[Example file](../../test/data/generated_regression_dataset.csv):
 ```
 -2.75,0.77,-0.61,0.14,1.39,0.38,-0.53,-0.50,-2.13,-0.39,0.46,140.66
 -0.61,-0.37,-0.12,0.55,-1.00,0.84,-0.02,1.30,-0.24,-0.50,-2.12,148.12
@@ -108,7 +145,7 @@ Example file (https://github.com/dotnet/machinelearning/blob/master/test/data/ge
 ```
 
 Reading this file using `TextLoader`:
-```c#
+```csharp
 // Create a new environment for ML.NET operations. It can be used for exception tracking and logging, 
 // as well as the source of randomness.
 var env = new LocalEnvironment();
@@ -130,7 +167,7 @@ var data = reader.Read(new MultiFileSource(dataPath));
 
 
 If the schema of the data is not known at compile time, or too cumbersome, you can revert to the dynamically-typed API: 
-```c#
+```csharp
 // Create a new environment for ML.NET operations. It can be used for exception tracking and logging, 
 // as well as the source of randomness.
 var env = new LocalEnvironment();
@@ -162,7 +199,7 @@ Another mechanism that lets you inspect the intermediate data is the `GetColumn<
 
 Here is all of this in action:
 
-Example file (https://github.com/dotnet/machinelearning/blob/master/test/data/adult.tiny.with-schema.txt):
+[Example file](../../test/data/adult.tiny.with-schema.txt):
 ```
 Label	Workclass	education	marital-status
 0	Private	11th	Never-married
@@ -172,7 +209,7 @@ Label	Workclass	education	marital-status
 
 ```
 
-```c#
+```csharp
 // Create a new environment for ML.NET operations. It can be used for exception tracking and logging, 
 // as well as the source of randomness.
 var env = new LocalEnvironment();
@@ -190,8 +227,7 @@ var reader = TextLoader.CreateReader(env, ctx => (
 // Start creating our processing pipeline. For now, let's just concatenate all the text columns
 // together into one.
 var dataPipeline = reader.MakeNewEstimator()
-    .Append(row =>
-        (
+    .Append(row => (
             row.IsOver50K,
             AllFeatures: row.Workclass.ConcatWith(row.Education, row.MaritalStatus)
         ));
@@ -226,7 +262,7 @@ var sameFeatureColumns = dynamicData.GetColumn<string[]>(env, "AllFeatures")
 ```
 
 The above code assumes that we defined our `InspectedRow` class as follows:
-```c#
+```csharp
 private class InspectedRow
 {
     public bool IsOver50K;
@@ -244,7 +280,7 @@ Generally, in order to train any model in ML.NET, you will go through three step
 2. Build the 'learning pipeline' as a sequence of elementary 'operators' (estimators).
 3. Call `Fit` on the pipeline to obtain the trained model.
 
-Example file (https://github.com/dotnet/machinelearning/blob/master/test/data/generated_regression_dataset.csv):
+[Example file](../../test/data/generated_regression_dataset.csv):
 ```
 feature_0;feature_1;feature_2;feature_3;feature_4;feature_5;feature_6;feature_7;feature_8;feature_9;feature_10;target
 -2.75;0.77;-0.61;0.14;1.39;0.38;-0.53;-0.50;-2.13;-0.39;0.46;140.66
@@ -254,7 +290,7 @@ feature_0;feature_1;feature_2;feature_3;feature_4;feature_5;feature_6;feature_7;
 
 In the file above, the last column (12th) is label that we predict, and all the preceding ones are features.
 
-```c#
+```csharp
 // Create a new environment for ML.NET operations. It can be used for exception tracking and logging, 
 // as well as the source of randomness.
 var env = new LocalEnvironment();
@@ -304,7 +340,7 @@ For each of the machine learning tasks, there is a set of 'metrics' that can des
 You can use the corresponding 'context' of the task to evaluate the model.
 
 Assuming the example above was used to train the model, here's how you calculate the metrics.
-```c#
+```csharp
 // Read the test dataset.
 var testData = reader.Read(new MultiFileSource(testDataPath));
 // Calculate metrics of the model on the test data.
@@ -318,7 +354,7 @@ Assuming that the model metrics look good to you, it's time to 'operationalize' 
 
 Here's what you do to save the model to a file, and reload it (potentially in a different context).
 
-```c#
+```csharp
 using (var stream = File.Create(modelPath))
 {
     // Saving and loading happens to 'dynamic' models, so the static typing is lost in the process.
@@ -343,7 +379,7 @@ For this case, ML.NET offers a convenient `PredictionFunction` component, that e
 
 Here is the full example. Let's imagine that we have built a model for the famous Iris prediction dataset:
 
-```c#
+```csharp
 // Create a new environment for ML.NET operations. It can be used for exception tracking and logging, 
 // as well as the source of randomness.
 var env = new LocalEnvironment();
@@ -390,7 +426,7 @@ var model = learningPipeline.Fit(trainData).AsDynamic;
 ```
 
 Now, in order to use [schema comprehension](SchemaComprehension.md) for prediction, we define a pair of classes like following:
-```c#
+```csharp
 private class IrisInput
 {
     // Unfortunately, we still need the dummy 'Label' column to be present.
@@ -410,7 +446,7 @@ private class IrisPrediction
 ```
 
 The prediction code now looks as follows:
-```c#
+```csharp
 // Create a new environment for ML.NET operations. It can be used for exception tracking and logging, 
 // as well as the source of randomness.
 var env = new LocalEnvironment();
@@ -444,7 +480,7 @@ For the purpose of this example, we will assume that we build the customer churn
 - Whether the customer has churned (the target 'label')
 - The 'demographic category' (one string, like 'young adult' etc.)
 - The number of visits from the last 5 days.
-```c#
+```csharp
 private class CustomerChurnInfo
 {
     public string CustomerID { get; set; }
@@ -457,7 +493,7 @@ private class CustomerChurnInfo
 ```
 
 Given this information, here's how we turn this data into the ML.NET data view and train on it:
-```c#
+```csharp
 // Create a new environment for ML.NET operations. It can be used for exception tracking and logging, 
 // as well as the source of randomness.
 var env = new LocalEnvironment();
@@ -518,7 +554,7 @@ For example, if the linear model assigned zero weight to a feature that we consi
 In the static pipeline API, we provide a set of `onFit` delegates that allow introspection of the individual transformers as they are trained.
 
 This is how we can extract the learned parameters out of the model that we trained:
-```c#
+```csharp
 // Create a new environment for ML.NET operations. It can be used for exception tracking and logging, 
 // as well as the source of randomness.
 var env = new LocalEnvironment();
@@ -546,6 +582,8 @@ var trainData = reader.Read(new MultiFileSource(dataPath));
 
 // This is the predictor ('weights collection') that we will train.
 MulticlassLogisticRegressionPredictor predictor = null;
+// And these are the normalizer scales that we will learn.
+ImmutableArray<float> normScales;
 // Build the training pipeline.
 var learningPipeline = reader.MakeNewEstimator()
     .Append(r => (
@@ -554,9 +592,16 @@ var learningPipeline = reader.MakeNewEstimator()
         Features: r.SepalLength.ConcatWith(r.SepalWidth, r.PetalLength, r.PetalWidth)))
     .Append(r => (
         r.Label,
+        // Normalize (rescale) the features to be between -1 and 1. 
+        Features: r.Features.Normalize(
+            // When the normalizer is trained, the below delegate is going to be called.
+            // We use it to memorize the scales.
+            onFit: (scales, offsets) => normScales = scales)))
+    .Append(r => (
+        r.Label,
         // Train the multi-class SDCA model to predict the label using features.
         // Note that the label is a text, so it needs to be converted to key using 'ToKey' estimator.
-        Predictions: classification.Trainers.Sdca(r.Label.ToKey(), r.Features, 
+        Predictions: classification.Trainers.Sdca(r.Label.ToKey(), r.Features,
             // When the model is trained, the below delegate is going to be called.
             // We use that to memorize the predictor object.
             onFit: p => predictor = p)));
@@ -571,6 +616,9 @@ var model = learningPipeline.Fit(trainData);
 // 3 vectors (of 4 values each).
 VBuffer<float>[] weights = null;
 predictor.GetWeights(ref weights, out int numClasses);
+
+// Inspect the normalizer scales.
+Console.WriteLine(string.Join(" ", normScales));
 ```
 
 ## What is normalization and why do I need to care?
@@ -602,7 +650,7 @@ It is a good practice to include the normalizer directly in the ML.NET learning 
 - is correctly applied to all the new incoming data, without the need for extra pre-processing at prediction time.
 
 Here's a snippet of code that demonstrates normalization in learning pipelines. It assumes the Iris dataset:
-```c#
+```csharp
 // Create a new environment for ML.NET operations. It can be used for exception tracking and logging, 
 // as well as the source of randomness.
 var env = new LocalEnvironment();
@@ -636,6 +684,88 @@ var normalizedData = pipeline.Fit(trainData).Transform(trainData);
 var meanVarValues = normalizedData.GetColumn(r => r.MeanVarNormalized).ToArray();
 ```
 
+## How do I train my model on categorical data?
+
+Generally speaking, *all ML.NET learners expect the features as a float vector*. So, if some of your data is not natively a float, you will need to convert to floats. 
+
+If our data contains 'categorical' features (think 'enum'), we need to 'featurize' them somehow. ML.NET offers several ways of converting categorical data to features:
+- One-hot encoding
+- Hash-based one-hot encoding
+- Binary encoding (convert category index into a bit sequence and use bits as features)
+
+If some of the categories are very high-cardinality (there's lots of different values, but only several are commonly occurring), a one-hot encoding can be wasteful. We can use count-based feature selection to trim down the number of slots that we encode.
+
+Same with normalization, it's a good practice to include categorical featurization directly in the ML.NET learning pipeline: this way you are sure that the categorical transformation
+- is only 'trained' on the training data, and not on your test data,
+- is correctly applied to all the new incoming data, without the need for extra pre-processing at prediction time.
+
+Below is an example of categorical handling for the [adult census dataset](../../test/data/adult.tiny.with-schema.txt):
+```
+Label	Workclass	education	marital-status	occupation	relationship	ethnicity	sex	native-country-region	age	fnlwgt	education-num	capital-gain	capital-loss	hours-per-week
+0	Private	11th	Never-married	Machine-op-inspct	Own-child	Black	Male	United-States	25	226802	7	0	0	40
+0	Private	HS-grad	Married-civ-spouse	Farming-fishing	Husband	White	Male	United-States	38	89814	9	0	0	50
+1	Local-gov	Assoc-acdm	Married-civ-spouse	Protective-serv	Husband	White	Male	United-States	28	336951	12	0	0	40
+1	Private	Some-college	Married-civ-spouse	Machine-op-inspct	Husband	Black	Male	United-States	44	160323	10	7688	0	40
+```
+
+```csharp
+// Create a new environment for ML.NET operations. It can be used for exception tracking and logging, 
+// as well as the source of randomness.
+var env = new LocalEnvironment();
+
+// Define the reader: specify the data columns and where to find them in the text file.
+var reader = TextLoader.CreateReader(env, ctx => (
+        Label: ctx.LoadBool(0),
+        // We will load all the categorical features into one vector column of size 8.
+        CategoricalFeatures: ctx.LoadText(1, 8),
+        // Similarly, load all numerical features into one vector of size 6.
+        NumericalFeatures: ctx.LoadFloat(9, 14),
+        // Let's also separately load the 'Workclass' column.
+        Workclass: ctx.LoadText(1)
+    ), hasHeader: true);
+
+// Read the data.
+var data = reader.Read(new MultiFileSource(dataPath));
+
+// Inspect the categorical columns to check that they are correctly read.
+var catColumns = data.GetColumn(r => r.CategoricalFeatures).Take(10).ToArray();
+
+// Build several alternative featurization pipelines.
+var learningPipeline = reader.MakeNewEstimator()
+    .Append(r => (
+        r.Label, 
+        r.NumericalFeatures,
+        // Convert each categorical feature into one-hot encoding independently.
+        CategoricalOneHot: r.CategoricalFeatures.OneHotEncoding(outputKind: CategoricalStaticExtensions.OneHotVectorOutputKind.Ind),
+        // Convert all categorical features into indices, and build a 'word bag' of these.
+        CategoricalBag: r.CategoricalFeatures.OneHotEncoding(outputKind: CategoricalStaticExtensions.OneHotVectorOutputKind.Bag),
+        // One-hot encode the workclass column, then drop all the categories that have fewer than 10 instances in the train set.
+        WorkclassOneHotTrimmed: r.Workclass.OneHotEncoding().SelectFeaturesBasedOnCount(count: 10)
+    ));
+
+// Let's train our pipeline, and then apply it to the same data.
+var transformedData = learningPipeline.Fit(data).Transform(data);
+
+// Inspect some columns of the resulting dataset.
+var categoricalBags = transformedData.GetColumn(x => x.CategoricalBag).Take(10).ToArray();
+var workclasses = transformedData.GetColumn(x => x.WorkclassOneHotTrimmed).Take(10).ToArray();
+
+// Of course, if we want to train the model, we will need to compose a single float vector of all the features.
+// Here's how we could do this:
+
+var classification = new BinaryClassificationContext(env);
+var fullLearningPipeline = learningPipeline
+    .Append(r => (
+        r.Label,
+        // Concatenate two of the 3 categorical pipelines, and the numeric features.
+        Features: r.NumericalFeatures.ConcatWith(r.CategoricalBag, r.WorkclassOneHotTrimmed)))
+    // Now we're ready to train. We chose our FastTree trainer for this classification task.
+    .Append(r => classification.Trainers.FastTree(r.Label, r.Features, numTrees: 50));
+
+// Train the model.
+var model = fullLearningPipeline.Fit(data);
+```
+
 ## How do I train my model on textual data?
 
 Generally speaking, *all ML.NET learners expect the features as a float vector*. So, if some of your data is not natively a float, you will need to convert to floats. 
@@ -655,13 +785,13 @@ However, we also offer a selection of elementary operations that let you customi
 Wikipedia detox dataset:
 ```
 Sentiment   SentimentText
-1      Stop trolling, zapatancas, calling me a liar merely demonstartes that you arer Zapatancas. You may choose to chase every legitimate editor from this site and ignore me but I am an editor with a record that isnt 99% trolling and therefore my wishes are not to be completely ignored by a sockpuppet like yourself. The consensus is overwhelmingly against you and your trollin g lover Zapatancas,  
-1    ::::: Why are you threatening me? I'm not being disruptive, its you who is being disruptive.   
-0   " *::Your POV and propaganda pushing is dully noted. However listing interesting facts in a netral and unacusitory tone is not POV. You seem to be confusing Censorship with POV monitoring. I see nothing POV expressed in the listing of intersting facts. If you want to contribute more facts or edit wording of the cited fact to make them sound more netral then go ahead. No need to CENSOR interesting factual information. "
-0     ::::::::This is a gross exaggeration. Nobody is setting a kangaroo court. There was a simple addition concerning the airline. It is the only one disputed here.   
+1	Stop trolling, zapatancas, calling me a liar merely demonstartes that you arer Zapatancas. You may choose to chase every legitimate editor from this site and ignore me but I am an editor with a record that isnt 99% trolling and therefore my wishes are not to be completely ignored by a sockpuppet like yourself. The consensus is overwhelmingly against you and your trollin g lover Zapatancas,  
+1	::::: Why are you threatening me? I'm not being disruptive, its you who is being disruptive.   
+0	" *::Your POV and propaganda pushing is dully noted. However listing interesting facts in a netral and unacusitory tone is not POV. You seem to be confusing Censorship with POV monitoring. I see nothing POV expressed in the listing of intersting facts. If you want to contribute more facts or edit wording of the cited fact to make them sound more netral then go ahead. No need to CENSOR interesting factual information. "
+0	::::::::This is a gross exaggeration. Nobody is setting a kangaroo court. There was a simple addition concerning the airline. It is the only one disputed here.   
 ```
 
-```c#
+```csharp
 // Create a new environment for ML.NET operations. It can be used for exception tracking and logging, 
 // as well as the source of randomness.
 var env = new LocalEnvironment();
@@ -687,11 +817,11 @@ var learningPipeline = reader.MakeNewEstimator()
         // NLP pipeline 1: bag of words.
         BagOfWords: r.Message.NormalizeText().ToBagofWords(),
 
-        // NLP pipeline 2: bag of bigrams.
-        BagOfBigrams: r.Message.NormalizeText().ToBagofWords(ngramLength: 2, allLengths: false),
+        // NLP pipeline 2: bag of bigrams, using hashes instead of dictionary indices.
+        BagOfBigrams: r.Message.NormalizeText().ToBagofHashedWords(ngramLength: 2, allLengths: false),
 
-        // NLP pipeline 3: bag of tri-character sequences.
-        BagOfTrichar: r.Message.TokenizeIntoCharacters().ToNgrams(ngramLength: 3),
+        // NLP pipeline 3: bag of tri-character sequences with TF-IDF weighting.
+        BagOfTrichar: r.Message.TokenizeIntoCharacters().ToNgrams(ngramLength: 3, weighting: NgramTransform.WeightingCriteria.TfIdf),
 
         // NLP pipeline 4: word embeddings.
         Embeddings: r.Message.NormalizeText().TokenizeText().WordEmbeddings(WordEmbeddingsTransform.PretrainedModelKind.GloVeTwitter25D)
@@ -704,4 +834,152 @@ var transformedData = learningPipeline.Fit(data).Transform(data);
 // Inspect some columns of the resulting dataset.
 var embeddings = transformedData.GetColumn(x => x.Embeddings).Take(10).ToArray();
 var unigrams = transformedData.GetColumn(x => x.BagOfWords).Take(10).ToArray();
+```
+
+## How do I train using cross-validation?
+
+[Cross-validation](https://en.wikipedia.org/wiki/Cross-validation_(statistics)) is a useful technique for ML applications. It helps estimate the variance of the model quality from one run to another and also eliminates the need to extract a separate test set for evaluation.
+
+There are a couple pitfalls that await us when we implement our own cross-validation. Essentially, if we are not careful, we may introduce label leakage in the process, so our metrics could become over-inflated.
+
+- It is tempting to apply the same pre-processing to the entire data, and then just cross-validate the final training of the model. If we do this for data-dependent, 'trainable' pre-processing (like text featurization, categorical handling and normalization/rescaling), we cause these processing steps to 'train' on the union of train subset and test subset, thus causing label leakage. The correct way is to apply pre-processing independently for each 'fold' of the cross-validation.
+- In many cases there is a natural 'grouping' of the data that needs to be respected. For example, if we are solving a click prediction problem, it's a good idea to group all examples pertaining to one URL to appear in one fold of the data. If they end up separated, we can introduce label leakage.
+
+ML.NET guards us against both these pitfalls: it will automatically apply the featurization correctly (as long as all of the preprocessing resides in one learning pipeline), and we can use the 'stratification column' concept to make sure that related examples don't get separated.
+
+Here's an example of training on Iris dataset using randomized 90/10 train-test split, as well as a 5-fold cross-validation:
+```csharp
+// Create a new environment for ML.NET operations. It can be used for exception tracking and logging, 
+// as well as the source of randomness.
+var env = new LocalEnvironment();
+
+// We know that this is a classification task, so we create a multiclass classification context: it will give us the algorithms
+// we need, as well as the evaluation procedure.
+var classification = new MulticlassClassificationContext(env);
+
+// Step one: read the data as an IDataView.
+// First, we define the reader: specify the data columns and where to find them in the text file.
+var reader = TextLoader.CreateReader(env, ctx => (
+        // The four features of the Iris dataset.
+        SepalLength: ctx.LoadFloat(0),
+        SepalWidth: ctx.LoadFloat(1),
+        PetalLength: ctx.LoadFloat(2),
+        PetalWidth: ctx.LoadFloat(3),
+        // Label: kind of iris.
+        Label: ctx.LoadText(4)
+    ),
+    // Default separator is tab, but the dataset has comma.
+    separator: ',');
+
+// Read the data.
+var data = reader.Read(new MultiFileSource(dataPath));
+
+// Build the training pipeline.
+var learningPipeline = reader.MakeNewEstimator()
+    .Append(r => (
+        // Convert string label to a key.
+        Label: r.Label.ToKey(),
+        // Concatenate all the features together into one column 'Features'.
+        Features: r.SepalLength.ConcatWith(r.SepalWidth, r.PetalLength, r.PetalWidth)))
+    .Append(r => (
+        r.Label,
+        // Train the multi-class SDCA model to predict the label using features.
+        Predictions: classification.Trainers.Sdca(r.Label, r.Features)));
+
+// Split the data 90:10 into train and test sets, train and evaluate.
+var (trainData, testData) = classification.TrainTestSplit(data, testFraction: 0.1);
+
+// Train the model.
+var model = learningPipeline.Fit(trainData);
+// Compute quality metrics on the test set.
+var metrics = classification.Evaluate(model.Transform(testData), r => r.Label, r => r.Predictions);
+Console.WriteLine(metrics.AccuracyMicro);
+
+// Now run the 5-fold cross-validation experiment, using the same pipeline.
+var cvResults = classification.CrossValidate(data, learningPipeline, r => r.Label, numFolds: 5);
+
+// The results object is an array of 5 elements. For each of the 5 folds, we have metrics, model and scored test data.
+// Let's compute the average micro-accuracy.
+var microAccuracies = cvResults.Select(r => r.metrics.AccuracyMicro);
+Console.WriteLine(microAccuracies.Average());
+```
+
+## Can I mix and match static and dynamic pipelines?
+
+Yes, we can have both of them in our codebase. The static pipelines are just a statically-typed way to build dynamic pipelines.
+
+Namely, any statically typed component (`DataView<T>`, `Transformer<T>`, `Estimator<T>`) has its dynamic counterpart as an `AsDynamic` property.
+
+Transitioning from dynamic to static types is more costly: we have to formally declare what is the 'schema shape'. Or, in case of estimators and transformers, what is the input and output schema shape. 
+
+We can do this via `AssertStatic<T>` extensions, as demonstrated in the following example, where we mix and match static ande dynamic pipelines.
+```c#
+// Create a new environment for ML.NET operations. It can be used for exception tracking and logging, 
+// as well as the source of randomness.
+var env = new LocalEnvironment();
+
+// Read the data as an IDataView.
+// First, we define the reader: specify the data columns and where to find them in the text file.
+var reader = TextLoader.CreateReader(env, ctx => (
+        // The four features of the Iris dataset.
+        SepalLength: ctx.LoadFloat(0),
+        SepalWidth: ctx.LoadFloat(1),
+        PetalLength: ctx.LoadFloat(2),
+        PetalWidth: ctx.LoadFloat(3),
+        // Label: kind of iris.
+        Label: ctx.LoadText(4)
+    ),
+    // Default separator is tab, but the dataset has comma.
+    separator: ',');
+
+// Read the data.
+var data = reader.Read(new MultiFileSource(dataPath));
+
+// Build the pre-processing pipeline.
+var learningPipeline = reader.MakeNewEstimator()
+    .Append(r => (
+        // Convert string label to a key.
+        Label: r.Label.ToKey(),
+        // Concatenate all the features together into one column 'Features'.
+        Features: r.SepalLength.ConcatWith(r.SepalWidth, r.PetalLength, r.PetalWidth)));
+
+// Now, at the time of writing, there is no static pipeline for OVA (one-versus-all). So, let's
+// append the OVA learner to the dynamic pipeline.
+IEstimator<ITransformer> dynamicPipe = learningPipeline.AsDynamic;
+
+// Create a binary classification trainer.
+var binaryTrainer = new AveragedPerceptronTrainer(env, new AveragedPerceptronTrainer.Arguments());
+
+// Append the OVA learner to the pipeline.
+dynamicPipe = dynamicPipe.Append(new Ova(env, binaryTrainer));
+
+// At this point, we have a choice. We could continue working with the dynamically-typed pipeline, and
+// ultimately call dynamicPipe.Fit(data.AsDynamic) to get the model, or we could go back into the static world.
+// Here's how we go back to the static pipeline:
+var staticFinalPipe = dynamicPipe.AssertStatic(env,
+        // Declare the shape of the input. As you can see, it's identical to the shape of the reader:
+        // four float features and a string label.
+        c => (
+            SepalLength: c.R4.Scalar,
+            SepalWidth: c.R4.Scalar,
+            PetalLength: c.R4.Scalar,
+            PetalWidth: c.R4.Scalar,
+            Label: c.Text.Scalar),
+        // Declare the shape of the output (or a relevant subset of it).
+        // In our case, we care only about the predicted label column (a key type), and scores (vector of floats).
+        c => (
+            Score: c.R4.Vector,
+            // Predicted label is a key backed by uint, with text values (since original labels are text).
+            PredictedLabel: c.KeyU4.TextValues.Scalar))
+    // Convert the predicted label from key back to the original string value.
+    .Append(r => r.PredictedLabel.ToValue());
+
+// Train the model in a statically typed way.
+var model = staticFinalPipe.Fit(data);
+
+// And here is how we could've stayed in the dynamic pipeline and train that way.
+dynamicPipe = dynamicPipe.Append(new KeyToValueEstimator(env, "PredictedLabel"));
+var dynamicModel = dynamicPipe.Fit(data.AsDynamic);
+
+// Now 'dynamicModel', and 'model.AsDynamic' are equivalent.
 ```

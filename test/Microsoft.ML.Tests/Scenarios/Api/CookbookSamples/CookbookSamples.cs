@@ -2,26 +2,25 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.StaticPipe;
+using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
-using Microsoft.ML.Trainers;
-using Microsoft.ML.Transforms;
-using Microsoft.ML.Transforms.Text;
-using Microsoft.ML.Runtime.RunTests;
+using Microsoft.ML.Runtime.Api;
+using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.FastTree;
+using Microsoft.ML.Runtime.Learners;
+using Microsoft.ML.Runtime.RunTests;
+using Microsoft.ML.StaticPipe;
 using Microsoft.ML.TestFramework;
+using Microsoft.ML.Trainers;
+using Microsoft.ML.Transforms.Text;
+using Microsoft.ML.Transforms;
 using System;
 using System.Collections.Generic;
-using System.Text;
+using System.IO;
+using System.Linq;
 using Xunit;
 using Xunit.Abstractions;
-using System.Linq;
-using Microsoft.ML.Runtime.Training;
-using System.IO;
-using Microsoft.ML.Core.Data;
-using Microsoft.ML.Runtime.Api;
-using Microsoft.ML.Runtime.Learners;
+using System.Collections.Immutable;
 
 namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
 {
@@ -55,8 +54,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             // Start creating our processing pipeline. For now, let's just concatenate all the text columns
             // together into one.
             var dataPipeline = reader.MakeNewEstimator()
-                .Append(row =>
-                    (
+                .Append(row => (
                         row.IsOver50K,
                         AllFeatures: row.Workclass.ConcatWith(row.Education, row.MaritalStatus)
                     ));
@@ -259,12 +257,21 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
 
             // This is the predictor ('weights collection') that we will train.
             MulticlassLogisticRegressionPredictor predictor = null;
+            // And these are the normalizer scales that we will learn.
+            ImmutableArray<float> normScales;
             // Build the training pipeline.
             var learningPipeline = reader.MakeNewEstimator()
                 .Append(r => (
                     r.Label,
                     // Concatenate all the features together into one column 'Features'.
                     Features: r.SepalLength.ConcatWith(r.SepalWidth, r.PetalLength, r.PetalWidth)))
+                .Append(r => (
+                    r.Label,
+                    // Normalize (rescale) the features to be between -1 and 1. 
+                    Features: r.Features.Normalize(
+                        // When the normalizer is trained, the below delegate is going to be called.
+                        // We use it to memorize the scales.
+                        onFit: (scales, offsets) => normScales = scales)))
                 .Append(r => (
                     r.Label,
                     // Train the multi-class SDCA model to predict the label using features.
@@ -284,6 +291,9 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             // 3 vectors (of 4 values each).
             VBuffer<float>[] weights = null;
             predictor.GetWeights(ref weights, out int numClasses);
+
+            // Inspect the normalizer scales.
+            Console.WriteLine(string.Join(" ", normScales));
         }
 
         [Fact]
@@ -435,11 +445,11 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
                     // NLP pipeline 1: bag of words.
                     BagOfWords: r.Message.NormalizeText().ToBagofWords(),
 
-                    // NLP pipeline 2: bag of bigrams.
-                    BagOfBigrams: r.Message.NormalizeText().ToBagofWords(ngramLength: 2, allLengths: false),
+                    // NLP pipeline 2: bag of bigrams, using hashes instead of dictionary indices.
+                    BagOfBigrams: r.Message.NormalizeText().ToBagofHashedWords(ngramLength: 2, allLengths: false),
 
-                    // NLP pipeline 3: bag of tri-character sequences.
-                    BagOfTrichar: r.Message.TokenizeIntoCharacters().ToNgrams(ngramLength: 3),
+                    // NLP pipeline 3: bag of tri-character sequences with TF-IDF weighting.
+                    BagOfTrichar: r.Message.TokenizeIntoCharacters().ToNgrams(ngramLength: 3, weighting: NgramTransform.WeightingCriteria.TfIdf),
 
                     // NLP pipeline 4: word embeddings.
                     Embeddings: r.Message.NormalizeText().TokenizeText().WordEmbeddings(WordEmbeddingsTransform.PretrainedModelKind.GloVeTwitter25D)
@@ -457,6 +467,207 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
         [Fact(Skip = "This test is running for one minute")]
         public void TextFeaturization()
             => TextFeaturizationOn(GetDataPath("wikipedia-detox-250-line-data.tsv"));
+
+        [Fact]
+        public void CategoricalFeaturization()
+            => CategoricalFeaturizationOn(GetDataPath("adult.tiny.with-schema.txt"));
+
+        private void CategoricalFeaturizationOn(string dataPath)
+        {
+            // Create a new environment for ML.NET operations. It can be used for exception tracking and logging, 
+            // as well as the source of randomness.
+            var env = new LocalEnvironment();
+
+            // Define the reader: specify the data columns and where to find them in the text file.
+            var reader = TextLoader.CreateReader(env, ctx => (
+                    Label: ctx.LoadBool(0),
+                    // We will load all the categorical features into one vector column of size 8.
+                    CategoricalFeatures: ctx.LoadText(1, 8),
+                    // Similarly, load all numerical features into one vector of size 6.
+                    NumericalFeatures: ctx.LoadFloat(9, 14),
+                    // Let's also separately load the 'Workclass' column.
+                    Workclass: ctx.LoadText(1)
+                ), hasHeader: true);
+
+            // Read the data.
+            var data = reader.Read(new MultiFileSource(dataPath));
+
+            // Inspect the categorical columns to check that they are correctly read.
+            var catColumns = data.GetColumn(r => r.CategoricalFeatures).Take(10).ToArray();
+
+            // Build several alternative featurization pipelines.
+            var learningPipeline = reader.MakeNewEstimator()
+                .Append(r => (
+                    r.Label,
+                    r.NumericalFeatures,
+                    // Convert each categorical feature into one-hot encoding independently.
+                    CategoricalOneHot: r.CategoricalFeatures.OneHotEncoding(outputKind: CategoricalStaticExtensions.OneHotVectorOutputKind.Ind),
+                    // Convert all categorical features into indices, and build a 'word bag' of these.
+                    CategoricalBag: r.CategoricalFeatures.OneHotEncoding(outputKind: CategoricalStaticExtensions.OneHotVectorOutputKind.Bag),
+                    // One-hot encode the workclass column, then drop all the categories that have fewer than 10 instances in the train set.
+                    WorkclassOneHotTrimmed: r.Workclass.OneHotEncoding().SelectFeaturesBasedOnCount(count: 10)
+                ));
+
+            // Let's train our pipeline, and then apply it to the same data.
+            var transformedData = learningPipeline.Fit(data).Transform(data);
+
+            // Inspect some columns of the resulting dataset.
+            var categoricalBags = transformedData.GetColumn(x => x.CategoricalBag).Take(10).ToArray();
+            var workclasses = transformedData.GetColumn(x => x.WorkclassOneHotTrimmed).Take(10).ToArray();
+
+            // Of course, if we want to train the model, we will need to compose a single float vector of all the features.
+            // Here's how we could do this:
+
+            var classification = new BinaryClassificationContext(env);
+            var fullLearningPipeline = learningPipeline
+                .Append(r => (
+                    r.Label,
+                    // Concatenate two of the 3 categorical pipelines, and the numeric features.
+                    Features: r.NumericalFeatures.ConcatWith(r.CategoricalBag, r.WorkclassOneHotTrimmed)))
+                // Now we're ready to train. We chose our FastTree trainer for this classification task.
+                .Append(r => classification.Trainers.FastTree(r.Label, r.Features, numTrees: 50));
+
+            // Train the model.
+            var model = fullLearningPipeline.Fit(data);
+        }
+
+        [Fact]
+        public void CrossValidationIris()
+            => CrossValidationOn(GetDataPath("iris.data"));
+
+        private void CrossValidationOn(string dataPath)
+        {
+            // Create a new environment for ML.NET operations. It can be used for exception tracking and logging, 
+            // as well as the source of randomness.
+            var env = new LocalEnvironment();
+
+            // We know that this is a classification task, so we create a multiclass classification context: it will give us the algorithms
+            // we need, as well as the evaluation procedure.
+            var classification = new MulticlassClassificationContext(env);
+
+            // Step one: read the data as an IDataView.
+            // First, we define the reader: specify the data columns and where to find them in the text file.
+            var reader = TextLoader.CreateReader(env, ctx => (
+                    // The four features of the Iris dataset.
+                    SepalLength: ctx.LoadFloat(0),
+                    SepalWidth: ctx.LoadFloat(1),
+                    PetalLength: ctx.LoadFloat(2),
+                    PetalWidth: ctx.LoadFloat(3),
+                    // Label: kind of iris.
+                    Label: ctx.LoadText(4)
+                ),
+                // Default separator is tab, but the dataset has comma.
+                separator: ',');
+
+            // Read the data.
+            var data = reader.Read(new MultiFileSource(dataPath));
+
+            // Build the training pipeline.
+            var learningPipeline = reader.MakeNewEstimator()
+                .Append(r => (
+                    // Convert string label to a key.
+                    Label: r.Label.ToKey(),
+                    // Concatenate all the features together into one column 'Features'.
+                    Features: r.SepalLength.ConcatWith(r.SepalWidth, r.PetalLength, r.PetalWidth)))
+                .Append(r => (
+                    r.Label,
+                    // Train the multi-class SDCA model to predict the label using features.
+                    Predictions: classification.Trainers.Sdca(r.Label, r.Features)));
+
+            // Split the data 90:10 into train and test sets, train and evaluate.
+            var (trainData, testData) = classification.TrainTestSplit(data, testFraction: 0.1);
+
+            // Train the model.
+            var model = learningPipeline.Fit(trainData);
+            // Compute quality metrics on the test set.
+            var metrics = classification.Evaluate(model.Transform(testData), r => r.Label, r => r.Predictions);
+            Console.WriteLine(metrics.AccuracyMicro);
+
+            // Now run the 5-fold cross-validation experiment, using the same pipeline.
+            var cvResults = classification.CrossValidate(data, learningPipeline, r => r.Label, numFolds: 5);
+
+            // The results object is an array of 5 elements. For each of the 5 folds, we have metrics, model and scored test data.
+            // Let's compute the average micro-accuracy.
+            var microAccuracies = cvResults.Select(r => r.metrics.AccuracyMicro);
+            Console.WriteLine(microAccuracies.Average());
+        }
+
+        [Fact]
+        public void MixAndMatchStaticDynamicOnIris()
+            => MixMatch(GetDataPath("iris.data"));
+
+        private void MixMatch(string dataPath)
+        {
+            // Create a new environment for ML.NET operations. It can be used for exception tracking and logging, 
+            // as well as the source of randomness.
+            var env = new LocalEnvironment();
+
+            // Read the data as an IDataView.
+            // First, we define the reader: specify the data columns and where to find them in the text file.
+            var reader = TextLoader.CreateReader(env, ctx => (
+                    // The four features of the Iris dataset.
+                    SepalLength: ctx.LoadFloat(0),
+                    SepalWidth: ctx.LoadFloat(1),
+                    PetalLength: ctx.LoadFloat(2),
+                    PetalWidth: ctx.LoadFloat(3),
+                    // Label: kind of iris.
+                    Label: ctx.LoadText(4)
+                ),
+                // Default separator is tab, but the dataset has comma.
+                separator: ',');
+
+            // Read the data.
+            var data = reader.Read(new MultiFileSource(dataPath));
+
+            // Build the pre-processing pipeline.
+            var learningPipeline = reader.MakeNewEstimator()
+                .Append(r => (
+                    // Convert string label to a key.
+                    Label: r.Label.ToKey(),
+                    // Concatenate all the features together into one column 'Features'.
+                    Features: r.SepalLength.ConcatWith(r.SepalWidth, r.PetalLength, r.PetalWidth)));
+
+            // Now, at the time of writing, there is no static pipeline for OVA (one-versus-all). So, let's
+            // append the OVA learner to the dynamic pipeline.
+            IEstimator<ITransformer> dynamicPipe = learningPipeline.AsDynamic;
+
+            // Create a binary classification trainer.
+            var binaryTrainer = new AveragedPerceptronTrainer(env, new AveragedPerceptronTrainer.Arguments());
+
+            // Append the OVA learner to the pipeline.
+            dynamicPipe = dynamicPipe.Append(new Ova(env, binaryTrainer));
+
+            // At this point, we have a choice. We could continue working with the dynamically-typed pipeline, and
+            // ultimately call dynamicPipe.Fit(data.AsDynamic) to get the model, or we could go back into the static world.
+            // Here's how we go back to the static pipeline:
+            var staticFinalPipe = dynamicPipe.AssertStatic(env,
+                    // Declare the shape of the input. As you can see, it's identical to the shape of the reader:
+                    // four float features and a string label.
+                    c => (
+                        SepalLength: c.R4.Scalar,
+                        SepalWidth: c.R4.Scalar,
+                        PetalLength: c.R4.Scalar,
+                        PetalWidth: c.R4.Scalar,
+                        Label: c.Text.Scalar),
+                    // Declare the shape of the output (or a relevant subset of it).
+                    // In our case, we care only about the predicted label column (a key type), and scores (vector of floats).
+                    c => (
+                        Score: c.R4.Vector,
+                        // Predicted label is a key backed by uint, with text values (since original labels are text).
+                        PredictedLabel: c.KeyU4.TextValues.Scalar))
+                // Convert the predicted label from key back to the original string value.
+                .Append(r => r.PredictedLabel.ToValue());
+
+            // Train the model in a statically typed way.
+            var model = staticFinalPipe.Fit(data);
+
+            // And here is how we could've stayed in the dynamic pipeline and train that way.
+            dynamicPipe = dynamicPipe.Append(new KeyToValueEstimator(env, "PredictedLabel"));
+            var dynamicModel = dynamicPipe.Fit(data.AsDynamic);
+
+            // Now 'dynamicModel', and 'model.AsDynamic' are equivalent.
+            var rs = model.Transform(data).GetColumn(x => x).ToArray();
+        }
 
         private class CustomerChurnInfo
         {
