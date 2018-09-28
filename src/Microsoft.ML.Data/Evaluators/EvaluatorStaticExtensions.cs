@@ -85,6 +85,39 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         /// <summary>
+        /// Evaluates scored clustering prediction data.
+        /// </summary>
+        /// <typeparam name="T">The shape type for the input data.</typeparam>
+        /// <param name="ctx">The clustering context.</param>
+        /// <param name="data">The data to evaluate.</param>
+        /// <param name="score">The index delegate for the predicted score column.</param>
+        /// <param name="label">The optional index delegate for the label column.</param>
+        /// <param name="features">The optional index delegate for the features column.</param>
+        /// <returns>The evaluation metrics.</returns>
+        public static ClusteringEvaluator.Result Evaluate<T>(
+            this ClusteringContext ctx,
+            DataView<T> data,
+            Func<T, Vector<float>> score,
+            Func<T, Key<uint>> label = null,
+            Func<T, Vector<float>> features = null)
+        {
+            Contracts.CheckValue(data, nameof(data));
+            var env = StaticPipeUtils.GetEnvironment(data);
+            Contracts.AssertValue(env);
+            env.CheckValue(score, nameof(score));
+
+            var indexer = StaticPipeUtils.GetIndexer(data);
+            string scoreName = indexer.Get(score(indexer.Indices));
+
+            string labelName = (label != null)?  indexer.Get(label(indexer.Indices)) : null;
+            string featuresName = (features!= null) ? indexer.Get(features(indexer.Indices)): null;
+
+            var args = new ClusteringEvaluator.Arguments() { CalculateDbi = !string.IsNullOrEmpty(featuresName) };
+
+            return new ClusteringEvaluator(env, args).Evaluate(data.AsDynamic, scoreName, labelName, featuresName);
+        }
+
+        /// <summary>
         /// Evaluates scored multiclass classification data.
         /// </summary>
         /// <typeparam name="T">The shape type for the input data.</typeparam>
@@ -136,7 +169,7 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         /// <summary>
-        /// Evaluates scored multiclass classification data.
+        /// Evaluates scored regression data.
         /// </summary>
         /// <typeparam name="T">The shape type for the input data.</typeparam>
         /// <param name="ctx">The regression context.</param>
