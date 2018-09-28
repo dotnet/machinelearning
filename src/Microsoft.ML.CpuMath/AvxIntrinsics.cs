@@ -89,9 +89,9 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         // Multiply matrix times vector into vector.
         public static unsafe void MatMulX(bool add, float[] mat, float[] src, float[] dst, int crow, int ccol)
         {
-            fixed (float* pSrcStart = &src.Items[0])
-            fixed (float* pDstStart = &dst.Items[0])
-            fixed (float* pMatStart = &mat.Items[0])
+            fixed (float* pSrcStart = &src[0])
+            fixed (float* pDstStart = &dst[0])
+            fixed (float* pMatStart = &mat[0])
             {
                 float* psrc = pSrcStart;
                 float* pdst = pDstStart;
@@ -154,9 +154,9 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         {
             // REVIEW: For extremely sparse inputs, interchanging the loops would
             // likely be more efficient.
-            fixed (float* pSrcStart = &src.Items[0])
-            fixed (float* pDstStart = &dst.Items[0])
-            fixed (float* pMatStart = &mat.Items[0])
+            fixed (float* pSrcStart = &src[0])
+            fixed (float* pDstStart = &dst[0])
+            fixed (float* pMatStart = &mat[0])
             fixed (int* pposSrc = &rgposSrc[0])
             {
                 float* psrc = pSrcStart;
@@ -206,9 +206,9 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
         public static unsafe void MatMulTranX(bool add, float[] mat, float[] src, float[] dst, int crow, int ccol)
         {
-            fixed (float* pSrcStart = &src.Items[0])
-            fixed (float* pDstStart = &dst.Items[0])
-            fixed (float* pMatStart = &mat.Items[0])
+            fixed (float* pSrcStart = &src[0])
+            fixed (float* pDstStart = &dst[0])
+            fixed (float* pMatStart = &mat[0])
             {
                 float* psrc = pSrcStart;
                 float* pdst = pDstStart;
@@ -316,9 +316,9 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         public static unsafe void MatMulTranPX(bool add, float[] mat, int[] rgposSrc, float[] src,
                                         int posMin, int iposMin, int iposEnd, float[] dst, int crow)
         {
-            fixed (float* pSrcStart = &src.Items[0])
-            fixed (float* pDstStart = &dst.Items[0])
-            fixed (float* pMatStart = &mat.Items[0])
+            fixed (float* pSrcStart = &src[0])
+            fixed (float* pDstStart = &dst[0])
+            fixed (float* pMatStart = &mat[0])
             fixed (int* pposSrc = &rgposSrc[0])
             {
                 float* psrc = pSrcStart;

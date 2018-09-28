@@ -249,25 +249,6 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             }
         }
 
-        public static void Add(float[] src, int[] indices, float[] dst, int dstOffset, int count)
-        {
-            Contracts.AssertNonEmpty(src);
-            Contracts.Assert(0 < count && count <= src.Length);
-            Contracts.AssertNonEmpty(indices);
-            Contracts.Assert(count <= indices.Length);
-            Contracts.AssertNonEmpty(dst);
-            Contracts.Assert(0 <= dstOffset && dstOffset < dst.Length);
-            Contracts.Assert(count <= dst.Length - dstOffset);
-
-            unsafe
-            {
-                fixed (float* ps = &src[0])
-                fixed (int* pi = &indices[0])
-                fixed (float* pd = &dst[dstOffset])
-                    Thunk.AddSU(ps, pi, pd, count);
-            }
-        }
-
         public static void MulElementWise(float[] src1, float[] src2, float[] dst, int count)
         {
             Contracts.AssertNonEmpty(src1);
@@ -347,18 +328,6 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             }
         }
 
-        public static float SumAbs(float[] src, int count)
-        {
-            Contracts.AssertNonEmpty(src);
-            Contracts.Assert(0 < count && count <= src.Length);
-
-            unsafe
-            {
-                fixed (float* psrc = &src[0])
-                    return Thunk.SumAbsU(psrc, count);
-            }
-        }
-
         public static float SumAbs(float[] src, int offset, int count)
         {
             Contracts.AssertNonEmpty(src);
@@ -382,18 +351,6 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             {
                 fixed (float* psrc = &src[offset])
                     return (mean == 0 ? Thunk.SumAbsU(psrc, count) : Thunk.SumAbsDiffU(mean, psrc, count));
-            }
-        }
-
-        public static float MaxAbs(float[] src, int count)
-        {
-            Contracts.AssertNonEmpty(src);
-            Contracts.Assert(0 < count && count <= src.Length);
-
-            unsafe
-            {
-                fixed (float* psrc = &src[0])
-                    return Thunk.MaxAbsU(psrc, src.Length);
             }
         }
 
@@ -503,23 +460,6 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                 fixed (float* pa = &a[0])
                 fixed (float* pb = &b[0])
                     return Thunk.Dist2(pa, pb, count);
-            }
-        }
-
-        public static void ZeroMatrixItems(float[] dst, int ccol, int cfltRow, int[] indices)
-        {
-            Contracts.Assert(0 < ccol && ccol <= cfltRow);
-
-            unsafe
-            {
-                fixed (float* pdst = &dst[0])
-                fixed (int* pi = &indices[0])
-                {
-                    if (ccol == cfltRow)
-                        Thunk.ZeroItemsU(pdst, dst.Length, pi, indices.Length);
-                    else
-                        Thunk.ZeroMatrixItemsCore(pdst, dst.Length, ccol, cfltRow, pi, indices.Length);
-                }
             }
         }
 

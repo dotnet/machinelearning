@@ -114,7 +114,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             if (iposMin >= iposLim)
             {
                 if (!add)
-                    dst.ZeroItems();
+                    Array.Clear(dst, 0, dst.Length);
                 return;
             }
 
@@ -964,7 +964,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
         private static unsafe void ZeroItemsU(float[] dst, int c, int[] indices, int cindices)
         {
-            fixed (float* pdst = &dst.Items[0])
+            fixed (float* pdst = &dst[0])
             fixed (int* pidx = &indices[0])
             {
                 for (int i = 0; i < cindices; ++i)
@@ -979,7 +979,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
         private static unsafe void ZeroMatrixItemsCore(float[] dst, int c, int ccol, int cfltRow, int[] indices, int cindices)
         {
-            fixed (float* pdst = &dst.Items[0])
+            fixed (float* pdst = &dst[0])
             fixed (int* pidx = &indices[0])
             {
                 int ivLogMin = 0;
