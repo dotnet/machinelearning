@@ -167,7 +167,7 @@ namespace Microsoft.ML.StaticPipe
             Contracts.CheckValueOrNull(weights);
             Contracts.CheckParam(learningRate > 0, nameof(learningRate), "Must be positive.");
             Contracts.CheckParam(0 <= l2RegularizerWeight && l2RegularizerWeight < 0.5, nameof(l2RegularizerWeight), "must be in range [0, 0.5)");
-            Contracts.CheckParam(numIterations > 1, nameof(numIterations), "Must be greater than one, if specified.");
+            Contracts.CheckParam(numIterations > 0, nameof(numIterations), "Must be positive, if specified.");
             Contracts.CheckValueOrNull(onFit);
         }
     }
