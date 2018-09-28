@@ -342,7 +342,7 @@ namespace Microsoft.ML.Runtime.Learners
                 return null;
 
             var order = GetUnorderedCoefficientStatistics(parent, schema).OrderByDescending(stat => stat.ZScore).Take(paramCountCap - 1);
-            return order.Prepend(new CoefficientStatistics("(Bias)", bias, stdError, zScore, pValue)).ToArray();
+            return order.Prepend(new[] { new CoefficientStatistics("(Bias)", bias, stdError, zScore, pValue) }).ToArray();
         }
 
         public void SaveText(TextWriter writer, LinearBinaryPredictor parent, RoleMappedSchema schema, int paramCountCap)
