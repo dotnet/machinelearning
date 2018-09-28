@@ -33,7 +33,6 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             (var pipe, var dataView) = GetBinaryClassificationPipeline();
             var transformedData = pipe.Fit(dataView).Transform(dataView);
 
-            // No actual training happens. 
             var args = new LinearClassificationTrainer.Arguments();
             var initPredictor = new LinearClassificationTrainer(Env, args, "Features", "Label").Fit(transformedData);
             var data = initPredictor.Transform(transformedData);
@@ -55,7 +54,6 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 
             for (int i = 0; i < numExamples; i++)
             {
-                Console.WriteLine(col1[i].ToString() + " " + col2[i].ToString() + " " + col3[i].ToString());
                 col12Diff = col12Diff || (col1[i] != col2[i]);
                 col23Diff = col23Diff || (col2[i] != col3[i]);
                 col13Diff = col13Diff || (col1[i] != col3[i]);
