@@ -4,25 +4,51 @@
 
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.FactorizationMachine;
-using Microsoft.ML.Runtime.FastTree;
-using Microsoft.ML.Runtime.Internal.Calibration;
-using Microsoft.ML.Runtime.Internal.Internallearn;
-using Microsoft.ML.Runtime.KMeans;
 using Microsoft.ML.Runtime.Learners;
-using Microsoft.ML.Runtime.LightGBM;
-using Microsoft.ML.Runtime.RunTests;
-using Microsoft.ML.Runtime.Training;
 using Microsoft.ML.Trainers;
+using System;
+using System.IO;
+using System.Text;
 
 namespace Microsoft.ML.Samples.StaticPipe
 {
     public class Trainers
     {
-        public void SdcaRegression()
+        public static void Main()
         {
+            SdcaRegression();
+        }
+
+        public static void SdcaRegression()
+        {
+            // writting a small sample dataset to file
+            string dataPath = @"c:\temp\MyTest.txt";
+
+            float a = 0;
+            float b = 0;
+            float d = 0;
+            float target = 0;
+
+            var csvContent = new StringBuilder("feature_a, feature_b, feature_c, target");
+            Random rnd = new Random();
+
+            for (int i=0; i< 1000; i++)
+            {
+                a = rnd.Next(i-3, i+3);
+                b = 2 * rnd.Next(i - 2, i + 2);
+                d = rnd.Next(i - 5, i + 5);
+
+                var newLine = string.Format($"{a}, {b}, {d}, {target}");
+                csvContent.AppendLine(newLine);
+            }
+
+            if (!File.Exists(dataPath))
+                File.WriteAllText(dataPath, csvContent.ToString());
+            else
+                Console.WriteLine("Change the dataPath, a file with that path already exists.");
+
             var env = new ConsoleEnvironment(seed: 0);
-            var dataPath = GetDataPath(TestDatasets.generatedRegressionDataset.trainFilename);
+            // the file 
             var dataSource = new MultiFileSource(dataPath);
 
             var ctx = new RegressionContext(env);
@@ -40,7 +66,7 @@ namespace Microsoft.ML.Samples.StaticPipe
 
             var model = pipe.Fit(dataSource);
             // 11 input features, so we ought to have 11 weights.
-            Assert.Equal(11, pred.Weights2.Count);
+            // Assert.Equal(11, pred.Weights2.Count);
 
             var data = model.Read(dataSource);
 
@@ -48,8 +74,8 @@ namespace Microsoft.ML.Samples.StaticPipe
 
             // Just output some data on the schema for fun.
             var schema = data.AsDynamic.Schema;
-            for (int c = 0; c < schema.ColumnCount; ++c)
-                Console.WriteLine($"{schema.GetColumnName(c)}, {schema.GetColumnType(c)}");
+            for (int cc = 0; cc < schema.ColumnCount; ++cc)
+                Console.WriteLine($"{schema.GetColumnName(cc)}, {schema.GetColumnType(cc)}");
         }
     }
 }
