@@ -16,7 +16,7 @@ namespace Microsoft.ML.Trainers
     /// <summary>
     /// LightGbm <see cref="TrainContextBase"/> extension methods.
     /// </summary>
-    public static class LightGbmStatics
+    public static partial class RegressionTrainers
     {
         /// <summary>
         /// LightGbm <see cref="RegressionContext"/> extension method.
@@ -45,7 +45,7 @@ namespace Microsoft.ML.Trainers
             Action<LightGbmArguments> advancedSettings = null,
             Action<LightGbmRegressionPredictor> onFit = null)
         {
-            CheckUserValues(label, features, weights, numLeaves, minDataPerLeaf, learningRate, numBoostRound, advancedSettings, onFit);
+            LightGbmStaticsUtils.CheckUserValues(label, features, weights, numLeaves, minDataPerLeaf, learningRate, numBoostRound, advancedSettings, onFit);
 
             var rec = new TrainerEstimatorReconciler.Regression(
                (env, labelName, featuresName, weightsName) =>
@@ -59,6 +59,9 @@ namespace Microsoft.ML.Trainers
 
             return rec.Score;
         }
+    }
+
+    public static partial class ClassificationTrainers {
 
         /// <summary>
         /// LightGbm <see cref="BinaryClassificationContext"/> extension method.
@@ -88,7 +91,7 @@ namespace Microsoft.ML.Trainers
             Action<LightGbmArguments> advancedSettings = null,
             Action<IPredictorWithFeatureWeights<float>> onFit = null)
         {
-            CheckUserValues(label, features, weights, numLeaves, minDataPerLeaf, learningRate, numBoostRound, advancedSettings, onFit);
+            LightGbmStaticsUtils.CheckUserValues(label, features, weights, numLeaves, minDataPerLeaf, learningRate, numBoostRound, advancedSettings, onFit);
 
             var rec = new TrainerEstimatorReconciler.BinaryClassifier(
                (env, labelName, featuresName, weightsName) =>
@@ -104,8 +107,11 @@ namespace Microsoft.ML.Trainers
 
             return rec.Output;
         }
+    }
 
-        private static void CheckUserValues(PipelineColumn label, Vector<float> features, Scalar<float> weights,
+    internal class LightGbmStaticsUtils {
+
+        internal static void CheckUserValues(PipelineColumn label, Vector<float> features, Scalar<float> weights,
             int? numLeaves,
             int? minDataPerLeaf,
             double? learningRate,

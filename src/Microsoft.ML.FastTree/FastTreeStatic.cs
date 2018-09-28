@@ -16,18 +16,19 @@ namespace Microsoft.ML.Trainers
     /// <summary>
     /// FastTree <see cref="TrainContextBase"/> extension methods.
     /// </summary>
-    public static class FastTreeStatic
+    public static partial class RegressionTrainers
     {
         /// <summary>
         /// FastTree <see cref="RegressionContext"/> extension method.
+        /// Predicts a target using a decision tree regression model trained with the <see cref="FastTreeRegressionTrainer"/>.
         /// </summary>
         /// <param name="ctx">The <see cref="RegressionContext"/>.</param>
         /// <param name="label">The label column.</param>
         /// <param name="features">The features colum.</param>
-        /// <param name="weights">The weights column.</param>
-        /// <param name="numLeaves">The number of leaves to use.</param>
+        /// <param name="weights">The optional weights column.</param>
         /// <param name="numTrees">Total number of decision trees to create in the ensemble.</param>
-        /// <param name="minDocumentsInLeafs">The minimal number of documents allowed in a leaf of a regression tree, out of the subsampled data.</param>
+        /// <param name="numLeaves">The maximum number of leaves per decision tree.</param>
+        /// <param name="minDatapointsInLeafs">The minimal number of datapoints allowed in a leaf of a regression tree, out of the subsampled data.</param>
         /// <param name="learningRate">The learning rate.</param>
         /// <param name="advancedSettings">Algorithm advanced settings.</param>
         /// <param name="onFit">A delegate that is called every time the
@@ -40,18 +41,18 @@ namespace Microsoft.ML.Trainers
             Scalar<float> label, Vector<float> features, Scalar<float> weights = null,
             int numLeaves = Defaults.NumLeaves,
             int numTrees = Defaults.NumTrees,
-            int minDocumentsInLeafs = Defaults.MinDocumentsInLeafs,
-            double learningRate= Defaults.LearningRates,
+            int minDatapointsInLeafs = Defaults.MinDocumentsInLeafs,
+            double learningRate = Defaults.LearningRates,
             Action<FastTreeRegressionTrainer.Arguments> advancedSettings = null,
             Action<FastTreeRegressionPredictor> onFit = null)
         {
-            CheckUserValues(label, features, weights, numLeaves, numTrees, minDocumentsInLeafs, learningRate, advancedSettings, onFit);
+            FastTreeStaticsUtils.CheckUserValues(label, features, weights, numLeaves, numTrees, minDatapointsInLeafs, learningRate, advancedSettings, onFit);
 
             var rec = new TrainerEstimatorReconciler.Regression(
                (env, labelName, featuresName, weightsName) =>
                {
                    var trainer = new FastTreeRegressionTrainer(env, labelName, featuresName, weightsName, numLeaves,
-                       numTrees, minDocumentsInLeafs, learningRate, advancedSettings);
+                       numTrees, minDatapointsInLeafs, learningRate, advancedSettings);
                    if (onFit != null)
                        return trainer.WithOnFitDelegate(trans => onFit(trans.Model));
                    return trainer;
@@ -59,17 +60,22 @@ namespace Microsoft.ML.Trainers
 
             return rec.Score;
         }
+    }
+
+    public static partial class BinaryClassificationTrainers
+    {
 
         /// <summary>
         /// FastTree <see cref="BinaryClassificationContext"/> extension method.
+        /// Predict a target using a decision tree binary classificaiton model trained with the <see cref="FastTreeBinaryClassificationTrainer"/>.
         /// </summary>
         /// <param name="ctx">The <see cref="BinaryClassificationContext"/>.</param>
         /// <param name="label">The label column.</param>
         /// <param name="features">The features colum.</param>
-        /// <param name="weights">The weights column.</param>
-        /// <param name="numLeaves">The number of leaves to use.</param>
+        /// <param name="weights">The optional weights column.</param>
         /// <param name="numTrees">Total number of decision trees to create in the ensemble.</param>
-        /// <param name="minDocumentsInLeafs">The minimal number of documents allowed in a leaf of the tree, out of the subsampled data.</param>
+        /// <param name="numLeaves">The maximum number of leaves per decision tree.</param>
+        /// <param name="minDatapointsInLeafs">The minimal number of datapoints allowed in a leaf of the tree, out of the subsampled data.</param>
         /// <param name="learningRate">The learning rate.</param>
         /// <param name="advancedSettings">Algorithm advanced settings.</param>
         /// <param name="onFit">A delegate that is called every time the
@@ -83,39 +89,44 @@ namespace Microsoft.ML.Trainers
             Scalar<bool> label, Vector<float> features, Scalar<float> weights = null,
             int numLeaves = Defaults.NumLeaves,
             int numTrees = Defaults.NumTrees,
-            int minDocumentsInLeafs = Defaults.MinDocumentsInLeafs,
+            int minDatapointsInLeafs = Defaults.MinDocumentsInLeafs,
             double learningRate = Defaults.LearningRates,
             Action<FastTreeBinaryClassificationTrainer.Arguments> advancedSettings = null,
             Action<IPredictorWithFeatureWeights<float>> onFit = null)
         {
-            CheckUserValues(label, features, weights, numLeaves, numTrees, minDocumentsInLeafs, learningRate, advancedSettings, onFit);
+            FastTreeStaticsUtils.CheckUserValues(label, features, weights, numLeaves, numTrees, minDatapointsInLeafs, learningRate, advancedSettings, onFit);
 
             var rec = new TrainerEstimatorReconciler.BinaryClassifier(
                (env, labelName, featuresName, weightsName) =>
                {
                    var trainer = new FastTreeBinaryClassificationTrainer(env, labelName, featuresName, weightsName, numLeaves,
-                       numTrees, minDocumentsInLeafs, learningRate,  advancedSettings);
+                       numTrees, minDatapointsInLeafs, learningRate, advancedSettings);
 
-                if (onFit != null)
-                    return trainer.WithOnFitDelegate(trans => onFit(trans.Model));
-                else
-                    return trainer;
+                   if (onFit != null)
+                       return trainer.WithOnFitDelegate(trans => onFit(trans.Model));
+                   else
+                       return trainer;
                }, label, features, weights);
 
             return rec.Output;
         }
+    }
+
+    public static partial class RankingTrainers
+    {
 
         /// <summary>
         /// FastTree <see cref="RankerContext"/>.
+        /// Ranks a series of inputs based on their relevance, training a decision tree ranking model through the <see cref="FastTreeRankingTrainer"/>.
         /// </summary>
         /// <param name="ctx">The <see cref="RegressionContext"/>.</param>
         /// <param name="label">The label column.</param>
         /// <param name="features">The features colum.</param>
-        /// <param name="groupId">The name of the groupId column.</param>
-        /// <param name="weights">The weights column.</param>
-        /// <param name="numLeaves">The number of leaves to use.</param>
+        /// <param name="groupId">The groupId column.</param>
+        /// <param name="weights">The optional weights column.</param>
         /// <param name="numTrees">Total number of decision trees to create in the ensemble.</param>
-        /// <param name="minDocumentsInLeafs">The minimal number of documents allowed in a leaf of a regression tree, out of the subsampled data.</param>
+        /// <param name="numLeaves">The maximum number of leaves per decision tree.</param>
+        /// <param name="minDatapointsInLeafs">The minimal number of datapoints allowed in a leaf of a regression tree, out of the subsampled data.</param>
         /// <param name="learningRate">The learning rate.</param>
         /// <param name="advancedSettings">Algorithm advanced settings.</param>
         /// <param name="onFit">A delegate that is called every time the
@@ -128,17 +139,17 @@ namespace Microsoft.ML.Trainers
             Scalar<float> label, Vector<float> features, Key<uint, TVal> groupId, Scalar<float> weights = null,
             int numLeaves = Defaults.NumLeaves,
             int numTrees = Defaults.NumTrees,
-            int minDocumentsInLeafs = Defaults.MinDocumentsInLeafs,
+            int minDatapointsInLeafs = Defaults.MinDocumentsInLeafs,
             double learningRate = Defaults.LearningRates,
             Action<FastTreeRankingTrainer.Arguments> advancedSettings = null,
             Action<FastTreeRankingPredictor> onFit = null)
         {
-            CheckUserValues(label, features, weights, numLeaves, numTrees, minDocumentsInLeafs, learningRate, advancedSettings, onFit);
+            FastTreeStaticsUtils.CheckUserValues(label, features, weights, numLeaves, numTrees, minDatapointsInLeafs, learningRate, advancedSettings, onFit);
 
             var rec = new TrainerEstimatorReconciler.Ranker<TVal>(
-               (env, labelName, featuresName, groupIdName,  weightsName) =>
+               (env, labelName, featuresName, groupIdName, weightsName) =>
                {
-                   var trainer = new FastTreeRankingTrainer(env, labelName, featuresName, groupIdName, weightsName,advancedSettings);
+                   var trainer = new FastTreeRankingTrainer(env, labelName, featuresName, groupIdName, weightsName, advancedSettings);
                    if (onFit != null)
                        return trainer.WithOnFitDelegate(trans => onFit(trans.Model));
                    return trainer;
@@ -146,11 +157,14 @@ namespace Microsoft.ML.Trainers
 
             return rec.Score;
         }
+    }
 
-        private static void CheckUserValues(PipelineColumn label, Vector<float> features, Scalar<float> weights,
+        internal class FastTreeStaticsUtils
+        {
+            internal static void CheckUserValues(PipelineColumn label, Vector<float> features, Scalar<float> weights,
             int numLeaves,
             int numTrees,
-            int minDocumentsInLeafs,
+            int minDatapointsInLeafs,
             double learningRate,
             Delegate advancedSettings,
             Delegate onFit)
@@ -160,7 +174,7 @@ namespace Microsoft.ML.Trainers
             Contracts.CheckValueOrNull(weights);
             Contracts.CheckParam(numLeaves >= 2, nameof(numLeaves), "Must be at least 2.");
             Contracts.CheckParam(numTrees > 0, nameof(numTrees), "Must be positive");
-            Contracts.CheckParam(minDocumentsInLeafs > 0, nameof(minDocumentsInLeafs), "Must be positive");
+            Contracts.CheckParam(minDatapointsInLeafs > 0, nameof(minDatapointsInLeafs), "Must be positive");
             Contracts.CheckParam(learningRate > 0, nameof(learningRate), "Must be positive");
             Contracts.CheckValueOrNull(advancedSettings);
             Contracts.CheckValueOrNull(onFit);

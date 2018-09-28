@@ -16,7 +16,7 @@ namespace Microsoft.ML.Trainers
     /// <summary>
     /// Extension methods and utilities for instantiating SDCA trainer estimators inside statically typed pipelines.
     /// </summary>
-    public static class SdcaStatic
+    public static partial class RegressionTrainers
     {
         /// <summary>
         /// Predict a target using a linear regression model trained with the SDCA trainer.
@@ -73,6 +73,24 @@ namespace Microsoft.ML.Trainers
             return rec.Score;
         }
 
+        private sealed class TrivialRegressionLossFactory : ISupportSdcaRegressionLossFactory
+        {
+            private readonly ISupportSdcaRegressionLoss _loss;
+
+            public TrivialRegressionLossFactory(ISupportSdcaRegressionLoss loss)
+            {
+                _loss = loss;
+            }
+
+            public ISupportSdcaRegressionLoss CreateComponent(IHostEnvironment env)
+            {
+                return _loss;
+            }
+        }
+    }
+    public static partial class BinaryClassificationTrainers
+    {
+
         /// <summary>
         /// Predict a target using a linear binary classification model trained with the SDCA trainer, and log-loss.
         /// </summary>
@@ -91,12 +109,12 @@ namespace Microsoft.ML.Trainers
         /// <returns>The set of output columns including in order the predicted binary classification score (which will range
         /// from negative to positive infinity), the calibrated prediction (from 0 to 1), and the predicted label.</returns>
         public static (Scalar<float> score, Scalar<float> probability, Scalar<bool> predictedLabel) Sdca(
-                this BinaryClassificationContext.BinaryClassificationTrainers ctx,
-                Scalar<bool> label, Vector<float> features, Scalar<float> weights = null,
-                float? l2Const = null,
-                float? l1Threshold = null,
-                int? maxIterations = null,
-                Action<LinearBinaryPredictor, ParameterMixingCalibratedPredictor> onFit = null)
+                    this BinaryClassificationContext.BinaryClassificationTrainers ctx,
+                    Scalar<bool> label, Vector<float> features, Scalar<float> weights = null,
+                    float? l2Const = null,
+                    float? l1Threshold = null,
+                    int? maxIterations = null,
+                    Action<LinearBinaryPredictor, ParameterMixingCalibratedPredictor> onFit = null)
         {
             Contracts.CheckValue(label, nameof(label));
             Contracts.CheckValue(features, nameof(features));
@@ -205,6 +223,9 @@ namespace Microsoft.ML.Trainers
 
             return rec.Output;
         }
+    }
+
+    public static partial class MultiClassClassificationTrainers {
 
         /// <summary>
         /// Predict a target using a linear multiclass classification model trained with the SDCA trainer.
@@ -224,15 +245,15 @@ namespace Microsoft.ML.Trainers
         /// result in any way; it is only a way for the caller to be informed about what was learnt.</param>
         /// <returns>The set of output columns including in order the predicted per-class likelihoods (between 0 and 1, and summing up to 1), and the predicted label.</returns>
         public static (Vector<float> score, Key<uint, TVal> predictedLabel)
-            Sdca<TVal>(this MulticlassClassificationContext.MulticlassClassificationTrainers ctx,
-                Key<uint, TVal> label,
-                Vector<float> features,
-                ISupportSdcaClassificationLoss loss = null,
-                Scalar<float> weights = null,
-                float? l2Const = null,
-                float? l1Threshold = null,
-                int? maxIterations = null,
-                Action<MulticlassLogisticRegressionPredictor> onFit = null)
+                Sdca<TVal>(this MulticlassClassificationContext.MulticlassClassificationTrainers ctx,
+                    Key<uint, TVal> label,
+                    Vector<float> features,
+                    ISupportSdcaClassificationLoss loss = null,
+                    Scalar<float> weights = null,
+                    float? l2Const = null,
+                    float? l1Threshold = null,
+                    int? maxIterations = null,
+                    Action<MulticlassLogisticRegressionPredictor> onFit = null)
         {
             Contracts.CheckValue(label, nameof(label));
             Contracts.CheckValue(features, nameof(features));
@@ -264,34 +285,20 @@ namespace Microsoft.ML.Trainers
 
             return rec.Output;
         }
-        private sealed class TrivialRegressionLossFactory : ISupportSdcaRegressionLossFactory
+    }
+
+    internal sealed class TrivialClassificationLossFactory : ISupportSdcaClassificationLossFactory
+    {
+        private readonly ISupportSdcaClassificationLoss _loss;
+
+        public TrivialClassificationLossFactory(ISupportSdcaClassificationLoss loss)
         {
-            private readonly ISupportSdcaRegressionLoss _loss;
-
-            public TrivialRegressionLossFactory(ISupportSdcaRegressionLoss loss)
-            {
-                _loss = loss;
-            }
-
-            public ISupportSdcaRegressionLoss CreateComponent(IHostEnvironment env)
-            {
-                return _loss;
-            }
+            _loss = loss;
         }
 
-        private sealed class TrivialClassificationLossFactory : ISupportSdcaClassificationLossFactory
+        public ISupportSdcaClassificationLoss CreateComponent(IHostEnvironment env)
         {
-            private readonly ISupportSdcaClassificationLoss _loss;
-
-            public TrivialClassificationLossFactory(ISupportSdcaClassificationLoss loss)
-            {
-                _loss = loss;
-            }
-
-            public ISupportSdcaClassificationLoss CreateComponent(IHostEnvironment env)
-            {
-                return _loss;
-            }
+            return _loss;
         }
     }
 }

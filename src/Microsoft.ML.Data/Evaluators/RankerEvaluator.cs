@@ -560,13 +560,6 @@ namespace Microsoft.ML.Runtime.Data
             /// </summary>
             public double[] Dcg { get; }
 
-            /// <summary>
-            /// MaxDcgs is the value of <see cref="Dcg"/> when the documents are ordered in the ideal order from most relevant to least relevant.
-            /// In case there are ties in scores, metrics are computed in a pessimistic fashion. In other words, if two or more results get the same score,
-            /// for the purpose of computing DCG and NDCG they are ordered from least relevant to most relevant.
-            /// </summary>
-            public double[] MaxDcg { get; }
-
             private static T Fetch<T>(IExceptionContext ectx, IRow row, string name)
             {
                 if (!row.Schema.TryGetColumnIndex(name, out int col))
@@ -582,7 +575,6 @@ namespace Microsoft.ML.Runtime.Data
 
                 Dcg = Fetch(RankerEvaluator.Dcg).Values;
                 Ndcg = Fetch(RankerEvaluator.Ndcg).Values;
-                // MaxDcg = Fetch(RankerEvaluator.MaxDcg).Values;
             }
         }
     }
