@@ -484,12 +484,27 @@ namespace Microsoft.ML.StaticPipelineTesting
 
             var data = model.Read(dataSource);
 
-            var metrics = ctx.Evaluate(data, r => r.label, r => r.preds.score, r => r.preds.predictedLabel, r => r.features, true);
+            var metrics = ctx.Evaluate(data, r => r.preds.score, r => r.label, r => r.features);
             Assert.NotNull(metrics);
 
             Assert.InRange(metrics.AvgMinScore, 0.5262, 0.5264);
             Assert.InRange(metrics.Nmi, 0.73, 0.77);
             Assert.InRange(metrics.Dbi, 0.662, 0.667);
+
+            metrics = ctx.Evaluate(data, r => r.preds.score, label: r => r.label);
+            Assert.NotNull(metrics);
+
+            Assert.InRange(metrics.AvgMinScore, 0.5262, 0.5264);
+            Assert.True(metrics.Dbi == 0.0);
+
+            metrics = ctx.Evaluate(data, r => r.preds.score, features: r => r.features);
+            Assert.True(double.IsNaN(metrics.Nmi));
+
+            metrics = ctx.Evaluate(data, r => r.preds.score);
+            Assert.NotNull(metrics);
+            Assert.InRange(metrics.AvgMinScore, 0.5262, 0.5264);
+            Assert.True(double.IsNaN(metrics.Nmi));
+            Assert.True(metrics.Dbi == 0.0);
 
         }
     }

@@ -90,42 +90,31 @@ namespace Microsoft.ML.Runtime.Data
         /// <typeparam name="T">The shape type for the input data.</typeparam>
         /// <param name="ctx">The clustering context.</param>
         /// <param name="data">The data to evaluate.</param>
-        /// <param name="label">The index delegate for the label column.</param>
         /// <param name="score">The index delegate for the predicted score column.</param>
-        /// <param name="predictedLabel">The index delegate for the predictedLabel column.</param>
-        /// <param name="features">The index delegate for the features column.</param>
-        /// <param name="calculateDbi">Indicates whether to calculate the <see cref="ClusteringEvaluator.Result.Dbi"/>metric.</param>
+        /// <param name="label">The optional index delegate for the label column.</param>
+        /// <param name="features">The optional index delegate for the features column.</param>
         /// <returns>The evaluation metrics.</returns>
         public static ClusteringEvaluator.Result Evaluate<T>(
             this ClusteringContext ctx,
             DataView<T> data,
-            Func<T, Key<uint>> label,
             Func<T, Vector<float>> score,
-            Func<T, Key<uint>> predictedLabel,
-            Func<T, Vector<float>> features = null,
-            bool calculateDbi = false)
+            Func<T, Key<uint>> label = null,
+            Func<T, Vector<float>> features = null)
         {
             Contracts.CheckValue(data, nameof(data));
             var env = StaticPipeUtils.GetEnvironment(data);
             Contracts.AssertValue(env);
-            env.CheckValue(label, nameof(label));
             env.CheckValue(score, nameof(score));
 
             var indexer = StaticPipeUtils.GetIndexer(data);
-            string labelName = indexer.Get(label(indexer.Indices));
             string scoreName = indexer.Get(score(indexer.Indices));
-            string predictedLabelName = indexer.Get(predictedLabel(indexer.Indices));
-            string featuresName = null;
 
-            if (features != null || calculateDbi)
-            {
-                env.CheckRef(features, nameof(features), "The features column name is needed, if you want to calculate the Dbi metric.");
-                featuresName = indexer.Get(features(indexer.Indices));
-            }
+            string labelName = (label != null)?  indexer.Get(label(indexer.Indices)) : null;
+            string featuresName = (features!= null) ? indexer.Get(features(indexer.Indices)): null;
 
-            var args = new ClusteringEvaluator.Arguments() { CalculateDbi = calculateDbi };
+            var args = new ClusteringEvaluator.Arguments() { CalculateDbi = !string.IsNullOrEmpty(featuresName) };
 
-            return new ClusteringEvaluator(env, args).Evaluate(data.AsDynamic, labelName, scoreName, predictedLabelName, featuresName);
+            return new ClusteringEvaluator(env, args).Evaluate(data.AsDynamic, scoreName, labelName, featuresName);
         }
 
         /// <summary>

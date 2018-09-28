@@ -56,29 +56,23 @@ namespace Microsoft.ML.Runtime.Data
         /// Evaluates scored clustering data.
         /// </summary>
         /// <param name="data">The scored data.</param>
-        /// <param name="label">The name of the label column in <paramref name="data"/>.</param>
         /// <param name="score">The name of the score column in <paramref name="data"/>.</param>
-        /// <param name="predictedLabel">The name of the predicted label column in <paramref name="data"/>.</param>
-        /// <param name="features">The name of the feature column in <paramref name="data"/>.</param>
+        /// <param name="label">The name of the optional label column in <paramref name="data"/>.</param>
+        /// <param name="features">The name of the optional feature column in <paramref name="data"/>.</param>
         /// <returns>The evaluation results.</returns>
-        public Result Evaluate(IDataView data, string label, string score, string predictedLabel, string features = null)
+        public Result Evaluate(IDataView data, string score, string label = null, string features = null)
         {
             Host.CheckValue(data, nameof(data));
-            Host.CheckNonEmpty(label, nameof(label));
             Host.CheckNonEmpty(score, nameof(score));
-            Host.CheckNonEmpty(predictedLabel, nameof(predictedLabel));
 
             var roles = new List<KeyValuePair<RoleMappedSchema.ColumnRole, string>>();
-
-            roles.Add(RoleMappedSchema.ColumnRole.Label.Bind(label));
             roles.Add(RoleMappedSchema.CreatePair(MetadataUtils.Const.ScoreValueKind.Score, score));
-            roles.Add(RoleMappedSchema.CreatePair(MetadataUtils.Const.ScoreValueKind.PredictedLabel, predictedLabel));
+
+            if (label != null)
+                 roles.Add(RoleMappedSchema.ColumnRole.Label.Bind(label));
 
             if (features != null)
-            {
-                Host.CheckNonEmpty(features, nameof(features), "The features column name is required to calculate the Dbi metric.");
                 roles.Add(RoleMappedSchema.ColumnRole.Feature.Bind(features));
-            }
 
             var rolesMappedData = new RoleMappedData(data, opt: false, roles.ToArray());
 

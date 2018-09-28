@@ -343,27 +343,28 @@ namespace Microsoft.ML
         /// Evaluates scored clustering data.
         /// </summary>
         /// <param name="data">The scored data.</param>
-        /// <param name="label">The name of the label column in <paramref name="data"/>.</param>
         /// <param name="score">The name of the score column in <paramref name="data"/>.</param>
-        /// <param name="features">The name of the feature column in <paramref name="data"/>.</param>
-        /// <param name="calcuateDbi">Indicates whether or not to calculate the <see cref="ClusteringEvaluator.Result.Dbi"/> metric.</param>
-        /// <param name="predictedLabel">The name of the predicted label column in <paramref name="data"/>.</param>
+        /// <param name="label">The name of the optional label column in <paramref name="data"/>.
+        /// If present, the <see cref="ClusteringEvaluator.Result.Nmi"/> metric will be computed.</param>
+        /// <param name="features">The name of the optional features column in <paramref name="data"/>.
+        /// If present, the <see cref="ClusteringEvaluator.Result.Dbi"/> metric will be computed.</param>
         /// <returns>The evaluation result.</returns>
-        public ClusteringEvaluator.Result Evaluate(IDataView data, string label,
+        public ClusteringEvaluator.Result Evaluate(IDataView data,
+            string label = null,
             string score = DefaultColumnNames.Score,
-            string predictedLabel = DefaultColumnNames.PredictedLabel,
-            string features = null, bool calcuateDbi = false )
+            string features = null )
         {
             Host.CheckValue(data, nameof(data));
-            Host.CheckNonEmpty(label, nameof(label));
             Host.CheckNonEmpty(score, nameof(score));
-            Host.CheckNonEmpty(predictedLabel, nameof(predictedLabel));
 
-            if(calcuateDbi)
-                Host.CheckNonEmpty(features, nameof(features), "The features column name is needed, if you want to calculate the Dbi metric.");
+            if(features != null)
+                Host.CheckNonEmpty(features, nameof(features), "The features column name should be non-empty, if provided, if you want to calculate the Dbi metric.");
 
-            var eval = new ClusteringEvaluator(Host, new ClusteringEvaluator.Arguments() { CalculateDbi = calcuateDbi });
-            return eval.Evaluate(data, label, score, predictedLabel, features);
+            if (label != null)
+                Host.CheckNonEmpty(label, nameof(label), "The features column name should be non-empty, if provided, if you want to calculate the Nmi metric.");
+
+            var eval = new ClusteringEvaluator(Host, new ClusteringEvaluator.Arguments() { CalculateDbi = !string.IsNullOrEmpty(features) });
+            return eval.Evaluate(data, score, label, features);
         }
     }
 
