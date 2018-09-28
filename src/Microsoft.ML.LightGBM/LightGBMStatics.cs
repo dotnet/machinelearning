@@ -6,15 +6,13 @@ using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Internal.Internallearn;
 using Microsoft.ML.Runtime.LightGBM;
-using Microsoft.ML.Runtime.Training;
-using Microsoft.ML.StaticPipe;
 using Microsoft.ML.StaticPipe.Runtime;
 using System;
 
-namespace Microsoft.ML.Trainers
+namespace Microsoft.ML.StaticPipe
 {
     /// <summary>
-    /// LightGbm <see cref="TrainContextBase"/> extension methods.
+    /// Regression trainer estimators.
     /// </summary>
     public static partial class RegressionTrainers
     {
@@ -61,6 +59,9 @@ namespace Microsoft.ML.Trainers
         }
     }
 
+    /// <summary>
+    /// Binary Classification trainer estimators.
+    /// </summary>
     public static partial class ClassificationTrainers {
 
         /// <summary>
@@ -109,7 +110,7 @@ namespace Microsoft.ML.Trainers
         }
     }
 
-    internal class LightGbmStaticsUtils {
+    internal static class LightGbmStaticsUtils {
 
         internal static void CheckUserValues(PipelineColumn label, Vector<float> features, Scalar<float> weights,
             int? numLeaves,
