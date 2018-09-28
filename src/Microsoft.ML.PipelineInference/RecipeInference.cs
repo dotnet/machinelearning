@@ -449,7 +449,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
                         ExcludeFeaturesConcatTransforms = excludeFeaturesConcatTransforms
                     }
                 );
-                predictorType = InferenceUtils.InferPredictorCategoryType(cached, purposeColumns);
+                predictorType = InferenceUtils.InferPredictorCategoryType(cached, purposeColumns, env);
                 var recipeInferenceResult = InferRecipes(h, transformInferenceResult, predictorType);
 
                 ch.Done();

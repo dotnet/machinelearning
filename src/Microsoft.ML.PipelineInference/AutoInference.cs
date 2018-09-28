@@ -235,7 +235,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
 
                 // Run pipeline, and time how long it takes
                 stopwatch.Restart();
-                candidate.RunTrainTestExperiment(_trainData.Take(randomizedNumberOfRows),
+                candidate.RunTrainTestExperiment(_trainData.Take(randomizedNumberOfRows, _env),
                     _testData, Metric, TrainerKind, out var testMetricVal, out var trainMetricVal);
                 stopwatch.Stop();
 
@@ -500,7 +500,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
 #pragma warning restore 0618
             var splitOutput = TrainTestSplit.Split(env, new TrainTestSplit.Input { Data = data, Fraction = 0.8f });
             AutoMlMlState amls = new AutoMlMlState(env, metric, autoMlEngine, terminator, trainerKind,
-                splitOutput.TrainData.Take(numOfSampleRows), splitOutput.TestData.Take(numOfSampleRows));
+                splitOutput.TrainData.Take(numOfSampleRows, env), splitOutput.TestData.Take(numOfSampleRows, env));
             bestPipeline = amls.InferPipelines(numTransformLevels, batchSize, numOfSampleRows);
             return amls;
         }
@@ -514,7 +514,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
 
             var splitOutput = TrainTestSplit.Split(env, new TrainTestSplit.Input { Data = data, Fraction = 0.8f });
             AutoMlMlState amls = new AutoMlMlState(env, metric, autoMlEngine, terminator, trainerKind,
-                splitOutput.TrainData.Take(numOfSampleRows), splitOutput.TestData.Take(numOfSampleRows));
+                splitOutput.TrainData.Take(numOfSampleRows, env), splitOutput.TestData.Take(numOfSampleRows, env));
             bestPipeline = amls.InferPipelines(numTransformLevels, batchSize, numOfSampleRows);
             return amls;
         }

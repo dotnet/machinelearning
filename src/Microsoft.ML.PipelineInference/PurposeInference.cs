@@ -332,7 +332,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
             InferenceResult result;
             using (var ch = host.Start("InferPurposes"))
             {
-                var takenData = data.Take(args.MaxRowsToRead);
+                var takenData = data.Take(args.MaxRowsToRead, env);
                 var cols = columnIndices.Select(x => new IntermediateColumn(takenData, x)).ToList();
                 data = takenData;
 
