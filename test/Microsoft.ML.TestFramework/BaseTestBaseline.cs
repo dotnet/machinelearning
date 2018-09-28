@@ -24,7 +24,6 @@ namespace Microsoft.ML.Runtime.RunTests
     public abstract partial class BaseTestBaseline : BaseTestClass, IDisposable
     {
         public const decimal Tolerance = 10_000_000;
-        private readonly ITestOutputHelper _output;
 
         protected BaseTestBaseline(ITestOutputHelper output) : base(output)
         {
