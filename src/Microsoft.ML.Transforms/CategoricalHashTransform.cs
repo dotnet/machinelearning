@@ -393,7 +393,7 @@ namespace Microsoft.ML.Runtime.Data
         /// Converts the categorical value into an indicator array by hashing categories into certain value and using that value as the index in the array.
         /// </summary>
         /// <param name="input">Incoming data.</param>
-        /// <param name="outputKind">Specify output type of indicator array: array or binary encoded data.</param>
+        /// <param name="outputKind">Specify the output type of indicator array: array or binary encoded data.</param>
         /// <param name="hashBits">Amount of bits to use for hashing.</param>
         /// <param name="seed">Seed value used for hashing.</param>
         /// <param name="ordered">Whether the position of each term should be included in the hash.</param>
@@ -409,7 +409,7 @@ namespace Microsoft.ML.Runtime.Data
         /// Converts the categorical value into an indicator array by building a dictionary of categories based on the data and using the id in the dictionary as the index in the array
         /// </summary>
         /// <param name="input">Incoming data.</param>
-        /// <param name="outputKind">Specify output type of indicator array: array or binary encoded data.</param>
+        /// <param name="outputKind">Specify the output type of indicator array: array or binary encoded data.</param>
         /// <param name="hashBits">Amount of bits to use for hashing.</param>
         /// <param name="seed">Seed value used for hashing.</param>
         /// <param name="ordered">Whether the position of each term should be included in the hash.</param>
