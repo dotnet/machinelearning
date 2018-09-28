@@ -34,7 +34,7 @@ namespace Microsoft.ML.StaticPipe
     /// <summary>
     /// For representing a non-key, non-vector <see cref="ColumnType"/>.
     /// </summary>
-    /// <typeparam name="T"></typeparam>
+    /// <typeparam name="T">The scalar item type.</typeparam>
     public abstract class Scalar<T> : PipelineColumn
     {
         protected Scalar(Reconciler reconciler, params PipelineColumn[] dependencies)
@@ -146,7 +146,7 @@ namespace Microsoft.ML.StaticPipe
     /// <summary>
     /// For representing a custom <see cref="ColumnType"/>.
     /// </summary>
-    /// <typeparam name="T"></typeparam>
+    /// <typeparam name="T">The custom item type.</typeparam>
     public abstract class Custom<T>: PipelineColumn
     {
         protected Custom(Reconciler reconciler, params PipelineColumn[] dependencies)
