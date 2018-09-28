@@ -3,7 +3,6 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <IncludeInPackage>Microsoft.ML.TimeSeries</IncludeInPackage>
-    <DefineConstants>CORECLR</DefineConstants>
   </PropertyGroup>
 
   <ItemGroup>
