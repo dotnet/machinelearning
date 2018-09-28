@@ -10,6 +10,7 @@ using Microsoft.ML.Transforms;
 using System.IO;
 using Xunit;
 using Xunit.Abstractions;
+using Microsoft.ML.Runtime.Tools;
 
 namespace Microsoft.ML.Tests.Transformers
 {
@@ -92,11 +93,11 @@ namespace Microsoft.ML.Tests.Transformers
         [Fact]
         public void TokenizeWithSeparator()
         {
-            string sentimentDataPath = GetDataPath("wikipedia-detox-250-line-data.tsv");
+            string dataPath = GetDataPath("wikipedia-detox-250-line-data.tsv");
             var data = TextLoader.CreateReader(Env, ctx => (
                     label: ctx.LoadBool(0),
                     text: ctx.LoadText(1)), hasHeader: true)
-                .Read(new MultiFileSource(sentimentDataPath)).AsDynamic;
+                .Read(new MultiFileSource(dataPath)).AsDynamic;
 
             var est = new WordTokenizer(Env, "text", "words", separators: new[] { ' ', '?', '!', '.', ','});
             var outdata = TakeFilter.Create(Env, est.Fit(data).Transform(data), 4);
@@ -114,6 +115,19 @@ namespace Microsoft.ML.Tests.Transformers
             }
 
             CheckEquality("Text", "tokenizedWithSeparators.tsv");
+            Done();
+        }
+
+        [Fact]
+        public void TokenizeWithSeparatorCommandLine()
+        {
+            string dataPath = GetDataPath("wikipedia-detox-250-line-data.tsv");
+
+            TestCore(dataPath, false,
+                new[] {
+                    "loader=Text{col=T:TX:1} xf=token{col=T sep=comma,s,a} "
+                });
+
             Done();
         }
 
