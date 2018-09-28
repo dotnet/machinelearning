@@ -1539,7 +1539,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
             h.CheckValue(args, nameof(args));
             h.Check(args.EstimatedSampleFraction > 0);
 
-            data = data.Take(MaxRowsToRead, env);
+            data = data.Take(MaxRowsToRead);
             var cols = purposes.Where(x => !data.Schema.IsHidden(x.ColumnIndex)).Select(x => new IntermediateColumn(data, x)).ToArray();
             using (var rootCh = h.Start("InferTransforms"))
             {
@@ -1587,7 +1587,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
             var availableTransforms = env.ComponentCatalog.AllEntryPoints()
                 .Where(x => x.InputKinds?.FirstOrDefault(i => i == typeof(CommonInputs.ITransformInput)) != null
                     && x.InputKinds?.Any(i => i == typeof(CommonInputs.ICalibratorInput)) != true);
-            var dataSample = data.Take(MaxRowsToRead, env);
+            var dataSample = data.Take(MaxRowsToRead);
 
             // Infer column purposes from data sample.
             var piArgs = new PurposeInference.Arguments { MaxRowsToRead = MaxRowsToRead };
@@ -1619,7 +1619,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
             h.CheckValue(args, nameof(args));
             h.Check(args.EstimatedSampleFraction > 0);
 
-            data = data.Take(MaxRowsToRead, env);
+            data = data.Take(MaxRowsToRead);
 
             // Infer column purposes from data sample.
             var piArgs = new PurposeInference.Arguments { MaxRowsToRead = MaxRowsToRead };

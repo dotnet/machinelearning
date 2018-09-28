@@ -332,14 +332,14 @@ namespace Microsoft.ML.Runtime.PipelineInference
             InferenceResult result;
             using (var ch = host.Start("InferPurposes"))
             {
-                var takenData = data.Take(args.MaxRowsToRead, env);
+                var takenData = data.Take(args.MaxRowsToRead);
                 var cols = columnIndices.Select(x => new IntermediateColumn(takenData, x)).ToList();
                 data = takenData;
 
                 if (dataRoles != null)
                 {
                     var items = dataRoles.Schema.GetColumnRoles();
-                    foreach(var item in items)
+                    foreach (var item in items)
                     {
                         Enum.TryParse(item.Key.Value, out ColumnPurpose purpose);
                         var col = cols.Find(x => x.ColumnName == item.Value.Name);

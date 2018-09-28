@@ -5,16 +5,21 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
+using Microsoft.ML.Runtime.Data.Conversion;
 using Microsoft.ML.Runtime.Internal.Utilities;
 
 namespace Microsoft.ML.Runtime.PipelineInference
 {
     public static class InferenceUtils
     {
-        public static IDataView Take(this IDataView data, int count, IHostEnvironment env)
+        public static IDataView Take(this IDataView data, int count)
         {
             Contracts.CheckValue(data, nameof(data));
+            // REVIEW: This should take an env as a parameter, not create one.
+            var env = new ConsoleEnvironment(0);
             var take = SkipTakeFilter.Create(env, new SkipTakeFilter.TakeArguments { Count = count }, data);
             return CacheCore(take, env);
         }
@@ -33,7 +38,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
             return new CacheDataView(env, data, Utils.GetIdentityPermutation(data.Schema.ColumnCount));
         }
 
-        public static Type InferPredictorCategoryType(IDataView data, PurposeInference.Column[] columns, IHostEnvironment env)
+        public static Type InferPredictorCategoryType(IDataView data, PurposeInference.Column[] columns)
         {
             List<PurposeInference.Column> labels = columns.Where(col => col.Purpose == ColumnPurpose.Label).ToList();
             if (labels.Count == 0)
@@ -44,7 +49,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
 
             PurposeInference.Column label = labels.First();
             HashSet<string> uniqueLabelValues = new HashSet<string>();
-            data = data.Take(1000, env);
+            data = data.Take(1000);
             using (var cursor = data.GetRowCursor(index => index == label.ColumnIndex))
             {
                 ValueGetter<ReadOnlyMemory<char>> getter = DataViewUtils.PopulateGetterArray(cursor, new List<int> { label.ColumnIndex })[0];

@@ -16,7 +16,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.ML.Runtime.RunTests
 {
-    [Collection("TestPipelineSweeper and TestAutoInference should not be run at the same time")]
+    [Collection(Global.AutoInferenceAndPipelineSweeperTestCollectionName)]
     public sealed class TestAutoInference : BaseTestBaseline
     {
         public TestAutoInference(ITestOutputHelper helper)

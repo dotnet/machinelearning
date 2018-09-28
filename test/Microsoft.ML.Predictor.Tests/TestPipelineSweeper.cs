@@ -15,7 +15,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.ML.Runtime.RunTests
 {
-    [Collection("TestPipelineSweeper and TestAutoInference should not be run at the same time")]
+    [Collection(Global.AutoInferenceAndPipelineSweeperTestCollectionName)]
     public sealed class TestPipelineSweeper : BaseTestBaseline
     {
         public TestPipelineSweeper(ITestOutputHelper helper)
@@ -40,10 +40,10 @@ namespace Microsoft.ML.Runtime.RunTests
             var inputFileTrain = new SimpleFileHandle(Env, pathData, false, false);
 #pragma warning disable 0618
             var datasetTrain = ImportTextData.ImportText(Env,
-                new ImportTextData.Input { InputFile = inputFileTrain }).Data.Take(numOfSampleRows, Env);
+                new ImportTextData.Input { InputFile = inputFileTrain }).Data.Take(numOfSampleRows);
             var inputFileTest = new SimpleFileHandle(Env, pathDataTest, false, false);
             var datasetTest = ImportTextData.ImportText(Env,
-                new ImportTextData.Input { InputFile = inputFileTest }).Data.Take(numOfSampleRows, Env);
+                new ImportTextData.Input { InputFile = inputFileTest }).Data.Take(numOfSampleRows);
 #pragma warning restore 0618
             // Define entrypoint graph
             string inputGraph = @"
@@ -116,10 +116,10 @@ namespace Microsoft.ML.Runtime.RunTests
             var inputFileTrain = new SimpleFileHandle(Env, pathData, false, false);
 #pragma warning disable 0618
             var datasetTrain = ImportTextData.ImportText(Env,
-                new ImportTextData.Input { InputFile = inputFileTrain, CustomSchema = schema }).Data.Take(numOfSampleRows, Env);
+                new ImportTextData.Input { InputFile = inputFileTrain, CustomSchema = schema }).Data.Take(numOfSampleRows);
             var inputFileTest = new SimpleFileHandle(Env, pathDataTest, false, false);
             var datasetTest = ImportTextData.ImportText(Env,
-                new ImportTextData.Input { InputFile = inputFileTest, CustomSchema = schema }).Data.Take(numOfSampleRows, Env);
+                new ImportTextData.Input { InputFile = inputFileTest, CustomSchema = schema }).Data.Take(numOfSampleRows);
 #pragma warning restore 0618
             const int batchSize = 5;
             const int numIterations = 20;
@@ -177,10 +177,10 @@ namespace Microsoft.ML.Runtime.RunTests
             var inputFileTrain = new SimpleFileHandle(Env, pathData, false, false);
 #pragma warning disable 0618
             var datasetTrain = ImportTextData.ImportText(Env,
-                new ImportTextData.Input { InputFile = inputFileTrain, CustomSchema = schema }).Data.Take(numOfSampleRows, Env);
+                new ImportTextData.Input { InputFile = inputFileTrain, CustomSchema = schema }).Data.Take(numOfSampleRows);
             var inputFileTest = new SimpleFileHandle(Env, pathDataTest, false, false);
             var datasetTest = ImportTextData.ImportText(Env,
-                new ImportTextData.Input { InputFile = inputFileTest, CustomSchema = schema }).Data.Take(numOfSampleRows, Env);
+                new ImportTextData.Input { InputFile = inputFileTest, CustomSchema = schema }).Data.Take(numOfSampleRows);
 #pragma warning restore 0618
 
             // Define entrypoint graph
@@ -250,10 +250,10 @@ namespace Microsoft.ML.Runtime.RunTests
             var inputFileTrain = new SimpleFileHandle(Env, pathData, false, false);
 #pragma warning disable 0618
             var datasetTrain = ImportTextData.ImportText(Env,
-                new ImportTextData.Input { InputFile = inputFileTrain, CustomSchema = schema }).Data.Take(numOfSampleRows, Env);
+                new ImportTextData.Input { InputFile = inputFileTrain, CustomSchema = schema }).Data.Take(numOfSampleRows);
             var inputFileTest = new SimpleFileHandle(Env, pathDataTest, false, false);
             var datasetTest = ImportTextData.ImportText(Env,
-                new ImportTextData.Input { InputFile = inputFileTest, CustomSchema = schema }).Data.Take(numOfSampleRows, Env);
+                new ImportTextData.Input { InputFile = inputFileTest, CustomSchema = schema }).Data.Take(numOfSampleRows);
 #pragma warning restore 0618
 
             // Define entrypoint graph
@@ -423,10 +423,10 @@ namespace Microsoft.ML.Runtime.RunTests
             var inputFileTrain = new SimpleFileHandle(Env, pathData, false, false);
 #pragma warning disable 0618
             var datasetTrain = ImportTextData.ImportText(Env,
-                new ImportTextData.Input { InputFile = inputFileTrain, CustomSchema = schema }).Data.Take(numOfSampleRows, Env);
+                new ImportTextData.Input { InputFile = inputFileTrain, CustomSchema = schema }).Data.Take(numOfSampleRows);
             var inputFileTest = new SimpleFileHandle(Env, pathDataTest, false, false);
             var datasetTest = ImportTextData.ImportText(Env,
-                new ImportTextData.Input { InputFile = inputFileTest, CustomSchema = schema }).Data.Take(numOfSampleRows, Env);
+                new ImportTextData.Input { InputFile = inputFileTest, CustomSchema = schema }).Data.Take(numOfSampleRows);
 #pragma warning restore 0618
             // Define entrypoint graph
             string inputGraph = @"
@@ -502,10 +502,10 @@ namespace Microsoft.ML.Runtime.RunTests
             var inputFileTrain = new SimpleFileHandle(Env, pathData, false, false);
 #pragma warning disable 0618
             var datasetTrain = ImportTextData.ImportText(Env,
-                new ImportTextData.Input { InputFile = inputFileTrain, CustomSchema = schema }).Data.Take(numOfSampleRows, Env);
+                new ImportTextData.Input { InputFile = inputFileTrain, CustomSchema = schema }).Data.Take(numOfSampleRows);
             var inputFileTest = new SimpleFileHandle(Env, pathDataTest, false, false);
             var datasetTest = ImportTextData.ImportText(Env,
-                new ImportTextData.Input { InputFile = inputFileTest, CustomSchema = schema }).Data.Take(numOfSampleRows, Env);
+                new ImportTextData.Input { InputFile = inputFileTest, CustomSchema = schema }).Data.Take(numOfSampleRows);
             var requestedLearners = new[] { $"LogisticRegressionBinaryClassifier", $"FastTreeBinaryClassifier" };
 #pragma warning restore 0618
             // Define entrypoint graph

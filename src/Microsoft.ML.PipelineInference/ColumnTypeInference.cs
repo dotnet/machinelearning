@@ -132,10 +132,10 @@ namespace Microsoft.ML.Runtime.PipelineInference
                     {
                         if (!col.RawData.Skip(1)
                             .All(x =>
-                                {
-                                    bool value;
-                                    return Conversions.Instance.TryParse(ref x, out value);
-                                })
+                            {
+                                bool value;
+                                return Conversions.Instance.TryParse(ref x, out value);
+                            })
                             )
                         {
                             continue;
@@ -157,10 +157,10 @@ namespace Microsoft.ML.Runtime.PipelineInference
                     {
                         if (!col.RawData.Skip(1)
                             .All(x =>
-                                {
-                                    Single value;
-                                    return Conversions.Instance.TryParse(ref x, out value);
-                                })
+                            {
+                                Single value;
+                                return Conversions.Instance.TryParse(ref x, out value);
+                            })
                             )
                         {
                             continue;
@@ -240,7 +240,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
             ch.AssertValue(fileSource);
             ch.AssertValue(args);
 
-            if (args.ColumnCount==0)
+            if (args.ColumnCount == 0)
             {
                 ch.Error("Too many empty columns for automatic inference.");
                 return InferenceResult.Fail();
@@ -261,7 +261,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
                 AllowQuoting = args.AllowQuote,
             };
             var idv = TextLoader.ReadFile(env, textLoaderArgs, fileSource);
-            idv = idv.Take(args.MaxRowsToRead, env);
+            idv = idv.Take(args.MaxRowsToRead);
 
             // Read all the data into memory.
             // List items are rows of the dataset.

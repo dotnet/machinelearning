@@ -21,7 +21,7 @@ namespace Microsoft.ML.Runtime.RunTests
     /// <summary>
     /// This is a base test class designed to support baseline comparison.
     /// </summary>
-    public abstract partial class BaseTestBaseline : BaseTestClass, IDisposable
+    public abstract partial class BaseTestBaseline : BaseTestClass
     {
         public const decimal Tolerance = 10_000_000;
 
