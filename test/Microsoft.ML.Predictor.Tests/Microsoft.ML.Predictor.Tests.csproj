@@ -24,7 +24,6 @@
     <NativeAssemblyReference Include="CpuMathNative" />
     <NativeAssemblyReference Include="FactorizationMachineNative" />
     <NativeAssemblyReference Include="SymSgdNative" />
-    <NativeAssemblyReference Include="MklImports" />
   </ItemGroup>
   
 </Project>

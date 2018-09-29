@@ -29,8 +29,7 @@
     <NativeAssemblyReference Include="FactorizationMachineNative" />
     <NativeAssemblyReference Include="LdaNative" />
     <NativeAssemblyReference Include="SymSgdNative" />
-    <NativeAssemblyReference Include="MklImports" />
-	<NativeAssemblyReference Include="MklProxyNative" />
+    <NativeAssemblyReference Include="MklProxyNative" />
     <NativeAssemblyReference Include="tensorflow" />
     <NativeAssemblyReference Condition="'$(OS)' != 'Windows_NT'" Include="tensorflow_framework" />
   </ItemGroup>

@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Reflection;
 using System.Runtime.InteropServices;
 
 namespace Microsoft.ML.Runtime.TimeSeriesProcessing
@@ -12,6 +13,8 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
     /// </summary>
     internal static class FftUtils
     {
+        static FftUtils() => VsSqrt(0, null, null);
+
         private enum ConfigParam
         {
             /* Domain for forward transform. No default value */
@@ -185,7 +188,10 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
         [DllImport(DllProxyName, EntryPoint = "MKLDftiComputeBackward", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Auto)]
         private static extern int ComputeBackward(IntPtr desc, [In] double[] inputRe, [In] double[] inputIm, [Out] double[] outputRe, [Out] double[] outputIm);
 
-        // See: https://software.intel.com/en-us/node/521990
+        //Just to trigger Mkl dll load.
+        [DllImport(DllName, EntryPoint = "vsSqrt")]
+        private static extern int VsSqrt(int n, float[] a, float[] b);
+
         [DllImport(DllName, EntryPoint = "DftiErrorMessage")]
         private static extern byte[] ErrorMessage(int status);
 
@@ -213,7 +219,6 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
 
             int status = 0; // DFTI_NO_ERROR
             IntPtr descriptor = default(IntPtr);
-
             try
             {
                 status = CreateDescriptor(out descriptor, ConfigValue.Double, ConfigValue.Complex, 1, inputRe.Length);
