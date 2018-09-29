@@ -504,4 +504,48 @@ namespace Microsoft.ML
             return result.Select(x => (Evaluate(x.scoredTestSet, labelColumn), x.model, x.scoredTestSet)).ToArray();
         }
     }
+
+    /// <summary>
+    /// The central context for regression trainers.
+    /// </summary>
+    public sealed class RankerContext : TrainContextBase
+    {
+        /// <summary>
+        /// For trainers for performing regression.
+        /// </summary>
+        public RankerTrainers Trainers { get; }
+
+        public RankerContext(IHostEnvironment env)
+            : base(env, nameof(RankerContext))
+        {
+            Trainers = new RankerTrainers(this);
+        }
+
+        public sealed class RankerTrainers : ContextInstantiatorBase
+        {
+            internal RankerTrainers(RankerContext ctx)
+                : base(ctx)
+            {
+            }
+        }
+
+        /// <summary>
+        /// Evaluates scored ranking data.
+        /// </summary>
+        /// <param name="data">The scored data.</param>
+        /// <param name="label">The name of the label column in <paramref name="data"/>.</param>
+        /// <param name="groupId">The name of the groupId column in <paramref name="data"/>.</param>
+        /// <param name="score">The name of the score column in <paramref name="data"/>.</param>
+        /// <returns>The evaluation results for these calibrated outputs.</returns>
+        public RankerEvaluator.Result Evaluate(IDataView data, string label, string groupId, string score = DefaultColumnNames.Score)
+        {
+            Host.CheckValue(data, nameof(data));
+            Host.CheckNonEmpty(label, nameof(label));
+            Host.CheckNonEmpty(score, nameof(score));
+            Host.CheckNonEmpty(groupId, nameof(groupId));
+
+            var eval = new RankerEvaluator(Host, new RankerEvaluator.Arguments() { });
+            return eval.Evaluate(data, label, groupId, score);
+        }
+    }
 }

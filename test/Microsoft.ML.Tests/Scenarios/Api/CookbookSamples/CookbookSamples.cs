@@ -11,7 +11,6 @@ using Microsoft.ML.Runtime.Learners;
 using Microsoft.ML.Runtime.RunTests;
 using Microsoft.ML.StaticPipe;
 using Microsoft.ML.TestFramework;
-using Microsoft.ML.Trainers;
 using Microsoft.ML.Transforms.Text;
 using Microsoft.ML.Transforms;
 using System;

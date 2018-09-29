@@ -13,7 +13,6 @@ using Microsoft.ML.Runtime.Learners;
 using Microsoft.ML.Runtime.LightGBM;
 using Microsoft.ML.Runtime.RunTests;
 using Microsoft.ML.StaticPipe;
-using Microsoft.ML.Trainers;
 using System;
 using System.Linq;
 using Xunit;
@@ -708,6 +707,47 @@ namespace Microsoft.ML.StaticPipelineTesting
             Assert.True(double.IsNaN(metrics.Nmi));
             Assert.True(metrics.Dbi == 0.0);
 
+        }
+
+        [Fact]
+        public void FastTreeRanking()
+        {
+            var env = new ConsoleEnvironment(seed: 0);
+            var dataPath = GetDataPath(TestDatasets.adultRanking.trainFilename);
+            var dataSource = new MultiFileSource(dataPath);
+
+            var ctx = new RankerContext(env);
+
+            var reader = TextLoader.CreateReader(env,
+                c => (label: c.LoadFloat(0), features: c.LoadFloat(9, 14), groupId: c.LoadText(1)),
+                separator: '\t', hasHeader: true);
+
+            FastTreeRankingPredictor pred = null;
+
+            var est = reader.MakeNewEstimator()
+                .Append(r => (r.label, r.features, groupId: r.groupId.ToKey()))
+                .Append(r => (r.label, r.groupId, score: ctx.Trainers.FastTree(r.label, r.features, r.groupId, onFit: (p) => { pred = p; })));
+
+            var pipe = reader.Append(est);
+
+            Assert.Null(pred);
+            var model = pipe.Fit(dataSource);
+            Assert.NotNull(pred);
+
+            var data = model.Read(dataSource);
+
+            var metrics = ctx.Evaluate(data, r => r.label, r => r.groupId, r => r.score);
+            Assert.NotNull(metrics);
+
+            Assert.True(metrics.Ndcg.Length == metrics.Dcg.Length && metrics.Dcg.Length == 3);
+
+            Assert.InRange(metrics.Dcg[0], 1.4, 1.6);
+            Assert.InRange(metrics.Dcg[1], 1.4, 1.8);
+            Assert.InRange(metrics.Dcg[2], 1.4, 1.8);
+
+            Assert.InRange(metrics.Ndcg[0], 36.5, 37);
+            Assert.InRange(metrics.Ndcg[1], 36.5, 37);
+            Assert.InRange(metrics.Ndcg[2], 36.5, 37);
         }
     }
 }
