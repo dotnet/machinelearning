@@ -200,5 +200,40 @@ namespace Microsoft.ML.Runtime.Data
                 args.LossFunction = new TrivialRegressionLossFactory(loss);
             return new RegressionEvaluator(env, args).Evaluate(data.AsDynamic, labelName, scoreName);
         }
+
+        /// <summary>
+        /// Evaluates scored ranking data.
+        /// </summary>
+        /// <typeparam name="T">The shape type for the input data.</typeparam>
+        /// <typeparam name="TVal">The type of data, before being converted to a key.</typeparam>
+        /// <param name="ctx">The ranking context.</param>
+        /// <param name="data">The data to evaluate.</param>
+        /// <param name="label">The index delegate for the label column.</param>
+        /// <param name="groupId">The index delegate for the groupId column. </param>
+        /// <param name="score">The index delegate for predicted score column.</param>
+        /// <returns>The evaluation metrics.</returns>
+        public static RankerEvaluator.Result Evaluate<T, TVal>(
+            this RankerContext ctx,
+            DataView<T> data,
+            Func<T, Scalar<float>> label,
+            Func<T, Key<uint, TVal>> groupId,
+            Func<T, Scalar<float>> score)
+        {
+            Contracts.CheckValue(data, nameof(data));
+            var env = StaticPipeUtils.GetEnvironment(data);
+            Contracts.AssertValue(env);
+            env.CheckValue(label, nameof(label));
+            env.CheckValue(groupId, nameof(groupId));
+            env.CheckValue(score, nameof(score));
+
+            var indexer = StaticPipeUtils.GetIndexer(data);
+            string labelName = indexer.Get(label(indexer.Indices));
+            string scoreName = indexer.Get(score(indexer.Indices));
+            string groupIdName = indexer.Get(groupId(indexer.Indices));
+
+            var args = new RankerEvaluator.Arguments() { };
+
+            return new RankerEvaluator(env, args).Evaluate(data.AsDynamic, labelName, groupIdName, scoreName);
+        }
     }
 }

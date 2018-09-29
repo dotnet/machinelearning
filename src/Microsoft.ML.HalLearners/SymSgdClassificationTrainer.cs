@@ -200,6 +200,9 @@ namespace Microsoft.ML.Runtime.SymSgd
         protected override BinaryPredictionTransformer<TPredictor> MakeTransformer(TPredictor model, ISchema trainSchema)
              => new BinaryPredictionTransformer<TPredictor>(Host, model, trainSchema, FeatureColumn.Name);
 
+        public BinaryPredictionTransformer<TPredictor> Train(IDataView trainData, IDataView validationData = null, TPredictor initialPredictor = null)
+            => TrainTransformer(trainData, validationData, initialPredictor);
+
         protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema)
         {
             return new[]
