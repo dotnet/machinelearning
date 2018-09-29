@@ -103,3 +103,9 @@ set -x # turn on trace
 cmake "$DIR" -G "Unix Makefiles" $__cmake_defines
 set +x # turn off trace
 make install
+
+# This should be done when nuget is published but until then lets keep these below lines.
+if [[ "$OSTYPE" == "darwin"* ]]; then
+    echo "Changing libMklImports.dylib's name to include @rpath."
+    install_name_tool "-id" @rpath/libMklImports.dylib "$__mkllibpath"/libMklImports.dylib
+fi

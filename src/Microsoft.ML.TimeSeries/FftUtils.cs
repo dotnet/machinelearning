@@ -188,12 +188,13 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
         [DllImport(DllProxyName, EntryPoint = "MKLDftiComputeBackward", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Auto)]
         private static extern int ComputeBackward(IntPtr desc, [In] double[] inputRe, [In] double[] inputIm, [Out] double[] outputRe, [Out] double[] outputIm);
 
+        // See: https://software.intel.com/en-us/node/521990
+        [DllImport(DllName, EntryPoint = "DftiErrorMessage")]
+        private static extern byte[] ErrorMessage(int status);
+
         //Just to trigger Mkl dll load.
         [DllImport(DllName, EntryPoint = "vsSqrt")]
         private static extern int VsSqrt(int n, float[] a, float[] b);
-
-        [DllImport(DllName, EntryPoint = "DftiErrorMessage")]
-        private static extern byte[] ErrorMessage(int status);
 
         private static void CheckStatus(int status)
         {
