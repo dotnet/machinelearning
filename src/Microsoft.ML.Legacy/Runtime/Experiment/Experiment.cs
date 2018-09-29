@@ -37,7 +37,7 @@ namespace Microsoft.ML.Runtime
         public Experiment(Runtime.IHostEnvironment env)
         {
             _env = env;
-            AssemblyLoadingUtils.RegisterCurrentLoadedAssemblies(_env);
+            AssemblyRegistration.RegisterAssemblies(_env);
 
             _catalog = _env.ComponentCatalog;
             _jsonNodes = new List<string>();

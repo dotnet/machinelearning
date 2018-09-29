@@ -38,7 +38,7 @@ sudo apt-get install libssl1.0.0 libicu55
 
 ### macOS
 
-macOS 10.12 or higher is needed to build dotnet/machinelearning.
+macOS 10.12 (Sierra) or higher is needed to build dotnet/machinelearning.
 
 On macOS a few components are needed which are not provided by a default developer setup:
 * cmake 3.10.3

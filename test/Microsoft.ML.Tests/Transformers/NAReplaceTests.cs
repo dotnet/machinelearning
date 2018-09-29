@@ -68,10 +68,10 @@ namespace Microsoft.ML.Tests.Transformers
 
             var est = data.MakeNewEstimator().
                    Append(row => (
-                   A: row.ScalarFloat.ReplaceWithMissingValues(NAReplaceTransform.ColumnInfo.ReplacementMode.Maximum),
-                   B: row.ScalarDouble.ReplaceWithMissingValues(NAReplaceTransform.ColumnInfo.ReplacementMode.Mean),
-                   C: row.VectorFloat.ReplaceWithMissingValues(NAReplaceTransform.ColumnInfo.ReplacementMode.Mean),
-                   D: row.VectorDoulbe.ReplaceWithMissingValues(NAReplaceTransform.ColumnInfo.ReplacementMode.Minimum)
+                   A: row.ScalarFloat.ReplaceNaNValues(NAReplaceTransform.ColumnInfo.ReplacementMode.Maximum),
+                   B: row.ScalarDouble.ReplaceNaNValues(NAReplaceTransform.ColumnInfo.ReplacementMode.Mean),
+                   C: row.VectorFloat.ReplaceNaNValues(NAReplaceTransform.ColumnInfo.ReplacementMode.Mean),
+                   D: row.VectorDoulbe.ReplaceNaNValues(NAReplaceTransform.ColumnInfo.ReplacementMode.Minimum)
                    ));
 
             TestEstimatorCore(est.AsDynamic, data.AsDynamic, invalidInput: invalidData);
