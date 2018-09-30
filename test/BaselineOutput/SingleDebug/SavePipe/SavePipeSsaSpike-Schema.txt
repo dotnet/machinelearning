@@ -1,0 +1,96 @@
+---- BoundLoader ----
+1 columns:
+  Features: R4
+---- SsaSpikeDetector ----
+2 columns:
+  Features: R4
+  Anomaly: Vec<R8, 3>
+    Metadata 'SlotNames': Vec<Text, 3>: Length=3, Count=3
+      [0] 'Alert', [1] 'Raw Score', [2] 'P-Value Score'
+---- ConvertTransform ----
+3 columns:
+  Features: R4
+  Anomaly: Vec<R8, 3>
+    Metadata 'SlotNames': Vec<Text, 3>: Length=3, Count=3
+      [0] 'Alert', [1] 'Raw Score', [2] 'P-Value Score'
+  fAnomaly: Vec<R4, 3>
+    Metadata 'SlotNames': Vec<Text, 3>: Length=3, Count=3
+      [0] 'Alert', [1] 'Raw Score', [2] 'P-Value Score'
+---- SsaSpikeDetector ----
+4 columns:
+  Features: R4
+  Anomaly: Vec<R8, 3>
+    Metadata 'SlotNames': Vec<Text, 3>: Length=3, Count=3
+      [0] 'Alert', [1] 'Raw Score', [2] 'P-Value Score'
+  fAnomaly: Vec<R4, 3>
+    Metadata 'SlotNames': Vec<Text, 3>: Length=3, Count=3
+      [0] 'Alert', [1] 'Raw Score', [2] 'P-Value Score'
+  Anomaly2: Vec<R8, 3>
+    Metadata 'SlotNames': Vec<Text, 3>: Length=3, Count=3
+      [0] 'Alert', [1] 'Raw Score', [2] 'P-Value Score'
+---- ConvertTransform ----
+5 columns:
+  Features: R4
+  Anomaly: Vec<R8, 3>
+    Metadata 'SlotNames': Vec<Text, 3>: Length=3, Count=3
+      [0] 'Alert', [1] 'Raw Score', [2] 'P-Value Score'
+  fAnomaly: Vec<R4, 3>
+    Metadata 'SlotNames': Vec<Text, 3>: Length=3, Count=3
+      [0] 'Alert', [1] 'Raw Score', [2] 'P-Value Score'
+  Anomaly2: Vec<R8, 3>
+    Metadata 'SlotNames': Vec<Text, 3>: Length=3, Count=3
+      [0] 'Alert', [1] 'Raw Score', [2] 'P-Value Score'
+  fAnomaly2: Vec<R4, 3>
+    Metadata 'SlotNames': Vec<Text, 3>: Length=3, Count=3
+      [0] 'Alert', [1] 'Raw Score', [2] 'P-Value Score'
+---- SsaSpikeDetector ----
+6 columns:
+  Features: R4
+  Anomaly: Vec<R8, 3>
+    Metadata 'SlotNames': Vec<Text, 3>: Length=3, Count=3
+      [0] 'Alert', [1] 'Raw Score', [2] 'P-Value Score'
+  fAnomaly: Vec<R4, 3>
+    Metadata 'SlotNames': Vec<Text, 3>: Length=3, Count=3
+      [0] 'Alert', [1] 'Raw Score', [2] 'P-Value Score'
+  Anomaly2: Vec<R8, 3>
+    Metadata 'SlotNames': Vec<Text, 3>: Length=3, Count=3
+      [0] 'Alert', [1] 'Raw Score', [2] 'P-Value Score'
+  fAnomaly2: Vec<R4, 3>
+    Metadata 'SlotNames': Vec<Text, 3>: Length=3, Count=3
+      [0] 'Alert', [1] 'Raw Score', [2] 'P-Value Score'
+  Anomaly3: Vec<R8, 3>
+    Metadata 'SlotNames': Vec<Text, 3>: Length=3, Count=3
+      [0] 'Alert', [1] 'Raw Score', [2] 'P-Value Score'
+---- ConvertTransform ----
+7 columns:
+  Features: R4
+  Anomaly: Vec<R8, 3>
+    Metadata 'SlotNames': Vec<Text, 3>: Length=3, Count=3
+      [0] 'Alert', [1] 'Raw Score', [2] 'P-Value Score'
+  fAnomaly: Vec<R4, 3>
+    Metadata 'SlotNames': Vec<Text, 3>: Length=3, Count=3
+      [0] 'Alert', [1] 'Raw Score', [2] 'P-Value Score'
+  Anomaly2: Vec<R8, 3>
+    Metadata 'SlotNames': Vec<Text, 3>: Length=3, Count=3
+      [0] 'Alert', [1] 'Raw Score', [2] 'P-Value Score'
+  fAnomaly2: Vec<R4, 3>
+    Metadata 'SlotNames': Vec<Text, 3>: Length=3, Count=3
+      [0] 'Alert', [1] 'Raw Score', [2] 'P-Value Score'
+  Anomaly3: Vec<R8, 3>
+    Metadata 'SlotNames': Vec<Text, 3>: Length=3, Count=3
+      [0] 'Alert', [1] 'Raw Score', [2] 'P-Value Score'
+  fAnomaly3: Vec<R4, 3>
+    Metadata 'SlotNames': Vec<Text, 3>: Length=3, Count=3
+      [0] 'Alert', [1] 'Raw Score', [2] 'P-Value Score'
+---- ChooseColumnsTransform ----
+4 columns:
+  Features: R4
+  fAnomaly: Vec<R4, 3>
+    Metadata 'SlotNames': Vec<Text, 3>: Length=3, Count=3
+      [0] 'Alert', [1] 'Raw Score', [2] 'P-Value Score'
+  fAnomaly2: Vec<R4, 3>
+    Metadata 'SlotNames': Vec<Text, 3>: Length=3, Count=3
+      [0] 'Alert', [1] 'Raw Score', [2] 'P-Value Score'
+  fAnomaly3: Vec<R4, 3>
+    Metadata 'SlotNames': Vec<Text, 3>: Length=3, Count=3
+      [0] 'Alert', [1] 'Raw Score', [2] 'P-Value Score'

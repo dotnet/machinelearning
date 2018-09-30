@@ -25,6 +25,7 @@ using Microsoft.ML.Runtime.PCA;
 using Microsoft.ML.Runtime.PipelineInference;
 using Microsoft.ML.Runtime.SymSgd;
 using Microsoft.ML.Runtime.TextAnalytics;
+using Microsoft.ML.Runtime.TimeSeriesProcessing;
 using Microsoft.ML.Transforms;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -37,6 +38,7 @@ namespace Microsoft.ML.Runtime.RunTests
     {
         public TestEntryPoints(ITestOutputHelper output) : base(output)
         {
+            Env.ComponentCatalog.RegisterAssembly(typeof(ExponentialAverageTransform).Assembly);
         }
 
         private IDataView GetBreastCancerDataView()
@@ -3745,6 +3747,162 @@ namespace Microsoft.ML.Runtime.RunTests
                     @"'InputColumns': [ 'Placeholder' ],
                       'Model': 'mnist_model/frozen_saved_model.pb',
                       'OutputColumns': [ 'Softmax' ]"
+                });
+        }
+
+        [Fact]
+        public void EntryPointSsaChangePoint()
+        {
+            TestEntryPointPipelineRoutine(GetDataPath(@"Timeseries/A4Benchmark-TS1.csv"), "sep=, col=Features:R4:1 header=+",
+                new[]
+                {
+                    "TimeSeriesProcessing.SsaChangePointDetector",
+                    "TimeSeriesProcessing.SsaChangePointDetector",
+                },
+                new[]
+                {
+                    @"'Src': 'Features',
+                      'Name': 'Anomaly',
+                      'Twnd': '500',
+                      'Swnd': '50',
+                      'Cnf': '93',
+                      'Wnd': '20',
+                      'Mart': 'Power',
+                      'Eps': '0.1'",
+                    @"'Src': 'Features',
+                      'Name': 'Anomaly2',
+                      'Twnd': '500',
+                      'Swnd': '50',
+                      'Cnf': '93',
+                      'Wnd': '20',
+                      'Mart': 'Mixture'"
+                });
+        }
+
+        [Fact]
+        public void EntryPointIidSpikeDetector()
+        {
+            TestEntryPointPipelineRoutine(GetDataPath(@"Timeseries/real_1.csv"), "sep=, col=Features:R4:1 header=+",
+                new[]
+                {
+                    "TimeSeriesProcessing.IidSpikeDetector",
+                    "TimeSeriesProcessing.IidSpikeDetector",
+                },
+                new[]
+                {
+                    @"'Src': 'Features',
+                      'Name': 'Anomaly',
+                      'Cnf': '99.5',
+                      'Wnd': '200',
+                      'Side': 'Positive'",
+                    @"'Src': 'Features',
+                      'Name': 'Anomaly2',
+                      'Cnf': '99.5',
+                      'Wnd': '200',
+                      'Side': 'Negative'",
+                });
+        }
+
+        [Fact]
+        public void EntryPointSsaSpikeDetector()
+        {
+            TestEntryPointPipelineRoutine(GetDataPath(@"Timeseries/A4Benchmark-TS2.csv"), "sep=, col=Features:R4:1 header=+",
+                new[]
+                {
+                    "TimeSeriesProcessing.SsaSpikeDetector",
+                    "TimeSeriesProcessing.SsaSpikeDetector",
+                    "TimeSeriesProcessing.SsaSpikeDetector",
+                },
+                new[]
+                {
+                    @"'Src': 'Features',
+                      'Name': 'Anomaly',
+                      'Twnd': '500',
+                      'Swnd': '50',
+                      'Err': 'SignedDifference',
+                      'Cnf': '99.5',
+                      'Wnd': '100',
+                      'Side': 'Negative'",
+                    @"'Src': 'Features',
+                      'Name': 'Anomaly2',
+                      'Twnd': '500',
+                      'Swnd': '50',
+                      'Err': 'SignedDifference',
+                      'Cnf': '99.5',
+                      'Wnd': '100',
+                      'Side': 'Positive'",
+                    @"'Src': 'Features',
+                      'Name': 'Anomaly3',
+                      'Twnd': '500',
+                      'Swnd': '50',
+                      'Err': 'SignedDifference',
+                      'Cnf': '99.5',
+                      'Wnd': '100'",
+                });
+        }
+
+        [Fact]
+        public void EntryPointPercentileThreshold()
+        {
+            TestEntryPointPipelineRoutine(GetDataPath("breast-cancer.txt"), "col=Input:R4:1",
+                new[]
+                {
+                    "TimeSeriesProcessing.PercentileThresholdTransform"
+                },
+                new[]
+                {
+                    @"'Src': 'Input',
+                      'Name': 'Output',
+                      'Wnd': '10',
+                      'Pcnt': '10'"
+                });
+        }
+
+        [Fact]
+        public void EntryPointPValue()
+        {
+            TestEntryPointPipelineRoutine(GetDataPath("breast-cancer.txt"), "col=Input:R4:1",
+                new[]
+                {
+                    "TimeSeriesProcessing.PValueTransform"
+                },
+                new[]
+                {
+                    @"'Src': 'Input',
+                      'Name': 'Output',
+                      'Wnd': '10'"
+                });
+        }
+
+        [Fact]
+        public void EntryPointSlidingWindow()
+        {
+            TestEntryPointPipelineRoutine(GetDataPath("breast-cancer.txt"), "col=Input:R4:1",
+                new[]
+                {
+                    "TimeSeriesProcessing.SlidingWindowTransform",
+                    "TimeSeriesProcessing.SlidingWindowTransform",
+                    "TimeSeriesProcessing.SlidingWindowTransform",
+                    "TimeSeriesProcessing.SlidingWindowTransform",
+                },
+                new[]
+                {
+                    @"'Src': 'Input',
+                      'Name': 'Output',
+                      'Wnd': '3',
+                      'L': '0'",
+                    @"'Src': 'Input',
+                      'Name': 'Output1',
+                      'Wnd': '1',
+                      'L': '1'",
+                    @"'Src': 'Input',
+                      'Name': 'Output2',
+                      'Wnd': '1',
+                      'L': '2'",
+                    @"'Src': 'Input',
+                      'Name': 'Output3',
+                      'Wnd': '2',
+                      'L': '1'"
                 });
         }
     }
