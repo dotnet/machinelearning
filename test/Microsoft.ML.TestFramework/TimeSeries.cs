@@ -22,7 +22,7 @@ namespace Microsoft.ML.Runtime.RunTests
         [Fact]
         public void SavePipeIidSpike()
         {
-            TestCore(GetDataPath(@"Timeseries\real_1.csv"),
+            TestCore(GetDataPath(Path.Combine("Timeseries", "real_1.csv")),
                 true,
                     new[]{"loader=TextLoader{sep=, col=Features:R4:1 header=+}",
                     "xf=IidSpikeDetector{src=Features name=Anomaly cnf=99.5 wnd=200 side=Positive}",
@@ -31,16 +31,13 @@ namespace Microsoft.ML.Runtime.RunTests
                     "xf=Convert{col=fAnomaly2:R4:Anomaly2}",
                     "xf=Choose{col=Features col=fAnomaly col=fAnomaly2}" });
 
-            // REVIEW: the conversion to float is done to avoid the mismatch on the least significant decimal points on the build machines. 
             Done();
         }
 
         [Fact]
         public void SavePipeIidChangePoint()
         {
-            string pathData = GetDataPath(@"Timeseries/real_11.csv");
-
-            TestCore(GetDataPath(@"Timeseries/real_11.csv"),
+            TestCore(GetDataPath(Path.Combine("Timeseries", "real_11.csv")),
                 true,
                     new[]{"loader=TextLoader{sep=, col=Features:R4:1 header=+}",
                     @"xf=IidChangePointDetector{src=Features name=Anomaly cnf=83 wnd=100 mart=Power eps=0.1}",
@@ -49,14 +46,13 @@ namespace Microsoft.ML.Runtime.RunTests
                     "xf=Convert{col=fAnomaly2:R4:Anomaly2}",
                     "xf=Choose{col=Features col=fAnomaly col=fAnomaly2}" });
 
-            // REVIEW: the conversion to float is done to avoid the mismatch on the least significant decimal points on the build machines.
             Done();
         }
 
         [Fact]
         public void SavePipeSsaSpike()
         {
-            TestCore(GetDataPath(@"Timeseries/A4Benchmark-TS2.csv"),
+            TestCore(GetDataPath(Path.Combine("Timeseries", "A4Benchmark-TS2.csv")),
                 true,
                     new[]{"loader=TextLoader{sep=, col=Features:R4:1 header=+}",
                     @"xf=SsaSpikeDetector{src=Features name=Anomaly twnd=500 swnd=50 err=SignedDifference cnf=99.5 wnd=100 side=Negative}",
@@ -66,8 +62,6 @@ namespace Microsoft.ML.Runtime.RunTests
                     "xf=SsaSpikeDetector{src=Features name=Anomaly3 twnd=500 swnd=50 err=SignedDifference cnf=99.5 wnd=100}",
                     "xf=Convert{col=fAnomaly3:R4:Anomaly3}",
                     "xf=Choose{col=Features col=fAnomaly col=fAnomaly2 col=fAnomaly3}" });
-
-            // REVIEW: the conversion to float is done to avoid the mismatch on the least significant decimal points on the build machines. 
 
             Done();
         }
