@@ -3782,7 +3782,7 @@ namespace Microsoft.ML.Runtime.RunTests
         [Fact]
         public void EntryPointIidSpikeDetector()
         {
-            TestEntryPointPipelineRoutine(GetDataPath(@"Timeseries/real_1.csv"), "sep=, col=Features:R4:1 header=+",
+            TestEntryPointPipelineRoutine(GetDataPath(Path.Combine("Timeseries", "real_1.csv")), "sep=, col=Features:R4:1 header=+",
                 new[]
                 {
                     "TimeSeriesProcessing.IidSpikeDetector",
