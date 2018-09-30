@@ -120,7 +120,8 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             IsAdaptive = args.IsAdaptive;
 
             // Creating the master SSA model
-            Model = new AdaptiveSingularSpectrumSequenceModeler(Host, args.InitialWindowSize, SeasonalWindowSize + 1, SeasonalWindowSize, DiscountFactor, null);
+            Model = new AdaptiveSingularSpectrumSequenceModeler(Host, args.InitialWindowSize, SeasonalWindowSize + 1, SeasonalWindowSize,
+                DiscountFactor, null, AdaptiveSingularSpectrumSequenceModeler.RankSelectionMethod.Exact, null, SeasonalWindowSize / 2, false, false);
 
             // Training the master SSA model
             var data = new RoleMappedData(input, null, InputColumnName);

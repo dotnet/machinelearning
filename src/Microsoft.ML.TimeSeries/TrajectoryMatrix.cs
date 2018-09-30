@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using Microsoft.ML.Runtime.Internal.CpuMath;
 using Microsoft.ML.Runtime.Internal.Utilities;
 
 namespace Microsoft.ML.Runtime.TimeSeriesProcessing
@@ -65,6 +64,34 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
         private IExceptionContext _ectx;
         private readonly int _k;
 
+        private void ComputeBoundryIndices(int start, int end, out int us, out int ue, out int vs, out int ve)
+        {
+            _ectx.Assert(0 <= end && end < _seriesLength, "The end index must be in [0, seriesLength).");
+            _ectx.Assert(0 <= start && start <= end, "The start index must be in [0, end index].");
+
+            if (start < _k)
+            {
+                us = 0;
+                vs = start;
+            }
+            else
+            {
+                us = start - _k + 1;
+                vs = _k - 1;
+            }
+
+            if (end < _windowSize)
+            {
+                ue = end;
+                ve = 0;
+            }
+            else
+            {
+                ue = _windowSize - 1;
+                ve = end - _windowSize + 1;
+            }
+        }
+
         /// <summary>
         /// Returns the length of the time-series represented by this trajectory matrix.
         /// </summary>
@@ -87,14 +114,12 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             Contracts.CheckValueOrNull(ectx);
             _ectx = ectx;
 
-            _ectx.CheckParam(windowSize > 0, nameof(windowSize), "Must be postiive.");
-            _ectx.CheckValue(data, nameof(data));
-            _ectx.CheckParam(data.Length >= seriesLength, nameof(seriesLength),
-                "The series length cannot be greater than the data length.");
+            _ectx.Check(windowSize > 0, "The window length should be greater than 0.");
+            _ectx.CheckValue(data, nameof(data), "The input data cannot be null.");
+            _ectx.Check(data.Length >= seriesLength, "The series length cannot be greater than the data length.");
 
             _seriesLength = seriesLength;
-            _ectx.CheckParam(windowSize <= _seriesLength, nameof(seriesLength),
-                "The length of the window should be less than or equal to the length of the data.");
+            _ectx.Check(windowSize <= _seriesLength, "The length of the window should be less than or equal to the length of the data.");
 
             _data = data;
             _windowSize = windowSize;
@@ -121,7 +146,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
                 for (i = 0; i < _k - 1; ++i)
                     _inputRe[_windowSize + i] = _data[i];
 
-                FftUtils.ComputeForwardFft(_inputRe, _allZerosIm, _cachedSeriesFftRe, _cachedSeriesFftIm);
+                FftUtils.ComputeForwardFft(_inputRe, _allZerosIm, _cachedSeriesFftRe, _cachedSeriesFftIm, _inputRe.Length);
             }
         }
 
@@ -147,7 +172,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             for (i = 0; i < _k - 1; ++i)
                 _inputRe[_windowSize + i] = _data[i];
 
-            FftUtils.ComputeForwardFft(_inputRe, _allZerosIm, _cachedSeriesFftRe, _cachedSeriesFftIm);
+            FftUtils.ComputeForwardFft(_inputRe, _allZerosIm, _cachedSeriesFftRe, _cachedSeriesFftIm, _inputRe.Length);
             _isSeriesFftCached = true;
         }
 
@@ -184,7 +209,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
 
                 // Computing the novel part
                 for (j = i; j < _windowSize; ++j)
-                    cov[i * _windowSize + j] = cov[(i - 1) * _windowSize + j - 1] - _data[i - 1] * _data[j - 1] + _data[i + _k - 1] * _data[j + _k - 1];
+                    cov[i * _windowSize + j] = (float)((double)cov[(i - 1) * _windowSize + j - 1] - (double)_data[i - 1] * _data[j - 1] + (double)_data[i + _k - 1] * _data[j + _k - 1]);
             }
         }
 
@@ -194,15 +219,35 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
         /// </summary>
         /// <param name="singularValues">The output singular values of size L</param>
         /// <param name="leftSingularvectors">The output singular vectors of size L*L</param>
-        public void ComputeSvd(out Single[] singularValues, out Single[] leftSingularvectors)
+        public bool ComputeSvd(out Single[] singularValues, out Single[] leftSingularvectors)
         {
             Single[] covariance = new Single[_windowSize * _windowSize];
+            Single[] sVal;
+            Single[] sVec;
+            singularValues = new Single[_windowSize];
+            leftSingularvectors = new Single[_windowSize * _windowSize];
 
             // Computing the covariance matrix of the trajectory matrix on the input series
             ComputeUnnormalizedTrajectoryCovarianceMat(covariance);
 
             // Computing the eigen decomposition of the covariance matrix
-            EigenUtils.EigenDecomposition(covariance, out singularValues, out leftSingularvectors);
+            //EigenUtils.EigenDecomposition(covariance, out sVal, out sVec);
+            EigenUtils.MklSymmetricEigenDecomposition(covariance, _windowSize, out sVal, out sVec);
+
+            var ind = new int[_windowSize];
+            int i;
+
+            for (i = 0; i < _windowSize; ++i)
+                ind[i] = i;
+
+            Array.Sort(ind, (a, b) => sVal[b].CompareTo(sVal[a]));
+            for (i = 0; i < _windowSize; ++i)
+            {
+                singularValues[i] = sVal[ind[i]];
+                Array.Copy(sVec, _windowSize * ind[i], leftSingularvectors, _windowSize * i, _windowSize);
+            }
+
+            return true;
         }
 
         /// <summary>
@@ -263,7 +308,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             for (i = _k; i < _seriesLength; ++i)
                 _inputRe[i] = 0;
 
-            FftUtils.ComputeForwardFft(_inputRe, _allZerosIm, _outputRe, _outputIm);
+            FftUtils.ComputeForwardFft(_inputRe, _allZerosIm, _outputRe, _outputIm, _inputRe.Length);
 
             // Computing the element-by-element product in the Fourier space
             double re;
@@ -278,7 +323,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             }
 
             // Computing the inverse FFT of the result
-            FftUtils.ComputeBackwardFft(_outputRe, _outputIm, _outputRe, _outputIm);
+            FftUtils.ComputeBackwardFft(_outputRe, _outputIm, _outputRe, _outputIm, _inputRe.Length);
 
             // Generating the output
             if (add)
@@ -367,7 +412,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             for (i = _k - 1; i < _seriesLength; ++i)
                 _inputRe[i] = vector[_seriesLength - i - 1 + srcIndex];
 
-            FftUtils.ComputeForwardFft(_inputRe, _allZerosIm, _outputRe, _outputIm);
+            FftUtils.ComputeForwardFft(_inputRe, _allZerosIm, _outputRe, _outputIm, _inputRe.Length);
 
             // Computing the element-by-element product in the Fourier space
             double re;
@@ -382,7 +427,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             }
 
             // Computing the inverse FFT of the result
-            FftUtils.ComputeBackwardFft(_outputRe, _outputIm, _outputRe, _outputIm);
+            FftUtils.ComputeBackwardFft(_outputRe, _outputIm, _outputRe, _outputIm, _inputRe.Length);
 
             // Generating the output
             if (add)
@@ -424,15 +469,37 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
         /// <param name="uIndex">The starting index for the u vector argument</param>
         /// <param name="vIndex">The starting index for the v vector argument</param>
         /// <param name="dstIndex">The starting index for the result</param>
+        /// <param name="start">The staring index of the series to be reconstructed (by default zero)</param>
+        /// <param name="end">The ending index of the series to be reconstructed (by default series length)</param>
         private void NaiveRankOneHankelization(Single[] u, Single[] v, Single sigma, Single[] result, bool add = false,
-            int uIndex = 0, int vIndex = 0, int dstIndex = 0)
+            int uIndex = 0, int vIndex = 0, int dstIndex = 0, int? start = null, int? end = null)
         {
+            int s;
+            int e;
+            int us;
+            int ue;
+            int vs;
+            int ve;
+
+            s = start ?? 0;
+            e = end ?? _seriesLength - 1;
+
+            ComputeBoundryIndices(s, e, out us, out ue, out vs, out ve);
+            _ectx.Assert(0 <= ue && ue < _windowSize);
+            _ectx.Assert(0 <= us && us <= ue);
+            _ectx.Assert(0 <= ve && ve < _k);
+            _ectx.Assert(0 <= vs && vs <= ve);
+
+            var len = e - s + 1;
+            var uLen = ue - us + 1;
+            var vLen = ve - vs + 1;
+
             _ectx.Assert(uIndex >= 0);
             _ectx.Assert(vIndex >= 0);
             _ectx.Assert(dstIndex >= 0);
             _ectx.Assert(Utils.Size(u) >= _windowSize + uIndex);
             _ectx.Assert(Utils.Size(v) >= _k + vIndex);
-            _ectx.Assert(Utils.Size(result) >= _seriesLength + dstIndex);
+            _ectx.Assert(Utils.Size(result) >= len + dstIndex);
             _ectx.Assert(!Single.IsNaN(sigma));
             _ectx.Assert(!Single.IsInfinity(sigma));
 
@@ -445,18 +512,18 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
 
             if (!add)
             {
-                for (i = 0; i < _seriesLength; ++i)
+                for (i = 0; i < len; ++i)
                     result[i + dstIndex] = 0;
             }
 
-            for (i = 0; i < _seriesLength; ++i)
+            for (i = 0; i < len; ++i)
             {
-                b = Math.Min(_windowSize, i + 1) - 1;
-                a = i >= Math.Max(_windowSize, _k) ? _seriesLength - i : b + 1;
-                c = Math.Max(0, i - _windowSize + 1);
+                b = Math.Min(uLen, i + 1) - 1;
+                a = i >= Math.Max(uLen, vLen) ? len - i : b + 1;
+                c = Math.Max(0, i - uLen + 1);
                 temp = 0;
                 for (j = 0; j < a; ++j)
-                    temp += u[b - j + uIndex] * v[c + j + vIndex];
+                    temp += u[us + b - j + uIndex] * v[vs + c + j + vIndex];
 
                 result[i + dstIndex] += (temp * sigma / a);
             }
@@ -474,45 +541,64 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
         /// <param name="uIndex">The starting index for the u vector argument</param>
         /// <param name="vIndex">The starting index for the v vector argument</param>
         /// <param name="dstIndex">The starting index for the result</param>
+        /// <param name="start">The staring index of the series to be reconstructed (by default zero)</param>
+        /// <param name="end">The ending index of the series to be reconstructed (by default series length)</param>
         private void FftRankOneHankelization(Single[] u, Single[] v, Single sigma, Single[] result, bool add = false,
-            int uIndex = 0, int vIndex = 0, int dstIndex = 0)
+            int uIndex = 0, int vIndex = 0, int dstIndex = 0, int? start = null, int? end = null)
         {
+            int s;
+            int e;
+            int us;
+            int ue;
+            int vs;
+            int ve;
+            int i;
+
+            s = start ?? 0;
+            e = end ?? _seriesLength - 1;
+
+            ComputeBoundryIndices(s, e, out us, out ue, out vs, out ve);
+            _ectx.Assert(0 <= ue && ue < _windowSize);
+            _ectx.Assert(0 <= us && us <= ue);
+            _ectx.Assert(0 <= ve && ve < _k);
+            _ectx.Assert(0 <= vs && vs <= ve);
+
+            var len = e - s + 1;
+
             _ectx.Assert(uIndex >= 0);
             _ectx.Assert(vIndex >= 0);
             _ectx.Assert(dstIndex >= 0);
             _ectx.Assert(Utils.Size(u) >= _windowSize + uIndex);
             _ectx.Assert(Utils.Size(v) >= _k + vIndex);
-            _ectx.Assert(Utils.Size(result) >= _seriesLength + dstIndex);
+            _ectx.Assert(Utils.Size(result) >= len + dstIndex);
             _ectx.Assert(!Single.IsNaN(sigma));
             _ectx.Assert(!Single.IsInfinity(sigma));
-
-            int i;
 
             if (!_isSeriesFftCached)
                 CacheInputSeriesFft();
 
             // Computing the FFT of u
-            for (i = 0; i < _windowSize; ++i)
-                _inputRe[i] = u[i + uIndex];
+            for (i = us; i <= ue; ++i)
+                _inputRe[i - us] = u[i + uIndex];
 
-            for (i = _windowSize; i < _seriesLength; ++i)
-                _inputRe[i] = 0;
+            for (i = ue + 1; i < len + us; ++i)
+                _inputRe[i - us] = 0;
 
-            FftUtils.ComputeForwardFft(_inputRe, _allZerosIm, _outputRe, _outputIm);
+            FftUtils.ComputeForwardFft(_inputRe, _allZerosIm, _outputRe, _outputIm, len);
 
             // Computing the FFT of v
-            for (i = 0; i < _k; ++i)
-                _inputRe[i] = v[i + vIndex];
+            for (i = vs; i <= ve; ++i)
+                _inputRe[i - vs] = v[i + vIndex];
 
-            for (i = _k; i < _seriesLength; ++i)
-                _inputRe[i] = 0;
+            for (i = ve + 1; i < len + vs; ++i)
+                _inputRe[i - vs] = 0;
 
-            FftUtils.ComputeForwardFft(_inputRe, _allZerosIm, _inputRe, _allZerosIm);
+            FftUtils.ComputeForwardFft(_inputRe, _allZerosIm, _inputRe, _allZerosIm, len);
 
             // Computing the element-by-element product in the Fourier space
             double re;
             double im;
-            for (i = 0; i < _seriesLength; ++i)
+            for (i = 0; i < len; ++i)
             {
                 re = _outputRe[i];
                 im = _outputIm[i];
@@ -526,32 +612,32 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
                 _allZerosIm[i] = 0;
 
             // Computing the inverse FFT of the result
-            FftUtils.ComputeBackwardFft(_outputRe, _outputIm, _outputRe, _outputIm);
+            FftUtils.ComputeBackwardFft(_outputRe, _outputIm, _outputRe, _outputIm, len);
 
             // Generating the output
-            int a = Math.Min(_windowSize, _k);
+            int a = Math.Min(ue - us + 1, ve - vs + 1);
 
             if (add)
             {
                 for (i = 0; i < a; ++i)
                     result[i + dstIndex] += RoundUpToReal(_outputRe[i], _outputIm[i], sigma / (i + 1));
 
-                for (i = a; i < _seriesLength - a + 1; ++i)
+                for (i = a; i < len - a + 1; ++i)
                     result[i + dstIndex] += RoundUpToReal(_outputRe[i], _outputIm[i], sigma / a);
 
-                for (i = _seriesLength - a + 1; i < _seriesLength; ++i)
-                    result[i + dstIndex] += RoundUpToReal(_outputRe[i], _outputIm[i], sigma / (_seriesLength - i));
+                for (i = len - a + 1; i < len; ++i)
+                    result[i + dstIndex] += RoundUpToReal(_outputRe[i], _outputIm[i], sigma / (len - i));
             }
             else
             {
                 for (i = 0; i < a; ++i)
                     result[i + dstIndex] = RoundUpToReal(_outputRe[i], _outputIm[i], sigma / (i + 1));
 
-                for (i = a; i < _seriesLength - a + 1; ++i)
+                for (i = a; i < len - a + 1; ++i)
                     result[i + dstIndex] = RoundUpToReal(_outputRe[i], _outputIm[i], sigma / a);
 
-                for (i = _seriesLength - a + 1; i < _seriesLength; ++i)
-                    result[i + dstIndex] = RoundUpToReal(_outputRe[i], _outputIm[i], sigma / (_seriesLength - i));
+                for (i = len - a + 1; i < len; ++i)
+                    result[i + dstIndex] = RoundUpToReal(_outputRe[i], _outputIm[i], sigma / (len - i));
             }
         }
 
@@ -566,13 +652,15 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
         /// <param name="uIndex">The starting index for the u vector argument</param>
         /// <param name="vIndex">The starting index for the v vector argument</param>
         /// <param name="dstIndex">The starting index for the result</param>
+        /// <param name="start">The staring index of the series to be reconstructed (by default zero)</param>
+        /// <param name="end">The ending index of the series to be reconstructed (by default series length)</param>
         public void RankOneHankelization(Single[] u, Single[] v, Single sigma, Single[] result, bool add = false,
-            int uIndex = 0, int vIndex = 0, int dstIndex = 0)
+            int uIndex = 0, int vIndex = 0, int dstIndex = 0, int? start = null, int? end = null)
         {
             if (_shouldFftUsed)
-                FftRankOneHankelization(u, v, sigma, result, add, uIndex, vIndex, dstIndex);
+                FftRankOneHankelization(u, v, sigma, result, add, uIndex, vIndex, dstIndex, start, end);
             else
-                NaiveRankOneHankelization(u, v, sigma, result, add, uIndex, vIndex, dstIndex);
+                NaiveRankOneHankelization(u, v, sigma, result, add, uIndex, vIndex, dstIndex, start, end);
         }
     }
 }

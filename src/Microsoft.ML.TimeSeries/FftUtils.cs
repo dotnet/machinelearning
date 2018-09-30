@@ -188,6 +188,14 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
         [DllImport(DllProxyName, EntryPoint = "MKLDftiComputeBackward", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Auto)]
         private static extern int ComputeBackward(IntPtr desc, [In] double[] inputRe, [In] double[] inputIm, [Out] double[] outputRe, [Out] double[] outputIm);
 
+        // See: https://software.intel.com/en-us/node/521984
+        [DllImport(DllProxyName, EntryPoint = "MKLDftiComputeForward", CallingConvention = CallingConvention.Cdecl)]
+        private static extern int ComputeForward(IntPtr desc, [In] float[] inputRe, [In] float[] inputIm, [Out] float[] outputRe, [Out] float[] outputIm);
+
+        // See: https://software.intel.com/en-us/node/521985
+        [DllImport(DllProxyName, EntryPoint = "MKLDftiComputeBackward", CallingConvention = CallingConvention.Cdecl)]
+        private static extern int ComputeBackward(IntPtr desc, [In] float[] inputRe, [In] float[] inputIm, [Out] float[] outputRe, [Out] float[] outputIm);
+
         // See: https://software.intel.com/en-us/node/521990
         [DllImport(DllName, EntryPoint = "DftiErrorMessage")]
         private static extern byte[] ErrorMessage(int status);
@@ -203,26 +211,131 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
         }
 
         /// <summary>
+        /// Computes the forward Fast Fourier Transform of the input series in single precision.
+        /// </summary>
+        /// <param name="inputRe">The real part of the input series</param>
+        /// <param name="inputIm">The imaginary part of the input series</param>
+        /// <param name="outputRe">The real part of the output series</param>
+        /// <param name="outputIm">The imaginary part of the output series</param>
+        /// <param name="length"></param>
+        public static void ComputeForwardFft(float[] inputRe, float[] inputIm, float[] outputRe, float[] outputIm, int length)
+        {
+            Contracts.CheckValue(inputRe, nameof(inputRe));
+            Contracts.CheckValue(inputIm, nameof(inputIm));
+            Contracts.CheckValue(outputRe, nameof(outputRe));
+            Contracts.CheckValue(outputIm, nameof(outputIm));
+            Contracts.CheckParam(length > 0, nameof(length), "The length parameter must be greater than 0.");
+            Contracts.Check(inputRe.Length >= length && inputIm.Length >= length && outputRe.Length >= length && outputIm.Length >= length,
+                "The lengths of inputRe, inputIm, outputRe and outputIm need to be at least equal to the length parameter.");
+
+            int status = 0; // DFTI_NO_ERROR
+            IntPtr descriptor = default(IntPtr);
+
+            try
+            {
+                status = CreateDescriptor(out descriptor, ConfigValue.Single, ConfigValue.Complex, 1, length);
+                CheckStatus(status);
+
+                status = SetValue(descriptor, ConfigParam.Placement, ConfigValue.NotInPlace);
+                CheckStatus(status);
+
+                status = SetValue(descriptor, ConfigParam.ComplexStorage, ConfigValue.RealReal);
+                CheckStatus(status);
+
+                status = CommitDescriptor(descriptor);
+                CheckStatus(status);
+
+                status = ComputeForward(descriptor, inputRe, inputIm, outputRe, outputIm);
+                CheckStatus(status);
+            }
+            finally
+            {
+                if (descriptor != null)
+                    FreeDescriptor(ref descriptor);
+            }
+        }
+
+        /// <summary>
+        /// Computes the backward (inverse) Fast Fourier Transform of the input series in single precision.
+        /// </summary>
+        /// <param name="inputRe">The real part of the input series</param>
+        /// <param name="inputIm">The imaginary part of the input series</param>
+        /// <param name="outputRe">The real part of the output series</param>
+        /// <param name="outputIm">The imaginary part of the output series</param>
+        /// <param name="length"></param>
+        public static void ComputeBackwardFft(float[] inputRe, float[] inputIm, float[] outputRe, float[] outputIm, int length)
+        {
+            Contracts.CheckValue(inputRe, nameof(inputRe));
+            Contracts.CheckValue(inputIm, nameof(inputIm));
+            Contracts.CheckValue(outputRe, nameof(outputRe));
+            Contracts.CheckValue(outputIm, nameof(outputIm));
+            Contracts.CheckParam(length > 0, nameof(length), "The length parameter must be greater than 0.");
+            Contracts.Check(inputRe.Length >= length && inputIm.Length >= length && outputRe.Length >= length && outputIm.Length >= length,
+                "The lengths of inputRe, inputIm, outputRe and outputIm need to be at least equal to the length parameter.");
+
+            int status = 0; // DFTI_NO_ERROR
+            IntPtr descriptor = default(IntPtr);
+            float scale = 1f / length;
+
+            try
+            {
+                status = CreateDescriptor(out descriptor, ConfigValue.Single, ConfigValue.Complex, 1, length);
+                CheckStatus(status);
+
+                status = SetValue(descriptor, ConfigParam.Placement, ConfigValue.NotInPlace);
+                CheckStatus(status);
+
+                status = SetValue(descriptor, ConfigParam.ComplexStorage, ConfigValue.RealReal);
+                CheckStatus(status);
+
+                status = CommitDescriptor(descriptor);
+                CheckStatus(status);
+
+                status = ComputeBackward(descriptor, inputRe, inputIm, outputRe, outputIm);
+                CheckStatus(status);
+            }
+            finally
+            {
+                if (descriptor != null)
+                    FreeDescriptor(ref descriptor);
+            }
+
+            // REVIEW saamizad: for some reason the native backward scaling for DFTI in MKL does not work.
+            // Therefore here, we manually re-scale the output.
+            // Ideally, the command
+            // status = SetValue(descriptor, ConfigParam.BackwardScale, __arglist(scale));
+            // should do the backward rescaling but for some reason it does not work and needs further investigation.
+            for (int i = 0; i < length; ++i)
+            {
+                outputRe[i] *= scale;
+                outputIm[i] *= scale;
+            }
+        }
+
+        /// <summary>
         /// Computes the forward Fast Fourier Transform of the input series in double precision.
         /// </summary>
         /// <param name="inputRe">The real part of the input series</param>
         /// <param name="inputIm">The imaginary part of the input series</param>
         /// <param name="outputRe">The real part of the output series</param>
         /// <param name="outputIm">The imaginary part of the output series</param>
-        public static void ComputeForwardFft(double[] inputRe, double[] inputIm, double[] outputRe, double[] outputIm)
+        /// <param name="length"></param>
+        public static void ComputeForwardFft(double[] inputRe, double[] inputIm, double[] outputRe, double[] outputIm, int length)
         {
             Contracts.CheckValue(inputRe, nameof(inputRe));
             Contracts.CheckValue(inputIm, nameof(inputIm));
             Contracts.CheckValue(outputRe, nameof(outputRe));
             Contracts.CheckValue(outputIm, nameof(outputIm));
-            Contracts.Check(inputRe.Length > 0 && inputRe.Length == inputIm.Length && outputRe.Length == outputIm.Length && inputRe.Length == outputRe.Length,
-                "inputRe, inputIm, outputRe and outputIm need to have the same non-zero length.");
+            Contracts.CheckParam(length > 0, nameof(length), "The length parameter must be greater than 0.");
+            Contracts.Check(inputRe.Length >= length && inputIm.Length >= length && outputRe.Length >= length && outputIm.Length >= length,
+                "The lengths of inputRe, inputIm, outputRe and outputIm need to be at least equal to the length parameter.");
 
             int status = 0; // DFTI_NO_ERROR
             IntPtr descriptor = default(IntPtr);
+
             try
             {
-                status = CreateDescriptor(out descriptor, ConfigValue.Double, ConfigValue.Complex, 1, inputRe.Length);
+                status = CreateDescriptor(out descriptor, ConfigValue.Double, ConfigValue.Complex, 1, length);
                 CheckStatus(status);
 
                 status = SetValue(descriptor, ConfigParam.Placement, ConfigValue.NotInPlace);
@@ -251,22 +364,24 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
         /// <param name="inputIm">The imaginary part of the input series</param>
         /// <param name="outputRe">The real part of the output series</param>
         /// <param name="outputIm">The imaginary part of the output series</param>
-        public static void ComputeBackwardFft(double[] inputRe, double[] inputIm, double[] outputRe, double[] outputIm)
+        /// <param name="length"></param>
+        public static void ComputeBackwardFft(double[] inputRe, double[] inputIm, double[] outputRe, double[] outputIm, int length)
         {
             Contracts.CheckValue(inputRe, nameof(inputRe));
             Contracts.CheckValue(inputIm, nameof(inputIm));
             Contracts.CheckValue(outputRe, nameof(outputRe));
             Contracts.CheckValue(outputIm, nameof(outputIm));
-            Contracts.Check(inputRe.Length > 0 && inputRe.Length == inputIm.Length && outputRe.Length == outputIm.Length && inputRe.Length == outputRe.Length,
-                "inputRe, inputIm, outputRe and outputIm need to have the same non-zero length.");
+            Contracts.CheckParam(length > 0, nameof(length), "The length parameter must be greater than 0.");
+            Contracts.Check(inputRe.Length >= length && inputIm.Length >= length && outputRe.Length >= length && outputIm.Length >= length,
+                "The lengths of inputRe, inputIm, outputRe and outputIm need to be at least equal to the length parameter.");
 
             int status = 0; // DFTI_NO_ERROR
             IntPtr descriptor = default(IntPtr);
-            double scale = 1.0 / inputRe.Length;
+            double scale = 1.0 / length;
 
             try
             {
-                status = CreateDescriptor(out descriptor, ConfigValue.Double, ConfigValue.Complex, 1, inputRe.Length);
+                status = CreateDescriptor(out descriptor, ConfigValue.Double, ConfigValue.Complex, 1, length);
                 CheckStatus(status);
 
                 status = SetValue(descriptor, ConfigParam.Placement, ConfigValue.NotInPlace);
@@ -287,12 +402,12 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
                     FreeDescriptor(ref descriptor);
             }
 
-            // For some reason the native backward scaling for DFTI in MKL does not work.
+            // REVIEW saamizad: for some reason the native backward scaling for DFTI in MKL does not work.
             // Therefore here, we manually re-scale the output.
             // Ideally, the command
             // status = SetValue(descriptor, ConfigParam.BackwardScale, __arglist(scale));
             // should do the backward rescaling but for some reason it does not work and needs further investigation.
-            for (int i = 0; i < outputRe.Length; ++i)
+            for (int i = 0; i < length; ++i)
             {
                 outputRe[i] *= scale;
                 outputIm[i] *= scale;
