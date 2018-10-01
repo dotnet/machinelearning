@@ -15,77 +15,77 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         public static int GetVectorAlignment()
             => Vector128Alignment;
 
-        public static void MatTimesSrc(bool tran, bool add, AlignedArray mat, AlignedArray src, AlignedArray dst, int crun) => SseUtils.MatTimesSrc(tran, add, mat, src, dst, crun);
+        public static void MatrixTimesSource(bool transpose, bool add, AlignedArray matrix, AlignedArray source, AlignedArray destination, int stride) => SseUtils.MatTimesSrc(transpose, add, matrix, source, destination, stride);
 
-        public static void MatTimesSrc(bool tran, bool add, AlignedArray mat, int[] rgposSrc, AlignedArray srcValues,
-            int posMin, int iposMin, int iposLim, AlignedArray dst, int crun) => SseUtils.MatTimesSrc(tran, add, mat, rgposSrc, srcValues, posMin, iposMin, iposLim, dst, crun);
+        public static void MatrixTimesSource(bool transpose, bool add, AlignedArray matrix, int[] rgposSrc, AlignedArray srcValues,
+            int posMin, int iposMin, int iposLim, AlignedArray destination, int stride) => SseUtils.MatTimesSrc(transpose, add, matrix, rgposSrc, srcValues, posMin, iposMin, iposLim, destination, stride);
 
-        public static void Add(float a, float[] dst, int count) => SseUtils.Add(a, dst, count);
+        public static void Add(float value, float[] destination, int count) => SseUtils.Add(value, destination, count);
 
-        public static void Scale(float a, float[] dst, int count) => SseUtils.Scale(a, dst, count);
+        public static void Scale(float value, float[] destination, int count) => SseUtils.Scale(value, destination, count);
 
-        public static void Scale(float a, float[] dst, int offset, int count) => SseUtils.Scale(a, dst, offset, count);
+        public static void Scale(float value, float[] destination, int offset, int count) => SseUtils.Scale(value, destination, offset, count);
 
-        public static void Scale(float a, float[] src, float[] dst, int count) => SseUtils.Scale(a, src, dst, count);
+        public static void Scale(float value, float[] source, float[] destination, int count) => SseUtils.Scale(value, source, destination, count);
 
-        public static void ScaleAdd(float a, float b, float[] dst, int count) => SseUtils.ScaleAdd(a, b, dst, count);
+        public static void ScaleAdd(float value, float addend, float[] destination, int count) => SseUtils.ScaleAdd(value, addend, destination, count);
 
-        public static void AddScale(float a, float[] src, float[] dst, int count) => SseUtils.AddScale(a, src, dst, count);
+        public static void AddScale(float value, float[] source, float[] destination, int count) => SseUtils.AddScale(value, source, destination, count);
 
-        public static void AddScale(float a, float[] src, float[] dst, int dstOffset, int count) => SseUtils.AddScale(a, src, dst, dstOffset, count);
+        public static void AddScale(float value, float[] source, float[] destination, int dstOffset, int count) => SseUtils.AddScale(value, source, destination, dstOffset, count);
 
-        public static void AddScale(float a, float[] src, int[] indices, float[] dst, int count) => SseUtils.AddScale(a, src, indices, dst, count);
+        public static void AddScale(float value, float[] source, int[] indices, float[] destination, int count) => SseUtils.AddScale(value, source, indices, destination, count);
 
-        public static void AddScale(float a, float[] src, int[] indices, float[] dst, int dstOffset, int count) => SseUtils.AddScale(a, src, indices, dst, dstOffset, count);
+        public static void AddScale(float value, float[] source, int[] indices, float[] destination, int dstOffset, int count) => SseUtils.AddScale(value, source, indices, destination, dstOffset, count);
 
-        public static void AddScaleCopy(float a, float[] src, float[] dst, float[] res, int count) => SseUtils.AddScaleCopy(a, src, dst, res, count);
+        public static void AddScaleCopy(float value, float[] source, float[] destination, float[] res, int count) => SseUtils.AddScaleCopy(value, source, destination, res, count);
 
-        public static void Add(float[] src, float[] dst, int count) => SseUtils.Add(src, dst, count);
+        public static void Add(float[] source, float[] destination, int count) => SseUtils.Add(source, destination, count);
 
-        public static void Add(float[] src, int[] indices, float[] dst, int count) => SseUtils.Add(src, indices, dst, count);
+        public static void Add(float[] source, int[] indices, float[] destination, int count) => SseUtils.Add(source, indices, destination, count);
 
-        public static void Add(float[] src, int[] indices, float[] dst, int dstOffset, int count) => SseUtils.Add(src, indices, dst, dstOffset, count);
+        public static void Add(float[] source, int[] indices, float[] destination, int dstOffset, int count) => SseUtils.Add(source, indices, destination, dstOffset, count);
 
-        public static void MulElementWise(float[] src1, float[] src2, float[] dst, int count) => SseUtils.MulElementWise(src1, src2, dst, count);
+        public static void MulElementWise(float[] left, float[] right, float[] destination, int count) => SseUtils.MulElementWise(left, right, destination, count);
 
-        public static float Sum(float[] src, int count) => SseUtils.Sum(src, count);
+        public static float Sum(float[] source, int count) => SseUtils.Sum(source, count);
 
-        public static float Sum(float[] src, int offset, int count) => SseUtils.Sum(src, offset, count);
+        public static float Sum(float[] source, int offset, int count) => SseUtils.Sum(source, offset, count);
 
-        public static float SumSq(float[] src, int count) => SseUtils.SumSq(src, count);
+        public static float SumSq(float[] source, int count) => SseUtils.SumSq(source, count);
 
-        public static float SumSq(float[] src, int offset, int count) => SseUtils.SumSq(src, offset, count);
+        public static float SumSq(float[] source, int offset, int count) => SseUtils.SumSq(source, offset, count);
 
-        public static float SumSq(float mean, float[] src, int offset, int count) => SseUtils.SumSq(mean, src, offset, count);
+        public static float SumSq(float mean, float[] source, int offset, int count) => SseUtils.SumSq(mean, source, offset, count);
 
-        public static float SumAbs(float[] src, int count) => SseUtils.SumAbs(src, count);
+        public static float SumAbs(float[] source, int count) => SseUtils.SumAbs(source, count);
 
-        public static float SumAbs(float[] src, int offset, int count) => SseUtils.SumAbs(src, offset, count);
+        public static float SumAbs(float[] source, int offset, int count) => SseUtils.SumAbs(source, offset, count);
 
-        public static float SumAbs(float mean, float[] src, int offset, int count) => SseUtils.SumAbs(mean, src, offset, count);
+        public static float SumAbs(float mean, float[] source, int offset, int count) => SseUtils.SumAbs(mean, source, offset, count);
 
-        public static float MaxAbs(float[] src, int count) => SseUtils.MaxAbs(src, count);
+        public static float MaxAbs(float[] source, int count) => SseUtils.MaxAbs(source, count);
 
-        public static float MaxAbs(float[] src, int offset, int count) => SseUtils.MaxAbs(src, offset, count);
+        public static float MaxAbs(float[] source, int offset, int count) => SseUtils.MaxAbs(source, offset, count);
 
-        public static float MaxAbsDiff(float mean, float[] src, int count) => SseUtils.MaxAbsDiff(mean, src, count);
+        public static float MaxAbsDiff(float mean, float[] source, int count) => SseUtils.MaxAbsDiff(mean, source, count);
 
-        public static float DotProductDense(float[] a, float[] b, int count) => SseUtils.DotProductDense(a, b, count);
+        public static float DotProductDense(float[] value, float[] b, int count) => SseUtils.DotProductDense(value, b, count);
 
-        public static float DotProductDense(float[] a, int offset, float[] b, int count) => SseUtils.DotProductDense(a, offset, b, count);
+        public static float DotProductDense(float[] value, int offset, float[] b, int count) => SseUtils.DotProductDense(value, offset, b, count);
 
-        public static float DotProductSparse(float[] a, float[] b, int[] indices, int count) => SseUtils.DotProductSparse(a, b, indices, count);
+        public static float DotProductSparse(float[] value, float[] b, int[] indices, int count) => SseUtils.DotProductSparse(value, b, indices, count);
 
-        public static float DotProductSparse(float[] a, int offset, float[] b, int[] indices, int count) => SseUtils.DotProductSparse(a, offset, b, indices, count);
+        public static float DotProductSparse(float[] value, int offset, float[] b, int[] indices, int count) => SseUtils.DotProductSparse(value, offset, b, indices, count);
 
-        public static float L2DistSquared(float[] a, float[] b, int count) => SseUtils.L2DistSquared(a, b, count);
+        public static float L2DistSquared(float[] value, float[] b, int count) => SseUtils.L2DistSquared(value, b, count);
 
-        public static void ZeroMatrixItems(AlignedArray dst, int ccol, int cfltRow, int[] indices) => SseUtils.ZeroMatrixItems(dst, ccol, cfltRow, indices);
+        public static void ZeroMatrixItems(AlignedArray destination, int ccol, int cfltRow, int[] indices) => SseUtils.ZeroMatrixItems(destination, ccol, cfltRow, indices);
 
-        public static void SdcaL1UpdateDense(float primalUpdate, int length, float[] src, float threshold, float[] v, float[] w)
-            => SseUtils.SdcaL1UpdateDense(primalUpdate, length, src, threshold, v, w);
+        public static void SdcaL1UpdateDense(float primalUpdate, int length, float[] source, float threshold, float[] v, float[] w)
+            => SseUtils.SdcaL1UpdateDense(primalUpdate, length, source, threshold, v, w);
 
-        public static void SdcaL1UpdateSparse(float primalUpdate, int length, float[] src, int[] indices, int count, float threshold, float[] v, float[] w)
-            => SseUtils.SdcaL1UpdateSparse(primalUpdate, length, src, indices, count, threshold, v, w);
+        public static void SdcaL1UpdateSparse(float primalUpdate, int length, float[] source, int[] indices, int count, float threshold, float[] v, float[] w)
+            => SseUtils.SdcaL1UpdateSparse(primalUpdate, length, source, indices, count, threshold, v, w);
     }
 }

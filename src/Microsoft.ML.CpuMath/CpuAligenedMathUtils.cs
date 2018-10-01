@@ -89,7 +89,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             bool colMajor = typeof(TMatrix) == typeof(CpuAlignedMatrixCol);
             AssertCompatible(mat, src, dst);
             var m = A(mat);
-            CpuMathUtils.MatTimesSrc(colMajor, add, m.Items, A(src).Items, A(dst).Items, m.RunCnt);
+            CpuMathUtils.MatrixTimesSource(colMajor, add, m.Items, A(src).Items, A(dst).Items, m.RunCnt);
         }
 
         /// <summary>
@@ -108,7 +108,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             bool colMajor = typeof(TMatrix) == typeof(CpuAlignedMatrixCol);
             AssertCompatible(mat, dst, src);
             var m = A(mat);
-            CpuMathUtils.MatTimesSrc(!colMajor, add, m.Items, A(src).Items, A(dst).Items, m.RunCnt);
+            CpuMathUtils.MatrixTimesSource(!colMajor, add, m.Items, A(src).Items, A(dst).Items, m.RunCnt);
         }
     }
 

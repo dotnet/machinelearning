@@ -90,7 +90,7 @@ namespace Microsoft.ML.CpuMath.UnitTests
             AlignedArray src = _testSrcVectors[srcTest];
             AlignedArray dst = _testDstVectors[dstTest];
 
-            CpuMathUtils.MatTimesSrc(false, false, mat, src, dst, dst.Size);
+            CpuMathUtils.MatrixTimesSource(false, false, mat, src, dst, dst.Size);
             float[] actual = new float[dst.Size];
             dst.CopyTo(actual, 0, dst.Size);
             Assert.Equal(expected, actual, _matMulComparer);
@@ -106,7 +106,7 @@ namespace Microsoft.ML.CpuMath.UnitTests
             AlignedArray src = _testSrcVectors[srcTest];
             AlignedArray dst = _testDstVectors[dstTest];
 
-            CpuMathUtils.MatTimesSrc(false, true, mat, src, dst, dst.Size);
+            CpuMathUtils.MatrixTimesSource(false, true, mat, src, dst, dst.Size);
             float[] actual = new float[dst.Size];
             dst.CopyTo(actual, 0, dst.Size);
             Assert.Equal(expected, actual, _matMulComparer);
@@ -122,7 +122,7 @@ namespace Microsoft.ML.CpuMath.UnitTests
             AlignedArray src = _testSrcVectors[srcTest];
             AlignedArray dst = _testDstVectors[dstTest];
 
-            CpuMathUtils.MatTimesSrc(true, false, mat, src, dst, src.Size);
+            CpuMathUtils.MatrixTimesSource(true, false, mat, src, dst, src.Size);
             float[] actual = new float[dst.Size];
             dst.CopyTo(actual, 0, dst.Size);
             Assert.Equal(expected, actual, _matMulComparer);
@@ -138,7 +138,7 @@ namespace Microsoft.ML.CpuMath.UnitTests
             AlignedArray src = _testSrcVectors[srcTest];
             AlignedArray dst = _testDstVectors[dstTest];
 
-            CpuMathUtils.MatTimesSrc(true, true, mat, src, dst, src.Size);
+            CpuMathUtils.MatrixTimesSource(true, true, mat, src, dst, src.Size);
             float[] actual = new float[dst.Size];
             dst.CopyTo(actual, 0, dst.Size);
             Assert.Equal(expected, actual, _matMulComparer);
@@ -155,7 +155,7 @@ namespace Microsoft.ML.CpuMath.UnitTests
             AlignedArray dst = _testDstVectors[dstTest];
             int[] idx = _testIndexArray;
 
-            CpuMathUtils.MatTimesSrc(false, false, mat, idx, src, 0, 0, (srcTest == 0) ? 4 : 9, dst, dst.Size);
+            CpuMathUtils.MatrixTimesSource(false, false, mat, idx, src, 0, 0, (srcTest == 0) ? 4 : 9, dst, dst.Size);
             float[] actual = new float[dst.Size];
             dst.CopyTo(actual, 0, dst.Size);
             Assert.Equal(expected, actual, _matMulComparer);
@@ -172,7 +172,7 @@ namespace Microsoft.ML.CpuMath.UnitTests
             AlignedArray dst = _testDstVectors[dstTest];
             int[] idx = _testIndexArray;
 
-            CpuMathUtils.MatTimesSrc(false, true, mat, idx, src, 0, 0, (srcTest == 0) ? 4 : 9, dst, dst.Size);
+            CpuMathUtils.MatrixTimesSource(false, true, mat, idx, src, 0, 0, (srcTest == 0) ? 4 : 9, dst, dst.Size);
             float[] actual = new float[dst.Size];
             dst.CopyTo(actual, 0, dst.Size);
             Assert.Equal(expected, actual, _matMulComparer);
@@ -189,7 +189,7 @@ namespace Microsoft.ML.CpuMath.UnitTests
             AlignedArray dst = _testDstVectors[dstTest];
             int[] idx = _testIndexArray;
 
-            CpuMathUtils.MatTimesSrc(true, false, mat, idx, src, 0, 0, (srcTest == 0) ? 4 : 9, dst, src.Size);
+            CpuMathUtils.MatrixTimesSource(true, false, mat, idx, src, 0, 0, (srcTest == 0) ? 4 : 9, dst, src.Size);
             float[] actual = new float[dst.Size];
             dst.CopyTo(actual, 0, dst.Size);
             Assert.Equal(expected, actual, _matMulComparer);
@@ -206,7 +206,7 @@ namespace Microsoft.ML.CpuMath.UnitTests
             AlignedArray dst = _testDstVectors[dstTest];
             int[] idx = _testIndexArray;
 
-            CpuMathUtils.MatTimesSrc(true, true, mat, idx, src, 0, 0, (srcTest == 0) ? 4 : 9, dst, src.Size);
+            CpuMathUtils.MatrixTimesSource(true, true, mat, idx, src, 0, 0, (srcTest == 0) ? 4 : 9, dst, src.Size);
             float[] actual = new float[dst.Size];
             dst.CopyTo(actual, 0, dst.Size);
             Assert.Equal(expected, actual, _matMulComparer);
