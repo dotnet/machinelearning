@@ -36,6 +36,9 @@
     <None Include="..\data\wikipedia-detox-250-line-data.tsv" Link="Input\wikipedia-detox-250-line-data.tsv">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Include="..\data\breast-cancer.txt" Link="Input\breast-cancer.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
 
     <BenchmarkFile Update="@(BenchmarkFile)">
       <Link>external\%(Identity)</Link>

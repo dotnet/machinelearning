@@ -1,0 +1,17 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netcoreapp2.1</TargetFramework>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Microsoft.ML.Data\Microsoft.ML.Data.csproj" />
+    <ProjectReference Include="..\..\src\Microsoft.ML.Maml\Microsoft.ML.Maml.csproj" />
+    <ProjectReference Include="..\..\src\Microsoft.ML.ImageAnalytics\Microsoft.ML.ImageAnalytics.csproj" />
+    <ProjectReference Include="..\..\src\Microsoft.ML.PipelineInference\Microsoft.ML.PipelineInference.csproj" />
+    <ProjectReference Include="..\..\src\Microsoft.ML.OnnxTransform\Microsoft.ML.OnnxTransform.csproj" />
+    <ProjectReference Include="..\Microsoft.ML.Predictor.Tests\Microsoft.ML.Predictor.Tests.csproj" />
+    <ProjectReference Include="..\Microsoft.ML.TestFramework\Microsoft.ML.TestFramework.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.ML.Onnx.TestModels" Version="0.0.2-test" />
+  </ItemGroup>
+</Project>
