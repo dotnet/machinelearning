@@ -290,8 +290,6 @@ namespace Microsoft.ML.Runtime.CommandLine
         private const int SpaceBeforeParam = 2;
         private readonly ErrorReporter _reporter;
         private readonly IHost _host;
-        // REVIEW: _catalog should be part of environment and can be get through _host.
-        private Lazy<ModuleCatalog> _catalog;
 
         /// <summary>
         /// Parses a command line. This assumes that the exe name has been stripped off.
@@ -506,7 +504,6 @@ namespace Microsoft.ML.Runtime.CommandLine
         private CmdParser(IHostEnvironment env)
         {
             _host = env.Register("CmdParser");
-            _catalog = new Lazy<ModuleCatalog>(() => ModuleCatalog.CreateInstance(_host));
             _reporter = Console.Error.WriteLine;
         }
 
@@ -514,7 +511,6 @@ namespace Microsoft.ML.Runtime.CommandLine
         {
             Contracts.AssertValueOrNull(reporter);
             _host = env.Register("CmdParser");
-            _catalog = new Lazy<ModuleCatalog>(() => ModuleCatalog.CreateInstance(_host));
             _reporter = reporter;
         }
 
@@ -742,11 +738,11 @@ namespace Microsoft.ML.Runtime.CommandLine
 
                 if (arg.IsComponentFactory)
                 {
-                    ModuleCatalog.ComponentInfo component;
+                    ComponentCatalog.ComponentInfo component;
                     if (IsCurlyGroup(value) && value.Length == 2)
                         arg.Field.SetValue(destination, null);
                     else if (!arg.IsCollection &&
-                        _catalog.Value.TryFindComponentCaseInsensitive(arg.Field.FieldType, value, out component))
+                        _host.ComponentCatalog.TryFindComponentCaseInsensitive(arg.Field.FieldType, value, out component))
                     {
                         var activator = Activator.CreateInstance(component.ArgumentType);
                         if (!IsCurlyGroup(value) && i + 1 < strs.Length && IsCurlyGroup(strs[i + 1]))
@@ -1060,7 +1056,7 @@ namespace Microsoft.ML.Runtime.CommandLine
 
         private ArgumentHelpStrings GetHelpStrings(IHostEnvironment env, Argument arg)
         {
-            return new ArgumentHelpStrings(arg.GetSyntaxHelp(), arg.GetFullHelpText(env, this));
+            return new ArgumentHelpStrings(arg.GetSyntaxHelp(), arg.GetFullHelpText(env));
         }
 
         private bool LexFileArguments(string fileName, out string[] arguments)
@@ -1994,7 +1990,7 @@ namespace Microsoft.ML.Runtime.CommandLine
                 return false;
             }
 
-            private void AppendHelpValue(IHostEnvironment env, CmdParser owner, StringBuilder builder, object value)
+            private void AppendHelpValue(IHostEnvironment env, StringBuilder builder, object value)
             {
                 if (value == null)
                     builder.Append("{}");
@@ -2006,14 +2002,14 @@ namespace Microsoft.ML.Runtime.CommandLine
                     foreach (object o in (System.Array)value)
                     {
                         builder.Append(pre);
-                        AppendHelpValue(env, owner, builder, o);
+                        AppendHelpValue(env, builder, o);
                         pre = ", ";
                     }
                 }
                 else if (value is IComponentFactory)
                 {
                     string name;
-                    var catalog = owner._catalog.Value;
+                    var catalog = env.ComponentCatalog;
                     var type = value.GetType();
                     bool success = catalog.TryGetComponentShortName(type, out name);
                     Contracts.Assert(success);
@@ -2192,8 +2188,7 @@ namespace Microsoft.ML.Runtime.CommandLine
                 if (value is IComponentFactory)
                 {
                     string name;
-                    // TODO: ModuleCatalog should be on env
-                    var catalog = ModuleCatalog.CreateInstance(env);
+                    var catalog = env.ComponentCatalog;
                     var type = value.GetType();
                     bool isModuleComponent = catalog.TryGetComponentShortName(type, out name);
                     if (isModuleComponent)
@@ -2214,7 +2209,7 @@ namespace Microsoft.ML.Runtime.CommandLine
                 return value.ToString();
             }
 
-            public string GetFullHelpText(IHostEnvironment env, CmdParser owner)
+            public string GetFullHelpText(IHostEnvironment env)
             {
                 if (IsHidden)
                     return null;
@@ -2241,7 +2236,7 @@ namespace Microsoft.ML.Runtime.CommandLine
                     if (builder.Length > 0)
                         builder.Append(" ");
                     builder.Append("Default value:'");
-                    AppendHelpValue(env, owner, builder, DefaultValue);
+                    AppendHelpValue(env, builder, DefaultValue);
                     builder.Append('\'');
                 }
                 if (Utils.Size(ShortNames) != 0)

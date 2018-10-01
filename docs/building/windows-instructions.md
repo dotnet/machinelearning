@@ -5,10 +5,11 @@ You can build ML.NET either via the command line or by using Visual Studio.
 
 ## Required Software
 
-1. **[Visual Studio 2017](https://www.visualstudio.com/downloads/) (Community, Professional, Enterprise)**.  The Community version is completely free.
+1. **[Visual Studio 2017](https://www.visualstudio.com/downloads/) (Community, Professional, Enterprise)** The Community version is completely free. The below build instructions were verified for VS 15.8.0 and higher.
 2. **[CMake](https://cmake.org/)** must be installed from [the CMake download page](https://cmake.org/download/#latest) and added to your path.
 
-### Visual Studio 2017
+### Visual Studio 2017 Installation
+We have successfully verified the below build instructions for Visual Studio version 15.8.0 and higher. 
 
 #### Visual Studio 2017 - 'Workloads' based install
 
@@ -36,10 +37,18 @@ The following are the minimum requirements:
   * MSBuild
   * .NET Framework 4.6 Targeting Pack
   * Windows Universal CRT SDK
-  
-In order to build in the Visual Studio IDE, need to call “build.cmd” from the command line first. Tests can be executed from the VS Test Explorer or command line.
-  
-## Building From the Command Line
+
+## Building Instructions
+
+### Building From Visual Studio 2017
+
+First, set up the required tools, from a (non-admin) Command Prompt window:
+
+- `build.cmd` - sets up tools and builds the assemblies
+
+After successfully running the command, the project can be build directly from the Visual Studio IDE. Tests can be executed from the VS Test Explorer or command line.
+
+### Building From the Command Line
 
 You can use the Developer Command Prompt, Powershell or work in any regular cmd. The Developer Command Prompt will have a name like "Developer Command Prompt for VS 2017" or similar in your start menu. 
 
@@ -51,16 +60,18 @@ From a (non-admin) Command Prompt window:
 
 **Note**: Before working on individual projects or test projects you **must** run `build.cmd` from the root once before beginning that work. It is also a good idea to run `build.cmd` whenever you pull a large set of unknown changes into your branch.
 
+## Running Tests
+
+### Running tests from Visual Studio
+
+After successfully building, run tests in the Visual Studio Test Explorer window.
+
 ### Running tests from the command line
 
 From the root, run `build.cmd` and then `build.cmd -runTests`.
 For more details, or to test an individual project, you can navigate to the test project directory and then use `dotnet test`
- 
-### Running tests from Visual Studio
 
-You need to run tests in the Test Explorer window.
-
-### Known Issues
+## Known Issues
 
 CMake 3.7 or higher is required for Visual Studio 2017.
 
