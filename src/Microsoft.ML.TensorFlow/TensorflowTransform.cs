@@ -53,32 +53,79 @@ namespace Microsoft.ML.Transforms
 
         public sealed class TrainingArguments
         {
-            [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "Training labels.", ShortName = "OptimizationOp", SortOrder = 4)]
+            /// <summary>
+            /// The name of the column used as label for training.
+            /// </summary>
+            [Argument(ArgumentType.AtMostOnce | ArgumentType.Required, HelpText = "Training labels.", ShortName = "OptimizationOp", SortOrder = 4)]
             public string LabeLColumn = DefaultColumnNames.Label;
 
-            [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "The name of the optimization operation in the TensorFlow graph.", ShortName = "OptimizationOp", SortOrder = 4)]
+            /// <summary>
+            /// Name of the operation in TensorFlow graph that is used for optimizing parameters in the graph.
+            /// Usually it is the name specified in the minimize method of optimizer in python
+            /// e.g. optimizer = tf.train.GradientDescentOptimizer(learning_rate).minimize(cost, name = "SGDOptimizer").
+            /// </summary>
+            [Argument(ArgumentType.AtMostOnce | ArgumentType.Required, HelpText = "The name of the optimization operation in the TensorFlow graph.", ShortName = "OptimizationOp", SortOrder = 4)]
             public string OptimizationOperation;
 
-            [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "The name of the operation in the TensorFlow graph to compute training loss (Optional)", ShortName = "LossOp", SortOrder = 5)]
+            /// <summary>
+            /// The name of the operation in the TensorFlow graph to compute training loss (Optional).
+            /// </summary>
+            [Argument(ArgumentType.AtMostOnce, HelpText = "The name of the operation in the TensorFlow graph to compute training loss (Optional)", ShortName = "LossOp", SortOrder = 5)]
             public string LossOperation;
 
-            [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "The name of the operation in the TensorFlow graph to compute performance metric during training (Optional)", ShortName = "MetricOp", SortOrder = 6)]
+            /// <summary>
+            /// The name of the operation in the TensorFlow graph to compute performance metric during training (Optional).
+            /// </summary>
+            [Argument(ArgumentType.AtMostOnce, HelpText = "The name of the operation in the TensorFlow graph to compute performance metric during training (Optional)", ShortName = "MetricOp", SortOrder = 6)]
             public string MetricOperation;
 
-            [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "Number of samples to use for training.", SortOrder = 7)]
+            /// <summary>
+            /// Number of samples to use for mini-batch training.
+            /// </summary>
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Number of samples to use for mini-batch training.", SortOrder = 7)]
             public int BatchSize = 64;
 
-            [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "Number of training iterations.", SortOrder = 7)]
+            /// <summary>
+            /// Number of training iterations.
+            /// </summary>
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Number of training iterations.", SortOrder = 8)]
             public int Epoch = 5;
 
-            [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "The name of the operation in the TensorFlow graph which sets optimizer learning rate (Optional).", SortOrder = 8)]
+            /// <summary>
+            /// The name of the operation in the TensorFlow graph which sets optimizer learning rate (Optional).
+            /// </summary>
+            [Argument(ArgumentType.AtMostOnce, HelpText = "The name of the operation in the TensorFlow graph which sets optimizer learning rate (Optional).", SortOrder = 9)]
             public string LearningRateOperation;
 
-            [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "Learning rate to use during optimization.", SortOrder = 8)]
+            /// <summary>
+            /// Learning rate to use during optimization.
+            /// </summary>
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Learning rate to use during optimization.", SortOrder = 10)]
             public float LearningRate = 0.01f;
 
-            [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "Shuffle data before each iteration.", SortOrder = 8)]
+            /// <summary>
+            /// Shuffle training data on each iteration?
+            /// </summary>
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Shuffle data before each iteration.", SortOrder = 11)]
             public bool Shuffle = true;
+
+            /// <summary>
+            /// Name of the input in TensorFlow graph that specifiy the location for saving/restoring models to/from disk.
+            /// This parameter is set by different kinds of 'Savers' in TensorFlow and users don't have control over this.
+            /// Therefore, its highly unlikely that this parameter is changed from its default value of 'save/Const'.
+            /// Please change it cautiously if you need to.
+            /// </summary>
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Name of the input in TensorFlow graph that specifiy the location for saving/restoring models from disk.", SortOrder = 12)]
+            public string SaveLocationOperation = "save/Const";
+
+            /// <summary>
+            /// Name of the operation in TensorFlow graph that is used for saving/restoring models to/from disk.
+            /// This parameter is set by different kinds of 'Savers' in TensorFlow and users don't have control over this.
+            /// Therefore, its highly unlikely that this parameter is changed from its default value of 'save/control_dependency'.
+            /// Please change it cautiously if you need to.
+            /// </summary>
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Name of the input in TensorFlow graph that specifiy the location for saving/restoring models from disk.", SortOrder = 12)]
+            public string SaveOperation = "save/control_dependency";
         }
 
         private readonly IHost _host;
@@ -228,10 +275,48 @@ namespace Microsoft.ML.Transforms
             env.CheckValue(input, nameof(input));
             env.CheckNonEmpty(args.OptimizationOperation, nameof(args.OptimizationOperation));
 
+            CheckParameters(args);
+
             if (TensorFlowUtils.IsSavedModel(env, model))
                 TrainCore(args, model, input);
             else
-                throw env.ExceptNotSupp("TensorFlowTransform: Re-Training of TensorFlow model is only possible for un-frozen model.");
+                throw env.ExceptNotSupp("TensorFlowTransform: Re-Training of TensorFlow model is only supported for un-frozen model.");
+        }
+
+        private void CheckParameters(TrainingArguments args)
+        {
+            _host.CheckNonWhiteSpace(args.OptimizationOperation, nameof(args.OptimizationOperation));
+            if (Session.Graph[args.OptimizationOperation] == null)
+                throw _host.ExceptParam(nameof(args.OptimizationOperation), $"Optimization operation '{args.OptimizationOperation}' does not exist in the model");
+
+            _host.CheckNonWhiteSpace(args.SaveLocationOperation, nameof(args.SaveLocationOperation));
+            if (Session.Graph[args.SaveLocationOperation] == null)
+                throw _host.ExceptParam(nameof(args.SaveLocationOperation), $"'{args.SaveLocationOperation}' does not exist in the model");
+
+            _host.CheckNonWhiteSpace(args.SaveOperation, nameof(args.SaveOperation));
+            if (Session.Graph[args.SaveOperation] == null)
+                throw _host.ExceptParam(nameof(args.SaveOperation), $"'{args.SaveOperation}' does not exist in the model");
+
+            if (args.LossOperation != null)
+            {
+                _host.CheckNonWhiteSpace(args.LossOperation, nameof(args.LossOperation));
+                if (Session.Graph[args.LossOperation] == null)
+                    throw _host.ExceptParam(nameof(args.LossOperation), $"'{args.LossOperation}' does not exist in the model");
+            }
+
+            if (args.MetricOperation != null)
+            {
+                _host.CheckNonWhiteSpace(args.MetricOperation, nameof(args.MetricOperation));
+                if (Session.Graph[args.MetricOperation] == null)
+                    throw _host.ExceptParam(nameof(args.MetricOperation), $"'{args.MetricOperation}' does not exist in the model");
+            }
+
+            if (args.LearningRateOperation != null)
+            {
+                _host.CheckNonWhiteSpace(args.LearningRateOperation, nameof(args.LearningRateOperation));
+                if (Session.Graph[args.LearningRateOperation] == null)
+                    throw _host.ExceptParam(nameof(args.LearningRateOperation), $"'{args.LearningRateOperation}' does not exist in the model");
+            }
         }
 
         private void TrainCore(TrainingArguments args, string model, IDataView input)
@@ -319,7 +404,35 @@ namespace Microsoft.ML.Transforms
                     }
                 }
             }
-            UpdateModelOnDisk(model);
+            UpdateModelOnDisk(model, args);
+        }
+
+        private (float loss, float metric) TrainBatch(int[] inputColIndices,
+            string[] inputsForTraining,
+            ITensorValueGetter[] srcTensorGetters,
+            List<string> fetchList,
+            TrainingArguments args)
+        {
+            float loss = 0;
+            float metric = 0;
+            var runner = Session.GetRunner();
+            for (int i = 0; i < inputColIndices.Length; i++)
+            {
+                var inputName = inputsForTraining[i];
+                runner.AddInput(inputName, srcTensorGetters[i].GetBufferedBatchTensor());
+            }
+            if (args.LearningRateOperation != null)
+                runner.AddInput(args.LearningRateOperation, new TFTensor(args.LearningRate));
+            runner.AddTarget(args.OptimizationOperation);
+
+            if (fetchList.Count > 0)
+                runner.Fetch(fetchList.ToArray());
+
+            var tensor = runner.Run();
+            loss = tensor.Length > 0 ? (float)tensor[0].GetValue() : 0.0f;
+            metric = tensor.Length > 1 ? (float)tensor[1].GetValue() : 0.0f;
+
+            return (loss, metric);
         }
 
         /// <summary>
@@ -327,12 +440,12 @@ namespace Microsoft.ML.Transforms
         /// After retraining Session and Graphs are both up-to-date
         /// However model on disk is not which is used to serialzed to ML.Net stream
         /// </summary>
-        private void UpdateModelOnDisk(string modelDir)
+        private void UpdateModelOnDisk(string modelDir, TrainingArguments args)
         {
             // Save the model on disk
             var path = Path.Combine(modelDir, "mlnet_model");
-            Session.GetRunner().AddInput("save/Const", TFTensor.CreateString(Encoding.UTF8.GetBytes(path)))
-                    .AddTarget("save/control_dependency").Run();
+            Session.GetRunner().AddInput(args.SaveLocationOperation, TFTensor.CreateString(Encoding.UTF8.GetBytes(path)))
+                    .AddTarget(args.SaveOperation).Run();
 
             // Preserve original files
             var variablesPath = Path.Combine(modelDir, "variables");
@@ -374,34 +487,6 @@ namespace Microsoft.ML.Transforms
 
             if (tmpParamDir != null && tmpParamDir.Length > 0)
                 Directory.Delete(tmpParamDir[0], true);
-        }
-
-        private (float loss, float metric) TrainBatch(int[] inputColIndices,
-            string[] inputsForTraining,
-            ITensorValueGetter[] srcTensorGetters,
-            List<string> fetchList,
-            TrainingArguments args)
-        {
-            float loss = 0;
-            float metric = 0;
-            var runner = Session.GetRunner();
-            for (int i = 0; i < inputColIndices.Length; i++)
-            {
-                var inputName = inputsForTraining[i];
-                runner.AddInput(inputName, srcTensorGetters[i].GetBufferedBatchTensor());
-            }
-            if (args.LearningRateOperation != null)
-                runner.AddInput(args.LearningRateOperation, new TFTensor(args.LearningRate));
-            runner.AddTarget(args.OptimizationOperation);
-
-            if (fetchList.Count > 0)
-                runner.Fetch(fetchList.ToArray());
-
-            var tensor = runner.Run();
-            loss = tensor.Length > 0 ? (float)tensor[0].GetValue() : 0.0f;
-            metric = tensor.Length > 1 ? (float)tensor[1].GetValue() : 0.0f;
-
-            return (loss, metric);
         }
 
         private static ITensorValueGetter CreateTensorValueGetter<T>(IRow input, bool isVector, int colIndex, TFShape tfShape)

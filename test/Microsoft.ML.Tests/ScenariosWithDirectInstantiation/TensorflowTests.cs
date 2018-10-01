@@ -357,48 +357,48 @@ namespace Microsoft.ML.Scenarios
         /// The following python code was used to create tensorflow model.
         /// 
         /// from __future__ import print_function
-        ///
+        /// 
         /// import tensorflow as tf
+        /// 
         /// # Import MNIST data
         /// from tensorflow.examples.tutorials.mnist import input_data
-        /// mnist = input_data.read_data_sets("/tmp/data/", one_hot = True)
-        ///
+        /// mnist = input_data.read_data_sets("/tmp/data/", one_hot=True)
+        /// 
         /// # Parameters
         /// learning_rate = 0.01
         /// training_epochs = 25
         /// batch_size = 100
         /// display_step = 1
-        ///
+        /// 
         /// # tf Graph Input
         /// x = tf.placeholder(tf.float32, [None, 784], name="Features") # mnist data image of shape 28*28=784
         /// y = tf.placeholder(tf.float32, [None, 10], name = "Label") # 0-9 digits recognition => 10 classes
-        ///
+        /// 
         /// # Set model weights
-        /// W = tf.Variable(tf.truncated_normal([784, 10]), name = "W")
+        /// W = tf.Variable(tf.constant(0.1, shape=[784, 10]), name = "W")
         /// b = tf.Variable(tf.constant(0.1, shape=[10], dtype=tf.float32), name = "b")
-        ///
+        /// 
         /// # Construct model
         /// pred = tf.nn.softmax(tf.matmul(x, W) + b, name = "Prediction") # Softmax
-        ///
+        /// 
         /// # Minimize error using cross entropy
-        /// cost = tf.reduce_mean(-tf.reduce_sum(y* tf.log(pred), reduction_indices=1), name="Loss")
+        /// cost = tf.reduce_mean(-tf.reduce_sum(y*tf.log(pred), reduction_indices=1), name="Loss")
         /// # Gradient Descent
         /// optimizer = tf.train.GradientDescentOptimizer(learning_rate).minimize(cost, name = "SGDOptimizer")
-        ///
+        /// 
         /// # Initialize the variables (i.e. assign their default value)
         /// init = tf.global_variables_initializer()
-        ///
+        /// saver_def = tf.train.Saver().as_saver_def()
         /// # Start training
         /// with tf.Session() as sess:
-        ///
+        /// 
         ///     # Run the initializer
-        ///     sess.run(init)
-        ///     tf.saved_model.simple_save(
-        ///         sess,
-        ///         export_dir = "./lr",
-        ///         inputs = { "Features" : x},
-        ///         outputs = {"Prediction": pred
-        ///         })
+        ///    sess.run(init)
+        ///    tf.saved_model.simple_save(
+        ///     sess,
+        ///     export_dir = "./lr",
+        ///     inputs = {"Features" : x},
+        ///     outputs = {"Prediction": pred})
         /// </summary>
         [Fact]
         public void TensorFlowTransformMNISTTemplateTrainingTest()
@@ -439,8 +439,8 @@ namespace Microsoft.ML.Scenarios
 
                 };
 
-                trans = TensorFlowTransform.Create(env, trans, model_location, new[] { "Prediction" }, new[] { "Features" }, args);
-                trans = new ConcatTransform(env, "Features", "Prediction").Transform(trans);
+                var trainedTfDataView = TensorFlowTransform.Create(env, trans, model_location, new[] { "Prediction", "b" }, new[] { "Features" }, args);
+                trans = new ConcatTransform(env, "Features", "Prediction").Transform(trainedTfDataView);
                 trans = new CopyColumnsTransform(env, ("LabelOriginal", "Label")).Transform(trans);
 
                 var trainer = new LightGbmMulticlassTrainer(env, "Label", "Features");
@@ -454,8 +454,8 @@ namespace Microsoft.ML.Scenarios
                 IDataScorerTransform testDataScorer = GetScorer(env, trans, pred, testDataPath);
                 var metrics = Evaluate(env, testDataScorer);
 
-                Assert.Equal(0.58260869565217388, metrics.AccuracyMicro, 2);
-                Assert.Equal(0.25374149659863943, metrics.AccuracyMacro, 2);
+                Assert.Equal(0.72173913043478266, metrics.AccuracyMicro, 2);
+                Assert.Equal(0.67482993197278918, metrics.AccuracyMacro, 2);
 
                 // Create prediction engine and test predictions
                 var model = env.CreatePredictionEngine<MNISTData, MNISTPrediction>(testDataScorer);
@@ -491,7 +491,29 @@ namespace Microsoft.ML.Scenarios
                 }
 
                 Assert.Equal(5, maxIndex);
+
+                // Check if the bias actually got changed after the training.
+                using (var cursor = trainedTfDataView.GetRowCursor(a => true))
+                {
+                    trainedTfDataView.Schema.TryGetColumnIndex("b", out int bias);
+                    var getter = cursor.GetGetter<VBuffer<float>>(bias);
+                    if (cursor.MoveNext())
+                    {
+                        var trainedBias = default(VBuffer<float>);
+                        getter(ref trainedBias);
+                        Assert.NotEqual(trainedBias.Values, new float[] { 0.1f, 0.1f, 0.1f, 0.1f, 0.1f, 0.1f, 0.1f, 0.1f, 0.1f, 0.1f });
+                    }
+                }
             }
+
+            // This test changes the state of the model.
+            // Cleanup folder so that other test can also use the same model.
+            var varDir = Path.Combine(model_location, "variables");
+            if(Directory.Exists(varDir))
+                Directory.Delete(varDir, true);
+            var directories = Directory.GetDirectories(model_location, "variables-*");
+            if (directories != null && directories.Length > 0)
+                Directory.Move(directories[0], varDir);
         }
 
         [Fact]

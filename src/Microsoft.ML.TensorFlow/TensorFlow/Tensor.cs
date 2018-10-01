@@ -617,6 +617,8 @@ namespace Microsoft.ML.Transforms.TensorFlow
             {
                 case TFDataType.Float:
                     return typeof(float);
+                case TFDataType.Float_ref:
+                    return typeof(float);
                 case TFDataType.Double:
                     return typeof(double);
                 case TFDataType.Int32:

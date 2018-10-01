@@ -115,6 +115,8 @@ namespace Microsoft.ML.Transforms.TensorFlow
             {
                 case TFDataType.Float:
                     return NumberType.R4;
+                case TFDataType.Float_ref:
+                    return NumberType.R4;
                 case TFDataType.Double:
                     return NumberType.R8;
                 case TFDataType.UInt16:
