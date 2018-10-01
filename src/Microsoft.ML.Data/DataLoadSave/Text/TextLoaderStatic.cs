@@ -15,8 +15,11 @@ namespace Microsoft.ML.Runtime.Data
         /// <summary>
         /// Configures a reader for text files.
         /// </summary>
-        /// <typeparam name="TTupleShape">The type shape parameter, which must be</typeparam>
-        /// <param name="env"></param>
+        /// <typeparam name="TShape">The type shape parameter, which must be a valid-schema shape. As a practical
+        /// matter this is generally not explicitly defined from the user, but is instead inferred from the return
+        /// type of the <paramref name="func"/> where one takes an input <see cref="Context"/> and uses it to compose
+        /// a value-tuple describing what the columns are and how to load them from the file.</typeparam>
+        /// <param name="env">The environment.</param>
         /// <param name="func">The delegate that describes what fields to read from the text file, as well as
         /// describing their input type. The way in which it works is that the delegate is fed a <see cref="Context"/>,
         /// and the user composes a value-tuple with <see cref="PipelineColumn"/> instances out of that <see cref="Context"/>.
@@ -33,8 +36,8 @@ namespace Microsoft.ML.Runtime.Data
         /// <param name="allowSparse">Whether the input may include sparse representations.</param>
         /// <param name="trimWhitspace">Remove trailing whitespace from lines.</param>
         /// <returns>A configured statically-typed reader for text files.</returns>
-        public static DataReader<IMultiStreamSource, TTupleShape> CreateReader<[IsShape] TTupleShape>(
-            IHostEnvironment env,  Func<Context, TTupleShape> func, IMultiStreamSource files = null,
+        public static DataReader<IMultiStreamSource, TShape> CreateReader<[IsShape] TShape>(
+            IHostEnvironment env,  Func<Context, TShape> func, IMultiStreamSource files = null,
             bool hasHeader = false, char separator = '\t', bool allowQuoting = true, bool allowSparse = true,
             bool trimWhitspace = false)
         {

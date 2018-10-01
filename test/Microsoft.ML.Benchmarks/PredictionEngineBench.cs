@@ -10,7 +10,6 @@ using Microsoft.ML.Runtime.Learners;
 
 namespace Microsoft.ML.Benchmarks
 {
-    [Config(typeof(PredictConfig))]
     public class PredictionEngineBench
     {
         private IrisData _irisExample;

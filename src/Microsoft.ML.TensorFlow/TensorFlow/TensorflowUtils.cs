@@ -69,6 +69,17 @@ namespace Microsoft.ML.Transforms.TensorFlow
             return new TensorFlowSchema(ectx, res.ToArray(), opTypeGetters.ToArray(), inputOpsGetters.ToArray(), inputOpsLengths.ToArray());
         }
 
+        /// <summary>
+        /// This method retrieves the information about the graph nodes of a TensorFlow model as an <see cref="ISchema"/>.
+        /// For every node in the graph that has an output type that is compatible with the types supported by
+        /// <see cref="TensorFlowTransform"/>, the output schema contains a column with the name of that node, and the
+        /// type of its output (including the item type and the shape, if it is known). Every column also contains metadata
+        /// of kind <see cref="OpType"/>, indicating the operation type of the node, and if that node has inputs in the graph,
+        /// it contains metadata of kind <see cref="InputOps"/>, indicating the names of the input nodes.
+        /// </summary>
+        /// <param name="ectx">An <see cref="IExceptionContext"/>.</param>
+        /// <param name="modelFile">The name of the file containing the TensorFlow model. Currently only frozen model
+        /// format is supported.</param>
         public static ISchema GetModelSchema(IExceptionContext ectx, string modelFile)
         {
             var bytes = File.ReadAllBytes(modelFile);
@@ -76,6 +87,14 @@ namespace Microsoft.ML.Transforms.TensorFlow
             return GetModelSchema(ectx, session.Graph);
         }
 
+        /// <summary>
+        /// This is a convenience method for iterating over the nodes of a TensorFlow model graph. It
+        /// iterates over the columns of the <see cref="ISchema"/> returned by <see cref="GetModelSchema(IExceptionContext, string)"/>,
+        /// and for each one it returns a tuple containing the name, operation type, column type and an array of input node names.
+        /// This method is convenient for filtering nodes based on certain criteria, for example, by the operation type.
+        /// </summary>
+        /// <param name="modelFile"></param>
+        /// <returns></returns>
         public static IEnumerable<(string, string, ColumnType, string[])> GetModelNodes(string modelFile)
         {
             var schema = GetModelSchema(null, modelFile);
