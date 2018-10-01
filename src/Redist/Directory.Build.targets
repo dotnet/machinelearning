@@ -1,0 +1,121 @@
+<Project>
+  <Target Name="PrepareArchives">
+    <ItemGroup>
+      <!-- set up metdata used by all targets -->
+      <ArchiveFile DownloadFile="$(IntermediateOutputPath)%(FileName)%(Extension)"
+                   DownloadShaFile="$(IntermediateOutputPath)%(FileName)%(Extension).sha"
+                   ExtractDirectory="$(IntermediateOutputPath)%(FileName)"
+                   ExtractSemaphore="$(IntermediateOutputPath)%(FileName)\.extracted"
+                   LocalShaFile="$(MSBuildProjectDirectory)\%(FileName)%(Extension).sha"/>
+    </ItemGroup>
+
+    <ItemGroup Condition="'$(ArchiveFileRuntime)' != ''">
+      <ArchiveFile Remove="@(ArchiveFile)"
+                   Condition="'%(ArchiveFile.Runtime)' != '$(ArchiveFileRuntime)'"/>
+    </ItemGroup>
+  </Target>
+
+  <UsingTask TaskName="DownloadFilesFromUrl" AssemblyFile="$(ToolsDir)Microsoft.DotNet.Build.Tasks.dll"/>
+  <Target Name="DownloadArchives" 
+          DependsOnTargets="PrepareArchives"
+          Inputs="$(MSBuildProjectFile)"
+          Outputs="@(ArchiveFile->'%(DownloadFile)');@(AdditionalDownloadFile->'%(DownloadFile)')">
+    <MakeDir Directories="$(IntermediateOutputPath)" />
+    <ItemGroup>
+      <!-- DownloadFilesFromUrl requires Url metadata is set and ignores the identity of the item -->
+      <_downloadFiles Include="@(ArchiveFile);@(AdditionalDownloadFile)" Url="%(Identity)" DestinationFile="%(DownloadFile)" />
+    </ItemGroup>
+    <Message Importance="High" Text="Downloading '%(_downloadFiles.Url)' to '%(_downloadFiles.DestinationFile)'." />
+    <DownloadFilesFromUrl Items="@(_downloadFiles)" />
+  </Target>
+  
+  <UsingTask TaskName="GenerateChecksums" AssemblyFile="$(ToolsDir)Microsoft.DotNet.Build.Tasks.dll"/>
+  <UsingTask TaskName="ZipFileExtractToDirectory" AssemblyFile="$(ToolsDir)Microsoft.DotNet.Build.Tasks.dll"/>
+  <Target Name="ValidateAndExtractArchives" 
+          DependsOnTargets="DownloadArchives"
+          Inputs="@(ArchiveFile->'%(DownloadFile)')"
+          Outputs="@(ArchiveFile->'%(ExtractSemaphore)')">
+    <!-- GenerateChecksums writes a sha checksum to the file specified by DestinationPath metadata -->
+    <ItemGroup>
+      <_filesToCheckSum Include="@(ArchiveFile->'%(DownloadFile)')" DestinationPath="%(DownloadShaFile)" />
+    </ItemGroup>
+    <GenerateChecksums Items="@(_filesToCheckSum)" />
+
+    <!-- If specified we'll update the checked in SHAs with the downloaded ones. -->
+    <Copy Condition="'$(UpdateSHA)' == 'true'"
+          SourceFiles="@(ArchiveFile->'%(DownloadShaFile)')"
+          DestinationFiles="@(ArchiveFile->'%(LocalShaFile)')" />
+
+    <Error Condition="!Exists('%(ArchiveFile.LocalShaFile)')" Text="SHA file '%(ArchiveFile.LocalShaFile)' does not exist.  Build with /p:UpdateSHA=true to save it." />
+
+    <!-- Read in the SHAs as metadata on the archive items -->
+    <ItemGroup>
+      <ArchiveFile>
+        <LocalSha>$([System.IO.File]::ReadAllText('%(LocalShaFile)'))</LocalSha>
+        <DownloadSha>$([System.IO.File]::ReadAllText('%(DownloadShaFile)'))</DownloadSha>
+      </ArchiveFile>
+    </ItemGroup>
+    <!-- Validate that the downloaded SHAs match the expected checked in SHAs -->
+    <Error Condition="'%(ArchiveFile.LocalSha)' != '%(ArchiveFile.DownloadSha)'" Text="Downloaded file '%(ArchiveFile.DownloadFile)' has unexpected SHA.%0A  expected: %(_downloadedArchiveFile.LocalSha)%0A  actual: %(_downloadedArchiveFile.DownloadSha)%0ABuild with /p:UpdateSHA=true if you intentionally changed the URL and wish to update the SHAs, otherwise this could indicate an incomplete download or intercerpted URL and should be examined." />
+
+    <!-- The archives are valid, lets extract them, ensuring an empty directory -->
+    <RemoveDir Directories="@(ArchiveFile->'%(ExtractDirectory)')" />
+    <MakeDir Directories="@(ArchiveFile->'%(ExtractDirectory)')" />
+    <ZipFileExtractToDirectory Condition="'%(ArchiveFile.FileExtension)' == '.zip'"
+                               SourceArchive="%(ArchiveFile.DownloadFile)"
+                               DestinationDirectory="%(ArchiveFile.ExtractDirectory)"
+                               OverwriteDestination="true" />
+
+    <Message Importance="High" Condition="'%(ArchiveFile.FileExtension)' == '.tar.gz'" Text="Decompressing '%(ArchiveFile.DownloadFile)' to '%(ArchiveFile.ExtractDirectory)'." />
+    <Exec Condition="'%(ArchiveFile.FileExtension)' == '.tar.gz'"
+          WorkingDirectory="%(ArchiveFile.ExtractDirectory)"
+          Command="tar -xzmf &quot;$([MSBuild]::MakeRelative('%(ArchiveFile.ExtractDirectory)', '%(ArchiveFile.DownloadFile)'))&quot;" />
+    <Touch Files="@(ArchiveFile->'%(ExtractSemaphore)')" AlwaysCreate="true" />
+  </Target>
+
+  <!-- Select the files we want to copy out of each archive. -->
+  <Target Name="GetFilesFromArchive"
+          DependsOnTargets="ValidateAndExtractArchives" >
+    <ItemGroup>
+      <!-- batch rather than transform so that we can split FilesFromArchive metadata -->
+      <_fileFromArchiveFlat Include="%(ArchiveFile.FilesFromArchive)" ExtractDirectory="%(ArchiveFile.ExtractDirectory)" Runtime="%(ArchiveFile.Runtime)" />
+      <!-- intersect metadata -->
+      <_fileFromArchive Include="%(Identity)"
+                        ExtractDirectory="@(_fileFromArchiveFlat->'%(ExtractDirectory)')"
+                        Runtime="@(_fileFromArchiveFlat->'%(Runtime)')"
+                        PackagePath="@(PackageFileFromArchive->'%(PackagePath)')"
+                        CopyToNativeAssets="@(PackageFileFromArchive->'%(CopyToNativeAssets)')" />
+      <!-- not every archive contains every PackageFileFromArchive, so remove those that didn't intersect -->
+      <_fileFromArchive Remove="@(_fileFromArchive)" Condition="'%(_fileFromArchive.ExtractDirectory)' == ''" />
+      <_fileFromArchive Condition="'%(_fileFromArchive.PackagePath)' == ''" PackagePath="runtimes\%(_fileFromArchive.Runtime)\native\%(FileName)%(Extension)" />
+
+      <!-- copy to packaging location -->
+      <FilesFromArchive Include="@(_fileFromArchive->'%(ExtractDirectory)\%(Identity)')" 
+                        TargetPath="$(PackageAssetsPath)$(MSBuildProjectName)\%(PackagePath)" />
+
+      <!-- include AdditionalDownloadFiles -->
+      <FilesFromArchive Include="@(AdditionalDownloadFile->'%(DownloadFile)')"
+                        TargetPath="$(PackageAssetsPath)$(MSBuildProjectName)\%(AdditionalDownloadFile.PackagePath)" />
+
+      <!-- copy to NativeAssets location, only for current RID, so that they may be used by tests -->
+      <FilesFromArchive Condition="'$(PackageRID)' == '%(_fileFromArchive.Runtime)' AND '%(_fileFromArchive.CopyToNativeAssets)' != 'false'"
+                        Include="@(_fileFromArchive->'%(ExtractDirectory)\%(Identity)')" 
+                        TargetPath="$(NativeAssetsBuiltPath)\%(FileName)%(Extension)" />
+    </ItemGroup>
+  </Target>
+
+  <Target Name="CopyFilesFromArchive"
+          DependsOnTargets="GetFilesFromArchive">
+    <Message Importance="High" Text="@(FilesFromArchive) -> %(FilesFromArchive.TargetPath)" />
+    <Copy SourceFiles="@(FilesFromArchive)"
+          DestinationFiles="@(FilesFromArchive->'%(TargetPath)')" />
+  </Target>
+
+  <!-- Define Build to do the work of downloading and copying assets -->
+  <Target Name="Build"
+          DependsOnTargets="CopyFilesFromArchive" />
+
+  <Target Name="Clean">
+    <RemoveDir Directories="$(IntermediateOutputPath)" />
+  </Target>
+</Project>

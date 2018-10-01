@@ -1,5 +1,9 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
+  <PropertyGroup>
+    <TensorFlowSubPath Condition="!$([MSBuild]::IsOSPlatform('osx'))">gpu\</TensorFlowSubPath>
+  </PropertyGroup>
+
   <ItemGroup>
     <Compile Remove="Scenarios\Api\AspirationalExamples.cs" />
   </ItemGroup>
@@ -29,8 +33,8 @@
     <NativeAssemblyReference Include="LdaNative" />
     <NativeAssemblyReference Include="SymSgdNative" />
     <NativeAssemblyReference Include="MklImports" />
-    <NativeAssemblyReference Include="tensorflow" />
-    <NativeAssemblyReference Condition="'$(OS)' != 'Windows_NT'" Include="tensorflow_framework" />
+    <NativeAssemblyReference Include="tensorflow" SubPath="$(TensorFlowSubPath)" />
+    <NativeAssemblyReference Condition="'$(OS)' != 'Windows_NT'" Include="tensorflow_framework" SubPath="$(TensorFlowSubPath)"/>
   </ItemGroup>
 
   <ItemGroup>

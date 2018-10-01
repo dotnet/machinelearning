@@ -1,0 +1,34 @@
+<Project>
+  <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), Directory.Build.props))\Directory.Build.props" />
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <!-- place native bits in gpu subfolder -->
+    <NativeAssetsBuiltPath>$(NativeAssetsBuiltPath)\gpu</NativeAssetsBuiltPath>
+  </PropertyGroup>
+  
+  <ItemGroup>
+    <!-- windows C-API build isn't provided, use the jni build, which exports nearly the entire C-API -->
+    <TensorFlowConfig Include="windows"  BaseName="libtensorflow_jni-gpu" FileExtension=".zip" FilesFromArchive="tensorflow_jni.dll;LICENSE" Runtime="win-x64"/>
+    <TensorFlowConfig Include="linux" BaseName="libtensorflow-gpu" FileExtension=".tar.gz" FilesFromArchive="lib\libtensorflow.so;lib\libtensorflow_framework.so;include\tensorflow\c\LICENSE" Runtime="linux-x64" />
+    <!-- mac GPU build is not available per https://www.tensorflow.org/install/install_mac -->
+
+    <!-- LICENSE from the package is actually THIRD_PARTY_NOTICES-->
+    <PackageFileFromArchive Include="LICENSE;include\tensorflow\c\LICENSE" PackagePath="THIRD_PARTY_NOTICES.txt" CopyToNativeAssets="false" />
+
+    <AdditionalDownloadFile Include="https://github.com/tensorflow/tensorflow/blob/master/LICENSE" DownloadFile="$(IntermediateOutputPath)LICENSE" PackagePath="LICENSE.TXT" />
+    
+    <ArchiveFile Include="@(TensorFlowConfig->'https://storage.googleapis.com/tensorflow/libtensorflow/%(BaseName)-%(Identity)-x86_64-$(TensorFlowVersion)%(FileExtension)')" />
+  </ItemGroup>
+
+  <Target Name="RenameFiles"
+          AfterTargets="GetFilesFromArchive">
+    <ItemGroup>
+      <FilesFromArchive Condition="'%(FilesFromArchive.FileName)' == 'tensorflow_jni'"
+                        PackagePath="$([System.IO.Path]::GetDirectoryName('%(PackagePath)'))\tensorflow.dll"
+                        TargetPath="$([System.IO.Path]::GetDirectoryName('%(TargetPath)'))\tensorflow.dll" />
+    </ItemGroup>
+  </Target>
+  
+  <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), Directory.Build.targets))\Directory.Build.targets" />
+</Project>
