@@ -78,7 +78,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
         public static float DotProductSparse(float[] value, int offset, float[] b, int[] indices, int count) => SseUtils.DotProductSparse(value, offset, b, indices, count);
 
-        public static float L2DistSquared(float[] value, float[] b, int count) => SseUtils.L2DistSquared(value, b, count);
+        public static float L2DistSquared(float[] left, float[] right, int count) => SseUtils.L2DistSquared(left, right, count);
 
         public static void ZeroMatrixItems(AlignedArray destination, int ccol, int cfltRow, int[] indices) => SseUtils.ZeroMatrixItems(destination, ccol, cfltRow, indices);
 

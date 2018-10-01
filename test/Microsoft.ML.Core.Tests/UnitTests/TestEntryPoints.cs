@@ -240,7 +240,7 @@ namespace Microsoft.ML.Runtime.RunTests
 #endif
         }
 
-        [Fact]
+        [Fact(Skip = "Execute this test if you want to regenerate ep-list and _manifest.json")]
         public void RegenerateEntryPointCatalog()
         {
             var (epListContents, jObj) = BuildManifests();

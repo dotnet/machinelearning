@@ -862,45 +862,45 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             }
         }
 
-        public static float DotProductSparse(float[] a, float[] b, int[] indices, int count)
+        public static float DotProductSparse(float[] value, float[] b, int[] indices, int count)
         {
-            Contracts.AssertNonEmpty(a);
+            Contracts.AssertNonEmpty(value);
             Contracts.AssertNonEmpty(b);
             Contracts.AssertNonEmpty(indices);
             Contracts.Assert(count > 0);
-            Contracts.Assert(count < a.Length);
+            Contracts.Assert(count < value.Length);
             Contracts.Assert(count <= b.Length);
             Contracts.Assert(count <= indices.Length);
 
-            return DotProductSparse(new Span<float>(a), new Span<float>(b),
+            return DotProductSparse(new Span<float>(value), new Span<float>(b),
                                     new Span<int>(indices, 0, count));
         }
 
-        public static float DotProductSparse(float[] a, int offset, float[] b, int[] indices, int count)
+        public static float DotProductSparse(float[] value, int offset, float[] b, int[] indices, int count)
         {
-            Contracts.AssertNonEmpty(a);
+            Contracts.AssertNonEmpty(value);
             Contracts.AssertNonEmpty(b);
             Contracts.AssertNonEmpty(indices);
             Contracts.Assert(count > 0);
-            Contracts.Assert(count < (a.Length - offset));
+            Contracts.Assert(count < (value.Length - offset));
             Contracts.Assert(count <= b.Length);
             Contracts.Assert(count <= indices.Length);
             Contracts.Assert(offset >= 0);
-            Contracts.Assert(offset < a.Length);
+            Contracts.Assert(offset < value.Length);
 
-            return DotProductSparse(new Span<float>(a, offset, a.Length - offset),
+            return DotProductSparse(new Span<float>(value, offset, value.Length - offset),
                                     new Span<float>(b), new Span<int>(indices, 0, count));
         }
 
-        private static float DotProductSparse(Span<float> a, Span<float> b, Span<int> indices)
+        private static float DotProductSparse(Span<float> value, Span<float> b, Span<int> indices)
         {
             if (Avx.IsSupported)
             {
-                return AvxIntrinsics.DotSU(a, b, indices);
+                return AvxIntrinsics.DotSU(value, b, indices);
             }
             else if (Sse.IsSupported)
             {
-                return SseIntrinsics.DotSU(a, b, indices);
+                return SseIntrinsics.DotSU(value, b, indices);
             }
             else
             {
@@ -908,39 +908,39 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                 for (int i = 0; i < indices.Length; i++)
                 {
                     int index = indices[i];
-                    result += a[index] * b[i];
+                    result += value[index] * b[i];
                 }
                 return result;
             }
         }
 
-        public static float L2DistSquared(float[] a, float[] b, int count)
+        public static float L2DistSquared(float[] left, float[] right, int count)
         {
-            Contracts.AssertNonEmpty(a);
-            Contracts.AssertNonEmpty(b);
+            Contracts.AssertNonEmpty(left);
+            Contracts.AssertNonEmpty(right);
             Contracts.Assert(count > 0);
-            Contracts.Assert(count <= a.Length);
-            Contracts.Assert(count <= b.Length);
+            Contracts.Assert(count <= left.Length);
+            Contracts.Assert(count <= right.Length);
 
-            return L2DistSquared(new Span<float>(a, 0, count), new Span<float>(b, 0, count));
+            return L2DistSquared(new Span<float>(left, 0, count), new Span<float>(right, 0, count));
         }
 
-        private static float L2DistSquared(Span<float> a, Span<float> b)
+        private static float L2DistSquared(Span<float> left, Span<float> right)
         {
             if (Avx.IsSupported)
             {
-                return AvxIntrinsics.Dist2(a, b);
+                return AvxIntrinsics.Dist2(left, right);
             }
             else if (Sse.IsSupported)
             {
-                return SseIntrinsics.Dist2(a, b);
+                return SseIntrinsics.Dist2(left, right);
             }
             else
             {
                 float norm = 0;
-                for (int i = 0; i < b.Length; i++)
+                for (int i = 0; i < right.Length; i++)
                 {
-                    float distance = a[i] - b[i];
+                    float distance = left[i] - right[i];
                     norm += distance * distance;
                 }
                 return norm;
