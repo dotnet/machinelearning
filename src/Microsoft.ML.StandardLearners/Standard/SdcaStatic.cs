@@ -33,6 +33,12 @@ namespace Microsoft.ML.StaticPipe
         /// the linear model that was trained.  Note that this action cannot change the result in any way; it is only a way for the caller to
         /// be informed about what was learnt.</param>
         /// <returns>The predicted output.</returns>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        ///  [!code-csharp[SDCA Regression](../../../docs/samples/Microsoft.ML.Samples.StaticPipe/Trainers.cs?range=5-8,12-14,25-79) "The SDCA regression example."]
+        /// ]]></format>
+        /// </example>
         public static Scalar<float> Sdca(this RegressionContext.RegressionTrainers ctx,
             Scalar<float> label, Vector<float> features, Scalar<float> weights = null,
             float? l2Const = null,
