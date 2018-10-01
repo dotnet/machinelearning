@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Learners;
@@ -12,7 +13,7 @@ using System.Text;
 
 namespace Microsoft.ML.Samples.StaticPipe
 {
-    public class Trainers
+    public static class Trainers
     {
         public static void Main()
         {
@@ -21,61 +22,60 @@ namespace Microsoft.ML.Samples.StaticPipe
 
         public static void SdcaRegression()
         {
-            // writting a small sample dataset to file
-            string dataPath = @"c:\temp\MyTest.txt";
+            var (trainDataPath, testDataPath) = DatasetCreator.CreateRegressionDataset();
 
-            float a = 0;
-            float b = 0;
-            float d = 0;
-            float target = 0;
-
-            var csvContent = new StringBuilder("feature_a, feature_b, feature_c, target");
-            Random rnd = new Random();
-
-            for (int i=0; i< 1000; i++)
-            {
-                a = rnd.Next(i-3, i+3);
-                b = 2 * rnd.Next(i - 2, i + 2);
-                d = rnd.Next(i - 5, i + 5);
-
-                var newLine = string.Format($"{a}, {b}, {d}, {target}");
-                csvContent.AppendLine(newLine);
-            }
-
-            if (!File.Exists(dataPath))
-                File.WriteAllText(dataPath, csvContent.ToString());
-            else
-                Console.WriteLine("Change the dataPath, a file with that path already exists.");
-
+            //creating the ML.Net IHostEnvironment object, needed for the pipeline
             var env = new ConsoleEnvironment(seed: 0);
-            // the file 
-            var dataSource = new MultiFileSource(dataPath);
 
-            var ctx = new RegressionContext(env);
+            // creating the ML context, based on the task performed.
+            var regressionContext = new RegressionContext(env);
 
-            var reader = TextLoader.CreateReader(env,
-                c => (label: c.LoadFloat(11), features: c.LoadFloat(0, 10)),
-                separator: ';', hasHeader: true);
+            // Creating a data reader, based on the format of the data
+            var reader = TextLoader.CreateReader(env, c => (
+                     label: c.LoadFloat(2),
+                     features: c.LoadFloat(0, 1)
+                 ),
+                separator: ',', hasHeader: true);
 
+            // Read the data
+            var trainData = reader.Read(new MultiFileSource(trainDataPath));
+
+            // The predictor that gets produced out of training
             LinearRegressionPredictor pred = null;
 
-            var est = reader.MakeNewEstimator()
-                .Append(r => (r.label, score: ctx.Trainers.Sdca(r.label, r.features, maxIterations: 2, onFit: p => pred = p)));
+            // Create the estimator
+            var learningPipeline = reader.MakeNewEstimator()
+                .Append(r => (r.label, score: regressionContext.Trainers.Sdca(
+                                            r.label,
+                                            r.features,
+                                            l1Threshold: 0f,
+                                            maxIterations: 100,
+                                        onFit: p => pred = p)
+                                )
+                        );
 
-            var pipe = reader.Append(est);
+            // fit this pipeline to the training data
+            var model = learningPipeline.Fit(trainData);
 
-            var model = pipe.Fit(dataSource);
-            // 11 input features, so we ought to have 11 weights.
-            // Assert.Equal(11, pred.Weights2.Count);
+            // check the weights that the model learned
+            VBuffer<float> weights = default;
+            pred.GetFeatureWeights(ref weights);
 
-            var data = model.Read(dataSource);
+            Console.WriteLine($"weight 0 - {weights.Values[0]}");
+            Console.WriteLine($"weight 1 - {weights.Values[1]}");
 
-            var metrics = ctx.Evaluate(data, r => r.label, r => r.score, new PoissonLoss());
+            // test the model we just trained, using the test file. 
+            var testData = reader.Read(new MultiFileSource(testDataPath));
+            var data = model.Transform(testData);
 
-            // Just output some data on the schema for fun.
-            var schema = data.AsDynamic.Schema;
-            for (int cc = 0; cc < schema.ColumnCount; ++cc)
-                Console.WriteLine($"{schema.GetColumnName(cc)}, {schema.GetColumnType(cc)}");
+            //Evaluate how the model is doing on the test data
+            var metrics = regressionContext.Evaluate(data, r => r.label, r => r.score);
+
+            Console.WriteLine($"L1 - {metrics.L1}");
+            Console.WriteLine($"L2 - {metrics.L2}");
+            Console.WriteLine($"LossFunction - {metrics.LossFn}");
+            Console.WriteLine($"RMS - {metrics.Rms}");
+            Console.WriteLine($"RSquared - {metrics.RSquared}");
         }
     }
 }

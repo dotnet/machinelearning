@@ -1,10 +1,9 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
-    <ApplicationIcon />
+    <TargetFramework>netcoreapp2.0</TargetFramework>
     <OutputType>Exe</OutputType>
-    <StartupObject />
+    <StartupObject>Microsoft.ML.Samples.StaticPipe.Trainers</StartupObject>
   </PropertyGroup>
 
   <ItemGroup>
@@ -14,6 +13,11 @@
     <ProjectReference Include="..\..\..\src\Microsoft.ML.StandardLearners\Microsoft.ML.StandardLearners.csproj" />
     <ProjectReference Include="..\..\..\src\Microsoft.ML.PCA\Microsoft.ML.PCA.csproj" />
 
+    <NativeAssemblyReference Include="FastTreeNative" />
+    <NativeAssemblyReference Include="CpuMathNative" />
+    <NativeAssemblyReference Include="FactorizationMachineNative" />
+    <NativeAssemblyReference Include="LdaNative" />
+    
     <ProjectReference Include="..\..\..\src\Microsoft.ML.Analyzer\Microsoft.ML.Analyzer.csproj">
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <OutputItemType>Analyzer</OutputItemType>
