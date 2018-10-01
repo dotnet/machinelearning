@@ -16742,9 +16742,9 @@ namespace Microsoft.ML
             public DelimitedTokenizeTransformColumn[] Column { get; set; }
 
             /// <summary>
-            /// Comma separated set of term separator(s). Commonly: 'space', 'comma', 'semicolon' or other single character.
+            /// Array of single character term separator(s). By default uses space character separator.
             /// </summary>
-            public string TermSeparators { get; set; } = "space";
+            public char[] CharArrayTermSeparators { get; set; }
 
             /// <summary>
             /// Input dataset

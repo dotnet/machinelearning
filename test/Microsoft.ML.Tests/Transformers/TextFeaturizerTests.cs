@@ -125,7 +125,7 @@ namespace Microsoft.ML.Tests.Transformers
 
             TestCore(dataPath, false,
                 new[] {
-                    "loader=Text{col=T:TX:1} xf=token{col=T sep=comma,s,a} "
+                    "loader=Text{col=T:TX:1} xf=take{c=4} xf=token{col=T sep=comma,s,a}"
                 });
 
             Done();
