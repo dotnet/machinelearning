@@ -461,7 +461,7 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
             return new SchemaShape(result.Values);
         }
 
-        internal sealed class OutPipelineColumn : Scalar<Bitmap>
+        internal sealed class OutPipelineColumn : Custom<Bitmap>
         {
             private readonly PipelineColumn _input;
             private readonly int _width;
@@ -487,8 +487,8 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
             /// <summary>
             /// Reconciler to an <see cref="ImageResizerTransform"/> for the <see cref="PipelineColumn"/>.
             /// </summary>
-            /// <seealso cref="ImageStaticPipe.Resize(Scalar{Bitmap}, int, int, ImageResizerTransform.ResizingKind, ImageResizerTransform.Anchor)"/>
-            /// <seealso cref="ImageStaticPipe.Resize(Scalar{UnknownSizeBitmap}, int, int, ImageResizerTransform.ResizingKind, ImageResizerTransform.Anchor)"/>
+            /// <seealso cref="ImageStaticPipe.Resize(Custom{Bitmap}, int, int, ImageResizerTransform.ResizingKind, ImageResizerTransform.Anchor)"/>
+            /// <seealso cref="ImageStaticPipe.Resize(Custom{UnknownSizeBitmap}, int, int, ImageResizerTransform.ResizingKind, ImageResizerTransform.Anchor)"/>
             private sealed class Reconciler : EstimatorReconciler
             {
                 public static Reconciler Inst = new Reconciler();
