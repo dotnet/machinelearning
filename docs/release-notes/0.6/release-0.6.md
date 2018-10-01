@@ -46,14 +46,11 @@ Below are some of the highlights from this release.
 
     * ML.NET previously had its own type system which helped it more efficiently deal with things like missing values (a common case in ML). This type system required users to work with types like `DvText`, `DvBool`, `DvInt4`, etc. 
     * This update replaces the Dv type system with .NET's standard type system to make ML.NET easier to use and to take advantage of innovation in .NET.
+    * One effect of this change is that only floats and doubles have missing values, represented by NaN. More information can be found [here](https://github.com/dotnet/machinelearning/issues/673).
 
-* Up to ~200x speedup in prediction engine performance ([#973](https://github.com/dotnet/machinelearning/pull/973))
+* Up to ~200x speedup in prediction engine performance for single records ([#973](https://github.com/dotnet/machinelearning/pull/973))
 
-    * This improvement leads to a significant speedup when making predictions for single records.
-
-* Improved approach to dependency injection ([#970](https://github.com/dotnet/machinelearning/pull/970), [#1022](https://github.com/dotnet/machinelearning/pull/1022))
-
-    * This enables ML.NET to be used in additional .NET app models without messy workarounds (e.g. Azure Functions).
+* Improved approach to dependency injection enables ML.NET to be used in additional .NET app models without messy workarounds (e.g. Azure Functions) ([#970](https://github.com/dotnet/machinelearning/pull/970), [#1022](https://github.com/dotnet/machinelearning/pull/1022))
 
 Additional issues closed in this milestone can be found
 [here](https://github.com/dotnet/machinelearning/milestone/5?closed=1).
