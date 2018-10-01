@@ -55,8 +55,8 @@ namespace Microsoft.ML.CpuMath.PerformanceTests
             => AvxIntrinsics.MulElementWiseU(src1, src2, dst, Length);
 
         [Benchmark]
-        public float SumU()
-            => AvxIntrinsics.SumU(new Span<float>(src, 0, Length));
+        public float Sum()
+            => AvxIntrinsics.Sum(new Span<float>(src, 0, Length));
 
         [Benchmark]
         [BenchmarkCategory("Fma")]

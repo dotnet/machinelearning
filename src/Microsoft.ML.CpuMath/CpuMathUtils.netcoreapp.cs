@@ -388,11 +388,11 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
             if (Avx.IsSupported)
             {
-                return AvxIntrinsics.SumU(src);
+                return AvxIntrinsics.Sum(src);
             }
             else if (Sse.IsSupported)
             {
-                return SseIntrinsics.SumU(src);
+                return SseIntrinsics.Sum(src);
             }
             else
             {
