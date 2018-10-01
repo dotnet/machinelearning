@@ -427,19 +427,22 @@ namespace Microsoft.ML.Scenarios
                 trans = CategoricalTransform.Create(env, trans, "Label");
                 trans = NormalizeTransform.CreateMinMaxNormalizer(env, trans, "Features", "Placeholder");
 
-                var args = new TensorFlowTransform.TrainingArguments()
+                var args = new TensorFlowTransform.Arguments()
                 {
+                    Model = model_location,
+                    InputColumns = new[] { "Features" },
+                    OutputColumns = new[] { "Prediction", "b" },
                     LabeLColumn = "Label",
                     OptimizationOperation = "SGDOptimizer",
                     LossOperation = "Loss",
                     Epoch = 10,
                     LearningRateOperation = "SGDOptimizer/learning_rate",
                     LearningRate = 0.001f,
-                    BatchSize = 20
-
+                    BatchSize = 20,
+                    ReTrain = true
                 };
 
-                var trainedTfDataView = TensorFlowTransform.Create(env, trans, model_location, new[] { "Prediction", "b" }, new[] { "Features" }, args);
+                var trainedTfDataView = TensorFlowTransform.Create(env, args, trans);
                 trans = new ConcatTransform(env, "Features", "Prediction").Transform(trainedTfDataView);
                 trans = new CopyColumnsTransform(env, ("LabelOriginal", "Label")).Transform(trans);
 

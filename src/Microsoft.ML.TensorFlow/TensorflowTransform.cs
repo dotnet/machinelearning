@@ -41,22 +41,28 @@ namespace Microsoft.ML.Transforms
     {
         public class Arguments : TransformInputBase
         {
+            /// <summary>
+            /// Location of the TensorFlow model.
+            /// </summary>
             [Argument(ArgumentType.Required, HelpText = "TensorFlow model used by the transform. Please see https://www.tensorflow.org/mobile/prepare_models for more details.", SortOrder = 0)]
             public string Model;
 
+            /// <summary>
+            /// The names of the model inputs.
+            /// </summary>
             [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "The names of the model inputs", ShortName = "inputs", SortOrder = 1)]
             public string[] InputColumns;
 
-            [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "The name of the outputs", ShortName = "outputs", SortOrder = 2)]
+            /// <summary>
+            /// The names of the requested model outputs.
+            /// </summary>
+            [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "The names of the requested outputs", ShortName = "outputs", SortOrder = 2)]
             public string[] OutputColumns;
-        }
 
-        public sealed class TrainingArguments
-        {
             /// <summary>
             /// The name of the column used as label for training.
             /// </summary>
-            [Argument(ArgumentType.AtMostOnce | ArgumentType.Required, HelpText = "Training labels.", ShortName = "OptimizationOp", SortOrder = 4)]
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Training labels.", ShortName = "OptimizationOp", SortOrder = 4)]
             public string LabeLColumn = DefaultColumnNames.Label;
 
             /// <summary>
@@ -64,7 +70,7 @@ namespace Microsoft.ML.Transforms
             /// Usually it is the name specified in the minimize method of optimizer in python
             /// e.g. optimizer = tf.train.GradientDescentOptimizer(learning_rate).minimize(cost, name = "SGDOptimizer").
             /// </summary>
-            [Argument(ArgumentType.AtMostOnce | ArgumentType.Required, HelpText = "The name of the optimization operation in the TensorFlow graph.", ShortName = "OptimizationOp", SortOrder = 4)]
+            [Argument(ArgumentType.AtMostOnce, HelpText = "The name of the optimization operation in the TensorFlow graph.", ShortName = "OptimizationOp", SortOrder = 4)]
             public string OptimizationOperation;
 
             /// <summary>
@@ -124,8 +130,14 @@ namespace Microsoft.ML.Transforms
             /// Therefore, its highly unlikely that this parameter is changed from its default value of 'save/control_dependency'.
             /// Please change it cautiously if you need to.
             /// </summary>
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Name of the input in TensorFlow graph that specifiy the location for saving/restoring models from disk.", SortOrder = 12)]
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Name of the input in TensorFlow graph that specifiy the location for saving/restoring models from disk.", SortOrder = 13)]
             public string SaveOperation = "save/control_dependency";
+
+            /// <summary>
+            /// Needed for command line to specify if retraining is requested.
+            /// </summary>
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Retrain TensorFlow model.", SortOrder = 14)]
+            public bool ReTrain = false;
         }
 
         private readonly IHost _host;
@@ -148,6 +160,15 @@ namespace Microsoft.ML.Transforms
         internal const string UserName = "TensorFlowTransform";
         internal const string ShortName = "TFTransform";
         internal const string LoaderSignature = "TensorFlowTransform";
+
+        internal static class DefaultModelFileNames
+        {
+            public const string VariablesFolder = "variables";
+            public const string Index = "variables.index";
+            public const string Data = "variables.data-00000-of-00001";
+            public const string Graph = "saved_model.pb";
+            public const string TmpMlnetModel = "mlnet_model";
+        }
 
         private static VersionInfo GetVersionInfo()
         {
@@ -172,26 +193,6 @@ namespace Microsoft.ML.Transforms
         public static IDataTransform Create(IHostEnvironment env, IDataView input, string model, string[] names, string[] source)
         {
             return new TensorFlowTransform(env, TensorFlowUtils.GetSession(env, model), source, names, TensorFlowUtils.IsSavedModel(env, model) ? model : null, false).MakeDataTransform(input);
-        }
-
-        /// <summary>
-        /// Utility method to create <see cref="TensorFlowTransform"/> with retraining capabilities.
-        /// </summary>
-        /// <param name="env">Host Environment.</param>
-        /// <param name="input">Input <see cref="IDataView"/>. This is the output from previous transform or loader.</param>
-        /// <param name="model">Path to the TensorFlow model. </param>
-        /// <param name="names">Name of the output column(s). Keep it same as in the Tensorflow model.</param>
-        /// <param name="source">Name of the input column(s). Keep it same as in the Tensorflow model.</param>
-        /// <param name="args">Argument object containing training related parameters.</param>
-        /// <returns></returns>
-        public static IDataTransform Create(IHostEnvironment env, IDataView input, string model, string[] names, string[] source, TrainingArguments args)
-        {
-            // Shuffling fails because ShuffleTransform is not RowToRowMapper
-            //if(args.Shuffle)
-            //{
-            //    input = new ShuffleTransform(env, new ShuffleTransform.Arguments(), input);
-            //}
-            return new TensorFlowTransform(env, model, names, source, args, input).MakeDataTransform(input);
         }
 
         // Factory method for SignatureLoadModel.
@@ -255,7 +256,7 @@ namespace Microsoft.ML.Transforms
         }
 
         // Factory method for SignatureDataTransform.
-        private static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
+        public static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(args, nameof(args));
@@ -263,31 +264,46 @@ namespace Microsoft.ML.Transforms
             env.CheckValue(args.InputColumns, nameof(args.InputColumns));
             env.CheckValue(args.OutputColumns, nameof(args.OutputColumns));
 
-            return new TensorFlowTransform(env, TensorFlowUtils.GetSession(env, args.Model), args.InputColumns, args.OutputColumns, TensorFlowUtils.IsSavedModel(env, args.Model) ? args.Model : null, false).MakeDataTransform(input);
+            return new TensorFlowTransform(env, args, input).MakeDataTransform(input);
         }
 
-        internal TensorFlowTransform(IHostEnvironment env, string model, string[] names, string[] source, TrainingArguments args, IDataView input)
-            : this(env, TensorFlowUtils.GetSession(env, model), source, names, TensorFlowUtils.IsSavedModel(env, model) ? model : null, false)
+        internal TensorFlowTransform(IHostEnvironment env, Arguments args, IDataView input)
+            : this(env, TensorFlowUtils.GetSession(env, args.Model), args.InputColumns, args.OutputColumns, TensorFlowUtils.IsSavedModel(env, args.Model) ? args.Model : null, false)
         {
 
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(args, nameof(args));
-            env.CheckValue(input, nameof(input));
-            env.CheckNonEmpty(args.OptimizationOperation, nameof(args.OptimizationOperation));
 
-            CheckParameters(args);
+            if (args.ReTrain)
+            {
+                // Shuffling fails because ShuffleTransform is not RowToRowMapper
+                // https://github.com/dotnet/machinelearning/issues/1106
+                //if(args.Shuffle)
+                //{
+                //    input = new ShuffleTransform(env, new ShuffleTransform.Arguments(), input);
+                //}
 
-            if (TensorFlowUtils.IsSavedModel(env, model))
-                TrainCore(args, model, input);
-            else
-                throw env.ExceptNotSupp("TensorFlowTransform: Re-Training of TensorFlow model is only supported for un-frozen model.");
+                env.CheckValue(input, nameof(input));
+                env.CheckNonEmpty(args.OptimizationOperation, nameof(args.OptimizationOperation));
+
+                CheckParameters(args);
+
+                if (TensorFlowUtils.IsSavedModel(env, args.Model))
+                    TrainCore(args, args.Model, input);
+                else
+                    throw env.ExceptNotSupp("TensorFlowTransform: Re-Training of TensorFlow model is only supported for un-frozen model.");
+            }
         }
 
-        private void CheckParameters(TrainingArguments args)
+        private void CheckParameters(Arguments args)
         {
             _host.CheckNonWhiteSpace(args.OptimizationOperation, nameof(args.OptimizationOperation));
             if (Session.Graph[args.OptimizationOperation] == null)
                 throw _host.ExceptParam(nameof(args.OptimizationOperation), $"Optimization operation '{args.OptimizationOperation}' does not exist in the model");
+
+            _host.CheckNonWhiteSpace(args.LabeLColumn, nameof(args.LabeLColumn));
+            if (Session.Graph[args.LabeLColumn] == null)
+                throw _host.ExceptParam(nameof(args.LabeLColumn), $"'{args.LabeLColumn}' does not exist in the model");
 
             _host.CheckNonWhiteSpace(args.SaveLocationOperation, nameof(args.SaveLocationOperation));
             if (Session.Graph[args.SaveLocationOperation] == null)
@@ -319,7 +335,7 @@ namespace Microsoft.ML.Transforms
             }
         }
 
-        private void TrainCore(TrainingArguments args, string model, IDataView input)
+        private void TrainCore(Arguments args, string model, IDataView input)
         {
             var inputsForTraining = new string[Inputs.Length + 1];
             var inputColIndices = new int[inputsForTraining.Length];
@@ -367,15 +383,16 @@ namespace Microsoft.ML.Transforms
             if (args.MetricOperation != null)
                 fetchList.Add(args.MetricOperation);
 
+            var hashedIndices = new HashSet<int>(inputColIndices);
             for (int epoch = 0; epoch < args.Epoch; epoch++)
             {
-                using (var cursor = input.GetRowCursor(a => true))
+                using (var cursor = input.GetRowCursor(a => hashedIndices.Contains(a)))
                 {
                     var srcTensorGetters = GetTensorValueGetters(cursor, inputColIndices, isInputVector, tfInputTypes, tfInputShapes);
 
                     float loss=0;
                     float metric=0;
-                    int rows = 0;
+                    long rows = 0;
                     bool isDataLeft = false;
                     using (var ch = _host.Start("Training TensorFlow model..."))
                     {
@@ -401,6 +418,8 @@ namespace Microsoft.ML.Transforms
                         }
                         ch.Info("Loss: {0}, Metric: {1}", fetchList.Count > 0 ? loss.ToString("#.####") : "None",
                                 fetchList.Count > 1 ? metric.ToString("#.####") : "None");
+
+                        ch.Done();
                     }
                 }
             }
@@ -411,7 +430,7 @@ namespace Microsoft.ML.Transforms
             string[] inputsForTraining,
             ITensorValueGetter[] srcTensorGetters,
             List<string> fetchList,
-            TrainingArguments args)
+            Arguments args)
         {
             float loss = 0;
             float metric = 0;
@@ -440,53 +459,60 @@ namespace Microsoft.ML.Transforms
         /// After retraining Session and Graphs are both up-to-date
         /// However model on disk is not which is used to serialzed to ML.Net stream
         /// </summary>
-        private void UpdateModelOnDisk(string modelDir, TrainingArguments args)
+        private void UpdateModelOnDisk(string modelDir, Arguments args)
         {
-            // Save the model on disk
-            var path = Path.Combine(modelDir, "mlnet_model");
-            Session.GetRunner().AddInput(args.SaveLocationOperation, TFTensor.CreateString(Encoding.UTF8.GetBytes(path)))
-                    .AddTarget(args.SaveOperation).Run();
-
-            // Preserve original files
-            var variablesPath = Path.Combine(modelDir, "variables");
-            var archivePath = Path.Combine(variablesPath + "-" + DateTime.Now.Ticks.ToString());
-            Directory.CreateDirectory(archivePath);
-            foreach (var f in Directory.GetFiles(variablesPath))
-                File.Copy(f, Path.Combine(archivePath, Path.GetFileName(f)));
-
-            string[] modelFilePaths = null;
-
-            // There are two ways parameters are saved depending on
-            // either `saver_def = tf.train.Saver().as_saver_def()` was called in Python before `tf.saved_model.simple_save` or not.
-            // If `saver_def = tf.train.Saver().as_saver_def()` was called files are saved in top directory.
-            // If not then temporary directory is created in current directory which starts with `mlnet_model`
-            // and files are saved there.
-            var tmpParamDir = Directory.GetDirectories(modelDir, "mlnet_model*");
-            if (tmpParamDir != null && tmpParamDir.Length > 0)
-                modelFilePaths = Directory.GetFiles(tmpParamDir[0]);
-            else
-                modelFilePaths = Directory.GetFiles(modelDir, "mlnet_model*");
-
-            foreach (var file in modelFilePaths)
+            try
             {
-                if (file.EndsWith(".data-00000-of-00001"))
-                {
-                    var destination = Path.Combine(variablesPath, "variables.data-00000-of-00001");
-                    if (File.Exists(destination))
-                        File.Delete(destination);
-                    Directory.Move(file, destination);
-                }
-                if (file.EndsWith(".index"))
-                {
-                    var destination = Path.Combine(variablesPath, "variables.index");
-                    if (File.Exists(destination))
-                        File.Delete(destination);
-                    Directory.Move(file, Path.Combine(variablesPath, "variables.index"));
-                }
-            }
+                // Save the model on disk
+                var path = Path.Combine(modelDir, DefaultModelFileNames.TmpMlnetModel);
+                Session.GetRunner().AddInput(args.SaveLocationOperation, TFTensor.CreateString(Encoding.UTF8.GetBytes(path)))
+                        .AddTarget(args.SaveOperation).Run();
 
-            if (tmpParamDir != null && tmpParamDir.Length > 0)
-                Directory.Delete(tmpParamDir[0], true);
+                // Preserve original files
+                var variablesPath = Path.Combine(modelDir, DefaultModelFileNames.VariablesFolder);
+                var archivePath = Path.Combine(variablesPath + "-" + Guid.NewGuid().ToString());
+                Directory.CreateDirectory(archivePath);
+                foreach (var f in Directory.GetFiles(variablesPath))
+                    File.Copy(f, Path.Combine(archivePath, Path.GetFileName(f)));
+
+                string[] modelFilePaths = null;
+
+                // There are two ways parameters are saved depending on
+                // either `saver_def = tf.train.Saver().as_saver_def()` was called in Python before `tf.saved_model.simple_save` or not.
+                // If `saver_def = tf.train.Saver().as_saver_def()` was called files are saved in top directory.
+                // If not then temporary directory is created in current directory which starts with `mlnet_model`
+                // and files are saved there.
+                var tmpParamDir = Directory.GetDirectories(modelDir, DefaultModelFileNames.TmpMlnetModel + "*");
+                if (tmpParamDir != null && tmpParamDir.Length > 0)
+                    modelFilePaths = Directory.GetFiles(tmpParamDir[0]);
+                else
+                    modelFilePaths = Directory.GetFiles(modelDir, DefaultModelFileNames.TmpMlnetModel + "*");
+
+                foreach (var file in modelFilePaths)
+                {
+                    if (file.EndsWith(".data-00000-of-00001"))
+                    {
+                        var destination = Path.Combine(variablesPath, DefaultModelFileNames.Data);
+                        if (File.Exists(destination))
+                            File.Delete(destination);
+                        Directory.Move(file, destination);
+                    }
+                    if (file.EndsWith(".index"))
+                    {
+                        var destination = Path.Combine(variablesPath, DefaultModelFileNames.Index);
+                        if (File.Exists(destination))
+                            File.Delete(destination);
+                        Directory.Move(file, destination);
+                    }
+                }
+
+                if (tmpParamDir != null && tmpParamDir.Length > 0)
+                    TensorFlowUtils.DeleteFolderWithRetries(_host, tmpParamDir[0]);
+            }
+            catch(Exception e)
+            {
+                throw _host.ExceptIO(e, "Error serializing TensorFlow retrained model to disk.");
+            }
         }
 
         private static ITensorValueGetter CreateTensorValueGetter<T>(IRow input, bool isVector, int colIndex, TFShape tfShape)
@@ -670,9 +696,9 @@ namespace Microsoft.ML.Transforms
                     // only these files need to be saved.
                     string[] modelFilePaths =
                     {
-                        Path.Combine(_savedModelPath, "saved_model.pb"),
-                        Path.Combine(_savedModelPath, "variables", "variables.data-00000-of-00001"),
-                        Path.Combine(_savedModelPath, "variables", "variables.index"),
+                        Path.Combine(_savedModelPath, DefaultModelFileNames.Graph),
+                        Path.Combine(_savedModelPath, DefaultModelFileNames.VariablesFolder, DefaultModelFileNames.Data),
+                        Path.Combine(_savedModelPath, DefaultModelFileNames.VariablesFolder, DefaultModelFileNames.Index),
                     };
 
                     w.Write(modelFilePaths.Length);

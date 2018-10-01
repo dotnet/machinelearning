@@ -409,7 +409,7 @@ namespace Microsoft.ML.Transforms.TensorFlow
         /// <param name="data">Data.</param>
         public TFTensor(Complex[] data) : base(SetupTensor(TFDataType.Complex128, data, size: 16)) { }
 
-        public static unsafe TFTensor CreateString(byte[] buffer)
+        internal static unsafe TFTensor CreateString(byte[] buffer)
         {
             if (buffer == null)
                 throw new ArgumentNullException(nameof(buffer));
