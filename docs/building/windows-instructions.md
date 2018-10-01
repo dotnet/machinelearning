@@ -37,7 +37,6 @@ The following are the minimum requirements:
   * MSBuild
   * .NET Framework 4.6 Targeting Pack
   * Windows Universal CRT SDK
-_____________________
 
 ## Building Instructions
 
@@ -61,8 +60,6 @@ From a (non-admin) Command Prompt window:
 
 **Note**: Before working on individual projects or test projects you **must** run `build.cmd` from the root once before beginning that work. It is also a good idea to run `build.cmd` whenever you pull a large set of unknown changes into your branch.
 
-_____________________
-
 ## Running Tests
 
 ### Running tests from Visual Studio
@@ -73,8 +70,6 @@ After successfully building, run tests in the Visual Studio Test Explorer window
 
 From the root, run `build.cmd` and then `build.cmd -runTests`.
 For more details, or to test an individual project, you can navigate to the test project directory and then use `dotnet test`
- 
-_____________________
 
 ## Known Issues
 
