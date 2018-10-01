@@ -1,4 +1,8 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
@@ -10,8 +14,8 @@ namespace Microsoft.ML.Samples.StaticPipe
         public static (string trainPath, string testPath) CreateRegressionDataset()
         {
             // creating a small sample dataset, and writting it to file
-            string trainDataPath = @"c:\temp\RegressionTrainDataset.txt";
-            string testDataPath = @"c:\temp\RegressionTestDataset.txt";
+            string trainDataPath = @"RegressionTrainDataset.txt";
+            string testDataPath = @"RegressionTestDataset.txt";
 
             string header = "feature_a, feature_b, target";
 
