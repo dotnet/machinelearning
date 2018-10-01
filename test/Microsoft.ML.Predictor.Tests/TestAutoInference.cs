@@ -16,6 +16,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.ML.Runtime.RunTests
 {
+    [Collection(Global.AutoInferenceAndPipelineSweeperTestCollectionName)]
     public sealed class TestAutoInference : BaseTestBaseline
     {
         public TestAutoInference(ITestOutputHelper helper)

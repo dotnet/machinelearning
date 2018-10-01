@@ -3,10 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using BenchmarkDotNet.Running;
-using BenchmarkDotNet.Toolchains;
-using BenchmarkDotNet.Toolchains.CsProj;
-using BenchmarkDotNet.Toolchains.DotNetCli;
-using Microsoft.ML.Benchmarks.Harness;
 using System.Globalization;
 using System.IO;
 using System.Threading;
@@ -22,22 +18,7 @@ namespace Microsoft.ML.Benchmarks
         static void Main(string[] args) 
             => BenchmarkSwitcher
                 .FromAssembly(typeof(Program).Assembly)
-                .Run(args);
-
-        /// <summary>
-        /// we need our own toolchain because MSBuild by default does not copy recursive native dependencies to the output
-        /// </summary>
-        internal static IToolchain CreateToolchain()
-        {
-            var csProj = CsProjCoreToolchain.Current.Value;
-            var tfm = NetCoreAppSettings.Current.Value.TargetFrameworkMoniker;
-
-            return new Toolchain(
-                tfm, 
-                new ProjectGenerator(tfm), 
-                csProj.Builder, 
-                csProj.Executor);
-        }
+                .Run(args, new RecommendedConfig());
 
         internal static string GetInvariantCultureDataPath(string name)
         {

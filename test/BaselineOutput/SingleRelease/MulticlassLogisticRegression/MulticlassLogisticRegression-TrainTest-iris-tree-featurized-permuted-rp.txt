@@ -1,0 +1,4 @@
+MulticlassLogisticRegression
+Accuracy(micro-avg)	Accuracy(macro-avg)	Log-loss	Log-loss reduction	/l2	/l1	/ot	/nt	Learner Name	Train Dataset	Test Dataset	Results File	Run Time	Physical Memory	Virtual Memory	Command Line	Settings	
+0.973333	0.973333	0.05258	95.214	0.1	0.001	0.001	1	MulticlassLogisticRegression	%Data%	%Data%	%Output%	99	0	0	maml.exe TrainTest test=%Data% tr=MulticlassLogisticRegression{l1=0.001 l2=0.1 ot=1e-3 nt=1} norm=No dout=%Output% loader=Text{col=Label:U4[0-2]:0 col=Features:1-*} data=%Data% out=%Output% seed=1 xf=TreeFeat{lps=2 trainer=ftr{iter=3}} xf=copy{col=Features:Leaves}	/l2:0.1;/l1:0.001;/ot:0.001;/nt:1	
+

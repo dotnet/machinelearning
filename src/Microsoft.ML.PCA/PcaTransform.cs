@@ -29,25 +29,34 @@ namespace Microsoft.ML.Runtime.Data
     /// <include file='doc.xml' path='doc/members/member[@name="PCA"]/*' />
     public sealed class PcaTransform : OneToOneTransformBase
     {
+        internal static class Defaults
+        {
+            public const string WeightColumn = null;
+            public const int Rank = 20;
+            public const int Oversampling = 20;
+            public const bool Center = true;
+            public const int Seed = 0;
+        }
+
         public sealed class Arguments : TransformInputBase
         {
             [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "New column definition(s) (optional form: name:src)", ShortName = "col", SortOrder = 1)]
             public Column[] Column;
 
             [Argument(ArgumentType.Multiple, HelpText = "The name of the weight column", ShortName = "weight", Purpose = SpecialPurpose.ColumnName)]
-            public string WeightColumn;
+            public string WeightColumn = Defaults.WeightColumn;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "The number of components in the PCA", ShortName = "k")]
-            public int Rank = 20;
+            public int Rank = Defaults.Rank;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Oversampling parameter for randomized PCA training", ShortName = "over")]
-            public int Oversampling = 20;
+            public int Oversampling = Defaults.Oversampling;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "If enabled, data is centered to be zero mean")]
-            public bool Center = true;
+            public bool Center = Defaults.Center;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "The seed for random number generation")]
-            public int Seed = 0;
+            public int Seed = Defaults.Seed;
         }
 
         public class Column : OneToOneColumn

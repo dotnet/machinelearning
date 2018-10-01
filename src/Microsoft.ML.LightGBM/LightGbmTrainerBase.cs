@@ -64,6 +64,10 @@ namespace Microsoft.ML.Runtime.LightGBM
 
             //apply the advanced args, if the user supplied any
             advancedSettings?.Invoke(Args);
+
+            // check that the users didn't specify different label, group, feature, weights in the args, from what they supplied directly
+            TrainerUtils.CheckArgsHaveDefaultColNames(Host, Args);
+
             Args.LabelColumn = label.Name;
             Args.FeatureColumn = featureColumn;
 
@@ -156,6 +160,34 @@ namespace Microsoft.ML.Runtime.LightGBM
         {
             data.CheckFeatureFloatVector();
             ch.CheckParam(data.Schema.Label != null, nameof(data), "Need a label column");
+        }
+
+        /// <summary>
+        /// If, after applying the advancedSettings delegate, the args are different that the default value
+        /// and are also different than the value supplied directly to the xtension method, warn the user
+        /// about which value is being used.
+        /// The parameters that appear here, numTrees, minDocumentsInLeafs, numLeaves, learningRate are the ones the users are most likely to tune.
+        /// This list should follow the one in the constructor, and the extension methods on the <see cref="TrainContextBase"/>.
+        /// REVIEW: we should somehow mark the arguments that are set apart in those two places. Currently they stand out by their sort order annotation.
+        /// </summary>
+        protected void CheckArgsAndAdvancedSettingMismatch(int? numLeaves,
+            int? minDataPerLeaf,
+            double? learningRate,
+            int numBoostRound,
+            LightGbmArguments snapshot,
+            LightGbmArguments currentArgs)
+        {
+            using (var ch = Host.Start("Comparing advanced settings with the directly provided values."))
+            {
+
+                // Check that the user didn't supply different parameters in the args, from what it specified directly.
+                TrainerUtils.CheckArgsAndAdvancedSettingMismatch(ch, numLeaves, snapshot.NumLeaves, currentArgs.NumLeaves, nameof(numLeaves));
+                TrainerUtils.CheckArgsAndAdvancedSettingMismatch(ch, numBoostRound, snapshot.NumBoostRound, currentArgs.NumBoostRound, nameof(numBoostRound));
+                TrainerUtils.CheckArgsAndAdvancedSettingMismatch(ch, minDataPerLeaf, snapshot.MinDataPerLeaf, currentArgs.MinDataPerLeaf, nameof(minDataPerLeaf));
+                TrainerUtils.CheckArgsAndAdvancedSettingMismatch(ch, learningRate, snapshot.LearningRate, currentArgs.LearningRate, nameof(learningRate));
+
+                ch.Done();
+            }
         }
 
         protected virtual void GetDefaultParameters(IChannel ch, int numRow, bool hasCategarical, int totalCats, bool hiddenMsg=false)
