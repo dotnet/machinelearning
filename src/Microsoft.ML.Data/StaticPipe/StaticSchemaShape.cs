@@ -195,7 +195,7 @@ namespace Microsoft.ML.StaticPipe.Runtime
             }
             var gt = t.IsGenericType ? t.GetGenericTypeDefinition() : t;
             if (gt != typeof(Scalar<>) && gt != typeof(Key<>) && gt != typeof(Key<,>) && gt != typeof(VarKey<>) &&
-                gt != typeof(Vector<>) && gt != typeof(VarVector<>) && gt != typeof(NormVector<>))
+                gt != typeof(Vector<>) && gt != typeof(VarVector<>) && gt != typeof(NormVector<>) && gt != typeof(Custom<>))
             {
                 throw ectx.ExceptParam(nameof(t),
                     $"Type {t} was not one of the standard subclasses of {nameof(PipelineColumn)}");
