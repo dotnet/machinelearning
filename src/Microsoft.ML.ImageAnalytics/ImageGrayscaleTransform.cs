@@ -75,7 +75,8 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
                 verWrittenCur: 0x00010001, // Initial
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
-                loaderSignature: LoaderSignature);
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(ImageGrayscaleTransform).Assembly.FullName);
         }
 
         private const string RegistrationName = "ImageGrayscale";
@@ -239,12 +240,12 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
             PipelineColumn Input { get; }
         }
 
-        internal sealed class OutPipelineColumn<T> : Scalar<T>, IColInput
+        internal sealed class OutPipelineColumn<T> : Custom<T>, IColInput
         {
             public PipelineColumn Input { get; }
 
-            public OutPipelineColumn(Scalar<T> input)
-    : base(Reconciler.Inst, input)
+            public OutPipelineColumn(Custom<T> input)
+                : base(Reconciler.Inst, input)
             {
                 Contracts.AssertValue(input);
                 Contracts.Assert(typeof(T) == typeof(Bitmap) || typeof(T) == typeof(UnknownSizeBitmap));
@@ -256,8 +257,8 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
         /// Reconciler to an <see cref="ImageGrayscaleEstimator"/> for the <see cref="PipelineColumn"/>.
         /// </summary>
         /// <remarks>Because we want to use the same reconciler for </remarks>
-        /// <see cref="ImageStaticPipe.AsGrayscale(Scalar{Bitmap})"/>
-        /// <see cref="ImageStaticPipe.AsGrayscale(Scalar{UnknownSizeBitmap})"/>
+        /// <see cref="ImageStaticPipe.AsGrayscale(Custom{Bitmap})"/>
+        /// <see cref="ImageStaticPipe.AsGrayscale(Custom{UnknownSizeBitmap})"/>
         private sealed class Reconciler : EstimatorReconciler
         {
             public static Reconciler Inst = new Reconciler();

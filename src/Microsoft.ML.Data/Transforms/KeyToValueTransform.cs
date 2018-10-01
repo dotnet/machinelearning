@@ -77,7 +77,8 @@ namespace Microsoft.ML.Runtime.Data
                 verWrittenCur: 0x00010001, // Initial
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
-                loaderSignature: LoaderSignature);
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(KeyToValueTransform).Assembly.FullName);
         }
 
         /// <summary>
@@ -317,21 +318,12 @@ namespace Microsoft.ML.Runtime.Data
                     _values = values;
 
                     // REVIEW: May want to include more specific information about what the specific value is for the default.
-                    using (var ch = Parent.Host.Start("Getting NA Predicate and Value"))
-                    {
-                        _na = Conversions.Instance.GetNAOrDefault<TValue>(TypeOutput.ItemType, out _naMapsToDefault);
+                    _na = Conversions.Instance.GetNAOrDefault<TValue>(TypeOutput.ItemType, out _naMapsToDefault);
 
-                        if (_naMapsToDefault)
-                        {
-                            // Only initialize _isDefault if _defaultIsNA is true as this is the only case in which it is used.
-                            _isDefault = Conversions.Instance.GetIsDefaultPredicate<TValue>(TypeOutput.ItemType);
-                            RefPredicate<TValue> del;
-                            if (!Conversions.Instance.TryGetIsNAPredicate<TValue>(TypeOutput.ItemType, out del))
-                            {
-                                ch.Warning("There is no NA value for type '{0}'. The missing key value " +
-                                    "will be mapped to the default value of '{0}'", TypeOutput.ItemType);
-                            }
-                        }
+                    if (_naMapsToDefault)
+                    {
+                        // Only initialize _isDefault if _defaultIsNA is true as this is the only case in which it is used.
+                        _isDefault = Conversions.Instance.GetIsDefaultPredicate<TValue>(TypeOutput.ItemType);
                     }
 
                     bool identity;

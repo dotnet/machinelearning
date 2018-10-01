@@ -298,7 +298,8 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
                 verWrittenCur: 0x00010002, // Swith from OpenCV to Bitmap
                 verReadableCur: 0x00010002,
                 verWeCanReadBack: 0x00010002,
-                loaderSignature: LoaderSignature);
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(ImagePixelExtractorTransform).Assembly.FullName);
         }
 
         private const string RegistrationName = "ImagePixelExtractor";
@@ -668,18 +669,18 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
 
         private interface IColInput
         {
-            Scalar<Bitmap> Input { get; }
+            Custom<Bitmap> Input { get; }
 
             ImagePixelExtractorTransform.ColumnInfo MakeColumnInfo(string input, string output);
         }
 
         internal sealed class OutPipelineColumn<T> : Vector<T>, IColInput
         {
-            public Scalar<Bitmap> Input { get; }
+            public Custom<Bitmap> Input { get; }
             private static readonly ImagePixelExtractorTransform.Arguments _defaultArgs = new ImagePixelExtractorTransform.Arguments();
             private readonly ImagePixelExtractorTransform.Column _colParam;
 
-            public OutPipelineColumn(Scalar<Bitmap> input, ImagePixelExtractorTransform.Column col)
+            public OutPipelineColumn(Custom<Bitmap> input, ImagePixelExtractorTransform.Column col)
                 : base(Reconciler.Inst, input)
             {
                 Contracts.AssertValue(input);
@@ -704,8 +705,8 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
         /// Reconciler to an <see cref="ImagePixelExtractorEstimator"/> for the <see cref="PipelineColumn"/>.
         /// </summary>
         /// <remarks>Because we want to use the same reconciler for </remarks>
-        /// <see cref="ImageStaticPipe.ExtractPixels(Scalar{Bitmap}, bool, bool, bool, bool, bool, float, float)"/>
-        /// <see cref="ImageStaticPipe.ExtractPixelsAsBytes(Scalar{Bitmap}, bool, bool, bool, bool, bool)"/>
+        /// <see cref="ImageStaticPipe.ExtractPixels(Custom{Bitmap}, bool, bool, bool, bool, bool, float, float)"/>
+        /// <see cref="ImageStaticPipe.ExtractPixelsAsBytes(Custom{Bitmap}, bool, bool, bool, bool, bool)"/>
         private sealed class Reconciler : EstimatorReconciler
         {
             /// <summary>

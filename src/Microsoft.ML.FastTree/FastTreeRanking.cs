@@ -1095,7 +1095,8 @@ namespace Microsoft.ML.Runtime.FastTree
                 verWrittenCur: 0x00010005, // Categorical splits.
                 verReadableCur: 0x00010004,
                 verWeCanReadBack: 0x00010001,
-                loaderSignature: LoaderSignature);
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(FastTreeRankingPredictor).Assembly.FullName);
         }
 
         protected override uint VerNumFeaturesSerialized => 0x00010002;

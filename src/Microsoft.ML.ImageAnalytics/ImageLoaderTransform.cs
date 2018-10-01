@@ -142,7 +142,8 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
                 verWrittenCur: 0x00010002, // Swith from OpenCV to Bitmap
                 verReadableCur: 0x00010002,
                 verWeCanReadBack: 0x00010002,
-                loaderSignature: LoaderSignature);
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(ImageLoaderTransform).Assembly.FullName);
         }
 
         protected override IRowMapper MakeRowMapper(ISchema schema)
@@ -241,7 +242,7 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
             return new SchemaShape(result.Values);
         }
 
-        internal sealed class OutPipelineColumn : Scalar<UnknownSizeBitmap>
+        internal sealed class OutPipelineColumn : Custom<UnknownSizeBitmap>
         {
             private readonly Scalar<string> _input;
 

@@ -4,7 +4,6 @@
     <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp2.1</TargetFramework>
     <AssemblyName>DnnAnalyzer</AssemblyName>
-    <IncludeInPackage>Microsoft.ML.TensorFlow</IncludeInPackage>
   </PropertyGroup>
 
   <ItemGroup>
@@ -14,6 +13,7 @@
 
   <ItemGroup>
     <NativeAssemblyReference Include="tensorflow" />
+    <NativeAssemblyReference Condition="'$(OS)' != 'Windows_NT'" Include="tensorflow_framework" />
   </ItemGroup>
 
 </Project>

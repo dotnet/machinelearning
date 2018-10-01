@@ -35,7 +35,8 @@ namespace Microsoft.ML.Runtime.Ensemble
                 verWrittenCur: 0x00010003, // Don't serialize the "IsAveraged" property of the metrics
                 verReadableCur: 0x00010003,
                 verWeCanReadBack: 0x00010002,
-                loaderSignature: LoaderSignature);
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(EnsemblePredictor).Assembly.FullName);
         }
 
         private readonly IValueMapper[] _mappers;

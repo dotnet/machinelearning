@@ -15,11 +15,18 @@ using Xunit.Abstractions;
 
 namespace Microsoft.ML.Runtime.RunTests
 {
+    [Collection(Global.AutoInferenceAndPipelineSweeperTestCollectionName)]
     public sealed class TestPipelineSweeper : BaseTestBaseline
     {
         public TestPipelineSweeper(ITestOutputHelper helper)
             : base(helper)
         {
+        }
+
+        protected override void Initialize()
+        {
+            base.Initialize();
+            Env.ComponentCatalog.RegisterAssembly(typeof(AutoInference).Assembly);
         }
 
         [Fact]
@@ -74,7 +81,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 }";
 
             JObject graph = JObject.Parse(inputGraph);
-            var catalog = ModuleCatalog.CreateInstance(Env);
+            var catalog = Env.ComponentCatalog;
 
             var runner = new GraphRunner(Env, catalog, graph[FieldNames.Nodes] as JArray);
             runner.SetInput("TrainingData", datasetTrain);
@@ -212,7 +219,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 }";
 
             JObject graphJson = JObject.Parse(inputGraph);
-            var catalog = ModuleCatalog.CreateInstance(Env);
+            var catalog = Env.ComponentCatalog;
             var graph = new EntryPointGraph(Env, catalog, graphJson[FieldNames.Nodes] as JArray);
             // Test if ToJson() works properly.
             var nodes = new JArray(graph.AllNodes.Select(node => node.ToJson()));
@@ -293,7 +300,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 }";
 
             JObject graphJson = JObject.Parse(inputGraph);
-            var catalog = ModuleCatalog.CreateInstance(Env);
+            var catalog = Env.ComponentCatalog;
             var runner = new GraphRunner(Env, catalog, graphJson[FieldNames.Nodes] as JArray);
             runner.SetInput("TrainingData", datasetTrain);
             runner.SetInput("TestingData", datasetTest);
@@ -377,7 +384,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 }";
 
             JObject graphJson = JObject.Parse(inputGraph);
-            var catalog = ModuleCatalog.CreateInstance(Env);
+            var catalog = Env.ComponentCatalog;
             var runner = new GraphRunner(Env, catalog, graphJson[FieldNames.Nodes] as JArray);
             runner.SetInput("TrainingData", datasetTrain);
             runner.SetInput("TestingData", datasetTest);
@@ -461,7 +468,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 }";
 
             JObject graph = JObject.Parse(inputGraph);
-            var catalog = ModuleCatalog.CreateInstance(Env);
+            var catalog = Env.ComponentCatalog;
 
             var runner = new GraphRunner(Env, catalog, graph[FieldNames.Nodes] as JArray);
             runner.SetInput("TrainingData", datasetTrain);
@@ -545,7 +552,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 }";
 
             JObject graph = JObject.Parse(inputGraph);
-            var catalog = ModuleCatalog.CreateInstance(Env);
+            var catalog = Env.ComponentCatalog;
 
             var runner = new GraphRunner(Env, catalog, graph[FieldNames.Nodes] as JArray);
             runner.SetInput("TrainingData", datasetTrain);

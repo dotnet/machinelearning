@@ -7,14 +7,12 @@ using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.FactorizationMachine;
 using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Training;
-using Microsoft.ML.StaticPipe;
 using Microsoft.ML.StaticPipe.Runtime;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Microsoft.ML.Trainers
+namespace Microsoft.ML.StaticPipe
 {
     /// <summary>
     /// Extension methods and utilities for instantiating FFM trainer estimators inside statically typed pipelines.
@@ -59,10 +57,10 @@ namespace Microsoft.ML.Trainers
                 var trainer = new FieldAwareFactorizationMachineTrainer(env, labelCol, featureCols, advancedSettings:
                     args =>
                     {
+                        advancedSettings?.Invoke(args);
                         args.LearningRate = learningRate;
                         args.Iters = numIterations;
                         args.LatentDim = numLatentDimensions;
-                        advancedSettings?.Invoke(args);
                     });
                 if (onFit != null)
                     return trainer.WithOnFitDelegate(trans => onFit(trans.Model));

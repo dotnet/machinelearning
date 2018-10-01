@@ -22,12 +22,12 @@ namespace Microsoft.ML.Runtime.Learners
         [Argument(ArgumentType.AtMostOnce, HelpText = "Learning rate", ShortName = "lr", SortOrder = 50)]
         [TGUI(Label = "Learning rate", SuggestedSweeps = "0.01,0.1,0.5,1.0")]
         [TlcModule.SweepableDiscreteParam("LearningRate", new object[] { 0.01, 0.1, 0.5, 1.0 })]
-        public Float LearningRate = 1;
+        public Float LearningRate = AveragedDefaultArgs.LearningRate;
 
         [Argument(ArgumentType.AtMostOnce, HelpText = "Decrease learning rate", ShortName = "decreaselr", SortOrder = 50)]
         [TGUI(Label = "Decrease Learning Rate", Description = "Decrease learning rate as iterations progress")]
         [TlcModule.SweepableDiscreteParam("DecreaseLearningRate", new object[] { false, true })]
-        public bool DecreaseLearningRate = false;
+        public bool DecreaseLearningRate = AveragedDefaultArgs.DecreaseLearningRate;
 
         [Argument(ArgumentType.AtMostOnce, HelpText = "Number of examples after which weights will be reset to the current average", ShortName = "numreset")]
         public long? ResetWeightsAfterXExamples = null;
@@ -38,7 +38,7 @@ namespace Microsoft.ML.Runtime.Learners
         [Argument(ArgumentType.AtMostOnce, HelpText = "L2 Regularization Weight", ShortName = "reg", SortOrder = 50)]
         [TGUI(Label = "L2 Regularization Weight")]
         [TlcModule.SweepableFloatParam("L2RegularizerWeight", 0.0f, 0.4f)]
-        public Float L2RegularizerWeight = 0;
+        public Float L2RegularizerWeight = AveragedDefaultArgs.L2RegularizerWeight;
 
         [Argument(ArgumentType.AtMostOnce, HelpText = "Extra weight given to more recent updates", ShortName = "rg")]
         public Float RecencyGain = 0;
@@ -51,6 +51,13 @@ namespace Microsoft.ML.Runtime.Learners
 
         [Argument(ArgumentType.AtMostOnce, HelpText = "The inexactness tolerance for averaging", ShortName = "avgtol")]
         public Float AveragedTolerance = (Float)1e-2;
+
+        internal class AveragedDefaultArgs : OnlineDefaultArgs
+        {
+            internal const Float LearningRate = 1;
+            internal const bool DecreaseLearningRate = false;
+            internal const Float L2RegularizerWeight = 0;
+        }
     }
 
     public abstract class AveragedLinearTrainer<TTransformer, TModel> : OnlineLinearTrainer<TTransformer, TModel>

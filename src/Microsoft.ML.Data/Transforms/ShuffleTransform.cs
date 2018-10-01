@@ -71,7 +71,8 @@ namespace Microsoft.ML.Runtime.Data
                 verWrittenCur: 0x00010002, // Force shuffle source saving
                 verReadableCur: 0x00010002,
                 verWeCanReadBack: 0x00010002,
-                loaderSignature: LoaderSignature);
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(ShuffleTransform).Assembly.FullName);
         }
 
         private const string RegistrationName = "Shuffle";

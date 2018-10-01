@@ -660,7 +660,8 @@ namespace Microsoft.ML.Runtime.Data
                     verWrittenCur: 0x00010001, // Initial
                     verReadableCur: 0x00010001,
                     verWeCanReadBack: 0x00010001,
-                    loaderSignature: LoaderSignature);
+                    loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(Transformer).Assembly.FullName);
             }
         }
 
@@ -704,9 +705,13 @@ namespace Microsoft.ML.Runtime.Data
     /// </summary>
     public static class TextFeaturizerStaticPipe
     {
-        public static Vector<float> FeaturizeText(this Scalar<string> input, params Scalar<string>[] otherInputs)
-            => input.FeaturizeText(otherInputs, null);
-
+        /// <summary>
+        /// Accept text data and converts it to array which represent combinations of ngram/skip-gram token counts.
+        /// </summary>
+        /// <param name="input">Input data.</param>
+        /// <param name="otherInputs">Additional data.</param>
+        /// <param name="advancedSettings">Delegate which allows you to set transformation settings.</param>
+        /// <returns></returns>
         public static Vector<float> FeaturizeText(this Scalar<string> input, Scalar<string>[] otherInputs = null, Action<TextTransform.Settings> advancedSettings = null)
         {
             Contracts.CheckValue(input, nameof(input));

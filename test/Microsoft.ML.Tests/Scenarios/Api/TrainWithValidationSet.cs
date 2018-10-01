@@ -40,7 +40,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                 var cachedValid = new CacheDataView(env, validData, prefetch: null);
 
                 // Train.
-                var trainer = new FastTreeBinaryClassificationTrainer(env, DefaultColumnNames.Label, DefaultColumnNames.Features, advancedSettings:s => { s.NumTrees = 3; });
+                var trainer = new FastTreeBinaryClassificationTrainer(env, DefaultColumnNames.Label, DefaultColumnNames.Features, numTrees: 3);
                 var trainRoles = new RoleMappedData(cachedTrain, label: "Label", feature: "Features");
                 var validRoles = new RoleMappedData(cachedValid, label: "Label", feature: "Features");
                 trainer.Train(new Runtime.TrainContext(trainRoles, validRoles));
