@@ -9,6 +9,7 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime;
+using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Internal.Utilities;
 
 namespace Microsoft.ML.StaticPipe.Runtime
@@ -58,6 +59,7 @@ namespace Microsoft.ML.StaticPipe.Runtime
             private sealed class AKey<T> : Key<T> { public AKey(Rec rec) : base(rec, null) { } }
             private sealed class AKey<T, TV> : Key<T, TV> { public AKey(Rec rec) : base(rec, null) { } }
             private sealed class AVarKey<T> : VarKey<T> { public AVarKey(Rec rec) : base(rec, null) { } }
+            private sealed class ACustom<T> : Custom<T> { public ACustom(Rec rec) : base(rec, null) { } }
 
             private static PipelineColumn MakeScalar<T>(Rec rec) => new AScalar<T>(rec);
             private static PipelineColumn MakeVector<T>(Rec rec) => new AVector<T>(rec);
@@ -66,6 +68,7 @@ namespace Microsoft.ML.StaticPipe.Runtime
             private static PipelineColumn MakeKey<T>(Rec rec) => new AKey<T>(rec);
             private static Key<T, TV> MakeKey<T, TV>(Rec rec) => new AKey<T, TV>(rec);
             private static PipelineColumn MakeVarKey<T>(Rec rec) => new AVarKey<T>(rec);
+            private static PipelineColumn MakeCustom<T>(Rec rec) => new ACustom<T>(rec);
 
             private static MethodInfo[] _valueTupleCreateMethod = InitValueTupleCreateMethods();
 
@@ -75,7 +78,7 @@ namespace Microsoft.ML.StaticPipe.Runtime
                 var methods = typeof(ValueTuple).GetMethods()
                     .Where(m => m.Name == methodName && m.ContainsGenericParameters)
                     .OrderBy(m => m.GetGenericArguments().Length).Take(7)
-                    .Append(typeof(AnalyzeUtil).GetMethod(nameof(UnstructedCreate))).ToArray();
+                    .ToArray().AppendElement(typeof(AnalyzeUtil).GetMethod(nameof(UnstructedCreate)));
                 return methods;
             }
 
@@ -120,6 +123,8 @@ namespace Microsoft.ML.StaticPipe.Runtime
                         }
                         if (genT == typeof(VarKey<>))
                             return Utils.MarshalInvoke(MakeVector<int>, genP[0], rec);
+                        if (genT== typeof(Custom<>))
+                            return Utils.MarshalInvoke(MakeCustom<int>, genP[0], rec);
                     }
                     throw Contracts.Except($"Type {t} is a {nameof(PipelineColumn)} yet does not appear to be directly one of " +
                         $"the official types. This is commonly due to a mistake by the component author and can be addressed by " +

@@ -62,10 +62,6 @@ Log-loss:           0.244241 (0.0864)
 Log-loss reduction: 77.528944 (7.9330)
 
 ---------------------------------------
-Warning: There is no NA value for type 'Text'. The missing key value will be mapped to the default value of 'Text'
-Warning: There is no NA value for type 'Text'. The missing key value will be mapped to the default value of 'Text'
-Warning: There is no NA value for type 'Text'. The missing key value will be mapped to the default value of 'Text'
-Warning: There is no NA value for type 'Text'. The missing key value will be mapped to the default value of 'Text'
 Physical memory usage(MB): %Number%
 Virtual memory usage(MB): %Number%
 %DateTime%	 Time elapsed(s): %Number%

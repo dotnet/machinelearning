@@ -427,9 +427,9 @@ namespace Microsoft.ML.Transforms.Text
     {
         private sealed class OutPipelineColumn : Vector<float>
         {
-            public readonly VarVector<Key<uint, string>> Input;
+            public readonly PipelineColumn Input;
 
-            public OutPipelineColumn(VarVector<Key<uint, string>> input,
+            public OutPipelineColumn(PipelineColumn input,
                 int ngramLength,
                 int skipLength,
                 bool allLengths,
@@ -497,7 +497,7 @@ namespace Microsoft.ML.Transforms.Text
         /// <param name="allLengths">Whether to include all ngram lengths up to <paramref name="ngramLength"/> or only <paramref name="ngramLength"/>.</param>
         /// <param name="maxNumTerms">Maximum number of ngrams to store in the dictionary.</param>
         /// <param name="weighting">Statistical measure used to evaluate how important a word is to a document in a corpus.</param>
-        public static Vector<float> ToNgrams(this VarVector<Key<uint,string>> input,
+        public static Vector<float> ToNgrams<TKey>(this VarVector<Key<TKey, string>> input,
             int ngramLength = 1,
             int skipLength = 0,
             bool allLengths = true,

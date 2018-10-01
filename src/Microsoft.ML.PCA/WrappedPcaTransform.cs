@@ -104,7 +104,8 @@ namespace Microsoft.ML.Runtime.Data
             }
         }
 
-        /// <include file='doc.xml' path='doc/members/member[@name="Whitening"]/*'/>
+        /// <summary>Replace current vector with its principal components. Can significantly reduce size of vector.</summary>
+        /// <include file='doc.xml' path='doc/members/member[@name="PCA"]/*'/>
         /// <param name="input">The column to apply PCA to.</param>
         /// <param name="rank">The number of components in the PCA.</param>
         /// <param name="advancedSettings">A delegate to apply all the advanced arguments to the algorithm.</param>

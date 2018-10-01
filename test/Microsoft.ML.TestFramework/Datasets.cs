@@ -600,15 +600,15 @@ namespace Microsoft.ML.Runtime.RunTests
         public static TestDataset mnist28 = new TestDataset()
         {
             name = "mnist28",
-            trainFilename = @"..\MNIST\Train-28x28.txt",
-            testFilename = @"..\MNIST\Test-28x28.txt"
+            trainFilename = @"Train-28x28.txt",
+            testFilename = @"Test-28x28.txt"
         };
 
         public static TestDataset mnistTiny28 = new TestDataset()
         {
             name = "mnistTiny28",
-            trainFilename = @"..\MNIST\Train-Tiny-28x28.txt",
-            testFilename = @"..\MNIST\Test-Tiny-28x28.txt"
+            trainFilename = @"Train-Tiny-28x28.txt",
+            testFilename = @"Test-Tiny-28x28.txt"
         };
 
         public static TestDataset sampleBingRegression = new TestDataset()
