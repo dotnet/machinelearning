@@ -401,7 +401,7 @@ namespace Microsoft.ML.Scenarios
         ///     outputs = {"Prediction": pred})
         /// </summary>
         [Fact]
-        public void TensorFlowTransformMNISTTemplateTrainingTest()
+        public void TensorFlowTransformMNISTLRTemplateTrainingTest()
         {
             var model_location = GetDataPath("lr_model");
             using (var env = new ConsoleEnvironment(seed: 1, conc: 1))
@@ -513,6 +513,205 @@ namespace Microsoft.ML.Scenarios
             // Cleanup folder so that other test can also use the same model.
             var varDir = Path.Combine(model_location, "variables");
             if(Directory.Exists(varDir))
+                Directory.Delete(varDir, true);
+            var directories = Directory.GetDirectories(model_location, "variables-*");
+            if (directories != null && directories.Length > 0)
+                Directory.Move(directories[0], varDir);
+        }
+
+        /// <summary>
+        /// The following python code was used to create tensorflow model.
+        /// 
+        /// def train_model(dataTrain, labCol, config):
+        ///     print('Training Data Dimensions: (%d,%d)' % (dataTrain.shape[0],dataTrain.shape[1]))
+        ///     colNames = np.array(list(dataTrain))
+        ///     features = np.delete(colNames,labCol)
+        ///     train_X = dataTrain.ix[:, features].values
+        ///     train_X = train_X.reshape(train_X.shape[0], 28,28, 1)
+        ///     train_Y = dataTrain.ix[:,labCol].values.ravel()
+        ///     
+        ///     
+        ///     tf.set_random_seed(1)
+        ///     lr = tf.placeholder(tf.float32, name = "learning_rate")
+        ///     pkeep = tf.placeholder_with_default(1.0, shape=(), name="DropoutProb")
+        ///     features = tf.placeholder(tf.float32, [None, train_X.shape[1], train_X.shape[2], train_X.shape[3]], name="Features")
+        ///     labels = tf.placeholder(tf.int64, [None], "Label")
+        ///     
+        ///     K = 6  # first convolutional layer output depth
+        ///     L = 12  # second convolutional layer output depth
+        ///     M = 24  # third convolutional layer
+        ///     N = 200  # fully connected layer (softmax)
+        /// 
+        ///     W1 = tf.Variable(tf.truncated_normal([6, 6, 1, K], stddev=0.1))  # 6x6 patch, 1 input channel, K output channels
+        ///     B1 = tf.Variable(tf.constant(0.1, tf.float32, [K]))
+        ///     W2 = tf.Variable(tf.truncated_normal([5, 5, K, L], stddev=0.1))
+        ///     B2 = tf.Variable(tf.constant(0.1, tf.float32, [L]))
+        ///     W3 = tf.Variable(tf.truncated_normal([4, 4, L, M], stddev=0.1))
+        ///     B3 = tf.Variable(tf.constant(0.1, tf.float32, [M]))
+        /// 
+        ///     W4 = tf.Variable(tf.truncated_normal([7 * 7 * M, N], stddev=0.1))
+        ///     B4 = tf.Variable(tf.constant(0.1, tf.float32, [N]))
+        /// 
+        ///     W5 = tf.Variable(tf.truncated_normal([N, 10], stddev=0.1))
+        ///     B5 = tf.Variable(tf.constant(0.1, tf.float32, [10]))
+        /// 
+        ///     # The model
+        ///     stride = 1  # output is 28x28
+        ///     Y1 = tf.nn.relu(tf.nn.conv2d(features, W1, strides=[1, stride, stride, 1], padding='SAME') + B1)
+        ///     stride = 2  # output is 14x14
+        ///     Y2 = tf.nn.relu(tf.nn.conv2d(Y1, W2, strides=[1, stride, stride, 1], padding='SAME') + B2)
+        ///     stride = 2  # output is 7x7
+        ///     Y3 = tf.nn.relu(tf.nn.conv2d(Y2, W3, strides=[1, stride, stride, 1], padding='SAME') + B3)
+        /// 
+        ///     # reshape the output from the third convolution for the fully connected layer
+        ///     YY = tf.reshape(Y3, shape=[-1, 7 * 7 * M])
+        /// 
+        ///     Y4 = tf.nn.relu(tf.matmul(YY, W4) + B4)
+        ///     YY4 = tf.nn.dropout(Y4, pkeep)
+        ///     model = tf.matmul(YY4, W5) + B5
+        ///     loss = tf.reduce_mean(tf.nn.sparse_softmax_cross_entropy_with_logits(labels=labels, logits=model), name='Loss')
+        /// 
+        ///     prediction = tf.nn.softmax(model, name = "Prediction")
+        ///     accuracy = tf.reduce_mean( tf.cast(tf.equal( tf.argmax(prediction,1), labels), tf.float32), name = "Accuracy")
+        ///     optimizer = tf.train.MomentumOptimizer(learning_rate=lr, momentum=0.9).minimize(loss, name="MomentumOp")
+        /// 
+        ///     init = tf.global_variables_initializer()
+        ///     # Launch the graph.
+        ///     tfconfig = tf.ConfigProto()
+        ///     tfconfig.gpu_options.allow_growth = True
+        ///     sess = tf.Session(config=tfconfig)
+        ///     #sess = tf.Session()
+        ///     sess.run(init)
+        /// 
+        ///     batch_size =config['batch_size']
+        ///     train_time_sec = 0
+        ///     total_batch = int(train_X.shape[0] / batch_size)
+        ///     for epoch in range(config['epochs']):
+        ///         avg_loss = 0
+        ///         perm = np.arange(train_X.shape[0])
+        ///         np.random.shuffle(perm)
+        ///         train_X = train_X[perm] 
+        ///         train_Y = train_Y[perm] 
+        ///         for batch_idx in range(0, train_X.shape[0], batch_size):
+        ///             X_batch = train_X[batch_idx:batch_idx+batch_size]
+        ///             Y_batch = train_Y[batch_idx:batch_idx+batch_size]
+        ///             t0 = time.time()
+        ///             _, loss_val, acc = sess.run([optimizer, loss, accuracy], feed_dict={features: X_batch, labels: Y_batch, pkeep:0.9, lr:0.01})
+        ///             train_time_sec = train_time_sec + (time.time() - t0)
+        ///             avg_loss += loss_val / total_batch
+        ///         print('Epoch: ', '%04d' % (epoch+1), 'cost (cross-entropy) = %.4f , acc = %.4f' % (avg_loss, acc))
+        /// 
+        ///     tf.saved_model.simple_save(
+        ///        sess,
+        ///        export_dir = "./conv",
+        ///        inputs = {"Features" : features},
+        ///        outputs = {"Prediction": prediction})
+        /// </summary>
+        [Fact]
+        public void TensorFlowTransformMNISTConvTemplateTrainingTest()
+        {
+            var model_location = GetDataPath("mnist_conv_model");
+            using (var env = new ConsoleEnvironment(seed: 1, conc: 1))
+            {
+                var dataPath = GetDataPath("Train-Tiny-28x28.txt");
+                var testDataPath = GetDataPath("MNIST.Test.tiny.txt");
+
+                // Pipeline
+                var loader = TextLoader.ReadFile(env,
+                new TextLoader.Arguments()
+                {
+                    Separator = "tab",
+                    HasHeader = false,
+                    Column = new[]
+                    {
+                        new TextLoader.Column("Label", DataKind.I8,0),
+                        new TextLoader.Column("Placeholder", DataKind.Num,new []{new TextLoader.Range(1, 784) })
+
+                    }
+                }, new MultiFileSource(dataPath));
+
+                IDataView trans = new CopyColumnsTransform(env, 
+                    ("Placeholder", "Features"), ("Label", "LabelOriginal")).Transform(loader);
+
+                var args = new TensorFlowTransform.Arguments()
+                {
+                    Model = model_location,
+                    InputColumns = new[] { "Features" },
+                    OutputColumns = new[] { "Prediction" },
+                    LabeLColumn = "Label",
+                    OptimizationOperation = "MomentumOp",
+                    LossOperation = "Loss",
+                    MetricOperation = "Accuracy",
+                    Epoch = 10,
+                    LearningRateOperation = "learning_rate",
+                    LearningRate = 0.01f,
+                    FeedDictionary = new Dictionary<string, float>()
+                    {
+                        { "DropoutProb", 1.0f }
+                    },
+                    BatchSize = 20,
+                    ReTrain = true
+                };
+
+                var trainedTfDataView = TensorFlowTransform.Create(env, args, trans);
+                trans = new ConcatTransform(env, "Features", "Prediction").Transform(trainedTfDataView);
+                trans = new CopyColumnsTransform(env, ("LabelOriginal", "Label")).Transform(trans);
+                trans = new ConvertTransform(env, trans, DataKind.R4, "Label");
+
+                var trainer = new LightGbmMulticlassTrainer(env, "Label", "Features");
+
+                var cached = new CacheDataView(env, trans, prefetch: null);
+                var trainRoles = new RoleMappedData(cached, label: "Label", feature: "Features");
+
+                var pred = trainer.Train(trainRoles);
+
+                // Get scorer and evaluate the predictions from test data
+                IDataScorerTransform testDataScorer = GetScorer(env, trans, pred, testDataPath);
+                var metrics = Evaluate(env, testDataScorer);
+
+                Assert.Equal(0.74782608695652175, metrics.AccuracyMicro, 2);
+                Assert.Equal(0.608843537414966, metrics.AccuracyMacro, 2);
+
+                // Create prediction engine and test predictions
+                var model = env.CreatePredictionEngine<MNISTData, MNISTPrediction>(testDataScorer);
+
+                var sample1 = new MNISTData()
+                {
+                    Placeholder = new float[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 18, 18, 18, 126, 136, 175, 26,
+                    166, 255, 247, 127, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 30, 36, 94, 154, 170, 253, 253, 253, 253, 253,
+                    225, 172, 253, 242, 195, 64, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 49, 238, 253, 253, 253, 253, 253, 253, 253,
+                    253, 251, 93, 82, 82, 56, 39, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 18, 219, 253, 253, 253, 253, 253, 198,
+                    182, 247, 241, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 80, 156, 107, 253, 253, 205, 11, 0,
+                    43, 154, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 14, 1, 154, 253, 90, 0, 0, 0, 0, 0, 0,
+                    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 139, 253, 190, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 11, 190, 253, 70, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 35, 241, 225, 160, 108, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 81, 240, 253, 253, 119, 25, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 45, 186, 253, 253, 150, 27, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 16, 93, 252, 253, 187, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 249, 253, 249, 64, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 46, 130, 183, 253, 253, 207, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 39, 148, 229, 253, 253, 253, 250, 182, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 24, 114, 221, 253, 253, 253, 253, 201, 78, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 23, 66, 213, 253, 253, 253, 253, 198, 81, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 18, 171, 219, 253, 253, 253, 253, 195, 80, 9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 55, 172, 226, 253, 253, 253, 253, 244, 133, 11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 136, 253, 253, 253, 212, 135, 132, 16, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }
+                };
+
+                var prediction = model.Predict(sample1);
+
+                float max = -1;
+                int maxIndex = -1;
+                for (int i = 0; i < prediction.PredictedLabels.Length; i++)
+                {
+                    if (prediction.PredictedLabels[i] > max)
+                    {
+                        max = prediction.PredictedLabels[i];
+                        maxIndex = i;
+                    }
+                }
+
+                Assert.Equal(5, maxIndex);
+            }
+
+            // This test changes the state of the model.
+            // Cleanup folder so that other test can also use the same model.
+            var varDir = Path.Combine(model_location, "variables");
+            if (Directory.Exists(varDir))
                 Directory.Delete(varDir, true);
             var directories = Directory.GetDirectories(model_location, "variables-*");
             if (directories != null && directories.Length > 0)

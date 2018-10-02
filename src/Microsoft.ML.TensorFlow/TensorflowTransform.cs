@@ -134,9 +134,18 @@ namespace Microsoft.ML.Transforms
             public string SaveOperation = "save/control_dependency";
 
             /// <summary>
+            /// Additional values to feed to the model.
+            /// Currently, its limited to accepting scalar float value.
+            /// Can be used to pass `Dropout probabilities` to the model
+            /// which remain constant through out one training process.
+            /// </summary>
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Additional values to feed to the model.", SortOrder = 14)]
+            public Dictionary<string, float> FeedDictionary = null;
+
+            /// <summary>
             /// Needed for command line to specify if retraining is requested.
             /// </summary>
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Retrain TensorFlow model.", SortOrder = 14)]
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Retrain TensorFlow model.", SortOrder = 15)]
             public bool ReTrain = false;
         }
 
@@ -408,7 +417,9 @@ namespace Microsoft.ML.Transforms
                             if ((rows % args.BatchSize) == 0)
                             {
                                 isDataLeft = false;
-                                (loss, metric) = TrainBatch(inputColIndices, inputsForTraining, srcTensorGetters, fetchList, args);
+                                var (l, m) = TrainBatch(inputColIndices, inputsForTraining, srcTensorGetters, fetchList, args);
+                                loss += l;
+                                metric += m;
                             }
                         }
                         if (isDataLeft)
@@ -416,8 +427,11 @@ namespace Microsoft.ML.Transforms
                             isDataLeft = false;
                             ch.Warning("Not training on the last batch. The batch size is less than {0}.", args.BatchSize);
                         }
-                        ch.Info("Loss: {0}, Metric: {1}", fetchList.Count > 0 ? loss.ToString("#.####") : "None",
-                                fetchList.Count > 1 ? metric.ToString("#.####") : "None");
+                        long numBatches = rows / args.BatchSize;
+                        ch.Info("Iteration: {2}, Avg. Loss: {0}, Avg. Metric: {1}",
+                            fetchList.Count > 0 ? (loss/ numBatches).ToString("#.####") : "None",
+                            fetchList.Count > 1 ? (metric/ numBatches).ToString("#.####") : "None",
+                            epoch);
 
                         ch.Done();
                     }
@@ -440,6 +454,13 @@ namespace Microsoft.ML.Transforms
                 var inputName = inputsForTraining[i];
                 runner.AddInput(inputName, srcTensorGetters[i].GetBufferedBatchTensor());
             }
+
+            // Feed any additional input to the graph
+            foreach (var entry in args.FeedDictionary)
+            {
+                runner.AddInput(entry.Key, new TFTensor(entry.Value));
+            }
+
             if (args.LearningRateOperation != null)
                 runner.AddInput(args.LearningRateOperation, new TFTensor(args.LearningRate));
             runner.AddTarget(args.OptimizationOperation);
