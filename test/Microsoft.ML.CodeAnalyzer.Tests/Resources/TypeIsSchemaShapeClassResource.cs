@@ -126,7 +126,7 @@ namespace Bubba
         public Vector<bool> F2 { private get; set; }
     }
 
-    class Class10 // This is bad since there are two Vector<bool> columns but only one in the constructor.
+    class Class10 // This is bad since there are two Vector<bool> properties but only one present in the constructor.
     {
         public Class10(Scalar<int> f1, Vector<bool> f2)
         {
@@ -139,7 +139,7 @@ namespace Bubba
         public Vector<bool> F3 { get; }
     }
 
-    class Class11 // This is bad since there is one Vector<bool> columns but only one in the constructor.
+    class Class11 // This is bad since there is one Vector<bool> property but two present in the constructor.
     {
         public Class11(Scalar<int> f1, Vector<bool> f2, Vector<bool> f3)
         {

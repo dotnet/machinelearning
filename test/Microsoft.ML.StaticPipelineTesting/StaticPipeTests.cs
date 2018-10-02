@@ -146,11 +146,11 @@ namespace Microsoft.ML.StaticPipelineTesting
 
         private sealed class Obnoxious3<T>
         {
-            public (Scalar<bool> hi, Obnoxious1 my, T friend) Stuff { get; set; }
+            public (Scalar<bool> hi, Obnoxious1 my, T friend) Donut { get; set; }
         }
 
         private static Obnoxious3<T> MakeObnoxious3<T>(Scalar<bool> hi, Obnoxious1 my, T friend)
-            => new Obnoxious3<T>() { Stuff = (hi, my, friend) };
+            => new Obnoxious3<T>() { Donut = (hi, my, friend) };
 
         [Fact]
         public void SimpleTextLoaderObnoxiousTypeTest()
@@ -181,15 +181,15 @@ namespace Microsoft.ML.StaticPipelineTesting
             Helper(schema, "dawg.Biz", TextType.Instance);
             Helper(schema, "dawg.Blam", new VectorType(NumberType.R8, 2));
 
-            Helper(schema, "how.Stuff.hi", BoolType.Instance);
-            Helper(schema, "how.Stuff.my.Foo", TextType.Instance);
-            Helper(schema, "how.Stuff.my.Bar", new VectorType(NumberType.Float, 4));
-            Helper(schema, "how.Stuff.friend.Biz", TextType.Instance);
-            Helper(schema, "how.Stuff.friend.Blam", new VectorType(NumberType.R8, 10));
+            Helper(schema, "how.Donut.hi", BoolType.Instance);
+            Helper(schema, "how.Donut.my.Foo", TextType.Instance);
+            Helper(schema, "how.Donut.my.Bar", new VectorType(NumberType.Float, 4));
+            Helper(schema, "how.Donut.friend.Biz", TextType.Instance);
+            Helper(schema, "how.Donut.friend.Blam", new VectorType(NumberType.R8, 10));
 
             var textData = text.Read(new MultiFileSource(null));
 
-            var est = text.MakeNewEstimator().Append(r => r.how.Stuff.friend.Blam.ConcatWith(r.dawg.Blam));
+            var est = text.MakeNewEstimator().Append(r => r.how.Donut.friend.Blam.ConcatWith(r.dawg.Blam));
             var outData = est.Fit(textData).Transform(textData);
 
             var xfSchema = outData.AsDynamic.Schema;

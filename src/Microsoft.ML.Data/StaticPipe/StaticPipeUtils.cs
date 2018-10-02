@@ -37,8 +37,8 @@ namespace Microsoft.ML.StaticPipe.Runtime
         /// <typeparam name="TIn">The type parameter for the input type to the data reader estimator.</typeparam>
         /// <typeparam name="TDelegateInput">The input type of the input delegate. This might be some object out of
         /// which one can fetch or else retrieve </typeparam>
-        /// <typeparam name="TOutShape"></typeparam>
-        /// <returns></returns>
+        /// <typeparam name="TOutShape">The schema shape type describing the output.</typeparam>
+        /// <returns>The constructed wrapping data reader estimator.</returns>
         public static DataReaderEstimator<TIn, TOutShape, IDataReader<TIn>>
             ReaderEstimatorAnalyzerHelper<TIn, TDelegateInput, TOutShape>(
             IHostEnvironment env,
