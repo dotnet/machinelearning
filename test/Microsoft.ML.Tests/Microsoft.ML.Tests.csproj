@@ -1,5 +1,9 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
+  <PropertyGroup>
+    <AssemblyName>Microsoft.ML.Tests</AssemblyName>
+  </PropertyGroup>
+
   <ItemGroup>
     <Compile Remove="Scenarios\Api\AspirationalExamples.cs" />
   </ItemGroup>
