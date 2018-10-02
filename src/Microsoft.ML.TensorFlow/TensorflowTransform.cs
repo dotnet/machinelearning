@@ -39,7 +39,7 @@ namespace Microsoft.ML.Transforms
     /// <include file='doc.xml' path='doc/members/member[@name="TensorflowTransform"]/*' />
     public sealed class TensorFlowTransform : ITransformer, ICanSaveModel
     {
-        public class Arguments : TransformInputBase
+        public sealed class Arguments : TransformInputBase
         {
             /// <summary>
             /// Location of the TensorFlow model.
