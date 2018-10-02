@@ -150,6 +150,7 @@ enum ConfigValue
     CceFormat = 57        /* Complex conjugate-even */
 };
 
+//Proxy functions to handle variable length arguments in MKL functions.
 EXPORT_API(int) DftiSetValue(void *handle, ConfigParam config_param, ...);
 EXPORT_API(int) DftiCreateDescriptor(void **handle, ConfigValue precision, ConfigValue domain, int dim, ...);
 EXPORT_API(int) DftiComputeForward(void *handle, ...);

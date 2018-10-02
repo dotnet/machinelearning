@@ -13,10 +13,8 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
     /// </summary>
     internal static class FftUtils
     {
-        static FftUtils()
-        {
-            var t = ErrorMessage(0);
-        }
+        //To triger the loading of MKL library since MKL proxy native library depends on it.
+        static FftUtils() => ErrorMessage(0);
 
         private enum ConfigParam
         {

@@ -754,10 +754,8 @@ namespace Microsoft.ML.Runtime.SymSgd
 
         private static unsafe class Native
         {
-            static Native()
-            {
-                var t = ErrorMessage(0);
-            }
+            //To triger the loading of MKL library since MKL proxy native library depends on it.
+            static Native() => ErrorMessage(0);
 
             internal const string DllName = "SymSgdNative";
 
@@ -854,7 +852,6 @@ namespace Microsoft.ML.Runtime.SymSgd
                 DeallocateSequentially((State*)stateGCHandle.AddrOfPinnedObject());
             }
 
-            //Just to trigger Mkl dll load.
             // See: https://software.intel.com/en-us/node/521990
             [System.Security.SuppressUnmanagedCodeSecurity]
             [DllImport("MklImports", EntryPoint = "DftiErrorMessage", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Auto)]

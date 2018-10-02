@@ -5,10 +5,8 @@
     <PackageDescription>Microsoft.ML.TimeSeries contains ML.NET Time Series prediction algorithms. Uses Intel Mkl.</PackageDescription>
   </PropertyGroup>
 
-  <ItemGroup>
-    <Content Include="..\common\CommonPackage.props" Pack="true" PackagePath="build\netstandard2.0\$(MSBuildProjectName).props" />
-    <ProjectReference Include="../Microsoft.ML/Microsoft.ML.nupkgproj" />
-	<ProjectReference Include="../Microsoft.ML.Mkl.Redist/Microsoft.ML.Mkl.Redist.nupkgproj" />
+  <ItemGroup><ProjectReference Include="../Microsoft.ML/Microsoft.ML.nupkgproj" />
+    <ProjectReference Include="../Microsoft.ML.Mkl.Redist/Microsoft.ML.Mkl.Redist.nupkgproj" />
   </ItemGroup>
 
 </Project>

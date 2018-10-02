@@ -53,7 +53,7 @@ while [ "$1" != "" ]; do
         --mkllibrpath)
             shift
             __mkllibrpath=$1
-            ;;			
+            ;;          
         --stripsymbols)
             __strip_argument="-DSTRIP_SYMBOLS=true"
             ;;
