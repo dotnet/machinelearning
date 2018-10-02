@@ -205,11 +205,13 @@ namespace Microsoft.ML.Transforms
             + "shift-invariant kernel.";
 
         public const string LoaderSignature = "RffTransform";
+
         private static VersionInfo GetVersionInfo()
         {
             return new VersionInfo(
                 modelSignature: "RFF FUNC",
-                verWrittenCur: 0x00010001, // Initial
+                //verWrittenCur: 0x00010001, // Initial
+                verWrittenCur: 0x00010002, // Get rid of writing float size in model context
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
                 loaderSignature: LoaderSignature,
@@ -218,14 +220,13 @@ namespace Microsoft.ML.Transforms
 
         private readonly TransformInfo[] _transformInfos;
 
-        private const string RegistrationName = "Rff";
         private static readonly int _cfltAlign = CpuMathUtils.GetVectorAlignment() / sizeof(float);
+
         private static string TestColumnType(ColumnType type)
         {
             if (type.ItemType == NumberType.Float && type.IsKnownSizeVector)
                 return null;
             return "Expected vector of floats with known size";
-
         }
 
         public sealed class ColumnInfo
@@ -236,6 +237,7 @@ namespace Microsoft.ML.Transforms
             public readonly int NewDim;
             public readonly bool UseSin;
             public readonly int? Seed;
+
             /// <summary>
             /// Describes how the transformer handles one column pair.
             /// </summary>
@@ -245,12 +247,12 @@ namespace Microsoft.ML.Transforms
             /// <param name="newDim">The number of random Fourier features to create.</param>
             /// <param name="useSin">Create two features for every random Fourier frequency? (one for cos and one for sin).</param>
             /// <param name="seed">The seed of the random number generator for generating the new features (if unspecified, the global random is used.</param>
-            public ColumnInfo(string input, string output, int newDim, bool useSin, IComponentFactory<float, IFourierDistributionSampler> generator =null, int? seed = null)
+            public ColumnInfo(string input, string output, int newDim, bool useSin, IComponentFactory<float, IFourierDistributionSampler> generator = null, int? seed = null)
             {
                 Contracts.CheckUserArg(newDim > 0, nameof(newDim), "must be positive.");
                 Input = input;
                 Output = output;
-                Generator = generator?? new GaussianFourierSampler.Arguments();
+                Generator = generator ?? new GaussianFourierSampler.Arguments();
                 NewDim = newDim;
                 UseSin = useSin;
                 Seed = seed;
@@ -272,7 +274,7 @@ namespace Microsoft.ML.Transforms
         }
 
         public RffTransform(IHostEnvironment env, IDataView input, ColumnInfo[] columns)
-            : base(Contracts.CheckRef(env, nameof(env)).Register(RegistrationName), GetColumnPairs(columns))
+            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(RffTransform)), GetColumnPairs(columns))
         {
             var avgDistances = GetAvgDistances(columns, input);
             _transformInfos = new TransformInfo[columns.Length];
@@ -311,7 +313,6 @@ namespace Microsoft.ML.Transforms
                 srcCols[i] = srcCol;
                 activeColumns[srcCol] = true;
             }
-            //IVAN: change namespace for ReservoirSamplerWithReplacement.
             var reservoirSamplers = new ReservoirSamplerWithReplacement<VBuffer<float>>[columns.Length];
             using (var cursor = input.GetRowCursor(col => activeColumns[col]))
             {
@@ -438,7 +439,7 @@ namespace Microsoft.ML.Transforms
         }
 
         // Factory method for SignatureDataTransform.
-        public static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
+        private static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(args, nameof(args));
@@ -452,7 +453,6 @@ namespace Microsoft.ML.Transforms
                 for (int i = 0; i < cols.Length; i++)
                 {
                     var item = args.Column[i];
-
                     cols[i] = new ColumnInfo(item.Source,
                         item.Name,
                         item.NewDim ?? args.NewDim,
@@ -468,7 +468,7 @@ namespace Microsoft.ML.Transforms
         private static RffTransform Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
-            var host = env.Register(RegistrationName);
+            var host = env.Register(nameof(RffTransform));
 
             host.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel(GetVersionInfo());
@@ -484,10 +484,8 @@ namespace Microsoft.ML.Transforms
             ctx.CheckAtModel();
             ctx.SetVersionInfo(GetVersionInfo());
             // *** Binary format ***
-            // int: sizeof(float)
             // <base>
             // transformInfos
-            ctx.Writer.Write(sizeof(float));
             SaveColumns(ctx);
             for (int i = 0; i < _transformInfos.Length; i++)
                 _transformInfos[i].Save(ctx, string.Format("MatrixGenerator{0}", i));
@@ -501,6 +499,7 @@ namespace Microsoft.ML.Transforms
             private readonly int[] _srcCols;
             private readonly ColumnType[] _types;
             private readonly RffTransform _parent;
+
             public Mapper(RffTransform parent, ISchema inputSchema)
                : base(parent.Host.Register(nameof(Mapper)), parent, inputSchema)
             {
@@ -539,6 +538,7 @@ namespace Microsoft.ML.Transforms
                     return GetterFromVectorType(input, iinfo);
                 return GetterFromFloatType(input, iinfo);
             }
+
             private ValueGetter<VBuffer<float>> GetterFromVectorType(IRow input, int iinfo)
             {
                 var getSrc = input.GetGetter<VBuffer<float>>(_srcCols[iinfo]);
@@ -573,6 +573,7 @@ namespace Microsoft.ML.Transforms
                         TransformFeatures(ref oneDimensionalVector, ref dst, _parent._transformInfos[iinfo], featuresAligned, productAligned);
                     };
             }
+
             private void TransformFeatures(ref VBuffer<float> src, ref VBuffer<float> dst, TransformInfo transformInfo,
                 AlignedArray featuresAligned, AlignedArray productAligned)
             {
@@ -626,6 +627,9 @@ namespace Microsoft.ML.Transforms
         }
     }
 
+    /// <summary>
+    /// Estimator which takes set of vector columns and maps its input to a random low-dimensional feature space.
+    /// </summary>
     public sealed class RffEstimator : IEstimator<RffTransform>
     {
         public static class Defaults
@@ -636,6 +640,20 @@ namespace Microsoft.ML.Transforms
 
         private readonly IHost _host;
         private readonly RffTransform.ColumnInfo[] _columns;
+
+        /// <summary>
+        /// Convinence constructor for simple one column case
+        /// </summary>
+        /// <param name="env">Host Environment.</param>
+
+        /// <param name="inputColumn">Name of the output column.</param>
+        /// <param name="outputColumn">Name of the column to be transformed. If this is null '<paramref name="inputColumn"/>' will be used.</param>
+        /// <param name="newDim">The number of random Fourier features to create.</param>
+        /// <param name="useSin">Create two features for every random Fourier frequency? (one for cos and one for sin).</param>
+        public RffEstimator(IHostEnvironment env, string inputColumn, string outputColumn = null, int newDim = Defaults.NewDim, bool useSin = Defaults.UseSin)
+            : this(env, new RffTransform.ColumnInfo(inputColumn, outputColumn ?? inputColumn, newDim, useSin))
+        {
+        }
 
         public RffEstimator(IHostEnvironment env, params RffTransform.ColumnInfo[] columns)
         {
