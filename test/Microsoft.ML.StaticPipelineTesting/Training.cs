@@ -749,5 +749,42 @@ namespace Microsoft.ML.StaticPipelineTesting
             Assert.InRange(metrics.Ndcg[1], 36.5, 37);
             Assert.InRange(metrics.Ndcg[2], 36.5, 37);
         }
+
+        [Fact]
+        public void MultiClassNaiveBayesTrainer()
+        {
+            var env = new ConsoleEnvironment(seed: 0);
+            var dataPath = GetDataPath(TestDatasets.iris.trainFilename);
+            var dataSource = new MultiFileSource(dataPath);
+
+            var ctx = new MulticlassClassificationContext(env);
+            var reader = TextLoader.CreateReader(env,
+                c => (label: c.LoadText(0), features: c.LoadFloat(1, 4)));
+
+            MultiClassNaiveBayesPredictor pred = null;
+
+            // With a custom loss function we no longer get calibrated predictions.
+            var est = reader.MakeNewEstimator()
+                .Append(r => (label: r.label.ToKey(), r.features))
+                .Append(r => (r.label, preds: ctx.Trainers.MultiClassNaiveBayesTrainer(
+                    r.label,
+                    r.features, onFit: p => pred = p)));
+
+            var pipe = reader.Append(est);
+
+            Assert.Null(pred);
+            var model = pipe.Fit(dataSource);
+            Assert.NotNull(pred);
+            var data = model.Read(dataSource);
+
+            // Just output some data on the schema for fun.
+            var schema = data.AsDynamic.Schema;
+            for (int c = 0; c < schema.ColumnCount; ++c)
+                Console.WriteLine($"{schema.GetColumnName(c)}, {schema.GetColumnType(c)}");
+
+            var metrics = ctx.Evaluate(data, r => r.label, r => r.preds, 2);
+            Assert.True(metrics.LogLoss > 0);
+            Assert.True(metrics.TopKAccuracy > 0);
+        }
     }
 }
