@@ -70,14 +70,6 @@ namespace Microsoft.ML.Runtime.RunTests
         }
     }
 
-    public sealed partial class TestTimeSeries : TestDataPipeBase
-    {
-        public TestTimeSeries(ITestOutputHelper helper)
-                    : base(helper)
-        {
-        }
-    }
-
     public sealed partial class TestExceptionPropagation : TestDataViewBase
     {
         public TestExceptionPropagation(ITestOutputHelper helper)

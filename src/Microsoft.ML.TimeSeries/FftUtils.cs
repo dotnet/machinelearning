@@ -13,7 +13,10 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
     /// </summary>
     internal static class FftUtils
     {
-        static FftUtils() => VsSqrt(0, null, null);
+        static FftUtils()
+        {
+            var t = ErrorMessage(0);
+        }
 
         private enum ConfigParam
         {
@@ -197,17 +200,14 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
         private static extern int ComputeBackward(IntPtr desc, [In] float[] inputRe, [In] float[] inputIm, [Out] float[] outputRe, [Out] float[] outputIm);
 
         // See: https://software.intel.com/en-us/node/521990
-        [DllImport(DllName, EntryPoint = "DftiErrorMessage")]
-        private static extern byte[] ErrorMessage(int status);
-
-        //Just to trigger Mkl dll load.
-        [DllImport(DllName, EntryPoint = "vsSqrt")]
-        private static extern int VsSqrt(int n, float[] a, float[] b);
+        [System.Security.SuppressUnmanagedCodeSecurity]
+        [DllImport(DllName, EntryPoint = "DftiErrorMessage", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Auto)]
+        private static extern IntPtr ErrorMessage(int status);
 
         private static void CheckStatus(int status)
         {
             if (status != 0)
-                throw Contracts.Except(System.Text.Encoding.Default.GetString(ErrorMessage(status)));
+                throw Contracts.Except(Marshal.PtrToStringAnsi(ErrorMessage(status)));
         }
 
         /// <summary>

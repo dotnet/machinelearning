@@ -3750,7 +3750,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 });
         }
 
-        [Fact]
+        [Fact(Skip = "TEMP: Missing MKL Binary.")]
         public void EntryPointSsaChangePoint()
         {
             TestEntryPointPipelineRoutine(GetDataPath(Path.Combine("Timeseries", "A4Benchmark-TS1.csv")), "sep=, col=Features:R4:1 header=+",
@@ -3803,7 +3803,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 });
         }
 
-        [Fact]
+        [Fact(Skip = "TEMP: Missing MKL Binary.")]
         public void EntryPointSsaSpikeDetector()
         {
             TestEntryPointPipelineRoutine(GetDataPath(Path.Combine("Timeseries", "A4Benchmark-TS2.csv")), "sep=, col=Features:R4:1 header=+",

@@ -754,7 +754,10 @@ namespace Microsoft.ML.Runtime.SymSgd
 
         private static unsafe class Native
         {
-            static Native() => VsSqrt(0, null, null);
+            static Native()
+            {
+                var t = ErrorMessage(0);
+            }
 
             internal const string DllName = "SymSgdNative";
 
@@ -852,8 +855,10 @@ namespace Microsoft.ML.Runtime.SymSgd
             }
 
             //Just to trigger Mkl dll load.
-            [DllImport("MklImports", EntryPoint = "vsSqrt")]
-            private static extern int VsSqrt(int n, float[] a, float[] b);
+            // See: https://software.intel.com/en-us/node/521990
+            [System.Security.SuppressUnmanagedCodeSecurity]
+            [DllImport("MklImports", EntryPoint = "DftiErrorMessage", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Auto)]
+            private static extern IntPtr ErrorMessage(int status);
         }
 
         /// <summary>

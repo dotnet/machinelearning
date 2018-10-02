@@ -64,6 +64,11 @@
 
   <Target Name="PreparePackageAssets">
     
+    <!-- Copy MklImports into the native assets folder, so it can be treated like a regularly built native assembly - packaged into our NuGet packages, and used by tests. -->
+    
+    <Copy SourceFiles="$(PackagesDir)mlnetmkldeps\$(MlNetMklDepsPackageVersion)\runtimes\$(PackageRid)\native\$(NativeLibPrefix)MklImports$(NativeLibExtension)"
+          DestinationFolder="$(NativeAssetsBuiltPath)" />	
+	
     <ItemGroup Condition="'$(UseIntrinsics)' != 'true'">
       <NativePackageAsset Include="$(NativeAssetsBuiltPath)\$(NativeLibPrefix)CpuMathNative$(NativeLibExtension)"
                           RelativePath="Microsoft.ML.CpuMath\runtimes\$(PackageRid)\native" />
@@ -84,8 +89,6 @@
                           RelativePath="Microsoft.ML\runtimes\$(PackageRid)\native" />
       <NativePackageAsset Include="$(NativeAssetsBuiltPath)\$(NativeLibPrefix)SymSgdNative$(NativeLibExtension)"
                           RelativePath="Microsoft.ML.HalLearners\runtimes\$(PackageRid)\native" />
-      <NativePackageAsset Include="$(NativeAssetsBuiltPath)\$(NativeLibPrefix)MklProxyNative$(NativeLibExtension)"
-                          RelativePath="Microsoft.ML.TimeSeries\runtimes\$(PackageRid)\native" />
     </ItemGroup>
 
     <ItemGroup>
@@ -93,7 +96,16 @@
                                      AND '%(NativePackageAsset.Identity)' != '$(PlaceholderFile)'"
                           Include="@(NativePackageAsset->'%(RootDir)%(Directory)%(Filename)$(NativeLibSymbolExtension)')" />
     </ItemGroup>
-    
+	
+    <ItemGroup>
+      <NativePackageAsset Include="$(NativeAssetsBuiltPath)\$(NativeLibPrefix)MklProxyNative$(NativeLibExtension)"
+                          RelativePath="Microsoft.ML.Mkl.Redist\runtimes\$(PackageRid)\native" /> 
+
+	  <NativePackageAsset Include="$(NativeAssetsBuiltPath)\$(NativeLibPrefix)MklImports$(NativeLibExtension)"
+                          RelativePath="Microsoft.ML.Mkl.Redist\runtimes\$(PackageRid)\native" /> 
+						  
+    </ItemGroup>
+	
     <Copy SourceFiles="@(NativePackageAsset)"
           DestinationFolder="$(PackageAssetsPath)%(NativePackageAsset.RelativePath)" />
 
