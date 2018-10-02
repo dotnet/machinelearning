@@ -1,9 +1,13 @@
+resources:
+  containers:
+  - container: LinuxContainer
+    image: microsoft/dotnet-buildtools-prereqs:centos-7-d485f41-20173404063424
+
 phases:
 ################################################################################
 - phase: Linux
 ################################################################################
   variables:
-    _PREVIEW_VSTS_DOCKER_IMAGE: microsoft/dotnet-buildtools-prereqs:centos-7-d485f41-20173404063424
     BuildConfig: Release
     OfficialBuildId: $(BUILD.BUILDNUMBER)
     DOTNET_CLI_TELEMETRY_OPTOUT: 1
@@ -13,6 +17,7 @@ phases:
     name: DotNet-Build
     demands:
     - agent.os -equals linux
+    container: LinuxContainer
   steps:
   - script: ./build.sh -buildNative -$(BuildConfig)
     displayName: Build

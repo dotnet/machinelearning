@@ -1,9 +1,16 @@
+resources:
+  containers:
+  - container: LinuxContainer
+    image: microsoft/dotnet-buildtools-prereqs:centos-7-d485f41-20173404063424
+
 phases:
 - template: /build/ci/phase-template.yml
   parameters:
     name: Linux
     buildScript: ./build.sh
-    dockerImage: microsoft/dotnet-buildtools-prereqs:centos-7-b46d863-20180719033416
+    queue:
+      name: Hosted Ubuntu 1604
+      container: LinuxContainer
 
 - template: /build/ci/phase-template.yml
   parameters:
