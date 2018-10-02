@@ -9,7 +9,7 @@ phases:
     name: Linux
     buildScript: ./build.sh
     queue:
-      name: Hosted Ubuntu 1604
+      name: dnceng-linux-external-temp
       container: LinuxContainer
 
 - template: /build/ci/phase-template.yml
