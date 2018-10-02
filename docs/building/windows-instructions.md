@@ -46,7 +46,7 @@ First, set up the required tools, from a (non-admin) Command Prompt window:
 
 - `build.cmd` - sets up tools and builds the assemblies
 
-After successfully running the command, the project can be build directly from the Visual Studio IDE. Tests can be executed from the VS Test Explorer or command line.
+After successfully running the command, the project can be built directly from the Visual Studio IDE. Tests can be executed from the VS Test Explorer or command line.
 
 ### Building From the Command Line
 
