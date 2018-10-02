@@ -72,11 +72,11 @@ var reader = TextLoader.CreateReader(env, ctx => (
         separator: ',',
         hasHeader: true);
 var data = reader.Read(new MultiFileSource(dataPath));
-var regression = new RegressionContext(env);
+var classification = new MulticlassClassificationContext(env);
 var learningPipeline = reader.MakeNewEstimator()
     .Append(r => (
-    r.SentimentText,
-    Prediction: regression.Trainers.Sdca(label: r.SentimentText, features: r.FeatureVector.Normalize())));
+    r.Target,
+    Prediction: classification.Trainers.Sdca(r.Target.ToKey(), r.FeatureVector)));
 var model = learningPipeline.Fit(data);
 
 ```
@@ -91,7 +91,7 @@ var prediction = predictionFunc.Predict(new SentimentData
 };
 Console.WriteLine("prediction: " + prediction.Sentiment);
 ```
-For a complete CookBook of the new API you can check [here](docs/code/MlNetCookBook.md)
+A cookbook that shows how to use these APIs for a variety of existing and new scenarios can be found [here](docs/code/MlNetCookBook.md).
 
 
 ## Samples
