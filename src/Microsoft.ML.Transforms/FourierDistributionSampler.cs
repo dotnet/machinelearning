@@ -9,6 +9,7 @@ using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
+using Microsoft.ML.Runtime.EntryPoints;
 
 [assembly: LoadableClass(typeof(GaussianFourierSampler), typeof(GaussianFourierSampler.Arguments), typeof(SignatureFourierDistributionSampler),
     "Gaussian Kernel", GaussianFourierSampler.LoadName, "Gaussian")]
@@ -37,14 +38,20 @@ namespace Microsoft.ML.Runtime.Data
         Float Next(IRandom rand);
     }
 
+    [TlcModule.ComponentKind("FourierDistributionSampler")]
+    public interface IFourierDistributionSamplerFactory : IComponentFactory<float, IFourierDistributionSampler>
+    {
+    }
     public sealed class GaussianFourierSampler : IFourierDistributionSampler
     {
         private readonly IHost _host;
 
-        public class Arguments
+        public class Arguments: IFourierDistributionSamplerFactory
         {
             [Argument(ArgumentType.AtMostOnce, HelpText = "gamma in the kernel definition: exp(-gamma*||x-y||^2 / r^2). r is an estimate of the average intra-example distance", ShortName = "g")]
             public Float Gamma = 1;
+
+            public IFourierDistributionSampler CreateComponent(IHostEnvironment env, float avgDist) => new GaussianFourierSampler(env, this, avgDist);
         }
 
         public const string LoaderSignature = "RandGaussFourierExec";
@@ -118,10 +125,12 @@ namespace Microsoft.ML.Runtime.Data
 
     public sealed class LaplacianFourierSampler : IFourierDistributionSampler
     {
-        public class Arguments
+        public class Arguments : IFourierDistributionSamplerFactory
         {
             [Argument(ArgumentType.AtMostOnce, HelpText = "a in the term exp(-a|x| / r). r is an estimate of the average intra-example L1 distance")]
             public Float A = 1;
+
+            public IFourierDistributionSampler CreateComponent(IHostEnvironment env, float avgDist) => new LaplacianFourierSampler(env, this, avgDist);
         }
 
         private static VersionInfo GetVersionInfo()
