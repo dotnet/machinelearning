@@ -18,7 +18,7 @@ Along with these ML capabilities this first release of ML.NET also brings the fi
 
 ML.NET runs on Windows, Linux, and macOS - any platform where 64 bit [.NET Core](https://github.com/dotnet/core) or later is available.
 
-The current release is 0.5. Check out the [release notes](docs/release-notes/0.5/release-0.5.md).
+The current release is 0.6. Check out the [release notes](docs/release-notes/0.6/release-0.6.md).
 
 First ensure you have installed [.NET Core 2.0](https://www.microsoft.com/net/learn/get-started) or later. ML.NET also works on the .NET Framework. Note that ML.NET currently must run in a 64 bit process.
 
@@ -62,28 +62,38 @@ For more information, see the [.NET Foundation Code of Conduct](https://dotnetfo
 ## Examples
 
 Here's an example of code to train a model to predict sentiment from text samples. 
-(You can see the complete sample [here](test/Microsoft.ML.Tests/Scenarios/SentimentPredictionTests.cs)):
+(You can find a sample of the legacy API [here](test/Microsoft.ML.Tests/Scenarios/SentimentPredictionTests.cs)):
 
 ```C#
-var pipeline = new LearningPipeline();
-pipeline.Add(new TextLoader(dataPath).CreateFrom<SentimentData>(separator: ','));
-pipeline.Add(new TextFeaturizer("Features", "SentimentText"));
-pipeline.Add(new FastTreeBinaryClassifier());
-var model = pipeline.Train<SentimentData, SentimentPrediction>();
+var env = new LocalEnvironment();
+var reader = TextLoader.CreateReader(env, ctx => (
+        Target: ctx.LoadFloat(2),
+        FeatureVector: ctx.LoadFloat(3, 6)),
+        separator: ',',
+        hasHeader: true);
+var data = reader.Read(new MultiFileSource(dataPath));
+var regression = new RegressionContext(env);
+var learningPipeline = reader.MakeNewEstimator()
+    .Append(r => (
+    r.SentimentText,
+    Prediction: regression.Trainers.Sdca(label: r.SentimentText, features: r.FeatureVector.Normalize())));
+var model = learningPipeline.Fit(data);
+
 ```
 
 Now from the model we can make inferences (predictions):
 
 ```C#
-SentimentData data = new SentimentData
+var predictionFunc = model.MakePredictionFunction<SentimentInput, SentimentPrediction>(env);
+var prediction = predictionFunc.Predict(new SentimentData
 {
     SentimentText = "Today is a great day!"
 };
-
-SentimentPrediction prediction = model.Predict(data);
-
 Console.WriteLine("prediction: " + prediction.Sentiment);
 ```
+For a complete CookBook of the new API you can check [here](docs/code/MlNetCookBook.md)
+
+
 ## Samples
 
 We have a [repo of samples](https://github.com/dotnet/machinelearning-samples) that you can look at.
