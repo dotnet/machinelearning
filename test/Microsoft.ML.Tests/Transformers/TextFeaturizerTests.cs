@@ -6,11 +6,11 @@ using Microsoft.ML.StaticPipe;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Data.IO;
 using Microsoft.ML.Runtime.RunTests;
+using Microsoft.ML.Runtime.Tools;
 using Microsoft.ML.Transforms;
 using System.IO;
 using Xunit;
 using Xunit.Abstractions;
-using Microsoft.ML.Runtime.Tools;
 
 namespace Microsoft.ML.Tests.Transformers
 {
@@ -91,7 +91,7 @@ namespace Microsoft.ML.Tests.Transformers
         }
 
         [Fact]
-        public void TokenizeWithSeparator()
+        public void TokenizeWithSeparators()
         {
             string dataPath = GetDataPath("wikipedia-detox-250-line-data.tsv");
             var data = TextLoader.CreateReader(Env, ctx => (
@@ -103,17 +103,14 @@ namespace Microsoft.ML.Tests.Transformers
             var outdata = TakeFilter.Create(Env, est.Fit(data).Transform(data), 4);
             var savedData = new ChooseColumnsTransform(Env, outdata, "words");
 
-
             var saver = new TextSaver(Env, new TextSaver.Arguments { Silent = true });
-
             var outputPath = GetOutputPath("Text", "tokenizedWithSeparators.tsv");
             using (var ch = Env.Start("save"))
             {
-
                 using (var fs = File.Create(outputPath))
                     DataSaverUtils.SaveDataView(ch, saver, savedData, fs, keepHidden: true);
+                ch.Done();
             }
-
             CheckEquality("Text", "tokenizedWithSeparators.tsv");
             Done();
         }
