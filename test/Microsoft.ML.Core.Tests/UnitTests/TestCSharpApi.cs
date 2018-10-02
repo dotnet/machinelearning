@@ -6,6 +6,7 @@ using Microsoft.ML.Legacy.Data;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.TestFramework;
+using Microsoft.ML.Transforms;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -977,9 +978,9 @@ namespace Microsoft.ML.Runtime.RunTests
                 var tfTransformInput = new Legacy.Transforms.TensorFlowScorer
                 {
                     Data = importOutput.Data,
+                    Model = "mnist_model/frozen_saved_model.pb",
                     InputColumns = new[] { "Placeholder" },
                     OutputColumns = new[] { "Softmax" },
-                    ModelFile = "mnist_model/frozen_saved_model.pb"
                 };
                 var tfTransformOutput = experiment.Add(tfTransformInput);
 

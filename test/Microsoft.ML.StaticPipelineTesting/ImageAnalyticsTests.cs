@@ -35,6 +35,11 @@ namespace Microsoft.ML.StaticPipelineTesting
             Assert.Equal(3, vecType.GetDim(0));
             Assert.Equal(8, vecType.GetDim(1));
             Assert.Equal(10, vecType.GetDim(2));
+
+            var readAsImage = TextLoader.CreateReader(env,
+                ctx => ctx.LoadText(0).LoadAsImage());
+            var est = readAsImage.MakeNewEstimator().Append(r => r.AsGrayscale().Resize(10, 8).ExtractPixels());
+            var pipe= readAsImage.Append(est);
         }
     }
 }

@@ -29,7 +29,7 @@ namespace Microsoft.ML.Runtime
         }
 
         private readonly Runtime.IHostEnvironment _env;
-        private readonly ModuleCatalog _catalog;
+        private readonly ComponentCatalog _catalog;
         private readonly List<string> _jsonNodes;
         private readonly JsonSerializer _serializer;
         private readonly SerializationHelper _helper;
@@ -37,7 +37,9 @@ namespace Microsoft.ML.Runtime
         public Experiment(Runtime.IHostEnvironment env)
         {
             _env = env;
-            _catalog = ModuleCatalog.CreateInstance(_env);
+            AssemblyRegistration.RegisterAssemblies(_env);
+
+            _catalog = _env.ComponentCatalog;
             _jsonNodes = new List<string>();
             _serializer = new JsonSerializer();
             _serializer.Converters.Add(new StringEnumConverter());

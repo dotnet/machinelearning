@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Data.StaticPipe;
-using Microsoft.ML.Data.StaticPipe.Runtime;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
@@ -572,26 +570,18 @@ namespace Microsoft.ML.Runtime.Data
             /// </remarks>
             public double[] PerClassLogLoss { get; }
 
-            private static T Fetch<T>(IExceptionContext ectx, IRow row, string name)
-            {
-                if (!row.Schema.TryGetColumnIndex(name, out int col))
-                    throw ectx.Except($"Could not find column '{name}'");
-                T val = default;
-                row.GetGetter<T>(col)(ref val);
-                return val;
-            }
             internal Result(IExceptionContext ectx, IRow overallResult, int topK)
             {
-                double Fetch(string name) => Fetch<double>(ectx, overallResult, name);
-                AccuracyMicro = Fetch(MultiClassClassifierEvaluator.AccuracyMicro);
-                AccuracyMacro = Fetch(MultiClassClassifierEvaluator.AccuracyMacro);
-                LogLoss = Fetch(MultiClassClassifierEvaluator.LogLoss);
-                LogLossReduction = Fetch(MultiClassClassifierEvaluator.LogLossReduction);
+                double FetchDouble(string name) => RowCursorUtils.Fetch<double>(ectx, overallResult, name);
+                AccuracyMicro = FetchDouble(MultiClassClassifierEvaluator.AccuracyMicro);
+                AccuracyMacro = FetchDouble(MultiClassClassifierEvaluator.AccuracyMacro);
+                LogLoss = FetchDouble(MultiClassClassifierEvaluator.LogLoss);
+                LogLossReduction = FetchDouble(MultiClassClassifierEvaluator.LogLossReduction);
                 TopK = topK;
                 if (topK > 0)
-                    TopKAccuracy = Fetch(MultiClassClassifierEvaluator.TopKAccuracy);
+                    TopKAccuracy = FetchDouble(MultiClassClassifierEvaluator.TopKAccuracy);
 
-                var perClassLogLoss = Fetch<VBuffer<double>>(ectx, overallResult, MultiClassClassifierEvaluator.PerClassLogLoss);
+                var perClassLogLoss = RowCursorUtils.Fetch<VBuffer<double>>(ectx, overallResult, MultiClassClassifierEvaluator.PerClassLogLoss);
                 PerClassLogLoss = new double[perClassLogLoss.Length];
                 perClassLogLoss.CopyTo(PerClassLogLoss);
             }
@@ -646,7 +636,8 @@ namespace Microsoft.ML.Runtime.Data
                 verWrittenCur: 0x00010002, // Serialize the class names
                 verReadableCur: 0x00010002,
                 verWeCanReadBack: 0x00010001,
-                loaderSignature: LoaderSignature);
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(MultiClassPerInstanceEvaluator).Assembly.FullName);
         }
 
         private const int AssignedCol = 0;

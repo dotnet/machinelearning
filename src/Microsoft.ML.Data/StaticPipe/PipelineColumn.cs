@@ -5,8 +5,9 @@
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
+using Microsoft.ML.StaticPipe.Runtime;
 
-namespace Microsoft.ML.Data.StaticPipe.Runtime
+namespace Microsoft.ML.StaticPipe
 {
     /// <summary>
     /// This class is used as a type marker for <see cref="IDataView"/> producing structures for use in the statically
@@ -33,7 +34,7 @@ namespace Microsoft.ML.Data.StaticPipe.Runtime
     /// <summary>
     /// For representing a non-key, non-vector <see cref="ColumnType"/>.
     /// </summary>
-    /// <typeparam name="T"></typeparam>
+    /// <typeparam name="T">The scalar item type.</typeparam>
     public abstract class Scalar<T> : PipelineColumn
     {
         protected Scalar(Reconciler reconciler, params PipelineColumn[] dependencies)
@@ -141,4 +142,19 @@ namespace Microsoft.ML.Data.StaticPipe.Runtime
 
         public override string ToString() => $"{nameof(VarKey<T>)}<{typeof(T).Name}>";
     }
+
+    /// <summary>
+    /// For representing a custom <see cref="ColumnType"/>.
+    /// </summary>
+    /// <typeparam name="T">The custom item type.</typeparam>
+    public abstract class Custom<T>: PipelineColumn
+    {
+        protected Custom(Reconciler reconciler, params PipelineColumn[] dependencies)
+            : base(reconciler, dependencies)
+        {
+        }
+
+        public override string ToString() => $"{nameof(Custom<T>)}<{typeof(T).Name}>";
+    }
+
 }

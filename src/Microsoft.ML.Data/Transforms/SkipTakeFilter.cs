@@ -76,7 +76,8 @@ namespace Microsoft.ML.Runtime.Data
                 verWrittenCur: 0x00010001,          // initial
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
-                loaderSignature: LoaderSignature);
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(SkipTakeFilter).Assembly.FullName);
         }
 
         private readonly long _skip;

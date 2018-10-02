@@ -9,7 +9,7 @@ using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 
-namespace Microsoft.ML.Data.StaticPipe.Runtime
+namespace Microsoft.ML.StaticPipe.Runtime
 {
     /// <summary>
     /// A schema shape with names corresponding to a type parameter in one of the typed variants
@@ -195,7 +195,7 @@ namespace Microsoft.ML.Data.StaticPipe.Runtime
             }
             var gt = t.IsGenericType ? t.GetGenericTypeDefinition() : t;
             if (gt != typeof(Scalar<>) && gt != typeof(Key<>) && gt != typeof(Key<,>) && gt != typeof(VarKey<>) &&
-                gt != typeof(Vector<>) && gt != typeof(VarVector<>) && gt != typeof(NormVector<>))
+                gt != typeof(Vector<>) && gt != typeof(VarVector<>) && gt != typeof(NormVector<>) && gt != typeof(Custom<>))
             {
                 throw ectx.ExceptParam(nameof(t),
                     $"Type {t} was not one of the standard subclasses of {nameof(PipelineColumn)}");
