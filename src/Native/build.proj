@@ -40,7 +40,11 @@
           DependsOnTargets="GenerateVersionSourceFile">
     <PropertyGroup>
       <StripArgs Condition="'$(StripNativeSymbols)' == 'True'">--stripSymbols</StripArgs>
-      <BuildArgs>--configuration $(Configuration) --arch $(TargetArchitecture) $(StripArgs) --mkllibpath $(PackagesDir)mlnetmkldeps/$(MlNetMklDepsPackageVersion)/runtimes/$(PackageRid)/native --mkllibrpath ../../../../../Microsoft.ML.Mkl.Redist/$(Version)/runtimes/$(PackageRid)/native</BuildArgs>
+      <!-- mkllibrpath is used as rpath on macOS by binaries such as SymSDGNative and MklProxyNative to locate mkl library.
+           We are shipping 2 native assemblies in different nuget packages, and one has a reference on the other and MacOS needs to have 
+           the rpath in the assembly to where it should load the referenced assembly and since .NET Core can run assemblies out of a NuGet cache, 
+           we need to add the NuGet cache relative location. -->
+      <BuildArgs>--configuration $(Configuration) --arch $(TargetArchitecture) $(StripArgs) --mkllibpath $(PackagesDir)mlnetmkldeps/$(MlNetMklDepsPackageVersion)/runtimes/$(PackageRid)/native --mkllibrpath ../../../../../microsoft.ml.mkl.redist/$(Version)/runtimes/$(PackageRid)/native</BuildArgs>
     </PropertyGroup>
 
     <Message Text="$(MSBuildProjectDirectory)/build.sh $(BuildArgs)" Importance="High"/>
