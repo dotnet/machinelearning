@@ -506,7 +506,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
 
             if (_wTrans != null)
             {
-                // REVIEW saamizad: this may not be the most efficient way for serializing an aligned matrix.
+                // REVIEW: this may not be the most efficient way for serializing an aligned matrix.
                 var tempArray = new Single[_rank * _windowSize];
                 int iv = 0;
                 _wTrans.CopyTo(tempArray, ref iv);
@@ -1146,7 +1146,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
 
             if (updateModel)
             {
-                // REVIEW saamizad: to be implemented in the next version based on the FAPI algorithm
+                // REVIEW: to be implemented in the next version based on the FAPI algorithm
                 // in https://hal-institut-mines-telecom.archives-ouvertes.fr/hal-00479772/file/twocolumns.pdf.
             }
 

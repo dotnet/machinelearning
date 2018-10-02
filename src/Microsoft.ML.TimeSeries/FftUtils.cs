@@ -300,7 +300,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
                     FreeDescriptor(ref descriptor);
             }
 
-            // REVIEW saamizad: for some reason the native backward scaling for DFTI in MKL does not work.
+            // REVIEW: for some reason the native backward scaling for DFTI in MKL does not work.
             // Therefore here, we manually re-scale the output.
             // Ideally, the command
             // status = SetValue(descriptor, ConfigParam.BackwardScale, __arglist(scale));
@@ -402,7 +402,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
                     FreeDescriptor(ref descriptor);
             }
 
-            // REVIEW saamizad: for some reason the native backward scaling for DFTI in MKL does not work.
+            // REVIEW: for some reason the native backward scaling for DFTI in MKL does not work.
             // Therefore here, we manually re-scale the output.
             // Ideally, the command
             // status = SetValue(descriptor, ConfigParam.BackwardScale, __arglist(scale));

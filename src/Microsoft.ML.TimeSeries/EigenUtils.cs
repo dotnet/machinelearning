@@ -1,8 +1,6 @@
-﻿//------------------------------------------------------------------------------
-// <copyright company="Microsoft Corporation">
-//     Copyright (c) Microsoft Corporation. All rights reserved.
-// </copyright>
-//------------------------------------------------------------------------------
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Runtime.InteropServices;
@@ -11,11 +9,11 @@ using Float = System.Single;
 
 namespace Microsoft.ML.Runtime.TimeSeriesProcessing
 {
-    //REVIEW ktran: improve perf with SSE and Multithreading
+    //REVIEW: improve perf with SSE and Multithreading
     public static class EigenUtils
     {
         //Compute the Eigen-decomposition of a symmetric matrix
-        //REVIEW ktran: use matrix/vector operations, not Array Math
+        //REVIEW: use matrix/vector operations, not Array Math
         public static void EigenDecomposition(Float[] a, out Float[] eigenvalues, out Float[] eigenvectors)
         {
             var count = a.Length;
@@ -26,7 +24,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             eigenvalues = new Float[n];
 
             //Reduce A to tridiagonal form
-            //REVIEW ktran: it's not ideal to keep using the same variable name for different purposes
+            //REVIEW: it's not ideal to keep using the same variable name for different purposes
             // - After the operation, "eigenvalues" means the diagonal elements of the reduced matrix
             //and "eigenvectors" means the orthogonal similarity transformation matrix
             // - Consider aliasing variables
