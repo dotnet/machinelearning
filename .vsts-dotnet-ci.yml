@@ -9,7 +9,7 @@ phases:
     name: Linux
     buildScript: ./build.sh
     queue:
-      name: dnceng-linux-external-temp
+      name: DotNetCore-Linux
       container: LinuxContainer
 
 - template: /build/ci/phase-template.yml
