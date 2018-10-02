@@ -15,10 +15,9 @@ using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Internallearn;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
-<<<<<<< HEAD
 using Microsoft.ML.Runtime.Model.Onnx;
-=======
->>>>>>> upstream/master
+using Microsoft.ML.StaticPipe;
+using Microsoft.ML.StaticPipe.Runtime;
 
 [assembly: LoadableClass(WordEmbeddingsTransform.Summary, typeof(IDataTransform), typeof(WordEmbeddingsTransform), typeof(WordEmbeddingsTransform.Arguments),
     typeof(SignatureDataTransform), WordEmbeddingsTransform.UserName, "WordEmbeddingsTransform", WordEmbeddingsTransform.ShortName, DocName = "transform/WordEmbeddingsTransform.md")]
@@ -82,6 +81,8 @@ namespace Microsoft.ML.Runtime.Data
                 verWrittenCur: 0x00010001, //Initial
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(WordEmbeddingsTransform).Assembly.FullName);
         }
 
         private readonly PretrainedModelKind? _modelKind;
