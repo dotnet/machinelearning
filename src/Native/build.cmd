@@ -14,6 +14,7 @@ set __BuildArch=x64
 set __VCBuildArch=x86_amd64
 set CMAKE_BUILD_TYPE=Debug
 set MKL_LIB_PATH=""
+set MKL_LIB_RPATH=""
 
 :Arg_Loop
 if [%1] == [] goto :ToolsVersion
@@ -27,6 +28,7 @@ if /i [%1] == [x64]         ( set __BuildArch=x64&&set __VCBuildArch=x86_amd64&&
 if /i [%1] == [amd64]       ( set __BuildArch=x64&&set __VCBuildArch=x86_amd64&&shift&goto Arg_Loop)
 
 if /i [%1] == [--mkllibpath] ( set MKL_LIB_PATH=%2&&shift&goto Arg_Loop)
+if /i [%1] == [--mkllibrpath] ( set MKL_LIB_RPATH=%2&&shift&goto Arg_Loop)
 
 shift
 goto :Arg_Loop

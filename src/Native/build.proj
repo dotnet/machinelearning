@@ -40,7 +40,7 @@
           DependsOnTargets="GenerateVersionSourceFile">
     <PropertyGroup>
       <StripArgs Condition="'$(StripNativeSymbols)' == 'True'">--stripSymbols</StripArgs>
-      <BuildArgs>--configuration $(Configuration) --arch $(TargetArchitecture) $(StripArgs) --mkllibpath $(PackagesDir)mlnetmkldeps/$(MlNetMklDepsPackageVersion)/runtimes/$(PackageRid)/native</BuildArgs>
+      <BuildArgs>--configuration $(Configuration) --arch $(TargetArchitecture) $(StripArgs) --mkllibpath $(PackagesDir)mlnetmkldeps/$(MlNetMklDepsPackageVersion)/runtimes/$(PackageRid)/native --mkllibrpath mlnetmkldeps/$(MlNetMklDepsPackageVersion)/runtimes/$(PackageRid)/native</BuildArgs>
     </PropertyGroup>
 
     <Message Text="$(MSBuildProjectDirectory)/build.sh $(BuildArgs)" Importance="High"/>
@@ -53,7 +53,7 @@
           DependsOnTargets="GenerateVersionHeader">
           
     <PropertyGroup>
-      <BuildArgs>$(Configuration) $(TargetArchitecture) --mkllibpath $(PackagesDir)mlnetmkldeps\$(MlNetMklDepsPackageVersion)\runtimes\$(PackageRid)\native</BuildArgs>
+      <BuildArgs>$(Configuration) $(TargetArchitecture) --mkllibpath $(PackagesDir)mlnetmkldeps\$(MlNetMklDepsPackageVersion)\runtimes\$(PackageRid)\native --mkllibrpath mlnetmkldeps/$(MlNetMklDepsPackageVersion)/runtimes/$(PackageRid)/native</BuildArgs>
     </PropertyGroup>
 
     <!-- Run script that invokes Cmake to create VS files, and then calls msbuild to compile them -->
