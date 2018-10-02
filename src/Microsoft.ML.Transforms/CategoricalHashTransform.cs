@@ -179,7 +179,7 @@ namespace Microsoft.ML.Runtime.Data
                     args);
             }
         }
-        
+
         private static HashTransformer.Arguments CreateHashFunction(Arguments args, IHost h)
         {
             var hashArgs = new HashTransformer.Arguments
