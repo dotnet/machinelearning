@@ -75,7 +75,7 @@ namespace Microsoft.ML.Tests
             }
         }
 
-        [Fact(Skip = "TEMP: Missing MKL Binary.")]
+        [Fact]
         public void ChangePointDetectionWithSeasonality()
         {
             using (var env = new ConsoleEnvironment(conc: 1))
@@ -111,7 +111,7 @@ namespace Microsoft.ML.Tests
                 var enumerator = output.AsEnumerable<Prediction>(env, true).GetEnumerator();
                 Prediction row = null;
                 List<double> expectedValues = new List<double>() { 0, 0, 0.5, 0, 0, 1, 0.15865526383236372,
-                    0, 0, 2.0000000015037389, 0.011390874461660316, 0, 0, 2.999999994948737, 0.039202668437011035, 0};
+                    0, 0, 1.6069464981555939, 0.05652458872960725, 0, 0, 2.0183047652244568, 0.11021633531076747, 0};
 
                 int index = 0;
                 while (enumerator.MoveNext() && index < expectedValues.Count)
