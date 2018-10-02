@@ -169,32 +169,7 @@ namespace Microsoft.ML.Runtime.Data
                 if (args.HashBits < 1 || args.HashBits >= NumBitsLim)
                     throw h.ExceptUserArg(nameof(args.HashBits), "Number of bits must be between 1 and {0}", NumBitsLim - 1);
 
-                // creating the Hash function
-                var hashArgs = new HashTransformer.Arguments
-                {
-                    HashBits = args.HashBits,
-                    Seed = args.Seed,
-                    Ordered = args.Ordered,
-                    InvertHash = args.InvertHash,
-                    Column = new HashTransformer.Column[args.Column.Length]
-                };
-                for (int i = 0; i < args.Column.Length; i++)
-                {
-                    var column = args.Column[i];
-                    if (!column.TrySanitize())
-                        throw h.ExceptUserArg(nameof(Column.Name));
-                    h.Assert(!string.IsNullOrWhiteSpace(column.Name));
-                    h.Assert(!string.IsNullOrWhiteSpace(column.Source));
-                    hashArgs.Column[i] = new HashTransformer.Column
-                    {
-                        HashBits = column.HashBits,
-                        Seed = column.Seed,
-                        Ordered = column.Ordered,
-                        Name = column.Name,
-                        Source = column.Source,
-                        InvertHash = column.InvertHash,
-                    };
-                }
+                var hashArgs = CreateHashFunction(args, h);
 
                 return CreateTransformCore(
                     args.OutputKind, args.Column,
@@ -203,6 +178,36 @@ namespace Microsoft.ML.Runtime.Data
                     h,
                     args);
             }
+        }
+
+        private static HashTransformer.Arguments CreateHashFunction(Arguments args, IHost h)
+        {
+            var hashArgs = new HashTransformer.Arguments
+            {
+                HashBits = args.HashBits,
+                Seed = args.Seed,
+                Ordered = args.Ordered,
+                InvertHash = args.InvertHash,
+                Column = new HashTransformer.Column[args.Column.Length]
+            };
+            for (int i = 0; i < args.Column.Length; i++)
+            {
+                var column = args.Column[i];
+                if (!column.TrySanitize())
+                    throw h.ExceptUserArg(nameof(Column.Name));
+                h.Assert(!string.IsNullOrWhiteSpace(column.Name));
+                h.Assert(!string.IsNullOrWhiteSpace(column.Source));
+                hashArgs.Column[i] = new HashTransformer.Column
+                {
+                    HashBits = column.HashBits,
+                    Seed = column.Seed,
+                    Ordered = column.Ordered,
+                    Name = column.Name,
+                    Source = column.Source,
+                    InvertHash = column.InvertHash,
+                };
+            }
+            return hashArgs;
         }
 
         private static IDataTransform CreateTransformCore(CategoricalTransform.OutputKind argsOutputKind, OneToOneColumn[] columns,
