@@ -52,66 +52,6 @@ namespace Microsoft.ML.Runtime.PipelineInference
         public class DependencyMap : Dictionary<int, LevelDependencyMap> { }
 
         /// <summary>
-        /// AutoInference will support metrics as they are added here.
-        /// </summary>
-        public sealed class SupportedMetric
-        {
-            public static readonly SupportedMetric Auc = new SupportedMetric(FieldNames.PipelineSweeperSupportedMetrics.Auc, true);
-            public static readonly SupportedMetric AccuracyMicro = new SupportedMetric(FieldNames.PipelineSweeperSupportedMetrics.AccuracyMicro, true);
-            public static readonly SupportedMetric AccuracyMacro = new SupportedMetric(FieldNames.PipelineSweeperSupportedMetrics.AccuracyMacro, true);
-            public static readonly SupportedMetric L1 = new SupportedMetric(FieldNames.PipelineSweeperSupportedMetrics.L1, false);
-            public static readonly SupportedMetric L2 = new SupportedMetric(FieldNames.PipelineSweeperSupportedMetrics.L2, false);
-            public static readonly SupportedMetric F1 = new SupportedMetric(FieldNames.PipelineSweeperSupportedMetrics.F1, true);
-            public static readonly SupportedMetric AuPrc = new SupportedMetric(FieldNames.PipelineSweeperSupportedMetrics.AuPrc, true);
-            public static readonly SupportedMetric TopKAccuracy = new SupportedMetric(FieldNames.PipelineSweeperSupportedMetrics.TopKAccuracy, true);
-            public static readonly SupportedMetric Rms = new SupportedMetric(FieldNames.PipelineSweeperSupportedMetrics.Rms, false);
-            public static readonly SupportedMetric LossFn = new SupportedMetric(FieldNames.PipelineSweeperSupportedMetrics.LossFn, false);
-            public static readonly SupportedMetric RSquared = new SupportedMetric(FieldNames.PipelineSweeperSupportedMetrics.RSquared, false);
-            public static readonly SupportedMetric LogLoss = new SupportedMetric(FieldNames.PipelineSweeperSupportedMetrics.LogLoss, false);
-            public static readonly SupportedMetric LogLossReduction = new SupportedMetric(FieldNames.PipelineSweeperSupportedMetrics.LogLossReduction, true);
-            public static readonly SupportedMetric Ndcg = new SupportedMetric(FieldNames.PipelineSweeperSupportedMetrics.Ndcg, true);
-            public static readonly SupportedMetric Dcg = new SupportedMetric(FieldNames.PipelineSweeperSupportedMetrics.Dcg, true);
-            public static readonly SupportedMetric PositivePrecision = new SupportedMetric(FieldNames.PipelineSweeperSupportedMetrics.PositivePrecision, true);
-            public static readonly SupportedMetric PositiveRecall = new SupportedMetric(FieldNames.PipelineSweeperSupportedMetrics.PositiveRecall, true);
-            public static readonly SupportedMetric NegativePrecision = new SupportedMetric(FieldNames.PipelineSweeperSupportedMetrics.NegativePrecision, true);
-            public static readonly SupportedMetric NegativeRecall = new SupportedMetric(FieldNames.PipelineSweeperSupportedMetrics.NegativeRecall, true);
-            public static readonly SupportedMetric DrAtK = new SupportedMetric(FieldNames.PipelineSweeperSupportedMetrics.DrAtK, true);
-            public static readonly SupportedMetric DrAtPFpr = new SupportedMetric(FieldNames.PipelineSweeperSupportedMetrics.DrAtPFpr, true);
-            public static readonly SupportedMetric DrAtNumPos = new SupportedMetric(FieldNames.PipelineSweeperSupportedMetrics.DrAtNumPos, true);
-            public static readonly SupportedMetric NumAnomalies = new SupportedMetric(FieldNames.PipelineSweeperSupportedMetrics.NumAnomalies, true);
-            public static readonly SupportedMetric ThreshAtK = new SupportedMetric(FieldNames.PipelineSweeperSupportedMetrics.ThreshAtK, false);
-            public static readonly SupportedMetric ThreshAtP = new SupportedMetric(FieldNames.PipelineSweeperSupportedMetrics.ThreshAtP, false);
-            public static readonly SupportedMetric ThreshAtNumPos = new SupportedMetric(FieldNames.PipelineSweeperSupportedMetrics.ThreshAtNumPos, false);
-            public static readonly SupportedMetric Nmi = new SupportedMetric(FieldNames.PipelineSweeperSupportedMetrics.Nmi, true);
-            public static readonly SupportedMetric AvgMinScore = new SupportedMetric(FieldNames.PipelineSweeperSupportedMetrics.AvgMinScore, false);
-            public static readonly SupportedMetric Dbi = new SupportedMetric(FieldNames.PipelineSweeperSupportedMetrics.Dbi, false);
-
-            public string Name { get; }
-            public bool IsMaximizing { get; }
-
-            private SupportedMetric(string name, bool isMaximizing)
-            {
-                Name = name;
-                IsMaximizing = isMaximizing;
-            }
-
-            public static SupportedMetric ByName(string name)
-            {
-                var fields =
-                    typeof(SupportedMetric).GetMembers(BindingFlags.Static | BindingFlags.Public)
-                    .Where(s => s.MemberType == MemberTypes.Field);
-                foreach (var field in fields)
-                {
-                    if (name.Equals(field.Name, StringComparison.OrdinalIgnoreCase))
-                        return (SupportedMetric)typeof(SupportedMetric).GetField(field.Name).GetValue(null);
-                }
-                throw new NotSupportedException($"Metric '{name}' not supported.");
-            }
-
-            public override string ToString() => Name;
-        }
-
-        /// <summary>
         /// Class for encapsulating an entrypoint experiment graph
         /// and keeping track of the input and output nodes.
         /// </summary>
@@ -122,22 +62,24 @@ namespace Microsoft.ML.Runtime.PipelineInference
 
             /// <summary>
             /// Get the name of the variable asssigned to the Data or Training Data input, based on what is the first node of the subgraph.
-            /// A better way to do this would be with a ICanBeSubGraphFirstNode common interface between ITransformInput and ITrainerInputs 
-            /// and a custom deserializer. 
+            /// A better way to do this would be with a ICanBeSubGraphFirstNode common interface between ITransformInput and ITrainerInputs
+            /// and a custom deserializer.
             /// </summary>
             public string GetSubgraphFirstNodeDataVarName(IExceptionContext ectx)
             {
                 var nodes = Graph.GetNodes();
 
-                ectx.CheckValue(nodes, nameof(nodes), "Empty Subgraph");
-                ectx.CheckValue(nodes[0], nameof(nodes), "Empty Subgraph");
-                ectx.CheckValue(nodes[0][FieldNames.Inputs], "Inputs", "Empty subgraph node inputs.");
+                ectx.Check(nodes != null || nodes.Count == 0, "Empty Subgraph");
+                ectx.Check(nodes[0] != null, "Subgraph's first note is empty");
+                ectx.Check(nodes[0][FieldNames.Inputs] != null, "Empty subgraph node inputs.");
 
                 string variableName;
                 if (!GetDataVariableName(ectx, "Data", nodes[0][FieldNames.Inputs], out variableName))
                     GetDataVariableName(ectx, "TrainingData", nodes[0][FieldNames.Inputs], out variableName);
 
-                ectx.CheckNonEmpty(variableName, nameof(variableName), "Subgraph needs to start with an ITransformInput, or an ITrainerInput. Check your subgraph, or account for variation of the name of the Data input here.");
+                ectx.CheckNonEmpty(variableName, nameof(variableName), "Subgraph needs to start with an" +
+                    nameof(CommonInputs.ITransformInput) + ", or an " + nameof(CommonInputs.ITrainerInput) +
+                    ". Check your subgraph, or account for variation of the name of the Data input here.");
                 return variableName;
             }
 
@@ -158,28 +100,11 @@ namespace Microsoft.ML.Runtime.PipelineInference
                     return false;
 
                 string dataVar = firstNodeInputs.Value<String>(nameOfData);
-                ectx.Check(VariableBinding.IsValidVariableName(ectx, dataVar), $"Invalid variable name {dataVar}.");
+                if (!VariableBinding.IsValidVariableName(ectx, dataVar))
+                    throw ectx.ExceptParam(nameof(nameOfData), $"Invalid variable name {dataVar}.");
 
                 variableName = dataVar.Substring(1);
                 return true;
-            }
-        }
-
-        /// <summary>
-        /// Class containing some information about an exectuted pipeline.
-        /// These are analogous to IRunResult for smart sweepers.
-        /// </summary>
-        public sealed class RunSummary
-        {
-            public double MetricValue { get; }
-            public int NumRowsInTraining { get; }
-            public long RunTimeMilliseconds { get; }
-
-            public RunSummary(double metricValue, int numRows, long runTimeMilliseconds)
-            {
-                MetricValue = metricValue;
-                NumRowsInTraining = numRows;
-                RunTimeMilliseconds = runTimeMilliseconds;
             }
         }
 
@@ -204,6 +129,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
             private TransformInference.SuggestedTransform[] _availableTransforms;
             private RecipeInference.SuggestedRecipe.SuggestedLearner[] _availableLearners;
             private DependencyMap _dependencyMapping;
+            private RoleMappedData _dataRoles;
             public IPipelineOptimizer AutoMlEngine { get; set; }
             public PipelinePattern[] BatchCandidates { get; set; }
             public SupportedMetric Metric { get; }
@@ -213,42 +139,8 @@ namespace Microsoft.ML.Runtime.PipelineInference
                 Desc = "State of an AutoML search and search space.")]
             public sealed class Arguments : ISupportAutoMlStateFactory
             {
-                // REVIEW: These should be the same as SupportedMetrics above. Not sure how to reference that class,
-                // without the C# API generator trying to create a version of that class in the API as well.
-                public enum Metrics
-                {
-                    Auc,
-                    AccuracyMicro,
-                    AccuracyMacro,
-                    L2,
-                    F1,
-                    AuPrc,
-                    TopKAccuracy,
-                    Rms,
-                    LossFn,
-                    RSquared,
-                    LogLoss,
-                    LogLossReduction,
-                    Ndcg,
-                    Dcg,
-                    PositivePrecision,
-                    PositiveRecall,
-                    NegativePrecision,
-                    NegativeRecall,
-                    DrAtK,
-                    DrAtPFpr,
-                    DrAtNumPos,
-                    NumAnomalies,
-                    ThreshAtK,
-                    ThreshAtP,
-                    ThreshAtNumPos,
-                    Nmi,
-                    AvgMinScore,
-                    Dbi
-                };
-
                 [Argument(ArgumentType.Required, HelpText = "Supported metric for evaluator.", ShortName = "metric")]
-                public Metrics Metric;
+                public PipelineSweeperSupportedMetrics.Metrics Metric;
 
                 [Argument(ArgumentType.Required, HelpText = "AutoML engine (pipeline optimizer) that generates next candidates.", ShortName = "engine")]
                 public ISupportIPipelineOptimizerFactory Engine;
@@ -266,7 +158,9 @@ namespace Microsoft.ML.Runtime.PipelineInference
             }
 
             public AutoMlMlState(IHostEnvironment env, Arguments args)
-                : this(env, SupportedMetric.ByName(Enum.GetName(typeof(Arguments.Metrics), args.Metric)), args.Engine.CreateComponent(env),
+                : this(env,
+                      PipelineSweeperSupportedMetrics.GetSupportedMetric(args.Metric),
+                      args.Engine.CreateComponent(env),
                       args.TerminatorArgs.CreateComponent(env), args.TrainerKind, requestedLearners: args.RequestedLearners)
             {
             }
@@ -303,13 +197,13 @@ namespace Microsoft.ML.Runtime.PipelineInference
                 var stopwatch = new Stopwatch();
                 var probabilityUtils = new Sweeper.Algorithms.SweeperProbabilityUtils(_host);
 
-                 while (!_terminator.ShouldTerminate(_history))
+                while (!_terminator.ShouldTerminate(_history))
                 {
                     // Get next set of candidates
                     var currentBatchSize = batchSize;
                     if (_terminator is IterationTerminator itr)
                         currentBatchSize = Math.Min(itr.RemainingIterations(_history), batchSize);
-                    var candidates = AutoMlEngine.GetNextCandidates(_sortedSampledElements.Values, currentBatchSize);
+                    var candidates = AutoMlEngine.GetNextCandidates(_sortedSampledElements.Values, currentBatchSize, _dataRoles);
 
                     // Break if no candidates returned, means no valid pipeline available.
                     if (candidates.Length == 0)
@@ -341,16 +235,16 @@ namespace Microsoft.ML.Runtime.PipelineInference
 
                 // Run pipeline, and time how long it takes
                 stopwatch.Restart();
-                double d = candidate.RunTrainTestExperiment(_trainData.Take(randomizedNumberOfRows),
-                    _testData, Metric, TrainerKind);
+                candidate.RunTrainTestExperiment(_trainData.Take(randomizedNumberOfRows),
+                    _testData, Metric, TrainerKind, out var testMetricVal, out var trainMetricVal);
                 stopwatch.Stop();
 
                 // Handle key collisions on sorted list
-                while (_sortedSampledElements.ContainsKey(d))
-                    d += 1e-10;
+                while (_sortedSampledElements.ContainsKey(testMetricVal))
+                    testMetricVal += 1e-10;
 
                 // Save performance score
-                candidate.PerformanceSummary = new RunSummary(d, randomizedNumberOfRows, stopwatch.ElapsedMilliseconds);
+                candidate.PerformanceSummary = new PipelineSweeperRunSummary(testMetricVal, randomizedNumberOfRows, stopwatch.ElapsedMilliseconds, trainMetricVal);
                 _sortedSampledElements.Add(candidate.PerformanceSummary.MetricValue, candidate);
                 _history.Add(candidate);
             }
@@ -365,7 +259,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
                 TransformInference.SuggestedTransform[] existingTransforms = null)
             {
                 // Infer transforms using experts
-                var levelTransforms = TransformInference.InferTransforms(_env, data, args);
+                var levelTransforms = TransformInference.InferTransforms(_env, data, args, _dataRoles);
 
                 // Retain only those transforms inferred which were also passed in.
                 if (existingTransforms != null)
@@ -373,11 +267,13 @@ namespace Microsoft.ML.Runtime.PipelineInference
                 return levelTransforms;
             }
 
-            public void InferSearchSpace(int numTransformLevels)
+            public void InferSearchSpace(int numTransformLevels, RoleMappedData dataRoles = null)
             {
                 var learners = RecipeInference.AllowedLearners(_env, TrainerKind).ToArray();
                 if (_requestedLearners != null && _requestedLearners.Length > 0)
                     learners = learners.Where(l => _requestedLearners.Contains(l.LearnerName)).ToArray();
+
+                _dataRoles = dataRoles;
                 ComputeSearchSpace(numTransformLevels, learners, (b, c) => InferAndFilter(b, c));
             }
 
@@ -516,6 +412,21 @@ namespace Microsoft.ML.Runtime.PipelineInference
                     d += 1e-3;
                 _sortedSampledElements.Add(d, pipeline);
                 _history.Add(pipeline);
+
+                using (var ch = _host.Start("Suggested Pipeline"))
+                {
+                    ch.Info($"PipelineSweeper Iteration Number : {_history.Count}");
+                    ch.Info($"PipelineSweeper Pipeline Id : {pipeline.UniqueId}");
+
+                    foreach (var transform in pipeline.Transforms)
+                    {
+                        ch.Info($"PipelineSweeper Transform : {transform.Transform}");
+                    }
+
+                    ch.Info($"PipelineSweeper Learner : {pipeline.Learner}");
+                    ch.Info($"PipelineSweeper Train Metric Value : {pipeline.PerformanceSummary.TrainingMetricValue}");
+                    ch.Info($"PipelineSweeper Test Metric Value : {pipeline.PerformanceSummary.MetricValue}");
+                }
             }
 
             public void AddEvaluated(PipelinePattern[] pipelines)
@@ -531,7 +442,8 @@ namespace Microsoft.ML.Runtime.PipelineInference
                 var currentBatchSize = numberOfCandidates;
                 if (_terminator is IterationTerminator itr)
                     currentBatchSize = Math.Min(itr.RemainingIterations(_history), numberOfCandidates);
-                BatchCandidates = AutoMlEngine.GetNextCandidates(_sortedSampledElements.Select(kvp => kvp.Value), currentBatchSize);
+                BatchCandidates = AutoMlEngine.GetNextCandidates(_sortedSampledElements.Select(kvp => kvp.Value), currentBatchSize, _dataRoles);
+
                 return BatchCandidates;
             }
 
@@ -552,7 +464,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
         /// <summary>
         /// The InferPipelines methods are just public portals to the internal function that handle different
         /// types of data being passed in: training IDataView, path to training file, or train and test files.
-        /// </summary>        
+        /// </summary>
         public static AutoMlMlState InferPipelines(IHostEnvironment env, PipelineOptimizerBase autoMlEngine,
             IDataView trainData, IDataView testData, int numTransformLevels, int batchSize, SupportedMetric metric,
             out PipelinePattern bestPipeline, ITerminator terminator, MacroUtils.TrainerKinds trainerKind)
@@ -573,17 +485,19 @@ namespace Microsoft.ML.Runtime.PipelineInference
         {
             Contracts.CheckValue(env, nameof(env));
 
-            // REVIEW: Should be able to infer schema by itself, without having to 
+            // REVIEW: Should be able to infer schema by itself, without having to
             // infer recipes. Look into this.
             // Set loader settings through inference
             RecipeInference.InferRecipesFromData(env, trainDataPath, schemaDefinitionFile,
                 out var _, out schemaDefinition, out var _, true);
 
+#pragma warning disable 0618
             var data = ImportTextData.ImportText(env, new ImportTextData.Input
             {
                 InputFile = new SimpleFileHandle(env, trainDataPath, false, false),
                 CustomSchema = schemaDefinition
             }).Data;
+#pragma warning restore 0618
             var splitOutput = TrainTestSplit.Split(env, new TrainTestSplit.Input { Data = data, Fraction = 0.8f });
             AutoMlMlState amls = new AutoMlMlState(env, metric, autoMlEngine, terminator, trainerKind,
                 splitOutput.TrainData.Take(numOfSampleRows), splitOutput.TestData.Take(numOfSampleRows));

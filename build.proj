@@ -7,8 +7,9 @@
 
   <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), Directory.Build.props))\Directory.Build.props" />
 
+  <Import Project="build/ExternalBenchmarkDataFiles.props" />
   <Import Project="$(ToolsDir)VersionTools.targets" Condition="Exists('$(ToolsDir)VersionTools.targets')" />
-
+  <UsingTask TaskName="DownloadFilesFromUrl" AssemblyFile="$(ToolsDir)Microsoft.DotNet.Build.Tasks.dll"/>
   <PropertyGroup>
     <!-- To disable the restoration of packages, set RestoreDuringBuild=false or pass /p:RestoreDuringBuild=false.-->
     <RestoreDuringBuild Condition="'$(RestoreDuringBuild)'==''">true</RestoreDuringBuild>
@@ -31,39 +32,73 @@
     <TraversalBuildDependsOn>
       CreateOrUpdateCurrentVersionFile;
       RestoreProjects;
+      BuildRedist;
       BuildNative;
       $(TraversalBuildDependsOn);
-      RunTests;
+      DownloadExternalTestFiles;
     </TraversalBuildDependsOn>
   </PropertyGroup>
 
   <Target Name="RestoreProjects" Condition="'$(RestoreDuringBuild)'=='true'">
     <Message Importance="High" Text="Restoring all projects..." />
     <MSBuild Projects="@(Project)"
-             Targets="Restore" />
+             Targets="Restore" 
+             Properties="MSBuildWarningsAsMessages=NU1503" />
   </Target>
 
-  <Target Name="BuildNative" Condition="'$(SkipNativeBuild)' != 'true'">
+  <Target Name="BuildRedist"
+          Condition="'$(SkipRedistBuild)' != 'true'"
+          DependsOnTargets="RestoreProjects">
+    <Message Importance="High" Text="Building redist components..." />
+    <MSBuild Projects="src/Redist/build.proj"
+             Targets="Build" />
+  </Target>
+
+  <Target Name="BuildNative"
+          Condition="'$(SkipNativeBuild)' != 'true'"
+          DependsOnTargets="RestoreProjects;BuildRedist">
     <Message Importance="High" Text="Building native components..." />
     <MSBuild Projects="src/Native/build.proj"
              Targets="Build" />
   </Target>
 
   <Target Name="BuildPackages"
-          DependsOnTargets="CreateOrUpdateCurrentVersionFile">
+          DependsOnTargets="CreateOrUpdateCurrentVersionFile;RestoreProjects">
     <Message Importance="High" Text="Building packages ..." />
 
     <ItemGroup>
       <PkgProject Include="pkg\**\*.nupkgproj" />
     </ItemGroup>
-    
+
     <MSBuild Projects="@(PkgProject)"
              Targets="Restore" />
     <MSBuild Projects="@(PkgProject)"
              Targets="Pack" />
   </Target>
 
-  <Target Name="RunTests" Condition="'$(RunTests)'=='true'">
+  <ItemGroup>
+    <TestFile Include="$(MSBuildThisFileDirectory)/test/data/external/winequality-white.csv"
+      Url="https://archive.ics.uci.edu/ml/machine-learning-databases/wine-quality/winequality-white.csv"
+      DestinationFile="$(MSBuildThisFileDirectory)test/data/external/winequality-white.csv" />    
+  </ItemGroup>
+  
+  <ItemGroup Condition="'$(IncludeBenchmarkData)' == 'true'">
+    <BenchmarkFile Update="@(BenchmarkFile)">
+      <Url>https://aka.ms/tlc-resources/benchmarks/%(Identity)</Url>
+      <DestinationFile>$(MSBuildThisFileDirectory)/test/data/external/%(Identity)</DestinationFile>
+    </BenchmarkFile>
+
+    <TestFile Include="@(BenchmarkFile->'$(MSBuildThisFileDirectory)/test/data/external/%(Identity)')" />
+  </ItemGroup>
+
+  <Target Name="DownloadExternalTestFiles" Inputs="@(TestFile)" Outputs="%(TestFile.DestinationFile)">
+    <Message Importance="High" Text="Downloading external test files... %(TestFile.DestinationFile)" />
+    <DownloadFilesFromUrl Items="@(TestFile)"
+                         DestinationDir="test/data/external"
+                         TreatErrorsAsWarnings="true"/>
+  </Target>
+
+  <Target Name="RunTests">
     <MSBuild Projects="test\run-tests.proj"
              Targets="RunTests" />
   </Target>

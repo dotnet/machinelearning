@@ -9,7 +9,6 @@ using System.IO;
 using System.Linq;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Text.RegularExpressions;
-using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Command;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
@@ -152,9 +151,9 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn.ResultProcessor
         /// <param name="extraAssemblies"></param>
         private Dictionary<string, string> GetDefaultSettings(IHostEnvironment env, string predictorName, string[] extraAssemblies = null)
         {
-            ComponentCatalog.CacheClassesExtra(extraAssemblies);
+            AssemblyLoadingUtils.LoadAndRegister(env, extraAssemblies);
 
-            var cls = ComponentCatalog.GetLoadableClassInfo<SignatureTrainer>(predictorName);
+            var cls = env.ComponentCatalog.GetLoadableClassInfo<SignatureTrainer>(predictorName);
             if (cls == null)
             {
                 Console.Error.WriteLine("Can't load trainer '{0}'", predictorName);
@@ -179,7 +178,7 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn.ResultProcessor
         /// <param name="result">ExperimentItemResult object</param>
         public void Initialize(ExperimentItemResult result)
         {
-            LearnerName = result.Trainer.Kind;
+            LearnerName = result.TrainerKind;
             AllignResultHeaderNames(result);
             AllignSettingHeaderNames(result);
         }
@@ -229,9 +228,9 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn.ResultProcessor
         public string TestDatafile;
 
         /// <summary>
-        /// the trainer SubComponent from the command.
+        /// the trainer kind/name from the command.
         /// </summary>
-        public SubComponent<ITrainer, SignatureTrainer> Trainer;
+        public string TrainerKind;
 
         /// <summary>
         /// The name of the output file produced by the Experiment Run
@@ -360,10 +359,10 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn.ResultProcessor
         private const string FoldSeparatorString =
             "----------------------------------------------------------------------------------------";
 
-        private readonly static Regex _rxNameValue = new Regex(@"(?<name>.+)\s*:\s*(?<value>\S+)", RegexOptions.Compiled);
-        private readonly static Regex _rxNameValueDeviation = new Regex(@"(?<name>.+)\s*:\s*(?<value>\S+)\s*\((?<deviation>\S+)\)", RegexOptions.Compiled);
-        private readonly static Regex _rxTimeElapsed = new Regex(@"(?<executionDate>.*)\t Time elapsed\(s\): (?<timeElapsed>[\d\.]*)", RegexOptions.Compiled);
-        private readonly static Regex _rxMemoryUsage = new Regex(@"(?<memoryType>[\w]+) memory usage\(MB\): (?<memoryUsage>[\d]*)", RegexOptions.Compiled);
+        private static readonly Regex _rxNameValue = new Regex(@"(?<name>.+)\s*:\s*(?<value>\S+)", RegexOptions.Compiled);
+        private static readonly Regex _rxNameValueDeviation = new Regex(@"(?<name>.+)\s*:\s*(?<value>\S+)\s*\((?<deviation>\S+)\)", RegexOptions.Compiled);
+        private static readonly Regex _rxTimeElapsed = new Regex(@"(?<executionDate>.*)\t Time elapsed\(s\): (?<timeElapsed>[\d\.]*)", RegexOptions.Compiled);
+        private static readonly Regex _rxMemoryUsage = new Regex(@"(?<memoryType>[\w]+) memory usage\(MB\): (?<memoryUsage>[\d]*)", RegexOptions.Compiled);
 
         public static bool CheckEndOfFileReached(string[] lines)
         {
@@ -433,12 +432,12 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn.ResultProcessor
             {
                 if (Utils.Size(chainArgs.Command) == 0)
                     return null;
-                var acceptableCommand = chainArgs.Command.FirstOrDefault(x =>
-                    string.Equals(x.Kind, "CV", StringComparison.OrdinalIgnoreCase) ||
-                    string.Equals(x.Kind, "TrainTest", StringComparison.OrdinalIgnoreCase) ||
-                    string.Equals(x.Kind, "Test", StringComparison.OrdinalIgnoreCase));
+                var acceptableCommand = chainArgs.Command.Cast<ICommandLineComponentFactory>().FirstOrDefault(x =>
+                    string.Equals(x.Name, "CV", StringComparison.OrdinalIgnoreCase) ||
+                    string.Equals(x.Name, "TrainTest", StringComparison.OrdinalIgnoreCase) ||
+                    string.Equals(x.Name, "Test", StringComparison.OrdinalIgnoreCase));
                 if (acceptableCommand == null || !ParseCommandArguments(env,
-                    acceptableCommand.Kind + " " + acceptableCommand.SubComponentSettings, out commandArgs, out command, trimExe))
+                    acceptableCommand.Name + " " + acceptableCommand.GetSettingsString(), out commandArgs, out command, trimExe))
                 {
                     return null;
                 }
@@ -448,7 +447,7 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn.ResultProcessor
             ComponentCatalog.LoadableClassInfo trainerClass;
             string datafile = string.Empty;
             string testDatafile = string.Empty;
-            SubComponent<ITrainer, SignatureTrainer> trainer;
+            IComponentFactory<ITrainer> trainer;
             var trainTestArgs = commandArgs as TrainTestCommand.Arguments;
             if (trainTestArgs != null)
             {
@@ -518,7 +517,10 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn.ResultProcessor
                 }
             }
             Contracts.AssertValue(trainer);
-            trainerClass = ComponentCatalog.GetLoadableClassInfo<SignatureTrainer>(trainer.Kind);
+            ICommandLineComponentFactory commandLineTrainer = trainer as ICommandLineComponentFactory;
+            Contracts.AssertValue(commandLineTrainer, "ResultProcessor can only work with ICommandLineComponentFactory.");
+
+            trainerClass = env.ComponentCatalog.GetLoadableClassInfo<SignatureTrainer>(commandLineTrainer.Name);
             trainerArgs = trainerClass.CreateArguments();
             Dictionary<string, string> predictorSettings;
             if (trainerArgs == null)
@@ -528,7 +530,7 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn.ResultProcessor
             }
             else
             {
-                CmdParser.ParseArguments(env, PredictionUtil.CombineSettings(trainer.Settings), trainerArgs);
+                CmdParser.ParseArguments(env, commandLineTrainer.GetSettingsString(), trainerArgs);
                 predictorSettings = CmdParser.GetSettingPairs(env, trainerArgs, trainerClass.CreateArguments(), SettingsFlags.ShortNames).
                     GroupBy(kvp => kvp.Key, kvp => kvp.Value).ToDictionary(g => "/" + g.Key, g => string.Join(",", g));
             }
@@ -547,7 +549,7 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn.ResultProcessor
                     Commandline = commandline,
                     Datafile = datafile,
                     TestDatafile = testDatafile,
-                    Trainer = trainer,
+                    TrainerKind = commandLineTrainer.Name,
                     Settings = predictorSettings,
                 };
 
@@ -584,7 +586,7 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn.ResultProcessor
                 Results = runResults,
                 PerFoldResults = foldResults,
                 Time = 0,
-                ExecutionDate = DateTime.Now.ToString()
+                ExecutionDate = DateTime.UtcNow.ToString()
             };
         }
 
@@ -675,7 +677,12 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn.ResultProcessor
                 return false;
             }
 
-            commandClass = ComponentCatalog.GetLoadableClassInfo<SignatureCommand>(kind);
+            commandClass = env.ComponentCatalog.GetLoadableClassInfo<SignatureCommand>(kind);
+            if (commandClass == null)
+            {
+                commandArgs = null;
+                return false;
+            }
             commandArgs = commandClass.CreateArguments();
             CmdParser.ParseArguments(env, settings, commandArgs);
             return true;
@@ -1134,7 +1141,7 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn.ResultProcessor
 
         /// <summary>
         /// Deserialize a predictor, returning as an object
-        /// </summary>		
+        /// </summary>
         private static object Load(Stream stream)
         {
             BinaryFormatter bf = new BinaryFormatter();
@@ -1145,9 +1152,14 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn.ResultProcessor
 
         public static int Main(string[] args)
         {
+            return Main(new ConsoleEnvironment(42), args);
+        }
+
+        public static int Main(IHostEnvironment env, string[] args)
+        {
             try
             {
-                Run(args);
+                Run(env, args);
                 return 0;
             }
             catch (Exception e)
@@ -1167,10 +1179,9 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn.ResultProcessor
             }
         }
 
-        protected static void Run(string[] args)
+        protected static void Run(IHostEnvironment env, string[] args)
         {
             ResultProcessorArguments cmd = new ResultProcessorArguments();
-            TlcEnvironment env = new TlcEnvironment(42);
             List<PredictorResult> predictorResultsList = new List<PredictorResult>();
             PredictionUtil.ParseArguments(env, cmd, PredictionUtil.CombineSettings(args));
 
@@ -1182,8 +1193,8 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn.ResultProcessor
 
             if (cmd.IncludePerFoldResults)
                 cmd.PerFoldResultSeparator = "" + PredictionUtil.SepCharFromString(cmd.PerFoldResultSeparator);
-            foreach (var dll in cmd.ExtraAssemblies)
-                ComponentCatalog.LoadAssembly(dll);
+
+            AssemblyLoadingUtils.LoadAndRegister(env, cmd.ExtraAssemblies);
 
             if (cmd.Metrics.Length == 0)
                 cmd.Metrics = null;
@@ -1226,7 +1237,7 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn.ResultProcessor
 
                 bool newLearner;
                 PredictorResult predictorItem = GetPredictorObject(predictorResultsList,
-                    resultValue.Trainer.Kind, out newLearner);
+                    resultValue.TrainerKind, out newLearner);
 
                 if (predictorItem.PredictorList == null)
                     predictorItem.PredictorList = new List<ExperimentItemResult>();

@@ -15,7 +15,7 @@ using Microsoft.ML.Runtime.Internal.Utilities;
 
 namespace Microsoft.ML.Runtime.Data
 {
-    public sealed partial class TextLoader : IDataLoader
+    public sealed partial class TextLoader
     {
         private sealed class Cursor : RootCursorBase, IRowCursor
         {
@@ -49,7 +49,6 @@ namespace Microsoft.ML.Runtime.Data
             {
                 // Note that files is allowed to be empty.
                 Contracts.AssertValue(parent);
-                Contracts.AssertValue(parent._files);
                 Contracts.Assert(active == null || active.Length == parent._bindings.Infos.Length);
 
                 var bindings = parent._bindings;
@@ -88,7 +87,6 @@ namespace Microsoft.ML.Runtime.Data
             private Cursor(TextLoader parent, ParseStats stats, bool[] active, LineReader reader, int srcNeeded, int cthd)
                 : base(parent._host)
             {
-                Ch.AssertValue(parent._files);
                 Ch.Assert(active == null || active.Length == parent._bindings.Infos.Length);
                 Ch.AssertValue(reader);
                 Ch.AssertValue(stats);
@@ -138,11 +136,11 @@ namespace Microsoft.ML.Runtime.Data
                 }
             }
 
-            public static IRowCursor Create(TextLoader parent, bool[] active)
+            public static IRowCursor Create(TextLoader parent, IMultiStreamSource files, bool[] active)
             {
                 // Note that files is allowed to be empty.
                 Contracts.AssertValue(parent);
-                Contracts.AssertValue(parent._files);
+                Contracts.AssertValue(files);
                 Contracts.Assert(active == null || active.Length == parent._bindings.Infos.Length);
 
                 int srcNeeded;
@@ -150,17 +148,17 @@ namespace Microsoft.ML.Runtime.Data
                 SetupCursor(parent, active, 0, out srcNeeded, out cthd);
                 Contracts.Assert(cthd > 0);
 
-                var reader = new LineReader(parent._files, BatchSize, 100, parent.HasHeader, parent._maxRows, 1);
+                var reader = new LineReader(files, BatchSize, 100, parent.HasHeader, parent._maxRows, 1);
                 var stats = new ParseStats(parent._host, 1);
                 return new Cursor(parent, stats, active, reader, srcNeeded, cthd);
             }
 
             public static IRowCursor[] CreateSet(out IRowCursorConsolidator consolidator,
-                TextLoader parent, bool[] active, int n)
+                TextLoader parent, IMultiStreamSource files, bool[] active, int n)
             {
                 // Note that files is allowed to be empty.
                 Contracts.AssertValue(parent);
-                Contracts.AssertValue(parent._files);
+                Contracts.AssertValue(files);
                 Contracts.Assert(active == null || active.Length == parent._bindings.Infos.Length);
 
                 int srcNeeded;
@@ -168,7 +166,7 @@ namespace Microsoft.ML.Runtime.Data
                 SetupCursor(parent, active, n, out srcNeeded, out cthd);
                 Contracts.Assert(cthd > 0);
 
-                var reader = new LineReader(parent._files, BatchSize, 100, parent.HasHeader, parent._maxRows, cthd);
+                var reader = new LineReader(files, BatchSize, 100, parent.HasHeader, parent._maxRows, cthd);
                 var stats = new ParseStats(parent._host, cthd);
                 if (cthd <= 1)
                 {
@@ -214,7 +212,7 @@ namespace Microsoft.ML.Runtime.Data
                     };
             }
 
-            public static void GetSomeLines(IMultiStreamSource source, int count, ref List<DvText> lines)
+            public static void GetSomeLines(IMultiStreamSource source, int count, ref List<ReadOnlyMemory<char>> lines)
             {
                 Contracts.AssertValue(source);
                 Contracts.Assert(count > 0);
@@ -238,7 +236,7 @@ namespace Microsoft.ML.Runtime.Data
                 }
 
                 for (int i = 0; i < batch.Infos.Length; i++)
-                    Utils.Add(ref lines, new DvText(batch.Infos[i].Text));
+                    Utils.Add(ref lines, batch.Infos[i].Text.AsMemory());
             }
 
             /// <summary>
@@ -497,7 +495,7 @@ namespace Microsoft.ML.Runtime.Data
                                 for (; ; )
                                 {
                                     // REVIEW: Avoid allocating a string for every line. This would probably require
-                                    // introducing a CharSpan type (similar to DvText but based on char[] or StringBuilder)
+                                    // introducing a CharSpan type (similar to ReadOnlyMemory but based on char[] or StringBuilder)
                                     // and implementing all the necessary conversion functionality on it. See task 3871.
                                     text = rdr.ReadLine();
                                     if (text == null)

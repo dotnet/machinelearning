@@ -1,0 +1,80 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<doc>
+  <members>
+
+    <member name="OnnxTransform">
+      <summary>
+        Scores ONNX v1.2 models ML.NET.
+      </summary>
+      <remarks>
+        <para>
+          The OnnxTransform provides ability to score ONNX machine learning models. See <a href="https://onnx.ai/">Onnx</a>.
+          The transform takes as input the ONNX model, as well as IDV formatted feature vectors, to produce a vector-valued column of generated scores.
+        </para>
+
+        <list type="number">
+          <item>
+            <description>
+              The transform currently accepts the <a href="https://github.com/onnx/models">ONNX Model Zoo</a> models as input.
+            </description>
+          </item>
+          <item>
+            <description>The transform supports scoring only one example at a time.</description>
+          </item>
+          <item>
+            <description>The name of input column should match the name of input node in ONNX model.</description>
+          </item>
+          <item>
+            <description>The name of the output column should match the output column node in the ONNX model.</description>
+          </item>
+          <item>
+            <description>Currently, float is only acceptable data type for input/output.</description>
+          </item>
+          <item>
+            Upon success, the transform will introduce a new column in <see cref="IDataView"/> with to the output name specified.
+          </item>
+        </list>
+
+        The inputs and outputs of an ONNX model can be obtained using the <a href="https://electronjs.org/apps/netron"> 
+          <code>Netron</code> tool.
+        </a>.
+      </remarks>
+      <example>
+        <code language="csharp">
+              var imageHeight = 224;
+                var imageWidth = 224;
+                var dataFile = GetDataPath("images/images.tsv");
+                var imageFolder = Path.GetDirectoryName(dataFile);
+
+                var data = TextLoader.CreateReader(env, ctx => (
+                    imagePath: ctx.LoadText(0),
+                    name: ctx.LoadText(1)))
+                    .Read(new MultiFileSource(dataFile));
+
+                var pipe = data.MakeNewEstimator()
+                    .Append(row => (
+                        row.name,
+                        data_0: row.imagePath.LoadAsImage(imageFolder).Resize(imageHeight, imageWidth).ExtractPixels(interleaveArgb: true)))
+                    .Append(row => (row.name, softmaxout_1: row.data_0.ApplyOnnxModel(modelFile)));
+
+                TestEstimatorCore(pipe.AsDynamic, data.AsDynamic);
+
+                var result = pipe.Fit(data).Transform(data).AsDynamic;
+                result.Schema.TryGetColumnIndex("softmaxout_1", out int output);
+                using (var cursor = result.GetRowCursor(col => col == output))
+                {
+                    var buffer = default(VBuffer&lt;float&gt;);
+                    var getter = cursor.GetGetter&lt;VBuffer&lt;float&gt;&gt;(output);
+                    var numRows = 0;
+                    while (cursor.MoveNext())
+                    {
+                        getter(ref buffer);
+                        numRows += 1;
+                    }
+                    System.Console.Writeline("Number of rows scored=" + numRows);
+                }
+        </code>
+      </example>
+    </member>
+  </members>
+</doc>

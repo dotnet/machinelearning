@@ -39,7 +39,7 @@ namespace Microsoft.ML.Runtime.Data
 
         /// <summary>
         /// Given a destination type, IRow, and column index, return a ValueGetter for the column
-        /// with a conversion to typeDst, if needed. This is a weakly typed version of 
+        /// with a conversion to typeDst, if needed. This is a weakly typed version of
         /// <see cref="GetGetterAs{TDst}"/>.
         /// </summary>
         /// <seealso cref="GetGetterAs{TDst}"/>
@@ -293,7 +293,7 @@ namespace Microsoft.ML.Runtime.Data
 
         /// <summary>
         /// This method returns a small helper delegate that returns whether we are at the start
-        /// of a new group, that is, we have just started, or the key-value at indicated column 
+        /// of a new group, that is, we have just started, or the key-value at indicated column
         /// is different than it was, in the last call. This is practically useful for determining
         /// group boundaries. Note that the delegate will return true on the first row.
         /// </summary>
@@ -394,16 +394,16 @@ namespace Microsoft.ML.Runtime.Data
 
             Contracts.Assert(type != NumberType.R4 && type != NumberType.R8);
 
-            // DvBool type label mapping: True -> 1, False -> 0, NA -> NaN.
+            // boolean type label mapping: True -> 1, False -> 0.
             if (type.IsBool)
             {
-                var getBoolSrc = cursor.GetGetter<DvBool>(labelIndex);
+                var getBoolSrc = cursor.GetGetter<bool>(labelIndex);
                 return
                     (ref Single dst) =>
                     {
-                        DvBool src = DvBool.NA;
+                        bool src = default;
                         getBoolSrc(ref src);
-                        dst = (Single)src;
+                        dst = Convert.ToSingle(src);
                     };
             }
 
@@ -470,6 +470,19 @@ namespace Microsoft.ML.Runtime.Data
             Contracts.CheckValue(row, nameof(row));
             return RowColumnUtils.GetRow(null,
                 Utils.BuildArray(row.Schema.ColumnCount, c => RowColumnUtils.GetColumn(row, c)));
+        }
+
+        /// <summary>
+        /// Fetches the value of the column by name, in the given row.
+        /// Used by the evaluators to retrieve the metrics from the results IDataView.
+        /// </summary>
+        public static T Fetch<T>(IExceptionContext ectx, IRow row, string name)
+        {
+            if (!row.Schema.TryGetColumnIndex(name, out int col))
+                throw ectx.Except($"Could not find column '{name}'");
+            T val = default;
+            row.GetGetter<T>(col)(ref val);
+            return val;
         }
 
         /// <summary>

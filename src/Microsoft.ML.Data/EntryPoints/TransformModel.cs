@@ -39,10 +39,14 @@ namespace Microsoft.ML.Runtime.EntryPoints
         /// if transform model A needs column X and model B needs Y, that is NOT produced by A,
         /// then trimming A's input schema would cause composition to fail.
         /// </summary>
-        public ISchema InputSchema
-        {
-            get { return _schemaRoot; }
-        }
+        public ISchema InputSchema => _schemaRoot;
+
+        /// <summary>
+        /// The resulting schema once applied to this model. The <see cref="InputSchema"/> might have
+        /// columns that are not needed by this transform and these columns will be seen in the
+        /// <see cref="OutputSchema"/> produced by this transform.
+        /// </summary>
+        public ISchema OutputSchema => _chain.Schema;
 
         /// <summary>
         /// Create a TransformModel containing the transforms from "result" back to "input".
@@ -188,6 +192,8 @@ namespace Microsoft.ML.Runtime.EntryPoints
             private readonly ISchema _rootSchema;
             private readonly IExceptionContext _ectx;
 
+            public ISchema Schema => _chain.Schema;
+
             public CompositeRowToRowMapper(IExceptionContext ectx, IDataView chain, ISchema rootSchema)
             {
                 Contracts.CheckValue(ectx, nameof(ectx));
@@ -227,13 +233,15 @@ namespace Microsoft.ML.Runtime.EntryPoints
                 return pred;
             }
 
+            public ISchema InputSchema => _rootSchema;
+
             public IRow GetRow(IRow input, Func<int, bool> active, out Action disposer)
             {
                 _ectx.Assert(IsCompositeRowToRowMapper(_chain));
                 _ectx.AssertValue(input);
                 _ectx.AssertValue(active);
 
-                _ectx.Check(input.Schema == _rootSchema, "Schema of input row must be the same as the schema the mapper is bound to");
+                _ectx.Check(input.Schema == InputSchema, "Schema of input row must be the same as the schema the mapper is bound to");
 
                 disposer = null;
                 var mappers = new List<IRowToRowMapper>();

@@ -12,7 +12,6 @@
     <ProjectReference Include="..\Microsoft.ML.Core\Microsoft.ML.Core.csproj" />
     <ProjectReference Include="..\Microsoft.ML.CpuMath\Microsoft.ML.CpuMath.csproj" />
     <ProjectReference Include="..\Microsoft.ML.Data\Microsoft.ML.Data.csproj" />
-    <ProjectReference Include="..\Microsoft.ML.InternalStreams\Microsoft.ML.InternalStreams.csproj" />
   </ItemGroup>
 
 <ItemGroup>
@@ -27,7 +26,10 @@
     <Compile Include="FastTreeRanking.cs" />
     <Compile Include="FastTreeRegression.cs" />
     <Compile Include="FastTree.cs" />
+    <Compile Include="FastTreeStatic.cs" />
     <Compile Include="FastTreeTweedie.cs" />
+    <Compile Include="GamClassification.cs" />
+    <Compile Include="GamRegression.cs" />
     <Compile Include="GamTrainer.cs" />
     <Compile Include="RandomForest.cs" />
     <Compile Include="RandomForestRegression.cs" />
@@ -57,6 +59,7 @@
     <Compile Include="TreeEnsemble\Ensemble.cs" />
     <Compile Include="TreeEnsemble\QuantileRegressionTree.cs" />
     <Compile Include="TreeEnsemble\RegressionTree.cs" />
+    <Compile Include="TreeEnsemble\TreeEnsembleCombiner.cs" />
     <Compile Include="Training\Applications\GradientWrappers.cs" />
     <Compile Include="Training\Applications\ObjectiveFunction.cs" />
     <Compile Include="Training\BaggingProvider.cs" />

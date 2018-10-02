@@ -49,9 +49,9 @@ namespace Microsoft.ML.Runtime.Data
             {
                 // REVIEW: Non-textual KeyValues are certainly possible. Should we handle them?
                 // Get the key names.
-                VBuffer<DvText> keyValues = default(VBuffer<DvText>);
+                VBuffer<ReadOnlyMemory<char>> keyValues = default;
                 schema.GetMetadata(MetadataUtils.Kinds.KeyValues, col, ref keyValues);
-                DvText value = default(DvText);
+                ReadOnlyMemory<char> value = default;
 
                 // REVIEW: We could optimize for identity, but it's probably not worthwhile.
                 var keyMapper = conv.GetStandardConversion<T, uint>(type, NumberType.U4, out identity);
@@ -64,7 +64,7 @@ namespace Microsoft.ML.Runtime.Data
                         if (intermediate == 0)
                             return;
                         keyValues.GetItemOrDefault((int)(intermediate - 1), ref value);
-                        value.AddToStringBuilder(dst);
+                        dst.AppendMemory(value);
                     };
             }
 
@@ -181,7 +181,7 @@ namespace Microsoft.ML.Runtime.Data
             _copier = copier ?? ((ref T src, ref T dst) => dst = src);
         }
 
-        private DvText Textify(ref StringBuilder sb, ref StringBuilder temp, ref char[] cbuffer, ref Pair[] buffer, HashSet<Pair> pairs)
+        private ReadOnlyMemory<char> Textify(ref StringBuilder sb, ref StringBuilder temp, ref char[] cbuffer, ref Pair[] buffer, HashSet<Pair> pairs)
         {
             Contracts.AssertValueOrNull(sb);
             Contracts.AssertValueOrNull(temp);
@@ -200,7 +200,7 @@ namespace Microsoft.ML.Runtime.Data
             {
                 var value = buffer[0].Value;
                 _stringifyMapper(ref value, ref temp);
-                return Utils.Size(temp) > 0 ? new DvText(temp.ToString()) : DvText.Empty;
+                return Utils.Size(temp) > 0 ? temp.ToString().AsMemory() : String.Empty.AsMemory();
             }
 
             Array.Sort(buffer, 0, count, Comparer<Pair>.Create((x, y) => x.Order - y.Order));
@@ -219,12 +219,12 @@ namespace Microsoft.ML.Runtime.Data
                 InvertHashUtils.AppendToEnd(temp, sb, ref cbuffer);
             }
             sb.Append('}');
-            var retval = new DvText(sb.ToString());
+            var retval = sb.ToString().AsMemory();
             sb.Clear();
             return retval;
         }
 
-        public VBuffer<DvText> GetMetadata()
+        public VBuffer<ReadOnlyMemory<char>> GetMetadata()
         {
             int count = _slotToValueSet.Count;
             Contracts.Assert(count <= _slots);
@@ -238,7 +238,7 @@ namespace Microsoft.ML.Runtime.Data
             {
                 // Sparse
                 var indices = new int[count];
-                var values = new DvText[count];
+                var values = new ReadOnlyMemory<char>[count];
                 int i = 0;
                 foreach (var p in _slotToValueSet)
                 {
@@ -248,24 +248,24 @@ namespace Microsoft.ML.Runtime.Data
                 }
                 Contracts.Assert(i == count);
                 Array.Sort(indices, values);
-                return new VBuffer<DvText>((int)_slots, count, values, indices);
+                return new VBuffer<ReadOnlyMemory<char>>((int)_slots, count, values, indices);
             }
             else
             {
                 // Dense
-                var values = new DvText[_slots];
+                var values = new ReadOnlyMemory<char>[_slots];
                 foreach (var p in _slotToValueSet)
                 {
                     Contracts.Assert(0 <= p.Key && p.Key < _slots);
                     values[p.Key] = Textify(ref sb, ref temp, ref cbuffer, ref pairs, p.Value);
                 }
-                return new VBuffer<DvText>(values.Length, values);
+                return new VBuffer<ReadOnlyMemory<char>>(values.Length, values);
             }
         }
 
         public void Add(int dstSlot, ValueGetter<T> getter, ref T key)
         {
-            // REVIEW: I only call the getter if I determine I have to, but 
+            // REVIEW: I only call the getter if I determine I have to, but
             // at the cost of passing along this getter and ref argument (as opposed
             // to just the argument). Is this really appropriate or helpful?
             Contracts.Assert(0 <= dstSlot && dstSlot < _slots);
@@ -315,7 +315,7 @@ namespace Microsoft.ML.Runtime.Data
     }
 
     /// <summary>
-    /// Simple utility class for saving a <see cref="VBuffer{T}"/> of <see cref="DvText"/>
+    /// Simple utility class for saving a <see cref="VBuffer{T}"/> of ReadOnlyMemory
     /// as a model, both in a binary and more easily human readable form.
     /// </summary>
     public static class TextModelHelper
@@ -329,17 +329,18 @@ namespace Microsoft.ML.Runtime.Data
                 verWrittenCur: 0x00010001, // Initial
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
-                loaderSignature: LoaderSignature);
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(TextModelHelper).Assembly.FullName);
         }
 
-        private static void Load(IChannel ch, ModelLoadContext ctx, CodecFactory factory, ref VBuffer<DvText> values)
+        private static void Load(IChannel ch, ModelLoadContext ctx, CodecFactory factory, ref VBuffer<ReadOnlyMemory<char>> values)
         {
             Contracts.AssertValue(ch);
             ch.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel(GetVersionInfo());
 
             // *** Binary format ***
-            // Codec parameterization: A codec parameterization that should be a VBuffer<DvText> codec
+            // Codec parameterization: A codec parameterization that should be a ReadOnlyMemory codec
             // int: n, the number of bytes used to write the values
             // byte[n]: As encoded using the codec
 
@@ -355,7 +356,7 @@ namespace Microsoft.ML.Runtime.Data
             ch.AssertValue(codec);
             ch.CheckDecode(codec.Type.IsVector);
             ch.CheckDecode(codec.Type.ItemType.IsText);
-            var textCodec = (IValueCodec<VBuffer<DvText>>)codec;
+            var textCodec = (IValueCodec<VBuffer<ReadOnlyMemory<char>>>)codec;
 
             var bufferLen = ctx.Reader.ReadInt32();
             ch.CheckDecode(bufferLen >= 0);
@@ -364,14 +365,14 @@ namespace Microsoft.ML.Runtime.Data
                 using (var reader = textCodec.OpenReader(stream, 1))
                 {
                     reader.MoveNext();
-                    values = default(VBuffer<DvText>);
+                    values = default(VBuffer<ReadOnlyMemory<char>>);
                     reader.Get(ref values);
                 }
                 ch.CheckDecode(stream.ReadByte() == -1);
             }
         }
 
-        private static void Save(IChannel ch, ModelSaveContext ctx, CodecFactory factory, ref VBuffer<DvText> values)
+        private static void Save(IChannel ch, ModelSaveContext ctx, CodecFactory factory, ref VBuffer<ReadOnlyMemory<char>> values)
         {
             Contracts.AssertValue(ch);
             ch.CheckValue(ctx, nameof(ctx));
@@ -379,7 +380,7 @@ namespace Microsoft.ML.Runtime.Data
             ctx.SetVersionInfo(GetVersionInfo());
 
             // *** Binary format ***
-            // Codec parameterization: A codec parameterization that should be a VBuffer<DvText> codec
+            // Codec parameterization: A codec parameterization that should be a ReadOnlyMemory codec
             // int: n, the number of bytes used to write the values
             // byte[n]: As encoded using the codec
 
@@ -389,8 +390,8 @@ namespace Microsoft.ML.Runtime.Data
             ch.Assert(result);
             ch.Assert(codec.Type.IsVector);
             ch.Assert(codec.Type.VectorSize == 0);
-            ch.Assert(codec.Type.ItemType.RawType == typeof(DvText));
-            IValueCodec<VBuffer<DvText>> textCodec = (IValueCodec<VBuffer<DvText>>)codec;
+            ch.Assert(codec.Type.ItemType.RawType == typeof(ReadOnlyMemory<char>));
+            IValueCodec<VBuffer<ReadOnlyMemory<char>>> textCodec = (IValueCodec<VBuffer<ReadOnlyMemory<char>>>)codec;
 
             factory.WriteCodec(ctx.Writer.BaseStream, codec);
             using (var mem = new MemoryStream())
@@ -420,22 +421,23 @@ namespace Microsoft.ML.Runtime.Data
                         writer.Write("{0}\t", pair.Key);
                         // REVIEW: What about escaping this, *especially* for linebreaks?
                         // Do C# and .NET really have no equivalent to Python's "repr"? :(
-                        if (!text.HasChars)
+                        if (text.IsEmpty)
                         {
                             writer.WriteLine();
                             continue;
                         }
                         Utils.EnsureSize(ref buffer, text.Length);
-                        int ichMin;
-                        int ichLim;
-                        string str = text.GetRawUnderlyingBufferInfo(out ichMin, out ichLim);
-                        str.CopyTo(ichMin, buffer, 0, text.Length);
+
+                        var span = text.Span;
+                        for (int i = 0; i < text.Length; i++)
+                            buffer[i] = span[i];
+
                         writer.WriteLine(buffer, 0, text.Length);
                     }
                 });
         }
 
-        public static void LoadAll(IHost host, ModelLoadContext ctx, int infoLim, out VBuffer<DvText>[] keyValues, out ColumnType[] kvTypes)
+        public static void LoadAll(IHost host, ModelLoadContext ctx, int infoLim, out VBuffer<ReadOnlyMemory<char>>[] keyValues, out ColumnType[] kvTypes)
         {
             Contracts.AssertValue(host);
             host.AssertValue(ctx);
@@ -443,7 +445,7 @@ namespace Microsoft.ML.Runtime.Data
             using (var ch = host.Start("LoadTextValues"))
             {
                 // Try to find the key names.
-                VBuffer<DvText>[] keyValuesLocal = null;
+                VBuffer<ReadOnlyMemory<char>>[] keyValuesLocal = null;
                 ColumnType[] kvTypesLocal = null;
                 CodecFactory factory = null;
                 const string dirFormat = "Vocabulary_{0:000}";
@@ -455,7 +457,7 @@ namespace Microsoft.ML.Runtime.Data
                             // Load the lazily initialized structures, if needed.
                             if (keyValuesLocal == null)
                             {
-                                keyValuesLocal = new VBuffer<DvText>[infoLim];
+                                keyValuesLocal = new VBuffer<ReadOnlyMemory<char>>[infoLim];
                                 kvTypesLocal = new ColumnType[infoLim];
                                 factory = new CodecFactory(host);
                             }
@@ -470,7 +472,7 @@ namespace Microsoft.ML.Runtime.Data
             }
         }
 
-        public static void SaveAll(IHost host, ModelSaveContext ctx, int infoLim, VBuffer<DvText>[] keyValues)
+        public static void SaveAll(IHost host, ModelSaveContext ctx, int infoLim, VBuffer<ReadOnlyMemory<char>>[] keyValues)
         {
             Contracts.AssertValue(host);
             host.AssertValue(ctx);

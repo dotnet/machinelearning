@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -74,13 +75,13 @@ namespace Microsoft.ML.Runtime.EntryPoints
             {
                 // REVIEW: address the asymmetry in the way we're loading and saving the model.
                 // Effectively, we have methods to load the transform model from a model.zip, but don't have
-                // methods to compose the model.zip out of transform model, predictor and role mappings 
+                // methods to compose the model.zip out of transform model, predictor and role mappings
                 // (we use the TrainUtils.SaveModel that does all three).
 
                 // Create the chain of transforms for saving.
                 IDataView data = new EmptyDataView(env, _transformModel.InputSchema);
                 data = _transformModel.Apply(env, data);
-                var roleMappedData = RoleMappedData.CreateOpt(data, _roleMappings);
+                var roleMappedData = new RoleMappedData(data, _roleMappings, opt: true);
 
                 TrainUtils.SaveModel(env, ch, stream, _predictor, roleMappedData);
                 ch.Done();
@@ -102,7 +103,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
             env.CheckValue(input, nameof(input));
 
             input = _transformModel.Apply(env, input);
-            roleMappedData = RoleMappedData.CreateOpt(input, _roleMappings);
+            roleMappedData = new RoleMappedData(input, _roleMappings, opt: true);
             predictor = _predictor;
         }
 
@@ -128,7 +129,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
                 if (labelType.IsKey &&
                     trainRms.Schema.HasKeyNames(trainRms.Label.Index, labelType.KeyCount))
                 {
-                    VBuffer<DvText> keyValues = default(VBuffer<DvText>);
+                    VBuffer<ReadOnlyMemory<char>> keyValues = default;
                     trainRms.Schema.GetMetadata(MetadataUtils.Kinds.KeyValues, trainRms.Label.Index,
                         ref keyValues);
                     return keyValues.DenseValues().Select(v => v.ToString()).ToArray();
@@ -141,7 +142,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
         {
             Contracts.CheckValue(env, nameof(env));
             var predInput = _transformModel.Apply(env, new EmptyDataView(env, _transformModel.InputSchema));
-            var trainRms = RoleMappedSchema.CreateOpt(predInput.Schema, _roleMappings);
+            var trainRms = new RoleMappedSchema(predInput.Schema, _roleMappings, opt: true);
             return trainRms;
         }
     }

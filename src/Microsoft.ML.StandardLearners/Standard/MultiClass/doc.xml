@@ -1,0 +1,62 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<doc>
+  <members>
+
+    <member name="MultiClassNaiveBayesTrainer">
+      <summary>
+        Trains a multiclass Naive Bayes predictor that supports binary feature values.
+      </summary>
+      <remarks>
+        <a href ='https://en.wikipedia.org/wiki/Naive_Bayes_classifier'>Naive Bayes</a> is a probabilistic classifier that can be used for multiclass problems.
+        Using Bayes' theorem, the conditional probability for a sample belonging to a class can be calculated based on the sample count for each feature combination groups.
+        However, Naive Bayes Classifier is feasible only if the number of features and the values each feature can take is relatively small.
+        It assumes independence among the presence of features in a class even though they may be dependent on each other.
+        This multi-class trainer accepts binary feature values of type float, i.e., feature values are either true or false.
+        Specifically a feature value greater than zero is treated as true.
+      </remarks>
+      <seealso cref='Microsoft.ML.Legacy.Trainers.LogisticRegressionClassifier'/>
+      <seealso cref='Microsoft.ML.Legacy.Trainers.LightGbmClassifier'/>
+      <seealso cref='Microsoft.ML.Legacy.Trainers.StochasticDualCoordinateAscentClassifier'/>
+      <seealso cref='Microsoft.ML.Legacy.Models.OneVersusAll'/>
+    </member>
+    <example name="MultiClassNaiveBayesTrainer">
+      <example>
+        <code language="csharp">
+          pipeline.Add(new NaiveBayesClassifier
+            { 
+              NormalizeFeatures = NormalizeOption.Auto,
+              Caching = CachingOptions.Memory 
+            });
+        </code>
+      </example>
+    </example>
+
+    <member name="OVA">
+      <summary>
+        Trains a one-versus-all multi-class classifier on top of the specified binary classifier.
+      </summary>
+      <remarks>
+        <para>In this strategy, a binary classification algorithm is used to train one classifier for each class, which distinguishes that class from all other classes.
+        Prediction is then performed by running these binary classifiers, and choosing the prediction with the highest confidence score.</para>
+        <para>This algorithm can be used with any of the binary classifiers in ML.NET.
+        A few binary classifiers already have implementation for multi-class problems,
+        thus users can choose either one depending on the context.</para>
+        <para>The OVA version of a binary classifier, such as wrapping a LightGbmBinaryClassifier ,
+        can be different from LightGbmClassifier, which develops a multi-class classifier directly.</para>
+        <para>Note that even if the classifier indicates that it does not need caching, OneVersusAll will always
+        request caching, as it will be performing multiple passes over the data set.
+        These learner will request normalization from the data pipeline if the classifier indicates it would benefit from it.</para>
+      </remarks>
+      <seealso cref='Microsoft.ML.Legacy.Trainers.LogisticRegressionClassifier'/>
+      <seealso cref='Microsoft.ML.Legacy.Trainers.LightGbmClassifier'/>
+      <seealso cref='Microsoft.ML.Legacy.Trainers.StochasticDualCoordinateAscentClassifier'/>
+      <seealso cref='Microsoft.ML.Legacy.Trainers.NaiveBayesClassifier'/>
+      <example>
+        <code language="csharp">
+          pipeline.Add(OneVersusAll.With(new StochasticDualCoordinateAscentBinaryClassifier()));
+        </code>
+      </example>
+    </member>
+   
+  </members>
+</doc>

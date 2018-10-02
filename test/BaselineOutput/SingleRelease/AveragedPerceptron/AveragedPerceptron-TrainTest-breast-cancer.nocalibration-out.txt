@@ -1,0 +1,39 @@
+maml.exe TrainTest test=%Data% tr=AveragedPerceptron cali={} dout=%Output% data=%Data% out=%Output% seed=1
+Automatically adding a MinMax normalization transform, use 'norm=Warn' or 'norm=No' to turn this behavior off.
+Warning: Skipped 16 instances with missing features during training (over 1 iterations; 16 inst/iter)
+Not training a calibrator because a valid calibrator trainer was not provided.
+Warning: The predictor produced non-finite prediction values on 16 instances during testing. Possible causes: abnormal data or the predictor is numerically unstable.
+TEST POSITIVE RATIO:	0.3499 (239.0/(239.0+444.0))
+Confusion table
+          ||======================
+PREDICTED || positive | negative | Recall
+TRUTH     ||======================
+ positive ||      235 |        4 | 0.9833
+ negative ||       11 |      433 | 0.9752
+          ||======================
+Precision ||   0.9553 |   0.9908 |
+OVERALL 0/1 ACCURACY: 0.978038
+LOG LOSS/instance:      NaN
+Test-set entropy (prior Log-Loss/instance): 0.934003
+LOG-LOSS REDUCTION (RIG): 0.000000
+AUC:                0.995835
+
+OVERALL RESULTS
+---------------------------------------
+AUC:                0.995835 (0.0000)
+Accuracy:           0.978038 (0.0000)
+Positive precision: 0.955285 (0.0000)
+Positive recall:    0.983264 (0.0000)
+Negative precision: 0.990847 (0.0000)
+Negative recall:    0.975225 (0.0000)
+Log-loss:               NaN (0.0000)
+Log-loss reduction: 0.000000 (0.0000)
+F1 Score:           0.969072 (0.0000)
+AUPRC:              0.991529 (0.0000)
+
+---------------------------------------
+Warning: Data does not contain a probability column. Will not output the Log-loss column
+Physical memory usage(MB): %Number%
+Virtual memory usage(MB): %Number%
+%DateTime%	 Time elapsed(s): %Number%
+

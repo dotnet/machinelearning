@@ -1,4 +1,4 @@
-ï»¿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -38,9 +38,9 @@ namespace Microsoft.ML.Runtime.Data
 
         public const string LoadName = "ClusteringEvaluator";
 
-        private const string Nmi = "NMI";
-        private const string AvgMinScore = "AvgMinScore";
-        private const string Dbi = "DBI";
+        public const string Nmi = "NMI";
+        public const string AvgMinScore = "AvgMinScore";
+        public const string Dbi = "DBI";
 
         private readonly bool _calculateDbi;
 
@@ -50,6 +50,46 @@ namespace Microsoft.ML.Runtime.Data
             Host.AssertValue(args, "args");
 
             _calculateDbi = args.CalculateDbi;
+        }
+
+        /// <summary>
+        /// Evaluates scored clustering data.
+        /// </summary>
+        /// <param name="data">The scored data.</param>
+        /// <param name="score">The name of the score column in <paramref name="data"/>.</param>
+        /// <param name="label">The name of the optional label column in <paramref name="data"/>.</param>
+        /// <param name="features">The name of the optional feature column in <paramref name="data"/>.</param>
+        /// <returns>The evaluation results.</returns>
+        public Result Evaluate(IDataView data, string score, string label = null, string features = null)
+        {
+            Host.CheckValue(data, nameof(data));
+            Host.CheckNonEmpty(score, nameof(score));
+
+            var roles = new List<KeyValuePair<RoleMappedSchema.ColumnRole, string>>();
+            roles.Add(RoleMappedSchema.CreatePair(MetadataUtils.Const.ScoreValueKind.Score, score));
+
+            if (label != null)
+                 roles.Add(RoleMappedSchema.ColumnRole.Label.Bind(label));
+
+            if (features != null)
+                roles.Add(RoleMappedSchema.ColumnRole.Feature.Bind(features));
+
+            var rolesMappedData = new RoleMappedData(data, opt: false, roles.ToArray());
+
+            var resultDict = Evaluate(rolesMappedData);
+            Host.Assert(resultDict.ContainsKey(MetricKinds.OverallMetrics));
+            var overall = resultDict[MetricKinds.OverallMetrics];
+
+            Result result;
+            using (var cursor = overall.GetRowCursor(i => true))
+            {
+                var moved = cursor.MoveNext();
+                Host.Assert(moved);
+                result = new Result(Host, cursor, _calculateDbi);
+                moved = cursor.MoveNext();
+                Host.Assert(!moved);
+            }
+            return result;
         }
 
         protected override void CheckScoreAndLabelTypes(RoleMappedSchema schema)
@@ -115,11 +155,11 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         protected override void GetAggregatorConsolidationFuncs(Aggregator aggregator, AggregatorDictionaryBase[] dictionaries,
-            out Action<uint, DvText, Aggregator> addAgg, out Func<Dictionary<string, IDataView>> consolidate)
+            out Action<uint, ReadOnlyMemory<char>, Aggregator> addAgg, out Func<Dictionary<string, IDataView>> consolidate)
         {
             var stratCol = new List<uint>();
-            var stratVal = new List<DvText>();
-            var isWeighted = new List<DvBool>();
+            var stratVal = new List<ReadOnlyMemory<char>>();
+            var isWeighted = new List<bool>();
             var nmi = new List<Double>();
             var avgMinScores = new List<Double>();
             var dbi = new List<Double>();
@@ -136,7 +176,7 @@ namespace Microsoft.ML.Runtime.Data
 
                     stratCol.Add(stratColKey);
                     stratVal.Add(stratColVal);
-                    isWeighted.Add(DvBool.False);
+                    isWeighted.Add(false);
                     nmi.Add(agg.UnweightedCounters.Nmi);
                     avgMinScores.Add(agg.UnweightedCounters.AvgMinScores);
                     if (agg.UnweightedCounters.CalculateDbi)
@@ -145,7 +185,7 @@ namespace Microsoft.ML.Runtime.Data
                     {
                         stratCol.Add(stratColKey);
                         stratVal.Add(stratColVal);
-                        isWeighted.Add(DvBool.True);
+                        isWeighted.Add(true);
                         nmi.Add(agg.WeightedCounters.Nmi);
                         avgMinScores.Add(agg.WeightedCounters.AvgMinScores);
                         if (agg.WeightedCounters.CalculateDbi)
@@ -517,6 +557,46 @@ namespace Microsoft.ML.Runtime.Data
                 }
             }
         }
+
+        /// <summary>
+        /// The metrics generated after evaluating the clustering predictions.
+        /// </summary>
+        public sealed class Result
+        {
+            /// <summary>
+            /// Normalized Mutual Information
+            /// NMI is a measure of the mutual dependence of the variables.
+            /// <a href="http://en.wikipedia.org/wiki/Mutual_information#Normalized_variants">Normalized variants</a> work on data that already has cluster labels.
+            /// Its value ranged from 0 to 1, where higher numbers are better.
+            /// </summary>
+            public double Nmi { get; }
+
+            /// <summary>
+            /// Average Score. For the K-Means algorithm, the 'score' is the distance from the centroid to the example.
+            /// The average score is, therefore, a measure of proximity of the examples to cluster centroids.
+            /// In other words, it's the 'cluster tightness' measure.
+            /// Note however, that this metric will only decrease if the number of clusters is increased,
+            /// and in the extreme case (where each distinct example is its own cluster) it will be equal to zero.
+            /// </summary>
+            public double AvgMinScore { get; }
+
+            /// <summary>
+            /// <a href="https://en.wikipedia.org/wiki/Davies–Bouldin_index">Davies-Bouldin Index</a>
+            /// DBI is a measure of the how much scatter is in the cluster and the cluster separation.
+            /// </summary>
+            public double Dbi { get; }
+
+            internal Result(IExceptionContext ectx, IRow overallResult, bool calculateDbi)
+            {
+                double Fetch(string name) => RowCursorUtils.Fetch<double>(ectx, overallResult, name);
+
+                Nmi = Fetch(ClusteringEvaluator.Nmi);
+                AvgMinScore = Fetch(ClusteringEvaluator.AvgMinScore);
+
+                if(calculateDbi)
+                    Dbi = Fetch(ClusteringEvaluator.Dbi);
+            }
+        }
     }
 
     public sealed class ClusteringPerInstanceEvaluator : PerInstanceEvaluatorBase
@@ -529,7 +609,8 @@ namespace Microsoft.ML.Runtime.Data
                 verWrittenCur: 0x00010001, // Initial
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
-                loaderSignature: LoaderSignature);
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(ClusteringPerInstanceEvaluator).Assembly.FullName);
         }
 
         private const int ClusterIdCol = 0;
@@ -685,10 +766,10 @@ namespace Microsoft.ML.Runtime.Data
             var slotNamesType = new VectorType(TextType.Instance, _numClusters);
 
             var sortedClusters = new ColumnMetadataInfo(SortedClusters);
-            sortedClusters.Add(MetadataUtils.Kinds.SlotNames, new MetadataInfo<VBuffer<DvText>>(slotNamesType,
+            sortedClusters.Add(MetadataUtils.Kinds.SlotNames, new MetadataInfo<VBuffer<ReadOnlyMemory<char>>>(slotNamesType,
                 CreateSlotNamesGetter(_numClusters, "Cluster")));
             var sortedClusterScores = new ColumnMetadataInfo(SortedClusterScores);
-            sortedClusterScores.Add(MetadataUtils.Kinds.SlotNames, new MetadataInfo<VBuffer<DvText>>(slotNamesType,
+            sortedClusterScores.Add(MetadataUtils.Kinds.SlotNames, new MetadataInfo<VBuffer<ReadOnlyMemory<char>>>(slotNamesType,
                 CreateSlotNamesGetter(_numClusters, "Score")));
 
             infos[SortedClusterCol] = new RowMapperColumnInfo(SortedClusters, _types[SortedClusterCol], sortedClusters);
@@ -698,17 +779,17 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         // REVIEW: Figure out how to avoid having the column name in each slot name.
-        private MetadataUtils.MetadataGetter<VBuffer<DvText>> CreateSlotNamesGetter(int numTopClusters, string suffix)
+        private MetadataUtils.MetadataGetter<VBuffer<ReadOnlyMemory<char>>> CreateSlotNamesGetter(int numTopClusters, string suffix)
         {
             return
-                (int col, ref VBuffer<DvText> dst) =>
+                (int col, ref VBuffer<ReadOnlyMemory<char>> dst) =>
                 {
                     var values = dst.Values;
                     if (Utils.Size(values) < numTopClusters)
-                        values = new DvText[numTopClusters];
+                        values = new ReadOnlyMemory<char>[numTopClusters];
                     for (int i = 1; i <= numTopClusters; i++)
-                        values[i - 1] = new DvText(string.Format("#{0} {1}", i, suffix));
-                    dst = new VBuffer<DvText>(numTopClusters, values);
+                        values[i - 1] = string.Format("#{0} {1}", i, suffix).AsMemory();
+                    dst = new VBuffer<ReadOnlyMemory<char>>(numTopClusters, values);
                 };
         }
 
@@ -776,7 +857,7 @@ namespace Microsoft.ML.Runtime.Data
                 string feat = EvaluateUtils.GetColName(_featureCol, schema.Feature, DefaultColumnNames.Features);
                 if (!schema.Schema.TryGetColumnIndex(feat, out int featCol))
                     throw Host.ExceptUserArg(nameof(Arguments.FeatureColumn), "Features column '{0}' not found", feat);
-                yield return RoleMappedSchema.CreatePair(RoleMappedSchema.ColumnRole.Feature, feat);
+                yield return RoleMappedSchema.ColumnRole.Feature.Bind(feat);
             }
         }
 
@@ -867,7 +948,7 @@ namespace Microsoft.ML.Runtime.Data
                 nameof(ClusteringMamlEvaluator.Arguments.FeatureColumn),
                 input.FeatureColumn, DefaultColumnNames.Features);
             var evaluator = new ClusteringMamlEvaluator(host, input);
-            var data = TrainUtils.CreateExamples(input.Data, label, features, null, weight, name);
+            var data = new RoleMappedData(input.Data, label, features, null, weight, name);
             var metrics = evaluator.Evaluate(data);
 
             var warnings = ExtractWarnings(host, metrics);

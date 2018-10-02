@@ -6,8 +6,11 @@ phases:
     _PREVIEW_VSTS_DOCKER_IMAGE: microsoft/dotnet-buildtools-prereqs:centos-7-d485f41-20173404063424
     BuildConfig: Release
     OfficialBuildId: $(BUILD.BUILDNUMBER)
+    DOTNET_CLI_TELEMETRY_OPTOUT: 1
+    DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
+    DOTNET_MULTILEVEL_LOOKUP: 0
   queue:
-    name: DotNetCore-Test
+    name: DotNet-Build
     demands:
     - agent.os -equals linux
   steps:
@@ -27,6 +30,9 @@ phases:
   variables:
     BuildConfig: Release
     OfficialBuildId: $(BUILD.BUILDNUMBER)
+    DOTNET_CLI_TELEMETRY_OPTOUT: 1
+    DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
+    DOTNET_MULTILEVEL_LOOKUP: 0
   queue:
     name: DotNetCore-Build
     demands:
@@ -48,6 +54,9 @@ phases:
   variables:
     BuildConfig: Release
     OfficialBuildId: $(BUILD.BUILDNUMBER)
+    DOTNET_CLI_TELEMETRY_OPTOUT: 1
+    DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
+    DOTNET_MULTILEVEL_LOOKUP: 0
     _SignType: real
     _UseEsrpSigning: true
     _TeamName: DotNetCore
@@ -96,12 +105,15 @@ phases:
   variables:
     BuildConfig: Release
     OfficialBuildId: $(BUILD.BUILDNUMBER)
+    DOTNET_CLI_TELEMETRY_OPTOUT: 1
+    DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
+    DOTNET_MULTILEVEL_LOOKUP: 0
     _SignType: real
     _UseEsrpSigning: true
     _TeamName: DotNetCore
+    _NuGetFeedUrl: https://dotnet.myget.org/F/dotnet-core/api/v2/package
     _SymwebSymbolServerPath: https://microsoft.artifacts.visualstudio.com/DefaultCollection
     _MsdlSymbolServerPath: https://microsoftpublicsymbols.artifacts.visualstudio.com/DefaultCollection
-    _SymbolExpirationInDays: 30
   queue:
     name: DotNetCore-Build
     demands: 
@@ -145,19 +157,26 @@ phases:
       msbuildVersion: 15.0
     continueOnError: false
 
-  - task: NuGetCommand@2
-    displayName: Publish Packages to VSTS Feed
+  - task: NuGetCommand@2 
+    displayName: Publish Packages to VSTS Feed 
     inputs:
-      command: push
-      packagesToPush: $(Build.SourcesDirectory)/bin/packages/**/*.nupkg;!$(Build.SourcesDirectory)/bin/packages/**/*.symbols.nupkg
-      nuGetFeedType: internal
+      command: push 
+      packagesToPush: $(Build.SourcesDirectory)/bin/packages/**/*.nupkg;!$(Build.SourcesDirectory)/bin/packages/**/*.symbols.nupkg 
+      nuGetFeedType: internal 
       feedPublish: MachineLearning
+    
+  - task: MSBuild@1
+    displayName: Publish Packages to MyGet Feed
+    inputs:
+      solution: build/publish.proj
+      msbuildArguments: /t:PublishPackages /p:NuGetFeedUrl=$(_NuGetFeedUrl) /p:NuGetApiKey=$(dotnet-myget-org-api-key)
+      msbuildVersion: 15.0
 
   - task: MSBuild@1
     displayName: Publish Symbols to SymWeb Symbol Server
     inputs:
       solution: build/publish.proj
-      msbuildArguments: /p:SymbolServerPath=$(_SymwebSymbolServerPath) /p:SymbolServerPAT=$(SymwebSymbolServerPAT) /p:SymbolExpirationInDays=$(_SymbolExpirationInDays)
+      msbuildArguments: /t:PublishSymbolPackages /p:SymbolServerPath=$(_SymwebSymbolServerPath) /p:SymbolServerPAT=$(SymwebSymbolServerPAT)
       msbuildVersion: 15.0
     continueOnError: true
 
@@ -165,6 +184,6 @@ phases:
     displayName: Publish Symbols to Msdl Symbol Server
     inputs:
       solution: build/publish.proj
-      msbuildArguments: /p:SymbolServerPath=$(_MsdlSymbolServerPath) /p:SymbolServerPAT=$(MsdlSymbolServerPAT) /p:SymbolExpirationInDays=$(_SymbolExpirationInDays)
+      msbuildArguments: /t:PublishSymbolPackages /p:SymbolServerPath=$(_MsdlSymbolServerPath) /p:SymbolServerPAT=$(MsdlSymbolServerPAT)
       msbuildVersion: 15.0
     continueOnError: true

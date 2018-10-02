@@ -9,9 +9,10 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
+using Microsoft.ML.Runtime.EntryPoints;
+using Microsoft.ML.Runtime.FastTree.Internal;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Sweeper.Algorithms;
-using Microsoft.ML.Runtime.FastTree.Internal;
 
 [assembly: LoadableClass(typeof(KdoSweeper), typeof(KdoSweeper.Arguments), typeof(SignatureSweeper),
     "KDO Sweeper", "KDOSweeper", "KDO")]
@@ -19,28 +20,28 @@ using Microsoft.ML.Runtime.FastTree.Internal;
 namespace Microsoft.ML.Runtime.Sweeper.Algorithms
 {
     /// <summary>
-    /// Kernel Density Optimization (KDO) is a sequential model-based optimization method originally developed by George D. Montanez (me). 
+    /// Kernel Density Optimization (KDO) is a sequential model-based optimization method originally developed by George D. Montanez (me).
     /// The search space consists of a unit hypercube, with one dimension per hyperparameter (it is a spatial method, so scaling the dimensions
     /// to the unit hypercube is critical). The idea is that the exploration of the cube to find good values is performed by creating an approximate
     /// (and biased) kernel density estimate of the space (where density corresponds to metric performance), concentrating mass in regions of better
     /// performance, then drawing samples from the pdf.
-    /// 
-    /// To trade off exploration versus exploitation, an fitness proportional mutation scheme is used. Uniform random points are selected during 
+    ///
+    /// To trade off exploration versus exploitation, an fitness proportional mutation scheme is used. Uniform random points are selected during
     /// initialization and during the runs (parameter controls how often). A Gaussian model is fit to the distribution of performance values, and
-    /// each evaluated point in the history is given a value between 0 and 1 corresponding to the CDF evaluation of its performance under the 
-    /// Gaussian. Points with low quantile values are mutated more strongly than those with higher values, which allows the method to hone in 
+    /// each evaluated point in the history is given a value between 0 and 1 corresponding to the CDF evaluation of its performance under the
+    /// Gaussian. Points with low quantile values are mutated more strongly than those with higher values, which allows the method to hone in
     /// precisely when approaching really good regions.
-    /// 
+    ///
     /// Categorical parameters are handled by forming a categorical distribution on possible values weighted by observed performance of each value,
-    /// taken independently. 
+    /// taken independently.
     /// </summary>
 
     public sealed class KdoSweeper : ISweeper
     {
         public sealed class Arguments
         {
-            [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "Swept parameters", ShortName = "p")]
-            public SubComponent<IValueGenerator, SignatureSweeperParameter>[] SweptParameters;
+            [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "Swept parameters", ShortName = "p", SignatureType = typeof(SignatureSweeperParameter))]
+            public IComponentFactory<IValueGenerator>[] SweptParameters;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Seed for the random number generator for the first batch sweeper", ShortName = "seed")]
             public int RandomSeed;
@@ -99,7 +100,7 @@ namespace Microsoft.ML.Runtime.Sweeper.Algorithms
 
             _args = args;
             _host.CheckUserArg(Utils.Size(args.SweptParameters) > 0, nameof(args.SweptParameters), "KDO sweeper needs at least one parameter to sweep over");
-            _sweepParameters = args.SweptParameters.Select(p => p.CreateInstance(_host)).ToArray();
+            _sweepParameters = args.SweptParameters.Select(p => p.CreateComponent(_host)).ToArray();
             _randomSweeper = new UniformRandomSweeper(env, new SweeperBase.ArgumentsBase(), _sweepParameters);
             _redundantSweeper = new UniformRandomSweeper(env, new SweeperBase.ArgumentsBase { Retries = 0 }, _sweepParameters);
             _spu = new SweeperProbabilityUtils(_host);
@@ -113,7 +114,7 @@ namespace Microsoft.ML.Runtime.Sweeper.Algorithms
             var prevRuns = previousRuns?.ToArray() ?? new IRunResult[0];
             var numSweeps = Math.Min(numOfCandidates, _args.NumberInitialPopulation - prevRuns.Length);
 
-            // Initialization: Will enter here on first iteration and use the default (random) 
+            // Initialization: Will enter here on first iteration and use the default (random)
             // sweeper to generate initial candidates.
             if (prevRuns.Length < _args.NumberInitialPopulation)
             {
@@ -144,7 +145,7 @@ namespace Microsoft.ML.Runtime.Sweeper.Algorithms
                 // I'm not sure if this is too much detail, but it might be.
                 string errorMessage = $"Error: Sweep run results are missing metric values. \n\n" +
                                       $"NOTE: Default metric of 'AUC' only viable for binary classification problems. \n" +
-                                      $"Please include an evaluator (ev) subcomponent with an appropriate metric specified for your task type.\n\n" +
+                                      $"Please include an evaluator (ev) component with an appropriate metric specified for your task type.\n\n" +
                                        "Example RSP using alternate metric (i.e., AccuracyMicro):\nrunner=Local{\n\tev=Tlc{m=AccuracyMicro}\n\tpattern={...etc...}\n}";
                 throw _host.Except(new Exception(errorMessage), errorMessage);
             }
@@ -348,7 +349,7 @@ namespace Microsoft.ML.Runtime.Sweeper.Algorithms
         }
 
         /// <summary>
-        /// New version of CategoryToWeights method, which fixes an issue where we could 
+        /// New version of CategoryToWeights method, which fixes an issue where we could
         /// potentially assign a lot of mass to bad categories.
         /// </summary>
         private double[] CategoriesToWeights(DiscreteValueGenerator param, IRunResult[] previousRuns)
@@ -374,7 +375,7 @@ namespace Microsoft.ML.Runtime.Sweeper.Algorithms
             for (int i = 0; i < weights.Length; i++)
                 weights[i] /= (counts[i] > 0 ? counts[i] : 1);
 
-            // If any learner has not been seen, default it's average to 
+            // If any learner has not been seen, default it's average to
             // best value to encourage exploration of untried algorithms.
             double bestVal = isMaximizing ?
                 previousRuns.Cast<RunResult>().Where(r => r.HasMetricValue).Max(r => r.MetricValue) :

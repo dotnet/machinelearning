@@ -120,47 +120,38 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         /// <summary>
-        /// Whether this type is the standard timespan type.
+        /// Whether this type is the standard <see cref="TimeSpanType"/> type.
         /// </summary>
         public bool IsTimeSpan
         {
             get
             {
-                if (!(this is TimeSpanType))
-                    return false;
-                // TimeSpanType is a singleton.
-                Contracts.Assert(this == TimeSpanType.Instance);
-                return true;
+                Contracts.Assert((this == TimeSpanType.Instance) == (this is TimeSpanType));
+                return this is TimeSpanType;
             }
         }
 
         /// <summary>
-        /// Whether this type is a DvDateTime.
+        /// Whether this type is a <see cref="DateTimeType"/>.
         /// </summary>
         public bool IsDateTime
         {
             get
             {
-                if (!(this is DateTimeType))
-                    return false;
-                // DateTimeType is a singleton.
-                Contracts.Assert(this == DateTimeType.Instance);
-                return true;
+                Contracts.Assert((this == DateTimeType.Instance) == (this is DateTimeType));
+                return this is DateTimeType;
             }
         }
 
         /// <summary>
-        /// Whether this type is a DvDateTimeZone.
+        /// Whether this type is a <see cref="DateTimeOffsetType"/>
         /// </summary>
         public bool IsDateTimeZone
         {
             get
             {
-                if (!(this is DateTimeZoneType))
-                    return false;
-                // DateTimeZoneType is a singleton.
-                Contracts.Assert(this == DateTimeZoneType.Instance);
-                return true;
+                Contracts.Assert((this == DateTimeOffsetType.Instance) == (this is DateTimeOffsetType));
+                return this is DateTimeOffsetType;
             }
         }
 
@@ -242,6 +233,10 @@ namespace Microsoft.ML.Runtime.Data
         /// </summary>
         internal virtual int ValueCountCore { get { return 1; } }
 
+        // IEquatable<T> interface recommends also to override base class implementations of
+        // Object.Equals(Object) and GetHashCode. In classes below where Equals(ColumnType other)
+        // is effectively a referencial comparison, there is no need to override base class implementations
+        // of Object.Equals(Object) (and GetHashCode) since its also a referencial comparison.
         public abstract bool Equals(ColumnType other);
 
         /// <summary>
@@ -315,7 +310,7 @@ namespace Microsoft.ML.Runtime.Data
             if (kind == DataKind.DT)
                 return DateTimeType.Instance;
             if (kind == DataKind.DZ)
-                return DateTimeZoneType.Instance;
+                return DateTimeOffsetType.Instance;
             return NumberType.FromKind(kind);
         }
     }
@@ -325,7 +320,7 @@ namespace Microsoft.ML.Runtime.Data
     /// </summary>
     public sealed class TextType : PrimitiveType
     {
-        private volatile static TextType _instance;
+        private static volatile TextType _instance;
         public static TextType Instance
         {
             get
@@ -337,7 +332,7 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         private TextType()
-            : base(typeof(DvText), DataKind.TX)
+            : base(typeof(ReadOnlyMemory<char>), DataKind.TX)
         {
         }
 
@@ -370,7 +365,7 @@ namespace Microsoft.ML.Runtime.Data
             Contracts.Assert(IsNumber);
         }
 
-        private volatile static NumberType _instI1;
+        private static volatile NumberType _instI1;
         public static NumberType I1
         {
             get
@@ -381,7 +376,7 @@ namespace Microsoft.ML.Runtime.Data
             }
         }
 
-        private volatile static NumberType _instU1;
+        private static volatile NumberType _instU1;
         public static NumberType U1
         {
             get
@@ -392,7 +387,7 @@ namespace Microsoft.ML.Runtime.Data
             }
         }
 
-        private volatile static NumberType _instI2;
+        private static volatile NumberType _instI2;
         public static NumberType I2
         {
             get
@@ -403,7 +398,7 @@ namespace Microsoft.ML.Runtime.Data
             }
         }
 
-        private volatile static NumberType _instU2;
+        private static volatile NumberType _instU2;
         public static NumberType U2
         {
             get
@@ -414,7 +409,7 @@ namespace Microsoft.ML.Runtime.Data
             }
         }
 
-        private volatile static NumberType _instI4;
+        private static volatile NumberType _instI4;
         public static NumberType I4
         {
             get
@@ -425,7 +420,7 @@ namespace Microsoft.ML.Runtime.Data
             }
         }
 
-        private volatile static NumberType _instU4;
+        private static volatile NumberType _instU4;
         public static NumberType U4
         {
             get
@@ -436,7 +431,7 @@ namespace Microsoft.ML.Runtime.Data
             }
         }
 
-        private volatile static NumberType _instI8;
+        private static volatile NumberType _instI8;
         public static NumberType I8
         {
             get
@@ -447,7 +442,7 @@ namespace Microsoft.ML.Runtime.Data
             }
         }
 
-        private volatile static NumberType _instU8;
+        private static volatile NumberType _instU8;
         public static NumberType U8
         {
             get
@@ -458,7 +453,7 @@ namespace Microsoft.ML.Runtime.Data
             }
         }
 
-        private volatile static NumberType _instUG;
+        private static volatile NumberType _instUG;
         public static NumberType UG
         {
             get
@@ -469,7 +464,7 @@ namespace Microsoft.ML.Runtime.Data
             }
         }
 
-        private volatile static NumberType _instR4;
+        private static volatile NumberType _instR4;
         public static NumberType R4
         {
             get
@@ -480,7 +475,7 @@ namespace Microsoft.ML.Runtime.Data
             }
         }
 
-        private volatile static NumberType _instR8;
+        private static volatile NumberType _instR8;
         public static NumberType R8
         {
             get
@@ -496,7 +491,7 @@ namespace Microsoft.ML.Runtime.Data
             get { return R4; }
         }
 
-        public new static NumberType FromKind(DataKind kind)
+        public static new NumberType FromKind(DataKind kind)
         {
             switch (kind)
             {
@@ -557,7 +552,7 @@ namespace Microsoft.ML.Runtime.Data
     /// </summary>
     public sealed class BoolType : PrimitiveType
     {
-        private volatile static BoolType _instance;
+        private static volatile BoolType _instance;
         public static BoolType Instance
         {
             get
@@ -569,7 +564,7 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         private BoolType()
-            : base(typeof(DvBool), DataKind.BL)
+            : base(typeof(bool), DataKind.BL)
         {
         }
 
@@ -589,7 +584,7 @@ namespace Microsoft.ML.Runtime.Data
 
     public sealed class DateTimeType : PrimitiveType
     {
-        private volatile static DateTimeType _instance;
+        private static volatile DateTimeType _instance;
         public static DateTimeType Instance
         {
             get
@@ -601,7 +596,7 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         private DateTimeType()
-            : base(typeof(DvDateTime), DataKind.DT)
+            : base(typeof(DateTime), DataKind.DT)
         {
         }
 
@@ -619,21 +614,21 @@ namespace Microsoft.ML.Runtime.Data
         }
     }
 
-    public sealed class DateTimeZoneType : PrimitiveType
+    public sealed class DateTimeOffsetType : PrimitiveType
     {
-        private volatile static DateTimeZoneType _instance;
-        public static DateTimeZoneType Instance
+        private static volatile DateTimeOffsetType _instance;
+        public static DateTimeOffsetType Instance
         {
             get
             {
                 if (_instance == null)
-                    Interlocked.CompareExchange(ref _instance, new DateTimeZoneType(), null);
+                    Interlocked.CompareExchange(ref _instance, new DateTimeOffsetType(), null);
                 return _instance;
             }
         }
 
-        private DateTimeZoneType()
-            : base(typeof(DvDateTimeZone), DataKind.DZ)
+        private DateTimeOffsetType()
+            : base(typeof(DateTimeOffset), DataKind.DZ)
         {
         }
 
@@ -641,7 +636,7 @@ namespace Microsoft.ML.Runtime.Data
         {
             if (other == this)
                 return true;
-            Contracts.Assert(!(other is DateTimeZoneType));
+            Contracts.Assert(!(other is DateTimeOffsetType));
             return false;
         }
 
@@ -656,7 +651,7 @@ namespace Microsoft.ML.Runtime.Data
     /// </summary>
     public sealed class TimeSpanType : PrimitiveType
     {
-        private volatile static TimeSpanType _instance;
+        private static volatile TimeSpanType _instance;
         public static TimeSpanType Instance
         {
             get
@@ -668,7 +663,7 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         private TimeSpanType()
-            : base(typeof(DvTimeSpan), DataKind.TS)
+            : base(typeof(TimeSpan), DataKind.TS)
         {
         }
 
@@ -692,11 +687,11 @@ namespace Microsoft.ML.Runtime.Data
     /// meaningful. Examples are SSNs, phone numbers, auto-generated/incremented key values,
     /// class numbers, etc. For example, in multi-class classification, the label is typically
     /// a class number which is naturally a KeyType.
-    /// 
+    ///
     /// KeyTypes can be contiguous (the class number example), in which case they can have
     /// a cardinality/Count. For non-contiguous KeyTypes the Count property returns zero.
     /// Any KeyType (contiguous or not) can have a Min value. The Min value is always >= 0.
-    /// 
+    ///
     /// Note that the representation value does not necessarily match the logical value.
     /// For example, if a KeyType has range 1000-5000, then it has a Min of 1000, Count
     /// of 4001, but the representational values are 1-4001. The representation value zero
@@ -787,6 +782,16 @@ namespace Microsoft.ML.Runtime.Data
             if (_count != tmp._count)
                 return false;
             return true;
+        }
+
+        public override bool Equals(object other)
+        {
+            return other is ColumnType tmp && Equals(tmp);
+        }
+
+        public override int GetHashCode()
+        {
+            return Hashing.CombinedHash(RawKind.GetHashCode(), _contiguous, _min, _count);
         }
 
         public override string ToString()
@@ -940,6 +945,21 @@ namespace Microsoft.ML.Runtime.Data
             return true;
         }
 
+        public override bool Equals(object other)
+        {
+            return other is ColumnType tmp && Equals(tmp);
+        }
+
+        public override int GetHashCode()
+        {
+            int hash = Hashing.CombinedHash(_itemType.GetHashCode(), _size);
+            int count = Utils.Size(_dims);
+            hash = Hashing.CombineHash(hash, count.GetHashCode());
+            for (int i = 0; i < count; i++)
+                hash = Hashing.CombineHash(hash, _dims[i].GetHashCode());
+            return hash;
+        }
+
         /// <summary>
         /// Returns true if current has the same item type of other, and the size
         /// of other is unknown or the current size is equal to the size of other.
@@ -951,7 +971,7 @@ namespace Microsoft.ML.Runtime.Data
             if (other == null)
                 return false;
 
-            // REVIEW: Perhaps we should allow the case when _itemType is 
+            // REVIEW: Perhaps we should allow the case when _itemType is
             // a sub-type of other._itemType (in particular for key types)
             if (!_itemType.Equals(other._itemType))
                 return false;

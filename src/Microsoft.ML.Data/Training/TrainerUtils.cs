@@ -2,12 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Float = System.Single;
-
+using Microsoft.ML.Core.Data;
+using Microsoft.ML.Runtime.Data;
+using Microsoft.ML.Runtime.EntryPoints;
+using Microsoft.ML.Runtime.Internal.Utilities;
 using System;
 using System.Collections.Generic;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Internal.Utilities;
 
 namespace Microsoft.ML.Runtime.Training
 {
@@ -238,9 +238,7 @@ namespace Microsoft.ML.Runtime.Training
         /// This does not verify that the columns exist, but merely activates the ones that do exist.
         /// </summary>
         public static IRowCursor CreateRowCursor(this RoleMappedData data, CursOpt opt, IRandom rand, IEnumerable<int> extraCols = null)
-        {
-            return data.Data.GetRowCursor(CreatePredicate(data, opt, extraCols), rand);
-        }
+            => data.Data.GetRowCursor(CreatePredicate(data, opt, extraCols), rand);
 
         /// <summary>
         /// Create a row cursor set for the RoleMappedData with the indicated standard columns active.
@@ -248,9 +246,7 @@ namespace Microsoft.ML.Runtime.Training
         /// </summary>
         public static IRowCursor[] CreateRowCursorSet(this RoleMappedData data, out IRowCursorConsolidator consolidator,
             CursOpt opt, int n, IRandom rand, IEnumerable<int> extraCols = null)
-        {
-            return data.Data.GetRowCursorSet(out consolidator, CreatePredicate(data, opt, extraCols), n, rand);
-        }
+            => data.Data.GetRowCursorSet(out consolidator, CreatePredicate(data, opt, extraCols), n, rand);
 
         private static void AddOpt(HashSet<int> cols, ColumnInfo info)
         {
@@ -260,32 +256,32 @@ namespace Microsoft.ML.Runtime.Training
         }
 
         /// <summary>
-        /// Get the getter for the feature column, assuming it is a vector of Float.
+        /// Get the getter for the feature column, assuming it is a vector of float.
         /// </summary>
-        public static ValueGetter<VBuffer<Float>> GetFeatureFloatVectorGetter(this IRow row, RoleMappedSchema schema)
+        public static ValueGetter<VBuffer<float>> GetFeatureFloatVectorGetter(this IRow row, RoleMappedSchema schema)
         {
             Contracts.CheckValue(row, nameof(row));
             Contracts.CheckValue(schema, nameof(schema));
             Contracts.CheckParam(schema.Schema == row.Schema, nameof(schema), "schemas don't match!");
             Contracts.CheckParam(schema.Feature != null, nameof(schema), "Missing feature column");
 
-            return row.GetGetter<VBuffer<Float>>(schema.Feature.Index);
+            return row.GetGetter<VBuffer<float>>(schema.Feature.Index);
         }
 
         /// <summary>
-        /// Get the getter for the feature column, assuming it is a vector of Float.
+        /// Get the getter for the feature column, assuming it is a vector of float.
         /// </summary>
-        public static ValueGetter<VBuffer<Float>> GetFeatureFloatVectorGetter(this IRow row, RoleMappedData data)
+        public static ValueGetter<VBuffer<float>> GetFeatureFloatVectorGetter(this IRow row, RoleMappedData data)
         {
             Contracts.CheckValue(data, nameof(data));
             return GetFeatureFloatVectorGetter(row, data.Schema);
         }
 
         /// <summary>
-        /// Get a getter for the label as a Float. This assumes that the label column type
+        /// Get a getter for the label as a float. This assumes that the label column type
         /// has already been validated as appropriate for the kind of training being done.
         /// </summary>
-        public static ValueGetter<Float> GetLabelFloatGetter(this IRow row, RoleMappedSchema schema)
+        public static ValueGetter<float> GetLabelFloatGetter(this IRow row, RoleMappedSchema schema)
         {
             Contracts.CheckValue(row, nameof(row));
             Contracts.CheckValue(schema, nameof(schema));
@@ -296,10 +292,10 @@ namespace Microsoft.ML.Runtime.Training
         }
 
         /// <summary>
-        /// Get a getter for the label as a Float. This assumes that the label column type
+        /// Get a getter for the label as a float. This assumes that the label column type
         /// has already been validated as appropriate for the kind of training being done.
         /// </summary>
-        public static ValueGetter<Float> GetLabelFloatGetter(this IRow row, RoleMappedData data)
+        public static ValueGetter<float> GetLabelFloatGetter(this IRow row, RoleMappedData data)
         {
             Contracts.CheckValue(data, nameof(data));
             return GetLabelFloatGetter(row, data.Schema);
@@ -308,7 +304,7 @@ namespace Microsoft.ML.Runtime.Training
         /// <summary>
         /// Get the getter for the weight column, or null if there is no weight column.
         /// </summary>
-        public static ValueGetter<Float> GetOptWeightFloatGetter(this IRow row, RoleMappedSchema schema)
+        public static ValueGetter<float> GetOptWeightFloatGetter(this IRow row, RoleMappedSchema schema)
         {
             Contracts.CheckValue(row, nameof(row));
             Contracts.CheckValue(schema, nameof(schema));
@@ -318,10 +314,10 @@ namespace Microsoft.ML.Runtime.Training
             var col = schema.Weight;
             if (col == null)
                 return null;
-            return RowCursorUtils.GetGetterAs<Float>(NumberType.Float, row, col.Index);
+            return RowCursorUtils.GetGetterAs<float>(NumberType.Float, row, col.Index);
         }
 
-        public static ValueGetter<Float> GetOptWeightFloatGetter(this IRow row, RoleMappedData data)
+        public static ValueGetter<float> GetOptWeightFloatGetter(this IRow row, RoleMappedData data)
         {
             Contracts.CheckValue(data, nameof(data));
             return GetOptWeightFloatGetter(row, data.Schema);
@@ -347,6 +343,77 @@ namespace Microsoft.ML.Runtime.Training
         {
             Contracts.CheckValue(data, nameof(data));
             return GetOptGroupGetter(row, data.Schema);
+        }
+
+        /// <summary>
+        /// The <see cref="SchemaShape.Column"/> for the label column for binary classification tasks.
+        /// </summary>
+        /// <param name="labelColumn">name of the label column</param>
+        public static SchemaShape.Column MakeBoolScalarLabel(string labelColumn)
+            => new SchemaShape.Column(labelColumn, SchemaShape.Column.VectorKind.Scalar, BoolType.Instance, false);
+
+        /// <summary>
+        /// The <see cref="SchemaShape.Column"/> for the label column for regression tasks.
+        /// </summary>
+        /// <param name="labelColumn">name of the weight column</param>
+        public static SchemaShape.Column MakeR4ScalarLabel(string labelColumn)
+            => new SchemaShape.Column(labelColumn, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false);
+
+        /// <summary>
+        /// The <see cref="SchemaShape.Column"/> for the label column for regression tasks.
+        /// </summary>
+        /// <param name="labelColumn">name of the weight column</param>
+        public static SchemaShape.Column MakeU4ScalarLabel(string labelColumn)
+            => new SchemaShape.Column(labelColumn, SchemaShape.Column.VectorKind.Scalar, NumberType.U4, true);
+
+        /// <summary>
+        /// The <see cref="SchemaShape.Column"/> for the feature column.
+        /// </summary>
+        /// <param name="featureColumn">name of the feature column</param>
+        public static SchemaShape.Column MakeR4VecFeature(string featureColumn)
+            => new SchemaShape.Column(featureColumn, SchemaShape.Column.VectorKind.Vector, NumberType.R4, false);
+
+        /// <summary>
+        /// The <see cref="SchemaShape.Column"/> for the weight column.
+        /// </summary>
+        /// <param name="weightColumn">name of the weight column</param>
+        public static SchemaShape.Column MakeR4ScalarWeightColumn(string weightColumn)
+        {
+            if (weightColumn == null)
+                return null;
+            return new SchemaShape.Column(weightColumn, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false);
+        }
+
+        /// <summary>
+        /// Check that the label, feature, weights, groupId column names are not supplied in the args of the constructor, through the advancedSettings parameter,
+        /// for cases when the public constructor is called.
+        /// The recommendation is to set the column names directly.
+        /// </summary>
+        public static void CheckArgsHaveDefaultColNames(IHostEnvironment host, LearnerInputBaseWithGroupId args)
+        {
+            Action<string, string> checkArgColName = (defaultColName, argValue) =>
+            {
+                if (argValue != defaultColName)
+                    throw host.Except($"Don't supply a value for the {defaultColName} column in the arguments, as it will be ignored. Specify them in the loader, or constructor instead instead.");
+            };
+
+            // check that the users didn't specify different label, group, feature, weights in the args, from what they supplied directly
+            checkArgColName(DefaultColumnNames.Label, args.LabelColumn);
+            checkArgColName(DefaultColumnNames.Features, args.FeatureColumn);
+            checkArgColName(DefaultColumnNames.Weight, args.WeightColumn);
+
+            if (args.GroupIdColumn != null)
+                checkArgColName(DefaultColumnNames.GroupId, args.GroupIdColumn);
+        }
+
+        /// <summary>
+        /// If, after applying the advancedArgs delegate, the args are different that the default value
+        /// and are also different than the value supplied directly to the xtension method, warn the user.
+        /// </summary>
+        public static void CheckArgsAndAdvancedSettingMismatch<T>(IChannel channel, T methodParam, T defaultVal, T setting, string argName)
+        {
+            if (!setting.Equals(defaultVal) && !setting.Equals(methodParam))
+                channel.Warning($"The value supplied to advanced settings , is different than the value supplied directly. Using value {setting} for {argName}");
         }
     }
 
@@ -400,10 +467,10 @@ namespace Microsoft.ML.Runtime.Training
         /// delegate of the cursor, indicating what additional options should be specified on subsequent
         /// passes over the data. The base implementation checks if any rows were skipped, and if none were
         /// skipped, it signals the context that it needn't bother with any filtering checks.
-        /// 
+        ///
         /// Because the result will be "or"-red, a perfectly acceptable implementation is that this
         /// return the default <see cref="CursOpt"/>, in which case the flags will not ever change.
-        /// 
+        ///
         /// If the cursor was created with a signal delegate, the return value of this method will be sent
         /// to that delegate.
         /// </summary>
@@ -593,11 +660,11 @@ namespace Microsoft.ML.Runtime.Training
     }
 
     /// <summary>
-    /// This supports Weight (Float), Group (ulong), and Id (DvInt8) columns.
+    /// This supports Weight (float), Group (ulong), and Id (UInt128) columns.
     /// </summary>
     public class StandardScalarCursor : TrainingCursorBase
     {
-        private readonly ValueGetter<Float> _getWeight;
+        private readonly ValueGetter<float> _getWeight;
         private readonly ValueGetter<ulong> _getGroup;
         private readonly ValueGetter<UInt128> _getId;
         private readonly bool _keepBadWeight;
@@ -608,7 +675,7 @@ namespace Microsoft.ML.Runtime.Training
         public long BadWeightCount { get { return _badWeightCount; } }
         public long BadGroupCount { get { return _badGroupCount; } }
 
-        public Float Weight;
+        public float Weight;
         public ulong Group;
         public UInt128 Id;
 
@@ -655,7 +722,7 @@ namespace Microsoft.ML.Runtime.Training
             if (_getWeight != null)
             {
                 _getWeight(ref Weight);
-                if (!_keepBadWeight && !(0 < Weight && Weight < Float.PositiveInfinity))
+                if (!_keepBadWeight && !(0 < Weight && Weight < float.PositiveInfinity))
                 {
                     _badWeightCount++;
                     return false;
@@ -683,9 +750,7 @@ namespace Microsoft.ML.Runtime.Training
             }
 
             protected override StandardScalarCursor CreateCursorCore(IRowCursor input, RoleMappedData data, CursOpt opt, Action<CursOpt> signal)
-            {
-                return new StandardScalarCursor(input, data, opt, signal);
-            }
+                => new StandardScalarCursor(input, data, opt, signal);
         }
     }
 
@@ -695,13 +760,13 @@ namespace Microsoft.ML.Runtime.Training
     /// </summary>
     public class FeatureFloatVectorCursor : StandardScalarCursor
     {
-        private readonly ValueGetter<VBuffer<Float>> _get;
+        private readonly ValueGetter<VBuffer<float>> _get;
         private readonly bool _keepBad;
 
         private long _badCount;
         public long BadFeaturesRowCount { get { return _badCount; } }
 
-        public VBuffer<Float> Features;
+        public VBuffer<float> Features;
 
         public FeatureFloatVectorCursor(RoleMappedData data, CursOpt opt = CursOpt.Features,
             IRandom rand = null, params int[] extraCols)
@@ -758,18 +823,18 @@ namespace Microsoft.ML.Runtime.Training
     }
 
     /// <summary>
-    /// This derives from the FeatureFloatVectorCursor and adds the Label (Float) column.
+    /// This derives from the FeatureFloatVectorCursor and adds the Label (float) column.
     /// </summary>
     public class FloatLabelCursor : FeatureFloatVectorCursor
     {
-        private readonly ValueGetter<Float> _get;
+        private readonly ValueGetter<float> _get;
         private readonly bool _keepBad;
 
         private long _badCount;
 
         public long BadLabelCount { get { return _badCount; } }
 
-        public Float Label;
+        public float Label;
 
         public FloatLabelCursor(RoleMappedData data, CursOpt opt = CursOpt.Label,
             IRandom rand = null, params int[] extraCols)
@@ -831,13 +896,13 @@ namespace Microsoft.ML.Runtime.Training
     public class MultiClassLabelCursor : FeatureFloatVectorCursor
     {
         private readonly int _classCount;
-        private readonly ValueGetter<Float> _get;
+        private readonly ValueGetter<float> _get;
         private readonly bool _keepBad;
 
         private long _badCount;
         public long BadLabelCount { get { return _badCount; } }
 
-        private Float _raw;
+        private float _raw;
         public int Label;
 
         public MultiClassLabelCursor(int classCount, RoleMappedData data, CursOpt opt = CursOpt.Label,

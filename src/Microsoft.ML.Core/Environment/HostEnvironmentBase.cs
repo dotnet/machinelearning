@@ -6,7 +6,6 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
-using System.Threading;
 
 namespace Microsoft.ML.Runtime.Data
 {
@@ -87,7 +86,7 @@ namespace Microsoft.ML.Runtime.Data
 
     /// <summary>
     /// A <see cref="IHostEnvironment"/> that is also a channel listener can attach
-    /// listeners for messages, as sent through <see cref="IChannelProvider.StartPipe"/>.
+    /// listeners for messages, as sent through <see cref="IChannelProvider.StartPipe{TMessage}"/>.
     /// </summary>
     public interface IMessageDispatcher : IHostEnvironment
     {
@@ -109,7 +108,7 @@ namespace Microsoft.ML.Runtime.Data
 
     /// <summary>
     /// A basic host environment suited for many environments.
-    /// This also supports modifying the concurrency factor, provides the ability to subscribe to pipes via the 
+    /// This also supports modifying the concurrency factor, provides the ability to subscribe to pipes via the
     /// AddListener/RemoveListener methods, and exposes the <see cref="ProgressReporting.ProgressTracker"/> to
     /// query progress.
     /// </summary>
@@ -315,7 +314,7 @@ namespace Microsoft.ML.Runtime.Data
             /// This field is actually used as a <see cref="MulticastDelegate"/>, which holds the listener actions
             /// for all listeners that are currently subscribed. The action itself is an immutable object, so every time
             /// any listener subscribes or unsubscribes, the field is replaced with a modified version of the delegate.
-            /// 
+            ///
             /// The field can be null, if no listener is currently subscribed.
             /// </summary>
             private volatile Action<IMessageSource, TMessage> _listenerAction;
@@ -382,6 +381,8 @@ namespace Microsoft.ML.Runtime.Data
 
         public bool IsCancelled { get; protected set; }
 
+        public ComponentCatalog ComponentCatalog { get; }
+
         public override int Depth => 0;
 
         protected bool IsDisposed => _tempFiles == null;
@@ -402,6 +403,7 @@ namespace Microsoft.ML.Runtime.Data
             _tempLock = new object();
             _tempFiles = new List<IFileHandle>();
             Root = this as TEnv;
+            ComponentCatalog = new ComponentCatalog();
         }
 
         /// <summary>
@@ -422,6 +424,7 @@ namespace Microsoft.ML.Runtime.Data
             Root = source.Root;
             ListenerDict = source.ListenerDict;
             ProgressTracker = source.ProgressTracker;
+            ComponentCatalog = source.ComponentCatalog;
         }
 
         /// <summary>
@@ -488,10 +491,8 @@ namespace Microsoft.ML.Runtime.Data
         /// </summary>
         protected virtual IFileHandle OpenInputFileCore(IHostEnvironment env, string path)
         {
-#pragma warning disable TLC_NoThis // Do not use 'this' keyword for member access
             this.AssertValue(env);
             this.CheckNonWhiteSpace(path, nameof(path));
-#pragma warning restore TLC_NoThis // Do not use 'this' keyword for member access
             if (Master != null)
                 return Master.OpenInputFileCore(env, path);
             return new SimpleFileHandle(env, path, needsWrite: false, autoDelete: false);
@@ -511,10 +512,8 @@ namespace Microsoft.ML.Runtime.Data
         /// </summary>
         protected virtual IFileHandle CreateOutputFileCore(IHostEnvironment env, string path)
         {
-#pragma warning disable TLC_NoThis // Do not use 'this' keyword for member access
             this.AssertValue(env);
             this.CheckNonWhiteSpace(path, nameof(path));
-#pragma warning restore TLC_NoThis // Do not use 'this' keyword for member access
             if (Master != null)
                 return Master.CreateOutputFileCore(env, path);
             return new SimpleFileHandle(env, path, needsWrite: true, autoDelete: false);
@@ -532,9 +531,7 @@ namespace Microsoft.ML.Runtime.Data
         /// </summary>
         protected IFileHandle CreateAndRegisterTempFile(IHostEnvironment env, string suffix = null, string prefix = null)
         {
-#pragma warning disable TLC_NoThis // Do not use 'this' keyword for member access
             this.AssertValue(env);
-#pragma warning restore TLC_NoThis // Do not use 'this' keyword for member access
 
             if (Master != null)
                 return Master.CreateAndRegisterTempFile(env, suffix, prefix);
@@ -556,10 +553,8 @@ namespace Microsoft.ML.Runtime.Data
 
         protected virtual IFileHandle CreateTempFileCore(IHostEnvironment env, string suffix = null, string prefix = null)
         {
-#pragma warning disable TLC_NoThis // Do not use 'this' keyword for member access
             this.CheckParam(!HasBadFileCharacters(suffix), nameof(suffix));
             this.CheckParam(!HasBadFileCharacters(prefix), nameof(prefix));
-#pragma warning restore TLC_NoThis // Do not use 'this' keyword for member access
 
             Guid guid = Guid.NewGuid();
             string path = Path.GetFullPath(Path.Combine(Path.GetTempPath(), prefix + guid.ToString() + suffix));

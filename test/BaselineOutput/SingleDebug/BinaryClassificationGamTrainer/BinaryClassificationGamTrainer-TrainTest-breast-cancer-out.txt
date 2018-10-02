@@ -1,0 +1,53 @@
+maml.exe TrainTest test=%Data% tr=BinaryClassificationGamTrainer dout=%Output% data=%Data% out=%Output% seed=1
+Not adding a normalizer.
+Making per-feature arrays
+Changing data from row-wise to column-wise
+Warning: Skipped 16 instances with missing features during training
+Processed 683 instances
+Binning and forming Feature objects
+Starting to train ...
+Training calibrator.
+TEST POSITIVE RATIO:	0.3448 (241.0/(241.0+458.0))
+Confusion table
+          ||======================
+PREDICTED || positive | negative | Recall
+TRUTH     ||======================
+ positive ||      232 |        9 | 0.9627
+ negative ||       12 |      446 | 0.9738
+          ||======================
+Precision ||   0.9508 |   0.9802 |
+OVERALL 0/1 ACCURACY: 0.969957
+LOG LOSS/instance:  0.113509
+Test-set entropy (prior Log-Loss/instance): 0.929318
+LOG-LOSS REDUCTION (RIG): 87.785753
+AUC:                0.994972
+
+OVERALL RESULTS
+---------------------------------------
+AUC:                0.994972 (0.0000)
+Accuracy:           0.969957 (0.0000)
+Positive precision: 0.950820 (0.0000)
+Positive recall:    0.962656 (0.0000)
+Negative precision: 0.980220 (0.0000)
+Negative recall:    0.973799 (0.0000)
+Log-loss:           0.113509 (0.0000)
+Log-loss reduction: 87.785753 (0.0000)
+F1 Score:           0.956701 (0.0000)
+AUPRC:              0.989577 (0.0000)
+
+---------------------------------------
+Physical memory usage(MB): %Number%
+Virtual memory usage(MB): %Number%
+%DateTime%	 Time elapsed(s): %Number%
+
+--- Progress log ---
+[1] 'FastTree data preparation' started.
+[1] 'FastTree data preparation' finished in %Time%.
+[2] 'FastTree in-memory bins initialization' started.
+[2] 'FastTree in-memory bins initialization' finished in %Time%.
+[3] 'FastTree feature conversion' started.
+[3] 'FastTree feature conversion' finished in %Time%.
+[4] 'GAM training' started.
+[4] 'GAM training' finished in %Time%.
+[5] 'Saving model' started.
+[5] 'Saving model' finished in %Time%.

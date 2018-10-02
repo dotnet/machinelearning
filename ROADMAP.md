@@ -46,7 +46,7 @@ In the meanwhile, we are looking for contributions.  An easy place to start is t
   * Generative Additive Models
   * [SymSGD](https://arxiv.org/pdf/1705.08030.pdf) -a fast linear SGD learner
   * Factorization Machines
-  * [ProtoNN and Bonsaii](https://www.microsoft.com/en-us/research/project/resource-efficient-ml-for-the-edge-and-endpoint-iot-devices/) for compact and effecient models
+  * [ProtoNN and Bonsaii](https://www.microsoft.com/en-us/research/project/resource-efficient-ml-for-the-edge-and-endpoint-iot-devices/) for compact and efficient models
 * Integration with other ML packages
   * Accord.NET
   * etc.
@@ -56,7 +56,7 @@ In the meanwhile, we are looking for contributions.  An easy place to start is t
   * Hybrid training of pipelines containing both DNN and non-DNN predictors
 * Additional ML tasks  (*)
   * _Recommendation_ - Is a problem that can be phrased a: "For a given user, predict the ratings this user would give to the items that they have not explicitly rated yet"
-  * _Anomaly Detection_, also known as _outlier detection_. It is a task to identify items, events or observations which do not conform to an expected pattern in the dataset. Typical examples are: detecting credit card fraud, medical problems or errors in text. Anomalies are also referred to as outliers,  novelties, noise, deviations and exceptions
+  * _Anomaly Detection_, also known as _outlier detection_. It is a task to identify items, events or observations which do not conform to an expected pattern in the dataset. Typical examples are: detecting credit card fraud, medical problems or errors in text. Anomalies are also referred to as outliers, novelties, noise, deviations and exceptions
   * _Sequence Classification_ - learns from a series of examples in a sequence, and each item is assigned a distinct label, akin to a multiclass classification task
 * Additional Data source support
   * Data from SQL Databases, such as SQL Server

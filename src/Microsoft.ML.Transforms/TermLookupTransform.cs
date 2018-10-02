@@ -55,8 +55,8 @@ namespace Microsoft.ML.Runtime.Data
             [Argument(ArgumentType.AtMostOnce, IsInputFileName = true, HelpText = "The data file containing the terms", ShortName = "data", SortOrder = 2)]
             public string DataFile;
 
-            [Argument(ArgumentType.Multiple, HelpText = "The data loader", NullName = "<Auto>")]
-            public SubComponent<IDataLoader, SignatureDataLoader> Loader;
+            [Argument(ArgumentType.Multiple, HelpText = "The data loader", NullName = "<Auto>", SignatureType = typeof(SignatureDataLoader))]
+            public IComponentFactory<IMultiStreamSource, IDataLoader> Loader;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "The name of the text column containing the terms", ShortName = "term")]
             public string TermColumn;
@@ -115,7 +115,7 @@ namespace Microsoft.ML.Runtime.Data
 
             public abstract void Train(IExceptionContext ectx, IRowCursor cursor, int colTerm, int colValue);
 
-            public abstract Delegate GetGetter(ValueGetter<DvText> getSrc);
+            public abstract Delegate GetGetter(ValueGetter<ReadOnlyMemory<char>> getSrc);
         }
 
         /// <summary>
@@ -146,22 +146,18 @@ namespace Microsoft.ML.Runtime.Data
                 ectx.Assert(0 <= colValue && colValue < cursor.Schema.ColumnCount);
                 ectx.Assert(cursor.Schema.GetColumnType(colValue).Equals(Type));
 
-                var getTerm = cursor.GetGetter<DvText>(colTerm);
+                var getTerm = cursor.GetGetter<ReadOnlyMemory<char>>(colTerm);
                 var getValue = cursor.GetGetter<TRes>(colValue);
                 var terms = new NormStr.Pool();
                 var values = new List<TRes>();
 
-                DvText term = default(DvText);
+                ReadOnlyMemory<char> term = default;
                 while (cursor.MoveNext())
                 {
                     getTerm(ref term);
                     // REVIEW: Should we trim?
-                    term = term.Trim();
-                    // REVIEW: Should we handle mapping "missing" to something?
-                    if (term.IsNA)
-                        throw ectx.Except("Missing term in lookup data around row: {0}", values.Count);
-
-                    var nstr = term.AddToPool(terms);
+                    term = ReadOnlyMemoryUtils.TrimSpaces(term);
+                    var nstr = ReadOnlyMemoryUtils.AddToPool(term, terms);
                     if (nstr.Id != values.Count)
                         throw ectx.Except("Duplicate term in lookup data: '{0}'", nstr);
 
@@ -179,7 +175,7 @@ namespace Microsoft.ML.Runtime.Data
             /// <summary>
             /// Given the term getter, produce a value getter from this value map.
             /// </summary>
-            public override Delegate GetGetter(ValueGetter<DvText> getTerm)
+            public override Delegate GetGetter(ValueGetter<ReadOnlyMemory<char>> getTerm)
             {
                 Contracts.Assert(_terms != null);
                 Contracts.Assert(_values != null);
@@ -188,15 +184,15 @@ namespace Microsoft.ML.Runtime.Data
                 return GetGetterCore(getTerm);
             }
 
-            private ValueGetter<TRes> GetGetterCore(ValueGetter<DvText> getTerm)
+            private ValueGetter<TRes> GetGetterCore(ValueGetter<ReadOnlyMemory<char>> getTerm)
             {
-                var src = default(DvText);
+                var src = default(ReadOnlyMemory<char>);
                 return
                     (ref TRes dst) =>
                     {
                         getTerm(ref src);
-                        src = src.Trim();
-                        var nstr = src.FindInPool(_terms);
+                        src = ReadOnlyMemoryUtils.TrimSpaces(src);
+                        var nstr = ReadOnlyMemoryUtils.FindInPool(src, _terms);
                         if (nstr == null)
                             GetMissing(ref dst);
                         else
@@ -225,11 +221,13 @@ namespace Microsoft.ML.Runtime.Data
                 // REVIEW: This uses the fact that standard conversions map NA to NA to get the NA for TRes.
                 // We should probably have a mapping from type to its bad value somewhere, perhaps in Conversions.
                 bool identity;
-                ValueMapper<DvText, TRes> conv;
-                if (Conversions.Instance.TryGetStandardConversion<DvText, TRes>(TextType.Instance, type,
+                ValueMapper<ReadOnlyMemory<char>, TRes> conv;
+                if (Conversions.Instance.TryGetStandardConversion<ReadOnlyMemory<char>, TRes>(TextType.Instance, type,
                     out conv, out identity))
                 {
-                    var bad = DvText.NA;
+                    //Empty string will map to NA for R4 and R8, the only two types that can
+                    //handle missing values.
+                    var bad = String.Empty.AsMemory();
                     conv(ref bad, ref _badValue);
                 }
             }
@@ -279,11 +277,12 @@ namespace Microsoft.ML.Runtime.Data
                 verWrittenCur: 0x00010002, // Dropped sizeof(Float).
                 verReadableCur: 0x00010002,
                 verWeCanReadBack: 0x00010002,
-                loaderSignature: LoaderSignature);
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(TermLookupTransform).Assembly.FullName);
         }
 
         // This is the byte array containing the binary .idv file contents for the lookup data.
-        // This is persisted; the _termMap and _valueMap are constructed from it. 
+        // This is persisted; the _termMap and _valueMap are constructed from it.
         private readonly byte[] _bytes;
 
         // The BinaryLoader over the byte array above. We keep this
@@ -343,14 +342,25 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         // This method is called if only a datafile is specified, without a loader/term and value columns.
-        // It determines the type of the Value column and returns the appropriate TextLoader subcomponent.
-        private static SubComponent<IDataLoader, SignatureDataLoader> GetLoaderSubComponent(string filename, bool keyValues, IHost host)
+        // It determines the type of the Value column and returns the appropriate TextLoader component factory.
+        private static IComponentFactory<IMultiStreamSource, IDataLoader> GetLoaderFactory(string filename, bool keyValues, IHost host)
         {
             Contracts.AssertValue(host);
 
             // If the user specified non-key values, we define the value column to be numeric.
             if (!keyValues)
-                return new SubComponent<IDataLoader, SignatureDataLoader>("Text", "col=Term:TX:0", "col=Value:Num:1");
+                return ComponentFactoryUtils.CreateFromFunction<IMultiStreamSource, IDataLoader>(
+                    (env, files) => TextLoader.Create(
+                        env,
+                        new TextLoader.Arguments()
+                        {
+                            Column = new[]
+                            {
+                                new TextLoader.Column("Term", DataKind.TX, 0),
+                                new TextLoader.Column("Value", DataKind.Num, 1)
+                            }
+                        },
+                        files));
 
             // If the user specified key values, we scan the values to determine the range of the key type.
             ulong min = ulong.MaxValue;
@@ -360,12 +370,12 @@ namespace Microsoft.ML.Runtime.Data
                 var txtArgs = new TextLoader.Arguments();
                 bool parsed = CmdParser.ParseArguments(host, "col=Term:TX:0 col=Value:TX:1", txtArgs);
                 host.Assert(parsed);
-                var txtLoader = new TextLoader(host, txtArgs, new MultiFileSource(filename));
-                using (var cursor = txtLoader.GetRowCursor(c => true))
+                var data = TextLoader.ReadFile(host, txtArgs, new MultiFileSource(filename));
+                using (var cursor = data.GetRowCursor(c => true))
                 {
-                    var getTerm = cursor.GetGetter<DvText>(0);
-                    var getVal = cursor.GetGetter<DvText>(1);
-                    DvText txt = default(DvText);
+                    var getTerm = cursor.GetGetter<ReadOnlyMemory<char>>(0);
+                    var getVal = cursor.GetGetter<ReadOnlyMemory<char>>(1);
+                    ReadOnlyMemory<char> txt = default;
 
                     using (var ch = host.Start("Creating Text Lookup Loader"))
                     {
@@ -394,7 +404,7 @@ namespace Microsoft.ML.Runtime.Data
                             //If parsing as a ulong fails, we increment the counter for the non-key values.
                             else
                             {
-                                var term = default(DvText);
+                                var term = default(ReadOnlyMemory<char>);
                                 getTerm(ref term);
                                 if (countNonKeys < 5)
                                     ch.Warning("Term '{0}' in mapping file is mapped to non key value '{1}'", term, txt);
@@ -420,15 +430,33 @@ namespace Microsoft.ML.Runtime.Data
                 throw host.Except(e, "Failed to parse the lookup file '{0}' in TermLookupTransform", filename);
             }
 
-            string settings;
+            TextLoader.Column valueColumn = new TextLoader.Column("Value", DataKind.U4, 1);
             if (max - min < (ulong)int.MaxValue)
-                settings = string.Format("col=Value:U4[{0}-{1}]:1", min, max);
+            {
+                valueColumn.KeyRange = new KeyRange(min, max);
+            }
             else if (max - min < (ulong)uint.MaxValue)
-                settings = string.Format("col=Value:U4[{0}-*]:1", min);
+            {
+                valueColumn.KeyRange = new KeyRange(min);
+            }
             else
-                settings = string.Format("col=Value:U8[{0}-*]:1", min);
+            {
+                valueColumn.Type = DataKind.U8;
+                valueColumn.KeyRange = new KeyRange(min);
+            }
 
-            return new SubComponent<IDataLoader, SignatureDataLoader>("Text", "col=Term:TXT:0", settings);
+            return ComponentFactoryUtils.CreateFromFunction<IMultiStreamSource, IDataLoader>(
+                   (env, files) => TextLoader.Create(
+                       env,
+                       new TextLoader.Arguments()
+                       {
+                           Column = new[]
+                           {
+                                new TextLoader.Column("Term", DataKind.TX, 0),
+                                valueColumn
+                           }
+                       },
+                       files));
         }
 
         // This saves the lookup data as a byte array encoded as a binary .idv file.
@@ -439,7 +467,7 @@ namespace Microsoft.ML.Runtime.Data
             host.AssertValue(args);
 
             string dataFile = args.DataFile;
-            SubComponent<IDataLoader, SignatureDataLoader> loader = args.Loader;
+            IComponentFactory<IMultiStreamSource, IDataLoader> loaderFactory = args.Loader;
             string termColumn;
             string valueColumn;
             if (!string.IsNullOrEmpty(args.TermColumn))
@@ -451,13 +479,13 @@ namespace Microsoft.ML.Runtime.Data
             else
             {
                 var ext = Path.GetExtension(dataFile);
-                if (loader.IsGood() || string.Equals(ext, ".idv", StringComparison.OrdinalIgnoreCase))
+                if (loaderFactory != null || string.Equals(ext, ".idv", StringComparison.OrdinalIgnoreCase))
                     throw host.ExceptUserArg(nameof(args.TermColumn), "Term and value columns needed.");
-                loader = GetLoaderSubComponent(args.DataFile, args.KeyValues, host);
+                loaderFactory = GetLoaderFactory(args.DataFile, args.KeyValues, host);
                 termColumn = "Term";
                 valueColumn = "Value";
             }
-            return GetBytesOne(host, dataFile, loader, termColumn, valueColumn);
+            return GetBytesOne(host, dataFile, loaderFactory, termColumn, valueColumn);
         }
 
         private static byte[] GetBytesFromDataView(IHost host, IDataView lookup, string termColumn, string valueColumn)
@@ -497,7 +525,7 @@ namespace Microsoft.ML.Runtime.Data
             }
         }
 
-        private static byte[] GetBytesOne(IHost host, string dataFile, SubComponent<IDataLoader, SignatureDataLoader> sub,
+        private static byte[] GetBytesOne(IHost host, string dataFile, IComponentFactory<IMultiStreamSource, IDataLoader> loaderFactory,
             string termColumn, string valueColumn)
         {
             Contracts.AssertValue(host);
@@ -505,7 +533,9 @@ namespace Microsoft.ML.Runtime.Data
             host.AssertNonEmpty(termColumn);
             host.AssertNonEmpty(valueColumn);
 
-            if (!sub.IsGood())
+            IMultiStreamSource fileSource = new MultiFileSource(dataFile);
+            IDataLoader loader;
+            if (loaderFactory == null)
             {
                 // REVIEW: Should there be defaults for loading from text?
                 var ext = Path.GetExtension(dataFile);
@@ -514,11 +544,21 @@ namespace Microsoft.ML.Runtime.Data
                 if (!isBinary && !isTranspose)
                     throw host.ExceptUserArg(nameof(Arguments.Loader), "must specify the loader");
                 host.Assert(isBinary != isTranspose); // One or the other must be true.
-                sub = new SubComponent<IDataLoader, SignatureDataLoader>(isBinary ? "BinaryLoader" : "TransposeLoader");
+                if (isBinary)
+                {
+                    loader = new BinaryLoader(host, new BinaryLoader.Arguments(), fileSource);
+                }
+                else
+                {
+                    loader = new TransposeLoader(host, new TransposeLoader.Arguments(), fileSource);
+                }
             }
-            var ldr = sub.CreateInstance(host, new MultiFileSource(dataFile));
+            else
+            {
+                loader = loaderFactory.CreateComponent(host, fileSource);
+            }
 
-            return GetBytesFromDataView(host, ldr, termColumn, valueColumn);
+            return GetBytesFromDataView(host, loader, termColumn, valueColumn);
         }
 
         private static BinaryLoader GetLoader(IHostEnvironment env, byte[] bytes)
@@ -662,7 +702,7 @@ namespace Microsoft.ML.Runtime.Data
             Host.Assert(0 <= iinfo && iinfo < Infos.Length);
             disposer = null;
 
-            var getSrc = GetSrcGetter<DvText>(input, iinfo);
+            var getSrc = GetSrcGetter<ReadOnlyMemory<char>>(input, iinfo);
             return _valueMap.GetGetter(getSrc);
         }
     }

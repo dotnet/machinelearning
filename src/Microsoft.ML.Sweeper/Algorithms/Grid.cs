@@ -2,15 +2,18 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Float = System.Single;
-
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.ML;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
+using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Sweeper;
+
+[assembly: LoadableClass(typeof(RandomGridSweeper), typeof(RandomGridSweeper.Arguments), typeof(SignatureSweeper),
+    "Random Grid Sweeper", "RandomGridSweeper", "RandomGrid")]
+[assembly: LoadableClass(typeof(RandomGridSweeper), typeof(RandomGridSweeper.Arguments), typeof(SignatureSweeperFromParameterList),
+    "Random Grid Sweeper", "RandomGridSweeperParamList", "RandomGridpl")]
 
 namespace Microsoft.ML.Runtime.Sweeper
 {
@@ -26,8 +29,8 @@ namespace Microsoft.ML.Runtime.Sweeper
     {
         public class ArgumentsBase
         {
-            [Argument(ArgumentType.Multiple, HelpText = "Swept parameters", ShortName = "p")]
-            public SubComponent<IValueGenerator, SignatureSweeperParameter>[] SweptParameters;
+            [Argument(ArgumentType.Multiple, HelpText = "Swept parameters", ShortName = "p", SignatureType = typeof(SignatureSweeperParameter))]
+            public IComponentFactory<IValueGenerator>[] SweptParameters;
 
             [Argument(ArgumentType.LastOccurenceWins, HelpText = "Number of tries to generate distinct parameter sets.", ShortName = "r")]
             public int Retries = 10;
@@ -47,7 +50,7 @@ namespace Microsoft.ML.Runtime.Sweeper
 
             _args = args;
 
-            SweepParameters = args.SweptParameters.Select(p => p.CreateInstance(Host)).ToArray();
+            SweepParameters = args.SweptParameters.Select(p => p.CreateComponent(Host)).ToArray();
         }
 
         protected SweeperBase(ArgumentsBase args, IHostEnvironment env, IValueGenerator[] sweepParameters, string name)
@@ -62,10 +65,10 @@ namespace Microsoft.ML.Runtime.Sweeper
             SweepParameters = sweepParameters;
         }
 
-        public virtual ParameterSet[] ProposeSweeps(int maxSweeps, IEnumerable<IRunResult> previousRuns)
+        public virtual ParameterSet[] ProposeSweeps(int maxSweeps, IEnumerable<IRunResult> previousRuns = null)
         {
             var prevParamSets = previousRuns?.Select(r => r.ParameterSet).ToList() ?? new List<ParameterSet>();
-            var result = new List<ParameterSet>();
+            var result = new HashSet<ParameterSet>();
             for (int i = 0; i < maxSweeps; i++)
             {
                 ParameterSet paramSet;
@@ -148,12 +151,12 @@ namespace Microsoft.ML.Runtime.Sweeper
             }
         }
 
-        public override ParameterSet[] ProposeSweeps(int maxSweeps, IEnumerable<IRunResult> previousRuns)
+        public override ParameterSet[] ProposeSweeps(int maxSweeps, IEnumerable<IRunResult> previousRuns = null)
         {
             if (_nGridPoints == 0)
                 return base.ProposeSweeps(maxSweeps, previousRuns);
 
-            var result = new List<ParameterSet>();
+            var result = new HashSet<ParameterSet>();
             var prevParamSets = (previousRuns != null)
                 ? previousRuns.Select(r => r.ParameterSet).ToList()
                 : new List<ParameterSet>();

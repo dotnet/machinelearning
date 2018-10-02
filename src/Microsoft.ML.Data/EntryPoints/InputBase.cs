@@ -70,6 +70,16 @@ namespace Microsoft.ML.Runtime.EntryPoints
     }
 
     /// <summary>
+    /// The base class for all unsupervised learner inputs that support a weight column.
+    /// </summary>
+    [TlcModule.EntryPointKind(typeof(CommonInputs.IUnsupervisedTrainerWithWeight))]
+    public abstract class UnsupervisedLearnerInputBaseWithWeight : LearnerInputBase
+    {
+        [Argument(ArgumentType.AtMostOnce, HelpText = "Column to use for example weight", ShortName = "weight", SortOrder = 4, Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly)]
+        public Optional<string> WeightColumn = Optional<string>.Implicit(DefaultColumnNames.Weight);
+    }
+
+    /// <summary>
     /// The base class for all evaluators inputs.
     /// </summary>
     [TlcModule.EntryPointKind(typeof(CommonInputs.IEvaluatorInput))]
@@ -136,7 +146,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
                 TrainUtils.AddNormalizerIfNeeded(host, ch, trainer, ref view, feature, input.NormalizeFeatures);
 
                 ch.Trace("Binding columns");
-                var roleMappedData = TrainUtils.CreateExamples(view, label, feature, group, weight, name, custom);
+                var roleMappedData = new RoleMappedData(view, label, feature, group, weight, name, custom);
 
                 RoleMappedData cachedRoleMappedData = roleMappedData;
                 Cache.CachingType? cachingType = null;
@@ -154,9 +164,8 @@ namespace Microsoft.ML.Runtime.EntryPoints
                         }
                     case CachingOptions.Auto:
                         {
-                            ITrainerEx trainerEx = trainer as ITrainerEx;
                             // REVIEW: we should switch to hybrid caching in future.
-                            if (!(input.TrainingData is BinaryLoader) && (trainerEx == null || trainerEx.WantCaching))
+                            if (!(input.TrainingData is BinaryLoader) && trainer.Info.WantCaching)
                                 // default to Memory so mml is on par with maml
                                 cachingType = Cache.CachingType.Memory;
                             break;
@@ -174,10 +183,10 @@ namespace Microsoft.ML.Runtime.EntryPoints
                         Data = roleMappedData.Data,
                         Caching = cachingType.Value
                     }).OutputData;
-                    cachedRoleMappedData = RoleMappedData.Create(cacheView, roleMappedData.Schema.GetColumnRoleNames());
+                    cachedRoleMappedData = new RoleMappedData(cacheView, roleMappedData.Schema.GetColumnRoleNames());
                 }
 
-                var predictor = TrainUtils.Train(host, ch, cachedRoleMappedData, trainer, "Train", calibrator, maxCalibrationExamples);
+                var predictor = TrainUtils.Train(host, ch, cachedRoleMappedData, trainer, calibrator, maxCalibrationExamples);
                 var output = new TOut() { PredictorModel = new PredictorModel(host, roleMappedData, input.TrainingData, predictor) };
 
                 ch.Done();
@@ -222,6 +231,14 @@ namespace Microsoft.ML.Runtime.EntryPoints
         public interface ITrainerInputWithLabel : ITrainerInput
         {
             string LabelColumn { get; }
+        }
+
+        /// <summary>
+        /// Interface that all API trainer input classes will implement.
+        /// </summary>
+        public interface IUnsupervisedTrainerWithWeight : ITrainerInput
+        {
+            Optional<string> WeightColumn { get; }
         }
 
         /// <summary>

@@ -161,13 +161,31 @@ namespace Microsoft.ML.Runtime.Data
                 verReadableCur: 0x00010002,
                 verWeCanReadBack: 0x00010001,
                 loaderSignature: LoaderSignature,
-                loaderSignatureAlt: LoaderSignatureOld);
+                loaderSignatureAlt: LoaderSignatureOld,
+                loaderAssemblyName: typeof(ConvertTransform).Assembly.FullName);
         }
 
         private const string RegistrationName = "Convert";
 
         // This is parallel to Infos.
         private readonly ColInfoEx[] _exes;
+
+        /// <summary>
+        /// Convenience constructor for public facing API.
+        /// </summary>
+        /// <param name="env">Host Environment.</param>
+        /// <param name="input">Input <see cref="IDataView"/>. This is the output from previous transform or loader.</param>
+        /// <param name="resultType">The expected type of the converted column.</param>
+        /// <param name="name">Name of the output column.</param>
+        /// <param name="source">Name of the column to be converted.  If this is null '<paramref name="name"/>' will be used.</param>
+        public ConvertTransform(IHostEnvironment env,
+            IDataView input,
+            DataKind resultType,
+            string name,
+            string source = null)
+            : this(env, new Arguments() { Column = new[] { new Column() { Source = source ?? name, Name = name } }, ResultType = resultType }, input)
+        {
+        }
 
         public ConvertTransform(IHostEnvironment env, Arguments args, IDataView input)
             : base(env, RegistrationName, env.CheckRef(args, nameof(args)).Column,
@@ -229,7 +247,7 @@ namespace Microsoft.ML.Runtime.Data
                 using (var bldr = md.BuildMetadata(iinfo, Source.Schema, info.Source, PassThrough))
                 {
                     if (info.TypeSrc.IsBool && _exes[iinfo].TypeDst.ItemType.IsNumber)
-                        bldr.AddPrimitive(MetadataUtils.Kinds.IsNormalized, BoolType.Instance, DvBool.True);
+                        bldr.AddPrimitive(MetadataUtils.Kinds.IsNormalized, BoolType.Instance, true);
                 }
             }
             md.Seal();

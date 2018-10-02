@@ -111,7 +111,7 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
     /// </summary>
     public interface ICalibrator
     {
-        /// <summary> Given a classifier output, produce the probability </summary>		
+        /// <summary> Given a classifier output, produce the probability </summary>
         Float PredictProbability(Float output);
 
         /// <summary> Get the summary of current calibrator settings </summary>
@@ -332,7 +332,8 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
                 verWrittenCur: 0x00010001, // Initial
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
-                loaderSignature: LoaderSignature);
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(CalibratedPredictor).Assembly.FullName);
         }
         private static VersionInfo GetVersionInfoBulk()
         {
@@ -341,7 +342,8 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
                 verWrittenCur: 0x00010001, // Initial
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
-                loaderSignature: LoaderSignature);
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(CalibratedPredictor).Assembly.FullName);
         }
 
         private CalibratedPredictor(IHostEnvironment env, ModelLoadContext ctx)
@@ -393,7 +395,8 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
                 verWrittenCur: 0x00010001, // Initial
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
-                loaderSignature: LoaderSignature);
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(FeatureWeightsCalibratedPredictor).Assembly.FullName);
         }
 
         private FeatureWeightsCalibratedPredictor(IHostEnvironment env, ModelLoadContext ctx)
@@ -455,7 +458,8 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
                 verWrittenCur: 0x00010001, // Initial
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
-                loaderSignature: LoaderSignature);
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(ParameterMixingCalibratedPredictor).Assembly.FullName);
         }
 
         private ParameterMixingCalibratedPredictor(IHostEnvironment env, ModelLoadContext ctx)
@@ -516,12 +520,12 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
         {
             private readonly SchemaBindableCalibratedPredictor _parent;
             private readonly ISchemaBoundRowMapper _predictor;
-            private readonly ISchema _outputSchema;
             private readonly int _scoreCol;
 
             public ISchemaBindableMapper Bindable => _parent;
-            public RoleMappedSchema InputSchema => _predictor.InputSchema;
-            public ISchema OutputSchema => _outputSchema;
+            public RoleMappedSchema InputRoleMappedSchema => _predictor.InputRoleMappedSchema;
+            public ISchema InputSchema => _predictor.InputSchema;
+            public ISchema Schema { get; }
 
             public Bound(IHostEnvironment env, SchemaBindableCalibratedPredictor parent, RoleMappedSchema schema)
             {
@@ -530,16 +534,16 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
                 _parent = parent;
                 _predictor = _parent._bindable.Bind(env, schema) as ISchemaBoundRowMapper;
                 env.Check(_predictor != null, "Predictor is not a row-to-row mapper");
-                if (!_predictor.OutputSchema.TryGetColumnIndex(MetadataUtils.Const.ScoreValueKind.Score, out _scoreCol))
+                if (!_predictor.Schema.TryGetColumnIndex(MetadataUtils.Const.ScoreValueKind.Score, out _scoreCol))
                     throw env.Except("Predictor does not output a score");
-                var scoreType = _predictor.OutputSchema.GetColumnType(_scoreCol);
+                var scoreType = _predictor.Schema.GetColumnType(_scoreCol);
                 env.Check(!scoreType.IsVector && scoreType.IsNumber);
-                _outputSchema = new BinaryClassifierSchema();
+                Schema = new BinaryClassifierSchema();
             }
 
             public Func<int, bool> GetDependencies(Func<int, bool> predicate)
             {
-                for (int i = 0; i < OutputSchema.ColumnCount; i++)
+                for (int i = 0; i < Schema.ColumnCount; i++)
                 {
                     if (predicate(i))
                         return _predictor.GetDependencies(col => true);
@@ -552,10 +556,10 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
                 return _predictor.GetInputColumnRoles();
             }
 
-            public IRow GetOutputRow(IRow input, Func<int, bool> predicate, out Action disposer)
+            public IRow GetRow(IRow input, Func<int, bool> predicate, out Action disposer)
             {
                 Func<int, bool> predictorPredicate = col => false;
-                for (int i = 0; i < _outputSchema.ColumnCount; i++)
+                for (int i = 0; i < Schema.ColumnCount; i++)
                 {
                     if (predicate(i))
                     {
@@ -563,18 +567,18 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
                         break;
                     }
                 }
-                var predictorRow = _predictor.GetOutputRow(input, predictorPredicate, out disposer);
-                var getters = new Delegate[_outputSchema.ColumnCount];
-                for (int i = 0; i < _outputSchema.ColumnCount - 1; i++)
+                var predictorRow = _predictor.GetRow(input, predictorPredicate, out disposer);
+                var getters = new Delegate[Schema.ColumnCount];
+                for (int i = 0; i < Schema.ColumnCount - 1; i++)
                 {
                     var type = predictorRow.Schema.GetColumnType(i);
                     if (!predicate(i))
                         continue;
                     getters[i] = Utils.MarshalInvoke(GetPredictorGetter<int>, type.RawType, predictorRow, i);
                 }
-                if (predicate(_outputSchema.ColumnCount - 1))
-                    getters[_outputSchema.ColumnCount - 1] = GetProbGetter(predictorRow);
-                return new SimpleRow(_outputSchema, predictorRow, getters);
+                if (predicate(Schema.ColumnCount - 1))
+                    getters[Schema.ColumnCount - 1] = GetProbGetter(predictorRow);
+                return new SimpleRow(Schema, predictorRow, getters);
             }
 
             private Delegate GetPredictorGetter<T>(IRow input, int col)
@@ -608,7 +612,8 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
                 verWrittenCur: 0x00010001, // Initial
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
-                loaderSignature: LoaderSignature);
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(SchemaBindableCalibratedPredictor).Assembly.FullName);
         }
 
         /// <summary>
@@ -622,14 +627,14 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
         public SchemaBindableCalibratedPredictor(IHostEnvironment env, IPredictorProducing<Single> predictor, ICalibrator calibrator)
             : base(env, LoaderSignature, predictor, calibrator)
         {
-            _bindable = ScoreUtils.GetSchemaBindableMapper(Host, SubPredictor, null);
+            _bindable = ScoreUtils.GetSchemaBindableMapper(Host, SubPredictor);
             _whatTheFeature = SubPredictor as IWhatTheFeatureValueMapper;
         }
 
         private SchemaBindableCalibratedPredictor(IHostEnvironment env, ModelLoadContext ctx)
             : base(env, LoaderSignature, GetPredictor(env, ctx), GetCalibrator(env, ctx))
         {
-            _bindable = ScoreUtils.GetSchemaBindableMapper(Host, SubPredictor, null);
+            _bindable = ScoreUtils.GetSchemaBindableMapper(Host, SubPredictor);
             _whatTheFeature = SubPredictor as IWhatTheFeatureValueMapper;
         }
 
@@ -687,8 +692,7 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
         private static bool NeedCalibration(IHostEnvironment env, IChannel ch, ICalibratorTrainer calibrator,
             ITrainer trainer, IPredictor predictor, RoleMappedSchema schema)
         {
-            var trainerEx = trainer as ITrainerEx;
-            if (trainerEx == null || !trainerEx.NeedCalibration)
+            if (!trainer.Info.NeedCalibration)
             {
                 ch.Info("Not training a calibrator because it is not needed.");
                 return false;
@@ -718,9 +722,9 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
                 return false;
             }
 
-            var bindable = ScoreUtils.GetSchemaBindableMapper(env, predictor, null);
+            var bindable = ScoreUtils.GetSchemaBindableMapper(env, predictor);
             var bound = bindable.Bind(env, schema);
-            var outputSchema = bound.OutputSchema;
+            var outputSchema = bound.Schema;
             int scoreCol;
             if (!outputSchema.TryGetColumnIndex(MetadataUtils.Const.ScoreValueKind.Score, out scoreCol))
             {
@@ -746,13 +750,10 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
         /// <param name="trainer">The trainer used to train the predictor.</param>
         /// <param name="predictor">The predictor that needs calibration.</param>
         /// <param name="data">The examples to used for calibrator training.</param>
-        /// <param name="needValueMapper">Indicates whether the predictor returned needs to be an <see cref="IValueMapper"/>.
-        /// This parameter is needed for OVA that uses the predictors as <see cref="IValueMapper"/>s. If it is false,
-        /// The predictor returned is an an <see cref="ISchemaBindableMapper"/>.</param>
-        /// <returns>The original predictor, if no calibration is needed, 
+        /// <returns>The original predictor, if no calibration is needed,
         /// or a metapredictor that wraps the original predictor and the newly trained calibrator.</returns>
         public static IPredictor TrainCalibratorIfNeeded(IHostEnvironment env, IChannel ch, ICalibratorTrainer calibrator,
-            int maxRows, ITrainer trainer, IPredictor predictor, RoleMappedData data, bool needValueMapper = false)
+            int maxRows, ITrainer trainer, IPredictor predictor, RoleMappedData data)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(ch, nameof(ch));
@@ -763,7 +764,7 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
             if (!NeedCalibration(env, ch, calibrator, trainer, predictor, data.Schema))
                 return predictor;
 
-            return TrainCalibrator(env, ch, calibrator, maxRows, predictor, data, needValueMapper);
+            return TrainCalibrator(env, ch, calibrator, maxRows, predictor, data);
         }
 
         /// <summary>
@@ -775,13 +776,10 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
         /// <param name="maxRows">The maximum rows to use for calibrator training.</param>
         /// <param name="predictor">The predictor that needs calibration.</param>
         /// <param name="data">The examples to used for calibrator training.</param>
-        /// <param name="needValueMapper">Indicates whether the predictor returned needs to be an <see cref="IValueMapper"/>.
-        /// This parameter is needed for OVA that uses the predictors as <see cref="IValueMapper"/>s. If it is false,
-        /// The predictor returned is an an <see cref="ISchemaBindableMapper"/>.</param>
-        /// <returns>The original predictor, if no calibration is needed, 
+        /// <returns>The original predictor, if no calibration is needed,
         /// or a metapredictor that wraps the original predictor and the newly trained calibrator.</returns>
         public static IPredictor TrainCalibrator(IHostEnvironment env, IChannel ch, ICalibratorTrainer caliTrainer,
-            int maxRows, IPredictor predictor, RoleMappedData data, bool needValueMapper = false)
+            int maxRows, IPredictor predictor, RoleMappedData data)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(ch, nameof(ch));
@@ -834,10 +832,10 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
                 }
             }
             var cali = caliTrainer.FinishTraining(ch);
-            return CreateCalibratedPredictor(env, (IPredictorProducing<Float>)predictor, cali, needValueMapper);
+            return CreateCalibratedPredictor(env, (IPredictorProducing<Float>)predictor, cali);
         }
 
-        public static IPredictorProducing<Float> CreateCalibratedPredictor(IHostEnvironment env, IPredictorProducing<Float> predictor, ICalibrator cali, bool needValueMapper = false)
+        public static IPredictorProducing<Float> CreateCalibratedPredictor(IHostEnvironment env, IPredictorProducing<Float> predictor, ICalibrator cali)
         {
             Contracts.Assert(predictor != null);
             if (cali == null)
@@ -853,7 +851,7 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
             var predWithFeatureScores = predictor as IPredictorWithFeatureWeights<Float>;
             if (predWithFeatureScores != null && predictor is IParameterMixer<Float> && cali is IParameterMixer)
                 return new ParameterMixingCalibratedPredictor(env, predWithFeatureScores, cali);
-            if (needValueMapper)
+            if (predictor is IValueMapper)
                 return new CalibratedPredictor(env, predictor, cali);
             return new SchemaBindableCalibratedPredictor(env, predictor, cali);
         }
@@ -974,7 +972,8 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
                 verWrittenCur: 0x00010001, // Initial
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
-                loaderSignature: LoaderSignature);
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(NaiveCalibrator).Assembly.FullName);
         }
 
         private readonly IHost _host;
@@ -1129,8 +1128,8 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
         private Double _paramA;
         private Double _paramB;
 
-        public const string UserName = "Sigmoid Calibration";
-        public const string LoadName = "PlattCalibration";
+        internal const string UserName = "Sigmoid Calibration";
+        internal const string LoadName = "PlattCalibration";
         internal const string Summary = "This model was introduced by Platt in the paper Probabilistic Outputs for Support Vector Machines "
             + "and Comparisons to Regularized Likelihood Methods";
 
@@ -1341,7 +1340,8 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
                 verWrittenCur: 0x00010001, // Initial
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
-                loaderSignature: LoaderSignature);
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(PlattCalibrator).Assembly.FullName);
         }
 
         private readonly IHost _host;
@@ -1349,8 +1349,6 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
         public Double ParamA { get; }
         public Double ParamB { get; }
         public bool CanSavePfa => true;
-        public bool CanSaveLotusVNext => true;
-
         public bool CanSaveOnnx => true;
 
         public PlattCalibrator(IHostEnvironment env, Double paramA, Double paramB)
@@ -1445,21 +1443,14 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
 
             string opType = "Affine";
             string linearOutput = ctx.AddIntermediateVariable(null, "linearOutput", true);
-            var node = OnnxUtils.MakeNode(opType, new List<string> { scoreProbablityColumnNames[0] },
-                new List<string> { linearOutput }, ctx.GetNodeName(opType));
-
-            node.Domain = "";
-            OnnxUtils.NodeAddAttributes(node, "alpha", ParamA * -1);
-            OnnxUtils.NodeAddAttributes(node, "beta", -0.0000001);
-
-            ctx.AddNode(node);
+            var node = ctx.CreateNode(opType, new[] { scoreProbablityColumnNames[0] },
+                new[] { linearOutput }, ctx.GetNodeName(opType), "");
+            node.AddAttribute("alpha", ParamA * -1);
+            node.AddAttribute("beta", -0.0000001);
 
             opType = "Sigmoid";
-            node = OnnxUtils.MakeNode(opType, new List<string> { linearOutput },
-                new List<string> { scoreProbablityColumnNames[1] }, ctx.GetNodeName(opType));
-
-            node.Domain = "";
-            ctx.AddNode(node);
+            node = ctx.CreateNode(opType, new[] { linearOutput },
+                new[] { scoreProbablityColumnNames[1] }, ctx.GetNodeName(opType), "");
 
             return true;
         }
@@ -1585,7 +1576,8 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
                 verWrittenCur: 0x00010001, // Initial
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
-                loaderSignature: LoaderSignature);
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(PavCalibrator).Assembly.FullName);
         }
 
         // Epsilon for 0-comparisons

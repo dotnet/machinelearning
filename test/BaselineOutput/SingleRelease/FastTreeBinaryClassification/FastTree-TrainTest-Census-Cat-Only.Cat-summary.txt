@@ -1,0 +1,31 @@
+
+Per-feature gain summary for the boosted tree ensemble:
+	marital-status.Married-civ-spouse	1
+	occupation.Exec-managerial	0.399117896915284
+	occupation.Prof-specialty	0.391227805213273
+	education.Bachelors	0.334466450228397
+	education.Masters	0.287494503306969
+	education.Prof-school	0.204600035294214
+	education.Doctorate	0.187985462587772
+	occupation.Sales	0.150856624152445
+	occupation.Other-service	0.147997280910012
+	relationship.Own-child	0.137529286784067
+	marital-status.Never-married	0.131366568817433
+	education.7th-8th	0.122497278808477
+	workclass.Self-emp-inc	0.119940186278871
+	education.HS-grad	0.113890497534289
+	occupation.Tech-support	0.104801559978143
+	workclass.Self-emp-not-inc	0.0911869726068162
+	native-country.Mexico	0.081461599208144
+	workclass.Federal-gov	0.0785782301236086
+	sex.Male	0.0783006369313957
+	relationship.Wife	0.0749144815167656
+	education.11th	0.0746051436850124
+	occupation.Handlers-cleaners	0.0601209002480329
+	native-country.United-States	0.0593295291546631
+	occupation.Farming-fishing	0.0583149634881263
+	education.10th	0.0544727793656118
+	education.9th	0.052272828491541
+	workclass.Local-gov	0.0519635659099365
+	occupation.?	0.0479530108171804
+	occupation.Protective-serv	0.0451534478142547

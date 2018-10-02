@@ -35,7 +35,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 GetDataPath(@"..\UnitTest\breast-cancer.txt"),
             };
 
-            using (var env = new TlcEnvironment())
+            using (var env = new ConsoleEnvironment())
             {
                 var h = env.Register("InferDatasetFeatures", seed: 0, verbose: false);
 
@@ -93,7 +93,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 GetDataPath(Path.Combine("..", "data", "wikipedia-detox-250-line-data.tsv"))
             };
 
-            using (var env = new TlcEnvironment())
+            using (var env = new ConsoleEnvironment())
             {
                 var h = env.Register("InferSchemaCommandTest", seed: 0, verbose: false);
                 using (var ch = h.Start("InferSchemaCommandTest"))
@@ -121,14 +121,14 @@ namespace Microsoft.ML.Runtime.RunTests
         [Fact]
         public void InferRecipesCommandTest()
         {
-            var datasets = new Tuple<string, string>[] 
+            var datasets = new Tuple<string, string>[]
             {
                 Tuple.Create(
                     GetDataPath(Path.Combine("..", "data", "wikipedia-detox-250-line-data.tsv")),
                     GetDataPath(Path.Combine("..", "data", "wikipedia-detox-250-line-data-schema.txt")))
             };
 
-            using (var env = new TlcEnvironment())
+            using (var env = new ConsoleEnvironment())
             {
                 var h = env.Register("InferRecipesCommandTest", seed: 0, verbose: false);
                 using (var ch = h.Start("InferRecipesCommandTest"))

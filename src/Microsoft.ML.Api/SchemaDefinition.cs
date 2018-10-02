@@ -14,7 +14,7 @@ namespace Microsoft.ML.Runtime.Api
     /// <summary>
     /// Attach to a member of a class to indicate that the item type should be of class key.
     /// </summary>
-    [AttributeUsage(AttributeTargets.Field, AllowMultiple = false, Inherited = true)]
+    [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property, AllowMultiple = false, Inherited = true)]
     public sealed class KeyTypeAttribute : Attribute
     {
         // REVIEW: Property based, but should I just have a constructor?
@@ -46,7 +46,7 @@ namespace Microsoft.ML.Runtime.Api
     /// Allows a member to be marked as a vector valued field, primarily allowing one to set
     /// the dimensionality of the resulting array.
     /// </summary>
-    [AttributeUsage(AttributeTargets.Field, AllowMultiple = false, Inherited = true)]
+    [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property, AllowMultiple = false, Inherited = true)]
     public sealed class VectorTypeAttribute : Attribute
     {
         private readonly int[] _dims;
@@ -63,10 +63,10 @@ namespace Microsoft.ML.Runtime.Api
     }
 
     /// <summary>
-    /// Describes column information such as name and the source columns indicies that this 
+    /// Describes column information such as name and the source columns indicies that this
     /// column encapsulates.
     /// </summary>
-    [AttributeUsage(AttributeTargets.Field, AllowMultiple = false, Inherited = true)]
+    [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property, AllowMultiple = false, Inherited = true)]
     public sealed class ColumnAttribute : Attribute
     {
         public ColumnAttribute(string ordinal, string name = null)
@@ -81,12 +81,12 @@ namespace Microsoft.ML.Runtime.Api
         public string Name { get; }
 
         /// <summary>
-        /// Contains positions of indices of source columns in the form 
-        /// of ranges. Examples of range: if we want to include just column 
-        /// with index 1 we can write the range as 1, if we want to include 
+        /// Contains positions of indices of source columns in the form
+        /// of ranges. Examples of range: if we want to include just column
+        /// with index 1 we can write the range as 1, if we want to include
         /// columns 1 to 10 then we can write the range as 1-10 and we want to include all the
         /// columns from column with index 1 until end then we can write 1-*.
-        /// 
+        ///
         /// This takes sequence of ranges that are comma seperated, example:
         /// 1,2-5,10-*
         /// </summary>
@@ -97,7 +97,7 @@ namespace Microsoft.ML.Runtime.Api
     /// Allows a member to specify its column name directly, as opposed to the default
     /// behavior of using the member name as the column name.
     /// </summary>
-    [AttributeUsage(AttributeTargets.Field, AllowMultiple = false, Inherited = true)]
+    [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property, AllowMultiple = false, Inherited = true)]
     public sealed class ColumnNameAttribute : Attribute
     {
         private readonly string _name;
@@ -119,25 +119,25 @@ namespace Microsoft.ML.Runtime.Api
     /// <summary>
     /// Mark this member as not being exposed as a column in the schema.
     /// </summary>
-    [AttributeUsage(AttributeTargets.Field, AllowMultiple = false, Inherited = true)]
+    [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property, AllowMultiple = false, Inherited = true)]
     public sealed class NoColumnAttribute : Attribute
     {
     }
 
     /// <summary>
-    /// Mark a member that implements exactly IChannel as being permitted to receive 
+    /// Mark a member that implements exactly IChannel as being permitted to receive
     /// channel information from an external channel.
     /// </summary>
-    [AttributeUsage(AttributeTargets.Field, AllowMultiple = false, Inherited = true)]
+    [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property, AllowMultiple = false, Inherited = true)]
     public sealed class CursorChannelAttribute : Attribute
     {
         /// <summary>
         /// When passed some object, and a channel, it attempts to pass the channel to the object. It
-        /// passes the channel to the object iff the object has exactly one field marked with the 
-        /// CursorChannelAttribute, and that field implements only the IChannel interface. 
-        /// 
-        /// The function returns the modified object, as well as a boolean indicator of whether it was 
-        /// able to pass the channel to the object. 
+        /// passes the channel to the object iff the object has exactly one field marked with the
+        /// CursorChannelAttribute, and that field implements only the IChannel interface.
+        ///
+        /// The function returns the modified object, as well as a boolean indicator of whether it was
+        /// able to pass the channel to the object.
         /// </summary>
         /// <param name="obj">The object that attempts to acquire the channel.</param>
         /// <param name="channel">The channel to pass to the object.</param>
@@ -158,19 +158,40 @@ namespace Microsoft.ML.Runtime.Api
                 .Where(x => x.GetCustomAttributes(typeof(CursorChannelAttribute), false).Any())
                 .ToArray();
 
+            var cursorChannelAttrProperties = typeof(T)
+                .GetProperties(BindingFlags.Public | BindingFlags.Instance)
+                .Where(x => x.CanRead && x.CanWrite && x.GetGetMethod() != null && x.GetSetMethod() != null && x.GetIndexParameters().Length == 0)
+                .Where(x => x.GetCustomAttributes(typeof(CursorChannelAttribute), false).Any());
+
+            var cursorChannelAttrMembers = (cursorChannelAttrFields as IEnumerable<MemberInfo>).Concat(cursorChannelAttrProperties).ToArray();
+
             //Check that there is at most one such field.
-            if (cursorChannelAttrFields.Length == 0)
+            if (cursorChannelAttrMembers.Length == 0)
                 return false;
 
-            ectx.Check(cursorChannelAttrFields.Length == 1,
-                "Only one field with CursorChannel attribute is allowed.");
+            ectx.Check(cursorChannelAttrMembers.Length == 1,
+                "Only one public field or property with CursorChannel attribute is allowed.");
 
             //Check that the marked field has type IChannel.
-            var cursorChannelFieldInfo = cursorChannelAttrFields[0];
-            ectx.Check(cursorChannelFieldInfo.FieldType == typeof(IChannel),
-                "Field marked as CursorChannel must have type IChannel.");
+            var cursorChannelAttrMemberInfo = cursorChannelAttrMembers[0];
+            switch (cursorChannelAttrMemberInfo)
+            {
+                case FieldInfo cursorChannelAttrFieldInfo:
+                    ectx.Check(cursorChannelAttrFieldInfo.FieldType == typeof(IChannel),
+                        "Field marked as CursorChannel must have type IChannel.");
+                    cursorChannelAttrFieldInfo.SetValue(obj, channel);
+                    break;
 
-            cursorChannelFieldInfo.SetValue(obj, channel);
+                case PropertyInfo cursorChannelAttrPropertyInfo:
+                    ectx.Check(cursorChannelAttrPropertyInfo.PropertyType == typeof(IChannel),
+                        "Property marked as CursorChannel must have type IChannel.");
+                    cursorChannelAttrPropertyInfo.SetValue(obj, channel);
+                    break;
+
+                default:
+                    Contracts.Assert(false);
+                    throw Contracts.ExceptNotSupp("Expected a FieldInfo or a PropertyInfo");
+            }
             return true;
         }
     }
@@ -206,13 +227,13 @@ namespace Microsoft.ML.Runtime.Api
             public ColumnType ColumnType { get; set; }
 
             /// <summary>
-            /// Whether the column is a computed type. 
+            /// Whether the column is a computed type.
             /// </summary>
             public bool IsComputed { get { return Generator != null; } }
 
             /// <summary>
-            /// The generator function. if the column is computed. 
-            /// </summary> 
+            /// The generator function. if the column is computed.
+            /// </summary>
             public Delegate Generator { get; set; }
 
             public Type ReturnType => Generator?.GetMethodInfo().GetParameters().LastOrDefault().ParameterType.GetElementType();
@@ -277,7 +298,7 @@ namespace Microsoft.ML.Runtime.Api
         }
 
         /// <summary>
-        /// Get or set the column definition by column name. 
+        /// Get or set the column definition by column name.
         /// If there's no such column:
         /// - get returns null,
         /// - set adds a new column.
@@ -287,9 +308,7 @@ namespace Microsoft.ML.Runtime.Api
         /// </summary>
         public Column this[string columnName]
         {
-#pragma warning disable TLC_NoThis // Do not use 'this' keyword for member access
             get => this.FirstOrDefault(x => x.ColumnName == columnName);
-#pragma warning restore TLC_NoThis // Do not use 'this' keyword for member access
             set
             {
                 Contracts.CheckValue(value, nameof(value));
@@ -308,12 +327,21 @@ namespace Microsoft.ML.Runtime.Api
             }
         }
 
+        [Flags]
+        public enum Direction
+        {
+            Read = 1,
+            Write = 2,
+            Both = Read | Write
+        }
+
         /// <summary>
         /// Create a schema definition by enumerating all public fields of the given type.
         /// </summary>
         /// <param name="userType">The type to base the schema on.</param>
+        /// <param name="direction">Accept fields and properties based on their direction.</param>
         /// <returns>The generated schema definition.</returns>
-        public static SchemaDefinition Create(Type userType)
+        public static SchemaDefinition Create(Type userType, Direction direction = Direction.Both)
         {
             // REVIEW: This will have to be updated whenever we start
             // supporting properties and not just fields.
@@ -321,33 +349,65 @@ namespace Microsoft.ML.Runtime.Api
 
             SchemaDefinition cols = new SchemaDefinition();
             HashSet<string> colNames = new HashSet<string>();
-            foreach (var fieldInfo in userType.GetFields())
+
+            var fieldInfos = userType.GetFields(BindingFlags.Public | BindingFlags.Instance);
+            var propertyInfos =
+                userType
+                .GetProperties(BindingFlags.Public | BindingFlags.Instance)
+                .Where(x => (((direction & Direction.Read) == Direction.Read && (x.CanRead && x.GetGetMethod() != null)) ||
+                ((direction & Direction.Write) == Direction.Write && (x.CanWrite && x.GetSetMethod() != null))) &&
+                x.GetIndexParameters().Length == 0);
+
+            var memberInfos = (fieldInfos as IEnumerable<MemberInfo>).Concat(propertyInfos).ToArray();
+
+            foreach (var memberInfo in memberInfos)
             {
-                // Clause to handle the field that may be used to expose the cursor channel. 
+                // Clause to handle the field that may be used to expose the cursor channel.
                 // This field does not need a column.
-                // REVIEW: maybe validate the channel attribute now, instead 
+                // REVIEW: maybe validate the channel attribute now, instead
                 // of later at cursor creation.
-                if (fieldInfo.FieldType == typeof(IChannel))
+                switch (memberInfo)
+                {
+                    case FieldInfo fieldInfo:
+                        if (fieldInfo.FieldType == typeof(IChannel))
+                            continue;
+
+                        // Const fields do not need to be mapped.
+                        if (fieldInfo.IsLiteral)
+                            continue;
+
+                        break;
+
+                    case PropertyInfo propertyInfo:
+                        if (propertyInfo.PropertyType == typeof(IChannel))
+                            continue;
+                        break;
+
+                    default:
+                        Contracts.Assert(false);
+                        throw Contracts.ExceptNotSupp("Expected a FieldInfo or a PropertyInfo");
+                }
+
+                if (memberInfo.GetCustomAttribute<NoColumnAttribute>() != null)
                     continue;
 
-                if (fieldInfo.GetCustomAttribute<NoColumnAttribute>() != null)
-                    continue;
-                var mappingAttr = fieldInfo.GetCustomAttribute<ColumnNameAttribute>();
-                var name = mappingAttr == null ? fieldInfo.Name : (mappingAttr.Name ?? fieldInfo.Name);
+                var mappingAttr = memberInfo.GetCustomAttribute<ColumnAttribute>();
+                var mappingNameAttr = memberInfo.GetCustomAttribute<ColumnNameAttribute>();
+                string name = mappingAttr?.Name ?? mappingNameAttr?.Name ?? memberInfo.Name;
                 // Disallow duplicate names, because the field enumeration order is not actually
                 // well defined, so we are not gauranteed to have consistent "hiding" from run to
                 // run, across different .NET versions.
                 if (!colNames.Add(name))
                     throw Contracts.ExceptParam(nameof(userType), "Duplicate column name '{0}' detected, this is disallowed", name);
 
-                InternalSchemaDefinition.GetVectorAndKind(fieldInfo, out bool isVector, out DataKind kind);
+                InternalSchemaDefinition.GetVectorAndKind(memberInfo, out bool isVector, out DataKind kind);
 
                 PrimitiveType itemType;
-                var keyAttr = fieldInfo.GetCustomAttribute<KeyTypeAttribute>();
+                var keyAttr = memberInfo.GetCustomAttribute<KeyTypeAttribute>();
                 if (keyAttr != null)
                 {
                     if (!KeyType.IsValidDataKind(kind))
-                        throw Contracts.ExceptParam(nameof(userType), "Member {0} marked with KeyType attribute, but does not appear to be a valid kind of data for a key type", fieldInfo.Name);
+                        throw Contracts.ExceptParam(nameof(userType), "Member {0} marked with KeyType attribute, but does not appear to be a valid kind of data for a key type", memberInfo.Name);
                     itemType = new KeyType(kind, keyAttr.Min, keyAttr.Count, keyAttr.Contiguous);
                 }
                 else
@@ -355,9 +415,9 @@ namespace Microsoft.ML.Runtime.Api
 
                 // Get the column type.
                 ColumnType columnType;
-                var vectorAttr = fieldInfo.GetCustomAttribute<VectorTypeAttribute>();
+                var vectorAttr = memberInfo.GetCustomAttribute<VectorTypeAttribute>();
                 if (vectorAttr != null && !isVector)
-                    throw Contracts.ExceptParam(nameof(userType), "Member {0} marked with VectorType attribute, but does not appear to be a vector type", fieldInfo.Name);
+                    throw Contracts.ExceptParam(nameof(userType), "Member {0} marked with VectorType attribute, but does not appear to be a vector type", memberInfo.Name);
                 if (isVector)
                 {
                     int[] dims = vectorAttr?.Dims;
@@ -371,7 +431,7 @@ namespace Microsoft.ML.Runtime.Api
                 else
                     columnType = itemType;
 
-                cols.Add(new Column() { MemberName = fieldInfo.Name, ColumnName = name, ColumnType = columnType });
+                cols.Add(new Column() { MemberName = memberInfo.Name, ColumnName = name, ColumnType = columnType });
             }
             return cols;
         }

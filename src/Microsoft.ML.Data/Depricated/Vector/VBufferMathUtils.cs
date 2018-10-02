@@ -22,7 +22,7 @@ namespace Microsoft.ML.Runtime.Numeric
         {
             if (a.Count == 0)
                 return 0;
-            return SseUtils.SumSq(a.Values, 0, a.Count);
+            return CpuMathUtils.SumSq(a.Values, 0, a.Count);
         }
 
         /// <summary>
@@ -30,7 +30,7 @@ namespace Microsoft.ML.Runtime.Numeric
         /// </summary>
         public static Float NormSquared(Float[] a, int offset, int count)
         {
-            return SseUtils.SumSq(a, offset, count);
+            return CpuMathUtils.SumSq(a, offset, count);
         }
 
         /// <summary>
@@ -50,7 +50,7 @@ namespace Microsoft.ML.Runtime.Numeric
         {
             if (a.Count == 0)
                 return 0;
-            return SseUtils.SumAbs(a.Values, 0, a.Count);
+            return CpuMathUtils.SumAbs(a.Values, 0, a.Count);
         }
 
         /// <summary>
@@ -61,7 +61,7 @@ namespace Microsoft.ML.Runtime.Numeric
         {
             if (a.Count == 0)
                 return 0;
-            return SseUtils.MaxAbs(a.Values, 0, a.Count);
+            return CpuMathUtils.MaxAbs(a.Values, 0, a.Count);
         }
 
         /// <summary>
@@ -71,7 +71,7 @@ namespace Microsoft.ML.Runtime.Numeric
         {
             if (a.Count == 0)
                 return 0;
-            return SseUtils.Sum(a.Values, 0, a.Count);
+            return CpuMathUtils.Sum(a.Values, 0, a.Count);
         }
 
         /// <summary>
@@ -84,7 +84,7 @@ namespace Microsoft.ML.Runtime.Numeric
             if (c == 1 || dst.Count == 0)
                 return;
             if (c != 0)
-                SseUtils.Scale(c, dst.Values, dst.Count);
+                CpuMathUtils.Scale(c, dst.Values, dst.Count);
             else // Maintain density of dst.
                 Array.Clear(dst.Values, 0, dst.Count);
             // REVIEW: Any benefit in sparsifying?
@@ -114,7 +114,7 @@ namespace Microsoft.ML.Runtime.Numeric
                 if (c == 0)
                     Array.Clear(dstValues, 0, length);
                 else
-                    SseUtils.Scale(c, src.Values, dstValues, length);
+                    CpuMathUtils.Scale(c, src.Values, dstValues, length);
                 dst = new VBuffer<Float>(length, dstValues, dst.Indices);
             }
             else
@@ -124,7 +124,7 @@ namespace Microsoft.ML.Runtime.Numeric
                 if (c == 0)
                     Array.Clear(dstValues, 0, count);
                 else
-                    SseUtils.Scale(c, src.Values, dstValues, count);
+                    CpuMathUtils.Scale(c, src.Values, dstValues, count);
                 dst = new VBuffer<Float>(length, count, dstValues, dstIndices);
             }
         }
@@ -142,9 +142,9 @@ namespace Microsoft.ML.Runtime.Numeric
             if (dst.IsDense)
             {
                 if (src.IsDense)
-                    SseUtils.Add(src.Values, dst.Values, src.Length);
+                    CpuMathUtils.Add(src.Values, dst.Values, src.Length);
                 else
-                    SseUtils.Add(src.Values, src.Indices, dst.Values, src.Count);
+                    CpuMathUtils.Add(src.Values, src.Indices, dst.Values, src.Count);
                 return;
             }
             // REVIEW: Should we use SSE for any of these possibilities?
@@ -168,9 +168,9 @@ namespace Microsoft.ML.Runtime.Numeric
             if (dst.IsDense)
             {
                 if (src.IsDense)
-                    SseUtils.AddScale(c, src.Values, dst.Values, src.Length);
+                    CpuMathUtils.AddScale(c, src.Values, dst.Values, src.Length);
                 else
-                    SseUtils.AddScale(c, src.Values, src.Indices, dst.Values, src.Count);
+                    CpuMathUtils.AddScale(c, src.Values, src.Indices, dst.Values, src.Count);
                 return;
             }
             // REVIEW: Should we use SSE for any of these possibilities?
@@ -197,7 +197,7 @@ namespace Microsoft.ML.Runtime.Numeric
             if (dst.IsDense && src.IsDense)
             {
                 Float[] resValues = Utils.Size(res.Values) >= length ? res.Values : new Float[length];
-                SseUtils.AddScaleCopy(c, src.Values, dst.Values, resValues, length);
+                CpuMathUtils.AddScaleCopy(c, src.Values, dst.Values, resValues, length);
                 res = new VBuffer<Float>(length, resValues, res.Indices);
                 return;
             }
@@ -239,9 +239,9 @@ namespace Microsoft.ML.Runtime.Numeric
             {
                 // This is by far the most common case.
                 if (src.IsDense)
-                    SseUtils.AddScale(c, src.Values, dst.Values, offset, src.Count);
+                    CpuMathUtils.AddScale(c, src.Values, dst.Values, offset, src.Count);
                 else
-                    SseUtils.AddScale(c, src.Values, src.Indices, dst.Values, offset, src.Count);
+                    CpuMathUtils.AddScale(c, src.Values, src.Indices, dst.Values, offset, src.Count);
                 return;
             }
             // REVIEW: Perhaps implementing an ApplyInto with an offset would be more
@@ -350,7 +350,7 @@ namespace Microsoft.ML.Runtime.Numeric
         /// Perform in-place scaling of a vector into another vector as
         /// <c><paramref name="dst"/> = <paramref name="src"/> * <paramref name="c"/></c>.
         /// This is more or less equivalent to performing the same operation with
-        /// <see cref="VBufferUtils.ApplyInto"/> except perhaps more efficiently,
+        /// <see cref="VBufferUtils.ApplyInto{TSrc1,TSrc2,TDst}"/> except perhaps more efficiently,
         /// with one exception: if <paramref name="c"/> is 0 and <paramref name="src"/>
         /// is sparse, <paramref name="dst"/> will have a count of zero, instead of the
         /// same count as <paramref name="src"/>.

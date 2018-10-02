@@ -1,17 +1,17 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text.RegularExpressions;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text.RegularExpressions;
 
 [assembly: LoadableClass(typeof(MultiClassClassifierEvaluator), typeof(MultiClassClassifierEvaluator), typeof(MultiClassClassifierEvaluator.Arguments), typeof(SignatureEvaluator),
     "Multi-Class Classifier Evaluator", MultiClassClassifierEvaluator.LoadName, "MultiClassClassifier", "MultiClass")]
@@ -90,17 +90,17 @@ namespace Microsoft.ML.Runtime.Data
             return new Aggregator(Host, classNames, numClasses, schema.Weight != null, _outputTopKAcc, stratName);
         }
 
-        private DvText[] GetClassNames(RoleMappedSchema schema)
+        private ReadOnlyMemory<char>[] GetClassNames(RoleMappedSchema schema)
         {
-            DvText[] names;
+            ReadOnlyMemory<char>[] names;
             // Get the label names from the score column if they exist, or use the default names.
             var scoreInfo = schema.GetUniqueColumn(MetadataUtils.Const.ScoreValueKind.Score);
             var mdType = schema.Schema.GetMetadataTypeOrNull(MetadataUtils.Kinds.SlotNames, scoreInfo.Index);
-            var labelNames = default(VBuffer<DvText>);
+            var labelNames = default(VBuffer<ReadOnlyMemory<char>>);
             if (mdType != null && mdType.IsKnownSizeVector && mdType.ItemType.IsText)
             {
                 schema.Schema.GetMetadata(MetadataUtils.Kinds.SlotNames, scoreInfo.Index, ref labelNames);
-                names = new DvText[labelNames.Length];
+                names = new ReadOnlyMemory<char>[labelNames.Length];
                 labelNames.CopyTo(names);
             }
             else
@@ -109,7 +109,7 @@ namespace Microsoft.ML.Runtime.Data
                 Host.Assert(Utils.Size(score) == 1);
                 Host.Assert(score[0].Type.VectorSize > 0);
                 int numClasses = score[0].Type.VectorSize;
-                names = Enumerable.Range(0, numClasses).Select(i => new DvText(i.ToString())).ToArray();
+                names = Enumerable.Range(0, numClasses).Select(i => i.ToString().AsMemory()).ToArray();
             }
             return names;
         }
@@ -135,23 +135,21 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         protected override void GetAggregatorConsolidationFuncs(Aggregator aggregator, AggregatorDictionaryBase[] dictionaries,
-            out Action<uint, DvText, Aggregator> addAgg, out Func<Dictionary<string, IDataView>> consolidate)
+            out Action<uint, ReadOnlyMemory<char>, Aggregator> addAgg, out Func<Dictionary<string, IDataView>> consolidate)
         {
             var stratCol = new List<uint>();
-            var stratVal = new List<DvText>();
-            var isWeighted = new List<DvBool>();
-
-            var microAcc = new List<Double>();
-            var macroAcc = new List<Double>();
-            var logLoss = new List<Double>();
-            var logLossRed = new List<Double>();
-            var topKAcc = new List<Double>();
-            var perClassLogLoss = new List<Double[]>();
-
-            var counts = new List<Double[]>();
-            var weights = new List<Double[]>();
+            var stratVal = new List<ReadOnlyMemory<char>>();
+            var isWeighted = new List<bool>();
+            var microAcc = new List<double>();
+            var macroAcc = new List<double>();
+            var logLoss = new List<double>();
+            var logLossRed = new List<double>();
+            var topKAcc = new List<double>();
+            var perClassLogLoss = new List<double[]>();
+            var counts = new List<double[]>();
+            var weights = new List<double[]>();
             var confStratCol = new List<uint>();
-            var confStratVal = new List<DvText>();
+            var confStratVal = new List<ReadOnlyMemory<char>>();
 
             bool hasStrats = Utils.Size(dictionaries) > 0;
             bool hasWeight = aggregator.Weighted;
@@ -165,7 +163,7 @@ namespace Microsoft.ML.Runtime.Data
 
                     stratCol.Add(stratColKey);
                     stratVal.Add(stratColVal);
-                    isWeighted.Add(DvBool.False);
+                    isWeighted.Add(false);
                     microAcc.Add(agg.UnweightedCounters.MicroAvgAccuracy);
                     macroAcc.Add(agg.UnweightedCounters.MacroAvgAccuracy);
                     logLoss.Add(agg.UnweightedCounters.LogLoss);
@@ -182,7 +180,7 @@ namespace Microsoft.ML.Runtime.Data
                     {
                         stratCol.Add(stratColKey);
                         stratVal.Add(stratColVal);
-                        isWeighted.Add(DvBool.True);
+                        isWeighted.Add(true);
                         microAcc.Add(agg.WeightedCounters.MicroAvgAccuracy);
                         macroAcc.Add(agg.WeightedCounters.MacroAvgAccuracy);
                         logLoss.Add(agg.WeightedCounters.LogLoss);
@@ -219,9 +217,9 @@ namespace Microsoft.ML.Runtime.Data
                         confDvBldr.AddColumn(MetricKinds.ColumnNames.StratCol, GetKeyValueGetter(dictionaries), 0, dictionaries.Length, confStratCol.ToArray());
                         confDvBldr.AddColumn(MetricKinds.ColumnNames.StratVal, TextType.Instance, confStratVal.ToArray());
                     }
-                    ValueGetter<VBuffer<DvText>> getSlotNames =
-                        (ref VBuffer<DvText> dst) =>
-                            dst = new VBuffer<DvText>(aggregator.ClassNames.Length, aggregator.ClassNames);
+                    ValueGetter<VBuffer<ReadOnlyMemory<char>>> getSlotNames =
+                        (ref VBuffer<ReadOnlyMemory<char>> dst) =>
+                            dst = new VBuffer<ReadOnlyMemory<char>>(aggregator.ClassNames.Length, aggregator.ClassNames);
                     confDvBldr.AddColumn(MetricKinds.ColumnNames.Count, getSlotNames, NumberType.R8, counts.ToArray());
 
                     if (hasWeight)
@@ -243,20 +241,22 @@ namespace Microsoft.ML.Runtime.Data
                 private readonly int _numClasses;
                 public readonly int? OutputTopKAcc;
 
-                private Double _totalLogLoss;
-                private Double _numInstances;
-                private Double _numCorrect;
-                private Double _numCorrectTopK;
-                private readonly Double[] _sumWeightsOfClass;
-                private readonly Double[] _totalPerClassLogLoss;
-                public readonly Double[][] ConfusionTable;
+                private double _totalLogLoss;
+                private double _numInstances;
+                private double _numCorrect;
+                private double _numCorrectTopK;
+                private readonly double[] _sumWeightsOfClass;
+                private readonly double[] _totalPerClassLogLoss;
+                public readonly double[][] ConfusionTable;
 
-                public Double MicroAvgAccuracy { get { return _numInstances > 0 ? _numCorrect / _numInstances : 0; } }
-                public Double MacroAvgAccuracy
+                public double MicroAvgAccuracy { get { return _numInstances > 0 ? _numCorrect / _numInstances : 0; } }
+                public double MacroAvgAccuracy
                 {
                     get
                     {
-                        Double macroAvgAccuracy = 0;
+                        if (_numInstances == 0)
+                            return 0;
+                        double macroAvgAccuracy = 0;
                         int countOfNonEmptyClasses = 0;
                         for (int i = 0; i < _numClasses; ++i)
                         {
@@ -267,19 +267,18 @@ namespace Microsoft.ML.Runtime.Data
                             }
                         }
 
-                        Contracts.Assert(countOfNonEmptyClasses > 0);
-                        return macroAvgAccuracy / countOfNonEmptyClasses;
+                        return countOfNonEmptyClasses > 0 ? macroAvgAccuracy / countOfNonEmptyClasses : 0;
                     }
                 }
 
-                public Double LogLoss { get { return _numInstances > 0 ? _totalLogLoss / _numInstances : 0; } }
+                public double LogLoss { get { return _numInstances > 0 ? _totalLogLoss / _numInstances : 0; } }
 
-                public Double Reduction
+                public double Reduction
                 {
                     get
                     {
                         // reduction -- prior log loss is entropy
-                        Double entropy = 0;
+                        double entropy = 0;
                         for (int i = 0; i < _numClasses; ++i)
                         {
                             if (_sumWeightsOfClass[i] != 0)
@@ -290,11 +289,11 @@ namespace Microsoft.ML.Runtime.Data
                     }
                 }
 
-                public Double TopKAccuracy { get { return _numInstances > 0 ? _numCorrectTopK / _numInstances : 0; } }
+                public double TopKAccuracy { get { return _numInstances > 0 ? _numCorrectTopK / _numInstances : 0; } }
 
                 // The per class average log loss is calculated by dividing the weighted sum of the log loss of examples
                 // in each class by the total weight of examples in that class.
-                public Double[] PerClassLogLoss
+                public double[] PerClassLogLoss
                 {
                     get
                     {
@@ -310,14 +309,14 @@ namespace Microsoft.ML.Runtime.Data
                     _numClasses = numClasses;
                     OutputTopKAcc = outputTopKAcc;
 
-                    _sumWeightsOfClass = new Double[numClasses];
-                    _totalPerClassLogLoss = new Double[numClasses];
-                    ConfusionTable = new Double[numClasses][];
+                    _sumWeightsOfClass = new double[numClasses];
+                    _totalPerClassLogLoss = new double[numClasses];
+                    ConfusionTable = new double[numClasses][];
                     for (int i = 0; i < ConfusionTable.Length; i++)
-                        ConfusionTable[i] = new Double[numClasses];
+                        ConfusionTable[i] = new double[numClasses];
                 }
 
-                public void Update(int[] indices, Double loglossCurr, int label, Single weight)
+                public void Update(int[] indices, double loglossCurr, int label, float weight)
                 {
                     Contracts.Assert(Utils.Size(indices) == _numClasses);
 
@@ -352,15 +351,15 @@ namespace Microsoft.ML.Runtime.Data
                 }
             }
 
-            private ValueGetter<Single> _labelGetter;
-            private ValueGetter<VBuffer<Single>> _scoreGetter;
-            private ValueGetter<Single> _weightGetter;
+            private ValueGetter<float> _labelGetter;
+            private ValueGetter<VBuffer<float>> _scoreGetter;
+            private ValueGetter<float> _weightGetter;
 
-            private VBuffer<Single> _scores;
-            private readonly Single[] _scoresArr;
+            private VBuffer<float> _scores;
+            private readonly float[] _scoresArr;
             private int[] _indicesArr;
 
-            private const Single Epsilon = (Single)1e-15;
+            private const float Epsilon = (float)1e-15;
 
             public readonly Counters UnweightedCounters;
             public readonly Counters WeightedCounters;
@@ -369,16 +368,16 @@ namespace Microsoft.ML.Runtime.Data
             private long _numUnknownClassInstances;
             private long _numNegOrNonIntegerLabels;
 
-            public readonly DvText[] ClassNames;
+            public readonly ReadOnlyMemory<char>[] ClassNames;
 
-            public Aggregator(IHostEnvironment env, DvText[] classNames, int scoreVectorSize, bool weighted, int? outputTopKAcc, string stratName)
+            public Aggregator(IHostEnvironment env, ReadOnlyMemory<char>[] classNames, int scoreVectorSize, bool weighted, int? outputTopKAcc, string stratName)
                 : base(env, stratName)
             {
                 Host.Assert(outputTopKAcc == null || outputTopKAcc > 0);
                 Host.Assert(scoreVectorSize > 0);
                 Host.Assert(Utils.Size(classNames) == scoreVectorSize);
 
-                _scoresArr = new Single[scoreVectorSize];
+                _scoresArr = new float[scoreVectorSize];
                 UnweightedCounters = new Counters(scoreVectorSize, outputTopKAcc);
                 Weighted = weighted;
                 WeightedCounters = Weighted ? new Counters(scoreVectorSize, outputTopKAcc) : null;
@@ -393,19 +392,19 @@ namespace Microsoft.ML.Runtime.Data
                 var score = schema.GetUniqueColumn(MetadataUtils.Const.ScoreValueKind.Score);
                 Host.Assert(score.Type.VectorSize == _scoresArr.Length);
                 _labelGetter = RowCursorUtils.GetLabelGetter(row, schema.Label.Index);
-                _scoreGetter = row.GetGetter<VBuffer<Single>>(score.Index);
+                _scoreGetter = row.GetGetter<VBuffer<float>>(score.Index);
                 Host.AssertValue(_labelGetter);
                 Host.AssertValue(_scoreGetter);
 
                 if (schema.Weight != null)
-                    _weightGetter = row.GetGetter<Single>(schema.Weight.Index);
+                    _weightGetter = row.GetGetter<float>(schema.Weight.Index);
             }
 
             public override void ProcessRow()
             {
-                Single label = 0;
+                float label = 0;
                 _labelGetter(ref label);
-                if (Single.IsNaN(label))
+                if (float.IsNaN(label))
                 {
                     NumUnlabeledInstances++;
                     return;
@@ -425,7 +424,7 @@ namespace Microsoft.ML.Runtime.Data
                     return;
                 }
                 _scores.CopyTo(_scoresArr);
-                Single weight = 1;
+                float weight = 1;
                 if (_weightGetter != null)
                 {
                     _weightGetter(ref weight);
@@ -452,7 +451,7 @@ namespace Microsoft.ML.Runtime.Data
                 {
                     // REVIEW: This assumes that the predictions are probabilities, not just relative scores
                     // for the classes. Is this a correct assumption?
-                    Single p = Math.Min(1, Math.Max(Epsilon, _scoresArr[intLabel]));
+                    float p = Math.Min(1, Math.Max(Epsilon, _scoresArr[intLabel]));
                     logloss = -Math.Log(p);
                 }
                 else
@@ -485,17 +484,145 @@ namespace Microsoft.ML.Runtime.Data
                 return warnings;
             }
 
-            public void GetSlotNames(ref VBuffer<DvText> slotNames)
+            public void GetSlotNames(ref VBuffer<ReadOnlyMemory<char>> slotNames)
             {
                 var values = slotNames.Values;
                 if (Utils.Size(values) < ClassNames.Length)
-                    values = new DvText[ClassNames.Length];
+                    values = new ReadOnlyMemory<char>[ClassNames.Length];
 
                 for (int i = 0; i < ClassNames.Length; i++)
-                    values[i] = new DvText(string.Format("(class {0})", ClassNames[i]));
-                slotNames = new VBuffer<DvText>(ClassNames.Length, values);
+                    values[i] = string.Format("(class {0})", ClassNames[i]).AsMemory();
+                slotNames = new VBuffer<ReadOnlyMemory<char>>(ClassNames.Length, values);
             }
         }
+
+        public sealed class Result
+        {
+            /// <summary>
+            /// Gets the micro-average accuracy of the model.
+            /// </summary>
+            /// <remarks>
+            /// The micro-average is the fraction of instances predicted correctly.
+            ///
+            /// The micro-average metric weighs each class according to the number of instances that belong
+            /// to it in the dataset.
+            /// </remarks>
+            public double AccuracyMicro { get; }
+
+            /// <summary>
+            /// Gets the macro-average accuracy of the model.
+            /// </summary>
+            /// <remarks>
+            /// The macro-average is computed by taking the average over all the classes of the fraction
+            /// of correct predictions in this class (the number of correctly predicted instances in the class,
+            /// divided by the total number of instances in the class).
+            ///
+            /// The macro-average metric gives the same weight to each class, no matter how many instances from
+            /// that class the dataset contains.
+            /// </remarks>
+            public double AccuracyMacro { get; }
+
+            /// <summary>
+            /// Gets the average log-loss of the classifier.
+            /// </summary>
+            /// <remarks>
+            /// The log-loss metric, is computed as follows:
+            /// LL = - (1/m) * sum( log(p[i]))
+            /// where m is the number of instances in the test set.
+            /// p[i] is the probability returned by the classifier if the instance belongs to class 1,
+            /// and 1 minus the probability returned by the classifier if the instance belongs to class 0.
+            /// </remarks>
+            public double LogLoss { get; }
+
+            /// <summary>
+            /// Gets the log-loss reduction (also known as relative log-loss, or reduction in information gain - RIG)
+            /// of the classifier.
+            /// </summary>
+            /// <remarks>
+            /// The log-loss reduction is scaled relative to a classifier that predicts the prior for every example:
+            /// (LL(prior) - LL(classifier)) / LL(prior)
+            /// This metric can be interpreted as the advantage of the classifier over a random prediction.
+            /// E.g., if the RIG equals 20, it can be interpreted as "the probability of a correct prediction is
+            /// 20% better than random guessing".
+            /// </remarks>
+            public double LogLossReduction { get; private set; }
+
+            /// <summary>
+            /// If positive, this is the top-K for which the <see cref="TopKAccuracy"/> is calculated.
+            /// </summary>
+            public int TopK { get; }
+
+            /// <summary>
+            /// If <see cref="TopK"/> is positive, this is the relative number of examples where
+            /// the true label is one of the top k predicted labels by the predictor.
+            /// </summary>
+            public double TopKAccuracy { get; }
+
+            /// <summary>
+            /// Gets the log-loss of the classifier for each class.
+            /// </summary>
+            /// <remarks>
+            /// The log-loss metric, is computed as follows:
+            /// LL = - (1/m) * sum( log(p[i]))
+            /// where m is the number of instances in the test set.
+            /// p[i] is the probability returned by the classifier if the instance belongs to the class,
+            /// and 1 minus the probability returned by the classifier if the instance does not belong to the class.
+            /// </remarks>
+            public double[] PerClassLogLoss { get; }
+
+            internal Result(IExceptionContext ectx, IRow overallResult, int topK)
+            {
+                double FetchDouble(string name) => RowCursorUtils.Fetch<double>(ectx, overallResult, name);
+                AccuracyMicro = FetchDouble(MultiClassClassifierEvaluator.AccuracyMicro);
+                AccuracyMacro = FetchDouble(MultiClassClassifierEvaluator.AccuracyMacro);
+                LogLoss = FetchDouble(MultiClassClassifierEvaluator.LogLoss);
+                LogLossReduction = FetchDouble(MultiClassClassifierEvaluator.LogLossReduction);
+                TopK = topK;
+                if (topK > 0)
+                    TopKAccuracy = FetchDouble(MultiClassClassifierEvaluator.TopKAccuracy);
+
+                var perClassLogLoss = RowCursorUtils.Fetch<VBuffer<double>>(ectx, overallResult, MultiClassClassifierEvaluator.PerClassLogLoss);
+                PerClassLogLoss = new double[perClassLogLoss.Length];
+                perClassLogLoss.CopyTo(PerClassLogLoss);
+            }
+        }
+
+        /// <summary>
+        /// Evaluates scored multiclass classification data.
+        /// </summary>
+        /// <param name="data">The scored data.</param>
+        /// <param name="label">The name of the label column in <paramref name="data"/>.</param>
+        /// <param name="score">The name of the score column in <paramref name="data"/>.</param>
+        /// <param name="predictedLabel">The name of the predicted label column in <paramref name="data"/>.</param>
+        /// <returns>The evaluation results for these outputs.</returns>
+        public Result Evaluate(IDataView data, string label, string score, string predictedLabel)
+        {
+            Host.CheckValue(data, nameof(data));
+            Host.CheckNonEmpty(label, nameof(label));
+            Host.CheckNonEmpty(score, nameof(score));
+            Host.CheckNonEmpty(predictedLabel, nameof(predictedLabel));
+
+            var roles = new RoleMappedData(data, opt: false,
+                RoleMappedSchema.ColumnRole.Label.Bind(label),
+                RoleMappedSchema.CreatePair(MetadataUtils.Const.ScoreValueKind.Score, score),
+                RoleMappedSchema.CreatePair(MetadataUtils.Const.ScoreValueKind.PredictedLabel, predictedLabel));
+
+            var resultDict = Evaluate(roles);
+            Host.Assert(resultDict.ContainsKey(MetricKinds.OverallMetrics));
+            var overall = resultDict[MetricKinds.OverallMetrics];
+
+            Result result;
+            using (var cursor = overall.GetRowCursor(i => true))
+            {
+                var moved = cursor.MoveNext();
+                Host.Assert(moved);
+                result = new Result(Host, cursor, _outputTopKAcc ?? 0);
+                moved = cursor.MoveNext();
+                Host.Assert(!moved);
+            }
+            return result;
+        }
+
     }
 
     public sealed class MultiClassPerInstanceEvaluator : PerInstanceEvaluatorBase
@@ -509,7 +636,8 @@ namespace Microsoft.ML.Runtime.Data
                 verWrittenCur: 0x00010002, // Serialize the class names
                 verReadableCur: 0x00010002,
                 verWeCanReadBack: 0x00010001,
-                loaderSignature: LoaderSignature);
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(MultiClassPerInstanceEvaluator).Assembly.FullName);
         }
 
         private const int AssignedCol = 0;
@@ -524,10 +652,10 @@ namespace Microsoft.ML.Runtime.Data
         public const string SortedScores = "SortedScores";
         public const string SortedClasses = "SortedClasses";
 
-        private const Single Epsilon = (Single)1e-15;
+        private const float Epsilon = (float)1e-15;
 
         private readonly int _numClasses;
-        private readonly DvText[] _classNames;
+        private readonly ReadOnlyMemory<char>[] _classNames;
         private readonly ColumnType[] _types;
 
         public MultiClassPerInstanceEvaluator(IHostEnvironment env, ISchema schema, ColumnInfo scoreInfo, string labelCol)
@@ -540,13 +668,13 @@ namespace Microsoft.ML.Runtime.Data
 
             if (schema.HasSlotNames(ScoreIndex, _numClasses))
             {
-                var classNames = default(VBuffer<DvText>);
+                var classNames = default(VBuffer<ReadOnlyMemory<char>>);
                 schema.GetMetadata(MetadataUtils.Kinds.SlotNames, ScoreIndex, ref classNames);
-                _classNames = new DvText[_numClasses];
+                _classNames = new ReadOnlyMemory<char>[_numClasses];
                 classNames.CopyTo(_classNames);
             }
             else
-                _classNames = Utils.BuildArray(_numClasses, i => new DvText(i.ToString()));
+                _classNames = Utils.BuildArray(_numClasses, i => i.ToString().AsMemory());
 
             var key = new KeyType(DataKind.U4, 0, _numClasses);
             _types[AssignedCol] = key;
@@ -569,12 +697,12 @@ namespace Microsoft.ML.Runtime.Data
             Host.CheckDecode(_numClasses > 0);
             if (ctx.Header.ModelVerWritten > VerInitial)
             {
-                _classNames = new DvText[_numClasses];
+                _classNames = new ReadOnlyMemory<char>[_numClasses];
                 for (int i = 0; i < _numClasses; i++)
-                    _classNames[i] = new DvText(ctx.LoadNonEmptyString());
+                    _classNames[i] = ctx.LoadNonEmptyString().AsMemory();
             }
             else
-                _classNames = Utils.BuildArray(_numClasses, i => new DvText(i.ToString()));
+                _classNames = Utils.BuildArray(_numClasses, i => i.ToString().AsMemory());
 
             _types = new ColumnType[4];
             var key = new KeyType(DataKind.U4, 0, _numClasses);
@@ -635,14 +763,14 @@ namespace Microsoft.ML.Runtime.Data
                 return getters;
 
             long cachedPosition = -1;
-            VBuffer<Single> scores = default(VBuffer<Single>);
-            Single label = 0;
-            var scoresArr = new Single[_numClasses];
+            VBuffer<float> scores = default(VBuffer<float>);
+            float label = 0;
+            var scoresArr = new float[_numClasses];
             int[] sortedIndices = new int[_numClasses];
 
             var labelGetter = activeOutput(LogLossCol) ? RowCursorUtils.GetLabelGetter(input, LabelIndex) :
-                (ref Single dst) => dst = Single.NaN;
-            var scoreGetter = input.GetGetter<VBuffer<Single>>(ScoreIndex);
+                (ref float dst) => dst = float.NaN;
+            var scoreGetter = input.GetGetter<VBuffer<float>>(ScoreIndex);
             Action updateCacheIfNeeded =
                 () =>
                 {
@@ -671,16 +799,16 @@ namespace Microsoft.ML.Runtime.Data
 
             if (activeOutput(SortedScoresCol))
             {
-                ValueGetter<VBuffer<Single>> topKScoresFn =
-                    (ref VBuffer<Single> dst) =>
+                ValueGetter<VBuffer<float>> topKScoresFn =
+                    (ref VBuffer<float> dst) =>
                     {
                         updateCacheIfNeeded();
                         var values = dst.Values;
                         if (Utils.Size(values) < _numClasses)
-                            values = new Single[_numClasses];
+                            values = new float[_numClasses];
                         for (int i = 0; i < _numClasses; i++)
                             values[i] = scores.GetItemOrDefault(sortedIndices[i]);
-                        dst = new VBuffer<Single>(_numClasses, values);
+                        dst = new VBuffer<float>(_numClasses, values);
                     };
                 getters[SortedScoresCol] = topKScoresFn;
             }
@@ -707,16 +835,16 @@ namespace Microsoft.ML.Runtime.Data
                     (ref double dst) =>
                     {
                         updateCacheIfNeeded();
-                        if (Single.IsNaN(label))
+                        if (float.IsNaN(label))
                         {
-                            dst = Double.NaN;
+                            dst = double.NaN;
                             return;
                         }
 
                         int intLabel = (int)label;
                         if (intLabel < _numClasses)
                         {
-                            Single p = Math.Min(1, Math.Max(Epsilon, scoresArr[intLabel]));
+                            float p = Math.Min(1, Math.Max(Epsilon, scoresArr[intLabel]));
                             dst = -Math.Log(p);
                             return;
                         }
@@ -734,19 +862,19 @@ namespace Microsoft.ML.Runtime.Data
 
             var assignedColKeyValues = new ColumnMetadataInfo(Assigned);
             var keyValueType = new VectorType(TextType.Instance, _numClasses);
-            assignedColKeyValues.Add(MetadataUtils.Kinds.KeyValues, new MetadataInfo<VBuffer<DvText>>(keyValueType, CreateKeyValueGetter()));
+            assignedColKeyValues.Add(MetadataUtils.Kinds.KeyValues, new MetadataInfo<VBuffer<ReadOnlyMemory<char>>>(keyValueType, CreateKeyValueGetter()));
             infos[AssignedCol] = new RowMapperColumnInfo(Assigned, _types[AssignedCol], assignedColKeyValues);
 
             infos[LogLossCol] = new RowMapperColumnInfo(LogLoss, _types[LogLossCol], null);
 
             var slotNamesType = new VectorType(TextType.Instance, _numClasses);
             var sortedScores = new ColumnMetadataInfo(SortedScores);
-            sortedScores.Add(MetadataUtils.Kinds.SlotNames, new MetadataInfo<VBuffer<DvText>>(slotNamesType,
+            sortedScores.Add(MetadataUtils.Kinds.SlotNames, new MetadataInfo<VBuffer<ReadOnlyMemory<char>>>(slotNamesType,
                 CreateSlotNamesGetter(_numClasses, "Score")));
             var sortedClasses = new ColumnMetadataInfo(SortedClasses);
-            sortedClasses.Add(MetadataUtils.Kinds.SlotNames, new MetadataInfo<VBuffer<DvText>>(slotNamesType,
+            sortedClasses.Add(MetadataUtils.Kinds.SlotNames, new MetadataInfo<VBuffer<ReadOnlyMemory<char>>>(slotNamesType,
                 CreateSlotNamesGetter(_numClasses, "Class")));
-            sortedClasses.Add(MetadataUtils.Kinds.KeyValues, new MetadataInfo<VBuffer<DvText>>(keyValueType, CreateKeyValueGetter()));
+            sortedClasses.Add(MetadataUtils.Kinds.KeyValues, new MetadataInfo<VBuffer<ReadOnlyMemory<char>>>(keyValueType, CreateKeyValueGetter()));
 
             infos[SortedScoresCol] = new RowMapperColumnInfo(SortedScores, _types[SortedScoresCol], sortedScores);
             infos[SortedClassesCol] = new RowMapperColumnInfo(SortedClasses, _types[SortedClassesCol], sortedClasses);
@@ -754,31 +882,31 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         // REVIEW: Figure out how to avoid having the column name in each slot name.
-        private MetadataUtils.MetadataGetter<VBuffer<DvText>> CreateSlotNamesGetter(int numTopClasses, string suffix)
+        private MetadataUtils.MetadataGetter<VBuffer<ReadOnlyMemory<char>>> CreateSlotNamesGetter(int numTopClasses, string suffix)
         {
             return
-                (int col, ref VBuffer<DvText> dst) =>
+                (int col, ref VBuffer<ReadOnlyMemory<char>> dst) =>
                 {
                     var values = dst.Values;
                     if (Utils.Size(values) < numTopClasses)
-                        values = new DvText[numTopClasses];
+                        values = new ReadOnlyMemory<char>[numTopClasses];
                     for (int i = 1; i <= numTopClasses; i++)
-                        values[i - 1] = new DvText(string.Format("#{0} {1}", i, suffix));
-                    dst = new VBuffer<DvText>(numTopClasses, values);
+                        values[i - 1] = string.Format("#{0} {1}", i, suffix).AsMemory();
+                    dst = new VBuffer<ReadOnlyMemory<char>>(numTopClasses, values);
                 };
         }
 
-        private MetadataUtils.MetadataGetter<VBuffer<DvText>> CreateKeyValueGetter()
+        private MetadataUtils.MetadataGetter<VBuffer<ReadOnlyMemory<char>>> CreateKeyValueGetter()
         {
             return
-                (int col, ref VBuffer<DvText> dst) =>
+                (int col, ref VBuffer<ReadOnlyMemory<char>> dst) =>
                 {
                     var values = dst.Values;
                     if (Utils.Size(values) < _numClasses)
-                        values = new DvText[_numClasses];
+                        values = new ReadOnlyMemory<char>[_numClasses];
                     for (int i = 0; i < _numClasses; i++)
                         values[i] = _classNames[i];
-                    dst = new VBuffer<DvText>(_numClasses, values);
+                    dst = new VBuffer<ReadOnlyMemory<char>>(_numClasses, values);
                 };
         }
 
@@ -853,7 +981,7 @@ namespace Microsoft.ML.Runtime.Data
                 throw ch.Except("No overall metrics found");
 
             if (!metrics.TryGetValue(MetricKinds.ConfusionMatrix, out IDataView conf))
-                throw ch.Except("No overall metrics found");
+                throw ch.Except("No confusion matrix found");
 
             // Change the name of the Top-k-accuracy column.
             if (_outputTopKAcc != null)
@@ -875,27 +1003,13 @@ namespace Microsoft.ML.Runtime.Data
             ch.Info(unweightedFold);
         }
 
-        protected override void PrintOverallResultsCore(IChannel ch, string filename, Dictionary<string, IDataView>[] metrics)
+        protected override IDataView CombineOverallMetricsCore(IDataView[] metrics)
         {
-            ch.AssertNonEmpty(metrics);
-
             var overallList = new List<IDataView>();
 
             for (int i = 0; i < metrics.Length; i++)
             {
-                var dict = metrics[i];
-                if (!dict.TryGetValue(MetricKinds.OverallMetrics, out IDataView idv))
-                    throw ch.Except("No overall metrics found");
-
-                // Add a fold-name column. We add it as a text column, since it is only used for saving the result summary file.
-                // We use the first column in the data view as an input column to the LambdaColumnMapper, because it must have an input.
-                // We use DvText.NA as the value of this column since for any stratified row the value will be non empty, so we can uniquely identify
-                // the overall row using this column.
-                var inputColName = idv.Schema.GetColumnName(0);
-                var inputColType = idv.Schema.GetColumnType(0);
-                idv = Utils.MarshalInvoke(EvaluateUtils.AddTextColumn<int>, inputColType.RawType, Host,
-                    idv, inputColName, MetricKinds.ColumnNames.FoldIndex, inputColType, string.Format("Fold {0}", i), "FoldName");
-
+                var idv = metrics[i];
                 if (!_outputPerClass)
                     idv = DropPerClassColumn(idv);
 
@@ -905,8 +1019,8 @@ namespace Microsoft.ML.Runtime.Data
 
             if (_outputPerClass)
             {
-                EvaluateUtils.ReconcileSlotNames<Double>(Host, views, MultiClassClassifierEvaluator.PerClassLogLoss, NumberType.R8,
-                    def: Double.NaN);
+                EvaluateUtils.ReconcileSlotNames<double>(Host, views, MultiClassClassifierEvaluator.PerClassLogLoss, NumberType.R8,
+                    def: double.NaN);
                 for (int i = 0; i < overallList.Count; i++)
                 {
                     var idv = views[i];
@@ -925,30 +1039,20 @@ namespace Microsoft.ML.Runtime.Data
                     views[i] = idv;
                 }
             }
+            return base.CombineOverallMetricsCore(views);
+        }
 
-            var overall = AppendRowsDataView.Create(Host, views[0].Schema, views.ToArray());
-
+        protected override IDataView GetOverallResultsCore(IDataView overall)
+        {
             // Change the name of the Top-k-accuracy column.
             if (_outputTopKAcc != null)
                 overall = ChangeTopKAccColumnName(overall);
-
-            MetricWriter.PrintOverallMetrics(Host, ch, filename, overall, metrics.Length);
+            return overall;
         }
 
         private IDataView ChangeTopKAccColumnName(IDataView input)
         {
-            var cpyArgs = new CopyColumnsTransform.Arguments
-            {
-                Column = new[]
-                {
-                    new CopyColumnsTransform.Column()
-                    {
-                        Name=string.Format(TopKAccuracyFormat, _outputTopKAcc),
-                        Source=MultiClassClassifierEvaluator.TopKAccuracy
-                    }
-                }
-            };
-            input = new CopyColumnsTransform(Host, cpyArgs, input);
+            input = new CopyColumnsTransform(Host, (MultiClassClassifierEvaluator.TopKAccuracy, string.Format(TopKAccuracyFormat, _outputTopKAcc))).Transform(input);
             var dropArgs = new DropColumnsTransform.Arguments
             {
                 Column = new[] { MultiClassClassifierEvaluator.TopKAccuracy }
@@ -1009,9 +1113,9 @@ namespace Microsoft.ML.Runtime.Data
             var labelType = perInst.Schema.GetColumnType(labelCol);
             if (labelType.IsKey && (!perInst.Schema.HasKeyNames(labelCol, labelType.KeyCount) || labelType.RawKind != DataKind.U4))
             {
-                perInst = LambdaColumnMapper.Create(Host, "ConvertToLong", perInst, schema.Label.Name,
-                    schema.Label.Name, perInst.Schema.GetColumnType(labelCol), NumberType.I8,
-                    (ref uint src, ref DvInt8 dst) => dst = src == 0 ? DvInt8.NA : src - 1 + (long)labelType.AsKey.Min);
+                perInst = LambdaColumnMapper.Create(Host, "ConvertToDouble", perInst, schema.Label.Name,
+                    schema.Label.Name, perInst.Schema.GetColumnType(labelCol), NumberType.R8,
+                    (ref uint src, ref double dst) => dst = src == 0 ? double.NaN : src - 1 + (double)labelType.AsKey.Min);
             }
 
             var perInstSchema = perInst.Schema;
@@ -1082,7 +1186,7 @@ namespace Microsoft.ML.Runtime.Data
 
             MatchColumns(host, input, out string label, out string weight, out string name);
             var evaluator = new MultiClassMamlEvaluator(host, input);
-            var data = TrainUtils.CreateExamples(input.Data, label, null, null, weight, name);
+            var data = new RoleMappedData(input.Data, label, null, null, weight, name);
             var metrics = evaluator.Evaluate(data);
 
             var warnings = ExtractWarnings(host, metrics);

@@ -213,7 +213,7 @@ namespace Microsoft.ML.Runtime.Data
             {
                 if (kind == MetadataUtils.Kinds.SlotNames && _parent._slotNames != null && _parent._slotNames[iinfo].Length > 0)
                 {
-                    MetadataUtils.MetadataGetter<VBuffer<DvText>> getTerms = _parent.GetTerms;
+                    MetadataUtils.MetadataGetter<VBuffer<ReadOnlyMemory<char>>> getTerms = _parent.GetTerms;
                     getTerms.Marshal(iinfo, ref value);
                     return;
                 }
@@ -317,13 +317,14 @@ namespace Microsoft.ML.Runtime.Data
                 verWrittenCur: 0x00010002, // Invert hash key values, hash fix
                 verReadableCur: 0x00010002,
                 verWeCanReadBack: 0x00010002,
-                loaderSignature: LoaderSignature);
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(NgramHashTransform).Assembly.FullName);
         }
 
         private readonly Bindings _bindings;
         private readonly ColInfoEx[] _exes;
 
-        private readonly VBuffer<DvText>[] _slotNames;
+        private readonly VBuffer<ReadOnlyMemory<char>>[] _slotNames;
         private readonly ColumnType[] _slotNamesTypes;
 
         private const string RegistrationName = "NgramHash";
@@ -447,7 +448,7 @@ namespace Microsoft.ML.Runtime.Data
             return invertHashMaxCount;
         }
 
-        private void GetTerms(int iinfo, ref VBuffer<DvText> dst)
+        private void GetTerms(int iinfo, ref VBuffer<ReadOnlyMemory<char>> dst)
         {
             Host.Assert(0 <= iinfo && iinfo < _exes.Length);
             Host.Assert(_slotNames[iinfo].Length > 0);
@@ -697,7 +698,7 @@ namespace Microsoft.ML.Runtime.Data
             var keyCounts = _bindings.Infos[iinfo].SrcTypes.Select(
                 t => t.ItemType.KeyCount > 0 ? (uint)t.ItemType.KeyCount : uint.MaxValue).ToArray();
 
-            // REVIEW: Special casing the srcCount==1 case could potentially improve perf. 
+            // REVIEW: Special casing the srcCount==1 case could potentially improve perf.
             ValueGetter<VBuffer<Float>> del =
                 (ref VBuffer<Float> dst) =>
                 {
@@ -990,7 +991,7 @@ namespace Microsoft.ML.Runtime.Data
                         Contracts.Assert(0 <= icol && icol < srcIndices.Length);
                         Contracts.AssertValue(_srcTextGetters[srcIndices[icol]]);
                         var result = finder(ngram, lim, icol, ref more);
-                        // For the hashing NgramIdFinder, a result of -1 indicates that 
+                        // For the hashing NgramIdFinder, a result of -1 indicates that
                         // a slot does not exist for the given ngram. We do not pass ngrams
                         // that do not have a slot to the InvertHash collector.
                         if (result != -1)
@@ -1005,9 +1006,9 @@ namespace Microsoft.ML.Runtime.Data
                     };
             }
 
-            public VBuffer<DvText>[] SlotNamesMetadata(out ColumnType[] types)
+            public VBuffer<ReadOnlyMemory<char>>[] SlotNamesMetadata(out ColumnType[] types)
             {
-                var values = new VBuffer<DvText>[_iinfoToCollector.Length];
+                var values = new VBuffer<ReadOnlyMemory<char>>[_iinfoToCollector.Length];
                 types = new ColumnType[_iinfoToCollector.Length];
                 for (int iinfo = 0; iinfo < _iinfoToCollector.Length; ++iinfo)
                 {

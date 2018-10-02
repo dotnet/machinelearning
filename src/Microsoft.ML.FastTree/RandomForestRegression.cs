@@ -2,19 +2,18 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Float = System.Single;
-
-using System;
+using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.FastTree;
 using Microsoft.ML.Runtime.FastTree.Internal;
+using Microsoft.ML.Runtime.Internal.Internallearn;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.Training;
-using Microsoft.ML.Runtime.Internal.Internallearn;
+using System;
 
 [assembly: LoadableClass(FastForestRegression.Summary, typeof(FastForestRegression), typeof(FastForestRegression.Arguments),
     new[] { typeof(SignatureRegressorTrainer), typeof(SignatureTrainer), typeof(SignatureTreeEnsembleTrainer), typeof(SignatureFeatureScorerTrainer) },
@@ -50,17 +49,17 @@ namespace Microsoft.ML.Runtime.FastTree
                 verWrittenCur: 0x00010006, // Categorical splits.
                 verReadableCur: 0x00010005,
                 verWeCanReadBack: 0x00010001,
-                loaderSignature: LoaderSignature);
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(FastForestRegressionPredictor).Assembly.FullName);
         }
 
-        protected override uint VerNumFeaturesSerialized { get { return 0x00010003; } }
+        protected override uint VerNumFeaturesSerialized => 0x00010003;
 
-        protected override uint VerDefaultValueSerialized { get { return 0x00010005; } }
+        protected override uint VerDefaultValueSerialized => 0x00010005;
 
-        protected override uint VerCategoricalSplitSerialized { get { return 0x00010006; } }
+        protected override uint VerCategoricalSplitSerialized => 0x00010006;
 
-        internal FastForestRegressionPredictor(IHostEnvironment env, Ensemble trainedEnsemble, int featureCount,
-            string innerArgs, int samplesCount)
+        public FastForestRegressionPredictor(IHostEnvironment env, Ensemble trainedEnsemble, int featureCount, string innerArgs, int samplesCount)
             : base(env, RegistrationName, trainedEnsemble, featureCount, innerArgs)
         {
             _quantileSampleCount = samplesCount;
@@ -99,34 +98,34 @@ namespace Microsoft.ML.Runtime.FastTree
             return new FastForestRegressionPredictor(env, ctx);
         }
 
-        public override PredictionKind PredictionKind { get { return PredictionKind.Regression; } }
+        public override PredictionKind PredictionKind => PredictionKind.Regression;
 
-        protected override void Map(ref VBuffer<Float> src, ref Float dst)
+        protected override void Map(ref VBuffer<float> src, ref float dst)
         {
             if (InputType.VectorSize > 0)
                 Host.Check(src.Length == InputType.VectorSize);
             else
                 Host.Check(src.Length > MaxSplitFeatIdx);
 
-            dst = (Float)TrainedEnsemble.GetOutput(ref src) / TrainedEnsemble.NumTrees;
+            dst = (float)TrainedEnsemble.GetOutput(ref src) / TrainedEnsemble.NumTrees;
         }
 
-        public ValueMapper<VBuffer<Float>, VBuffer<Float>> GetMapper(Float[] quantiles)
+        public ValueMapper<VBuffer<float>, VBuffer<float>> GetMapper(float[] quantiles)
         {
             return
-                (ref VBuffer<Float> src, ref VBuffer<Float> dst) =>
+                (ref VBuffer<float> src, ref VBuffer<float> dst) =>
                 {
                     // REVIEW: Should make this more efficient - it repeatedly allocates too much stuff.
-                    Float[] weights = null;
+                    float[] weights = null;
                     var distribution = TrainedEnsemble.GetDistribution(ref src, _quantileSampleCount, out weights);
                     var qdist = new QuantileStatistics(distribution, weights);
 
                     var values = dst.Values;
                     if (Utils.Size(values) < quantiles.Length)
-                        values = new Float[quantiles.Length];
+                        values = new float[quantiles.Length];
                     for (int i = 0; i < quantiles.Length; i++)
-                        values[i] = qdist.GetQuantile((Float)quantiles[i]);
-                    dst = new VBuffer<Float>(quantiles.Length, values, dst.Indices);
+                        values[i] = qdist.GetQuantile((float)quantiles[i]);
+                    dst = new VBuffer<float>(quantiles.Length, values, dst.Indices);
                 };
         }
 
@@ -137,7 +136,9 @@ namespace Microsoft.ML.Runtime.FastTree
         }
     }
 
-    public sealed partial class FastForestRegression : RandomForestTrainerBase<FastForestRegression.Arguments, FastForestRegressionPredictor>
+    /// <include file='doc.xml' path='doc/members/member[@name="FastForest"]/*' />
+    public sealed partial class FastForestRegression
+        : RandomForestTrainerBase<FastForestRegression.Arguments, RegressionPredictionTransformer<FastForestRegressionPredictor>, FastForestRegressionPredictor>
     {
         public sealed class Arguments : FastForestArgumentsBase
         {
@@ -146,26 +147,44 @@ namespace Microsoft.ML.Runtime.FastTree
             public bool ShuffleLabels;
         }
 
-        internal const string Summary = "Trains a random forest to fit target values using least-squares.";
+        public override PredictionKind PredictionKind => PredictionKind.Regression;
 
+        internal const string Summary = "Trains a random forest to fit target values using least-squares.";
         internal const string LoadNameValue = "FastForestRegression";
         internal const string UserNameValue = "Fast Forest Regression";
         internal const string ShortName = "ffr";
 
+        /// <summary>
+        /// Initializes a new instance of <see cref="FastForestRegression"/>
+        /// </summary>
+        /// <param name="env">The private instance of <see cref="IHostEnvironment"/>.</param>
+        /// <param name="labelColumn">The name of the label column.</param>
+        /// <param name="featureColumn">The name of the feature column.</param>
+        /// <param name="groupIdColumn">The name for the column containing the group ID. </param>
+        /// <param name="weightColumn">The name for the column containing the initial weight.</param>
+        /// <param name="advancedSettings">A delegate to apply all the advanced arguments to the algorithm.</param>
+        public FastForestRegression(IHostEnvironment env, string labelColumn, string featureColumn,
+            string groupIdColumn = null, string weightColumn = null, Action<Arguments> advancedSettings = null)
+            : base(env, TrainerUtils.MakeR4ScalarLabel(labelColumn), featureColumn, weightColumn, groupIdColumn, true, advancedSettings)
+        {
+            Host.CheckNonEmpty(labelColumn, nameof(labelColumn));
+            Host.CheckNonEmpty(featureColumn, nameof(featureColumn));
+        }
+
+        /// <summary>
+        /// Initializes a new instance of <see cref="FastForestRegression"/> by using the legacy <see cref="Arguments"/> class.
+        /// </summary>
         public FastForestRegression(IHostEnvironment env, Arguments args)
-            : base(env, args, true)
+            : base(env, args, TrainerUtils.MakeR4ScalarLabel(args.LabelColumn), true)
         {
         }
 
-        public override bool NeedCalibration
+        protected override FastForestRegressionPredictor TrainModelCore(TrainContext context)
         {
-            get { return false; }
-        }
+            Host.CheckValue(context, nameof(context));
+            var trainData = context.TrainingSet;
+            ValidData = context.ValidationSet;
 
-        public override PredictionKind PredictionKind { get { return PredictionKind.Regression; } }
-
-        public override void Train(RoleMappedData trainData)
-        {
             using (var ch = Host.Start("Training"))
             {
                 ch.CheckValue(trainData, nameof(trainData));
@@ -177,13 +196,6 @@ namespace Microsoft.ML.Runtime.FastTree
                 TrainCore(ch);
                 ch.Done();
             }
-        }
-
-        public override FastForestRegressionPredictor CreatePredictor()
-        {
-            Host.Check(TrainedEnsemble != null,
-                "The predictor cannot be created before training is complete");
-
             return new FastForestRegressionPredictor(Host, TrainedEnsemble, FeatureCount, InnerArgs, Args.QuantileSampleCount);
         }
 
@@ -199,6 +211,17 @@ namespace Microsoft.ML.Runtime.FastTree
         protected override Test ConstructTestForTrainingData()
         {
             return new RegressionTest(ConstructScoreTracker(TrainSet));
+        }
+
+        protected override RegressionPredictionTransformer<FastForestRegressionPredictor> MakeTransformer(FastForestRegressionPredictor model, ISchema trainSchema)
+         => new RegressionPredictionTransformer<FastForestRegressionPredictor>(Host, model, trainSchema, FeatureColumn.Name);
+
+        protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema)
+        {
+            return new[]
+            {
+                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata()))
+            };
         }
 
         private abstract class ObjectiveFunctionImplBase : RandomForestObjectiveFunction
@@ -280,7 +303,12 @@ namespace Microsoft.ML.Runtime.FastTree
 
     public static partial class FastForest
     {
-        [TlcModule.EntryPoint(Name = "Trainers.FastForestRegressor", Desc = FastForestRegression.Summary, UserName = FastForestRegression.LoadNameValue, ShortName = FastForestRegression.ShortName)]
+        [TlcModule.EntryPoint(Name = "Trainers.FastForestRegressor",
+            Desc = FastForestRegression.Summary,
+            UserName = FastForestRegression.LoadNameValue,
+            ShortName = FastForestRegression.ShortName,
+            XmlInclude = new[] { @"<include file='../Microsoft.ML.FastTree/doc.xml' path='doc/members/member[@name=""FastForest""]/*' />",
+                                 @"<include file='../Microsoft.ML.FastTree/doc.xml' path='doc/members/example[@name=""FastForestRegressor""]/*' />"})]
         public static CommonOutputs.RegressionOutput TrainRegression(IHostEnvironment env, FastForestRegression.Arguments input)
         {
             Contracts.CheckValue(env, nameof(env));

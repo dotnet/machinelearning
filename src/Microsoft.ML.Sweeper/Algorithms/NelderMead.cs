@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
+using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Numeric;
 using Microsoft.ML.Runtime.Sweeper;
 
@@ -21,11 +22,11 @@ namespace Microsoft.ML.Runtime.Sweeper
     {
         public sealed class Arguments
         {
-            [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "Swept parameters", ShortName = "p")]
-            public SubComponent[] SweptParameters;
+            [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "Swept parameters", ShortName = "p", SignatureType = typeof(SignatureSweeperParameter))]
+            public IComponentFactory<IValueGenerator>[] SweptParameters;
 
-            [Argument(ArgumentType.LastOccurenceWins, HelpText = "The sweeper used to get the initial results.", ShortName = "init")]
-            public SubComponent<ISweeper, SignatureSweeperFromParameterList> FirstBatchSweeper = new SubComponent<ISweeper, SignatureSweeperFromParameterList>("ldrandpl");
+            [Argument(ArgumentType.LastOccurenceWins, HelpText = "The sweeper used to get the initial results.", ShortName = "init", SignatureType = typeof(SignatureSweeperFromParameterList))]
+            public IComponentFactory<IValueGenerator[], ISweeper> FirstBatchSweeper;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Seed for the random number generator for the first batch sweeper", ShortName = "seed")]
             public int RandomSeed;
@@ -94,17 +95,18 @@ namespace Microsoft.ML.Runtime.Sweeper
             env.CheckUserArg(args.DeltaReflection > args.DeltaOutsideContraction, nameof(args.DeltaReflection), "Must be greater than " + nameof(args.DeltaOutsideContraction));
             env.CheckUserArg(args.DeltaExpansion > args.DeltaReflection, nameof(args.DeltaExpansion), "Must be greater than " + nameof(args.DeltaReflection));
             env.CheckUserArg(0 < args.GammaShrink && args.GammaShrink < 1, nameof(args.GammaShrink), "Must be between 0 and 1");
+            env.CheckValue(args.FirstBatchSweeper, nameof(args.FirstBatchSweeper) , "First Batch Sweeper Contains Null Value");
 
             _args = args;
 
             _sweepParameters = new List<IValueGenerator>();
             foreach (var sweptParameter in args.SweptParameters)
             {
-                var parameter = ComponentCatalog.CreateInstance<IValueGenerator, SignatureSweeperParameter>(env, sweptParameter);
+                var parameter = sweptParameter.CreateComponent(env);
                 // REVIEW: ideas about how to support discrete values:
                 // 1. assign each discrete value a random number (1-n) to make mirroring possible
                 // 2. each time we need to mirror a discrete value, sample from the remaining value
-                // 2.1. make the sampling non-uniform by learning "weights" for the different discrete values based on 
+                // 2.1. make the sampling non-uniform by learning "weights" for the different discrete values based on
                 // the metric values that we get when using them. (E.g. if, for a given discrete value, we get a bad result,
                 // we lower its weight, but if we get a good result we increase its weight).
                 var parameterNumeric = parameter as INumericValueGenerator;
@@ -112,7 +114,7 @@ namespace Microsoft.ML.Runtime.Sweeper
                 _sweepParameters.Add(parameterNumeric);
             }
 
-            _initSweeper = args.FirstBatchSweeper.CreateInstance(env, new object[] { _sweepParameters.ToArray() });
+            _initSweeper = args.FirstBatchSweeper.CreateComponent(env, _sweepParameters.ToArray());
             _dim = _sweepParameters.Count;
             env.CheckUserArg(_dim > 1, nameof(args.SweptParameters), "Nelder-Mead sweeper needs at least two parameters to sweep over.");
 

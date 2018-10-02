@@ -556,7 +556,7 @@ namespace Microsoft.ML.Runtime.Sweeper
             }
 
             // Extract the minimum, and the maximum value of the list of suggested sweeps.
-            // Positive lookahead splitting at the '-' character. 
+            // Positive lookahead splitting at the '-' character.
             // It is used for the Float and Long param types.
             // Example format: "0.02-0.1;steps:5".
             string[] minMaxRegex = Regex.Split(paramValue, "(?<=[^eE])-");
@@ -588,7 +588,7 @@ namespace Microsoft.ML.Runtime.Sweeper
                         }
                         if (option.StartsWith("steps"))
                         {
-                            numSteps = Int32.Parse(option.Substring(option.IndexOf(':') + 1));
+                            numSteps = int.Parse(option.Substring(option.IndexOf(':') + 1));
                             optionsSpecified[1] = true;
                         }
                         if (option.StartsWith("inc"))
@@ -613,9 +613,9 @@ namespace Microsoft.ML.Runtime.Sweeper
             if (paramType == typeof(UInt16)
                 || paramType == typeof(UInt32)
                 || paramType == typeof(UInt64)
-                || paramType == typeof(Int16)
-                || paramType == typeof(Int32)
-                || paramType == typeof(Int64))
+                || paramType == typeof(short)
+                || paramType == typeof(int)
+                || paramType == typeof(long))
             {
                 long min;
                 long max;

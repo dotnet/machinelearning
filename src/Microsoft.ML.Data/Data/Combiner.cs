@@ -19,9 +19,9 @@ namespace Microsoft.ML.Runtime.Data
         public abstract void Combine(ref T dst, T src);
     }
 
-    public sealed class TextCombiner : Combiner<DvText>
+    public sealed class TextCombiner : Combiner<ReadOnlyMemory<char>>
     {
-        private volatile static TextCombiner _instance;
+        private static volatile TextCombiner _instance;
         public static TextCombiner Instance
         {
             get
@@ -36,8 +36,8 @@ namespace Microsoft.ML.Runtime.Data
         {
         }
 
-        public override bool IsDefault(DvText value) { return value.Length == 0; }
-        public override void Combine(ref DvText dst, DvText src)
+        public override bool IsDefault(ReadOnlyMemory<char> value) { return value.Length == 0; }
+        public override void Combine(ref ReadOnlyMemory<char> dst, ReadOnlyMemory<char> src)
         {
             Contracts.Check(IsDefault(dst));
             dst = src;
@@ -46,7 +46,7 @@ namespace Microsoft.ML.Runtime.Data
 
     public sealed class FloatAdder : Combiner<Float>
     {
-        private volatile static FloatAdder _instance;
+        private static volatile FloatAdder _instance;
         public static FloatAdder Instance
         {
             get
@@ -67,7 +67,7 @@ namespace Microsoft.ML.Runtime.Data
 
     public sealed class R4Adder : Combiner<Single>
     {
-        private volatile static R4Adder _instance;
+        private static volatile R4Adder _instance;
         public static R4Adder Instance
         {
             get
@@ -88,7 +88,7 @@ namespace Microsoft.ML.Runtime.Data
 
     public sealed class R8Adder : Combiner<Double>
     {
-        private volatile static R8Adder _instance;
+        private static volatile R8Adder _instance;
         public static R8Adder Instance
         {
             get
@@ -110,7 +110,7 @@ namespace Microsoft.ML.Runtime.Data
     // REVIEW: Delete this!
     public sealed class U4Adder : Combiner<uint>
     {
-        private volatile static U4Adder _instance;
+        private static volatile U4Adder _instance;
         public static U4Adder Instance
         {
             get

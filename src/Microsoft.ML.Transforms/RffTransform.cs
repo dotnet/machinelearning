@@ -23,24 +23,29 @@ using Microsoft.ML.Runtime.Numeric;
 
 namespace Microsoft.ML.Runtime.Data
 {
-    using CpuUtils = SseUtils;
-
     public sealed class RffTransform : OneToOneTransformBase
     {
+        private static class Defaults
+        {
+            public const int NewDim = 1000;
+            public const bool UseSin = false;
+        }
+
         public sealed class Arguments
         {
             [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "New column definition(s) (optional form: name:src)", ShortName = "col", SortOrder = 1)]
             public Column[] Column;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "The number of random Fourier features to create", ShortName = "dim")]
-            public int NewDim = 1000;
+            public int NewDim = Defaults.NewDim;
 
-            [Argument(ArgumentType.Multiple, HelpText = "which kernel to use?", ShortName = "kernel")]
-            public SubComponent<IFourierDistributionSampler, SignatureFourierDistributionSampler> MatrixGenerator =
-                new SubComponent<IFourierDistributionSampler, SignatureFourierDistributionSampler>(GaussianFourierSampler.LoadName);
+            [Argument(ArgumentType.Multiple, HelpText = "Which kernel to use?", ShortName = "kernel", SignatureType = typeof(SignatureFourierDistributionSampler))]
+            public IComponentFactory<Float, IFourierDistributionSampler> MatrixGenerator =
+                ComponentFactoryUtils.CreateFromFunction<Float, IFourierDistributionSampler>(
+                    (env, avgDist) => new GaussianFourierSampler(env, new GaussianFourierSampler.Arguments(), avgDist));
 
-            [Argument(ArgumentType.AtMostOnce, HelpText = "create two features for every random Fourier frequency? (one for cos and one for sin)")]
-            public bool UseSin = false;
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Create two features for every random Fourier frequency? (one for cos and one for sin)")]
+            public bool UseSin = Defaults.UseSin;
 
             [Argument(ArgumentType.LastOccurenceWins,
                 HelpText = "The seed of the random number generator for generating the new features (if unspecified, " +
@@ -53,8 +58,8 @@ namespace Microsoft.ML.Runtime.Data
             [Argument(ArgumentType.AtMostOnce, HelpText = "The number of random Fourier features to create", ShortName = "dim")]
             public int? NewDim;
 
-            [Argument(ArgumentType.Multiple, HelpText = "which kernel to use?", ShortName = "kernel")]
-            public SubComponent<IFourierDistributionSampler, SignatureFourierDistributionSampler> MatrixGenerator;
+            [Argument(ArgumentType.Multiple, HelpText = "which kernel to use?", ShortName = "kernel", SignatureType = typeof(SignatureFourierDistributionSampler))]
+            public IComponentFactory<Float, IFourierDistributionSampler> MatrixGenerator;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "create two features for every random Fourier frequency? (one for cos and one for sin)")]
             public bool? UseSin;
@@ -77,7 +82,7 @@ namespace Microsoft.ML.Runtime.Data
             public bool TryUnparse(StringBuilder sb)
             {
                 Contracts.AssertValue(sb);
-                if (NewDim != null || MatrixGenerator.IsGood() || UseSin != null || Seed != null)
+                if (NewDim != null || MatrixGenerator != null || UseSin != null || Seed != null)
                     return false;
                 return TryUnparseCore(sb);
             }
@@ -111,15 +116,15 @@ namespace Microsoft.ML.Runtime.Data
                 _rand = seed.HasValue ? RandomUtils.Create(seed) : RandomUtils.Create(host.Rand);
                 _state = _rand.GetState();
 
-                var sub = item.MatrixGenerator;
-                if (!sub.IsGood())
-                    sub = args.MatrixGenerator;
-                _matrixGenerator = sub.CreateInstance(host, avgDist);
+                var generator = item.MatrixGenerator;
+                if (generator == null)
+                    generator = args.MatrixGenerator;
+                _matrixGenerator = generator.CreateComponent(host, avgDist);
 
-                int roundedUpD = RoundUp(NewDim, CfltAlign);
-                int roundedUpNumFeatures = RoundUp(SrcDim, CfltAlign);
-                RndFourierVectors = new AlignedArray(roundedUpD * roundedUpNumFeatures, CpuUtils.CbAlign);
-                RotationTerms = _useSin ? null : new AlignedArray(roundedUpD, CpuUtils.CbAlign);
+                int roundedUpD = RoundUp(NewDim, _cfltAlign);
+                int roundedUpNumFeatures = RoundUp(SrcDim, _cfltAlign);
+                RndFourierVectors = new AlignedArray(roundedUpD * roundedUpNumFeatures, CpuMathUtils.GetVectorAlignment());
+                RotationTerms = _useSin ? null : new AlignedArray(roundedUpD, CpuMathUtils.GetVectorAlignment());
 
                 InitializeFourierCoefficients(roundedUpNumFeatures, roundedUpD);
             }
@@ -152,10 +157,10 @@ namespace Microsoft.ML.Runtime.Data
                     ctx.LoadModelOrNull<IFourierDistributionSampler, SignatureLoadModel>(env, out _matrixGenerator, directoryName));
 
                 // initialize the transform matrix
-                int roundedUpD = RoundUp(NewDim, CfltAlign);
-                int roundedUpNumFeatures = RoundUp(SrcDim, CfltAlign);
-                RndFourierVectors = new AlignedArray(roundedUpD * roundedUpNumFeatures, CpuUtils.CbAlign);
-                RotationTerms = _useSin ? null : new AlignedArray(roundedUpD, CpuUtils.CbAlign);
+                int roundedUpD = RoundUp(NewDim, _cfltAlign);
+                int roundedUpNumFeatures = RoundUp(SrcDim, _cfltAlign);
+                RndFourierVectors = new AlignedArray(roundedUpD * roundedUpNumFeatures, CpuMathUtils.GetVectorAlignment());
+                RotationTerms = _useSin ? null : new AlignedArray(roundedUpD, CpuMathUtils.GetVectorAlignment());
                 InitializeFourierCoefficients(roundedUpNumFeatures, roundedUpD);
             }
 
@@ -191,7 +196,7 @@ namespace Microsoft.ML.Runtime.Data
             private void GetDRotationTerms(int colSize)
             {
                 for (int i = 0; i < colSize; ++i)
-                    RotationTerms[i] = (_rand.NextFloat() - (Float)0.5) * (Float)Math.PI;
+                    RotationTerms[i] = (_rand.NextSingle() - (Float)0.5) * (Float)Math.PI;
             }
 
             private void InitializeFourierCoefficients(int rowSize, int colSize)
@@ -215,7 +220,8 @@ namespace Microsoft.ML.Runtime.Data
                 verWrittenCur: 0x00010001, // Initial
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
-                loaderSignature: LoaderSignature);
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(RffTransform).Assembly.FullName);
         }
 
         // These are parallel to Infos.
@@ -223,13 +229,30 @@ namespace Microsoft.ML.Runtime.Data
         private readonly TransformInfo[] _transformInfos;
 
         private const string RegistrationName = "Rff";
-        private const int CfltAlign = CpuUtils.CbAlign / sizeof(float);
+        private static readonly int _cfltAlign = CpuMathUtils.GetVectorAlignment() / sizeof(float);
 
         private static string TestColumnType(ColumnType type)
         {
             if (type.ItemType == NumberType.Float && type.ValueCount > 0)
                 return null;
             return "Expected R4 or vector of R4 with known size";
+        }
+
+        /// <summary>
+        /// Convenience constructor for public facing API.
+        /// </summary>
+        /// <param name="env">Host Environment.</param>
+        /// <param name="input">Input <see cref="IDataView"/>. This is the output from previous transform or loader.</param>
+        /// <param name="newDim">The number of random Fourier features to create.</param>
+        /// <param name="name">Name of the output column.</param>
+        /// <param name="source">Name of the column to be transformed. If this is null '<paramref name="name"/>' will be used.</param>
+        public RffTransform(IHostEnvironment env,
+            IDataView input,
+            int newDim,
+            string name,
+            string source = null)
+            : this(env, new Arguments() { Column = new[] { new Column() { Source = source ?? name, Name = name } }, NewDim = newDim }, input)
+        {
         }
 
         /// <summary>
@@ -396,12 +419,13 @@ namespace Microsoft.ML.Runtime.Data
                 else
                 {
                     Float[] distances;
-
                     var sub = args.Column[iinfo].MatrixGenerator;
-                    if (!sub.IsGood())
+                    if (sub == null)
                         sub = args.MatrixGenerator;
-                    var info = ComponentCatalog.GetLoadableClassInfo(sub);
-                    bool gaussian = info != null && info.Type == typeof(GaussianFourierSampler);
+                    // create a dummy generator in order to get its type.
+                    // REVIEW this should be refactored. See https://github.com/dotnet/machinelearning/issues/699
+                    var matrixGenerator = sub.CreateComponent(host, 1);
+                    bool gaussian = matrixGenerator is GaussianFourierSampler;
 
                     // If the number of pairs is at most the maximum reservoir size / 2, go over all the pairs.
                     if (resLength < reservoirSize)
@@ -475,8 +499,8 @@ namespace Microsoft.ML.Runtime.Data
             var getSrc = GetSrcGetter<VBuffer<Float>>(input, iinfo);
             var src = default(VBuffer<Float>);
 
-            var featuresAligned = new AlignedArray(RoundUp(Infos[iinfo].TypeSrc.ValueCount, CfltAlign), CpuUtils.CbAlign);
-            var productAligned = new AlignedArray(RoundUp(_transformInfos[iinfo].NewDim, CfltAlign), CpuUtils.CbAlign);
+            var featuresAligned = new AlignedArray(RoundUp(Infos[iinfo].TypeSrc.ValueCount, _cfltAlign), CpuMathUtils.GetVectorAlignment());
+            var productAligned = new AlignedArray(RoundUp(_transformInfos[iinfo].NewDim, _cfltAlign), CpuMathUtils.GetVectorAlignment());
 
             return
                 (ref VBuffer<Float> dst) =>
@@ -491,8 +515,8 @@ namespace Microsoft.ML.Runtime.Data
             var getSrc = GetSrcGetter<Float>(input, iinfo);
             var src = default(Float);
 
-            var featuresAligned = new AlignedArray(RoundUp(1, CfltAlign), CpuUtils.CbAlign);
-            var productAligned = new AlignedArray(RoundUp(_transformInfos[iinfo].NewDim, CfltAlign), CpuUtils.CbAlign);
+            var featuresAligned = new AlignedArray(RoundUp(1, _cfltAlign), CpuMathUtils.GetVectorAlignment());
+            var productAligned = new AlignedArray(RoundUp(_transformInfos[iinfo].NewDim, _cfltAlign), CpuMathUtils.GetVectorAlignment());
 
             var oneDimensionalVector = new VBuffer<Float>(1, new Float[] { 0 });
 
@@ -529,15 +553,15 @@ namespace Microsoft.ML.Runtime.Data
             if (src.IsDense)
             {
                 featuresAligned.CopyFrom(src.Values, 0, src.Length);
-                CpuUtils.MatTimesSrc(false, false, transformInfo.RndFourierVectors, featuresAligned, productAligned,
+                CpuMathUtils.MatTimesSrc(false, false, transformInfo.RndFourierVectors, featuresAligned, productAligned,
                     transformInfo.NewDim);
             }
             else
             {
-                // This overload of MatTimesSrc ignores the values in slots that are not in src.Indices, so there is 
+                // This overload of MatTimesSrc ignores the values in slots that are not in src.Indices, so there is
                 // no need to zero them out.
                 featuresAligned.CopyFrom(src.Indices, src.Values, 0, 0, src.Count, zeroItems: false);
-                CpuUtils.MatTimesSrc(false, false, transformInfo.RndFourierVectors, src.Indices, featuresAligned, 0, 0,
+                CpuMathUtils.MatTimesSrc(false, false, transformInfo.RndFourierVectors, src.Indices, featuresAligned, 0, 0,
                     src.Count, productAligned, transformInfo.NewDim);
             }
 

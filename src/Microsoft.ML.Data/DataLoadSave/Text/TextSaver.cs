@@ -94,22 +94,22 @@ namespace Microsoft.ML.Runtime.Data.IO
                 if (type.IsText)
                 {
                     // For text we need to deal with escaping.
-                    ValueMapper<DvText, StringBuilder> c = MapText;
+                    ValueMapper<ReadOnlyMemory<char>, StringBuilder> c = MapText;
                     Conv = (ValueMapper<T, StringBuilder>)(Delegate)c;
                 }
                 else if (type.IsTimeSpan)
                 {
-                    ValueMapper<DvTimeSpan, StringBuilder> c = MapTimeSpan;
+                    ValueMapper<TimeSpan, StringBuilder> c = MapTimeSpan;
                     Conv = (ValueMapper<T, StringBuilder>)(Delegate)c;
                 }
                 else if (type.IsDateTime)
                 {
-                    ValueMapper<DvDateTime, StringBuilder> c = MapDateTime;
+                    ValueMapper<DateTime, StringBuilder> c = MapDateTime;
                     Conv = (ValueMapper<T, StringBuilder>)(Delegate)c;
                 }
                 else if (type.IsDateTimeZone)
                 {
-                    ValueMapper<DvDateTimeZone, StringBuilder> c = MapDateTimeZone;
+                    ValueMapper<DateTimeOffset, StringBuilder> c = MapDateTimeZone;
                     Conv = (ValueMapper<T, StringBuilder>)(Delegate)c;
                 }
                 else
@@ -120,22 +120,22 @@ namespace Microsoft.ML.Runtime.Data.IO
                 Default = Sb.ToString();
             }
 
-            protected void MapText(ref DvText src, ref StringBuilder sb)
+            protected void MapText(ref ReadOnlyMemory<char> src, ref StringBuilder sb)
             {
-                TextSaverUtils.MapText(ref src, ref sb, Sep);
+                TextSaverUtils.MapText(src.Span, ref sb, Sep);
             }
 
-            protected void MapTimeSpan(ref DvTimeSpan src, ref StringBuilder sb)
+            protected void MapTimeSpan(ref TimeSpan src, ref StringBuilder sb)
             {
                 TextSaverUtils.MapTimeSpan(ref src, ref sb);
             }
 
-            protected void MapDateTime(ref DvDateTime src, ref StringBuilder sb)
+            protected void MapDateTime(ref DateTime src, ref StringBuilder sb)
             {
                 TextSaverUtils.MapDateTime(ref src, ref sb);
             }
 
-            protected void MapDateTimeZone(ref DvDateTimeZone src, ref StringBuilder sb)
+            protected void MapDateTimeZone(ref DateTimeOffset src, ref StringBuilder sb)
             {
                 TextSaverUtils.MapDateTimeZone(ref src, ref sb);
             }
@@ -145,7 +145,7 @@ namespace Microsoft.ML.Runtime.Data.IO
         {
             private readonly ValueGetter<VBuffer<T>> _getSrc;
             private VBuffer<T> _src;
-            private readonly VBuffer<DvText> _slotNames;
+            private readonly VBuffer<ReadOnlyMemory<char>> _slotNames;
             private readonly int _slotCount;
 
             public VecValueWriter(IRowCursor cursor, VectorType type, int source, char sep)
@@ -225,7 +225,7 @@ namespace Microsoft.ML.Runtime.Data.IO
 
             public override void WriteHeader(Action<StringBuilder, int> appendItem, out int length)
             {
-                var span = new DvText(_columnName);
+                var span = _columnName.AsMemory();
                 MapText(ref span, ref Sb);
                 appendItem(Sb, 0);
                 length = 1;
@@ -468,7 +468,7 @@ namespace Microsoft.ML.Runtime.Data.IO
                 sb.Append(" col=");
                 if (!column.TryUnparse(sb))
                 {
-                    var settings = CmdParser.GetSettings(ch, column, new TextLoader.Column());
+                    var settings = CmdParser.GetSettings(_host, column, new TextLoader.Column());
                     CmdQuoter.QuoteValue(settings, sb, true);
                 }
                 if (type.IsVector && !type.IsKnownSizeVector && i != pipes.Length - 1)
@@ -491,13 +491,13 @@ namespace Microsoft.ML.Runtime.Data.IO
             {
                 var key = type.ItemType.AsKey;
                 if (!key.Contiguous)
-                    keyRange = new KeyRange() { Min = key.Min, Contiguous = false };
+                    keyRange = new KeyRange(key.Min, contiguous: false);
                 else if (key.Count == 0)
-                    keyRange = new KeyRange() { Min = key.Min };
+                    keyRange = new KeyRange(key.Min);
                 else
                 {
                     Contracts.Assert(key.Count >= 1);
-                    keyRange = new KeyRange() { Min = key.Min, Max = key.Min + (ulong)(key.Count - 1) };
+                    keyRange = new KeyRange(key.Min, key.Min + (ulong)(key.Count - 1));
                 }
                 kind = key.RawKind;
             }
@@ -796,29 +796,28 @@ namespace Microsoft.ML.Runtime.Data.IO
     internal static class TextSaverUtils
     {
         /// <summary>
-        /// Converts a DvText to a StringBuilder using TextSaver escaping and string quoting rules.
+        /// Converts a ReadOnlySpan to a StringBuilder using TextSaver escaping and string quoting rules.
         /// </summary>
-        internal static void MapText(ref DvText src, ref StringBuilder sb, char sep)
+        internal static void MapText(ReadOnlySpan<char> span, ref StringBuilder sb, char sep)
         {
             if (sb == null)
                 sb = new StringBuilder();
             else
                 sb.Clear();
 
-            if (src.IsEmpty)
+            if (span.IsEmpty)
                 sb.Append("\"\"");
-            else if (!src.IsNA)
+            else
             {
-                int ichMin;
-                int ichLim;
-                string text = src.GetRawUnderlyingBufferInfo(out ichMin, out ichLim);
+                int ichMin = 0;
+                int ichLim = span.Length;
                 int ichCur = ichMin;
                 int ichRun = ichCur;
                 bool quoted = false;
 
                 // Strings that start with space need to be quoted.
                 Contracts.Assert(ichCur < ichLim);
-                if (text[ichCur] == ' ')
+                if (span[ichCur] == ' ')
                 {
                     quoted = true;
                     sb.Append('"');
@@ -826,7 +825,7 @@ namespace Microsoft.ML.Runtime.Data.IO
 
                 for (; ichCur < ichLim; ichCur++)
                 {
-                    char ch = text[ichCur];
+                    char ch = span[ichCur];
                     if (ch != '"' && ch != sep && ch != ':')
                         continue;
                     if (!quoted)
@@ -838,47 +837,47 @@ namespace Microsoft.ML.Runtime.Data.IO
                     if (ch == '"')
                     {
                         if (ichRun < ichCur)
-                            sb.Append(text, ichRun, ichCur - ichRun);
+                            sb.AppendSpan(span.Slice(ichRun, ichCur - ichRun));
                         sb.Append("\"\"");
                         ichRun = ichCur + 1;
                     }
                 }
                 Contracts.Assert(ichCur == ichLim);
                 if (ichRun < ichCur)
-                    sb.Append(text, ichRun, ichCur - ichRun);
+                    sb.AppendSpan(span.Slice(ichRun, ichCur - ichRun));
                 if (quoted)
                     sb.Append('"');
             }
         }
 
-        internal static void MapTimeSpan(ref DvTimeSpan src, ref StringBuilder sb)
+        internal static void MapTimeSpan(ref TimeSpan src, ref StringBuilder sb)
         {
             if (sb == null)
                 sb = new StringBuilder();
             else
                 sb.Clear();
-            if (!src.IsNA)
-                sb.AppendFormat("\"{0:c}\"", (TimeSpan)src);
+
+            sb.AppendFormat("\"{0:c}\"", src);
         }
 
-        internal static void MapDateTime(ref DvDateTime src, ref StringBuilder sb)
+        internal static void MapDateTime(ref DateTime src, ref StringBuilder sb)
         {
             if (sb == null)
                 sb = new StringBuilder();
             else
                 sb.Clear();
-            if (!src.IsNA)
-                sb.AppendFormat("\"{0:o}\"", (DateTime)src);
+
+            sb.AppendFormat("\"{0:o}\"", src);
         }
 
-        internal static void MapDateTimeZone(ref DvDateTimeZone src, ref StringBuilder sb)
+        internal static void MapDateTimeZone(ref DateTimeOffset src, ref StringBuilder sb)
         {
             if (sb == null)
                 sb = new StringBuilder();
             else
                 sb.Clear();
-            if (!src.IsNA)
-                sb.AppendFormat("\"{0:o}\"", (DateTimeOffset)src);
+
+            sb.AppendFormat("\"{0:o}\"", src);
         }
     }
 }

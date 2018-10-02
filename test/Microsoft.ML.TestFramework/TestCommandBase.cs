@@ -6,15 +6,15 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.EntryPoints;
-using Microsoft.ML.Runtime.Internal.Utilities;
-//using Microsoft.ML.Runtime.StandardLearners;
-using Microsoft.ML.Runtime.Model;
-using Microsoft.ML.Runtime.Tools;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.ML.Runtime.Command;
+using Microsoft.ML.Runtime.Data;
+using Microsoft.ML.Runtime.Internal.Utilities;
+using Microsoft.ML.Runtime.Model;
+using Microsoft.ML.Runtime.Tools;
+using Microsoft.ML.TestFramework;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -271,6 +271,11 @@ namespace Microsoft.ML.Runtime.RunTests
             }
         }
 
+        protected virtual void InitializeEnvironment(IHostEnvironment environment)
+        {
+            environment.AddStandardComponents();
+        }
+
         /// <summary>
         /// Runs a command with some arguments. Note that the input
         /// <paramref name="toCompare"/> objects are used for comparison only.
@@ -282,8 +287,10 @@ namespace Microsoft.ML.Runtime.RunTests
             Contracts.AssertValueOrNull(args);
             OutputPath outputPath = ctx.StdoutPath();
             using (var newWriter = OpenWriter(outputPath.Path))
-            using (var env = new TlcEnvironment(42, outWriter: newWriter, errWriter: newWriter))
+            using (var env = new ConsoleEnvironment(42, outWriter: newWriter, errWriter: newWriter))
             {
+                InitializeEnvironment(env);
+
                 int res;
                 res = MainForTest(env, newWriter, string.Format("{0} {1}", cmdName, args), ctx.BaselineProgress);
                 if (res != 0)
@@ -294,7 +301,7 @@ namespace Microsoft.ML.Runtime.RunTests
             if (!ctx.NoComparisons)
             {
                 all &= outputPath.CheckEqualityNormalized();
-                if(toCompare != null)
+                if (toCompare != null)
                     foreach (var c in toCompare)
                         all &= c.CheckEquality();
             }
@@ -308,11 +315,11 @@ namespace Microsoft.ML.Runtime.RunTests
         /// </summary>
         /// <param name="env">The environment to use.</param>
         /// <param name="writer">
-        /// The writer to print the <see cref="ProgressLogLine"/>. Usually this should be the same writer that is used in <paramref name="env"/>.
+        /// The writer to print the <see cref="BaseTestBaseline.ProgressLogLine"/>. Usually this should be the same writer that is used in <paramref name="env"/>.
         /// </param>
         /// <param name="args">The arguments for MAML.</param>
         /// <param name="printProgress">Whether to print the progress summary. If true, progress summary will appear in the end of baseline output file.</param>
-        protected static int MainForTest(TlcEnvironment env, TextWriter writer, string args, bool printProgress = false)
+        protected static int MainForTest(ConsoleEnvironment env, TextWriter writer, string args, bool printProgress = false)
         {
             Contracts.AssertValue(env);
             Contracts.AssertValue(writer);
@@ -481,7 +488,7 @@ namespace Microsoft.ML.Runtime.RunTests
 
         protected void TestPipeFromModel(string dataPath, OutputPath model)
         {
-            using (var env = new TlcEnvironment(new SysRandom(42)))
+            using (var env = new ConsoleEnvironment(42))
             {
                 var files = new MultiFileSource(dataPath);
 
@@ -504,7 +511,7 @@ namespace Microsoft.ML.Runtime.RunTests
 
     public abstract class TestSteppedDmCommandBase : TestDmCommandBase
     {
-        protected TestSteppedDmCommandBase(ITestOutputHelper helper): base(helper)
+        protected TestSteppedDmCommandBase(ITestOutputHelper helper) : base(helper)
         {
             _step = 0;
             _paramsStep = -1;
@@ -591,7 +598,7 @@ namespace Microsoft.ML.Runtime.RunTests
 
         /// <summary>
         /// Creates an output path with a suffix based on the test name. For new tests please
-        /// do not use this, but instead utilize the <see cref="RunContextBase.InitPath"/>
+        /// do not use this, but instead utilize the <see cref="TestCommandBase.RunContextBase.InitPath"/>
         /// method.
         /// </summary>
         protected OutputPath CreateOutputPath(string suffix)
@@ -810,6 +817,21 @@ namespace Microsoft.ML.Runtime.RunTests
             // Need a transform that produces the label and features column to ensure that the columns are resolved appropriately.
             const string loaderArgs = "loader=text{header+ col=L:0 col=F:1-*} xf=Copy{col=Lab:L col=Feat:F}";
             TestCore("cv", pathData, loaderArgs, extraArgs, summaryFile.Arg("sf"), prFile.Arg("eval", "pr"), metricsFile.Arg("dout"));
+            Done();
+        }
+
+        [Fact]
+        public void CommandCrossValidationKeyLabelWithFloatKeyValues()
+        {
+            RunMTAThread(() =>
+            {
+                string pathData = GetDataPath(@"adult.tiny.with-schema.txt");
+                var perInstFile = CreateOutputPath("perinst.txt");
+                // Create a copy of the label column and use it for stratification, in order to create different label counts in the different folds.
+                string extraArgs = $"tr=FastRankRanking{{t=1}} strat=Strat prexf=rangefilter{{col=Label min=20 max=25}} prexf=term{{col=Strat:Label}} xf=term{{col=Label}} xf=hash{{col=GroupId}} threads- norm=Warn dout={{{perInstFile.Path}}}";
+                string loaderArgs = "loader=text{col=Features:R4:10-14 col=Label:R4:9 col=GroupId:TX:1 header+}";
+                TestCore("cv", pathData, loaderArgs, extraArgs);
+            });
             Done();
         }
 
@@ -1528,7 +1550,7 @@ namespace Microsoft.ML.Runtime.RunTests
             Done();
         }
 
-        [Fact(Skip = "Need CoreTLC specific baseline update")] 
+        [Fact(Skip = "Need CoreTLC specific baseline update")]
         [TestCategory("SDCAR")]
         public void CommandTrainScoreWTFSdcaR()
         {
@@ -1942,7 +1964,7 @@ namespace Microsoft.ML.Runtime.RunTests
             string args = $"{loaderArgs} data={trainData} valid={validData} test={validData} {extraArgs} out={model}";
             OutputPath outputPath = StdoutPath();
             using (var newWriter = OpenWriter(outputPath.Path))
-            using (var env = new TlcEnvironment(42, outWriter: newWriter, errWriter: newWriter))
+            using (var env = new ConsoleEnvironment(42, outWriter: newWriter, errWriter: newWriter))
             {
                 int res = MainForTest(env, newWriter, string.Format("{0} {1}", "traintest", args), true);
                 Assert.True(res == 0);
@@ -1963,7 +1985,7 @@ namespace Microsoft.ML.Runtime.RunTests
             string args = $"{loaderArgs} data={trainData} valid={validData} test={validData} {extraArgs} out={model}";
             OutputPath outputPath = StdoutPath();
             using (var newWriter = OpenWriter(outputPath.Path))
-            using (var env = new TlcEnvironment(42, outWriter: newWriter, errWriter: newWriter))
+            using (var env = new ConsoleEnvironment(42, outWriter: newWriter, errWriter: newWriter))
             {
                 int res = MainForTest(env, newWriter, string.Format("{0} {1}", "traintest", args), true);
                 Assert.Equal(0, res);
@@ -1985,7 +2007,7 @@ namespace Microsoft.ML.Runtime.RunTests
             OutputPath outputPath = StdoutPath();
             string args = $"data={data} test={data} valid={data} in={model.Path} cont+" + " " + loaderArgs + " " + extraArgs;
             using (var newWriter = OpenWriter(outputPath.Path))
-            using (var env = new TlcEnvironment(42, outWriter: newWriter, errWriter: newWriter))
+            using (var env = new ConsoleEnvironment(42, outWriter: newWriter, errWriter: newWriter))
             {
                 int res = MainForTest(env, newWriter, string.Format("{0} {1}", "traintest", args), true);
                 Assert.True(res == 0);
@@ -2007,12 +2029,26 @@ namespace Microsoft.ML.Runtime.RunTests
             OutputPath outputPath = StdoutPath();
             string args = $"data={data} test={data} valid={data} in={model.Path} cont+" + " " + loaderArgs + " " + extraArgs;
             using (var newWriter = OpenWriter(outputPath.Path))
-            using (var env = new TlcEnvironment(42, outWriter: newWriter, errWriter: newWriter))
+            using (var env = new ConsoleEnvironment(42, outWriter: newWriter, errWriter: newWriter))
             {
                 int res = MainForTest(env, newWriter, string.Format("{0} {1}", "traintest", args), true);
                 Assert.True(res == 0);
             }
             Assert.True(outputPath.CheckEqualityNormalized());
+            Done();
+        }
+
+        [Fact]
+        public void Datatypes()
+        {
+            string idvPath = GetDataPath("datatypes.idv");
+            OutputPath intermediateData = CreateOutputPath("intermediateDatatypes.idv");
+            OutputPath textOutputPath = CreateOutputPath("datatypes.txt");
+            TestCore("savedata", idvPath, "loader=binary", "saver=text", textOutputPath.Arg("dout"));
+            _step++;
+            TestCore("savedata", idvPath, "loader=binary", "saver=binary", intermediateData.ArgOnly("dout"));
+            _step++;
+            TestCore("savedata", intermediateData.Path, "loader=binary", "saver=text", textOutputPath.Arg("dout"));
             Done();
         }
     }

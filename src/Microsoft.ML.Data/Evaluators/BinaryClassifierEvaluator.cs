@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -88,7 +88,7 @@ namespace Microsoft.ML.Runtime.Data
 
         /// <summary>
         /// Binary classification evaluator outputs a data view with this name, which contains the p/r data.
-        /// It contains the columns listed below, and in case data also contains a weight column, it contains 
+        /// It contains the columns listed below, and in case data also contains a weight column, it contains
         /// also columns for the weighted values.
         /// and false positive rate.
         /// </summary>
@@ -168,11 +168,11 @@ namespace Microsoft.ML.Runtime.Data
             return new Aggregator(Host, classNames, schema.Weight != null, _aucCount, _auPrcCount, _threshold, _useRaw, _prCount, stratName);
         }
 
-        private DvText[] GetClassNames(RoleMappedSchema schema)
+        private ReadOnlyMemory<char>[] GetClassNames(RoleMappedSchema schema)
         {
             // Get the label names if they exist, or use the default names.
             ColumnType type;
-            var labelNames = default(VBuffer<DvText>);
+            var labelNames = default(VBuffer<ReadOnlyMemory<char>>);
             if (schema.Label.Type.IsKey &&
                 (type = schema.Schema.GetMetadataTypeOrNull(MetadataUtils.Kinds.KeyValues, schema.Label.Index)) != null &&
                 type.ItemType.IsKnownSizeVector && type.ItemType.IsText)
@@ -180,8 +180,9 @@ namespace Microsoft.ML.Runtime.Data
                 schema.Schema.GetMetadata(MetadataUtils.Kinds.KeyValues, schema.Label.Index, ref labelNames);
             }
             else
-                labelNames = new VBuffer<DvText>(2, new[] { new DvText("positive"), new DvText("negative") });
-            DvText[] names = new DvText[2];
+                labelNames = new VBuffer<ReadOnlyMemory<char>>(2, new[] { "positive".AsMemory(), "negative".AsMemory() });
+
+            ReadOnlyMemory<char>[] names = new ReadOnlyMemory<char>[2];
             labelNames.CopyTo(names);
             return names;
         }
@@ -214,11 +215,11 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         protected override void GetAggregatorConsolidationFuncs(Aggregator aggregator, AggregatorDictionaryBase[] dictionaries,
-            out Action<uint, DvText, Aggregator> addAgg, out Func<Dictionary<string, IDataView>> consolidate)
+            out Action<uint, ReadOnlyMemory<char>, Aggregator> addAgg, out Func<Dictionary<string, IDataView>> consolidate)
         {
             var stratCol = new List<uint>();
-            var stratVal = new List<DvText>();
-            var isWeighted = new List<DvBool>();
+            var stratVal = new List<ReadOnlyMemory<char>>();
+            var isWeighted = new List<bool>();
             var auc = new List<Double>();
             var accuracy = new List<Double>();
             var posPrec = new List<Double>();
@@ -234,7 +235,7 @@ namespace Microsoft.ML.Runtime.Data
             var counts = new List<Double[]>();
             var weights = new List<Double[]>();
             var confStratCol = new List<uint>();
-            var confStratVal = new List<DvText>();
+            var confStratVal = new List<ReadOnlyMemory<char>>();
 
             var scores = new List<Single>();
             var precision = new List<Double>();
@@ -244,7 +245,7 @@ namespace Microsoft.ML.Runtime.Data
             var weightedRecall = new List<Double>();
             var weightedFpr = new List<Double>();
             var prStratCol = new List<uint>();
-            var prStratVal = new List<DvText>();
+            var prStratVal = new List<ReadOnlyMemory<char>>();
 
             bool hasStrats = Utils.Size(dictionaries) > 0;
             bool hasWeight = aggregator.Weighted;
@@ -259,7 +260,7 @@ namespace Microsoft.ML.Runtime.Data
                     agg.Finish();
                     stratCol.Add(stratColKey);
                     stratVal.Add(stratColVal);
-                    isWeighted.Add(DvBool.False);
+                    isWeighted.Add(false);
                     auc.Add(agg.UnweightedAuc);
                     accuracy.Add(agg.UnweightedCounters.Acc);
                     posPrec.Add(agg.UnweightedCounters.PrecisionPos);
@@ -298,7 +299,7 @@ namespace Microsoft.ML.Runtime.Data
                     {
                         stratCol.Add(stratColKey);
                         stratVal.Add(stratColVal);
-                        isWeighted.Add(DvBool.True);
+                        isWeighted.Add(true);
                         auc.Add(agg.WeightedAuc);
                         accuracy.Add(agg.WeightedCounters.Acc);
                         posPrec.Add(agg.WeightedCounters.PrecisionPos);
@@ -357,9 +358,9 @@ namespace Microsoft.ML.Runtime.Data
                         confDvBldr.AddColumn(MetricKinds.ColumnNames.StratCol, GetKeyValueGetter(dictionaries), 0, dictionaries.Length, confStratCol.ToArray());
                         confDvBldr.AddColumn(MetricKinds.ColumnNames.StratVal, TextType.Instance, confStratVal.ToArray());
                     }
-                    ValueGetter<VBuffer<DvText>> getSlotNames =
-                        (ref VBuffer<DvText> dst) =>
-                            dst = new VBuffer<DvText>(aggregator.ClassNames.Length, aggregator.ClassNames);
+                    ValueGetter<VBuffer<ReadOnlyMemory<char>>> getSlotNames =
+                        (ref VBuffer<ReadOnlyMemory<char>> dst) =>
+                            dst = new VBuffer<ReadOnlyMemory<char>>(aggregator.ClassNames.Length, aggregator.ClassNames);
                     confDvBldr.AddColumn(MetricKinds.ColumnNames.Count, getSlotNames, NumberType.R8, counts.ToArray());
 
                     if (hasWeight)
@@ -410,48 +411,42 @@ namespace Microsoft.ML.Runtime.Data
 
                 public Double Acc
                 {
-                    get
-                    {
+                    get {
                         return (NumTrueNeg + NumTruePos) / (NumTruePos + NumTrueNeg + NumFalseNeg + NumFalsePos);
                     }
                 }
 
                 public Double RecallPos
                 {
-                    get
-                    {
+                    get {
                         return (NumTruePos + NumFalseNeg > 0) ? NumTruePos / (NumTruePos + NumFalseNeg) : 0;
                     }
                 }
 
                 public Double PrecisionPos
                 {
-                    get
-                    {
+                    get {
                         return (NumTruePos + NumFalsePos > 0) ? NumTruePos / (NumTruePos + NumFalsePos) : 0;
                     }
                 }
 
                 public Double RecallNeg
                 {
-                    get
-                    {
+                    get {
                         return (NumTrueNeg + NumFalsePos > 0) ? NumTrueNeg / (NumTrueNeg + NumFalsePos) : 0;
                     }
                 }
 
                 public Double PrecisionNeg
                 {
-                    get
-                    {
+                    get {
                         return (NumTrueNeg + NumFalseNeg > 0) ? NumTrueNeg / (NumTrueNeg + NumFalseNeg) : 0;
                     }
                 }
 
                 public Double Entropy
                 {
-                    get
-                    {
+                    get {
                         return MathUtils.Entropy((NumTruePos + NumFalseNeg) /
                             (NumTruePos + NumTrueNeg + NumFalseNeg + NumFalsePos));
                     }
@@ -459,8 +454,7 @@ namespace Microsoft.ML.Runtime.Data
 
                 public Double LogLoss
                 {
-                    get
-                    {
+                    get {
                         return Double.IsNaN(_logLoss) ? Double.NaN : (_numLogLossPositives + _numLogLossNegatives > 0)
                             ? _logLoss / (_numLogLossPositives + _numLogLossNegatives) : 0;
                     }
@@ -468,8 +462,7 @@ namespace Microsoft.ML.Runtime.Data
 
                 public Double LogLossReduction
                 {
-                    get
-                    {
+                    get {
                         if (_numLogLossPositives + _numLogLossNegatives == 0)
                             return 0;
                         var logLoss = _logLoss / (_numLogLossPositives + _numLogLossNegatives);
@@ -555,9 +548,9 @@ namespace Microsoft.ML.Runtime.Data
             private Single _label;
             private Single _weight;
 
-            public readonly DvText[] ClassNames;
+            public readonly ReadOnlyMemory<char>[] ClassNames;
 
-            public Aggregator(IHostEnvironment env, DvText[] classNames, bool weighted, int aucReservoirSize,
+            public Aggregator(IHostEnvironment env, ReadOnlyMemory<char>[] classNames, bool weighted, int aucReservoirSize,
                 int auPrcReservoirSize, Single threshold, bool useRaw, int prCount, string stratName)
                 : base(env, stratName)
             {
@@ -787,6 +780,217 @@ namespace Microsoft.ML.Runtime.Data
                 }
             }
         }
+
+        /// <summary>
+        /// Evaluation results for binary classifiers, excluding probabilistic metrics.
+        /// </summary>
+        public class Result
+        {
+            /// <summary>
+            /// Gets the area under the ROC curve.
+            /// </summary>
+            /// <remarks>
+            /// The area under the ROC curve is equal to the probability that the classifier ranks
+            /// a randomly chosen positive instance higher than a randomly chosen negative one
+            /// (assuming 'positive' ranks higher than 'negative').
+            /// </remarks>
+            public double Auc { get; }
+
+            /// <summary>
+            /// Gets the accuracy of a classifier which is the proportion of correct predictions in the test set.
+            /// </summary>
+            public double Accuracy { get; }
+
+            /// <summary>
+            /// Gets the positive precision of a classifier which is the proportion of correctly predicted
+            /// positive instances among all the positive predictions (i.e., the number of positive instances
+            /// predicted as positive, divided by the total number of instances predicted as positive).
+            /// </summary>
+            public double PositivePrecision { get; }
+
+            /// <summary>
+            /// Gets the positive recall of a classifier which is the proportion of correctly predicted
+            /// positive instances among all the positive instances (i.e., the number of positive instances
+            /// predicted as positive, divided by the total number of positive instances).
+            /// </summary>
+            public double PositiveRecall { get; private set; }
+
+            /// <summary>
+            /// Gets the negative precision of a classifier which is the proportion of correctly predicted
+            /// negative instances among all the negative predictions (i.e., the number of negative instances
+            /// predicted as negative, divided by the total number of instances predicted as negative).
+            /// </summary>
+            public double NegativePrecision { get; }
+
+            /// <summary>
+            /// Gets the negative recall of a classifier which is the proportion of correctly predicted
+            /// negative instances among all the negative instances (i.e., the number of negative instances
+            /// predicted as negative, divided by the total number of negative instances).
+            /// </summary>
+            public double NegativeRecall { get; }
+
+            /// <summary>
+            /// Gets the F1 score of the classifier.
+            /// </summary>
+            /// <remarks>
+            /// F1 score is the harmonic mean of precision and recall: 2 * precision * recall / (precision + recall).
+            /// </remarks>
+            public double F1Score { get; }
+
+            /// <summary>
+            /// Gets the area under the precision/recall curve of the classifier.
+            /// </summary>
+            /// <remarks>
+            /// The area under the precision/recall curve is a single number summary of the information in the
+            /// precision/recall curve. It is increasingly used in the machine learning community, particularly
+            /// for imbalanced datasets where one class is observed more frequently than the other. On these
+            /// datasets, AUPRC can highlight performance differences that are lost with AUC.
+            /// </remarks>
+            public double Auprc { get; }
+
+            protected private static T Fetch<T>(IExceptionContext ectx, IRow row, string name)
+            {
+                if (!row.Schema.TryGetColumnIndex(name, out int col))
+                    throw ectx.Except($"Could not find column '{name}'");
+                T val = default;
+                row.GetGetter<T>(col)(ref val);
+                return val;
+            }
+
+            internal Result(IExceptionContext ectx, IRow overallResult)
+            {
+                double Fetch(string name) => Fetch<double>(ectx, overallResult, name);
+                Auc = Fetch(BinaryClassifierEvaluator.Auc);
+                Accuracy = Fetch(BinaryClassifierEvaluator.Accuracy);
+                PositivePrecision = Fetch(BinaryClassifierEvaluator.PosPrecName);
+                PositiveRecall = Fetch(BinaryClassifierEvaluator.PosRecallName);
+                NegativePrecision = Fetch(BinaryClassifierEvaluator.NegPrecName);
+                NegativeRecall = Fetch(BinaryClassifierEvaluator.NegRecallName);
+                F1Score = Fetch(BinaryClassifierEvaluator.F1);
+                Auprc = Fetch(BinaryClassifierEvaluator.AuPrc);
+            }
+        }
+
+        /// <summary>
+        /// Evaluation results for binary classifiers, including probabilistic metrics.
+        /// </summary>
+        public sealed class CalibratedResult : Result
+        {
+            /// <summary>
+            /// Gets the log-loss of the classifier.
+            /// </summary>
+            /// <remarks>
+            /// The log-loss metric, is computed as follows:
+            /// LL = - (1/m) * sum( log(p[i]))
+            /// where m is the number of instances in the test set.
+            /// p[i] is the probability returned by the classifier if the instance belongs to class 1,
+            /// and 1 minus the probability returned by the classifier if the instance belongs to class 0.
+            /// </remarks>
+            public double LogLoss { get; }
+
+            /// <summary>
+            /// Gets the log-loss reduction (also known as relative log-loss, or reduction in information gain - RIG)
+            /// of the classifier.
+            /// </summary>
+            /// <remarks>
+            /// The log-loss reduction is scaled relative to a classifier that predicts the prior for every example:
+            /// (LL(prior) - LL(classifier)) / LL(prior)
+            /// This metric can be interpreted as the advantage of the classifier over a random prediction.
+            /// E.g., if the RIG equals 20, it can be interpreted as &quot;the probability of a correct prediction is
+            /// 20% better than random guessing.&quot;
+            /// </remarks>
+            public double LogLossReduction { get; }
+
+            /// <summary>
+            /// Gets the test-set entropy (prior Log-Loss/instance) of the classifier.
+            /// </summary>
+            public double Entropy { get; }
+
+            internal CalibratedResult(IExceptionContext ectx, IRow overallResult)
+                : base(ectx, overallResult)
+            {
+                double Fetch(string name) => Fetch<double>(ectx, overallResult, name);
+                LogLoss = Fetch(BinaryClassifierEvaluator.LogLoss);
+                LogLossReduction = Fetch(BinaryClassifierEvaluator.LogLossReduction);
+                Entropy = Fetch(BinaryClassifierEvaluator.Entropy);
+            }
+        }
+
+        /// <summary>
+        /// Evaluates scored binary classification data.
+        /// </summary>
+        /// <param name="data">The scored data.</param>
+        /// <param name="label">The name of the label column in <paramref name="data"/>.</param>
+        /// <param name="score">The name of the score column in <paramref name="data"/>.</param>
+        /// <param name="probability">The name of the probability column in <paramref name="data"/>, the calibrated version of <paramref name="score"/>.</param>
+        /// <param name="predictedLabel">The name of the predicted label column in <paramref name="data"/>.</param>
+        /// <returns>The evaluation results for these calibrated outputs.</returns>
+        public CalibratedResult Evaluate(IDataView data, string label, string score, string probability, string predictedLabel)
+        {
+            Host.CheckValue(data, nameof(data));
+            Host.CheckNonEmpty(label, nameof(label));
+            Host.CheckNonEmpty(score, nameof(score));
+            Host.CheckNonEmpty(probability, nameof(probability));
+            Host.CheckNonEmpty(predictedLabel, nameof(predictedLabel));
+
+            var roles = new RoleMappedData(data, opt: false,
+                RoleMappedSchema.ColumnRole.Label.Bind(label),
+                RoleMappedSchema.CreatePair(MetadataUtils.Const.ScoreValueKind.Score, score),
+                RoleMappedSchema.CreatePair(MetadataUtils.Const.ScoreValueKind.Probability, probability),
+                RoleMappedSchema.CreatePair(MetadataUtils.Const.ScoreValueKind.PredictedLabel, predictedLabel));
+
+            var resultDict = Evaluate(roles);
+            Host.Assert(resultDict.ContainsKey(MetricKinds.OverallMetrics));
+            var overall = resultDict[MetricKinds.OverallMetrics];
+
+            CalibratedResult result;
+            using (var cursor = overall.GetRowCursor(i => true))
+            {
+                var moved = cursor.MoveNext();
+                Host.Assert(moved);
+                result = new CalibratedResult(Host, cursor);
+                moved = cursor.MoveNext();
+                Host.Assert(!moved);
+            }
+            return result;
+        }
+
+        /// <summary>
+        /// Evaluates scored binary classification data, without probability-based metrics.
+        /// </summary>
+        /// <param name="data">The scored data.</param>
+        /// <param name="label">The name of the label column in <paramref name="data"/>.</param>
+        /// <param name="score">The name of the score column in <paramref name="data"/>.</param>
+        /// <param name="predictedLabel">The name of the predicted label column in <paramref name="data"/>.</param>
+        /// <returns>The evaluation results for these uncalibrated outputs.</returns>
+        /// <seealso cref="Evaluate(IDataView, string, string, string)"/>
+        public Result Evaluate(IDataView data, string label, string score, string predictedLabel)
+        {
+            Host.CheckValue(data, nameof(data));
+            Host.CheckNonEmpty(label, nameof(label));
+            Host.CheckNonEmpty(score, nameof(score));
+            Host.CheckNonEmpty(predictedLabel, nameof(predictedLabel));
+
+            var roles = new RoleMappedData(data, opt: false,
+                RoleMappedSchema.ColumnRole.Label.Bind(label),
+                RoleMappedSchema.CreatePair(MetadataUtils.Const.ScoreValueKind.Score, score),
+                RoleMappedSchema.CreatePair(MetadataUtils.Const.ScoreValueKind.PredictedLabel, predictedLabel));
+
+            var resultDict = Evaluate(roles);
+            Host.Assert(resultDict.ContainsKey(MetricKinds.OverallMetrics));
+            var overall = resultDict[MetricKinds.OverallMetrics];
+
+            Result result;
+            using (var cursor = overall.GetRowCursor(i => true))
+            {
+                var moved = cursor.MoveNext();
+                Host.Assert(moved);
+                result = new Result(Host, cursor);
+                moved = cursor.MoveNext();
+                Host.Assert(!moved);
+            }
+            return result;
+        }
     }
 
     public sealed class BinaryPerInstanceEvaluator : PerInstanceEvaluatorBase
@@ -799,7 +1003,8 @@ namespace Microsoft.ML.Runtime.Data
                 verWrittenCur: 0x00010001, // Initial
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
-                loaderSignature: LoaderSignature);
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(BinaryPerInstanceEvaluator).Assembly.FullName);
         }
 
         private const int AssignedCol = 0;
@@ -931,7 +1136,7 @@ namespace Microsoft.ML.Runtime.Data
                 scoreGetter = nanGetter;
 
             Action updateCacheIfNeeded;
-            Func<DvBool> getPredictedLabel;
+            Func<bool> getPredictedLabel;
             if (_useRaw)
             {
                 updateCacheIfNeeded =
@@ -965,8 +1170,8 @@ namespace Microsoft.ML.Runtime.Data
             var getters = _probIndex >= 0 ? new Delegate[2] : new Delegate[1];
             if (activeCols(AssignedCol))
             {
-                ValueGetter<DvBool> predFn =
-                    (ref DvBool dst) =>
+                ValueGetter<bool> predFn =
+                    (ref bool dst) =>
                     {
                         updateCacheIfNeeded();
                         dst = getPredictedLabel();
@@ -995,9 +1200,10 @@ namespace Microsoft.ML.Runtime.Data
             return -Math.Log(1.0 - prob, 2);
         }
 
-        private DvBool GetPredictedLabel(Single val)
+        private bool GetPredictedLabel(Single val)
         {
-            return val.IsNA() ? DvBool.NA : val > _threshold ? DvBool.True : DvBool.False;
+            //Behavior for NA values is undefined.
+            return Single.IsNaN(val) ? false : val > _threshold;
         }
 
         public override RowMapperColumnInfo[] GetOutputColumns()
@@ -1171,18 +1377,16 @@ namespace Microsoft.ML.Runtime.Data
             ch.Info(MessageSensitivity.None, unweightedFold);
         }
 
-        protected override void PrintOverallResultsCore(IChannel ch, string filename, Dictionary<string, IDataView>[] metrics)
+        protected override IDataView GetOverallResultsCore(IDataView overall)
         {
-            ch.AssertNonEmpty(metrics);
-
-            IDataView overall;
-            if (!TryGetOverallMetrics(metrics, out overall))
-                throw ch.Except("No overall metrics found");
-
             var args = new DropColumnsTransform.Arguments();
             args.Column = new[] { BinaryClassifierEvaluator.Entropy };
-            overall = new DropColumnsTransform(Host, args, overall);
-            MetricWriter.PrintOverallMetrics(Host, ch, filename, overall, metrics.Length);
+            return new DropColumnsTransform(Host, args, overall);
+        }
+
+        protected override void PrintAdditionalMetricsCore(IChannel ch, Dictionary<string, IDataView>[] metrics)
+        {
+            ch.AssertNonEmpty(metrics);
 
             if (!string.IsNullOrEmpty(_prFileName))
             {
@@ -1213,7 +1417,7 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         // This method saves the p/r plots, and returns the p/r metrics data view.
-        // In case there are results from multiple folds, they are averaged using 
+        // In case there are results from multiple folds, they are averaged using
         // vertical averaging for the p/r plot, and appended using AppendRowsDataView for
         // the p/r data view.
         private bool TryGetPrMetrics(Dictionary<string, IDataView>[] metrics, out IDataView pr)
@@ -1228,14 +1432,7 @@ namespace Microsoft.ML.Runtime.Data
                 if (!dict.TryGetValue(BinaryClassifierEvaluator.PrCurve, out idv))
                     return false;
                 if (metrics.Length != 1)
-                {
-                    // We use the first column in the data view as an input column to the LambdaColumnMapper, because it must have an input.
-                    var inputColName = idv.Schema.GetColumnName(0);
-                    var inputColType = idv.Schema.GetColumnType(0);
-                    idv = Utils.MarshalInvoke(EvaluateUtils.AddKeyColumn<int>, inputColType.RawType, Host, idv,
-                        inputColName, MetricKinds.ColumnNames.FoldIndex, inputColType, metrics.Length, i + 1, "FoldIndex",
-                        default(ValueGetter<VBuffer<DvText>>));
-                }
+                    idv = EvaluateUtils.AddFoldIndex(Host, idv, i, metrics.Length);
                 else
                     pr = idv;
                 prList.Add(idv);
@@ -1464,7 +1661,7 @@ namespace Microsoft.ML.Runtime.Data
             string name;
             MatchColumns(host, input, out label, out weight, out name);
             var evaluator = new BinaryClassifierMamlEvaluator(host, input);
-            var data = TrainUtils.CreateExamples(input.Data, label, null, null, weight, name);
+            var data = new RoleMappedData(input.Data, label, null, null, weight, name);
             var metrics = evaluator.Evaluate(data);
 
             var warnings = ExtractWarnings(host, metrics);

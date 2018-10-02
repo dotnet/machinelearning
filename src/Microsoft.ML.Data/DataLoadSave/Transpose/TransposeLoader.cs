@@ -354,7 +354,8 @@ namespace Microsoft.ML.Runtime.Data.IO
                 verWrittenCur: 0x00010001, // Initial
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
-                loaderSignature: LoadName);
+                loaderSignature: LoadName,
+                loaderAssemblyName: typeof(TransposeLoader).Assembly.FullName);
         }
 
         // We return the schema view's schema, because we don't necessarily want
@@ -531,7 +532,7 @@ namespace Microsoft.ML.Runtime.Data.IO
         }
 
         /// <summary>
-        /// Save a zero-row dataview that will be used to infer schema information, used in the case 
+        /// Save a zero-row dataview that will be used to infer schema information, used in the case
         /// where the tranpsose loader is instantiated with no input streams.
         /// </summary>
         private static void SaveSchema(IHostEnvironment env, ModelSaveContext ctx, ISchema schema)

@@ -11,12 +11,12 @@ using System.Diagnostics;
 namespace Microsoft.ML.Runtime.Internal.Utilities
 {
     /// <summary>
-    /// This class performs discretization of (value, label) pairs into bins in a way that minimizes 
+    /// This class performs discretization of (value, label) pairs into bins in a way that minimizes
     /// the target function "minimum description length".
     /// The algorithm is outlineed in an article
     /// "Multi-Interval Discretization of Continuous-Valued Attributes for Classification Learning"
-    /// [Fayyad, Usama M.; Irani, Keki B. (1993)] http://ijcai.org/Past%20Proceedings/IJCAI-93-VOL2/PDF/022.pdf
-    /// 
+    /// [Fayyad, Usama M.; Irani, Keki B. (1993)] https://ijcai.org/Past%20Proceedings/IJCAI-93-VOL2/PDF/022.pdf
+    ///
     /// The class can be used several times sequentially, it is stateful and not thread-safe.
     /// Both Single and Double precision processing is implemented, and is identical.
     /// </summary>
@@ -117,7 +117,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
                 result[i] = BinFinderBase.GetSplitValue(distinctValues[split - 1], distinctValues[split]);
 
                 // Even though distinctValues may contain infinities, the boundaries may not be infinite:
-                // GetSplitValue(a,b) only returns +-inf if a==b==+-inf, 
+                // GetSplitValue(a,b) only returns +-inf if a==b==+-inf,
                 // and distinctValues won't contain more than one +inf or -inf.
                 Contracts.Assert(FloatUtils.IsFinite(result[i]));
             }
@@ -195,7 +195,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
                 result[i] = BinFinderBase.GetSplitValue(distinctValues[split - 1], distinctValues[split]);
 
                 // Even though distinctValues may contain infinities, the boundaries may not be infinite:
-                // GetSplitValue(a,b) only returns +-inf if a==b==+-inf, 
+                // GetSplitValue(a,b) only returns +-inf if a==b==+-inf,
                 // and distinctValues won't contain more than one +inf or -inf.
                 Contracts.Assert(FloatUtils.IsFinite(result[i]));
             }
@@ -259,7 +259,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
                     Contracts.Assert(leftCount + rightCount == totalCount);
 
                     // This term corresponds to the 'fixed cost associated with a split'
-                    // It's a simplification of a Delta(A,T;S) term calculated in the paper 
+                    // It's a simplification of a Delta(A,T;S) term calculated in the paper
                     var delta = logN - binFinder._labelCardinality * (totalEntropy - leftEntropy - rightEntropy);
 
                     var curGain = totalCount * totalEntropy // total cost of transmitting non-split content

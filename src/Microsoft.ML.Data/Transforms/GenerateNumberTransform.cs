@@ -24,9 +24,9 @@ using Microsoft.ML.Runtime.Model;
 namespace Microsoft.ML.Runtime.Data
 {
     /// <summary>
-    /// This transform adds columns containing either random numbers distributed 
+    /// This transform adds columns containing either random numbers distributed
     /// uniformly between 0 and 1 or an auto-incremented integer starting at zero.
-    /// It will be used in conjunction with a filter transform to create random 
+    /// It will be used in conjunction with a filter transform to create random
     /// partitions of the data, used in cross validation.
     /// </summary>
     public sealed class GenerateNumberTransform : RowToRowTransformBase
@@ -77,16 +77,22 @@ namespace Microsoft.ML.Runtime.Data
             }
         }
 
+        private static class Defaults
+        {
+            public const bool UseCounter = false;
+            public const uint Seed = 42;
+        }
+
         public sealed class Arguments : TransformInputBase
         {
             [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "New column definition(s) (optional form: name:seed)", ShortName = "col", SortOrder = 1)]
             public Column[] Column;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Use an auto-incremented integer starting at zero instead of a random number", ShortName = "cnt")]
-            public bool UseCounter;
+            public bool UseCounter = Defaults.UseCounter;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "The random seed")]
-            public uint Seed = 42;
+            public uint Seed = Defaults.Seed;
         }
 
         private sealed class Bindings : ColumnBindingsBase
@@ -207,17 +213,17 @@ namespace Microsoft.ML.Runtime.Data
                 Contracts.Assert(0 <= iinfo & iinfo < InfoCount);
                 if (kind == MetadataUtils.Kinds.IsNormalized && !UseCounter[iinfo])
                 {
-                    MetadataUtils.Marshal<DvBool, TValue>(IsNormalized, iinfo, ref value);
+                    MetadataUtils.Marshal<bool, TValue>(IsNormalized, iinfo, ref value);
                     return;
                 }
 
                 base.GetMetadataCore(kind, iinfo, ref value);
             }
 
-            private void IsNormalized(int iinfo, ref DvBool dst)
+            private void IsNormalized(int iinfo, ref bool dst)
             {
                 Contracts.Assert(0 <= iinfo & iinfo < InfoCount);
-                dst = DvBool.True;
+                dst = true;
             }
 
             public Func<int, bool> GetDependencies(Func<int, bool> predicate)
@@ -243,12 +249,25 @@ namespace Microsoft.ML.Runtime.Data
                 verWrittenCur: 0x00010001, // Initial
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
-                loaderSignature: LoaderSignature);
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(GenerateNumberTransform).Assembly.FullName);
         }
 
         private readonly Bindings _bindings;
 
         private const string RegistrationName = "GenerateNumber";
+
+        /// <summary>
+        /// Convenience constructor for public facing API.
+        /// </summary>
+        /// <param name="env">Host Environment.</param>
+        /// <param name="input">Input <see cref="IDataView"/>. This is the output from previous transform or loader.</param>
+        /// <param name="name">Name of the output column.</param>
+        /// <param name="useCounter">Use an auto-incremented integer starting at zero instead of a random number.</param>
+        public GenerateNumberTransform(IHostEnvironment env, IDataView input, string name, bool useCounter = Defaults.UseCounter)
+            : this(env, new Arguments() { Column = new[] { new Column() { Name = name } }, UseCounter = useCounter }, input)
+        {
+        }
 
         /// <summary>
         /// Public constructor corresponding to SignatureDataTransform.
@@ -412,9 +431,9 @@ namespace Microsoft.ML.Runtime.Data
                 return fn;
             }
 
-            private ValueGetter<DvInt8> MakeGetter()
+            private ValueGetter<long> MakeGetter()
             {
-                return (ref DvInt8 value) =>
+                return (ref long value) =>
                 {
                     Ch.Check(IsGood);
                     value = Input.Position;
@@ -426,7 +445,7 @@ namespace Microsoft.ML.Runtime.Data
                 Ch.Assert(lastCounter <= Input.Position);
                 while (lastCounter < Input.Position)
                 {
-                    value = rng.NextFloat();
+                    value = rng.NextSingle();
                     lastCounter++;
                 }
             }

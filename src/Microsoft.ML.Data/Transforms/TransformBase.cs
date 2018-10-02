@@ -154,6 +154,8 @@ namespace Microsoft.ML.Runtime.Data
 
         protected abstract Func<int, bool> GetDependenciesCore(Func<int, bool> predicate);
 
+        ISchema IRowToRowMapper.InputSchema => Source.Schema;
+
         public IRow GetRow(IRow input, Func<int, bool> active, out Action disposer)
         {
             Host.CheckValue(input, nameof(input));
@@ -471,8 +473,6 @@ namespace Microsoft.ML.Runtime.Data
 
         public virtual bool CanSaveOnnx => false;
 
-        public virtual bool CanSaveLotusVNext => false;
-
         protected OneToOneTransformBase(IHostEnvironment env, string name, OneToOneColumn[] column,
             IDataView input, Func<ColumnType, string> testType)
             : base(env, name, input)
@@ -598,7 +598,7 @@ namespace Microsoft.ML.Runtime.Data
 
         /// <summary>
         /// Called by <see cref="SaveAsPfa"/>. Should be implemented by subclasses that return
-        /// <c>true</c> from <see cref="CanSavePfa"/>. Will be called 
+        /// <c>true</c> from <see cref="CanSavePfa"/>. Will be called
         /// </summary>
         /// <param name="ctx">The context. Can be used to declare cells, access other information,
         /// and whatnot. This method should not actually, however, declare the variable corresponding

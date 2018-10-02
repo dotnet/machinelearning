@@ -21,10 +21,7 @@ using Microsoft.ML.Runtime.Model;
 
 namespace Microsoft.ML.Runtime.Data
 {
-    /// <summary>
-    /// This transform can transform either scalars or vectors (both fixed and variable size),
-    /// creating output columns that indicate corresponding NA values.
-    /// </summary>
+    /// <include file='doc.xml' path='doc/members/member[@name="NAIndicator"]'/>
     public sealed class NAIndicatorTransform : OneToOneTransformBase
     {
         public sealed class Column : OneToOneColumn
@@ -62,7 +59,8 @@ namespace Microsoft.ML.Runtime.Data
                 verWrittenCur: 0x00010001, // Initial
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
-                loaderSignature: LoaderSignature);
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(NAIndicatorTransform).Assembly.FullName);
         }
 
         internal const string Summary = "Create a boolean output column with the same number of slots as the input column, where the output value"
@@ -84,6 +82,18 @@ namespace Microsoft.ML.Runtime.Data
 
         // The output column types, parallel to Infos.
         private readonly ColumnType[] _types;
+
+        /// <summary>
+        /// Convenience constructor for public facing API.
+        /// </summary>
+        /// <param name="env">Host Environment.</param>
+        /// <param name="input">Input <see cref="IDataView"/>. This is the output from previous transform or loader.</param>
+        /// <param name="name">Name of the output column.</param>
+        /// <param name="source">Name of the column to be transformed. If this is null '<paramref name="name"/>' will be used.</param>
+        public NAIndicatorTransform(IHostEnvironment env, IDataView input, string name, string source = null)
+            : this(env, new Arguments() { Column = new[] { new Column() { Source = source ?? name, Name = name } } }, input)
+        {
+        }
 
         /// <summary>
         /// Public constructor corresponding to SignatureDataTransform.
@@ -147,7 +157,7 @@ namespace Microsoft.ML.Runtime.Data
                 using (var bldr = md.BuildMetadata(iinfo, Source.Schema, Infos[iinfo].Source, MetadataUtils.Kinds.SlotNames))
                 {
                     // Output is normalized.
-                    bldr.AddPrimitive(MetadataUtils.Kinds.IsNormalized, BoolType.Instance, DvBool.True);
+                    bldr.AddPrimitive(MetadataUtils.Kinds.IsNormalized, BoolType.Instance, true);
                 }
             }
             md.Seal();
@@ -175,41 +185,41 @@ namespace Microsoft.ML.Runtime.Data
         /// <summary>
         /// Getter generator for single valued inputs.
         /// </summary>
-        private ValueGetter<DvBool> ComposeGetterOne(IRow input, int iinfo)
+        private ValueGetter<bool> ComposeGetterOne(IRow input, int iinfo)
         {
-            Func<IRow, int, ValueGetter<DvBool>> func = ComposeGetterOne<int>;
+            Func<IRow, int, ValueGetter<bool>> func = ComposeGetterOne<int>;
             return Utils.MarshalInvoke(func, Infos[iinfo].TypeSrc.RawType, input, iinfo);
         }
 
         /// <summary>
         ///  Tests if a value is NA for scalars.
         /// </summary>
-        private ValueGetter<DvBool> ComposeGetterOne<T>(IRow input, int iinfo)
+        private ValueGetter<bool> ComposeGetterOne<T>(IRow input, int iinfo)
         {
             var getSrc = GetSrcGetter<T>(input, iinfo);
             var isNA = Conversions.Instance.GetIsNAPredicate<T>(input.Schema.GetColumnType(Infos[iinfo].Source));
             T src = default(T);
             return
-                (ref DvBool dst) =>
+                (ref bool dst) =>
                 {
                     getSrc(ref src);
-                    dst = isNA(ref src) ? DvBool.True : DvBool.False;
+                    dst = isNA(ref src);
                 };
         }
 
         /// <summary>
         /// Getter generator for vector valued inputs.
         /// </summary>
-        private ValueGetter<VBuffer<DvBool>> ComposeGetterVec(IRow input, int iinfo)
+        private ValueGetter<VBuffer<bool>> ComposeGetterVec(IRow input, int iinfo)
         {
-            Func<IRow, int, ValueGetter<VBuffer<DvBool>>> func = ComposeGetterVec<int>;
+            Func<IRow, int, ValueGetter<VBuffer<bool>>> func = ComposeGetterVec<int>;
             return Utils.MarshalInvoke(func, Infos[iinfo].TypeSrc.ItemType.RawType, input, iinfo);
         }
 
         /// <summary>
         ///  Tests if a value is NA for vectors.
         /// </summary>
-        private ValueGetter<VBuffer<DvBool>> ComposeGetterVec<T>(IRow input, int iinfo)
+        private ValueGetter<VBuffer<bool>> ComposeGetterVec<T>(IRow input, int iinfo)
         {
             var getSrc = GetSrcGetter<VBuffer<T>>(input, iinfo);
             var isNA = Conversions.Instance.GetIsNAPredicate<T>(input.Schema.GetColumnType(Infos[iinfo].Source).ItemType);
@@ -218,7 +228,7 @@ namespace Microsoft.ML.Runtime.Data
             var src = default(VBuffer<T>);
             var indices = new List<int>();
             return
-                (ref VBuffer<DvBool> dst) =>
+                (ref VBuffer<bool> dst) =>
                 {
                     // Sense indicates if the values added to the indices list represent NAs or non-NAs.
                     bool sense;
@@ -276,7 +286,7 @@ namespace Microsoft.ML.Runtime.Data
         ///  Fills indicator values for vectors.  The indices is a list that either holds all of the NAs or all
         ///  of the non-NAs, indicated by sense being true or false respectively.
         /// </summary>
-        private void FillValues(int srcLength, ref VBuffer<DvBool> dst, List<int> indices, bool sense)
+        private void FillValues(int srcLength, ref VBuffer<bool> dst, List<int> indices, bool sense)
         {
             var dstValues = dst.Values;
             var dstIndices = dst.Indices;
@@ -286,15 +296,15 @@ namespace Microsoft.ML.Runtime.Data
                 if (sense)
                 {
                     // Return empty VBuffer.
-                    dst = new VBuffer<DvBool>(srcLength, 0, dstValues, dstIndices);
+                    dst = new VBuffer<bool>(srcLength, 0, dstValues, dstIndices);
                     return;
                 }
 
                 // Return VBuffer filled with 1's.
                 Utils.EnsureSize(ref dstValues, srcLength, false);
                 for (int i = 0; i < srcLength; i++)
-                    dstValues[i] = DvBool.True;
-                dst = new VBuffer<DvBool>(srcLength, dstValues, dstIndices);
+                    dstValues[i] = true;
+                dst = new VBuffer<bool>(srcLength, dstValues, dstIndices);
                 return;
             }
 
@@ -307,10 +317,10 @@ namespace Microsoft.ML.Runtime.Data
 
                 indices.CopyTo(dstIndices);
                 for (int ii = 0; ii < dstCount; ii++)
-                    dstValues[ii] = DvBool.True;
+                    dstValues[ii] = true;
 
                 Host.Assert(dstCount <= srcLength);
-                dst = new VBuffer<DvBool>(srcLength, dstCount, dstValues, dstIndices);
+                dst = new VBuffer<bool>(srcLength, dstCount, dstValues, dstIndices);
             }
             else if (!sense && srcLength - indices.Count < srcLength / 2)
             {
@@ -333,7 +343,7 @@ namespace Microsoft.ML.Runtime.Data
                     if (i < iNext)
                     {
                         Host.Assert(iiDst < dstCount);
-                        dstValues[iiDst] = DvBool.True;
+                        dstValues[iiDst] = true;
                         dstIndices[iiDst++] = i;
                     }
                     else
@@ -346,7 +356,7 @@ namespace Microsoft.ML.Runtime.Data
                 Host.Assert(srcLength == iiSrc + iiDst);
                 Host.Assert(iiDst == dstCount);
 
-                dst = new VBuffer<DvBool>(srcLength, dstCount, dstValues, dstIndices);
+                dst = new VBuffer<bool>(srcLength, dstCount, dstValues, dstIndices);
             }
             else
             {
@@ -358,24 +368,21 @@ namespace Microsoft.ML.Runtime.Data
                 indices.Add(srcLength);
 
                 int ii = 0;
-                // Assigns values correctly depending on the sense.
-                DvBool hit = sense ? DvBool.True : DvBool.False;
-                DvBool miss = sense ? DvBool.False : DvBool.True;
                 for (int i = 0; i < srcLength; i++)
                 {
                     Host.Assert(0 <= i && i <= indices[ii]);
                     if (i == indices[ii])
                     {
-                        dstValues[i] = hit;
+                        dstValues[i] = sense;
                         ii++;
                         Host.Assert(ii < indices.Count);
                         Host.Assert(indices[ii - 1] < indices[ii]);
                     }
                     else
-                        dstValues[i] = miss;
+                        dstValues[i] = !sense;
                 }
 
-                dst = new VBuffer<DvBool>(srcLength, dstValues, dstIndices);
+                dst = new VBuffer<bool>(srcLength, dstValues, dstIndices);
             }
         }
     }

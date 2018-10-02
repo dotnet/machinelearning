@@ -13,6 +13,7 @@ using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Internal.Calibration;
 using Microsoft.ML.Runtime.Internal.Utilities;
+using Microsoft.ML.Transforms;
 
 [assembly: LoadableClass(typeof(CrossValidationCommand), typeof(CrossValidationCommand.Arguments), typeof(SignatureCommand),
     "Cross Validation", CrossValidationCommand.LoadName)]
@@ -24,14 +25,14 @@ namespace Microsoft.ML.Runtime.Data
         // REVIEW: We need a way to specify different data sets, not just LabeledExamples.
         public sealed class Arguments : DataCommand.ArgumentsBase
         {
-            [Argument(ArgumentType.Multiple, HelpText = "Trainer to use", ShortName = "tr")]
-            public SubComponent<ITrainer, SignatureTrainer> Trainer = new SubComponent<ITrainer, SignatureTrainer>("AveragedPerceptron");
+            [Argument(ArgumentType.Multiple, HelpText = "Trainer to use", ShortName = "tr", SignatureType = typeof(SignatureTrainer))]
+            public IComponentFactory<ITrainer> Trainer;
 
-            [Argument(ArgumentType.Multiple, HelpText = "Scorer to use", NullName = "<Auto>", SortOrder = 101)]
-            public SubComponent<IDataScorerTransform, SignatureDataScorer> Scorer;
+            [Argument(ArgumentType.Multiple, HelpText = "Scorer to use", NullName = "<Auto>", SortOrder = 101, SignatureType = typeof(SignatureDataScorer))]
+            public IComponentFactory<IDataView, ISchemaBoundMapper, RoleMappedSchema, IDataScorerTransform> Scorer;
 
-            [Argument(ArgumentType.Multiple, HelpText = "Evaluator to use", ShortName = "eval", NullName = "<Auto>", SortOrder = 102)]
-            public SubComponent<IMamlEvaluator, SignatureMamlEvaluator> Evaluator;
+            [Argument(ArgumentType.Multiple, HelpText = "Evaluator to use", ShortName = "eval", NullName = "<Auto>", SortOrder = 102, SignatureType = typeof(SignatureMamlEvaluator))]
+            public IComponentFactory<IMamlEvaluator> Evaluator;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Results summary filename", ShortName = "sf")]
             public string SummaryFilename;
@@ -69,14 +70,14 @@ namespace Microsoft.ML.Runtime.Data
             [Argument(ArgumentType.LastOccurenceWins, HelpText = "Whether we should cache input training data", ShortName = "cache")]
             public bool? CacheData;
 
-            [Argument(ArgumentType.Multiple, HelpText = "Transforms to apply prior to splitting the data into folds", ShortName = "prexf")]
-            public KeyValuePair<string, SubComponent<IDataTransform, SignatureDataTransform>>[] PreTransform;
+            [Argument(ArgumentType.Multiple, HelpText = "Transforms to apply prior to splitting the data into folds", ShortName = "prexf", SignatureType = typeof(SignatureDataTransform))]
+            public KeyValuePair<string, IComponentFactory<IDataView, IDataTransform>>[] PreTransform;
 
             [Argument(ArgumentType.AtMostOnce, IsInputFileName = true, HelpText = "The validation data file", ShortName = "valid")]
             public string ValidationFile;
 
-            [Argument(ArgumentType.Multiple, HelpText = "Output calibrator", ShortName = "cali", NullName = "<None>")]
-            public SubComponent<ICalibratorTrainer, SignatureCalibrator> Calibrator = new SubComponent<ICalibratorTrainer, SignatureCalibrator>("PlattCalibration");
+            [Argument(ArgumentType.Multiple, HelpText = "Output calibrator", ShortName = "cali", NullName = "<None>", SignatureType = typeof(SignatureCalibrator))]
+            public IComponentFactory<ICalibratorTrainer> Calibrator = new PlattCalibratorTrainerFactory();
 
             [Argument(ArgumentType.LastOccurenceWins, HelpText = "Number of instances to train the calibrator", ShortName = "numcali")]
             public int MaxCalibrationExamples = 1000000000;
@@ -96,14 +97,13 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         private const string RegistrationName = nameof(CrossValidationCommand);
-        private readonly ComponentCatalog.LoadableClassInfo _info;
         public const string LoadName = "CV";
 
         public CrossValidationCommand(IHostEnvironment env, Arguments args)
             : base(env, args, RegistrationName)
         {
             Host.CheckUserArg(Args.NumFolds >= 2, nameof(Args.NumFolds), "Number of folds must be greater than or equal to 2.");
-            _info = TrainUtils.CheckTrainer(Host, args.Trainer, args.DataFile);
+            TrainUtils.CheckTrainer(Host, args.Trainer, args.DataFile);
             Utils.CheckOptionalUserDirectory(Args.SummaryFilename, nameof(Args.SummaryFilename));
             Utils.CheckOptionalUserDirectory(Args.OutputDataFile, nameof(Args.OutputDataFile));
         }
@@ -112,7 +112,6 @@ namespace Microsoft.ML.Runtime.Data
         private CrossValidationCommand(CrossValidationCommand impl)
             : base(impl, RegistrationName)
         {
-            _info = impl._info;
         }
 
         public override void Run()
@@ -120,7 +119,7 @@ namespace Microsoft.ML.Runtime.Data
             using (var ch = Host.Start(LoadName))
             using (var server = InitServer(ch))
             {
-                var settings = CmdParser.GetSettings(ch, Args, new Arguments());
+                var settings = CmdParser.GetSettings(Host, Args, new Arguments());
                 string cmd = string.Format("maml.exe {0} {1}", LoadName, settings);
                 ch.Info(cmd);
 
@@ -159,16 +158,18 @@ namespace Microsoft.ML.Runtime.Data
                 string name = TrainUtils.MatchNameOrDefaultOrNull(ch, loader.Schema, nameof(Args.NameColumn), Args.NameColumn, DefaultColumnNames.Name);
                 if (name == null)
                 {
-                    var args = new GenerateNumberTransform.Arguments();
-                    args.Column = new[] { new GenerateNumberTransform.Column() { Name = DefaultColumnNames.Name }, };
-                    args.UseCounter = true;
-                    var options = CmdParser.GetSettings(ch, args, new GenerateNumberTransform.Arguments());
                     preXf = preXf.Concat(
                         new[]
                         {
-                                new KeyValuePair<string, SubComponent<IDataTransform, SignatureDataTransform>>(
-                                    "", new SubComponent<IDataTransform, SignatureDataTransform>(
-                                        GenerateNumberTransform.LoadName, options))
+                            new KeyValuePair<string, IComponentFactory<IDataView, IDataTransform>>(
+                                "", ComponentFactoryUtils.CreateFromFunction<IDataView, IDataTransform>(
+                                    (env, input) =>
+                                    {
+                                        var args = new GenerateNumberTransform.Arguments();
+                                        args.Column = new[] { new GenerateNumberTransform.Column() { Name = DefaultColumnNames.Name }, };
+                                        args.UseCounter = true;
+                                        return new GenerateNumberTransform(env, args, input);
+                                    }))
                         }).ToArray();
                 }
             }
@@ -198,9 +199,8 @@ namespace Microsoft.ML.Runtime.Data
                 validDataCreator, ApplyAllTransformsToData, inputPredictor, cmd, loader, !string.IsNullOrEmpty(Args.OutputDataFile));
             var tasks = fold.GetCrossValidationTasks();
 
-            if (!evaluator.IsGood())
-                evaluator = EvaluateUtils.GetEvaluatorType(ch, tasks[0].Result.ScoreSchema);
-            var eval = evaluator.CreateInstance(Host);
+            var eval = evaluator?.CreateComponent(Host) ??
+                EvaluateUtils.GetEvaluator(Host, tasks[0].Result.ScoreSchema);
 
             // Print confusion matrix and fold results for each fold.
             for (int i = 0; i < tasks.Length; i++)
@@ -211,204 +211,40 @@ namespace Microsoft.ML.Runtime.Data
             }
 
             // Print the overall results.
-            eval.PrintOverallResults(ch, Args.SummaryFilename, tasks.Select(t => t.Result.Metrics).ToArray());
+            if (!TryGetOverallMetrics(tasks.Select(t => t.Result.Metrics).ToArray(), out var overallList))
+                throw ch.Except("No overall metrics found");
+
+            var overall = eval.GetOverallResults(overallList.ToArray());
+            MetricWriter.PrintOverallMetrics(Host, ch, Args.SummaryFilename, overall, Args.NumFolds);
+            eval.PrintAdditionalMetrics(ch, tasks.Select(t => t.Result.Metrics).ToArray());
             Dictionary<string, IDataView>[] metricValues = tasks.Select(t => t.Result.Metrics).ToArray();
             SendTelemetryMetric(metricValues);
 
             // Save the per-instance results.
             if (!string.IsNullOrWhiteSpace(Args.OutputDataFile))
             {
-                Func<Task<FoldHelper.FoldResult>, int, IDataView> getPerInstance =
-                    (task, i) =>
-                    {
-                        if (!Args.OutputExampleFoldIndex)
-                            return task.Result.PerInstanceResults;
-
-                        // If the fold index is requested, add a column containing it. We use the first column in the data view
-                        // as an input column to the LambdaColumnMapper, because it must have an input.
-                        var inputColName = task.Result.PerInstanceResults.Schema.GetColumnName(0);
-                        var inputColType = task.Result.PerInstanceResults.Schema.GetColumnType(0);
-                        return Utils.MarshalInvoke(EvaluateUtils.AddKeyColumn<int>, inputColType.RawType, Host,
-                            task.Result.PerInstanceResults, inputColName, MetricKinds.ColumnNames.FoldIndex,
-                            inputColType, Args.NumFolds, i + 1, "FoldIndex", default(ValueGetter<VBuffer<DvText>>));
-                    };
-
-                var foldDataViews = tasks.Select(getPerInstance).ToArray();
+                var perInstance = EvaluateUtils.ConcatenatePerInstanceDataViews(Host, eval, Args.CollateMetrics,
+                    Args.OutputExampleFoldIndex, tasks.Select(t => t.Result.PerInstanceResults).ToArray(), out var variableSizeVectorColumnNames);
+                if (variableSizeVectorColumnNames.Length > 0)
+                {
+                    ch.Warning("Detected columns of variable length: {0}. Consider setting collateMetrics- for meaningful per-Folds results.",
+                        string.Join(", ", variableSizeVectorColumnNames));
+                }
                 if (Args.CollateMetrics)
                 {
-                    var perInst = AppendPerInstanceDataViews(foldDataViews, ch);
-                    MetricWriter.SavePerInstance(Host, ch, Args.OutputDataFile, perInst);
+                    ch.Assert(perInstance.Length == 1);
+                    MetricWriter.SavePerInstance(Host, ch, Args.OutputDataFile, perInstance[0]);
                 }
                 else
                 {
                     int i = 0;
-                    foreach (var idv in foldDataViews)
+                    foreach (var idv in perInstance)
                     {
                         MetricWriter.SavePerInstance(Host, ch, ConstructPerFoldName(Args.OutputDataFile, i), idv);
                         i++;
                     }
                 }
             }
-        }
-
-        private IDataView AppendPerInstanceDataViews(IEnumerable<IDataView> foldDataViews, IChannel ch)
-        {
-            // Make sure there are no variable size vector columns.
-            // This is a dictionary from the column name to its vector size.
-            var vectorSizes = new Dictionary<string, int>();
-            var firstDvSlotNames = new Dictionary<string, VBuffer<DvText>>();
-            var firstDvKeyColumns = new List<string>();
-            var firstDvVectorKeyColumns = new List<string>();
-            var variableSizeVectorColumnNames = new List<string>();
-            var list = new List<IDataView>();
-            int dvNumber = 0;
-            foreach (var dv in foldDataViews)
-            {
-                var hidden = new List<int>();
-                for (int i = 0; i < dv.Schema.ColumnCount; i++)
-                {
-                    if (dv.Schema.IsHidden(i))
-                    {
-                        hidden.Add(i);
-                        continue;
-                    }
-
-                    var type = dv.Schema.GetColumnType(i);
-                    var name = dv.Schema.GetColumnName(i);
-                    if (type.IsVector)
-                    {
-                        if (dvNumber == 0)
-                        {
-                            if (dv.Schema.HasKeyNames(i, type.ItemType.KeyCount))
-                                firstDvVectorKeyColumns.Add(name);
-                            // Store the slot names of the 1st idv and use them as baseline.
-                            if (dv.Schema.HasSlotNames(i, type.VectorSize))
-                            {
-                                VBuffer<DvText> slotNames = default(VBuffer<DvText>);
-                                dv.Schema.GetMetadata(MetadataUtils.Kinds.SlotNames, i, ref slotNames);
-                                firstDvSlotNames.Add(name, slotNames);
-                            }
-                        }
-
-                        int cachedSize;
-                        if (vectorSizes.TryGetValue(name, out cachedSize))
-                        {
-                            VBuffer<DvText> slotNames;
-                            // In the event that no slot names were recorded here, then slotNames will be
-                            // the default, length 0 vector.
-                            firstDvSlotNames.TryGetValue(name, out slotNames);
-                            if (!VerifyVectorColumnsMatch(cachedSize, i, dv, type, ref slotNames))
-                                variableSizeVectorColumnNames.Add(name);
-                        }
-                        else
-                            vectorSizes.Add(name, type.VectorSize);
-                    }
-                    else if (dvNumber == 0 && dv.Schema.HasKeyNames(i, type.KeyCount))
-                    {
-                        // The label column can be a key. Reconcile the key values, and wrap with a KeyToValue transform.
-                        firstDvKeyColumns.Add(name);
-                    }
-                }
-                var idv = dv;
-                if (hidden.Count > 0)
-                {
-                    var args = new ChooseColumnsByIndexTransform.Arguments();
-                    args.Drop = true;
-                    args.Index = hidden.ToArray();
-                    idv = new ChooseColumnsByIndexTransform(Host, args, idv);
-                }
-                list.Add(idv);
-                dvNumber++;
-            }
-
-            if (variableSizeVectorColumnNames.Count == 0 && firstDvKeyColumns.Count == 0)
-                return AppendRowsDataView.Create(Host, null, list.ToArray());
-
-            var views = list.ToArray();
-            foreach (var keyCol in firstDvKeyColumns)
-                EvaluateUtils.ReconcileKeyValues(Host, views, keyCol);
-            foreach (var vectorKeyCol in firstDvVectorKeyColumns)
-                EvaluateUtils.ReconcileVectorKeyValues(Host, views, vectorKeyCol);
-
-            Func<IDataView, int, IDataView> keyToValue =
-                (idv, i) =>
-                {
-                    foreach (var keyCol in firstDvKeyColumns.Concat(firstDvVectorKeyColumns))
-                    {
-                        idv = new KeyToValueTransform(Host, new KeyToValueTransform.Arguments() { Column = new[] { new KeyToValueTransform.Column() { Name = keyCol }, } }, idv);
-                        var hidden = FindHiddenColumns(idv.Schema, keyCol);
-                        idv = new ChooseColumnsByIndexTransform(Host, new ChooseColumnsByIndexTransform.Arguments() { Drop = true, Index = hidden.ToArray() }, idv);
-                    }
-                    return idv;
-                };
-
-            Func<IDataView, IDataView> selectDropNonVarLenthCol =
-                (idv) =>
-                {
-                    foreach (var variableSizeVectorColumnName in variableSizeVectorColumnNames)
-                    {
-                        int index;
-                        idv.Schema.TryGetColumnIndex(variableSizeVectorColumnName, out index);
-                        var type = idv.Schema.GetColumnType(index);
-
-                        idv = Utils.MarshalInvoke(AddVarLengthColumn<int>, type.ItemType.RawType, Host, idv,
-                                 variableSizeVectorColumnName, type);
-
-                        // Drop the old column that does not have variable length.
-                        idv = new DropColumnsTransform(Host, new DropColumnsTransform.Arguments() { Column = new[] { variableSizeVectorColumnName } }, idv);
-                    }
-                    return idv;
-                };
-
-            if (variableSizeVectorColumnNames.Count > 0)
-                ch.Warning("Detected columns of variable length: {0}. Consider setting collateMetrics- for meaningful per-Folds results.", string.Join(", ", variableSizeVectorColumnNames));
-            return AppendRowsDataView.Create(Host, null, views.Select(keyToValue).Select(selectDropNonVarLenthCol).ToArray());
-        }
-
-        private static IEnumerable<int> FindHiddenColumns(ISchema schema, string colName)
-        {
-            for (int i = 0; i < schema.ColumnCount; i++)
-            {
-                if (schema.IsHidden(i) && schema.GetColumnName(i) == colName)
-                    yield return i;
-            }
-        }
-
-        private static bool VerifyVectorColumnsMatch(int cachedSize, int col, IDataView dv,
-            ColumnType type, ref VBuffer<DvText> firstDvSlotNames)
-        {
-            if (cachedSize != type.VectorSize)
-                return false;
-
-            // If we detect mismatch it a sign that slots reshuffling has happened.
-            if (dv.Schema.HasSlotNames(col, type.VectorSize))
-            {
-                // Verify that slots match with slots from 1st idv.
-                VBuffer<DvText> currSlotNames = default(VBuffer<DvText>);
-                dv.Schema.GetMetadata(MetadataUtils.Kinds.SlotNames, col, ref currSlotNames);
-
-                if (currSlotNames.Length != firstDvSlotNames.Length)
-                    return false;
-                else
-                {
-                    var result = true;
-                    VBufferUtils.ForEachEitherDefined(ref currSlotNames, ref firstDvSlotNames,
-                        (slot, val1, val2) => result = result && DvText.Identical(val1, val2));
-                    return result;
-                }
-            }
-            else
-            {
-                // If we don't have slot names, then the first dataview should not have had slot names either.
-                return firstDvSlotNames.Length == 0;
-            }
-        }
-
-        private static IDataView AddVarLengthColumn<TSrc>(IHostEnvironment env, IDataView idv, string variableSizeVectorColumnName, ColumnType typeSrc)
-        {
-            return LambdaColumnMapper.Create(env, "ChangeToVarLength", idv, variableSizeVectorColumnName,
-                       variableSizeVectorColumnName + "_VarLength", typeSrc, new VectorType(typeSrc.ItemType.AsPrimitive),
-                       (ref VBuffer<TSrc> src, ref VBuffer<TSrc> dst) => src.CopyTo(ref dst));
         }
 
         /// <summary>
@@ -418,7 +254,7 @@ namespace Microsoft.ML.Runtime.Data
             RoleMappedData srcData, IDataView marker)
         {
             var pipe = ApplyTransformUtils.ApplyAllTransformsToData(env, srcData.Data, dstData, marker);
-            return RoleMappedData.Create(pipe, srcData.Schema.GetColumnRoleNames());
+            return new RoleMappedData(pipe, srcData.Schema.GetColumnRoleNames());
         }
 
         /// <summary>
@@ -427,7 +263,7 @@ namespace Microsoft.ML.Runtime.Data
         private RoleMappedData CreateRoleMappedData(IHostEnvironment env, IChannel ch, IDataView data, ITrainer trainer)
         {
             foreach (var kvp in Args.Transform)
-                data = kvp.Value.CreateInstance(env, data);
+                data = kvp.Value.CreateComponent(env, data);
 
             var schema = data.Schema;
             string label = TrainUtils.MatchNameOrDefaultOrNull(ch, schema, nameof(Args.LabelColumn), Args.LabelColumn, DefaultColumnNames.Label);
@@ -441,7 +277,7 @@ namespace Microsoft.ML.Runtime.Data
             // Training pipe and examples.
             var customCols = TrainUtils.CheckAndGenerateCustomColumns(ch, Args.CustomColumn);
 
-            return TrainUtils.CreateExamples(data, label, features, group, weight, name, customCols);
+            return new RoleMappedData(data, label, features, group, weight, name, customCols);
         }
 
         private string GetSplitColumn(IChannel ch, IDataView input, ref IDataView output)
@@ -494,14 +330,27 @@ namespace Microsoft.ML.Runtime.Data
                     int inc = 0;
                     while (input.Schema.TryGetColumnIndex(stratificationColumn, out tmp))
                         stratificationColumn = string.Format("{0}_{1:000}", origStratCol, ++inc);
-                    var hashargs = new HashTransform.Arguments();
-                    hashargs.Column = new[] { new HashTransform.Column { Source = origStratCol, Name = stratificationColumn } };
-                    hashargs.HashBits = 30;
-                    output = new HashTransform(Host, hashargs, input);
+                    output = new HashEstimator(Host, origStratCol, stratificationColumn, 30).Fit(input).Transform(input);
                 }
             }
 
             return stratificationColumn;
+        }
+
+        private bool TryGetOverallMetrics(Dictionary<string, IDataView>[] metrics, out List<IDataView> overallList)
+        {
+            Host.AssertNonEmpty(metrics);
+
+            overallList = new List<IDataView>();
+            for (int i = 0; i < metrics.Length; i++)
+            {
+                var dict = metrics[i];
+                IDataView idv;
+                if (!dict.TryGetValue(MetricKinds.OverallMetrics, out idv))
+                    return false;
+                overallList.Add(idv);
+            }
+            return true;
         }
 
         private sealed class FoldHelper
@@ -510,10 +359,10 @@ namespace Microsoft.ML.Runtime.Data
             {
                 public readonly Dictionary<string, IDataView> Metrics;
                 public readonly ISchema ScoreSchema;
-                public readonly IDataView PerInstanceResults;
+                public readonly RoleMappedData PerInstanceResults;
                 public readonly RoleMappedSchema TrainSchema;
 
-                public FoldResult(Dictionary<string, IDataView> metrics, ISchema scoreSchema, IDataView perInstance, RoleMappedSchema trainSchema)
+                public FoldResult(Dictionary<string, IDataView> metrics, ISchema scoreSchema, RoleMappedData perInstance, RoleMappedSchema trainSchema)
                 {
                     Metrics = metrics;
                     ScoreSchema = scoreSchema;
@@ -527,10 +376,10 @@ namespace Microsoft.ML.Runtime.Data
             private readonly IDataView _inputDataView;
             private readonly string _splitColumn;
             private readonly int _numFolds;
-            private readonly SubComponent<ITrainer, SignatureTrainer> _trainer;
-            private readonly SubComponent<IDataScorerTransform, SignatureDataScorer> _scorer;
-            private readonly SubComponent<IMamlEvaluator, SignatureMamlEvaluator> _evaluator;
-            private readonly SubComponent<ICalibratorTrainer, SignatureCalibrator> _calibrator;
+            private readonly IComponentFactory<ITrainer> _trainer;
+            private readonly IComponentFactory<IDataView, ISchemaBoundMapper, RoleMappedSchema, IDataScorerTransform> _scorer;
+            private readonly IComponentFactory<IMamlEvaluator> _evaluator;
+            private readonly IComponentFactory<ICalibratorTrainer> _calibrator;
             private readonly int _maxCalibrationExamples;
             private readonly bool _useThreads;
             private readonly bool? _cacheData;
@@ -568,8 +417,8 @@ namespace Microsoft.ML.Runtime.Data
             Arguments args,
             Func<IHostEnvironment, IChannel, IDataView, ITrainer, RoleMappedData> createExamples,
             Func<IHostEnvironment, IChannel, IDataView, RoleMappedData, IDataView, RoleMappedData> applyTransformsToTestData,
-            SubComponent<IDataScorerTransform, SignatureDataScorer> scorer,
-            SubComponent<IMamlEvaluator, SignatureMamlEvaluator> evaluator,
+            IComponentFactory<IDataView, ISchemaBoundMapper, RoleMappedSchema, IDataScorerTransform> scorer,
+            IComponentFactory<IMamlEvaluator> evaluator,
             Func<IDataView> getValidationDataView = null,
             Func<IHostEnvironment, IChannel, IDataView, RoleMappedData, IDataView, RoleMappedData> applyTransformsToValidationData = null,
             IPredictor inputPredictor = null,
@@ -584,7 +433,7 @@ namespace Microsoft.ML.Runtime.Data
                 env.CheckParam(args.NumFolds > 1, nameof(args.NumFolds));
                 env.CheckValue(createExamples, nameof(createExamples));
                 env.CheckValue(applyTransformsToTestData, nameof(applyTransformsToTestData));
-                env.CheckParam(args.Trainer.IsGood(), nameof(args.Trainer));
+                env.CheckValue(args.Trainer, nameof(args.Trainer));
                 env.CheckValueOrNull(scorer);
                 env.CheckValueOrNull(evaluator);
                 env.CheckValueOrNull(args.Calibrator);
@@ -659,7 +508,7 @@ namespace Microsoft.ML.Runtime.Data
                 using (var ch = host.Start($"Fold {fold}"))
                 {
                     ch.Trace("Constructing trainer");
-                    ITrainer trainer = _trainer.CreateInstance(host);
+                    ITrainer trainer = _trainer.CreateComponent(host);
 
                     // Train pipe.
                     var trainFilter = new RangeFilter.Arguments();
@@ -686,7 +535,7 @@ namespace Microsoft.ML.Runtime.Data
                     if (_getValidationDataView != null)
                     {
                         ch.Assert(_applyTransformsToValidationData != null);
-                        if (!TrainUtils.CanUseValidationData(trainer))
+                        if (!trainer.Info.SupportsValidation)
                             ch.Warning("Trainer does not accept validation dataset.");
                         else
                         {
@@ -699,16 +548,17 @@ namespace Microsoft.ML.Runtime.Data
                     }
 
                     // Train.
-                    var predictor = TrainUtils.Train(host, ch, trainData, trainer, _trainer.Kind, validData,
+                    var predictor = TrainUtils.Train(host, ch, trainData, trainer, validData,
                         _calibrator, _maxCalibrationExamples, _cacheData, _inputPredictor);
 
                     // Score.
                     ch.Trace("Scoring and evaluating");
-                    var bindable = ScoreUtils.GetSchemaBindableMapper(host, predictor, _scorer);
+                    ch.Assert(_scorer == null || _scorer is ICommandLineComponentFactory, "CrossValidationCommand should only be used from the command line.");
+                    var bindable = ScoreUtils.GetSchemaBindableMapper(host, predictor, scorerFactorySettings: _scorer as ICommandLineComponentFactory);
                     ch.AssertValue(bindable);
                     var mapper = bindable.Bind(host, testData.Schema);
-                    var scorerComp = _scorer.IsGood() ? _scorer : ScoreUtils.GetScorerComponent(mapper);
-                    IDataScorerTransform scorePipe = scorerComp.CreateInstance(host, testData.Data, mapper, trainData.Schema);
+                    var scorerComp = _scorer ?? ScoreUtils.GetScorerComponent(host, mapper);
+                    IDataScorerTransform scorePipe = scorerComp.CreateComponent(host, testData.Data, mapper, trainData.Schema);
 
                     // Save per-fold model.
                     string modelFileName = ConstructPerFoldName(_outputModelFile, fold);
@@ -716,7 +566,7 @@ namespace Microsoft.ML.Runtime.Data
                     {
                         using (var file = host.CreateOutputFile(modelFileName))
                         {
-                            var rmd = RoleMappedData.Create(
+                            var rmd = new RoleMappedData(
                                 CompositeDataLoader.ApplyTransform(host, _loader, null, null,
                                 (e, newSource) => ApplyTransformUtils.ApplyAllTransformsToData(e, trainData.Data, newSource)),
                                 trainData.Schema.GetColumnRoleNames());
@@ -725,22 +575,19 @@ namespace Microsoft.ML.Runtime.Data
                     }
 
                     // Evaluate.
-                    var evalComp = _evaluator;
-                    if (!evalComp.IsGood())
-                        evalComp = EvaluateUtils.GetEvaluatorType(ch, scorePipe.Schema);
-                    var eval = evalComp.CreateInstance(host);
-                    // Note that this doesn't require the provided columns to exist (because of "Opt").
+                    var eval = _evaluator?.CreateComponent(host) ??
+                        EvaluateUtils.GetEvaluator(host, scorePipe.Schema);
+                    // Note that this doesn't require the provided columns to exist (because of the "opt" parameter).
                     // We don't normally expect the scorer to drop columns, but if it does, we should not require
                     // all the columns in the test pipeline to still be present.
-                    var dataEval = RoleMappedData.CreateOpt(scorePipe, testData.Schema.GetColumnRoleNames());
+                    var dataEval = new RoleMappedData(scorePipe, testData.Schema.GetColumnRoleNames(), opt: true);
 
                     var dict = eval.Evaluate(dataEval);
-                    IDataView perInstance = null;
+                    RoleMappedData perInstance = null;
                     if (_savePerInstance)
                     {
                         var perInst = eval.GetPerInstanceMetrics(dataEval);
-                        var perInstData = RoleMappedData.CreateOpt(perInst, dataEval.Schema.GetColumnRoleNames());
-                        perInstance = eval.GetPerInstanceDataViewToSave(perInstData);
+                        perInstance = new RoleMappedData(perInst, dataEval.Schema.GetColumnRoleNames(), opt: true);
                     }
                     ch.Done();
                     return new FoldResult(dict, dataEval.Schema.Schema, perInstance, trainData.Schema);

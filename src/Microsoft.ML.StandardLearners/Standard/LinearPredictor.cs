@@ -44,6 +44,7 @@ namespace Microsoft.ML.Runtime.Learners
         ICanSaveInTextFormat,
         ICanSaveInSourceCode,
         ICanSaveModel,
+        ICanGetSummaryAsIRow,
         ICanSaveSummary,
         IPredictorWithFeatureWeights<Float>,
         IWhatTheFeatureValueMapper,
@@ -235,13 +236,12 @@ namespace Microsoft.ML.Runtime.Learners
             Host.Check(Utils.Size(outputs) == 1);
 
             string opType = "LinearRegressor";
-            var node = OnnxUtils.MakeNode(opType, new List<string> { featureColumn }, new List<string> (outputs), ctx.GetNodeName(opType));
+            var node = ctx.CreateNode(opType, new[] { featureColumn }, outputs, ctx.GetNodeName(opType));
             // Selection of logit or probit output transform. enum {'NONE', 'LOGIT', 'PROBIT}
-            OnnxUtils.NodeAddAttributes(node, "post_transform", 0);
-            OnnxUtils.NodeAddAttributes(node, "targets", 1);
-            OnnxUtils.NodeAddAttributes(node, "coefficients", Weight.DenseValues());
-            OnnxUtils.NodeAddAttributes(node, "intercepts", Bias);
-            ctx.AddNode(node);
+            node.AddAttribute("post_transform", "NONE");
+            node.AddAttribute("targets", 1);
+            node.AddAttribute("coefficients", Weight.DenseValues());
+            node.AddAttribute("intercepts", new float[] { Bias });
             return true;
         }
 
@@ -343,6 +343,30 @@ namespace Microsoft.ML.Runtime.Learners
 
         public abstract void SaveSummary(TextWriter writer, RoleMappedSchema schema);
 
+        public virtual IRow GetSummaryIRowOrNull(RoleMappedSchema schema)
+        {
+            var cols = new List<IColumn>();
+
+            var names = default(VBuffer<ReadOnlyMemory<char>>);
+            MetadataUtils.GetSlotNames(schema, RoleMappedSchema.ColumnRole.Feature, Weight.Length, ref names);
+            var slotNamesCol = RowColumnUtils.GetColumn(MetadataUtils.Kinds.SlotNames,
+                new VectorType(TextType.Instance, Weight.Length), ref names);
+            var slotNamesRow = RowColumnUtils.GetRow(null, slotNamesCol);
+            var colType = new VectorType(NumberType.R4, Weight.Length);
+
+            // Add the bias and the weight columns.
+            var bias = Bias;
+            cols.Add(RowColumnUtils.GetColumn("Bias", NumberType.R4, ref bias));
+            var weights = Weight;
+            cols.Add(RowColumnUtils.GetColumn("Weights", colType, ref weights, slotNamesRow));
+            return RowColumnUtils.GetRow(null, cols.ToArray());
+        }
+
+        public virtual IRow GetStatsIRowOrNull(RoleMappedSchema schema)
+        {
+            return null;
+        }
+
         public abstract void SaveAsIni(TextWriter writer, RoleMappedSchema schema, ICalibrator calibrator = null);
 
         public virtual void GetFeatureWeights(ref VBuffer<Float> weights)
@@ -366,8 +390,7 @@ namespace Microsoft.ML.Runtime.Learners
 
     public sealed partial class LinearBinaryPredictor : LinearPredictor,
         ICanGetSummaryInKeyValuePairs,
-        IParameterMixer<Float>,
-        ICanGetSummaryAsIRow
+        IParameterMixer<Float>
     {
         public const string LoaderSignature = "Linear2CExec";
         public const string RegistrationName = "LinearBinaryPredictor";
@@ -386,7 +409,8 @@ namespace Microsoft.ML.Runtime.Learners
                 verWrittenCur: 0x00020002, // Added model statistics
                 verReadableCur: 0x00020001,
                 verWeCanReadBack: 0x00020001,
-                loaderSignature: LoaderSignature);
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(LinearBinaryPredictor).Assembly.FullName);
         }
 
         /// <summary>
@@ -464,9 +488,7 @@ namespace Microsoft.ML.Runtime.Learners
             ctx.SetVersionInfo(GetVersionInfo());
         }
 
-        public override PredictionKind PredictionKind {
-            get { return PredictionKind.BinaryClassification; }
-        }
+        public override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
 
         /// <summary>
         /// Combine a bunch of models into one by averaging parameters
@@ -503,31 +525,12 @@ namespace Microsoft.ML.Runtime.Learners
             return results;
         }
 
-        public IRow GetSummaryIRowOrNull(RoleMappedSchema schema)
-        {
-            var cols = new List<IColumn>();
-
-            var names = default(VBuffer<DvText>);
-            MetadataUtils.GetSlotNames(schema, RoleMappedSchema.ColumnRole.Feature, Weight.Length, ref names);
-            var slotNamesCol = RowColumnUtils.GetColumn(MetadataUtils.Kinds.SlotNames,
-                new VectorType(TextType.Instance, Weight.Length), ref names);
-            var slotNamesRow = RowColumnUtils.GetRow(null, slotNamesCol);
-            var colType = new VectorType(NumberType.R4, Weight.Length);
-
-            // Add the bias and the weight columns.
-            var bias = Bias;
-            cols.Add(RowColumnUtils.GetColumn("Bias", NumberType.R4, ref bias));
-            var weights = Weight;
-            cols.Add(RowColumnUtils.GetColumn("Weights", colType, ref weights, slotNamesRow));
-            return RowColumnUtils.GetRow(null, cols.ToArray());
-        }
-
-        public IRow GetStatsIRowOrNull(RoleMappedSchema schema)
+        public override IRow GetStatsIRowOrNull(RoleMappedSchema schema)
         {
             if (_stats == null)
                 return null;
             var cols = new List<IColumn>();
-            var names = default(VBuffer<DvText>);
+            var names = default(VBuffer<ReadOnlyMemory<char>>);
             MetadataUtils.GetSlotNames(schema, RoleMappedSchema.ColumnRole.Feature, Weight.Length, ref names);
 
             // Add the stat columns.
@@ -549,7 +552,7 @@ namespace Microsoft.ML.Runtime.Learners
 
     public abstract class RegressionPredictor : LinearPredictor
     {
-        internal RegressionPredictor(IHostEnvironment env, string name, ref VBuffer<Float> weights, Float bias)
+        protected RegressionPredictor(IHostEnvironment env, string name, ref VBuffer<Float> weights, Float bias)
             : base(env, name, ref weights, bias)
         {
         }
@@ -582,8 +585,7 @@ namespace Microsoft.ML.Runtime.Learners
 
     public sealed class LinearRegressionPredictor : RegressionPredictor,
         IParameterMixer<Float>,
-        ICanGetSummaryInKeyValuePairs,
-        ICanGetSummaryAsIRow
+        ICanGetSummaryInKeyValuePairs
     {
         public const string LoaderSignature = "LinearRegressionExec";
         public const string RegistrationName = "LinearRegressionPredictor";
@@ -596,7 +598,8 @@ namespace Microsoft.ML.Runtime.Learners
                 verWrittenCur: 0x00020001, // Fixed sparse serialization
                 verReadableCur: 0x00020001,
                 verWeCanReadBack: 0x00020001,
-                loaderSignature: LoaderSignature);
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(LinearRegressionPredictor).Assembly.FullName);
         }
 
         /// <summary>
@@ -663,30 +666,6 @@ namespace Microsoft.ML.Runtime.Learners
 
             return results;
         }
-
-        public IRow GetSummaryIRowOrNull(RoleMappedSchema schema)
-        {
-            var cols = new List<IColumn>();
-
-            var names = default(VBuffer<DvText>);
-            MetadataUtils.GetSlotNames(schema, RoleMappedSchema.ColumnRole.Feature, Weight.Length, ref names);
-            var slotNamesCol = RowColumnUtils.GetColumn(MetadataUtils.Kinds.SlotNames,
-                new VectorType(TextType.Instance, Weight.Length), ref names);
-            var slotNamesRow = RowColumnUtils.GetRow(null, slotNamesCol);
-            var colType = new VectorType(NumberType.R4, Weight.Length);
-
-            // Add the bias and the weight columns.
-            var bias = Bias;
-            cols.Add(RowColumnUtils.GetColumn("Bias", NumberType.R4, ref bias));
-            var weights = Weight;
-            cols.Add(RowColumnUtils.GetColumn("Weights", colType, ref weights, slotNamesRow));
-            return RowColumnUtils.GetRow(null, cols.ToArray());
-        }
-
-        public IRow GetStatsIRowOrNull(RoleMappedSchema schema)
-        {
-            return null;
-        }
     }
 
     public sealed class PoissonRegressionPredictor : RegressionPredictor, IParameterMixer<Float>
@@ -702,7 +681,8 @@ namespace Microsoft.ML.Runtime.Learners
                 verWrittenCur: 0x00020001, // Fixed sparse serialization
                 verReadableCur: 0x00020001,
                 verWeCanReadBack: 0x00020001,
-                loaderSignature: LoaderSignature);
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(PoissonRegressionPredictor).Assembly.FullName);
         }
 
         internal PoissonRegressionPredictor(IHostEnvironment env, ref VBuffer<Float> weights, Float bias)

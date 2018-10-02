@@ -24,7 +24,7 @@ namespace Microsoft.ML.Runtime.Numeric
         {
             Contracts.Check(Utils.Size(a) == Utils.Size(b), "Arrays must have the same length");
             Contracts.Check(Utils.Size(a) > 0);
-            return SseUtils.DotProductDense(a, b, a.Length);
+            return CpuMathUtils.DotProductDense(a, b, a.Length);
         }
 
         public static Float DotProduct(Float[] a, ref VBuffer<Float> b)
@@ -33,8 +33,8 @@ namespace Microsoft.ML.Runtime.Numeric
             if (b.Count == 0)
                 return 0;
             if (b.IsDense)
-                return SseUtils.DotProductDense(a, b.Values, b.Length);
-            return SseUtils.DotProductSparse(a, b.Values, b.Indices, b.Count);
+                return CpuMathUtils.DotProductDense(a, b.Values, b.Length);
+            return CpuMathUtils.DotProductSparse(a, b.Values, b.Indices, b.Count);
         }
 
         public static Float DotProduct(ref VBuffer<Float> a, ref VBuffer<Float> b)
@@ -47,17 +47,17 @@ namespace Microsoft.ML.Runtime.Numeric
             if (a.IsDense)
             {
                 if (b.IsDense)
-                    return SseUtils.DotProductDense(a.Values, b.Values, a.Length);
-                return SseUtils.DotProductSparse(a.Values, b.Values, b.Indices, b.Count);
+                    return CpuMathUtils.DotProductDense(a.Values, b.Values, a.Length);
+                return CpuMathUtils.DotProductSparse(a.Values, b.Values, b.Indices, b.Count);
             }
 
             if (b.IsDense)
-                return SseUtils.DotProductSparse(b.Values, a.Values, a.Indices, a.Count);
+                return CpuMathUtils.DotProductSparse(b.Values, a.Values, a.Indices, a.Count);
             return DotProductSparse(a.Values, a.Indices, 0, a.Count, b.Values, b.Indices, 0, b.Count, 0);
         }
 
         /// <summary>
-        ///  Sparsify vector A (keep at most <paramref name="top"/>+<paramref name="bottom"/> values) 
+        ///  Sparsify vector A (keep at most <paramref name="top"/>+<paramref name="bottom"/> values)
         /// and optionally rescale values to the [-1, 1] range.
         /// <param name="a">Vector to be sparsified and normalized.</param>
         /// <param name="top">How many top (positive) elements to preserve after sparsification.</param>
@@ -159,7 +159,7 @@ namespace Microsoft.ML.Runtime.Numeric
             Contracts.Check(a.Length == dst.Length, "Vectors must have the same dimensionality.");
 
             if (a.IsDense && dst.IsDense)
-                SseUtils.MulElementWise(a.Values, dst.Values, dst.Values, a.Length);
+                CpuMathUtils.MulElementWise(a.Values, dst.Values, dst.Values, a.Length);
             else
                 VBufferUtils.ApplyWithEitherDefined(ref a, ref dst, (int ind, Float v1, ref Float v2) => { v2 *= v1; });
         }
@@ -228,11 +228,11 @@ namespace Microsoft.ML.Runtime.Numeric
             Contracts.Assert(0 <= countB && countB <= Utils.Size(indicesB));
             Contracts.Assert(countB <= Utils.Size(valuesB));
 
-            var normA = SseUtils.SumSq(valuesA, 0, lengthA);
+            var normA = CpuMathUtils.SumSq(valuesA, 0, lengthA);
             if (countB == 0)
                 return normA;
-            var normB = SseUtils.SumSq(valuesB, 0, countB);
-            var dotP = SseUtils.DotProductSparse(valuesA, valuesB, indicesB, countB);
+            var normB = CpuMathUtils.SumSq(valuesB, 0, countB);
+            var dotP = CpuMathUtils.DotProductSparse(valuesA, valuesB, indicesB, countB);
             var res = normA + normB - 2 * dotP;
             return res < 0 ? 0 : res;
         }
@@ -246,7 +246,7 @@ namespace Microsoft.ML.Runtime.Numeric
 
             if (length == 0)
                 return 0;
-            return SseUtils.L2DistSquared(valuesA, valuesB, length);
+            return CpuMathUtils.L2DistSquared(valuesA, valuesB, length);
         }
 
         /// <summary>
@@ -267,8 +267,8 @@ namespace Microsoft.ML.Runtime.Numeric
             if (a.IsDense)
             {
                 if (b.IsDense)
-                    return SseUtils.DotProductDense(a.Values, offset, b.Values, b.Length);
-                return SseUtils.DotProductSparse(a.Values, offset, b.Values, b.Indices, b.Count);
+                    return CpuMathUtils.DotProductDense(a.Values, offset, b.Values, b.Length);
+                return CpuMathUtils.DotProductSparse(a.Values, offset, b.Values, b.Indices, b.Count);
             }
             else
             {
@@ -314,8 +314,8 @@ namespace Microsoft.ML.Runtime.Numeric
                 return 0;
 
             if (b.IsDense)
-                return SseUtils.DotProductDense(a, offset, b.Values, b.Length);
-            return SseUtils.DotProductSparse(a, offset, b.Values, b.Indices, b.Count);
+                return CpuMathUtils.DotProductDense(a, offset, b.Values, b.Length);
+            return CpuMathUtils.DotProductSparse(a, offset, b.Values, b.Indices, b.Count);
         }
 
         private static Float DotProductSparse(Float[] aValues, int[] aIndices, int ia, int iaLim, Float[] bValues, int[] bIndices, int ib, int ibLim, int offset)
@@ -434,7 +434,7 @@ namespace Microsoft.ML.Runtime.Numeric
             Contracts.CheckParam(src.Length == dst.Length, nameof(dst), "Arrays must have the same dimensionality.");
             if (src.Length == 0)
                 return;
-            SseUtils.Add(src, dst, src.Length);
+            CpuMathUtils.Add(src, dst, src.Length);
         }
 
         /// <summary>
@@ -452,7 +452,7 @@ namespace Microsoft.ML.Runtime.Numeric
                 return;
 
             if (src.IsDense)
-                SseUtils.AddScale(c, src.Values, dst, src.Count);
+                CpuMathUtils.AddScale(c, src.Values, dst, src.Count);
             else
             {
                 for (int i = 0; i < src.Count; i++)
@@ -502,7 +502,7 @@ namespace Microsoft.ML.Runtime.Numeric
             if (c == 0)
                 return;
 
-            SseUtils.AddScale(c, src, dst, src.Length);
+            CpuMathUtils.AddScale(c, src, dst, src.Length);
         }
 
         /// <summary>
@@ -510,7 +510,7 @@ namespace Microsoft.ML.Runtime.Numeric
         /// </summary>
         public static Float Norm(Float[] a)
         {
-            return MathUtils.Sqrt(SseUtils.SumSq(a, a.Length));
+            return MathUtils.Sqrt(CpuMathUtils.SumSq(a, a.Length));
         }
 
         /// <summary>
@@ -520,7 +520,7 @@ namespace Microsoft.ML.Runtime.Numeric
         {
             if (a == null || a.Length == 0)
                 return 0;
-            return SseUtils.Sum(a, a.Length);
+            return CpuMathUtils.Sum(a, a.Length);
         }
 
         /// <summary>
@@ -534,7 +534,7 @@ namespace Microsoft.ML.Runtime.Numeric
                 return;
 
             if (c != 0)
-                SseUtils.Scale(c, dst, dst.Length);
+                CpuMathUtils.Scale(c, dst, dst.Length);
             else
                 Array.Clear(dst, 0, dst.Length);
         }

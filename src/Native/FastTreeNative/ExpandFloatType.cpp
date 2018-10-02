@@ -16,7 +16,8 @@
 #include "SumupOneBit.h"
 
 // Ideally we should expand this using C++ templates. 
-// However, In order to exporting functions from DLL float and double versions need to have different names (cannot be overloaded on type parameters)// Expanding here with ugly pre-processor macros to get double and float versions (with fucntion mes suffixes _float and _double)
+// However, in order to export functions from DLL, float and double versions need to have different names (cannot be overloaded on type parameters)
+// Expanding here with ugly pre-processor macros to get double and float versions (with function name suffixes _float and _double)
 // --andrzejp, 2010-03-05
 
 #define FloatType float

@@ -19,7 +19,7 @@ using Microsoft.ML.Runtime.Internal.Utilities;
 
 namespace Microsoft.ML.Runtime.Data
 {
-    // REVIEW: For simplicity (since this is currently the case), 
+    // REVIEW: For simplicity (since this is currently the case),
     // we assume that all metrics are either numeric, or numeric vectors.
     /// <summary>
     /// This class contains information about an overall metric, namely its name and whether it is a vector
@@ -92,7 +92,7 @@ namespace Microsoft.ML.Runtime.Data
     public interface IEvaluator
     {
         /// <summary>
-        /// Compute the aggregate metrics. Return a dictionary from the metric kind 
+        /// Compute the aggregate metrics. Return a dictionary from the metric kind
         /// (overal/per-fold/confusion matrix/PR-curves etc.), to a data view containing the metric.
         /// </summary>
         Dictionary<string, IDataView> Evaluate(RoleMappedData data);
@@ -130,8 +130,8 @@ namespace Microsoft.ML.Runtime.Data
             [Argument(ArgumentType.LastOccurenceWins, HelpText = "Columns with custom kinds declared through key assignments, e.g., col[Kind]=Name to assign column named 'Name' kind 'Kind'", ShortName = "col", SortOrder = 10)]
             public KeyValuePair<string, string>[] CustomColumn;
 
-            [Argument(ArgumentType.Multiple, HelpText = "Evaluator to use", ShortName = "eval")]
-            public SubComponent<IMamlEvaluator, SignatureMamlEvaluator> Evaluator;
+            [Argument(ArgumentType.Multiple, HelpText = "Evaluator to use", ShortName = "eval", SignatureType = typeof(SignatureMamlEvaluator))]
+            public IComponentFactory<IMamlEvaluator> Evaluator;
         }
 
         internal const string Summary = "Runs a previously trained predictor on the data.";
@@ -153,12 +153,10 @@ namespace Microsoft.ML.Runtime.Data
                 var customCols = TrainUtils.CheckAndGenerateCustomColumns(ch, args.CustomColumn);
 
                 ch.Trace("Creating evaluator");
-                var evalComp = args.Evaluator;
-                if (!evalComp.IsGood())
-                    evalComp = EvaluateUtils.GetEvaluatorType(ch, input.Schema);
+                IMamlEvaluator eval = args.Evaluator?.CreateComponent(env) ??
+                    EvaluateUtils.GetEvaluator(env, input.Schema);
 
-                var eval = evalComp.CreateInstance(env);
-                var data = TrainUtils.CreateExamples(input, label, null, group, weight, null, customCols);
+                var data = new RoleMappedData(input, label, null, group, weight, null, customCols);
                 return eval.GetPerInstanceMetrics(data);
             }
         }
@@ -183,8 +181,8 @@ namespace Microsoft.ML.Runtime.Data
             [Argument(ArgumentType.LastOccurenceWins, HelpText = "Columns with custom kinds declared through key assignments, e.g., col[Kind]=Name to assign column named 'Name' kind 'Kind'", ShortName = "col", SortOrder = 10)]
             public KeyValuePair<string, string>[] CustomColumn;
 
-            [Argument(ArgumentType.Multiple, HelpText = "Evaluator to use", ShortName = "eval")]
-            public SubComponent<IMamlEvaluator, SignatureMamlEvaluator> Evaluator;
+            [Argument(ArgumentType.Multiple, HelpText = "Evaluator to use", ShortName = "eval", SignatureType = typeof(SignatureMamlEvaluator))]
+            public IComponentFactory<IMamlEvaluator> Evaluator;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Results summary filename", ShortName = "sf")]
             public string SummaryFilename;
@@ -217,7 +215,8 @@ namespace Microsoft.ML.Runtime.Data
             Host.AssertValue(ch);
 
             ch.Trace("Creating loader");
-            IDataView view = CreateAndSaveLoader(IO.BinaryLoader.LoadName);
+            IDataView view = CreateAndSaveLoader(
+                (env, source) => new IO.BinaryLoader(env, new IO.BinaryLoader.Arguments(), source));
 
             ch.Trace("Binding columns");
             ISchema schema = view.Schema;
@@ -232,19 +231,22 @@ namespace Microsoft.ML.Runtime.Data
             var customCols = TrainUtils.CheckAndGenerateCustomColumns(ch, Args.CustomColumn);
 
             ch.Trace("Creating evaluator");
-            var evalComp = Args.Evaluator;
-            if (!evalComp.IsGood())
-                evalComp = EvaluateUtils.GetEvaluatorType(ch, view.Schema);
-            var evaluator = evalComp.CreateInstance(Host);
-            var data = TrainUtils.CreateExamples(view, label, null, group, weight, name, customCols);
+            var evaluator = Args.Evaluator?.CreateComponent(Host) ??
+                EvaluateUtils.GetEvaluator(Host, view.Schema);
+
+            var data = new RoleMappedData(view, label, null, group, weight, name, customCols);
             var metrics = evaluator.Evaluate(data);
             MetricWriter.PrintWarnings(ch, metrics);
             evaluator.PrintFoldResults(ch, metrics);
-            evaluator.PrintOverallResults(ch, Args.SummaryFilename, metrics);
+            if (!metrics.TryGetValue(MetricKinds.OverallMetrics, out var overall))
+                throw ch.Except("No overall metrics found");
+            overall = evaluator.GetOverallResults(overall);
+            MetricWriter.PrintOverallMetrics(Host, ch, Args.SummaryFilename, overall, 1);
+            evaluator.PrintAdditionalMetrics(ch, metrics);
             if (!string.IsNullOrWhiteSpace(Args.OutputDataFile))
             {
                 var perInst = evaluator.GetPerInstanceMetrics(data);
-                var perInstData = TrainUtils.CreateExamples(perInst, label, null, group, weight, name, customCols);
+                var perInstData = new RoleMappedData(perInst, label, null, group, weight, name, customCols);
                 var idv = evaluator.GetPerInstanceDataViewToSave(perInstData);
                 MetricWriter.SavePerInstance(Host, ch, Args.OutputDataFile, idv);
             }

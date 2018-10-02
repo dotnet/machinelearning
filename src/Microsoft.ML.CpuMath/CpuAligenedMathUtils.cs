@@ -16,7 +16,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 #if DEBUG
             var mat = values as TMatrix;
             Contracts.AssertValue(mat);
-            Contracts.Assert(mat.Items.CbAlign == SseUtils.CbAlign);
+            Contracts.Assert((mat.Items.CbAlign % CpuMathUtils.GetVectorAlignment()) == 0);
 #endif
         }
 
@@ -29,7 +29,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 #if DEBUG
             CpuAlignedVector vec = values as CpuAlignedVector;
             Contracts.AssertValue(vec);
-            Contracts.Assert(vec.Items.CbAlign == SseUtils.CbAlign);
+            Contracts.Assert((vec.Items.CbAlign % CpuMathUtils.GetVectorAlignment()) == 0);
 #endif
         }
 
@@ -89,7 +89,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             bool colMajor = typeof(TMatrix) == typeof(CpuAlignedMatrixCol);
             AssertCompatible(mat, src, dst);
             var m = A(mat);
-            SseUtils.MatTimesSrc(colMajor, add, m.Items, A(src).Items, A(dst).Items, m.RunCnt);
+            CpuMathUtils.MatTimesSrc(colMajor, add, m.Items, A(src).Items, A(dst).Items, m.RunCnt);
         }
 
         /// <summary>
@@ -108,14 +108,14 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             bool colMajor = typeof(TMatrix) == typeof(CpuAlignedMatrixCol);
             AssertCompatible(mat, dst, src);
             var m = A(mat);
-            SseUtils.MatTimesSrc(!colMajor, add, m.Items, A(src).Items, A(dst).Items, m.RunCnt);
+            CpuMathUtils.MatTimesSrc(!colMajor, add, m.Items, A(src).Items, A(dst).Items, m.RunCnt);
         }
     }
 
     public static class GeneralUtils
     {
         /// <summary>
-        /// Count the number of zero bits in the lonest string of zero's from the lowest significant bit of the input integer.   
+        /// Count the number of zero bits in the lonest string of zero's from the lowest significant bit of the input integer.
         /// </summary>
         /// <param name="u">The input integer</param>
         /// <returns></returns>

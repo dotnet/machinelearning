@@ -3,22 +3,36 @@
     <!-- versioning.targets will import this file, so don't import it again -->
     <DisableImportVersioningProps>true</DisableImportVersioningProps>
 
-    <TargetArchitecture Condition="'$(TargetArchitecture)' == ''">x64</TargetArchitecture>
     <StripNativeSymbols Condition="'$(StripNativeSymbols)' == '' and '$(Configuration)' == 'Release'">True</StripNativeSymbols>
   </PropertyGroup>
 
   <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), Directory.Build.props))\Directory.Build.props" />
 
   <!-- Target that builds all the native binaries in the Native folder -->
-  <Target Name="Build" DependsOnTargets="BuildNativeUnix;BuildNativeWindows;PreparePackageAssets" /> 
+  <Target Name="Build" DependsOnTargets="BuildNativeUnix;BuildNativeWindows;PreparePackageAssets" />
 
+  <PropertyGroup>
+    <PlaceholderFile>$(PkgDir)_._</PlaceholderFile>
+  </PropertyGroup>
+  
   <PropertyGroup Condition="'$(OS)' != 'Windows_NT'">
     <GenerateVersionSourceFile>true</GenerateVersionSourceFile>
-    <NativeVersionSourceFile>$(BaseIntermediateOutputPath)version.c</NativeVersionSourceFile>
+    <NativeVersionSourceFile>$(RootIntermediateOutputPath)version.c</NativeVersionSourceFile>
   </PropertyGroup>
  
   <PropertyGroup  Condition="'$(OS)' == 'Windows_NT'">
     <GenerateNativeVersionInfo>true</GenerateNativeVersionInfo>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <NativeLibPrefix Condition="'$(OS)' != 'Windows_NT'">lib</NativeLibPrefix>
+    <NativeLibExtension Condition="'$(OS)' == 'Windows_NT'">.dll</NativeLibExtension>
+    <NativeLibExtension Condition="'$(OS)' != 'Windows_NT'">.so</NativeLibExtension>
+    <NativeLibExtension Condition="$([MSBuild]::IsOSPlatform('osx'))">.dylib</NativeLibExtension>
+
+    <NativeLibSymbolExtension Condition="'$(OS)' == 'Windows_NT'">.pdb</NativeLibSymbolExtension>
+    <NativeLibSymbolExtension Condition="'$(OS)' != 'Windows_NT'">.so.dbg</NativeLibSymbolExtension>
+    <NativeLibSymbolExtension Condition="$([MSBuild]::IsOSPlatform('osx'))">.dylib.dwarf</NativeLibSymbolExtension>
   </PropertyGroup>
 
   <Target Name="BuildNativeUnix"
@@ -26,61 +40,68 @@
           DependsOnTargets="GenerateVersionSourceFile">
     <PropertyGroup>
       <StripArgs Condition="'$(StripNativeSymbols)' == 'True'">--stripSymbols</StripArgs>
-      <BuildArgs>--configuration $(Configuration) --arch $(TargetArchitecture) $(StripArgs)</BuildArgs>
+      <BuildArgs>--configuration $(Configuration) --arch $(TargetArchitecture) $(StripArgs) --mkllibpath $(PackagesDir)mlnetmkldeps/$(MlNetMklDepsPackageVersion)/runtimes/$(PackageRid)/native</BuildArgs>
     </PropertyGroup>
 
-    <Message Text="$(MSBuildProjectDirectory)\build.sh $(BuildArgs)" Importance="High"/>
-    <Exec Command="$(MSBuildProjectDirectory)\build.sh $(BuildArgs)" />
+    <Message Text="$(MSBuildProjectDirectory)/build.sh $(BuildArgs)" Importance="High"/>
+    <Exec Command="&quot;$(MSBuildProjectDirectory)/build.sh&quot; $(BuildArgs)" />
 
   </Target>
 
   <Target Name="BuildNativeWindows"
           Condition="'$(OS)' == 'Windows_NT'"
           DependsOnTargets="GenerateVersionHeader">
-
+          
     <PropertyGroup>
-      <BuildArgs>$(Configuration) $(TargetArchitecture)</BuildArgs>
+      <BuildArgs>$(Configuration) $(TargetArchitecture) --mkllibpath $(PackagesDir)mlnetmkldeps\$(MlNetMklDepsPackageVersion)\runtimes\$(PackageRid)\native</BuildArgs>
     </PropertyGroup>
 
     <!-- Run script that invokes Cmake to create VS files, and then calls msbuild to compile them -->
     <Message Text="$(MSBuildProjectDirectory)\build.cmd $(BuildArgs)" Importance="High"/>
-    <Exec Command="$(MSBuildProjectDirectory)\build.cmd $(BuildArgs)" />
+    <Exec Command="&quot;$(MSBuildProjectDirectory)\build.cmd&quot; $(BuildArgs)" />
 
   </Target>
 
   <Target Name="PreparePackageAssets">
-
-    <PropertyGroup>
-      <NativeAssetsBuiltPath>$(BaseOutputPath)$(TargetArchitecture).$(Configuration)\Native</NativeAssetsBuiltPath>
-
-      <NativeLibPrefix Condition="'$(OS)' != 'Windows_NT'">lib</NativeLibPrefix>
-      <NativeLibExtension Condition="'$(OS)' == 'Windows_NT'">.dll</NativeLibExtension>
-      <NativeLibExtension Condition="'$(OS)' != 'Windows_NT'">.so</NativeLibExtension>
-      <NativeLibExtension Condition="$([MSBuild]::IsOSPlatform('osx'))">.dylib</NativeLibExtension>
-
-      <NativeLibSymbolExtension Condition="'$(OS)' == 'Windows_NT'">.pdb</NativeLibSymbolExtension>
-      <NativeLibSymbolExtension Condition="'$(OS)' != 'Windows_NT'">.so.dbg</NativeLibSymbolExtension>
-      <NativeLibSymbolExtension Condition="$([MSBuild]::IsOSPlatform('osx'))">.dylib.dwarf</NativeLibSymbolExtension>
-
-      <PackageRid Condition="'$(OS)' == 'Windows_NT'">win</PackageRid>
-      <PackageRid Condition="'$(OS)' != 'Windows_NT'">linux</PackageRid>
-      <PackageRid Condition="$([MSBuild]::IsOSPlatform('osx'))">osx</PackageRid>
-      <PackageRid>$(PackageRid)-$(TargetArchitecture)</PackageRid>
-    </PropertyGroup>
-
-    <ItemGroup>
+    
+    <!-- Copy MklImports into the native assets folder, so it can be treated like a regularly built native assembly - packaged into our NuGet packages, and used by tests. -->
+    
+    <Copy SourceFiles="$(PackagesDir)mlnetmkldeps\$(MlNetMklDepsPackageVersion)\runtimes\$(PackageRid)\native\$(NativeLibPrefix)MklImports$(NativeLibExtension)"
+          DestinationFolder="$(NativeAssetsBuiltPath)" />
+    
+    <ItemGroup Condition="'$(UseIntrinsics)' != 'true'">
       <NativePackageAsset Include="$(NativeAssetsBuiltPath)\$(NativeLibPrefix)CpuMathNative$(NativeLibExtension)"
-                          RelativePath="Microsoft.ML\runtimes\$(PackageRid)\native" />
-
-      <NativePackageAsset Include="$(NativeAssetsBuiltPath)\$(NativeLibPrefix)FastTreeNative$(NativeLibExtension)"
-                          RelativePath="Microsoft.ML\runtimes\$(PackageRid)\native" />
+                          RelativePath="Microsoft.ML.CpuMath\runtimes\$(PackageRid)\native" />
+    </ItemGroup>
+    <ItemGroup Condition="'$(UseIntrinsics)' == 'true'">
+      <NativePackageAsset Include="$(NativeAssetsBuiltPath)\$(NativeLibPrefix)CpuMathNative$(NativeLibExtension)"
+                          RelativePath="Microsoft.ML.CpuMath\runtimes\$(PackageRid)\nativeassets\netstandard2.0" />
+      <NativePackageAsset Include="$(PlaceholderFile)"
+                          RelativePath="Microsoft.ML.CpuMath\runtimes\$(PackageRid)\nativeassets\netcoreapp3.0" />
     </ItemGroup>
 
     <ItemGroup>
-      <NativePackageAsset Condition="'$(OS)' == 'Windows_NT' OR '$(StripNativeSymbols)' == 'True'"
+      <NativePackageAsset Include="$(NativeAssetsBuiltPath)\$(NativeLibPrefix)FastTreeNative$(NativeLibExtension)"
+                          RelativePath="Microsoft.ML\runtimes\$(PackageRid)\native" />
+      <NativePackageAsset Include="$(NativeAssetsBuiltPath)\$(NativeLibPrefix)LdaNative$(NativeLibExtension)"
+                          RelativePath="Microsoft.ML\runtimes\$(PackageRid)\native" />
+      <NativePackageAsset Include="$(NativeAssetsBuiltPath)\$(NativeLibPrefix)FactorizationMachineNative$(NativeLibExtension)"
+                          RelativePath="Microsoft.ML\runtimes\$(PackageRid)\native" />
+      <NativePackageAsset Include="$(NativeAssetsBuiltPath)\$(NativeLibPrefix)SymSgdNative$(NativeLibExtension)"
+                          RelativePath="Microsoft.ML.HalLearners\runtimes\$(PackageRid)\native" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <NativePackageAsset Condition="('$(OS)' == 'Windows_NT' OR '$(StripNativeSymbols)' == 'True')
+                                     AND '%(NativePackageAsset.Identity)' != '$(PlaceholderFile)'"
                           Include="@(NativePackageAsset->'%(RootDir)%(Directory)%(Filename)$(NativeLibSymbolExtension)')" />
     </ItemGroup>
 
+    <ItemGroup>
+      <NativePackageAsset Include="$(NativeAssetsBuiltPath)\$(NativeLibPrefix)MklImports$(NativeLibExtension)"
+                          RelativePath="Microsoft.ML.HalLearners\runtimes\$(PackageRid)\native" /> 
+    </ItemGroup>
+    
     <Copy SourceFiles="@(NativePackageAsset)"
           DestinationFolder="$(PackageAssetsPath)%(NativePackageAsset.RelativePath)" />
 

@@ -8,6 +8,7 @@ using System.IO;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Data.IO;
 using Microsoft.ML.Runtime.Internal.Utilities;
+using Microsoft.ML.TestFramework;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -148,19 +149,19 @@ namespace Microsoft.ML.Runtime.RunTests
             ArrayDataViewBuilder builder = new ArrayDataViewBuilder(Env);
 
             // A is to check the splitting of a sparse-ish column.
-            var dataA = GenerateHelper(rowCount, 0.1, rgen, () => (DvInt4)rgen.Next(), 50, 5, 10, 15);
-            dataA[rowCount / 2] = new VBuffer<DvInt4>(50, 0, null, null); // Coverage for the null vbuffer case.
+            var dataA = GenerateHelper(rowCount, 0.1, rgen, () => (int)rgen.Next(), 50, 5, 10, 15);
+            dataA[rowCount / 2] = new VBuffer<int>(50, 0, null, null); // Coverage for the null vbuffer case.
             builder.AddColumn("A", NumberType.I4, dataA);
             // B is to check the splitting of a dense-ish column.
             builder.AddColumn("B", NumberType.R8, GenerateHelper(rowCount, 0.8, rgen, rgen.NextDouble, 50, 0, 25, 49));
             // C is to just have some column we do nothing with.
-            builder.AddColumn("C", NumberType.I2, GenerateHelper(rowCount, 0.1, rgen, () => (DvInt2)1, 30, 3, 10, 24));
+            builder.AddColumn("C", NumberType.I2, GenerateHelper(rowCount, 0.1, rgen, () => (short)1, 30, 3, 10, 24));
             // D is to check some column we don't have to split because it's sufficiently small.
             builder.AddColumn("D", NumberType.R8, GenerateHelper(rowCount, 0.1, rgen, rgen.NextDouble, 3, 1));
             // E is to check a sparse scalar column.
             builder.AddColumn("E", NumberType.U4, GenerateHelper(rowCount, 0.1, rgen, () => (uint)rgen.Next(int.MinValue, int.MaxValue)));
             // F is to check a dense-ish scalar column.
-            builder.AddColumn("F", NumberType.I4, GenerateHelper(rowCount, 0.8, rgen, () => (DvInt4)rgen.Next()));
+            builder.AddColumn("F", NumberType.I4, GenerateHelper(rowCount, 0.8, rgen, () => rgen.Next()));
 
             IDataView view = builder.GetDataView();
 
@@ -179,13 +180,13 @@ namespace Microsoft.ML.Runtime.RunTests
                     Contracts.Assert(result);
                     Assert.True(trueIndex == index, $"Transpose schema had column '{names[i]}' at unexpected index");
                 }
-                // Check the contents 
+                // Check the contents
                 Assert.Null(trans.TransposeSchema.GetSlotType(2)); // C check to see that it's not transposable.
-                TransposeCheckHelper<DvInt4>(view, 0, trans); // A check.
+                TransposeCheckHelper<int>(view, 0, trans); // A check.
                 TransposeCheckHelper<Double>(view, 1, trans); // B check.
                 TransposeCheckHelper<Double>(view, 3, trans); // D check.
                 TransposeCheckHelper<uint>(view, 4, trans);   // E check.
-                TransposeCheckHelper<DvInt4>(view, 5, trans); // F check.
+                TransposeCheckHelper<int>(view, 5, trans); // F check.
             }
 
             // Force save. Recheck columns that would have previously been passthrough columns.
@@ -200,7 +201,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 Assert.Null(trans.TransposeSchema.GetSlotType(2));
                 TransposeCheckHelper<Double>(view, 3, trans); // D check.
                 TransposeCheckHelper<uint>(view, 4, trans);   // E check.
-                TransposeCheckHelper<DvInt4>(view, 5, trans); // F check.
+                TransposeCheckHelper<int>(view, 5, trans); // F check.
             }
         }
 
@@ -213,19 +214,19 @@ namespace Microsoft.ML.Runtime.RunTests
             ArrayDataViewBuilder builder = new ArrayDataViewBuilder(Env);
 
             // A is to check the splitting of a sparse-ish column.
-            var dataA = GenerateHelper(rowCount, 0.1, rgen, () => (DvInt4)rgen.Next(), 50, 5, 10, 15);
-            dataA[rowCount / 2] = new VBuffer<DvInt4>(50, 0, null, null); // Coverage for the null vbuffer case.
+            var dataA = GenerateHelper(rowCount, 0.1, rgen, () => (int)rgen.Next(), 50, 5, 10, 15);
+            dataA[rowCount / 2] = new VBuffer<int>(50, 0, null, null); // Coverage for the null vbuffer case.
             builder.AddColumn("A", NumberType.I4, dataA);
             // B is to check the splitting of a dense-ish column.
             builder.AddColumn("B", NumberType.R8, GenerateHelper(rowCount, 0.8, rgen, rgen.NextDouble, 50, 0, 25, 49));
             // C is to just have some column we do nothing with.
-            builder.AddColumn("C", NumberType.I2, GenerateHelper(rowCount, 0.1, rgen, () => (DvInt2)1, 30, 3, 10, 24));
+            builder.AddColumn("C", NumberType.I2, GenerateHelper(rowCount, 0.1, rgen, () => (short)1, 30, 3, 10, 24));
             // D is to check some column we don't have to split because it's sufficiently small.
             builder.AddColumn("D", NumberType.R8, GenerateHelper(rowCount, 0.1, rgen, rgen.NextDouble, 3, 1));
             // E is to check a sparse scalar column.
             builder.AddColumn("E", NumberType.U4, GenerateHelper(rowCount, 0.1, rgen, () => (uint)rgen.Next(int.MinValue, int.MaxValue)));
             // F is to check a dense-ish scalar column.
-            builder.AddColumn("F", NumberType.I4, GenerateHelper(rowCount, 0.8, rgen, () => (DvInt4)rgen.Next()));
+            builder.AddColumn("F", NumberType.I4, GenerateHelper(rowCount, 0.8, rgen, () => (int)rgen.Next()));
 
             IDataView view = builder.GetDataView();
 
@@ -234,18 +235,18 @@ namespace Microsoft.ML.Runtime.RunTests
             {
                 TransposeSaver saver = new TransposeSaver(Env, new TransposeSaver.Arguments());
                 saver.SaveData(mem, view, Utils.GetIdentityPermutation(view.Schema.ColumnCount));
-                src = new BytesSource(mem.ToArray());
+                src = new BytesStreamSource(mem.ToArray());
             }
             TransposeLoader loader = new TransposeLoader(Env, new TransposeLoader.Arguments(), src);
             // First check whether this as an IDataView yields the same values.
             CheckSameValues(view, loader);
 
-            TransposeCheckHelper<DvInt4>(view, 0, loader); // A
+            TransposeCheckHelper<int>(view, 0, loader); // A
             TransposeCheckHelper<Double>(view, 1, loader); // B
-            TransposeCheckHelper<DvInt2>(view, 2, loader); // C
+            TransposeCheckHelper<short>(view, 2, loader); // C
             TransposeCheckHelper<Double>(view, 3, loader); // D
             TransposeCheckHelper<uint>(view, 4, loader); // E
-            TransposeCheckHelper<DvInt4>(view, 5, loader); // F
+            TransposeCheckHelper<int>(view, 5, loader); // F
 
             Done();
         }

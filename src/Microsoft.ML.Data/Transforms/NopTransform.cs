@@ -20,8 +20,11 @@ namespace Microsoft.ML.Runtime.Data
     /// </summary>
     public sealed class NopTransform : IDataTransform, IRowToRowMapper
     {
-        private readonly IDataView _input;
         private readonly IHost _host;
+
+        public IDataView Source { get; }
+
+        ISchema IRowToRowMapper.InputSchema => Source.Schema;
 
         /// <summary>
         /// Creates a NopTransform if the input is not an IDataTransform.
@@ -40,7 +43,7 @@ namespace Microsoft.ML.Runtime.Data
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(input, nameof(input));
 
-            _input = input;
+            Source = input;
             _host = env.Register(RegistrationName);
         }
 
@@ -55,7 +58,8 @@ namespace Microsoft.ML.Runtime.Data
                 verWrittenCur: 0x00010001, // Initial
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
-                loaderSignature: LoaderSignature);
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(NopTransform).Assembly.FullName);
         }
 
         internal static string RegistrationName = "NopTransform";
@@ -75,7 +79,7 @@ namespace Microsoft.ML.Runtime.Data
             Contracts.AssertValue(host, "host");
             host.CheckValue(input, nameof(input));
 
-            _input = input;
+            Source = input;
             _host = host;
 
             // *** Binary format ***
@@ -94,32 +98,27 @@ namespace Microsoft.ML.Runtime.Data
 
         public bool CanShuffle
         {
-            get { return _input.CanShuffle; }
+            get { return Source.CanShuffle; }
         }
 
         public ISchema Schema
         {
-            get { return _input.Schema; }
+            get { return Source.Schema; }
         }
 
         public long? GetRowCount(bool lazy = true)
         {
-            return _input.GetRowCount(lazy);
+            return Source.GetRowCount(lazy);
         }
 
         public IRowCursor GetRowCursor(Func<int, bool> predicate, IRandom rand = null)
         {
-            return _input.GetRowCursor(predicate, rand);
+            return Source.GetRowCursor(predicate, rand);
         }
 
         public IRowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator, Func<int, bool> predicate, int n, IRandom rand = null)
         {
-            return _input.GetRowCursorSet(out consolidator, predicate, n, rand);
-        }
-
-        public IDataView Source
-        {
-            get { return _input; }
+            return Source.GetRowCursorSet(out consolidator, predicate, n, rand);
         }
 
         public Func<int, bool> GetDependencies(Func<int, bool> predicate)
@@ -129,6 +128,10 @@ namespace Microsoft.ML.Runtime.Data
 
         public IRow GetRow(IRow input, Func<int, bool> active, out Action disposer)
         {
+            Contracts.CheckValue(input, nameof(input));
+            Contracts.CheckValue(active, nameof(active));
+            Contracts.CheckParam(input.Schema == Source.Schema, nameof(input), "Schema of input row must be the same as the schema the mapper is bound to");
+
             disposer = null;
             return input;
         }

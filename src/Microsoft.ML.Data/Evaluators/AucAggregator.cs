@@ -408,7 +408,7 @@ namespace Microsoft.ML.Runtime.Data
 
             /// <summary>
             /// Compute the AUPRC using the "lower trapesoid" estimator, as described in the paper
-            /// <see href="http://www.ecmlpkdd2013.org/wp-content/uploads/2013/07/aucpr_2013ecml_corrected.pdf"/>.
+            /// <a href="https://www.ecmlpkdd2013.org/wp-content/uploads/2013/07/aucpr_2013ecml_corrected.pdf">https://www.ecmlpkdd2013.org/wp-content/uploads/2013/07/aucpr_2013ecml_corrected.pdf</a>.
             /// </summary>
             protected override Double ComputeWeightedAuPrcCore(out Double unweighted)
             {
@@ -482,7 +482,7 @@ namespace Microsoft.ML.Runtime.Data
 
             /// <summary>
             /// Compute the AUPRC using the "lower trapesoid" estimator, as described in the paper
-            /// <see href="http://www.ecmlpkdd2013.org/wp-content/uploads/2013/07/aucpr_2013ecml_corrected.pdf"/>.
+            /// <a href="https://www.ecmlpkdd2013.org/wp-content/uploads/2013/07/aucpr_2013ecml_corrected.pdf">https://www.ecmlpkdd2013.org/wp-content/uploads/2013/07/aucpr_2013ecml_corrected.pdf</a>.
             /// </summary>
             protected override Double ComputeWeightedAuPrcCore(out Double unweighted)
             {

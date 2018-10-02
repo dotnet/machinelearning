@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
-using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Internal.Utilities;
 
 namespace Microsoft.ML.Runtime.Model
@@ -73,7 +72,7 @@ namespace Microsoft.ML.Runtime.Model
             }
         }
 
-        // These are the open entries that may contain streams into our _dirTemp.
+        // These are the open entries that may contain streams into our DirTemp.
         private List<Entry> _open;
 
         private bool _disposed;
@@ -108,19 +107,37 @@ namespace Microsoft.ML.Runtime.Model
             PathMap = new Dictionary<string, string>();
             _open = new List<Entry>();
             if (needDir)
-            {
-                DirTemp = GetTempPath();
-                Directory.CreateDirectory(DirTemp);
-            }
+                DirTemp = GetShortTempDir();
             else
                 GC.SuppressFinalize(this);
         }
 
-        // REVIEW: This should use host environment functionality.
-        private static string GetTempPath()
+        private static string GetShortTempDir()
         {
-            Guid guid = Guid.NewGuid();
-            return Path.GetFullPath(Path.Combine(Path.GetTempPath(), "TLC_" + guid.ToString()));
+            var rnd = RandomUtils.Create();
+            string path;
+            do
+            {
+                path = Path.Combine(Path.GetTempPath(), "TLC_" + rnd.Next().ToString("X"));
+                path = Path.GetFullPath(path);
+                Directory.CreateDirectory(path);
+            }
+            while (!EnsureDirectory(path));
+            return path;
+        }
+
+        private static bool EnsureDirectory(string path)
+        {
+            path = Path.GetFullPath(Path.Combine(path, ".lock"));
+            try
+            {
+                using (var stream = new FileStream(path, FileMode.CreateNew))
+                    return true;
+            }
+            catch
+            {
+                return false;
+            }
         }
 
         ~Repository()
@@ -214,7 +231,7 @@ namespace Microsoft.ML.Runtime.Model
         /// <summary>
         /// When building paths to our local file system, we want to force both forward and backward slashes
         /// to the system directory separator character. We do this for cases where we either used Windows-specific
-        /// path building logic, or concatenated filesystem paths with zip archive entries on Linux. 
+        /// path building logic, or concatenated filesystem paths with zip archive entries on Linux.
         /// </summary>
         private static string NormalizeForFileSystem(string path) =>
             path?.Replace('/', Path.DirectorySeparatorChar).Replace('\\', Path.DirectorySeparatorChar);
@@ -232,7 +249,7 @@ namespace Microsoft.ML.Runtime.Model
             _ectx.CheckParam(!name.Contains(".."), nameof(name));
 
             // The gymnastics below are meant to deal with bad invocations including absolute paths, etc.
-            // That's why we go through it even if _dirTemp is null.
+            // That's why we go through it even if DirTemp is null.
             string root = Path.GetFullPath(DirTemp ?? @"x:\dummy");
             string entityPath = Path.Combine(root, dir ?? "", name);
             entityPath = Path.GetFullPath(entityPath);

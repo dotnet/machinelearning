@@ -8,6 +8,8 @@ using System.Collections.Generic;
 using System.IO;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Model;
+using Microsoft.ML.Core.Data;
+using System;
 
 namespace Microsoft.ML.Runtime.Api
 {
@@ -38,21 +40,7 @@ namespace Microsoft.ML.Runtime.Api
 
             // Initialize pipe.
             _srcDataView = DataViewConstructionUtils.CreateFromEnumerable(env, new TSrc[] { }, inputSchemaDefinition);
-
-            // Load transforms.
-            var pipe = env.LoadTransforms(modelStream, _srcDataView);
-
-            // Load predictor (if present) and apply default scorer.
-            // REVIEW: distinguish the case of predictor / no predictor?
-            var predictor = env.LoadPredictorOrNull(modelStream);
-            if (predictor != null)
-            {
-                var roles = ModelFileUtils.LoadRoleMappingsOrNull(env, modelStream);
-                pipe = roles != null
-                    ? env.CreateDefaultScorer(RoleMappedData.CreateOpt(pipe, roles), predictor)
-                    : env.CreateDefaultScorer(env.CreateExamples(pipe, "Features"), predictor);
-            }
-
+            var pipe = DataViewConstructionUtils.LoadPipeWithPredictor(env, modelStream, _srcDataView);
             _pipeEngine = new PipeEngine<TDst>(env, pipe, ignoreMissingColumns, outputSchemaDefinition);
         }
 
@@ -72,12 +60,12 @@ namespace Microsoft.ML.Runtime.Api
         }
 
         /// <summary>
-        /// Run the prediction pipe. This will enumerate the <paramref name="examples"/> exactly once, 
-        /// cache all the examples (by reference) into its internal representation and then run 
+        /// Run the prediction pipe. This will enumerate the <paramref name="examples"/> exactly once,
+        /// cache all the examples (by reference) into its internal representation and then run
         /// the transformation pipe.
         /// </summary>
         /// <param name="examples">The examples to run the prediction on.</param>
-        /// <param name="reuseRowObjects">If <c>true</c>, the engine will not allocate memory per output, and 
+        /// <param name="reuseRowObjects">If <c>true</c>, the engine will not allocate memory per output, and
         /// the returned <typeparamref name="TDst"/> objects will actually always be the same object. The user is
         /// expected to clone the values himself if needed.</param>
         /// <returns>The <see cref="IEnumerable{TDst}"/> that contains all the pipeline results.</returns>
@@ -141,7 +129,7 @@ namespace Microsoft.ML.Runtime.Api
     /// in-memory data, one example at a time.
     /// This can also be used with trained pipelines that do not end with a predictor: in this case, the
     /// 'prediction' will be just the outcome of all the transformations.
-    /// This is essentially a wrapper for <see cref="BatchPredictionEngine{TSrc,TDst}"/> that throws if 
+    /// This is essentially a wrapper for <see cref="BatchPredictionEngine{TSrc,TDst}"/> that throws if
     /// more than one result is returned per call to <see cref="Predict"/>.
     /// </summary>
     /// <typeparam name="TSrc">The user-defined type that holds the example.</typeparam>
@@ -150,24 +138,64 @@ namespace Microsoft.ML.Runtime.Api
         where TSrc : class
         where TDst : class, new()
     {
-        private readonly BatchPredictionEngine<TSrc, TDst> _engine;
+        private readonly DataViewConstructionUtils.InputRow<TSrc> _inputRow;
+        private readonly IRowReadableAs<TDst> _outputRow;
+        private readonly Action _disposer;
+        private TDst _result;
 
         internal PredictionEngine(IHostEnvironment env, Stream modelStream, bool ignoreMissingColumns,
             SchemaDefinition inputSchemaDefinition = null, SchemaDefinition outputSchemaDefinition = null)
+            : this(env, StreamChecker(env, modelStream), ignoreMissingColumns, inputSchemaDefinition, outputSchemaDefinition)
         {
-            Contracts.CheckValue(env, nameof(env));
-            var singleThreadedEnv = env.Register("SingleThreaded", conc: 1);
-            _engine = new BatchPredictionEngine<TSrc, TDst>(singleThreadedEnv, modelStream, ignoreMissingColumns,
-                inputSchemaDefinition, outputSchemaDefinition);
+        }
+
+        private static Func<ISchema, IRowToRowMapper> StreamChecker(IHostEnvironment env, Stream modelStream)
+        {
+            env.CheckValue(modelStream, nameof(modelStream));
+            return schema =>
+            {
+                var pipe = DataViewConstructionUtils.LoadPipeWithPredictor(env, modelStream, new EmptyDataView(env, schema));
+                var transformer = new TransformWrapper(env, pipe);
+                env.CheckParam(transformer.IsRowToRowMapper, nameof(transformer), "Must be a row to row mapper");
+                return transformer.GetRowToRowMapper(schema);
+            };
         }
 
         internal PredictionEngine(IHostEnvironment env, IDataView dataPipe, bool ignoreMissingColumns,
             SchemaDefinition inputSchemaDefinition = null, SchemaDefinition outputSchemaDefinition = null)
+            : this(env, new TransformWrapper(env, env.CheckRef(dataPipe, nameof(dataPipe))), ignoreMissingColumns, inputSchemaDefinition, outputSchemaDefinition)
+        {
+        }
+
+        internal PredictionEngine(IHostEnvironment env, ITransformer transformer, bool ignoreMissingColumns,
+            SchemaDefinition inputSchemaDefinition = null, SchemaDefinition outputSchemaDefinition = null)
+            : this(env, TransformerChecker(env, transformer), ignoreMissingColumns, inputSchemaDefinition, outputSchemaDefinition)
+        {
+        }
+
+        private static Func<ISchema, IRowToRowMapper> TransformerChecker(IExceptionContext ectx, ITransformer transformer)
+        {
+            ectx.CheckValue(transformer, nameof(transformer));
+            ectx.CheckParam(transformer.IsRowToRowMapper, nameof(transformer), "Must be a row to row mapper");
+            return transformer.GetRowToRowMapper;
+        }
+
+        private PredictionEngine(IHostEnvironment env, Func<ISchema, IRowToRowMapper> makeMapper, bool ignoreMissingColumns,
+                 SchemaDefinition inputSchemaDefinition, SchemaDefinition outputSchemaDefinition)
         {
             Contracts.CheckValue(env, nameof(env));
-            var singleThreadedEnv = env.Register("SingleThreaded", conc: 1);
-            _engine = new BatchPredictionEngine<TSrc, TDst>(singleThreadedEnv, dataPipe, ignoreMissingColumns,
-                inputSchemaDefinition, outputSchemaDefinition);
+            env.AssertValue(makeMapper);
+
+            _inputRow = DataViewConstructionUtils.CreateInputRow<TSrc>(env, inputSchemaDefinition);
+            var mapper = makeMapper(_inputRow.Schema);
+            var cursorable = TypedCursorable<TDst>.Create(env, new EmptyDataView(env, mapper.Schema), ignoreMissingColumns, outputSchemaDefinition);
+            var outputRow = mapper.GetRow(_inputRow, col => true, out _disposer);
+            _outputRow = cursorable.GetRow(outputRow);
+        }
+
+        ~PredictionEngine()
+        {
+            _disposer?.Invoke();
         }
 
         /// <summary>
@@ -178,27 +206,17 @@ namespace Microsoft.ML.Runtime.Api
         public TDst Predict(TSrc example)
         {
             Contracts.CheckValue(example, nameof(example));
-            int count = 0;
-            TDst result = null;
-            foreach (var item in _engine.Predict(new[] { example }, true))
-            {
-                if (count == 0)
-                    result = item;
-
-                count++;
-                if (count > 1)
-                    break;
-            }
-
-            if (count > 1)
-                throw Contracts.Except("Prediction pipeline must return at most one prediction per example. If it isn't, use BatchPredictionEngine.");
-            return result;
+            _inputRow.ExtractValues(example);
+            if (_result == null)
+                _result = new TDst();
+            _outputRow.FillValues(_result);
+            return _result;
         }
     }
 
     /// <summary>
     /// This class encapsulates the 'classic' prediction problem, where the input is denoted by the float array of features,
-    /// and the output is a float score. For binary classification predictors that can output probability, there are output 
+    /// and the output is a float score. For binary classification predictors that can output probability, there are output
     /// fields that report the predicted label and probability.
     /// </summary>
     public sealed class SimplePredictionEngine

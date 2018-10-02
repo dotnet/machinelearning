@@ -23,7 +23,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
             host.CheckValue(input, nameof(input));
             EntryPointUtils.CheckInputArgs(host, input);
 
-            var xf = new ConcatTransform(env, input, input.Data);
+            var xf = ConcatTransform.Create(env, input, input.Data);
             return new CommonOutputs.TransformOutput { Model = new TransformModel(env, xf, input.Data), OutputData = xf };
         }
 
@@ -48,8 +48,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
             var host = env.Register("CopyColumns");
             host.CheckValue(input, nameof(input));
             EntryPointUtils.CheckInputArgs(host, input);
-
-            var xf = new CopyColumnsTransform(env, input, input.Data);
+            var xf = CopyColumnsTransform.Create(env, input, input.Data);
             return new CommonOutputs.TransformOutput { Model = new TransformModel(env, xf, input.Data), OutputData = xf };
         }
 

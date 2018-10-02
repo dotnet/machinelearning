@@ -15,9 +15,9 @@ namespace Microsoft.ML.Runtime.EntryPoints
     /// <summary>
     /// This module handles scoring a <see cref="IPredictorModel"/> against a new dataset.
     /// As a result, we return both the scored data and the scoring transform as a <see cref="ITransformModel"/>.
-    /// 
-    /// REVIEW: This module does not support 'exotic' scoring scenarios, like recommendation and quantile regression 
-    /// (those where the user-defined scorer settings are necessary to identify the scorer). We could resolve this by 
+    ///
+    /// REVIEW: This module does not support 'exotic' scoring scenarios, like recommendation and quantile regression
+    /// (those where the user-defined scorer settings are necessary to identify the scorer). We could resolve this by
     /// adding a sub-component for extra scorer args, or by creating specialized EPs for these scenarios.
     /// </summary>
     public static partial class ScoreModel
@@ -72,24 +72,19 @@ namespace Microsoft.ML.Runtime.EntryPoints
             host.CheckValue(input, nameof(input));
             EntryPointUtils.CheckInputArgs(host, input);
 
-
-            IPredictor predictor;
             var inputData = input.Data;
-            RoleMappedData data;
-            input.PredictorModel.PrepareData(host, inputData, out data, out predictor);
+            input.PredictorModel.PrepareData(host, inputData, out RoleMappedData data, out IPredictor predictor);
 
             IDataView scoredPipe;
             using (var ch = host.Start("Creating scoring pipeline"))
             {
                 ch.Trace("Creating pipeline");
-                var bindable = ScoreUtils.GetSchemaBindableMapper(host, predictor, scorerSettings: null);
+                var bindable = ScoreUtils.GetSchemaBindableMapper(host, predictor);
                 ch.AssertValue(bindable);
 
                 var mapper = bindable.Bind(host, data.Schema);
-                var scorer = ScoreUtils.GetScorerComponent(mapper);
-                Contracts.Assert(string.IsNullOrEmpty(scorer.SubComponentSettings));
-                scorer.SubComponentSettings = string.Format("suffix={{{0}}}", input.Suffix);
-                scoredPipe = scorer.CreateInstance(host, data.Data, mapper, input.PredictorModel.GetTrainingSchema(host));
+                var scorer = ScoreUtils.GetScorerComponent(host, mapper, input.Suffix);
+                scoredPipe = scorer.CreateComponent(host, data.Data, mapper, input.PredictorModel.GetTrainingSchema(host));
                 ch.Done();
             }
 
@@ -135,12 +130,12 @@ namespace Microsoft.ML.Runtime.EntryPoints
             using (var ch = host.Start("Creating scoring pipeline"))
             {
                 ch.Trace("Creating pipeline");
-                var bindable = ScoreUtils.GetSchemaBindableMapper(host, predictor, scorerSettings: null);
+                var bindable = ScoreUtils.GetSchemaBindableMapper(host, predictor);
                 ch.AssertValue(bindable);
 
                 var mapper = bindable.Bind(host, data.Schema);
-                var scorer = ScoreUtils.GetScorerComponent(mapper);
-                scoredPipe = scorer.CreateInstance(host, data.Data, mapper, input.PredictorModel.GetTrainingSchema(host));
+                var scorer = ScoreUtils.GetScorerComponent(host, mapper);
+                scoredPipe = scorer.CreateComponent(host, data.Data, mapper, input.PredictorModel.GetTrainingSchema(host));
                 ch.Done();
             }
 

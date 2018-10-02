@@ -80,7 +80,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         }
 
         /// <summary>
-        /// The physical AligenedArray items. 
+        /// The physical AligenedArray items.
         /// </summary>
         public AlignedArray Items { get { return _items; } }
 
@@ -155,7 +155,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         }
 
         /// <summary>
-        /// Copy the values from this vector starting at slot ivSrc into dst, starting at slot ivDst. 
+        /// Copy the values from this vector starting at slot ivSrc into dst, starting at slot ivDst.
         /// The number of values that are copied is determined by count.
         /// </summary>
         /// <param name="ivSrc">The staring index in this vector</param>
@@ -525,7 +525,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         public override int ColCountPhy { get { return RunLenPhy; } }
 
         /// <summary>
-        /// Copy the values from this matrix, starting from the row into dst, starting at slot ivDst and advancing ivDst. 
+        /// Copy the values from this matrix, starting from the row into dst, starting at slot ivDst and advancing ivDst.
         /// </summary>
         /// <param name="row">The starting row in this matrix</param>
         /// <param name="dst">The destination array</param>
@@ -550,7 +550,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
             // REVIEW: Ideally, we'd adjust the indices once so we wouldn't need to
             // repeatedly deal with padding adjustments.
-            SseUtils.ZeroMatrixItems(Items, ColCount, ColCountPhy, indices);
+            CpuMathUtils.ZeroMatrixItems(Items, ColCount, ColCountPhy, indices);
         }
     }
 
@@ -606,7 +606,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         }
 
         /// <summary>
-        /// Copy the values from this matrix, starting from the row into dst, starting at slot ivDst and advancing ivDst. 
+        /// Copy the values from this matrix, starting from the row into dst, starting at slot ivDst and advancing ivDst.
         /// </summary>
         /// <param name="row">The starting row in this matrix</param>
         /// <param name="dst">The destination array</param>

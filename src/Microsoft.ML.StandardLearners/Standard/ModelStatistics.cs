@@ -59,7 +59,8 @@ namespace Microsoft.ML.Runtime.Learners
                 verWrittenCur: 0x00010001, // Initial
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
-                loaderSignature: LoaderSignature);
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(LinearModelStatistics).Assembly.FullName);
         }
 
         private readonly IHostEnvironment _env;
@@ -78,7 +79,7 @@ namespace Microsoft.ML.Runtime.Learners
 
         // The standard errors of coefficients, including the bias.
         // The standard error of bias is placed at index zero.
-        // It could be null when there are too many non-zero weights so that 
+        // It could be null when there are too many non-zero weights so that
         // the memory is insufficient to hold the Hessian matrix necessary for the computation
         // of the variance-covariance matrix.
         private readonly VBuffer<Single>? _coeffStdError;
@@ -225,8 +226,8 @@ namespace Microsoft.ML.Runtime.Learners
             return true;
         }
 
-        private static void GetUnorderedCoefficientStatistics(LinearModelStatistics stats, ref VBuffer<Single> weights, ref VBuffer<DvText> names,
-            ref VBuffer<Single> estimate, ref VBuffer<Single> stdErr, ref VBuffer<Single> zScore, ref VBuffer<Single> pValue, out ValueGetter<VBuffer<DvText>> getSlotNames)
+        private static void GetUnorderedCoefficientStatistics(LinearModelStatistics stats, ref VBuffer<Single> weights, ref VBuffer<ReadOnlyMemory<char>> names,
+            ref VBuffer<Single> estimate, ref VBuffer<Single> stdErr, ref VBuffer<Single> zScore, ref VBuffer<Single> pValue, out ValueGetter<VBuffer<ReadOnlyMemory<char>>> getSlotNames)
         {
             if (!stats._coeffStdError.HasValue)
             {
@@ -270,17 +271,17 @@ namespace Microsoft.ML.Runtime.Learners
 
             var slotNames = names;
             getSlotNames =
-                (ref VBuffer<DvText> dst) =>
+                (ref VBuffer<ReadOnlyMemory<char>> dst) =>
                 {
                     var values = dst.Values;
                     if (Utils.Size(values) < stats.ParametersCount - 1)
-                        values = new DvText[stats.ParametersCount - 1];
+                        values = new ReadOnlyMemory<char>[stats.ParametersCount - 1];
                     for (int i = 1; i < stats.ParametersCount; i++)
                     {
                         int wi = denseStdError ? i - 1 : stdErrorIndices[i] - 1;
                         values[i - 1] = slotNames.GetItemOrDefault(wi);
                     }
-                    dst = new VBuffer<DvText>(stats.ParametersCount - 1, values, dst.Indices);
+                    dst = new VBuffer<ReadOnlyMemory<char>>(stats.ParametersCount - 1, values, dst.Indices);
                 };
         }
 
@@ -296,7 +297,7 @@ namespace Microsoft.ML.Runtime.Learners
             _env.Assert(_paramCount == 1 || weights != null);
             _env.Assert(_coeffStdError.Value.Length == weights.Count + 1);
 
-            var names = default(VBuffer<DvText>);
+            var names = default(VBuffer<ReadOnlyMemory<char>>);
             MetadataUtils.GetSlotNames(schema, RoleMappedSchema.ColumnRole.Feature, weights.Count, ref names);
 
             Single[] stdErrorValues = _coeffStdError.Value.Values;
@@ -341,7 +342,7 @@ namespace Microsoft.ML.Runtime.Learners
                 return null;
 
             var order = GetUnorderedCoefficientStatistics(parent, schema).OrderByDescending(stat => stat.ZScore).Take(paramCountCap - 1);
-            return order.Prepend(new CoefficientStatistics("(Bias)", bias, stdError, zScore, pValue)).ToArray();
+            return order.Prepend(new[] { new CoefficientStatistics("(Bias)", bias, stdError, zScore, pValue) }).ToArray();
         }
 
         public void SaveText(TextWriter writer, LinearBinaryPredictor parent, RoleMappedSchema schema, int paramCountCap)
@@ -408,13 +409,13 @@ namespace Microsoft.ML.Runtime.Learners
             }
         }
 
-        public void AddStatsColumns(List<IColumn> list, LinearBinaryPredictor parent, RoleMappedSchema schema, ref VBuffer<DvText> names)
+        public void AddStatsColumns(List<IColumn> list, LinearBinaryPredictor parent, RoleMappedSchema schema, ref VBuffer<ReadOnlyMemory<char>> names)
         {
             _env.AssertValue(list);
             _env.AssertValueOrNull(parent);
             _env.AssertValue(schema);
 
-            DvInt8 count = _trainingExampleCount;
+            long count = _trainingExampleCount;
             list.Add(RowColumnUtils.GetColumn("Count of training examples", NumberType.I8, ref count));
             var dev = _deviance;
             list.Add(RowColumnUtils.GetColumn("Residual Deviance", NumberType.R4, ref dev));
@@ -444,7 +445,7 @@ namespace Microsoft.ML.Runtime.Learners
             var stdErr = default(VBuffer<Single>);
             var zScore = default(VBuffer<Single>);
             var pValue = default(VBuffer<Single>);
-            ValueGetter<VBuffer<DvText>> getSlotNames;
+            ValueGetter<VBuffer<ReadOnlyMemory<char>>> getSlotNames;
             GetUnorderedCoefficientStatistics(parent.Statistics, ref weights, ref names, ref estimate, ref stdErr, ref zScore, ref pValue, out getSlotNames);
 
             var slotNamesCol = RowColumnUtils.GetColumn(MetadataUtils.Kinds.SlotNames,

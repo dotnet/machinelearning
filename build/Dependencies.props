@@ -6,7 +6,19 @@
     <SystemThreadingTasksDataflowPackageVersion>4.8.0</SystemThreadingTasksDataflowPackageVersion>
     <SystemCodeDomPackageVersion>4.4.0</SystemCodeDomPackageVersion>
     <SystemReflectionEmitLightweightPackageVersion>4.3.0</SystemReflectionEmitLightweightPackageVersion>
-    <SystemValueTupleVersion>4.4.0</SystemValueTupleVersion>
     <PublishSymbolsPackageVersion>1.0.0-beta-62824-02</PublishSymbolsPackageVersion>
+    <LightGBMPackageVersion>2.1.2.2</LightGBMPackageVersion>
+    <MlNetMklDepsPackageVersion>0.0.0.6</MlNetMklDepsPackageVersion>
+    <SystemDrawingCommonPackageVersion>4.5.0</SystemDrawingCommonPackageVersion>
+    <BenchmarkDotNetVersion>0.11.1</BenchmarkDotNetVersion>
+    <TensorFlowVersion>1.10.0</TensorFlowVersion>
+    <SystemCollectionsImmutableVersion>1.5.0</SystemCollectionsImmutableVersion>
+    <SystemMemoryVersion>4.5.1</SystemMemoryVersion>
+    <MicrosoftCodeAnalysisCSharpVersion>2.9.0</MicrosoftCodeAnalysisCSharpVersion>
+    <MicrosoftCSharpVersion>4.5.0</MicrosoftCSharpVersion>
+    <SystemCompositionVersion>1.2.0</SystemCompositionVersion>
+    <MicrosoftMLScoring>1.1.0</MicrosoftMLScoring>
+    <SystemIOFileSystemAccessControl>4.5.0</SystemIOFileSystemAccessControl>
+    <SystemSecurityPrincipalWindows>4.5.0</SystemSecurityPrincipalWindows>
   </PropertyGroup>
 </Project>

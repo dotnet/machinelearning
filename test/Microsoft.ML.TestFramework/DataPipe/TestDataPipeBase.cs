@@ -5,17 +5,180 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using System.Reflection;
+using Microsoft.ML.Core.Data;
+using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Data.IO;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
+using Microsoft.ML.TestFramework;
 using Xunit;
 
 namespace Microsoft.ML.Runtime.RunTests
 {
     public abstract partial class TestDataPipeBase : TestDataViewBase
     {
+        public const string IrisDataPath = "iris.data";
+
+        protected static TextLoader.Arguments MakeIrisTextLoaderArgs()
+        {
+            return new TextLoader.Arguments()
+            {
+                Separator = "comma",
+                HasHeader = true,
+                Column = new[]
+                {
+                    new TextLoader.Column("SepalLength", DataKind.R4, 0),
+                    new TextLoader.Column("SepalWidth", DataKind.R4, 1),
+                    new TextLoader.Column("PetalLength", DataKind.R4, 2),
+                    new TextLoader.Column("PetalWidth",DataKind.R4, 3),
+                    new TextLoader.Column("Label", DataKind.Text, 4)
+                }
+            };
+        }
+
+        /// <summary>
+        /// 'Workout test' for an estimator.
+        /// Checks the following traits:
+        /// - the estimator is applicable to the validFitInput and validForFitNotValidForTransformInput, and not applicable to validTransformInput and invalidInput;
+        /// - the fitted transformer is applicable to validFitInput and validTransformInput, and not applicable to invalidInput and validForFitNotValidForTransformInput;
+        /// - fitted transformer can be saved and re-loaded into the transformer with the same behavior.
+        /// - schema propagation for fitted transformer conforms to schema propagation of estimator.
+        /// </summary>
+        protected void TestEstimatorCore(IEstimator<ITransformer> estimator,
+            IDataView validFitInput, IDataView validTransformInput = null, IDataView invalidInput = null, IDataView validForFitNotValidForTransformInput = null)
+        {
+            Contracts.AssertValue(estimator);
+            Contracts.AssertValue(validFitInput);
+            Contracts.AssertValueOrNull(validTransformInput);
+            Contracts.AssertValueOrNull(invalidInput);
+            Action<Action> mustFail = (Action action) =>
+            {
+                try
+                {
+                    action();
+                    Assert.False(true);
+                }
+                catch (ArgumentOutOfRangeException) { }
+                catch (InvalidOperationException) { }
+                catch (TargetInvocationException ex)
+                {
+                    Exception e;
+                    for (e = ex; e.InnerException != null; e = e.InnerException)
+                    {
+                    }
+                    Assert.True(e is ArgumentOutOfRangeException || e is InvalidOperationException);
+                    Assert.True(e.IsMarked());
+                }
+            };
+
+            // Schema propagation tests for estimator.
+            var outSchemaShape = estimator.GetOutputSchema(SchemaShape.Create(validFitInput.Schema));
+            if (validTransformInput != null)
+            {
+                mustFail(() => estimator.GetOutputSchema(SchemaShape.Create(validTransformInput.Schema)));
+                mustFail(() => estimator.Fit(validTransformInput));
+            }
+
+            if (invalidInput != null)
+            {
+                mustFail(() => estimator.GetOutputSchema(SchemaShape.Create(invalidInput.Schema)));
+                mustFail(() => estimator.Fit(invalidInput));
+            }
+
+            if (validForFitNotValidForTransformInput != null)
+            {
+                estimator.GetOutputSchema(SchemaShape.Create(validForFitNotValidForTransformInput.Schema));
+                estimator.Fit(validForFitNotValidForTransformInput);
+            }
+
+            var transformer = estimator.Fit(validFitInput);
+            // Save and reload.
+            string modelPath = GetOutputPath(TestName + "-model.zip");
+            using (var fs = File.Create(modelPath))
+                transformer.SaveTo(Env, fs);
+
+            ITransformer loadedTransformer;
+            using (var fs = File.OpenRead(modelPath))
+                loadedTransformer = TransformerChain.LoadFrom(Env, fs);
+            DeleteOutputPath(modelPath);
+
+            // Run on train data.
+            Action<IDataView> checkOnData = (IDataView data) =>
+            {
+                var schema = transformer.GetOutputSchema(data.Schema);
+
+                // If it's a row to row mapper, then the output schema should be the same.
+                if (transformer.IsRowToRowMapper)
+                {
+                    var mapper = transformer.GetRowToRowMapper(data.Schema);
+                    Check(mapper.InputSchema == data.Schema, "InputSchemas were not identical to actual input schema");
+                    CheckSameSchemas(schema, mapper.Schema);
+                }
+                else
+                {
+                    mustFail(() => transformer.GetRowToRowMapper(data.Schema));
+                }
+
+                // Loaded transformer needs to have the same schema propagation.
+                CheckSameSchemas(schema, loadedTransformer.GetOutputSchema(data.Schema));
+
+                var scoredTrain = transformer.Transform(data);
+                var scoredTrain2 = loadedTransformer.Transform(data);
+
+                // The schema of the transformed data must match the schema provided by schema propagation.
+                CheckSameSchemas(schema, scoredTrain.Schema);
+
+                // The schema and data of scored dataset must be identical between loaded
+                // and original transformer.
+                // This in turn means that the schema of loaded transformer matches for 
+                // Transform and GetOutputSchema calls.
+                CheckSameSchemas(scoredTrain.Schema, scoredTrain2.Schema);
+                CheckSameValues(scoredTrain, scoredTrain2);
+            };
+
+            checkOnData(validFitInput);
+
+            if (validTransformInput != null)
+                checkOnData(validTransformInput);
+
+            if (invalidInput != null)
+            {
+                mustFail(() => transformer.GetOutputSchema(invalidInput.Schema));
+                mustFail(() => transformer.Transform(invalidInput));
+                mustFail(() => loadedTransformer.GetOutputSchema(invalidInput.Schema));
+                mustFail(() => loadedTransformer.Transform(invalidInput));
+            }
+            if (validForFitNotValidForTransformInput != null)
+            {
+                mustFail(() => transformer.GetOutputSchema(validForFitNotValidForTransformInput.Schema));
+                mustFail(() => transformer.Transform(validForFitNotValidForTransformInput));
+                mustFail(() => loadedTransformer.GetOutputSchema(validForFitNotValidForTransformInput.Schema));
+                mustFail(() => loadedTransformer.Transform(validForFitNotValidForTransformInput));
+            }
+
+            // Schema verification between estimator and transformer.
+            var scoredTrainSchemaShape = SchemaShape.Create(transformer.GetOutputSchema(validFitInput.Schema));
+            CheckSameSchemaShape(outSchemaShape, scoredTrainSchemaShape);
+        }
+
+        private void CheckSameSchemaShape(SchemaShape promised, SchemaShape delivered)
+        {
+            Assert.True(promised.Columns.Length == delivered.Columns.Length);
+            var sortedCols1 = promised.Columns.OrderBy(x => x.Name);
+            var sortedCols2 = delivered.Columns.OrderBy(x => x.Name);
+
+            foreach (var (x, y) in sortedCols1.Zip(sortedCols2, (x, y) => (x, y)))
+            {
+                Assert.Equal(x.Name, y.Name);
+                // We want the 'promised' metadata to be a superset of 'delivered'.
+                Assert.True(y.IsCompatibleWith(x), $"Mismatch on {x.Name}");
+            }
+        }
+
         // REVIEW: incorporate the testing for re-apply logic here?
         /// <summary>
         /// Create PipeDataLoader from the given args, save it, re-load it, verify that the data of
@@ -25,7 +188,7 @@ namespace Microsoft.ML.Runtime.RunTests
         /// </summary>
         protected IDataLoader TestCore(string pathData, bool keepHidden, string[] argsPipe,
             Action<IDataLoader> actLoader = null, string suffix = "", string suffixBase = null, bool checkBaseline = true,
-            bool forceDense = false, bool logCurs = false, TlcEnvironment env = null, bool roundTripText = true,
+            bool forceDense = false, bool logCurs = false, ConsoleEnvironment env = null, bool roundTripText = true,
             bool checkTranspose = false, bool checkId = true, bool baselineSchema = true)
         {
             Contracts.AssertValue(Env);
@@ -160,7 +323,7 @@ namespace Microsoft.ML.Runtime.RunTests
 
         protected IDataLoader CreatePipeDataLoader(IHostEnvironment env, string pathData, string[] argsPipe, out MultiFileSource files)
         {
-            VerifyArgParsing(argsPipe);
+            VerifyArgParsing(env, argsPipe);
 
             // Default to breast-cancer.txt.
             if (string.IsNullOrEmpty(pathData))
@@ -199,7 +362,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 Failed();
         }
 
-        protected void VerifyArgParsing(string[] strs)
+        protected void VerifyArgParsing(IHostEnvironment env, string[] strs)
         {
             string str = CmdParser.CombineSettings(strs);
             var args = new CompositeDataLoader.Arguments();
@@ -210,33 +373,40 @@ namespace Microsoft.ML.Runtime.RunTests
             }
 
             // For the loader and each transform, verify that custom unparsing is correct.
-            VerifyCustArgs(args.Loader);
+            VerifyCustArgs(env, args.Loader);
             foreach (var kvp in args.Transform)
-                VerifyCustArgs(kvp.Value);
+                VerifyCustArgs(env, kvp.Value);
         }
 
-        protected void VerifyCustArgs<TRes, TSig>(SubComponent<TRes, TSig> sub)
+        protected void VerifyCustArgs<TArg, TRes>(IHostEnvironment env, IComponentFactory<TArg, TRes> factory)
             where TRes : class
         {
-            var str = CmdParser.CombineSettings(sub.Settings);
-            var info = ComponentCatalog.GetLoadableClassInfo<TSig>(sub.Kind);
-            Assert.NotNull(info);
-            var def = info.CreateArguments();
+            if (factory is ICommandLineComponentFactory commandLineFactory)
+            {
+                var str = commandLineFactory.GetSettingsString();
+                var info = env.ComponentCatalog.GetLoadableClassInfo(commandLineFactory.Name, commandLineFactory.SignatureType);
+                Assert.NotNull(info);
+                var def = info.CreateArguments();
 
-            var a1 = info.CreateArguments();
-            CmdParser.ParseArguments(Env, str, a1);
+                var a1 = info.CreateArguments();
+                CmdParser.ParseArguments(Env, str, a1);
 
-            // Get both the expanded and custom forms.
-            string exp1 = CmdParser.GetSettings(Env, a1, def, SettingsFlags.Default | SettingsFlags.NoUnparse);
-            string cust = CmdParser.GetSettings(Env, a1, def);
+                // Get both the expanded and custom forms.
+                string exp1 = CmdParser.GetSettings(Env, a1, def, SettingsFlags.Default | SettingsFlags.NoUnparse);
+                string cust = CmdParser.GetSettings(Env, a1, def);
 
-            // Map cust back to an object, then get its full form.
-            var a2 = info.CreateArguments();
-            CmdParser.ParseArguments(Env, cust, a2);
-            string exp2 = CmdParser.GetSettings(Env, a2, def, SettingsFlags.Default | SettingsFlags.NoUnparse);
+                // Map cust back to an object, then get its full form.
+                var a2 = info.CreateArguments();
+                CmdParser.ParseArguments(Env, cust, a2);
+                string exp2 = CmdParser.GetSettings(Env, a2, def, SettingsFlags.Default | SettingsFlags.NoUnparse);
 
-            if (exp1 != exp2)
-                Fail("Custom unparse failed on '{0}' starting with '{1}': '{2}' vs '{3}'", sub.Kind, str, exp1, exp2);
+                if (exp1 != exp2)
+                    Fail("Custom unparse failed on '{0}' starting with '{1}': '{2}' vs '{3}'", commandLineFactory.Name, str, exp1, exp2);
+            }
+            else
+            {
+                Fail($"TestDataPipeBase was called with a non command line loader or transform '{factory}'");
+            }
         }
 
         protected bool SaveLoadText(IDataView view, IHostEnvironment env,
@@ -287,13 +457,13 @@ namespace Microsoft.ML.Runtime.RunTests
 
             // Note that we don't pass in "args", but pass in a default args so we test
             // the auto-schema parsing.
-            var loader = new TextLoader(env, new TextLoader.Arguments(), new MultiFileSource(pathData));
-            if (!CheckMetadataTypes(loader.Schema))
+            var loadedData = TextLoader.ReadFile(env, new TextLoader.Arguments(), new MultiFileSource(pathData));
+            if (!CheckMetadataTypes(loadedData.Schema))
                 Failed();
 
-            if (!CheckSameSchemas(view.Schema, loader.Schema, exactTypes: false, keyNames: false))
+            if (!CheckSameSchemas(view.Schema, loadedData.Schema, exactTypes: false, keyNames: false))
                 return Failed();
-            if (!CheckSameValues(view, loader, exactTypes: false, exactDoubles: false, checkId: false))
+            if (!CheckSameValues(view, loadedData, exactTypes: false, exactDoubles: false, checkId: false))
                 return Failed();
             return true;
         }
@@ -454,8 +624,8 @@ namespace Microsoft.ML.Runtime.RunTests
 
         protected bool CheckMetadataNames(string kind, int size, ISchema sch1, ISchema sch2, int col, bool exactTypes, bool mustBeText)
         {
-            var names1 = default(VBuffer<DvText>);
-            var names2 = default(VBuffer<DvText>);
+            var names1 = default(VBuffer<ReadOnlyMemory<char>>);
+            var names2 = default(VBuffer<ReadOnlyMemory<char>>);
 
             var t1 = sch1.GetMetadataTypeOrNull(kind, col);
             var t2 = sch2.GetMetadataTypeOrNull(kind, col);
@@ -496,7 +666,7 @@ namespace Microsoft.ML.Runtime.RunTests
 
             sch1.GetMetadata(kind, col, ref names1);
             sch2.GetMetadata(kind, col, ref names2);
-            if (!CompareVec(ref names1, ref names2, size, DvText.Identical))
+            if (!CompareVec(ref names1, ref names2, size, (a, b) => a.Span.SequenceEqual(b.Span)))
             {
                 Fail("Different {0} metadata values", kind);
                 return Failed();
@@ -504,7 +674,7 @@ namespace Microsoft.ML.Runtime.RunTests
             return true;
         }
 
-        protected bool CheckMetadataCallFailure(string kind, ISchema sch, int col, ref VBuffer<DvText> names)
+        protected bool CheckMetadataCallFailure(string kind, ISchema sch, int col, ref VBuffer<ReadOnlyMemory<char>> names)
         {
             try
             {
@@ -623,6 +793,36 @@ namespace Microsoft.ML.Runtime.RunTests
 
     public abstract partial class TestDataViewBase : BaseTestBaseline
     {
+
+        public class SentimentData
+        {
+            [ColumnName("Label")]
+            public bool Sentiment;
+            public string SentimentText;
+        }
+
+        public class SentimentPrediction
+        {
+            [ColumnName("PredictedLabel")]
+            public bool Sentiment;
+
+            public float Score;
+        }
+
+        private static TextLoader.Arguments MakeSentimentTextLoaderArgs()
+        {
+            return new TextLoader.Arguments()
+            {
+                Separator = "tab",
+                HasHeader = true,
+                Column = new[]
+                {
+                    new TextLoader.Column("Label", DataKind.BL, 0),
+                    new TextLoader.Column("SentimentText", DataKind.Text, 1)
+                }
+            };
+        }
+
         protected bool Failed()
         {
             Contracts.Assert(!IsPassing);
@@ -870,41 +1070,44 @@ namespace Microsoft.ML.Runtime.RunTests
             {
                 switch (type.RawKind)
                 {
-                case DataKind.I1:
-                    return GetComparerOne<DvInt1>(r1, r2, col, (x, y) => x.RawValue == y.RawValue);
-                case DataKind.U1:
-                    return GetComparerOne<byte>(r1, r2, col, (x, y) => x == y);
-                case DataKind.I2:
-                    return GetComparerOne<DvInt2>(r1, r2, col, (x, y) => x.RawValue == y.RawValue);
-                case DataKind.U2:
-                    return GetComparerOne<ushort>(r1, r2, col, (x, y) => x == y);
-                case DataKind.I4:
-                    return GetComparerOne<DvInt4>(r1, r2, col, (x, y) => x.RawValue == y.RawValue);
-                case DataKind.U4:
-                    return GetComparerOne<uint>(r1, r2, col, (x, y) => x == y);
-                case DataKind.I8:
-                    return GetComparerOne<DvInt8>(r1, r2, col, (x, y) => x.RawValue == y.RawValue);
-                case DataKind.U8:
-                    return GetComparerOne<ulong>(r1, r2, col, (x, y) => x == y);
-                case DataKind.R4:
-                    return GetComparerOne<Single>(r1, r2, col, (x, y) => FloatUtils.GetBits(x) == FloatUtils.GetBits(y));
-                case DataKind.R8:
-                    if (exactDoubles)
-                        return GetComparerOne<Double>(r1, r2, col, (x, y) => FloatUtils.GetBits(x) == FloatUtils.GetBits(y));
-                    else
-                        return GetComparerOne<Double>(r1, r2, col, EqualWithEps);
-                case DataKind.Text:
-                    return GetComparerOne<DvText>(r1, r2, col, DvText.Identical);
-                case DataKind.Bool:
-                    return GetComparerOne<DvBool>(r1, r2, col, (x, y) => x.Equals(y));
-                case DataKind.TimeSpan:
-                    return GetComparerOne<DvTimeSpan>(r1, r2, col, (x, y) => x.Equals(y));
-                case DataKind.DT:
-                    return GetComparerOne<DvDateTime>(r1, r2, col, (x, y) => x.Equals(y));
-                case DataKind.DZ:
-                    return GetComparerOne<DvDateTimeZone>(r1, r2, col, (x, y) => x.Equals(y));
-                case DataKind.UG:
-                    return GetComparerOne<UInt128>(r1, r2, col, (x, y) => x.Equals(y));
+                    case DataKind.I1:
+                        return GetComparerOne<sbyte>(r1, r2, col, (x, y) => x == y);
+                    case DataKind.U1:
+                        return GetComparerOne<byte>(r1, r2, col, (x, y) => x == y);
+                    case DataKind.I2:
+                        return GetComparerOne<short>(r1, r2, col, (x, y) => x == y);
+                    case DataKind.U2:
+                        return GetComparerOne<ushort>(r1, r2, col, (x, y) => x == y);
+                    case DataKind.I4:
+                        return GetComparerOne<int>(r1, r2, col, (x, y) => x == y);
+                    case DataKind.U4:
+                        return GetComparerOne<uint>(r1, r2, col, (x, y) => x == y);
+                    case DataKind.I8:
+                        return GetComparerOne<long>(r1, r2, col, (x, y) => x == y);
+                    case DataKind.U8:
+                        return GetComparerOne<ulong>(r1, r2, col, (x, y) => x == y);
+                    case DataKind.R4:
+                        return GetComparerOne<Single>(r1, r2, col, (x, y) => FloatUtils.GetBits(x) == FloatUtils.GetBits(y));
+                    case DataKind.R8:
+                        if (exactDoubles)
+                            return GetComparerOne<Double>(r1, r2, col, (x, y) => FloatUtils.GetBits(x) == FloatUtils.GetBits(y));
+                        else
+                            return GetComparerOne<Double>(r1, r2, col, EqualWithEps);
+                    case DataKind.Text:
+                        return GetComparerOne<ReadOnlyMemory<char>>(r1, r2, col, (a ,b) => a.Span.SequenceEqual(b.Span));
+                    case DataKind.Bool:
+                        return GetComparerOne<bool>(r1, r2, col, (x, y) => x == y);
+                    case DataKind.TimeSpan:
+                        return GetComparerOne<TimeSpan>(r1, r2, col, (x, y) => x == y);
+                    case DataKind.DT:
+                        return GetComparerOne<DateTime>(r1, r2, col, (x, y) => x == y);
+                    case DataKind.DZ:
+                        return GetComparerOne<DateTimeOffset>(r1, r2, col, (x, y) => x.Equals(y));
+                    case DataKind.UG:
+                        return GetComparerOne<UInt128>(r1, r2, col, (x, y) => x.Equals(y));
+                    case (DataKind)0:
+                        // We cannot compare custom types (including image).
+                        return () => true;
                 }
             }
             else
@@ -913,41 +1116,41 @@ namespace Microsoft.ML.Runtime.RunTests
                 Contracts.Assert(size >= 0);
                 switch (type.ItemType.RawKind)
                 {
-                case DataKind.I1:
-                    return GetComparerVec<DvInt1>(r1, r2, col, size, (x, y) => x.RawValue == y.RawValue);
-                case DataKind.U1:
-                    return GetComparerVec<byte>(r1, r2, col, size, (x, y) => x == y);
-                case DataKind.I2:
-                    return GetComparerVec<DvInt2>(r1, r2, col, size, (x, y) => x.RawValue == y.RawValue);
-                case DataKind.U2:
-                    return GetComparerVec<ushort>(r1, r2, col, size, (x, y) => x == y);
-                case DataKind.I4:
-                    return GetComparerVec<DvInt4>(r1, r2, col, size, (x, y) => x.RawValue == y.RawValue);
-                case DataKind.U4:
-                    return GetComparerVec<uint>(r1, r2, col, size, (x, y) => x == y);
-                case DataKind.I8:
-                    return GetComparerVec<DvInt8>(r1, r2, col, size, (x, y) => x.RawValue == y.RawValue);
-                case DataKind.U8:
-                    return GetComparerVec<ulong>(r1, r2, col, size, (x, y) => x == y);
-                case DataKind.R4:
-                    return GetComparerVec<Single>(r1, r2, col, size, (x, y) => FloatUtils.GetBits(x) == FloatUtils.GetBits(y));
-                case DataKind.R8:
-                    if (exactDoubles)
-                        return GetComparerVec<Double>(r1, r2, col, size, (x, y) => FloatUtils.GetBits(x) == FloatUtils.GetBits(y));
-                    else
-                        return GetComparerVec<Double>(r1, r2, col, size, EqualWithEps);
-                case DataKind.Text:
-                    return GetComparerVec<DvText>(r1, r2, col, size, DvText.Identical);
-                case DataKind.Bool:
-                    return GetComparerVec<DvBool>(r1, r2, col, size, (x, y) => x.Equals(y));
-                case DataKind.TimeSpan:
-                    return GetComparerVec<DvTimeSpan>(r1, r2, col, size, (x, y) => x.Equals(y));
-                case DataKind.DT:
-                    return GetComparerVec<DvDateTime>(r1, r2, col, size, (x, y) => x.Equals(y));
-                case DataKind.DZ:
-                    return GetComparerVec<DvDateTimeZone>(r1, r2, col, size, (x, y) => x.Equals(y));
-                case DataKind.UG:
-                    return GetComparerVec<UInt128>(r1, r2, col, size, (x, y) => x.Equals(y));
+                    case DataKind.I1:
+                        return GetComparerVec<sbyte>(r1, r2, col, size, (x, y) => x == y);
+                    case DataKind.U1:
+                        return GetComparerVec<byte>(r1, r2, col, size, (x, y) => x == y);
+                    case DataKind.I2:
+                        return GetComparerVec<short>(r1, r2, col, size, (x, y) => x == y);
+                    case DataKind.U2:
+                        return GetComparerVec<ushort>(r1, r2, col, size, (x, y) => x == y);
+                    case DataKind.I4:
+                        return GetComparerVec<int>(r1, r2, col, size, (x, y) => x == y);
+                    case DataKind.U4:
+                        return GetComparerVec<uint>(r1, r2, col, size, (x, y) => x == y);
+                    case DataKind.I8:
+                        return GetComparerVec<long>(r1, r2, col, size, (x, y) => x == y);
+                    case DataKind.U8:
+                        return GetComparerVec<ulong>(r1, r2, col, size, (x, y) => x == y);
+                    case DataKind.R4:
+                        return GetComparerVec<Single>(r1, r2, col, size, (x, y) => FloatUtils.GetBits(x) == FloatUtils.GetBits(y));
+                    case DataKind.R8:
+                        if (exactDoubles)
+                            return GetComparerVec<Double>(r1, r2, col, size, (x, y) => FloatUtils.GetBits(x) == FloatUtils.GetBits(y));
+                        else
+                            return GetComparerVec<Double>(r1, r2, col, size, EqualWithEps);
+                    case DataKind.Text:
+                        return GetComparerVec<ReadOnlyMemory<char>>(r1, r2, col, size, (a, b) => a.Span.SequenceEqual(b.Span));
+                    case DataKind.Bool:
+                        return GetComparerVec<bool>(r1, r2, col, size, (x, y) => x == y);
+                    case DataKind.TimeSpan:
+                        return GetComparerVec<TimeSpan>(r1, r2, col, size, (x, y) => x == y);
+                    case DataKind.DT:
+                        return GetComparerVec<DateTime>(r1, r2, col, size, (x, y) => x == y);
+                    case DataKind.DZ:
+                        return GetComparerVec<DateTimeOffset>(r1, r2, col, size, (x, y) => x.Equals(y));
+                    case DataKind.UG:
+                        return GetComparerVec<UInt128>(r1, r2, col, size, (x, y) => x.Equals(y));
                 }
             }
 
@@ -1122,38 +1325,5 @@ namespace Microsoft.ML.Runtime.RunTests
             return true;
         }
 #endif
-
-        /// <summary>
-        /// On demand open up new streams over a source of bytes.
-        /// </summary>
-        protected internal sealed class BytesSource : IMultiStreamSource
-        {
-            private readonly byte[] _data;
-
-            public BytesSource(byte[] data)
-            {
-                Contracts.AssertValue(data);
-                _data = data;
-            }
-
-            public int Count { get { return 1; } }
-
-            public string GetPathOrNull(int index)
-            {
-                Contracts.Check(index == 0);
-                return null;
-            }
-
-            public Stream Open(int index)
-            {
-                Contracts.Check(index == 0);
-                return new MemoryStream(_data, writable: false);
-            }
-
-            public TextReader OpenTextReader(int index)
-            {
-                return new StreamReader(Open(index));
-            }
-        }
     }
 }

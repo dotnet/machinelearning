@@ -21,9 +21,7 @@ using Microsoft.ML.Runtime.Model;
 
 namespace Microsoft.ML.Runtime.Data
 {
-    /// <summary>
-    /// Transform to drop NAs from vector columns.
-    /// </summary>
+    /// <include file='doc.xml' path='doc/members/member[@name="NADrop"]'/>
     public sealed class NADropTransform : OneToOneTransformBase
     {
         public sealed class Arguments : TransformInputBase
@@ -61,13 +59,26 @@ namespace Microsoft.ML.Runtime.Data
                 verWrittenCur: 0x00010001, // Initial
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
-                loaderSignature: LoaderSignature);
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(NADropTransform).Assembly.FullName);
         }
 
         private const string RegistrationName = "DropNAs";
 
         // The isNA delegates, parallel to Infos.
         private readonly Delegate[] _isNAs;
+
+        /// <summary>
+        /// Convenience constructor for public facing API.
+        /// </summary>
+        /// <param name="env">Host Environment.</param>
+        /// <param name="input">Input <see cref="IDataView"/>. This is the output from previous transform or loader.</param>
+        /// <param name="name">Name of the output column.</param>
+        /// <param name="source">Name of the column to be transformed. If this is null '<paramref name="name"/>' will be used.</param>
+        public NADropTransform(IHostEnvironment env, IDataView input, string name, string source = null)
+            : this(env, new Arguments() { Column = new[] { new Column() { Source = source ?? name, Name = name } } }, input)
+        {
+        }
 
         public NADropTransform(IHostEnvironment env, Arguments args, IDataView input)
             : base(Contracts.CheckRef(env, nameof(env)), RegistrationName, env.CheckRef(args, nameof(args)).Column, input, TestType)
@@ -90,7 +101,7 @@ namespace Microsoft.ML.Runtime.Data
                     MetadataUtils.Kinds.IsNormalized, MetadataUtils.Kinds.KeyValues))
                 {
                     // Output does not have missings.
-                    bldr.AddPrimitive(MetadataUtils.Kinds.HasMissingValues, BoolType.Instance, DvBool.False);
+                    bldr.AddPrimitive(MetadataUtils.Kinds.HasMissingValues, BoolType.Instance, false);
                 }
             }
             md.Seal();

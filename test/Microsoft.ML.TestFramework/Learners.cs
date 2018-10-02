@@ -2,13 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Float = System.Single;
-
-using System;
 using System.Text;
-using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.FastTree;
+using Microsoft.ML.TestFramework;
 
 namespace Microsoft.ML.Runtime.RunTests
 {
@@ -35,18 +32,29 @@ namespace Microsoft.ML.Runtime.RunTests
         }
     }
 
-    public /*static*/ class TestLearnersBase
+    public class TestLearnersBase
     {
         // This ensures that the needed assemblies are loaded!
         static TestLearnersBase()
         {
             bool ok = true;
-            //ok &= typeof(BinaryNeuralNetwork) != null;
             ok &= typeof(FastTreeBinaryClassificationTrainer) != null;
-            //ok &= typeof(OneClassSvmTrainer) != null;
-            //ok &= typeof(LDSvmTrainer) != null;
             Contracts.Check(ok, "Missing assemblies!");
         }
+
+        // New.
+        public static PredictorAndArgs binaryPrior = new PredictorAndArgs
+        {
+            Trainer = new SubComponent("PriorPredictor"),
+            Tag = "BinaryPrior"
+        };
+
+        // New.
+        public static PredictorAndArgs binaryRandom = new PredictorAndArgs
+        {
+            Trainer = new SubComponent("RandomPredictor"),
+            Tag = "BinaryRandom"
+        };
 
         // New.
         public static PredictorAndArgs binarySdca = new PredictorAndArgs
@@ -167,6 +175,14 @@ namespace Microsoft.ML.Runtime.RunTests
         };
 
         // New.
+        public static PredictorAndArgs symSGD = new PredictorAndArgs
+        {
+            Trainer = new SubComponent("SymSGD", "nt=1"),
+            MamlArgs = new[] { "norm=no" },
+            BaselineProgress = true
+        };
+
+        // New.
         public static PredictorAndArgs logisticRegressionNonNegative = new PredictorAndArgs
         {
             Trainer = new SubComponent("LogisticRegression", "l1=1.0 l2=0.1 ot=1e-4 nt=1 nn=+"),
@@ -264,6 +280,55 @@ namespace Microsoft.ML.Runtime.RunTests
         {
             Trainer = new SubComponent("FastTreeBinaryClassification", "nl=5 mil=5 lr=0.25 iter=20 mb=255"),
             Tag = "FastTree",
+            BaselineProgress = true,
+        };
+
+        public static PredictorAndArgs LightGBMClassifier = new PredictorAndArgs
+        {
+            Trainer = new SubComponent("LightGBMBinary", "nt=1 nl=5 mil=5 lr=0.25 iter=20 mb=255"),
+            Tag = "LightGBM",
+            BaselineProgress = true,
+        };
+
+        public static PredictorAndArgs LightGBMGoss = new PredictorAndArgs
+        {
+            Trainer = new SubComponent("LightGBM", "nt=1 iter=10 v=+ booster=goss lr=0.2 mil=10 nl=20"),
+            Tag = "LightGBMGoss",
+            BaselineProgress = true,
+        };
+
+        public static PredictorAndArgs LightGBMDart = new PredictorAndArgs
+        {
+            Trainer = new SubComponent("LightGBM", "nt=1 iter=10 booster=dart lr=0.2 mil=10 nl=20"),
+            Tag = "LightGBMDart",
+            BaselineProgress = true,
+        };
+
+        public static PredictorAndArgs LightGBMMC = new PredictorAndArgs
+        {
+            Trainer = new SubComponent("LightGBMMC", "nt=1 iter=10 v=- lr=0.2 mil=10 nl=20"),
+            Tag = "LightGBMMC",
+            BaselineProgress = true,
+        };
+
+        public static PredictorAndArgs LightGBMReg = new PredictorAndArgs
+        {
+            Trainer = new SubComponent("LightGBMR", "nt=1 iter=50 v=+ booster=gbdt{l1=0.2 l2=0.2} lr=0.2 mil=10 nl=20"),
+            Tag = "LightGBMReg",
+            BaselineProgress = true,
+        };
+
+        public static PredictorAndArgs LightGBMRegMae = new PredictorAndArgs
+        {
+            Trainer = new SubComponent("LightGBMR", "nt=1 iter=50 em=mae v=+ lr=0.2 mil=10 nl=20"),
+            Tag = "LightGBMRegMae",
+            BaselineProgress = true,
+        };
+
+        public static PredictorAndArgs LightGBMRegRmse = new PredictorAndArgs
+        {
+            Trainer = new SubComponent("LightGBMR", "nt=1 iter=50 em=rmse v=+ lr=0.2 mil=10 nl=20"),
+            Tag = "LightGBMRegRmse",
             BaselineProgress = true,
         };
 
@@ -371,6 +436,13 @@ namespace Microsoft.ML.Runtime.RunTests
         {
             Trainer = new SubComponent("BinaryClassificationGamTrainer", ""),
             Tag = "BinaryClassificationGamTrainer",
+            BaselineProgress = true,
+        };
+
+        public static PredictorAndArgs BinaryClassificationGamTrainerDiskTranspose = new PredictorAndArgs
+        {
+            Trainer = new SubComponent("BinaryClassificationGamTrainer", "dt+"),
+            Tag = "BinaryClassificationGamTrainerDiskTranspose",
             BaselineProgress = true,
         };
 
@@ -550,7 +622,7 @@ namespace Microsoft.ML.Runtime.RunTests
             };
         }
 
-        public static PredictorAndArgs DssmDefault(int qryFeaturesCount, int docFeaturesCount, int negativeDocsCount, int numIterations, Float gamma)
+        public static PredictorAndArgs DssmDefault(int qryFeaturesCount, int docFeaturesCount, int negativeDocsCount, int numIterations, float gamma)
         {
             string settings = string.Format("qfeats={0} dfeats={1} negdocs={2} iter={3} gamma={4} accel=sse",
                 qryFeaturesCount, docFeaturesCount, negativeDocsCount, numIterations, gamma);
@@ -582,19 +654,18 @@ namespace Microsoft.ML.Runtime.RunTests
             Trainer = new SubComponent("OneClassSVM", "ker=PolynomialKernel {b=1}"),
         };
 
-        /*
         public static PredictorAndArgs PCAAnomalyDefault = new PredictorAndArgs
         {
-            Trainer = new SubComponent(RandomizedPcaTrainer.LoadNameValue),
+            Trainer = new SubComponent("pcaAnomaly"),
             Tag = "Default"
         };
 
         public static PredictorAndArgs PCAAnomalyNoNorm = new PredictorAndArgs
         {
-            Trainer = new SubComponent(RandomizedPcaTrainer.LoadNameValue),
+            Trainer = new SubComponent("pcaAnomaly"),
             MamlArgs = new[] { "norm=no" },
             Tag = "NoNorm"
-        };*/
+        };
 
         public static PredictorAndArgs LDSVMDefault = new PredictorAndArgs
         {

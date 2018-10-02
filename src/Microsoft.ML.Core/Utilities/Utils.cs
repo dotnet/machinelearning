@@ -898,7 +898,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         /// but whose code depends on some sort of generic type parameter. This utility method exists to make
         /// this common pattern more convenient, and also safer so that the arguments, if any, can be type
         /// checked at compile time instead of at runtime.
-        /// 
+        ///
         /// Because it is strongly typed, this can only be applied to methods whose return type
         /// is known at compile time, that is, that do not depend on the type parameter of the method itself.
         /// </summary>
@@ -1047,6 +1047,24 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         {
             var meth = MarshalActionInvokeCheckAndCreate(genArg, act);
             meth.Invoke(act.Target, new object[] { arg1 });
+        }
+
+        /// <summary>
+        /// A two-argument version of <see cref="MarshalActionInvoke(Action, Type)"/>.
+        /// </summary>
+        public static void MarshalActionInvoke<TArg1, TArg2>(Action<TArg1, TArg2> act, Type genArg, TArg1 arg1, TArg2 arg2)
+        {
+            var meth = MarshalActionInvokeCheckAndCreate(genArg, act);
+            meth.Invoke(act.Target, new object[] { arg1, arg2 });
+        }
+
+        /// <summary>
+        /// A three-argument version of <see cref="MarshalActionInvoke(Action, Type)"/>.
+        /// </summary>
+        public static void MarshalActionInvoke<TArg1, TArg2, TArg3>(Action<TArg1, TArg2, TArg3> act, Type genArg, TArg1 arg1, TArg2 arg2, TArg3 arg3)
+        {
+            var meth = MarshalActionInvokeCheckAndCreate(genArg, act);
+            meth.Invoke(act.Target, new object[] { arg1, arg2, arg3 });
         }
 
         public static string GetDescription(this Enum value)

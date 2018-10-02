@@ -174,6 +174,11 @@ namespace Microsoft.ML.Runtime
         {
             return string.Join(" ", _parameterValues.Select(kvp => string.Format("{0}={1}", kvp.Value.Name, kvp.Value.ValueText)).ToArray());
         }
+
+        public override int GetHashCode()
+        {
+            return _hash;
+        }
     }
 
     /// <summary>
@@ -205,8 +210,8 @@ namespace Microsoft.ML.Runtime
         private readonly bool _isMetricMaximizing;
 
         /// <summary>
-        /// This switch changes the behavior of the CompareTo function, switching the greater than / less than 
-        /// behavior, depending on if it is set to True. 
+        /// This switch changes the behavior of the CompareTo function, switching the greater than / less than
+        /// behavior, depending on if it is set to True.
         /// </summary>
         public bool IsMetricMaximizing { get { return _isMetricMaximizing; } }
 
@@ -262,8 +267,8 @@ namespace Microsoft.ML.Runtime
 
     /// <summary>
     /// The metric class, used by smart sweeping algorithms.
-    /// Ideally we would like to move towards the new IDataView/ISchematized, this is 
-    /// just a simple view instead, and it is decoupled from RunResult so we can move 
+    /// Ideally we would like to move towards the new IDataView/ISchematized, this is
+    /// just a simple view instead, and it is decoupled from RunResult so we can move
     /// in that direction in the future.
     /// </summary>
     public sealed class RunMetric

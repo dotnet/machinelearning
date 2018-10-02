@@ -14,6 +14,7 @@
   <PropertyGroup>
     <RestoreSources>
       https://api.nuget.org/v3/index.json;
+      https://dotnet.myget.org/F/dotnet-core/api/v3/index.json;
     </RestoreSources>
   </PropertyGroup>
 
@@ -21,15 +22,17 @@
   <PropertyGroup>
     <RepoRoot>$(MSBuildThisFileDirectory)</RepoRoot>
     <SourceDir>$(RepoRoot)src/</SourceDir>
+    <PkgDir>$(RepoRoot)pkg/</PkgDir>
 
     <!-- Output directories -->
     <BinDir Condition="'$(BinDir)'==''">$(RepoRoot)bin/</BinDir>
     <BaseOutputPath Condition="'$(BaseOutputPath)'==''">$(BinDir)</BaseOutputPath>
     <ObjDir Condition="'$(ObjDir)'==''">$(BinDir)obj/</ObjDir>
-    <BaseIntermediateOutputPath Condition="'$(BaseIntermediateOutputPath)'==''">$(ObjDir)</BaseIntermediateOutputPath>
+    <RootIntermediateOutputPath Condition="'$(RootIntermediateOutputPath)'==''">$(ObjDir)</RootIntermediateOutputPath>
 
-    <IntermediateOutputRootPath Condition="'$(IntermediateOutputRootPath)' == ''">$(BaseIntermediateOutputPath)$(PlatformConfig)\</IntermediateOutputRootPath>
+    <IntermediateOutputRootPath Condition="'$(IntermediateOutputRootPath)' == ''">$(RootIntermediateOutputPath)$(PlatformConfig)\</IntermediateOutputRootPath>
     <IntermediateOutputPath Condition="'$(IntermediateOutputPath)' == ''">$(IntermediateOutputRootPath)$(MSBuildProjectName)\</IntermediateOutputPath>
+    <BaseIntermediateOutputPath Condition="'$(BaseIntermediateOutputPath)' == ''">$(IntermediateOutputPath)</BaseIntermediateOutputPath>
 
     <OutputPath Condition="'$(OutputPath)'==''">$(BaseOutputPath)$(PlatformConfig)\$(MSBuildProjectName)\</OutputPath>
 
@@ -63,25 +66,25 @@
     <VersionSuffix Condition="'$(IncludeBuildNumberInPackageVersion)' == 'true'">$(VersionSuffix)-$(BuildNumberMajor)-$(BuildNumberMinor)</VersionSuffix>
   </PropertyGroup>
 
-  <!--
-  Ensure to import versioning.props before overwriting BaseIntermediateOutputPath since
-  the source link file exists in the root bin/obj folder.
-   -->
-  <Import Project="$(ToolsDir)versioning.props" 
-          Condition="Exists('$(ToolsDir)versioning.props') and '$(DisableImportVersioningProps)' != 'true'" />
-
-  <!-- NuGet package properties -->
-  <PropertyGroup>
-    <Authors>Microsoft</Authors>
-    <IncludeSymbols>true</IncludeSymbols>
-  </PropertyGroup>
-
-  <!-- SourceLink properties -->
+  <!-- SourceLink properties used by dotnet/buildtools - need to be set before importing $(ToolsDir)versioning.props -->
   <PropertyGroup>
     <UseSourceLink>true</UseSourceLink>
     <GitHubRepositoryName>machinelearning</GitHubRepositoryName>
   </PropertyGroup>
-  
+
+  <!--
+  Source code control properties used by the .NET Core SDK to inject SCC info into the NuGet package.
+  In future versions, these will be used for SourceLink and to generate AssemblyInfo.
+  -->
+  <PropertyGroup>
+    <PrivateRepositoryUrl>https://github.com/dotnet/$(GitHubRepositoryName)</PrivateRepositoryUrl>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <SourceRevisionId>$(LatestCommit)</SourceRevisionId>
+  </PropertyGroup>
+
+  <Import Project="$(ToolsDir)versioning.props" 
+          Condition="Exists('$(ToolsDir)versioning.props') and '$(DisableImportVersioningProps)' != 'true'" />
+ 
   <!-- Language configuration -->
   <PropertyGroup>
     <LangVersion>latest</LangVersion> <!-- default to allowing all language features -->
@@ -92,15 +95,6 @@
     <RunningOnUnix Condition="'$(OS)'!='Windows_NT'">true</RunningOnUnix>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(UsingMicrosoftNETSdk)' == 'true'">
-    <!--
-    The Microsoft.NET.Sdk changed the definition of what it assumes $(BaseIntermediateOutputPath) is.
-    In the "old" .csproj files, BaseIntermediateOutputPath could be shared with many projects.
-    In the SDK-based .csproj files, BaseIntermediateOutputPath is assumed to be project-specific.
-    -->
-    <BaseIntermediateOutputPath>$(IntermediateOutputPath)</BaseIntermediateOutputPath>
-  </PropertyGroup>
-
   <!-- Signing properties -->
   <PropertyGroup>
     <AssemblyOriginatorKeyFile Condition="'$(AssemblyOriginatorKeyFile)' == ''">$(ToolsDir)Open.snk</AssemblyOriginatorKeyFile>
@@ -108,4 +102,11 @@
     <PublicSign Condition="'$(OS)' != 'Windows_NT'">true</PublicSign>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <UseIntrinsics Condition="'$(UseIntrinsics)' == ''">$(Configuration.EndsWith('-Intrinsics'))</UseIntrinsics>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <CustomAfterMicrosoftCommonTargets>$(RepoRoot)build\AfterCommonTargets.targets</CustomAfterMicrosoftCommonTargets>
+  </PropertyGroup>
 </Project>

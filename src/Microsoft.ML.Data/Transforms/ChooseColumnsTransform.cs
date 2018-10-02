@@ -58,6 +58,20 @@ namespace Microsoft.ML.Runtime.Data
 
         public sealed class Arguments
         {
+            public Arguments()
+            {
+
+            }
+
+            internal Arguments(params string[] columns)
+            {
+                Column = new Column[columns.Length];
+                for (int i = 0; i < columns.Length; i++)
+                {
+                    Column[i] = new Column() { Source = columns[i], Name = columns[i] };
+                }
+            }
+
             [Argument(ArgumentType.Multiple, HelpText = "New column definition(s) (optional form: name:src)", ShortName = "col", SortOrder = 1)]
             public Column[] Column;
 
@@ -435,12 +449,24 @@ namespace Microsoft.ML.Runtime.Data
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
                 loaderSignature: LoaderSignature,
-                loaderSignatureAlt: LoaderSignatureOld);
+                loaderSignatureAlt: LoaderSignatureOld,
+                loaderAssemblyName: typeof(ChooseColumnsTransform).Assembly.FullName);
         }
 
         private readonly Bindings _bindings;
 
         private const string RegistrationName = "ChooseColumns";
+
+        /// <summary>
+        /// Convenience constructor for public facing API.
+        /// </summary>
+        /// <param name="env">Host Environment.</param>
+        /// <param name="input">Input <see cref="IDataView"/>. This is the output from previous transform or loader.</param>
+        /// <param name="columns">Names of the columns to choose.</param>
+        public ChooseColumnsTransform(IHostEnvironment env, IDataView input, params string[] columns)
+            : this(env, new Arguments(columns), input)
+        {
+        }
 
         /// <summary>
         /// Public constructor corresponding to SignatureDataTransform.

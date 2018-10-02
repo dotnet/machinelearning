@@ -14,8 +14,8 @@ using Newtonsoft.Json;
 namespace Microsoft.ML.Runtime.PipelineInference
 {
     /// <summary>
-    /// Featurization ideas inspired from: 
-    /// http://aad.informatik.uni-freiburg.de/papers/15-NIPS-auto-sklearn-supplementary.pdf
+    /// Featurization ideas inspired from:
+    /// https://ml.informatik.uni-freiburg.de/papers/15-NIPS-auto-sklearn-supplementary.pdf
     /// </summary>
     public static class DatasetFeatureInference
     {
@@ -110,14 +110,14 @@ namespace Microsoft.ML.Runtime.PipelineInference
 
         public sealed class Arguments
         {
-            public readonly DvText[][] Data;
+            public readonly ReadOnlyMemory<char>[][] Data;
             public readonly Column[] Columns;
             public readonly long? ApproximateRowCount;
             public readonly long? FullFileSize;
             public readonly bool InferencedSchema;
             public readonly Guid Id;
             public readonly bool PrettyPrint;
-            public Arguments(DvText[][] data, Column[] columns, long? fullFileSize,
+            public Arguments(ReadOnlyMemory<char>[][] data, Column[] columns, long? fullFileSize,
                 long? approximateRowCount, bool inferencedSchema, Guid id, bool prettyPrint = false)
             {
                 Data = data;
@@ -132,7 +132,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
 
         private interface ITypeInferenceExpert
         {
-            void Apply(DvText[][] data, Column[] columns);
+            void Apply(ReadOnlyMemory<char>[][] data, Column[] columns);
             bool AddMe();
             string FeatureName();
         }
@@ -175,7 +175,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
 
             public string FeatureName() => nameof(ColumnSchema);
 
-            public void Apply(DvText[][] data, Column[] columns)
+            public void Apply(ReadOnlyMemory<char>[][] data, Column[] columns)
             {
                 Columns = columns;
                 foreach (var column in columns)
@@ -245,7 +245,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
                 LabelFeature = new List<LabelColumnFeature>();
             }
 
-            private void ApplyCore(DvText[][] data, Column column)
+            private void ApplyCore(ReadOnlyMemory<char>[][] data, Column column)
             {
                 _containsLabelColumns = true;
                 Dictionary<string, int> histogram = new Dictionary<string, int>();
@@ -260,12 +260,6 @@ namespace Microsoft.ML.Runtime.PipelineInference
                             break;
 
                         Contracts.Check(data[index].Length > i);
-
-                        if (data[index][i].IsNA)
-                        {
-                            missingValues++;
-                            continue;
-                        }
 
                         label += data[index][i].ToString();
                     }
@@ -288,7 +282,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
                 });
             }
 
-            public void Apply(DvText[][] data, Column[] columns)
+            public void Apply(ReadOnlyMemory<char>[][] data, Column[] columns)
             {
                 foreach (var column in columns.Where(col => col.ColumnPurpose == ColumnPurpose.Label))
                     ApplyCore(data, column);
@@ -311,7 +305,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
             public int NumberOfFeaturesWithMissingValues;
             public double PercentageOfFeaturesWithMissingValues;
 
-            public void Apply(DvText[][] data, Column[] columns)
+            public void Apply(ReadOnlyMemory<char>[][] data, Column[] columns)
             {
                 if (data.GetLength(0) == 0)
                     return;
@@ -331,16 +325,6 @@ namespace Microsoft.ML.Runtime.PipelineInference
                                 break;
 
                             Contracts.Check(data[index].Length > i);
-
-                            if (data[index][i].IsNA)
-                            {
-                                NumberOfMissingValues++;
-                                instanceWithMissingValue = true;
-                                if (column.ColumnPurpose == ColumnPurpose.TextFeature ||
-                                    column.ColumnPurpose == ColumnPurpose.NumericFeature ||
-                                    column.ColumnPurpose == ColumnPurpose.CategoricalFeature)
-                                    featuresWithMissingValues.Set(index, true);
-                            }
                         }
                     }
 
@@ -388,7 +372,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
                 StatsPerColumnPurposeWithSpaces = new Dictionary<string, Stats>();
             }
 
-            private void ApplyCore(DvText[][] data, Column column)
+            private void ApplyCore(ReadOnlyMemory<char>[][] data, Column column)
             {
                 bool numericColumn = CmdParser.IsNumericType(column.Kind?.ToType());
                 //Statistics for numeric column or length of the text in the case of non-numeric column.
@@ -401,11 +385,8 @@ namespace Microsoft.ML.Runtime.PipelineInference
                     if (index >= data.GetLength(0))
                         break;
 
-                    foreach (DvText value in data[index])
+                    foreach (ReadOnlyMemory<char> value in data[index])
                     {
-                        if (value.IsNA)
-                            continue;
-
                         string columnPurposeString = column.Purpose;
                         Stats statsPerPurpose;
                         Stats statsPerPurposeSpaces;
@@ -452,7 +433,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
                 }
             }
 
-            public void Apply(DvText[][] data, Column[] columns)
+            public void Apply(ReadOnlyMemory<char>[][] data, Column[] columns)
             {
                 foreach (var column in columns)
                     ApplyCore(data, column);
@@ -507,7 +488,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
                 }
 
                 if (args.PrettyPrint)
-                    jsonString = JsonConvert.SerializeObject(features, Formatting.Indented);
+                    jsonString = JsonConvert.SerializeObject(features, Newtonsoft.Json.Formatting.Indented);
                 else
                     jsonString = JsonConvert.SerializeObject(features);
 

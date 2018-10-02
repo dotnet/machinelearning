@@ -7,10 +7,18 @@ using Float = System.Single;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using Microsoft.ML.Runtime.CommandLine;
 
 namespace Microsoft.ML.Runtime.RunTests
 {
+    using Microsoft.ML.Runtime.Data;
+    using Microsoft.ML.Runtime.EntryPoints;
+    using Microsoft.ML.Runtime.FastTree;
+    using Microsoft.ML.Runtime.FastTree.Internal;
+    using Microsoft.ML.Runtime.LightGBM;
+    using Microsoft.ML.Runtime.SymSgd;
+    using Microsoft.ML.TestFramework;
+    using System.Linq;
+    using System.Runtime.InteropServices;
     using Xunit;
     using Xunit.Abstractions;
     using TestLearners = TestLearnersBase;
@@ -20,6 +28,20 @@ namespace Microsoft.ML.Runtime.RunTests
     /// </summary>
     public sealed partial class TestPredictors : BaseTestPredictors
     {
+        protected override void InitializeCore()
+        {
+            base.InitializeCore();
+            InitializeEnvironment(Env);
+        }
+
+        protected override void InitializeEnvironment(IHostEnvironment environment)
+        {
+            base.InitializeEnvironment(environment);
+
+            environment.ComponentCatalog.RegisterAssembly(typeof(LightGbmBinaryPredictor).Assembly);
+            environment.ComponentCatalog.RegisterAssembly(typeof(SymSgdClassificationTrainer).Assembly);
+        }
+
         /// <summary>
         /// Get a list of datasets for binary classifier base test.
         /// </summary>
@@ -84,9 +106,33 @@ namespace Microsoft.ML.Runtime.RunTests
         [TestCategory("Binary")]
         public void BinaryClassifierPerceptronTest()
         {
-            var binaryPredictors = new[] { TestLearners.perceptron, /*TestLearners.perceptron_reg*/ };
+            var binaryPredictors = new[] { TestLearners.perceptron };
             var binaryClassificationDatasets = GetDatasetsForBinaryClassifierBaseTest();
             RunAllTests(binaryPredictors, binaryClassificationDatasets);
+            Done();
+        }
+
+        [Fact]
+        [TestCategory("Binary")]
+        [TestCategory("SimpleLearners")]
+        public void BinaryPriorTest()
+        {
+            var predictors = new[] {
+                TestLearners.binaryPrior};
+            var datasets = GetDatasetsForBinaryClassifierBaseTest();
+            RunAllTests(predictors, datasets);
+            Done();
+        }
+
+        [Fact]
+        [TestCategory("Binary")]
+        [TestCategory("SimpleLearners")]
+        public void BinaryRandomTest()
+        {
+            var predictors = new[] {
+                TestLearners.binaryRandom};
+            var datasets = GetDatasetsForBinaryClassifierBaseTest();
+            RunAllTests(predictors, datasets, extraSettings: new[] { "n=1" });
             Done();
         }
 
@@ -194,7 +240,7 @@ namespace Microsoft.ML.Runtime.RunTests
             Done();
         }
 
-        [Fact(Skip = "Need CoreTLC specific baseline update")]
+        [Fact]
         [TestCategory("Binary")]
         [TestCategory("SDCA")]
         public void LinearClassifierTest()
@@ -225,7 +271,19 @@ namespace Microsoft.ML.Runtime.RunTests
             Done();
         }
 
-        [Fact(Skip = "Need CoreTLC specific baseline update")]
+        [Fact]
+        [TestCategory("Binary")]
+        public void BinaryClassifierSymSgdTest()
+        {
+            //Results sometimes go out of error tolerance on OS X.
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+                return;
+
+            RunOneAllTests(TestLearners.symSGD, TestDatasets.breastCancer, summary: true);
+            Done();
+        }
+
+        [Fact]
         [TestCategory("Binary")]
         public void BinaryClassifierTesterThresholdingTest()
         {
@@ -382,7 +440,7 @@ namespace Microsoft.ML.Runtime.RunTests
             });
             Done();
         }
-        
+
         [Fact]
         [TestCategory("Binary")]
         [TestCategory("FastTree")]
@@ -390,8 +448,9 @@ namespace Microsoft.ML.Runtime.RunTests
         {
             RunMTAThread(() =>
             {
-                var learners = new[] { TestLearners.FastTreeClassfier, TestLearners.FastTreeDropoutClassfier, TestLearners.FastTreeBsrClassfier };
-                var binaryClassificationDatasets = new List<TestDataset> { TestDatasets.breastCancerPipe};
+                var learners = new[] { TestLearners.FastTreeClassfier, TestLearners.FastTreeDropoutClassfier,
+                    TestLearners.FastTreeBsrClassfier, TestLearners.FastTreeClassfierDisk };
+                var binaryClassificationDatasets = new List<TestDataset> { TestDatasets.breastCancerPipe };
                 foreach (var learner in learners)
                 {
                     foreach (TestDataset dataset in binaryClassificationDatasets)
@@ -401,7 +460,253 @@ namespace Microsoft.ML.Runtime.RunTests
             Done();
         }
 
-        [Fact(Skip = "Need CoreTLC specific baseline update")]
+        [Fact]
+        [TestCategory("Binary")]
+        [TestCategory("LightGBM")]
+        public void LightGBMClassificationTest()
+        {
+            var learners = new[] { TestLearners.LightGBMClassifier };
+            var binaryClassificationDatasets = new List<TestDataset> { TestDatasets.breastCancerPipe };
+            foreach (var learner in learners)
+            {
+                foreach (TestDataset dataset in binaryClassificationDatasets)
+                    Run_TrainTest(learner, dataset);
+            }
+
+            Done();
+        }
+
+        [Fact]
+        [TestCategory("Binary"), TestCategory("LightGBM")]
+        public void GossLightGBMTest()
+        {
+            var binaryPredictors = new[] { TestLearners.LightGBMGoss };
+            var binaryClassificationDatasets = new List<TestDataset> { TestDatasets.breastCancerPipe };
+            RunAllTests(binaryPredictors, binaryClassificationDatasets, extraTag: "goss");
+            Done();
+        }
+
+        [Fact]
+        [TestCategory("Binary")]
+        [TestCategory("LightGBM")]
+        public void DartLightGBMTest()
+        {
+            var binaryPredictors = new[] { TestLearners.LightGBMDart };
+            var binaryClassificationDatasets = new List<TestDataset> { TestDatasets.breastCancerPipe };
+            RunAllTests(binaryPredictors, binaryClassificationDatasets, extraTag: "dart");
+            Done();
+        }
+
+        /// <summary>
+        /// A test for multi class classifiers.
+        /// </summary>
+        [Fact]
+        [TestCategory("Multiclass")]
+        [TestCategory("LightGBM")]
+        public void MultiClassifierLightGBMKeyLabelTest()
+        {
+            var multiPredictors = new[] { TestLearners.LightGBMMC };
+            var multiClassificationDatasets = new[] { TestDatasets.irisLoader };
+            RunAllTests(multiPredictors, multiClassificationDatasets, extraTag: "key");
+            Done();
+        }
+
+        /// <summary>
+        /// A test for multi class classifiers.
+        /// </summary>
+        [Fact]
+        [TestCategory("Multiclass")]
+        [TestCategory("LightGBM")]
+        public void MultiClassifierLightGBMKeyLabelU404Test()
+        {
+            var multiPredictors = new[] { TestLearners.LightGBMMC };
+            var multiClassificationDatasets = new[] { TestDatasets.irisLoaderU404 };
+            RunAllTests(multiPredictors, multiClassificationDatasets, extraTag: "keyU404");
+            Done();
+        }
+
+        /// <summary>
+        /// A test for regression.
+        /// </summary>
+        [Fact]
+        [TestCategory("Regression")]
+        [TestCategory("LightGBM")]
+        public void RegressorLightGBMTest()
+        {
+            var regPredictors = new[] { TestLearners.LightGBMReg };
+            var regDatasets = new[] { TestDatasets.generatedRegressionDataset };
+            RunAllTests(regPredictors, regDatasets);
+            Done();
+        }
+
+        /// <summary>
+        /// A test for regression.
+        /// </summary>
+        [Fact]
+        [TestCategory("Regression")]
+        [TestCategory("LightGBM")]
+        public void RegressorLightGBMMAETest()
+        {
+            var regPredictors = new[] { TestLearners.LightGBMRegMae };
+            var regDatasets = new[] { TestDatasets.generatedRegressionDataset };
+            RunAllTests(regPredictors, regDatasets, extraTag: "MAE");
+            Done();
+        }
+
+        /// <summary>
+        /// A test for regression.
+        /// </summary>
+        [Fact]
+        [TestCategory("Regression")]
+        [TestCategory("LightGBM")]
+        public void RegressorLightGBMRMSETest()
+        {
+            var regPredictors = new[] { TestLearners.LightGBMRegRmse };
+            var regDatasets = new[] { TestDatasets.generatedRegressionDataset };
+            RunAllTests(regPredictors, regDatasets, extraTag: "RMSE");
+            Done();
+        }
+
+        /// <summary>
+        /// A test for ranking. The training does not seem to be accurate.
+        /// The evaluation is still based on nDCG which is not really convenient pair-wise ranking.
+        /// </summary>
+        [Fact(Skip = "Need to find ranking dataset.")]
+        [TestCategory("Ranking")]
+        [TestCategory("LightGBM")]
+        public void RankingLightGBMTest()
+        {
+            var args = new PredictorAndArgs
+            {
+                Trainer = new SubComponent("LightGBMRank",
+                    "nt=1 iter=20 v=+ mil=20 nl=20 lr=0.2")
+            };
+
+            var rankPredictors = new[] { args };
+            var rankDatasets = new[] { TestDatasets.MQ2008 };
+            RunAllTests(rankPredictors, rankDatasets);
+            Done();
+        }
+
+        [Fact]
+        public void TestTreeEnsembleCombiner()
+        {
+            var dataPath = GetDataPath("breast-cancer.txt");
+            var inputFile = new SimpleFileHandle(Env, dataPath, false, false);
+#pragma warning disable 0618
+            var dataView = ImportTextData.ImportText(Env, new ImportTextData.Input { InputFile = inputFile }).Data;
+#pragma warning restore 0618
+
+            var fastTrees = new IPredictorModel[3];
+            for (int i = 0; i < 3; i++)
+            {
+                fastTrees[i] = FastTree.TrainBinary(Env, new FastTreeBinaryClassificationTrainer.Arguments
+                {
+                    FeatureColumn = "Features",
+                    NumTrees = 5,
+                    NumLeaves = 4,
+                    LabelColumn = DefaultColumnNames.Label,
+                    TrainingData = dataView
+                }).PredictorModel;
+            }
+            CombineAndTestTreeEnsembles(dataView, fastTrees);
+        }
+
+        [Fact]
+        public void TestTreeEnsembleCombinerWithCategoricalSplits()
+        {
+            var dataPath = GetDataPath("adult.tiny.with-schema.txt");
+            var inputFile = new SimpleFileHandle(Env, dataPath, false, false);
+#pragma warning disable 0618
+            var dataView = ImportTextData.ImportText(Env, new ImportTextData.Input { InputFile = inputFile }).Data;
+#pragma warning restore 0618
+
+            var cat = CategoricalTransform.Create(Env, dataView, "Features", "Categories");
+            var fastTrees = new IPredictorModel[3];
+            for (int i = 0; i < 3; i++)
+            {
+                fastTrees[i] = FastTree.TrainBinary(Env, new FastTreeBinaryClassificationTrainer.Arguments
+                {
+                    FeatureColumn = "Features",
+                    NumTrees = 5,
+                    NumLeaves = 4,
+                    CategoricalSplit = true,
+                    LabelColumn = DefaultColumnNames.Label,
+                    TrainingData = cat
+                }).PredictorModel;
+            }
+            CombineAndTestTreeEnsembles(cat, fastTrees);
+        }
+
+        private void CombineAndTestTreeEnsembles(IDataView idv, IPredictorModel[] fastTrees)
+        {
+            var combiner = new TreeEnsembleCombiner(Env, PredictionKind.BinaryClassification);
+
+            var fastTree = combiner.CombineModels(fastTrees.Select(pm => pm.Predictor as IPredictorProducing<float>));
+
+            var data = new RoleMappedData(idv, label: null, feature: "Features");
+            var scored = ScoreModel.Score(Env, new ScoreModel.Input() { Data = idv, PredictorModel = new PredictorModel(Env, data, idv, fastTree) }).ScoredData;
+            Assert.True(scored.Schema.TryGetColumnIndex("Score", out int scoreCol));
+            Assert.True(scored.Schema.TryGetColumnIndex("Probability", out int probCol));
+            Assert.True(scored.Schema.TryGetColumnIndex("PredictedLabel", out int predCol));
+
+            var scoredArray = new IDataView[3];
+            var scoreColArray = new int[3];
+            var probColArray = new int[3];
+            var predColArray = new int[3];
+            for (int i = 0; i < 3; i++)
+            {
+                scoredArray[i] = ScoreModel.Score(Env, new ScoreModel.Input() { Data = idv, PredictorModel = fastTrees[i] }).ScoredData;
+                Assert.True(scoredArray[i].Schema.TryGetColumnIndex("Score", out scoreColArray[i]));
+                Assert.True(scoredArray[i].Schema.TryGetColumnIndex("Probability", out probColArray[i]));
+                Assert.True(scoredArray[i].Schema.TryGetColumnIndex("PredictedLabel", out predColArray[i]));
+            }
+
+            var cursors = new IRowCursor[3];
+            using (var curs = scored.GetRowCursor(c => c == scoreCol || c == probCol || c == predCol))
+            using (cursors[0] = scoredArray[0].GetRowCursor(c => c == scoreColArray[0] || c == probColArray[0] || c == predColArray[0]))
+            using (cursors[1] = scoredArray[1].GetRowCursor(c => c == scoreColArray[1] || c == probColArray[1] || c == predColArray[1]))
+            using (cursors[2] = scoredArray[2].GetRowCursor(c => c == scoreColArray[2] || c == probColArray[2] || c == predColArray[2]))
+            {
+                var scoreGetter = curs.GetGetter<float>(scoreCol);
+                var probGetter = curs.GetGetter<float>(probCol);
+                var predGetter = curs.GetGetter<bool>(predCol);
+                var scoreGetters = new ValueGetter<float>[3];
+                var probGetters = new ValueGetter<float>[3];
+                var predGetters = new ValueGetter<bool>[3];
+                for (int i = 0; i < 3; i++)
+                {
+                    scoreGetters[i] = cursors[i].GetGetter<float>(scoreColArray[i]);
+                    probGetters[i] = cursors[i].GetGetter<float>(probColArray[i]);
+                    predGetters[i] = cursors[i].GetGetter<bool>(predColArray[i]);
+                }
+
+                float score = 0;
+                float prob = 0;
+                bool pred = default;
+                var scores = new float[3];
+                var probs = new float[3];
+                var preds = new bool[3];
+                while (curs.MoveNext())
+                {
+                    scoreGetter(ref score);
+                    probGetter(ref prob);
+                    predGetter(ref pred);
+                    for (int i = 0; i < 3; i++)
+                    {
+                        Assert.True(cursors[i].MoveNext());
+                        scoreGetters[i](ref scores[i]);
+                        probGetters[i](ref probs[i]);
+                        predGetters[i](ref preds[i]);
+                    }
+                    Assert.Equal(score, 0.4 * scores.Sum() / 3, 5);
+                    Assert.Equal(prob, 1 / (1 + Math.Exp(-score)), 6);
+                    Assert.True(pred == score > 0);
+                }
+            }
+        }
+
+        [Fact]
         [TestCategory("Binary")]
         [TestCategory("FastTree")]
         public void FastTreeBinaryClassificationCategoricalSplitTest()
@@ -440,7 +745,7 @@ namespace Microsoft.ML.Runtime.RunTests
             Done();
         }
 
-        [Fact(Skip = "Need CoreTLC specific baseline update")]
+        [Fact]
         [TestCategory("Binary")]
         [TestCategory("FastTree")]
         public void FastTreeBinaryClassificationNoOpGroupIdTest()
@@ -460,7 +765,7 @@ namespace Microsoft.ML.Runtime.RunTests
             Done();
         }
 
-        [Fact(Skip = "Need CoreTLC specific baseline update")]
+        [Fact]
         [TestCategory("Binary")]
         [TestCategory("FastTree")]
         public void FastTreeHighMinDocsTest()
@@ -535,13 +840,13 @@ namespace Microsoft.ML.Runtime.RunTests
             Done();
         }
 
-        [Fact(Skip = "Need CoreTLC specific baseline update")]
+        [Fact]
         [TestCategory("FastTree")]
         public void GamBinaryClassificationTest()
         {
             RunMTAThread(() =>
             {
-                var learners = new[] { TestLearners.BinaryClassificationGamTrainer };
+                var learners = new[] { TestLearners.BinaryClassificationGamTrainer, TestLearners.BinaryClassificationGamTrainerDiskTranspose };
                 var datasets = GetDatasetsForBinaryClassifierBaseTest();
 
                 foreach (var learner in learners)
@@ -628,11 +933,11 @@ namespace Microsoft.ML.Runtime.RunTests
         /// <summary>
         /// A test for ordinary least squares regression.
         /// </summary>
-        [Fact(Skip = "Need CoreTLC specific baseline update")]
+        [Fact]
         [TestCategory("Regressor")]
         public void RegressorOlsTestOne()
         {
-            Run_TrainTest(TestLearners.Ols, TestDatasets.housing);
+            Run_TrainTest(TestLearners.Ols, TestDatasets.generatedRegressionDataset);
             Done();
         }
 
@@ -645,12 +950,11 @@ namespace Microsoft.ML.Runtime.RunTests
         public void RegressorSdcaTest()
         {
             var regressionPredictors = new[] { TestLearners.Sdcar, TestLearners.SdcarNorm, TestLearners.SdcarReg };
-            var regressionDatasets = GetDatasetsForRegressorTest();
-            RunAllTests(regressionPredictors, regressionDatasets);
+            RunAllTests(regressionPredictors, new[] { TestDatasets.generatedRegressionDataset });
             Done();
         }
 
-#region "Regressor"
+        #region "Regressor"
 
 #if OLD_TESTS // REVIEW: Port these tests?
         /// <summary>
@@ -961,7 +1265,7 @@ namespace Microsoft.ML.Runtime.RunTests
         }
 #endif
 
-#endregion
+        #endregion
 
         /// <summary>
         ///A test for FR ranker
@@ -1034,44 +1338,62 @@ namespace Microsoft.ML.Runtime.RunTests
         }
 
         /// <summary>
-        ///A test for calibrators
+        ///A test for no calibrators
         ///</summary>
-        [Fact(Skip = "Need CoreTLC specific baseline update")]
+        [Fact]
         [TestCategory("Calibrator")]
-        public void CalibratorPerceptronTest()
+        public void DefaultCalibratorPerceptronTest()
         {
             var datasets = GetDatasetsForCalibratorTest();
-            RunAllTests(
-                new[] { TestLearners.perceptronDefault },
-                datasets,
-                new string[] { "cali={}" }, "nocalibration");
-            RunAllTests(
-                new[] { TestLearners.perceptronDefault },
-                datasets,
-                new[] { "cali=PAV" }, "PAVcalibration");
-            RunAllTests(
-            new[] { TestLearners.perceptronDefault },
-                datasets,
-                new string[] { "numcali=200" }, "calibrateRandom");
+            RunAllTests(new[] { TestLearners.perceptronDefault }, datasets, new string[] { "cali={}" }, "nocalibration");
             Done();
         }
 
         /// <summary>
-        ///A test for calibrators
+        ///A test for PAV calibrators
         ///</summary>
-        [Fact(Skip = "Need CoreTLC specific baseline update")]
+        [Fact]
         [TestCategory("Calibrator")]
-        public void CalibratorLinearSvmTest()
+        public void PAVCalibratorPerceptronTest()
         {
             var datasets = GetDatasetsForCalibratorTest();
-            RunAllTests(
-                new[] { TestLearners.linearSVM },
-                datasets,
-                new string[] { "cali={}" }, "nocalibration");
-            RunAllTests(
-                new[] { TestLearners.linearSVM },
-                datasets,
-                new string[] { "cali=PAV" }, "PAVcalibration");
+            RunAllTests(new[] { TestLearners.perceptronDefault }, datasets, new[] { "cali=PAV" }, "PAVcalibration");
+            Done();
+        }
+
+        /// <summary>
+        ///A test for random calibrators
+        ///</summary>
+        [Fact]
+        [TestCategory("Calibrator")]
+        public void RandomCalibratorPerceptronTest()
+        {
+            var datasets = GetDatasetsForCalibratorTest();
+            RunAllTests(new[] { TestLearners.perceptronDefault }, datasets, new string[] { "numcali=200" }, "calibrateRandom");
+            Done();
+        }
+
+        /// <summary>
+        ///A test for default calibrators
+        ///</summary>
+        [Fact]
+        [TestCategory("Calibrator")]
+        public void NoCalibratorLinearSvmTest()
+        {
+            var datasets = GetDatasetsForCalibratorTest();
+            RunAllTests(new[] { TestLearners.linearSVM }, datasets, new string[] { "cali={}" }, "nocalibration");
+            Done();
+        }
+
+        /// <summary>
+        ///A test for PAV calibrators
+        ///</summary>
+        [Fact]
+        [TestCategory("Calibrator")]
+        public void PAVCalibratorLinearSvmTest()
+        {
+            var datasets = GetDatasetsForCalibratorTest();
+            RunAllTests(new[] { TestLearners.linearSVM }, datasets, new string[] { "cali=PAV" }, "PAVcalibration");
             Done();
         }
 
@@ -1196,8 +1518,7 @@ output Out [3] from H all;
             Done();
         }
 
-#if !CORECLR
-        [Fact(Skip = "Need CoreTLC specific baseline update")]
+        [Fact]
         [TestCategory("Anomaly")]
         public void PcaAnomalyTest()
         {
@@ -1206,11 +1527,12 @@ output Out [3] from H all;
 
             // REVIEW: This next test was misbehaving in a strange way that seems to have gone away
             // mysteriously (bad build?).
-            Run_TrainTest(TestLearners.PCAAnomalyDefault, TestDatasets.azureCounterUnlabeled, summary: true);
+            // REVIEW: enable this test afte Expr transform is available. Currently maml breaks on xf=Expr setting
+            // Run_TrainTest(TestLearners.PCAAnomalyDefault, TestDatasets.azureCounterUnlabeled, summary: true);
 
             Done();
         }
-#endif
+
         /// <summary>
         ///A test for one-class svm (libsvm wrapper)
         ///</summary>
@@ -1249,7 +1571,7 @@ output Out [3] from H all;
         [TestCategory("Anomaly")]
         public void CompareSvmPredictorResultsToLibSvm()
         {
-            using (var env = new TlcEnvironment(1, conc: 1))
+            using (var env = new LocalEnvironment(1, conc: 1))
             {
                 IDataView trainView = new TextLoader(env, new TextLoader.Arguments(), new MultiFileSource(GetDataPath(TestDatasets.mnistOneClass.trainFilename)));
                 trainView =
@@ -1259,10 +1581,10 @@ output Out [3] from H all;
                             Column = new[] { new NormalizeTransform.AffineColumn() { Name = "Features", Source = "Features" } }
                         },
                      trainView);
-                var trainData = TrainUtils.CreateExamples(trainView, "Label", "Features");
+                var trainData = new RoleMappedData(trainView, "Label", "Features");
                 IDataView testView = new TextLoader(env, new TextLoader.Arguments(), new MultiFileSource(GetDataPath(TestDatasets.mnistOneClass.testFilename)));
                 ApplyTransformUtils.ApplyAllTransformsToData(env, trainView, testView);
-                var testData = TrainUtils.CreateExamples(testView, "Label", "Features");
+                var testData = new RoleMappedData(testView, "Label", "Features");
 
                 CompareSvmToLibSvmCore("linear kernel", "LinearKernel", env, trainData, testData);
                 CompareSvmToLibSvmCore("polynomial kernel", "PolynomialKernel{d=2}", env, trainData, testData);

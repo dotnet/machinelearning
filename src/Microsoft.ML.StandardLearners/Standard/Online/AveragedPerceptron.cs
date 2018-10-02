@@ -4,6 +4,7 @@
 
 using Float = System.Single;
 
+using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
@@ -13,6 +14,7 @@ using Microsoft.ML.Runtime.Internal.Internallearn;
 using Microsoft.ML.Runtime.Learners;
 using Microsoft.ML.Runtime.Numeric;
 using Microsoft.ML.Runtime.Training;
+using System;
 
 [assembly: LoadableClass(AveragedPerceptronTrainer.Summary, typeof(AveragedPerceptronTrainer), typeof(AveragedPerceptronTrainer.Arguments),
     new[] { typeof(SignatureBinaryClassifierTrainer), typeof(SignatureTrainer), typeof(SignatureFeatureScorerTrainer) },
@@ -23,20 +25,20 @@ using Microsoft.ML.Runtime.Training;
 
 namespace Microsoft.ML.Runtime.Learners
 {
-    /// <summary>
-    /// This is an averaged perceptron classifier.
-    /// Configurable subcomponents:
-    ///     - Loss function. By default, hinge loss (aka max-margin avgd perceptron)
-    ///     - Feature normalization. By default, rescaling between min and max values for every feature
-    ///     - Prediction calibration to produce probabilities. Off by default, if on, uses exponential (aka Platt) calibration.
-    /// </summary>
-    public sealed class AveragedPerceptronTrainer :
-        AveragedLinearTrainer<AveragedPerceptronTrainer.Arguments, LinearBinaryPredictor>
+    // This is an averaged perceptron classifier.
+    // Configurable subcomponents:
+    //     - Loss function. By default, hinge loss (aka max-margin avgd perceptron)
+    //     - Feature normalization. By default, rescaling between min and max values for every feature
+    //     - Prediction calibration to produce probabilities. Off by default, if on, uses exponential (aka Platt) calibration.
+    /// <include file='doc.xml' path='doc/members/member[@name="AP"]/*' />
+    public sealed class AveragedPerceptronTrainer : AveragedLinearTrainer<BinaryPredictionTransformer<LinearBinaryPredictor>, LinearBinaryPredictor>
     {
         public const string LoadNameValue = "AveragedPerceptron";
         internal const string UserNameValue = "Averaged Perceptron";
         internal const string ShortName = "ap";
-        internal const string Summary = "Perceptron is a binary classification algorithm that makes its predictions based on a linear function.";
+        internal const string Summary = "Averaged Perceptron Binary Classifier.";
+
+        private readonly Arguments _args;
 
         public class Arguments : AveragedLinearArguments
         {
@@ -51,17 +53,25 @@ namespace Microsoft.ML.Runtime.Learners
         }
 
         public AveragedPerceptronTrainer(IHostEnvironment env, Arguments args)
-            : base(args, env, UserNameValue)
+            : base(args, env, UserNameValue, TrainerUtils.MakeBoolScalarLabel(args.LabelColumn))
         {
-            LossFunction = Args.LossFunction.CreateComponent(env);
+            _args = args;
+            LossFunction = _args.LossFunction.CreateComponent(env);
         }
 
-        public override bool NeedCalibration
-        {
-            get { return true; }
-        }
+        public override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
 
-        public override PredictionKind PredictionKind { get { return PredictionKind.BinaryClassification; } }
+        protected override bool NeedCalibration => true;
+
+        protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema)
+        {
+            return new[]
+            {
+                // REVIEW AP is currently not calibrating. Add the probability column after fixing the behavior.
+                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata())),
+                new SchemaShape.Column(DefaultColumnNames.PredictedLabel, SchemaShape.Column.VectorKind.Scalar, BoolType.Instance, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata()))
+            };
+        }
 
         protected override void CheckLabel(RoleMappedData data)
         {
@@ -69,14 +79,28 @@ namespace Microsoft.ML.Runtime.Learners
             data.CheckBinaryLabel();
         }
 
-        public override LinearBinaryPredictor CreatePredictor()
+        protected override void CheckLabelCompatible(SchemaShape.Column labelCol)
+        {
+            Contracts.AssertValue(labelCol);
+
+            Action error =
+                () => throw Host.ExceptSchemaMismatch(nameof(labelCol), RoleMappedSchema.ColumnRole.Label.Value, labelCol.Name, "BL, R8, R4 or a Key", labelCol.GetTypeString());
+
+            if (labelCol.Kind != SchemaShape.Column.VectorKind.Scalar)
+                error();
+
+            if (!labelCol.IsKey && labelCol.ItemType != NumberType.R4 && labelCol.ItemType != NumberType.R8 && !labelCol.ItemType.IsBool)
+                error();
+        }
+
+        protected override LinearBinaryPredictor CreatePredictor()
         {
             Contracts.Assert(WeightsScale == 1);
 
             VBuffer<Float> weights = default(VBuffer<Float>);
             Float bias;
 
-            if (!Args.Averaged)
+            if (!_args.Averaged)
             {
                 Weights.CopyTo(ref weights);
                 bias = Bias;
@@ -91,7 +115,15 @@ namespace Microsoft.ML.Runtime.Learners
             return new LinearBinaryPredictor(Host, ref weights, bias);
         }
 
-        [TlcModule.EntryPoint(Name = "Trainers.AveragedPerceptronBinaryClassifier", Desc = "Train a Average perceptron.", UserName = UserNameValue, ShortName = ShortName)]
+        protected override BinaryPredictionTransformer<LinearBinaryPredictor> MakeTransformer(LinearBinaryPredictor model, ISchema trainSchema)
+        => new BinaryPredictionTransformer<LinearBinaryPredictor>(Host, model, trainSchema, FeatureColumn.Name);
+
+        [TlcModule.EntryPoint(Name = "Trainers.AveragedPerceptronBinaryClassifier",
+            Desc = Summary,
+            UserName = UserNameValue,
+            ShortName = ShortName,
+            XmlInclude = new[] { @"<include file='../Microsoft.ML.StandardLearners/Standard/Online/doc.xml' path='doc/members/member[@name=""AP""]/*' />",
+                                 @"<include file='../Microsoft.ML.StandardLearners/Standard/Online/doc.xml' path='doc/members/example[@name=""AP""]/*' />"})]
         public static CommonOutputs.BinaryClassificationOutput TrainBinary(IHostEnvironment env, Arguments input)
         {
             Contracts.CheckValue(env, nameof(env));

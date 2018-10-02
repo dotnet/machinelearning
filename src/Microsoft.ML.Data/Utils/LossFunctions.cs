@@ -124,9 +124,9 @@ namespace Microsoft.ML.Runtime
             return 1 / Math.Max(1, (Float)0.25 + scaledFeaturesNormSquared);
         }
 
-        // REVIEW: this dual update uses a different log loss formulation, 
+        // REVIEW: this dual update uses a different log loss formulation,
         //although the two are equivalents if the labels are restricted to 0 and 1
-        //Need to update so that it can handle probability label and true to the 
+        //Need to update so that it can handle probability label and true to the
         //definition, which is a smooth loss function
         public Float DualUpdate(Float output, Float label, Float dual, Float invariant, int maxNumThreads)
         {
@@ -435,6 +435,19 @@ namespace Microsoft.ML.Runtime
         {
             Contracts.CheckUserArg(1 <= args.Index && args.Index <= 2, nameof(args.Index), "Must be in the range [1, 2]");
             _index = args.Index;
+            _index1 = 1 - _index;
+            _index2 = 2 - _index;
+        }
+
+        /// <summary>
+        /// Constructor for Tweedie loss.
+        /// </summary>
+        /// <param name="index">Index parameter for the Tweedie distribution, in the range [1, 2].
+        /// 1 is Poisson loss, 2 is gamma loss, and intermediate values are compound Poisson loss.</param>
+        public TweedieLoss(double index = 1.5)
+        {
+            Contracts.CheckParam(1 <= index && index <= 2, nameof(index), "Must be in the range [1, 2]");
+            _index = index;
             _index1 = 1 - _index;
             _index2 = 2 - _index;
         }

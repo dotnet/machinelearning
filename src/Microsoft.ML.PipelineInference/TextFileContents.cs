@@ -12,7 +12,7 @@ using Microsoft.ML.Runtime.Data.IO;
 namespace Microsoft.ML.Runtime.PipelineInference
 {
     /// <summary>
-    /// Utilities for various heuristics against text files. 
+    /// Utilities for various heuristics against text files.
     /// Currently, separator inference and column count detection.
     /// </summary>
     public static class TextFileContents
@@ -42,8 +42,8 @@ namespace Microsoft.ML.Runtime.PipelineInference
 
         /// <summary>
         /// Attempt to detect text loader arguments.
-        /// The algorithm selects the first 'acceptable' set: the one that recognizes the same number of columns in at 
-        /// least <see cref="UniformColumnCountThreshold"/> of the sample's lines, 
+        /// The algorithm selects the first 'acceptable' set: the one that recognizes the same number of columns in at
+        /// least <see cref="UniformColumnCountThreshold"/> of the sample's lines,
         /// and this number of columns is more than 1.
         /// We sweep on separator, allow sparse and allow quote parameter.
         /// </summary>
@@ -90,7 +90,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
                 else
                 {
                     // REVIEW: May need separate messages for GUI-specific and non-specific. This component can be used
-                    // by itself outside the GUI. 
+                    // by itself outside the GUI.
                     ch.Info("Couldn't determine columns in the file using separators {0}. Does the input file consist of only a single column? "
                         + "If so, in TLC GUI, please close the import wizard, and then, in the loader settings to the right, manually add a column, "
                         + "choose a name, and set source index to 0.",
@@ -115,7 +115,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
             try
             {
                 // No need to provide information from unsuccessful loader, so we create temporary environment and get information from it in case of success
-                using (var loaderEnv = new TlcEnvironment(0, true))
+                using (var loaderEnv = new ConsoleEnvironment(0, true))
                 {
                     var messages = new ConcurrentBag<ChannelMessage>();
                     loaderEnv.AddListener<ChannelMessage>(
@@ -123,7 +123,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
                         {
                             messages.Add(msg);
                         });
-                    var idv = new TextLoader(loaderEnv, args, source).Take(1000);
+                    var idv = TextLoader.ReadFile(loaderEnv, args, source).Take(1000);
                     var columnCounts = new List<int>();
                     int columnIndex;
                     bool found = idv.Schema.TryGetColumnIndex("C", out columnIndex);
@@ -131,9 +131,9 @@ namespace Microsoft.ML.Runtime.PipelineInference
 
                     using (var cursor = idv.GetRowCursor(x => x == columnIndex))
                     {
-                        var getter = cursor.GetGetter<VBuffer<DvText>>(columnIndex);
+                        var getter = cursor.GetGetter<VBuffer<ReadOnlyMemory<char>>>(columnIndex);
 
-                        VBuffer<DvText> line = default(VBuffer<DvText>);
+                        VBuffer<ReadOnlyMemory<char>> line = default;
                         while (cursor.MoveNext())
                         {
                             getter(ref line);

@@ -4,15 +4,25 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
+using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
+using Microsoft.ML.Runtime.Data.IO;
 using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Internallearn;
+using Microsoft.ML.Runtime.Internal.Utilities;
+using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.TextAnalytics;
+using Microsoft.ML.StaticPipe;
+using Microsoft.ML.StaticPipe.Runtime;
 
 [assembly: LoadableClass(TextTransform.Summary, typeof(IDataTransform), typeof(TextTransform), typeof(TextTransform.Arguments), typeof(SignatureDataTransform),
+    TextTransform.UserName, "TextTransform", TextTransform.LoaderSignature)]
+
+[assembly: LoadableClass(TextTransform.Summary, typeof(ITransformer), typeof(TextTransform), null, typeof(SignatureLoadModel),
     TextTransform.UserName, "TextTransform", TextTransform.LoaderSignature)]
 
 namespace Microsoft.ML.Runtime.Data
@@ -24,12 +34,11 @@ namespace Microsoft.ML.Runtime.Data
     using StopWordsLang = StopWordsRemoverTransform.Language;
     using CaseNormalizationMode = TextNormalizerTransform.CaseNormalizationMode;
 
-    /// <summary>
-    /// A transform that turns a collection of text documents into numerical feature vectors. The feature vectors are counts 
-    /// of (word or character) ngrams in a given text. It offers ngram hashing (finding the ngram token string name to feature
-    /// integer index mapping through hashing) as an option.
-    /// </summary>
-    public static class TextTransform
+    // A transform that turns a collection of text documents into numerical feature vectors. The feature vectors are counts
+    // of (word or character) ngrams in a given text. It offers ngram hashing (finding the ngram token string name to feature
+    // integer index mapping through hashing) as an option.
+    /// <include file='doc.xml' path='doc/members/member[@name="TextTransform"]/*' />
+    public sealed class TextTransform : IEstimator<ITransformer>
     {
         /// <summary>
         /// Text language. This enumeration is serialized.
@@ -117,6 +126,33 @@ namespace Microsoft.ML.Runtime.Data
             public TextNormKind VectorNormalizer = TextNormKind.L2;
         }
 
+        public sealed class Settings
+        {
+#pragma warning disable MSML_NoInstanceInitializers // No initializers on instance fields or properties
+            public Language TextLanguage { get; set; } = DefaultLanguage;
+            public CaseNormalizationMode TextCase { get; set; } = CaseNormalizationMode.Lower;
+            public bool KeepDiacritics { get; set; } = false;
+            public bool KeepPunctuations { get; set; } = true;
+            public bool KeepNumbers { get; set; } = true;
+            public bool OutputTokens { get; set; } = false;
+            public TextNormKind VectorNormalizer { get; set; } = TextNormKind.L2;
+#pragma warning restore MSML_NoInstanceInitializers // No initializers on instance fields or properties
+        }
+
+        public readonly string OutputColumn;
+        private readonly string[] _inputColumns;
+        public IReadOnlyCollection<string> InputColumns => _inputColumns.AsReadOnly();
+        public Settings AdvancedSettings { get; }
+
+        // These parameters are hardcoded for now.
+        // REVIEW: expose them once sub-transforms are estimators.
+        private IStopWordsRemoverFactory _stopWordsRemover;
+        private TermLoaderArguments _dictionary;
+        private INgramExtractorFactoryFactory _wordFeatureExtractor;
+        private INgramExtractorFactoryFactory _charFeatureExtractor;
+
+        private readonly IHost _host;
+
         /// <summary>
         /// A distilled version of the TextTransform Arguments, with all fields marked readonly and
         /// only the exact set of information needed to construct the transforms preserved.
@@ -193,7 +229,7 @@ namespace Microsoft.ML.Runtime.Data
             }
 
             // If we're performing language auto detection, or either of our extractors aren't hashing then
-            // we need all the input text concatenated into a single Vect<DvText>, for the LanguageDetectionTransform
+            // we need all the input text concatenated into a single ReadOnlyMemory, for the LanguageDetectionTransform
             // to operate on the entire text vector, and for the Dictionary feature extractor to build its bound dictionary
             // correctly.
             public bool NeedInitialSourceColumnConcatTransform
@@ -205,25 +241,22 @@ namespace Microsoft.ML.Runtime.Data
             }
             #endregion
 
-            public TransformApplierParams(IHost host, Arguments args)
+            public TransformApplierParams(TextTransform parent)
             {
-                Contracts.AssertValue(host);
-                host.CheckUserArg(args.Column != null, nameof(args.Column), "Columns must be specified");
-                host.CheckUserArg(args.WordFeatureExtractor != null || args.CharFeatureExtractor != null || args.OutputTokens,
-                    nameof(args.WordFeatureExtractor), "At least one feature extractor or OutputTokens must be specified.");
-                host.Check(Enum.IsDefined(typeof(Language), args.Language));
-                host.Check(Enum.IsDefined(typeof(CaseNormalizationMode), args.TextCase));
-                WordExtractorFactory = args.WordFeatureExtractor?.CreateComponent(host, args.Dictionary);
-                CharExtractorFactory = args.CharFeatureExtractor?.CreateComponent(host, args.Dictionary);
-                VectorNormalizer = args.VectorNormalizer;
-                Language = args.Language;
-                StopWordsRemover = args.StopWordsRemover;
-                TextCase = args.TextCase;
-                KeepDiacritics = args.KeepDiacritics;
-                KeepPunctuations = args.KeepPunctuations;
-                KeepNumbers = args.KeepNumbers;
-                OutputTextTokens = args.OutputTokens;
-                Dictionary = args.Dictionary;
+                var host = parent._host;
+                host.Check(Enum.IsDefined(typeof(Language), parent.AdvancedSettings.TextLanguage));
+                host.Check(Enum.IsDefined(typeof(CaseNormalizationMode), parent.AdvancedSettings.TextCase));
+                WordExtractorFactory = parent._wordFeatureExtractor?.CreateComponent(host, parent._dictionary);
+                CharExtractorFactory = parent._charFeatureExtractor?.CreateComponent(host, parent._dictionary);
+                VectorNormalizer = parent.AdvancedSettings.VectorNormalizer;
+                Language = parent.AdvancedSettings.TextLanguage;
+                StopWordsRemover = parent._stopWordsRemover;
+                TextCase = parent.AdvancedSettings.TextCase;
+                KeepDiacritics = parent.AdvancedSettings.KeepDiacritics;
+                KeepPunctuations = parent.AdvancedSettings.KeepPunctuations;
+                KeepNumbers = parent.AdvancedSettings.KeepNumbers;
+                OutputTextTokens = parent.AdvancedSettings.OutputTokens;
+                Dictionary = parent._dictionary;
             }
         }
 
@@ -237,15 +270,42 @@ namespace Microsoft.ML.Runtime.Data
 
         private const string TransformedTextColFormat = "{0}_TransformedText";
 
-        public static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
+        public TextTransform(IHostEnvironment env, string inputColumn, string outputColumn = null,
+            Action<Settings> advancedSettings = null)
+            : this(env, new[] { inputColumn }, outputColumn ?? inputColumn, advancedSettings)
+        {
+        }
+
+        public TextTransform(IHostEnvironment env, IEnumerable<string> inputColumns, string outputColumn,
+            Action<Settings> advancedSettings = null)
         {
             Contracts.CheckValue(env, nameof(env));
-            var h = env.Register(LoaderSignature);
-            h.CheckValue(args, nameof(args));
+            _host = env.Register(nameof(TextTransform));
+            _host.CheckValue(inputColumns, nameof(inputColumns));
+            _host.CheckParam(inputColumns.Any(), nameof(inputColumns));
+            _host.CheckParam(!inputColumns.Any(string.IsNullOrWhiteSpace), nameof(inputColumns));
+            _host.CheckNonEmpty(outputColumn, nameof(outputColumn));
+            _host.CheckValueOrNull(advancedSettings);
+
+            _inputColumns = inputColumns.ToArray();
+            OutputColumn = outputColumn;
+
+            AdvancedSettings = new Settings();
+            advancedSettings?.Invoke(AdvancedSettings);
+
+            _stopWordsRemover = null;
+            _dictionary = null;
+            _wordFeatureExtractor = new NgramExtractorTransform.NgramExtractorArguments();
+            _charFeatureExtractor = new NgramExtractorTransform.NgramExtractorArguments() { NgramLength = 3, AllLengths = false };
+        }
+
+        public ITransformer Fit(IDataView input)
+        {
+            var h = _host;
             h.CheckValue(input, nameof(input));
 
-            var tparams = new TransformApplierParams(h, args);
-            string[] textCols = args.Column.Source;
+            var tparams = new TransformApplierParams(this);
+            string[] textCols = _inputColumns;
             string[] wordTokCols = null;
             string[] charTokCols = null;
             string wordFeatureCol = null;
@@ -255,43 +315,21 @@ namespace Microsoft.ML.Runtime.Data
 
             if (tparams.NeedInitialSourceColumnConcatTransform && textCols.Length > 1)
             {
-                var xfCols = new ConcatTransform.Column[] { new ConcatTransform.Column() };
-                xfCols[0].Source = textCols;
-                textCols = new[] { GenerateColumnName(input.Schema, args.Column.Name, "InitialConcat") };
-                xfCols[0].Name = textCols[0];
+                var srcCols = textCols;
+                textCols = new[] { GenerateColumnName(input.Schema, OutputColumn, "InitialConcat") };
                 tempCols.Add(textCols[0]);
-                view = new ConcatTransform(h, new ConcatTransform.Arguments() { Column = xfCols }, view);
-            }
-
-            if (tparams.NeedsWordTokenizationTransform)
-            {
-                var xfCols = new DelimitedTokenizeTransform.Column[textCols.Length];
-                wordTokCols = new string[textCols.Length];
-                for (int i = 0; i < textCols.Length; i++)
-                {
-                    var col = new DelimitedTokenizeTransform.Column();
-                    col.Source = textCols[i];
-                    col.Name = GenerateColumnName(view.Schema, textCols[i], "WordTokenizer");
-                    
-                    xfCols[i] = col;
-
-                    wordTokCols[i] = col.Name;
-                    tempCols.Add(col.Name);
-                }
-
-                view = new DelimitedTokenizeTransform(h, new DelimitedTokenizeTransform.Arguments() { Column = xfCols }, view);
+                view = new ConcatTransform(h, textCols[0], srcCols).Transform(view);
             }
 
             if (tparams.NeedsNormalizeTransform)
             {
-                string[] srcCols = wordTokCols == null ? textCols : wordTokCols;
-                var xfCols = new TextNormalizerCol[srcCols.Length];
-                string[] dstCols = new string[srcCols.Length];
-                for (int i = 0; i < srcCols.Length; i++)
+                var xfCols = new TextNormalizerCol[textCols.Length];
+                string[] dstCols = new string[textCols.Length];
+                for (int i = 0; i < textCols.Length; i++)
                 {
-                    dstCols[i] = GenerateColumnName(view.Schema, srcCols[i], "TextNormalizer");
+                    dstCols[i] = GenerateColumnName(view.Schema, textCols[i], "TextNormalizer");
                     tempCols.Add(dstCols[i]);
-                    xfCols[i] = new TextNormalizerCol() { Source = srcCols[i], Name = dstCols[i] };
+                    xfCols[i] = new TextNormalizerCol() { Source = textCols[i], Name = dstCols[i] };
                 }
 
                 view = new TextNormalizerTransform(h,
@@ -304,10 +342,26 @@ namespace Microsoft.ML.Runtime.Data
                         TextCase = tparams.TextCase
                     }, view);
 
-                if (wordTokCols != null)
-                    wordTokCols = dstCols;
-                else
-                    textCols = dstCols;
+                textCols = dstCols;
+            }
+
+            if (tparams.NeedsWordTokenizationTransform)
+            {
+                var xfCols = new DelimitedTokenizeTransform.Column[textCols.Length];
+                wordTokCols = new string[textCols.Length];
+                for (int i = 0; i < textCols.Length; i++)
+                {
+                    var col = new DelimitedTokenizeTransform.Column();
+                    col.Source = textCols[i];
+                    col.Name = GenerateColumnName(view.Schema, textCols[i], "WordTokenizer");
+
+                    xfCols[i] = col;
+
+                    wordTokCols[i] = col.Name;
+                    tempCols.Add(col.Name);
+                }
+
+                view = new DelimitedTokenizeTransform(h, new DelimitedTokenizeTransform.Arguments() { Column = xfCols }, view);
             }
 
             if (tparams.NeedsRemoveStopwordsTransform)
@@ -332,14 +386,14 @@ namespace Microsoft.ML.Runtime.Data
 
             if (tparams.WordExtractorFactory != null)
             {
-                var dstCol = GenerateColumnName(view.Schema, args.Column.Name, "WordExtractor");
+                var dstCol = GenerateColumnName(view.Schema, OutputColumn, "WordExtractor");
                 tempCols.Add(dstCol);
                 view = tparams.WordExtractorFactory.Create(h, view, new[] {
                     new ExtractorColumn()
                     {
                         Name = dstCol,
                         Source = wordTokCols,
-                        FriendlyNames = args.Column.Source
+                        FriendlyNames = _inputColumns
                     }});
                 wordFeatureCol = dstCol;
             }
@@ -347,21 +401,13 @@ namespace Microsoft.ML.Runtime.Data
             if (tparams.OutputTextTokens)
             {
                 string[] srcCols = wordTokCols ?? textCols;
-                view = new ConcatTransform(h,
-                    new ConcatTransform.Arguments()
-                    {
-                        Column = new[] { new ConcatTransform.Column()
-                        {
-                            Name = string.Format(TransformedTextColFormat, args.Column.Name),
-                            Source = srcCols
-                        }}
-                    }, view);
+                view = new ConcatTransform(h, string.Format(TransformedTextColFormat, OutputColumn), srcCols).Transform(view);
             }
 
             if (tparams.CharExtractorFactory != null)
             {
                 {
-                    var srcCols = wordTokCols ?? textCols;
+                    var srcCols = tparams.NeedsRemoveStopwordsTransform ? wordTokCols : textCols;
                     charTokCols = new string[srcCols.Length];
                     var xfCols = new CharTokenizeTransform.Column[srcCols.Length];
                     for (int i = 0; i < srcCols.Length; i++)
@@ -377,13 +423,13 @@ namespace Microsoft.ML.Runtime.Data
                 }
 
                 {
-                    charFeatureCol = GenerateColumnName(view.Schema, args.Column.Name, "CharExtractor");
+                    charFeatureCol = GenerateColumnName(view.Schema, OutputColumn, "CharExtractor");
                     tempCols.Add(charFeatureCol);
                     view = tparams.CharExtractorFactory.Create(h, view, new[] {
                         new ExtractorColumn()
                         {
                             Source = charTokCols,
-                            FriendlyNames = args.Column.Source,
+                            FriendlyNames = _inputColumns,
                             Name = charFeatureCol
                         }});
                 }
@@ -444,22 +490,234 @@ namespace Microsoft.ML.Runtime.Data
                         srcTaggedCols.Add(new KeyValuePair<string, string>(wordFeatureCol, wordFeatureCol));
                 }
                 if (srcTaggedCols.Count > 0)
-                    view = new ConcatTransform(h, new ConcatTransform.TaggedArguments()
-                    {
-                        Column = new[] { new ConcatTransform.TaggedColumn() {
-                        Name = args.Column.Name,
-                        Source = srcTaggedCols.ToArray()
-                    }}
-                    }, view);
+                {
+                    view = new ConcatTransform(h, new ConcatTransform.ColumnInfo(OutputColumn,
+                        srcTaggedCols.Select(kvp => (kvp.Value, kvp.Key))))
+                        .Transform(view);
+                }
             }
 
-            return new DropColumnsTransform(h,
+            view = new DropColumnsTransform(h,
                 new DropColumnsTransform.Arguments() { Column = tempCols.ToArray() }, view);
+
+            return new Transformer(_host, input, view);
         }
+
+        public static ITransformer Create(IHostEnvironment env, ModelLoadContext ctx)
+            => new Transformer(env, ctx);
 
         private static string GenerateColumnName(ISchema schema, string srcName, string xfTag)
         {
             return schema.GetTempColumnName(string.Format("{0}_{1}", srcName, xfTag));
+        }
+
+        public SchemaShape GetOutputSchema(SchemaShape inputSchema)
+        {
+            _host.CheckValue(inputSchema, nameof(inputSchema));
+            var result = inputSchema.Columns.ToDictionary(x => x.Name);
+            foreach (var srcName in _inputColumns)
+            {
+                if (!inputSchema.TryFindColumn(srcName, out var col))
+                    throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", srcName);
+                if (!col.ItemType.IsText)
+                    throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", srcName, "scalar or vector of text", col.GetTypeString());
+            }
+
+            var metadata = new List<SchemaShape.Column>(2);
+            metadata.Add(new SchemaShape.Column(MetadataUtils.Kinds.SlotNames, SchemaShape.Column.VectorKind.Vector, TextType.Instance, false));
+            if (AdvancedSettings.VectorNormalizer != TextNormKind.None)
+                metadata.Add(new SchemaShape.Column(MetadataUtils.Kinds.IsNormalized, SchemaShape.Column.VectorKind.Scalar, BoolType.Instance, false));
+
+            result[OutputColumn] = new SchemaShape.Column(OutputColumn, SchemaShape.Column.VectorKind.Vector, NumberType.R4, false,
+                new SchemaShape(metadata));
+            if (AdvancedSettings.OutputTokens)
+            {
+                string name = string.Format(TransformedTextColFormat, OutputColumn);
+                result[name] = new SchemaShape.Column(name, SchemaShape.Column.VectorKind.VariableVector, TextType.Instance, false);
+            }
+
+            return new SchemaShape(result.Values);
+        }
+
+        public static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView data)
+        {
+            Action<Settings> settings = s =>
+            {
+                s.TextLanguage = args.Language;
+                s.TextCase = args.TextCase;
+                s.KeepDiacritics = args.KeepDiacritics;
+                s.KeepPunctuations = args.KeepPunctuations;
+                s.KeepNumbers = args.KeepNumbers;
+                s.OutputTokens = args.OutputTokens;
+                s.VectorNormalizer = args.VectorNormalizer;
+            };
+
+            var estimator = new TextTransform(env, args.Column.Source ?? new[] { args.Column.Name }, args.Column.Name, settings);
+            estimator._stopWordsRemover = args.StopWordsRemover;
+            estimator._dictionary = args.Dictionary;
+            estimator._wordFeatureExtractor = args.WordFeatureExtractor;
+            estimator._charFeatureExtractor = args.CharFeatureExtractor;
+            return estimator.Fit(data).Transform(data) as IDataTransform;
+        }
+
+        private sealed class Transformer : ITransformer, ICanSaveModel
+        {
+            private const string TransformDirTemplate = "Step_{0:000}";
+
+            private readonly IHost _host;
+            private readonly IDataView _xf;
+
+            public Transformer(IHostEnvironment env, IDataView input, IDataView view)
+            {
+                _host = env.Register(nameof(Transformer));
+                _xf = ApplyTransformUtils.ApplyAllTransformsToData(_host, view, new EmptyDataView(_host, input.Schema), input);
+            }
+
+            public ISchema GetOutputSchema(ISchema inputSchema)
+            {
+                _host.CheckValue(inputSchema, nameof(inputSchema));
+                return Transform(new EmptyDataView(_host, inputSchema)).Schema;
+            }
+
+            public IDataView Transform(IDataView input)
+            {
+                _host.CheckValue(input, nameof(input));
+                return ApplyTransformUtils.ApplyAllTransformsToData(_host, _xf, input);
+            }
+
+            public bool IsRowToRowMapper => true;
+
+            public IRowToRowMapper GetRowToRowMapper(ISchema inputSchema)
+            {
+                _host.CheckValue(inputSchema, nameof(inputSchema));
+                var input = new EmptyDataView(_host, inputSchema);
+                var revMaps = new List<IRowToRowMapper>();
+                IDataView chain;
+                for (chain = ApplyTransformUtils.ApplyAllTransformsToData(_host, _xf, input); chain is IDataTransform xf; chain = xf.Source)
+                {
+                    // Everything in the chain ought to be a row mapper.
+                    _host.Assert(xf is IRowToRowMapper);
+                    revMaps.Add((IRowToRowMapper)xf);
+                }
+                // The walkback should have ended at the input.
+                Contracts.Assert(chain == input);
+                revMaps.Reverse();
+                return new CompositeRowToRowMapper(inputSchema, revMaps.ToArray());
+            }
+
+            public void Save(ModelSaveContext ctx)
+            {
+                _host.CheckValue(ctx, nameof(ctx));
+                ctx.CheckAtModel();
+                ctx.SetVersionInfo(GetVersionInfo());
+
+                var dataPipe = _xf;
+                var transforms = new List<IDataTransform>();
+                while (dataPipe is IDataTransform xf)
+                {
+                    transforms.Add(xf);
+                    dataPipe = xf.Source;
+                    Contracts.AssertValue(dataPipe);
+                }
+                transforms.Reverse();
+
+                ctx.SaveSubModel("Loader", c => BinaryLoader.SaveInstance(_host, c, dataPipe.Schema));
+
+                ctx.Writer.Write(transforms.Count);
+                for (int i = 0; i < transforms.Count; i++)
+                {
+                    var dirName = string.Format(TransformDirTemplate, i);
+                    ctx.SaveModel(transforms[i], dirName);
+                }
+            }
+
+            public Transformer(IHostEnvironment env, ModelLoadContext ctx)
+            {
+                Contracts.CheckValue(env, nameof(env));
+                _host = env.Register(nameof(Transformer));
+                _host.CheckValue(ctx, nameof(ctx));
+
+                ctx.CheckAtModel(GetVersionInfo());
+                int n = ctx.Reader.ReadInt32();
+
+                ctx.LoadModel<IDataLoader, SignatureLoadDataLoader>(env, out var loader, "Loader", new MultiFileSource(null));
+
+                IDataView data = loader;
+                for (int i = 0; i < n; i++)
+                {
+                    var dirName = string.Format(TransformDirTemplate, i);
+                    ctx.LoadModel<IDataTransform, SignatureLoadDataTransform>(env, out var xf, dirName, data);
+                    data = xf;
+                }
+
+                _xf = data;
+            }
+
+            private static VersionInfo GetVersionInfo()
+            {
+                return new VersionInfo(
+                    modelSignature: "TEXT XFR",
+                    verWrittenCur: 0x00010001, // Initial
+                    verReadableCur: 0x00010001,
+                    verWeCanReadBack: 0x00010001,
+                    loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(Transformer).Assembly.FullName);
+            }
+        }
+
+        internal sealed class OutPipelineColumn : Vector<float>
+        {
+            public readonly Scalar<string>[] Inputs;
+
+            public OutPipelineColumn(IEnumerable<Scalar<string>> inputs, Action<Settings> advancedSettings)
+                : base(new Reconciler(advancedSettings), inputs.ToArray())
+            {
+                Inputs = inputs.ToArray();
+            }
+        }
+
+        private sealed class Reconciler : EstimatorReconciler
+        {
+            private readonly Action<Settings> _settings;
+
+            public Reconciler(Action<Settings> advancedSettings)
+            {
+                _settings = advancedSettings;
+            }
+
+            public override IEstimator<ITransformer> Reconcile(IHostEnvironment env,
+                PipelineColumn[] toOutput,
+                IReadOnlyDictionary<PipelineColumn, string> inputNames,
+                IReadOnlyDictionary<PipelineColumn, string> outputNames,
+                IReadOnlyCollection<string> usedNames)
+            {
+                Contracts.Assert(toOutput.Length == 1);
+
+                var outCol = (OutPipelineColumn)toOutput[0];
+                var inputs = outCol.Inputs.Select(x => inputNames[x]);
+                return new TextTransform(env, inputs, outputNames[outCol], _settings);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Extension methods for the static-pipeline over <see cref="PipelineColumn"/> objects.
+    /// </summary>
+    public static class TextFeaturizerStaticPipe
+    {
+        /// <summary>
+        /// Accept text data and converts it to array which represent combinations of ngram/skip-gram token counts.
+        /// </summary>
+        /// <param name="input">Input data.</param>
+        /// <param name="otherInputs">Additional data.</param>
+        /// <param name="advancedSettings">Delegate which allows you to set transformation settings.</param>
+        /// <returns></returns>
+        public static Vector<float> FeaturizeText(this Scalar<string> input, Scalar<string>[] otherInputs = null, Action<TextTransform.Settings> advancedSettings = null)
+        {
+            Contracts.CheckValue(input, nameof(input));
+            Contracts.CheckValueOrNull(otherInputs);
+            otherInputs = otherInputs ?? new Scalar<string>[0];
+            return new TextTransform.OutPipelineColumn(new[] { input }.Concat(otherInputs), advancedSettings);
         }
     }
 }

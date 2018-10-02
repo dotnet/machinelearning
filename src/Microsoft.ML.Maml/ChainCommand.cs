@@ -6,7 +6,6 @@ using System.Globalization;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Command;
 using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Tools;
 
 [assembly: LoadableClass(ChainCommand.Summary, typeof(ChainCommand), typeof(ChainCommand.Arguments), typeof(SignatureCommand),
@@ -21,8 +20,8 @@ namespace Microsoft.ML.Runtime.Tools
         public sealed class Arguments
         {
 #pragma warning disable 649 // never assigned
-            [Argument(ArgumentType.Multiple, HelpText = "Command", ShortName = "cmd")]
-            public SubComponent<ICommand, SignatureCommand>[] Command;
+            [Argument(ArgumentType.Multiple, HelpText = "Command", ShortName = "cmd", SignatureType = typeof(SignatureCommand))]
+            public IComponentFactory<ICommand>[] Command;
 #pragma warning restore 649 // never assigned
         }
 
@@ -61,7 +60,7 @@ namespace Microsoft.ML.Runtime.Tools
                             chCmd.Info("Executing: {0}", sub);
                             chCmd.Info("=====================================================================================");
 
-                            var cmd = sub.CreateInstance(_host);
+                            var cmd = sub.CreateComponent(_host);
                             cmd.Run();
                             count++;
 

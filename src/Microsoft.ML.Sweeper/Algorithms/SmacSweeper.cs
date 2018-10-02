@@ -12,6 +12,7 @@ using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Sweeper;
 
 using Microsoft.ML.Runtime.Data;
+using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.FastTree;
 using Microsoft.ML.Runtime.FastTree.Internal;
 using Microsoft.ML.Runtime.Internal.Utilities;
@@ -28,8 +29,8 @@ namespace Microsoft.ML.Runtime.Sweeper
     {
         public sealed class Arguments
         {
-            [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "Swept parameters", ShortName = "p")]
-            public SubComponent<IValueGenerator, SignatureSweeperParameter>[] SweptParameters;
+            [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "Swept parameters", ShortName = "p", SignatureType = typeof(SignatureSweeperParameter))]
+            public IComponentFactory<IValueGenerator>[] SweptParameters;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Seed for the random number generator for the first batch sweeper", ShortName = "seed")]
             public int RandomSeed;
@@ -83,7 +84,7 @@ namespace Microsoft.ML.Runtime.Sweeper
 
             _args = args;
             _host.CheckUserArg(Utils.Size(args.SweptParameters) > 0, nameof(args.SweptParameters), "SMAC sweeper needs at least one parameter to sweep over");
-            _sweepParameters = args.SweptParameters.Select(p => p.CreateInstance(_host)).ToArray();
+            _sweepParameters = args.SweptParameters.Select(p => p.CreateComponent(_host)).ToArray();
             _randomSweeper = new UniformRandomSweeper(env, new SweeperBase.ArgumentsBase(), _sweepParameters);
         }
 
@@ -91,8 +92,8 @@ namespace Microsoft.ML.Runtime.Sweeper
         {
             int numOfCandidates = maxSweeps;
 
-            // Initialization: Will enter here on first iteration and use the default (random) 
-            // sweeper to generate initial candidates.             
+            // Initialization: Will enter here on first iteration and use the default (random)
+            // sweeper to generate initial candidates.
             int numRuns = previousRuns == null ? 0 : previousRuns.Count();
             if (numRuns < _args.NumberInitialPopulation)
                 return _randomSweeper.ProposeSweeps(Math.Min(numOfCandidates, _args.NumberInitialPopulation - numRuns), previousRuns);
@@ -126,25 +127,24 @@ namespace Microsoft.ML.Runtime.Sweeper
             }
 
             ArrayDataViewBuilder dvBuilder = new ArrayDataViewBuilder(_host);
-            dvBuilder.AddColumn("Label", NumberType.Float, targets);
-            dvBuilder.AddColumn("Features", NumberType.Float, features);
+            dvBuilder.AddColumn(DefaultColumnNames.Label, NumberType.Float, targets);
+            dvBuilder.AddColumn(DefaultColumnNames.Features, NumberType.Float, features);
 
             IDataView view = dvBuilder.GetDataView();
             _host.Assert(view.GetRowCount() == targets.Length, "This data view will have as many rows as there have been evaluations");
-            RoleMappedData data = TrainUtils.CreateExamples(view, "Label", "Features");
+            RoleMappedData data = new RoleMappedData(view, DefaultColumnNames.Label, DefaultColumnNames.Features);
 
             using (IChannel ch = _host.Start("Single training"))
             {
                 // Set relevant random forest arguments.
-                FastForestRegression.Arguments args = new FastForestRegression.Arguments();
-                args.FeatureFraction = _args.SplitRatio;
-                args.NumTrees = _args.NumOfTrees;
-                args.MinDocumentsInLeafs = _args.NMinForSplit;
-
                 // Train random forest.
-                FastForestRegression trainer = new FastForestRegression(_host, args);
-                trainer.Train(data);
-                FastForestRegressionPredictor predictor = trainer.CreatePredictor();
+                var trainer = new FastForestRegression(_host, DefaultColumnNames.Label, DefaultColumnNames.Features, advancedSettings: s =>
+                    {
+                        s.FeatureFraction = _args.SplitRatio;
+                        s.NumTrees = _args.NumOfTrees;
+                        s.MinDocumentsInLeafs = _args.NMinForSplit;
+                    });
+                var predictor = trainer.Train(data);
 
                 // Return random forest predictor.
                 ch.Done();
@@ -182,34 +182,6 @@ namespace Microsoft.ML.Runtime.Sweeper
             return configs;
         }
 
-        private ParameterSet[] TreeOrderedCandidatesSearch(FastForestRegressionPredictor forest, int numOfCandidates, IEnumerable<IRunResult> previousRuns)
-        {
-            // Step 1: Get ordered list of all leaf values.
-            SortedList<double, Tuple<int, int>> leafValueList = new SortedList<double, Tuple<int, int>>(Comparer<double>.Create((x, y) => y.CompareTo(x)));
-            for (int i = 0; i < forest.TrainedEnsemble.NumTrees; i++)
-            {
-                RegressionTree t = forest.TrainedEnsemble.GetTreeAt(i);
-                for (int j = 0; j < t.NumLeaves; j++)
-                {
-                    double val = t.LeafValue(j);
-                    while (leafValueList.ContainsKey(val))
-                        val += Double.Epsilon;
-                    leafValueList.Add(val, Tuple.Create(i, j));
-                }
-            }
-
-            // Step 2: Go through, starting from best leaves.
-
-            //ch.Info("Ha ha, we trained {0} trees", ensemble.NumTrees);
-            //// This is a pretty silly example of inspecting the tree.
-            //int count = ensemble.Trees.Sum(t => t.SplitFeatures.Take(t.NumNodes).Count(f => f == 5));
-            //ch.Info("Our random forest ensemble used the feature with index 5, {0} times!!", count);
-            //double allLeavesSum = ensemble.Trees.Sum(t => t.LeafValues.Take(t.NumLeaves).Sum());
-            //ch.Info("Our random forest, across all leaves, summed to {0}", allLeavesSum);   
-            //int[] path = t.pathToLeaf(leafIndex);
-            return null;
-        }
-
         /// <summary>
         /// Does a mix of greedy local search around best performing parameter sets, while throwing random parameter sets into the mix.
         /// </summary>
@@ -220,7 +192,7 @@ namespace Microsoft.ML.Runtime.Sweeper
         /// <returns>Array of parameter sets, which will then be evaluated.</returns>
         private ParameterSet[] GreedyPlusRandomSearch(ParameterSet[] parents, FastForestRegressionPredictor forest, int numOfCandidates, IEnumerable<IRunResult> previousRuns)
         {
-            // REVIEW: The IsMetricMaximizing flag affects the comparator, so that 
+            // REVIEW: The IsMetricMaximizing flag affects the comparator, so that
             // performing Max() should get the best, regardless of if it is maximizing or
             // minimizing.
             RunResult bestRun = (RunResult)previousRuns.Max();

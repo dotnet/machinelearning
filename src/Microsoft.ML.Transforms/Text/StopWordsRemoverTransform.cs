@@ -7,6 +7,7 @@
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
+using Microsoft.ML.Runtime.Data.IO;
 using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
@@ -84,8 +85,10 @@ namespace Microsoft.ML.Runtime.TextAnalytics
             Italian = 6,
             Spanish = 7,
             Portuguese = 8,
+#pragma warning disable MSML_GeneralName // These names correspond to file names, so this is fine in this case.
             Portuguese_Brazilian = 9,
             Norwegian_Bokmal = 10,
+#pragma warning restore MSML_GeneralName
             Russian = 11,
             Polish = 12,
             Czech = 13,
@@ -232,7 +235,8 @@ namespace Microsoft.ML.Runtime.TextAnalytics
                 verWrittenCur: 0x00010001, // Initial
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
-                loaderSignature: LoaderSignature);
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(StopWordsRemoverTransform).Assembly.FullName);
         }
 
         private readonly bool?[] _resourcesExist;
@@ -241,7 +245,7 @@ namespace Microsoft.ML.Runtime.TextAnalytics
         private static readonly ColumnType _outputType = new VectorType(TextType.Instance);
 
         private static volatile NormStr.Pool[] _stopWords;
-        private static volatile Dictionary<DvText, Language> _langsDictionary;
+        private static volatile Dictionary<ReadOnlyMemory<char>, Language> _langsDictionary;
 
         private const Language DefaultLanguage = Language.English;
         private const string RegistrationName = "StopWordsRemover";
@@ -267,14 +271,14 @@ namespace Microsoft.ML.Runtime.TextAnalytics
             }
         }
 
-        private static Dictionary<DvText, Language> LangsDictionary
+        private static Dictionary<ReadOnlyMemory<char>, Language> LangsDictionary
         {
             get
             {
                 if (_langsDictionary == null)
                 {
                     var langsDictionary = Enum.GetValues(typeof(Language)).Cast<Language>()
-                        .ToDictionary(lang => new DvText(lang.ToString()));
+                        .ToDictionary(lang => lang.ToString().AsMemory());
                     Interlocked.CompareExchange(ref _langsDictionary, langsDictionary, null);
                 }
 
@@ -446,16 +450,16 @@ namespace Microsoft.ML.Runtime.TextAnalytics
 
             var ex = _exes[iinfo];
             Language stopWordslang = ex.Lang;
-            var lang = default(DvText);
-            var getLang = ex.LangsColIndex >= 0 ? input.GetGetter<DvText>(ex.LangsColIndex) : null;
+            var lang = default(ReadOnlyMemory<char>);
+            var getLang = ex.LangsColIndex >= 0 ? input.GetGetter<ReadOnlyMemory<char>>(ex.LangsColIndex) : null;
 
-            var getSrc = GetSrcGetter<VBuffer<DvText>>(input, iinfo);
-            var src = default(VBuffer<DvText>);
+            var getSrc = GetSrcGetter<VBuffer<ReadOnlyMemory<char>>>(input, iinfo);
+            var src = default(VBuffer<ReadOnlyMemory<char>>);
             var buffer = new StringBuilder();
-            var list = new List<DvText>();
+            var list = new List<ReadOnlyMemory<char>>();
 
-            ValueGetter<VBuffer<DvText>> del =
-                (ref VBuffer<DvText> dst) =>
+            ValueGetter<VBuffer<ReadOnlyMemory<char>>> del =
+                (ref VBuffer<ReadOnlyMemory<char>> dst) =>
                 {
                     var langToUse = stopWordslang;
                     UpdateLanguage(ref langToUse, getLang, ref lang);
@@ -465,10 +469,10 @@ namespace Microsoft.ML.Runtime.TextAnalytics
 
                     for (int i = 0; i < src.Count; i++)
                     {
-                        if (!src.Values[i].HasChars)
+                        if (src.Values[i].IsEmpty)
                             continue;
                         buffer.Clear();
-                        src.Values[i].AddLowerCaseToStringBuilder(buffer);
+                        ReadOnlyMemoryUtils.AddLowerCaseToStringBuilder(src.Values[i].Span, buffer);
 
                         // REVIEW nihejazi: Consider using a trie for string matching (Aho-Corasick, etc.)
                         if (StopWords[(int)langToUse].Get(buffer) == null)
@@ -481,13 +485,13 @@ namespace Microsoft.ML.Runtime.TextAnalytics
             return del;
         }
 
-        private void UpdateLanguage(ref Language langToUse, ValueGetter<DvText> getLang, ref DvText langTxt)
+        private void UpdateLanguage(ref Language langToUse, ValueGetter<ReadOnlyMemory<char>> getLang, ref ReadOnlyMemory<char> langTxt)
         {
             if (getLang != null)
             {
                 getLang(ref langTxt);
                 Language lang;
-                if (!langTxt.IsNA && LangsDictionary.TryGetValue(langTxt, out lang))
+                if (LangsDictionary.TryGetValue(langTxt, out lang))
                     langToUse = lang;
             }
 
@@ -564,8 +568,8 @@ namespace Microsoft.ML.Runtime.TextAnalytics
             [Argument(ArgumentType.AtMostOnce, IsInputFileName = true, HelpText = "Data file containing the stopwords", ShortName = "data", SortOrder = 2, Visibility = ArgumentAttribute.VisibilityType.CmdLineOnly)]
             public string DataFile;
 
-            [Argument(ArgumentType.Multiple, HelpText = "Data loader", NullName = "<Auto>", SortOrder = 3, Visibility = ArgumentAttribute.VisibilityType.CmdLineOnly)]
-            public SubComponent<IDataLoader, SignatureDataLoader> Loader;
+            [Argument(ArgumentType.Multiple, HelpText = "Data loader", NullName = "<Auto>", SortOrder = 3, Visibility = ArgumentAttribute.VisibilityType.CmdLineOnly, SignatureType = typeof(SignatureDataLoader))]
+            public IComponentFactory<IMultiStreamSource, IDataLoader> Loader;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Name of the text column containing the stopwords", ShortName = "stopwordsCol", SortOrder = 4, Visibility = ArgumentAttribute.VisibilityType.CmdLineOnly)]
             public string StopwordsColumn;
@@ -599,10 +603,11 @@ namespace Microsoft.ML.Runtime.TextAnalytics
                 verWrittenCur: 0x00010001, // Initial
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
-                loaderSignature: LoaderSignature);
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(CustomStopWordsRemoverTransform).Assembly.FullName);
         }
 
-        public const string StopwrodsManagerLoaderSignature = "CustomStopWordsManager";
+        public const string StopwordsManagerLoaderSignature = "CustomStopWordsManager";
         private static VersionInfo GetStopwrodsManagerVersionInfo()
         {
             return new VersionInfo(
@@ -610,7 +615,8 @@ namespace Microsoft.ML.Runtime.TextAnalytics
                 verWrittenCur: 0x00010001, // Initial
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
-                loaderSignature: StopwrodsManagerLoaderSignature);
+                loaderSignature: StopwordsManagerLoaderSignature,
+                loaderAssemblyName: typeof(CustomStopWordsRemoverTransform).Assembly.FullName);
         }
 
         private static readonly ColumnType _outputType = new VectorType(TextType.Instance);
@@ -620,12 +626,16 @@ namespace Microsoft.ML.Runtime.TextAnalytics
         private const string RegistrationName = "CustomStopWordsRemover";
 
         private static IDataLoader LoadStopwords(IHostEnvironment env, IChannel ch, string dataFile,
-            SubComponent<IDataLoader, SignatureDataLoader> loader, ref string stopwordsCol)
+            IComponentFactory<IMultiStreamSource, IDataLoader> loader, ref string stopwordsCol)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(ch, nameof(ch));
+
+            MultiFileSource fileSource = new MultiFileSource(dataFile);
+            IDataLoader dataLoader;
+
             // First column using the file.
-            if (!loader.IsGood())
+            if (loader == null)
             {
                 // Determine the default loader from the extension.
                 var ext = Path.GetExtension(dataFile);
@@ -637,11 +647,11 @@ namespace Microsoft.ML.Runtime.TextAnalytics
                     ch.CheckUserArg(!string.IsNullOrWhiteSpace(stopwordsCol), nameof(Arguments.StopwordsColumn),
                         "stopwordsColumn should be specified");
                     if (isBinary)
-                        loader = new SubComponent<IDataLoader, SignatureDataLoader>("BinaryLoader");
+                        dataLoader = new BinaryLoader(env, new BinaryLoader.Arguments(), fileSource);
                     else
                     {
                         ch.Assert(isTranspose);
-                        loader = new SubComponent<IDataLoader, SignatureDataLoader>("TransposeLoader");
+                        dataLoader = new TransposeLoader(env, new TransposeLoader.Arguments(), fileSource);
                     }
                 }
                 else
@@ -651,13 +661,27 @@ namespace Microsoft.ML.Runtime.TextAnalytics
                         ch.Warning("{0} should not be specified when default loader is TextLoader. Ignoring stopwordsColumn={0}",
                             stopwordsCol);
                     }
-                    loader = new SubComponent<IDataLoader, SignatureDataLoader>("TextLoader", "sep=tab col=Stopwords:TX:0");
+                    dataLoader = TextLoader.Create(
+                        env,
+                        new TextLoader.Arguments()
+                        {
+                            Separator = "tab",
+                            Column = new[]
+                            {
+                                new TextLoader.Column("Stopwords", DataKind.TX, 0)
+                            }
+                        },
+                        fileSource);
                     stopwordsCol = "Stopwords";
                 }
+                ch.AssertNonEmpty(stopwordsCol);
             }
-            ch.AssertNonEmpty(stopwordsCol);
+            else
+            {
+                dataLoader = loader.CreateComponent(env, fileSource);
+            }
 
-            return loader.CreateInstance(env, new MultiFileSource(dataFile));
+            return dataLoader;
         }
 
         private void LoadStopWords(IHostEnvironment env, IChannel ch, ArgumentsBase loaderArgs, out NormStr.Pool stopWordsMap)
@@ -667,30 +691,30 @@ namespace Microsoft.ML.Runtime.TextAnalytics
             ch.AssertValue(loaderArgs);
 
             if ((!string.IsNullOrEmpty(loaderArgs.Stopwords) || Utils.Size(loaderArgs.Stopword) > 0) &&
-                (!string.IsNullOrWhiteSpace(loaderArgs.DataFile) || loaderArgs.Loader.IsGood() ||
+                (!string.IsNullOrWhiteSpace(loaderArgs.DataFile) || loaderArgs.Loader != null ||
                     !string.IsNullOrWhiteSpace(loaderArgs.StopwordsColumn)))
             {
                 ch.Warning("Explicit stopwords list specified. Data file arguments will be ignored");
             }
 
-            var src = default(DvText);
+            var src = default(ReadOnlyMemory<char>);
             stopWordsMap = new NormStr.Pool();
             var buffer = new StringBuilder();
 
-            var stopwords = new DvText(loaderArgs.Stopwords);
-            stopwords = stopwords.Trim();
-            if (stopwords.HasChars)
+            var stopwords = loaderArgs.Stopwords.AsMemory();
+            stopwords = ReadOnlyMemoryUtils.TrimSpaces(stopwords);
+            if (!stopwords.IsEmpty)
             {
                 bool warnEmpty = true;
                 for (bool more = true; more;)
                 {
-                    DvText stopword;
-                    more = stopwords.SplitOne(',', out stopword, out stopwords);
-                    stopword = stopword.Trim();
-                    if (stopword.HasChars)
+                    ReadOnlyMemory<char> stopword;
+                    more = ReadOnlyMemoryUtils.SplitOne(stopwords, ',', out stopword, out stopwords);
+                    stopword = ReadOnlyMemoryUtils.TrimSpaces(stopword);
+                    if (!stopword.IsEmpty)
                     {
                         buffer.Clear();
-                        stopword.AddLowerCaseToStringBuilder(buffer);
+                        ReadOnlyMemoryUtils.AddLowerCaseToStringBuilder(stopwords.Span, buffer);
                         stopWordsMap.Add(buffer);
                     }
                     else if (warnEmpty)
@@ -706,12 +730,12 @@ namespace Microsoft.ML.Runtime.TextAnalytics
                 bool warnEmpty = true;
                 foreach (string word in loaderArgs.Stopword)
                 {
-                    var stopword = new DvText(word);
-                    stopword = stopword.Trim();
-                    if (stopword.HasChars)
+                    var stopword = word.AsSpan();
+                    stopword = stopword.Trim(' ');
+                    if (!stopword.IsEmpty)
                     {
                         buffer.Clear();
-                        stopword.AddLowerCaseToStringBuilder(buffer);
+                        ReadOnlyMemoryUtils.AddLowerCaseToStringBuilder(stopword, buffer);
                         stopWordsMap.Add(buffer);
                     }
                     else if (warnEmpty)
@@ -735,14 +759,14 @@ namespace Microsoft.ML.Runtime.TextAnalytics
                 using (var cursor = loader.GetRowCursor(col => col == colSrc))
                 {
                     bool warnEmpty = true;
-                    var getter = cursor.GetGetter<DvText>(colSrc);
+                    var getter = cursor.GetGetter<ReadOnlyMemory<char>>(colSrc);
                     while (cursor.MoveNext())
                     {
                         getter(ref src);
-                        if (src.HasChars)
+                        if (!src.IsEmpty)
                         {
                             buffer.Clear();
-                            src.AddLowerCaseToStringBuilder(buffer);
+                            ReadOnlyMemoryUtils.AddLowerCaseToStringBuilder(src.Span, buffer);
                             stopWordsMap.Add(buffer);
                         }
                         else if (warnEmpty)
@@ -775,7 +799,7 @@ namespace Microsoft.ML.Runtime.TextAnalytics
         }
 
         /// <summary>
-        /// Public constructor corresponding to SignatureStopWordsRemoverTransform. It accepts arguments of type LoaderArguments, 
+        /// Public constructor corresponding to SignatureStopWordsRemoverTransform. It accepts arguments of type LoaderArguments,
         /// and a separate array of columns (constructed by the caller -TextTransform- arguments).
         /// </summary>
         public CustomStopWordsRemoverTransform(IHostEnvironment env, LoaderArguments loaderArgs, IDataView input, OneToOneColumn[] column)
@@ -881,7 +905,7 @@ namespace Microsoft.ML.Runtime.TextAnalytics
                     foreach (var nstr in _stopWordsMap)
                     {
                         Host.Assert(nstr.Id == id);
-                        ctx.SaveString(nstr);
+                        ctx.SaveString(nstr.Value);
                         id++;
                     }
 
@@ -907,23 +931,23 @@ namespace Microsoft.ML.Runtime.TextAnalytics
             Host.Assert(Infos[iinfo].TypeSrc.IsVector & Infos[iinfo].TypeSrc.ItemType.IsText);
             disposer = null;
 
-            var getSrc = GetSrcGetter<VBuffer<DvText>>(input, iinfo);
-            var src = default(VBuffer<DvText>);
+            var getSrc = GetSrcGetter<VBuffer<ReadOnlyMemory<char>>>(input, iinfo);
+            var src = default(VBuffer<ReadOnlyMemory<char>>);
             var buffer = new StringBuilder();
-            var list = new List<DvText>();
+            var list = new List<ReadOnlyMemory<char>>();
 
-            ValueGetter<VBuffer<DvText>> del =
-                (ref VBuffer<DvText> dst) =>
+            ValueGetter<VBuffer<ReadOnlyMemory<char>>> del =
+                (ref VBuffer<ReadOnlyMemory<char>> dst) =>
                 {
                     getSrc(ref src);
                     list.Clear();
 
                     for (int i = 0; i < src.Count; i++)
                     {
-                        if (!src.Values[i].HasChars)
+                        if (src.Values[i].IsEmpty)
                             continue;
                         buffer.Clear();
-                        src.Values[i].AddLowerCaseToStringBuilder(buffer);
+                        ReadOnlyMemoryUtils.AddLowerCaseToStringBuilder(src.Values[i].Span, buffer);
 
                         // REVIEW nihejazi: Consider using a trie for string matching (Aho-Corasick, etc.)
                         if (_stopWordsMap.Get(buffer) == null)

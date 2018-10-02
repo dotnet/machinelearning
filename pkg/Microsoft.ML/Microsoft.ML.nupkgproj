@@ -2,23 +2,22 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
+    <PackageDescription>ML.NET is a cross-platform open-source machine learning framework which makes machine learning accessible to .NET developers.</PackageDescription>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Google.Protobuf" Version="$(GoogleProtobufPackageVersion)" />
+    <ProjectReference Include="../Microsoft.ML.CpuMath/Microsoft.ML.CpuMath.nupkgproj" />
+
     <PackageReference Include="Newtonsoft.Json" Version="$(NewtonsoftJsonPackageVersion)" />
     <PackageReference Include="System.Reflection.Emit.Lightweight" Version="$(SystemReflectionEmitLightweightPackageVersion)" />
     <PackageReference Include="System.Threading.Tasks.Dataflow" Version="$(SystemThreadingTasksDataflowPackageVersion)" />
     <PackageReference Include="System.CodeDom" Version="$(SystemCodeDomPackageVersion)" />
-	<PackageReference Include="System.ValueTuple" Version="$(SystemValueTupleVersion)" />
+    <PackageReference Include="System.Memory" Version="$(SystemMemoryVersion)" />
+    <PackageReference Include="System.Collections.Immutable" Version="$(SystemCollectionsImmutableVersion)" />
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="$(PackageAssetsPath)$(MSBuildProjectName)\lib\**\*.dll" Pack="true" PackagePath="lib" />
-    <Content Include="$(PackageAssetsPath)$(MSBuildProjectName)\lib\**\*.xml" Pack="true" PackagePath="lib" />
-    <Content Include="$(PackageAssetsPath)$(MSBuildProjectName)\runtimes\**\*.dll" Pack="true" PackagePath="runtimes" />
-    <Content Include="$(PackageAssetsPath)$(MSBuildProjectName)\runtimes\**\*.dylib" Pack="true" PackagePath="runtimes" />
-    <Content Include="$(PackageAssetsPath)$(MSBuildProjectName)\runtimes\**\*.so" Pack="true" PackagePath="runtimes" />
+    <Content Include="..\common\CommonPackage.props" Pack="true" PackagePath="build\netstandard2.0\$(MSBuildProjectName).props" />
+    <Content Include="build\**\*" Pack="true" PackagePath="build" />
   </ItemGroup>
-
 </Project>

@@ -120,7 +120,6 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
 
             double inverseMaxDCG = _inverseMaxDCGT[query];
 
-            //int[] permutation = (threadIndex < 0 ? new int[numDocuments] : _permutationBuffers[threadIndex]);
             int[] permutation = _permutationBuffers[threadIndex];
 
             short[] labels = Labels;

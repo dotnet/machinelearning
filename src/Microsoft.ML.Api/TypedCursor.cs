@@ -16,7 +16,7 @@ namespace Microsoft.ML.Runtime.Api
     /// It can populate the user-supplied object's fields with the values of the current row.
     /// </summary>
     /// <typeparam name="TRow">The user-defined type that is being populated while cursoring.</typeparam>
-    public interface IRow<TRow> : IRow
+    public interface IRowReadableAs<TRow> : IRow
         where TRow : class
     {
         /// <summary>
@@ -27,11 +27,27 @@ namespace Microsoft.ML.Runtime.Api
     }
 
     /// <summary>
+    /// This interface is an <see cref="IRow"/> with 'strongly typed' binding.
+    /// It can accept values of type <typeparamref name="TRow"/> and present the value as a row.
+    /// </summary>
+    /// <typeparam name="TRow">The user-defined type that provides the values while cursoring.</typeparam>
+    public interface IRowBackedBy<TRow> : IRow
+        where TRow : class
+    {
+        /// <summary>
+        /// Accepts the fields of the user-supplied <paramref name="row"/> object and publishes the instance as a row.
+        /// If the row is accessed prior to any object being set, then the data accessors on the row should throw.
+        /// </summary>
+        /// <param name="row">The row object. Cannot be <c>null</c>.</param>
+        void ExtractValues(TRow row);
+    }
+
+    /// <summary>
     /// This interface provides cursoring through a <see cref="IDataView"/> via a 'strongly typed' binding.
     /// It can populate the user-supplied object's fields with the values of the current row.
     /// </summary>
     /// <typeparam name="TRow">The user-defined type that is being populated while cursoring.</typeparam>
-    public interface IRowCursor<TRow> : IRow<TRow>, ICursor
+    public interface IRowCursor<TRow> : IRowReadableAs<TRow>, ICursor
         where TRow : class
     {
     }
@@ -57,7 +73,7 @@ namespace Microsoft.ML.Runtime.Api
 
     /// <summary>
     /// Implementation of the strongly typed Cursorable.
-    /// Similarly to the 'DataView{T}, this class uses IL generation to create the 'poke' methods that 
+    /// Similarly to the 'DataView{T}, this class uses IL generation to create the 'poke' methods that
     /// write directly into the fields of the user-defined type.
     /// </summary>
     internal sealed class TypedCursorable<TRow> : ICursorable<TRow>
@@ -103,11 +119,11 @@ namespace Microsoft.ML.Runtime.Api
                     throw _host.Except("Column '{0}' not found in the data view", col.ColumnName);
                 }
                 var realColType = _data.Schema.GetColumnType(colIndex);
-                if (!IsCompatibleType(realColType, col.FieldInfo))
+                if (!IsCompatibleType(realColType, col.MemberInfo))
                 {
                     throw _host.Except(
-                        "Can't bind the IDataView column '{0}' of type '{1}' to field '{2}' of type '{3}'.",
-                        col.ColumnName, realColType, col.FieldInfo.Name, col.FieldInfo.FieldType.FullName);
+                        "Can't bind the IDataView column '{0}' of type '{1}' to field or property '{2}' of type '{3}'.",
+                        col.ColumnName, realColType, col.MemberInfo.Name, col.FieldOrPropertyType.FullName);
                 }
 
                 acceptedCols.Add(col);
@@ -130,14 +146,12 @@ namespace Microsoft.ML.Runtime.Api
         }
 
         /// <summary>
-        /// Returns whether the column type <paramref name="colType"/> can be bound to field <paramref name="fieldInfo"/>.
+        /// Returns whether the column type <paramref name="colType"/> can be bound to field <paramref name="memberInfo"/>.
         /// They must both be vectors or scalars, and the raw data kind should match.
         /// </summary>
-        private static bool IsCompatibleType(ColumnType colType, FieldInfo fieldInfo)
+        private static bool IsCompatibleType(ColumnType colType, MemberInfo memberInfo)
         {
-            bool isVector;
-            DataKind kind;
-            InternalSchemaDefinition.GetVectorAndKind(fieldInfo, out isVector, out kind);
+            InternalSchemaDefinition.GetVectorAndKind(memberInfo, out bool isVector, out DataKind kind);
             if (isVector)
                 return colType.IsVector && colType.ItemType.RawKind == kind;
             else
@@ -161,7 +175,7 @@ namespace Microsoft.ML.Runtime.Api
             return GetCursor(x => false, randomSeed);
         }
 
-        public IRow<TRow> GetRow(IRow input)
+        public IRowReadableAs<TRow> GetRow(IRow input)
         {
             return new TypedRow(this, input);
         }
@@ -228,21 +242,24 @@ namespace Microsoft.ML.Runtime.Api
             env.AssertValue(data);
             env.AssertValueOrNull(schemaDefinition);
 
-            var intSchemaDefn = InternalSchemaDefinition.Create(typeof(TRow), schemaDefinition);
-            return new TypedCursorable<TRow>(env, data, ignoreMissingColumns, intSchemaDefn);
+            var outSchema = schemaDefinition == null
+                ? InternalSchemaDefinition.Create(typeof(TRow), SchemaDefinition.Direction.Write)
+                : InternalSchemaDefinition.Create(typeof(TRow), schemaDefinition);
+
+            return new TypedCursorable<TRow>(env, data, ignoreMissingColumns, outSchema);
         }
 
-        private abstract class TypedRowBase : IRow<TRow>
+        private abstract class TypedRowBase : IRowReadableAs<TRow>
         {
             protected readonly IChannel Ch;
             private readonly IRow _input;
             private readonly Action<TRow>[] _setters;
 
-            public long Batch { get { return _input.Batch; } }
+            public long Batch => _input.Batch;
 
-            public long Position { get { return _input.Position; } }
+            public long Position => _input.Position;
 
-            public ISchema Schema { get { return _input.Schema; } }
+            public ISchema Schema => _input.Schema;
 
             public TypedRowBase(TypedCursorable<TRow> parent, IRow input, string channelMessage)
             {
@@ -269,86 +286,90 @@ namespace Microsoft.ML.Runtime.Api
             private Action<TRow> GenerateSetter(IRow input, int index, InternalSchemaDefinition.Column column, Delegate poke, Delegate peek)
             {
                 var colType = input.Schema.GetColumnType(index);
-                var fieldInfo = column.FieldInfo;
-                var fieldType = fieldInfo.FieldType;
-
+                var fieldType = column.OutputType;
+                var genericType = fieldType;
                 Func<IRow, int, Delegate, Delegate, Action<TRow>> del;
                 if (fieldType.IsArray)
                 {
                     Ch.Assert(colType.IsVector);
-                    // VBuffer<DvText> -> String[]
+                    // VBuffer<ReadOnlyMemory<char>> -> String[]
                     if (fieldType.GetElementType() == typeof(string))
                     {
                         Ch.Assert(colType.ItemType.IsText);
-                        return CreateVBufferToStringArraySetter(input, index, poke, peek);
+                        return CreateConvertingVBufferSetter<ReadOnlyMemory<char>, string>(input, index, poke, peek, x => x.ToString());
                     }
+
                     // VBuffer<T> -> T[]
-                    Ch.Assert(fieldType.GetElementType() == colType.ItemType.RawType);
-                    del = CreateVBufferToArraySetter<int>;
+                    if (fieldType.GetElementType().IsGenericType && fieldType.GetElementType().GetGenericTypeDefinition() == typeof(Nullable<>))
+                        Ch.Assert(colType.ItemType.RawType == Nullable.GetUnderlyingType(fieldType.GetElementType()));
+                    else
+                        Ch.Assert(colType.ItemType.RawType == fieldType.GetElementType());
+                    del = CreateDirectVBufferSetter<int>;
+                    genericType = fieldType.GetElementType();
                 }
                 else if (colType.IsVector)
                 {
                     // VBuffer<T> -> VBuffer<T>
-                    // REVIEW: Do we care about accomodating VBuffer<string> -> VBuffer<DvText>?
+                    // REVIEW: Do we care about accomodating VBuffer<string> -> VBuffer<ReadOnlyMemory<char>>?
                     Ch.Assert(fieldType.IsGenericType);
                     Ch.Assert(fieldType.GetGenericTypeDefinition() == typeof(VBuffer<>));
                     Ch.Assert(fieldType.GetGenericArguments()[0] == colType.ItemType.RawType);
                     del = CreateVBufferToVBufferSetter<int>;
+                    genericType = colType.ItemType.RawType;
                 }
                 else if (colType.IsPrimitive)
                 {
                     if (fieldType == typeof(string))
                     {
-                        // DvText -> String
+                        // ReadOnlyMemory<char> -> String
                         Ch.Assert(colType.IsText);
                         Ch.Assert(peek == null);
-                        return CreateTextToStringSetter(input, index, poke);
+                        return CreateConvertingActionSetter<ReadOnlyMemory<char>, string>(input, index, poke, x => x.ToString());
                     }
-                    else if (fieldType == typeof(bool))
-                    {
-                        Ch.Assert(colType.IsBool);
-                        Ch.Assert(peek == null);
-                        return CreateDvBoolToBoolSetter(input, index, poke);
-                    }
+
+                    // T -> T
+                    if (fieldType.IsGenericType && fieldType.GetGenericTypeDefinition() == typeof(Nullable<>))
+                        Ch.Assert(colType.RawType == Nullable.GetUnderlyingType(fieldType));
                     else
-                    {
-                        // T -> T
                         Ch.Assert(colType.RawType == fieldType);
-                        del = CreateDirectSetter<int>;
-                    }
+
+                    del = CreateDirectSetter<int>;
                 }
                 else
                 {
                     // REVIEW: Is this even possible?
-                    throw Ch.ExceptNotImpl("Type '{0}' is not yet supported.", fieldInfo.FieldType.FullName);
+                    throw Ch.ExceptNotImpl("Type '{0}' is not yet supported.", column.OutputType.FullName);
                 }
-                MethodInfo meth = del.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(colType.ItemType.RawType);
+                MethodInfo meth = del.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(genericType);
                 return (Action<TRow>)meth.Invoke(this, new object[] { input, index, poke, peek });
             }
 
-            private Action<TRow> CreateVBufferToStringArraySetter(IRow input, int col, Delegate poke, Delegate peek)
+            // REVIEW: The converting getter invokes a type conversion delegate on every call, so it's inherently slower
+            // than the 'direct' getter. We don't have good indication of this to the user, and the selection
+            // of affected types is pretty arbitrary (signed integers and bools, but not uints and floats).
+            private Action<TRow> CreateConvertingVBufferSetter<TSrc, TDst>(IRow input, int col, Delegate poke, Delegate peek, Func<TSrc, TDst> convert)
             {
-                var getter = input.GetGetter<VBuffer<DvText>>(col);
-                var typedPoke = poke as Poke<TRow, string[]>;
-                var typedPeek = peek as Peek<TRow, string[]>;
+                var getter = input.GetGetter<VBuffer<TSrc>>(col);
+                var typedPoke = poke as Poke<TRow, TDst[]>;
+                var typedPeek = peek as Peek<TRow, TDst[]>;
                 Contracts.AssertValue(typedPoke);
                 Contracts.AssertValue(typedPeek);
-                VBuffer<DvText> value = default(VBuffer<DvText>);
-                string[] buf = null;
+                VBuffer<TSrc> value = default;
+                TDst[] buf = null;
                 return row =>
                 {
                     getter(ref value);
                     typedPeek(row, Position, ref buf);
                     if (Utils.Size(buf) != value.Length)
-                        buf = new string[value.Length];
+                        buf = new TDst[value.Length];
                     foreach (var pair in value.Items(true))
-                        buf[pair.Key] = pair.Value.ToString();
+                        buf[pair.Key] = convert(pair.Value);
 
                     typedPoke(row, buf);
                 };
             }
 
-            private Action<TRow> CreateVBufferToArraySetter<TDst>(IRow input, int col, Delegate poke, Delegate peek)
+            private Action<TRow> CreateDirectVBufferSetter<TDst>(IRow input, int col, Delegate poke, Delegate peek)
             {
                 var getter = input.GetGetter<VBuffer<TDst>>(col);
                 var typedPoke = poke as Poke<TRow, TDst[]>;
@@ -386,29 +407,17 @@ namespace Microsoft.ML.Runtime.Api
                 };
             }
 
-            private static Action<TRow> CreateTextToStringSetter(IRow input, int col, Delegate poke)
+            private static Action<TRow> CreateConvertingActionSetter<TSrc, TDst>(IRow input, int col, Delegate poke, Func<TSrc, TDst> convert)
             {
-                var getter = input.GetGetter<DvText>(col);
-                var typedPoke = poke as Poke<TRow, string>;
+                var getter = input.GetGetter<TSrc>(col);
+                var typedPoke = poke as Poke<TRow, TDst>;
                 Contracts.AssertValue(typedPoke);
-                DvText value = default(DvText);
+                TSrc value = default;
                 return row =>
                 {
                     getter(ref value);
-                    typedPoke(row, value.ToString());
-                };
-            }
-
-            private static Action<TRow> CreateDvBoolToBoolSetter(IRow input, int col, Delegate poke)
-            {
-                var getter = input.GetGetter<DvBool>(col);
-                var typedPoke = poke as Poke<TRow, bool>;
-                Contracts.AssertValue(typedPoke);
-                DvBool value = default(DvBool);
-                return row =>
-                {
-                    getter(ref value);
-                    typedPoke(row, Convert.ToBoolean(value.RawValue));
+                    var toPoke = convert(value);
+                    typedPoke(row, toPoke);
                 };
             }
 
@@ -520,7 +529,7 @@ namespace Microsoft.ML.Runtime.Api
     /// </summary>
     public static class CursoringUtils
     {
-        private const string NeedEnvObsoleteMessage = "This method is obsolete. Please use the overload that takes an additional 'env' argument. An environment can be created via new TlcEnvironment().";
+        private const string NeedEnvObsoleteMessage = "This method is obsolete. Please use the overload that takes an additional 'env' argument. An environment can be created via new LocalEnvironment().";
 
         /// <summary>
         /// Generate a strongly-typed cursorable wrapper of the <see cref="IDataView"/>.
@@ -556,7 +565,7 @@ namespace Microsoft.ML.Runtime.Api
             where TRow : class, new()
         {
             // REVIEW: Take an env as a parameter.
-            var env = new TlcEnvironment();
+            var env = new ConsoleEnvironment();
             return data.AsCursorable<TRow>(env, ignoreMissingColumns, schemaDefinition);
         }
 
@@ -597,7 +606,7 @@ namespace Microsoft.ML.Runtime.Api
             where TRow : class, new()
         {
             // REVIEW: Take an env as a parameter.
-            var env = new TlcEnvironment();
+            var env = new ConsoleEnvironment();
             return data.AsEnumerable<TRow>(env, reuseRowObject, ignoreMissingColumns, schemaDefinition);
         }
     }

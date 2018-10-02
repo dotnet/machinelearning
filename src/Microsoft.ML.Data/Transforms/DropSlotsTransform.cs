@@ -188,7 +188,8 @@ namespace Microsoft.ML.Runtime.Data
                 verWrittenCur: 0x00010001, // Initial
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
-                loaderSignature: LoaderSignature);
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(DropSlotsTransform).Assembly.FullName);
         }
 
         private const string RegistrationName = "DropSlots";
@@ -313,7 +314,7 @@ namespace Microsoft.ML.Runtime.Data
                 slotsMin[j] = range.Min;
                 // There are two reasons for setting the max to int.MaxValue - 1:
                 // 1. max is an index, so it has to be strictly less than int.MaxValue.
-                // 2. to prevent overflows when adding 1 to it.                
+                // 2. to prevent overflows when adding 1 to it.
                 slotsMax[j] = range.Max ?? int.MaxValue - 1;
             }
             Array.Sort(slotsMin, slotsMax);
@@ -384,7 +385,7 @@ namespace Microsoft.ML.Runtime.Data
                     if (hasSlotNames && dstLength > 0)
                     {
                         // Add slot name metadata.
-                        bldr.AddGetter<VBuffer<DvText>>(MetadataUtils.Kinds.SlotNames,
+                        bldr.AddGetter<VBuffer<ReadOnlyMemory<char>>>(MetadataUtils.Kinds.SlotNames,
                             new VectorType(TextType.Instance, dstLength), GetSlotNames);
                     }
                 }
@@ -393,14 +394,14 @@ namespace Microsoft.ML.Runtime.Data
                 {
                     if (MetadataUtils.TryGetCategoricalFeatureIndices(Source.Schema, Infos[iinfo].Source, out categoricalRanges))
                     {
-                        VBuffer<DvInt4> dst = default(VBuffer<DvInt4>);
+                        VBuffer<int> dst = default(VBuffer<int>);
                         GetCategoricalSlotRangesCore(iinfo, slotDropper.SlotsMin, slotDropper.SlotsMax, categoricalRanges, ref dst);
                         // REVIEW: cache dst as opposed to caculating it again.
                         if (dst.Length > 0)
                         {
                             Contracts.Assert(dst.Length % 2 == 0);
 
-                            bldr.AddGetter<VBuffer<DvInt4>>(MetadataUtils.Kinds.CategoricalSlotRanges,
+                            bldr.AddGetter<VBuffer<int>>(MetadataUtils.Kinds.CategoricalSlotRanges,
                                 MetadataUtils.GetCategoricalType(dst.Length / 2), GetCategoricalSlotRanges);
                         }
                     }
@@ -433,17 +434,17 @@ namespace Microsoft.ML.Runtime.Data
             return _exes[iinfo].TypeDst;
         }
 
-        private void GetSlotNames(int iinfo, ref VBuffer<DvText> dst)
+        private void GetSlotNames(int iinfo, ref VBuffer<ReadOnlyMemory<char>> dst)
         {
             Host.Assert(0 <= iinfo && iinfo < Infos.Length);
 
-            var names = default(VBuffer<DvText>);
+            var names = default(VBuffer<ReadOnlyMemory<char>>);
             Source.Schema.GetMetadata(MetadataUtils.Kinds.SlotNames, Infos[iinfo].Source, ref names);
             var infoEx = _exes[iinfo];
             infoEx.SlotDropper.DropSlots(ref names, ref dst);
         }
 
-        private void GetCategoricalSlotRanges(int iinfo, ref VBuffer<DvInt4> dst)
+        private void GetCategoricalSlotRanges(int iinfo, ref VBuffer<int> dst)
         {
             if (_exes[iinfo].CategoricalRanges != null)
             {
@@ -452,7 +453,7 @@ namespace Microsoft.ML.Runtime.Data
             }
         }
 
-        private void GetCategoricalSlotRangesCore(int iinfo, int[] slotsMin, int[] slotsMax, int[] catRanges, ref VBuffer<DvInt4> dst)
+        private void GetCategoricalSlotRangesCore(int iinfo, int[] slotsMin, int[] slotsMax, int[] catRanges, ref VBuffer<int> dst)
         {
             Host.Assert(0 <= iinfo && iinfo < Infos.Length);
             Host.Assert(slotsMax != null && slotsMin != null);
@@ -467,13 +468,13 @@ namespace Microsoft.ML.Runtime.Data
             int previousDropSlotsIndex = 0;
             int droppedSlotsCount = 0;
             bool combine = false;
-            DvInt4 min = -1;
-            DvInt4 max = -1;
-            List<DvInt4> newCategoricalSlotRanges = new List<DvInt4>();
+            int min = -1;
+            int max = -1;
+            List<int> newCategoricalSlotRanges = new List<int>();
 
             // Six possible ways a drop slot range interacts with categorical slots range.
             //
-            //                    +--------------Drop-------------+ 
+            //                    +--------------Drop-------------+
             //                    |                               |
             //
             //                +---Drop---+   +---Drop---+   +---Drop---+
@@ -498,7 +499,7 @@ namespace Microsoft.ML.Runtime.Data
                     }
                     else
                     {
-                        Contracts.Assert(min.RawValue == -1 && max.RawValue == -1);
+                        Contracts.Assert(min == -1 && max == -1);
                         min = ranges[rangesIndex] - droppedSlotsCount;
                         max = ranges[rangesIndex + 1] - droppedSlotsCount;
                     }
@@ -515,14 +516,14 @@ namespace Microsoft.ML.Runtime.Data
                     rangesIndex += 2;
                     if (combine)
                     {
-                        Contracts.Assert(min.RawValue >= 0 && min.RawValue <= max.RawValue);
+                        Contracts.Assert(min >= 0 && min <= max);
                         newCategoricalSlotRanges.Add(min);
                         newCategoricalSlotRanges.Add(max);
                         min = max = -1;
                         combine = false;
                     }
 
-                    Contracts.Assert(min.RawValue == -1 && max.RawValue == -1);
+                    Contracts.Assert(min == -1 && max == -1);
 
                 }
                 else if (slotsMin[dropSlotsIndex] > ranges[rangesIndex] &&
@@ -535,7 +536,7 @@ namespace Microsoft.ML.Runtime.Data
                     }
                     else
                     {
-                        Contracts.Assert(min.RawValue == -1 && max.RawValue == -1);
+                        Contracts.Assert(min == -1 && max == -1);
 
                         min = ranges[rangesIndex] - droppedSlotsCount;
                         max = slotsMin[dropSlotsIndex] - 1 - droppedSlotsCount;
@@ -576,28 +577,28 @@ namespace Microsoft.ML.Runtime.Data
                 min = max = -1;
             }
 
-            Contracts.Assert(min.RawValue == -1 && max.RawValue == -1);
+            Contracts.Assert(min == -1 && max == -1);
 
             for (int i = rangesIndex; i < ranges.Length; i++)
                 newCategoricalSlotRanges.Add(ranges[i] - droppedSlotsCount);
 
             Contracts.Assert(newCategoricalSlotRanges.Count % 2 == 0);
-            Contracts.Assert(newCategoricalSlotRanges.TrueForAll(x => x.RawValue >= 0));
+            Contracts.Assert(newCategoricalSlotRanges.TrueForAll(x => x >= 0));
             Contracts.Assert(0 <= droppedSlotsCount && droppedSlotsCount <= slotsMax[slotsMax.Length - 1] + 1);
 
             if (newCategoricalSlotRanges.Count > 0)
-                dst = new VBuffer<DvInt4>(newCategoricalSlotRanges.Count, newCategoricalSlotRanges.ToArray());
+                dst = new VBuffer<int>(newCategoricalSlotRanges.Count, newCategoricalSlotRanges.ToArray());
         }
 
         private void CombineRanges(
-            DvInt4 minRange1, DvInt4 maxRange1, DvInt4 minRange2, DvInt4 maxRange2,
-            out DvInt4 newRangeMin, out DvInt4 newRangeMax)
+            int minRange1, int maxRange1, int minRange2, int maxRange2,
+            out int newRangeMin, out int newRangeMax)
         {
-            Contracts.Assert(minRange2.RawValue >= 0 && maxRange2.RawValue >= 0);
-            Contracts.Assert(minRange2.RawValue <= maxRange2.RawValue);
-            Contracts.Assert(minRange1.RawValue >= 0 && maxRange1.RawValue >= 0);
-            Contracts.Assert(minRange1.RawValue <= maxRange1.RawValue);
-            Contracts.Assert(maxRange1.RawValue + 1 == minRange2.RawValue);
+            Contracts.Assert(minRange2 >= 0 && maxRange2 >= 0);
+            Contracts.Assert(minRange2 <= maxRange2);
+            Contracts.Assert(minRange1 >= 0 && maxRange1 >= 0);
+            Contracts.Assert(minRange1 <= maxRange1);
+            Contracts.Assert(maxRange1 + 1 == minRange2);
 
             newRangeMin = minRange1;
             newRangeMax = maxRange2;

@@ -37,6 +37,14 @@ namespace Microsoft.ML.Runtime.Data
         public const int NumBitsMin = 1;
         public const int NumBitsLim = 32;
 
+        private static class Defaults
+        {
+            public const bool Join = true;
+            public const int HashBits = NumBitsLim - 1;
+            public const uint Seed = 314489979;
+            public const bool Ordered = true;
+        }
+
         public sealed class Arguments : TransformInputBase
         {
             [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "New column definition(s) (optional form: name:src)",
@@ -45,17 +53,17 @@ namespace Microsoft.ML.Runtime.Data
             public Column[] Column;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Whether the values need to be combined for a single hash")]
-            public bool Join = true;
+            public bool Join = Defaults.Join;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Number of bits to hash into. Must be between 1 and 31, inclusive.",
                 ShortName = "bits", SortOrder = 2)]
-            public int HashBits = NumBitsLim - 1;
+            public int HashBits = Defaults.HashBits;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Hashing seed")]
-            public uint Seed = 314489979;
+            public uint Seed = Defaults.Seed;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Whether the position of each term should be included in the hash", ShortName = "ord")]
-            public bool Ordered = true;
+            public bool Ordered = Defaults.Ordered;
         }
 
         public sealed class Column : OneToOneColumn
@@ -99,7 +107,7 @@ namespace Microsoft.ML.Runtime.Data
 
         public sealed class ColumnInfoEx
         {
-            // Either VBuffer<Key<U4>> or a single Key<U4>. 
+            // Either VBuffer<Key<U4>> or a single Key<U4>.
             // Note that if CustomSlotMap contains only one array, the output type of the transform will a single Key<U4>.
             // This corresponds to the join=+ case, although now it's possible to omit certain slots entirely.
             // If # of hash bits is less than 31, the key type will have a positive count.
@@ -144,8 +152,7 @@ namespace Microsoft.ML.Runtime.Data
 
         internal const string RegistrationName = "HashJoin";
 
-        internal const string Summary = "Converts column values into hashes. This transform accepts both numeric and text inputs, both single and vector-valued columns. "
-            + "This is a part of the Dracula transform.";
+        internal const string Summary = "Converts column values into hashes. This transform accepts both numeric and text inputs, both single and vector-valued columns. ";
 
         internal const string UserName = "Hash Join Transform";
 
@@ -161,11 +168,32 @@ namespace Microsoft.ML.Runtime.Data
                 verWrittenCur: 0x00010005, // Hash fix
                 verReadableCur: 0x00010005,
                 verWeCanReadBack: 0x00010005,
-                loaderSignature: LoaderSignature);
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(HashJoinTransform).Assembly.FullName);
         }
 
         private readonly ColumnInfoEx[] _exes;
 
+        /// <summary>
+        /// Convenience constructor for public facing API.
+        /// </summary>
+        /// <param name="env">Host Environment.</param>
+        /// <param name="input">Input <see cref="IDataView"/>. This is the output from previous transform or loader.</param>
+        /// <param name="name">Name of the output column.</param>
+        /// <param name="source">Name of the column to be transformed. If this is null '<paramref name="name"/>' will be used.</param>
+        /// <param name="join">Whether the values need to be combined for a single hash.</param>
+        /// <param name="hashBits">Number of bits to hash into. Must be between 1 and 31, inclusive.</param>
+        public HashJoinTransform(IHostEnvironment env,
+            IDataView input,
+            string name,
+            string source = null,
+             bool join = Defaults.Join,
+            int hashBits = Defaults.HashBits)
+            : this(env, new Arguments() { Column = new[] { new Column() { Source = source ?? name, Name = name } }, Join = join, HashBits = hashBits }, input)
+        {
+        }
+
+        /// <include file='doc.xml' path='doc/members/member[@name="HashJoin"]/*' />
         public HashJoinTransform(IHostEnvironment env, Arguments args, IDataView input)
             : base(env, RegistrationName, Contracts.CheckRef(args, nameof(args)).Column, input, TestColumnType)
         {
@@ -316,11 +344,11 @@ namespace Microsoft.ML.Runtime.Data
 
         private int[][] CompileSlotMap(string slotMapString, int srcSlotCount)
         {
-            var parts = new DvText(slotMapString).Split(new[] { ';' }).ToArray();
+            var parts = ReadOnlyMemoryUtils.Split(slotMapString.AsMemory(), new[] { ';' }).ToArray();
             var slotMap = new int[parts.Length][];
             for (int i = 0; i < slotMap.Length; i++)
             {
-                var slotIndices = parts[i].Split(new[] { ',' }).ToArray();
+                var slotIndices = ReadOnlyMemoryUtils.Split(parts[i], new[] { ',' }).ToArray();
                 var slots = new int[slotIndices.Length];
                 slotMap[i] = slots;
                 for (int j = 0; j < slots.Length; j++)
@@ -370,14 +398,14 @@ namespace Microsoft.ML.Runtime.Data
                     continue;
                 using (var bldr = md.BuildMetadata(i))
                 {
-                    bldr.AddGetter<VBuffer<DvText>>(MetadataUtils.Kinds.SlotNames,
+                    bldr.AddGetter<VBuffer<ReadOnlyMemory<char>>>(MetadataUtils.Kinds.SlotNames,
                         new VectorType(TextType.Instance, ex.SlotMap.Length), GetSlotNames);
                 }
             }
             md.Seal();
         }
 
-        private void GetSlotNames(int iinfo, ref VBuffer<DvText> dst)
+        private void GetSlotNames(int iinfo, ref VBuffer<ReadOnlyMemory<char>> dst)
         {
             Host.Assert(0 <= iinfo && iinfo < Infos.Length);
 
@@ -386,11 +414,11 @@ namespace Microsoft.ML.Runtime.Data
             int n = _exes[iinfo].OutputValueCount;
             var output = dst.Values;
             if (Utils.Size(output) < n)
-                output = new DvText[n];
+                output = new ReadOnlyMemory<char>[n];
 
             var srcColumnName = Source.Schema.GetColumnName(Infos[iinfo].Source);
             bool useDefaultSlotNames = !Source.Schema.HasSlotNames(Infos[iinfo].Source, Infos[iinfo].TypeSrc.VectorSize);
-            VBuffer<DvText> srcSlotNames = default(VBuffer<DvText>);
+            VBuffer<ReadOnlyMemory<char>> srcSlotNames = default;
             if (!useDefaultSlotNames)
             {
                 Source.Schema.GetMetadata(MetadataUtils.Kinds.SlotNames, Infos[iinfo].Source, ref srcSlotNames);
@@ -417,10 +445,10 @@ namespace Microsoft.ML.Runtime.Data
                         outputSlotName.Append(srcSlotNames.Values[inputSlotIndex]);
                 }
 
-                output[slot] = new DvText(outputSlotName.ToString());
+                output[slot] = outputSlotName.ToString().AsMemory();
             }
 
-            dst = new VBuffer<DvText>(n, output, dst.Indices);
+            dst = new VBuffer<ReadOnlyMemory<char>>(n, output, dst.Indices);
         }
 
         private delegate uint HashDelegate<TSrc>(ref TSrc value, uint seed);
@@ -674,7 +702,12 @@ namespace Microsoft.ML.Runtime.Data
 
     public static class HashJoin
     {
-        [TlcModule.EntryPoint(Name = "Transforms.HashConverter", Desc = HashJoinTransform.Summary, UserName = HashJoinTransform.UserName, ShortName = HashJoinTransform.RegistrationName)]
+        [TlcModule.EntryPoint(Name = "Transforms.HashConverter",
+            Desc = HashJoinTransform.Summary,
+            UserName = HashJoinTransform.UserName,
+            ShortName = HashJoinTransform.RegistrationName,
+            XmlInclude = new[] { @"<include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/member[@name=""HashJoin""]/*' />",
+                                 @"<include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/example[@name=""HashJoin""]/*' />"})]
         public static CommonOutputs.TransformOutput Apply(IHostEnvironment env, HashJoinTransform.Arguments input)
         {
             Contracts.CheckValue(env, nameof(env));

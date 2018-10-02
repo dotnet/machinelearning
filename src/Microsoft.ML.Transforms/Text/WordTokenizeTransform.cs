@@ -35,11 +35,10 @@ namespace Microsoft.ML.Runtime.Data
     {
     }
 
-    /// <summary>
-    /// The input for this transform is a DvText or a vector of DvTexts, and its output is a vector of DvTexts,
-    /// corresponding to the tokens in the input text, split using a set of user specified separator characters.
-    /// Empty strings and strings containing only spaces are dropped.
-    /// </summary>
+    // The input for this transform is a ReadOnlyMemory or a vector of ReadOnlyMemory, and its output is a vector of ReadOnlyMemory<char>,
+    // corresponding to the tokens in the input text, split using a set of user specified separator characters.
+    // Empty strings and strings containing only spaces are dropped.
+    /// <include file='doc.xml' path='doc/members/member[@name="WordTokenizer"]/*' />
     public sealed class DelimitedTokenizeTransform : OneToOneTransformBase, ITokenizeTransform
     {
         public class Column : OneToOneColumn
@@ -142,7 +141,8 @@ namespace Microsoft.ML.Runtime.Data
                 verWrittenCur: 0x00010001, // Initial
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
-                loaderSignature: LoaderSignature);
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(DelimitedTokenizeTransform).Assembly.FullName);
         }
 
         public override bool CanSavePfa => true;
@@ -161,7 +161,7 @@ namespace Microsoft.ML.Runtime.Data
             : base(env, RegistrationName, Contracts.CheckRef(args, nameof(args)).Column,
                 input, TestIsTextItem)
         {
-            // REVIEW: Need to decide whether to inject an NA token between slots in VBuffer<DvText> inputs.
+            // REVIEW: Need to decide whether to inject an NA token between slots in ReadOnlyMemory inputs.
             Host.AssertNonEmpty(Infos);
             Host.Assert(Infos.Length == Utils.Size(args.Column));
 
@@ -174,7 +174,7 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         /// <summary>
-        /// Public constructor corresponding to SignatureTokenizeTransform. It accepts arguments of type ArgumentsBase, 
+        /// Public constructor corresponding to SignatureTokenizeTransform. It accepts arguments of type ArgumentsBase,
         /// and a separate array of columns (constructed from the caller -WordBag/WordHashBag- arguments).
         /// </summary>
         public DelimitedTokenizeTransform(IHostEnvironment env, TokenizeArguments args, IDataView input, OneToOneColumn[] columns)
@@ -183,7 +183,7 @@ namespace Microsoft.ML.Runtime.Data
             Host.CheckValue(args, nameof(args));
             Host.CheckUserArg(Utils.Size(columns) > 0, nameof(Arguments.Column));
 
-            // REVIEW: Need to decide whether to inject an NA token between slots in VBuffer<DvText> inputs.
+            // REVIEW: Need to decide whether to inject an NA token between slots in ReadOnlyMemory inputs.
             Host.AssertNonEmpty(Infos);
             Host.Assert(Infos.Length == Utils.Size(columns));
 
@@ -295,18 +295,18 @@ namespace Microsoft.ML.Runtime.Data
             return MakeGetterVec(input, iinfo);
         }
 
-        private ValueGetter<VBuffer<DvText>> MakeGetterOne(IRow input, int iinfo)
+        private ValueGetter<VBuffer<ReadOnlyMemory<char>>> MakeGetterOne(IRow input, int iinfo)
         {
             Host.AssertValue(input);
             Host.Assert(Infos[iinfo].TypeSrc.IsText);
 
-            var getSrc = GetSrcGetter<DvText>(input, iinfo);
-            var src = default(DvText);
-            var terms = new List<DvText>();
+            var getSrc = GetSrcGetter<ReadOnlyMemory<char>>(input, iinfo);
+            var src = default(ReadOnlyMemory<char>);
+            var terms = new List<ReadOnlyMemory<char>>();
             var separators = _exes[iinfo].Separators;
 
             return
-                (ref VBuffer<DvText> dst) =>
+                (ref VBuffer<ReadOnlyMemory<char>> dst) =>
                 {
                     getSrc(ref src);
                     terms.Clear();
@@ -317,15 +317,15 @@ namespace Microsoft.ML.Runtime.Data
                     if (terms.Count > 0)
                     {
                         if (Utils.Size(values) < terms.Count)
-                            values = new DvText[terms.Count];
+                            values = new ReadOnlyMemory<char>[terms.Count];
                         terms.CopyTo(values);
                     }
 
-                    dst = new VBuffer<DvText>(terms.Count, values, dst.Indices);
+                    dst = new VBuffer<ReadOnlyMemory<char>>(terms.Count, values, dst.Indices);
                 };
         }
 
-        private ValueGetter<VBuffer<DvText>> MakeGetterVec(IRow input, int iinfo)
+        private ValueGetter<VBuffer<ReadOnlyMemory<char>>> MakeGetterVec(IRow input, int iinfo)
         {
             Host.AssertValue(input);
             Host.Assert(Infos[iinfo].TypeSrc.IsVector);
@@ -334,13 +334,13 @@ namespace Microsoft.ML.Runtime.Data
             int cv = Infos[iinfo].TypeSrc.VectorSize;
             Contracts.Assert(cv >= 0);
 
-            var getSrc = GetSrcGetter<VBuffer<DvText>>(input, iinfo);
-            var src = default(VBuffer<DvText>);
-            var terms = new List<DvText>();
+            var getSrc = GetSrcGetter<VBuffer<ReadOnlyMemory<char>>>(input, iinfo);
+            var src = default(VBuffer<ReadOnlyMemory<char>>);
+            var terms = new List<ReadOnlyMemory<char>>();
             var separators = _exes[iinfo].Separators;
 
             return
-                (ref VBuffer<DvText> dst) =>
+                (ref VBuffer<ReadOnlyMemory<char>> dst) =>
                 {
                     getSrc(ref src);
                     terms.Clear();
@@ -352,39 +352,39 @@ namespace Microsoft.ML.Runtime.Data
                     if (terms.Count > 0)
                     {
                         if (Utils.Size(values) < terms.Count)
-                            values = new DvText[terms.Count];
+                            values = new ReadOnlyMemory<char>[terms.Count];
                         terms.CopyTo(values);
                     }
 
-                    dst = new VBuffer<DvText>(terms.Count, values, dst.Indices);
+                    dst = new VBuffer<ReadOnlyMemory<char>>(terms.Count, values, dst.Indices);
                 };
         }
 
-        private void AddTerms(DvText txt, char[] separators, List<DvText> terms)
+        private void AddTerms(ReadOnlyMemory<char> txt, char[] separators, List<ReadOnlyMemory<char>> terms)
         {
             Host.AssertNonEmpty(separators);
 
             var rest = txt;
             if (separators.Length > 1)
             {
-                while (rest.HasChars)
+                while (!rest.IsEmpty)
                 {
-                    DvText term;
-                    rest.SplitOne(separators, out term, out rest);
-                    term = term.Trim();
-                    if (term.HasChars)
+                    ReadOnlyMemory<char> term;
+                    ReadOnlyMemoryUtils.SplitOne(rest, separators, out term, out rest);
+                    term = ReadOnlyMemoryUtils.TrimSpaces(term);
+                    if (!term.IsEmpty)
                         terms.Add(term);
                 }
             }
             else
             {
                 var separator = separators[0];
-                while (rest.HasChars)
+                while (!rest.IsEmpty)
                 {
-                    DvText term;
-                    rest.SplitOne(separator, out term, out rest);
-                    term = term.Trim();
-                    if (term.HasChars)
+                    ReadOnlyMemory<char> term;
+                    ReadOnlyMemoryUtils.SplitOne(rest, separator, out term, out rest);
+                    term = ReadOnlyMemoryUtils.TrimSpaces(term);
+                    if (!term.IsEmpty)
                         terms.Add(term);
                 }
             }

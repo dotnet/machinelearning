@@ -13,21 +13,25 @@ set __IntermediatesDir=""
 set __BuildArch=x64
 set __VCBuildArch=x86_amd64
 set CMAKE_BUILD_TYPE=Debug
+set MKL_LIB_PATH=""
 
 :Arg_Loop
 if [%1] == [] goto :ToolsVersion
 if /i [%1] == [Release]     ( set CMAKE_BUILD_TYPE=Release&&shift&goto Arg_Loop)
+if /i [%1] == [Release-Intrinsics]     ( set CMAKE_BUILD_TYPE=Release-Intrinsics&&shift&goto Arg_Loop)
 if /i [%1] == [Debug]       ( set CMAKE_BUILD_TYPE=Debug&&shift&goto Arg_Loop)
+if /i [%1] == [Debug-Intrinsics]       ( set CMAKE_BUILD_TYPE=Debug-Intrinsics&&shift&goto Arg_Loop)
 
 if /i [%1] == [x86]         ( set __BuildArch=x86&&set __VCBuildArch=x86&&shift&goto Arg_Loop)
 if /i [%1] == [x64]         ( set __BuildArch=x64&&set __VCBuildArch=x86_amd64&&shift&goto Arg_Loop)
 if /i [%1] == [amd64]       ( set __BuildArch=x64&&set __VCBuildArch=x86_amd64&&shift&goto Arg_Loop)
 
+if /i [%1] == [--mkllibpath] ( set MKL_LIB_PATH=%2&&shift&goto Arg_Loop)
+
 shift
 goto :Arg_Loop
 
 :ToolsVersion
-
 if defined VisualStudioVersion goto :RunVCVars
 
 set _VSWHERE="%ProgramFiles(x86)%\Microsoft Visual Studio\Installer\vswhere.exe"
@@ -37,7 +41,8 @@ if exist %_VSWHERE% (
 if not exist "%_VSCOMNTOOLS%" set _VSCOMNTOOLS=%VS140COMNTOOLS%
 if not exist "%_VSCOMNTOOLS%" goto :MissingVersion
 
-set VSCMD_START_DIR="%__currentScriptDir%"
+
+set "VSCMD_START_DIR=%__currentScriptDir%"
 call "%_VSCOMNTOOLS%\VsDevCmd.bat"
 
 :RunVCVars
@@ -86,14 +91,18 @@ if %__IntermediatesDir% == "" (
 set "__CMakeBinDir=%__CMakeBinDir:\=/%"
 set "__IntermediatesDir=%__IntermediatesDir:\=/%"
 
+:: Strip the "-Intrinsics" suffix from the build type
+if [%CMAKE_BUILD_TYPE:~-11%] == [-Intrinsics] (
+	set CMAKE_BUILD_TYPE=%CMAKE_BUILD_TYPE:~0,-11%
+)
 
 :: Check that the intermediate directory exists so we can place our cmake build tree there
 if not exist "%__IntermediatesDir%" md "%__IntermediatesDir%"
 
 :: Regenerate the VS solution
 
-set __gen-buildsys-win-path=%__currentScriptDir%\gen-buildsys-win.bat
-set __source-code-path=%__currentScriptDir%
+set "__gen-buildsys-win-path=%__currentScriptDir%\gen-buildsys-win.bat"
+set "__source-code-path=%__currentScriptDir%"
 
 echo Calling "%__gen-buildsys-win-path%" "%__source-code-path%" "%__VSVersion%" %__BuildArch%
 pushd "%__IntermediatesDir%"

@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -43,12 +43,12 @@ namespace Microsoft.ML.Runtime.Data
 
         public const string LoadName = "RankingEvaluator";
 
-        private const string Ndcg = "NDCG";
-        private const string Dcg = "DCG";
-        private const string MaxDcg = "MaxDCG";
+        public const string Ndcg = "NDCG";
+        public const string Dcg = "DCG";
+        public const string MaxDcg = "MaxDCG";
 
         /// <summary>
-        /// The ranking evaluator outputs a data view by this name, which contains metrics aggregated per group. 
+        /// The ranking evaluator outputs a data view by this name, which contains metrics aggregated per group.
         /// It contains four columns: GroupId, NDCG, DCG and MaxDCG. Each row in the data view corresponds to one
         /// group in the scored data.
         /// </summary>
@@ -147,20 +147,20 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         protected override void GetAggregatorConsolidationFuncs(Aggregator aggregator, AggregatorDictionaryBase[] dictionaries,
-            out Action<uint, DvText, Aggregator> addAgg, out Func<Dictionary<string, IDataView>> consolidate)
+            out Action<uint, ReadOnlyMemory<char>, Aggregator> addAgg, out Func<Dictionary<string, IDataView>> consolidate)
         {
             var stratCol = new List<uint>();
-            var stratVal = new List<DvText>();
-            var isWeighted = new List<DvBool>();
+            var stratVal = new List<ReadOnlyMemory<char>>();
+            var isWeighted = new List<bool>();
             var ndcg = new List<Double[]>();
             var dcg = new List<Double[]>();
 
-            var groupName = new List<DvText>();
+            var groupName = new List<ReadOnlyMemory<char>>();
             var groupNdcg = new List<Double[]>();
             var groupDcg = new List<Double[]>();
             var groupMaxDcg = new List<Double[]>();
             var groupStratCol = new List<uint>();
-            var groupStratVal = new List<DvText>();
+            var groupStratVal = new List<ReadOnlyMemory<char>>();
 
             bool hasStrats = Utils.Size(dictionaries) > 0;
             bool hasWeight = aggregator.Weighted;
@@ -175,14 +175,14 @@ namespace Microsoft.ML.Runtime.Data
 
                     stratCol.Add(stratColKey);
                     stratVal.Add(stratColVal);
-                    isWeighted.Add(DvBool.False);
+                    isWeighted.Add(false);
                     ndcg.Add(agg.UnweightedCounters.Ndcg);
                     dcg.Add(agg.UnweightedCounters.Dcg);
                     if (agg.UnweightedCounters.GroupSummary)
                     {
                         groupStratCol.AddRange(agg.UnweightedCounters.GroupDcg.Select(x => stratColKey));
                         groupStratVal.AddRange(agg.UnweightedCounters.GroupDcg.Select(x => stratColVal));
-                        groupName.AddRange(agg.GroupId.Select(sb => new DvText(sb.ToString())));
+                        groupName.AddRange(agg.GroupId.Select(sb => sb.ToString().AsMemory()));
                         groupNdcg.AddRange(agg.UnweightedCounters.GroupNdcg);
                         groupDcg.AddRange(agg.UnweightedCounters.GroupDcg);
                         groupMaxDcg.AddRange(agg.UnweightedCounters.GroupMaxDcg);
@@ -192,7 +192,7 @@ namespace Microsoft.ML.Runtime.Data
                     {
                         stratCol.Add(stratColKey);
                         stratVal.Add(stratColVal);
-                        isWeighted.Add(DvBool.True);
+                        isWeighted.Add(true);
                         ndcg.Add(agg.WeightedCounters.Ndcg);
                         dcg.Add(agg.WeightedCounters.Dcg);
                     }
@@ -386,7 +386,7 @@ namespace Microsoft.ML.Runtime.Data
             public readonly Counters UnweightedCounters;
             public readonly Counters WeightedCounters;
             public readonly bool Weighted;
-            public readonly List<DvText> GroupId;
+            public readonly List<ReadOnlyMemory<char>> GroupId;
             private int _groupSize;
 
             public Aggregator(IHostEnvironment env, Double[] labelGains, int truncationLevel, bool groupSummary, bool weighted, string stratName)
@@ -402,7 +402,7 @@ namespace Microsoft.ML.Runtime.Data
                 _currentQueryWeight = Single.NaN;
 
                 if (groupSummary)
-                    GroupId = new List<DvText>();
+                    GroupId = new List<ReadOnlyMemory<char>>();
             }
 
             public override void InitializeNextPass(IRow row, RoleMappedSchema schema)
@@ -472,7 +472,7 @@ namespace Microsoft.ML.Runtime.Data
                 if (WeightedCounters != null)
                     WeightedCounters.UpdateGroup(_currentQueryWeight);
                 if (GroupId != null)
-                    GroupId.Add(new DvText(_groupSb.ToString()));
+                    GroupId.Add(_groupSb.ToString().AsMemory());
                 _currentQueryWeight = Single.NaN;
             }
 
@@ -483,30 +483,30 @@ namespace Microsoft.ML.Runtime.Data
                     ProcessGroup();
             }
 
-            public ValueGetter<VBuffer<DvText>> GetGroupSummarySlotNames(string prefix)
+            public ValueGetter<VBuffer<ReadOnlyMemory<char>>> GetGroupSummarySlotNames(string prefix)
             {
                 return
-                    (ref VBuffer<DvText> dst) =>
+                    (ref VBuffer<ReadOnlyMemory<char>> dst) =>
                     {
                         var values = dst.Values;
                         if (Utils.Size(values) < UnweightedCounters.TruncationLevel)
-                            values = new DvText[UnweightedCounters.TruncationLevel];
+                            values = new ReadOnlyMemory<char>[UnweightedCounters.TruncationLevel];
 
                         for (int i = 0; i < UnweightedCounters.TruncationLevel; i++)
-                            values[i] = new DvText(string.Format("{0}@{1}", prefix, i + 1));
-                        dst = new VBuffer<DvText>(UnweightedCounters.TruncationLevel, values);
+                            values[i] = string.Format("{0}@{1}", prefix, i + 1).AsMemory();
+                        dst = new VBuffer<ReadOnlyMemory<char>>(UnweightedCounters.TruncationLevel, values);
                     };
             }
 
-            public void GetSlotNames(ref VBuffer<DvText> slotNames)
+            public void GetSlotNames(ref VBuffer<ReadOnlyMemory<char>> slotNames)
             {
                 var values = slotNames.Values;
                 if (Utils.Size(values) < UnweightedCounters.TruncationLevel)
-                    values = new DvText[UnweightedCounters.TruncationLevel];
+                    values = new ReadOnlyMemory<char>[UnweightedCounters.TruncationLevel];
 
                 for (int i = 0; i < UnweightedCounters.TruncationLevel; i++)
-                    values[i] = new DvText(string.Format("@{0}", i + 1));
-                slotNames = new VBuffer<DvText>(UnweightedCounters.TruncationLevel, values);
+                    values[i] = string.Format("@{0}", i + 1).AsMemory();
+                slotNames = new VBuffer<ReadOnlyMemory<char>>(UnweightedCounters.TruncationLevel, values);
             }
         }
     }
@@ -523,7 +523,8 @@ namespace Microsoft.ML.Runtime.Data
                 verWrittenCur: 0x00010001, // Initial
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
-                loaderSignature: LoaderSignature);
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(RankerPerInstanceTransform).Assembly.FullName);
         }
 
         public const string Ndcg = "NDCG";
@@ -588,7 +589,7 @@ namespace Microsoft.ML.Runtime.Data
                 private readonly ColumnType _outputType;
                 private readonly ColumnType _slotNamesType;
                 private readonly int _truncationLevel;
-                private readonly MetadataUtils.MetadataGetter<VBuffer<DvText>> _slotNamesGetter;
+                private readonly MetadataUtils.MetadataGetter<VBuffer<ReadOnlyMemory<char>>> _slotNamesGetter;
 
                 public Bindings(IExceptionContext ectx, ISchema input, bool user, string labelCol, string scoreCol, string groupCol,
                     int truncationLevel)
@@ -633,17 +634,17 @@ namespace Microsoft.ML.Runtime.Data
                     base.GetMetadataCore(kind, iinfo, ref value);
                 }
 
-                private void SlotNamesGetter(int iinfo, ref VBuffer<DvText> dst)
+                private void SlotNamesGetter(int iinfo, ref VBuffer<ReadOnlyMemory<char>> dst)
                 {
                     Contracts.Assert(0 <= iinfo && iinfo < InfoCount);
                     var values = dst.Values;
                     if (Utils.Size(values) < _truncationLevel)
-                        values = new DvText[_truncationLevel];
+                        values = new ReadOnlyMemory<char>[_truncationLevel];
                     for (int i = 0; i < _truncationLevel; i++)
                         values[i] =
-                            new DvText(string.Format("{0}@{1}", iinfo == NdcgCol ? Ndcg : iinfo == DcgCol ? Dcg : MaxDcg,
-                                i + 1));
-                    dst = new VBuffer<DvText>(_truncationLevel, values);
+                            string.Format("{0}@{1}", iinfo == NdcgCol ? Ndcg : iinfo == DcgCol ? Dcg : MaxDcg,
+                                i + 1).AsMemory();
+                    dst = new VBuffer<ReadOnlyMemory<char>>(_truncationLevel, values);
                 }
             }
 
@@ -851,12 +852,13 @@ namespace Microsoft.ML.Runtime.Data
         {
             var cols = base.GetInputColumnRolesCore(schema);
             var groupIdCol = EvaluateUtils.GetColName(_groupIdCol, schema.Group, DefaultColumnNames.GroupId);
-            return cols.Prepend(RoleMappedSchema.CreatePair(RoleMappedSchema.ColumnRole.Group, groupIdCol));
+            return cols.Prepend(RoleMappedSchema.ColumnRole.Group.Bind(groupIdCol));
         }
 
-        protected override void PrintOverallResultsCore(IChannel ch, string filename, Dictionary<string, IDataView>[] metrics)
+        protected override void PrintAdditionalMetricsCore(IChannel ch, Dictionary<string, IDataView>[] metrics)
         {
-            base.PrintOverallResultsCore(ch, filename, metrics);
+            ch.AssertNonEmpty(metrics);
+
             if (!string.IsNullOrEmpty(_groupSummaryFilename))
             {
                 IDataView gs;
@@ -887,12 +889,7 @@ namespace Microsoft.ML.Runtime.Data
                 if (!metrics[i].TryGetValue(RankerEvaluator.GroupSummary, out idv))
                     return false;
 
-                // We use the first column in the data view as an input column to the LambdaColumnMapper, because it must have an input.
-                var inputColName = idv.Schema.GetColumnName(0);
-                var inputColType = idv.Schema.GetColumnType(0);
-                idv = Utils.MarshalInvoke(EvaluateUtils.AddKeyColumn<int>, inputColType.RawType, Host, idv,
-                    inputColName, MetricKinds.ColumnNames.FoldIndex, inputColType, metrics.Length, i + 1, "FoldIndex",
-                    default(ValueGetter<VBuffer<DvText>>));
+                idv = EvaluateUtils.AddFoldIndex(Host, idv, i, metrics.Length);
                 gsList.Add(idv);
             }
             gs = AppendRowsDataView.Create(Host, gsList[0].Schema, gsList.ToArray());
@@ -1043,7 +1040,7 @@ namespace Microsoft.ML.Runtime.Data
                 nameof(RankerMamlEvaluator.Arguments.GroupIdColumn),
                 input.GroupIdColumn, DefaultColumnNames.GroupId);
             var evaluator = new RankerMamlEvaluator(host, input);
-            var data = TrainUtils.CreateExamples(input.Data, label, null, groupId, weight, name);
+            var data = new RoleMappedData(input.Data, label, null, groupId, weight, name);
             var metrics = evaluator.Evaluate(data);
 
             var warnings = ExtractWarnings(host, metrics);

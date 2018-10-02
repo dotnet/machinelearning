@@ -1,0 +1,4 @@
+LightGBMMC
+Accuracy(micro-avg)	Accuracy(macro-avg)	Log-loss	Log-loss reduction	/iter	/lr	/nl	/mil	/nt	Learner Name	Train Dataset	Test Dataset	Results File	Run Time	Physical Memory	Virtual Memory	Command Line	Settings	
+0.947228	0.947944	0.253074	76.71384	10	0.2	20	10	1	LightGBMMC	%Data%		%Output%	99	0	0	maml.exe CV tr=LightGBMMC{nt=1 iter=10 v=- lr=0.2 mil=10 nl=20} threads=- dout=%Output% loader=Text{col=Label:TX:0 col=Features:1-*} data=%Data% seed=1 xf=Term{col=Label}	/iter:10;/lr:0.2;/nl:20;/mil:10;/nt:1	
+

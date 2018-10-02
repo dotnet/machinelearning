@@ -13,6 +13,7 @@ using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Utilities;
+using Microsoft.ML.Transforms;
 
 [assembly: LoadableClass(WordBagTransform.Summary, typeof(IDataTransform), typeof(WordBagTransform), typeof(WordBagTransform.Arguments), typeof(SignatureDataTransform),
     "Word Bag Transform", "WordBagTransform", "WordBag")]
@@ -30,7 +31,7 @@ namespace Microsoft.ML.Runtime.Data
     public delegate void SignatureNgramExtractorFactory(TermLoaderArguments termLoaderArgs);
 
     /// <summary>
-    /// A many-to-one column common to both <see cref="NgramExtractorTransform"/> 
+    /// A many-to-one column common to both <see cref="NgramExtractorTransform"/>
     /// and <see cref="NgramHashExtractorTransform"/>.
     /// </summary>
     public sealed class ExtractorColumn : ManyToOneColumn
@@ -103,8 +104,10 @@ namespace Microsoft.ML.Runtime.Data
             [Argument(ArgumentType.Multiple, HelpText = "New column definition(s) (optional form: name:srcs)", ShortName = "col", SortOrder = 1)]
             public Column[] Column;
 
-            [Argument(ArgumentType.Multiple, HelpText = "Tokenizer to use", ShortName = "tok")]
-            public SubComponent<ITokenizeTransform, SignatureTokenizeTransform> Tokenizer = new SubComponent<ITokenizeTransform, SignatureTokenizeTransform>("Token");
+            [Argument(ArgumentType.Multiple, HelpText = "Tokenizer to use", ShortName = "tok", SignatureType = typeof(SignatureTokenizeTransform))]
+            public IComponentFactory<IDataView, OneToOneColumn[], ITokenizeTransform> Tokenizer =
+                ComponentFactoryUtils.CreateFromFunction<IDataView, OneToOneColumn[], ITokenizeTransform>(
+                    (env, input, columns) => new DelimitedTokenizeTransform(env, new DelimitedTokenizeTransform.TokenizeArguments(), input, columns));
         }
 
         private const string RegistrationName = "WordBagTransform";
@@ -119,10 +122,10 @@ namespace Microsoft.ML.Runtime.Data
             h.CheckValue(args, nameof(args));
             h.CheckValue(input, nameof(input));
             h.CheckUserArg(Utils.Size(args.Column) > 0, nameof(args.Column), "Columns must be specified");
-            h.CheckUserArg(args.Tokenizer.IsGood(), nameof(args.Tokenizer), "tokenizer must be specified");
+            h.CheckUserArg(args.Tokenizer != null, nameof(args.Tokenizer), "tokenizer must be specified");
 
             // Compose the WordBagTransform from a tokenize transform,
-            // followed by a NgramExtractionTransform. 
+            // followed by a NgramExtractionTransform.
             // Since WordBagTransform is a many-to-one column transform, for each
             // WordBagTransform.Column with multiple sources, we first apply a ConcatTransform.
 
@@ -174,13 +177,13 @@ namespace Microsoft.ML.Runtime.Data
 
             IDataView view = input;
             view = NgramExtractionUtils.ApplyConcatOnSources(h, args.Column, view);
-            view = args.Tokenizer.CreateInstance(h, view, tokenizeColumns);
+            view = args.Tokenizer.CreateComponent(h, view, tokenizeColumns);
             return NgramExtractorTransform.Create(h, extractorArgs, view);
         }
     }
 
     /// <summary>
-    /// A transform that turns a collection of tokenized text (vector of DvText), or vectors of keys into numerical 
+    /// A transform that turns a collection of tokenized text (vector of ReadOnlyMemory), or vectors of keys into numerical
     /// feature vectors. The feature vectors are counts of ngrams (sequences of consecutive *tokens* -words or keys-
     /// of length 1-n).
     /// </summary>
@@ -201,7 +204,7 @@ namespace Microsoft.ML.Runtime.Data
             public bool? AllLengths;
 
             // REVIEW: This argument is actually confusing. If you set only one value we will use this value for all ngrams respectfully e.g.
-            // if we specify 3 ngrams we will have maxNumTerms * 3. And it also pick first value from this array to run term transform, so if you specify 
+            // if we specify 3 ngrams we will have maxNumTerms * 3. And it also pick first value from this array to run term transform, so if you specify
             // something like 1,1,10000, term transform would be run with limitation of only one term.
             [Argument(ArgumentType.Multiple, HelpText = "Maximum number of ngrams to store in the dictionary", ShortName = "max")]
             public int[] MaxNumTerms = null;
@@ -232,7 +235,7 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         /// <summary>
-        /// This class is a merger of <see cref="TermTransform.Arguments"/> and 
+        /// This class is a merger of <see cref="TermTransform.Arguments"/> and
         /// <see cref="NgramTransform.Arguments"/>, with the allLength option removed.
         /// </summary>
         public abstract class ArgumentsBase
@@ -273,7 +276,7 @@ namespace Microsoft.ML.Runtime.Data
             public Column[] Column;
         }
 
-        internal const string Summary = "A transform that turns a collection of tokenized text (vector of DvText), or vectors of keys into numerical " +
+        internal const string Summary = "A transform that turns a collection of tokenized text ReadOnlyMemory, or vectors of keys into numerical " +
             "feature vectors. The feature vectors are counts of ngrams (sequences of consecutive *tokens* -words or keys- of length 1-n).";
 
         internal const string LoaderSignature = "NgramExtractor";
@@ -309,7 +312,7 @@ namespace Microsoft.ML.Runtime.Data
             // If the column types of args.column are text, apply term transform to convert them to keys.
             // Otherwise, skip term transform and apply ngram transform directly.
             // This logic allows NgramExtractorTransform to handle both text and key input columns.
-            // Note: ngram transform handles the validation of the types natively (in case the types 
+            // Note: ngram transform handles the validation of the types natively (in case the types
             // of args.column are not text nor keys).
             if (termCols.Count > 0)
             {
@@ -358,7 +361,7 @@ namespace Microsoft.ML.Runtime.Data
                         naDropArgs.Column[iinfo] = new NADropTransform.Column { Name = column.Name, Source = column.Name };
                 }
 
-                view = new TermTransform(h, termArgs, view);
+                view = TermTransform.Create(h, termArgs, view);
                 if (naDropArgs != null)
                     view = new NADropTransform(h, naDropArgs, view);
             }
@@ -451,8 +454,8 @@ namespace Microsoft.ML.Runtime.Data
         [Argument(ArgumentType.AtMostOnce, IsInputFileName = true, HelpText = "Data file containing the terms", ShortName = "data", SortOrder = 2, Visibility = ArgumentAttribute.VisibilityType.CmdLineOnly)]
         public string DataFile;
 
-        [Argument(ArgumentType.Multiple, HelpText = "Data loader", NullName = "<Auto>", SortOrder = 3, Visibility = ArgumentAttribute.VisibilityType.CmdLineOnly)]
-        public SubComponent<IDataLoader, SignatureDataLoader> Loader;
+        [Argument(ArgumentType.Multiple, HelpText = "Data loader", NullName = "<Auto>", SortOrder = 3, Visibility = ArgumentAttribute.VisibilityType.CmdLineOnly, SignatureType = typeof(SignatureDataLoader))]
+        public IComponentFactory<IMultiStreamSource, IDataLoader> Loader;
 
         [Argument(ArgumentType.AtMostOnce, HelpText = "Name of the text column containing the terms", ShortName = "termCol", SortOrder = 4, Visibility = ArgumentAttribute.VisibilityType.CmdLineOnly)]
         public string TermsColumn;
@@ -471,8 +474,8 @@ namespace Microsoft.ML.Runtime.Data
     public interface INgramExtractorFactory
     {
         /// <summary>
-        /// Whether the extractor transform created by this factory uses the hashing trick 
-        /// (by using <see cref="HashTransform"/> or <see cref="NgramHashTransform"/>, for example).
+        /// Whether the extractor transform created by this factory uses the hashing trick
+        /// (by using <see cref="HashTransformer"/> or <see cref="NgramHashTransform"/>, for example).
         /// </summary>
         bool UseHashingTrick { get; }
 
@@ -562,14 +565,14 @@ namespace Microsoft.ML.Runtime.Data
             if (concatCols.Count > 0)
             {
                 var concatArgs = new ConcatTransform.Arguments { Column = concatCols.ToArray() };
-                return new ConcatTransform(env, concatArgs, view);
+                return ConcatTransform.Create(env, concatArgs, view);
             }
 
             return view;
         }
 
         /// <summary>
-        /// Generates and returns unique names for columns source. Each element of the returned array is 
+        /// Generates and returns unique names for columns source. Each element of the returned array is
         /// an array of unique source names per specific column.
         /// </summary>
         public static string[][] GenerateUniqueSourceNames(IHostEnvironment env, ManyToOneColumn[] columns, ISchema schema)

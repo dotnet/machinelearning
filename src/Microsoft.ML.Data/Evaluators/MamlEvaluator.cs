@@ -6,15 +6,14 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.EntryPoints;
-using Microsoft.ML.Runtime.Internal.Utilities;
 
 namespace Microsoft.ML.Runtime.Data
 {
     /// <summary>
-    /// This interface is used by Maml components (the <see cref="EvaluateCommand"/>, the <see cref="CrossValidationCommand"/> 
+    /// This interface is used by Maml components (the <see cref="EvaluateCommand"/>, the <see cref="CrossValidationCommand"/>
     /// and the <see cref="EvaluateTransform"/> to evaluate, print and save the results.
-    /// The input <see cref="RoleMappedData"/> to the <see cref="IEvaluator.Evaluate"/> and the <see cref="IEvaluator.GetPerInstanceMetrics"/> methods 
-    /// should be assumed to contain only the following column roles: label, group, weight and name. Any other columns needed for 
+    /// The input <see cref="RoleMappedData"/> to the <see cref="IEvaluator.Evaluate"/> and the <see cref="IEvaluator.GetPerInstanceMetrics"/> methods
+    /// should be assumed to contain only the following column roles: label, group, weight and name. Any other columns needed for
     /// evaluation should be searched for by name in the <see cref="ISchema"/>.
     /// </summary>
     public interface IMamlEvaluator : IEvaluator
@@ -25,13 +24,18 @@ namespace Microsoft.ML.Runtime.Data
         void PrintFoldResults(IChannel ch, Dictionary<string, IDataView> metrics);
 
         /// <summary>
-        /// Combine the aggregate metrics from multiple folds and print them to the console. If filename is not null then
-        /// also save the results to the specified file. If results are from multiple folds, the file will contain
-        /// the average results first, and then each fold result. 
-        /// Also handle any custom kinds of custom metrics, such as p/r curves for binary classification, or group summary results
-        /// for ranking.
+        /// Combine the overall metrics from multiple folds into a single data view.
         /// </summary>
-        void PrintOverallResults(IChannel ch, string filename, params Dictionary<string, IDataView>[] metrics);
+        /// <param name="metrics"></param>
+        /// <returns></returns>
+        IDataView GetOverallResults(params IDataView[] metrics);
+
+        /// <summary>
+        /// Handles custom metrics (such as p/r curves for binary classification, or group summary results for ranking) from one
+        /// or more folds. Implementations of this method typically creates a single data view for the custom metric and saves it
+        /// to a user specified file.
+        /// </summary>
+        void PrintAdditionalMetrics(IChannel ch, params Dictionary<string, IDataView>[] metrics);
 
         /// <summary>
         /// Create a data view containing only the columns that are saved as per-instance results by Maml commands.
@@ -91,7 +95,7 @@ namespace Microsoft.ML.Runtime.Data
 
         public Dictionary<string, IDataView> Evaluate(RoleMappedData data)
         {
-            data = RoleMappedData.Create(data.Data, GetInputColumnRoles(data.Schema, needStrat: true));
+            data = new RoleMappedData(data.Data, GetInputColumnRoles(data.Schema, needStrat: true));
             return Evaluator.Evaluate(data);
         }
 
@@ -104,7 +108,7 @@ namespace Microsoft.ML.Runtime.Data
                 : StratCols.Select(col => RoleMappedSchema.CreatePair(Strat, col));
 
             if (needName && schema.Name != null)
-                roles = roles.Prepend(RoleMappedSchema.CreatePair(RoleMappedSchema.ColumnRole.Name, schema.Name.Name));
+                roles = roles.Prepend(RoleMappedSchema.ColumnRole.Name.Bind(schema.Name.Name));
 
             return roles.Concat(GetInputColumnRolesCore(schema));
         }
@@ -122,12 +126,12 @@ namespace Microsoft.ML.Runtime.Data
             yield return RoleMappedSchema.CreatePair(MetadataUtils.Const.ScoreValueKind.Score, scoreInfo.Name);
 
             // Get the label column information.
-            string lab = EvaluateUtils.GetColName(LabelCol, schema.Label, DefaultColumnNames.Label);
-            yield return RoleMappedSchema.CreatePair(RoleMappedSchema.ColumnRole.Label, lab);
+            string label = EvaluateUtils.GetColName(LabelCol, schema.Label, DefaultColumnNames.Label);
+            yield return RoleMappedSchema.ColumnRole.Label.Bind(label);
 
-            var weight = EvaluateUtils.GetColName(WeightCol, schema.Weight, null);
+            string weight = EvaluateUtils.GetColName(WeightCol, schema.Weight, null);
             if (!string.IsNullOrEmpty(weight))
-                yield return RoleMappedSchema.CreatePair(RoleMappedSchema.ColumnRole.Weight, weight);
+                yield return RoleMappedSchema.ColumnRole.Weight.Bind(weight);
         }
 
         public virtual IEnumerable<MetricColumn> GetOverallMetricColumns()
@@ -162,57 +166,36 @@ namespace Microsoft.ML.Runtime.Data
             ch.Info(unweightedMetrics);
         }
 
-        public void PrintOverallResults(IChannel ch, string filename, params Dictionary<string, IDataView>[] metrics)
+        public IDataView GetOverallResults(params IDataView[] metrics)
+        {
+            Host.CheckNonEmpty(metrics, nameof(metrics));
+            var overall = CombineOverallMetricsCore(metrics);
+            return GetOverallResultsCore(overall);
+        }
+
+        protected virtual IDataView CombineOverallMetricsCore(IDataView[] metrics)
+        {
+            return EvaluateUtils.ConcatenateOverallMetrics(Host, metrics);
+        }
+
+        protected virtual IDataView GetOverallResultsCore(IDataView overall)
+        {
+            return overall;
+        }
+
+        public void PrintAdditionalMetrics(IChannel ch, params Dictionary<string, IDataView>[] metrics)
         {
             Host.CheckValue(ch, nameof(ch));
             Host.CheckNonEmpty(metrics, nameof(metrics));
-            PrintOverallResultsCore(ch, filename, metrics);
+            PrintAdditionalMetricsCore(ch, metrics);
         }
 
         /// <summary>
         /// This method simply prints the overall metrics using EvaluateUtils.PrintOverallMetrics.
         /// Override if something else is needed.
         /// </summary>
-        protected virtual void PrintOverallResultsCore(IChannel ch, string filename, Dictionary<string, IDataView>[] metrics)
+        protected virtual void PrintAdditionalMetricsCore(IChannel ch, Dictionary<string, IDataView>[] metrics)
         {
-            ch.AssertNonEmpty(metrics);
-
-            IDataView overall;
-            if (!TryGetOverallMetrics(metrics, out overall))
-                throw ch.Except("No overall metrics found");
-
-            MetricWriter.PrintOverallMetrics(Host, ch, filename, overall, metrics.Length);
-        }
-
-        protected bool TryGetOverallMetrics(Dictionary<string, IDataView>[] metrics, out IDataView overall)
-        {
-            Host.AssertNonEmpty(metrics);
-
-            if (metrics.Length == 1)
-                return metrics[0].TryGetValue(MetricKinds.OverallMetrics, out overall);
-
-            overall = null;
-            var overallList = new List<IDataView>();
-            for (int i = 0; i < metrics.Length; i++)
-            {
-                var dict = metrics[i];
-                IDataView idv;
-                if (!dict.TryGetValue(MetricKinds.OverallMetrics, out idv))
-                    return false;
-
-                // Add a fold-name column. We add it as a text column, since it is only used for saving the result summary file.
-                // We use the first column in the data view as an input column to the LambdaColumnMapper, because it must have an input.
-                // We use DvText.NA as the value of this column since for any stratified row the value will be non empty, so we can uniquely identify
-                // the overall row using this column.
-                var inputColName = idv.Schema.GetColumnName(0);
-                var inputColType = idv.Schema.GetColumnType(0);
-                idv = Utils.MarshalInvoke(EvaluateUtils.AddTextColumn<int>, inputColType.RawType, Host,
-                    idv, inputColName, MetricKinds.ColumnNames.FoldIndex, inputColType, string.Format("Fold {0}", i), "FoldName");
-
-                overallList.Add(idv);
-            }
-            overall = AppendRowsDataView.Create(Host, overallList[0].Schema, overallList.ToArray());
-            return true;
         }
 
         public IDataTransform GetPerInstanceMetrics(RoleMappedData scoredData)
@@ -220,7 +203,7 @@ namespace Microsoft.ML.Runtime.Data
             Host.AssertValue(scoredData);
 
             var schema = scoredData.Schema;
-            var dataEval = RoleMappedData.Create(scoredData.Data, GetInputColumnRoles(schema));
+            var dataEval = new RoleMappedData(scoredData.Data, GetInputColumnRoles(schema));
             return Evaluator.GetPerInstanceMetrics(dataEval);
         }
 
@@ -277,7 +260,7 @@ namespace Microsoft.ML.Runtime.Data
         public IDataView GetPerInstanceDataViewToSave(RoleMappedData perInstance)
         {
             Host.CheckValue(perInstance, nameof(perInstance));
-            var data = RoleMappedData.Create(perInstance.Data, GetInputColumnRoles(perInstance.Schema, needName: true));
+            var data = new RoleMappedData(perInstance.Data, GetInputColumnRoles(perInstance.Schema, needName: true));
             return WrapPerInstance(data);
         }
 

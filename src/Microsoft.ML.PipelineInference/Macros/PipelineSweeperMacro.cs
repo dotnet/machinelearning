@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.ML.Runtime;
@@ -36,6 +37,30 @@ namespace Microsoft.ML.Runtime.EntryPoints
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Output datasets from previous iteration of sweep.", SortOrder = 7, Hide = true)]
             public IDataView[] CandidateOutputs;
+
+            [Argument(ArgumentType.MultipleUnique, HelpText = "Column(s) to use as Role 'Label'", SortOrder = 8)]
+            public string[] LabelColumns;
+
+            [Argument(ArgumentType.MultipleUnique, HelpText = "Column(s) to use as Role 'Group'", SortOrder = 9)]
+            public string[] GroupColumns;
+
+            [Argument(ArgumentType.MultipleUnique, HelpText = "Column(s) to use as Role 'Weight'", SortOrder = 10)]
+            public string[] WeightColumns;
+
+            [Argument(ArgumentType.MultipleUnique, HelpText = "Column(s) to use as Role 'Name'", SortOrder = 11)]
+            public string[] NameColumns;
+
+            [Argument(ArgumentType.MultipleUnique, HelpText = "Column(s) to use as Role 'NumericFeature'", SortOrder = 12)]
+            public string[] NumericFeatureColumns;
+
+            [Argument(ArgumentType.MultipleUnique, HelpText = "Column(s) to use as Role 'CategoricalFeature'", SortOrder = 13)]
+            public string[] CategoricalFeatureColumns;
+
+            [Argument(ArgumentType.MultipleUnique, HelpText = "Column(s) to use as Role 'TextFeature'", SortOrder = 14)]
+            public string[] TextFeatureColumns;
+
+            [Argument(ArgumentType.MultipleUnique, HelpText = "Column(s) to use as Role 'ImagePath'", SortOrder = 15)]
+            public string[] ImagePathColumns;
         }
 
         public sealed class Output
@@ -65,21 +90,98 @@ namespace Microsoft.ML.Runtime.EntryPoints
             var col1 = new KeyValuePair<string, ColumnType>("Graph", TextType.Instance);
             var col2 = new KeyValuePair<string, ColumnType>("MetricValue", PrimitiveType.FromKind(DataKind.R8));
             var col3 = new KeyValuePair<string, ColumnType>("PipelineId", TextType.Instance);
+            var col4 = new KeyValuePair<string, ColumnType>("TrainingMetricValue", PrimitiveType.FromKind(DataKind.R8));
+            var col5 = new KeyValuePair<string, ColumnType>("FirstInput", TextType.Instance);
+            var col6 = new KeyValuePair<string, ColumnType>("PredictorModel", TextType.Instance);
 
             if (rows.Count == 0)
             {
                 var host = env.Register("ExtractSweepResult");
-                outputView = new EmptyDataView(host, new SimpleSchema(host, col1, col2, col3));
+                outputView = new EmptyDataView(host, new SimpleSchema(host, col1, col2, col3, col4, col5, col6));
             }
             else
             {
                 var builder = new ArrayDataViewBuilder(env);
-                builder.AddColumn(col1.Key, (PrimitiveType)col1.Value, rows.Select(r => new DvText(r.GraphJson)).ToArray());
+                builder.AddColumn(col1.Key, (PrimitiveType)col1.Value, rows.Select(r => r.GraphJson.AsMemory()).ToArray());
                 builder.AddColumn(col2.Key, (PrimitiveType)col2.Value, rows.Select(r => r.MetricValue).ToArray());
-                builder.AddColumn(col3.Key, (PrimitiveType)col3.Value, rows.Select(r => new DvText(r.PipelineId)).ToArray());
+                builder.AddColumn(col3.Key, (PrimitiveType)col3.Value, rows.Select(r => r.PipelineId.AsMemory()).ToArray());
+                builder.AddColumn(col4.Key, (PrimitiveType)col4.Value, rows.Select(r => r.TrainingMetricValue).ToArray());
+                builder.AddColumn(col5.Key, (PrimitiveType)col5.Value, rows.Select(r => r.FirstInput.AsMemory()).ToArray());
+                builder.AddColumn(col6.Key, (PrimitiveType)col6.Value, rows.Select(r => r.PredictorModel.AsMemory()).ToArray());
                 outputView = builder.GetDataView();
             }
             return new Output { Results = outputView, State = autoMlState };
+        }
+
+        private static RoleMappedData GetDataRoles(IHostEnvironment env, Arguments input)
+        {
+            var roles = new List<KeyValuePair<RoleMappedSchema.ColumnRole, string>>();
+
+            if (input.LabelColumns != null)
+            {
+                env.Check(input.LabelColumns.Length == 1, "LabelColumns expected one column name to be specified.");
+                roles.Add(RoleMappedSchema.ColumnRole.Label.Bind(input.LabelColumns[0]));
+            }
+
+            if (input.GroupColumns != null)
+            {
+                env.Check(input.GroupColumns.Length == 1, "GroupColumns expected one column name to be specified.");
+                roles.Add(RoleMappedSchema.ColumnRole.Group.Bind(input.GroupColumns[0]));
+            }
+
+            if (input.WeightColumns != null)
+            {
+                env.Check(input.WeightColumns.Length == 1, "WeightColumns expected one column name to be specified.");
+                roles.Add(RoleMappedSchema.ColumnRole.Weight.Bind(input.WeightColumns[0]));
+            }
+
+            if (input.NameColumns != null)
+            {
+                env.Check(input.NameColumns.Length == 1, "NameColumns expected one column name to be specified.");
+                roles.Add(RoleMappedSchema.ColumnRole.Name.Bind(input.NameColumns[0]));
+            }
+
+            if (input.NumericFeatureColumns != null)
+            {
+                var numericFeature = new RoleMappedSchema.ColumnRole(ColumnPurpose.NumericFeature.ToString());
+                foreach (var colName in input.NumericFeatureColumns)
+                {
+                    var item = numericFeature.Bind(colName);
+                    roles.Add(item);
+                }
+            }
+
+            if (input.CategoricalFeatureColumns != null)
+            {
+                var categoricalFeature = new RoleMappedSchema.ColumnRole(ColumnPurpose.CategoricalFeature.ToString());
+                foreach (var colName in input.CategoricalFeatureColumns)
+                {
+                    var item = categoricalFeature.Bind(colName);
+                    roles.Add(item);
+                }
+            }
+
+            if (input.TextFeatureColumns != null)
+            {
+                var textFeature = new RoleMappedSchema.ColumnRole(ColumnPurpose.TextFeature.ToString());
+                foreach (var colName in input.TextFeatureColumns)
+                {
+                    var item = textFeature.Bind(colName);
+                    roles.Add(item);
+                }
+            }
+
+            if (input.ImagePathColumns != null)
+            {
+                var imagePath = new RoleMappedSchema.ColumnRole(ColumnPurpose.ImagePath.ToString());
+                foreach (var colName in input.ImagePathColumns)
+                {
+                    var item = imagePath.Bind(colName);
+                    roles.Add(item);
+                }
+            }
+
+            return new RoleMappedData(input.TrainingData, roles);
         }
 
         [TlcModule.EntryPoint(Desc = "AutoML pipeline sweeping optimzation macro.", Name = "Models.PipelineSweeper")]
@@ -91,6 +193,9 @@ namespace Microsoft.ML.Runtime.EntryPoints
             env.Check(input.StateArguments != null || input.State is AutoInference.AutoMlMlState,
                 "Must have a valid AutoML State, or pass arguments to create one.");
             env.Check(input.BatchSize > 0, "Batch size must be > 0.");
+
+            // Get the user-defined column roles (if any)
+            var dataRoles = GetDataRoles(env, input);
 
             // If no current state, create object and set data.
             if (input.State == null)
@@ -107,7 +212,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
             }
             var autoMlState = (AutoInference.AutoMlMlState)input.State;
 
-            // The indicators are just so the macro knows those pipelines need to 
+            // The indicators are just so the macro knows those pipelines need to
             // be run before performing next expansion. If we add them as inputs
             // to the next iteration, the next iteration cannot run until they have
             // their values set. Thus, indicators are needed.
@@ -127,16 +232,15 @@ namespace Microsoft.ML.Runtime.EntryPoints
             // Make sure search space is defined. If not, infer,
             // with default number of transform levels.
             if (!autoMlState.IsSearchSpaceDefined())
-                autoMlState.InferSearchSpace(numTransformLevels: 1);
+                autoMlState.InferSearchSpace(numTransformLevels: 1, dataRoles);
 
             // Extract performance summaries and assign to previous candidate pipelines.
             foreach (var pipeline in autoMlState.BatchCandidates)
             {
-                if (node.Context.TryGetVariable(ExperimentUtils.GenerateOverallMetricVarName(pipeline.UniqueId),
-                    out var v))
+                if (node.Context.TryGetVariable(ExperimentUtils.GenerateOverallMetricVarName(pipeline.UniqueId), out var v) &&
+                    node.Context.TryGetVariable(AutoMlUtils.GenerateOverallTrainingMetricVarName(pipeline.UniqueId), out var v2))
                 {
-                    pipeline.PerformanceSummary =
-                        AutoMlUtils.ExtractRunSummary(env, (IDataView)v.Value, autoMlState.Metric.Name);
+                    pipeline.PerformanceSummary = AutoMlUtils.ExtractRunSummary(env, (IDataView)v.Value, autoMlState.Metric.Name, (IDataView)v2.Value);
                     autoMlState.AddEvaluated(pipeline);
                 }
             }
@@ -154,6 +258,12 @@ namespace Microsoft.ML.Runtime.EntryPoints
             if (candidatePipelines == null || candidatePipelines.Length == 0)
             {
                 // Add a node to extract the sweep result.
+                var resultSubgraph = new Experiment(env);
+                var resultNode = new Microsoft.ML.Legacy.Models.SweepResultExtractor() { State = amlsVarObj };
+                var resultOutput = new Legacy.Models.SweepResultExtractor.Output() { State = outStateVar, Results = outDvVar };
+                resultSubgraph.Add(resultNode, resultOutput);
+                var resultSubgraphNodes = EntryPointNode.ValidateNodes(env, node.Context, resultSubgraph.GetNodes(), node.Catalog);
+                expNodes.AddRange(resultSubgraphNodes);
                 return new CommonOutputs.MacroOutput<Output>() { Nodes = expNodes };
             }
 
@@ -162,19 +272,38 @@ namespace Microsoft.ML.Runtime.EntryPoints
             {
                 // Add train test experiments to current graph for candidate pipeline
                 var subgraph = new Experiment(env);
-                var trainTestOutput = p.AddAsTrainTest(training, testing, autoMlState.TrainerKind, subgraph);
+                var trainTestOutput = p.AddAsTrainTest(training, testing, autoMlState.TrainerKind, subgraph, true);
 
                 // Change variable name to reference pipeline ID in output map, context and entrypoint output.
                 var uniqueName = ExperimentUtils.GenerateOverallMetricVarName(p.UniqueId);
+                var uniqueNameTraining = AutoMlUtils.GenerateOverallTrainingMetricVarName(p.UniqueId);
                 var sgNode = EntryPointNode.ValidateNodes(env, node.Context,
                     new JArray(subgraph.GetNodes().Last()), node.Catalog).Last();
                 sgNode.RenameOutputVariable(trainTestOutput.OverallMetrics.VarName, uniqueName, cascadeChanges: true);
+                sgNode.RenameOutputVariable(trainTestOutput.TrainingOverallMetrics.VarName, uniqueNameTraining, cascadeChanges: true);
                 trainTestOutput.OverallMetrics.VarName = uniqueName;
+                trainTestOutput.TrainingOverallMetrics.VarName = uniqueNameTraining;
                 expNodes.Add(sgNode);
 
                 // Store indicators, to pass to next iteration of macro.
                 pipelineIndicators.Add(trainTestOutput.OverallMetrics);
             }
+
+            // Add recursive macro node
+            var macroSubgraph = new Experiment(env);
+            var macroNode = new Legacy.Models.PipelineSweeper()
+            {
+                BatchSize = input.BatchSize,
+                CandidateOutputs = new ArrayVar<IDataView>(pipelineIndicators.ToArray()),
+                TrainingData = training,
+                TestingData = testing,
+                State = amlsVarObj
+            };
+            var output = new Legacy.Models.PipelineSweeper.Output() { Results = outDvVar, State = outStateVar };
+            macroSubgraph.Add(macroNode, output);
+
+            var subgraphNodes = EntryPointNode.ValidateNodes(env, node.Context, macroSubgraph.GetNodes(), node.Catalog);
+            expNodes.AddRange(subgraphNodes);
 
             return new CommonOutputs.MacroOutput<Output>() { Nodes = expNodes };
         }

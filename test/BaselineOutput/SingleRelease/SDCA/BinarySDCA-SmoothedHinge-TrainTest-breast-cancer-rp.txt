@@ -1,0 +1,4 @@
+SDCA
+AUC	Accuracy	Positive precision	Positive recall	Negative precision	Negative recall	Log-loss	Log-loss reduction	F1 Score	AUPRC	/loss	/l2	/l1	/nt	/iter	/checkFreq	Learner Name	Train Dataset	Test Dataset	Results File	Run Time	Physical Memory	Virtual Memory	Command Line	Settings	
+0.995816	0.966325	0.965517	0.937238	0.966741	0.981982	0.118542	87.30813	0.951168	0.991045	SmoothedHinge	1E-06	0.5	1	5	9	SDCA	%Data%	%Data%	%Output%	99	0	0	maml.exe TrainTest test=%Data% tr=SDCA{l2=1e-06 loss=SmoothedHinge l1=0.5 maxIterations=5 checkFreq=9 nt=1} dout=%Output% data=%Data% out=%Output% seed=1	/loss:SmoothedHinge;/l2:1E-06;/l1:0.5;/nt:1;/iter:5;/checkFreq:9	
+

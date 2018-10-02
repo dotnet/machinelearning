@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -11,7 +11,7 @@ namespace Microsoft.ML.Runtime.Data
 {
     /// <summary>
     /// This is a data view that is a 'zip' of several data views.
-    /// The length of the zipped data view is equal to the shortest of the lengths of the components. 
+    /// The length of the zipped data view is equal to the shortest of the lengths of the components.
     /// </summary>
     public sealed class ZipDataView : IDataView
     {
@@ -25,7 +25,7 @@ namespace Microsoft.ML.Runtime.Data
 
         private readonly IHost _host;
         private readonly IDataView[] _sources;
-        private readonly ZipSchema _schema;
+        private readonly CompositeSchema _schema;
 
         public static IDataView Create(IHostEnvironment env, IEnumerable<IDataView> sources)
         {
@@ -47,7 +47,7 @@ namespace Microsoft.ML.Runtime.Data
 
             _host.Assert(Utils.Size(sources) > 1);
             _sources = sources;
-            _schema = new ZipSchema(_sources.Select(x => x.Schema).ToArray());
+            _schema = new CompositeSchema(_sources.Select(x => x.Schema).ToArray());
         }
 
         public bool CanShuffle { get { return false; } }
@@ -77,7 +77,7 @@ namespace Microsoft.ML.Runtime.Data
 
             var srcPredicates = _schema.GetInputPredicates(predicate);
 
-            // REVIEW: if we know the row counts, we could only open cursor if it has needed columns, and have the 
+            // REVIEW: if we know the row counts, we could only open cursor if it has needed columns, and have the
             // outer cursor handle the early stopping. If we don't know row counts, we need to open all the cursors because
             // we don't know which one will be the shortest.
             // One reason this is not done currently is because the API has 'somewhat mutable' data views, so potentially this
@@ -88,8 +88,8 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         /// <summary>
-        /// Create an <see cref="IRowCursor"/> with no requested columns on a data view. 
-        /// Potentially, this can be optimized by calling GetRowCount(lazy:true) first, and if the count is not known, 
+        /// Create an <see cref="IRowCursor"/> with no requested columns on a data view.
+        /// Potentially, this can be optimized by calling GetRowCount(lazy:true) first, and if the count is not known,
         /// wrapping around GetCursor().
         /// </summary>
         private IRowCursor GetMinimumCursor(IDataView dv)
@@ -104,127 +104,10 @@ namespace Microsoft.ML.Runtime.Data
             return new IRowCursor[] { GetRowCursor(predicate, rand) };
         }
 
-        /// <summary>
-        /// This is a result of appending several schema together.
-        /// </summary>
-        internal sealed class ZipSchema : ISchema
-        {
-            private readonly ISchema[] _sources;
-            // Zero followed by cumulative column counts.
-            private readonly int[] _cumulativeColCounts;
-
-            public ZipSchema(ISchema[] sources)
-            {
-                Contracts.AssertNonEmpty(sources);
-                _sources = sources;
-                _cumulativeColCounts = new int[_sources.Length + 1];
-                _cumulativeColCounts[0] = 0;
-
-                for (int i = 0; i < sources.Length; i++)
-                {
-                    var schema = sources[i];
-                    _cumulativeColCounts[i + 1] = _cumulativeColCounts[i] + schema.ColumnCount;
-                }
-            }
-
-            /// <summary>
-            /// Returns an array of input predicated for sources, corresponding to the input predicate.
-            /// The returned array size is equal to the number of sources, but if a given source is not needed at all, 
-            /// the corresponding predicate will be null.
-            /// </summary>
-            public Func<int, bool>[] GetInputPredicates(Func<int, bool> predicate)
-            {
-                Contracts.AssertValue(predicate);
-                var result = new Func<int, bool>[_sources.Length];
-                for (int i = 0; i < _sources.Length; i++)
-                {
-                    var lastColCount = _cumulativeColCounts[i];
-                    result[i] = srcCol => predicate(srcCol + lastColCount);
-                }
-
-                return result;
-            }
-
-            /// <summary>
-            /// Checks whether the column index is in range.
-            /// </summary>
-            public void CheckColumnInRange(int col)
-            {
-                Contracts.CheckParam(0 <= col && col < _cumulativeColCounts[_cumulativeColCounts.Length - 1], nameof(col), "Column index out of range");
-            }
-
-            public void GetColumnSource(int col, out int srcIndex, out int srcCol)
-            {
-                CheckColumnInRange(col);
-                if (!_cumulativeColCounts.TryFindIndexSorted(0, _cumulativeColCounts.Length, col, out srcIndex))
-                    srcIndex--;
-                Contracts.Assert(0 <= srcIndex && srcIndex < _cumulativeColCounts.Length);
-                srcCol = col - _cumulativeColCounts[srcIndex];
-                Contracts.Assert(0 <= srcCol && srcCol < _sources[srcIndex].ColumnCount);
-            }
-
-            public int ColumnCount { get { return _cumulativeColCounts[_cumulativeColCounts.Length - 1]; } }
-
-            public bool TryGetColumnIndex(string name, out int col)
-            {
-                for (int i = _sources.Length; --i >= 0; )
-                {
-                    if (_sources[i].TryGetColumnIndex(name, out col))
-                    {
-                        col += _cumulativeColCounts[i];
-                        return true;
-                    }
-                }
-
-                col = -1;
-                return false;
-            }
-
-            public string GetColumnName(int col)
-            {
-                int dv;
-                int srcCol;
-                GetColumnSource(col, out dv, out srcCol);
-                return _sources[dv].GetColumnName(srcCol);
-            }
-
-            public ColumnType GetColumnType(int col)
-            {
-                int dv;
-                int srcCol;
-                GetColumnSource(col, out dv, out srcCol);
-                return _sources[dv].GetColumnType(srcCol);
-            }
-
-            public IEnumerable<KeyValuePair<string, ColumnType>> GetMetadataTypes(int col)
-            {
-                int dv;
-                int srcCol;
-                GetColumnSource(col, out dv, out srcCol);
-                return _sources[dv].GetMetadataTypes(srcCol);
-            }
-
-            public ColumnType GetMetadataTypeOrNull(string kind, int col)
-            {
-                int dv;
-                int srcCol;
-                GetColumnSource(col, out dv, out srcCol);
-                return _sources[dv].GetMetadataTypeOrNull(kind, srcCol);
-            }
-
-            public void GetMetadata<TValue>(string kind, int col, ref TValue value)
-            {
-                int dv;
-                int srcCol;
-                GetColumnSource(col, out dv, out srcCol);
-                _sources[dv].GetMetadata(kind, srcCol, ref value);
-            }
-        }
-
         private sealed class Cursor : RootCursorBase, IRowCursor
         {
             private readonly IRowCursor[] _cursors;
-            private readonly ZipSchema _schema;
+            private readonly CompositeSchema _schema;
             private readonly bool[] _isColumnActive;
 
             public override long Batch { get { return 0; } }

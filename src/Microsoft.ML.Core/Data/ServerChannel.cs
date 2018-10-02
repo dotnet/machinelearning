@@ -26,7 +26,7 @@ namespace Microsoft.ML.Runtime
         private readonly string _identifier;
 
         // This holds the running collection of named delegates, if any. The dictionary itself
-        // is lazily initialized only when a listener 
+        // is lazily initialized only when a listener
         private Dictionary<string, Delegate> _toPublish;
         private Action<Bundle> _onPublish;
         private Bundle _published;
@@ -141,7 +141,7 @@ namespace Microsoft.ML.Runtime
         /// Entry point factory for creating <see cref="IServer"/> instances.
         /// </summary>
         [TlcModule.ComponentKind("Server")]
-        public interface IServerFactory : IArgsComponent, IComponentFactory<IChannel, IServer>
+        public interface IServerFactory : IComponentFactory<IChannel, IServer>
         {
             new IServer CreateComponent(IHostEnvironment env, IChannel ch);
         }
@@ -171,18 +171,17 @@ namespace Microsoft.ML.Runtime
         /// for example, if a user opted to remove all implementations of <see cref="IServer"/> and
         /// the associated <see cref="IServerFactory"/> for security reasons.
         /// </summary>
-        public static IServerFactory CreateDefaultServerFactoryOrNull(IExceptionContext ectx)
+        public static IServerFactory CreateDefaultServerFactoryOrNull(IHostEnvironment env)
         {
-            Contracts.CheckValue(ectx, nameof(ectx));
+            Contracts.CheckValue(env, nameof(env));
             // REVIEW: There should be a better way. There currently isn't,
             // but there should be. This is pretty horrifying, but it is preferable to
             // the alternative of having core components depend on an actual server
             // implementation, since we want those to be removable because of security
             // concerns in certain environments (since not everyone will be wild about
             // web servers popping up everywhere).
-            var cat = ModuleCatalog.CreateInstance(ectx);
-            ModuleCatalog.ComponentInfo component;
-            if (!cat.TryFindComponent(typeof(IServerFactory), "mini", out component))
+            ComponentCatalog.ComponentInfo component;
+            if (!env.ComponentCatalog.TryFindComponent(typeof(IServerFactory), "mini", out component))
                 return null;
             IServerFactory factory = (IServerFactory)Activator.CreateInstance(component.ArgumentType);
             var field = factory.GetType().GetField("Port");

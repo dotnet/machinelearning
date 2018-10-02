@@ -26,11 +26,12 @@ namespace Microsoft.ML.Runtime.RunTests
     {
         private readonly ITestOutputHelper _output;
 
-        protected BaseTestBaseline(ITestOutputHelper helper): base(helper)
+        protected BaseTestBaseline(ITestOutputHelper helper) : base(helper)
         {
             _output = helper;
-            ITest test = (ITest)helper.GetType().GetField("test", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(helper); 
-            TestName = test.TestCase.TestMethod.Method.Name; 
+            ITest test = (ITest)helper.GetType().GetField("test", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(helper);
+            FullTestName = test.TestCase.TestMethod.TestClass.Class.Name + "." + test.TestCase.TestMethod.Method.Name;
+            TestName = test.TestCase.TestMethod.Method.Name;
             Init();
         }
 
@@ -41,13 +42,13 @@ namespace Microsoft.ML.Runtime.RunTests
 
         internal const string RawSuffix = ".raw";
         private const string LogSuffix = ".log";
-        private readonly string _baselineRootRelPath = Path.Combine("ZBaselines", BuildString); // Relative to Root.
+        private readonly string _baselineRootRelPath = Path.Combine(TestDir, "BaselineOutput", BuildString); // Relative to Root.
         private readonly string _logRootRelPath = Path.Combine("Logs", BuildString); // Relative to OutDir.
         private readonly string ScopeRootRelPath = Path.Combine("Samples", "scope"); // Root of files required for Scope related tests. Used primarily for local runs
         private readonly string TestExtDir = Path.Combine("Tests", "Ext"); // Directory with external binaries checked in. Eg libvw.dll
 
         private const string SamplesRootRelPath = @"Samples"; // Root location of Samples. Used primarily for local runs
-        private const string TestDir = @"Tests";
+        private const string TestDir = @"test";
 
         private const string DataRootRegExp = @"[a-z]:\\[^/\t ]+\\test\\data" + @"\\[^/\t ]+";
         private const string SamplesRootRegExp = @"[a-z]:\\[^/\t ]+\\Samples\\";
@@ -87,26 +88,28 @@ namespace Microsoft.ML.Runtime.RunTests
 
         // The writer to write to test log files.
         protected StreamWriter LogWriter;
-        protected TlcEnvironment Env;
+        protected ConsoleEnvironment Env;
         private bool _normal;
         private bool _passed;
 
         public string TestName { get; set; }
+        public string FullTestName { get; set; }
 
         public void Init()
         {
             // Create the output and log directories.
-            Contracts.Check(Directory.Exists(Path.Combine(RootDir, "ZBaselines")));
+            Contracts.Check(Directory.Exists(Path.Combine(RootDir, TestDir, "BaselineOutput")));
             string logDir = Path.Combine(OutDir, _logRootRelPath);
             Directory.CreateDirectory(logDir);
 
             // Find the sample data and baselines.
             _baseDir = Path.Combine(RootDir, _baselineRootRelPath);
 
-            string logPath = Path.Combine(logDir, TestName + LogSuffix);
+            string logPath = Path.Combine(logDir, FullTestName + LogSuffix);
             LogWriter = OpenWriter(logPath);
             _passed = true;
-            Env = new TlcEnvironment(42, outWriter: LogWriter, errWriter: LogWriter);
+            Env = new ConsoleEnvironment(42, outWriter: LogWriter, errWriter: LogWriter)
+                .AddStandardComponents();
             InitializeCore();
         }
 
@@ -131,7 +134,7 @@ namespace Microsoft.ML.Runtime.RunTests
         }
 
         // This method is used by subclass to dispose of disposable objects
-        // such as TlcEnvironment.
+        // such as LocalEnvironment.
         // It is called as a first step in test clean up.
         protected virtual void CleanupCore()
         {
@@ -269,8 +272,8 @@ namespace Microsoft.ML.Runtime.RunTests
         private static readonly Regex _matchDateTime = new Regex(@"[0-9]{1,4}[-/][0-9]{1,2}[-/][0-9]{1,4} [0-9]{1,2}:[0-9]{1,2}:[0-9]{1,4}(\.[0-9]+)?( [AP]M)?", RegexOptions.IgnoreCase | RegexOptions.Compiled);
         private static readonly Regex _matchTime = new Regex(@"[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]+)?", RegexOptions.Compiled);
         private static readonly Regex _matchShortTime = new Regex(@"\([0-9]{2}:[0-9]{2}(\.[0-9]+)?\)", RegexOptions.Compiled);
-        private static readonly Regex _matchMemory = new Regex(@"memory usage\(MB\): [0-9]+" /*(s)\: [0-9]+"*/, RegexOptions.Compiled);
-        private static readonly Regex _matchElapsed = new Regex(@"Time elapsed\(s\): [0-9.]+" /*(s)\: [0-9\.]+"*/, RegexOptions.Compiled);
+        private static readonly Regex _matchMemory = new Regex(@"memory usage\(MB\): [0-9]+", RegexOptions.Compiled);
+        private static readonly Regex _matchElapsed = new Regex(@"Time elapsed\(s\): [0-9.]+", RegexOptions.Compiled);
         private static readonly Regex _matchTimes = new Regex(@"Instances caching time\(s\): [0-9\.]+", RegexOptions.Compiled);
         private static readonly Regex _matchUpdatesPerSec = new Regex(@", ([0-9\.]+|Infinity)M WeightUpdates/sec", RegexOptions.Compiled);
         private static readonly Regex _matchParameterT = new Regex(@"=PARAM:/t:[0-9]+", RegexOptions.Compiled);
@@ -855,7 +858,7 @@ namespace Microsoft.ML.Runtime.RunTests
         /// </summary>
         protected static int MainForTest(string args)
         {
-            using (var env = new TlcEnvironment())
+            using (var env = new ConsoleEnvironment())
             {
                 int result = Maml.MainCore(env, args, false);
                 return result;

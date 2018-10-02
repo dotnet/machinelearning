@@ -15,21 +15,38 @@ namespace Microsoft.ML.Runtime.PipelineInference
 {
     public static class AutoMlUtils
     {
-        public static AutoInference.RunSummary ExtractRunSummary(IHostEnvironment env, IDataView data, string metricColumnName)
+        public static double ExtractValueFromIdv(IHostEnvironment env, IDataView result, string columnName)
         {
-            double metricValue = 0;
-            int numRows = 0;
-            var schema = data.Schema;
-            schema.TryGetColumnIndex(metricColumnName, out var metricCol);
+            Contracts.CheckValue(env, nameof(env));
+            env.CheckValue(result, nameof(result));
+            env.CheckNonEmpty(columnName, nameof(columnName));
 
-            using (var cursor = data.GetRowCursor(col => col == metricCol))
+            double outputValue = 0;
+            var schema = result.Schema;
+            if (!schema.TryGetColumnIndex(columnName, out var metricCol))
+                throw env.ExceptParam(nameof(columnName), $"Schema does not contain column: {columnName}");
+
+            using (var cursor = result.GetRowCursor(col => col == metricCol))
             {
                 var getter = cursor.GetGetter<double>(metricCol);
-                cursor.MoveNext();
-                getter(ref metricValue);
+                bool moved = cursor.MoveNext();
+                env.Check(moved, "Expected an IDataView with a single row. Results dataset has no rows to extract.");
+                getter(ref outputValue);
+                env.Check(!cursor.MoveNext(), "Expected an IDataView with a single row. Results dataset has too many rows.");
             }
 
-            return new AutoInference.RunSummary(metricValue, numRows, 0);
+            return outputValue;
+        }
+
+        public static PipelineSweeperRunSummary ExtractRunSummary(IHostEnvironment env, IDataView result, string metricColumnName, IDataView trainResult = null)
+        {
+            Contracts.CheckValue(env, nameof(env));
+            env.CheckValue(result, nameof(result));
+            env.CheckNonEmpty(metricColumnName, nameof(metricColumnName));
+
+            double testingMetricValue = ExtractValueFromIdv(env, result, metricColumnName);
+            double trainingMetricValue = trainResult != null ? ExtractValueFromIdv(env, trainResult, metricColumnName)  : double.MinValue;
+            return new PipelineSweeperRunSummary(testingMetricValue, 0, 0, trainingMetricValue);
         }
 
         public static CommonInputs.IEvaluatorInput CloneEvaluatorInstance(CommonInputs.IEvaluatorInput evalInput) =>
@@ -50,8 +67,8 @@ namespace Microsoft.ML.Runtime.PipelineInference
 
         /// <summary>
         /// Using the dependencyMapping and included transforms, determines whether every
-        /// transform present only consumes columns produced by a lower- or same-level transform, 
-        /// or existed in the original dataset. Note, a column could be produced by a 
+        /// transform present only consumes columns produced by a lower- or same-level transform,
+        /// or existed in the original dataset. Note, a column could be produced by a
         /// transform on the same level, such as in multipart (atomic group) transforms.
         /// </summary>
         public static bool AreColumnsConsistent(TransformInference.SuggestedTransform[] includedTransforms,
@@ -156,8 +173,8 @@ namespace Microsoft.ML.Runtime.PipelineInference
         {
             List<int> includedColumnIndices = new List<int>();
 
-            // For every column, see if either present in initial dataset, or 
-            // produced by a transform used in current pipeline.               
+            // For every column, see if either present in initial dataset, or
+            // produced by a transform used in current pipeline.
             for (int columnIndex = 0; columnIndex < dataSample.Schema.ColumnCount; columnIndex++)
             {
                 // Create ColumnInfo object for indexing dictionary
@@ -168,7 +185,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
                     IsHidden = dataSample.Schema.IsHidden(columnIndex)
                 };
 
-                // Exclude all hidden and non-numeric columns 
+                // Exclude all hidden and non-numeric columns
                 if (colInfo.IsHidden || !colInfo.ItemType.IsNumber)
                     continue;
 
@@ -244,7 +261,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
         /// (In other words, if there would be nothing for that concatenate transform to do.)
         /// </summary>
         private static TransformInference.SuggestedTransform[] GetFinalFeatureConcat(IHostEnvironment env,
-            IDataView dataSample, int[] excludedColumnIndices, int level, int atomicIdOffset)
+            IDataView dataSample, int[] excludedColumnIndices, int level, int atomicIdOffset, RoleMappedData dataRoles)
         {
             var finalArgs = new TransformInference.Arguments
             {
@@ -253,7 +270,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
                 ExcludedColumnIndices = excludedColumnIndices
             };
 
-            var featuresConcatTransforms = TransformInference.InferConcatNumericFeatures(env, dataSample, finalArgs);
+            var featuresConcatTransforms = TransformInference.InferConcatNumericFeatures(env, dataSample, finalArgs, dataRoles);
 
             for (int i = 0; i < featuresConcatTransforms.Length; i++)
             {
@@ -269,7 +286,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
         /// </summary>
         public static TransformInference.SuggestedTransform[] GetFinalFeatureConcat(IHostEnvironment env, IDataView data,
             AutoInference.DependencyMap dependencyMapping, TransformInference.SuggestedTransform[] selectedTransforms,
-            TransformInference.SuggestedTransform[] allTransforms)
+            TransformInference.SuggestedTransform[] allTransforms, RoleMappedData dataRoles)
         {
             int level = 1;
             int atomicGroupLimit = 0;
@@ -279,7 +296,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
                 atomicGroupLimit = allTransforms.Max(t => t.AtomicGroupId) + 1;
             }
             var excludedColumnIndices = GetExcludedColumnIndices(selectedTransforms, data, dependencyMapping);
-            return GetFinalFeatureConcat(env, data, excludedColumnIndices, level, atomicGroupLimit);
+            return GetFinalFeatureConcat(env, data, excludedColumnIndices, level, atomicGroupLimit, dataRoles);
         }
 
         public static IDataView ApplyTransformSet(IHostEnvironment env, IDataView data, TransformInference.SuggestedTransform[] transforms)
@@ -412,7 +429,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
 
         /// <summary>
         /// Updates properties of entryPointObj instance based on the values in sweepParams
-        /// </summary>        
+        /// </summary>
         public static bool UpdateProperties(object entryPointObj, TlcModule.SweepableParamAttribute[] sweepParams)
         {
             bool result = true;
@@ -467,7 +484,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
 
         /// <summary>
         /// Updates properties of entryPointObj instance based on the values in sweepParams
-        /// </summary>        
+        /// </summary>
         public static void PopulateSweepableParams(RecipeInference.SuggestedRecipe.SuggestedLearner learner)
         {
             foreach (var param in learner.PipelineNode.SweepParams)
@@ -553,70 +570,88 @@ namespace Microsoft.ML.Runtime.PipelineInference
             return learner.PipelineNode.HyperSweeperParamSet;
         }
 
-        public static IRunResult ConvertToRunResult(RecipeInference.SuggestedRecipe.SuggestedLearner learner,
-            AutoInference.RunSummary rs, bool isMetricMaximizing) =>
-                new RunResult(ConvertToParameterSet(learner.PipelineNode.SweepParams, learner), rs.MetricValue, isMetricMaximizing);
+        public static IRunResult ConvertToRunResult(RecipeInference.SuggestedRecipe.SuggestedLearner learner, PipelineSweeperRunSummary rs, bool isMetricMaximizing)
+        {
+            return new RunResult(ConvertToParameterSet(learner.PipelineNode.SweepParams, learner), rs.MetricValue, isMetricMaximizing);
+        }
 
-        public static IRunResult[] ConvertToRunResults(PipelinePattern[] history, bool isMetricMaximizing) =>
-            history.Select(h =>
-                ConvertToRunResult(h.Learner, h.PerformanceSummary, isMetricMaximizing)).ToArray();
+        public static IRunResult[] ConvertToRunResults(PipelinePattern[] history, bool isMetricMaximizing)
+        {
+            return history.Select(h => ConvertToRunResult(h.Learner, h.PerformanceSummary, isMetricMaximizing)).ToArray();
+        }
 
         /// <summary>
-        /// Method to convert set of sweepable hyperparameters into strings of a format understood
+        /// Method to convert set of sweepable hyperparameters into <see cref="IComponentFactory"/> instances used
         /// by the current smart hyperparameter sweepers.
         /// </summary>
-        public static Tuple<string, string[]>[] ConvertToSweepArgumentStrings(TlcModule.SweepableParamAttribute[] hps)
+        public static IComponentFactory<IValueGenerator>[] ConvertToComponentFactories(TlcModule.SweepableParamAttribute[] hps)
         {
-            var results = new Tuple<string, string[]>[hps.Length];
+            var results = new IComponentFactory<IValueGenerator>[hps.Length];
 
             for (int i = 0; i < hps.Length; i++)
             {
-                string logSetting;
-                string numStepsSetting;
-                string stepSizeSetting;
                 switch (hps[i])
                 {
                     case TlcModule.SweepableDiscreteParamAttribute dp:
-                        results[i] = new Tuple<string, string[]>("dp",
-                            new[] { $"name={dp.Name}", $"{string.Join(" ", dp.Options.Select(o => $"v={o}"))}" });
+                        results[i] = ComponentFactoryUtils.CreateFromFunction(env =>
+                        {
+                            var dpArgs = new DiscreteParamArguments()
+                            {
+                                Name = dp.Name,
+                                Values = dp.Options.Select(o => o.ToString()).ToArray()
+                            };
+                            return new DiscreteValueGenerator(dpArgs);
+                        });
                         break;
+
                     case TlcModule.SweepableFloatParamAttribute fp:
-                        logSetting = fp.IsLogScale ? "log+" : "";
-                        numStepsSetting = fp.NumSteps != null ? $"numsteps={fp.NumSteps}" : "";
-                        stepSizeSetting = fp.StepSize != null ? $"stepsize={fp.StepSize}" : "";
-
-                        results[i] =
-                            new Tuple<string, string[]>("fp",
-                                new[]
-                                {
-                                    $"name={fp.Name}",
-                                    $"min={fp.Min}",
-                                    $"max={fp.Max}",
-                                    logSetting,
-                                    numStepsSetting,
-                                    stepSizeSetting
-                                });
+                        results[i] = ComponentFactoryUtils.CreateFromFunction(env =>
+                        {
+                            var fpArgs = new FloatParamArguments()
+                            {
+                                Name = fp.Name,
+                                Min = fp.Min,
+                                Max = fp.Max,
+                                LogBase = fp.IsLogScale,
+                            };
+                            if (fp.NumSteps.HasValue)
+                            {
+                                fpArgs.NumSteps = fp.NumSteps.Value;
+                            }
+                            if (fp.StepSize.HasValue)
+                            {
+                                fpArgs.StepSize = fp.StepSize.Value;
+                            }
+                            return new FloatValueGenerator(fpArgs);
+                        });
                         break;
-                    case TlcModule.SweepableLongParamAttribute lp:
-                        logSetting = lp.IsLogScale ? "logbase+" : "";
-                        numStepsSetting = lp.NumSteps != null ? $"numsteps={lp.NumSteps}" : "";
-                        stepSizeSetting = lp.StepSize != null ? $"stepsize={lp.StepSize}" : "";
 
-                        results[i] =
-                            new Tuple<string, string[]>("lp",
-                                new[]
-                                {
-                                    $"name={lp.Name}",
-                                    $"min={lp.Min}",
-                                    $"max={lp.Max}",
-                                    logSetting,
-                                    numStepsSetting,
-                                    stepSizeSetting
-                                });
+                    case TlcModule.SweepableLongParamAttribute lp:
+                        results[i] = ComponentFactoryUtils.CreateFromFunction(env =>
+                        {
+                            var lpArgs = new LongParamArguments()
+                            {
+                                Name = lp.Name,
+                                Min = lp.Min,
+                                Max = lp.Max,
+                                LogBase = lp.IsLogScale
+                            };
+                            if (lp.NumSteps.HasValue)
+                            {
+                                lpArgs.NumSteps = lp.NumSteps.Value;
+                            }
+                            if (lp.StepSize.HasValue)
+                            {
+                                lpArgs.StepSize = lp.StepSize.Value;
+                            }
+                            return new LongValueGenerator(lpArgs);
+                        });
                         break;
                 }
             }
             return results;
         }
+
+        public static string GenerateOverallTrainingMetricVarName(Guid id) => $"Var_Training_OM_{id:N}";
     }
 }

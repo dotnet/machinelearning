@@ -101,7 +101,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
         public static List<Sweep> GenerateCandidates(IHostEnvironment env, string dataFile, string schemaDefinitionFile)
         {
             var patterns = new List<Sweep>();
-            string loaderSettings = "";
+            string loaderSettings;
             Type predictorType;
             TransformInference.InferenceResult inferenceResult;
 
@@ -109,15 +109,20 @@ namespace Microsoft.ML.Runtime.PipelineInference
             RecipeInference.SuggestedRecipe[] recipes = RecipeInference.InferRecipesFromData(env, dataFile, schemaDefinitionFile, out predictorType, out loaderSettings, out inferenceResult);
 
             //get all the trainers for this task, and generate the initial set of candidates.
-            // Exclude the hidden learners, and the metalinear learners. 
-            var trainers = ComponentCatalog.GetAllDerivedClasses(typeof(ITrainer), predictorType)
-                .Where(cls => !cls.IsHidden && !typeof(IMetaLinearTrainer).IsAssignableFrom(cls.Type));
+            // Exclude the hidden learners, and the metalinear learners.
+            var trainers = env.ComponentCatalog.GetAllDerivedClasses(typeof(ITrainer), predictorType).Where(cls => !cls.IsHidden);
 
-            var loaderSubComponent = new SubComponent("TextLoader", loaderSettings);
-            string loader = $" loader={loaderSubComponent}";
+            if (!string.IsNullOrEmpty(loaderSettings))
+            {
+                StringBuilder sb = new StringBuilder();
+                CmdQuoter.QuoteValue(loaderSettings, sb, true);
+                loaderSettings = sb.ToString();
+            }
 
-            // REVIEW: there are more learners than recipes atm. 
-            // Flip looping through recipes, than through learners if the cardinality changes.  
+            string loader = $" loader=TextLoader{loaderSettings}";
+
+            // REVIEW: there are more learners than recipes atm.
+            // Flip looping through recipes, then through learners if the cardinality changes.
             foreach (ComponentCatalog.LoadableClassInfo cl in trainers)
             {
                 string learnerSettings;

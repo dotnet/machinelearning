@@ -22,28 +22,28 @@ using Microsoft.ML.Runtime.Model;
 
 namespace Microsoft.ML.Runtime.Data
 {
-    /// <summary>
-    /// This can be thought of as an inverse of <see cref="GroupTransform"/>. For all specified vector columns 
-    /// ("pivot" columns), performs the "ungroup" (or "unroll") operation as outlined below.
-    /// 
-    /// If the only pivot column is called P, and has size K, then for every row of the input we will produce 
-    /// K rows, that are identical in all columns except P. The column P will become a scalar column, and this 
-    /// column will hold all the original values of input's P, one value per row, in order. The order of columns 
-    /// will remain the same.
-    /// 
-    /// Variable-length pivot columns are supported (including zero, which will eliminate the row from the result).
-    /// 
-    /// Multiple pivot columns are also supported:
-    /// * A number of output rows is controlled by the 'mode' parameter. 
-    ///     - outer: it is equal to the maximum length of pivot columns,
-    ///     - inner: it is equal to the minimum length of pivot columns,
-    ///     - first: it is equal to the length of the first pivot column.
-    /// * If a particular pivot column has size that is different than the number of output rows, the extra slots will
-    /// be ignored, and the missing slots will be 'padded' with default values.
-    /// 
-    /// All metadata is preserved for the retained columns. For 'unrolled' columns, all known metadata
-    /// except slot names is preserved.
-    /// </summary>
+
+    // This can be thought of as an inverse of GroupTransform. For all specified vector columns
+    // ("pivot" columns), performs the "ungroup" (or "unroll") operation as outlined below.
+    //
+    // If the only pivot column is called P, and has size K, then for every row of the input we will produce
+    // K rows, that are identical in all columns except P. The column P will become a scalar column, and this
+    // column will hold all the original values of input's P, one value per row, in order. The order of columns
+    // will remain the same.
+    //
+    // Variable-length pivot columns are supported (including zero, which will eliminate the row from the result).
+    //
+    // Multiple pivot columns are also supported:
+    // * A number of output rows is controlled by the 'mode' parameter.
+    //     - outer: it is equal to the maximum length of pivot columns,
+    //     - inner: it is equal to the minimum length of pivot columns,
+    //     - first: it is equal to the length of the first pivot column.
+    // * If a particular pivot column has size that is different than the number of output rows, the extra slots will
+    // be ignored, and the missing slots will be 'padded' with default values.
+    //
+    // All metadata is preserved for the retained columns. For 'unrolled' columns, all known metadata
+    // except slot names is preserved.
+    /// <include file='doc.xml' path='doc/members/member[@name="Ungroup"]/*' />
     public sealed class UngroupTransform : TransformBase
     {
         public const string Summary = "Un-groups vector columns into sequences of rows, inverse of Group transform";
@@ -58,13 +58,28 @@ namespace Microsoft.ML.Runtime.Data
                 verWrittenCur: 0x00010001, // Initial
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
-                loaderSignature: LoaderSignature);
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(UngroupTransform).Assembly.FullName);
         }
 
+        /// <summary>
+        /// Controls the number of output rows produced by the <see cref="UngroupTransform"/> transform
+        /// </summary>
         public enum UngroupMode
         {
+            /// <summary>
+            /// The number of output rows is equal to the minimum length of pivot columns
+            /// </summary>
             Inner,
+
+            /// <summary>
+            /// The number of output rows is equal to the maximum length of pivot columns
+            /// </summary>
             Outer,
+
+            /// <summary>
+            /// The number of output rows is equal to the length of the first pivot column.
+            /// </summary>
             First
         }
 
@@ -78,6 +93,18 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         private readonly SchemaImpl _schemaImpl;
+
+        /// <summary>
+        /// Convenience constructor for public facing API.
+        /// </summary>
+        /// <param name="env">Host Environment.</param>
+        /// <param name="input">Input <see cref="IDataView"/>. This is the output from previous transform or loader.</param>
+        /// <param name="mode">Specifies how to unroll multiple pivot columns of different size.</param>
+        /// <param name="columns">Columns to unroll, or 'pivot'</param>
+        public UngroupTransform(IHostEnvironment env, IDataView input, UngroupMode mode, params string[] columns)
+            : this(env, new Arguments() { Column = columns, Mode = mode }, input)
+        {
+        }
 
         public UngroupTransform(IHostEnvironment env, Arguments args, IDataView input)
             : base(env, LoaderSignature, input)
@@ -145,8 +172,8 @@ namespace Microsoft.ML.Runtime.Data
             return null;
         }
 
-        // Technically, we could shuffle the ungrouped data if the source can shuffle. However, we want to maintain 
-        // contiguous groups. There's also a question whether we should shuffle inside groups or just shuffle groups 
+        // Technically, we could shuffle the ungrouped data if the source can shuffle. However, we want to maintain
+        // contiguous groups. There's also a question whether we should shuffle inside groups or just shuffle groups
         // themselves. With these issues, and no anticipated use for shuffled version, it's safer to not shuffle at all.
         public override bool CanShuffle
         {
@@ -434,7 +461,7 @@ namespace Microsoft.ML.Runtime.Data
             // For each pivot column that we care about, these getters return the vector size.
             private readonly Func<int>[] _sizeGetters;
 
-            // As a side effect, getters also populate these actual sizes of the necessary pivot columns on MoveNext. 
+            // As a side effect, getters also populate these actual sizes of the necessary pivot columns on MoveNext.
             // Parallel to columns.
             private int[] _colSizes;
 
@@ -584,7 +611,7 @@ namespace Microsoft.ML.Runtime.Data
                 var srcGetter = Input.GetGetter<VBuffer<T>>(col);
                 // The position of the source cursor. Used to extract the source row once.
                 long cachedPosition = -1;
-                // The position inside the sparse row. If the row is sparse, the invariant is 
+                // The position inside the sparse row. If the row is sparse, the invariant is
                 // cachedIndex == row.Count || _pivotColPosition <= row.Indices[cachedIndex].
                 int cachedIndex = 0;
                 VBuffer<T> row = default(VBuffer<T>);
@@ -627,7 +654,12 @@ namespace Microsoft.ML.Runtime.Data
 
     public static partial class GroupingOperations
     {
-        [TlcModule.EntryPoint(Name = "Transforms.Segregator", Desc = UngroupTransform.Summary, UserName = UngroupTransform.UserName, ShortName = UngroupTransform.ShortName)]
+        [TlcModule.EntryPoint(Name = "Transforms.Segregator",
+            Desc = UngroupTransform.Summary,
+            UserName = UngroupTransform.UserName,
+            ShortName = UngroupTransform.ShortName,
+            XmlInclude = new[] { @"<include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/member[@name=""Ungroup""]/*' />",
+                                 @"<include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/example[@name=""Ungroup""]/*' />"})]
         public static CommonOutputs.TransformOutput Ungroup(IHostEnvironment env, UngroupTransform.Arguments input)
         {
             Contracts.CheckValue(env, nameof(env));
