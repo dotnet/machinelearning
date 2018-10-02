@@ -14,9 +14,9 @@ namespace Microsoft.ML.Runtime.RunTests
 {
     public sealed class TestTimeSeries : TestDataPipeBase
     {
-        protected override void InitializeCore()
+        protected override void Initialize()
         {
-            base.InitializeCore();
+            base.Initialize();
             Env.ComponentCatalog.RegisterAssembly(typeof(ExponentialAverageTransform).Assembly);
         }
 

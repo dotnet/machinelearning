@@ -101,12 +101,6 @@ fi
 
 __cmake_defines="${__cmake_defines} -DVERSION_FILE_PATH:STRING=${__versionSourceFile}"
 
-# This should be done when nuget is published but until then lets keep these below lines.
-if [[ "$OSTYPE" == "darwin"* ]]; then
-    echo "Changing libMklImports.dylib's name to include @rpath."
-    install_name_tool "-id" @rpath/libMklImports.dylib "$__mkllibpath"/libMklImports.dylib
-fi
-
 cd "$__IntermediatesDir"
 
 echo "Building Machine Learning native components from $DIR to $(pwd)"
