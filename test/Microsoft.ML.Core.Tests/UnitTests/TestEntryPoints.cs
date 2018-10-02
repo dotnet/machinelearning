@@ -3803,7 +3803,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 });
         }
 
-        [Fact(Skip = "TEMP: Missing MKL Binary.")]
+        [Fact(Skip = "Needs real time series dataset.")]
         public void EntryPointSsaSpikeDetector()
         {
             TestEntryPointPipelineRoutine(GetDataPath(Path.Combine("Timeseries", "A4Benchmark-TS2.csv")), "sep=, col=Features:R4:1 header=+",

@@ -19,7 +19,7 @@ add_library(MklProxyNative SHARED ${SOURCES} ${RESOURCES})
 target_link_libraries(MklProxyNative PUBLIC ${MKL_LIBRARY})
 
 if(APPLE)
-    set_target_properties(MklProxyNative PROPERTIES INSTALL_RPATH "@loader_path;${MKL_LIB_PATH}")
+    set_target_properties(MklProxyNative PROPERTIES INSTALL_RPATH "@loader_path")
 endif()
 
 install_library_and_symbols (MklProxyNative)
