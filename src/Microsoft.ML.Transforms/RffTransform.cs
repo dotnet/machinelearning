@@ -271,6 +271,9 @@ namespace Microsoft.ML.Transforms
             string reason = TestColumnType(type);
             if (reason != null)
                 throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", ColumnPairs[col].input, reason, type.ToString());
+            if (_transformInfos[col].SrcDim != type.VectorSize)
+                throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", ColumnPairs[col].input,
+                    new VectorType(NumberType.Float, _transformInfos[col].SrcDim).ToString(), type.ToString());
         }
 
         public RffTransform(IHostEnvironment env, IDataView input, ColumnInfo[] columns)
@@ -309,7 +312,10 @@ namespace Microsoft.ML.Transforms
             {
                 if (!input.Schema.TryGetColumnIndex(ColumnPairs[i].input, out int srcCol))
                     throw Host.ExceptSchemaMismatch(nameof(input), "input", ColumnPairs[i].input);
-                CheckInputColumn(input.Schema, i, srcCol);
+                var type = input.Schema.GetColumnType(srcCol);
+                string reason = TestColumnType(type);
+                if (reason != null)
+                    throw Host.ExceptSchemaMismatch(nameof(input), "input", ColumnPairs[i].input, reason, type.ToString());
                 srcCols[i] = srcCol;
                 activeColumns[srcCol] = true;
             }
@@ -472,8 +478,11 @@ namespace Microsoft.ML.Transforms
 
             host.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel(GetVersionInfo());
-            int cbFloat = ctx.Reader.ReadInt32();
-            env.CheckDecode(cbFloat == sizeof(float));
+            if (ctx.Header.ModelVerWritten == 0x00010001)
+            {
+                int cbFloat = ctx.Reader.ReadInt32();
+                env.CheckDecode(cbFloat == sizeof(float));
+            }
             return new RffTransform(host, ctx);
         }
 

@@ -26,6 +26,12 @@ namespace Microsoft.ML.Tests.Transformers
             public float[] A;
         }
 
+        private class TestClassBiggerSize
+        {
+            [VectorType(200)]
+            public float[] A;
+        }
+
         private class TestClassInvalidSchema
         {
             public int A;
@@ -40,7 +46,7 @@ namespace Microsoft.ML.Tests.Transformers
                 new TestClass() { A = Enumerable.Range(0, 100).Select(x => (float)rand.NextDouble()).ToArray() }
             };
             var invalidData = ComponentCreation.CreateDataView(Env, new[] { new TestClassInvalidSchema { A = 1 }, new TestClassInvalidSchema { A = 1 } });
-
+            var validFitInvalidData = ComponentCreation.CreateDataView(Env, new[] { new TestClassBiggerSize { A = new float[200] }, new TestClassBiggerSize { A = new float[200] } });
             var dataView = ComponentCreation.CreateDataView(Env, data);
             var generator = new GaussianFourierSampler.Arguments();
 
@@ -49,7 +55,7 @@ namespace Microsoft.ML.Tests.Transformers
                     new RffTransform.ColumnInfo("A", "RffB", 10, true, new LaplacianFourierSampler.Arguments())
                 });
 
-            TestEstimatorCore(pipe, dataView, invalidInput: invalidData);
+            TestEstimatorCore(pipe, dataView, invalidInput: invalidData, validForFitNotValidForTransformInput: validFitInvalidData);
             Done();
         }
 
@@ -66,11 +72,9 @@ namespace Microsoft.ML.Tests.Transformers
 
             var est = data.MakeNewEstimator()
                 .Append(row => (
-                RffVectorFloat: row.VectorFloat.LowerVectorSizeWithRandomFourierTransformation(3, true),
-                Label: row.Label));
+                RffVectorFloat: row.VectorFloat.LowerVectorSizeWithRandomFourierTransformation(3, true), row.Label));
 
             TestEstimatorCore(est.AsDynamic, data.AsDynamic);
-
 
             var outputPath = GetOutputPath("Rff", "featurized.tsv");
             using (var ch = Env.Start("save"))
@@ -79,10 +83,9 @@ namespace Microsoft.ML.Tests.Transformers
                 IDataView savedData = TakeFilter.Create(Env, est.Fit(data).Transform(data).AsDynamic, 4);
                 using (var fs = File.Create(outputPath))
                     DataSaverUtils.SaveDataView(ch, saver, savedData, fs, keepHidden: true);
+                ch.Done();
             }
-
             CheckEquality("Rff", "featurized.tsv");
-
             Done();
         }
 
