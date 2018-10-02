@@ -754,7 +754,7 @@ namespace Microsoft.ML.Runtime.SymSgd
 
         private static unsafe class Native
         {
-            //To triger the loading of MKL library since MKL proxy native library depends on it.
+            //To triger the loading of MKL library since SymSGD native library depends on it.
             static Native() => ErrorMessage(0);
 
             internal const string DllName = "SymSgdNative";
