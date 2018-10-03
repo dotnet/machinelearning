@@ -28,7 +28,7 @@ namespace Microsoft.ML.StaticPipe
         /// <param name="weights">The name for the example weight column.</param>
         /// <param name="maxIterations">The maximum number of iterations; set to 1 to simulate online learning.</param>
         /// <param name="initLearningRate">The initial Learning Rate used by SGD.</param>
-        /// <param name="l2Weight">The L2 regularizer constant.</param>
+        /// <param name="l2Weight">The L2 regularization constant.</param>
         /// <param name="advancedSettings">A delegate to apply all the advanced arguments to the algorithm.</param>
         /// <param name="onFit">A delegate that is called every time the
         /// <see cref="Estimator{TTupleInShape, TTupleOutShape, TTransformer}.Fit(DataView{TTupleInShape})"/> method is called on the
