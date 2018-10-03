@@ -137,7 +137,7 @@ The above algorithm can be implemented using the [schema comprehension](SchemaCo
 ```c#
 var inputData = env.CreateDataView(new InputExample[] { example });
 var outputData = model.Transform(inputData);
-var output = outputData.AsEnumerable<OutputPrediction>(env, reuseRowObject: false).Single();
+var output = outputData.AsDynamic.AsEnumerable<OutputPrediction>(env, reuseRowObject: false).Single();
 ```
 
 But this would be cumbersome, and would incur performance costs. 
