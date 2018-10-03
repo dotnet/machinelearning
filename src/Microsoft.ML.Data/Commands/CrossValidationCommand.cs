@@ -119,7 +119,7 @@ namespace Microsoft.ML.Runtime.Data
             using (var ch = Host.Start(LoadName))
             using (var server = InitServer(ch))
             {
-                var settings = CmdParser.GetSettings(ch, Args, new Arguments());
+                var settings = CmdParser.GetSettings(Host, Args, new Arguments());
                 string cmd = string.Format("maml.exe {0} {1}", LoadName, settings);
                 ch.Info(cmd);
 
@@ -557,7 +557,7 @@ namespace Microsoft.ML.Runtime.Data
                     var bindable = ScoreUtils.GetSchemaBindableMapper(host, predictor, scorerFactorySettings: _scorer as ICommandLineComponentFactory);
                     ch.AssertValue(bindable);
                     var mapper = bindable.Bind(host, testData.Schema);
-                    var scorerComp = _scorer ?? ScoreUtils.GetScorerComponent(mapper);
+                    var scorerComp = _scorer ?? ScoreUtils.GetScorerComponent(host, mapper);
                     IDataScorerTransform scorePipe = scorerComp.CreateComponent(host, testData.Data, mapper, trainData.Schema);
 
                     // Save per-fold model.

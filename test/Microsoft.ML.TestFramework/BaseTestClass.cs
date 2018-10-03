@@ -3,18 +3,23 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Runtime.Internal.Internallearn.Test;
+using System;
 using System.Globalization;
 using System.IO;
+using System.Reflection;
 using System.Threading;
 using Xunit.Abstractions;
 
 namespace Microsoft.ML.TestFramework
 {
-    public class BaseTestClass
+    public class BaseTestClass : IDisposable
     {
         private readonly string _rootDir;
         private readonly string _outDir;
         private readonly string _dataRoot;
+
+        public string TestName { get; set; }
+        public string FullTestName { get; set; }
 
         static BaseTestClass() => GlobalBase.AssemblyInit();
 
@@ -31,6 +36,28 @@ namespace Microsoft.ML.TestFramework
             Directory.CreateDirectory(_outDir);
             _dataRoot = Path.Combine(_rootDir, "test", "data");
             Output = output;
+
+            ITest test = (ITest)output.GetType().GetField("test", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(output);
+            FullTestName = test.TestCase.TestMethod.TestClass.Class.Name + "." + test.TestCase.TestMethod.Method.Name;
+            TestName = test.TestCase.TestMethod.Method.Name;
+
+            // write to the console when a test starts and stops so we can identify any test hangs/deadlocks in CI
+            Console.WriteLine($"Starting test: {FullTestName}");
+            Initialize();
+        }
+
+        void IDisposable.Dispose()
+        {
+            Cleanup();
+            Console.WriteLine($"Finished test: {FullTestName}");
+        }
+
+        protected virtual void Initialize()
+        {
+        }
+
+        protected virtual void Cleanup()
+        {
         }
 
         protected string RootDir => _rootDir;

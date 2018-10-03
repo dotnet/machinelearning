@@ -82,6 +82,11 @@ namespace Microsoft.ML.Runtime.LightGBM
             return strBuf.ToString();
         }
 
+        internal static class Defaults
+        {
+            internal const int NumBoostRound = 100;
+        }
+
         public sealed class TreeBooster : BoosterParameter<TreeBooster.Arguments>
         {
             public const string Name = "gbdt";
@@ -268,7 +273,7 @@ namespace Microsoft.ML.Runtime.LightGBM
         [Argument(ArgumentType.AtMostOnce, HelpText = "Number of iterations.", SortOrder = 1, ShortName = "iter")]
         [TGUI(Label = "Number of boosting iterations", SuggestedSweeps = "10,20,50,100,150,200")]
         [TlcModule.SweepableDiscreteParam("NumBoostRound", new object[] { 10, 20, 50, 100, 150, 200 })]
-        public int NumBoostRound = 100;
+        public int NumBoostRound = Defaults.NumBoostRound;
 
         [Argument(ArgumentType.AtMostOnce,
             HelpText = "Shrinkage rate for trees, used to prevent over-fitting. Range: (0,1].",

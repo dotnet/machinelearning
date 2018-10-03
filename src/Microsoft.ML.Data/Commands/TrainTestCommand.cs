@@ -94,7 +94,7 @@ namespace Microsoft.ML.Runtime.Data
             using (var ch = Host.Start(LoadName))
             using (var server = InitServer(ch))
             {
-                var settings = CmdParser.GetSettings(ch, Args, new Arguments());
+                var settings = CmdParser.GetSettings(Host, Args, new Arguments());
                 string cmd = string.Format("maml.exe {0} {1}", LoadName, settings);
                 ch.Info(cmd);
 

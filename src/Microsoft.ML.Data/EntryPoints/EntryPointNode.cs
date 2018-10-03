@@ -412,8 +412,8 @@ namespace Microsoft.ML.Runtime.EntryPoints
         public readonly string Id;
 
         private readonly IHost _host;
-        private readonly ModuleCatalog _catalog;
-        private readonly ModuleCatalog.EntryPointInfo _entryPoint;
+        private readonly ComponentCatalog _catalog;
+        private readonly ComponentCatalog.EntryPointInfo _entryPoint;
         private readonly InputBuilder _inputBuilder;
         private readonly OutputHelper _outputHelper;
 
@@ -473,7 +473,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
             }
         }
 
-        private EntryPointNode(IHostEnvironment env, IChannel ch, ModuleCatalog moduleCatalog, RunContext context,
+        private EntryPointNode(IHostEnvironment env, IChannel ch, ComponentCatalog catalog, RunContext context,
             string id, string entryPointName, JObject inputs, JObject outputs, bool checkpoint = false,
             string stageId = "", float cost = float.NaN, string label = null, string group = null, string weight = null, string name = null)
         {
@@ -482,21 +482,21 @@ namespace Microsoft.ML.Runtime.EntryPoints
             _host = env.Register(id);
             _host.AssertValue(context);
             _host.AssertNonEmpty(entryPointName);
-            _host.AssertValue(moduleCatalog);
+            _host.AssertValue(catalog);
             _host.AssertValueOrNull(inputs);
             _host.AssertValueOrNull(outputs);
 
             _context = context;
-            _catalog = moduleCatalog;
+            _catalog = catalog;
 
             Id = id;
-            if (!moduleCatalog.TryFindEntryPoint(entryPointName, out _entryPoint))
+            if (!catalog.TryFindEntryPoint(entryPointName, out _entryPoint))
                 throw _host.Except($"Entry point '{entryPointName}' not found");
 
             // Validate inputs.
             _inputMap = new Dictionary<ParameterBinding, VariableBinding>();
             _inputBindingMap = new Dictionary<string, List<ParameterBinding>>();
-            _inputBuilder = new InputBuilder(_host, _entryPoint.InputType, moduleCatalog);
+            _inputBuilder = new InputBuilder(_host, _entryPoint.InputType, catalog);
 
             // REVIEW: This logic should move out of Node eventually and be delegated to
             // a class that can nest to handle Components with variables.
@@ -565,7 +565,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
             IHostEnvironment env,
             string entryPointName,
             object arguments,
-            ModuleCatalog catalog,
+            ComponentCatalog catalog,
             RunContext context,
             Dictionary<string, List<ParameterBinding>> inputBindingMap,
             Dictionary<ParameterBinding, VariableBinding> inputMap,
@@ -582,7 +582,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
             env.CheckValue(inputBindingMap, nameof(inputBindingMap));
             env.CheckValue(inputMap, nameof(inputMap));
             env.CheckValue(outputMap, nameof(outputMap));
-            ModuleCatalog.EntryPointInfo info;
+            ComponentCatalog.EntryPointInfo info;
             bool success = catalog.TryFindEntryPoint(entryPointName, out info);
             env.Assert(success);
 
@@ -604,7 +604,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
             IHostEnvironment env,
             string entryPointName,
             object arguments,
-            ModuleCatalog catalog,
+            ComponentCatalog catalog,
             RunContext context,
             Dictionary<string, string> inputMap,
             Dictionary<string, string> outputMap,
@@ -612,7 +612,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
             string stageId = "",
             float cost = float.NaN)
         {
-            ModuleCatalog.EntryPointInfo info;
+            ComponentCatalog.EntryPointInfo info;
             bool success = catalog.TryFindEntryPoint(entryPointName, out info);
             env.Assert(success);
 
@@ -855,7 +855,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
         private IEnumerable<EntryPointNode> _macroNodes;
 
         public IEnumerable<EntryPointNode> MacroNodes => _macroNodes;
-        public ModuleCatalog Catalog => _catalog;
+        public ComponentCatalog Catalog => _catalog;
         public RunContext Context => _context;
         public Dictionary<string, List<ParameterBinding>> InputBindingMap => _inputBindingMap;
         public Dictionary<ParameterBinding, VariableBinding> InputMap => _inputMap;
@@ -895,12 +895,12 @@ namespace Microsoft.ML.Runtime.EntryPoints
         }
 
         public static List<EntryPointNode> ValidateNodes(IHostEnvironment env, RunContext context, JArray nodes,
-            ModuleCatalog moduleCatalog, string label = null, string group = null, string weight = null, string name = null)
+            ComponentCatalog catalog, string label = null, string group = null, string weight = null, string name = null)
         {
             Contracts.AssertValue(env);
             env.AssertValue(context);
             env.AssertValue(nodes);
-            env.AssertValue(moduleCatalog);
+            env.AssertValue(catalog);
 
             var result = new List<EntryPointNode>(nodes.Count);
             using (var ch = env.Start("Validating graph nodes"))
@@ -935,7 +935,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
                         ch.Warning("Node '{0}' has unexpected fields that are ignored: {1}", id, string.Join(", ", unexpectedFields.Select(x => x.Name)));
                     }
 
-                    result.Add(new EntryPointNode(env, ch, moduleCatalog, context, id, nodeName, inputs, outputs, checkpoint, stageId, cost, label, group, weight, name));
+                    result.Add(new EntryPointNode(env, ch, catalog, context, id, nodeName, inputs, outputs, checkpoint, stageId, cost, label, group, weight, name));
                 }
 
                 ch.Done();
@@ -1004,15 +1004,14 @@ namespace Microsoft.ML.Runtime.EntryPoints
         private readonly RunContext _context;
         private readonly List<EntryPointNode> _nodes;
 
-        public EntryPointGraph(IHostEnvironment env, ModuleCatalog moduleCatalog, JArray nodes)
+        public EntryPointGraph(IHostEnvironment env, JArray nodes)
         {
             Contracts.CheckValue(env, nameof(env));
             _host = env.Register(RegistrationName);
-            _host.CheckValue(moduleCatalog, nameof(moduleCatalog));
             _host.CheckValue(nodes, nameof(nodes));
 
             _context = new RunContext(_host);
-            _nodes = EntryPointNode.ValidateNodes(_host, _context, nodes, moduleCatalog);
+            _nodes = EntryPointNode.ValidateNodes(_host, _context, nodes, env.ComponentCatalog);
         }
 
         public bool HasRunnableNodes => _nodes.FirstOrDefault(x => x.CanStart()) != null;

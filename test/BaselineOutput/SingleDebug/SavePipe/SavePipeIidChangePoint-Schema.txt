@@ -1,0 +1,54 @@
+---- BoundLoader ----
+1 columns:
+  Features: R4
+---- IidChangePointDetector ----
+2 columns:
+  Features: R4
+  Anomaly: Vec<R8, 4>
+    Metadata 'SlotNames': Vec<Text, 4>: Length=4, Count=4
+      [0] 'Alert', [1] 'Raw Score', [2] 'P-Value Score', [3] 'Martingale Score'
+---- ConvertTransform ----
+3 columns:
+  Features: R4
+  Anomaly: Vec<R8, 4>
+    Metadata 'SlotNames': Vec<Text, 4>: Length=4, Count=4
+      [0] 'Alert', [1] 'Raw Score', [2] 'P-Value Score', [3] 'Martingale Score'
+  fAnomaly: Vec<R4, 4>
+    Metadata 'SlotNames': Vec<Text, 4>: Length=4, Count=4
+      [0] 'Alert', [1] 'Raw Score', [2] 'P-Value Score', [3] 'Martingale Score'
+---- IidChangePointDetector ----
+4 columns:
+  Features: R4
+  Anomaly: Vec<R8, 4>
+    Metadata 'SlotNames': Vec<Text, 4>: Length=4, Count=4
+      [0] 'Alert', [1] 'Raw Score', [2] 'P-Value Score', [3] 'Martingale Score'
+  fAnomaly: Vec<R4, 4>
+    Metadata 'SlotNames': Vec<Text, 4>: Length=4, Count=4
+      [0] 'Alert', [1] 'Raw Score', [2] 'P-Value Score', [3] 'Martingale Score'
+  Anomaly2: Vec<R8, 4>
+    Metadata 'SlotNames': Vec<Text, 4>: Length=4, Count=4
+      [0] 'Alert', [1] 'Raw Score', [2] 'P-Value Score', [3] 'Martingale Score'
+---- ConvertTransform ----
+5 columns:
+  Features: R4
+  Anomaly: Vec<R8, 4>
+    Metadata 'SlotNames': Vec<Text, 4>: Length=4, Count=4
+      [0] 'Alert', [1] 'Raw Score', [2] 'P-Value Score', [3] 'Martingale Score'
+  fAnomaly: Vec<R4, 4>
+    Metadata 'SlotNames': Vec<Text, 4>: Length=4, Count=4
+      [0] 'Alert', [1] 'Raw Score', [2] 'P-Value Score', [3] 'Martingale Score'
+  Anomaly2: Vec<R8, 4>
+    Metadata 'SlotNames': Vec<Text, 4>: Length=4, Count=4
+      [0] 'Alert', [1] 'Raw Score', [2] 'P-Value Score', [3] 'Martingale Score'
+  fAnomaly2: Vec<R4, 4>
+    Metadata 'SlotNames': Vec<Text, 4>: Length=4, Count=4
+      [0] 'Alert', [1] 'Raw Score', [2] 'P-Value Score', [3] 'Martingale Score'
+---- ChooseColumnsTransform ----
+3 columns:
+  Features: R4
+  fAnomaly: Vec<R4, 4>
+    Metadata 'SlotNames': Vec<Text, 4>: Length=4, Count=4
+      [0] 'Alert', [1] 'Raw Score', [2] 'P-Value Score', [3] 'Martingale Score'
+  fAnomaly2: Vec<R4, 4>
+    Metadata 'SlotNames': Vec<Text, 4>: Length=4, Count=4
+      [0] 'Alert', [1] 'Raw Score', [2] 'P-Value Score', [3] 'Martingale Score'

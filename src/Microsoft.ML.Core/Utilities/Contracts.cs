@@ -570,7 +570,14 @@ namespace Microsoft.ML.Runtime
         return val;
     }
 
-    public static void CheckValue<T>(T val, string paramName) where T : class
+    public static T CheckRef<T>(this IExceptionContext ctx, T val, string paramName, string msg) where T : class
+    {
+        if (object.ReferenceEquals(val, null))
+            throw ExceptValue(ctx, paramName, msg);
+        return val;
+    }
+
+        public static void CheckValue<T>(T val, string paramName) where T : class
     {
         if (object.ReferenceEquals(val, null))
             throw ExceptValue(paramName);

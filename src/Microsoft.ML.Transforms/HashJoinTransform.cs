@@ -168,7 +168,8 @@ namespace Microsoft.ML.Runtime.Data
                 verWrittenCur: 0x00010005, // Hash fix
                 verReadableCur: 0x00010005,
                 verWeCanReadBack: 0x00010005,
-                loaderSignature: LoaderSignature);
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(HashJoinTransform).Assembly.FullName);
         }
 
         private readonly ColumnInfoEx[] _exes;

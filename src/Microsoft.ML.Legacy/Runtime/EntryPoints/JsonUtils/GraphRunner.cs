@@ -23,14 +23,13 @@ namespace Microsoft.ML.Runtime.EntryPoints.JsonUtils
         private readonly IHost _host;
         private readonly EntryPointGraph _graph;
 
-        public GraphRunner(IHostEnvironment env, ModuleCatalog moduleCatalog, JArray nodes)
+        public GraphRunner(IHostEnvironment env, JArray nodes)
         {
             Contracts.CheckValue(env, nameof(env));
             _host = env.Register(RegistrationName);
-            _host.CheckValue(moduleCatalog, nameof(moduleCatalog));
             _host.CheckValue(nodes, nameof(nodes));
 
-            _graph = new EntryPointGraph(_host, moduleCatalog, nodes);
+            _graph = new EntryPointGraph(_host, nodes);
         }
 
         public GraphRunner(IHostEnvironment env, EntryPointGraph graph)

@@ -75,8 +75,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                 linearPredictor.GetFeatureWeights(ref weights);
 
                 var topicSummary = lda.GetTopicSummary();
-                var treeTrainer = new FastTreeBinaryClassificationTrainer(env, DefaultColumnNames.Label, DefaultColumnNames.Features,
-                    advancedSettings: s =>{ s.NumTrees = 2; });
+                var treeTrainer = new FastTreeBinaryClassificationTrainer(env, DefaultColumnNames.Label, DefaultColumnNames.Features, numTrees: 2);
                 var ftPredictor = treeTrainer.Train(new Runtime.TrainContext(trainRoles));
                 FastTreeBinaryPredictor treePredictor;
                 if (ftPredictor is CalibratedPredictorBase calibrator)
