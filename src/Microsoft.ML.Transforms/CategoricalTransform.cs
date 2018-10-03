@@ -157,9 +157,9 @@ namespace Microsoft.ML.Runtime.Data
 
         private readonly TransformerChain<ITransformer> _transformer;
 
-        public CategoricalTransform(TermEstimator term, IEstimator<ITransformer> keyToVector, IDataView input)
+        public CategoricalTransform(TermEstimator term, IEstimator<ITransformer> toVector, IDataView input)
         {
-            var chain = term.Append(keyToVector);
+            var chain = term.Append(toVector);
             _transformer = chain.Fit(input);
         }
 
@@ -171,16 +171,14 @@ namespace Microsoft.ML.Runtime.Data
 
         public bool IsRowToRowMapper => _transformer.IsRowToRowMapper;
 
-        public IRowToRowMapper GetRowToRowMapper(ISchema inputSchema)
-        {
-            Contracts.CheckValue(inputSchema, nameof(inputSchema));
-            return _transformer.GetRowToRowMapper(inputSchema);
-        }
+        public IRowToRowMapper GetRowToRowMapper(ISchema inputSchema) => _transformer.GetRowToRowMapper(inputSchema);
     }
-
+    /// <summary>
+    /// Estimator which takes set of columns and produce for each column indicator array.
+    /// </summary>
     public sealed class CategoricalEstimator : IEstimator<CategoricalTransform>
     {
-        public static class Defaults
+        internal static class Defaults
         {
             public const CategoricalTransform.OutputKind OutKind = CategoricalTransform.OutputKind.Ind;
         }
@@ -204,7 +202,7 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         private readonly IHost _host;
-        private readonly IEstimator<ITransformer> _keyToSomething;
+        private readonly IEstimator<ITransformer> _toSomething;
         private TermEstimator _term;
 
         /// A helper method to create <see cref="CategoricalEstimator"/> for public facing API.
@@ -223,13 +221,11 @@ namespace Microsoft.ML.Runtime.Data
             Contracts.CheckValue(env, nameof(env));
             _host = env.Register(nameof(TermEstimator));
             _term = new TermEstimator(_host, columns);
-
+            var binaryCols = new List<(string input, string output)>();
             var cols = new List<(string input, string output, bool bag)>();
-            bool binaryEncoding = false;
             for (int i = 0; i < columns.Length; i++)
             {
                 var column = columns[i];
-                bool bag;
                 CategoricalTransform.OutputKind kind = columns[i].OutputKind;
                 switch (kind)
                 {
@@ -238,31 +234,37 @@ namespace Microsoft.ML.Runtime.Data
                     case CategoricalTransform.OutputKind.Key:
                         continue;
                     case CategoricalTransform.OutputKind.Bin:
-                        binaryEncoding = true;
-                        bag = false;
+                        binaryCols.Add((column.Output, column.Output));
                         break;
                     case CategoricalTransform.OutputKind.Ind:
-                        bag = false;
+                        cols.Add((column.Output, column.Output, false));
                         break;
                     case CategoricalTransform.OutputKind.Bag:
-                        bag = true;
+                        cols.Add((column.Output, column.Output, true));
                         break;
                 }
-                cols.Add((column.Output, column.Output, bag));
-                if (binaryEncoding)
-                {
-                    _keyToSomething = new KeyToBinaryVectorEstimator(_host, cols.Select(x => new KeyToBinaryVectorTransform.ColumnInfo(x.input, x.output)).ToArray());
-                }
+            }
+            IEstimator<ITransformer> toBinVector = null;
+            IEstimator<ITransformer> toVector = null;
+            if (binaryCols.Count > 0)
+                toBinVector = new KeyToBinaryVectorEstimator(_host, binaryCols.Select(x => new KeyToBinaryVectorTransform.ColumnInfo(x.input, x.output)).ToArray());
+            if (cols.Count > 0)
+                toVector = new KeyToVectorEstimator(_host, cols.Select(x => new KeyToVectorTransform.ColumnInfo(x.input, x.output, x.bag)).ToArray());
+
+            if (toBinVector != null && toVector != null)
+                _toSomething = toVector.Append(toBinVector);
+            else
+            {
+                if (toBinVector != null)
+                    _toSomething = toBinVector;
                 else
-                {
-                    _keyToSomething = new KeyToVectorEstimator(_host, cols.Select(x => new KeyToVectorTransform.ColumnInfo(x.input, x.output, x.bag)).ToArray());
-                }
+                    _toSomething = toVector;
             }
         }
 
-        public SchemaShape GetOutputSchema(SchemaShape inputSchema) => _term.Append(_keyToSomething).GetOutputSchema(inputSchema);
+        public SchemaShape GetOutputSchema(SchemaShape inputSchema) => _term.Append(_toSomething).GetOutputSchema(inputSchema);
 
-        public CategoricalTransform Fit(IDataView input) => new CategoricalTransform(_term, _keyToSomething, input);
+        public CategoricalTransform Fit(IDataView input) => new CategoricalTransform(_term, _toSomething, input);
 
         internal void WrapTermWithDelegate(Action<TermTransform> onFit)
         {
@@ -455,13 +457,13 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         /// <summary>
-        /// Converts the categorical value into an indicator array by building a dictionary of categories based on the data and using the id in the dictionary as the index in the array
+        /// Converts the categorical value into an indicator array by building a dictionary of categories based on the data and using the id in the dictionary as the index in the array.
         /// </summary>
         /// <param name="input">Incoming data.</param>
-        /// <param name="outputKind">Specify output type of indicator array: array or binary encoded data.</param>
-        /// <param name="order">How Id for each value would be assigined: by occurrence or by value.</param>
+        /// <param name="outputKind">Specify the output type of indicator array: array or binary encoded data.</param>
+        /// <param name="order">How the Id for each value would be assigined: by occurrence or by value.</param>
         /// <param name="maxItems">Maximum number of ids to keep during data scanning.</param>
-        ///         /// <param name="onFit">Called upon fitting with the learnt enumeration on the dataset.</param>
+        /// <param name="onFit">Called upon fitting with the learnt enumeration on the dataset.</param>
         public static Vector<float> OneHotEncoding(this Scalar<string> input, OneHotScalarOutputKind outputKind = (OneHotScalarOutputKind)DefOut, KeyValueOrder order = DefSort,
             int maxItems = DefMax, ToKeyFitResult<ReadOnlyMemory<char>>.OnFit onFit = null)
         {
@@ -470,11 +472,11 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         /// <summary>
-        /// Converts the categorical value into an indicator array by building a dictionary of categories based on the data and using the id in the dictionary as the index in the array
+        /// Converts the categorical value into an indicator array by building a dictionary of categories based on the data and using the id in the dictionary as the index in the array.
         /// </summary>
         /// <param name="input">Incoming data.</param>
-        /// <param name="outputKind">Specify output type of indicator array: Multiarray, array or binary encoded data.</param>
-        /// <param name="order">How Id for each value would be assigined: by occurrence or by value.</param>
+        /// <param name="outputKind">Specify the output type of indicator array: Multiarray, array or binary encoded data.</param>
+        /// <param name="order">How the Id for each value would be assigined: by occurrence or by value.</param>
         /// <param name="maxItems">Maximum number of ids to keep during data scanning.</param>
         /// <param name="onFit">Called upon fitting with the learnt enumeration on the dataset.</param>
         public static Vector<float> OneHotEncoding(this Vector<string> input, OneHotVectorOutputKind outputKind = DefOut, KeyValueOrder order = DefSort, int maxItems = DefMax,
