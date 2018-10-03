@@ -395,7 +395,13 @@ namespace Microsoft.ML.Transforms
                     long rows = 0;
                     bool isDataLeft = false;
                     using (var ch = _host.Start("Training TensorFlow model..."))
+                    using (var pch = _host.StartProgressChannel("TensorFlow training progress..."))
                     {
+                        pch.SetHeader(new ProgressHeader("Epoch"), (e) => e.SetProgress(0, epoch));
+                        if (args.LossOperation != null)
+                            pch.SetHeader(new ProgressHeader("Average Loss"), (e) => e.SetProgress(1, loss / (rows / args.BatchSize)));
+                        if (args.MetricOperation != null)
+                            pch.SetHeader(new ProgressHeader("Average Metric"), (e) => e.SetProgress(2, metric / (rows / args.BatchSize)));
                         while (cursor.MoveNext())
                         {
                             rows++;
@@ -418,12 +424,6 @@ namespace Microsoft.ML.Transforms
                             isDataLeft = false;
                             ch.Warning("Not training on the last batch. The batch size is less than {0}.", args.BatchSize);
                         }
-                        long numBatches = rows / args.BatchSize;
-                        ch.Info("Iteration: {2}, Avg. Loss: {0}, Avg. Metric: {1}",
-                            fetchList.Count > 0 ? (loss/ numBatches).ToString("#.####") : "None",
-                            fetchList.Count > 1 ? (metric/ numBatches).ToString("#.####") : "None",
-                            epoch);
-
                         ch.Done();
                     }
                 }
