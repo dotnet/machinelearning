@@ -1014,7 +1014,7 @@ namespace Microsoft.ML.Transforms
 
             public TFTensor GetBufferedBatchTensor()
             {
-                var tensor = TFTensor.Create(_bufferedData.ToArray(), _bufferedData.Length, _tfShape);
+                var tensor = TFTensor.Create(_bufferedData, _bufferedData.Length, _tfShape);
                 _position = 0;
                 return tensor;
             }
@@ -1057,14 +1057,13 @@ namespace Microsoft.ML.Transforms
             public void BufferTrainingData()
             {
                 _srcgetter(ref _vBuffer);
-                _vBuffer.CopyToDense(ref _vBufferDense);
-                Array.Copy(_vBufferDense.Values, 0, _bufferedData, _position, _vBuffer.Length);
+                _vBuffer.CopyTo(_bufferedData, _position);
                 _position += _vBuffer.Length;
             }
 
             public TFTensor GetBufferedBatchTensor()
             {
-                var tensor = TFTensor.Create(_bufferedData.ToArray(), _bufferedData.Length, _tfShape);
+                var tensor = TFTensor.Create(_bufferedData, _bufferedData.Length, _tfShape);
                 _position = 0;
                 return tensor;
             }
