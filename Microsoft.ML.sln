@@ -125,7 +125,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.Benchmarks.Tes
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "samples", "samples", "{DA452A53-2E94-4433-B08C-041EDEC729E6}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.Samples.StaticPipe", "docs\samples\Microsoft.ML.Samples.StaticPipe\Microsoft.ML.Samples.StaticPipe.csproj", "{E96D2EF3-F5D2-4BEE-8D2B-32C32A6344D2}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.Samples", "docs\samples\Microsoft.ML.Samples.StaticPipe\Microsoft.ML.Samples.csproj", "{E96D2EF3-F5D2-4BEE-8D2B-32C32A6344D2}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

@@ -10,12 +10,7 @@ using System;
 namespace Microsoft.ML.Samples.StaticPipe
 {
     public static class Trainers
-    {
-        public static void Main()
-        {
-            SdcaRegression();
-        }
-
+    { 
         public static void SdcaRegression()
         {
             var (trainDataPath, testDataPath) = DatasetCreator.CreateRegressionDataset();

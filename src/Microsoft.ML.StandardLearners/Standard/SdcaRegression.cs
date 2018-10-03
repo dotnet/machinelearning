@@ -25,12 +25,6 @@ using Microsoft.ML.Runtime.Internal.Internallearn;
 namespace Microsoft.ML.Runtime.Learners
 {
     /// <include file='doc.xml' path='doc/members/member[@name="SDCA"]/*' />
-    /// <example>
-    /// <format type="text/markdown">
-    /// <![CDATA[
-    ///  [!code-csharp[SDCA Regression](../../../docs/samples/Microsoft.ML.Samples.StaticPipe/Trainers.cs?range=5-8,12-14,25-79) "The SDCA regression example."]
-    /// ]]></format>
-    /// </example>
     public sealed class SdcaRegressionTrainer : SdcaTrainerBase<RegressionPredictionTransformer<LinearRegressionPredictor>, LinearRegressionPredictor>
     {
         internal const string LoadNameValue = "SDCAR";

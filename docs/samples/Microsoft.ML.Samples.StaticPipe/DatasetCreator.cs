@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Text;
 
@@ -21,7 +20,7 @@ namespace Microsoft.ML.Samples.StaticPipe
 
             int a = 0;
             int b = 0;
-            float target = 0;
+            int target = 0;
 
             var csvTrain = new StringBuilder().AppendLine(header);
             var csvTest = new StringBuilder().AppendLine(header);
@@ -32,7 +31,7 @@ namespace Microsoft.ML.Samples.StaticPipe
                 a = rnd.Next(i - 5, i + 5);
                 b = rnd.Next(0, 10);
 
-                target = 2 * a + b + 12;
+                target = 2*a + b;
 
                 if (i % 15 == 0)
                     csvTest.AppendLine($"{a}, {b}, {target}");
