@@ -1007,13 +1007,11 @@ namespace Microsoft.ML.Runtime.EntryPoints
         public EntryPointGraph(IHostEnvironment env, JArray nodes)
         {
             Contracts.CheckValue(env, nameof(env));
-            var catalog = env.ComponentCatalog;
             _host = env.Register(RegistrationName);
-            _host.CheckValue(catalog, nameof(catalog));
             _host.CheckValue(nodes, nameof(nodes));
 
             _context = new RunContext(_host);
-            _nodes = EntryPointNode.ValidateNodes(_host, _context, nodes, catalog);
+            _nodes = EntryPointNode.ValidateNodes(_host, _context, nodes, env.ComponentCatalog);
         }
 
         public bool HasRunnableNodes => _nodes.FirstOrDefault(x => x.CanStart()) != null;
