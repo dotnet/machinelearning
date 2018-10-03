@@ -107,6 +107,4 @@ namespace Microsoft.ML.Benchmarks
             }
         }
     }
-
-    
 }
