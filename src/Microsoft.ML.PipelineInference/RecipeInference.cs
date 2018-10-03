@@ -547,7 +547,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
                     LearnerName = tt.Name
                 };
 
-                if (sl.PipelineNode != null && availableLearnersList.FirstOrDefault(l=> l.Name.Equals(sl.PipelineNode.GetEpName())) != null)
+                if (sl.PipelineNode != null && availableLearnersList.FirstOrDefault(l => l.Name.Equals(sl.PipelineNode.GetEpName())) != null)
                     learners.Add(sl);
             }
 

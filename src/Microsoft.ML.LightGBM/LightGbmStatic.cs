@@ -6,17 +6,15 @@ using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Internal.Internallearn;
 using Microsoft.ML.Runtime.LightGBM;
-using Microsoft.ML.Runtime.Training;
-using Microsoft.ML.StaticPipe;
 using Microsoft.ML.StaticPipe.Runtime;
 using System;
 
-namespace Microsoft.ML.Trainers
+namespace Microsoft.ML.StaticPipe
 {
     /// <summary>
-    /// LightGbm <see cref="TrainContextBase"/> extension methods.
+    /// Regression trainer estimators.
     /// </summary>
-    public static class LightGbmStatics
+    public static partial class RegressionTrainers
     {
         /// <summary>
         /// LightGbm <see cref="RegressionContext"/> extension method.
@@ -31,8 +29,8 @@ namespace Microsoft.ML.Trainers
         /// <param name="learningRate">The learning rate.</param>
         /// <param name="advancedSettings">Algorithm advanced settings.</param>
         /// <param name="onFit">A delegate that is called every time the
-        /// <see cref="Estimator{TTupleInShape, TTupleOutShape, TTransformer}.Fit(DataView{TTupleInShape})"/> method is called on the
-        /// <see cref="Estimator{TTupleInShape, TTupleOutShape, TTransformer}"/> instance created out of this. This delegate will receive
+        /// <see cref="Estimator{TInShape, TOutShape, TTransformer}.Fit(DataView{TInShape})"/> method is called on the
+        /// <see cref="Estimator{TInShape, TOutShape, TTransformer}"/> instance created out of this. This delegate will receive
         /// the linear model that was trained. Note that this action cannot change the result in any way;
         /// it is only a way for the caller to be informed about what was learnt.</param>
         /// <returns>The Score output column indicating the predicted value.</returns>
@@ -45,7 +43,7 @@ namespace Microsoft.ML.Trainers
             Action<LightGbmArguments> advancedSettings = null,
             Action<LightGbmRegressionPredictor> onFit = null)
         {
-            CheckUserValues(label, features, weights, numLeaves, minDataPerLeaf, learningRate, numBoostRound, advancedSettings, onFit);
+            LightGbmStaticsUtils.CheckUserValues(label, features, weights, numLeaves, minDataPerLeaf, learningRate, numBoostRound, advancedSettings, onFit);
 
             var rec = new TrainerEstimatorReconciler.Regression(
                (env, labelName, featuresName, weightsName) =>
@@ -59,6 +57,12 @@ namespace Microsoft.ML.Trainers
 
             return rec.Score;
         }
+    }
+
+    /// <summary>
+    /// Binary Classification trainer estimators.
+    /// </summary>
+    public static partial class ClassificationTrainers {
 
         /// <summary>
         /// LightGbm <see cref="BinaryClassificationContext"/> extension method.
@@ -73,8 +77,8 @@ namespace Microsoft.ML.Trainers
         /// <param name="learningRate">The learning rate.</param>
         /// <param name="advancedSettings">Algorithm advanced settings.</param>
         /// <param name="onFit">A delegate that is called every time the
-        /// <see cref="Estimator{TTupleInShape, TTupleOutShape, TTransformer}.Fit(DataView{TTupleInShape})"/> method is called on the
-        /// <see cref="Estimator{TTupleInShape, TTupleOutShape, TTransformer}"/> instance created out of this. This delegate will receive
+        /// <see cref="Estimator{TInShape, TOutShape, TTransformer}.Fit(DataView{TInShape})"/> method is called on the
+        /// <see cref="Estimator{TInShape, TOutShape, TTransformer}"/> instance created out of this. This delegate will receive
         /// the linear model that was trained. Note that this action cannot change the result in any way;
         /// it is only a way for the caller to be informed about what was learnt.</param>
         /// <returns>The set of output columns including in order the predicted binary classification score (which will range
@@ -88,7 +92,7 @@ namespace Microsoft.ML.Trainers
             Action<LightGbmArguments> advancedSettings = null,
             Action<IPredictorWithFeatureWeights<float>> onFit = null)
         {
-            CheckUserValues(label, features, weights, numLeaves, minDataPerLeaf, learningRate, numBoostRound, advancedSettings, onFit);
+            LightGbmStaticsUtils.CheckUserValues(label, features, weights, numLeaves, minDataPerLeaf, learningRate, numBoostRound, advancedSettings, onFit);
 
             var rec = new TrainerEstimatorReconciler.BinaryClassifier(
                (env, labelName, featuresName, weightsName) =>
@@ -104,8 +108,11 @@ namespace Microsoft.ML.Trainers
 
             return rec.Output;
         }
+    }
 
-        private static void CheckUserValues(PipelineColumn label, Vector<float> features, Scalar<float> weights,
+    internal static class LightGbmStaticsUtils {
+
+        internal static void CheckUserValues(PipelineColumn label, Vector<float> features, Scalar<float> weights,
             int? numLeaves,
             int? minDataPerLeaf,
             double? learningRate,
