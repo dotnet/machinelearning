@@ -749,5 +749,43 @@ namespace Microsoft.ML.StaticPipelineTesting
             Assert.InRange(metrics.Ndcg[1], 36.5, 37);
             Assert.InRange(metrics.Ndcg[2], 36.5, 37);
         }
+
+        [Fact]
+        public void HogwildSGDBinaryClassification()
+        {
+            var env = new ConsoleEnvironment(seed: 0);
+            var dataPath = GetDataPath(TestDatasets.breastCancer.trainFilename);
+            var dataSource = new MultiFileSource(dataPath);
+            var ctx = new BinaryClassificationContext(env);
+
+            var reader = TextLoader.CreateReader(env,
+                c => (label: c.LoadBool(0), features: c.LoadFloat(1, 9)));
+
+            IPredictorWithFeatureWeights<float> pred = null;
+
+            var est = reader.MakeNewEstimator()
+                .Append(r => (r.label, preds: ctx.Trainers.StochasticGradientDescentClassificationTrainer(r.label, r.features,
+                    l2Weight: 0,
+                    onFit: (p) => { pred = p; })));
+
+            var pipe = reader.Append(est);
+
+            Assert.Null(pred);
+            var model = pipe.Fit(dataSource);
+            Assert.NotNull(pred);
+
+            // 9 input features, so we ought to have 9 weights.
+            VBuffer<float> weights = new VBuffer<float>();
+            pred.GetFeatureWeights(ref weights);
+            Assert.Equal(9, weights.Length);
+
+            var data = model.Read(dataSource);
+
+            var metrics = ctx.Evaluate(data, r => r.label, r => r.preds);
+            // Run a sanity check against a few of the metrics.
+            Assert.InRange(metrics.Accuracy, 0, 1);
+            Assert.InRange(metrics.Auc, 0, 1);
+            Assert.InRange(metrics.Auprc, 0, 1);
+        }
     }
 }
