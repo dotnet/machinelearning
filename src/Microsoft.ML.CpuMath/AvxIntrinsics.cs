@@ -13,11 +13,36 @@ using System;
 using System.Runtime.CompilerServices;
 using System.Runtime.Intrinsics;
 using System.Runtime.Intrinsics.X86;
+using nuint = System.UInt64;
 
 namespace Microsoft.ML.Runtime.Internal.CpuMath
 {
     internal static class AvxIntrinsics
     {
+        public static readonly uint[] LeadingAlignmentMask = new uint[64]
+        {
+            0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000,
+            0xFFFFFFFF, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000,
+            0xFFFFFFFF, 0xFFFFFFFF, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000,
+            0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000,
+            0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0x00000000, 0x00000000, 0x00000000, 0x00000000,
+            0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0x00000000, 0x00000000, 0x00000000,
+            0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0x00000000, 0x00000000,
+            0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0x00000000,
+        };
+
+        public static readonly uint[] TrailingAlignmentMask = new uint[64]
+        {
+            0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000,
+            0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0xFFFFFFFF,
+            0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0xFFFFFFFF, 0xFFFFFFFF,
+            0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF,
+            0x00000000, 0x00000000, 0x00000000, 0x00000000, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF,
+            0x00000000, 0x00000000, 0x00000000, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF,
+            0x00000000, 0x00000000, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF,
+            0x00000000, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF,
+        };
+
         private static readonly Vector256<float> _absMask256 = Avx.StaticCast<int, float>(Avx.SetAllVector256(0x7FFFFFFF));
 
         private const int Vector256Alignment = 32;
@@ -451,45 +476,118 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             }
         }
 
-        public static unsafe void ScaleU(float scale, Span<float> dst)
+        public static unsafe void Scale(float scale, Span<float> dst)
         {
-            fixed (float* pdst = dst)
+            fixed (uint* pLeadingAlignmentMask = &LeadingAlignmentMask[0])
+            fixed (uint* pTrailingAlignmentMask = &TrailingAlignmentMask[0])
+            fixed (float* pd = dst)
             {
-                float* pDstCurrent = pdst;
-                float* pEnd = pdst + dst.Length;
+                float* pdLim = pd + dst.Length;
 
+                int length = dst.Length;
                 Vector256<float> scaleVector256 = Avx.SetAllVector256(scale);
 
-                while (pDstCurrent + 8 <= pEnd)
+                if (length < 8)
                 {
-                    Vector256<float> dstVector = Avx.LoadVector256(pDstCurrent);
-
-                    dstVector = Avx.Multiply(scaleVector256, dstVector);
-                    Avx.Store(pDstCurrent, dstVector);
-
-                    pDstCurrent += 8;
+                    for(int i = 0; i < length; i++)
+                    {
+                        dst[i] *= scale;
+                    }
+                    return;
                 }
 
-                Vector128<float> scaleVector128 = Sse.SetAllVector128(scale);
+                nuint address = (nuint)(pd);
+                int misalignment = (int)(address % 32);
+                int remainder = 0;
+                float* pDstCurrent = pd;
 
-                if (pDstCurrent + 4 <= pEnd)
+                if ((misalignment & 3) != 0)
                 {
-                    Vector128<float> dstVector = Sse.LoadVector128(pDstCurrent);
+                    // Handles cases where the data is not 32-bit aligned and we can't ever use aligned operations
+                    remainder = length % 8;
 
-                    dstVector = Sse.Multiply(scaleVector128, dstVector);
-                    Sse.Store(pDstCurrent, dstVector);
-
-                    pDstCurrent += 4;
+                    for (float* pEnd = pd + (length - remainder); pDstCurrent < pEnd; pDstCurrent += 8)
+                    {
+                        Vector256<float> temp = Avx.LoadVector256(pDstCurrent);
+                        temp = Avx.Multiply(scaleVector256, temp);
+                        Avx.Store(pDstCurrent, temp);
+                    }
                 }
-
-                while (pDstCurrent < pEnd)
+                else
                 {
-                    Vector128<float> dstVector = Sse.LoadScalarVector128(pDstCurrent);
+                    if (misalignment != 0)
+                    {
+                        // Handle cases where the data is not 256-bit aligned by doing an unaligned read and then
+                        // masking any elements that will be included in the first aligned read
 
-                    dstVector = Sse.MultiplyScalar(scaleVector128, dstVector);
-                    Sse.StoreScalar(pDstCurrent, dstVector);
+                        misalignment >>= 2;
+                        misalignment = 8 - misalignment;
 
-                    pDstCurrent++;
+                        Vector256<float> result = Avx.LoadVector256(pDstCurrent);
+
+                        Vector256<float> leadingMask = Avx.LoadVector256(((float*)(pLeadingAlignmentMask)) + (misalignment * 8));
+                        Vector256<float> trailingMask = Avx.LoadVector256(((float*)(pTrailingAlignmentMask)) + (( 8 - misalignment) * 8));
+
+                        Vector256<float> temp = Avx.And(result, leadingMask);
+                        result = Avx.And(result, trailingMask);
+
+                        temp = Avx.Multiply(scaleVector256, temp);
+                        result = Avx.Or(temp, result);
+
+                        Avx.Store(pDstCurrent, result);
+
+                        pDstCurrent += misalignment;
+                        length -= misalignment;
+                    }
+
+                    if (length > 7)
+                    {
+                        // Handle all the 256-bit blocks that we can now that we have offset to an aligned address
+
+                        remainder = length % 8;
+
+                        for (float* pEnd = pDstCurrent + (length - remainder); pDstCurrent < pEnd; pDstCurrent += 8)
+                        {
+                            // The JIT will only fold away unaligned loads due to the semantics behind
+                            // the VEX-encoding of the memory operand for `ins xmm, xmm, [mem]`. Since
+                            // modern hardware has unaligned loads that are as fast as aligned loads,
+                            // when it doesn't cross a cache-line/page boundary, we will just assert
+                            // that the alignment is correct and allow for the more-efficient codegen.
+
+                            Contracts.Assert(((nuint)(pDstCurrent) % 32) == 0);
+                            Vector256<float> temp = Avx.LoadVector256(pDstCurrent);
+                            temp = Avx.Multiply(scaleVector256, temp);
+                            Avx.Store(pDstCurrent, temp);
+                        }
+                    }
+                    else
+                    {
+                        // Handle the "worst-case" scenario, which is when we have 8-16 elements and the input is not
+                        // 256-bit aligned. This means we can't do any aligned loads and will just end up doing two
+                        // unaligned loads where we mask the input each time.
+                        remainder = length;
+                    }
+
+                    if (remainder != 0)
+                    {
+                        // Handle any trailing elements that don't fit into a 128-bit block by moving back so that the next
+                        // unaligned load will read to the end of the array and then mask out any elements already processed
+
+                        pDstCurrent -= (8 - remainder);
+
+                        Vector256<float> result = Avx.LoadVector256(pDstCurrent);
+
+                        Vector256<float> trailingMask = Avx.LoadVector256(((float*)(pTrailingAlignmentMask)) + (remainder * 8));
+                        Vector256<float> leadingMask = Avx.LoadVector256(((float*)(pLeadingAlignmentMask)) + (( 8 - remainder) * 8));
+
+                        Vector256<float> temp = Avx.And(result, trailingMask);
+                        result = Avx.And(result, leadingMask);
+
+                        temp = Avx.Multiply(scaleVector256, temp);
+                        temp = Avx.Or(temp, result);
+
+                        Avx.Store(pDstCurrent, temp);
+                    }
                 }
             }
         }

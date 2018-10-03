@@ -17,6 +17,7 @@ using System;
 using System.Runtime.CompilerServices;
 using System.Runtime.Intrinsics;
 using System.Runtime.Intrinsics.X86;
+using nuint = System.UInt64;
 
 namespace Microsoft.ML.Runtime.Internal.CpuMath
 {
@@ -28,6 +29,22 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
         // The count of bytes in Vector128<T>, corresponding to _cbAlign in AlignedArray
         private const int Vector128Alignment = 16;
+
+        public static readonly uint[] LeadingAlignmentMask = new uint[16]
+        {
+            0x00000000, 0x00000000, 0x00000000, 0x00000000,
+            0xFFFFFFFF, 0x00000000, 0x00000000, 0x00000000,
+            0xFFFFFFFF, 0xFFFFFFFF, 0x00000000, 0x00000000,
+            0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0x00000000,
+        };
+
+        public static readonly uint[] TrailingAlignmentMask = new uint[16]
+        {
+            0x00000000, 0x00000000, 0x00000000, 0x00000000,
+            0x00000000, 0x00000000, 0x00000000, 0xFFFFFFFF,
+            0x00000000, 0x00000000, 0xFFFFFFFF, 0xFFFFFFFF,
+            0x00000000, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF,
+        };
 
         [MethodImplAttribute(MethodImplOptions.AggressiveInlining)]
         private static bool HasCompatibleAlignment(AlignedArray alignedArray)
@@ -437,33 +454,131 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             }
         }
 
-        public static unsafe void ScaleU(float scale, Span<float> dst)
+        public static unsafe void Scale(float scale, Span<float> dst)
         {
-            fixed (float* pdst = dst)
+            fixed (uint* pLeadingAlignmentMask = &LeadingAlignmentMask[0])
+            fixed (uint* pTrailingAlignmentMask = &TrailingAlignmentMask[0])
+            fixed (float* pd = dst)
             {
-                float* pDstCurrent = pdst;
-                float* pEnd = pdst + dst.Length;
+                float* pdLim = pd + dst.Length;
 
-                Vector128<float> scaleVector = Sse.SetAllVector128(scale);
+                int length = dst.Length;
+                Vector128<float> scaleVector128 = Sse.SetAllVector128(scale);
 
-                while (pDstCurrent + 4 <= pEnd)
+                if (length < 4)
                 {
-                    Vector128<float> dstVector = Sse.LoadVector128(pDstCurrent);
-
-                    dstVector = Sse.Multiply(scaleVector, dstVector);
-                    Sse.Store(pDstCurrent, dstVector);
-
-                    pDstCurrent += 4;
+                    // Handle cases where we have less than 128-bits total and can't ever use SIMD acceleration.
+                    for (int i = 0; i < length; i++)
+                    {
+                        dst[i] *= scale;
+                    }
+                    return;
                 }
 
-                while (pDstCurrent < pEnd)
+                nuint address = (nuint)(pd);
+                int misalignment = (int)(address % 16);
+                int remainder = 0;
+                float* pDstCurrent = pd;
+
+                if ((misalignment & 3) != 0)
                 {
-                    Vector128<float> dstVector = Sse.LoadScalarVector128(pDstCurrent);
+                    // Handles cases where the data is not 32-bit aligned and we can't ever use aligned operations
+                    remainder = length % 4;
 
-                    dstVector = Sse.MultiplyScalar(scaleVector, dstVector);
-                    Sse.StoreScalar(pDstCurrent, dstVector);
+                    for (float* pEnd = pd + (length - remainder); pDstCurrent < pEnd; pDstCurrent += 4)
+                    {
+                        Vector128<float> temp = Sse.LoadVector128(pDstCurrent);
+                        temp = Sse.Multiply(scaleVector128, temp);
+                        Sse.Store(pDstCurrent, temp);
+                    }
+                }
+                else
+                {
+                    if (misalignment != 0)
+                    {
+                        // Handle cases where the data is not 128-bit aligned by doing an unaligned read and then
+                        // masking any elements that will be included in the first aligned read
 
-                    pDstCurrent++;
+                        misalignment >>= 2;
+                        misalignment = 4 - misalignment;
+
+                        Vector128<float> result = Sse.LoadVector128(pDstCurrent);
+
+                        Vector128<float> leadingMask = Sse.LoadVector128(((float*)(pLeadingAlignmentMask)) + (misalignment * 4));
+                        Vector128<float> trailingMask = Sse.LoadVector128(((float*)(pTrailingAlignmentMask)) + ((4 - misalignment) * 4));
+
+                        Vector128<float> temp = Sse.And(result, leadingMask);
+                        result = Sse.And(result, trailingMask);
+
+                        temp = Sse.Multiply(scaleVector128, temp);
+                        result = Sse.Or(temp, result);
+
+                        Sse.Store(pDstCurrent, result);
+
+                        pDstCurrent += misalignment;
+                        length -= misalignment;
+                    }
+
+                    if (length > 4)
+                    {
+                        // Handle all the 128-bit blocks that we can now that we have offset to an aligned address
+
+                        remainder = length % 4;
+
+                        for (float* pEnd = pDstCurrent + (length - remainder); pDstCurrent < pEnd; pDstCurrent += 4)
+                        {
+                            if (Avx.IsSupported)
+                            {
+                                // The JIT will only fold away unaligned loads due to the semantics behind
+                                // the VEX-encoding of the memory operand for `ins xmm, xmm, [mem]`. Since
+                                // modern hardware has unaligned loads that are as fast as aligned loads,
+                                // when it doesn't cross a cache-line/page boundary, we will just assert
+                                // that the alignment is correct and allow for the more-efficient codegen.
+
+                                Contracts.Assert(((nuint)(pDstCurrent) % 16) == 0);
+                                Vector128<float> temp = Sse.LoadVector128(pDstCurrent);
+                                temp = Sse.Multiply(scaleVector128, temp);
+                                Sse.Store(pDstCurrent, temp);
+                            }
+                            else
+                            {
+                                // If we aren't using the VEX-encoding, then the reverse is true and the JIT
+                                // will only fold away aligned loads (due to semantics of the legacy encoding).
+                                // We don't need an assert, since the instruction will throw for unaligned inputs.
+                                Vector128<float> temp = Sse.LoadAlignedVector128(pDstCurrent);
+                                temp = Sse.Multiply(scaleVector128, temp);
+                                Sse.Store(pDstCurrent, temp);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        // Handle the "worst-case" scenario, which is when we have 4-8 elements and the input is not
+                        // 128-bit aligned. This means we can't do any aligned loads and will just end up doing two
+                        // unaligned loads where we mask the input each time.
+                        remainder = length;
+                    }
+
+                    if (remainder != 0)
+                    {
+                        // Handle any trailing elements that don't fit into a 128-bit block by moving back so that the next
+                        // unaligned load will read to the end of the array and then mask out any elements already processed
+
+                        pDstCurrent -= (4 - remainder);
+
+                        Vector128<float> result = Sse.LoadVector128(pDstCurrent);
+
+                        Vector128<float> trailingMask = Sse.LoadVector128(((float*)(pTrailingAlignmentMask)) + (remainder * 4));
+                        Vector128<float> leadingMask = Sse.LoadVector128(((float*)(pLeadingAlignmentMask)) + ((4 - remainder) * 4));
+
+                        Vector128<float> temp = Sse.And(result, trailingMask);
+                        result = Sse.And(result, leadingMask);
+
+                        temp = Sse.Multiply(scaleVector128, temp);
+                        temp = Sse.Or(temp, result);
+
+                        Sse.Store(pDstCurrent, temp);
+                    }
                 }
             }
         }

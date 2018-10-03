@@ -85,6 +85,22 @@ DWORD xmmYmmStateSupport()
 
 #endif
 
+const unsigned int LeadingAlignmentMask[16] =
+{
+    0x00000000, 0x00000000, 0x00000000, 0x00000000,
+    0xFFFFFFFF, 0x00000000, 0x00000000, 0x00000000,
+    0xFFFFFFFF, 0xFFFFFFFF, 0x00000000, 0x00000000,
+    0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0x00000000,
+};
+
+const unsigned int TrailingAlignmentMask[16] =
+{
+    0x00000000, 0x00000000, 0x00000000, 0x00000000,
+    0x00000000, 0x00000000, 0x00000000, 0xFFFFFFFF,
+    0x00000000, 0x00000000, 0xFFFFFFFF, 0xFFFFFFFF,
+    0x00000000, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF,
+};
+
 // Test whether Avx is available.
 EXPORT_API(bool) ChkAvx()
 {
@@ -1429,7 +1445,7 @@ EXPORT_API(void) AddScalarU(float a, _Inout_ float * pd, int c)
     }
 }
 
-EXPORT_API(void) ScaleU(float a, _Inout_ float * pd, int c)
+EXPORT_API(void) Scale(float a, _Inout_ float * pd, int c)
 {
     float * pdLim = pd + c;
 
@@ -1446,6 +1462,106 @@ EXPORT_API(void) ScaleU(float a, _Inout_ float * pd, int c)
         __m128 x2 = _mm_load_ss(pd);
         x2 = _mm_mul_ss(x1, x2);
         _mm_store_ss(pd, x2);
+    }
+}
+
+EXPORT_API(void) ScaleU(float a, _Inout_ float * pd, int c)
+{
+    float * pdLim = pd + c;
+    __m128 x1 = _mm_set1_ps(a);
+    
+    if (c < 4)
+    {
+        for (; pd < pdLim; pd++)
+        {
+            __m128 x2 = _mm_load_ss(pd);
+            x2 = _mm_mul_ss(x1, x2);
+            _mm_store_ss(pd, x2);
+        }
+        return;           
+    }
+
+    uintptr_t address = (uintptr_t)(pd);
+    uintptr_t misalignment = address % 16;
+    int remainder = 0;
+
+    if ((misalignment & 3) != 0)
+    {
+        // Handles cases where the data is not 32-bit aligned and we can't ever use aligned operations
+        remainder = c % 4;
+        
+        for (const float* pEnd = pd + (c - remainder); pd < pEnd; pd += 4)
+        {
+            __m128 x2 = _mm_loadu_ps(pd);
+            x2 = _mm_mul_ps(x1, x2);
+            _mm_storeu_ps(pd, x2);
+        }
+    }
+    else
+    {
+        if (misalignment != 0)
+        {
+            // Handle cases where the data is not 128-bit aligned by doing an unaligned read and then
+            // masking any elements that will be included in the first aligned read
+            misalignment >>= 2;
+            misalignment = 4 - misalignment;
+            
+            __m128 result = _mm_loadu_ps(pd);            
+            
+            __m128 leadingMask = _mm_loadu_ps(((float*)(&LeadingAlignmentMask)) + (misalignment * 4));
+            __m128 trailingMask = _mm_loadu_ps(((float*)(&TrailingAlignmentMask)) + ((4 - misalignment) * 4));
+            
+            __m128 temp = _mm_and_ps(result, leadingMask);
+            result = _mm_and_ps(result, trailingMask);
+            
+            temp = _mm_mul_ps(temp, x1);
+            result = _mm_or_ps(temp, result);            
+            
+            _mm_storeu_ps(pd, result);
+            
+            pd += misalignment;
+            c -= misalignment;            
+        }
+
+        if (c > 3)
+        {
+            // Handle all the 128-bit blocks that we can now that we have offset to an aligned address
+            remainder = c % 4;
+            for (const float* pEnd = pd + (c - remainder); pd < pEnd; pd += 4)
+            {
+                __m128 x2 = _mm_load_ps(pd);
+                x2 = _mm_mul_ps(x1, x2);
+                _mm_storeu_ps(pd, x2);
+            }
+        }
+        else
+        {
+            // Handle the "worst-case" scenario, which is when we have 4-8 elements and the input is not
+            // 128-bit aligned. This means we can't do any aligned loads and will just end up doing two
+            // unaligned loads where we mask the input each time.
+            remainder = c;
+        }
+    }
+
+    if (remainder != 0)
+    {
+        // Handle any trailing elements that don't fit into a 128-bit block by moving back so that the next
+        // unaligned load will read to the end of the array and then mask out any elements already processed
+        
+        pd -= (4 - remainder);
+        __m128 result = _mm_loadu_ps(pd);            
+            
+        __m128 trailingMask = _mm_loadu_ps(((float*)(&LeadingAlignmentMask)) + (remainder * 4));
+        __m128 leadingMask = _mm_loadu_ps(((float*)(&TrailingAlignmentMask)) + ((4 - remainder) * 4));
+            
+        __m128 temp = _mm_and_ps(result, trailingMask);
+        result = _mm_and_ps(result, leadingMask);
+            
+        temp = _mm_mul_ps(temp, x1);
+        result = _mm_or_ps(temp, result);            
+            
+        _mm_storeu_ps(pd, result);
+        return;   
     }
 }
 
