@@ -26,9 +26,7 @@ namespace Microsoft.ML.Runtime.EntryPoints.JsonUtils
         public GraphRunner(IHostEnvironment env, JArray nodes)
         {
             Contracts.CheckValue(env, nameof(env));
-            var catalog = env.ComponentCatalog;
             _host = env.Register(RegistrationName);
-            _host.CheckValue(catalog, nameof(catalog));
             _host.CheckValue(nodes, nameof(nodes));
 
             _graph = new EntryPointGraph(_host, nodes);
