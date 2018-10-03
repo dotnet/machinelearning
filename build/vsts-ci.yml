@@ -1,7 +1,11 @@
+################################################################################
+# ML.NET's official, signed build 
+################################################################################
+
 resources:
   containers:
   - container: LinuxContainer
-    image: microsoft/dotnet-buildtools-prereqs:centos-7-d485f41-20173404063424
+    image: microsoft/dotnet-buildtools-prereqs:centos-7-b46d863-20180719033416
 
 phases:
 ################################################################################

@@ -1,7 +1,11 @@
+################################################################################
+# ML.NET's PR validation build
+################################################################################
+
 resources:
   containers:
   - container: LinuxContainer
-    image: microsoft/dotnet-buildtools-prereqs:centos-7-d485f41-20173404063424
+    image: microsoft/dotnet-buildtools-prereqs:centos-7-b46d863-20180719033416
 
 phases:
 - template: /build/ci/phase-template.yml
@@ -9,7 +13,7 @@ phases:
     name: Linux
     buildScript: ./build.sh
     queue:
-      name: DotNetCore-Linux
+      name: Hosted Ubuntu 1604
       container: LinuxContainer
 
 - template: /build/ci/phase-template.yml
