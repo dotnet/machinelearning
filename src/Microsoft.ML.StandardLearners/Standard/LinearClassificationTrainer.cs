@@ -1607,6 +1607,9 @@ namespace Microsoft.ML.Runtime.Learners
             Action<Arguments> advancedSettings = null)
             : base(env, featureColumn, TrainerUtils.MakeBoolScalarLabel(labelColumn), weightColumn)
         {
+            Host.CheckNonEmpty(featureColumn, nameof(featureColumn));
+            Host.CheckNonEmpty(labelColumn, nameof(labelColumn));
+
             _args = new Arguments();
             advancedSettings?.Invoke(_args);
 
