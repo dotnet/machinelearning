@@ -1,0 +1,7 @@
+---- BoundLoader ----
+1 columns:
+  Input: R4
+---- SlidingWindowTransform ----
+2 columns:
+  Input: R4
+  Output: Vec<R4>
