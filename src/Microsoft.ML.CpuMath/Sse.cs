@@ -1493,18 +1493,15 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             }
         }
 
-        public static void SdcaL1UpdateSparse(float primalUpdate, int length, float[] src, int[] indices, int count, float threshold, float[] v, float[] w)
+        public static void SdcaL1UpdateSparse(float primalUpdate, float[] src, int[] indices, int count, float threshold, float[] v, float[] w)
         {
             Contracts.AssertNonEmpty(src);
             Contracts.Assert(count <= src.Length);
             Contracts.AssertNonEmpty(indices);
             Contracts.Assert(count <= indices.Length);
             Contracts.AssertNonEmpty(w);
-            Contracts.Assert(length <= w.Length);
             Contracts.AssertNonEmpty(v);
-            Contracts.Assert(length <= v.Length);
             Contracts.Assert(0 < count);
-            Contracts.Assert(count < length);
 
             unsafe
             {

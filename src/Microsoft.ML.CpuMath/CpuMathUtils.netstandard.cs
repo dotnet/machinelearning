@@ -86,6 +86,6 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             => SseUtils.SdcaL1UpdateDense(primalUpdate, length, source, threshold, v, w);
 
         public static void SdcaL1UpdateSparse(float primalUpdate, int length, float[] source, int[] indices, int count, float threshold, float[] v, float[] w)
-            => SseUtils.SdcaL1UpdateSparse(primalUpdate, length, source, indices, count, threshold, v, w);
+            => SseUtils.SdcaL1UpdateSparse(primalUpdate, source, indices, count, threshold, v, w);
     }
 }
