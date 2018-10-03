@@ -247,7 +247,6 @@ namespace Microsoft.ML.Runtime.Data
                 for (int i = 0; i < columns.Length; i++)
                 {
                     var column = columns[i];
-                    bool bag;
                     CategoricalTransform.OutputKind kind = columns[i].OutputKind;
                     switch (kind)
                     {
@@ -256,23 +255,17 @@ namespace Microsoft.ML.Runtime.Data
                         case CategoricalTransform.OutputKind.Key:
                             continue;
                         case CategoricalTransform.OutputKind.Bin:
-                            bag = false;
+                            if ((column.HashInfo.InvertHash) != 0)
+                                ch.Warning("Invert hashing is being used with binary encoding.");
+                            binaryCols.Add((column.HashInfo.Output, column.HashInfo.Output));
                             break;
                         case CategoricalTransform.OutputKind.Ind:
-                            bag = false;
+                            cols.Add((column.HashInfo.Output, column.HashInfo.Output, false));
                             break;
                         case CategoricalTransform.OutputKind.Bag:
-                            bag = true;
+                            cols.Add((column.HashInfo.Output, column.HashInfo.Output, true));
                             break;
                     }
-                    if (kind == CategoricalTransform.OutputKind.Bin)
-                    {
-                        if ((column.HashInfo.InvertHash) != 0)
-                            ch.Warning("Invert hashing is being used with binary encoding.");
-                        binaryCols.Add((column.HashInfo.Output, column.HashInfo.Output));
-                    }
-                    else
-                        cols.Add((column.HashInfo.Output, column.HashInfo.Output, bag));
                 }
                 IEstimator<ITransformer> toBinVector = null;
                 IEstimator<ITransformer> toVector = null;

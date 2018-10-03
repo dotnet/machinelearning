@@ -235,19 +235,15 @@ namespace Microsoft.ML.Runtime.Data
                     case CategoricalTransform.OutputKind.Key:
                         continue;
                     case CategoricalTransform.OutputKind.Bin:
-                        bag = false;
+                        binaryCols.Add((column.Output, column.Output));
                         break;
                     case CategoricalTransform.OutputKind.Ind:
-                        bag = false;
+                        cols.Add((column.Output, column.Output, false));
                         break;
                     case CategoricalTransform.OutputKind.Bag:
-                        bag = true;
+                        cols.Add((column.Output, column.Output, true));
                         break;
                 }
-                if (kind == CategoricalTransform.OutputKind.Bin)
-                    binaryCols.Add((column.Output, column.Output));
-                else
-                    cols.Add((column.Output, column.Output, bag));
             }
             IEstimator<ITransformer> toBinVector = null;
             IEstimator<ITransformer> toVector = null;
