@@ -9,7 +9,7 @@ using Microsoft.ML.StaticPipe.Runtime;
 
 namespace Microsoft.ML.StaticPipe
 {
-    public sealed class DataReader<TIn, TTupleShape> : SchemaBearing<TTupleShape>
+    public sealed class DataReader<TIn, TShape> : SchemaBearing<TShape>
     {
         public IDataReader<TIn> AsDynamic { get; }
 
@@ -22,7 +22,7 @@ namespace Microsoft.ML.StaticPipe
             Shape.Check(Env, AsDynamic.GetOutputSchema());
         }
 
-        public DataReaderEstimator<TIn, TNewOut, IDataReader<TIn>> Append<TNewOut, TTrans>(Estimator<TTupleShape, TNewOut, TTrans> estimator)
+        public DataReaderEstimator<TIn, TNewOut, IDataReader<TIn>> Append<TNewOut, TTrans>(Estimator<TShape, TNewOut, TTrans> estimator)
             where TTrans : class, ITransformer
         {
             Contracts.Assert(nameof(Append) == nameof(CompositeReaderEstimator<TIn, ITransformer>.Append));
@@ -31,17 +31,17 @@ namespace Microsoft.ML.StaticPipe
             return new DataReaderEstimator<TIn, TNewOut, IDataReader<TIn>>(Env, readerEst, estimator.Shape);
         }
 
-        public DataReader<TIn, TNewTupleShape> Append<TNewTupleShape, TTransformer>(Transformer<TTupleShape, TNewTupleShape, TTransformer> transformer)
+        public DataReader<TIn, TNewShape> Append<TNewShape, TTransformer>(Transformer<TShape, TNewShape, TTransformer> transformer)
             where TTransformer : class, ITransformer
         {
             Env.CheckValue(transformer, nameof(transformer));
             Env.Assert(nameof(Append) == nameof(CompositeReaderEstimator<TIn, ITransformer>.Append));
 
             var reader = AsDynamic.Append(transformer.AsDynamic);
-            return new DataReader<TIn, TNewTupleShape>(Env, reader, transformer.Shape);
+            return new DataReader<TIn, TNewShape>(Env, reader, transformer.Shape);
         }
 
-        public DataView<TTupleShape> Read(TIn input)
+        public DataView<TShape> Read(TIn input)
         {
             // We cannot check the value of input since it may not be a reference type, and it is not clear
             // that there is an absolute case for insisting that the input type be a reference type, and much
@@ -50,7 +50,7 @@ namespace Microsoft.ML.StaticPipe
             Env.Assert(nameof(Read) == nameof(IDataReader<TIn>.Read));
 
             var data = AsDynamic.Read(input);
-            return new DataView<TTupleShape>(Env, data, Shape);
+            return new DataView<TShape>(Env, data, Shape);
         }
     }
 }

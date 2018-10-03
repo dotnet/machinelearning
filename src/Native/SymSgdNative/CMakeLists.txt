@@ -18,4 +18,8 @@ endif()
 add_library(SymSgdNative SHARED ${SOURCES} ${RESOURCES})
 target_link_libraries(SymSgdNative PUBLIC ${MKL_LIBRARY})
 
+if(APPLE)
+    set_target_properties(SymSgdNative PROPERTIES INSTALL_RPATH "@loader_path;@loader_path/${MKL_LIB_RPATH}}")
+endif()
+
 install_library_and_symbols (SymSgdNative)

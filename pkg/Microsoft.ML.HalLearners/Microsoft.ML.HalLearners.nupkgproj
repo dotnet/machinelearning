@@ -7,10 +7,10 @@
 
   <ItemGroup>
     <ProjectReference Include="../Microsoft.ML/Microsoft.ML.nupkgproj" />
+	<ProjectReference Include="../Microsoft.ML.Mkl.Redist/Microsoft.ML.Mkl.Redist.nupkgproj" />
   </ItemGroup>
 
   <ItemGroup> 
-    <Content Include="$(PackagesDir)\mlnetmkldeps\$(MlNetMklDepsPackageVersion)\LICENSE.txt" Pack="true" PackagePath=".\NOTICE.txt" /> 
     <Content Include="..\common\CommonPackage.props" Pack="true" PackagePath="build\netstandard2.0\$(MSBuildProjectName).props" />
   </ItemGroup> 
   

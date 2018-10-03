@@ -2,7 +2,10 @@
   <Import Project="..\Directory.Build.props" />
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp2.1</TargetFramework>
+    <DefaultTestTargetFramework>netcoreapp2.1</DefaultTestTargetFramework>
+    <DefaultTestTargetFramework Condition="'$(UseIntrinsics)' == 'true'">netcoreapp3.0</DefaultTestTargetFramework>
+    
+    <TargetFramework>$(DefaultTestTargetFramework)</TargetFramework>
     <IsPackable>false</IsPackable>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
 

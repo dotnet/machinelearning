@@ -35,7 +35,7 @@ Below are some of the highlights from this release.
 
     * [ONNX](http://onnx.ai/) is an open model format that enables developers to more easily move models between different tools.
     * There are various [collections of ONNX models](https://github.com/onnx/models) that can be used for tasks like image classification, emotion recognition, and object detection.
-    * The [ONNX transform](https://docs.microsoft.com/en-us/dotnet/api/microsoft.ml.transforms.onnxtransform?view=ml-dotnet) in ML.NET enables providing some data to an existing ONNX model (such as the models above) and getting the score (prediction) from it.
+    * The [ONNX transform](https://docs.microsoft.com/en-us/dotnet/api/microsoft.ml.transforms.onnxtransform?view=ml-dotnet) in ML.NET enables providing some data to an existing ONNX model (such as the models above) and getting the score (prediction) from it. Example usage can be found [here](https://github.com/dotnet/machinelearning/blob/76dd9235f348aee4fdf7e62a9edf27510f14769b/test/Microsoft.ML.OnnxTransformTest/OnnxTransformTests.cs#L186).
 
 * Enhanced TensorFlow model scoring functionality ([#853](https://github.com/dotnet/machinelearning/pull/853), [#862](https://github.com/dotnet/machinelearning/pull/862))
 
@@ -48,7 +48,7 @@ Below are some of the highlights from this release.
     * This update replaces the Dv type system with .NET's standard type system to make ML.NET easier to use and to take advantage of innovation in .NET.
     * One effect of this change is that only floats and doubles have missing values, represented by NaN. More information can be found [here](https://github.com/dotnet/machinelearning/issues/673).
 
-* Up to ~200x speedup in prediction engine performance for single records ([#973](https://github.com/dotnet/machinelearning/pull/973))
+* Up to [~100x speedup](https://github.com/dotnet/machinelearning/issues/1013#issuecomment-426117666) in prediction engine performance for single records ([#973](https://github.com/dotnet/machinelearning/pull/973))
 
 * Improved approach to dependency injection enables ML.NET to be used in additional .NET app models without messy workarounds (e.g. Azure Functions) ([#970](https://github.com/dotnet/machinelearning/pull/970), [#1022](https://github.com/dotnet/machinelearning/pull/1022))
 
