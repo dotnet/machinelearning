@@ -617,7 +617,7 @@ namespace Microsoft.ML.CpuMath.UnitTests
                 expected[index] = Math.Abs(value) > DefaultScale ? (value > 0 ? value - DefaultScale : value + DefaultScale) : 0;
             }
 
-            CpuMathUtils.SdcaL1UpdateSparse(DefaultScale, src.Length, src, idx, idx.Length, DefaultScale, v, w);
+            CpuMathUtils.SdcaL1UpdateSparse(DefaultScale, src, idx, idx.Length, DefaultScale, v, w);
             var actual = w;
             Assert.Equal(expected, actual, _comparer);
         }

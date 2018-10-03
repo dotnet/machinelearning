@@ -279,11 +279,11 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         {
             if (Avx.IsSupported)
             {
-                AvxIntrinsics.ScalesourceU(value, source, destination);
+                AvxIntrinsics.ScaleSrcU(value, source, destination);
             }
             else if (Sse.IsSupported)
             {
-                SseIntrinsics.ScalesourceU(value, source, destination);
+                SseIntrinsics.ScaleSrcU(value, source, destination);
             }
             else
             {
