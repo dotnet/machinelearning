@@ -27,6 +27,7 @@
 #include <tmmintrin.h>
 #include <smmintrin.h>
 #include <nmmintrin.h>
+#include <stdint.h>
 
 #define _load1(ps, pi) \
     _mm_set_ss(ps[pi[0]])
