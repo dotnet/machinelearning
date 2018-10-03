@@ -9,7 +9,7 @@ using Microsoft.ML.StaticPipe.Runtime;
 
 namespace Microsoft.ML.StaticPipe
 {
-    public sealed class DataReaderEstimator<TIn, TTupleShape, TDataReader> : SchemaBearing<TTupleShape>
+    public sealed class DataReaderEstimator<TIn, TShape, TDataReader> : SchemaBearing<TShape>
         where TDataReader : class, IDataReader<TIn>
     {
         public IDataReaderEstimator<TIn, TDataReader> AsDynamic { get; }
@@ -23,15 +23,15 @@ namespace Microsoft.ML.StaticPipe
             Shape.Check(Env, AsDynamic.GetOutputSchema());
         }
 
-        public DataReader<TIn, TTupleShape> Fit(TIn input)
+        public DataReader<TIn, TShape> Fit(TIn input)
         {
             Contracts.Assert(nameof(Fit) == nameof(IDataReaderEstimator<TIn, TDataReader>.Fit));
 
             var reader = AsDynamic.Fit(input);
-            return new DataReader<TIn, TTupleShape>(Env, reader, Shape);
+            return new DataReader<TIn, TShape>(Env, reader, Shape);
         }
 
-        public DataReaderEstimator<TIn, TNewOut, IDataReader<TIn>> Append<TNewOut, TTrans>(Estimator<TTupleShape, TNewOut, TTrans> est)
+        public DataReaderEstimator<TIn, TNewOut, IDataReader<TIn>> Append<TNewOut, TTrans>(Estimator<TShape, TNewOut, TTrans> est)
             where TTrans : class, ITransformer
         {
             Contracts.Assert(nameof(Append) == nameof(CompositeReaderEstimator<TIn, ITransformer>.Append));

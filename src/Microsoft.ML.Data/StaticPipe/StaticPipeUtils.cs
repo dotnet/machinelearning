@@ -22,7 +22,7 @@ namespace Microsoft.ML.StaticPipe.Runtime
     {
         /// <summary>
         /// This is a utility method intended to be used by authors of <see cref="IDataReaderEstimator{TSource,
-        /// TReader}"/> components to provide a strongly typed <see cref="DataReaderEstimator{TIn, TTupleShape, TDataReader}"/>.
+        /// TReader}"/> components to provide a strongly typed <see cref="DataReaderEstimator{TIn, TShape, TDataReader}"/>.
         /// This analysis tool provides a standard way for readers to exploit statically typed pipelines with the
         /// standard tuple-shape objects without having to write such code themselves.
         /// </summary>
@@ -37,28 +37,28 @@ namespace Microsoft.ML.StaticPipe.Runtime
         /// <typeparam name="TIn">The type parameter for the input type to the data reader estimator.</typeparam>
         /// <typeparam name="TDelegateInput">The input type of the input delegate. This might be some object out of
         /// which one can fetch or else retrieve </typeparam>
-        /// <typeparam name="TTupleOutShape"></typeparam>
-        /// <returns></returns>
-        public static DataReaderEstimator<TIn, TTupleOutShape, IDataReader<TIn>>
-            ReaderEstimatorAnalyzerHelper<TIn, TDelegateInput, TTupleOutShape>(
+        /// <typeparam name="TOutShape">The schema shape type describing the output.</typeparam>
+        /// <returns>The constructed wrapping data reader estimator.</returns>
+        public static DataReaderEstimator<TIn, TOutShape, IDataReader<TIn>>
+            ReaderEstimatorAnalyzerHelper<TIn, TDelegateInput, TOutShape>(
             IHostEnvironment env,
             IChannel ch,
             TDelegateInput input,
             ReaderReconciler<TIn> baseReconciler,
-            Func<TDelegateInput, TTupleOutShape> mapper)
+            Func<TDelegateInput, TOutShape> mapper)
         {
             var readerEstimator = GeneralFunctionAnalyzer(env, ch, input, baseReconciler, mapper, out var est, col => null);
-            var schema = StaticSchemaShape.Make<TTupleOutShape>(mapper.Method.ReturnParameter);
-            return new DataReaderEstimator<TIn, TTupleOutShape, IDataReader<TIn>>(env, readerEstimator, schema);
+            var schema = StaticSchemaShape.Make<TOutShape>(mapper.Method.ReturnParameter);
+            return new DataReaderEstimator<TIn, TOutShape, IDataReader<TIn>>(env, readerEstimator, schema);
         }
 
         internal static IDataReaderEstimator<TIn, IDataReader<TIn>>
-            GeneralFunctionAnalyzer<TIn, TDelegateInput, TTupleOutShape>(
+            GeneralFunctionAnalyzer<TIn, TDelegateInput, TOutShape>(
             IHostEnvironment env,
             IChannel ch,
             TDelegateInput input,
             ReaderReconciler<TIn> baseReconciler,
-            Func<TDelegateInput, TTupleOutShape> mapper,
+            Func<TDelegateInput, TOutShape> mapper,
             out IEstimator<ITransformer> estimator,
             Func<PipelineColumn, string> inputNameFunction)
         {
@@ -81,7 +81,7 @@ namespace Microsoft.ML.StaticPipe.Runtime
             while (toVisit.Count > 0)
             {
                 var col = toVisit.Dequeue();
-                ch.CheckParam(col != null, nameof(mapper), "The delegate seems to have null columns returned somewhere in the pipe");
+                ch.CheckParam(col != null, nameof(mapper), "The delegate seems to have null columns returned somewhere in the pipe.");
                 if (keyDependsOn.ContainsKey(col))
                     continue; // Already visited.
 
@@ -129,7 +129,7 @@ namespace Microsoft.ML.StaticPipe.Runtime
                     ch.Assert(!nameMap.ContainsKey(inputName));
                     nameMap[col] = inputName;
 
-                    ch.Trace($"Using input with name {inputName}");
+                    ch.Trace($"Using input with name {inputName}.");
                 }
             }
 
@@ -146,7 +146,7 @@ namespace Microsoft.ML.StaticPipe.Runtime
                 {
                     ch.Assert(baseInputs.Contains(inputCol));
                     string tempName = $"#Temp_{tempNum++}";
-                    ch.Trace($"Input/output name collision: Renaming '{p.Key}' to '{tempName}'");
+                    ch.Trace($"Input/output name collision: Renaming '{p.Key}' to '{tempName}'.");
                     toCopy.Add((p.Key, tempName));
                     nameMap[tempName] = nameMap[p.Key];
                     ch.Assert(!nameMap.ContainsKey(p.Key));

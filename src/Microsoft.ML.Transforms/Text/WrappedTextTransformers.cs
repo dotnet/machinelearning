@@ -28,8 +28,8 @@ namespace Microsoft.ML.Transforms
         /// <param name="env">The environment.</param>
         /// <param name="inputColumn">The column containing text to tokenize.</param>
         /// <param name="outputColumn">The column containing output tokens. Null means <paramref name="inputColumn"/> is replaced.</param>
-        /// <param name="separators">The separators to use (comma separated).</param>
-        public WordTokenizer(IHostEnvironment env, string inputColumn, string outputColumn = null, string separators = "space")
+        /// <param name="separators">The separators to use (uses space character by default).</param>
+        public WordTokenizer(IHostEnvironment env, string inputColumn, string outputColumn = null, char[] separators = null)
             : this(env, new[] { (inputColumn, outputColumn ?? inputColumn) }, separators)
         {
         }
@@ -39,13 +39,13 @@ namespace Microsoft.ML.Transforms
         /// </summary>
         /// <param name="env">The environment.</param>
         /// <param name="columns">Pairs of columns to run the tokenization on.</param>
-        /// <param name="separators">The separators to use (comma separated).</param>
-        public WordTokenizer(IHostEnvironment env, (string input, string output)[] columns, string separators = "space")
+        /// <param name="separators">The separators to use (uses space character by default).</param>
+        public WordTokenizer(IHostEnvironment env, (string input, string output)[] columns, char[] separators = null)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(WordTokenizer)), MakeTransformer(env, columns, separators))
         {
         }
 
-        private static TransformWrapper MakeTransformer(IHostEnvironment env, (string input, string output)[] columns, string separators)
+        private static TransformWrapper MakeTransformer(IHostEnvironment env, (string input, string output)[] columns, char[] separators)
         {
             Contracts.AssertValue(env);
             env.CheckNonEmpty(columns, nameof(columns));
@@ -56,11 +56,10 @@ namespace Microsoft.ML.Transforms
             }
 
             // Create arguments.
-            // REVIEW: enable multiple separators via something other than parsing strings.
             var args = new DelimitedTokenizeTransform.Arguments
             {
                 Column = columns.Select(x => new DelimitedTokenizeTransform.Column { Source = x.input, Name = x.output }).ToArray(),
-                TermSeparators = separators
+                CharArrayTermSeparators = separators
             };
 
             // Create a valid instance of data.
@@ -84,7 +83,7 @@ namespace Microsoft.ML.Transforms
         /// <param name="outputColumn">The column containing output tokens. Null means <paramref name="inputColumn"/> is replaced.</param>
         /// <param name="useMarkerCharacters">Whether to use marker characters to separate words.</param>
         public CharacterTokenizer(IHostEnvironment env, string inputColumn, string outputColumn = null, bool useMarkerCharacters = true)
-            : this (env, new[] { (inputColumn, outputColumn ?? inputColumn) }, useMarkerCharacters)
+            : this(env, new[] { (inputColumn, outputColumn ?? inputColumn) }, useMarkerCharacters)
         {
         }
 
@@ -291,11 +290,11 @@ namespace Microsoft.ML.Transforms
             string inputColumn,
             string outputColumn = null,
             int ngramLength = 1,
-            int skipLength=0,
+            int skipLength = 0,
             bool allLengths = true,
             int maxNumTerms = 10000000,
             NgramTransform.WeightingCriteria weighting = NgramTransform.WeightingCriteria.Tf)
-            : this(env, new[] { ( new[] { inputColumn }, outputColumn ?? inputColumn) }, ngramLength, skipLength, allLengths, maxNumTerms, weighting)
+            : this(env, new[] { (new[] { inputColumn }, outputColumn ?? inputColumn) }, ngramLength, skipLength, allLengths, maxNumTerms, weighting)
         {
         }
 
@@ -537,7 +536,7 @@ namespace Microsoft.ML.Transforms
             bool allLengths = true,
             int maxNumTerms = 10000000,
             NgramTransform.WeightingCriteria weighting = NgramTransform.WeightingCriteria.Tf)
-            : this(env, new[] { ( inputColumn, outputColumn ?? inputColumn) }, ngramLength, skipLength, allLengths, maxNumTerms, weighting)
+            : this(env, new[] { (inputColumn, outputColumn ?? inputColumn) }, ngramLength, skipLength, allLengths, maxNumTerms, weighting)
         {
         }
 
