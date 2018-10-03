@@ -16,7 +16,7 @@ namespace Microsoft.ML.Samples.StaticPipe
             var (trainDataPath, testDataPath) = DatasetCreator.CreateRegressionDataset();
 
             //creating the ML.Net IHostEnvironment object, needed for the pipeline
-            var env = new ConsoleEnvironment(seed: 0);
+            var env = new LocalEnvironment(seed: 0);
 
             // creating the ML context, based on the task performed.
             var regressionContext = new RegressionContext(env);
