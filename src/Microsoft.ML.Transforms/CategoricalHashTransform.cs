@@ -221,7 +221,7 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         private readonly IHost _host;
-        private readonly IEstimator<ITransformer> _toVector;
+        private readonly IEstimator<ITransformer> _toSomething;
         private HashEstimator _hash;
 
         /// A helper method to create <see cref="CategoricalHashEstimator"/> for public facing API.
@@ -242,8 +242,8 @@ namespace Microsoft.ML.Runtime.Data
             _hash = new HashEstimator(_host, columns.Select(x => x.HashInfo).ToArray());
             using (var ch = _host.Start(nameof(CategoricalHashEstimator)))
             {
+                var binaryCols = new List<(string input, string output)>();
                 var cols = new List<(string input, string output, bool bag)>();
-                bool binaryEncoding = false;
                 for (int i = 0; i < columns.Length; i++)
                 {
                     var column = columns[i];
@@ -256,7 +256,6 @@ namespace Microsoft.ML.Runtime.Data
                         case CategoricalTransform.OutputKind.Key:
                             continue;
                         case CategoricalTransform.OutputKind.Bin:
-                            binaryEncoding = true;
                             bag = false;
                             break;
                         case CategoricalTransform.OutputKind.Ind:
@@ -266,24 +265,38 @@ namespace Microsoft.ML.Runtime.Data
                             bag = true;
                             break;
                     }
-                    cols.Add((column.HashInfo.Output, column.HashInfo.Output, bag));
-                    if (binaryEncoding)
+                    if (kind == CategoricalTransform.OutputKind.Bin)
                     {
                         if ((column.HashInfo.InvertHash) != 0)
                             ch.Warning("Invert hashing is being used with binary encoding.");
-                        _toVector = new KeyToBinaryVectorEstimator(_host, cols.Select(x => new KeyToBinaryVectorTransform.ColumnInfo(x.input, x.output)).ToArray());
+                        binaryCols.Add((column.HashInfo.Output, column.HashInfo.Output));
                     }
                     else
-                    {
-                        _toVector = new KeyToVectorEstimator(_host, cols.Select(x => new KeyToVectorTransform.ColumnInfo(x.input, x.output, x.bag)).ToArray());
-                    }
+                        cols.Add((column.HashInfo.Output, column.HashInfo.Output, bag));
                 }
+                IEstimator<ITransformer> toBinVector = null;
+                IEstimator<ITransformer> toVector = null;
+                if (binaryCols.Count > 0)
+                    toBinVector = new KeyToBinaryVectorEstimator(_host, binaryCols.Select(x => new KeyToBinaryVectorTransform.ColumnInfo(x.input, x.output)).ToArray());
+                if (cols.Count > 0)
+                    toVector = new KeyToVectorEstimator(_host, cols.Select(x => new KeyToVectorTransform.ColumnInfo(x.input, x.output, x.bag)).ToArray());
+
+                if (toBinVector != null && toVector != null)
+                    _toSomething = toVector.Append(toBinVector);
+                else
+                {
+                    if (toBinVector != null)
+                        _toSomething = toBinVector;
+                    else
+                        _toSomething = toVector;
+                }
+                ch.Done();
             }
         }
 
-        public SchemaShape GetOutputSchema(SchemaShape inputSchema) => _hash.Append(_toVector).GetOutputSchema(inputSchema);
+        public SchemaShape GetOutputSchema(SchemaShape inputSchema) => _hash.Append(_toSomething).GetOutputSchema(inputSchema);
 
-        public CategoricalHashTransform Fit(IDataView input) => new CategoricalHashTransform(_hash, _toVector, input);
+        public CategoricalHashTransform Fit(IDataView input) => new CategoricalHashTransform(_hash, _toSomething, input);
     }
 
     public static class CategoricalHashStaticExtensions

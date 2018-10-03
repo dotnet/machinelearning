@@ -157,9 +157,9 @@ namespace Microsoft.ML.Runtime.Data
 
         private readonly TransformerChain<ITransformer> _transformer;
 
-        public CategoricalTransform(TermEstimator term, IEstimator<ITransformer> keyToVector, IDataView input)
+        public CategoricalTransform(TermEstimator term, IEstimator<ITransformer> toVector, IDataView input)
         {
-            var chain = term.Append(keyToVector);
+            var chain = term.Append(toVector);
             _transformer = chain.Fit(input);
         }
 
@@ -202,7 +202,7 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         private readonly IHost _host;
-        private readonly IEstimator<ITransformer> _toVector;
+        private readonly IEstimator<ITransformer> _toSomething;
         private TermEstimator _term;
 
         /// A helper method to create <see cref="CategoricalEstimator"/> for public facing API.
@@ -221,9 +221,8 @@ namespace Microsoft.ML.Runtime.Data
             Contracts.CheckValue(env, nameof(env));
             _host = env.Register(nameof(TermEstimator));
             _term = new TermEstimator(_host, columns);
-
+            var binaryCols = new List<(string input, string output)>();
             var cols = new List<(string input, string output, bool bag)>();
-            bool binaryEncoding = false;
             for (int i = 0; i < columns.Length; i++)
             {
                 var column = columns[i];
@@ -236,7 +235,6 @@ namespace Microsoft.ML.Runtime.Data
                     case CategoricalTransform.OutputKind.Key:
                         continue;
                     case CategoricalTransform.OutputKind.Bin:
-                        binaryEncoding = true;
                         bag = false;
                         break;
                     case CategoricalTransform.OutputKind.Ind:
@@ -246,21 +244,32 @@ namespace Microsoft.ML.Runtime.Data
                         bag = true;
                         break;
                 }
-                cols.Add((column.Output, column.Output, bag));
-                if (binaryEncoding)
-                {
-                    _toVector = new KeyToBinaryVectorEstimator(_host, cols.Select(x => new KeyToBinaryVectorTransform.ColumnInfo(x.input, x.output)).ToArray());
-                }
+                if (kind == CategoricalTransform.OutputKind.Bin)
+                    binaryCols.Add((column.Output, column.Output));
                 else
-                {
-                    _toVector = new KeyToVectorEstimator(_host, cols.Select(x => new KeyToVectorTransform.ColumnInfo(x.input, x.output, x.bag)).ToArray());
-                }
+                    cols.Add((column.Output, column.Output, bag));
+            }
+            IEstimator<ITransformer> toBinVector = null;
+            IEstimator<ITransformer> toVector = null;
+            if (binaryCols.Count > 0)
+                toBinVector = new KeyToBinaryVectorEstimator(_host, binaryCols.Select(x => new KeyToBinaryVectorTransform.ColumnInfo(x.input, x.output)).ToArray());
+            if (cols.Count > 0)
+                toVector = new KeyToVectorEstimator(_host, cols.Select(x => new KeyToVectorTransform.ColumnInfo(x.input, x.output, x.bag)).ToArray());
+
+            if (toBinVector != null && toVector != null)
+                _toSomething = toVector.Append(toBinVector);
+            else
+            {
+                if (toBinVector != null)
+                    _toSomething = toBinVector;
+                else
+                    _toSomething = toVector;
             }
         }
 
-        public SchemaShape GetOutputSchema(SchemaShape inputSchema) => _term.Append(_toVector).GetOutputSchema(inputSchema);
+        public SchemaShape GetOutputSchema(SchemaShape inputSchema) => _term.Append(_toSomething).GetOutputSchema(inputSchema);
 
-        public CategoricalTransform Fit(IDataView input) => new CategoricalTransform(_term, _toVector, input);
+        public CategoricalTransform Fit(IDataView input) => new CategoricalTransform(_term, _toSomething, input);
 
         internal void WrapTermWithDelegate(Action<TermTransform> onFit)
         {

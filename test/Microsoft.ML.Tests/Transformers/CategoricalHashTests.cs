@@ -103,7 +103,6 @@ namespace Microsoft.ML.Tests.Transformers
                 new TestMeta() { A = new string[2] { "A", "B"}, B = "C", C =new float[2] { 3.0f,4.0f}, D = -1.0f, E= new string[2]{"E","A"}, F="E"},
                 new TestMeta() { A = new string[2] { "A", "B"}, B = "C", C =new float[2] { 5.0f,6.0f}, D = 1.0f , E= new string[2]{"D","E"}, F="D"} };
 
-
             var dataView = ComponentCreation.CreateDataView(Env, data);
             var bagPipe = new CategoricalHashEstimator(Env,
                 new CategoricalHashEstimator.ColumnInfo("A", "CatA", CategoricalTransform.OutputKind.Bag, invertHash: -1),
@@ -113,27 +112,17 @@ namespace Microsoft.ML.Tests.Transformers
                 new CategoricalHashEstimator.ColumnInfo("E", "CatE", CategoricalTransform.OutputKind.Ind, invertHash: -1),
                 new CategoricalHashEstimator.ColumnInfo("F", "CatF", CategoricalTransform.OutputKind.Ind, invertHash: -1),
                 new CategoricalHashEstimator.ColumnInfo("A", "CatG", CategoricalTransform.OutputKind.Key, invertHash: -1),
-                new CategoricalHashEstimator.ColumnInfo("B", "CatH", CategoricalTransform.OutputKind.Key, invertHash: -1));
-
-            var binPipe = new CategoricalHashEstimator(Env,
-                new CategoricalHashEstimator.ColumnInfo("A", "CatA", CategoricalTransform.OutputKind.Bin, invertHash: -1),
-                new CategoricalHashEstimator.ColumnInfo("B", "CatB", CategoricalTransform.OutputKind.Bin, invertHash: -1),
-                new CategoricalHashEstimator.ColumnInfo("C", "CatC", CategoricalTransform.OutputKind.Bin, invertHash: -1),
-                new CategoricalHashEstimator.ColumnInfo("D", "CatD", CategoricalTransform.OutputKind.Bin, invertHash: -1),
-                new CategoricalHashEstimator.ColumnInfo("E", "CatE", CategoricalTransform.OutputKind.Ind, invertHash: -1),
-                new CategoricalHashEstimator.ColumnInfo("F", "CatF", CategoricalTransform.OutputKind.Ind, invertHash: -1),
-                new CategoricalHashEstimator.ColumnInfo("A", "CatG", CategoricalTransform.OutputKind.Key, invertHash: -1),
-                new CategoricalHashEstimator.ColumnInfo("B", "CatH", CategoricalTransform.OutputKind.Key, invertHash: -1));
+                new CategoricalHashEstimator.ColumnInfo("B", "CatH", CategoricalTransform.OutputKind.Key, invertHash: -1),
+                new CategoricalHashEstimator.ColumnInfo("A", "CatI", CategoricalTransform.OutputKind.Bin, invertHash: -1),
+                new CategoricalHashEstimator.ColumnInfo("B", "CatJ", CategoricalTransform.OutputKind.Bin, invertHash: -1));
 
             var bagResult = bagPipe.Fit(dataView).Transform(dataView);
-            var binResult = binPipe.Fit(dataView).Transform(dataView);
-
-            ValidateBagMetadata(bagResult);
-            ValidateBinMetadata(binResult);
+            ValidateMetadata(bagResult);
             Done();
         }
 
-        private void ValidateBinMetadata(IDataView result)
+
+        private void ValidateMetadata(IDataView result)
         {
             Assert.True(result.Schema.TryGetColumnIndex("CatA", out int colA));
             Assert.True(result.Schema.TryGetColumnIndex("CatB", out int colB));
@@ -143,67 +132,8 @@ namespace Microsoft.ML.Tests.Transformers
             Assert.True(result.Schema.TryGetColumnIndex("CatF", out int colF));
             Assert.True(result.Schema.TryGetColumnIndex("CatG", out int colG));
             Assert.True(result.Schema.TryGetColumnIndex("CatH", out int colH));
-            var types = result.Schema.GetMetadataTypes(colA);
-            Assert.Equal(types.Select(x => x.Key), new string[1] { MetadataUtils.Kinds.SlotNames });
-            VBuffer<ReadOnlyMemory<char>> slots = default;
-            bool normalized = default;
-            result.Schema.GetMetadata(MetadataUtils.Kinds.SlotNames, colA, ref slots);
-            Assert.True(slots.Length == 36);
-
-            types = result.Schema.GetMetadataTypes(colB);
-            Assert.Equal(types.Select(x => x.Key), new string[2] { MetadataUtils.Kinds.SlotNames, MetadataUtils.Kinds.IsNormalized });
-            result.Schema.GetMetadata(MetadataUtils.Kinds.SlotNames, colB, ref slots);
-            Assert.True(slots.Length == 18);
-            result.Schema.GetMetadata(MetadataUtils.Kinds.IsNormalized, colB, ref normalized);
-            Assert.True(normalized);
-
-            types = result.Schema.GetMetadataTypes(colC);
-            Assert.Equal(types.Select(x => x.Key), new string[1] { MetadataUtils.Kinds.SlotNames });
-            result.Schema.GetMetadata(MetadataUtils.Kinds.SlotNames, colC, ref slots);
-            Assert.True(slots.Length == 36);
-
-            types = result.Schema.GetMetadataTypes(colD);
-            Assert.Equal(types.Select(x => x.Key), new string[2] { MetadataUtils.Kinds.SlotNames, MetadataUtils.Kinds.IsNormalized });
-            result.Schema.GetMetadata(MetadataUtils.Kinds.SlotNames, colD, ref slots);
-            Assert.True(slots.Length == 18);
-            result.Schema.GetMetadata(MetadataUtils.Kinds.IsNormalized, colD, ref normalized);
-            Assert.True(normalized);
-
-            types = result.Schema.GetMetadataTypes(colE);
-            Assert.Equal(types.Select(x => x.Key), new string[1] { MetadataUtils.Kinds.SlotNames });
-            result.Schema.GetMetadata(MetadataUtils.Kinds.SlotNames, colE, ref slots);
-            Assert.True(slots.Length == 36);
-
-            types = result.Schema.GetMetadataTypes(colF);
-            Assert.Equal(types.Select(x => x.Key), new string[2] { MetadataUtils.Kinds.SlotNames, MetadataUtils.Kinds.IsNormalized });
-            result.Schema.GetMetadata(MetadataUtils.Kinds.SlotNames, colE, ref slots);
-            Assert.True(slots.Length == 36);
-            result.Schema.GetMetadata(MetadataUtils.Kinds.IsNormalized, colF, ref normalized);
-            Assert.True(normalized);
-
-            types = result.Schema.GetMetadataTypes(colG);
-            Assert.Equal(types.Select(x => x.Key), new string[1] { MetadataUtils.Kinds.KeyValues });
-            result.Schema.GetMetadata(MetadataUtils.Kinds.KeyValues, colG, ref slots);
-            Assert.True(slots.Length == 65536);
-            Assert.Equal(slots.Items().Select(x => x.Value.ToString()), new string[2] { "0:A", "1:B" });
-
-            types = result.Schema.GetMetadataTypes(colH);
-            Assert.Equal(types.Select(x => x.Key), new string[1] { MetadataUtils.Kinds.KeyValues });
-            result.Schema.GetMetadata(MetadataUtils.Kinds.KeyValues, colH, ref slots);
-            Assert.True(slots.Length == 65536);
-            Assert.Equal(slots.Items().Select(x => x.Value.ToString()), new string[1] { "C" });
-        }
-
-        private void ValidateBagMetadata(IDataView result)
-        {
-            Assert.True(result.Schema.TryGetColumnIndex("CatA", out int colA));
-            Assert.True(result.Schema.TryGetColumnIndex("CatB", out int colB));
-            Assert.True(result.Schema.TryGetColumnIndex("CatC", out int colC));
-            Assert.True(result.Schema.TryGetColumnIndex("CatD", out int colD));
-            Assert.True(result.Schema.TryGetColumnIndex("CatE", out int colE));
-            Assert.True(result.Schema.TryGetColumnIndex("CatF", out int colF));
-            Assert.True(result.Schema.TryGetColumnIndex("CatG", out int colG));
-            Assert.True(result.Schema.TryGetColumnIndex("CatH", out int colH));
+            Assert.True(result.Schema.TryGetColumnIndex("CatI", out int colI));
+            Assert.True(result.Schema.TryGetColumnIndex("CatJ", out int colJ));
             var types = result.Schema.GetMetadataTypes(colA);
             Assert.Equal(types.Select(x => x.Key), new string[1] { MetadataUtils.Kinds.SlotNames });
             VBuffer<ReadOnlyMemory<char>> slots = default;
@@ -268,6 +198,18 @@ namespace Microsoft.ML.Tests.Transformers
             result.Schema.GetMetadata(MetadataUtils.Kinds.KeyValues, colH, ref slots);
             Assert.True(slots.Length == 65536);
             Assert.Equal(slots.Items().Select(x => x.Value.ToString()), new string[1] { "C" });
+
+            types = result.Schema.GetMetadataTypes(colI);
+            Assert.Equal(types.Select(x => x.Key), new string[1] { MetadataUtils.Kinds.SlotNames });
+            result.Schema.GetMetadata(MetadataUtils.Kinds.SlotNames, colI, ref slots);
+            Assert.True(slots.Length == 36);
+
+            types = result.Schema.GetMetadataTypes(colJ);
+            Assert.Equal(types.Select(x => x.Key), new string[2] { MetadataUtils.Kinds.SlotNames, MetadataUtils.Kinds.IsNormalized });
+            result.Schema.GetMetadata(MetadataUtils.Kinds.SlotNames, colJ, ref slots);
+            Assert.True(slots.Length == 18);
+            result.Schema.GetMetadata(MetadataUtils.Kinds.IsNormalized, colJ, ref normalized);
+            Assert.True(normalized);
         }
 
         [Fact]
