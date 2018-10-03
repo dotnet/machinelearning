@@ -189,7 +189,7 @@ namespace Microsoft.ML.Scenarios
             {
                 var model_location = "mnist_model/frozen_saved_model.pb";
                 var schema = TensorFlowUtils.GetModelSchema(env, model_location);
-                Assert.Equal(54, schema.ColumnCount);
+                Assert.Equal(86, schema.ColumnCount);
                 Assert.True(schema.TryGetColumnIndex("Placeholder", out int col));
                 var type = schema.GetColumnType(col).AsVector;
                 Assert.Equal(2, type.DimCount);
@@ -645,10 +645,6 @@ namespace Microsoft.ML.Scenarios
                     Epoch = 10,
                     LearningRateOperation = "learning_rate",
                     LearningRate = 0.01f,
-                    FeedDictionary = new Dictionary<string, float>()
-                    {
-                        { "DropoutProb", 1.0f }
-                    },
                     BatchSize = 20,
                     ReTrain = true
                 };

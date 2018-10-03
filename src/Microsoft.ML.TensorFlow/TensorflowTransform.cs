@@ -56,13 +56,13 @@ namespace Microsoft.ML.Transforms
             /// <summary>
             /// The names of the requested model outputs.
             /// </summary>
-            [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "The names of the requested outputs", ShortName = "outputs", SortOrder = 2)]
+            [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "The name of the outputs", ShortName = "outputs", SortOrder = 2)]
             public string[] OutputColumns;
 
             /// <summary>
             /// The name of the column used as label for training.
             /// </summary>
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Training labels.", ShortName = "OptimizationOp", SortOrder = 4)]
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Training labels.", ShortName = "label", SortOrder = 4)]
             public string LabeLColumn = DefaultColumnNames.Label;
 
             /// <summary>
@@ -132,15 +132,6 @@ namespace Microsoft.ML.Transforms
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Name of the input in TensorFlow graph that specifiy the location for saving/restoring models from disk.", SortOrder = 13)]
             public string SaveOperation = "save/control_dependency";
-
-            /// <summary>
-            /// Additional values to feed to the model.
-            /// Currently, its limited to accepting scalar float value.
-            /// Can be used to pass `Dropout probabilities` to the model
-            /// which remain constant through out one training process.
-            /// </summary>
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Additional values to feed to the model.", SortOrder = 14)]
-            public Dictionary<string, float> FeedDictionary = null;
 
             /// <summary>
             /// Needed for command line to specify if retraining is requested.
@@ -453,12 +444,6 @@ namespace Microsoft.ML.Transforms
             {
                 var inputName = inputsForTraining[i];
                 runner.AddInput(inputName, srcTensorGetters[i].GetBufferedBatchTensor());
-            }
-
-            // Feed any additional input to the graph
-            foreach (var entry in args.FeedDictionary)
-            {
-                runner.AddInput(entry.Key, new TFTensor(entry.Value));
             }
 
             if (args.LearningRateOperation != null)
