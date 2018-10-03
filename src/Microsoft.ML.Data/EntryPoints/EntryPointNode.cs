@@ -1004,9 +1004,10 @@ namespace Microsoft.ML.Runtime.EntryPoints
         private readonly RunContext _context;
         private readonly List<EntryPointNode> _nodes;
 
-        public EntryPointGraph(IHostEnvironment env, ComponentCatalog catalog, JArray nodes)
+        public EntryPointGraph(IHostEnvironment env, JArray nodes)
         {
             Contracts.CheckValue(env, nameof(env));
+            var catalog = env.ComponentCatalog;
             _host = env.Register(RegistrationName);
             _host.CheckValue(catalog, nameof(catalog));
             _host.CheckValue(nodes, nameof(nodes));
