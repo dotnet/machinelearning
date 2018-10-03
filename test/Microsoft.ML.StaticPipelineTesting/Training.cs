@@ -775,6 +775,14 @@ namespace Microsoft.ML.StaticPipelineTesting
             Assert.Null(pred);
             var model = pipe.Fit(dataSource);
             Assert.NotNull(pred);
+            int[] labelHistogram = default;
+            int[][] featureHistogram = default;
+            pred.GetLabelHistogram(ref labelHistogram, out int labelCount1);
+            pred.GetFeatureHistogram(ref featureHistogram, out int labelCount2, out int featureCount);
+            Assert.True(labelCount1 == 3 && labelCount1 == labelCount2 && labelCount1 == labelHistogram.Length);
+            foreach (var f in featureHistogram)
+                Assert.True(featureCount == 4 &&  f.Length == featureCount);
+
             var data = model.Read(dataSource);
 
             // Just output some data on the schema for fun.

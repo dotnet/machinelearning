@@ -211,6 +211,40 @@ namespace Microsoft.ML.Runtime.Learners
 
         public ColumnType OutputType => _outputType;
 
+        /// <summary>
+        /// Copies the label histogram into a buffer.
+        /// </summary>
+        /// <param name="labelHistogram">A possibly reusable array, which will
+        /// be expanded as necessary to accomodate the data.</param>
+        /// <param name="labelCount">Set to the length of the resized array, which is also the number of different labels.</param>
+        public void GetLabelHistogram(ref int[] labelHistogram, out int labelCount)
+        {
+            labelCount = _labelCount;
+            Utils.EnsureSize(ref labelHistogram, _labelCount, _labelCount);
+            Array.Copy(_labelHistogram, labelHistogram, _labelCount);
+        }
+
+        /// <summary>
+        /// Copies the feature histogram into a buffer.
+        /// </summary>
+        /// <param name="featureHistogram">A possibly reusable array, which will
+        /// be expanded as necessary to accomodate the data.</param>
+        /// <param name="labelCount">Set to the first dimension of the resized array,
+        /// which is the number of different labels encountered in training.</param>
+        /// <param name="featureCount">Set to the second dimension of the resized array,
+        /// which is also the number of different feature combinations encountered in training.</param>
+        public void GetFeatureHistogram(ref int[][] featureHistogram, out int labelCount, out int featureCount)
+        {
+            labelCount = _labelCount;
+            featureCount = _featureCount;
+            Utils.EnsureSize(ref featureHistogram, _labelCount, _labelCount);
+            for(int i = 0; i < _labelCount; i++)
+            {
+                Utils.EnsureSize(ref featureHistogram[i], _featureCount, _featureCount);
+                Array.Copy(_featureHistogram[i], featureHistogram[i], _featureCount);
+            }
+        }
+
         internal MultiClassNaiveBayesPredictor(IHostEnvironment env, int[] labelHistogram, int[][] featureHistogram, int featureCount)
             : base(env, LoaderSignature)
         {
