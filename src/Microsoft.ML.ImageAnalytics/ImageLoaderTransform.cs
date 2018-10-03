@@ -242,7 +242,7 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
             return new SchemaShape(result.Values);
         }
 
-        internal sealed class OutPipelineColumn : Scalar<UnknownSizeBitmap>
+        internal sealed class OutPipelineColumn : Custom<UnknownSizeBitmap>
         {
             private readonly Scalar<string> _input;
 
