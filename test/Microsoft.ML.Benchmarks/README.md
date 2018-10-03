@@ -56,7 +56,7 @@ To get the total number of allocated managed memory please pass additional conso
 2. Run the benchmarks in `Release-Intrinsics` configuration, choose one of the benchmarks when prompted
 
 ```log
-    ..\..\Tools\dotnetcli\dotnet.exe run -c Release-Intrinsics -f netcoreapp3.0
+    ..\..\Tools\dotnetcli\dotnet.exe run -c Release-Intrinsics
 ```
 ## Authoring new benchmarks
 
