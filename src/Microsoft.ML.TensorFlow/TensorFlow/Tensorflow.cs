@@ -1755,7 +1755,7 @@ namespace Microsoft.ML.Transforms.TensorFlow
         ///  (b) Use Aborted if the client should retry at a higher-level
         ///      (for example, restarting a read-modify-write sequence).
         ///  (c) Use FailedPrecondition if the client should not retry until
-        ///      the system state has been explicitly fixed.  For example, if an "rmdir"
+        ///      the system state has been explicitly fixed. For example, if an "rmdir"
         ///      fails because the directory is non-empty, FailedPrecondition
         ///      should be returned since the client should not retry unless
         ///      they have first fixed up the directory by deleting files from it.
@@ -1776,7 +1776,7 @@ namespace Microsoft.ML.Transforms.TensorFlow
         Aborted = 10,
 
         /// <summary>
-        /// Operation tried to iterate past the valid input range.  For example, seeking or
+        /// Operation tried to iterate past the valid input range. For example, seeking or
         /// reading past end of file.
         ///
         /// Unlike InvalidArgument, this error indicates a problem that may
