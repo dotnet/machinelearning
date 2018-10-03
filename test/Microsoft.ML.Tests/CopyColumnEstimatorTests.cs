@@ -68,7 +68,7 @@ namespace Microsoft.ML.Tests
         }
 
         [Fact]
-        void TestBadTransformSchmea()
+        void TestBadTransformSchema()
         {
             var data = new[] { new TestClass() { A = 1, B = 2, C = 3, }, new TestClass() { A = 4, B = 5, C = 6 } };
             var xydata = new[] { new TestClassXY() { X = 10, Y = 100 }, new TestClassXY() { X = -1, Y = -100 } };
