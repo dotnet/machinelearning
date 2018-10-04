@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.ML.Core.Data;
 using Microsoft.ML.Ensemble.EntryPoints;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
@@ -12,9 +13,9 @@ using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Ensemble;
 using Microsoft.ML.Runtime.Ensemble.OutputCombiners;
 using Microsoft.ML.Runtime.Ensemble.Selector;
-using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Internallearn;
 using Microsoft.ML.Runtime.Learners;
+using Microsoft.ML.Runtime.Training;
 
 [assembly: LoadableClass(typeof(RegressionEnsembleTrainer), typeof(RegressionEnsembleTrainer.Arguments),
     new[] { typeof(SignatureRegressorTrainer), typeof(SignatureTrainer) },
@@ -23,13 +24,13 @@ using Microsoft.ML.Runtime.Learners;
 
 namespace Microsoft.ML.Runtime.Ensemble
 {
-    using TScalarPredictor = IPredictorProducing<Single>;
-    public sealed class RegressionEnsembleTrainer : EnsembleTrainerBase<Single, TScalarPredictor,
-       IRegressionSubModelSelector, IRegressionOutputCombiner>,
+    using TScalarPredictor = IPredictorProducing<float>;
+    public sealed class RegressionEnsembleTrainer : EnsembleTrainerBase<RegressionEnsembleTrainer.Arguments, RegressionPredictionTransformer<TScalarPredictor>, TScalarPredictor,
+       float, IRegressionSubModelSelector, IRegressionOutputCombiner>,
        IModelCombiner<TScalarPredictor, TScalarPredictor>
     {
-        public const string LoadNameValue = "EnsembleRegression";
-        public const string UserNameValue = "Regression Ensemble (bagging, stacking, etc)";
+        internal const string LoadNameValue = "EnsembleRegression";
+        internal const string UserNameValue = "Regression Ensemble (bagging, stacking, etc)";
 
         public sealed class Arguments : ArgumentsBase
         {
@@ -58,13 +59,54 @@ namespace Microsoft.ML.Runtime.Ensemble
 
         private readonly ISupportRegressionOutputCombinerFactory _outputCombiner;
 
+        /// <summary>
+        /// Initializes a new instance of <see cref="RegressionEnsembleTrainer"/>
+        /// </summary>
+        /// <param name="env">The environment to use.</param>
+        /// <param name="featureColumn">The name of the feature column.</param>
+        /// <param name="labelColumn">The name of the label column.</param>
+        /// <param name="advancedSettings">A delegate to apply all the advanced arguments to the algorithm.</param>
+        public RegressionEnsembleTrainer(IHostEnvironment env, string featureColumn, string labelColumn,
+            Action<Arguments> advancedSettings = null)
+            : this(env, ArgsInit(featureColumn, labelColumn, advancedSettings))
+        {
+            Host.CheckNonEmpty(featureColumn, nameof(featureColumn));
+            Host.CheckNonEmpty(labelColumn, nameof(labelColumn));
+        }
+
+        /// <summary>
+        /// Initializes a new instance of <see cref="RegressionEnsembleTrainer"/>
+        /// </summary>
         public RegressionEnsembleTrainer(IHostEnvironment env, Arguments args)
-            : base(args, env, LoadNameValue)
+            : base(env, args, LoadNameValue, TrainerUtils.MakeR4ScalarLabel(args.LabelColumn))
         {
             SubModelSelector = args.SubModelSelectorType.CreateComponent(Host);
             _outputCombiner = args.OutputCombiner;
             Combiner = args.OutputCombiner.CreateComponent(Host);
         }
+
+        private static Arguments ArgsInit(string featureColumn, string labelColumn, Action<Arguments> advancedSettings)
+        {
+            Arguments args = new Arguments();
+            advancedSettings?.Invoke(args);
+
+            // Apply the advanced args, if the user supplied any.
+            args.FeatureColumn = featureColumn;
+            args.LabelColumn = labelColumn;
+
+            return args;
+        }
+
+        protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema)
+        {
+            return new[]
+            {
+                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata()))
+            };
+        }
+
+        protected override RegressionPredictionTransformer<TScalarPredictor> MakeTransformer(TScalarPredictor model, ISchema trainSchema)
+            => new RegressionPredictionTransformer<TScalarPredictor>(Host, model, trainSchema, FeatureColumn.Name);
 
         public override PredictionKind PredictionKind => PredictionKind.Regression;
 
