@@ -561,8 +561,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 }";
 
             JObject graph = JObject.Parse(inputGraph);
-            var catalog = Env.ComponentCatalog;
-            var runner = new GraphRunner(Env, catalog, graph[FieldNames.Nodes] as JArray);
+            var runner = new GraphRunner(Env, graph[FieldNames.Nodes] as JArray);
 
             var dataPath = GetDataPath("breast-cancer.txt");
             var inputFile = new SimpleFileHandle(Env, dataPath, false, false);
@@ -2483,8 +2482,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 }";
 
             JObject graph = JObject.Parse(inputGraph);
-            var catalog = Env.ComponentCatalog;
-            var runner = new GraphRunner(Env, catalog, graph[FieldNames.Nodes] as JArray);
+            var runner = new GraphRunner(Env, graph[FieldNames.Nodes] as JArray);
 
             var dataPath = GetDataPath("breast-cancer.txt");
             var inputFile = new SimpleFileHandle(Env, dataPath, false, false);
@@ -2579,8 +2577,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 }";
 
             JObject graph = JObject.Parse(inputGraph);
-            var catalog = Env.ComponentCatalog;
-            var runner = new GraphRunner(Env, catalog, graph[FieldNames.Nodes] as JArray);
+            var runner = new GraphRunner(Env, graph[FieldNames.Nodes] as JArray);
 
             var dataPath = GetDataPath("breast-cancer.txt");
             var inputFile = new SimpleFileHandle(Env, dataPath, false, false);
@@ -2687,8 +2684,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 }";
 
             JObject graph = JObject.Parse(inputGraph);
-            var catalog = Env.ComponentCatalog;
-            var runner = new GraphRunner(Env, catalog, graph[FieldNames.Nodes] as JArray);
+            var runner = new GraphRunner(Env, graph[FieldNames.Nodes] as JArray);
 
             var dataPath = GetDataPath("breast-cancer.txt");
             var inputFile = new SimpleFileHandle(Env, dataPath, false, false);
@@ -2792,8 +2788,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 }";
 
             JObject graph = JObject.Parse(inputGraph);
-            var catalog = Env.ComponentCatalog;
-            var runner = new GraphRunner(Env, catalog, graph[FieldNames.Nodes] as JArray);
+            var runner = new GraphRunner(Env, graph[FieldNames.Nodes] as JArray);
 
             var dataPath = GetDataPath("breast-cancer.txt");
             var inputFile = new SimpleFileHandle(Env, dataPath, false, false);
@@ -2953,8 +2948,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 }";
 
             JObject graph = JObject.Parse(inputGraph);
-            var catalog = Env.ComponentCatalog;
-            var runner = new GraphRunner(Env, catalog, graph[FieldNames.Nodes] as JArray);
+            var runner = new GraphRunner(Env, graph[FieldNames.Nodes] as JArray);
 
             var dataPath = GetDataPath("breast-cancer.txt");
             var inputFile = new SimpleFileHandle(Env, dataPath, false, false);
@@ -3148,8 +3142,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 }";
 
             JObject graph = JObject.Parse(inputGraph);
-            var catalog = Env.ComponentCatalog;
-            var runner = new GraphRunner(Env, catalog, graph[FieldNames.Nodes] as JArray);
+            var runner = new GraphRunner(Env, graph[FieldNames.Nodes] as JArray);
 
             var dataPath = GetDataPath("breast-cancer.txt");
             var inputFile = new SimpleFileHandle(Env, dataPath, false, false);
@@ -3271,8 +3264,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 }";
 
             JObject graphJson = JObject.Parse(inputGraph);
-            var catalog = Env.ComponentCatalog;
-            var graph = new EntryPointGraph(Env, catalog, graphJson[FieldNames.Nodes] as JArray);
+            var graph = new EntryPointGraph(Env, graphJson[FieldNames.Nodes] as JArray);
             Assert.True(graph.Macros.All(x => x.CanStart()));
         }
 
@@ -3326,11 +3318,10 @@ namespace Microsoft.ML.Runtime.RunTests
                 }";
 
             JObject graphJson = JObject.Parse(inputGraph);
-            var catalog = Env.ComponentCatalog;
-            var graph = new EntryPointGraph(Env, catalog, graphJson[FieldNames.Nodes] as JArray);
+            var graph = new EntryPointGraph(Env, graphJson[FieldNames.Nodes] as JArray);
             // Serialize the nodes with ToJson() and then executing them to ensure serialization working correctly.
             var nodes = new JArray(graph.AllNodes.Select(node => node.ToJson()));
-            var runner = new GraphRunner(Env, catalog, nodes);
+            var runner = new GraphRunner(Env, nodes);
 
             var dataPath = GetDataPath("breast-cancer.txt");
             var inputFile = new SimpleFileHandle(Env, dataPath, false, false);
@@ -3386,8 +3377,7 @@ namespace Microsoft.ML.Runtime.RunTests
                   ]
                 }";
             JObject graphJson = JObject.Parse(inputGraph);
-            var catalog = Env.ComponentCatalog;
-            var graph = new EntryPointGraph(Env, catalog, graphJson[FieldNames.Nodes] as JArray);
+            var graph = new EntryPointGraph(Env, graphJson[FieldNames.Nodes] as JArray);
             for (int i = 0; i < 2; i++)
             {
                 var nodes = graph.AllNodes.ToArray();
@@ -3405,7 +3395,7 @@ namespace Microsoft.ML.Runtime.RunTests
 
                 // Serialize the graph and verify again.
                 var serNodes = new JArray(graph.AllNodes.Select(node => node.ToJson()));
-                graph = new EntryPointGraph(Env, catalog, serNodes);
+                graph = new EntryPointGraph(Env, serNodes);
             }
         }
 
