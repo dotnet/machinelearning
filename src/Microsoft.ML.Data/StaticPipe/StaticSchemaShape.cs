@@ -14,7 +14,7 @@ namespace Microsoft.ML.StaticPipe.Runtime
     /// <summary>
     /// A schema shape with names corresponding to a type parameter in one of the typed variants
     /// of the data pipeline structures. Instances of this class tend to be bundled with the statically
-    /// typed variants of the dynamic structures (for example, <see cref="DataView{TTupleShape}"/> and so forth),
+    /// typed variants of the dynamic structures (for example, <see cref="DataView{TShape}"/> and so forth),
     /// and their primary purpose is to ensure that the schemas of the dynamic structures and the
     /// statically declared structures are compatible.
     /// </summary>
