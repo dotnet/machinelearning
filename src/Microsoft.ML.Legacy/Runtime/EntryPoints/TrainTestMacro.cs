@@ -121,10 +121,10 @@ namespace Microsoft.ML.Runtime.EntryPoints
 
             // Parse the subgraph.
             var subGraphRunContext = new RunContext(env);
-            var subGraphNodes = EntryPointNode.ValidateNodes(env, subGraphRunContext, input.Nodes, node.Catalog, input.LabelColumn,
-                input.GroupColumn.IsExplicit ? input.GroupColumn.Value : null,
-                input.WeightColumn.IsExplicit ? input.WeightColumn.Value : null,
-                input.NameColumn.IsExplicit ? input.NameColumn.Value : null);
+            var subGraphNodes = EntryPointNode.ValidateNodes(env, subGraphRunContext, input.Nodes, label: input.LabelColumn,
+                group: input.GroupColumn.IsExplicit ? input.GroupColumn.Value : null,
+                weight: input.WeightColumn.IsExplicit ? input.WeightColumn.Value : null,
+                name: input.NameColumn.IsExplicit ? input.NameColumn.Value : null);
 
             // Change the subgraph to use the training data as input.
             var varName = input.Inputs.Data.VarName;
@@ -215,7 +215,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
                 scoreNodeOutput = exp.Add(scoreNode);
             }
 
-            subGraphNodes.AddRange(EntryPointNode.ValidateNodes(env, node.Context, exp.GetNodes(), node.Catalog));
+            subGraphNodes.AddRange(EntryPointNode.ValidateNodes(env, node.Context, exp.GetNodes()));
 
             // Do not double-add previous nodes.
             exp.Reset();
@@ -256,7 +256,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
                     scoreNodeTrainingOutput = exp.Add(scoreNodeTraining);
                 }
 
-                subGraphNodes.AddRange(EntryPointNode.ValidateNodes(env, node.Context, exp.GetNodes(), node.Catalog));
+                subGraphNodes.AddRange(EntryPointNode.ValidateNodes(env, node.Context, exp.GetNodes()));
 
                 // Do not double-add previous nodes.
                 exp.Reset();
@@ -279,7 +279,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
                     eoTraining.ConfusionMatrix.VarName = outVariableName;
 
                 exp.Add(evalNodeTraining, evalOutputTraining);
-                subGraphNodes.AddRange(EntryPointNode.ValidateNodes(env, node.Context, exp.GetNodes(), node.Catalog));
+                subGraphNodes.AddRange(EntryPointNode.ValidateNodes(env, node.Context, exp.GetNodes()));
             }
 
             // Do not double-add previous nodes.
@@ -302,7 +302,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
                 eo.ConfusionMatrix.VarName = outVariableName;
 
             exp.Add(evalNode, evalOutput);
-            subGraphNodes.AddRange(EntryPointNode.ValidateNodes(env, node.Context, exp.GetNodes(), node.Catalog));
+            subGraphNodes.AddRange(EntryPointNode.ValidateNodes(env, node.Context, exp.GetNodes()));
 
             // Marks as an atomic unit that can be run in
             // a distributed fashion.
