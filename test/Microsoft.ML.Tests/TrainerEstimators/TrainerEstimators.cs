@@ -77,6 +77,18 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             Done();
         }
 
+        /// <summary>
+        /// HogwildSGD TrainerEstimator test 
+        /// </summary>
+        [Fact]
+        public void TestEstimatorHogwildSGD()
+        {
+            (IEstimator<ITransformer> pipe, IDataView dataView) = GetBinaryClassificationPipeline();
+            pipe.Append(new StochasticGradientDescentClassificationTrainer(Env, "Features", "Label"));
+            TestEstimatorCore(pipe, dataView);
+            Done();
+        }
+
         private (IEstimator<ITransformer>, IDataView) GetBinaryClassificationPipeline()
         {
             var data = new TextLoader(Env,

@@ -1599,11 +1599,13 @@ namespace Microsoft.ML.Runtime.Learners
         /// <param name="maxIterations">The maximum number of iterations; set to 1 to simulate online learning.</param>
         /// <param name="initLearningRate">The initial Learning Rate used by SGD.</param>
         /// <param name="l2Weight">The L2 regularizer constant.</param>
+        /// <param name="loss">The loss function to use.</param>
         /// <param name="advancedSettings">A delegate to apply all the advanced arguments to the algorithm.</param>
         public StochasticGradientDescentClassificationTrainer(IHostEnvironment env, string featureColumn, string labelColumn, string weightColumn = null,
             int maxIterations = Arguments.Defaults.MaxIterations,
             double initLearningRate = Arguments.Defaults.InitLearningRate,
             float l2Weight = Arguments.Defaults.L2Weight,
+            ISupportClassificationLossFactory loss = null,
             Action<Arguments> advancedSettings = null)
             : base(env, featureColumn, TrainerUtils.MakeBoolScalarLabel(labelColumn), weightColumn)
         {
@@ -1613,6 +1615,12 @@ namespace Microsoft.ML.Runtime.Learners
             _args = new Arguments();
             advancedSettings?.Invoke(_args);
 
+            // check that the users didn't specify different label, group, feature, weights in the args, from what they supplied directly
+            TrainerUtils.CheckArgsHaveDefaultColNames(Host, _args);
+
+            if (advancedSettings != null)
+                CheckArgsAndAdvancedSettingMismatch(maxIterations, initLearningRate, l2Weight, loss, new Arguments(), _args);
+
             // Apply the advanced args, if the user supplied any.
             _args.FeatureColumn = featureColumn;
             _args.LabelColumn = labelColumn;
@@ -1620,6 +1628,8 @@ namespace Microsoft.ML.Runtime.Learners
             _args.MaxIterations = maxIterations;
             _args.InitLearningRate = initLearningRate;
             _args.L2Weight = l2Weight;
+            if (loss != null)
+                _args.LossFunction = loss;
             _args.Check(env);
 
             _loss = _args.LossFunction.CreateComponent(env);
@@ -1638,6 +1648,31 @@ namespace Microsoft.ML.Runtime.Learners
             Info = new TrainerInfo(calibration: !(_loss is LogLoss), supportIncrementalTrain: true);
             NeedShuffle = args.Shuffle;
             _args = args;
+        }
+
+        /// <summary>
+        /// If, after applying the advancedSettings delegate, the args are different that the default value
+        /// and are also different than the value supplied directly to the xtension method, warn the user
+        /// about which value is being used.
+        /// The parameters that appear here, numTrees, minDocumentsInLeafs, numLeaves, learningRate are the ones the users are most likely to tune.
+        /// This list should follow the one in the constructor, and the extension methods on the <see cref="TrainContextBase"/>.
+        /// </summary>
+        internal void CheckArgsAndAdvancedSettingMismatch(int maxIterations,
+            double initLearningRate,
+            float l2Weight,
+            ISupportClassificationLossFactory loss,
+            Arguments snapshot,
+            Arguments currentArgs)
+        {
+            using (var ch = Host.Start("Comparing advanced settings with the directly provided values."))
+            {
+                // Check that the user didn't supply different parameters in the args, from what it specified directly.
+                TrainerUtils.CheckArgsAndAdvancedSettingMismatch(ch, maxIterations, snapshot.MaxIterations, currentArgs.MaxIterations, nameof(maxIterations));
+                TrainerUtils.CheckArgsAndAdvancedSettingMismatch(ch, initLearningRate, snapshot.InitLearningRate, currentArgs.InitLearningRate, nameof(initLearningRate));
+                TrainerUtils.CheckArgsAndAdvancedSettingMismatch(ch, l2Weight, snapshot.L2Weight, currentArgs.L2Weight, nameof(l2Weight));
+                TrainerUtils.CheckArgsAndAdvancedSettingMismatch(ch, loss, snapshot.LossFunction, currentArgs.LossFunction, nameof(loss));
+                ch.Done();
+            }
         }
 
         protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema)

@@ -29,6 +29,7 @@ namespace Microsoft.ML.StaticPipe
         /// <param name="maxIterations">The maximum number of iterations; set to 1 to simulate online learning.</param>
         /// <param name="initLearningRate">The initial Learning Rate used by SGD.</param>
         /// <param name="l2Weight">The L2 regularization constant.</param>
+        /// <param name="loss">The loss function to use.</param>
         /// <param name="advancedSettings">A delegate to apply all the advanced arguments to the algorithm.</param>
         /// <param name="onFit">A delegate that is called every time the
         /// <see cref="Estimator{TTupleInShape, TTupleOutShape, TTransformer}.Fit(DataView{TTupleInShape})"/> method is called on the
@@ -43,13 +44,14 @@ namespace Microsoft.ML.StaticPipe
             int maxIterations = Arguments.Defaults.MaxIterations,
             double initLearningRate = Arguments.Defaults.InitLearningRate,
             float l2Weight = Arguments.Defaults.L2Weight,
+            ISupportClassificationLossFactory loss = null,
             Action<Arguments> advancedSettings = null,
             Action<IPredictorWithFeatureWeights<float>> onFit = null)
         {
             var rec = new TrainerEstimatorReconciler.BinaryClassifier(
                 (env, labelName, featuresName, weightsName) =>
                 {
-                    var trainer = new StochasticGradientDescentClassificationTrainer(env, featuresName, labelName, weightsName, maxIterations, initLearningRate, l2Weight, advancedSettings);
+                    var trainer = new StochasticGradientDescentClassificationTrainer(env, featuresName, labelName, weightsName, maxIterations, initLearningRate, l2Weight, loss, advancedSettings);
 
                     if (onFit != null)
                         return trainer.WithOnFitDelegate(trans => onFit(trans.Model));
