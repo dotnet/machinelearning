@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Ensemble.OutputCombiners;
@@ -20,10 +21,12 @@ namespace Microsoft.ML.Runtime.Ensemble
 {
     using Stopwatch = System.Diagnostics.Stopwatch;
 
-    public abstract class EnsembleTrainerBase<TOutput, TPredictor, TSelector, TCombiner> : TrainerBase<TPredictor>
-         where TPredictor : class, IPredictorProducing<TOutput>
-         where TSelector : class, ISubModelSelector<TOutput>
-         where TCombiner : class, IOutputCombiner<TOutput>
+    public abstract class EnsembleTrainerBase<TArgs, TTransformer, TModel, TOutput, TSelector, TCombiner> : TrainerEstimatorBase<TTransformer, TModel>
+        where TTransformer : ISingleFeaturePredictionTransformer<TModel>
+        where TModel : class, IPredictorProducing<TOutput>
+        where TSelector : class, ISubModelSelector<TOutput>
+        where TCombiner : class, IOutputCombiner<TOutput>
+        where TArgs : EnsembleTrainerBase<TArgs, TTransformer, TModel, TOutput, TSelector, TCombiner>.ArgumentsBase, new()
     {
         public abstract class ArgumentsBase : LearnerInputBaseWithLabel
         {
@@ -57,6 +60,7 @@ namespace Microsoft.ML.Runtime.Ensemble
         }
 
         private const int DefaultNumModels = 50;
+
         /// <summary> Command-line arguments </summary>
         private protected readonly ArgumentsBase Args;
         private protected readonly int NumModels;
@@ -70,8 +74,8 @@ namespace Microsoft.ML.Runtime.Ensemble
 
         public override TrainerInfo Info { get; }
 
-        private protected EnsembleTrainerBase(ArgumentsBase args, IHostEnvironment env, string name)
-            : base(env, name)
+        private protected EnsembleTrainerBase(IHostEnvironment env, ArgumentsBase args, string name, SchemaShape.Column labelColumn)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(name), TrainerUtils.MakeR4VecFeature(args.FeatureColumn), labelColumn)
         {
             Args = args;
 
@@ -102,7 +106,7 @@ namespace Microsoft.ML.Runtime.Ensemble
             }
         }
 
-        public sealed override TPredictor Train(TrainContext context)
+        protected override TModel TrainModelCore(TrainContext context)
         {
             Host.CheckValue(context, nameof(context));
 
@@ -114,7 +118,7 @@ namespace Microsoft.ML.Runtime.Ensemble
             }
         }
 
-        private TPredictor TrainCore(IChannel ch, RoleMappedData data)
+        private TModel TrainCore(IChannel ch, RoleMappedData data)
         {
             Host.AssertValue(ch);
             ch.AssertValue(data);
@@ -185,7 +189,7 @@ namespace Microsoft.ML.Runtime.Ensemble
             return CreatePredictor(models);
         }
 
-        private protected abstract TPredictor CreatePredictor(List<FeatureSubsetModel<IPredictorProducing<TOutput>>> models);
+        private protected abstract TModel CreatePredictor(List<FeatureSubsetModel<IPredictorProducing<TOutput>>> models);
 
         private bool EnsureMinimumFeaturesSelected(Subset subset)
         {

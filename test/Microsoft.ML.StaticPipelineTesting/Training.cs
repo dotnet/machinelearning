@@ -4,6 +4,7 @@
 
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
+using Microsoft.ML.Runtime.Ensemble;
 using Microsoft.ML.Runtime.FactorizationMachine;
 using Microsoft.ML.Runtime.FastTree;
 using Microsoft.ML.Runtime.Internal.Calibration;
@@ -748,6 +749,126 @@ namespace Microsoft.ML.StaticPipelineTesting
             Assert.InRange(metrics.Ndcg[0], 36.5, 37);
             Assert.InRange(metrics.Ndcg[1], 36.5, 37);
             Assert.InRange(metrics.Ndcg[2], 36.5, 37);
+        }
+
+        [Fact]
+        public void RegressionEnsembleTrainer()
+        {
+            var env = new ConsoleEnvironment(seed: 0);
+            var dataPath = GetDataPath(TestDatasets.generatedRegressionDataset.trainFilename);
+            var dataSource = new MultiFileSource(dataPath);
+
+            var ctx = new RegressionContext(env);
+
+            var reader = TextLoader.CreateReader(env,
+                c => (label: c.LoadFloat(11), features: c.LoadFloat(0, 10)),
+                separator: ';', hasHeader: true);
+
+            IPredictorProducing<float> pred = null;
+
+            var est = reader.MakeNewEstimator()
+                .Append(r => (r.label, score: ctx.Trainers.RegressionEnsembleTrainer(r.label, r.features,
+                    onFit: (p) => { pred = p; })));
+
+            var pipe = reader.Append(est);
+
+            Assert.Null(pred);
+            var model = pipe.Fit(dataSource);
+            Assert.NotNull(pred);
+            // 11 input features, so we ought to have 11 weights.
+            //VBuffer<float> weights = new VBuffer<float>();
+            //pred.GetFeatureWeights(ref weights);
+            //Assert.Equal(11, weights.Length);
+
+            var data = model.Read(dataSource);
+
+            var metrics = ctx.Evaluate(data, r => r.label, r => r.score, new PoissonLoss());
+            // Run a sanity check against a few of the metrics.
+            Assert.InRange(metrics.L1, 0, double.PositiveInfinity);
+            Assert.InRange(metrics.L2, 0, double.PositiveInfinity);
+            Assert.InRange(metrics.Rms, 0, double.PositiveInfinity);
+            Assert.Equal(metrics.Rms * metrics.Rms, metrics.L2, 5);
+            Assert.InRange(metrics.LossFn, 0, double.PositiveInfinity);
+        }
+
+        [Fact]
+        public void EnsembleTrainer()
+        {
+            var env = new ConsoleEnvironment(seed: 0);
+            var dataPath = GetDataPath(TestDatasets.breastCancer.trainFilename);
+            var dataSource = new MultiFileSource(dataPath);
+            var ctx = new BinaryClassificationContext(env);
+
+            var reader = TextLoader.CreateReader(env,
+                c => (label: c.LoadBool(0), features: c.LoadFloat(1, 9)));
+
+            IPredictorProducing<float> pred = null;
+
+            var est = reader.MakeNewEstimator()
+                .Append(r => (r.label, preds: ctx.Trainers.EnsembleTrainer(r.label, r.features,
+                    onFit: (p) => { pred = p; })));
+
+            var pipe = reader.Append(est);
+
+            Assert.Null(pred);
+            var model = pipe.Fit(dataSource);
+            Assert.NotNull(pred);
+
+            // 9 input features, so we ought to have 9 weights.
+            //VBuffer<float> weights = new VBuffer<float>();
+            //pred.GetFeatureWeights(ref weights);
+            //Assert.Equal(9, weights.Length);
+
+            var data = model.Read(dataSource);
+
+            var metrics = ctx.Evaluate(data, r => r.label, r => r.preds);
+            // Run a sanity check against a few of the metrics.
+            Assert.InRange(metrics.Accuracy, 0, 1);
+            Assert.InRange(metrics.Auc, 0, 1);
+            Assert.InRange(metrics.Auprc, 0, 1);
+        }
+
+        [Fact]
+        public void MulticlassDataPartitionEnsembleTrainer()
+        {
+            var env = new ConsoleEnvironment(seed: 0);
+            var dataPath = GetDataPath(TestDatasets.iris.trainFilename);
+            var dataSource = new MultiFileSource(dataPath);
+
+            var ctx = new MulticlassClassificationContext(env);
+            var reader = TextLoader.CreateReader(env,
+                c => (label: c.LoadText(0), features: c.LoadFloat(1, 4)));
+
+            EnsembleMultiClassPredictor pred = null;
+
+            // With a custom loss function we no longer get calibrated predictions.
+            var est = reader.MakeNewEstimator()
+                .Append(r => (label: r.label.ToKey(), r.features))
+                .Append(r => (r.label, preds: ctx.Trainers.MulticlassDataPartitionEnsembleTrainer(
+                    r.label,
+                    r.features, onFit: p => pred = p)));
+
+            var pipe = reader.Append(est);
+
+            Assert.Null(pred);
+            var model = pipe.Fit(dataSource);
+            Assert.NotNull(pred);
+            //VBuffer<float>[] weights = default;
+            //pred.GetWeights(ref weights, out int n);
+            //Assert.True(n == 3 && n == weights.Length);
+            //foreach (var w in weights)
+            //    Assert.True(w.Length == 4);
+
+            var data = model.Read(dataSource);
+
+            // Just output some data on the schema for fun.
+            var schema = data.AsDynamic.Schema;
+            for (int c = 0; c < schema.ColumnCount; ++c)
+                Console.WriteLine($"{schema.GetColumnName(c)}, {schema.GetColumnType(c)}");
+
+            var metrics = ctx.Evaluate(data, r => r.label, r => r.preds, 2);
+            Assert.True(metrics.LogLoss > 0);
+            Assert.True(metrics.TopKAccuracy > 0);
         }
     }
 }
