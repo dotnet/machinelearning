@@ -376,8 +376,7 @@ namespace Microsoft.ML.Scenarios
                     }
                 }, new MultiFileSource(dataPath));
 
-                IDataView trans = new CopyColumnsTransform(env, ("Label", "LabelOriginal")).Transform(loader);
-                trans = CategoricalTransform.Create(env, trans, "Label");
+                IDataView trans = CategoricalTransform.Create(env, loader, "OneHotLabel","Label");
                 trans = NormalizeTransform.CreateMinMaxNormalizer(env, trans, "Features", "Placeholder");
 
                 var args = new TensorFlowTransform.Arguments()
@@ -385,7 +384,8 @@ namespace Microsoft.ML.Scenarios
                     Model = model_location,
                     InputColumns = new[] { "Features" },
                     OutputColumns = new[] { "Prediction", "b" },
-                    LabeLColumn = "Label",
+                    LabelColumn = "OneHotLabel",
+                    TensorFlowLabel = "Label",
                     OptimizationOperation = "SGDOptimizer",
                     LossOperation = "Loss",
                     Epoch = 10,
@@ -397,7 +397,6 @@ namespace Microsoft.ML.Scenarios
 
                 var trainedTfDataView = TensorFlowTransform.Create(env, args, trans);
                 trans = new ConcatTransform(env, "Features", "Prediction").Transform(trainedTfDataView);
-                trans = new CopyColumnsTransform(env, ("LabelOriginal", "Label")).Transform(trans);
 
                 var trainer = new LightGbmMulticlassTrainer(env, "Label", "Features");
 
@@ -496,14 +495,15 @@ namespace Microsoft.ML.Scenarios
                 }, new MultiFileSource(dataPath));
 
                 IDataView trans = new CopyColumnsTransform(env, 
-                    ("Placeholder", "Features"), ("Label", "LabelOriginal")).Transform(loader);
+                    ("Placeholder", "Features")).Transform(loader);
 
                 var args = new TensorFlowTransform.Arguments()
                 {
                     Model = model_location,
                     InputColumns = new[] { "Features" },
                     OutputColumns = new[] { "Prediction" },
-                    LabeLColumn = "Label",
+                    LabelColumn = "Label",
+                    TensorFlowLabel = "Label",
                     OptimizationOperation = "MomentumOp",
                     LossOperation = "Loss",
                     MetricOperation = "Accuracy",
@@ -516,7 +516,7 @@ namespace Microsoft.ML.Scenarios
 
                 var trainedTfDataView = TensorFlowTransform.Create(env, args, trans);
                 trans = new ConcatTransform(env, "Features", "Prediction").Transform(trainedTfDataView);
-                trans = new CopyColumnsTransform(env, ("LabelOriginal", "Label")).Transform(trans);
+                //trans = new CopyColumnsTransform(env, ("LabelOriginal", "Label")).Transform(trans);
                 trans = new ConvertTransform(env, trans, DataKind.R4, "Label");
 
                 var trainer = new LightGbmMulticlassTrainer(env, "Label", "Features");

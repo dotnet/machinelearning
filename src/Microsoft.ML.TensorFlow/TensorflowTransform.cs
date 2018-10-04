@@ -60,59 +60,65 @@ namespace Microsoft.ML.Transforms
             public string[] OutputColumns;
 
             /// <summary>
-            /// The name of the column used as label for training.
+            /// The name of the label column in <see cref="IDataView"/> that will be mapped to label node in TensorFlow model.
             /// </summary>
             [Argument(ArgumentType.AtMostOnce, HelpText = "Training labels.", ShortName = "label", SortOrder = 4)]
-            public string LabeLColumn = DefaultColumnNames.Label;
+            public string LabelColumn;
+
+            /// <summary>
+            /// The name of the label in TensorFlow model.
+            /// </summary>
+            [Argument(ArgumentType.AtMostOnce, HelpText = "TensorFlow label node.", ShortName = "TFLabel", SortOrder = 5)]
+            public string TensorFlowLabel;
 
             /// <summary>
             /// Name of the operation in TensorFlow graph that is used for optimizing parameters in the graph.
             /// Usually it is the name specified in the minimize method of optimizer in python
             /// e.g. optimizer = tf.train.GradientDescentOptimizer(learning_rate).minimize(cost, name = "SGDOptimizer").
             /// </summary>
-            [Argument(ArgumentType.AtMostOnce, HelpText = "The name of the optimization operation in the TensorFlow graph.", ShortName = "OptimizationOp", SortOrder = 4)]
+            [Argument(ArgumentType.AtMostOnce, HelpText = "The name of the optimization operation in the TensorFlow graph.", ShortName = "OptimizationOp", SortOrder = 6)]
             public string OptimizationOperation;
 
             /// <summary>
             /// The name of the operation in the TensorFlow graph to compute training loss (Optional).
             /// </summary>
-            [Argument(ArgumentType.AtMostOnce, HelpText = "The name of the operation in the TensorFlow graph to compute training loss (Optional)", ShortName = "LossOp", SortOrder = 5)]
+            [Argument(ArgumentType.AtMostOnce, HelpText = "The name of the operation in the TensorFlow graph to compute training loss (Optional)", ShortName = "LossOp", SortOrder = 7)]
             public string LossOperation;
 
             /// <summary>
             /// The name of the operation in the TensorFlow graph to compute performance metric during training (Optional).
             /// </summary>
-            [Argument(ArgumentType.AtMostOnce, HelpText = "The name of the operation in the TensorFlow graph to compute performance metric during training (Optional)", ShortName = "MetricOp", SortOrder = 6)]
+            [Argument(ArgumentType.AtMostOnce, HelpText = "The name of the operation in the TensorFlow graph to compute performance metric during training (Optional)", ShortName = "MetricOp", SortOrder = 8)]
             public string MetricOperation;
 
             /// <summary>
             /// Number of samples to use for mini-batch training.
             /// </summary>
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Number of samples to use for mini-batch training.", SortOrder = 7)]
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Number of samples to use for mini-batch training.", SortOrder = 9)]
             public int BatchSize = 64;
 
             /// <summary>
             /// Number of training iterations.
             /// </summary>
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Number of training iterations.", SortOrder = 8)]
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Number of training iterations.", SortOrder = 10)]
             public int Epoch = 5;
 
             /// <summary>
             /// The name of the operation in the TensorFlow graph which sets optimizer learning rate (Optional).
             /// </summary>
-            [Argument(ArgumentType.AtMostOnce, HelpText = "The name of the operation in the TensorFlow graph which sets optimizer learning rate (Optional).", SortOrder = 9)]
+            [Argument(ArgumentType.AtMostOnce, HelpText = "The name of the operation in the TensorFlow graph which sets optimizer learning rate (Optional).", SortOrder = 11)]
             public string LearningRateOperation;
 
             /// <summary>
             /// Learning rate to use during optimization.
             /// </summary>
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Learning rate to use during optimization.", SortOrder = 10)]
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Learning rate to use during optimization.", SortOrder = 12)]
             public float LearningRate = 0.01f;
 
             /// <summary>
             /// Shuffle training data on each iteration?
             /// </summary>
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Shuffle data before each iteration.", SortOrder = 11)]
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Shuffle data before each iteration.", SortOrder = 13)]
             public bool Shuffle = true;
 
             /// <summary>
@@ -121,7 +127,7 @@ namespace Microsoft.ML.Transforms
             /// Therefore, its highly unlikely that this parameter is changed from its default value of 'save/Const'.
             /// Please change it cautiously if you need to.
             /// </summary>
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Name of the input in TensorFlow graph that specifiy the location for saving/restoring models from disk.", SortOrder = 12)]
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Name of the input in TensorFlow graph that specifiy the location for saving/restoring models from disk.", SortOrder = 14)]
             public string SaveLocationOperation = "save/Const";
 
             /// <summary>
@@ -130,13 +136,13 @@ namespace Microsoft.ML.Transforms
             /// Therefore, its highly unlikely that this parameter is changed from its default value of 'save/control_dependency'.
             /// Please change it cautiously if you need to.
             /// </summary>
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Name of the input in TensorFlow graph that specifiy the location for saving/restoring models from disk.", SortOrder = 13)]
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Name of the input in TensorFlow graph that specifiy the location for saving/restoring models from disk.", SortOrder = 15)]
             public string SaveOperation = "save/control_dependency";
 
             /// <summary>
             /// Needed for command line to specify if retraining is requested.
             /// </summary>
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Retrain TensorFlow model.", SortOrder = 15)]
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Retrain TensorFlow model.", SortOrder = 16)]
             public bool ReTrain = false;
         }
 
@@ -300,9 +306,9 @@ namespace Microsoft.ML.Transforms
             if (Session.Graph[args.OptimizationOperation] == null)
                 throw _host.ExceptParam(nameof(args.OptimizationOperation), $"Optimization operation '{args.OptimizationOperation}' does not exist in the model");
 
-            _host.CheckNonWhiteSpace(args.LabeLColumn, nameof(args.LabeLColumn));
-            if (Session.Graph[args.LabeLColumn] == null)
-                throw _host.ExceptParam(nameof(args.LabeLColumn), $"'{args.LabeLColumn}' does not exist in the model");
+            _host.CheckNonWhiteSpace(args.TensorFlowLabel, nameof(args.TensorFlowLabel));
+            if (Session.Graph[args.TensorFlowLabel] == null)
+                throw _host.ExceptParam(nameof(args.TensorFlowLabel), $"'{args.TensorFlowLabel}' does not exist in the model");
 
             _host.CheckNonWhiteSpace(args.SaveLocationOperation, nameof(args.SaveLocationOperation));
             if (Session.Graph[args.SaveLocationOperation] == null)
@@ -334,6 +340,33 @@ namespace Microsoft.ML.Transforms
             }
         }
 
+        private (int, bool, TFDataType, TFShape) GetInputMetaData(ISchema inputSchema, string columnName, string tfNodeName, int batchSize)
+        {
+            if (!inputSchema.TryGetColumnIndex(columnName, out int inputColIndices))
+                throw _host.Except($"Column {columnName} doesn't exist");
+
+            var type = inputSchema.GetColumnType(inputColIndices);
+            var isInputVector = type.IsVector;
+
+            var tfInput = new TFOutput(Graph[tfNodeName]);
+            var tfInputType = tfInput.OutputType;
+            var tfInputShape = Graph.GetTensorShape(tfInput);
+            if (tfInputShape.NumDimensions != -1)
+            {
+                var newShape = new long[tfInputShape.NumDimensions];
+                newShape[0] = tfInputShape[0] == -1 ? batchSize : tfInputShape[0];
+
+                for (int j = 1; j < tfInputShape.NumDimensions; j++)
+                    newShape[j] = tfInputShape[j];
+                tfInputShape = new TFShape(newShape);
+            }
+
+            var expectedType = TensorFlowUtils.Tf2MlNetType(tfInputType);
+            if (type.ItemType != expectedType)
+                throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", columnName, expectedType.ToString(), type.ToString());
+
+            return (inputColIndices, isInputVector, tfInputType, tfInputShape);
+        }
         private void TrainCore(Arguments args, string model, IDataView input)
         {
             var inputsForTraining = new string[Inputs.Length + 1];
@@ -347,34 +380,17 @@ namespace Microsoft.ML.Transforms
                 inputsForTraining[i] = Inputs[i];
             }
 
-            inputsForTraining[inputsForTraining.Length - 1] = args.LabeLColumn;
-
             var inputSchema = input.Schema;
-            for (int i = 0; i < inputsForTraining.Length; i++)
+            for (int i = 0; i < inputsForTraining.Length - 1; i++)
             {
-                if (!inputSchema.TryGetColumnIndex(inputsForTraining[i], out inputColIndices[i]))
-                    throw _host.Except($"Column {inputsForTraining[i]} doesn't exist");
-
-                var type = inputSchema.GetColumnType(inputColIndices[i]);
-                isInputVector[i] = type.IsVector;
-
-                var tfInput = new TFOutput(Graph[inputsForTraining[i]]);
-                tfInputTypes[i] = tfInput.OutputType;
-                tfInputShapes[i] = Graph.GetTensorShape(tfInput);
-                if (tfInputShapes[i].NumDimensions != -1)
-                {
-                    var newShape = new long[tfInputShapes[i].NumDimensions];
-                    newShape[0] = tfInputShapes[i][0] == -1 ? args.BatchSize : tfInputShapes[i][0];
-
-                    for (int j = 1; j < tfInputShapes[i].NumDimensions; j++)
-                        newShape[j] = tfInputShapes[i][j];
-                    tfInputShapes[i] = new TFShape(newShape);
-                }
-
-                var expectedType = TensorFlowUtils.Tf2MlNetType(tfInputTypes[i]);
-                if (type.ItemType != expectedType)
-                    throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", inputsForTraining[i], expectedType.ToString(), type.ToString());
+                (inputColIndices[i], isInputVector[i], tfInputTypes[i], tfInputShapes[i]) =
+                    GetInputMetaData(inputSchema, inputsForTraining[i], inputsForTraining[i],args.BatchSize);
             }
+
+            var index = inputsForTraining.Length - 1;
+            inputsForTraining[index] = args.TensorFlowLabel;
+            (inputColIndices[index], isInputVector[index], tfInputTypes[index], tfInputShapes[index]) =
+                    GetInputMetaData(inputSchema, args.LabelColumn, inputsForTraining[index], args.BatchSize);
 
             var fetchList = new List<string>();
             if (args.LossOperation != null)

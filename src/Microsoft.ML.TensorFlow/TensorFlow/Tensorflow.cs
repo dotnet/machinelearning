@@ -290,7 +290,7 @@ namespace Microsoft.ML.Transforms.TensorFlow
 
         // extern void TF_DeleteStatus (TF_Status *);
         [DllImport(NativeBinding.TensorFlowLibrary)]
-        internal static extern unsafe void TF_DeleteStatus(TF_Status status);
+        private static extern unsafe void TF_DeleteStatus(TF_Status status);
 
         internal override void NativeDispose(IntPtr handle)
         {
@@ -313,7 +313,7 @@ namespace Microsoft.ML.Transforms.TensorFlow
 
         // extern TF_Code TF_GetCode (const TF_Status *s);
         [DllImport(NativeBinding.TensorFlowLibrary)]
-        internal static extern unsafe TFCode TF_GetCode(TF_Status s);
+        private static extern unsafe TFCode TF_GetCode(TF_Status s);
 
         /// <summary>
         /// Gets the status code for the status code.

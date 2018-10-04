@@ -21773,7 +21773,7 @@
           "IsNullable": false
         },
         {
-          "Name": "LabeLColumn",
+          "Name": "LabelColumn",
           "Type": "String",
           "Desc": "Training labels.",
           "Aliases": [
@@ -21782,7 +21782,19 @@
           "Required": false,
           "SortOrder": 4.0,
           "IsNullable": false,
-          "Default": "Label"
+          "Default": null
+        },
+        {
+          "Name": "TensorFlowLabel",
+          "Type": "String",
+          "Desc": "TensorFlow label node.",
+          "Aliases": [
+            "TFLabel"
+          ],
+          "Required": false,
+          "SortOrder": 5.0,
+          "IsNullable": false,
+          "Default": null
         },
         {
           "Name": "OptimizationOperation",
@@ -21792,7 +21804,7 @@
             "OptimizationOp"
           ],
           "Required": false,
-          "SortOrder": 4.0,
+          "SortOrder": 6.0,
           "IsNullable": false,
           "Default": null
         },
@@ -21804,7 +21816,7 @@
             "LossOp"
           ],
           "Required": false,
-          "SortOrder": 5.0,
+          "SortOrder": 7.0,
           "IsNullable": false,
           "Default": null
         },
@@ -21816,7 +21828,7 @@
             "MetricOp"
           ],
           "Required": false,
-          "SortOrder": 6.0,
+          "SortOrder": 8.0,
           "IsNullable": false,
           "Default": null
         },
@@ -21825,7 +21837,7 @@
           "Type": "Int",
           "Desc": "Number of samples to use for mini-batch training.",
           "Required": false,
-          "SortOrder": 7.0,
+          "SortOrder": 9.0,
           "IsNullable": false,
           "Default": 64
         },
@@ -21834,7 +21846,7 @@
           "Type": "Int",
           "Desc": "Number of training iterations.",
           "Required": false,
-          "SortOrder": 8.0,
+          "SortOrder": 10.0,
           "IsNullable": false,
           "Default": 5
         },
@@ -21843,7 +21855,7 @@
           "Type": "String",
           "Desc": "The name of the operation in the TensorFlow graph which sets optimizer learning rate (Optional).",
           "Required": false,
-          "SortOrder": 9.0,
+          "SortOrder": 11.0,
           "IsNullable": false,
           "Default": null
         },
@@ -21852,7 +21864,7 @@
           "Type": "Float",
           "Desc": "Learning rate to use during optimization.",
           "Required": false,
-          "SortOrder": 10.0,
+          "SortOrder": 12.0,
           "IsNullable": false,
           "Default": 0.01
         },
@@ -21861,7 +21873,7 @@
           "Type": "Bool",
           "Desc": "Shuffle data before each iteration.",
           "Required": false,
-          "SortOrder": 11.0,
+          "SortOrder": 13.0,
           "IsNullable": false,
           "Default": true
         },
@@ -21870,7 +21882,7 @@
           "Type": "String",
           "Desc": "Name of the input in TensorFlow graph that specifiy the location for saving/restoring models from disk.",
           "Required": false,
-          "SortOrder": 12.0,
+          "SortOrder": 14.0,
           "IsNullable": false,
           "Default": "save/Const"
         },
@@ -21879,7 +21891,7 @@
           "Type": "String",
           "Desc": "Name of the input in TensorFlow graph that specifiy the location for saving/restoring models from disk.",
           "Required": false,
-          "SortOrder": 13.0,
+          "SortOrder": 15.0,
           "IsNullable": false,
           "Default": "save/control_dependency"
         },
@@ -21888,7 +21900,7 @@
           "Type": "Bool",
           "Desc": "Retrain TensorFlow model.",
           "Required": false,
-          "SortOrder": 15.0,
+          "SortOrder": 16.0,
           "IsNullable": false,
           "Default": false
         }

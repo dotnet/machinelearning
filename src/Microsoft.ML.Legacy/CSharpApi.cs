@@ -15804,7 +15804,12 @@ namespace Microsoft.ML
             /// <summary>
             /// Training labels.
             /// </summary>
-            public string LabeLColumn { get; set; } = "Label";
+            public string LabelColumn { get; set; }
+
+            /// <summary>
+            /// TensorFlow label node.
+            /// </summary>
+            public string TensorFlowLabel { get; set; }
 
             /// <summary>
             /// The name of the optimization operation in the TensorFlow graph.

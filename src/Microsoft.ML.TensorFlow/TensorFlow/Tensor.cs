@@ -436,13 +436,15 @@ namespace Microsoft.ML.Transforms.TensorFlow
             // Clear offset table
             IntPtr dst = TF_TensorData(handle);
             Marshal.WriteInt64(dst, 0);
-            var status = new TFStatus();
-            fixed (byte* src = &buffer[0])
+            using (var status = new TFStatus())
             {
-                TF_StringEncode(src, (UIntPtr)buffer.Length, (sbyte*)(dst + 8), size, status.handle);
-                var ok = status.StatusCode == TFCode.Ok;
-                if (!ok)
-                    return null;
+                fixed (byte* src = &buffer[0])
+                {
+                    TF_StringEncode(src, (UIntPtr)buffer.Length, (sbyte*)(dst + 8), size, status.handle);
+                    var ok = status.StatusCode == TFCode.Ok;
+                    if (!ok)
+                        return null;
+                }
             }
             return new TFTensor(handle);
         }
