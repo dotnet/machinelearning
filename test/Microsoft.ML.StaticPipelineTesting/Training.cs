@@ -629,8 +629,8 @@ namespace Microsoft.ML.StaticPipelineTesting
             var loss = new SquaredLoss();
 
             var est = reader.MakeNewEstimator()
-                .Append(r => (r.label, score: ctx.Trainers.OnlineGradientDescent(r.label, r.features, 
-               // lossFunction:loss,
+                .Append(r => (r.label, score: ctx.Trainers.OnlineGradientDescent(r.label, r.features,
+                // lossFunction:loss,
                 onFit: (p) => { pred = p; })));
 
             var pipe = reader.Append(est);
@@ -748,6 +748,51 @@ namespace Microsoft.ML.StaticPipelineTesting
             Assert.InRange(metrics.Ndcg[0], 36.5, 37);
             Assert.InRange(metrics.Ndcg[1], 36.5, 37);
             Assert.InRange(metrics.Ndcg[2], 36.5, 37);
+        }
+
+        [Fact]
+        public void MultiClassNaiveBayesTrainer()
+        {
+            var env = new ConsoleEnvironment(seed: 0);
+            var dataPath = GetDataPath(TestDatasets.iris.trainFilename);
+            var dataSource = new MultiFileSource(dataPath);
+
+            var ctx = new MulticlassClassificationContext(env);
+            var reader = TextLoader.CreateReader(env,
+                c => (label: c.LoadText(0), features: c.LoadFloat(1, 4)));
+
+            MultiClassNaiveBayesPredictor pred = null;
+
+            // With a custom loss function we no longer get calibrated predictions.
+            var est = reader.MakeNewEstimator()
+                .Append(r => (label: r.label.ToKey(), r.features))
+                .Append(r => (r.label, preds: ctx.Trainers.MultiClassNaiveBayesTrainer(
+                    r.label,
+                    r.features, onFit: p => pred = p)));
+
+            var pipe = reader.Append(est);
+
+            Assert.Null(pred);
+            var model = pipe.Fit(dataSource);
+            Assert.NotNull(pred);
+            int[] labelHistogram = default;
+            int[][] featureHistogram = default;
+            pred.GetLabelHistogram(ref labelHistogram, out int labelCount1);
+            pred.GetFeatureHistogram(ref featureHistogram, out int labelCount2, out int featureCount);
+            Assert.True(labelCount1 == 3 && labelCount1 == labelCount2 && labelCount1 <= labelHistogram.Length);
+            for (int i = 0; i < labelCount1; i++)
+                Assert.True(featureCount == 4 && (featureCount <= featureHistogram[i].Length));
+
+            var data = model.Read(dataSource);
+
+            // Just output some data on the schema for fun.
+            var schema = data.AsDynamic.Schema;
+            for (int c = 0; c < schema.ColumnCount; ++c)
+                Console.WriteLine($"{schema.GetColumnName(c)}, {schema.GetColumnType(c)}");
+
+            var metrics = ctx.Evaluate(data, r => r.label, r => r.preds, 2);
+            Assert.True(metrics.LogLoss > 0);
+            Assert.True(metrics.TopKAccuracy > 0);
         }
 
         [Fact]

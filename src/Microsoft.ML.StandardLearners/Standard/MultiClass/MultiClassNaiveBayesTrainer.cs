@@ -2,8 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Linq;
+using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
@@ -12,6 +11,9 @@ using Microsoft.ML.Runtime.Learners;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.Training;
 using Microsoft.ML.Runtime.Internal.Internallearn;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
 [assembly: LoadableClass(MultiClassNaiveBayesTrainer.Summary, typeof(MultiClassNaiveBayesTrainer), typeof(MultiClassNaiveBayesTrainer.Arguments),
     new[] { typeof(SignatureMultiClassClassifierTrainer), typeof(SignatureTrainer) },
@@ -22,12 +24,12 @@ using Microsoft.ML.Runtime.Internal.Internallearn;
 [assembly: LoadableClass(typeof(MultiClassNaiveBayesPredictor), null, typeof(SignatureLoadModel),
     "Multi Class Naive Bayes predictor", MultiClassNaiveBayesPredictor.LoaderSignature)]
 
-[assembly: LoadableClass(typeof(void), typeof(MultiClassNaiveBayesTrainer), null, typeof(SignatureEntryPointModule), "MultiClassNaiveBayes")]
+[assembly: LoadableClass(typeof(void), typeof(MultiClassNaiveBayesTrainer), null, typeof(SignatureEntryPointModule), MultiClassNaiveBayesTrainer.LoadName)]
 
 namespace Microsoft.ML.Runtime.Learners
 {
     /// <include file='doc.xml' path='doc/members/member[@name="MultiClassNaiveBayesTrainer"]' />
-    public sealed class MultiClassNaiveBayesTrainer : TrainerBase<MultiClassNaiveBayesPredictor>
+    public sealed class MultiClassNaiveBayesTrainer : TrainerEstimatorBase<MulticlassPredictionTransformer<MultiClassNaiveBayesPredictor>, MultiClassNaiveBayesPredictor>
     {
         public const string LoadName = "MultiClassNaiveBayes";
         internal const string UserName = "Multiclass Naive Bayes";
@@ -43,13 +45,52 @@ namespace Microsoft.ML.Runtime.Learners
         private static readonly TrainerInfo _info = new TrainerInfo(normalization: false, caching: false);
         public override TrainerInfo Info => _info;
 
-        public MultiClassNaiveBayesTrainer(IHostEnvironment env, Arguments args)
-            : base(env, LoadName)
+        /// <summary>
+        /// Initializes a new instance of <see cref="MultiClassNaiveBayesTrainer"/>
+        /// </summary>
+        /// <param name="env">The environment to use.</param>
+        /// <param name="labelColumn">The name of the label column.</param>
+        /// <param name="featureColumn">The name of the feature column.</param>
+        public MultiClassNaiveBayesTrainer(IHostEnvironment env, string featureColumn, string labelColumn)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(LoadName), TrainerUtils.MakeR4VecFeature(featureColumn),
+                  TrainerUtils.MakeU4ScalarLabel(labelColumn))
+        {
+            Host.CheckNonEmpty(featureColumn, nameof(featureColumn));
+            Host.CheckNonEmpty(labelColumn, nameof(labelColumn));
+        }
+
+        /// <summary>
+        /// Initializes a new instance of <see cref="MultiClassNaiveBayesTrainer"/>
+        /// </summary>
+        internal MultiClassNaiveBayesTrainer(IHostEnvironment env, Arguments args)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(LoadName), TrainerUtils.MakeR4VecFeature(args.FeatureColumn),
+                  TrainerUtils.MakeU4ScalarLabel(args.LabelColumn))
         {
             Host.CheckValue(args, nameof(args));
         }
 
-        public override MultiClassNaiveBayesPredictor Train(TrainContext context)
+        protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema)
+        {
+            bool success = inputSchema.TryFindColumn(LabelColumn.Name, out var labelCol);
+            Contracts.Assert(success);
+
+            var scoreMetadata = new List<SchemaShape.Column>() { new SchemaShape.Column(MetadataUtils.Kinds.SlotNames, SchemaShape.Column.VectorKind.Vector, TextType.Instance, false) };
+            scoreMetadata.AddRange(MetadataUtils.GetTrainerOutputMetadata());
+
+            var predLabelMetadata = new SchemaShape(labelCol.Metadata.Columns.Where(x => x.Name == MetadataUtils.Kinds.KeyValues)
+                .Concat(MetadataUtils.GetTrainerOutputMetadata()));
+
+            return new[]
+            {
+                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Vector, NumberType.R4, false, new SchemaShape(scoreMetadata)),
+                new SchemaShape.Column(DefaultColumnNames.PredictedLabel, SchemaShape.Column.VectorKind.Scalar, NumberType.U4, true, predLabelMetadata)
+            };
+        }
+
+        protected override MulticlassPredictionTransformer<MultiClassNaiveBayesPredictor> MakeTransformer(MultiClassNaiveBayesPredictor model, ISchema trainSchema)
+            => new MulticlassPredictionTransformer<MultiClassNaiveBayesPredictor>(Host, model, trainSchema, FeatureColumn.Name, LabelColumn.Name);
+
+        protected override MultiClassNaiveBayesPredictor TrainModelCore(TrainContext context)
         {
             Host.CheckValue(context, nameof(context));
             var data = context.TrainingSet;
@@ -169,6 +210,40 @@ namespace Microsoft.ML.Runtime.Learners
         public ColumnType InputType => _inputType;
 
         public ColumnType OutputType => _outputType;
+
+        /// <summary>
+        /// Copies the label histogram into a buffer.
+        /// </summary>
+        /// <param name="labelHistogram">A possibly reusable array, which will
+        /// be expanded as necessary to accomodate the data.</param>
+        /// <param name="labelCount">Set to the length of the resized array, which is also the number of different labels.</param>
+        public void GetLabelHistogram(ref int[] labelHistogram, out int labelCount)
+        {
+            labelCount = _labelCount;
+            Utils.EnsureSize(ref labelHistogram, _labelCount);
+            Array.Copy(_labelHistogram, labelHistogram, _labelCount);
+        }
+
+        /// <summary>
+        /// Copies the feature histogram into a buffer.
+        /// </summary>
+        /// <param name="featureHistogram">A possibly reusable array, which will
+        /// be expanded as necessary to accomodate the data.</param>
+        /// <param name="labelCount">Set to the first dimension of the resized array,
+        /// which is the number of different labels encountered in training.</param>
+        /// <param name="featureCount">Set to the second dimension of the resized array,
+        /// which is also the number of different feature combinations encountered in training.</param>
+        public void GetFeatureHistogram(ref int[][] featureHistogram, out int labelCount, out int featureCount)
+        {
+            labelCount = _labelCount;
+            featureCount = _featureCount;
+            Utils.EnsureSize(ref featureHistogram, _labelCount);
+            for(int i = 0; i < _labelCount; i++)
+            {
+                Utils.EnsureSize(ref featureHistogram[i], _featureCount);
+                Array.Copy(_featureHistogram[i], featureHistogram[i], _featureCount);
+            }
+        }
 
         internal MultiClassNaiveBayesPredictor(IHostEnvironment env, int[] labelHistogram, int[][] featureHistogram, int featureCount)
             : base(env, LoaderSignature)

@@ -89,6 +89,18 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             Done();
         }
 
+        /// <summary>
+        /// MultiClassNaiveBayes TrainerEstimator test 
+        /// </summary>
+        [Fact]
+        public void TestEstimatorMultiClassNaiveBayesTrainer()
+        {
+            (IEstimator<ITransformer> pipe, IDataView dataView) = GetMultiClassPipeline();
+            pipe.Append(new MultiClassNaiveBayesTrainer(Env, "Features", "Label"));
+            TestEstimatorCore(pipe, dataView);
+            Done();
+        }
+
         private (IEstimator<ITransformer>, IDataView) GetBinaryClassificationPipeline()
         {
             var data = new TextLoader(Env,
