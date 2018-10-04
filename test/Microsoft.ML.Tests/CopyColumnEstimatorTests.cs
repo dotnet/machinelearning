@@ -7,6 +7,7 @@ using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.Tools;
+using Microsoft.ML.Transforms;
 using System;
 using System.IO;
 using Xunit;
