@@ -268,7 +268,7 @@ namespace Microsoft.ML.Transforms.TensorFlow
     {
         // extern TF_Status * TF_NewStatus ();
         [DllImport(NativeBinding.TensorFlowLibrary)]
-        internal static extern unsafe TF_Status TF_NewStatus();
+        private static extern unsafe TF_Status TF_NewStatus();
 
         /// <summary>
         /// Per-thread global status that you can use if you do not need to create a new instance of this object.
@@ -2243,20 +2243,5 @@ namespace Microsoft.ML.Transforms.TensorFlow
         {
             return shape.AsTensor();
         }
-    }
-
-    internal class TFString
-    {
-        // extern size_t TF_StringEncode (const char *src, size_t src_len, char *dst, size_t dst_len, TF_Status *status);
-        [DllImport(NativeBinding.TensorFlowLibrary)]
-        internal static extern unsafe size_t TF_StringEncode(byte* src, size_t src_len, sbyte* dst, size_t dst_len, TF_Status status);
-
-        // extern size_t TF_StringDecode (const char *src, size_t src_len, const char **dst, size_t *dst_len, TF_Status *status);
-        [DllImport(NativeBinding.TensorFlowLibrary)]
-        internal static extern unsafe size_t TF_StringDecode(sbyte* src, size_t src_len, sbyte** dst, size_t* dst_len, TF_Status status);
-
-        // extern size_t TF_StringEncodedSize (size_t len);
-        [DllImport(NativeBinding.TensorFlowLibrary)]
-        internal static extern size_t TF_StringEncodedSize(size_t len);
     }
 }
