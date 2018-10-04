@@ -6,20 +6,20 @@ In this document, we give a brief overview of the ML.NET high-level concepts. Th
 
 This document is going to cover the following ML.NET concepts:
 
-- *Data*, represented as an `IDataView` interface.
+- [*Data*](#data), represented as an `IDataView` interface.
   - In ML.NET, data is very similar to a SQL view: it's a lazily-evaluated, immutable, cursorable, heterogenous, schematized dataset. 
   - An excellent document about the data interface is [IDataView Design Principles](IDataViewDesignPrinciples.md).
-- *Transformer*, represented as `ITransformer` interface.
+- [*Transformer*](#transformer), represented as `ITransformer` interface.
   - In one sentence, a transformer is a component that takes data, does some work on it, and return new 'transformed' data.
   - For example, you can think of a machine learning model as a transformer that takes features and returns predictions.
   - Another example, 'text tokenizer' would take a single text column and output a vector column with individual 'words' extracted out of the texts.
-- *Data reader*, represented as an `IDataReader<T>` interface.
+- [*Data reader*](#data-reader), represented as an `IDataReader<T>` interface.
   - The data reader is ML.NET component to 'create' data: it takes an instance of `T` and returns data out of it. 
   - For example, a *TextLoader* is an `IDataReader<FileSource>`: it takes the file source and produces data. 
-- *Estimator*, represented as an `IEstimator<T>` interface.
+- [*Estimator*](#estimator), represented as an `IEstimator<T>` interface.
   - This is an object that learns from data. The result of the learning is a *transformer*.
   - You can think of a machine learning *algorithm* as an estimator that learns on data and produces a machine learning *model* (which is a transformer).
-- *Prediction function*, represented as a `PredictionFunction<TSrc, TDst>` class.
+- [*Prediction function*](#prediction-function), represented as a `PredictionFunction<TSrc, TDst>` class.
   - The prediction function can be seen as a machine that applies a transformer to one 'row', such as at prediction time.
 
 ## Data
