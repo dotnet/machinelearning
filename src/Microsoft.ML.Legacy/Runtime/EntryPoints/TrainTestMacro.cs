@@ -122,9 +122,9 @@ namespace Microsoft.ML.Runtime.EntryPoints
             // Parse the subgraph.
             var subGraphRunContext = new RunContext(env);
             var subGraphNodes = EntryPointNode.ValidateNodes(env, subGraphRunContext, input.Nodes, label: input.LabelColumn,
-                group: input.GroupColumn.IsExplicit ? input.GroupColumn.Value : null,
-                weight: input.WeightColumn.IsExplicit ? input.WeightColumn.Value : null,
-                name: input.NameColumn.IsExplicit ? input.NameColumn.Value : null);
+                input.GroupColumn.IsExplicit ? input.GroupColumn.Value : null,
+                input.WeightColumn.IsExplicit ? input.WeightColumn.Value : null,
+                input.NameColumn.IsExplicit ? input.NameColumn.Value : null);
 
             // Change the subgraph to use the training data as input.
             var varName = input.Inputs.Data.VarName;

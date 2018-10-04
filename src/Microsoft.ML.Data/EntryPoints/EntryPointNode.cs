@@ -588,7 +588,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
             {
                 var entryPointNode = new EntryPointNode(env, ch, context, context.GenerateId(entryPointName), entryPointName,
                     inputBuilder.GetJsonObject(arguments, inputBindingMap, inputMap),
-                    outputHelper.GetJsonObject(outputMap), checkpoint, stageId: stageId, cost: cost);
+                    outputHelper.GetJsonObject(outputMap), checkpoint, stageId, cost);
 
                 ch.Done();
                 return entryPointNode;
@@ -929,7 +929,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
                         ch.Warning("Node '{0}' has unexpected fields that are ignored: {1}", id, string.Join(", ", unexpectedFields.Select(x => x.Name)));
                     }
 
-                    result.Add(new EntryPointNode(env, ch, context, id, nodeName, inputs, outputs, checkpoint, stageId: stageId, cost: cost, label: label, group: group, weight: weight, name: name));
+                    result.Add(new EntryPointNode(env, ch, context, id, nodeName, inputs, outputs, checkpoint, stageId, cost, label, group, weight, name));
                 }
 
                 ch.Done();
