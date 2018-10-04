@@ -1,4 +1,8 @@
-﻿using Microsoft.ML.Core.Data;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
@@ -654,9 +658,8 @@ namespace Microsoft.ML.Transforms
         /// Convinence constructor for simple one column case
         /// </summary>
         /// <param name="env">Host Environment.</param>
-
-        /// <param name="inputColumn">Name of the output column.</param>
-        /// <param name="outputColumn">Name of the column to be transformed. If this is null '<paramref name="inputColumn"/>' will be used.</param>
+        /// <param name="inputColumn">Name of the column to be transformed.</param>
+        /// <param name="outputColumn">Name of the output column. If this is null '<paramref name="inputColumn"/>' will be used.</param>
         /// <param name="newDim">The number of random Fourier features to create.</param>
         /// <param name="useSin">Create two features for every random Fourier frequency? (one for cos and one for sin).</param>
         public RffEstimator(IHostEnvironment env, string inputColumn, string outputColumn = null, int newDim = Defaults.NewDim, bool useSin = Defaults.UseSin)
@@ -752,7 +755,6 @@ namespace Microsoft.ML.Transforms
         /// <param name="useSin">Create two features for every random Fourier frequency? (one for cos and one for sin) </param>
         /// <param name="generator">Which kernel to use. (<see cref="GaussianFourierSampler"/> by default)</param>
         /// <param name="seed">The seed of the random number generator for generating the new features. If not specified global random would be used.</param>
-        /// <returns></returns>
         public static Vector<float> LowerVectorSizeWithRandomFourierTransformation(this Vector<float> input,
             int newDim = RffEstimator.Defaults.NewDim, bool useSin = RffEstimator.Defaults.UseSin,
             IComponentFactory<float, IFourierDistributionSampler> generator = null, int? seed = null)
@@ -761,5 +763,4 @@ namespace Microsoft.ML.Transforms
             return new ImplVector<string>(input, new Config(newDim, useSin, generator, seed));
         }
     }
-
 }
