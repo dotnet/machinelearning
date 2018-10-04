@@ -578,9 +578,7 @@ namespace Microsoft.ML.Runtime.RunTests
                     }
 
                     count++;
-
-                    if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                        GetNumbersFromFile(ref line1, ref line2, digitsOfPrecision);
+                    GetNumbersFromFile(ref line1, ref line2, digitsOfPrecision);
 
                     if (line1 != line2)
                     {
