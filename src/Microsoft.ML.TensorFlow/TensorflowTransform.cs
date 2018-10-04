@@ -288,10 +288,9 @@ namespace Microsoft.ML.Transforms
 
                 CheckParameters(args);
 
-                if (TensorFlowUtils.IsSavedModel(env, args.Model))
-                    TrainCore(args, args.Model, input);
-                else
+                if (!TensorFlowUtils.IsSavedModel(env, args.Model))
                     throw env.ExceptNotSupp("TensorFlowTransform: Re-Training of TensorFlow model is only supported for un-frozen model.");
+                TrainCore(args, args.Model, input);
             }
         }
 
@@ -392,26 +391,24 @@ namespace Microsoft.ML.Transforms
 
                     float loss=0;
                     float metric=0;
-                    long rows = 0;
                     bool isDataLeft = false;
                     using (var ch = _host.Start("Training TensorFlow model..."))
                     using (var pch = _host.StartProgressChannel("TensorFlow training progress..."))
                     {
                         pch.SetHeader(new ProgressHeader("Epoch"), (e) => e.SetProgress(0, epoch));
                         if (args.LossOperation != null)
-                            pch.SetHeader(new ProgressHeader("Average Loss"), (e) => e.SetProgress(1, loss / (rows / args.BatchSize)));
+                            pch.SetHeader(new ProgressHeader("Average Loss"), (e) => e.SetProgress(1, loss / ((cursor.Position + 1) / args.BatchSize)));
                         if (args.MetricOperation != null)
-                            pch.SetHeader(new ProgressHeader("Average Metric"), (e) => e.SetProgress(2, metric / (rows / args.BatchSize)));
+                            pch.SetHeader(new ProgressHeader("Average Metric"), (e) => e.SetProgress(2, metric / ((cursor.Position + 1) / args.BatchSize)));
                         while (cursor.MoveNext())
                         {
-                            rows++;
                             for (int i = 0; i < inputColIndices.Length; i++)
                             {
                                 isDataLeft = true;
                                 srcTensorGetters[i].BufferTrainingData();
                             }
 
-                            if ((rows % args.BatchSize) == 0)
+                            if (((cursor.Position + 1) % args.BatchSize) == 0)
                             {
                                 isDataLeft = false;
                                 var (l, m) = TrainBatch(inputColIndices, inputsForTraining, srcTensorGetters, fetchList, args);
@@ -525,8 +522,7 @@ namespace Microsoft.ML.Transforms
         {
             if (isVector)
                 return new TensorValueGetterVec<T>(input, colIndex, tfShape);
-            else
-                return new TensorValueGetter<T>(input, colIndex, tfShape);
+            return new TensorValueGetter<T>(input, colIndex, tfShape);
         }
 
         private static ITensorValueGetter CreateTensorValueGetter(IRow input, TFDataType tfType, bool isVector, int colIndex, TFShape tfShape)
