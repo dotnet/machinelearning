@@ -220,7 +220,7 @@ namespace Microsoft.ML.Runtime.Learners
         public void GetLabelHistogram(ref int[] labelHistogram, out int labelCount)
         {
             labelCount = _labelCount;
-            Utils.EnsureSize(ref labelHistogram, _labelCount, _labelCount);
+            Utils.EnsureSize(ref labelHistogram, _labelCount);
             Array.Copy(_labelHistogram, labelHistogram, _labelCount);
         }
 
@@ -237,10 +237,10 @@ namespace Microsoft.ML.Runtime.Learners
         {
             labelCount = _labelCount;
             featureCount = _featureCount;
-            Utils.EnsureSize(ref featureHistogram, _labelCount, _labelCount);
+            Utils.EnsureSize(ref featureHistogram, _labelCount);
             for(int i = 0; i < _labelCount; i++)
             {
-                Utils.EnsureSize(ref featureHistogram[i], _featureCount, _featureCount);
+                Utils.EnsureSize(ref featureHistogram[i], _featureCount);
                 Array.Copy(_featureHistogram[i], featureHistogram[i], _featureCount);
             }
         }

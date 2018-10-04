@@ -779,9 +779,9 @@ namespace Microsoft.ML.StaticPipelineTesting
             int[][] featureHistogram = default;
             pred.GetLabelHistogram(ref labelHistogram, out int labelCount1);
             pred.GetFeatureHistogram(ref featureHistogram, out int labelCount2, out int featureCount);
-            Assert.True(labelCount1 == 3 && labelCount1 == labelCount2 && labelCount1 == labelHistogram.Length);
-            foreach (var f in featureHistogram)
-                Assert.True(featureCount == 4 &&  f.Length == featureCount);
+            Assert.True(labelCount1 == 3 && labelCount1 == labelCount2 && labelCount1 <= labelHistogram.Length);
+            for (int i = 0; i < labelCount1; i++)
+                Assert.True(featureCount == 4 && (featureCount <= featureHistogram[i].Length));
 
             var data = model.Read(dataSource);
 
