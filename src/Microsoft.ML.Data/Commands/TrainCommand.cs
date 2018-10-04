@@ -221,7 +221,7 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         public static IPredictor Train(IHostEnvironment env, IChannel ch, RoleMappedData data, ITrainer trainer,
-            ICalibratorTrainerFactory calibrator, int maxCalibrationExamples)
+            IComponentFactory<ICalibratorTrainer> calibrator, int maxCalibrationExamples)
         {
             return TrainCore(env, ch, data, trainer, null, calibrator, maxCalibrationExamples, false);
         }
