@@ -1449,26 +1449,6 @@ EXPORT_API(void) AddScalarU(float a, _Inout_ float * pd, int c)
 EXPORT_API(void) Scale(float a, _Inout_ float * pd, int c)
 {
     float * pdLim = pd + c;
-
-    __m128 x1 = _mm_set1_ps(a);
-    for (; pd + 4 <= pdLim; pd += 4)
-    {
-        __m128 x2 = _mm_loadu_ps(pd);
-        x2 = _mm_mul_ps(x1, x2);
-        _mm_storeu_ps(pd, x2);
-    }
-
-    for (; pd < pdLim; pd++)
-    {
-        __m128 x2 = _mm_load_ss(pd);
-        x2 = _mm_mul_ss(x1, x2);
-        _mm_store_ss(pd, x2);
-    }
-}
-
-EXPORT_API(void) ScaleU(float a, _Inout_ float * pd, int c)
-{
-    float * pdLim = pd + c;
     __m128 x1 = _mm_set1_ps(a);
     
     if (c < 4)
@@ -1552,8 +1532,8 @@ EXPORT_API(void) ScaleU(float a, _Inout_ float * pd, int c)
         pd -= (4 - remainder);
         __m128 result = _mm_loadu_ps(pd);            
             
-        __m128 trailingMask = _mm_loadu_ps(((float*)(&LeadingAlignmentMask)) + (remainder * 4));
-        __m128 leadingMask = _mm_loadu_ps(((float*)(&TrailingAlignmentMask)) + ((4 - remainder) * 4));
+        __m128 trailingMask = _mm_loadu_ps(((float*)(&TrailingAlignmentMask)) + (remainder * 4));
+        __m128 leadingMask = _mm_loadu_ps(((float*)(&LeadingAlignmentMask)) + ((4 - remainder) * 4));
             
         __m128 temp = _mm_and_ps(result, trailingMask);
         result = _mm_and_ps(result, leadingMask);
@@ -1563,19 +1543,6 @@ EXPORT_API(void) ScaleU(float a, _Inout_ float * pd, int c)
             
         _mm_storeu_ps(pd, result);
         return;   
-    }
-}
-
-EXPORT_API(void) ScaleA(float a, _Inout_ float * pd, int c)
-{
-    float * pdLim = pd + c;
-
-    __m128 x1 = _mm_set1_ps(a);
-    for (; pd < pdLim; pd += 4)
-    {
-        __m128 x2 = _mm_load_ps(pd);
-        x2 = _mm_mul_ps(x1, x2);
-        _mm_store_ps(pd, x2);
     }
 }
 

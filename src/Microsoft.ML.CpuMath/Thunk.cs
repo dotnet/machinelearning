@@ -171,8 +171,6 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         [DllImport(NativePath), SuppressUnmanagedCodeSecurity]
         public static extern void Scale(float a, float* pd, int c);
         [DllImport(NativePath), SuppressUnmanagedCodeSecurity]
-        public static extern void ScaleA(float a, float* pd, int c);
-        [DllImport(NativePath), SuppressUnmanagedCodeSecurity]
         public static extern void ScaleX(float a, float* pd, int c);
         [DllImport(NativePath), SuppressUnmanagedCodeSecurity]
         public static extern void ScaleSrcU(float a, /*const*/ float* ps, float* pd, int c);
