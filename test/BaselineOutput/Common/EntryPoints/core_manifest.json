@@ -16518,9 +16518,9 @@
           }
         },
         {
-          "Name": "L2Const",
+          "Name": "L2Weight",
           "Type": "Float",
-          "Desc": "L2 regularizer constant",
+          "Desc": "L2 Regularization constant",
           "Aliases": [
             "l2"
           ],
@@ -23728,16 +23728,19 @@
           "IsNullable": false
         },
         {
-          "Name": "TermSeparators",
-          "Type": "String",
-          "Desc": "Comma separated set of term separator(s). Commonly: 'space', 'comma', 'semicolon' or other single character.",
+          "Name": "CharArrayTermSeparators",
+          "Type": {
+            "Kind": "Array",
+            "ItemType": "Char"
+          },
+          "Desc": "Array of single character term separator(s). By default uses space character separator.",
           "Aliases": [
             "sep"
           ],
           "Required": false,
           "SortOrder": 150.0,
           "IsNullable": false,
-          "Default": "space"
+          "Default": null
         }
       ],
       "Outputs": [

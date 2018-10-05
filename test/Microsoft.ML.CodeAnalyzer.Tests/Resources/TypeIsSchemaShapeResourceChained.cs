@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
@@ -46,13 +47,13 @@ namespace Bubba
                 var f1 = Foo1(ctx => (
                     label: ctx.LoadBool(0), text: ctx.LoadText(1)));
                 var f2 = Foo1(ctx => (
-                    label: ctx.LoadBool(0), text: "hi"));
+                    label: ctx.LoadBool(0), text: 5));
 
                 // The first should succeed, the second should fail.
                 var f3 = Foo2(ctx => (
                     label: ctx.LoadBool(0), text: ctx.LoadText(1)));
                 var f4 = Foo2(ctx => (
-                    label: ctx.LoadBool(0), text: "hi"));
+                    label: ctx.LoadBool(0), text: 6));
 
                 // This should succeed.
                 var f5 = Foo3(ctx => ctx.LoadBool(0));
