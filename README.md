@@ -51,6 +51,7 @@ To build ML.NET from source please visit our [developers guide](docs/project-doc
 ## Contributing
 
 We welcome contributions! Please review our [contribution guide](CONTRIBUTING.md).
+Your contribution is the key to the success of thus project.
 
 ## Community
 
