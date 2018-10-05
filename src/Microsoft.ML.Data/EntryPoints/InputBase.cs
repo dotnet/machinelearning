@@ -187,8 +187,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
                 }
 
                 var predictor = TrainUtils.Train(host, ch, cachedRoleMappedData, trainer, calibrator, maxCalibrationExamples);
-                var output = new TOut() { PredictorModel = new PredictorModel(host, roleMappedData, input.TrainingData, predictor) };
-                return output;
+                return new TOut() { PredictorModel = new PredictorModel(host, roleMappedData, input.TrainingData, predictor) };
             }
         }
     }
