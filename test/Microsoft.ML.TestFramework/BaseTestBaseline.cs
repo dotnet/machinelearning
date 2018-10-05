@@ -782,9 +782,7 @@ namespace Microsoft.ML.Runtime.RunTests
                     Fail("The test threw an exception - {0}", e);
                 }
             });
-#if !CORECLR // CoreCLR does not support apartment state settings for threads.
             t.SetApartmentState(ApartmentState.MTA);
-#endif
             t.Start();
             t.Join();
             if (inner != null)
