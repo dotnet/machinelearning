@@ -161,7 +161,7 @@ namespace Microsoft.ML.Runtime.RunTests
         [TestCategory("Logistic Regression")]
         public void MulticlassLRTest()
         {
-            RunOneAllTests(TestLearners.multiclassLogisticRegression, TestDatasets.iris, precision: 10_000);
+            RunOneAllTests(TestLearners.multiclassLogisticRegression, TestDatasets.iris, digitsOfPrecision: 4);
             Done();
         }
 
@@ -173,7 +173,7 @@ namespace Microsoft.ML.Runtime.RunTests
         [TestCategory("Logistic Regression")]
         public void MulticlassLRNonNegativeTest()
         {
-            RunOneAllTests(TestLearners.multiclassLogisticRegressionNonNegative, TestDatasets.iris, precision: 10_000);
+            RunOneAllTests(TestLearners.multiclassLogisticRegressionNonNegative, TestDatasets.iris, digitsOfPrecision: 4);
             Done();
         }
 
@@ -200,8 +200,8 @@ namespace Microsoft.ML.Runtime.RunTests
         {
             RunMTAThread(() =>
             {
-                RunOneAllTests(TestLearners.multiclassLogisticRegression, TestDatasets.irisTreeFeaturized, precision: 10_000);
-                RunOneAllTests(TestLearners.multiclassLogisticRegression, TestDatasets.irisTreeFeaturizedPermuted, precision: 10_000);
+                RunOneAllTests(TestLearners.multiclassLogisticRegression, TestDatasets.irisTreeFeaturized, digitsOfPrecision: 4);
+                RunOneAllTests(TestLearners.multiclassLogisticRegression, TestDatasets.irisTreeFeaturizedPermuted, digitsOfPrecision: 4);
             });
             Done();
         }
