@@ -290,9 +290,8 @@ namespace Microsoft.ML.Transforms
                 //}
 
                 env.CheckValue(input, nameof(input));
-                env.CheckNonEmpty(args.OptimizationOperation, nameof(args.OptimizationOperation));
 
-                CheckParameters(args);
+                CheckTrainingParameters(args);
 
                 if (!TensorFlowUtils.IsSavedModel(env, args.Model))
                     throw env.ExceptNotSupp("TensorFlowTransform: Re-Training of TensorFlow model is only supported for un-frozen model.");
@@ -300,8 +299,9 @@ namespace Microsoft.ML.Transforms
             }
         }
 
-        private void CheckParameters(Arguments args)
+        private void CheckTrainingParameters(Arguments args)
         {
+            _host.CheckNonWhiteSpace(args.LabelColumn, nameof(args.LabelColumn));
             _host.CheckNonWhiteSpace(args.OptimizationOperation, nameof(args.OptimizationOperation));
             if (Session.Graph[args.OptimizationOperation] == null)
                 throw _host.ExceptParam(nameof(args.OptimizationOperation), $"Optimization operation '{args.OptimizationOperation}' does not exist in the model");
@@ -388,7 +388,6 @@ namespace Microsoft.ML.Transforms
                     GetInputMetaData(inputSchema, inputsForTraining[i], inputsForTraining[i], args.BatchSize);
             }
 
-            _host.CheckNonEmpty(args.LabelColumn, nameof(args.LabelColumn));
             var index = inputsForTraining.Length - 1;
             inputsForTraining[index] = args.TensorFlowLabel;
             (inputColIndices[index], isInputVector[index], tfInputTypes[index], tfInputShapes[index]) =
