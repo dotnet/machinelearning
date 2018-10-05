@@ -1597,7 +1597,7 @@ namespace Microsoft.ML.Runtime.Learners
         /// <param name="labelColumn">The name of the label column.</param>
         /// <param name="weightColumn">The name for the example weight column.</param>
         /// <param name="maxIterations">The maximum number of iterations; set to 1 to simulate online learning.</param>
-        /// <param name="initLearningRate">The initial Learning Rate used by SGD.</param>
+        /// <param name="initLearningRate">The initial learning rate used by SGD.</param>
         /// <param name="l2Weight">The L2 regularizer constant.</param>
         /// <param name="loss">The loss function to use.</param>
         /// <param name="advancedSettings">A delegate to apply all the advanced arguments to the algorithm.</param>
