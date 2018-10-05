@@ -342,10 +342,10 @@ namespace Microsoft.ML.Transforms
 
         private (int, bool, TFDataType, TFShape) GetInputMetaData(ISchema inputSchema, string columnName, string tfNodeName, int batchSize)
         {
-            if (!inputSchema.TryGetColumnIndex(columnName, out int inputColIndices))
+            if (!inputSchema.TryGetColumnIndex(columnName, out int inputColIndex))
                 throw _host.Except($"Column {columnName} doesn't exist");
 
-            var type = inputSchema.GetColumnType(inputColIndices);
+            var type = inputSchema.GetColumnType(inputColIndex);
             var isInputVector = type.IsVector;
 
             var tfInput = new TFOutput(Graph[tfNodeName]);
@@ -365,8 +365,9 @@ namespace Microsoft.ML.Transforms
             if (type.ItemType != expectedType)
                 throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", columnName, expectedType.ToString(), type.ToString());
 
-            return (inputColIndices, isInputVector, tfInputType, tfInputShape);
+            return (inputColIndex, isInputVector, tfInputType, tfInputShape);
         }
+
         private void TrainCore(Arguments args, string model, IDataView input)
         {
             var inputsForTraining = new string[Inputs.Length + 1];
@@ -384,9 +385,10 @@ namespace Microsoft.ML.Transforms
             for (int i = 0; i < inputsForTraining.Length - 1; i++)
             {
                 (inputColIndices[i], isInputVector[i], tfInputTypes[i], tfInputShapes[i]) =
-                    GetInputMetaData(inputSchema, inputsForTraining[i], inputsForTraining[i],args.BatchSize);
+                    GetInputMetaData(inputSchema, inputsForTraining[i], inputsForTraining[i], args.BatchSize);
             }
 
+            _host.CheckNonEmpty(args.LabelColumn, nameof(args.LabelColumn));
             var index = inputsForTraining.Length - 1;
             inputsForTraining[index] = args.TensorFlowLabel;
             (inputColIndices[index], isInputVector[index], tfInputTypes[index], tfInputShapes[index]) =
@@ -405,8 +407,8 @@ namespace Microsoft.ML.Transforms
                 {
                     var srcTensorGetters = GetTensorValueGetters(cursor, inputColIndices, isInputVector, tfInputTypes, tfInputShapes);
 
-                    float loss=0;
-                    float metric=0;
+                    float loss = 0;
+                    float metric = 0;
                     bool isDataLeft = false;
                     using (var ch = _host.Start("Training TensorFlow model..."))
                     using (var pch = _host.StartProgressChannel("TensorFlow training progress..."))
@@ -526,7 +528,7 @@ namespace Microsoft.ML.Transforms
                 if (tmpParamDir != null && tmpParamDir.Length > 0)
                     TensorFlowUtils.DeleteFolderWithRetries(_host, tmpParamDir[0]);
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 throw _host.ExceptIO(e, "Error serializing TensorFlow retrained model to disk.");
             }
