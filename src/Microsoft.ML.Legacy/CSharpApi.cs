@@ -31,7 +31,7 @@ namespace Microsoft.ML
 
             public void Add(Microsoft.ML.Legacy.Data.CustomTextLoader input, Microsoft.ML.Legacy.Data.CustomTextLoader.Output output)
             {
-                _jsonNodes.Add(Serialize("Data.CustomTextLoader", input, output));
+                AddEntryPoint("Data.CustomTextLoader", input, output);
             }
 
             public Microsoft.ML.Legacy.Data.DataViewReference.Output Add(Microsoft.ML.Legacy.Data.DataViewReference input)
@@ -43,7 +43,7 @@ namespace Microsoft.ML
 
             public void Add(Microsoft.ML.Legacy.Data.DataViewReference input, Microsoft.ML.Legacy.Data.DataViewReference.Output output)
             {
-                _jsonNodes.Add(Serialize("Data.DataViewReference", input, output));
+                AddEntryPoint("Data.DataViewReference", input, output);
             }
 
             public Microsoft.ML.Legacy.Data.IDataViewArrayConverter.Output Add(Microsoft.ML.Legacy.Data.IDataViewArrayConverter input)
@@ -55,7 +55,7 @@ namespace Microsoft.ML
 
             public void Add(Microsoft.ML.Legacy.Data.IDataViewArrayConverter input, Microsoft.ML.Legacy.Data.IDataViewArrayConverter.Output output)
             {
-                _jsonNodes.Add(Serialize("Data.IDataViewArrayConverter", input, output));
+                AddEntryPoint("Data.IDataViewArrayConverter", input, output);
             }
 
             public Microsoft.ML.Legacy.Data.PredictorModelArrayConverter.Output Add(Microsoft.ML.Legacy.Data.PredictorModelArrayConverter input)
@@ -67,7 +67,7 @@ namespace Microsoft.ML
 
             public void Add(Microsoft.ML.Legacy.Data.PredictorModelArrayConverter input, Microsoft.ML.Legacy.Data.PredictorModelArrayConverter.Output output)
             {
-                _jsonNodes.Add(Serialize("Data.PredictorModelArrayConverter", input, output));
+                AddEntryPoint("Data.PredictorModelArrayConverter", input, output);
             }
 
             public Microsoft.ML.Legacy.Data.TextLoader.Output Add(Microsoft.ML.Legacy.Data.TextLoader input)
@@ -79,7 +79,7 @@ namespace Microsoft.ML
 
             public void Add(Microsoft.ML.Legacy.Data.TextLoader input, Microsoft.ML.Legacy.Data.TextLoader.Output output)
             {
-                _jsonNodes.Add(Serialize("Data.TextLoader", input, output));
+                AddEntryPoint("Data.TextLoader", input, output);
             }
 
             public Microsoft.ML.Legacy.Data.TransformModelArrayConverter.Output Add(Microsoft.ML.Legacy.Data.TransformModelArrayConverter input)
@@ -91,7 +91,7 @@ namespace Microsoft.ML
 
             public void Add(Microsoft.ML.Legacy.Data.TransformModelArrayConverter input, Microsoft.ML.Legacy.Data.TransformModelArrayConverter.Output output)
             {
-                _jsonNodes.Add(Serialize("Data.TransformModelArrayConverter", input, output));
+                AddEntryPoint("Data.TransformModelArrayConverter", input, output);
             }
 
             public Microsoft.ML.Legacy.Models.AnomalyDetectionEvaluator.Output Add(Microsoft.ML.Legacy.Models.AnomalyDetectionEvaluator input)
@@ -103,7 +103,7 @@ namespace Microsoft.ML
 
             public void Add(Microsoft.ML.Legacy.Models.AnomalyDetectionEvaluator input, Microsoft.ML.Legacy.Models.AnomalyDetectionEvaluator.Output output)
             {
-                _jsonNodes.Add(Serialize("Models.AnomalyDetectionEvaluator", input, output));
+                AddEntryPoint("Models.AnomalyDetectionEvaluator", input, output);
             }
 
             public Microsoft.ML.Legacy.Models.AnomalyPipelineEnsemble.Output Add(Microsoft.ML.Legacy.Models.AnomalyPipelineEnsemble input)
@@ -115,7 +115,7 @@ namespace Microsoft.ML
 
             public void Add(Microsoft.ML.Legacy.Models.AnomalyPipelineEnsemble input, Microsoft.ML.Legacy.Models.AnomalyPipelineEnsemble.Output output)
             {
-                _jsonNodes.Add(Serialize("Models.AnomalyPipelineEnsemble", input, output));
+                AddEntryPoint("Models.AnomalyPipelineEnsemble", input, output);
             }
 
             public Microsoft.ML.Legacy.Models.BinaryClassificationEvaluator.Output Add(Microsoft.ML.Legacy.Models.BinaryClassificationEvaluator input)
@@ -127,7 +127,7 @@ namespace Microsoft.ML
 
             public void Add(Microsoft.ML.Legacy.Models.BinaryClassificationEvaluator input, Microsoft.ML.Legacy.Models.BinaryClassificationEvaluator.Output output)
             {
-                _jsonNodes.Add(Serialize("Models.BinaryClassificationEvaluator", input, output));
+                AddEntryPoint("Models.BinaryClassificationEvaluator", input, output);
             }
 
             public Microsoft.ML.Legacy.Models.BinaryCrossValidator.Output Add(Microsoft.ML.Legacy.Models.BinaryCrossValidator input)
@@ -139,7 +139,7 @@ namespace Microsoft.ML
 
             public void Add(Microsoft.ML.Legacy.Models.BinaryCrossValidator input, Microsoft.ML.Legacy.Models.BinaryCrossValidator.Output output)
             {
-                _jsonNodes.Add(Serialize("Models.BinaryCrossValidator", input, output));
+                AddEntryPoint("Models.BinaryCrossValidator", input, output);
             }
 
             public Microsoft.ML.Legacy.Models.BinaryEnsemble.Output Add(Microsoft.ML.Legacy.Models.BinaryEnsemble input)
@@ -151,7 +151,7 @@ namespace Microsoft.ML
 
             public void Add(Microsoft.ML.Legacy.Models.BinaryEnsemble input, Microsoft.ML.Legacy.Models.BinaryEnsemble.Output output)
             {
-                _jsonNodes.Add(Serialize("Models.BinaryEnsemble", input, output));
+                AddEntryPoint("Models.BinaryEnsemble", input, output);
             }
 
             public Microsoft.ML.Legacy.Models.BinaryPipelineEnsemble.Output Add(Microsoft.ML.Legacy.Models.BinaryPipelineEnsemble input)
@@ -163,7 +163,7 @@ namespace Microsoft.ML
 
             public void Add(Microsoft.ML.Legacy.Models.BinaryPipelineEnsemble input, Microsoft.ML.Legacy.Models.BinaryPipelineEnsemble.Output output)
             {
-                _jsonNodes.Add(Serialize("Models.BinaryPipelineEnsemble", input, output));
+                AddEntryPoint("Models.BinaryPipelineEnsemble", input, output);
             }
 
             public Microsoft.ML.Legacy.Models.ClassificationEvaluator.Output Add(Microsoft.ML.Legacy.Models.ClassificationEvaluator input)
@@ -175,7 +175,7 @@ namespace Microsoft.ML
 
             public void Add(Microsoft.ML.Legacy.Models.ClassificationEvaluator input, Microsoft.ML.Legacy.Models.ClassificationEvaluator.Output output)
             {
-                _jsonNodes.Add(Serialize("Models.ClassificationEvaluator", input, output));
+                AddEntryPoint("Models.ClassificationEvaluator", input, output);
             }
 
             public Microsoft.ML.Legacy.Models.ClusterEvaluator.Output Add(Microsoft.ML.Legacy.Models.ClusterEvaluator input)
@@ -187,7 +187,7 @@ namespace Microsoft.ML
 
             public void Add(Microsoft.ML.Legacy.Models.ClusterEvaluator input, Microsoft.ML.Legacy.Models.ClusterEvaluator.Output output)
             {
-                _jsonNodes.Add(Serialize("Models.ClusterEvaluator", input, output));
+                AddEntryPoint("Models.ClusterEvaluator", input, output);
             }
 
             public Microsoft.ML.Legacy.Models.CrossValidationResultsCombiner.Output Add(Microsoft.ML.Legacy.Models.CrossValidationResultsCombiner input)
@@ -199,7 +199,7 @@ namespace Microsoft.ML
 
             public void Add(Microsoft.ML.Legacy.Models.CrossValidationResultsCombiner input, Microsoft.ML.Legacy.Models.CrossValidationResultsCombiner.Output output)
             {
-                _jsonNodes.Add(Serialize("Models.CrossValidationResultsCombiner", input, output));
+                AddEntryPoint("Models.CrossValidationResultsCombiner", input, output);
             }
 
             public Microsoft.ML.Legacy.Models.CrossValidator.Output Add(Microsoft.ML.Legacy.Models.CrossValidator input)
@@ -211,7 +211,7 @@ namespace Microsoft.ML
 
             public void Add(Microsoft.ML.Legacy.Models.CrossValidator input, Microsoft.ML.Legacy.Models.CrossValidator.Output output)
             {
-                _jsonNodes.Add(Serialize("Models.CrossValidator", input, output));
+                AddEntryPoint("Models.CrossValidator", input, output);
             }
 
             public Microsoft.ML.Legacy.Models.CrossValidatorDatasetSplitter.Output Add(Microsoft.ML.Legacy.Models.CrossValidatorDatasetSplitter input)
@@ -223,7 +223,7 @@ namespace Microsoft.ML
 
             public void Add(Microsoft.ML.Legacy.Models.CrossValidatorDatasetSplitter input, Microsoft.ML.Legacy.Models.CrossValidatorDatasetSplitter.Output output)
             {
-                _jsonNodes.Add(Serialize("Models.CrossValidatorDatasetSplitter", input, output));
+                AddEntryPoint("Models.CrossValidatorDatasetSplitter", input, output);
             }
 
             public Microsoft.ML.Legacy.Models.DatasetTransformer.Output Add(Microsoft.ML.Legacy.Models.DatasetTransformer input)
@@ -235,7 +235,7 @@ namespace Microsoft.ML
 
             public void Add(Microsoft.ML.Legacy.Models.DatasetTransformer input, Microsoft.ML.Legacy.Models.DatasetTransformer.Output output)
             {
-                _jsonNodes.Add(Serialize("Models.DatasetTransformer", input, output));
+                AddEntryPoint("Models.DatasetTransformer", input, output);
             }
 
             public Microsoft.ML.Legacy.Models.EnsembleSummary.Output Add(Microsoft.ML.Legacy.Models.EnsembleSummary input)
@@ -247,7 +247,7 @@ namespace Microsoft.ML
 
             public void Add(Microsoft.ML.Legacy.Models.EnsembleSummary input, Microsoft.ML.Legacy.Models.EnsembleSummary.Output output)
             {
-                _jsonNodes.Add(Serialize("Models.EnsembleSummary", input, output));
+                AddEntryPoint("Models.EnsembleSummary", input, output);
             }
 
             public Microsoft.ML.Legacy.Models.FixedPlattCalibrator.Output Add(Microsoft.ML.Legacy.Models.FixedPlattCalibrator input)
@@ -259,7 +259,7 @@ namespace Microsoft.ML
 
             public void Add(Microsoft.ML.Legacy.Models.FixedPlattCalibrator input, Microsoft.ML.Legacy.Models.FixedPlattCalibrator.Output output)
             {
-                _jsonNodes.Add(Serialize("Models.FixedPlattCalibrator", input, output));
+                AddEntryPoint("Models.FixedPlattCalibrator", input, output);
             }
 
             public Microsoft.ML.Legacy.Models.MultiClassPipelineEnsemble.Output Add(Microsoft.ML.Legacy.Models.MultiClassPipelineEnsemble input)
@@ -271,7 +271,7 @@ namespace Microsoft.ML
 
             public void Add(Microsoft.ML.Legacy.Models.MultiClassPipelineEnsemble input, Microsoft.ML.Legacy.Models.MultiClassPipelineEnsemble.Output output)
             {
-                _jsonNodes.Add(Serialize("Models.MultiClassPipelineEnsemble", input, output));
+                AddEntryPoint("Models.MultiClassPipelineEnsemble", input, output);
             }
 
             public Microsoft.ML.Legacy.Models.MultiOutputRegressionEvaluator.Output Add(Microsoft.ML.Legacy.Models.MultiOutputRegressionEvaluator input)
@@ -283,7 +283,7 @@ namespace Microsoft.ML
 
             public void Add(Microsoft.ML.Legacy.Models.MultiOutputRegressionEvaluator input, Microsoft.ML.Legacy.Models.MultiOutputRegressionEvaluator.Output output)
             {
-                _jsonNodes.Add(Serialize("Models.MultiOutputRegressionEvaluator", input, output));
+                AddEntryPoint("Models.MultiOutputRegressionEvaluator", input, output);
             }
 
             public Microsoft.ML.Legacy.Models.NaiveCalibrator.Output Add(Microsoft.ML.Legacy.Models.NaiveCalibrator input)
@@ -295,7 +295,7 @@ namespace Microsoft.ML
 
             public void Add(Microsoft.ML.Legacy.Models.NaiveCalibrator input, Microsoft.ML.Legacy.Models.NaiveCalibrator.Output output)
             {
-                _jsonNodes.Add(Serialize("Models.NaiveCalibrator", input, output));
+                AddEntryPoint("Models.NaiveCalibrator", input, output);
             }
 
             public Microsoft.ML.Legacy.Models.OneVersusAll.Output Add(Microsoft.ML.Legacy.Models.OneVersusAll input)
@@ -307,7 +307,7 @@ namespace Microsoft.ML
 
             public void Add(Microsoft.ML.Legacy.Models.OneVersusAll input, Microsoft.ML.Legacy.Models.OneVersusAll.Output output)
             {
-                _jsonNodes.Add(Serialize("Models.OneVersusAll", input, output));
+                AddEntryPoint("Models.OneVersusAll", input, output);
             }
 
             public Microsoft.ML.Legacy.Models.OnnxConverter.Output Add(Microsoft.ML.Legacy.Models.OnnxConverter input)
@@ -319,7 +319,7 @@ namespace Microsoft.ML
 
             public void Add(Microsoft.ML.Legacy.Models.OnnxConverter input, Microsoft.ML.Legacy.Models.OnnxConverter.Output output)
             {
-                _jsonNodes.Add(Serialize("Models.OnnxConverter", input, output));
+                AddEntryPoint("Models.OnnxConverter", input, output);
             }
 
             public Microsoft.ML.Legacy.Models.OvaModelCombiner.Output Add(Microsoft.ML.Legacy.Models.OvaModelCombiner input)
@@ -331,7 +331,7 @@ namespace Microsoft.ML
 
             public void Add(Microsoft.ML.Legacy.Models.OvaModelCombiner input, Microsoft.ML.Legacy.Models.OvaModelCombiner.Output output)
             {
-                _jsonNodes.Add(Serialize("Models.OvaModelCombiner", input, output));
+                AddEntryPoint("Models.OvaModelCombiner", input, output);
             }
 
             public Microsoft.ML.Legacy.Models.PAVCalibrator.Output Add(Microsoft.ML.Legacy.Models.PAVCalibrator input)
@@ -343,7 +343,7 @@ namespace Microsoft.ML
 
             public void Add(Microsoft.ML.Legacy.Models.PAVCalibrator input, Microsoft.ML.Legacy.Models.PAVCalibrator.Output output)
             {
-                _jsonNodes.Add(Serialize("Models.PAVCalibrator", input, output));
+                AddEntryPoint("Models.PAVCalibrator", input, output);
             }
 
             public Microsoft.ML.Legacy.Models.PipelineSweeper.Output Add(Microsoft.ML.Legacy.Models.PipelineSweeper input)
@@ -355,7 +355,7 @@ namespace Microsoft.ML
 
             public void Add(Microsoft.ML.Legacy.Models.PipelineSweeper input, Microsoft.ML.Legacy.Models.PipelineSweeper.Output output)
             {
-                _jsonNodes.Add(Serialize("Models.PipelineSweeper", input, output));
+                AddEntryPoint("Models.PipelineSweeper", input, output);
             }
 
             public Microsoft.ML.Legacy.Models.PlattCalibrator.Output Add(Microsoft.ML.Legacy.Models.PlattCalibrator input)
@@ -367,7 +367,7 @@ namespace Microsoft.ML
 
             public void Add(Microsoft.ML.Legacy.Models.PlattCalibrator input, Microsoft.ML.Legacy.Models.PlattCalibrator.Output output)
             {
-                _jsonNodes.Add(Serialize("Models.PlattCalibrator", input, output));
+                AddEntryPoint("Models.PlattCalibrator", input, output);
             }
 
             public Microsoft.ML.Legacy.Models.QuantileRegressionEvaluator.Output Add(Microsoft.ML.Legacy.Models.QuantileRegressionEvaluator input)
@@ -379,7 +379,7 @@ namespace Microsoft.ML
 
             public void Add(Microsoft.ML.Legacy.Models.QuantileRegressionEvaluator input, Microsoft.ML.Legacy.Models.QuantileRegressionEvaluator.Output output)
             {
-                _jsonNodes.Add(Serialize("Models.QuantileRegressionEvaluator", input, output));
+                AddEntryPoint("Models.QuantileRegressionEvaluator", input, output);
             }
 
             public Microsoft.ML.Legacy.Models.RankerEvaluator.Output Add(Microsoft.ML.Legacy.Models.RankerEvaluator input)
@@ -391,7 +391,7 @@ namespace Microsoft.ML
 
             public void Add(Microsoft.ML.Legacy.Models.RankerEvaluator input, Microsoft.ML.Legacy.Models.RankerEvaluator.Output output)
             {
-                _jsonNodes.Add(Serialize("Models.RankerEvaluator", input, output));
+                AddEntryPoint("Models.RankerEvaluator", input, output);
             }
 
             public Microsoft.ML.Legacy.Models.RegressionEnsemble.Output Add(Microsoft.ML.Legacy.Models.RegressionEnsemble input)
@@ -403,7 +403,7 @@ namespace Microsoft.ML
 
             public void Add(Microsoft.ML.Legacy.Models.RegressionEnsemble input, Microsoft.ML.Legacy.Models.RegressionEnsemble.Output output)
             {
-                _jsonNodes.Add(Serialize("Models.RegressionEnsemble", input, output));
+                AddEntryPoint("Models.RegressionEnsemble", input, output);
             }
 
             public Microsoft.ML.Legacy.Models.RegressionEvaluator.Output Add(Microsoft.ML.Legacy.Models.RegressionEvaluator input)
@@ -415,7 +415,7 @@ namespace Microsoft.ML
 
             public void Add(Microsoft.ML.Legacy.Models.RegressionEvaluator input, Microsoft.ML.Legacy.Models.RegressionEvaluator.Output output)
             {
-                _jsonNodes.Add(Serialize("Models.RegressionEvaluator", input, output));
+                AddEntryPoint("Models.RegressionEvaluator", input, output);
             }
 
             public Microsoft.ML.Legacy.Models.RegressionPipelineEnsemble.Output Add(Microsoft.ML.Legacy.Models.RegressionPipelineEnsemble input)
@@ -427,7 +427,7 @@ namespace Microsoft.ML
 
             public void Add(Microsoft.ML.Legacy.Models.RegressionPipelineEnsemble input, Microsoft.ML.Legacy.Models.RegressionPipelineEnsemble.Output output)
             {
-                _jsonNodes.Add(Serialize("Models.RegressionPipelineEnsemble", input, output));
+                AddEntryPoint("Models.RegressionPipelineEnsemble", input, output);
             }
 
             public Microsoft.ML.Legacy.Models.Summarizer.Output Add(Microsoft.ML.Legacy.Models.Summarizer input)
@@ -439,7 +439,7 @@ namespace Microsoft.ML
 
             public void Add(Microsoft.ML.Legacy.Models.Summarizer input, Microsoft.ML.Legacy.Models.Summarizer.Output output)
             {
-                _jsonNodes.Add(Serialize("Models.Summarizer", input, output));
+                AddEntryPoint("Models.Summarizer", input, output);
             }
 
             public Microsoft.ML.Legacy.Models.SweepResultExtractor.Output Add(Microsoft.ML.Legacy.Models.SweepResultExtractor input)
@@ -451,7 +451,7 @@ namespace Microsoft.ML
 
             public void Add(Microsoft.ML.Legacy.Models.SweepResultExtractor input, Microsoft.ML.Legacy.Models.SweepResultExtractor.Output output)
             {
-                _jsonNodes.Add(Serialize("Models.SweepResultExtractor", input, output));
+                AddEntryPoint("Models.SweepResultExtractor", input, output);
             }
 
             public Microsoft.ML.Legacy.Models.TrainTestBinaryEvaluator.Output Add(Microsoft.ML.Legacy.Models.TrainTestBinaryEvaluator input)
@@ -463,7 +463,7 @@ namespace Microsoft.ML
 
             public void Add(Microsoft.ML.Legacy.Models.TrainTestBinaryEvaluator input, Microsoft.ML.Legacy.Models.TrainTestBinaryEvaluator.Output output)
             {
-                _jsonNodes.Add(Serialize("Models.TrainTestBinaryEvaluator", input, output));
+                AddEntryPoint("Models.TrainTestBinaryEvaluator", input, output);
             }
 
             public Microsoft.ML.Legacy.Models.TrainTestEvaluator.Output Add(Microsoft.ML.Legacy.Models.TrainTestEvaluator input)
@@ -475,7 +475,7 @@ namespace Microsoft.ML
 
             public void Add(Microsoft.ML.Legacy.Models.TrainTestEvaluator input, Microsoft.ML.Legacy.Models.TrainTestEvaluator.Output output)
             {
-                _jsonNodes.Add(Serialize("Models.TrainTestEvaluator", input, output));
+                AddEntryPoint("Models.TrainTestEvaluator", input, output);
             }
 
             public Microsoft.ML.Legacy.TimeSeriesProcessing.ExponentialAverage.Output Add(Microsoft.ML.Legacy.TimeSeriesProcessing.ExponentialAverage input)
@@ -583,7 +583,7 @@ namespace Microsoft.ML
 
             public void Add(Microsoft.ML.Legacy.Trainers.AveragedPerceptronBinaryClassifier input, Microsoft.ML.Legacy.Trainers.AveragedPerceptronBinaryClassifier.Output output)
             {
-                _jsonNodes.Add(Serialize("Trainers.AveragedPerceptronBinaryClassifier", input, output));
+                AddEntryPoint("Trainers.AveragedPerceptronBinaryClassifier", input, output);
             }
 
             public Microsoft.ML.Legacy.Trainers.EnsembleBinaryClassifier.Output Add(Microsoft.ML.Legacy.Trainers.EnsembleBinaryClassifier input)
@@ -595,7 +595,7 @@ namespace Microsoft.ML
 
             public void Add(Microsoft.ML.Legacy.Trainers.EnsembleBinaryClassifier input, Microsoft.ML.Legacy.Trainers.EnsembleBinaryClassifier.Output output)
             {
-                _jsonNodes.Add(Serialize("Trainers.EnsembleBinaryClassifier", input, output));
+                AddEntryPoint("Trainers.EnsembleBinaryClassifier", input, output);
             }
 
             public Microsoft.ML.Legacy.Trainers.EnsembleClassification.Output Add(Microsoft.ML.Legacy.Trainers.EnsembleClassification input)
@@ -607,7 +607,7 @@ namespace Microsoft.ML
 
             public void Add(Microsoft.ML.Legacy.Trainers.EnsembleClassification input, Microsoft.ML.Legacy.Trainers.EnsembleClassification.Output output)
             {
-                _jsonNodes.Add(Serialize("Trainers.EnsembleClassification", input, output));
+                AddEntryPoint("Trainers.EnsembleClassification", input, output);
             }
 
             public Microsoft.ML.Legacy.Trainers.EnsembleRegression.Output Add(Microsoft.ML.Legacy.Trainers.EnsembleRegression input)
@@ -619,7 +619,7 @@ namespace Microsoft.ML
 
             public void Add(Microsoft.ML.Legacy.Trainers.EnsembleRegression input, Microsoft.ML.Legacy.Trainers.EnsembleRegression.Output output)
             {
-                _jsonNodes.Add(Serialize("Trainers.EnsembleRegression", input, output));
+                AddEntryPoint("Trainers.EnsembleRegression", input, output);
             }
 
             public Microsoft.ML.Legacy.Trainers.FastForestBinaryClassifier.Output Add(Microsoft.ML.Legacy.Trainers.FastForestBinaryClassifier input)
@@ -631,7 +631,7 @@ namespace Microsoft.ML
 
             public void Add(Microsoft.ML.Legacy.Trainers.FastForestBinaryClassifier input, Microsoft.ML.Legacy.Trainers.FastForestBinaryClassifier.Output output)
             {
-                _jsonNodes.Add(Serialize("Trainers.FastForestBinaryClassifier", input, output));
+                AddEntryPoint("Trainers.FastForestBinaryClassifier", input, output);
             }
 
             public Microsoft.ML.Legacy.Trainers.FastForestRegressor.Output Add(Microsoft.ML.Legacy.Trainers.FastForestRegressor input)
@@ -643,7 +643,7 @@ namespace Microsoft.ML
 
             public void Add(Microsoft.ML.Legacy.Trainers.FastForestRegressor input, Microsoft.ML.Legacy.Trainers.FastForestRegressor.Output output)
             {
-                _jsonNodes.Add(Serialize("Trainers.FastForestRegressor", input, output));
+                AddEntryPoint("Trainers.FastForestRegressor", input, output);
             }
 
             public Microsoft.ML.Legacy.Trainers.FastTreeBinaryClassifier.Output Add(Microsoft.ML.Legacy.Trainers.FastTreeBinaryClassifier input)
@@ -655,7 +655,7 @@ namespace Microsoft.ML
 
             public void Add(Microsoft.ML.Legacy.Trainers.FastTreeBinaryClassifier input, Microsoft.ML.Legacy.Trainers.FastTreeBinaryClassifier.Output output)
             {
-                _jsonNodes.Add(Serialize("Trainers.FastTreeBinaryClassifier", input, output));
+                AddEntryPoint("Trainers.FastTreeBinaryClassifier", input, output);
             }
 
             public Microsoft.ML.Legacy.Trainers.FastTreeRanker.Output Add(Microsoft.ML.Legacy.Trainers.FastTreeRanker input)
@@ -667,7 +667,7 @@ namespace Microsoft.ML
 
             public void Add(Microsoft.ML.Legacy.Trainers.FastTreeRanker input, Microsoft.ML.Legacy.Trainers.FastTreeRanker.Output output)
             {
-                _jsonNodes.Add(Serialize("Trainers.FastTreeRanker", input, output));
+                AddEntryPoint("Trainers.FastTreeRanker", input, output);
             }
 
             public Microsoft.ML.Legacy.Trainers.FastTreeRegressor.Output Add(Microsoft.ML.Legacy.Trainers.FastTreeRegressor input)
@@ -679,7 +679,7 @@ namespace Microsoft.ML
 
             public void Add(Microsoft.ML.Legacy.Trainers.FastTreeRegressor input, Microsoft.ML.Legacy.Trainers.FastTreeRegressor.Output output)
             {
-                _jsonNodes.Add(Serialize("Trainers.FastTreeRegressor", input, output));
+                AddEntryPoint("Trainers.FastTreeRegressor", input, output);
             }
 
             public Microsoft.ML.Legacy.Trainers.FastTreeTweedieRegressor.Output Add(Microsoft.ML.Legacy.Trainers.FastTreeTweedieRegressor input)
@@ -691,7 +691,7 @@ namespace Microsoft.ML
 
             public void Add(Microsoft.ML.Legacy.Trainers.FastTreeTweedieRegressor input, Microsoft.ML.Legacy.Trainers.FastTreeTweedieRegressor.Output output)
             {
-                _jsonNodes.Add(Serialize("Trainers.FastTreeTweedieRegressor", input, output));
+                AddEntryPoint("Trainers.FastTreeTweedieRegressor", input, output);
             }
 
             public Microsoft.ML.Legacy.Trainers.FieldAwareFactorizationMachineBinaryClassifier.Output Add(Microsoft.ML.Legacy.Trainers.FieldAwareFactorizationMachineBinaryClassifier input)
@@ -703,7 +703,7 @@ namespace Microsoft.ML
 
             public void Add(Microsoft.ML.Legacy.Trainers.FieldAwareFactorizationMachineBinaryClassifier input, Microsoft.ML.Legacy.Trainers.FieldAwareFactorizationMachineBinaryClassifier.Output output)
             {
-                _jsonNodes.Add(Serialize("Trainers.FieldAwareFactorizationMachineBinaryClassifier", input, output));
+                AddEntryPoint("Trainers.FieldAwareFactorizationMachineBinaryClassifier", input, output);
             }
 
             public Microsoft.ML.Legacy.Trainers.GeneralizedAdditiveModelBinaryClassifier.Output Add(Microsoft.ML.Legacy.Trainers.GeneralizedAdditiveModelBinaryClassifier input)
@@ -715,7 +715,7 @@ namespace Microsoft.ML
 
             public void Add(Microsoft.ML.Legacy.Trainers.GeneralizedAdditiveModelBinaryClassifier input, Microsoft.ML.Legacy.Trainers.GeneralizedAdditiveModelBinaryClassifier.Output output)
             {
-                _jsonNodes.Add(Serialize("Trainers.GeneralizedAdditiveModelBinaryClassifier", input, output));
+                AddEntryPoint("Trainers.GeneralizedAdditiveModelBinaryClassifier", input, output);
             }
 
             public Microsoft.ML.Legacy.Trainers.GeneralizedAdditiveModelRegressor.Output Add(Microsoft.ML.Legacy.Trainers.GeneralizedAdditiveModelRegressor input)
@@ -727,7 +727,7 @@ namespace Microsoft.ML
 
             public void Add(Microsoft.ML.Legacy.Trainers.GeneralizedAdditiveModelRegressor input, Microsoft.ML.Legacy.Trainers.GeneralizedAdditiveModelRegressor.Output output)
             {
-                _jsonNodes.Add(Serialize("Trainers.GeneralizedAdditiveModelRegressor", input, output));
+                AddEntryPoint("Trainers.GeneralizedAdditiveModelRegressor", input, output);
             }
 
             public Microsoft.ML.Legacy.Trainers.KMeansPlusPlusClusterer.Output Add(Microsoft.ML.Legacy.Trainers.KMeansPlusPlusClusterer input)
@@ -739,7 +739,7 @@ namespace Microsoft.ML
 
             public void Add(Microsoft.ML.Legacy.Trainers.KMeansPlusPlusClusterer input, Microsoft.ML.Legacy.Trainers.KMeansPlusPlusClusterer.Output output)
             {
-                _jsonNodes.Add(Serialize("Trainers.KMeansPlusPlusClusterer", input, output));
+                AddEntryPoint("Trainers.KMeansPlusPlusClusterer", input, output);
             }
 
             public Microsoft.ML.Legacy.Trainers.LightGbmBinaryClassifier.Output Add(Microsoft.ML.Legacy.Trainers.LightGbmBinaryClassifier input)
@@ -751,7 +751,7 @@ namespace Microsoft.ML
 
             public void Add(Microsoft.ML.Legacy.Trainers.LightGbmBinaryClassifier input, Microsoft.ML.Legacy.Trainers.LightGbmBinaryClassifier.Output output)
             {
-                _jsonNodes.Add(Serialize("Trainers.LightGbmBinaryClassifier", input, output));
+                AddEntryPoint("Trainers.LightGbmBinaryClassifier", input, output);
             }
 
             public Microsoft.ML.Legacy.Trainers.LightGbmClassifier.Output Add(Microsoft.ML.Legacy.Trainers.LightGbmClassifier input)
@@ -763,7 +763,7 @@ namespace Microsoft.ML
 
             public void Add(Microsoft.ML.Legacy.Trainers.LightGbmClassifier input, Microsoft.ML.Legacy.Trainers.LightGbmClassifier.Output output)
             {
-                _jsonNodes.Add(Serialize("Trainers.LightGbmClassifier", input, output));
+                AddEntryPoint("Trainers.LightGbmClassifier", input, output);
             }
 
             public Microsoft.ML.Legacy.Trainers.LightGbmRanker.Output Add(Microsoft.ML.Legacy.Trainers.LightGbmRanker input)
@@ -775,7 +775,7 @@ namespace Microsoft.ML
 
             public void Add(Microsoft.ML.Legacy.Trainers.LightGbmRanker input, Microsoft.ML.Legacy.Trainers.LightGbmRanker.Output output)
             {
-                _jsonNodes.Add(Serialize("Trainers.LightGbmRanker", input, output));
+                AddEntryPoint("Trainers.LightGbmRanker", input, output);
             }
 
             public Microsoft.ML.Legacy.Trainers.LightGbmRegressor.Output Add(Microsoft.ML.Legacy.Trainers.LightGbmRegressor input)
@@ -787,7 +787,7 @@ namespace Microsoft.ML
 
             public void Add(Microsoft.ML.Legacy.Trainers.LightGbmRegressor input, Microsoft.ML.Legacy.Trainers.LightGbmRegressor.Output output)
             {
-                _jsonNodes.Add(Serialize("Trainers.LightGbmRegressor", input, output));
+                AddEntryPoint("Trainers.LightGbmRegressor", input, output);
             }
 
             public Microsoft.ML.Legacy.Trainers.LinearSvmBinaryClassifier.Output Add(Microsoft.ML.Legacy.Trainers.LinearSvmBinaryClassifier input)
@@ -799,7 +799,7 @@ namespace Microsoft.ML
 
             public void Add(Microsoft.ML.Legacy.Trainers.LinearSvmBinaryClassifier input, Microsoft.ML.Legacy.Trainers.LinearSvmBinaryClassifier.Output output)
             {
-                _jsonNodes.Add(Serialize("Trainers.LinearSvmBinaryClassifier", input, output));
+                AddEntryPoint("Trainers.LinearSvmBinaryClassifier", input, output);
             }
 
             public Microsoft.ML.Legacy.Trainers.LogisticRegressionBinaryClassifier.Output Add(Microsoft.ML.Legacy.Trainers.LogisticRegressionBinaryClassifier input)
@@ -811,7 +811,7 @@ namespace Microsoft.ML
 
             public void Add(Microsoft.ML.Legacy.Trainers.LogisticRegressionBinaryClassifier input, Microsoft.ML.Legacy.Trainers.LogisticRegressionBinaryClassifier.Output output)
             {
-                _jsonNodes.Add(Serialize("Trainers.LogisticRegressionBinaryClassifier", input, output));
+                AddEntryPoint("Trainers.LogisticRegressionBinaryClassifier", input, output);
             }
 
             public Microsoft.ML.Legacy.Trainers.LogisticRegressionClassifier.Output Add(Microsoft.ML.Legacy.Trainers.LogisticRegressionClassifier input)
@@ -823,7 +823,7 @@ namespace Microsoft.ML
 
             public void Add(Microsoft.ML.Legacy.Trainers.LogisticRegressionClassifier input, Microsoft.ML.Legacy.Trainers.LogisticRegressionClassifier.Output output)
             {
-                _jsonNodes.Add(Serialize("Trainers.LogisticRegressionClassifier", input, output));
+                AddEntryPoint("Trainers.LogisticRegressionClassifier", input, output);
             }
 
             public Microsoft.ML.Legacy.Trainers.NaiveBayesClassifier.Output Add(Microsoft.ML.Legacy.Trainers.NaiveBayesClassifier input)
@@ -835,7 +835,7 @@ namespace Microsoft.ML
 
             public void Add(Microsoft.ML.Legacy.Trainers.NaiveBayesClassifier input, Microsoft.ML.Legacy.Trainers.NaiveBayesClassifier.Output output)
             {
-                _jsonNodes.Add(Serialize("Trainers.NaiveBayesClassifier", input, output));
+                AddEntryPoint("Trainers.NaiveBayesClassifier", input, output);
             }
 
             public Microsoft.ML.Legacy.Trainers.OnlineGradientDescentRegressor.Output Add(Microsoft.ML.Legacy.Trainers.OnlineGradientDescentRegressor input)
@@ -847,7 +847,7 @@ namespace Microsoft.ML
 
             public void Add(Microsoft.ML.Legacy.Trainers.OnlineGradientDescentRegressor input, Microsoft.ML.Legacy.Trainers.OnlineGradientDescentRegressor.Output output)
             {
-                _jsonNodes.Add(Serialize("Trainers.OnlineGradientDescentRegressor", input, output));
+                AddEntryPoint("Trainers.OnlineGradientDescentRegressor", input, output);
             }
 
             public Microsoft.ML.Legacy.Trainers.OrdinaryLeastSquaresRegressor.Output Add(Microsoft.ML.Legacy.Trainers.OrdinaryLeastSquaresRegressor input)
@@ -859,7 +859,7 @@ namespace Microsoft.ML
 
             public void Add(Microsoft.ML.Legacy.Trainers.OrdinaryLeastSquaresRegressor input, Microsoft.ML.Legacy.Trainers.OrdinaryLeastSquaresRegressor.Output output)
             {
-                _jsonNodes.Add(Serialize("Trainers.OrdinaryLeastSquaresRegressor", input, output));
+                AddEntryPoint("Trainers.OrdinaryLeastSquaresRegressor", input, output);
             }
 
             public Microsoft.ML.Legacy.Trainers.PcaAnomalyDetector.Output Add(Microsoft.ML.Legacy.Trainers.PcaAnomalyDetector input)
@@ -871,7 +871,7 @@ namespace Microsoft.ML
 
             public void Add(Microsoft.ML.Legacy.Trainers.PcaAnomalyDetector input, Microsoft.ML.Legacy.Trainers.PcaAnomalyDetector.Output output)
             {
-                _jsonNodes.Add(Serialize("Trainers.PcaAnomalyDetector", input, output));
+                AddEntryPoint("Trainers.PcaAnomalyDetector", input, output);
             }
 
             public Microsoft.ML.Legacy.Trainers.PoissonRegressor.Output Add(Microsoft.ML.Legacy.Trainers.PoissonRegressor input)
@@ -883,7 +883,7 @@ namespace Microsoft.ML
 
             public void Add(Microsoft.ML.Legacy.Trainers.PoissonRegressor input, Microsoft.ML.Legacy.Trainers.PoissonRegressor.Output output)
             {
-                _jsonNodes.Add(Serialize("Trainers.PoissonRegressor", input, output));
+                AddEntryPoint("Trainers.PoissonRegressor", input, output);
             }
 
             public Microsoft.ML.Legacy.Trainers.StochasticDualCoordinateAscentBinaryClassifier.Output Add(Microsoft.ML.Legacy.Trainers.StochasticDualCoordinateAscentBinaryClassifier input)
@@ -895,7 +895,7 @@ namespace Microsoft.ML
 
             public void Add(Microsoft.ML.Legacy.Trainers.StochasticDualCoordinateAscentBinaryClassifier input, Microsoft.ML.Legacy.Trainers.StochasticDualCoordinateAscentBinaryClassifier.Output output)
             {
-                _jsonNodes.Add(Serialize("Trainers.StochasticDualCoordinateAscentBinaryClassifier", input, output));
+                AddEntryPoint("Trainers.StochasticDualCoordinateAscentBinaryClassifier", input, output);
             }
 
             public Microsoft.ML.Legacy.Trainers.StochasticDualCoordinateAscentClassifier.Output Add(Microsoft.ML.Legacy.Trainers.StochasticDualCoordinateAscentClassifier input)
@@ -907,7 +907,7 @@ namespace Microsoft.ML
 
             public void Add(Microsoft.ML.Legacy.Trainers.StochasticDualCoordinateAscentClassifier input, Microsoft.ML.Legacy.Trainers.StochasticDualCoordinateAscentClassifier.Output output)
             {
-                _jsonNodes.Add(Serialize("Trainers.StochasticDualCoordinateAscentClassifier", input, output));
+                AddEntryPoint("Trainers.StochasticDualCoordinateAscentClassifier", input, output);
             }
 
             public Microsoft.ML.Legacy.Trainers.StochasticDualCoordinateAscentRegressor.Output Add(Microsoft.ML.Legacy.Trainers.StochasticDualCoordinateAscentRegressor input)
@@ -919,7 +919,7 @@ namespace Microsoft.ML
 
             public void Add(Microsoft.ML.Legacy.Trainers.StochasticDualCoordinateAscentRegressor input, Microsoft.ML.Legacy.Trainers.StochasticDualCoordinateAscentRegressor.Output output)
             {
-                _jsonNodes.Add(Serialize("Trainers.StochasticDualCoordinateAscentRegressor", input, output));
+                AddEntryPoint("Trainers.StochasticDualCoordinateAscentRegressor", input, output);
             }
 
             public Microsoft.ML.Legacy.Trainers.StochasticGradientDescentBinaryClassifier.Output Add(Microsoft.ML.Legacy.Trainers.StochasticGradientDescentBinaryClassifier input)
@@ -931,7 +931,7 @@ namespace Microsoft.ML
 
             public void Add(Microsoft.ML.Legacy.Trainers.StochasticGradientDescentBinaryClassifier input, Microsoft.ML.Legacy.Trainers.StochasticGradientDescentBinaryClassifier.Output output)
             {
-                _jsonNodes.Add(Serialize("Trainers.StochasticGradientDescentBinaryClassifier", input, output));
+                AddEntryPoint("Trainers.StochasticGradientDescentBinaryClassifier", input, output);
             }
 
             public Microsoft.ML.Legacy.Trainers.SymSgdBinaryClassifier.Output Add(Microsoft.ML.Legacy.Trainers.SymSgdBinaryClassifier input)
@@ -943,7 +943,7 @@ namespace Microsoft.ML
 
             public void Add(Microsoft.ML.Legacy.Trainers.SymSgdBinaryClassifier input, Microsoft.ML.Legacy.Trainers.SymSgdBinaryClassifier.Output output)
             {
-                _jsonNodes.Add(Serialize("Trainers.SymSgdBinaryClassifier", input, output));
+                AddEntryPoint("Trainers.SymSgdBinaryClassifier", input, output);
             }
 
             public Microsoft.ML.Legacy.Transforms.ApproximateBootstrapSampler.Output Add(Microsoft.ML.Legacy.Transforms.ApproximateBootstrapSampler input)
@@ -955,7 +955,7 @@ namespace Microsoft.ML
 
             public void Add(Microsoft.ML.Legacy.Transforms.ApproximateBootstrapSampler input, Microsoft.ML.Legacy.Transforms.ApproximateBootstrapSampler.Output output)
             {
-                _jsonNodes.Add(Serialize("Transforms.ApproximateBootstrapSampler", input, output));
+                AddEntryPoint("Transforms.ApproximateBootstrapSampler", input, output);
             }
 
             public Microsoft.ML.Legacy.Transforms.BinaryPredictionScoreColumnsRenamer.Output Add(Microsoft.ML.Legacy.Transforms.BinaryPredictionScoreColumnsRenamer input)
@@ -967,7 +967,7 @@ namespace Microsoft.ML
 
             public void Add(Microsoft.ML.Legacy.Transforms.BinaryPredictionScoreColumnsRenamer input, Microsoft.ML.Legacy.Transforms.BinaryPredictionScoreColumnsRenamer.Output output)
             {
-                _jsonNodes.Add(Serialize("Transforms.BinaryPredictionScoreColumnsRenamer", input, output));
+                AddEntryPoint("Transforms.BinaryPredictionScoreColumnsRenamer", input, output);
             }
 
             public Microsoft.ML.Legacy.Transforms.BinNormalizer.Output Add(Microsoft.ML.Legacy.Transforms.BinNormalizer input)
@@ -979,7 +979,7 @@ namespace Microsoft.ML
 
             public void Add(Microsoft.ML.Legacy.Transforms.BinNormalizer input, Microsoft.ML.Legacy.Transforms.BinNormalizer.Output output)
             {
-                _jsonNodes.Add(Serialize("Transforms.BinNormalizer", input, output));
+                AddEntryPoint("Transforms.BinNormalizer", input, output);
             }
 
             public Microsoft.ML.Legacy.Transforms.CategoricalHashOneHotVectorizer.Output Add(Microsoft.ML.Legacy.Transforms.CategoricalHashOneHotVectorizer input)
@@ -991,7 +991,7 @@ namespace Microsoft.ML
 
             public void Add(Microsoft.ML.Legacy.Transforms.CategoricalHashOneHotVectorizer input, Microsoft.ML.Legacy.Transforms.CategoricalHashOneHotVectorizer.Output output)
             {
-                _jsonNodes.Add(Serialize("Transforms.CategoricalHashOneHotVectorizer", input, output));
+                AddEntryPoint("Transforms.CategoricalHashOneHotVectorizer", input, output);
             }
 
             public Microsoft.ML.Legacy.Transforms.CategoricalOneHotVectorizer.Output Add(Microsoft.ML.Legacy.Transforms.CategoricalOneHotVectorizer input)
@@ -1003,7 +1003,7 @@ namespace Microsoft.ML
 
             public void Add(Microsoft.ML.Legacy.Transforms.CategoricalOneHotVectorizer input, Microsoft.ML.Legacy.Transforms.CategoricalOneHotVectorizer.Output output)
             {
-                _jsonNodes.Add(Serialize("Transforms.CategoricalOneHotVectorizer", input, output));
+                AddEntryPoint("Transforms.CategoricalOneHotVectorizer", input, output);
             }
 
             public Microsoft.ML.Legacy.Transforms.CharacterTokenizer.Output Add(Microsoft.ML.Legacy.Transforms.CharacterTokenizer input)
@@ -1015,7 +1015,7 @@ namespace Microsoft.ML
 
             public void Add(Microsoft.ML.Legacy.Transforms.CharacterTokenizer input, Microsoft.ML.Legacy.Transforms.CharacterTokenizer.Output output)
             {
-                _jsonNodes.Add(Serialize("Transforms.CharacterTokenizer", input, output));
+                AddEntryPoint("Transforms.CharacterTokenizer", input, output);
             }
 
             public Microsoft.ML.Legacy.Transforms.ColumnConcatenator.Output Add(Microsoft.ML.Legacy.Transforms.ColumnConcatenator input)
@@ -1027,7 +1027,7 @@ namespace Microsoft.ML
 
             public void Add(Microsoft.ML.Legacy.Transforms.ColumnConcatenator input, Microsoft.ML.Legacy.Transforms.ColumnConcatenator.Output output)
             {
-                _jsonNodes.Add(Serialize("Transforms.ColumnConcatenator", input, output));
+                AddEntryPoint("Transforms.ColumnConcatenator", input, output);
             }
 
             public Microsoft.ML.Legacy.Transforms.ColumnCopier.Output Add(Microsoft.ML.Legacy.Transforms.ColumnCopier input)
@@ -1039,7 +1039,7 @@ namespace Microsoft.ML
 
             public void Add(Microsoft.ML.Legacy.Transforms.ColumnCopier input, Microsoft.ML.Legacy.Transforms.ColumnCopier.Output output)
             {
-                _jsonNodes.Add(Serialize("Transforms.ColumnCopier", input, output));
+                AddEntryPoint("Transforms.ColumnCopier", input, output);
             }
 
             public Microsoft.ML.Legacy.Transforms.ColumnDropper.Output Add(Microsoft.ML.Legacy.Transforms.ColumnDropper input)
@@ -1051,7 +1051,7 @@ namespace Microsoft.ML
 
             public void Add(Microsoft.ML.Legacy.Transforms.ColumnDropper input, Microsoft.ML.Legacy.Transforms.ColumnDropper.Output output)
             {
-                _jsonNodes.Add(Serialize("Transforms.ColumnDropper", input, output));
+                AddEntryPoint("Transforms.ColumnDropper", input, output);
             }
 
             public Microsoft.ML.Legacy.Transforms.ColumnSelector.Output Add(Microsoft.ML.Legacy.Transforms.ColumnSelector input)
@@ -1063,7 +1063,7 @@ namespace Microsoft.ML
 
             public void Add(Microsoft.ML.Legacy.Transforms.ColumnSelector input, Microsoft.ML.Legacy.Transforms.ColumnSelector.Output output)
             {
-                _jsonNodes.Add(Serialize("Transforms.ColumnSelector", input, output));
+                AddEntryPoint("Transforms.ColumnSelector", input, output);
             }
 
             public Microsoft.ML.Legacy.Transforms.ColumnTypeConverter.Output Add(Microsoft.ML.Legacy.Transforms.ColumnTypeConverter input)
@@ -1075,7 +1075,7 @@ namespace Microsoft.ML
 
             public void Add(Microsoft.ML.Legacy.Transforms.ColumnTypeConverter input, Microsoft.ML.Legacy.Transforms.ColumnTypeConverter.Output output)
             {
-                _jsonNodes.Add(Serialize("Transforms.ColumnTypeConverter", input, output));
+                AddEntryPoint("Transforms.ColumnTypeConverter", input, output);
             }
 
             public Microsoft.ML.Legacy.Transforms.CombinerByContiguousGroupId.Output Add(Microsoft.ML.Legacy.Transforms.CombinerByContiguousGroupId input)
@@ -1087,7 +1087,7 @@ namespace Microsoft.ML
 
             public void Add(Microsoft.ML.Legacy.Transforms.CombinerByContiguousGroupId input, Microsoft.ML.Legacy.Transforms.CombinerByContiguousGroupId.Output output)
             {
-                _jsonNodes.Add(Serialize("Transforms.CombinerByContiguousGroupId", input, output));
+                AddEntryPoint("Transforms.CombinerByContiguousGroupId", input, output);
             }
 
             public Microsoft.ML.Legacy.Transforms.ConditionalNormalizer.Output Add(Microsoft.ML.Legacy.Transforms.ConditionalNormalizer input)
@@ -1099,7 +1099,7 @@ namespace Microsoft.ML
 
             public void Add(Microsoft.ML.Legacy.Transforms.ConditionalNormalizer input, Microsoft.ML.Legacy.Transforms.ConditionalNormalizer.Output output)
             {
-                _jsonNodes.Add(Serialize("Transforms.ConditionalNormalizer", input, output));
+                AddEntryPoint("Transforms.ConditionalNormalizer", input, output);
             }
 
             public Microsoft.ML.Legacy.Transforms.DataCache.Output Add(Microsoft.ML.Legacy.Transforms.DataCache input)
@@ -1111,7 +1111,7 @@ namespace Microsoft.ML
 
             public void Add(Microsoft.ML.Legacy.Transforms.DataCache input, Microsoft.ML.Legacy.Transforms.DataCache.Output output)
             {
-                _jsonNodes.Add(Serialize("Transforms.DataCache", input, output));
+                AddEntryPoint("Transforms.DataCache", input, output);
             }
 
             public Microsoft.ML.Legacy.Transforms.DatasetScorer.Output Add(Microsoft.ML.Legacy.Transforms.DatasetScorer input)
@@ -1123,7 +1123,7 @@ namespace Microsoft.ML
 
             public void Add(Microsoft.ML.Legacy.Transforms.DatasetScorer input, Microsoft.ML.Legacy.Transforms.DatasetScorer.Output output)
             {
-                _jsonNodes.Add(Serialize("Transforms.DatasetScorer", input, output));
+                AddEntryPoint("Transforms.DatasetScorer", input, output);
             }
 
             public Microsoft.ML.Legacy.Transforms.DatasetTransformScorer.Output Add(Microsoft.ML.Legacy.Transforms.DatasetTransformScorer input)
@@ -1135,7 +1135,7 @@ namespace Microsoft.ML
 
             public void Add(Microsoft.ML.Legacy.Transforms.DatasetTransformScorer input, Microsoft.ML.Legacy.Transforms.DatasetTransformScorer.Output output)
             {
-                _jsonNodes.Add(Serialize("Transforms.DatasetTransformScorer", input, output));
+                AddEntryPoint("Transforms.DatasetTransformScorer", input, output);
             }
 
             public Microsoft.ML.Legacy.Transforms.Dictionarizer.Output Add(Microsoft.ML.Legacy.Transforms.Dictionarizer input)
@@ -1147,7 +1147,7 @@ namespace Microsoft.ML
 
             public void Add(Microsoft.ML.Legacy.Transforms.Dictionarizer input, Microsoft.ML.Legacy.Transforms.Dictionarizer.Output output)
             {
-                _jsonNodes.Add(Serialize("Transforms.Dictionarizer", input, output));
+                AddEntryPoint("Transforms.Dictionarizer", input, output);
             }
 
             public Microsoft.ML.Legacy.Transforms.FeatureCombiner.Output Add(Microsoft.ML.Legacy.Transforms.FeatureCombiner input)
@@ -1159,7 +1159,7 @@ namespace Microsoft.ML
 
             public void Add(Microsoft.ML.Legacy.Transforms.FeatureCombiner input, Microsoft.ML.Legacy.Transforms.FeatureCombiner.Output output)
             {
-                _jsonNodes.Add(Serialize("Transforms.FeatureCombiner", input, output));
+                AddEntryPoint("Transforms.FeatureCombiner", input, output);
             }
 
             public Microsoft.ML.Legacy.Transforms.FeatureSelectorByCount.Output Add(Microsoft.ML.Legacy.Transforms.FeatureSelectorByCount input)
@@ -1171,7 +1171,7 @@ namespace Microsoft.ML
 
             public void Add(Microsoft.ML.Legacy.Transforms.FeatureSelectorByCount input, Microsoft.ML.Legacy.Transforms.FeatureSelectorByCount.Output output)
             {
-                _jsonNodes.Add(Serialize("Transforms.FeatureSelectorByCount", input, output));
+                AddEntryPoint("Transforms.FeatureSelectorByCount", input, output);
             }
 
             public Microsoft.ML.Legacy.Transforms.FeatureSelectorByMutualInformation.Output Add(Microsoft.ML.Legacy.Transforms.FeatureSelectorByMutualInformation input)
@@ -1183,7 +1183,7 @@ namespace Microsoft.ML
 
             public void Add(Microsoft.ML.Legacy.Transforms.FeatureSelectorByMutualInformation input, Microsoft.ML.Legacy.Transforms.FeatureSelectorByMutualInformation.Output output)
             {
-                _jsonNodes.Add(Serialize("Transforms.FeatureSelectorByMutualInformation", input, output));
+                AddEntryPoint("Transforms.FeatureSelectorByMutualInformation", input, output);
             }
 
             public Microsoft.ML.Legacy.Transforms.GlobalContrastNormalizer.Output Add(Microsoft.ML.Legacy.Transforms.GlobalContrastNormalizer input)
@@ -1195,7 +1195,7 @@ namespace Microsoft.ML
 
             public void Add(Microsoft.ML.Legacy.Transforms.GlobalContrastNormalizer input, Microsoft.ML.Legacy.Transforms.GlobalContrastNormalizer.Output output)
             {
-                _jsonNodes.Add(Serialize("Transforms.GlobalContrastNormalizer", input, output));
+                AddEntryPoint("Transforms.GlobalContrastNormalizer", input, output);
             }
 
             public Microsoft.ML.Legacy.Transforms.HashConverter.Output Add(Microsoft.ML.Legacy.Transforms.HashConverter input)
@@ -1207,7 +1207,7 @@ namespace Microsoft.ML
 
             public void Add(Microsoft.ML.Legacy.Transforms.HashConverter input, Microsoft.ML.Legacy.Transforms.HashConverter.Output output)
             {
-                _jsonNodes.Add(Serialize("Transforms.HashConverter", input, output));
+                AddEntryPoint("Transforms.HashConverter", input, output);
             }
 
             public Microsoft.ML.Legacy.Transforms.ImageGrayscale.Output Add(Microsoft.ML.Legacy.Transforms.ImageGrayscale input)
@@ -1219,7 +1219,7 @@ namespace Microsoft.ML
 
             public void Add(Microsoft.ML.Legacy.Transforms.ImageGrayscale input, Microsoft.ML.Legacy.Transforms.ImageGrayscale.Output output)
             {
-                _jsonNodes.Add(Serialize("Transforms.ImageGrayscale", input, output));
+                AddEntryPoint("Transforms.ImageGrayscale", input, output);
             }
 
             public Microsoft.ML.Legacy.Transforms.ImageLoader.Output Add(Microsoft.ML.Legacy.Transforms.ImageLoader input)
@@ -1231,7 +1231,7 @@ namespace Microsoft.ML
 
             public void Add(Microsoft.ML.Legacy.Transforms.ImageLoader input, Microsoft.ML.Legacy.Transforms.ImageLoader.Output output)
             {
-                _jsonNodes.Add(Serialize("Transforms.ImageLoader", input, output));
+                AddEntryPoint("Transforms.ImageLoader", input, output);
             }
 
             public Microsoft.ML.Legacy.Transforms.ImagePixelExtractor.Output Add(Microsoft.ML.Legacy.Transforms.ImagePixelExtractor input)
@@ -1243,7 +1243,7 @@ namespace Microsoft.ML
 
             public void Add(Microsoft.ML.Legacy.Transforms.ImagePixelExtractor input, Microsoft.ML.Legacy.Transforms.ImagePixelExtractor.Output output)
             {
-                _jsonNodes.Add(Serialize("Transforms.ImagePixelExtractor", input, output));
+                AddEntryPoint("Transforms.ImagePixelExtractor", input, output);
             }
 
             public Microsoft.ML.Legacy.Transforms.ImageResizer.Output Add(Microsoft.ML.Legacy.Transforms.ImageResizer input)
@@ -1255,7 +1255,7 @@ namespace Microsoft.ML
 
             public void Add(Microsoft.ML.Legacy.Transforms.ImageResizer input, Microsoft.ML.Legacy.Transforms.ImageResizer.Output output)
             {
-                _jsonNodes.Add(Serialize("Transforms.ImageResizer", input, output));
+                AddEntryPoint("Transforms.ImageResizer", input, output);
             }
 
             public Microsoft.ML.Legacy.Transforms.KeyToTextConverter.Output Add(Microsoft.ML.Legacy.Transforms.KeyToTextConverter input)
@@ -1267,7 +1267,7 @@ namespace Microsoft.ML
 
             public void Add(Microsoft.ML.Legacy.Transforms.KeyToTextConverter input, Microsoft.ML.Legacy.Transforms.KeyToTextConverter.Output output)
             {
-                _jsonNodes.Add(Serialize("Transforms.KeyToTextConverter", input, output));
+                AddEntryPoint("Transforms.KeyToTextConverter", input, output);
             }
 
             public Microsoft.ML.Legacy.Transforms.LabelColumnKeyBooleanConverter.Output Add(Microsoft.ML.Legacy.Transforms.LabelColumnKeyBooleanConverter input)
@@ -1279,7 +1279,7 @@ namespace Microsoft.ML
 
             public void Add(Microsoft.ML.Legacy.Transforms.LabelColumnKeyBooleanConverter input, Microsoft.ML.Legacy.Transforms.LabelColumnKeyBooleanConverter.Output output)
             {
-                _jsonNodes.Add(Serialize("Transforms.LabelColumnKeyBooleanConverter", input, output));
+                AddEntryPoint("Transforms.LabelColumnKeyBooleanConverter", input, output);
             }
 
             public Microsoft.ML.Legacy.Transforms.LabelIndicator.Output Add(Microsoft.ML.Legacy.Transforms.LabelIndicator input)
@@ -1291,7 +1291,7 @@ namespace Microsoft.ML
 
             public void Add(Microsoft.ML.Legacy.Transforms.LabelIndicator input, Microsoft.ML.Legacy.Transforms.LabelIndicator.Output output)
             {
-                _jsonNodes.Add(Serialize("Transforms.LabelIndicator", input, output));
+                AddEntryPoint("Transforms.LabelIndicator", input, output);
             }
 
             public Microsoft.ML.Legacy.Transforms.LabelToFloatConverter.Output Add(Microsoft.ML.Legacy.Transforms.LabelToFloatConverter input)
@@ -1303,7 +1303,7 @@ namespace Microsoft.ML
 
             public void Add(Microsoft.ML.Legacy.Transforms.LabelToFloatConverter input, Microsoft.ML.Legacy.Transforms.LabelToFloatConverter.Output output)
             {
-                _jsonNodes.Add(Serialize("Transforms.LabelToFloatConverter", input, output));
+                AddEntryPoint("Transforms.LabelToFloatConverter", input, output);
             }
 
             public Microsoft.ML.Legacy.Transforms.LightLda.Output Add(Microsoft.ML.Legacy.Transforms.LightLda input)
@@ -1315,7 +1315,7 @@ namespace Microsoft.ML
 
             public void Add(Microsoft.ML.Legacy.Transforms.LightLda input, Microsoft.ML.Legacy.Transforms.LightLda.Output output)
             {
-                _jsonNodes.Add(Serialize("Transforms.LightLda", input, output));
+                AddEntryPoint("Transforms.LightLda", input, output);
             }
 
             public Microsoft.ML.Legacy.Transforms.LogMeanVarianceNormalizer.Output Add(Microsoft.ML.Legacy.Transforms.LogMeanVarianceNormalizer input)
@@ -1327,7 +1327,7 @@ namespace Microsoft.ML
 
             public void Add(Microsoft.ML.Legacy.Transforms.LogMeanVarianceNormalizer input, Microsoft.ML.Legacy.Transforms.LogMeanVarianceNormalizer.Output output)
             {
-                _jsonNodes.Add(Serialize("Transforms.LogMeanVarianceNormalizer", input, output));
+                AddEntryPoint("Transforms.LogMeanVarianceNormalizer", input, output);
             }
 
             public Microsoft.ML.Legacy.Transforms.LpNormalizer.Output Add(Microsoft.ML.Legacy.Transforms.LpNormalizer input)
@@ -1339,7 +1339,7 @@ namespace Microsoft.ML
 
             public void Add(Microsoft.ML.Legacy.Transforms.LpNormalizer input, Microsoft.ML.Legacy.Transforms.LpNormalizer.Output output)
             {
-                _jsonNodes.Add(Serialize("Transforms.LpNormalizer", input, output));
+                AddEntryPoint("Transforms.LpNormalizer", input, output);
             }
 
             public Microsoft.ML.Legacy.Transforms.ManyHeterogeneousModelCombiner.Output Add(Microsoft.ML.Legacy.Transforms.ManyHeterogeneousModelCombiner input)
@@ -1351,7 +1351,7 @@ namespace Microsoft.ML
 
             public void Add(Microsoft.ML.Legacy.Transforms.ManyHeterogeneousModelCombiner input, Microsoft.ML.Legacy.Transforms.ManyHeterogeneousModelCombiner.Output output)
             {
-                _jsonNodes.Add(Serialize("Transforms.ManyHeterogeneousModelCombiner", input, output));
+                AddEntryPoint("Transforms.ManyHeterogeneousModelCombiner", input, output);
             }
 
             public Microsoft.ML.Legacy.Transforms.MeanVarianceNormalizer.Output Add(Microsoft.ML.Legacy.Transforms.MeanVarianceNormalizer input)
@@ -1363,7 +1363,7 @@ namespace Microsoft.ML
 
             public void Add(Microsoft.ML.Legacy.Transforms.MeanVarianceNormalizer input, Microsoft.ML.Legacy.Transforms.MeanVarianceNormalizer.Output output)
             {
-                _jsonNodes.Add(Serialize("Transforms.MeanVarianceNormalizer", input, output));
+                AddEntryPoint("Transforms.MeanVarianceNormalizer", input, output);
             }
 
             public Microsoft.ML.Legacy.Transforms.MinMaxNormalizer.Output Add(Microsoft.ML.Legacy.Transforms.MinMaxNormalizer input)
@@ -1375,7 +1375,7 @@ namespace Microsoft.ML
 
             public void Add(Microsoft.ML.Legacy.Transforms.MinMaxNormalizer input, Microsoft.ML.Legacy.Transforms.MinMaxNormalizer.Output output)
             {
-                _jsonNodes.Add(Serialize("Transforms.MinMaxNormalizer", input, output));
+                AddEntryPoint("Transforms.MinMaxNormalizer", input, output);
             }
 
             public Microsoft.ML.Legacy.Transforms.MissingValueHandler.Output Add(Microsoft.ML.Legacy.Transforms.MissingValueHandler input)
@@ -1387,7 +1387,7 @@ namespace Microsoft.ML
 
             public void Add(Microsoft.ML.Legacy.Transforms.MissingValueHandler input, Microsoft.ML.Legacy.Transforms.MissingValueHandler.Output output)
             {
-                _jsonNodes.Add(Serialize("Transforms.MissingValueHandler", input, output));
+                AddEntryPoint("Transforms.MissingValueHandler", input, output);
             }
 
             public Microsoft.ML.Legacy.Transforms.MissingValueIndicator.Output Add(Microsoft.ML.Legacy.Transforms.MissingValueIndicator input)
@@ -1399,7 +1399,7 @@ namespace Microsoft.ML
 
             public void Add(Microsoft.ML.Legacy.Transforms.MissingValueIndicator input, Microsoft.ML.Legacy.Transforms.MissingValueIndicator.Output output)
             {
-                _jsonNodes.Add(Serialize("Transforms.MissingValueIndicator", input, output));
+                AddEntryPoint("Transforms.MissingValueIndicator", input, output);
             }
 
             public Microsoft.ML.Legacy.Transforms.MissingValuesDropper.Output Add(Microsoft.ML.Legacy.Transforms.MissingValuesDropper input)
@@ -1411,7 +1411,7 @@ namespace Microsoft.ML
 
             public void Add(Microsoft.ML.Legacy.Transforms.MissingValuesDropper input, Microsoft.ML.Legacy.Transforms.MissingValuesDropper.Output output)
             {
-                _jsonNodes.Add(Serialize("Transforms.MissingValuesDropper", input, output));
+                AddEntryPoint("Transforms.MissingValuesDropper", input, output);
             }
 
             public Microsoft.ML.Legacy.Transforms.MissingValuesRowDropper.Output Add(Microsoft.ML.Legacy.Transforms.MissingValuesRowDropper input)
@@ -1423,7 +1423,7 @@ namespace Microsoft.ML
 
             public void Add(Microsoft.ML.Legacy.Transforms.MissingValuesRowDropper input, Microsoft.ML.Legacy.Transforms.MissingValuesRowDropper.Output output)
             {
-                _jsonNodes.Add(Serialize("Transforms.MissingValuesRowDropper", input, output));
+                AddEntryPoint("Transforms.MissingValuesRowDropper", input, output);
             }
 
             public Microsoft.ML.Legacy.Transforms.MissingValueSubstitutor.Output Add(Microsoft.ML.Legacy.Transforms.MissingValueSubstitutor input)
@@ -1435,7 +1435,7 @@ namespace Microsoft.ML
 
             public void Add(Microsoft.ML.Legacy.Transforms.MissingValueSubstitutor input, Microsoft.ML.Legacy.Transforms.MissingValueSubstitutor.Output output)
             {
-                _jsonNodes.Add(Serialize("Transforms.MissingValueSubstitutor", input, output));
+                AddEntryPoint("Transforms.MissingValueSubstitutor", input, output);
             }
 
             public Microsoft.ML.Legacy.Transforms.ModelCombiner.Output Add(Microsoft.ML.Legacy.Transforms.ModelCombiner input)
@@ -1447,7 +1447,7 @@ namespace Microsoft.ML
 
             public void Add(Microsoft.ML.Legacy.Transforms.ModelCombiner input, Microsoft.ML.Legacy.Transforms.ModelCombiner.Output output)
             {
-                _jsonNodes.Add(Serialize("Transforms.ModelCombiner", input, output));
+                AddEntryPoint("Transforms.ModelCombiner", input, output);
             }
 
             public Microsoft.ML.Legacy.Transforms.NGramTranslator.Output Add(Microsoft.ML.Legacy.Transforms.NGramTranslator input)
@@ -1459,7 +1459,7 @@ namespace Microsoft.ML
 
             public void Add(Microsoft.ML.Legacy.Transforms.NGramTranslator input, Microsoft.ML.Legacy.Transforms.NGramTranslator.Output output)
             {
-                _jsonNodes.Add(Serialize("Transforms.NGramTranslator", input, output));
+                AddEntryPoint("Transforms.NGramTranslator", input, output);
             }
 
             public Microsoft.ML.Legacy.Transforms.NoOperation.Output Add(Microsoft.ML.Legacy.Transforms.NoOperation input)
@@ -1471,7 +1471,7 @@ namespace Microsoft.ML
 
             public void Add(Microsoft.ML.Legacy.Transforms.NoOperation input, Microsoft.ML.Legacy.Transforms.NoOperation.Output output)
             {
-                _jsonNodes.Add(Serialize("Transforms.NoOperation", input, output));
+                AddEntryPoint("Transforms.NoOperation", input, output);
             }
 
             public Microsoft.ML.Legacy.Transforms.OptionalColumnCreator.Output Add(Microsoft.ML.Legacy.Transforms.OptionalColumnCreator input)
@@ -1483,7 +1483,7 @@ namespace Microsoft.ML
 
             public void Add(Microsoft.ML.Legacy.Transforms.OptionalColumnCreator input, Microsoft.ML.Legacy.Transforms.OptionalColumnCreator.Output output)
             {
-                _jsonNodes.Add(Serialize("Transforms.OptionalColumnCreator", input, output));
+                AddEntryPoint("Transforms.OptionalColumnCreator", input, output);
             }
 
             public Microsoft.ML.Legacy.Transforms.PcaCalculator.Output Add(Microsoft.ML.Legacy.Transforms.PcaCalculator input)
@@ -1495,7 +1495,7 @@ namespace Microsoft.ML
 
             public void Add(Microsoft.ML.Legacy.Transforms.PcaCalculator input, Microsoft.ML.Legacy.Transforms.PcaCalculator.Output output)
             {
-                _jsonNodes.Add(Serialize("Transforms.PcaCalculator", input, output));
+                AddEntryPoint("Transforms.PcaCalculator", input, output);
             }
 
             public Microsoft.ML.Legacy.Transforms.PredictedLabelColumnOriginalValueConverter.Output Add(Microsoft.ML.Legacy.Transforms.PredictedLabelColumnOriginalValueConverter input)
@@ -1507,7 +1507,7 @@ namespace Microsoft.ML
 
             public void Add(Microsoft.ML.Legacy.Transforms.PredictedLabelColumnOriginalValueConverter input, Microsoft.ML.Legacy.Transforms.PredictedLabelColumnOriginalValueConverter.Output output)
             {
-                _jsonNodes.Add(Serialize("Transforms.PredictedLabelColumnOriginalValueConverter", input, output));
+                AddEntryPoint("Transforms.PredictedLabelColumnOriginalValueConverter", input, output);
             }
 
             public Microsoft.ML.Legacy.Transforms.RandomNumberGenerator.Output Add(Microsoft.ML.Legacy.Transforms.RandomNumberGenerator input)
@@ -1519,7 +1519,7 @@ namespace Microsoft.ML
 
             public void Add(Microsoft.ML.Legacy.Transforms.RandomNumberGenerator input, Microsoft.ML.Legacy.Transforms.RandomNumberGenerator.Output output)
             {
-                _jsonNodes.Add(Serialize("Transforms.RandomNumberGenerator", input, output));
+                AddEntryPoint("Transforms.RandomNumberGenerator", input, output);
             }
 
             public Microsoft.ML.Legacy.Transforms.RowRangeFilter.Output Add(Microsoft.ML.Legacy.Transforms.RowRangeFilter input)
@@ -1531,7 +1531,7 @@ namespace Microsoft.ML
 
             public void Add(Microsoft.ML.Legacy.Transforms.RowRangeFilter input, Microsoft.ML.Legacy.Transforms.RowRangeFilter.Output output)
             {
-                _jsonNodes.Add(Serialize("Transforms.RowRangeFilter", input, output));
+                AddEntryPoint("Transforms.RowRangeFilter", input, output);
             }
 
             public Microsoft.ML.Legacy.Transforms.RowSkipAndTakeFilter.Output Add(Microsoft.ML.Legacy.Transforms.RowSkipAndTakeFilter input)
@@ -1543,7 +1543,7 @@ namespace Microsoft.ML
 
             public void Add(Microsoft.ML.Legacy.Transforms.RowSkipAndTakeFilter input, Microsoft.ML.Legacy.Transforms.RowSkipAndTakeFilter.Output output)
             {
-                _jsonNodes.Add(Serialize("Transforms.RowSkipAndTakeFilter", input, output));
+                AddEntryPoint("Transforms.RowSkipAndTakeFilter", input, output);
             }
 
             public Microsoft.ML.Legacy.Transforms.RowSkipFilter.Output Add(Microsoft.ML.Legacy.Transforms.RowSkipFilter input)
@@ -1555,7 +1555,7 @@ namespace Microsoft.ML
 
             public void Add(Microsoft.ML.Legacy.Transforms.RowSkipFilter input, Microsoft.ML.Legacy.Transforms.RowSkipFilter.Output output)
             {
-                _jsonNodes.Add(Serialize("Transforms.RowSkipFilter", input, output));
+                AddEntryPoint("Transforms.RowSkipFilter", input, output);
             }
 
             public Microsoft.ML.Legacy.Transforms.RowTakeFilter.Output Add(Microsoft.ML.Legacy.Transforms.RowTakeFilter input)
@@ -1567,7 +1567,7 @@ namespace Microsoft.ML
 
             public void Add(Microsoft.ML.Legacy.Transforms.RowTakeFilter input, Microsoft.ML.Legacy.Transforms.RowTakeFilter.Output output)
             {
-                _jsonNodes.Add(Serialize("Transforms.RowTakeFilter", input, output));
+                AddEntryPoint("Transforms.RowTakeFilter", input, output);
             }
 
             public Microsoft.ML.Legacy.Transforms.ScoreColumnSelector.Output Add(Microsoft.ML.Legacy.Transforms.ScoreColumnSelector input)
@@ -1579,7 +1579,7 @@ namespace Microsoft.ML
 
             public void Add(Microsoft.ML.Legacy.Transforms.ScoreColumnSelector input, Microsoft.ML.Legacy.Transforms.ScoreColumnSelector.Output output)
             {
-                _jsonNodes.Add(Serialize("Transforms.ScoreColumnSelector", input, output));
+                AddEntryPoint("Transforms.ScoreColumnSelector", input, output);
             }
 
             public Microsoft.ML.Legacy.Transforms.Scorer.Output Add(Microsoft.ML.Legacy.Transforms.Scorer input)
@@ -1591,7 +1591,7 @@ namespace Microsoft.ML
 
             public void Add(Microsoft.ML.Legacy.Transforms.Scorer input, Microsoft.ML.Legacy.Transforms.Scorer.Output output)
             {
-                _jsonNodes.Add(Serialize("Transforms.Scorer", input, output));
+                AddEntryPoint("Transforms.Scorer", input, output);
             }
 
             public Microsoft.ML.Legacy.Transforms.Segregator.Output Add(Microsoft.ML.Legacy.Transforms.Segregator input)
@@ -1603,7 +1603,7 @@ namespace Microsoft.ML
 
             public void Add(Microsoft.ML.Legacy.Transforms.Segregator input, Microsoft.ML.Legacy.Transforms.Segregator.Output output)
             {
-                _jsonNodes.Add(Serialize("Transforms.Segregator", input, output));
+                AddEntryPoint("Transforms.Segregator", input, output);
             }
 
             public Microsoft.ML.Legacy.Transforms.SentimentAnalyzer.Output Add(Microsoft.ML.Legacy.Transforms.SentimentAnalyzer input)
@@ -1615,7 +1615,7 @@ namespace Microsoft.ML
 
             public void Add(Microsoft.ML.Legacy.Transforms.SentimentAnalyzer input, Microsoft.ML.Legacy.Transforms.SentimentAnalyzer.Output output)
             {
-                _jsonNodes.Add(Serialize("Transforms.SentimentAnalyzer", input, output));
+                AddEntryPoint("Transforms.SentimentAnalyzer", input, output);
             }
 
             public Microsoft.ML.Legacy.Transforms.TensorFlowScorer.Output Add(Microsoft.ML.Legacy.Transforms.TensorFlowScorer input)
@@ -1627,7 +1627,7 @@ namespace Microsoft.ML
 
             public void Add(Microsoft.ML.Legacy.Transforms.TensorFlowScorer input, Microsoft.ML.Legacy.Transforms.TensorFlowScorer.Output output)
             {
-                _jsonNodes.Add(Serialize("Transforms.TensorFlowScorer", input, output));
+                AddEntryPoint("Transforms.TensorFlowScorer", input, output);
             }
 
             public Microsoft.ML.Legacy.Transforms.TextFeaturizer.Output Add(Microsoft.ML.Legacy.Transforms.TextFeaturizer input)
@@ -1639,7 +1639,7 @@ namespace Microsoft.ML
 
             public void Add(Microsoft.ML.Legacy.Transforms.TextFeaturizer input, Microsoft.ML.Legacy.Transforms.TextFeaturizer.Output output)
             {
-                _jsonNodes.Add(Serialize("Transforms.TextFeaturizer", input, output));
+                AddEntryPoint("Transforms.TextFeaturizer", input, output);
             }
 
             public Microsoft.ML.Legacy.Transforms.TextToKeyConverter.Output Add(Microsoft.ML.Legacy.Transforms.TextToKeyConverter input)
@@ -1651,7 +1651,7 @@ namespace Microsoft.ML
 
             public void Add(Microsoft.ML.Legacy.Transforms.TextToKeyConverter input, Microsoft.ML.Legacy.Transforms.TextToKeyConverter.Output output)
             {
-                _jsonNodes.Add(Serialize("Transforms.TextToKeyConverter", input, output));
+                AddEntryPoint("Transforms.TextToKeyConverter", input, output);
             }
 
             public Microsoft.ML.Legacy.Transforms.TrainTestDatasetSplitter.Output Add(Microsoft.ML.Legacy.Transforms.TrainTestDatasetSplitter input)
@@ -1663,7 +1663,7 @@ namespace Microsoft.ML
 
             public void Add(Microsoft.ML.Legacy.Transforms.TrainTestDatasetSplitter input, Microsoft.ML.Legacy.Transforms.TrainTestDatasetSplitter.Output output)
             {
-                _jsonNodes.Add(Serialize("Transforms.TrainTestDatasetSplitter", input, output));
+                AddEntryPoint("Transforms.TrainTestDatasetSplitter", input, output);
             }
 
             public Microsoft.ML.Legacy.Transforms.TreeLeafFeaturizer.Output Add(Microsoft.ML.Legacy.Transforms.TreeLeafFeaturizer input)
@@ -1675,7 +1675,7 @@ namespace Microsoft.ML
 
             public void Add(Microsoft.ML.Legacy.Transforms.TreeLeafFeaturizer input, Microsoft.ML.Legacy.Transforms.TreeLeafFeaturizer.Output output)
             {
-                _jsonNodes.Add(Serialize("Transforms.TreeLeafFeaturizer", input, output));
+                AddEntryPoint("Transforms.TreeLeafFeaturizer", input, output);
             }
 
             public Microsoft.ML.Legacy.Transforms.TwoHeterogeneousModelCombiner.Output Add(Microsoft.ML.Legacy.Transforms.TwoHeterogeneousModelCombiner input)
@@ -1687,7 +1687,7 @@ namespace Microsoft.ML
 
             public void Add(Microsoft.ML.Legacy.Transforms.TwoHeterogeneousModelCombiner input, Microsoft.ML.Legacy.Transforms.TwoHeterogeneousModelCombiner.Output output)
             {
-                _jsonNodes.Add(Serialize("Transforms.TwoHeterogeneousModelCombiner", input, output));
+                AddEntryPoint("Transforms.TwoHeterogeneousModelCombiner", input, output);
             }
 
             public Microsoft.ML.Legacy.Transforms.VectorToImage.Output Add(Microsoft.ML.Legacy.Transforms.VectorToImage input)
@@ -1699,7 +1699,7 @@ namespace Microsoft.ML
 
             public void Add(Microsoft.ML.Legacy.Transforms.VectorToImage input, Microsoft.ML.Legacy.Transforms.VectorToImage.Output output)
             {
-                _jsonNodes.Add(Serialize("Transforms.VectorToImage", input, output));
+                AddEntryPoint("Transforms.VectorToImage", input, output);
             }
 
             public Microsoft.ML.Legacy.Transforms.WordEmbeddings.Output Add(Microsoft.ML.Legacy.Transforms.WordEmbeddings input)
@@ -1711,7 +1711,7 @@ namespace Microsoft.ML
 
             public void Add(Microsoft.ML.Legacy.Transforms.WordEmbeddings input, Microsoft.ML.Legacy.Transforms.WordEmbeddings.Output output)
             {
-                _jsonNodes.Add(Serialize("Transforms.WordEmbeddings", input, output));
+                AddEntryPoint("Transforms.WordEmbeddings", input, output);
             }
 
             public Microsoft.ML.Legacy.Transforms.WordTokenizer.Output Add(Microsoft.ML.Legacy.Transforms.WordTokenizer input)
@@ -1723,7 +1723,7 @@ namespace Microsoft.ML
 
             public void Add(Microsoft.ML.Legacy.Transforms.WordTokenizer input, Microsoft.ML.Legacy.Transforms.WordTokenizer.Output output)
             {
-                _jsonNodes.Add(Serialize("Transforms.WordTokenizer", input, output));
+                AddEntryPoint("Transforms.WordTokenizer", input, output);
             }
 
         }

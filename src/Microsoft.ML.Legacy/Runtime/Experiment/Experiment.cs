@@ -172,6 +172,11 @@ namespace Microsoft.ML.Runtime
             }
         }
 
+        public void AddEntryPoint(string name, object input, object output)
+        {
+            _jsonNodes.Add(Serialize(name, input, output));
+        }
+
         private string GetEntryPointName(Type inputType)
         {
             if (inputType.FullName != null)
@@ -205,7 +210,7 @@ namespace Microsoft.ML.Runtime
 
         internal void Add(CommonInputs.ITransformInput input, CommonOutputs.ITransformOutput output)
         {
-            _jsonNodes.Add(Serialize(GetEntryPointName(input.GetType()), input, output));
+            AddEntryPoint(GetEntryPointName(input.GetType()), input, output);
         }
 
         public EntryPointTrainerOutput Add(CommonInputs.ITrainerInput input)
@@ -217,12 +222,12 @@ namespace Microsoft.ML.Runtime
 
         internal void Add(CommonInputs.ITrainerInput input, CommonOutputs.ITrainerOutput output)
         {
-            _jsonNodes.Add(Serialize(GetEntryPointName(input.GetType()), input, output));
+            AddEntryPoint(GetEntryPointName(input.GetType()), input, output);
         }
 
         public CommonOutputs.IEvaluatorOutput Add(CommonInputs.IEvaluatorInput input, CommonOutputs.IEvaluatorOutput output)
         {
-            _jsonNodes.Add(Serialize(GetEntryPointName(input.GetType()), input, output));
+            AddEntryPoint(GetEntryPointName(input.GetType()), input, output);
             return output;
         }
 
