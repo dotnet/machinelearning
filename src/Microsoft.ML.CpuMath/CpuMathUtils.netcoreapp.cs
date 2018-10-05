@@ -263,7 +263,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             }
         }
 
-        // destination = a * source
+        // destination = value * source
         public static void Scale(float value, float[] source, float[] destination, int count)
         {
             Contracts.AssertNonEmpty(source);
@@ -294,7 +294,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             }
         }
 
-        // destination[i] = a * (destination[i] + b)
+        // destination[i] = scale * (destination[i] + addend)
         public static void ScaleAdd(float scale, float addend, float[] destination, int count)
         {
             Contracts.AssertNonEmpty(destination);
@@ -334,17 +334,17 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             AddScale(scale, new Span<float>(source, 0, count), new Span<float>(destination, 0, count));
         }
 
-        public static void AddScale(float scale, float[] source, float[] destination, int dstOffset, int count)
+        public static void AddScale(float scale, float[] source, float[] destination, int destinationOffset, int count)
         {
             Contracts.AssertNonEmpty(source);
             Contracts.AssertNonEmpty(destination);
-            Contracts.Assert(dstOffset >= 0);
-            Contracts.Assert(dstOffset < destination.Length);
+            Contracts.Assert(destinationOffset >= 0);
+            Contracts.Assert(destinationOffset < destination.Length);
             Contracts.Assert(count > 0);
             Contracts.Assert(count <= source.Length);
-            Contracts.Assert(count <= (destination.Length - dstOffset));
+            Contracts.Assert(count <= (destination.Length - destinationOffset));
 
-            AddScale(scale, new Span<float>(source, 0, count), new Span<float>(destination, dstOffset, count));
+            AddScale(scale, new Span<float>(source, 0, count), new Span<float>(destination, destinationOffset, count));
         }
 
         private static void AddScale(float scale, Span<float> source, Span<float> destination)
@@ -379,20 +379,20 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             AddScale(scale, new Span<float>(source), new Span<int>(indices, 0, count), new Span<float>(destination));
         }
 
-        public static void AddScale(float scale, float[] source, int[] indices, float[] destination, int dstOffset, int count)
+        public static void AddScale(float scale, float[] source, int[] indices, float[] destination, int destinationOffset, int count)
         {
             Contracts.AssertNonEmpty(source);
             Contracts.AssertNonEmpty(indices);
             Contracts.AssertNonEmpty(destination);
-            Contracts.Assert(dstOffset >= 0);
-            Contracts.Assert(dstOffset < destination.Length);
+            Contracts.Assert(destinationOffset >= 0);
+            Contracts.Assert(destinationOffset < destination.Length);
             Contracts.Assert(count > 0);
             Contracts.Assert(count <= source.Length);
             Contracts.Assert(count <= indices.Length);
-            Contracts.Assert(count < (destination.Length - dstOffset));
+            Contracts.Assert(count < (destination.Length - destinationOffset));
 
             AddScale(scale, new Span<float>(source), new Span<int>(indices, 0, count),
-                    new Span<float>(destination, dstOffset, destination.Length - dstOffset));
+                    new Span<float>(destination, destinationOffset, destination.Length - destinationOffset));
         }
 
         private static void AddScale(float scale, Span<float> source, Span<int> indices, Span<float> destination)
@@ -490,20 +490,20 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             Add(new Span<float>(source), new Span<int>(indices, 0, count), new Span<float>(destination));
         }
 
-        public static void Add(float[] source, int[] indices, float[] destination, int dstOffset, int count)
+        public static void Add(float[] source, int[] indices, float[] destination, int destinationOffset, int count)
         {
             Contracts.AssertNonEmpty(source);
             Contracts.AssertNonEmpty(indices);
             Contracts.AssertNonEmpty(destination);
-            Contracts.Assert(dstOffset >= 0);
-            Contracts.Assert(dstOffset < destination.Length);
+            Contracts.Assert(destinationOffset >= 0);
+            Contracts.Assert(destinationOffset < destination.Length);
             Contracts.Assert(count > 0);
             Contracts.Assert(count <= source.Length);
             Contracts.Assert(count <= indices.Length);
-            Contracts.Assert(count <= (destination.Length - dstOffset));
+            Contracts.Assert(count <= (destination.Length - destinationOffset));
 
             Add(new Span<float>(source), new Span<int>(indices, 0, count),
-                new Span<float>(destination, dstOffset, destination.Length - dstOffset));
+                new Span<float>(destination, destinationOffset, destination.Length - destinationOffset));
         }
 
         private static void Add(Span<float> source, Span<int> indices, Span<float> destination)
@@ -818,89 +818,89 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             }
         }
 
-        public static float DotProductDense(float[] a, float[] b, int count)
+        public static float DotProductDense(float[] left, float[] right, int count)
         {
-            Contracts.AssertNonEmpty(a);
-            Contracts.AssertNonEmpty(b);
+            Contracts.AssertNonEmpty(left);
+            Contracts.AssertNonEmpty(right);
             Contracts.Assert(count > 0);
-            Contracts.Assert(a.Length >= count);
-            Contracts.Assert(b.Length >= count);
+            Contracts.Assert(left.Length >= count);
+            Contracts.Assert(right.Length >= count);
 
-            return DotProductDense(new Span<float>(a, 0, count), new Span<float>(b, 0, count));
+            return DotProductDense(new Span<float>(left, 0, count), new Span<float>(right, 0, count));
         }
 
-        public static float DotProductDense(float[] a, int offset, float[] b, int count)
+        public static float DotProductDense(float[] left, int offset, float[] right, int count)
         {
-            Contracts.AssertNonEmpty(a);
-            Contracts.AssertNonEmpty(b);
+            Contracts.AssertNonEmpty(left);
+            Contracts.AssertNonEmpty(right);
             Contracts.Assert(count > 0);
-            Contracts.Assert(count <= b.Length);
+            Contracts.Assert(count <= right.Length);
             Contracts.Assert(offset >= 0);
-            Contracts.Assert(offset <= (a.Length - count));
+            Contracts.Assert(offset <= (left.Length - count));
 
-            return DotProductDense(new Span<float>(a, offset, count), new Span<float>(b, 0, count));
+            return DotProductDense(new Span<float>(left, offset, count), new Span<float>(right, 0, count));
         }
 
-        private static float DotProductDense(Span<float> a, Span<float> b)
+        private static float DotProductDense(Span<float> left, Span<float> right)
         {
             if (Avx.IsSupported)
             {
-                return AvxIntrinsics.DotU(a, b);
+                return AvxIntrinsics.DotU(left, right);
             }
             else if (Sse.IsSupported)
             {
-                return SseIntrinsics.DotU(a, b);
+                return SseIntrinsics.DotU(left, right);
             }
             else
             {
                 float result = 0;
-                for (int i = 0; i < b.Length; i++)
+                for (int i = 0; i < right.Length; i++)
                 {
-                    result += a[i] * b[i];
+                    result += left[i] * right[i];
                 }
                 return result;
             }
         }
 
-        public static float DotProductSparse(float[] value, float[] b, int[] indices, int count)
+        public static float DotProductSparse(float[] left, float[] right, int[] indices, int count)
         {
-            Contracts.AssertNonEmpty(value);
-            Contracts.AssertNonEmpty(b);
+            Contracts.AssertNonEmpty(left);
+            Contracts.AssertNonEmpty(right);
             Contracts.AssertNonEmpty(indices);
             Contracts.Assert(count > 0);
-            Contracts.Assert(count < value.Length);
-            Contracts.Assert(count <= b.Length);
+            Contracts.Assert(count < left.Length);
+            Contracts.Assert(count <= right.Length);
             Contracts.Assert(count <= indices.Length);
 
-            return DotProductSparse(new Span<float>(value), new Span<float>(b),
+            return DotProductSparse(new Span<float>(left), new Span<float>(right),
                                     new Span<int>(indices, 0, count));
         }
 
-        public static float DotProductSparse(float[] value, int offset, float[] b, int[] indices, int count)
+        public static float DotProductSparse(float[] left, int offset, float[] right, int[] indices, int count)
         {
-            Contracts.AssertNonEmpty(value);
-            Contracts.AssertNonEmpty(b);
+            Contracts.AssertNonEmpty(left);
+            Contracts.AssertNonEmpty(right);
             Contracts.AssertNonEmpty(indices);
             Contracts.Assert(count > 0);
-            Contracts.Assert(count < (value.Length - offset));
-            Contracts.Assert(count <= b.Length);
+            Contracts.Assert(count < (left.Length - offset));
+            Contracts.Assert(count <= right.Length);
             Contracts.Assert(count <= indices.Length);
             Contracts.Assert(offset >= 0);
-            Contracts.Assert(offset < value.Length);
+            Contracts.Assert(offset < left.Length);
 
-            return DotProductSparse(new Span<float>(value, offset, value.Length - offset),
-                                    new Span<float>(b), new Span<int>(indices, 0, count));
+            return DotProductSparse(new Span<float>(left, offset, left.Length - offset),
+                                    new Span<float>(right), new Span<int>(indices, 0, count));
         }
 
-        private static float DotProductSparse(Span<float> value, Span<float> b, Span<int> indices)
+        private static float DotProductSparse(Span<float> left, Span<float> right, Span<int> indices)
         {
             if (Avx.IsSupported)
             {
-                return AvxIntrinsics.DotSU(value, b, indices);
+                return AvxIntrinsics.DotSU(left, right, indices);
             }
             else if (Sse.IsSupported)
             {
-                return SseIntrinsics.DotSU(value, b, indices);
+                return SseIntrinsics.DotSU(left, right, indices);
             }
             else
             {
@@ -908,7 +908,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                 for (int i = 0; i < indices.Length; i++)
                 {
                     int index = indices[i];
-                    result += value[index] * b[i];
+                    result += left[index] * right[i];
                 }
                 return result;
             }

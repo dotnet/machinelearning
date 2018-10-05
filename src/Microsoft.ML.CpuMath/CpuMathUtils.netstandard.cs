@@ -70,13 +70,13 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
         public static float MaxAbsDiff(float mean, float[] source, int count) => SseUtils.MaxAbsDiff(mean, source, count);
 
-        public static float DotProductDense(float[] value, float[] b, int count) => SseUtils.DotProductDense(value, b, count);
+        public static float DotProductDense(float[] left, float[] right, int count) => SseUtils.DotProductDense(left, right, count);
 
-        public static float DotProductDense(float[] value, int offset, float[] b, int count) => SseUtils.DotProductDense(value, offset, b, count);
+        public static float DotProductDense(float[] left, int offset, float[] right, int count) => SseUtils.DotProductDense(left, offset, right, count);
 
-        public static float DotProductSparse(float[] value, float[] b, int[] indices, int count) => SseUtils.DotProductSparse(value, b, indices, count);
+        public static float DotProductSparse(float[] left, float[] right, int[] indices, int count) => SseUtils.DotProductSparse(left, right, indices, count);
 
-        public static float DotProductSparse(float[] value, int offset, float[] b, int[] indices, int count) => SseUtils.DotProductSparse(value, offset, b, indices, count);
+        public static float DotProductSparse(float[] left, int offset, float[] right, int[] indices, int count) => SseUtils.DotProductSparse(left, offset, right, indices, count);
 
         public static float L2DistSquared(float[] left, float[] right, int count) => SseUtils.L2DistSquared(left, right, count);
 
