@@ -9,7 +9,7 @@ using Microsoft.ML.Runtime.LightGBM;
 using Microsoft.ML.StaticPipe.Runtime;
 using System;
 
-namespace Microsoft.ML.StaticPipe
+namespace Microsoft.ML.Trainers
 {
     /// <summary>
     /// Regression trainer estimators.

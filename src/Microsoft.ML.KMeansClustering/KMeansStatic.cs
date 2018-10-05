@@ -8,7 +8,7 @@ using Microsoft.ML.Runtime.KMeans;
 using Microsoft.ML.StaticPipe.Runtime;
 using System;
 
-namespace Microsoft.ML.StaticPipe
+namespace Microsoft.ML.Trainers
 {
     /// <summary>
     /// The trainer context extensions for the <see cref="KMeansPlusPlusTrainer"/>.
