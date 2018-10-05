@@ -589,8 +589,6 @@ namespace Microsoft.ML.Runtime.EntryPoints
                 var entryPointNode = new EntryPointNode(env, ch, context, context.GenerateId(entryPointName), entryPointName,
                     inputBuilder.GetJsonObject(arguments, inputBindingMap, inputMap),
                     outputHelper.GetJsonObject(outputMap), checkpoint, stageId, cost);
-
-                ch.Done();
                 return entryPointNode;
             }
         }
@@ -931,8 +929,6 @@ namespace Microsoft.ML.Runtime.EntryPoints
 
                     result.Add(new EntryPointNode(env, ch, context, id, nodeName, inputs, outputs, checkpoint, stageId, cost, label, group, weight, name));
                 }
-
-                ch.Done();
             }
             return result;
         }

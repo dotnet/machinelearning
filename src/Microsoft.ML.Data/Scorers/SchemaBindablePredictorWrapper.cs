@@ -125,7 +125,6 @@ namespace Microsoft.ML.Runtime.Data
                     }
                 }
                 var mapper = BindCore(ch, schema);
-                ch.Done();
                 return mapper;
             }
         }

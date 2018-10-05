@@ -129,8 +129,6 @@ namespace Microsoft.ML.Runtime.Data
                 {
                     RunCore(ch, cmd);
                 }
-
-                ch.Done();
             }
         }
 
@@ -589,7 +587,6 @@ namespace Microsoft.ML.Runtime.Data
                         var perInst = eval.GetPerInstanceMetrics(dataEval);
                         perInstance = new RoleMappedData(perInst, dataEval.Schema.GetColumnRoleNames(), opt: true);
                     }
-                    ch.Done();
                     return new FoldResult(dict, dataEval.Schema.Schema, perInstance, trainData.Schema);
                 }
             }

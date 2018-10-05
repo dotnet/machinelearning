@@ -206,7 +206,6 @@ namespace Microsoft.ML.Runtime.Data
             using (var ch = Host.Start("Evaluate"))
             {
                 RunCore(ch);
-                ch.Done();
             }
         }
 

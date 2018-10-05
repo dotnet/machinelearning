@@ -61,7 +61,6 @@ namespace Microsoft.ML.Runtime.Data
                 var readerEst = StaticPipeUtils.ReaderEstimatorAnalyzerHelper(env, ch, ctx, rec, func);
                 Contracts.AssertValue(readerEst);
                 var reader = readerEst.Fit(files);
-                ch.Done();
                 return reader;
             }
         }

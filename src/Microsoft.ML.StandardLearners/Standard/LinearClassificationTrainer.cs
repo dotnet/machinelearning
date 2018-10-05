@@ -64,7 +64,6 @@ namespace Microsoft.ML.Runtime.Learners
         public override TPredictor Train(TrainContext context)
         {
             Host.CheckValue(context, nameof(context));
-            TPredictor pred;
             using (var ch = Host.Start("Training"))
             {
                 var preparedData = PrepareDataFromTrainingExamples(ch, context.TrainingSet, out int weightSetCount);
@@ -73,10 +72,8 @@ namespace Microsoft.ML.Runtime.Learners
                 linInitPred = linInitPred ?? initPred as LinearPredictor;
                 Host.CheckParam(context.InitialPredictor == null || linInitPred != null, nameof(context),
                     "Initial predictor was not a linear predictor.");
-                pred = TrainCore(ch, preparedData, linInitPred, weightSetCount);
-                ch.Done();
+                return TrainCore(ch, preparedData, linInitPred, weightSetCount);
             }
-            return pred;
         }
 
         protected abstract TPredictor TrainCore(IChannel ch, RoleMappedData data, LinearPredictor predictor, int weightSetCount);
@@ -211,7 +208,6 @@ namespace Microsoft.ML.Runtime.Learners
                             $"is only valid with a positive constant, and values below {L2LowerBound} cause very slow convergence. " +
                             $"The original {nameof(L2Const)} = {L2Const}, was replaced with {nameof(L2Const)} = {L2LowerBound}.");
                         L2Const = L2LowerBound;
-                        ch.Done();
                     }
                 }
             }
@@ -1560,7 +1556,6 @@ namespace Microsoft.ML.Runtime.Learners
                     {
                         ch.Warning("{0} {1} set too high; reducing to {1}", nameof(InitLearningRate),
                             InitLearningRate, InitLearningRate = (float)0.5 / L2Const);
-                        ch.Done();
                     }
                 }
 
