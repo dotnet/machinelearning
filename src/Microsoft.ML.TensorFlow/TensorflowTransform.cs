@@ -41,7 +41,7 @@ namespace Microsoft.ML.Transforms
         public sealed class Arguments : TransformInputBase
         {
             [Argument(ArgumentType.Required, HelpText = "TensorFlow model used by the transform. Please see https://www.tensorflow.org/mobile/prepare_models for more details.", SortOrder = 0)]
-            public string Model;
+            public string ModelLocation;
 
             [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "The names of the model inputs", ShortName = "inputs", SortOrder = 1)]
             public string[] InputColumns;
@@ -165,7 +165,7 @@ namespace Microsoft.ML.Transforms
             env.CheckValue(args.InputColumns, nameof(args.InputColumns));
             env.CheckValue(args.OutputColumns, nameof(args.OutputColumns));
 
-            return new TensorFlowTransform(env, TensorFlowUtils.GetSession(env, args.Model), args.InputColumns, args.OutputColumns, TensorFlowUtils.IsSavedModel(env, args.Model) ? args.Model : null, false).MakeDataTransform(input);
+            return new TensorFlowTransform(env, TensorFlowUtils.GetSession(env, args.ModelLocation), args.InputColumns, args.OutputColumns, TensorFlowUtils.IsSavedModel(env, args.ModelLocation) ? args.ModelLocation : null, false).MakeDataTransform(input);
         }
 
         // Factory method for SignatureLoadDataTransform.

@@ -446,7 +446,7 @@ namespace Microsoft.ML.Scenarios
             pipeline.Add(new Legacy.Transforms.ColumnCopier() { Column = new[] { new CopyColumnsTransformColumn() { Name = "reshape_input", Source = "Placeholder" } } });
             pipeline.Add(new TensorFlowScorer()
             {
-                Model = model_location,
+                ModelLocation = model_location,
                 OutputColumns = new[] { "Softmax", "dense/Relu" },
                 InputColumns = new[] { "Placeholder", "reshape_input" }
             });
