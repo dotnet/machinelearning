@@ -24,7 +24,7 @@ namespace Microsoft.ML.Runtime.Data
     /// they were directly instantiated from a row.
     ///
     /// Generally actual implementors of this interface should not implement this directly, but instead implement
-    /// <see cref="IColumn{T}"/>.
+    /// <see cref="IValueColumn{T}"/>.
     /// </summary>
     // REVIEW: It is possible we may want to make this ICounted, but let's not start with
     // that assumption. The use cases I have in mind are that we'll still, on the side, have an
@@ -55,7 +55,7 @@ namespace Microsoft.ML.Runtime.Data
 
         /// <summary>
         /// The value getter, as a <see cref="Delegate"/>. Implementators should just pass through
-        /// <see cref="IColumn{T}.GetGetter"/>.
+        /// <see cref="IValueColumn{T}.GetGetter"/>.
         /// </summary>
         /// <returns>The generic getter delegate</returns>
         Delegate GetGetter();
@@ -66,7 +66,7 @@ namespace Microsoft.ML.Runtime.Data
     /// </summary>
     /// <typeparam name="T">The type of values in this column. This should agree with the <see cref="ColumnType.RawType"/>
     /// field of <see name="IRowColumn.Type"/>.</typeparam>
-    public interface IColumn<T> : IColumn
+    public interface IValueColumn<T> : IColumn
     {
         new ValueGetter<T> GetGetter();
     }
@@ -230,12 +230,12 @@ namespace Microsoft.ML.Runtime.Data
 
         private static IColumn CloneColumnCore<T>(IColumn column)
         {
-            Contracts.Assert(column is IColumn<T>);
+            Contracts.Assert(column is IValueColumn<T>);
             IRow meta = column.Metadata;
             if (meta != null)
                 meta = RowCursorUtils.CloneRow(meta);
 
-            var tcolumn = (IColumn<T>)column;
+            var tcolumn = (IValueColumn<T>)column;
             if (!tcolumn.IsActive)
                 return new InactiveImpl<T>(tcolumn.Name, meta, tcolumn.Type);
             T val = default(T);
@@ -246,7 +246,7 @@ namespace Microsoft.ML.Runtime.Data
         /// <summary>
         /// The implementation for a simple wrapping of an <see cref="IRow"/>.
         /// </summary>
-        private sealed class RowWrap<T> : IColumn<T>
+        private sealed class RowWrap<T> : IValueColumn<T>
         {
             private readonly IRow _row;
             private readonly int _col;
@@ -301,7 +301,7 @@ namespace Microsoft.ML.Runtime.Data
         /// Simple wrapper for a schema column, considered inctive with no getter.
         /// </summary>
         /// <typeparam name="T">The type of the getter</typeparam>
-        private sealed class SchemaWrap<T> : IColumn<T>
+        private sealed class SchemaWrap<T> : IValueColumn<T>
         {
             private readonly ISchema _schema;
             private readonly int _col;
@@ -434,7 +434,7 @@ namespace Microsoft.ML.Runtime.Data
         /// This is used for a few <see cref="IColumn"/> implementations that need to store their own name,
         /// metadata, and type themselves.
         /// </summary>
-        private abstract class SimpleColumnBase<T> : IColumn<T>
+        private abstract class SimpleColumnBase<T> : IValueColumn<T>
         {
             public string Name { get; }
             public IRow Metadata { get; }
@@ -569,7 +569,7 @@ namespace Microsoft.ML.Runtime.Data
             public ValueGetter<TValue> GetGetter<TValue>(int col)
             {
                 Contracts.CheckParam(IsColumnActive(col), nameof(col), "requested column not active");
-                var rowCol = _columns[col] as IColumn<TValue>;
+                var rowCol = _columns[col] as IValueColumn<TValue>;
                 if (rowCol == null)
                     throw Contracts.Except("Invalid TValue: '{0}'", typeof(TValue));
                 return rowCol.GetGetter();

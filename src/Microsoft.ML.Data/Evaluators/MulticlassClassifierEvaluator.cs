@@ -857,36 +857,33 @@ namespace Microsoft.ML.Runtime.Data
             return getters;
         }
 
-        public override RowMapperColumnInfo[] GetOutputColumns()
+        public override Schema.Column[] GetOutputColumns()
         {
-            var infos = new RowMapperColumnInfo[4];
+            var infos = new Schema.Column[4];
 
-            var assignedColKeyValues = new ColumnMetadataInfo(Assigned);
-            var keyValueType = new VectorType(TextType.Instance, _numClasses);
-            assignedColKeyValues.Add(MetadataUtils.Kinds.KeyValues, new MetadataInfo<VBuffer<ReadOnlyMemory<char>>>(keyValueType, CreateKeyValueGetter()));
-            infos[AssignedCol] = new RowMapperColumnInfo(Assigned, _types[AssignedCol], assignedColKeyValues);
+            var assignedColKeyValues = new Schema.MetadataRow.Builder();
+            assignedColKeyValues.AddKeyValues(_numClasses, TextType.Instance, CreateKeyValueGetter());
+            infos[AssignedCol] = new Schema.Column(Assigned, _types[AssignedCol], assignedColKeyValues.GetMetadataRow());
 
-            infos[LogLossCol] = new RowMapperColumnInfo(LogLoss, _types[LogLossCol], null);
+            infos[LogLossCol] = new Schema.Column(LogLoss, _types[LogLossCol], null);
 
-            var slotNamesType = new VectorType(TextType.Instance, _numClasses);
-            var sortedScores = new ColumnMetadataInfo(SortedScores);
-            sortedScores.Add(MetadataUtils.Kinds.SlotNames, new MetadataInfo<VBuffer<ReadOnlyMemory<char>>>(slotNamesType,
-                CreateSlotNamesGetter(_numClasses, "Score")));
-            var sortedClasses = new ColumnMetadataInfo(SortedClasses);
-            sortedClasses.Add(MetadataUtils.Kinds.SlotNames, new MetadataInfo<VBuffer<ReadOnlyMemory<char>>>(slotNamesType,
-                CreateSlotNamesGetter(_numClasses, "Class")));
-            sortedClasses.Add(MetadataUtils.Kinds.KeyValues, new MetadataInfo<VBuffer<ReadOnlyMemory<char>>>(keyValueType, CreateKeyValueGetter()));
+            var sortedScores = new Schema.MetadataRow.Builder();
+            sortedScores.AddSlotNames(_numClasses, CreateSlotNamesGetter(_numClasses, "Score"));
 
-            infos[SortedScoresCol] = new RowMapperColumnInfo(SortedScores, _types[SortedScoresCol], sortedScores);
-            infos[SortedClassesCol] = new RowMapperColumnInfo(SortedClasses, _types[SortedClassesCol], sortedClasses);
+            var sortedClasses = new Schema.MetadataRow.Builder();
+            sortedClasses.AddSlotNames(_numClasses, CreateSlotNamesGetter(_numClasses, "Class"));
+            sortedClasses.AddKeyValues(_numClasses, TextType.Instance, CreateKeyValueGetter());
+
+            infos[SortedScoresCol] = new Schema.Column(SortedScores, _types[SortedScoresCol], sortedScores.GetMetadataRow());
+            infos[SortedClassesCol] = new Schema.Column(SortedClasses, _types[SortedClassesCol], sortedClasses.GetMetadataRow());
             return infos;
         }
 
         // REVIEW: Figure out how to avoid having the column name in each slot name.
-        private MetadataUtils.MetadataGetter<VBuffer<ReadOnlyMemory<char>>> CreateSlotNamesGetter(int numTopClasses, string suffix)
+        private ValueGetter<VBuffer<ReadOnlyMemory<char>>> CreateSlotNamesGetter(int numTopClasses, string suffix)
         {
             return
-                (int col, ref VBuffer<ReadOnlyMemory<char>> dst) =>
+                (ref VBuffer<ReadOnlyMemory<char>> dst) =>
                 {
                     var values = dst.Values;
                     if (Utils.Size(values) < numTopClasses)
@@ -897,10 +894,10 @@ namespace Microsoft.ML.Runtime.Data
                 };
         }
 
-        private MetadataUtils.MetadataGetter<VBuffer<ReadOnlyMemory<char>>> CreateKeyValueGetter()
+        private ValueGetter<VBuffer<ReadOnlyMemory<char>>> CreateKeyValueGetter()
         {
             return
-                (int col, ref VBuffer<ReadOnlyMemory<char>> dst) =>
+                (ref VBuffer<ReadOnlyMemory<char>> dst) =>
                 {
                     var values = dst.Values;
                     if (Utils.Size(values) < _numClasses)

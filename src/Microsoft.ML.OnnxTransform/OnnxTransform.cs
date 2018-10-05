@@ -244,10 +244,10 @@ namespace Microsoft.ML.Transforms
                 _host.Assert(_outputItemRawType == _outputColType.ItemType.RawType);
             }
 
-            public RowMapperColumnInfo[] GetOutputColumns()
+            public Schema.Column[] GetOutputColumns()
             {
-                var info = new RowMapperColumnInfo[1];
-                info[0] = new RowMapperColumnInfo(_outputColName, _outputColType, null);
+                var info = new Schema.Column[1];
+                info[0] = new Schema.Column(_outputColName, _outputColType, null);
                 return info;
             }
 

@@ -628,6 +628,145 @@ namespace Microsoft.ML.Runtime.Data
     }
 
     /// <summary>
+    /// Class that encapsulates passing input columns through (with possibly different indices) and adding
+    /// additional columns. If an added column has the same name as a non-hidden input column, it hides
+    /// the input column, and is placed immediately after the input column. Otherwise, the added column is placed
+    /// at the end.
+    /// This class is intended to simplify predicate propagation for this case.
+    /// </summary>
+    public sealed class ColumnBindings
+    {
+        // Indices of columns in the merged schema. Old indices are as is, new indices are stored as ~idx.
+        private readonly int[] _colMap;
+
+        /// <summary>
+        /// The indices of added columns in the <see cref="Schema"/>.
+        /// </summary>
+        public IReadOnlyList<int> AddedColumnIndices { get; }
+
+        /// <summary>
+        /// The input schema.
+        /// </summary>
+        public Schema InputSchema { get; }
+
+        /// <summary>
+        /// The merged schema.
+        /// </summary>
+        public Schema Schema { get; }
+
+        /// <summary>
+        /// Create a new instance of <see cref="ColumnBindings"/>.
+        /// </summary>
+        /// <param name="input">The input schema that we're adding columns to.</param>
+        /// <param name="addedColumns">The columns being added.</param>
+        public ColumnBindings(Schema input, Schema.Column[] addedColumns)
+        {
+            Contracts.CheckValue(input, nameof(input));
+            Contracts.CheckValue(addedColumns, nameof(addedColumns));
+
+            InputSchema = input;
+
+            // Construct the indices.
+            var indices = new List<int>();
+            var namesUsed = new HashSet<string>();
+            for (int i = 0; i < input.ColumnCount; i++)
+            {
+                namesUsed.Add(input[i].Name);
+                indices.Add(i);
+            }
+
+            for (int i = 0; i < addedColumns.Length; i++)
+            {
+                string name = addedColumns[i].Name;
+                if (namesUsed.Add(name))
+                {
+                    // New name. Append to the end.
+                    indices.Add(~i);
+                }
+                else
+                {
+                    // Old name. Find last instance and add after it.
+                    for (int j = indices.Count - 1; j >= 0; j--)
+                    {
+                        var colName = indices[j] >= 0 ? input[indices[j]].Name : addedColumns[~indices[j]].Name;
+                        if (colName == name)
+                        {
+                            indices.Insert(j + 1, ~i);
+                            break;
+                        }
+                    }
+                }
+            }
+            Contracts.Assert(indices.Count == addedColumns.Length + input.ColumnCount);
+
+            // Create the output schema.
+            var schemaColumns = indices.Select(idx => idx >= 0 ? input[idx] : addedColumns[~idx]);
+            Schema = new Schema(schemaColumns);
+
+            // Memorize column maps.
+            _colMap = indices.ToArray();
+            var addedIndices = new int[addedColumns.Length];
+            for (int i = 0; i < _colMap.Length; i++)
+            {
+                int colIndex = _colMap[i];
+                if (colIndex < 0)
+                {
+                    Contracts.Assert(addedIndices[~colIndex] == 0);
+                    addedIndices[~colIndex] = i;
+                }
+            }
+
+            AddedColumnIndices = addedIndices.AsReadOnly();
+        }
+
+        /// <summary>
+        /// This maps a column index for this schema to either a source column index (when
+        /// <paramref name="isSrcColumn"/> is true), or to an "iinfo" index of an added column
+        /// (when <paramref name="isSrcColumn"/> is false).
+        /// </summary>
+        /// <param name="isSrcColumn">Whether the return index is for a source column</param>
+        /// <param name="col">The column index for this schema</param>
+        /// <returns>The index (either source index or iinfo index)</returns>
+        public int MapColumnIndex(out bool isSrcColumn, int col)
+        {
+            Contracts.Assert(0 <= col && col < _colMap.Length);
+            int index = _colMap[col];
+            if (index < 0)
+            {
+                index = ~index;
+                Contracts.Assert(index < AddedColumnIndices.Count);
+                isSrcColumn = false;
+            }
+            else
+            {
+                Contracts.Assert(index < InputSchema.ColumnCount);
+                isSrcColumn = true;
+            }
+            return index;
+        }
+
+        /// <summary>
+        /// The given predicate maps from output column index to whether the column is active.
+        /// This builds an array of bools of length Input.ColumnCount containing the results of calling
+        /// predicate on the output column index corresponding to each input column index.
+        /// </summary>
+        public bool[] GetActiveInput(Func<int, bool> predicate)
+        {
+            Contracts.AssertValue(predicate);
+
+            var active = new bool[InputSchema.ColumnCount];
+            for (int dst = 0; dst < _colMap.Length; dst++)
+            {
+                int src = _colMap[dst];
+                Contracts.Assert(-AddedColumnIndices.Count <= src && src < InputSchema.ColumnCount);
+                if (src >= 0 && predicate(dst))
+                    active[src] = true;
+            }
+            return active;
+        }
+    }
+
+    /// <summary>
     /// Base type for bindings with multiple new columns, each mapping from multiple source columns.
     /// The column strings are parsed as D:S where D is the name of the new column and S is a comma separated
     /// list of source columns. A column string S with no colon is interpreted as S:S, so the destination

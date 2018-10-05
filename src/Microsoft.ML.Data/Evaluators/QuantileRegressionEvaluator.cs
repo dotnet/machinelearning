@@ -339,25 +339,26 @@ namespace Microsoft.ML.Runtime.Data
                 col => (activeOutput(L1Col) || activeOutput(L2Col)) && (col == ScoreIndex || col == LabelIndex);
         }
 
-        public override RowMapperColumnInfo[] GetOutputColumns()
+        public override Schema.Column[] GetOutputColumns()
         {
-            var infos = new RowMapperColumnInfo[2];
+            var infos = new Schema.Column[2];
 
             var slotNamesType = new VectorType(TextType.Instance, _scoreSize);
-            var l1Metadata = new ColumnMetadataInfo(L1);
-            l1Metadata.Add(MetadataUtils.Kinds.SlotNames, new MetadataInfo<VBuffer<ReadOnlyMemory<char>>>(slotNamesType, CreateSlotNamesGetter(L1)));
-            var l2Metadata = new ColumnMetadataInfo(L2);
-            l2Metadata.Add(MetadataUtils.Kinds.SlotNames, new MetadataInfo<VBuffer<ReadOnlyMemory<char>>>(slotNamesType, CreateSlotNamesGetter(L2)));
+            var l1Metadata = new Schema.MetadataRow.Builder();
+            l1Metadata.AddSlotNames(_scoreSize, CreateSlotNamesGetter(L1));
 
-            infos[L1Col] = new RowMapperColumnInfo(L1, _outputType, l1Metadata);
-            infos[L2Col] = new RowMapperColumnInfo(L2, _outputType, l2Metadata);
+            var l2Metadata = new Schema.MetadataRow.Builder();
+            l2Metadata.AddSlotNames(_scoreSize, CreateSlotNamesGetter(L2));
+
+            infos[L1Col] = new Schema.Column(L1, _outputType, l1Metadata.GetMetadataRow());
+            infos[L2Col] = new Schema.Column(L2, _outputType, l2Metadata.GetMetadataRow());
             return infos;
         }
 
-        private MetadataUtils.MetadataGetter<VBuffer<ReadOnlyMemory<char>>> CreateSlotNamesGetter(string prefix)
+        private ValueGetter<VBuffer<ReadOnlyMemory<char>>> CreateSlotNamesGetter(string prefix)
         {
             return
-                (int col, ref VBuffer<ReadOnlyMemory<char>> dst) =>
+                (ref VBuffer<ReadOnlyMemory<char>> dst) =>
                 {
                     var values = dst.Values;
                     if (Utils.Size(values) < _scoreSize)

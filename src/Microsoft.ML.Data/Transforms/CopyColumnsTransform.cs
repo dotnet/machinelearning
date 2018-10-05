@@ -157,14 +157,14 @@ namespace Microsoft.ML.Transforms
         }
 
         protected override IRowMapper MakeRowMapper(ISchema inputSchema)
-            => new Mapper(this, inputSchema, ColumnPairs);
+            => new Mapper(this, Schema.Create(inputSchema), ColumnPairs);
 
         private sealed class Mapper : MapperBase
         {
-            private readonly ISchema _schema;
+            private readonly Schema _schema;
             private readonly (string Source, string Name)[] _columns;
 
-            internal Mapper(CopyColumnsTransform parent, ISchema inputSchema, (string Source, string Name)[] columns)
+            internal Mapper(CopyColumnsTransform parent, Schema inputSchema, (string Source, string Name)[] columns)
                 : base(parent.Host.Register(nameof(Mapper)), parent, inputSchema)
             {
                 _schema = inputSchema;
@@ -185,15 +185,13 @@ namespace Microsoft.ML.Transforms
                 return Utils.MarshalInvoke(MakeGetter<int>, type.RawType, input, colIndex);
             }
 
-            public override RowMapperColumnInfo[] GetOutputColumns()
+            public override Schema.Column[] GetOutputColumns()
             {
-                var result = new RowMapperColumnInfo[_columns.Length];
+                var result = new Schema.Column[_columns.Length];
                 for (int i = 0; i < _columns.Length; i++)
                 {
-                    _schema.TryGetColumnIndex(_columns[i].Source, out int colIndex);
-                    var colType = _schema.GetColumnType(colIndex);
-                    var meta = new RowColumnUtils.MetadataRow(_schema, colIndex, x => true);
-                    result[i] = new RowMapperColumnInfo(_columns[i].Name, colType, meta);
+                    var srcCol = _schema[_columns[i].Source];
+                    result[i] = new Schema.Column(_columns[i].Name, srcCol.Type, srcCol.Metadata);
                 }
                 return result;
             }

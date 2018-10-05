@@ -1206,16 +1206,16 @@ namespace Microsoft.ML.Runtime.Data
             return Single.IsNaN(val) ? false : val > _threshold;
         }
 
-        public override RowMapperColumnInfo[] GetOutputColumns()
+        public override Schema.Column[] GetOutputColumns()
         {
             if (_probIndex >= 0)
             {
-                var infos = new RowMapperColumnInfo[2];
-                infos[LogLossCol] = new RowMapperColumnInfo(LogLoss, _types[LogLossCol], null);
-                infos[AssignedCol] = new RowMapperColumnInfo(Assigned, _types[AssignedCol], null);
+                var infos = new Schema.Column[2];
+                infos[LogLossCol] = new Schema.Column(LogLoss, _types[LogLossCol], null);
+                infos[AssignedCol] = new Schema.Column(Assigned, _types[AssignedCol], null);
                 return infos;
             }
-            return new[] { new RowMapperColumnInfo(Assigned, _types[AssignedCol], null), };
+            return new[] { new Schema.Column(Assigned, _types[AssignedCol], null), };
         }
 
         private void CheckInputColumnTypes(ISchema schema)

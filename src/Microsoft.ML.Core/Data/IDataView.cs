@@ -16,9 +16,7 @@ namespace Microsoft.ML.Runtime.Data
         /// <summary>
         /// Number of columns.
         /// </summary>
-        int ColumnCount {
-            get;
-        }
+        int ColumnCount { get; }
 
         /// <summary>
         /// If there is a column with the given name, set col to its index and return true.
@@ -161,8 +159,25 @@ namespace Microsoft.ML.Runtime.Data
         /// <summary>
         /// Returns a value getter delegate to fetch the given column value from the row.
         /// This throws if the column is not active in this row, or if the type
-        /// <typeparamref name="TValue"/> differs from this row's schema's
-        /// <see cref="ISchema.GetColumnType(int)"/> on <paramref name="col"/>.
+        /// <typeparamref name="TValue"/> differs from this column's type.
+        /// </summary>
+        ValueGetter<TValue> GetGetter<TValue>(int col);
+    }
+
+    /// <summary>
+    /// A logical row. Every value of every column is retrievable, and immutable.
+    /// </summary>
+    public interface IStandaloneRow : ISchematized
+    {
+        /// <summary>
+        /// Puts a value of a column <paramref name="col"/> into <paramref name="value"/>.
+        /// This throws if the type <typeparamref name="TValue"/> differs from this column's type.
+        /// </summary>
+        void GetValue<TValue>(int col, ref TValue value);
+
+        /// <summary>
+        /// Returns a value getter delegate to fetch the given column value from the row.
+        /// This throws if the type <typeparamref name="TValue"/> differs from this column's type.
         /// </summary>
         ValueGetter<TValue> GetGetter<TValue>(int col);
     }

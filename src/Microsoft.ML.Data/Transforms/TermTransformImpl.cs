@@ -856,7 +856,7 @@ namespace Microsoft.ML.Runtime.Data
             /// Allows us to optionally register metadata. It is also perfectly legal for
             /// this to do nothing, which corresponds to there being no metadata.
             /// </summary>
-            public abstract void AddMetadata(ColumnMetadataInfo colMetaInfo);
+            public abstract void AddMetadata(Schema.MetadataRow.Builder builder);
 
             /// <summary>
             /// Writes out all terms we map to a text writer, with one line per mapped term.
@@ -1039,7 +1039,7 @@ namespace Microsoft.ML.Runtime.Data
                     }
                 }
 
-                public override void AddMetadata(ColumnMetadataInfo colMetaInfo)
+                public override void AddMetadata(Schema.MetadataRow.Builder builder)
                 {
                     if (TypedMap.Count == 0)
                         return;
@@ -1048,28 +1048,24 @@ namespace Microsoft.ML.Runtime.Data
                         var conv = Conversion.Conversions.Instance;
                         var stringMapper = conv.GetStringConversion<T>(TypedMap.ItemType);
 
-                        MetadataUtils.MetadataGetter<VBuffer<ReadOnlyMemory<char>>> getter =
-                            (int iinfo, ref VBuffer<ReadOnlyMemory<char>> dst) =>
+                        ValueGetter<VBuffer<ReadOnlyMemory<char>>> getter =
+                            (ref VBuffer<ReadOnlyMemory<char>> dst) =>
                             {
                                 // No buffer sharing convenient here.
-                                VBuffer<T> dstT = default(VBuffer<T>);
+                                VBuffer<T> dstT = default;
                                 TypedMap.GetTerms(ref dstT);
                                 GetTextTerms(ref dstT, stringMapper, ref dst);
                             };
-                        var columnType = new VectorType(TextType.Instance, TypedMap.OutputType.KeyCount);
-                        var info = new MetadataInfo<VBuffer<ReadOnlyMemory<char>>>(columnType, getter);
-                        colMetaInfo.Add(MetadataUtils.Kinds.KeyValues, info);
+                        builder.AddKeyValues(TypedMap.OutputType.KeyCount, TextType.Instance, getter);
                     }
                     else
                     {
-                        MetadataUtils.MetadataGetter<VBuffer<T>> getter =
-                            (int iinfo, ref VBuffer<T> dst) =>
+                        ValueGetter<VBuffer<T>> getter =
+                            (ref VBuffer<T> dst) =>
                             {
                                 TypedMap.GetTerms(ref dst);
                             };
-                        var columnType = new VectorType(TypedMap.ItemType, TypedMap.OutputType.KeyCount);
-                        var info = new MetadataInfo<VBuffer<T>>(columnType, getter);
-                        colMetaInfo.Add(MetadataUtils.Kinds.KeyValues, info);
+                        builder.AddKeyValues(TypedMap.OutputType.KeyCount, TypedMap.ItemType, getter);
                     }
                 }
             }
@@ -1086,7 +1082,7 @@ namespace Microsoft.ML.Runtime.Data
                     _host.Assert(TypedMap.ItemType.IsKey);
                 }
 
-                public override void AddMetadata(ColumnMetadataInfo colMetaInfo)
+                public override void AddMetadata(Schema.MetadataRow.Builder builder)
                 {
                     if (TypedMap.Count == 0)
                         return;
@@ -1094,18 +1090,18 @@ namespace Microsoft.ML.Runtime.Data
                     _schema.TryGetColumnIndex(_infos[_iinfo].Source, out int srcCol);
                     ColumnType srcMetaType = _schema.GetMetadataTypeOrNull(MetadataUtils.Kinds.KeyValues, srcCol);
                     if (srcMetaType == null || srcMetaType.VectorSize != TypedMap.ItemType.KeyCount ||
-                        TypedMap.ItemType.KeyCount == 0 || !Utils.MarshalInvoke(AddMetadataCore<int>, srcMetaType.ItemType.RawType, srcMetaType.ItemType, colMetaInfo))
+                        TypedMap.ItemType.KeyCount == 0 || !Utils.MarshalInvoke(AddMetadataCore<int>, srcMetaType.ItemType.RawType, srcMetaType.ItemType, builder))
                     {
                         // No valid input key-value metadata. Back off to the base implementation.
-                        base.AddMetadata(colMetaInfo);
+                        base.AddMetadata(builder);
                     }
                 }
 
-                private bool AddMetadataCore<TMeta>(ColumnType srcMetaType, ColumnMetadataInfo colMetaInfo)
+                private bool AddMetadataCore<TMeta>(ColumnType srcMetaType, Schema.MetadataRow.Builder builder)
                 {
                     _host.AssertValue(srcMetaType);
                     _host.Assert(srcMetaType.RawType == typeof(TMeta));
-                    _host.AssertValue(colMetaInfo);
+                    _host.AssertValue(builder);
                     var srcType = TypedMap.ItemType.AsKey;
                     _host.AssertValue(srcType);
                     var dstType = new KeyType(DataKind.U4, srcType.Min, srcType.Count);
@@ -1144,32 +1140,26 @@ namespace Microsoft.ML.Runtime.Data
                     if (IsTextMetadata && !srcMetaType.IsText)
                     {
                         var stringMapper = convInst.GetStringConversion<TMeta>(srcMetaType);
-                        MetadataUtils.MetadataGetter<VBuffer<ReadOnlyMemory<char>>> mgetter =
-                            (int iinfo, ref VBuffer<ReadOnlyMemory<char>> dst) =>
+                        ValueGetter<VBuffer<ReadOnlyMemory<char>>> mgetter =
+                            (ref VBuffer<ReadOnlyMemory<char>> dst) =>
                             {
-                                _host.Assert(iinfo == _iinfo);
                                 var tempMeta = default(VBuffer<TMeta>);
                                 getter(ref tempMeta);
                                 Contracts.Assert(tempMeta.IsDense);
                                 GetTextTerms(ref tempMeta, stringMapper, ref dst);
                                 _host.Assert(dst.Length == TypedMap.OutputType.KeyCount);
                             };
-                        var columnType = new VectorType(TextType.Instance, TypedMap.OutputType.KeyCount);
-                        var info = new MetadataInfo<VBuffer<ReadOnlyMemory<char>>>(columnType, mgetter);
-                        colMetaInfo.Add(MetadataUtils.Kinds.KeyValues, info);
+                        builder.AddKeyValues(TypedMap.OutputType.KeyCount, TextType.Instance, mgetter);
                     }
                     else
                     {
-                        MetadataUtils.MetadataGetter<VBuffer<TMeta>> mgetter =
-                            (int iinfo, ref VBuffer<TMeta> dst) =>
+                        ValueGetter<VBuffer<TMeta>> mgetter =
+                            (ref VBuffer<TMeta> dst) =>
                             {
-                                _host.Assert(iinfo == _iinfo);
                                 getter(ref dst);
                                 _host.Assert(dst.Length == TypedMap.OutputType.KeyCount);
                             };
-                        var columnType = new VectorType(srcMetaType.ItemType.AsPrimitive, TypedMap.OutputType.KeyCount);
-                        var info = new MetadataInfo<VBuffer<TMeta>>(columnType, mgetter);
-                        colMetaInfo.Add(MetadataUtils.Kinds.KeyValues, info);
+                        builder.AddKeyValues(TypedMap.OutputType.KeyCount, srcMetaType.ItemType.AsPrimitive, mgetter);
                     }
                     return true;
                 }

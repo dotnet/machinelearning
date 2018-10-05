@@ -4,6 +4,7 @@
 
 using System;
 using System.IO;
+using System.Linq;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Internal.Utilities;
 
@@ -25,7 +26,8 @@ namespace Microsoft.ML.Runtime.Api
     {
         private const string RegistrationNameTemplate = "MapTransform<{0}, {1}>";
         private readonly Action<TSrc, TDst> _mapAction;
-        private readonly MergedSchema _schema;
+        private readonly InternalSchemaDefinition _addedSchema;
+        private readonly ColumnBindings _bindings;
 
         // Memorized input schema definition. Needed for re-apply.
         private readonly SchemaDefinition _inputSchemaDefinition;
@@ -67,7 +69,8 @@ namespace Microsoft.ML.Runtime.Api
                ? InternalSchemaDefinition.Create(typeof(TDst), SchemaDefinition.Direction.Write)
                : InternalSchemaDefinition.Create(typeof(TDst), outputSchemaDefinition);
 
-            _schema = MergedSchema.Create(Source.Schema, outSchema);
+            _addedSchema = outSchema;
+            _bindings = new ColumnBindings(Data.Schema.Create(Source.Schema), DataViewConstructionUtils.GetSchemaColumns(outSchema));
         }
 
         /// <summary>
@@ -83,12 +86,13 @@ namespace Microsoft.ML.Runtime.Api
             _mapAction = transform._mapAction;
             _typedSource = TypedCursorable<TSrc>.Create(Host, newSource, false, transform._inputSchemaDefinition);
 
-            _schema = MergedSchema.Create(newSource.Schema, transform._schema.AddedSchema);
+            _addedSchema = transform._addedSchema;
+            _bindings = new ColumnBindings(Data.Schema.Create(newSource.Schema), DataViewConstructionUtils.GetSchemaColumns(_addedSchema));
         }
 
         public bool CanShuffle => Source.CanShuffle;
 
-        public ISchema Schema => _schema;
+        public ISchema Schema => _bindings.Schema;
 
         public long? GetRowCount(bool lazy = true)
         {
@@ -104,7 +108,7 @@ namespace Microsoft.ML.Runtime.Api
             if (DataViewUtils.TryCreateConsolidatingCursor(out curs, this, predicate, Host, rand))
                 return curs;
 
-            var activeInputs = _schema.GetActiveInput(predicate);
+            var activeInputs = _bindings.GetActiveInput(predicate);
             Func<int, bool> srcPredicate = c => activeInputs[c];
 
             var input = _typedSource.GetCursor(srcPredicate, rand == null ? (int?)null : rand.Next());
@@ -116,7 +120,7 @@ namespace Microsoft.ML.Runtime.Api
             Host.CheckValue(predicate, nameof(predicate));
             Host.CheckValueOrNull(rand);
 
-            var activeInputs = _schema.GetActiveInput(predicate);
+            var activeInputs = _bindings.GetActiveInput(predicate);
             Func<int, bool> srcPredicate = c => activeInputs[c];
 
             var inputs = _typedSource.GetCursorSet(out consolidator, srcPredicate, n, rand);
@@ -140,7 +144,7 @@ namespace Microsoft.ML.Runtime.Api
         public Func<int, bool> GetDependencies(Func<int, bool> predicate)
         {
             Host.CheckValue(predicate, nameof(predicate));
-            var activeInput = _schema.GetActiveInput(predicate);
+            var activeInput = _bindings.GetActiveInput(predicate);
             Func<int, bool> srcPredicate =
                 c =>
                 {
@@ -181,9 +185,9 @@ namespace Microsoft.ML.Runtime.Api
             // REVIEW: This is quite odd (for a cursor to create an IDataView). Consider cleaning up your
             // programming model for this. Note that you don't use the IDataView, only a cursor around a single row that
             // is owned by this cursor. Seems like that cursor implementation could be decoupled from any IDataView class.
-            var appendedDataView = new DataViewConstructionUtils.SingleRowLoopDataView<TDst>(Host, _schema.AddedSchema);
+            var appendedDataView = new DataViewConstructionUtils.SingleRowLoopDataView<TDst>(Host, _addedSchema);
             appendedDataView.SetCurrentRowObject(dst);
-            return appendedDataView.GetRowCursor(i => active(_schema.MapIinfoToCol(i)));
+            return appendedDataView.GetRowCursor(i => active(_bindings.AddedColumnIndices[i]));
         }
 
         private sealed class Cursor : SynchronizedCursorBase<IRowCursor<TSrc>>, IRowCursor
@@ -281,7 +285,7 @@ namespace Microsoft.ML.Runtime.Api
             public ValueGetter<TValue> GetGetterCore<TValue>(int col, Action checkIsGood)
             {
                 bool isSrc;
-                int index = _parent._schema.MapColumnIndex(out isSrc, col);
+                int index = _parent._bindings.MapColumnIndex(out isSrc, col);
                 if (isSrc)
                     return _input.GetGetter<TValue>(index);
 

@@ -160,7 +160,7 @@ namespace Microsoft.ML.Runtime.Data
         private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, ISchema inputSchema)
             => Create(env, ctx).MakeRowMapper(inputSchema);
 
-        protected override IRowMapper MakeRowMapper(ISchema schema) => new Mapper(this, schema);
+        protected override IRowMapper MakeRowMapper(ISchema schema) => new Mapper(this, Schema.Create(schema));
 
         private sealed class Mapper : MapperBase
         {
@@ -183,7 +183,7 @@ namespace Microsoft.ML.Runtime.Data
             private readonly VectorType[] _types;
             private readonly int[] _bitsPerKey;
 
-            public Mapper(KeyToBinaryVectorTransform parent, ISchema inputSchema)
+            public Mapper(KeyToBinaryVectorTransform parent, Schema inputSchema)
                 : base(parent.Host.Register(nameof(Mapper)), parent, inputSchema)
             {
                 _parent = parent;
@@ -218,61 +218,67 @@ namespace Microsoft.ML.Runtime.Data
                 return infos;
             }
 
-            public override RowMapperColumnInfo[] GetOutputColumns()
+            public override Schema.Column[] GetOutputColumns()
             {
-                var result = new RowMapperColumnInfo[_parent.ColumnPairs.Length];
+                var result = new Schema.Column[_parent.ColumnPairs.Length];
                 for (int i = 0; i < _parent.ColumnPairs.Length; i++)
                 {
                     InputSchema.TryGetColumnIndex(_parent.ColumnPairs[i].input, out int colIndex);
                     Host.Assert(colIndex >= 0);
-                    var colMetaInfo = new ColumnMetadataInfo(_parent.ColumnPairs[i].output);
-                    AddMetadata(i, colMetaInfo);
+                    var builder = new Schema.MetadataRow.Builder();
+                    AddMetadata(i, builder);
 
-                    result[i] = new RowMapperColumnInfo(_parent.ColumnPairs[i].output, _types[i], colMetaInfo);
+                    result[i] = new Schema.Column(_parent.ColumnPairs[i].output, _types[i], builder.GetMetadataRow());
                 }
                 return result;
             }
 
-            private void AddMetadata(int i, ColumnMetadataInfo colMetaInfo)
+            private void AddMetadata(int iinfo, Schema.MetadataRow.Builder builder)
             {
-                InputSchema.TryGetColumnIndex(_infos[i].Source, out int srcCol);
-                var srcType = _infos[i].TypeSrc;
+                InputSchema.TryGetColumnIndex(_infos[iinfo].Source, out int srcCol);
+                var inputMetadata = InputSchema[srcCol].Metadata;
+                var srcType = _infos[iinfo].TypeSrc;
                 // See if the source has key names.
-                var typeNames = InputSchema.GetMetadataTypeOrNull(MetadataUtils.Kinds.KeyValues, srcCol);
+
+                ColumnType typeNames = null;
+                int metaKeyValuesCol = 0;
+                if (inputMetadata.Schema.TryGetColumnIndex(MetadataUtils.Kinds.KeyValues, out metaKeyValuesCol))
+                    typeNames = inputMetadata.Schema[metaKeyValuesCol].Type;
                 if (typeNames == null || !typeNames.IsKnownSizeVector || !typeNames.ItemType.IsText ||
-                    typeNames.VectorSize != _infos[i].TypeSrc.ItemType.KeyCount)
+                    typeNames.VectorSize != _infos[iinfo].TypeSrc.ItemType.KeyCount)
                 {
                     typeNames = null;
                 }
 
-                if (_infos[i].TypeSrc.ValueCount == 1)
+                if (_infos[iinfo].TypeSrc.ValueCount == 1)
                 {
                     if (typeNames != null)
                     {
-                        MetadataUtils.MetadataGetter<VBuffer<ReadOnlyMemory<char>>> getter = (int col, ref VBuffer<ReadOnlyMemory<char>> dst) =>
+                        ValueGetter<VBuffer<ReadOnlyMemory<char>>> getter = (ref VBuffer<ReadOnlyMemory<char>> dst) =>
                         {
-                            GenerateBitSlotName(i, ref dst);
+                            GenerateBitSlotName(iinfo, ref dst);
                         };
-                        var info = new MetadataInfo<VBuffer<ReadOnlyMemory<char>>>(new VectorType(TextType.Instance, _types[i]), getter);
-                        colMetaInfo.Add(MetadataUtils.Kinds.SlotNames, info);
+
+                        var slotNamesType = new VectorType(TextType.Instance, _types[iinfo]);
+                        builder.AddSlotNames(slotNamesType.VectorSize, getter);
                     }
-                    MetadataUtils.MetadataGetter<bool> normalizeGetter = (int col, ref bool dst) =>
+
+                    ValueGetter<bool> normalizeGetter = (ref bool dst) =>
                     {
                         dst = true;
                     };
-                    var normalizeInfo = new MetadataInfo<bool>(BoolType.Instance, normalizeGetter);
-                    colMetaInfo.Add(MetadataUtils.Kinds.IsNormalized, normalizeInfo);
+                    builder.Add(new Schema.Column(MetadataUtils.Kinds.IsNormalized, BoolType.Instance, null), normalizeGetter);
                 }
                 else
                 {
-                    if (typeNames != null && _types[i].IsKnownSizeVector)
+                    if (typeNames != null && _types[iinfo].IsKnownSizeVector)
                     {
-                        MetadataUtils.MetadataGetter<VBuffer<ReadOnlyMemory<char>>> getter = (int col, ref VBuffer<ReadOnlyMemory<char>> dst) =>
+                        ValueGetter<VBuffer<ReadOnlyMemory<char>>> getter = (ref VBuffer<ReadOnlyMemory<char>> dst) =>
                         {
-                            GetSlotNames(i, ref dst);
+                            GetSlotNames(iinfo, ref dst);
                         };
-                        var info = new MetadataInfo<VBuffer<ReadOnlyMemory<char>>>(new VectorType(TextType.Instance, _types[i]), getter);
-                        colMetaInfo.Add(MetadataUtils.Kinds.SlotNames, info);
+                        var slotNamesType = new VectorType(TextType.Instance, _types[iinfo]);
+                        builder.Add(new Schema.Column(MetadataUtils.Kinds.SlotNames, slotNamesType, null), getter);
                     }
                 }
             }
@@ -299,12 +305,14 @@ namespace Microsoft.ML.Runtime.Data
 
                 // Get the source slot names, defaulting to empty text.
                 var namesSlotSrc = default(VBuffer<ReadOnlyMemory<char>>);
-                InputSchema.TryGetColumnIndex(_infos[iinfo].Source, out int srcCol);
-                Host.Assert(srcCol >= 0);
-                var typeSlotSrc = InputSchema.GetMetadataTypeOrNull(MetadataUtils.Kinds.SlotNames, srcCol);
+
+                var inputMetadata = InputSchema[_infos[iinfo].Source].Metadata;
+                ColumnType typeSlotSrc = null;
+                if (inputMetadata != null)
+                    typeSlotSrc = inputMetadata.Schema.GetColumnOrNull(MetadataUtils.Kinds.SlotNames)?.Type;
                 if (typeSlotSrc != null && typeSlotSrc.VectorSize == typeSrc.VectorSize && typeSlotSrc.ItemType.IsText)
                 {
-                    InputSchema.GetMetadata(MetadataUtils.Kinds.SlotNames, srcCol, ref namesSlotSrc);
+                    inputMetadata.GetValue(MetadataUtils.Kinds.SlotNames, ref namesSlotSrc);
                     Host.Check(namesSlotSrc.Length == typeSrc.VectorSize);
                 }
                 else

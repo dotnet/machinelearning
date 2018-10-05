@@ -2,14 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.ML.Runtime.Data;
+using Microsoft.ML.Runtime.Internal.Utilities;
+using Microsoft.ML.Runtime.Model;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Model;
 
 namespace Microsoft.ML.Runtime.Api
 {
@@ -83,7 +83,7 @@ namespace Microsoft.ML.Runtime.Api
             public override long Position => _position;
 
             public InputRow(IHostEnvironment env, InternalSchemaDefinition schemaDef)
-                : base(env, new SchemaProxy(schemaDef), schemaDef, MakePeeks(schemaDef), c => true)
+                : base(env, new Schema(GetSchemaColumns(schemaDef)), schemaDef, MakePeeks(schemaDef), c => true)
             {
                 _position = -1;
             }
@@ -326,7 +326,8 @@ namespace Microsoft.ML.Runtime.Api
         {
             protected readonly IHost Host;
 
-            private readonly SchemaProxy _schema;
+            private readonly Schema _schema;
+            private readonly InternalSchemaDefinition _schemaDefn;
 
             // The array of generated methods that extract the fields of the current row object.
             private readonly Delegate[] _peeks;
@@ -341,12 +342,14 @@ namespace Microsoft.ML.Runtime.Api
                 env.AssertNonWhiteSpace(name);
                 Host = env.Register(name);
                 Host.AssertValue(schemaDefn);
-                _schema = new SchemaProxy(schemaDefn);
-                int n = _schema.SchemaDefn.Columns.Length;
+
+                _schemaDefn = schemaDefn;
+                _schema = new Schema(GetSchemaColumns(schemaDefn));
+                int n = schemaDefn.Columns.Length;
                 _peeks = new Delegate[n];
                 for (var i = 0; i < n; i++)
                 {
-                    var currentColumn = _schema.SchemaDefn.Columns[i];
+                    var currentColumn = schemaDefn.Columns[i];
                     _peeks[i] = currentColumn.IsComputed
                         ? currentColumn.Generator
                         : ApiUtils.GeneratePeek<DataViewBase<TRow>, TRow>(currentColumn);
@@ -381,7 +384,7 @@ namespace Microsoft.ML.Runtime.Api
 
                 protected DataViewCursorBase(IHostEnvironment env, DataViewBase<TRow> dataView,
                     Func<int, bool> predicate)
-                    : base(env, dataView.Schema, dataView._schema.SchemaDefn, dataView._peeks, predicate)
+                    : base(env, dataView.Schema, dataView._schemaDefn, dataView._peeks, predicate)
                 {
                     Contracts.AssertValue(env);
                     Ch = env.Start("Cursor");
@@ -748,72 +751,20 @@ namespace Microsoft.ML.Runtime.Api
             }
         }
 
-        private sealed class SchemaProxy : ISchema
+        internal static Schema.Column[] GetSchemaColumns(InternalSchemaDefinition schemaDefn)
         {
-            public readonly InternalSchemaDefinition SchemaDefn;
-
-            public SchemaProxy(InternalSchemaDefinition schemaDefn)
+            Contracts.AssertValue(schemaDefn);
+            var columns = new Schema.Column[schemaDefn.Columns.Length];
+            for (int i = 0; i < columns.Length; i++)
             {
-                SchemaDefn = schemaDefn;
+                var col = schemaDefn.Columns[i];
+                var meta = new Schema.MetadataRow.Builder();
+                foreach (var kvp in col.Metadata)
+                    meta.Add(new Schema.Column(kvp.Value.Kind, kvp.Value.MetadataType, null), kvp.Value.GetGetterDelegate());
+                columns[i] = new Schema.Column(col.ColumnName, col.ColumnType, meta.GetMetadataRow());
             }
 
-            public int ColumnCount
-            {
-                get { return SchemaDefn.Columns.Length; }
-            }
-
-            public bool TryGetColumnIndex(string name, out int col)
-            {
-                col = Array.FindIndex(SchemaDefn.Columns, c => c.ColumnName == name);
-                return col >= 0;
-            }
-
-            public string GetColumnName(int col)
-            {
-                CheckColumnInRange(col);
-                return SchemaDefn.Columns[col].ColumnName;
-            }
-
-            public ColumnType GetColumnType(int col)
-            {
-                CheckColumnInRange(col);
-                return SchemaDefn.Columns[col].ColumnType;
-            }
-
-            public IEnumerable<KeyValuePair<string, ColumnType>> GetMetadataTypes(int col)
-            {
-                CheckColumnInRange(col);
-                var columnMetadata = SchemaDefn.Columns[col].Metadata;
-                if (columnMetadata == null)
-                    yield break;
-                foreach (var kvp in columnMetadata.Select(x => new KeyValuePair<string, ColumnType>(x.Key, x.Value.MetadataType)))
-                    yield return kvp;
-            }
-
-            public ColumnType GetMetadataTypeOrNull(string kind, int col)
-            {
-                if (string.IsNullOrEmpty(kind))
-                    throw MetadataUtils.ExceptGetMetadata();
-                CheckColumnInRange(col);
-                var column = SchemaDefn.Columns[col];
-                return column.Metadata.ContainsKey(kind) ? column.Metadata[kind].MetadataType : null;
-            }
-
-            public void GetMetadata<TValue>(string kind, int col, ref TValue value)
-            {
-                var metadataType = GetMetadataTypeOrNull(kind, col);
-                if (metadataType == null)
-                    throw MetadataUtils.ExceptGetMetadata();
-
-                var metadata = SchemaDefn.Columns[col].Metadata[kind];
-                metadata.GetGetter<TValue>()(ref value);
-            }
-
-            private void CheckColumnInRange(int columnIndex)
-            {
-                if (columnIndex < 0 || columnIndex >= SchemaDefn.Columns.Length)
-                    throw Contracts.Except("Column index must be between 0 and {0}", SchemaDefn.Columns.Length);
-            }
+            return columns;
         }
     }
 
@@ -833,6 +784,8 @@ namespace Microsoft.ML.Runtime.Api
         public readonly string Kind;
 
         public abstract ValueGetter<TDst> GetGetter<TDst>();
+
+        internal abstract Delegate GetGetterDelegate();
 
         protected MetadataInfo(string kind, ColumnType metadataType)
         {
@@ -951,6 +904,8 @@ namespace Microsoft.ML.Runtime.Api
             }
             throw Contracts.ExceptNotImpl("Type '{0}' is not yet supported.", typeT.FullName);
         }
+
+        internal override Delegate GetGetterDelegate() => Utils.MarshalInvoke(GetGetter<int>, MetadataType.RawType);
 
         public class TElement
         {
