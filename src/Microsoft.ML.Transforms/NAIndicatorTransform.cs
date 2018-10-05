@@ -206,15 +206,18 @@ namespace Microsoft.ML.Runtime.Data
             ctx.SetVersionInfo(GetVersionInfo());
 
             SaveColumns(ctx);
-            var saver = new BinarySaver(Host, new BinarySaver.Arguments());
-            for (int iinfo = 0; iinfo < _replaceTypes.Length; iinfo++)
+            Contracts.AssertValue(ctx);
+
+            // *** Binary format ***
+            // int: number of added columns
+            // for each added column
+            //   int: id of output column name
+            //   int: id of input column name
+            ctx.Writer.Write(.Length);
+            foreach (var info in Infos)
             {
-                var repType = _replaceTypes[iinfo].ItemType;
-                object[] args = new object[] { ctx.Writer.BaseStream, saver, repType, ???? };
-                Action<Stream, BinarySaver, ColumnType, int> func = WriteTypeAndValue<int>;
-                Host.Assert(repValue.GetType() == _replaceTypes[iinfo].RawType || repValue.GetType() == _replaceTypes[iinfo].ItemType.RawType);
-                var meth = func.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(repValue.GetType());
-                meth.Invoke(this, args);
+                ctx.SaveNonEmptyString(info.Name);
+                ctx.SaveNonEmptyString(Input.GetColumnName(info.Source));
             }
         }
 
