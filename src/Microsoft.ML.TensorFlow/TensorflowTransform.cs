@@ -201,6 +201,19 @@ namespace Microsoft.ML.Transforms
             return new TensorFlowTransform(env, TensorFlowUtils.GetSession(env, model), source, names, TensorFlowUtils.IsSavedModel(env, model) ? model : null, false).MakeDataTransform(input);
         }
 
+        /// <summary>
+        /// Convenience constructor for public facing API.
+        /// </summary>
+        /// <param name="env">Host Environment.</param>
+        /// <param name="input">Input <see cref="IDataView"/>. This is the output from previous transform or loader.</param>
+        /// <param name="tfModelContext"> <see cref="TensorFlowModelContext"/> object created with <see cref="TensorFlowUtils.LoadTensorFlowModel(IHostEnvironment, string)"/>.</param>
+        /// <param name="names">Name of the output column(s). Keep it same as in the Tensorflow model.</param>
+        /// <param name="source">Name of the input column(s). Keep it same as in the Tensorflow model.</param>
+        public static IDataTransform Create(IHostEnvironment env, IDataView input, TensorFlowModelContext tfModelContext, string[] names, string[] source)
+        {
+            return new TensorFlowTransform(env, tfModelContext.TFSession, source, names, TensorFlowUtils.IsSavedModel(env, tfModelContext.ModelPath) ? tfModelContext.ModelPath : null, false).MakeDataTransform(input);
+        }
+
         // Factory method for SignatureLoadModel.
         private static TensorFlowTransform Create(IHostEnvironment env, ModelLoadContext ctx)
         {

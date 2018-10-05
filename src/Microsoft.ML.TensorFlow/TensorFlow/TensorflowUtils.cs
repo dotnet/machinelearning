@@ -16,6 +16,20 @@ using System.Security.Principal;
 
 namespace Microsoft.ML.Transforms.TensorFlow
 {
+    public class TensorFlowModelContext
+    {
+        internal TFSession TFSession { get; private set; }
+        public string ModelPath { get; private set; }
+        public ISchema Schema { get; private set; }
+
+        internal TensorFlowModelContext(TFSession tFSession, string modelLocation, ISchema schema)
+        {
+            TFSession = tFSession;
+            ModelPath = modelLocation;
+            Schema = schema;
+        }
+    }
+
     public static class TensorFlowUtils
     {
         public const string OpType = "OpType";
@@ -60,7 +74,7 @@ namespace Microsoft.ML.Transforms.TensorFlow
                     (int col, ref ReadOnlyMemory<char> dst) => dst = new ReadOnlyMemory<char>(opType.ToArray());
                 opTypeGetters.Add(opTypeGetter);
 
-                var columnType = Utils.Size(shapeArray) == 1 && shapeArray[0] == -1 ? new VectorType(mlType) :
+                var columnType = Utils.Size(shapeArray) == 1 && shapeArray[0] <= 0 ? new VectorType(mlType) :
                     Utils.Size(shapeArray) > 0 && shapeArray.Skip(1).All(x => x > 0) ?
                         new VectorType(mlType, shapeArray[0] > 0 ? shapeArray : shapeArray.Skip(1).ToArray())
                         : new VectorType(mlType);
@@ -306,6 +320,12 @@ namespace Microsoft.ML.Transforms.TensorFlow
             {
                 throw Contracts.ExceptParam(nameof(folder), $"Failed to create folder for the provided path: {folder}. \nException: {exc.Message}");
             }
+        }
+
+        public static TensorFlowModelContext LoadTensorFlowModel(IHostEnvironment env, string modelPath)
+        {
+            var session = GetSession(env, modelPath);
+            return new TensorFlowModelContext(session, modelPath, GetModelSchema(env, session.Graph));
         }
 
         internal static TFSession GetSession(IHostEnvironment env, string modelPath)
