@@ -20,10 +20,10 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-[assembly: LoadableClass(typeof(LinearClassificationTrainer), typeof(LinearClassificationTrainer.Arguments),
+[assembly: LoadableClass(typeof(StochasticDualCoordinateAscent ), typeof(StochasticDualCoordinateAscent .Arguments),
     new[] { typeof(SignatureBinaryClassifierTrainer), typeof(SignatureTrainer), typeof(SignatureFeatureScorerTrainer) },
-    LinearClassificationTrainer.UserNameValue,
-    LinearClassificationTrainer.LoadNameValue,
+    StochasticDualCoordinateAscent .UserNameValue,
+    StochasticDualCoordinateAscent .LoadNameValue,
     "LinearClassifier",
     "lc",
     "sasdca")]
@@ -1361,7 +1361,7 @@ namespace Microsoft.ML.Runtime.Learners
         }
     }
 
-    public sealed class LinearClassificationTrainer : SdcaTrainerBase<BinaryPredictionTransformer<TScalarPredictor>, TScalarPredictor>
+    public sealed class StochasticDualCoordinateAscent : SdcaTrainerBase<BinaryPredictionTransformer<TScalarPredictor>, TScalarPredictor>
     {
         public const string LoadNameValue = "SDCA";
         internal const string UserNameValue = "Fast Linear (SA-SDCA)";
@@ -1401,7 +1401,7 @@ namespace Microsoft.ML.Runtime.Learners
 
         public override TrainerInfo Info { get; }
 
-        public LinearClassificationTrainer(IHostEnvironment env, Arguments args,
+        public StochasticDualCoordinateAscent (IHostEnvironment env, Arguments args,
             string featureColumn, string labelColumn, string weightColumn = null)
             : base(Contracts.CheckRef(env, nameof(env)).Register(LoadNameValue), args, MakeFeatureColumn(featureColumn), MakeLabelColumn(labelColumn), MakeWeightColumn(weightColumn))
         {
@@ -1431,7 +1431,7 @@ namespace Microsoft.ML.Runtime.Learners
 
         }
 
-        public LinearClassificationTrainer(IHostEnvironment env, Arguments args)
+        public StochasticDualCoordinateAscent (IHostEnvironment env, Arguments args)
             : this(env, args, args.FeatureColumn, args.LabelColumn)
         {
         }
@@ -1903,19 +1903,19 @@ namespace Microsoft.ML.Runtime.Learners
     {
         [TlcModule.EntryPoint(Name = "Trainers.StochasticDualCoordinateAscentBinaryClassifier",
             Desc = "Train an SDCA binary model.",
-            UserName = LinearClassificationTrainer.UserNameValue,
-            ShortName = LinearClassificationTrainer.LoadNameValue,
+            UserName = StochasticDualCoordinateAscent .UserNameValue,
+            ShortName = StochasticDualCoordinateAscent .LoadNameValue,
             XmlInclude = new[] { @"<include file='../Microsoft.ML.StandardLearners/Standard/doc.xml' path='doc/members/member[@name=""SDCA""]/*' />",
                                  @"<include file='../Microsoft.ML.StandardLearners/Standard/doc.xml' path='doc/members/example[@name=""StochasticDualCoordinateAscentBinaryClassifier""]/*'/>" })]
-        public static CommonOutputs.BinaryClassificationOutput TrainBinary(IHostEnvironment env, LinearClassificationTrainer.Arguments input)
+        public static CommonOutputs.BinaryClassificationOutput TrainBinary(IHostEnvironment env, StochasticDualCoordinateAscent .Arguments input)
         {
             Contracts.CheckValue(env, nameof(env));
             var host = env.Register("TrainSDCA");
             host.CheckValue(input, nameof(input));
             EntryPointUtils.CheckInputArgs(host, input);
 
-            return LearnerEntryPointsUtils.Train<LinearClassificationTrainer.Arguments, CommonOutputs.BinaryClassificationOutput>(host, input,
-                () => new LinearClassificationTrainer(host, input),
+            return LearnerEntryPointsUtils.Train<StochasticDualCoordinateAscent .Arguments, CommonOutputs.BinaryClassificationOutput>(host, input,
+                () => new StochasticDualCoordinateAscent (host, input),
                 () => LearnerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.LabelColumn),
                 calibrator: input.Calibrator, maxCalibrationExamples: input.MaxCalibrationExamples);
         }
