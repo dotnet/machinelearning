@@ -16518,9 +16518,9 @@
           }
         },
         {
-          "Name": "L2Const",
+          "Name": "L2Weight",
           "Type": "Float",
-          "Desc": "L2 regularizer constant",
+          "Desc": "L2 Regularization constant",
           "Aliases": [
             "l2"
           ],
