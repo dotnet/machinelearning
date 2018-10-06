@@ -404,14 +404,14 @@ namespace Microsoft.ML.Runtime.Data
         private readonly Schema.MetadataRow _labelMetadata;
         private readonly Schema.MetadataRow _scoreMetadata;
 
-        public MultiOutputRegressionPerInstanceEvaluator(IHostEnvironment env, ISchema schema, string scoreCol,
+        public MultiOutputRegressionPerInstanceEvaluator(IHostEnvironment env, Schema schema, string scoreCol,
             string labelCol)
             : base(env, schema, scoreCol, labelCol)
         {
             CheckInputColumnTypes(schema, out _labelType, out _scoreType, out _labelMetadata, out _scoreMetadata);
         }
 
-        private MultiOutputRegressionPerInstanceEvaluator(IHostEnvironment env, ModelLoadContext ctx, ISchema schema)
+        private MultiOutputRegressionPerInstanceEvaluator(IHostEnvironment env, ModelLoadContext ctx, Schema schema)
             : base(env, ctx, schema)
         {
             CheckInputColumnTypes(schema, out _labelType, out _scoreType, out _labelMetadata, out _scoreMetadata);
@@ -426,7 +426,7 @@ namespace Microsoft.ML.Runtime.Data
             env.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel(GetVersionInfo());
 
-            return new MultiOutputRegressionPerInstanceEvaluator(env, ctx, schema);
+            return new MultiOutputRegressionPerInstanceEvaluator(env, ctx, Schema.Create(schema));
         }
 
         public override void Save(ModelSaveContext ctx)
@@ -544,7 +544,7 @@ namespace Microsoft.ML.Runtime.Data
             return getters;
         }
 
-        private void CheckInputColumnTypes(ISchema schema, out ColumnType labelType, out ColumnType scoreType,
+        private void CheckInputColumnTypes(Schema schema, out ColumnType labelType, out ColumnType scoreType,
             out Schema.MetadataRow labelMetadata, out Schema.MetadataRow scoreMetadata)
         {
             Host.AssertNonEmpty(ScoreCol);
@@ -575,7 +575,7 @@ namespace Microsoft.ML.Runtime.Data
             scoreMetadata = builder.GetMetadataRow();
         }
 
-        private ValueGetter<uint> GetScoreColumnSetId(ISchema schema)
+        private ValueGetter<uint> GetScoreColumnSetId(Schema schema)
         {
             int c;
             var max = schema.GetMaxMetadataKind(out c, MetadataUtils.Kinds.ScoreColumnSetId);

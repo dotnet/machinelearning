@@ -99,7 +99,6 @@ namespace Microsoft.ML.Runtime.Data
         {
             public readonly bool[] UseCounter;
             public readonly TauswortheHybrid.State[] States;
-            public override Schema AsSchema { get; }
 
             private Bindings(bool[] useCounter, TauswortheHybrid.State[] states,
                 ISchema input, bool user, string[] names)
@@ -109,7 +108,6 @@ namespace Microsoft.ML.Runtime.Data
                 Contracts.Assert(Utils.Size(states) == InfoCount);
                 UseCounter = useCounter;
                 States = states;
-                AsSchema = Data.Schema.Create(this);
             }
 
             public static Bindings Create(Arguments args, ISchema input)

@@ -4,12 +4,12 @@
 
 using System;
 using System.Collections.Generic;
-using Microsoft.ML.Runtime.Internal.Utilities;
 
 namespace Microsoft.ML.Runtime.Data
 {
     /// <summary>
-    /// Interface for schema information.
+    /// Legacy interface for schema information.
+    /// Please avoid implementing this interface, use <see cref="Schema"/>.
     /// </summary>
     public interface ISchema
     {

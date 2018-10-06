@@ -48,8 +48,6 @@ namespace Microsoft.ML.Runtime.DataPipe
             private readonly Schema _inputWithOptionalColumn;
             private readonly int[] _srcColsWithOptionalColumn;
 
-            public override Schema AsSchema { get; }
-
             private Bindings(OptionalColumnTransform parent, ColumnType[] columnTypes, int[] srcCols,
                 int[] srcColsWithOptionalColumn, ISchema input, ISchema inputWithOptionalColumn, bool user, string[] names)
                 : base(input, user, names)
@@ -65,8 +63,6 @@ namespace Microsoft.ML.Runtime.DataPipe
                 _inputWithOptionalColumn = Schema.Create(inputWithOptionalColumn);
                 _srcColsWithOptionalColumn = srcColsWithOptionalColumn;
                 SetMetadata();
-
-                AsSchema = Data.Schema.Create(this);
             }
 
             public static Bindings Create(Arguments args, ISchema input, OptionalColumnTransform parent)

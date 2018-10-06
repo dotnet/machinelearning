@@ -160,7 +160,7 @@ namespace Microsoft.ML.Transforms
             return transform.Schema;
         }
 
-        private IRowMapper MakeRowMapper(ISchema schema) => new Mapper(_host, this, schema);
+        private IRowMapper MakeRowMapper(ISchema schema) => new Mapper(_host, this, Schema.Create(schema));
 
         private RowToRowMapperTransform MakeDataTransform(IDataView input)
         {
@@ -200,7 +200,7 @@ namespace Microsoft.ML.Transforms
 
             private readonly IdvToTensorAdapter _idvToTensorAdapter;
 
-            public Mapper(IHostEnvironment env, OnnxTransform parent, ISchema inputSchema)
+            public Mapper(IHostEnvironment env, OnnxTransform parent, Schema inputSchema)
             {
                 Contracts.CheckValue(env, nameof(env));
                 _host = env.Register(nameof(Mapper));

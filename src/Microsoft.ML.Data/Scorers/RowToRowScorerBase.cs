@@ -22,7 +22,7 @@ namespace Microsoft.ML.Runtime.Data
         {
             public readonly ISchemaBoundRowMapper RowMapper;
 
-            protected BindingsBase(ISchema schema, ISchemaBoundRowMapper mapper, string suffix, bool user, params string[] namesDerived)
+            protected BindingsBase(Schema schema, ISchemaBoundRowMapper mapper, string suffix, bool user, params string[] namesDerived)
                 : base(schema, mapper, suffix, user, namesDerived)
             {
                 RowMapper = mapper;
@@ -313,7 +313,7 @@ namespace Microsoft.ML.Runtime.Data
         private readonly uint _crtScoreSet;
         private readonly MetadataUtils.MetadataGetter<uint> _getScoreColumnSetId;
 
-        protected ScorerBindingsBase(ISchema input, ISchemaBoundMapper mapper, string suffix, bool user, params string[] namesDerived)
+        protected ScorerBindingsBase(Schema input, ISchemaBoundMapper mapper, string suffix, bool user, params string[] namesDerived)
             : base(input, user, GetOutputNames(mapper, suffix, namesDerived))
         {
             Contracts.AssertValue(mapper);

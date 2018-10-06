@@ -274,7 +274,7 @@ namespace Microsoft.ML.Runtime.Learners
             var normalizedView = input.ModelArray[0].TransformModel.Apply(host, input.TrainingData);
             using (var ch = host.Start("CombineOvaModels"))
             {
-                ISchema schema = normalizedView.Schema;
+                var schema = normalizedView.Schema;
                 var label = TrainUtils.MatchNameOrDefaultOrNull(ch, schema, nameof(input.LabelColumn),
                     input.LabelColumn,
                     DefaultColumnNames.Label);

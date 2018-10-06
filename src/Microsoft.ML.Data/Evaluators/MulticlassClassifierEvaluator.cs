@@ -659,7 +659,7 @@ namespace Microsoft.ML.Runtime.Data
         private readonly ReadOnlyMemory<char>[] _classNames;
         private readonly ColumnType[] _types;
 
-        public MultiClassPerInstanceEvaluator(IHostEnvironment env, ISchema schema, ColumnInfo scoreInfo, string labelCol)
+        public MultiClassPerInstanceEvaluator(IHostEnvironment env, Schema schema, ColumnInfo scoreInfo, string labelCol)
             : base(env, schema, Contracts.CheckRef(scoreInfo, nameof(scoreInfo)).Name, labelCol)
         {
             CheckInputColumnTypes(schema);

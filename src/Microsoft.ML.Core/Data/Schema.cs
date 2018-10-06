@@ -11,7 +11,9 @@ using System.Text;
 
 namespace Microsoft.ML.Runtime.Data
 {
+#pragma warning disable CS0618 // Type or member is obsolete
     public sealed class Schema : ISchema
+#pragma warning restore CS0618 // Type or member is obsolete
     {
         private readonly Column[] _columns;
         private readonly Dictionary<string, int> _nameMap;
@@ -182,10 +184,12 @@ namespace Microsoft.ML.Runtime.Data
 
         public IEnumerable<(int index, Column column)> GetColumns() => _nameMap.Values.Select(idx => (idx, _columns[idx]));
 
-        /// <summary>
-        /// Manufacture an instance of <see cref="Schema"/> out of any <see cref="ISchema"/>.
-        /// </summary>
+#pragma warning disable CS0618 // Type or member is obsolete
+                              /// <summary>
+                              /// Manufacture an instance of <see cref="Schema"/> out of any <see cref="ISchema"/>.
+                              /// </summary>
         public static Schema Create(ISchema inputSchema)
+#pragma warning restore CS0618 // Type or member is obsolete
         {
             Contracts.CheckValue(inputSchema, nameof(inputSchema));
 
@@ -207,7 +211,9 @@ namespace Microsoft.ML.Runtime.Data
             return new Schema(columns);
         }
 
+#pragma warning disable CS0618 // Type or member is obsolete
         private static Delegate GetMetadataGetterDelegate<TValue>(ISchema schema, int col, string kind)
+#pragma warning restore CS0618 // Type or member is obsolete
         {
             // REVIEW: We are facing a choice here: cache 'value' and get rid of 'schema' reference altogether,
             // or retain the reference but be more memory efficient. This code should not stick around for too long

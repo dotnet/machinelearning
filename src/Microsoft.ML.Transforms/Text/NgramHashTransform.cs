@@ -151,14 +151,12 @@ namespace Microsoft.ML.Runtime.Data
         {
             public readonly VectorType[] Types;
             private readonly NgramHashTransform _parent;
-            public override Schema AsSchema { get; }
 
             public Bindings(Arguments args, ISchema schemaInput, NgramHashTransform parent)
                 : base(args.Column, schemaInput, TestTypes)
             {
                 Types = new VectorType[args.Column.Length];
                 _parent = parent;
-                AsSchema = Data.Schema.Create(this);
             }
 
             public Bindings(ModelLoadContext ctx, ISchema schemaInput, NgramHashTransform parent)
@@ -166,7 +164,6 @@ namespace Microsoft.ML.Runtime.Data
             {
                 Types = new VectorType[Infos.Length];
                 _parent = parent;
-                AsSchema = Data.Schema.Create(this);
             }
 
             private static string TestTypes(ColumnType[] types)

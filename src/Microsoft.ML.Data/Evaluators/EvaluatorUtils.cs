@@ -52,7 +52,7 @@ namespace Microsoft.ML.Runtime.Data
             }
         }
 
-        public static IMamlEvaluator GetEvaluator(IHostEnvironment env, ISchema schema)
+        public static IMamlEvaluator GetEvaluator(IHostEnvironment env, Schema schema)
         {
             Contracts.CheckValueOrNull(env);
             ReadOnlyMemory<char> tmp = default;
@@ -90,7 +90,7 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         // Lambda used as validator/filter in calls to GetMaxMetadataKind.
-        private static bool CheckScoreColumnKind(ISchema schema, int col)
+        private static bool CheckScoreColumnKind(Schema schema, int col)
         {
             var columnType = schema.GetMetadataTypeOrNull(MetadataUtils.Kinds.ScoreColumnKind, col);
             return columnType != null && columnType.IsText;
@@ -101,7 +101,7 @@ namespace Microsoft.ML.Runtime.Data
         /// most recent score set of the given kind. If there is no such score set and defName is specifed it
         /// uses defName. Otherwise, it throws.
         /// </summary>
-        public static ColumnInfo GetScoreColumnInfo(IExceptionContext ectx, ISchema schema, string name, string argName, string kind,
+        public static ColumnInfo GetScoreColumnInfo(IExceptionContext ectx, Schema schema, string name, string argName, string kind,
             string valueKind = MetadataUtils.Const.ScoreValueKind.Score, string defName = null)
         {
             Contracts.CheckValueOrNull(ectx);
@@ -155,7 +155,7 @@ namespace Microsoft.ML.Runtime.Data
         /// Otherwise, if colScore is part of a score set, this looks in the score set for a column
         /// with the given valueKind. If none is found, it returns null.
         /// </summary>
-        public static ColumnInfo GetOptAuxScoreColumnInfo(IExceptionContext ectx, ISchema schema, string name, string argName,
+        public static ColumnInfo GetOptAuxScoreColumnInfo(IExceptionContext ectx, Schema schema, string name, string argName,
             int colScore, string valueKind, Func<ColumnType, bool> testType)
         {
             Contracts.CheckValueOrNull(ectx);
@@ -939,7 +939,7 @@ namespace Microsoft.ML.Runtime.Data
             return AppendRowsDataView.Create(env, null, views.Select(keyToValue).Select(selectDropNonVarLenthCol).ToArray());
         }
 
-        private static IEnumerable<int> FindHiddenColumns(ISchema schema, string colName)
+        private static IEnumerable<int> FindHiddenColumns(Schema schema, string colName)
         {
             for (int i = 0; i < schema.ColumnCount; i++)
             {
@@ -985,7 +985,7 @@ namespace Microsoft.ML.Runtime.Data
                        (ref VBuffer<TSrc> src, ref VBuffer<TSrc> dst) => src.CopyTo(ref dst));
         }
 
-        private static List<string> GetMetricNames(IChannel ch, ISchema schema, IRow row, Func<int, bool> ignoreCol,
+        private static List<string> GetMetricNames(IChannel ch, Schema schema, IRow row, Func<int, bool> ignoreCol,
             ValueGetter<double>[] getters, ValueGetter<VBuffer<double>>[] vBufferGetters)
         {
             ch.AssertValue(schema);
@@ -1205,7 +1205,7 @@ namespace Microsoft.ML.Runtime.Data
             Contracts.Assert(iMetric == metricNames.Count);
         }
 
-        internal static IDataView GetAverageToDataView(IHostEnvironment env, ISchema schema, AggregatedMetric[] agg, AggregatedMetric[] weightedAgg,
+        internal static IDataView GetAverageToDataView(IHostEnvironment env, Schema schema, AggregatedMetric[] agg, AggregatedMetric[] weightedAgg,
             int numFolds, int stratCol, int stratVal, int isWeightedCol, int foldCol, bool hasStdev, List<string> nonAveragedCols = null)
         {
             Contracts.AssertValue(env);

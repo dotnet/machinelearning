@@ -33,12 +33,10 @@ namespace Microsoft.ML.Runtime.Data
 
         private sealed class Bindings : ColumnBindingsBase
         {
-            public override Schema AsSchema { get; }
             public Bindings(ISchema input, bool user, string name)
                 : base(input, user, name)
             {
                 Contracts.Assert(InfoCount == 1);
-                AsSchema = Data.Schema.Create(this);
             }
 
             protected override ColumnType GetColumnTypeCore(int iinfo)

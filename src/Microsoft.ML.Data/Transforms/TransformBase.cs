@@ -278,8 +278,6 @@ namespace Microsoft.ML.Runtime.Data
             /// </summary>
             public readonly ColInfo[] Infos;
 
-            public override Schema AsSchema { get; }
-
             private const string InvalidTypeErrorFormat = "Source column '{0}' has invalid type ('{1}'): {2}.";
 
             private Bindings(OneToOneTransformBase parent, ColInfo[] infos,
@@ -294,8 +292,6 @@ namespace Microsoft.ML.Runtime.Data
                 _inputTransposed = _parent.InputTranspose == null ? null : _parent.InputTranspose.TransposeSchema;
                 Contracts.Assert((_inputTransposed == null) == (_parent.InputTranspose == null));
                 Infos = infos;
-
-                AsSchema = Data.Schema.Create(this);
             }
 
             public static Bindings Create(OneToOneTransformBase parent, OneToOneColumn[] column, ISchema input,
@@ -465,7 +461,6 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         private readonly Bindings _bindings;
-        private readonly Schema _schema;
 
         // The ColInfos are exposed to sub-classes. They should be considered readonly.
         protected readonly ColInfo[] Infos;
@@ -487,7 +482,6 @@ namespace Microsoft.ML.Runtime.Data
             InputTranspose = Source as ITransposeDataView;
 
             _bindings = Bindings.Create(this, column, Source.Schema, InputTransposeSchema, testType);
-            _schema = Schema.Create(_bindings);
             Infos = _bindings.Infos;
             Metadata = new MetadataDispatcher(Infos.Length);
         }
@@ -501,7 +495,6 @@ namespace Microsoft.ML.Runtime.Data
             InputTranspose = Source as ITransposeDataView;
 
             _bindings = Bindings.Create(this, column, Source.Schema, InputTransposeSchema, testType);
-            _schema = Schema.Create(_bindings);
             Infos = _bindings.Infos;
             Metadata = new MetadataDispatcher(Infos.Length);
         }
@@ -515,7 +508,6 @@ namespace Microsoft.ML.Runtime.Data
             InputTranspose = Source as ITransposeDataView;
 
             _bindings = Bindings.Create(this, ctx, Source.Schema, InputTransposeSchema, testType);
-            _schema = Schema.Create(_bindings);
             Infos = _bindings.Infos;
             Metadata = new MetadataDispatcher(Infos.Length);
         }
@@ -539,7 +531,6 @@ namespace Microsoft.ML.Runtime.Data
                 .ToArray();
 
             _bindings = Bindings.Create(this, map, newInput.Schema, InputTransposeSchema, checkType);
-            _schema = Schema.Create(_bindings);
             Infos = _bindings.Infos;
             Metadata = new MetadataDispatcher(Infos.Length);
         }
@@ -630,7 +621,7 @@ namespace Microsoft.ML.Runtime.Data
         protected virtual bool SaveAsOnnxCore(OnnxContext ctx, int iinfo, ColInfo info, string srcVariableName,
             string dstVariableName) => false;
 
-        public sealed override Schema Schema => _schema;
+        public sealed override Schema Schema => _bindings.AsSchema;
 
         public ITransposeSchema TransposeSchema => _bindings;
 
@@ -826,7 +817,6 @@ namespace Microsoft.ML.Runtime.Data
         private sealed class RowCursor : SynchronizedCursorBase<IRowCursor>, IRowCursor
         {
             private readonly Bindings _bindings;
-            private readonly Schema _schema;
             private readonly bool[] _active;
 
             private readonly Delegate[] _getters;
@@ -839,7 +829,6 @@ namespace Microsoft.ML.Runtime.Data
                 Ch.Assert(active == null || active.Length == parent._bindings.ColumnCount);
 
                 _bindings = parent._bindings;
-                _schema = parent._schema;
                 _active = active;
                 _getters = new Delegate[parent.Infos.Length];
 
@@ -869,7 +858,7 @@ namespace Microsoft.ML.Runtime.Data
                 base.Dispose();
             }
 
-            public Schema Schema => _schema;
+            public Schema Schema => _bindings.AsSchema;
 
             public ValueGetter<TValue> GetGetter<TValue>(int col)
             {

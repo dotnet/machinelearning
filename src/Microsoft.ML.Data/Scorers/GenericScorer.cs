@@ -34,22 +34,19 @@ namespace Microsoft.ML.Runtime.Data
 
         private sealed class Bindings : BindingsBase
         {
-            public override Schema AsSchema { get; }
-
             /// <summary>
             /// The one and only constructor for Bindings.
             /// </summary>
-            private Bindings(ISchema input, ISchemaBoundRowMapper mapper, string suffix, bool user)
+            private Bindings(Schema input, ISchemaBoundRowMapper mapper, string suffix, bool user)
                 : base(input, mapper, suffix, user)
             {
                 Contracts.Assert(DerivedColumnCount == 0);
-                AsSchema = Schema.Create(this);
             }
 
             /// <summary>
             /// Create the bindings given the input schema, bound mapper, and column name suffix.
             /// </summary>
-            public static Bindings Create(ISchema input, ISchemaBoundRowMapper mapper, string suffix, bool user = true)
+            public static Bindings Create(Schema input, ISchemaBoundRowMapper mapper, string suffix, bool user = true)
             {
                 Contracts.AssertValue(input);
                 Contracts.AssertValue(mapper);

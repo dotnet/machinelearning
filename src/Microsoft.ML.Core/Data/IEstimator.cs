@@ -141,7 +141,7 @@ namespace Microsoft.ML.Core.Data
         /// <summary>
         /// Create a schema shape out of the fully defined schema.
         /// </summary>
-        public static SchemaShape Create(ISchema schema)
+        public static SchemaShape Create(Schema schema)
         {
             Contracts.CheckValue(schema, nameof(schema));
             var cols = new List<Column>();

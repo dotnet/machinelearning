@@ -449,7 +449,7 @@ namespace Microsoft.ML.Runtime.Data
                 }
             }
 
-            private BoundColumn MakeColumn(ISchema inputSchema, int iinfo)
+            private BoundColumn MakeColumn(Schema inputSchema, int iinfo)
             {
                 Contracts.AssertValue(inputSchema);
                 Contracts.Assert(0 <= iinfo && iinfo < _parent._columns.Length);

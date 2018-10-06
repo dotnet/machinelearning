@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
@@ -279,7 +280,10 @@ namespace Microsoft.ML.Runtime.Data
         // index into Infos (for the columns that we "generate").
         private readonly int[] _colMap;
 
-        public abstract Schema AsSchema { get; }
+        // Conversion to the eager schema.
+        private readonly Lazy<Schema> _convertedSchema;
+
+        public Schema AsSchema => _convertedSchema.Value;
 
         /// <summary>
         /// Constructor that takes an input schema and adds no new columns.
@@ -296,6 +300,7 @@ namespace Microsoft.ML.Runtime.Data
             _nameToInfoIndex = new Dictionary<string, int>();
             Contracts.Assert(_nameToInfoIndex.Count == _names.Length);
             ComputeColumnMapping(Input, _names, out _colMap, out _mapIinfoToCol);
+            _convertedSchema = new Lazy<Schema>(() => Schema.Create(this), LazyThreadSafetyMode.PublicationOnly);
         }
 
         /// <summary>
@@ -344,6 +349,7 @@ namespace Microsoft.ML.Runtime.Data
             Contracts.Assert(_nameToInfoIndex.Count == names.Length);
 
             ComputeColumnMapping(Input, names, out _colMap, out _mapIinfoToCol);
+            _convertedSchema = new Lazy<Schema>(() => Schema.Create(this), LazyThreadSafetyMode.PublicationOnly);
         }
 
         private static void ComputeColumnMapping(ISchema input, string[] names, out int[] colMap, out int[] mapIinfoToCol)

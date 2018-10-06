@@ -42,9 +42,7 @@ namespace Microsoft.ML.Runtime.Data
             private readonly MetadataUtils.MetadataGetter<ReadOnlyMemory<char>> _getScoreColumnKind;
             private readonly MetadataUtils.MetadataGetter<ReadOnlyMemory<char>> _getScoreValueKind;
             private readonly IRow _predColMetadata;
-            public override Schema AsSchema { get; }
-
-            private BindingsImpl(ISchema input, ISchemaBoundRowMapper mapper, string suffix, string scoreColumnKind,
+            private BindingsImpl(Schema input, ISchemaBoundRowMapper mapper, string suffix, string scoreColumnKind,
                 bool user, int scoreColIndex, ColumnType predColType)
                 : base(input, mapper, suffix, user, DefaultColumnNames.PredictedLabel)
             {
@@ -85,8 +83,6 @@ namespace Microsoft.ML.Runtime.Data
                         }
                     }
                 }
-
-                AsSchema = Schema.Create(this);
             }
 
             private static IColumn KeyValueMetadataFromMetadata<T>(ISchema schema, int col, string metadataName)
@@ -101,7 +97,7 @@ namespace Microsoft.ML.Runtime.Data
                 return RowColumnUtils.GetColumn(MetadataUtils.Kinds.KeyValues, type, getter);
             }
 
-            public static BindingsImpl Create(ISchema input, ISchemaBoundRowMapper mapper, string suffix,
+            public static BindingsImpl Create(Schema input, ISchemaBoundRowMapper mapper, string suffix,
                 string scoreColKind, int scoreColIndex, ColumnType predColType)
             {
                 Contracts.AssertValue(input);
