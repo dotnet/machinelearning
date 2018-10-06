@@ -14,7 +14,7 @@ Along with these ML capabilities, this first release of ML.NET also brings the f
 
 #### *Read this in [other languages](translations/Translations.md).*
 
-[🇲🇽](translations/README.mx.md)
+[🇲🇽](README.mx.md)
 
 
 ## Installation
