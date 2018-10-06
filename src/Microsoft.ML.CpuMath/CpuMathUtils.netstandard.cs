@@ -82,10 +82,10 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
         public static void ZeroMatrixItems(AlignedArray destination, int ccol, int cfltRow, int[] indices) => SseUtils.ZeroMatrixItems(destination, ccol, cfltRow, indices);
 
-        public static void SdcaL1UpdateDense(float primalUpdate, int length, float[] source, float threshold, float[] v, float[] w)
-            => SseUtils.SdcaL1UpdateDense(primalUpdate, length, source, threshold, v, w);
+        public static void SdcaL1UpdateDense(float primalUpdate, float[] source, float threshold, float[] v, float[] w)
+            => SseUtils.SdcaL1UpdateDense(primalUpdate, source, threshold, v, w);
 
-        public static void SdcaL1UpdateSparse(float primalUpdate, int length, float[] source, int[] indices, int count, float threshold, float[] v, float[] w)
+        public static void SdcaL1UpdateSparse(float primalUpdate, float[] source, int[] indices, int count, float threshold, float[] v, float[] w)
             => SseUtils.SdcaL1UpdateSparse(primalUpdate, source, indices, count, threshold, v, w);
     }
 }

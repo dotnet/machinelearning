@@ -1474,22 +1474,18 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             }
         }
 
-        public static void SdcaL1UpdateDense(float primalUpdate, int length, float[] src, float threshold, float[] v, float[] w)
+        public static void SdcaL1UpdateDense(float primalUpdate, float[] src, float threshold, float[] v, float[] w)
         {
             Contracts.AssertNonEmpty(src);
-            Contracts.Assert(length <= src.Length);
             Contracts.AssertNonEmpty(v);
-            Contracts.Assert(length <= v.Length);
             Contracts.AssertNonEmpty(w);
-            Contracts.Assert(length <= w.Length);
-            Contracts.Assert(length > 0);
 
             unsafe
             {
                 fixed (float* psrc = &src[0])
                 fixed (float* pd1 = &v[0])
                 fixed (float* pd2 = &w[0])
-                    Thunk.SdcaL1UpdateU(primalUpdate, psrc, threshold, pd1, pd2, length);
+                    Thunk.SdcaL1UpdateU(primalUpdate, psrc, threshold, pd1, pd2);
             }
         }
 
