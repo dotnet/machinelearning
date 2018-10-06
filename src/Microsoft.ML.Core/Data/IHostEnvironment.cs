@@ -47,6 +47,11 @@ namespace Microsoft.ML.Runtime
         bool IsCancelled { get; }
 
         /// <summary>
+        /// The catalog of loadable components (<see cref="LoadableClassAttribute"/>) that are available in this host.
+        /// </summary>
+        ComponentCatalog ComponentCatalog { get; }
+
+        /// <summary>
         /// Return a file handle for an input "file".
         /// </summary>
         IFileHandle OpenInputFile(string path);

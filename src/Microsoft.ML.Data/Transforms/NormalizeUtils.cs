@@ -11,7 +11,7 @@ using Microsoft.ML.Runtime.Model.Onnx;
 using Microsoft.ML.Runtime.Model.Pfa;
 using Newtonsoft.Json.Linq;
 using System.Collections.Generic;
-using Microsoft.ML.Data.StaticPipe.Runtime;
+using Microsoft.ML.StaticPipe;
 
 [assembly: LoadableClass(typeof(void), typeof(Normalize), null, typeof(SignatureEntryPointModule), "Normalize")]
 
@@ -158,15 +158,13 @@ namespace Microsoft.ML.Runtime.Data
             var entryPoints = new List<EntryPointNode>();
             if (columnsToNormalize.Count == 0)
             {
-                var entryPointNode = EntryPointNode.Create(env, "Transforms.NoOperation", new NopTransform.NopInput(),
-                    node.Catalog, node.Context, node.InputBindingMap, node.InputMap, node.OutputMap);
+                var entryPointNode = EntryPointNode.Create(env, "Transforms.NoOperation", new NopTransform.NopInput(), node.Context, node.InputBindingMap, node.InputMap, node.OutputMap);
                 entryPoints.Add(entryPointNode);
             }
             else
             {
                 input.Column = columnsToNormalize.ToArray();
-                var entryPointNode = EntryPointNode.Create(env, "Transforms.MinMaxNormalizer", input,
-                    node.Catalog, node.Context, node.InputBindingMap, node.InputMap, node.OutputMap);
+                var entryPointNode = EntryPointNode.Create(env, "Transforms.MinMaxNormalizer", input, node.Context, node.InputBindingMap, node.InputMap, node.OutputMap);
                 entryPoints.Add(entryPointNode);
             }
 

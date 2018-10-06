@@ -7,7 +7,6 @@ using Float = System.Single;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using Microsoft.ML.Runtime.CommandLine;
 
 namespace Microsoft.ML.Runtime.RunTests
 {
@@ -15,6 +14,8 @@ namespace Microsoft.ML.Runtime.RunTests
     using Microsoft.ML.Runtime.EntryPoints;
     using Microsoft.ML.Runtime.FastTree;
     using Microsoft.ML.Runtime.FastTree.Internal;
+    using Microsoft.ML.Runtime.LightGBM;
+    using Microsoft.ML.Runtime.SymSgd;
     using Microsoft.ML.TestFramework;
     using System.Linq;
     using System.Runtime.InteropServices;
@@ -27,6 +28,20 @@ namespace Microsoft.ML.Runtime.RunTests
     /// </summary>
     public sealed partial class TestPredictors : BaseTestPredictors
     {
+        protected override void Initialize()
+        {
+            base.Initialize();
+            InitializeEnvironment(Env);
+        }
+
+        protected override void InitializeEnvironment(IHostEnvironment environment)
+        {
+            base.InitializeEnvironment(environment);
+
+            environment.ComponentCatalog.RegisterAssembly(typeof(LightGbmBinaryPredictor).Assembly);
+            environment.ComponentCatalog.RegisterAssembly(typeof(SymSgdClassificationTrainer).Assembly);
+        }
+
         /// <summary>
         /// Get a list of datasets for binary classifier base test.
         /// </summary>
@@ -141,25 +156,24 @@ namespace Microsoft.ML.Runtime.RunTests
         /// <summary>
         /// Multiclass Logistic Regression test.
         /// </summary>
-        [Fact(Skip = "Need CoreTLC specific baseline update")]
+        [Fact]
         [TestCategory("Multiclass")]
         [TestCategory("Logistic Regression")]
         public void MulticlassLRTest()
         {
-            RunOneAllTests(TestLearners.multiclassLogisticRegression, TestDatasets.iris);
-            RunOneAllTests(TestLearners.multiclassLogisticRegression, TestDatasets.irisLabelName);
+            RunOneAllTests(TestLearners.multiclassLogisticRegression, TestDatasets.iris, digitsOfPrecision: 4);
             Done();
         }
 
         /// <summary>
         /// Multiclass Logistic Regression with non-negative coefficients test.
         /// </summary>
-        [Fact(Skip = "Need CoreTLC specific baseline update")]
+        [Fact]
         [TestCategory("Multiclass")]
         [TestCategory("Logistic Regression")]
         public void MulticlassLRNonNegativeTest()
         {
-            RunOneAllTests(TestLearners.multiclassLogisticRegressionNonNegative, TestDatasets.iris);
+            RunOneAllTests(TestLearners.multiclassLogisticRegressionNonNegative, TestDatasets.iris, digitsOfPrecision: 4);
             Done();
         }
 
@@ -178,7 +192,7 @@ namespace Microsoft.ML.Runtime.RunTests
         /// <summary>
         /// Multiclass Logistic Regression test with a tree featurizer.
         /// </summary>
-        [Fact(Skip = "Need CoreTLC specific baseline update")]
+        [Fact]
         [TestCategory("Multiclass")]
         [TestCategory("Logistic Regression")]
         [TestCategory("FastTree")]
@@ -186,8 +200,8 @@ namespace Microsoft.ML.Runtime.RunTests
         {
             RunMTAThread(() =>
             {
-                RunOneAllTests(TestLearners.multiclassLogisticRegression, TestDatasets.irisTreeFeaturized);
-                RunOneAllTests(TestLearners.multiclassLogisticRegression, TestDatasets.irisTreeFeaturizedPermuted);
+                RunOneAllTests(TestLearners.multiclassLogisticRegression, TestDatasets.irisTreeFeaturized, digitsOfPrecision: 4);
+                RunOneAllTests(TestLearners.multiclassLogisticRegression, TestDatasets.irisTreeFeaturizedPermuted, digitsOfPrecision: 4);
             });
             Done();
         }

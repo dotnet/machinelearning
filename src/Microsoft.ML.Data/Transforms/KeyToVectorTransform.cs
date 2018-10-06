@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Core.Data;
-using Microsoft.ML.Data.StaticPipe.Runtime;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
@@ -11,6 +10,8 @@ using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.Model.Onnx;
 using Microsoft.ML.Runtime.Model.Pfa;
+using Microsoft.ML.StaticPipe;
+using Microsoft.ML.StaticPipe.Runtime;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
@@ -143,7 +144,8 @@ namespace Microsoft.ML.Runtime.Data
                 verWrittenCur: 0x00010002, // Get rid of writing float size in model context
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
-                loaderSignature: LoaderSignature);
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(KeyToVectorTransform).Assembly.FullName);
         }
 
         public override void Save(ModelSaveContext ctx)
@@ -170,22 +172,16 @@ namespace Microsoft.ML.Runtime.Data
 
             host.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel(GetVersionInfo());
-
-            return new KeyToVectorTransform(host, ctx);
-        }
-
-        private static ModelLoadContext ReadFloatFromCtx(IHostEnvironment env, ModelLoadContext ctx)
-        {
             if (ctx.Header.ModelVerWritten == 0x00010001)
             {
                 int cbFloat = ctx.Reader.ReadInt32();
                 env.CheckDecode(cbFloat == sizeof(float));
             }
-            return ctx;
+            return new KeyToVectorTransform(host, ctx);
         }
 
         private KeyToVectorTransform(IHost host, ModelLoadContext ctx)
-          : base(host, ReadFloatFromCtx(host, ctx))
+          : base(host, ctx)
         {
             var columnsLength = ColumnPairs.Length;
             // *** Binary format ***

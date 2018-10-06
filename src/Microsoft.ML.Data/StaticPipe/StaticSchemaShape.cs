@@ -9,12 +9,12 @@ using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 
-namespace Microsoft.ML.Data.StaticPipe.Runtime
+namespace Microsoft.ML.StaticPipe.Runtime
 {
     /// <summary>
     /// A schema shape with names corresponding to a type parameter in one of the typed variants
     /// of the data pipeline structures. Instances of this class tend to be bundled with the statically
-    /// typed variants of the dynamic structures (e.g., <see cref="DataView{TTupleShape}"/> and so forth),
+    /// typed variants of the dynamic structures (e.g., <see cref="DataView{TShape}"/> and so forth),
     /// and their primary purpose is to ensure that the schemas of the dynamic structures and the
     /// statically declared structures are compatible.
     /// </summary>
@@ -34,14 +34,14 @@ namespace Microsoft.ML.Data.StaticPipe.Runtime
         /// <summary>
         /// Creates a new instance out of a parameter info, presumably fetched from a user specified delegate.
         /// </summary>
-        /// <typeparam name="TTupleShape">The static tuple-shape type</typeparam>
+        /// <typeparam name="TShape">The static shape type.</typeparam>
         /// <param name="info">The parameter info on the method, whose type should be
-        /// <typeparamref name="TTupleShape"/></param>
-        /// <returns>A new instance with names and members types enumerated</returns>
-        public static StaticSchemaShape Make<TTupleShape>(ParameterInfo info)
+        /// <typeparamref name="TShape"/>.</param>
+        /// <returns>A new instance with names and members types enumerated.</returns>
+        public static StaticSchemaShape Make<TShape>(ParameterInfo info)
         {
             Contracts.AssertValue(info);
-            var pairs = StaticPipeInternalUtils.GetNamesTypes<TTupleShape, PipelineColumn>(info);
+            var pairs = StaticPipeInternalUtils.GetNamesTypes<TShape, PipelineColumn>(info);
             return new StaticSchemaShape(pairs);
         }
 
@@ -195,7 +195,7 @@ namespace Microsoft.ML.Data.StaticPipe.Runtime
             }
             var gt = t.IsGenericType ? t.GetGenericTypeDefinition() : t;
             if (gt != typeof(Scalar<>) && gt != typeof(Key<>) && gt != typeof(Key<,>) && gt != typeof(VarKey<>) &&
-                gt != typeof(Vector<>) && gt != typeof(VarVector<>) && gt != typeof(NormVector<>))
+                gt != typeof(Vector<>) && gt != typeof(VarVector<>) && gt != typeof(NormVector<>) && gt != typeof(Custom<>))
             {
                 throw ectx.ExceptParam(nameof(t),
                     $"Type {t} was not one of the standard subclasses of {nameof(PipelineColumn)}");

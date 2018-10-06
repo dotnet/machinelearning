@@ -14,6 +14,7 @@ using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.Tools;
+using Microsoft.ML.TestFramework;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -69,10 +70,10 @@ namespace Microsoft.ML.Runtime.RunTests
                 return _testCmd.CheckEquality(_dir, _name);
             }
 
-            public bool CheckEqualityNormalized()
+            public bool CheckEqualityNormalized(int digitsOfPrecision = DigitsOfPrecision)
             {
                 Contracts.Assert(CanBeBaselined);
-                return _testCmd.CheckEqualityNormalized(_dir, _name);
+                return _testCmd.CheckEqualityNormalized(_dir, _name, digitsOfPrecision: digitsOfPrecision);
             }
 
             public string ArgStr(string name)
@@ -270,6 +271,11 @@ namespace Microsoft.ML.Runtime.RunTests
             }
         }
 
+        protected virtual void InitializeEnvironment(IHostEnvironment environment)
+        {
+            environment.AddStandardComponents();
+        }
+
         /// <summary>
         /// Runs a command with some arguments. Note that the input
         /// <paramref name="toCompare"/> objects are used for comparison only.
@@ -283,6 +289,8 @@ namespace Microsoft.ML.Runtime.RunTests
             using (var newWriter = OpenWriter(outputPath.Path))
             using (var env = new ConsoleEnvironment(42, outWriter: newWriter, errWriter: newWriter))
             {
+                InitializeEnvironment(env);
+
                 int res;
                 res = MainForTest(env, newWriter, string.Format("{0} {1}", cmdName, args), ctx.BaselineProgress);
                 if (res != 0)

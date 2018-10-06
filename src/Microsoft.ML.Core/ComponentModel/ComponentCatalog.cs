@@ -2,15 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.ML.Runtime.CommandLine;
+using Microsoft.ML.Runtime.EntryPoints;
+using Microsoft.ML.Runtime.Internal.Utilities;
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.IO;
-using System.IO.Compression;
 using System.Linq;
 using System.Reflection;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.CommandLine;
+using System.Text.RegularExpressions;
 
 // REVIEW: Determine ideal namespace.
 namespace Microsoft.ML.Runtime
@@ -22,8 +21,22 @@ namespace Microsoft.ML.Runtime
     /// types for component instantiation. Each component may also specify an "arguments object" that should
     /// be provided at instantiation time.
     /// </summary>
-    public static class ComponentCatalog
+    public sealed class ComponentCatalog
     {
+        internal ComponentCatalog()
+        {
+            _lock = new object();
+            _cachedAssemblies = new HashSet<string>();
+            _classesByKey = new Dictionary<LoadableClassInfo.Key, LoadableClassInfo>();
+            _classes = new List<LoadableClassInfo>();
+            _signatures = new Dictionary<Type, bool>();
+
+            _entryPoints = new List<EntryPointInfo>();
+            _entryPointMap = new Dictionary<string, EntryPointInfo>();
+            _componentMap = new Dictionary<string, ComponentInfo>();
+            _components = new List<ComponentInfo>();
+        }
+
         /// <summary>
         /// Provides information on an instantiatable component, aka, loadable class.
         /// </summary>
@@ -249,200 +262,137 @@ namespace Microsoft.ML.Runtime
         }
 
         /// <summary>
-        /// Debug reporting level.
+        /// A description of a single entry point.
         /// </summary>
-        public static int DebugLevel = 1;
-
-        // Do not initialize this one - the initial null value is used as a "flag" to prime things.
-        private static ConcurrentQueue<Assembly> _assemblyQueue;
-
-        // The assemblies that are loaded by Reflection.LoadAssembly or Assembly.Load* after we started tracking
-        // the load events. We will provide assembly resolving for these assemblies. This is created simultaneously
-        // with s_assemblyQueue.
-        private static ConcurrentDictionary<string, Assembly> _loadedAssemblies;
-
-        // This lock protects s_cachedAssemblies and s_cachedPaths only. The collection of ClassInfos is concurrent
-        // so needs no protection.
-        private static object _lock = new object();
-        private static HashSet<string> _cachedAssemblies = new HashSet<string>();
-        private static HashSet<string> _cachedPaths = new HashSet<string>();
-
-        // Map from key/name to loadable class. Note that the same ClassInfo may appear
-        // multiple times. For the set of unique infos, use s_classes.
-        private static ConcurrentDictionary<LoadableClassInfo.Key, LoadableClassInfo> _classesByKey = new ConcurrentDictionary<LoadableClassInfo.Key, LoadableClassInfo>();
-
-        // The unique ClassInfos and Signatures.
-        private static ConcurrentQueue<LoadableClassInfo> _classes = new ConcurrentQueue<LoadableClassInfo>();
-        private static ConcurrentDictionary<Type, bool> _signatures = new ConcurrentDictionary<Type, bool>();
-
-        public static string[] FilePrefixesToAvoid = new string[] {
-            "api-ms-win",
-            "clr",
-            "coreclr",
-            "dbgshim",
-            "ext-ms-win",
-            "microsoft.bond.",
-            "microsoft.cosmos.",
-            "microsoft.csharp",
-            "microsoft.data.",
-            "microsoft.hpc.",
-            "microsoft.live.",
-            "microsoft.platformbuilder.",
-            "microsoft.visualbasic",
-            "microsoft.visualstudio.",
-            "microsoft.win32",
-            "microsoft.windowsapicodepack.",
-            "microsoft.windowsazure.",
-            "mscor",
-            "msvc",
-            "petzold.",
-            "roslyn.",
-            "sho",
-            "sni",
-            "sqm",
-            "system.",
-            "zlib",
-        };
-
-        private static bool ShouldSkipPath(string path)
+        public sealed class EntryPointInfo
         {
-            string name = Path.GetFileName(path).ToLowerInvariant();
-            switch (name)
+            public readonly string Name;
+            public readonly string Description;
+            public readonly string ShortName;
+            public readonly string FriendlyName;
+            public readonly string[] XmlInclude;
+            public readonly MethodInfo Method;
+            public readonly Type InputType;
+            public readonly Type OutputType;
+            public readonly Type[] InputKinds;
+            public readonly Type[] OutputKinds;
+            public readonly ObsoleteAttribute ObsoleteAttribute;
+
+            internal EntryPointInfo(MethodInfo method,
+                TlcModule.EntryPointAttribute attribute, ObsoleteAttribute obsoleteAttribute)
             {
-                case "cqo.dll":
-                case "fasttreenative.dll":
-                case "libiomp5md.dll":
-                case "libvw.dll":
-                case "matrixinterf.dll":
-                case "microsoft.ml.neuralnetworks.gpucuda.dll":
-                case "mklimports.dll":
-                case "microsoft.research.controls.decisiontrees.dll":
-                case "microsoft.ml.neuralnetworks.sse.dll":
-                case "neuraltreeevaluator.dll":
-                case "optimizationbuilderdotnet.dll":
-                case "parallelcommunicator.dll":
-                case "microsoft.ml.runtime.runtests.dll":
-                case "scopecompiler.dll":
-                case "tbb.dll":
-                case "internallearnscope.dll":
-                case "unmanagedlib.dll":
-                case "vcclient.dll":
-                case "libxgboost.dll":
-                case "zedgraph.dll":
-                case "__scopecodegen__.dll":
-                case "cosmosClientApi.dll":
-                    return true;
+                Contracts.AssertValue(method);
+                Contracts.AssertValue(attribute);
+
+                Name = attribute.Name ?? string.Join(".", method.DeclaringType.Name, method.Name);
+                Description = attribute.Desc;
+                Method = method;
+                ShortName = attribute.ShortName;
+                FriendlyName = attribute.UserName;
+                XmlInclude = attribute.XmlInclude;
+                ObsoleteAttribute = obsoleteAttribute;
+
+                // There are supposed to be 2 parameters, env and input for non-macro nodes.
+                // Macro nodes have a 3rd parameter, the entry point node.
+                var parameters = method.GetParameters();
+                if (parameters.Length != 2 && parameters.Length != 3)
+                    throw Contracts.Except("Method '{0}' has {1} parameters, but must have 2 or 3", method.Name, parameters.Length);
+                if (parameters[0].ParameterType != typeof(IHostEnvironment))
+                    throw Contracts.Except("Method '{0}', 1st parameter is {1}, but must be IHostEnvironment", method.Name, parameters[0].ParameterType);
+                InputType = parameters[1].ParameterType;
+                var outputType = method.ReturnType;
+                if (!outputType.IsClass)
+                    throw Contracts.Except("Method '{0}' returns {1}, but must return a class", method.Name, outputType);
+                OutputType = outputType;
+
+                InputKinds = FindEntryPointKinds(InputType);
+                OutputKinds = FindEntryPointKinds(OutputType);
             }
 
-            foreach (var s in FilePrefixesToAvoid)
+            private Type[] FindEntryPointKinds(Type type)
             {
-                if (name.StartsWith(s))
-                    return true;
+                var kindAttr = type.GetTypeInfo().GetCustomAttributes(typeof(TlcModule.EntryPointKindAttribute), false).FirstOrDefault()
+                    as TlcModule.EntryPointKindAttribute;
+                var baseType = type.BaseType;
+
+                if (baseType == null)
+                    return kindAttr?.Kinds;
+                var baseKinds = FindEntryPointKinds(baseType);
+                if (kindAttr == null)
+                    return baseKinds;
+                if (baseKinds == null)
+                    return kindAttr.Kinds;
+                return kindAttr.Kinds.Concat(baseKinds).ToArray();
             }
 
-            return false;
+            public override string ToString() => $"{Name}: {Description}";
         }
 
         /// <summary>
-        /// This loads assemblies that are in our "root" directory (where this assembly is) and caches
-        /// information for the loadable classes in loaded assemblies.
+        /// A description of a single component.
+        /// The 'component' is a non-standalone building block that is used to parametrize entry points or other ML.NET components.
+        /// For example, 'Loss function', or 'similarity calculator' could be components.
         /// </summary>
-        private static void CacheLoadedAssemblies()
+        public sealed class ComponentInfo
         {
-            // The target assembly is the one containing LoadableClassAttributeBase. If an assembly doesn't reference
-            // the target, then we don't want to scan its assembly attributes (there's no point in doing so).
-            var target = typeof(LoadableClassAttributeBase).Assembly;
+            public readonly string Name;
+            public readonly string Description;
+            public readonly string FriendlyName;
+            public readonly string Kind;
+            public readonly Type ArgumentType;
+            public readonly Type InterfaceType;
+            public readonly string[] Aliases;
 
-            lock (_lock)
+            internal ComponentInfo(Type interfaceType, string kind, Type argumentType, TlcModule.ComponentAttribute attribute)
             {
-                if (_assemblyQueue == null)
-                {
-                    // Create the loaded assembly queue and dictionary, set up the AssemblyLoad / AssemblyResolve
-                    // event handlers and populate the queue / dictionary with all assemblies that are currently loaded.
-                    Contracts.Assert(_assemblyQueue == null);
-                    Contracts.Assert(_loadedAssemblies == null);
+                Contracts.AssertValue(interfaceType);
+                Contracts.AssertNonEmpty(kind);
+                Contracts.AssertValue(argumentType);
+                Contracts.AssertValue(attribute);
 
-                    _assemblyQueue = new ConcurrentQueue<Assembly>();
-                    _loadedAssemblies = new ConcurrentDictionary<string, Assembly>();
+                Name = attribute.Name;
+                Description = attribute.Desc;
+                if (string.IsNullOrWhiteSpace(attribute.FriendlyName))
+                    FriendlyName = Name;
+                else
+                    FriendlyName = attribute.FriendlyName;
 
-                    AppDomain.CurrentDomain.AssemblyLoad += CurrentDomainAssemblyLoad;
-                    AppDomain.CurrentDomain.AssemblyResolve += CurrentDomainAssemblyResolve;
+                Kind = kind;
+                if (!IsValidName(Kind))
+                    throw Contracts.Except("Invalid component kind: '{0}'", Kind);
 
-                    foreach (Assembly a in AppDomain.CurrentDomain.GetAssemblies())
-                    {
-                        // Ignore dynamic assemblies.
-                        if (a.IsDynamic)
-                            continue;
+                Aliases = attribute.Aliases;
+                if (!IsValidName(Name))
+                    throw Contracts.Except("Component name '{0}' is not valid.", Name);
 
-                        _assemblyQueue.Enqueue(a);
-                        if (!_loadedAssemblies.TryAdd(a.FullName, a))
-                        {
-                            // Duplicate loading.
-                            Console.Error.WriteLine("Duplicate loaded assembly '{0}'", a.FullName);
-                        }
-                    }
+                if (Aliases != null && Aliases.Any(x => !IsValidName(x)))
+                    throw Contracts.Except("Component '{0}' has an invalid alias '{1}'", Name, Aliases.First(x => !IsValidName(x)));
 
-                    // Load all assemblies in our directory.
-                    var moduleName = typeof(ComponentCatalog).Module.FullyQualifiedName;
+                if (!typeof(IComponentFactory).IsAssignableFrom(argumentType))
+                    throw Contracts.Except("Component '{0}' must inherit from IComponentFactory", argumentType);
 
-                    // If were are loaded in the context of SQL CLR then the FullyQualifiedName and Name properties are set to
-                    // string "<Unknown>" and we skip scanning current directory.
-                    if (moduleName != "<Unknown>")
-                    {
-                        string dir = Path.GetDirectoryName(moduleName);
-                        LoadAssembliesInDir(dir, true);
-                        dir = Path.Combine(dir, "AutoLoad");
-                        LoadAssembliesInDir(dir, true);
-                    }
-                }
-
-                Contracts.AssertValue(_assemblyQueue);
-                Contracts.AssertValue(_loadedAssemblies);
-
-                Assembly assembly;
-                while (_assemblyQueue.TryDequeue(out assembly))
-                {
-                    if (!_cachedAssemblies.Add(assembly.FullName))
-                        continue;
-
-                    if (assembly != target)
-                    {
-                        bool found = false;
-                        var targetName = target.GetName();
-                        foreach (var name in assembly.GetReferencedAssemblies())
-                        {
-                            if (name.Name == targetName.Name)
-                            {
-                                found = true;
-                                break;
-                            }
-                        }
-                        if (!found)
-                            continue;
-                    }
-
-                    int added = 0;
-                    foreach (LoadableClassAttributeBase attr in assembly.GetCustomAttributes(typeof(LoadableClassAttributeBase)))
-                    {
-                        MethodInfo getter = null;
-                        ConstructorInfo ctor = null;
-                        MethodInfo create = null;
-                        bool requireEnvironment = false;
-                        if (attr.InstanceType != typeof(void) && !TryGetIniters(attr.InstanceType, attr.LoaderType, attr.CtorTypes, out getter, out ctor, out create, out requireEnvironment))
-                        {
-                            Console.Error.WriteLine(
-                                "CacheClassesFromAssembly: can't instantiate loadable class {0} with name {1}",
-                                attr.InstanceType.Name, attr.LoadNames[0]);
-                            Contracts.Assert(getter == null && ctor == null && create == null);
-                        }
-                        var info = new LoadableClassInfo(attr, getter, ctor, create, requireEnvironment);
-
-                        AddClass(info, attr.LoadNames);
-                        added++;
-                    }
-                }
+                ArgumentType = argumentType;
+                InterfaceType = interfaceType;
             }
         }
+
+        // This lock protects adding to the below collections.
+        private readonly object _lock;
+        private readonly HashSet<string> _cachedAssemblies;
+
+        // Map from key/name to loadable class. Note that the same ClassInfo may appear
+        // multiple times. For the set of unique infos, use _classes.
+        private readonly Dictionary<LoadableClassInfo.Key, LoadableClassInfo> _classesByKey;
+
+        // The unique ClassInfos and Signatures.
+        private readonly List<LoadableClassInfo> _classes;
+        private readonly Dictionary<Type, bool> _signatures;
+
+        private readonly List<EntryPointInfo> _entryPoints;
+        private readonly Dictionary<string, EntryPointInfo> _entryPointMap;
+
+        private readonly List<ComponentInfo> _components;
+        private readonly Dictionary<string, ComponentInfo> _componentMap;
 
         private static bool TryGetIniters(Type instType, Type loaderType, Type[] parmTypes,
             out MethodInfo getter, out ConstructorInfo ctor, out MethodInfo create, out bool requireEnvironment)
@@ -472,28 +422,122 @@ namespace Microsoft.ML.Runtime
             return false;
         }
 
-        private static void AddClass(LoadableClassInfo info, string[] loadNames)
+        private void AddClass(LoadableClassInfo info, string[] loadNames, bool throwOnError)
         {
-            _classes.Enqueue(info);
+            _classes.Add(info);
+            bool isEntryPoint = false;
             foreach (var sigType in info.SignatureTypes)
             {
-                _signatures.TryAdd(sigType, true);
+                _signatures[sigType] = true;
 
                 foreach (var name in loadNames)
                 {
                     string nameCi = name.ToLowerInvariant();
 
                     var key = new LoadableClassInfo.Key(nameCi, sigType);
-                    if (!_classesByKey.TryAdd(key, info))
+                    if (_classesByKey.TryGetValue(key, out var infoCur))
                     {
-                        var infoCur = _classesByKey[key];
-                        // REVIEW: Fix this message to reflect the signature....
-                        Console.Error.WriteLine(
-                            "CacheClassesFromAssembly: can't map name {0} to {1}, already mapped to {2}",
-                            name, info.Type.Name, infoCur.Type.Name);
+                        if (throwOnError)
+                        {
+                            throw Contracts.Except($"ComponentCatalog cannot map name '{name}' and SignatureType '{sigType}' to {info.Type.Name}, already mapped to {infoCur.Type.Name}.");
+                        }
+                    }
+                    else
+                    {
+                        _classesByKey.Add(key, info);
                     }
                 }
+
+                if (sigType == typeof(SignatureEntryPointModule))
+                {
+                    isEntryPoint = true;
+                }
             }
+
+            if (isEntryPoint)
+            {
+                ScanForEntryPoints(info);
+            }
+        }
+
+        private void ScanForEntryPoints(LoadableClassInfo info)
+        {
+            var type = info.LoaderType;
+
+            // Scan for entry points.
+            foreach (var methodInfo in type.GetMethods(BindingFlags.Static | BindingFlags.Public))
+            {
+                var attr = methodInfo.GetCustomAttributes(typeof(TlcModule.EntryPointAttribute), false).FirstOrDefault() as TlcModule.EntryPointAttribute;
+                if (attr == null)
+                    continue;
+
+                var entryPointInfo = new EntryPointInfo(methodInfo, attr,
+                    methodInfo.GetCustomAttributes(typeof(ObsoleteAttribute), false).FirstOrDefault() as ObsoleteAttribute);
+
+                _entryPoints.Add(entryPointInfo);
+                if (_entryPointMap.ContainsKey(entryPointInfo.Name))
+                {
+                    // Duplicate entry point name. We need to show a warning here.
+                    // REVIEW: we will be able to do this once catalog becomes a part of env.
+                    continue;
+                }
+
+                _entryPointMap[entryPointInfo.Name] = entryPointInfo;
+            }
+
+            // Scan for components.
+            // First scan ourself, and then all nested types, for component info.
+            ScanForComponents(type);
+            foreach (var nestedType in type.GetTypeInfo().GetNestedTypes())
+                ScanForComponents(nestedType);
+        }
+
+        private bool ScanForComponents(Type nestedType)
+        {
+            var attr = nestedType.GetTypeInfo().GetCustomAttributes(typeof(TlcModule.ComponentAttribute), true).FirstOrDefault()
+                as TlcModule.ComponentAttribute;
+            if (attr == null)
+                return false;
+
+            bool found = false;
+            foreach (var faceType in nestedType.GetInterfaces())
+            {
+                var faceAttr = faceType.GetTypeInfo().GetCustomAttributes(typeof(TlcModule.ComponentKindAttribute), false).FirstOrDefault()
+                        as TlcModule.ComponentKindAttribute;
+                if (faceAttr == null)
+                    continue;
+
+                if (!typeof(IComponentFactory).IsAssignableFrom(faceType))
+                    throw Contracts.Except("Component signature '{0}' doesn't inherit from '{1}'", faceType, typeof(IComponentFactory));
+
+                try
+                {
+                    // In order to populate from JSON, we need to invoke the parameterless ctor. Testing that this is possible.
+                    Activator.CreateInstance(nestedType);
+                }
+                catch (MissingMemberException ex)
+                {
+                    throw Contracts.Except(ex, "Component type '{0}' doesn't have a default constructor", faceType);
+                }
+
+                var info = new ComponentInfo(faceType, faceAttr.Kind, nestedType, attr);
+                var names = (info.Aliases ?? new string[0]).Concat(new[] { info.Name }).Distinct();
+                _components.Add(info);
+
+                foreach (var alias in names)
+                {
+                    var tag = $"{info.Kind}:{alias}";
+                    if (_componentMap.ContainsKey(tag))
+                    {
+                        // Duplicate component name. We need to show a warning here.
+                        // REVIEW: we will be able to do this once catalog becomes a part of env.
+                        continue;
+                    }
+                    _componentMap[tag] = info;
+                }
+            }
+
+            return found;
         }
 
         private static MethodInfo FindInstanceGetter(Type instType, Type loaderType)
@@ -528,157 +572,52 @@ namespace Microsoft.ML.Runtime
             return meth;
         }
 
-        private static void LoadAssembliesInDir(string dir, bool filter)
-        {
-            if (!Directory.Exists(dir))
-                return;
-
-            // Load all dlls in the given directory.
-            var paths = Directory.EnumerateFiles(dir, "*.dll");
-            foreach (string path in paths)
-            {
-                if (filter && ShouldSkipPath(path))
-                    continue;
-                // Loading the assembly is enough because of our event handler.
-                LoadAssembly(path);
-            }
-        }
-
-        private static void CurrentDomainAssemblyLoad(object sender, AssemblyLoadEventArgs args)
-        {
-            // Don't try to index dynamic generated assembly
-            if (args.LoadedAssembly.IsDynamic)
-                return;
-            _assemblyQueue.Enqueue(args.LoadedAssembly);
-            if (!_loadedAssemblies.TryAdd(args.LoadedAssembly.FullName, args.LoadedAssembly))
-            {
-                // Duplicate loading.
-                Console.Error.WriteLine("Duplicate loading of the assembly '{0}'", args.LoadedAssembly.FullName);
-            }
-        }
-
-        private static Assembly CurrentDomainAssemblyResolve(object sender, ResolveEventArgs args)
-        {
-            // REVIEW: currently, the resolving happens on exact matches of the full name.
-            // This has proved to work with the C# transform. We might need to change the resolving logic when the need arises.
-            Assembly found;
-            if (_loadedAssemblies.TryGetValue(args.Name, out found))
-                return found;
-            return null;
-        }
-
         /// <summary>
-        /// Given an assembly path, load the assembly.
+        /// Registers all the components in the specified assembly by looking for loadable classes
+        /// and adding them to the catalog.
         /// </summary>
-        public static Assembly LoadAssembly(string path)
+        /// <param name="assembly">
+        /// The assembly to register.
+        /// </param>
+        /// <param name="throwOnError">
+        /// true to throw an exception if there are errors with registering the components;
+        /// false to skip any errors.
+        /// </param>
+        public void RegisterAssembly(Assembly assembly, bool throwOnError = true)
         {
-            try
+            lock (_lock)
             {
-                return LoadFrom(path);
-            }
-            catch (Exception e)
-            {
-                if (DebugLevel > 2)
-                    Console.Error.WriteLine("Could not load assembly {0}:\n{1}", path, e.ToString());
-                return null;
-            }
-        }
-
-        private static Assembly LoadFrom(string path)
-        {
-            Contracts.CheckNonEmpty(path, nameof(path));
-            return Assembly.LoadFrom(path);
-        }
-
-        /// <summary>
-        /// Make sure the given assemblies are loaded and that their loadable classes have been catalogued.
-        /// </summary>
-        public static void CacheClassesExtra(string[] assemblies)
-        {
-            if (Utils.Size(assemblies) > 0)
-            {
-                lock (_lock)
+                if (_cachedAssemblies.Add(assembly.FullName))
                 {
-                    foreach (string path in assemblies)
+                    foreach (LoadableClassAttributeBase attr in assembly.GetCustomAttributes(typeof(LoadableClassAttributeBase)))
                     {
-                        if (!_cachedPaths.Add(path))
-                            continue;
+                        MethodInfo getter = null;
+                        ConstructorInfo ctor = null;
+                        MethodInfo create = null;
+                        bool requireEnvironment = false;
+                        if (attr.InstanceType != typeof(void) && !TryGetIniters(attr.InstanceType, attr.LoaderType, attr.CtorTypes, out getter, out ctor, out create, out requireEnvironment))
+                        {
+                            if (throwOnError)
+                            {
+                                throw Contracts.Except(
+                                    $"Can't instantiate loadable class '{attr.InstanceType.Name}' with name '{attr.LoadNames[0]}'");
+                            }
+                            Contracts.Assert(getter == null && ctor == null && create == null);
+                        }
+                        var info = new LoadableClassInfo(attr, getter, ctor, create, requireEnvironment);
 
-                        Exception ex = null;
-                        try
-                        {
-                            // REVIEW: Will LoadFrom ever return null?
-                            var assem = LoadFrom(path);
-                            if (assem != null)
-                                continue;
-                        }
-                        catch (Exception e)
-                        {
-                            ex = e;
-                        }
-
-                        // If it is a zip file, load it that way.
-                        ZipArchive zip;
-                        try
-                        {
-                            zip = ZipFile.OpenRead(path);
-                        }
-                        catch (Exception e)
-                        {
-                            // Couldn't load as an assembly and not a zip, so warn the user.
-                            ex = ex ?? e;
-                            Console.Error.WriteLine("Warning: Could not load '{0}': {1}", path, ex.Message);
-                            continue;
-                        }
-
-                        string dir;
-                        try
-                        {
-                            dir = CreateTempDirectory();
-                        }
-                        catch (Exception e)
-                        {
-                            throw Contracts.ExceptIO(e, "Creating temp directory for extra assembly zip extraction failed: '{0}'", path);
-                        }
-
-                        try
-                        {
-                            zip.ExtractToDirectory(dir);
-                        }
-                        catch (Exception e)
-                        {
-                            throw Contracts.ExceptIO(e, "Extracting extra assembly zip failed: '{0}'", path);
-                        }
-
-                        LoadAssembliesInDir(dir, false);
+                        AddClass(info, attr.LoadNames, throwOnError);
                     }
                 }
             }
-
-            CacheLoadedAssemblies();
-        }
-
-        private static string CreateTempDirectory()
-        {
-            string dir = GetTempPath();
-            Directory.CreateDirectory(dir);
-            return dir;
-        }
-
-        private static string GetTempPath()
-        {
-            Guid guid = Guid.NewGuid();
-            return Path.GetFullPath(Path.Combine(Path.GetTempPath(), "TLC_" + guid.ToString()));
         }
 
         /// <summary>
         /// Return an array containing information for all instantiatable components.
         /// If provided, the given set of assemblies is loaded first.
         /// </summary>
-        public static LoadableClassInfo[] GetAllClasses(string[] assemblies = null)
+        public LoadableClassInfo[] GetAllClasses()
         {
-            CacheClassesExtra(assemblies);
-
             return _classes.ToArray();
         }
 
@@ -686,12 +625,10 @@ namespace Microsoft.ML.Runtime
         /// Return an array containing information for instantiatable components with the given
         /// signature and base type. If provided, the given set of assemblies is loaded first.
         /// </summary>
-        public static LoadableClassInfo[] GetAllDerivedClasses(Type typeBase, Type typeSig, string[] assemblies = null)
+        public LoadableClassInfo[] GetAllDerivedClasses(Type typeBase, Type typeSig)
         {
             Contracts.CheckValue(typeBase, nameof(typeBase));
             Contracts.CheckValueOrNull(typeSig);
-
-            CacheClassesExtra(assemblies);
 
             // Apply the default.
             if (typeSig == null)
@@ -706,10 +643,8 @@ namespace Microsoft.ML.Runtime
         /// Return an array containing all the known signature types. If provided, the given set of assemblies
         /// is loaded first.
         /// </summary>
-        public static Type[] GetAllSignatureTypes(string[] assemblies = null)
+        public Type[] GetAllSignatureTypes()
         {
-            CacheClassesExtra(assemblies);
-
             return _signatures.Select(kvp => kvp.Key).ToArray();
         }
 
@@ -726,25 +661,18 @@ namespace Microsoft.ML.Runtime
             return kind;
         }
 
-        private static LoadableClassInfo FindClassCore(LoadableClassInfo.Key key)
+        private LoadableClassInfo FindClassCore(LoadableClassInfo.Key key)
         {
             LoadableClassInfo info;
-            if (_classesByKey.TryGetValue(key, out info))
-                return info;
-
-            CacheLoadedAssemblies();
-
             if (_classesByKey.TryGetValue(key, out info))
                 return info;
 
             return null;
         }
 
-        public static LoadableClassInfo[] FindLoadableClasses(string name)
+        public LoadableClassInfo[] FindLoadableClasses(string name)
         {
             name = name.ToLowerInvariant().Trim();
-
-            CacheLoadedAssemblies();
 
             var res = _classes
                 .Where(ci => ci.LoadNames.Select(n => n.ToLowerInvariant().Trim()).Contains(name))
@@ -752,37 +680,171 @@ namespace Microsoft.ML.Runtime
             return res;
         }
 
-        public static LoadableClassInfo[] FindLoadableClasses<TSig>()
+        public LoadableClassInfo[] FindLoadableClasses<TSig>()
         {
-            CacheLoadedAssemblies();
-
             return _classes
                 .Where(ci => ci.SignatureTypes.Contains(typeof(TSig)))
                 .ToArray();
         }
 
-        public static LoadableClassInfo[] FindLoadableClasses<TArgs, TSig>()
+        public LoadableClassInfo[] FindLoadableClasses<TArgs, TSig>()
         {
             // REVIEW: this and above methods perform a linear search over all the loadable classes.
             // On 6/15/2015, TLC release build contained 431 of them, so adding extra lookups looks unnecessary at this time.
-            CacheLoadedAssemblies();
-
             return _classes
                 .Where(ci => ci.ArgType == typeof(TArgs) && ci.SignatureTypes.Contains(typeof(TSig)))
                 .ToArray();
         }
 
-        public static LoadableClassInfo GetLoadableClassInfo<TSig>(string loadName)
+        public LoadableClassInfo GetLoadableClassInfo<TSig>(string loadName)
         {
             return GetLoadableClassInfo(loadName, typeof(TSig));
         }
 
-        public static LoadableClassInfo GetLoadableClassInfo(string loadName, Type signatureType)
+        public LoadableClassInfo GetLoadableClassInfo(string loadName, Type signatureType)
         {
             Contracts.CheckParam(signatureType.BaseType == typeof(MulticastDelegate), nameof(signatureType), "signatureType must be a delegate type");
             Contracts.CheckValueOrNull(loadName);
             loadName = (loadName ?? "").ToLowerInvariant().Trim();
             return FindClassCore(new LoadableClassInfo.Key(loadName, signatureType));
+        }
+
+        /// <summary>
+        /// Get all registered entry points.
+        /// </summary>
+        public IEnumerable<EntryPointInfo> AllEntryPoints()
+        {
+            return _entryPoints.AsEnumerable();
+        }
+
+        public bool TryFindEntryPoint(string name, out EntryPointInfo entryPoint)
+        {
+            Contracts.CheckNonEmpty(name, nameof(name));
+            return _entryPointMap.TryGetValue(name, out entryPoint);
+        }
+
+        public bool TryFindComponent(string kind, string alias, out ComponentInfo component)
+        {
+            Contracts.CheckNonEmpty(kind, nameof(kind));
+            Contracts.CheckNonEmpty(alias, nameof(alias));
+
+            // Note that, if kind or alias contain the colon character, the kind:name 'tag' will contain more than one colon.
+            // Since colon may not appear in any valid name, the dictionary lookup is guaranteed to fail.
+            return _componentMap.TryGetValue($"{kind}:{alias}", out component);
+        }
+
+        public bool TryFindComponent(Type argumentType, out ComponentInfo component)
+        {
+            Contracts.CheckValue(argumentType, nameof(argumentType));
+
+            component = _components.FirstOrDefault(x => x.ArgumentType == argumentType);
+            return component != null;
+        }
+
+        public bool TryFindComponent(Type interfaceType, Type argumentType, out ComponentInfo component)
+        {
+            Contracts.CheckValue(interfaceType, nameof(interfaceType));
+            Contracts.CheckParam(interfaceType.IsInterface, nameof(interfaceType), "Must be interface");
+            Contracts.CheckValue(argumentType, nameof(argumentType));
+
+            component = _components.FirstOrDefault(x => x.InterfaceType == interfaceType && x.ArgumentType == argumentType);
+            return component != null;
+        }
+
+        public bool TryFindComponent(Type interfaceType, string alias, out ComponentInfo component)
+        {
+            Contracts.CheckValue(interfaceType, nameof(interfaceType));
+            Contracts.CheckParam(interfaceType.IsInterface, nameof(interfaceType), "Must be interface");
+            Contracts.CheckNonEmpty(alias, nameof(alias));
+            component = _components.FirstOrDefault(x => x.InterfaceType == interfaceType && (x.Name == alias || (x.Aliases != null && x.Aliases.Contains(alias))));
+            return component != null;
+        }
+
+        /// <summary>
+        /// Akin to <see cref="TryFindComponent(Type, string, out ComponentInfo)"/>, except if the regular (case sensitive) comparison fails, it will
+        /// attempt to back off to a case-insensitive comparison.
+        /// </summary>
+        public bool TryFindComponentCaseInsensitive(Type interfaceType, string alias, out ComponentInfo component)
+        {
+            Contracts.CheckValue(interfaceType, nameof(interfaceType));
+            Contracts.CheckParam(interfaceType.IsInterface, nameof(interfaceType), "Must be interface");
+            Contracts.CheckNonEmpty(alias, nameof(alias));
+            if (TryFindComponent(interfaceType, alias, out component))
+                return true;
+            alias = alias.ToLowerInvariant();
+            component = _components.FirstOrDefault(x => x.InterfaceType == interfaceType && (x.Name.ToLowerInvariant() == alias || AnyMatch(alias, x.Aliases)));
+            return component != null;
+        }
+
+        private static bool AnyMatch(string name, string[] aliases)
+        {
+            if (aliases == null)
+                return false;
+            return aliases.Any(a => string.Equals(name, a, StringComparison.OrdinalIgnoreCase));
+        }
+
+        /// <summary>
+        /// Returns all valid component kinds.
+        /// </summary>
+        public IEnumerable<string> GetAllComponentKinds()
+        {
+            return _components.Select(x => x.Kind).Distinct().OrderBy(x => x);
+        }
+
+        /// <summary>
+        /// Returns all components of the specified kind.
+        /// </summary>
+        public IEnumerable<ComponentInfo> GetAllComponents(string kind)
+        {
+            Contracts.CheckNonEmpty(kind, nameof(kind));
+            Contracts.CheckParam(IsValidName(kind), nameof(kind), "Invalid component kind");
+            return _components.Where(x => x.Kind == kind).OrderBy(x => x.Name);
+        }
+
+        /// <summary>
+        /// Returns all components that implement the specified interface.
+        /// </summary>
+        public IEnumerable<ComponentInfo> GetAllComponents(Type interfaceType)
+        {
+            Contracts.CheckValue(interfaceType, nameof(interfaceType));
+            return _components.Where(x => x.InterfaceType == interfaceType).OrderBy(x => x.Name);
+        }
+
+        public bool TryGetComponentKind(Type signatureType, out string kind)
+        {
+            Contracts.CheckValue(signatureType, nameof(signatureType));
+            // REVIEW: replace with a dictionary lookup.
+
+            var faceAttr = signatureType.GetTypeInfo().GetCustomAttributes(typeof(TlcModule.ComponentKindAttribute), false).FirstOrDefault()
+                    as TlcModule.ComponentKindAttribute;
+            kind = faceAttr == null ? null : faceAttr.Kind;
+            return faceAttr != null;
+        }
+
+        public bool TryGetComponentShortName(Type type, out string name)
+        {
+            ComponentInfo component;
+            if (!TryFindComponent(type, out component))
+            {
+                name = null;
+                return false;
+            }
+
+            name = component.Aliases != null && component.Aliases.Length > 0 ? component.Aliases[0] : component.Name;
+            return true;
+        }
+
+        /// <summary>
+        /// The valid names for the components and entry points must consist of letters, digits, underscores and dots,
+        /// and begin with a letter or digit.
+        /// </summary>
+        private static readonly Regex _nameRegex = new Regex(@"^\w[_\.\w]*$", RegexOptions.Compiled);
+        private static bool IsValidName(string name)
+        {
+            Contracts.AssertValueOrNull(name);
+            if (string.IsNullOrWhiteSpace(name))
+                return false;
+            return _nameRegex.IsMatch(name);
         }
 
         /// <summary>
@@ -815,7 +877,7 @@ namespace Microsoft.ML.Runtime
             env.CheckValueOrNull(name);
 
             string nameLower = (name ?? "").ToLowerInvariant().Trim();
-            LoadableClassInfo info = FindClassCore(new LoadableClassInfo.Key(nameLower, signatureType));
+            LoadableClassInfo info = env.ComponentCatalog.FindClassCore(new LoadableClassInfo.Key(nameLower, signatureType));
             if (info == null)
             {
                 result = null;

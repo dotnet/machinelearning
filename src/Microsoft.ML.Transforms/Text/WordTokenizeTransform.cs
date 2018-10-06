@@ -61,8 +61,6 @@ namespace Microsoft.ML.Runtime.Data
             public bool TryUnparse(StringBuilder sb)
             {
                 Contracts.AssertValue(sb);
-                if (!string.IsNullOrEmpty(TermSeparators))
-                    return false;
                 return TryUnparseCore(sb);
             }
         }
@@ -72,9 +70,16 @@ namespace Microsoft.ML.Runtime.Data
             // REVIEW: Think about adding a user specified separator string, that is added as an extra token between
             // the tokens of each column
             [Argument(ArgumentType.AtMostOnce,
+                Visibility = ArgumentAttribute.VisibilityType.CmdLineOnly,
                 HelpText = "Comma separated set of term separator(s). Commonly: 'space', 'comma', 'semicolon' or other single character.",
                 ShortName = "sep")]
             public string TermSeparators = "space";
+
+            [Argument(ArgumentType.AtMostOnce,
+                Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly,
+                HelpText = "Array of single character term separator(s). By default uses space character separator.",
+                ShortName = "sep")]
+            public char[] CharArrayTermSeparators;
         }
 
         public sealed class Arguments : ArgumentsBase
@@ -96,13 +101,14 @@ namespace Microsoft.ML.Runtime.Data
 
             public ColInfoEx(Arguments args, int iinfo)
             {
-                Separators = PredictionUtil.SeparatorFromString(args.Column[iinfo].TermSeparators ?? args.TermSeparators);
+                // Use character array separator if any otherwise default to the comma separated string
+                Separators = args.CharArrayTermSeparators ?? PredictionUtil.SeparatorFromString(args.Column[iinfo].TermSeparators ?? args.TermSeparators);
                 Contracts.CheckUserArg(Utils.Size(Separators) > 0, nameof(args.TermSeparators));
             }
 
             public ColInfoEx(ArgumentsBase args)
             {
-                Separators = PredictionUtil.SeparatorFromString(args.TermSeparators);
+                Separators = args.CharArrayTermSeparators ?? PredictionUtil.SeparatorFromString(args.TermSeparators);
                 Contracts.CheckUserArg(Utils.Size(Separators) > 0, nameof(args.TermSeparators));
             }
 
@@ -141,7 +147,8 @@ namespace Microsoft.ML.Runtime.Data
                 verWrittenCur: 0x00010001, // Initial
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
-                loaderSignature: LoaderSignature);
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(DelimitedTokenizeTransform).Assembly.FullName);
         }
 
         public override bool CanSavePfa => true;

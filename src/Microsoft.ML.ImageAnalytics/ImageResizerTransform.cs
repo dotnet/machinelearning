@@ -8,7 +8,6 @@ using System.Drawing;
 using System.Linq;
 using System.Text;
 using Microsoft.ML.Core.Data;
-using Microsoft.ML.Data.StaticPipe.Runtime;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
@@ -17,6 +16,8 @@ using Microsoft.ML.Runtime.ImageAnalytics;
 using Microsoft.ML.Runtime.Internal.Internallearn;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
+using Microsoft.ML.StaticPipe;
+using Microsoft.ML.StaticPipe.Runtime;
 
 [assembly: LoadableClass(ImageResizerTransform.Summary, typeof(IDataTransform), typeof(ImageResizerTransform), typeof(ImageResizerTransform.Arguments),
     typeof(SignatureDataTransform), ImageResizerTransform.UserName, "ImageResizerTransform", "ImageResizer")]
@@ -154,7 +155,8 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
                 verWrittenCur: 0x00010003, // No more sizeof(float)
                 verReadableCur: 0x00010003,
                 verWeCanReadBack: 0x00010003,
-                loaderSignature: LoaderSignature);
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(ImageResizerTransform).Assembly.FullName);
         }
 
         private const string RegistrationName = "ImageScaler";
@@ -459,7 +461,7 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
             return new SchemaShape(result.Values);
         }
 
-        internal sealed class OutPipelineColumn : Scalar<Bitmap>
+        internal sealed class OutPipelineColumn : Custom<Bitmap>
         {
             private readonly PipelineColumn _input;
             private readonly int _width;
@@ -485,8 +487,8 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
             /// <summary>
             /// Reconciler to an <see cref="ImageResizerTransform"/> for the <see cref="PipelineColumn"/>.
             /// </summary>
-            /// <seealso cref="ImageStaticPipe.Resize(Scalar{Bitmap}, int, int, ImageResizerTransform.ResizingKind, ImageResizerTransform.Anchor)"/>
-            /// <seealso cref="ImageStaticPipe.Resize(Scalar{UnknownSizeBitmap}, int, int, ImageResizerTransform.ResizingKind, ImageResizerTransform.Anchor)"/>
+            /// <seealso cref="ImageStaticPipe.Resize(Custom{Bitmap}, int, int, ImageResizerTransform.ResizingKind, ImageResizerTransform.Anchor)"/>
+            /// <seealso cref="ImageStaticPipe.Resize(Custom{UnknownSizeBitmap}, int, int, ImageResizerTransform.ResizingKind, ImageResizerTransform.Anchor)"/>
             private sealed class Reconciler : EstimatorReconciler
             {
                 public static Reconciler Inst = new Reconciler();

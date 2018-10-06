@@ -3,9 +3,11 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Core.Data;
-using Microsoft.ML.Data.StaticPipe.Runtime;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
+using Microsoft.ML.Runtime.TextAnalytics;
+using Microsoft.ML.StaticPipe;
+using Microsoft.ML.StaticPipe.Runtime;
 using System;
 using System.Collections.Generic;
 using static Microsoft.ML.Runtime.TextAnalytics.StopWordsRemoverTransform;
@@ -22,7 +24,7 @@ namespace Microsoft.ML.Transforms.Text
         {
             public readonly Scalar<string> Input;
 
-            public OutPipelineColumn(Scalar<string> input, string separators)
+            public OutPipelineColumn(Scalar<string> input, char[] separators)
                 : base(new Reconciler(separators), input)
             {
                 Input = input;
@@ -31,9 +33,9 @@ namespace Microsoft.ML.Transforms.Text
 
         private sealed class Reconciler : EstimatorReconciler
         {
-            private readonly string _separators;
+            private readonly char[] _separators;
 
-            public Reconciler(string separators)
+            public Reconciler(char[] separators)
             {
                 _separators = separators;
             }
@@ -58,8 +60,8 @@ namespace Microsoft.ML.Transforms.Text
         /// Tokenize incoming text using <paramref name="separators"/> and output the tokens.
         /// </summary>
         /// <param name="input">The column to apply to.</param>
-        /// <param name="separators">The separators to use (comma separated).</param>
-        public static VarVector<string> TokenizeText(this Scalar<string> input, string separators = "space") => new OutPipelineColumn(input, separators);
+        /// <param name="separators">The separators to use (uses space character by default).</param>
+        public static VarVector<string> TokenizeText(this Scalar<string> input, char[] separators = null) => new OutPipelineColumn(input, separators);
     }
 
     /// <summary>
@@ -425,9 +427,9 @@ namespace Microsoft.ML.Transforms.Text
     {
         private sealed class OutPipelineColumn : Vector<float>
         {
-            public readonly VarVector<Key<uint, string>> Input;
+            public readonly PipelineColumn Input;
 
-            public OutPipelineColumn(VarVector<Key<uint, string>> input,
+            public OutPipelineColumn(PipelineColumn input,
                 int ngramLength,
                 int skipLength,
                 bool allLengths,
@@ -495,7 +497,7 @@ namespace Microsoft.ML.Transforms.Text
         /// <param name="allLengths">Whether to include all ngram lengths up to <paramref name="ngramLength"/> or only <paramref name="ngramLength"/>.</param>
         /// <param name="maxNumTerms">Maximum number of ngrams to store in the dictionary.</param>
         /// <param name="weighting">Statistical measure used to evaluate how important a word is to a document in a corpus.</param>
-        public static Vector<float> ToNgrams(this VarVector<Key<uint,string>> input,
+        public static Vector<float> ToNgrams<TKey>(this VarVector<Key<TKey, string>> input,
             int ngramLength = 1,
             int skipLength = 0,
             bool allLengths = true,
@@ -591,5 +593,57 @@ namespace Microsoft.ML.Transforms.Text
             uint seed = 314489979,
             bool ordered = true,
             int invertHash = 0) => new OutPipelineColumn(input, hashBits, ngramLength, skipLength, allLengths, seed, ordered, invertHash);
+    }
+
+    /// <summary>
+    /// Extensions for statically typed <see cref="LdaEstimator"/>.
+    /// </summary>
+    public static class LdaEstimatorExtensions
+    {
+        private sealed class OutPipelineColumn : Vector<float>
+        {
+            public readonly Vector<float> Input;
+
+            public OutPipelineColumn(Vector<float> input, int numTopic, Action<LdaTransform.Arguments> advancedSettings)
+                : base(new Reconciler(numTopic, advancedSettings), input)
+            {
+                Input = input;
+            }
+        }
+
+        private sealed class Reconciler : EstimatorReconciler
+        {
+            private readonly int _numTopic;
+            private readonly Action<LdaTransform.Arguments> _advancedSettings;
+
+            public Reconciler(int numTopic, Action<LdaTransform.Arguments> advancedSettings)
+            {
+                _numTopic = numTopic;
+                _advancedSettings = advancedSettings;
+            }
+
+            public override IEstimator<ITransformer> Reconcile(IHostEnvironment env,
+                PipelineColumn[] toOutput,
+                IReadOnlyDictionary<PipelineColumn, string> inputNames,
+                IReadOnlyDictionary<PipelineColumn, string> outputNames,
+                IReadOnlyCollection<string> usedNames)
+            {
+                Contracts.Assert(toOutput.Length == 1);
+
+                var pairs = new List<(string input, string output)>();
+                foreach (var outCol in toOutput)
+                    pairs.Add((inputNames[((OutPipelineColumn)outCol).Input], outputNames[outCol]));
+
+                return new LdaEstimator(env, pairs.ToArray(), _numTopic, _advancedSettings);
+            }
+        }
+
+        /// <include file='doc.xml' path='doc/members/member[@name="LightLDA"]/*' />
+        /// <param name="input">The column to apply to.</param>
+        /// <param name="numTopic">The number of topics in the LDA.</param>
+        /// <param name="advancedSettings">A delegate to apply all the advanced arguments to the algorithm.</param>
+        public static Vector<float> ToLdaTopicVector(this Vector<float> input,
+            int numTopic = 100,
+            Action<LdaTransform.Arguments> advancedSettings = null) => new OutPipelineColumn(input, numTopic, advancedSettings);
     }
 }

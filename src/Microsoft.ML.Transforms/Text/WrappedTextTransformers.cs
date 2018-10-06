@@ -10,6 +10,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using static Microsoft.ML.Runtime.TextAnalytics.LdaTransform;
 using static Microsoft.ML.Runtime.TextAnalytics.StopWordsRemoverTransform;
 using static Microsoft.ML.Runtime.TextAnalytics.TextNormalizerTransform;
 
@@ -27,8 +28,8 @@ namespace Microsoft.ML.Transforms
         /// <param name="env">The environment.</param>
         /// <param name="inputColumn">The column containing text to tokenize.</param>
         /// <param name="outputColumn">The column containing output tokens. Null means <paramref name="inputColumn"/> is replaced.</param>
-        /// <param name="separators">The separators to use (comma separated).</param>
-        public WordTokenizer(IHostEnvironment env, string inputColumn, string outputColumn = null, string separators = "space")
+        /// <param name="separators">The separators to use (uses space character by default).</param>
+        public WordTokenizer(IHostEnvironment env, string inputColumn, string outputColumn = null, char[] separators = null)
             : this(env, new[] { (inputColumn, outputColumn ?? inputColumn) }, separators)
         {
         }
@@ -38,13 +39,13 @@ namespace Microsoft.ML.Transforms
         /// </summary>
         /// <param name="env">The environment.</param>
         /// <param name="columns">Pairs of columns to run the tokenization on.</param>
-        /// <param name="separators">The separators to use (comma separated).</param>
-        public WordTokenizer(IHostEnvironment env, (string input, string output)[] columns, string separators = "space")
+        /// <param name="separators">The separators to use (uses space character by default).</param>
+        public WordTokenizer(IHostEnvironment env, (string input, string output)[] columns, char[] separators = null)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(WordTokenizer)), MakeTransformer(env, columns, separators))
         {
         }
 
-        private static TransformWrapper MakeTransformer(IHostEnvironment env, (string input, string output)[] columns, string separators)
+        private static TransformWrapper MakeTransformer(IHostEnvironment env, (string input, string output)[] columns, char[] separators)
         {
             Contracts.AssertValue(env);
             env.CheckNonEmpty(columns, nameof(columns));
@@ -55,11 +56,10 @@ namespace Microsoft.ML.Transforms
             }
 
             // Create arguments.
-            // REVIEW: enable multiple separators via something other than parsing strings.
             var args = new DelimitedTokenizeTransform.Arguments
             {
                 Column = columns.Select(x => new DelimitedTokenizeTransform.Column { Source = x.input, Name = x.output }).ToArray(),
-                TermSeparators = separators
+                CharArrayTermSeparators = separators
             };
 
             // Create a valid instance of data.
@@ -83,7 +83,7 @@ namespace Microsoft.ML.Transforms
         /// <param name="outputColumn">The column containing output tokens. Null means <paramref name="inputColumn"/> is replaced.</param>
         /// <param name="useMarkerCharacters">Whether to use marker characters to separate words.</param>
         public CharacterTokenizer(IHostEnvironment env, string inputColumn, string outputColumn = null, bool useMarkerCharacters = true)
-            : this (env, new[] { (inputColumn, outputColumn ?? inputColumn) }, useMarkerCharacters)
+            : this(env, new[] { (inputColumn, outputColumn ?? inputColumn) }, useMarkerCharacters)
         {
         }
 
@@ -290,11 +290,11 @@ namespace Microsoft.ML.Transforms
             string inputColumn,
             string outputColumn = null,
             int ngramLength = 1,
-            int skipLength=0,
+            int skipLength = 0,
             bool allLengths = true,
             int maxNumTerms = 10000000,
             NgramTransform.WeightingCriteria weighting = NgramTransform.WeightingCriteria.Tf)
-            : this(env, new[] { ( new[] { inputColumn }, outputColumn ?? inputColumn) }, ngramLength, skipLength, allLengths, maxNumTerms, weighting)
+            : this(env, new[] { (new[] { inputColumn }, outputColumn ?? inputColumn) }, ngramLength, skipLength, allLengths, maxNumTerms, weighting)
         {
         }
 
@@ -536,7 +536,7 @@ namespace Microsoft.ML.Transforms
             bool allLengths = true,
             int maxNumTerms = 10000000,
             NgramTransform.WeightingCriteria weighting = NgramTransform.WeightingCriteria.Tf)
-            : this(env, new[] { ( inputColumn, outputColumn ?? inputColumn) }, ngramLength, skipLength, allLengths, maxNumTerms, weighting)
+            : this(env, new[] { (inputColumn, outputColumn ?? inputColumn) }, ngramLength, skipLength, allLengths, maxNumTerms, weighting)
         {
         }
 
@@ -730,6 +730,52 @@ namespace Microsoft.ML.Transforms
             };
 
             return new TransformWrapper(Host, new NgramHashTransform(Host, args, input));
+        }
+    }
+
+    /// <include file='doc.xml' path='doc/members/member[@name="LightLDA"]/*' />
+    public sealed class LdaEstimator : TrainedWrapperEstimatorBase
+    {
+        private readonly LdaTransform.Arguments _args;
+
+        /// <include file='doc.xml' path='doc/members/member[@name="LightLDA"]/*' />
+        /// <param name="env">The environment.</param>
+        /// <param name="inputColumn">The column containing text to tokenize.</param>
+        /// <param name="outputColumn">The column containing output tokens. Null means <paramref name="inputColumn"/> is replaced.</param>
+        /// <param name="numTopic">The number of topics in the LDA.</param>
+        /// <param name="advancedSettings">A delegate to apply all the advanced arguments to the algorithm.</param>
+        public LdaEstimator(IHostEnvironment env,
+            string inputColumn,
+            string outputColumn = null,
+            int numTopic = 100,
+            Action<LdaTransform.Arguments> advancedSettings = null)
+            : this(env, new[] { (inputColumn, outputColumn ?? inputColumn) },
+                    numTopic,
+                    advancedSettings)
+        {
+        }
+
+        /// <include file='doc.xml' path='doc/members/member[@name="LightLDA"]/*' />
+        /// <param name="env">The environment.</param>
+        /// <param name="columns">Pairs of columns to compute LDA.</param>
+        /// <param name="numTopic">The number of topics in the LDA.</param>
+        /// <param name="advancedSettings">A delegate to apply all the advanced arguments to the algorithm.</param>
+        public LdaEstimator(IHostEnvironment env,
+            (string input, string output)[] columns,
+            int numTopic = 100,
+            Action<LdaTransform.Arguments> advancedSettings = null)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(LdaEstimator)))
+        {
+            _args = new LdaTransform.Arguments();
+            _args.Column = columns.Select(x => new LdaTransform.Column { Source = x.input, Name = x.output }).ToArray();
+            _args.NumTopic = numTopic;
+
+            advancedSettings?.Invoke(_args);
+        }
+
+        public override TransformWrapper Fit(IDataView input)
+        {
+            return new TransformWrapper(Host, new LdaTransform(Host, _args, input));
         }
     }
 }
