@@ -417,7 +417,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
                 Vector128<float> scalarVector = Sse.SetAllVector128(scalar);
 
-                while (pDstCurrent + 4 <= pDstEnd)
+                while (pDstCurrent <= pDstEnd - 4)
                 {
                     Vector128<float> dstVector = Sse.LoadVector128(pDstCurrent);
                     dstVector = Sse.Add(dstVector, scalarVector);
@@ -479,7 +479,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
                 Vector128<float> scaleVector = Sse.SetAllVector128(scale);
 
-                while (pDstCurrent + 4 <= pDstEnd)
+                while (pDstCurrent <= pDstEnd - 4)
                 {
                     Vector128<float> srcVector = Sse.LoadVector128(pSrcCurrent);
                     srcVector = Sse.Multiply(srcVector, scaleVector);
@@ -512,7 +512,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                 Vector128<float> aVector = Sse.SetAllVector128(a);
                 Vector128<float> bVector = Sse.SetAllVector128(b);
 
-                while (pDstCurrent + 4 <= pDstEnd)
+                while (pDstCurrent <= pDstEnd - 4)
                 {
                     Vector128<float> dstVector = Sse.LoadVector128(pDstCurrent);
                     dstVector = Sse.Add(dstVector, bVector);
