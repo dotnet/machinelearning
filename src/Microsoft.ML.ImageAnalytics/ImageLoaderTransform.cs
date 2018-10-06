@@ -200,7 +200,11 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
                                 // REVIEW : Log failures.
                                 dst = null;
                             }
-                        }
+							var notFound = $"File {src.ToString()} was not found";
+							var invalidChar = $"File {src.ToString()} has an invalid character in its path and could not be loaded";
+							Host.Check(dst != null, notFound);
+							Host.Check(dst.PixelFormat != System.Drawing.Imaging.PixelFormat.DontCare, invalidChar);
+						}
                     };
                 return del;
             }
