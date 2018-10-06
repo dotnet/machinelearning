@@ -6,7 +6,7 @@ ML.NET permite a los desarrolladores .NET desarrollar sus propios modelos y mezc
 
 ML.NET fue originalmente desarrollada en el Microsoft Research y evolucionó en un framework importante en la ultima década y es usado en multiples productos en todo Microsoft por ejemplo Windows, Bing, PowerPoint, Excel y más.
 
-Con este lanzamiento previo, ML.NET activa tareas de ML como clasificación (por ejemplo: support text clasficación, sentiment analysis) y regresiones (e.g. price-prediction).
+Con este lanzamiento adelantado, ML.NET activa tareas de ML como clasificación (por ejemplo: support text clasficación, sentiment analysis) y regresiones (por ejemplo: predicciones de precios).
 
 Dentro de todas esas capacidades del ML, este primer lanzamiento de ML.NET  también brinda el primer paso a las APIS de .NET para entrenar modelos, usando modelos para predicciones, así como los componentes fundamentales de este framework tales como algoritmos de aprendizaje, transformaciones y estructuras de datos ML.
 
@@ -15,13 +15,13 @@ Dentro de todas esas capacidades del ML, este primer lanzamiento de ML.NET  tamb
 
 [![NuGet Status](https://img.shields.io/nuget/v/Microsoft.ML.svg?style=flat)](https://www.nuget.org/packages/Microsoft.ML/)
 
-ML.NET runs on Windows, Linux, and macOS - any platform where 64 bit [.NET Core](https://github.com/dotnet/core) or later is available.
+ML.NET corre en Windows, Linux, y macOS - cualquier plataforma de 64 Bits [.NET Core](https://github.com/dotnet/core) o posterior está disponible.
 
-The current release is 0.6. Check out the [release notes](docs/release-notes/0.6/release-0.6.md).
+La versión actual es la 0.6. revisa las [notas de la versión](docs/release-notes/0.6/release-0.6.md).
 
-First, ensure you have installed [.NET Core 2.0](https://www.microsoft.com/net/learn/get-started) or later. ML.NET also works on the .NET Framework. Note that ML.NET currently must run in a 64-bit process.
+Primero verifica que tengas instalado [.NET Core 2.0](https://www.microsoft.com/net/learn/get-started) o posterior. ML.NET también trabaja en el Framework de .NET. nota que ML.NET actualmente debe correr en procesadores de 64 Bits.
 
-Once you have an app, you can install the ML.NET NuGet package from the .NET Core CLI using:
+Una vez que tengas la app, puedes instalar ML.NET en el gestor de paquetes NuGet desde la .NET Core CLI usando:
 ```
 dotnet add package Microsoft.ML
 ```
