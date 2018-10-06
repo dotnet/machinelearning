@@ -1100,6 +1100,11 @@ namespace Microsoft.ML.Transforms
         {
         }
 
+        public TensorFlowEstimator(IHostEnvironment env, TensorFlowModelContext tensorFlowModelContext, string[] inputs, string[] outputs)
+           : this(env, new TensorFlowTransform(env, tensorFlowModelContext.TFSession, inputs, outputs, TensorFlowUtils.IsSavedModel(env, tensorFlowModelContext.ModelPath) ? tensorFlowModelContext.ModelPath : null, false))
+        {
+        }
+
         public TensorFlowEstimator(IHostEnvironment env, TensorFlowTransform transformer)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(TensorFlowTransform)), transformer)
         {
@@ -1142,16 +1147,32 @@ namespace Microsoft.ML.Transforms
             {
                 Input = input;
             }
+
+            public OutColumn(Vector<float> input, TensorFlowModelContext tensorFlowModelContext)
+                : base(new Reconciler(tensorFlowModelContext), input)
+            {
+                Input = input;
+            }
         }
 
         private sealed class Reconciler : EstimatorReconciler
         {
             private readonly string _modelFile;
+            private readonly TensorFlowModelContext _tensorFlowModelContext;
 
             public Reconciler(string modelFile)
             {
                 Contracts.AssertNonEmpty(modelFile);
                 _modelFile = modelFile;
+                _tensorFlowModelContext = null;
+            }
+
+            public Reconciler(TensorFlowModelContext tensorFlowModelContext)
+            {
+                Contracts.CheckValue(tensorFlowModelContext, nameof(tensorFlowModelContext));
+
+                _modelFile = null;
+                _tensorFlowModelContext = tensorFlowModelContext;
             }
 
             public override IEstimator<ITransformer> Reconcile(IHostEnvironment env,
@@ -1163,7 +1184,14 @@ namespace Microsoft.ML.Transforms
                 Contracts.Assert(toOutput.Length == 1);
 
                 var outCol = (OutColumn)toOutput[0];
-                return new TensorFlowEstimator(env, _modelFile, new[] { inputNames[outCol.Input] }, new[] { outputNames[outCol] });
+                if (_modelFile == null)
+                {
+                    return new TensorFlowEstimator(env, _tensorFlowModelContext, new[] { inputNames[outCol.Input] }, new[] { outputNames[outCol] });
+                }
+                else
+                {
+                    return new TensorFlowEstimator(env, _modelFile, new[] { inputNames[outCol.Input] }, new[] { outputNames[outCol] });
+                }
             }
         }
 
@@ -1171,7 +1199,7 @@ namespace Microsoft.ML.Transforms
         // input and producing one output of floats.
         // We could consider selectively adding some more extensions to enable common scenarios.
         /// <summary>
-        /// Run a TensorFlow model on the input column and extract one output column.
+        /// Load the TensorFlow model from <paramref name="modelFile"/> and run it on the input column and extract one output column.
         /// The inputs and outputs are matched to TensorFlow graph nodes by name.
         /// </summary>
         public static Vector<float> ApplyTensorFlowGraph(this Vector<float> input, string modelFile)
@@ -1179,6 +1207,17 @@ namespace Microsoft.ML.Transforms
             Contracts.CheckValue(input, nameof(input));
             Contracts.CheckNonEmpty(modelFile, nameof(modelFile));
             return new OutColumn(input, modelFile);
+        }
+
+        /// <summary>
+        /// Run a TensorFlow model provided through <paramref name="tensorFlowModelContext"/> on the input column and extract one output column.
+        /// The inputs and outputs are matched to TensorFlow graph nodes by name.
+        /// </summary>
+        public static Vector<float> ApplyTensorFlowGraph(this Vector<float> input, TensorFlowModelContext tensorFlowModelContext)
+        {
+            Contracts.CheckValue(input, nameof(input));
+            Contracts.CheckValue(tensorFlowModelContext, nameof(tensorFlowModelContext));
+            return new OutColumn(input, tensorFlowModelContext);
         }
     }
 }
