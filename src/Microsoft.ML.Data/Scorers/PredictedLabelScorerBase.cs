@@ -42,6 +42,7 @@ namespace Microsoft.ML.Runtime.Data
             private readonly MetadataUtils.MetadataGetter<ReadOnlyMemory<char>> _getScoreColumnKind;
             private readonly MetadataUtils.MetadataGetter<ReadOnlyMemory<char>> _getScoreValueKind;
             private readonly IRow _predColMetadata;
+            public override Schema AsSchema { get; }
 
             private BindingsImpl(ISchema input, ISchemaBoundRowMapper mapper, string suffix, string scoreColumnKind,
                 bool user, int scoreColIndex, ColumnType predColType)
@@ -84,6 +85,8 @@ namespace Microsoft.ML.Runtime.Data
                         }
                     }
                 }
+
+                AsSchema = Schema.Create(this);
             }
 
             private static IColumn KeyValueMetadataFromMetadata<T>(ISchema schema, int col, string metadataName)
@@ -110,7 +113,7 @@ namespace Microsoft.ML.Runtime.Data
                     scoreColIndex, predColType);
             }
 
-            public BindingsImpl ApplyToSchema(ISchema input, ISchemaBindableMapper bindable, IHostEnvironment env)
+            public BindingsImpl ApplyToSchema(Schema input, ISchemaBindableMapper bindable, IHostEnvironment env)
             {
                 Contracts.AssertValue(env);
                 env.AssertValue(input);
@@ -130,7 +133,7 @@ namespace Microsoft.ML.Runtime.Data
                 return new BindingsImpl(input, rowMapper, Suffix, ScoreColumnKind, true, mapperScoreColumn, PredColType);
             }
 
-            public static BindingsImpl Create(ModelLoadContext ctx, ISchema input,
+            public static BindingsImpl Create(ModelLoadContext ctx, Schema input,
                 IHostEnvironment env, ISchemaBindableMapper bindable,
                 Func<ColumnType, bool> outputTypeMatches, Func<ColumnType, ISchemaBoundRowMapper, ColumnType> getPredColType)
             {
@@ -277,10 +280,8 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         protected readonly BindingsImpl Bindings;
-        protected override BindingsBase GetBindings()
-        {
-            return Bindings;
-        }
+        protected override BindingsBase GetBindings() => Bindings;
+        public override Schema Schema { get; }
 
         public bool CanSavePfa => (Bindable as ICanSavePfa)?.CanSavePfa == true;
 
@@ -309,6 +310,7 @@ namespace Microsoft.ML.Runtime.Data
             var predColType = getPredColType(scoreType, rowMapper);
 
             Bindings = BindingsImpl.Create(data.Schema, rowMapper, args.Suffix, scoreColKind, scoreColIndex, predColType);
+            Schema = Schema.Create(Bindings);
         }
 
         protected PredictedLabelScorerBase(IHostEnvironment env, PredictedLabelScorerBase transform,
@@ -316,6 +318,7 @@ namespace Microsoft.ML.Runtime.Data
             : base(env, newSource, registrationName, transform.Bindable)
         {
             Bindings = transform.Bindings.ApplyToSchema(newSource.Schema, Bindable, env);
+            Schema = Schema.Create(Bindings);
         }
 
         protected PredictedLabelScorerBase(IHost host, ModelLoadContext ctx, IDataView input,
@@ -328,6 +331,7 @@ namespace Microsoft.ML.Runtime.Data
             Host.AssertValue(getPredColType);
 
             Bindings = BindingsImpl.Create(ctx, input.Schema, host, Bindable, outputTypeMatches, getPredColType);
+            Schema = Schema.Create(Bindings);
         }
 
         protected override void SaveCore(ModelSaveContext ctx)

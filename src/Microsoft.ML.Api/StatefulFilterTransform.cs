@@ -2,11 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.ML.Runtime.Data;
 using System;
 using System.IO;
-using System.Linq;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Model;
 
 namespace Microsoft.ML.Runtime.Api
 {
@@ -98,7 +96,7 @@ namespace Microsoft.ML.Runtime.Api
 
         public bool CanShuffle { get { return false; } }
 
-        public ISchema Schema => _bindings.Schema;
+        public Schema Schema => _bindings.Schema;
 
         public long? GetRowCount(bool lazy = true)
         {
@@ -238,7 +236,7 @@ namespace Microsoft.ML.Runtime.Api
                 isRowAccepted = _parent._filterFunc(_src, _dst, _state);
             }
 
-            public ISchema Schema => _parent._bindings.Schema;
+            public Schema Schema => _parent._bindings.Schema;
 
             public bool IsColumnActive(int col)
             {

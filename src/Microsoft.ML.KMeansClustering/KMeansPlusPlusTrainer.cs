@@ -272,7 +272,7 @@ namespace Microsoft.ML.Runtime.KMeans
             };
         }
 
-        protected override ClusteringPredictionTransformer<KMeansPredictor> MakeTransformer(KMeansPredictor model, ISchema trainSchema)
+        protected override ClusteringPredictionTransformer<KMeansPredictor> MakeTransformer(KMeansPredictor model, Schema trainSchema)
         => new ClusteringPredictionTransformer<KMeansPredictor>(Host, model, trainSchema, _featureColumn);
     }
 

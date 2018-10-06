@@ -67,11 +67,6 @@ namespace Microsoft.ML.Runtime.Data
         /// </summary>
         protected abstract BindingsBase GetBindings();
 
-        public sealed override ISchema Schema
-        {
-            get { return GetBindings(); }
-        }
-
         /// <summary>
         /// Produces the set of active columns for the scorer (as a bool[] of length bindings.ColumnCount),
         /// a predicate for the needed active input columns, and a predicate for the needed active
@@ -226,7 +221,7 @@ namespace Microsoft.ML.Runtime.Data
             private readonly Delegate[] _getters;
             private readonly Action _disposer;
 
-            public ISchema Schema => _bindings;
+            public Schema Schema { get; }
 
             public RowCursor(IChannelProvider provider, RowToRowScorerBase parent, IRowCursor input, bool[] active, Func<int, bool> predicateMapper)
                 : base(provider, input)
@@ -236,6 +231,7 @@ namespace Microsoft.ML.Runtime.Data
                 Ch.AssertValue(predicateMapper);
 
                 _bindings = parent.GetBindings();
+                Schema = parent.Schema;
                 Ch.Assert(active.Length == _bindings.ColumnCount);
                 _active = active;
 

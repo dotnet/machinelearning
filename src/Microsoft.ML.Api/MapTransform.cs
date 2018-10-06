@@ -2,11 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.IO;
-using System.Linq;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Internal.Utilities;
+using System;
+using System.IO;
 
 namespace Microsoft.ML.Runtime.Api
 {
@@ -92,7 +91,7 @@ namespace Microsoft.ML.Runtime.Api
 
         public bool CanShuffle => Source.CanShuffle;
 
-        public ISchema Schema => _bindings.Schema;
+        public Schema Schema => _bindings.Schema;
 
         public long? GetRowCount(bool lazy = true)
         {
@@ -154,7 +153,7 @@ namespace Microsoft.ML.Runtime.Api
             return _typedSource.GetDependencies(srcPredicate);
         }
 
-        ISchema IRowToRowMapper.InputSchema => Source.Schema;
+        Schema IRowToRowMapper.InputSchema => Source.Schema;
 
         public IRow GetRow(IRow input, Func<int, bool> active, out Action disposer)
         {
@@ -214,7 +213,7 @@ namespace Microsoft.ML.Runtime.Api
                 CursorChannelAttribute.TrySetCursorChannel(host, _dst, Ch);
             }
 
-            public ISchema Schema => _row.Schema;
+            public Schema Schema => _row.Schema;
 
             public bool IsColumnActive(int col)
             {
@@ -261,7 +260,7 @@ namespace Microsoft.ML.Runtime.Api
 
             public long Position => _input.Position;
 
-            public ISchema Schema { get; }
+            public Schema Schema { get; }
 
             public Row(IRowReadableAs<TSrc> input, MapTransform<TSrc, TDst> parent, Func<int, bool> active, TSrc src, TDst dst)
             {

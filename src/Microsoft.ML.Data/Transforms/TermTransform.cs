@@ -767,19 +767,6 @@ namespace Microsoft.ML.Runtime.Data
                 return result;
             }
 
-            private int AddMetaGetter<T>(ColumnMetadataInfo colMetaInfo, ISchema schema, string kind, ColumnType ct, int originalCol)
-            {
-                MetadataUtils.MetadataGetter<T> getter = (int col, ref T dst) =>
-                {
-                    // We don't care about 'col': this getter is specialized for a column 'originalCol',
-                    // and 'col' in this case is the 'metadata kind index', not the column index.
-                    schema.GetMetadata<T>(kind, originalCol, ref dst);
-                };
-                var info = new MetadataInfo<T>(ct, getter);
-                colMetaInfo.Add(kind, info);
-                return 0;
-            }
-
             protected override Delegate MakeGetter(IRow input, int iinfo, out Action disposer)
             {
                 Contracts.AssertValue(input);

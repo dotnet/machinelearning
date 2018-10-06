@@ -185,7 +185,7 @@ namespace Microsoft.ML.Runtime.Data
         /// <summary>
         /// The source <see cref="ISchema"/>.
         /// </summary>
-        public ISchema Schema { get; }
+        public Schema Schema { get; }
 
         /// <summary>
         /// The <see cref="ColumnRole.Feature"/> column, when there is exactly one (null otherwise).
@@ -215,7 +215,7 @@ namespace Microsoft.ML.Runtime.Data
         // Maps from role to the associated column infos.
         private readonly Dictionary<string, IReadOnlyList<ColumnInfo>> _map;
 
-        private RoleMappedSchema(ISchema schema, Dictionary<string, IReadOnlyList<ColumnInfo>> map)
+        private RoleMappedSchema(Schema schema, Dictionary<string, IReadOnlyList<ColumnInfo>> map)
         {
             Contracts.AssertValue(schema);
             Contracts.AssertValue(map);
@@ -254,7 +254,7 @@ namespace Microsoft.ML.Runtime.Data
             }
         }
 
-        private RoleMappedSchema(ISchema schema, Dictionary<string, List<ColumnInfo>> map)
+        private RoleMappedSchema(Schema schema, Dictionary<string, List<ColumnInfo>> map)
             : this(schema, Copy(map))
         {
         }
@@ -393,7 +393,7 @@ namespace Microsoft.ML.Runtime.Data
         /// values for the column names that does not appear in <paramref name="schema"/> will result in an exception being thrown,
         /// but if <c>true</c> such values will be ignored</param>
         /// <param name="roles">The column role to column name mappings</param>
-        public RoleMappedSchema(ISchema schema, bool opt = false, params KeyValuePair<ColumnRole, string>[] roles)
+        public RoleMappedSchema(Schema schema, bool opt = false, params KeyValuePair<ColumnRole, string>[] roles)
             : this(Contracts.CheckRef(schema, nameof(schema)), Contracts.CheckRef(roles, nameof(roles)), opt)
         {
         }
@@ -408,7 +408,7 @@ namespace Microsoft.ML.Runtime.Data
         /// <param name="opt">Whether to consider the column names specified "optional" or not. If <c>false</c> then any non-empty
         /// values for the column names that does not appear in <paramref name="schema"/> will result in an exception being thrown,
         /// but if <c>true</c> such values will be ignored</param>
-        public RoleMappedSchema(ISchema schema, IEnumerable<KeyValuePair<ColumnRole, string>> roles, bool opt = false)
+        public RoleMappedSchema(Schema schema, IEnumerable<KeyValuePair<ColumnRole, string>> roles, bool opt = false)
             : this(Contracts.CheckRef(schema, nameof(schema)),
                   MapFromNames(schema, Contracts.CheckRef(roles, nameof(roles)), opt))
         {
@@ -449,7 +449,7 @@ namespace Microsoft.ML.Runtime.Data
         /// <param name="opt">Whether to consider the column names specified "optional" or not. If <c>false</c> then any non-empty
         /// values for the column names that does not appear in <paramref name="schema"/> will result in an exception being thrown,
         /// but if <c>true</c> such values will be ignored</param>
-        public RoleMappedSchema(ISchema schema, string label, string feature,
+        public RoleMappedSchema(Schema schema, string label, string feature,
             string group = null, string weight = null, string name = null,
             IEnumerable<KeyValuePair<RoleMappedSchema.ColumnRole, string>> custom = null, bool opt = false)
             : this(Contracts.CheckRef(schema, nameof(schema)), PredefinedRolesHelper(label, feature, group, weight, name, custom), opt)

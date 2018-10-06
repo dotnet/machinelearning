@@ -150,7 +150,7 @@ namespace Microsoft.ML.Transforms
         {
         }
 
-        public ISchema GetOutputSchema(ISchema inputSchema)
+        public Schema GetOutputSchema(Schema inputSchema)
         {
             _host.CheckValue(inputSchema, nameof(inputSchema));
             if (!inputSchema.TryGetColumnIndex(Input, out int srcCol))
@@ -183,7 +183,7 @@ namespace Microsoft.ML.Transforms
 
         public bool IsRowToRowMapper => true;
 
-        public IRowToRowMapper GetRowToRowMapper(ISchema inputSchema)
+        public IRowToRowMapper GetRowToRowMapper(Schema inputSchema)
         {
             _host.CheckValue(inputSchema, nameof(inputSchema));
             return MakeDataTransform(new EmptyDataView(_host, inputSchema));

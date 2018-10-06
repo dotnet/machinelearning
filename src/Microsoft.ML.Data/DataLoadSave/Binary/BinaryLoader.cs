@@ -694,7 +694,7 @@ namespace Microsoft.ML.Runtime.Data.IO
         private readonly BinaryReader _reader;
         private readonly CodecFactory _factory;
         private readonly Header _header;
-        private readonly SchemaImpl _schema;
+        private readonly Schema _schema;
         private readonly bool _autodeterminedThreads;
         private readonly int _threads;
         private readonly string _generatedRowIndexName;
@@ -757,7 +757,7 @@ namespace Microsoft.ML.Runtime.Data.IO
         /// </summary>
         private const ulong ReaderFirstVersion = 0x0001000100010002;
 
-        public ISchema Schema { get { return _schema; } }
+        public Schema Schema { get { return _schema; } }
 
         private long RowCount { get { return _header.RowCount; } }
 
@@ -805,7 +805,7 @@ namespace Microsoft.ML.Runtime.Data.IO
                 _threads = Math.Max(1, args.Threads ?? (Environment.ProcessorCount / 2));
                 _generatedRowIndexName = string.IsNullOrWhiteSpace(args.RowIndexName) ? null : args.RowIndexName;
                 InitToc(ch, out _aliveColumns, out _deadColumns, out _rowsPerBlock, out _tocEndLim);
-                _schema = new SchemaImpl(this);
+                _schema = Schema.Create(new SchemaImpl(this));
                 _host.Assert(_schema.ColumnCount == Utils.Size(_aliveColumns));
                 _bufferCollection = new MemoryStreamCollection();
                 if (Utils.Size(_deadColumns) > 0)
@@ -895,7 +895,7 @@ namespace Microsoft.ML.Runtime.Data.IO
 
                 _header = InitHeader();
                 InitToc(ch, out _aliveColumns, out _deadColumns, out _rowsPerBlock, out _tocEndLim);
-                _schema = new SchemaImpl(this);
+                _schema = Schema.Create(new SchemaImpl(this));
                 ch.Assert(_schema.ColumnCount == Utils.Size(_aliveColumns));
                 _bufferCollection = new MemoryStreamCollection();
                 if (Utils.Size(_deadColumns) > 0)
@@ -1001,7 +1001,7 @@ namespace Microsoft.ML.Runtime.Data.IO
         /// Save a zero-row dataview that will be used to infer schema information, used in the case
         /// where the binary loader is instantiated with no input streams.
         /// </summary>
-        private static void SaveSchema(IHostEnvironment env, ModelSaveContext ctx, ISchema schema, out int[] unsavableColIndices)
+        private static void SaveSchema(IHostEnvironment env, ModelSaveContext ctx, Schema schema, out int[] unsavableColIndices)
         {
             Contracts.AssertValue(env, "env");
             var h = env.Register(LoadName);
@@ -1033,7 +1033,7 @@ namespace Microsoft.ML.Runtime.Data.IO
         /// to begin the pipe with, with the assumption that the user will bypass the loader at deserialization
         /// time by providing a starting data view.
         /// </summary>
-        public static void SaveInstance(IHostEnvironment env, ModelSaveContext ctx, ISchema schema)
+        public static void SaveInstance(IHostEnvironment env, ModelSaveContext ctx, Schema schema)
         {
             Contracts.CheckValue(env, nameof(env));
             var h = env.Register(LoadName);
@@ -1286,7 +1286,7 @@ namespace Microsoft.ML.Runtime.Data.IO
 
             private volatile bool _disposed;
 
-            public ISchema Schema { get { return _parent.Schema; } }
+            public Schema Schema => _parent.Schema;
 
             public override long Batch
             {
@@ -1301,7 +1301,6 @@ namespace Microsoft.ML.Runtime.Data.IO
                 Ch.AssertValue(predicate);
                 Ch.AssertValueOrNull(rand);
 
-                SchemaImpl schema = _parent._schema;
                 _exMarshaller = new ExceptionMarshaller();
 
                 TableOfContentsEntry[] toc = _parent._aliveColumns;

@@ -605,7 +605,7 @@ namespace Microsoft.ML.Runtime.Data
 
         public bool CanShuffle { get { return _transform.CanShuffle; } }
 
-        public ISchema Schema { get { return _transform.Schema; } }
+        public Schema Schema => _transform.Schema;
 
         public RankerPerInstanceTransform(IHostEnvironment env, IDataView input, string labelCol, string scoreCol, string groupCol,
                 int truncationLevel, Double[] labelGains)
@@ -659,6 +659,8 @@ namespace Microsoft.ML.Runtime.Data
                 private readonly int _truncationLevel;
                 private readonly MetadataUtils.MetadataGetter<VBuffer<ReadOnlyMemory<char>>> _slotNamesGetter;
 
+                public override Schema AsSchema { get; }
+
                 public Bindings(IExceptionContext ectx, ISchema input, bool user, string labelCol, string scoreCol, string groupCol,
                     int truncationLevel)
                     : base(ectx, input, labelCol, scoreCol, groupCol, user, Ndcg, Dcg, MaxDcg)
@@ -667,6 +669,8 @@ namespace Microsoft.ML.Runtime.Data
                     _outputType = new VectorType(NumberType.R8, _truncationLevel);
                     _slotNamesType = new VectorType(TextType.Instance, _truncationLevel);
                     _slotNamesGetter = SlotNamesGetter;
+
+                    AsSchema = Schema.Create(this);
                 }
 
                 protected override ColumnType GetColumnTypeCore(int iinfo)

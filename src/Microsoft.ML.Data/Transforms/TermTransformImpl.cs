@@ -444,7 +444,7 @@ namespace Microsoft.ML.Runtime.Data
         /// requests on the input dataset. This should throw an error if we attempt to bind this
         /// to the wrong type of item.
         /// </summary>
-        private static BoundTermMap Bind(IHostEnvironment env, ISchema schema, TermMap unbound, ColInfo[] infos, bool[] textMetadata, int iinfo)
+        private static BoundTermMap Bind(IHostEnvironment env, Schema schema, TermMap unbound, ColInfo[] infos, bool[] textMetadata, int iinfo)
         {
             env.Assert(0 <= iinfo && iinfo < infos.Length);
 
@@ -811,11 +811,11 @@ namespace Microsoft.ML.Runtime.Data
             private readonly IHostEnvironment _host;
             private readonly bool[] _textMetadata;
             private readonly ColInfo[] _infos;
-            private readonly ISchema _schema;
+            private readonly Schema _schema;
 
             private bool IsTextMetadata { get { return _textMetadata[_iinfo]; } }
 
-            private BoundTermMap(IHostEnvironment env, ISchema schema, TermMap map, ColInfo[] infos, bool[] textMetadata, int iinfo)
+            private BoundTermMap(IHostEnvironment env, Schema schema, TermMap map, ColInfo[] infos, bool[] textMetadata, int iinfo)
             {
                 _host = env;
                 //assert me.
@@ -832,7 +832,7 @@ namespace Microsoft.ML.Runtime.Data
                 _inputIsVector = info.TypeSrc.IsVector;
             }
 
-            public static BoundTermMap Create(IHostEnvironment host, ISchema schema, TermMap map, ColInfo[] infos, bool[] textMetadata, int iinfo)
+            public static BoundTermMap Create(IHostEnvironment host, Schema schema, TermMap map, ColInfo[] infos, bool[] textMetadata, int iinfo)
             {
                 host.AssertValue(map);
                 host.Assert(0 <= iinfo && iinfo < infos.Length);
@@ -842,7 +842,7 @@ namespace Microsoft.ML.Runtime.Data
                 return Utils.MarshalInvoke(CreateCore<int>, map.ItemType.RawType, host, schema, map, infos, textMetadata, iinfo);
             }
 
-            public static BoundTermMap CreateCore<T>(IHostEnvironment env, ISchema schema, TermMap map, ColInfo[] infos, bool[] textMetadata, int iinfo)
+            public static BoundTermMap CreateCore<T>(IHostEnvironment env, Schema schema, TermMap map, ColInfo[] infos, bool[] textMetadata, int iinfo)
             {
                 TermMap<T> mapT = (TermMap<T>)map;
                 if (mapT.ItemType.IsKey)
@@ -874,7 +874,7 @@ namespace Microsoft.ML.Runtime.Data
             {
                 protected readonly TermMap<T> TypedMap;
 
-                public Base(IHostEnvironment env, ISchema schema, TermMap<T> map, ColInfo[] infos, bool[] textMetadata, int iinfo)
+                public Base(IHostEnvironment env, Schema schema, TermMap<T> map, ColInfo[] infos, bool[] textMetadata, int iinfo)
                     : base(env, schema, map, infos, textMetadata, iinfo)
                 {
                     TypedMap = map;
@@ -1076,7 +1076,7 @@ namespace Microsoft.ML.Runtime.Data
             /// </summary>
             private sealed class KeyImpl<T> : Base<T>
             {
-                public KeyImpl(IHostEnvironment env, ISchema schema, TermMap<T> map, ColInfo[] infos, bool[] textMetadata, int iinfo)
+                public KeyImpl(IHostEnvironment env, Schema schema, TermMap<T> map, ColInfo[] infos, bool[] textMetadata, int iinfo)
                     : base(env, schema, map, infos, textMetadata, iinfo)
                 {
                     _host.Assert(TypedMap.ItemType.IsKey);
@@ -1227,7 +1227,7 @@ namespace Microsoft.ML.Runtime.Data
 
             private sealed class Impl<T> : Base<T>
             {
-                public Impl(IHostEnvironment env, ISchema schema, TermMap<T> map, ColInfo[] infos, bool[] textMetadata, int iinfo)
+                public Impl(IHostEnvironment env, Schema schema, TermMap<T> map, ColInfo[] infos, bool[] textMetadata, int iinfo)
                     : base(env, schema, map, infos, textMetadata, iinfo)
                 {
                 }

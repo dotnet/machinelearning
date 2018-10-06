@@ -411,42 +411,48 @@ namespace Microsoft.ML.Runtime.Data
 
                 public Double Acc
                 {
-                    get {
+                    get
+                    {
                         return (NumTrueNeg + NumTruePos) / (NumTruePos + NumTrueNeg + NumFalseNeg + NumFalsePos);
                     }
                 }
 
                 public Double RecallPos
                 {
-                    get {
+                    get
+                    {
                         return (NumTruePos + NumFalseNeg > 0) ? NumTruePos / (NumTruePos + NumFalseNeg) : 0;
                     }
                 }
 
                 public Double PrecisionPos
                 {
-                    get {
+                    get
+                    {
                         return (NumTruePos + NumFalsePos > 0) ? NumTruePos / (NumTruePos + NumFalsePos) : 0;
                     }
                 }
 
                 public Double RecallNeg
                 {
-                    get {
+                    get
+                    {
                         return (NumTrueNeg + NumFalsePos > 0) ? NumTrueNeg / (NumTrueNeg + NumFalsePos) : 0;
                     }
                 }
 
                 public Double PrecisionNeg
                 {
-                    get {
+                    get
+                    {
                         return (NumTrueNeg + NumFalseNeg > 0) ? NumTrueNeg / (NumTrueNeg + NumFalseNeg) : 0;
                     }
                 }
 
                 public Double Entropy
                 {
-                    get {
+                    get
+                    {
                         return MathUtils.Entropy((NumTruePos + NumFalseNeg) /
                             (NumTruePos + NumTrueNeg + NumFalseNeg + NumFalsePos));
                     }
@@ -454,7 +460,8 @@ namespace Microsoft.ML.Runtime.Data
 
                 public Double LogLoss
                 {
-                    get {
+                    get
+                    {
                         return Double.IsNaN(_logLoss) ? Double.NaN : (_numLogLossPositives + _numLogLossNegatives > 0)
                             ? _logLoss / (_numLogLossPositives + _numLogLossNegatives) : 0;
                     }
@@ -462,7 +469,8 @@ namespace Microsoft.ML.Runtime.Data
 
                 public Double LogLossReduction
                 {
-                    get {
+                    get
+                    {
                         if (_numLogLossPositives + _numLogLossNegatives == 0)
                             return 0;
                         var logLoss = _logLoss / (_numLogLossPositives + _numLogLossNegatives);
@@ -1697,9 +1705,8 @@ namespace Microsoft.ML.Runtime.Data
             IDataView warnings;
             if (!metrics.TryGetValue(MetricKinds.Warnings, out warnings))
             {
-                warnings = new EmptyDataView(host,
-                    new SimpleSchema(host,
-                        new KeyValuePair<string, ColumnType>(MetricKinds.ColumnNames.WarningText, TextType.Instance)));
+                warnings = new EmptyDataView(host, SimpleSchemaUtils.Create(host,
+                    new KeyValuePair<string, ColumnType>(MetricKinds.ColumnNames.WarningText, TextType.Instance)));
             }
 
             return warnings;
@@ -1711,7 +1718,7 @@ namespace Microsoft.ML.Runtime.Data
             if (!metrics.TryGetValue(MetricKinds.OverallMetrics, out overallMetrics))
             {
                 overallMetrics = new EmptyDataView(host,
-                    new SimpleSchema(host,
+                    SimpleSchemaUtils.Create(host,
                         evaluator.GetOverallMetricColumns()
                             .Select(mc => new KeyValuePair<string, ColumnType>(mc.LoadName, NumberType.R8))
                             .ToArray()));
@@ -1726,7 +1733,7 @@ namespace Microsoft.ML.Runtime.Data
             if (!metrics.TryGetValue(MetricKinds.ConfusionMatrix, out confusionMatrix))
             {
                 confusionMatrix = new EmptyDataView(host,
-                    new SimpleSchema(host, new KeyValuePair<string, ColumnType>(MetricKinds.ColumnNames.Count, NumberType.R8)));
+                    SimpleSchemaUtils.Create(host, new KeyValuePair<string, ColumnType>(MetricKinds.ColumnNames.Count, NumberType.R8)));
             }
 
             return confusionMatrix;

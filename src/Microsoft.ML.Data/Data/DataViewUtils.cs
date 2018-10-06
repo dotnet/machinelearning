@@ -274,7 +274,7 @@ namespace Microsoft.ML.Runtime.Data
         /// </summary>
         private sealed class Splitter
         {
-            private readonly ISchema _schema;
+            private readonly Schema _schema;
             private readonly object[] _cachePools;
             private object[] _consolidateCachePools;
 
@@ -291,7 +291,7 @@ namespace Microsoft.ML.Runtime.Data
 #pragma warning restore MSML_GeneralName
             }
 
-            private Splitter(ISchema schema)
+            private Splitter(Schema schema)
             {
                 Contracts.AssertValue(schema);
                 _schema = schema;
@@ -332,7 +332,7 @@ namespace Microsoft.ML.Runtime.Data
                     ch.CheckParam(SameSchemaAndActivity(inputs), nameof(inputs), "Inputs not compatible for consolidation");
 
                     IRowCursor cursor = inputs[0];
-                    ISchema schema = cursor.Schema;
+                    var schema = cursor.Schema;
                     ch.CheckParam(AllCachable(schema, cursor.IsColumnActive), nameof(inputs), "Inputs had some uncachable input columns");
 
                     int[] activeToCol;
@@ -495,7 +495,7 @@ namespace Microsoft.ML.Runtime.Data
                 }
             }
 
-            public static IRowCursor[] Split(out IRowCursorConsolidator consolidator, IChannelProvider provider, ISchema schema, IRowCursor input, int cthd)
+            public static IRowCursor[] Split(out IRowCursorConsolidator consolidator, IChannelProvider provider, Schema schema, IRowCursor input, int cthd)
             {
                 Contracts.AssertValue(provider, "provider");
 
@@ -1003,7 +1003,7 @@ namespace Microsoft.ML.Runtime.Data
             /// </summary>
             private sealed class Cursor : RootCursorBase, IRowCursor
             {
-                private readonly ISchema _schema;
+                private readonly Schema _schema;
                 private readonly int[] _activeToCol;
                 private readonly int[] _colToActive;
                 private readonly OutPipe[] _pipes;
@@ -1016,10 +1016,7 @@ namespace Microsoft.ML.Runtime.Data
                 private long _batch;
                 private bool _disposed;
 
-                public ISchema Schema
-                {
-                    get { return _schema; }
-                }
+                public Schema Schema => _schema;
 
                 public override long Batch
                 {
@@ -1037,7 +1034,7 @@ namespace Microsoft.ML.Runtime.Data
                 /// <param name="pipes">The output pipes, one per channel of information</param>
                 /// <param name="batchInputs"></param>
                 /// <param name="quitAction"></param>
-                public Cursor(IChannelProvider provider, ISchema schema, int[] activeToCol, int[] colToActive,
+                public Cursor(IChannelProvider provider, Schema schema, int[] activeToCol, int[] colToActive,
                     OutPipe[] pipes, BlockingCollection<Batch> batchInputs, Action quitAction)
                     : base(provider)
                 {
@@ -1146,7 +1143,7 @@ namespace Microsoft.ML.Runtime.Data
             private readonly IRowCursor[] _cursors;
             private readonly Delegate[] _getters;
 
-            private readonly ISchema _schema;
+            private readonly Schema _schema;
             private readonly Heap<CursorStats> _mins;
             private readonly int[] _activeToCol;
             private readonly int[] _colToActive;
@@ -1176,7 +1173,7 @@ namespace Microsoft.ML.Runtime.Data
             // input batch as our own batch. Should we suppress it?
             public override long Batch { get { return _batch; } }
 
-            public ISchema Schema { get { return _schema; } }
+            public Schema Schema => _schema;
 
             public SynchronousConsolidatingCursor(IChannelProvider provider, IRowCursor[] cursors)
                 : base(provider)

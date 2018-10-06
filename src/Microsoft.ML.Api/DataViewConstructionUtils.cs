@@ -136,11 +136,11 @@ namespace Microsoft.ML.Runtime.Api
 
             public long Batch => 0;
 
-            public ISchema Schema { get; }
+            public Schema Schema { get; }
 
             public abstract long Position { get; }
 
-            public InputRowBase(IHostEnvironment env, ISchema schema, InternalSchemaDefinition schemaDef, Delegate[] peeks, Func<int, bool> predicate)
+            public InputRowBase(IHostEnvironment env, Schema schema, InternalSchemaDefinition schemaDef, Delegate[] peeks, Func<int, bool> predicate)
             {
                 Contracts.AssertValue(env);
                 Host = env.Register("Row");
@@ -334,7 +334,7 @@ namespace Microsoft.ML.Runtime.Api
 
             public abstract bool CanShuffle { get; }
 
-            public ISchema Schema => _schema;
+            public Schema Schema => _schema;
 
             protected DataViewBase(IHostEnvironment env, string name, InternalSchemaDefinition schemaDefn)
             {

@@ -48,7 +48,7 @@ namespace Microsoft.ML.Runtime.Data
 
         public virtual bool CanShuffle { get { return Source.CanShuffle; } }
 
-        public abstract ISchema Schema { get; }
+        public abstract Schema Schema { get; }
 
         public IRowCursor GetRowCursor(Func<int, bool> predicate, IRandom rand = null)
         {
@@ -124,7 +124,7 @@ namespace Microsoft.ML.Runtime.Data
 
         public override long? GetRowCount(bool lazy = true) { return null; }
 
-        public sealed override ISchema Schema { get { return Source.Schema; } }
+        public sealed override Schema Schema { get { return Source.Schema; } }
 
         public virtual bool CanSavePfa => true;
 
@@ -154,7 +154,7 @@ namespace Microsoft.ML.Runtime.Data
 
         protected abstract Func<int, bool> GetDependenciesCore(Func<int, bool> predicate);
 
-        ISchema IRowToRowMapper.InputSchema => Source.Schema;
+        Schema IRowToRowMapper.InputSchema => Source.Schema;
 
         public IRow GetRow(IRow input, Func<int, bool> active, out Action disposer)
         {
@@ -179,7 +179,7 @@ namespace Microsoft.ML.Runtime.Data
 
         private sealed class Row : IRow
         {
-            private readonly ISchema _schema;
+            private readonly Schema _schema;
             private readonly IRow _input;
             private readonly Delegate[] _getters;
 
@@ -189,9 +189,9 @@ namespace Microsoft.ML.Runtime.Data
 
             public long Position { get { return _input.Position; } }
 
-            public ISchema Schema { get { return _schema; } }
+            public Schema Schema { get { return _schema; } }
 
-            public Row(IRow input, RowToRowMapperTransformBase parent, ISchema schema, Delegate[] getters)
+            public Row(IRow input, RowToRowMapperTransformBase parent, Schema schema, Delegate[] getters)
             {
                 _input = input;
                 _parent = parent;
@@ -278,6 +278,8 @@ namespace Microsoft.ML.Runtime.Data
             /// </summary>
             public readonly ColInfo[] Infos;
 
+            public override Schema AsSchema { get; }
+
             private const string InvalidTypeErrorFormat = "Source column '{0}' has invalid type ('{1}'): {2}.";
 
             private Bindings(OneToOneTransformBase parent, ColInfo[] infos,
@@ -292,6 +294,8 @@ namespace Microsoft.ML.Runtime.Data
                 _inputTransposed = _parent.InputTranspose == null ? null : _parent.InputTranspose.TransposeSchema;
                 Contracts.Assert((_inputTransposed == null) == (_parent.InputTranspose == null));
                 Infos = infos;
+
+                AsSchema = Data.Schema.Create(this);
             }
 
             public static Bindings Create(OneToOneTransformBase parent, OneToOneColumn[] column, ISchema input,
@@ -461,6 +465,7 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         private readonly Bindings _bindings;
+        private readonly Schema _schema;
 
         // The ColInfos are exposed to sub-classes. They should be considered readonly.
         protected readonly ColInfo[] Infos;
@@ -482,6 +487,7 @@ namespace Microsoft.ML.Runtime.Data
             InputTranspose = Source as ITransposeDataView;
 
             _bindings = Bindings.Create(this, column, Source.Schema, InputTransposeSchema, testType);
+            _schema = Schema.Create(_bindings);
             Infos = _bindings.Infos;
             Metadata = new MetadataDispatcher(Infos.Length);
         }
@@ -495,6 +501,7 @@ namespace Microsoft.ML.Runtime.Data
             InputTranspose = Source as ITransposeDataView;
 
             _bindings = Bindings.Create(this, column, Source.Schema, InputTransposeSchema, testType);
+            _schema = Schema.Create(_bindings);
             Infos = _bindings.Infos;
             Metadata = new MetadataDispatcher(Infos.Length);
         }
@@ -508,6 +515,7 @@ namespace Microsoft.ML.Runtime.Data
             InputTranspose = Source as ITransposeDataView;
 
             _bindings = Bindings.Create(this, ctx, Source.Schema, InputTransposeSchema, testType);
+            _schema = Schema.Create(_bindings);
             Infos = _bindings.Infos;
             Metadata = new MetadataDispatcher(Infos.Length);
         }
@@ -526,11 +534,12 @@ namespace Microsoft.ML.Runtime.Data
                 .Select(x => new ColumnTmp
                 {
                     Name = x.Name,
-                    Source = transform.Source.Schema.GetColumnName(x.Source),
+                    Source = transform.Source.Schema[x.Source].Name,
                 })
                 .ToArray();
 
             _bindings = Bindings.Create(this, map, newInput.Schema, InputTransposeSchema, checkType);
+            _schema = Schema.Create(_bindings);
             Infos = _bindings.Infos;
             Metadata = new MetadataDispatcher(Infos.Length);
         }
@@ -554,7 +563,7 @@ namespace Microsoft.ML.Runtime.Data
             for (int iinfo = 0; iinfo < Infos.Length; ++iinfo)
             {
                 var info = Infos[iinfo];
-                var srcName = Source.Schema.GetColumnName(info.Source);
+                var srcName = Source.Schema[info.Source].Name;
                 string srcToken = ctx.TokenOrNullForName(srcName);
                 if (srcToken == null)
                 {
@@ -581,7 +590,7 @@ namespace Microsoft.ML.Runtime.Data
             for (int iinfo = 0; iinfo < Infos.Length; ++iinfo)
             {
                 ColInfo info = Infos[iinfo];
-                string sourceColumnName = Source.Schema.GetColumnName(info.Source);
+                string sourceColumnName = Source.Schema[info.Source].Name;
                 if (!ctx.ContainsColumn(sourceColumnName))
                 {
                     ctx.RemoveColumn(info.Name, false);
@@ -589,7 +598,7 @@ namespace Microsoft.ML.Runtime.Data
                 }
 
                 if (!SaveAsOnnxCore(ctx, iinfo, info, ctx.GetVariableName(sourceColumnName),
-                    ctx.AddIntermediateVariable(Schema.GetColumnType(_bindings.MapIinfoToCol(iinfo)), info.Name)))
+                    ctx.AddIntermediateVariable(Schema[_bindings.MapIinfoToCol(iinfo)].Type, info.Name)))
                 {
                     ctx.RemoveColumn(info.Name, true);
                 }
@@ -621,7 +630,7 @@ namespace Microsoft.ML.Runtime.Data
         protected virtual bool SaveAsOnnxCore(OnnxContext ctx, int iinfo, ColInfo info, string srcVariableName,
             string dstVariableName) => false;
 
-        public sealed override ISchema Schema => _bindings;
+        public sealed override Schema Schema => _schema;
 
         public ITransposeSchema TransposeSchema => _bindings;
 
@@ -744,7 +753,7 @@ namespace Microsoft.ML.Runtime.Data
         {
             Host.Assert(0 <= col && col < _bindings.ColumnCount);
             return Host.ExceptParam(nameof(col), "Bad call to GetSlotCursor on untransposable column '{0}'",
-                Schema.GetColumnName(col));
+                Schema[col].Name);
         }
 
         public ISlotCursor GetSlotCursor(int col)
@@ -817,6 +826,7 @@ namespace Microsoft.ML.Runtime.Data
         private sealed class RowCursor : SynchronizedCursorBase<IRowCursor>, IRowCursor
         {
             private readonly Bindings _bindings;
+            private readonly Schema _schema;
             private readonly bool[] _active;
 
             private readonly Delegate[] _getters;
@@ -829,6 +839,7 @@ namespace Microsoft.ML.Runtime.Data
                 Ch.Assert(active == null || active.Length == parent._bindings.ColumnCount);
 
                 _bindings = parent._bindings;
+                _schema = parent._schema;
                 _active = active;
                 _getters = new Delegate[parent.Infos.Length];
 
@@ -858,7 +869,7 @@ namespace Microsoft.ML.Runtime.Data
                 base.Dispose();
             }
 
-            public ISchema Schema { get { return _bindings; } }
+            public Schema Schema => _schema;
 
             public ValueGetter<TValue> GetGetter<TValue>(int col)
             {

@@ -46,71 +46,6 @@ namespace Microsoft.ML.Runtime.Data
 
     public delegate void SignatureLoadRowMapper(ModelLoadContext ctx, ISchema schema);
 
-    public abstract class MetadataInfo
-    {
-        public readonly ColumnType Type;
-
-        protected MetadataInfo(ColumnType type)
-        {
-            Contracts.AssertValueOrNull(type);
-            Type = type;
-        }
-    }
-
-    public sealed class MetadataInfo<T> : MetadataInfo
-    {
-        public readonly MetadataUtils.MetadataGetter<T> Getter;
-
-        public MetadataInfo(ColumnType type, MetadataUtils.MetadataGetter<T> getter)
-            : base(type)
-        {
-            Getter = getter;
-        }
-    }
-
-    public sealed class ColumnMetadataInfo : RowColumnUtils.DefaultCounted, IRow
-    {
-        public readonly string Name;
-        private readonly List<(string Kind, MetadataInfo Metadata)> _infos;
-        private SimpleSchema _schema;
-
-        public ColumnMetadataInfo(string name)
-        {
-            Contracts.CheckNonWhiteSpace(name, nameof(name));
-
-            Name = name;
-            _infos = new List<(string Name, MetadataInfo Metadata)>();
-            _schema = new SimpleSchema(null);
-        }
-
-        public void Add(string kind, MetadataInfo info)
-        {
-            if (_infos.Any(x => x.Kind == kind))
-                throw Contracts.Except("Already contains metadata of kind '{0}'", kind);
-            _infos.Add((kind, info));
-            _schema = new SimpleSchema(null, _infos.Select(x => new KeyValuePair<string, ColumnType>(x.Kind, x.Metadata.Type)).ToArray());
-        }
-
-        public ISchema Schema => _schema;
-
-        public ValueGetter<TValue> GetGetter<TValue>(int col)
-        {
-            Contracts.CheckParam(0 <= col && col < _infos.Count, nameof(col));
-            var typedMeta = _infos[col].Metadata as MetadataInfo<TValue>;
-            if (typedMeta == null)
-                throw MetadataUtils.ExceptGetMetadata();
-
-            var getter = typedMeta.Getter;
-            ValueGetter<TValue> result = (ref TValue value) =>
-            {
-                getter(col, ref value);
-            };
-            return result;
-        }
-
-        public bool IsColumnActive(int col) => true;
-    }
-
     /// <summary>
     /// This class is a transform that can add any number of output columns, that depend on any number of input columns.
     /// It does so with the help of an <see cref="IRowMapper"/>, that is given a schema in its constructor, and has methods
@@ -135,7 +70,7 @@ namespace Microsoft.ML.Runtime.Data
                 loaderAssemblyName: typeof(RowToRowMapperTransform).Assembly.FullName);
         }
 
-        public override ISchema Schema => _bindings.Schema;
+        public override Schema Schema => _bindings.Schema;
 
         public bool CanSaveOnnx => _mapper is ICanSaveOnnx onnxMapper ? onnxMapper.CanSaveOnnx : false;
 
@@ -146,14 +81,14 @@ namespace Microsoft.ML.Runtime.Data
         {
             Contracts.CheckValue(mapper, nameof(mapper));
             _mapper = mapper;
-            _bindings = new ColumnBindings(Data.Schema.Create(input.Schema), mapper.GetOutputColumns());
+            _bindings = new ColumnBindings(Schema.Create(input.Schema), mapper.GetOutputColumns());
         }
 
-        public static ISchema GetOutputSchema(ISchema inputSchema, IRowMapper mapper)
+        public static Schema GetOutputSchema(ISchema inputSchema, IRowMapper mapper)
         {
             Contracts.CheckValue(inputSchema, nameof(inputSchema));
             Contracts.CheckValue(mapper, nameof(mapper));
-            return new ColumnBindings(Data.Schema.Create(inputSchema), mapper.GetOutputColumns()).Schema;
+            return new ColumnBindings(Schema.Create(inputSchema), mapper.GetOutputColumns()).Schema;
         }
 
         private RowToRowMapperTransform(IHost host, ModelLoadContext ctx, IDataView input)
@@ -163,7 +98,7 @@ namespace Microsoft.ML.Runtime.Data
             // _mapper
 
             ctx.LoadModel<IRowMapper, SignatureLoadRowMapper>(host, out _mapper, "Mapper", input.Schema);
-            _bindings = new ColumnBindings(Data.Schema.Create(input.Schema), _mapper.GetOutputColumns());
+            _bindings = new ColumnBindings(Schema.Create(input.Schema), _mapper.GetOutputColumns());
         }
 
         public static RowToRowMapperTransform Create(IHostEnvironment env, ModelLoadContext ctx, IDataView input)
@@ -291,7 +226,7 @@ namespace Microsoft.ML.Runtime.Data
             return predicateInput;
         }
 
-        ISchema IRowToRowMapper.InputSchema => Source.Schema;
+        Schema IRowToRowMapper.InputSchema => Source.Schema;
 
         public IRow GetRow(IRow input, Func<int, bool> active, out Action disposer)
         {
@@ -325,9 +260,9 @@ namespace Microsoft.ML.Runtime.Data
 
             public long Position { get { return _input.Position; } }
 
-            public ISchema Schema { get; }
+            public Schema Schema { get; }
 
-            public Row(IRow input, RowToRowMapperTransform parent, ISchema schema, Delegate[] getters)
+            public Row(IRow input, RowToRowMapperTransform parent, Schema schema, Delegate[] getters)
             {
                 _input = input;
                 _parent = parent;
@@ -368,7 +303,7 @@ namespace Microsoft.ML.Runtime.Data
             private readonly ColumnBindings _bindings;
             private readonly Action _disposer;
 
-            public ISchema Schema => _bindings.Schema;
+            public Schema Schema => _bindings.Schema;
 
             public RowCursor(IChannelProvider provider, IRowCursor input, RowToRowMapperTransform parent, bool[] active)
                 : base(provider, input)

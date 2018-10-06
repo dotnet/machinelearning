@@ -203,7 +203,7 @@ namespace Microsoft.ML.Core.Data
         /// <summary>
         /// The output schema of the reader.
         /// </summary>
-        ISchema GetOutputSchema();
+        Schema GetOutputSchema();
     }
 
     /// <summary>
@@ -238,7 +238,7 @@ namespace Microsoft.ML.Core.Data
         /// Returns the output schema of the data, if the input schema is like the one provided.
         /// Throws <see cref="SchemaException"/> if the input schema is not valid for the transformer.
         /// </summary>
-        ISchema GetOutputSchema(ISchema inputSchema);
+        Schema GetOutputSchema(Schema inputSchema);
 
         /// <summary>
         /// Take the data in, make transformations, output the data.
@@ -247,7 +247,7 @@ namespace Microsoft.ML.Core.Data
         IDataView Transform(IDataView input);
 
         /// <summary>
-        /// Whether a call to <see cref="GetRowToRowMapper(ISchema)"/> should succeed, on an
+        /// Whether a call to <see cref="GetRowToRowMapper(Schema)"/> should succeed, on an
         /// appropriate schema.
         /// </summary>
         bool IsRowToRowMapper { get; }
@@ -259,7 +259,7 @@ namespace Microsoft.ML.Core.Data
         /// </summary>
         /// <param name="inputSchema">The input schema for which we should get the mapper.</param>
         /// <returns>The row to row mapper.</returns>
-        IRowToRowMapper GetRowToRowMapper(ISchema inputSchema);
+        IRowToRowMapper GetRowToRowMapper(Schema inputSchema);
     }
 
     /// <summary>

@@ -122,18 +122,6 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         /// <summary>
-        /// Wraps the metadata of a column as a row.
-        /// </summary>
-        public static IRow GetMetadataAsRow(ISchema schema, int col, Func<string, bool> takeMetadata)
-        {
-            Contracts.CheckValue(schema, nameof(schema));
-            Contracts.CheckParam(0 <= col && col < schema.ColumnCount, nameof(col));
-            Contracts.CheckValue(takeMetadata, nameof(takeMetadata));
-
-            return new MetadataRow(schema, col, takeMetadata);
-        }
-
-        /// <summary>
         /// Constructs a column out of a value. This will store the input value, not make a copy.
         /// </summary>
         /// <typeparam name="T">The type of the value</typeparam>
@@ -345,11 +333,11 @@ namespace Microsoft.ML.Runtime.Data
         /// </summary>
         public sealed class MetadataRow : DefaultCounted, IRow
         {
-            public ISchema Schema => _schema;
+            public Schema Schema => _schemaImpl.AsSchema;
 
             private readonly ISchema _metaSchema;
             private readonly int _col;
-            private readonly SchemaImpl _schema;
+            private readonly SchemaImpl _schemaImpl;
 
             private readonly KeyValuePair<string, ColumnType>[] _map;
 
@@ -357,6 +345,7 @@ namespace Microsoft.ML.Runtime.Data
             {
                 private readonly MetadataRow _parent;
                 private readonly Dictionary<string, int> _nameToCol;
+                public Schema AsSchema { get; }
 
                 public int ColumnCount { get { return _parent._map.Length; } }
 
@@ -367,6 +356,8 @@ namespace Microsoft.ML.Runtime.Data
                     _nameToCol = new Dictionary<string, int>(ColumnCount);
                     for (int i = 0; i < _parent._map.Length; ++i)
                         _nameToCol[_parent._map[i].Key] = i;
+
+                    AsSchema = Data.Schema.Create(this);
                 }
 
                 public string GetColumnName(int col)
@@ -412,7 +403,7 @@ namespace Microsoft.ML.Runtime.Data
                 _metaSchema = schema;
                 _col = col;
                 _map = _metaSchema.GetMetadataTypes(_col).Where(x => takeMetadata(x.Key)).ToArray();
-                _schema = new SchemaImpl(this);
+                _schemaImpl = new SchemaImpl(this);
             }
 
             public bool IsColumnActive(int col)
@@ -553,7 +544,7 @@ namespace Microsoft.ML.Runtime.Data
             private readonly IColumn[] _columns;
             private readonly SchemaImpl _schema;
 
-            public ISchema Schema => _schema;
+            public Schema Schema => _schema.AsSchema;
             public long Position => _counted.Position;
             public long Batch => _counted.Batch;
 
@@ -591,6 +582,8 @@ namespace Microsoft.ML.Runtime.Data
                 private readonly RowColumnRow _parent;
                 private readonly Dictionary<string, int> _nameToIndex;
 
+                public Schema AsSchema { get; }
+
                 public int ColumnCount => _parent._columns.Length;
 
                 public SchemaImpl(RowColumnRow parent)
@@ -600,6 +593,7 @@ namespace Microsoft.ML.Runtime.Data
                     _nameToIndex = new Dictionary<string, int>();
                     for (int i = 0; i < _parent._columns.Length; ++i)
                         _nameToIndex[_parent._columns[i].Name] = i;
+                    AsSchema = Data.Schema.Create(this);
                 }
 
                 public void GetMetadata<TValue>(string kind, int col, ref TValue value)

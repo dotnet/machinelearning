@@ -518,6 +518,8 @@ namespace Microsoft.ML.Runtime.Data
 
             private readonly MetadataUtils.MetadataGetter<VBuffer<ReadOnlyMemory<char>>> _getSlotNames;
 
+            public Schema AsSchema { get; }
+
             private Bindings()
             {
                 _getSlotNames = GetSlotNames;
@@ -721,6 +723,7 @@ namespace Microsoft.ML.Runtime.Data
 
                     ch.Done();
                 }
+                AsSchema = Schema.Create(this);
             }
 
             public Bindings(ModelLoadContext ctx, TextLoader parent)
@@ -803,6 +806,8 @@ namespace Microsoft.ML.Runtime.Data
                 ctx.TryLoadTextStream("Header.txt", reader => result = reader.ReadLine());
                 if (!string.IsNullOrEmpty(result))
                     Parser.ParseSlotNames(parent, _header = result.AsMemory(), Infos, _slotNames);
+
+                AsSchema = Schema.Create(this);
             }
 
             public void Save(ModelSaveContext ctx)
@@ -1314,7 +1319,7 @@ namespace Microsoft.ML.Runtime.Data
             _bindings.Save(ctx);
         }
 
-        public ISchema GetOutputSchema() => _bindings;
+        public Schema GetOutputSchema() => _bindings.AsSchema;
 
         public IDataView Read(IMultiStreamSource source) => new BoundLoader(this, source);
 
@@ -1341,7 +1346,7 @@ namespace Microsoft.ML.Runtime.Data
             // REVIEW: Should we try to support shuffling?
             public bool CanShuffle => false;
 
-            public ISchema Schema => _reader._bindings;
+            public Schema Schema => _reader._bindings.AsSchema;
 
             public IRowCursor GetRowCursor(Func<int, bool> predicate, IRandom rand = null)
             {

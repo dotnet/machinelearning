@@ -752,7 +752,7 @@ namespace Microsoft.ML.Runtime.TextAnalytics
                 int colSrc;
                 if (!loader.Schema.TryGetColumnIndex(srcCol, out colSrc))
                     throw ch.ExceptUserArg(nameof(Arguments.StopwordsColumn), "Unknown column '{0}'", srcCol);
-                var typeSrc = loader.Schema.GetColumnType(colSrc);
+                var typeSrc = loader.Schema[colSrc].Type;
                 ch.CheckUserArg(typeSrc.IsText, nameof(Arguments.StopwordsColumn), "Must be a scalar text column");
 
                 // Accumulate the stopwords.

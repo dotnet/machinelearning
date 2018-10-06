@@ -573,7 +573,7 @@ namespace Microsoft.ML.Runtime.Data
                 _xf = ApplyTransformUtils.ApplyAllTransformsToData(_host, view, new EmptyDataView(_host, input.Schema), input);
             }
 
-            public ISchema GetOutputSchema(ISchema inputSchema)
+            public Schema GetOutputSchema(Schema inputSchema)
             {
                 _host.CheckValue(inputSchema, nameof(inputSchema));
                 return Transform(new EmptyDataView(_host, inputSchema)).Schema;
@@ -587,7 +587,7 @@ namespace Microsoft.ML.Runtime.Data
 
             public bool IsRowToRowMapper => true;
 
-            public IRowToRowMapper GetRowToRowMapper(ISchema inputSchema)
+            public IRowToRowMapper GetRowToRowMapper(Schema inputSchema)
             {
                 _host.CheckValue(inputSchema, nameof(inputSchema));
                 var input = new EmptyDataView(_host, inputSchema);

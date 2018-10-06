@@ -16,6 +16,8 @@ namespace Microsoft.ML.Runtime.Data
     {
         private readonly ISchema[] _sources;
 
+        public Schema AsSchema { get; }
+
         // Zero followed by cumulative column counts. Zero being used for the empty case.
         private readonly int[] _cumulativeColCounts;
 
@@ -31,6 +33,7 @@ namespace Microsoft.ML.Runtime.Data
                 var schema = sources[i];
                 _cumulativeColCounts[i + 1] = _cumulativeColCounts[i] + schema.ColumnCount;
             }
+            AsSchema = Schema.Create(this);
         }
 
         public int ColumnCount => _cumulativeColCounts[_cumulativeColCounts.Length - 1];

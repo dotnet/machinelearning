@@ -279,6 +279,8 @@ namespace Microsoft.ML.Runtime.Data
         // index into Infos (for the columns that we "generate").
         private readonly int[] _colMap;
 
+        public abstract Schema AsSchema { get; }
+
         /// <summary>
         /// Constructor that takes an input schema and adds no new columns.
         /// This is utilized by lambda transforms if the output happens to have no columns.

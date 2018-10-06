@@ -250,10 +250,10 @@ namespace Microsoft.ML.Runtime.Data
                 private LabelNameBindableMapper _bindable;
                 private readonly Func<ISchemaBoundMapper, ColumnType, bool> _canWrap;
 
-                public ISchema Schema => _outSchema;
+                public Schema Schema => _outSchema.AsSchema;
 
                 public RoleMappedSchema InputRoleMappedSchema => _mapper.InputRoleMappedSchema;
-                public ISchema InputSchema => _mapper.InputSchema;
+                public Schema InputSchema => _mapper.InputSchema;
 
                 public ISchemaBindableMapper Bindable
                 {
@@ -322,6 +322,8 @@ namespace Microsoft.ML.Runtime.Data
                     private readonly MetadataUtils.MetadataGetter<VBuffer<T>> _labelNameGetter;
                     private readonly string _metadataKind;
 
+                    public Schema AsSchema { get; }
+
                     public int ColumnCount { get { return _parent.ColumnCount; } }
 
                     public SchemaImpl(ISchema parent, int col, VectorType type, ValueGetter<VBuffer<T>> getter, string metadataKind)
@@ -340,6 +342,8 @@ namespace Microsoft.ML.Runtime.Data
                         // We change to this metadata variant of the getter to enable the marshal call to work.
                         _labelNameGetter = (int c, ref VBuffer<T> val) => getter(ref val);
                         _metadataKind = metadataKind;
+
+                        AsSchema = Data.Schema.Create(this);
                     }
 
                     public bool TryGetColumnIndex(string name, out int col)
@@ -386,14 +390,14 @@ namespace Microsoft.ML.Runtime.Data
                 private sealed class RowImpl : IRow
                 {
                     private readonly IRow _row;
-                    private readonly ISchema _schema;
+                    private readonly Schema _schema;
 
                     public long Batch { get { return _row.Batch; } }
                     public long Position { get { return _row.Position; } }
                     // The schema is of course the only difference from _row.
-                    public ISchema Schema { get { return _schema; } }
+                    public Schema Schema => _schema;
 
-                    public RowImpl(IRow row, ISchema schema)
+                    public RowImpl(IRow row, Schema schema)
                     {
                         Contracts.AssertValue(row);
                         Contracts.AssertValue(schema);

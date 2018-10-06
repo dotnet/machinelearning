@@ -90,7 +90,7 @@ namespace Microsoft.ML.Runtime.Data
 
         public bool IsRowToRowMapper => true;
 
-        public IRowToRowMapper GetRowToRowMapper(ISchema inputSchema)
+        public IRowToRowMapper GetRowToRowMapper(Schema inputSchema)
         {
             Host.CheckValue(inputSchema, nameof(inputSchema));
             var simplerMapper = MakeRowMapper(inputSchema);
@@ -99,7 +99,7 @@ namespace Microsoft.ML.Runtime.Data
 
         protected abstract IRowMapper MakeRowMapper(ISchema schema);
 
-        public ISchema GetOutputSchema(ISchema inputSchema)
+        public Schema GetOutputSchema(Schema inputSchema)
         {
             Host.CheckValue(inputSchema, nameof(inputSchema));
 

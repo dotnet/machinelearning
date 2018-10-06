@@ -33,10 +33,12 @@ namespace Microsoft.ML.Runtime.Data
 
         private sealed class Bindings : ColumnBindingsBase
         {
+            public override Schema AsSchema { get; }
             public Bindings(ISchema input, bool user, string name)
                 : base(input, user, name)
             {
                 Contracts.Assert(InfoCount == 1);
+                AsSchema = Data.Schema.Create(this);
             }
 
             protected override ColumnType GetColumnTypeCore(int iinfo)
@@ -90,7 +92,7 @@ namespace Microsoft.ML.Runtime.Data
 
         private readonly Bindings _bindings;
 
-        public override ISchema Schema { get { return _bindings; } }
+        public override Schema Schema => _bindings.AsSchema;
 
         public override bool CanShuffle { get { return Source.CanShuffle; } }
 
@@ -170,7 +172,7 @@ namespace Microsoft.ML.Runtime.Data
             private readonly Bindings _bindings;
             private readonly bool _active;
 
-            public ISchema Schema { get { return _bindings; } }
+            public Schema Schema => _bindings.AsSchema;
 
             public RowCursor(IChannelProvider provider, Bindings bindings, IRowCursor input, bool active)
                 : base(provider, input)

@@ -195,7 +195,7 @@ namespace Microsoft.ML.Runtime.Data
             private readonly Schema _schema;
             private readonly IHost _host;
 
-            public ISchema Schema { get { return _schema; } }
+            public Schema Schema { get { return _schema; } }
 
             public long? GetRowCount(bool lazy = true) { return _rowCount; }
 
@@ -250,7 +250,7 @@ namespace Microsoft.ML.Runtime.Data
                 private readonly BitArray _active;
                 private readonly int[] _indices;
 
-                public ISchema Schema { get { return _view.Schema; } }
+                public Schema Schema => _view.Schema;
 
                 public override long Batch
                 {

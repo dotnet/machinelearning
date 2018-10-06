@@ -151,12 +151,14 @@ namespace Microsoft.ML.Runtime.Data
         {
             public readonly VectorType[] Types;
             private readonly NgramHashTransform _parent;
+            public override Schema AsSchema { get; }
 
             public Bindings(Arguments args, ISchema schemaInput, NgramHashTransform parent)
                 : base(args.Column, schemaInput, TestTypes)
             {
                 Types = new VectorType[args.Column.Length];
                 _parent = parent;
+                AsSchema = Data.Schema.Create(this);
             }
 
             public Bindings(ModelLoadContext ctx, ISchema schemaInput, NgramHashTransform parent)
@@ -164,6 +166,7 @@ namespace Microsoft.ML.Runtime.Data
             {
                 Types = new VectorType[Infos.Length];
                 _parent = parent;
+                AsSchema = Data.Schema.Create(this);
             }
 
             private static string TestTypes(ColumnType[] types)
@@ -602,7 +605,7 @@ namespace Microsoft.ML.Runtime.Data
             Host.Assert(icol >= 0);
         }
 
-        public override ISchema Schema { get { return _bindings; } }
+        public override Schema Schema => _bindings.AsSchema;
 
         protected override bool? ShouldUseParallelCursors(Func<int, bool> predicate)
         {
@@ -721,7 +724,7 @@ namespace Microsoft.ML.Runtime.Data
             private readonly bool[] _active;
             private readonly Delegate[] _getters;
 
-            public ISchema Schema { get { return _bindings; } }
+            public Schema Schema => _bindings.AsSchema;
 
             public RowCursor(NgramHashTransform parent, IRowCursor input, bool[] active, FinderDecorator decorator = null)
                 : base(parent.Host, input)

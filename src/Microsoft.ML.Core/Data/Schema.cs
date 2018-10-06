@@ -70,10 +70,10 @@ namespace Microsoft.ML.Runtime.Data
 
         public sealed class MetadataRow
         {
-            private readonly (Schema.Column column, Delegate getter)[] _values;
+            private readonly (Column column, Delegate getter)[] _values;
             public Schema Schema { get; }
 
-            public MetadataRow(IEnumerable<(Schema.Column column, Delegate getter)> values)
+            public MetadataRow(IEnumerable<(Column column, Delegate getter)> values)
             {
                 Contracts.CheckValue(values, nameof(values));
                 // Check all getters.
@@ -217,11 +217,11 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         #region Legacy schema API to be removed
-        string ISchema.GetColumnName(int col) => this[col].Name;
+        public string GetColumnName(int col) => this[col].Name;
 
-        ColumnType ISchema.GetColumnType(int col) => this[col].Type;
+        public ColumnType GetColumnType(int col) => this[col].Type;
 
-        IEnumerable<KeyValuePair<string, ColumnType>> ISchema.GetMetadataTypes(int col)
+        public IEnumerable<KeyValuePair<string, ColumnType>> GetMetadataTypes(int col)
         {
             var meta = this[col].Metadata;
             if (meta == null)
@@ -229,7 +229,7 @@ namespace Microsoft.ML.Runtime.Data
             return meta.Schema.GetColumns().Select(c => new KeyValuePair<string, ColumnType>(c.column.Name, c.column.Type));
         }
 
-        ColumnType ISchema.GetMetadataTypeOrNull(string kind, int col)
+        public ColumnType GetMetadataTypeOrNull(string kind, int col)
         {
             var meta = this[col].Metadata;
             if (meta == null)
@@ -239,7 +239,7 @@ namespace Microsoft.ML.Runtime.Data
             return null;
         }
 
-        void ISchema.GetMetadata<TValue>(string kind, int col, ref TValue value)
+        public void GetMetadata<TValue>(string kind, int col, ref TValue value)
         {
             var meta = this[col].Metadata;
             if (meta == null)

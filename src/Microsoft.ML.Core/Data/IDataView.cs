@@ -67,7 +67,7 @@ namespace Microsoft.ML.Runtime.Data
         /// <summary>
         /// Gets an instance of Schema.
         /// </summary>
-        ISchema Schema { get; }
+        Schema Schema { get; }
     }
 
     /// <summary>
