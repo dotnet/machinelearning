@@ -983,9 +983,9 @@ namespace Microsoft.ML.Runtime.Data
                 private readonly IDataView _view;
                 private readonly int _col;
 
-                public Schema AsSchema { get; }
-
                 public int SrcCol { get { return _col; } }
+
+                public abstract Schema AsSchema { get; }
 
                 protected Splitter(IDataView view, int col)
                 {
@@ -993,7 +993,6 @@ namespace Microsoft.ML.Runtime.Data
                     Contracts.Assert(0 <= col && col < view.Schema.ColumnCount);
                     _view = view;
                     _col = col;
-                    AsSchema = Data.Schema.Create(this);
                 }
 
                 /// <summary>
@@ -1111,10 +1110,13 @@ namespace Microsoft.ML.Runtime.Data
                 {
                     public override int ColumnCount => 1;
 
+                    public override Schema AsSchema { get; }
+
                     public NoSplitter(IDataView view, int col)
                         : base(view, col)
                     {
                         Contracts.Assert(_view.Schema.GetColumnType(col).RawType == typeof(T));
+                        AsSchema = Data.Schema.Create(this);
                     }
 
                     public override ColumnType GetColumnType(int col)
@@ -1167,6 +1169,8 @@ namespace Microsoft.ML.Runtime.Data
                     // Cache of the types of each slice.
                     private readonly VectorType[] _types;
 
+                    public override Schema AsSchema { get; }
+
                     public override int ColumnCount { get { return _lims.Length; } }
 
                     /// <summary>
@@ -1197,6 +1201,8 @@ namespace Microsoft.ML.Runtime.Data
                         _types[0] = new VectorType(type.ItemType, _lims[0]);
                         for (int c = 1; c < _lims.Length; ++c)
                             _types[c] = new VectorType(type.ItemType, _lims[c] - _lims[c - 1]);
+
+                        AsSchema = Data.Schema.Create(this);
                     }
 
                     public override ColumnType GetColumnType(int col)

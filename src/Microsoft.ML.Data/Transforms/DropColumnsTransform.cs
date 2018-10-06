@@ -88,7 +88,7 @@ namespace Microsoft.ML.Runtime.Data
 
                 BuildMap(out ColMap, out NameToCol);
 
-                AsSchema = Data.Schema.Create(this);
+                AsSchema = Schema.Create(this);
             }
 
             private void BuildMap(out int[] map, out Dictionary<string, int> nameToCol)
@@ -134,6 +134,7 @@ namespace Microsoft.ML.Runtime.Data
                 }
 
                 BuildMap(out ColMap, out NameToCol);
+                AsSchema = Schema.Create(this);
             }
 
             public void Save(ModelSaveContext ctx)
