@@ -843,7 +843,7 @@ var unigrams = transformedData.GetColumn(x => x.BagOfWords).Take(10).ToArray();
 There are a couple pitfalls that await us when we implement our own cross-validation. Essentially, if we are not careful, we may introduce label leakage in the process, so our metrics could become over-inflated.
 
 - It is tempting to apply the same pre-processing to the entire data, and then just cross-validate the final training of the model. If we do this for data-dependent, 'trainable' pre-processing (like text featurization, categorical handling and normalization/rescaling), we cause these processing steps to 'train' on the union of train subset and test subset, thus causing label leakage. The correct way is to apply pre-processing independently for each 'fold' of the cross-validation.
-- In many cases there is a natural 'grouping' of the data that needs to be respected. For example, if we are solving a click prediction problem, it's a good idea to group all examples pertaining to one URL to appear in one fold of the data. If they end up separated, we can introduce label leakage.
+- In many cases there is a natural 'grouping' of the data that needs to be respected. For example, if we are solving a click prediction problem, it's a good idea to group all examples pertaining to one URL to appear in one-fold of the data. If they end up separated, we can introduce label leakage.
 
 ML.NET guards us against both these pitfalls: it will automatically apply the featurization correctly (as long as all of the preprocessing resides in one learning pipeline), and we can use the 'stratification column' concept to make sure that related examples don't get separated.
 
