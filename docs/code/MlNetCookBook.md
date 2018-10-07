@@ -325,7 +325,7 @@ var learningPipeline = reader.MakeNewEstimator()
         // Retain the 'Target' column for evaluation purposes.
         r.Target,
         // We choose the SDCA regression trainer. Note that we normalize the 'FeatureVector' right here in
-        // the the same call.
+        // the same call.
         Prediction: regression.Trainers.Sdca(label: r.Target, features: r.FeatureVector.Normalize())));
 
 // Step three. Train the pipeline.
