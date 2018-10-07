@@ -627,7 +627,7 @@ In ML.NET we expose a number of [parametric and non-parametric algorithms](https
 
 Typically, parametric learners hold certain assumptions about the training data, and if they are not met, the training is greatly hampered (or sometimes becomes completely impossible).
 
-Most commonly, the assumption are that
+Most commonly, the assumptions are that
 - All the features have values roughly on the same scale;
 - Feature values are not too large, and not too small.
 
