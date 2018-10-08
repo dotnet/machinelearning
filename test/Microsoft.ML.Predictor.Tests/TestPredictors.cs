@@ -200,7 +200,12 @@ namespace Microsoft.ML.Runtime.RunTests
         {
             RunMTAThread(() =>
             {
+#if DEBUG
+                if(!RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+                    RunOneAllTests(TestLearners.multiclassLogisticRegression, TestDatasets.irisTreeFeaturized, digitsOfPrecision: 4);
+#else
                 RunOneAllTests(TestLearners.multiclassLogisticRegression, TestDatasets.irisTreeFeaturized, digitsOfPrecision: 4);
+#endif
                 RunOneAllTests(TestLearners.multiclassLogisticRegression, TestDatasets.irisTreeFeaturizedPermuted, digitsOfPrecision: 4);
             });
             Done();
@@ -953,7 +958,7 @@ namespace Microsoft.ML.Runtime.RunTests
             Done();
         }
 
-        #region "Regressor"
+#region "Regressor"
 
 #if OLD_TESTS // REVIEW: Port these tests?
         /// <summary>
@@ -1264,7 +1269,7 @@ namespace Microsoft.ML.Runtime.RunTests
         }
 #endif
 
-        #endregion
+#endregion
 
         /// <summary>
         ///A test for FR ranker
