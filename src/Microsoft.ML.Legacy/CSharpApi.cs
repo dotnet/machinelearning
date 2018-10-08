@@ -16651,6 +16651,71 @@ namespace Microsoft.ML
             public string[] OutputColumns { get; set; }
 
             /// <summary>
+            /// Training labels.
+            /// </summary>
+            public string LabelColumn { get; set; }
+
+            /// <summary>
+            /// TensorFlow label node.
+            /// </summary>
+            public string TensorFlowLabel { get; set; }
+
+            /// <summary>
+            /// The name of the optimization operation in the TensorFlow graph.
+            /// </summary>
+            public string OptimizationOperation { get; set; }
+
+            /// <summary>
+            /// The name of the operation in the TensorFlow graph to compute training loss (Optional)
+            /// </summary>
+            public string LossOperation { get; set; }
+
+            /// <summary>
+            /// The name of the operation in the TensorFlow graph to compute performance metric during training (Optional)
+            /// </summary>
+            public string MetricOperation { get; set; }
+
+            /// <summary>
+            /// Number of samples to use for mini-batch training.
+            /// </summary>
+            public int BatchSize { get; set; } = 64;
+
+            /// <summary>
+            /// Number of training iterations.
+            /// </summary>
+            public int Epoch { get; set; } = 5;
+
+            /// <summary>
+            /// The name of the operation in the TensorFlow graph which sets optimizer learning rate (Optional).
+            /// </summary>
+            public string LearningRateOperation { get; set; }
+
+            /// <summary>
+            /// Learning rate to use during optimization.
+            /// </summary>
+            public float LearningRate { get; set; } = 0.01f;
+
+            /// <summary>
+            /// Shuffle data before each iteration.
+            /// </summary>
+            public bool Shuffle { get; set; } = true;
+
+            /// <summary>
+            /// Name of the input in TensorFlow graph that specifiy the location for saving/restoring models from disk.
+            /// </summary>
+            public string SaveLocationOperation { get; set; } = "save/Const";
+
+            /// <summary>
+            /// Name of the input in TensorFlow graph that specifiy the location for saving/restoring models from disk.
+            /// </summary>
+            public string SaveOperation { get; set; } = "save/control_dependency";
+
+            /// <summary>
+            /// Retrain TensorFlow model.
+            /// </summary>
+            public bool ReTrain { get; set; } = false;
+
+            /// <summary>
             /// Input dataset
             /// </summary>
             public Var<Microsoft.ML.Runtime.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
