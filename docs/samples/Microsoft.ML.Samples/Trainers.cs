@@ -7,7 +7,7 @@ using Microsoft.ML.Runtime.Learners;
 using Microsoft.ML.StaticPipe;
 using System;
 
-namespace Microsoft.ML.Samples.StaticPipe
+namespace Microsoft.ML.Samples
 {
     public static class Trainers
     { 

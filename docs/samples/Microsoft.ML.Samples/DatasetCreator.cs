@@ -6,7 +6,7 @@ using System;
 using System.IO;
 using System.Text;
 
-namespace Microsoft.ML.Samples.StaticPipe
+namespace Microsoft.ML.Samples
 {
     public static class DatasetCreator
     {
@@ -44,14 +44,14 @@ namespace Microsoft.ML.Samples.StaticPipe
                 File.WriteAllText(trainDataPath, csvTrain.ToString());
             else
             {
-                new Exception("Train dataset file already exists");
+                throw new Exception("Train dataset file already exists");
             }
 
             if (!File.Exists(testDataPath))
                 File.WriteAllText(testDataPath, csvTest.ToString());
             else
             {
-                new Exception("Test dataset file already exists");
+                throw new Exception("Test dataset file already exists");
             }
 
             return (trainDataPath, testDataPath);
