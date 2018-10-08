@@ -198,13 +198,17 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
                                 // in other cases, like corrupted file, etc.
 
                                 // REVIEW : Log failures.
-                                dst = null;
+                                var notFound = $"Image {src.ToString()} was not found.";
+                                throw Host.Except(notFound);
                             }
-							var notFound = $"File {src.ToString()} was not found";
-							var invalidChar = $"File {src.ToString()} has an invalid character in its path and could not be loaded";
-							Host.Check(dst != null, notFound);
-							Host.Check(dst.PixelFormat != System.Drawing.Imaging.PixelFormat.DontCare, invalidChar);
-						}
+
+                            // Check for an incorrect pixel format which indicates the loading failed
+                            if (dst.PixelFormat == System.Drawing.Imaging.PixelFormat.DontCare)
+                            {
+                                var invalidChar = $"Failed to load image {src.ToString()}.";
+                                throw Host.Except(invalidChar);
+                            }
+                        }
                     };
                 return del;
             }
