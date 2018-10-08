@@ -1,6 +1,0 @@
-mac: 2018.1.126
-linux: 2018.3.222
-windows: 2018.3.210
-
-linux and windows: mkl 2018 update 3
-mac: mkl 2018 update 1
