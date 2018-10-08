@@ -97,7 +97,7 @@ namespace Microsoft.ML.Runtime.RunTests
 
             var transformer = estimator.Fit(validFitInput);
             // Save and reload.
-            string modelPath = GetOutputPath(TestName + "-model.zip");
+            string modelPath = GetOutputPath(FullTestName + "-model.zip");
             using (var fs = File.Create(modelPath))
                 transformer.SaveTo(Env, fs);
 

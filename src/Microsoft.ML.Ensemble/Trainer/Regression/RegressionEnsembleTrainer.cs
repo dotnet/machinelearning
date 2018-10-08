@@ -51,7 +51,7 @@ namespace Microsoft.ML.Runtime.Ensemble
                 BasePredictors = new[]
                 {
                     ComponentFactoryUtils.CreateFromFunction(
-                        env => new OnlineGradientDescentTrainer(env, new OnlineGradientDescentTrainer.Arguments()))
+                        env => new OnlineGradientDescentTrainer(env, DefaultColumnNames.Label, DefaultColumnNames.Features))
                 };
             }
         }
