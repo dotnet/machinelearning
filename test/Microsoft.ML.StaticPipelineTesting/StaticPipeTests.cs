@@ -126,6 +126,76 @@ namespace Microsoft.ML.StaticPipelineTesting
             Assert.Equal(new VectorType(NumberType.R4, 3), schema.GetColumnType(labelIdx));
         }
 
+        private sealed class Obnoxious1
+        {
+            public Scalar<string> Foo { get; }
+            public Vector<float> Bar { get; }
+
+            public Obnoxious1(Scalar<string> f1, Vector<float> f2)
+            {
+                Foo = f1;
+                Bar = f2;
+            }
+        }
+
+        private sealed class Obnoxious2
+        {
+            public Scalar<string> Biz { get; set; }
+            public Vector<double> Blam { get; set; }
+        }
+
+        private sealed class Obnoxious3<T>
+        {
+            public (Scalar<bool> hi, Obnoxious1 my, T friend) Donut { get; set; }
+        }
+
+        private static Obnoxious3<T> MakeObnoxious3<T>(Scalar<bool> hi, Obnoxious1 my, T friend)
+            => new Obnoxious3<T>() { Donut = (hi, my, friend) };
+
+        [Fact]
+        public void SimpleTextLoaderObnoxiousTypeTest()
+        {
+            var env = new ConsoleEnvironment(0, verbose: true);
+
+            const string data = "0 hello 3.14159 -0 2\n"
+                + "1 1 2 4 15";
+            var dataSource = new BytesStreamSource(data);
+
+            // Ahhh. No one would ever, ever do this, of course, but just having fun with it.
+
+            void Helper(ISchema thisSchema, string name, ColumnType expected)
+            {
+                Assert.True(thisSchema.TryGetColumnIndex(name, out int thisCol), $"Could not find column '{name}'");
+                Assert.Equal(expected, thisSchema.GetColumnType(thisCol));
+            }
+
+            var text = TextLoader.CreateReader(env, ctx => (
+                yo: new Obnoxious1(ctx.LoadText(0), ctx.LoadFloat(1, 5)),
+                dawg: new Obnoxious2() { Biz = ctx.LoadText(2), Blam = ctx.LoadDouble(1, 2) },
+                how: MakeObnoxious3(ctx.LoadBool(2), new Obnoxious1(ctx.LoadText(0), ctx.LoadFloat(1, 4)),
+                    new Obnoxious2() { Biz = ctx.LoadText(5), Blam = ctx.LoadDouble(1, 10) })));
+
+            var schema = text.AsDynamic.GetOutputSchema();
+            Helper(schema, "yo.Foo", TextType.Instance);
+            Helper(schema, "yo.Bar", new VectorType(NumberType.Float, 5));
+            Helper(schema, "dawg.Biz", TextType.Instance);
+            Helper(schema, "dawg.Blam", new VectorType(NumberType.R8, 2));
+
+            Helper(schema, "how.Donut.hi", BoolType.Instance);
+            Helper(schema, "how.Donut.my.Foo", TextType.Instance);
+            Helper(schema, "how.Donut.my.Bar", new VectorType(NumberType.Float, 4));
+            Helper(schema, "how.Donut.friend.Biz", TextType.Instance);
+            Helper(schema, "how.Donut.friend.Blam", new VectorType(NumberType.R8, 10));
+
+            var textData = text.Read(new MultiFileSource(null));
+
+            var est = text.MakeNewEstimator().Append(r => r.how.Donut.friend.Blam.ConcatWith(r.dawg.Blam));
+            var outData = est.Fit(textData).Transform(textData);
+
+            var xfSchema = outData.AsDynamic.Schema;
+            Helper(xfSchema, "Data", new VectorType(NumberType.R8, 12));
+        }
+
         private static KeyValuePair<string, ColumnType> P(string name, ColumnType type)
             => new KeyValuePair<string, ColumnType>(name, type);
 
@@ -139,11 +209,43 @@ namespace Microsoft.ML.StaticPipelineTesting
                 P("friend", new KeyType(DataKind.U4, 0, 3)));
             var view = new EmptyDataView(env, schema);
 
+            view.AssertStatic(env, c => new
+            {
+                my = c.I8.Vector,
+                friend = c.KeyU4.NoValue.Scalar,
+                hello = c.Text.Scalar
+            });
+
             view.AssertStatic(env, c => (
                 my: c.I8.Vector,
                 friend: c.KeyU4.NoValue.Scalar,
                 hello: c.Text.Scalar
             ));
+        }
+
+        [Fact]
+        public void AssertStaticSimpleFailure()
+        {
+            var env = new ConsoleEnvironment(0, verbose: true);
+            var schema = new SimpleSchema(env,
+                P("hello", TextType.Instance),
+                P("my", new VectorType(NumberType.I8, 5)),
+                P("friend", new KeyType(DataKind.U4, 0, 3)));
+            var view = new EmptyDataView(env, schema);
+
+            Assert.ThrowsAny<Exception>(() =>
+                view.AssertStatic(env, c => new
+                {
+                    my = c.I8.Scalar, // Shouldn't work, the type is wrong.
+                    friend = c.KeyU4.NoValue.Scalar,
+                    hello = c.Text.Scalar
+                }));
+
+            Assert.ThrowsAny<Exception>(() =>
+                view.AssertStatic(env, c => (
+                    mie: c.I8.Vector, // Shouldn't work, the name is wrong.
+                    friend: c.KeyU4.NoValue.Scalar,
+                    hello: c.Text.Scalar)));
         }
 
         private sealed class MetaCounted : ICounted
@@ -575,7 +677,8 @@ namespace Microsoft.ML.StaticPipelineTesting
             var est = data.MakeNewEstimator()
                 .Append(r => (
                     r.label,
-                    topics: r.text.ToBagofWords().ToLdaTopicVector(numTopic: 10, advancedSettings: s => {
+                    topics: r.text.ToBagofWords().ToLdaTopicVector(numTopic: 10, advancedSettings: s =>
+                    {
                         s.AlphaSum = 10;
                     })));
 

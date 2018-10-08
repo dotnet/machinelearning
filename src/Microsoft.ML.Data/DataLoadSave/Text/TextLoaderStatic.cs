@@ -18,12 +18,12 @@ namespace Microsoft.ML.Runtime.Data
         /// <typeparam name="TShape">The type shape parameter, which must be a valid-schema shape. As a practical
         /// matter this is generally not explicitly defined from the user, but is instead inferred from the return
         /// type of the <paramref name="func"/> where one takes an input <see cref="Context"/> and uses it to compose
-        /// a value-tuple describing what the columns are and how to load them from the file.</typeparam>
+        /// a shape-type instance describing what the columns are and how to load them from the file.</typeparam>
         /// <param name="env">The environment.</param>
         /// <param name="func">The delegate that describes what fields to read from the text file, as well as
         /// describing their input type. The way in which it works is that the delegate is fed a <see cref="Context"/>,
-        /// and the user composes a value-tuple with <see cref="PipelineColumn"/> instances out of that <see cref="Context"/>.
-        /// The resulting data will have columns with the names corresponding to their names in the value-tuple.</param>
+        /// and the user composes a shape type with <see cref="PipelineColumn"/> instances out of that <see cref="Context"/>.
+        /// The resulting data will have columns with the names corresponding to their names in the shape type.</param>
         /// <param name="files">Input files. If <c>null</c> then no files are read, but this means that options or
         /// configurations that require input data for initialization (e.g., <paramref name="hasHeader"/> or
         /// <see cref="Context.LoadFloat(int, int?)"/>) with a <c>null</c> second argument.</param>
@@ -60,9 +60,7 @@ namespace Microsoft.ML.Runtime.Data
             {
                 var readerEst = StaticPipeUtils.ReaderEstimatorAnalyzerHelper(env, ch, ctx, rec, func);
                 Contracts.AssertValue(readerEst);
-                var reader = readerEst.Fit(files);
-                ch.Done();
-                return reader;
+                return readerEst.Fit(files);
             }
         }
 
@@ -117,7 +115,7 @@ namespace Microsoft.ML.Runtime.Data
         /// <summary>
         /// Context object by which a user can indicate what fields they want to read from a text file, and what data type they ought to have.
         /// Instances of this class are never made but the user, but rather are fed into the delegate in
-        /// <see cref="TextLoader.CreateReader{TTupleShape}(IHostEnvironment, Func{Context, TTupleShape}, IMultiStreamSource, bool, char, bool, bool, bool)"/>.
+        /// <see cref="TextLoader.CreateReader{TShape}(IHostEnvironment, Func{Context, TShape}, IMultiStreamSource, bool, char, bool, bool, bool)"/>.
         /// </summary>
         public sealed class Context
         {

@@ -124,9 +124,7 @@ namespace Microsoft.ML.Runtime.Data
                             throw ch.Except("Incompatible features column type: '{0}' vs '{1}'", type, typeIn);
                     }
                 }
-                var mapper = BindCore(ch, schema);
-                ch.Done();
-                return mapper;
+                return BindCore(ch, schema);
             }
         }
 

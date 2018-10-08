@@ -939,9 +939,7 @@ namespace Microsoft.ML.Transforms
                 disposer = null;
                 using (var ch = _host.Start("CreateGetters"))
                 {
-                    var getters = MakeGetters(input, activeOutput);
-                    ch.Done();
-                    return getters;
+                    return MakeGetters(input, activeOutput);
                 }
             }
 

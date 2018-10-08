@@ -125,7 +125,6 @@ namespace Microsoft.ML.Runtime.EntryPoints
                                 out transformedDataZipEntryNames);
                         }
                         CheckSamePipeline(env, ch, transformedDataCur, transformedDataSerialized, transformedDataZipEntryNames);
-                        ch.Done();
                     }
                 }
             }
