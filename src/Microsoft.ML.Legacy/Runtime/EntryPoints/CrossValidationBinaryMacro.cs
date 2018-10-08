@@ -100,7 +100,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
             cvSplit.NumFolds = input.NumFolds;
             cvSplit.StratificationColumn = input.StratificationColumn;
             var cvSplitOutput = exp.Add(cvSplit);
-            subGraphNodes.AddRange(EntryPointNode.ValidateNodes(env, node.Context, exp.GetNodes(), node.Catalog));
+            subGraphNodes.AddRange(EntryPointNode.ValidateNodes(env, node.Context, exp.GetNodes()));
 
             var predModelVars = new Var<IPredictorModel>[input.NumFolds];
             var warningsVars = new Var<IDataView>[input.NumFolds];
@@ -112,7 +112,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
             {
                 // Parse the nodes in input.Nodes into a temporary run context.
                 var context = new RunContext(env);
-                var graph = EntryPointNode.ValidateNodes(env, context, input.Nodes, node.Catalog);
+                var graph = EntryPointNode.ValidateNodes(env, context, input.Nodes);
 
                 // Rename all the variables such that they don't conflict with the ones in the outer run context.
                 var mapping = new Dictionary<string, string>();
@@ -158,7 +158,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
                 var confusionMatrix = new Var<IDataView>();
                 outputMap.Add(nameof(TrainTestBinaryMacro.Output.ConfusionMatrix), confusionMatrix.VarName);
                 confusionMatrixVars[k] = confusionMatrix;
-                subGraphNodes.Add(EntryPointNode.Create(env, "Models.TrainTestBinaryEvaluator", args, node.Catalog, node.Context, inputBindingMap, inputMap, outputMap));
+                subGraphNodes.Add(EntryPointNode.Create(env, "Models.TrainTestBinaryEvaluator", args, node.Context, inputBindingMap, inputMap, outputMap));
             }
 
             exp.Reset();
@@ -203,7 +203,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
             confusionMatricesOutput.OutputData.VarName = node.GetOutputVariableName(nameof(Output.ConfusionMatrix));
             exp.Add(confusionMatrices, confusionMatricesOutput);
 
-            subGraphNodes.AddRange(EntryPointNode.ValidateNodes(env, node.Context, exp.GetNodes(), node.Catalog));
+            subGraphNodes.AddRange(EntryPointNode.ValidateNodes(env, node.Context, exp.GetNodes()));
 
             return new CommonOutputs.MacroOutput<Output>() { Nodes = subGraphNodes };
         }

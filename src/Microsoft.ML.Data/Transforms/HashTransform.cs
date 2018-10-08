@@ -303,7 +303,6 @@ namespace Microsoft.ML.Transforms
                             Host.Assert(_keyValues[invertIinfos[i]].Length == types[invertIinfos[i]].ItemType.KeyCount);
                             _kvTypes[invertIinfos[i]] = new VectorType(TextType.Instance, _keyValues[invertIinfos[i]].Length);
                         }
-                        ch.Done();
                     }
                 }
             }

@@ -311,7 +311,6 @@ namespace Microsoft.ML.Runtime.Data.IO
                     using (var ch = _parent._host.Start("Metadata TOC Read"))
                     {
                         ReadTocMetadata(ch, stream);
-                        ch.Done();
                     }
                 }
             }
@@ -812,7 +811,6 @@ namespace Microsoft.ML.Runtime.Data.IO
                     ch.Warning("BinaryLoader does not know how to interpret {0} columns", Utils.Size(_deadColumns));
                 _shuffleBlocks = args.PoolBlocks;
                 CalculateShufflePoolRows(ch, out _randomShufflePoolRows);
-                ch.Done();
             }
         }
 
@@ -902,7 +900,6 @@ namespace Microsoft.ML.Runtime.Data.IO
                     ch.Warning("BinaryLoader does not know how to interpret {0} columns", Utils.Size(_deadColumns));
 
                 CalculateShufflePoolRows(ch, out _randomShufflePoolRows);
-                ch.Done();
             }
         }
 
@@ -2183,7 +2180,6 @@ namespace Microsoft.ML.Runtime.Data.IO
                 using (var ch = host.Start("Inspection"))
                 {
                     RunCore(ch, loader);
-                    ch.Done();
                 }
             }
 

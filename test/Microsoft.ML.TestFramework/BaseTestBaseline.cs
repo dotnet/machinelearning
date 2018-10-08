@@ -23,7 +23,7 @@ namespace Microsoft.ML.Runtime.RunTests
     /// </summary>
     public abstract partial class BaseTestBaseline : BaseTestClass
     {
-        public const decimal Tolerance = 10_000_000;
+        public const int DigitsOfPrecision = 7;
 
         protected BaseTestBaseline(ITestOutputHelper output) : base(output)
         {
@@ -352,12 +352,12 @@ namespace Microsoft.ML.Runtime.RunTests
         /// Check whether two files are same ignoring volatile differences (path, dates, times, etc).
         /// Returns true if the check passes.
         /// </summary>
-        protected bool CheckEqualityNormalized(string dir, string name, string nameBase = null, decimal precision = Tolerance)
+        protected bool CheckEqualityNormalized(string dir, string name, string nameBase = null, int digitsOfPrecision = DigitsOfPrecision)
         {
-            return CheckEqualityCore(dir, name, nameBase ?? name, true, precision);
+            return CheckEqualityCore(dir, name, nameBase ?? name, true, digitsOfPrecision);
         }
 
-        protected bool CheckEqualityCore(string dir, string name, string nameBase, bool normalize, decimal precision = Tolerance)
+        protected bool CheckEqualityCore(string dir, string name, string nameBase, bool normalize, int digitsOfPrecision = DigitsOfPrecision)
         {
             Contracts.Assert(IsActive);
             Contracts.AssertValue(dir); // Can be empty.
@@ -384,7 +384,7 @@ namespace Microsoft.ML.Runtime.RunTests
             if (!CheckBaseFile(basePath))
                 return false;
 
-            bool res = CheckEqualityFromPathsCore(relPath, basePath, outPath, precision: precision);
+            bool res = CheckEqualityFromPathsCore(relPath, basePath, outPath, digitsOfPrecision: digitsOfPrecision);
 
             // No need to keep the raw (unnormalized) output file.
             if (normalize && res)
@@ -501,7 +501,7 @@ namespace Microsoft.ML.Runtime.RunTests
         /// skipping the given number of lines on the output, and finding the corresponding line
         /// in the baseline.
         /// </summary>
-        protected bool CheckEqualityNormalized(string dir, string name, string suffix, int skip, decimal precision = Tolerance)
+        protected bool CheckEqualityNormalized(string dir, string name, string suffix, int skip, int digitsOfPrecision = DigitsOfPrecision)
         {
             Contracts.Assert(IsActive);
             Contracts.AssertValue(dir); // Can be empty.
@@ -522,7 +522,7 @@ namespace Microsoft.ML.Runtime.RunTests
             if (!CheckBaseFile(basePath))
                 return false;
 
-            bool res = CheckEqualityFromPathsCore(relPath, basePath, outPath, skip, precision);
+            bool res = CheckEqualityFromPathsCore(relPath, basePath, outPath, skip, digitsOfPrecision);
 
             // No need to keep the raw (unnormalized) output file.
             if (res)
@@ -531,7 +531,7 @@ namespace Microsoft.ML.Runtime.RunTests
             return res;
         }
 
-        protected bool CheckEqualityFromPathsCore(string relPath, string basePath, string outPath, int skip = 0, decimal precision = Tolerance)
+        protected bool CheckEqualityFromPathsCore(string relPath, string basePath, string outPath, int skip = 0, int digitsOfPrecision = DigitsOfPrecision)
         {
             Contracts.Assert(skip >= 0);
 
@@ -578,9 +578,7 @@ namespace Microsoft.ML.Runtime.RunTests
                     }
 
                     count++;
-
-                    if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                        GetNumbersFromFile(ref line1, ref line2, precision);
+                    GetNumbersFromFile(ref line1, ref line2, digitsOfPrecision);
 
                     if (line1 != line2)
                     {
@@ -594,26 +592,43 @@ namespace Microsoft.ML.Runtime.RunTests
             }
         }
 
-        private static void GetNumbersFromFile(ref string firstString, ref string secondString, decimal precision)
+        private static void GetNumbersFromFile(ref string firstString, ref string secondString, int digitsOfPrecision)
         {
             Regex _matchNumer = new Regex(@"\b[0-9]+\.?[0-9]*\b", RegexOptions.IgnoreCase | RegexOptions.Compiled);
             MatchCollection firstCollection = _matchNumer.Matches(firstString);
             MatchCollection secondCollection = _matchNumer.Matches(secondString);
 
-            MatchNumberWithTolerance(firstCollection, secondCollection, precision);
+            MatchNumberWithTolerance(firstCollection, secondCollection, digitsOfPrecision);
             firstString = _matchNumer.Replace(firstString, "%Number%");
             secondString = _matchNumer.Replace(secondString, "%Number%");
         }
 
-        private static void MatchNumberWithTolerance(MatchCollection firstCollection, MatchCollection secondCollection, decimal precision)
+        private static void MatchNumberWithTolerance(MatchCollection firstCollection, MatchCollection secondCollection, int digitsOfPrecision)
         {
             for (int i = 0; i < firstCollection.Count; i++)
             {
-                decimal f1 = decimal.Parse(firstCollection[i].ToString());
-                decimal f2 = decimal.Parse(secondCollection[i].ToString());
+                double f1 = double.Parse(firstCollection[i].ToString());
+                double f2 = double.Parse(secondCollection[i].ToString());
 
-                Assert.InRange(f1, f2 - (f2 / precision), f2 + (f2 / precision));
+                double allowedVariance = Math.Pow(10, -digitsOfPrecision);
+                double delta = Round(f1, digitsOfPrecision) - Round(f2, digitsOfPrecision);
+
+                Assert.InRange(delta, -allowedVariance, allowedVariance);
             }
+        }
+
+        private static double Round(double value, int digitsOfPrecision)
+        {
+            if ((value == 0) || double.IsInfinity(value) || double.IsNaN(value))
+            {
+                return value;
+            }
+
+            double absValue = Math.Abs(value);
+            double integralDigitCount = Math.Floor(Math.Log10(absValue) + 1);
+
+            double scale = Math.Pow(10, integralDigitCount);
+            return scale * Math.Round(value / scale, digitsOfPrecision);
         }
 
 #if TOLERANCE_ENABLED

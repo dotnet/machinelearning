@@ -181,8 +181,6 @@ namespace Microsoft.ML.Runtime.FastTree
                 TrainerUtils.CheckArgsAndAdvancedSettingMismatch(ch, numTrees, snapshot.NumTrees, currentArgs.NumTrees, nameof(numTrees));
                 TrainerUtils.CheckArgsAndAdvancedSettingMismatch(ch, minDocumentsInLeafs, snapshot.MinDocumentsInLeafs, currentArgs.MinDocumentsInLeafs, nameof(minDocumentsInLeafs));
                 TrainerUtils.CheckArgsAndAdvancedSettingMismatch(ch, learningRate, snapshot.LearningRates, currentArgs.LearningRates, nameof(learningRate));
-
-                ch.Done();
             }
         }
 
@@ -196,7 +194,6 @@ namespace Microsoft.ML.Runtime.FastTree
                     numThreads = Host.ConcurrencyFactor;
                     ch.Warning("The number of threads specified in trainer arguments is larger than the concurrency factor "
                         + "setting of the environment. Using {0} training threads instead.", numThreads);
-                    ch.Done();
                 }
             }
             ParallelTraining = Args.ParallelTrainer != null ? Args.ParallelTrainer.CreateComponent(env) : new SingleTrainer();
@@ -250,8 +247,6 @@ namespace Microsoft.ML.Runtime.FastTree
                     Train(ch);
                 if (Args.ExecutionTimes)
                     PrintExecutionTimes(ch);
-                ch.Done();
-
                 TrainedEnsemble = Ensemble;
                 if (FeatureMap != null)
                     TrainedEnsemble.RemapFeatures(FeatureMap);
@@ -982,7 +977,6 @@ namespace Microsoft.ML.Runtime.FastTree
                         parallelTraining, categoricalFeatureIndices, categoricalSplit);
                 else
                     conv = new DiskImpl(data, host, maxBins, maxLabel, kind, parallelTraining, categoricalFeatureIndices, categoricalSplit);
-                ch.Done();
             }
             return conv;
         }
@@ -999,7 +993,6 @@ namespace Microsoft.ML.Runtime.FastTree
                     conv = new MemImpl(data, host, binUpperBounds, maxLabel, noFlocks, kind, categoricalFeatureIndices, categoricalSplit);
                 else
                     conv = new DiskImpl(data, host, binUpperBounds, maxLabel, kind, categoricalFeatureIndices, categoricalSplit);
-                ch.Done();
             }
             return conv;
         }
@@ -1694,7 +1687,6 @@ namespace Microsoft.ML.Runtime.FastTree
                         Host.Assert(features.All(f => f != null));
                         result = new Dataset(skeleton, features);
                     }
-                    ch.Done();
                 }
                 return result;
             }
@@ -1951,7 +1943,6 @@ namespace Microsoft.ML.Runtime.FastTree
 
                     if (missingInstances > 0)
                         ch.Warning("Skipped {0} instances with missing features during training", missingInstances);
-                    ch.Done();
                 }
             }
 
@@ -1985,7 +1976,6 @@ namespace Microsoft.ML.Runtime.FastTree
                         BinUpperBounds[iFeature] = binUpperBounds;
                     }
                     parallelTraining.SyncGlobalBoundary(NumFeatures, maxBins, BinUpperBounds);
-                    ch.Done();
                 }
             }
 
@@ -1996,7 +1986,6 @@ namespace Microsoft.ML.Runtime.FastTree
                 {
                     FeatureFlockBase[] flocks = CreateFlocks(ch, pch).ToArray();
                     ch.Trace("{0} features stored in {1} flocks.", NumFeatures, flocks.Length);
-                    ch.Done();
                     return new Dataset(CreateDatasetSkeleton(), flocks);
                 }
             }
@@ -2817,7 +2806,6 @@ namespace Microsoft.ML.Runtime.FastTree
                 Dataset d = convData.GetDataset();
                 BinUpperBounds = convData.BinUpperBounds;
                 FeatureMap = convData.FeatureMap;
-                ch.Done();
                 return d;
             }
         }
