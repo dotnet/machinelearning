@@ -65,6 +65,12 @@ The dataset is under a CC-by 4.0 license.
 }
 ```
 
+### Boston Housing Data
+
+Redistributing the dataset "housing.txt" with attribution:
+
+> Harrison, D. and Rubinfeld, D.L. 'Hedonic prices and the demand for clean air', J. Environ. Economics & Management, vol.5, 81-102, 1978.
+
 # Images
 
 ### Located in `images` folder
