@@ -1032,7 +1032,6 @@ namespace Microsoft.ML.Runtime.Data
                 if (string.IsNullOrEmpty(_probCol) || !schema.TryGetColumnIndex(_probCol, out _probIndex))
                     ch.Warning("Data does not contain a probability column. Will not output the Log-loss column");
                 CheckInputColumnTypes(schema);
-                ch.Done();
             }
 
             _types = new ColumnType[2];

@@ -555,8 +555,6 @@ namespace Microsoft.ML.Runtime.Data.IO
                         writer.Seek(0, SeekOrigin.Begin);
                         writer.Write(headerBytes);
                     }
-
-                    ch.Done();
                 }
             }
             catch (Exception ex)
@@ -704,7 +702,6 @@ namespace Microsoft.ML.Runtime.Data.IO
                 exMarshaller.ThrowIfSet(ch);
                 if (!_silent)
                     ch.Info("Wrote {0} rows across {1} columns in {2}", _rowCount, activeColumns.Length, sw.Elapsed);
-                ch.Done();
                 // When we dispose the exception marshaller, this will set the cancellation token when we internally
                 // dispose the cancellation token source, so one way or another those threads are being cancelled, even
                 // if an exception is thrown in the main body of this function.
