@@ -58,7 +58,7 @@ namespace Microsoft.ML.Runtime.Model.Onnx
 
         public override bool ContainsColumn(string colName) => _columnNameMap.ContainsKey(colName);
 
-        public override bool IsDefined(string variableName) => _variableNames.Contains(variableName);
+        public override bool IsVariableDefined(string variableName) => _variableNames.Contains(variableName);
 
         /// <summary>
         /// Stops tracking a column. If removeVariable is true then it also removes the
@@ -229,7 +229,7 @@ namespace Microsoft.ML.Runtime.Model.Onnx
         public void AddOutputVariable(ColumnType type, string variableName, List<long> dim = null)
         {
             _host.CheckValue(type, nameof(type));
-            _host.CheckParam(IsDefined(variableName), nameof(variableName));
+            _host.CheckParam(IsVariableDefined(variableName), nameof(variableName));
             _outputs.Add(OnnxUtils.GetModelArgs(type, variableName, dim));
         }
 

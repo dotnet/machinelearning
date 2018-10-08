@@ -28,7 +28,7 @@ namespace Microsoft.ML.Runtime.Model.Onnx
         /// </summary>
         /// <param name="variableName">examined string</param>
         /// <returns>True if the input argument has been used to denote an ONNX variable. Otherwise, False.</returns>
-        public abstract bool IsDefined(string variableName);
+        public abstract bool IsVariableDefined(string variableName);
 
         /// <summary>
         /// Looks up whether a given data view column has a mapping in the ONNX context. Once confirmed, callers can
