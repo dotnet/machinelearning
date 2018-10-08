@@ -1448,16 +1448,15 @@ EXPORT_API(void) AddScalarU(float a, _Inout_ float * pd, int c)
 
 EXPORT_API(void) Scale(float a, _Inout_ float * pd, int c)
 {
-    float * pdLim = pd + c;
     __m128 x1 = _mm_set1_ps(a);
     
     if (c < 4)
     {
-        for (; pd < pdLim; pd++)
+        switch(c)
         {
-            __m128 x2 = _mm_load_ss(pd);
-            x2 = _mm_mul_ss(x1, x2);
-            _mm_store_ss(pd, x2);
+            case 3: pd[2] *= a;
+            case 2: pd[1] *= a;
+            case 1: pd[0] *= a;
         }
         return;           
     }

@@ -460,17 +460,18 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             fixed (uint* pTrailingAlignmentMask = &TrailingAlignmentMask[0])
             fixed (float* pd = dst)
             {
-                float* pdLim = pd + dst.Length;
-
+                float* pDstCurrent = pd;
                 int length = dst.Length;
                 Vector128<float> scaleVector128 = Sse.SetAllVector128(scale);
 
                 if (length < 4)
                 {
                     // Handle cases where we have less than 128-bits total and can't ever use SIMD acceleration.
-                    for (int i = 0; i < length; i++)
+                    switch (length)
                     {
-                        dst[i] *= scale;
+                        case 3: dst[2] *= scale; goto case 2;
+                        case 2: dst[1] *= scale; goto case 1;
+                        case 1: dst[0] *= scale; break;
                     }
                     return;
                 }
@@ -478,7 +479,6 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                 nuint address = (nuint)(pd);
                 int misalignment = (int)(address % 16);
                 int remainder = 0;
-                float* pDstCurrent = pd;
 
                 if ((misalignment & 3) != 0)
                 {

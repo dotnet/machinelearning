@@ -482,16 +482,21 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             fixed (uint* pTrailingAlignmentMask = &TrailingAlignmentMask[0])
             fixed (float* pd = dst)
             {
-                float* pdLim = pd + dst.Length;
-
+                float* pDstCurrent = pd;
                 int length = dst.Length;
                 Vector256<float> scaleVector256 = Avx.SetAllVector256(scale);
 
                 if (length < 8)
                 {
-                    for(int i = 0; i < length; i++)
+                    switch(length)
                     {
-                        dst[i] *= scale;
+                        case 7: dst[6] *= scale; goto case 6;
+                        case 6: dst[5] *= scale; goto case 5;
+                        case 5: dst[4] *= scale; goto case 4;
+                        case 4: dst[3] *= scale; goto case 3;
+                        case 3: dst[2] *= scale; goto case 2;
+                        case 2: dst[1] *= scale; goto case 1;
+                        case 1: dst[0] *= scale; break;
                     }
                     return;
                 }
@@ -499,7 +504,6 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                 nuint address = (nuint)(pd);
                 int misalignment = (int)(address % 32);
                 int remainder = 0;
-                float* pDstCurrent = pd;
 
                 if ((misalignment & 3) != 0)
                 {
