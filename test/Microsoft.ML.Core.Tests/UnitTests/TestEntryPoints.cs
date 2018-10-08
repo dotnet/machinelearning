@@ -25,6 +25,7 @@ using Microsoft.ML.Runtime.PCA;
 using Microsoft.ML.Runtime.PipelineInference;
 using Microsoft.ML.Runtime.SymSgd;
 using Microsoft.ML.Runtime.TextAnalytics;
+using Microsoft.ML.Runtime.TimeSeriesProcessing;
 using Microsoft.ML.Transforms;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -37,6 +38,7 @@ namespace Microsoft.ML.Runtime.RunTests
     {
         public TestEntryPoints(ITestOutputHelper output) : base(output)
         {
+            Env.ComponentCatalog.RegisterAssembly(typeof(ExponentialAverageTransform).Assembly);
         }
 
         private IDataView GetBreastCancerDataView()
@@ -249,7 +251,7 @@ namespace Microsoft.ML.Runtime.RunTests
             var epListFile = buildPrefix + "_ep-list.tsv";
 
             var entryPointsSubDir = Path.Combine("..", "Common", "EntryPoints");
-            var catalog = ModuleCatalog.CreateInstance(Env);
+            var catalog = Env.ComponentCatalog;
             var epListPath = GetBaselinePath(entryPointsSubDir, epListFile);
             DeleteOutputPath(epListPath);
 
@@ -277,7 +279,7 @@ namespace Microsoft.ML.Runtime.RunTests
             var epListFile = buildPrefix + "_ep-list.tsv";
 
             var entryPointsSubDir = Path.Combine("..", "Common", "EntryPoints");
-            var catalog = ModuleCatalog.CreateInstance(Env);
+            var catalog = Env.ComponentCatalog;
             var path = DeleteOutputPath(entryPointsSubDir, epListFile);
 
             File.WriteAllLines(path, epListContents);
@@ -306,8 +308,9 @@ namespace Microsoft.ML.Runtime.RunTests
             Env.ComponentCatalog.RegisterAssembly(typeof(SymSgdClassificationTrainer).Assembly);
             Env.ComponentCatalog.RegisterAssembly(typeof(AutoInference).Assembly);
             Env.ComponentCatalog.RegisterAssembly(typeof(SaveOnnxCommand).Assembly);
+            Env.ComponentCatalog.RegisterAssembly(typeof(TimeSeriesProcessing.TimeSeriesProcessing).Assembly);
 
-            var catalog = ModuleCatalog.CreateInstance(Env);
+            var catalog = Env.ComponentCatalog;
 
             var regex = new Regex(@"\r\n?|\n", RegexOptions.Compiled);
             var epListContents = catalog.AllEntryPoints()
@@ -337,7 +340,7 @@ namespace Microsoft.ML.Runtime.RunTests
         [Fact]
         public void EntryPointInputBuilderOptionals()
         {
-            var catalog = ModuleCatalog.CreateInstance(Env);
+            var catalog = Env.ComponentCatalog;
 
             InputBuilder ib1 = new InputBuilder(Env, typeof(LogisticRegression.Arguments), catalog);
             // Ensure that InputBuilder unwraps the Optional<string> correctly.
@@ -558,8 +561,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 }";
 
             JObject graph = JObject.Parse(inputGraph);
-            var catalog = ModuleCatalog.CreateInstance(Env);
-            var runner = new GraphRunner(Env, catalog, graph[FieldNames.Nodes] as JArray);
+            var runner = new GraphRunner(Env, graph[FieldNames.Nodes] as JArray);
 
             var dataPath = GetDataPath("breast-cancer.txt");
             var inputFile = new SimpleFileHandle(Env, dataPath, false, false);
@@ -662,7 +664,7 @@ namespace Microsoft.ML.Runtime.RunTests
         //        }";
 
         //    JObject graph = JObject.Parse(inputGraph);
-        //    var catalog = ModuleCatalog.CreateInstance(Env);
+        //    var catalog = Env.ComponentCatalog;
         //    var runner = new GraphRunner(Env, catalog, graph[FieldNames.Nodes] as JArray);
 
         //    var dv1_data = new[]
@@ -726,16 +728,11 @@ namespace Microsoft.ML.Runtime.RunTests
             for (int i = 0; i < nModels; i++)
             {
                 var data = splitOutput.TrainData[i];
-                data = new RffTransform(Env, new RffTransform.Arguments()
-                {
-                    Column = new[]
-                    {
-                        new RffTransform.Column() {Name = "Features1", Source = "Features"},
-                        new RffTransform.Column() {Name = "Features2", Source = "Features"},
-                    },
-                    NewDim = 10,
-                    UseSin = false
-                }, data);
+                data = new RffEstimator(Env, new[] {
+                    new RffTransform.ColumnInfo("Features", "Features1", 10, false),
+                    new RffTransform.ColumnInfo("Features", "Features2", 10, false),
+                }).Fit(data).Transform(data);
+
                 data = ConcatTransform.Create(Env, new ConcatTransform.Arguments()
                 {
                     Column = new[] { new ConcatTransform.Column() { Name = "Features", Source = new[] { "Features1", "Features2" } } }
@@ -1200,22 +1197,16 @@ namespace Microsoft.ML.Runtime.RunTests
             for (int i = 0; i < nModels; i++)
             {
                 var data = splitOutput.TrainData[i];
-                data = new RffTransform(Env, new RffTransform.Arguments()
-                {
-                    Column = new[]
-                    {
-                        new RffTransform.Column() {Name = "Features1", Source = "Features"},
-                        new RffTransform.Column() {Name = "Features2", Source = "Features"},
-                    },
-                    NewDim = 10,
-                    UseSin = false
-                }, data);
+                data = new RffEstimator(Env, new[] {
+                    new RffTransform.ColumnInfo("Features", "Features1", 10, false),
+                    new RffTransform.ColumnInfo("Features", "Features2", 10, false),
+                }).Fit(data).Transform(data);
                 data = ConcatTransform.Create(Env, new ConcatTransform.Arguments()
                 {
                     Column = new[] { new ConcatTransform.Column() { Name = "Features", Source = new[] { "Features1", "Features2" } } }
                 }, data);
 
-                var mlr = new MulticlassLogisticRegression(Env, new MulticlassLogisticRegression.Arguments());
+                var mlr = new MulticlassLogisticRegression(Env, "Features", "Label");
                 var rmd = new RoleMappedData(data, "Label", "Features");
 
                 predictorModels[i] = new PredictorModel(Env, rmd, data, mlr.Train(rmd));
@@ -2307,8 +2298,8 @@ namespace Microsoft.ML.Runtime.RunTests
         [Fact]
         public void TestInputBuilderBasicArgs()
         {
-            var catalog = ModuleCatalog.CreateInstance(Env);
-            bool success = catalog.TryFindEntryPoint("Transforms.MinMaxNormalizer", out ModuleCatalog.EntryPointInfo info);
+            var catalog = Env.ComponentCatalog;
+            bool success = catalog.TryFindEntryPoint("Transforms.MinMaxNormalizer", out ComponentCatalog.EntryPointInfo info);
             Assert.True(success);
             var inputBuilder = new InputBuilder(Env, info.InputType, catalog);
 
@@ -2364,8 +2355,8 @@ namespace Microsoft.ML.Runtime.RunTests
         [Fact]
         public void TestInputBuilderComponentFactories()
         {
-            var catalog = ModuleCatalog.CreateInstance(Env);
-            bool success = catalog.TryFindEntryPoint("Trainers.StochasticDualCoordinateAscentBinaryClassifier", out ModuleCatalog.EntryPointInfo info);
+            var catalog = Env.ComponentCatalog;
+            bool success = catalog.TryFindEntryPoint("Trainers.StochasticDualCoordinateAscentBinaryClassifier", out ComponentCatalog.EntryPointInfo info);
             Assert.True(success);
             var inputBuilder = new InputBuilder(Env, info.InputType, catalog);
 
@@ -2480,8 +2471,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 }";
 
             JObject graph = JObject.Parse(inputGraph);
-            var catalog = ModuleCatalog.CreateInstance(Env);
-            var runner = new GraphRunner(Env, catalog, graph[FieldNames.Nodes] as JArray);
+            var runner = new GraphRunner(Env, graph[FieldNames.Nodes] as JArray);
 
             var dataPath = GetDataPath("breast-cancer.txt");
             var inputFile = new SimpleFileHandle(Env, dataPath, false, false);
@@ -2576,8 +2566,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 }";
 
             JObject graph = JObject.Parse(inputGraph);
-            var catalog = ModuleCatalog.CreateInstance(Env);
-            var runner = new GraphRunner(Env, catalog, graph[FieldNames.Nodes] as JArray);
+            var runner = new GraphRunner(Env, graph[FieldNames.Nodes] as JArray);
 
             var dataPath = GetDataPath("breast-cancer.txt");
             var inputFile = new SimpleFileHandle(Env, dataPath, false, false);
@@ -2684,8 +2673,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 }";
 
             JObject graph = JObject.Parse(inputGraph);
-            var catalog = ModuleCatalog.CreateInstance(Env);
-            var runner = new GraphRunner(Env, catalog, graph[FieldNames.Nodes] as JArray);
+            var runner = new GraphRunner(Env, graph[FieldNames.Nodes] as JArray);
 
             var dataPath = GetDataPath("breast-cancer.txt");
             var inputFile = new SimpleFileHandle(Env, dataPath, false, false);
@@ -2789,8 +2777,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 }";
 
             JObject graph = JObject.Parse(inputGraph);
-            var catalog = ModuleCatalog.CreateInstance(Env);
-            var runner = new GraphRunner(Env, catalog, graph[FieldNames.Nodes] as JArray);
+            var runner = new GraphRunner(Env, graph[FieldNames.Nodes] as JArray);
 
             var dataPath = GetDataPath("breast-cancer.txt");
             var inputFile = new SimpleFileHandle(Env, dataPath, false, false);
@@ -2950,8 +2937,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 }";
 
             JObject graph = JObject.Parse(inputGraph);
-            var catalog = ModuleCatalog.CreateInstance(Env);
-            var runner = new GraphRunner(Env, catalog, graph[FieldNames.Nodes] as JArray);
+            var runner = new GraphRunner(Env, graph[FieldNames.Nodes] as JArray);
 
             var dataPath = GetDataPath("breast-cancer.txt");
             var inputFile = new SimpleFileHandle(Env, dataPath, false, false);
@@ -3145,8 +3131,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 }";
 
             JObject graph = JObject.Parse(inputGraph);
-            var catalog = ModuleCatalog.CreateInstance(Env);
-            var runner = new GraphRunner(Env, catalog, graph[FieldNames.Nodes] as JArray);
+            var runner = new GraphRunner(Env, graph[FieldNames.Nodes] as JArray);
 
             var dataPath = GetDataPath("breast-cancer.txt");
             var inputFile = new SimpleFileHandle(Env, dataPath, false, false);
@@ -3268,8 +3253,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 }";
 
             JObject graphJson = JObject.Parse(inputGraph);
-            var catalog = ModuleCatalog.CreateInstance(Env);
-            var graph = new EntryPointGraph(Env, catalog, graphJson[FieldNames.Nodes] as JArray);
+            var graph = new EntryPointGraph(Env, graphJson[FieldNames.Nodes] as JArray);
             Assert.True(graph.Macros.All(x => x.CanStart()));
         }
 
@@ -3323,11 +3307,10 @@ namespace Microsoft.ML.Runtime.RunTests
                 }";
 
             JObject graphJson = JObject.Parse(inputGraph);
-            var catalog = ModuleCatalog.CreateInstance(Env);
-            var graph = new EntryPointGraph(Env, catalog, graphJson[FieldNames.Nodes] as JArray);
+            var graph = new EntryPointGraph(Env, graphJson[FieldNames.Nodes] as JArray);
             // Serialize the nodes with ToJson() and then executing them to ensure serialization working correctly.
             var nodes = new JArray(graph.AllNodes.Select(node => node.ToJson()));
-            var runner = new GraphRunner(Env, catalog, nodes);
+            var runner = new GraphRunner(Env, nodes);
 
             var dataPath = GetDataPath("breast-cancer.txt");
             var inputFile = new SimpleFileHandle(Env, dataPath, false, false);
@@ -3383,8 +3366,7 @@ namespace Microsoft.ML.Runtime.RunTests
                   ]
                 }";
             JObject graphJson = JObject.Parse(inputGraph);
-            var catalog = ModuleCatalog.CreateInstance(Env);
-            var graph = new EntryPointGraph(Env, catalog, graphJson[FieldNames.Nodes] as JArray);
+            var graph = new EntryPointGraph(Env, graphJson[FieldNames.Nodes] as JArray);
             for (int i = 0; i < 2; i++)
             {
                 var nodes = graph.AllNodes.ToArray();
@@ -3402,7 +3384,7 @@ namespace Microsoft.ML.Runtime.RunTests
 
                 // Serialize the graph and verify again.
                 var serNodes = new JArray(graph.AllNodes.Select(node => node.ToJson()));
-                graph = new EntryPointGraph(Env, catalog, serNodes);
+                graph = new EntryPointGraph(Env, serNodes);
             }
         }
 
@@ -3744,6 +3726,162 @@ namespace Microsoft.ML.Runtime.RunTests
                     @"'InputColumns': [ 'Placeholder' ],
                       'Model': 'mnist_model/frozen_saved_model.pb',
                       'OutputColumns': [ 'Softmax' ]"
+                });
+        }
+
+        [Fact(Skip = "Needs real time series dataset. https://github.com/dotnet/machinelearning/issues/1120")]
+        public void EntryPointSsaChangePoint()
+        {
+            TestEntryPointPipelineRoutine(GetDataPath(Path.Combine("Timeseries", "A4Benchmark-TS1.csv")), "sep=, col=Features:R4:1 header=+",
+                new[]
+                {
+                    "TimeSeriesProcessing.SsaChangePointDetector",
+                    "TimeSeriesProcessing.SsaChangePointDetector",
+                },
+                new[]
+                {
+                    @"'Src': 'Features',
+                      'Name': 'Anomaly',
+                      'Twnd': '500',
+                      'Swnd': '50',
+                      'Cnf': '93',
+                      'Wnd': '20',
+                      'Mart': 'Power',
+                      'Eps': '0.1'",
+                    @"'Src': 'Features',
+                      'Name': 'Anomaly2',
+                      'Twnd': '500',
+                      'Swnd': '50',
+                      'Cnf': '93',
+                      'Wnd': '20',
+                      'Mart': 'Mixture'"
+                });
+        }
+
+        [Fact]
+        public void EntryPointIidSpikeDetector()
+        {
+            TestEntryPointPipelineRoutine(GetDataPath(Path.Combine("Timeseries", "real_1.csv")), "sep=, col=Features:R4:1 header=+",
+                new[]
+                {
+                    "TimeSeriesProcessing.IidSpikeDetector",
+                    "TimeSeriesProcessing.IidSpikeDetector",
+                },
+                new[]
+                {
+                    @"'Src': 'Features',
+                      'Name': 'Anomaly',
+                      'Cnf': '99.5',
+                      'Wnd': '200',
+                      'Side': 'Positive'",
+                    @"'Src': 'Features',
+                      'Name': 'Anomaly2',
+                      'Cnf': '99.5',
+                      'Wnd': '200',
+                      'Side': 'Negative'",
+                });
+        }
+
+        [Fact(Skip = "Needs real time series dataset. https://github.com/dotnet/machinelearning/issues/1120")]
+        public void EntryPointSsaSpikeDetector()
+        {
+            TestEntryPointPipelineRoutine(GetDataPath(Path.Combine("Timeseries", "A4Benchmark-TS2.csv")), "sep=, col=Features:R4:1 header=+",
+                new[]
+                {
+                    "TimeSeriesProcessing.SsaSpikeDetector",
+                    "TimeSeriesProcessing.SsaSpikeDetector",
+                    "TimeSeriesProcessing.SsaSpikeDetector",
+                },
+                new[]
+                {
+                    @"'Src': 'Features',
+                      'Name': 'Anomaly',
+                      'Twnd': '500',
+                      'Swnd': '50',
+                      'Err': 'SignedDifference',
+                      'Cnf': '99.5',
+                      'Wnd': '100',
+                      'Side': 'Negative'",
+                    @"'Src': 'Features',
+                      'Name': 'Anomaly2',
+                      'Twnd': '500',
+                      'Swnd': '50',
+                      'Err': 'SignedDifference',
+                      'Cnf': '99.5',
+                      'Wnd': '100',
+                      'Side': 'Positive'",
+                    @"'Src': 'Features',
+                      'Name': 'Anomaly3',
+                      'Twnd': '500',
+                      'Swnd': '50',
+                      'Err': 'SignedDifference',
+                      'Cnf': '99.5',
+                      'Wnd': '100'",
+                });
+        }
+
+        [Fact]
+        public void EntryPointPercentileThreshold()
+        {
+            TestEntryPointPipelineRoutine(GetDataPath("breast-cancer.txt"), "col=Input:R4:1",
+                new[]
+                {
+                    "TimeSeriesProcessing.PercentileThresholdTransform"
+                },
+                new[]
+                {
+                    @"'Src': 'Input',
+                      'Name': 'Output',
+                      'Wnd': '10',
+                      'Pcnt': '10'"
+                });
+        }
+
+        [Fact]
+        public void EntryPointPValue()
+        {
+            TestEntryPointPipelineRoutine(GetDataPath("breast-cancer.txt"), "col=Input:R4:1",
+                new[]
+                {
+                    "TimeSeriesProcessing.PValueTransform"
+                },
+                new[]
+                {
+                    @"'Src': 'Input',
+                      'Name': 'Output',
+                      'Wnd': '10'"
+                });
+        }
+
+        [Fact]
+        public void EntryPointSlidingWindow()
+        {
+            TestEntryPointPipelineRoutine(GetDataPath("breast-cancer.txt"), "col=Input:R4:1",
+                new[]
+                {
+                    "TimeSeriesProcessing.SlidingWindowTransform",
+                    "TimeSeriesProcessing.SlidingWindowTransform",
+                    "TimeSeriesProcessing.SlidingWindowTransform",
+                    "TimeSeriesProcessing.SlidingWindowTransform",
+                },
+                new[]
+                {
+                    @"'Src': 'Input',
+                      'Name': 'Output',
+                      'Wnd': '3',
+                      'L': '0'",
+                    @"'Src': 'Input',
+                      'Name': 'Output1',
+                      'Wnd': '1',
+                      'L': '1'",
+                    @"'Src': 'Input',
+                      'Name': 'Output2',
+                      'Wnd': '1',
+                      'L': '2'",
+                    @"'Src': 'Input',
+                      'Name': 'Output3',
+                      'Wnd': '2',
+                      'L': '1'"
                 });
         }
     }

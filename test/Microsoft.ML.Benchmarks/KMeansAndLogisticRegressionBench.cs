@@ -52,16 +52,16 @@ namespace Microsoft.ML.Benchmarks
                 trans = TrainAndScoreTransform.Create(env, new TrainAndScoreTransform.Arguments
                 {
                     Trainer = ComponentFactoryUtils.CreateFromFunction(host =>
-                        new KMeansPlusPlusTrainer(host, new KMeansPlusPlusTrainer.Arguments()
+                        new KMeansPlusPlusTrainer(host, "Features", advancedSettings: s=> 
                         {
-                            K = 100
+                            s.K = 100;
                         })),
                     FeatureColumn = "Features"
                 }, trans);
                 trans = new ConcatTransform(env, "Features", "Features", "Score").Transform(trans);
 
                 // Train
-                var trainer = new LogisticRegression(env, new LogisticRegression.Arguments() { EnforceNonNegativity = true, OptTol = 1e-3f });
+                var trainer = new LogisticRegression(env, "Features", "Label", advancedSettings: args => { args.EnforceNonNegativity = true; args.OptTol = 1e-3f; });
                 var trainRoles = new RoleMappedData(trans, label: "Label", feature: "Features");
                 return trainer.Train(trainRoles);
             }

@@ -74,7 +74,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
         {
             // Parse the subgraph.
             var subGraphRunContext = new RunContext(env);
-            var subGraphNodes = EntryPointNode.ValidateNodes(env, subGraphRunContext, input.Nodes, node.Catalog);
+            var subGraphNodes = EntryPointNode.ValidateNodes(env, subGraphRunContext, input.Nodes);
 
             // Change the subgraph to use the training data as input.
             var varName = input.Inputs.Data.VarName;
@@ -109,7 +109,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
             scoreNode.Data.VarName = testingVar.ToJson();
             scoreNode.PredictorModel.VarName = outputVarName;
             var scoreNodeOutput = exp.Add(scoreNode);
-            subGraphNodes.AddRange(EntryPointNode.ValidateNodes(env, node.Context, exp.GetNodes(), node.Catalog));
+            subGraphNodes.AddRange(EntryPointNode.ValidateNodes(env, node.Context, exp.GetNodes()));
 
             // Add the evaluator node.
             exp.Reset();
@@ -126,7 +126,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
             if (node.OutputMap.TryGetValue("ConfusionMatrix", out outVariableName))
                 evalOutput.ConfusionMatrix.VarName = outVariableName;
             exp.Add(evalNode, evalOutput);
-            subGraphNodes.AddRange(EntryPointNode.ValidateNodes(env, node.Context, exp.GetNodes(), node.Catalog));
+            subGraphNodes.AddRange(EntryPointNode.ValidateNodes(env, node.Context, exp.GetNodes()));
 
             var stageId = Guid.NewGuid().ToString("N");
             foreach (var subGraphNode in subGraphNodes)

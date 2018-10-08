@@ -28,9 +28,9 @@ namespace Microsoft.ML.Runtime.RunTests
     /// </summary>
     public sealed partial class TestPredictors : BaseTestPredictors
     {
-        protected override void InitializeCore()
+        protected override void Initialize()
         {
-            base.InitializeCore();
+            base.Initialize();
             InitializeEnvironment(Env);
         }
 
@@ -156,25 +156,24 @@ namespace Microsoft.ML.Runtime.RunTests
         /// <summary>
         /// Multiclass Logistic Regression test.
         /// </summary>
-        [Fact(Skip = "Need CoreTLC specific baseline update")]
+        [Fact]
         [TestCategory("Multiclass")]
         [TestCategory("Logistic Regression")]
         public void MulticlassLRTest()
         {
-            RunOneAllTests(TestLearners.multiclassLogisticRegression, TestDatasets.iris);
-            RunOneAllTests(TestLearners.multiclassLogisticRegression, TestDatasets.irisLabelName);
+            RunOneAllTests(TestLearners.multiclassLogisticRegression, TestDatasets.iris, digitsOfPrecision: 4);
             Done();
         }
 
         /// <summary>
         /// Multiclass Logistic Regression with non-negative coefficients test.
         /// </summary>
-        [Fact(Skip = "Need CoreTLC specific baseline update")]
+        [Fact]
         [TestCategory("Multiclass")]
         [TestCategory("Logistic Regression")]
         public void MulticlassLRNonNegativeTest()
         {
-            RunOneAllTests(TestLearners.multiclassLogisticRegressionNonNegative, TestDatasets.iris);
+            RunOneAllTests(TestLearners.multiclassLogisticRegressionNonNegative, TestDatasets.iris, digitsOfPrecision: 4);
             Done();
         }
 
@@ -193,7 +192,7 @@ namespace Microsoft.ML.Runtime.RunTests
         /// <summary>
         /// Multiclass Logistic Regression test with a tree featurizer.
         /// </summary>
-        [Fact(Skip = "Need CoreTLC specific baseline update")]
+        [Fact]
         [TestCategory("Multiclass")]
         [TestCategory("Logistic Regression")]
         [TestCategory("FastTree")]
@@ -201,8 +200,8 @@ namespace Microsoft.ML.Runtime.RunTests
         {
             RunMTAThread(() =>
             {
-                RunOneAllTests(TestLearners.multiclassLogisticRegression, TestDatasets.irisTreeFeaturized);
-                RunOneAllTests(TestLearners.multiclassLogisticRegression, TestDatasets.irisTreeFeaturizedPermuted);
+                RunOneAllTests(TestLearners.multiclassLogisticRegression, TestDatasets.irisTreeFeaturized, digitsOfPrecision: 4);
+                RunOneAllTests(TestLearners.multiclassLogisticRegression, TestDatasets.irisTreeFeaturizedPermuted, digitsOfPrecision: 4);
             });
             Done();
         }

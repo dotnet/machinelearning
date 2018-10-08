@@ -18,6 +18,7 @@ namespace Microsoft.ML.Runtime.Model.Onnx
         private readonly List<NodeProto> _nodes;
         private readonly List<OnnxUtils.ModelArgs> _inputs;
         // The map from IDataView column names to variable names.
+        private readonly List<TensorProto> _initializers;
         private readonly List<OnnxUtils.ModelArgs> _intermediateValues;
         private readonly List<OnnxUtils.ModelArgs> _outputs;
         private readonly Dictionary<string, string> _columnNameMap;
@@ -43,6 +44,7 @@ namespace Microsoft.ML.Runtime.Model.Onnx
             _nodes = new List<NodeProto>();
             _intermediateValues = new List<OnnxUtils.ModelArgs>();
             _inputs = new List<OnnxUtils.ModelArgs>();
+            _initializers = new List<TensorProto>();
             _outputs = new List<OnnxUtils.ModelArgs>();
             _columnNameMap = new Dictionary<string, string>();
             _variableNames = new HashSet<string>();
@@ -244,9 +246,66 @@ namespace Microsoft.ML.Runtime.Model.Onnx
         }
 
         /// <summary>
+        /// Adds constant tensors into the graph.
+        /// </summary>
+        public override string AddInitializer(float value, string name = null)
+        {
+            name = AddVariable(name ?? "float");
+            _initializers.Add(OnnxUtils.MakeFloat(name, value));
+            return name;
+        }
+
+        public override string AddInitializer(string value, string name = null)
+        {
+            name = AddVariable(name ?? "string");
+            _initializers.Add(OnnxUtils.MakeString(name, value));
+            return name;
+        }
+
+        public override string AddInitializer(long value, string name = null)
+        {
+            name = AddVariable(name ?? "int64");
+            _initializers.Add(OnnxUtils.MakeInt64(name, value));
+            return name;
+        }
+
+        public override string AddInitializer(IEnumerable<float> values, IEnumerable<long> dims, string name = null)
+        {
+            _host.CheckValue(values, nameof(values));
+            if (dims != null)
+                _host.Check(dims.Aggregate((x, y) => x * y) == values.Count(), "Number of elements doesn't match tensor size");
+
+            name = AddVariable(name ?? "floats");
+            _initializers.Add(OnnxUtils.MakeFloats(name, values, dims));
+            return name;
+        }
+
+        public override string AddInitializer(IEnumerable<long> values, IEnumerable<long> dims, string name = null)
+        {
+            _host.CheckValue(values, nameof(values));
+            if (dims != null)
+                _host.Check(dims.Aggregate((x, y) => x * y) == values.Count(), "Number of elements doesn't match tensor size");
+
+            name = AddVariable(name ?? "int64s");
+            _initializers.Add(OnnxUtils.MakeInt64s(name, values, dims));
+            return name;
+        }
+
+        public override string AddInitializer(IEnumerable<string> values, IEnumerable<long> dims, string name = null)
+        {
+            _host.CheckValue(values, nameof(values));
+            if (dims != null)
+                _host.Check(dims.Aggregate((x, y) => x * y) == values.Count(), "Number of elements doesn't match tensor size");
+
+            name = AddVariable(name ?? "strings");
+            _initializers.Add(OnnxUtils.MakeStrings(name, values, dims));
+            return name;
+        }
+
+        /// <summary>
         /// Makes the ONNX model based on the context.
         /// </summary>
         public ModelProto MakeModel()
-            => OnnxUtils.MakeModel(_nodes, _producerName, _name, _domain, _producerVersion, _modelVersion, _inputs, _outputs, _intermediateValues);
+            => OnnxUtils.MakeModel(_nodes, _producerName, _name, _domain, _producerVersion, _modelVersion, _inputs, _outputs, _intermediateValues, _initializers);
     }
 }

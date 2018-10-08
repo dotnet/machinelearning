@@ -4,6 +4,7 @@
 
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime.Data;
+using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using System;
 using System.Collections.Generic;
@@ -381,6 +382,63 @@ namespace Microsoft.ML.Runtime.Training
             if (weightColumn == null)
                 return null;
             return new SchemaShape.Column(weightColumn, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false);
+        }
+
+        private static void CheckArgColName(IHostEnvironment host, string defaultColName, string argValue)
+        {
+            if (argValue != defaultColName)
+                throw host.Except($"Don't supply a value for the {defaultColName} column in the arguments, as it will be ignored. Specify them in the loader, or constructor instead instead.");
+        }
+
+        /// <summary>
+        /// Check that the label, feature, weights, groupId column names are not supplied in the args of the constructor, through the advancedSettings parameter,
+        /// for cases when the public constructor is called.
+        /// The recommendation is to set the column names directly.
+        /// </summary>
+        public static void CheckArgsHaveDefaultColNames(IHostEnvironment host, LearnerInputBaseWithGroupId args)
+        {
+            // check that the users didn't specify different label, group, feature, weights in the args, from what they supplied directly
+            CheckArgColName(host, DefaultColumnNames.Label, args.LabelColumn);
+            CheckArgColName(host, DefaultColumnNames.Features, args.FeatureColumn);
+            CheckArgColName(host, DefaultColumnNames.Weight, args.WeightColumn);
+
+            if (args.GroupIdColumn != null)
+                CheckArgColName(host, DefaultColumnNames.GroupId, args.GroupIdColumn);
+        }
+
+        /// <summary>
+        /// Check that the label, feature, and weights column names are not supplied in the args of the constructor, through the advancedSettings parameter,
+        /// for cases when the public constructor is called.
+        /// The recommendation is to set the column names directly.
+        /// </summary>
+        public static void CheckArgsHaveDefaultColNames(IHostEnvironment host, LearnerInputBaseWithWeight args)
+        {
+            // check that the users didn't specify different label, group, feature, weights in the args, from what they supplied directly
+            CheckArgColName(host, DefaultColumnNames.Label, args.LabelColumn);
+            CheckArgColName(host, DefaultColumnNames.Features, args.FeatureColumn);
+            CheckArgColName(host, DefaultColumnNames.Weight, args.WeightColumn);
+        }
+
+        /// <summary>
+        /// Check that the label and feature column names are not supplied in the args of the constructor, through the advancedSettings parameter,
+        /// for cases when the public constructor is called.
+        /// The recommendation is to set the column names directly.
+        /// </summary>
+        public static void CheckArgsHaveDefaultColNames(IHostEnvironment host, LearnerInputBaseWithLabel args)
+        {
+            // check that the users didn't specify different label, group, feature, weights in the args, from what they supplied directly
+            CheckArgColName(host, DefaultColumnNames.Label, args.LabelColumn);
+            CheckArgColName(host, DefaultColumnNames.Features, args.FeatureColumn);
+        }
+
+        /// <summary>
+        /// If, after applying the advancedArgs delegate, the args are different that the default value
+        /// and are also different than the value supplied directly to the xtension method, warn the user.
+        /// </summary>
+        public static void CheckArgsAndAdvancedSettingMismatch<T>(IChannel channel, T methodParam, T defaultVal, T setting, string argName)
+        {
+            if (!setting.Equals(defaultVal) && !setting.Equals(methodParam))
+                channel.Warning($"The value supplied to advanced settings , is different than the value supplied directly. Using value {setting} for {argName}");
         }
     }
 

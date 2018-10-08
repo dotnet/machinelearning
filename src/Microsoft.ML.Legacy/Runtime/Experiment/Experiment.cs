@@ -29,7 +29,7 @@ namespace Microsoft.ML.Runtime
         }
 
         private readonly Runtime.IHostEnvironment _env;
-        private readonly ModuleCatalog _catalog;
+        private readonly ComponentCatalog _catalog;
         private readonly List<string> _jsonNodes;
         private readonly JsonSerializer _serializer;
         private readonly SerializationHelper _helper;
@@ -37,9 +37,9 @@ namespace Microsoft.ML.Runtime
         public Experiment(Runtime.IHostEnvironment env)
         {
             _env = env;
-            AssemblyLoadingUtils.RegisterCurrentLoadedAssemblies(_env);
+            AssemblyRegistration.RegisterAssemblies(_env);
 
-            _catalog = ModuleCatalog.CreateInstance(_env);
+            _catalog = _env.ComponentCatalog;
             _jsonNodes = new List<string>();
             _serializer = new JsonSerializer();
             _serializer.Converters.Add(new StringEnumConverter());
@@ -54,7 +54,7 @@ namespace Microsoft.ML.Runtime
         {
             _env.Check(_graph == null, "Multiple calls to " + nameof(Compile) + "() detected.");
             var nodes = GetNodes();
-            _graph = new EntryPointGraph(_env, _catalog, nodes);
+            _graph = new EntryPointGraph(_env, nodes);
         }
 
         public JArray GetNodes()

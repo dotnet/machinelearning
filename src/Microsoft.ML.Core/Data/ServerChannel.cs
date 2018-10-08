@@ -180,9 +180,8 @@ namespace Microsoft.ML.Runtime
             // implementation, since we want those to be removable because of security
             // concerns in certain environments (since not everyone will be wild about
             // web servers popping up everywhere).
-            var cat = ModuleCatalog.CreateInstance(env);
-            ModuleCatalog.ComponentInfo component;
-            if (!cat.TryFindComponent(typeof(IServerFactory), "mini", out component))
+            ComponentCatalog.ComponentInfo component;
+            if (!env.ComponentCatalog.TryFindComponent(typeof(IServerFactory), "mini", out component))
                 return null;
             IServerFactory factory = (IServerFactory)Activator.CreateInstance(component.ArgumentType);
             var field = factory.GetType().GetField("Port");
