@@ -290,9 +290,8 @@ namespace Microsoft.ML.Transforms
                 //}
 
                 env.CheckValue(input, nameof(input));
-                env.CheckNonEmpty(args.OptimizationOperation, nameof(args.OptimizationOperation));
 
-                CheckParameters(args);
+                CheckTrainingParameters(args);
 
                 if (!TensorFlowUtils.IsSavedModel(env, args.Model))
                     throw env.ExceptNotSupp("TensorFlowTransform: Re-Training of TensorFlow model is only supported for un-frozen model.");
@@ -300,8 +299,9 @@ namespace Microsoft.ML.Transforms
             }
         }
 
-        private void CheckParameters(Arguments args)
+        private void CheckTrainingParameters(Arguments args)
         {
+            _host.CheckNonWhiteSpace(args.LabelColumn, nameof(args.LabelColumn));
             _host.CheckNonWhiteSpace(args.OptimizationOperation, nameof(args.OptimizationOperation));
             if (Session.Graph[args.OptimizationOperation] == null)
                 throw _host.ExceptParam(nameof(args.OptimizationOperation), $"Optimization operation '{args.OptimizationOperation}' does not exist in the model");
@@ -342,10 +342,10 @@ namespace Microsoft.ML.Transforms
 
         private (int, bool, TFDataType, TFShape) GetInputMetaData(ISchema inputSchema, string columnName, string tfNodeName, int batchSize)
         {
-            if (!inputSchema.TryGetColumnIndex(columnName, out int inputColIndices))
+            if (!inputSchema.TryGetColumnIndex(columnName, out int inputColIndex))
                 throw _host.Except($"Column {columnName} doesn't exist");
 
-            var type = inputSchema.GetColumnType(inputColIndices);
+            var type = inputSchema.GetColumnType(inputColIndex);
             var isInputVector = type.IsVector;
 
             var tfInput = new TFOutput(Graph[tfNodeName]);
@@ -365,8 +365,9 @@ namespace Microsoft.ML.Transforms
             if (type.ItemType != expectedType)
                 throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", columnName, expectedType.ToString(), type.ToString());
 
-            return (inputColIndices, isInputVector, tfInputType, tfInputShape);
+            return (inputColIndex, isInputVector, tfInputType, tfInputShape);
         }
+
         private void TrainCore(Arguments args, string model, IDataView input)
         {
             var inputsForTraining = new string[Inputs.Length + 1];
@@ -384,7 +385,7 @@ namespace Microsoft.ML.Transforms
             for (int i = 0; i < inputsForTraining.Length - 1; i++)
             {
                 (inputColIndices[i], isInputVector[i], tfInputTypes[i], tfInputShapes[i]) =
-                    GetInputMetaData(inputSchema, inputsForTraining[i], inputsForTraining[i],args.BatchSize);
+                    GetInputMetaData(inputSchema, inputsForTraining[i], inputsForTraining[i], args.BatchSize);
             }
 
             var index = inputsForTraining.Length - 1;
@@ -405,8 +406,8 @@ namespace Microsoft.ML.Transforms
                 {
                     var srcTensorGetters = GetTensorValueGetters(cursor, inputColIndices, isInputVector, tfInputTypes, tfInputShapes);
 
-                    float loss=0;
-                    float metric=0;
+                    float loss = 0;
+                    float metric = 0;
                     bool isDataLeft = false;
                     using (var ch = _host.Start("Training TensorFlow model..."))
                     using (var pch = _host.StartProgressChannel("TensorFlow training progress..."))
@@ -526,7 +527,7 @@ namespace Microsoft.ML.Transforms
                 if (tmpParamDir != null && tmpParamDir.Length > 0)
                     TensorFlowUtils.DeleteFolderWithRetries(_host, tmpParamDir[0]);
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 throw _host.ExceptIO(e, "Error serializing TensorFlow retrained model to disk.");
             }

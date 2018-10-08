@@ -528,10 +528,9 @@ namespace Microsoft.ML.Scenarios
                         ReTrain = true
                     };
 
-                    var trainedTfDataView = TensorFlowTransform.Create(env, args, trans);
-                    trans = new ConcatTransform(env, "Features", "Prediction").Transform(trainedTfDataView);
-                    //trans = new CopyColumnsTransform(env, ("LabelOriginal", "Label")).Transform(trans);
-                    trans = new ConvertTransform(env, trans, DataKind.R4, "Label");
+                var trainedTfDataView = TensorFlowTransform.Create(env, args, trans);
+                trans = new ConcatTransform(env, "Features", "Prediction").Transform(trainedTfDataView);
+                trans = new ConvertTransform(env, trans, DataKind.R4, "Label");
 
                     var trainer = new LightGbmMulticlassTrainer(env, "Label", "Features");
 
