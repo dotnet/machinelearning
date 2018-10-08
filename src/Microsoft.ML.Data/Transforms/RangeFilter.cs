@@ -127,7 +127,6 @@ namespace Microsoft.ML.Runtime.Data
                 _complement = args.Complement;
                 _includeMin = args.IncludeMin;
                 _includeMax = args.IncludeMax ?? (args.Max == null || (_type.IsKey && _max >= 1));
-                ch.Done();
             }
         }
 

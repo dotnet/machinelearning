@@ -105,7 +105,6 @@ namespace Microsoft.ML.Runtime.Data
 
                 var dsArgs = new DropSlotsTransform.Arguments();
                 dsArgs.Column = new[] { column };
-                ch.Done();
                 return new DropSlotsTransform(host, dsArgs, input);
             }
         }
@@ -309,7 +308,6 @@ namespace Microsoft.ML.Runtime.Data
                 var rfs = predictor as IPredictorWithFeatureWeights<Single>;
                 Contracts.AssertValue(rfs);
                 rfs.GetFeatureWeights(ref scores);
-                ch.Done();
             }
         }
 

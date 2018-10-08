@@ -299,7 +299,6 @@ namespace Microsoft.ML.Runtime.Data
                 using (var ch = Host.Start("Argument validation"))
                 {
                     ch.Warning("subMean parameter is false while useStd is true. It is advisable to set subMean to true in case useStd is set to true.");
-                    ch.Done();
                 }
             }
             SetMetadata();
