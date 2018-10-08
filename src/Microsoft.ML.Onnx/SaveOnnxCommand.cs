@@ -234,7 +234,9 @@ namespace Microsoft.ML.Runtime.Model.Onnx
 
                 var idataviewColumnName = end.Schema.GetColumnName(i);
 
-                if (_outputsToDrop.Contains(idataviewColumnName))
+                // Since the last IDataView also contains columns of the initial IDataView, last IDataView's columns found in
+                // _inputToDrop should be removed too.
+                if (_inputsToDrop.Contains(idataviewColumnName) || _outputsToDrop.Contains(idataviewColumnName))
                     continue;
 
                 var variableName = ctx.TryGetVariableName(idataviewColumnName);
