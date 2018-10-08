@@ -4,7 +4,6 @@
 
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.ImageAnalytics.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using System;
 using System.Collections.Generic;
@@ -16,26 +15,12 @@ using System.Security.Principal;
 
 namespace Microsoft.ML.Transforms.TensorFlow
 {
-    public class TensorFlowModelContext
-    {
-        internal TFSession TFSession { get; private set; }
-        public string ModelPath { get; private set; }
-        public ISchema Schema { get; private set; }
-
-        internal TensorFlowModelContext(TFSession tFSession, string modelLocation, ISchema schema)
-        {
-            TFSession = tFSession;
-            ModelPath = modelLocation;
-            Schema = schema;
-        }
-    }
-
     public static class TensorFlowUtils
     {
         public const string OpType = "OpType";
         public const string InputOps = "InputOps";
 
-        private static ISchema GetModelSchema(IExceptionContext ectx, TFGraph graph)
+        internal static ISchema GetModelSchema(IExceptionContext ectx, TFGraph graph, string opType = null)
         {
             var res = new List<KeyValuePair<string, ColumnType>>();
             var opTypeGetters = new List<MetadataUtils.MetadataGetter<ReadOnlyMemory<char>>>();
@@ -43,6 +28,8 @@ namespace Microsoft.ML.Transforms.TensorFlow
             var inputOpsLengths = new List<int>();
             foreach (var op in graph)
             {
+                if (opType != null && opType != op.OpType)
+                    continue;
                 var tfType = op[0].OutputType;
                 var mlType = Tf2MlNetTypeOrNull(tfType);
 
@@ -69,9 +56,8 @@ namespace Microsoft.ML.Transforms.TensorFlow
                 }
                 inputOpsGetters.Add(inputOpsGetter);
 
-                var opType = op.OpType;
                 MetadataUtils.MetadataGetter<ReadOnlyMemory<char>> opTypeGetter =
-                    (int col, ref ReadOnlyMemory<char> dst) => dst = new ReadOnlyMemory<char>(opType.ToArray());
+                    (int col, ref ReadOnlyMemory<char> dst) => dst = new ReadOnlyMemory<char>(op.OpType.ToArray());
                 opTypeGetters.Add(opTypeGetter);
 
                 var columnType = Utils.Size(shapeArray) == 1 && shapeArray[0] <= 0 ? new VectorType(mlType) :
@@ -325,7 +311,7 @@ namespace Microsoft.ML.Transforms.TensorFlow
         public static TensorFlowModelContext LoadTensorFlowModel(IHostEnvironment env, string modelPath)
         {
             var session = GetSession(env, modelPath);
-            return new TensorFlowModelContext(session, modelPath, GetModelSchema(env, session.Graph));
+            return new TensorFlowModelContext(env, session, modelPath);
         }
 
         internal static TFSession GetSession(IHostEnvironment env, string modelPath)

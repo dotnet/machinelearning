@@ -211,7 +211,7 @@ namespace Microsoft.ML.Transforms
         /// <param name="source">Name of the input column(s). Keep it same as in the Tensorflow model.</param>
         public static IDataTransform Create(IHostEnvironment env, IDataView input, TensorFlowModelContext tfModelContext, string[] names, string[] source)
         {
-            return new TensorFlowTransform(env, tfModelContext.TFSession, source, names, TensorFlowUtils.IsSavedModel(env, tfModelContext.ModelPath) ? tfModelContext.ModelPath : null, false).MakeDataTransform(input);
+            return new TensorFlowTransform(env, tfModelContext.Session, source, names, TensorFlowUtils.IsSavedModel(env, tfModelContext.ModelPath) ? tfModelContext.ModelPath : null, false).MakeDataTransform(input);
         }
 
         // Factory method for SignatureLoadModel.
@@ -1101,7 +1101,7 @@ namespace Microsoft.ML.Transforms
         }
 
         public TensorFlowEstimator(IHostEnvironment env, TensorFlowModelContext tensorFlowModelContext, string[] inputs, string[] outputs)
-           : this(env, new TensorFlowTransform(env, tensorFlowModelContext.TFSession, inputs, outputs, TensorFlowUtils.IsSavedModel(env, tensorFlowModelContext.ModelPath) ? tensorFlowModelContext.ModelPath : null, false))
+           : this(env, new TensorFlowTransform(env, tensorFlowModelContext.Session, inputs, outputs, TensorFlowUtils.IsSavedModel(env, tensorFlowModelContext.ModelPath) ? tensorFlowModelContext.ModelPath : null, false))
         {
         }
 

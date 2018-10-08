@@ -191,8 +191,9 @@ namespace Microsoft.ML.Tests
             using (var env = new ConsoleEnvironment())
             {
                 var tensorFlowContext = TensorFlowUtils.LoadTensorFlowModel(env, modelLocation);
-                Assert.True(tensorFlowContext.Schema.TryGetColumnIndex("Input", out int column));
-                var type = tensorFlowContext.Schema.GetColumnType(column).AsVector;
+                var schema = tensorFlowContext.GetInputSchema();
+                Assert.True(schema.TryGetColumnIndex("Input", out int column));
+                var type = schema.GetColumnType(column).AsVector;
                 var imageHeight = type.GetDim(0);
                 var imageWidth = type.GetDim(1);
 

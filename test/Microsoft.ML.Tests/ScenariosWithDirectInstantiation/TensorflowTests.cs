@@ -724,8 +724,13 @@ namespace Microsoft.ML.Scenarios
 
             using (var env = new ConsoleEnvironment())
             {
-                var imageHeight = 32;
-                var imageWidth = 32;
+                var tensorFlowContext = TensorFlowUtils.LoadTensorFlowModel(env, model_location);
+                var schema = tensorFlowContext.GetInputSchema();
+                Assert.True(schema.TryGetColumnIndex("Input", out int column));
+                var type = schema.GetColumnType(column).AsVector;
+                var imageHeight = type.GetDim(0);
+                var imageWidth = type.GetDim(1);
+
                 var dataFile = GetDataPath("images/images.tsv");
                 var imageFolder = Path.GetDirectoryName(dataFile);
                 var data = TextLoader.Create(env, new TextLoader.Arguments()
@@ -759,7 +764,7 @@ namespace Microsoft.ML.Scenarios
                 }, cropped);
 
 
-                IDataView trans = TensorFlowTransform.Create(env, pixels, model_location, new[] { "Output" }, new[] { "Input" });
+                IDataView trans = TensorFlowTransform.Create(env, pixels, tensorFlowContext, new[] { "Output" }, new[] { "Input" });
 
                 trans.Schema.TryGetColumnIndex("Output", out int output);
                 using (var cursor = trans.GetRowCursor(col => col == output))
@@ -786,10 +791,12 @@ namespace Microsoft.ML.Scenarios
             using (var env = new ConsoleEnvironment())
             {
                 var tensorFlowContext = TensorFlowUtils.LoadTensorFlowModel(env, model_location);
-                Assert.True(tensorFlowContext.Schema.TryGetColumnIndex("Input", out int column));
-                var type = tensorFlowContext.Schema.GetColumnType(column).AsVector;
+                var schema = tensorFlowContext.GetInputSchema();
+                Assert.True(schema.TryGetColumnIndex("Input", out int column));
+                var type = schema.GetColumnType(column).AsVector;
                 var imageHeight = type.GetDim(0);
                 var imageWidth = type.GetDim(1);
+
                 var dataFile = GetDataPath("images/images.tsv");
                 var imageFolder = Path.GetDirectoryName(dataFile);
                 var data = TextLoader.Create(env, new TextLoader.Arguments()
