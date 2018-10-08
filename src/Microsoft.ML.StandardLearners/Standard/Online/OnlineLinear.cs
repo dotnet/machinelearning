@@ -150,10 +150,7 @@ namespace Microsoft.ML.Runtime.Learners
                 Float maxNorm = Math.Max(VectorUtils.MaxNorm(ref Weights), Math.Abs(Bias));
                 Contracts.Check(FloatUtils.IsFinite(maxNorm),
                     "The weights/bias contain invalid values (NaN or Infinite). Potential causes: high learning rates, no normalization, high initial weights, etc.");
-
-                ch.Done();
             }
-
             return CreatePredictor();
         }
 

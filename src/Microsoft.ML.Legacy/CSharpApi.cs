@@ -10524,10 +10524,10 @@ namespace Microsoft.ML
             public ClassificationLossFunction LossFunction { get; set; } = new LogLossClassificationLossFunction();
 
             /// <summary>
-            /// L2 regularizer constant
+            /// L2 Regularization constant
             /// </summary>
             [TlcModule.SweepableDiscreteParamAttribute("L2Const", new object[]{1E-07f, 5E-07f, 1E-06f, 5E-06f, 1E-05f})]
-            public float L2Const { get; set; } = 1E-06f;
+            public float L2Weight { get; set; } = 1E-06f;
 
             /// <summary>
             /// Degree of lock-free parallelism. Defaults to automatic depending on data sparseness. Determinism not guaranteed.

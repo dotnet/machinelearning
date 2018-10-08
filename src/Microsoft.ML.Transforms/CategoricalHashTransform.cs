@@ -283,7 +283,6 @@ namespace Microsoft.ML.Runtime.Data
                     else
                         _toSomething = toVector;
                 }
-                ch.Done();
             }
         }
 
