@@ -9,7 +9,7 @@ namespace Microsoft.ML.StaticPipe.Runtime
     /// <summary>
     /// An object for declaring a schema-shape. This is mostly commonly used in situations where a user is
     /// asserting that a dynamic object bears a certain specific static schema. For example: when phrasing
-    /// the dynamically typed <see cref="IDataView"/> as being a specific <see cref="DataView{TTupleShape}"/>.
+    /// the dynamically typed <see cref="IDataView"/> as being a specific <see cref="DataView{TShape}"/>.
     /// It is never created by the user directly, but instead an instance is typically fed in as an argument
     /// to a delegate, and the user will call methods on this context to indicate a certain type is so.
     /// </summary>

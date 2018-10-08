@@ -168,7 +168,6 @@ namespace Microsoft.ML.Runtime.Data
                 Action disp;
                 var getters = CreateGetters(input, active, out disp);
                 disposer += disp;
-                ch.Done();
                 return new Row(input, this, Schema, getters);
             }
         }
@@ -809,7 +808,6 @@ namespace Microsoft.ML.Runtime.Data
                     getters[iinfo] = GetGetterCore(ch, input, iinfo, out disp);
                     disposer += disp;
                 }
-                ch.Done();
                 return getters;
             }
         }
