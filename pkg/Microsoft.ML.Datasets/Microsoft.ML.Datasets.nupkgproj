@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk" DefaultTargets="Pack">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <PackageDescription>ML.NET additional learners making use of hardware acceleration. They use Intel Mkl.</PackageDescription>
+  </PropertyGroup>
+
+  <ItemGroup> 
+    <Content Include="..\common\CommonPackage.props" Pack="true" PackagePath="build\netstandard2.0\$(MSBuildProjectName).props" />	
+	<Content Include="..\..\test\data\syntheticRegressionTrain.txt" Pack="true" BuildAction="Content" target=".\content\regression\" /> 
+	<Content Include="..\..\test\data\syntheticRegressionTest.txt" Pack="true" BuildAction="Content" target=".\content\regression\" />
+  </ItemGroup> 
+  
+</Project>
