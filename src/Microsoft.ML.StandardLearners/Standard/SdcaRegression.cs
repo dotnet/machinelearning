@@ -27,9 +27,9 @@ namespace Microsoft.ML.Runtime.Learners
     /// <include file='doc.xml' path='doc/members/member[@name="SDCA"]/*' />
     public sealed class SdcaRegressionTrainer : SdcaTrainerBase<RegressionPredictionTransformer<LinearRegressionPredictor>, LinearRegressionPredictor>
     {
-        public const string LoadNameValue = "SDCAR";
-        public const string UserNameValue = "Fast Linear Regression (SA-SDCA)";
-        public const string ShortName = "sasdcar";
+        internal const string LoadNameValue = "SDCAR";
+        internal const string UserNameValue = "Fast Linear Regression (SA-SDCA)";
+        internal const string ShortName = "sasdcar";
         internal const string Summary = "The SDCA linear regression trainer.";
 
         public sealed class Arguments : ArgumentsBase

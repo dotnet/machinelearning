@@ -105,5 +105,56 @@ namespace Microsoft.ML.Runtime.Model.Onnx
         /// <param name="variableName">The ONNX name of the returned shape</param>
         /// <returns>The shape of the retrieved variable</returns>
         public abstract List<long> RetrieveShapeOrNull(string variableName);
+
+        /// <summary>
+        /// Call this function can declare a global float
+        /// </summary>
+        /// <param name="value">The float number which is going to be added</param>
+        /// <param name="name">A string used as a seed to generate this initializer's name in the ONNX graph.</param>
+        /// <returns>The initializer's ONNX name</returns>
+        public abstract string AddInitializer(float value, string name = null);
+
+        /// <summary>
+        /// Call this function can declare a global long
+        /// </summary>
+        /// <param name="value">The long number which is going to be added into the ONNX graph</param>
+        /// <param name="name">A string used as a seed to generate this initializer's name in the ONNX graph.</param>
+        /// <returns>The initializer's ONNX name</returns>
+        public abstract string AddInitializer(long value, string name = null);
+
+        /// <summary>
+        /// Call this function can declare a global string
+        /// </summary>
+        /// <param name="value">The string which is going to be added into the ONNX graph</param>
+        /// <param name="name">A string used as a seed to generate this initializer's name in the ONNX graph.</param>
+        /// <returns>The initializer's ONNX name</returns>
+        public abstract string AddInitializer(string value, string name = null);
+
+        /// <summary>
+        /// Call this function can declare a global float tensor
+        /// </summary>
+        /// <param name="values">The floats which are going to be added into the ONNX graph</param>
+        /// <param name="dims">The shape that the floats</param>
+        /// <param name="name">A string used as a seed to generate this initializer's name in the ONNX graph.</param>
+        /// <returns>The initializer's ONNX name</returns>
+        public abstract string AddInitializer(IEnumerable<float> values, IEnumerable<long> dims, string name = null);
+
+        /// <summary>
+        /// Call this function can declare a global long tensor
+        /// </summary>
+        /// <param name="values">The longs which are going to be added into the ONNX graph</param>
+        /// <param name="dims">The shape that the floats</param>
+        /// <param name="name">A string used as a seed to generate this initializer's name in the ONNX graph.</param>
+        /// <returns>The initializer's ONNX name</returns>
+        public abstract string AddInitializer(IEnumerable<long> values, IEnumerable<long> dims, string name = null);
+
+        /// <summary>
+        /// Call this function can declare a global string tensor
+        /// </summary>
+        /// <param name="values">The strings which are going to be added into the ONNX graph</param>
+        /// <param name="dims">The shape that the strings</param>
+        /// <param name="name">A string used as a seed to generate this initializer's name in the ONNX graph.</param>
+        /// <returns>The initializer's ONNX name</returns>
+        public abstract string AddInitializer(IEnumerable<string> values, IEnumerable<long> dims, string name = null);
     }
 }

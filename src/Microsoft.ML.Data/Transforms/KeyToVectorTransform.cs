@@ -172,22 +172,16 @@ namespace Microsoft.ML.Runtime.Data
 
             host.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel(GetVersionInfo());
-
-            return new KeyToVectorTransform(host, ctx);
-        }
-
-        private static ModelLoadContext ReadFloatFromCtx(IHostEnvironment env, ModelLoadContext ctx)
-        {
             if (ctx.Header.ModelVerWritten == 0x00010001)
             {
                 int cbFloat = ctx.Reader.ReadInt32();
                 env.CheckDecode(cbFloat == sizeof(float));
             }
-            return ctx;
+            return new KeyToVectorTransform(host, ctx);
         }
 
         private KeyToVectorTransform(IHost host, ModelLoadContext ctx)
-          : base(host, ReadFloatFromCtx(host, ctx))
+          : base(host, ctx)
         {
             var columnsLength = ColumnPairs.Length;
             // *** Binary format ***

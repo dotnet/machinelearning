@@ -339,7 +339,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
                 if (dataRoles != null)
                 {
                     var items = dataRoles.Schema.GetColumnRoles();
-                    foreach(var item in items)
+                    foreach (var item in items)
                     {
                         Enum.TryParse(item.Key.Value, out ColumnPurpose purpose);
                         var col = cols.Find(x => x.ColumnName == item.Value.Name);
