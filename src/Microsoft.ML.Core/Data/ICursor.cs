@@ -40,7 +40,7 @@ namespace Microsoft.ML.Runtime.Data
 
         /// <summary>
         /// A getter for a 128-bit ID value. It is common for objects to serve multiple <see cref="ICounted"/>
-        /// instances to iterate over what is supposed to be the same data, e.g., in a <see cref="IDataView"/>
+        /// instances to iterate over what is supposed to be the same data, for example, in a <see cref="IDataView"/>
         /// a cursor set will produce the same data as a serial cursor, just partitioned, and a shuffled cursor
         /// will produce the same data as a serial cursor or any other shuffled cursor, only shuffled. The ID
         /// exists for applications that need to reconcile which entry is actually which. Ideally this ID should
