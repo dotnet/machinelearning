@@ -342,7 +342,8 @@ namespace Microsoft.ML.Runtime.Model.Onnx
                     dataType = TensorProto.Types.DataType.Double;
                     break;
                 default:
-                    Contracts.Assert(false, "Unsupported type: DataKind " + rawKind.ToString());
+                    string msg = "Unsupported type: DataKind " + rawKind.ToString();
+                    Contracts.Check(false, msg);
                     break;
             }
 
