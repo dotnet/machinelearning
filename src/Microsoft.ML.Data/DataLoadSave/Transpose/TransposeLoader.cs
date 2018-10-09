@@ -354,7 +354,8 @@ namespace Microsoft.ML.Runtime.Data.IO
                 verWrittenCur: 0x00010001, // Initial
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
-                loaderSignature: LoadName);
+                loaderSignature: LoadName,
+                loaderAssemblyName: typeof(TransposeLoader).Assembly.FullName);
         }
 
         // We return the schema view's schema, because we don't necessarily want

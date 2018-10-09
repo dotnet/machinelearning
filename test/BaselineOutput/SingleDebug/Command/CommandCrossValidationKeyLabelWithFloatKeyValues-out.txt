@@ -38,8 +38,6 @@ DCG@2:              0.000000 (0.0000)
 DCG@3:              0.000000 (0.0000)
 
 ---------------------------------------
-Warning: There is no NA value for type 'Text'. The missing key value will be mapped to the default value of 'Text'
-Warning: There is no NA value for type 'Text'. The missing key value will be mapped to the default value of 'Text'
 Physical memory usage(MB): %Number%
 Virtual memory usage(MB): %Number%
 %DateTime%	 Time elapsed(s): %Number%

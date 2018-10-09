@@ -95,7 +95,8 @@ namespace Microsoft.ML.Legacy.Data
                     throw Contracts.Except($"{mappingAttr.Ordinal} contains invalid characters. " +
                         $"Valid characters are 0-9, *, - and ~");
 
-                var name = mappingAttr.Name ?? memberInfo.Name;
+                var mappingNameAttr = memberInfo.GetCustomAttribute<ColumnNameAttribute>();
+                var name = mappingAttr.Name ?? mappingNameAttr?.Name ?? memberInfo.Name;
 
                 Runtime.Data.TextLoader.Range[] sources;
                 if (!Runtime.Data.TextLoader.Column.TryParseSourceEx(mappingAttr.Ordinal, out sources))

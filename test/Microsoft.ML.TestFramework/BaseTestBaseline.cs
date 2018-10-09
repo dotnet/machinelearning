@@ -9,7 +9,6 @@ using Microsoft.ML.TestFramework;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -22,22 +21,12 @@ namespace Microsoft.ML.Runtime.RunTests
     /// <summary>
     /// This is a base test class designed to support baseline comparison.
     /// </summary>
-    public abstract partial class BaseTestBaseline : BaseTestClass, IDisposable
+    public abstract partial class BaseTestBaseline : BaseTestClass
     {
-        private readonly ITestOutputHelper _output;
+        public const decimal Tolerance = 10_000_000;
 
-        protected BaseTestBaseline(ITestOutputHelper helper) : base(helper)
+        protected BaseTestBaseline(ITestOutputHelper output) : base(output)
         {
-            _output = helper;
-            ITest test = (ITest)helper.GetType().GetField("test", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(helper);
-            FullTestName = test.TestCase.TestMethod.TestClass.Class.Name + "." + test.TestCase.TestMethod.Method.Name;
-            TestName = test.TestCase.TestMethod.Method.Name;
-            Init();
-        }
-
-        void IDisposable.Dispose()
-        {
-            Cleanup();
         }
 
         internal const string RawSuffix = ".raw";
@@ -92,11 +81,10 @@ namespace Microsoft.ML.Runtime.RunTests
         private bool _normal;
         private bool _passed;
 
-        public string TestName { get; set; }
-        public string FullTestName { get; set; }
-
-        public void Init()
+        protected override void Initialize()
         {
+            base.Initialize();
+
             // Create the output and log directories.
             Contracts.Check(Directory.Exists(Path.Combine(RootDir, TestDir, "BaselineOutput")));
             string logDir = Path.Combine(OutDir, _logRootRelPath);
@@ -108,16 +96,19 @@ namespace Microsoft.ML.Runtime.RunTests
             string logPath = Path.Combine(logDir, FullTestName + LogSuffix);
             LogWriter = OpenWriter(logPath);
             _passed = true;
-            Env = new ConsoleEnvironment(42, outWriter: LogWriter, errWriter: LogWriter);
-            InitializeCore();
+            Env = new ConsoleEnvironment(42, outWriter: LogWriter, errWriter: LogWriter)
+                .AddStandardComponents();
         }
 
-        public void Cleanup()
+        // This method is used by subclass to dispose of disposable objects
+        // such as LocalEnvironment.
+        // It is called as a first step in test clean up.
+        protected override void Cleanup()
         {
-            // REVIEW: Is there a way to determine whether the test completed normally?
-            // Requiring tests to call Done() is hokey.
+            if (Env != null)
+                Env.Dispose();
+            Env = null;
 
-            CleanupCore();
             Contracts.Assert(IsActive);
             Log("Test {0}: {1}: {2}", TestName,
                 _normal ? "completed normally" : "aborted",
@@ -126,20 +117,8 @@ namespace Microsoft.ML.Runtime.RunTests
             Contracts.AssertValue(LogWriter);
             LogWriter.Dispose();
             LogWriter = null;
-        }
 
-        protected virtual void InitializeCore()
-        {
-        }
-
-        // This method is used by subclass to dispose of disposable objects
-        // such as LocalEnvironment.
-        // It is called as a first step in test clean up.
-        protected virtual void CleanupCore()
-        {
-            if (Env != null)
-                Env.Dispose();
-            Env = null;
+            base.Cleanup();
         }
 
         protected bool IsActive { get { return LogWriter != null; } }
@@ -208,7 +187,7 @@ namespace Microsoft.ML.Runtime.RunTests
             Contracts.Assert(IsActive);
             Contracts.AssertValue(LogWriter);
             LogWriter.WriteLine(msg);
-            _output.WriteLine(msg);
+            Output.WriteLine(msg);
         }
 
         protected void Log(string fmt, params object[] args)
@@ -216,7 +195,7 @@ namespace Microsoft.ML.Runtime.RunTests
             Contracts.Assert(IsActive);
             Contracts.AssertValue(LogWriter);
             LogWriter.WriteLine(fmt, args);
-            _output.WriteLine(fmt, args);
+            Output.WriteLine(fmt, args);
         }
 
         protected string GetBaselineDir(string subDir)
@@ -373,12 +352,12 @@ namespace Microsoft.ML.Runtime.RunTests
         /// Check whether two files are same ignoring volatile differences (path, dates, times, etc).
         /// Returns true if the check passes.
         /// </summary>
-        protected bool CheckEqualityNormalized(string dir, string name, string nameBase = null)
+        protected bool CheckEqualityNormalized(string dir, string name, string nameBase = null, decimal precision = Tolerance)
         {
-            return CheckEqualityCore(dir, name, nameBase ?? name, true);
+            return CheckEqualityCore(dir, name, nameBase ?? name, true, precision);
         }
 
-        protected bool CheckEqualityCore(string dir, string name, string nameBase, bool normalize)
+        protected bool CheckEqualityCore(string dir, string name, string nameBase, bool normalize, decimal precision = Tolerance)
         {
             Contracts.Assert(IsActive);
             Contracts.AssertValue(dir); // Can be empty.
@@ -405,7 +384,7 @@ namespace Microsoft.ML.Runtime.RunTests
             if (!CheckBaseFile(basePath))
                 return false;
 
-            bool res = CheckEqualityFromPathsCore(relPath, basePath, outPath);
+            bool res = CheckEqualityFromPathsCore(relPath, basePath, outPath, precision: precision);
 
             // No need to keep the raw (unnormalized) output file.
             if (normalize && res)
@@ -522,7 +501,7 @@ namespace Microsoft.ML.Runtime.RunTests
         /// skipping the given number of lines on the output, and finding the corresponding line
         /// in the baseline.
         /// </summary>
-        protected bool CheckEqualityNormalized(string dir, string name, string suffix, int skip)
+        protected bool CheckEqualityNormalized(string dir, string name, string suffix, int skip, decimal precision = Tolerance)
         {
             Contracts.Assert(IsActive);
             Contracts.AssertValue(dir); // Can be empty.
@@ -543,7 +522,7 @@ namespace Microsoft.ML.Runtime.RunTests
             if (!CheckBaseFile(basePath))
                 return false;
 
-            bool res = CheckEqualityFromPathsCore(relPath, basePath, outPath, skip);
+            bool res = CheckEqualityFromPathsCore(relPath, basePath, outPath, skip, precision);
 
             // No need to keep the raw (unnormalized) output file.
             if (res)
@@ -552,7 +531,7 @@ namespace Microsoft.ML.Runtime.RunTests
             return res;
         }
 
-        protected bool CheckEqualityFromPathsCore(string relPath, string basePath, string outPath, int skip = 0, decimal precision = 10000000)
+        protected bool CheckEqualityFromPathsCore(string relPath, string basePath, string outPath, int skip = 0, decimal precision = Tolerance)
         {
             Contracts.Assert(skip >= 0);
 

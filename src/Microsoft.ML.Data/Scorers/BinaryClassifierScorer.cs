@@ -40,7 +40,8 @@ namespace Microsoft.ML.Runtime.Data
                 verWrittenCur: 0x00010004, // ISchemaBindableMapper update
                 verReadableCur: 0x00010004,
                 verWeCanReadBack: 0x00010004,
-                loaderSignature: LoaderSignature);
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(BinaryClassifierScorer).Assembly.FullName);
         }
 
         private const string RegistrationName = "BinaryClassifierScore";
@@ -297,8 +298,6 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         private static bool OutputTypeMatches(ColumnType scoreType)
-        {
-            return scoreType == NumberType.Float;
-        }
+            => scoreType == NumberType.Float;
     }
 }

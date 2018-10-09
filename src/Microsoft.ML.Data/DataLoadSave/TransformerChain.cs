@@ -57,7 +57,8 @@ namespace Microsoft.ML.Runtime.Data
                 verWrittenCur: 0x00010001, // Initial
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
-                loaderSignature: TransformerChain.LoaderSignature);
+                loaderSignature: TransformerChain.LoaderSignature,
+                loaderAssemblyName: typeof(TransformerChain<>).Assembly.FullName);
         }
 
         /// <summary>
@@ -145,7 +146,7 @@ namespace Microsoft.ML.Runtime.Data
             where TNewLast : class, ITransformer
         {
             Contracts.CheckValue(transformer, nameof(transformer));
-            return new TransformerChain<TNewLast>(_transformers.Append(transformer).ToArray(), _scopes.Append(scope).ToArray());
+            return new TransformerChain<TNewLast>(_transformers.AppendElement(transformer), _scopes.AppendElement(scope));
         }
 
         public void Save(ModelSaveContext ctx)

@@ -8,7 +8,7 @@ using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 
-namespace Microsoft.ML.Data.StaticPipe.Runtime
+namespace Microsoft.ML.StaticPipe.Runtime
 {
     /// <summary>
     /// An object for <see cref="PipelineColumn"/> instances to indicate to the analysis code for static pipelines that
@@ -46,7 +46,7 @@ namespace Microsoft.ML.Data.StaticPipe.Runtime
 
     /// <summary>
     /// Reconciler for column groups intended to resolve to an <see cref="IEstimator{TTransformer}"/>. This type of
-    /// reconciler will work with <see cref="Estimator{TTupleInShape, TTupleOutShape, TTransformer}.Append{TTupleNewOutShape}(Func{TTupleOutShape, TTupleNewOutShape})"/>
+    /// reconciler will work with <see cref="Estimator{TInShape, TOutShape, TTransformer}.Append{TNewOutShape}(Func{TOutShape, TNewOutShape})"/>
     /// or other methods that involve the creation of estimator chains.
     /// </summary>
     public abstract class EstimatorReconciler : Reconciler

@@ -25,7 +25,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 
             var trainData = pipe.Fit(data).Transform(data).AsDynamic;
 
-            IEstimator<ITransformer> est = new OnlineGradientDescentTrainer(Env, new OnlineGradientDescentTrainer.Arguments());
+            IEstimator<ITransformer> est = new OnlineGradientDescentTrainer(Env, "Label", "Features");
             TestEstimatorCore(est, trainData);
 
             est = new AveragedPerceptronTrainer(Env, new AveragedPerceptronTrainer.Arguments());
