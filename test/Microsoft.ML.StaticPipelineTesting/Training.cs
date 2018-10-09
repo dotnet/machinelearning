@@ -629,7 +629,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var loss = new SquaredLoss();
 
             var est = reader.MakeNewEstimator()
-                .Append(r => (r.label, score: ctx.Trainers.OnlineGradientDescent(r.label, r.features, 
+                .Append(r => (r.label, score: ctx.Trainers.OnlineGradientDescent(r.label, r.features,
                 lossFunction:loss,
                 onFit: (p) => { pred = p; })));
 
