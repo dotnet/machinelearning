@@ -204,6 +204,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 if(!RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
                     RunOneAllTests(TestLearners.multiclassLogisticRegression, TestDatasets.irisTreeFeaturized, digitsOfPrecision: 4);
 #else
+
                 RunOneAllTests(TestLearners.multiclassLogisticRegression, TestDatasets.irisTreeFeaturized, digitsOfPrecision: 4);
 #endif
                 RunOneAllTests(TestLearners.multiclassLogisticRegression, TestDatasets.irisTreeFeaturizedPermuted, digitsOfPrecision: 4);
