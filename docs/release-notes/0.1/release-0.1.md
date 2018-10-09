@@ -22,7 +22,7 @@ Or from within Visual Studio's NuGet package manager.
 
 This initial release contains core ML.NET components for enabling machine learning pipelines:
 
-* ML Data Structures (for example, `IDataView`, `LearningPipeline`)
+* ML Data Structures (e.g. `IDataView`, `LearningPipeline`)
 
 * TextLoader (loading data from a delimited text file into a `LearningPipeline`)
 

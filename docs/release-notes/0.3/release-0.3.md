@@ -84,8 +84,8 @@ Below are some of the highlights from this release.
       (sometimes known as One-Versus-Rest) is an approach to using binary
       classifiers in multiclass classification problems. 
     * While some binary classification learners in ML.NET natively support
-      multiclass classification (for example, Logistic Regression), there are others
-      that do not (for example, Averaged Perceptron). OVA enables using the latter
+      multiclass classification (e.g. Logistic Regression), there are others
+      that do not (e.g. Averaged Perceptron). OVA enables using the latter
       group for multiclass classification as well.
 
 * Enabled export of ML.NET models to the [ONNX](https://onnx.ai/) format
