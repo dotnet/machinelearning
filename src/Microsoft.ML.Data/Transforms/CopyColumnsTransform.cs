@@ -203,7 +203,6 @@ namespace Microsoft.ML.Transforms
 
             public void SaveAsOnnx(OnnxContext ctx)
             {
-                var infos = GetOutputColumns();
                 var opType = "CSharp";
 
                 foreach (var column in _columns)
