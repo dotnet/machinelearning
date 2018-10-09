@@ -1670,7 +1670,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 // First run a training.
                 string pathData = GetDataPath("housing.txt");
                 OutputPath trainModel = ModelPath();
-                TestCore("train", pathData, "loader=text", "lab=Label feat=Features tr=FastForestRegression{dt+}");
+                TestCore("train", pathData, "loader=Text{header+}", "lab=Label feat=Features tr=FastForestRegression{dt+}");
 
                 // Then, run the score.
                 _step++;

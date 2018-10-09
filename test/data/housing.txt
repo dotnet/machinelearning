@@ -1,3 +1,4 @@
+MedianHomeValue	CrimesPerCapita	PercentResidental	PercentNonRetail	CharlesRiver	NitricOxides	RoomsPerDwelling	PercentPre40s	EmploymentDistance	HighwayDistance	TaxRate	TeacherRatio	BlackIndex	PercentLowIncome
 24.00	0.00632	18.00	2.310	0	0.5380	6.5750	65.20	4.0900	1	296.0	15.30	396.90	4.98
 21.60	0.02731	0.00	7.070	0	0.4690	6.4210	78.90	4.9671	2	242.0	17.80	396.90	9.14
 34.70	0.02729	0.00	7.070	0	0.4690	7.1850	61.10	4.9671	2	242.0	17.80	392.83	4.03

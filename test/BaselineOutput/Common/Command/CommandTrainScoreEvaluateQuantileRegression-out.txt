@@ -1,4 +1,4 @@
-maml.exe Train tr=FastForestRegression{dt+} loader=text data=%Data% out=%Output%
+maml.exe Train tr=FastForestRegression{dt+} loader=Text{header+} data=%Data% out=%Output%
 Not adding a normalizer.
 Making per-feature arrays
 Changing data from row-wise to column-wise on disk
