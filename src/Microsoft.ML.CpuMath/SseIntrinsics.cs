@@ -558,27 +558,27 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                         // unaligned loads where we mask the input each time.
                         remainder = length;
                     }
+                }
 
-                    if (remainder != 0)
-                    {
-                        // Handle any trailing elements that don't fit into a 128-bit block by moving back so that the next
-                        // unaligned load will read to the end of the array and then mask out any elements already processed
+                if (remainder != 0)
+                {
+                    // Handle any trailing elements that don't fit into a 128-bit block by moving back so that the next
+                    // unaligned load will read to the end of the array and then mask out any elements already processed
 
-                        pDstCurrent -= (4 - remainder);
+                    pDstCurrent -= (4 - remainder);
 
-                        Vector128<float> result = Sse.LoadVector128(pDstCurrent);
+                    Vector128<float> result = Sse.LoadVector128(pDstCurrent);
 
-                        Vector128<float> trailingMask = Sse.LoadVector128(((float*)(pTrailingAlignmentMask)) + (remainder * 4));
-                        Vector128<float> leadingMask = Sse.LoadVector128(((float*)(pLeadingAlignmentMask)) + ((4 - remainder) * 4));
+                    Vector128<float> trailingMask = Sse.LoadVector128(((float*)(pTrailingAlignmentMask)) + (remainder * 4));
+                    Vector128<float> leadingMask = Sse.LoadVector128(((float*)(pLeadingAlignmentMask)) + ((4 - remainder) * 4));
 
-                        Vector128<float> temp = Sse.And(result, trailingMask);
-                        result = Sse.And(result, leadingMask);
+                    Vector128<float> temp = Sse.And(result, trailingMask);
+                    result = Sse.And(result, leadingMask);
 
-                        temp = Sse.Multiply(scaleVector128, temp);
-                        temp = Sse.Or(temp, result);
+                    temp = Sse.Multiply(scaleVector128, temp);
+                    temp = Sse.Or(temp, result);
 
-                        Sse.Store(pDstCurrent, temp);
-                    }
+                    Sse.Store(pDstCurrent, temp);
                 }
             }
         }

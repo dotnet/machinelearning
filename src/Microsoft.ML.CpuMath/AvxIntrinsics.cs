@@ -571,27 +571,27 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                         // unaligned loads where we mask the input each time.
                         remainder = length;
                     }
+                }
 
-                    if (remainder != 0)
-                    {
-                        // Handle any trailing elements that don't fit into a 128-bit block by moving back so that the next
-                        // unaligned load will read to the end of the array and then mask out any elements already processed
+                if (remainder != 0)
+                {
+                    // Handle any trailing elements that don't fit into a 128-bit block by moving back so that the next
+                    // unaligned load will read to the end of the array and then mask out any elements already processed
 
-                        pDstCurrent -= (8 - remainder);
+                    pDstCurrent -= (8 - remainder);
 
-                        Vector256<float> result = Avx.LoadVector256(pDstCurrent);
+                    Vector256<float> result = Avx.LoadVector256(pDstCurrent);
 
-                        Vector256<float> trailingMask = Avx.LoadVector256(((float*)(pTrailingAlignmentMask)) + (remainder * 8));
-                        Vector256<float> leadingMask = Avx.LoadVector256(((float*)(pLeadingAlignmentMask)) + (( 8 - remainder) * 8));
+                    Vector256<float> trailingMask = Avx.LoadVector256(((float*)(pTrailingAlignmentMask)) + (remainder * 8));
+                    Vector256<float> leadingMask = Avx.LoadVector256(((float*)(pLeadingAlignmentMask)) + ((8 - remainder) * 8));
 
-                        Vector256<float> temp = Avx.And(result, trailingMask);
-                        result = Avx.And(result, leadingMask);
+                    Vector256<float> temp = Avx.And(result, trailingMask);
+                    result = Avx.And(result, leadingMask);
 
-                        temp = Avx.Multiply(scaleVector256, temp);
-                        temp = Avx.Or(temp, result);
+                    temp = Avx.Multiply(scaleVector256, temp);
+                    temp = Avx.Or(temp, result);
 
-                        Avx.Store(pDstCurrent, temp);
-                    }
+                    Avx.Store(pDstCurrent, temp);
                 }
             }
         }
