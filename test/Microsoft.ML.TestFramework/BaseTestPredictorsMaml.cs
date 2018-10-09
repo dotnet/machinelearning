@@ -208,12 +208,12 @@ namespace Microsoft.ML.Runtime.RunTests
 
                 // Run result processor on the console output.
                 RunResultProcessorTest(new string[] { consOutPath.Path }, rpOutPath, rpArgs);
-                CheckEqualityNormalized(dir, rpName);
+                CheckEqualityNormalized(dir, rpName, digitsOfPrecision:digitsOfPrecision);
             }
 
             // Check the prediction output against its baseline.
             Contracts.Assert(predOutPath != null);
-            predOutPath.CheckEquality();
+            predOutPath.CheckEquality(digitsOfPrecision: digitsOfPrecision);
 
             if (ctx.Command == Cmd.TrainTest)
             {
@@ -337,13 +337,13 @@ namespace Microsoft.ML.Runtime.RunTests
         /// </summary>
         protected void RunAllTests(
             IList<PredictorAndArgs> predictors, IList<TestDataset> datasets,
-            string[] extraSettings = null, string extraTag = "", bool summary = false)
+            string[] extraSettings = null, string extraTag = "", bool summary = false, int digitsOfPrecision = DigitsOfPrecision)
         {
             Contracts.Assert(IsActive);
             foreach (TestDataset dataset in datasets)
             {
                 foreach (PredictorAndArgs predictor in predictors)
-                    RunOneAllTests(predictor, dataset, extraSettings, extraTag, summary);
+                    RunOneAllTests(predictor, dataset, extraSettings, extraTag, summary, digitsOfPrecision);
             }
         }
 

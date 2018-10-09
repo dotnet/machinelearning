@@ -1,0 +1,38 @@
+maml.exe TrainTest test=%Data% tr=ffm{d=7 shuf- iters=3 norm-} cont=+ loader=text{col=Label:0 col=Features:1-*} data=%Data% out=%Output% in=%Output% xf=minmax{col=Features}
+Not adding a normalizer.
+Warning: Skipped 16 examples with bad label/weight/features in training set
+Not training a calibrator because it is not needed.
+Warning: The predictor produced non-finite prediction values on 16 instances during testing. Possible causes: abnormal data or the predictor is numerically unstable.
+TEST POSITIVE RATIO:	0.3499 (239.0/(239.0+444.0))
+Confusion table
+          ||======================
+PREDICTED || positive | negative | Recall
+TRUTH     ||======================
+ positive ||      213 |       26 | 0.8912
+ negative ||        7 |      437 | 0.9842
+          ||======================
+Precision ||   0.9682 |   0.9438 |
+OVERALL 0/1 ACCURACY: 0.951684
+LOG LOSS/instance:  0.260415
+Test-set entropy (prior Log-Loss/instance): 0.934003
+LOG-LOSS REDUCTION (RIG): 72.118377
+AUC:                0.977628
+
+OVERALL RESULTS
+---------------------------------------
+AUC:                0.977628 (0.0000)
+Accuracy:           0.951684 (0.0000)
+Positive precision: 0.968182 (0.0000)
+Positive recall:    0.891213 (0.0000)
+Negative precision: 0.943844 (0.0000)
+Negative recall:    0.984234 (0.0000)
+Log-loss:           0.260415 (0.0000)
+Log-loss reduction: 72.118377 (0.0000)
+F1 Score:           0.928105 (0.0000)
+AUPRC:              0.976838 (0.0000)
+
+---------------------------------------
+Physical memory usage(MB): %Number%
+Virtual memory usage(MB): %Number%
+%DateTime%	 Time elapsed(s): %Number%
+

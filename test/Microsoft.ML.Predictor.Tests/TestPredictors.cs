@@ -1934,14 +1934,21 @@ output Out [3] from H all;
         /// <summary>
         /// A test for field-aware factorization machine.
         /// </summary>
-        [Fact(Skip = "Need CoreTLC specific baseline update")]
+        [Fact]
         [TestCategory("Binary")]
         [TestCategory("FieldAwareFactorizationMachine")]
         public void BinaryClassifierFieldAwareFactorizationMachineTest()
         {
             var binaryPredictors = new[] { TestLearners.FieldAwareFactorizationMachine };
             var binaryClassificationDatasets = GetDatasetsForBinaryClassifierBaseTest();
-            RunAllTests(binaryPredictors, binaryClassificationDatasets);
+
+            // see https://github.com/dotnet/machinelearning/issues/404
+            // in Linux, the clang sqrt() results vary highly from the ones in mac and Windows. 
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+                RunAllTests(binaryPredictors, binaryClassificationDatasets, digitsOfPrecision:4);
+            else
+                RunAllTests(binaryPredictors, binaryClassificationDatasets);
+
             Done();
         }
 
