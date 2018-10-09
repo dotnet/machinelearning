@@ -190,8 +190,8 @@ namespace Microsoft.ML.Tests
 
             using (var env = new ConsoleEnvironment())
             {
-                var tensorFlowContext = TensorFlowUtils.LoadTensorFlowModel(env, modelLocation);
-                var schema = tensorFlowContext.GetInputSchema();
+                var tensorFlowModel = TensorFlowUtils.LoadTensorFlowModel(env, modelLocation);
+                var schema = tensorFlowModel.GetInputSchema();
                 Assert.True(schema.TryGetColumnIndex("Input", out int column));
                 var type = schema.GetColumnType(column).AsVector;
                 var imageHeight = type.GetDim(0);
@@ -210,7 +210,7 @@ namespace Microsoft.ML.Tests
                     .Append(row => (
                         row.name,
                         Input: row.imagePath.LoadAsImage(imageFolder).Resize(imageHeight, imageWidth).ExtractPixels(interleaveArgb: true)))
-                    .Append(row => (row.name, Output: row.Input.ApplyTensorFlowGraph(tensorFlowContext)));
+                    .Append(row => (row.name, Output: row.Input.ApplyTensorFlowGraph(tensorFlowModel)));
 
                 TestEstimatorCore(pipe.AsDynamic, data.AsDynamic);
 

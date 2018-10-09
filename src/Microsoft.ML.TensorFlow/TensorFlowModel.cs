@@ -9,7 +9,7 @@ using Microsoft.ML.Transforms.TensorFlow;
 namespace Microsoft.ML.Transforms
 {
     /// <summary>
-    /// This class holds the information related to TensorFLow model and session.
+    /// This class holds the information related to TensorFlow model and session.
     /// It provides a convenient way to query model schema as follows.
     /// <list type="bullet">
     ///    <item>

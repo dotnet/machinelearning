@@ -1102,8 +1102,8 @@ namespace Microsoft.ML.Transforms
         {
         }
 
-        public TensorFlowEstimator(IHostEnvironment env, TensorFlowModelInfo tensorFlowModelContext, string[] inputs, string[] outputs)
-           : this(env, new TensorFlowTransform(env, tensorFlowModelContext.Session, inputs, outputs, TensorFlowUtils.IsSavedModel(env, tensorFlowModelContext.ModelPath) ? tensorFlowModelContext.ModelPath : null, false))
+        public TensorFlowEstimator(IHostEnvironment env, TensorFlowModelInfo tensorFlowModel, string[] inputs, string[] outputs)
+           : this(env, new TensorFlowTransform(env, tensorFlowModel.Session, inputs, outputs, TensorFlowUtils.IsSavedModel(env, tensorFlowModel.ModelPath) ? tensorFlowModel.ModelPath : null, false))
         {
         }
 
@@ -1150,8 +1150,8 @@ namespace Microsoft.ML.Transforms
                 Input = input;
             }
 
-            public OutColumn(Vector<float> input, TensorFlowModelInfo tensorFlowModelContext)
-                : base(new Reconciler(tensorFlowModelContext), input)
+            public OutColumn(Vector<float> input, TensorFlowModelInfo tensorFlowModel)
+                : base(new Reconciler(tensorFlowModel), input)
             {
                 Input = input;
             }
@@ -1160,21 +1160,21 @@ namespace Microsoft.ML.Transforms
         private sealed class Reconciler : EstimatorReconciler
         {
             private readonly string _modelFile;
-            private readonly TensorFlowModelInfo _tensorFlowModelContext;
+            private readonly TensorFlowModelInfo _tensorFlowModel;
 
             public Reconciler(string modelFile)
             {
                 Contracts.AssertNonEmpty(modelFile);
                 _modelFile = modelFile;
-                _tensorFlowModelContext = null;
+                _tensorFlowModel = null;
             }
 
-            public Reconciler(TensorFlowModelInfo tensorFlowModelContext)
+            public Reconciler(TensorFlowModelInfo tensorFlowModel)
             {
-                Contracts.CheckValue(tensorFlowModelContext, nameof(tensorFlowModelContext));
+                Contracts.CheckValue(tensorFlowModel, nameof(tensorFlowModel));
 
                 _modelFile = null;
-                _tensorFlowModelContext = tensorFlowModelContext;
+                _tensorFlowModel = tensorFlowModel;
             }
 
             public override IEstimator<ITransformer> Reconcile(IHostEnvironment env,
@@ -1188,7 +1188,7 @@ namespace Microsoft.ML.Transforms
                 var outCol = (OutColumn)toOutput[0];
                 if (_modelFile == null)
                 {
-                    return new TensorFlowEstimator(env, _tensorFlowModelContext, new[] { inputNames[outCol.Input] }, new[] { outputNames[outCol] });
+                    return new TensorFlowEstimator(env, _tensorFlowModel, new[] { inputNames[outCol.Input] }, new[] { outputNames[outCol] });
                 }
                 else
                 {
@@ -1212,14 +1212,14 @@ namespace Microsoft.ML.Transforms
         }
 
         /// <summary>
-        /// Run a TensorFlow model provided through <paramref name="tensorFlowModelContext"/> on the input column and extract one output column.
+        /// Run a TensorFlow model provided through <paramref name="tensorFlowModel"/> on the input column and extract one output column.
         /// The inputs and outputs are matched to TensorFlow graph nodes by name.
         /// </summary>
-        public static Vector<float> ApplyTensorFlowGraph(this Vector<float> input, TensorFlowModelInfo tensorFlowModelContext)
+        public static Vector<float> ApplyTensorFlowGraph(this Vector<float> input, TensorFlowModelInfo tensorFlowModel)
         {
             Contracts.CheckValue(input, nameof(input));
-            Contracts.CheckValue(tensorFlowModelContext, nameof(tensorFlowModelContext));
-            return new OutColumn(input, tensorFlowModelContext);
+            Contracts.CheckValue(tensorFlowModel, nameof(tensorFlowModel));
+            return new OutColumn(input, tensorFlowModel);
         }
     }
 }

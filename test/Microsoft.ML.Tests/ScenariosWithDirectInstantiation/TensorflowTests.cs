@@ -735,8 +735,8 @@ namespace Microsoft.ML.Scenarios
 
             using (var env = new ConsoleEnvironment())
             {
-                var tensorFlowContext = TensorFlowUtils.LoadTensorFlowModel(env, model_location);
-                var schema = tensorFlowContext.GetInputSchema();
+                var tensorFlowModel = TensorFlowUtils.LoadTensorFlowModel(env, model_location);
+                var schema = tensorFlowModel.GetInputSchema();
                 Assert.True(schema.TryGetColumnIndex("Input", out int column));
                 var type = schema.GetColumnType(column).AsVector;
                 var imageHeight = type.GetDim(0);
@@ -775,7 +775,7 @@ namespace Microsoft.ML.Scenarios
                 }, cropped);
 
 
-                IDataView trans = TensorFlowTransform.Create(env, pixels, tensorFlowContext, new[] { "Output" }, new[] { "Input" });
+                IDataView trans = TensorFlowTransform.Create(env, pixels, tensorFlowModel, new[] { "Output" }, new[] { "Input" });
 
                 trans.Schema.TryGetColumnIndex("Output", out int output);
                 using (var cursor = trans.GetRowCursor(col => col == output))
@@ -801,8 +801,8 @@ namespace Microsoft.ML.Scenarios
 
             using (var env = new ConsoleEnvironment())
             {
-                var tensorFlowContext = TensorFlowUtils.LoadTensorFlowModel(env, model_location);
-                var schema = tensorFlowContext.GetInputSchema();
+                var tensorFlowModel = TensorFlowUtils.LoadTensorFlowModel(env, model_location);
+                var schema = tensorFlowModel.GetInputSchema();
                 Assert.True(schema.TryGetColumnIndex("Input", out int column));
                 var type = schema.GetColumnType(column).AsVector;
                 var imageHeight = type.GetDim(0);
@@ -841,7 +841,7 @@ namespace Microsoft.ML.Scenarios
                 }, cropped);
 
 
-                IDataView trans = TensorFlowTransform.Create(env, pixels, tensorFlowContext, new[] { "Output" }, new[] { "Input" });
+                IDataView trans = TensorFlowTransform.Create(env, pixels, tensorFlowModel, new[] { "Output" }, new[] { "Input" });
 
                 trans.Schema.TryGetColumnIndex("Output", out int output);
                 using (var cursor = trans.GetRowCursor(col => col == output))
