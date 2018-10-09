@@ -4,33 +4,40 @@
 
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
+using Microsoft.ML.Transforms.TensorFlow;
 
-namespace Microsoft.ML.Transforms.TensorFlow
+namespace Microsoft.ML.Transforms
 {
     /// <summary>
     /// This class holds the information related to TensorFLow model and session.
-    /// It provides a convenient way to query model schema
-    ///     - Get complete schema by calling <see cref="GetModelSchema()"/>
-    ///     - Get schema related to model input by calling <see cref="GetInputSchema()"/>
+    /// It provides a convenient way to query model schema as follows.
+    /// <list type="bullet">
+    ///    <item>
+    ///      <description>Get complete schema by calling <see cref="GetModelSchema()"/>.</description>
+    ///    </item>
+    ///    <item>
+    ///      <description>Get schema related to model input(s) by calling <see cref="GetInputSchema()"/>.</description>
+    ///    </item>
+    /// </list>
     /// </summary>
-    public class TensorFlowModelContext
+    public class TensorFlowModelInfo
     {
-        internal TFSession Session { get; private set; }
-        public string ModelPath { get; private set; }
+        internal TFSession Session { get; }
+        public string ModelPath { get; }
 
-        private readonly IHostEnvironment _host;
+        private readonly IHostEnvironment _env;
 
         /// <summary>
-        /// Instantiates <see cref="TensorFlowModelContext"/>
+        /// Instantiates <see cref="TensorFlowModelInfo"/>.
         /// </summary>
         /// <param name="env">An <see cref="IHostEnvironment"/> object.</param>
         /// <param name="session">TensorFlow session object.</param>
         /// <param name="modelLocation">Location of the model from where <paramref name="session"/> was loaded.</param>
-        internal TensorFlowModelContext(IHostEnvironment env, TFSession session, string modelLocation)
+        internal TensorFlowModelInfo(IHostEnvironment env, TFSession session, string modelLocation)
         {
             Session = session;
             ModelPath = modelLocation;
-            _host = env;
+            _env = env;
         }
 
         /// <summary>
@@ -38,16 +45,16 @@ namespace Microsoft.ML.Transforms.TensorFlow
         /// </summary>
         public ISchema GetModelSchema()
         {
-            return TensorFlowUtils.GetModelSchema(_host, Session.Graph);
+            return TensorFlowUtils.GetModelSchema(_env, Session.Graph);
         }
 
         /// <summary>
-        /// Get <see cref="ISchema"/> for only those nodes which are marked "PlaceHolder" in the TensorFlow model.
+        /// Get <see cref="ISchema"/> for only those nodes which are marked "Placeholder" in the TensorFlow model.
         /// This method is convenient for exploring the model input(s) in case TensorFlow graph is very large.
         /// </summary>
         public ISchema GetInputSchema()
         {
-            return TensorFlowUtils.GetModelSchema(_host, Session.Graph, "Placeholder");
+            return TensorFlowUtils.GetModelSchema(_env, Session.Graph, "Placeholder");
         }
     }
 }

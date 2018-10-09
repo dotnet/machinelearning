@@ -308,10 +308,10 @@ namespace Microsoft.ML.Transforms.TensorFlow
             }
         }
 
-        public static TensorFlowModelContext LoadTensorFlowModel(IHostEnvironment env, string modelPath)
+        public static TensorFlowModelInfo LoadTensorFlowModel(IHostEnvironment env, string modelPath)
         {
             var session = GetSession(env, modelPath);
-            return new TensorFlowModelContext(env, session, modelPath);
+            return new TensorFlowModelInfo(env, session, modelPath);
         }
 
         internal static TFSession GetSession(IHostEnvironment env, string modelPath)
