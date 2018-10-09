@@ -43,7 +43,7 @@
     <None Include="Scenarios\Api\AspirationalExamples.cs" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.ML.TensorFlow.TestModels" Version="0.0.3-test" />
+    <PackageReference Include="Microsoft.ML.TensorFlow.TestModels" Version="0.0.4-test" />
     <PackageReference Include="Microsoft.ML.Onnx.TestModels" Version="0.0.2-test" />
   </ItemGroup>
 </Project>

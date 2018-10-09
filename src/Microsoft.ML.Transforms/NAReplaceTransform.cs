@@ -382,8 +382,6 @@ namespace Microsoft.ML.Runtime.Data
 
                 for (int ii = 0; ii < statAggregators.Length; ii++)
                     repValues[columnsToImpute[ii]] = statAggregators[ii].GetStat();
-
-                ch.Done();
             }
 
             // Construct the slotIsDefault bit arrays.

@@ -12,7 +12,7 @@ namespace Microsoft.ML.Runtime.Model.Onnx
         /// Whether this object really is capable of saving itself as part of an ONNX
         /// pipeline. An implementor of this object might implement this interface,
         /// but still return <c>false</c> if there is some characteristic of this object
-        /// only detectable during runtime that would prevent its being savable. (E.g.,
+        /// only detectable during runtime that would prevent its being savable. (For example,
         /// it may wrap some other object that may or may not be savable.)
         /// </summary>
         bool CanSaveOnnx(OnnxContext ctx);

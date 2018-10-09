@@ -108,6 +108,13 @@ namespace Microsoft.ML.Runtime.Model.Onnx
         public abstract OnnxVersion GetOnnxVersion();
 
         /// <summary>
+        /// Retrieve the shape of an ONNX variable. Returns null if no shape for the specified variable can be found.
+        /// </summary>
+        /// <param name="variableName">The ONNX name of the returned shape</param>
+        /// <returns>The shape of the retrieved variable</returns>
+        public abstract List<long> RetrieveShapeOrNull(string variableName);
+
+        /// <summary>
         /// Call this function can declare a global float
         /// </summary>
         /// <param name="value">The float number which is going to be added</param>

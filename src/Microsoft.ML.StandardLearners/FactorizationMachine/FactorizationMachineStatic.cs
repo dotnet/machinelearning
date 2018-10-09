@@ -7,12 +7,13 @@ using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.FactorizationMachine;
 using Microsoft.ML.Runtime.Internal.Utilities;
+using Microsoft.ML.StaticPipe;
 using Microsoft.ML.StaticPipe.Runtime;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Microsoft.ML.StaticPipe
+namespace Microsoft.ML.Trainers
 {
     /// <summary>
     /// Extension methods and utilities for instantiating FFM trainer estimators inside statically typed pipelines.

@@ -3454,8 +3454,6 @@ namespace Microsoft.ML.Runtime.RunTests
                 var stats = DeleteOutputPath(@"../Common/EntryPoints", "mc-lr-stats.txt");
                 using (var file = Env.CreateOutputFile(stats))
                     DataSaverUtils.SaveDataView(ch, saver, mcOutput.Stats, file);
-
-                ch.Done();
             }
 
             CheckEquality(@"../Common/EntryPoints", "lr-weights.txt");
@@ -3501,8 +3499,6 @@ namespace Microsoft.ML.Runtime.RunTests
                     var saver = Env.CreateSaver("Text");
                     using (var file = Env.CreateOutputFile(weights))
                         DataSaverUtils.SaveDataView(ch, saver, output.Summary, file);
-
-                    ch.Done();
                 }
 
                 CheckEquality(@"../Common/EntryPoints", "pca-weights.txt");

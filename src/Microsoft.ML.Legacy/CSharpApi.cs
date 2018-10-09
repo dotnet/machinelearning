@@ -11274,7 +11274,7 @@ namespace Microsoft.ML
             public string[] Term { get; set; }
 
             /// <summary>
-            /// How items should be ordered when vectorized. By default, they will be in the order encountered. If by value items are sorted according to their default comparison, e.g., text sorting will be case sensitive (e.g., 'A' then 'Z' then 'a').
+            /// How items should be ordered when vectorized. By default, they will be in the order encountered. If by value items are sorted according to their default comparison, for example, text sorting will be case sensitive (for example, 'A' then 'Z' then 'a').
             /// </summary>
             public TermTransformSortOrder? Sort { get; set; }
 
@@ -11362,7 +11362,7 @@ namespace Microsoft.ML
             public string[] Term { get; set; }
 
             /// <summary>
-            /// How items should be ordered when vectorized. By default, they will be in the order encountered. If by value items are sorted according to their default comparison, e.g., text sorting will be case sensitive (e.g., 'A' then 'Z' then 'a').
+            /// How items should be ordered when vectorized. By default, they will be in the order encountered. If by value items are sorted according to their default comparison, for example, text sorting will be case sensitive (for example, 'A' then 'Z' then 'a').
             /// </summary>
             public TermTransformSortOrder Sort { get; set; } = TermTransformSortOrder.Occurrence;
 
@@ -12393,7 +12393,7 @@ namespace Microsoft.ML
             public string[] Term { get; set; }
 
             /// <summary>
-            /// How items should be ordered when vectorized. By default, they will be in the order encountered. If by value items are sorted according to their default comparison, e.g., text sorting will be case sensitive (e.g., 'A' then 'Z' then 'a').
+            /// How items should be ordered when vectorized. By default, they will be in the order encountered. If by value items are sorted according to their default comparison, for example, text sorting will be case sensitive (for example, 'A' then 'Z' then 'a').
             /// </summary>
             public TermTransformSortOrder? Sort { get; set; }
 
@@ -12477,7 +12477,7 @@ namespace Microsoft.ML
             public string[] Term { get; set; }
 
             /// <summary>
-            /// How items should be ordered when vectorized. By default, they will be in the order encountered. If by value items are sorted according to their default comparison, e.g., text sorting will be case sensitive (e.g., 'A' then 'Z' then 'a').
+            /// How items should be ordered when vectorized. By default, they will be in the order encountered. If by value items are sorted according to their default comparison, for example, text sorting will be case sensitive (for example, 'A' then 'Z' then 'a').
             /// </summary>
             public TermTransformSortOrder Sort { get; set; } = TermTransformSortOrder.Occurrence;
 
@@ -16662,6 +16662,71 @@ namespace Microsoft.ML
             public string[] OutputColumns { get; set; }
 
             /// <summary>
+            /// Training labels.
+            /// </summary>
+            public string LabelColumn { get; set; }
+
+            /// <summary>
+            /// TensorFlow label node.
+            /// </summary>
+            public string TensorFlowLabel { get; set; }
+
+            /// <summary>
+            /// The name of the optimization operation in the TensorFlow graph.
+            /// </summary>
+            public string OptimizationOperation { get; set; }
+
+            /// <summary>
+            /// The name of the operation in the TensorFlow graph to compute training loss (Optional)
+            /// </summary>
+            public string LossOperation { get; set; }
+
+            /// <summary>
+            /// The name of the operation in the TensorFlow graph to compute performance metric during training (Optional)
+            /// </summary>
+            public string MetricOperation { get; set; }
+
+            /// <summary>
+            /// Number of samples to use for mini-batch training.
+            /// </summary>
+            public int BatchSize { get; set; } = 64;
+
+            /// <summary>
+            /// Number of training iterations.
+            /// </summary>
+            public int Epoch { get; set; } = 5;
+
+            /// <summary>
+            /// The name of the operation in the TensorFlow graph which sets optimizer learning rate (Optional).
+            /// </summary>
+            public string LearningRateOperation { get; set; }
+
+            /// <summary>
+            /// Learning rate to use during optimization.
+            /// </summary>
+            public float LearningRate { get; set; } = 0.01f;
+
+            /// <summary>
+            /// Shuffle data before each iteration.
+            /// </summary>
+            public bool Shuffle { get; set; } = true;
+
+            /// <summary>
+            /// Name of the input in TensorFlow graph that specifiy the location for saving/restoring models from disk.
+            /// </summary>
+            public string SaveLocationOperation { get; set; } = "save/Const";
+
+            /// <summary>
+            /// Name of the input in TensorFlow graph that specifiy the location for saving/restoring models from disk.
+            /// </summary>
+            public string SaveOperation { get; set; } = "save/control_dependency";
+
+            /// <summary>
+            /// Retrain TensorFlow model.
+            /// </summary>
+            public bool ReTrain { get; set; } = false;
+
+            /// <summary>
             /// Input dataset
             /// </summary>
             public Var<Microsoft.ML.Runtime.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
@@ -16762,7 +16827,7 @@ namespace Microsoft.ML
             public string[] Term { get; set; }
 
             /// <summary>
-            /// How items should be ordered when vectorized. By default, they will be in the order encountered. If by value items are sorted according to their default comparison, e.g., text sorting will be case sensitive (e.g., 'A' then 'Z' then 'a').
+            /// How items should be ordered when vectorized. By default, they will be in the order encountered. If by value items are sorted according to their default comparison, for example, text sorting will be case sensitive (for example, 'A' then 'Z' then 'a').
             /// </summary>
             public TermTransformSortOrder Sort { get; set; } = TermTransformSortOrder.Occurrence;
 
@@ -16971,7 +17036,7 @@ namespace Microsoft.ML
             public string[] Term { get; set; }
 
             /// <summary>
-            /// How items should be ordered when vectorized. By default, they will be in the order encountered. If by value items are sorted according to their default comparison, e.g., text sorting will be case sensitive (e.g., 'A' then 'Z' then 'a').
+            /// How items should be ordered when vectorized. By default, they will be in the order encountered. If by value items are sorted according to their default comparison, for example, text sorting will be case sensitive (for example, 'A' then 'Z' then 'a').
             /// </summary>
             public TermTransformSortOrder Sort { get; set; } = TermTransformSortOrder.Occurrence;
 
@@ -20252,7 +20317,7 @@ namespace Microsoft.ML
         public sealed class SimplePathParserPartitionedPathParser : PartitionedPathParser
         {
             /// <summary>
-            /// Column definitions used to override the Partitioned Path Parser. Expected with the format name:type:numeric-source, e.g. col=MyFeature:R4:1
+            /// Column definitions used to override the Partitioned Path Parser. Expected with the format name:type:numeric-source, for example, col=MyFeature:R4:1
             /// </summary>
             public PartitionedFileLoaderColumn[] Columns { get; set; }
 

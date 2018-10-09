@@ -896,7 +896,7 @@ namespace Microsoft.ML.Runtime.Data
             /// The log-loss reduction is scaled relative to a classifier that predicts the prior for every example:
             /// (LL(prior) - LL(classifier)) / LL(prior)
             /// This metric can be interpreted as the advantage of the classifier over a random prediction.
-            /// E.g., if the RIG equals 20, it can be interpreted as &quot;the probability of a correct prediction is
+            /// For example, if the RIG equals 20, it can be interpreted as &quot;the probability of a correct prediction is
             /// 20% better than random guessing.&quot;
             /// </remarks>
             public double LogLossReduction { get; }
@@ -1032,7 +1032,6 @@ namespace Microsoft.ML.Runtime.Data
                 if (string.IsNullOrEmpty(_probCol) || !schema.TryGetColumnIndex(_probCol, out _probIndex))
                     ch.Warning("Data does not contain a probability column. Will not output the Log-loss column");
                 CheckInputColumnTypes(schema);
-                ch.Done();
             }
 
             _types = new ColumnType[2];

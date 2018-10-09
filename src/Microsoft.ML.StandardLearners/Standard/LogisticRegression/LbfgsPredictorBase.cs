@@ -209,7 +209,6 @@ namespace Microsoft.ML.Runtime.Learners
                 using (var ch = Host.Start("Initialization"))
                 {
                     ch.Warning("The training statistics cannot be computed with non-negativity constraint.");
-                    ch.Done();
                 }
             }
 
@@ -373,9 +372,7 @@ namespace Microsoft.ML.Runtime.Learners
             using (var ch = Host.Start("Training"))
             {
                 TrainCore(ch, data);
-                var pred = CreatePredictor();
-                ch.Done();
-                return pred;
+                return CreatePredictor();
             }
         }
 
