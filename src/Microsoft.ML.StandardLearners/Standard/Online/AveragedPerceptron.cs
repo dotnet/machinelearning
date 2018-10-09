@@ -52,11 +52,54 @@ namespace Microsoft.ML.Runtime.Learners
             public int MaxCalibrationExamples = 1000000;
         }
 
-        public AveragedPerceptronTrainer(IHostEnvironment env, Arguments args)
+        internal AveragedPerceptronTrainer(IHostEnvironment env, Arguments args)
             : base(args, env, UserNameValue, TrainerUtils.MakeBoolScalarLabel(args.LabelColumn))
         {
             _args = args;
             LossFunction = _args.LossFunction.CreateComponent(env);
+        }
+
+        /// <summary>
+        /// Trains a linear binary classifier using the averaged perceptron.
+        /// <a href='https://en.wikipedia.org/wiki/Perceptron'>Wikipedia entry for Perceptron</a>
+        /// </summary>
+        /// <param name="env">The local instance of the <see cref="IHostEnvironment"/></param>
+        /// <param name="lossFunction">The classification loss function. </param>
+        /// <param name="label">The name of the label column. </param>
+        /// <param name="features">The name of the feature column.</param>
+        /// <param name="weights">The optional name of the weights column.</param>
+        /// <param name="learningRate">The learning rate. </param>
+        /// <param name="decreaseLearningRate">Wheather to decrease learning rate as iterations progress.</param>
+        /// <param name="l2RegularizerWeight">L2 Regularization Weight.</param>
+        /// <param name="numIterations">The number of training iteraitons.</param>
+        /// <param name="advancedSettings">A delegate to supply more advanced arguments to the algorithm.</param>
+        public AveragedPerceptronTrainer(IHostEnvironment env,
+            string label,
+            string features,
+            string weights = null,
+            ISupportClassificationLossFactory lossFunction = null,
+            float learningRate = Arguments.AveragedDefaultArgs.LearningRate,
+            bool decreaseLearningRate = Arguments.AveragedDefaultArgs.DecreaseLearningRate,
+            float l2RegularizerWeight = Arguments.AveragedDefaultArgs.L2RegularizerWeight,
+            int numIterations = Arguments.AveragedDefaultArgs.NumIterations,
+            Action<Arguments> advancedSettings = null)
+            : this(env, new Arguments
+            {
+                LabelColumn = label,
+                FeatureColumn = features,
+                InitialWeights = weights,
+                LearningRate = learningRate,
+                DecreaseLearningRate = decreaseLearningRate,
+                L2RegularizerWeight = l2RegularizerWeight,
+                NumIterations = numIterations
+
+            })
+        {
+            LossFunction = lossFunction.CreateComponent(env);
+
+            if (advancedSettings != null)
+                advancedSettings.Invoke(_args);
+
         }
 
         public override PredictionKind PredictionKind => PredictionKind.BinaryClassification;

@@ -38,7 +38,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                 var predictor = trainer.Train(new Runtime.TrainContext(trainRoles));
 
                 // Train the second predictor on the same data.
-                var secondTrainer = new AveragedPerceptronTrainer(env, new AveragedPerceptronTrainer.Arguments());
+                var secondTrainer = new AveragedPerceptronTrainer(env, "Label", "Features");
                 var finalPredictor = secondTrainer.Train(new TrainContext(trainRoles, initialPredictor: predictor));
             }
         }
