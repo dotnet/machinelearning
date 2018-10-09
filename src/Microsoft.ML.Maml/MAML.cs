@@ -210,7 +210,6 @@ namespace Microsoft.ML.Runtime.Tools
                 finally
                 {
                 }
-                telemetryPipe.Done();
                 return result;
             }
         }

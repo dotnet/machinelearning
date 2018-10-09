@@ -1666,7 +1666,13 @@ namespace Microsoft.ML.Transforms.TensorFlow
         /// <summary>
         /// 64-bit unsigned integers
         /// </summary>
-        UInt64 = 23
+        UInt64 = 23,
+
+        /// <summary>
+        /// Float reference type. It used for defining types of Variables.
+        /// Please https://www.tensorflow.org/api_docs/python/tf/DType for more details.
+        /// </summary>
+        Float_ref = 101
     }
 
     /// <summary>

@@ -89,7 +89,6 @@ namespace Microsoft.ML.Runtime.Data
             using (var ch = Host.Start("Score"))
             {
                 RunCore(ch);
-                ch.Done();
             }
         }
 

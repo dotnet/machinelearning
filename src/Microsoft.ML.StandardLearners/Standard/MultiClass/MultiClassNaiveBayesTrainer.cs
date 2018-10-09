@@ -122,7 +122,6 @@ namespace Microsoft.ML.Runtime.Learners
                     if (cursor.Row.Position > int.MaxValue)
                     {
                         ch.Warning("Stopping training because maximum number of rows have been traversed");
-                        ch.Done();
                         break;
                     }
 
@@ -152,7 +151,6 @@ namespace Microsoft.ML.Runtime.Learners
 
                     examplesProcessed += 1;
                 }
-                ch.Done();
             }
 
             Array.Resize(ref labelHistogram, labelCount);

@@ -104,11 +104,6 @@ namespace Microsoft.ML.Runtime
         /// The caller relinquishes ownership of the <paramref name="msg"/> object.
         /// </summary>
         void Send(TMessage msg);
-
-        /// <summary>
-        /// Called to indicate a normal shut-down of the pipe before disposing.
-        /// </summary>
-        void Done();
     }
 
     /// <summary>
@@ -235,7 +230,6 @@ namespace Microsoft.ML.Runtime
             using (var ch = host.Start(channelName))
             {
                 t = func(ch);
-                ch.Done();
             }
             return t;
         }

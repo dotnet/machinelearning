@@ -122,7 +122,6 @@ namespace Microsoft.ML.Runtime.Tools
                     ShowComponents(writer);
 
                 ch.Info(sw.ToString());
-                ch.Done();
             }
         }
 
@@ -484,7 +483,6 @@ namespace Microsoft.ML.Runtime.Tools
                                     new XElement("HelpText", a.HelpText),
                                     CreateDefaultValueElement(ch, c.Kind, a)))));
                 File.WriteAllText(_xmlFilename, content.ToString());
-                ch.Done();
             }
         }
 

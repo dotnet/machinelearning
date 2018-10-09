@@ -244,7 +244,6 @@ namespace Microsoft.ML.Runtime.Data
                 var pred = GetActiveOutputColumns(activeArr);
                 var getters = _mapper.CreateGetters(input, pred, out disp);
                 disposer += disp;
-                ch.Done();
                 return new Row(input, this, Schema, getters);
             }
         }

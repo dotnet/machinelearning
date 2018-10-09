@@ -938,7 +938,6 @@ namespace Microsoft.ML.Runtime.Data
                 // will be present, and drop them.
                 gs = MetricWriter.GetNonStratifiedMetrics(Host, gs);
                 MetricWriter.SavePerInstance(Host, ch, _groupSummaryFilename, gs);
-                ch.Done();
             }
         }
 

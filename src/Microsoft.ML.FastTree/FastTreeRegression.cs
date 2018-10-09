@@ -103,7 +103,6 @@ namespace Microsoft.ML.Runtime.FastTree
                 FeatureCount = trainData.Schema.Feature.Type.ValueCount;
                 ConvertData(trainData);
                 TrainCore(ch);
-                ch.Done();
             }
             return new FastTreeRegressionPredictor(Host, TrainedEnsemble, FeatureCount, InnerArgs);
         }

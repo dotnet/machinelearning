@@ -284,7 +284,6 @@ namespace Microsoft.ML.Runtime.Data
                     _textMetadata[iinfo] = columns[iinfo].TextKeyValues;
                 }
                 ch.Assert(_unboundMaps.Length == columns.Length);
-                ch.Done();
             }
         }
 

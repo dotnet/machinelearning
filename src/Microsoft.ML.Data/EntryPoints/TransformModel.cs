@@ -108,7 +108,6 @@ namespace Microsoft.ML.Runtime.EntryPoints
             using (var ch = env.Start("Loading transform model"))
             {
                 _chain = ModelFileUtils.LoadPipeline(env, stream, new MultiFileSource(null), extractInnerPipe: true);
-                ch.Done();
             }
 
             // Find the root schema.
@@ -174,7 +173,6 @@ namespace Microsoft.ML.Runtime.EntryPoints
                     TrainUtils.SaveDataPipe(env, rep, _chain, blankLoader: true);
                     rep.Commit();
                 }
-                ch.Done();
             }
         }
 

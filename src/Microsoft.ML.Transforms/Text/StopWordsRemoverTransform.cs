@@ -307,7 +307,6 @@ namespace Microsoft.ML.Runtime.TextAnalytics
                 _resourcesExist = new bool?[StopWords.Length];
 
                 CheckResources(ch);
-                ch.Done();
             }
             Metadata.Seal();
         }
@@ -331,7 +330,6 @@ namespace Microsoft.ML.Runtime.TextAnalytics
                 _resourcesExist = new bool?[StopWords.Length];
 
                 CheckResources(ch);
-                ch.Done();
             }
             Metadata.Seal();
         }
@@ -354,7 +352,6 @@ namespace Microsoft.ML.Runtime.TextAnalytics
 
                 _resourcesExist = new bool?[StopWords.Length];
                 CheckResources(ch);
-                ch.Done();
             }
             Metadata.Seal();
         }
@@ -793,7 +790,6 @@ namespace Microsoft.ML.Runtime.TextAnalytics
             using (var ch = Host.Start(RegistrationName))
             {
                 LoadStopWords(env, ch, args, out _stopWordsMap);
-                ch.Done();
             }
             Metadata.Seal();
         }
@@ -815,7 +811,6 @@ namespace Microsoft.ML.Runtime.TextAnalytics
             using (var ch = Host.Start(RegistrationName))
             {
                 LoadStopWords(env, ch, loaderArgs, out _stopWordsMap);
-                ch.Done();
             }
             Metadata.Seal();
         }
@@ -861,7 +856,6 @@ namespace Microsoft.ML.Runtime.TextAnalytics
                     throw Host.ExceptDecode();
 
                 _stopWordsMap = stopwrods;
-                ch.Done();
             }
             Metadata.Seal();
         }

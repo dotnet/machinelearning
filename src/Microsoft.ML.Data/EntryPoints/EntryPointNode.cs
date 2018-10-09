@@ -487,7 +487,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
 
             _context = context;
 
-          Id = id;
+            Id = id;
             if (!env.ComponentCatalog.TryFindEntryPoint(entryPointName, out _entryPoint))
                 throw _host.Except($"Entry point '{entryPointName}' not found");
 
@@ -586,12 +586,9 @@ namespace Microsoft.ML.Runtime.EntryPoints
 
             using (var ch = env.Start("Create EntryPointNode"))
             {
-                var entryPointNode = new EntryPointNode(env, ch, context, context.GenerateId(entryPointName), entryPointName,
+                return new EntryPointNode(env, ch, context, context.GenerateId(entryPointName), entryPointName,
                     inputBuilder.GetJsonObject(arguments, inputBindingMap, inputMap),
                     outputHelper.GetJsonObject(outputMap), checkpoint, stageId, cost);
-
-                ch.Done();
-                return entryPointNode;
             }
         }
 
@@ -931,8 +928,6 @@ namespace Microsoft.ML.Runtime.EntryPoints
 
                     result.Add(new EntryPointNode(env, ch, context, id, nodeName, inputs, outputs, checkpoint, stageId, cost, label, group, weight, name));
                 }
-
-                ch.Done();
             }
             return result;
         }
