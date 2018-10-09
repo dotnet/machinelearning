@@ -34,7 +34,7 @@ namespace Microsoft.ML.Samples
         }
 
         /// <summary>
-        /// The example for the staticlly typed concat estimator
+        /// The example for the staticlly typed concat estimator.
         /// </summary>
         public static void ConcatEstimator()
         {
@@ -44,16 +44,16 @@ namespace Microsoft.ML.Samples
 
             IEnumerable<Input> data = GetInputData();
 
-            //A preview of InputData:
-            //feature_0; feature_1; feature_2; feature_3;  target
-            //-2.75;     0.77;     -0.61;      0.14;       140.66
-            //-0.61;    -0.37;     -0.12;      0.55;       148.12
-            //-0.85;    -0.91;      1.81;      0.02;       402.20
+            // A preview of InputData:
+            // feature_0; feature_1; feature_2; feature_3;  target
+            // -2.75;     0.77;     -0.61;      0.14;       140.66
+            // -0.61;    -0.37;     -0.12;      0.55;       148.12
+            // -0.85;    -0.91;      1.81;      0.02;       402.20
 
-            //convert to an DataView
+            // Convert to an DataView.
             var trainingData = env.CreateStreamingDataView(data);
 
-            //convert the IDataView to statically-typed data view, so its schema can be used on the 
+            // Convert the IDataView to statically-typed data view, so its schema can be used on the 
             // pipelines that will get built in top of it. 
             var staticData = trainingData.AssertStatic(env, c => (
                    Feature0: c.R4.Scalar,
@@ -63,23 +63,23 @@ namespace Microsoft.ML.Samples
                    Target: c.R4.Scalar));
 
             // Start creating our processing pipeline. 
-            // Let just concatenate all the float columns together into one using ConcatWith
+            // Let just concatenate all the float columns together into one using ConcatWith.
             var staticLearningPipeline = staticData.MakeNewEstimator()
                 .Append(r => (
                     r.Target,
                     Features: r.Feature0.ConcatWith(r.Feature1, r.Feature2, r.Feature3)));
 
-            //Transform the data through the above pipeline
+            // Transform the data through the above pipeline.
             var transformedData = staticLearningPipeline.Fit(staticData).Transform(staticData);
 
-            //The transformedData DataView is now of the type (Target:Scalar<float>, Features:Vector<float>)
+            // The transformedData DataView is now of the type (Target:Scalar<float>, Features:Vector<float>).
 
-            //Features                    target
-            //-2.75  0.77 -0.61 0.14;     140.66
-            //-0.61 -0.37 -0.12 0.55;     148.12
-            //-0.85 -0.91  1.81 0.02;     402.20
+            // Features                    target
+            // -2.75  0.77 -0.61 0.14;     140.66
+            // -0.61 -0.37 -0.12 0.55;     148.12
+            // -0.85 -0.91  1.81 0.02;     402.20
 
-            // let's print out the new data
+            // Let's print out the new data.
             var features = transformedData.GetColumn(r => r.Features);
 
             Console.WriteLine("Features column obtained post-transformation.");

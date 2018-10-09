@@ -6,6 +6,8 @@ using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Learners;
 using Microsoft.ML.StaticPipe;
 using System;
+using System.Net;
+using System.Threading.Tasks;
 
 namespace Microsoft.ML.Samples
 {
@@ -13,12 +15,22 @@ namespace Microsoft.ML.Samples
     { 
         public static void SdcaRegression()
         {
-            var (trainDataPath, testDataPath) = DatasetCreator.CreateRegressionDataset();
+            string baseGitPath = "https://raw.githubusercontent.com/dotnet/machinelearning/e78971ea6fd736038b4c355b840e5cbabae8cb55/test/data/";
 
-            //creating the ML.Net IHostEnvironment object, needed for the pipeline
+            // Downloading a regression dataset from github.com/dotnet/machinelearning
+            string trainDataPath = "trainFile.csv";
+            string testDataPath = "testFile.csv";
+
+            using (WebClient client = new WebClient())
+            {
+                client.DownloadFile(new Uri($"{baseGitPath}generated_regression_dataset.csv"), trainDataPath);
+                client.DownloadFile(new Uri($"{baseGitPath}generated_regression_dataset.csv"), testDataPath);
+            }
+
+            // Creating the ML.Net IHostEnvironment object, needed for the pipeline
             var env = new LocalEnvironment(seed: 0);
 
-            // creating the ML context, based on the task performed.
+            // Creating the ML context, based on the task performed.
             var regressionContext = new RegressionContext(env);
 
             // Creating a data reader, based on the format of the data
@@ -45,21 +57,21 @@ namespace Microsoft.ML.Samples
                                 )
                         );
 
-            // fit this pipeline to the training data
+            // Fit this pipeline to the training data
             var model = learningPipeline.Fit(trainData);
 
-            // check the weights that the model learned
+            // Check the weights that the model learned
             VBuffer<float> weights = default;
             pred.GetFeatureWeights(ref weights);
 
             Console.WriteLine($"weight 0 - {weights.Values[0]}");
             Console.WriteLine($"weight 1 - {weights.Values[1]}");
 
-            // test the model we just trained, using the test file. 
+            // Test the model we just trained, using the test file. 
             var testData = reader.Read(new MultiFileSource(testDataPath));
             var data = model.Transform(testData);
 
-            //Evaluate how the model is doing on the test data
+            // Evaluate how the model is doing on the test data
             var metrics = regressionContext.Evaluate(data, r => r.label, r => r.score);
 
             Console.WriteLine($"L1 - {metrics.L1}");
