@@ -116,18 +116,12 @@ namespace Microsoft.ML.Transforms
             public float LearningRate = 0.01f;
 
             /// <summary>
-            /// Shuffle training data on each iteration?
-            /// </summary>
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Shuffle data before each iteration.", SortOrder = 13)]
-            public bool Shuffle = true;
-
-            /// <summary>
             /// Name of the input in TensorFlow graph that specifiy the location for saving/restoring models to/from disk.
             /// This parameter is set by different kinds of 'Savers' in TensorFlow and users don't have control over this.
             /// Therefore, its highly unlikely that this parameter is changed from its default value of 'save/Const'.
             /// Please change it cautiously if you need to.
             /// </summary>
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Name of the input in TensorFlow graph that specifiy the location for saving/restoring models from disk.", SortOrder = 14)]
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Name of the input in TensorFlow graph that specifiy the location for saving/restoring models from disk.", SortOrder = 13)]
             public string SaveLocationOperation = "save/Const";
 
             /// <summary>
@@ -136,13 +130,13 @@ namespace Microsoft.ML.Transforms
             /// Therefore, its highly unlikely that this parameter is changed from its default value of 'save/control_dependency'.
             /// Please change it cautiously if you need to.
             /// </summary>
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Name of the input in TensorFlow graph that specifiy the location for saving/restoring models from disk.", SortOrder = 15)]
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Name of the input in TensorFlow graph that specifiy the location for saving/restoring models from disk.", SortOrder = 14)]
             public string SaveOperation = "save/control_dependency";
 
             /// <summary>
             /// Needed for command line to specify if retraining is requested.
             /// </summary>
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Retrain TensorFlow model.", SortOrder = 16)]
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Retrain TensorFlow model.", SortOrder = 15)]
             public bool ReTrain = false;
         }
 
@@ -299,13 +293,6 @@ namespace Microsoft.ML.Transforms
 
             if (args.ReTrain)
             {
-                // Shuffling fails because ShuffleTransform is not RowToRowMapper
-                // https://github.com/dotnet/machinelearning/issues/1106
-                //if(args.Shuffle)
-                //{
-                //    input = new ShuffleTransform(env, new ShuffleTransform.Arguments(), input);
-                //}
-
                 env.CheckValue(input, nameof(input));
 
                 CheckTrainingParameters(args);

@@ -354,7 +354,18 @@ namespace Microsoft.ML.Scenarios
         }
 
         [Fact]
-        public void TensorFlowTransformMNISTLRTemplateTrainingTest()
+        public void TensorFlowTransformMNISTLRTrainingTest()
+        {
+            // Without shuffling
+            ExecuteTFTransformMNISTLRTrainingTest(false, null, 0.72173913043478266, 0.67482993197278918);
+
+            // With shuffling
+            // When creating prediction engine, shuffling fails because ShuffleTransform is not RowToRowMapper
+            // https://github.com/dotnet/machinelearning/issues/1106
+            // ExecuteTFTransformMNISTLRTrainingTest(true, 5, 0.8, 0.691156462585034);
+        }
+
+        private void ExecuteTFTransformMNISTLRTrainingTest(bool shuffle, int? shuffleSeed, double expectedMicroAccuracy, double expectedMacroAccruacy)
         {
             var model_location = "mnist_lr_model";
             try
@@ -380,6 +391,15 @@ namespace Microsoft.ML.Scenarios
 
                     IDataView trans = CategoricalTransform.Create(env, loader, "OneHotLabel", "Label");
                     trans = NormalizeTransform.CreateMinMaxNormalizer(env, trans, "Features", "Placeholder");
+
+                    if (shuffle)
+                    {
+                        trans = new ShuffleTransform(env, new ShuffleTransform.Arguments()
+                        {
+                            ForceShuffle = shuffle,
+                            ForceShuffleSeed = shuffleSeed
+                        }, trans);
+                    }
 
                     var args = new TensorFlowTransform.Arguments()
                     {
@@ -411,8 +431,8 @@ namespace Microsoft.ML.Scenarios
                     IDataScorerTransform testDataScorer = GetScorer(env, trans, pred, testDataPath);
                     var metrics = Evaluate(env, testDataScorer);
 
-                    Assert.Equal(0.72173913043478266, metrics.AccuracyMicro, 2);
-                    Assert.Equal(0.67482993197278918, metrics.AccuracyMacro, 2);
+                    Assert.Equal(expectedMicroAccuracy, metrics.AccuracyMicro, 2);
+                    Assert.Equal(expectedMacroAccruacy, metrics.AccuracyMacro, 2);
 
                     // Create prediction engine and test predictions
                     var model = env.CreatePredictionEngine<MNISTData, MNISTPrediction>(testDataScorer);
@@ -484,7 +504,18 @@ namespace Microsoft.ML.Scenarios
         }
 
         [Fact]
-        public void TensorFlowTransformMNISTConvTemplateTrainingTest()
+        public void TensorFlowTransformMNISTConvTrainingTest()
+        {
+            // Without shuffling
+            ExecuteTFTransformMNISTConvTrainingTest(false, null, 0.74782608695652175, 0.608843537414966);
+
+            // With shuffling
+            // When creating prediction engine, shuffling fails because ShuffleTransform is not RowToRowMapper
+            // https://github.com/dotnet/machinelearning/issues/1106
+            // ExecuteTFTransformMNISTConvTrainingTest(true, 5, 0.75652173913043474, 0.610204081632653);
+        }
+
+        private void ExecuteTFTransformMNISTConvTrainingTest(bool shuffle, int? shuffleSeed, double expectedMicroAccuracy, double expectedMacroAccruacy)
         {
             var model_location = "mnist_conv_model";
             try
@@ -510,6 +541,15 @@ namespace Microsoft.ML.Scenarios
 
                     IDataView trans = new CopyColumnsTransform(env,
                         ("Placeholder", "Features")).Transform(loader);
+
+                    if (shuffle)
+                    {
+                        trans = new ShuffleTransform(env, new ShuffleTransform.Arguments()
+                        {
+                            ForceShuffle = shuffle,
+                            ForceShuffleSeed = shuffleSeed
+                        }, trans);
+                    }
 
                     var args = new TensorFlowTransform.Arguments()
                     {
@@ -543,8 +583,8 @@ namespace Microsoft.ML.Scenarios
                     IDataScorerTransform testDataScorer = GetScorer(env, trans, pred, testDataPath);
                     var metrics = Evaluate(env, testDataScorer);
 
-                    Assert.Equal(0.74782608695652175, metrics.AccuracyMicro, 2);
-                    Assert.Equal(0.608843537414966, metrics.AccuracyMacro, 2);
+                    Assert.Equal(expectedMicroAccuracy, metrics.AccuracyMicro, 2);
+                    Assert.Equal(expectedMacroAccruacy, metrics.AccuracyMacro, 2);
 
                     // Create prediction engine and test predictions
                     var model = env.CreatePredictionEngine<MNISTData, MNISTPrediction>(testDataScorer);
@@ -735,13 +775,8 @@ namespace Microsoft.ML.Scenarios
 
             using (var env = new ConsoleEnvironment())
             {
-                var tensorFlowModel = TensorFlowUtils.LoadTensorFlowModel(env, model_location);
-                var schema = tensorFlowModel.GetInputSchema();
-                Assert.True(schema.TryGetColumnIndex("Input", out int column));
-                var type = schema.GetColumnType(column).AsVector;
-                var imageHeight = type.GetDim(0);
-                var imageWidth = type.GetDim(1);
-
+                var imageHeight = 32;
+                var imageWidth = 32;
                 var dataFile = GetDataPath("images/images.tsv");
                 var imageFolder = Path.GetDirectoryName(dataFile);
                 var data = TextLoader.Create(env, new TextLoader.Arguments()
@@ -775,7 +810,7 @@ namespace Microsoft.ML.Scenarios
                 }, cropped);
 
 
-                IDataView trans = TensorFlowTransform.Create(env, pixels, tensorFlowModel, new[] { "Output" }, new[] { "Input" });
+                IDataView trans = TensorFlowTransform.Create(env, pixels, model_location, new[] { "Output" }, new[] { "Input" });
 
                 trans.Schema.TryGetColumnIndex("Output", out int output);
                 using (var cursor = trans.GetRowCursor(col => col == output))
@@ -801,13 +836,8 @@ namespace Microsoft.ML.Scenarios
 
             using (var env = new ConsoleEnvironment())
             {
-                var tensorFlowModel = TensorFlowUtils.LoadTensorFlowModel(env, model_location);
-                var schema = tensorFlowModel.GetInputSchema();
-                Assert.True(schema.TryGetColumnIndex("Input", out int column));
-                var type = schema.GetColumnType(column).AsVector;
-                var imageHeight = type.GetDim(0);
-                var imageWidth = type.GetDim(1);
-
+                var imageHeight = 32;
+                var imageWidth = 32;
                 var dataFile = GetDataPath("images/images.tsv");
                 var imageFolder = Path.GetDirectoryName(dataFile);
                 var data = TextLoader.Create(env, new TextLoader.Arguments()
@@ -841,7 +871,7 @@ namespace Microsoft.ML.Scenarios
                 }, cropped);
 
 
-                IDataView trans = TensorFlowTransform.Create(env, pixels, tensorFlowModel, new[] { "Output" }, new[] { "Input" });
+                IDataView trans = TensorFlowTransform.Create(env, pixels, model_location, new[] { "Output" }, new[] { "Input" });
 
                 trans.Schema.TryGetColumnIndex("Output", out int output);
                 using (var cursor = trans.GetRowCursor(col => col == output))
