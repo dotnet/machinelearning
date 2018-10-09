@@ -58,7 +58,6 @@ namespace Microsoft.ML.Runtime.MLTesting.Inference
             using (var ch = _host.Start("Running"))
             {
                 RunCore(ch);
-                ch.Done();
             }
         }
 

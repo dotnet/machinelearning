@@ -326,7 +326,6 @@ namespace Microsoft.ML.Runtime.TextAnalytics
             using (var ch = Host.Start("Train"))
             {
                 Train(ch, input, _ldas);
-                ch.Done();
             }
             Metadata.Seal();
         }

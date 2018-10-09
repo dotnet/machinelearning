@@ -325,7 +325,7 @@ var learningPipeline = reader.MakeNewEstimator()
         // Retain the 'Target' column for evaluation purposes.
         r.Target,
         // We choose the SDCA regression trainer. Note that we normalize the 'FeatureVector' right here in
-        // the the same call.
+        // the same call.
         Prediction: regression.Trainers.Sdca(label: r.Target, features: r.FeatureVector.Normalize())));
 
 // Step three. Train the pipeline.
@@ -627,7 +627,7 @@ In ML.NET we expose a number of [parametric and non-parametric algorithms](https
 
 Typically, parametric learners hold certain assumptions about the training data, and if they are not met, the training is greatly hampered (or sometimes becomes completely impossible).
 
-Most commonly, the assumption are that
+Most commonly, the assumptions are that
 - All the features have values roughly on the same scale;
 - Feature values are not too large, and not too small.
 
@@ -843,7 +843,7 @@ var unigrams = transformedData.GetColumn(x => x.BagOfWords).Take(10).ToArray();
 There are a couple pitfalls that await us when we implement our own cross-validation. Essentially, if we are not careful, we may introduce label leakage in the process, so our metrics could become over-inflated.
 
 - It is tempting to apply the same pre-processing to the entire data, and then just cross-validate the final training of the model. If we do this for data-dependent, 'trainable' pre-processing (like text featurization, categorical handling and normalization/rescaling), we cause these processing steps to 'train' on the union of train subset and test subset, thus causing label leakage. The correct way is to apply pre-processing independently for each 'fold' of the cross-validation.
-- In many cases there is a natural 'grouping' of the data that needs to be respected. For example, if we are solving a click prediction problem, it's a good idea to group all examples pertaining to one URL to appear in one fold of the data. If they end up separated, we can introduce label leakage.
+- In many cases there is a natural 'grouping' of the data that needs to be respected. For example, if we are solving a click prediction problem, it's a good idea to group all examples pertaining to one URL to appear in one-fold of the data. If they end up separated, we can introduce label leakage.
 
 ML.NET guards us against both these pitfalls: it will automatically apply the featurization correctly (as long as all of the preprocessing resides in one learning pipeline), and we can use the 'stratification column' concept to make sure that related examples don't get separated.
 

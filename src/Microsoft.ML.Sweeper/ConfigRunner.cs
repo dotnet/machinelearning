@@ -123,7 +123,6 @@ namespace Microsoft.ML.Runtime.Sweeper
                     ResultProcessorInternal.ResultProcessor.Main (args);
 
                     ch.Info(@"The summary of the run results has been saved to the file {0}\{1}.summary.txt", OutputFolder, Prefix);
-                    ch.Done();
                 }
             }
         }
@@ -165,9 +164,7 @@ namespace Microsoft.ML.Runtime.Sweeper
                 for (int i = 0; i < sweeps.Length; i++)
                     ch.Info("Parameter set: {0}", string.Join(", ", sweeps[i].Select(p => string.Format("{0}:{1}", p.Name, p.ValueText))));
 
-                var res = RunConfigsCore(sweeps, ch, min);
-                ch.Done();
-                return res;
+               return RunConfigsCore(sweeps, ch, min);
             }
         }
 

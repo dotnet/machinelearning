@@ -44,7 +44,7 @@ inclusive and `Length` exclusive.
 Regarding the generic type parameter `T`, the only real assumption made about
 this type is that assignment (that is, using `=`) is sufficient to create an
 *independent* copy of that item. All representation types of the [primitive
-types](IDataViewTypeSystem.md#standard-column-types) have this property (e.g.,
+types](IDataViewTypeSystem.md#standard-column-types) have this property (for example,
 `DvText`, `DvInt4`, `Single`, `Double`, etc.), but for example, `VBuffer<>`
 itself does not have this property. So, no `VBuffer` of `VBuffer`s for you.
 
@@ -257,7 +257,7 @@ In terms of accessing anything in `Values` or `Indices`, remember, treat
 arrays.
 
 If you write code that results in two distinct `VBuffer`s sharing references
-to their internal arrays, (e.g., there are two `VBuffer`s `a` and `b`, with
+to their internal arrays, (for example, there are two `VBuffer`s `a` and `b`, with
 `a.Indices == b.Indices` with `a.Indices != null`, or `a.Values == b.Values`
 with `a.Values != null`) then you've almost certainly done something wrong.
 

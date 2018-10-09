@@ -12,7 +12,7 @@ using Microsoft.ML.Runtime.KMeans;
 using Microsoft.ML.Runtime.Learners;
 using Microsoft.ML.Runtime.LightGBM;
 using Microsoft.ML.Runtime.RunTests;
-using Microsoft.ML.StaticPipe;
+using Microsoft.ML.Trainers;
 using System;
 using System.Linq;
 using Xunit;
