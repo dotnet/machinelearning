@@ -341,7 +341,7 @@ loader from a data model with an `IMultiStreamSource` with `Count == 0` (e.g.,
 as would be constructed with `new MultiFileSource(null)`), we have a protocol
 that *every* `IDataLoader` should work in that circumstance, and merely be a
 data view with no rows, but the same schema as it had when it was serialized.
-The purpose of this is that we often have circumstances were we need to
+The purpose of this is that we often have circumstances where we need to
 understand the schema of the data (what columns were produced, what the
 feature names are, etc.) when all we have is the data model. (E.g., the
 `savemodel` command, and other things.)

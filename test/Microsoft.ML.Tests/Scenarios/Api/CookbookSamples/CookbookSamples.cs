@@ -13,6 +13,7 @@ using Microsoft.ML.StaticPipe;
 using Microsoft.ML.TestFramework;
 using Microsoft.ML.Transforms.Text;
 using Microsoft.ML.Transforms;
+using Microsoft.ML.Trainers;
 using System;
 using System.Collections.Generic;
 using System.IO;

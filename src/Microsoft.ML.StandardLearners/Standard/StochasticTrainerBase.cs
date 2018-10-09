@@ -30,7 +30,6 @@ namespace Microsoft.ML.Runtime.Learners
         protected override TModel TrainModelCore(TrainContext context)
         {
             Host.CheckValue(context, nameof(context));
-            TModel pred;
             using (var ch = Host.Start("Training"))
             {
                 var preparedData = PrepareDataFromTrainingExamples(ch, context.TrainingSet, out int weightSetCount);
@@ -39,10 +38,8 @@ namespace Microsoft.ML.Runtime.Learners
                 linInitPred = linInitPred ?? initPred as LinearPredictor;
                 Host.CheckParam(context.InitialPredictor == null || linInitPred != null, nameof(context),
                     "Initial predictor was not a linear predictor.");
-                pred = TrainCore(ch, preparedData, linInitPred, weightSetCount);
-                ch.Done();
+                return TrainCore(ch, preparedData, linInitPred, weightSetCount);
             }
-            return pred;
         }
 
         protected virtual int ComputeNumThreads(FloatLabelCursor.Factory cursorFactory)

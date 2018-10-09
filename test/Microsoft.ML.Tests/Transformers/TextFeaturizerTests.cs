@@ -109,7 +109,6 @@ namespace Microsoft.ML.Tests.Transformers
             {
                 using (var fs = File.Create(outputPath))
                     DataSaverUtils.SaveDataView(ch, saver, savedData, fs, keepHidden: true);
-                ch.Done();
             }
             CheckEquality("Text", "tokenizedWithSeparators.tsv");
             Done();

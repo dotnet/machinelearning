@@ -1929,8 +1929,6 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
                     calibratedPredictor =
                         CalibratorUtils.TrainCalibrator(host, ch, calibratorTrainer, input.MaxRows, predictor, data);
                 }
-                ch.Done();
-
                 return new TOut() { PredictorModel = new PredictorModel(host, data, input.Data, calibratedPredictor) };
             }
         }
