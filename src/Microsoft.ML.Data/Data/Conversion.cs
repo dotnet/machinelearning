@@ -1170,7 +1170,7 @@ namespace Microsoft.ML.Runtime.Data.Conversion
         public bool TryParseKey(ref TX src, U8 min, U8 max, out U8 dst)
         {
             var span = src.Span;
-            Contracts.Check(!IsStdMissing(ref span), "Missing text value cannot be converted to unsigned integer type.");
+            Contracts.Check(span.IsEmpty || !IsStdMissing(ref span), "Missing text value cannot be converted to unsigned integer type.");
             Contracts.Assert(min <= max);
 
             // This simply ensures we don't have min == 0 and max == U8.MaxValue. This is illegal since

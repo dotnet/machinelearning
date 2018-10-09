@@ -347,7 +347,7 @@ namespace Microsoft.ML.Runtime.RunTests
         /// <summary>
         ///A test for binary classifiers
         ///</summary>
-        [Fact(Skip = "Need CoreTLC specific baseline update")]
+        [Fact]
         [TestCategory("Binary")]
         [TestCategory("FastRank")]
         public void BinaryClassifierFastRankClassificationTest()
@@ -359,13 +359,10 @@ namespace Microsoft.ML.Runtime.RunTests
                 string dir = learner.Trainer.Kind;
                 string prName = "prcurve-breast-cancer-prcurve.txt";
                 string prPath = DeleteOutputPath(dir, prName);
-                string eval = string.Format("eval=Binary{{pr={{{0}}}}}", prPath);
+                string eval = $"eval=Binary{{pr={{{prPath} }}}}";
                 Run_TrainTest(learner, data, new[] { eval });
                 CheckEqualityNormalized(dir, prName);
                 Run_CV(learner, data);
-
-                Run_CV(TestLearners.fastRankClassification, TestDatasets.breastCancer);
-                RunOneAllTests(TestLearners.fastRankClassification, TestDatasets.msm);
             });
             Done();
         }
