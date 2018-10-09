@@ -7,58 +7,6 @@
     "node": [
       {
         "input": [
-          "F1"
-        ],
-        "output": [
-          "F10"
-        ],
-        "name": "Imputer",
-        "opType": "Imputer",
-        "attribute": [
-          {
-            "name": "replaced_value_float",
-            "f": "NaN",
-            "type": "FLOAT"
-          },
-          {
-            "name": "imputed_value_floats",
-            "floats": [
-              0
-            ],
-            "type": "FLOATS"
-          }
-        ],
-        "domain": "ai.onnx.ml"
-      },
-      {
-        "input": [
-          "F10"
-        ],
-        "output": [
-          "F11"
-        ],
-        "name": "Scaler",
-        "opType": "Scaler",
-        "attribute": [
-          {
-            "name": "offset",
-            "floats": [
-              0
-            ],
-            "type": "FLOATS"
-          },
-          {
-            "name": "scale",
-            "floats": [
-              0.1
-            ],
-            "type": "FLOATS"
-          }
-        ],
-        "domain": "ai.onnx.ml"
-      },
-      {
-        "input": [
           "F2"
         ],
         "output": [
@@ -101,7 +49,7 @@
           "F20"
         ],
         "output": [
-          "F21"
+          "encoded"
         ],
         "name": "OneHotEncoder",
         "opType": "OneHotEncoder",
@@ -132,7 +80,30 @@
       },
       {
         "input": [
-          "F11",
+          "encoded"
+        ],
+        "output": [
+          "F21"
+        ],
+        "name": "ReduceSum",
+        "opType": "ReduceSum",
+        "attribute": [
+          {
+            "name": "axes",
+            "ints": [
+              "1"
+            ],
+            "type": "INTS"
+          },
+          {
+            "name": "keepdims",
+            "type": "INT"
+          }
+        ]
+      },
+      {
+        "input": [
+          "F1",
           "F21"
         ],
         "output": [
@@ -342,7 +313,7 @@
         "domain": "ai.onnx.ml"
       }
     ],
-    "name": "BinaryClassificationFastTreeSaveModelToOnnxTest",
+    "name": "KeyToVectorBag",
     "input": [
       {
         "name": "F1",
@@ -438,42 +409,6 @@
       }
     ],
     "valueInfo": [
-      {
-        "name": "F10",
-        "type": {
-          "tensorType": {
-            "elemType": "FLOAT",
-            "shape": {
-              "dim": [
-                {
-                  "dimValue": "1"
-                },
-                {
-                  "dimValue": "1"
-                }
-              ]
-            }
-          }
-        }
-      },
-      {
-        "name": "F11",
-        "type": {
-          "tensorType": {
-            "elemType": "FLOAT",
-            "shape": {
-              "dim": [
-                {
-                  "dimValue": "1"
-                },
-                {
-                  "dimValue": "1"
-                }
-              ]
-            }
-          }
-        }
-      },
       {
         "name": "F20",
         "type": {
