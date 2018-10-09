@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2013/01/nuspec.xsd">
+  <metadata>
+    <id>MlNetMklDeps</id>
+    <version>0.0.0.6</version>
+    <title>This NuGet package provides Intel(R) MKL dependencies for ML.NET</title>
+    <authors>Intel Corporation</authors>
+    <owners>Microsoft</owners>
+    <projectUrl>https://dot.net/ml</projectUrl>
+    <licenseUrl>https://software.intel.com/en-us/license/intel-simplified-software-license</licenseUrl>
+    <requireLicenseAcceptance>true</requireLicenseAcceptance>
+    <description>
+      Intel(R) MKL Dependencies for Microsoft ML.NET. 
+    </description>
+    <copyright>Copyright (c) 2018 Intel Corporation.</copyright>
+    <tags>ML.Net Mkl Deps</tags>
+  </metadata>
+</package>

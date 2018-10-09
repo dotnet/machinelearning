@@ -8,7 +8,7 @@ ML.NET allows .NET developers to develop their own models and infuse custom ML i
 
 ML.NET was originally developed in Microsoft Research and evolved into a significant framework over the last decade and is used across many product groups in Microsoft like Windows, Bing, PowerPoint, Excel and more.
 
-With this first preview release, ML.NET enables ML tasks like classification (e.g. support text classification, sentiment analysis) and regression (e.g. price-prediction). 
+With this first preview release, ML.NET enables ML tasks like classification (for example, support text classification, sentiment analysis) and regression (for example, price-prediction).
 
 Along with these ML capabilities, this first release of ML.NET also brings the first draft of .NET APIs for training models, using models for predictions, as well as the core components of this framework such as learning algorithms, transforms, and ML data structures. 
 

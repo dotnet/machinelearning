@@ -993,7 +993,7 @@ namespace Microsoft.ML.Runtime.Data
                                     }
 
                                     // Despite default not mapping to default, it's very possible the result
-                                    // might still be sparse, e.g., the source vector could be full of
+                                    // might still be sparse, for example, the source vector could be full of
                                     // unrecognized items.
                                     bldr.Reset(cval, dense: false);
 

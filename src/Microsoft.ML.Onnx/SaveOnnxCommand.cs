@@ -107,7 +107,6 @@ namespace Microsoft.ML.Runtime.Model.Onnx
             using (var ch = Host.Start("Run"))
             {
                 Run(ch);
-                ch.Done();
             }
         }
 

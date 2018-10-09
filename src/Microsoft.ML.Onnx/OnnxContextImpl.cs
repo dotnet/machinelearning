@@ -246,8 +246,28 @@ namespace Microsoft.ML.Runtime.Model.Onnx
         }
 
         /// <summary>
-        /// Adds constant tensors into the graph.
+        /// Retrieve the shape of an ONNX variable. Returns null if no shape for the specified variable can be found.
         /// </summary>
+        /// <param name="variableName">The ONNX name of the returned shape</param>
+        /// <returns>The shape of the retrieved variable</returns>
+        public override List<long> RetrieveShapeOrNull(string variableName)
+        {
+            foreach (var arg in _inputs)
+                if (arg.Name == variableName)
+                    return arg.Dims;
+
+            foreach (var arg in _intermediateValues)
+                if (arg.Name == variableName)
+                    return arg.Dims;
+
+            foreach (var arg in _outputs)
+                if (arg.Name == variableName)
+                    return arg.Dims;
+
+            return null;
+        }
+
+        /// Adds constant tensor into the graph.
         public override string AddInitializer(float value, string name = null)
         {
             name = AddVariable(name ?? "float");

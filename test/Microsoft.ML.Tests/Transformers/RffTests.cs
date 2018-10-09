@@ -83,7 +83,6 @@ namespace Microsoft.ML.Tests.Transformers
                 IDataView savedData = TakeFilter.Create(Env, est.Fit(data).Transform(data).AsDynamic, 4);
                 using (var fs = File.Create(outputPath))
                     DataSaverUtils.SaveDataView(ch, saver, savedData, fs, keepHidden: true);
-                ch.Done();
             }
             CheckEquality("Rff", "featurized.tsv");
             Done();
