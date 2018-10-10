@@ -161,9 +161,10 @@ namespace Microsoft.ML.Benchmarks
 
     public class SentimentData
     {
-        [ColumnName("Label")]
+        [ColumnName("Label"), Column("0")]
         public bool Sentiment;
 
+        [Column("1")]
         public string SentimentText;
     }
 
@@ -177,10 +178,10 @@ namespace Microsoft.ML.Benchmarks
 
     public class BreastCancerData
     {
-        [ColumnName("Label")]
+        [ColumnName("Label"), Column("0")]
         public bool Label;
 
-        [ColumnName("Features"), VectorType(9)]
+        [ColumnName("Features"), Column("1-9"), VectorType(9)]
         public float[] Features;
     }
 

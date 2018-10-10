@@ -728,16 +728,11 @@ namespace Microsoft.ML.Runtime.RunTests
             for (int i = 0; i < nModels; i++)
             {
                 var data = splitOutput.TrainData[i];
-                data = new RffTransform(Env, new RffTransform.Arguments()
-                {
-                    Column = new[]
-                    {
-                        new RffTransform.Column() {Name = "Features1", Source = "Features"},
-                        new RffTransform.Column() {Name = "Features2", Source = "Features"},
-                    },
-                    NewDim = 10,
-                    UseSin = false
-                }, data);
+                data = new RffEstimator(Env, new[] {
+                    new RffTransform.ColumnInfo("Features", "Features1", 10, false),
+                    new RffTransform.ColumnInfo("Features", "Features2", 10, false),
+                }).Fit(data).Transform(data);
+
                 data = ConcatTransform.Create(Env, new ConcatTransform.Arguments()
                 {
                     Column = new[] { new ConcatTransform.Column() { Name = "Features", Source = new[] { "Features1", "Features2" } } }
@@ -1202,16 +1197,10 @@ namespace Microsoft.ML.Runtime.RunTests
             for (int i = 0; i < nModels; i++)
             {
                 var data = splitOutput.TrainData[i];
-                data = new RffTransform(Env, new RffTransform.Arguments()
-                {
-                    Column = new[]
-                    {
-                        new RffTransform.Column() {Name = "Features1", Source = "Features"},
-                        new RffTransform.Column() {Name = "Features2", Source = "Features"},
-                    },
-                    NewDim = 10,
-                    UseSin = false
-                }, data);
+                data = new RffEstimator(Env, new[] {
+                    new RffTransform.ColumnInfo("Features", "Features1", 10, false),
+                    new RffTransform.ColumnInfo("Features", "Features2", 10, false),
+                }).Fit(data).Transform(data);
                 data = ConcatTransform.Create(Env, new ConcatTransform.Arguments()
                 {
                     Column = new[] { new ConcatTransform.Column() { Name = "Features", Source = new[] { "Features1", "Features2" } } }
@@ -3465,8 +3454,6 @@ namespace Microsoft.ML.Runtime.RunTests
                 var stats = DeleteOutputPath(@"../Common/EntryPoints", "mc-lr-stats.txt");
                 using (var file = Env.CreateOutputFile(stats))
                     DataSaverUtils.SaveDataView(ch, saver, mcOutput.Stats, file);
-
-                ch.Done();
             }
 
             CheckEquality(@"../Common/EntryPoints", "lr-weights.txt");
@@ -3512,8 +3499,6 @@ namespace Microsoft.ML.Runtime.RunTests
                     var saver = Env.CreateSaver("Text");
                     using (var file = Env.CreateOutputFile(weights))
                         DataSaverUtils.SaveDataView(ch, saver, output.Summary, file);
-
-                    ch.Done();
                 }
 
                 CheckEquality(@"../Common/EntryPoints", "pca-weights.txt");
