@@ -283,13 +283,13 @@ namespace Microsoft.ML.Runtime.KMeans
 
         public bool SaveAsOnnx(OnnxContext ctx, string[] outputNames, string featureColumn)
         {
-            // Computation graph of distances to all centriods for a batch of exmples. Note that a centriod is just
+            // Computation graph of distances to all centriods for a batch of examples. Note that a centriod is just
             // the center of a cluster. We use [] to denote the dimension of a variable; for example, X [3, 2] means
             // that X is a 3-by-2 tensor. In addition, for a matrix X, X^T denotes its transpose.
             //
             // Symbols:
-            // l: # of examples
-            // n: # of features per input example
+            // l: # of examples.
+            // n: # of features per input example.
             // X: input examples, l-by-n tensor.
             // C: centriods, k-by-n tensor.
             // C^2: 2-norm of all centriod vectors, its shape is [k].
