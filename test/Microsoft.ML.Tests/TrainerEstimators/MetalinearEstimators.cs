@@ -15,6 +15,23 @@ namespace Microsoft.ML.Tests.TrainerEstimators
     public partial class TrainerEstimators
     {
         /// <summary>
+        /// OVA with calibrator argument
+        /// </summary>
+        [Fact]
+        public void OVAWithExplicitCalibrator()
+        {
+            var (pipeline, data) = GetMultiClassPipeline();
+            var calibrator = new PavCalibratorTrainer(Env);
+
+            var sdcaTrainer = new LinearClassificationTrainer(Env, new LinearClassificationTrainer.Arguments { MaxIterations = 100, Shuffle = true, NumThreads = 1 }, "Features", "Label");
+            pipeline.Append(new Ova(Env, sdcaTrainer, "Label", calibrator: calibrator, maxCalibrationExamples: 990000))
+                    .Append(new KeyToValueEstimator(Env, "PredictedLabel"));
+
+            TestEstimatorCore(pipeline, data);
+            Done();
+        }
+
+        /// <summary>
         /// OVA with all constructor args.
         /// </summary>
         [Fact]
@@ -22,11 +39,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         {
             var (pipeline, data) = GetMultiClassPipeline();
             var calibrator = new PlattCalibratorTrainer(Env);
-            var averagePerceptron = new AveragedPerceptronTrainer(Env,"Label", "Features", advancedSettings: s=>
-            {
-                s.Shuffle = true;
-                s.Calibrator = null;
-            });
+            var averagePerceptron = new AveragedPerceptronTrainer(Env, new AveragedPerceptronTrainer.Arguments { FeatureColumn = "Features", LabelColumn = "Label", Shuffle = true, Calibrator = null });
 
             pipeline.Append(new Ova(Env, averagePerceptron, "Label", true, calibrator: calibrator, 10000, true))
                     .Append(new KeyToValueEstimator(Env, "PredictedLabel"));

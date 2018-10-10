@@ -106,11 +106,13 @@ namespace Microsoft.ML.Runtime.LightGBM
                         if (context.ValidationSet != null)
                             dvalid = LoadValidationData(ch, dtrain, context.ValidationSet, catMetaData);
                     }
+                    ch.Done();
                 }
                 using (var ch = Host.Start("Training with LightGBM"))
                 {
                     using (var pch = Host.StartProgressChannel("Training with LightGBM"))
                         TrainCore(ch, pch, dtrain, catMetaData, dvalid);
+                    ch.Done();
                 }
             }
             finally
@@ -183,6 +185,8 @@ namespace Microsoft.ML.Runtime.LightGBM
                 TrainerUtils.CheckArgsAndAdvancedSettingMismatch(ch, numBoostRound, snapshot.NumBoostRound, currentArgs.NumBoostRound, nameof(numBoostRound));
                 TrainerUtils.CheckArgsAndAdvancedSettingMismatch(ch, minDataPerLeaf, snapshot.MinDataPerLeaf, currentArgs.MinDataPerLeaf, nameof(minDataPerLeaf));
                 TrainerUtils.CheckArgsAndAdvancedSettingMismatch(ch, learningRate, snapshot.LearningRate, currentArgs.LearningRate, nameof(learningRate));
+
+                ch.Done();
             }
         }
 

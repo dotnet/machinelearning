@@ -352,6 +352,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
                     using (var expertChannel = host.Start(expert.GetType().ToString()))
                     {
                         expert.Apply(expertChannel, cols.ToArray());
+                        expertChannel.Done();
                     }
                 }
 
@@ -360,6 +361,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
                 result = new InferenceResult(cols.Select(x => x.GetColumn()).ToArray());
 
                 ch.Info("Automatic purpose inference complete");
+                ch.Done();
             }
             return result;
         }

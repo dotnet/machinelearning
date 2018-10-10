@@ -42,13 +42,13 @@ namespace Microsoft.ML.Runtime.Data
             public const string ScoreColumnSetId = "ScoreColumnSetId";
 
             /// <summary>
-            /// Metadata kind that indicates the prediction kind as a string. For example, "BinaryClassification".
+            /// Metadata kind that indicates the prediction kind as a string. E.g. "BinaryClassification".
             /// The value is typically a ReadOnlyMemory&lt;char&gt;.
             /// </summary>
             public const string ScoreColumnKind = "ScoreColumnKind";
 
             /// <summary>
-            /// Metadata kind that indicates the value kind of the score column as a string. For example, "Score", "PredictedLabel", "Probability". The value is typically a ReadOnlyMemory.
+            /// Metadata kind that indicates the value kind of the score column as a string. E.g. "Score", "PredictedLabel", "Probability". The value is typically a ReadOnlyMemory.
             /// </summary>
             public const string ScoreValueKind = "ScoreValueKind";
 

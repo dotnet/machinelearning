@@ -317,6 +317,7 @@ namespace Microsoft.ML.Runtime.Data
                 _ldr = GetLoader(Host, _bytes);
                 _valueMap = Train(ch, _ldr);
                 SetMetadata();
+                ch.Done();
             }
         }
 
@@ -336,6 +337,7 @@ namespace Microsoft.ML.Runtime.Data
                 _ldr = GetLoader(Host, _bytes);
                 _valueMap = Train(ch, _ldr);
                 SetMetadata();
+                ch.Done();
             }
         }
 
@@ -419,6 +421,7 @@ namespace Microsoft.ML.Runtime.Data
                         }
                         else
                             ch.Info("Found key values in the range {0} to {1} in the file '{2}'", min, max, filename);
+                        ch.Done();
                     }
                 }
             }

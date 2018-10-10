@@ -431,7 +431,7 @@ namespace Microsoft.ML.Runtime.Data
             private readonly ConcatTransform _parent;
             private readonly BoundColumn[] _columns;
 
-            public bool CanSaveOnnx(OnnxContext ctx) => true;
+            public bool CanSaveOnnx => true;
             public bool CanSavePfa => true;
 
             public Mapper(ConcatTransform parent, ISchema inputSchema)
@@ -902,7 +902,7 @@ namespace Microsoft.ML.Runtime.Data
             public void SaveAsOnnx(OnnxContext ctx)
             {
                 _host.CheckValue(ctx, nameof(ctx));
-                Contracts.Assert(CanSaveOnnx(ctx));
+                Contracts.Assert(CanSaveOnnx);
 
                 string opType = "FeatureVectorizer";
                 for (int iinfo = 0; iinfo < _columns.Length; ++iinfo)

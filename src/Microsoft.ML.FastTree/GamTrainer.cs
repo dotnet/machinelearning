@@ -192,6 +192,8 @@ namespace Microsoft.ML.Runtime.FastTree
                 InputLength = context.TrainingSet.Schema.Feature.Type.ValueCount;
 
                 TrainCore(ch);
+
+                ch.Done();
             }
         }
 
@@ -245,6 +247,8 @@ namespace Microsoft.ML.Runtime.FastTree
                     Initialize(ch);
                 using (Timer.Time(TimerEvent.TotalTrain))
                     TrainMainEffectsModel(ch);
+
+                ch.Done();
             }
         }
 
@@ -530,6 +534,7 @@ namespace Microsoft.ML.Runtime.FastTree
                     numThreads = Host.ConcurrencyFactor;
                     ch.Warning("The number of threads specified in trainer arguments is larger than the concurrency factor "
                         + "setting of the environment. Using {0} training threads instead.", numThreads);
+                    ch.Done();
                 }
 
             ThreadTaskManager.Initialize(numThreads);
@@ -1002,6 +1007,7 @@ namespace Microsoft.ML.Runtime.FastTree
                 using (var ch = Host.Start("Run"))
                 {
                     Run(ch);
+                    ch.Done();
                 }
             }
 
@@ -1372,6 +1378,8 @@ namespace Microsoft.ML.Runtime.FastTree
                     else
                         ch.Info("No server, exiting immediately.");
                 }
+
+                ch.Done();
             }
         }
     }

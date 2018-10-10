@@ -31,6 +31,7 @@ namespace Microsoft.ML.Runtime.Tools
             {
                 string version = typeof(VersionCommand).GetTypeInfo().Assembly.GetName().Version.ToString();
                 ch.Info(version);
+                ch.Done();
             }
         }
     }

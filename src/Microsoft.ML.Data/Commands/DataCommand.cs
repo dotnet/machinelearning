@@ -113,6 +113,7 @@ namespace Microsoft.ML.Runtime.Data
                 using (var pipe = prov.StartPipe<TelemetryMessage>("TelemetryPipe"))
                 {
                     SendTelemetryCore(pipe);
+                    pipe.Done();
                 }
             }
 
@@ -149,6 +150,7 @@ namespace Microsoft.ML.Runtime.Data
                         foreach (var pair in averageMetric)
                             pipe.Send(TelemetryMessage.CreateMetric(pair.Key, pair.Value, null));
                     }
+                    pipe.Done();
                 }
             }
 

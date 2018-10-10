@@ -153,6 +153,8 @@ namespace Microsoft.ML.Runtime.Data
                         if (!string.IsNullOrEmpty(pair.Key) && composite._transforms.Any(x => x.Tag == pair.Key))
                             ch.Warning("The transform with tag '{0}' already exists in the chain", pair.Key);
                     }
+
+                    ch.Done();
                 }
             }
 
@@ -263,6 +265,8 @@ namespace Microsoft.ML.Runtime.Data
 
                     view = newDataView;
                 }
+
+                ch.Done();
             }
 
             return view == srcView ? srcLoader : new CompositeDataLoader(host, exes.ToArray());
@@ -308,7 +312,9 @@ namespace Microsoft.ML.Runtime.Data
 
                 // Now the transforms.
                 h.Assert(!(loader is CompositeDataLoader));
-                return LoadTransforms(ctx, loader, h, x => true);
+                var result = LoadTransforms(ctx, loader, h, x => true);
+                ch.Done();
+                return result;
             }
         }
 
@@ -358,6 +364,7 @@ namespace Microsoft.ML.Runtime.Data
                 using (var ch = h.Start("ModelCheck"))
                 {
                     ch.Info("The data model doesn't contain transforms.");
+                    ch.Done();
                 }
                 return srcView;
             }

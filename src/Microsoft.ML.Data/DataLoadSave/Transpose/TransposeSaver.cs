@@ -91,6 +91,7 @@ namespace Microsoft.ML.Runtime.Data.IO
             using (var ch = _host.Start("Saving"))
             {
                 SaveTransposedData(ch, stream, trans, cols);
+                ch.Done();
             }
         }
 

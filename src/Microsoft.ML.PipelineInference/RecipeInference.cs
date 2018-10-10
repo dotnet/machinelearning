@@ -452,6 +452,8 @@ namespace Microsoft.ML.Runtime.PipelineInference
                 predictorType = InferenceUtils.InferPredictorCategoryType(cached, purposeColumns);
                 var recipeInferenceResult = InferRecipes(h, transformInferenceResult, predictorType);
 
+                ch.Done();
+
                 inferenceResult = transformInferenceResult;
                 return recipeInferenceResult.SuggestedRecipes;
             }
@@ -472,6 +474,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
                 if (list.Count == 0)
                     ch.Info("No recipes are needed for the data.");
 
+                ch.Done();
                 return new InferenceResult(list.ToArray());
             }
         }

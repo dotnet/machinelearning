@@ -185,6 +185,7 @@ namespace Microsoft.ML.Runtime.Data
                     throw _host.ExceptParam(nameof(view), "View has {0} rows, we cannot transpose with more than {1}", rowCount, Utils.ArrayMaxSize);
                 RowCount = (int)rowCount;
                 _tschema = new SchemaImpl(this);
+                ch.Done();
             }
         }
 

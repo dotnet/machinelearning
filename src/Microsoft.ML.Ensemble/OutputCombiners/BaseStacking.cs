@@ -190,6 +190,8 @@ namespace Microsoft.ML.Runtime.Ensemble.OutputCombiners
                     ch.Warning("The trainer specified for stacking wants normalization, but we do not currently allow this.");
                 Meta = trainer.Train(rmd);
                 CheckMeta();
+
+                ch.Done();
             }
         }
     }

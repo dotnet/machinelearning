@@ -28,8 +28,8 @@ namespace Microsoft.ML.Legacy
 
     /// <summary>
     /// The <see cref="LearningPipeline"/> class is used to define the steps needed to perform a desired machine learning task.<para/>
-    /// The steps are defined by adding a data loader (for example, <see cref="TextLoader"/>) followed by zero or more transforms (for example, <see cref="Microsoft.ML.Legacy.Transforms.TextFeaturizer"/>)
-    /// and at most one trainer/learner (for example, <see cref="Microsoft.ML.Legacy.Trainers.FastTreeBinaryClassifier"/>) in the pipeline.
+    /// The steps are defined by adding a data loader (e.g. <see cref="TextLoader"/>) followed by zero or more transforms (e.g. <see cref="Microsoft.ML.Legacy.Transforms.TextFeaturizer"/>)
+    /// and at most one trainer/learner (e.g. <see cref="Microsoft.ML.Legacy.Trainers.FastTreeBinaryClassifier"/>) in the pipeline.
     ///
     /// </summary>
     /// <example>

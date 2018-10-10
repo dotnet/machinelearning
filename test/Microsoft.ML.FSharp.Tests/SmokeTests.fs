@@ -8,7 +8,7 @@
 // manually in script form (to help debug it and also check that F# scripting works with ML.NET).
 // Running as a script requires using F# Interactive on Windows, and the explicit references below.  
 // The references would normally be created by a package loader for the scripting 
-// environment, for example, see https://github.com/isaacabraham/ml-test-experiment/, but 
+// environment, e.g. see https://github.com/isaacabraham/ml-test-experiment/, but 
 // here we list them explicitly to avoid the dependency on a package loader,
 //
 // You should build Microsoft.ML.FSharp.Tests in Debug mode for framework net461 

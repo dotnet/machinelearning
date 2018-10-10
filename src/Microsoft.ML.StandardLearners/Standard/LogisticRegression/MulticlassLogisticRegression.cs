@@ -244,6 +244,7 @@ namespace Microsoft.ML.Runtime.Learners
                 using (var ch = Host.Start("Creating Predictor"))
                 {
                     ch.Warning("Training resulted in a one class predictor");
+                    ch.Done();
                 }
             }
 
@@ -392,7 +393,7 @@ namespace Microsoft.ML.Runtime.Learners
         public ColumnType InputType { get; }
         public ColumnType OutputType { get; }
         public bool CanSavePfa => true;
-        public bool CanSaveOnnx(OnnxContext ctx) => true;
+        public bool CanSaveOnnx => true;
 
         internal MulticlassLogisticRegressionPredictor(IHostEnvironment env, ref VBuffer<float> weights, int numClasses, int numFeatures, string[] labelNames, LinearModelStatistics stats = null)
             : base(env, RegistrationName)

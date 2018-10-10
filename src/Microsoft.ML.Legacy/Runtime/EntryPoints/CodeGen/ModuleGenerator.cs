@@ -167,6 +167,7 @@ namespace Microsoft.ML.Runtime.EntryPoints.CodeGen
             {
                 foreach (var info in infos.Select(c => c.Info))
                     GenerateFile(ch, info);
+                ch.Done();
             }
         }
 

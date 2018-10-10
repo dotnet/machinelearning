@@ -16,7 +16,6 @@ using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Data.Conversion;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
-using Microsoft.ML.Runtime.Model.Onnx;
 using Microsoft.ML.Runtime.Command;
 using Microsoft.ML.Runtime.EntryPoints;
 
@@ -374,30 +373,6 @@ namespace Microsoft.ML.Runtime.Data
                     ctx.Writer.WriteBoolByte(key.Contiguous);
                 }
             }
-        }
-
-        public override bool CanSaveOnnx(OnnxContext ctx) => ctx.GetOnnxVersion() == OnnxVersion.Experimental;
-
-        protected override bool SaveAsOnnxCore(OnnxContext ctx, int iinfo, ColInfo info, string srcVariableName, string dstVariableName)
-        {
-            var opType = "CSharp";
-
-            for (int i = 0; i < _exes.Length; i++)
-            {
-                var ex = _exes[i];
-                var node = ctx.CreateNode(opType, srcVariableName, dstVariableName, ctx.GetNodeName(opType));
-                node.AddAttribute("type", LoaderSignature);
-                node.AddAttribute("to", (byte)ex.Kind);
-                if (ex.HasKeyRange)
-                {
-                    var key = ex.TypeDst.ItemType.AsKey;
-                    node.AddAttribute("min", key.Min);
-                    node.AddAttribute("max", key.Count);
-                    node.AddAttribute("contiguous", key.Contiguous);
-                }
-            }
-
-            return true;
         }
 
         private static bool TryCreateEx(IExceptionContext ectx, ColInfo info, DataKind kind, KeyRange range, out PrimitiveType itemType, out ColInfoEx ex)

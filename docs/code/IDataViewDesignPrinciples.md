@@ -415,7 +415,7 @@ the random number generator. Serving rows from disk in a random order is quite
 difficult to do efficiently (without seeking for each row). The binary .idv
 loader has some shuffling support, favoring performance over attempting to
 provide a uniform distribution over the permutation space. This level of
-support has been validated to be sufficient for machine learning goals (for example,
+support has been validated to be sufficient for machine learning goals (e.g.,
 in recent work on SA-SDCA algorithm). When the data is all in memory, as it is
 when cached, randomizing is trivial.
 

@@ -23,7 +23,7 @@ namespace Microsoft.ML.Analyzer
             private const string Format = "Type{0} is neither a PipelineColumn nor a ValueTuple, nor a class of an allowed form.";
             internal const string Description =
                 "Within statically typed pipeline elements of ML.NET, the shape of the schema is determined by a 'shape' type. " +
-                "A valid 'shape' type is either an instance of one of the PipelineColumn subclasses (for example, Scalar<bool> " +
+                "A valid 'shape' type is either an instance of one of the PipelineColumn subclasses (e.g., Scalar<bool> " +
                 "or something like that), or a ValueTuple containing only valid 'shape' types, or a class whose only publicly " +
                 "accessible members are methods, a single constructor, and properties that are valid 'shape' types themselves, " +
                 "and that have either get and set accessors and the single constructor takes no parameters, or that has get only " +
@@ -44,7 +44,7 @@ namespace Microsoft.ML.Analyzer
             internal const string Description = ShapeDiagnostic.Description + " " +
                 "If using type parameters when interacting with the statically typed pipelines, the type parameter ought to be " +
                 "constrained in such a way that it, either by applying the [IsShape] attribute or by having type constraints to " +
-                "indicate that it is valid, for example, constraining the type to descend from PipelineColumn.";
+                "indicate that it is valid, e.g., constraining the type to descend from PipelineColumn.";
 
             internal static DiagnosticDescriptor Rule =
                 new DiagnosticDescriptor(Id, Title, Format, Category,

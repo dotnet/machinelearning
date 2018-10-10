@@ -4,28 +4,14 @@
 
     <member name="TensorflowTransform">
       <summary>
-        The <see cref="TensorFlowTransform"/> is used in following two scenarios.
-        <list type="number">
-        <item>
-          <description>
-            Scoring with pretrained TensorFlow model: In this mode, the transform extracts hidden layers&apos; values from a pre-trained Tensorflow model and uses outputs as features in ML.Net pipeline.
-          </description>
-        </item>
-        <item>
-          <description>
-            Retraining of TensorFlow model: In this mode, the transform retrains a TensorFlow model using the user data passed through ML.Net pipeline. Once the model is trained, it's outputs can be used as features for scoring.
-          </description>
-        </item>
-      </list>
+        Extracts hidden layers&apos; values from a pre-trained Tensorflow model.
       </summary>
       <remarks>
         <para>
           The TensorFlowTransform extracts specified outputs using a pre-trained <a href="https://www.tensorflow.org">Tensorflow</a> model.
-          Optionally, it can further retrain TensorFlow model on user data to adjust model parameters on the user data ( also know as "Transfer Learning").
-
-          For scoring, the transform takes as inputs the pre-trained Tensorflow model, the names of the input nodes, and names of the output nodes whose values we want to extract.
-          For retraining, the transform also requires training related parameters such as the names of optimization operation in the TensorFlow graph, the name of the learning rate operation in the graph and its value, name of the operations in the graph to compute loss and performance metric etc.
+          The transform takes as inputs the pre-trained Tensorflow model, the names of the input nodes, and names of the output nodes whose values we want to extract. 
         </para>
+
         <para>
           This transform requires the <a href="https://dotnet.myget.org/feed/dotnet-core/package/nuget/Microsoft.ML.TensorFlow">Microsoft.ML.TensorFlow</a> nuget to be installed.
           The TensorFlowTransform has the following assumptions regarding input, output and processing of data.
@@ -34,12 +20,10 @@
           <item>
             <description>
               For the input model, currently the TensorFlowTransform supports both the <a href="https://www.tensorflow.org/mobile/prepare_models">Frozen model</a> format and also the <a href="https://www.tensorflow.org/guide/saved_model#build_and_load_a_savedmodel">SavedModel</a> format.
-              However, retraining of the model is only possible for the <a href="https://www.tensorflow.org/guide/saved_model#build_and_load_a_savedmodel">SavedModel</a> format.
-              <a href="https://www.tensorflow.org/guide/checkpoints">Checkpoint</a> format is currently neither supported for scoring nor for retraining due lack of TensorFlow C-API support for loading it.
             </description>
           </item>
           <item>
-            <description>The transform supports scoring only one example at a time. However, retraining can be performed in batches.</description>
+            <description>The transform supports scoring only one example at a time.</description>
           </item>
           <item>
             <description>The name of input column(s) should match the name of input(s) in TensorFlow model.</description>
@@ -48,15 +32,15 @@
             <description>The name of each output column should match one of the operations in the TensorFlow graph.</description>
           </item>
           <item>
-            <description>Currently, float, double, int, long, uint, ulong are the acceptable data types for input/output.</description>
+            <description>Currently, float and double are the only acceptable data types for input/output.</description>
           </item>
           <item>
             <description>Upon success, the transform will introduce a new column in <see cref="IDataView"/> corresponding to each output column specified.</description>
           </item>
         </list>
 
-        The inputs and outputs of a TensorFlow model can be obtained using the <see cref="TensorFlowUtils.GetModelSchema(IExceptionContext, string)"/> or <a href="https://github.com/tensorflow/tensorflow/tree/master/tensorflow/tools/graph_transforms/README.md#inspecting-graphs">
-          <code>summarize_graph</code> tools.
+        The inputs and outputs of a TensorFlow model can be obtained using the <a href="https://github.com/tensorflow/tensorflow/tree/master/tensorflow/tools/graph_transforms/README.md#inspecting-graphs">
+          <code>summarize_graph</code> tool
         </a>.
 
       </remarks>

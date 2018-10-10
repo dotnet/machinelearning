@@ -8,7 +8,6 @@ using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
-using Microsoft.ML.Transforms;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -543,7 +542,7 @@ namespace Microsoft.ML.Runtime.Data
             /// The log-loss reduction is scaled relative to a classifier that predicts the prior for every example:
             /// (LL(prior) - LL(classifier)) / LL(prior)
             /// This metric can be interpreted as the advantage of the classifier over a random prediction.
-            /// For example, if the RIG equals 20, it can be interpreted as "the probability of a correct prediction is
+            /// E.g., if the RIG equals 20, it can be interpreted as "the probability of a correct prediction is
             /// 20% better than random guessing".
             /// </remarks>
             public double LogLossReduction { get; private set; }

@@ -133,7 +133,9 @@ namespace Microsoft.ML.Runtime.Data
 
                 var dsArgs = new DropSlotsTransform.Arguments();
                 dsArgs.Column = columns.ToArray();
-                return new DropSlotsTransform(host, dsArgs, input);
+                var ds = new DropSlotsTransform(host, dsArgs, input);
+                ch.Done();
+                return ds;
             }
         }
 
@@ -383,6 +385,7 @@ namespace Microsoft.ML.Runtime.Data
                             pch.Checkpoint(i + 1);
                         }
                     }
+                    ch.Done();
                 }
 
                 return scores;

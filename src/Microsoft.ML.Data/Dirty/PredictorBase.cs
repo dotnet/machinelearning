@@ -79,6 +79,7 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn
             using (var ch = provider.Start("WarnNormalizer"))
             {
                 ch.Warning(NormalizerWarningFormat, typePredictor, Environment.NewLine);
+                ch.Done();
             }
             return true;
         }

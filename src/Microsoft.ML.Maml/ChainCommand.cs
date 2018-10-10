@@ -65,6 +65,8 @@ namespace Microsoft.ML.Runtime.Tools
                             count++;
 
                             chCmd.Info(" ");
+
+                            chCmd.Done();
                         }
                     }
                 }
@@ -73,6 +75,8 @@ namespace Microsoft.ML.Runtime.Tools
                 ch.Info("=====================================================================================");
                 ch.Info("Executed {0} commands in {1}", count, sw.Elapsed);
                 ch.Info("=====================================================================================");
+
+                ch.Done();
             }
         }
     }

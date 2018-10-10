@@ -262,7 +262,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
                 var resultNode = new Microsoft.ML.Legacy.Models.SweepResultExtractor() { State = amlsVarObj };
                 var resultOutput = new Legacy.Models.SweepResultExtractor.Output() { State = outStateVar, Results = outDvVar };
                 resultSubgraph.Add(resultNode, resultOutput);
-                var resultSubgraphNodes = EntryPointNode.ValidateNodes(env, node.Context, resultSubgraph.GetNodes());
+                var resultSubgraphNodes = EntryPointNode.ValidateNodes(env, node.Context, resultSubgraph.GetNodes(), node.Catalog);
                 expNodes.AddRange(resultSubgraphNodes);
                 return new CommonOutputs.MacroOutput<Output>() { Nodes = expNodes };
             }
@@ -278,7 +278,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
                 var uniqueName = ExperimentUtils.GenerateOverallMetricVarName(p.UniqueId);
                 var uniqueNameTraining = AutoMlUtils.GenerateOverallTrainingMetricVarName(p.UniqueId);
                 var sgNode = EntryPointNode.ValidateNodes(env, node.Context,
-                    new JArray(subgraph.GetNodes().Last())).Last();
+                    new JArray(subgraph.GetNodes().Last()), node.Catalog).Last();
                 sgNode.RenameOutputVariable(trainTestOutput.OverallMetrics.VarName, uniqueName, cascadeChanges: true);
                 sgNode.RenameOutputVariable(trainTestOutput.TrainingOverallMetrics.VarName, uniqueNameTraining, cascadeChanges: true);
                 trainTestOutput.OverallMetrics.VarName = uniqueName;
@@ -302,7 +302,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
             var output = new Legacy.Models.PipelineSweeper.Output() { Results = outDvVar, State = outStateVar };
             macroSubgraph.Add(macroNode, output);
 
-            var subgraphNodes = EntryPointNode.ValidateNodes(env, node.Context, macroSubgraph.GetNodes());
+            var subgraphNodes = EntryPointNode.ValidateNodes(env, node.Context, macroSubgraph.GetNodes(), node.Catalog);
             expNodes.AddRange(subgraphNodes);
 
             return new CommonOutputs.MacroOutput<Output>() { Nodes = expNodes };

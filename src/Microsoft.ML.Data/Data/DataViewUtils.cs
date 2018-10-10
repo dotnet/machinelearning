@@ -264,7 +264,7 @@ namespace Microsoft.ML.Runtime.Data
         /// thusfar, and inserted into a blocking collection. The output cursor or cursors likewise
         /// have a set of "out pipe" instances, one per each of the active columns, through which
         /// successive batches are presented for consumption by the user of the output cursors. Of
-        /// course, both split and consolidate have many details from which they differ, for example, the
+        /// course, both split and consolidate have many details from which they differ, e.g., the
         /// consolidator must accept batches as they come and reconcile them among multiple inputs,
         /// while the splitter is more free.
         ///
@@ -318,7 +318,9 @@ namespace Microsoft.ML.Runtime.Data
                     Contracts.AssertValue(provider);
                     using (var ch = provider.Start("Consolidate"))
                     {
-                        return ConsolidateCore(provider, inputs, ref ourPools, ch);
+                        var cursor = ConsolidateCore(provider, inputs, ref ourPools, ch);
+                        ch.Done();
+                        return cursor;
                     }
                 }
 
@@ -501,6 +503,7 @@ namespace Microsoft.ML.Runtime.Data
                 using (var ch = provider.Start("CursorSplitter"))
                 {
                     var result = splitter.SplitCore(out consolidator, provider, input, cthd);
+                    ch.Done();
                     return result;
                 }
             }

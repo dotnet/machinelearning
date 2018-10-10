@@ -24,7 +24,7 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn
         /// </summary>
         /// <param name="env">The host environment</param>
         /// <param name="args">The argument object</param>
-        /// <param name="settings">The settings string (for example, "threshold-")</param>
+        /// <param name="settings">The settings string (e.g. "threshold-")</param>
         /// <param name="name">The name is used for error reporting only</param>
         public static void ParseArguments(IHostEnvironment env, object args, string settings, string name = null)
         {

@@ -55,7 +55,7 @@ namespace Microsoft.ML.Runtime.Data
             public string[] Term;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "How items should be ordered when vectorized. By default, they will be in the order encountered. " +
-                "If by value items are sorted according to their default comparison, for example, text sorting will be case sensitive (for example, 'A' then 'Z' then 'a').")]
+                "If by value items are sorted according to their default comparison, e.g., text sorting will be case sensitive (e.g., 'A' then 'Z' then 'a').")]
             public SortOrder? Sort;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Whether key value metadata should be text, regardless of the actual input type", ShortName = "textkv", Hide = true)]
@@ -127,7 +127,7 @@ namespace Microsoft.ML.Runtime.Data
 
             // REVIEW: Should we always sort? Opinions are mixed. See work item 7797429.
             [Argument(ArgumentType.AtMostOnce, HelpText = "How items should be ordered when vectorized. By default, they will be in the order encountered. " +
-                "If by value items are sorted according to their default comparison, for example, text sorting will be case sensitive (for example, 'A' then 'Z' then 'a').", SortOrder = 113)]
+                "If by value items are sorted according to their default comparison, e.g., text sorting will be case sensitive (e.g., 'A' then 'Z' then 'a').", SortOrder = 113)]
             public SortOrder Sort = TermEstimator.Defaults.Sort;
 
             // REVIEW: Should we do this here, or correct the various pieces of code here and in MRS etc. that
@@ -284,6 +284,7 @@ namespace Microsoft.ML.Runtime.Data
                     _textMetadata[iinfo] = columns[iinfo].TextKeyValues;
                 }
                 ch.Assert(_unboundMaps.Length == columns.Length);
+                ch.Done();
             }
         }
 
@@ -398,7 +399,7 @@ namespace Microsoft.ML.Runtime.Data
         /// <param name="source">Name of the column to be transformed. If this is null '<paramref name="name"/>' will be used.</param>
         /// <param name="maxNumTerms">Maximum number of terms to keep per column when auto-training.</param>
         /// <param name="sort">How items should be ordered when vectorized. By default, they will be in the order encountered.
-        /// If by value items are sorted according to their default comparison, for example, text sorting will be case sensitive (for example, 'A' then 'Z' then 'a').</param>
+        /// If by value items are sorted according to their default comparison, e.g., text sorting will be case sensitive (e.g., 'A' then 'Z' then 'a').</param>
         public static IDataView Create(IHostEnvironment env,
             IDataView input, string name, string source = null,
             int maxNumTerms = TermEstimator.Defaults.MaxNumTerms, SortOrder sort = TermEstimator.Defaults.Sort) =>
@@ -722,7 +723,7 @@ namespace Microsoft.ML.Runtime.Data
 
             private readonly BoundTermMap[] _termMap;
 
-            public bool CanSaveOnnx(OnnxContext ctx) => true;
+            public bool CanSaveOnnx => true;
 
             public bool CanSavePfa => true;
 

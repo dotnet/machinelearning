@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
+using System.Linq;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
@@ -9,9 +11,6 @@ using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.TextAnalytics;
-using Microsoft.ML.Transforms;
-using System.Collections.Generic;
-using System.Linq;
 
 [assembly: LoadableClass(TextTransform.Summary, typeof(IDataTransform), typeof(SentimentAnalyzingTransform), typeof(SentimentAnalyzingTransform.Arguments), typeof(SignatureDataTransform),
     SentimentAnalyzingTransform.UserName, "SentimentAnalyzingTransform", SentimentAnalyzingTransform.LoaderSignature, SentimentAnalyzingTransform.ShortName, DocName = "transform/SentimentAnalyzingTransform.md")]

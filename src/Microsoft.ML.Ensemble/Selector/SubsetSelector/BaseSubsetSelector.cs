@@ -87,6 +87,7 @@ namespace Microsoft.ML.Runtime.Ensemble.Selector.SubsetSelector
                 }
 
                 yield return new Batch(dataTrain, dataTest);
+                ch.Done();
             }
         }
 

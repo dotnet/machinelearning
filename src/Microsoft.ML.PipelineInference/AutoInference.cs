@@ -310,6 +310,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
                     MainLearningLoop(batchSize, numOfTrainingRows);
 
                     // Return best pipeline seen
+                    ch.Done();
                     return _sortedSampledElements.Count > 0 ? _sortedSampledElements.First().Value : null;
                 }
             }
@@ -397,6 +398,8 @@ namespace Microsoft.ML.Runtime.PipelineInference
                     // Update autoML engine to know what the search space looks like
                     AutoMlEngine.SetSpace(_availableTransforms, _availableLearners, verifier,
                         _trainData, _transformedData, _dependencyMapping, Metric.IsMaximizing);
+
+                    ch.Done();
                 }
             }
 

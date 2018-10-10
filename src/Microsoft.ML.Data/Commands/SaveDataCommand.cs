@@ -50,6 +50,7 @@ namespace Microsoft.ML.Runtime.Data
             using (var ch = Host.Start(command))
             {
                 RunCore(ch);
+                ch.Done();
             }
         }
 
@@ -119,6 +120,7 @@ namespace Microsoft.ML.Runtime.Data
             using (var ch = Host.Start(command))
             {
                 RunCore(ch);
+                ch.Done();
             }
         }
 

@@ -501,6 +501,7 @@ namespace Microsoft.ML.Runtime.Api
                 if (!_disposed)
                 {
                     _input.Dispose();
+                    Ch.Done();
                     Ch.Dispose();
                     _disposed = true;
                 }

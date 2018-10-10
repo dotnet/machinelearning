@@ -32,7 +32,7 @@ namespace Microsoft.ML.Runtime.Data
             public string GroupColumn = DefaultColumnNames.GroupId;
 
             [Argument(ArgumentType.Multiple,
-                HelpText = "Input columns: Columns with custom kinds declared through key assignments, for example, col[Kind]=Name to assign column named 'Name' kind 'Kind'",
+                HelpText = "Input columns: Columns with custom kinds declared through key assignments, e.g., col[Kind]=Name to assign column named 'Name' kind 'Kind'",
                 ShortName = "col", SortOrder = 101, Purpose = SpecialPurpose.ColumnSelector)]
             public KeyValuePair<string, string>[] CustomColumn;
 
@@ -122,7 +122,7 @@ namespace Microsoft.ML.Runtime.Data
             public string NameColumn = DefaultColumnNames.Name;
 
             [Argument(ArgumentType.Multiple,
-                HelpText = "Input columns: Columns with custom kinds declared through key assignments, for example, col[Kind]=Name to assign column named 'Name' kind 'Kind'",
+                HelpText = "Input columns: Columns with custom kinds declared through key assignments, e.g., col[Kind]=Name to assign column named 'Name' kind 'Kind'",
                 ShortName = "col", SortOrder = 110, Purpose = SpecialPurpose.ColumnSelector)]
             public KeyValuePair<string, string>[] CustomColumn;
 
@@ -232,6 +232,8 @@ namespace Microsoft.ML.Runtime.Data
                 var data = CreateDataFromArgs(ch, input, args, out feat, out group);
                 var predictor = TrainUtils.Train(host, ch, data, trainer, null,
                     args.Calibrator, args.MaxCalibrationExamples, null);
+
+                ch.Done();
 
                 return ScoreUtils.GetScorer(args.Scorer, predictor, input, feat, group, customCols, env, data.Schema, mapperFactory);
             }

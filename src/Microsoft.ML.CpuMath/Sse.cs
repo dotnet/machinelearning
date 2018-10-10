@@ -606,7 +606,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             unsafe
             {
                 fixed (float* pdst = &dst.Items[0])
-                    Thunk.Scale(a, Ptr(dst, pdst), dst.Size);
+                    Thunk.ScaleA(a, Ptr(dst, pdst), dst.Size);
             }
         }
 
@@ -618,7 +618,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             unsafe
             {
                 fixed (float* pd = &dst[0])
-                    Thunk.Scale(a, pd, count);
+                    Thunk.ScaleU(a, pd, count);
             }
         }
 
@@ -631,7 +631,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             unsafe
             {
                 fixed (float* pd = &dst[offset])
-                    Thunk.Scale(a, pd, count);
+                    Thunk.ScaleU(a, pd, count);
             }
         }
 

@@ -335,6 +335,8 @@ namespace Microsoft.ML.Runtime.Data.IO
 
                 if (!_silent)
                     ShowCount(ch, count, min, max);
+
+                ch.Done();
             }
         }
 
@@ -357,6 +359,8 @@ namespace Microsoft.ML.Runtime.Data.IO
 
                 if (showCount)
                     ShowCount(ch, count, min, max);
+
+                ch.Done();
             }
         }
 

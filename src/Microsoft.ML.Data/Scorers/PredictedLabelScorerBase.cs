@@ -284,7 +284,7 @@ namespace Microsoft.ML.Runtime.Data
 
         public bool CanSavePfa => (Bindable as ICanSavePfa)?.CanSavePfa == true;
 
-        public bool CanSaveOnnx(OnnxContext ctx) => (Bindable as ICanSaveOnnx)?.CanSaveOnnx(ctx) == true;
+        public bool CanSaveOnnx => (Bindable as ICanSaveOnnx)?.CanSaveOnnx == true;
 
         protected PredictedLabelScorerBase(ScorerArgumentsBase args, IHostEnvironment env, IDataView data,
             ISchemaBoundMapper mapper, RoleMappedSchema trainSchema, string registrationName, string scoreColKind, string scoreColName,

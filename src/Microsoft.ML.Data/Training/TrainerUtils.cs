@@ -384,12 +384,6 @@ namespace Microsoft.ML.Runtime.Training
             return new SchemaShape.Column(weightColumn, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false);
         }
 
-        private static void CheckArgColName(IHostEnvironment host, string defaultColName, string argValue)
-        {
-            if (argValue != defaultColName)
-                throw host.Except($"Don't supply a value for the {defaultColName} column in the arguments, as it will be ignored. Specify them in the loader, or constructor instead instead.");
-        }
-
         /// <summary>
         /// Check that the label, feature, weights, groupId column names are not supplied in the args of the constructor, through the advancedSettings parameter,
         /// for cases when the public constructor is called.
@@ -397,38 +391,19 @@ namespace Microsoft.ML.Runtime.Training
         /// </summary>
         public static void CheckArgsHaveDefaultColNames(IHostEnvironment host, LearnerInputBaseWithGroupId args)
         {
+            Action<string, string> checkArgColName = (defaultColName, argValue) =>
+            {
+                if (argValue != defaultColName)
+                    throw host.Except($"Don't supply a value for the {defaultColName} column in the arguments, as it will be ignored. Specify them in the loader, or constructor instead instead.");
+            };
+
             // check that the users didn't specify different label, group, feature, weights in the args, from what they supplied directly
-            CheckArgColName(host, DefaultColumnNames.Label, args.LabelColumn);
-            CheckArgColName(host, DefaultColumnNames.Features, args.FeatureColumn);
-            CheckArgColName(host, DefaultColumnNames.Weight, args.WeightColumn);
+            checkArgColName(DefaultColumnNames.Label, args.LabelColumn);
+            checkArgColName(DefaultColumnNames.Features, args.FeatureColumn);
+            checkArgColName(DefaultColumnNames.Weight, args.WeightColumn);
 
             if (args.GroupIdColumn != null)
-                CheckArgColName(host, DefaultColumnNames.GroupId, args.GroupIdColumn);
-        }
-
-        /// <summary>
-        /// Check that the label, feature, and weights column names are not supplied in the args of the constructor, through the advancedSettings parameter,
-        /// for cases when the public constructor is called.
-        /// The recommendation is to set the column names directly.
-        /// </summary>
-        public static void CheckArgsHaveDefaultColNames(IHostEnvironment host, LearnerInputBaseWithWeight args)
-        {
-            // check that the users didn't specify different label, group, feature, weights in the args, from what they supplied directly
-            CheckArgColName(host, DefaultColumnNames.Label, args.LabelColumn);
-            CheckArgColName(host, DefaultColumnNames.Features, args.FeatureColumn);
-            CheckArgColName(host, DefaultColumnNames.Weight, args.WeightColumn);
-        }
-
-        /// <summary>
-        /// Check that the label and feature column names are not supplied in the args of the constructor, through the advancedSettings parameter,
-        /// for cases when the public constructor is called.
-        /// The recommendation is to set the column names directly.
-        /// </summary>
-        public static void CheckArgsHaveDefaultColNames(IHostEnvironment host, LearnerInputBaseWithLabel args)
-        {
-            // check that the users didn't specify different label, group, feature, weights in the args, from what they supplied directly
-            CheckArgColName(host, DefaultColumnNames.Label, args.LabelColumn);
-            CheckArgColName(host, DefaultColumnNames.Features, args.FeatureColumn);
+                checkArgColName(DefaultColumnNames.GroupId, args.GroupIdColumn);
         }
 
         /// <summary>

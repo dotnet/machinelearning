@@ -12,7 +12,7 @@ namespace Microsoft.ML.Runtime
     {
         // REVIEW: Ideally trainers should be able to communicate
         // something about the type of data they are capable of being trained
-        // on, for example, what ColumnKinds they want, how many of each, of what type,
+        // on, e.g., what ColumnKinds they want, how many of each, of what type,
         // etc. This interface seems like the most natural conduit for that sort
         // of extra information.
 

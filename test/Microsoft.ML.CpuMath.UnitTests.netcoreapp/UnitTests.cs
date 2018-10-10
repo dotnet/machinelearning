@@ -233,7 +233,7 @@ namespace Microsoft.ML.CpuMath.UnitTests
         [Theory]
         [InlineData(0)]
         [InlineData(1)]
-        public void ScaleTest(int test)
+        public void ScaleUTest(int test)
         {
             float[] dst = (float[])_testArrays[test].Clone();
             float[] expected = (float[])dst.Clone();

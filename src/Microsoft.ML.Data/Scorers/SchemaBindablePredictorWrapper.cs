@@ -46,7 +46,7 @@ namespace Microsoft.ML.Runtime.Data
 
         public bool CanSavePfa => (ValueMapper as ICanSavePfa)?.CanSavePfa == true;
 
-        public bool CanSaveOnnx(OnnxContext ctx) => (ValueMapper as ICanSaveOnnx)?.CanSaveOnnx(ctx) == true;
+        public bool CanSaveOnnx => (ValueMapper as ICanSaveOnnx)?.CanSaveOnnx == true;
 
         public SchemaBindablePredictorWrapperBase(IPredictor predictor)
         {
@@ -124,7 +124,9 @@ namespace Microsoft.ML.Runtime.Data
                             throw ch.Except("Incompatible features column type: '{0}' vs '{1}'", type, typeIn);
                     }
                 }
-                return BindCore(ch, schema);
+                var mapper = BindCore(ch, schema);
+                ch.Done();
+                return mapper;
             }
         }
 

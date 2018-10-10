@@ -72,7 +72,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
 
                 // Compute hash key for checking if we've already seen this pipeline.
                 // However, if we keep missing, don't want to get stuck in infinite loop.
-                // Try for a good number of times (for example, numOfPipelines * 4), then just add
+                // Try for a good number of times (e.g., numOfPipelines * 4), then just add
                 // all generated pipelines to get us out of rut.
                 string hashKey = GetHashKey(transformsBitMask, selectedLearner);
                 if (collisions < numOfPipelines * 4 && VisitedPipelines.Contains(hashKey))
