@@ -2,16 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Data;
 using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Data.IO;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.RunTests;
 using Microsoft.ML.Runtime.Tools;
-using System;
 using System.IO;
-using System.Linq;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -47,38 +44,12 @@ namespace Microsoft.ML.Tests.Transformers
             var dataView = ComponentCreation.CreateDataView(Env, data);
             var pipe = new NAIndicatorEstimator(Env,
                 new NAIndicatorTransform.ColumnInfo("A", "NAA"),
-                new NAIndicatorTransform.ColumnInfo("B", "NAC"),
-                new NAIndicatorTransform.ColumnInfo("C", "NAD"),
-                new NAIndicatorTransform.ColumnInfo("D", "NAE"));
+                new NAIndicatorTransform.ColumnInfo("B", "NAB"),
+                new NAIndicatorTransform.ColumnInfo("C", "NAC"),
+                new NAIndicatorTransform.ColumnInfo("D", "NAD"));
             TestEstimatorCore(pipe, dataView);
             Done();
         }
-
-        //[Fact]
-        //public void NAIndicatorSimpleWorkout()
-        //{
-        //    var data = new[] {
-        //        new TestClass() { A = 1, B = 3, C = new float[2]{ 1, 2 } , D = new double[2]{ 3,4} },
-        //        new TestClass() { A = float.NaN, B = double.NaN, C = new float[2]{ float.NaN, float.NaN } , D = new double[2]{ double.NaN,double.NaN}},
-        //        new TestClass() { A = float.NegativeInfinity, B = double.NegativeInfinity, C = new float[2]{ float.NegativeInfinity, float.NegativeInfinity } , D = new double[2]{ double.NegativeInfinity, double.NegativeInfinity}},
-        //        new TestClass() { A = float.PositiveInfinity, B = double.PositiveInfinity, C = new float[2]{ float.PositiveInfinity, float.PositiveInfinity, } , D = new double[2]{  double.PositiveInfinity, double.PositiveInfinity}},
-        //        new TestClass() { A = 2, B = 1, C = new float[2]{ 3, 4 } , D = new double[2]{ 5,6}},
-        //    };
-
-        //    var dataView = ComponentCreation.CreateDataView(Env, data);
-        //    var pipe = new NAIndicatorEstimator(Env,
-        //        new NAIndicatorTransform.ColumnInfo("A", "AA"));
-        //    var transform = pipe.Fit(dataView);
-        //    var outDataView = transform.Transform(dataView);
-        //    var col = outDataView.GetColumn<bool>(Env, "AA").ToArray();
-        //    // write a simple test with one NAindicatortransform and try to inspect the columns using pete's code. might be easier!
-        //    //TestEstimatorCore(pipe, dataView);
-        //    foreach(bool c in col)
-        //    {
-        //        Console.WriteLine(c.ToString());
-        //    }
-        //    Done();
-        //}
 
         [Fact]
         public void NAIndicatorStatic()
@@ -137,9 +108,9 @@ namespace Microsoft.ML.Tests.Transformers
             var dataView = ComponentCreation.CreateDataView(Env, data);
             var pipe = new NAIndicatorEstimator(Env,
                 new NAIndicatorTransform.ColumnInfo("A", "NAA"),
-                new NAIndicatorTransform.ColumnInfo("B", "NAC"),
-                new NAIndicatorTransform.ColumnInfo("C", "NAD"),
-                new NAIndicatorTransform.ColumnInfo("D", "NAE"));
+                new NAIndicatorTransform.ColumnInfo("B", "NAB"),
+                new NAIndicatorTransform.ColumnInfo("C", "NAC"),
+                new NAIndicatorTransform.ColumnInfo("D", "NAD"));
 
             var result = pipe.Fit(dataView).Transform(dataView);
             var resultRoles = new RoleMappedData(result);

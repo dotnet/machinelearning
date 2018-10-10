@@ -14,7 +14,6 @@ using Microsoft.ML.Runtime.Data.Conversion;
 using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
-using Microsoft.ML.Runtime.Model.Onnx;
 using Microsoft.ML.StaticPipe;
 using Microsoft.ML.StaticPipe.Runtime;
 
