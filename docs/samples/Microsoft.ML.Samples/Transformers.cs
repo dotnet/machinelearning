@@ -2,39 +2,23 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Runtime.Api;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.StaticPipe;
-using System;
-using System.Collections.Generic;
-using System.Linq;
+//the alignment of the usings with the methods is intentional
+        using Microsoft.ML.Runtime.Api;
+        using Microsoft.ML.Runtime.Data;
+        using Microsoft.ML.StaticPipe;
+        using System;
+        using System.Collections.Generic;
 
+// NOTE: WHEN ADDING TO THE FILE, ALWAYS APPEND TO THE END OF IT. 
+// If you change the existinc content, check that the files referencing it in the XML documentation are still correct, as they reference
+// line by line. 
 namespace Microsoft.ML.Samples
 {
     public static class Transformers
     {
 
-        public class Input
-        {
-            public float Feature0 { get; set; }
-            public float Feature1 { get; set; } 
-            public float Feature2 { get; set; }
-            public float Feature3 { get; set; }
-            public float Target { get; set; }
-        }
-
-        public static IEnumerable<Input> GetInputData()
-        {
-            var data = new List<Input>();
-            data.Add(new Input { Feature0 = -2.75f, Feature1 = 0.77f, Feature2 = -0.61f, Feature3 = 0.14f, Target = 140.66f });
-            data.Add(new Input { Feature0 = -0.61f, Feature1 = -0.37f, Feature2 = -0.12f, Feature3 = 0.55f, Target = 148.12f });
-            data.Add(new Input { Feature0 = -0.85f, Feature1 = -0.91f, Feature2 = 1.81f, Feature3 = 0.02f, Target = 402.20f });
-
-            return data;
-        }
-
         /// <summary>
-        /// The example for the staticlly typed concat estimator.
+        /// The example for the statically typed concat estimator.
         /// </summary>
         public static void ConcatEstimator()
         {
@@ -42,7 +26,7 @@ namespace Microsoft.ML.Samples
             // as well as the source of randomness.
             var env = new LocalEnvironment();
 
-            IEnumerable<Input> data = GetInputData();
+            IEnumerable<SamplesUtils.DatasetUtils.SampleInput> data = SamplesUtils.DatasetUtils.GetInputData();
 
             // A preview of InputData:
             // feature_0; feature_1; feature_2; feature_3;  target

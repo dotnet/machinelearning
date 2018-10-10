@@ -147,7 +147,7 @@ namespace Microsoft.ML.Runtime.Data
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        ///  [!code-csharp[ConcatWith](../../../docs/samples/Microsoft.ML.Samples/Transformers.cs?start=17&end=89)]
+        ///  [!code-csharp[ConcatWith](](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Transformers.cs?range=6-10,23-74 )]
         /// ]]>
         /// </format>
         /// </example>

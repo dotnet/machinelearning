@@ -2,30 +2,26 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Learners;
-using Microsoft.ML.Trainers;
-using System;
-using System.Net;
-using System.Threading.Tasks;
+//the alignment of the usings with the methods is intentional
+        using Microsoft.ML.Runtime.Data;
+        using Microsoft.ML.Runtime.Learners;
+        using Microsoft.ML.Trainers;
+        using System;
 
+// NOTE: WHEN ADDING TO THE FILE, ALWAYS APPEND TO THE END OF IT. 
+// If you change the existinc content, check that the files referencing it in the XML documentation are still correct, as they reference
+// line by line. 
 namespace Microsoft.ML.Samples
 {
     public static class Trainers
     { 
+    
         public static void SdcaRegression()
         {
-            string baseGitPath = "https://raw.githubusercontent.com/dotnet/machinelearning/e78971ea6fd736038b4c355b840e5cbabae8cb55/test/data/";
-
             // Downloading a regression dataset from github.com/dotnet/machinelearning
-            string trainDataPath = "trainFile.csv";
-            string testDataPath = "testFile.csv";
-
-            using (WebClient client = new WebClient())
-            {
-                client.DownloadFile(new Uri($"{baseGitPath}generated_regression_dataset.csv"), trainDataPath);
-                client.DownloadFile(new Uri($"{baseGitPath}generated_regression_dataset.csv"), testDataPath);
-            }
+            // this will create a housing.txt file in the filsystem this code will run
+            // you can open the file to see the data. 
+            string dataFile = SamplesUtils.DatasetUtils.DownloadHousingRegressionDataset();
 
             // Creating the ML.Net IHostEnvironment object, needed for the pipeline
             var env = new LocalEnvironment(seed: 0);
@@ -35,13 +31,14 @@ namespace Microsoft.ML.Samples
 
             // Creating a data reader, based on the format of the data
             var reader = TextLoader.CreateReader(env, c => (
-                     label: c.LoadFloat(2),
-                     features: c.LoadFloat(0, 1)
-                 ),
-                separator: ',', hasHeader: true);
+                        label: c.LoadFloat(0),
+                        features: c.LoadFloat(1, 6)
+                    ),
+                separator: '\t', hasHeader: true);
 
-            // Read the data
-            var trainData = reader.Read(new MultiFileSource(trainDataPath));
+            // Read the data, and leave 10% out, so we can use them for testing
+            var data = reader.Read(new MultiFileSource(dataFile));
+            var (trainData, testData) = regressionContext.TrainTestSplit(data, testFraction: 0.1);
 
             // The predictor that gets produced out of training
             LinearRegressionPredictor pred = null;
@@ -67,12 +64,9 @@ namespace Microsoft.ML.Samples
             Console.WriteLine($"weight 0 - {weights.Values[0]}");
             Console.WriteLine($"weight 1 - {weights.Values[1]}");
 
-            // Test the model we just trained, using the test file. 
-            var testData = reader.Read(new MultiFileSource(testDataPath));
-            var data = model.Transform(testData);
-
             // Evaluate how the model is doing on the test data
-            var metrics = regressionContext.Evaluate(data, r => r.label, r => r.score);
+            var dataWithPredictions = model.Transform(testData);
+            var metrics = regressionContext.Evaluate(dataWithPredictions, r => r.label, r => r.score);
 
             Console.WriteLine($"L1 - {metrics.L1}");
             Console.WriteLine($"L2 - {metrics.L2}");
