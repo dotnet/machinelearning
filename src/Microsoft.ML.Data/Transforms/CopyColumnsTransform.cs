@@ -165,7 +165,7 @@ namespace Microsoft.ML.Transforms
             private readonly ISchema _schema;
             private readonly (string Source, string Name)[] _columns;
 
-            public bool CanSaveOnnx => true;
+            public bool CanSaveOnnx(OnnxContext ctx) => ctx.GetOnnxVersion() == OnnxVersion.Experimental;
 
             internal Mapper(CopyColumnsTransform parent, ISchema inputSchema, (string Source, string Name)[] columns)
                 : base(parent.Host.Register(nameof(Mapper)), parent, inputSchema)
