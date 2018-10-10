@@ -349,7 +349,7 @@ namespace Microsoft.ML.Runtime.KMeans
             var nameL = outputNames[0];
             var predictNodeL = ctx.CreateNode("ArgMin", nameY, nameL, ctx.GetNodeName("ArgMin"), "");
             predictNodeL.AddAttribute("axis", 1);
-            predictNodeL.AddAttribute("keepdims", 0);
+            predictNodeL.AddAttribute("keepdims", 1);
 
             return true;
         }
