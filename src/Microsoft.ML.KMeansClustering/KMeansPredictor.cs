@@ -326,27 +326,27 @@ namespace Microsoft.ML.Runtime.KMeans
 
             // Compute X^2 from X
             var nameX2 = ctx.AddIntermediateVariable(null , "X2", true);
-            var reduceNodeX2 = ctx.CreateNode("ReduceSumSquare", nameX, nameX2, ctx.GetNodeName("ReduceSumSquare"));
+            var reduceNodeX2 = ctx.CreateNode("ReduceSumSquare", nameX, nameX2, ctx.GetNodeName("ReduceSumSquare"), "");
 
             // Compute -2XC^T. Note that Gemm always takes three inputs. Since we only have two here,
             // a dummpy one is created.
-            var zeroName = "zero"; // ctx.AddInitializer(0f, "zero");
+            var zeroName = ctx.AddInitializer(new Float[] { 0f }, null, "zero");
             var nameXC2 = ctx.AddIntermediateVariable(null, "XC2", true);
-            var gemmNodeXC2 = ctx.CreateNode("Gemm", new[] { nameX, nameC, zeroName}, new[] { nameXC2 }, ctx.GetNodeName("Gemm"));
+            var gemmNodeXC2 = ctx.CreateNode("Gemm", new[] { nameX, nameC, zeroName}, new[] { nameXC2 }, ctx.GetNodeName("Gemm"), "");
             gemmNodeXC2.AddAttribute("alpha", -2f);
             gemmNodeXC2.AddAttribute("transB", 1);
 
             // Compute Z = X^2 - 2XC^T
             var nameZ = "Z"; // ctx.AddIntermediateVariable(null, "Z", true);
-            var addNodeZ = ctx.CreateNode("Add", new[] { nameX2, nameXC2 }, new[] { nameZ }, ctx.GetNodeName("Add"));
+            var addNodeZ = ctx.CreateNode("Add", new[] { nameX2, nameXC2 }, new[] { nameZ }, ctx.GetNodeName("Add"), "");
 
             // Compute Y = Z + C^2
             var nameY = outputNames[1];
-            var addNodeY = ctx.CreateNode("Add", new[] { nameZ, nameC2 }, new[] { nameY }, ctx.GetNodeName("Add"));
+            var addNodeY = ctx.CreateNode("Add", new[] { nameZ, nameC2 }, new[] { nameY }, ctx.GetNodeName("Add"), "");
 
             // Compute the most-matched cluster index, L
             var nameL = outputNames[0];
-            var predictNodeL = ctx.CreateNode("ArgMax", nameY, nameL, ctx.GetNodeName("ArgMax"));
+            var predictNodeL = ctx.CreateNode("ArgMin", nameY, nameL, ctx.GetNodeName("ArgMin"), "");
             predictNodeL.AddAttribute("axis", 1);
             predictNodeL.AddAttribute("keepdims", 0);
 
