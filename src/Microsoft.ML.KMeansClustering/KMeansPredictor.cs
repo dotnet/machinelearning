@@ -309,7 +309,7 @@ namespace Microsoft.ML.Runtime.KMeans
             //                                             Z [l, k] ----------> Add <------------C^2 [k]
             //                                                                   |
             //                                                                   v
-            //                                             L [l]    <----------  Y [l, k]
+            //                                           L [l] <--- ArgMin <---  Y [l, k]
 
             // Allocate C, which is a constant tensor in prediction phase
             var shapeC = new long[] { _centroids.Length, _centroids[0].Length };
