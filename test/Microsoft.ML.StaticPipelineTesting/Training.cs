@@ -202,7 +202,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var loss = new HingeLoss(new HingeLoss.Arguments() { Margin = 1 });
 
             var est = reader.MakeNewEstimator()
-                .Append(r => (r.label, preds: ctx.Trainers.AveragedPerceptron(loss, r.label, r.features,
+                .Append(r => (r.label, preds: ctx.Trainers.AveragedPerceptron(r.label, r.features, lossFunction: loss,
                 numIterations: 2, onFit: p => pred = p)));
 
             var pipe = reader.Append(est);
@@ -630,7 +630,7 @@ namespace Microsoft.ML.StaticPipelineTesting
 
             var est = reader.MakeNewEstimator()
                 .Append(r => (r.label, score: ctx.Trainers.OnlineGradientDescent(r.label, r.features,
-                // lossFunction:loss,
+                lossFunction:loss,
                 onFit: (p) => { pred = p; })));
 
             var pipe = reader.Append(est);
