@@ -47,12 +47,12 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                 if (!tran)
                 {
                     Contracts.Assert(crun <= dst.Size);
-                    SseIntrinsics.MatMulA(add, mat, src, dst, crun, src.Size);
+                    SseIntrinsics.MatMul(add, mat, src, dst, crun, src.Size);
                 }
                 else
                 {
                     Contracts.Assert(crun <= src.Size);
-                    SseIntrinsics.MatMulTranA(add, mat, src, dst, dst.Size, crun);
+                    SseIntrinsics.MatMulTran(add, mat, src, dst, dst.Size, crun);
                 }
             }
             else

@@ -16,7 +16,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         public static extern bool ChkAvx();
 
         [DllImport(NativePath), SuppressUnmanagedCodeSecurity]
-        public static extern void MatMulA(bool add, /*const*/ float* pmat, /*const*/ float* psrc, float* pdst, int crow, int ccol);
+        public static extern void MatMul(bool add, /*const*/ float* pmat, /*const*/ float* psrc, float* pdst, int crow, int ccol);
 
         [DllImport(NativePath), SuppressUnmanagedCodeSecurity]
         public static extern void MatMulX(bool add, /*const*/ float* pmat, /*const*/ float* psrc, float* pdst, int crow, int ccol);
@@ -65,7 +65,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         // and columns from that perspective. Alternatively, crow is the number of rows in the transpose of pmat
         // (thought of as row-major order).
         [DllImport(NativePath), SuppressUnmanagedCodeSecurity]
-        public static extern void MatMulTranA(bool add, /*const*/ float* pmat, /*const*/ float* psrc, float* pdst, int crow, int ccol);
+        public static extern void MatMulTran(bool add, /*const*/ float* pmat, /*const*/ float* psrc, float* pdst, int crow, int ccol);
         [DllImport(NativePath), SuppressUnmanagedCodeSecurity]
         public static extern void MatMulTranX(bool add, /*const*/ float* pmat, /*const*/ float* psrc, float* pdst, int crow, int ccol);
 

@@ -84,7 +84,7 @@ namespace Microsoft.ML.CpuMath.UnitTests
         [InlineData(0, 0, 0, new float[] { -416.6801f, -416.6801f, -416.6801f, -416.6801f, -416.6801f, -416.6801f, -416.6801f, -416.6801f })]
         [InlineData(1, 1, 0, new float[] { 1496f, 3672f, 5848f, 8024f, 10200f, 12376f, 14552f, 16728f })]
         [InlineData(1, 0, 1, new float[] { 204f, 492f, 780f, 1068f, 1356f, 1644f, 1932f, 2220f, 2508f, 2796f, 3084f, 3372f, 3660f, 3948f, 4236f, 4524f })]
-        public void MatMulATest(int matTest, int srcTest, int dstTest, float[] expected)
+        public void MatMulTest(int matTest, int srcTest, int dstTest, float[] expected)
         {
             AlignedArray mat = _testMatrices[matTest];
             AlignedArray src = _testSrcVectors[srcTest];
@@ -100,7 +100,7 @@ namespace Microsoft.ML.CpuMath.UnitTests
         [InlineData(0, 0, 0, new float[] { -416.6801f, -415.6801f, -414.6801f, -413.6801f, -412.6801f, -411.6801f, -410.6801f, -409.6801f })]
         [InlineData(1, 1, 0, new float[] { 1496f, 3673f, 5850f, 8027f, 10204f, 12381f, 14558f, 16735f })]
         [InlineData(1, 0, 1, new float[] { 204f, 493f, 782f, 1071f, 1360f, 1649f, 1938f, 2227f, 2516f, 2805f, 3094f, 3383f, 3672f, 3961f, 4250f, 4539f })]
-        public void MatMulAAddTest(int matTest, int srcTest, int dstTest, float[] expected)
+        public void MatMulAddTest(int matTest, int srcTest, int dstTest, float[] expected)
         {
             AlignedArray mat = _testMatrices[matTest];
             AlignedArray src = _testSrcVectors[srcTest];
@@ -116,7 +116,7 @@ namespace Microsoft.ML.CpuMath.UnitTests
         [InlineData(0, 0, 0, new float[] { 70.56001f, -85.68f, -351.36f, 498.24f, -3829.32f, -969.48f, 1168.2f, 118.44f })]
         [InlineData(1, 0, 1, new float[] { 2724f, 2760f, 2796f, 2832f, 2868f, 2904f, 2940f, 2976f, 3012f, 3048f, 3084f, 3120f, 3156f, 3192f, 3228f, 3264f })]
         [InlineData(1, 1, 0, new float[] { 11016f, 11152f, 11288f, 11424f, 11560f, 11696f, 11832f, 11968f })]
-        public void MatMulTranATest(int matTest, int srcTest, int dstTest, float[] expected)
+        public void MatMulTranTest(int matTest, int srcTest, int dstTest, float[] expected)
         {
             AlignedArray mat = _testMatrices[matTest];
             AlignedArray src = _testSrcVectors[srcTest];
@@ -132,7 +132,7 @@ namespace Microsoft.ML.CpuMath.UnitTests
         [InlineData(0, 0, 0, new float[] { 70.56001f, -84.68f, -349.36f, 501.24f, -3825.32f, -964.48f, 1174.2f, 125.44f })]
         [InlineData(1, 0, 1, new float[] { 2724f, 2761f, 2798f, 2835f, 2872f, 2909f, 2946f, 2983f, 3020f, 3057f, 3094f, 3131f, 3168f, 3205f, 3242f, 3279f })]
         [InlineData(1, 1, 0, new float[] { 11016f, 11153f, 11290f, 11427f, 11564f, 11701f, 11838f, 11975f })]
-        public void MatMulTranAAddTest(int matTest, int srcTest, int dstTest, float[] expected)
+        public void MatMulTranAddTest(int matTest, int srcTest, int dstTest, float[] expected)
         {
             AlignedArray mat = _testMatrices[matTest];
             AlignedArray src = _testSrcVectors[srcTest];
