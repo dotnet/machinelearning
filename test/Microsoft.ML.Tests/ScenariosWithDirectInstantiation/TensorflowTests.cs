@@ -383,7 +383,7 @@ namespace Microsoft.ML.Scenarios
 
                     var args = new TensorFlowTransform.Arguments()
                     {
-                        Model = model_location,
+                        ModelLocation = model_location,
                         InputColumns = new[] { "Features" },
                         OutputColumns = new[] { "Prediction", "b" },
                         LabelColumn = "OneHotLabel",
@@ -513,7 +513,7 @@ namespace Microsoft.ML.Scenarios
 
                     var args = new TensorFlowTransform.Arguments()
                     {
-                        Model = model_location,
+                        ModelLocation = model_location,
                         InputColumns = new[] { "Features" },
                         OutputColumns = new[] { "Prediction" },
                         LabelColumn = "Label",
