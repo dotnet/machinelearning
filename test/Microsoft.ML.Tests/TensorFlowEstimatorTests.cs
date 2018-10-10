@@ -54,7 +54,7 @@ namespace Microsoft.ML.Tests
         {
         }
 
-        [Fact]
+        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // TensorFlow is 64-bit only
         void TestSimpleCase()
         {
             var modelFile = "model_matmul/frozen_saved_model.pb";
@@ -94,7 +94,7 @@ namespace Microsoft.ML.Tests
             catch (InvalidOperationException) { }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // TensorFlow is 64-bit only
         void TestOldSavingAndLoading()
         {
             var modelFile = "model_matmul/frozen_saved_model.pb";
@@ -130,7 +130,7 @@ namespace Microsoft.ML.Tests
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // x86 output differs from Baseline
         void TestCommandLine()
         {
             using (var env = new ConsoleEnvironment())
@@ -139,7 +139,7 @@ namespace Microsoft.ML.Tests
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // TensorFlow is 64-bit only
         public void TestTensorFlowStatic()
         {
             var modelLocation = "cifar_model/frozen_model.pb";

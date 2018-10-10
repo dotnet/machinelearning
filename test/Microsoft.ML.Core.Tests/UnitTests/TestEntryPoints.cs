@@ -1787,14 +1787,14 @@ namespace Microsoft.ML.Runtime.RunTests
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // LightGBM is 64-bit only
         public void EntryPointLightGbmBinary()
         {
             Env.ComponentCatalog.RegisterAssembly(typeof(LightGbmBinaryPredictor).Assembly);
             TestEntryPointRoutine("breast-cancer.txt", "Trainers.LightGbmBinaryClassifier");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // LightGBM is 64-bit only
         public void EntryPointLightGbmMultiClass()
         {
             Env.ComponentCatalog.RegisterAssembly(typeof(LightGbmBinaryPredictor).Assembly);
@@ -3710,7 +3710,7 @@ namespace Microsoft.ML.Runtime.RunTests
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // TensorFlow is 64-bit only
         public void EntryPointTensorFlowTransform()
         {
             Env.ComponentCatalog.RegisterAssembly(typeof(TensorFlowTransform).Assembly);

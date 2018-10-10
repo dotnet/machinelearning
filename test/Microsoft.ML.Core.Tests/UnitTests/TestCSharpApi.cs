@@ -959,7 +959,7 @@ namespace Microsoft.ML.Runtime.RunTests
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // TensorFlow is 64-bit only
         public void TestTensorFlowEntryPoint()
         {
             var dataPath = GetDataPath("Train-Tiny-28x28.txt");
