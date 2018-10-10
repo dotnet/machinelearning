@@ -522,13 +522,12 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                     if (length > 4)
                     {
                         // Handle all the 128-bit blocks that we can now that we have offset to an aligned address
-
                         remainder = length % 4;
 
                         for (float* pEnd = pDstCurrent + (length - remainder); pDstCurrent < pEnd; pDstCurrent += 4)
                         {
-                            // If we aren't using the VEX-encoding, then the reverse is true and the JIT
-                            // will only fold away aligned loads (due to semantics of the legacy encoding).
+                            // If we aren't using the VEX-encoding, the JIT will only fold away aligned loads 
+                            // (due to semantics of the legacy encoding).
                             // We don't need an assert, since the instruction will throw for unaligned inputs.
                             Vector128<float> temp = Sse.LoadAlignedVector128(pDstCurrent);
                             temp = Sse.Multiply(scaleVector128, temp);

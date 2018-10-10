@@ -1541,7 +1541,6 @@ EXPORT_API(void) Scale(float a, _Inout_ float * pd, int c)
         result = _mm_or_ps(temp, result);            
             
         _mm_storeu_ps(pd, result);
-        return;   
     }
 }
 
