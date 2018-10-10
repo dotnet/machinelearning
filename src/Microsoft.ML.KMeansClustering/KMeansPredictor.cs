@@ -25,6 +25,7 @@ namespace Microsoft.ML.Runtime.KMeans
         PredictorBase<VBuffer<Float>>,
         IValueMapper,
         ICanSaveInTextFormat,
+        ICanSaveModel,
         ISingleCanSaveOnnx
     {
         public const string LoaderSignature = "KMeansPredictor";
