@@ -11,6 +11,26 @@ namespace Microsoft.ML.CpuMath.PerformanceTests
 {
     public class SsePerformanceTests : PerformanceTests
     {
+        private AlignedArray _testMatrices;
+        private AlignedArray _testSrcVectors;
+        private AlignedArray _testDstVectors;
+
+        [GlobalSetup(Targets = new string[] { nameof(MatMulX), nameof(MatMulTranX) })]
+        public void MatMulSetup()
+        {
+            Setup();
+            int vectorAlignment = CpuMathUtils.GetVectorAlignment();
+
+            _testMatrices = new AlignedArray(1000 * 1000, vectorAlignment);
+            _testMatrices.CopyFrom(src, 0, 1000 * 1000);
+
+            _testSrcVectors = new AlignedArray(1000, vectorAlignment);
+            _testSrcVectors.CopyFrom(src, 0, 1000);
+
+            _testDstVectors = new AlignedArray(1000, vectorAlignment);
+            _testDstVectors.CopyFrom(dst, 0, 1000);
+        }
+
         [Benchmark]
         public void AddScalarU()
             => SseIntrinsics.AddScalarU(DefaultScale, new Span<float>(dst, 0, Length));
@@ -99,5 +119,13 @@ namespace Microsoft.ML.CpuMath.PerformanceTests
         [Benchmark]
         public void SdcaL1UpdateSU()
             => SseIntrinsics.SdcaL1UpdateSU(DefaultScale, new Span<float>(src, 0, IndexLength), new Span<int>(idx, 0, IndexLength), DefaultScale, new Span<float>(dst), new Span<float>(result));
+
+        [Benchmark]
+        public void MatMulX()
+            => SseIntrinsics.MatMul(true, _testMatrices, _testMatrices, _testDstVectors, 1000, 1000);
+
+        [Benchmark]
+        public void MatMulTranX()
+            => SseIntrinsics.MatMulTran(true, _testMatrices, _testMatrices, _testDstVectors, 1000, 1000);
     }
 }

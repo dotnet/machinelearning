@@ -228,5 +228,25 @@ namespace Microsoft.ML.CpuMath.PerformanceTests
                 CpuMathNativeUtils.SdcaL1UpdateSU(DefaultScale, psrc, pidx, DefaultScale, pdst, pres, IndexLength);
             }
         }
+
+        [Benchmark]
+        public unsafe void MatMulX()
+        {
+            fixed (float* psrc = &src[0])
+            fixed (float* pdst = &dst[0])
+            {
+                Thunk.MatMulX(true, psrc, psrc, pdst, 1000, 1000);
+            }
+        }
+            
+        [Benchmark]
+        public unsafe void MatMulTranX()
+        {
+            fixed (float* psrc = &src[0])
+            fixed (float* pdst = &dst[0])
+            {
+                Thunk.MatMulTranX(true, psrc, psrc, pdst, 1000, 1000);
+            }
+        }
     }
 }
