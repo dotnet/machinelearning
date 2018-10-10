@@ -32,9 +32,10 @@ namespace Microsoft.ML.Runtime.Model.Onnx
         private readonly string _domain;
         private readonly string _producerVersion;
         private readonly long _modelVersion;
+        private readonly OnnxVersion _onnxVersion;
 
         public OnnxContextImpl(IHostEnvironment env, string name, string producerName,
-            string producerVersion, long modelVersion, string domain)
+            string producerVersion, long modelVersion, string domain, OnnxVersion onnxVersion)
         {
             Contracts.CheckValue(env, nameof(env));
             _host = env.Register(nameof(OnnxContext));
@@ -54,6 +55,7 @@ namespace Microsoft.ML.Runtime.Model.Onnx
             _producerVersion = producerVersion;
             _modelVersion = modelVersion;
             _domain = domain;
+            _onnxVersion = onnxVersion;
         }
 
         public override bool ContainsColumn(string colName) => _columnNameMap.ContainsKey(colName);
@@ -327,5 +329,11 @@ namespace Microsoft.ML.Runtime.Model.Onnx
         /// </summary>
         public ModelProto MakeModel()
             => OnnxUtils.MakeModel(_nodes, _producerName, _name, _domain, _producerVersion, _modelVersion, _inputs, _outputs, _intermediateValues, _initializers);
+
+        /// <summary>
+        /// Return either "Experimental" or "Stable". The string "Experimental" indicates that some experimental features which are
+        /// not officially supported in the official ONNX standard. Otherwise, only official ONNX features should be used.
+        /// </summary>
+        public override OnnxVersion GetOnnxVersion() => _onnxVersion;
     }
 }

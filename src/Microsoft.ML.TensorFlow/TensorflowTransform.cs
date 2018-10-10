@@ -189,7 +189,9 @@ namespace Microsoft.ML.Transforms
         }
 
         /// <summary>
-        /// Convenience constructor for public facing API.
+        /// Creates <see cref="IDataTransform"/> using <see cref="TensorFlowTransform"/>.
+        /// This convenience method get the model file as input and loads the model internally.
+        /// If the model is already loaded please <see cref="TensorFlowTransform.Create(IHostEnvironment, IDataView, TensorFlowModelInfo, string[], string[])"/> to avoid reloading of model.
         /// </summary>
         /// <param name="env">Host Environment.</param>
         /// <param name="input">Input <see cref="IDataView"/>. This is the output from previous transform or loader.</param>
@@ -199,6 +201,21 @@ namespace Microsoft.ML.Transforms
         public static IDataTransform Create(IHostEnvironment env, IDataView input, string model, string[] names, string[] source)
         {
             return new TensorFlowTransform(env, TensorFlowUtils.GetSession(env, model), source, names, TensorFlowUtils.IsSavedModel(env, model) ? model : null, false).MakeDataTransform(input);
+        }
+
+        /// <summary>
+        /// Creates <see cref="IDataTransform"/> using <see cref="TensorFlowTransform"/>.
+        /// This convenience method avoids reloading of TensorFlow model.
+        /// It is useful in a situation where user has already loaded TensorFlow model using <see cref="TensorFlowUtils.LoadTensorFlowModel(IHostEnvironment, string)"/> for inspecting model schema.
+        /// </summary>
+        /// <param name="env">Host Environment.</param>
+        /// <param name="input">Input <see cref="IDataView"/>. This is the output from previous transform or loader.</param>
+        /// <param name="tfModelInfo"> <see cref="TensorFlowModelInfo"/> object created with <see cref="TensorFlowUtils.LoadTensorFlowModel(IHostEnvironment, string)"/>.</param>
+        /// <param name="names">Name of the output column(s). Keep it same as in the Tensorflow model.</param>
+        /// <param name="source">Name of the input column(s). Keep it same as in the Tensorflow model.</param>
+        public static IDataTransform Create(IHostEnvironment env, IDataView input, TensorFlowModelInfo tfModelInfo, string[] names, string[] source)
+        {
+            return new TensorFlowTransform(env, tfModelInfo.Session, source, names, TensorFlowUtils.IsSavedModel(env, tfModelInfo.ModelPath) ? tfModelInfo.ModelPath : null, false).MakeDataTransform(input);
         }
 
         // Factory method for SignatureLoadModel.
@@ -1085,6 +1102,11 @@ namespace Microsoft.ML.Transforms
         {
         }
 
+        public TensorFlowEstimator(IHostEnvironment env, TensorFlowModelInfo tensorFlowModel, string[] inputs, string[] outputs)
+           : this(env, new TensorFlowTransform(env, tensorFlowModel.Session, inputs, outputs, TensorFlowUtils.IsSavedModel(env, tensorFlowModel.ModelPath) ? tensorFlowModel.ModelPath : null, false))
+        {
+        }
+
         public TensorFlowEstimator(IHostEnvironment env, TensorFlowTransform transformer)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(TensorFlowTransform)), transformer)
         {
@@ -1127,16 +1149,32 @@ namespace Microsoft.ML.Transforms
             {
                 Input = input;
             }
+
+            public OutColumn(Vector<float> input, TensorFlowModelInfo tensorFlowModel)
+                : base(new Reconciler(tensorFlowModel), input)
+            {
+                Input = input;
+            }
         }
 
         private sealed class Reconciler : EstimatorReconciler
         {
             private readonly string _modelFile;
+            private readonly TensorFlowModelInfo _tensorFlowModel;
 
             public Reconciler(string modelFile)
             {
                 Contracts.AssertNonEmpty(modelFile);
                 _modelFile = modelFile;
+                _tensorFlowModel = null;
+            }
+
+            public Reconciler(TensorFlowModelInfo tensorFlowModel)
+            {
+                Contracts.CheckValue(tensorFlowModel, nameof(tensorFlowModel));
+
+                _modelFile = null;
+                _tensorFlowModel = tensorFlowModel;
             }
 
             public override IEstimator<ITransformer> Reconcile(IHostEnvironment env,
@@ -1148,7 +1186,14 @@ namespace Microsoft.ML.Transforms
                 Contracts.Assert(toOutput.Length == 1);
 
                 var outCol = (OutColumn)toOutput[0];
-                return new TensorFlowEstimator(env, _modelFile, new[] { inputNames[outCol.Input] }, new[] { outputNames[outCol] });
+                if (_modelFile == null)
+                {
+                    return new TensorFlowEstimator(env, _tensorFlowModel, new[] { inputNames[outCol.Input] }, new[] { outputNames[outCol] });
+                }
+                else
+                {
+                    return new TensorFlowEstimator(env, _modelFile, new[] { inputNames[outCol.Input] }, new[] { outputNames[outCol] });
+                }
             }
         }
 
@@ -1156,7 +1201,7 @@ namespace Microsoft.ML.Transforms
         // input and producing one output of floats.
         // We could consider selectively adding some more extensions to enable common scenarios.
         /// <summary>
-        /// Run a TensorFlow model on the input column and extract one output column.
+        /// Load the TensorFlow model from <paramref name="modelFile"/> and run it on the input column and extract one output column.
         /// The inputs and outputs are matched to TensorFlow graph nodes by name.
         /// </summary>
         public static Vector<float> ApplyTensorFlowGraph(this Vector<float> input, string modelFile)
@@ -1164,6 +1209,17 @@ namespace Microsoft.ML.Transforms
             Contracts.CheckValue(input, nameof(input));
             Contracts.CheckNonEmpty(modelFile, nameof(modelFile));
             return new OutColumn(input, modelFile);
+        }
+
+        /// <summary>
+        /// Run a TensorFlow model provided through <paramref name="tensorFlowModel"/> on the input column and extract one output column.
+        /// The inputs and outputs are matched to TensorFlow graph nodes by name.
+        /// </summary>
+        public static Vector<float> ApplyTensorFlowGraph(this Vector<float> input, TensorFlowModelInfo tensorFlowModel)
+        {
+            Contracts.CheckValue(input, nameof(input));
+            Contracts.CheckValue(tensorFlowModel, nameof(tensorFlowModel));
+            return new OutColumn(input, tensorFlowModel);
         }
     }
 }

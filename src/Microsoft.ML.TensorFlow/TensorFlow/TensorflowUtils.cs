@@ -4,7 +4,6 @@
 
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.ImageAnalytics.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using System;
 using System.Collections.Generic;
@@ -21,7 +20,7 @@ namespace Microsoft.ML.Transforms.TensorFlow
         public const string OpType = "OpType";
         public const string InputOps = "InputOps";
 
-        private static ISchema GetModelSchema(IExceptionContext ectx, TFGraph graph)
+        internal static ISchema GetModelSchema(IExceptionContext ectx, TFGraph graph, string opType = null)
         {
             var res = new List<KeyValuePair<string, ColumnType>>();
             var opTypeGetters = new List<MetadataUtils.MetadataGetter<ReadOnlyMemory<char>>>();
@@ -29,6 +28,8 @@ namespace Microsoft.ML.Transforms.TensorFlow
             var inputOpsLengths = new List<int>();
             foreach (var op in graph)
             {
+                if (opType != null && opType != op.OpType)
+                    continue;
                 var tfType = op[0].OutputType;
                 var mlType = Tf2MlNetTypeOrNull(tfType);
 
@@ -55,12 +56,11 @@ namespace Microsoft.ML.Transforms.TensorFlow
                 }
                 inputOpsGetters.Add(inputOpsGetter);
 
-                var opType = op.OpType;
                 MetadataUtils.MetadataGetter<ReadOnlyMemory<char>> opTypeGetter =
-                    (int col, ref ReadOnlyMemory<char> dst) => dst = new ReadOnlyMemory<char>(opType.ToArray());
+                    (int col, ref ReadOnlyMemory<char> dst) => dst = new ReadOnlyMemory<char>(op.OpType.ToArray());
                 opTypeGetters.Add(opTypeGetter);
 
-                var columnType = Utils.Size(shapeArray) == 1 && shapeArray[0] == -1 ? new VectorType(mlType) :
+                var columnType = Utils.Size(shapeArray) == 1 && shapeArray[0] <= 0 ? new VectorType(mlType) :
                     Utils.Size(shapeArray) > 0 && shapeArray.Skip(1).All(x => x > 0) ?
                         new VectorType(mlType, shapeArray[0] > 0 ? shapeArray : shapeArray.Skip(1).ToArray())
                         : new VectorType(mlType);
@@ -306,6 +306,12 @@ namespace Microsoft.ML.Transforms.TensorFlow
             {
                 throw Contracts.ExceptParam(nameof(folder), $"Failed to create folder for the provided path: {folder}. \nException: {exc.Message}");
             }
+        }
+
+        public static TensorFlowModelInfo LoadTensorFlowModel(IHostEnvironment env, string modelPath)
+        {
+            var session = GetSession(env, modelPath);
+            return new TensorFlowModelInfo(env, session, modelPath);
         }
 
         internal static TFSession GetSession(IHostEnvironment env, string modelPath)
