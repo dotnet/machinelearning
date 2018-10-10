@@ -212,7 +212,7 @@ namespace Microsoft.ML.Runtime.Data
 
             // Create the indicator columns.
             if (naIndicatorCols.Count > 0)
-                output = new NAIndicatorTransform(h, new NAIndicatorTransform.Arguments() { Column = naIndicatorCols.ToArray() }, input);
+                output = NAIndicatorTransform.Create(h, new NAIndicatorTransform.Arguments() { Column = naIndicatorCols.ToArray() }, input);
 
             // Convert the indicator columns to the correct type so that they can be concatenated to the NAReplace outputs.
             if (naConvCols.Count > 0)
