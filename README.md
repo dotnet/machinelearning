@@ -88,7 +88,7 @@ var predictionFunc = model.MakePredictionFunction<SentimentInput, SentimentPredi
 var prediction = predictionFunc.Predict(new SentimentData
 {
     SentimentText = "Today is a great day!"
-};
+});
 Console.WriteLine("prediction: " + prediction.Sentiment);
 ```
 A cookbook that shows how to use these APIs for a variety of existing and new scenarios can be found [here](docs/code/MlNetCookBook.md).
