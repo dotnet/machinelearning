@@ -6,6 +6,7 @@ using Microsoft.ML.Legacy.Trainers;
 using Microsoft.ML.Legacy.Transforms;
 using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Transforms.TensorFlow;
+using System;
 using System.IO;
 using Xunit;
 
@@ -13,7 +14,7 @@ namespace Microsoft.ML.Scenarios
 {
     public partial class ScenariosTests
     {
-        [Fact]
+        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // TensorFlow is 64-bit only
         public void TensorFlowTransformCifarLearningPipelineTest()
         {
             var imageHeight = 32;

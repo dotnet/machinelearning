@@ -333,7 +333,8 @@ namespace Microsoft.ML.Tests
             Done();
         }
 
-        [Fact]
+
+        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // LightGBM is 64-bit only
         public void BinaryClassificationLightGBMSaveModelToOnnxTest()
         {
             string dataPath = GetDataPath(@"breast-cancer.txt");

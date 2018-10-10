@@ -16,8 +16,8 @@ namespace Microsoft.ML.CpuMath.PerformanceTests
             => SseIntrinsics.AddScalarU(DefaultScale, new Span<float>(dst, 0, Length));
         
         [Benchmark]
-        public void ScaleU()
-            => SseIntrinsics.ScaleU(DefaultScale, new Span<float>(dst, 0, Length));
+        public void Scale()
+            => SseIntrinsics.Scale(DefaultScale, new Span<float>(dst, 0, Length));
         
         [Benchmark]
         public void ScaleSrcU()
