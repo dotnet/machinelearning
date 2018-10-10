@@ -286,8 +286,8 @@ namespace Microsoft.ML.Runtime.RunTests
             /// <paramref name="toCompare"/> objects are used for comparison only.
             /// </summary>
             /// <returns>Whether this test succeeded.</returns>
-         protected bool TestCore(RunContextBase ctx, string cmdName, string args, int digitsOfPrecision, params PathArgument[] toCompare)
-        {
+       protected bool TestCore(RunContextBase ctx, string cmdName, string args, int digitsOfPrecision, params PathArgument[] toCompare)
+       {
             Contracts.AssertValue(cmdName);
             Contracts.AssertValueOrNull(args);
             OutputPath outputPath = ctx.StdoutPath();
@@ -311,7 +311,7 @@ namespace Microsoft.ML.Runtime.RunTests
                         all &= c.CheckEquality(digitsOfPrecision);
             }
             return all;
-        }
+       }
 
         /// <summary>
         /// Invoke MAML with specified arguments. This is intended to be used for testing.
@@ -361,8 +361,8 @@ namespace Microsoft.ML.Runtime.RunTests
     public abstract partial class TestDmCommandBase : TestCommandBase
     {
         private bool TestCoreCore(RunContextBase ctx, string cmdName, string dataPath, PathArgument.Usage situation,
-            OutputPath inModelPath, OutputPath outModelPath, string loaderArgs, string extraArgs, params PathArgument[] toCompare){
-
+            OutputPath inModelPath, OutputPath outModelPath, string loaderArgs, string extraArgs, params PathArgument[] toCompare)
+        {
             return TestCoreCore(ctx, cmdName, dataPath, situation, inModelPath, outModelPath, loaderArgs, extraArgs, DigitsOfPrecision, toCompare);
         }
 
@@ -421,7 +421,7 @@ namespace Microsoft.ML.Runtime.RunTests
 
         protected bool TestCore(RunContextBase ctx, string cmdName, string dataPath, string loaderArgs, string extraArgs, int digitsOfPrecision, params PathArgument[] toCompare)
         {
-            return TestCoreCore(ctx, cmdName, dataPath, PathArgument.Usage.DataModel, null, ctx.ModelPath(), loaderArgs, extraArgs, toCompare);
+            return TestCoreCore(ctx, cmdName, dataPath, PathArgument.Usage.DataModel, null, ctx.ModelPath(), loaderArgs, extraArgs, DigitsOfPrecision, toCompare);
         }
 
         /// <summary>
