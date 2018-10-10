@@ -196,18 +196,12 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
                                 // appears to be incorrect. When the file isn't found, it throws an ArgumentException,
                                 // while the documentation says FileNotFoundException. Not sure what it will throw
                                 // in other cases, like corrupted file, etc.
-
-                                // REVIEW : Log failures.
-                                var notFound = $"Image {src.ToString()} was not found.";
-                                throw Host.Except(notFound);
+                                throw Host.Except($"Image {src.ToString()} was not found.");
                             }
 
                             // Check for an incorrect pixel format which indicates the loading failed
                             if (dst.PixelFormat == System.Drawing.Imaging.PixelFormat.DontCare)
-                            {
-                                var invalidChar = $"Failed to load image {src.ToString()}.";
-                                throw Host.Except(invalidChar);
-                            }
+                                throw Host.Except($"Failed to load image {src.ToString()}.");
                         }
                     };
                 return del;
