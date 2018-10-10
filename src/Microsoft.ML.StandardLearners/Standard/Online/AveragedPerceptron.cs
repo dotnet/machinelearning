@@ -95,6 +95,9 @@ namespace Microsoft.ML.Runtime.Learners
 
             })
         {
+            if (lossFunction == null)
+                lossFunction = new HingeLoss.Arguments();
+
             LossFunction = lossFunction.CreateComponent(env);
 
             if (advancedSettings != null)
