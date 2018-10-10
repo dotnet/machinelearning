@@ -89,7 +89,6 @@ namespace Microsoft.ML.Runtime.Data
                 type, LoadName);
         }
 
-        // TODO: Why do we even need an object for this? maybe because we want to deal with array of these things
         public class ColumnInfo
         {
             public readonly string Input;
@@ -156,7 +155,7 @@ namespace Microsoft.ML.Runtime.Data
         /// </summary>
         /// <param name="env">Host Environment.</param>
         /// <param name="input">Input <see cref="IDataView"/>. This is the output from previous transform or loader.</param>
-        /// <param name="columns"></param> TODO
+        /// <param name="columns">Specifies the names of the input columns for the transform and the resulting output column names.</param>
         public NAIndicatorTransform(IHostEnvironment env, IDataView input, params ColumnInfo[] columns)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(NAIndicatorTransform)), GetColumnPairs(columns))
         {
@@ -178,7 +177,9 @@ namespace Microsoft.ML.Runtime.Data
             _inputTypes = null;
         }
 
-        // Factory method for SignatureDataTransform.
+        /// <summary>
+        /// Factory method for SignatureDataTransform.
+        /// </summary>
         public static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
         {
             Contracts.CheckValue(env, nameof(env));
@@ -196,6 +197,9 @@ namespace Microsoft.ML.Runtime.Data
             return new NAIndicatorTransform(env, input, cols).MakeDataTransform(input);
         }
 
+        /// <summary>
+        /// Factory method for SignatureDataTransform.
+        /// </summary>
         public static NAIndicatorTransform Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
@@ -207,14 +211,21 @@ namespace Microsoft.ML.Runtime.Data
             return new NAIndicatorTransform(host, ctx);
         }
 
+        /// <summary>
+        /// Factory method for SignatureDataTransform.
+        /// </summary>
         public static IDataTransform Create(IHostEnvironment env, IDataView input, params ColumnInfo[] columns)
             => new NAIndicatorTransform(env, input, columns).MakeDataTransform(input);
 
-        // Factory method for SignatureLoadDataTransform.
+        /// <summary>
+        /// Factory method for SignatureDataTransform.
+        /// </summary>
         public static IDataTransform Create(IHostEnvironment env, ModelLoadContext ctx, IDataView input)
             => Create(env, ctx).MakeDataTransform(input);
 
-        // Factory method for SignatureLoadRowMapper.
+        /// <summary>
+        /// Factory method for SignatureDataTransform.
+        /// </summary>
         public static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, ISchema inputSchema)
             => Create(env, ctx).MakeRowMapper(inputSchema);
 
@@ -254,7 +265,6 @@ namespace Microsoft.ML.Runtime.Data
             Host.AssertValue(input);
             Host.Assert(0 <= iinfo && iinfo < ColumnPairs.Length);
             disposer = null;
-            // TODO: is there a better way then checking every time in the getgetter?
             if (_outputTypes == null || _inputTypes == null)
                 (_inputTypes, _outputTypes) = GetTypes(input.Schema);
 
@@ -269,7 +279,7 @@ namespace Microsoft.ML.Runtime.Data
         private ValueGetter<bool> ComposeGetterOne(IRow input, int iinfo)
         {
             Func<IRow, int, ValueGetter<bool>> func = ComposeGetterOne<int>;
-            return Utils.MarshalInvoke(func, _inputTypes[iinfo].RawType, input, iinfo);
+            return Utils.MarshalInvoke(func, _outputTypes[iinfo].RawType, input, iinfo);
         }
 
         private ValueGetter<bool> ComposeGetterOne<T>(IRow input, int iinfo)
@@ -294,7 +304,7 @@ namespace Microsoft.ML.Runtime.Data
         private ValueGetter<VBuffer<bool>> ComposeGetterVec(IRow input, int iinfo)
         {
             Func<IRow, int, ValueGetter<VBuffer<bool>>> func = ComposeGetterVec<int>;
-            return Utils.MarshalInvoke(func, _inputTypes[iinfo].ItemType.RawType, input, iinfo);
+            return Utils.MarshalInvoke(func, _outputTypes[iinfo].ItemType.RawType, input, iinfo);
         }
 
         private ValueGetter<VBuffer<bool>> ComposeGetterVec<T>(IRow input, int iinfo)
@@ -506,8 +516,6 @@ namespace Microsoft.ML.Runtime.Data
                         _types[i] = BoolType.Instance;
                     else
                         _types[i] = new VectorType(BoolType.Instance, type.AsVector);
-
-                    _types[i] = type;
                     _isNAs[i] = _parent.GetIsNADelegate(type);
                 }
             }
@@ -626,7 +634,7 @@ namespace Microsoft.ML.Runtime.Data
                 string reason = NAIndicatorTransform.TestType(col.ItemType);
                 if (reason != null)
                     throw _host.ExceptParam(nameof(inputSchema), reason);
-                var type = !col.ItemType.IsVector ? col.ItemType : new VectorType(col.ItemType.ItemType.AsPrimitive, col.ItemType.AsVector);
+                ColumnType type = !col.ItemType.IsVector ? (ColumnType) BoolType.Instance : new VectorType(BoolType.Instance, col.ItemType.AsVector);
                 result[colInfo.Output] = new SchemaShape.Column(colInfo.Output, col.Kind, type, false, default);
             }
             return new SchemaShape(result.Values);
@@ -645,7 +653,7 @@ namespace Microsoft.ML.Runtime.Data
             PipelineColumn Input { get; }
         }
 
-        private sealed class OutScalar<TValue> : Scalar<TValue>, IColInput
+        private sealed class OutScalar<TValue> : Scalar<bool>, IColInput
         {
             public PipelineColumn Input { get; }
 
@@ -656,7 +664,7 @@ namespace Microsoft.ML.Runtime.Data
             }
         }
 
-        private sealed class OutVectorColumn<TValue> : Vector<TValue>, IColInput
+        private sealed class OutVectorColumn<TValue> : Vector<bool>, IColInput
         {
             public PipelineColumn Input { get; }
 
@@ -667,7 +675,7 @@ namespace Microsoft.ML.Runtime.Data
             }
         }
 
-        private sealed class OutVarVectorColumn<TValue> : VarVector<TValue>, IColInput
+        private sealed class OutVarVectorColumn<TValue> : VarVector<bool>, IColInput
         {
             public PipelineColumn Input { get; }
 
@@ -700,55 +708,55 @@ namespace Microsoft.ML.Runtime.Data
             }
         }
 
-        public static Scalar<float> IsMissingValue(this Scalar<float> input)
+        public static Scalar<bool> IsMissingValue(this Scalar<float> input)
         {
             Contracts.CheckValue(input, nameof(input));
             return new OutScalar<float>(input);
         }
 
-        public static Scalar<double> IsMissingValue(this Scalar<double> input)
+        public static Scalar<bool> IsMissingValue(this Scalar<double> input)
         {
             Contracts.CheckValue(input, nameof(input));
             return new OutScalar<double>(input);
         }
 
-        public static Scalar<string> IsMissingValue(this Scalar<string> input)
+        public static Scalar<bool> IsMissingValue(this Scalar<string> input)
         {
             Contracts.CheckValue(input, nameof(input));
             return new OutScalar<string>(input);
         }
 
-        public static Vector<float> IsMissingValue(this Vector<float> input)
+        public static Vector<bool> IsMissingValue(this Vector<float> input)
         {
             Contracts.CheckValue(input, nameof(input));
             return new OutVectorColumn<float>(input);
         }
 
-        public static Vector<double> IsMissingValue(this Vector<double> input)
+        public static Vector<bool> IsMissingValue(this Vector<double> input)
         {
             Contracts.CheckValue(input, nameof(input));
             return new OutVectorColumn<double>(input);
         }
 
-        public static Vector<string> IsMissingValue(this Vector<string> input)
+        public static Vector<bool> IsMissingValue(this Vector<string> input)
         {
             Contracts.CheckValue(input, nameof(input));
             return new OutVectorColumn<string>(input);
         }
 
-        public static VarVector<float> IsMissingValue(this VarVector<float> input)
+        public static VarVector<bool> IsMissingValue(this VarVector<float> input)
         {
             Contracts.CheckValue(input, nameof(input));
             return new OutVarVectorColumn<float>(input);
         }
 
-        public static VarVector<double> IsMissingValue(this VarVector<double> input)
+        public static VarVector<bool> IsMissingValue(this VarVector<double> input)
         {
             Contracts.CheckValue(input, nameof(input));
             return new OutVarVectorColumn<double>(input);
         }
 
-        public static VarVector<string> IsMissingValue<TValue>(this VarVector<string> input)
+        public static VarVector<bool> IsMissingValue(this VarVector<string> input)
         {
             Contracts.CheckValue(input, nameof(input));
             return new OutVarVectorColumn<string>(input);
