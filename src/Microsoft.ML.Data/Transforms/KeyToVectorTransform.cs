@@ -605,7 +605,7 @@ namespace Microsoft.ML.Runtime.Data
                     };
             }
 
-            public bool CanSaveOnnx => true;
+            public bool CanSaveOnnx(OnnxContext ctx) => true;
 
             public bool CanSavePfa => true;
 
@@ -704,10 +704,29 @@ namespace Microsoft.ML.Runtime.Data
 
             private bool SaveAsOnnxCore(OnnxContext ctx, int iinfo, ColInfo info, string srcVariableName, string dstVariableName)
             {
+                var shape = ctx.RetrieveShapeOrNull(srcVariableName);
+                // Make sure that shape must present for calculating the reduction axes. The shape here is generally not null
+                // because inputs and outputs of a transform are declared with shapes.
+                Contracts.CheckValue(shape, nameof(shape));
+
+                // If Bag is true, the output of ONNX LabelEncoder needs to be fed into ONNX ReduceSum because
+                // default ONNX LabelEncoder just matches the behavior of Bag=false.
+                var encodedVariableName = _parent._columns[iinfo].Bag ? ctx.AddIntermediateVariable(null, "encoded", true) : dstVariableName;
+
                 string opType = "OneHotEncoder";
-                var node = ctx.CreateNode(opType, srcVariableName, dstVariableName, ctx.GetNodeName(opType));
-                node.AddAttribute("cats_int64s", Enumerable.Range(1, info.TypeSrc.ItemType.KeyCount).Select(x => (long)x));
+                var node = ctx.CreateNode(opType, srcVariableName, encodedVariableName, ctx.GetNodeName(opType));
+                node.AddAttribute("cats_int64s", Enumerable.Range(0, info.TypeSrc.ItemType.KeyCount).Select(x => (long)x));
                 node.AddAttribute("zeros", true);
+                if (_parent._columns[iinfo].Bag)
+                {
+                    // If input shape is [1, 3], then OneHotEncoder may produce a 3-D tensor. Thus, we need to do a
+                    // reduction along the second last axis to merge the one-hot vectors produced by all input features.
+                    // Note that one input feature got expended to an one-hot vector.
+                    opType = "ReduceSum";
+                    var reduceNode = ctx.CreateNode(opType, encodedVariableName, dstVariableName, ctx.GetNodeName(opType), "");
+                    reduceNode.AddAttribute("axes", new long[] { shape.Count - 1});
+                    reduceNode.AddAttribute("keepdims", 0);
+                }
                 return true;
             }
         }

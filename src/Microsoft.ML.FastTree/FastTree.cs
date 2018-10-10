@@ -1085,7 +1085,7 @@ namespace Microsoft.ML.Runtime.FastTree
             // Multiple, one hot.
             int[] hotFeatureStarts = new int[features.Count + 1];
             // The position 0 is reserved as the "cold" position for all features in the slot.
-            // This corresponds to all features being in their first bin (e.g., cold). So the
+            // This corresponds to all features being in their first bin (for example, cold). So the
             // first feature's "hotness" starts at 1. HOWEVER, for the purpose of defining the
             // bins, we start with this array computed off by one. Once we define the bins, we
             // will correct it.
@@ -1161,7 +1161,7 @@ namespace Microsoft.ML.Runtime.FastTree
             // Multiple, one hot.
             int[] hotFeatureStarts = new int[features.Count + 1];
             // The position 0 is reserved as the "cold" position for all features in the slot.
-            // This corresponds to all features being in their first bin (e.g., cold). So the
+            // This corresponds to all features being in their first bin (for example, cold). So the
             // first feature's "hotness" starts at 1. HOWEVER, for the purpose of defining the
             // bins, we start with this array computed off by one. Once we define the bins, we
             // will correct it.
@@ -2288,7 +2288,7 @@ namespace Microsoft.ML.Runtime.FastTree
                     {
                         // It can happen that a flock could be created with more than Utils.ArrayMaxSize
                         // bins, in the case where we bin over a training dataset with many features with
-                        // many bins (e.g., 1 million features with 10k bins each), and then in a subsequent
+                        // many bins (for example, 1 million features with 10k bins each), and then in a subsequent
                         // validation dataset we have these features suddenly become one-hot. Practically
                         // this will never happen, of course, but it is still possible. If this ever happens,
                         // we create the flock before this becomes an issue.
@@ -2686,7 +2686,7 @@ namespace Microsoft.ML.Runtime.FastTree
                 /// <param name="featureIndex">A feature index, which indexes not the global feature indices,
                 /// but the index into the subset of features specified at the constructor time</param>
                 /// <param name="rowIndex">The row index to access, which must be non-decreasing, and must
-                /// indeed be actually increasing for access on the same feature (e.g., if you have two features,
+                /// indeed be actually increasing for access on the same feature (for example, if you have two features,
                 /// it is OK to access <c>[1, 5]</c>, then <c>[0, 5]</c>, but once this is done you cannot
                 /// access the same feature at the same position.</param>
                 /// <returns></returns>
@@ -2859,7 +2859,7 @@ namespace Microsoft.ML.Runtime.FastTree
         public ColumnType InputType { get; }
         public ColumnType OutputType => NumberType.Float;
         public bool CanSavePfa => true;
-        public bool CanSaveOnnx => true;
+        public bool CanSaveOnnx(OnnxContext ctx) => true;
 
         protected FastTreePredictionWrapper(IHostEnvironment env, string name, Ensemble trainedEnsemble, int numFeatures, string innerArgs)
             : base(env, name)
