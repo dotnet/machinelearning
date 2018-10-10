@@ -48,7 +48,7 @@ namespace Microsoft.ML.Runtime.KMeans
         public ColumnType InputType { get; }
         public ColumnType OutputType { get; }
 
-        bool ICanSaveOnnx.CanSaveOnnx => true;
+        public bool CanSaveOnnx(OnnxContext ctx) => true;
 
         private readonly int _dimensionality;
         private readonly int _k;
@@ -294,6 +294,7 @@ namespace Microsoft.ML.Runtime.KMeans
             // C^2: 2-norm of all centriod vectors, its shape is [k].
             // Y: 2-norm of difference between examples and centriods, l-by-k tensor. The value at i-th row and k-th
             // column row, Y[i,k], is the distance from example i to centrioid k.
+            // L: the id of the nearest centriod for each input example, its shape is [l].
             //
             // .------------------------------------------------------.
             // |                                                      |
@@ -307,18 +308,18 @@ namespace Microsoft.ML.Runtime.KMeans
             //                                             Z [l, k] ----------> Add <------------C^2 [k]
             //                                                                   |
             //                                                                   v
-            //                                                                   Y [l, k]
+            //                                             L [l]    <----------  Y [l, k]
 
             // Allocate C, which is a constant tensor in prediction phase
             var shapeC = new long[] { _centroids.Length, _centroids[0].Length };
             var tensorC = new List<float>();
             foreach (var centriod in _centroids)
                 tensorC.AddRange(centriod.DenseValues());
-            var nameC = "C"; // ctx.AddInitializer(tensorC, shapeC, "C");
+            var nameC = ctx.AddInitializer(tensorC, shapeC, "C");
 
             // Save C^2 as an initializer because it's a constant.
-            var shapeC2 = new[] { _centroidL2s.Length };
-            var nameC2 = "C2"; // ctx.AddInitializer(_centroidL2s, shapeC2, "C2");
+            var shapeC2 = new long[] { _centroidL2s.Length };
+            var nameC2 = ctx.AddInitializer(_centroidL2s, shapeC2, "C2");
 
             // Retrieve the name of X
             var nameX = featureColumn;
@@ -343,7 +344,7 @@ namespace Microsoft.ML.Runtime.KMeans
             var nameY = outputNames[1];
             var addNodeY = ctx.CreateNode("Add", new[] { nameZ, nameC2 }, new[] { nameY }, ctx.GetNodeName("Add"));
 
-            // Compute the most-matched cluster index
+            // Compute the most-matched cluster index, L
             var nameL = outputNames[0];
             var predictNodeL = ctx.CreateNode("ArgMax", nameY, nameL, ctx.GetNodeName("ArgMax"));
             predictNodeL.AddAttribute("axis", 1);
