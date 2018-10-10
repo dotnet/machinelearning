@@ -25,7 +25,7 @@ namespace Microsoft.ML.Runtime.Data
         /// and the user composes a shape type with <see cref="PipelineColumn"/> instances out of that <see cref="Context"/>.
         /// The resulting data will have columns with the names corresponding to their names in the shape type.</param>
         /// <param name="files">Input files. If <c>null</c> then no files are read, but this means that options or
-        /// configurations that require input data for initialization (e.g., <paramref name="hasHeader"/> or
+        /// configurations that require input data for initialization (for example, <paramref name="hasHeader"/> or
         /// <see cref="Context.LoadFloat(int, int?)"/>) with a <c>null</c> second argument.</param>
         /// <param name="hasHeader">Data file has header with feature names.</param>
         /// <param name="separator">Text field separator.</param>
@@ -60,9 +60,7 @@ namespace Microsoft.ML.Runtime.Data
             {
                 var readerEst = StaticPipeUtils.ReaderEstimatorAnalyzerHelper(env, ch, ctx, rec, func);
                 Contracts.AssertValue(readerEst);
-                var reader = readerEst.Fit(files);
-                ch.Done();
-                return reader;
+                return readerEst.Fit(files);
             }
         }
 

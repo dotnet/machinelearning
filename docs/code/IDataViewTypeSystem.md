@@ -242,8 +242,8 @@ For example:
 
 * A column produced by a scorer may have several pieces of associated
   metadata, indicating the "scoring column group id" that it belongs to, what
-  kind of scorer produced the column (e.g., binary classification), and the
-  precise semantics of the column (e.g., predicted label, raw score,
+  kind of scorer produced the column (for example, binary classification), and the
+  precise semantics of the column (for example, predicted label, raw score,
   probability).
 
 The `ISchema` interface, including the metadata API, is fully specified in

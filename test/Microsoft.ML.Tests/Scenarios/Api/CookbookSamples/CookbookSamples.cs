@@ -13,6 +13,7 @@ using Microsoft.ML.StaticPipe;
 using Microsoft.ML.TestFramework;
 using Microsoft.ML.Transforms.Text;
 using Microsoft.ML.Transforms;
+using Microsoft.ML.Trainers;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -631,7 +632,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             IEstimator<ITransformer> dynamicPipe = learningPipeline.AsDynamic;
 
             // Create a binary classification trainer.
-            var binaryTrainer = new AveragedPerceptronTrainer(env, new AveragedPerceptronTrainer.Arguments());
+            var binaryTrainer = new AveragedPerceptronTrainer(env, "Label", "Features");
 
             // Append the OVA learner to the pipeline.
             dynamicPipe = dynamicPipe.Append(new Ova(env, binaryTrainer));

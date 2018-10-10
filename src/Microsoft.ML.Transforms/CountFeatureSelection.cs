@@ -91,7 +91,6 @@ namespace Microsoft.ML.Runtime.Data
 
                 var dsArgs = new DropSlotsTransform.Arguments();
                 dsArgs.Column = columns.ToArray();
-                ch.Done();
                 return new DropSlotsTransform(host, dsArgs, input);
             }
         }

@@ -53,7 +53,7 @@ namespace Microsoft.ML.Runtime.Data
             [Argument(ArgumentType.AtMostOnce, HelpText = "Name column name", ShortName = "name", SortOrder = 6)]
             public string NameColumn = DefaultColumnNames.Name;
 
-            [Argument(ArgumentType.LastOccurenceWins, HelpText = "Columns with custom kinds declared through key assignments, e.g., col[Kind]=Name to assign column named 'Name' kind 'Kind'", ShortName = "col", SortOrder = 10)]
+            [Argument(ArgumentType.LastOccurenceWins, HelpText = "Columns with custom kinds declared through key assignments, for example, col[Kind]=Name to assign column named 'Name' kind 'Kind'", ShortName = "col", SortOrder = 10)]
             public KeyValuePair<string, string>[] CustomColumn;
 
             [Argument(ArgumentType.LastOccurenceWins, HelpText = "Normalize option for the feature column", ShortName = "norm")]
@@ -118,8 +118,6 @@ namespace Microsoft.ML.Runtime.Data
                 {
                     RunCore(ch, cmd);
                 }
-
-                ch.Done();
             }
         }
 
@@ -355,7 +353,6 @@ namespace Microsoft.ML.Runtime.Data
 
                     rep.Commit();
                 }
-                ch2.Done();
             }
         }
 

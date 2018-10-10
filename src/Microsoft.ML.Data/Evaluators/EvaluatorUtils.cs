@@ -1119,7 +1119,6 @@ namespace Microsoft.ML.Runtime.Data
                     metricNames = GetMetricNames(ch, data.Schema, cursor,
                         i => hasWeighted && i == wcol || hasStrats && (i == scol || i == svalcol) ||
                             hasFoldCol && i == fcol, getters, vBufferGetters);
-                    ch.Done();
                 }
                 agg = new AggregatedMetric[metricNames.Count];
 
