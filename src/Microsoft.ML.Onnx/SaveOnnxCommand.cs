@@ -235,13 +235,17 @@ namespace Microsoft.ML.Runtime.Model.Onnx
                 if (end.Schema.IsHidden(i))
                     continue;
 
-                var idataviewColumnName = end.Schema.GetColumnName(i);;
-                if (_outputsToDrop.Contains(idataviewColumnName) || _inputsToDrop.Contains(idataviewColumnName))
+                var idataviewColumnName = end.Schema.GetColumnName(i);
+
+                // Since the last IDataView also contains columns of the initial IDataView, last IDataView's columns found in
+                // _inputToDrop should be removed too.
+                if (_inputsToDrop.Contains(idataviewColumnName) || _outputsToDrop.Contains(idataviewColumnName))
                     continue;
 
                 var variableName = ctx.TryGetVariableName(idataviewColumnName);
-                if (variableName != null)
-                    ctx.AddOutputVariable(end.Schema.GetColumnType(i), variableName);
+                var trueVariableName = ctx.AddIntermediateVariable(null, idataviewColumnName, true);
+                ctx.CreateNode("Identity", variableName, trueVariableName, ctx.GetNodeName("Identity"), "");
+                ctx.AddOutputVariable(end.Schema.GetColumnType(i), trueVariableName);
             }
 
             var model = ctx.MakeModel();
