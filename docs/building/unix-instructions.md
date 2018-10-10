@@ -28,7 +28,7 @@ The following components are needed:
 * curl
 * All the requirements necessary to run .NET Core 2.0 applications: libssl1.0.0 (1.0.2 for Debian 9) and libicu5x (libicu52 for ubuntu 14.x, libicu55 for ubuntu 16.x, and libicu57 for ubuntu 17.x). For more information on prerequisites in different linux distributions click [here](https://docs.microsoft.com/en-us/dotnet/core/linux-prerequisites?tabs=netcore2x).
 
-e.g. for Ubuntu 16.x:
+For example, for Ubuntu 16.x:
 
 ```sh
 sudo apt-get update

@@ -327,7 +327,7 @@ ultimately limited by hardware and other runtime environment factors: the
 truth is, certain machines will, with identical programs with seemingly
 identical flows of execution result, *sometimes*, in subtly different answers
 where floating point values are concerned. Even on the same machine there are
-runtime considerations, e.g., when .NET's RyuJIT was introduced in VS2015, we
+runtime considerations, for example, when .NET's RyuJIT was introduced in VS2015, we
 had lots of test failures around our model consistency tests because the JIT
 was compiling the CLI just *slightly* differently. But, this sort of thing
 aside (which we can hardly help), we expect the models to be the same.
@@ -337,13 +337,13 @@ aside (which we can hardly help), we expect the models to be the same.
 When you create a loader you have the option of specifying not only *one* data
 input, but any number of data input files, including zero. But there's also a
 more general principle at work here with zero files: when deserializing a data
-loader from a data model with an `IMultiStreamSource` with `Count == 0` (e.g.,
+loader from a data model with an `IMultiStreamSource` with `Count == 0` (for example,
 as would be constructed with `new MultiFileSource(null)`), we have a protocol
 that *every* `IDataLoader` should work in that circumstance, and merely be a
 data view with no rows, but the same schema as it had when it was serialized.
 The purpose of this is that we often have circumstances where we need to
 understand the schema of the data (what columns were produced, what the
-feature names are, etc.) when all we have is the data model. (E.g., the
+feature names are, etc.) when all we have is the data model. (For example, the
 `savemodel` command, and other things.)
 
 # Getters Must Fail for Invalid Types
@@ -403,7 +403,7 @@ over an `IDataView`: while cursoring, you should almost certainly not throw
 exceptions.
 
 Imagine you have a `TextLoader`. You might expect that if you have a parse
-error, e.g., you have a column of floats, and one of the rows has a value
+error, for example, you have a column of floats, and one of the rows has a value
 like, `"hi!"` or something otherwise uninterpretable, you would throw. Yet,
 consider the implications of lazy evaluation. If that column were not
 selected, the cursoring would *succeed*, because it would not look at that
@@ -425,7 +425,7 @@ could throw the exception requires that a certain column be made active, then
 you should not throw. Of course, there are extreme circumstances: for example,
 one cannot help but throw on a cursoring if, say, there is some weird system
 event, and if one somehow detects in a subsequent iteration that something is
-fundamentally broken then you can throw: e.g., the binary loader will throw if
+fundamentally broken then you can throw: for example, the binary loader will throw if
 it detects the file it is reading is corrupted, even if that corruption may
 not have been obvious immediately.
 

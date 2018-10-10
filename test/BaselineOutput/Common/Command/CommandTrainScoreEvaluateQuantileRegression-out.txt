@@ -1,0 +1,13 @@
+maml.exe Train tr=FastForestRegression{dt+} loader=Text{header+} data=%Data% out=%Output%
+Not adding a normalizer.
+Making per-feature arrays
+Changing data from row-wise to column-wise on disk
+Processed 506 instances
+Binning and forming Feature objects
+Reserved memory for tree learner: 290472 bytes
+Starting to train ...
+Not training a calibrator because it is not needed.
+Physical memory usage(MB): %Number%
+Virtual memory usage(MB): %Number%
+%DateTime%	 Time elapsed(s): %Number%
+
