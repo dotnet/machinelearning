@@ -4,7 +4,7 @@
 
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Learners;
-using Microsoft.ML.StaticPipe;
+using Microsoft.ML.Trainers;
 using System;
 using System.Net;
 using System.Threading.Tasks;
