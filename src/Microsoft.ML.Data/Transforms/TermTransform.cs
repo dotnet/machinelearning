@@ -722,7 +722,7 @@ namespace Microsoft.ML.Runtime.Data
 
             private readonly BoundTermMap[] _termMap;
 
-            public bool CanSaveOnnx => true;
+            public bool CanSaveOnnx(OnnxContext ctx) => true;
 
             public bool CanSavePfa => true;
 

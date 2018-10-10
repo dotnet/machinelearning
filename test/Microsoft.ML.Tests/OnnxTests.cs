@@ -59,7 +59,7 @@ namespace Microsoft.ML.Tests
             using (var env = new ConsoleEnvironment())
             {
                 // Create the actual implementation
-                var ctxImpl = new OnnxContextImpl(env, "model", "ML.NET", "0", 0, "com.test");
+                var ctxImpl = new OnnxContextImpl(env, "model", "ML.NET", "0", 0, "com.test", Runtime.Model.Onnx.OnnxVersion.Stable);
 
                 // Use implementation as in the actual conversion code
                 var ctx = ctxImpl as OnnxContext;
