@@ -23,7 +23,7 @@ In the meanwhile, we are looking for contributions.  An easy place to start is t
 	* Native Binary high-performance format
 
 ### Featurization Improvements
-We already provide text/NLP and image processing functionnalities that will be expanded
+We already provide text/NLP and image processing functionalities that will be expanded
 * Text  (*)
   * Natural language text preprocessing such as improving tokenization features, adding part-of-speech tagging, and sentence boundary disambiguation
   * Pre-trained text models (beyond current n-gram and pre-trained WordEmbedding text handling) that can further improve the extraction of semantic or sentiment features from text

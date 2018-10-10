@@ -189,7 +189,7 @@ namespace Microsoft.ML.Scenarios
             {
                 var model_location = "mnist_model/frozen_saved_model.pb";
                 var schema = TensorFlowUtils.GetModelSchema(env, model_location);
-                Assert.Equal(54, schema.ColumnCount);
+                Assert.Equal(86, schema.ColumnCount);
                 Assert.True(schema.TryGetColumnIndex("Placeholder", out int col));
                 var type = schema.GetColumnType(col).AsVector;
                 Assert.Equal(2, type.DimCount);
@@ -354,6 +354,243 @@ namespace Microsoft.ML.Scenarios
         }
 
         [Fact]
+        public void TensorFlowTransformMNISTLRTemplateTrainingTest()
+        {
+            var model_location = "mnist_lr_model";
+            try
+            {
+                using (var env = new ConsoleEnvironment(seed: 1, conc: 1))
+                {
+                    var dataPath = GetDataPath("Train-Tiny-28x28.txt");
+                    var testDataPath = GetDataPath("MNIST.Test.tiny.txt");
+
+                    // Pipeline
+                    var loader = TextLoader.ReadFile(env,
+                    new TextLoader.Arguments()
+                    {
+                        Separator = "tab",
+                        HasHeader = false,
+                        Column = new[]
+                        {
+                        new TextLoader.Column("Label", DataKind.Num,0),
+                        new TextLoader.Column("Placeholder", DataKind.Num,new []{new TextLoader.Range(1, 784) })
+
+                        }
+                    }, new MultiFileSource(dataPath));
+
+                    IDataView trans = CategoricalTransform.Create(env, loader, "OneHotLabel", "Label");
+                    trans = NormalizeTransform.CreateMinMaxNormalizer(env, trans, "Features", "Placeholder");
+
+                    var args = new TensorFlowTransform.Arguments()
+                    {
+                        Model = model_location,
+                        InputColumns = new[] { "Features" },
+                        OutputColumns = new[] { "Prediction", "b" },
+                        LabelColumn = "OneHotLabel",
+                        TensorFlowLabel = "Label",
+                        OptimizationOperation = "SGDOptimizer",
+                        LossOperation = "Loss",
+                        Epoch = 10,
+                        LearningRateOperation = "SGDOptimizer/learning_rate",
+                        LearningRate = 0.001f,
+                        BatchSize = 20,
+                        ReTrain = true
+                    };
+
+                    var trainedTfDataView = TensorFlowTransform.Create(env, args, trans);
+                    trans = new ConcatTransform(env, "Features", "Prediction").Transform(trainedTfDataView);
+
+                    var trainer = new LightGbmMulticlassTrainer(env, "Label", "Features");
+
+                    var cached = new CacheDataView(env, trans, prefetch: null);
+                    var trainRoles = new RoleMappedData(cached, label: "Label", feature: "Features");
+
+                    var pred = trainer.Train(trainRoles);
+
+                    // Get scorer and evaluate the predictions from test data
+                    IDataScorerTransform testDataScorer = GetScorer(env, trans, pred, testDataPath);
+                    var metrics = Evaluate(env, testDataScorer);
+
+                    Assert.Equal(0.72173913043478266, metrics.AccuracyMicro, 2);
+                    Assert.Equal(0.67482993197278918, metrics.AccuracyMacro, 2);
+
+                    // Create prediction engine and test predictions
+                    var model = env.CreatePredictionEngine<MNISTData, MNISTPrediction>(testDataScorer);
+
+                    var sample1 = new MNISTData()
+                    {
+                        Placeholder = new float[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 18, 18, 18, 126, 136, 175, 26,
+                    166, 255, 247, 127, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 30, 36, 94, 154, 170, 253, 253, 253, 253, 253,
+                    225, 172, 253, 242, 195, 64, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 49, 238, 253, 253, 253, 253, 253, 253, 253,
+                    253, 251, 93, 82, 82, 56, 39, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 18, 219, 253, 253, 253, 253, 253, 198,
+                    182, 247, 241, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 80, 156, 107, 253, 253, 205, 11, 0,
+                    43, 154, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 14, 1, 154, 253, 90, 0, 0, 0, 0, 0, 0,
+                    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 139, 253, 190, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 11, 190, 253, 70, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 35, 241, 225, 160, 108, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 81, 240, 253, 253, 119, 25, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 45, 186, 253, 253, 150, 27, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 16, 93, 252, 253, 187, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 249, 253, 249, 64, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 46, 130, 183, 253, 253, 207, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 39, 148, 229, 253, 253, 253, 250, 182, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 24, 114, 221, 253, 253, 253, 253, 201, 78, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 23, 66, 213, 253, 253, 253, 253, 198, 81, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 18, 171, 219, 253, 253, 253, 253, 195, 80, 9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 55, 172, 226, 253, 253, 253, 253, 244, 133, 11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 136, 253, 253, 253, 212, 135, 132, 16, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }
+                    };
+
+                    var prediction = model.Predict(sample1);
+
+                    float max = -1;
+                    int maxIndex = -1;
+                    for (int i = 0; i < prediction.PredictedLabels.Length; i++)
+                    {
+                        if (prediction.PredictedLabels[i] > max)
+                        {
+                            max = prediction.PredictedLabels[i];
+                            maxIndex = i;
+                        }
+                    }
+
+                    Assert.Equal(5, maxIndex);
+
+                    // Check if the bias actually got changed after the training.
+                    using (var cursor = trainedTfDataView.GetRowCursor(a => true))
+                    {
+                        trainedTfDataView.Schema.TryGetColumnIndex("b", out int bias);
+                        var getter = cursor.GetGetter<VBuffer<float>>(bias);
+                        if (cursor.MoveNext())
+                        {
+                            var trainedBias = default(VBuffer<float>);
+                            getter(ref trainedBias);
+                            Assert.NotEqual(trainedBias.Values, new float[] { 0.1f, 0.1f, 0.1f, 0.1f, 0.1f, 0.1f, 0.1f, 0.1f, 0.1f, 0.1f });
+                        }
+                    }
+                }
+            }
+            finally
+            {
+                // This test changes the state of the model.
+                // Cleanup folder so that other test can also use the same model.
+                CleanUp(model_location);
+            }
+        }
+
+        private void CleanUp(string model_location)
+        {
+            var directories = Directory.GetDirectories(model_location, "variables-*");
+            if (directories != null && directories.Length > 0)
+            {
+                var varDir = Path.Combine(model_location, "variables");
+                if (Directory.Exists(varDir))
+                    Directory.Delete(varDir, true);
+                Directory.Move(directories[0], varDir);
+            }
+        }
+
+        [Fact]
+        public void TensorFlowTransformMNISTConvTemplateTrainingTest()
+        {
+            var model_location = "mnist_conv_model";
+            try
+            {
+                using (var env = new ConsoleEnvironment(seed: 1, conc: 1))
+                {
+                    var dataPath = GetDataPath("Train-Tiny-28x28.txt");
+                    var testDataPath = GetDataPath("MNIST.Test.tiny.txt");
+
+                    // Pipeline
+                    var loader = TextLoader.ReadFile(env,
+                    new TextLoader.Arguments()
+                    {
+                        Separator = "tab",
+                        HasHeader = false,
+                        Column = new[]
+                        {
+                        new TextLoader.Column("Label", DataKind.I8,0),
+                        new TextLoader.Column("Placeholder", DataKind.Num,new []{new TextLoader.Range(1, 784) })
+
+                        }
+                    }, new MultiFileSource(dataPath));
+
+                    IDataView trans = new CopyColumnsTransform(env,
+                        ("Placeholder", "Features")).Transform(loader);
+
+                    var args = new TensorFlowTransform.Arguments()
+                    {
+                        Model = model_location,
+                        InputColumns = new[] { "Features" },
+                        OutputColumns = new[] { "Prediction" },
+                        LabelColumn = "Label",
+                        TensorFlowLabel = "Label",
+                        OptimizationOperation = "MomentumOp",
+                        LossOperation = "Loss",
+                        MetricOperation = "Accuracy",
+                        Epoch = 10,
+                        LearningRateOperation = "learning_rate",
+                        LearningRate = 0.01f,
+                        BatchSize = 20,
+                        ReTrain = true
+                    };
+
+                var trainedTfDataView = TensorFlowTransform.Create(env, args, trans);
+                trans = new ConcatTransform(env, "Features", "Prediction").Transform(trainedTfDataView);
+                trans = new ConvertTransform(env, trans, DataKind.R4, "Label");
+
+                    var trainer = new LightGbmMulticlassTrainer(env, "Label", "Features");
+
+                    var cached = new CacheDataView(env, trans, prefetch: null);
+                    var trainRoles = new RoleMappedData(cached, label: "Label", feature: "Features");
+
+                    var pred = trainer.Train(trainRoles);
+
+                    // Get scorer and evaluate the predictions from test data
+                    IDataScorerTransform testDataScorer = GetScorer(env, trans, pred, testDataPath);
+                    var metrics = Evaluate(env, testDataScorer);
+
+                    Assert.Equal(0.74782608695652175, metrics.AccuracyMicro, 2);
+                    Assert.Equal(0.608843537414966, metrics.AccuracyMacro, 2);
+
+                    // Create prediction engine and test predictions
+                    var model = env.CreatePredictionEngine<MNISTData, MNISTPrediction>(testDataScorer);
+
+                    var sample1 = new MNISTData()
+                    {
+                        Placeholder = new float[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 18, 18, 18, 126, 136, 175, 26,
+                    166, 255, 247, 127, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 30, 36, 94, 154, 170, 253, 253, 253, 253, 253,
+                    225, 172, 253, 242, 195, 64, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 49, 238, 253, 253, 253, 253, 253, 253, 253,
+                    253, 251, 93, 82, 82, 56, 39, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 18, 219, 253, 253, 253, 253, 253, 198,
+                    182, 247, 241, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 80, 156, 107, 253, 253, 205, 11, 0,
+                    43, 154, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 14, 1, 154, 253, 90, 0, 0, 0, 0, 0, 0,
+                    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 139, 253, 190, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 11, 190, 253, 70, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 35, 241, 225, 160, 108, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 81, 240, 253, 253, 119, 25, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 45, 186, 253, 253, 150, 27, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 16, 93, 252, 253, 187, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 249, 253, 249, 64, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 46, 130, 183, 253, 253, 207, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 39, 148, 229, 253, 253, 253, 250, 182, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 24, 114, 221, 253, 253, 253, 253, 201, 78, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 23, 66, 213, 253, 253, 253, 253, 198, 81, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 18, 171, 219, 253, 253, 253, 253, 195, 80, 9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 55, 172, 226, 253, 253, 253, 253, 244, 133, 11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 136, 253, 253, 253, 212, 135, 132, 16, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }
+                    };
+
+                    var prediction = model.Predict(sample1);
+
+                    float max = -1;
+                    int maxIndex = -1;
+                    for (int i = 0; i < prediction.PredictedLabels.Length; i++)
+                    {
+                        if (prediction.PredictedLabels[i] > max)
+                        {
+                            max = prediction.PredictedLabels[i];
+                            maxIndex = i;
+                        }
+                    }
+
+                    Assert.Equal(5, maxIndex);
+                }
+            }
+            finally
+            {
+                // This test changes the state of the model.
+                // Cleanup folder so that other test can also use the same model.
+                CleanUp(model_location);
+            }
+        }
+
+        [Fact]
         public void TensorFlowTransformMNISTConvSavedModelTest()
         {
             var model_location = "mnist_model";
@@ -498,8 +735,13 @@ namespace Microsoft.ML.Scenarios
 
             using (var env = new ConsoleEnvironment())
             {
-                var imageHeight = 32;
-                var imageWidth = 32;
+                var tensorFlowModel = TensorFlowUtils.LoadTensorFlowModel(env, model_location);
+                var schema = tensorFlowModel.GetInputSchema();
+                Assert.True(schema.TryGetColumnIndex("Input", out int column));
+                var type = schema.GetColumnType(column).AsVector;
+                var imageHeight = type.GetDim(0);
+                var imageWidth = type.GetDim(1);
+
                 var dataFile = GetDataPath("images/images.tsv");
                 var imageFolder = Path.GetDirectoryName(dataFile);
                 var data = TextLoader.Create(env, new TextLoader.Arguments()
@@ -533,7 +775,7 @@ namespace Microsoft.ML.Scenarios
                 }, cropped);
 
 
-                IDataView trans = TensorFlowTransform.Create(env, pixels, model_location, new[] { "Output" }, new[] { "Input" });
+                IDataView trans = TensorFlowTransform.Create(env, pixels, tensorFlowModel, new[] { "Output" }, new[] { "Input" });
 
                 trans.Schema.TryGetColumnIndex("Output", out int output);
                 using (var cursor = trans.GetRowCursor(col => col == output))
@@ -559,8 +801,13 @@ namespace Microsoft.ML.Scenarios
 
             using (var env = new ConsoleEnvironment())
             {
-                var imageHeight = 32;
-                var imageWidth = 32;
+                var tensorFlowModel = TensorFlowUtils.LoadTensorFlowModel(env, model_location);
+                var schema = tensorFlowModel.GetInputSchema();
+                Assert.True(schema.TryGetColumnIndex("Input", out int column));
+                var type = schema.GetColumnType(column).AsVector;
+                var imageHeight = type.GetDim(0);
+                var imageWidth = type.GetDim(1);
+
                 var dataFile = GetDataPath("images/images.tsv");
                 var imageFolder = Path.GetDirectoryName(dataFile);
                 var data = TextLoader.Create(env, new TextLoader.Arguments()
@@ -594,7 +841,7 @@ namespace Microsoft.ML.Scenarios
                 }, cropped);
 
 
-                IDataView trans = TensorFlowTransform.Create(env, pixels, model_location, new[] { "Output" }, new[] { "Input" });
+                IDataView trans = TensorFlowTransform.Create(env, pixels, tensorFlowModel, new[] { "Output" }, new[] { "Input" });
 
                 trans.Schema.TryGetColumnIndex("Output", out int output);
                 using (var cursor = trans.GetRowCursor(col => col == output))
