@@ -397,7 +397,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 args.Add(extraArgs);
             var argString = string.Join(" ", args);
             var paths = toCompare.Where(pa => (pa.CmpUsage & situation) != PathArgument.Usage.None).ToArray();
-            return TestCore(ctx, cmdName, argString, toCompare:paths);
+            return TestCore(ctx, cmdName, argString, digitsOfPrecision: digitsOfPrecision, toCompare: paths);
         }
 
         /// <summary>
@@ -421,7 +421,7 @@ namespace Microsoft.ML.Runtime.RunTests
 
         protected bool TestCore(RunContextBase ctx, string cmdName, string dataPath, string loaderArgs, string extraArgs, int digitsOfPrecision, params PathArgument[] toCompare)
         {
-            return TestCoreCore(ctx, cmdName, dataPath, PathArgument.Usage.DataModel, null, ctx.ModelPath(), loaderArgs, extraArgs, DigitsOfPrecision, toCompare);
+            return TestCoreCore(ctx, cmdName, dataPath, PathArgument.Usage.DataModel, null, ctx.ModelPath(), loaderArgs, extraArgs, digitsOfPrecision, toCompare);
         }
 
         /// <summary>
@@ -1979,7 +1979,7 @@ namespace Microsoft.ML.Runtime.RunTests
             // see https://github.com/dotnet/machinelearning/issues/404
             // in Linux, the clang sqrt() results vary highly from the ones in mac and Windows. 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-                TestCore("traintest", data, loaderArgs, extraArgs + " test=" + data, digitsOfPrecision: 4);
+                TestCore("traintest", data, loaderArgs, extraArgs + " test=" + data, digitsOfPrecision: 6);
             else
                 TestCore("traintest", data, loaderArgs, extraArgs + " test=" + data);
 
@@ -2036,12 +2036,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 Assert.Equal(0, res);
             }
 
-            // see https://github.com/dotnet/machinelearning/issues/404
-            // in Linux, the clang sqrt() results vary highly from the ones in mac and Windows. 
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-                Assert.True(outputPath.CheckEqualityNormalized(digitsOfPrecision: 4));
-            else
-                Assert.True(outputPath.CheckEqualityNormalized());
+            Assert.True(outputPath.CheckEqualityNormalized());
 
             Done();
         }
@@ -2090,12 +2085,7 @@ namespace Microsoft.ML.Runtime.RunTests
             string data = GetDataPath("breast-cancer.txt");
             OutputPath model = ModelPath();
 
-            // see https://github.com/dotnet/machinelearning/issues/404
-            // in Linux, the clang sqrt() results vary highly from the ones in mac and Windows. 
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-                TestCore("traintest", data, loaderArgs, extraArgs + " test=" + data, digitsOfPrecision:4);
-            else
-                TestCore("traintest", data, loaderArgs, extraArgs + " test=" + data);
+            TestCore("traintest", data, loaderArgs, extraArgs + " test=" + data);
 
             _step++;
             OutputPath outputPath = StdoutPath();
@@ -2108,12 +2098,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 Assert.True(res == 0);
             }
 
-            // see https://github.com/dotnet/machinelearning/issues/404
-            // in Linux, the clang sqrt() results vary highly from the ones in mac and Windows. 
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-                Assert.True(outputPath.CheckEqualityNormalized(digitsOfPrecision:4));
-            else
-                Assert.True(outputPath.CheckEqualityNormalized());
+            Assert.True(outputPath.CheckEqualityNormalized());
 
             Done();
         }
