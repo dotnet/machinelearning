@@ -128,7 +128,7 @@ namespace Microsoft.ML.StaticPipe
             Contracts.CheckParam(!(maxIterations < 1), nameof(maxIterations), "Must be positive if specified");
             Contracts.CheckValueOrNull(onFit);
 
-            var args = new LinearClassificationTrainer.Arguments()
+            var args = new StochasticDualCoordinateAscent.Arguments()
             {
                 L2Const = l2Const,
                 L1Threshold = l1Threshold,
@@ -138,7 +138,7 @@ namespace Microsoft.ML.StaticPipe
             var rec = new TrainerEstimatorReconciler.BinaryClassifier(
                 (env, labelName, featuresName, weightsName) =>
                 {
-                    var trainer = new LinearClassificationTrainer(env, args, featuresName, labelName, weightsName);
+                    var trainer = new StochasticDualCoordinateAscent(env, args, featuresName, labelName, weightsName);
                     if (onFit != null)
                     {
                         return trainer.WithOnFitDelegate(trans =>
@@ -199,7 +199,7 @@ namespace Microsoft.ML.StaticPipe
 
             bool hasProbs = loss is LogLoss;
 
-            var args = new LinearClassificationTrainer.Arguments()
+            var args = new StochasticDualCoordinateAscent.Arguments()
             {
                 L2Const = l2Const,
                 L1Threshold = l1Threshold,
@@ -210,7 +210,7 @@ namespace Microsoft.ML.StaticPipe
             var rec = new TrainerEstimatorReconciler.BinaryClassifierNoCalibration(
                 (env, labelName, featuresName, weightsName) =>
                 {
-                    var trainer = new LinearClassificationTrainer(env, args, featuresName, labelName, weightsName);
+                    var trainer = new StochasticDualCoordinateAscent(env, args, featuresName, labelName, weightsName);
                     if (onFit != null)
                     {
                         return trainer.WithOnFitDelegate(trans =>

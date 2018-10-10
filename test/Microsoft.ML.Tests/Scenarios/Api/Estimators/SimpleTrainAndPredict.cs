@@ -28,7 +28,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                 var data = reader.Read(new MultiFileSource(GetDataPath(TestDatasets.Sentiment.trainFilename)));
                 // Pipeline.
                 var pipeline = new TextTransform(env, "SentimentText", "Features")
-                    .Append(new LinearClassificationTrainer(env, new LinearClassificationTrainer.Arguments { NumThreads = 1 }, "Features", "Label"));
+                    .Append(new StochasticDualCoordinateAscent(env, new StochasticDualCoordinateAscent.Arguments { NumThreads = 1 }, "Features", "Label"));
 
                 // Train.
                 var model = pipeline.Fit(data);

@@ -30,7 +30,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
 
                 var cachedTrain = new CacheDataView(env, trainData, prefetch: null);
                 // Train the first predictor.
-                var trainer = new LinearClassificationTrainer(env, new LinearClassificationTrainer.Arguments
+                var trainer = new StochasticDualCoordinateAscent(env, new StochasticDualCoordinateAscent.Arguments
                 {
                     NumThreads = 1
                 });

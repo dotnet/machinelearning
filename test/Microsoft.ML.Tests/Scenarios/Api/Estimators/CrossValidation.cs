@@ -29,7 +29,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                     .Read(new MultiFileSource(GetDataPath(TestDatasets.Sentiment.trainFilename)));
                 // Pipeline.
                 var pipeline = new TextTransform(env, "SentimentText", "Features")
-                        .Append(new LinearClassificationTrainer(env, new LinearClassificationTrainer.Arguments
+                        .Append(new StochasticDualCoordinateAscent(env, new StochasticDualCoordinateAscent.Arguments
                         {
                             NumThreads = 1,
                             ConvergenceTolerance = 1f

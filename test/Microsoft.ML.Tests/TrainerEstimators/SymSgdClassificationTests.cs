@@ -33,8 +33,8 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             (var pipe, var dataView) = GetBinaryClassificationPipeline();
             var transformedData = pipe.Fit(dataView).Transform(dataView);
 
-            var args = new LinearClassificationTrainer.Arguments();
-            var initPredictor = new LinearClassificationTrainer(Env, args, "Features", "Label").Fit(transformedData);
+            var args = new StochasticDualCoordinateAscent.Arguments();
+            var initPredictor = new StochasticDualCoordinateAscent(Env, args, "Features", "Label").Fit(transformedData);
             var data = initPredictor.Transform(transformedData);
 
             var withInitPredictor = new SymSgdClassificationTrainer(Env, "Features", "Label").Train(transformedData, initialPredictor: initPredictor.Model);

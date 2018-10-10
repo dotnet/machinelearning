@@ -29,7 +29,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                 var trans = TextTransform.Create(env, MakeSentimentTextTransformArgs(false), loader);
 
                 // Train.
-                var trainer = new LinearClassificationTrainer(env, new LinearClassificationTrainer.Arguments
+                var trainer = new StochasticDualCoordinateAscent(env, new StochasticDualCoordinateAscent.Arguments
                 {
                     NumThreads = 1,
                     ConvergenceTolerance = 1f

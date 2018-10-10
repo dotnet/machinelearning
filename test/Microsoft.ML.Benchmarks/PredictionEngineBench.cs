@@ -89,7 +89,7 @@ namespace Microsoft.ML.Benchmarks
                 IDataView data = reader.Read(new MultiFileSource(_sentimentDataPath));
 
                 var pipeline = new TextTransform(env, "SentimentText", "Features")
-                    .Append(new LinearClassificationTrainer(env, new LinearClassificationTrainer.Arguments { NumThreads = 1, ConvergenceTolerance = 1e-2f }, "Features", "Label"));
+                    .Append(new StochasticDualCoordinateAscent(env, new StochasticDualCoordinateAscent.Arguments { NumThreads = 1, ConvergenceTolerance = 1e-2f }, "Features", "Label"));
 
                 var model = pipeline.Fit(data);
 
@@ -123,7 +123,7 @@ namespace Microsoft.ML.Benchmarks
 
                 IDataView data = reader.Read(new MultiFileSource(_breastCancerDataPath));
 
-                var pipeline = new LinearClassificationTrainer(env, new LinearClassificationTrainer.Arguments { NumThreads = 1, ConvergenceTolerance = 1e-2f }, "Features", "Label");
+                var pipeline = new StochasticDualCoordinateAscent(env, new StochasticDualCoordinateAscent.Arguments { NumThreads = 1, ConvergenceTolerance = 1e-2f }, "Features", "Label");
 
                 var model = pipeline.Fit(data);
 

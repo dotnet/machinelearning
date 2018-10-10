@@ -26,7 +26,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                 var data = new TextLoader(env, MakeIrisTextLoaderArgs())
                     .Read(new MultiFileSource(GetDataPath(TestDatasets.irisData.trainFilename)));
 
-                var sdcaTrainer = new LinearClassificationTrainer(env, new LinearClassificationTrainer.Arguments { MaxIterations = 100, Shuffle = true, NumThreads = 1 }, "Features", "Label");
+                var sdcaTrainer = new StochasticDualCoordinateAscent(env, new StochasticDualCoordinateAscent.Arguments { MaxIterations = 100, Shuffle = true, NumThreads = 1 }, "Features", "Label");
                 var pipeline = new ConcatEstimator(env, "Features", "SepalLength", "SepalWidth", "PetalLength", "PetalWidth")
                     .Append(new TermEstimator(env, "Label"), TransformerScope.TrainTest)
                     .Append(new Ova(env, sdcaTrainer))

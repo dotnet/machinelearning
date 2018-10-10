@@ -31,7 +31,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                 var trainData = pipeline.FitAndTransform(data);
 
                 // Train the first predictor.
-                var trainer = new LinearClassificationTrainer(env, new LinearClassificationTrainer.Arguments
+                var trainer = new StochasticDualCoordinateAscent(env, new StochasticDualCoordinateAscent.Arguments
                 {
                     NumThreads = 1
                 }, "Features", "Label");

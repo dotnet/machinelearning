@@ -326,7 +326,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
                 else
                 {
                     learner.LoadableClassInfo =
-                        Host.ComponentCatalog.GetLoadableClassInfo<SignatureTrainer>(Learners.LinearClassificationTrainer.LoadNameValue);
+                        Host.ComponentCatalog.GetLoadableClassInfo<SignatureTrainer>(Learners.StochasticDualCoordinateAscent.LoadNameValue);
                     var epInput = new Legacy.Trainers.StochasticDualCoordinateAscentBinaryClassifier();
                     learner.PipelineNode = new TrainerPipelineNode(epInput);
                 }

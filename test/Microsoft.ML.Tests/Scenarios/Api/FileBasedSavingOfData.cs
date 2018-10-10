@@ -37,7 +37,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
 
                 var binData = new BinaryLoader(env, new BinaryLoader.Arguments(), new MultiFileSource("i.idv"));
                 var trainRoles = new RoleMappedData(binData, label: "Label", feature: "Features");
-                var trainer = new LinearClassificationTrainer(env, new LinearClassificationTrainer.Arguments
+                var trainer = new StochasticDualCoordinateAscent(env, new StochasticDualCoordinateAscent.Arguments
                 {
                     NumThreads = 1
                 });
