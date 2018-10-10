@@ -89,7 +89,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         }
 
         [MethodImplAttribute(MethodImplOptions.AggressiveInlining)]
-       internal static Vector128<float> VectorSum128(in Vector128<float> vector)
+        internal static Vector128<float> VectorSum128(in Vector128<float> vector)
         {
             if (Sse3.IsSupported)
             {
@@ -527,28 +527,12 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
                         for (float* pEnd = pDstCurrent + (length - remainder); pDstCurrent < pEnd; pDstCurrent += 4)
                         {
-                            if (Avx.IsSupported)
-                            {
-                                // The JIT will only fold away unaligned loads due to the semantics behind
-                                // the VEX-encoding of the memory operand for `ins xmm, xmm, [mem]`. Since
-                                // modern hardware has unaligned loads that are as fast as aligned loads,
-                                // when it doesn't cross a cache-line/page boundary, we will just assert
-                                // that the alignment is correct and allow for the more-efficient codegen.
-
-                                Contracts.Assert(((nuint)(pDstCurrent) % 16) == 0);
-                                Vector128<float> temp = Sse.LoadVector128(pDstCurrent);
-                                temp = Sse.Multiply(scaleVector128, temp);
-                                Sse.Store(pDstCurrent, temp);
-                            }
-                            else
-                            {
-                                // If we aren't using the VEX-encoding, then the reverse is true and the JIT
-                                // will only fold away aligned loads (due to semantics of the legacy encoding).
-                                // We don't need an assert, since the instruction will throw for unaligned inputs.
-                                Vector128<float> temp = Sse.LoadAlignedVector128(pDstCurrent);
-                                temp = Sse.Multiply(scaleVector128, temp);
-                                Sse.Store(pDstCurrent, temp);
-                            }
+                            // If we aren't using the VEX-encoding, then the reverse is true and the JIT
+                            // will only fold away aligned loads (due to semantics of the legacy encoding).
+                            // We don't need an assert, since the instruction will throw for unaligned inputs.
+                            Vector128<float> temp = Sse.LoadAlignedVector128(pDstCurrent);
+                            temp = Sse.Multiply(scaleVector128, temp);
+                            Sse.Store(pDstCurrent, temp);
                         }
                     }
                     else
