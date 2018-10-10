@@ -13,6 +13,7 @@ using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Utilities;
+using Microsoft.ML.Transforms;
 
 [assembly: LoadableClass(WordBagTransform.Summary, typeof(IDataTransform), typeof(WordBagTransform), typeof(WordBagTransform.Arguments), typeof(SignatureDataTransform),
     "Word Bag Transform", "WordBagTransform", "WordBag")]
@@ -202,7 +203,7 @@ namespace Microsoft.ML.Runtime.Data
                 "Whether to include all ngram lengths up to " + nameof(NgramLength) + " or only " + nameof(NgramLength), ShortName = "all")]
             public bool? AllLengths;
 
-            // REVIEW: This argument is actually confusing. If you set only one value we will use this value for all ngrams respectfully e.g.
+            // REVIEW: This argument is actually confusing. If you set only one value we will use this value for all ngrams respectfully for example,
             // if we specify 3 ngrams we will have maxNumTerms * 3. And it also pick first value from this array to run term transform, so if you specify
             // something like 1,1,10000, term transform would be run with limitation of only one term.
             [Argument(ArgumentType.Multiple, HelpText = "Maximum number of ngrams to store in the dictionary", ShortName = "max")]
@@ -460,7 +461,7 @@ namespace Microsoft.ML.Runtime.Data
         public string TermsColumn;
 
         [Argument(ArgumentType.AtMostOnce, HelpText = "How items should be ordered when vectorized. By default, they will be in the order encountered. " +
-            "If by value items are sorted according to their default comparison, e.g., text sorting will be case sensitive (e.g., 'A' then 'Z' then 'a').", SortOrder = 5)]
+            "If by value items are sorted according to their default comparison, for example, text sorting will be case sensitive (for example, 'A' then 'Z' then 'a').", SortOrder = 5)]
         public TermTransform.SortOrder Sort = TermTransform.SortOrder.Occurrence;
 
         [Argument(ArgumentType.AtMostOnce, HelpText = "Drop unknown terms instead of mapping them to NA term.", ShortName = "dropna", SortOrder = 6)]
@@ -474,7 +475,7 @@ namespace Microsoft.ML.Runtime.Data
     {
         /// <summary>
         /// Whether the extractor transform created by this factory uses the hashing trick
-        /// (by using <see cref="HashTransform"/> or <see cref="NgramHashTransform"/>, for example).
+        /// (by using <see cref="HashTransformer"/> or <see cref="NgramHashTransform"/>, for example).
         /// </summary>
         bool UseHashingTrick { get; }
 

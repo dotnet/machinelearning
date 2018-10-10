@@ -2,18 +2,18 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Linq;
-using System.Text;
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.FastTree;
 using Microsoft.ML.Runtime.FastTree.Internal;
+using Microsoft.ML.Runtime.Internal.Internallearn;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.Training;
-using Microsoft.ML.Runtime.Internal.Internallearn;
+using System;
+using System.Linq;
+using System.Text;
 
 [assembly: LoadableClass(FastTreeRegressionTrainer.Summary, typeof(FastTreeRegressionTrainer), typeof(FastTreeRegressionTrainer.Arguments),
     new[] { typeof(SignatureRegressorTrainer), typeof(SignatureTrainer), typeof(SignatureTreeEnsembleTrainer), typeof(SignatureFeatureScorerTrainer) },
@@ -51,37 +51,42 @@ namespace Microsoft.ML.Runtime.FastTree
         /// </summary>
         public override PredictionKind PredictionKind => PredictionKind.Regression;
 
-        private readonly SchemaShape.Column[] _outputColumns;
-
         /// <summary>
         /// Initializes a new instance of <see cref="FastTreeRegressionTrainer"/>
         /// </summary>
         /// <param name="env">The private instance of <see cref="IHostEnvironment"/>.</param>
         /// <param name="labelColumn">The name of the label column.</param>
         /// <param name="featureColumn">The name of the feature column.</param>
-        /// <param name="groupIdColumn">The name for the column containing the group ID. </param>
         /// <param name="weightColumn">The name for the column containing the initial weight.</param>
         /// <param name="advancedSettings">A delegate to apply all the advanced arguments to the algorithm.</param>
-        public FastTreeRegressionTrainer(IHostEnvironment env, string labelColumn, string featureColumn,
-            string weightColumn = null, string groupIdColumn = null, Action<Arguments> advancedSettings = null)
-            : base(env, MakeLabelColumn(labelColumn), featureColumn, weightColumn, groupIdColumn, advancedSettings)
+        /// <param name="learningRate">The learning rate.</param>
+        /// <param name="minDocumentsInLeafs">The minimal number of documents allowed in a leaf of a regression tree, out of the subsampled data.</param>
+        /// <param name="numLeaves">The max number of leaves in each regression tree.</param>
+        /// <param name="numTrees">Total number of decision trees to create in the ensemble.</param>
+        public FastTreeRegressionTrainer(IHostEnvironment env,
+            string labelColumn,
+            string featureColumn,
+            string weightColumn = null,
+            int numLeaves = Defaults.NumLeaves,
+            int numTrees = Defaults.NumTrees,
+            int minDocumentsInLeafs = Defaults.MinDocumentsInLeafs,
+            double learningRate = Defaults.LearningRates,
+            Action<Arguments> advancedSettings = null)
+            : base(env, TrainerUtils.MakeR4ScalarLabel(labelColumn), featureColumn, weightColumn, null, advancedSettings)
         {
-            _outputColumns = new[]
-            {
-                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata()))
-            };
+            Host.CheckNonEmpty(labelColumn, nameof(labelColumn));
+            Host.CheckNonEmpty(featureColumn, nameof(featureColumn));
+
+            if (advancedSettings != null)
+               CheckArgsAndAdvancedSettingMismatch(numLeaves, numTrees, minDocumentsInLeafs, learningRate, new Arguments(), Args);
         }
 
         /// <summary>
         /// Initializes a new instance of <see cref="FastTreeRegressionTrainer"/> by using the legacy <see cref="Arguments"/> class.
         /// </summary>
-        public FastTreeRegressionTrainer(IHostEnvironment env, Arguments args)
-            : base(env, args, MakeLabelColumn(args.LabelColumn))
+        internal FastTreeRegressionTrainer(IHostEnvironment env, Arguments args)
+            : base(env, args, TrainerUtils.MakeR4ScalarLabel(args.LabelColumn))
         {
-            _outputColumns = new[]
-            {
-                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata()))
-            };
         }
 
         protected override FastTreeRegressionPredictor TrainModelCore(TrainContext context)
@@ -98,7 +103,6 @@ namespace Microsoft.ML.Runtime.FastTree
                 FeatureCount = trainData.Schema.Feature.Type.ValueCount;
                 ConvertData(trainData);
                 TrainCore(ch);
-                ch.Done();
             }
             return new FastTreeRegressionPredictor(Host, TrainedEnsemble, FeatureCount, InnerArgs);
         }
@@ -166,7 +170,13 @@ namespace Microsoft.ML.Runtime.FastTree
         protected override RegressionPredictionTransformer<FastTreeRegressionPredictor> MakeTransformer(FastTreeRegressionPredictor model, ISchema trainSchema)
             => new RegressionPredictionTransformer<FastTreeRegressionPredictor>(Host, model, trainSchema, FeatureColumn.Name);
 
-        protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema) => _outputColumns;
+        protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema)
+        {
+            return new[]
+            {
+                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata()))
+            };
+        }
 
         private void AddFullRegressionTests()
         {
@@ -447,7 +457,8 @@ namespace Microsoft.ML.Runtime.FastTree
                 verWrittenCur: 0x00010005, // Categorical splits.
                 verReadableCur: 0x00010004,
                 verWeCanReadBack: 0x00010001,
-                loaderSignature: LoaderSignature);
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(FastTreeRegressionPredictor).Assembly.FullName);
         }
 
         protected override uint VerNumFeaturesSerialized => 0x00010002;

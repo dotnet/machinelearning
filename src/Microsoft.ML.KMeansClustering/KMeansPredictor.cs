@@ -40,7 +40,8 @@ namespace Microsoft.ML.Runtime.KMeans
                 verWrittenCur: 0x00010002, // Allow sparse centroids
                 verReadableCur: 0x00010002,
                 verWeCanReadBack: 0x00010001,
-                loaderSignature: LoaderSignature);
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(KMeansPredictor).Assembly.FullName);
         }
 
         public override PredictionKind PredictionKind => PredictionKind.Clustering;

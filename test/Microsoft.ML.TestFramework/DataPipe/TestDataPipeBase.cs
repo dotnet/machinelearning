@@ -97,7 +97,7 @@ namespace Microsoft.ML.Runtime.RunTests
 
             var transformer = estimator.Fit(validFitInput);
             // Save and reload.
-            string modelPath = GetOutputPath(TestName + "-model.zip");
+            string modelPath = GetOutputPath(FullTestName + "-model.zip");
             using (var fs = File.Create(modelPath))
                 transformer.SaveTo(Env, fs);
 
@@ -110,6 +110,18 @@ namespace Microsoft.ML.Runtime.RunTests
             Action<IDataView> checkOnData = (IDataView data) =>
             {
                 var schema = transformer.GetOutputSchema(data.Schema);
+
+                // If it's a row to row mapper, then the output schema should be the same.
+                if (transformer.IsRowToRowMapper)
+                {
+                    var mapper = transformer.GetRowToRowMapper(data.Schema);
+                    Check(mapper.InputSchema == data.Schema, "InputSchemas were not identical to actual input schema");
+                    CheckSameSchemas(schema, mapper.Schema);
+                }
+                else
+                {
+                    mustFail(() => transformer.GetRowToRowMapper(data.Schema));
+                }
 
                 // Loaded transformer needs to have the same schema propagation.
                 CheckSameSchemas(schema, loadedTransformer.GetOutputSchema(data.Schema));
@@ -311,7 +323,7 @@ namespace Microsoft.ML.Runtime.RunTests
 
         protected IDataLoader CreatePipeDataLoader(IHostEnvironment env, string pathData, string[] argsPipe, out MultiFileSource files)
         {
-            VerifyArgParsing(argsPipe);
+            VerifyArgParsing(env, argsPipe);
 
             // Default to breast-cancer.txt.
             if (string.IsNullOrEmpty(pathData))
@@ -350,7 +362,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 Failed();
         }
 
-        protected void VerifyArgParsing(string[] strs)
+        protected void VerifyArgParsing(IHostEnvironment env, string[] strs)
         {
             string str = CmdParser.CombineSettings(strs);
             var args = new CompositeDataLoader.Arguments();
@@ -361,18 +373,18 @@ namespace Microsoft.ML.Runtime.RunTests
             }
 
             // For the loader and each transform, verify that custom unparsing is correct.
-            VerifyCustArgs(args.Loader);
+            VerifyCustArgs(env, args.Loader);
             foreach (var kvp in args.Transform)
-                VerifyCustArgs(kvp.Value);
+                VerifyCustArgs(env, kvp.Value);
         }
 
-        protected void VerifyCustArgs<TArg, TRes>(IComponentFactory<TArg, TRes> factory)
+        protected void VerifyCustArgs<TArg, TRes>(IHostEnvironment env, IComponentFactory<TArg, TRes> factory)
             where TRes : class
         {
             if (factory is ICommandLineComponentFactory commandLineFactory)
             {
                 var str = commandLineFactory.GetSettingsString();
-                var info = ComponentCatalog.GetLoadableClassInfo(commandLineFactory.Name, commandLineFactory.SignatureType);
+                var info = env.ComponentCatalog.GetLoadableClassInfo(commandLineFactory.Name, commandLineFactory.SignatureType);
                 Assert.NotNull(info);
                 var def = info.CreateArguments();
 

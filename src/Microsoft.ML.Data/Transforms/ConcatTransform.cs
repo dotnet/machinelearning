@@ -243,7 +243,8 @@ namespace Microsoft.ML.Runtime.Data
                 verReadableCur: 0x00010002,
                 verWeCanReadBack: 0x00010001,
                 loaderSignature: LoaderSignature,
-                loaderSignatureAlt: LoaderSignatureOld);
+                loaderSignatureAlt: LoaderSignatureOld,
+                loaderAssemblyName: typeof(ConcatTransform).Assembly.FullName);
         }
 
         private const int VersionAddedAliases = 0x00010002;
@@ -415,6 +416,14 @@ namespace Microsoft.ML.Runtime.Data
             return RowToRowMapperTransform.GetOutputSchema(inputSchema, MakeRowMapper(inputSchema));
         }
 
+        public bool IsRowToRowMapper => true;
+
+        public IRowToRowMapper GetRowToRowMapper(ISchema inputSchema)
+        {
+            _host.CheckValue(inputSchema, nameof(inputSchema));
+            return new RowToRowMapperTransform(_host, new EmptyDataView(_host, inputSchema), MakeRowMapper(inputSchema));
+        }
+
         private sealed class Mapper : IRowMapper, ISaveAsOnnx, ISaveAsPfa
         {
             private readonly IHost _host;
@@ -422,7 +431,7 @@ namespace Microsoft.ML.Runtime.Data
             private readonly ConcatTransform _parent;
             private readonly BoundColumn[] _columns;
 
-            public bool CanSaveOnnx => true;
+            public bool CanSaveOnnx(OnnxContext ctx) => true;
             public bool CanSavePfa => true;
 
             public Mapper(ConcatTransform parent, ISchema inputSchema)
@@ -893,7 +902,7 @@ namespace Microsoft.ML.Runtime.Data
             public void SaveAsOnnx(OnnxContext ctx)
             {
                 _host.CheckValue(ctx, nameof(ctx));
-                Contracts.Assert(CanSaveOnnx);
+                Contracts.Assert(CanSaveOnnx(ctx));
 
                 string opType = "FeatureVectorizer";
                 for (int iinfo = 0; iinfo < _columns.Length; ++iinfo)

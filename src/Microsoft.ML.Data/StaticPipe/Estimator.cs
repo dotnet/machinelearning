@@ -5,13 +5,13 @@
 using System;
 using System.Collections.Generic;
 using Microsoft.ML.Core.Data;
-using Microsoft.ML.Data.StaticPipe.Runtime;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
+using Microsoft.ML.StaticPipe.Runtime;
 
-namespace Microsoft.ML.Data.StaticPipe
+namespace Microsoft.ML.StaticPipe
 {
-    public sealed class Estimator<TTupleInShape, TTupleOutShape, TTransformer> : SchemaBearing<TTupleOutShape>
+    public sealed class Estimator<TInShape, TOutShape, TTransformer> : SchemaBearing<TOutShape>
         where TTransformer : class, ITransformer
     {
         public IEstimator<TTransformer> AsDynamic { get; }
@@ -28,24 +28,24 @@ namespace Microsoft.ML.Data.StaticPipe
             // types of on their own.
         }
 
-        public Transformer<TTupleInShape, TTupleOutShape, TTransformer> Fit(DataView<TTupleInShape> view)
+        public Transformer<TInShape, TOutShape, TTransformer> Fit(DataView<TInShape> view)
         {
             Contracts.Assert(nameof(Fit) == nameof(IEstimator<TTransformer>.Fit));
             _inShape.Check(Env, view.AsDynamic.Schema);
 
             var trans = AsDynamic.Fit(view.AsDynamic);
-            return new Transformer<TTupleInShape, TTupleOutShape, TTransformer>(Env, trans, _inShape, Shape);
+            return new Transformer<TInShape, TOutShape, TTransformer>(Env, trans, _inShape, Shape);
         }
 
-        public Estimator<TTupleInShape, TTupleNewOutShape, ITransformer> Append<TTupleNewOutShape>(Estimator<TTupleOutShape, TTupleNewOutShape, ITransformer> estimator)
+        public Estimator<TInShape, TNewOutShape, ITransformer> Append<TNewOutShape>(Estimator<TOutShape, TNewOutShape, ITransformer> estimator)
         {
             Env.CheckValue(estimator, nameof(estimator));
 
             var est = AsDynamic.Append(estimator.AsDynamic);
-            return new Estimator<TTupleInShape, TTupleNewOutShape, ITransformer>(Env, est, _inShape, estimator.Shape);
+            return new Estimator<TInShape, TNewOutShape, ITransformer>(Env, est, _inShape, estimator.Shape);
         }
 
-        public Estimator<TTupleInShape, TTupleNewOutShape, ITransformer> Append<[IsShape] TTupleNewOutShape>(Func<TTupleOutShape, TTupleNewOutShape> mapper)
+        public Estimator<TInShape, TNewOutShape, ITransformer> Append<[IsShape] TNewOutShape>(Func<TOutShape, TNewOutShape> mapper)
         {
             Contracts.CheckValue(mapper, nameof(mapper));
 
@@ -54,7 +54,7 @@ namespace Microsoft.ML.Data.StaticPipe
                 var method = mapper.Method;
 
                 // Construct the dummy column structure, then apply the mapping.
-                var input = StaticPipeInternalUtils.MakeAnalysisInstance<TTupleOutShape>(out var fakeReconciler);
+                var input = StaticPipeInternalUtils.MakeAnalysisInstance<TOutShape>(out var fakeReconciler);
                 KeyValuePair<string, PipelineColumn>[] inPairs = StaticPipeInternalUtils.GetNamesValues(input, method.GetParameters()[0]);
 
                 // Initially we suppose we've only assigned names to the inputs.
@@ -72,10 +72,8 @@ namespace Microsoft.ML.Data.StaticPipe
                 ch.AssertValue(estTail);
 
                 var est = AsDynamic.Append(estTail);
-                var newOut = StaticSchemaShape.Make<TTupleNewOutShape>(method.ReturnParameter);
-                var toReturn = new Estimator<TTupleInShape, TTupleNewOutShape, ITransformer>(Env, est, _inShape, newOut);
-                ch.Done();
-                return toReturn;
+                var newOut = StaticSchemaShape.Make<TNewOutShape>(method.ReturnParameter);
+                return new Estimator<TInShape, TNewOutShape, ITransformer>(Env, est, _inShape, newOut);
             }
         }
     }

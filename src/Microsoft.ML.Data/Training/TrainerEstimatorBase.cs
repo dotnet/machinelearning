@@ -15,7 +15,7 @@ namespace Microsoft.ML.Runtime.Training
     /// It produces a 'prediction transformer'.
     /// </summary>
     public abstract class TrainerEstimatorBase<TTransformer, TModel> : ITrainerEstimator<TTransformer, TModel>, ITrainer<TModel>
-        where TTransformer : IPredictionTransformer<TModel>
+        where TTransformer : ISingleFeaturePredictionTransformer<TModel>
         where TModel : IPredictor
     {
         /// <summary>

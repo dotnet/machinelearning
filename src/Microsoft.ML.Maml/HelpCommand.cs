@@ -100,7 +100,7 @@ namespace Microsoft.ML.Runtime.Tools
 
         public void Run(int? columns)
         {
-            ComponentCatalog.CacheClassesExtra(_extraAssemblies);
+            AssemblyLoadingUtils.LoadAndRegister(_env, _extraAssemblies);
 
             using (var ch = _env.Start("Help"))
             using (var sw = new StringWriter(CultureInfo.InvariantCulture))
@@ -122,7 +122,6 @@ namespace Microsoft.ML.Runtime.Tools
                     ShowComponents(writer);
 
                 ch.Info(sw.ToString());
-                ch.Done();
             }
         }
 
@@ -137,7 +136,7 @@ namespace Microsoft.ML.Runtime.Tools
             // Note that we don't check IsHidden here. The current policy is when IsHidden is true, we don't
             // show the item in "list all" functionality, but will still show help when explicitly requested.
 
-            var infos = ComponentCatalog.FindLoadableClasses(name)
+            var infos = _env.ComponentCatalog.FindLoadableClasses(name)
                 .OrderBy(x => ComponentCatalog.SignatureToString(x.SignatureTypes[0]).ToLowerInvariant());
             var kinds = new StringBuilder();
             var components = new List<Component>();
@@ -188,7 +187,7 @@ namespace Microsoft.ML.Runtime.Tools
         {
             string sig = _kind?.ToLowerInvariant();
 
-            var infos = ComponentCatalog.GetAllClasses()
+            var infos = _env.ComponentCatalog.GetAllClasses()
                 .OrderBy(info => info.LoadNames[0].ToLowerInvariant())
                 .ThenBy(info => ComponentCatalog.SignatureToString(info.SignatureTypes[0]).ToLowerInvariant());
             var components = new List<Component>();
@@ -256,7 +255,7 @@ namespace Microsoft.ML.Runtime.Tools
             else
             {
                 kind = _kind.ToLowerInvariant();
-                var sigs = ComponentCatalog.GetAllSignatureTypes();
+                var sigs = _env.ComponentCatalog.GetAllSignatureTypes();
                 typeSig = sigs.FirstOrDefault(t => ComponentCatalog.SignatureToString(t).ToLowerInvariant() == kind);
                 if (typeSig == null)
                 {
@@ -272,7 +271,7 @@ namespace Microsoft.ML.Runtime.Tools
                 writer.WriteLine("Available components for kind '{0}':", ComponentCatalog.SignatureToString(typeSig));
             }
 
-            var infos = ComponentCatalog.GetAllDerivedClasses(typeRes, typeSig)
+            var infos = _env.ComponentCatalog.GetAllDerivedClasses(typeRes, typeSig)
                 .Where(x => !x.IsHidden)
                 .OrderBy(x => x.LoadNames[0].ToLowerInvariant());
             using (writer.Nest())
@@ -322,7 +321,7 @@ namespace Microsoft.ML.Runtime.Tools
 
         private void ListKinds(IndentingTextWriter writer)
         {
-            var sigs = ComponentCatalog.GetAllSignatureTypes()
+            var sigs = _env.ComponentCatalog.GetAllSignatureTypes()
                 .Select(ComponentCatalog.SignatureToString)
                 .OrderBy(x => x);
 
@@ -484,7 +483,6 @@ namespace Microsoft.ML.Runtime.Tools
                                     new XElement("HelpText", a.HelpText),
                                     CreateDefaultValueElement(ch, c.Kind, a)))));
                 File.WriteAllText(_xmlFilename, content.ToString());
-                ch.Done();
             }
         }
 

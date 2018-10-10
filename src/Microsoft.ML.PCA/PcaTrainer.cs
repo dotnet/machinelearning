@@ -18,6 +18,7 @@ using Microsoft.ML.Runtime.Numeric;
 using Microsoft.ML.Runtime.PCA;
 using Microsoft.ML.Runtime.Training;
 using Microsoft.ML.Runtime.Internal.Internallearn;
+using Microsoft.ML.Core.Data;
 
 [assembly: LoadableClass(RandomizedPcaTrainer.Summary, typeof(RandomizedPcaTrainer), typeof(RandomizedPcaTrainer.Arguments),
     new[] { typeof(SignatureAnomalyDetectorTrainer), typeof(SignatureTrainer) },
@@ -41,7 +42,7 @@ namespace Microsoft.ML.Runtime.PCA
     /// <remarks>
     /// This PCA can be made into Kernel PCA by using Random Fourier Features transform
     /// </remarks>
-    public sealed class RandomizedPcaTrainer : TrainerBase<PcaPredictor>
+    public sealed class RandomizedPcaTrainer : TrainerEstimatorBase<AnomalyPredictionTransformer<PcaPredictor>, PcaPredictor>
     {
         public const string LoadNameValue = "pcaAnomaly";
         internal const string UserNameValue = "PCA Anomaly Detector";
@@ -73,6 +74,7 @@ namespace Microsoft.ML.Runtime.PCA
         private readonly int _oversampling;
         private readonly bool _center;
         private readonly int _seed;
+        private readonly string _featureColumn;
 
         public override PredictionKind PredictionKind => PredictionKind.AnomalyDetection;
 
@@ -80,21 +82,58 @@ namespace Microsoft.ML.Runtime.PCA
         private static readonly TrainerInfo _info = new TrainerInfo(caching: false);
         public override TrainerInfo Info => _info;
 
-        public RandomizedPcaTrainer(IHostEnvironment env, Arguments args)
-            : base(env, LoadNameValue)
+        /// <summary>
+        /// Initializes a new instance of <see cref="RandomizedPcaTrainer"/>.
+        /// </summary>
+        /// <param name="env">The local instance of the <see cref="IHostEnvironment"/>.</param>
+        /// <param name="featureColumn">The name of the feature column.</param>
+        /// <param name="weightColumn">The name of the weight column.</param>
+        /// <param name="rank">The number of components in the PCA.</param>
+        /// <param name="oversampling">Oversampling parameter for randomized PCA training.</param>
+        /// <param name="center">If enabled, data is centered to be zero mean.</param>
+        /// <param name="seed">The seed for random number generation.</param>
+        public RandomizedPcaTrainer(IHostEnvironment env, string featureColumn, string weightColumn = null,
+            int rank = 20, int oversampling = 20, bool center = true, int? seed = null)
+            : this(env, null, featureColumn, weightColumn, rank, oversampling, center, seed)
         {
-            Host.CheckValue(args, nameof(args));
-            Host.CheckUserArg(args.Rank > 0, nameof(args.Rank), "Rank must be positive");
-            Host.CheckUserArg(args.Oversampling >= 0, nameof(args.Oversampling), "Oversampling must be non-negative");
 
-            _rank = args.Rank;
-            _center = args.Center;
-            _oversampling = args.Oversampling;
-            _seed = args.Seed ?? Host.Rand.Next();
+        }
+
+        internal RandomizedPcaTrainer(IHostEnvironment env, Arguments args)
+            :this(env, args, args.FeatureColumn, args.WeightColumn)
+        {
+
+        }
+
+        private RandomizedPcaTrainer(IHostEnvironment env, Arguments args, string featureColumn, string weightColumn,
+            int rank = 20, int oversampling = 20, bool center = true, int? seed = null)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(LoadNameValue), TrainerUtils.MakeR4VecFeature(featureColumn), null, TrainerUtils.MakeR4ScalarWeightColumn(weightColumn))
+        {
+            // if the args are not null, we got here from maml, and the internal ctor.
+            if (args != null)
+            {
+                _rank = args.Rank;
+                _center = args.Center;
+                _oversampling = args.Oversampling;
+                _seed = args.Seed ?? Host.Rand.Next();
+            }
+            else
+            {
+                _rank = rank;
+                _center = center;
+                _oversampling = oversampling;
+                _seed = seed ?? Host.Rand.Next();
+            }
+
+            _featureColumn = featureColumn;
+
+            Host.CheckUserArg(_rank > 0, nameof(_rank), "Rank must be positive");
+            Host.CheckUserArg(_oversampling >= 0, nameof(_oversampling), "Oversampling must be non-negative");
+
         }
 
         //Note: the notations used here are the same as in https://web.stanford.edu/group/mmds/slides2010/Martinsson.pdf (pg. 9)
-        public override PcaPredictor Train(TrainContext context)
+        protected override PcaPredictor TrainModelCore(TrainContext context)
         {
             Host.CheckValue(context, nameof(context));
 
@@ -102,10 +141,20 @@ namespace Microsoft.ML.Runtime.PCA
 
             using (var ch = Host.Start("Training"))
             {
-                var pred = TrainCore(ch, context.TrainingSet, dimension);
-                ch.Done();
-                return pred;
+                return TrainCore(ch, context.TrainingSet, dimension);
             }
+        }
+
+        private static SchemaShape.Column MakeWeightColumn(string weightColumn)
+        {
+            if (weightColumn == null)
+                return null;
+            return new SchemaShape.Column(weightColumn, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false);
+        }
+
+        private static SchemaShape.Column MakeFeatureColumn(string featureColumn)
+        {
+            return new SchemaShape.Column(featureColumn, SchemaShape.Column.VectorKind.Vector, NumberType.R4, false);
         }
 
         private PcaPredictor TrainCore(IChannel ch, RoleMappedData data, int dimension)
@@ -266,6 +315,27 @@ namespace Microsoft.ML.Runtime.PCA
             }
         }
 
+        protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema)
+        {
+             return new[]
+            {
+                new SchemaShape.Column(DefaultColumnNames.Score,
+                        SchemaShape.Column.VectorKind.Scalar,
+                        NumberType.R4,
+                        false,
+                        new SchemaShape(MetadataUtils.GetTrainerOutputMetadata())),
+
+                new SchemaShape.Column(DefaultColumnNames.PredictedLabel,
+                        SchemaShape.Column.VectorKind.Scalar,
+                        BoolType.Instance,
+                        false,
+                        new SchemaShape(MetadataUtils.GetTrainerOutputMetadata()))
+            };
+        }
+
+        protected override AnomalyPredictionTransformer<PcaPredictor> MakeTransformer(PcaPredictor model, ISchema trainSchema)
+            => new AnomalyPredictionTransformer<PcaPredictor>(Host, model, trainSchema, _featureColumn);
+
         [TlcModule.EntryPoint(Name = "Trainers.PcaAnomalyDetector",
             Desc = "Train an PCA Anomaly model.",
             UserName = UserNameValue,
@@ -307,7 +377,8 @@ namespace Microsoft.ML.Runtime.PCA
                 verWrittenCur: 0x00010001, // Initial
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
-                loaderSignature: LoaderSignature);
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(PcaPredictor).Assembly.FullName);
         }
 
         private readonly int _dimension;

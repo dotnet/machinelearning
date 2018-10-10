@@ -85,7 +85,7 @@ namespace Microsoft.ML.Runtime.MLTesting.Inference
 
             if (!string.IsNullOrWhiteSpace(args.Sweeper))
             {
-                var info = ComponentCatalog.GetLoadableClassInfo<SignatureSweeper>(args.Sweeper);
+                var info = env.ComponentCatalog.GetLoadableClassInfo<SignatureSweeper>(args.Sweeper);
                 _host.CheckUserArg(info?.SignatureTypes[0] == typeof(SignatureSweeper), nameof(args.Sweeper),
                     "Please specify a valid sweeper.");
                 _sweeper = args.Sweeper;
@@ -95,7 +95,7 @@ namespace Microsoft.ML.Runtime.MLTesting.Inference
 
             if (!string.IsNullOrWhiteSpace(args.Mode))
             {
-                var info = ComponentCatalog.GetLoadableClassInfo<SignatureCommand>(args.Mode);
+                var info = env.ComponentCatalog.GetLoadableClassInfo<SignatureCommand>(args.Mode);
                 _host.CheckUserArg(info?.Type == typeof(TrainCommand) ||
                                    info?.Type == typeof(TrainTestCommand) ||
                                    info?.Type == typeof(CrossValidationCommand), nameof(args.Mode), "Invalid mode.");
@@ -127,7 +127,6 @@ namespace Microsoft.ML.Runtime.MLTesting.Inference
             using (var ch = _host.Start("Running"))
             {
                 RunCore(ch);
-                ch.Done();
             }
         }
 

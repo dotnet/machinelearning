@@ -23,6 +23,7 @@ using TF_DeviceList = System.IntPtr;
 
 using size_t = System.UIntPtr;
 using System.Collections.Generic;
+using System.Collections;
 
 #pragma warning disable MSML_GeneralName
 #pragma warning disable MSML_PrivateFieldName
@@ -492,7 +493,7 @@ namespace Microsoft.ML.Transforms.TensorFlow
     /// "hot", and add a "sub" operation there the result will be "demo/hot/sub".
     /// </para>
     /// </remarks>
-    internal partial class TFGraph : TFDisposableThreadSafe
+    internal partial class TFGraph : TFDisposableThreadSafe, IEnumerable<TFOperation>
     {
         // extern TF_Graph * TF_NewGraph ();
         [DllImport(NativeBinding.TensorFlowLibrary)]
@@ -696,6 +697,33 @@ namespace Microsoft.ML.Transforms.TensorFlow
             IntPtr len;
             return TF_GraphDebugString(Handle, out len);
         }
+
+        [DllImport(NativeBinding.TensorFlowLibrary)]
+        private static unsafe extern TF_Operation TF_GraphNextOperation(TF_Graph graph, ref IntPtr pos);
+
+        /// <summary>
+        /// Returns the enumerator that returns all the TFOperations in a graph.
+        /// </summary>
+        /// <returns>The enumerator.</returns>
+        private IEnumerable<TFOperation> GetEnumerable()
+        {
+            if (handle == IntPtr.Zero)
+                ObjectDisposedException();
+            IntPtr token = IntPtr.Zero;
+            IntPtr operll;
+            while ((operll = TF_GraphNextOperation(handle, ref token)) != IntPtr.Zero)
+                yield return new TFOperation(this, operll);
+        }
+
+        public IEnumerator<TFOperation> GetEnumerator()
+        {
+            return GetEnumerable().GetEnumerator();
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
+        }
     }
 
     /// <summary>
@@ -736,6 +764,48 @@ namespace Microsoft.ML.Transforms.TensorFlow
                 return new TFOutput(this, idx);
             }
         }
+
+        // extern TF_Output TF_OperationInput (TF_Input oper_in);
+        [DllImport(NativeBinding.TensorFlowLibrary)]
+        private static extern TFOutput TF_OperationInput(TFInput oper_in);
+
+        public TFOutput GetInput(int idx)
+        {
+            return TF_OperationInput(new TFInput() { Operation = handle, Index = idx });
+        }
+
+        [DllImport(NativeBinding.TensorFlowLibrary)]
+        private static extern IntPtr TF_OperationName(TF_Operation oper);
+
+        /// <summary>
+        /// The name for this operation/
+        /// </summary>
+        /// <value>The name.</value>
+        public string Name => handle == IntPtr.Zero ? "<ObjectDisposed>" : TF_OperationName(handle).GetStr();
+
+        [DllImport(NativeBinding.TensorFlowLibrary)]
+        private static extern IntPtr TF_OperationOpType(TF_Operation oper);
+
+        public string OpType => handle == IntPtr.Zero ? "<ObjectDisposedException>" : TF_OperationOpType(handle).GetStr();
+
+        [DllImport(NativeBinding.TensorFlowLibrary)]
+        private static extern int TF_OperationNumOutputs(TF_Operation oper);
+
+        /// <summary>
+        /// Gets the number of outputs on this operation.
+        /// </summary>
+        /// <value>The number outputs.</value>
+        public int NumOutputs => handle == IntPtr.Zero ? -1 : TF_OperationNumOutputs(handle);
+
+        [DllImport(NativeBinding.TensorFlowLibrary)]
+        private static extern int TF_OperationNumInputs(TF_Operation oper);
+
+        /// <summary>
+        /// Gets the number of inputs for this operation.
+        /// Import a serialized graph into this graph, using the specified importing options.
+        /// </summary>
+        /// <value>The number inputs.</value>
+        public int NumInputs => TF_OperationNumInputs(handle);
     }
 
     /// <summary>
@@ -772,7 +842,7 @@ namespace Microsoft.ML.Transforms.TensorFlow
         }
 
         /// <summary>
-        /// The full name of the device (e.g. /job:worker/replica:0/...)
+        /// The full name of the device (for example, /job:worker/replica:0/...)
         /// </summary>
         public string Name { get; private set; }
 
@@ -1112,7 +1182,7 @@ namespace Microsoft.ML.Transforms.TensorFlow
         /// here: https://github.com/tensorflow/tensorflow/blob/master/tensorflow/python/saved_model/README.md
         /// </para>
         /// </remarks>
-        public TFSession FromSavedModel(TFSessionOptions sessionOptions, TFBuffer runOptions, string exportDir, string[] tags, TFGraph graph, TFBuffer metaGraphDef, TFStatus status = null)
+        public static TFSession FromSavedModel(TFSessionOptions sessionOptions, TFBuffer runOptions, string exportDir, string[] tags, TFGraph graph, TFBuffer metaGraphDef, TFStatus status = null)
         {
             if (graph == null)
                 throw new ArgumentNullException(nameof(graph));
@@ -1596,7 +1666,13 @@ namespace Microsoft.ML.Transforms.TensorFlow
         /// <summary>
         /// 64-bit unsigned integers
         /// </summary>
-        UInt64 = 23
+        UInt64 = 23,
+
+        /// <summary>
+        /// Float reference type. It used for defining types of Variables.
+        /// Please https://www.tensorflow.org/api_docs/python/tf/DType for more details.
+        /// </summary>
+        Float_ref = 101
     }
 
     /// <summary>
@@ -1625,7 +1701,7 @@ namespace Microsoft.ML.Transforms.TensorFlow
         /// Client specified an invalid argument.  Note that this differs
         /// from FailedPrecondition.  InvalidArgumentindicates arguments
         /// that are problematic regardless of the state of the system
-        /// (e.g., a malformed file name).
+        /// (for example, a malformed file name).
         /// </summary>
         InvalidArgument = 3,
 
@@ -1639,14 +1715,14 @@ namespace Microsoft.ML.Transforms.TensorFlow
         DeadlineExceeded = 4,
 
         /// <summary>
-        /// Some requested entity (e.g., file or directory) was not found.
+        /// Some requested entity (for example, file or directory) was not found.
         /// For privacy reasons, this code may be returned when the client
         /// does not have the access right to the entity.
         /// </summary>
         NotFound = 5,
 
         /// <summary>
-        /// Some entity that we attempted to create (e.g., file or directory) already exists.
+        /// Some entity that we attempted to create (for example, file or directory) already exists.
         /// </summary>
         AlreadyExists = 6,
 
@@ -1683,15 +1759,15 @@ namespace Microsoft.ML.Transforms.TensorFlow
         ///
         ///  (a) Use Unavailableif the client can retry just the failing call.
         ///  (b) Use Aborted if the client should retry at a higher-level
-        ///      (e.g., restarting a read-modify-write sequence).
+        ///      (for example, restarting a read-modify-write sequence).
         ///  (c) Use FailedPrecondition if the client should not retry until
-        ///      the system state has been explicitly fixed.  E.g., if an "rmdir"
+        ///      the system state has been explicitly fixed. For example, if an "rmdir"
         ///      fails because the directory is non-empty, FailedPrecondition
         ///      should be returned since the client should not retry unless
         ///      they have first fixed up the directory by deleting files from it.
         ///  (d) Use FailedPrecondition if the client performs conditional
         ///      REST Get/Update/Delete on a resource and the resource on the
-        ///      server does not match the condition. E.g., conflicting
+        ///      server does not match the condition. For example, conflicting
         ///      read-modify-write on the same resource.
         /// </summary>
         FailedPrecondition = 9,
@@ -1706,7 +1782,7 @@ namespace Microsoft.ML.Transforms.TensorFlow
         Aborted = 10,
 
         /// <summary>
-        /// Operation tried to iterate past the valid input range.  E.g., seeking or
+        /// Operation tried to iterate past the valid input range. For example, seeking or
         /// reading past end of file.
         ///
         /// Unlike InvalidArgument, this error indicates a problem that may
@@ -1767,15 +1843,6 @@ namespace Microsoft.ML.Transforms.TensorFlow
         /// The index of the output within the Operation
         /// </summary>
         public int Index;
-
-        // extern TF_Output TF_OperationInput (TF_Input oper_in);
-        [DllImport(NativeBinding.TensorFlowLibrary)]
-        private static extern TFOutput TF_OperationInput(TFInput oper_in);
-
-        public TFOutput GetOutput(TFInput operIn)
-        {
-            return TF_OperationInput(operIn);
-        }
 
         // extern TF_DataType TF_OperationInputType (TF_Input oper_in);
         [DllImport(NativeBinding.TensorFlowLibrary)]

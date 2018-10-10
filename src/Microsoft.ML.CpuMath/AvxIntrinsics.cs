@@ -45,7 +45,17 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
         [MethodImplAttribute(MethodImplOptions.AggressiveInlining)]
         private static unsafe Vector256<float> Load8(float* src, int* idx)
-            => Avx.SetVector256(src[idx[7]], src[idx[6]], src[idx[5]], src[idx[4]], src[idx[3]], src[idx[2]], src[idx[1]], src[idx[0]]);
+        {
+            if (Avx2.IsSupported)
+            {
+                Vector256<int> idx256 = Avx.LoadVector256(idx);
+                return Avx2.GatherVector256(src, idx256, 4);
+            }
+            else
+            {
+                return Avx.SetVector256(src[idx[7]], src[idx[6]], src[idx[5]], src[idx[4]], src[idx[3]], src[idx[2]], src[idx[1]], src[idx[0]]);
+            }
+        }
 
         [MethodImplAttribute(MethodImplOptions.AggressiveInlining)]
         private static unsafe void Store8(in Vector256<float> x, float* dst, int* idx)

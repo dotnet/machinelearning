@@ -216,7 +216,8 @@ namespace Microsoft.ML.Runtime.Data
                 verWrittenCur: 0x00010001, // Initial
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
-                loaderSignature: LoaderSignature);
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(NormalizerTransformer).Assembly.FullName);
         }
 
         private class ColumnInfo
@@ -452,7 +453,7 @@ namespace Microsoft.ML.Runtime.Data
         {
             private NormalizerTransformer _parent;
 
-            public bool CanSaveOnnx => true;
+            public bool CanSaveOnnx(OnnxContext ctx) => true;
             public bool CanSavePfa => true;
 
             public Mapper(NormalizerTransformer parent, ISchema schema)
@@ -562,12 +563,12 @@ namespace Microsoft.ML.Runtime.Data
                 Contracts.AssertValue(ctx);
                 Contracts.Assert(0 <= iinfo && iinfo < _parent._columns.Length);
                 Contracts.Assert(_parent._columns[iinfo] == info);
-                Contracts.Assert(CanSaveOnnx);
+                Contracts.Assert(CanSaveOnnx(ctx));
 
                 if (info.InputType.ValueCount == 0)
                     return false;
 
-                if (info.ColumnFunction.CanSaveOnnx)
+                if (info.ColumnFunction.CanSaveOnnx(ctx))
                 {
                     string opType = "Scaler";
                     var node = ctx.CreateNode(opType, srcVariableName, dstVariableName, ctx.GetNodeName(opType));

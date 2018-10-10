@@ -473,8 +473,21 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         /// <summary>
+        /// Fetches the value of the column by name, in the given row.
+        /// Used by the evaluators to retrieve the metrics from the results IDataView.
+        /// </summary>
+        public static T Fetch<T>(IExceptionContext ectx, IRow row, string name)
+        {
+            if (!row.Schema.TryGetColumnIndex(name, out int col))
+                throw ectx.Except($"Could not find column '{name}'");
+            T val = default;
+            row.GetGetter<T>(col)(ref val);
+            return val;
+        }
+
+        /// <summary>
         /// Given a row, returns a one-row data view. This is useful for cases where you have a row, and you
-        /// wish to use some facility normally only exposed to dataviews. (E.g., you have an <see cref="IRow"/>
+        /// wish to use some facility normally only exposed to dataviews. (For example, you have an <see cref="IRow"/>
         /// but want to save it somewhere using a <see cref="Microsoft.ML.Runtime.Data.IO.BinarySaver"/>.)
         /// Note that it is not possible for this method to ensure that the input <paramref name="row"/> does not
         /// change, so users of this convenience must take care of what they do with the input row or the data

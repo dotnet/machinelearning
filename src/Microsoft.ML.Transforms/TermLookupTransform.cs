@@ -277,7 +277,8 @@ namespace Microsoft.ML.Runtime.Data
                 verWrittenCur: 0x00010002, // Dropped sizeof(Float).
                 verReadableCur: 0x00010002,
                 verWeCanReadBack: 0x00010002,
-                loaderSignature: LoaderSignature);
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(TermLookupTransform).Assembly.FullName);
         }
 
         // This is the byte array containing the binary .idv file contents for the lookup data.
@@ -316,7 +317,6 @@ namespace Microsoft.ML.Runtime.Data
                 _ldr = GetLoader(Host, _bytes);
                 _valueMap = Train(ch, _ldr);
                 SetMetadata();
-                ch.Done();
             }
         }
 
@@ -336,7 +336,6 @@ namespace Microsoft.ML.Runtime.Data
                 _ldr = GetLoader(Host, _bytes);
                 _valueMap = Train(ch, _ldr);
                 SetMetadata();
-                ch.Done();
             }
         }
 
@@ -420,7 +419,6 @@ namespace Microsoft.ML.Runtime.Data
                         }
                         else
                             ch.Info("Found key values in the range {0} to {1} in the file '{2}'", min, max, filename);
-                        ch.Done();
                     }
                 }
             }

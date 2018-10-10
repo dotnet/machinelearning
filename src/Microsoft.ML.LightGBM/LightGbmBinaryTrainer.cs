@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
@@ -10,6 +11,8 @@ using Microsoft.ML.Runtime.Internal.Calibration;
 using Microsoft.ML.Runtime.Internal.Internallearn;
 using Microsoft.ML.Runtime.LightGBM;
 using Microsoft.ML.Runtime.Model;
+using Microsoft.ML.Runtime.Training;
+using System;
 
 [assembly: LoadableClass(LightGbmBinaryTrainer.Summary, typeof(LightGbmBinaryTrainer), typeof(LightGbmArguments),
     new[] { typeof(SignatureBinaryClassifierTrainer), typeof(SignatureTrainer), typeof(SignatureTreeEnsembleTrainer) },
@@ -23,10 +26,11 @@ using Microsoft.ML.Runtime.Model;
 
 namespace Microsoft.ML.Runtime.LightGBM
 {
+    /// <include file='doc.xml' path='doc/members/member[@name="LightGBM"]/*' />
     public sealed class LightGbmBinaryPredictor : FastTreePredictionWrapper
     {
-        public const string LoaderSignature = "LightGBMBinaryExec";
-        public const string RegistrationName = "LightGBMBinaryPredictor";
+        internal const string LoaderSignature = "LightGBMBinaryExec";
+        internal const string RegistrationName = "LightGBMBinaryPredictor";
 
         private static VersionInfo GetVersionInfo()
         {
@@ -40,7 +44,8 @@ namespace Microsoft.ML.Runtime.LightGBM
                 verWrittenCur: 0x00010005, // Categorical splits.
                 verReadableCur: 0x00010004,
                 verWeCanReadBack: 0x00010001,
-                loaderSignature: LoaderSignature);
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(LightGbmBinaryPredictor).Assembly.FullName);
         }
 
         protected override uint VerNumFeaturesSerialized => 0x00010002;
@@ -79,7 +84,7 @@ namespace Microsoft.ML.Runtime.LightGBM
     }
 
     /// <include file='doc.xml' path='doc/members/member[@name="LightGBM"]/*' />
-    public sealed class LightGbmBinaryTrainer : LightGbmTrainerBase<float, IPredictorWithFeatureWeights<float>>
+    public sealed class LightGbmBinaryTrainer : LightGbmTrainerBase<float, BinaryPredictionTransformer<IPredictorWithFeatureWeights<float>>, IPredictorWithFeatureWeights<float>>
     {
         internal const string UserName = "LightGBM Binary Classifier";
         internal const string LoadNameValue = "LightGBMBinary";
@@ -88,9 +93,43 @@ namespace Microsoft.ML.Runtime.LightGBM
 
         public override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
 
-        public LightGbmBinaryTrainer(IHostEnvironment env, LightGbmArguments args)
-            : base(env, args, LoadNameValue)
+        internal LightGbmBinaryTrainer(IHostEnvironment env, LightGbmArguments args)
+             : base(env, LoadNameValue, args, TrainerUtils.MakeBoolScalarLabel(args.LabelColumn))
         {
+        }
+
+        /// <summary>
+        /// Initializes a new instance of <see cref="LightGbmBinaryTrainer"/>
+        /// </summary>
+        /// <param name="env">The private instance of <see cref="IHostEnvironment"/>.</param>
+        /// <param name="labelColumn">The name of the label column.</param>
+        /// <param name="featureColumn">The name of the feature column.</param>
+        /// <param name="weightColumn">The name for the column containing the initial weight.</param>
+        /// <param name="advancedSettings">A delegate to apply all the advanced arguments to the algorithm.</param>
+        /// <param name="numLeaves">The number of leaves to use.</param>
+        /// <param name="numBoostRound">Number of iterations.</param>
+        /// <param name="minDataPerLeaf">The minimal number of documents allowed in a leaf of the tree, out of the subsampled data.</param>
+        /// <param name="learningRate">The learning rate.</param>
+        public LightGbmBinaryTrainer(IHostEnvironment env, string labelColumn, string featureColumn,
+            string weightColumn = null,
+            int? numLeaves = null,
+            int? minDataPerLeaf = null,
+            double? learningRate = null,
+            int numBoostRound = LightGbmArguments.Defaults.NumBoostRound,
+            Action<LightGbmArguments> advancedSettings = null)
+            : base(env, LoadNameValue, TrainerUtils.MakeBoolScalarLabel(labelColumn), featureColumn, weightColumn, null, advancedSettings)
+        {
+            Host.CheckNonEmpty(labelColumn, nameof(labelColumn));
+            Host.CheckNonEmpty(featureColumn, nameof(featureColumn));
+
+            if (advancedSettings != null)
+                CheckArgsAndAdvancedSettingMismatch(numLeaves, minDataPerLeaf, learningRate, numBoostRound, new LightGbmArguments(), Args);
+
+            // override with the directly provided values
+            Args.NumBoostRound = numBoostRound;
+            Args.NumLeaves = numLeaves ?? Args.NumLeaves;
+            Args.LearningRate = learningRate ?? Args.LearningRate;
+            Args.MinDataPerLeaf = minDataPerLeaf ?? Args.MinDataPerLeaf;
         }
 
         private protected override IPredictorWithFeatureWeights<float> CreatePredictor()
@@ -121,6 +160,18 @@ namespace Microsoft.ML.Runtime.LightGBM
             if (!Options.ContainsKey("metric"))
                 Options["metric"] = "binary_logloss";
         }
+
+        protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema) {
+            return new[]
+            {
+                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata())),
+                new SchemaShape.Column(DefaultColumnNames.Probability, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata(true))),
+                new SchemaShape.Column(DefaultColumnNames.PredictedLabel, SchemaShape.Column.VectorKind.Scalar, BoolType.Instance, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata()))
+            };
+        }
+
+        protected override BinaryPredictionTransformer<IPredictorWithFeatureWeights<float>> MakeTransformer(IPredictorWithFeatureWeights<float> model, ISchema trainSchema)
+         => new BinaryPredictionTransformer<IPredictorWithFeatureWeights<float>>(Host, model, trainSchema, FeatureColumn.Name);
     }
 
     /// <summary>

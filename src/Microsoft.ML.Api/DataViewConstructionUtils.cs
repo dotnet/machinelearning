@@ -4,10 +4,12 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Internal.Utilities;
+using Microsoft.ML.Runtime.Model;
 
 namespace Microsoft.ML.Runtime.Api
 {
@@ -42,6 +44,279 @@ namespace Microsoft.ML.Runtime.Api
             return new StreamingDataView<TRow>(env, data, internalSchemaDefn);
         }
 
+        public static InputRow<TRow> CreateInputRow<TRow>(IHostEnvironment env, SchemaDefinition schemaDefinition = null)
+            where TRow : class
+        {
+            Contracts.AssertValue(env);
+            env.AssertValueOrNull(schemaDefinition);
+            var internalSchemaDefn = schemaDefinition == null
+                ? InternalSchemaDefinition.Create(typeof(TRow), SchemaDefinition.Direction.Read)
+                : InternalSchemaDefinition.Create(typeof(TRow), schemaDefinition);
+
+            return new InputRow<TRow>(env, internalSchemaDefn);
+        }
+
+        public static IDataView LoadPipeWithPredictor(IHostEnvironment env, Stream modelStream, IDataView view)
+        {
+            // Load transforms.
+            var pipe = env.LoadTransforms(modelStream, view);
+
+            // Load predictor (if present) and apply default scorer.
+            // REVIEW: distinguish the case of predictor / no predictor?
+            var predictor = env.LoadPredictorOrNull(modelStream);
+            if (predictor != null)
+            {
+                var roles = ModelFileUtils.LoadRoleMappingsOrNull(env, modelStream);
+                pipe = roles != null
+                    ? env.CreateDefaultScorer(new RoleMappedData(pipe, roles, opt: true), predictor)
+                    : env.CreateDefaultScorer(new RoleMappedData(pipe, label: null, "Features"), predictor);
+            }
+            return pipe;
+        }
+
+        public sealed class InputRow<TRow> : InputRowBase<TRow>, IRowBackedBy<TRow>
+            where TRow : class
+        {
+            private TRow _value;
+
+            private long _position;
+            public override long Position => _position;
+
+            public InputRow(IHostEnvironment env, InternalSchemaDefinition schemaDef)
+                : base(env, new SchemaProxy(schemaDef), schemaDef, MakePeeks(schemaDef), c => true)
+            {
+                _position = -1;
+            }
+
+            private static Delegate[] MakePeeks(InternalSchemaDefinition schemaDef)
+            {
+                var peeks = new Delegate[schemaDef.Columns.Length];
+                for (var i = 0; i < peeks.Length; i++)
+                {
+                    var currentColumn = schemaDef.Columns[i];
+                    peeks[i] = currentColumn.IsComputed
+                        ? currentColumn.Generator
+                        : ApiUtils.GeneratePeek<InputRow<TRow>, TRow>(currentColumn);
+                }
+                return peeks;
+            }
+
+            public void ExtractValues(TRow row)
+            {
+                Host.CheckValue(row, nameof(row));
+                _value = row;
+                _position++;
+            }
+
+            public override ValueGetter<UInt128> GetIdGetter()
+            {
+                return IdGetter;
+            }
+
+            private void IdGetter(ref UInt128 val) => val = new UInt128((ulong)Position, 0);
+
+            protected override TRow GetCurrentRowObject()
+            {
+                Host.Check(Position >= 0, "Can't call a getter on an inactive cursor.");
+                return _value;
+            }
+        }
+
+        /// <summary>
+        /// A row that consumes items of type <typeparamref name="TRow"/>, and provides an <see cref="IRow"/>. This
+        /// is in contrast to <see cref="IRowReadableAs{TRow}"/> which consumes a data view row and publishes them as the output type.
+        /// </summary>
+        /// <typeparam name="TRow">The input data type.</typeparam>
+        public abstract class InputRowBase<TRow> : IRow
+            where TRow : class
+        {
+            private readonly int _colCount;
+            private readonly Delegate[] _getters;
+            protected readonly IHost Host;
+
+            public long Batch => 0;
+
+            public ISchema Schema { get; }
+
+            public abstract long Position { get; }
+
+            public InputRowBase(IHostEnvironment env, ISchema schema, InternalSchemaDefinition schemaDef, Delegate[] peeks, Func<int, bool> predicate)
+            {
+                Contracts.AssertValue(env);
+                Host = env.Register("Row");
+                Host.AssertValue(schema);
+                Host.AssertValue(schemaDef);
+                Host.AssertValue(peeks);
+                Host.AssertValue(predicate);
+                Host.Assert(schema.ColumnCount == schemaDef.Columns.Length);
+                Host.Assert(schema.ColumnCount == peeks.Length);
+
+                _colCount = schema.ColumnCount;
+                Schema = schema;
+                _getters = new Delegate[_colCount];
+                for (int c = 0; c < _colCount; c++)
+                    _getters[c] = predicate(c) ? CreateGetter(schema.GetColumnType(c), schemaDef.Columns[c], peeks[c]) : null;
+            }
+
+            //private Delegate CreateGetter(SchemaProxy schema, int index, Delegate peek)
+            private Delegate CreateGetter(ColumnType colType, InternalSchemaDefinition.Column column, Delegate peek)
+            {
+                var outputType = column.OutputType;
+                var genericType = outputType;
+                Func<Delegate, Delegate> del;
+
+                if (outputType.IsArray)
+                {
+                    Host.Assert(colType.IsVector);
+                    // String[] -> ReadOnlyMemory<char>
+                    if (outputType.GetElementType() == typeof(string))
+                    {
+                        Host.Assert(colType.ItemType.IsText);
+                        return CreateConvertingArrayGetterDelegate<string, ReadOnlyMemory<char>>(peek, x => x != null ? x.AsMemory() : ReadOnlyMemory<char>.Empty);
+                    }
+
+                    // T[] -> VBuffer<T>
+                    if (outputType.GetElementType().IsGenericType && outputType.GetElementType().GetGenericTypeDefinition() == typeof(Nullable<>))
+                        Host.Assert(Nullable.GetUnderlyingType(outputType.GetElementType()) == colType.ItemType.RawType);
+                    else
+                        Host.Assert(outputType.GetElementType() == colType.ItemType.RawType);
+                    del = CreateDirectArrayGetterDelegate<int>;
+                    genericType = outputType.GetElementType();
+                }
+                else if (colType.IsVector)
+                {
+                    // VBuffer<T> -> VBuffer<T>
+                    // REVIEW: Do we care about accomodating VBuffer<string> -> ReadOnlyMemory<char>?
+                    Host.Assert(outputType.IsGenericType);
+                    Host.Assert(outputType.GetGenericTypeDefinition() == typeof(VBuffer<>));
+                    Host.Assert(outputType.GetGenericArguments()[0] == colType.ItemType.RawType);
+                    del = CreateDirectVBufferGetterDelegate<int>;
+                    genericType = colType.ItemType.RawType;
+                }
+                else if (colType.IsPrimitive)
+                {
+                    if (outputType == typeof(string))
+                    {
+                        // String -> ReadOnlyMemory<char>
+                        Host.Assert(colType.IsText);
+                        return CreateConvertingGetterDelegate<String, ReadOnlyMemory<char>>(peek, x => x != null ? x.AsMemory() : ReadOnlyMemory<char>.Empty);
+                    }
+
+                    // T -> T
+                    if (outputType.IsGenericType && outputType.GetGenericTypeDefinition() == typeof(Nullable<>))
+                        Host.Assert(colType.RawType == Nullable.GetUnderlyingType(outputType));
+                    else
+                        Host.Assert(colType.RawType == outputType);
+                    del = CreateDirectGetterDelegate<int>;
+                }
+                else
+                {
+                    // REVIEW: Is this even possible?
+                    throw Host.ExceptNotSupp("Type '{0}' is not yet supported.", outputType.FullName);
+                }
+                return Utils.MarshalInvoke(del, genericType, peek);
+            }
+
+            // REVIEW: The converting getter invokes a type conversion delegate on every call, so it's inherently slower
+            // than the 'direct' getter. We don't have good indication of this to the user, and the selection
+            // of affected types is pretty arbitrary (signed integers and bools, but not uints and floats).
+            private Delegate CreateConvertingArrayGetterDelegate<TSrc, TDst>(Delegate peekDel, Func<TSrc, TDst> convert)
+            {
+                var peek = peekDel as Peek<TRow, TSrc[]>;
+                Host.AssertValue(peek);
+                TSrc[] buf = default;
+                return (ValueGetter<VBuffer<TDst>>)((ref VBuffer<TDst> dst) =>
+                {
+                    peek(GetCurrentRowObject(), Position, ref buf);
+                    var n = Utils.Size(buf);
+                    dst = new VBuffer<TDst>(n, Utils.Size(dst.Values) < n
+                        ? new TDst[n]
+                        : dst.Values, dst.Indices);
+                    for (int i = 0; i < n; i++)
+                        dst.Values[i] = convert(buf[i]);
+                });
+            }
+
+            private Delegate CreateConvertingGetterDelegate<TSrc, TDst>(Delegate peekDel, Func<TSrc, TDst> convert)
+            {
+                var peek = peekDel as Peek<TRow, TSrc>;
+                Host.AssertValue(peek);
+                TSrc buf = default;
+                return (ValueGetter<TDst>)((ref TDst dst) =>
+                {
+                    peek(GetCurrentRowObject(), Position, ref buf);
+                    dst = convert(buf);
+                });
+            }
+
+            private Delegate CreateDirectArrayGetterDelegate<TDst>(Delegate peekDel)
+            {
+                var peek = peekDel as Peek<TRow, TDst[]>;
+                Host.AssertValue(peek);
+                TDst[] buf = null;
+                return (ValueGetter<VBuffer<TDst>>)((ref VBuffer<TDst> dst) =>
+                {
+                    peek(GetCurrentRowObject(), Position, ref buf);
+                    var n = Utils.Size(buf);
+                    dst = new VBuffer<TDst>(n, Utils.Size(dst.Values) < n ? new TDst[n] : dst.Values,
+                        dst.Indices);
+                    if (buf != null)
+                        Array.Copy(buf, dst.Values, n);
+                });
+            }
+
+            private Delegate CreateDirectVBufferGetterDelegate<TDst>(Delegate peekDel)
+            {
+                var peek = peekDel as Peek<TRow, VBuffer<TDst>>;
+                Host.AssertValue(peek);
+                VBuffer<TDst> buf = default;
+                return (ValueGetter<VBuffer<TDst>>)((ref VBuffer<TDst> dst) =>
+                {
+                    // The peek for a VBuffer is just a simple assignment, so there is
+                    // no copy going on in the peek, so we must do that as a second
+                    // step to the destination.
+                    peek(GetCurrentRowObject(), Position, ref buf);
+                    buf.CopyTo(ref dst);
+                });
+            }
+
+            private Delegate CreateDirectGetterDelegate<TDst>(Delegate peekDel)
+            {
+                var peek = peekDel as Peek<TRow, TDst>;
+                Host.AssertValue(peek);
+                return (ValueGetter<TDst>)((ref TDst dst) =>
+                    peek(GetCurrentRowObject(), Position, ref dst));
+            }
+
+            protected abstract TRow GetCurrentRowObject();
+
+            public bool IsColumnActive(int col)
+            {
+                CheckColumnInRange(col);
+                return _getters[col] != null;
+            }
+
+            private void CheckColumnInRange(int columnIndex)
+            {
+                if (columnIndex < 0 || columnIndex >= _colCount)
+                    throw Host.Except("Column index must be between 0 and {0}", _colCount);
+            }
+
+            public ValueGetter<TValue> GetGetter<TValue>(int col)
+            {
+                if (!IsColumnActive(col))
+                    throw Host.Except("Column {0} is not active in the cursor", col);
+                var getter = _getters[col];
+                Contracts.AssertValue(getter);
+                var fn = getter as ValueGetter<TValue>;
+                if (fn == null)
+                    throw Host.Except("Invalid TValue in GetGetter for column #{0}: '{1}'", col, typeof(TValue));
+                return fn;
+            }
+
+            public abstract ValueGetter<UInt128> GetIdGetter();
+        }
+
         /// <summary>
         /// The base class for the data view over items of user-defined type.
         /// </summary>
@@ -58,10 +333,7 @@ namespace Microsoft.ML.Runtime.Api
 
             public abstract bool CanShuffle { get; }
 
-            public ISchema Schema
-            {
-                get { return _schema; }
-            }
+            public ISchema Schema => _schema;
 
             protected DataViewBase(IHostEnvironment env, string name, InternalSchemaDefinition schemaDefn)
             {
@@ -92,198 +364,129 @@ namespace Microsoft.ML.Runtime.Api
                 return new[] { GetRowCursor(predicate, rand) };
             }
 
-            public abstract class DataViewCursorBase : RootCursorBase, IRowCursor
+            public abstract class DataViewCursorBase : InputRowBase<TRow>, IRowCursor
             {
-                protected readonly DataViewBase<TRow> DataView;
-                private readonly int _colCount;
-                private readonly Delegate[] _getters;
+                // There is no real concept of multiple inheritance and for various reasons it was better to
+                // descend from the row class as opposed to wrapping it, so much of this class is regrettably
+                // copied from RootCursorBase.
 
-                protected DataViewCursorBase(IChannelProvider provider, DataViewBase<TRow> dataView,
+                protected readonly DataViewBase<TRow> DataView;
+                protected readonly IChannel Ch;
+
+                private long _position;
+                /// <summary>
+                /// Zero-based position of the cursor.
+                /// </summary>
+                public override long Position => _position;
+
+                protected DataViewCursorBase(IHostEnvironment env, DataViewBase<TRow> dataView,
                     Func<int, bool> predicate)
-                    : base(provider)
+                    : base(env, dataView.Schema, dataView._schema.SchemaDefn, dataView._peeks, predicate)
                 {
+                    Contracts.AssertValue(env);
+                    Ch = env.Start("Cursor");
                     Ch.AssertValue(dataView);
                     Ch.AssertValue(predicate);
 
                     DataView = dataView;
-                    _colCount = DataView._schema.SchemaDefn.Columns.Length;
-
-                    _getters = new Delegate[_colCount];
-                    for (int i = 0; i < _colCount; i++)
-                        _getters[i] = predicate(i) ? CreateGetter(i) : null;
+                    _position = -1;
+                    State = CursorState.NotStarted;
                 }
 
-                private Delegate CreateGetter(int index)
+                public CursorState State { get; private set; }
+
+                /// <summary>
+                /// Convenience property for checking whether the current state of the cursor is <see cref="CursorState.Good"/>.
+                /// </summary>
+                protected bool IsGood => State == CursorState.Good;
+
+                public virtual void Dispose()
                 {
-                    var colType = DataView.Schema.GetColumnType(index);
-
-                    var column = DataView._schema.SchemaDefn.Columns[index];
-                    var outputType = column.OutputType;
-                    var genericType = outputType;
-                    Func<int, Delegate> del;
-
-                    if (outputType.IsArray)
+                    if (State != CursorState.Done)
                     {
-                        Ch.Assert(colType.IsVector);
-                        // String[] -> ReadOnlyMemory<char>
-                        if (outputType.GetElementType() == typeof(string))
-                        {
-                            Ch.Assert(colType.ItemType.IsText);
-                            return CreateConvertingArrayGetterDelegate<string, ReadOnlyMemory<char>>(index, x =>  x != null ? x.AsMemory() : ReadOnlyMemory<char>.Empty);
-                        }
-
-                        // T[] -> VBuffer<T>
-                        if (outputType.GetElementType().IsGenericType && outputType.GetElementType().GetGenericTypeDefinition() == typeof(Nullable<>))
-                            Ch.Assert(Nullable.GetUnderlyingType(outputType.GetElementType()) == colType.ItemType.RawType);
-                        else
-                            Ch.Assert(outputType.GetElementType() == colType.ItemType.RawType);
-                        del = CreateDirectArrayGetterDelegate<int>;
-                        genericType = outputType.GetElementType();
+                        Ch.Dispose();
+                        _position = -1;
+                        State = CursorState.Done;
                     }
-                    else if (colType.IsVector)
+                }
+
+                public bool MoveNext()
+                {
+                    if (State == CursorState.Done)
+                        return false;
+
+                    Ch.Assert(State == CursorState.NotStarted || State == CursorState.Good);
+                    if (MoveNextCore())
                     {
-                        // VBuffer<T> -> VBuffer<T>
-                        // REVIEW: Do we care about accomodating VBuffer<string> -> ReadOnlyMemory<char>?
-                        Ch.Assert(outputType.IsGenericType);
-                        Ch.Assert(outputType.GetGenericTypeDefinition() == typeof(VBuffer<>));
-                        Ch.Assert(outputType.GetGenericArguments()[0] == colType.ItemType.RawType);
-                        del = CreateDirectVBufferGetterDelegate<int>;
-                        genericType = colType.ItemType.RawType;
+                        Ch.Assert(State == CursorState.NotStarted || State == CursorState.Good);
+
+                        _position++;
+                        State = CursorState.Good;
+                        return true;
                     }
-                    else if (colType.IsPrimitive)
-                    {
-                        if (outputType == typeof(string))
-                        {
-                            // String -> ReadOnlyMemory<char>
-                            Ch.Assert(colType.IsText);
-                            return CreateConvertingGetterDelegate<String, ReadOnlyMemory<char>>(index, x => x != null ? x.AsMemory() : ReadOnlyMemory<char>.Empty);
-                        }
 
-                        // T -> T
-                        if (outputType.IsGenericType && outputType.GetGenericTypeDefinition() == typeof(Nullable<>))
-                            Ch.Assert(colType.RawType == Nullable.GetUnderlyingType(outputType));
-                        else
-                            Ch.Assert(colType.RawType == outputType);
-                        del = CreateDirectGetterDelegate<int>;
+                    Dispose();
+                    return false;
+                }
+
+                public bool MoveMany(long count)
+                {
+                    // Note: If we decide to allow count == 0, then we need to special case
+                    // that MoveNext() has never been called. It's not entirely clear what the return
+                    // result would be in that case.
+                    Ch.CheckParam(count > 0, nameof(count));
+
+                    if (State == CursorState.Done)
+                        return false;
+
+                    Ch.Assert(State == CursorState.NotStarted || State == CursorState.Good);
+                    if (MoveManyCore(count))
+                    {
+                        Ch.Assert(State == CursorState.NotStarted || State == CursorState.Good);
+
+                        _position += count;
+                        State = CursorState.Good;
+                        return true;
                     }
-                    else
+
+                    Dispose();
+                    return false;
+                }
+
+                /// <summary>
+                /// Default implementation is to simply call MoveNextCore repeatedly. Derived classes should
+                /// override if they can do better.
+                /// </summary>
+                /// <param name="count">The number of rows to move forward.</param>
+                /// <returns>Whether the move forward is on a valid row</returns>
+                protected virtual bool MoveManyCore(long count)
+                {
+                    Ch.Assert(State == CursorState.NotStarted || State == CursorState.Good);
+                    Ch.Assert(count > 0);
+
+                    while (MoveNextCore())
                     {
-                        // REVIEW: Is this even possible?
-                        throw Ch.ExceptNotImpl("Type '{0}' is not yet supported.", outputType.FullName);
+                        Ch.Assert(State == CursorState.NotStarted || State == CursorState.Good);
+                        if (--count <= 0)
+                            return true;
                     }
-                    MethodInfo meth =
-                        del.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(genericType);
-                    return (Delegate)meth.Invoke(this, new object[] { index });
+
+                    return false;
                 }
 
-                // REVIEW: The converting getter invokes a type conversion delegate on every call, so it's inherently slower
-                // than the 'direct' getter. We don't have good indication of this to the user, and the selection
-                // of affected types is pretty arbitrary (signed integers and bools, but not uints and floats).
-                private Delegate CreateConvertingArrayGetterDelegate<TSrc, TDst>(int index, Func<TSrc, TDst> convert)
-                {
-                    var peek = DataView._peeks[index] as Peek<TRow, TSrc[]>;
-                    Ch.AssertValue(peek);
-                    TSrc[] buf = default;
-                    return (ValueGetter<VBuffer<TDst>>)((ref VBuffer<TDst> dst) =>
-                    {
-                        peek(GetCurrentRowObject(), Position, ref buf);
-                        var n = Utils.Size(buf);
-                        dst = new VBuffer<TDst>(n, Utils.Size(dst.Values) < n
-                            ? new TDst[n]
-                            : dst.Values, dst.Indices);
-                        for (int i = 0; i < n; i++)
-                            dst.Values[i] = convert(buf[i]);
-                    });
-                }
+                /// <summary>
+                /// Core implementation of <see cref="MoveNext"/>, called if the cursor state is not
+                /// <see cref="CursorState.Done"/>.
+                /// </summary>
+                protected abstract bool MoveNextCore();
 
-                private Delegate CreateConvertingGetterDelegate<TSrc, TDst>(int index, Func<TSrc, TDst> convert)
-                {
-                    var peek = DataView._peeks[index] as Peek<TRow, TSrc>;
-                    Ch.AssertValue(peek);
-                    TSrc buf = default;
-                    return (ValueGetter<TDst>)((ref TDst dst) =>
-                    {
-                        peek(GetCurrentRowObject(), Position, ref buf);
-                        dst = convert(buf);
-                    });
-                }
-
-                private Delegate CreateDirectArrayGetterDelegate<TDst>(int index)
-                {
-                    var peek = DataView._peeks[index] as Peek<TRow, TDst[]>;
-                    Ch.AssertValue(peek);
-                    TDst[] buf = null;
-                    return (ValueGetter<VBuffer<TDst>>)((ref VBuffer<TDst> dst) =>
-                    {
-                        peek(GetCurrentRowObject(), Position, ref buf);
-                        var n = Utils.Size(buf);
-                        dst = new VBuffer<TDst>(n, Utils.Size(dst.Values) < n ? new TDst[n] : dst.Values,
-                            dst.Indices);
-                        if (buf != null)
-                            Array.Copy(buf, dst.Values, n);
-                    });
-                }
-
-                private Delegate CreateDirectVBufferGetterDelegate<TDst>(int index)
-                {
-                    var peek = DataView._peeks[index] as Peek<TRow, VBuffer<TDst>>;
-                    Ch.AssertValue(peek);
-                    VBuffer<TDst> buf = default(VBuffer<TDst>);
-                    return (ValueGetter<VBuffer<TDst>>)((ref VBuffer<TDst> dst) =>
-                    {
-                        // The peek for a VBuffer is just a simple assignment, so there is
-                        // no copy going on in the peek, so we must do that as a second
-                        // step to the destination.
-                        peek(GetCurrentRowObject(), Position, ref buf);
-                        buf.CopyTo(ref dst);
-                    });
-                }
-
-                private Delegate CreateDirectGetterDelegate<TDst>(int index)
-                {
-                    var peek = DataView._peeks[index] as Peek<TRow, TDst>;
-                    Ch.AssertValue(peek);
-                    return (ValueGetter<TDst>)((ref TDst dst) =>
-                    {
-                        peek(GetCurrentRowObject(), Position, ref dst);
-                    });
-                }
-
-                protected abstract TRow GetCurrentRowObject();
-
-                public override long Batch
-                {
-                    get { return 0; }
-                }
-
-                public ISchema Schema
-                {
-                    get { return DataView._schema; }
-                }
-
-                public bool IsColumnActive(int col)
-                {
-                    CheckColumnInRange(col);
-                    return _getters[col] != null;
-                }
-
-                public ValueGetter<TValue> GetGetter<TValue>(int col)
-                {
-                    if (!IsColumnActive(col))
-                        throw Ch.Except("Column {0} is not active in the cursor", col);
-                    var getter = _getters[col];
-                    Contracts.AssertValue(getter);
-                    var fn = getter as ValueGetter<TValue>;
-                    if (fn == null)
-                        throw Ch.Except("Invalid TValue in GetGetter for column #{0}: '{1}'", col, typeof(TValue));
-                    return fn;
-                }
-
-                private void CheckColumnInRange(int columnIndex)
-                {
-                    if (columnIndex < 0 || columnIndex >= _colCount)
-                        throw Ch.Except("Column index must be between 0 and {0}", _colCount);
-                }
+                /// <summary>
+                /// Returns a cursor that can be used for invoking <see cref="Position"/>, <see cref="State"/>,
+                /// <see cref="MoveNext"/>, and <see cref="MoveMany(long)"/>, with results identical to calling
+                /// those on this cursor. Generally, if the root cursor is not the same as this cursor, using
+                /// the root cursor will be faster.
+                /// </summary>
+                public ICursor GetRootCursor() => this;
             }
         }
 
@@ -329,9 +532,9 @@ namespace Microsoft.ML.Runtime.Api
                     get { return _permutation == null ? (int)Position : _permutation[(int)Position]; }
                 }
 
-                public Cursor(IChannelProvider provider, string name, ListDataView<TRow> dataView,
+                public Cursor(IHostEnvironment env, string name, ListDataView<TRow> dataView,
                     Func<int, bool> predicate, IRandom rand)
-                    : base(provider, dataView, predicate)
+                    : base(env, dataView, predicate)
                 {
                     Ch.AssertValueOrNull(rand);
                     _data = dataView._data;
@@ -434,8 +637,8 @@ namespace Microsoft.ML.Runtime.Api
                 private readonly IEnumerator<TRow> _enumerator;
                 private TRow _currentRow;
 
-                public Cursor(IChannelProvider provider, StreamingDataView<TRow> dataView, Func<int, bool> predicate)
-                    : base(provider, dataView, predicate)
+                public Cursor(IHostEnvironment env, StreamingDataView<TRow> dataView, Func<int, bool> predicate)
+                    : base(env, dataView, predicate)
                 {
                     _enumerator = dataView._data.GetEnumerator();
                     _currentRow = null;
@@ -509,8 +712,8 @@ namespace Microsoft.ML.Runtime.Api
             {
                 private readonly TRow _currentRow;
 
-                public Cursor(IChannelProvider provider, SingleRowLoopDataView<TRow> dataView, Func<int, bool> predicate)
-                    : base(provider, dataView, predicate)
+                public Cursor(IHostEnvironment env, SingleRowLoopDataView<TRow> dataView, Func<int, bool> predicate)
+                    : base(env, dataView, predicate)
                 {
                     _currentRow = dataView._current;
                 }

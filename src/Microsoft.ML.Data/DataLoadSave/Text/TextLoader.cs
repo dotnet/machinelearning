@@ -718,8 +718,6 @@ namespace Microsoft.ML.Runtime.Data
 
                     if (!_header.IsEmpty)
                         Parser.ParseSlotNames(parent, _header, Infos, _slotNames);
-
-                    ch.Done();
                 }
             }
 
@@ -960,7 +958,8 @@ namespace Microsoft.ML.Runtime.Data
                 verWrittenCur: 0x0001000B, // Header now retained if used and present
                 verReadableCur: 0x0001000A,
                 verWeCanReadBack: 0x00010009,
-                loaderSignature: LoaderSignature);
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(TextLoader).Assembly.FullName);
         }
 
         /// <summary>
@@ -1180,13 +1179,13 @@ namespace Microsoft.ML.Runtime.Data
                     goto LDone;
 
                 // Make sure the loader binds to us.
-                var info = ComponentCatalog.GetLoadableClassInfo<SignatureDataLoader>(loader.Name);
+                var info = host.ComponentCatalog.GetLoadableClassInfo<SignatureDataLoader>(loader.Name);
                 if (info.Type != typeof(IDataLoader) || info.ArgType != typeof(Arguments))
                     goto LDone;
 
                 var argsNew = new Arguments();
                 // Copy the non-core arguments to the new args (we already know that all the core arguments are default).
-                var parsed = CmdParser.ParseArguments(host, CmdParser.GetSettings(ch, args, new Arguments()), argsNew);
+                var parsed = CmdParser.ParseArguments(host, CmdParser.GetSettings(host, args, new Arguments()), argsNew);
                 ch.Assert(parsed);
                 // Copy the core arguments to the new args.
                 if (!CmdParser.ParseArguments(host, loader.GetSettingsString(), argsNew, typeof(ArgumentsCore), msg => ch.Error(msg)))
@@ -1200,7 +1199,6 @@ namespace Microsoft.ML.Runtime.Data
                 args = argsNew;
 
             LDone:
-                ch.Done();
                 return !error;
             }
         }

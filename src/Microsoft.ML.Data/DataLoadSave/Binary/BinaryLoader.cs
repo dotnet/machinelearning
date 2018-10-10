@@ -279,7 +279,7 @@ namespace Microsoft.ML.Runtime.Data.IO
             /// <summary>
             /// Fetches the maximum block sizes for both the compressed and decompressed
             /// block sizes, for this column. If there are no blocks associated with this
-            /// column, for whatever reason (e.g., a data view with no rows, or a generated
+            /// column, for whatever reason (for example, a data view with no rows, or a generated
             /// column), this will return 0 in both vlaues.
             /// </summary>
             /// <param name="compressed">The maximum value of the compressed block size
@@ -311,7 +311,6 @@ namespace Microsoft.ML.Runtime.Data.IO
                     using (var ch = _parent._host.Start("Metadata TOC Read"))
                     {
                         ReadTocMetadata(ch, stream);
-                        ch.Done();
                     }
                 }
             }
@@ -702,7 +701,7 @@ namespace Microsoft.ML.Runtime.Data.IO
 
         private readonly TableOfContentsEntry[] _aliveColumns;
         // We still want to be able to access information about the columns we could not read, like their
-        // name, where they are, how much space they're taking, etc. Conceivably for some operations (e.g.,
+        // name, where they are, how much space they're taking, etc. Conceivably for some operations (for example,
         // column filtering) whether or not we can interpret the values in the column is totally irrelevant.
         private readonly TableOfContentsEntry[] _deadColumns;
 
@@ -778,7 +777,8 @@ namespace Microsoft.ML.Runtime.Data.IO
                 verWrittenCur: 0x00010003, // Number of blocks to put in the shuffle pool
                 verReadableCur: 0x00010003,
                 verWeCanReadBack: 0x00010001,
-                loaderSignature: LoaderSignature);
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(BinaryLoader).Assembly.FullName);
         }
 
         private BinaryLoader(Arguments args, IHost host, Stream stream, bool leaveOpen)
@@ -811,7 +811,6 @@ namespace Microsoft.ML.Runtime.Data.IO
                     ch.Warning("BinaryLoader does not know how to interpret {0} columns", Utils.Size(_deadColumns));
                 _shuffleBlocks = args.PoolBlocks;
                 CalculateShufflePoolRows(ch, out _randomShufflePoolRows);
-                ch.Done();
             }
         }
 
@@ -901,7 +900,6 @@ namespace Microsoft.ML.Runtime.Data.IO
                     ch.Warning("BinaryLoader does not know how to interpret {0} columns", Utils.Size(_deadColumns));
 
                 CalculateShufflePoolRows(ch, out _randomShufflePoolRows);
-                ch.Done();
             }
         }
 
@@ -1594,7 +1592,7 @@ namespace Microsoft.ML.Runtime.Data.IO
                     }
 
                     /// <summary>
-                    /// Constructor for a sentinel compressed block. (E.g.,
+                    /// Constructor for a sentinel compressed block. (For example,
                     /// the pipe's last block, which contains no valid data.)
                     /// </summary>
                     public Block(long blockSequence)
@@ -1781,7 +1779,7 @@ namespace Microsoft.ML.Runtime.Data.IO
                     }
 
                     /// <summary>
-                    /// Constructor for a sentinel compressed block. (E.g.,
+                    /// Constructor for a sentinel compressed block. (For example,
                     /// the pipe's last block, which contains no valid data.)
                     /// </summary>
                     public CompressedBlock(long blockSequence)
@@ -2182,7 +2180,6 @@ namespace Microsoft.ML.Runtime.Data.IO
                 using (var ch = host.Start("Inspection"))
                 {
                     RunCore(ch, loader);
-                    ch.Done();
                 }
             }
 

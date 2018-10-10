@@ -225,7 +225,7 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
         public ColumnType OutputType => _mapper.OutputType;
         public ColumnType DistType => NumberType.Float;
         public bool CanSavePfa => (_mapper as ICanSavePfa)?.CanSavePfa == true;
-        public bool CanSaveOnnx => (_mapper as ICanSaveOnnx)?.CanSaveOnnx == true;
+        public bool CanSaveOnnx(OnnxContext ctx) => (_mapper as ICanSaveOnnx)?.CanSaveOnnx(ctx) == true;
 
         protected ValueMapperCalibratedPredictorBase(IHostEnvironment env, string name, IPredictorProducing<Float> predictor, ICalibrator calibrator)
             : base(env, name, predictor, calibrator)
@@ -308,7 +308,7 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
                 return false;
 
             var calibrator = Calibrator as ISingleCanSaveOnnx;
-            if (!(calibrator?.CanSaveOnnx == true && calibrator.SaveAsOnnx(ctx, new[] { outputNames[1], outputNames[2] }, featureColumnName)))
+            if (!(calibrator?.CanSaveOnnx(ctx) == true && calibrator.SaveAsOnnx(ctx, new[] { outputNames[1], outputNames[2] }, featureColumnName)))
                 ctx.RemoveVariable(outputNames[1], true);
 
             return true;
@@ -332,7 +332,8 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
                 verWrittenCur: 0x00010001, // Initial
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
-                loaderSignature: LoaderSignature);
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(CalibratedPredictor).Assembly.FullName);
         }
         private static VersionInfo GetVersionInfoBulk()
         {
@@ -341,7 +342,8 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
                 verWrittenCur: 0x00010001, // Initial
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
-                loaderSignature: LoaderSignature);
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(CalibratedPredictor).Assembly.FullName);
         }
 
         private CalibratedPredictor(IHostEnvironment env, ModelLoadContext ctx)
@@ -393,7 +395,8 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
                 verWrittenCur: 0x00010001, // Initial
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
-                loaderSignature: LoaderSignature);
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(FeatureWeightsCalibratedPredictor).Assembly.FullName);
         }
 
         private FeatureWeightsCalibratedPredictor(IHostEnvironment env, ModelLoadContext ctx)
@@ -455,7 +458,8 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
                 verWrittenCur: 0x00010001, // Initial
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
-                loaderSignature: LoaderSignature);
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(ParameterMixingCalibratedPredictor).Assembly.FullName);
         }
 
         private ParameterMixingCalibratedPredictor(IHostEnvironment env, ModelLoadContext ctx)
@@ -516,12 +520,12 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
         {
             private readonly SchemaBindableCalibratedPredictor _parent;
             private readonly ISchemaBoundRowMapper _predictor;
-            private readonly ISchema _outputSchema;
             private readonly int _scoreCol;
 
             public ISchemaBindableMapper Bindable => _parent;
-            public RoleMappedSchema InputSchema => _predictor.InputSchema;
-            public ISchema OutputSchema => _outputSchema;
+            public RoleMappedSchema InputRoleMappedSchema => _predictor.InputRoleMappedSchema;
+            public ISchema InputSchema => _predictor.InputSchema;
+            public ISchema Schema { get; }
 
             public Bound(IHostEnvironment env, SchemaBindableCalibratedPredictor parent, RoleMappedSchema schema)
             {
@@ -530,16 +534,16 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
                 _parent = parent;
                 _predictor = _parent._bindable.Bind(env, schema) as ISchemaBoundRowMapper;
                 env.Check(_predictor != null, "Predictor is not a row-to-row mapper");
-                if (!_predictor.OutputSchema.TryGetColumnIndex(MetadataUtils.Const.ScoreValueKind.Score, out _scoreCol))
+                if (!_predictor.Schema.TryGetColumnIndex(MetadataUtils.Const.ScoreValueKind.Score, out _scoreCol))
                     throw env.Except("Predictor does not output a score");
-                var scoreType = _predictor.OutputSchema.GetColumnType(_scoreCol);
+                var scoreType = _predictor.Schema.GetColumnType(_scoreCol);
                 env.Check(!scoreType.IsVector && scoreType.IsNumber);
-                _outputSchema = new BinaryClassifierSchema();
+                Schema = new BinaryClassifierSchema();
             }
 
             public Func<int, bool> GetDependencies(Func<int, bool> predicate)
             {
-                for (int i = 0; i < OutputSchema.ColumnCount; i++)
+                for (int i = 0; i < Schema.ColumnCount; i++)
                 {
                     if (predicate(i))
                         return _predictor.GetDependencies(col => true);
@@ -552,10 +556,10 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
                 return _predictor.GetInputColumnRoles();
             }
 
-            public IRow GetOutputRow(IRow input, Func<int, bool> predicate, out Action disposer)
+            public IRow GetRow(IRow input, Func<int, bool> predicate, out Action disposer)
             {
                 Func<int, bool> predictorPredicate = col => false;
-                for (int i = 0; i < _outputSchema.ColumnCount; i++)
+                for (int i = 0; i < Schema.ColumnCount; i++)
                 {
                     if (predicate(i))
                     {
@@ -563,18 +567,18 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
                         break;
                     }
                 }
-                var predictorRow = _predictor.GetOutputRow(input, predictorPredicate, out disposer);
-                var getters = new Delegate[_outputSchema.ColumnCount];
-                for (int i = 0; i < _outputSchema.ColumnCount - 1; i++)
+                var predictorRow = _predictor.GetRow(input, predictorPredicate, out disposer);
+                var getters = new Delegate[Schema.ColumnCount];
+                for (int i = 0; i < Schema.ColumnCount - 1; i++)
                 {
                     var type = predictorRow.Schema.GetColumnType(i);
                     if (!predicate(i))
                         continue;
                     getters[i] = Utils.MarshalInvoke(GetPredictorGetter<int>, type.RawType, predictorRow, i);
                 }
-                if (predicate(_outputSchema.ColumnCount - 1))
-                    getters[_outputSchema.ColumnCount - 1] = GetProbGetter(predictorRow);
-                return new SimpleRow(_outputSchema, predictorRow, getters);
+                if (predicate(Schema.ColumnCount - 1))
+                    getters[Schema.ColumnCount - 1] = GetProbGetter(predictorRow);
+                return new SimpleRow(Schema, predictorRow, getters);
             }
 
             private Delegate GetPredictorGetter<T>(IRow input, int col)
@@ -608,7 +612,8 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
                 verWrittenCur: 0x00010001, // Initial
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
-                loaderSignature: LoaderSignature);
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(SchemaBindableCalibratedPredictor).Assembly.FullName);
         }
 
         /// <summary>
@@ -617,7 +622,7 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
         /// </summary>
         public bool CanSavePfa => (_bindable as ICanSavePfa)?.CanSavePfa == true;
 
-        public bool CanSaveOnnx => (_bindable as ICanSaveOnnx)?.CanSaveOnnx == true;
+        public bool CanSaveOnnx(OnnxContext ctx) => (_bindable as ICanSaveOnnx)?.CanSaveOnnx(ctx) == true;
 
         public SchemaBindableCalibratedPredictor(IHostEnvironment env, IPredictorProducing<Single> predictor, ICalibrator calibrator)
             : base(env, LoaderSignature, predictor, calibrator)
@@ -663,7 +668,7 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
             Host.CheckValue(ctx, nameof(ctx));
             Host.CheckParam(Utils.Size(outputs) == 2, nameof(outputs), "Expected this to have two outputs");
             Host.CheckValue(schema, nameof(schema));
-            Host.Check(CanSaveOnnx, "Called despite not being savable");
+            Host.Check(CanSaveOnnx(ctx), "Called despite not being savable");
             return false;
         }
 
@@ -719,7 +724,7 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
 
             var bindable = ScoreUtils.GetSchemaBindableMapper(env, predictor);
             var bound = bindable.Bind(env, schema);
-            var outputSchema = bound.OutputSchema;
+            var outputSchema = bound.Schema;
             int scoreCol;
             if (!outputSchema.TryGetColumnIndex(MetadataUtils.Const.ScoreValueKind.Score, out scoreCol))
             {
@@ -967,7 +972,8 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
                 verWrittenCur: 0x00010001, // Initial
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
-                loaderSignature: LoaderSignature);
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(NaiveCalibrator).Assembly.FullName);
         }
 
         private readonly IHost _host;
@@ -1334,7 +1340,8 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
                 verWrittenCur: 0x00010001, // Initial
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
-                loaderSignature: LoaderSignature);
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(PlattCalibrator).Assembly.FullName);
         }
 
         private readonly IHost _host;
@@ -1342,7 +1349,7 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
         public Double ParamA { get; }
         public Double ParamB { get; }
         public bool CanSavePfa => true;
-        public bool CanSaveOnnx => true;
+        public bool CanSaveOnnx(OnnxContext ctx) => true;
 
         public PlattCalibrator(IHostEnvironment env, Double paramA, Double paramB)
         {
@@ -1569,7 +1576,8 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
                 verWrittenCur: 0x00010001, // Initial
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
-                loaderSignature: LoaderSignature);
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(PavCalibrator).Assembly.FullName);
         }
 
         // Epsilon for 0-comparisons
@@ -1921,8 +1929,6 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
                     calibratedPredictor =
                         CalibratorUtils.TrainCalibrator(host, ch, calibratorTrainer, input.MaxRows, predictor, data);
                 }
-                ch.Done();
-
                 return new TOut() { PredictorModel = new PredictorModel(host, data, input.Data, calibratedPredictor) };
             }
         }

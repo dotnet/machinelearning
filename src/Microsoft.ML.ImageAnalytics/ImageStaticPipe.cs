@@ -4,7 +4,7 @@
 
 using System;
 using System.Drawing;
-using Microsoft.ML.Data.StaticPipe.Runtime;
+using Microsoft.ML.StaticPipe;
 
 namespace Microsoft.ML.Runtime.ImageAnalytics
 {
@@ -29,7 +29,7 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
         /// safe for users to simply always make their input paths absolute.</param>
         /// <returns>The loaded images</returns>
         /// <seealso cref="ImageLoaderEstimator"/>
-        public static Scalar<UnknownSizeBitmap> LoadAsImage(this Scalar<string> path, string relativeTo = null)
+        public static Custom<UnknownSizeBitmap> LoadAsImage(this Scalar<string> path, string relativeTo = null)
         {
             Contracts.CheckValue(path, nameof(path));
             Contracts.CheckValueOrNull(relativeTo);
@@ -42,7 +42,7 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
         /// <param name="input">The image to convert</param>
         /// <returns>The grayscale images</returns>
         /// <seealso cref="ImageGrayscaleEstimator"/>
-        public static Scalar<UnknownSizeBitmap> AsGrayscale(this Scalar<UnknownSizeBitmap> input)
+        public static Custom<UnknownSizeBitmap> AsGrayscale(this Custom<UnknownSizeBitmap> input)
         {
             Contracts.CheckValue(input, nameof(input));
             return new ImageGrayscaleEstimator.OutPipelineColumn<UnknownSizeBitmap>(input);
@@ -54,7 +54,7 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
         /// <param name="input">The image to convert</param>
         /// <returns>The grayscale images</returns>
         /// <seealso cref="ImageGrayscaleEstimator"/>
-        public static Scalar<Bitmap> AsGrayscale(this Scalar<Bitmap> input)
+        public static Custom<Bitmap> AsGrayscale(this Custom<Bitmap> input)
         {
             Contracts.CheckValue(input, nameof(input));
             return new ImageGrayscaleEstimator.OutPipelineColumn<Bitmap>(input);
@@ -70,7 +70,7 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
         /// <param name="cropAnchor">If cropping is necessary, at what position will the image be fixed?</param>
         /// <returns>The now uniformly sized images</returns>
         /// <seealso cref="ImageResizerEstimator"/>
-        public static Scalar<Bitmap> Resize(this Scalar<UnknownSizeBitmap> input, int width, int height,
+        public static Custom<Bitmap> Resize(this Custom<UnknownSizeBitmap> input, int width, int height,
             ImageResizerTransform.ResizingKind resizing = ImageResizerTransform.ResizingKind.IsoCrop,
             ImageResizerTransform.Anchor cropAnchor = ImageResizerTransform.Anchor.Center)
         {
@@ -93,7 +93,7 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
         /// <param name="cropAnchor">If cropping is necessary, at what </param>
         /// <returns>The resized images</returns>
         /// <seealso cref="ImageResizerEstimator"/>
-        public static Scalar<Bitmap> Resize(this Scalar<Bitmap> input, int width, int height,
+        public static Custom<Bitmap> Resize(this Custom<Bitmap> input, int width, int height,
             ImageResizerTransform.ResizingKind resizing = ImageResizerTransform.ResizingKind.IsoCrop,
             ImageResizerTransform.Anchor cropAnchor = ImageResizerTransform.Anchor.Center)
         {
@@ -121,7 +121,7 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
         /// <param name="offset">Add this amount to the pixel values, before scaling</param>
         /// <returns>The vectorized image</returns>
         /// <seealso cref="ImagePixelExtractorEstimator"/>
-        public static Vector<float> ExtractPixels(this Scalar<Bitmap> input, bool useAlpha = false, bool useRed = true,
+        public static Vector<float> ExtractPixels(this Custom<Bitmap> input, bool useAlpha = false, bool useRed = true,
             bool useGreen = true, bool useBlue = true, bool interleaveArgb = false, float scale = 1.0f, float offset = 0.0f)
         {
             var colParams = new ImagePixelExtractorTransform.Column
@@ -151,7 +151,7 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
         /// <param name="interleaveArgb">Whether the pixel values should be interleaved, as opposed to being separated by channel</param>
         /// <returns>The vectorized image</returns>
         /// <seealso cref="ImagePixelExtractorEstimator"/>
-        public static Vector<byte> ExtractPixelsAsBytes(this Scalar<Bitmap> input, bool useAlpha = false, bool useRed = true,
+        public static Vector<byte> ExtractPixelsAsBytes(this Custom<Bitmap> input, bool useAlpha = false, bool useRed = true,
             bool useGreen = true, bool useBlue = true, bool interleaveArgb = false)
         {
             var colParams = new ImagePixelExtractorTransform.Column

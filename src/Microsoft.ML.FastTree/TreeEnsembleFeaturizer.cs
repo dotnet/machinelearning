@@ -53,7 +53,7 @@ namespace Microsoft.ML.Runtime.Data
 
         private sealed class BoundMapper : ISchemaBoundRowMapper
         {
-            private sealed class Schema : ISchema
+            private sealed class SchemaImpl : ISchema
             {
                 private readonly IExceptionContext _ectx;
                 private readonly string[] _names;
@@ -63,7 +63,7 @@ namespace Microsoft.ML.Runtime.Data
 
                 public int ColumnCount { get { return _types.Length; } }
 
-                public Schema(IExceptionContext ectx, TreeEnsembleFeaturizerBindableMapper parent,
+                public SchemaImpl(IExceptionContext ectx, TreeEnsembleFeaturizerBindableMapper parent,
                     ColumnType treeValueColType, ColumnType leafIdColType, ColumnType pathIdColType)
                 {
                     Contracts.CheckValueOrNull(ectx);
@@ -167,15 +167,14 @@ namespace Microsoft.ML.Runtime.Data
             private const int PathIdx = 2;
 
             private readonly TreeEnsembleFeaturizerBindableMapper _owner;
-            private readonly RoleMappedSchema _inputSchema;
-            private readonly ISchema _outputSchema;
             private readonly IExceptionContext _ectx;
 
-            public RoleMappedSchema InputSchema { get { return _inputSchema; } }
+            public RoleMappedSchema InputRoleMappedSchema { get; }
 
-            public ISchema OutputSchema { get { return _outputSchema; } }
+            public ISchema Schema { get; }
+            public ISchema InputSchema => InputRoleMappedSchema.Schema;
 
-            public ISchemaBindableMapper Bindable { get { return _owner; } }
+            public ISchemaBindableMapper Bindable => _owner;
 
             public BoundMapper(IExceptionContext ectx, TreeEnsembleFeaturizerBindableMapper owner,
                 RoleMappedSchema schema)
@@ -188,7 +187,7 @@ namespace Microsoft.ML.Runtime.Data
                 _ectx = ectx;
 
                 _owner = owner;
-                _inputSchema = schema;
+                InputRoleMappedSchema = schema;
 
                 // A vector containing the output of each tree on a given example.
                 var treeValueType = new VectorType(NumberType.Float, _owner._ensemble.NumTrees);
@@ -203,15 +202,15 @@ namespace Microsoft.ML.Runtime.Data
                 // which means that #internal = #leaf - 1.
                 // Therefore, the number of internal nodes in the ensemble is #leaf - #trees.
                 var pathIdType = new VectorType(NumberType.Float, _owner._totalLeafCount - _owner._ensemble.NumTrees);
-                _outputSchema = new Schema(ectx, owner, treeValueType, leafIdType, pathIdType);
+                Schema = new SchemaImpl(ectx, owner, treeValueType, leafIdType, pathIdType);
             }
 
-            public IRow GetOutputRow(IRow input, Func<int, bool> predicate, out Action disposer)
+            public IRow GetRow(IRow input, Func<int, bool> predicate, out Action disposer)
             {
                 _ectx.CheckValue(input, nameof(input));
                 _ectx.CheckValue(predicate, nameof(predicate));
                 disposer = null;
-                return new SimpleRow(_outputSchema, input, CreateGetters(input, predicate));
+                return new SimpleRow(Schema, input, CreateGetters(input, predicate));
             }
 
             private Delegate[] CreateGetters(IRow input, Func<int, bool> predicate)
@@ -228,7 +227,7 @@ namespace Microsoft.ML.Runtime.Data
                 if (!treeValueActive && !leafIdActive && !pathIdActive)
                     return delegates;
 
-                var state = new State(_ectx, input, _owner._ensemble, _owner._totalLeafCount, _inputSchema.Feature.Index);
+                var state = new State(_ectx, input, _owner._ensemble, _owner._totalLeafCount, InputRoleMappedSchema.Feature.Index);
 
                 // Get the tree value getter.
                 if (treeValueActive)
@@ -393,15 +392,15 @@ namespace Microsoft.ML.Runtime.Data
 
             public IEnumerable<KeyValuePair<RoleMappedSchema.ColumnRole, string>> GetInputColumnRoles()
             {
-                yield return RoleMappedSchema.ColumnRole.Feature.Bind(_inputSchema.Feature.Name);
+                yield return RoleMappedSchema.ColumnRole.Feature.Bind(InputRoleMappedSchema.Feature.Name);
             }
 
             public Func<int, bool> GetDependencies(Func<int, bool> predicate)
             {
-                for (int i = 0; i < OutputSchema.ColumnCount; i++)
+                for (int i = 0; i < Schema.ColumnCount; i++)
                 {
                     if (predicate(i))
-                        return col => col == _inputSchema.Feature.Index;
+                        return col => col == InputRoleMappedSchema.Feature.Index;
                 }
                 return col => false;
             }
@@ -418,7 +417,8 @@ namespace Microsoft.ML.Runtime.Data
                 verWrittenCur: 0x00010002, // Add _defaultValueForMissing
                 verReadableCur: 0x00010002,
                 verWeCanReadBack: 0x00010001,
-                loaderSignature: LoaderSignature);
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(TreeEnsembleFeaturizerBindableMapper).Assembly.FullName);
         }
 
         private readonly IHost _host;
@@ -687,8 +687,6 @@ namespace Microsoft.ML.Runtime.Data
                         return scoreXf;
                     return (IDataTransform)ApplyTransformUtils.ApplyAllTransformsToData(host, scoreXf, input, labelInput);
                 }
-
-                ch.Done();
             }
             return xf;
         }
@@ -702,7 +700,6 @@ namespace Microsoft.ML.Runtime.Data
             host.CheckValue(input, nameof(input));
             host.CheckUserArg(args.PredictorModel != null, nameof(args.PredictorModel), "Please specify a predictor model.");
 
-            IDataTransform xf;
             using (var ch = host.Start("Create Tree Ensemble Scorer"))
             {
                 var scorerArgs = new TreeEnsembleFeaturizerBindableMapper.Arguments() { Suffix = args.Suffix };
@@ -729,10 +726,8 @@ namespace Microsoft.ML.Runtime.Data
 
                 var bindable = new TreeEnsembleFeaturizerBindableMapper(env, scorerArgs, predictor);
                 var bound = bindable.Bind(env, data.Schema);
-                xf = new GenericScorer(env, scorerArgs, data.Data, bound, data.Schema);
-                ch.Done();
+               return new GenericScorer(env, scorerArgs, data.Data, bound, data.Schema);
             }
-            return xf;
         }
 
         private static IDataView AppendFloatMapper<TInput>(IHostEnvironment env, IChannel ch, IDataView input,

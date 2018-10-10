@@ -2,11 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.FastTree;
 using Microsoft.ML.Runtime.Internal.Internallearn;
+using System;
 
 [assembly: EntryPointModule(typeof(FastTreeBinaryClassificationTrainer.Arguments))]
 [assembly: EntryPointModule(typeof(FastTreeRegressionTrainer.Arguments))]
@@ -138,6 +138,14 @@ namespace Microsoft.ML.Runtime.FastTree
         Adjacent = 2
     }
 
+    internal static class Defaults
+    {
+        internal const int NumTrees = 100;
+        internal const int NumLeaves = 20;
+        internal const int MinDocumentsInLeafs = 10;
+        internal const double LearningRates = 0.2;
+    }
+
     public abstract class TreeArgs : LearnerInputBaseWithGroupId
     {
         [Argument(ArgumentType.Multiple, HelpText = "Allows to choose Parallel FastTree Learning Algorithm", ShortName = "parag")]
@@ -229,20 +237,20 @@ namespace Microsoft.ML.Runtime.FastTree
         [Argument(ArgumentType.LastOccurenceWins, HelpText = "The max number of leaves in each regression tree", ShortName = "nl", SortOrder = 2)]
         [TGUI(Description = "The maximum number of leaves per tree", SuggestedSweeps = "2-128;log;inc:4")]
         [TlcModule.SweepableLongParamAttribute("NumLeaves", 2, 128, isLogScale: true, stepSize: 4)]
-        public int NumLeaves = 20;
+        public int NumLeaves = Defaults.NumLeaves;
 
         // REVIEW: Arrays not supported in GUI
         // REVIEW: Different shortname than FastRank module. Same as the TLC FRWrapper.
         [Argument(ArgumentType.LastOccurenceWins, HelpText = "The minimal number of documents allowed in a leaf of a regression tree, out of the subsampled data", ShortName = "mil", SortOrder = 3)]
         [TGUI(Description = "Minimum number of training instances required to form a leaf", SuggestedSweeps = "1,10,50")]
         [TlcModule.SweepableDiscreteParamAttribute("MinDocumentsInLeafs", new object[] { 1, 10, 50 })]
-        public int MinDocumentsInLeafs = 10;
+        public int MinDocumentsInLeafs = Defaults.MinDocumentsInLeafs;
 
         // REVIEW: Different shortname than FastRank module. Same as the TLC FRWrapper.
         [Argument(ArgumentType.LastOccurenceWins, HelpText = "Total number of decision trees to create in the ensemble", ShortName = "iter", SortOrder = 1)]
         [TGUI(Description = "Total number of trees constructed", SuggestedSweeps = "20,100,500")]
         [TlcModule.SweepableDiscreteParamAttribute("NumTrees", new object[] { 20, 100, 500 })]
-        public int NumTrees = 100;
+        public int NumTrees = Defaults.NumTrees;
 
         [Argument(ArgumentType.AtMostOnce, HelpText = "The fraction of features (chosen randomly) to use on each iteration", ShortName = "ff")]
         public Double FeatureFraction = 1;
@@ -365,7 +373,7 @@ namespace Microsoft.ML.Runtime.FastTree
         [Argument(ArgumentType.LastOccurenceWins, HelpText = "The learning rate", ShortName = "lr", SortOrder = 4)]
         [TGUI(Label = "Learning Rate", SuggestedSweeps = "0.025-0.4;log")]
         [TlcModule.SweepableFloatParamAttribute("LearningRates", 0.025f, 0.4f, isLogScale: true)]
-        public Double LearningRates = 0.2;
+        public Double LearningRates = Defaults.LearningRates;
 
         [Argument(ArgumentType.AtMostOnce, HelpText = "Shrinkage", ShortName = "shrk")]
         [TGUI(Label = "Shrinkage", SuggestedSweeps = "0.25-4;log")]

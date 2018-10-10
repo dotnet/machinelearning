@@ -8,9 +8,9 @@ ML.NET allows .NET developers to develop their own models and infuse custom ML i
 
 ML.NET was originally developed in Microsoft Research and evolved into a significant framework over the last decade and is used across many product groups in Microsoft like Windows, Bing, PowerPoint, Excel and more.
 
-With this first preview release ML.NET enables ML tasks like classification (e.g. support text classification, sentiment analysis) and regression (e.g. price-prediction). 
+With this first preview release, ML.NET enables ML tasks like classification (for example, support text classification, sentiment analysis) and regression (for example, price-prediction).
 
-Along with these ML capabilities this first release of ML.NET also brings the first draft of .NET APIs for training models, using models for predictions, as well as the core components of this framework such as learning algorithms, transforms, and ML data structures. 
+Along with these ML capabilities, this first release of ML.NET also brings the first draft of .NET APIs for training models, using models for predictions, as well as the core components of this framework such as learning algorithms, transforms, and ML data structures. 
 
 ## Installation
 
@@ -18,9 +18,9 @@ Along with these ML capabilities this first release of ML.NET also brings the fi
 
 ML.NET runs on Windows, Linux, and macOS - any platform where 64 bit [.NET Core](https://github.com/dotnet/core) or later is available.
 
-The current release is 0.5. Check out the [release notes](docs/release-notes/0.5/release-0.5.md).
+The current release is 0.6. Check out the [release notes](docs/release-notes/0.6/release-0.6.md) to see what's new.
 
-First ensure you have installed [.NET Core 2.0](https://www.microsoft.com/net/learn/get-started) or later. ML.NET also works on the .NET Framework. Note that ML.NET currently must run in a 64 bit process.
+First, ensure you have installed [.NET Core 2.0](https://www.microsoft.com/net/learn/get-started) or later. ML.NET also works on the .NET Framework. Note that ML.NET currently must run in a 64-bit process.
 
 Once you have an app, you can install the ML.NET NuGet package from the .NET Core CLI using:
 ```
@@ -32,7 +32,7 @@ or from the NuGet package manager:
 Install-Package Microsoft.ML
 ```
 
-Or alternatively you can add the Microsoft.ML package from within Visual Studio's NuGet package manager or via [Paket](https://github.com/fsprojects/Paket).
+Or alternatively, you can add the Microsoft.ML package from within Visual Studio's NuGet package manager or via [Paket](https://github.com/fsprojects/Paket).
 
 Daily NuGet builds of the project are also available in our MyGet feed:
 
@@ -62,28 +62,38 @@ For more information, see the [.NET Foundation Code of Conduct](https://dotnetfo
 ## Examples
 
 Here's an example of code to train a model to predict sentiment from text samples. 
-(You can see the complete sample [here](test/Microsoft.ML.Tests/Scenarios/SentimentPredictionTests.cs)):
+(You can find a sample of the legacy API [here](test/Microsoft.ML.Tests/Scenarios/SentimentPredictionTests.cs)):
 
 ```C#
-var pipeline = new LearningPipeline();
-pipeline.Add(new TextLoader(dataPath).CreateFrom<SentimentData>(separator: ','));
-pipeline.Add(new TextFeaturizer("Features", "SentimentText"));
-pipeline.Add(new FastTreeBinaryClassifier());
-var model = pipeline.Train<SentimentData, SentimentPrediction>();
+var env = new LocalEnvironment();
+var reader = TextLoader.CreateReader(env, ctx => (
+        Target: ctx.LoadFloat(2),
+        FeatureVector: ctx.LoadFloat(3, 6)),
+        separator: ',',
+        hasHeader: true);
+var data = reader.Read(new MultiFileSource(dataPath));
+var classification = new MulticlassClassificationContext(env);
+var learningPipeline = reader.MakeNewEstimator()
+    .Append(r => (
+    r.Target,
+    Prediction: classification.Trainers.Sdca(r.Target.ToKey(), r.FeatureVector)));
+var model = learningPipeline.Fit(data);
+
 ```
 
 Now from the model we can make inferences (predictions):
 
 ```C#
-SentimentData data = new SentimentData
+var predictionFunc = model.MakePredictionFunction<SentimentInput, SentimentPrediction>(env);
+var prediction = predictionFunc.Predict(new SentimentData
 {
     SentimentText = "Today is a great day!"
 };
-
-SentimentPrediction prediction = model.Predict(data);
-
 Console.WriteLine("prediction: " + prediction.Sentiment);
 ```
+A cookbook that shows how to use these APIs for a variety of existing and new scenarios can be found [here](docs/code/MlNetCookBook.md).
+
+
 ## Samples
 
 We have a [repo of samples](https://github.com/dotnet/machinelearning-samples) that you can look at.

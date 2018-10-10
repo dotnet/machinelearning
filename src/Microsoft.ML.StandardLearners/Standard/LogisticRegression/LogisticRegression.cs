@@ -2,10 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Float = System.Single;
-
 using System;
 using System.Collections.Generic;
+using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
@@ -24,14 +23,14 @@ using Microsoft.ML.Runtime.Training;
     LogisticRegression.ShortName,
     "logisticregressionwrapper")]
 
-[assembly: LoadableClass(typeof(void), typeof(LogisticRegression), null, typeof(SignatureEntryPointModule), "LogisticRegression")]
+[assembly: LoadableClass(typeof(void), typeof(LogisticRegression), null, typeof(SignatureEntryPointModule), LogisticRegression.LoadNameValue)]
 
 namespace Microsoft.ML.Runtime.Learners
 {
 
     /// <include file='doc.xml' path='doc/members/member[@name="LBFGS"]/*' />
     /// <include file='doc.xml' path='docs/members/example[@name="LogisticRegressionBinaryClassifier"]/*' />
-    public sealed partial class LogisticRegression : LbfgsTrainerBase<Float, ParameterMixingCalibratedPredictor>
+    public sealed partial class LogisticRegression : LbfgsTrainerBase<LogisticRegression.Arguments, BinaryPredictionTransformer<ParameterMixingCalibratedPredictor>, ParameterMixingCalibratedPredictor>
     {
         public const string LoadNameValue = "LogisticRegression";
         internal const string UserNameValue = "Logistic Regression";
@@ -48,10 +47,47 @@ namespace Microsoft.ML.Runtime.Learners
         private Double _posWeight;
         private LinearModelStatistics _stats;
 
-        public LogisticRegression(IHostEnvironment env, Arguments args)
-            : base(args, env, LoadNameValue, Contracts.CheckRef(args, nameof(args)).ShowTrainingStats)
+        /// <summary>
+        /// Initializes a new instance of <see cref="LogisticRegression"/>
+        /// </summary>
+        /// <param name="env">The environment to use.</param>
+        /// <param name="labelColumn">The name of the label column.</param>
+        /// <param name="featureColumn">The name of the feature column.</param>
+        /// <param name="weightColumn">The name for the example weight column.</param>
+        /// <param name="enforceNoNegativity">Enforce non-negative weights.</param>
+        /// <param name="l1Weight">Weight of L1 regularizer term.</param>
+        /// <param name="l2Weight">Weight of L2 regularizer term.</param>
+        /// <param name="memorySize">Memory size for <see cref="LogisticRegression"/>. Lower=faster, less accurate.</param>
+        /// <param name="optimizationTolerance">Threshold for optimizer convergence.</param>
+        /// <param name="advancedSettings">A delegate to apply all the advanced arguments to the algorithm.</param>
+        public LogisticRegression(IHostEnvironment env,
+            string featureColumn,
+            string labelColumn,
+            string weightColumn = null,
+            float l1Weight = Arguments.Defaults.L1Weight,
+            float l2Weight = Arguments.Defaults.L2Weight,
+            float optimizationTolerance = Arguments.Defaults.OptTol,
+            int memorySize = Arguments.Defaults.MemorySize,
+            bool enforceNoNegativity = Arguments.Defaults.EnforceNonNegativity,
+            Action<Arguments> advancedSettings = null)
+            : base(env, featureColumn, TrainerUtils.MakeBoolScalarLabel(labelColumn), weightColumn, advancedSettings,
+                  l1Weight, l2Weight,  optimizationTolerance, memorySize, enforceNoNegativity)
+        {
+            Host.CheckNonEmpty(featureColumn, nameof(featureColumn));
+            Host.CheckNonEmpty(labelColumn, nameof(labelColumn));
+
+            _posWeight = 0;
+            ShowTrainingStats = Args.ShowTrainingStats;
+        }
+
+        /// <summary>
+        /// Initializes a new instance of <see cref="LogisticRegression"/>
+        /// </summary>
+        internal LogisticRegression(IHostEnvironment env, Arguments args)
+            : base(env, args, TrainerUtils.MakeBoolScalarLabel(args.LabelColumn))
         {
             _posWeight = 0;
+            ShowTrainingStats = Args.ShowTrainingStats;
         }
 
         public override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
@@ -62,26 +98,39 @@ namespace Microsoft.ML.Runtime.Learners
             data.CheckBinaryLabel();
         }
 
-        protected override Float AccumulateOneGradient(ref VBuffer<Float> feat, Float label, Float weight,
-            ref VBuffer<Float> x, ref VBuffer<Float> grad, ref Float[] scratch)
+        protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema)
         {
-            Float bias = 0;
+            return new[]
+            {
+                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata())),
+                new SchemaShape.Column(DefaultColumnNames.Probability, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata(true))),
+                new SchemaShape.Column(DefaultColumnNames.PredictedLabel, SchemaShape.Column.VectorKind.Scalar, BoolType.Instance, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata()))
+            };
+        }
+
+        protected override BinaryPredictionTransformer<ParameterMixingCalibratedPredictor> MakeTransformer(ParameterMixingCalibratedPredictor model, ISchema trainSchema)
+            => new BinaryPredictionTransformer<ParameterMixingCalibratedPredictor>(Host, model, trainSchema, FeatureColumn.Name);
+
+        protected override float AccumulateOneGradient(ref VBuffer<float> feat, float label, float weight,
+            ref VBuffer<float> x, ref VBuffer<float> grad, ref float[] scratch)
+        {
+            float bias = 0;
             x.GetItemOrDefault(0, ref bias);
-            Float score = bias + VectorUtils.DotProductWithOffset(ref x, 1, ref feat);
+            float score = bias + VectorUtils.DotProductWithOffset(ref x, 1, ref feat);
 
-            Float s = score / 2;
+            float s = score / 2;
 
-            Float logZ = MathUtils.SoftMax(s, -s);
-            Float label01 = Math.Min(1, Math.Max(label, 0));
-            Float label11 = 2 * label01 - 1; //(-1..1) label
-            Float modelProb1 = MathUtils.ExpSlow(s - logZ);
-            Float ls = label11 * s;
-            Float datumLoss = logZ - ls;
-            //Float loss2 = MathUtil.SoftMax(s-l_s, -s-l_s);
+            float logZ = MathUtils.SoftMax(s, -s);
+            float label01 = Math.Min(1, Math.Max(label, 0));
+            float label11 = 2 * label01 - 1; //(-1..1) label
+            float modelProb1 = MathUtils.ExpSlow(s - logZ);
+            float ls = label11 * s;
+            float datumLoss = logZ - ls;
+            //float loss2 = MathUtil.SoftMax(s-l_s, -s-l_s);
 
-            Contracts.Check(!Float.IsNaN(datumLoss), "Unexpected NaN");
+            Contracts.Check(!float.IsNaN(datumLoss), "Unexpected NaN");
 
-            Float mult = weight * (modelProb1 - label01);
+            float mult = weight * (modelProb1 - label01);
             VectorUtils.AddMultWithOffset(ref feat, mult, ref grad, 1); // Note that 0th L-BFGS weight is for bias.
             // Add bias using this strange trick that has advantage of working well for dense and sparse arrays.
             // Due to the call to EnsureBiases, we know this region is dense.
@@ -91,7 +140,7 @@ namespace Microsoft.ML.Runtime.Learners
             return weight * datumLoss;
         }
 
-        protected override void ComputeTrainingStatistics(IChannel ch, FloatLabelCursor.Factory cursorFactory, Float loss, int numParams)
+        protected override void ComputeTrainingStatistics(IChannel ch, FloatLabelCursor.Factory cursorFactory, float loss, int numParams)
         {
             Contracts.AssertValue(ch);
             Contracts.AssertValue(cursorFactory);
@@ -105,7 +154,7 @@ namespace Microsoft.ML.Runtime.Learners
             ch.Info("Model trained with {0} training examples.", NumGoodRows);
 
             // Compute deviance: start with loss function.
-            Float deviance = (Float)(2 * loss * WeightSum);
+            float deviance = (float)(2 * loss * WeightSum);
 
             if (L2Weight > 0)
             {
@@ -121,7 +170,7 @@ namespace Microsoft.ML.Runtime.Learners
                 // The bias term is not regularized.
                 Double regLoss = 0;
                 VBufferUtils.ForEachDefined(ref CurrentWeights, (ind, value) => { if (ind >= BiasCount) regLoss += Math.Abs(value); });
-                deviance -= (Float)regLoss * L1Weight * 2;
+                deviance -= (float)regLoss * L1Weight * 2;
             }
 
             ch.Info("Residual Deviance: \t{0} (on {1} degrees of freedom)", deviance, Math.Max(NumGoodRows - numParams, 0));
@@ -130,8 +179,8 @@ namespace Microsoft.ML.Runtime.Learners
             // Cap the prior positive rate at 1e-15.
             Double priorPosRate = _posWeight / WeightSum;
             Contracts.Assert(0 <= priorPosRate && priorPosRate <= 1);
-            Float nullDeviance = (priorPosRate <= 1e-15 || 1 - priorPosRate <= 1e-15) ?
-                0f : (Float)(2 * WeightSum * MathUtils.Entropy(priorPosRate, true));
+            float nullDeviance = (priorPosRate <= 1e-15 || 1 - priorPosRate <= 1e-15) ?
+                0f : (float)(2 * WeightSum * MathUtils.Entropy(priorPosRate, true));
             ch.Info("Null Deviance:     \t{0} (on {1} degrees of freedom)", nullDeviance, NumGoodRows - 1);
 
             // Compute AIC.
@@ -188,7 +237,7 @@ namespace Microsoft.ML.Runtime.Learners
 
             // Building the variance-covariance matrix for parameters.
             // The layout of this algorithm is a packed row-major lower triangular matrix.
-            // E.g., layout of indices for 4-by-4:
+            // For example, layout of indices for 4-by-4:
             // 0
             // 1 2
             // 3 4 5
@@ -284,7 +333,7 @@ namespace Microsoft.ML.Runtime.Learners
             _stats = new LinearModelStatistics(Host, NumGoodRows, numParams, deviance, nullDeviance);
         }
 
-        protected override void ProcessPriorDistribution(Float label, Float weight)
+        protected override void ProcessPriorDistribution(float label, float weight)
         {
             if (label > 0)
                 _posWeight += weight;
@@ -292,19 +341,19 @@ namespace Microsoft.ML.Runtime.Learners
 
         //Override default termination criterion MeanRelativeImprovementCriterion with
         protected override Optimizer InitializeOptimizer(IChannel ch, FloatLabelCursor.Factory cursorFactory,
-            out VBuffer<Float> init, out ITerminationCriterion terminationCriterion)
+            out VBuffer<float> init, out ITerminationCriterion terminationCriterion)
         {
             var opt = base.InitializeOptimizer(ch, cursorFactory, out init, out terminationCriterion);
 
             // MeanImprovementCriterion:
             //   Terminates when the geometrically-weighted average improvement falls below the tolerance
             //terminationCriterion = new GradientCheckingMonitor(new MeanImprovementCriterion(CmdArgs.optTol, 0.25, MaxIterations),2);
-            terminationCriterion = new MeanImprovementCriterion(OptTol, (Float)0.25, MaxIterations);
+            terminationCriterion = new MeanImprovementCriterion(OptTol, (float)0.25, MaxIterations);
 
             return opt;
         }
 
-        protected override VBuffer<Float> InitializeWeightsFromPredictor(ParameterMixingCalibratedPredictor srcPredictor)
+        protected override VBuffer<float> InitializeWeightsFromPredictor(ParameterMixingCalibratedPredictor srcPredictor)
         {
             Contracts.AssertValue(srcPredictor);
 
@@ -319,8 +368,8 @@ namespace Microsoft.ML.Runtime.Learners
             // output probabilities when transformed using
             // the logistic function, so there is no need to
             // train a separate calibrator.
-            VBuffer<Float> weights = default(VBuffer<Float>);
-            Float bias = 0;
+            VBuffer<float> weights = default(VBuffer<float>);
+            float bias = 0;
             CurrentWeights.GetItemOrDefault(0, ref bias);
             CurrentWeights.CopyTo(ref weights, 1, CurrentWeights.Length - 1);
             return new ParameterMixingCalibratedPredictor(Host,

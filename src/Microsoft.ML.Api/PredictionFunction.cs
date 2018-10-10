@@ -23,7 +23,7 @@ namespace Microsoft.ML.Runtime.Data
             env.CheckValue(transformer, nameof(transformer));
 
             IDataView dv = env.CreateDataView(new TSrc[0]);
-            _engine = env.CreatePredictionEngine<TSrc, TDst>(transformer.Transform(dv));
+            _engine = env.CreatePredictionEngine<TSrc, TDst>(transformer);
         }
 
         public TDst Predict(TSrc example) => _engine.Predict(example);

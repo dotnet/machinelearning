@@ -235,7 +235,8 @@ namespace Microsoft.ML.Runtime.TextAnalytics
                 verWrittenCur: 0x00010001, // Initial
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
-                loaderSignature: LoaderSignature);
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(StopWordsRemoverTransform).Assembly.FullName);
         }
 
         private readonly bool?[] _resourcesExist;
@@ -306,7 +307,6 @@ namespace Microsoft.ML.Runtime.TextAnalytics
                 _resourcesExist = new bool?[StopWords.Length];
 
                 CheckResources(ch);
-                ch.Done();
             }
             Metadata.Seal();
         }
@@ -330,7 +330,6 @@ namespace Microsoft.ML.Runtime.TextAnalytics
                 _resourcesExist = new bool?[StopWords.Length];
 
                 CheckResources(ch);
-                ch.Done();
             }
             Metadata.Seal();
         }
@@ -353,7 +352,6 @@ namespace Microsoft.ML.Runtime.TextAnalytics
 
                 _resourcesExist = new bool?[StopWords.Length];
                 CheckResources(ch);
-                ch.Done();
             }
             Metadata.Seal();
         }
@@ -602,10 +600,11 @@ namespace Microsoft.ML.Runtime.TextAnalytics
                 verWrittenCur: 0x00010001, // Initial
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
-                loaderSignature: LoaderSignature);
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(CustomStopWordsRemoverTransform).Assembly.FullName);
         }
 
-        public const string StopwrodsManagerLoaderSignature = "CustomStopWordsManager";
+        public const string StopwordsManagerLoaderSignature = "CustomStopWordsManager";
         private static VersionInfo GetStopwrodsManagerVersionInfo()
         {
             return new VersionInfo(
@@ -613,7 +612,8 @@ namespace Microsoft.ML.Runtime.TextAnalytics
                 verWrittenCur: 0x00010001, // Initial
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
-                loaderSignature: StopwrodsManagerLoaderSignature);
+                loaderSignature: StopwordsManagerLoaderSignature,
+                loaderAssemblyName: typeof(CustomStopWordsRemoverTransform).Assembly.FullName);
         }
 
         private static readonly ColumnType _outputType = new VectorType(TextType.Instance);
@@ -790,7 +790,6 @@ namespace Microsoft.ML.Runtime.TextAnalytics
             using (var ch = Host.Start(RegistrationName))
             {
                 LoadStopWords(env, ch, args, out _stopWordsMap);
-                ch.Done();
             }
             Metadata.Seal();
         }
@@ -812,7 +811,6 @@ namespace Microsoft.ML.Runtime.TextAnalytics
             using (var ch = Host.Start(RegistrationName))
             {
                 LoadStopWords(env, ch, loaderArgs, out _stopWordsMap);
-                ch.Done();
             }
             Metadata.Seal();
         }
@@ -858,7 +856,6 @@ namespace Microsoft.ML.Runtime.TextAnalytics
                     throw Host.ExceptDecode();
 
                 _stopWordsMap = stopwrods;
-                ch.Done();
             }
             Metadata.Seal();
         }

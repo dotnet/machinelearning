@@ -64,7 +64,7 @@ namespace Microsoft.ML.Legacy.Data
         /// and distinguish empty values from missing values. When true, consecutive separators
         /// denote a missing value and an empty value is denoted by \"\".
         /// When false, consecutive separators denote an empty value.</param>
-        /// <param name="supportSparse">Whether the input may include sparse representations e.g.
+        /// <param name="supportSparse">Whether the input may include sparse representations for example,
         /// if one of the row contains "5 2:6 4:3" that's mean there are 5 columns all zero
         /// except for 3rd and 5th columns which have values 6 and 3</param>
         /// <param name="trimWhitespace">Remove trailing whitespace from lines</param>
@@ -95,7 +95,8 @@ namespace Microsoft.ML.Legacy.Data
                     throw Contracts.Except($"{mappingAttr.Ordinal} contains invalid characters. " +
                         $"Valid characters are 0-9, *, - and ~");
 
-                var name = mappingAttr.Name ?? memberInfo.Name;
+                var mappingNameAttr = memberInfo.GetCustomAttribute<ColumnNameAttribute>();
+                var name = mappingAttr.Name ?? mappingNameAttr?.Name ?? memberInfo.Name;
 
                 Runtime.Data.TextLoader.Range[] sources;
                 if (!Runtime.Data.TextLoader.Column.TryParseSourceEx(mappingAttr.Ordinal, out sources))

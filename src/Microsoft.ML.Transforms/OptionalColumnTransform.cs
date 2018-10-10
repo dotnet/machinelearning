@@ -226,7 +226,8 @@ namespace Microsoft.ML.Runtime.DataPipe
                 verWrittenCur: 0x00010002, // Save the input schema, for metadata
                 verReadableCur: 0x00010002,
                 verWeCanReadBack: 0x00010002,
-                loaderSignature: LoaderSignature);
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(OptionalColumnTransform).Assembly.FullName);
         }
 
         private readonly Bindings _bindings;
@@ -373,7 +374,6 @@ namespace Microsoft.ML.Runtime.DataPipe
                         getters[iinfo] = (Delegate)meth.Invoke(this, new object[] { input, iinfo });
                     }
                 }
-                ch.Done();
                 return getters;
             }
         }

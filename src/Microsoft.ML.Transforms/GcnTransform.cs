@@ -236,7 +236,8 @@ namespace Microsoft.ML.Runtime.Data
                 verReadableCur: 0x00010002,
                 verWeCanReadBack: 0x00010001,
                 loaderSignature: LoaderSignature,
-                loaderSignatureAlt: LoaderSignatureOld);
+                loaderSignatureAlt: LoaderSignatureOld,
+                loaderAssemblyName: typeof(LpNormNormalizerTransform).Assembly.FullName);
         }
 
         private const string RegistrationName = "LpNormNormalizer";
@@ -298,7 +299,6 @@ namespace Microsoft.ML.Runtime.Data
                 using (var ch = Host.Start("Argument validation"))
                 {
                     ch.Warning("subMean parameter is false while useStd is true. It is advisable to set subMean to true in case useStd is set to true.");
-                    ch.Done();
                 }
             }
             SetMetadata();
@@ -311,7 +311,7 @@ namespace Microsoft.ML.Runtime.Data
         /// <param name="input">Input <see cref="IDataView"/>. This is the output from previous transform or loader.</param>
         /// <param name="name">Name of the output column.</param>
         /// <param name="source">Name of the column to be transformed. If this is null '<paramref name="name"/>' will be used.</param>
-        ///         /// <param name="normKind">The norm to use to normalize each sample.</param>
+        /// <param name="normKind">The norm to use to normalize each sample.</param>
         /// <param name="subMean">Subtract mean from each value before normalizing.</param>
         public static IDataTransform CreateLpNormNormalizer(IHostEnvironment env,
             IDataView input,

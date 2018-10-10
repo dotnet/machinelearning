@@ -3,21 +3,17 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Core.Data;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
+using Microsoft.ML.Runtime.FactorizationMachine;
 using Microsoft.ML.Runtime.Learners;
-using Microsoft.ML.Runtime.RunTests;
 using Xunit;
-using Xunit.Abstractions;
 
-namespace Microsoft.ML.Tests.Transformers
+namespace Microsoft.ML.Tests.TrainerEstimators
 {
-    public sealed class OnlineLinearTests : TestDataPipeBase
+    public partial class TrainerEstimators
     {
-        public OnlineLinearTests(ITestOutputHelper helper) : base(helper)
-        {
-        }
-
-        [Fact(Skip = "AP is now uncalibrated but advertises as calibrated")]
+        [Fact]
         public void OnlineLinearWorkout()
         {
             var dataPath = GetDataPath("breast-cancer.txt");
@@ -30,10 +26,13 @@ namespace Microsoft.ML.Tests.Transformers
 
             var trainData = pipe.Fit(data).Transform(data).AsDynamic;
 
-            IEstimator<ITransformer> est = new OnlineGradientDescentTrainer(Env, new OnlineGradientDescentTrainer.Arguments());
+            IEstimator<ITransformer> est = new OnlineGradientDescentTrainer(Env, "Label", "Features");
             TestEstimatorCore(est, trainData);
 
-            est = new AveragedPerceptronTrainer(Env, new AveragedPerceptronTrainer.Arguments());
+            est = new AveragedPerceptronTrainer(Env, "Label", "Features", lossFunction:new HingeLoss.Arguments(), advancedSettings: s =>
+            {
+                s.LearningRate = 0.5f;
+            });
             TestEstimatorCore(est, trainData);
 
             Done();

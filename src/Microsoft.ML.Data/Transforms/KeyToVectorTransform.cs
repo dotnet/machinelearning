@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Core.Data;
-using Microsoft.ML.Data.StaticPipe.Runtime;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
@@ -11,6 +10,8 @@ using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.Model.Onnx;
 using Microsoft.ML.Runtime.Model.Pfa;
+using Microsoft.ML.StaticPipe;
+using Microsoft.ML.StaticPipe.Runtime;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
@@ -143,7 +144,8 @@ namespace Microsoft.ML.Runtime.Data
                 verWrittenCur: 0x00010002, // Get rid of writing float size in model context
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
-                loaderSignature: LoaderSignature);
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(KeyToVectorTransform).Assembly.FullName);
         }
 
         public override void Save(ModelSaveContext ctx)
@@ -170,22 +172,16 @@ namespace Microsoft.ML.Runtime.Data
 
             host.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel(GetVersionInfo());
-
-            return new KeyToVectorTransform(host, ctx);
-        }
-
-        private static ModelLoadContext ReadFloatFromCtx(IHostEnvironment env, ModelLoadContext ctx)
-        {
             if (ctx.Header.ModelVerWritten == 0x00010001)
             {
                 int cbFloat = ctx.Reader.ReadInt32();
                 env.CheckDecode(cbFloat == sizeof(float));
             }
-            return ctx;
+            return new KeyToVectorTransform(host, ctx);
         }
 
         private KeyToVectorTransform(IHost host, ModelLoadContext ctx)
-          : base(host, ReadFloatFromCtx(host, ctx))
+          : base(host, ctx)
         {
             var columnsLength = ColumnPairs.Length;
             // *** Binary format ***
@@ -609,7 +605,7 @@ namespace Microsoft.ML.Runtime.Data
                     };
             }
 
-            public bool CanSaveOnnx => true;
+            public bool CanSaveOnnx(OnnxContext ctx) => true;
 
             public bool CanSavePfa => true;
 
@@ -708,10 +704,29 @@ namespace Microsoft.ML.Runtime.Data
 
             private bool SaveAsOnnxCore(OnnxContext ctx, int iinfo, ColInfo info, string srcVariableName, string dstVariableName)
             {
+                var shape = ctx.RetrieveShapeOrNull(srcVariableName);
+                // Make sure that shape must present for calculating the reduction axes. The shape here is generally not null
+                // because inputs and outputs of a transform are declared with shapes.
+                Contracts.CheckValue(shape, nameof(shape));
+
+                // If Bag is true, the output of ONNX LabelEncoder needs to be fed into ONNX ReduceSum because
+                // default ONNX LabelEncoder just matches the behavior of Bag=false.
+                var encodedVariableName = _parent._columns[iinfo].Bag ? ctx.AddIntermediateVariable(null, "encoded", true) : dstVariableName;
+
                 string opType = "OneHotEncoder";
-                var node = ctx.CreateNode(opType, srcVariableName, dstVariableName, ctx.GetNodeName(opType));
-                node.AddAttribute("cats_int64s", Enumerable.Range(1, info.TypeSrc.ItemType.KeyCount).Select(x => (long)x));
+                var node = ctx.CreateNode(opType, srcVariableName, encodedVariableName, ctx.GetNodeName(opType));
+                node.AddAttribute("cats_int64s", Enumerable.Range(0, info.TypeSrc.ItemType.KeyCount).Select(x => (long)x));
                 node.AddAttribute("zeros", true);
+                if (_parent._columns[iinfo].Bag)
+                {
+                    // If input shape is [1, 3], then OneHotEncoder may produce a 3-D tensor. Thus, we need to do a
+                    // reduction along the second last axis to merge the one-hot vectors produced by all input features.
+                    // Note that one input feature got expended to an one-hot vector.
+                    opType = "ReduceSum";
+                    var reduceNode = ctx.CreateNode(opType, encodedVariableName, dstVariableName, ctx.GetNodeName(opType), "");
+                    reduceNode.AddAttribute("axes", new long[] { shape.Count - 1});
+                    reduceNode.AddAttribute("keepdims", 0);
+                }
                 return true;
             }
         }

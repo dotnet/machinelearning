@@ -257,7 +257,7 @@ namespace Microsoft.ML.Runtime.Data.IO
             /// <summary>
             /// This is the entry corresponding to the transposed columns. There will be one of
             /// these per column, though some entries will not actually have a corresponding
-            /// dataview (e.g., they will have an offset of 0) if the column was not one selected
+            /// dataview (for example, they will have an offset of 0) if the column was not one selected
             /// for slot-wise transposition.
             /// </summary>
             public sealed class TransposedSubIdv : SubIdvEntry
@@ -354,7 +354,8 @@ namespace Microsoft.ML.Runtime.Data.IO
                 verWrittenCur: 0x00010001, // Initial
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
-                loaderSignature: LoadName);
+                loaderSignature: LoadName,
+                loaderAssemblyName: typeof(TransposeLoader).Assembly.FullName);
         }
 
         // We return the schema view's schema, because we don't necessarily want

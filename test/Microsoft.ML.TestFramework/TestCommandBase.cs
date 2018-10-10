@@ -14,6 +14,7 @@ using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.Tools;
+using Microsoft.ML.TestFramework;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -69,10 +70,10 @@ namespace Microsoft.ML.Runtime.RunTests
                 return _testCmd.CheckEquality(_dir, _name);
             }
 
-            public bool CheckEqualityNormalized()
+            public bool CheckEqualityNormalized(int digitsOfPrecision = DigitsOfPrecision)
             {
                 Contracts.Assert(CanBeBaselined);
-                return _testCmd.CheckEqualityNormalized(_dir, _name);
+                return _testCmd.CheckEqualityNormalized(_dir, _name, digitsOfPrecision: digitsOfPrecision);
             }
 
             public string ArgStr(string name)
@@ -270,6 +271,11 @@ namespace Microsoft.ML.Runtime.RunTests
             }
         }
 
+        protected virtual void InitializeEnvironment(IHostEnvironment environment)
+        {
+            environment.AddStandardComponents();
+        }
+
         /// <summary>
         /// Runs a command with some arguments. Note that the input
         /// <paramref name="toCompare"/> objects are used for comparison only.
@@ -283,6 +289,8 @@ namespace Microsoft.ML.Runtime.RunTests
             using (var newWriter = OpenWriter(outputPath.Path))
             using (var env = new ConsoleEnvironment(42, outWriter: newWriter, errWriter: newWriter))
             {
+                InitializeEnvironment(env);
+
                 int res;
                 res = MainForTest(env, newWriter, string.Format("{0} {1}", cmdName, args), ctx.BaselineProgress);
                 if (res != 0)
@@ -512,7 +520,7 @@ namespace Microsoft.ML.Runtime.RunTests
 
         /// <summary>
         /// Multiple commands we sometimes expect to produce the same stdout,
-        /// e.g., rerunning. If you want to move on to another stdout comparison
+        /// for example, rerunning. If you want to move on to another stdout comparison
         /// file, increment this.
         /// </summary>
         protected int _step;
@@ -1654,15 +1662,15 @@ namespace Microsoft.ML.Runtime.RunTests
         }
 
         [TestCategory(Cat), TestCategory("FastForest")]
-        [Fact(Skip = "Need CoreTLC specific baseline update")]
+        [Fact]
         public void CommandTrainScoreEvaluateQuantileRegression()
         {
             RunMTAThread(() =>
             {
                 // First run a training.
-                string pathData = GetDataPath(@"..\Housing (regression)", "housing.txt");
+                string pathData = GetDataPath("housing.txt");
                 OutputPath trainModel = ModelPath();
-                TestCore("train", pathData, "loader=text", "lab=Label feat=Features tr=FastForestRegression{dt+}");
+                TestCore("train", pathData, "loader=Text{header+}", "lab=Label feat=Features tr=FastForestRegression{dt+}");
 
                 // Then, run the score.
                 _step++;

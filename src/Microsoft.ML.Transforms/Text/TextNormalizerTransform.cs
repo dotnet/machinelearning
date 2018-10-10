@@ -86,7 +86,8 @@ namespace Microsoft.ML.Runtime.TextAnalytics
                 verWrittenCur: 0x00010001, // Initial
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
-                loaderSignature: LoaderSignature);
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(TextNormalizerTransform).Assembly.FullName);
         }
 
         private const string RegistrationName = "TextNormalizer";
@@ -147,8 +148,6 @@ namespace Microsoft.ML.Runtime.TextAnalytics
                 _keepDiacritics = args.KeepDiacritics;
                 _keepPunctuations = args.KeepPunctuations;
                 _keepNumbers = args.KeepNumbers;
-
-                ch.Done();
             }
             Metadata.Seal();
         }
@@ -194,8 +193,6 @@ namespace Microsoft.ML.Runtime.TextAnalytics
                 _keepDiacritics = ctx.Reader.ReadBoolByte();
                 _keepPunctuations = ctx.Reader.ReadBoolByte();
                 _keepNumbers = ctx.Reader.ReadBoolByte();
-
-                ch.Done();
             }
             Metadata.Seal();
         }

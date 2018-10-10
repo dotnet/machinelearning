@@ -52,8 +52,6 @@ namespace Microsoft.ML.Runtime.EntryPoints
 
                 _predictor = ModelFileUtils.LoadPredictorOrNull(env, stream);
                 env.CheckDecode(_predictor != null, "Predictor model must contain a predictor");
-
-                ch.Done();
             }
         }
 
@@ -84,7 +82,6 @@ namespace Microsoft.ML.Runtime.EntryPoints
                 var roleMappedData = new RoleMappedData(data, _roleMappings, opt: true);
 
                 TrainUtils.SaveModel(env, ch, stream, _predictor, roleMappedData);
-                ch.Done();
             }
         }
 

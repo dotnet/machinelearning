@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Linq;
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
@@ -15,6 +13,8 @@ using Microsoft.ML.Runtime.Internal.Calibration;
 using Microsoft.ML.Runtime.Internal.Internallearn;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.Training;
+using System;
+using System.Linq;
 
 [assembly: LoadableClass(FastForestClassification.Summary, typeof(FastForestClassification), typeof(FastForestClassification.Arguments),
     new[] { typeof(SignatureBinaryClassifierTrainer), typeof(SignatureTrainer), typeof(SignatureTreeEnsembleTrainer), typeof(SignatureFeatureScorerTrainer) },
@@ -63,7 +63,8 @@ namespace Microsoft.ML.Runtime.FastTree
                 verWrittenCur: 0x00010006, // Categorical splits.
                 verReadableCur: 0x00010005,
                 verWeCanReadBack: 0x00010001,
-                loaderSignature: LoaderSignature);
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(FastForestClassificationPredictor).Assembly.FullName);
         }
 
         protected override uint VerNumFeaturesSerialized => 0x00010003;
@@ -77,8 +78,7 @@ namespace Microsoft.ML.Runtime.FastTree
         /// </summary>
         public override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
 
-        internal FastForestClassificationPredictor(IHostEnvironment env, Ensemble trainedEnsemble, int featureCount,
-            string innerArgs)
+        public FastForestClassificationPredictor(IHostEnvironment env, Ensemble trainedEnsemble, int featureCount, string innerArgs)
             : base(env, RegistrationName, trainedEnsemble, featureCount, innerArgs)
         {  }
 
@@ -132,7 +132,6 @@ namespace Microsoft.ML.Runtime.FastTree
 
         public override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
         private protected override bool NeedCalibration => true;
-        private readonly SchemaShape.Column[] _outputColumns;
 
         /// <summary>
         /// Initializes a new instance of <see cref="FastForestClassification"/>
@@ -145,28 +144,18 @@ namespace Microsoft.ML.Runtime.FastTree
         /// <param name="advancedSettings">A delegate to apply all the advanced arguments to the algorithm.</param>
         public FastForestClassification(IHostEnvironment env, string labelColumn, string featureColumn,
             string groupIdColumn = null, string weightColumn = null, Action<Arguments> advancedSettings = null)
-            : base(env, MakeLabelColumn(labelColumn), featureColumn, weightColumn, groupIdColumn, advancedSettings: advancedSettings)
+            : base(env, TrainerUtils.MakeBoolScalarLabel(labelColumn), featureColumn, weightColumn, groupIdColumn, advancedSettings: advancedSettings)
         {
-            _outputColumns = new[]
-            {
-                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false),
-                new SchemaShape.Column(DefaultColumnNames.Probability, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false),
-                new SchemaShape.Column(DefaultColumnNames.PredictedLabel, SchemaShape.Column.VectorKind.Scalar, BoolType.Instance, false)
-            };
+            Host.CheckNonEmpty(labelColumn, nameof(labelColumn));
+            Host.CheckNonEmpty(featureColumn, nameof(featureColumn));
         }
 
         /// <summary>
         /// Initializes a new instance of <see cref="FastForestClassification"/> by using the legacy <see cref="Arguments"/> class.
         /// </summary>
         public FastForestClassification(IHostEnvironment env, Arguments args)
-            : base(env, args, MakeLabelColumn(args.LabelColumn))
+            : base(env, args, TrainerUtils.MakeBoolScalarLabel(args.LabelColumn))
         {
-            _outputColumns = new[]
-            {
-                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false),
-                new SchemaShape.Column(DefaultColumnNames.Probability, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false),
-                new SchemaShape.Column(DefaultColumnNames.PredictedLabel, SchemaShape.Column.VectorKind.Scalar, BoolType.Instance, false)
-            };
         }
 
         protected override IPredictorWithFeatureWeights<float> TrainModelCore(TrainContext context)
@@ -184,7 +173,6 @@ namespace Microsoft.ML.Runtime.FastTree
                 FeatureCount = trainData.Schema.Feature.Type.ValueCount;
                 ConvertData(trainData);
                 TrainCore(ch);
-                ch.Done();
             }
             // LogitBoost is naturally calibrated to
             // output probabilities when transformed using
@@ -207,11 +195,6 @@ namespace Microsoft.ML.Runtime.FastTree
             _trainSetLabels = TrainSet.Ratings.Select(x => x >= 1).ToArray(TrainSet.NumDocs);
         }
 
-        private static SchemaShape.Column MakeLabelColumn(string labelColumn)
-        {
-            return new SchemaShape.Column(labelColumn, SchemaShape.Column.VectorKind.Scalar, BoolType.Instance, false);
-        }
-
         protected override Test ConstructTestForTrainingData()
         {
             return new BinaryClassificationTest(ConstructScoreTracker(TrainSet), _trainSetLabels, 1);
@@ -220,7 +203,15 @@ namespace Microsoft.ML.Runtime.FastTree
         protected override BinaryPredictionTransformer<IPredictorWithFeatureWeights<float>> MakeTransformer(IPredictorWithFeatureWeights<float> model, ISchema trainSchema)
          => new BinaryPredictionTransformer<IPredictorWithFeatureWeights<float>>(Host, model, trainSchema, FeatureColumn.Name);
 
-        protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema) => _outputColumns;
+        protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema)
+        {
+            return new[]
+            {
+                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata())),
+                new SchemaShape.Column(DefaultColumnNames.Probability, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata(true))),
+                new SchemaShape.Column(DefaultColumnNames.PredictedLabel, SchemaShape.Column.VectorKind.Scalar, BoolType.Instance, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata()))
+            };
+        }
 
         private sealed class ObjectiveFunctionImpl : RandomForestObjectiveFunction
         {

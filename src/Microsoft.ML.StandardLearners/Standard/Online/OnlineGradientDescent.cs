@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Float = System.Single;
-
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
@@ -13,6 +11,7 @@ using Microsoft.ML.Runtime.Learners;
 using Microsoft.ML.Runtime.Numeric;
 using Microsoft.ML.Runtime.Training;
 using Microsoft.ML.Runtime.Internal.Internallearn;
+using System;
 
 [assembly: LoadableClass(OnlineGradientDescentTrainer.Summary, typeof(OnlineGradientDescentTrainer), typeof(OnlineGradientDescentTrainer.Arguments),
     new[] { typeof(SignatureRegressorTrainer), typeof(SignatureTrainer), typeof(SignatureFeatureScorerTrainer) },
@@ -46,26 +45,73 @@ namespace Microsoft.ML.Runtime.Learners
             /// </summary>
             public Arguments()
             {
-                LearningRate = (Float)0.1;
-                DecreaseLearningRate = true;
+                LearningRate = OgdDefaultArgs.LearningRate;
+                DecreaseLearningRate = OgdDefaultArgs.DecreaseLearningRate;
+            }
+
+            internal class OgdDefaultArgs : AveragedDefaultArgs
+            {
+                internal new const float LearningRate = 0.1f;
+                internal new const bool DecreaseLearningRate = true;
             }
         }
 
-        public OnlineGradientDescentTrainer(IHostEnvironment env, Arguments args)
-            : base(args, env, UserNameValue, MakeLabelColumn(args.LabelColumn))
+        /// <summary>
+        /// Trains a new <see cref="RegressionPredictionTransformer{LinearRegressionPredictor}"/>.
+        /// </summary>
+        /// <param name="env">The pricate instance of <see cref="IHostEnvironment"/>.</param>
+        /// <param name="labelColumn">Name of the label column.</param>
+        /// <param name="featureColumn">Name of the feature column.</param>
+        /// <param name="learningRate">The learning Rate.</param>
+        /// <param name="decreaseLearningRate">Decrease learning rate as iterations progress.</param>
+        /// <param name="l2RegularizerWeight">L2 Regularization Weight.</param>
+        /// <param name="numIterations">Number of training iterations through the data.</param>
+        /// <param name="weightsColumn">The name of the weights column.</param>
+        /// <param name="lossFunction">The custom loss functions. Defaults to <see cref="SquaredLoss"/> if not provided.</param>
+        /// <param name="advancedSettings">A delegate to supply advanced arguments to the algorithm. </param>
+        public OnlineGradientDescentTrainer(IHostEnvironment env,
+            string labelColumn,
+            string featureColumn,
+            float learningRate = Arguments.OgdDefaultArgs.LearningRate,
+            bool decreaseLearningRate = Arguments.OgdDefaultArgs.DecreaseLearningRate,
+            float l2RegularizerWeight = Arguments.OgdDefaultArgs.L2RegularizerWeight,
+            int numIterations = Arguments.OgdDefaultArgs.NumIterations,
+            string weightsColumn = null,
+            IRegressionLoss lossFunction = null,
+            Action<AveragedLinearArguments> advancedSettings = null)
+            : this(env, new Arguments
+            {
+                LearningRate = learningRate,
+                DecreaseLearningRate = decreaseLearningRate,
+                L2RegularizerWeight = l2RegularizerWeight,
+                NumIterations = numIterations,
+                LabelColumn = labelColumn,
+                FeatureColumn = featureColumn,
+                InitialWeights = weightsColumn
+
+            })
+        {
+            LossFunction = lossFunction ?? new SquaredLoss();
+
+            if (advancedSettings != null)
+                advancedSettings.Invoke(Args);
+        }
+
+        internal OnlineGradientDescentTrainer(IHostEnvironment env, Arguments args)
+        : base(args, env, UserNameValue, TrainerUtils.MakeR4ScalarLabel(args.LabelColumn))
         {
             LossFunction = args.LossFunction.CreateComponent(env);
-
-            _outputColumns = new[]
-            {
-                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata()))
-            };
         }
 
         public override PredictionKind PredictionKind => PredictionKind.Regression;
 
-        private readonly SchemaShape.Column[] _outputColumns;
-        protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema) => _outputColumns;
+        protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema)
+        {
+            return new[]
+            {
+                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata()))
+            };
+        }
 
         protected override void CheckLabel(RoleMappedData data)
         {
@@ -75,8 +121,8 @@ namespace Microsoft.ML.Runtime.Learners
         protected override LinearRegressionPredictor CreatePredictor()
         {
             Contracts.Assert(WeightsScale == 1);
-            VBuffer<Float> weights = default(VBuffer<Float>);
-            Float bias;
+            VBuffer<float> weights = default(VBuffer<float>);
+            float bias;
 
             if (!Args.Averaged)
             {
@@ -86,15 +132,10 @@ namespace Microsoft.ML.Runtime.Learners
             else
             {
                 TotalWeights.CopyTo(ref weights);
-                VectorUtils.ScaleBy(ref weights, 1 / (Float)NumWeightUpdates);
-                bias = TotalBias / (Float)NumWeightUpdates;
+                VectorUtils.ScaleBy(ref weights, 1 / (float)NumWeightUpdates);
+                bias = TotalBias / (float)NumWeightUpdates;
             }
             return new LinearRegressionPredictor(Host, ref weights, bias);
-        }
-
-        private static SchemaShape.Column MakeLabelColumn(string labelColumn)
-        {
-            return new SchemaShape.Column(labelColumn, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false);
         }
 
         [TlcModule.EntryPoint(Name = "Trainers.OnlineGradientDescentRegressor",

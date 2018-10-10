@@ -154,6 +154,8 @@ namespace Microsoft.ML.Runtime.Data
 
         protected abstract Func<int, bool> GetDependenciesCore(Func<int, bool> predicate);
 
+        ISchema IRowToRowMapper.InputSchema => Source.Schema;
+
         public IRow GetRow(IRow input, Func<int, bool> active, out Action disposer)
         {
             Host.CheckValue(input, nameof(input));
@@ -166,7 +168,6 @@ namespace Microsoft.ML.Runtime.Data
                 Action disp;
                 var getters = CreateGetters(input, active, out disp);
                 disposer += disp;
-                ch.Done();
                 return new Row(input, this, Schema, getters);
             }
         }
@@ -469,7 +470,7 @@ namespace Microsoft.ML.Runtime.Data
 
         public virtual bool CanSavePfa => false;
 
-        public virtual bool CanSaveOnnx => false;
+        public virtual bool CanSaveOnnx(OnnxContext ctx) => false;
 
         protected OneToOneTransformBase(IHostEnvironment env, string name, OneToOneColumn[] column,
             IDataView input, Func<ColumnType, string> testType)
@@ -574,7 +575,7 @@ namespace Microsoft.ML.Runtime.Data
         public void SaveAsOnnx(OnnxContext ctx)
         {
             Host.CheckValue(ctx, nameof(ctx));
-            Host.Assert(CanSaveOnnx);
+            Host.Assert(CanSaveOnnx(ctx));
 
             for (int iinfo = 0; iinfo < Infos.Length; ++iinfo)
             {
@@ -807,7 +808,6 @@ namespace Microsoft.ML.Runtime.Data
                     getters[iinfo] = GetGetterCore(ch, input, iinfo, out disp);
                     disposer += disp;
                 }
-                ch.Done();
                 return getters;
             }
         }

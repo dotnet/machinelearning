@@ -5,11 +5,11 @@
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Data.StaticPipe.Runtime;
+using Microsoft.ML.StaticPipe.Runtime;
 
-namespace Microsoft.ML.Data.StaticPipe
+namespace Microsoft.ML.StaticPipe
 {
-    public sealed class Transformer<TTupleInShape, TTupleOutShape, TTransformer> : SchemaBearing<TTupleOutShape>
+    public sealed class Transformer<TInShape, TOutShape, TTransformer> : SchemaBearing<TOutShape>
         where TTransformer : class, ITransformer
     {
         public TTransformer AsDynamic { get; }
@@ -25,23 +25,23 @@ namespace Microsoft.ML.Data.StaticPipe
             // The ability to check at runtime is limited. We could check during transformation time on the input data view.
         }
 
-        public Transformer<TTupleInShape, TTupleNewOutShape, TransformerChain<TNewTransformer>>
-            Append<TTupleNewOutShape, TNewTransformer>(Transformer<TTupleOutShape, TTupleNewOutShape, TNewTransformer> transformer)
+        public Transformer<TInShape, TNewOutShape, TransformerChain<TNewTransformer>>
+            Append<TNewOutShape, TNewTransformer>(Transformer<TOutShape, TNewOutShape, TNewTransformer> transformer)
             where TNewTransformer : class, ITransformer
         {
             Env.Assert(nameof(Append) == nameof(LearningPipelineExtensions.Append));
 
             var trans = AsDynamic.Append(transformer.AsDynamic);
-            return new Transformer<TTupleInShape, TTupleNewOutShape, TransformerChain<TNewTransformer>>(Env, trans, _inShape, transformer.Shape);
+            return new Transformer<TInShape, TNewOutShape, TransformerChain<TNewTransformer>>(Env, trans, _inShape, transformer.Shape);
         }
 
-        public DataView<TTupleOutShape> Transform(DataView<TTupleInShape> input)
+        public DataView<TOutShape> Transform(DataView<TInShape> input)
         {
             Env.Assert(nameof(Transform) == nameof(ITransformer.Transform));
             Env.CheckValue(input, nameof(input));
 
             var view = AsDynamic.Transform(input.AsDynamic);
-            return new DataView<TTupleOutShape>(Env, view, Shape);
+            return new DataView<TOutShape>(Env, view, Shape);
         }
     }
 }

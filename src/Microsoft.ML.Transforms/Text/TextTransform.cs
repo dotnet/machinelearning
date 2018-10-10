@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Microsoft.ML.Core.Data;
-using Microsoft.ML.Data.StaticPipe.Runtime;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
@@ -17,6 +16,8 @@ using Microsoft.ML.Runtime.Internal.Internallearn;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.TextAnalytics;
+using Microsoft.ML.StaticPipe;
+using Microsoft.ML.StaticPipe.Runtime;
 
 [assembly: LoadableClass(TextTransform.Summary, typeof(IDataTransform), typeof(TextTransform), typeof(TextTransform.Arguments), typeof(SignatureDataTransform),
     TextTransform.UserName, "TextTransform", TextTransform.LoaderSignature)]
@@ -473,7 +474,7 @@ namespace Microsoft.ML.Runtime.Data
                 if (charFeatureCol != null && wordFeatureCol != null)
                 {
                     // If we're producing both char and word grams, then we need to disambiguate
-                    // between them (e.g. the word 'a' vs. the char gram 'a').
+                    // between them (for example, the word 'a' vs. the char gram 'a').
                     srcTaggedCols.Add(new KeyValuePair<string, string>("Char", charFeatureCol));
                     srcTaggedCols.Add(new KeyValuePair<string, string>("Word", wordFeatureCol));
                 }
@@ -584,6 +585,26 @@ namespace Microsoft.ML.Runtime.Data
                 return ApplyTransformUtils.ApplyAllTransformsToData(_host, _xf, input);
             }
 
+            public bool IsRowToRowMapper => true;
+
+            public IRowToRowMapper GetRowToRowMapper(ISchema inputSchema)
+            {
+                _host.CheckValue(inputSchema, nameof(inputSchema));
+                var input = new EmptyDataView(_host, inputSchema);
+                var revMaps = new List<IRowToRowMapper>();
+                IDataView chain;
+                for (chain = ApplyTransformUtils.ApplyAllTransformsToData(_host, _xf, input); chain is IDataTransform xf; chain = xf.Source)
+                {
+                    // Everything in the chain ought to be a row mapper.
+                    _host.Assert(xf is IRowToRowMapper);
+                    revMaps.Add((IRowToRowMapper)xf);
+                }
+                // The walkback should have ended at the input.
+                Contracts.Assert(chain == input);
+                revMaps.Reverse();
+                return new CompositeRowToRowMapper(inputSchema, revMaps.ToArray());
+            }
+
             public void Save(ModelSaveContext ctx)
             {
                 _host.CheckValue(ctx, nameof(ctx));
@@ -639,7 +660,8 @@ namespace Microsoft.ML.Runtime.Data
                     verWrittenCur: 0x00010001, // Initial
                     verReadableCur: 0x00010001,
                     verWeCanReadBack: 0x00010001,
-                    loaderSignature: LoaderSignature);
+                    loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(Transformer).Assembly.FullName);
             }
         }
 
@@ -683,9 +705,13 @@ namespace Microsoft.ML.Runtime.Data
     /// </summary>
     public static class TextFeaturizerStaticPipe
     {
-        public static Vector<float> FeaturizeText(this Scalar<string> input, params Scalar<string>[] otherInputs)
-            => input.FeaturizeText(otherInputs, null);
-
+        /// <summary>
+        /// Accept text data and converts it to array which represent combinations of ngram/skip-gram token counts.
+        /// </summary>
+        /// <param name="input">Input data.</param>
+        /// <param name="otherInputs">Additional data.</param>
+        /// <param name="advancedSettings">Delegate which allows you to set transformation settings.</param>
+        /// <returns></returns>
         public static Vector<float> FeaturizeText(this Scalar<string> input, Scalar<string>[] otherInputs = null, Action<TextTransform.Settings> advancedSettings = null)
         {
             Contracts.CheckValue(input, nameof(input));

@@ -34,7 +34,7 @@ using System.Collections.Generic;
 namespace Microsoft.ML.Runtime.Learners
 {
     using TScalarPredictor = IPredictorProducing<float>;
-    using TScalarTrainer = ITrainerEstimator<IPredictionTransformer<IPredictorProducing<float>>, IPredictorProducing<float>>;
+    using TScalarTrainer = ITrainerEstimator<ISingleFeaturePredictionTransformer<IPredictorProducing<float>>, IPredictorProducing<float>>;
     using TDistPredictor = IDistPredictorProducing<float, float>;
     using CR = RoleMappedSchema.ColumnRole;
 
@@ -111,7 +111,7 @@ namespace Microsoft.ML.Runtime.Learners
             return OvaPredictor.Create(Host, _args.UseProbabilities, predictors);
         }
 
-        private IPredictionTransformer<TScalarPredictor> TrainOne(IChannel ch, TScalarTrainer trainer, RoleMappedData data, int cls)
+        private ISingleFeaturePredictionTransformer<TScalarPredictor> TrainOne(IChannel ch, TScalarTrainer trainer, RoleMappedData data, int cls)
         {
             var view = MapLabels(data, cls);
 
@@ -214,7 +214,8 @@ namespace Microsoft.ML.Runtime.Learners
                 verWrittenCur: 0x00010001, // Initial
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
-                loaderSignature: LoaderSignature);
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(OvaPredictor).Assembly.FullName);
         }
 
         private const string SubPredictorFmt = "SubPredictor_{0:000}";
@@ -252,8 +253,6 @@ namespace Microsoft.ML.Runtime.Learners
                 }
                 else
                     impl = new ImplRaw(predictors);
-
-                ch.Done();
             }
 
             return new OvaPredictor(host, impl);

@@ -3,7 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Core.Data;
-using Microsoft.ML.Data.StaticPipe.Runtime;
+using Microsoft.ML.StaticPipe;
+using Microsoft.ML.StaticPipe.Runtime;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -25,13 +26,13 @@ namespace Microsoft.ML.Runtime.Data
         /// Convenience constructor for public facing API.
         /// </summary>
         /// <param name="env">Host Environment.</param>
-        /// <param name="name">Name of the output column.</param>
-        /// <param name="source">Name of the column to be transformed. If this is null '<paramref name="name"/>' will be used.</param>
+        /// <param name="inputColumn">Name of the column to be transformed.</param>
+        /// <param name="outputColumn">Name of the output column. If this is null '<paramref name="inputColumn"/>' will be used.</param>
         /// <param name="maxNumTerms">Maximum number of terms to keep per column when auto-training.</param>
         /// <param name="sort">How items should be ordered when vectorized. By default, they will be in the order encountered.
-        /// If by value items are sorted according to their default comparison, e.g., text sorting will be case sensitive (e.g., 'A' then 'Z' then 'a').</param>
-        public TermEstimator(IHostEnvironment env, string name, string source = null, int maxNumTerms = Defaults.MaxNumTerms, TermTransform.SortOrder sort = Defaults.Sort) :
-           this(env, new TermTransform.ColumnInfo(name, source ?? name, maxNumTerms, sort))
+        /// If by value items are sorted according to their default comparison, for example, text sorting will be case sensitive (for example, 'A' then 'Z' then 'a').</param>
+        public TermEstimator(IHostEnvironment env, string inputColumn, string outputColumn = null, int maxNumTerms = Defaults.MaxNumTerms, TermTransform.SortOrder sort = Defaults.Sort) :
+           this(env, new TermTransform.ColumnInfo(inputColumn, outputColumn ?? inputColumn, maxNumTerms, sort))
         {
         }
 
@@ -113,7 +114,7 @@ namespace Microsoft.ML.Runtime.Data
     public static partial class TermStaticExtensions
     {
         // I am not certain I see a good way to cover the distinct types beyond complete enumeration.
-        // Raw generics would allow illegal possible inputs, e.g., Scalar<Bitmap>. So, this is a partial
+        // Raw generics would allow illegal possible inputs, for example, Scalar<Bitmap>. So, this is a partial
         // class, and all the public facing extension methods for each possible type are in a T4 generated result.
 
         private const KeyValueOrder DefSort = (KeyValueOrder)TermEstimator.Defaults.Sort;

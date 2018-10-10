@@ -30,7 +30,8 @@ namespace Microsoft.ML.Runtime.Data
                 verWrittenCur: 0x00010001, // Initial
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
-                loaderSignature: LoaderSignature);
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(CompositeTransform).Assembly.FullName);
         }
 
         public static IDataTransform Create(IHostEnvironment env, ModelLoadContext ctx, IDataView input)
@@ -55,8 +56,6 @@ namespace Microsoft.ML.Runtime.Data
                     ctx.LoadModel<IDataTransform, SignatureLoadDataTransform>(env, out res, modelName, input);
                     input = res;
                 }
-
-                ch.Done();
             }
 
             return res;

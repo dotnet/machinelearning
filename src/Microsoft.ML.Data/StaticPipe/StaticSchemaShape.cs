@@ -9,12 +9,12 @@ using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 
-namespace Microsoft.ML.Data.StaticPipe.Runtime
+namespace Microsoft.ML.StaticPipe.Runtime
 {
     /// <summary>
     /// A schema shape with names corresponding to a type parameter in one of the typed variants
     /// of the data pipeline structures. Instances of this class tend to be bundled with the statically
-    /// typed variants of the dynamic structures (e.g., <see cref="DataView{TTupleShape}"/> and so forth),
+    /// typed variants of the dynamic structures (for example, <see cref="DataView{TShape}"/> and so forth),
     /// and their primary purpose is to ensure that the schemas of the dynamic structures and the
     /// statically declared structures are compatible.
     /// </summary>
@@ -34,14 +34,14 @@ namespace Microsoft.ML.Data.StaticPipe.Runtime
         /// <summary>
         /// Creates a new instance out of a parameter info, presumably fetched from a user specified delegate.
         /// </summary>
-        /// <typeparam name="TTupleShape">The static tuple-shape type</typeparam>
+        /// <typeparam name="TShape">The static shape type.</typeparam>
         /// <param name="info">The parameter info on the method, whose type should be
-        /// <typeparamref name="TTupleShape"/></param>
-        /// <returns>A new instance with names and members types enumerated</returns>
-        public static StaticSchemaShape Make<TTupleShape>(ParameterInfo info)
+        /// <typeparamref name="TShape"/>.</param>
+        /// <returns>A new instance with names and members types enumerated.</returns>
+        public static StaticSchemaShape Make<TShape>(ParameterInfo info)
         {
             Contracts.AssertValue(info);
-            var pairs = StaticPipeInternalUtils.GetNamesTypes<TTupleShape, PipelineColumn>(info);
+            var pairs = StaticPipeInternalUtils.GetNamesTypes<TShape, PipelineColumn>(info);
             return new StaticSchemaShape(pairs);
         }
 
@@ -162,7 +162,7 @@ namespace Microsoft.ML.Data.StaticPipe.Runtime
                 Type physType = StaticKind(pt.RawKind);
                 // Though I am unaware of any existing instances, it is theoretically possible for a
                 // primitive type to exist, have the same data kind as one of the existing types, and yet
-                // not be one of the built in types. (E.g., an outside analogy to the key types.) For this
+                // not be one of the built in types. (For example, an outside analogy to the key types.) For this
                 // reason, we must be certain that when we return here we are covering one fo the builtin types.
                 if (physType != null && (
                     pt == NumberType.I1 || pt == NumberType.I2 || pt == NumberType.I4 || pt == NumberType.I4 ||
@@ -181,7 +181,7 @@ namespace Microsoft.ML.Data.StaticPipe.Runtime
         /// <summary>
         /// Returns true if the input type is something recognizable as being oen of the standard
         /// builtin types. This method will also throw if something is detected as being definitely
-        /// wrong (e.g., the input type does not descend from <see cref="PipelineColumn"/> at all,
+        /// wrong (for example, the input type does not descend from <see cref="PipelineColumn"/> at all,
         /// or a <see cref="Key{T}"/> is declared with a <see cref="string"/> type parameter or
         /// something.
         /// </summary>
@@ -195,7 +195,7 @@ namespace Microsoft.ML.Data.StaticPipe.Runtime
             }
             var gt = t.IsGenericType ? t.GetGenericTypeDefinition() : t;
             if (gt != typeof(Scalar<>) && gt != typeof(Key<>) && gt != typeof(Key<,>) && gt != typeof(VarKey<>) &&
-                gt != typeof(Vector<>) && gt != typeof(VarVector<>) && gt != typeof(NormVector<>))
+                gt != typeof(Vector<>) && gt != typeof(VarVector<>) && gt != typeof(NormVector<>) && gt != typeof(Custom<>))
             {
                 throw ectx.ExceptParam(nameof(t),
                     $"Type {t} was not one of the standard subclasses of {nameof(PipelineColumn)}");
@@ -306,7 +306,7 @@ namespace Microsoft.ML.Data.StaticPipe.Runtime
                 Type physType = StaticKind(pt.RawKind);
                 // Though I am unaware of any existing instances, it is theoretically possible for a
                 // primitive type to exist, have the same data kind as one of the existing types, and yet
-                // not be one of the built in types. (E.g., an outside analogy to the key types.) For this
+                // not be one of the built in types. (For example, an outside analogy to the key types.) For this
                 // reason, we must be certain that when we return here we are covering one fo the builtin types.
                 if (physType != null && (
                     pt == NumberType.I1 || pt == NumberType.I2 || pt == NumberType.I4 || pt == NumberType.I8 ||
@@ -323,7 +323,7 @@ namespace Microsoft.ML.Data.StaticPipe.Runtime
         }
 
         /// <summary>
-        /// Note that this can return a different type than the actual physical representation type, e.g., for
+        /// Note that this can return a different type than the actual physical representation type, for example, for
         /// <see cref="DataKind.Text"/> the return type is <see cref="string"/>, even though we do not use that
         /// type for communicating text.
         /// </summary>

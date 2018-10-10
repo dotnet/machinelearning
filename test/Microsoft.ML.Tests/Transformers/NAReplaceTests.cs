@@ -68,10 +68,10 @@ namespace Microsoft.ML.Tests.Transformers
 
             var est = data.MakeNewEstimator().
                    Append(row => (
-                   A: row.ScalarFloat.ReplaceWithMissingValues(NAReplaceTransform.ColumnInfo.ReplacementMode.Maximum),
-                   B: row.ScalarDouble.ReplaceWithMissingValues(NAReplaceTransform.ColumnInfo.ReplacementMode.Mean),
-                   C: row.VectorFloat.ReplaceWithMissingValues(NAReplaceTransform.ColumnInfo.ReplacementMode.Mean),
-                   D: row.VectorDoulbe.ReplaceWithMissingValues(NAReplaceTransform.ColumnInfo.ReplacementMode.Minimum)
+                   A: row.ScalarFloat.ReplaceNaNValues(NAReplaceTransform.ColumnInfo.ReplacementMode.Maximum),
+                   B: row.ScalarDouble.ReplaceNaNValues(NAReplaceTransform.ColumnInfo.ReplacementMode.Mean),
+                   C: row.VectorFloat.ReplaceNaNValues(NAReplaceTransform.ColumnInfo.ReplacementMode.Mean),
+                   D: row.VectorDoulbe.ReplaceNaNValues(NAReplaceTransform.ColumnInfo.ReplacementMode.Minimum)
                    ));
 
             TestEstimatorCore(est.AsDynamic, data.AsDynamic, invalidInput: invalidData);
@@ -79,7 +79,7 @@ namespace Microsoft.ML.Tests.Transformers
             using (var ch = Env.Start("save"))
             {
                 var saver = new TextSaver(Env, new TextSaver.Arguments { Silent = true });
-                IDataView savedData = TakeFilter.Create(Env, est.Fit(data).Transform(data).AsDynamic, 4);
+                var savedData = TakeFilter.Create(Env, est.Fit(data).Transform(data).AsDynamic, 4);
                 savedData = new ChooseColumnsTransform(Env, savedData, "A", "B", "C", "D");
                 using (var fs = File.Create(outputPath))
                     DataSaverUtils.SaveDataView(ch, saver, savedData, fs, keepHidden: true);
