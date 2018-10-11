@@ -165,24 +165,6 @@ namespace Microsoft.ML.Runtime.Data
     }
 
     /// <summary>
-    /// A logical row. Every value of every column is retrievable, and immutable.
-    /// </summary>
-    public interface IStandaloneRow : ISchematized
-    {
-        /// <summary>
-        /// Puts a value of a column <paramref name="col"/> into <paramref name="value"/>.
-        /// This throws if the type <typeparamref name="TValue"/> differs from this column's type.
-        /// </summary>
-        void GetValue<TValue>(int col, ref TValue value);
-
-        /// <summary>
-        /// Returns a value getter delegate to fetch the given column value from the row.
-        /// This throws if the type <typeparamref name="TValue"/> differs from this column's type.
-        /// </summary>
-        ValueGetter<TValue> GetGetter<TValue>(int col);
-    }
-
-    /// <summary>
     /// A cursor through rows of an <see cref="IDataView"/>. Note that this includes/is an
     /// <see cref="IRow"/>, as well as an <see cref="ICursor"/>.
     /// </summary>
