@@ -14,7 +14,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
     public partial class ApiScenariosTests
     {
         /// <summary>
-        /// Meta-components: Meta-components (for example, components that themselves instantiate components) should not be booby-trapped.
+        /// Meta-components: Meta-components (e.g., components that themselves instantiate components) should not be booby-trapped.
         /// When specifying what trainer OVA should use, a user will be able to specify any binary classifier.
         /// If they specify a regression or multi-class classifier ideally that should be a compile error.
         /// </summary>

@@ -173,6 +173,7 @@ namespace Microsoft.ML.Runtime.FastTree
                 FeatureCount = trainData.Schema.Feature.Type.ValueCount;
                 ConvertData(trainData);
                 TrainCore(ch);
+                ch.Done();
             }
             // LogitBoost is naturally calibrated to
             // output probabilities when transformed using

@@ -43,12 +43,9 @@ namespace Microsoft.ML.Runtime.Learners
     using Stopwatch = System.Diagnostics.Stopwatch;
     using TScalarPredictor = IPredictorWithFeatureWeights<float>;
 
-    public abstract class LinearTrainerBase<TTransformer, TModel> : TrainerEstimatorBase<TTransformer, TModel>
-        where TTransformer : ISingleFeaturePredictionTransformer<TModel>
-        where TModel : IPredictor
+    public abstract class LinearTrainerBase<TPredictor> : TrainerBase<TPredictor>
+        where TPredictor : IPredictor
     {
-        private const string RegisterName = nameof(LinearTrainerBase<TTransformer, TModel>);
-
         protected bool NeedShuffle;
 
         private static readonly TrainerInfo _info = new TrainerInfo();
@@ -59,16 +56,15 @@ namespace Microsoft.ML.Runtime.Learners
         /// </summary>
         protected abstract bool ShuffleData { get; }
 
-        private protected LinearTrainerBase(IHostEnvironment env, string featureColumn, SchemaShape.Column labelColumn,
-            string weightColumn = null)
-            : base(Contracts.CheckRef(env, nameof(env)).Register(RegisterName), TrainerUtils.MakeR4VecFeature(featureColumn),
-                          labelColumn, TrainerUtils.MakeR4ScalarWeightColumn(weightColumn))
+        private protected LinearTrainerBase(IHostEnvironment env, string name)
+            : base(env, name)
         {
         }
 
-        protected override TModel TrainModelCore(TrainContext context)
+        public override TPredictor Train(TrainContext context)
         {
             Host.CheckValue(context, nameof(context));
+            TPredictor pred;
             using (var ch = Host.Start("Training"))
             {
                 var preparedData = PrepareDataFromTrainingExamples(ch, context.TrainingSet, out int weightSetCount);
@@ -77,11 +73,13 @@ namespace Microsoft.ML.Runtime.Learners
                 linInitPred = linInitPred ?? initPred as LinearPredictor;
                 Host.CheckParam(context.InitialPredictor == null || linInitPred != null, nameof(context),
                     "Initial predictor was not a linear predictor.");
-                return TrainCore(ch, preparedData, linInitPred, weightSetCount);
+                pred = TrainCore(ch, preparedData, linInitPred, weightSetCount);
+                ch.Done();
             }
+            return pred;
         }
 
-        protected abstract TModel TrainCore(IChannel ch, RoleMappedData data, LinearPredictor predictor, int weightSetCount);
+        protected abstract TPredictor TrainCore(IChannel ch, RoleMappedData data, LinearPredictor predictor, int weightSetCount);
 
         /// <summary>
         /// This method ensures that the data meets the requirements of this trainer and its
@@ -213,6 +211,7 @@ namespace Microsoft.ML.Runtime.Learners
                             $"is only valid with a positive constant, and values below {L2LowerBound} cause very slow convergence. " +
                             $"The original {nameof(L2Const)} = {L2Const}, was replaced with {nameof(L2Const)} = {L2LowerBound}.");
                         L2Const = L2LowerBound;
+                        ch.Done();
                     }
                 }
             }
@@ -1497,21 +1496,21 @@ namespace Microsoft.ML.Runtime.Learners
     }
 
     public sealed class StochasticGradientDescentClassificationTrainer :
-        LinearTrainerBase<BinaryPredictionTransformer<TScalarPredictor>, TScalarPredictor>
+        LinearTrainerBase<TScalarPredictor>
     {
-        internal const string LoadNameValue = "BinarySGD";
-        internal const string UserNameValue = "Hogwild SGD (binary)";
-        internal const string ShortName = "HogwildSGD";
+        public const string LoadNameValue = "BinarySGD";
+        public const string UserNameValue = "Hogwild SGD (binary)";
+        public const string ShortName = "HogwildSGD";
 
         public sealed class Arguments : LearnerInputBaseWithWeight
         {
             [Argument(ArgumentType.Multiple, HelpText = "Loss Function", ShortName = "loss", SortOrder = 50)]
             public ISupportClassificationLossFactory LossFunction = new LogLossFactory();
 
-            [Argument(ArgumentType.AtMostOnce, HelpText = "L2 Regularization constant", ShortName = "l2", SortOrder = 50)]
-            [TGUI(Label = "L2 Regularization Constant", SuggestedSweeps = "1e-7,5e-7,1e-6,5e-6,1e-5")]
+            [Argument(ArgumentType.AtMostOnce, HelpText = "L2 regularizer constant", ShortName = "l2", SortOrder = 50)]
+            [TGUI(Label = "L2 Regularizer Constant", SuggestedSweeps = "1e-7,5e-7,1e-6,5e-6,1e-5")]
             [TlcModule.SweepableDiscreteParam("L2Const", new object[] { 1e-7f, 5e-7f, 1e-6f, 5e-6f, 1e-5f })]
-            public float L2Weight = Defaults.L2Weight;
+            public float L2Const = (float)1e-6;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Degree of lock-free parallelism. Defaults to automatic depending on data sparseness. Determinism not guaranteed.", ShortName = "nt,t,threads", SortOrder = 50)]
             [TGUI(Label = "Number of threads", SuggestedSweeps = "1,2,4")]
@@ -1520,16 +1519,16 @@ namespace Microsoft.ML.Runtime.Learners
             [Argument(ArgumentType.AtMostOnce, HelpText = "Exponential moving averaged improvement tolerance for convergence", ShortName = "tol")]
             [TGUI(SuggestedSweeps = "1e-2,1e-3,1e-4,1e-5")]
             [TlcModule.SweepableDiscreteParam("ConvergenceTolerance", new object[] { 1e-2f, 1e-3f, 1e-4f, 1e-5f })]
-            public double ConvergenceTolerance = 1e-4;
+            public Double ConvergenceTolerance = 1e-4;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Maximum number of iterations; set to 1 to simulate online learning.", ShortName = "iter")]
             [TGUI(Label = "Max number of iterations", SuggestedSweeps = "1,5,10,20")]
             [TlcModule.SweepableDiscreteParam("MaxIterations", new object[] { 1, 5, 10, 20 })]
-            public int MaxIterations = Defaults.MaxIterations;
+            public int MaxIterations = 20;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Initial learning rate (only used by SGD)", ShortName = "ilr,lr")]
             [TGUI(Label = "Initial Learning Rate (for SGD)")]
-            public double InitLearningRate = Defaults.InitLearningRate;
+            public Double InitLearningRate = 0.01;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Shuffle data every epoch?", ShortName = "shuf")]
             [TlcModule.SweepableDiscreteParam("Shuffle", null, isBool: true)]
@@ -1550,28 +1549,23 @@ namespace Microsoft.ML.Runtime.Learners
             internal void Check(IHostEnvironment env)
             {
                 Contracts.CheckValue(env, nameof(env));
-                env.CheckUserArg(L2Weight >= 0, nameof(L2Weight), "Must be non-negative.");
+                env.CheckUserArg(L2Const >= 0, nameof(L2Const), "Must be non-negative.");
                 env.CheckUserArg(InitLearningRate > 0, nameof(InitLearningRate), "Must be positive.");
                 env.CheckUserArg(MaxIterations > 0, nameof(MaxIterations), "Must be positive.");
                 env.CheckUserArg(PositiveInstanceWeight > 0, nameof(PositiveInstanceWeight), "Must be positive");
 
-                if (InitLearningRate * L2Weight >= 1)
+                if (InitLearningRate * L2Const >= 1)
                 {
                     using (var ch = env.Start("Argument Adjustment"))
                     {
                         ch.Warning("{0} {1} set too high; reducing to {1}", nameof(InitLearningRate),
-                            InitLearningRate, InitLearningRate = (float)0.5 / L2Weight);
+                            InitLearningRate, InitLearningRate = (float)0.5 / L2Const);
+                        ch.Done();
                     }
                 }
 
                 if (ConvergenceTolerance <= 0)
                     ConvergenceTolerance = float.Epsilon;
-            }
-            internal static class Defaults
-            {
-                internal const float L2Weight = 1e-6f;
-                internal const int MaxIterations = 20;
-                internal const double InitLearningRate = 0.01;
             }
         }
 
@@ -1584,59 +1578,8 @@ namespace Microsoft.ML.Runtime.Learners
 
         public override TrainerInfo Info { get; }
 
-        /// <summary>
-        /// Initializes a new instance of <see cref="StochasticGradientDescentClassificationTrainer"/>
-        /// </summary>
-        /// <param name="env">The environment to use.</param>
-        /// <param name="featureColumn">The name of the feature column.</param>
-        /// <param name="labelColumn">The name of the label column.</param>
-        /// <param name="weightColumn">The name for the example weight column.</param>
-        /// <param name="maxIterations">The maximum number of iterations; set to 1 to simulate online learning.</param>
-        /// <param name="initLearningRate">The initial learning rate used by SGD.</param>
-        /// <param name="l2Weight">The L2 regularizer constant.</param>
-        /// <param name="loss">The loss function to use.</param>
-        /// <param name="advancedSettings">A delegate to apply all the advanced arguments to the algorithm.</param>
-        public StochasticGradientDescentClassificationTrainer(IHostEnvironment env, string featureColumn, string labelColumn, string weightColumn = null,
-            int maxIterations = Arguments.Defaults.MaxIterations,
-            double initLearningRate = Arguments.Defaults.InitLearningRate,
-            float l2Weight = Arguments.Defaults.L2Weight,
-            ISupportClassificationLossFactory loss = null,
-            Action<Arguments> advancedSettings = null)
-            : base(env, featureColumn, TrainerUtils.MakeBoolScalarLabel(labelColumn), weightColumn)
-        {
-            Host.CheckNonEmpty(featureColumn, nameof(featureColumn));
-            Host.CheckNonEmpty(labelColumn, nameof(labelColumn));
-
-            _args = new Arguments();
-            advancedSettings?.Invoke(_args);
-
-            // check that the users didn't specify different label, group, feature, weights in the args, from what they supplied directly
-            TrainerUtils.CheckArgsHaveDefaultColNames(Host, _args);
-
-            if (advancedSettings != null)
-                CheckArgsAndAdvancedSettingMismatch(maxIterations, initLearningRate, l2Weight, loss, new Arguments(), _args);
-
-            // Apply the advanced args, if the user supplied any.
-            _args.FeatureColumn = featureColumn;
-            _args.LabelColumn = labelColumn;
-            _args.WeightColumn = weightColumn;
-            _args.MaxIterations = maxIterations;
-            _args.InitLearningRate = initLearningRate;
-            _args.L2Weight = l2Weight;
-            if (loss != null)
-                _args.LossFunction = loss;
-            _args.Check(env);
-
-            _loss = _args.LossFunction.CreateComponent(env);
-            Info = new TrainerInfo(calibration: !(_loss is LogLoss), supportIncrementalTrain: true);
-            NeedShuffle = _args.Shuffle;
-        }
-
-        /// <summary>
-        /// Initializes a new instance of <see cref="StochasticGradientDescentClassificationTrainer"/>
-        /// </summary>
-        internal StochasticGradientDescentClassificationTrainer(IHostEnvironment env, Arguments args)
-            : base(env, args.FeatureColumn, TrainerUtils.MakeBoolScalarLabel(args.LabelColumn), args.WeightColumn)
+        public StochasticGradientDescentClassificationTrainer(IHostEnvironment env, Arguments args)
+            : base(env, LoadNameValue)
         {
             args.Check(env);
             _loss = args.LossFunction.CreateComponent(env);
@@ -1644,43 +1587,6 @@ namespace Microsoft.ML.Runtime.Learners
             NeedShuffle = args.Shuffle;
             _args = args;
         }
-
-        /// <summary>
-        /// If, after applying the advancedSettings delegate, the args are different that the default value
-        /// and are also different than the value supplied directly to the xtension method, warn the user
-        /// about which value is being used.
-        /// The parameters that appear here, numTrees, minDocumentsInLeafs, numLeaves, learningRate are the ones the users are most likely to tune.
-        /// This list should follow the one in the constructor, and the extension methods on the <see cref="TrainContextBase"/>.
-        /// </summary>
-        internal void CheckArgsAndAdvancedSettingMismatch(int maxIterations,
-            double initLearningRate,
-            float l2Weight,
-            ISupportClassificationLossFactory loss,
-            Arguments snapshot,
-            Arguments currentArgs)
-        {
-            using (var ch = Host.Start("Comparing advanced settings with the directly provided values."))
-            {
-                // Check that the user didn't supply different parameters in the args, from what it specified directly.
-                TrainerUtils.CheckArgsAndAdvancedSettingMismatch(ch, maxIterations, snapshot.MaxIterations, currentArgs.MaxIterations, nameof(maxIterations));
-                TrainerUtils.CheckArgsAndAdvancedSettingMismatch(ch, initLearningRate, snapshot.InitLearningRate, currentArgs.InitLearningRate, nameof(initLearningRate));
-                TrainerUtils.CheckArgsAndAdvancedSettingMismatch(ch, l2Weight, snapshot.L2Weight, currentArgs.L2Weight, nameof(l2Weight));
-                TrainerUtils.CheckArgsAndAdvancedSettingMismatch(ch, loss, snapshot.LossFunction, currentArgs.LossFunction, nameof(loss));
-            }
-        }
-
-        protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema)
-        {
-            return new[]
-            {
-                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata())),
-                new SchemaShape.Column(DefaultColumnNames.Probability, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata(true))),
-                new SchemaShape.Column(DefaultColumnNames.PredictedLabel, SchemaShape.Column.VectorKind.Scalar, BoolType.Instance, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata()))
-            };
-        }
-
-        protected override BinaryPredictionTransformer<TScalarPredictor> MakeTransformer(TScalarPredictor model, ISchema trainSchema)
-            => new BinaryPredictionTransformer<TScalarPredictor>(Host, model, trainSchema, FeatureColumn.Name);
 
         //For complexity analysis, we assume that
         // - The number of features is N
@@ -1707,7 +1613,7 @@ namespace Microsoft.ML.Runtime.Learners
             int checkFrequency = _args.CheckFrequency ?? numThreads;
             if (checkFrequency <= 0)
                 checkFrequency = int.MaxValue;
-            var l2Weight = _args.L2Weight;
+            var l2Const = _args.L2Const;
             var lossFunc = _loss;
             var pOptions = new ParallelOptions { MaxDegreeOfParallelism = numThreads };
             var positiveInstanceWeight = _args.PositiveInstanceWeight;
@@ -1754,7 +1660,7 @@ namespace Microsoft.ML.Runtime.Learners
                         }
                     }
 
-                    var newLoss = lossSum.Sum / count + l2Weight * VectorUtils.NormSquared(weights) * 0.5;
+                    var newLoss = lossSum.Sum / count + l2Const * VectorUtils.NormSquared(weights) * 0.5;
                     improvement = improvement == 0 ? loss - newLoss : 0.5 * (loss - newLoss + improvement);
                     loss = newLoss;
 
@@ -1792,9 +1698,9 @@ namespace Microsoft.ML.Runtime.Learners
                             if (label > 0)
                                 derivative *= positiveInstanceWeight;
 
-                            Double rate = ilr / (1 + ilr * l2Weight * (t++));
+                            Double rate = ilr / (1 + ilr * l2Const * (t++));
                             Double step = -derivative * rate;
-                            weightScaling *= 1 - rate * l2Weight;
+                            weightScaling *= 1 - rate * l2Const;
                             VectorUtils.AddMult(ref features, weights.Values, (float)(step / weightScaling));
                             bias += (float)step;
                         }

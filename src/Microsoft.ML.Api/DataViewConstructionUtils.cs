@@ -404,6 +404,7 @@ namespace Microsoft.ML.Runtime.Api
                 {
                     if (State != CursorState.Done)
                     {
+                        Ch.Done();
                         Ch.Dispose();
                         _position = -1;
                         State = CursorState.Done;

@@ -21,7 +21,7 @@ to a particular within a block.)
 
 Before we discuss the format itself we will establish some conventions on how
 individual scalar values, strings, and other data is serialized. All basic
-pieces of data (for example, a single number, or a single string) are encoded in ways
+pieces of data (e.g., a single number, or a single string) are encoded in ways
 reflecting the semantics of the .NET `BinaryWriter` class, those semantics
 being:
 

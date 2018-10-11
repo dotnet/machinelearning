@@ -2,12 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Float = System.Single;
+
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.EntryPoints;
+using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
-using Microsoft.ML.Transforms;
 
 [assembly: LoadableClass(typeof(GaussianFourierSampler), typeof(GaussianFourierSampler.Arguments), typeof(SignatureFourierDistributionSampler),
     "Gaussian Kernel", GaussianFourierSampler.LoadName, "Gaussian")]
@@ -24,33 +25,26 @@ using Microsoft.ML.Transforms;
     "Laplacian Fourier Sampler Executor", "LaplacianSamplerExecutor", LaplacianFourierSampler.LoaderSignature)]
 
 // REVIEW: Roll all of this in with the RffTransform.
-namespace Microsoft.ML.Transforms
+namespace Microsoft.ML.Runtime.Data
 {
     /// <summary>
     /// Signature for an IFourierDistributionSampler constructor.
     /// </summary>
-    public delegate void SignatureFourierDistributionSampler(float avgDist);
+    public delegate void SignatureFourierDistributionSampler(Float avgDist);
 
     public interface IFourierDistributionSampler : ICanSaveModel
     {
-        float Next(IRandom rand);
-    }
-
-    [TlcModule.ComponentKind("FourierDistributionSampler")]
-    public interface IFourierDistributionSamplerFactory : IComponentFactory<float, IFourierDistributionSampler>
-    {
+        Float Next(IRandom rand);
     }
 
     public sealed class GaussianFourierSampler : IFourierDistributionSampler
     {
         private readonly IHost _host;
 
-        public class Arguments : IFourierDistributionSamplerFactory
+        public class Arguments
         {
             [Argument(ArgumentType.AtMostOnce, HelpText = "gamma in the kernel definition: exp(-gamma*||x-y||^2 / r^2). r is an estimate of the average intra-example distance", ShortName = "g")]
-            public float Gamma = 1;
-
-            public IFourierDistributionSampler CreateComponent(IHostEnvironment env, float avgDist) => new GaussianFourierSampler(env, this, avgDist);
+            public Float Gamma = 1;
         }
 
         public const string LoaderSignature = "RandGaussFourierExec";
@@ -67,9 +61,9 @@ namespace Microsoft.ML.Transforms
 
         public const string LoadName = "GaussianRandom";
 
-        private readonly float _gamma;
+        private readonly Float _gamma;
 
-        public GaussianFourierSampler(IHostEnvironment env, Arguments args, float avgDist)
+        public GaussianFourierSampler(IHostEnvironment env, Arguments args, Float avgDist)
         {
             Contracts.CheckValue(env, nameof(env));
             _host = env.Register(LoadName);
@@ -97,7 +91,7 @@ namespace Microsoft.ML.Transforms
             // Float: gamma
 
             int cbFloat = ctx.Reader.ReadInt32();
-            _host.CheckDecode(cbFloat == sizeof(float));
+            _host.CheckDecode(cbFloat == sizeof(Float));
 
             _gamma = ctx.Reader.ReadFloat();
             _host.CheckDecode(FloatUtils.IsFinite(_gamma));
@@ -111,25 +105,23 @@ namespace Microsoft.ML.Transforms
             // int: sizeof(Float)
             // Float: gamma
 
-            ctx.Writer.Write(sizeof(float));
+            ctx.Writer.Write(sizeof(Float));
             _host.Assert(FloatUtils.IsFinite(_gamma));
             ctx.Writer.Write(_gamma);
         }
 
-        public float Next(IRandom rand)
+        public Float Next(IRandom rand)
         {
-            return (float)Stats.SampleFromGaussian(rand) * MathUtils.Sqrt(2 * _gamma);
+            return (Float)Stats.SampleFromGaussian(rand) * MathUtils.Sqrt(2 * _gamma);
         }
     }
 
     public sealed class LaplacianFourierSampler : IFourierDistributionSampler
     {
-        public class Arguments : IFourierDistributionSamplerFactory
+        public class Arguments
         {
             [Argument(ArgumentType.AtMostOnce, HelpText = "a in the term exp(-a|x| / r). r is an estimate of the average intra-example L1 distance")]
-            public float A = 1;
-
-            public IFourierDistributionSampler CreateComponent(IHostEnvironment env, float avgDist) => new LaplacianFourierSampler(env, this, avgDist);
+            public Float A = 1;
         }
 
         private static VersionInfo GetVersionInfo()
@@ -147,9 +139,9 @@ namespace Microsoft.ML.Transforms
         public const string RegistrationName = "LaplacianRandom";
 
         private readonly IHost _host;
-        private readonly float _a;
+        private readonly Float _a;
 
-        public LaplacianFourierSampler(IHostEnvironment env, Arguments args, float avgDist)
+        public LaplacianFourierSampler(IHostEnvironment env, Arguments args, Float avgDist)
         {
             Contracts.CheckValue(env, nameof(env));
             _host = env.Register(RegistrationName);
@@ -178,7 +170,7 @@ namespace Microsoft.ML.Transforms
             // Float: a
 
             int cbFloat = ctx.Reader.ReadInt32();
-            _host.CheckDecode(cbFloat == sizeof(float));
+            _host.CheckDecode(cbFloat == sizeof(Float));
 
             _a = ctx.Reader.ReadFloat();
             _host.CheckDecode(FloatUtils.IsFinite(_a));
@@ -192,12 +184,12 @@ namespace Microsoft.ML.Transforms
             // int: sizeof(Float)
             // Float: a
 
-            ctx.Writer.Write(sizeof(float));
+            ctx.Writer.Write(sizeof(Float));
             _host.Assert(FloatUtils.IsFinite(_a));
             ctx.Writer.Write(_a);
         }
 
-        public float Next(IRandom rand)
+        public Float Next(IRandom rand)
         {
             return _a * Stats.SampleFromCauchy(rand);
         }

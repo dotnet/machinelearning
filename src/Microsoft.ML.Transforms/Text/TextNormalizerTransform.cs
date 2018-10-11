@@ -148,6 +148,8 @@ namespace Microsoft.ML.Runtime.TextAnalytics
                 _keepDiacritics = args.KeepDiacritics;
                 _keepPunctuations = args.KeepPunctuations;
                 _keepNumbers = args.KeepNumbers;
+
+                ch.Done();
             }
             Metadata.Seal();
         }
@@ -193,6 +195,8 @@ namespace Microsoft.ML.Runtime.TextAnalytics
                 _keepDiacritics = ctx.Reader.ReadBoolByte();
                 _keepPunctuations = ctx.Reader.ReadBoolByte();
                 _keepNumbers = ctx.Reader.ReadBoolByte();
+
+                ch.Done();
             }
             Metadata.Seal();
         }

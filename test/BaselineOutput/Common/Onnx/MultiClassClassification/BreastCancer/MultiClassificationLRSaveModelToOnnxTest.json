@@ -111,26 +111,6 @@
           }
         ],
         "domain": "ai.onnx.ml"
-      },
-      {
-        "input": [
-          "PredictedLabel"
-        ],
-        "output": [
-          "PredictedLabel0"
-        ],
-        "name": "Identity",
-        "opType": "Identity"
-      },
-      {
-        "input": [
-          "Score"
-        ],
-        "output": [
-          "Score0"
-        ],
-        "name": "Identity0",
-        "opType": "Identity"
       }
     ],
     "name": "MultiClassificationLRSaveModelToOnnxTest",
@@ -156,7 +136,7 @@
     ],
     "output": [
       {
-        "name": "PredictedLabel0",
+        "name": "PredictedLabel",
         "type": {
           "tensorType": {
             "elemType": "INT64",
@@ -174,7 +154,7 @@
         }
       },
       {
-        "name": "Score0",
+        "name": "Score",
         "type": {
           "tensorType": {
             "elemType": "FLOAT",

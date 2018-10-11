@@ -96,6 +96,7 @@ namespace Microsoft.ML.Runtime.Ensemble.Selector.SubModelSelector
                 // REVIEW: We're assuming that the metrics of interest are always doubles here.
                 var metrics = EvaluateUtils.GetMetrics(metricsView, getVectorMetrics: false);
                 model.Metrics = metrics.ToArray();
+                ch.Done();
             }
         }
 

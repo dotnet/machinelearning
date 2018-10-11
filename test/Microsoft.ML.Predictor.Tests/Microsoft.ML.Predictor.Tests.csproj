@@ -17,6 +17,7 @@
     <ProjectReference Include="..\..\src\Microsoft.ML.Legacy\Microsoft.ML.Legacy.csproj" />
     <ProjectReference Include="..\Microsoft.ML.TestFramework\Microsoft.ML.TestFramework.csproj" />
     <ProjectReference Include="..\Microsoft.ML.InferenceTesting\Microsoft.ML.InferenceTesting.csproj" />
+	<PackageReference Include="LightGBM" Version="$(LightGBMPackageVersion)" />
   </ItemGroup>
   
   <ItemGroup>

@@ -7,7 +7,6 @@ using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.Tools;
-using Microsoft.ML.Transforms;
 using System;
 using System.IO;
 using Xunit;
@@ -69,7 +68,7 @@ namespace Microsoft.ML.Tests
         }
 
         [Fact]
-        void TestBadTransformSchema()
+        void TestBadTransformSchmea()
         {
             var data = new[] { new TestClass() { A = 1, B = 2, C = 3, }, new TestClass() { A = 4, B = 5, C = 6 } };
             var xydata = new[] { new TestClassXY() { X = 10, Y = 100 }, new TestClassXY() { X = -1, Y = -100 } };

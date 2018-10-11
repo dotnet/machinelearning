@@ -54,6 +54,7 @@ namespace Microsoft.ML.Runtime.Data
         {
             if (State != CursorState.Done)
             {
+                Ch.Done();
                 Ch.Dispose();
                 Position = -1;
                 State = CursorState.Done;

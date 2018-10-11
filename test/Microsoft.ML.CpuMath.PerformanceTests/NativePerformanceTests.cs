@@ -21,11 +21,11 @@ namespace Microsoft.ML.CpuMath.PerformanceTests
         }
         
         [Benchmark]
-        public unsafe void Scale()
+        public unsafe void ScaleU()
         {
             fixed (float* pdst = dst)
             {
-                CpuMathNativeUtils.Scale(DefaultScale, pdst, Length);
+                CpuMathNativeUtils.ScaleU(DefaultScale, pdst, Length);
             }
         }
         

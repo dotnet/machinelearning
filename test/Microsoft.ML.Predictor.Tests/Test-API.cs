@@ -73,7 +73,7 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn.Test
 
             ///*********  Loading and making predictions with a previously saved model *******//
             // Note:   there are several alternative ways to construct instances
-            // For example, see FactoryExampleTest  below that demonstrates named-feature : value pairs.
+            // E.g., see FactoryExampleTest  below that demonstrates named-feature : value pairs.
 
             // Load saved model
             IDataModel dataModel;
@@ -176,7 +176,7 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn.Test
 
                 ///*********  Loading and making predictions with a previously saved model *******//
                 // Note:   there are several alternative ways to construct instances
-                // For example, see FactoryExampleTest  below that demonstrates named-feature : value pairs.
+                // E.g., see FactoryExampleTest  below that demonstrates named-feature : value pairs.
 
                 // Load saved model
                 IDataModel dataModel;

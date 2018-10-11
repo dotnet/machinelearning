@@ -74,7 +74,7 @@ namespace Microsoft.ML.Runtime.Data
             Desc = SimplePartitionedPathParser.Summary, Alias = SimplePartitionedPathParser.ShortName)]
         public class Arguments : IPartitionedPathParserFactory
         {
-            [Argument(ArgumentType.Multiple, HelpText = "Column definitions used to override the Partitioned Path Parser. Expected with the format name:type:numeric-source, for example, col=MyFeature:R4:1",
+            [Argument(ArgumentType.Multiple, HelpText = "Column definitions used to override the Partitioned Path Parser. Expected with the format name:type:numeric-source, e.g. col=MyFeature:R4:1",
                 ShortName = "col", SortOrder = 1)]
             public PartitionedFileLoader.Column[] Columns;
 

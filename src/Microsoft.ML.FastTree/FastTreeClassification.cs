@@ -181,6 +181,7 @@ namespace Microsoft.ML.Runtime.FastTree
                 FeatureCount = trainData.Schema.Feature.Type.ValueCount;
                 ConvertData(trainData);
                 TrainCore(ch);
+                ch.Done();
             }
 
             // The FastTree binary classification boosting is naturally calibrated to

@@ -66,12 +66,12 @@ namespace Microsoft.ML.Runtime.EntryPoints
             };
             var exp = new Experiment(env);
             var remapperOutNode = exp.Add(remapper);
-            var subNodes = EntryPointNode.ValidateNodes(env, node.Context, exp.GetNodes());
+            var subNodes = EntryPointNode.ValidateNodes(env, node.Context, exp.GetNodes(), node.Catalog);
             macroNodes.AddRange(subNodes);
 
             // Parse the nodes in input.Nodes into a temporary run context.
             var subGraphRunContext = new RunContext(env);
-            var subGraphNodes = EntryPointNode.ValidateNodes(env, subGraphRunContext, input.Nodes);
+            var subGraphNodes = EntryPointNode.ValidateNodes(env, subGraphRunContext, input.Nodes, node.Catalog);
 
             // Rename all the variables such that they don't conflict with the ones in the outer run context.
             var mapping = new Dictionary<string, string>();
@@ -187,7 +187,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
 
             // Add nodes to main experiment.
             var nodes = macroExperiment.GetNodes();
-            var expNodes = EntryPointNode.ValidateNodes(env, node.Context, nodes);
+            var expNodes = EntryPointNode.ValidateNodes(env, node.Context, nodes, node.Catalog);
             macroNodes.AddRange(expNodes);
 
             return new CommonOutputs.MacroOutput<Output>() { Nodes = macroNodes };

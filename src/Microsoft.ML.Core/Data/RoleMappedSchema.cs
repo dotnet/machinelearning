@@ -79,7 +79,7 @@ namespace Microsoft.ML.Runtime.Data
     /// individually configured). Also, by being a one-to-many mapping, it is a way for learners that can consume
     /// multiple features columns to consume that information.
     ///
-    /// This class has convenience fields for several common column roles (for example, <see cref="Feature"/>, <see
+    /// This class has convenience fields for several common column roles (se.g., <see cref="Feature"/>, <see
     /// cref="Label"/>), but can hold an arbitrary set of column infos. The convenience fields are non-null if and only
     /// if there is a unique column with the corresponding role. When there are no such columns or more than one such
     /// column, the field is <c>null</c>. The <see cref="Has"/>, <see cref="HasUnique"/>, and <see cref="HasMultiple"/>
@@ -110,7 +110,7 @@ namespace Microsoft.ML.Runtime.Data
 
         /// <summary>
         /// Instances of this are the keys of a <see cref="RoleMappedSchema"/>. This class also holds some important
-        /// commonly used pre-defined instances available (for example, <see cref="Label"/>, <see cref="Feature"/>) that should
+        /// commonly used pre-defined instances available (e.g., <see cref="Label"/>, <see cref="Feature"/>) that should
         /// be used when possible for consistency reasons. However, practitioners should not be afraid to declare custom
         /// roles if approppriate for their task.
         /// </summary>

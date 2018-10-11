@@ -43,21 +43,6 @@ To get the total number of allocated managed memory please pass additional conso
     dotnet run -c Release -- --help
 ```
 
-## .NET Core 3.0
-
-**Pre-requisite:** Follow the [netcoreapp3.0 instructions](../../docs/building/netcoreapp3.0-instructions.md).
-
-**Pre-requisite:** To use dotnet cli from the root directory remember to set `DOTNET_MULTILEVEL_LOOKUP` environment variable to `0`!
-
-    $env:DOTNET_MULTILEVEL_LOOKUP=0
-
-1. Navigate to the benchmarks directory (machinelearning\test\Microsoft.ML.Benchmarks)
-
-2. Run the benchmarks in `Release-Intrinsics` configuration, choose one of the benchmarks when prompted
-
-```log
-    ..\..\Tools\dotnetcli\dotnet.exe run -c Release-Intrinsics
-```
 ## Authoring new benchmarks
 
 1. The type which contains benchmark(s) has to be a public, non-sealed, non-static class.

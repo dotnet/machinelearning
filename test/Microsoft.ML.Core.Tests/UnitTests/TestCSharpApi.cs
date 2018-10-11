@@ -959,7 +959,7 @@ namespace Microsoft.ML.Runtime.RunTests
             }
         }
 
-        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // TensorFlow is 64-bit only
+        [Fact]
         public void TestTensorFlowEntryPoint()
         {
             var dataPath = GetDataPath("Train-Tiny-28x28.txt");
@@ -978,7 +978,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 var tfTransformInput = new Legacy.Transforms.TensorFlowScorer
                 {
                     Data = importOutput.Data,
-                    ModelLocation = "mnist_model/frozen_saved_model.pb",
+                    Model = "mnist_model/frozen_saved_model.pb",
                     InputColumns = new[] { "Placeholder" },
                     OutputColumns = new[] { "Softmax" },
                 };

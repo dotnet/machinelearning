@@ -163,6 +163,7 @@ namespace Microsoft.ML.Runtime.Data
                         _ch.Info("Processed {0} rows with {1} bad values and {2} format errors",
                             _rowCount, _badCount, _fmtCount);
                     }
+                    _ch.Done();
                     _ch.Dispose();
                 }
             }

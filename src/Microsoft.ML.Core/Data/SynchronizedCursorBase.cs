@@ -46,6 +46,7 @@ namespace Microsoft.ML.Runtime.Data
             if (!_disposed)
             {
                 Input.Dispose();
+                Ch.Done();
                 Ch.Dispose();
                 _disposed = true;
             }

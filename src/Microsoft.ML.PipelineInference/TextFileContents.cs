@@ -96,6 +96,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
                         + "choose a name, and set source index to 0.",
                         string.Join(",", separatorCandidates.Select(c => string.Format("'{0}'", GetSeparatorString(c)))));
                 }
+                ch.Done();
             }
             return foundAny ? result : new ColumnSplitResult(false, null, true, true, 0);
         }

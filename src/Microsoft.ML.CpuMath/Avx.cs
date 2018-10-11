@@ -625,7 +625,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             unsafe
             {
                 fixed (float* pd = &dst[0])
-                    Thunk.Scale(a, pd, count);
+                    Thunk.ScaleU(a, pd, count);
             }
         }
 

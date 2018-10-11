@@ -670,6 +670,7 @@ namespace Microsoft.ML.Runtime.Data
                         continue;
                     getters[iinfo] = MakeGetter(ch, input, iinfo);
                 }
+                ch.Done();
                 return getters;
             }
         }

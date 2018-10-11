@@ -6,7 +6,6 @@ using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Data.IO;
 using Microsoft.ML.Runtime.RunTests;
 using Microsoft.ML.Transforms;
-using System;
 using System.IO;
 using Xunit;
 using Xunit.Abstractions;
@@ -137,7 +136,7 @@ namespace Microsoft.ML.Tests.Transformers
                     DataSaverUtils.SaveDataView(ch, saver, savedData, fs, keepHidden: true);
             }
 
-            CheckEquality("Text", "lpnorm_gcnorm_whitened.tsv", digitsOfPrecision: 4);
+            CheckEquality("Text", "lpnorm_gcnorm_whitened.tsv");
             Done();
         }
     }

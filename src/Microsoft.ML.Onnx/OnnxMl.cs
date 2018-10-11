@@ -2492,7 +2492,7 @@ namespace Microsoft.ML.Runtime.UniversalModelFormat.Onnx
         /// Complex64 tensors are encoded as a single array of floats,
         /// with the real components appearing in odd numbered positions,
         /// and the corresponding imaginary component apparing in the
-        /// subsequent even numbered position. (for example, [1.0 + 2.0i, 3.0 + 4.0i]
+        /// subsequent even numbered position. (e.g., [1.0 + 2.0i, 3.0 + 4.0i]
         /// is encoded as [1.0, 2.0 ,3.0 ,4.0]
         /// When this field is present, the data_type field MUST be FLOAT or COMPLEX64.
         /// </summary>
@@ -2601,7 +2601,7 @@ namespace Microsoft.ML.Runtime.UniversalModelFormat.Onnx
         /// Boolean type MUST be written one byte per tensor element (00000001 for true, 00000000 for false).
         ///
         /// Note: the advantage of specific field rather than the raw_data field is
-        /// that in some cases (for example, int data), protobuf does a better packing via
+        /// that in some cases (e.g. int data), protobuf does a better packing via
         /// variable length storage, and may lead to smaller binary footprint.
         /// When this field is present, the data_type field MUST NOT be STRING or UNDEFINED
         /// </summary>
@@ -2625,7 +2625,7 @@ namespace Microsoft.ML.Runtime.UniversalModelFormat.Onnx
         /// Complex64 tensors are encoded as a single array of doubles,
         /// with the real components appearing in odd numbered positions,
         /// and the corresponding imaginary component apparing in the
-        /// subsequent even numbered position. (for example, [1.0 + 2.0i, 3.0 + 4.0i]
+        /// subsequent even numbered position. (e.g., [1.0 + 2.0i, 3.0 + 4.0i]
         /// is encoded as [1.0, 2.0 ,3.0 ,4.0]
         /// When this field is present, the data_type field MUST be DOUBLE or COMPLEX128
         /// </summary>

@@ -141,7 +141,9 @@ namespace Microsoft.ML.Runtime.PCA
 
             using (var ch = Host.Start("Training"))
             {
-                return TrainCore(ch, context.TrainingSet, dimension);
+                var pred = TrainCore(ch, context.TrainingSet, dimension);
+                ch.Done();
+                return pred;
             }
         }
 

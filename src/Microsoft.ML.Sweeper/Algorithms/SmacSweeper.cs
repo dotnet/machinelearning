@@ -147,6 +147,7 @@ namespace Microsoft.ML.Runtime.Sweeper
                 var predictor = trainer.Train(data);
 
                 // Return random forest predictor.
+                ch.Done();
                 return predictor;
             }
         }

@@ -150,7 +150,9 @@ namespace Microsoft.ML.Runtime.HalLearners
 
                 var cursorFactory = new FloatLabelCursor.Factory(examples, CursOpt.Label | CursOpt.Features);
 
-                return TrainCore(ch, cursorFactory, typeFeat.VectorSize);
+                var pred = TrainCore(ch, cursorFactory, typeFeat.VectorSize);
+                ch.Done();
+                return pred;
             }
         }
 

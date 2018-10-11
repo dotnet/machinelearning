@@ -11,7 +11,6 @@ using Microsoft.ML.Runtime.Learners;
 using Microsoft.ML.Runtime.Numeric;
 using Microsoft.ML.Runtime.Training;
 using Microsoft.ML.Runtime.Internal.Internallearn;
-using System;
 
 [assembly: LoadableClass(OnlineGradientDescentTrainer.Summary, typeof(OnlineGradientDescentTrainer), typeof(OnlineGradientDescentTrainer.Arguments),
     new[] { typeof(SignatureRegressorTrainer), typeof(SignatureTrainer), typeof(SignatureFeatureScorerTrainer) },
@@ -68,7 +67,6 @@ namespace Microsoft.ML.Runtime.Learners
         /// <param name="numIterations">Number of training iterations through the data.</param>
         /// <param name="weightsColumn">The name of the weights column.</param>
         /// <param name="lossFunction">The custom loss functions. Defaults to <see cref="SquaredLoss"/> if not provided.</param>
-        /// <param name="advancedSettings">A delegate to supply advanced arguments to the algorithm. </param>
         public OnlineGradientDescentTrainer(IHostEnvironment env,
             string labelColumn,
             string featureColumn,
@@ -77,9 +75,8 @@ namespace Microsoft.ML.Runtime.Learners
             float l2RegularizerWeight = Arguments.OgdDefaultArgs.L2RegularizerWeight,
             int numIterations = Arguments.OgdDefaultArgs.NumIterations,
             string weightsColumn = null,
-            IRegressionLoss lossFunction = null,
-            Action<AveragedLinearArguments> advancedSettings = null)
-            : this(env, new Arguments
+            IRegressionLoss lossFunction = null)
+            : base(new Arguments
             {
                 LearningRate = learningRate,
                 DecreaseLearningRate = decreaseLearningRate,
@@ -89,12 +86,9 @@ namespace Microsoft.ML.Runtime.Learners
                 FeatureColumn = featureColumn,
                 InitialWeights = weightsColumn
 
-            })
+            }, env, UserNameValue, TrainerUtils.MakeR4ScalarLabel(labelColumn))
         {
             LossFunction = lossFunction ?? new SquaredLoss();
-
-            if (advancedSettings != null)
-                advancedSettings.Invoke(Args);
         }
 
         internal OnlineGradientDescentTrainer(IHostEnvironment env, Arguments args)

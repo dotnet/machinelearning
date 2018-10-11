@@ -185,7 +185,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
             cvSplit.NumFolds = input.NumFolds;
             cvSplit.StratificationColumn = input.StratificationColumn;
             var cvSplitOutput = exp.Add(cvSplit);
-            subGraphNodes.AddRange(EntryPointNode.ValidateNodes(env, node.Context, exp.GetNodes()));
+            subGraphNodes.AddRange(EntryPointNode.ValidateNodes(env, node.Context, exp.GetNodes(), node.Catalog));
 
             var predModelVars = new Var<IPredictorModel>[input.NumFolds];
             var transformModelVars = new Var<ITransformModel>[input.NumFolds];
@@ -199,7 +199,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
             {
                 // Parse the nodes in input.Nodes into a temporary run context.
                 var context = new RunContext(env);
-                var graph = EntryPointNode.ValidateNodes(env, context, input.Nodes);
+                var graph = EntryPointNode.ValidateNodes(env, context, input.Nodes, node.Catalog);
 
                 // Rename all the variables such that they don't conflict with the ones in the outer run context.
                 var mapping = new Dictionary<string, string>();
@@ -278,7 +278,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
 
                         exp.Reset();
                         modelCombineOutput = exp.Add(modelCombine);
-                        subGraphNodes.AddRange(EntryPointNode.ValidateNodes(env, node.Context, exp.GetNodes()));
+                        subGraphNodes.AddRange(EntryPointNode.ValidateNodes(env, node.Context, exp.GetNodes(), node.Catalog));
                         transformModelVars[k] = modelCombineOutput.OutputModel;
                     }
                 }
@@ -297,7 +297,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
 
                         exp.Reset();
                         modelCombineOutput = exp.Add(modelCombine);
-                        subGraphNodes.AddRange(EntryPointNode.ValidateNodes(env, node.Context, exp.GetNodes()));
+                        subGraphNodes.AddRange(EntryPointNode.ValidateNodes(env, node.Context, exp.GetNodes(), node.Catalog));
                         predModelVars[k] = modelCombineOutput.PredictorModel;
                     }
                 }
@@ -315,7 +315,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
                 outputMap.Add(nameof(TrainTestMacro.Output.ConfusionMatrix), confusionMatrix.VarName);
                 confusionMatrixVars[k] = confusionMatrix;
                 const string trainTestEvaluatorMacroEntryPoint = "Models.TrainTestEvaluator";
-                subGraphNodes.Add(EntryPointNode.Create(env, trainTestEvaluatorMacroEntryPoint, args, node.Context, inputBindingMap, inputMap, outputMap));
+                subGraphNodes.Add(EntryPointNode.Create(env, trainTestEvaluatorMacroEntryPoint, args, node.Catalog, node.Context, inputBindingMap, inputMap, outputMap));
             }
 
             exp.Reset();
@@ -423,8 +423,8 @@ namespace Microsoft.ML.Runtime.EntryPoints
                 combineConfusionMatrix.VarName = node.GetOutputVariableName(nameof(Output.ConfusionMatrix));
                 combineOutputMap.Add(nameof(TrainTestMacro.Output.ConfusionMatrix), combineConfusionMatrix.VarName);
             }
-            subGraphNodes.AddRange(EntryPointNode.ValidateNodes(env, node.Context, exp.GetNodes()));
-            subGraphNodes.Add(EntryPointNode.Create(env, "Models.CrossValidationResultsCombiner", combineArgs, node.Context, combineInputBindingMap, combineInputMap, combineOutputMap));
+            subGraphNodes.AddRange(EntryPointNode.ValidateNodes(env, node.Context, exp.GetNodes(), node.Catalog));
+            subGraphNodes.Add(EntryPointNode.Create(env, "Models.CrossValidationResultsCombiner", combineArgs, node.Catalog, node.Context, combineInputBindingMap, combineInputMap, combineOutputMap));
             return new CommonOutputs.MacroOutput<Output>() { Nodes = subGraphNodes };
         }
 

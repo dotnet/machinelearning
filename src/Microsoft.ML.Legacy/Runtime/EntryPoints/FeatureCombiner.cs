@@ -77,6 +77,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
                             new[] { new ConcatTransform.TaggedColumn() { Name = nameFeat, Source = concatNames.ToArray() } }
                     },
                     viewTrain);
+                ch.Done();
                 return new CommonOutputs.TransformOutput { Model = new TransformModel(env, viewTrain, input.Data), OutputData = viewTrain };
             }
         }

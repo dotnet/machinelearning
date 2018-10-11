@@ -181,6 +181,8 @@ namespace Microsoft.ML.Runtime.FastTree
                 TrainerUtils.CheckArgsAndAdvancedSettingMismatch(ch, numTrees, snapshot.NumTrees, currentArgs.NumTrees, nameof(numTrees));
                 TrainerUtils.CheckArgsAndAdvancedSettingMismatch(ch, minDocumentsInLeafs, snapshot.MinDocumentsInLeafs, currentArgs.MinDocumentsInLeafs, nameof(minDocumentsInLeafs));
                 TrainerUtils.CheckArgsAndAdvancedSettingMismatch(ch, learningRate, snapshot.LearningRates, currentArgs.LearningRates, nameof(learningRate));
+
+                ch.Done();
             }
         }
 
@@ -194,6 +196,7 @@ namespace Microsoft.ML.Runtime.FastTree
                     numThreads = Host.ConcurrencyFactor;
                     ch.Warning("The number of threads specified in trainer arguments is larger than the concurrency factor "
                         + "setting of the environment. Using {0} training threads instead.", numThreads);
+                    ch.Done();
                 }
             }
             ParallelTraining = Args.ParallelTrainer != null ? Args.ParallelTrainer.CreateComponent(env) : new SingleTrainer();
@@ -247,6 +250,8 @@ namespace Microsoft.ML.Runtime.FastTree
                     Train(ch);
                 if (Args.ExecutionTimes)
                     PrintExecutionTimes(ch);
+                ch.Done();
+
                 TrainedEnsemble = Ensemble;
                 if (FeatureMap != null)
                     TrainedEnsemble.RemapFeatures(FeatureMap);
@@ -977,6 +982,7 @@ namespace Microsoft.ML.Runtime.FastTree
                         parallelTraining, categoricalFeatureIndices, categoricalSplit);
                 else
                     conv = new DiskImpl(data, host, maxBins, maxLabel, kind, parallelTraining, categoricalFeatureIndices, categoricalSplit);
+                ch.Done();
             }
             return conv;
         }
@@ -993,6 +999,7 @@ namespace Microsoft.ML.Runtime.FastTree
                     conv = new MemImpl(data, host, binUpperBounds, maxLabel, noFlocks, kind, categoricalFeatureIndices, categoricalSplit);
                 else
                     conv = new DiskImpl(data, host, binUpperBounds, maxLabel, kind, categoricalFeatureIndices, categoricalSplit);
+                ch.Done();
             }
             return conv;
         }
@@ -1085,7 +1092,7 @@ namespace Microsoft.ML.Runtime.FastTree
             // Multiple, one hot.
             int[] hotFeatureStarts = new int[features.Count + 1];
             // The position 0 is reserved as the "cold" position for all features in the slot.
-            // This corresponds to all features being in their first bin (for example, cold). So the
+            // This corresponds to all features being in their first bin (e.g., cold). So the
             // first feature's "hotness" starts at 1. HOWEVER, for the purpose of defining the
             // bins, we start with this array computed off by one. Once we define the bins, we
             // will correct it.
@@ -1161,7 +1168,7 @@ namespace Microsoft.ML.Runtime.FastTree
             // Multiple, one hot.
             int[] hotFeatureStarts = new int[features.Count + 1];
             // The position 0 is reserved as the "cold" position for all features in the slot.
-            // This corresponds to all features being in their first bin (for example, cold). So the
+            // This corresponds to all features being in their first bin (e.g., cold). So the
             // first feature's "hotness" starts at 1. HOWEVER, for the purpose of defining the
             // bins, we start with this array computed off by one. Once we define the bins, we
             // will correct it.
@@ -1687,6 +1694,7 @@ namespace Microsoft.ML.Runtime.FastTree
                         Host.Assert(features.All(f => f != null));
                         result = new Dataset(skeleton, features);
                     }
+                    ch.Done();
                 }
                 return result;
             }
@@ -1943,6 +1951,7 @@ namespace Microsoft.ML.Runtime.FastTree
 
                     if (missingInstances > 0)
                         ch.Warning("Skipped {0} instances with missing features during training", missingInstances);
+                    ch.Done();
                 }
             }
 
@@ -1976,6 +1985,7 @@ namespace Microsoft.ML.Runtime.FastTree
                         BinUpperBounds[iFeature] = binUpperBounds;
                     }
                     parallelTraining.SyncGlobalBoundary(NumFeatures, maxBins, BinUpperBounds);
+                    ch.Done();
                 }
             }
 
@@ -1986,6 +1996,7 @@ namespace Microsoft.ML.Runtime.FastTree
                 {
                     FeatureFlockBase[] flocks = CreateFlocks(ch, pch).ToArray();
                     ch.Trace("{0} features stored in {1} flocks.", NumFeatures, flocks.Length);
+                    ch.Done();
                     return new Dataset(CreateDatasetSkeleton(), flocks);
                 }
             }
@@ -2288,7 +2299,7 @@ namespace Microsoft.ML.Runtime.FastTree
                     {
                         // It can happen that a flock could be created with more than Utils.ArrayMaxSize
                         // bins, in the case where we bin over a training dataset with many features with
-                        // many bins (for example, 1 million features with 10k bins each), and then in a subsequent
+                        // many bins (e.g., 1 million features with 10k bins each), and then in a subsequent
                         // validation dataset we have these features suddenly become one-hot. Practically
                         // this will never happen, of course, but it is still possible. If this ever happens,
                         // we create the flock before this becomes an issue.
@@ -2686,7 +2697,7 @@ namespace Microsoft.ML.Runtime.FastTree
                 /// <param name="featureIndex">A feature index, which indexes not the global feature indices,
                 /// but the index into the subset of features specified at the constructor time</param>
                 /// <param name="rowIndex">The row index to access, which must be non-decreasing, and must
-                /// indeed be actually increasing for access on the same feature (for example, if you have two features,
+                /// indeed be actually increasing for access on the same feature (e.g., if you have two features,
                 /// it is OK to access <c>[1, 5]</c>, then <c>[0, 5]</c>, but once this is done you cannot
                 /// access the same feature at the same position.</param>
                 /// <returns></returns>
@@ -2806,6 +2817,7 @@ namespace Microsoft.ML.Runtime.FastTree
                 Dataset d = convData.GetDataset();
                 BinUpperBounds = convData.BinUpperBounds;
                 FeatureMap = convData.FeatureMap;
+                ch.Done();
                 return d;
             }
         }
@@ -2859,7 +2871,7 @@ namespace Microsoft.ML.Runtime.FastTree
         public ColumnType InputType { get; }
         public ColumnType OutputType => NumberType.Float;
         public bool CanSavePfa => true;
-        public bool CanSaveOnnx(OnnxContext ctx) => true;
+        public bool CanSaveOnnx => true;
 
         protected FastTreePredictionWrapper(IHostEnvironment env, string name, Ensemble trainedEnsemble, int numFeatures, string innerArgs)
             : base(env, name)

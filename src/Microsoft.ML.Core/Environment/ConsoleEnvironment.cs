@@ -139,7 +139,7 @@ namespace Microsoft.ML.Runtime.Data
                 }
             }
 
-            public void ChannelDisposed(Channel channel)
+            public void ChannelFinished(Channel channel)
             {
                 if (!channel.Verbose)
                     return;
@@ -150,7 +150,22 @@ namespace Microsoft.ML.Runtime.Data
                     WriteAndReturnLinePrefix(MessageSensitivity.None, _out);
                     WriteHeader(_out, channel);
                     _out.WriteLine("Finished.");
+                }
+            }
+
+            public void ChannelDisposed(Channel channel, bool active)
+            {
+                if (!channel.Verbose)
+                    return;
+
+                lock (_lock)
+                {
                     EnsureNewLine();
+                    if (active)
+                    {
+                        PrintMessage(channel,
+                            new ChannelMessage(ChannelMessageKind.Error, MessageSensitivity.None, "The channel was not properly closed."));
+                    }
                     WriteAndReturnLinePrefix(MessageSensitivity.None, _out);
                     WriteHeader(_out, channel);
                     _out.WriteLine("Elapsed {0:c}.", channel.Watch.Elapsed);
@@ -324,10 +339,18 @@ namespace Microsoft.ML.Runtime.Data
                 Root._consoleWriter.ChannelStarted(this);
             }
 
-            protected override void DisposeCore()
+            public override void Done()
             {
                 Watch.Stop();
-                Root._consoleWriter.ChannelDisposed(this);
+                Root._consoleWriter.ChannelFinished(this);
+                base.Done();
+            }
+
+            protected override void DisposeCore()
+            {
+                if (IsActive)
+                    Watch.Stop();
+                Root._consoleWriter.ChannelDisposed(this, IsActive);
                 base.DisposeCore();
             }
         }

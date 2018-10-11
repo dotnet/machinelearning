@@ -195,7 +195,7 @@ namespace Microsoft.ML.Runtime
         /// When a <see cref="ServerChannel"/> is created, the creation method will send an implementation
         /// is a notification sent through an <see cref="IPipe{IPendingBundleNotification}"/>, to indicate that
         /// a <see cref="Bundle"/> may be pending soon. Listeners that want to receive the bundle to
-        /// expose it, for example, a web service, should register this interest by passing in an action to be called.
+        /// expose it, e.g., a web service, should register this interest by passing in an action to be called.
         /// If no listener registers interest, the server channel that sent the notification will act
         /// differently by, say, acting as a no-op w.r.t. client calls to it.
         /// </summary>

@@ -70,10 +70,10 @@ namespace Microsoft.ML.Runtime.RunTests
                 return _testCmd.CheckEquality(_dir, _name);
             }
 
-            public bool CheckEqualityNormalized(int digitsOfPrecision = DigitsOfPrecision)
+            public bool CheckEqualityNormalized(decimal precision = Tolerance)
             {
                 Contracts.Assert(CanBeBaselined);
-                return _testCmd.CheckEqualityNormalized(_dir, _name, digitsOfPrecision: digitsOfPrecision);
+                return _testCmd.CheckEqualityNormalized(_dir, _name, precision: precision);
             }
 
             public string ArgStr(string name)
@@ -520,7 +520,7 @@ namespace Microsoft.ML.Runtime.RunTests
 
         /// <summary>
         /// Multiple commands we sometimes expect to produce the same stdout,
-        /// for example, rerunning. If you want to move on to another stdout comparison
+        /// e.g., rerunning. If you want to move on to another stdout comparison
         /// file, increment this.
         /// </summary>
         protected int _step;
@@ -820,7 +820,7 @@ namespace Microsoft.ML.Runtime.RunTests
             Done();
         }
 
-        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // x86 output differs from Baseline
+        [Fact]
         public void CommandCrossValidationKeyLabelWithFloatKeyValues()
         {
             RunMTAThread(() =>
@@ -1662,15 +1662,15 @@ namespace Microsoft.ML.Runtime.RunTests
         }
 
         [TestCategory(Cat), TestCategory("FastForest")]
-        [Fact]
+        [Fact(Skip = "Need CoreTLC specific baseline update")]
         public void CommandTrainScoreEvaluateQuantileRegression()
         {
             RunMTAThread(() =>
             {
                 // First run a training.
-                string pathData = GetDataPath("housing.txt");
+                string pathData = GetDataPath(@"..\Housing (regression)", "housing.txt");
                 OutputPath trainModel = ModelPath();
-                TestCore("train", pathData, "loader=Text{header+}", "lab=Label feat=Features tr=FastForestRegression{dt+}");
+                TestCore("train", pathData, "loader=text", "lab=Label feat=Features tr=FastForestRegression{dt+}");
 
                 // Then, run the score.
                 _step++;

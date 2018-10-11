@@ -184,6 +184,7 @@ namespace Microsoft.ML.Runtime.Data.IO
                         }
                     }
                     ch.Warning("Did not recognize value codec signature '{0}'", signature);
+                    ch.Done();
                     return false;
                 }
                 // Opportunistically validate in the case of a seekable stream.
@@ -191,6 +192,7 @@ namespace Microsoft.ML.Runtime.Data.IO
                 bool retval = del(definitionStream, out codec);
                 if (definitionStream.CanSeek && definitionStream.Position - pos != len)
                     throw ch.ExceptDecode("Codec type definition supposedly has {0} bytes, but the handler consumed {1}", len, definitionStream.Position - pos);
+                ch.Done();
                 return retval;
             }
         }

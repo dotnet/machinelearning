@@ -5,11 +5,10 @@
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Learners;
-using Microsoft.ML.StaticPipe;
 using Microsoft.ML.StaticPipe.Runtime;
 using System;
 
-namespace Microsoft.ML.Trainers
+namespace Microsoft.ML.StaticPipe
 {
     /// <summary>
     /// Binary Classification trainer estimators.
@@ -28,7 +27,6 @@ namespace Microsoft.ML.Trainers
         /// <param name="decreaseLearningRate">Decrease learning rate as iterations progress.</param>
         /// <param name="l2RegularizerWeight">L2 regularization weight.</param>
         /// <param name="numIterations">Number of training iterations through the data.</param>
-        /// <param name="advancedSettings">A delegate to supply more avdanced arguments to the algorithm.</param>
         /// <param name="onFit">A delegate that is called every time the
         /// <see cref="Estimator{TInShape, TOutShape, TTransformer}.Fit(DataView{TInShape})"/> method is called on the
         /// <see cref="Estimator{TInShape, TOutShape, TTransformer}"/> instance created out of this. This delegate will receive
@@ -39,28 +37,38 @@ namespace Microsoft.ML.Trainers
         /// <seealso cref="AveragedPerceptronTrainer"/>.
         public static (Scalar<float> score, Scalar<bool> predictedLabel) AveragedPerceptron(
                 this BinaryClassificationContext.BinaryClassificationTrainers ctx,
-                Scalar<bool> label,
-                Vector<float> features,
-                Scalar<float> weights = null,
-                IClassificationLoss lossFunction = null,
+                IClassificationLoss lossFunction,
+                Scalar<bool> label, Vector<float> features, Scalar<float> weights = null,
                 float learningRate = AveragedLinearArguments.AveragedDefaultArgs.LearningRate,
                 bool decreaseLearningRate = AveragedLinearArguments.AveragedDefaultArgs.DecreaseLearningRate,
                 float l2RegularizerWeight = AveragedLinearArguments.AveragedDefaultArgs.L2RegularizerWeight,
                 int numIterations = AveragedLinearArguments.AveragedDefaultArgs.NumIterations,
-                Action<AveragedPerceptronTrainer.Arguments> advancedSettings = null,
                 Action<LinearBinaryPredictor> onFit = null
             )
         {
-            OnlineLinearStaticUtils.CheckUserParams(label, features, weights, learningRate, l2RegularizerWeight, numIterations, onFit, advancedSettings);
+            OnlineLinearStaticUtils.CheckUserParams(label, features, weights, learningRate, l2RegularizerWeight, numIterations, onFit);
 
             bool hasProbs = lossFunction is HingeLoss;
+
+            var args = new AveragedPerceptronTrainer.Arguments()
+            {
+                LearningRate = learningRate,
+                DecreaseLearningRate = decreaseLearningRate,
+                L2RegularizerWeight = l2RegularizerWeight,
+                NumIterations = numIterations
+            };
+
+            if (lossFunction != null)
+                args.LossFunction = new TrivialClassificationLossFactory(lossFunction);
 
             var rec = new TrainerEstimatorReconciler.BinaryClassifierNoCalibration(
                 (env, labelName, featuresName, weightsName) =>
                 {
+                    args.FeatureColumn = featuresName;
+                    args.LabelColumn = labelName;
+                    args.InitialWeights = weightsName;
 
-                    var trainer = new AveragedPerceptronTrainer(env, labelName, featuresName, weightsName, new TrivialClassificationLossFactory(lossFunction),
-                        learningRate, decreaseLearningRate, l2RegularizerWeight, numIterations, advancedSettings);
+                    var trainer = new AveragedPerceptronTrainer(env, args);
 
                     if (onFit != null)
                         return trainer.WithOnFitDelegate(trans => onFit(trans.Model));
@@ -105,7 +113,6 @@ namespace Microsoft.ML.Trainers
         /// <param name="decreaseLearningRate">Decrease learning rate as iterations progress.</param>
         /// <param name="l2RegularizerWeight">L2 regularization weight.</param>
         /// <param name="numIterations">Number of training iterations through the data.</param>
-        /// <param name="advancedSettings">A delegate to supply more advanced arguments to the algorithm.</param>
         /// <param name="onFit">A delegate that is called every time the
         /// <see cref="Estimator{TInShape, TOutShape, TTransformer}.Fit(DataView{TInShape})"/> method is called on the
         /// <see cref="Estimator{TInShape, TOutShape, TTransformer}"/> instance created out of this. This delegate will receive
@@ -123,18 +130,17 @@ namespace Microsoft.ML.Trainers
             float learningRate = OnlineGradientDescentTrainer.Arguments.OgdDefaultArgs.LearningRate,
             bool decreaseLearningRate = OnlineGradientDescentTrainer.Arguments.OgdDefaultArgs.DecreaseLearningRate,
             float l2RegularizerWeight = OnlineGradientDescentTrainer.Arguments.OgdDefaultArgs.L2RegularizerWeight,
-            int numIterations = OnlineLinearArguments.OnlineDefaultArgs.NumIterations,
-            Action<AveragedLinearArguments> advancedSettings = null,
+            int numIterations = OnlineGradientDescentTrainer.Arguments.OgdDefaultArgs.NumIterations,
             Action<LinearRegressionPredictor> onFit = null)
         {
-            OnlineLinearStaticUtils.CheckUserParams(label, features, weights, learningRate, l2RegularizerWeight, numIterations, onFit, advancedSettings);
+            OnlineLinearStaticUtils.CheckUserParams(label, features, weights, learningRate, l2RegularizerWeight, numIterations, onFit);
             Contracts.CheckValueOrNull(lossFunction);
 
             var rec = new TrainerEstimatorReconciler.Regression(
                 (env, labelName, featuresName, weightsName) =>
                 {
                     var trainer = new OnlineGradientDescentTrainer(env, labelName, featuresName, learningRate,
-                        decreaseLearningRate, l2RegularizerWeight, numIterations, weightsName, lossFunction, advancedSettings);
+                        decreaseLearningRate, l2RegularizerWeight, numIterations, weightsName, lossFunction);
 
                     if (onFit != null)
                         return trainer.WithOnFitDelegate(trans => onFit(trans.Model));
@@ -154,8 +160,7 @@ namespace Microsoft.ML.Trainers
             float learningRate,
             float l2RegularizerWeight,
             int numIterations,
-            Delegate onFit,
-            Delegate advancedArguments)
+            Delegate onFit)
         {
             Contracts.CheckValue(label, nameof(label));
             Contracts.CheckValue(features, nameof(features));
@@ -164,7 +169,6 @@ namespace Microsoft.ML.Trainers
             Contracts.CheckParam(0 <= l2RegularizerWeight && l2RegularizerWeight < 0.5, nameof(l2RegularizerWeight), "must be in range [0, 0.5)");
             Contracts.CheckParam(numIterations > 0, nameof(numIterations), "Must be positive, if specified.");
             Contracts.CheckValueOrNull(onFit);
-            Contracts.CheckValueOrNull(advancedArguments);
         }
     }
 }

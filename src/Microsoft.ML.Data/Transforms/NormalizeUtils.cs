@@ -60,7 +60,7 @@ namespace Microsoft.ML.Runtime.Data
 
         JToken PfaInfo(BoundPfaContext ctx, JToken srcToken);
 
-        bool CanSaveOnnx(OnnxContext ctx);
+        bool CanSaveOnnx { get; }
 
         bool OnnxInfo(OnnxContext ctx, OnnxNode nodeProtoWrapper, int featureCount);
     }
@@ -158,13 +158,15 @@ namespace Microsoft.ML.Runtime.Data
             var entryPoints = new List<EntryPointNode>();
             if (columnsToNormalize.Count == 0)
             {
-                var entryPointNode = EntryPointNode.Create(env, "Transforms.NoOperation", new NopTransform.NopInput(), node.Context, node.InputBindingMap, node.InputMap, node.OutputMap);
+                var entryPointNode = EntryPointNode.Create(env, "Transforms.NoOperation", new NopTransform.NopInput(),
+                    node.Catalog, node.Context, node.InputBindingMap, node.InputMap, node.OutputMap);
                 entryPoints.Add(entryPointNode);
             }
             else
             {
                 input.Column = columnsToNormalize.ToArray();
-                var entryPointNode = EntryPointNode.Create(env, "Transforms.MinMaxNormalizer", input, node.Context, node.InputBindingMap, node.InputMap, node.OutputMap);
+                var entryPointNode = EntryPointNode.Create(env, "Transforms.MinMaxNormalizer", input,
+                    node.Catalog, node.Context, node.InputBindingMap, node.InputMap, node.OutputMap);
                 entryPoints.Add(entryPointNode);
             }
 

@@ -150,6 +150,7 @@ namespace Microsoft.ML.Runtime.Learners
             {
                 var pred = TrainCore(ch, data, count);
                 ch.Check(pred != null, "Training did not result in a predictor");
+                ch.Done();
                 return pred;
             }
         }

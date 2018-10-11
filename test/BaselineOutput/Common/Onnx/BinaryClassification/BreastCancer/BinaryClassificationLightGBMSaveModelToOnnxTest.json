@@ -193,36 +193,6 @@
           }
         ],
         "domain": "ai.onnx.ml"
-      },
-      {
-        "input": [
-          "PredictedLabel"
-        ],
-        "output": [
-          "PredictedLabel0"
-        ],
-        "name": "Identity",
-        "opType": "Identity"
-      },
-      {
-        "input": [
-          "Score"
-        ],
-        "output": [
-          "Score0"
-        ],
-        "name": "Identity0",
-        "opType": "Identity"
-      },
-      {
-        "input": [
-          "Probability"
-        ],
-        "output": [
-          "Probability0"
-        ],
-        "name": "Identity1",
-        "opType": "Identity"
       }
     ],
     "name": "BinaryClassificationLightGBMSaveModelToOnnxTest",
@@ -248,7 +218,7 @@
     ],
     "output": [
       {
-        "name": "PredictedLabel0",
+        "name": "PredictedLabel",
         "type": {
           "tensorType": {
             "elemType": "FLOAT",
@@ -266,7 +236,7 @@
         }
       },
       {
-        "name": "Score0",
+        "name": "Score",
         "type": {
           "tensorType": {
             "elemType": "FLOAT",
@@ -284,7 +254,7 @@
         }
       },
       {
-        "name": "Probability0",
+        "name": "Probability",
         "type": {
           "tensorType": {
             "elemType": "FLOAT",

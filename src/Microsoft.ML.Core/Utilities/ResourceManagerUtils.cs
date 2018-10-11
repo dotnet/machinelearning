@@ -13,7 +13,7 @@ using System.Threading.Tasks;
 namespace Microsoft.ML.Runtime.Internal.Utilities
 {
     /// <summary>
-    /// This class takes care of downloading resources needed by ML.NET components. Resources are located in
+    /// This class takes care of downloading resources needed by TLC components. Resources are located in
     /// a pre-defined location, that can be overridden by defining Environment variable <see cref="CustomResourcesUrlEnvVariable"/>.
     /// </summary>
     public sealed class ResourceManagerUtils
@@ -29,12 +29,12 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
             }
         }
 
-        private const string DefaultUrl = "https://aka.ms/mlnet-resources/";
+        private const string DefaultUrl = "https://aka.ms/tlc-resources/";
         /// <summary>
         /// The location of the resources to download from. Uses either the default location or a location defined
         /// in an Environment variable.
         /// </summary>
-        private static string MlNetResourcesUrl
+        private static string TlcResourcesUrl
         {
             get
             {
@@ -79,7 +79,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         /// </summary>
         public static string GetUrl(string suffix)
         {
-            return $"{MlNetResourcesUrl}{suffix}";
+            return $"{TlcResourcesUrl}{suffix}";
         }
 
         /// <summary>
@@ -89,10 +89,10 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         /// <param name="env">The host environment.</param>
         /// <param name="ch">A channel to provide information about the download.</param>
         /// <param name="relativeUrl">The relative url from which to download.
-        /// This is appended to the url defined in <see cref="MlNetResourcesUrl"/>.</param>
+        /// This is appended to the url defined in <see cref="TlcResourcesUrl"/>.</param>
         /// <param name="fileName">The name of the file to save.</param>
         /// <param name="dir">The directory where the file should be saved to. The file will be saved in a directory with the specified name inside
-        /// a folder called "mlnet-resources" in the <see cref="Environment.SpecialFolder.ApplicationData"/> directory.</param>
+        /// a folder called "tlc-resources" in the <see cref="Environment.SpecialFolder.ApplicationData"/> directory.</param>
         /// <param name="timeout">An integer indicating the number of milliseconds to wait before timing out while downloading a resource.</param>
         /// <returns>The download results, containing the file path where the resources was (or should have been) downloaded to, and an error message
         /// (or null if there was no error).</returns>
@@ -102,10 +102,10 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
             if (File.Exists(filePath) || !string.IsNullOrEmpty(error))
                 return new ResourceDownloadResults(filePath, error);
 
-            if (!Uri.TryCreate(Path.Combine(MlNetResourcesUrl, relativeUrl), UriKind.Absolute, out var absoluteUrl))
+            if (!Uri.TryCreate(Path.Combine(TlcResourcesUrl, relativeUrl), UriKind.Absolute, out var absoluteUrl))
             {
                 return new ResourceDownloadResults(filePath,
-                    $"Could not create a valid URI from the base URI '{MlNetResourcesUrl}' and the relative URI '{relativeUrl}'");
+                    $"Could not create a valid URI from the base URI '{TlcResourcesUrl}' and the relative URI '{relativeUrl}'");
             }
             return new ResourceDownloadResults(filePath,
                 await DownloadFromUrl(env, ch, absoluteUrl.AbsoluteUri, fileName, timeout, filePath), absoluteUrl.AbsoluteUri);
@@ -184,13 +184,13 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         /// <summary>
         /// Get the path where the resource should be downloaded to. If the environment variable
         /// is defined, download to the location defined there. Otherwise, download to the "dir" directory
-        /// inside <see cref="Environment.SpecialFolder.LocalApplicationData"/>\mlnet-resources\.
+        /// inside <see cref="Environment.SpecialFolder.LocalApplicationData"/>\tlc-resources\.
         /// </summary>
         private static string GetFilePath(IChannel ch, string fileName, string dir, out string error)
         {
             var envDir = Environment.GetEnvironmentVariable(Utils.CustomSearchDirEnvVariable);
             var appDataBaseDir = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-            var appDataDir = Path.Combine(appDataBaseDir, "mlnet-resources");
+            var appDataDir = Path.Combine(appDataBaseDir, "tlc-resources");
             var absDir = Path.Combine(string.IsNullOrEmpty(envDir) ? appDataDir : envDir, dir);
             var filePath = Path.Combine(absDir, fileName);
             error = null;

@@ -9,7 +9,6 @@ using Microsoft.ML.Legacy.Transforms;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using Xunit;
@@ -45,7 +44,7 @@ namespace Microsoft.ML.Scenarios
             ValidateBinaryMetricsSymSGD(metrics);
         }
 
-        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // LightGBM is 64-bit only
+        [Fact]
         public void TrainAndPredictLightGBMSentimentModelTest()
         {
             var pipeline = PreparePipelineLightGBM();

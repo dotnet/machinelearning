@@ -247,7 +247,7 @@ namespace Microsoft.ML.Runtime.Data
 
         public override ISchema Schema { get { return _bindings; } }
 
-        public bool CanSaveOnnx(OnnxContext ctx) => _mapper is ICanSaveOnnx onnxMapper ? onnxMapper.CanSaveOnnx(ctx) : false;
+        public bool CanSaveOnnx => _mapper is ICanSaveOnnx onnxMapper ? onnxMapper.CanSaveOnnx : false;
 
         public bool CanSavePfa => _mapper is ICanSavePfa pfaMapper ? pfaMapper.CanSavePfa : false;
 
@@ -339,7 +339,7 @@ namespace Microsoft.ML.Runtime.Data
             Host.CheckValue(ctx, nameof(ctx));
             if (_mapper is ISaveAsOnnx onnx)
             {
-                Host.Check(onnx.CanSaveOnnx(ctx), "Cannot be saved as ONNX.");
+                Host.Check(onnx.CanSaveOnnx, "Cannot be saved as ONNX.");
                 onnx.SaveAsOnnx(ctx);
             }
         }
@@ -379,6 +379,7 @@ namespace Microsoft.ML.Runtime.Data
                 var pred = _bindings.GetActiveOutputColumns(activeArr);
                 var getters = _mapper.CreateGetters(input, pred, out disp);
                 disposer += disp;
+                ch.Done();
                 return new Row(input, this, Schema, getters);
             }
         }

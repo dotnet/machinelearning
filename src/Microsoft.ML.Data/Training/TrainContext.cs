@@ -154,10 +154,10 @@ namespace Microsoft.ML
 
         /// <summary>
         /// Subclasses of <see cref="TrainContext"/> will provide little "extension method" hookable objects
-        /// (for example, something like <see cref="BinaryClassificationContext.Trainers"/>). User code will only
+        /// (e.g., something like <see cref="BinaryClassificationContext.Trainers"/>). User code will only
         /// interact with these objects by invoking the extension methods. The actual component code can work
         /// through <see cref="TrainContextComponentUtils"/> to get more "hidden" information from this object,
-        /// for example, the environment.
+        /// e.g., the environment.
         /// </summary>
         public abstract class ContextInstantiatorBase
         {

@@ -1152,7 +1152,7 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
         /// "logical" bin value for that feature starting from 1.
         ///
         /// Note that it would also have been legal for <paramref name="hotFeatureStarts"/> to be
-        /// larger than the actual observed range, for example, it could have been:
+        /// larger than the actual observed range, e.g., it could have been:
         /// <c><paramref name="hotFeatureStarts"/> = { 1, 5, 8}</c>
         /// or something. This could happen if binning happened over a different dataset from the data
         /// being represented right now, for example, but this is a more complex case.

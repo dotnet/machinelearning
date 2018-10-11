@@ -250,6 +250,7 @@ namespace Microsoft.ML.Runtime.Data
                 int[] rowCounts;
                 var columnData = LoadDataAsDense(ch, out rowCounts);
                 TrainModels(columnData, rowCounts, ch);
+                ch.Done();
             }
             Metadata.Seal();
         }

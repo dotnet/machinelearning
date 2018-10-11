@@ -153,7 +153,7 @@ namespace Microsoft.ML.Runtime.Numeric
     /// Works by comparing the reported gradient to the numerically computed gradient.
     /// If the gradient is correct, the return value should be small (order of 1e-6).
     /// May have false negatives if extreme values cause the numeric gradient to be off,
-    /// for example, if the norm of x is very large, or if the gradient is changing rapidly at x.
+    /// e.g. if the norm of x is very large, or if the gradient is changing rapidly at x.
     /// </remarks>
     public static class GradientTester
     {

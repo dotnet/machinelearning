@@ -153,7 +153,9 @@ namespace Microsoft.ML.Runtime.KMeans
 
             using (var ch = Host.Start("Training"))
             {
-                return TrainCore(ch, data, dimensionality);
+                var pred = TrainCore(ch, data, dimensionality);
+                ch.Done();
+                return pred;
             }
         }
 

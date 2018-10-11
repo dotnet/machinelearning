@@ -304,6 +304,8 @@ namespace Microsoft.ML.Runtime.Model
                         list.Add(new KeyValuePair<string, string>(roleStr, colStr));
                     }
                 }
+
+                ch.Done();
             }
 
             return TrainUtils.CheckAndGenerateCustomColumns(env, list.ToArray());

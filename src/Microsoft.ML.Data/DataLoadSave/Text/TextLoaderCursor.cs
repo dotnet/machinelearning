@@ -849,7 +849,9 @@ namespace Microsoft.ML.Runtime.Data
                     // column types are cachable.
                     using (var ch = provider.Start("Consolidator"))
                     {
-                        return DataViewUtils.ConsolidateGeneric(provider, inputs, BatchSize);
+                        var result = DataViewUtils.ConsolidateGeneric(provider, inputs, BatchSize);
+                        ch.Done();
+                        return result;
                     }
                 }
             }
