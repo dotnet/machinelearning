@@ -2,12 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Internal.Calibration;
 using Microsoft.ML.Runtime.Learners;
 using Microsoft.ML.StaticPipe.Runtime;
+using System;
 
 namespace Microsoft.ML.StaticPipe
 {
@@ -49,7 +49,7 @@ namespace Microsoft.ML.StaticPipe
             Action<Arguments> advancedSettings = null,
             Action<ParameterMixingCalibratedPredictor> onFit = null)
         {
-            LbfgsStaticUtils.ValidateParams(label, features, weights, l1Weight, l2Weight, optimizationTolerance, memorySize, enoforceNoNegativity, onFit);
+            LbfgsStaticUtils.ValidateParams(label, features, weights, l1Weight, l2Weight, optimizationTolerance, memorySize, enoforceNoNegativity, advancedSettings, onFit);
 
             var rec = new TrainerEstimatorReconciler.BinaryClassifier(
                 (env, labelName, featuresName, weightsName) =>
@@ -85,6 +85,7 @@ namespace Microsoft.ML.StaticPipe
         /// <param name="l2Weight">Weight of L2 regularization term.</param>
         /// <param name="memorySize">Memory size for <see cref="Microsoft.ML.Runtime.Learners.LogisticRegression"/>. Lower=faster, less accurate.</param>
         /// <param name="optimizationTolerance">Threshold for optimizer convergence.</param>
+        /// <param name="advancedSettings">A delegate to apply all the advanced arguments to the algorithm.</param>
         /// <param name="onFit">A delegate that is called every time the
         /// <see cref="Estimator{TInShape, TOutShape, TTransformer}.Fit(DataView{TInShape})"/> method is called on the
         /// <see cref="Estimator{TInShape, TOutShape, TTransformer}"/> instance created out of this. This delegate will receive
@@ -100,9 +101,10 @@ namespace Microsoft.ML.StaticPipe
             float optimizationTolerance = Arguments.Defaults.OptTol,
             int memorySize = Arguments.Defaults.MemorySize,
             bool enoforceNoNegativity = Arguments.Defaults.EnforceNonNegativity,
+            Action<Arguments> advancedSettings = null,
             Action<PoissonRegressionPredictor> onFit = null)
         {
-            LbfgsStaticUtils.ValidateParams(label, features, weights, l1Weight, l2Weight, optimizationTolerance, memorySize, enoforceNoNegativity, onFit);
+            LbfgsStaticUtils.ValidateParams(label, features, weights, l1Weight, l2Weight, optimizationTolerance, memorySize, enoforceNoNegativity, advancedSettings, onFit);
 
             var rec = new TrainerEstimatorReconciler.Regression(
                 (env, labelName, featuresName, weightsName) =>
@@ -138,6 +140,7 @@ namespace Microsoft.ML.StaticPipe
         /// <param name="l2Weight">Weight of L2 regularization term.</param>
         /// <param name="memorySize">Memory size for <see cref="Microsoft.ML.Runtime.Learners.LogisticRegression"/>. Lower=faster, less accurate.</param>
         /// <param name="optimizationTolerance">Threshold for optimizer convergence.</param>
+        /// <param name="advancedSettings">A delegate to apply all the advanced arguments to the algorithm.</param>
         /// <param name="onFit">A delegate that is called every time the
         /// <see cref="Estimator{TInShape, TOutShape, TTransformer}.Fit(DataView{TInShape})"/> method is called on the
         /// <see cref="Estimator{TInShape, TOutShape, TTransformer}"/> instance created out of this. This delegate will receive
@@ -154,9 +157,10 @@ namespace Microsoft.ML.StaticPipe
             float optimizationTolerance = Arguments.Defaults.OptTol,
             int memorySize = Arguments.Defaults.MemorySize,
             bool enoforceNoNegativity = Arguments.Defaults.EnforceNonNegativity,
+            Action<Arguments> advancedSettings = null,
             Action<MulticlassLogisticRegressionPredictor> onFit = null)
         {
-            LbfgsStaticUtils.ValidateParams(label, features, weights, l1Weight, l2Weight, optimizationTolerance, memorySize, enoforceNoNegativity, onFit);
+            LbfgsStaticUtils.ValidateParams(label, features, weights, l1Weight, l2Weight, optimizationTolerance, memorySize, enoforceNoNegativity, advancedSettings, onFit);
 
             var rec = new TrainerEstimatorReconciler.MulticlassClassifier<TVal>(
                 (env, labelName, featuresName, weightsName) =>
@@ -174,7 +178,8 @@ namespace Microsoft.ML.StaticPipe
 
     }
 
-    internal static class LbfgsStaticUtils{
+    internal static class LbfgsStaticUtils
+    {
 
         internal static void ValidateParams(PipelineColumn label,
             Vector<float> features,
@@ -184,6 +189,7 @@ namespace Microsoft.ML.StaticPipe
             float optimizationTolerance = Arguments.Defaults.OptTol,
             int memorySize = Arguments.Defaults.MemorySize,
             bool enoforceNoNegativity = Arguments.Defaults.EnforceNonNegativity,
+            Action<Arguments> advancedSettings = null,
             Delegate onFit = null)
         {
             Contracts.CheckValue(label, nameof(label));
@@ -192,6 +198,7 @@ namespace Microsoft.ML.StaticPipe
             Contracts.CheckParam(l1Weight >= 0, nameof(l1Weight), "Must be non-negative");
             Contracts.CheckParam(optimizationTolerance > 0, nameof(optimizationTolerance), "Must be positive");
             Contracts.CheckParam(memorySize > 0, nameof(memorySize), "Must be positive");
+            Contracts.CheckValueOrNull(advancedSettings);
             Contracts.CheckValueOrNull(onFit);
         }
     }
