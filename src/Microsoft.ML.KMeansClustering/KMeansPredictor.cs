@@ -162,7 +162,7 @@ namespace Microsoft.ML.Trainers.KMeans
         {
             Host.Assert(Utils.Size(distances) >= _k);
 
-            Float instanceL2 = VectorUtils.NormSquared(src);
+            Float instanceL2 = VectorUtils.NormSquared(in src);
             for (int i = 0; i < _k; i++)
             {
                 Float distance = Math.Max(0,

@@ -701,7 +701,8 @@ namespace Microsoft.ML.Transforms
         // Delegates onto instance methods are more efficient than delegates onto static methods.
         private void VecTrivialGetter<TDst>(ref VBuffer<TDst> value)
         {
-            value = new VBuffer<TDst>(1, 0, value.Values, value.Indices);
+            VBufferMutationContext.Create(ref value, 1, 0)
+                .Complete(ref value);
         }
 
         private Delegate MakeVecGetter(IRow input, int iinfo)

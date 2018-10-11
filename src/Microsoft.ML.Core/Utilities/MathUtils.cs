@@ -133,40 +133,23 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         }
 
         /// <summary>
-        /// Finds the first index of the max element of the array.
+        /// Finds the first index of the max element of the span.
         /// NaNs are ignored. If all the elements to consider are NaNs, -1 is
         /// returned. The caller should distinguish in this case between two
         /// possibilities:
         /// 1) The number of the element to consider is zero.
         /// 2) All the elements to consider are NaNs.
         /// </summary>
-        /// <param name="a">an array</param>
+        /// <param name="a">The span of floats.</param>
         /// <returns>the first index of the max element</returns>
-        public static int ArgMax(Float[] a)
+        public static int ArgMax(ReadOnlySpan<Float> a)
         {
-            return ArgMax(a, Utils.Size(a));
-        }
-
-        /// <summary>
-        /// Finds the first index of the max element of the array.
-        /// NaNs are ignored. If all the elements to consider are NaNs, -1 is
-        /// returned. The caller should distinguish in this case between two
-        /// possibilities:
-        /// 1) The number of the element to consider is zero.
-        /// 2) All the elements to consider are NaNs.
-        /// </summary>
-        /// <param name="a">an array</param>
-        /// <param name="count">number of the element in the array to consider</param>
-        /// <returns>the first index of the max element</returns>
-        public static int ArgMax(Float[] a, int count)
-        {
-            Contracts.Assert(0 <= count && count <= Utils.Size(a));
-            if (count == 0)
+            if (a.IsEmpty)
                 return -1;
 
             int amax = -1;
             Float max = Float.NegativeInfinity;
-            for (int i = count - 1; i >= 0; i--)
+            for (int i = a.Length - 1; i >= 0; i--)
             {
                 if (max <= a[i])
                 {
@@ -179,40 +162,23 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         }
 
         /// <summary>
-        /// Finds the first index of the minimum element of the array.
+        /// Finds the first index of the minimum element of the span.
         /// NaNs are ignored. If all the elements to consider are NaNs, -1 is
         /// returned. The caller should distinguish in this case between two
         /// possibilities:
         /// 1) The number of the element to consider is zero.
         /// 2) All the elements to consider are NaNs.
         /// </summary>
-        /// <param name="a">an array</param>
+        /// <param name="a">The span of floats.</param>
         /// <returns>the first index of the minimum element</returns>
-        public static int ArgMin(Float[] a)
+        public static int ArgMin(ReadOnlySpan<Float> a)
         {
-            return ArgMin(a, Utils.Size(a));
-        }
-
-        /// <summary>
-        /// Finds the first index of the minimum element of the array.
-        /// NaNs are ignored. If all the elements to consider are NaNs, -1 is
-        /// returned. The caller should distinguish in this case between two
-        /// possibilities:
-        /// 1) The number of the element to consider is zero.
-        /// 2) All the elements to consider are NaNs.
-        /// </summary>
-        /// <param name="a">an array</param>
-        /// <param name="count">number of the element in the array to consider</param>
-        /// <returns>the first index of the minimum element</returns>
-        public static int ArgMin(Float[] a, int count)
-        {
-            Contracts.Assert(0 <= count && count <= Utils.Size(a));
-            if (count == 0)
+            if (a.IsEmpty)
                 return -1;
 
             int amin = -1;
             Float min = Float.PositiveInfinity;
-            for (int i = count - 1; i >= 0; i--)
+            for (int i = a.Length - 1; i >= 0; i--)
             {
                 if (min >= a[i])
                 {

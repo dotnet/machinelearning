@@ -22,7 +22,7 @@ namespace Microsoft.ML.Runtime.Numeric
         {
             if (a.Count == 0)
                 return 0;
-            return CpuMathUtils.SumSq(a.Values.AsSpan(0, a.Count));
+            return CpuMathUtils.SumSq(a.GetValues());
         }
 
         /// <summary>
@@ -50,7 +50,7 @@ namespace Microsoft.ML.Runtime.Numeric
         {
             if (a.Count == 0)
                 return 0;
-            return CpuMathUtils.SumAbs(a.Values.AsSpan(0, a.Count));
+            return CpuMathUtils.SumAbs(a.GetValues());
         }
 
         /// <summary>
@@ -61,7 +61,7 @@ namespace Microsoft.ML.Runtime.Numeric
         {
             if (a.Count == 0)
                 return 0;
-            return CpuMathUtils.MaxAbs(a.Values.AsSpan(0, a.Count));
+            return CpuMathUtils.MaxAbs(a.GetValues());
         }
 
         /// <summary>
@@ -71,7 +71,7 @@ namespace Microsoft.ML.Runtime.Numeric
         {
             if (a.Count == 0)
                 return 0;
-            return CpuMathUtils.Sum(a.Values.AsSpan(0, a.Count));
+            return CpuMathUtils.Sum(a.GetValues());
         }
 
         /// <summary>
@@ -83,10 +83,11 @@ namespace Microsoft.ML.Runtime.Numeric
         {
             if (c == 1 || dst.Count == 0)
                 return;
+            var mutation = VBufferMutationContext.Create(ref dst, dst.Length, dst.Count);
             if (c != 0)
-                CpuMathUtils.Scale(c, dst.Values.AsSpan(0, dst.Count));
+                CpuMathUtils.Scale(c, mutation.Values);
             else // Maintain density of dst.
-                Array.Clear(dst.Values, 0, dst.Count);
+                mutation.Values.Clear();
             // REVIEW: Any benefit in sparsifying?
         }
 
@@ -102,30 +103,31 @@ namespace Microsoft.ML.Runtime.Numeric
             if (count == 0)
             {
                 // dst is a zero vector.
-                dst = new VBuffer<Float>(length, 0, dst.Values, dst.Indices);
+                VBufferMutationContext.Create(ref dst, length, 0)
+                    .Complete(ref dst);
                 return;
             }
 
-            var dstValues = Utils.Size(dst.Values) >= count ? dst.Values : new Float[count];
             if (src.IsDense)
             {
                 // Maintain the density of src to dst in order to avoid slow down of L-BFGS.
+                var mutation = VBufferMutationContext.Create(ref dst, length);
                 Contracts.Assert(length == count);
                 if (c == 0)
-                    Array.Clear(dstValues, 0, length);
+                    mutation.Values.Clear();
                 else
-                    CpuMathUtils.Scale(c, src.Values, dstValues, length);
-                dst = new VBuffer<Float>(length, dstValues, dst.Indices);
+                    CpuMathUtils.Scale(c, src.GetValues(), mutation.Values, length);
+                mutation.Complete(ref dst);
             }
             else
             {
-                var dstIndices = Utils.Size(dst.Indices) >= count ? dst.Indices : new int[count];
-                Array.Copy(src.Indices, dstIndices, count);
+                var mutation = VBufferMutationContext.Create(ref dst, length, count);
+                src.GetIndices().CopyTo(mutation.Indices);
                 if (c == 0)
-                    Array.Clear(dstValues, 0, count);
+                    mutation.Values.Clear();
                 else
-                    CpuMathUtils.Scale(c, src.Values, dstValues, count);
-                dst = new VBuffer<Float>(length, count, dstValues, dstIndices);
+                    CpuMathUtils.Scale(c, src.GetValues(), mutation.Values, count);
+                mutation.Complete(ref dst);
             }
         }
 
@@ -141,10 +143,11 @@ namespace Microsoft.ML.Runtime.Numeric
 
             if (dst.IsDense)
             {
+                var mutation = VBufferMutationContext.Create(ref dst, dst.Length);
                 if (src.IsDense)
-                    CpuMathUtils.Add(src.Values, dst.Values, src.Length);
+                    CpuMathUtils.Add(src.GetValues(), mutation.Values, src.Length);
                 else
-                    CpuMathUtils.Add(src.Values, src.Indices, dst.Values, src.Count);
+                    CpuMathUtils.Add(src.GetValues(), src.GetIndices(), mutation.Values, src.Count);
                 return;
             }
             // REVIEW: Should we use SSE for any of these possibilities?
@@ -167,10 +170,11 @@ namespace Microsoft.ML.Runtime.Numeric
 
             if (dst.IsDense)
             {
+                var mutation = VBufferMutationContext.Create(ref dst, dst.Length);
                 if (src.IsDense)
-                    CpuMathUtils.AddScale(c, src.Values, dst.Values, src.Length);
+                    CpuMathUtils.AddScale(c, src.GetValues(), mutation.Values, src.Length);
                 else
-                    CpuMathUtils.AddScale(c, src.Values, src.Indices, dst.Values, src.Count);
+                    CpuMathUtils.AddScale(c, src.GetValues(), src.GetIndices(), mutation.Values, src.Count);
                 return;
             }
             // REVIEW: Should we use SSE for any of these possibilities?
@@ -196,9 +200,9 @@ namespace Microsoft.ML.Runtime.Numeric
             Contracts.Assert(length > 0);
             if (dst.IsDense && src.IsDense)
             {
-                Float[] resValues = Utils.Size(res.Values) >= length ? res.Values : new Float[length];
-                CpuMathUtils.AddScaleCopy(c, src.Values, dst.Values, resValues, length);
-                res = new VBuffer<Float>(length, resValues, res.Indices);
+                var mutation = VBufferMutationContext.Create(ref res, length);
+                CpuMathUtils.AddScaleCopy(c, src.GetValues(), dst.GetValues(), mutation.Values, length);
+                mutation.Complete(ref res);
                 return;
             }
 
@@ -235,13 +239,17 @@ namespace Microsoft.ML.Runtime.Numeric
 
             if (src.Count == 0 || c == 0)
                 return;
+            VBufferMutationContext<float> mutation;
+            Span<float> values;
             if (dst.IsDense)
             {
                 // This is by far the most common case.
+                mutation = VBufferMutationContext.Create(ref dst, dst.Length);
+                values = mutation.Values.Slice(offset);
                 if (src.IsDense)
-                    CpuMathUtils.AddScale(c, src.Values, dst.Values.AsSpan(offset), src.Count);
+                    CpuMathUtils.AddScale(c, src.GetValues(), values, src.Count);
                 else
-                    CpuMathUtils.AddScale(c, src.Values, src.Indices, dst.Values.AsSpan(offset), src.Count);
+                    CpuMathUtils.AddScale(c, src.GetValues(), src.GetIndices(), values, src.Count);
                 return;
             }
             // REVIEW: Perhaps implementing an ApplyInto with an offset would be more
@@ -250,8 +258,9 @@ namespace Microsoft.ML.Runtime.Numeric
             // dst is sparse. I expect this will see limited practical use, since accumulants
             // are often better off going into a dense vector in all applications of interest to us.
             // Correspondingly, this implementation will be functional, but not optimized.
-            int dMin = dst.Count == 0 ? 0 : Utils.FindIndexSorted(dst.Indices, 0, dst.Count, offset);
-            int dLim = dst.Count == 0 ? 0 : Utils.FindIndexSorted(dst.Indices, dMin, dst.Count, offset + src.Length);
+            var dstIndices = dst.GetIndices();
+            int dMin = dst.Count == 0 ? 0 : Utils.FindIndexSorted(dstIndices, 0, dst.Count, offset);
+            int dLim = dst.Count == 0 ? 0 : Utils.FindIndexSorted(dstIndices, dMin, dst.Count, offset + src.Length);
             Contracts.Assert(dMin - dLim <= src.Length);
             // First get the number of extra values that we will need to accomodate.
             int gapCount;
@@ -260,9 +269,10 @@ namespace Microsoft.ML.Runtime.Numeric
             else
             {
                 gapCount = src.Count;
+                var srcIndices = src.GetIndices();
                 for (int iS = 0, iD = dMin; iS < src.Count && iD < dLim; )
                 {
-                    var comp = src.Indices[iS] - dst.Indices[iD] + offset;
+                    var comp = srcIndices[iS] - dstIndices[iD] + offset;
                     if (comp < 0) // dst index is larger.
                         iS++;
                     else if (comp > 0) // src index is larger.
@@ -276,23 +286,29 @@ namespace Microsoft.ML.Runtime.Numeric
                 }
             }
             // Extend dst so that it has room for this additional stuff. Shift things over as well.
-            var indices = dst.Indices;
-            var values = dst.Values;
+            mutation = VBufferMutationContext.Create(ref dst,
+                dst.Length,
+                dst.Count + gapCount,
+                keepOldOnResize: true);
+            var indices = mutation.Indices;
+            values = mutation.Values;
             if (gapCount > 0)
             {
-                Utils.EnsureSize(ref indices, dst.Count + gapCount, dst.Length);
-                Utils.EnsureSize(ref values, dst.Count + gapCount, dst.Length);
                 // Shift things over, unless there's nothing to shift over, or no new elements are being introduced anyway.
                 if (dst.Count != dLim)
                 {
                     Contracts.Assert(dLim < dst.Count);
-                    Array.Copy(indices, dLim, indices, dLim + gapCount, dst.Count - dLim);
-                    Array.Copy(values, dLim, values, dLim + gapCount, dst.Count - dLim);
+                    indices.Slice(dLim, dst.Count - dLim)
+                        .CopyTo(indices.Slice(dLim + gapCount));
+                    values.Slice(dLim, dst.Count - dLim)
+                        .CopyTo(values.Slice(dLim + gapCount));
                 }
             }
             // Now, fill in the stuff in this "gap." Both of these implementations work
             // backwards from the end, since they can potentially be working in place if
             // the EnsureSize calls did not actually result in a new array.
+            var srcValues = src.GetValues();
+            var dstValues = dst.GetValues();
             if (src.IsDense)
             {
                 // dst is sparse, src is dense.
@@ -303,10 +319,10 @@ namespace Microsoft.ML.Runtime.Numeric
                     Contracts.Assert(iDD == iS + dMin);
                     // iDD and iD are the points in where we are writing and reading from.
                     Contracts.Assert(iDD >= iD);
-                    if (iD >= 0 && offset + iS == dst.Indices[iD]) // Collision.
-                        values[iDD] = dst.Values[iD--] + c * src.Values[iS];
+                    if (iD >= 0 && offset + iS == dstIndices[iD]) // Collision.
+                        values[iDD] = dstValues[iD--] + c * srcValues[iS];
                     else // Miss.
-                        values[iDD] = c * src.Values[iS];
+                        values[iDD] = c * srcValues[iS];
                     indices[iDD] = offset + iS;
                 }
             }
@@ -315,8 +331,9 @@ namespace Microsoft.ML.Runtime.Numeric
                 // Both dst and src are sparse.
                 int iD = dLim - 1;
                 int iS = src.Count - 1;
-                int sIndex = iS < 0 ? -1 : src.Indices[iS];
-                int dIndex = iD < 0 ? -1 : dst.Indices[iD] - offset;
+                var srcIndices = src.GetIndices();
+                int sIndex = iS < 0 ? -1 : srcIndices[iS];
+                int dIndex = iD < 0 ? -1 : dstIndices[iD] - offset;
 
                 for (int iDD = dLim + gapCount; --iDD >= dMin; )
                 {
@@ -324,26 +341,26 @@ namespace Microsoft.ML.Runtime.Numeric
                     int comp = sIndex - dIndex;
                     if (comp == 0) // Collision on both.
                     {
-                        indices[iDD] = dst.Indices[iD];
-                        values[iDD] = dst.Values[iD--] + c * src.Values[iS--];
-                        sIndex = iS < 0 ? -1 : src.Indices[iS];
-                        dIndex = iD < 0 ? -1 : dst.Indices[iD] - offset;
+                        indices[iDD] = dstIndices[iD];
+                        values[iDD] = dstValues[iD--] + c * srcValues[iS--];
+                        sIndex = iS < 0 ? -1 : srcIndices[iS];
+                        dIndex = iD < 0 ? -1 : dstIndices[iD] - offset;
                     }
                     else if (comp < 0) // Collision on dst.
                     {
-                        indices[iDD] = dst.Indices[iD];
-                        values[iDD] = dst.Values[iD--];
-                        dIndex = iD < 0 ? -1 : dst.Indices[iD] - offset;
+                        indices[iDD] = dstIndices[iD];
+                        values[iDD] = dstValues[iD--];
+                        dIndex = iD < 0 ? -1 : dstIndices[iD] - offset;
                     }
                     else // Collision on src.
                     {
                         indices[iDD] = sIndex + offset;
-                        values[iDD] = c * src.Values[iS--];
-                        sIndex = iS < 0 ? -1 : src.Indices[iS];
+                        values[iDD] = c * srcValues[iS--];
+                        sIndex = iS < 0 ? -1 : srcIndices[iS];
                     }
                 }
             }
-            dst = new VBuffer<Float>(dst.Length, dst.Count + gapCount, values, indices);
+            mutation.Complete(ref dst);
         }
 
         /// <summary>
@@ -365,15 +382,20 @@ namespace Microsoft.ML.Runtime.Numeric
             {
                 if (src.Length > 0 && src.IsDense)
                 {
-                    var values = dst.Values;
                     // Due to sparsity preservation from src, dst must be dense, in the same way.
-                    Utils.EnsureSize(ref values, src.Length, src.Length, keepOld: false);
-                    if (values == dst.Values) // We need to clear it.
-                        Array.Clear(values, 0, src.Length);
-                    dst = new VBuffer<Float>(src.Length, values, dst.Indices);
+                    var mutation = VBufferMutationContext.Create(ref dst,
+                        src.Length,
+                        out bool createdNewValues,
+                        out bool _);
+                    if (!createdNewValues) // We need to clear it
+                        mutation.Values.Clear();
+                    mutation.Complete(ref dst);
                 }
                 else
-                    dst = new VBuffer<Float>(src.Length, 0, dst.Values, dst.Indices);
+                {
+                    VBufferMutationContext.Create(ref dst, src.Length, 0)
+                        .Complete(ref dst);
+                }
             }
             else if (c == -1)
                 VBufferUtils.ApplyIntoEitherDefined(in src, ref dst, (i, v) => -v);
@@ -388,30 +410,32 @@ namespace Microsoft.ML.Runtime.Numeric
             if (src.Count == 0)
                 return 0;
 
-            int ind = MathUtils.ArgMax(src.Values, src.Count);
+            var srcValues = src.GetValues();
+            int ind = MathUtils.ArgMax(srcValues);
             // ind < 0 iff all explicit values are NaN.
             Contracts.Assert(-1 <= ind && ind < src.Count);
 
             if (src.IsDense)
                 return ind;
 
+            var srcIndices = src.GetIndices();
             if (ind >= 0)
             {
-                Contracts.Assert(src.Indices[ind] >= ind);
-                if (src.Values[ind] > 0)
-                    return src.Indices[ind];
+                Contracts.Assert(srcIndices[ind] >= ind);
+                if (srcValues[ind] > 0)
+                    return srcIndices[ind];
                 // This covers the case where there is an explicit zero, and zero is the max,
                 // and the first explicit zero is before any implicit entries.
-                if (src.Values[ind] == 0 && src.Indices[ind] == ind)
+                if (srcValues[ind] == 0 && srcIndices[ind] == ind)
                     return ind;
             }
 
             // All explicit values are non-positive or NaN, so return the first index not in src.Indices.
             ind = 0;
-            while (ind < src.Count && src.Indices[ind] == ind)
+            while (ind < src.Count && srcIndices[ind] == ind)
                 ind++;
             Contracts.Assert(ind <= src.Count);
-            Contracts.Assert(ind == src.Count || ind < src.Indices[ind]);
+            Contracts.Assert(ind == src.Count || ind < srcIndices[ind]);
             return ind;
         }
 
@@ -422,30 +446,32 @@ namespace Microsoft.ML.Runtime.Numeric
             if (src.Count == 0)
                 return 0;
 
-            int ind = MathUtils.ArgMin(src.Values, src.Count);
+            var srcValues = src.GetValues();
+            int ind = MathUtils.ArgMin(srcValues);
             // ind < 0 iff all explicit values are NaN.
             Contracts.Assert(-1 <= ind && ind < src.Count);
 
             if (src.IsDense)
                 return ind;
 
+            var srcIndices = src.GetIndices();
             if (ind >= 0)
             {
-                Contracts.Assert(src.Indices[ind] >= ind);
-                if (src.Values[ind] < 0)
-                    return src.Indices[ind];
+                Contracts.Assert(srcIndices[ind] >= ind);
+                if (srcValues[ind] < 0)
+                    return srcIndices[ind];
                 // This covers the case where there is an explicit zero, and zero is the min,
                 // and the first explicit zero is before any implicit entries.
-                if (src.Values[ind] == 0 && src.Indices[ind] == ind)
+                if (srcValues[ind] == 0 && srcIndices[ind] == ind)
                     return ind;
             }
 
-            // All explicit values are non-negative or NaN, so return the first index not in src.Indices.
+            // All explicit values are non-negative or NaN, so return the first index not in srcIndices.
             ind = 0;
-            while (ind < src.Count && src.Indices[ind] == ind)
+            while (ind < src.Count && srcIndices[ind] == ind)
                 ind++;
             Contracts.Assert(ind <= src.Count);
-            Contracts.Assert(ind == src.Count || ind < src.Indices[ind]);
+            Contracts.Assert(ind == src.Count || ind < srcIndices[ind]);
             return ind;
         }
     }

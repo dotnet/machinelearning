@@ -104,11 +104,11 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn
             }
 
             int newLength = DstLength == 0 ? ComputeLength(src.Length) : DstLength;
-            var values = dst.Values;
             if (newLength == 0)
             {
                 // All slots dropped.
-                dst = new VBuffer<TDst>(1, 0, dst.Values, dst.Indices);
+                VBufferMutationContext.Create(ref dst, 1, 0)
+                    .Complete(ref dst);
                 return;
             }
 
@@ -116,12 +116,11 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn
 
             // End of the trivial cases
             // At this point, we need to drop some slots and keep some slots.
+            VBufferMutationContext<TDst> mutation;
+            var srcValues = src.GetValues();
             if (src.IsDense)
             {
-                Contracts.Assert(Utils.Size(values) == Utils.Size(src.Values) || src.Values != dst.Values);
-
-                if (Utils.Size(values) < newLength)
-                    values = new TDst[newLength];
+                mutation = VBufferMutationContext.Create(ref dst, newLength);
 
                 int iDst = 0;
                 int iSrc = 0;
@@ -131,33 +130,29 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn
                     while (iSrc < lim)
                     {
                         Contracts.Assert(iDst <= iSrc);
-                        values[iDst++] = src.Values[iSrc++];
+                        mutation.Values[iDst++] = srcValues[iSrc++];
                     }
                     iSrc = SlotsMax[i] + 1;
                 }
                 while (iSrc < src.Length)
                 {
                     Contracts.Assert(iDst <= iSrc);
-                    values[iDst++] = src.Values[iSrc++];
+                    mutation.Values[iDst++] = srcValues[iSrc++];
                 }
                 Contracts.Assert(iDst == newLength);
-                dst = new VBuffer<TDst>(newLength, values, dst.Indices);
+                mutation.Complete(ref dst);
                 return;
             }
 
             // Sparse case.
             // Approximate new count is min(#indices, newLength).
             var newCount = Math.Min(src.Count, newLength);
-            var indices = dst.Indices;
+            var indices = dst.GetIndices();
+            var srcIndices = src.GetIndices();
 
             Contracts.Assert(newCount <= src.Length);
-            Contracts.Assert(Utils.Size(values) == Utils.Size(src.Values) || src.Values != dst.Values);
-            Contracts.Assert(Utils.Size(indices) == Utils.Size(src.Indices) || src.Indices != dst.Indices);
 
-            if (Utils.Size(indices) < newCount)
-                indices = new int[newCount];
-            if (Utils.Size(values) < newCount)
-                values = new TDst[newCount];
+            mutation = VBufferMutationContext.Create(ref dst, newLength, newCount);
 
             int iiDst = 0;
             int iiSrc = 0;
@@ -170,12 +165,12 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn
             while (iiSrc < src.Count)
             {
                 // Copy (with offset) the elements before the current range.
-                var index = src.Indices[iiSrc];
+                var index = srcIndices[iiSrc];
                 if (index < min)
                 {
                     Contracts.Assert(iiDst <= iiSrc);
-                    indices[iiDst] = index - iOffset;
-                    values[iiDst++] = src.Values[iiSrc++];
+                    mutation.Indices[iiDst] = index - iOffset;
+                    mutation.Values[iiDst++] = srcValues[iiSrc++];
                     continue;
                 }
                 if (index <= max)
@@ -211,7 +206,10 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn
                 Contracts.Assert(index <= max);
             }
 
-            dst = new VBuffer<TDst>(newLength, iiDst, values, indices);
+            mutation.Complete(ref dst);
+            // now change the ValuesCount to iiDst to be correct
+            VBufferMutationContext.Create(ref dst, newLength, iiDst)
+                .Complete(ref dst);
         }
     }
 }

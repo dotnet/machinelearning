@@ -665,11 +665,12 @@ namespace Microsoft.ML.Runtime.Learners
                     {
                         if (fw.IsDense)
                         {
+                            var fwValues = fw.GetValues();
                             for (int i = 0; i < fw.Length; i++)
                             {
-                                if (fw.Values[i] != 0)
+                                if (fwValues[i] != 0)
                                 {
-                                    ctx.Writer.Write(fw.Values[i]);
+                                    ctx.Writer.Write(fwValues[i]);
                                     count++;
                                 }
                             }
@@ -697,21 +698,11 @@ namespace Microsoft.ML.Runtime.Learners
         private static int NonZeroCount(in VBuffer<float> vector)
         {
             int count = 0;
-            if (!vector.IsDense)
+            var values = vector.GetValues();
+            for (int i = 0; i < values.Length; i++)
             {
-                for (int i = 0; i < vector.Count; i++)
-                {
-                    if (vector.Values[i] != 0)
-                        count++;
-                }
-            }
-            else
-            {
-                for (int i = 0; i < vector.Length; i++)
-                {
-                    if (vector.Values[i] != 0)
-                        count++;
-                }
+                if (values[i] != 0)
+                    count++;
             }
             return count;
         }

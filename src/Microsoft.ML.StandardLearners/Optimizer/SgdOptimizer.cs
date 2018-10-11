@@ -349,7 +349,7 @@ namespace Microsoft.ML.Runtime.Numeric
         /// <param name="function">Function to minimize</param>
         /// <param name="initial">Initial point</param>
         /// <param name="result">Approximate minimum</param>
-        public void Minimize(DifferentiableFunction function, ref VBuffer<Float> initial, ref VBuffer<Float> result)
+        public void Minimize(DifferentiableFunction function, in VBuffer<Float> initial, ref VBuffer<Float> result)
         {
             Contracts.Check(FloatUtils.IsFinite(initial.GetValues()), "The initial vector contains NaNs or infinite values.");
             LineFunc lineFunc = new LineFunc(function, in initial, UseCG);

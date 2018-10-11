@@ -595,11 +595,15 @@ namespace Microsoft.ML.Runtime.Learners
             Contracts.AssertValueOrNull(progress);
 
             float scaleFactor = 1 / (float)WeightSum;
-            VBuffer<float> xDense = default(VBuffer<float>);
+            VBuffer<float> xDense = default;
             if (x.IsDense)
                 xDense = x;
             else
-                x.CopyToDense(ref xDense);
+            {
+                VBuffer<float> xDenseTemp = default;
+                x.CopyToDense(ref xDenseTemp);
+                xDense = xDenseTemp;
+            }
 
             IProgressChannel pch = progress != null ? progress.StartProgressChannel("Gradient") : null;
             float loss;
@@ -613,7 +617,7 @@ namespace Microsoft.ML.Runtime.Learners
             if (L2Weight > 0)
             {
                 Contracts.Assert(xDense.IsDense);
-                var values = xDense.Values;
+                var values = xDense.GetValues();
                 Double r = 0;
                 for (int i = BiasCount; i < values.Length; i++)
                 {

@@ -176,7 +176,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         /// Applies the <paramref name="visitor "/>to each corresponding pair of elements
         /// where the item is emplicitly defined in the vector. By explicitly defined,
         /// we mean that for a given index <c>i</c>, both vectors have an entry in
-        /// <see cref="VBuffer{T}.Values"/> corresponding to that index.
+        /// <see cref="VBuffer{T}.GetValues"/> corresponding to that index.
         /// </summary>
         /// <param name="a">The first vector</param>
         /// <param name="b">The second vector</param>
@@ -314,9 +314,11 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         /// </summary>
         public static void Clear<T>(ref VBuffer<T> dst)
         {
-            if (dst.Count == 0)
+            int dstValuesCount = dst.GetValues().Length;
+            if (dstValuesCount == 0)
                 return;
-            Array.Clear(dst.Values, 0, dst.Count);
+            var mutation = VBufferMutationContext.Create(ref dst, dst.Length, dstValuesCount);
+            mutation.Values.Clear();
         }
 
         // REVIEW: Look into removing slot in this and other manipulators, so that we
@@ -344,15 +346,18 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         {
             Contracts.CheckValue(manip, nameof(manip));
 
+            int dstValuesCount = dst.GetValues().Length;
+            var mutation = VBufferMutationContext.Create(ref dst, dst.Length, dstValuesCount);
             if (dst.IsDense)
             {
-                for (int i = 0; i < dst.Length; i++)
-                    manip(i, ref dst.Values[i]);
+                for (int i = 0; i < mutation.Values.Length; i++)
+                    manip(i, ref mutation.Values[i]);
             }
             else
             {
-                for (int i = 0; i < dst.Count; i++)
-                    manip(dst.Indices[i], ref dst.Values[i]);
+                var dstIndices = dst.GetIndices();
+                for (int i = 0; i < mutation.Values.Length; i++)
+                    manip(dstIndices[i], ref mutation.Values[i]);
             }
         }
 
@@ -376,17 +381,19 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
             Contracts.CheckValue(manip, nameof(manip));
             Contracts.CheckValueOrNull(pred);
 
+            int dstValuesCount = dst.GetValues().Length;
+            var mutation = VBufferMutationContext.Create(ref dst, dst.Length, dstValuesCount);
             if (dst.IsDense)
             {
                 // The vector is dense, so we can just do a direct access.
-                manip(slot, ref dst.Values[slot]);
+                manip(slot, ref mutation.Values[slot]);
                 return;
             }
             int idx = 0;
-            if (dst.Count > 0 && Utils.TryFindIndexSorted(dst.Indices, 0, dst.Count, slot, out idx))
+            if (dstValuesCount > 0 && Utils.TryFindIndexSorted(mutation.Indices, 0, dstValuesCount, slot, out idx))
             {
                 // Vector is sparse, but the item exists so we can access it.
-                manip(slot, ref dst.Values[idx]);
+                manip(slot, ref mutation.Values[idx]);
                 return;
             }
             // The vector is sparse and there is no corresponding item, yet.
@@ -397,26 +404,24 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
             if (pred(ref value))
                 return;
             // We have to insert this value, somehow.
-            int[] indices = dst.Indices;
-            T[] values = dst.Values;
+
             // There is a modest special case where there is exactly one free slot
             // we are modifying in the sparse vector, in which case the vector becomes
             // dense. Then there is no need to do anything with indices.
-            bool needIndices = dst.Count + 1 < dst.Length;
-            if (needIndices)
-                Utils.EnsureSize(ref indices, dst.Count + 1, dst.Length - 1);
-            Utils.EnsureSize(ref values, dst.Count + 1, dst.Length);
-            if (idx != dst.Count)
+            bool needIndices = dstValuesCount + 1 < dst.Length;
+            mutation = VBufferMutationContext.Create(ref dst, dst.Length, dstValuesCount + 1);
+            if (idx != dstValuesCount)
             {
                 // We have to do some sort of shift copy.
+                int sliceLength = dstValuesCount - idx;
                 if (needIndices)
-                    Array.Copy(indices, idx, indices, idx + 1, dst.Count - idx);
-                Array.Copy(values, idx, values, idx + 1, dst.Count - idx);
+                    mutation.Indices.Slice(idx, sliceLength).CopyTo(mutation.Indices.Slice(idx + 1));
+                mutation.Values.Slice(idx, sliceLength).CopyTo(mutation.Values.Slice(idx + 1));
             }
             if (needIndices)
-                indices[idx] = slot;
-            values[idx] = value;
-            dst = new VBuffer<T>(dst.Length, dst.Count + 1, values, indices);
+                mutation.Indices[idx] = slot;
+            mutation.Values[idx] = value;
+            mutation.Complete(ref dst);
         }
 
         /// <summary>
@@ -426,37 +431,42 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         {
             if (dst.IsDense)
                 return;
-            var indices = dst.Indices;
-            var values = dst.Values;
-            if (Utils.Size(values) >= dst.Length)
+
+            var indices = dst.GetIndices();
+            var values = dst.GetValues();
+            var mutation = VBufferMutationContext.Create(
+                ref dst,
+                dst.Length,
+                out bool createdNewValues, out bool _);
+
+            if (!createdNewValues)
             {
                 // Densify in place.
-                for (int i = dst.Count; --i >= 0; )
+                for (int i = values.Length; --i >= 0; )
                 {
                     Contracts.Assert(i <= indices[i]);
-                    values[indices[i]] = values[i];
+                    mutation.Values[indices[i]] = values[i];
                 }
-                if (dst.Count == 0)
-                    Array.Clear(values, 0, dst.Length);
+                if (values.Length == 0)
+                    mutation.Values.Clear();
                 else
                 {
                     int min = 0;
-                    for (int ii = 0; ii < dst.Count; ++ii)
+                    for (int ii = 0; ii < values.Length; ++ii)
                     {
-                        Array.Clear(values, min, indices[ii] - min);
+                        mutation.Values.Slice(min, indices[ii] - min).Clear();
                         min = indices[ii] + 1;
                     }
-                    Array.Clear(values, min, dst.Length - min);
+                    mutation.Values.Slice(min, dst.Length - min).Clear();
                 }
             }
             else
             {
-                T[] newValues = new T[dst.Length];
-                for (int i = 0; i < dst.Count; ++i)
-                    newValues[indices[i]] = values[i];
-                values = newValues;
+                // createdNewValues is true, keepOldOnResize is false, so mutation.Values is already cleared
+                for (int i = 0; i < values.Length; ++i)
+                    mutation.Values[indices[i]] = values[i];
             }
-            dst = new VBuffer<T>(dst.Length, values, indices);
+            mutation.Complete(ref dst);
         }
 
         /// <summary>
@@ -466,7 +476,9 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         public static void DensifyFirst<T>(ref VBuffer<T> dst, int denseCount)
         {
             Contracts.Check(0 <= denseCount && denseCount <= dst.Length);
-            if (dst.IsDense || denseCount == 0 || (dst.Count >= denseCount && dst.Indices[denseCount - 1] == denseCount - 1))
+            var dstValues = dst.GetValues();
+            var dstIndices = dst.GetIndices();
+            if (dst.IsDense || denseCount == 0 || (dstValues.Length >= denseCount && dstIndices[denseCount - 1] == denseCount - 1))
                 return;
             if (denseCount == dst.Length)
             {
@@ -474,37 +486,36 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
                 return;
             }
 
-            // Densify the first BiasCount entries.
-            int[] indices = dst.Indices;
-            T[] values = dst.Values;
-            if (indices == null)
+            // Densify the first denseCount entries.
+            if (dstIndices.IsEmpty)
             {
-                Contracts.Assert(dst.Count == 0);
-                indices = Utils.GetIdentityPermutation(denseCount);
-                Utils.EnsureSize(ref values, denseCount, dst.Length, keepOld: false);
-                Array.Clear(values, 0, denseCount);
-                dst = new VBuffer<T>(dst.Length, denseCount, values, indices);
+                // no previous values
+                var newIndicesMutation = VBufferMutationContext.Create(ref dst, dst.Length, denseCount);
+                Utils.FillIdentity(newIndicesMutation.Indices, denseCount);
+                newIndicesMutation.Values.Clear();
+                newIndicesMutation.Complete(ref dst);
                 return;
             }
-            int lim = Utils.FindIndexSorted(indices, 0, dst.Count, denseCount);
+            int lim = Utils.FindIndexSorted(dstIndices, 0, dstValues.Length, denseCount);
             Contracts.Assert(lim < denseCount);
-            int newLen = dst.Count + denseCount - lim;
+            int newLen = dstValues.Length + denseCount - lim;
             if (newLen == dst.Length)
             {
                 Densify(ref dst);
                 return;
             }
-            Utils.EnsureSize(ref values, newLen, dst.Length);
-            Utils.EnsureSize(ref indices, newLen, dst.Length);
-            Array.Copy(values, lim, values, denseCount, dst.Count - lim);
-            Array.Copy(indices, lim, indices, denseCount, dst.Count - lim);
+
+            var mutation = VBufferMutationContext.Create(ref dst, dst.Length, newLen, keepOldOnResize: true);
+            int sliceLength = dstValues.Length - lim;
+            mutation.Values.Slice(lim, sliceLength).CopyTo(mutation.Values.Slice(denseCount));
+            mutation.Indices.Slice(lim, sliceLength).CopyTo(mutation.Indices.Slice(denseCount));
             int i = lim - 1;
             for (int ii = denseCount; --ii >= 0; )
             {
-                values[ii] = i >= 0 && indices[i] == ii ? values[i--] : default(T);
-                indices[ii] = ii;
+                mutation.Values[ii] = i >= 0 && dstIndices[i] == ii ? dstValues[i--] : default(T);
+                mutation.Indices[ii] = ii;
             }
-            dst = new VBuffer<T>(dst.Length, newLen, values, indices);
+            mutation.Complete(ref dst);
         }
 
         /// <summary>
@@ -522,9 +533,10 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
 
             int sparseCount = 0;
             var sparseCountThreshold = (int)(src.Length * sparsityThreshold);
+            var srcValues = src.GetValues();
             for (int i = 0; i < src.Length; i++)
             {
-                if (!isDefaultPredicate(in src.Values[i]))
+                if (!isDefaultPredicate(in srcValues[i]))
                     sparseCount++;
 
                 if (sparseCount > sparseCountThreshold)
@@ -534,23 +546,17 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
                 }
             }
 
-            var indices = dst.Indices;
-            var values = dst.Values;
-
+            var mutation = VBufferMutationContext.Create(ref dst, src.Length, sparseCount);
             if (sparseCount > 0)
             {
-                if (Utils.Size(values) < sparseCount)
-                    values = new T[sparseCount];
-                if (Utils.Size(indices) < sparseCount)
-                    indices = new int[sparseCount];
                 int j = 0;
                 for (int i = 0; i < src.Length; i++)
                 {
-                    if (!isDefaultPredicate(in src.Values[i]))
+                    if (!isDefaultPredicate(in srcValues[i]))
                     {
                         Contracts.Assert(j < sparseCount);
-                        indices[j] = i;
-                        values[j] = src.Values[i];
+                        mutation.Indices[j] = i;
+                        mutation.Values[j] = srcValues[i];
                         j++;
                     }
                 }
@@ -558,7 +564,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
                 Contracts.Assert(j == sparseCount);
             }
 
-            dst = new VBuffer<T>(src.Length, sparseCount, values, indices);
+            mutation.Complete(ref dst);
         }
 
         /// <summary>
@@ -667,10 +673,10 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
             // of the "outer" parameter. There are nine, top level cases. Each case is
             // considered in this order.
 
-            // 1. src.Count == 0.
+            // 1. srcValues.Length == 0.
             // 2. src.Dense.
             // 3. dst.Dense.
-            // 4. dst.Count == 0.
+            // 4. dstValues.Length == 0.
 
             // Beyond this point the cases can assume both src/dst are sparse non-empty vectors.
             // We then calculate the size of the resulting output array, then use that to fall
@@ -688,20 +694,24 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
             // Case 5 does not require special handling, because it falls through to other cases
             // that do the special handling for them.
 
-            if (src.Count == 0)
+            var srcValues = src.GetValues();
+            var dstValues = dst.GetValues();
+            var dstIndices = dst.GetIndices();
+            var mutation = VBufferMutationContext.Create(ref dst, dst.Length, dst.Count);
+            if (srcValues.Length == 0)
             {
-                // Major case 1, with src.Count == 0.
+                // Major case 1, with srcValues.Length == 0.
                 if (!outer)
                     return;
                 if (dst.IsDense)
                 {
                     for (int i = 0; i < dst.Length; i++)
-                        manip(i, default(TSrc), ref dst.Values[i]);
+                        manip(i, default(TSrc), ref mutation.Values[i]);
                 }
                 else
                 {
-                    for (int i = 0; i < dst.Count; i++)
-                        manip(dst.Indices[i], default(TSrc), ref dst.Values[i]);
+                    for (int i = 0; i < dstValues.Length; i++)
+                        manip(dstIndices[i], default(TSrc), ref mutation.Values[i]);
                 }
                 return;
             }
@@ -712,33 +722,34 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
                 if (!dst.IsDense)
                     Densify(ref dst);
                 // Both are now dense. Both cases of outer are covered.
-                for (int i = 0; i < src.Length; i++)
-                    manip(i, src.Values[i], ref dst.Values[i]);
+                for (int i = 0; i < srcValues.Length; i++)
+                    manip(i, srcValues[i], ref mutation.Values[i]);
                 return;
             }
 
+            var srcIndices = src.GetIndices();
             if (dst.IsDense)
             {
-                // Major case 3, with dst.Dense. Note that !a.Dense.
+                // Major case 3, with dst.Dense. Note that !src.Dense.
                 if (outer)
                 {
                     int sI = 0;
-                    int sIndex = src.Indices[sI];
+                    int sIndex = srcIndices[sI];
                     for (int i = 0; i < dst.Length; ++i)
                     {
                         if (i == sIndex)
                         {
-                            manip(i, src.Values[sI], ref dst.Values[i]);
-                            sIndex = ++sI == src.Count ? src.Length : src.Indices[sI];
+                            manip(i, srcValues[sI], ref mutation.Values[i]);
+                            sIndex = ++sI == srcValues.Length ? src.Length : srcIndices[sI];
                         }
                         else
-                            manip(i, default(TSrc), ref dst.Values[i]);
+                            manip(i, default(TSrc), ref mutation.Values[i]);
                     }
                 }
                 else
                 {
                     for (int i = 0; i < src.Count; i++)
-                        manip(src.Indices[i], src.Values[i], ref dst.Values[src.Indices[i]]);
+                        manip(srcIndices[i], srcValues[i], ref mutation.Values[srcIndices[i]]);
                 }
                 return;
             }
@@ -747,14 +758,14 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
             {
                 // Major case 4, with dst empty. Note that !src.Dense.
                 // Neither is dense, and dst is empty. Both cases of outer are covered.
-                var values = dst.Values;
-                var indices = dst.Indices;
-                Utils.EnsureSize(ref values, src.Count, src.Length);
-                Array.Clear(values, 0, src.Count);
-                Utils.EnsureSize(ref indices, src.Count, src.Length);
+                mutation = VBufferMutationContext.Create(ref dst,
+                    src.Length,
+                    src.Count,
+                    maxValuesCapacity: src.Length);
+                mutation.Values.Clear();
                 for (int i = 0; i < src.Count; i++)
-                    manip(indices[i] = src.Indices[i], src.Values[i], ref values[i]);
-                dst = new VBuffer<TDst>(src.Length, src.Count, values, indices);
+                    manip(mutation.Indices[i] = srcIndices[i], srcValues[i], ref mutation.Values[i]);
+                mutation.Complete(ref dst);
                 return;
             }
 
@@ -764,15 +775,15 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
             // Try to find each src index in dst indices, counting how many more we'll add.
             for (int sI = 0; sI < src.Count; sI++)
             {
-                int sIndex = src.Indices[sI];
-                while (dI < dst.Count && dst.Indices[dI] < sIndex)
+                int sIndex = srcIndices[sI];
+                while (dI < dst.Count && dstIndices[dI] < sIndex)
                     dI++;
                 if (dI == dst.Count)
                 {
                     newCount += src.Count - sI;
                     break;
                 }
-                if (dst.Indices[dI] == sIndex)
+                if (dstIndices[dI] == sIndex)
                     dI++;
                 else
                     newCount++;
@@ -805,14 +816,16 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
                 // proved to be inefficient so we go to the little bit of extra work
                 // to handle it here.
 
-                var indices = dst.Indices;
-                var values = dst.Values;
-                Utils.EnsureSize(ref indices, newCount, dst.Length, keepOld: false);
-                Utils.EnsureSize(ref values, newCount, dst.Length, keepOld: false);
+                mutation = VBufferMutationContext.Create(ref dst,
+                    src.Length,
+                    newCount,
+                    maxValuesCapacity: dst.Length);
+                var indices = mutation.Indices;
+                var values = mutation.Values;
                 int sI = src.Count - 1;
                 dI = dst.Count - 1;
-                int sIndex = src.Indices[sI];
-                int dIndex = dst.Indices[dI];
+                int sIndex = srcIndices[sI];
+                int dIndex = dstIndices[dI];
 
                 // Go from the end, so that even if we're writing over dst's vectors in
                 // place, we do not corrupt the data as we are reorganizing it.
@@ -821,17 +834,17 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
                     if (sIndex < dIndex)
                     {
                         indices[i] = dIndex;
-                        values[i] = dst.Values[dI];
+                        values[i] = dstValues[dI];
                         if (outer)
                             manip(dIndex, default(TSrc), ref values[i]);
-                        dIndex = --dI >= 0 ? dst.Indices[dI] : -1;
+                        dIndex = --dI >= 0 ? dstIndices[dI] : -1;
                     }
                     else if (sIndex > dIndex)
                     {
                         indices[i] = sIndex;
                         values[i] = default(TDst);
-                        manip(sIndex, src.Values[sI], ref values[i]);
-                        sIndex = --sI >= 0 ? src.Indices[sI] : -1;
+                        manip(sIndex, srcValues[sI], ref values[i]);
+                        sIndex = --sI >= 0 ? srcIndices[sI] : -1;
                     }
                     else
                     {
@@ -839,13 +852,13 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
                         Contracts.Assert(sIndex >= 0);
                         Contracts.Assert(sIndex == dIndex);
                         indices[i] = dIndex;
-                        values[i] = dst.Values[dI];
-                        manip(sIndex, src.Values[sI], ref values[i]);
-                        sIndex = --sI >= 0 ? src.Indices[sI] : -1;
-                        dIndex = --dI >= 0 ? dst.Indices[dI] : -1;
+                        values[i] = dstValues[dI];
+                        manip(sIndex, srcValues[sI], ref values[i]);
+                        sIndex = --sI >= 0 ? srcIndices[sI] : -1;
+                        dIndex = --dI >= 0 ? dstIndices[dI] : -1;
                     }
                 }
-                dst = new VBuffer<TDst>(dst.Length, newCount, values, indices);
+                mutation.Complete(ref dst);
                 return;
             }
 
@@ -857,8 +870,8 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
                     Contracts.Assert(src.Count == dst.Count);
                     for (int i = 0; i < src.Count; i++)
                     {
-                        Contracts.Assert(src.Indices[i] == dst.Indices[i]);
-                        manip(src.Indices[i], src.Values[i], ref dst.Values[i]);
+                        Contracts.Assert(srcIndices[i] == dstIndices[i]);
+                        manip(srcIndices[i], srcValues[i], ref mutation.Values[i]);
                     }
                     return;
                 }
@@ -868,27 +881,27 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
                 if (outer)
                 {
                     int sI = 0;
-                    int sIndex = src.Indices[sI];
+                    int sIndex = srcIndices[sI];
                     for (int i = 0; i < dst.Count; ++i)
                     {
-                        if (dst.Indices[i] == sIndex)
+                        if (dstIndices[i] == sIndex)
                         {
-                            manip(sIndex, src.Values[sI], ref dst.Values[i]);
-                            sIndex = ++sI == src.Count ? src.Length : src.Indices[sI];
+                            manip(sIndex, srcValues[sI], ref mutation.Values[i]);
+                            sIndex = ++sI == src.Count ? src.Length : srcIndices[sI];
                         }
                         else
-                            manip(dst.Indices[i], default(TSrc), ref dst.Values[i]);
+                            manip(dstIndices[i], default(TSrc), ref mutation.Values[i]);
                     }
                 }
                 else
                 {
                     for (int sI = 0; sI < src.Count; sI++)
                     {
-                        int sIndex = src.Indices[sI];
-                        while (dst.Indices[dI] < sIndex)
+                        int sIndex = srcIndices[sI];
+                        while (dstIndices[dI] < sIndex)
                             dI++;
-                        Contracts.Assert(dst.Indices[dI] == sIndex);
-                        manip(sIndex, src.Values[sI], ref dst.Values[dI++]);
+                        Contracts.Assert(dstIndices[dI] == sIndex);
+                        manip(sIndex, srcValues[sI], ref mutation.Values[dI++]);
                     }
                 }
                 return;
@@ -900,23 +913,27 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
 
                 // First do a "quasi" densification of dst, by making the indices
                 // of dst correspond to those in src.
+                mutation = VBufferMutationContext.Create(ref dst, newCount, dst.Count);
                 int sI = 0;
                 for (dI = 0; dI < dst.Count; ++dI)
                 {
-                    int bIndex = dst.Indices[dI];
-                    while (src.Indices[sI] < bIndex)
+                    int bIndex = dstIndices[dI];
+                    while (srcIndices[sI] < bIndex)
                         sI++;
-                    Contracts.Assert(src.Indices[sI] == bIndex);
-                    dst.Indices[dI] = sI++;
+                    Contracts.Assert(srcIndices[sI] == bIndex);
+                    mutation.Indices[dI] = sI++;
                 }
-                dst = new VBuffer<TDst>(newCount, dst.Count, dst.Values, dst.Indices);
+                mutation.Complete(ref dst);
                 Densify(ref dst);
-                int[] indices = dst.Indices;
-                Utils.EnsureSize(ref indices, src.Count, src.Length, keepOld: false);
-                Array.Copy(src.Indices, indices, newCount);
-                dst = new VBuffer<TDst>(src.Length, newCount, dst.Values, indices);
+
+                mutation = VBufferMutationContext.Create(ref dst,
+                    src.Length,
+                    newCount,
+                    maxValuesCapacity: src.Length);
+                srcIndices.CopyTo(mutation.Indices);
                 for (sI = 0; sI < src.Count; sI++)
-                    manip(src.Indices[sI], src.Values[sI], ref dst.Values[sI]);
+                    manip(srcIndices[sI], srcValues[sI], ref mutation.Values[sI]);
+                mutation.Complete(ref dst);
                 return;
             }
 
@@ -933,64 +950,69 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         {
             Contracts.Check(src.Length == dst.Length, "Vectors must have the same dimensionality.");
             Contracts.CheckValue(manip, nameof(manip));
-            Contracts.Assert(Utils.Size(src.Values) >= src.Count);
-            Contracts.Assert(Utils.Size(dst.Values) >= dst.Count);
+
             int length = src.Length;
+
+            var srcValues = src.GetValues();
+            var dstValues = dst.GetValues();
 
             if (dst.Count == 0)
             {
                 if (src.Count == 0)
-                    res = new VBuffer<TDst>(length, 0, res.Values, res.Indices);
+                {
+                    VBufferMutationContext.Create(ref res, length, 0)
+                        .Complete(ref res);
+                }
                 else if (src.IsDense)
                 {
                     Contracts.Assert(src.Count == src.Length);
-                    TDst[] resValues = Utils.Size(res.Values) >= length ? res.Values : new TDst[length];
+                    var mutation = VBufferMutationContext.Create(ref res, length);
                     for (int i = 0; i < length; i++)
-                        manip(i, src.Values[i], default(TDst), ref resValues[i]);
-                    res = new VBuffer<TDst>(length, resValues, res.Indices);
+                        manip(i, srcValues[i], default(TDst), ref mutation.Values[i]);
+                    mutation.Complete(ref res);
                 }
                 else
                 {
                     // src is non-empty sparse.
                     int count = src.Count;
                     Contracts.Assert(0 < count && count < length);
-                    int[] resIndices = Utils.Size(res.Indices) >= count ? res.Indices : new int[count];
-                    TDst[] resValues = Utils.Size(res.Values) >= count ? res.Values : new TDst[count];
-                    Array.Copy(src.Indices, resIndices, count);
+                    var mutation = VBufferMutationContext.Create(ref res, length, count);
+                    var srcIndices = src.GetIndices();
+                    srcIndices.CopyTo(mutation.Indices);
                     for (int ii = 0; ii < count; ii++)
                     {
-                        int i = src.Indices[ii];
-                        resIndices[ii] = i;
-                        manip(i, src.Values[ii], default(TDst), ref resValues[ii]);
+                        int i = srcIndices[ii];
+                        mutation.Indices[ii] = i;
+                        manip(i, srcValues[ii], default(TDst), ref mutation.Values[ii]);
                     }
-                    res = new VBuffer<TDst>(length, count, resValues, resIndices);
+                    mutation.Complete(ref res);
                 }
             }
             else if (dst.IsDense)
             {
-                TDst[] resValues = Utils.Size(res.Values) >= length ? res.Values : new TDst[length];
+                var mutation = VBufferMutationContext.Create(ref res, length);
                 if (src.Count == 0)
                 {
                     if (outer)
                     {
                         // Apply manip to all slots, as all slots of dst are defined.
                         for (int j = 0; j < length; j++)
-                            manip(j, default(TSrc), dst.Values[j], ref resValues[j]);
+                            manip(j, default(TSrc), dstValues[j], ref mutation.Values[j]);
                     }
                     else
                     {
                         // Copy only. No slot of src is defined.
                         for (int j = 0; j < length; j++)
-                            resValues[j] = dst.Values[j];
+                            mutation.Values[j] = dstValues[j];
                     }
-                    res = new VBuffer<TDst>(length, resValues, res.Indices);
+                    mutation.Complete(ref res);
                 }
                 else if (src.IsDense)
                 {
                     Contracts.Assert(src.Count == src.Length);
                     for (int i = 0; i < length; i++)
-                        manip(i, src.Values[i], dst.Values[i], ref resValues[i]);
-                    res = new VBuffer<TDst>(length, resValues, res.Indices);
+                        manip(i, srcValues[i], dstValues[i], ref mutation.Values[i]);
+                    mutation.Complete(ref res);
                 }
                 else
                 {
@@ -999,7 +1021,8 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
                     Contracts.Assert(0 < count && count < length);
 
                     int ii = 0;
-                    int i = src.Indices[ii];
+                    var srcIndices = src.GetIndices();
+                    int i = srcIndices[ii];
                     if (outer)
                     {
                         // All slots of dst are defined. Always apply manip.
@@ -1007,11 +1030,11 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
                         {
                             if (j == i)
                             {
-                                manip(j, src.Values[ii], dst.Values[j], ref resValues[j]);
-                                i = ++ii == count ? length : src.Indices[ii];
+                                manip(j, srcValues[ii], dstValues[j], ref mutation.Values[j]);
+                                i = ++ii == count ? length : srcIndices[ii];
                             }
                             else
-                                manip(j, default(TSrc), dst.Values[j], ref resValues[j]);
+                                manip(j, default(TSrc), dstValues[j], ref mutation.Values[j]);
                         }
                     }
                     else
@@ -1021,61 +1044,61 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
                         {
                             if (j == i)
                             {
-                                manip(j, src.Values[ii], dst.Values[j], ref resValues[j]);
-                                i = ++ii == count ? length : src.Indices[ii];
+                                manip(j, srcValues[ii], dstValues[j], ref mutation.Values[j]);
+                                i = ++ii == count ? length : srcIndices[ii];
                             }
                             else
-                                resValues[j] = dst.Values[j];
+                                mutation.Values[j] = dstValues[j];
                         }
                     }
-                    res = new VBuffer<TDst>(length, resValues, res.Indices);
+                    mutation.Complete(ref res);
                 }
             }
             else
             {
                 // dst is non-empty sparse
                 int dstCount = dst.Count;
+                var dstIndices = dst.GetIndices();
                 Contracts.Assert(dstCount > 0);
                 if (src.Count == 0)
                 {
-                    int[] resIndices = Utils.Size(res.Indices) >= dstCount ? res.Indices : new int[dstCount];
-                    TDst[] resValues = Utils.Size(res.Values) >= dstCount ? res.Values : new TDst[dstCount];
+                    var mutation = VBufferMutationContext.Create(ref res, length, dstCount);
                     if (outer)
                     {
                         for (int jj = 0; jj < dstCount; jj++)
                         {
-                            int j = dst.Indices[jj];
-                            resIndices[jj] = j;
-                            manip(j, default(TSrc), dst.Values[jj], ref resValues[jj]);
+                            int j = dstIndices[jj];
+                            mutation.Indices[jj] = j;
+                            manip(j, default(TSrc), dstValues[jj], ref mutation.Values[jj]);
                         }
                     }
                     else
                     {
                         for (int jj = 0; jj < dstCount; jj++)
                         {
-                            resIndices[jj] = dst.Indices[jj];
-                            resValues[jj] = dst.Values[jj];
+                            mutation.Indices[jj] = dstIndices[jj];
+                            mutation.Values[jj] = dstValues[jj];
                         }
                     }
-                    res = new VBuffer<TDst>(length, dstCount, resValues, resIndices);
+                    mutation.Complete(ref res);
                 }
                 else if (src.IsDense)
                 {
                     // res will be dense.
-                    TDst[] resValues = Utils.Size(res.Values) >= length ? res.Values : new TDst[length];
+                    var mutation = VBufferMutationContext.Create(ref res, length);
                     int jj = 0;
-                    int j = dst.Indices[jj];
+                    int j = dstIndices[jj];
                     for (int i = 0; i < length; i++)
                     {
                         if (i == j)
                         {
-                            manip(i, src.Values[i], dst.Values[jj], ref resValues[i]);
-                            j = ++jj == dstCount ? length : dst.Indices[jj];
+                            manip(i, srcValues[i], dstValues[jj], ref mutation.Values[i]);
+                            j = ++jj == dstCount ? length : dstIndices[jj];
                         }
                         else
-                            manip(i, src.Values[i], default(TDst), ref resValues[i]);
+                            manip(i, srcValues[i], default(TDst), ref mutation.Values[i]);
                     }
-                    res = new VBuffer<TDst>(length, resValues, res.Indices);
+                    mutation.Complete(ref res);
                 }
                 else
                 {
@@ -1084,17 +1107,18 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
 
                     // Find the count of result, which is the size of the union of the indices set of src and dst.
                     int resCount = dstCount;
+                    var srcIndices = src.GetIndices();
                     for (int ii = 0, jj = 0; ii < src.Count; ii++)
                     {
-                        int i = src.Indices[ii];
-                        while (jj < dst.Count && dst.Indices[jj] < i)
+                        int i = srcIndices[ii];
+                        while (jj < dst.Count && dstIndices[jj] < i)
                             jj++;
                         if (jj == dst.Count)
                         {
                             resCount += src.Count - ii;
                             break;
                         }
-                        if (dst.Indices[jj] == i)
+                        if (dstIndices[jj] == i)
                             jj++;
                         else
                             resCount++;
@@ -1115,13 +1139,12 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
                     }
                     else
                     {
-                        int[] resIndices = Utils.Size(res.Indices) >= resCount ? res.Indices : new int[resCount];
-                        TDst[] resValues = Utils.Size(res.Values) >= resCount ? res.Values : new TDst[resCount];
+                        var mutation = VBufferMutationContext.Create(ref res, length, resCount);
 
                         int ii = 0;
-                        int i = src.Indices[ii];
+                        int i = srcIndices[ii];
                         int jj = 0;
-                        int j = dst.Indices[jj];
+                        int j = dstIndices[jj];
 
                         for (int kk = 0; kk < resCount; kk++)
                         {
@@ -1129,35 +1152,35 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
                             if (i == j)
                             {
                                 // Slot (i == j) both defined in src and dst. Apply manip.
-                                resIndices[kk] = i;
-                                manip(i, src.Values[ii], dst.Values[jj], ref resValues[kk]);
-                                i = ++ii == src.Count ? length : src.Indices[ii];
-                                j = ++jj == dstCount ? length : dst.Indices[jj];
+                                mutation.Indices[kk] = i;
+                                manip(i, srcValues[ii], dstValues[jj], ref mutation.Values[kk]);
+                                i = ++ii == src.Count ? length : srcIndices[ii];
+                                j = ++jj == dstCount ? length : dstIndices[jj];
                             }
                             else if (i < j)
                             {
                                 // Slot i defined only in src, but not in dst. Apply manip.
-                                resIndices[kk] = i;
-                                manip(i, src.Values[ii], default(TDst), ref resValues[kk]);
-                                i = ++ii == src.Count ? length : src.Indices[ii];
+                                mutation.Indices[kk] = i;
+                                manip(i, srcValues[ii], default(TDst), ref mutation.Values[kk]);
+                                i = ++ii == src.Count ? length : srcIndices[ii];
                             }
                             else
                             {
                                 // Slot j defined only in dst, but not in src. Apply manip if outer.
                                 // Otherwise just copy.
-                                resIndices[kk] = j;
+                                mutation.Indices[kk] = j;
                                 // REVIEW: Should we move checking of outer outside the loop?
                                 if (outer)
-                                    manip(j, default(TSrc), dst.Values[jj], ref resValues[kk]);
+                                    manip(j, default(TSrc), dstValues[jj], ref mutation.Values[kk]);
                                 else
-                                    resValues[kk] = dst.Values[jj];
-                                j = ++jj == dstCount ? length : dst.Indices[jj];
+                                    mutation.Values[kk] = dstValues[jj];
+                                j = ++jj == dstCount ? length : dstIndices[jj];
                             }
                         }
 
                         Contracts.Assert(ii == src.Count && jj == dstCount);
                         Contracts.Assert(i == length && j == length);
-                        res = new VBuffer<TDst>(length, resCount, resValues, resIndices);
+                        mutation.Complete(ref res);
                     }
                 }
             }
@@ -1181,25 +1204,30 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
             // equal lengths, but I don't care here.
             if (src.Count == 0)
             {
-                dst = new VBuffer<TDst>(src.Length, src.Count, dst.Values, dst.Indices);
+                VBufferMutationContext.Create(ref dst, src.Length, 0)
+                    .Complete(ref dst);
                 return;
             }
-            int[] indices = dst.Indices;
-            TDst[] values = dst.Values;
-            Utils.EnsureSize(ref values, src.Count, src.Length, keepOld: false);
+            var mutation = VBufferMutationContext.Create(ref dst,
+                src.Length,
+                src.Count,
+                maxValuesCapacity: src.Length);
+            Span<TDst> values = mutation.Values;
+            var srcValues = src.GetValues();
             if (src.IsDense)
             {
                 for (int i = 0; i < src.Length; ++i)
-                    values[i] = func(i, src.Values[i]);
+                    values[i] = func(i, srcValues[i]);
             }
             else
             {
-                Utils.EnsureSize(ref indices, src.Count, src.Length, keepOld: false);
-                Array.Copy(src.Indices, indices, src.Count);
-                for (int i = 0; i < src.Count; ++i)
-                    values[i] = func(src.Indices[i], src.Values[i]);
+                Span<int> indices = mutation.Indices;
+                var srcIndices = src.GetIndices();
+                srcIndices.CopyTo(indices);
+                for (int i = 0; i < srcValues.Length; ++i)
+                    values[i] = func(srcIndices[i], srcValues[i]);
             }
-            dst = new VBuffer<TDst>(src.Length, src.Count, values, indices);
+            mutation.Complete(ref dst);
         }
 
         /// <summary>
@@ -1226,54 +1254,62 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
             // 5. b's indices are a subset of a's.
             // 6. Neither a nor b's indices are a subset of the other.
 
-            if (a.Count == 0 && b.Count == 0)
+            var aValues = a.GetValues();
+            var bValues = b.GetValues();
+            if (aValues.Length == 0 && bValues.Length == 0)
             {
                 // Case 1. Output will be empty.
-                dst = new VBuffer<TDst>(a.Length, 0, dst.Values, dst.Indices);
+                VBufferMutationContext.Create(ref dst, a.Length, 0)
+                    .Complete(ref dst);
                 return;
             }
 
             int aI = 0;
             int bI = 0;
-            TDst[] values = dst.Values;
+            ReadOnlySpan<int> aIndices;
+            ReadOnlySpan<int> bIndices;
+            VBufferMutationContext<TDst> mutation;
             if (a.IsDense || b.IsDense)
             {
                 // Case 2. One of the two inputs is dense. The output will be dense.
-                Utils.EnsureSize(ref values, a.Length, a.Length, keepOld: false);
-
+                mutation = VBufferMutationContext.Create(ref dst, a.Length);
                 if (!a.IsDense)
                 {
                     // a is sparse, b is dense
+                    aIndices = a.GetIndices();
                     for (int i = 0; i < b.Length; i++)
                     {
-                        TSrc1 aVal = (aI < a.Count && i == a.Indices[aI]) ? a.Values[aI++] : default(TSrc1);
-                        values[i] = func(i, aVal, b.Values[i]);
+                        TSrc1 aVal = (aI < a.Count && i == aIndices[aI]) ? aValues[aI++] : default(TSrc1);
+                        mutation.Values[i] = func(i, aVal, bValues[i]);
                     }
                 }
                 else if (!b.IsDense)
                 {
                     // b is sparse, a is dense
+                    bIndices = b.GetIndices();
                     for (int i = 0; i < a.Length; i++)
                     {
-                        TSrc2 bVal = (bI < b.Count && i == b.Indices[bI]) ? b.Values[bI++] : default(TSrc2);
-                        values[i] = func(i, a.Values[i], bVal);
+                        TSrc2 bVal = (bI < b.Count && i == bIndices[bI]) ? bValues[bI++] : default(TSrc2);
+                        mutation.Values[i] = func(i, aValues[i], bVal);
                     }
                 }
                 else
                 {
                     // both dense
                     for (int i = 0; i < a.Length; i++)
-                        values[i] = func(i, a.Values[i], b.Values[i]);
+                        mutation.Values[i] = func(i, aValues[i], bValues[i]);
                 }
-                dst = new VBuffer<TDst>(a.Length, values, dst.Indices);
+                mutation.Complete(ref dst);
                 return;
             }
 
             // a, b both sparse.
             int newCount = 0;
+            aIndices = a.GetIndices();
+            bIndices = b.GetIndices();
             while (aI < a.Count && bI < b.Count)
             {
-                int aCompB = a.Indices[aI] - b.Indices[bI];
+                int aCompB = aIndices[aI] - bIndices[bI];
                 if (aCompB <= 0) // a is no larger than b.
                     aI++;
                 if (aCompB >= 0) // b is no larger than a.
@@ -1289,50 +1325,49 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
             // REVIEW: Worth optimizing the newCount == a.Length case?
             // Probably not...
 
-            int[] indices = dst.Indices;
-            Utils.EnsureSize(ref indices, newCount, a.Length, keepOld: false);
-            Utils.EnsureSize(ref values, newCount, a.Length, keepOld: false);
+            mutation = VBufferMutationContext.Create(ref dst, a.Length, newCount);
+            Span<int> indices = mutation.Indices;
 
             if (newCount == b.Count)
             {
                 if (newCount == a.Count)
                 {
                     // Case 3, a and b actually have the same indices!
-                    Array.Copy(a.Indices, indices, a.Count);
+                    aIndices.CopyTo(indices);
                     for (aI = 0; aI < a.Count; aI++)
                     {
-                        Contracts.Assert(a.Indices[aI] == b.Indices[aI]);
-                        values[aI] = func(a.Indices[aI], a.Values[aI], b.Values[aI]);
+                        Contracts.Assert(aIndices[aI] == bIndices[aI]);
+                        mutation.Values[aI] = func(aIndices[aI], aValues[aI], bValues[aI]);
                     }
                 }
                 else
                 {
                     // Case 4, a's indices are a subset of b's.
-                    Array.Copy(b.Indices, indices, b.Count);
+                    bIndices.CopyTo(indices);
                     aI = 0;
                     for (bI = 0; aI < a.Count && bI < b.Count; bI++)
                     {
-                        Contracts.Assert(a.Indices[aI] >= b.Indices[bI]);
-                        TSrc1 aVal = a.Indices[aI] == b.Indices[bI] ? a.Values[aI++] : default(TSrc1);
-                        values[bI] = func(b.Indices[bI], aVal, b.Values[bI]);
+                        Contracts.Assert(aIndices[aI] >= bIndices[bI]);
+                        TSrc1 aVal = aIndices[aI] == bIndices[bI] ? aValues[aI++] : default(TSrc1);
+                        mutation.Values[bI] = func(bIndices[bI], aVal, bValues[bI]);
                     }
                     for (; bI < b.Count; bI++)
-                        values[bI] = func(b.Indices[bI], default(TSrc1), b.Values[bI]);
+                        mutation.Values[bI] = func(bIndices[bI], default(TSrc1), bValues[bI]);
                 }
             }
             else if (newCount == a.Count)
             {
                 // Case 5, b's indices are a subset of a's.
-                Array.Copy(a.Indices, indices, a.Count);
+                aIndices.CopyTo(indices);
                 bI = 0;
                 for (aI = 0; bI < b.Count && aI < a.Count; aI++)
                 {
-                    Contracts.Assert(b.Indices[bI] >= a.Indices[aI]);
-                    TSrc2 bVal = a.Indices[aI] == b.Indices[bI] ? b.Values[bI++] : default(TSrc2);
-                    values[aI] = func(a.Indices[aI], a.Values[aI], bVal);
+                    Contracts.Assert(bIndices[bI] >= aIndices[aI]);
+                    TSrc2 bVal = aIndices[aI] == bIndices[bI] ? bValues[bI++] : default(TSrc2);
+                    mutation.Values[aI] = func(aIndices[aI], aValues[aI], bVal);
                 }
                 for (; aI < a.Count; aI++)
-                    values[aI] = func(a.Indices[aI], a.Values[aI], default(TSrc2));
+                    mutation.Values[aI] = func(aIndices[aI], aValues[aI], default(TSrc2));
             }
             else
             {
@@ -1342,47 +1377,47 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
                 TSrc2 bVal = default(TSrc2);
                 while (aI < a.Count && bI < b.Count)
                 {
-                    int aCompB = a.Indices[aI] - b.Indices[bI];
+                    int aCompB = aIndices[aI] - bIndices[bI];
                     int index = 0;
 
                     if (aCompB < 0)
                     {
-                        index = a.Indices[aI];
-                        aVal = a.Values[aI++];
+                        index = aIndices[aI];
+                        aVal = aValues[aI++];
                         bVal = default(TSrc2);
                     }
                     else if (aCompB > 0)
                     {
-                        index = b.Indices[bI];
+                        index = bIndices[bI];
                         aVal = default(TSrc1);
-                        bVal = b.Values[bI++];
+                        bVal = bValues[bI++];
                     }
                     else
                     {
-                        index = a.Indices[aI];
-                        Contracts.Assert(index == b.Indices[bI]);
-                        aVal = a.Values[aI++];
-                        bVal = b.Values[bI++];
+                        index = aIndices[aI];
+                        Contracts.Assert(index == bIndices[bI]);
+                        aVal = aValues[aI++];
+                        bVal = bValues[bI++];
                     }
-                    values[newI] = func(index, aVal, bVal);
+                    mutation.Values[newI] = func(index, aVal, bVal);
                     indices[newI++] = index;
                 }
 
                 for (; aI < a.Count; aI++)
                 {
-                    int index = a.Indices[aI];
-                    values[newI] = func(index, a.Values[aI], default(TSrc2));
+                    int index = aIndices[aI];
+                    mutation.Values[newI] = func(index, aValues[aI], default(TSrc2));
                     indices[newI++] = index;
                 }
 
                 for (; bI < b.Count; bI++)
                 {
-                    int index = b.Indices[bI];
-                    values[newI] = func(index, default(TSrc1), b.Values[bI]);
+                    int index = bIndices[bI];
+                    mutation.Values[newI] = func(index, default(TSrc1), bValues[bI]);
                     indices[newI++] = index;
                 }
             }
-            dst = new VBuffer<TDst>(a.Length, newCount, values, indices);
+            mutation.Complete(ref dst);
         }
 
         /// <summary>
@@ -1391,14 +1426,16 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         public static void Copy<T>(List<T> src, ref VBuffer<T> dst, int length)
         {
             Contracts.CheckParam(0 <= length && length <= Utils.Size(src), nameof(length));
-            var values = dst.Values;
+            var mutation = VBufferMutationContext.Create(ref dst, length);
             if (length > 0)
             {
-                if (Utils.Size(values) < length)
-                    values = new T[length];
-                src.CopyTo(values);
+                // List<T>.CopyTo should have an overload for Span - https://github.com/dotnet/corefx/issues/33006
+                for (int i = 0; i < length; i++)
+                {
+                    mutation.Values[i] = src[i];
+                }
             }
-            dst = new VBuffer<T>(length, values, dst.Indices);
+            mutation.Complete(ref dst);
         }
     }
 }
