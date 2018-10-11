@@ -2,7 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-//the alignment of the usings with the methods is intentional
+// the alignment of the usings with the methods is intentional so they can display on the same level in the docs site. 
         using Microsoft.ML.Runtime.Data;
         using Microsoft.ML.Runtime.Learners;
         using Microsoft.ML.Trainers;
@@ -68,11 +68,11 @@ namespace Microsoft.ML.Samples
             var dataWithPredictions = model.Transform(testData);
             var metrics = regressionContext.Evaluate(dataWithPredictions, r => r.label, r => r.score);
 
-            Console.WriteLine($"L1 - {metrics.L1}");
-            Console.WriteLine($"L2 - {metrics.L2}");
-            Console.WriteLine($"LossFunction - {metrics.LossFn}");
-            Console.WriteLine($"RMS - {metrics.Rms}");
-            Console.WriteLine($"RSquared - {metrics.RSquared}");
+            Console.WriteLine($"L1 - {metrics.L1}");  // 3.7226085
+            Console.WriteLine($"L2 - {metrics.L2}");  // 24.250636
+            Console.WriteLine($"LossFunction - {metrics.LossFn}");  // 24.25063
+            Console.WriteLine($"RMS - {metrics.Rms}");  // 4.924493
+            Console.WriteLine($"RSquared - {metrics.RSquared}");  // 0.565467
         }
     }
 }
