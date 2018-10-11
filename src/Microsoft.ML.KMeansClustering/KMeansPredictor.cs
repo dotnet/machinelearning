@@ -151,22 +151,22 @@ namespace Microsoft.ML.Runtime.KMeans
                     var values = dst.Values;
                     if (Utils.Size(values) < _k)
                         values = new Float[_k];
-                    Map(ref src, values);
+                    Map(src, values);
                     dst = new VBuffer<Float>(_k, values, dst.Indices);
                 };
 
             return (ValueMapper<TIn, TOut>)(Delegate)del;
         }
 
-        private void Map(ref VBuffer<Float> src, Float[] distances)
+        private void Map(in ReadOnlyVBuffer<Float> src, Float[] distances)
         {
             Host.Assert(Utils.Size(distances) >= _k);
 
-            Float instanceL2 = VectorUtils.NormSquared(src);
+            Float instanceL2 = VectorUtils.NormSquared(in src);
             for (int i = 0; i < _k; i++)
             {
                 Float distance = Math.Max(0,
-                    -2 * VectorUtils.DotProduct(ref _centroids[i], ref src) + _centroidL2s[i] + instanceL2);
+                    -2 * VectorUtils.DotProduct(_centroids[i], in src) + _centroidL2s[i] + instanceL2);
                 distances[i] = distance;
             }
         }

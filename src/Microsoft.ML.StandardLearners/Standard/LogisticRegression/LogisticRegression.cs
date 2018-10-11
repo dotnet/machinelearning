@@ -111,12 +111,12 @@ namespace Microsoft.ML.Runtime.Learners
         protected override BinaryPredictionTransformer<ParameterMixingCalibratedPredictor> MakeTransformer(ParameterMixingCalibratedPredictor model, ISchema trainSchema)
             => new BinaryPredictionTransformer<ParameterMixingCalibratedPredictor>(Host, model, trainSchema, FeatureColumn.Name);
 
-        protected override float AccumulateOneGradient(ref VBuffer<float> feat, float label, float weight,
-            ref VBuffer<float> x, ref VBuffer<float> grad, ref float[] scratch)
+        protected override float AccumulateOneGradient(in ReadOnlyVBuffer<float> feat, float label, float weight,
+            in ReadOnlyVBuffer<float> x, ref VBuffer<float> grad, ref float[] scratch)
         {
             float bias = 0;
             x.GetItemOrDefault(0, ref bias);
-            float score = bias + VectorUtils.DotProductWithOffset(ref x, 1, ref feat);
+            float score = bias + VectorUtils.DotProductWithOffset(in x, 1, in feat);
 
             float s = score / 2;
 
@@ -131,7 +131,7 @@ namespace Microsoft.ML.Runtime.Learners
             Contracts.Check(!float.IsNaN(datumLoss), "Unexpected NaN");
 
             float mult = weight * (modelProb1 - label01);
-            VectorUtils.AddMultWithOffset(ref feat, mult, ref grad, 1); // Note that 0th L-BFGS weight is for bias.
+            VectorUtils.AddMultWithOffset(in feat, mult, ref grad, 1); // Note that 0th L-BFGS weight is for bias.
             // Add bias using this strange trick that has advantage of working well for dense and sparse arrays.
             // Due to the call to EnsureBiases, we know this region is dense.
             Contracts.Assert(grad.Count >= BiasCount && (grad.IsDense || grad.Indices[BiasCount - 1] == BiasCount - 1));
@@ -169,7 +169,7 @@ namespace Microsoft.ML.Runtime.Learners
                 // Need to subtract L1 regularization loss.
                 // The bias term is not regularized.
                 Double regLoss = 0;
-                VBufferUtils.ForEachDefined(ref CurrentWeights, (ind, value) => { if (ind >= BiasCount) regLoss += Math.Abs(value); });
+                VBufferUtils.ForEachDefined(CurrentWeights, (int ind, float value) => { if (ind >= BiasCount) regLoss += Math.Abs(value); });
                 deviance -= (float)regLoss * L1Weight * 2;
             }
 
@@ -268,7 +268,7 @@ namespace Microsoft.ML.Runtime.Learners
                 {
                     var label = cursor.Label;
                     var weight = cursor.Weight;
-                    var score = bias + VectorUtils.DotProductWithOffset(ref CurrentWeights, 1, ref cursor.Features);
+                    var score = bias + VectorUtils.DotProductWithOffset(CurrentWeights, 1, cursor.Features);
                     // Compute Bernoulli variance n_i * p_i * (1 - p_i) for the i-th training example.
                     var variance = weight / (2 + 2 * Math.Cosh(score));
 

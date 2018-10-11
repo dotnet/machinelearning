@@ -147,7 +147,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         /// Applies <paramref name="visitor"/> to every explicitly defined element of the vector,
         /// in order of index.
         /// </summary>
-        public static void ForEachDefined<T>(ref VBuffer<T> a, Action<int, T> visitor)
+        public static void ForEachDefined<T>(in ReadOnlyVBuffer<T> a, Action<int, T> visitor)
         {
             Contracts.CheckValue(visitor, nameof(visitor));
 
@@ -573,9 +573,9 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         /// <param name="src">Argument vector, whose elements are only read</param>
         /// <param name="dst">Argument vector, that could change</param>
         /// <param name="manip">Function to apply to each pair of elements</param>
-        public static void ApplyWith<TSrc, TDst>(ref VBuffer<TSrc> src, ref VBuffer<TDst> dst, PairManipulator<TSrc, TDst> manip)
+        public static void ApplyWith<TSrc, TDst>(in ReadOnlyVBuffer<TSrc> src, ref VBuffer<TDst> dst, PairManipulator<TSrc, TDst> manip)
         {
-            ApplyWithCore(ref src, ref dst, manip, outer: false);
+            ApplyWithCore(in src, ref dst, manip, outer: false);
         }
 
         /// <summary>
@@ -608,9 +608,9 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         /// <param name="src">Argument vector, whose elements are only read</param>
         /// <param name="dst">Argument vector, that could change</param>
         /// <param name="manip">Function to apply to each pair of elements</param>
-        public static void ApplyWithEitherDefined<TSrc, TDst>(ref VBuffer<TSrc> src, ref VBuffer<TDst> dst, PairManipulator<TSrc, TDst> manip)
+        public static void ApplyWithEitherDefined<TSrc, TDst>(in ReadOnlyVBuffer<TSrc> src, ref VBuffer<TDst> dst, PairManipulator<TSrc, TDst> manip)
         {
-            ApplyWithCore(ref src, ref dst, manip, outer: true);
+            ApplyWithCore(in src, ref dst, manip, outer: true);
         }
 
         /// <summary>
@@ -636,7 +636,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         /// where necessary depending on whether this is an inner or outer join of the
         /// indices of <paramref name="src"/> on <paramref name="dst"/>.
         /// </summary>
-        private static void ApplyWithCore<TSrc, TDst>(ref VBuffer<TSrc> src, ref VBuffer<TDst> dst, PairManipulator<TSrc, TDst> manip, bool outer)
+        private static void ApplyWithCore<TSrc, TDst>(in ReadOnlyVBuffer<TSrc> src, ref VBuffer<TDst> dst, PairManipulator<TSrc, TDst> manip, bool outer)
         {
             Contracts.Check(src.Length == dst.Length, "Vectors must have the same dimensionality.");
             Contracts.CheckValue(manip, nameof(manip));
@@ -773,7 +773,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
                 // This is unnecessary -- falling through to the sparse code will
                 // actually handle this case just fine -- but it is more efficient.
                 Densify(ref dst);
-                ApplyWithCore(ref src, ref dst, manip, outer);
+                ApplyWithCore(src, ref dst, manip, outer);
                 return;
             }
 
@@ -892,7 +892,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
                 Densify(ref dst);
                 int[] indices = dst.Indices;
                 Utils.EnsureSize(ref indices, src.Count, src.Length, keepOld: false);
-                Array.Copy(src.Indices, indices, newCount);
+                src.Indices.CopyTo(indices);
                 dst = new VBuffer<TDst>(src.Length, newCount, dst.Values, indices);
                 for (sI = 0; sI < src.Count; sI++)
                     manip(src.Indices[sI], src.Values[sI], ref dst.Values[sI]);
@@ -1152,7 +1152,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         /// </summary>
         /// <seealso cref="ApplyWith{TSrc,TDst}"/>
         /// <seealso cref="ApplyWithEitherDefined{TSrc,TDst}"/>
-        public static void ApplyIntoEitherDefined<TSrc, TDst>(ref VBuffer<TSrc> src, ref VBuffer<TDst> dst, Func<int, TSrc, TDst> func)
+        public static void ApplyIntoEitherDefined<TSrc, TDst>(in ReadOnlyVBuffer<TSrc> src, ref VBuffer<TDst> dst, Func<int, TSrc, TDst> func)
         {
             Contracts.CheckValue(func, nameof(func));
 
@@ -1160,7 +1160,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
             // equal lengths, but I don't care here.
             if (src.Count == 0)
             {
-                dst = new VBuffer<TDst>(src.Length, src.Count, dst.Values, dst.Indices);
+                dst = new VBuffer<TDst>(src.Length, 0, dst.Values, dst.Indices);
                 return;
             }
             int[] indices = dst.Indices;
@@ -1174,7 +1174,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
             else
             {
                 Utils.EnsureSize(ref indices, src.Count, src.Length, keepOld: false);
-                Array.Copy(src.Indices, indices, src.Count);
+                src.Indices.CopyTo(indices);
                 for (int i = 0; i < src.Count; ++i)
                     values[i] = func(src.Indices[i], src.Values[i]);
             }
@@ -1189,7 +1189,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         /// necessarily be dense. Otherwise, if both are sparse, the output will be sparse iff
         /// there is any slot that is not explicitly represented in either vector.
         /// </summary>
-        public static void ApplyInto<TSrc1, TSrc2, TDst>(ref VBuffer<TSrc1> a, ref VBuffer<TSrc2> b, ref VBuffer<TDst> dst, Func<int, TSrc1, TSrc2, TDst> func)
+        public static void ApplyInto<TSrc1, TSrc2, TDst>(in ReadOnlyVBuffer<TSrc1> a, in ReadOnlyVBuffer<TSrc2> b, ref VBuffer<TDst> dst, Func<int, TSrc1, TSrc2, TDst> func)
         {
             Contracts.Check(a.Length == b.Length, "Vectors must have the same dimensionality.");
             Contracts.CheckValue(func, nameof(func));
@@ -1277,7 +1277,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
                 if (newCount == a.Count)
                 {
                     // Case 3, a and b actually have the same indices!
-                    Array.Copy(a.Indices, indices, a.Count);
+                    a.Indices.CopyTo(indices);
                     for (aI = 0; aI < a.Count; aI++)
                     {
                         Contracts.Assert(a.Indices[aI] == b.Indices[aI]);
@@ -1287,7 +1287,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
                 else
                 {
                     // Case 4, a's indices are a subset of b's.
-                    Array.Copy(b.Indices, indices, b.Count);
+                    b.Indices.CopyTo(indices);
                     aI = 0;
                     for (bI = 0; aI < a.Count && bI < b.Count; bI++)
                     {
@@ -1302,7 +1302,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
             else if (newCount == a.Count)
             {
                 // Case 5, b's indices are a subset of a's.
-                Array.Copy(a.Indices, indices, a.Count);
+                a.Indices.CopyTo(indices);
                 bI = 0;
                 for (aI = 0; bI < b.Count && aI < a.Count; aI++)
                 {

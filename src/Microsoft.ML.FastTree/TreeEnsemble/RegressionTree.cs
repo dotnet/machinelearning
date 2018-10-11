@@ -928,7 +928,7 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
                          ++i)
                     {
                         int index = featIndices[i];
-                        if (CategoricalSplitFeatures[node].TryFindIndexSorted(0, CategoricalSplitFeatures[node].Length, index, out int ii))
+                        if (Utils.TryFindIndexSorted(CategoricalSplitFeatures[node], 0, CategoricalSplitFeatures[node].Length, index, out int ii))
                         {
                             Float val = GetFeatureValue(featValues[i], node);
                             if (val > 0.0f)

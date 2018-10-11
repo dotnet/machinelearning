@@ -151,7 +151,7 @@ namespace Microsoft.ML.Runtime.Learners
                 {
                     long idx = getIndexFromId(cursor.Id);
                     long dualIndexInitPos = idx * numClasses;
-                    var features = cursor.Features;
+                    ReadOnlyVBuffer<float> features = cursor.Features;
                     var label = (int)cursor.Label;
                     Float invariant;
                     Float normSquared;
@@ -163,7 +163,7 @@ namespace Microsoft.ML.Runtime.Learners
                     }
                     else
                     {
-                        normSquared = VectorUtils.NormSquared(features);
+                        normSquared = VectorUtils.NormSquared(in features);
                         if (Args.BiasLearningRate == 0)
                             normSquared += 1;
 
@@ -171,7 +171,7 @@ namespace Microsoft.ML.Runtime.Learners
                     }
 
                     // The output for the label class using current weights and bias.
-                    var labelOutput = WDot(ref features, ref weights[label], biasReg[label] + biasUnreg[label]);
+                    var labelOutput = WDot(in features, weights[label], biasReg[label] + biasUnreg[label]);
                     var instanceWeight = GetInstanceWeight(cursor);
 
                     // This will be the new dual variable corresponding to the label class.
@@ -197,7 +197,7 @@ namespace Microsoft.ML.Runtime.Learners
                         {
                             long dualIndex = iClass + dualIndexInitPos;
                             var dual = duals[dualIndex];
-                            var output = labelOutput + labelPrimalUpdate * normSquared - WDot(ref features, ref weights[iClass], biasReg[iClass] + biasUnreg[iClass]);
+                            var output = labelOutput + labelPrimalUpdate * normSquared - WDot(in features, weights[iClass], biasReg[iClass] + biasUnreg[iClass]);
                             var dualUpdate = _loss.DualUpdate(output, 1, dual, invariant, numThreads);
 
                             // The successive over-relaxation apporach to adjust the sum of dual variables (biasReg) to zero.
@@ -219,7 +219,7 @@ namespace Microsoft.ML.Runtime.Learners
 
                                 if (l1ThresholdZero)
                                 {
-                                    VectorUtils.AddMult(ref features, weights[iClass].Values, -primalUpdate);
+                                    VectorUtils.AddMult(in features, weights[iClass].Values, -primalUpdate);
                                     biasReg[iClass] -= primalUpdate;
                                 }
                                 else
@@ -252,7 +252,7 @@ namespace Microsoft.ML.Runtime.Learners
                     biasUnreg[label] += labelAdjustment * lambdaNInv * instanceWeight;
                     if (l1ThresholdZero)
                     {
-                        VectorUtils.AddMult(ref features, weights[label].Values, labelPrimalUpdate);
+                        VectorUtils.AddMult(in features, weights[label].Values, labelPrimalUpdate);
                         biasReg[label] += labelPrimalUpdate;
                     }
                     else
@@ -315,9 +315,9 @@ namespace Microsoft.ML.Runtime.Learners
                 while (cursor.MoveNext())
                 {
                     var instanceWeight = GetInstanceWeight(cursor);
-                    var features = cursor.Features;
+                    ReadOnlyVBuffer<float> features = cursor.Features;
                     var label = (int)cursor.Label;
-                    var labelOutput = WDot(ref features, ref weights[label], biasReg[label] + biasUnreg[label]);
+                    var labelOutput = WDot(in features, weights[label], biasReg[label] + biasUnreg[label]);
                     Double subLoss = 0;
                     Double subDualLoss = 0;
                     long idx = getIndexFromIdAndRow(cursor.Id, row);
@@ -330,7 +330,7 @@ namespace Microsoft.ML.Runtime.Learners
                             continue;
                         }
 
-                        var currentClassOutput = WDot(ref features, ref weights[iClass], biasReg[iClass] + biasUnreg[iClass]);
+                        var currentClassOutput = WDot(in features, weights[iClass], biasReg[iClass] + biasUnreg[iClass]);
                         subLoss += _loss.Loss(labelOutput - currentClassOutput, 1);
                         Contracts.Assert(dualIndex == iClass + idx * numClasses);
                         var dual = duals[dualIndex++];
@@ -355,7 +355,7 @@ namespace Microsoft.ML.Runtime.Learners
             Double biasRegularizationAdjustment = 0;
             for (int iClass = 0; iClass < numClasses; iClass++)
             {
-                weightsL1Norm += VectorUtils.L1Norm(ref weights[iClass]) + Math.Abs(biasReg[iClass]);
+                weightsL1Norm += VectorUtils.L1Norm(weights[iClass]) + Math.Abs(biasReg[iClass]);
                 weightsL2NormSquared += VectorUtils.NormSquared(weights[iClass]) + biasReg[iClass] * biasReg[iClass];
                 biasRegularizationAdjustment += biasReg[iClass] * biasUnreg[iClass];
             }

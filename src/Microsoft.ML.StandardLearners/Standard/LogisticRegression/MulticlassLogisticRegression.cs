@@ -188,8 +188,8 @@ namespace Microsoft.ML.Runtime.Learners
             return opt;
         }
 
-        protected override float AccumulateOneGradient(ref VBuffer<float> feat, float label, float weight,
-            ref VBuffer<float> x, ref VBuffer<float> grad, ref float[] scores)
+        protected override float AccumulateOneGradient(in ReadOnlyVBuffer<float> feat, float label, float weight,
+            in ReadOnlyVBuffer<float> x, ref VBuffer<float> grad, ref float[] scores)
         {
             if (Utils.Size(scores) < _numClasses)
                 scores = new float[_numClasses];
@@ -198,7 +198,7 @@ namespace Microsoft.ML.Runtime.Learners
             for (int c = 0, start = _numClasses; c < _numClasses; c++, start += NumFeatures)
             {
                 x.GetItemOrDefault(c, ref bias);
-                scores[c] = bias + VectorUtils.DotProductWithOffset(ref x, start, ref feat);
+                scores[c] = bias + VectorUtils.DotProductWithOffset(in x, start, in feat);
             }
 
             float logZ = MathUtils.SoftMax(scores, _numClasses);
@@ -213,7 +213,7 @@ namespace Microsoft.ML.Runtime.Learners
 
                 float modelProb = MathUtils.ExpSlow(scores[c] - logZ);
                 float mult = weight * (modelProb - probLabel);
-                VectorUtils.AddMultWithOffset(ref feat, mult, ref grad, start);
+                VectorUtils.AddMultWithOffset(in feat, mult, ref grad, start);
                 // Due to the call to EnsureBiases, we know this region is dense.
                 Contracts.Assert(grad.Count >= BiasCount && (grad.IsDense || grad.Indices[BiasCount - 1] == BiasCount - 1));
                 grad.Values[c] += mult;
@@ -278,7 +278,7 @@ namespace Microsoft.ML.Runtime.Learners
                 // Need to subtract L1 regularization loss.
                 // The bias term is not regularized.
                 Double regLoss = 0;
-                VBufferUtils.ForEachDefined(ref CurrentWeights, (ind, value) => { if (ind >= BiasCount) regLoss += Math.Abs(value); });
+                VBufferUtils.ForEachDefined(CurrentWeights, (int ind, float value) => { if (ind >= BiasCount) regLoss += Math.Abs(value); });
                 deviance -= (float)regLoss * L1Weight * 2;
             }
 
@@ -740,13 +740,13 @@ namespace Microsoft.ML.Runtime.Learners
                     Host.Check(src.Length == _numFeatures);
 
                     var values = dst.Values;
-                    PredictCore(ref src, ref values);
+                    PredictCore(src, ref values);
                     dst = new VBuffer<float>(_numClasses, values, dst.Indices);
                 };
             return (ValueMapper<TSrc, TDst>)(Delegate)del;
         }
 
-        private void PredictCore(ref VBuffer<float> src, ref float[] dst)
+        private void PredictCore(in ReadOnlyVBuffer<float> src, ref float[] dst)
         {
             Host.Check(src.Length == _numFeatures, "src length should equal the number of features");
             var weights = _weights;
@@ -757,7 +757,7 @@ namespace Microsoft.ML.Runtime.Learners
                 dst = new float[_numClasses];
 
             for (int i = 0; i < _biases.Length; i++)
-                dst[i] = _biases[i] + VectorUtils.DotProduct(ref weights[i], ref src);
+                dst[i] = _biases[i] + VectorUtils.DotProduct(weights[i], in src);
 
             Calibrate(dst);
         }
@@ -866,7 +866,7 @@ namespace Microsoft.ML.Runtime.Learners
             for (int i = 0; i < _biases.Length; i++)
             {
                 LinearPredictorUtils.SaveAsCode(writer,
-                    ref _weights[i],
+                    _weights[i],
                     _biases[i],
                     schema,
                     "score[" + i.ToString() + "]");

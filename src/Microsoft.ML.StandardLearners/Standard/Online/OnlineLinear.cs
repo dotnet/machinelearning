@@ -147,7 +147,7 @@ namespace Microsoft.ML.Runtime.Learners
                 }
 
                 Contracts.Assert(WeightsScale == 1);
-                Float maxNorm = Math.Max(VectorUtils.MaxNorm(ref Weights), Math.Abs(Bias));
+                Float maxNorm = Math.Max(VectorUtils.MaxNorm(Weights), Math.Abs(Bias));
                 Contracts.Check(FloatUtils.IsFinite(maxNorm),
                     "The weights/bias contain invalid values (NaN or Infinite). Potential causes: high learning rates, no normalization, high initial weights, etc.");
             }
@@ -176,7 +176,7 @@ namespace Microsoft.ML.Runtime.Learners
                 using (var cursor = cursorFactory.Create(rand))
                 {
                     while (cursor.MoveNext())
-                        ProcessDataInstance(ch, ref cursor.Features, cursor.Label, cursor.Weight);
+                        ProcessDataInstance(ch, cursor.Features, cursor.Label, cursor.Weight);
                     NumBad += cursor.BadFeaturesRowCount;
                 }
 
@@ -336,9 +336,9 @@ namespace Microsoft.ML.Runtime.Learners
         /// This should be overridden by derived classes. This implementation simply increments
         /// _numIterExamples and dumps debug information to the console.
         /// </summary>
-        protected virtual void ProcessDataInstance(IChannel ch, ref VBuffer<Float> feat, Float label, Float weight)
+        protected virtual void ProcessDataInstance(IChannel ch, in ReadOnlyVBuffer<Float> feat, Float label, Float weight)
         {
-            Contracts.Assert(FloatUtils.IsFinite(feat.Values, feat.Count));
+            Contracts.Assert(FloatUtils.IsFinite(feat.Values.Slice(0, feat.Count)));
 
             ++NumIterExamples;
 #if OLD_TRACING // REVIEW: How should this be ported?
@@ -378,14 +378,14 @@ namespace Microsoft.ML.Runtime.Learners
         /// <summary>
         /// Return the raw margin from the decision hyperplane
         /// </summary>
-        protected Float CurrentMargin(ref VBuffer<Float> feat)
+        protected Float CurrentMargin(in ReadOnlyVBuffer<Float> feat)
         {
-            return Bias + VectorUtils.DotProduct(ref feat, ref Weights) * WeightsScale;
+            return Bias + VectorUtils.DotProduct(in feat, Weights) * WeightsScale;
         }
 
-        protected virtual Float Margin(ref VBuffer<Float> feat)
+        protected virtual Float Margin(in ReadOnlyVBuffer<Float> feat)
         {
-            return CurrentMargin(ref feat);
+            return CurrentMargin(in feat);
         }
     }
 }

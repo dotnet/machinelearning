@@ -186,9 +186,8 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         /// In case of duplicates it returns the index of the first one.
         /// It guarantees that items before the returned index are &lt; value, while those at and after the returned index are &gt;= value.
         /// </summary>
-        public static int FindIndexSorted(this int[] input, int value)
+        public static int FindIndexSorted(this ReadOnlySpan<int> input, int value)
         {
-            Contracts.AssertValue(input);
             return FindIndexSorted(input, 0, input.Length, value);
         }
 
@@ -233,9 +232,9 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         /// <c>index</c> parameter, and returns whether that index is a valid index
         /// pointing to a value equal to the input parameter <c>value</c>.
         /// </summary>
-        public static bool TryFindIndexSorted(this int[] input, int min, int lim, int value, out int index)
+        public static bool TryFindIndexSorted(ReadOnlySpan<int> input, int min, int lim, int value, out int index)
         {
-            index = input.FindIndexSorted(min, lim, value);
+            index = FindIndexSorted(input, min, lim, value);
             return index < lim && input[index] == value;
         }
 
@@ -245,10 +244,14 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         /// In case of duplicates it returns the index of the first one.
         /// It guarantees that items before the returned index are &lt; value, while those at and after the returned index are &gt;= value.
         /// </summary>
-        public static int FindIndexSorted(this int[] input, int min, int lim, int value)
+        public static int FindIndexSorted(int[] input, int min, int lim, int value)
         {
-            Contracts.AssertValueOrNull(input);
-            Contracts.Assert(0 <= min & min <= lim & lim <= Utils.Size(input));
+            return FindIndexSorted(input.AsSpan(), min, lim, value);
+        }
+
+        public static int FindIndexSorted(ReadOnlySpan<int> input, int min, int lim, int value)
+        {
+            Contracts.Assert(0 <= min & min <= lim & lim <= input.Length);
 
             int minCur = min;
             int limCur = lim;
@@ -1086,6 +1089,21 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
                 }
             }
             return null;
+        }
+
+        public static int Count<TSource>(this ReadOnlySpan<TSource> source, Func<TSource, bool> predicate)
+        {
+            Contracts.CheckValue(predicate, nameof(predicate));
+
+            int result = 0;
+            for (int i = 0; i < source.Length; i++)
+            {
+                if (predicate(source[i]))
+                {
+                    result++;
+                }
+            }
+            return result;
         }
     }
 }

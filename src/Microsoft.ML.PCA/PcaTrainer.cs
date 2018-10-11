@@ -191,7 +191,7 @@ namespace Microsoft.ML.Runtime.PCA
 
                 // Make the next vectors in the queue orthogonal to the orthonormalized vectors.
                 for (var j = i + 1; j < oversampledRank; ++j) //subtract the projection of y[j] on v.
-                    VectorUtils.AddMult(ref v, -VectorUtils.DotProduct(ref v, ref y[j]), ref y[j]);
+                    VectorUtils.AddMult(v, -VectorUtils.DotProduct(v, y[j]), ref y[j]);
             }
             var q = y; // q in QR decomposition.
 
@@ -203,7 +203,7 @@ namespace Microsoft.ML.Runtime.PCA
             for (var i = 0; i < oversampledRank; ++i)
             {
                 for (var j = i; j < oversampledRank; ++j)
-                    b2[i * oversampledRank + j] = b2[j * oversampledRank + i] = VectorUtils.DotProduct(ref b[i], ref b[j]);
+                    b2[i * oversampledRank + j] = b2[j * oversampledRank + i] = VectorUtils.DotProduct(b[i], b[j]);
             }
 
             Float[] smallEigenvalues;// eigenvectors and eigenvalues of the small matrix B2.
@@ -260,12 +260,12 @@ namespace Microsoft.ML.Runtime.PCA
                 while (cursor.MoveNext())
                 {
                     if (center)
-                        VectorUtils.AddMult(ref cursor.Features, cursor.Weight, ref mean);
+                        VectorUtils.AddMult(cursor.Features, cursor.Weight, ref mean);
                     for (int i = 0; i < numCols; i++)
                     {
                         VectorUtils.AddMult(
-                            ref cursor.Features,
-                            cursor.Weight * VectorUtils.DotProduct(ref omega[i], ref cursor.Features),
+                            cursor.Features,
+                            cursor.Weight * VectorUtils.DotProduct(omega[i], cursor.Features),
                             ref y[i]);
                     }
                     n += cursor.Weight;
@@ -285,7 +285,7 @@ namespace Microsoft.ML.Runtime.PCA
             {
                 VectorUtils.ScaleBy(ref mean, invn);
                 for (int i = 0; i < numCols; i++)
-                    VectorUtils.AddMult(ref mean, -VectorUtils.DotProduct(ref omega[i], ref mean), ref y[i]);
+                    VectorUtils.AddMult(mean, -VectorUtils.DotProduct(omega[i], mean), ref y[i]);
             }
         }
 
@@ -406,7 +406,7 @@ namespace Microsoft.ML.Runtime.PCA
             for (var i = 0; i < rank; ++i) // Only want first k
             {
                 _eigenVectors[i] = eigenVectors[i];
-                _meanProjected[i] = VectorUtils.DotProduct(ref eigenVectors[i], ref mean);
+                _meanProjected[i] = VectorUtils.DotProduct(eigenVectors[i], mean);
             }
 
             _mean = mean;
@@ -452,7 +452,7 @@ namespace Microsoft.ML.Runtime.PCA
                 var vi = ctx.Reader.ReadFloatArray(_dimension);
                 Host.CheckDecode(vi.All(FloatUtils.IsFinite));
                 _eigenVectors[i] = new VBuffer<Float>(_dimension, vi);
-                _meanProjected[i] = VectorUtils.DotProduct(ref _eigenVectors[i], ref _mean);
+                _meanProjected[i] = VectorUtils.DotProduct(_eigenVectors[i], _mean);
             }
             WarnOnOldNormalizer(ctx, GetType(), Host);
 
@@ -521,8 +521,8 @@ namespace Microsoft.ML.Runtime.PCA
             writer.WriteLine("# V");
             for (var i = 0; i < _rank; ++i)
             {
-                VBufferUtils.ForEachDefined(ref _eigenVectors[i],
-                    (ind, val) => { if (val != 0) writer.Write(" {0}:{1}", ind, val); });
+                VBufferUtils.ForEachDefined(_eigenVectors[i],
+                    (int ind, float val) => { if (val != 0) writer.Write(" {0}:{1}", ind, val); });
                 writer.WriteLine();
             }
         }
@@ -566,19 +566,19 @@ namespace Microsoft.ML.Runtime.PCA
                 (ref VBuffer<Float> src, ref Float dst) =>
                 {
                     Host.Check(src.Length == _dimension);
-                    dst = Score(ref src);
+                    dst = Score(src);
                 };
             return (ValueMapper<TIn, TOut>)(Delegate)del;
         }
 
-        private Float Score(ref VBuffer<Float> src)
+        private Float Score(in ReadOnlyVBuffer<Float> src)
         {
             Host.Assert(src.Length == _dimension);
 
             // REVIEW: Can this be done faster in a single pass over src and _mean?
             var mean = _mean;
             Float norm2X = VectorUtils.NormSquared(src) -
-                2 * VectorUtils.DotProduct(ref mean, ref src) + _norm2Mean;
+                2 * VectorUtils.DotProduct(mean, in src) + _norm2Mean;
             // Because the distance between src and _mean is computed using the above expression, the result
             // may be negative due to round off error. If this happens, we let the distance be 0.
             if (norm2X < 0)
@@ -587,7 +587,7 @@ namespace Microsoft.ML.Runtime.PCA
             Float norm2U = 0;
             for (int i = 0; i < _rank; i++)
             {
-                Float component = VectorUtils.DotProduct(ref _eigenVectors[i], ref src) - _meanProjected[i];
+                Float component = VectorUtils.DotProduct(_eigenVectors[i], in src) - _meanProjected[i];
                 norm2U += component * component;
             }
 

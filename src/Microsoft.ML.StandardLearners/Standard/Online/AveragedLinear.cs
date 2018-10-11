@@ -124,15 +124,15 @@ namespace Microsoft.ML.Runtime.Learners
         /// <summary>
         /// Return the raw margin from the decision hyperplane
         /// </summary>
-        protected Float AveragedMargin(ref VBuffer<Float> feat)
+        protected Float AveragedMargin(in ReadOnlyVBuffer<Float> feat)
         {
             Contracts.Assert(Args.Averaged);
-            return (TotalBias + VectorUtils.DotProduct(ref feat, ref TotalWeights)) / (Float)NumWeightUpdates;
+            return (TotalBias + VectorUtils.DotProduct(in feat, TotalWeights)) / (Float)NumWeightUpdates;
         }
 
-        protected override Float Margin(ref VBuffer<Float> feat)
+        protected override Float Margin(in ReadOnlyVBuffer<Float> feat)
         {
-            return Args.Averaged ? AveragedMargin(ref feat) : CurrentMargin(ref feat);
+            return Args.Averaged ? AveragedMargin(in feat) : CurrentMargin(in feat);
         }
 
         protected override void FinishIteration(IChannel ch)
@@ -145,7 +145,7 @@ namespace Microsoft.ML.Runtime.Learners
                 if (Args.DoLazyUpdates && NumNoUpdates > 0)
                 {
                     // Update the total weights to include the final loss=0 updates
-                    VectorUtils.AddMult(ref Weights, NumNoUpdates * WeightsScale, ref TotalWeights);
+                    VectorUtils.AddMult(Weights, NumNoUpdates * WeightsScale, ref TotalWeights);
                     TotalBias += Bias * NumNoUpdates;
                     NumWeightUpdates += NumNoUpdates;
                     NumNoUpdates = 0;
@@ -160,7 +160,7 @@ namespace Microsoft.ML.Runtime.Learners
                     Console.WriteLine("");
                     // #endif
                     ch.Info("Resetting weights to average weights");
-                    VectorUtils.ScaleInto(ref TotalWeights, 1 / (Float)NumWeightUpdates, ref Weights);
+                    VectorUtils.ScaleInto(TotalWeights, 1 / (Float)NumWeightUpdates, ref Weights);
                     WeightsScale = 1;
                     Bias = TotalBias / (Float)NumWeightUpdates;
                 }
@@ -179,12 +179,12 @@ namespace Microsoft.ML.Runtime.Learners
         }
 #endif
 
-        protected override void ProcessDataInstance(IChannel ch, ref VBuffer<Float> feat, Float label, Float weight)
+        protected override void ProcessDataInstance(IChannel ch, in ReadOnlyVBuffer<Float> feat, Float label, Float weight)
         {
-            base.ProcessDataInstance(ch, ref feat, label, weight);
+            base.ProcessDataInstance(ch, in feat, label, weight);
 
             // compute the update and update if needed
-            Float output = CurrentMargin(ref feat);
+            Float output = CurrentMargin(in feat);
             Double loss = LossFunction.Loss(output, label);
 
             // REVIEW: Should this be biasUpdate != 0?
@@ -195,7 +195,7 @@ namespace Microsoft.ML.Runtime.Learners
                 // If doing lazy weights, we need to update the totalWeights and totalBias before updating weights/bias
                 if (Args.DoLazyUpdates && Args.Averaged && NumNoUpdates > 0 && TotalMultipliers * Args.AveragedTolerance <= PendingMultipliers)
                 {
-                    VectorUtils.AddMult(ref Weights, NumNoUpdates * WeightsScale, ref TotalWeights);
+                    VectorUtils.AddMult(Weights, NumNoUpdates * WeightsScale, ref TotalWeights);
                     TotalBias += Bias * NumNoUpdates * WeightsScale;
                     NumWeightUpdates += NumNoUpdates;
                     NumNoUpdates = 0;
@@ -216,7 +216,7 @@ namespace Microsoft.ML.Runtime.Learners
                 Float biasUpdate = -rate * LossFunction.Derivative(output, label);
 
                 // Perform the update to weights and bias.
-                VectorUtils.AddMult(ref feat, biasUpdate / WeightsScale, ref Weights);
+                VectorUtils.AddMult(in feat, biasUpdate / WeightsScale, ref Weights);
                 WeightsScale *= 1 - 2 * Args.L2RegularizerWeight; // L2 regularization.
                 ScaleWeightsIfNeeded();
                 Bias += biasUpdate;
@@ -254,7 +254,7 @@ namespace Microsoft.ML.Runtime.Learners
                     Console.WriteLine();
                     // #endif
                     ch.Info("Resetting weights to average weights");
-                    VectorUtils.ScaleInto(ref TotalWeights, 1 / (Float)NumWeightUpdates, ref Weights);
+                    VectorUtils.ScaleInto(TotalWeights, 1 / (Float)NumWeightUpdates, ref Weights);
                     WeightsScale = 1;
                     Bias = TotalBias / (Float)NumWeightUpdates;
                 }
@@ -283,12 +283,12 @@ namespace Microsoft.ML.Runtime.Learners
         {
             if (Args.RecencyGain == 0)
             {
-                VectorUtils.AddMult(ref Weights, WeightsScale, ref TotalWeights);
+                VectorUtils.AddMult(Weights, WeightsScale, ref TotalWeights);
                 TotalBias += Bias;
                 NumWeightUpdates++;
                 return;
             }
-            VectorUtils.AddMult(ref Weights, Gain * WeightsScale, ref TotalWeights);
+            VectorUtils.AddMult(Weights, Gain * WeightsScale, ref TotalWeights);
             TotalBias += Gain * Bias;
             NumWeightUpdates += Gain;
             Gain = (Args.RecencyGainMulti ? Gain * Args.RecencyGain : Gain + Args.RecencyGain);

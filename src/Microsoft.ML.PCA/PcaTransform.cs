@@ -436,11 +436,12 @@ namespace Microsoft.ML.Runtime.Data
                         {
                             totalColWeight[iinfo] += weight;
 
+                            ReadOnlyVBuffer<float> readOnlyFeatures = features;
                             if (center[iinfo])
-                                VectorUtils.AddMult(ref features, mean[iinfo], weight);
+                                VectorUtils.AddMult(in readOnlyFeatures, mean[iinfo], weight);
 
                             for (int i = 0; i < omega[iinfo].Length; i++)
-                                VectorUtils.AddMult(ref features, y[iinfo][i], weight * VectorUtils.DotProductWithOffset(omega[iinfo][i], 0, ref features));
+                                VectorUtils.AddMult(in readOnlyFeatures, y[iinfo][i], weight * VectorUtils.DotProductWithOffset(omega[iinfo][i], 0, ref features));
                         }
                     }
                 }

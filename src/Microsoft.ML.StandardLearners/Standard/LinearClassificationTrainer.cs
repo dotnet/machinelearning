@@ -129,14 +129,14 @@ namespace Microsoft.ML.Runtime.Learners
 
         protected abstract void CheckLabel(RoleMappedData examples, out int weightSetCount);
 
-        protected float WDot(ref VBuffer<float> features, ref VBuffer<float> weights, float bias)
+        protected float WDot(in ReadOnlyVBuffer<float> features, in ReadOnlyVBuffer<float> weights, float bias)
         {
-            return VectorUtils.DotProduct(ref weights, ref features) + bias;
+            return VectorUtils.DotProduct(in weights, in features) + bias;
         }
 
-        protected float WScaledDot(ref VBuffer<float> features, Double scaling, ref VBuffer<float> weights, float bias)
+        protected float WScaledDot(in ReadOnlyVBuffer<float> features, Double scaling, in ReadOnlyVBuffer<float> weights, float bias)
         {
-            return VectorUtils.DotProduct(ref weights, ref features) * (float)scaling + bias;
+            return VectorUtils.DotProduct(in weights, in features) * (float)scaling + bias;
         }
 
         protected virtual int ComputeNumThreads(FloatLabelCursor.Factory cursorFactory)
@@ -274,9 +274,9 @@ namespace Microsoft.ML.Runtime.Learners
             Args.Check(env);
         }
 
-        protected float WDot(ref VBuffer<float> features, ref VBuffer<float> weights, float bias)
+        protected float WDot(in ReadOnlyVBuffer<float> features, in ReadOnlyVBuffer<float> weights, float bias)
         {
-            return VectorUtils.DotProduct(ref weights, ref features) + bias;
+            return VectorUtils.DotProduct(in weights, in features) + bias;
         }
 
         protected sealed override TModel TrainCore(IChannel ch, RoleMappedData data, LinearPredictor predictor, int weightSetCount)
@@ -771,7 +771,7 @@ namespace Microsoft.ML.Runtime.Learners
                 while (cursor.MoveNext())
                 {
                     long idx = getIndexFromId(cursor.Id);
-                    var features = cursor.Features;
+                    ReadOnlyVBuffer<float> features = cursor.Features;
                     var label = cursor.Label;
                     float invariant;
                     if (invariants != null)
@@ -789,7 +789,7 @@ namespace Microsoft.ML.Runtime.Learners
                     for (int numTrials = 0; numTrials < maxUpdateTrials; numTrials++)
                     {
                         var dual = duals[idx];
-                        var output = WDot(ref features, ref weights[0], biasReg[0] + biasUnreg[0]);
+                        var output = WDot(in features, weights[0], biasReg[0] + biasUnreg[0]);
                         var dualUpdate = Loss.DualUpdate(output, label, dual, invariant, numThreads);
 
                         // The successive over-relaxation apporach to adjust the sum of dual variables (biasReg) to zero.
@@ -811,7 +811,7 @@ namespace Microsoft.ML.Runtime.Learners
 
                             if (l1ThresholdZero)
                             {
-                                VectorUtils.AddMult(ref features, weights[0].Values, primalUpdate);
+                                VectorUtils.AddMult(in features, weights[0].Values, primalUpdate);
                                 biasReg[0] += primalUpdate;
                             }
                             else
@@ -918,6 +918,7 @@ namespace Microsoft.ML.Runtime.Learners
             var lossSum = new CompensatedSum();
             var dualLossSum = new CompensatedSum();
             var biasTotal = biasReg[0] + biasUnreg[0];
+            ReadOnlyVBuffer<float> firstWeights = weights[0];
 
             using (var cursor = cursorFactory.Create())
             {
@@ -927,8 +928,7 @@ namespace Microsoft.ML.Runtime.Learners
                 while (cursor.MoveNext())
                 {
                     var instanceWeight = GetInstanceWeight(cursor);
-                    var features = cursor.Features;
-                    var output = WDot(ref features, ref weights[0], biasTotal);
+                    var output = WDot(cursor.Features, in firstWeights, biasTotal);
                     Double subLoss = Loss.Loss(output, cursor.Label);
                     long idx = getIndexFromIdAndRow(cursor.Id, row);
                     Double subDualLoss = Loss.DualLoss(cursor.Label, duals[idx]);
@@ -943,8 +943,8 @@ namespace Microsoft.ML.Runtime.Learners
             Contracts.Assert(Args.L1Threshold.HasValue);
             Double l2Const = Args.L2Const.Value;
             Double l1Threshold = Args.L1Threshold.Value;
-            Double l1Regularizer = l1Threshold * l2Const * (VectorUtils.L1Norm(ref weights[0]) + Math.Abs(biasReg[0]));
-            var l2Regularizer = l2Const * (VectorUtils.NormSquared(weights[0]) + biasReg[0] * biasReg[0]) * 0.5;
+            Double l1Regularizer = l1Threshold * l2Const * (VectorUtils.L1Norm(in firstWeights) + Math.Abs(biasReg[0]));
+            var l2Regularizer = l2Const * (VectorUtils.NormSquared(in firstWeights) + biasReg[0] * biasReg[0]) * 0.5;
             var newLoss = lossSum.Sum / count + l2Regularizer + l1Regularizer;
             var newDualLoss = dualLossSum.Sum / count - l2Regularizer - l2Const * biasUnreg[0] * biasReg[0];
             var loss = metrics[(int)MetricKind.Loss];
@@ -954,7 +954,7 @@ namespace Microsoft.ML.Runtime.Learners
             var dualityGap = metrics[(int)MetricKind.DualityGap] = newLoss - newDualLoss;
             metrics[(int)MetricKind.BiasUnreg] = biasUnreg[0];
             metrics[(int)MetricKind.BiasReg] = biasReg[0];
-            metrics[(int)MetricKind.L1Sparsity] = Args.L1Threshold == 0 ? 1 : (Double)weights[0].Values.Count(w => w != 0) / weights.Length;
+            metrics[(int)MetricKind.L1Sparsity] = Args.L1Threshold == 0 ? 1 : (Double)firstWeights.Values.Count(w => w != 0) / weights.Length;
 
             bool converged = dualityGap / newLoss < Args.ConvergenceTolerance;
 
@@ -963,7 +963,7 @@ namespace Microsoft.ML.Runtime.Learners
                 // Maintain a copy of weights and bias with best primal loss thus far.
                 // This is some extra work and uses extra memory, but it seems worth doing it.
                 // REVIEW: Sparsify bestWeights?
-                weights[0].CopyTo(ref bestWeights[0]);
+                firstWeights.CopyTo(ref bestWeights[0]);
                 bestBiasReg[0] = biasReg[0];
                 bestBiasUnreg[0] = biasUnreg[0];
                 bestPrimalLoss = metrics[(int)MetricKind.Loss];
@@ -1818,8 +1818,8 @@ namespace Microsoft.ML.Runtime.Learners
                         {
                             count++;
                             var instanceWeight = cursor.Weight;
-                            var features = cursor.Features;
-                            Double subLoss = lossFunc.Loss(WScaledDot(ref features, weightScaling, ref weights, bias), cursor.Label);
+                            ReadOnlyVBuffer<float> features = cursor.Features;
+                            Double subLoss = lossFunc.Loss(WScaledDot(in features, weightScaling, weights, bias), cursor.Label);
 
                             if (cursor.Label > 0)
                                 lossSum.Add(subLoss * instanceWeight * positiveInstanceWeight);
@@ -1856,9 +1856,9 @@ namespace Microsoft.ML.Runtime.Learners
                     {
                         while (cursor.MoveNext())
                         {
-                            VBuffer<float> features = cursor.Features;
+                            ReadOnlyVBuffer<float> features = cursor.Features;
                             float label = cursor.Label;
-                            float derivative = cursor.Weight * lossFunc.Derivative(WScaledDot(ref features, weightScaling, ref weights, bias), label); // complexity: O(k)
+                            float derivative = cursor.Weight * lossFunc.Derivative(WScaledDot(in features, weightScaling, weights, bias), label); // complexity: O(k)
 
                             //Note that multiplying the gradient by a weight h is not equivalent to doing h updates
                             //on the same instance. A potentially better way to do weighted update is described in
@@ -1869,7 +1869,7 @@ namespace Microsoft.ML.Runtime.Learners
                             Double rate = ilr / (1 + ilr * l2Weight * (t++));
                             Double step = -derivative * rate;
                             weightScaling *= 1 - rate * l2Weight;
-                            VectorUtils.AddMult(ref features, weights.Values, (float)(step / weightScaling));
+                            VectorUtils.AddMult(in features, weights.Values, (float)(step / weightScaling));
                             bias += (float)step;
                         }
                         if (e == 1)

@@ -456,12 +456,14 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         // REVIEW: Consider implementing using SSE.
         public static bool IsFinite(Single[] values, int count)
         {
-            Contracts.Assert(count >= 0);
-            Contracts.Assert(Utils.Size(values) >= count);
+            return IsFinite(values.AsSpan(0, count));
+        }
 
+        public static bool IsFinite(ReadOnlySpan<Single> values)
+        {
             // Assuming that non-finites are rare, this is faster than testing on each item.
             Single sum = 0;
-            for (int i = 0; i < count; i++)
+            for (int i = 0; i < values.Length; i++)
             {
                 var v = values[i];
                 sum += v - v;

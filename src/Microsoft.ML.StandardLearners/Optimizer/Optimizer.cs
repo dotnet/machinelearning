@@ -93,24 +93,24 @@ namespace Microsoft.ML.Runtime.Numeric
 
         internal virtual OptimizerState MakeState(IChannel ch, IProgressChannelProvider progress, DifferentiableFunction function, ref VBuffer<Float> initial)
         {
-            return new FunctionOptimizerState(ch, progress, function, ref initial, M, TotalMemoryLimit, KeepDense, EnforceNonNegativity);
+            return new FunctionOptimizerState(ch, progress, function, initial, M, TotalMemoryLimit, KeepDense, EnforceNonNegativity);
         }
 
         internal sealed class FunctionOptimizerState : OptimizerState
         {
             public override DifferentiableFunction Function { get; }
 
-            internal FunctionOptimizerState(IChannel ch, IProgressChannelProvider progress, DifferentiableFunction function, ref VBuffer<Float> initial, int m,
+            internal FunctionOptimizerState(IChannel ch, IProgressChannelProvider progress, DifferentiableFunction function, in ReadOnlyVBuffer<Float> initial, int m,
                 long totalMemLimit, bool keepDense, bool enforceNonNegativity)
-                : base(ch, progress, ref initial, m, totalMemLimit, keepDense, enforceNonNegativity)
+                : base(ch, progress, in initial, m, totalMemLimit, keepDense, enforceNonNegativity)
             {
                 Function = function;
                 Init();
             }
 
-            public override Float Eval(ref VBuffer<Float> input, ref VBuffer<Float> gradient)
+            public override Float Eval(in ReadOnlyVBuffer<Float> input, ref VBuffer<Float> gradient)
             {
-                return Function(ref input, ref gradient, ProgressProvider);
+                return Function(in input, ref gradient, ProgressProvider);
             }
         }
 
@@ -141,7 +141,7 @@ namespace Microsoft.ML.Runtime.Numeric
             /// The function being optimized
             /// </summary>
             public abstract DifferentiableFunction Function { get; }
-            public abstract Float Eval(ref VBuffer<Float> input, ref VBuffer<Float> gradient);
+            public abstract Float Eval(in ReadOnlyVBuffer<Float> input, ref VBuffer<Float> gradient);
 
             /// <summary>
             /// The current point being explored
@@ -194,7 +194,7 @@ namespace Microsoft.ML.Runtime.Numeric
             private int _m;
             private readonly long _totalMemLimit;
 
-            protected internal OptimizerState(IChannel ch, IProgressChannelProvider progress, ref VBuffer<Float> initial,
+            protected internal OptimizerState(IChannel ch, IProgressChannelProvider progress, in ReadOnlyVBuffer<Float> initial,
                 int m, long totalMemLimit, bool keepDense, bool enforceNonNegativity)
             {
                 Contracts.AssertValue(ch);
@@ -239,7 +239,7 @@ namespace Microsoft.ML.Runtime.Numeric
             // Leaf constructors must call this once they are fully initialized.
             protected virtual void Init()
             {
-                Value = LastValue = Eval(ref _x, ref _grad);
+                Value = LastValue = Eval(_x, ref _grad);
                 GradientCalculations++;
                 if (!FloatUtils.IsFinite(LastValue))
                     throw Ch.Except("Optimizer unable to proceed with loss function yielding {0}", LastValue);
@@ -259,8 +259,8 @@ namespace Microsoft.ML.Runtime.Numeric
                     {
                         if (_roList[i] > 0)
                         {
-                            alphas[i] = -VectorUtils.DotProduct(ref _sList[i], ref _dir) / _roList[i];
-                            VectorUtils.AddMult(ref _yList[i], alphas[i], ref _dir);
+                            alphas[i] = -VectorUtils.DotProduct(_sList[i], _dir) / _roList[i];
+                            VectorUtils.AddMult(_yList[i], alphas[i], ref _dir);
                             if (lastGoodRo == -1)
                                 lastGoodRo = i;
                         }
@@ -270,15 +270,15 @@ namespace Microsoft.ML.Runtime.Numeric
                     if (lastGoodRo == -1)
                         return;
 
-                    Float yDotY = VectorUtils.DotProduct(ref _yList[lastGoodRo], ref _yList[lastGoodRo]);
+                    Float yDotY = VectorUtils.DotProduct(_yList[lastGoodRo], _yList[lastGoodRo]);
                     VectorUtils.ScaleBy(ref _dir, _roList[lastGoodRo] / yDotY);
 
                     for (int i = 0; i <= lastGoodRo; i++)
                     {
                         if (_roList[i] > 0)
                         {
-                            Float beta = VectorUtils.DotProduct(ref _yList[i], ref _dir) / _roList[i];
-                            VectorUtils.AddMult(ref _sList[i], -alphas[i] - beta, ref _dir);
+                            Float beta = VectorUtils.DotProduct(_yList[i], _dir) / _roList[i];
+                            VectorUtils.AddMult(_sList[i], -alphas[i] - beta, ref _dir);
                         }
                     }
                 }
@@ -293,7 +293,7 @@ namespace Microsoft.ML.Runtime.Numeric
 
             protected void FixDirZeros()
             {
-                VBufferUtils.ApplyWithEitherDefined(ref _steepestDescDir, ref _dir,
+                VBufferUtils.ApplyWithEitherDefined(_steepestDescDir, ref _dir,
                     (int i, Float sdVal, ref Float dirVal) =>
                     {
                         if (sdVal == 0)
@@ -305,8 +305,8 @@ namespace Microsoft.ML.Runtime.Numeric
             {
                 if (EnforceNonNegativity)
                 {
-                    VBufferUtils.ApplyInto(ref _x, ref _grad, ref _steepestDescDir,
-                        (ind, xVal, gradVal) =>
+                    VBufferUtils.ApplyInto(_x, _grad, ref _steepestDescDir,
+                        (int ind, float xVal, float gradVal) =>
                         {
                             if (xVal > 0)
                                 return -gradVal;
@@ -316,7 +316,7 @@ namespace Microsoft.ML.Runtime.Numeric
                     _steepestDescDir.CopyTo(ref _dir);
                 }
                 else
-                    VectorUtils.ScaleInto(ref _grad, -1, ref _dir);
+                    VectorUtils.ScaleInto(_grad, -1, ref _dir);
 
                 MapDirByInverseHessian();
 
@@ -355,9 +355,9 @@ namespace Microsoft.ML.Runtime.Numeric
                     nextY = CreateWorkingVector();
                 }
 
-                VectorUtils.AddMultInto(ref _newX, -1, ref _x, ref nextS);
-                VectorUtils.AddMultInto(ref _newGrad, -1, ref _grad, ref nextY);
-                Float ro = VectorUtils.DotProduct(ref nextS, ref nextY);
+                VectorUtils.AddMultInto(_newX, -1, _x, ref nextS);
+                VectorUtils.AddMultInto(_newGrad, -1, _grad, ref nextY);
+                Float ro = VectorUtils.DotProduct(nextS, nextY);
                 if (ro == 0)
                     throw Ch.Process(new PrematureConvergenceException(this, "ro equals zero. Is your function linear?"));
 
@@ -381,7 +381,7 @@ namespace Microsoft.ML.Runtime.Numeric
             internal virtual bool LineSearch(IChannel ch, bool force)
             {
                 Contracts.AssertValue(ch);
-                Float dirDeriv = VectorUtils.DotProduct(ref _dir, ref _grad);
+                Float dirDeriv = VectorUtils.DotProduct(_dir, _grad);
 
                 if (dirDeriv == 0)
                     throw ch.Process(new PrematureConvergenceException(this, "Directional derivative is zero. You may be sitting on the optimum."));
@@ -402,7 +402,7 @@ namespace Microsoft.ML.Runtime.Numeric
                 // initial bracketing phase
                 while (true)
                 {
-                    VectorUtils.AddMultInto(ref _x, alpha, ref _dir, ref _newX);
+                    VectorUtils.AddMultInto(_x, alpha, _dir, ref _newX);
                     if (EnforceNonNegativity)
                     {
                         VBufferUtils.Apply(ref _newX, delegate(int ind, ref Float newXval)
@@ -412,7 +412,7 @@ namespace Microsoft.ML.Runtime.Numeric
                         });
                     }
 
-                    Value = Eval(ref _newX, ref _newGrad);
+                    Value = Eval(_newX, ref _newGrad);
                     GradientCalculations++;
                     if (Float.IsPositiveInfinity(Value))
                     {
@@ -423,7 +423,7 @@ namespace Microsoft.ML.Runtime.Numeric
                     if (!FloatUtils.IsFinite(Value))
                         throw ch.Except("Optimizer unable to proceed with loss function yielding {0}", Value);
 
-                    dirDeriv = VectorUtils.DotProduct(ref _dir, ref _newGrad);
+                    dirDeriv = VectorUtils.DotProduct(_dir, _newGrad);
                     PointValueDeriv curr = new PointValueDeriv(alpha, Value, dirDeriv);
 
                     if ((curr.V > LastValue + c1 * alpha) || (last.A > 0 && curr.V >= last.V))
@@ -483,7 +483,7 @@ namespace Microsoft.ML.Runtime.Numeric
                     if (alpha < lb)
                         alpha = lb;
 
-                    VectorUtils.AddMultInto(ref _x, alpha, ref _dir, ref _newX);
+                    VectorUtils.AddMultInto(_x, alpha, _dir, ref _newX);
                     if (EnforceNonNegativity)
                     {
                         VBufferUtils.Apply(ref _newX, delegate(int ind, ref Float newXval)
@@ -493,11 +493,11 @@ namespace Microsoft.ML.Runtime.Numeric
                         });
                     }
 
-                    Value = Eval(ref _newX, ref _newGrad);
+                    Value = Eval(_newX, ref _newGrad);
                     GradientCalculations++;
                     if (!FloatUtils.IsFinite(Value))
                         throw ch.Except("Optimizer unable to proceed with loss function yielding {0}", Value);
-                    dirDeriv = VectorUtils.DotProduct(ref _dir, ref _newGrad);
+                    dirDeriv = VectorUtils.DotProduct(_dir, _newGrad);
 
                     PointValueDeriv curr = new PointValueDeriv(alpha, Value, dirDeriv);
 
@@ -645,7 +645,7 @@ namespace Microsoft.ML.Runtime.Numeric
                     double? improvement = null;
                     double x;
                     int end;
-                    if (message != null && DoubleParser.TryParse(message.AsMemory().Span, out x, out end))
+                    if (message != null && DoubleParser.TryParse(message.AsSpan(), out x, out end))
                         improvement = x;
 
                     pch.Checkpoint(state.Value, improvement, state.Iter);

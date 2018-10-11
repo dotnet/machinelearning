@@ -9,6 +9,159 @@ using Microsoft.ML.Runtime.Internal.Utilities;
 namespace Microsoft.ML.Runtime.Data
 {
     /// <summary>
+    /// A readonly buffer that supports both dense and sparse representations. This is the
+    /// readonly representation type for all VectorType instances used as a guarantee that
+    /// the buffer cannot be modified.
+    /// </summary>
+    public readonly struct ReadOnlyVBuffer<T>
+    {
+        private readonly T[] _values;
+        private readonly int[] _indices;
+
+        /// <summary>
+        /// The logical length of the buffer.
+        /// </summary>
+        public readonly int Length;
+
+        /// <summary>
+        /// The number of items explicitly represented. This is == Length when the representation
+        /// is dense and &lt; Length when sparse.
+        /// </summary>
+        public readonly int Count;
+
+        /// <summary>
+        /// The values. Only the first Count of these are valid.
+        /// </summary>
+        public ReadOnlySpan<T> Values => _values;
+
+        /// <summary>
+        /// The indices. For a dense representation, Indices is not used. For a sparse representation
+        /// it is parallel to values and specifies the logical indices for the corresponding values.
+        /// </summary>
+        public ReadOnlySpan<int> Indices => _indices;
+
+        /// <summary>
+        /// Equivalent to Count == Length.
+        /// </summary>
+        public bool IsDense => Count == Length;
+
+        internal ReadOnlyVBuffer(int logicalLength, int valuesCount, T[] values, int[] indices)
+        {
+            Contracts.Assert(logicalLength >= 0);
+            Contracts.Assert(0 <= valuesCount && valuesCount <= logicalLength);
+            Contracts.Assert(Utils.Size(values) >= valuesCount);
+            Contracts.Assert(valuesCount == logicalLength || Utils.Size(indices) >= valuesCount);
+
+            Length = logicalLength;
+            Count = valuesCount;
+            _values = values;
+            _indices = indices;
+        }
+
+        public void GetItemOrDefault(int slot, ref T dst)
+        {
+            Contracts.CheckParam(0 <= slot && slot < Length, nameof(slot));
+
+            int index;
+            if (IsDense)
+                dst = Values[slot];
+            else if (Count > 0 && Utils.TryFindIndexSorted(Indices, 0, Count, slot, out index))
+                dst = Values[index];
+            else
+                dst = default;
+        }
+
+        /// <summary>
+        /// Copy from this buffer to the given destination.
+        /// </summary>
+        public void CopyTo(ref VBuffer<T> dst)
+        {
+            var values = dst.Values;
+            var indices = dst.Indices;
+            if (IsDense)
+            {
+                if (Length > 0)
+                {
+                    if (Utils.Size(values) < Length)
+                        values = new T[Length];
+                    Values.Slice(0, Length).CopyTo(values);
+                }
+                dst = new VBuffer<T>(Length, values, indices);
+                Contracts.Assert(dst.IsDense);
+            }
+            else
+            {
+                if (Count > 0)
+                {
+                    if (Utils.Size(values) < Count)
+                        values = new T[Count];
+                    if (Utils.Size(indices) < Count)
+                        indices = new int[Count];
+                    Values.Slice(0, Count).CopyTo(values);
+                    Indices.Slice(0, Count).CopyTo(indices);
+                }
+                dst = new VBuffer<T>(Length, Count, values, indices);
+            }
+        }
+
+        /// <summary>
+        /// Copy from this buffer to the given destination, forcing a dense representation.
+        /// </summary>
+        public void CopyToDense(ref VBuffer<T> dst)
+        {
+            var values = dst.Values;
+            if (Utils.Size(values) < Length)
+                values = new T[Length];
+
+            if (!IsDense)
+                CopyTo(values);
+            else if (Length > 0)
+                Values.Slice(0, Length).CopyTo(values);
+            dst = new VBuffer<T>(Length, values, dst.Indices);
+        }
+
+        /// <summary>
+        /// Copy from this buffer to the given destination array. This "densifies".
+        /// </summary>
+        public void CopyTo(T[] dst)
+        {
+            CopyTo(dst, 0);
+        }
+
+        public void CopyTo(T[] dst, int ivDst, T defaultValue = default(T))
+        {
+            Contracts.CheckParam(0 <= ivDst && ivDst <= Utils.Size(dst) - Length, nameof(dst), "dst is not large enough");
+
+            if (Length == 0)
+                return;
+            if (IsDense)
+            {
+                Values.Slice(0, Length).CopyTo(dst.AsSpan(ivDst));
+                return;
+            }
+
+            if (Count == 0)
+            {
+                Array.Clear(dst, ivDst, Length);
+                return;
+            }
+
+            int iv = 0;
+            for (int islot = 0; islot < Count; islot++)
+            {
+                int slot = Indices[islot];
+                Contracts.Assert(slot >= iv);
+                while (iv < slot)
+                    dst[ivDst + iv++] = defaultValue;
+                Contracts.Assert(iv == slot);
+                dst[ivDst + iv++] = Values[islot];
+            }
+            while (iv < Length)
+                dst[ivDst + iv++] = defaultValue;
+        }
+    }
+
+    /// <summary>
     /// A buffer that supports both dense and sparse representations. This is the
     /// representation type for all VectorType instances. When an instance of this
     /// is passed to a row cursor getter, the callee is free to take ownership of
@@ -102,15 +255,7 @@ namespace Microsoft.ML.Runtime.Data
         /// </summary>
         public void CopyToDense(ref VBuffer<T> dst)
         {
-            var values = dst.Values;
-            if (Utils.Size(values) < Length)
-                values = new T[Length];
-
-            if (!IsDense)
-                CopyTo(values);
-            else if (Length > 0)
-                Array.Copy(Values, values, Length);
-            dst = new VBuffer<T>(Length, values, dst.Indices);
+            CreateReadOnly().CopyToDense(ref dst);
         }
 
         /// <summary>
@@ -118,32 +263,7 @@ namespace Microsoft.ML.Runtime.Data
         /// </summary>
         public void CopyTo(ref VBuffer<T> dst)
         {
-            var values = dst.Values;
-            var indices = dst.Indices;
-            if (IsDense)
-            {
-                if (Length > 0)
-                {
-                    if (Utils.Size(values) < Length)
-                        values = new T[Length];
-                    Array.Copy(Values, values, Length);
-                }
-                dst = new VBuffer<T>(Length, values, indices);
-                Contracts.Assert(dst.IsDense);
-            }
-            else
-            {
-                if (Count > 0)
-                {
-                    if (Utils.Size(values) < Count)
-                        values = new T[Count];
-                    if (Utils.Size(indices) < Count)
-                        indices = new int[Count];
-                    Array.Copy(Values, values, Count);
-                    Array.Copy(Indices, indices, Count);
-                }
-                dst = new VBuffer<T>(Length, Count, values, indices);
-            }
+            CreateReadOnly().CopyTo(ref dst);
         }
 
         /// <summary>
@@ -377,34 +497,7 @@ namespace Microsoft.ML.Runtime.Data
 
         public void CopyTo(T[] dst, int ivDst, T defaultValue = default(T))
         {
-            Contracts.CheckParam(0 <= ivDst && ivDst <= Utils.Size(dst) - Length, nameof(dst), "dst is not large enough");
-
-            if (Length == 0)
-                return;
-            if (IsDense)
-            {
-                Array.Copy(Values, 0, dst, ivDst, Length);
-                return;
-            }
-
-            if (Count == 0)
-            {
-                Array.Clear(dst, ivDst, Length);
-                return;
-            }
-
-            int iv = 0;
-            for (int islot = 0; islot < Count; islot++)
-            {
-                int slot = Indices[islot];
-                Contracts.Assert(slot >= iv);
-                while (iv < slot)
-                    dst[ivDst + iv++] = defaultValue;
-                Contracts.Assert(iv == slot);
-                dst[ivDst + iv++] = Values[islot];
-            }
-            while (iv < Length)
-                dst[ivDst + iv++] = defaultValue;
+            CreateReadOnly().CopyTo(dst, ivDst, defaultValue);
         }
 
         /// <summary>
@@ -441,15 +534,7 @@ namespace Microsoft.ML.Runtime.Data
 
         public void GetItemOrDefault(int slot, ref T dst)
         {
-            Contracts.CheckParam(0 <= slot && slot < Length, nameof(slot));
-
-            int index;
-            if (IsDense)
-                dst = Values[slot];
-            else if (Count > 0 && Indices.TryFindIndexSorted(0, Count, slot, out index))
-                dst = Values[index];
-            else
-                dst = default(T);
+            CreateReadOnly().GetItemOrDefault(slot, ref dst);
         }
 
         public T GetItemOrDefault(int slot)
@@ -459,9 +544,19 @@ namespace Microsoft.ML.Runtime.Data
             int index;
             if (IsDense)
                 return Values[slot];
-            if (Count > 0 && Indices.TryFindIndexSorted(0, Count, slot, out index))
+            if (Count > 0 && Utils.TryFindIndexSorted(Indices, 0, Count, slot, out index))
                 return Values[index];
             return default(T);
+        }
+
+        public static implicit operator ReadOnlyVBuffer<T>(VBuffer<T> buffer)
+        {
+            return buffer.CreateReadOnly();
+        }
+
+        private ReadOnlyVBuffer<T> CreateReadOnly()
+        {
+            return new ReadOnlyVBuffer<T>(Length, Count, Values, Indices);
         }
     }
 }

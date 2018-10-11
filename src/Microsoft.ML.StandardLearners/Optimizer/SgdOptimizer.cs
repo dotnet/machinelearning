@@ -15,7 +15,7 @@ namespace Microsoft.ML.Runtime.Numeric
     /// </summary>
     /// <param name="x">Current iterate</param>
     /// <returns>True if search should terminate</returns>
-    public delegate bool DTerminate(ref VBuffer<Float> x);
+    public delegate bool DTerminate(in ReadOnlyVBuffer<Float> x);
 
     /// <summary>
     /// Stochastic gradient descent with variations (minibatch, momentum, averaging).
@@ -146,7 +146,7 @@ namespace Microsoft.ML.Runtime.Numeric
         /// </summary>
         /// <param name="x">Point at which to evaluate</param>
         /// <param name="grad">Vector to be filled in with gradient</param>
-        public delegate void DStochasticGradient(ref VBuffer<Float> x, ref VBuffer<Float> grad);
+        public delegate void DStochasticGradient(in ReadOnlyVBuffer<Float> x, ref VBuffer<Float> grad);
 
         /// <summary>
         /// Minimize the function represented by <paramref name="f"/>.
@@ -192,18 +192,18 @@ namespace Microsoft.ML.Runtime.Numeric
                 Float scale = (1 - _momentum) / _batchSize;
                 for (int i = 0; i < _batchSize; ++i)
                 {
-                    f(ref x, ref grad);
-                    VectorUtils.AddMult(ref grad, scale, ref step);
+                    f(x, ref grad);
+                    VectorUtils.AddMult(grad, scale, ref step);
                 }
 
                 if (_averaging)
                 {
                     Utils.Swap(ref avg, ref prev);
                     VectorUtils.ScaleBy(prev, ref avg, (Float)n / (n + 1));
-                    VectorUtils.AddMult(ref step, -stepSize, ref x);
-                    VectorUtils.AddMult(ref x, (Float)1 / (n + 1), ref avg);
+                    VectorUtils.AddMult(step, -stepSize, ref x);
+                    VectorUtils.AddMult(x, (Float)1 / (n + 1), ref avg);
 
-                    if ((n > 0 && TerminateTester.ShouldTerminate(ref avg, ref prev)) || _terminate(ref avg))
+                    if ((n > 0 && TerminateTester.ShouldTerminate(ref avg, ref prev)) || _terminate(avg))
                     {
                         result = avg;
                         return;
@@ -213,7 +213,7 @@ namespace Microsoft.ML.Runtime.Numeric
                 {
                     Utils.Swap(ref x, ref prev);
                     VectorUtils.AddMult(ref step, -stepSize, ref prev, ref x);
-                    if ((n > 0 && TerminateTester.ShouldTerminate(ref x, ref prev)) || _terminate(ref x))
+                    if ((n > 0 && TerminateTester.ShouldTerminate(ref x, ref prev)) || _terminate(x))
                     {
                         result = x;
                         return;
@@ -300,26 +300,26 @@ namespace Microsoft.ML.Runtime.Numeric
 
             private DifferentiableFunction _func;
 
-            public Float Deriv => VectorUtils.DotProduct(ref _dir, ref _grad);
+            public Float Deriv => VectorUtils.DotProduct(_dir, _grad);
 
-            public LineFunc(DifferentiableFunction function, ref VBuffer<Float> initial, bool useCG = false)
+            public LineFunc(DifferentiableFunction function, in ReadOnlyVBuffer<Float> initial, bool useCG = false)
             {
                 int dim = initial.Length;
 
                 initial.CopyTo(ref _point);
                 _func = function;
                 // REVIEW: plumb the IProgressChannelProvider through.
-                _value = _func(ref _point, ref _grad, null);
-                VectorUtils.ScaleInto(ref _grad, -1, ref _dir);
+                _value = _func(_point, ref _grad, null);
+                VectorUtils.ScaleInto(_grad, -1, ref _dir);
 
                 _useCG = useCG;
             }
 
             public Float Eval(Float step, out Float deriv)
             {
-                VectorUtils.AddMultInto(ref _point, step, ref _dir, ref _newPoint);
-                _newValue = _func(ref _newPoint, ref _newGrad, null);
-                deriv = VectorUtils.DotProduct(ref _dir, ref _newGrad);
+                VectorUtils.AddMultInto(_point, step, _dir, ref _newPoint);
+                _newValue = _func(_newPoint, ref _newGrad, null);
+                deriv = VectorUtils.DotProduct(_dir, _newGrad);
                 return _newValue;
             }
 
@@ -328,15 +328,15 @@ namespace Microsoft.ML.Runtime.Numeric
                 if (_useCG)
                 {
                     Float newByNew = VectorUtils.NormSquared(_newGrad);
-                    Float newByOld = VectorUtils.DotProduct(ref _newGrad, ref _grad);
+                    Float newByOld = VectorUtils.DotProduct(_newGrad, _grad);
                     Float oldByOld = VectorUtils.NormSquared(_grad);
                     Float betaPR = (newByNew - newByOld) / oldByOld;
                     Float beta = Math.Max(0, betaPR);
                     VectorUtils.ScaleBy(ref _dir, beta);
-                    VectorUtils.AddMult(ref _newGrad, -1, ref _dir);
+                    VectorUtils.AddMult(_newGrad, -1, ref _dir);
                 }
                 else
-                    VectorUtils.ScaleInto(ref _newGrad, -1, ref _dir);
+                    VectorUtils.ScaleInto(_newGrad, -1, ref _dir);
                 _newPoint.CopyTo(ref _point);
                 _newGrad.CopyTo(ref _grad);
                 _value = _newValue;
@@ -349,10 +349,10 @@ namespace Microsoft.ML.Runtime.Numeric
         /// <param name="function">Function to minimize</param>
         /// <param name="initial">Initial point</param>
         /// <param name="result">Approximate minimum</param>
-        public void Minimize(DifferentiableFunction function, ref VBuffer<Float> initial, ref VBuffer<Float> result)
+        public void Minimize(DifferentiableFunction function, in ReadOnlyVBuffer<Float> initial, ref VBuffer<Float> result)
         {
-            Contracts.Check(FloatUtils.IsFinite(initial.Values, initial.Count), "The initial vector contains NaNs or infinite values.");
-            LineFunc lineFunc = new LineFunc(function, ref initial, UseCG);
+            Contracts.Check(FloatUtils.IsFinite(initial.Values.Slice(0, initial.Count)), "The initial vector contains NaNs or infinite values.");
+            LineFunc lineFunc = new LineFunc(function, in initial, UseCG);
             VBuffer<Float> prev = default(VBuffer<Float>);
             initial.CopyTo(ref prev);
 
@@ -361,7 +361,7 @@ namespace Microsoft.ML.Runtime.Numeric
                 Float step = LineSearch.Minimize(lineFunc.Eval, lineFunc.Value, lineFunc.Deriv);
                 var newPoint = lineFunc.NewPoint;
                 bool terminateNow = n > 0 && TerminateTester.ShouldTerminate(ref newPoint, ref prev);
-                if (terminateNow || Terminate(ref newPoint))
+                if (terminateNow || Terminate(newPoint))
                     break;
                 newPoint.CopyTo(ref prev);
                 lineFunc.ChangeDir();

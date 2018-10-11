@@ -246,15 +246,14 @@ namespace Microsoft.ML.Runtime.Learners
         }
 
         // Generate the score from the given values, assuming they have already been normalized.
-        protected virtual Float Score(ref VBuffer<Float> src)
+        protected virtual Float Score(in ReadOnlyVBuffer<Float> src)
         {
             if (src.IsDense)
             {
-                var weights = Weight;
-                return Bias + VectorUtils.DotProduct(ref weights, ref src);
+                return Bias + VectorUtils.DotProduct(Weight, in src);
             }
             EnsureWeightsDense();
-            return Bias + VectorUtils.DotProduct(ref _weightsDense, ref src);
+            return Bias + VectorUtils.DotProduct(_weightsDense, in src);
         }
 
         protected virtual void GetFeatureContributions(ref VBuffer<Float> features, ref VBuffer<Float> contributions, int top, int bottom, bool normalize)
@@ -262,9 +261,8 @@ namespace Microsoft.ML.Runtime.Learners
             if (features.Length != Weight.Length)
                 throw Contracts.Except("Input is of length {0} does not match expected length  of weights {1}", features.Length, Weight.Length);
 
-            var weights = Weight;
             VBuffer<Float>.Copy(ref features, ref contributions);
-            VectorUtils.MulElementWise(ref weights, ref contributions);
+            VectorUtils.MulElementWise(Weight, ref contributions);
             VectorUtils.SparsifyNormalize(ref contributions, top, bottom, normalize);
         }
 
@@ -291,7 +289,7 @@ namespace Microsoft.ML.Runtime.Learners
                 {
                     if (src.Length != Weight.Length)
                         throw Contracts.Except("Input is of length {0}, but predictor expected length {1}", src.Length, Weight.Length);
-                    dst = Score(ref src);
+                    dst = Score(src);
                 };
             return (ValueMapper<TIn, TOut>)(Delegate)del;
         }
@@ -317,7 +315,7 @@ namespace Microsoft.ML.Runtime.Learners
 
                 var sub = (LinearPredictor)m;
                 var subweights = sub.Weight;
-                VectorUtils.Add(ref subweights, ref weights);
+                VectorUtils.Add(subweights, ref weights);
                 bias += sub.Bias;
             }
             VectorUtils.ScaleBy(ref weights, (Float)1 / models.Count);
@@ -337,8 +335,7 @@ namespace Microsoft.ML.Runtime.Learners
             Host.CheckValue(writer, nameof(writer));
             Host.CheckValue(schema, nameof(schema));
 
-            var weights = Weight;
-            LinearPredictorUtils.SaveAsCode(writer, ref weights, Bias, schema);
+            LinearPredictorUtils.SaveAsCode(writer, Weight, Bias, schema);
         }
 
         public abstract void SaveSummary(TextWriter writer, RoleMappedSchema schema);
@@ -709,9 +706,9 @@ namespace Microsoft.ML.Runtime.Learners
             ctx.SetVersionInfo(GetVersionInfo());
         }
 
-        protected override Float Score(ref VBuffer<Float> src)
+        protected override Float Score(in ReadOnlyVBuffer<Float> src)
         {
-            return MathUtils.ExpSlow(base.Score(ref src));
+            return MathUtils.ExpSlow(base.Score(in src));
         }
 
         public override void SaveSummary(TextWriter writer, RoleMappedSchema schema)

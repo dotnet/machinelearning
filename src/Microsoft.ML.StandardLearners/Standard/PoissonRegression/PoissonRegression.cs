@@ -108,9 +108,9 @@ namespace Microsoft.ML.Runtime.Learners
         }
 
         // Make sure _lossnormalizer is added only once
-        protected override float DifferentiableFunction(ref VBuffer<float> x, ref VBuffer<float> gradient, IProgressChannelProvider progress)
+        protected override float DifferentiableFunction(in ReadOnlyVBuffer<float> x, ref VBuffer<float> gradient, IProgressChannelProvider progress)
         {
-            return base.DifferentiableFunction(ref x, ref gradient, progress) + (float)(_lossNormalizer / NumGoodRows);
+            return base.DifferentiableFunction(in x, ref gradient, progress) + (float)(_lossNormalizer / NumGoodRows);
         }
 
         // Poisson: p(y;lambda) = lambda^y * exp(-lambda) / y!
@@ -123,17 +123,17 @@ namespace Microsoft.ML.Runtime.Learners
         // Goal is to find w that maximizes
         // Note: We negate the above in ordrer to minimize
 
-        protected override float AccumulateOneGradient(ref VBuffer<float> feat, float label, float weight,
-            ref VBuffer<float> x, ref VBuffer<float> grad, ref float[] scratch)
+        protected override float AccumulateOneGradient(in ReadOnlyVBuffer<float> feat, float label, float weight,
+            in ReadOnlyVBuffer<float> x, ref VBuffer<float> grad, ref float[] scratch)
         {
             float bias = 0;
             x.GetItemOrDefault(0, ref bias);
-            float dot = VectorUtils.DotProductWithOffset(ref x, 1, ref feat) + bias;
+            float dot = VectorUtils.DotProductWithOffset(in x, 1, in feat) + bias;
             float lambda = MathUtils.ExpSlow(dot);
 
             float y = label;
             float mult = -(y - lambda) * weight;
-            VectorUtils.AddMultWithOffset(ref feat, mult, ref grad, 1);
+            VectorUtils.AddMultWithOffset(in feat, mult, ref grad, 1);
             // Due to the call to EnsureBiases, we know this region is dense.
             Contracts.Assert(grad.Count >= BiasCount && (grad.IsDense || grad.Indices[BiasCount - 1] == BiasCount - 1));
             grad.Values[0] += mult;

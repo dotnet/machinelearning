@@ -115,9 +115,9 @@ namespace Microsoft.ML.Runtime.Learners
         /// <summary>
         /// Return the raw margin from the decision hyperplane
         /// </summary>
-        protected override Float Margin(ref VBuffer<Float> feat)
+        protected override Float Margin(in ReadOnlyVBuffer<Float> feat)
         {
-            return Bias + VectorUtils.DotProduct(ref feat, ref Weights) * WeightsScale;
+            return Bias + VectorUtils.DotProduct(in feat, Weights) * WeightsScale;
         }
 
         private static SchemaShape.Column MakeLabelColumn(string labelColumn)
@@ -152,22 +152,22 @@ namespace Microsoft.ML.Runtime.Learners
             _weightsUpdate = new VBuffer<Float>(_weightsUpdate.Length, 0, _weightsUpdate.Values, _weightsUpdate.Indices);
         }
 
-        private void FinishBatch(ref VBuffer<Float> weightsUpdate, Float weightsUpdateScale)
+        private void FinishBatch(in ReadOnlyVBuffer<Float> weightsUpdate, Float weightsUpdateScale)
         {
             if (_numBatchExamples > 0)
-                UpdateWeights(ref weightsUpdate, weightsUpdateScale);
+                UpdateWeights(in weightsUpdate, weightsUpdateScale);
             _numBatchExamples = 0;
         }
 
         /// <summary>
         /// Observe an example and update weights if necessary
         /// </summary>
-        protected override void ProcessDataInstance(IChannel ch, ref VBuffer<Float> feat, Float label, Float weight)
+        protected override void ProcessDataInstance(IChannel ch, in ReadOnlyVBuffer<Float> feat, Float label, Float weight)
         {
-            base.ProcessDataInstance(ch, ref feat, label, weight);
+            base.ProcessDataInstance(ch, in feat, label, weight);
 
             // compute the update and update if needed
-            Float output = Margin(ref feat);
+            Float output = Margin(in feat);
             Float trueOutput = (label > 0 ? 1 : -1);
             Float loss = output * trueOutput - 1;
 
@@ -179,11 +179,11 @@ namespace Microsoft.ML.Runtime.Learners
                 // Only aggregate in the case where we're handling multiple instances.
                 if (_weightsUpdate.Count == 0)
                 {
-                    VectorUtils.ScaleInto(ref feat, currentBiasUpdate, ref _weightsUpdate);
+                    VectorUtils.ScaleInto(in feat, currentBiasUpdate, ref _weightsUpdate);
                     _weightsUpdateScale = 1;
                 }
                 else
-                    VectorUtils.AddMult(ref feat, currentBiasUpdate, ref _weightsUpdate);
+                    VectorUtils.AddMult(feat, currentBiasUpdate, ref _weightsUpdate);
             }
 
             if (++_numBatchExamples >= Args.BatchSize)
@@ -195,10 +195,10 @@ namespace Microsoft.ML.Runtime.Learners
                     // vector directly.
                     Float currentBiasUpdate = trueOutput * weight;
                     _biasUpdate += currentBiasUpdate;
-                    FinishBatch(ref feat, currentBiasUpdate);
+                    FinishBatch(in feat, currentBiasUpdate);
                 }
                 else
-                    FinishBatch(ref _weightsUpdate, _weightsUpdateScale);
+                    FinishBatch(_weightsUpdate, _weightsUpdateScale);
                 BeginBatch();
             }
         }
@@ -207,7 +207,7 @@ namespace Microsoft.ML.Runtime.Learners
         /// Updates the weights at the end of the batch. Since weightsUpdate can be an instance
         /// feature vector, this function should not change the contents of weightsUpdate.
         /// </summary>
-        private void UpdateWeights(ref VBuffer<Float> weightsUpdate, Float weightsUpdateScale)
+        private void UpdateWeights(in ReadOnlyVBuffer<Float> weightsUpdate, Float weightsUpdateScale)
         {
             Contracts.Assert(_batch > 0);
 
@@ -218,7 +218,7 @@ namespace Microsoft.ML.Runtime.Learners
             // w_{t+1/2} = (1 - eta*lambda) w_t + eta/k * totalUpdate
             WeightsScale *= 1 - rate * Args.Lambda;
             ScaleWeightsIfNeeded();
-            VectorUtils.AddMult(ref weightsUpdate, rate * weightsUpdateScale / (_numBatchExamples * WeightsScale), ref Weights);
+            VectorUtils.AddMult(in weightsUpdate, rate * weightsUpdateScale / (_numBatchExamples * WeightsScale), ref Weights);
 
             Contracts.Assert(!Args.NoBias || Bias == 0);
             if (!Args.NoBias)

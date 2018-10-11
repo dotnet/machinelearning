@@ -37,7 +37,7 @@ namespace Microsoft.ML.Runtime.Numeric
             return CpuMathUtils.DotProductSparse(a, b.Values, b.Indices, b.Count);
         }
 
-        public static Float DotProduct(ref VBuffer<Float> a, ref VBuffer<Float> b)
+        public static Float DotProduct(in ReadOnlyVBuffer<Float> a, in ReadOnlyVBuffer<Float> b)
         {
             Contracts.Check(a.Length == b.Length, "Vectors must have the same dimensionality.");
 
@@ -53,7 +53,7 @@ namespace Microsoft.ML.Runtime.Numeric
 
             if (b.IsDense)
                 return CpuMathUtils.DotProductSparse(b.Values, a.Values, a.Indices, a.Count);
-            return DotProductSparse(a.Values, a.Indices, 0, a.Count, b.Values, b.Indices, 0, b.Count, 0);
+            return DotProductSparse(a.Values, a.Indices, 0, a.Count, b.Values, b.Indices, 0, b.Count);
         }
 
         /// <summary>
@@ -154,14 +154,14 @@ namespace Microsoft.ML.Runtime.Numeric
         /// <summary>
         /// Multiplies arrays Dst *= A element by element and returns the result in <paramref name="dst"/> (Hadamard product).
         /// </summary>
-        public static void MulElementWise(ref VBuffer<Float> a, ref VBuffer<Float> dst)
+        public static void MulElementWise(in ReadOnlyVBuffer<Float> a, ref VBuffer<Float> dst)
         {
             Contracts.Check(a.Length == dst.Length, "Vectors must have the same dimensionality.");
 
             if (a.IsDense && dst.IsDense)
                 CpuMathUtils.MulElementWise(a.Values, dst.Values, dst.Values, a.Length);
             else
-                VBufferUtils.ApplyWithEitherDefined(ref a, ref dst, (int ind, Float v1, ref Float v2) => { v2 *= v1; });
+                VBufferUtils.ApplyWithEitherDefined(in a, ref dst, (int ind, Float v1, ref Float v2) => { v2 *= v1; });
         }
 
         private static Float L2DistSquaredSparse(Float[] valuesA, int[] indicesA, int countA, Float[] valuesB, int[] indicesB, int countB, int length)
@@ -257,7 +257,7 @@ namespace Microsoft.ML.Runtime.Numeric
         /// <param name="b">the second array (given as a VBuffer)</param>
         /// <param name="offset">offset in 'a'</param>
         /// <returns>the dot product</returns>
-        public static Float DotProductWithOffset(ref VBuffer<Float> a, int offset, ref VBuffer<Float> b)
+        public static Float DotProductWithOffset(in ReadOnlyVBuffer<Float> a, int offset, in ReadOnlyVBuffer<Float> b)
         {
             Contracts.Check(0 <= offset && offset <= a.Length);
             Contracts.Check(b.Length <= a.Length - offset, "VBuffer b must be no longer than a.Length - offset.");
@@ -267,8 +267,8 @@ namespace Microsoft.ML.Runtime.Numeric
             if (a.IsDense)
             {
                 if (b.IsDense)
-                    return CpuMathUtils.DotProductDense(a.Values.AsSpan(offset), b.Values, b.Length);
-                return CpuMathUtils.DotProductSparse(a.Values.AsSpan(offset), b.Values, b.Indices, b.Count);
+                    return CpuMathUtils.DotProductDense(a.Values.Slice(offset), b.Values, b.Length);
+                return CpuMathUtils.DotProductSparse(a.Values.Slice(offset), b.Values, b.Indices, b.Count);
             }
             else
             {
@@ -318,12 +318,12 @@ namespace Microsoft.ML.Runtime.Numeric
             return CpuMathUtils.DotProductSparse(a.AsSpan(offset), b.Values, b.Indices, b.Count);
         }
 
-        private static Float DotProductSparse(Float[] aValues, int[] aIndices, int ia, int iaLim, Float[] bValues, int[] bIndices, int ib, int ibLim, int offset)
+        private static Float DotProductSparse(ReadOnlySpan<Float> aValues, ReadOnlySpan<int> aIndices, int ia, int iaLim, ReadOnlySpan<Float> bValues, ReadOnlySpan<int> bIndices, int ib, int ibLim)
         {
-            Contracts.AssertValue(aValues);
-            Contracts.AssertValue(aIndices);
-            Contracts.AssertValue(bValues);
-            Contracts.AssertValue(bIndices);
+            Contracts.AssertNonEmpty(aValues);
+            Contracts.AssertNonEmpty(aIndices);
+            Contracts.AssertNonEmpty(bValues);
+            Contracts.AssertNonEmpty(bIndices);
             Contracts.Assert(0 <= ia && ia < iaLim && iaLim <= aIndices.Length);
             Contracts.Assert(0 <= ib && ib < ibLim && ibLim <= bIndices.Length);
 
@@ -334,7 +334,7 @@ namespace Microsoft.ML.Runtime.Numeric
 
             for (; ; )
             {
-                int d = aIndices[ia] - offset - bIndices[ib];
+                int d = aIndices[ia] - bIndices[ib];
                 if (d == 0)
                 {
                     res += aValues[ia] * bValues[ib];
@@ -347,7 +347,7 @@ namespace Microsoft.ML.Runtime.Numeric
                 {
                     ia++;
                     if (d < -thresh)
-                        ia = Utils.FindIndexSorted(aIndices, ia, iaLim, bIndices[ib] + offset);
+                        ia = Utils.FindIndexSorted(aIndices, ia, iaLim, bIndices[ib]);
                     if (ia >= iaLim)
                         break;
                 }
@@ -355,7 +355,7 @@ namespace Microsoft.ML.Runtime.Numeric
                 {
                     ib++;
                     if (d > thresh)
-                        ib = Utils.FindIndexSorted(bIndices, ib, ibLim, aIndices[ia] - offset);
+                        ib = Utils.FindIndexSorted(bIndices, ib, ibLim, aIndices[ia]);
                     if (ib >= ibLim)
                         break;
                 }
@@ -443,7 +443,7 @@ namespace Microsoft.ML.Runtime.Numeric
         /// <param name="src">Buffer to add</param>
         /// <param name="dst">Array to add to</param>
         /// <param name="c">Coefficient</param>
-        public static void AddMult(ref VBuffer<Float> src, Float[] dst, Float c)
+        public static void AddMult(in ReadOnlyVBuffer<Float> src, Float[] dst, Float c)
         {
             Contracts.CheckValue(dst, nameof(dst));
             Contracts.CheckParam(src.Length == dst.Length, nameof(dst), "Arrays must have the same dimensionality.");

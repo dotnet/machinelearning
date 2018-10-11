@@ -458,7 +458,7 @@ namespace Microsoft.ML.Runtime.Data
                 if (_clusterCentroids != null)
                 {
                     _featGetter(ref _features);
-                    VectorUtils.Add(ref _features, ref _clusterCentroids[_indicesArr[0]]);
+                    VectorUtils.Add(_features, ref _clusterCentroids[_indicesArr[0]]);
                 }
             }
 

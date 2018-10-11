@@ -229,7 +229,7 @@ namespace Microsoft.ML.Runtime.Data
             {
                 VBufferUtils.PairManipulator<Float, Double> lossFn =
                     (int slot, Float src, ref Double dst) => dst = LossFunction.Loss(src, label);
-                VBufferUtils.ApplyWith(ref score, ref loss, lossFn);
+                VBufferUtils.ApplyWith(score, ref loss, lossFn);
             }
 
             protected override bool IsNaN(ref VBuffer<Float> score)
@@ -422,7 +422,7 @@ namespace Microsoft.ML.Runtime.Data
                     {
                         updateCacheIfNeeded();
                         dst = new VBuffer<Double>(_scoreSize, 0, dst.Values, dst.Indices);
-                        VBufferUtils.ApplyWith(ref l1, ref dst, sqr);
+                        VBufferUtils.ApplyWith(l1, ref dst, sqr);
                     };
                 getters[L2Col] = l2Fn;
             }

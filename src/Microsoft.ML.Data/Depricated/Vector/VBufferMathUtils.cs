@@ -18,11 +18,11 @@ namespace Microsoft.ML.Runtime.Numeric
         /// <summary>
         /// Returns the L2 norm squared of the vector (sum of squares of the components).
         /// </summary>
-        public static Float NormSquared(in VBuffer<Float> a)
+        public static Float NormSquared(in ReadOnlyVBuffer<Float> a)
         {
             if (a.Count == 0)
                 return 0;
-            return CpuMathUtils.SumSq(a.Values.AsSpan(0, a.Count));
+            return CpuMathUtils.SumSq(a.Values.Slice(0, a.Count));
         }
 
         /// <summary>
@@ -37,7 +37,7 @@ namespace Microsoft.ML.Runtime.Numeric
         /// Returns the L2 norm of the vector.
         /// </summary>
         /// <returns>L2 norm of the vector</returns>
-        public static Float Norm(in VBuffer<Float> a)
+        public static Float Norm(in ReadOnlyVBuffer<Float> a)
         {
             return MathUtils.Sqrt(NormSquared(in a));
         }
@@ -46,32 +46,32 @@ namespace Microsoft.ML.Runtime.Numeric
         /// Returns the L1 norm of the vector.
         /// </summary>
         /// <returns>L1 norm of the vector</returns>
-        public static Float L1Norm(ref VBuffer<Float> a)
+        public static Float L1Norm(in ReadOnlyVBuffer<Float> a)
         {
             if (a.Count == 0)
                 return 0;
-            return CpuMathUtils.SumAbs(a.Values.AsSpan(0, a.Count));
+            return CpuMathUtils.SumAbs(a.Values.Slice(0, a.Count));
         }
 
         /// <summary>
         /// Returns the L-infinity norm of the vector (i.e., the maximum absolute value).
         /// </summary>
         /// <returns>L-infinity norm of the vector</returns>
-        public static Float MaxNorm(ref VBuffer<Float> a)
+        public static Float MaxNorm(in ReadOnlyVBuffer<Float> a)
         {
             if (a.Count == 0)
                 return 0;
-            return CpuMathUtils.MaxAbs(a.Values.AsSpan(0, a.Count));
+            return CpuMathUtils.MaxAbs(a.Values.Slice(0, a.Count));
         }
 
         /// <summary>
         /// Returns the sum of elements in the vector.
         /// </summary>
-        public static Float Sum(ref VBuffer<Float> a)
+        public static Float Sum(in ReadOnlyVBuffer<Float> a)
         {
             if (a.Count == 0)
                 return 0;
-            return CpuMathUtils.Sum(a.Values.AsSpan(0, a.Count));
+            return CpuMathUtils.Sum(a.Values.Slice(0, a.Count));
         }
 
         /// <summary>
@@ -94,7 +94,7 @@ namespace Microsoft.ML.Runtime.Numeric
         /// Scales the vector by a real value.
         /// <c><paramref name="dst"/> = <paramref name="c"/> * <paramref name="src"/></c>
         /// </summary>
-        public static void ScaleBy(in VBuffer<Float> src, ref VBuffer<Float> dst, Float c)
+        public static void ScaleBy(in ReadOnlyVBuffer<Float> src, ref VBuffer<Float> dst, Float c)
         {
             int length = src.Length;
             int count = src.Count;
@@ -120,7 +120,7 @@ namespace Microsoft.ML.Runtime.Numeric
             else
             {
                 var dstIndices = Utils.Size(dst.Indices) >= count ? dst.Indices : new int[count];
-                Array.Copy(src.Indices, dstIndices, count);
+                src.Indices.CopyTo(dstIndices);
                 if (c == 0)
                     Array.Clear(dstValues, 0, count);
                 else
@@ -132,7 +132,7 @@ namespace Microsoft.ML.Runtime.Numeric
         /// <summary>
         /// Perform in-place vector addition <c><paramref name="dst"/> += <paramref name="src"/></c>.
         /// </summary>
-        public static void Add(ref VBuffer<Float> src, ref VBuffer<Float> dst)
+        public static void Add(in ReadOnlyVBuffer<Float> src, ref VBuffer<Float> dst)
         {
             Contracts.Check(src.Length == dst.Length, "Vectors must have the same dimensionality.");
 
@@ -148,7 +148,7 @@ namespace Microsoft.ML.Runtime.Numeric
                 return;
             }
             // REVIEW: Should we use SSE for any of these possibilities?
-            VBufferUtils.ApplyWith(ref src, ref dst, (int i, Float v1, ref Float v2) => v2 += v1);
+            VBufferUtils.ApplyWith(in src, ref dst, (int i, Float v1, ref Float v2) => v2 += v1);
         }
 
         // REVIEW: Rename all instances of AddMult to AddScale, as soon as convesion concerns are no more.
@@ -158,7 +158,7 @@ namespace Microsoft.ML.Runtime.Numeric
         /// If either vector is dense, <paramref name="dst"/> will be dense, unless
         /// <paramref name="c"/> is 0 in which case this method does nothing.
         /// </summary>
-        public static void AddMult(ref VBuffer<Float> src, Float c, ref VBuffer<Float> dst)
+        public static void AddMult(in ReadOnlyVBuffer<Float> src, Float c, ref VBuffer<Float> dst)
         {
             Contracts.Check(src.Length == dst.Length, "Vectors must have the same dimensionality.");
 
@@ -174,7 +174,7 @@ namespace Microsoft.ML.Runtime.Numeric
                 return;
             }
             // REVIEW: Should we use SSE for any of these possibilities?
-            VBufferUtils.ApplyWith(ref src, ref dst, (int i, Float v1, ref Float v2) => v2 += c * v1);
+            VBufferUtils.ApplyWith(in src, ref dst, (int i, Float v1, ref Float v2) => v2 += c * v1);
         }
 
         /// <summary>
@@ -210,16 +210,16 @@ namespace Microsoft.ML.Runtime.Numeric
         /// <c><paramref name="a"/> + <paramref name="c"/> * <paramref name="b"/></c>
         /// and store the result in <paramref name="dst"/>.
         /// </summary>
-        public static void AddMultInto(ref VBuffer<Float> a, Float c, ref VBuffer<Float> b, ref VBuffer<Float> dst)
+        public static void AddMultInto(in ReadOnlyVBuffer<Float> a, Float c, in ReadOnlyVBuffer<Float> b, ref VBuffer<Float> dst)
         {
             Contracts.Check(a.Length == b.Length, "Vectors must have the same dimensionality.");
 
             if (c == 0 || b.Count == 0)
                 a.CopyTo(ref dst);
             else if (a.Count == 0)
-                ScaleInto(ref b, c, ref dst);
+                ScaleInto(in b, c, ref dst);
             else
-                VBufferUtils.ApplyInto(ref a, ref b, ref dst, (ind, v1, v2) => v1 + c * v2);
+                VBufferUtils.ApplyInto(in a, in b, ref dst, (ind, v1, v2) => v1 + c * v2);
         }
 
         /// <summary>
@@ -228,7 +228,7 @@ namespace Microsoft.ML.Runtime.Numeric
         /// except that this takes place in the section of <paramref name="dst"/> starting
         /// at slot <paramref name="offset"/>.
         /// </summary>
-        public static void AddMultWithOffset(ref VBuffer<Float> src, Float c, ref VBuffer<Float> dst, int offset)
+        public static void AddMultWithOffset(in ReadOnlyVBuffer<Float> src, Float c, ref VBuffer<Float> dst, int offset)
         {
             Contracts.CheckParam(0 <= offset && offset <= dst.Length, nameof(offset));
             Contracts.CheckParam(src.Length <= dst.Length - offset, nameof(offset));
@@ -355,7 +355,7 @@ namespace Microsoft.ML.Runtime.Numeric
         /// is sparse, <paramref name="dst"/> will have a count of zero, instead of the
         /// same count as <paramref name="src"/>.
         /// </summary>
-        public static void ScaleInto(ref VBuffer<Float> src, Float c, ref VBuffer<Float> dst)
+        public static void ScaleInto(in ReadOnlyVBuffer<Float> src, Float c, ref VBuffer<Float> dst)
         {
             // REVIEW: The analogous WritableVector method insisted on
             // equal lengths, but I assume I don't care here.
@@ -376,9 +376,9 @@ namespace Microsoft.ML.Runtime.Numeric
                     dst = new VBuffer<Float>(src.Length, 0, dst.Values, dst.Indices);
             }
             else if (c == -1)
-                VBufferUtils.ApplyIntoEitherDefined(ref src, ref dst, (i, v) => -v);
+                VBufferUtils.ApplyIntoEitherDefined(in src, ref dst, (i, v) => -v);
             else
-                VBufferUtils.ApplyIntoEitherDefined(ref src, ref dst, (i, v) => c * v);
+                VBufferUtils.ApplyIntoEitherDefined(in src, ref dst, (i, v) => c * v);
         }
 
         public static int ArgMax(ref VBuffer<Float> src)

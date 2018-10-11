@@ -457,20 +457,20 @@ namespace Microsoft.ML.Runtime.Numeric
             return (Float)(Math.Log(1 + 1.0 / e) + Math.Log(1 + e) - 0.5 * x);
         }
 
-        private static Float QuadTest2D(ref VBuffer<Float> x, ref VBuffer<Float> grad, IProgressChannelProvider progress = null)
+        private static Float QuadTest2D(in ReadOnlyVBuffer<Float> x, ref VBuffer<Float> grad, IProgressChannelProvider progress = null)
         {
-            Float d1 = VectorUtils.DotProduct(ref x, ref _c1);
-            Float d2 = VectorUtils.DotProduct(ref x, ref _c2);
-            Float d3 = VectorUtils.DotProduct(ref x, ref _c3);
+            Float d1 = VectorUtils.DotProduct(x, _c1);
+            Float d2 = VectorUtils.DotProduct(x, _c2);
+            Float d3 = VectorUtils.DotProduct(x, _c3);
             _c3.CopyTo(ref grad);
-            VectorUtils.AddMult(ref _c1, d1, ref grad);
-            VectorUtils.AddMult(ref _c2, d2, ref grad);
+            VectorUtils.AddMult(_c1, d1, ref grad);
+            VectorUtils.AddMult(_c2, d2, ref grad);
             return (Float)0.5 * (d1 * d1 + d2 * d2) + d3 + 55;
         }
 
-        private static void StochasticQuadTest2D(ref VBuffer<Float> x, ref VBuffer<Float> grad)
+        private static void StochasticQuadTest2D(in ReadOnlyVBuffer<Float> x, ref VBuffer<Float> grad)
         {
-            QuadTest2D(ref x, ref grad);
+            QuadTest2D(in x, ref grad);
         }
 
         private static void CreateWrapped(out VBuffer<Float> vec, params Float[] values)
@@ -509,9 +509,9 @@ namespace Microsoft.ML.Runtime.Numeric
             int n = 0;
             bool print = false;
             DTerminate term =
-                (ref VBuffer<Float> x) =>
+                (in ReadOnlyVBuffer<Float> x) =>
                 {
-                    QuadTest2D(ref x, ref grad);
+                    QuadTest2D(in x, ref grad);
                     Float norm = VectorUtils.Norm(grad);
                     if (++n % 1000 == 0 || print)
                         Console.WriteLine("{0}\t{1}", n, norm);
@@ -522,7 +522,7 @@ namespace Microsoft.ML.Runtime.Numeric
             CreateWrapped(out init, 0, 0);
             VBuffer<Float> ans = default(VBuffer<Float>);
             sgdo.Minimize(StochasticQuadTest2D, ref init, ref ans);
-            QuadTest2D(ref ans, ref grad);
+            QuadTest2D(ans, ref grad);
             Console.WriteLine(VectorUtils.Norm(grad));
             Console.WriteLine();
             Console.WriteLine();
@@ -530,8 +530,8 @@ namespace Microsoft.ML.Runtime.Numeric
             GDOptimizer gdo = new GDOptimizer(term, null, true);
             print = true;
             CreateWrapped(out init, 0, 0);
-            gdo.Minimize(QuadTest2D, ref init, ref ans);
-            QuadTest2D(ref ans, ref grad);
+            gdo.Minimize(QuadTest2D, init, ref ans);
+            QuadTest2D(ans, ref grad);
             Console.WriteLine(VectorUtils.Norm(grad));
         }
     }

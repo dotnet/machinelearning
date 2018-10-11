@@ -29,7 +29,7 @@ namespace Microsoft.ML.Runtime.Learners
         /// <summary>
         /// print the linear model as code
         /// </summary>
-        public static void SaveAsCode(TextWriter writer, ref VBuffer<Float> weights, Float bias,
+        public static void SaveAsCode(TextWriter writer, in ReadOnlyVBuffer<Float> weights, Float bias,
             RoleMappedSchema schema, string codeVariable = "output")
         {
             Contracts.CheckValue(writer, nameof(writer));
@@ -41,7 +41,7 @@ namespace Microsoft.ML.Runtime.Learners
             int numNonZeroWeights = 0;
             writer.Write(codeVariable);
             writer.Write(" = ");
-            VBufferUtils.ForEachDefined(ref weights,
+            VBufferUtils.ForEachDefined(in weights,
                 (idx, value) =>
                 {
                     if (Math.Abs(value - 0) >= Epsilon)
@@ -108,8 +108,8 @@ namespace Microsoft.ML.Runtime.Learners
 
             int numNonZeroWeights = 0;
             const string weightsSep = "\t";
-            VBufferUtils.ForEachDefined(ref weights,
-                (idx, value) =>
+            VBufferUtils.ForEachDefined(weights,
+                (int idx, float value) =>
                 {
                     if (Math.Abs(value - 0) >= Epsilon)
                     {
