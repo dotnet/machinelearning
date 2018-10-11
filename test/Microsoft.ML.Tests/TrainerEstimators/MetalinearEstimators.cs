@@ -22,8 +22,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         {
             var (pipeline, data) = GetMultiClassPipeline();
             var calibrator = new PavCalibratorTrainer(Env);
-
-            var sdcaTrainer = new LinearClassificationTrainer(Env, new LinearClassificationTrainer.Arguments { MaxIterations = 100, Shuffle = true, NumThreads = 1 }, "Features", "Label");
+            var sdcaTrainer = new LinearClassificationTrainer(Env, "Features", "Label", advancedSettings: (s) => { s.MaxIterations = 100; s.Shuffle = true; s.NumThreads = 1; });
             pipeline.Append(new Ova(Env, sdcaTrainer, "Label", calibrator: calibrator, maxCalibrationExamples: 990000))
                     .Append(new KeyToValueEstimator(Env, "PredictedLabel"));
 
@@ -55,8 +54,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         public void OVAUncalibrated()
         {
             var (pipeline, data) = GetMultiClassPipeline();
-
-            var sdcaTrainer = new LinearClassificationTrainer(Env, new LinearClassificationTrainer.Arguments { MaxIterations = 100, Shuffle = true, NumThreads = 1, Calibrator = null }, "Features", "Label");
+            var sdcaTrainer = new LinearClassificationTrainer(Env, "Features", "Label", advancedSettings: (s) => { s.MaxIterations = 100; s.Shuffle = true; s.NumThreads = 1; s.Calibrator = null; });
 
             pipeline.Append(new Ova(Env, sdcaTrainer, useProbabilities: false))
                     .Append(new KeyToValueEstimator(Env, "PredictedLabel"));
@@ -71,9 +69,9 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         [Fact(Skip = "The test fails the check for valid input to fit")]
         public void Pkpd()
         {
-            var (pipeline, data) = GetMultiClassPipeline(); 
+            var (pipeline, data) = GetMultiClassPipeline();
 
-            var sdcaTrainer = new LinearClassificationTrainer(Env, new LinearClassificationTrainer.Arguments { MaxIterations = 100, Shuffle = true, NumThreads = 1 }, "Features", "Label");
+            var sdcaTrainer = new LinearClassificationTrainer(Env, "Features", "Label", advancedSettings: (s) => { s.MaxIterations = 100; s.Shuffle = true; s.NumThreads = 1;});
             pipeline.Append(new Pkpd(Env, sdcaTrainer))
                     .Append(new KeyToValueEstimator(Env, "PredictedLabel"));
 

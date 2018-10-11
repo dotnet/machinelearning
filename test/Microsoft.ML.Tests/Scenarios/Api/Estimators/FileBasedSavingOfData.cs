@@ -32,7 +32,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                 using (var file = env.CreateOutputFile("i.idv"))
                     trainData.SaveAsBinary(env, file.CreateWriteStream());
 
-                var trainer = new LinearClassificationTrainer(env, new LinearClassificationTrainer.Arguments { NumThreads = 1 }, "Features", "Label");
+                var trainer = new LinearClassificationTrainer(env, "Features", "Label", advancedSettings: (s) => s.NumThreads = 1);
                 var loadedTrainData = new BinaryLoader(env, new BinaryLoader.Arguments(), new MultiFileSource("i.idv"));
 
                 // Train.

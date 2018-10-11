@@ -35,6 +35,7 @@ namespace Microsoft.ML.StaticPipe
         /// <see cref="Estimator{TInShape, TOutShape, TTransformer}"/> instance created out of this. This delegate will receive
         /// the linear model that was trained.  Note that this action cannot change the result in any way; it is only a way for the caller to
         /// be informed about what was learnt.</param>
+        /// <param name="advancedSettings">A delegate to apply all the advanced arguments to the algorithm.</param>
         /// <returns>The predicted output.</returns>
         public static (Scalar<float> score, Scalar<float> probability, Scalar<bool> predictedLabel) LogisticRegressionBinaryClassifier(this BinaryClassificationContext.BinaryClassificationTrainers ctx,
             Scalar<bool> label,
@@ -45,6 +46,7 @@ namespace Microsoft.ML.StaticPipe
             float optimizationTolerance = Arguments.Defaults.OptTol,
             int memorySize = Arguments.Defaults.MemorySize,
             bool enoforceNoNegativity = Arguments.Defaults.EnforceNonNegativity,
+            Action<Arguments> advancedSettings = null,
             Action<ParameterMixingCalibratedPredictor> onFit = null)
         {
             LbfgsStaticUtils.ValidateParams(label, features, weights, l1Weight, l2Weight, optimizationTolerance, memorySize, enoforceNoNegativity, onFit);
@@ -53,7 +55,7 @@ namespace Microsoft.ML.StaticPipe
                 (env, labelName, featuresName, weightsName) =>
                 {
                     var trainer = new LogisticRegression(env, featuresName, labelName, weightsName,
-                        l1Weight, l2Weight, optimizationTolerance, memorySize, enoforceNoNegativity);
+                        l1Weight, l2Weight, optimizationTolerance, memorySize, enoforceNoNegativity, advancedSettings);
 
                     if (onFit != null)
                         return trainer.WithOnFitDelegate(trans => onFit(trans.Model));

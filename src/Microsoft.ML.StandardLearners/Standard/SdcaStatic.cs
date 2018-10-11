@@ -59,17 +59,10 @@ namespace Microsoft.ML.StaticPipe
             Contracts.CheckValueOrNull(advancedSettings);
             Contracts.CheckValueOrNull(onFit);
 
-            var args = new SdcaRegressionTrainer.Arguments();
-            advancedSettings?.Invoke(args);
-            args.L2Const = l2Const;
-            args.L1Threshold = l1Threshold;
-            args.MaxIterations = maxIterations;
-            if (loss != null)
-                args.LossFunction = new TrivialRegressionLossFactory(loss);
             var rec = new TrainerEstimatorReconciler.Regression(
                 (env, labelName, featuresName, weightsName) =>
                 {
-                    var trainer = new SdcaRegressionTrainer(env, args, featuresName, labelName, weightsName);
+                    var trainer = new SdcaRegressionTrainer(env, featuresName, labelName, weightsName, loss, l2Const, l1Threshold, maxIterations, advancedSettings);
                     if (onFit != null)
                         return trainer.WithOnFitDelegate(trans => onFit(trans.Model));
                     return trainer;
@@ -77,22 +70,8 @@ namespace Microsoft.ML.StaticPipe
 
             return rec.Score;
         }
-
-        private sealed class TrivialRegressionLossFactory : ISupportSdcaRegressionLossFactory
-        {
-            private readonly ISupportSdcaRegressionLoss _loss;
-
-            public TrivialRegressionLossFactory(ISupportSdcaRegressionLoss loss)
-            {
-                _loss = loss;
-            }
-
-            public ISupportSdcaRegressionLoss CreateComponent(IHostEnvironment env)
-            {
-                return _loss;
-            }
-        }
     }
+
     public static partial class BinaryClassificationTrainers
     {
 
@@ -131,16 +110,11 @@ namespace Microsoft.ML.StaticPipe
             Contracts.CheckParam(!(maxIterations < 1), nameof(maxIterations), "Must be positive if specified");
             Contracts.CheckValueOrNull(advancedSettings);
             Contracts.CheckValueOrNull(onFit);
-            var args = new LinearClassificationTrainer.Arguments();
-            advancedSettings?.Invoke(args);
-            args.L2Const = l2Const;
-            args.L1Threshold = l1Threshold;
-            args.MaxIterations = maxIterations;
 
             var rec = new TrainerEstimatorReconciler.BinaryClassifier(
                 (env, labelName, featuresName, weightsName) =>
                 {
-                    var trainer = new LinearClassificationTrainer(env, args, featuresName, labelName, weightsName);
+                    var trainer = new LinearClassificationTrainer(env, featuresName, labelName, weightsName, loss: new LogLoss(), l2Const, l1Threshold, maxIterations, advancedSettings);
                     if (onFit != null)
                     {
                         return trainer.WithOnFitDelegate(trans =>
@@ -203,17 +177,11 @@ namespace Microsoft.ML.StaticPipe
             Contracts.CheckValueOrNull(onFit);
 
             bool hasProbs = loss is LogLoss;
-            var args = new LinearClassificationTrainer.Arguments();
-            advancedSettings?.Invoke(args);
-            args.L2Const = l2Const;
-            args.L1Threshold = l1Threshold;
-            args.MaxIterations = maxIterations;
-            args.LossFunction = new TrivialSdcaClassificationLossFactory(loss);
 
             var rec = new TrainerEstimatorReconciler.BinaryClassifierNoCalibration(
                 (env, labelName, featuresName, weightsName) =>
                 {
-                    var trainer = new LinearClassificationTrainer(env, args, featuresName, labelName, weightsName);
+                    var trainer = new LinearClassificationTrainer(env, featuresName, labelName, weightsName, loss, l2Const, l1Threshold, maxIterations, advancedSettings);
                     if (onFit != null)
                     {
                         return trainer.WithOnFitDelegate(trans =>
@@ -275,39 +243,16 @@ namespace Microsoft.ML.StaticPipe
             Contracts.CheckValueOrNull(advancedSettings);
             Contracts.CheckValueOrNull(onFit);
 
-            var args = new SdcaMultiClassTrainer.Arguments();
-            advancedSettings?.Invoke(args);
-            args.L2Const = l2Const;
-            args.L1Threshold = l1Threshold;
-            args.MaxIterations = maxIterations;
-            if (loss != null)
-                args.LossFunction = new TrivialSdcaClassificationLossFactory(loss);
-
             var rec = new TrainerEstimatorReconciler.MulticlassClassifier<TVal>(
                 (env, labelName, featuresName, weightsName) =>
                 {
-                    var trainer = new SdcaMultiClassTrainer(env, args, featuresName, labelName, weightsName);
+                    var trainer = new SdcaMultiClassTrainer(env, featuresName, labelName, weightsName, loss, l2Const, l1Threshold, maxIterations, advancedSettings);
                     if (onFit != null)
                         return trainer.WithOnFitDelegate(trans => onFit(trans.Model));
                     return trainer;
                 }, label, features, weights);
 
             return rec.Output;
-        }
-    }
-
-    internal sealed class TrivialSdcaClassificationLossFactory : ISupportSdcaClassificationLossFactory
-    {
-        private readonly ISupportSdcaClassificationLoss _loss;
-
-        public TrivialSdcaClassificationLossFactory(ISupportSdcaClassificationLoss loss)
-        {
-            _loss = loss;
-        }
-
-        public ISupportSdcaClassificationLoss CreateComponent(IHostEnvironment env)
-        {
-            return _loss;
         }
     }
 }
