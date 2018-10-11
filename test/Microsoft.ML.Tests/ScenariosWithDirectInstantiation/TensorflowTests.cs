@@ -360,9 +360,7 @@ namespace Microsoft.ML.Scenarios
             ExecuteTFTransformMNISTLRTrainingTest(false, null, 0.72173913043478266, 0.67482993197278918);
 
             // With shuffling
-            // When creating prediction engine, shuffling fails because ShuffleTransform is not RowToRowMapper
-            // https://github.com/dotnet/machinelearning/issues/1106
-            // ExecuteTFTransformMNISTLRTrainingTest(true, 5, 0.8, 0.691156462585034);
+            ExecuteTFTransformMNISTLRTrainingTest(true, 5, 0.8, 0.691156462585034);
         }
 
         private void ExecuteTFTransformMNISTLRTrainingTest(bool shuffle, int? shuffleSeed, double expectedMicroAccuracy, double expectedMacroAccruacy)
@@ -392,15 +390,6 @@ namespace Microsoft.ML.Scenarios
                     IDataView trans = CategoricalTransform.Create(env, loader, "OneHotLabel", "Label");
                     trans = NormalizeTransform.CreateMinMaxNormalizer(env, trans, "Features", "Placeholder");
 
-                    if (shuffle)
-                    {
-                        trans = new ShuffleTransform(env, new ShuffleTransform.Arguments()
-                        {
-                            ForceShuffle = shuffle,
-                            ForceShuffleSeed = shuffleSeed
-                        }, trans);
-                    }
-
                     var args = new TensorFlowTransform.Arguments()
                     {
                         Model = model_location,
@@ -417,7 +406,21 @@ namespace Microsoft.ML.Scenarios
                         ReTrain = true
                     };
 
-                    var trainedTfDataView = TensorFlowTransform.Create(env, args, trans);
+                    IDataView trainedTfDataView = null;
+                    if (shuffle)
+                    {
+                        var shuffledView = new ShuffleTransform(env, new ShuffleTransform.Arguments()
+                        {
+                            ForceShuffle = shuffle,
+                            ForceShuffleSeed = shuffleSeed
+                        }, trans);
+                        trainedTfDataView = new TensorFlowTransform(env, args, shuffledView).Transform(trans);
+                    }
+                    else
+                    {
+                        trainedTfDataView = new TensorFlowTransform(env, args, trans).Transform(trans);
+                    }
+
                     trans = new ConcatTransform(env, "Features", "Prediction").Transform(trainedTfDataView);
 
                     var trainer = new LightGbmMulticlassTrainer(env, "Label", "Features");
@@ -510,9 +513,7 @@ namespace Microsoft.ML.Scenarios
             ExecuteTFTransformMNISTConvTrainingTest(false, null, 0.74782608695652175, 0.608843537414966);
 
             // With shuffling
-            // When creating prediction engine, shuffling fails because ShuffleTransform is not RowToRowMapper
-            // https://github.com/dotnet/machinelearning/issues/1106
-            // ExecuteTFTransformMNISTConvTrainingTest(true, 5, 0.75652173913043474, 0.610204081632653);
+            ExecuteTFTransformMNISTConvTrainingTest(true, 5, 0.75652173913043474, 0.610204081632653);
         }
 
         private void ExecuteTFTransformMNISTConvTrainingTest(bool shuffle, int? shuffleSeed, double expectedMicroAccuracy, double expectedMacroAccruacy)
@@ -542,15 +543,6 @@ namespace Microsoft.ML.Scenarios
                     IDataView trans = new CopyColumnsTransform(env,
                         ("Placeholder", "Features")).Transform(loader);
 
-                    if (shuffle)
-                    {
-                        trans = new ShuffleTransform(env, new ShuffleTransform.Arguments()
-                        {
-                            ForceShuffle = shuffle,
-                            ForceShuffleSeed = shuffleSeed
-                        }, trans);
-                    }
-
                     var args = new TensorFlowTransform.Arguments()
                     {
                         Model = model_location,
@@ -568,9 +560,23 @@ namespace Microsoft.ML.Scenarios
                         ReTrain = true
                     };
 
-                var trainedTfDataView = TensorFlowTransform.Create(env, args, trans);
-                trans = new ConcatTransform(env, "Features", "Prediction").Transform(trainedTfDataView);
-                trans = new ConvertTransform(env, trans, DataKind.R4, "Label");
+                    IDataView trainedTfDataView = null;
+                    if (shuffle)
+                    {
+                        var shuffledView = new ShuffleTransform(env, new ShuffleTransform.Arguments()
+                        {
+                            ForceShuffle = shuffle,
+                            ForceShuffleSeed = shuffleSeed
+                        }, trans);
+                        trainedTfDataView = new TensorFlowTransform(env, args, shuffledView).Transform(trans);
+                    }
+                    else
+                    {
+                        trainedTfDataView = new TensorFlowTransform(env, args, trans).Transform(trans);
+                    }
+
+                    trans = new ConcatTransform(env, "Features", "Prediction").Transform(trainedTfDataView);
+                    trans = new ConvertTransform(env, trans, DataKind.R4, "Label");
 
                     var trainer = new LightGbmMulticlassTrainer(env, "Label", "Features");
 

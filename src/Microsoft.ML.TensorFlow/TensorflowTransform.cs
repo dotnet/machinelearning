@@ -284,7 +284,7 @@ namespace Microsoft.ML.Transforms
             return new TensorFlowTransform(env, args, input).MakeDataTransform(input);
         }
 
-        internal TensorFlowTransform(IHostEnvironment env, Arguments args, IDataView input)
+        public TensorFlowTransform(IHostEnvironment env, Arguments args, IDataView input)
             : this(env, TensorFlowUtils.GetSession(env, args.Model), args.InputColumns, args.OutputColumns, TensorFlowUtils.IsSavedModel(env, args.Model) ? args.Model : null, false)
         {
 
