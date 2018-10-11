@@ -232,7 +232,7 @@ namespace Microsoft.ML.Runtime.Learners
             if (srcPredictor.InputType.VectorSize != NumFeatures)
                 throw Contracts.Except("The input training data must have the same features used to train the input predictor.");
 
-            return InitializeWeights(srcPredictor.DenseWeightsEnumerable(), srcPredictor.BiasesEnumerable());
+            return InitializeWeights(srcPredictor.DenseWeightsEnumerable(), srcPredictor.GetBiases());
         }
 
         protected override MulticlassLogisticRegressionPredictor CreatePredictor()
@@ -392,7 +392,7 @@ namespace Microsoft.ML.Runtime.Learners
         public ColumnType InputType { get; }
         public ColumnType OutputType { get; }
         public bool CanSavePfa => true;
-        public bool CanSaveOnnx => true;
+        public bool CanSaveOnnx(OnnxContext ctx) => true;
 
         internal MulticlassLogisticRegressionPredictor(IHostEnvironment env, ref VBuffer<float> weights, int numClasses, int numFeatures, string[] labelNames, LinearModelStatistics stats = null)
             : base(env, RegistrationName)
@@ -952,7 +952,10 @@ namespace Microsoft.ML.Runtime.Learners
             }
         }
 
-        internal IEnumerable<float> BiasesEnumerable()
+        /// <summary>
+        /// Gets the biases for the logistic regression predictor.
+        /// </summary>
+        public IEnumerable<float> GetBiases()
         {
             return _biases;
         }

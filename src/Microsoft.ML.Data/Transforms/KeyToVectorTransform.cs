@@ -605,7 +605,7 @@ namespace Microsoft.ML.Runtime.Data
                     };
             }
 
-            public bool CanSaveOnnx => true;
+            public bool CanSaveOnnx(OnnxContext ctx) => true;
 
             public bool CanSavePfa => true;
 

@@ -7,6 +7,8 @@ using Microsoft.ML.Runtime.Data;
 
 namespace Microsoft.ML.Runtime.Model.Onnx
 {
+    public enum OnnxVersion { Stable=0, Experimental=1 }
+
     /// <summary>
     /// A context for defining a ONNX output. The context internally contains the model-in-progress being built. This
     /// same context object is iteratively given to exportable components via the <see cref="ICanSaveOnnx"/> interface
@@ -22,6 +24,13 @@ namespace Microsoft.ML.Runtime.Model.Onnx
         /// <param name="prefix">The prefix for the node</param>
         /// <returns>A name that has not yet been returned from this function, starting with <paramref name="prefix"/></returns>
         public abstract string GetNodeName(string prefix);
+
+        /// <summary>
+        /// Determine if a string has been used as ONNX variable name somewhere.
+        /// </summary>
+        /// <param name="variableName">examined string</param>
+        /// <returns>True if the input argument has been used to denote an ONNX variable. Otherwise, False.</returns>
+        public abstract bool IsVariableDefined(string variableName);
 
         /// <summary>
         /// Looks up whether a given data view column has a mapping in the ONNX context. Once confirmed, callers can
@@ -98,6 +107,12 @@ namespace Microsoft.ML.Runtime.Model.Onnx
         /// <returns>A node added to the in-progress ONNX graph, that attributes can be set on</returns>
         public OnnxNode CreateNode(string opType, string input, string output, string name, string domain = null)
             => CreateNode(opType, new[] { input }, new[] { output }, name, domain);
+
+        /// <summary>
+        /// Get the targeted ONNX version string. Only two values are allowed now: "Stable" and "Experimental".
+        /// </summary>
+        /// <returns></returns>
+        public abstract OnnxVersion GetOnnxVersion();
 
         /// <summary>
         /// Retrieve the shape of an ONNX variable. Returns null if no shape for the specified variable can be found.

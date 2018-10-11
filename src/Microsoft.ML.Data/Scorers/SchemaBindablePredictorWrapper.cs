@@ -46,7 +46,7 @@ namespace Microsoft.ML.Runtime.Data
 
         public bool CanSavePfa => (ValueMapper as ICanSavePfa)?.CanSavePfa == true;
 
-        public bool CanSaveOnnx => (ValueMapper as ICanSaveOnnx)?.CanSaveOnnx == true;
+        public bool CanSaveOnnx(OnnxContext ctx) => (ValueMapper as ICanSaveOnnx)?.CanSaveOnnx(ctx) == true;
 
         public SchemaBindablePredictorWrapperBase(IPredictor predictor)
         {

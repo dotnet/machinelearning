@@ -2479,6 +2479,21 @@
           "Required": true,
           "SortOrder": 10.0,
           "IsNullable": false
+        },
+        {
+          "Name": "OnnxVersion",
+          "Type": {
+            "Kind": "Enum",
+            "Values": [
+              "Stable",
+              "Experimental"
+            ]
+          },
+          "Desc": "The targeted ONNX version. It can be either \"Stable\" or \"Experimental\". If \"Experimental\" is used, produced model can contain components that is not officially supported in ONNX standard.",
+          "Required": false,
+          "SortOrder": 11.0,
+          "IsNullable": false,
+          "Default": "Stable"
         }
       ],
       "Outputs": []
@@ -22571,7 +22586,7 @@
       "ShortName": "TFTransform",
       "Inputs": [
         {
-          "Name": "Model",
+          "Name": "ModelLocation",
           "Type": "String",
           "Desc": "TensorFlow model used by the transform. Please see https://www.tensorflow.org/mobile/prepare_models for more details.",
           "Required": true,
