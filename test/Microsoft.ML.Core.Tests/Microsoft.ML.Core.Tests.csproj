@@ -22,7 +22,6 @@
     <ProjectReference Include="..\..\src\Microsoft.ML.Legacy\Microsoft.ML.Legacy.csproj" />
     <ProjectReference Include="..\Microsoft.ML.TestFramework\Microsoft.ML.TestFramework.csproj" />
     <ProjectReference Include="..\Microsoft.ML.Tests\Microsoft.ML.Tests.csproj" />
-    <PackageReference Include="LightGBM" Version="$(LightGBMPackageVersion)" />
 	<PackageReference Include="MlNetMklDeps" Version="$(MlNetMklDepsPackageVersion)" />
   </ItemGroup>
 
