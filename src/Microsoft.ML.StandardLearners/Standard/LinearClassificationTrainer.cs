@@ -1448,7 +1448,7 @@ namespace Microsoft.ML.Runtime.Learners
         {
             Host.CheckNonEmpty(featureColumn, nameof(featureColumn));
             Host.CheckNonEmpty(labelColumn, nameof(labelColumn));
-            _loss = loss;
+            _loss = loss?? Args.LossFunction.CreateComponent(env);
             Loss = _loss;
             Info = new TrainerInfo(calibration: !(_loss is LogLoss));
             _positiveInstanceWeight = Args.PositiveInstanceWeight;
