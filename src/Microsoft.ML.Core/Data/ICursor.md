@@ -65,7 +65,7 @@ they not throw, return `true`, or have any other behavior.
 This treats on the requirements of a proper `GetIdGetter` implementation.
 
 It is common for objects to serve multiple `ICounted` instances to iterate
-over what is supposed to be the same data, e.g., in an `IDataView` a cursor
+over what is supposed to be the same data, for example, in an `IDataView` a cursor
 set will produce the same data as a serial cursor, just partitioned, and a
 shuffled cursor will produce the same data as a serial cursor or any other
 shuffled cursor, only shuffled. The ID exists for applications that need to
@@ -92,7 +92,7 @@ transformed, cached, saved, or whatever), that the IDs between the two
 different data views would have any discernable relationship.
 
 Since this ID is practically often derived from the IDs of some other
-`ICounted` (e.g., for a transform, the IDs of the output are usually derived
+`ICounted` (for example, for a transform, the IDs of the output are usually derived
 from the IDs of the input), it is not only necessary to claim that the ID
 generated here is probabilistically unique, but also describe a procedure or
 set of guidelines implementors of this method should attempt to follow, in
@@ -163,10 +163,10 @@ never arise that the same ID is hashed against the same data, and are
 introduced as if we expect them to be two separate IDs.
 
 Of course, with a malicious actor upstream, collisions are possible and can be
-engineered quite trivially (e.g., just by returning a constant ID for all
+engineered quite trivially (for example, just by returning a constant ID for all
 rows), but we're not supposing that the input `IDataView` is maliciously
 engineering hash states, or applying the operations above in any strange way
-to attempt to induce collisions. E.g., you could take, operation 1, define it
+to attempt to induce collisions. For example, you could take, operation 1, define it
 to be the enumeration of all `UInt128` values, then take operation 2 to select
 out specifically those that are hash states that will result in collisions.
 But I'm supposing this is not happening. If you are running an implementation

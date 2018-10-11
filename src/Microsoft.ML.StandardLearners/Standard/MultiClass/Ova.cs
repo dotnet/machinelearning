@@ -253,8 +253,6 @@ namespace Microsoft.ML.Runtime.Learners
                 }
                 else
                     impl = new ImplRaw(predictors);
-
-                ch.Done();
             }
 
             return new OvaPredictor(host, impl);

@@ -6,7 +6,7 @@ using System;
 using System.IO;
 using System.Text;
 
-namespace Microsoft.ML.Samples.StaticPipe
+namespace Microsoft.ML.Samples
 {
     public static class DatasetCreator
     {

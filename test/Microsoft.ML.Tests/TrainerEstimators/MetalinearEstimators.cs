@@ -15,6 +15,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
     public partial class TrainerEstimators
     {
         /// <summary>
+
         /// OVA with calibrator argument
         /// </summary>
         [Fact]
@@ -32,6 +33,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         }
 
         /// <summary>
+
         /// OVA with all constructor args.
         /// </summary>
         [Fact]
@@ -39,7 +41,11 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         {
             var (pipeline, data) = GetMultiClassPipeline();
             var calibrator = new PlattCalibratorTrainer(Env);
-            var averagePerceptron = new AveragedPerceptronTrainer(Env, new AveragedPerceptronTrainer.Arguments { FeatureColumn = "Features", LabelColumn = "Label", Shuffle = true, Calibrator = null });
+            var averagePerceptron = new AveragedPerceptronTrainer(Env,"Label", "Features", advancedSettings: s=>
+            {
+                s.Shuffle = true;
+                s.Calibrator = null;
+            });
 
             pipeline.Append(new Ova(Env, averagePerceptron, "Label", true, calibrator: calibrator, 10000, true))
                     .Append(new KeyToValueEstimator(Env, "PredictedLabel"));

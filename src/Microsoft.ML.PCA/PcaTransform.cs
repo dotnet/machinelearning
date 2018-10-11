@@ -314,7 +314,6 @@ namespace Microsoft.ML.Runtime.Data
                     {
                         ch.Info("Estimate memory usage for transforming column {1}: {0:G2} GB. If running out of memory, reduce rank and oversampling factor.",
                             colMemoryUsageEstimate, Infos[iinfo].Name);
-                        ch.Done();
                     }
                 }
 
@@ -339,7 +338,6 @@ namespace Microsoft.ML.Runtime.Data
                 {
                     ch.Info("Estimate memory usage for all PCA transforms: {0:G2} GB. If running out of memory, reduce ranks and oversampling factors.",
                         totalMemoryUsageEstimate);
-                    ch.Done();
                 }
             }
 

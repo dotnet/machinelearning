@@ -18,7 +18,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         /// Start with a dataset in a text file. Run text featurization on text values. 
         /// Train a linear model over that. (I am thinking sentiment classification.) 
         /// Out of the result, produce some structure over which you can get predictions programmatically 
-        /// (e.g., the prediction does not happen over a file as it did during training).
+        /// (for example, the prediction does not happen over a file as it did during training).
         /// </summary>
         [Fact]
         public void SimpleTrainAndPredict()

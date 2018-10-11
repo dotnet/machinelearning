@@ -718,8 +718,6 @@ namespace Microsoft.ML.Runtime.Data
 
                     if (!_header.IsEmpty)
                         Parser.ParseSlotNames(parent, _header, Infos, _slotNames);
-
-                    ch.Done();
                 }
             }
 
@@ -1201,7 +1199,6 @@ namespace Microsoft.ML.Runtime.Data
                 args = argsNew;
 
             LDone:
-                ch.Done();
                 return !error;
             }
         }
