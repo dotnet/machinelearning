@@ -7,9 +7,10 @@ using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Internal.Calibration;
 using Microsoft.ML.Runtime.Learners;
+using Microsoft.ML.StaticPipe;
 using Microsoft.ML.StaticPipe.Runtime;
 
-namespace Microsoft.ML.StaticPipe
+namespace Microsoft.ML.Trainers
 {
     /// <summary>
     /// Extension methods and utilities for instantiating SDCA trainer estimators inside statically typed pipelines.
@@ -37,7 +38,19 @@ namespace Microsoft.ML.StaticPipe
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        ///  [!code-csharp[SDCA](../../../docs/samples/Microsoft.ML.Samples.StaticPipe/Trainers.cs?range=5-8,12-70) "The SDCA regression example."]
+        ///  [!code-csharp[SDCA](../../../docs/samples/Microsoft.ML.Samples/Trainers.cs?range=5-8,12-70 "The SDCA regression example.")]
+        /// ]]></format>
+        /// </example>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        ///  [!code-csharp[SDCA](/Microsoft.ML.Samples/Trainers.cs?range=5-8,12-70 "The SDCA regression example.")]
+        /// ]]></format>
+        /// </example>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        ///  [!code-csharp[SDCA](~/Microsoft.ML.Samples/Trainers.cs?range=5-8,12-70 "The SDCA regression example.")]
         /// ]]></format>
         /// </example>
         public static Scalar<float> Sdca(this RegressionContext.RegressionTrainers ctx,

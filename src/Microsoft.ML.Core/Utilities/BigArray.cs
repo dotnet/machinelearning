@@ -59,7 +59,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         /// This indexer is not efficient for looping. If looping access to entries is desired,
         /// use the <see cref="ApplyRange"/> method instead.
         /// Note that unlike a normal array, the value returned from this indexer getter cannot be modified
-        /// (e.g., by ++ operator or passing into a method as a ref parameter). To modify an entry, use
+        /// (for example, by ++ operator or passing into a method as a ref parameter). To modify an entry, use
         /// the <see cref="ApplyAt"/> method instead.
         /// </remarks>
         public T this[long index]

@@ -487,7 +487,7 @@ namespace Microsoft.ML.Runtime.Data
 
         /// <summary>
         /// Given a row, returns a one-row data view. This is useful for cases where you have a row, and you
-        /// wish to use some facility normally only exposed to dataviews. (E.g., you have an <see cref="IRow"/>
+        /// wish to use some facility normally only exposed to dataviews. (For example, you have an <see cref="IRow"/>
         /// but want to save it somewhere using a <see cref="Microsoft.ML.Runtime.Data.IO.BinarySaver"/>.)
         /// Note that it is not possible for this method to ensure that the input <paramref name="row"/> does not
         /// change, so users of this convenience must take care of what they do with the input row or the data

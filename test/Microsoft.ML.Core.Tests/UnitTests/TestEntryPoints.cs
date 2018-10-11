@@ -300,6 +300,44 @@ namespace Microsoft.ML.Runtime.RunTests
             Done();
         }
 
+        [Fact]
+        public void EntryPointCatalogCheckDuplicateParams()
+        {
+            // Run this test to prevent introducing duplicate param names in entrypoints
+            // TODO: fix entrypoints in excludeSet from having duplicate param names
+            var excludeSet = new HashSet<string>();
+            excludeSet.Add("Data.DataViewReference");
+            excludeSet.Add("Models.CrossValidator");
+            excludeSet.Add("Models.CrossValidationResultsCombiner");
+            excludeSet.Add("Models.PipelineSweeper");
+            excludeSet.Add("Models.PipelineSweeper");
+            excludeSet.Add("Models.SweepResultExtractor");
+            excludeSet.Add("Models.TrainTestEvaluator");
+            excludeSet.Add("Transforms.TwoHeterogeneousModelCombiner");
+            excludeSet.Add("Transforms.ManyHeterogeneousModelCombiner");
+
+            var (epListContents, jObj) = BuildManifests();
+            foreach (var ep in jObj["EntryPoints"])
+            {
+                if (excludeSet.Contains(ep["Name"].ToString()))
+                    continue;
+
+                var variables = new HashSet<string>();
+                foreach (var param in ep["Inputs"])
+                {
+                    var name = param["Name"].ToString();
+                    Check(variables.Add(name), "Duplicate param {0} in entrypoint {1}", name, ep["Name"]);
+                }
+                foreach (var param in ep["Outputs"])
+                {
+                    var name = param["Name"].ToString();
+                    Check(variables.Add(name), "Duplicate param {0} in entrypoint {1}", name, ep["Name"]);
+                }
+            }
+
+            Done();
+        }
+
         private (IEnumerable<string> epListContents, JObject manifest) BuildManifests()
         {
             Env.ComponentCatalog.RegisterAssembly(typeof(LightGbmBinaryPredictor).Assembly);
@@ -728,16 +766,11 @@ namespace Microsoft.ML.Runtime.RunTests
             for (int i = 0; i < nModels; i++)
             {
                 var data = splitOutput.TrainData[i];
-                data = new RffTransform(Env, new RffTransform.Arguments()
-                {
-                    Column = new[]
-                    {
-                        new RffTransform.Column() {Name = "Features1", Source = "Features"},
-                        new RffTransform.Column() {Name = "Features2", Source = "Features"},
-                    },
-                    NewDim = 10,
-                    UseSin = false
-                }, data);
+                data = new RffEstimator(Env, new[] {
+                    new RffTransform.ColumnInfo("Features", "Features1", 10, false),
+                    new RffTransform.ColumnInfo("Features", "Features2", 10, false),
+                }).Fit(data).Transform(data);
+
                 data = ConcatTransform.Create(Env, new ConcatTransform.Arguments()
                 {
                     Column = new[] { new ConcatTransform.Column() { Name = "Features", Source = new[] { "Features1", "Features2" } } }
@@ -1202,16 +1235,10 @@ namespace Microsoft.ML.Runtime.RunTests
             for (int i = 0; i < nModels; i++)
             {
                 var data = splitOutput.TrainData[i];
-                data = new RffTransform(Env, new RffTransform.Arguments()
-                {
-                    Column = new[]
-                    {
-                        new RffTransform.Column() {Name = "Features1", Source = "Features"},
-                        new RffTransform.Column() {Name = "Features2", Source = "Features"},
-                    },
-                    NewDim = 10,
-                    UseSin = false
-                }, data);
+                data = new RffEstimator(Env, new[] {
+                    new RffTransform.ColumnInfo("Features", "Features1", 10, false),
+                    new RffTransform.ColumnInfo("Features", "Features2", 10, false),
+                }).Fit(data).Transform(data);
                 data = ConcatTransform.Create(Env, new ConcatTransform.Arguments()
                 {
                     Column = new[] { new ConcatTransform.Column() { Name = "Features", Source = new[] { "Features1", "Features2" } } }
@@ -1798,14 +1825,14 @@ namespace Microsoft.ML.Runtime.RunTests
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // LightGBM is 64-bit only
         public void EntryPointLightGbmBinary()
         {
             Env.ComponentCatalog.RegisterAssembly(typeof(LightGbmBinaryPredictor).Assembly);
             TestEntryPointRoutine("breast-cancer.txt", "Trainers.LightGbmBinaryClassifier");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // LightGBM is 64-bit only
         public void EntryPointLightGbmMultiClass()
         {
             Env.ComponentCatalog.RegisterAssembly(typeof(LightGbmBinaryPredictor).Assembly);
@@ -3465,8 +3492,6 @@ namespace Microsoft.ML.Runtime.RunTests
                 var stats = DeleteOutputPath(@"../Common/EntryPoints", "mc-lr-stats.txt");
                 using (var file = Env.CreateOutputFile(stats))
                     DataSaverUtils.SaveDataView(ch, saver, mcOutput.Stats, file);
-
-                ch.Done();
             }
 
             CheckEquality(@"../Common/EntryPoints", "lr-weights.txt");
@@ -3512,8 +3537,6 @@ namespace Microsoft.ML.Runtime.RunTests
                     var saver = Env.CreateSaver("Text");
                     using (var file = Env.CreateOutputFile(weights))
                         DataSaverUtils.SaveDataView(ch, saver, output.Summary, file);
-
-                    ch.Done();
                 }
 
                 CheckEquality(@"../Common/EntryPoints", "pca-weights.txt");
@@ -3725,7 +3748,7 @@ namespace Microsoft.ML.Runtime.RunTests
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // TensorFlow is 64-bit only
         public void EntryPointTensorFlowTransform()
         {
             Env.ComponentCatalog.RegisterAssembly(typeof(TensorFlowTransform).Assembly);
@@ -3735,7 +3758,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 new[]
                 {
                     @"'InputColumns': [ 'Placeholder' ],
-                      'Model': 'mnist_model/frozen_saved_model.pb',
+                      'ModelLocation': 'mnist_model/frozen_saved_model.pb',
                       'OutputColumns': [ 'Softmax' ]"
                 });
         }

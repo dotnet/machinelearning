@@ -12,7 +12,7 @@ using Microsoft.ML.Runtime.KMeans;
 using Microsoft.ML.Runtime.Learners;
 using Microsoft.ML.Runtime.LightGBM;
 using Microsoft.ML.Runtime.RunTests;
-using Microsoft.ML.StaticPipe;
+using Microsoft.ML.Trainers;
 using System;
 using System.Linq;
 using Xunit;
@@ -202,7 +202,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var loss = new HingeLoss(new HingeLoss.Arguments() { Margin = 1 });
 
             var est = reader.MakeNewEstimator()
-                .Append(r => (r.label, preds: ctx.Trainers.AveragedPerceptron(loss, r.label, r.features,
+                .Append(r => (r.label, preds: ctx.Trainers.AveragedPerceptron(r.label, r.features, lossFunction: loss,
                 numIterations: 2, onFit: p => pred = p)));
 
             var pipe = reader.Append(est);
@@ -288,6 +288,9 @@ namespace Microsoft.ML.StaticPipelineTesting
             Assert.True(n == 3 && n == weights.Length);
             foreach (var w in weights)
                 Assert.True(w.Length == 4);
+
+            var biases = pred.GetBiases();
+            Assert.True(biases.Count() == 3);
 
             var data = model.Read(dataSource);
 
@@ -406,7 +409,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             Assert.InRange(metrics.LossFn, 0, double.PositiveInfinity);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // LightGBM is 64-bit only
         public void LightGbmBinaryClassification()
         {
             var env = new ConsoleEnvironment(seed: 0);
@@ -446,7 +449,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             Assert.InRange(metrics.Auprc, 0, 1);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // LightGBM is 64-bit only
         public void LightGbmRegression()
         {
             var env = new ConsoleEnvironment(seed: 0);
@@ -629,8 +632,8 @@ namespace Microsoft.ML.StaticPipelineTesting
             var loss = new SquaredLoss();
 
             var est = reader.MakeNewEstimator()
-                .Append(r => (r.label, score: ctx.Trainers.OnlineGradientDescent(r.label, r.features, 
-               // lossFunction:loss,
+                .Append(r => (r.label, score: ctx.Trainers.OnlineGradientDescent(r.label, r.features,
+                lossFunction:loss,
                 onFit: (p) => { pred = p; })));
 
             var pipe = reader.Append(est);
@@ -793,6 +796,44 @@ namespace Microsoft.ML.StaticPipelineTesting
             var metrics = ctx.Evaluate(data, r => r.label, r => r.preds, 2);
             Assert.True(metrics.LogLoss > 0);
             Assert.True(metrics.TopKAccuracy > 0);
+        }
+
+        [Fact]
+        public void HogwildSGDBinaryClassification()
+        {
+            var env = new ConsoleEnvironment(seed: 0);
+            var dataPath = GetDataPath(TestDatasets.breastCancer.trainFilename);
+            var dataSource = new MultiFileSource(dataPath);
+            var ctx = new BinaryClassificationContext(env);
+
+            var reader = TextLoader.CreateReader(env,
+                c => (label: c.LoadBool(0), features: c.LoadFloat(1, 9)));
+
+            IPredictorWithFeatureWeights<float> pred = null;
+
+            var est = reader.MakeNewEstimator()
+                .Append(r => (r.label, preds: ctx.Trainers.StochasticGradientDescentClassificationTrainer(r.label, r.features,
+                    l2Weight: 0,
+                    onFit: (p) => { pred = p; })));
+
+            var pipe = reader.Append(est);
+
+            Assert.Null(pred);
+            var model = pipe.Fit(dataSource);
+            Assert.NotNull(pred);
+
+            // 9 input features, so we ought to have 9 weights.
+            VBuffer<float> weights = new VBuffer<float>();
+            pred.GetFeatureWeights(ref weights);
+            Assert.Equal(9, weights.Length);
+
+            var data = model.Read(dataSource);
+
+            var metrics = ctx.Evaluate(data, r => r.label, r => r.preds);
+            // Run a sanity check against a few of the metrics.
+            Assert.InRange(metrics.Accuracy, 0, 1);
+            Assert.InRange(metrics.Auc, 0, 1);
+            Assert.InRange(metrics.Auprc, 0, 1);
         }
     }
 }

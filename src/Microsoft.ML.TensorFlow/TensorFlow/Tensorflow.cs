@@ -842,7 +842,7 @@ namespace Microsoft.ML.Transforms.TensorFlow
         }
 
         /// <summary>
-        /// The full name of the device (e.g. /job:worker/replica:0/...)
+        /// The full name of the device (for example, /job:worker/replica:0/...)
         /// </summary>
         public string Name { get; private set; }
 
@@ -1666,7 +1666,13 @@ namespace Microsoft.ML.Transforms.TensorFlow
         /// <summary>
         /// 64-bit unsigned integers
         /// </summary>
-        UInt64 = 23
+        UInt64 = 23,
+
+        /// <summary>
+        /// Float reference type. It used for defining types of Variables.
+        /// Please https://www.tensorflow.org/api_docs/python/tf/DType for more details.
+        /// </summary>
+        Float_ref = 101
     }
 
     /// <summary>
@@ -1695,7 +1701,7 @@ namespace Microsoft.ML.Transforms.TensorFlow
         /// Client specified an invalid argument.  Note that this differs
         /// from FailedPrecondition.  InvalidArgumentindicates arguments
         /// that are problematic regardless of the state of the system
-        /// (e.g., a malformed file name).
+        /// (for example, a malformed file name).
         /// </summary>
         InvalidArgument = 3,
 
@@ -1709,14 +1715,14 @@ namespace Microsoft.ML.Transforms.TensorFlow
         DeadlineExceeded = 4,
 
         /// <summary>
-        /// Some requested entity (e.g., file or directory) was not found.
+        /// Some requested entity (for example, file or directory) was not found.
         /// For privacy reasons, this code may be returned when the client
         /// does not have the access right to the entity.
         /// </summary>
         NotFound = 5,
 
         /// <summary>
-        /// Some entity that we attempted to create (e.g., file or directory) already exists.
+        /// Some entity that we attempted to create (for example, file or directory) already exists.
         /// </summary>
         AlreadyExists = 6,
 
@@ -1753,15 +1759,15 @@ namespace Microsoft.ML.Transforms.TensorFlow
         ///
         ///  (a) Use Unavailableif the client can retry just the failing call.
         ///  (b) Use Aborted if the client should retry at a higher-level
-        ///      (e.g., restarting a read-modify-write sequence).
+        ///      (for example, restarting a read-modify-write sequence).
         ///  (c) Use FailedPrecondition if the client should not retry until
-        ///      the system state has been explicitly fixed.  E.g., if an "rmdir"
+        ///      the system state has been explicitly fixed. For example, if an "rmdir"
         ///      fails because the directory is non-empty, FailedPrecondition
         ///      should be returned since the client should not retry unless
         ///      they have first fixed up the directory by deleting files from it.
         ///  (d) Use FailedPrecondition if the client performs conditional
         ///      REST Get/Update/Delete on a resource and the resource on the
-        ///      server does not match the condition. E.g., conflicting
+        ///      server does not match the condition. For example, conflicting
         ///      read-modify-write on the same resource.
         /// </summary>
         FailedPrecondition = 9,
@@ -1776,7 +1782,7 @@ namespace Microsoft.ML.Transforms.TensorFlow
         Aborted = 10,
 
         /// <summary>
-        /// Operation tried to iterate past the valid input range.  E.g., seeking or
+        /// Operation tried to iterate past the valid input range. For example, seeking or
         /// reading past end of file.
         ///
         /// Unlike InvalidArgument, this error indicates a problem that may

@@ -98,7 +98,6 @@ namespace Microsoft.ML.Runtime.Ensemble
                 Info = new TrainerInfo(
                     normalization: Trainers.Any(t => t.Info.NeedNormalization),
                     calibration: Trainers.Any(t => t.Info.NeedCalibration));
-                ch.Done();
             }
         }
 
@@ -108,9 +107,7 @@ namespace Microsoft.ML.Runtime.Ensemble
 
             using (var ch = Host.Start("Training"))
             {
-                var pred = TrainCore(ch, context.TrainingSet);
-                ch.Done();
-                return pred;
+                return TrainCore(ch, context.TrainingSet);
             }
         }
 

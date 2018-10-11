@@ -4,10 +4,10 @@
 
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Learners;
-using Microsoft.ML.StaticPipe;
+using Microsoft.ML.Trainers;
 using System;
 
-namespace Microsoft.ML.Samples.StaticPipe
+namespace Microsoft.ML.Samples
 {
     public static class Trainers
     { 

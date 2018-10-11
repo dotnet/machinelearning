@@ -2479,6 +2479,21 @@
           "Required": true,
           "SortOrder": 10.0,
           "IsNullable": false
+        },
+        {
+          "Name": "OnnxVersion",
+          "Type": {
+            "Kind": "Enum",
+            "Values": [
+              "Stable",
+              "Experimental"
+            ]
+          },
+          "Desc": "The targeted ONNX version. It can be either \"Stable\" or \"Experimental\". If \"Experimental\" is used, produced model can contain components that is not officially supported in ONNX standard.",
+          "Required": false,
+          "SortOrder": 11.0,
+          "IsNullable": false,
+          "Default": "Stable"
         }
       ],
       "Outputs": []
@@ -16518,9 +16533,9 @@
           }
         },
         {
-          "Name": "L2Const",
+          "Name": "L2Weight",
           "Type": "Float",
-          "Desc": "L2 regularizer constant",
+          "Desc": "L2 Regularization constant",
           "Aliases": [
             "l2"
           ],
@@ -17481,7 +17496,7 @@
                       "Value"
                     ]
                   },
-                  "Desc": "How items should be ordered when vectorized. By default, they will be in the order encountered. If by value items are sorted according to their default comparison, e.g., text sorting will be case sensitive (e.g., 'A' then 'Z' then 'a').",
+                  "Desc": "How items should be ordered when vectorized. By default, they will be in the order encountered. If by value items are sorted according to their default comparison, for example, text sorting will be case sensitive (for example, 'A' then 'Z' then 'a').",
                   "Required": false,
                   "SortOrder": 150.0,
                   "IsNullable": true,
@@ -17595,7 +17610,7 @@
               "Value"
             ]
           },
-          "Desc": "How items should be ordered when vectorized. By default, they will be in the order encountered. If by value items are sorted according to their default comparison, e.g., text sorting will be case sensitive (e.g., 'A' then 'Z' then 'a').",
+          "Desc": "How items should be ordered when vectorized. By default, they will be in the order encountered. If by value items are sorted according to their default comparison, for example, text sorting will be case sensitive (for example, 'A' then 'Z' then 'a').",
           "Required": false,
           "SortOrder": 113.0,
           "IsNullable": false,
@@ -18505,7 +18520,7 @@
                       "Value"
                     ]
                   },
-                  "Desc": "How items should be ordered when vectorized. By default, they will be in the order encountered. If by value items are sorted according to their default comparison, e.g., text sorting will be case sensitive (e.g., 'A' then 'Z' then 'a').",
+                  "Desc": "How items should be ordered when vectorized. By default, they will be in the order encountered. If by value items are sorted according to their default comparison, for example, text sorting will be case sensitive (for example, 'A' then 'Z' then 'a').",
                   "Required": false,
                   "SortOrder": 150.0,
                   "IsNullable": true,
@@ -18600,7 +18615,7 @@
               "Value"
             ]
           },
-          "Desc": "How items should be ordered when vectorized. By default, they will be in the order encountered. If by value items are sorted according to their default comparison, e.g., text sorting will be case sensitive (e.g., 'A' then 'Z' then 'a').",
+          "Desc": "How items should be ordered when vectorized. By default, they will be in the order encountered. If by value items are sorted according to their default comparison, for example, text sorting will be case sensitive (for example, 'A' then 'Z' then 'a').",
           "Required": false,
           "SortOrder": 113.0,
           "IsNullable": false,
@@ -22571,7 +22586,7 @@
       "ShortName": "TFTransform",
       "Inputs": [
         {
-          "Name": "Model",
+          "Name": "ModelLocation",
           "Type": "String",
           "Desc": "TensorFlow model used by the transform. Please see https://www.tensorflow.org/mobile/prepare_models for more details.",
           "Required": true,
@@ -22613,6 +22628,138 @@
           "Required": true,
           "SortOrder": 2.0,
           "IsNullable": false
+        },
+        {
+          "Name": "LabelColumn",
+          "Type": "String",
+          "Desc": "Training labels.",
+          "Aliases": [
+            "label"
+          ],
+          "Required": false,
+          "SortOrder": 4.0,
+          "IsNullable": false,
+          "Default": null
+        },
+        {
+          "Name": "TensorFlowLabel",
+          "Type": "String",
+          "Desc": "TensorFlow label node.",
+          "Aliases": [
+            "TFLabel"
+          ],
+          "Required": false,
+          "SortOrder": 5.0,
+          "IsNullable": false,
+          "Default": null
+        },
+        {
+          "Name": "OptimizationOperation",
+          "Type": "String",
+          "Desc": "The name of the optimization operation in the TensorFlow graph.",
+          "Aliases": [
+            "OptimizationOp"
+          ],
+          "Required": false,
+          "SortOrder": 6.0,
+          "IsNullable": false,
+          "Default": null
+        },
+        {
+          "Name": "LossOperation",
+          "Type": "String",
+          "Desc": "The name of the operation in the TensorFlow graph to compute training loss (Optional)",
+          "Aliases": [
+            "LossOp"
+          ],
+          "Required": false,
+          "SortOrder": 7.0,
+          "IsNullable": false,
+          "Default": null
+        },
+        {
+          "Name": "MetricOperation",
+          "Type": "String",
+          "Desc": "The name of the operation in the TensorFlow graph to compute performance metric during training (Optional)",
+          "Aliases": [
+            "MetricOp"
+          ],
+          "Required": false,
+          "SortOrder": 8.0,
+          "IsNullable": false,
+          "Default": null
+        },
+        {
+          "Name": "BatchSize",
+          "Type": "Int",
+          "Desc": "Number of samples to use for mini-batch training.",
+          "Required": false,
+          "SortOrder": 9.0,
+          "IsNullable": false,
+          "Default": 64
+        },
+        {
+          "Name": "Epoch",
+          "Type": "Int",
+          "Desc": "Number of training iterations.",
+          "Required": false,
+          "SortOrder": 10.0,
+          "IsNullable": false,
+          "Default": 5
+        },
+        {
+          "Name": "LearningRateOperation",
+          "Type": "String",
+          "Desc": "The name of the operation in the TensorFlow graph which sets optimizer learning rate (Optional).",
+          "Required": false,
+          "SortOrder": 11.0,
+          "IsNullable": false,
+          "Default": null
+        },
+        {
+          "Name": "LearningRate",
+          "Type": "Float",
+          "Desc": "Learning rate to use during optimization.",
+          "Required": false,
+          "SortOrder": 12.0,
+          "IsNullable": false,
+          "Default": 0.01
+        },
+        {
+          "Name": "Shuffle",
+          "Type": "Bool",
+          "Desc": "Shuffle data before each iteration.",
+          "Required": false,
+          "SortOrder": 13.0,
+          "IsNullable": false,
+          "Default": true
+        },
+        {
+          "Name": "SaveLocationOperation",
+          "Type": "String",
+          "Desc": "Name of the input in TensorFlow graph that specifiy the location for saving/restoring models from disk.",
+          "Required": false,
+          "SortOrder": 14.0,
+          "IsNullable": false,
+          "Default": "save/Const"
+        },
+        {
+          "Name": "SaveOperation",
+          "Type": "String",
+          "Desc": "Name of the input in TensorFlow graph that specifiy the location for saving/restoring models from disk.",
+          "Required": false,
+          "SortOrder": 15.0,
+          "IsNullable": false,
+          "Default": "save/control_dependency"
+        },
+        {
+          "Name": "ReTrain",
+          "Type": "Bool",
+          "Desc": "Retrain TensorFlow model.",
+          "Required": false,
+          "SortOrder": 16.0,
+          "IsNullable": false,
+          "Default": false
         }
       ],
       "Outputs": [
@@ -22823,7 +22970,7 @@
                     "Value"
                   ]
                 },
-                "Desc": "How items should be ordered when vectorized. By default, they will be in the order encountered. If by value items are sorted according to their default comparison, e.g., text sorting will be case sensitive (e.g., 'A' then 'Z' then 'a').",
+                "Desc": "How items should be ordered when vectorized. By default, they will be in the order encountered. If by value items are sorted according to their default comparison, for example, text sorting will be case sensitive (for example, 'A' then 'Z' then 'a').",
                 "Required": false,
                 "SortOrder": 5.0,
                 "IsNullable": false,
@@ -22984,7 +23131,7 @@
                       "Value"
                     ]
                   },
-                  "Desc": "How items should be ordered when vectorized. By default, they will be in the order encountered. If by value items are sorted according to their default comparison, e.g., text sorting will be case sensitive (e.g., 'A' then 'Z' then 'a').",
+                  "Desc": "How items should be ordered when vectorized. By default, they will be in the order encountered. If by value items are sorted according to their default comparison, for example, text sorting will be case sensitive (for example, 'A' then 'Z' then 'a').",
                   "Required": false,
                   "SortOrder": 150.0,
                   "IsNullable": true,
@@ -23079,7 +23226,7 @@
               "Value"
             ]
           },
-          "Desc": "How items should be ordered when vectorized. By default, they will be in the order encountered. If by value items are sorted according to their default comparison, e.g., text sorting will be case sensitive (e.g., 'A' then 'Z' then 'a').",
+          "Desc": "How items should be ordered when vectorized. By default, they will be in the order encountered. If by value items are sorted according to their default comparison, for example, text sorting will be case sensitive (for example, 'A' then 'Z' then 'a').",
           "Required": false,
           "SortOrder": 113.0,
           "IsNullable": false,
@@ -29422,7 +29569,7 @@
                   ]
                 }
               },
-              "Desc": "Column definitions used to override the Partitioned Path Parser. Expected with the format name:type:numeric-source, e.g. col=MyFeature:R4:1",
+              "Desc": "Column definitions used to override the Partitioned Path Parser. Expected with the format name:type:numeric-source, for example, col=MyFeature:R4:1",
               "Aliases": [
                 "col"
               ],
