@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
+
 namespace Microsoft.ML.Runtime.Internal.CpuMath
 {
     /// <summary>
@@ -586,16 +588,14 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         }
 
         // dst += a
-        public static void Add(float a, float[] dst, int count)
+        public static void Add(float a, Span<float> dst)
         {
             Contracts.AssertNonEmpty(dst);
-            Contracts.Assert(0 < count);
-            Contracts.Assert(0 < count && count <= dst.Length);
 
             unsafe
             {
-                fixed (float* pdst = &dst[0])
-                    Thunk.AddScalarU(a, pdst, count);
+                fixed (float* pdst = dst)
+                    Thunk.AddScalarU(a, pdst, dst.Length);
             }
         }
 
@@ -610,15 +610,14 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             }
         }
 
-        public static void Scale(float a, float[] dst, int count)
+        public static void Scale(float a, Span<float> dst)
         {
             Contracts.AssertNonEmpty(dst);
-            Contracts.Assert(0 < count && count <= dst.Length);
 
             unsafe
             {
-                fixed (float* pd = &dst[0])
-                    Thunk.Scale(a, pd, count);
+                fixed (float* pd = dst)
+                    Thunk.Scale(a, pd, dst.Length);
             }
         }
 
@@ -636,7 +635,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         }
 
         // dst = a * src
-        public static void Scale(float a, float[] src, float[] dst, int count)
+        public static void Scale(float a, ReadOnlySpan<float> src, Span<float> dst, int count)
         {
             Contracts.AssertNonEmpty(src);
             Contracts.Assert(0 < count && count <= src.Length);
@@ -645,8 +644,8 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
             unsafe
             {
-                fixed (float* psrc = &src[0])
-                fixed (float* pdst = &dst[0])
+                fixed (float* psrc = src)
+                fixed (float* pdst = dst)
                 {
                     Thunk.ScaleSrcU(a, psrc, pdst, count);
                 }
@@ -654,16 +653,14 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         }
 
         // dst[i] = a * (dst[i] + b)
-        public static void ScaleAdd(float a, float b, float[] dst, int count)
+        public static void ScaleAdd(float a, float b, Span<float> dst)
         {
             Contracts.AssertNonEmpty(dst);
-            Contracts.Assert(0 < count);
-            Contracts.Assert(0 < count && count <= dst.Length);
 
             unsafe
             {
-                fixed (float* pdst = &dst[0])
-                    Thunk.ScaleAddU(a, b, pdst, count);
+                fixed (float* pdst = dst)
+                    Thunk.ScaleAddU(a, b, pdst, dst.Length);
             }
         }
 
@@ -759,7 +756,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             }
         }
 
-        public static void AddScale(float a, float[] src, float[] dst, int count)
+        public static void AddScale(float a, ReadOnlySpan<float> src, Span<float> dst, int count)
         {
             Contracts.AssertNonEmpty(src);
             Contracts.Assert(0 < count && count <= src.Length);
@@ -768,29 +765,13 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
             unsafe
             {
-                fixed (float* psrc = &src[0])
-                fixed (float* pdst = &dst[0])
+                fixed (float* psrc = src)
+                fixed (float* pdst = dst)
                     Thunk.AddScaleU(a, psrc, pdst, count);
             }
         }
 
-        public static void AddScale(float a, float[] src, float[] dst, int dstOffset, int count)
-        {
-            Contracts.AssertNonEmpty(src);
-            Contracts.Assert(count <= src.Length);
-            Contracts.AssertNonEmpty(dst);
-            Contracts.Assert(0 <= dstOffset && dstOffset < dst.Length);
-            Contracts.Assert(0 < count && count <= dst.Length - dstOffset);
-
-            unsafe
-            {
-                fixed (float* psrc = &src[0])
-                fixed (float* pdst = &dst[dstOffset])
-                    Thunk.AddScaleU(a, psrc, pdst, count);
-            }
-        }
-
-        public static void AddScale(float a, float[] src, int[] indices, float[] dst, int count)
+        public static void AddScale(float a, ReadOnlySpan<float> src, ReadOnlySpan<int> indices, Span<float> dst, int count)
         {
             Contracts.AssertNonEmpty(src);
             Contracts.Assert(0 < count && count <= src.Length);
@@ -801,14 +782,14 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
             unsafe
             {
-                fixed (float* psrc = &src[0])
-                fixed (int* pi = &indices[0])
-                fixed (float* pdst = &dst[0])
+                fixed (float* psrc = src)
+                fixed (int* pi = indices)
+                fixed (float* pdst = dst)
                     Thunk.AddScaleSU(a, psrc, pi, pdst, count);
             }
         }
 
-        public static void AddScaleCopy(float a, float[] src, float[] dst, float[] res, int count)
+        public static void AddScaleCopy(float a, ReadOnlySpan<float> src, ReadOnlySpan<float> dst, Span<float> res, int count)
         {
             Contracts.AssertNonEmpty(dst);
             Contracts.Assert(0 < count && count <= dst.Length);
@@ -819,30 +800,10 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
             unsafe
             {
-                fixed (float* pdst = &dst[0])
-                fixed (float* psrc = &src[0])
-                fixed (float* pres = &res[0])
+                fixed (float* pdst = dst)
+                fixed (float* psrc = src)
+                fixed (float* pres = res)
                     Thunk.AddScaleCopyU(a, psrc, pdst, pres, count);
-            }
-        }
-
-        public static void AddScale(float a, float[] src, int[] indices, float[] dst,
-            int dstOffset, int count)
-        {
-            Contracts.AssertNonEmpty(src);
-            Contracts.Assert(0 < count && count <= src.Length);
-            Contracts.AssertNonEmpty(indices);
-            Contracts.Assert(count <= indices.Length);
-            Contracts.AssertNonEmpty(dst);
-            Contracts.Assert(0 <= dstOffset && dstOffset < dst.Length);
-            Contracts.Assert(count < dst.Length - dstOffset);
-
-            unsafe
-            {
-                fixed (float* psrc = &src[0])
-                fixed (int* pi = &indices[0])
-                fixed (float* pdst = &dst[dstOffset])
-                    Thunk.AddScaleSU(a, psrc, pi, pdst, count);
             }
         }
 
@@ -881,7 +842,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             }
         }
 
-        public static void Add(float[] src, float[] dst, int count)
+        public static void Add(ReadOnlySpan<float> src, Span<float> dst, int count)
         {
             Contracts.AssertNonEmpty(src);
             Contracts.Assert(0 < count && count <= src.Length);
@@ -890,13 +851,13 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
             unsafe
             {
-                fixed (float* ps = &src[0])
-                fixed (float* pd = &dst[0])
+                fixed (float* ps = src)
+                fixed (float* pd = dst)
                     Thunk.AddU(ps, pd, count);
             }
         }
 
-        public static void Add(float[] src, int[] indices, float[] dst, int count)
+        public static void Add(ReadOnlySpan<float> src, ReadOnlySpan<int> indices, Span<float> dst, int count)
         {
             Contracts.AssertNonEmpty(src);
             Contracts.Assert(0 < count && count <= src.Length);
@@ -907,33 +868,14 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
             unsafe
             {
-                fixed (float* ps = &src[0])
-                fixed (int* pi = &indices[0])
-                fixed (float* pd = &dst[0])
+                fixed (float* ps = src)
+                fixed (int* pi = indices)
+                fixed (float* pd = dst)
                     Thunk.AddSU(ps, pi, pd, count);
             }
         }
 
-        public static void Add(float[] src, int[] indices, float[] dst, int dstOffset, int count)
-        {
-            Contracts.AssertNonEmpty(src);
-            Contracts.Assert(0 < count && count <= src.Length);
-            Contracts.AssertNonEmpty(indices);
-            Contracts.Assert(count <= indices.Length);
-            Contracts.AssertNonEmpty(dst);
-            Contracts.Assert(0 <= dstOffset && dstOffset < dst.Length);
-            Contracts.Assert(count <= dst.Length - dstOffset);
-
-            unsafe
-            {
-                fixed (float* ps = &src[0])
-                fixed (int* pi = &indices[0])
-                fixed (float* pd = &dst[dstOffset])
-                    Thunk.AddSU(ps, pi, pd, count);
-            }
-        }
-
-        public static void MulElementWise(float[] src1, float[] src2, float[] dst, int count)
+        public static void MulElementWise(ReadOnlySpan<float> src1, ReadOnlySpan<float> src2, Span<float> dst, int count)
         {
             Contracts.AssertNonEmpty(src1);
             Contracts.Assert(0 < count && count <= src1.Length);
@@ -942,9 +884,9 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             Contracts.AssertNonEmpty(dst);
             unsafe
             {
-                fixed (float* ps1 = &src1[0])
-                fixed (float* ps2 = &src2[0])
-                fixed (float* pd = &dst[0])
+                fixed (float* ps1 = src1)
+                fixed (float* ps2 = src2)
+                fixed (float* pd = dst)
                     Thunk.MulElementWiseU(ps1, ps2, pd, count);
             }
         }
@@ -979,145 +921,84 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             }
         }
 
-        public static float Sum(float[] src, int count)
+        public static float Sum(ReadOnlySpan<float> src)
         {
             Contracts.AssertNonEmpty(src);
-            Contracts.Assert(0 < count && count <= src.Length);
 
             unsafe
             {
-                fixed (float* psrc = &src[0])
-                    return Thunk.SumU(psrc, count);
+                fixed (float* psrc = src)
+                    return Thunk.SumU(psrc, src.Length);
             }
         }
 
-        public static float Sum(float[] src, int offset, int count)
+        public static float SumSq(ReadOnlySpan<float> src)
         {
             Contracts.AssertNonEmpty(src);
-            Contracts.Assert(0 < count);
-            Contracts.Assert(0 <= offset && offset <= src.Length - count);
 
             unsafe
             {
-                fixed (float* psrc = &src[offset])
-                    return Thunk.SumU(psrc, count);
+                fixed (float* psrc = src)
+                    return Thunk.SumSqU(psrc, src.Length);
             }
         }
 
-        public static float SumSq(float[] src, int count)
+        public static float SumSq(float mean, ReadOnlySpan<float> src)
         {
             Contracts.AssertNonEmpty(src);
-            Contracts.Assert(0 < count && count <= src.Length);
 
             unsafe
             {
-                fixed (float* psrc = &src[0])
-                    return Thunk.SumSqU(psrc, count);
+                fixed (float* psrc = src)
+                    return (mean == 0 ? Thunk.SumSqU(psrc, src.Length) : Thunk.SumSqDiffU(mean, psrc, src.Length));
             }
         }
 
-        public static float SumSq(float[] src, int offset, int count)
+        public static float SumAbs(ReadOnlySpan<float> src)
         {
             Contracts.AssertNonEmpty(src);
-            Contracts.Assert(0 < count);
-            Contracts.Assert(0 <= offset && offset <= src.Length - count);
 
             unsafe
             {
-                fixed (float* psrc = &src[offset])
-                    return Thunk.SumSqU(psrc, count);
+                fixed (float* psrc = src)
+                    return Thunk.SumAbsU(psrc, src.Length);
             }
         }
 
-        public static float SumSq(float mean, float[] src, int offset, int count)
+        public static float SumAbs(float mean, ReadOnlySpan<float> src)
         {
             Contracts.AssertNonEmpty(src);
-            Contracts.Assert(0 < count);
-            Contracts.Assert(0 <= offset && offset <= src.Length - count);
 
             unsafe
             {
-                fixed (float* psrc = &src[offset])
-                    return (mean == 0 ? Thunk.SumSqU(psrc, count) : Thunk.SumSqDiffU(mean, psrc, count));
+                fixed (float* psrc = src)
+                    return (mean == 0 ? Thunk.SumAbsU(psrc, src.Length) : Thunk.SumAbsDiffU(mean, psrc, src.Length));
             }
         }
 
-        public static float SumAbs(float[] src, int count)
+        public static float MaxAbs(ReadOnlySpan<float> src)
         {
             Contracts.AssertNonEmpty(src);
-            Contracts.Assert(0 < count && count <= src.Length);
 
             unsafe
             {
-                fixed (float* psrc = &src[0])
-                    return Thunk.SumAbsU(psrc, count);
-            }
-        }
-
-        public static float SumAbs(float[] src, int offset, int count)
-        {
-            Contracts.AssertNonEmpty(src);
-            Contracts.Assert(0 < count);
-            Contracts.Assert(0 <= offset && offset <= src.Length - count);
-
-            unsafe
-            {
-                fixed (float* psrc = &src[offset])
-                    return Thunk.SumAbsU(psrc, count);
-            }
-        }
-
-        public static float SumAbs(float mean, float[] src, int offset, int count)
-        {
-            Contracts.AssertNonEmpty(src);
-            Contracts.Assert(0 < count);
-            Contracts.Assert(0 <= offset && offset <= src.Length - count);
-
-            unsafe
-            {
-                fixed (float* psrc = &src[offset])
-                    return (mean == 0 ? Thunk.SumAbsU(psrc, count) : Thunk.SumAbsDiffU(mean, psrc, count));
-            }
-        }
-
-        public static float MaxAbs(float[] src, int count)
-        {
-            Contracts.AssertNonEmpty(src);
-            Contracts.Assert(0 < count && count <= src.Length);
-
-            unsafe
-            {
-                fixed (float* psrc = &src[0])
+                fixed (float* psrc = src)
                     return Thunk.MaxAbsU(psrc, src.Length);
             }
         }
 
-        public static float MaxAbsDiff(float mean, float[] src, int count)
+        public static float MaxAbsDiff(float mean, ReadOnlySpan<float> src)
         {
             Contracts.AssertNonEmpty(src);
-            Contracts.Assert(0 < count && count <= src.Length);
 
             unsafe
             {
-                fixed (float* psrc = &src[0])
-                    return Thunk.MaxAbsDiffU(mean, psrc, count);
+                fixed (float* psrc = src)
+                    return Thunk.MaxAbsDiffU(mean, psrc, src.Length);
             }
         }
 
-        public static float MaxAbs(float[] src, int offset, int count)
-        {
-            Contracts.AssertNonEmpty(src);
-            Contracts.Assert(0 < count);
-            Contracts.Assert(0 <= offset && offset <= src.Length - count);
-
-            unsafe
-            {
-                fixed (float* psrc = &src[offset])
-                    return Thunk.MaxAbsU(psrc, count);
-            }
-        }
-
-        public static float DotProductDense(float[] a, float[] b, int count)
+        public static float DotProductDense(ReadOnlySpan<float> a, ReadOnlySpan<float> b, int count)
         {
             Contracts.AssertNonEmpty(a);
             Contracts.AssertNonEmpty(b);
@@ -1127,29 +1008,13 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
             unsafe
             {
-                fixed (float* pa = &a[0])
-                fixed (float* pb = &b[0])
+                fixed (float* pa = a)
+                fixed (float* pb = b)
                     return Thunk.DotU(pa, pb, count);
             }
         }
 
-        public static float DotProductDense(float[] a, int offset, float[] b, int count)
-        {
-            Contracts.AssertNonEmpty(a);
-            Contracts.Assert(0 < count);
-            Contracts.Assert(0 <= offset && offset <= a.Length - count);
-            Contracts.AssertNonEmpty(b);
-            Contracts.Assert(b.Length >= count);
-
-            unsafe
-            {
-                fixed (float* pa = &a[offset])
-                fixed (float* pb = &b[0])
-                    return Thunk.DotU(pa, pb, count);
-            }
-        }
-
-        public static float DotProductSparse(float[] a, float[] b, int[] indices, int count)
+        public static float DotProductSparse(ReadOnlySpan<float> a, ReadOnlySpan<float> b, ReadOnlySpan<int> indices, int count)
         {
             Contracts.AssertNonEmpty(a);
             Contracts.AssertNonEmpty(b);
@@ -1160,33 +1025,14 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
             unsafe
             {
-                fixed (float* pa = &a[0])
-                fixed (float* pb = &b[0])
-                fixed (int* pi = &indices[0])
+                fixed (float* pa = a)
+                fixed (float* pb = b)
+                fixed (int* pi = indices)
                     return Thunk.DotSU(pa, pb, pi, count);
             }
         }
 
-        public static float DotProductSparse(float[] a, int offset, float[] b, int[] indices, int count)
-        {
-            Contracts.AssertNonEmpty(a);
-            Contracts.Assert(0 < count);
-            Contracts.Assert(0 <= offset && offset < a.Length);
-            Contracts.Assert(a.Length - offset > count);
-            Contracts.AssertNonEmpty(b);
-            Contracts.Assert(count <= b.Length);
-            Contracts.Assert(count <= indices.Length);
-
-            unsafe
-            {
-                fixed (float* pa = &a[offset])
-                fixed (float* pb = &b[0])
-                fixed (int* pi = &indices[0])
-                    return Thunk.DotSU(pa, pb, pi, count);
-            }
-        }
-
-        public static float L2DistSquared(float[] a, float[] b, int count)
+        public static float L2DistSquared(ReadOnlySpan<float> a, ReadOnlySpan<float> b, int count)
         {
             Contracts.AssertNonEmpty(a);
             Contracts.AssertNonEmpty(b);
@@ -1195,8 +1041,8 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
             unsafe
             {
-                fixed (float* pa = &a[0])
-                fixed (float* pb = &b[0])
+                fixed (float* pa = a)
+                fixed (float* pb = b)
                     return Thunk.Dist2(pa, pb, count);
             }
         }
@@ -1474,44 +1320,43 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             }
         }
 
-        public static void SdcaL1UpdateDense(float primalUpdate, int length, float[] src, float threshold, float[] v, float[] w)
+        public static void SdcaL1UpdateDense(float primalUpdate, int count, ReadOnlySpan<float> src, float threshold, Span<float> v, Span<float> w)
         {
             Contracts.AssertNonEmpty(src);
-            Contracts.Assert(length <= src.Length);
+            Contracts.Assert(count <= src.Length);
             Contracts.AssertNonEmpty(v);
-            Contracts.Assert(length <= v.Length);
+            Contracts.Assert(count <= v.Length);
             Contracts.AssertNonEmpty(w);
-            Contracts.Assert(length <= w.Length);
-            Contracts.Assert(length > 0);
+            Contracts.Assert(count <= w.Length);
+            Contracts.Assert(count > 0);
 
             unsafe
             {
-                fixed (float* psrc = &src[0])
-                fixed (float* pd1 = &v[0])
-                fixed (float* pd2 = &w[0])
-                    Thunk.SdcaL1UpdateU(primalUpdate, psrc, threshold, pd1, pd2, length);
+                fixed (float* psrc = src)
+                fixed (float* pd1 = v)
+                fixed (float* pd2 = w)
+                    Thunk.SdcaL1UpdateU(primalUpdate, psrc, threshold, pd1, pd2, count);
             }
         }
 
-        public static void SdcaL1UpdateSparse(float primalUpdate, int length, float[] src, int[] indices, int count, float threshold, float[] v, float[] w)
+        public static void SdcaL1UpdateSparse(float primalUpdate, int count, ReadOnlySpan<float> src, ReadOnlySpan<int> indices, float threshold, Span<float> v, Span<float> w)
         {
             Contracts.AssertNonEmpty(src);
             Contracts.Assert(count <= src.Length);
             Contracts.AssertNonEmpty(indices);
             Contracts.Assert(count <= indices.Length);
-            Contracts.AssertNonEmpty(w);
-            Contracts.Assert(length <= w.Length);
             Contracts.AssertNonEmpty(v);
-            Contracts.Assert(length <= v.Length);
-            Contracts.Assert(0 < count);
-            Contracts.Assert(count < length);
+            Contracts.Assert(count <= v.Length);
+            Contracts.AssertNonEmpty(w);
+            Contracts.Assert(count <= w.Length);
+            Contracts.Assert(count > 0);
 
             unsafe
             {
-                fixed (float* psrc = &src[0])
-                fixed (int* pi = &indices[0])
-                fixed (float* pd1 = &v[0])
-                fixed (float* pd2 = &w[0])
+                fixed (float* psrc = src)
+                fixed (int* pi = indices)
+                fixed (float* pd1 = v)
+                fixed (float* pd2 = w)
                     Thunk.SdcaL1UpdateSU(primalUpdate, psrc, pi, threshold, pd1, pd2, count);
             }
         }

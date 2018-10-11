@@ -197,17 +197,10 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             }
         }
 
-        public static void Add(float a, float[] dst, int count)
+        public static void Add(float a, Span<float> dst)
         {
             Contracts.AssertNonEmpty(dst);
-            Contracts.Assert(count > 0);
-            Contracts.Assert(count <= dst.Length);
 
-            Add(a, new Span<float>(dst, 0, count));
-        }
-
-        private static void Add(float a, Span<float> dst)
-        {
             if (Avx.IsSupported)
             {
                 AvxIntrinsics.AddScalarU(a, dst);
@@ -225,27 +218,10 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             }
         }
 
-        public static void Scale(float a, float[] dst, int count)
+        public static void Scale(float a, Span<float> dst)
         {
             Contracts.AssertNonEmpty(dst);
-            Contracts.Assert(count > 0);
-            Contracts.Assert(count <= dst.Length);
 
-            Scale(a, new Span<float>(dst, 0, count));
-        }
-
-        public static void Scale(float a, float[] dst, int offset, int count)
-        {
-            Contracts.AssertNonEmpty(dst);
-            Contracts.Assert(count > 0);
-            Contracts.Assert(offset >= 0);
-            Contracts.Assert(offset < (dst.Length - count));
-
-            Scale(a, new Span<float>(dst, offset, count));
-        }
-
-        private static void Scale(float a, Span<float> dst)
-        {
             if (Avx.IsSupported)
             {
                 AvxIntrinsics.Scale(a, dst);
@@ -264,7 +240,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         }
 
         // dst = a * src
-        public static void Scale(float a, float[] src, float[] dst, int count)
+        public static void Scale(float a, ReadOnlySpan<float> src, Span<float> dst, int count)
         {
             Contracts.AssertNonEmpty(src);
             Contracts.AssertNonEmpty(dst);
@@ -272,22 +248,17 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             Contracts.Assert(count <= src.Length);
             Contracts.Assert(count <= dst.Length);
 
-            Scale(a, new Span<float>(src, 0, count), new Span<float>(dst, 0, count));
-        }
-
-        private static void Scale(float a, Span<float> src, Span<float> dst)
-        {
             if (Avx.IsSupported)
             {
-                AvxIntrinsics.ScaleSrcU(a, src, dst);
+                AvxIntrinsics.ScaleSrcU(a, src, dst, count);
             }
             else if (Sse.IsSupported)
             {
-                SseIntrinsics.ScaleSrcU(a, src, dst);
+                SseIntrinsics.ScaleSrcU(a, src, dst, count);
             }
             else
             {
-                for (int i = 0; i < dst.Length; i++)
+                for (int i = 0; i < count; i++)
                 {
                     dst[i] = a * src[i];
                 }
@@ -295,17 +266,10 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         }
 
         // dst[i] = a * (dst[i] + b)
-        public static void ScaleAdd(float a, float b, float[] dst, int count)
+        public static void ScaleAdd(float a, float b, Span<float> dst)
         {
             Contracts.AssertNonEmpty(dst);
-            Contracts.Assert(count > 0);
-            Contracts.Assert(count <= dst.Length);
 
-            ScaleAdd(a, b, new Span<float>(dst, 0, count));
-        }
-
-        private static void ScaleAdd(float a, float b, Span<float> dst)
-        {
             if (Avx.IsSupported)
             {
                 AvxIntrinsics.ScaleAddU(a, b, dst);
@@ -323,7 +287,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             }
         }
 
-        public static void AddScale(float a, float[] src, float[] dst, int count)
+        public static void AddScale(float a, ReadOnlySpan<float> src, Span<float> dst, int count)
         {
             Contracts.AssertNonEmpty(src);
             Contracts.AssertNonEmpty(dst);
@@ -331,42 +295,24 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             Contracts.Assert(count <= src.Length);
             Contracts.Assert(count <= dst.Length);
 
-            AddScale(a, new Span<float>(src, 0, count), new Span<float>(dst, 0, count));
-        }
-
-        public static void AddScale(float a, float[] src, float[] dst, int dstOffset, int count)
-        {
-            Contracts.AssertNonEmpty(src);
-            Contracts.AssertNonEmpty(dst);
-            Contracts.Assert(dstOffset >= 0);
-            Contracts.Assert(dstOffset < dst.Length);
-            Contracts.Assert(count > 0);
-            Contracts.Assert(count <= src.Length);
-            Contracts.Assert(count <= (dst.Length - dstOffset));
-
-            AddScale(a, new Span<float>(src, 0, count), new Span<float>(dst, dstOffset, count));
-        }
-
-        private static void AddScale(float a, Span<float> src, Span<float> dst)
-        {
             if (Avx.IsSupported)
             {
-                AvxIntrinsics.AddScaleU(a, src, dst);
+                AvxIntrinsics.AddScaleU(a, src, dst, count);
             }
             else if (Sse.IsSupported)
             {
-                SseIntrinsics.AddScaleU(a, src, dst);
+                SseIntrinsics.AddScaleU(a, src, dst, count);
             }
             else
             {
-                for (int i = 0; i < dst.Length; i++)
+                for (int i = 0; i < count; i++)
                 {
                     dst[i] += a * src[i];
                 }
             }
         }
 
-        public static void AddScale(float a, float[] src, int[] indices, float[] dst, int count)
+        public static void AddScale(float a, ReadOnlySpan<float> src, ReadOnlySpan<int> indices, Span<float> dst, int count)
         {
             Contracts.AssertNonEmpty(src);
             Contracts.AssertNonEmpty(indices);
@@ -376,38 +322,17 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             Contracts.Assert(count <= indices.Length);
             Contracts.Assert(count < dst.Length);
 
-            AddScale(a, new Span<float>(src), new Span<int>(indices, 0, count), new Span<float>(dst));
-        }
-
-        public static void AddScale(float a, float[] src, int[] indices, float[] dst, int dstOffset, int count)
-        {
-            Contracts.AssertNonEmpty(src);
-            Contracts.AssertNonEmpty(indices);
-            Contracts.AssertNonEmpty(dst);
-            Contracts.Assert(dstOffset >= 0);
-            Contracts.Assert(dstOffset < dst.Length);
-            Contracts.Assert(count > 0);
-            Contracts.Assert(count <= src.Length);
-            Contracts.Assert(count <= indices.Length);
-            Contracts.Assert(count < (dst.Length - dstOffset));
-
-            AddScale(a, new Span<float>(src), new Span<int>(indices, 0, count),
-                    new Span<float>(dst, dstOffset, dst.Length - dstOffset));
-        }
-
-        private static void AddScale(float a, Span<float> src, Span<int> indices, Span<float> dst)
-        {
             if (Avx.IsSupported)
             {
-                AvxIntrinsics.AddScaleSU(a, src, indices, dst);
+                AvxIntrinsics.AddScaleSU(a, src, indices, dst, count);
             }
             else if (Sse.IsSupported)
             {
-                SseIntrinsics.AddScaleSU(a, src, indices, dst);
+                SseIntrinsics.AddScaleSU(a, src, indices, dst, count);
             }
             else
             {
-                for (int i = 0; i < indices.Length; i++)
+                for (int i = 0; i < count; i++)
                 {
                     int index = indices[i];
                     dst[index] += a * src[i];
@@ -415,7 +340,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             }
         }
 
-        public static void AddScaleCopy(float a, float[] src, float[] dst, float[] res, int count)
+        public static void AddScaleCopy(float a, ReadOnlySpan<float> src, ReadOnlySpan<float> dst, Span<float> res, int count)
         {
             Contracts.AssertNonEmpty(src);
             Contracts.AssertNonEmpty(dst);
@@ -425,29 +350,24 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             Contracts.Assert(count <= dst.Length);
             Contracts.Assert(count <= res.Length);
 
-            AddScaleCopy(a, new Span<float>(src, 0, count), new Span<float>(dst, 0, count), new Span<float>(res, 0, count));
-        }
-
-        private static void AddScaleCopy(float a, Span<float> src, Span<float> dst, Span<float> res)
-        {
             if (Avx.IsSupported)
             {
-                AvxIntrinsics.AddScaleCopyU(a, src, dst, res);
+                AvxIntrinsics.AddScaleCopyU(a, src, dst, res, count);
             }
             else if (Sse.IsSupported)
             {
-                SseIntrinsics.AddScaleCopyU(a, src, dst, res);
+                SseIntrinsics.AddScaleCopyU(a, src, dst, res, count);
             }
             else
             {
-                for (int i = 0; i < res.Length; i++)
+                for (int i = 0; i < count; i++)
                 {
                     res[i] = a * src[i] + dst[i];
                 }
             }
         }
 
-        public static void Add(float[] src, float[] dst, int count)
+        public static void Add(ReadOnlySpan<float> src, Span<float> dst, int count)
         {
             Contracts.AssertNonEmpty(src);
             Contracts.AssertNonEmpty(dst);
@@ -455,29 +375,24 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             Contracts.Assert(count <= src.Length);
             Contracts.Assert(count <= dst.Length);
 
-            Add(new Span<float>(src, 0, count), new Span<float>(dst, 0, count));
-        }
-
-        private static void Add(Span<float> src, Span<float> dst)
-        {
             if (Avx.IsSupported)
             {
-                AvxIntrinsics.AddU(src, dst);
+                AvxIntrinsics.AddU(src, dst, count);
             }
             else if (Sse.IsSupported)
             {
-                SseIntrinsics.AddU(src, dst);
+                SseIntrinsics.AddU(src, dst, count);
             }
             else
             {
-                for (int i = 0; i < dst.Length; i++)
+                for (int i = 0; i < count; i++)
                 {
                     dst[i] += src[i];
                 }
             }
         }
 
-        public static void Add(float[] src, int[] indices, float[] dst, int count)
+        public static void Add(ReadOnlySpan<float> src, ReadOnlySpan<int> indices, Span<float> dst, int count)
         {
             Contracts.AssertNonEmpty(src);
             Contracts.AssertNonEmpty(indices);
@@ -487,38 +402,17 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             Contracts.Assert(count <= indices.Length);
             Contracts.Assert(count < dst.Length);
 
-            Add(new Span<float>(src), new Span<int>(indices, 0, count), new Span<float>(dst));
-        }
-
-        public static void Add(float[] src, int[] indices, float[] dst, int dstOffset, int count)
-        {
-            Contracts.AssertNonEmpty(src);
-            Contracts.AssertNonEmpty(indices);
-            Contracts.AssertNonEmpty(dst);
-            Contracts.Assert(dstOffset >= 0);
-            Contracts.Assert(dstOffset < dst.Length);
-            Contracts.Assert(count > 0);
-            Contracts.Assert(count <= src.Length);
-            Contracts.Assert(count <= indices.Length);
-            Contracts.Assert(count <= (dst.Length - dstOffset));
-
-            Add(new Span<float>(src), new Span<int>(indices, 0, count),
-                new Span<float>(dst, dstOffset, dst.Length - dstOffset));
-        }
-
-        private static void Add(Span<float> src, Span<int> indices, Span<float> dst)
-        {
             if (Avx.IsSupported)
             {
-                AvxIntrinsics.AddSU(src, indices, dst);
+                AvxIntrinsics.AddSU(src, indices, dst, count);
             }
             else if (Sse.IsSupported)
             {
-                SseIntrinsics.AddSU(src, indices, dst);
+                SseIntrinsics.AddSU(src, indices, dst, count);
             }
             else
             {
-                for (int i = 0; i < indices.Length; i++)
+                for (int i = 0; i < count; i++)
                 {
                     int index = indices[i];
                     dst[index] += src[i];
@@ -526,7 +420,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             }
         }
 
-        public static void MulElementWise(float[] src1, float[] src2, float[] dst, int count)
+        public static void MulElementWise(ReadOnlySpan<float> src1, ReadOnlySpan<float> src2, Span<float> dst, int count)
         {
             Contracts.AssertNonEmpty(src1);
             Contracts.AssertNonEmpty(src2);
@@ -534,51 +428,29 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             Contracts.Assert(count > 0);
             Contracts.Assert(count <= src1.Length);
             Contracts.Assert(count <= src2.Length);
+            Contracts.Assert(count <= dst.Length);
 
-            MulElementWise(new Span<float>(src1, 0, count), new Span<float>(src2, 0, count),
-                            new Span<float>(dst, 0, count));
-        }
-
-        private static void MulElementWise(Span<float> src1, Span<float> src2, Span<float> dst)
-        {
             if (Avx.IsSupported)
             {
-                AvxIntrinsics.MulElementWiseU(src1, src2, dst);
+                AvxIntrinsics.MulElementWiseU(src1, src2, dst, count);
             }
             else if (Sse.IsSupported)
             {
-                SseIntrinsics.MulElementWiseU(src1, src2, dst);
+                SseIntrinsics.MulElementWiseU(src1, src2, dst, count);
             }
             else
             {
-                for (int i = 0; i < dst.Length; i++)
+                for (int i = 0; i < count; i++)
                 {
                     dst[i] = src1[i] * src2[i];
                 }
             }
         }
 
-        public static float Sum(float[] src, int count)
+        public static float Sum(ReadOnlySpan<float> src)
         {
             Contracts.AssertNonEmpty(src);
-            Contracts.Assert(count > 0);
-            Contracts.Assert(count <= src.Length);
 
-            return Sum(new Span<float>(src, 0, count));
-        }
-
-        public static float Sum(float[] src, int offset, int count)
-        {
-            Contracts.AssertNonEmpty(src);
-            Contracts.Assert(count > 0);
-            Contracts.Assert(offset >= 0);
-            Contracts.Assert(offset <= (src.Length - count));
-
-            return Sum(new Span<float>(src, offset, count));
-        }
-
-        private static float Sum(Span<float> src)
-        {
             if (Avx.IsSupported)
             {
                 return AvxIntrinsics.SumU(src);
@@ -598,27 +470,10 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             }
         }
 
-        public static float SumSq(float[] src, int count)
+        public static float SumSq(ReadOnlySpan<float> src)
         {
             Contracts.AssertNonEmpty(src);
-            Contracts.Assert(count > 0);
-            Contracts.Assert(count <= src.Length);
 
-            return SumSq(new Span<float>(src, 0, count));
-        }
-
-        public static float SumSq(float[] src, int offset, int count)
-        {
-            Contracts.AssertNonEmpty(src);
-            Contracts.Assert(count > 0);
-            Contracts.Assert(offset >= 0);
-            Contracts.Assert(offset <= (src.Length - count));
-
-            return SumSq(new Span<float>(src, offset, count));
-        }
-
-        private static float SumSq(Span<float> src)
-        {
             if (Avx.IsSupported)
             {
                 return AvxIntrinsics.SumSqU(src);
@@ -638,18 +493,10 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             }
         }
 
-        public static float SumSq(float mean, float[] src, int offset, int count)
+        public static float SumSq(float mean, ReadOnlySpan<float> src)
         {
             Contracts.AssertNonEmpty(src);
-            Contracts.Assert(count > 0);
-            Contracts.Assert(offset >= 0);
-            Contracts.Assert(offset <= (src.Length - count));
 
-            return SumSq(mean, new Span<float>(src, offset, count));
-        }
-
-        private static float SumSq(float mean, Span<float> src)
-        {
             if (Avx.IsSupported)
             {
                 return (mean == 0) ? AvxIntrinsics.SumSqU(src) : AvxIntrinsics.SumSqDiffU(mean, src);
@@ -669,27 +516,10 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             }
         }
 
-        public static float SumAbs(float[] src, int count)
+        public static float SumAbs(ReadOnlySpan<float> src)
         {
             Contracts.AssertNonEmpty(src);
-            Contracts.Assert(count > 0);
-            Contracts.Assert(count <= src.Length);
 
-            return SumAbs(new Span<float>(src, 0, count));
-        }
-
-        public static float SumAbs(float[] src, int offset, int count)
-        {
-            Contracts.AssertNonEmpty(src);
-            Contracts.Assert(count > 0);
-            Contracts.Assert(offset >= 0);
-            Contracts.Assert(offset <= (src.Length - count));
-
-            return SumAbs(new Span<float>(src, offset, count));
-        }
-
-        private static float SumAbs(Span<float> src)
-        {
             if (Avx.IsSupported)
             {
                 return AvxIntrinsics.SumAbsU(src);
@@ -709,18 +539,10 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             }
         }
 
-        public static float SumAbs(float mean, float[] src, int offset, int count)
+        public static float SumAbs(float mean, ReadOnlySpan<float> src)
         {
             Contracts.AssertNonEmpty(src);
-            Contracts.Assert(count > 0);
-            Contracts.Assert(offset >= 0);
-            Contracts.Assert(offset <= (src.Length - count));
 
-            return SumAbs(mean, new Span<float>(src, offset, count));
-        }
-
-        private static float SumAbs(float mean, Span<float> src)
-        {
             if (Avx.IsSupported)
             {
                 return (mean == 0) ? AvxIntrinsics.SumAbsU(src) : AvxIntrinsics.SumAbsDiffU(mean, src);
@@ -740,27 +562,10 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             }
         }
 
-        public static float MaxAbs(float[] src, int count)
+        public static float MaxAbs(ReadOnlySpan<float> src)
         {
             Contracts.AssertNonEmpty(src);
-            Contracts.Assert(count > 0);
-            Contracts.Assert(count <= src.Length);
 
-            return MaxAbs(new Span<float>(src, 0, count));
-        }
-
-        public static float MaxAbs(float[] src, int offset, int count)
-        {
-            Contracts.AssertNonEmpty(src);
-            Contracts.Assert(count > 0);
-            Contracts.Assert(offset >= 0);
-            Contracts.Assert(offset <= (src.Length - count));
-
-            return MaxAbs(new Span<float>(src, offset, count));
-        }
-
-        private static float MaxAbs(Span<float> src)
-        {
             if (Avx.IsSupported)
             {
                 return AvxIntrinsics.MaxAbsU(src);
@@ -784,17 +589,10 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             }
         }
 
-        public static float MaxAbsDiff(float mean, float[] src, int count)
+        public static float MaxAbsDiff(float mean, ReadOnlySpan<float> src)
         {
             Contracts.AssertNonEmpty(src);
-            Contracts.Assert(count > 0);
-            Contracts.Assert(count <= src.Length);
 
-            return MaxAbsDiff(mean, new Span<float>(src, 0, count));
-        }
-
-        private static float MaxAbsDiff(float mean, Span<float> src)
-        {
             if (Avx.IsSupported)
             {
                 return AvxIntrinsics.MaxAbsDiffU(mean, src);
@@ -818,7 +616,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             }
         }
 
-        public static float DotProductDense(float[] a, float[] b, int count)
+        public static float DotProductDense(ReadOnlySpan<float> a, ReadOnlySpan<float> b, int count)
         {
             Contracts.AssertNonEmpty(a);
             Contracts.AssertNonEmpty(b);
@@ -826,35 +624,18 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             Contracts.Assert(a.Length >= count);
             Contracts.Assert(b.Length >= count);
 
-            return DotProductDense(new Span<float>(a, 0, count), new Span<float>(b, 0, count));
-        }
-
-        public static float DotProductDense(float[] a, int offset, float[] b, int count)
-        {
-            Contracts.AssertNonEmpty(a);
-            Contracts.AssertNonEmpty(b);
-            Contracts.Assert(count > 0);
-            Contracts.Assert(count <= b.Length);
-            Contracts.Assert(offset >= 0);
-            Contracts.Assert(offset <= (a.Length - count));
-
-            return DotProductDense(new Span<float>(a, offset, count), new Span<float>(b, 0, count));
-        }
-
-        private static float DotProductDense(Span<float> a, Span<float> b)
-        {
             if (Avx.IsSupported)
             {
-                return AvxIntrinsics.DotU(a, b);
+                return AvxIntrinsics.DotU(a, b, count);
             }
             else if (Sse.IsSupported)
             {
-                return SseIntrinsics.DotU(a, b);
+                return SseIntrinsics.DotU(a, b, count);
             }
             else
             {
                 float result = 0;
-                for (int i = 0; i < b.Length; i++)
+                for (int i = 0; i < count; i++)
                 {
                     result += a[i] * b[i];
                 }
@@ -862,7 +643,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             }
         }
 
-        public static float DotProductSparse(float[] a, float[] b, int[] indices, int count)
+        public static float DotProductSparse(ReadOnlySpan<float> a, ReadOnlySpan<float> b, ReadOnlySpan<int> indices, int count)
         {
             Contracts.AssertNonEmpty(a);
             Contracts.AssertNonEmpty(b);
@@ -872,40 +653,18 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             Contracts.Assert(count <= b.Length);
             Contracts.Assert(count <= indices.Length);
 
-            return DotProductSparse(new Span<float>(a), new Span<float>(b),
-                                    new Span<int>(indices, 0, count));
-        }
-
-        public static float DotProductSparse(float[] a, int offset, float[] b, int[] indices, int count)
-        {
-            Contracts.AssertNonEmpty(a);
-            Contracts.AssertNonEmpty(b);
-            Contracts.AssertNonEmpty(indices);
-            Contracts.Assert(count > 0);
-            Contracts.Assert(count < (a.Length - offset));
-            Contracts.Assert(count <= b.Length);
-            Contracts.Assert(count <= indices.Length);
-            Contracts.Assert(offset >= 0);
-            Contracts.Assert(offset < a.Length);
-
-            return DotProductSparse(new Span<float>(a, offset, a.Length - offset),
-                                    new Span<float>(b), new Span<int>(indices, 0, count));
-        }
-
-        private static float DotProductSparse(Span<float> a, Span<float> b, Span<int> indices)
-        {
             if (Avx.IsSupported)
             {
-                return AvxIntrinsics.DotSU(a, b, indices);
+                return AvxIntrinsics.DotSU(a, b, indices, count);
             }
             else if (Sse.IsSupported)
             {
-                return SseIntrinsics.DotSU(a, b, indices);
+                return SseIntrinsics.DotSU(a, b, indices, count);
             }
             else
             {
                 float result = 0;
-                for (int i = 0; i < indices.Length; i++)
+                for (int i = 0; i < count; i++)
                 {
                     int index = indices[i];
                     result += a[index] * b[i];
@@ -914,7 +673,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             }
         }
 
-        public static float L2DistSquared(float[] a, float[] b, int count)
+        public static float L2DistSquared(ReadOnlySpan<float> a, ReadOnlySpan<float> b, int count)
         {
             Contracts.AssertNonEmpty(a);
             Contracts.AssertNonEmpty(b);
@@ -922,23 +681,18 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             Contracts.Assert(count <= a.Length);
             Contracts.Assert(count <= b.Length);
 
-            return L2DistSquared(new Span<float>(a, 0, count), new Span<float>(b, 0, count));
-        }
-
-        private static float L2DistSquared(Span<float> a, Span<float> b)
-        {
             if (Avx.IsSupported)
             {
-                return AvxIntrinsics.Dist2(a, b);
+                return AvxIntrinsics.Dist2(a, b, count);
             }
             else if (Sse.IsSupported)
             {
-                return SseIntrinsics.Dist2(a, b);
+                return SseIntrinsics.Dist2(a, b, count);
             }
             else
             {
                 float norm = 0;
-                for (int i = 0; i < b.Length; i++)
+                for (int i = 0; i < count; i++)
                 {
                     float distance = a[i] - b[i];
                     norm += distance * distance;
@@ -1012,32 +766,27 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             }
         }
 
-        public static void SdcaL1UpdateDense(float primalUpdate, int length, float[] src, float threshold, float[] v, float[] w)
+        public static void SdcaL1UpdateDense(float primalUpdate, int count, ReadOnlySpan<float> src, float threshold, Span<float> v, Span<float> w)
         {
             Contracts.AssertNonEmpty(src);
             Contracts.AssertNonEmpty(v);
             Contracts.AssertNonEmpty(w);
-            Contracts.Assert(length > 0);
-            Contracts.Assert(length <= src.Length);
-            Contracts.Assert(length <= v.Length);
-            Contracts.Assert(length <= w.Length);
+            Contracts.Assert(count > 0);
+            Contracts.Assert(count <= src.Length);
+            Contracts.Assert(count <= v.Length);
+            Contracts.Assert(count <= w.Length);
 
-            SdcaL1UpdateDense(primalUpdate, new Span<float>(src, 0, length), threshold, new Span<float>(v, 0, length), new Span<float>(w, 0, length));
-        }
-
-        private static void SdcaL1UpdateDense(float primalUpdate, Span<float> src, float threshold, Span<float> v, Span<float> w)
-        {
             if (Avx.IsSupported)
             {
-                AvxIntrinsics.SdcaL1UpdateU(primalUpdate, src, threshold, v, w);
+                AvxIntrinsics.SdcaL1UpdateU(primalUpdate, count, src, threshold, v, w);
             }
             else if (Sse.IsSupported)
             {
-                SseIntrinsics.SdcaL1UpdateU(primalUpdate, src, threshold, v, w);
+                SseIntrinsics.SdcaL1UpdateU(primalUpdate, count, src, threshold, v, w);
             }
             else
             {
-                for (int i = 0; i < src.Length; i++)
+                for (int i = 0; i < count; i++)
                 {
                     v[i] += src[i] * primalUpdate;
                     float value = v[i];
@@ -1046,8 +795,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             }
         }
 
-        // REVIEW NEEDED: The second argument "length" is unused even in the existing code.
-        public static void SdcaL1UpdateSparse(float primalUpdate, int length, float[] src, int[] indices, int count, float threshold, float[] v, float[] w)
+        public static void SdcaL1UpdateSparse(float primalUpdate, int count, ReadOnlySpan<float> src, ReadOnlySpan<int> indices, float threshold, Span<float> v, Span<float> w)
         {
             Contracts.AssertNonEmpty(src);
             Contracts.AssertNonEmpty(indices);
@@ -1056,26 +804,20 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             Contracts.Assert(count > 0);
             Contracts.Assert(count <= src.Length);
             Contracts.Assert(count <= indices.Length);
-            Contracts.Assert(count < length);
-            Contracts.Assert(length <= v.Length);
-            Contracts.Assert(length <= w.Length);
+            Contracts.Assert(count <= v.Length);
+            Contracts.Assert(count <= w.Length);
 
-            SdcaL1UpdateSparse(primalUpdate, new Span<float>(src, 0, count), new Span<int>(indices, 0, count), threshold, new Span<float>(v), new Span<float>(w));
-        }
-
-        private static void SdcaL1UpdateSparse(float primalUpdate, Span<float> src, Span<int> indices, float threshold, Span<float> v, Span<float> w)
-        {
             if (Avx.IsSupported)
             {
-                AvxIntrinsics.SdcaL1UpdateSU(primalUpdate, src, indices, threshold, v, w);
+                AvxIntrinsics.SdcaL1UpdateSU(primalUpdate, count, src, indices, threshold, v, w);
             }
             else if (Sse.IsSupported)
             {
-                SseIntrinsics.SdcaL1UpdateSU(primalUpdate, src, indices, threshold, v, w);
+                SseIntrinsics.SdcaL1UpdateSU(primalUpdate, count, src, indices, threshold, v, w);
             }
             else
             {
-                for (int i = 0; i < indices.Length; i++)
+                for (int i = 0; i < count; i++)
                 {
                     int index = indices[i];
                     v[index] += src[i] * primalUpdate;
