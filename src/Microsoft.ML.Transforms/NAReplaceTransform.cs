@@ -564,7 +564,6 @@ namespace Microsoft.ML.Runtime.Data
 
         private sealed class Mapper : MapperBase, ISaveAsOnnx
         {
-
             private sealed class ColInfo
             {
                 public readonly string Name;
@@ -584,7 +583,7 @@ namespace Microsoft.ML.Runtime.Data
             private readonly ColumnType[] _types;
             // The isNA delegates, parallel to Infos.
             private readonly Delegate[] _isNAs;
-            public bool CanSaveOnnx => true;
+            public bool CanSaveOnnx(OnnxContext ctx) => true;
 
             public Mapper(NAReplaceTransform parent, Schema inputSchema)
              : base(parent.Host.Register(nameof(Mapper)), parent, inputSchema)

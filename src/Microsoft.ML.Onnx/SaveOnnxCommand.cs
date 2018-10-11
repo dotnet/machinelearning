@@ -57,6 +57,9 @@ namespace Microsoft.ML.Runtime.Model.Onnx
 
             [Argument(ArgumentType.Required, Visibility = ArgumentAttribute.VisibilityType.EntryPointsOnly, HelpText = "Model that needs to be converted to ONNX format.", SortOrder = 10)]
             public ITransformModel Model;
+
+            [Argument(ArgumentType.AtMostOnce, HelpText = "The targeted ONNX version. It can be either \"Stable\" or \"Experimental\". If \"Experimental\" is used, produced model can contain components that is not officially supported in ONNX standard.", SortOrder = 11)]
+            public OnnxVersion OnnxVersion;
         }
 
         private readonly string _outputModelPath;
@@ -110,7 +113,7 @@ namespace Microsoft.ML.Runtime.Model.Onnx
             }
         }
 
-        private void GetPipe(IChannel ch, IDataView end, out IDataView source, out IDataView trueEnd, out LinkedList<ITransformCanSaveOnnx> transforms)
+        private void GetPipe(OnnxContextImpl ctx, IChannel ch, IDataView end, out IDataView source, out IDataView trueEnd, out LinkedList<ITransformCanSaveOnnx> transforms)
         {
             Host.AssertValue(end);
             source = trueEnd = (end as CompositeDataLoader)?.View ?? end;
@@ -119,7 +122,7 @@ namespace Microsoft.ML.Runtime.Model.Onnx
             while (transform != null)
             {
                 ITransformCanSaveOnnx onnxTransform = transform as ITransformCanSaveOnnx;
-                if (onnxTransform == null || !onnxTransform.CanSaveOnnx)
+                if (onnxTransform == null || !onnxTransform.CanSaveOnnx(ctx))
                 {
                     ch.Warning("Had to stop walkback of pipeline at {0} since it cannot save itself as ONNX.", transform.GetType().Name);
                     while (source as IDataTransform != null)
@@ -159,18 +162,19 @@ namespace Microsoft.ML.Runtime.Model.Onnx
             else
                 view = _model.Apply(Host, new EmptyDataView(Host, _model.InputSchema));
 
+            // Create the ONNX context for storing global information
+            var assembly = System.Reflection.Assembly.GetExecutingAssembly();
+            var versionInfo = System.Diagnostics.FileVersionInfo.GetVersionInfo(assembly.Location);
+            var ctx = new OnnxContextImpl(Host, _name, ProducerName, versionInfo.FileVersion,
+                ModelVersion, _domain, Args.OnnxVersion);
+
             // Get the transform chain.
             IDataView source;
             IDataView end;
             LinkedList<ITransformCanSaveOnnx> transforms;
-            GetPipe(ch, view, out source, out end, out transforms);
+            GetPipe(ctx, ch, view, out source, out end, out transforms);
             Host.Assert(transforms.Count == 0 || transforms.Last.Value == end);
 
-            var assembly = System.Reflection.Assembly.GetExecutingAssembly();
-            var versionInfo = System.Diagnostics.FileVersionInfo.GetVersionInfo(assembly.Location);
-
-            var ctx = new OnnxContextImpl(Host, _name, ProducerName, versionInfo.FileVersion,
-                ModelVersion, _domain);
             // If we have a predictor, try to get the scorer for it.
             if (rawPred != null)
             {
@@ -187,7 +191,7 @@ namespace Microsoft.ML.Runtime.Model.Onnx
 
                 var scorePipe = ScoreUtils.GetScorer(rawPred, data, Host, trainSchema);
                 var scoreOnnx = scorePipe as ITransformCanSaveOnnx;
-                if (scoreOnnx?.CanSaveOnnx == true)
+                if (scoreOnnx?.CanSaveOnnx(ctx) == true)
                 {
                     Host.Assert(scorePipe.Source == end);
                     end = scorePipe;
@@ -221,7 +225,7 @@ namespace Microsoft.ML.Runtime.Model.Onnx
             //Create graph nodes, outputs and intermediate values.
             foreach (var trans in transforms)
             {
-                Host.Assert(trans.CanSaveOnnx);
+                Host.Assert(trans.CanSaveOnnx(ctx));
                 trans.SaveAsOnnx(ctx);
             }
 
@@ -231,13 +235,17 @@ namespace Microsoft.ML.Runtime.Model.Onnx
                 if (end.Schema.IsHidden(i))
                     continue;
 
-                var idataviewColumnName = end.Schema.GetColumnName(i);;
-                if (_outputsToDrop.Contains(idataviewColumnName) || _inputsToDrop.Contains(idataviewColumnName))
+                var idataviewColumnName = end.Schema.GetColumnName(i);
+
+                // Since the last IDataView also contains columns of the initial IDataView, last IDataView's columns found in
+                // _inputToDrop should be removed too.
+                if (_inputsToDrop.Contains(idataviewColumnName) || _outputsToDrop.Contains(idataviewColumnName))
                     continue;
 
                 var variableName = ctx.TryGetVariableName(idataviewColumnName);
-                if (variableName != null)
-                    ctx.AddOutputVariable(end.Schema.GetColumnType(i), variableName);
+                var trueVariableName = ctx.AddIntermediateVariable(null, idataviewColumnName, true);
+                ctx.CreateNode("Identity", variableName, trueVariableName, ctx.GetNodeName("Identity"), "");
+                ctx.AddOutputVariable(end.Schema.GetColumnType(i), trueVariableName);
             }
 
             var model = ctx.MakeModel();

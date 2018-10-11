@@ -1401,7 +1401,7 @@ namespace Microsoft.ML.Runtime.Data
                 // For a given row [r], elements at [r] and [r+1] specify the inclusive
                 // and exclusive range of values for the two big arrays. In the case
                 // of indices, if that range is empty, then the corresponding stored
-                // vector is dense. E.g.: row 5 would have its vector's values stored
+                // vector is dense. For example, row 5 would have its vector's values stored
                 // at indices [_valueBoundaries[5], valueBoundaries[6]) of _values.
                 // Both of these boundaries arrays have logical length _rowCount + 1.
                 private long[] _indexBoundaries;

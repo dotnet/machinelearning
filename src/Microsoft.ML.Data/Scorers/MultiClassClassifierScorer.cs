@@ -78,7 +78,7 @@ namespace Microsoft.ML.Runtime.Data
 
             public VectorType Type => _type;
             public bool CanSavePfa => (_bindable as ICanSavePfa)?.CanSavePfa == true;
-            public bool CanSaveOnnx => (_bindable as ICanSaveOnnx)?.CanSaveOnnx == true;
+            public bool CanSaveOnnx(OnnxContext ctx) => (_bindable as ICanSaveOnnx)?.CanSaveOnnx(ctx) == true;
             public ISchemaBindableMapper InnerBindable => _bindable;
 
             private static VersionInfo GetVersionInfo()
@@ -209,7 +209,7 @@ namespace Microsoft.ML.Runtime.Data
             {
                 Contracts.CheckValue(ctx, nameof(ctx));
                 Contracts.CheckValue(schema, nameof(schema));
-                Contracts.Check(CanSaveOnnx, "Cannot be saved as ONNX.");
+                Contracts.Check(CanSaveOnnx(ctx), "Cannot be saved as ONNX.");
                 Contracts.Assert(_bindable is IBindableCanSaveOnnx);
                 return ((IBindableCanSaveOnnx)_bindable).SaveAsOnnx(ctx, schema, outputNames);
             }

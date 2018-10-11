@@ -237,7 +237,7 @@ namespace Microsoft.ML.Runtime.Learners
 
             // Building the variance-covariance matrix for parameters.
             // The layout of this algorithm is a packed row-major lower triangular matrix.
-            // E.g., layout of indices for 4-by-4:
+            // For example, layout of indices for 4-by-4:
             // 0
             // 1 2
             // 3 4 5

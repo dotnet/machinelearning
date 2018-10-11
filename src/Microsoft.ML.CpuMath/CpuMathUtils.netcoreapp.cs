@@ -248,11 +248,11 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         {
             if (Avx.IsSupported)
             {
-                AvxIntrinsics.ScaleU(a, dst);
+                AvxIntrinsics.Scale(a, dst);
             }
             else if (Sse.IsSupported)
             {
-                SseIntrinsics.ScaleU(a, dst);
+                SseIntrinsics.Scale(a, dst);
             }
             else
             {

@@ -72,7 +72,7 @@ namespace Microsoft.ML.Runtime.Data
 
         public override Schema Schema => _bindings.Schema;
 
-        public bool CanSaveOnnx => _mapper is ICanSaveOnnx onnxMapper ? onnxMapper.CanSaveOnnx : false;
+        public bool CanSaveOnnx(OnnxContext ctx) => _mapper is ICanSaveOnnx onnxMapper ? onnxMapper.CanSaveOnnx(ctx) : false;
 
         public bool CanSavePfa => _mapper is ICanSavePfa pfaMapper ? pfaMapper.CanSavePfa : false;
 
@@ -204,7 +204,7 @@ namespace Microsoft.ML.Runtime.Data
             Host.CheckValue(ctx, nameof(ctx));
             if (_mapper is ISaveAsOnnx onnx)
             {
-                Host.Check(onnx.CanSaveOnnx, "Cannot be saved as ONNX.");
+                Host.Check(onnx.CanSaveOnnx(ctx), "Cannot be saved as ONNX.");
                 onnx.SaveAsOnnx(ctx);
             }
         }

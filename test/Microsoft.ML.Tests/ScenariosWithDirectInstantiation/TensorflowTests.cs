@@ -27,7 +27,7 @@ namespace Microsoft.ML.Scenarios
             public float[] b;
         }
 
-        [Fact]
+        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // TensorFlow is 64-bit only
         public void TensorFlowTransformMatrixMultiplicationTest()
         {
             var model_location = "model_matmul/frozen_saved_model.pb";
@@ -182,7 +182,7 @@ namespace Microsoft.ML.Scenarios
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // TensorFlow is 64-bit only
         public void TensorFlowInputsOutputsSchemaTest()
         {
             using (var env = new ConsoleEnvironment(seed: 1, conc: 1))
@@ -271,7 +271,7 @@ namespace Microsoft.ML.Scenarios
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // TensorFlow is 64-bit only
         public void TensorFlowTransformMNISTConvTest()
         {
             var model_location = "mnist_model/frozen_saved_model.pb";
@@ -383,7 +383,7 @@ namespace Microsoft.ML.Scenarios
 
                     var args = new TensorFlowTransform.Arguments()
                     {
-                        Model = model_location,
+                        ModelLocation = model_location,
                         InputColumns = new[] { "Features" },
                         OutputColumns = new[] { "Prediction", "b" },
                         LabelColumn = "OneHotLabel",
@@ -513,7 +513,7 @@ namespace Microsoft.ML.Scenarios
 
                     var args = new TensorFlowTransform.Arguments()
                     {
-                        Model = model_location,
+                        ModelLocation = model_location,
                         InputColumns = new[] { "Features" },
                         OutputColumns = new[] { "Prediction" },
                         LabelColumn = "Label",
@@ -590,7 +590,7 @@ namespace Microsoft.ML.Scenarios
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // TensorFlow is 64-bit only
         public void TensorFlowTransformMNISTConvSavedModelTest()
         {
             var model_location = "mnist_model";
@@ -672,7 +672,7 @@ namespace Microsoft.ML.Scenarios
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // TensorFlow is 64-bit only
         public void TensorFlowTransformMNISTConvPipelineTest()
         {
             var model_location = "mnist_model/frozen_saved_model.pb";
@@ -683,7 +683,7 @@ namespace Microsoft.ML.Scenarios
             pipeline.Add(new Legacy.Transforms.ColumnCopier() { Column = new[] { new CopyColumnsTransformColumn() { Name = "reshape_input", Source = "Placeholder" } } });
             pipeline.Add(new TensorFlowScorer()
             {
-                Model = model_location,
+                ModelLocation = model_location,
                 OutputColumns = new[] { "Softmax", "dense/Relu" },
                 InputColumns = new[] { "Placeholder", "reshape_input" }
             });
@@ -728,15 +728,20 @@ namespace Microsoft.ML.Scenarios
             public float[] PredictedLabels;
         }
 
-        [Fact]
+        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // TensorFlow is 64-bit only
         public void TensorFlowTransformCifar()
         {
             var model_location = "cifar_model/frozen_model.pb";
 
             using (var env = new ConsoleEnvironment())
             {
-                var imageHeight = 32;
-                var imageWidth = 32;
+                var tensorFlowModel = TensorFlowUtils.LoadTensorFlowModel(env, model_location);
+                var schema = tensorFlowModel.GetInputSchema();
+                Assert.True(schema.TryGetColumnIndex("Input", out int column));
+                var type = schema.GetColumnType(column).AsVector;
+                var imageHeight = type.GetDim(0);
+                var imageWidth = type.GetDim(1);
+
                 var dataFile = GetDataPath("images/images.tsv");
                 var imageFolder = Path.GetDirectoryName(dataFile);
                 var data = TextLoader.Create(env, new TextLoader.Arguments()
@@ -770,7 +775,7 @@ namespace Microsoft.ML.Scenarios
                 }, cropped);
 
 
-                IDataView trans = TensorFlowTransform.Create(env, pixels, model_location, new[] { "Output" }, new[] { "Input" });
+                IDataView trans = TensorFlowTransform.Create(env, pixels, tensorFlowModel, new[] { "Output" }, new[] { "Input" });
 
                 trans.Schema.TryGetColumnIndex("Output", out int output);
                 using (var cursor = trans.GetRowCursor(col => col == output))
@@ -789,15 +794,20 @@ namespace Microsoft.ML.Scenarios
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // TensorFlow is 64-bit only
         public void TensorFlowTransformCifarSavedModel()
         {
             var model_location = "cifar_saved_model";
 
             using (var env = new ConsoleEnvironment())
             {
-                var imageHeight = 32;
-                var imageWidth = 32;
+                var tensorFlowModel = TensorFlowUtils.LoadTensorFlowModel(env, model_location);
+                var schema = tensorFlowModel.GetInputSchema();
+                Assert.True(schema.TryGetColumnIndex("Input", out int column));
+                var type = schema.GetColumnType(column).AsVector;
+                var imageHeight = type.GetDim(0);
+                var imageWidth = type.GetDim(1);
+
                 var dataFile = GetDataPath("images/images.tsv");
                 var imageFolder = Path.GetDirectoryName(dataFile);
                 var data = TextLoader.Create(env, new TextLoader.Arguments()
@@ -831,7 +841,7 @@ namespace Microsoft.ML.Scenarios
                 }, cropped);
 
 
-                IDataView trans = TensorFlowTransform.Create(env, pixels, model_location, new[] { "Output" }, new[] { "Input" });
+                IDataView trans = TensorFlowTransform.Create(env, pixels, tensorFlowModel, new[] { "Output" }, new[] { "Input" });
 
                 trans.Schema.TryGetColumnIndex("Output", out int output);
                 using (var cursor = trans.GetRowCursor(col => col == output))

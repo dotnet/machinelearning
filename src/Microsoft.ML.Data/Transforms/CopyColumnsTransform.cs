@@ -13,6 +13,7 @@ using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
+using Microsoft.ML.Runtime.Model.Onnx;
 using Microsoft.ML.Transforms;
 
 [assembly: LoadableClass(CopyColumnsTransform.Summary, typeof(IDataTransform), typeof(CopyColumnsTransform),
@@ -159,10 +160,12 @@ namespace Microsoft.ML.Transforms
         protected override IRowMapper MakeRowMapper(ISchema inputSchema)
             => new Mapper(this, Schema.Create(inputSchema), ColumnPairs);
 
-        private sealed class Mapper : MapperBase
+        private sealed class Mapper : MapperBase, ISaveAsOnnx
         {
             private readonly Schema _schema;
             private readonly (string Source, string Name)[] _columns;
+
+            public bool CanSaveOnnx(OnnxContext ctx) => ctx.GetOnnxVersion() == OnnxVersion.Experimental;
 
             internal Mapper(CopyColumnsTransform parent, Schema inputSchema, (string Source, string Name)[] columns)
                 : base(parent.Host.Register(nameof(Mapper)), parent, inputSchema)
@@ -194,6 +197,20 @@ namespace Microsoft.ML.Transforms
                     result[i] = new Schema.Column(_columns[i].Name, srcCol.Type, srcCol.Metadata);
                 }
                 return result;
+            }
+
+            public void SaveAsOnnx(OnnxContext ctx)
+            {
+                var opType = "CSharp";
+
+                foreach (var column in _columns)
+                {
+                    var srcVariableName = ctx.GetVariableName(column.Source);
+                    _schema.TryGetColumnIndex(column.Source, out int colIndex);
+                    var dstVariableName = ctx.AddIntermediateVariable(_schema.GetColumnType(colIndex), column.Name);
+                    var node = ctx.CreateNode(opType, srcVariableName, dstVariableName, ctx.GetNodeName(opType));
+                    node.AddAttribute("type", LoaderSignature);
+                }
             }
         }
     }
