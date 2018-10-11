@@ -26,6 +26,13 @@ namespace Microsoft.ML.Runtime.Model.Onnx
         public abstract string GetNodeName(string prefix);
 
         /// <summary>
+        /// Determine if a string has been used as ONNX variable name somewhere.
+        /// </summary>
+        /// <param name="variableName">examined string</param>
+        /// <returns>True if the input argument has been used to denote an ONNX variable. Otherwise, False.</returns>
+        public abstract bool IsVariableDefined(string variableName);
+
+        /// <summary>
         /// Looks up whether a given data view column has a mapping in the ONNX context. Once confirmed, callers can
         /// safely call <see cref="GetVariableName(string)"/>.
         /// </summary>

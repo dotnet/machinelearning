@@ -53,95 +53,88 @@
           "Features0"
         ],
         "output": [
-          "Score"
+          "X2"
         ],
-        "name": "LinearRegressor",
-        "opType": "LinearRegressor",
-        "attribute": [
-          {
-            "name": "post_transform",
-            "s": "Tk9ORQ==",
-            "type": "STRING"
-          },
-          {
-            "name": "targets",
-            "i": "1",
-            "type": "INT"
-          },
-          {
-            "name": "coefficients",
-            "floats": [
-              2.6596148,
-              1.67937,
-              1.94177353,
-              1.42409551,
-              0.852847636,
-              2.93048549,
-              1.74959826,
-              1.58030283,
-              0.5948697
-            ],
-            "type": "FLOATS"
-          },
-          {
-            "name": "intercepts",
-            "floats": [
-              -6.183617
-            ],
-            "type": "FLOATS"
-          }
-        ],
-        "domain": "ai.onnx.ml"
+        "name": "ReduceSumSquare",
+        "opType": "ReduceSumSquare"
       },
       {
         "input": [
-          "Score"
+          "Features0",
+          "C",
+          "zero"
         ],
         "output": [
-          "linearOutput"
+          "XC2"
         ],
-        "name": "Affine",
-        "opType": "Affine",
+        "name": "Gemm",
+        "opType": "Gemm",
         "attribute": [
           {
             "name": "alpha",
-            "f": 1,
+            "f": -2,
             "type": "FLOAT"
           },
           {
-            "name": "beta",
-            "f": -1E-07,
-            "type": "FLOAT"
+            "name": "transB",
+            "i": "1",
+            "type": "INT"
           }
         ]
       },
       {
         "input": [
-          "linearOutput"
+          "X2",
+          "XC2"
         ],
         "output": [
-          "Probability"
+          "Z"
         ],
-        "name": "Sigmoid",
-        "opType": "Sigmoid"
+        "name": "Add",
+        "opType": "Add"
       },
       {
         "input": [
-          "Probability"
+          "Z",
+          "C2"
+        ],
+        "output": [
+          "Score"
+        ],
+        "name": "Add0",
+        "opType": "Add"
+      },
+      {
+        "input": [
+          "Score"
         ],
         "output": [
           "PredictedLabel"
         ],
-        "name": "Binarizer",
-        "opType": "Binarizer",
+        "name": "ArgMin",
+        "opType": "ArgMin",
         "attribute": [
           {
-            "name": "threshold",
-            "f": 0.5,
-            "type": "FLOAT"
+            "name": "axis",
+            "i": "1",
+            "type": "INT"
+          },
+          {
+            "name": "keepdims",
+            "i": "1",
+            "type": "INT"
           }
+        ]
+      },
+      {
+        "input": [
+          "Features0"
         ],
-        "domain": "ai.onnx.ml"
+        "output": [
+          "Features1"
+        ],
+        "name": "Identity",
+        "opType": "Identity"
       },
       {
         "input": [
@@ -150,7 +143,7 @@
         "output": [
           "PredictedLabel0"
         ],
-        "name": "Identity",
+        "name": "Identity0",
         "opType": "Identity"
       },
       {
@@ -160,21 +153,62 @@
         "output": [
           "Score0"
         ],
-        "name": "Identity0",
-        "opType": "Identity"
-      },
-      {
-        "input": [
-          "Probability"
-        ],
-        "output": [
-          "Probability0"
-        ],
         "name": "Identity1",
         "opType": "Identity"
       }
     ],
-    "name": "BinaryClassificationLRSaveModelToOnnxTest",
+    "name": "Kmeans",
+    "initializer": [
+      {
+        "dims": [
+          "2",
+          "9"
+        ],
+        "dataType": "FLOAT",
+        "floatData": [
+          0.6232001,
+          0.482400715,
+          0.495733529,
+          0.416533619,
+          0.425866365,
+          0.5456011,
+          0.477333277,
+          0.4338674,
+          0.20399937,
+          0.225407124,
+          0.111400835,
+          0.109446481,
+          0.120521255,
+          0.198697388,
+          0.121824168,
+          0.182410166,
+          0.108143583,
+          0.107166387
+        ],
+        "name": "C"
+      },
+      {
+        "dims": [
+          "2"
+        ],
+        "dataType": "FLOAT",
+        "floatData": [
+          1.97708726,
+          0.200497344
+        ],
+        "name": "C2"
+      },
+      {
+        "dims": [
+          "1"
+        ],
+        "dataType": "FLOAT",
+        "floatData": [
+          0
+        ],
+        "name": "zero"
+      }
+    ],
     "input": [
       {
         "name": "Features",
@@ -197,10 +231,28 @@
     ],
     "output": [
       {
-        "name": "PredictedLabel0",
+        "name": "Features1",
         "type": {
           "tensorType": {
             "elemType": "FLOAT",
+            "shape": {
+              "dim": [
+                {
+                  "dimValue": "1"
+                },
+                {
+                  "dimValue": "9"
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "name": "PredictedLabel0",
+        "type": {
+          "tensorType": {
+            "elemType": "INT64",
             "shape": {
               "dim": [
                 {
@@ -225,25 +277,7 @@
                   "dimValue": "1"
                 },
                 {
-                  "dimValue": "1"
-                }
-              ]
-            }
-          }
-        }
-      },
-      {
-        "name": "Probability0",
-        "type": {
-          "tensorType": {
-            "elemType": "FLOAT",
-            "shape": {
-              "dim": [
-                {
-                  "dimValue": "1"
-                },
-                {
-                  "dimValue": "1"
+                  "dimValue": "2"
                 }
               ]
             }

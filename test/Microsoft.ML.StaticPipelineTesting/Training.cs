@@ -202,7 +202,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var loss = new HingeLoss(new HingeLoss.Arguments() { Margin = 1 });
 
             var est = reader.MakeNewEstimator()
-                .Append(r => (r.label, preds: ctx.Trainers.AveragedPerceptron(loss, r.label, r.features,
+                .Append(r => (r.label, preds: ctx.Trainers.AveragedPerceptron(r.label, r.features, lossFunction: loss,
                 numIterations: 2, onFit: p => pred = p)));
 
             var pipe = reader.Append(est);
@@ -406,7 +406,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             Assert.InRange(metrics.LossFn, 0, double.PositiveInfinity);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // LightGBM is 64-bit only
         public void LightGbmBinaryClassification()
         {
             var env = new ConsoleEnvironment(seed: 0);
@@ -446,7 +446,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             Assert.InRange(metrics.Auprc, 0, 1);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // LightGBM is 64-bit only
         public void LightGbmRegression()
         {
             var env = new ConsoleEnvironment(seed: 0);
@@ -630,7 +630,7 @@ namespace Microsoft.ML.StaticPipelineTesting
 
             var est = reader.MakeNewEstimator()
                 .Append(r => (r.label, score: ctx.Trainers.OnlineGradientDescent(r.label, r.features,
-                // lossFunction:loss,
+                lossFunction:loss,
                 onFit: (p) => { pred = p; })));
 
             var pipe = reader.Append(est);

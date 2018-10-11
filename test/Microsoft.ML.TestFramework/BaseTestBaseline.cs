@@ -323,9 +323,9 @@ namespace Microsoft.ML.Runtime.RunTests
         /// <summary>
         /// Compare the contents of an output file with its baseline.
         /// </summary>
-        protected bool CheckEquality(string dir, string name, string nameBase = null)
+        protected bool CheckEquality(string dir, string name, string nameBase = null, int digitsOfPrecision = DigitsOfPrecision)
         {
-            return CheckEqualityCore(dir, name, nameBase ?? name, false);
+            return CheckEqualityCore(dir, name, nameBase ?? name, false, digitsOfPrecision);
         }
 
         /// <summary>

@@ -45,7 +45,7 @@ namespace Microsoft.ML.Transforms
             /// Location of the TensorFlow model.
             /// </summary>
             [Argument(ArgumentType.Required, HelpText = "TensorFlow model used by the transform. Please see https://www.tensorflow.org/mobile/prepare_models for more details.", SortOrder = 0)]
-            public string Model;
+            public string ModelLocation;
 
             /// <summary>
             /// The names of the model inputs.
@@ -291,7 +291,7 @@ namespace Microsoft.ML.Transforms
         }
 
         internal TensorFlowTransform(IHostEnvironment env, Arguments args, IDataView input)
-            : this(env, TensorFlowUtils.GetSession(env, args.Model), args.InputColumns, args.OutputColumns, TensorFlowUtils.IsSavedModel(env, args.Model) ? args.Model : null, false)
+            : this(env, TensorFlowUtils.GetSession(env, args.ModelLocation), args.InputColumns, args.OutputColumns, TensorFlowUtils.IsSavedModel(env, args.ModelLocation) ? args.ModelLocation : null, false)
         {
 
             Contracts.CheckValue(env, nameof(env));
@@ -310,9 +310,9 @@ namespace Microsoft.ML.Transforms
 
                 CheckTrainingParameters(args);
 
-                if (!TensorFlowUtils.IsSavedModel(env, args.Model))
+                if (!TensorFlowUtils.IsSavedModel(env, args.ModelLocation))
                     throw env.ExceptNotSupp("TensorFlowTransform: Re-Training of TensorFlow model is only supported for un-frozen model.");
-                TrainCore(args, args.Model, input);
+                TrainCore(args, args.ModelLocation, input);
             }
         }
 
