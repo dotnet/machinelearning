@@ -719,12 +719,6 @@ namespace Microsoft.ML.Runtime.Data
             return new OutScalar<double>(input);
         }
 
-        public static Scalar<bool> IsMissingValue(this Scalar<string> input)
-        {
-            Contracts.CheckValue(input, nameof(input));
-            return new OutScalar<string>(input);
-        }
-
         public static Vector<bool> IsMissingValue(this Vector<float> input)
         {
             Contracts.CheckValue(input, nameof(input));
@@ -737,12 +731,6 @@ namespace Microsoft.ML.Runtime.Data
             return new OutVectorColumn<double>(input);
         }
 
-        public static Vector<bool> IsMissingValue(this Vector<string> input)
-        {
-            Contracts.CheckValue(input, nameof(input));
-            return new OutVectorColumn<string>(input);
-        }
-
         public static VarVector<bool> IsMissingValue(this VarVector<float> input)
         {
             Contracts.CheckValue(input, nameof(input));
@@ -753,12 +741,6 @@ namespace Microsoft.ML.Runtime.Data
         {
             Contracts.CheckValue(input, nameof(input));
             return new OutVarVectorColumn<double>(input);
-        }
-
-        public static VarVector<bool> IsMissingValue(this VarVector<string> input)
-        {
-            Contracts.CheckValue(input, nameof(input));
-            return new OutVarVectorColumn<string>(input);
         }
     }
 }
