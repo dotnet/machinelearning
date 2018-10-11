@@ -1,0 +1,8 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\Microsoft.ML.Benchmarks\Microsoft.ML.Benchmarks.csproj" />
+
+    <NativeAssemblyReference Include="CpuMathNative" />
+  </ItemGroup>
+</Project>

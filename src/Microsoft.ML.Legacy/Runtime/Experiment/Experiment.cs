@@ -37,7 +37,7 @@ namespace Microsoft.ML.Runtime
         public Experiment(Runtime.IHostEnvironment env)
         {
             _env = env;
-            AssemblyLoadingUtils.RegisterCurrentLoadedAssemblies(_env);
+            AssemblyRegistration.RegisterAssemblies(_env);
 
             _catalog = _env.ComponentCatalog;
             _jsonNodes = new List<string>();
@@ -54,7 +54,7 @@ namespace Microsoft.ML.Runtime
         {
             _env.Check(_graph == null, "Multiple calls to " + nameof(Compile) + "() detected.");
             var nodes = GetNodes();
-            _graph = new EntryPointGraph(_env, _catalog, nodes);
+            _graph = new EntryPointGraph(_env, nodes);
         }
 
         public JArray GetNodes()

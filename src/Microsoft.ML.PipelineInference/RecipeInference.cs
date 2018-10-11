@@ -452,8 +452,6 @@ namespace Microsoft.ML.Runtime.PipelineInference
                 predictorType = InferenceUtils.InferPredictorCategoryType(cached, purposeColumns);
                 var recipeInferenceResult = InferRecipes(h, transformInferenceResult, predictorType);
 
-                ch.Done();
-
                 inferenceResult = transformInferenceResult;
                 return recipeInferenceResult.SuggestedRecipes;
             }
@@ -474,7 +472,6 @@ namespace Microsoft.ML.Runtime.PipelineInference
                 if (list.Count == 0)
                     ch.Info("No recipes are needed for the data.");
 
-                ch.Done();
                 return new InferenceResult(list.ToArray());
             }
         }
@@ -547,7 +544,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
                     LearnerName = tt.Name
                 };
 
-                if (sl.PipelineNode != null && availableLearnersList.FirstOrDefault(l=> l.Name.Equals(sl.PipelineNode.GetEpName())) != null)
+                if (sl.PipelineNode != null && availableLearnersList.FirstOrDefault(l => l.Name.Equals(sl.PipelineNode.GetEpName())) != null)
                     learners.Add(sl);
             }
 

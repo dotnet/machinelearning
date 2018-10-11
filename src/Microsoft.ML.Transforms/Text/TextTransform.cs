@@ -474,7 +474,7 @@ namespace Microsoft.ML.Runtime.Data
                 if (charFeatureCol != null && wordFeatureCol != null)
                 {
                     // If we're producing both char and word grams, then we need to disambiguate
-                    // between them (e.g. the word 'a' vs. the char gram 'a').
+                    // between them (for example, the word 'a' vs. the char gram 'a').
                     srcTaggedCols.Add(new KeyValuePair<string, string>("Char", charFeatureCol));
                     srcTaggedCols.Add(new KeyValuePair<string, string>("Word", wordFeatureCol));
                 }
@@ -705,9 +705,13 @@ namespace Microsoft.ML.Runtime.Data
     /// </summary>
     public static class TextFeaturizerStaticPipe
     {
-        public static Vector<float> FeaturizeText(this Scalar<string> input, params Scalar<string>[] otherInputs)
-            => input.FeaturizeText(otherInputs, null);
-
+        /// <summary>
+        /// Accept text data and converts it to array which represent combinations of ngram/skip-gram token counts.
+        /// </summary>
+        /// <param name="input">Input data.</param>
+        /// <param name="otherInputs">Additional data.</param>
+        /// <param name="advancedSettings">Delegate which allows you to set transformation settings.</param>
+        /// <returns></returns>
         public static Vector<float> FeaturizeText(this Scalar<string> input, Scalar<string>[] otherInputs = null, Action<TextTransform.Settings> advancedSettings = null)
         {
             Contracts.CheckValue(input, nameof(input));

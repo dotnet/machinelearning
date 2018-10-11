@@ -152,6 +152,7 @@ namespace Microsoft.ML.Runtime
                 case "mklimports.dll":
                 case "microsoft.research.controls.decisiontrees.dll":
                 case "microsoft.ml.neuralnetworks.sse.dll":
+                case "mklproxynative.dll":
                 case "neuraltreeevaluator.dll":
                 case "optimizationbuilderdotnet.dll":
                 case "parallelcommunicator.dll":

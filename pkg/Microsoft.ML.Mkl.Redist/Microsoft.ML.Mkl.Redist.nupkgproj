@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk" DefaultTargets="Pack">
+
+  <PropertyGroup>
+    <Authors>Intel</Authors>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <PackageDescription>$(MSBuildProjectName) contains the MKL library redistributed as a NuGet package.</PackageDescription>
+    <PackageTags>$(PackageTags) MLNET MKL</PackageTags>
+  </PropertyGroup>
+  
+  <ItemGroup>
+    <Content Include="..\common\CommonPackage.props" Pack="true" PackagePath="build\netstandard2.0\$(MSBuildProjectName).props" />
+    <Content Include="$(PackagesDir)\mlnetmkldeps\$(MlNetMklDepsPackageVersion)\LICENSE.txt" Pack="true" PackagePath=".\NOTICE.txt" /> 
+  </ItemGroup>
+</Project>

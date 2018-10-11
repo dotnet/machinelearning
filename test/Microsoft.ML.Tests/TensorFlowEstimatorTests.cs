@@ -10,6 +10,7 @@ using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.RunTests;
 using Microsoft.ML.Runtime.Tools;
 using Microsoft.ML.Transforms;
+using Microsoft.ML.Transforms.TensorFlow;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -53,7 +54,7 @@ namespace Microsoft.ML.Tests
         {
         }
 
-        [Fact]
+        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // TensorFlow is 64-bit only
         void TestSimpleCase()
         {
             var modelFile = "model_matmul/frozen_saved_model.pb";
@@ -93,7 +94,7 @@ namespace Microsoft.ML.Tests
             catch (InvalidOperationException) { }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // TensorFlow is 64-bit only
         void TestOldSavingAndLoading()
         {
             var modelFile = "model_matmul/frozen_saved_model.pb";
@@ -129,16 +130,16 @@ namespace Microsoft.ML.Tests
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // x86 output differs from Baseline
         void TestCommandLine()
         {
             using (var env = new ConsoleEnvironment())
             {
-                Assert.Equal(Maml.Main(new[] { @"showschema loader=Text{col=a:R4:0-3 col=b:R4:0-3} xf=TFTransform{inputs=a inputs=b outputs=c model={model_matmul/frozen_saved_model.pb}}"}), (int)0);
+                Assert.Equal(Maml.Main(new[] { @"showschema loader=Text{col=a:R4:0-3 col=b:R4:0-3} xf=TFTransform{inputs=a inputs=b outputs=c modellocation={model_matmul/frozen_saved_model.pb}}"}), (int)0);
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // TensorFlow is 64-bit only
         public void TestTensorFlowStatic()
         {
             var modelLocation = "cifar_model/frozen_model.pb";
@@ -182,6 +183,54 @@ namespace Microsoft.ML.Tests
             }
         }
 
+        [Fact]
+        public void TestTensorFlowStaticWithSchema()
+        {
+            var modelLocation = "cifar_model/frozen_model.pb";
+
+            using (var env = new ConsoleEnvironment())
+            {
+                var tensorFlowModel = TensorFlowUtils.LoadTensorFlowModel(env, modelLocation);
+                var schema = tensorFlowModel.GetInputSchema();
+                Assert.True(schema.TryGetColumnIndex("Input", out int column));
+                var type = schema.GetColumnType(column).AsVector;
+                var imageHeight = type.GetDim(0);
+                var imageWidth = type.GetDim(1);
+
+                var dataFile = GetDataPath("images/images.tsv");
+                var imageFolder = Path.GetDirectoryName(dataFile);
+
+                var data = TextLoader.CreateReader(env, ctx => (
+                    imagePath: ctx.LoadText(0),
+                    name: ctx.LoadText(1)))
+                    .Read(new MultiFileSource(dataFile));
+
+                // Note that CamelCase column names are there to match the TF graph node names.
+                var pipe = data.MakeNewEstimator()
+                    .Append(row => (
+                        row.name,
+                        Input: row.imagePath.LoadAsImage(imageFolder).Resize(imageHeight, imageWidth).ExtractPixels(interleaveArgb: true)))
+                    .Append(row => (row.name, Output: row.Input.ApplyTensorFlowGraph(tensorFlowModel)));
+
+                TestEstimatorCore(pipe.AsDynamic, data.AsDynamic);
+
+                var result = pipe.Fit(data).Transform(data).AsDynamic;
+                result.Schema.TryGetColumnIndex("Output", out int output);
+                using (var cursor = result.GetRowCursor(col => col == output))
+                {
+                    var buffer = default(VBuffer<float>);
+                    var getter = cursor.GetGetter<VBuffer<float>>(output);
+                    var numRows = 0;
+                    while (cursor.MoveNext())
+                    {
+                        getter(ref buffer);
+                        Assert.Equal(10, buffer.Length);
+                        numRows += 1;
+                    }
+                    Assert.Equal(3, numRows);
+                }
+            }
+        }
 
         private void ValidateTensorFlowTransformer(IDataView result)
         {

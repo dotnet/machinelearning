@@ -2479,6 +2479,21 @@
           "Required": true,
           "SortOrder": 10.0,
           "IsNullable": false
+        },
+        {
+          "Name": "OnnxVersion",
+          "Type": {
+            "Kind": "Enum",
+            "Values": [
+              "Stable",
+              "Experimental"
+            ]
+          },
+          "Desc": "The targeted ONNX version. It can be either \"Stable\" or \"Experimental\". If \"Experimental\" is used, produced model can contain components that is not officially supported in ONNX standard.",
+          "Required": false,
+          "SortOrder": 11.0,
+          "IsNullable": false,
+          "Default": "Stable"
         }
       ],
       "Outputs": []
@@ -3846,6 +3861,848 @@
           "Type": "DataView",
           "Desc": "Confusion matrix dataset for training"
         }
+      ]
+    },
+    {
+      "Name": "TimeSeriesProcessing.ExponentialAverage",
+      "Desc": "Applies a Exponential average on a time series.",
+      "FriendlyName": "Exponential Average Transform",
+      "ShortName": "ExpAvg",
+      "Inputs": [
+        {
+          "Name": "Source",
+          "Type": "String",
+          "Desc": "The name of the source column",
+          "Aliases": [
+            "src"
+          ],
+          "Required": true,
+          "SortOrder": 1.0,
+          "IsNullable": false
+        },
+        {
+          "Name": "Data",
+          "Type": "DataView",
+          "Desc": "Input dataset",
+          "Required": true,
+          "SortOrder": 1.0,
+          "IsNullable": false
+        },
+        {
+          "Name": "Name",
+          "Type": "String",
+          "Desc": "The name of the new column",
+          "Aliases": [
+            "name"
+          ],
+          "Required": true,
+          "SortOrder": 2.0,
+          "IsNullable": false
+        },
+        {
+          "Name": "Decay",
+          "Type": "Float",
+          "Desc": "Coefficient d in: d m(y_t) = d * y_t + (1-d) * m(y_(t-1)), it should be in [0, 1].",
+          "Aliases": [
+            "d"
+          ],
+          "Required": false,
+          "SortOrder": 4.0,
+          "IsNullable": false,
+          "Default": 0.9
+        }
+      ],
+      "Outputs": [
+        {
+          "Name": "OutputData",
+          "Type": "DataView",
+          "Desc": "Transformed dataset"
+        },
+        {
+          "Name": "Model",
+          "Type": "TransformModel",
+          "Desc": "Transform model"
+        }
+      ],
+      "InputKind": [
+        "ITransformInput"
+      ],
+      "OutputKind": [
+        "ITransformOutput"
+      ]
+    },
+    {
+      "Name": "TimeSeriesProcessing.IidChangePointDetector",
+      "Desc": "This transform detects the change-points in an i.i.d. sequence using adaptive kernel density estimation and martingales.",
+      "FriendlyName": "IID Change Point Detection",
+      "ShortName": "ichgpnt",
+      "Inputs": [
+        {
+          "Name": "Source",
+          "Type": "String",
+          "Desc": "The name of the source column.",
+          "Aliases": [
+            "src"
+          ],
+          "Required": true,
+          "SortOrder": 1.0,
+          "IsNullable": false
+        },
+        {
+          "Name": "Data",
+          "Type": "DataView",
+          "Desc": "Input dataset",
+          "Required": true,
+          "SortOrder": 1.0,
+          "IsNullable": false
+        },
+        {
+          "Name": "Name",
+          "Type": "String",
+          "Desc": "The name of the new column.",
+          "Required": true,
+          "SortOrder": 2.0,
+          "IsNullable": false
+        },
+        {
+          "Name": "Confidence",
+          "Type": "Float",
+          "Desc": "The confidence for change point detection in the range [0, 100].",
+          "Aliases": [
+            "cnf"
+          ],
+          "Required": true,
+          "SortOrder": 3.0,
+          "IsNullable": false,
+          "Default": 95.0
+        },
+        {
+          "Name": "ChangeHistoryLength",
+          "Type": "Int",
+          "Desc": "The change history length.",
+          "Aliases": [
+            "wnd"
+          ],
+          "Required": false,
+          "SortOrder": 102.0,
+          "IsNullable": false,
+          "Default": 20
+        },
+        {
+          "Name": "Martingale",
+          "Type": {
+            "Kind": "Enum",
+            "Values": [
+              "None",
+              "Power",
+              "Mixture"
+            ]
+          },
+          "Desc": "The martingale used for scoring.",
+          "Aliases": [
+            "mart"
+          ],
+          "Required": false,
+          "SortOrder": 103.0,
+          "IsNullable": false,
+          "Default": "Power"
+        },
+        {
+          "Name": "PowerMartingaleEpsilon",
+          "Type": "Float",
+          "Desc": "The epsilon parameter for the Power martingale.",
+          "Aliases": [
+            "eps"
+          ],
+          "Required": false,
+          "SortOrder": 104.0,
+          "IsNullable": false,
+          "Default": 0.1
+        }
+      ],
+      "Outputs": [
+        {
+          "Name": "OutputData",
+          "Type": "DataView",
+          "Desc": "Transformed dataset"
+        },
+        {
+          "Name": "Model",
+          "Type": "TransformModel",
+          "Desc": "Transform model"
+        }
+      ],
+      "InputKind": [
+        "ITransformInput"
+      ],
+      "OutputKind": [
+        "ITransformOutput"
+      ]
+    },
+    {
+      "Name": "TimeSeriesProcessing.IidSpikeDetector",
+      "Desc": "This transform detects the spikes in a i.i.d. sequence using adaptive kernel density estimation.",
+      "FriendlyName": "IID Spike Detection",
+      "ShortName": "ispike",
+      "Inputs": [
+        {
+          "Name": "Source",
+          "Type": "String",
+          "Desc": "The name of the source column.",
+          "Aliases": [
+            "src"
+          ],
+          "Required": true,
+          "SortOrder": 1.0,
+          "IsNullable": false
+        },
+        {
+          "Name": "Data",
+          "Type": "DataView",
+          "Desc": "Input dataset",
+          "Required": true,
+          "SortOrder": 1.0,
+          "IsNullable": false
+        },
+        {
+          "Name": "Name",
+          "Type": "String",
+          "Desc": "The name of the new column.",
+          "Required": true,
+          "SortOrder": 2.0,
+          "IsNullable": false
+        },
+        {
+          "Name": "Confidence",
+          "Type": "Float",
+          "Desc": "The confidence for spike detection in the range [0, 100].",
+          "Aliases": [
+            "cnf"
+          ],
+          "Required": true,
+          "SortOrder": 3.0,
+          "IsNullable": false,
+          "Default": 99.0
+        },
+        {
+          "Name": "Side",
+          "Type": {
+            "Kind": "Enum",
+            "Values": [
+              "Positive",
+              "Negative",
+              "TwoSided"
+            ]
+          },
+          "Desc": "The argument that determines whether to detect positive or negative anomalies, or both.",
+          "Aliases": [
+            "side"
+          ],
+          "Required": false,
+          "SortOrder": 101.0,
+          "IsNullable": false,
+          "Default": "TwoSided"
+        },
+        {
+          "Name": "PvalueHistoryLength",
+          "Type": "Int",
+          "Desc": "The size of the sliding window for computing the p-value.",
+          "Aliases": [
+            "wnd"
+          ],
+          "Required": false,
+          "SortOrder": 102.0,
+          "IsNullable": false,
+          "Default": 100
+        }
+      ],
+      "Outputs": [
+        {
+          "Name": "OutputData",
+          "Type": "DataView",
+          "Desc": "Transformed dataset"
+        },
+        {
+          "Name": "Model",
+          "Type": "TransformModel",
+          "Desc": "Transform model"
+        }
+      ],
+      "InputKind": [
+        "ITransformInput"
+      ],
+      "OutputKind": [
+        "ITransformOutput"
+      ]
+    },
+    {
+      "Name": "TimeSeriesProcessing.PercentileThresholdTransform",
+      "Desc": "Detects the values of time-series that are in the top percentile of the sliding window.",
+      "FriendlyName": "Percentile Threshold Transform",
+      "ShortName": "TopPcnt",
+      "Inputs": [
+        {
+          "Name": "Source",
+          "Type": "String",
+          "Desc": "The name of the source column",
+          "Aliases": [
+            "src"
+          ],
+          "Required": true,
+          "SortOrder": 1.0,
+          "IsNullable": false
+        },
+        {
+          "Name": "Data",
+          "Type": "DataView",
+          "Desc": "Input dataset",
+          "Required": true,
+          "SortOrder": 1.0,
+          "IsNullable": false
+        },
+        {
+          "Name": "Name",
+          "Type": "String",
+          "Desc": "The name of the new column",
+          "Aliases": [
+            "name"
+          ],
+          "Required": true,
+          "SortOrder": 2.0,
+          "IsNullable": false
+        },
+        {
+          "Name": "Percentile",
+          "Type": "Float",
+          "Desc": "The percentile value for thresholding in the range [0, 100]",
+          "Aliases": [
+            "pcnt"
+          ],
+          "Required": false,
+          "SortOrder": 3.0,
+          "IsNullable": false,
+          "Default": 1.0
+        },
+        {
+          "Name": "WindowSize",
+          "Type": "Int",
+          "Desc": "The size of the sliding window for computing the percentile threshold. The default value is set to 1.",
+          "Aliases": [
+            "wnd"
+          ],
+          "Required": false,
+          "SortOrder": 4.0,
+          "IsNullable": false,
+          "Default": 1
+        }
+      ],
+      "Outputs": [
+        {
+          "Name": "OutputData",
+          "Type": "DataView",
+          "Desc": "Transformed dataset"
+        },
+        {
+          "Name": "Model",
+          "Type": "TransformModel",
+          "Desc": "Transform model"
+        }
+      ],
+      "InputKind": [
+        "ITransformInput"
+      ],
+      "OutputKind": [
+        "ITransformOutput"
+      ]
+    },
+    {
+      "Name": "TimeSeriesProcessing.PValueTransform",
+      "Desc": "This P-Value transform calculates the p-value of the current input in the sequence with regard to the values in the sliding window.",
+      "FriendlyName": "p-Value Transform",
+      "ShortName": "PVal",
+      "Inputs": [
+        {
+          "Name": "Source",
+          "Type": "String",
+          "Desc": "The name of the source column",
+          "Aliases": [
+            "src"
+          ],
+          "Required": true,
+          "SortOrder": 1.0,
+          "IsNullable": false
+        },
+        {
+          "Name": "Data",
+          "Type": "DataView",
+          "Desc": "Input dataset",
+          "Required": true,
+          "SortOrder": 1.0,
+          "IsNullable": false
+        },
+        {
+          "Name": "Name",
+          "Type": "String",
+          "Desc": "The name of the new column",
+          "Aliases": [
+            "name"
+          ],
+          "Required": true,
+          "SortOrder": 2.0,
+          "IsNullable": false
+        },
+        {
+          "Name": "Seed",
+          "Type": "Int",
+          "Desc": "The seed value of the random generator",
+          "Aliases": [
+            "seed"
+          ],
+          "Required": false,
+          "SortOrder": 3.0,
+          "IsNullable": false,
+          "Default": 0
+        },
+        {
+          "Name": "PositiveSide",
+          "Type": "Bool",
+          "Desc": "The flag that determines whether the p-values are calculated on the positive side",
+          "Aliases": [
+            "pos"
+          ],
+          "Required": false,
+          "SortOrder": 4.0,
+          "IsNullable": false,
+          "Default": true
+        },
+        {
+          "Name": "WindowSize",
+          "Type": "Int",
+          "Desc": "The size of the sliding window for computing the p-value",
+          "Aliases": [
+            "wnd"
+          ],
+          "Required": false,
+          "SortOrder": 5.0,
+          "IsNullable": false,
+          "Default": 1
+        },
+        {
+          "Name": "InitialWindowSize",
+          "Type": "Int",
+          "Desc": "The size of the initial window for computing the p-value. The default value is set to 0, which means there is no initial window considered.",
+          "Aliases": [
+            "initwnd"
+          ],
+          "Required": false,
+          "SortOrder": 6.0,
+          "IsNullable": false,
+          "Default": 0
+        }
+      ],
+      "Outputs": [
+        {
+          "Name": "OutputData",
+          "Type": "DataView",
+          "Desc": "Transformed dataset"
+        },
+        {
+          "Name": "Model",
+          "Type": "TransformModel",
+          "Desc": "Transform model"
+        }
+      ],
+      "InputKind": [
+        "ITransformInput"
+      ],
+      "OutputKind": [
+        "ITransformOutput"
+      ]
+    },
+    {
+      "Name": "TimeSeriesProcessing.SlidingWindowTransform",
+      "Desc": "Returns the last values for a time series [y(t-d-l+1), y(t-d-l+2), ..., y(t-l-1), y(t-l)] where d is the size of the window, l the lag and y is a Float.",
+      "FriendlyName": "Sliding Window Transform",
+      "ShortName": "SlideWin",
+      "Inputs": [
+        {
+          "Name": "Source",
+          "Type": "String",
+          "Desc": "The name of the source column",
+          "Aliases": [
+            "src"
+          ],
+          "Required": true,
+          "SortOrder": 1.0,
+          "IsNullable": false
+        },
+        {
+          "Name": "Data",
+          "Type": "DataView",
+          "Desc": "Input dataset",
+          "Required": true,
+          "SortOrder": 1.0,
+          "IsNullable": false
+        },
+        {
+          "Name": "Name",
+          "Type": "String",
+          "Desc": "The name of the new column",
+          "Required": true,
+          "SortOrder": 2.0,
+          "IsNullable": false
+        },
+        {
+          "Name": "WindowSize",
+          "Type": "Int",
+          "Desc": "The size of the sliding window for computing the moving average",
+          "Aliases": [
+            "wnd"
+          ],
+          "Required": false,
+          "SortOrder": 3.0,
+          "IsNullable": false,
+          "Default": 2
+        },
+        {
+          "Name": "Lag",
+          "Type": "Int",
+          "Desc": "Lag between current observation and last observation from the sliding window",
+          "Aliases": [
+            "l"
+          ],
+          "Required": false,
+          "SortOrder": 4.0,
+          "IsNullable": false,
+          "Default": 1
+        },
+        {
+          "Name": "Begin",
+          "Type": {
+            "Kind": "Enum",
+            "Values": [
+              "NaNValues",
+              "FirstValue"
+            ]
+          },
+          "Desc": "Define how to populate the first rows of the produced series",
+          "Required": false,
+          "SortOrder": 5.0,
+          "IsNullable": false,
+          "Default": "NaNValues"
+        }
+      ],
+      "Outputs": [
+        {
+          "Name": "OutputData",
+          "Type": "DataView",
+          "Desc": "Transformed dataset"
+        },
+        {
+          "Name": "Model",
+          "Type": "TransformModel",
+          "Desc": "Transform model"
+        }
+      ],
+      "InputKind": [
+        "ITransformInput"
+      ],
+      "OutputKind": [
+        "ITransformOutput"
+      ]
+    },
+    {
+      "Name": "TimeSeriesProcessing.SsaChangePointDetector",
+      "Desc": "This transform detects the change-points in a seasonal time-series using Singular Spectrum Analysis (SSA).",
+      "FriendlyName": "SSA Change Point Detection",
+      "ShortName": "chgpnt",
+      "Inputs": [
+        {
+          "Name": "Source",
+          "Type": "String",
+          "Desc": "The name of the source column.",
+          "Aliases": [
+            "src"
+          ],
+          "Required": true,
+          "SortOrder": 1.0,
+          "IsNullable": false
+        },
+        {
+          "Name": "Data",
+          "Type": "DataView",
+          "Desc": "Input dataset",
+          "Required": true,
+          "SortOrder": 1.0,
+          "IsNullable": false
+        },
+        {
+          "Name": "Name",
+          "Type": "String",
+          "Desc": "The name of the new column.",
+          "Required": true,
+          "SortOrder": 2.0,
+          "IsNullable": false
+        },
+        {
+          "Name": "TrainingWindowSize",
+          "Type": "Int",
+          "Desc": "The number of points from the beginning of the sequence used for training.",
+          "Aliases": [
+            "twnd"
+          ],
+          "Required": true,
+          "SortOrder": 3.0,
+          "IsNullable": false,
+          "Default": 100
+        },
+        {
+          "Name": "Confidence",
+          "Type": "Float",
+          "Desc": "The confidence for change point detection in the range [0, 100].",
+          "Aliases": [
+            "cnf"
+          ],
+          "Required": true,
+          "SortOrder": 4.0,
+          "IsNullable": false,
+          "Default": 95.0
+        },
+        {
+          "Name": "SeasonalWindowSize",
+          "Type": "Int",
+          "Desc": "An upper bound on the largest relevant seasonality in the input time-series.",
+          "Aliases": [
+            "swnd"
+          ],
+          "Required": true,
+          "SortOrder": 5.0,
+          "IsNullable": false,
+          "Default": 10
+        },
+        {
+          "Name": "ChangeHistoryLength",
+          "Type": "Int",
+          "Desc": "The change history length.",
+          "Aliases": [
+            "wnd"
+          ],
+          "Required": false,
+          "SortOrder": 102.0,
+          "IsNullable": false,
+          "Default": 20
+        },
+        {
+          "Name": "ErrorFunction",
+          "Type": {
+            "Kind": "Enum",
+            "Values": [
+              "SignedDifference",
+              "AbsoluteDifference",
+              "SignedProportion",
+              "AbsoluteProportion",
+              "SquaredDifference"
+            ]
+          },
+          "Desc": "The function used to compute the error between the expected and the observed value.",
+          "Aliases": [
+            "err"
+          ],
+          "Required": false,
+          "SortOrder": 103.0,
+          "IsNullable": false,
+          "Default": "SignedDifference"
+        },
+        {
+          "Name": "Martingale",
+          "Type": {
+            "Kind": "Enum",
+            "Values": [
+              "None",
+              "Power",
+              "Mixture"
+            ]
+          },
+          "Desc": "The martingale used for scoring.",
+          "Aliases": [
+            "mart"
+          ],
+          "Required": false,
+          "SortOrder": 104.0,
+          "IsNullable": false,
+          "Default": "Power"
+        },
+        {
+          "Name": "PowerMartingaleEpsilon",
+          "Type": "Float",
+          "Desc": "The epsilon parameter for the Power martingale.",
+          "Aliases": [
+            "eps"
+          ],
+          "Required": false,
+          "SortOrder": 105.0,
+          "IsNullable": false,
+          "Default": 0.1
+        }
+      ],
+      "Outputs": [
+        {
+          "Name": "OutputData",
+          "Type": "DataView",
+          "Desc": "Transformed dataset"
+        },
+        {
+          "Name": "Model",
+          "Type": "TransformModel",
+          "Desc": "Transform model"
+        }
+      ],
+      "InputKind": [
+        "ITransformInput"
+      ],
+      "OutputKind": [
+        "ITransformOutput"
+      ]
+    },
+    {
+      "Name": "TimeSeriesProcessing.SsaSpikeDetector",
+      "Desc": "This transform detects the spikes in a seasonal time-series using Singular Spectrum Analysis (SSA).",
+      "FriendlyName": "SSA Spike Detection",
+      "ShortName": "spike",
+      "Inputs": [
+        {
+          "Name": "Source",
+          "Type": "String",
+          "Desc": "The name of the source column.",
+          "Aliases": [
+            "src"
+          ],
+          "Required": true,
+          "SortOrder": 1.0,
+          "IsNullable": false
+        },
+        {
+          "Name": "Data",
+          "Type": "DataView",
+          "Desc": "Input dataset",
+          "Required": true,
+          "SortOrder": 1.0,
+          "IsNullable": false
+        },
+        {
+          "Name": "Name",
+          "Type": "String",
+          "Desc": "The name of the new column.",
+          "Required": true,
+          "SortOrder": 2.0,
+          "IsNullable": false
+        },
+        {
+          "Name": "TrainingWindowSize",
+          "Type": "Int",
+          "Desc": "The number of points from the beginning of the sequence used for training.",
+          "Aliases": [
+            "twnd"
+          ],
+          "Required": true,
+          "SortOrder": 3.0,
+          "IsNullable": false,
+          "Default": 100
+        },
+        {
+          "Name": "Confidence",
+          "Type": "Float",
+          "Desc": "The confidence for spike detection in the range [0, 100].",
+          "Aliases": [
+            "cnf"
+          ],
+          "Required": true,
+          "SortOrder": 4.0,
+          "IsNullable": false,
+          "Default": 99.0
+        },
+        {
+          "Name": "SeasonalWindowSize",
+          "Type": "Int",
+          "Desc": "An upper bound on the largest relevant seasonality in the input time-series.",
+          "Aliases": [
+            "swnd"
+          ],
+          "Required": true,
+          "SortOrder": 5.0,
+          "IsNullable": false,
+          "Default": 10
+        },
+        {
+          "Name": "Side",
+          "Type": {
+            "Kind": "Enum",
+            "Values": [
+              "Positive",
+              "Negative",
+              "TwoSided"
+            ]
+          },
+          "Desc": "The argument that determines whether to detect positive or negative anomalies, or both.",
+          "Aliases": [
+            "side"
+          ],
+          "Required": false,
+          "SortOrder": 101.0,
+          "IsNullable": false,
+          "Default": "TwoSided"
+        },
+        {
+          "Name": "PvalueHistoryLength",
+          "Type": "Int",
+          "Desc": "The size of the sliding window for computing the p-value.",
+          "Aliases": [
+            "wnd"
+          ],
+          "Required": false,
+          "SortOrder": 102.0,
+          "IsNullable": false,
+          "Default": 100
+        },
+        {
+          "Name": "ErrorFunction",
+          "Type": {
+            "Kind": "Enum",
+            "Values": [
+              "SignedDifference",
+              "AbsoluteDifference",
+              "SignedProportion",
+              "AbsoluteProportion",
+              "SquaredDifference"
+            ]
+          },
+          "Desc": "The function used to compute the error between the expected and the observed value.",
+          "Aliases": [
+            "err"
+          ],
+          "Required": false,
+          "SortOrder": 103.0,
+          "IsNullable": false,
+          "Default": "SignedDifference"
+        }
+      ],
+      "Outputs": [
+        {
+          "Name": "OutputData",
+          "Type": "DataView",
+          "Desc": "Transformed dataset"
+        },
+        {
+          "Name": "Model",
+          "Type": "TransformModel",
+          "Desc": "Transform model"
+        }
+      ],
+      "InputKind": [
+        "ITransformInput"
+      ],
+      "OutputKind": [
+        "ITransformOutput"
       ]
     },
     {
@@ -15676,9 +16533,9 @@
           }
         },
         {
-          "Name": "L2Const",
+          "Name": "L2Weight",
           "Type": "Float",
-          "Desc": "L2 regularizer constant",
+          "Desc": "L2 Regularization constant",
           "Aliases": [
             "l2"
           ],
@@ -16639,7 +17496,7 @@
                       "Value"
                     ]
                   },
-                  "Desc": "How items should be ordered when vectorized. By default, they will be in the order encountered. If by value items are sorted according to their default comparison, e.g., text sorting will be case sensitive (e.g., 'A' then 'Z' then 'a').",
+                  "Desc": "How items should be ordered when vectorized. By default, they will be in the order encountered. If by value items are sorted according to their default comparison, for example, text sorting will be case sensitive (for example, 'A' then 'Z' then 'a').",
                   "Required": false,
                   "SortOrder": 150.0,
                   "IsNullable": true,
@@ -16753,7 +17610,7 @@
               "Value"
             ]
           },
-          "Desc": "How items should be ordered when vectorized. By default, they will be in the order encountered. If by value items are sorted according to their default comparison, e.g., text sorting will be case sensitive (e.g., 'A' then 'Z' then 'a').",
+          "Desc": "How items should be ordered when vectorized. By default, they will be in the order encountered. If by value items are sorted according to their default comparison, for example, text sorting will be case sensitive (for example, 'A' then 'Z' then 'a').",
           "Required": false,
           "SortOrder": 113.0,
           "IsNullable": false,
@@ -17663,7 +18520,7 @@
                       "Value"
                     ]
                   },
-                  "Desc": "How items should be ordered when vectorized. By default, they will be in the order encountered. If by value items are sorted according to their default comparison, e.g., text sorting will be case sensitive (e.g., 'A' then 'Z' then 'a').",
+                  "Desc": "How items should be ordered when vectorized. By default, they will be in the order encountered. If by value items are sorted according to their default comparison, for example, text sorting will be case sensitive (for example, 'A' then 'Z' then 'a').",
                   "Required": false,
                   "SortOrder": 150.0,
                   "IsNullable": true,
@@ -17758,7 +18615,7 @@
               "Value"
             ]
           },
-          "Desc": "How items should be ordered when vectorized. By default, they will be in the order encountered. If by value items are sorted according to their default comparison, e.g., text sorting will be case sensitive (e.g., 'A' then 'Z' then 'a').",
+          "Desc": "How items should be ordered when vectorized. By default, they will be in the order encountered. If by value items are sorted according to their default comparison, for example, text sorting will be case sensitive (for example, 'A' then 'Z' then 'a').",
           "Required": false,
           "SortOrder": 113.0,
           "IsNullable": false,
@@ -21729,7 +22586,7 @@
       "ShortName": "TFTransform",
       "Inputs": [
         {
-          "Name": "Model",
+          "Name": "ModelLocation",
           "Type": "String",
           "Desc": "TensorFlow model used by the transform. Please see https://www.tensorflow.org/mobile/prepare_models for more details.",
           "Required": true,
@@ -21771,6 +22628,138 @@
           "Required": true,
           "SortOrder": 2.0,
           "IsNullable": false
+        },
+        {
+          "Name": "LabelColumn",
+          "Type": "String",
+          "Desc": "Training labels.",
+          "Aliases": [
+            "label"
+          ],
+          "Required": false,
+          "SortOrder": 4.0,
+          "IsNullable": false,
+          "Default": null
+        },
+        {
+          "Name": "TensorFlowLabel",
+          "Type": "String",
+          "Desc": "TensorFlow label node.",
+          "Aliases": [
+            "TFLabel"
+          ],
+          "Required": false,
+          "SortOrder": 5.0,
+          "IsNullable": false,
+          "Default": null
+        },
+        {
+          "Name": "OptimizationOperation",
+          "Type": "String",
+          "Desc": "The name of the optimization operation in the TensorFlow graph.",
+          "Aliases": [
+            "OptimizationOp"
+          ],
+          "Required": false,
+          "SortOrder": 6.0,
+          "IsNullable": false,
+          "Default": null
+        },
+        {
+          "Name": "LossOperation",
+          "Type": "String",
+          "Desc": "The name of the operation in the TensorFlow graph to compute training loss (Optional)",
+          "Aliases": [
+            "LossOp"
+          ],
+          "Required": false,
+          "SortOrder": 7.0,
+          "IsNullable": false,
+          "Default": null
+        },
+        {
+          "Name": "MetricOperation",
+          "Type": "String",
+          "Desc": "The name of the operation in the TensorFlow graph to compute performance metric during training (Optional)",
+          "Aliases": [
+            "MetricOp"
+          ],
+          "Required": false,
+          "SortOrder": 8.0,
+          "IsNullable": false,
+          "Default": null
+        },
+        {
+          "Name": "BatchSize",
+          "Type": "Int",
+          "Desc": "Number of samples to use for mini-batch training.",
+          "Required": false,
+          "SortOrder": 9.0,
+          "IsNullable": false,
+          "Default": 64
+        },
+        {
+          "Name": "Epoch",
+          "Type": "Int",
+          "Desc": "Number of training iterations.",
+          "Required": false,
+          "SortOrder": 10.0,
+          "IsNullable": false,
+          "Default": 5
+        },
+        {
+          "Name": "LearningRateOperation",
+          "Type": "String",
+          "Desc": "The name of the operation in the TensorFlow graph which sets optimizer learning rate (Optional).",
+          "Required": false,
+          "SortOrder": 11.0,
+          "IsNullable": false,
+          "Default": null
+        },
+        {
+          "Name": "LearningRate",
+          "Type": "Float",
+          "Desc": "Learning rate to use during optimization.",
+          "Required": false,
+          "SortOrder": 12.0,
+          "IsNullable": false,
+          "Default": 0.01
+        },
+        {
+          "Name": "Shuffle",
+          "Type": "Bool",
+          "Desc": "Shuffle data before each iteration.",
+          "Required": false,
+          "SortOrder": 13.0,
+          "IsNullable": false,
+          "Default": true
+        },
+        {
+          "Name": "SaveLocationOperation",
+          "Type": "String",
+          "Desc": "Name of the input in TensorFlow graph that specifiy the location for saving/restoring models from disk.",
+          "Required": false,
+          "SortOrder": 14.0,
+          "IsNullable": false,
+          "Default": "save/Const"
+        },
+        {
+          "Name": "SaveOperation",
+          "Type": "String",
+          "Desc": "Name of the input in TensorFlow graph that specifiy the location for saving/restoring models from disk.",
+          "Required": false,
+          "SortOrder": 15.0,
+          "IsNullable": false,
+          "Default": "save/control_dependency"
+        },
+        {
+          "Name": "ReTrain",
+          "Type": "Bool",
+          "Desc": "Retrain TensorFlow model.",
+          "Required": false,
+          "SortOrder": 16.0,
+          "IsNullable": false,
+          "Default": false
         }
       ],
       "Outputs": [
@@ -21981,7 +22970,7 @@
                     "Value"
                   ]
                 },
-                "Desc": "How items should be ordered when vectorized. By default, they will be in the order encountered. If by value items are sorted according to their default comparison, e.g., text sorting will be case sensitive (e.g., 'A' then 'Z' then 'a').",
+                "Desc": "How items should be ordered when vectorized. By default, they will be in the order encountered. If by value items are sorted according to their default comparison, for example, text sorting will be case sensitive (for example, 'A' then 'Z' then 'a').",
                 "Required": false,
                 "SortOrder": 5.0,
                 "IsNullable": false,
@@ -22142,7 +23131,7 @@
                       "Value"
                     ]
                   },
-                  "Desc": "How items should be ordered when vectorized. By default, they will be in the order encountered. If by value items are sorted according to their default comparison, e.g., text sorting will be case sensitive (e.g., 'A' then 'Z' then 'a').",
+                  "Desc": "How items should be ordered when vectorized. By default, they will be in the order encountered. If by value items are sorted according to their default comparison, for example, text sorting will be case sensitive (for example, 'A' then 'Z' then 'a').",
                   "Required": false,
                   "SortOrder": 150.0,
                   "IsNullable": true,
@@ -22237,7 +23226,7 @@
               "Value"
             ]
           },
-          "Desc": "How items should be ordered when vectorized. By default, they will be in the order encountered. If by value items are sorted according to their default comparison, e.g., text sorting will be case sensitive (e.g., 'A' then 'Z' then 'a').",
+          "Desc": "How items should be ordered when vectorized. By default, they will be in the order encountered. If by value items are sorted according to their default comparison, for example, text sorting will be case sensitive (for example, 'A' then 'Z' then 'a').",
           "Required": false,
           "SortOrder": 113.0,
           "IsNullable": false,
@@ -22886,16 +23875,19 @@
           "IsNullable": false
         },
         {
-          "Name": "TermSeparators",
-          "Type": "String",
-          "Desc": "Comma separated set of term separator(s). Commonly: 'space', 'comma', 'semicolon' or other single character.",
+          "Name": "CharArrayTermSeparators",
+          "Type": {
+            "Kind": "Array",
+            "ItemType": "Char"
+          },
+          "Desc": "Array of single character term separator(s). By default uses space character separator.",
           "Aliases": [
             "sep"
           ],
           "Required": false,
           "SortOrder": 150.0,
           "IsNullable": false,
-          "Default": "space"
+          "Default": null
         }
       ],
       "Outputs": [
@@ -28577,7 +29569,7 @@
                   ]
                 }
               },
-              "Desc": "Column definitions used to override the Partitioned Path Parser. Expected with the format name:type:numeric-source, e.g. col=MyFeature:R4:1",
+              "Desc": "Column definitions used to override the Partitioned Path Parser. Expected with the format name:type:numeric-source, for example, col=MyFeature:R4:1",
               "Aliases": [
                 "col"
               ],

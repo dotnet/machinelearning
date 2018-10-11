@@ -4,6 +4,7 @@
 
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime.Data;
+using Microsoft.ML.Runtime.KMeans;
 using Microsoft.ML.Runtime.Learners;
 using Microsoft.ML.Runtime.PCA;
 using Microsoft.ML.Runtime.RunTests;
@@ -42,6 +43,61 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             var pipeline = new RandomizedPcaTrainer(Env, featureColumn, rank:10);
 
             TestEstimatorCore(pipeline, data);
+            Done();
+        }
+
+        /// <summary>
+        /// KMeans TrainerEstimator test 
+        /// </summary>
+        [Fact]
+        public void KMeansEstimator()
+        {
+            string featureColumn = "NumericFeatures";
+            string weights = "Weights";
+
+            var reader = new TextLoader(Env, new TextLoader.Arguments
+            {
+                HasHeader = true,
+                Separator = "\t",
+                Column = new[]
+                {
+                    new TextLoader.Column(featureColumn, DataKind.R4, new [] { new TextLoader.Range(1, 784) }),
+                    new TextLoader.Column(weights, DataKind.R4, 0)
+                }
+            });
+            var data = reader.Read(new MultiFileSource(GetDataPath(TestDatasets.mnistTiny28.trainFilename)));
+
+
+            // Pipeline.
+            var pipeline = new KMeansPlusPlusTrainer(Env, featureColumn, weightColumn: weights,
+                            advancedSettings: s => { s.InitAlgorithm = KMeansPlusPlusTrainer.InitAlgorithm.KMeansParallel; });
+
+            TestEstimatorCore(pipeline, data);
+
+            Done();
+        }
+
+        /// <summary>
+        /// HogwildSGD TrainerEstimator test 
+        /// </summary>
+        [Fact]
+        public void TestEstimatorHogwildSGD()
+        {
+            (IEstimator<ITransformer> pipe, IDataView dataView) = GetBinaryClassificationPipeline();
+            pipe.Append(new StochasticGradientDescentClassificationTrainer(Env, "Features", "Label"));
+            TestEstimatorCore(pipe, dataView);
+            Done();
+        }
+
+        /// <summary>
+        /// MultiClassNaiveBayes TrainerEstimator test 
+        /// </summary>
+        [Fact]
+        public void TestEstimatorMultiClassNaiveBayesTrainer()
+        {
+            (IEstimator<ITransformer> pipe, IDataView dataView) = GetMultiClassPipeline();
+            pipe.Append(new MultiClassNaiveBayesTrainer(Env, "Features", "Label"));
+            TestEstimatorCore(pipe, dataView);
             Done();
         }
 

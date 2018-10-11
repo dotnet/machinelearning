@@ -14,11 +14,11 @@ namespace Microsoft.ML.InternalCodeAnalyzer
 {
     internal enum NameType
     {
-        UnderScoreCamelCased, // E.g., _myPrivateField
-        CamelCased,           // E.g., myAwesomeParameter
-        PascalCased,          // E.g., AwesomeClass
-        IPascalCased,         // E.g., IEnumerableStuff
-        TPascalCased,         // E.g., TDictArg
+        UnderScoreCamelCased, // For example, _myPrivateField
+        CamelCased,           // For example, myAwesomeParameter
+        PascalCased,          // For example, AwesomeClass
+        IPascalCased,         // For example, IEnumerableStuff
+        TPascalCased,         // For example, TDictArg
     }
 
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
