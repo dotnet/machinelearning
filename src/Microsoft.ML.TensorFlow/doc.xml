@@ -50,7 +50,7 @@
           pipeline.Add(new ColumnCopier(("NumericImageVec", "Input");
           pipeline.Add(new TensorFlowScorer()
           {
-            Model = model_location;
+            ModelLocation = model_location;
             InputColumns = new[] { "Input" };
             OutputColumns = new[] { "Output" };
           }
@@ -80,7 +80,7 @@
 
           pipeline.Add(new TensorFlowScorer()
           {
-            Model = model_location,
+            ModelLocation = model_location,
             InputColumns = new[] { "Input" },
             OutputColumns = new[] { "Output" }
           });

@@ -300,6 +300,44 @@ namespace Microsoft.ML.Runtime.RunTests
             Done();
         }
 
+        [Fact]
+        public void EntryPointCatalogCheckDuplicateParams()
+        {
+            // Run this test to prevent introducing duplicate param names in entrypoints
+            // TODO: fix entrypoints in excludeSet from having duplicate param names
+            var excludeSet = new HashSet<string>();
+            excludeSet.Add("Data.DataViewReference");
+            excludeSet.Add("Models.CrossValidator");
+            excludeSet.Add("Models.CrossValidationResultsCombiner");
+            excludeSet.Add("Models.PipelineSweeper");
+            excludeSet.Add("Models.PipelineSweeper");
+            excludeSet.Add("Models.SweepResultExtractor");
+            excludeSet.Add("Models.TrainTestEvaluator");
+            excludeSet.Add("Transforms.TwoHeterogeneousModelCombiner");
+            excludeSet.Add("Transforms.ManyHeterogeneousModelCombiner");
+
+            var (epListContents, jObj) = BuildManifests();
+            foreach (var ep in jObj["EntryPoints"])
+            {
+                if (excludeSet.Contains(ep["Name"].ToString()))
+                    continue;
+
+                var variables = new HashSet<string>();
+                foreach (var param in ep["Inputs"])
+                {
+                    var name = param["Name"].ToString();
+                    Check(variables.Add(name), "Duplicate param {0} in entrypoint {1}", name, ep["Name"]);
+                }
+                foreach (var param in ep["Outputs"])
+                {
+                    var name = param["Name"].ToString();
+                    Check(variables.Add(name), "Duplicate param {0} in entrypoint {1}", name, ep["Name"]);
+                }
+            }
+
+            Done();
+        }
+
         private (IEnumerable<string> epListContents, JObject manifest) BuildManifests()
         {
             Env.ComponentCatalog.RegisterAssembly(typeof(LightGbmBinaryPredictor).Assembly);
@@ -1798,14 +1836,14 @@ namespace Microsoft.ML.Runtime.RunTests
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // LightGBM is 64-bit only
         public void EntryPointLightGbmBinary()
         {
             Env.ComponentCatalog.RegisterAssembly(typeof(LightGbmBinaryPredictor).Assembly);
             TestEntryPointRoutine("breast-cancer.txt", "Trainers.LightGbmBinaryClassifier");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // LightGBM is 64-bit only
         public void EntryPointLightGbmMultiClass()
         {
             Env.ComponentCatalog.RegisterAssembly(typeof(LightGbmBinaryPredictor).Assembly);
@@ -3725,7 +3763,7 @@ namespace Microsoft.ML.Runtime.RunTests
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // TensorFlow is 64-bit only
         public void EntryPointTensorFlowTransform()
         {
             Env.ComponentCatalog.RegisterAssembly(typeof(TensorFlowTransform).Assembly);
@@ -3735,7 +3773,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 new[]
                 {
                     @"'InputColumns': [ 'Placeholder' ],
-                      'Model': 'mnist_model/frozen_saved_model.pb',
+                      'ModelLocation': 'mnist_model/frozen_saved_model.pb',
                       'OutputColumns': [ 'Softmax' ]"
                 });
         }

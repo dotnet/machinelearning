@@ -16638,7 +16638,7 @@ namespace Microsoft.ML
             /// <summary>
             /// TensorFlow model used by the transform. Please see https://www.tensorflow.org/mobile/prepare_models for more details.
             /// </summary>
-            public string Model { get; set; }
+            public string ModelLocation { get; set; }
 
             /// <summary>
             /// The names of the model inputs
