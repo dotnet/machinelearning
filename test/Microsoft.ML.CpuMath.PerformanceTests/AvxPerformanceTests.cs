@@ -11,26 +11,6 @@ namespace Microsoft.ML.CpuMath.PerformanceTests
 {
     public class AvxPerformanceTests : PerformanceTests
     {
-        private AlignedArray _testMatrices;
-        private AlignedArray _testSrcVectors;
-        private AlignedArray _testDstVectors;
-
-        [GlobalSetup(Targets = new string[] { nameof(MatMulX), nameof(MatMulTranX) })]
-        public void MatMulSetup()
-        {
-            Setup();
-            int vectorAlignment = CpuMathUtils.GetVectorAlignment();
-
-            _testMatrices = new AlignedArray(1000 * 1000, vectorAlignment);
-            _testMatrices.CopyFrom(src, 0, 1000 * 1000);
-           
-            _testSrcVectors = new AlignedArray(1000, vectorAlignment);
-            _testSrcVectors.CopyFrom(src, 0, 1000);
-                       
-            _testDstVectors = new AlignedArray(1000, vectorAlignment);
-            _testDstVectors.CopyFrom(dst, 0, 1000);
-        }
-
         [Benchmark]
         public void AddScalarU()
             => AvxIntrinsics.AddScalarU(DefaultScale, new Span<float>(dst, 0, Length));
@@ -122,10 +102,10 @@ namespace Microsoft.ML.CpuMath.PerformanceTests
 
         [Benchmark]
         public void MatMulX()
-            => AvxIntrinsics.MatMulX(true, _testMatrices, _testMatrices, _testDstVectors, 1000, 1000);
+            => AvxIntrinsics.MatMulX(true, src, src1, dst, 1000, 1000);
 
         [Benchmark]
         public void MatMulTranX()
-            => AvxIntrinsics.MatMulTranX(true, _testMatrices, _testMatrices, _testDstVectors, 1000, 1000);
+            => AvxIntrinsics.MatMulTranX(true, src, src1, dst, 1000, 1000);
     }
 }

@@ -145,21 +145,16 @@ EXPORT_API(void) MatMul(bool add, _In_ const float * pmat, _In_ const float * ps
   
         if ((misalignment & 3) != 0)
         {
-            while (pSrcCurrent + 4 <= pSrcEnd)
+            while (pSrcCurrent < pSrcEnd)
             {
-                remainder = ccol % 4;
-
-                __m128 x01 = _mm_loadu_ps(pMatCurrent);
-                __m128 x11 = _mm_loadu_ps(pMatCurrent + ccol);
-                __m128 x21 = _mm_loadu_ps(pMatCurrent + 2 * ccol);
-                __m128 x31 = _mm_loadu_ps(pMatCurrent + 3 * ccol);
                 __m128 vector = _mm_loadu_ps(pSrcCurrent);
                 
-                x01 = _mm_mul_ps(x01, vector);
-                x11 = _mm_mul_ps(x11, vector);
-                x21 = _mm_mul_ps(x21, vector);
-                x31 = _mm_mul_ps(x31, vector);
-                
+                const float* pMatTemp = pMatCurrent;
+                __m128 x01 = _mm_mul_ps(vector, _mm_loadu_ps(pMatTemp));
+                __m128 x11 = _mm_mul_ps(vector, _mm_loadu_ps(pMatTemp += ccol));
+                __m128 x21 = _mm_mul_ps(vector, _mm_loadu_ps(pMatTemp += ccol));
+                __m128 x31 = _mm_mul_ps(vector, _mm_loadu_ps(pMatTemp += ccol));
+
                 res0 = _mm_add_ps(res0, x01);
                 res1 = _mm_add_ps(res1, x11);
                 res2 = _mm_add_ps(res2, x21);
@@ -176,25 +171,20 @@ EXPORT_API(void) MatMul(bool add, _In_ const float * pmat, _In_ const float * ps
                 misalignment >>= 2;
                 misalignment = 4 - misalignment;
 
-                __m128 x01 = _mm_loadu_ps(pMatCurrent);
-                __m128 x11 = _mm_loadu_ps(pMatCurrent + ccol);
-                __m128 x21 = _mm_loadu_ps(pMatCurrent + 2 * ccol);
-                __m128 x31 = _mm_loadu_ps(pMatCurrent + 3 * ccol);
-                __m128 vector = _mm_loadu_ps(pSrcCurrent);
-
                 __m128 mask = _mm_loadu_ps(((float*)(&LeadingAlignmentMask)) + (misalignment * 4));
-                
-                __m128 tempX01 = _mm_and_ps(x01, mask);
-                __m128 tempX11 = _mm_and_ps(x11, mask);
-                __m128 tempX21 = _mm_and_ps(x21, mask);
-                __m128 tempX31 = _mm_and_ps(x31, mask);
 
-                __m128 tempVec = _mm_and_ps(vector, mask);
+                // We only align pMat since it has significantly more reads.
+                const float* pMatTemp = pMatCurrent;
+                __m128 x01 = _mm_and_ps(mask, _mm_loadu_ps(pMatTemp));
+                __m128 x11 = _mm_and_ps(mask, _mm_loadu_ps(pMatTemp += ccol));
+                __m128 x21 = _mm_and_ps(mask, _mm_loadu_ps(pMatTemp += ccol));
+                __m128 x31 = _mm_and_ps(mask, _mm_loadu_ps(pMatTemp += ccol));                
+                __m128 vector = _mm_and_ps(mask, _mm_loadu_ps(pSrcCurrent));
 
-                res0 = _mm_mul_ps(tempX01, tempVec);
-                res1 = _mm_mul_ps(tempX11, tempVec);
-                res2 = _mm_mul_ps(tempX21, tempVec);
-                res3 = _mm_mul_ps(tempX31, tempVec);
+                res0 = _mm_mul_ps(x01, vector);
+                res1 = _mm_mul_ps(x11, vector);
+                res2 = _mm_mul_ps(x21, vector);
+                res3 = _mm_mul_ps(x31, vector);
                                 
                 pMatCurrent += misalignment;
                 pSrcCurrent += misalignment;
@@ -204,19 +194,15 @@ EXPORT_API(void) MatMul(bool add, _In_ const float * pmat, _In_ const float * ps
             if (length > 3)
             {
                 remainder = length % 4;
-                while(pSrcCurrent + 4 <= pSrcEnd)
+                while(pSrcCurrent < pSrcEnd)
                 {
-                    __m128 x01 = _mm_load_ps(pMatCurrent);
-                    __m128 x11 = _mm_load_ps(pMatCurrent + ccol);
-                    __m128 x21 = _mm_load_ps(pMatCurrent + 2 * ccol);
-                    __m128 x31 = _mm_load_ps(pMatCurrent + 3 * ccol);
-
                     __m128 vector = _mm_loadu_ps(pSrcCurrent);
                 
-                    x01 = _mm_mul_ps(x01, vector);
-                    x11 = _mm_mul_ps(x11, vector);
-                    x21 = _mm_mul_ps(x21, vector);
-                    x31 = _mm_mul_ps(x31, vector);
+                    const float* pMatTemp = pMatCurrent;
+                    __m128 x01 = _mm_mul_ps(vector, _mm_load_ps(pMatTemp));
+                    __m128 x11 = _mm_mul_ps(vector, _mm_load_ps(pMatTemp += ccol));
+                    __m128 x21 = _mm_mul_ps(vector, _mm_load_ps(pMatTemp += ccol));
+                    __m128 x31 = _mm_mul_ps(vector, _mm_load_ps(pMatTemp += ccol));
                 
                     res0 = _mm_add_ps(res0, x01);
                     res1 = _mm_add_ps(res1, x11);
@@ -236,31 +222,20 @@ EXPORT_API(void) MatMul(bool add, _In_ const float * pmat, _In_ const float * ps
             {
                 pMatCurrent -= (4 - remainder);
                 pSrcCurrent -= (4 - remainder);
-                
-                __m128 x01 = _mm_loadu_ps(pMatCurrent);
-                __m128 x11 = _mm_loadu_ps(pMatCurrent + ccol);
-                __m128 x21 = _mm_loadu_ps(pMatCurrent + 2 * ccol);
-                __m128 x31 = _mm_loadu_ps(pMatCurrent + 3 * ccol);
-                __m128 vector = _mm_loadu_ps(pSrcCurrent);
 
                 __m128 mask = _mm_loadu_ps(((float*)(&TrailingAlignmentMask)) + (remainder * 4));
 
-                __m128 tempX01 = _mm_and_ps(x01, mask);
-                __m128 tempX11 = _mm_and_ps(x11, mask);
-                __m128 tempX21 = _mm_and_ps(x21, mask);
-                __m128 tempX31 = _mm_and_ps(x31, mask);
+                const float* pMatTemp = pMatCurrent;
+                __m128 x01 = _mm_and_ps(mask, _mm_loadu_ps(pMatTemp));
+                __m128 x11 = _mm_and_ps(mask, _mm_loadu_ps(pMatTemp += ccol));
+                __m128 x21 = _mm_and_ps(mask, _mm_loadu_ps(pMatTemp += ccol));
+                __m128 x31 = _mm_and_ps(mask, _mm_loadu_ps(pMatTemp += ccol));                
+                __m128 vector = _mm_and_ps(mask, _mm_loadu_ps(pSrcCurrent));
 
-                __m128 tempVec = _mm_and_ps(vector, mask);
-
-                x01 = _mm_mul_ps(tempX01, tempVec);
-                x11 = _mm_mul_ps(tempX11, tempVec);
-                x21 = _mm_mul_ps(tempX21, tempVec);
-                x31 = _mm_mul_ps(tempX31, tempVec);
-
-                res0 = _mm_add_ps(res0, x01);
-                res1 = _mm_add_ps(res1, x11);
-                res2 = _mm_add_ps(res2, x21);
-                res3 = _mm_add_ps(res3, x31);
+                res0 = _mm_add_ps(x01, _mm_mul_ps(x01, vector));
+                res1 = _mm_add_ps(x11, _mm_mul_ps(x11, vector));
+                res2 = _mm_add_ps(x21, _mm_mul_ps(x21, vector));
+                res3 = _mm_add_ps(x31, _mm_mul_ps(x31, vector));
               
                 pMatCurrent += 4;
                 pSrcCurrent += 4;
@@ -644,16 +619,11 @@ EXPORT_API(void) MatMulTran(bool add, _In_ const float * pmat, _In_ const float 
         {
             while (pDstCurrent < pDstEnd)
             {
-                __m128 x02 = _mm_loadu_ps(pMatCurrent);
-                __m128 x12 = _mm_loadu_ps(pMatCurrent + crow);
-                __m128 x22 = _mm_loadu_ps(pMatCurrent + 2 * crow);
-                __m128 x32 = _mm_loadu_ps(pMatCurrent + 3 * crow);
-                __m128 x3 = _mm_loadu_ps(pDstCurrent);
-
-                x02 = _mm_mul_ps(x01, x02);
-                x12 = _mm_mul_ps(x11, x12);
-                x22 = _mm_mul_ps(x21, x22);
-                x32 = _mm_mul_ps(x31, x32);
+                const float* pMatTemp = pMatCurrent;
+                __m128 x02 = _mm_mul_ps(x01, _mm_loadu_ps(pMatTemp));
+                __m128 x12 = _mm_mul_ps(x11, _mm_loadu_ps(pMatTemp += crow));
+                __m128 x22 = _mm_mul_ps(x21, _mm_loadu_ps(pMatTemp += crow));
+                __m128 x32 = _mm_mul_ps(x31, _mm_loadu_ps(pMatTemp += crow));
 
                 x02 = _mm_add_ps(x02, x12);
                 x22 = _mm_add_ps(x22, x32);
@@ -661,10 +631,10 @@ EXPORT_API(void) MatMulTran(bool add, _In_ const float * pmat, _In_ const float 
                 
                 if (add || !firstTime)
                 {
-                    x02 = _mm_add_ps(x02, x3);
+                    x02 = _mm_add_ps(x02, _mm_loadu_ps(pDstCurrent));
                 }
-                _mm_storeu_ps(pDstCurrent, x02);
                 
+                _mm_storeu_ps(pDstCurrent, x02);
                 pDstCurrent += 4;
                 pMatCurrent += 4;
             }
@@ -676,21 +646,15 @@ EXPORT_API(void) MatMulTran(bool add, _In_ const float * pmat, _In_ const float 
             {
                 misalignment >>= 2;
                 misalignment = 4 - misalignment;
+                
+                __m128 leadingMask = _mm_loadu_ps(((float*)(&LeadingAlignmentMask)) + (misalignment * 4));
 
-                __m128 x02 = _mm_loadu_ps(pMatCurrent);
-                __m128 x12 = _mm_loadu_ps(pMatCurrent + crow);
-                __m128 x22 = _mm_loadu_ps(pMatCurrent + 2 * crow);
-                __m128 x32 = _mm_loadu_ps(pMatCurrent + 3 * crow);
-
-                __m128 mask = _mm_loadu_ps(((float*)(&LeadingAlignmentMask)) + (misalignment * 4));
-                __m128 mask2 = _mm_loadu_ps(((float*)(&TrailingAlignmentMask)) + (( 4 - misalignment) * 4));     
-
-                x02 = _mm_and_ps(x02, mask);
-                x12 = _mm_and_ps(x12, mask);
-                x22 = _mm_and_ps(x22, mask);
-                x32 = _mm_and_ps(x32, mask);
-
-                __m128 x3 = _mm_loadu_ps(pDstCurrent);
+                // We only align pMat since it has significantly more reads.
+                const float* pMatTemp = pMatCurrent;
+                __m128 x02 = _mm_and_ps(leadingMask, _mm_loadu_ps(pMatTemp));
+                __m128 x12 = _mm_and_ps(leadingMask, _mm_loadu_ps(pMatTemp += crow));
+                __m128 x22 = _mm_and_ps(leadingMask, _mm_loadu_ps(pMatTemp += crow));
+                __m128 x32 = _mm_and_ps(leadingMask, _mm_loadu_ps(pMatTemp += crow));
 
                 x02 = _mm_mul_ps(x01, x02);
                 x12 = _mm_mul_ps(x11, x12);
@@ -701,11 +665,13 @@ EXPORT_API(void) MatMulTran(bool add, _In_ const float * pmat, _In_ const float 
                 x22 = _mm_add_ps(x22, x32);
                 x02 = _mm_add_ps(x02, x22);
 
-                x02 = _mm_or_ps(x02, _mm_and_ps(x3, mask2));
+                __m128 trailingMask = _mm_loadu_ps(((float*)(&TrailingAlignmentMask)) + (( 4 - misalignment) * 4));
+                __m128 x3 = _mm_loadu_ps(pDstCurrent);
+                x02 = _mm_or_ps(x02, _mm_and_ps(x3, trailingMask));
 
                 if (add || !firstTime)
                 {
-                    x02 = _mm_add_ps(x02, _mm_and_ps(x3, mask));
+                    x02 = _mm_add_ps(x02, _mm_and_ps(x3, leadingMask));
                 }
 
                 _mm_storeu_ps(pDstCurrent, x02);
@@ -717,18 +683,13 @@ EXPORT_API(void) MatMulTran(bool add, _In_ const float * pmat, _In_ const float 
             if(length > 3)
             {
                 remainder = length % 4;
-                while (pDstCurrent + 4 <= pDstEnd)
+                while (pDstCurrent < pDstEnd)
                 {
-                    __m128 x02 = _mm_loadu_ps(pMatCurrent);
-                    __m128 x12 = _mm_loadu_ps(pMatCurrent + crow);
-                    __m128 x22 = _mm_loadu_ps(pMatCurrent + 2 * crow);
-                    __m128 x32 = _mm_loadu_ps(pMatCurrent + 3 * crow);
-                    __m128 x3 = _mm_loadu_ps(pDstCurrent);
- 
-                    x02 = _mm_mul_ps(x01, x02);
-                    x12 = _mm_mul_ps(x11, x12);
-                    x22 = _mm_mul_ps(x21, x22);
-                    x32 = _mm_mul_ps(x31, x32);
+                    const float* pMatTemp = pMatCurrent;
+                    __m128 x02 = _mm_mul_ps(x01, _mm_load_ps(pMatTemp));
+                    __m128 x12 = _mm_mul_ps(x11, _mm_load_ps(pMatTemp += crow));
+                    __m128 x22 = _mm_mul_ps(x21, _mm_load_ps(pMatTemp += crow));
+                    __m128 x32 = _mm_mul_ps(x31, _mm_load_ps(pMatTemp += crow));
 
                     x02 = _mm_add_ps(x02, x12);
                     x22 = _mm_add_ps(x22, x32);
@@ -736,7 +697,7 @@ EXPORT_API(void) MatMulTran(bool add, _In_ const float * pmat, _In_ const float 
                 
                     if (add || !firstTime)
                     {
-                        x02 = _mm_add_ps(x02, x3);
+                        x02 = _mm_add_ps(x02,  _mm_loadu_ps(pDstCurrent));
                     }
                     _mm_storeu_ps(pDstCurrent, x02);
                 
@@ -753,21 +714,14 @@ EXPORT_API(void) MatMulTran(bool add, _In_ const float * pmat, _In_ const float 
             {
                 pMatCurrent -= (4 - remainder);
                 pDstCurrent -= (4 - remainder);
+
+                __m128 trailingMask = _mm_loadu_ps(((float*)(&TrailingAlignmentMask)) + (remainder * 4));             
                 
-                __m128 x02 = _mm_loadu_ps(pMatCurrent);
-                __m128 x12 = _mm_loadu_ps(pMatCurrent + crow);
-                __m128 x22 = _mm_loadu_ps(pMatCurrent + 2 * crow);
-                __m128 x32 = _mm_loadu_ps(pMatCurrent + 3 * crow);
-
-                __m128 mask = _mm_loadu_ps(((float*)(&TrailingAlignmentMask)) + (remainder * 4));
-                __m128 mask2 = _mm_loadu_ps(((float*)(&LeadingAlignmentMask)) + (( 4 - remainder) * 4));     
-
-                x02 = _mm_and_ps(x02, mask);
-                x12 = _mm_and_ps(x12, mask);
-                x22 = _mm_and_ps(x22, mask);
-                x32 = _mm_and_ps(x32, mask);
-
-                __m128 x3 = _mm_loadu_ps(pDstCurrent);
+                const float* pMatTemp = pMatCurrent;
+                __m128 x02 = _mm_and_ps(trailingMask, _mm_loadu_ps(pMatTemp));
+                __m128 x12 = _mm_and_ps(trailingMask, _mm_loadu_ps(pMatTemp += crow));
+                __m128 x22 = _mm_and_ps(trailingMask, _mm_loadu_ps(pMatTemp += crow));
+                __m128 x32 = _mm_and_ps(trailingMask, _mm_loadu_ps(pMatTemp += crow));
 
                 x02 = _mm_mul_ps(x01, x02);
                 x12 = _mm_mul_ps(x11, x12);
@@ -778,11 +732,13 @@ EXPORT_API(void) MatMulTran(bool add, _In_ const float * pmat, _In_ const float 
                 x22 = _mm_add_ps(x22, x32);
                 x02 = _mm_add_ps(x02, x22);
 
-                x02 = _mm_or_ps(x02, _mm_and_ps(x3, mask2));
+                __m128 leadingMask = _mm_loadu_ps(((float*)(&LeadingAlignmentMask)) + (( 4 - remainder) * 4));
+                __m128 x3 = _mm_loadu_ps(pDstCurrent);
+                x02 = _mm_or_ps(x02, _mm_and_ps(x3, leadingMask));
 
                 if (add || !firstTime)
                 {
-                    x02 = _mm_add_ps(x02, _mm_and_ps(x3, mask));
+                    x02 = _mm_add_ps(x02, _mm_and_ps(x3, trailingMask));
                 }
 
                 _mm_storeu_ps(pDstCurrent, x02);
