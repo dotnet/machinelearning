@@ -1955,12 +1955,7 @@ namespace Microsoft.ML.Runtime.RunTests
             string data = GetDataPath("breast-cancer.txt");
             OutputPath model = ModelPath();
 
-            // see https://github.com/dotnet/machinelearning/issues/404
-            // in Linux, the clang sqrt() results vary highly from the ones in mac and Windows. 
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-                TestCore("traintest", data, loaderArgs, extraArgs + " test=" + data, digitsOfPrecision:4);
-            else
-                TestCore("traintest", data, loaderArgs, extraArgs + " test=" + data);
+            TestCore("traintest", data, loaderArgs, extraArgs + " test=" + data);
 
             _step++;
             TestInOutCore("traintest", data, model, extraArgs + " " + loaderArgs + " " + "cont+" + " " + "test=" + data);
@@ -1976,12 +1971,7 @@ namespace Microsoft.ML.Runtime.RunTests
             string data = GetDataPath("breast-cancer.txt");
             OutputPath model = ModelPath();
 
-            // see https://github.com/dotnet/machinelearning/issues/404
-            // in Linux, the clang sqrt() results vary highly from the ones in mac and Windows. 
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-                TestCore("traintest", data, loaderArgs, extraArgs + " test=" + data, digitsOfPrecision: 6);
-            else
-                TestCore("traintest", data, loaderArgs, extraArgs + " test=" + data);
+            TestCore("traintest", data, loaderArgs, extraArgs + " test=" + data);
 
             _step++;
             TestInOutCore("traintest", data, model, extraArgs + " " + loaderArgs + " " + "cont+" + " " + "test=" + data);
@@ -2050,12 +2040,7 @@ namespace Microsoft.ML.Runtime.RunTests
             string data = GetDataPath("breast-cancer.txt");
             OutputPath model = ModelPath();
 
-            // see https://github.com/dotnet/machinelearning/issues/404
-            // in Linux, the clang sqrt() results vary highly from the ones in mac and Windows. 
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-                TestCore("traintest", data, loaderArgs, extraArgs + " test=" + data, digitsOfPrecision:4);
-            else
-                TestCore("traintest", data, loaderArgs, extraArgs + " test=" + data);
+            TestCore("traintest", data, loaderArgs, extraArgs + " test=" + data);
 
             _step++;
             OutputPath outputPath = StdoutPath();

@@ -504,7 +504,7 @@ namespace Microsoft.ML.Runtime.RunTests
 
         private static void GetNumbersFromFile(ref string firstString, ref string secondString, int digitsOfPrecision)
         {
-            Regex _matchNumer = new Regex(@"\b[0-9]+\.?[0-9]*\b", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+            Regex _matchNumer = new Regex(@"\b[0-9]+\.?[0-9]*(E-[0-9]*)?\b", RegexOptions.IgnoreCase | RegexOptions.Compiled);
             MatchCollection firstCollection = _matchNumer.Matches(firstString);
             MatchCollection secondCollection = _matchNumer.Matches(secondString);
 
@@ -521,24 +521,11 @@ namespace Microsoft.ML.Runtime.RunTests
                 double f2 = double.Parse(secondCollection[i].ToString());
 
                 double allowedVariance = Math.Pow(10, -digitsOfPrecision);
-                double delta = Round(f1, digitsOfPrecision) - Round(f2, digitsOfPrecision);
+                double delta = Math.Round(f1, digitsOfPrecision) - Math.Round(f2, digitsOfPrecision);
+                delta = Math.Round(delta, digitsOfPrecision, MidpointRounding.ToEven);
 
                 Assert.InRange(delta, -allowedVariance, allowedVariance);
             }
-        }
-
-        private static double Round(double value, int digitsOfPrecision)
-        {
-            if ((value == 0) || double.IsInfinity(value) || double.IsNaN(value))
-            {
-                return value;
-            }
-
-            double absValue = Math.Abs(value);
-            double integralDigitCount = Math.Floor(Math.Log10(absValue) + 1);
-
-            double scale = Math.Pow(10, integralDigitCount);
-            return scale * Math.Round(value / scale, digitsOfPrecision);
         }
 
 #if TOLERANCE_ENABLED

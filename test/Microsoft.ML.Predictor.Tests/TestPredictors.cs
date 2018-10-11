@@ -1944,10 +1944,8 @@ output Out [3] from H all;
 
             // see https://github.com/dotnet/machinelearning/issues/404
             // in Linux, the clang sqrt() results vary highly from the ones in mac and Windows. 
-            // Going for 3 digits of precision, because the range of search is  (-0.0001 - 0.0001)
-            // for one of the values, and the actual value is 0.00099999999999989
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-                RunAllTests(binaryPredictors, binaryClassificationDatasets, digitsOfPrecision:3);
+                RunAllTests(binaryPredictors, binaryClassificationDatasets, digitsOfPrecision: 5);
             else
                 RunAllTests(binaryPredictors, binaryClassificationDatasets);
 
