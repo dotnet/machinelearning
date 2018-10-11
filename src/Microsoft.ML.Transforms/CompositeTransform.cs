@@ -56,8 +56,6 @@ namespace Microsoft.ML.Runtime.Data
                     ctx.LoadModel<IDataTransform, SignatureLoadDataTransform>(env, out res, modelName, input);
                     input = res;
                 }
-
-                ch.Done();
             }
 
             return res;

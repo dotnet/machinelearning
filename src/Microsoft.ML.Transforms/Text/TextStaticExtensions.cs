@@ -24,7 +24,7 @@ namespace Microsoft.ML.Transforms.Text
         {
             public readonly Scalar<string> Input;
 
-            public OutPipelineColumn(Scalar<string> input, string separators)
+            public OutPipelineColumn(Scalar<string> input, char[] separators)
                 : base(new Reconciler(separators), input)
             {
                 Input = input;
@@ -33,9 +33,9 @@ namespace Microsoft.ML.Transforms.Text
 
         private sealed class Reconciler : EstimatorReconciler
         {
-            private readonly string _separators;
+            private readonly char[] _separators;
 
-            public Reconciler(string separators)
+            public Reconciler(char[] separators)
             {
                 _separators = separators;
             }
@@ -60,8 +60,8 @@ namespace Microsoft.ML.Transforms.Text
         /// Tokenize incoming text using <paramref name="separators"/> and output the tokens.
         /// </summary>
         /// <param name="input">The column to apply to.</param>
-        /// <param name="separators">The separators to use (comma separated).</param>
-        public static VarVector<string> TokenizeText(this Scalar<string> input, string separators = "space") => new OutPipelineColumn(input, separators);
+        /// <param name="separators">The separators to use (uses space character by default).</param>
+        public static VarVector<string> TokenizeText(this Scalar<string> input, char[] separators = null) => new OutPipelineColumn(input, separators);
     }
 
     /// <summary>

@@ -22,6 +22,7 @@
     <ProjectReference Include="..\..\src\Microsoft.ML.Onnx\Microsoft.ML.Onnx.csproj" />
     <ProjectReference Include="..\..\src\Microsoft.ML.TensorFlow\Microsoft.ML.TensorFlow.csproj" />
     <ProjectReference Include="..\..\src\Microsoft.ML.Legacy\Microsoft.ML.Legacy.csproj" />
+    <ProjectReference Include="..\..\src\Microsoft.ML.TimeSeries\Microsoft.ML.TimeSeries.csproj" />
     <ProjectReference Include="..\Microsoft.ML.Predictor.Tests\Microsoft.ML.Predictor.Tests.csproj" />
     <ProjectReference Include="..\Microsoft.ML.TestFramework\Microsoft.ML.TestFramework.csproj" />
   </ItemGroup>
@@ -32,7 +33,12 @@
     <NativeAssemblyReference Include="FactorizationMachineNative" />
     <NativeAssemblyReference Include="LdaNative" />
     <NativeAssemblyReference Include="SymSgdNative" />
+    <NativeAssemblyReference Include="MklProxyNative" />
     <NativeAssemblyReference Include="MklImports" />
+  </ItemGroup>
+
+  <!-- TensorFlow is 64-bit only -->
+  <ItemGroup Condition="'$(NativeTargetArchitecture)' == 'x64'">
     <NativeAssemblyReference Include="tensorflow" />
     <NativeAssemblyReference Condition="'$(OS)' != 'Windows_NT'" Include="tensorflow_framework" />
   </ItemGroup>
@@ -41,7 +47,7 @@
     <None Include="Scenarios\Api\AspirationalExamples.cs" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.ML.TensorFlow.TestModels" Version="0.0.3-test" />
+    <PackageReference Include="Microsoft.ML.TensorFlow.TestModels" Version="0.0.4-test" />
     <PackageReference Include="Microsoft.ML.Onnx.TestModels" Version="0.0.2-test" />
   </ItemGroup>
 </Project>

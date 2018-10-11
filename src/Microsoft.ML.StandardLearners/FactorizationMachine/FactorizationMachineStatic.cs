@@ -7,12 +7,13 @@ using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.FactorizationMachine;
 using Microsoft.ML.Runtime.Internal.Utilities;
+using Microsoft.ML.StaticPipe;
 using Microsoft.ML.StaticPipe.Runtime;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Microsoft.ML.StaticPipe
+namespace Microsoft.ML.Trainers
 {
     /// <summary>
     /// Extension methods and utilities for instantiating FFM trainer estimators inside statically typed pipelines.
@@ -30,8 +31,8 @@ namespace Microsoft.ML.StaticPipe
         /// <param name="numLatentDimensions">Latent space dimensions.</param>
         /// <param name="advancedSettings">A delegate to set more settings.</param>
         /// <param name="onFit">A delegate that is called every time the
-        /// <see cref="Estimator{TTupleInShape, TTupleOutShape, TTransformer}.Fit(DataView{TTupleInShape})"/> method is called on the
-        /// <see cref="Estimator{TTupleInShape, TTupleOutShape, TTransformer}"/> instance created out of this. This delegate will receive
+        /// <see cref="Estimator{TInShape, TOutShape, TTransformer}.Fit(DataView{TInShape})"/> method is called on the
+        /// <see cref="Estimator{TInShape, TOutShape, TTransformer}"/> instance created out of this. This delegate will receive
         /// the model that was trained.  Note that this action cannot change the result in any way; it is only a way for the caller to
         /// be informed about what was learnt.</param>
         /// <returns>The predicted output.</returns>

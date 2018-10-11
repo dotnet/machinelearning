@@ -326,8 +326,6 @@ namespace Microsoft.ML.Runtime.FastTree
                     ch.Info("Partition {0} ({1} of {2}), completed {3} ({4:0.000} ns per doc)",
                         partition, data.TotalCount, _len, completed, nsPerDoc);
                 }
-
-                ch.Done();
             }
         }
     }
