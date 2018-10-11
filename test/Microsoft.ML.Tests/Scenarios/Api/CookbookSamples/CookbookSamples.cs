@@ -292,6 +292,9 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             VBuffer<float>[] weights = null;
             predictor.GetWeights(ref weights, out int numClasses);
 
+            // similarly we can also inspect the biases for the 3 classes 
+            var biases = predictor.GetBiases();
+
             // Inspect the normalizer scales.
             Console.WriteLine(string.Join(" ", normScales));
         }
