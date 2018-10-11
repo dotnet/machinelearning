@@ -285,12 +285,12 @@ namespace Microsoft.ML.StaticPipelineTesting
             Assert.NotNull(pred);
             VBuffer<float>[] weights = default;
             pred.GetWeights(ref weights, out int n);
-
-            var biases = pred.GetBiases();
-
             Assert.True(n == 3 && n == weights.Length);
             foreach (var w in weights)
                 Assert.True(w.Length == 4);
+
+            var biases = pred.GetBiases();
+            Assert.True(biases.Count() == 3);
 
             var data = model.Read(dataSource);
 
