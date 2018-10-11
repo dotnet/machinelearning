@@ -33,6 +33,12 @@ namespace Microsoft.ML.Tests
             public ReadOnlyMemory<char> F2;
         }
 
+        public class BreastNumericalColumns
+        {
+            [VectorType(9)]
+            public float[] Features;
+        }
+
         public class BreastCancerDataAllColumns
         {
             public float Label;
@@ -51,6 +57,14 @@ namespace Microsoft.ML.Tests
         {
             [ColumnName("Score")]
             public float[] Scores;
+        }
+
+        public class BreastCancerClusterPrediction
+        {
+            [ColumnName("PredictedLabel")]
+            public uint NearestCluster;
+            [ColumnName("Score")]
+            public float[] Distances;
         }
 
         [Fact]
@@ -267,6 +281,58 @@ namespace Microsoft.ML.Tests
             CheckEquality(subDir, "KeyToVectorBag.json");
             Done();
         }
+
+        [Fact]
+        public void KmeansTest()
+        {
+            string dataPath = GetDataPath(@"breast-cancer.txt");
+            var pipeline = new Legacy.LearningPipeline(0);
+
+            pipeline.Add(new Legacy.Data.TextLoader(dataPath)
+            {
+                Arguments = new TextLoaderArguments
+                {
+                    Separator = new[] { '\t' },
+                    HasHeader = true,
+                    Column = new[]
+                    {
+                        new TextLoaderColumn()
+                        {
+                            Name = "Features",
+                            Source = new [] { new TextLoaderRange(1, 9) },
+                            Type = Legacy.Data.DataKind.R4
+                        },
+                    }
+                }
+            });
+
+            pipeline.Add(new KMeansPlusPlusClusterer() { K = 2, MaxIterations = 1, NumThreads = 1, InitAlgorithm = KMeansPlusPlusTrainerInitAlgorithm.Random });
+            var model = pipeline.Train<BreastNumericalColumns, BreastCancerClusterPrediction>();
+            var subDir = Path.Combine("..", "..", "BaselineOutput", "Common", "Onnx", "Cluster", "BreastCancer");
+            var onnxPath = GetOutputPath(subDir, "Kmeans.onnx");
+            DeleteOutputPath(onnxPath);
+
+            var onnxAsJsonPath = GetOutputPath(subDir, "Kmeans.json");
+            DeleteOutputPath(onnxAsJsonPath);
+
+            OnnxConverter converter = new OnnxConverter()
+            {
+                Onnx = onnxPath,
+                Json = onnxAsJsonPath,
+                Domain = "Onnx"
+            };
+
+            converter.Convert(model);
+
+            // Strip the version.
+            var fileText = File.ReadAllText(onnxAsJsonPath);
+            fileText = Regex.Replace(fileText, "\"producerVersion\": \"([^\"]+)\"", "\"producerVersion\": \"##VERSION##\"");
+            File.WriteAllText(onnxAsJsonPath, fileText);
+
+            CheckEquality(subDir, "Kmeans.json");
+            Done();
+        }
+
 
         [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // LightGBM is 64-bit only
         public void BinaryClassificationLightGBMSaveModelToOnnxTest()
