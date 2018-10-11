@@ -283,7 +283,6 @@ namespace Microsoft.ML.Runtime.Data
             {
                 if (State != CursorState.Done)
                 {
-                    Ch.Done();
                     Ch.Dispose();
                     if (_currentCursor != null)
                         _currentCursor.Dispose();
@@ -373,7 +372,6 @@ namespace Microsoft.ML.Runtime.Data
             {
                 if (State != CursorState.Done)
                 {
-                    Ch.Done();
                     Ch.Dispose();
                     foreach (IRowCursor c in _cursorSet)
                         c.Dispose();

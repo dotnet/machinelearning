@@ -227,9 +227,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
 
             using (var ch = env.Register("InferTextFileColumnTypes").Start("TypeInference"))
             {
-                var result = InferTextFileColumnTypesCore(env, fileSource, args, ch);
-                ch.Done();
-                return result;
+                return InferTextFileColumnTypesCore(env, fileSource, args, ch);
             }
         }
 

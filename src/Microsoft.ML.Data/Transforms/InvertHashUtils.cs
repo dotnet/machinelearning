@@ -468,7 +468,6 @@ namespace Microsoft.ML.Runtime.Data
 
                 keyValues = keyValuesLocal;
                 kvTypes = kvTypesLocal;
-                ch.Done();
             }
         }
 
@@ -494,7 +493,6 @@ namespace Microsoft.ML.Runtime.Data
                     ctx.SaveSubModel(string.Format(dirFormat, iinfo),
                         c => Save(ch, c, factory, ref keyValues[iinfo]));
                 }
-                ch.Done();
             }
         }
     }

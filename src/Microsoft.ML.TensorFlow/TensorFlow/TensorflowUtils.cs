@@ -134,6 +134,8 @@ namespace Microsoft.ML.Transforms.TensorFlow
             {
                 case TFDataType.Float:
                     return NumberType.R4;
+                case TFDataType.Float_ref:
+                    return NumberType.R4;
                 case TFDataType.Double:
                     return NumberType.R8;
                 case TFDataType.UInt16:
@@ -144,6 +146,12 @@ namespace Microsoft.ML.Transforms.TensorFlow
                     return NumberType.U4;
                 case TFDataType.UInt64:
                     return NumberType.U8;
+                case TFDataType.Int16:
+                    return NumberType.I2;
+                case TFDataType.Int32:
+                    return NumberType.I4;
+                case TFDataType.Int64:
+                    return NumberType.I8;
                 default:
                     return null;
             }
@@ -336,6 +344,9 @@ namespace Microsoft.ML.Transforms.TensorFlow
                 case TFDataType.UInt16:
                 case TFDataType.UInt32:
                 case TFDataType.UInt64:
+                case TFDataType.Int16:
+                case TFDataType.Int32:
+                case TFDataType.Int64:
                     return true;
                 default:
                     return false;

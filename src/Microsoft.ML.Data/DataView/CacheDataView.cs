@@ -443,7 +443,6 @@ namespace Microsoft.ML.Runtime.Data
                         ch.Trace("Number of rows determined as {0}", rowCount);
                     waiter.IncrementAll();
                     ch.Trace("End cache of {0} columns", caches.Length);
-                    ch.Done();
                 }
             }
             catch (Exception ex)
@@ -1276,7 +1275,6 @@ namespace Microsoft.ML.Runtime.Data
                 {
                     DisposeCore();
                     Position = -1;
-                    Ch.Done();
                     Ch.Dispose();
                     _disposed = true;
                 }

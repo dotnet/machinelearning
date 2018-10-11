@@ -318,9 +318,7 @@ namespace Microsoft.ML.Runtime.Data
                     Contracts.AssertValue(provider);
                     using (var ch = provider.Start("Consolidate"))
                     {
-                        var cursor = ConsolidateCore(provider, inputs, ref ourPools, ch);
-                        ch.Done();
-                        return cursor;
+                        return ConsolidateCore(provider, inputs, ref ourPools, ch);
                     }
                 }
 
@@ -503,7 +501,6 @@ namespace Microsoft.ML.Runtime.Data
                 using (var ch = provider.Start("CursorSplitter"))
                 {
                     var result = splitter.SplitCore(out consolidator, provider, input, cthd);
-                    ch.Done();
                     return result;
                 }
             }

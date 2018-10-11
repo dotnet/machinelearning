@@ -233,8 +233,6 @@ namespace Microsoft.ML.Runtime.Data
                 var predictor = TrainUtils.Train(host, ch, data, trainer, null,
                     args.Calibrator, args.MaxCalibrationExamples, null);
 
-                ch.Done();
-
                 return ScoreUtils.GetScorer(args.Scorer, predictor, input, feat, group, customCols, env, data.Schema, mapperFactory);
             }
         }

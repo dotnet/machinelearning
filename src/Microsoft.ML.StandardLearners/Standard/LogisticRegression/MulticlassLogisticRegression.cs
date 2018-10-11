@@ -244,7 +244,6 @@ namespace Microsoft.ML.Runtime.Learners
                 using (var ch = Host.Start("Creating Predictor"))
                 {
                     ch.Warning("Training resulted in a one class predictor");
-                    ch.Done();
                 }
             }
 

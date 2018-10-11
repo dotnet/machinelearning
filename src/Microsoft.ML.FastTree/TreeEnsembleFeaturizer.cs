@@ -687,8 +687,6 @@ namespace Microsoft.ML.Runtime.Data
                         return scoreXf;
                     return (IDataTransform)ApplyTransformUtils.ApplyAllTransformsToData(host, scoreXf, input, labelInput);
                 }
-
-                ch.Done();
             }
             return xf;
         }
@@ -702,7 +700,6 @@ namespace Microsoft.ML.Runtime.Data
             host.CheckValue(input, nameof(input));
             host.CheckUserArg(args.PredictorModel != null, nameof(args.PredictorModel), "Please specify a predictor model.");
 
-            IDataTransform xf;
             using (var ch = host.Start("Create Tree Ensemble Scorer"))
             {
                 var scorerArgs = new TreeEnsembleFeaturizerBindableMapper.Arguments() { Suffix = args.Suffix };
@@ -729,10 +726,8 @@ namespace Microsoft.ML.Runtime.Data
 
                 var bindable = new TreeEnsembleFeaturizerBindableMapper(env, scorerArgs, predictor);
                 var bound = bindable.Bind(env, data.Schema);
-                xf = new GenericScorer(env, scorerArgs, data.Data, bound, data.Schema);
-                ch.Done();
+               return new GenericScorer(env, scorerArgs, data.Data, bound, data.Schema);
             }
-            return xf;
         }
 
         private static IDataView AppendFloatMapper<TInput>(IHostEnvironment env, IChannel ch, IDataView input,
