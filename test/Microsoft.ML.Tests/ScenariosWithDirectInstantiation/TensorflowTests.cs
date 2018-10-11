@@ -403,24 +403,12 @@ namespace Microsoft.ML.Scenarios
                         LearningRateOperation = "SGDOptimizer/learning_rate",
                         LearningRate = 0.001f,
                         BatchSize = 20,
-                        ReTrain = true
+                        ReTrain = true,
+                        Shuffle = shuffle,
+                        ShuffleSeed = shuffleSeed
                     };
 
-                    IDataView trainedTfDataView = null;
-                    if (shuffle)
-                    {
-                        var shuffledView = new ShuffleTransform(env, new ShuffleTransform.Arguments()
-                        {
-                            ForceShuffle = shuffle,
-                            ForceShuffleSeed = shuffleSeed
-                        }, trans);
-                        trainedTfDataView = new TensorFlowTransform(env, args, shuffledView).Transform(trans);
-                    }
-                    else
-                    {
-                        trainedTfDataView = new TensorFlowTransform(env, args, trans).Transform(trans);
-                    }
-
+                    var trainedTfDataView = TensorFlowTransform.Create(env, args, trans);
                     trans = new ConcatTransform(env, "Features", "Prediction").Transform(trainedTfDataView);
 
                     var trainer = new LightGbmMulticlassTrainer(env, "Label", "Features");
@@ -557,24 +545,12 @@ namespace Microsoft.ML.Scenarios
                         LearningRateOperation = "learning_rate",
                         LearningRate = 0.01f,
                         BatchSize = 20,
-                        ReTrain = true
+                        ReTrain = true,
+                        Shuffle = shuffle,
+                        ShuffleSeed = shuffleSeed
                     };
 
-                    IDataView trainedTfDataView = null;
-                    if (shuffle)
-                    {
-                        var shuffledView = new ShuffleTransform(env, new ShuffleTransform.Arguments()
-                        {
-                            ForceShuffle = shuffle,
-                            ForceShuffleSeed = shuffleSeed
-                        }, trans);
-                        trainedTfDataView = new TensorFlowTransform(env, args, shuffledView).Transform(trans);
-                    }
-                    else
-                    {
-                        trainedTfDataView = new TensorFlowTransform(env, args, trans).Transform(trans);
-                    }
-
+                    var trainedTfDataView = TensorFlowTransform.Create(env, args, trans);
                     trans = new ConcatTransform(env, "Features", "Prediction").Transform(trainedTfDataView);
                     trans = new ConvertTransform(env, trans, DataKind.R4, "Label");
 

@@ -22711,11 +22711,29 @@
           "Default": 0.01
         },
         {
+          "Name": "Shuffle",
+          "Type": "Bool",
+          "Desc": "Shuffle data before each iteration.",
+          "Required": false,
+          "SortOrder": 13.0,
+          "IsNullable": false,
+          "Default": true
+        },
+        {
+          "Name": "ShuffleSeed",
+          "Type": "Int",
+          "Desc": "Seed for shuffling.",
+          "Required": false,
+          "SortOrder": 14.0,
+          "IsNullable": true,
+          "Default": null
+        },
+        {
           "Name": "SaveLocationOperation",
           "Type": "String",
           "Desc": "Name of the input in TensorFlow graph that specifiy the location for saving/restoring models from disk.",
           "Required": false,
-          "SortOrder": 13.0,
+          "SortOrder": 15.0,
           "IsNullable": false,
           "Default": "save/Const"
         },
@@ -22724,7 +22742,7 @@
           "Type": "String",
           "Desc": "Name of the input in TensorFlow graph that specifiy the location for saving/restoring models from disk.",
           "Required": false,
-          "SortOrder": 14.0,
+          "SortOrder": 16.0,
           "IsNullable": false,
           "Default": "save/control_dependency"
         },
@@ -22733,7 +22751,7 @@
           "Type": "Bool",
           "Desc": "Retrain TensorFlow model.",
           "Required": false,
-          "SortOrder": 15.0,
+          "SortOrder": 17.0,
           "IsNullable": false,
           "Default": false
         }

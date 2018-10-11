@@ -116,12 +116,24 @@ namespace Microsoft.ML.Transforms
             public float LearningRate = 0.01f;
 
             /// <summary>
+            /// Shuffle training data on each iteration?
+            /// </summary>
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Shuffle data before each iteration.", SortOrder = 13)]
+            public bool Shuffle = true;
+
+            /// <summary>
+            /// Seed for shuffling.
+            /// </summary>
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Seed for shuffling.", SortOrder = 14)]
+            public int? ShuffleSeed;
+
+            /// <summary>
             /// Name of the input in TensorFlow graph that specifiy the location for saving/restoring models to/from disk.
             /// This parameter is set by different kinds of 'Savers' in TensorFlow and users don't have control over this.
             /// Therefore, its highly unlikely that this parameter is changed from its default value of 'save/Const'.
             /// Please change it cautiously if you need to.
             /// </summary>
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Name of the input in TensorFlow graph that specifiy the location for saving/restoring models from disk.", SortOrder = 13)]
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Name of the input in TensorFlow graph that specifiy the location for saving/restoring models from disk.", SortOrder = 15)]
             public string SaveLocationOperation = "save/Const";
 
             /// <summary>
@@ -130,13 +142,13 @@ namespace Microsoft.ML.Transforms
             /// Therefore, its highly unlikely that this parameter is changed from its default value of 'save/control_dependency'.
             /// Please change it cautiously if you need to.
             /// </summary>
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Name of the input in TensorFlow graph that specifiy the location for saving/restoring models from disk.", SortOrder = 14)]
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Name of the input in TensorFlow graph that specifiy the location for saving/restoring models from disk.", SortOrder = 16)]
             public string SaveOperation = "save/control_dependency";
 
             /// <summary>
             /// Needed for command line to specify if retraining is requested.
             /// </summary>
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Retrain TensorFlow model.", SortOrder = 15)]
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Retrain TensorFlow model.", SortOrder = 17)]
             public bool ReTrain = false;
         }
 
@@ -284,7 +296,7 @@ namespace Microsoft.ML.Transforms
             return new TensorFlowTransform(env, args, input).MakeDataTransform(input);
         }
 
-        public TensorFlowTransform(IHostEnvironment env, Arguments args, IDataView input)
+        internal TensorFlowTransform(IHostEnvironment env, Arguments args, IDataView input)
             : this(env, TensorFlowUtils.GetSession(env, args.Model), args.InputColumns, args.OutputColumns, TensorFlowUtils.IsSavedModel(env, args.Model) ? args.Model : null, false)
         {
 
@@ -296,6 +308,15 @@ namespace Microsoft.ML.Transforms
                 env.CheckValue(input, nameof(input));
 
                 CheckTrainingParameters(args);
+
+                if(args.Shuffle)
+                {
+                    input = new ShuffleTransform(env, new ShuffleTransform.Arguments()
+                    {
+                        ForceShuffle = args.Shuffle,
+                        ForceShuffleSeed = args.ShuffleSeed
+                    }, input);
+                }
 
                 if (!TensorFlowUtils.IsSavedModel(env, args.Model))
                     throw env.ExceptNotSupp("TensorFlowTransform: Re-Training of TensorFlow model is only supported for un-frozen model.");

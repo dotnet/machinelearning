@@ -16696,6 +16696,16 @@ namespace Microsoft.ML
             public float LearningRate { get; set; } = 0.01f;
 
             /// <summary>
+            /// Shuffle data before each iteration.
+            /// </summary>
+            public bool Shuffle { get; set; } = true;
+
+            /// <summary>
+            /// Seed for shuffling.
+            /// </summary>
+            public int? ShuffleSeed { get; set; }
+
+            /// <summary>
             /// Name of the input in TensorFlow graph that specifiy the location for saving/restoring models from disk.
             /// </summary>
             public string SaveLocationOperation { get; set; } = "save/Const";
