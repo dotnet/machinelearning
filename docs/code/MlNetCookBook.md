@@ -617,6 +617,9 @@ var model = learningPipeline.Fit(trainData);
 VBuffer<float>[] weights = null;
 predictor.GetWeights(ref weights, out int numClasses);
 
+// similarly we can also inspect the biases for the 3 classes
+var biases = pred.GetBiases();
+
 // Inspect the normalizer scales.
 Console.WriteLine(string.Join(" ", normScales));
 ```
