@@ -31,10 +31,6 @@
     <NativeAssemblyReference Include="CpuMathNative" />
     <NativeAssemblyReference Include="FastTreeNative" />
     <NativeAssemblyReference Include="LdaNative" />
-  </ItemGroup>
-
-  <!-- TensorFlow is 64-bit only -->
-  <ItemGroup Condition="'$(NativeTargetArchitecture)' == 'x64'">
     <NativeAssemblyReference Include="tensorflow" />
     <NativeAssemblyReference Condition="'$(OS)' != 'Windows_NT'" Include="tensorflow_framework" />
   </ItemGroup>

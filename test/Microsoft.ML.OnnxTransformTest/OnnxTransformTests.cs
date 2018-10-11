@@ -57,7 +57,7 @@ namespace Microsoft.ML.Tests
         {
         }
 
-        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // x86 fails with "An attempt was made to load a program with an incorrect format."
+        [Fact]
         void TestSimpleCase()
         {
             if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
@@ -100,7 +100,7 @@ namespace Microsoft.ML.Tests
             catch (InvalidOperationException) { }
         }
 
-        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // x86 fails with "An attempt was made to load a program with an incorrect format."
+        [Fact]
         void TestOldSavingAndLoading()
         {
             if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
@@ -158,7 +158,7 @@ namespace Microsoft.ML.Tests
             }
         }
 
-        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // x86 fails with "An attempt was made to load a program with an incorrect format."
+        [Fact]
         public void OnnxStatic()
         {
             if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
@@ -205,7 +205,7 @@ namespace Microsoft.ML.Tests
             }
         }
 
-        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // x86 output differs from Baseline
+        [Fact]
         void TestCommandLine()
         {
             if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))

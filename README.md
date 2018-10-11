@@ -4,11 +4,11 @@
 
 [ML.NET](https://www.microsoft.com/net/learn/apps/machine-learning-and-ai/ml-dotnet) is a cross-platform open-source machine learning framework which makes machine learning accessible to .NET developers.
 
-ML.NET allows .NET developers to develop their own models and infuse custom machine learning into their applications, using .NET, even without prior expertise in developing or tuning machine learning models.
+ML.NET allows .NET developers to develop their own models and infuse custom ML into their applications without prior expertise in developing or tuning machine learning models, all in .NET.
 
-ML.NET was originally developed in Microsoft Research, and evolved into a significant framework over the last decade and is used across many product groups in Microsoft like Windows, Bing, PowerPoint, Excel and more.
+ML.NET was originally developed in Microsoft Research and evolved into a significant framework over the last decade and is used across many product groups in Microsoft like Windows, Bing, PowerPoint, Excel and more.
 
-With this first preview release, ML.NET enables machine learning tasks like classification (for example: support text classification, sentiment analysis) and regression (for example, price-prediction).
+With this first preview release, ML.NET enables ML tasks like classification (e.g. support text classification, sentiment analysis) and regression (e.g. price-prediction). 
 
 Along with these ML capabilities, this first release of ML.NET also brings the first draft of .NET APIs for training models, using models for predictions, as well as the core components of this framework such as learning algorithms, transforms, and ML data structures. 
 
@@ -18,7 +18,7 @@ Along with these ML capabilities, this first release of ML.NET also brings the f
 
 ML.NET runs on Windows, Linux, and macOS - any platform where 64 bit [.NET Core](https://github.com/dotnet/core) or later is available.
 
-The current release is 0.6. Check out the [release notes](docs/release-notes/0.6/release-0.6.md) to see what's new.
+The current release is 0.6. Check out the [release notes](docs/release-notes/0.6/release-0.6.md).
 
 First, ensure you have installed [.NET Core 2.0](https://www.microsoft.com/net/learn/get-started) or later. ML.NET also works on the .NET Framework. Note that ML.NET currently must run in a 64-bit process.
 
@@ -88,7 +88,7 @@ var predictionFunc = model.MakePredictionFunction<SentimentInput, SentimentPredi
 var prediction = predictionFunc.Predict(new SentimentData
 {
     SentimentText = "Today is a great day!"
-});
+};
 Console.WriteLine("prediction: " + prediction.Sentiment);
 ```
 A cookbook that shows how to use these APIs for a variety of existing and new scenarios can be found [here](docs/code/MlNetCookBook.md).

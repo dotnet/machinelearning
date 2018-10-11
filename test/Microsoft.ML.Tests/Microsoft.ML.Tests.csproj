@@ -35,10 +35,6 @@
     <NativeAssemblyReference Include="SymSgdNative" />
     <NativeAssemblyReference Include="MklProxyNative" />
     <NativeAssemblyReference Include="MklImports" />
-  </ItemGroup>
-
-  <!-- TensorFlow is 64-bit only -->
-  <ItemGroup Condition="'$(NativeTargetArchitecture)' == 'x64'">
     <NativeAssemblyReference Include="tensorflow" />
     <NativeAssemblyReference Condition="'$(OS)' != 'Windows_NT'" Include="tensorflow_framework" />
   </ItemGroup>

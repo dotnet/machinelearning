@@ -53,7 +53,7 @@ namespace Microsoft.ML.Tests
         {
         }
 
-        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // TensorFlow is 64-bit only
+        [Fact]
         void TestSimpleCase()
         {
             var modelFile = "model_matmul/frozen_saved_model.pb";
@@ -93,7 +93,7 @@ namespace Microsoft.ML.Tests
             catch (InvalidOperationException) { }
         }
 
-        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // TensorFlow is 64-bit only
+        [Fact]
         void TestOldSavingAndLoading()
         {
             var modelFile = "model_matmul/frozen_saved_model.pb";
@@ -129,16 +129,16 @@ namespace Microsoft.ML.Tests
             }
         }
 
-        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // x86 output differs from Baseline
+        [Fact]
         void TestCommandLine()
         {
             using (var env = new ConsoleEnvironment())
             {
-                Assert.Equal(Maml.Main(new[] { @"showschema loader=Text{col=a:R4:0-3 col=b:R4:0-3} xf=TFTransform{inputs=a inputs=b outputs=c modellocation={model_matmul/frozen_saved_model.pb}}"}), (int)0);
+                Assert.Equal(Maml.Main(new[] { @"showschema loader=Text{col=a:R4:0-3 col=b:R4:0-3} xf=TFTransform{inputs=a inputs=b outputs=c model={model_matmul/frozen_saved_model.pb}}"}), (int)0);
             }
         }
 
-        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // TensorFlow is 64-bit only
+        [Fact]
         public void TestTensorFlowStatic()
         {
             var modelLocation = "cifar_model/frozen_model.pb";

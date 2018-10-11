@@ -22571,7 +22571,7 @@
       "ShortName": "TFTransform",
       "Inputs": [
         {
-          "Name": "ModelLocation",
+          "Name": "Model",
           "Type": "String",
           "Desc": "TensorFlow model used by the transform. Please see https://www.tensorflow.org/mobile/prepare_models for more details.",
           "Required": true,

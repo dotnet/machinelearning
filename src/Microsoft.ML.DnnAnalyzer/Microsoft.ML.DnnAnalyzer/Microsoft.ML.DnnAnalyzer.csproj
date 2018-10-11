@@ -11,8 +11,7 @@
     <ProjectReference Include="..\..\Microsoft.ML.TensorFlow\Microsoft.ML.TensorFlow.csproj" />
   </ItemGroup>
 
-  <!-- TensorFlow is 64-bit only -->
-  <ItemGroup Condition="'$(NativeTargetArchitecture)' == 'x64'">
+  <ItemGroup>
     <NativeAssemblyReference Include="tensorflow" />
     <NativeAssemblyReference Condition="'$(OS)' != 'Windows_NT'" Include="tensorflow_framework" />
   </ItemGroup>

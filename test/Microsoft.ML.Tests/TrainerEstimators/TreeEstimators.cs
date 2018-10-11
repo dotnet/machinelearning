@@ -6,7 +6,6 @@ using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.FastTree;
 using Microsoft.ML.Runtime.LightGBM;
 using Microsoft.ML.Runtime.RunTests;
-using System;
 using System.Linq;
 using Xunit;
 
@@ -126,7 +125,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         /// <summary>
         /// FastTreeRegressor TrainerEstimator test 
         /// </summary>
-        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // LightGBM is 64-bit only
+        [Fact]
         public void LightGBMRegressorEstimator()
         {
 

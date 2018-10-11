@@ -33,12 +33,6 @@ namespace Microsoft.ML.Tests
             public ReadOnlyMemory<char> F2;
         }
 
-        public class BreastNumericalColumns
-        {
-            [VectorType(9)]
-            public float[] Features;
-        }
-
         public class BreastCancerDataAllColumns
         {
             public float Label;
@@ -59,21 +53,13 @@ namespace Microsoft.ML.Tests
             public float[] Scores;
         }
 
-        public class BreastCancerClusterPrediction
-        {
-            [ColumnName("PredictedLabel")]
-            public uint NearestCluster;
-            [ColumnName("Score")]
-            public float[] Distances;
-        }
-
         [Fact]
         public void InitializerCreationTest()
         {
             using (var env = new ConsoleEnvironment())
             {
                 // Create the actual implementation
-                var ctxImpl = new OnnxContextImpl(env, "model", "ML.NET", "0", 0, "com.test", Runtime.Model.Onnx.OnnxVersion.Stable);
+                var ctxImpl = new OnnxContextImpl(env, "model", "ML.NET", "0", 0, "com.test");
 
                 // Use implementation as in the actual conversion code
                 var ctx = ctxImpl as OnnxContext;
@@ -209,132 +195,6 @@ namespace Microsoft.ML.Tests
         }
 
         [Fact]
-        public void KeyToVectorWithBagTest()
-        {
-            string dataPath = GetDataPath(@"breast-cancer.txt");
-            var pipeline = new Legacy.LearningPipeline();
-
-            pipeline.Add(new Legacy.Data.TextLoader(dataPath)
-            {
-                Arguments = new TextLoaderArguments
-                {
-                    Separator = new[] { '\t' },
-                    HasHeader = true,
-                    Column = new[]
-                    {
-                        new TextLoaderColumn()
-                        {
-                            Name = "Label",
-                            Source = new [] { new TextLoaderRange(0) },
-                            Type = Legacy.Data.DataKind.Num
-                        },
-
-                        new TextLoaderColumn()
-                        {
-                            Name = "F1",
-                            Source = new [] { new TextLoaderRange(1, 1) },
-                            Type = Legacy.Data.DataKind.Num
-                        },
-
-                        new TextLoaderColumn()
-                        {
-                            Name = "F2",
-                            Source = new [] { new TextLoaderRange(2, 2) },
-                            Type = Legacy.Data.DataKind.TX
-                        }
-                    }
-                }
-            });
-
-            var vectorizer = new CategoricalOneHotVectorizer();
-            var categoricalColumn = new CategoricalTransformColumn() {
-                OutputKind = CategoricalTransformOutputKind.Bag, Name = "F2", Source = "F2" };
-            vectorizer.Column = new CategoricalTransformColumn[1] { categoricalColumn };
-            pipeline.Add(vectorizer);
-            pipeline.Add(new ColumnConcatenator("Features", "F1", "F2"));
-            pipeline.Add(new FastTreeBinaryClassifier() { NumLeaves = 2, NumTrees = 1, MinDocumentsInLeafs = 2 });
-
-            var model = pipeline.Train<BreastCancerData, BreastCancerPrediction>();
-            var subDir = Path.Combine("..", "..", "BaselineOutput", "Common", "Onnx", "BinaryClassification", "BreastCancer");
-            var onnxPath = GetOutputPath(subDir, "KeyToVectorBag.onnx");
-            DeleteOutputPath(onnxPath);
-
-            var onnxAsJsonPath = GetOutputPath(subDir, "KeyToVectorBag.json");
-            DeleteOutputPath(onnxAsJsonPath);
-
-            OnnxConverter converter = new OnnxConverter()
-            {
-                InputsToDrop = new[] { "Label" },
-                OutputsToDrop = new[] { "Label", "F1", "F2", "Features" },
-                Onnx = onnxPath,
-                Json = onnxAsJsonPath,
-                Domain = "Onnx"
-            };
-
-            converter.Convert(model);
-
-            // Strip the version.
-            var fileText = File.ReadAllText(onnxAsJsonPath);
-            fileText = Regex.Replace(fileText, "\"producerVersion\": \"([^\"]+)\"", "\"producerVersion\": \"##VERSION##\"");
-            File.WriteAllText(onnxAsJsonPath, fileText);
-
-            CheckEquality(subDir, "KeyToVectorBag.json");
-            Done();
-        }
-
-        [Fact]
-        public void KmeansTest()
-        {
-            string dataPath = GetDataPath(@"breast-cancer.txt");
-            var pipeline = new Legacy.LearningPipeline(0);
-
-            pipeline.Add(new Legacy.Data.TextLoader(dataPath)
-            {
-                Arguments = new TextLoaderArguments
-                {
-                    Separator = new[] { '\t' },
-                    HasHeader = true,
-                    Column = new[]
-                    {
-                        new TextLoaderColumn()
-                        {
-                            Name = "Features",
-                            Source = new [] { new TextLoaderRange(1, 9) },
-                            Type = Legacy.Data.DataKind.R4
-                        },
-                    }
-                }
-            });
-
-            pipeline.Add(new KMeansPlusPlusClusterer() { K = 2, MaxIterations = 1, NumThreads = 1, InitAlgorithm = KMeansPlusPlusTrainerInitAlgorithm.Random });
-            var model = pipeline.Train<BreastNumericalColumns, BreastCancerClusterPrediction>();
-            var subDir = Path.Combine("..", "..", "BaselineOutput", "Common", "Onnx", "Cluster", "BreastCancer");
-            var onnxPath = GetOutputPath(subDir, "Kmeans.onnx");
-            DeleteOutputPath(onnxPath);
-
-            var onnxAsJsonPath = GetOutputPath(subDir, "Kmeans.json");
-            DeleteOutputPath(onnxAsJsonPath);
-
-            OnnxConverter converter = new OnnxConverter()
-            {
-                Onnx = onnxPath,
-                Json = onnxAsJsonPath,
-                Domain = "Onnx"
-            };
-
-            converter.Convert(model);
-
-            // Strip the version.
-            var fileText = File.ReadAllText(onnxAsJsonPath);
-            fileText = Regex.Replace(fileText, "\"producerVersion\": \"([^\"]+)\"", "\"producerVersion\": \"##VERSION##\"");
-            File.WriteAllText(onnxAsJsonPath, fileText);
-
-            CheckEquality(subDir, "Kmeans.json");
-            Done();
-        }
-
-
-        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // LightGBM is 64-bit only
         public void BinaryClassificationLightGBMSaveModelToOnnxTest()
         {
             string dataPath = GetDataPath(@"breast-cancer.txt");
