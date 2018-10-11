@@ -1357,7 +1357,7 @@ namespace Microsoft.ML.Runtime.Learners
         }
     }
 
-    public sealed class LinearClassificationTrainer : SdcaTrainerBase<BinaryPredictionTransformer<TScalarPredictor>, TScalarPredictor>
+    public sealed class StochasticDualCoordinateAscent : SdcaTrainerBase<BinaryPredictionTransformer<TScalarPredictor>, TScalarPredictor>
     {
         public const string LoadNameValue = "SDCA";
         internal const string UserNameValue = "Fast Linear (SA-SDCA)";
@@ -1397,7 +1397,7 @@ namespace Microsoft.ML.Runtime.Learners
 
         public override TrainerInfo Info { get; }
 
-        public LinearClassificationTrainer(IHostEnvironment env, Arguments args,
+        public StochasticDualCoordinateAscent(IHostEnvironment env, Arguments args,
             string featureColumn, string labelColumn, string weightColumn = null)
             : base(Contracts.CheckRef(env, nameof(env)).Register(LoadNameValue), args, MakeFeatureColumn(featureColumn), MakeLabelColumn(labelColumn), MakeWeightColumn(weightColumn))
         {
@@ -1427,7 +1427,7 @@ namespace Microsoft.ML.Runtime.Learners
 
         }
 
-        public LinearClassificationTrainer(IHostEnvironment env, Arguments args)
+        public StochasticDualCoordinateAscent(IHostEnvironment env, Arguments args)
             : this(env, args, args.FeatureColumn, args.LabelColumn)
         {
         }
