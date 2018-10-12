@@ -520,10 +520,27 @@ namespace Microsoft.ML.Runtime.RunTests
                 double f1 = double.Parse(firstCollection[i].ToString());
                 double f2 = double.Parse(secondCollection[i].ToString());
 
+                // this follows the IEEE recommendations for how to compare floating point numbers
                 double allowedVariance = Math.Pow(10, -digitsOfPrecision);
-                double delta = Round(f1 - f2, digitsOfPrecision);
+                double delta = Round(f1, digitsOfPrecision) - Round(f2, digitsOfPrecision);
+                // limitting to the digits we care about. 
+                delta = Round(delta, digitsOfPrecision);
 
-                Assert.InRange(delta, -allowedVariance, allowedVariance);
+                bool inRange = delta > -allowedVariance && delta < allowedVariance;
+
+                // for some cases, rounding up is not beneficial
+                // so checking on whether the difference is significant prior to rounding, and failing only then. 
+                // example, for 5 digits of precision. 
+                // F1 = 1.82844949 Rounds to 1.8284
+                // F2 = 1.8284502  Rounds to 1.8285
+                // would fail the inRange == true check, but would suceed the following, and we doconsider those two numbers 
+                // (1.82844949 - 1.8284502) = 
+
+                if (!inRange)
+                {
+                    delta = Round(f1 - f2, digitsOfPrecision);
+                    Assert.InRange(delta, -allowedVariance, allowedVariance);
+                }
             }
         }
 
