@@ -353,7 +353,7 @@ namespace Microsoft.ML.Scenarios
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // TensorFlow is 64-bit only
         public void TensorFlowTransformMNISTLRTrainingTest()
         {
             // Without shuffling
@@ -403,12 +403,24 @@ namespace Microsoft.ML.Scenarios
                         LearningRateOperation = "SGDOptimizer/learning_rate",
                         LearningRate = 0.001f,
                         BatchSize = 20,
-                        ReTrain = true,
-                        Shuffle = shuffle,
-                        ShuffleSeed = shuffleSeed
+                        ReTrain = true
                     };
 
-                    var trainedTfDataView = TensorFlowTransform.Create(env, args, trans);
+                    IDataView trainedTfDataView = null;
+                    if (shuffle)
+                    {
+                        var shuffledView = new ShuffleTransform(env, new ShuffleTransform.Arguments()
+                        {
+                            ForceShuffle = shuffle,
+                            ForceShuffleSeed = shuffleSeed
+                        }, trans);
+                        trainedTfDataView = new TensorFlowEstimator(env, args).Fit(shuffledView).Transform(trans);
+                    }
+                    else
+                    {
+                        trainedTfDataView = new TensorFlowEstimator(env, args).Fit(trans).Transform(trans);
+                    }
+
                     trans = new ConcatTransform(env, "Features", "Prediction").Transform(trainedTfDataView);
 
                     var trainer = new LightGbmMulticlassTrainer(env, "Label", "Features");
@@ -494,7 +506,7 @@ namespace Microsoft.ML.Scenarios
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // TensorFlow is 64-bit only
         public void TensorFlowTransformMNISTConvTrainingTest()
         {
             // Without shuffling
@@ -545,12 +557,24 @@ namespace Microsoft.ML.Scenarios
                         LearningRateOperation = "learning_rate",
                         LearningRate = 0.01f,
                         BatchSize = 20,
-                        ReTrain = true,
-                        Shuffle = shuffle,
-                        ShuffleSeed = shuffleSeed
+                        ReTrain = true
                     };
 
-                    var trainedTfDataView = TensorFlowTransform.Create(env, args, trans);
+                    IDataView trainedTfDataView = null;
+                    if (shuffle)
+                    {
+                        var shuffledView = new ShuffleTransform(env, new ShuffleTransform.Arguments()
+                        {
+                            ForceShuffle = shuffle,
+                            ForceShuffleSeed = shuffleSeed
+                        }, trans);
+                        trainedTfDataView = new TensorFlowEstimator(env, args).Fit(shuffledView).Transform(trans);
+                    }
+                    else
+                    {
+                        trainedTfDataView = new TensorFlowEstimator(env, args).Fit(trans).Transform(trans);
+                    }
+                    
                     trans = new ConcatTransform(env, "Features", "Prediction").Transform(trainedTfDataView);
                     trans = new ConvertTransform(env, trans, DataKind.R4, "Label");
 
