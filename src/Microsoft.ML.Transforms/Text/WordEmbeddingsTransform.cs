@@ -407,7 +407,7 @@ namespace Microsoft.ML.Runtime.Data
                 var nameW = ctx.AddIntermediateVariable(null, "WeightsOfInput", true);
                 var nodeW = ctx.CreateNode("Gather", new[] { nameD, nameY }, new[] { nameW }, ctx.GetNodeName("Gather"), "");
 
-                long[] axes = new long[] { 1 };
+                long[] axes = new long[] { 0 };
                 // Do reduce min
                 var nameJ = ctx.AddIntermediateVariable(null, "MinWeights", true);
                 var nodeJ = ctx.CreateNode("ReduceMin", nameW, nameJ, ctx.GetNodeName("ReduceMin"), "");
