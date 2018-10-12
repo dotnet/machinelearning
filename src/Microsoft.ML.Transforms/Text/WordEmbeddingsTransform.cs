@@ -371,23 +371,23 @@ namespace Microsoft.ML.Runtime.Data
                 // S: word labels, k tensor (known when transform is created)
                 // D: word embeddings, k-by-j tensor(known when transform is created)
                 //
-                // X[n]-- > LabelEncoder(classes_strings = S[k], default_int64 = 1)             D[k, j]->Initializer
-                //								|									                    |
-                //								Y[n]													|
-                //								|                                                       |
-                //								------------->(indices) Gather (axis= 1)(data) < ------------------
-                //														|
-                //													 W[n, j]
-                //												  /     |      \
-                //						 ---------------------- /       |        \----------------------
+                // X[n]-- > LabelEncoder(classes_strings = S[k], default_int64 = 1)        D[k, j]->Initializer
+                //                              |                                                   |
+                //                             Y[n]                                                 |
+                //                              |                                                   |
+                //                              -------->(indices) Gather (axis= 1)(data) <---------
+                //                                                      |
+                //                                                   W[n, j]
+                //                                                /     |      \
+                //                        ---------------------- /      |       \----------------------
                 //						/                               |                                \
-                //					ReduceMin(axes = [1])         ReduceMean(axes = [1])         ReduceMax(axes = [1])
-                //						|                                |                                |
-                //						J[j]                           K[j]                             L[j]
-                //						|                                |                                |
-                //						 -----------------------------Concat (axis = 1) -----------------------------
-                //													     |
-                //													 P[j * 3]
+                //              ReduceMin(axes = [0])         ReduceMean(axes = [0])         ReduceMax(axes = [0])
+                //                      |                                |                                |
+                //                    J[j]                             K[j]                             L[j]
+                //                      |                                |                                |
+                //                       --------------------Concat (axis = 1) ---------------------------
+                //                                                       |
+                //                                                   P[j * 3]
 
                 // Allocate D, a constant tensor
                 var shapeD = new long[] { _parent._currentVocab.GetNumWords(), _parent._currentVocab.Dimension };
