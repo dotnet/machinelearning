@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Runtime.InteropServices;
 
 namespace Microsoft.ML.Runtime.Internal.CpuMath
 {
@@ -594,7 +595,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
             unsafe
             {
-                fixed (float* pdst = dst)
+                fixed (float* pdst = &MemoryMarshal.GetReference(dst))
                     Thunk.AddScalarU(a, pdst, dst.Length);
             }
         }
@@ -616,7 +617,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
             unsafe
             {
-                fixed (float* pd = dst)
+                fixed (float* pd = &MemoryMarshal.GetReference(dst))
                     Thunk.Scale(a, pd, dst.Length);
             }
         }
@@ -644,8 +645,8 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
             unsafe
             {
-                fixed (float* psrc = src)
-                fixed (float* pdst = dst)
+                fixed (float* psrc = &MemoryMarshal.GetReference(src))
+                fixed (float* pdst = &MemoryMarshal.GetReference(dst))
                 {
                     Thunk.ScaleSrcU(a, psrc, pdst, count);
                 }
@@ -659,7 +660,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
             unsafe
             {
-                fixed (float* pdst = dst)
+                fixed (float* pdst = &MemoryMarshal.GetReference(dst))
                     Thunk.ScaleAddU(a, b, pdst, dst.Length);
             }
         }
@@ -765,8 +766,8 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
             unsafe
             {
-                fixed (float* psrc = src)
-                fixed (float* pdst = dst)
+                fixed (float* psrc = &MemoryMarshal.GetReference(src))
+                fixed (float* pdst = &MemoryMarshal.GetReference(dst))
                     Thunk.AddScaleU(a, psrc, pdst, count);
             }
         }
@@ -782,9 +783,9 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
             unsafe
             {
-                fixed (float* psrc = src)
-                fixed (int* pi = indices)
-                fixed (float* pdst = dst)
+                fixed (float* psrc = &MemoryMarshal.GetReference(src))
+                fixed (int* pi = &MemoryMarshal.GetReference(indices))
+                fixed (float* pdst = &MemoryMarshal.GetReference(dst))
                     Thunk.AddScaleSU(a, psrc, pi, pdst, count);
             }
         }
@@ -800,9 +801,9 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
             unsafe
             {
-                fixed (float* pdst = dst)
-                fixed (float* psrc = src)
-                fixed (float* pres = res)
+                fixed (float* pdst = &MemoryMarshal.GetReference(dst))
+                fixed (float* psrc = &MemoryMarshal.GetReference(src))
+                fixed (float* pres = &MemoryMarshal.GetReference(res))
                     Thunk.AddScaleCopyU(a, psrc, pdst, pres, count);
             }
         }
@@ -851,8 +852,8 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
             unsafe
             {
-                fixed (float* ps = src)
-                fixed (float* pd = dst)
+                fixed (float* ps = &MemoryMarshal.GetReference(src))
+                fixed (float* pd = &MemoryMarshal.GetReference(dst))
                     Thunk.AddU(ps, pd, count);
             }
         }
@@ -868,9 +869,9 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
             unsafe
             {
-                fixed (float* ps = src)
-                fixed (int* pi = indices)
-                fixed (float* pd = dst)
+                fixed (float* ps = &MemoryMarshal.GetReference(src))
+                fixed (int* pi = &MemoryMarshal.GetReference(indices))
+                fixed (float* pd = &MemoryMarshal.GetReference(dst))
                     Thunk.AddSU(ps, pi, pd, count);
             }
         }
@@ -884,9 +885,9 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             Contracts.AssertNonEmpty(dst);
             unsafe
             {
-                fixed (float* ps1 = src1)
-                fixed (float* ps2 = src2)
-                fixed (float* pd = dst)
+                fixed (float* ps1 = &MemoryMarshal.GetReference(src1))
+                fixed (float* ps2 = &MemoryMarshal.GetReference(src2))
+                fixed (float* pd = &MemoryMarshal.GetReference(dst))
                     Thunk.MulElementWiseU(ps1, ps2, pd, count);
             }
         }
@@ -927,7 +928,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
             unsafe
             {
-                fixed (float* psrc = src)
+                fixed (float* psrc = &MemoryMarshal.GetReference(src))
                     return Thunk.SumU(psrc, src.Length);
             }
         }
@@ -938,7 +939,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
             unsafe
             {
-                fixed (float* psrc = src)
+                fixed (float* psrc = &MemoryMarshal.GetReference(src))
                     return Thunk.SumSqU(psrc, src.Length);
             }
         }
@@ -949,7 +950,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
             unsafe
             {
-                fixed (float* psrc = src)
+                fixed (float* psrc = &MemoryMarshal.GetReference(src))
                     return (mean == 0 ? Thunk.SumSqU(psrc, src.Length) : Thunk.SumSqDiffU(mean, psrc, src.Length));
             }
         }
@@ -960,7 +961,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
             unsafe
             {
-                fixed (float* psrc = src)
+                fixed (float* psrc = &MemoryMarshal.GetReference(src))
                     return Thunk.SumAbsU(psrc, src.Length);
             }
         }
@@ -971,7 +972,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
             unsafe
             {
-                fixed (float* psrc = src)
+                fixed (float* psrc = &MemoryMarshal.GetReference(src))
                     return (mean == 0 ? Thunk.SumAbsU(psrc, src.Length) : Thunk.SumAbsDiffU(mean, psrc, src.Length));
             }
         }
@@ -982,7 +983,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
             unsafe
             {
-                fixed (float* psrc = src)
+                fixed (float* psrc = &MemoryMarshal.GetReference(src))
                     return Thunk.MaxAbsU(psrc, src.Length);
             }
         }
@@ -993,7 +994,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
             unsafe
             {
-                fixed (float* psrc = src)
+                fixed (float* psrc = &MemoryMarshal.GetReference(src))
                     return Thunk.MaxAbsDiffU(mean, psrc, src.Length);
             }
         }
@@ -1008,8 +1009,8 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
             unsafe
             {
-                fixed (float* pa = a)
-                fixed (float* pb = b)
+                fixed (float* pa = &MemoryMarshal.GetReference(a))
+                fixed (float* pb = &MemoryMarshal.GetReference(b))
                     return Thunk.DotU(pa, pb, count);
             }
         }
@@ -1025,9 +1026,9 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
             unsafe
             {
-                fixed (float* pa = a)
-                fixed (float* pb = b)
-                fixed (int* pi = indices)
+                fixed (float* pa = &MemoryMarshal.GetReference(a))
+                fixed (float* pb = &MemoryMarshal.GetReference(b))
+                fixed (int* pi = &MemoryMarshal.GetReference(indices))
                     return Thunk.DotSU(pa, pb, pi, count);
             }
         }
@@ -1041,8 +1042,8 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
             unsafe
             {
-                fixed (float* pa = a)
-                fixed (float* pb = b)
+                fixed (float* pa = &MemoryMarshal.GetReference(a))
+                fixed (float* pb = &MemoryMarshal.GetReference(b))
                     return Thunk.Dist2(pa, pb, count);
             }
         }
@@ -1332,9 +1333,9 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
             unsafe
             {
-                fixed (float* psrc = src)
-                fixed (float* pd1 = v)
-                fixed (float* pd2 = w)
+                fixed (float* psrc = &MemoryMarshal.GetReference(src))
+                fixed (float* pd1 = &MemoryMarshal.GetReference(v))
+                fixed (float* pd2 = &MemoryMarshal.GetReference(w))
                     Thunk.SdcaL1UpdateU(primalUpdate, psrc, threshold, pd1, pd2, count);
             }
         }
@@ -1353,10 +1354,10 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
             unsafe
             {
-                fixed (float* psrc = src)
-                fixed (int* pi = indices)
-                fixed (float* pd1 = v)
-                fixed (float* pd2 = w)
+                fixed (float* psrc = &MemoryMarshal.GetReference(src))
+                fixed (int* pi = &MemoryMarshal.GetReference(indices))
+                fixed (float* pd1 = &MemoryMarshal.GetReference(v))
+                fixed (float* pd2 = &MemoryMarshal.GetReference(w))
                     Thunk.SdcaL1UpdateSU(primalUpdate, psrc, pi, threshold, pd1, pd2, count);
             }
         }

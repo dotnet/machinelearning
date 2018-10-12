@@ -11,6 +11,7 @@
 
 using System;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Runtime.Intrinsics;
 using System.Runtime.Intrinsics.X86;
 using nuint = System.UInt64;
@@ -448,7 +449,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         // dst[i] += scale
         public static unsafe void AddScalarU(float scalar, Span<float> dst)
         {
-            fixed (float* pdst = dst)
+            fixed (float* pdst = &MemoryMarshal.GetReference(dst))
             {
                 float* pDstEnd = pdst + dst.Length;
                 float* pDstCurrent = pdst;
@@ -490,7 +491,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         {
             fixed (uint* pLeadingAlignmentMask = &LeadingAlignmentMask[0])
             fixed (uint* pTrailingAlignmentMask = &TrailingAlignmentMask[0])
-            fixed (float* pd = dst)
+            fixed (float* pd = &MemoryMarshal.GetReference(dst))
             {
                 float* pDstCurrent = pd;
                 int length = dst.Length;
@@ -608,8 +609,8 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
         public static unsafe void ScaleSrcU(float scale, ReadOnlySpan<float> src, Span<float> dst, int count)
         {
-            fixed (float* psrc = src)
-            fixed (float* pdst = dst)
+            fixed (float* psrc = &MemoryMarshal.GetReference(src))
+            fixed (float* pdst = &MemoryMarshal.GetReference(dst))
             {
                 float* pDstEnd = pdst + count;
                 float* pSrcCurrent = psrc;
@@ -654,7 +655,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         // dst[i] = a * (dst[i] + b)
         public static unsafe void ScaleAddU(float a, float b, Span<float> dst)
         {
-            fixed (float* pdst = dst)
+            fixed (float* pdst = &MemoryMarshal.GetReference(dst))
             {
                 float* pDstEnd = pdst + dst.Length;
                 float* pDstCurrent = pdst;
@@ -699,8 +700,8 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
         public static unsafe void AddScaleU(float scale, ReadOnlySpan<float> src, Span<float> dst, int count)
         {
-            fixed (float* psrc = src)
-            fixed (float* pdst = dst)
+            fixed (float* psrc = &MemoryMarshal.GetReference(src))
+            fixed (float* pdst = &MemoryMarshal.GetReference(dst))
             {
                 float* pSrcCurrent = psrc;
                 float* pDstCurrent = pdst;
@@ -753,9 +754,9 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
         public static unsafe void AddScaleCopyU(float scale, ReadOnlySpan<float> src, ReadOnlySpan<float> dst, Span<float> result, int count)
         {
-            fixed (float* psrc = src)
-            fixed (float* pdst = dst)
-            fixed (float* pres = result)
+            fixed (float* psrc = &MemoryMarshal.GetReference(src))
+            fixed (float* pdst = &MemoryMarshal.GetReference(dst))
+            fixed (float* pres = &MemoryMarshal.GetReference(result))
             {
                 float* pResEnd = pres + count;
                 float* pSrcCurrent = psrc;
@@ -809,9 +810,9 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
         public static unsafe void AddScaleSU(float scale, ReadOnlySpan<float> src, ReadOnlySpan<int> idx, Span<float> dst, int count)
         {
-            fixed (float* psrc = src)
-            fixed (int* pidx = idx)
-            fixed (float* pdst = dst)
+            fixed (float* psrc = &MemoryMarshal.GetReference(src))
+            fixed (int* pidx = &MemoryMarshal.GetReference(idx))
+            fixed (float* pdst = &MemoryMarshal.GetReference(dst))
             {
                 float* pSrcCurrent = psrc;
                 int* pIdxCurrent = pidx;
@@ -860,8 +861,8 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
         public static unsafe void AddU(ReadOnlySpan<float> src, Span<float> dst, int count)
         {
-            fixed (float* psrc = src)
-            fixed (float* pdst = dst)
+            fixed (float* psrc = &MemoryMarshal.GetReference(src))
+            fixed (float* pdst = &MemoryMarshal.GetReference(dst))
             {
                 float* pSrcCurrent = psrc;
                 float* pDstCurrent = pdst;
@@ -907,9 +908,9 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
         public static unsafe void AddSU(ReadOnlySpan<float> src, ReadOnlySpan<int> idx, Span<float> dst, int count)
         {
-            fixed (float* psrc = src)
-            fixed (int* pidx = idx)
-            fixed (float* pdst = dst)
+            fixed (float* psrc = &MemoryMarshal.GetReference(src))
+            fixed (int* pidx = &MemoryMarshal.GetReference(idx))
+            fixed (float* pdst = &MemoryMarshal.GetReference(dst))
             {
                 float* pSrcCurrent = psrc;
                 int* pIdxCurrent = pidx;
@@ -952,9 +953,9 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
         public static unsafe void MulElementWiseU(ReadOnlySpan<float> src1, ReadOnlySpan<float> src2, Span<float> dst, int count)
         {
-            fixed (float* psrc1 = src1)
-            fixed (float* psrc2 = src2)
-            fixed (float* pdst = dst)
+            fixed (float* psrc1 = &MemoryMarshal.GetReference(src1))
+            fixed (float* psrc2 = &MemoryMarshal.GetReference(src2))
+            fixed (float* pdst = &MemoryMarshal.GetReference(dst))
             {
                 float* pSrc1Current = psrc1;
                 float* pSrc2Current = psrc2;
@@ -1001,7 +1002,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
         public static unsafe float SumU(ReadOnlySpan<float> src)
         {
-            fixed (float* psrc = src)
+            fixed (float* psrc = &MemoryMarshal.GetReference(src))
             {
                 float* pSrcEnd = psrc + src.Length;
                 float* pSrcCurrent = psrc;
@@ -1039,7 +1040,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
         public static unsafe float SumSqU(ReadOnlySpan<float> src)
         {
-            fixed (float* psrc = src)
+            fixed (float* psrc = &MemoryMarshal.GetReference(src))
             {
                 float* pSrcEnd = psrc + src.Length;
                 float* pSrcCurrent = psrc;
@@ -1083,7 +1084,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
         public static unsafe float SumSqDiffU(float mean, ReadOnlySpan<float> src)
         {
-            fixed (float* psrc = src)
+            fixed (float* psrc = &MemoryMarshal.GetReference(src))
             {
                 float* pSrcEnd = psrc + src.Length;
                 float* pSrcCurrent = psrc;
@@ -1132,7 +1133,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
         public static unsafe float SumAbsU(ReadOnlySpan<float> src)
         {
-            fixed (float* psrc = src)
+            fixed (float* psrc = &MemoryMarshal.GetReference(src))
             {
                 float* pSrcEnd = psrc + src.Length;
                 float* pSrcCurrent = psrc;
@@ -1176,7 +1177,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
         public static unsafe float SumAbsDiffU(float mean, ReadOnlySpan<float> src)
         {
-            fixed (float* psrc = src)
+            fixed (float* psrc = &MemoryMarshal.GetReference(src))
             {
                 float* pSrcEnd = psrc + src.Length;
                 float* pSrcCurrent = psrc;
@@ -1225,7 +1226,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
         public static unsafe float MaxAbsU(ReadOnlySpan<float> src)
         {
-            fixed (float* psrc = src)
+            fixed (float* psrc = &MemoryMarshal.GetReference(src))
             {
                 float* pSrcEnd = psrc + src.Length;
                 float* pSrcCurrent = psrc;
@@ -1269,7 +1270,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
         public static unsafe float MaxAbsDiffU(float mean, ReadOnlySpan<float> src)
         {
-            fixed (float* psrc = src)
+            fixed (float* psrc = &MemoryMarshal.GetReference(src))
             {
                 float* pSrcEnd = psrc + src.Length;
                 float* pSrcCurrent = psrc;
@@ -1318,8 +1319,8 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
         public static unsafe float DotU(ReadOnlySpan<float> src, ReadOnlySpan<float> dst, int count)
         {
-            fixed (float* psrc = src)
-            fixed (float* pdst = dst)
+            fixed (float* psrc = &MemoryMarshal.GetReference(src))
+            fixed (float* pdst = &MemoryMarshal.GetReference(dst))
             {
                 float* pSrcCurrent = psrc;
                 float* pDstCurrent = pdst;
@@ -1373,9 +1374,9 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
         public static unsafe float DotSU(ReadOnlySpan<float> src, ReadOnlySpan<float> dst, ReadOnlySpan<int> idx, int count)
         {
-            fixed (float* psrc = src)
-            fixed (float* pdst = dst)
-            fixed (int* pidx = idx)
+            fixed (float* psrc = &MemoryMarshal.GetReference(src))
+            fixed (float* pdst = &MemoryMarshal.GetReference(dst))
+            fixed (int* pidx = &MemoryMarshal.GetReference(idx))
             {
                 float* pSrcCurrent = psrc;
                 float* pDstCurrent = pdst;
@@ -1430,8 +1431,8 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
         public static unsafe float Dist2(ReadOnlySpan<float> src, ReadOnlySpan<float> dst, int count)
         {
-            fixed (float* psrc = src)
-            fixed (float* pdst = dst)
+            fixed (float* psrc = &MemoryMarshal.GetReference(src))
+            fixed (float* pdst = &MemoryMarshal.GetReference(dst))
             {
                 float* pSrcCurrent = psrc;
                 float* pDstCurrent = pdst;
@@ -1484,9 +1485,9 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
         public static unsafe void SdcaL1UpdateU(float primalUpdate, int count, ReadOnlySpan<float> src, float threshold, Span<float> v, Span<float> w)
         {
-            fixed (float* psrc = src)
-            fixed (float* pdst1 = v)
-            fixed (float* pdst2 = w)
+            fixed (float* psrc = &MemoryMarshal.GetReference(src))
+            fixed (float* pdst1 = &MemoryMarshal.GetReference(v))
+            fixed (float* pdst2 = &MemoryMarshal.GetReference(w))
             {
                 float* pSrcEnd = psrc + count;
                 float* pSrcCurrent = psrc;
@@ -1546,10 +1547,10 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
         public static unsafe void SdcaL1UpdateSU(float primalUpdate, int count, ReadOnlySpan<float> src, ReadOnlySpan<int> indices, float threshold, Span<float> v, Span<float> w)
         {
-            fixed (float* psrc = src)
-            fixed (int* pidx = indices)
-            fixed (float* pdst1 = v)
-            fixed (float* pdst2 = w)
+            fixed (float* psrc = &MemoryMarshal.GetReference(src))
+            fixed (int* pidx = &MemoryMarshal.GetReference(indices))
+            fixed (float* pdst1 = &MemoryMarshal.GetReference(v))
+            fixed (float* pdst2 = &MemoryMarshal.GetReference(w))
             {
                 int* pIdxEnd = pidx + count;
                 float* pSrcCurrent = psrc;
