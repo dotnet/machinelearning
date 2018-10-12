@@ -291,7 +291,7 @@ namespace Microsoft.ML.Runtime.Data
                     Host.Assert(colIndex >= 0);
                     var builder = new Schema.Metadata.Builder();
                     AddMetadata(i, builder);
-                    result[i] = new Schema.Column(_parent.ColumnPairs[i].output, _types[i], builder.GetMetadataRow());
+                    result[i] = new Schema.Column(_parent.ColumnPairs[i].output, _types[i], builder.GetMetadata());
                 }
                 return result;
             }

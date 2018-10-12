@@ -765,14 +765,14 @@ namespace Microsoft.ML.Runtime.Data
 
             var slotNamesType = new VectorType(TextType.Instance, _numClusters);
 
-            var sortedClusters = new Schema.MetadataRow.Builder();
+            var sortedClusters = new Schema.Metadata.Builder();
             sortedClusters.AddSlotNames(slotNamesType.VectorSize, CreateSlotNamesGetter(_numClusters, "Cluster"));
 
-            var sortedClusterScores = new Schema.MetadataRow.Builder();
+            var sortedClusterScores = new Schema.Metadata.Builder();
             sortedClusterScores.AddSlotNames(slotNamesType.VectorSize, CreateSlotNamesGetter(_numClusters, "Score"));
 
-            infos[SortedClusterCol] = new Schema.Column(SortedClusters, _types[SortedClusterCol], sortedClusters.GetMetadataRow());
-            infos[SortedClusterScoreCol] = new Schema.Column(SortedClusterScores, _types[SortedClusterScoreCol], sortedClusterScores.GetMetadataRow());
+            infos[SortedClusterCol] = new Schema.Column(SortedClusters, _types[SortedClusterCol], sortedClusters.GetMetadata());
+            infos[SortedClusterScoreCol] = new Schema.Column(SortedClusterScores, _types[SortedClusterScoreCol], sortedClusterScores.GetMetadata());
             return infos;
         }
 

@@ -225,15 +225,15 @@ namespace Microsoft.ML.Runtime.Data
                 {
                     InputSchema.TryGetColumnIndex(_parent.ColumnPairs[i].input, out int colIndex);
                     Host.Assert(colIndex >= 0);
-                    var builder = new Schema.MetadataRow.Builder();
+                    var builder = new Schema.Metadata.Builder();
                     AddMetadata(i, builder);
 
-                    result[i] = new Schema.Column(_parent.ColumnPairs[i].output, _types[i], builder.GetMetadataRow());
+                    result[i] = new Schema.Column(_parent.ColumnPairs[i].output, _types[i], builder.GetMetadata());
                 }
                 return result;
             }
 
-            private void AddMetadata(int iinfo, Schema.MetadataRow.Builder builder)
+            private void AddMetadata(int iinfo, Schema.Metadata.Builder builder)
             {
                 InputSchema.TryGetColumnIndex(_infos[iinfo].Source, out int srcCol);
                 var inputMetadata = InputSchema[srcCol].Metadata;

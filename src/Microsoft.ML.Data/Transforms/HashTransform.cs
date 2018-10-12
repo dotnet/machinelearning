@@ -1012,17 +1012,17 @@ namespace Microsoft.ML.Transforms
                 for (int i = 0; i < _parent.ColumnPairs.Length; i++)
                 {
                     InputSchema.TryGetColumnIndex(_parent.ColumnPairs[i].input, out int colIndex);
-                    var meta = new Schema.MetadataRow.Builder();
+                    var meta = new Schema.Metadata.Builder();
 
                     meta.Add(InputSchema[colIndex].Metadata, name => name == MetadataUtils.Kinds.SlotNames);
 
                     if (_parent._kvTypes != null && _parent._kvTypes[i] != null)
                         AddMetaKeyValues(i, meta);
-                    result[i] = new Schema.Column(_parent.ColumnPairs[i].output, _types[i], meta.GetMetadataRow());
+                    result[i] = new Schema.Column(_parent.ColumnPairs[i].output, _types[i], meta.GetMetadata());
                 }
                 return result;
             }
-            private void AddMetaKeyValues(int i, Schema.MetadataRow.Builder builder)
+            private void AddMetaKeyValues(int i, Schema.Metadata.Builder builder)
             {
                 ValueGetter<VBuffer<ReadOnlyMemory<char>>> getter = (ref VBuffer<ReadOnlyMemory<char>> dst) =>
                 {

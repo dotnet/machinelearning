@@ -246,7 +246,7 @@ namespace Microsoft.ML.Runtime.Data
                 /// Produce the metadata row that the builder has so far.
                 /// Can be called multiple times.
                 /// </summary>
-                public Metadata GetMetadataRow() => new Metadata(_items);
+                public Metadata GetMetadata() => new Metadata(_items);
 
                 private void AddDelegate<TValue>(Schema.Column column, Delegate getter)
                 {
@@ -293,7 +293,7 @@ namespace Microsoft.ML.Runtime.Data
                     var getter = Utils.MarshalInvoke(GetMetadataGetterDelegate<int>, kvp.Value.RawType, inputSchema, i, kvp.Key);
                     meta.Add(new Column(kvp.Key, kvp.Value, null), getter);
                 }
-                columns[i] = new Column(inputSchema.GetColumnName(i), inputSchema.GetColumnType(i), meta.GetMetadataRow());
+                columns[i] = new Column(inputSchema.GetColumnName(i), inputSchema.GetColumnType(i), meta.GetMetadata());
             }
 
             return new Schema(columns);

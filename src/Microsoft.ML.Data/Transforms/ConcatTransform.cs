@@ -576,7 +576,7 @@ namespace Microsoft.ML.Runtime.Data
                         return new Schema.Column(_columnInfo.Output, inputCol.Type, inputCol.Metadata);
                     }
 
-                    var metadata = new Schema.MetadataRow.Builder();
+                    var metadata = new Schema.Metadata.Builder();
                     if (_isNormalized)
                         metadata.Add(new Schema.Column(MetadataUtils.Kinds.IsNormalized, BoolType.Instance, null), (ValueGetter<bool>)GetIsNormalized);
                     if (_hasSlotNames)
@@ -584,7 +584,7 @@ namespace Microsoft.ML.Runtime.Data
                     if (_hasCategoricals)
                         metadata.Add(new Schema.Column(MetadataUtils.Kinds.CategoricalSlotRanges, _categoricalRangeType, null), (ValueGetter<VBuffer<int>>)GetCategoricalSlotRanges);
 
-                    return new Schema.Column(_columnInfo.Output, OutputType, metadata.GetMetadataRow());
+                    return new Schema.Column(_columnInfo.Output, OutputType, metadata.GetMetadata());
                 }
 
                 private void GetIsNormalized(ref bool value) => value = _isNormalized;

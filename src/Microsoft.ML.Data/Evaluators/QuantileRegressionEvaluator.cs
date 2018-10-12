@@ -344,14 +344,14 @@ namespace Microsoft.ML.Runtime.Data
             var infos = new Schema.Column[2];
 
             var slotNamesType = new VectorType(TextType.Instance, _scoreSize);
-            var l1Metadata = new Schema.MetadataRow.Builder();
+            var l1Metadata = new Schema.Metadata.Builder();
             l1Metadata.AddSlotNames(_scoreSize, CreateSlotNamesGetter(L1));
 
-            var l2Metadata = new Schema.MetadataRow.Builder();
+            var l2Metadata = new Schema.Metadata.Builder();
             l2Metadata.AddSlotNames(_scoreSize, CreateSlotNamesGetter(L2));
 
-            infos[L1Col] = new Schema.Column(L1, _outputType, l1Metadata.GetMetadataRow());
-            infos[L2Col] = new Schema.Column(L2, _outputType, l2Metadata.GetMetadataRow());
+            infos[L1Col] = new Schema.Column(L1, _outputType, l1Metadata.GetMetadata());
+            infos[L2Col] = new Schema.Column(L2, _outputType, l2Metadata.GetMetadata());
             return infos;
         }
 

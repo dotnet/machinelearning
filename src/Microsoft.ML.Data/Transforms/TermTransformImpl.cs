@@ -856,7 +856,7 @@ namespace Microsoft.ML.Runtime.Data
             /// Allows us to optionally register metadata. It is also perfectly legal for
             /// this to do nothing, which corresponds to there being no metadata.
             /// </summary>
-            public abstract void AddMetadata(Schema.MetadataRow.Builder builder);
+            public abstract void AddMetadata(Schema.Metadata.Builder builder);
 
             /// <summary>
             /// Writes out all terms we map to a text writer, with one line per mapped term.
@@ -1039,7 +1039,7 @@ namespace Microsoft.ML.Runtime.Data
                     }
                 }
 
-                public override void AddMetadata(Schema.MetadataRow.Builder builder)
+                public override void AddMetadata(Schema.Metadata.Builder builder)
                 {
                     if (TypedMap.Count == 0)
                         return;
@@ -1082,7 +1082,7 @@ namespace Microsoft.ML.Runtime.Data
                     _host.Assert(TypedMap.ItemType.IsKey);
                 }
 
-                public override void AddMetadata(Schema.MetadataRow.Builder builder)
+                public override void AddMetadata(Schema.Metadata.Builder builder)
                 {
                     if (TypedMap.Count == 0)
                         return;
@@ -1097,7 +1097,7 @@ namespace Microsoft.ML.Runtime.Data
                     }
                 }
 
-                private bool AddMetadataCore<TMeta>(ColumnType srcMetaType, Schema.MetadataRow.Builder builder)
+                private bool AddMetadataCore<TMeta>(ColumnType srcMetaType, Schema.Metadata.Builder builder)
                 {
                     _host.AssertValue(srcMetaType);
                     _host.Assert(srcMetaType.RawType == typeof(TMeta));

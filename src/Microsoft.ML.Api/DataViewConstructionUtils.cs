@@ -757,10 +757,10 @@ namespace Microsoft.ML.Runtime.Api
             for (int i = 0; i < columns.Length; i++)
             {
                 var col = schemaDefn.Columns[i];
-                var meta = new Schema.MetadataRow.Builder();
+                var meta = new Schema.Metadata.Builder();
                 foreach (var kvp in col.Metadata)
                     meta.Add(new Schema.Column(kvp.Value.Kind, kvp.Value.MetadataType, null), kvp.Value.GetGetterDelegate());
-                columns[i] = new Schema.Column(col.ColumnName, col.ColumnType, meta.GetMetadataRow());
+                columns[i] = new Schema.Column(col.ColumnName, col.ColumnType, meta.GetMetadata());
             }
 
             return columns;

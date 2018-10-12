@@ -401,8 +401,8 @@ namespace Microsoft.ML.Runtime.Data
 
         private readonly ColumnType _labelType;
         private readonly ColumnType _scoreType;
-        private readonly Schema.MetadataRow _labelMetadata;
-        private readonly Schema.MetadataRow _scoreMetadata;
+        private readonly Schema.Metadata _labelMetadata;
+        private readonly Schema.Metadata _scoreMetadata;
 
         public MultiOutputRegressionPerInstanceEvaluator(IHostEnvironment env, Schema schema, string scoreCol,
             string labelCol)
@@ -545,7 +545,7 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         private void CheckInputColumnTypes(Schema schema, out ColumnType labelType, out ColumnType scoreType,
-            out Schema.MetadataRow labelMetadata, out Schema.MetadataRow scoreMetadata)
+            out Schema.Metadata labelMetadata, out Schema.Metadata scoreMetadata)
         {
             Host.AssertNonEmpty(ScoreCol);
             Host.AssertNonEmpty(LabelCol);
@@ -555,15 +555,15 @@ namespace Microsoft.ML.Runtime.Data
                 throw Host.Except("Label column '{0}' has type '{1}' but must be a known-size vector of R4 or R8", LabelCol, t);
             labelType = new VectorType(t.ItemType.AsPrimitive, t.VectorSize);
             var slotNamesType = new VectorType(TextType.Instance, t.VectorSize);
-            var builder = new Schema.MetadataRow.Builder();
+            var builder = new Schema.Metadata.Builder();
             builder.AddSlotNames(t.VectorSize, CreateSlotNamesGetter(schema, LabelIndex, labelType.VectorSize, "True"));
-            labelMetadata = builder.GetMetadataRow();
+            labelMetadata = builder.GetMetadata();
 
             t = schema.GetColumnType(ScoreIndex);
             if (t.VectorSize == 0 || t.ItemType != NumberType.Float)
                 throw Host.Except("Score column '{0}' has type '{1}' but must be a known length vector of type R4", ScoreCol, t);
             scoreType = new VectorType(t.ItemType.AsPrimitive, t.VectorSize);
-            builder = new Schema.MetadataRow.Builder();
+            builder = new Schema.Metadata.Builder();
             builder.AddSlotNames(t.VectorSize, CreateSlotNamesGetter(schema, ScoreIndex, scoreType.VectorSize, "Predicted"));
 
             ValueGetter<ReadOnlyMemory<char>> getter = GetScoreColumnKind;
@@ -572,7 +572,7 @@ namespace Microsoft.ML.Runtime.Data
             builder.Add(new Schema.Column(MetadataUtils.Kinds.ScoreValueKind, TextType.Instance, null), getter);
             ValueGetter<uint> uintGetter = GetScoreColumnSetId(schema);
             builder.Add(new Schema.Column(MetadataUtils.Kinds.ScoreValueKind, NumberType.U4, null), uintGetter);
-            scoreMetadata = builder.GetMetadataRow();
+            scoreMetadata = builder.GetMetadata();
         }
 
         private ValueGetter<uint> GetScoreColumnSetId(Schema schema)

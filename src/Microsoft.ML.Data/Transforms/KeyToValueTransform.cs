@@ -175,9 +175,9 @@ namespace Microsoft.ML.Runtime.Data
                 var result = new Schema.Column[_parent.ColumnPairs.Length];
                 for (int i = 0; i < _parent.ColumnPairs.Length; i++)
                 {
-                    var meta = new Schema.MetadataRow.Builder();
+                    var meta = new Schema.Metadata.Builder();
                     meta.Add(InputSchema[ColMapNewToOld[i]].Metadata, name => name == MetadataUtils.Kinds.SlotNames);
-                    result[i] = new Schema.Column(_parent.ColumnPairs[i].output, _types[i], meta.GetMetadataRow());
+                    result[i] = new Schema.Column(_parent.ColumnPairs[i].output, _types[i], meta.GetMetadata());
                 }
                 return result;
             }

@@ -214,14 +214,14 @@ namespace Microsoft.ML.Runtime.Data
                 var schemaCols = new Schema.Column[_columns.Length];
                 for(int i=0; i<schemaCols.Length; i++)
                 {
-                    var meta = new Schema.MetadataRow.Builder();
+                    var meta = new Schema.Metadata.Builder();
 
                     if (builder._getSlotNames.TryGetValue(builder._names[i], out var slotNamesGetter))
                         meta.AddSlotNames(_columns[i].Type.VectorSize, slotNamesGetter);
 
                     if (builder._getKeyValues.TryGetValue(builder._names[i], out var keyValueGetter))
                         meta.AddKeyValues(_columns[i].Type.KeyCount, TextType.Instance, keyValueGetter);
-                    schemaCols[i] = new Schema.Column(builder._names[i], _columns[i].Type, meta.GetMetadataRow());
+                    schemaCols[i] = new Schema.Column(builder._names[i], _columns[i].Type, meta.GetMetadata());
                 }
 
                 _schema = new Schema(schemaCols);

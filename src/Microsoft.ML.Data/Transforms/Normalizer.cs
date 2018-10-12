@@ -470,14 +470,14 @@ namespace Microsoft.ML.Runtime.Data
                 return result;
             }
 
-            private Schema.MetadataRow MakeMetadata(int iinfo)
+            private Schema.Metadata MakeMetadata(int iinfo)
             {
                 var colInfo = _parent._columns[iinfo];
-                var builder = new Schema.MetadataRow.Builder();
+                var builder = new Schema.Metadata.Builder();
 
                 builder.Add(new Schema.Column(MetadataUtils.Kinds.IsNormalized, BoolType.Instance, null), (ValueGetter<bool>)IsNormalizedGetter);
                 builder.Add(InputSchema[ColMapNewToOld[iinfo]].Metadata, name => name == MetadataUtils.Kinds.SlotNames);
-                return builder.GetMetadataRow();
+                return builder.GetMetadata();
             }
 
             private void IsNormalizedGetter(ref bool dst)

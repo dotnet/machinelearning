@@ -757,11 +757,11 @@ namespace Microsoft.ML.Runtime.Data
                 {
                     InputSchema.TryGetColumnIndex(_parent.ColumnPairs[i].input, out int colIndex);
                     Host.Assert(colIndex >= 0);
-                    var builder = new Schema.MetadataRow.Builder();
+                    var builder = new Schema.Metadata.Builder();
                     _termMap[i].AddMetadata(builder);
 
                     builder.Add(InputSchema[colIndex].Metadata, name => name == MetadataUtils.Kinds.SlotNames);
-                    result[i] = new Schema.Column(_parent.ColumnPairs[i].output, _types[i], builder.GetMetadataRow());
+                    result[i] = new Schema.Column(_parent.ColumnPairs[i].output, _types[i], builder.GetMetadata());
                 }
                 return result;
             }
