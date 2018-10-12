@@ -93,7 +93,10 @@ namespace Microsoft.ML.Runtime.TextAnalytics
             Polish = 12,
             Czech = 13,
             Arabic = 14,
-            Japanese = 15
+            Japanese = 15,
+
+            [HideEnumValue]
+            Norwegian_Bokmal_v1 = 256
         }
 
         public sealed class Column : OneToOneColumn
@@ -201,6 +204,11 @@ namespace Microsoft.ML.Runtime.TextAnalytics
                 // int: the id of languages column name
                 Lang = (Language)ctx.Reader.ReadInt32();
                 Contracts.CheckDecode(Enum.IsDefined(typeof(Language), Lang));
+                if(Lang == Language.Norwegian_Bokmal 
+                   && ctx.Header.ModelVerWritten == 0x00010001)
+                {
+                    Lang = Language.Norwegian_Bokmal_v1;
+                }
                 _langsColName = ctx.LoadStringOrNull();
                 if (_langsColName != null)
                 {
@@ -232,8 +240,8 @@ namespace Microsoft.ML.Runtime.TextAnalytics
         {
             return new VersionInfo(
                 modelSignature: "STOPWRDR",
-                verWrittenCur: 0x00010001, // Initial
-                verReadableCur: 0x00010001,
+                verWrittenCur: 0x00010002, // Initial
+                verReadableCur: 0x00010002,
                 verWeCanReadBack: 0x00010001,
                 loaderSignature: LoaderSignature,
                 loaderAssemblyName: typeof(StopWordsRemoverTransform).Assembly.FullName);
