@@ -1,8 +1,0 @@
-maml.exe TrainTest test=%Data% tr=FastRank{nl=5 mil=5 lr=0.25 iter=20} dout=%Output% loader=Text{col=Name:TX:0 col=Label:Num:1 col=Features:Num:~} data=%Data% out=%Output% seed=1 xf=Expr{col=Name expr={x=>right(x, 1)}}
-Physical memory usage(MB): %Number%
-Virtual memory usage(MB): %Number%
-%DateTime%	 Time elapsed(s): %Number%
-
-Could not find file '%Data%
-Error log has been saved to '%Temp%\%ErrorLog%'. Please refer to https://aka.ms/MLNetIssue if you need assistance.
---- Progress log ---
