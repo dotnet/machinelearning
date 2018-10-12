@@ -375,17 +375,17 @@ namespace Microsoft.ML.Runtime.Data
                 //								|									                    |
                 //								Y[n]													|
                 //								|                                                       |
-                //								------------->(indices) Gather(data) < ------------------
+                //								------------->(indices) Gather (axis= 1)(data) < ------------------
                 //														|
                 //													 W[n, j]
                 //												  /     |      \
                 //						 ---------------------- /       |        \----------------------
                 //						/                               |                                \
-                //					ReduceMin(axis = 0)         ReduceMean(axis = 0)         ReduceMax(axis = 0)
+                //					ReduceMin(axes = [1])         ReduceMean(axes = [1])         ReduceMax(axes = [1])
                 //						|                                |                                |
                 //						J[j]                           K[j]                             L[j]
                 //						|                                |                                |
-                //						 -----------------------------Concat-----------------------------
+                //						 -----------------------------Concat (axis = 1) -----------------------------
                 //													     |
                 //													 P[j * 3]
 
@@ -400,32 +400,33 @@ namespace Microsoft.ML.Runtime.Data
                 // Do label encoding
                 var nameY = ctx.AddIntermediateVariable(null, "LabelEncodedInput", true);
                 var nodeY = ctx.CreateNode("LabelEncoder", nameX, nameY, ctx.GetNodeName("LabelEncoder"));
-                // This is wrong and does not work!!!
                 nodeY.AddAttribute("classes_strings", _parent._currentVocab.GetWordLabels());
                 nodeY.AddAttribute("default_int64", 1);
 
                 // Do gather
                 var nameW = ctx.AddIntermediateVariable(null, "WeightsOfInput", true);
-                var nodeW = ctx.CreateNode("Gather", new[] { nameY, nameD }, new[] { nameW }, ctx.GetNodeName("Gather"));
+                var nodeW = ctx.CreateNode("Gather", new[] { nameD, nameY }, new[] { nameW }, ctx.GetNodeName("Gather"), "");
 
+                long[] axes = new long[] { 1 };
                 // Do reduce min
                 var nameJ = ctx.AddIntermediateVariable(null, "MinWeights", true);
-                var nodeJ = ctx.CreateNode("ReduceMin", nameW, nameJ, ctx.GetNodeName("ReduceMin"));
-                nodeJ.AddAttribute("axis", 0);
+                var nodeJ = ctx.CreateNode("ReduceMin", nameW, nameJ, ctx.GetNodeName("ReduceMin"), "");
+                nodeJ.AddAttribute("axes", axes);
 
                 // Do reduce mean
                 var nameK = ctx.AddIntermediateVariable(null, "MeanWeights", true);
-                var nodeK = ctx.CreateNode("ReduceMin", nameW, nameK, ctx.GetNodeName("ReduceMin"));
-                nodeK.AddAttribute("axis", 0);
+                var nodeK = ctx.CreateNode("ReduceMean", nameW, nameK, ctx.GetNodeName("ReduceMean"), "");
+                nodeK.AddAttribute("axes", axes);
 
                 // Do reduce max
                 var nameL = ctx.AddIntermediateVariable(null, "MaxWeights", true);
-                var nodeL = ctx.CreateNode("ReduceMin", nameW, nameL, ctx.GetNodeName("ReduceMin"));
-                nodeL.AddAttribute("axis", 0);
+                var nodeL = ctx.CreateNode("ReduceMax", nameW, nameL, ctx.GetNodeName("ReduceMax"), "");
+                nodeL.AddAttribute("axes", axes);
 
                 // Do concat
                 var nameP = dstVariableName;
-                var nodeP = ctx.CreateNode("Concat", new[] { nameJ, nameK, nameL }, new[] { nameP }, ctx.GetNodeName("Concat"));
+                var nodeP = ctx.CreateNode("Concat", new[] { nameJ, nameK, nameL }, new[] { nameP }, ctx.GetNodeName("Concat"), "");
+                nodeP.AddAttribute("axis", 1);
             }
 
             protected override Delegate MakeGetter(IRow input, int iinfo, out Action disposer)
