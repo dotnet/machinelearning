@@ -1154,7 +1154,6 @@ namespace Microsoft.ML.Runtime.RunTests
             Done();
         }
 
-        //[Fact(Skip = "Need CoreTLC specific baseline update")]
         [Fact]
         [TestCategory(Cat), TestCategory("Multiclass"), TestCategory("Logistic Regression")]
         public void CommandTrainMlrWithStats()
