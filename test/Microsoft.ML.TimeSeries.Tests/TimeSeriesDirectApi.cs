@@ -117,10 +117,10 @@ namespace Microsoft.ML.Tests
                 while (enumerator.MoveNext() && index < expectedValues.Count)
                 {
                     row = enumerator.Current;
-                    Assert.Equal(expectedValues[index++], row.Change[0]);
-                    Assert.Equal(expectedValues[index++], row.Change[1]);
-                    Assert.Equal(expectedValues[index++], row.Change[2]);
-                    Assert.Equal(expectedValues[index++], row.Change[3]);
+                    Assert.Equal(expectedValues[index++], row.Change[0], precision: 7);
+                    Assert.Equal(expectedValues[index++], row.Change[1], precision: 7);
+                    Assert.Equal(expectedValues[index++], row.Change[2], precision: 7);
+                    Assert.Equal(expectedValues[index++], row.Change[3], precision: 7);
                 }
             }
         }

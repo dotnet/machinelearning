@@ -292,6 +292,9 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             VBuffer<float>[] weights = null;
             predictor.GetWeights(ref weights, out int numClasses);
 
+            // similarly we can also inspect the biases for the 3 classes 
+            var biases = predictor.GetBiases();
+
             // Inspect the normalizer scales.
             Console.WriteLine(string.Join(" ", normScales));
         }
@@ -632,7 +635,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             IEstimator<ITransformer> dynamicPipe = learningPipeline.AsDynamic;
 
             // Create a binary classification trainer.
-            var binaryTrainer = new AveragedPerceptronTrainer(env, new AveragedPerceptronTrainer.Arguments());
+            var binaryTrainer = new AveragedPerceptronTrainer(env, "Label", "Features");
 
             // Append the OVA learner to the pipeline.
             dynamicPipe = dynamicPipe.Append(new Ova(env, binaryTrainer));
