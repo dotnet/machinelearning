@@ -31,10 +31,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                 var trainData = pipeline.FitAndTransform(data);
 
                 // Train the first predictor.
-                var trainer = new LinearClassificationTrainer(env, new LinearClassificationTrainer.Arguments
-                {
-                    NumThreads = 1
-                }, "Features", "Label");
+                var trainer = new LinearClassificationTrainer(env, "Features", "Label", advancedSettings: (s) => s.NumThreads = 1);
                 var firstModel = trainer.Fit(trainData);
 
                 // Train the second predictor on the same data.

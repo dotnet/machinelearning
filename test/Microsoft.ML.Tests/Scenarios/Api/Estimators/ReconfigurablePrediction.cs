@@ -32,7 +32,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                 var pipeline = new TextTransform(env, "SentimentText", "Features")
                     .Fit(data);
 
-                var trainer = new LinearClassificationTrainer(env, new LinearClassificationTrainer.Arguments { NumThreads = 1 }, "Features", "Label");
+                var trainer = new LinearClassificationTrainer(env, "Features", "Label", advancedSettings: (s) => s.NumThreads = 1);
                 var trainData = pipeline.Transform(data);
                 var model = trainer.Fit(trainData);
 

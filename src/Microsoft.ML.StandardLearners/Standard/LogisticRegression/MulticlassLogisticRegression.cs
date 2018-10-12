@@ -232,7 +232,7 @@ namespace Microsoft.ML.Runtime.Learners
             if (srcPredictor.InputType.VectorSize != NumFeatures)
                 throw Contracts.Except("The input training data must have the same features used to train the input predictor.");
 
-            return InitializeWeights(srcPredictor.DenseWeightsEnumerable(), srcPredictor.BiasesEnumerable());
+            return InitializeWeights(srcPredictor.DenseWeightsEnumerable(), srcPredictor.GetBiases());
         }
 
         protected override MulticlassLogisticRegressionPredictor CreatePredictor()
@@ -952,7 +952,10 @@ namespace Microsoft.ML.Runtime.Learners
             }
         }
 
-        internal IEnumerable<float> BiasesEnumerable()
+        /// <summary>
+        /// Gets the biases for the logistic regression predictor.
+        /// </summary>
+        public IEnumerable<float> GetBiases()
         {
             return _biases;
         }

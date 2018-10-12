@@ -20,14 +20,13 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 
             var data = TextLoader.CreateReader(Env, ctx => (Label: ctx.LoadFloat(0), Features: ctx.LoadFloat(1, 10)))
                 .Read(new MultiFileSource(dataPath));
-
-            IEstimator<ITransformer> est = new LinearClassificationTrainer(Env, new LinearClassificationTrainer.Arguments { ConvergenceTolerance = 1e-2f }, "Features", "Label");
+            IEstimator<ITransformer> est = new LinearClassificationTrainer(Env, "Features", "Label", advancedSettings: (s) => s.ConvergenceTolerance = 1e-2f);
             TestEstimatorCore(est, data.AsDynamic);
 
-            est = new SdcaRegressionTrainer(Env, new SdcaRegressionTrainer.Arguments { ConvergenceTolerance = 1e-2f }, "Features", "Label");
+            est = new SdcaRegressionTrainer(Env, "Features", "Label", advancedSettings: (s) => s.ConvergenceTolerance = 1e-2f);
             TestEstimatorCore(est, data.AsDynamic);
 
-            est = new SdcaMultiClassTrainer(Env, new SdcaMultiClassTrainer.Arguments { ConvergenceTolerance = 1e-2f }, "Features", "Label");
+            est = new SdcaMultiClassTrainer(Env, "Features", "Label", advancedSettings: (s) => s.ConvergenceTolerance = 1e-2f);
             TestEstimatorCore(est, data.AsDynamic);
 
             Done();
