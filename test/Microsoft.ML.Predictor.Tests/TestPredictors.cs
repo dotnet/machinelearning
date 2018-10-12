@@ -361,7 +361,8 @@ namespace Microsoft.ML.Runtime.RunTests
                 string prPath = DeleteOutputPath(dir, prName);
                 string eval = $"eval=Binary{{pr={{{prPath} }}}}";
                 Run_TrainTest(learner, data, new[] { eval });
-                CheckEqualityNormalized(dir, prName);
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) // PR curves are only generated on Windows.
+                    CheckEqualityNormalized(dir, prName);
                 Run_CV(learner, data);
             });
             Done();
