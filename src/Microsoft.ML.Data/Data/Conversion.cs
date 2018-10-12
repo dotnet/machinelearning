@@ -1530,7 +1530,7 @@ namespace Microsoft.ML.Runtime.Data.Conversion
         {
             var span = src.Span;
 
-            Contracts.Check(!IsStdMissing(ref span), "Missing text values cannot be converted to bool value.");
+            Contracts.Check(span.IsEmpty || !IsStdMissing(ref span), "Missing text value cannot be converted to bool type.");
 
             char ch;
             switch (src.Length)

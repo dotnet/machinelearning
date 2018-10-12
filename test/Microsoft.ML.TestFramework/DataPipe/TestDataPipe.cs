@@ -159,6 +159,29 @@ namespace Microsoft.ML.Runtime.RunTests
         }
 
         [Fact]
+        public void SavePipeWithHeader()
+        {
+            string pathTerms = DeleteOutputPath("SavePipe", "Terms.txt");
+            File.WriteAllLines(pathTerms, new string[] {
+                "Amer-Indian-Eskimo",
+                "Black",
+                "Asian-Pac-Islander",
+                "White",
+            });
+
+            string pathData = GetDataPath("adult.train");
+            TestCore(pathData, false,
+                new[] {
+                    "loader=Text{header+ sep=comma col=Label:14 col=Age:0 col=Gender:TX:9 col=Mar:TX:5 col=Race:TX:8 col=Num:2,4,10-12 col=Txt:TX:~}",
+                    "xf=Cat{col=Race2:Key:Race data={" + pathTerms + "} termCol=Whatever}",
+                    "xf=Cat{col=Gender2:Gender terms=Male,Female}",
+                    "xf=Cat{col=Mar2:Mar col={name=Race3 src=Race terms=Other,White,Black,Asian-Pac-Islander,Amer-Indian-Eskimo}}",
+                });
+
+            Done();
+        }
+
+        [Fact]
         public void TestHashTransformFloat()
         {
             TestHashTransformHelper(dataFloat, resultsFloat, NumberType.R4);
