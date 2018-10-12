@@ -332,44 +332,44 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
             Utils.EnsureSize(ref _entries, maMax + 1, BlockSize);
             switch (maMax - maMin)
             {
-            case 0:
-                // Spans only one subarray, most common case and simplest implementation.
-                Contracts.Assert(miLim - miMin == length);
-                Utils.EnsureSize(ref _entries[maMax], maMax >= FullAllocationBeyond ? BlockSize : miLim, BlockSize);
-                Array.Copy(src, 0, _entries[maMax], miMin, length);
-                break;
-            case 1:
-                // Spans two subarrays.
-                Contracts.Assert((BlockSize - miMin) + miLim == length);
-                Utils.EnsureSize(ref _entries[maMin], BlockSize, BlockSize);
-                Array.Copy(src, 0, _entries[maMin], miMin, BlockSize - miMin);
-                Contracts.Assert(_entries[maMax] == null);
-                Utils.EnsureSize(ref _entries[maMax], maMax >= FullAllocationBeyond ? BlockSize : miLim, BlockSize);
-                Array.Copy(src, BlockSize - miMin, _entries[maMax], 0, miLim);
-                break;
-            default:
-                // Spans three or more subarrays. Very rare.
-                int miSubMin = miMin;
+                case 0:
+                    // Spans only one subarray, most common case and simplest implementation.
+                    Contracts.Assert(miLim - miMin == length);
+                    Utils.EnsureSize(ref _entries[maMax], maMax >= FullAllocationBeyond ? BlockSize : miLim, BlockSize);
+                    Array.Copy(src, 0, _entries[maMax], miMin, length);
+                    break;
+                case 1:
+                    // Spans two subarrays.
+                    Contracts.Assert((BlockSize - miMin) + miLim == length);
+                    Utils.EnsureSize(ref _entries[maMin], BlockSize, BlockSize);
+                    Array.Copy(src, 0, _entries[maMin], miMin, BlockSize - miMin);
+                    Contracts.Assert(_entries[maMax] == null);
+                    Utils.EnsureSize(ref _entries[maMax], maMax >= FullAllocationBeyond ? BlockSize : miLim, BlockSize);
+                    Array.Copy(src, BlockSize - miMin, _entries[maMax], 0, miLim);
+                    break;
+                default:
+                    // Spans three or more subarrays. Very rare.
+                    int miSubMin = miMin;
 
-                // Copy the first segment.
-                Utils.EnsureSize(ref _entries[maMin], BlockSize, BlockSize);
-                int srcSoFar = BlockSize - miMin;
-                Array.Copy(src, 0, _entries[maMin], miMin, srcSoFar);
-                // Copy the internal segments.
-                for (int major = maMin + 1; major < maMax; ++major)
-                {
-                    Contracts.Assert(_entries[major] == null);
-                    _entries[major] = new T[BlockSize];
-                    Array.Copy(src, srcSoFar, _entries[major], 0, BlockSize);
-                    srcSoFar += BlockSize;
-                    Contracts.Assert(srcSoFar < length);
-                }
-                // Copy the last segment.
-                Contracts.Assert(length - srcSoFar == miLim);
-                Contracts.Assert(_entries[maMax] == null);
-                Utils.EnsureSize(ref _entries[maMax], maMax >= FullAllocationBeyond ? BlockSize : miLim, BlockSize);
-                Array.Copy(src, srcSoFar, _entries[maMax], 0, miLim);
-                break;
+                    // Copy the first segment.
+                    Utils.EnsureSize(ref _entries[maMin], BlockSize, BlockSize);
+                    int srcSoFar = BlockSize - miMin;
+                    Array.Copy(src, 0, _entries[maMin], miMin, srcSoFar);
+                    // Copy the internal segments.
+                    for (int major = maMin + 1; major < maMax; ++major)
+                    {
+                        Contracts.Assert(_entries[major] == null);
+                        _entries[major] = new T[BlockSize];
+                        Array.Copy(src, srcSoFar, _entries[major], 0, BlockSize);
+                        srcSoFar += BlockSize;
+                        Contracts.Assert(srcSoFar < length);
+                    }
+                    // Copy the last segment.
+                    Contracts.Assert(length - srcSoFar == miLim);
+                    Contracts.Assert(_entries[maMax] == null);
+                    Utils.EnsureSize(ref _entries[maMax], maMax >= FullAllocationBeyond ? BlockSize : miLim, BlockSize);
+                    Array.Copy(src, srcSoFar, _entries[maMax], 0, miLim);
+                    break;
             }
             _length += length;
         }
@@ -400,41 +400,41 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
             Contracts.Assert(maMin <= maMax); // Could happen if length == 0, but we already took care of this.
             switch (maMax - maMin)
             {
-            case 0:
-                // Spans only one subarray, most common case and simplest implementation.
-                Contracts.Assert(miLim - miMin == length);
-                Contracts.Assert(miLim <= Utils.Size(_entries[maMax]));
-                Array.Copy(_entries[maMax], miMin, dst, 0, length);
-                break;
-            case 1:
-                // Spans two subarrays.
-                Contracts.Assert((BlockSize - miMin) + miLim == length);
-                Contracts.Assert(BlockSize <= Utils.Size(_entries[maMin]));
-                Array.Copy(_entries[maMin], miMin, dst, 0, BlockSize - miMin);
-                Contracts.Assert(miLim <= Utils.Size(_entries[maMax]));
-                Array.Copy(_entries[maMax], 0, dst, BlockSize - miMin, miLim);
-                break;
-            default:
-                // Spans three or more subarrays. Very rare.
-                int miSubMin = miMin;
+                case 0:
+                    // Spans only one subarray, most common case and simplest implementation.
+                    Contracts.Assert(miLim - miMin == length);
+                    Contracts.Assert(miLim <= Utils.Size(_entries[maMax]));
+                    Array.Copy(_entries[maMax], miMin, dst, 0, length);
+                    break;
+                case 1:
+                    // Spans two subarrays.
+                    Contracts.Assert((BlockSize - miMin) + miLim == length);
+                    Contracts.Assert(BlockSize <= Utils.Size(_entries[maMin]));
+                    Array.Copy(_entries[maMin], miMin, dst, 0, BlockSize - miMin);
+                    Contracts.Assert(miLim <= Utils.Size(_entries[maMax]));
+                    Array.Copy(_entries[maMax], 0, dst, BlockSize - miMin, miLim);
+                    break;
+                default:
+                    // Spans three or more subarrays. Very rare.
+                    int miSubMin = miMin;
 
-                // Copy the first segment.
-                Contracts.Assert(BlockSize <= Utils.Size(_entries[maMin]));
-                int dstSoFar = BlockSize - miMin;
-                Array.Copy(_entries[maMin], miMin, dst, 0, dstSoFar);
-                // Copy the internal segments.
-                for (int major = maMin + 1; major < maMax; ++major)
-                {
-                    Contracts.Assert(BlockSize <= Utils.Size(_entries[major]));
-                    Array.Copy(_entries[major], 0, dst, dstSoFar, BlockSize);
-                    dstSoFar += BlockSize;
-                    Contracts.Assert(dstSoFar < length);
-                }
-                // Copy the last segment.
-                Contracts.Assert(length - dstSoFar == miLim);
-                Contracts.Assert(miLim <= Utils.Size(_entries[maMax]));
-                Array.Copy(_entries[maMax], 0, dst, dstSoFar, miLim);
-                break;
+                    // Copy the first segment.
+                    Contracts.Assert(BlockSize <= Utils.Size(_entries[maMin]));
+                    int dstSoFar = BlockSize - miMin;
+                    Array.Copy(_entries[maMin], miMin, dst, 0, dstSoFar);
+                    // Copy the internal segments.
+                    for (int major = maMin + 1; major < maMax; ++major)
+                    {
+                        Contracts.Assert(BlockSize <= Utils.Size(_entries[major]));
+                        Array.Copy(_entries[major], 0, dst, dstSoFar, BlockSize);
+                        dstSoFar += BlockSize;
+                        Contracts.Assert(dstSoFar < length);
+                    }
+                    // Copy the last segment.
+                    Contracts.Assert(length - dstSoFar == miLim);
+                    Contracts.Assert(miLim <= Utils.Size(_entries[maMax]));
+                    Array.Copy(_entries[maMax], 0, dst, dstSoFar, miLim);
+                    break;
             }
         }
 
@@ -457,19 +457,19 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
             Contracts.Assert((long)major * BlockSize + minor == lim + 1);
         }
 
-		public IEnumerator<T> GetEnumerator()
-		{
-			long cur = 0;
-			while (cur < _length)
-			{
-				yield return this[cur];
-				cur++;
-			}
-		}
+        public IEnumerator<T> GetEnumerator()
+        {
+            long cur = 0;
+            while (cur < _length)
+            {
+                yield return this[cur];
+                cur++;
+            }
+        }
 
-		IEnumerator IEnumerable.GetEnumerator()
-		{
-			return GetEnumerator();
-		}
-	}
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
+        }
+    }
 }
