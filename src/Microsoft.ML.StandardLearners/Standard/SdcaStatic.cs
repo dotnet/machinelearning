@@ -28,6 +28,7 @@ namespace Microsoft.ML.Trainers
         /// <param name="l1Threshold">The L1 regularization hyperparameter. Higher values will tend to lead to more sparse model.</param>
         /// <param name="maxIterations">The maximum number of passes to perform over the data.</param>
         /// <param name="loss">The custom loss, if unspecified will be <see cref="SquaredLossSDCARegressionLossFunction"/>.</param>
+        /// <param name="advancedSettings">A delegate to set more settings.</param>
         /// <param name="onFit">A delegate that is called every time the
         /// <see cref="Estimator{TInShape, TShape, TTransformer}.Fit(DataView{TInShape})"/> method is called on the
         /// <see cref="Estimator{TInShape, TOutShape, TTransformer}"/> instance created out of this. This delegate will receive
@@ -46,6 +47,7 @@ namespace Microsoft.ML.Trainers
             float? l1Threshold = null,
             int? maxIterations = null,
             ISupportSdcaRegressionLoss loss = null,
+            Action<SdcaRegressionTrainer.Arguments> advancedSettings = null,
             Action<LinearRegressionPredictor> onFit = null)
         {
             Contracts.CheckValue(label, nameof(label));
@@ -55,21 +57,13 @@ namespace Microsoft.ML.Trainers
             Contracts.CheckParam(!(l1Threshold < 0), nameof(l1Threshold), "Must not be negative, if specified.");
             Contracts.CheckParam(!(maxIterations < 1), nameof(maxIterations), "Must be positive if specified");
             Contracts.CheckValueOrNull(loss);
+            Contracts.CheckValueOrNull(advancedSettings);
             Contracts.CheckValueOrNull(onFit);
-
-            var args = new SdcaRegressionTrainer.Arguments()
-            {
-                L2Const = l2Const,
-                L1Threshold = l1Threshold,
-                MaxIterations = maxIterations
-            };
-            if (loss != null)
-                args.LossFunction = new TrivialRegressionLossFactory(loss);
 
             var rec = new TrainerEstimatorReconciler.Regression(
                 (env, labelName, featuresName, weightsName) =>
                 {
-                    var trainer = new SdcaRegressionTrainer(env, args, featuresName, labelName, weightsName);
+                    var trainer = new SdcaRegressionTrainer(env, featuresName, labelName, weightsName, loss, l2Const, l1Threshold, maxIterations, advancedSettings);
                     if (onFit != null)
                         return trainer.WithOnFitDelegate(trans => onFit(trans.Model));
                     return trainer;
@@ -77,22 +71,8 @@ namespace Microsoft.ML.Trainers
 
             return rec.Score;
         }
-
-        private sealed class TrivialRegressionLossFactory : ISupportSdcaRegressionLossFactory
-        {
-            private readonly ISupportSdcaRegressionLoss _loss;
-
-            public TrivialRegressionLossFactory(ISupportSdcaRegressionLoss loss)
-            {
-                _loss = loss;
-            }
-
-            public ISupportSdcaRegressionLoss CreateComponent(IHostEnvironment env)
-            {
-                return _loss;
-            }
-        }
     }
+
     public static partial class BinaryClassificationTrainers
     {
 
@@ -106,6 +86,7 @@ namespace Microsoft.ML.Trainers
         /// <param name="l2Const">The L2 regularization hyperparameter.</param>
         /// <param name="l1Threshold">The L1 regularization hyperparameter. Higher values will tend to lead to more sparse model.</param>
         /// <param name="maxIterations">The maximum number of passes to perform over the data.</param>
+        /// <param name="advancedSettings">A delegate to set more settings.</param>
         /// <param name="onFit">A delegate that is called every time the
         /// <see cref="Estimator{TInShape, TOutShape, TTransformer}.Fit(DataView{TInShape})"/> method is called on the
         /// <see cref="Estimator{TInShape, TOutShape, TTransformer}"/> instance created out of this. This delegate will receive
@@ -119,6 +100,7 @@ namespace Microsoft.ML.Trainers
                     float? l2Const = null,
                     float? l1Threshold = null,
                     int? maxIterations = null,
+                    Action<LinearClassificationTrainer.Arguments> advancedSettings = null,
                     Action<LinearBinaryPredictor, ParameterMixingCalibratedPredictor> onFit = null)
         {
             Contracts.CheckValue(label, nameof(label));
@@ -127,19 +109,13 @@ namespace Microsoft.ML.Trainers
             Contracts.CheckParam(!(l2Const < 0), nameof(l2Const), "Must not be negative, if specified.");
             Contracts.CheckParam(!(l1Threshold < 0), nameof(l1Threshold), "Must not be negative, if specified.");
             Contracts.CheckParam(!(maxIterations < 1), nameof(maxIterations), "Must be positive if specified");
+            Contracts.CheckValueOrNull(advancedSettings);
             Contracts.CheckValueOrNull(onFit);
-
-            var args = new LinearClassificationTrainer.Arguments()
-            {
-                L2Const = l2Const,
-                L1Threshold = l1Threshold,
-                MaxIterations = maxIterations,
-            };
 
             var rec = new TrainerEstimatorReconciler.BinaryClassifier(
                 (env, labelName, featuresName, weightsName) =>
                 {
-                    var trainer = new LinearClassificationTrainer(env, args, featuresName, labelName, weightsName);
+                    var trainer = new LinearClassificationTrainer(env, featuresName, labelName, weightsName, loss: new LogLoss(), l2Const, l1Threshold, maxIterations, advancedSettings);
                     if (onFit != null)
                     {
                         return trainer.WithOnFitDelegate(trans =>
@@ -170,6 +146,7 @@ namespace Microsoft.ML.Trainers
         /// <param name="l2Const">The L2 regularization hyperparameter.</param>
         /// <param name="l1Threshold">The L1 regularization hyperparameter. Higher values will tend to lead to more sparse model.</param>
         /// <param name="maxIterations">The maximum number of passes to perform over the data.</param>
+        /// <param name="advancedSettings">A delegate to set more settings.</param>
         /// <param name="onFit">A delegate that is called every time the
         /// <see cref="Estimator{TInShape, TOutShape, TTransformer}.Fit(DataView{TInShape})"/> method is called on the
         /// <see cref="Estimator{TInShape, TOutShape, TTransformer}"/> instance created out of this. This delegate will receive
@@ -177,7 +154,7 @@ namespace Microsoft.ML.Trainers
         /// result in any way; it is only a way for the caller to be informed about what was learnt.</param>
         /// <returns>The set of output columns including in order the predicted binary classification score (which will range
         /// from negative to positive infinity), and the predicted label.</returns>
-        /// <seealso cref="Sdca(BinaryClassificationContext.BinaryClassificationTrainers, Scalar{bool}, Vector{float}, Scalar{float}, float?, float?, int?, Action{LinearBinaryPredictor, ParameterMixingCalibratedPredictor})"/>
+        /// <seealso cref="Sdca(BinaryClassificationContext.BinaryClassificationTrainers, Scalar{bool}, Vector{float}, Scalar{float}, float?, float?, int?, Action{LinearClassificationTrainer.Arguments}, Action{LinearBinaryPredictor, ParameterMixingCalibratedPredictor})"/>
         public static (Scalar<float> score, Scalar<bool> predictedLabel) Sdca(
                 this BinaryClassificationContext.BinaryClassificationTrainers ctx,
                 Scalar<bool> label, Vector<float> features,
@@ -186,6 +163,7 @@ namespace Microsoft.ML.Trainers
                 float? l2Const = null,
                 float? l1Threshold = null,
                 int? maxIterations = null,
+                Action<LinearClassificationTrainer.Arguments> advancedSettings = null,
                 Action<LinearBinaryPredictor> onFit = null
             )
         {
@@ -196,22 +174,15 @@ namespace Microsoft.ML.Trainers
             Contracts.CheckParam(!(l2Const < 0), nameof(l2Const), "Must not be negative, if specified.");
             Contracts.CheckParam(!(l1Threshold < 0), nameof(l1Threshold), "Must not be negative, if specified.");
             Contracts.CheckParam(!(maxIterations < 1), nameof(maxIterations), "Must be positive if specified");
+            Contracts.CheckValueOrNull(advancedSettings);
             Contracts.CheckValueOrNull(onFit);
 
             bool hasProbs = loss is LogLoss;
 
-            var args = new LinearClassificationTrainer.Arguments()
-            {
-                L2Const = l2Const,
-                L1Threshold = l1Threshold,
-                MaxIterations = maxIterations,
-                LossFunction = new TrivialSdcaClassificationLossFactory(loss)
-            };
-
             var rec = new TrainerEstimatorReconciler.BinaryClassifierNoCalibration(
                 (env, labelName, featuresName, weightsName) =>
                 {
-                    var trainer = new LinearClassificationTrainer(env, args, featuresName, labelName, weightsName);
+                    var trainer = new LinearClassificationTrainer(env, featuresName, labelName, weightsName, loss, l2Const, l1Threshold, maxIterations, advancedSettings);
                     if (onFit != null)
                     {
                         return trainer.WithOnFitDelegate(trans =>
@@ -230,7 +201,8 @@ namespace Microsoft.ML.Trainers
         }
     }
 
-    public static partial class MultiClassClassificationTrainers {
+    public static partial class MultiClassClassificationTrainers
+    {
 
         /// <summary>
         /// Predict a target using a linear multiclass classification model trained with the SDCA trainer.
@@ -243,6 +215,7 @@ namespace Microsoft.ML.Trainers
         /// <param name="l2Const">The L2 regularization hyperparameter.</param>
         /// <param name="l1Threshold">The L1 regularization hyperparameter. Higher values will tend to lead to more sparse model.</param>
         /// <param name="maxIterations">The maximum number of passes to perform over the data.</param>
+        /// <param name="advancedSettings">A delegate to set more settings.</param>
         /// <param name="onFit">A delegate that is called every time the
         /// <see cref="Estimator{TInShape, TOutShape, TTransformer}.Fit(DataView{TInShape})"/> method is called on the
         /// <see cref="Estimator{TInShape, TOutShape, TTransformer}"/> instance created out of this. This delegate will receive
@@ -258,6 +231,7 @@ namespace Microsoft.ML.Trainers
                     float? l2Const = null,
                     float? l1Threshold = null,
                     int? maxIterations = null,
+                    Action<SdcaMultiClassTrainer.Arguments> advancedSettings = null,
                     Action<MulticlassLogisticRegressionPredictor> onFit = null)
         {
             Contracts.CheckValue(label, nameof(label));
@@ -267,43 +241,19 @@ namespace Microsoft.ML.Trainers
             Contracts.CheckParam(!(l2Const < 0), nameof(l2Const), "Must not be negative, if specified.");
             Contracts.CheckParam(!(l1Threshold < 0), nameof(l1Threshold), "Must not be negative, if specified.");
             Contracts.CheckParam(!(maxIterations < 1), nameof(maxIterations), "Must be positive if specified");
+            Contracts.CheckValueOrNull(advancedSettings);
             Contracts.CheckValueOrNull(onFit);
-
-            var args = new SdcaMultiClassTrainer.Arguments
-            {
-                L2Const = l2Const,
-                L1Threshold = l1Threshold,
-                MaxIterations = maxIterations
-            };
-
-            if (loss != null)
-                args.LossFunction = new TrivialSdcaClassificationLossFactory(loss);
 
             var rec = new TrainerEstimatorReconciler.MulticlassClassifier<TVal>(
                 (env, labelName, featuresName, weightsName) =>
                 {
-                    var trainer = new SdcaMultiClassTrainer(env, args, featuresName, labelName, weightsName);
+                    var trainer = new SdcaMultiClassTrainer(env, featuresName, labelName, weightsName, loss, l2Const, l1Threshold, maxIterations, advancedSettings);
                     if (onFit != null)
                         return trainer.WithOnFitDelegate(trans => onFit(trans.Model));
                     return trainer;
                 }, label, features, weights);
 
             return rec.Output;
-        }
-    }
-
-    internal sealed class TrivialSdcaClassificationLossFactory : ISupportSdcaClassificationLossFactory
-    {
-        private readonly ISupportSdcaClassificationLoss _loss;
-
-        public TrivialSdcaClassificationLossFactory(ISupportSdcaClassificationLoss loss)
-        {
-            _loss = loss;
-        }
-
-        public ISupportSdcaClassificationLoss CreateComponent(IHostEnvironment env)
-        {
-            return _loss;
         }
     }
 }

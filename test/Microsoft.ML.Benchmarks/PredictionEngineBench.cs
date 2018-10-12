@@ -52,9 +52,9 @@ namespace Microsoft.ML.Benchmarks
                     });
 
                 IDataView data = reader.Read(new MultiFileSource(_irisDataPath));
-                
+
                 var pipeline = new ConcatEstimator(env, "Features", new[] { "SepalLength", "SepalWidth", "PetalLength", "PetalWidth" })
-                    .Append(new SdcaMultiClassTrainer(env, new SdcaMultiClassTrainer.Arguments { NumThreads = 1, ConvergenceTolerance = 1e-2f }, "Features", "Label"));
+                    .Append(new SdcaMultiClassTrainer(env, "Features", "Label", advancedSettings: (s) => { s.NumThreads = 1; s.ConvergenceTolerance = 1e-2f; }));
 
                 var model = pipeline.Fit(data);
 
@@ -89,7 +89,7 @@ namespace Microsoft.ML.Benchmarks
                 IDataView data = reader.Read(new MultiFileSource(_sentimentDataPath));
 
                 var pipeline = new TextTransform(env, "SentimentText", "Features")
-                    .Append(new LinearClassificationTrainer(env, new LinearClassificationTrainer.Arguments { NumThreads = 1, ConvergenceTolerance = 1e-2f }, "Features", "Label"));
+                    .Append(new LinearClassificationTrainer(env, "Features", "Label", advancedSettings: (s) => { s.NumThreads = 1; s.ConvergenceTolerance = 1e-2f; }));
 
                 var model = pipeline.Fit(data);
 
@@ -123,7 +123,7 @@ namespace Microsoft.ML.Benchmarks
 
                 IDataView data = reader.Read(new MultiFileSource(_breastCancerDataPath));
 
-                var pipeline = new LinearClassificationTrainer(env, new LinearClassificationTrainer.Arguments { NumThreads = 1, ConvergenceTolerance = 1e-2f }, "Features", "Label");
+                var pipeline = new LinearClassificationTrainer(env, "Features", "Label", advancedSettings: (s) => { s.NumThreads = 1; s.ConvergenceTolerance = 1e-2f; });
 
                 var model = pipeline.Fit(data);
 

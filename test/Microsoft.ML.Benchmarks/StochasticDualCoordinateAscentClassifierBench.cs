@@ -122,11 +122,11 @@ namespace Microsoft.ML.Benchmarks
                     }, text);
 
                 // Train
-                var trainer = new SdcaMultiClassTrainer(env, new SdcaMultiClassTrainer.Arguments() { MaxIterations = 20 }, "Features", "Label");
+                var trainer = new SdcaMultiClassTrainer(env, "Features", "Label", maxIterations: 20);
                 var trainRoles = new RoleMappedData(trans, label: "Label", feature: "Features");
 
                 var predicted = trainer.Train(trainRoles);
-                _consumer.Consume(predicted); 
+                _consumer.Consume(predicted);
             }
         }
 
