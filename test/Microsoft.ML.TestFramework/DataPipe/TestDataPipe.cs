@@ -32,7 +32,7 @@ namespace Microsoft.ML.Runtime.RunTests
         public void SavePipeLabelParsers()
         {
             string pathData = GetDataPath(@"lm.sample.txt");
-            string mappingPathData = GetDataPath(@"Mapping.de-de.txt");
+            string mappingPathData = GetDataPath(@"lm.labels.txt");
 
             // REVIEW shonk: The file doesn't really have a header row. Is it intentional to pretend it does?
             TestCore(pathData, true,
