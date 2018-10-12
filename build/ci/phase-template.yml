@@ -20,8 +20,8 @@ phases:
     - script: $(_buildScript) -$(_configuration)
       displayName: Build
     - ${{ if eq(parameters.name, 'MacOS') }}:
-      - script: brew install libomp
-        displayName: Install OpenMP runtime dependency
+      - script: brew install libomp && brew install mono-libgdiplus gettext && brew link gettext --force
+        displayName: Install runtime dependencies
     - script: $(_buildScript) -$(_configuration) -runtests
       displayName: Run Tests
     - task: PublishTestResults@2
