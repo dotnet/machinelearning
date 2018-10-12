@@ -1942,12 +1942,7 @@ output Out [3] from H all;
             var binaryPredictors = new[] { TestLearners.FieldAwareFactorizationMachine };
             var binaryClassificationDatasets = GetDatasetsForBinaryClassifierBaseTest();
 
-            // see https://github.com/dotnet/machinelearning/issues/404
-            // in Linux, the clang sqrt() results vary highly from the ones in mac and Windows. 
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-                RunAllTests(binaryPredictors, binaryClassificationDatasets, digitsOfPrecision: 5);
-            else
-                RunAllTests(binaryPredictors, binaryClassificationDatasets);
+            RunAllTests(binaryPredictors, binaryClassificationDatasets, digitsOfPrecision: 5);
 
             Done();
         }

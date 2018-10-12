@@ -1971,7 +1971,7 @@ namespace Microsoft.ML.Runtime.RunTests
             string data = GetDataPath("breast-cancer.txt");
             OutputPath model = ModelPath();
 
-            TestCore("traintest", data, loaderArgs, extraArgs + " test=" + data);
+            TestCore("traintest", data, loaderArgs, extraArgs + " test=" + data, digitsOfPrecision:5);
 
             _step++;
             TestInOutCore("traintest", data, model, extraArgs + " " + loaderArgs + " " + "cont+" + " " + "test=" + data);
