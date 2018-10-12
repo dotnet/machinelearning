@@ -318,7 +318,7 @@ namespace Microsoft.ML.Runtime.Data
                         item.Name,
                         item.MaxNumTerms ?? args.MaxNumTerms,
                         sortOrder,
-                        item.Term ?? args.Term,
+                        item.Term,
                         item.TextKeyValues ?? args.TextKeyValues);
                     cols[i].Terms = item.Terms;
                 };
