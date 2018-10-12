@@ -19,6 +19,9 @@ phases:
     steps:
     - script: $(_buildScript) -$(_configuration)
       displayName: Build
+    - ${{ if eq(parameters.name, 'MacOS') }}:
+      - script: brew install libomp
+        displayName: Install OpenMP runtime dependency
     - script: $(_buildScript) -$(_configuration) -runtests
       displayName: Run Tests
     - task: PublishTestResults@2
