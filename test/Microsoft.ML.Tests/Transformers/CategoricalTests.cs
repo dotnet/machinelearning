@@ -108,7 +108,7 @@ namespace Microsoft.ML.Tests.Transformers
 
 
             var dataView = ComponentCreation.CreateDataView(Env, data);
-            var pipe = new CategoricalEstimator(Env,
+            var pipe = new CategoricalEstimator(Env, new[] {
                 new CategoricalEstimator.ColumnInfo("A", "CatA", CategoricalTransform.OutputKind.Bag),
                 new CategoricalEstimator.ColumnInfo("B", "CatB", CategoricalTransform.OutputKind.Bag),
                 new CategoricalEstimator.ColumnInfo("C", "CatC", CategoricalTransform.OutputKind.Bag),
@@ -120,7 +120,7 @@ namespace Microsoft.ML.Tests.Transformers
                 new CategoricalEstimator.ColumnInfo("A", "CatI", CategoricalTransform.OutputKind.Bin),
                 new CategoricalEstimator.ColumnInfo("B", "CatJ", CategoricalTransform.OutputKind.Bin),
                 new CategoricalEstimator.ColumnInfo("C", "CatK", CategoricalTransform.OutputKind.Bin),
-                new CategoricalEstimator.ColumnInfo("D", "CatL", CategoricalTransform.OutputKind.Bin));
+                new CategoricalEstimator.ColumnInfo("D", "CatL", CategoricalTransform.OutputKind.Bin) });
 
 
             var result = pipe.Fit(dataView).Transform(dataView);

@@ -268,7 +268,7 @@ namespace Microsoft.ML.Runtime.Data
             this(env, input, columns, null, null, null)
         { }
 
-        private TermTransform(IHostEnvironment env, IDataView input,
+        internal TermTransform(IHostEnvironment env, IDataView input,
             ColumnInfo[] columns,
             string file = null, string termsColumn = null,
             IComponentFactory<IMultiStreamSource, IDataLoader> loaderFactory = null)
@@ -314,7 +314,7 @@ namespace Microsoft.ML.Runtime.Data
                     if (!Enum.IsDefined(typeof(SortOrder), sortOrder))
                         throw env.ExceptUserArg(nameof(args.Sort), "Undefined sorting criteria '{0}' detected for column '{1}'", sortOrder, item.Name);
 
-                    cols[i] = new ColumnInfo(item.Source,
+                    cols[i] = new ColumnInfo(item.Source ?? item.Name,
                         item.Name,
                         item.MaxNumTerms ?? args.MaxNumTerms,
                         sortOrder,

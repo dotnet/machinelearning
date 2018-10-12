@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Runtime.Data;
+using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.TextAnalytics;
 using Microsoft.ML.Transforms;
 using System;
@@ -176,6 +177,131 @@ namespace Microsoft.ML.Runtime.RunTests
                     "xf=Cat{col=Race2:Key:Race data={" + pathTerms + "} termCol=Whatever}",
                     "xf=Cat{col=Gender2:Gender terms=Male,Female}",
                     "xf=Cat{col=Mar2:Mar col={name=Race3 src=Race terms=Other,White,Black,Asian-Pac-Islander,Amer-Indian-Eskimo}}",
+                });
+
+            Done();
+        }
+
+        [Fact]
+        public void SavePipeKeyToVec()
+        {
+            string pathTerms = DeleteOutputPath("SavePipe", "Terms.txt");
+            File.WriteAllLines(pathTerms, new string[] {
+                "Black",
+                "White",
+                "Male",
+                "Female"
+            });
+
+            string pathData = GetDataPath("adult.test");
+            TestCore(pathData, true,
+                new[] {
+                    "loader=Text{header+ sep=comma col=Mar:TX:5 col=Race:TX:8 col=Gen:TX:8~9}",
+                    "xf=Concat{col=Comb:Race,Gen,Race}",
+                    "xf=Cat{kind=Key col=MarKey:Mar}",
+                    "xf=Cat{kind=Key col={name=CombKey src=Comb} data={" + pathTerms + "}}",
+                    "xf=Convert{col=MarKeyU8:U8:MarKey col=CombKeyU1:U1:CombKey}",
+                    "xf=KeyToVector{col={name=CombBagVec src=CombKey bag+} col={name=CombIndVec src=CombKey} col=MarVec:MarKey}",
+                    "xf=KeyToVector{col={name=CombBagVecU1 src=CombKeyU1 bag+} col={name=CombIndVecU1 src=CombKeyU1} col=MarVecU8:MarKeyU8}",
+                    "xf=ChooseColumns{col=MarKey col=CombKey col=MarVec col=MarVecU8 col=CombBagVec col=CombBagVecU1 col=CombIndVec col=CombIndVecU1 col=Mar col=Comb}",
+                },
+
+                pipe =>
+                {
+                    // Verify that the Vec columns match the corresponding VecXX columns. This verifies that conversion
+                    // happened correctly in KeyToVector.
+                    using (var c = pipe.GetRowCursor(col => true))
+                    {
+                        var cols = new[] { "MarVec", "MarVecU8", "CombBagVec", "CombBagVecU1", "CombIndVec", "CombIndVecU1" };
+                        var getters = new ValueGetter<VBuffer<Float>>[cols.Length];
+                        for (int i = 0; i < cols.Length; i++)
+                        {
+                            int col;
+                            if (!Check(c.Schema.TryGetColumnIndex(cols[i], out col), "{0} not found!", cols[i]))
+                                return;
+                            getters[i] = c.GetGetter<VBuffer<Float>>(col);
+                        }
+
+                        Func<Float, Float, bool> fn = (x, y) => FloatUtils.GetBits(x) == FloatUtils.GetBits(y);
+                        var v1 = default(VBuffer<Float>);
+                        var v2 = default(VBuffer<Float>);
+                        while (c.MoveNext())
+                        {
+                            for (int i = 0; i < cols.Length; i += 2)
+                            {
+                                getters[i](ref v1);
+                                getters[i + 1](ref v2);
+                                Check(CompareVec(ref v1, ref v2, v1.Length, fn), "Mismatch");
+                            }
+                        }
+                    }
+                });
+
+            Done();
+        }
+
+        [Fact]
+        public void SavePipeConcatUnknownLength()
+        {
+            string pathData = DeleteOutputPath("SavePipe", "ConcatUnknownLength.txt");
+            File.WriteAllLines(pathData, new string[] {
+                "10,11,12,20,a b c,1,2,3",
+                "13,14,15,21,d e,4,5",
+                "16,17,18,22,f,6"
+            });
+
+            TestCore(pathData, true,
+                new[] {
+                    "loader=Text{col=Known:I4:0-2 col=Single:I4:3 col=Text:TX:4 col=Unknown:I4:~** sep=comma}",
+                    // Tokenize Text, then run it through Categorical to get key values, then through KeyToVector.
+                    // Then convert everything to R8 and concatenate it all.
+                    "xf=WordToken{col=Tokens:Text}",
+                    "xf=Cat{col=Keys:Tokens kind=Key}",
+                    "xf=KeyToVector{col=Indicators:Keys bag-}",
+                    "xf=Convert{col=Indicators type=R8}",
+                    "xf=Convert{col=Known col=Single col=Unknown type=R8}",
+                    "xf=Concat{col=All:Indicators,Known,Single,Unknown}",
+                    "xf=ChooseColumns{col=All}"
+                });
+
+            Done();
+        }
+
+        [Fact]
+        public void SavePipeNgram()
+        {
+            TestCore(null, true,
+                new[] {
+                    "loader=Text{col=Label:Num:0 col=Text:TX:1-9}",
+                    "xf=Cat{max=5 col={name=Key src=Text kind=key}}",
+                    "xf=Ngram{ngram=3 skips=1 col={name=Ngrams1 src=Key max=10}}",
+                    "xf=Ngram{skips=2 col={name=Ngrams2 src=Key ngram=4 max=10:20:30} col={name=Ngrams3 src=Key ngram=3 max=10:15}}",
+                    "xf=Ngram{ngram=3 col={name=Ngrams4 src=Key max=7}}",
+                    "xf=Convert{col=KeyU4:U4:Key}",
+                    "xf=Ngram{ngram=3 col={name=Ngrams5 src=KeyU4 max=8}}",
+                    "xf=Ngram{ngram=2 col={name=Ngrams6 src=Key}}",
+                    "xf=Ngram{ngram=3 col={name=Ngrams7 src=Key all=- max=5}}",
+                });
+
+            Done();
+        }
+
+        [Fact]
+        public void SavePipeNgramSparse()
+        {
+            string pathData = DeleteOutputPath("SavePipe", "NgramSparse.txt");
+            File.WriteAllLines(pathData,
+                new[] {
+                    "21\t10:a\t12:b\t15:c",
+                    "21\t4:a\t10:b\t11:c\t17:a",
+                    "21\t2:b\t10:c\t20:d",
+                });
+
+            TestCore(pathData, true,
+                new[] {
+                    "loader=Text{col=Text:TX:0-20}",
+                    "xf=Cat{col={name=Key src=Text kind=key}}",
+                    "xf=Ngram{ngram=3 skips=2 col={name=Ngrams src=Key max=100}}",
                 });
 
             Done();
