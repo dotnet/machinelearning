@@ -14,7 +14,7 @@ namespace Microsoft.ML.Runtime.Data
     /// On the high level, the schema is a collection of 'columns'. Each column has the following properties:
     /// - Column name.
     /// - Column type.
-    /// - Metadata. The metadata itself is a 'single-row dataset' (namely, an instance of <see cref="MetadataRow"/>), that contains its own schema
+    /// - Metadata. The metadata itself is a 'single-row dataset' (namely, an instance of <see cref="Metadata"/>), that contains its own schema
     /// and values.
     /// </summary>
     public sealed class Schema : ISchema
@@ -90,9 +90,9 @@ namespace Microsoft.ML.Runtime.Data
             /// <summary>
             /// The metadata of the column.
             /// </summary>
-            public MetadataRow Metadata { get; }
+            public Metadata Metadata { get; }
 
-            public Column(string name, ColumnType type, MetadataRow metadata)
+            public Column(string name, ColumnType type, Metadata metadata)
             {
                 Contracts.CheckNonEmpty(name, nameof(name));
                 Contracts.CheckValue(type, nameof(type));
@@ -107,7 +107,7 @@ namespace Microsoft.ML.Runtime.Data
         /// <summary>
         /// The metadata of one <see cref="Column"/>.
         /// </summary>
-        public sealed class MetadataRow
+        public sealed class Metadata
         {
             private readonly (Column column, Delegate getter)[] _values;
 
@@ -119,7 +119,7 @@ namespace Microsoft.ML.Runtime.Data
             /// <summary>
             /// Create a metadata row by supplying the schema columns and the getter delegates for all the values.
             /// </summary>
-            public MetadataRow(IEnumerable<(Column column, Delegate getter)> values)
+            public Metadata(IEnumerable<(Column column, Delegate getter)> values)
             {
                 Contracts.CheckValue(values, nameof(values));
                 // Check all getters.
@@ -147,13 +147,13 @@ namespace Microsoft.ML.Runtime.Data
             {
                 Contracts.CheckParam(0 <= col && col < _values.Length, nameof(col));
                 var typedGetter = _values[col].getter as ValueGetter<TValue>;
+                if (typedGetter == null)
+                {
+                    Contracts.Assert(_values[col].getter != null);
+                    throw MetadataUtils.ExceptGetMetadata();
+                }
                 return typedGetter;
             }
-
-            /// <summary>
-            /// Get the value of the metadata, by column index.
-            /// </summary>
-            public void GetValue<TValue>(int col, ref TValue value) => GetGetter<TValue>(col)(ref value);
 
             /// <summary>
             /// Get the value of the metadata, by metadata kind (aka column name).
@@ -162,11 +162,11 @@ namespace Microsoft.ML.Runtime.Data
             {
                 if (!Schema.TryGetColumnIndex(kind, out int col))
                     throw MetadataUtils.ExceptGetMetadata();
-                GetValue(col, ref value);
+                GetGetter<TValue>(col)(ref value);
             }
 
             /// <summary>
-            /// The class that incrementally builds a <see cref="MetadataRow"/>.
+            /// The class that incrementally builds a <see cref="Metadata"/>.
             /// </summary>
             public sealed class Builder
             {
@@ -183,7 +183,7 @@ namespace Microsoft.ML.Runtime.Data
                 /// </summary>
                 /// <param name="metadata">The metadata row to take values from.</param>
                 /// <param name="selector">The predicate describing which metadata columns to keep.</param>
-                public void Add(MetadataRow metadata, Func<string, bool> selector)
+                public void Add(Metadata metadata, Func<string, bool> selector)
                 {
                     Contracts.CheckValueOrNull(metadata);
                     Contracts.CheckValue(selector, nameof(selector));
@@ -246,7 +246,7 @@ namespace Microsoft.ML.Runtime.Data
                 /// Produce the metadata row that the builder has so far.
                 /// Can be called multiple times.
                 /// </summary>
-                public MetadataRow GetMetadataRow() => new MetadataRow(_items);
+                public Metadata GetMetadataRow() => new Metadata(_items);
 
                 private void AddDelegate<TValue>(Schema.Column column, Delegate getter)
                 {
@@ -287,7 +287,7 @@ namespace Microsoft.ML.Runtime.Data
             var columns = new Column[inputSchema.ColumnCount];
             for (int i = 0; i < columns.Length; i++)
             {
-                var meta = new MetadataRow.Builder();
+                var meta = new Metadata.Builder();
                 foreach (var kvp in inputSchema.GetMetadataTypes(i))
                 {
                     var getter = Utils.MarshalInvoke(GetMetadataGetterDelegate<int>, kvp.Value.RawType, inputSchema, i, kvp.Key);
@@ -336,9 +336,7 @@ namespace Microsoft.ML.Runtime.Data
             var meta = this[col].Metadata;
             if (meta == null)
                 throw MetadataUtils.ExceptGetMetadata();
-            if (!meta.Schema.TryGetColumnIndex(kind, out int metaCol))
-                throw MetadataUtils.ExceptGetMetadata();
-            meta.GetValue(metaCol, ref value);
+            meta.GetValue(kind, ref value);
         }
         #endregion
     }
