@@ -257,13 +257,13 @@ namespace Microsoft.ML.Runtime.RunTests
                 {
                     line = _matchDataRoot.Replace(line, "%Data%");
                     line = _matchDataUnixRoot.Replace(line, "%Data%");
+                    line = _matchOutputRoot.Replace(line, "%Output%");
+                    line = _matchOutputUnixRoot.Replace(line, "%Output%");
                     line = _matchSamplesRoot.Replace(line, "%Samples%\\");
                     line = _matchSamplesUnixRoot.Replace(line, "%Samples%\\");
                     line = _matchSourceRoot.Replace(line, "%Source%\\");
                     line = _matchSourceUnixRoot.Replace(line, "%Source%\\");
                     line = _matchTestsRoot.Replace(line, "%Tests%\\");
-                    line = _matchOutputRoot.Replace(line, "%Output%");
-                    line = _matchOutputUnixRoot.Replace(line, "%Output%");
                     line = _matchBin.Replace(line, "%Bin%\\");
                     line = _matchUnixBin.Replace(line, "%Bin%\\");
                     line = _matchBin64.Replace(line, "%Bin%\\");
