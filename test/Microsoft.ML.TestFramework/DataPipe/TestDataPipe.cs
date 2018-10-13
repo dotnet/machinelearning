@@ -35,7 +35,6 @@ namespace Microsoft.ML.Runtime.RunTests
             string pathData = GetDataPath(@"lm.sample.txt");
             string mappingPathData = GetDataPath(@"lm.labels.txt");
 
-            // REVIEW shonk: The file doesn't really have a header row. Is it intentional to pretend it does?
             TestCore(pathData, true,
                 new[] {
                     "loader=Text{col=RawLabel:TXT:0 col=Names:TXT:1-2 col=Features:TXT:3-4 header+}",
