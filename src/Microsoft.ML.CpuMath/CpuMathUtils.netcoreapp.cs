@@ -415,34 +415,34 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             }
         }
 
-        public static void AddScaleCopy(float scale, float[] source, float[] destination, float[] res, int count)
+        public static void AddScaleCopy(float scale, float[] source, float[] destination, float[] result, int count)
         {
             Contracts.AssertNonEmpty(source);
             Contracts.AssertNonEmpty(destination);
-            Contracts.AssertNonEmpty(res);
+            Contracts.AssertNonEmpty(result);
             Contracts.Assert(count > 0);
             Contracts.Assert(count <= source.Length);
             Contracts.Assert(count <= destination.Length);
-            Contracts.Assert(count <= res.Length);
+            Contracts.Assert(count <= result.Length);
 
-            AddScaleCopy(scale, new Span<float>(source, 0, count), new Span<float>(destination, 0, count), new Span<float>(res, 0, count));
+            AddScaleCopy(scale, new Span<float>(source, 0, count), new Span<float>(destination, 0, count), new Span<float>(result, 0, count));
         }
 
-        private static void AddScaleCopy(float scale, Span<float> source, Span<float> destination, Span<float> res)
+        private static void AddScaleCopy(float scale, Span<float> source, Span<float> destination, Span<float> result)
         {
             if (Avx.IsSupported)
             {
-                AvxIntrinsics.AddScaleCopyU(scale, source, destination, res);
+                AvxIntrinsics.AddScaleCopyU(scale, source, destination, result);
             }
             else if (Sse.IsSupported)
             {
-                SseIntrinsics.AddScaleCopyU(scale, source, destination, res);
+                SseIntrinsics.AddScaleCopyU(scale, source, destination, result);
             }
             else
             {
-                for (int i = 0; i < res.Length; i++)
+                for (int i = 0; i < result.Length; i++)
                 {
-                    res[i] = scale * source[i] + destination[i];
+                    result[i] = scale * source[i] + destination[i];
                 }
             }
         }
