@@ -235,7 +235,7 @@ namespace Microsoft.ML.CpuMath.PerformanceTests
             fixed (float* psrc = &src[0])
             fixed (float* pdst = &dst[0])
             {
-                Thunk.MatMulX(true, psrc, psrc, pdst, 1000, 1000);
+                Thunk.MatMulX(psrc, psrc, pdst, 1000, 1000);
             }
         }
             
@@ -245,7 +245,7 @@ namespace Microsoft.ML.CpuMath.PerformanceTests
             fixed (float* psrc = &src[0])
             fixed (float* pdst = &dst[0])
             {
-                Thunk.MatMulTranX(true, psrc, psrc, pdst, 1000, 1000);
+                Thunk.MatMulTranX(psrc, psrc, pdst, 1000, 1000);
             }
         }
     }

@@ -141,15 +141,15 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         }
 
         // Multiply matrix times vector into vector.
-        public static unsafe void MatMulX(bool add, AlignedArray mat, AlignedArray src, AlignedArray dst, int crow, int ccol)
+        public static unsafe void MatMulX(AlignedArray mat, AlignedArray src, AlignedArray dst, int crow, int ccol)
         {
             Contracts.Assert(crow % 4 == 0);
             Contracts.Assert(ccol % 4 == 0);
 
-            MatMulX(add, mat.Items, src.Items, dst.Items, crow, ccol);
+            MatMulX(mat.Items, src.Items, dst.Items, crow, ccol);
         }
 
-        public static unsafe void MatMulX(bool add, float[] mat, float[] src, float[] dst, int crow, int ccol)
+        public static unsafe void MatMulX(float[] mat, float[] src, float[] dst, int crow, int ccol)
         {
             fixed (float* psrc = &src[0])
             fixed (float* pdst = &dst[0])
@@ -165,9 +165,9 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                 while (pDstCurrent < pDstEnd)
                 {
                     Vector256<float> res0 = Avx.SetZeroVector256<float>();
-                    Vector256<float> res1 = res0;
-                    Vector256<float> res2 = res0;
-                    Vector256<float> res3 = res0;
+                    Vector256<float> res1 = Avx.SetZeroVector256<float>();
+                    Vector256<float> res2 = Avx.SetZeroVector256<float>();
+                    Vector256<float> res3 = Avx.SetZeroVector256<float>();
 
                     int length = ccol;
                     float* pSrcCurrent = psrc;
@@ -209,7 +209,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
                             Vector256<float> mask = Avx.LoadVector256(((float*)(pLeadingAlignmentMask)) + (misalignment * 8));
 
-                            // We only align pMat since it has significantly more reads.                                                                                                                                                              
+                            // We only align pMat since it has significantly more reads.
                             float* pMatTemp = pMatCurrent;
                             Vector256<float> x01 = Avx.And(mask, Avx.LoadVector256(pMatTemp));
                             Vector256<float> x11 = Avx.And(mask, Avx.LoadVector256(pMatTemp += ccol));
@@ -230,7 +230,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                         if (length > 7)
                         {
                             remainder = length % 8;
-                            while (pSrcCurrent < pSrcEnd)
+                            while (pSrcCurrent + 8 <= pSrcEnd)
                             {
                                 Vector256<float> vector = Avx.LoadVector256(pSrcCurrent);
 
@@ -284,10 +284,6 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                     res0 = Avx.HorizontalAdd(res0, res2);
 
                     Vector128<float> sum = Sse.Add(Avx.GetLowerHalf(res0), GetHigh(in res0));
-                    if (add)
-                    {
-                        sum = Sse.Add(sum, Sse.LoadVector128(pDstCurrent));
-                    }
                     Sse.Store(pDstCurrent, sum);
 
                     pDstCurrent += 4;
@@ -297,7 +293,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         }
 
         // Partial sparse source vector.
-        public static unsafe void MatMulPX(bool add, AlignedArray mat, int[] rgposSrc, AlignedArray src,
+        public static unsafe void MatMulPX(AlignedArray mat, int[] rgposSrc, AlignedArray src,
                                         int posMin, int iposMin, int iposEnd, AlignedArray dst, int crow, int ccol)
         {
             Contracts.Assert(HasCompatibleAlignment(mat));
@@ -344,27 +340,22 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                         ppos++;
                     }
 
-                    if (add)
-                    {
-                        result = Avx.Add(result, Avx.LoadAlignedVector256(pDstCurrent));
-                    }
                     Avx.StoreAligned(pDstCurrent, result);
-
                     pDstCurrent += 8;
                     pm0 += 8 * ccol;
                 }
             }
         }
 
-        public static unsafe void MatMulTranX(bool add, AlignedArray mat, AlignedArray src, AlignedArray dst, int crow, int ccol)
+        public static unsafe void MatMulTranX(AlignedArray mat, AlignedArray src, AlignedArray dst, int crow, int ccol)
         {
             Contracts.Assert(crow % 4 == 0);
             Contracts.Assert(ccol % 4 == 0);
 
-            MatMulTranX(add, mat.Items, src.Items, dst.Items, crow, ccol);
+            MatMulTranX(mat.Items, src.Items, dst.Items, crow, ccol);
         }
 
-        public static unsafe void MatMulTranX(bool add, float[] mat, float[] src, float[] dst, int crow, int ccol)
+        public static unsafe void MatMulTranX(float[] mat, float[] src, float[] dst, int crow, int ccol)
         {
             fixed (float* psrc = &src[0])
             fixed (float* pdst = &dst[0])
@@ -383,10 +374,10 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                 {
                     Vector128<float> h01 = Sse.LoadVector128(pSrcCurrent);
                     // Replicate each slot of h01 (ABCD) into its own register.
-                    Vector128<float> h11 = Sse.Shuffle(h01, h01, 0x55); // B
-                    Vector128<float> h21 = Sse.Shuffle(h01, h01, 0xAA); // C
-                    Vector128<float> h31 = Sse.Shuffle(h01, h01, 0xFF); // D
-                    h01 = Sse.Shuffle(h01, h01, 0x00); // A
+                    Vector128<float> h11 = Avx.Permute(h01, 0x55); // B
+                    Vector128<float> h21 = Avx.Permute(h01, 0xAA); // C
+                    Vector128<float> h31 = Avx.Permute(h01, 0xFF); // D
+                    h01 = Avx.Permute(h01, 0x00); // A
 
                     Vector256<float> x01 = Avx.SetHighLow(h01, h01);
                     Vector256<float> x11 = Avx.SetHighLow(h11, h11);
@@ -413,7 +404,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                             x22 = Avx.Add(x22, x32);
                             x02 = Avx.Add(x02, x22);
 
-                            if (add || !firstTime)
+                            if (!firstTime)
                             {
                                 x02 = Avx.Add(x02, Avx.LoadVector256(pDstCurrent));
                             }
@@ -455,7 +446,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                             Vector256<float> x3 = Avx.LoadVector256(pDstCurrent);
                             x02 = Avx.Or(x02, Avx.And(x3, trailingMask));
 
-                            if (add || !firstTime)
+                            if (!firstTime)
                             {
                                 x02 = Avx.Add(x02, Avx.And(x3, leadingMask));
                             }
@@ -468,7 +459,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                         if (length > 7)
                         {
                             remainder = length % 8;
-                            while (pDstCurrent < pDstEnd)
+                            while (pDstCurrent + 8 <= pDstEnd)
                             {
                                 float* pMatTemp = pMatCurrent;
 
@@ -481,7 +472,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                                 x22 = Avx.Add(x22, x32);
                                 x02 = Avx.Add(x02, x22);
 
-                                if (add || !firstTime)
+                                if (!firstTime)
                                 {
                                     x02 = Avx.Add(x02, Avx.LoadVector256(pDstCurrent));
                                 }
@@ -521,7 +512,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                             Vector256<float> x3 = Avx.LoadVector256(pDstCurrent);
                             x02 = Avx.Or(x02, Avx.And(x3, leadingMask));
 
-                            if (add || !firstTime)
+                            if (!firstTime)
                             {
                                 x02 = Avx.Add(x02, Avx.And(x3, trailingMask));
                             }
@@ -540,7 +531,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         }
 
         // Partial sparse source vector.
-        public static unsafe void MatMulTranPX(bool add, AlignedArray mat, int[] rgposSrc, AlignedArray src,
+        public static unsafe void MatMulTranPX(AlignedArray mat, int[] rgposSrc, AlignedArray src,
                                         int posMin, int iposMin, int iposEnd, AlignedArray dst, int crow)
         {
             Contracts.Assert(HasCompatibleAlignment(mat));
@@ -560,26 +551,23 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                 int* pposEnd = pposSrc + iposEnd;
                 float* pDstEnd = pdst + crow;
 
-                if (!add)
+                int col = *ppos - posMin;
+                ppos++;
+
+                Vector256<float> x0 = Avx.SetAllVector256(psrc[col]);
+                float* pDstCurrent = pdst;
+                float* pMatCurrent = pmat + col * crow;
+
+                while (pDstCurrent < pDstEnd)
                 {
-                    int col = *ppos - posMin;
-                    ppos++;
+                    Vector256<float> x1 = Avx.LoadAlignedVector256(pMatCurrent);
+                    x1 = Avx.Multiply(x1, x0);
+                    Avx.StoreAligned(pDstCurrent, x1);
 
-                    Vector256<float> x0 = Avx.SetAllVector256(psrc[col]);
-                    float* pDstCurrent = pdst;
-                    float* pMatCurrent = pmat + col * crow;
-
-                    while (pDstCurrent < pDstEnd)
-                    {
-                        Vector256<float> x1 = Avx.LoadAlignedVector256(pMatCurrent);
-                        x1 = Avx.Multiply(x1, x0);
-                        Avx.StoreAligned(pDstCurrent, x1);
-
-                        pDstCurrent += 8;
-                        pMatCurrent += 8;
-                    }
+                    pDstCurrent += 8;
+                    pMatCurrent += 8;
                 }
-
+                
                 // REVIEW: Should we explore unrolling the outer loop?
                 while (ppos < pposEnd)
                 {

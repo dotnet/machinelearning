@@ -134,15 +134,15 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         }
 
         // Multiply matrix times vector into vector.
-        public static unsafe void MatMul(bool add, AlignedArray mat, AlignedArray src, AlignedArray dst, int crow, int ccol)
+        public static unsafe void MatMul(AlignedArray mat, AlignedArray src, AlignedArray dst, int crow, int ccol)
         {
             Contracts.Assert(crow % 4 == 0);
             Contracts.Assert(ccol % 4 == 0);
 
-            MatMul(add, mat.Items, src.Items, dst.Items, crow, ccol);
+            MatMul(mat.Items, src.Items, dst.Items, crow, ccol);
         }
 
-        public static unsafe void MatMul(bool add, float[] mat, float[] src, float[] dst, int crow, int ccol)
+        public static unsafe void MatMul(float[] mat, float[] src, float[] dst, int crow, int ccol)
         {
             fixed (float* psrc = &src[0])
             fixed (float* pdst = &dst[0])
@@ -158,9 +158,9 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                 while (pDstCurrent < pDstEnd)
                 {
                     Vector128<float> res0 = Sse.SetZeroVector128();
-                    Vector128<float> res1 = res0;
-                    Vector128<float> res2 = res0;
-                    Vector128<float> res3 = res0;
+                    Vector128<float> res1 = Sse.SetZeroVector128();
+                    Vector128<float> res2 = Sse.SetZeroVector128();
+                    Vector128<float> res3 = Sse.SetZeroVector128();
 
                     int length = ccol;
                     float* pSrcCurrent = psrc;
@@ -276,11 +276,6 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                     res2 = Sse3.HorizontalAdd(res2, res3);
                     res0 = Sse3.HorizontalAdd(res0, res2);
 
-                    if (add)
-                    {
-                        res0 = Sse.Add(res0, Sse.LoadVector128(pDstCurrent));
-                    }
-
                     Sse.Store(pDstCurrent, res0);
                     pDstCurrent += 4;
                     pMatCurrent += 3 * ccol;
@@ -289,7 +284,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         }
 
         // Partial sparse source vector.
-        public static unsafe void MatMulPA(bool add, AlignedArray mat, int[] rgposSrc, AlignedArray src,
+        public static unsafe void MatMulPA(AlignedArray mat, int[] rgposSrc, AlignedArray src,
                                         int posMin, int iposMin, int iposEnd, AlignedArray dst, int crow, int ccol)
         {
             Contracts.Assert(HasCompatibleAlignment(mat));
@@ -334,26 +329,21 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                         ppos++;
                     }
 
-                    if (add)
-                    {
-                        result = Sse.Add(result, Sse.LoadAlignedVector128(pDstCurrent));
-                    }
                     Sse.StoreAligned(pDstCurrent, result);
-
                     pDstCurrent += 4;
                     pm0 += 4 * ccol;
                 }
             }
         }
 
-        public static unsafe void MatMulTran(bool add, AlignedArray mat, AlignedArray src, AlignedArray dst, int crow, int ccol)
+        public static unsafe void MatMulTran(AlignedArray mat, AlignedArray src, AlignedArray dst, int crow, int ccol)
         {
             Contracts.Assert(crow % 4 == 0);
             Contracts.Assert(ccol % 4 == 0);
-            MatMulTran(add, mat.Items, src.Items, dst.Items, crow, ccol);
+            MatMulTran(mat.Items, src.Items, dst.Items, crow, ccol);
         }
 
-        public static unsafe void MatMulTran(bool add, float[] mat, float[] src, float[] dst, int crow, int ccol)
+        public static unsafe void MatMulTran(float[] mat, float[] src, float[] dst, int crow, int ccol)
         {
             fixed (float* psrc = &src[0])
             fixed (float* pdst = &dst[0])
@@ -397,7 +387,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                             x22 = Sse.Add(x22, x32);
                             x02 = Sse.Add(x02, x22);
 
-                            if (add || !firstTime)
+                            if (!firstTime)
                             {
                                 x02 = Sse.Add(x02, Sse.LoadVector128(pDstCurrent));
                             }
@@ -439,7 +429,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                             Vector128<float> x3 = Sse.LoadVector128(pDstCurrent);
                             x02 = Sse.Or(x02, Sse.And(x3, trailingMask));
 
-                            if (add || !firstTime)
+                            if (!firstTime)
                             {
                                 x02 = Sse.Add(x02, Sse.And(x3, leadingMask));
                             }
@@ -465,7 +455,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                                 x22 = Sse.Add(x22, x32);
                                 x02 = Sse.Add(x02, x22);
 
-                                if (add || !firstTime)
+                                if (!firstTime)
                                 {
                                     x02 = Sse.Add(x02, Sse.LoadVector128(pDstCurrent));
                                 }
@@ -505,7 +495,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                             Vector128<float> x3 = Sse.LoadVector128(pDstCurrent);
                             x02 = Sse.Or(x02, Sse.And(x3, leadingMask));
 
-                            if (add || !firstTime)
+                            if (!firstTime)
                             {
                                 x02 = Sse.Add(x02, Sse.And(x3, trailingMask));
                             }
@@ -524,7 +514,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         }
 
         // Partial sparse source vector.
-        public static unsafe void MatMulTranPA(bool add, AlignedArray mat, int[] rgposSrc, AlignedArray src,
+        public static unsafe void MatMulTranPA(AlignedArray mat, int[] rgposSrc, AlignedArray src,
                                         int posMin, int iposMin, int iposEnd, AlignedArray dst, int crow)
         {
             Contracts.Assert(HasCompatibleAlignment(mat));
@@ -544,26 +534,23 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                 int* pposEnd = pposSrc + iposEnd;
                 float* pDstEnd = pdst + crow;
 
-                if (!add)
+                int col = *ppos - posMin;
+                ppos++;
+
+                Vector128<float> x0 = Sse.SetAllVector128(psrc[col]);
+                float* pDstCurrent = pdst;
+                float* pMatCurrent = pmat + col * crow;
+
+                while (pDstCurrent < pDstEnd)
                 {
-                    int col = *ppos - posMin;
-                    ppos++;
+                    Vector128<float> x1 = Sse.LoadAlignedVector128(pMatCurrent);
+                    x1 = Sse.Multiply(x1, x0);
+                    Sse.StoreAligned(pDstCurrent, x1);
 
-                    Vector128<float> x0 = Sse.SetAllVector128(psrc[col]);
-                    float* pDstCurrent = pdst;
-                    float* pMatCurrent = pmat + col * crow;
-
-                    while (pDstCurrent < pDstEnd)
-                    {
-                        Vector128<float> x1 = Sse.LoadAlignedVector128(pMatCurrent);
-                        x1 = Sse.Multiply(x1, x0);
-                        Sse.StoreAligned(pDstCurrent, x1);
-
-                        pDstCurrent += 4;
-                        pMatCurrent += 4;
-                    }
+                    pDstCurrent += 4;
+                    pMatCurrent += 4;
                 }
-
+                
                 // REVIEW: Should we explore unrolling the outer loop?
                 while (ppos < pposEnd)
                 {

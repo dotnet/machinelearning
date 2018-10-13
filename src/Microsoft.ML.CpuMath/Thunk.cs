@@ -16,16 +16,16 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         public static extern bool ChkAvx();
 
         [DllImport(NativePath), SuppressUnmanagedCodeSecurity]
-        public static extern void MatMul(bool add, /*const*/ float* pmat, /*const*/ float* psrc, float* pdst, int crow, int ccol);
+        public static extern void MatMul(/*const*/ float* pmat, /*const*/ float* psrc, float* pdst, int crow, int ccol);
 
         [DllImport(NativePath), SuppressUnmanagedCodeSecurity]
-        public static extern void MatMulX(bool add, /*const*/ float* pmat, /*const*/ float* psrc, float* pdst, int crow, int ccol);
+        public static extern void MatMulX(/*const*/ float* pmat, /*const*/ float* psrc, float* pdst, int crow, int ccol);
 
         [DllImport(NativePath), SuppressUnmanagedCodeSecurity]
-        public static extern void MatMulPA(bool add, /*const*/ float* pmat, /*const*/ int* pposSrc, /*const*/ float* psrc,
+        public static extern void MatMulPA(/*const*/ float* pmat, /*const*/ int* pposSrc, /*const*/ float* psrc,
             int posMin, int iposMin, int iposLim, float* pdst, int crow, int ccol);
         [DllImport(NativePath), SuppressUnmanagedCodeSecurity]
-        public static extern void MatMulPX(bool add, /*const*/ float* pmat, /*const*/ int* pposSrc, /*const*/ float* psrc,
+        public static extern void MatMulPX(/*const*/ float* pmat, /*const*/ int* pposSrc, /*const*/ float* psrc,
             int posMin, int iposMin, int iposLim, float* pdst, int crow, int ccol);
 
         [DllImport(NativePath), SuppressUnmanagedCodeSecurity]
@@ -65,15 +65,15 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         // and columns from that perspective. Alternatively, crow is the number of rows in the transpose of pmat
         // (thought of as row-major order).
         [DllImport(NativePath), SuppressUnmanagedCodeSecurity]
-        public static extern void MatMulTran(bool add, /*const*/ float* pmat, /*const*/ float* psrc, float* pdst, int crow, int ccol);
+        public static extern void MatMulTran(/*const*/ float* pmat, /*const*/ float* psrc, float* pdst, int crow, int ccol);
         [DllImport(NativePath), SuppressUnmanagedCodeSecurity]
-        public static extern void MatMulTranX(bool add, /*const*/ float* pmat, /*const*/ float* psrc, float* pdst, int crow, int ccol);
+        public static extern void MatMulTranX(/*const*/ float* pmat, /*const*/ float* psrc, float* pdst, int crow, int ccol);
 
         [DllImport(NativePath), SuppressUnmanagedCodeSecurity]
-        public static extern void MatMulTranPA(bool add, /*const*/ float* pmat, /*const*/ int* pposSrc, /*const*/ float* psrc,
+        public static extern void MatMulTranPA(/*const*/ float* pmat, /*const*/ int* pposSrc, /*const*/ float* psrc,
             int posMin, int iposMin, int iposLim, float* pdst, int crow);
         [DllImport(NativePath), SuppressUnmanagedCodeSecurity]
-        public static extern void MatMulTranPX(bool add, /*const*/ float* pmat, /*const*/ int* pposSrc, /*const*/ float* psrc,
+        public static extern void MatMulTranPX(/*const*/ float* pmat, /*const*/ int* pposSrc, /*const*/ float* psrc,
             int posMin, int iposMin, int iposLim, float* pdst, int crow);
 
         [DllImport(NativePath), SuppressUnmanagedCodeSecurity]

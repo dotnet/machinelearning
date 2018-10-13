@@ -34,7 +34,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             return Thunk.ChkAvx();
         }
 
-        public static void MatTimesSrc(bool tran, bool add, AlignedArray mat, AlignedArray src, AlignedArray dst, int crun)
+        public static void MatTimesSrc(bool tran, AlignedArray mat, AlignedArray src, AlignedArray dst, int crun)
         {
             Contracts.Assert(Compat(mat));
             Contracts.Assert(Compat(src));
@@ -50,12 +50,12 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                     if (!tran)
                     {
                         Contracts.Assert(0 <= crun && crun <= dst.Size);
-                        Thunk.MatMulX(add, Ptr(mat, pmat), Ptr(src, psrc), Ptr(dst, pdst), crun, src.Size);
+                        Thunk.MatMulX(Ptr(mat, pmat), Ptr(src, psrc), Ptr(dst, pdst), crun, src.Size);
                     }
                     else
                     {
                         Contracts.Assert(0 <= crun && crun <= src.Size);
-                        Thunk.MatMulTranX(add, Ptr(mat, pmat), Ptr(src, psrc), Ptr(dst, pdst), dst.Size, crun);
+                        Thunk.MatMulTranX(Ptr(mat, pmat), Ptr(src, psrc), Ptr(dst, pdst), dst.Size, crun);
                     }
                 }
             }
@@ -88,12 +88,12 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                     if (!tran)
                     {
                         Contracts.Assert(0 <= crun && crun <= dst.Size);
-                        Thunk.MatMulPX(add, Ptr(mat, pmat), ppossrc, Ptr(srcValues, psrc), posMin, iposMin, iposLim, Ptr(dst, pdst), crun, srcValues.Size);
+                        Thunk.MatMulPX(Ptr(mat, pmat), ppossrc, Ptr(srcValues, psrc), posMin, iposMin, iposLim, Ptr(dst, pdst), crun, srcValues.Size);
                     }
                     else
                     {
                         Contracts.Assert(0 <= crun && crun <= srcValues.Size);
-                        Thunk.MatMulTranPX(add, Ptr(mat, pmat), ppossrc, Ptr(srcValues, psrc), posMin, iposMin, iposLim, Ptr(dst, pdst), dst.Size);
+                        Thunk.MatMulTranPX(Ptr(mat, pmat), ppossrc, Ptr(srcValues, psrc), posMin, iposMin, iposLim, Ptr(dst, pdst), dst.Size);
                     }
                 }
             }

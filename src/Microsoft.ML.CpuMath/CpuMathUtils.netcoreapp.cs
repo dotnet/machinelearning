@@ -24,7 +24,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         public static int GetVectorAlignment()
             => Avx.IsSupported ? Vector256Alignment : (Sse.IsSupported ? Vector128Alignment : FloatAlignment);
 
-        public static void MatTimesSrc(bool tran, bool add, AlignedArray mat, AlignedArray src, AlignedArray dst, int crun)
+        public static void MatTimesSrc(bool tran, AlignedArray mat, AlignedArray src, AlignedArray dst, int crun)
         {
             Contracts.Assert(mat.Size == dst.Size * src.Size);
             Contracts.Assert(crun >= 0);
@@ -34,12 +34,12 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                 if (!tran)
                 {
                     Contracts.Assert(crun <= dst.Size);
-                    AvxIntrinsics.MatMulX(add, mat, src, dst, crun, src.Size);
+                    AvxIntrinsics.MatMulX(mat, src, dst, crun, src.Size);
                 }
                 else
                 {
                     Contracts.Assert(crun <= src.Size);
-                    AvxIntrinsics.MatMulTranX(add, mat, src, dst, dst.Size, crun);
+                    AvxIntrinsics.MatMulTranX(mat, src, dst, dst.Size, crun);
                 }
             }
             else if (Sse.IsSupported)
@@ -47,12 +47,12 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                 if (!tran)
                 {
                     Contracts.Assert(crun <= dst.Size);
-                    SseIntrinsics.MatMul(add, mat, src, dst, crun, src.Size);
+                    SseIntrinsics.MatMul(mat, src, dst, crun, src.Size);
                 }
                 else
                 {
                     Contracts.Assert(crun <= src.Size);
-                    SseIntrinsics.MatMulTran(add, mat, src, dst, dst.Size, crun);
+                    SseIntrinsics.MatMulTran(mat, src, dst, dst.Size, crun);
                 }
             }
             else
@@ -68,14 +68,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                             dotProduct += mat[i * src.Size + j] * src[j];
                         }
 
-                        if (add)
-                        {
-                            dst[i] += dotProduct;
-                        }
-                        else
-                        {
-                            dst[i] = dotProduct;
-                        }
+                        dst[i] = dotProduct;
                     }
                 }
                 else
@@ -89,20 +82,13 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                             dotProduct += mat[j * src.Size + i] * src[j];
                         }
 
-                        if (add)
-                        {
-                            dst[i] += dotProduct;
-                        }
-                        else
-                        {
-                            dst[i] = dotProduct;
-                        }
+                        dst[i] = dotProduct;
                     }
                 }
             }
         }
 
-        public static void MatTimesSrc(bool tran, bool add, AlignedArray mat, int[] rgposSrc, AlignedArray srcValues,
+        public static void MatTimesSrc(bool tran, AlignedArray mat, int[] rgposSrc, AlignedArray srcValues,
             int posMin, int iposMin, int iposLim, AlignedArray dst, int crun)
         {
             Contracts.AssertValue(rgposSrc);
@@ -113,8 +99,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
             if (iposMin >= iposLim)
             {
-                if (!add)
-                    dst.ZeroItems();
+                dst.ZeroItems();
                 return;
             }
 
@@ -126,12 +111,12 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                 if (!tran)
                 {
                     Contracts.Assert(crun <= dst.Size);
-                    AvxIntrinsics.MatMulPX(add, mat, rgposSrc, srcValues, posMin, iposMin, iposLim, dst, crun, srcValues.Size);
+                    AvxIntrinsics.MatMulPX(mat, rgposSrc, srcValues, posMin, iposMin, iposLim, dst, crun, srcValues.Size);
                 }
                 else
                 {
                     Contracts.Assert(crun <= srcValues.Size);
-                    AvxIntrinsics.MatMulTranPX(add, mat, rgposSrc, srcValues, posMin, iposMin, iposLim, dst, dst.Size);
+                    AvxIntrinsics.MatMulTranPX(mat, rgposSrc, srcValues, posMin, iposMin, iposLim, dst, dst.Size);
                 }
             }
             else if (Sse.IsSupported)
@@ -139,12 +124,12 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                 if (!tran)
                 {
                     Contracts.Assert(crun <= dst.Size);
-                    SseIntrinsics.MatMulPA(add, mat, rgposSrc, srcValues, posMin, iposMin, iposLim, dst, crun, srcValues.Size);
+                    SseIntrinsics.MatMulPA(mat, rgposSrc, srcValues, posMin, iposMin, iposLim, dst, crun, srcValues.Size);
                 }
                 else
                 {
                     Contracts.Assert(crun <= srcValues.Size);
-                    SseIntrinsics.MatMulTranPA(add, mat, rgposSrc, srcValues, posMin, iposMin, iposLim, dst, dst.Size);
+                    SseIntrinsics.MatMulTranPA(mat, rgposSrc, srcValues, posMin, iposMin, iposLim, dst, dst.Size);
                 }
             }
             else
@@ -161,14 +146,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                             dotProduct += mat[i * srcValues.Size + col] * srcValues[col];
                         }
 
-                        if (add)
-                        {
-                            dst[i] += dotProduct;
-                        }
-                        else
-                        {
-                            dst[i] = dotProduct;
-                        }
+                        dst[i] = dotProduct;
                     }
                 }
                 else
@@ -183,14 +161,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                             dotProduct += mat[col * dst.Size + i] * srcValues[col];
                         }
 
-                        if (add)
-                        {
-                            dst[i] += dotProduct;
-                        }
-                        else
-                        {
-                            dst[i] = dotProduct;
-                        }
+                        dst[i] = dotProduct;
                     }
 
                 }
