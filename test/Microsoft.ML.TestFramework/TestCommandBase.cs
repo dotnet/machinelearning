@@ -281,13 +281,13 @@ namespace Microsoft.ML.Runtime.RunTests
             return TestCore(ctx, cmdName, args, DigitsOfPrecision, toCompare);
         }
 
-            /// <summary>
-            /// Runs a command with some arguments. Note that the input
-            /// <paramref name="toCompare"/> objects are used for comparison only.
-            /// </summary>
-            /// <returns>Whether this test succeeded.</returns>
-       protected bool TestCore(RunContextBase ctx, string cmdName, string args, int digitsOfPrecision, params PathArgument[] toCompare)
-       {
+        /// <summary>
+        /// Runs a command with some arguments. Note that the input
+        /// <paramref name="toCompare"/> objects are used for comparison only.
+        /// </summary>
+        /// <returns>Whether this test succeeded.</returns>
+        protected bool TestCore(RunContextBase ctx, string cmdName, string args, int digitsOfPrecision, params PathArgument[] toCompare)
+        {
             Contracts.AssertValue(cmdName);
             Contracts.AssertValueOrNull(args);
             OutputPath outputPath = ctx.StdoutPath();
@@ -311,7 +311,7 @@ namespace Microsoft.ML.Runtime.RunTests
                         all &= c.CheckEquality(digitsOfPrecision);
             }
             return all;
-       }
+        }
 
         /// <summary>
         /// Invoke MAML with specified arguments. This is intended to be used for testing.
