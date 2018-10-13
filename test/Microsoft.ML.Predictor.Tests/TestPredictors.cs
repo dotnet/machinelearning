@@ -1942,7 +1942,7 @@ output Out [3] from H all;
             var binaryPredictors = new[] { TestLearners.FieldAwareFactorizationMachine };
             var binaryClassificationDatasets = GetDatasetsForBinaryClassifierBaseTest();
 
-            RunAllTests(binaryPredictors, binaryClassificationDatasets, digitsOfPrecision: 5);
+            RunAllTests(binaryPredictors, binaryClassificationDatasets, digitsOfPrecision: 4);
 
             Done();
         }
