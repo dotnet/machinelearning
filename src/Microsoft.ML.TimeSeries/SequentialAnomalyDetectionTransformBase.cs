@@ -586,16 +586,20 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
                 return getters;
             }
 
+            private delegate void ProcessData(ref TInput src, ref VBuffer<double> dst);
+
             private Delegate MakeGetter(IRow input, TState state)
             {
                 _host.AssertValue(input);
                 input.Schema.TryGetColumnIndex(_parent.InputColumnName, out int srcCol);
                 var srcGetter = input.GetGetter<TInput>(srcCol);
-                ValueGetter<VBuffer<double>> valueGetter = (ref VBuffer<double> dst) =>
+                ProcessData processData = _parent.WindowSize > 0 ?
+                    (ProcessData) state.Process : state.ProcessWithoutBuffer;
+                ValueGetter <VBuffer<double>> valueGetter = (ref VBuffer<double> dst) =>
                 {
                     TInput src = default;
                     srcGetter(ref src);
-                    state.ProcessWithoutBuffer(ref src, ref dst); // TODO: what about ProcessWithBuffer ?
+                    processData(ref src, ref dst);
                 };
 
                 return valueGetter;

@@ -105,11 +105,6 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
                 InitialWindowedBuffer.Clear();
             }
 
-            protected StateBase()
-            {
-                // Default constructor is required by the LambdaTransform.
-            }
-
             public void Process(ref TInput input, ref TOutput output)
             {
                 if (InitialWindowedBuffer.Count < InitialWindowSize)
@@ -273,21 +268,6 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
 
             var bs = new BinarySaver(Host, new BinarySaver.Arguments());
             bs.TryWriteTypeDescription(ctx.Writer.BaseStream, OutputColumnType, out int byteWritten);
-        }
-
-        private static void MapFunction(DataBox<TInput> input, DataBox<TOutput> output, TState state)
-        {
-            state.Process(ref input.Value, ref output.Value);
-        }
-
-        private static void MapFunctionWithoutBuffer(DataBox<TInput> input, DataBox<TOutput> output, TState state)
-        {
-            state.ProcessWithoutBuffer(ref input.Value, ref output.Value);
-        }
-
-        private void InitFunction(TState state)
-        {
-            state.InitState(WindowSize, InitialWindowSize, this, Host);
         }
 
         public ISchema GetOutputSchema(ISchema inputSchema)
