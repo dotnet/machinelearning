@@ -330,7 +330,7 @@ namespace Microsoft.ML.Runtime.KMeans
             var reduceNodeX2 = ctx.CreateNode("ReduceSumSquare", nameX, nameX2, ctx.GetNodeName("ReduceSumSquare"), "");
 
             // Compute -2XC^T. Note that Gemm always takes three inputs. Since we only have two here,
-            // a dummpy one is created.
+            // a dummy one, named zero, is created.
             var zeroName = ctx.AddInitializer(new Float[] { 0f }, null, "zero");
             var nameXC2 = ctx.AddIntermediateVariable(null, "XC2", true);
             var gemmNodeXC2 = ctx.CreateNode("Gemm", new[] { nameX, nameC, zeroName}, new[] { nameXC2 }, ctx.GetNodeName("Gemm"), "");
@@ -338,7 +338,7 @@ namespace Microsoft.ML.Runtime.KMeans
             gemmNodeXC2.AddAttribute("transB", 1);
 
             // Compute Z = X^2 - 2XC^T
-            var nameZ = "Z"; // ctx.AddIntermediateVariable(null, "Z", true);
+            var nameZ = ctx.AddIntermediateVariable(null, "Z", true);
             var addNodeZ = ctx.CreateNode("Add", new[] { nameX2, nameXC2 }, new[] { nameZ }, ctx.GetNodeName("Add"), "");
 
             // Compute Y = Z + C^2
