@@ -2,17 +2,30 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.TimeSeriesProcessing;
+using Microsoft.ML.StaticPipe;
+using Microsoft.ML.StaticPipe.Runtime;
 
-[assembly: LoadableClass(SsaSpikeDetector.Summary, typeof(SsaSpikeDetector), typeof(SsaSpikeDetector.Arguments), typeof(SignatureDataTransform),
+[assembly: LoadableClass(SsaSpikeDetector.Summary, typeof(IDataTransform), typeof(SsaSpikeDetector), typeof(SsaSpikeDetector.Arguments), typeof(SignatureDataTransform),
     SsaSpikeDetector.UserName, SsaSpikeDetector.LoaderSignature, SsaSpikeDetector.ShortName)]
-[assembly: LoadableClass(SsaSpikeDetector.Summary, typeof(SsaSpikeDetector), null, typeof(SignatureLoadDataTransform),
+
+[assembly: LoadableClass(SsaSpikeDetector.Summary, typeof(IDataTransform), typeof(SsaSpikeDetector), null, typeof(SignatureLoadDataTransform),
     SsaSpikeDetector.UserName, SsaSpikeDetector.LoaderSignature)]
+
+[assembly: LoadableClass(SsaSpikeDetector.Summary, typeof(SsaSpikeDetector), null, typeof(SignatureLoadModel),
+    SsaSpikeDetector.UserName, SsaSpikeDetector.LoaderSignature)]
+
+[assembly: LoadableClass(typeof(IRowMapper), typeof(SsaSpikeDetector), null, typeof(SignatureLoadRowMapper),
+   SsaSpikeDetector.UserName, SsaSpikeDetector.LoaderSignature)]
 
 namespace Microsoft.ML.Runtime.TimeSeriesProcessing
 {
@@ -90,14 +103,44 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
                 loaderAssemblyName: typeof(SsaSpikeDetector).Assembly.FullName);
         }
 
-        public SsaSpikeDetector(IHostEnvironment env, Arguments args, IDataView input)
-            : base(new BaseArguments(args), LoaderSignature, env, input)
+        // Factory method for SignatureDataTransform.
+        public static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
+        {
+            Contracts.CheckValue(env, nameof(env));
+            env.CheckValue(args, nameof(args));
+            env.CheckValue(input, nameof(input));
+
+            return new SsaSpikeDetector(env, args).MakeDataTransform(input);
+        }
+
+        internal SsaSpikeDetector(IHostEnvironment env, Arguments args)
+            : base(new BaseArguments(args), LoaderSignature, env)
         {
             // This constructor is empty.
         }
 
-        public SsaSpikeDetector(IHostEnvironment env, ModelLoadContext ctx, IDataView input)
-            : base(env, ctx, LoaderSignature, input)
+        // Factory method for SignatureLoadDataTransform.
+        private static IDataTransform Create(IHostEnvironment env, ModelLoadContext ctx, IDataView input)
+        {
+            Contracts.CheckValue(env, nameof(env));
+            env.CheckValue(ctx, nameof(ctx));
+            env.CheckValue(input, nameof(input));
+
+            return new SsaSpikeDetector(env, ctx).MakeDataTransform(input);
+        }
+
+        // Factory method for SignatureLoadModel.
+        private static SsaSpikeDetector Create(IHostEnvironment env, ModelLoadContext ctx)
+        {
+            Contracts.CheckValue(env, nameof(env));
+            env.CheckValue(ctx, nameof(ctx));
+            ctx.CheckAtModel(GetVersionInfo());
+
+            return new SsaSpikeDetector(env, ctx);
+        }
+
+        internal SsaSpikeDetector(IHostEnvironment env, ModelLoadContext ctx)
+            : base(env, ctx, LoaderSignature)
         {
             // *** Binary format ***
             // <base>
@@ -121,6 +164,126 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             // <base>
 
             base.Save(ctx);
+        }
+
+        // Factory method for SignatureLoadRowMapper.
+        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, ISchema inputSchema)
+            => Create(env, ctx).MakeRowMapper(inputSchema);
+    }
+
+    public sealed class SsaSpikeEstimator : IEstimator<ITransformer>
+    {
+        private readonly IHost _host;
+        private readonly string _inputColumnName;
+        private readonly string _outputColumnName;
+        private readonly int _confidence;
+        private readonly int _pvalueHistoryLength;
+        private readonly int _trainingWindowSize;
+        private readonly int _seasonalityWindowSize;
+
+        public SsaSpikeEstimator(
+            IHostEnvironment env,
+            int confidence,
+            int pvalueHistoryLength,
+            int trainingWindowSize,
+            int seasonalityWindowSize,
+            string input,
+            string output)
+        {
+            Contracts.CheckValue(env, nameof(env));
+            _host = env.Register("SsaSpikeEstimator");
+
+            _host.CheckNonEmpty(input, nameof(input));
+            _host.CheckNonEmpty(output, nameof(output));
+
+            _confidence = confidence;
+            _pvalueHistoryLength = pvalueHistoryLength;
+            _trainingWindowSize = trainingWindowSize;
+            _seasonalityWindowSize = seasonalityWindowSize;
+            _inputColumnName = input;
+            _outputColumnName = output;
+        }
+
+        public ITransformer Fit(IDataView input)
+        {
+            _host.CheckValue(input, nameof(input));
+            var transformer = new SsaSpikeDetector(_host,
+                new SsaSpikeDetector.Arguments
+                {
+                    Confidence = _confidence,
+                    PvalueHistoryLength = _pvalueHistoryLength,
+                    TrainingWindowSize = _trainingWindowSize,
+                    SeasonalWindowSize = _seasonalityWindowSize,
+                    Source = _inputColumnName,
+                    Name = _outputColumnName
+                });
+            transformer.Fit(input);
+            return transformer;
+        }
+
+        public SchemaShape GetOutputSchema(SchemaShape inputSchema)
+        {
+            _host.CheckValue(inputSchema, nameof(inputSchema));
+            var resultDic = inputSchema.Columns.ToDictionary(x => x.Name);
+
+            resultDic[_outputColumnName] = new SchemaShape.Column(
+                _outputColumnName, SchemaShape.Column.VectorKind.Vector, NumberType.R8, false);
+
+            return new SchemaShape(resultDic.Values);
+        }
+    }
+
+    public static class SsaSpikeStaticExtensions
+    {
+        private sealed class OutColumn : Vector<float>
+        {
+            public PipelineColumn Input { get; }
+
+            public OutColumn(Vector<float> input,
+                int confidence,
+                int pvalueHistoryLength,
+                int trainingWindowSize,
+                int seasonalityWindowSize)
+                : base(new Reconciler(confidence, pvalueHistoryLength, trainingWindowSize, seasonalityWindowSize), input)
+            {
+                Input = input;
+            }
+        }
+
+        private sealed class Reconciler : EstimatorReconciler
+        {
+            private readonly int _confidence;
+            private readonly int _pvalueHistoryLength;
+            private readonly int _trainingWindowSize;
+            private readonly int _seasonalityWindowSize;
+
+            public Reconciler(
+                int confidence,
+                int pvalueHistoryLength,
+                int trainingWindowSize,
+                int seasonalityWindowSize)
+            {
+                _confidence = confidence;
+                _pvalueHistoryLength = pvalueHistoryLength;
+                _trainingWindowSize = trainingWindowSize;
+                _seasonalityWindowSize = seasonalityWindowSize;
+            }
+
+            public override IEstimator<ITransformer> Reconcile(IHostEnvironment env,
+                PipelineColumn[] toOutput,
+                IReadOnlyDictionary<PipelineColumn, string> inputNames,
+                IReadOnlyDictionary<PipelineColumn, string> outputNames,
+                IReadOnlyCollection<string> usedNames)
+            {
+                Contracts.Assert(toOutput.Length == 1);
+                var outCol = (OutColumn)toOutput[0];
+                return new SsaSpikeEstimator(env,
+                    _confidence,
+                    _pvalueHistoryLength,
+                    _trainingWindowSize,
+                    _seasonalityWindowSize,
+                    inputNames[outCol.Input], outputNames[outCol]);
+            }
         }
     }
 }

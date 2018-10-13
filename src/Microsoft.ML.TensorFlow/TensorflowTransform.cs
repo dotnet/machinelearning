@@ -1115,7 +1115,6 @@ namespace Microsoft.ML.Transforms
         public override SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {
             Host.CheckValue(inputSchema, nameof(inputSchema));
-            var result = inputSchema.Columns.ToDictionary(x => x.Name);
             var resultDic = inputSchema.Columns.ToDictionary(x => x.Name);
             for (var i = 0; i < Transformer.Inputs.Length; i++)
             {

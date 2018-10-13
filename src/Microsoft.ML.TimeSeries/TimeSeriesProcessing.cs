@@ -30,7 +30,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
         public static CommonOutputs.TransformOutput IidChangePointDetector(IHostEnvironment env, IidChangePointDetector.Arguments input)
         {
             var h = EntryPointUtils.CheckArgsAndCreateHost(env, "IidChangePointDetector", input);
-            var view = new IidChangePointDetector(h, input, input.Data);
+            var view = new IidChangePointDetector(h, input).Transform(input.Data);
             return new CommonOutputs.TransformOutput()
             {
                 Model = new TransformModel(h, view, input.Data),
@@ -42,7 +42,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
         public static CommonOutputs.TransformOutput IidSpikeDetector(IHostEnvironment env, IidSpikeDetector.Arguments input)
         {
             var h = EntryPointUtils.CheckArgsAndCreateHost(env, "IidSpikeDetector", input);
-            var view = new IidSpikeDetector(h, input, input.Data);
+            var view = new IidSpikeDetector(h, input).Transform(input.Data);
             return new CommonOutputs.TransformOutput()
             {
                 Model = new TransformModel(h, view, input.Data),
@@ -90,7 +90,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
         public static CommonOutputs.TransformOutput SsaChangePointDetector(IHostEnvironment env, SsaChangePointDetector.Arguments input)
         {
             var h = EntryPointUtils.CheckArgsAndCreateHost(env, "SsaChangePointDetector", input);
-            var view = new SsaChangePointDetector(h, input, input.Data);
+            var view = new SsaChangePointDetector(h, input).Transform(input.Data);
             return new CommonOutputs.TransformOutput()
             {
                 Model = new TransformModel(h, view, input.Data),
@@ -102,7 +102,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
         public static CommonOutputs.TransformOutput SsaSpikeDetector(IHostEnvironment env, SsaSpikeDetector.Arguments input)
         {
             var h = EntryPointUtils.CheckArgsAndCreateHost(env, "SsaSpikeDetector", input);
-            var view = new SsaSpikeDetector(h, input, input.Data);
+            var view = new SsaSpikeDetector(h, input).Transform(input.Data);
             return new CommonOutputs.TransformOutput()
             {
                 Model = new TransformModel(h, view, input.Data),

@@ -15,14 +15,14 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
     /// </summary>
     public abstract class IidAnomalyDetectionBase : SequentialAnomalyDetectionTransformBase<Single, IidAnomalyDetectionBase.State>
     {
-        public IidAnomalyDetectionBase(ArgumentsBase args, string name, IHostEnvironment env, IDataView input)
-            : base(args, name, env, input)
+        public IidAnomalyDetectionBase(ArgumentsBase args, string name, IHostEnvironment env)
+            : base(args, name, env)
         {
             InitialWindowSize = 0;
         }
 
-        public IidAnomalyDetectionBase(IHostEnvironment env, ModelLoadContext ctx, string name, IDataView input)
-            : base(env, ctx, name, input)
+        public IidAnomalyDetectionBase(IHostEnvironment env, ModelLoadContext ctx, string name)
+            : base(env, ctx, name)
         {
             Host.CheckDecode(InitialWindowSize == 0);
         }

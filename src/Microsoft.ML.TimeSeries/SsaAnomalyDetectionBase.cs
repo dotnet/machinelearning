@@ -106,8 +106,8 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
         protected readonly Func<Double, Double, Double> ErrorFunc;
         protected readonly ISequenceModeler<Single, Single> Model;
 
-        public SsaAnomalyDetectionBase(SsaArguments args, string name, IHostEnvironment env, IDataView input)
-            : base(args.WindowSize, 0, args.Source, args.Name, name, env, input, args.Side, args.Martingale, args.AlertOn, args.PowerMartingaleEpsilon, args.AlertThreshold)
+        public SsaAnomalyDetectionBase(SsaArguments args, string name, IHostEnvironment env)
+            : base(args.WindowSize, 0, args.Source, args.Name, name, env, args.Side, args.Martingale, args.AlertOn, args.PowerMartingaleEpsilon, args.AlertThreshold)
         {
             Host.CheckUserArg(2 <= args.SeasonalWindowSize, nameof(args.SeasonalWindowSize), "Must be at least 2.");
             Host.CheckUserArg(0 <= args.DiscountFactor && args.DiscountFactor <= 1, nameof(args.DiscountFactor), "Must be in the range [0, 1].");
@@ -118,18 +118,20 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             ErrorFunction = args.ErrorFunction;
             ErrorFunc = ErrorFunctionUtils.GetErrorFunction(ErrorFunction);
             IsAdaptive = args.IsAdaptive;
-
             // Creating the master SSA model
             Model = new AdaptiveSingularSpectrumSequenceModeler(Host, args.InitialWindowSize, SeasonalWindowSize + 1, SeasonalWindowSize,
                 DiscountFactor, null, AdaptiveSingularSpectrumSequenceModeler.RankSelectionMethod.Exact, null, SeasonalWindowSize / 2, false, false);
+        }
 
+        public void Fit(IDataView input)
+        {
             // Training the master SSA model
             var data = new RoleMappedData(input, null, InputColumnName);
             Model.Train(data);
         }
 
-        public SsaAnomalyDetectionBase(IHostEnvironment env, ModelLoadContext ctx, string name, IDataView input)
-            : base(env, ctx, name, input)
+        public SsaAnomalyDetectionBase(IHostEnvironment env, ModelLoadContext ctx, string name)
+            : base(env, ctx, name)
         {
             // *** Binary format ***
             // <base>

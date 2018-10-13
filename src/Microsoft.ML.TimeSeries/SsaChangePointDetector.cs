@@ -3,17 +3,29 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.TimeSeriesProcessing;
+using Microsoft.ML.StaticPipe;
+using Microsoft.ML.StaticPipe.Runtime;
 
-[assembly: LoadableClass(SsaChangePointDetector.Summary, typeof(SsaChangePointDetector), typeof(SsaChangePointDetector.Arguments), typeof(SignatureDataTransform),
+[assembly: LoadableClass(SsaChangePointDetector.Summary, typeof(IDataTransform), typeof(SsaChangePointDetector), typeof(SsaChangePointDetector.Arguments), typeof(SignatureDataTransform),
     SsaChangePointDetector.UserName, SsaChangePointDetector.LoaderSignature, SsaChangePointDetector.ShortName)]
-[assembly: LoadableClass(SsaChangePointDetector.Summary, typeof(SsaChangePointDetector), null, typeof(SignatureLoadDataTransform),
+
+[assembly: LoadableClass(SsaChangePointDetector.Summary, typeof(IDataTransform), typeof(SsaChangePointDetector), null, typeof(SignatureLoadDataTransform),
     SsaChangePointDetector.UserName, SsaChangePointDetector.LoaderSignature)]
+
+[assembly: LoadableClass(SsaChangePointDetector.Summary, typeof(SsaChangePointDetector), null, typeof(SignatureLoadModel),
+    SsaChangePointDetector.UserName, SsaChangePointDetector.LoaderSignature)]
+
+[assembly: LoadableClass(typeof(IRowMapper), typeof(SsaChangePointDetector), null, typeof(SignatureLoadRowMapper),
+   SsaChangePointDetector.UserName, SsaChangePointDetector.LoaderSignature)]
 
 namespace Microsoft.ML.Runtime.TimeSeriesProcessing
 {
@@ -93,8 +105,18 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
                 loaderAssemblyName: typeof(SsaChangePointDetector).Assembly.FullName);
         }
 
-        public SsaChangePointDetector(IHostEnvironment env, Arguments args, IDataView input)
-            : base(new BaseArguments(args), LoaderSignature, env, input)
+        // Factory method for SignatureDataTransform.
+        public static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
+        {
+            Contracts.CheckValue(env, nameof(env));
+            env.CheckValue(args, nameof(args));
+            env.CheckValue(input, nameof(input));
+
+            return new SsaChangePointDetector(env, args).MakeDataTransform(input);
+        }
+
+        internal SsaChangePointDetector(IHostEnvironment env, Arguments args)
+            : base(new BaseArguments(args), LoaderSignature, env)
         {
             switch (Martingale)
             {
@@ -113,8 +135,28 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             }
         }
 
-        public SsaChangePointDetector(IHostEnvironment env, ModelLoadContext ctx, IDataView input)
-            : base(env, ctx, LoaderSignature, input)
+        // Factory method for SignatureLoadDataTransform.
+        private static IDataTransform Create(IHostEnvironment env, ModelLoadContext ctx, IDataView input)
+        {
+            Contracts.CheckValue(env, nameof(env));
+            env.CheckValue(ctx, nameof(ctx));
+            env.CheckValue(input, nameof(input));
+
+            return new SsaChangePointDetector(env, ctx).MakeDataTransform(input);
+        }
+
+        // Factory method for SignatureLoadModel.
+        private static SsaChangePointDetector Create(IHostEnvironment env, ModelLoadContext ctx)
+        {
+            Contracts.CheckValue(env, nameof(env));
+            env.CheckValue(ctx, nameof(ctx));
+            ctx.CheckAtModel(GetVersionInfo());
+
+            return new SsaChangePointDetector(env, ctx);
+        }
+
+        internal SsaChangePointDetector(IHostEnvironment env, ModelLoadContext ctx)
+            : base(env, ctx, LoaderSignature)
         {
             // *** Binary format ***
             // <base>
@@ -140,6 +182,125 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             // <base>
 
             base.Save(ctx);
+        }
+
+        // Factory method for SignatureLoadRowMapper.
+        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, ISchema inputSchema)
+            => Create(env, ctx).MakeRowMapper(inputSchema);
+    }
+
+    public sealed class SsaChangePointEstimator : IEstimator<ITransformer>
+    {
+        private readonly IHost _host;
+        private readonly string _inputColumnName;
+        private readonly string _outputColumnName;
+        private readonly int _confidence;
+        private readonly int _changeHistoryLength;
+        private readonly int _trainingWindowSize;
+        private readonly int _seasonalityWindowSize;
+
+        public SsaChangePointEstimator(
+            IHostEnvironment env,
+            int confidence,
+            int changeHistoryLength,
+            int trainingWindowSize,
+            int seasonalityWindowSize,
+            string input,
+            string output)
+        {
+            Contracts.CheckValue(env, nameof(env));
+            _host = env.Register("SsaChangePointEstimator");
+
+            _host.CheckNonEmpty(input, nameof(input));
+            _host.CheckNonEmpty(output, nameof(output));
+
+            _confidence = confidence;
+            _changeHistoryLength = changeHistoryLength;
+            _trainingWindowSize = trainingWindowSize;
+            _seasonalityWindowSize = seasonalityWindowSize;
+            _inputColumnName = input;
+            _outputColumnName = output;
+        }
+
+        public ITransformer Fit(IDataView input)
+        {
+            _host.CheckValue(input, nameof(input));
+            var transformer = new SsaChangePointDetector(_host,
+                new SsaChangePointDetector.Arguments {
+                    Confidence = _confidence,
+                    ChangeHistoryLength = _changeHistoryLength,
+                    TrainingWindowSize = _trainingWindowSize,
+                    SeasonalWindowSize = _seasonalityWindowSize,
+                    Source = _inputColumnName,
+                    Name = _outputColumnName
+                });
+            transformer.Fit(input);
+            return transformer;
+        }
+
+        public SchemaShape GetOutputSchema(SchemaShape inputSchema)
+        {
+            _host.CheckValue(inputSchema, nameof(inputSchema));
+            var resultDic = inputSchema.Columns.ToDictionary(x => x.Name);
+
+            resultDic[_outputColumnName] = new SchemaShape.Column(
+                _outputColumnName, SchemaShape.Column.VectorKind.Vector, NumberType.R8, false);
+
+            return new SchemaShape(resultDic.Values);
+        }
+    }
+
+    public static class SsaChangePointStaticExtensions
+    {
+        private sealed class OutColumn : Vector<float>
+        {
+            public PipelineColumn Input { get; }
+
+            public OutColumn(Vector<float> input,
+                int confidence,
+                int changeHistoryLength,
+                int trainingWindowSize,
+                int seasonalityWindowSize)
+                : base(new Reconciler(confidence, changeHistoryLength, trainingWindowSize, seasonalityWindowSize), input)
+            {
+                Input = input;
+            }
+        }
+
+        private sealed class Reconciler : EstimatorReconciler
+        {
+            private readonly int _confidence;
+            private readonly int _changeHistoryLength;
+            private readonly int _trainingWindowSize;
+            private readonly int _seasonalityWindowSize;
+
+            public Reconciler(
+                int confidence,
+                int changeHistoryLength,
+                int trainingWindowSize,
+                int seasonalityWindowSize)
+            {
+                _confidence = confidence;
+                _changeHistoryLength = changeHistoryLength;
+                _trainingWindowSize = trainingWindowSize;
+                _seasonalityWindowSize = seasonalityWindowSize;
+            }
+
+            public override IEstimator<ITransformer> Reconcile(IHostEnvironment env,
+                PipelineColumn[] toOutput,
+                IReadOnlyDictionary<PipelineColumn, string> inputNames,
+                IReadOnlyDictionary<PipelineColumn, string> outputNames,
+                IReadOnlyCollection<string> usedNames)
+            {
+                Contracts.Assert(toOutput.Length == 1);
+                var outCol = (OutColumn)toOutput[0];
+                return new SsaChangePointEstimator(env,
+                    _confidence,
+                    _changeHistoryLength,
+                    _trainingWindowSize,
+                    _seasonalityWindowSize,
+                    inputNames[outCol.Input], outputNames[outCol]);
+            }
         }
     }
 }
