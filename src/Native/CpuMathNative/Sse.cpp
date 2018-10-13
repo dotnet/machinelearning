@@ -748,41 +748,6 @@ EXPORT_API(void) MatMulTran(_In_ const float * pmat, _In_ const float * psrc, _I
     }
 }
 
-// Partial sparse source vector.
-EXPORT_API(void) MatMulTranPA(_In_ const float * pmat, _In_ const int * pposSrc, _In_ const float * psrc,
-    int posMin, int iposMin, int iposLim, _Inout_ float * pdst, int crow)
-{
-    const int * ppos = pposSrc + iposMin;
-    const int * pposLim = pposSrc + iposLim;
-    const float * pdLim = pdst + crow;
-
-    int col = *ppos++ - posMin;
-    const float * pm = pmat + col * crow;
-    __m128 x0 = _mm_set1_ps(psrc[col]);
-    for (float * pd = pdst; pd < pdLim; pd += 4, pm += 4)
-    {
-        __m128 x1 = _mm_load_ps(pm);
-        x1 = _mm_mul_ps(x1, x0);
-        _mm_store_ps(pd, x1);
-    }
-    
-    // REVIEW: Should we explore unrolling the outer loop?
-    for (; ppos < pposLim; ppos++)
-    {
-        int col = *ppos - posMin;
-        __m128 x0 = _mm_set1_ps(psrc[col]);
-        const float * pm = pmat + col * crow;
-        for (float * pd = pdst; pd < pdLim; pd += 4, pm += 4)
-        {
-            __m128 x1 = _mm_load_ps(pm);
-            __m128 x2 = _mm_load_ps(pd);
-            x1 = _mm_mul_ps(x1, x0);
-            x2 = _mm_add_ps(x2, x1);
-            _mm_store_ps(pd, x2);
-        }
-    }
-}
-
 // Sparse matrix.
 EXPORT_API(void) MatMulTranRU(bool add, _In_ const int * pstarts, _In_ const int * pindices, _In_ const float * pcoefs,
     _In_ const float * psrc, _Inout_ float * pd, int crow, int ccol)

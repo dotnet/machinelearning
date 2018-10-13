@@ -17,8 +17,8 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
         public static void MatTimesSrc(bool tran, AlignedArray mat, AlignedArray src, AlignedArray dst, int crun) => SseUtils.MatTimesSrc(tran, mat, src, dst, crun);
 
-        public static void MatTimesSrc(bool tran, AlignedArray mat, int[] rgposSrc, AlignedArray srcValues,
-            int posMin, int iposMin, int iposLim, AlignedArray dst, int crun) => SseUtils.MatTimesSrc(tran, mat, rgposSrc, srcValues, posMin, iposMin, iposLim, dst, crun);
+        public static void MatTimesSrc(AlignedArray mat, int[] rgposSrc, AlignedArray srcValues,
+            int posMin, int iposMin, int iposLim, AlignedArray dst, int crun) => SseUtils.MatTimesSrc(mat, rgposSrc, srcValues, posMin, iposMin, iposLim, dst, crun);
 
         public static void Add(float a, float[] dst, int count) => SseUtils.Add(a, dst, count);
 

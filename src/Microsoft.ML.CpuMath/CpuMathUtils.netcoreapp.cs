@@ -88,7 +88,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             }
         }
 
-        public static void MatTimesSrc(bool tran, AlignedArray mat, int[] rgposSrc, AlignedArray srcValues,
+        public static void MatTimesSrc(AlignedArray mat, int[] rgposSrc, AlignedArray srcValues,
             int posMin, int iposMin, int iposLim, AlignedArray dst, int crun)
         {
             Contracts.AssertValue(rgposSrc);
@@ -108,62 +108,26 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
             if (Avx.IsSupported)
             {
-                if (!tran)
-                {
-                    Contracts.Assert(crun <= dst.Size);
-                    AvxIntrinsics.MatMulPX(mat, rgposSrc, srcValues, posMin, iposMin, iposLim, dst, crun, srcValues.Size);
-                }
-                else
-                {
-                    Contracts.Assert(crun <= srcValues.Size);
-                    AvxIntrinsics.MatMulTranPX(mat, rgposSrc, srcValues, posMin, iposMin, iposLim, dst, dst.Size);
-                }
+                Contracts.Assert(crun <= dst.Size);
+                AvxIntrinsics.MatMulPX(mat, rgposSrc, srcValues, posMin, iposMin, iposLim, dst, crun, srcValues.Size);
             }
             else if (Sse.IsSupported)
             {
-                if (!tran)
-                {
-                    Contracts.Assert(crun <= dst.Size);
-                    SseIntrinsics.MatMulPA(mat, rgposSrc, srcValues, posMin, iposMin, iposLim, dst, crun, srcValues.Size);
-                }
-                else
-                {
-                    Contracts.Assert(crun <= srcValues.Size);
-                    SseIntrinsics.MatMulTranPA(mat, rgposSrc, srcValues, posMin, iposMin, iposLim, dst, dst.Size);
-                }
+                Contracts.Assert(crun <= dst.Size);
+                SseIntrinsics.MatMulPA(mat, rgposSrc, srcValues, posMin, iposMin, iposLim, dst, crun, srcValues.Size);
             }
             else
             {
-                if (!tran)
+                Contracts.Assert(crun <= dst.Size);
+                for (int i = 0; i < crun; i++)
                 {
-                    Contracts.Assert(crun <= dst.Size);
-                    for (int i = 0; i < crun; i++)
+                    float dotProduct = 0;
+                    for (int j = iposMin; j < iposLim; j++)
                     {
-                        float dotProduct = 0;
-                        for (int j = iposMin; j < iposLim; j++)
-                        {
-                            int col = rgposSrc[j] - posMin;
-                            dotProduct += mat[i * srcValues.Size + col] * srcValues[col];
-                        }
-
-                        dst[i] = dotProduct;
+                        int col = rgposSrc[j] - posMin;
+                        dotProduct += mat[i * srcValues.Size + col] * srcValues[col];
                     }
-                }
-                else
-                {
-                    Contracts.Assert(crun <= srcValues.Size);
-                    for (int i = 0; i < dst.Size; i++)
-                    {
-                        float dotProduct = 0;
-                        for (int j = iposMin; j < iposLim; j++)
-                        {
-                            int col = rgposSrc[j] - posMin;
-                            dotProduct += mat[col * dst.Size + i] * srcValues[col];
-                        }
-
-                        dst[i] = dotProduct;
-                    }
-
+                    dst[i] = dotProduct;
                 }
             }
         }

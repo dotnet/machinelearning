@@ -618,7 +618,7 @@ namespace Microsoft.ML.Transforms
                     // This overload of MatTimesSrc ignores the values in slots that are not in src.Indices, so there is
                     // no need to zero them out.
                     featuresAligned.CopyFrom(src.Indices, src.Values, 0, 0, src.Count, zeroItems: false);
-                    CpuMathUtils.MatTimesSrc(false, transformInfo.RndFourierVectors, src.Indices, featuresAligned, 0, 0,
+                    CpuMathUtils.MatTimesSrc(transformInfo.RndFourierVectors, src.Indices, featuresAligned, 0, 0,
                         src.Count, productAligned, transformInfo.NewDim);
                 }
 
