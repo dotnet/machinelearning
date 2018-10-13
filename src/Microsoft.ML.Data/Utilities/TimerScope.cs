@@ -55,7 +55,6 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
                 pipe.Send(TelemetryMessage.CreateMetric("TLC_RunTime", elapsedSeconds));
                 pipe.Send(TelemetryMessage.CreateMetric("TLC_PhysicalMemoryUsageInMB", physicalMemoryUsageInMB));
                 pipe.Send(TelemetryMessage.CreateMetric("TLC_VirtualMemoryUsageInMB", virtualMemoryUsageInMB));
-                pipe.Done();
             }
         }
     }

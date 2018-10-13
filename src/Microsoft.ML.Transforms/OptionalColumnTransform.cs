@@ -374,7 +374,6 @@ namespace Microsoft.ML.Runtime.DataPipe
                         getters[iinfo] = (Delegate)meth.Invoke(this, new object[] { input, iinfo });
                     }
                 }
-                ch.Done();
                 return getters;
             }
         }

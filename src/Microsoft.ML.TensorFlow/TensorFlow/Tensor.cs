@@ -11,6 +11,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using size_t = System.UIntPtr;
 using TF_Tensor = System.IntPtr;
+using TF_Status = System.IntPtr;
 
 #pragma warning disable MSML_ParameterLocalVarName
 
@@ -73,6 +74,18 @@ namespace Microsoft.ML.Transforms.TensorFlow
 
         [DllImport(NativeBinding.TensorFlowLibrary)]
         private static extern unsafe TF_Tensor TF_NewTensor(TFDataType dataType, IntPtr zeroDims, int num_dims, IntPtr data, size_t len, Deallocator deallocator, IntPtr deallocator_arg);
+
+        // extern size_t TF_StringEncode (const char *src, size_t src_len, char *dst, size_t dst_len, TF_Status *status);
+        [DllImport(NativeBinding.TensorFlowLibrary)]
+        private static extern unsafe size_t TF_StringEncode(byte* src, size_t src_len, sbyte* dst, size_t dst_len, TF_Status status);
+
+        // extern size_t TF_StringDecode (const char *src, size_t src_len, const char **dst, size_t *dst_len, TF_Status *status);
+        [DllImport(NativeBinding.TensorFlowLibrary)]
+        private static extern unsafe size_t TF_StringDecode(sbyte* src, size_t src_len, sbyte** dst, size_t* dst_len, TF_Status status);
+
+        // extern size_t TF_StringEncodedSize (size_t len);
+        [DllImport(NativeBinding.TensorFlowLibrary)]
+        private static extern size_t TF_StringEncodedSize(size_t len);
 
         internal TFTensor(IntPtr handle) : base(handle) { }
 
@@ -409,6 +422,33 @@ namespace Microsoft.ML.Transforms.TensorFlow
         /// <param name="data">Data.</param>
         public TFTensor(Complex[] data) : base(SetupTensor(TFDataType.Complex128, data, size: 16)) { }
 
+        internal static unsafe TFTensor CreateString(byte[] buffer)
+        {
+            if (buffer == null)
+                throw new ArgumentNullException(nameof(buffer));
+            //
+            // TF_STRING tensors are encoded with a table of 8-byte offsets followed by
+            // TF_StringEncode-encoded bytes.
+            //
+            var size = TF_StringEncodedSize((UIntPtr)buffer.Length);
+            IntPtr handle = TF_AllocateTensor(TFDataType.String, IntPtr.Zero, 0, (UIntPtr)((ulong)size + 8));
+
+            // Clear offset table
+            IntPtr dst = TF_TensorData(handle);
+            Marshal.WriteInt64(dst, 0);
+            using (var status = new TFStatus())
+            {
+                fixed (byte* src = &buffer[0])
+                {
+                    TF_StringEncode(src, (UIntPtr)buffer.Length, (sbyte*)(dst + 8), size, status.handle);
+                    var ok = status.StatusCode == TFCode.Ok;
+                    if (!ok)
+                        return null;
+                }
+            }
+            return new TFTensor(handle);
+        }
+
         // Convenience function to factor out the setup of a new tensor from an array
         internal static IntPtr SetupTensor(TFDataType dt, long[] dims, Array data, int count, int size)
         {
@@ -590,6 +630,8 @@ namespace Microsoft.ML.Transforms.TensorFlow
             switch (type)
             {
                 case TFDataType.Float:
+                    return typeof(float);
+                case TFDataType.Float_ref:
                     return typeof(float);
                 case TFDataType.Double:
                     return typeof(double);

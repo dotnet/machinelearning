@@ -14,7 +14,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
     public partial class ApiScenariosTests
     {
         /// <summary>
-        /// Meta-components: Meta-components (e.g., components that themselves instantiate components) should not be booby-trapped.
+        /// Meta-components: Meta-components (for example, components that themselves instantiate components) should not be booby-trapped.
         /// When specifying what trainer OVA should use, a user will be able to specify any binary classifier.
         /// If they specify a regression or multi-class classifier ideally that should be a compile error.
         /// </summary>
@@ -26,7 +26,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                 var data = new TextLoader(env, MakeIrisTextLoaderArgs())
                     .Read(new MultiFileSource(GetDataPath(TestDatasets.irisData.trainFilename)));
 
-                var sdcaTrainer = new LinearClassificationTrainer(env, new LinearClassificationTrainer.Arguments { MaxIterations = 100, Shuffle = true, NumThreads = 1 }, "Features", "Label");
+                var sdcaTrainer = new LinearClassificationTrainer(env, "Features", "Label", advancedSettings: (s) => { s.MaxIterations = 100; s.Shuffle = true; s.NumThreads = 1; });
                 var pipeline = new ConcatEstimator(env, "Features", "SepalLength", "SepalWidth", "PetalLength", "PetalWidth")
                     .Append(new TermEstimator(env, "Label"), TransformerScope.TrainTest)
                     .Append(new Ova(env, sdcaTrainer))

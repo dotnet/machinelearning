@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Samples.StaticPipe;
-
 namespace Microsoft.ML.Samples
 {
     internal static class Program
@@ -11,6 +9,7 @@ namespace Microsoft.ML.Samples
         static void Main(string[] args)
         {
             Trainers.SdcaRegression();
+            Transformers.ConcatEstimator();
         }
     }
 }

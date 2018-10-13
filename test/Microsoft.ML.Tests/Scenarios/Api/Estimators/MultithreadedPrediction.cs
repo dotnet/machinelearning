@@ -19,7 +19,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         /// reallocate internal memory buffers on every single prediction, the PredictionEngine
         /// (or its estimator/transformer based successor) is, like most stateful .NET objects,
         /// fundamentally not thread safe. This is deliberate and as designed. However, some mechanism
-        /// to enable multi-threaded scenarios (e.g., a web server servicing requests) should be possible
+        /// to enable multi-threaded scenarios (for example, a web server servicing requests) should be possible
         /// and performant in the new API.
         /// </summary>
         [Fact]
@@ -32,7 +32,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
 
                 // Pipeline.
                 var pipeline = new TextTransform(env, "SentimentText", "Features")
-                    .Append(new LinearClassificationTrainer(env, new LinearClassificationTrainer.Arguments { NumThreads = 1 }, "Features", "Label"));
+                    .Append(new LinearClassificationTrainer(env, "Features", "Label", advancedSettings: (s) => s.NumThreads = 1));
 
                 // Train.
                 var model = pipeline.Fit(data);

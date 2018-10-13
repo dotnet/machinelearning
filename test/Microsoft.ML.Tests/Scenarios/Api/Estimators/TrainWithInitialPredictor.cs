@@ -14,7 +14,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
     {
         /// <summary>
         /// Train with initial predictor: Similar to the simple train scenario, but also accept a pre-trained initial model.
-        /// The scenario might be one of the online linear learners that can take advantage of this, e.g., averaged perceptron.
+        /// The scenario might be one of the online linear learners that can take advantage of this, for example, averaged perceptron.
         /// </summary>
         [Fact]
         public void New_TrainWithInitialPredictor()
@@ -31,14 +31,11 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                 var trainData = pipeline.FitAndTransform(data);
 
                 // Train the first predictor.
-                var trainer = new LinearClassificationTrainer(env, new LinearClassificationTrainer.Arguments
-                {
-                    NumThreads = 1
-                }, "Features", "Label");
+                var trainer = new LinearClassificationTrainer(env, "Features", "Label", advancedSettings: (s) => s.NumThreads = 1);
                 var firstModel = trainer.Fit(trainData);
 
                 // Train the second predictor on the same data.
-                var secondTrainer = new AveragedPerceptronTrainer(env, new AveragedPerceptronTrainer.Arguments());
+                var secondTrainer = new AveragedPerceptronTrainer(env, "Label", "Features");
 
                 var trainRoles = new RoleMappedData(trainData, label: "Label", feature: "Features");
                 var finalModel = secondTrainer.Train(new TrainContext(trainRoles, initialPredictor: firstModel.Model));

@@ -9,7 +9,6 @@ using Microsoft.ML.TestFramework;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -31,12 +30,8 @@ namespace Microsoft.ML.Runtime.RunTests
 
         internal const string RawSuffix = ".raw";
         private const string LogSuffix = ".log";
-        private readonly string _baselineRootRelPath = Path.Combine(TestDir, "BaselineOutput", BuildString); // Relative to Root.
         private readonly string _logRootRelPath = Path.Combine("Logs", BuildString); // Relative to OutDir.
-        private readonly string ScopeRootRelPath = Path.Combine("Samples", "scope"); // Root of files required for Scope related tests. Used primarily for local runs
-        private readonly string TestExtDir = Path.Combine("Tests", "Ext"); // Directory with external binaries checked in. Eg libvw.dll
 
-        private const string SamplesRootRelPath = @"Samples"; // Root location of Samples. Used primarily for local runs
         private const string TestDir = @"test";
 
         private const string DataRootRegExp = @"[a-z]:\\[^/\t ]+\\test\\data" + @"\\[^/\t ]+";
@@ -70,10 +65,9 @@ namespace Microsoft.ML.Runtime.RunTests
         /// </summary>
         protected const string ProgressLogLine = "--- Progress log ---";
 
-        private static readonly char[] _seperators = { '\t', ' ', '=', '%', '(', ')' };
-
-        // Full paths to the directories.
-        private string _baseDir;
+        // Full paths to the baseline directories.
+        private string _baselineCommonDir;
+        private string _baselineBuildStringDir;
 
         // The writer to write to test log files.
         protected StreamWriter LogWriter;
@@ -86,12 +80,14 @@ namespace Microsoft.ML.Runtime.RunTests
             base.Initialize();
 
             // Create the output and log directories.
-            Contracts.Check(Directory.Exists(Path.Combine(RootDir, TestDir, "BaselineOutput")));
+            string baselineRootDir = Path.Combine(RootDir, TestDir, "BaselineOutput");
+            Contracts.Check(Directory.Exists(baselineRootDir));
+
+            _baselineCommonDir = Path.Combine(baselineRootDir, "Common");
+            _baselineBuildStringDir = Path.Combine(baselineRootDir, BuildString);
+
             string logDir = Path.Combine(OutDir, _logRootRelPath);
             Directory.CreateDirectory(logDir);
-
-            // Find the sample data and baselines.
-            _baseDir = Path.Combine(RootDir, _baselineRootRelPath);
 
             string logPath = Path.Combine(logDir, FullTestName + LogSuffix);
             LogWriter = OpenWriter(logPath);
@@ -124,19 +120,6 @@ namespace Microsoft.ML.Runtime.RunTests
         protected bool IsActive { get { return LogWriter != null; } }
 
         protected bool IsPassing { get { return _passed; } }
-
-        // Return the location of the local Samples folder
-        // Used primarily for local Scope runs
-        protected string SamplesDir { get { return Path.Combine(RootDir, SamplesRootRelPath); } }
-
-        // Return the location of the local scope folder under Samples. Used primarily 
-        // by Scope scripts and for Scope tests
-        protected string ScopeSamplesDir { get { return Path.Combine(RootDir, ScopeRootRelPath); } }
-
-        // Return the local of the directory where external binaries for test purposes are located
-        protected string ExternalTestBinariesDir { get { return Path.Combine(RootDir, TestExtDir); } }
-
-        protected string TestDirectory { get { return Path.Combine(RootDir, TestDir); } }
 
         // Called by a test to signal normal completion. If this is not called before the
         // TestScope is disposed, we assume the test was aborted.
@@ -198,31 +181,28 @@ namespace Microsoft.ML.Runtime.RunTests
             Output.WriteLine(fmt, args);
         }
 
-        protected string GetBaselineDir(string subDir)
-        {
-            Contracts.Assert(IsActive);
-            if (string.IsNullOrWhiteSpace(subDir))
-                return null;
-            return Path.GetFullPath(Path.Combine(_baseDir, subDir));
-            //return Path.Combine(_baseDir, subDir);
-        }
-
-        protected string GetBaselinePath(string subDir, string name)
-        {
-            Contracts.Assert(IsActive);
-            if (string.IsNullOrWhiteSpace(subDir))
-                return GetBaselinePath(name);
-            return Path.GetFullPath(Path.Combine(_baseDir, subDir, name));
-            //return Path.Combine(_baseDir, subDir, name);
-        }
-
         protected string GetBaselinePath(string name)
         {
             Contracts.Assert(IsActive);
             if (string.IsNullOrWhiteSpace(name))
                 return null;
-            //return Path.Combine(_baseDir, name);
-            return Path.GetFullPath(Path.Combine(_baseDir, name));
+
+            return GetBaselinePath(string.Empty, name);
+        }
+
+        protected string GetBaselinePath(string subDir, string name)
+        {
+            Contracts.Assert(IsActive);
+            subDir = subDir ?? string.Empty;
+
+            // first check the Common folder, and use it if it exists
+            string commonBaselinePath = Path.GetFullPath(Path.Combine(_baselineCommonDir, subDir, name));
+            if (File.Exists(commonBaselinePath))
+            {
+                return commonBaselinePath;
+            }
+
+            return Path.GetFullPath(Path.Combine(_baselineBuildStringDir, subDir, name));
         }
 
         // Inverts the _passed flag. Do not ever use this except in rare conditions. Eg. Recording failure of a test as a success.
@@ -277,13 +257,13 @@ namespace Microsoft.ML.Runtime.RunTests
                 {
                     line = _matchDataRoot.Replace(line, "%Data%");
                     line = _matchDataUnixRoot.Replace(line, "%Data%");
+                    line = _matchOutputRoot.Replace(line, "%Output%");
+                    line = _matchOutputUnixRoot.Replace(line, "%Output%");
                     line = _matchSamplesRoot.Replace(line, "%Samples%\\");
                     line = _matchSamplesUnixRoot.Replace(line, "%Samples%\\");
                     line = _matchSourceRoot.Replace(line, "%Source%\\");
                     line = _matchSourceUnixRoot.Replace(line, "%Source%\\");
                     line = _matchTestsRoot.Replace(line, "%Tests%\\");
-                    line = _matchOutputRoot.Replace(line, "%Output%");
-                    line = _matchOutputUnixRoot.Replace(line, "%Output%");
                     line = _matchBin.Replace(line, "%Bin%\\");
                     line = _matchUnixBin.Replace(line, "%Bin%\\");
                     line = _matchBin64.Replace(line, "%Bin%\\");
@@ -343,9 +323,9 @@ namespace Microsoft.ML.Runtime.RunTests
         /// <summary>
         /// Compare the contents of an output file with its baseline.
         /// </summary>
-        protected bool CheckEquality(string dir, string name, string nameBase = null)
+        protected bool CheckEquality(string dir, string name, string nameBase = null, int digitsOfPrecision = DigitsOfPrecision)
         {
-            return CheckEqualityCore(dir, name, nameBase ?? name, false);
+            return CheckEqualityCore(dir, name, nameBase ?? name, false, digitsOfPrecision);
         }
 
         /// <summary>
@@ -393,36 +373,6 @@ namespace Microsoft.ML.Runtime.RunTests
             return res;
         }
 
-        /// <summary>
-        /// Check whether two files are same ignoring volatile differences (path, dates, times, etc),
-        /// skipping the given number of lines on the output, and finding the corresponding line
-        /// in the baseline.
-        /// </summary>
-        protected bool CheckEqualityNormalizedFromPaths(string desc, string basePath, string outPath, int skip = 0)
-        {
-            Contracts.Assert(IsActive);
-            Contracts.AssertNonEmpty(basePath);
-            Contracts.AssertNonEmpty(outPath);
-            Contracts.Assert(skip >= 0);
-
-            if (!CheckOutFile(outPath))
-                return false;
-
-            // Normalize the output file.
-            Normalize(outPath);
-
-            if (!CheckBaseFile(basePath))
-                return false;
-
-            bool res = CheckEqualityFromPathsCore(desc, basePath, outPath, skip);
-
-            // No need to keep the raw (unnormalized) output file.
-            if (res)
-                File.Delete(outPath + RawSuffix);
-
-            return res;
-        }
-
         private bool FirstIsSuffix<T>(IEnumerator<T> suffix, IEnumerator<T> seq, Func<T, T, bool> equalFunc = null)
         {
             Contracts.AssertValue(suffix);
@@ -464,11 +414,6 @@ namespace Microsoft.ML.Runtime.RunTests
             return true;
         }
 
-        private IEnumerator<string> LineEnumerator(TextReader reader)
-        {
-            return LineEnumerator(reader, x => false);
-        }
-
         private IEnumerator<string> LineEnumerator(TextReader reader, Func<string, bool> stop)
         {
             string result;
@@ -494,41 +439,6 @@ namespace Microsoft.ML.Runtime.RunTests
                 Func<string, bool> stop = x => x == tailSignature;
                 return FirstIsSuffix(LineEnumerator(result, stop), LineEnumerator(baseline, stop), (a, b) => a == b);
             }
-        }
-
-        /// <summary>
-        /// Check whether two files are same ignoring volatile differences (path, dates, times, etc),
-        /// skipping the given number of lines on the output, and finding the corresponding line
-        /// in the baseline.
-        /// </summary>
-        protected bool CheckEqualityNormalized(string dir, string name, string suffix, int skip, int digitsOfPrecision = DigitsOfPrecision)
-        {
-            Contracts.Assert(IsActive);
-            Contracts.AssertValue(dir); // Can be empty.
-            Contracts.AssertNonEmpty(name);
-            Contracts.AssertNonEmpty(suffix);
-            Contracts.Assert(skip >= 0);
-
-            string relPath = Path.Combine(dir, name + suffix);
-            string basePath = GetBaselinePath(dir, name);
-            string outPath = GetOutputPath(dir, name + suffix);
-
-            if (!CheckOutFile(outPath))
-                return false;
-
-            // Normalize the output file.
-            Normalize(outPath);
-
-            if (!CheckBaseFile(basePath))
-                return false;
-
-            bool res = CheckEqualityFromPathsCore(relPath, basePath, outPath, skip, digitsOfPrecision);
-
-            // No need to keep the raw (unnormalized) output file.
-            if (res)
-                File.Delete(outPath + RawSuffix);
-
-            return res;
         }
 
         protected bool CheckEqualityFromPathsCore(string relPath, string basePath, string outPath, int skip = 0, int digitsOfPrecision = DigitsOfPrecision)
@@ -594,7 +504,7 @@ namespace Microsoft.ML.Runtime.RunTests
 
         private static void GetNumbersFromFile(ref string firstString, ref string secondString, int digitsOfPrecision)
         {
-            Regex _matchNumer = new Regex(@"\b[0-9]+\.?[0-9]*\b", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+            Regex _matchNumer = new Regex(@"\b[0-9]+\.?[0-9]*(E-[0-9]*)?\b", RegexOptions.IgnoreCase | RegexOptions.Compiled);
             MatchCollection firstCollection = _matchNumer.Matches(firstString);
             MatchCollection secondCollection = _matchNumer.Matches(secondString);
 
@@ -610,10 +520,27 @@ namespace Microsoft.ML.Runtime.RunTests
                 double f1 = double.Parse(firstCollection[i].ToString());
                 double f2 = double.Parse(secondCollection[i].ToString());
 
+                // this follows the IEEE recommendations for how to compare floating point numbers
                 double allowedVariance = Math.Pow(10, -digitsOfPrecision);
                 double delta = Round(f1, digitsOfPrecision) - Round(f2, digitsOfPrecision);
+                // limitting to the digits we care about. 
+                delta = Math.Round(delta, digitsOfPrecision);
 
-                Assert.InRange(delta, -allowedVariance, allowedVariance);
+                bool inRange = delta > -allowedVariance && delta < allowedVariance;
+
+                // for some cases, rounding up is not beneficial
+                // so checking on whether the difference is significant prior to rounding, and failing only then. 
+                // example, for 5 digits of precision. 
+                // F1 = 1.82844949 Rounds to 1.8284
+                // F2 = 1.8284502  Rounds to 1.8285
+                // would fail the inRange == true check, but would suceed the following, and we doconsider those two numbers 
+                // (1.82844949 - 1.8284502) = -0.00000071
+
+                if (!inRange)
+                {
+                    delta = Math.Round(f1 - f2, digitsOfPrecision);
+                    Assert.InRange(delta, -allowedVariance, allowedVariance);
+                }
             }
         }
 
@@ -838,7 +765,7 @@ namespace Microsoft.ML.Runtime.RunTests
         {
             Contracts.CheckNonWhiteSpace(path, nameof(path));
 #if CORECLR
-            return new StreamReader(File.Open(path, FileMode.Open, FileAccess.Read));
+            return new StreamReader(File.Open(path, FileMode.Open, FileAccess.Read, FileShare.Read));
 #else
             return new StreamReader(path);
 #endif
@@ -856,16 +783,6 @@ namespace Microsoft.ML.Runtime.RunTests
                 int result = Maml.MainCore(env, args, false);
                 return result;
             }
-        }
-
-        protected static string GetEnvironmentVariable(string name)
-        {
-            return Environment.GetEnvironmentVariable(name, EnvironmentVariableTarget.Process);
-        }
-
-        protected static void SetEnvironmentVariable(string name, string value)
-        {
-            Environment.SetEnvironmentVariable(name, value, EnvironmentVariableTarget.Process);
         }
     }
 

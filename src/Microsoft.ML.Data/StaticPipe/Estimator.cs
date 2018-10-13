@@ -73,9 +73,7 @@ namespace Microsoft.ML.StaticPipe
 
                 var est = AsDynamic.Append(estTail);
                 var newOut = StaticSchemaShape.Make<TNewOutShape>(method.ReturnParameter);
-                var toReturn = new Estimator<TInShape, TNewOutShape, ITransformer>(Env, est, _inShape, newOut);
-                ch.Done();
-                return toReturn;
+                return new Estimator<TInShape, TNewOutShape, ITransformer>(Env, est, _inShape, newOut);
             }
         }
     }

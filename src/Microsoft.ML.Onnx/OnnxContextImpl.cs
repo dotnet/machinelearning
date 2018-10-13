@@ -32,9 +32,10 @@ namespace Microsoft.ML.Runtime.Model.Onnx
         private readonly string _domain;
         private readonly string _producerVersion;
         private readonly long _modelVersion;
+        private readonly OnnxVersion _onnxVersion;
 
         public OnnxContextImpl(IHostEnvironment env, string name, string producerName,
-            string producerVersion, long modelVersion, string domain)
+            string producerVersion, long modelVersion, string domain, OnnxVersion onnxVersion)
         {
             Contracts.CheckValue(env, nameof(env));
             _host = env.Register(nameof(OnnxContext));
@@ -54,9 +55,12 @@ namespace Microsoft.ML.Runtime.Model.Onnx
             _producerVersion = producerVersion;
             _modelVersion = modelVersion;
             _domain = domain;
+            _onnxVersion = onnxVersion;
         }
 
         public override bool ContainsColumn(string colName) => _columnNameMap.ContainsKey(colName);
+
+        public override bool IsVariableDefined(string variableName) => _variableNames.Contains(variableName);
 
         /// <summary>
         /// Stops tracking a column. If removeVariable is true then it also removes the
@@ -198,7 +202,7 @@ namespace Microsoft.ML.Runtime.Model.Onnx
         /// </summary>
         /// <param name="colName">IDataView column name.</param>
         /// <returns>Unique variable name.</returns>
-        private string AddVariable(string colName)
+        public string AddVariable(string colName)
         {
             _host.CheckNonEmpty(colName, nameof(colName));
             _columnNameMap[colName] = GetUniqueName(colName, _variableNames.Contains);
@@ -224,16 +228,11 @@ namespace Microsoft.ML.Runtime.Model.Onnx
         /// <summary>
         /// Adds an output variable to the list.
         /// </summary>
-        public string AddOutputVariable(ColumnType type, string colName, List<long> dim = null)
+        public void AddOutputVariable(ColumnType type, string variableName, List<long> dim = null)
         {
             _host.CheckValue(type, nameof(type));
-
-            if (!ContainsColumn(colName))
-                AddVariable(colName);
-
-            colName = GetVariableName(colName);
-            _outputs.Add(OnnxUtils.GetModelArgs(type, colName, dim));
-            return colName;
+            _host.CheckParam(IsVariableDefined(variableName), nameof(variableName));
+            _outputs.Add(OnnxUtils.GetModelArgs(type, variableName, dim));
         }
 
         /// <summary>
@@ -249,8 +248,28 @@ namespace Microsoft.ML.Runtime.Model.Onnx
         }
 
         /// <summary>
-        /// Adds constant tensors into the graph.
+        /// Retrieve the shape of an ONNX variable. Returns null if no shape for the specified variable can be found.
         /// </summary>
+        /// <param name="variableName">The ONNX name of the returned shape</param>
+        /// <returns>The shape of the retrieved variable</returns>
+        public override List<long> RetrieveShapeOrNull(string variableName)
+        {
+            foreach (var arg in _inputs)
+                if (arg.Name == variableName)
+                    return arg.Dims;
+
+            foreach (var arg in _intermediateValues)
+                if (arg.Name == variableName)
+                    return arg.Dims;
+
+            foreach (var arg in _outputs)
+                if (arg.Name == variableName)
+                    return arg.Dims;
+
+            return null;
+        }
+
+        /// Adds constant tensor into the graph.
         public override string AddInitializer(float value, string name = null)
         {
             name = AddVariable(name ?? "float");
@@ -310,5 +329,11 @@ namespace Microsoft.ML.Runtime.Model.Onnx
         /// </summary>
         public ModelProto MakeModel()
             => OnnxUtils.MakeModel(_nodes, _producerName, _name, _domain, _producerVersion, _modelVersion, _inputs, _outputs, _intermediateValues, _initializers);
+
+        /// <summary>
+        /// Return either "Experimental" or "Stable". The string "Experimental" indicates that some experimental features which are
+        /// not officially supported in the official ONNX standard. Otherwise, only official ONNX features should be used.
+        /// </summary>
+        public override OnnxVersion GetOnnxVersion() => _onnxVersion;
     }
 }

@@ -21,7 +21,7 @@ namespace lda
         void Clear();
         //in data feedin scenario
         void Allocate(const int32_t num_document, const int64_t corpus_size);        
-        //port the data from external process, e.g. c#
+        //port the data from external process, for example, c#
         int AddDense(int32_t* term_freq, int32_t term_num);
         int Add(int32_t* term_id, int32_t* term_freq, int32_t term_num);
         std::shared_ptr<LDADocument> GetOneDoc(int32_t index) const;

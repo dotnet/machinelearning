@@ -15,6 +15,7 @@ using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Learners;
 using Microsoft.ML.Runtime.Numeric;
 using Microsoft.ML.Runtime.Training;
+using Microsoft.ML.StaticPipe;
 using System;
 using System.Linq;
 using System.Threading;
@@ -69,7 +70,6 @@ namespace Microsoft.ML.Runtime.Learners
         protected override TModel TrainModelCore(TrainContext context)
         {
             Host.CheckValue(context, nameof(context));
-            TModel pred;
             using (var ch = Host.Start("Training"))
             {
                 var preparedData = PrepareDataFromTrainingExamples(ch, context.TrainingSet, out int weightSetCount);
@@ -78,10 +78,8 @@ namespace Microsoft.ML.Runtime.Learners
                 linInitPred = linInitPred ?? initPred as LinearPredictor;
                 Host.CheckParam(context.InitialPredictor == null || linInitPred != null, nameof(context),
                     "Initial predictor was not a linear predictor.");
-                pred = TrainCore(ch, preparedData, linInitPred, weightSetCount);
-                ch.Done();
+                return TrainCore(ch, preparedData, linInitPred, weightSetCount);
             }
-            return pred;
         }
 
         protected abstract TModel TrainCore(IChannel ch, RoleMappedData data, LinearPredictor predictor, int weightSetCount);
@@ -151,9 +149,10 @@ namespace Microsoft.ML.Runtime.Learners
         }
     }
 
-    public abstract class SdcaTrainerBase<TTransformer, TModel> : StochasticTrainerBase<TTransformer, TModel>
+    public abstract class SdcaTrainerBase<TArgs, TTransformer, TModel> : StochasticTrainerBase<TTransformer, TModel>
         where TTransformer : ISingleFeaturePredictionTransformer<TModel>
         where TModel : IPredictor
+        where TArgs : SdcaTrainerBase<TArgs, TTransformer, TModel>.ArgumentsBase, new()
     {
         // REVIEW: Making it even faster and more accurate:
         // 1. Train with not-too-many threads. nt = 2 or 4 seems to be good enough. Didn't seem additional benefit over more threads.
@@ -216,7 +215,6 @@ namespace Microsoft.ML.Runtime.Learners
                             $"is only valid with a positive constant, and values below {L2LowerBound} cause very slow convergence. " +
                             $"The original {nameof(L2Const)} = {L2Const}, was replaced with {nameof(L2Const)} = {L2LowerBound}.");
                         L2Const = L2LowerBound;
-                        ch.Done();
                     }
                 }
             }
@@ -240,16 +238,40 @@ namespace Microsoft.ML.Runtime.Learners
         // substantial additional benefits in terms of accuracy.
         private const long MaxDualTableSize = 1L << 50;
         private const float L2LowerBound = 1e-09f;
-        private readonly ArgumentsBase _args;
+        protected readonly TArgs Args;
         protected ISupportSdcaLoss Loss;
 
-        protected override bool ShuffleData => _args.Shuffle;
+        protected override bool ShuffleData => Args.Shuffle;
 
-        protected SdcaTrainerBase(IHost host, ArgumentsBase args, SchemaShape.Column feature, SchemaShape.Column label, SchemaShape.Column weight = null)
-            : base(host, feature, label, weight)
+        private const string RegisterName = nameof(SdcaTrainerBase<TArgs, TTransformer, TModel>);
+
+        private static TArgs ArgsInit(string featureColumn, SchemaShape.Column labelColumn, Action<TArgs> advancedSettings = null)
         {
-            _args = args;
-            _args.Check(host);
+            var args = new TArgs();
+
+            // Apply the advanced args, if the user supplied any.
+            advancedSettings?.Invoke(args);
+            args.FeatureColumn = featureColumn;
+            args.LabelColumn = labelColumn.Name;
+            return args;
+        }
+
+        internal SdcaTrainerBase(IHostEnvironment env, string featureColumn, SchemaShape.Column labelColumn,
+           SchemaShape.Column weight = null, Action<TArgs> advancedSettings = null, float? l2Const = null,
+            float? l1Threshold = null, int? maxIterations = null)
+          : this(env, ArgsInit(featureColumn, labelColumn, advancedSettings), labelColumn, weight, l2Const, l1Threshold, maxIterations)
+        {
+        }
+
+        internal SdcaTrainerBase(IHostEnvironment env, TArgs args, SchemaShape.Column label, SchemaShape.Column weight = null,
+            float? l2Const = null, float? l1Threshold = null, int? maxIterations = null)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(RegisterName), TrainerUtils.MakeR4VecFeature(args.FeatureColumn), label, weight)
+        {
+            Args = args;
+            Args.L2Const = l2Const ?? args.L2Const;
+            Args.L1Threshold = l1Threshold ?? args.L1Threshold;
+            Args.MaxIterations = maxIterations ?? args.MaxIterations;
+            Args.Check(env);
         }
 
         protected float WDot(ref VBuffer<float> features, ref VBuffer<float> weights, float bias)
@@ -266,9 +288,9 @@ namespace Microsoft.ML.Runtime.Learners
             long maxTrainingExamples = MaxDualTableSize / weightSetCount;
             var cursorFactory = new FloatLabelCursor.Factory(data, CursOpt.Label | CursOpt.Features | CursOpt.Weight | CursOpt.Id);
             int numThreads;
-            if (_args.NumThreads.HasValue)
+            if (Args.NumThreads.HasValue)
             {
-                numThreads = _args.NumThreads.Value;
+                numThreads = Args.NumThreads.Value;
                 Host.CheckUserArg(numThreads > 0, nameof(ArgumentsBase.NumThreads), "The number of threads must be either null or a positive integer.");
                 if (0 < Host.ConcurrencyFactor && Host.ConcurrencyFactor < numThreads)
                 {
@@ -287,8 +309,8 @@ namespace Microsoft.ML.Runtime.Learners
                 ch.Info("Using {0} threads to train.", numThreads);
 
             int checkFrequency = 0;
-            if (_args.CheckFrequency.HasValue)
-                checkFrequency = _args.CheckFrequency.Value;
+            if (Args.CheckFrequency.HasValue)
+                checkFrequency = Args.CheckFrequency.Value;
             else
             {
                 checkFrequency = numThreads;
@@ -388,19 +410,19 @@ namespace Microsoft.ML.Runtime.Learners
 
             ch.Check(count > 0, "Training set has 0 instances, aborting training.");
             // Tune the default hyperparameters based on dataset size.
-            if (_args.MaxIterations == null)
-                _args.MaxIterations = TuneDefaultMaxIterations(ch, count, numThreads);
+            if (Args.MaxIterations == null)
+                Args.MaxIterations = TuneDefaultMaxIterations(ch, count, numThreads);
 
-            Contracts.Assert(_args.MaxIterations.HasValue);
-            if (_args.L2Const == null)
-                _args.L2Const = TuneDefaultL2(ch, _args.MaxIterations.Value, count, numThreads);
+            Contracts.Assert(Args.MaxIterations.HasValue);
+            if (Args.L2Const == null)
+                Args.L2Const = TuneDefaultL2(ch, Args.MaxIterations.Value, count, numThreads);
 
-            Contracts.Assert(_args.L2Const.HasValue);
-            if (_args.L1Threshold == null)
-                _args.L1Threshold = TuneDefaultL1(ch, numFeatures);
+            Contracts.Assert(Args.L2Const.HasValue);
+            if (Args.L1Threshold == null)
+                Args.L1Threshold = TuneDefaultL1(ch, numFeatures);
 
-            ch.Assert(_args.L1Threshold.HasValue);
-            var l1Threshold = _args.L1Threshold.Value;
+            ch.Assert(Args.L1Threshold.HasValue);
+            var l1Threshold = Args.L1Threshold.Value;
             var l1ThresholdZero = l1Threshold == 0;
             var weights = new VBuffer<float>[weightSetCount];
             var bestWeights = new VBuffer<float>[weightSetCount];
@@ -428,9 +450,9 @@ namespace Microsoft.ML.Runtime.Learners
             }
 
             int bestIter = 0;
-            Double bestPrimalLoss = Double.PositiveInfinity;
-            ch.Assert(_args.L2Const.HasValue);
-            var l2Const = _args.L2Const.Value;
+            var bestPrimalLoss = double.PositiveInfinity;
+            ch.Assert(Args.L2Const.HasValue);
+            var l2Const = Args.L2Const.Value;
             float lambdaNInv = 1 / (l2Const * count);
 
             DualsTableBase duals = null;
@@ -493,8 +515,8 @@ namespace Microsoft.ML.Runtime.Learners
             ch.AssertValue(metricNames);
             ch.AssertValue(metrics);
             ch.Assert(metricNames.Length == metrics.Length);
-            ch.Assert(_args.MaxIterations.HasValue);
-            var maxIterations = _args.MaxIterations.Value;
+            ch.Assert(Args.MaxIterations.HasValue);
+            var maxIterations = Args.MaxIterations.Value;
 
             var rands = new IRandom[maxIterations];
             for (int i = 0; i < maxIterations; i++)
@@ -518,7 +540,7 @@ namespace Microsoft.ML.Runtime.Learners
                         int idx = (int)longIdx;
                         var features = cursor.Features;
                         var normSquared = VectorUtils.NormSquared(features);
-                        if (_args.BiasLearningRate == 0)
+                        if (Args.BiasLearningRate == 0)
                             normSquared += 1;
 
                         if (featureNormSquared != null)
@@ -729,17 +751,17 @@ namespace Microsoft.ML.Runtime.Learners
             VBuffer<float>[] weights, float[] biasUnreg, VBuffer<float>[] l1IntermediateWeights, float[] l1IntermediateBias, float[] featureNormSquared)
         {
             Contracts.AssertValueOrNull(progress);
-            Contracts.Assert(_args.L1Threshold.HasValue);
+            Contracts.Assert(Args.L1Threshold.HasValue);
             Contracts.AssertValueOrNull(idToIdx);
             Contracts.AssertValueOrNull(invariants);
             Contracts.AssertValueOrNull(featureNormSquared);
             int maxUpdateTrials = 2 * numThreads;
-            var l1Threshold = _args.L1Threshold.Value;
+            var l1Threshold = Args.L1Threshold.Value;
             bool l1ThresholdZero = l1Threshold == 0;
-            var lr = _args.BiasLearningRate * _args.L2Const.Value;
+            var lr = Args.BiasLearningRate * Args.L2Const.Value;
             var pch = progress != null ? progress.StartProgressChannel("Dual update") : null;
             using (pch)
-            using (var cursor = _args.Shuffle ? cursorFactory.Create(rand) : cursorFactory.Create())
+            using (var cursor = Args.Shuffle ? cursorFactory.Create(rand) : cursorFactory.Create())
             {
                 long rowCount = 0;
                 if (pch != null)
@@ -758,7 +780,7 @@ namespace Microsoft.ML.Runtime.Learners
                     {
                         Contracts.Assert(featureNormSquared == null);
                         var featuresNormSquared = VectorUtils.NormSquared(features);
-                        if (_args.BiasLearningRate == 0)
+                        if (Args.BiasLearningRate == 0)
                             featuresNormSquared += 1;
 
                         invariant = Loss.ComputeDualUpdateInvariant(featuresNormSquared * lambdaNInv * GetInstanceWeight(cursor));
@@ -799,7 +821,7 @@ namespace Microsoft.ML.Runtime.Learners
                                 //Thresholding: if |v[j]| < threshold, turn off weights[j]
                                 //If not, shrink: w[j] = v[i] - sign(v[j]) * threshold
                                 l1IntermediateBias[0] += primalUpdate;
-                                if (_args.BiasLearningRate == 0)
+                                if (Args.BiasLearningRate == 0)
                                 {
                                     biasReg[0] = Math.Abs(l1IntermediateBias[0]) - l1Threshold > 0.0
                                     ? l1IntermediateBias[0] - Math.Sign(l1IntermediateBias[0]) * l1Threshold
@@ -917,10 +939,10 @@ namespace Microsoft.ML.Runtime.Learners
                 Host.Assert(idToIdx == null || row == duals.Length);
             }
 
-            Contracts.Assert(_args.L2Const.HasValue);
-            Contracts.Assert(_args.L1Threshold.HasValue);
-            Double l2Const = _args.L2Const.Value;
-            Double l1Threshold = _args.L1Threshold.Value;
+            Contracts.Assert(Args.L2Const.HasValue);
+            Contracts.Assert(Args.L1Threshold.HasValue);
+            Double l2Const = Args.L2Const.Value;
+            Double l1Threshold = Args.L1Threshold.Value;
             Double l1Regularizer = l1Threshold * l2Const * (VectorUtils.L1Norm(ref weights[0]) + Math.Abs(biasReg[0]));
             var l2Regularizer = l2Const * (VectorUtils.NormSquared(weights[0]) + biasReg[0] * biasReg[0]) * 0.5;
             var newLoss = lossSum.Sum / count + l2Regularizer + l1Regularizer;
@@ -932,9 +954,9 @@ namespace Microsoft.ML.Runtime.Learners
             var dualityGap = metrics[(int)MetricKind.DualityGap] = newLoss - newDualLoss;
             metrics[(int)MetricKind.BiasUnreg] = biasUnreg[0];
             metrics[(int)MetricKind.BiasReg] = biasReg[0];
-            metrics[(int)MetricKind.L1Sparsity] = _args.L1Threshold == 0 ? 1 : (Double)weights[0].Values.Count(w => w != 0) / weights.Length;
+            metrics[(int)MetricKind.L1Sparsity] = Args.L1Threshold == 0 ? 1 : (Double)weights[0].Values.Count(w => w != 0) / weights.Length;
 
-            bool converged = dualityGap / newLoss < _args.ConvergenceTolerance;
+            bool converged = dualityGap / newLoss < Args.ConvergenceTolerance;
 
             if (metrics[(int)MetricKind.Loss] < bestPrimalLoss)
             {
@@ -1361,7 +1383,7 @@ namespace Microsoft.ML.Runtime.Learners
         }
     }
 
-    public sealed class LinearClassificationTrainer : SdcaTrainerBase<BinaryPredictionTransformer<TScalarPredictor>, TScalarPredictor>
+    public sealed class LinearClassificationTrainer : SdcaTrainerBase<LinearClassificationTrainer.Arguments, BinaryPredictionTransformer<TScalarPredictor>, TScalarPredictor>
     {
         public const string LoadNameValue = "SDCA";
         internal const string UserNameValue = "Fast Linear (SA-SDCA)";
@@ -1388,10 +1410,9 @@ namespace Microsoft.ML.Runtime.Learners
         }
 
         private readonly ISupportSdcaClassificationLoss _loss;
-        private readonly Arguments _args;
         private readonly float _positiveInstanceWeight;
 
-        protected override bool ShuffleData => _args.Shuffle;
+        protected override bool ShuffleData => Args.Shuffle;
 
         private readonly SchemaShape.Column[] _outputColumns;
 
@@ -1401,15 +1422,64 @@ namespace Microsoft.ML.Runtime.Learners
 
         public override TrainerInfo Info { get; }
 
-        public LinearClassificationTrainer(IHostEnvironment env, Arguments args,
+        /// <summary>
+        /// Initializes a new instance of <see cref="LinearClassificationTrainer"/>
+        /// </summary>
+        /// <param name="env">The environment to use.</param>
+        /// <param name="featureColumn">The features, or independent variables.</param>
+        /// <param name="labelColumn">The label, or dependent variable.</param>
+        /// <param name="loss">The custom loss.</param>
+        /// <param name="weightColumn">The optional example weights.</param>
+        /// <param name="l2Const">The L2 regularization hyperparameter.</param>
+        /// <param name="l1Threshold">The L1 regularization hyperparameter. Higher values will tend to lead to more sparse model.</param>
+        /// <param name="maxIterations">The maximum number of passes to perform over the data.</param>
+        /// <param name="advancedSettings">A delegate to set more settings.</param>
+        public LinearClassificationTrainer(IHostEnvironment env,
+            string featureColumn,
+            string labelColumn,
+            string weightColumn = null,
+            ISupportSdcaClassificationLoss loss = null,
+            float? l2Const = null,
+            float? l1Threshold = null,
+            int? maxIterations = null,
+            Action<Arguments> advancedSettings = null)
+             : base(env, featureColumn, TrainerUtils.MakeBoolScalarLabel(labelColumn), TrainerUtils.MakeR4ScalarWeightColumn(weightColumn), advancedSettings,
+                  l2Const, l1Threshold, maxIterations)
+        {
+            Host.CheckNonEmpty(featureColumn, nameof(featureColumn));
+            Host.CheckNonEmpty(labelColumn, nameof(labelColumn));
+            _loss = loss?? Args.LossFunction.CreateComponent(env);
+            Loss = _loss;
+            Info = new TrainerInfo(calibration: !(_loss is LogLoss));
+            _positiveInstanceWeight = Args.PositiveInstanceWeight;
+
+            if (Info.NeedCalibration)
+            {
+                _outputColumns = new[]
+                {
+                    new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata())),
+                    new SchemaShape.Column(DefaultColumnNames.PredictedLabel, SchemaShape.Column.VectorKind.Scalar, BoolType.Instance, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata()))
+                };
+            }
+            else
+            {
+                _outputColumns = new[]
+                {
+                    new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata())),
+                    new SchemaShape.Column(DefaultColumnNames.Probability, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata(true))),
+                    new SchemaShape.Column(DefaultColumnNames.PredictedLabel, SchemaShape.Column.VectorKind.Scalar, BoolType.Instance, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata()))
+                };
+            }
+        }
+
+        internal LinearClassificationTrainer(IHostEnvironment env, Arguments args,
             string featureColumn, string labelColumn, string weightColumn = null)
-            : base(Contracts.CheckRef(env, nameof(env)).Register(LoadNameValue), args, MakeFeatureColumn(featureColumn), MakeLabelColumn(labelColumn), MakeWeightColumn(weightColumn))
+            : base(env, args, TrainerUtils.MakeBoolScalarLabel(labelColumn), TrainerUtils.MakeR4ScalarWeightColumn(weightColumn))
         {
             _loss = args.LossFunction.CreateComponent(env);
             Loss = _loss;
             Info = new TrainerInfo(calibration: !(_loss is LogLoss));
-            _args = args;
-            _positiveInstanceWeight = _args.PositiveInstanceWeight;
+            _positiveInstanceWeight = Args.PositiveInstanceWeight;
 
             if (Info.NeedCalibration)
             {
@@ -1565,7 +1635,6 @@ namespace Microsoft.ML.Runtime.Learners
                     {
                         ch.Warning("{0} {1} set too high; reducing to {1}", nameof(InitLearningRate),
                             InitLearningRate, InitLearningRate = (float)0.5 / L2Weight);
-                        ch.Done();
                     }
                 }
 
@@ -1671,7 +1740,6 @@ namespace Microsoft.ML.Runtime.Learners
                 TrainerUtils.CheckArgsAndAdvancedSettingMismatch(ch, initLearningRate, snapshot.InitLearningRate, currentArgs.InitLearningRate, nameof(initLearningRate));
                 TrainerUtils.CheckArgsAndAdvancedSettingMismatch(ch, l2Weight, snapshot.L2Weight, currentArgs.L2Weight, nameof(l2Weight));
                 TrainerUtils.CheckArgsAndAdvancedSettingMismatch(ch, loss, snapshot.LossFunction, currentArgs.LossFunction, nameof(loss));
-                ch.Done();
             }
         }
 
