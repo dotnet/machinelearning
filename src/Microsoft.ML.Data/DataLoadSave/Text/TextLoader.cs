@@ -46,6 +46,11 @@ namespace Microsoft.ML.Runtime.Data
             public Column(string name, DataKind? type, int index)
                : this(name, type, new[] { new Range(index) }) { }
 
+            public Column(string name, DataKind? type, int minIndex, int maxIndex)
+                : this(name, type, new[] { new Range(minIndex, maxIndex) })
+            {
+            }
+
             public Column(string name, DataKind? type, Range[] source, KeyRange keyRange = null)
             {
                 Contracts.CheckValue(name, nameof(name));
@@ -998,6 +1003,18 @@ namespace Microsoft.ML.Runtime.Data
         private readonly IHost _host;
         private const string RegistrationName = "TextLoader";
 
+        public TextLoader(IHostEnvironment env, Column[] columns, Action<Arguments> advancedSettings, IMultiStreamSource dataSample = null)
+            : this(env, MakeArgs(columns, advancedSettings), dataSample)
+        {
+        }
+
+        private static Arguments MakeArgs(Column[] columns, Action<Arguments> advancedSettings)
+        {
+            var result = new Arguments { Column = columns };
+            advancedSettings?.Invoke(result);
+            return result;
+        }
+
         public TextLoader(IHostEnvironment env, Arguments args, IMultiStreamSource dataSample = null)
         {
             Contracts.CheckValue(env, nameof(env));
@@ -1314,6 +1331,8 @@ namespace Microsoft.ML.Runtime.Data
         public ISchema GetOutputSchema() => _bindings;
 
         public IDataView Read(IMultiStreamSource source) => new BoundLoader(this, source);
+
+        public IDataView Read(string path) => Read(new MultiFileSource(path));
 
         private sealed class BoundLoader : IDataLoader
         {

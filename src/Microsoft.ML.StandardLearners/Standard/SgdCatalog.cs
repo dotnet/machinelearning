@@ -2,15 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Internal.Internallearn;
 using Microsoft.ML.Runtime.Learners;
-using Microsoft.ML.StaticPipe;
-using Microsoft.ML.StaticPipe.Runtime;
+using System;
 
-namespace Microsoft.ML.Trainers
+namespace Microsoft.ML
 {
     using Arguments = StochasticGradientDescentClassificationTrainer.Arguments;
 
@@ -31,35 +28,19 @@ namespace Microsoft.ML.Trainers
         /// <param name="l2Weight">The L2 regularization constant.</param>
         /// <param name="loss">The loss function to use.</param>
         /// <param name="advancedSettings">A delegate to apply all the advanced arguments to the algorithm.</param>
-        /// <param name="onFit">A delegate that is called every time the
-        /// <see cref="Estimator{TTupleInShape, TTupleOutShape, TTransformer}.Fit(DataView{TTupleInShape})"/> method is called on the
-        /// <see cref="Estimator{TTupleInShape, TTupleOutShape, TTransformer}"/> instance created out of this. This delegate will receive
-        /// the linear model that was trained.  Note that this action cannot change the result in any way; it is only a way for the caller to
-        /// be informed about what was learnt.</param>
-        /// <returns>The predicted output.</returns>
-        public static (Scalar<float> score, Scalar<float> probability, Scalar<bool> predictedLabel) StochasticGradientDescentClassificationTrainer(this BinaryClassificationContext.BinaryClassificationTrainers ctx,
-            Scalar<bool> label,
-            Vector<float> features,
-            Scalar<float> weights = null,
+        public static StochasticGradientDescentClassificationTrainer StochasticGradientDescent(this BinaryClassificationContext.BinaryClassificationTrainers ctx,
+            string label = DefaultColumnNames.Label,
+            string features = DefaultColumnNames.Features,
+            string weights = null,
             int maxIterations = Arguments.Defaults.MaxIterations,
             double initLearningRate = Arguments.Defaults.InitLearningRate,
             float l2Weight = Arguments.Defaults.L2Weight,
             ISupportClassificationLossFactory loss = null,
-            Action<Arguments> advancedSettings = null,
-            Action<IPredictorWithFeatureWeights<float>> onFit = null)
+            Action<Arguments> advancedSettings = null)
         {
-            var rec = new TrainerEstimatorReconciler.BinaryClassifier(
-                (env, labelName, featuresName, weightsName) =>
-                {
-                    var trainer = new StochasticGradientDescentClassificationTrainer(env, featuresName, labelName, weightsName, maxIterations, initLearningRate, l2Weight, loss, advancedSettings);
-
-                    if (onFit != null)
-                        return trainer.WithOnFitDelegate(trans => onFit(trans.Model));
-                    return trainer;
-
-                }, label, features, weights);
-
-            return rec.Output;
+            Contracts.CheckValue(ctx, nameof(ctx));
+            var env = CatalogUtils.GetEnvironment(ctx);
+            return new StochasticGradientDescentClassificationTrainer(env, features, label, weights, maxIterations, initLearningRate, l2Weight, loss, advancedSettings);
         }
     }
 }

@@ -7,6 +7,7 @@ using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Learners;
 using Microsoft.ML.Runtime.RunTests;
+using System.IO;
 using System.Linq;
 using Xunit;
 
@@ -23,42 +24,39 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         [Fact]
         public void New_TrainSaveModelAndPredict()
         {
-            using (var env = new LocalEnvironment(seed: 1, conc: 1))
+            var ml = new MLContext(seed: 1, conc: 1);
+            var reader = ml.Data.TextReader(MakeSentimentTextLoaderArgs());
+            var data = reader.Read(GetDataPath(TestDatasets.Sentiment.trainFilename));
+
+            // Pipeline.
+            var pipeline = ml.Transform.Text.FeaturizeText("SentimentText", "Features")
+                .Append(ml.BinaryClassification.Trainers.StochasticDualCoordinateAscent(advancedSettings: s => s.NumThreads = 1));
+
+            // Train.
+            var model = pipeline.Fit(data);
+
+            var modelPath = GetOutputPath("temp.zip");
+            // Save model. 
+            using (var file = File.Create(modelPath))
+                model.SaveTo(ml, file);
+
+            // Load model.
+            ITransformer loadedModel;
+            using (var file = File.OpenRead(modelPath))
+                loadedModel = TransformerChain.LoadFrom(ml, file);
+
+            // Create prediction engine and test predictions.
+            var engine = loadedModel.MakePredictionFunction<SentimentData, SentimentPrediction>(ml);
+
+            // Take a couple examples out of the test data and run predictions on top.
+            var testData = reader.Read(GetDataPath(TestDatasets.Sentiment.testFilename))
+                .AsEnumerable<SentimentData>(ml, false);
+            foreach (var input in testData.Take(5))
             {
-                var reader = new TextLoader(env, MakeSentimentTextLoaderArgs());
-                var data = reader.Read(new MultiFileSource(GetDataPath(TestDatasets.Sentiment.trainFilename)));
-
-                // Pipeline.
-                var pipeline = new TextTransform(env, "SentimentText", "Features")
-                    .Append(new LinearClassificationTrainer(env, "Features", "Label", advancedSettings: (s) => s.NumThreads = 1));
-
-                // Train.
-                var model = pipeline.Fit(data);
-
-                ITransformer loadedModel;
-                using (var file = env.CreateTempFile())
-                {
-                    // Save model. 
-                    using (var fs = file.CreateWriteStream())
-                        model.SaveTo(env, fs);
-
-                    // Load model.
-                    loadedModel = TransformerChain.LoadFrom(env, file.OpenReadStream());
-                }
-
-                // Create prediction engine and test predictions.
-                var engine = loadedModel.MakePredictionFunction<SentimentData, SentimentPrediction>(env);
-
-                // Take a couple examples out of the test data and run predictions on top.
-                var testData = reader.Read(new MultiFileSource(GetDataPath(TestDatasets.Sentiment.testFilename)))
-                    .AsEnumerable<SentimentData>(env, false);
-                foreach (var input in testData.Take(5))
-                {
-                    var prediction = engine.Predict(input);
-                    // Verify that predictions match and scores are separated from zero.
-                    Assert.Equal(input.Sentiment, prediction.Sentiment);
-                    Assert.True(input.Sentiment && prediction.Score > 1 || !input.Sentiment && prediction.Score < -1);
-                }
+                var prediction = engine.Predict(input);
+                // Verify that predictions match and scores are separated from zero.
+                Assert.Equal(input.Sentiment, prediction.Sentiment);
+                Assert.True(input.Sentiment && prediction.Score > 1 || !input.Sentiment && prediction.Score < -1);
             }
         }
     }

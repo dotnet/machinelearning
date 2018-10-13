@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Learners;
 using Microsoft.ML.Runtime.RunTests;
 using Xunit;
 
@@ -22,23 +21,14 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         [Fact]
         void New_CrossValidation()
         {
-            using (var env = new LocalEnvironment(seed: 1, conc: 1))
-            {
+            var ml = new MLContext(seed: 1, conc: 1);
 
-                var data = new TextLoader(env, MakeSentimentTextLoaderArgs())
-                    .Read(new MultiFileSource(GetDataPath(TestDatasets.Sentiment.trainFilename)));
-                // Pipeline.
-                var pipeline = new TextTransform(env, "SentimentText", "Features")
-                        .Append(new LinearClassificationTrainer(env, "Features", "Label", advancedSettings: (s) => { s.ConvergenceTolerance = 1f; s.NumThreads = 1; }));
+            var data = ml.Data.TextReader(MakeSentimentTextLoaderArgs()).Read(GetDataPath(TestDatasets.Sentiment.trainFilename));
+            // Pipeline.
+            var pipeline = ml.Transform.Text.FeaturizeText("SentimentText", "Features")
+                    .Append(ml.BinaryClassification.Trainers.StochasticDualCoordinateAscent(advancedSettings: (s) => { s.ConvergenceTolerance = 1f; s.NumThreads = 1; }));
 
-
-                var cv = new MyCrossValidation.BinaryCrossValidator(env)
-                {
-                    NumFolds = 2
-                };
-
-                var cvResult = cv.CrossValidate(data, pipeline);
-            }
+            var cvResult = ml.BinaryClassification.CrossValidate(data, pipeline);
         }
     }
 }
