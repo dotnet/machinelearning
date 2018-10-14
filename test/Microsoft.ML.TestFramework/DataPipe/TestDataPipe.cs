@@ -307,6 +307,21 @@ namespace Microsoft.ML.Runtime.RunTests
         }
 
         [Fact]
+        public void SavePipeConcatWithAliases()
+        {
+            string pathData = GetDataPath("breast-cancer-withheader.txt");
+            TestCore(pathData, true,
+                new[]
+                {
+                    "loader=Text{header+ col=A:0 col=B:1-9}",
+                    "xf=Concat{col={name=All source[First]=A src=A source[Rest]=B}}",
+                    "xf=Concat{col={name=All2 source=A source=B source[B]=B source[Vector]=B}}",
+                    "xf=DropColumns{col=A col=B}"
+                });
+            Done();
+        }
+
+        [Fact]
         public void TestHashTransformFloat()
         {
             TestHashTransformHelper(dataFloat, resultsFloat, NumberType.R4);
