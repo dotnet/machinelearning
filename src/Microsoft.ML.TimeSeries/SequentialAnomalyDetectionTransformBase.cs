@@ -558,8 +558,10 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             public RowMapperColumnInfo[] GetOutputColumns()
             {
                 var info = new RowMapperColumnInfo[1];
-                // TODO add metadata like column names
-                info[0] = new RowMapperColumnInfo(_parent.OutputColumnName, new VectorType(NumberType.R8, 4), null);
+                info[0] = new RowMapperColumnInfo(
+                    _parent.OutputColumnName,
+                    new VectorType(NumberType.R8, _parent._outputLength),
+                    null);
                 return info;
             }
 
