@@ -112,7 +112,9 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             env.CheckValue(args, nameof(args));
             env.CheckValue(input, nameof(input));
 
-            return new SsaChangePointDetector(env, args).MakeDataTransform(input);
+            var transform = new SsaChangePointDetector(env, args);
+            transform.Fit(input);
+            return transform.MakeDataTransform(input);
         }
 
         internal SsaChangePointDetector(IHostEnvironment env, Arguments args)

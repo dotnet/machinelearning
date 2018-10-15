@@ -544,6 +544,8 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
         {
             private readonly IHost _host;
             private readonly SequentialAnomalyDetectionTransformBase<TInput, TState> _parent;
+            private readonly ISchema _parentSchema;
+            private readonly string[] _slotNames;
 
             public Mapper(IHostEnvironment env, SequentialAnomalyDetectionTransformBase<TInput, TState> parent, ISchema inputSchema)
             {
@@ -553,16 +555,34 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
                 _host.CheckValue(parent, nameof(parent));
 
                 _parent = parent;
+                _parentSchema = inputSchema;
+                _slotNames = new string[4];
+                _slotNames[0] = "Alert";
+                _slotNames[1] = "Raw Score";
+                _slotNames[2] = "P-Value Score";
+                _slotNames[3] = "Martingale Score";
             }
 
             public RowMapperColumnInfo[] GetOutputColumns()
             {
+                var metadata = new ColumnMetadataInfo(_parent.OutputColumnName);
+                metadata.Add(MetadataUtils.Kinds.SlotNames,
+                    new MetadataInfo<VBuffer<ReadOnlyMemory<char>>>(MetadataUtils.GetNamesType(_parent._outputLength), GetSlotNames));
                 var info = new RowMapperColumnInfo[1];
-                info[0] = new RowMapperColumnInfo(
-                    _parent.OutputColumnName,
-                    new VectorType(NumberType.R8, _parent._outputLength),
-                    null);
+                info[0] = new RowMapperColumnInfo(_parent.OutputColumnName, new VectorType(NumberType.R8, _parent._outputLength), metadata);
                 return info;
+            }
+
+            public void GetSlotNames(int col, ref VBuffer<ReadOnlyMemory<char>> slotNames)
+            {
+                var result = slotNames.Values;
+                if (Utils.Size(result) < _parent._outputLength)
+                    result = new ReadOnlyMemory<char>[_parent._outputLength];
+
+                for (int i = 0; i < _parent._outputLength; ++i)
+                    result[i] = _slotNames[i].AsMemory();
+
+                slotNames = new VBuffer<ReadOnlyMemory<char>>(_parent._outputLength, result, slotNames.Indices);
             }
 
             public Func<int, bool> GetDependencies(Func<int, bool> activeOutput)

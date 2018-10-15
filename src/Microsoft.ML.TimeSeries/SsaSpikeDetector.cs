@@ -110,7 +110,9 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             env.CheckValue(args, nameof(args));
             env.CheckValue(input, nameof(input));
 
-            return new SsaSpikeDetector(env, args).MakeDataTransform(input);
+            var transform = new SsaSpikeDetector(env, args);
+            transform.Fit(input);
+            return transform.MakeDataTransform(input);
         }
 
         internal SsaSpikeDetector(IHostEnvironment env, Arguments args)
