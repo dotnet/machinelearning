@@ -25,7 +25,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             var data = ml.Data.TextReader(MakeSentimentTextLoaderArgs()).Read(GetDataPath(TestDatasets.Sentiment.trainFilename));
 
             // Pipeline.
-            var pipeline = ml.Transform.Text.FeaturizeText("SentimentText", "Features");
+            var pipeline = ml.Transforms.Text.FeaturizeText("SentimentText", "Features");
 
             // Train the pipeline, prepare train set.
             var trainData = pipeline.FitAndTransform(data);

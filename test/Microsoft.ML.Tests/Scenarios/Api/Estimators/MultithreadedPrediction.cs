@@ -30,7 +30,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             var data = reader.Read(new MultiFileSource(GetDataPath(TestDatasets.Sentiment.trainFilename)));
 
             // Pipeline.
-            var pipeline = ml.Transform.Text.FeaturizeText("SentimentText", "Features")
+            var pipeline = ml.Transforms.Text.FeaturizeText("SentimentText", "Features")
                 .Append(ml.BinaryClassification.Trainers.StochasticDualCoordinateAscent(advancedSettings: s => s.NumThreads = 1));
 
             // Train.

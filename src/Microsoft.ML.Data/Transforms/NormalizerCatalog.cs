@@ -20,7 +20,7 @@ namespace Microsoft.ML.Data.Transforms
         /// </summary>
         /// <param name="catalog">The transform catalog</param>
         /// <param name="columnName">The column name</param>
-        /// <param name="mode">The normalization mode</param>
+        /// <param name="mode">The normalization mode (<see cref="Normalizer.NormalizerMode"/>). </param>
         public static Normalizer Normalize(this TransformsCatalog catalog, string columnName, Normalizer.NormalizerMode mode = Runtime.Data.Normalizer.NormalizerMode.MinMax)
             => new Normalizer(CatalogUtils.GetEnvironment(catalog), columnName, mode);
 
@@ -28,7 +28,7 @@ namespace Microsoft.ML.Data.Transforms
         /// Normalize (rescale) several columns according to the specified <paramref name="mode"/>.
         /// </summary>
         /// <param name="catalog">The transform catalog</param>
-        /// <param name="mode">The normalization mode</param>
+        /// <param name="mode">The normalization mode (<see cref="Normalizer.NormalizerMode"/>). </param>
         /// <param name="columns">The pairs of input and output columns.</param>
         public static Normalizer Normalize(this TransformsCatalog catalog, Normalizer.NormalizerMode mode, params (string input, string output)[] columns)
             => new Normalizer(CatalogUtils.GetEnvironment(catalog), mode, columns);

@@ -14,6 +14,7 @@ namespace Microsoft.ML
     /// </summary>
     public sealed class MLContext : IHostEnvironment
     {
+        // REVIEW: consider making LocalEnvironment and MLContext the same class instead of encapsulation.
         private readonly LocalEnvironment _env;
 
         /// <summary>
@@ -40,7 +41,7 @@ namespace Microsoft.ML
         /// <summary>
         /// Data processing operations.
         /// </summary>
-        public TransformsCatalog Transform { get; }
+        public TransformsCatalog Transforms { get; }
 
         /// <summary>
         /// Operations with trained models.
@@ -75,7 +76,7 @@ namespace Microsoft.ML
             Regression = new RegressionContext(_env);
             Clustering = new ClusteringContext(_env);
             Ranking = new RankingContext(_env);
-            Transform = new TransformsCatalog(_env);
+            Transforms = new TransformsCatalog(_env);
             Model = new ModelOperationsCatalog(_env);
             Data = new DataLoadSaveOperations(_env);
         }

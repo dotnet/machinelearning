@@ -212,7 +212,7 @@ namespace Microsoft.ML.Runtime.Data
         /// <param name="outputKind">The type of output expected.</param>
         public CategoricalEstimator(IHostEnvironment env, string input,
             string output = null, CategoricalTransform.OutputKind outputKind = Defaults.OutKind)
-            : this(env, new ColumnInfo(input ?? output, output, outputKind))
+            : this(env, new ColumnInfo(input, output ?? input, outputKind))
         {
         }
 

@@ -21,8 +21,7 @@ namespace Microsoft.ML
         /// </summary>
         /// <param name="catalog">The catalog.</param>
         /// <param name="args">The arguments to text reader, describing the data schema.</param>
-        /// <param name="dataSample">The optional data sample</param>
-        /// <returns></returns>
+        /// <param name="dataSample">The optional location of a data sample.</param>
         public static TextLoader TextReader(this DataLoadSaveOperations catalog,
             TextLoader.Arguments args, IMultiStreamSource dataSample = null)
             => new TextLoader(CatalogUtils.GetEnvironment(catalog), args, dataSample);
@@ -32,9 +31,8 @@ namespace Microsoft.ML
         /// </summary>
         /// <param name="catalog">The catalog.</param>
         /// <param name="columns">The columns of the schema.</param>
-        /// <param name="advancedSettings">The delegate to set additional settings</param>
-        /// <param name="dataSample">The optional data sample</param>
-        /// <returns></returns>
+        /// <param name="advancedSettings">The delegate to set additional settings.</param>
+        /// <param name="dataSample">The optional location of a data sample.</param>
         public static TextLoader TextReader(this DataLoadSaveOperations catalog,
             TextLoader.Column[] columns, Action<TextLoader.Arguments> advancedSettings = null, IMultiStreamSource dataSample = null)
             => new TextLoader(CatalogUtils.GetEnvironment(catalog), columns, advancedSettings, dataSample);
