@@ -22,6 +22,8 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
         private const int Vector256Alignment = 32;
 
+        private const int destinationEnd = pDstEnd - 4;
+
         [MethodImplAttribute(MethodImplOptions.AggressiveInlining)]
         private static bool HasCompatibleAlignment(AlignedArray alignedArray)
         {
@@ -431,7 +433,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
                 Vector128<float> scalarVector128 = Sse.SetAllVector128(scalar);
 
-                if (pDstCurrent <= pDstEnd - 4)
+                if (pDstCurrent <= destinationEnd)
                 {
                     Vector128<float> dstVector = Sse.LoadVector128(pDstCurrent);
                     dstVector = Sse.Add(dstVector, scalarVector128);
@@ -517,7 +519,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
                 Vector128<float> scaleVector128 = Sse.SetAllVector128(scale);
 
-                if (pDstCurrent <= pDstEnd - 4)
+                if (pDstCurrent <= destinationEnd)
                 {
                     Vector128<float> srcVector = Sse.LoadVector128(pSrcCurrent);
                     srcVector = Sse.Multiply(srcVector, scaleVector128);
@@ -563,7 +565,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                 Vector128<float> a128 = Sse.SetAllVector128(a);
                 Vector128<float> b128 = Sse.SetAllVector128(b);
 
-                if (pDstCurrent <= pDstEnd - 4)
+                if (pDstCurrent <= destinationEnd)
                 {
                     Vector128<float> dstVector = Sse.LoadVector128(pDstCurrent);
                     dstVector = Sse.Add(dstVector, b128);
