@@ -289,6 +289,9 @@ namespace Microsoft.ML.StaticPipelineTesting
             foreach (var w in weights)
                 Assert.True(w.Length == 4);
 
+            var biases = pred.GetBiases();
+            Assert.True(biases.Count() == 3);
+
             var data = model.Read(dataSource);
 
             // Just output some data on the schema for fun.
@@ -406,7 +409,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             Assert.InRange(metrics.LossFn, 0, double.PositiveInfinity);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // LightGBM is 64-bit only
         public void LightGbmBinaryClassification()
         {
             var env = new ConsoleEnvironment(seed: 0);
@@ -446,7 +449,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             Assert.InRange(metrics.Auprc, 0, 1);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // LightGBM is 64-bit only
         public void LightGbmRegression()
         {
             var env = new ConsoleEnvironment(seed: 0);

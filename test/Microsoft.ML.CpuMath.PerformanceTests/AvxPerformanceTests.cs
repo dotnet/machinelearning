@@ -21,7 +21,7 @@ namespace Microsoft.ML.CpuMath.PerformanceTests
 
         [Benchmark]
         public void ScaleSrcU()
-            => AvxIntrinsics.ScaleSrcU(DefaultScale, new Span<float>(src, 0, Length), new Span<float>(dst, 0, Length));
+            => AvxIntrinsics.ScaleSrcU(DefaultScale, src, dst, Length);
 
         [Benchmark]
         public void ScaleAddU()
@@ -29,28 +29,27 @@ namespace Microsoft.ML.CpuMath.PerformanceTests
 
         [Benchmark]
         public void AddScaleU()
-            => AvxIntrinsics.AddScaleU(DefaultScale, new Span<float>(src, 0, Length), new Span<float>(dst, 0, Length));
+            => AvxIntrinsics.AddScaleU(DefaultScale, src, dst, Length);
 
         [Benchmark]
         public void AddScaleSU()
-            => AvxIntrinsics.AddScaleSU(DefaultScale, new Span<float>(src), new Span<int>(idx, 0, IndexLength), new Span<float>(dst));
+            => AvxIntrinsics.AddScaleSU(DefaultScale, src, idx, dst, IndexLength);
 
         [Benchmark]
         public void AddScaleCopyU()
-            => AvxIntrinsics.AddScaleCopyU(DefaultScale, new Span<float>(src, 0, Length), new Span<float>(dst, 0, Length), new Span<float>(result, 0, Length));
+            => AvxIntrinsics.AddScaleCopyU(DefaultScale, src, dst, result, Length);
 
         [Benchmark]
         public void AddU()
-            => AvxIntrinsics.AddU(new Span<float>(src, 0, Length), new Span<float>(dst, 0, Length));
+            => AvxIntrinsics.AddU(src, dst, Length);
 
         [Benchmark]
         public void AddSU()
-            => AvxIntrinsics.AddSU(new Span<float>(src), new Span<int>(idx, 0, IndexLength), new Span<float>(dst));
+            => AvxIntrinsics.AddSU(src, idx, dst, IndexLength);
 
         [Benchmark]
         public void MulElementWiseU()
-            => AvxIntrinsics.MulElementWiseU(new Span<float>(src1, 0, Length), new Span<float>(src2, 0, Length),
-                                            new Span<float>(dst, 0, Length));
+            => AvxIntrinsics.MulElementWiseU(src1, src2, dst, Length);
 
         [Benchmark]
         public float SumU()
@@ -82,24 +81,23 @@ namespace Microsoft.ML.CpuMath.PerformanceTests
 
         [Benchmark]
         public float DotU()
-            => AvxIntrinsics.DotU(new Span<float>(src, 0, Length), new Span<float>(dst, 0, Length));
+            => AvxIntrinsics.DotU(src, dst, Length);
 
         [Benchmark]
         public float DotSU()
-            => AvxIntrinsics.DotSU(new Span<float>(src), new Span<float>(dst), new Span<int>(idx, 0, IndexLength));
+            => AvxIntrinsics.DotSU(src, dst, idx, IndexLength);
 
         [Benchmark]
         public float Dist2()
-            => AvxIntrinsics.Dist2(new Span<float>(src, 0, Length), new Span<float>(dst, 0, Length));
+            => AvxIntrinsics.Dist2(src, dst, Length);
 
         [Benchmark]
         public void SdcaL1UpdateU()
-            => AvxIntrinsics.SdcaL1UpdateU(DefaultScale, new Span<float>(src, 0, Length), DefaultScale, new Span<float>(dst, 0, Length), new Span<float>(result, 0, Length));
+            => AvxIntrinsics.SdcaL1UpdateU(DefaultScale, Length, src, DefaultScale, dst, result);
 
         [Benchmark]
         public void SdcaL1UpdateSU()
-            => AvxIntrinsics.SdcaL1UpdateSU(DefaultScale, new Span<float>(src, 0, IndexLength), new Span<int>(idx, 0, IndexLength), DefaultScale, new Span<float>(dst), new Span<float>(result));
-
+            => AvxIntrinsics.SdcaL1UpdateSU(DefaultScale, IndexLength, src, idx, DefaultScale, dst, result);
         [Benchmark]
         public void MatMulX()
             => AvxIntrinsics.MatMulX(src, src1, dst, 1000, 1000);

@@ -21,7 +21,7 @@ namespace Microsoft.ML.CpuMath.PerformanceTests
         
         [Benchmark]
         public void ScaleSrcU()
-            => SseIntrinsics.ScaleSrcU(DefaultScale, new Span<float>(src, 0, Length), new Span<float>(dst, 0, Length));
+            => SseIntrinsics.ScaleSrcU(DefaultScale, src, dst, Length);
 
         [Benchmark]
         public void ScaleAddU()
@@ -29,28 +29,27 @@ namespace Microsoft.ML.CpuMath.PerformanceTests
         
         [Benchmark]
         public void AddScaleU()
-            => SseIntrinsics.AddScaleU(DefaultScale, new Span<float>(src, 0, Length), new Span<float>(dst, 0, Length));
+            => SseIntrinsics.AddScaleU(DefaultScale, src, dst, Length);
 
         [Benchmark]
         public void AddScaleSU()
-            => SseIntrinsics.AddScaleSU(DefaultScale, new Span<float>(src), new Span<int>(idx, 0, IndexLength), new Span<float>(dst));
+            => SseIntrinsics.AddScaleSU(DefaultScale, src, idx, dst, IndexLength);
 
         [Benchmark]
         public void AddScaleCopyU()
-            => SseIntrinsics.AddScaleCopyU(DefaultScale, new Span<float>(src, 0, Length), new Span<float>(dst, 0, Length), new Span<float>(result, 0, Length));
+            => SseIntrinsics.AddScaleCopyU(DefaultScale, src, dst, result, Length);
 
         [Benchmark]
         public void AddU()
-            => SseIntrinsics.AddU(new Span<float>(src, 0, Length), new Span<float>(dst, 0, Length));
+            => SseIntrinsics.AddU(src, dst, Length);
 
         [Benchmark]
         public void AddSU()
-            => SseIntrinsics.AddSU(new Span<float>(src), new Span<int>(idx, 0, IndexLength), new Span<float>(dst));
+            => SseIntrinsics.AddSU(src, idx, dst, IndexLength);
 
         [Benchmark]
         public void MulElementWiseU()
-            => SseIntrinsics.MulElementWiseU(new Span<float>(src1, 0, Length), new Span<float>(src2, 0, Length),
-                                            new Span<float>(dst, 0, Length));
+            => SseIntrinsics.MulElementWiseU(src1, src2, dst, Length);
 
         [Benchmark]
         public float SumU()
@@ -82,23 +81,23 @@ namespace Microsoft.ML.CpuMath.PerformanceTests
         
         [Benchmark]
         public float DotU()
-            => SseIntrinsics.DotU(new Span<float>(src, 0, Length), new Span<float>(dst, 0, Length));
+            => SseIntrinsics.DotU(src, dst, Length);
         
         [Benchmark]
         public float DotSU()
-            => SseIntrinsics.DotSU(new Span<float>(src), new Span<float>(dst), new Span<int>(idx, 0, IndexLength));
+            => SseIntrinsics.DotSU(src, dst, idx, IndexLength);
         
         [Benchmark]
         public float Dist2()
-            => SseIntrinsics.Dist2(new Span<float>(src, 0, Length), new Span<float>(dst, 0, Length));
+            => SseIntrinsics.Dist2(src, dst, Length);
 
         [Benchmark]
         public void SdcaL1UpdateU()
-            => SseIntrinsics.SdcaL1UpdateU(DefaultScale, new Span<float>(src, 0, Length), DefaultScale, new Span<float>(dst, 0, Length), new Span<float>(result, 0, Length));
+            => SseIntrinsics.SdcaL1UpdateU(DefaultScale, Length, src, DefaultScale, dst, result);
 
         [Benchmark]
         public void SdcaL1UpdateSU()
-            => SseIntrinsics.SdcaL1UpdateSU(DefaultScale, new Span<float>(src, 0, IndexLength), new Span<int>(idx, 0, IndexLength), DefaultScale, new Span<float>(dst), new Span<float>(result));
+            => SseIntrinsics.SdcaL1UpdateSU(DefaultScale, IndexLength, src, idx, DefaultScale, dst, result);
 
         [Benchmark]
         public void MatMulX()
