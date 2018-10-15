@@ -230,22 +230,24 @@ namespace Microsoft.ML.CpuMath.PerformanceTests
         }
 
         [Benchmark]
-        public unsafe void MatMulX()
+        public unsafe void MatMul()
         {
             fixed (float* psrc = &src[0])
             fixed (float* pdst = &dst[0])
+            fixed (float* psrc1 = &src1[0])
             {
-                Thunk.MatMulX(psrc, psrc, pdst, 1000, 1000);
+                Thunk.MatMul(psrc1, psrc, pdst, 1000, 1000);
             }
         }
             
         [Benchmark]
-        public unsafe void MatMulTranX()
+        public unsafe void MatMulTran()
         {
             fixed (float* psrc = &src[0])
             fixed (float* pdst = &dst[0])
+            fixed (float* psrc1 = &src1[0])
             {
-                Thunk.MatMulTranX(psrc, psrc, pdst, 1000, 1000);
+                Thunk.MatMulTran(psrc1, psrc, pdst, 1000, 1000);
             }
         }
     }
