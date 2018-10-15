@@ -19,9 +19,6 @@ using Microsoft.ML.Runtime.Model;
 [assembly: LoadableClass(DropColumnsTransform.KeepColumnsSummary, typeof(DropColumnsTransform), typeof(DropColumnsTransform.KeepArguments), typeof(SignatureDataTransform),
     DropColumnsTransform.KeepUserName, "KeepColumns", "KeepColumnsTransform", DropColumnsTransform.KeepShortName, DocName = "transform/DropKeepChooseTransforms.md")]
 
-[assembly: LoadableClass(DropColumnsTransform.DropColumnsSummary, typeof(DropColumnsTransform), null, typeof(SignatureLoadDataTransform),
-    DropColumnsTransform.DropUserName, DropColumnsTransform.LoaderSignature)]
-
 namespace Microsoft.ML.Runtime.Data
 {
     /// <summary>

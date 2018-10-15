@@ -17,9 +17,6 @@ using Microsoft.ML.Runtime.Model;
 [assembly: LoadableClass(typeof(ChooseColumnsTransform), typeof(ChooseColumnsTransform.Arguments), typeof(SignatureDataTransform),
     "Choose Columns Transform", "ChooseColumnsTransform", "ChooseColumns", "Choose", DocName = "transform/DropKeepChooseTransforms.md")]
 
-[assembly: LoadableClass(typeof(ChooseColumnsTransform), null, typeof(SignatureLoadDataTransform),
-    "Choose Columns Transform", ChooseColumnsTransform.LoaderSignature, ChooseColumnsTransform.LoaderSignatureOld)]
-
 namespace Microsoft.ML.Runtime.Data
 {
     public sealed class ChooseColumnsTransform : RowToRowTransformBase
