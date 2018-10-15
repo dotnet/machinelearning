@@ -25,10 +25,10 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                 var pipeline = new TextTransform(env, "SentimentText", "Features");
 
                 // Train the pipeline, prepare train and validation set.
-                var data = reader.Read(new MultiFileSource(GetDataPath(TestDatasets.Sentiment.trainFilename)));
+                var data = reader.Read(GetDataPath(TestDatasets.Sentiment.trainFilename));
                 var preprocess = pipeline.Fit(data);
                 var trainData = preprocess.Transform(data);
-                var validData = preprocess.Transform(reader.Read(new MultiFileSource(GetDataPath(TestDatasets.Sentiment.testFilename))));
+                var validData = preprocess.Transform(reader.Read(GetDataPath(TestDatasets.Sentiment.testFilename)));
 
                 // Train model with validation set.
                 var trainer = new LinearClassificationTrainer(env, "Features", "Label");

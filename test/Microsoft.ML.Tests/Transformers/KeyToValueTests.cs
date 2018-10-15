@@ -40,7 +40,7 @@ namespace Microsoft.ML.Tests.Transformers
                 }
             });
 
-            var data = reader.Read(new MultiFileSource(dataPath));
+            var data = reader.Read(dataPath);
 
             data = new TermEstimator(Env,
                 new TermTransform.ColumnInfo("ScalarString", "A"),

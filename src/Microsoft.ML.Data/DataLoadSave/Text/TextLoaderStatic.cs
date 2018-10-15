@@ -256,5 +256,12 @@ namespace Microsoft.ML.Runtime.Data
             }
         }
     }
-}
 
+    public static class MultiSourceStreamReader
+    {
+        public static IDataView Read(this IDataReader<IMultiStreamSource> reader, string path)
+        {
+            return reader.Read(new MultiFileSource(path));
+        }
+    }
+}

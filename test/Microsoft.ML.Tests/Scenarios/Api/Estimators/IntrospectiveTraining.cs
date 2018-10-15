@@ -36,7 +36,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             using (var env = new LocalEnvironment(seed: 1, conc: 1))
             {
                 var data = new TextLoader(env, MakeSentimentTextLoaderArgs())
-                    .Read(new MultiFileSource(GetDataPath(TestDatasets.Sentiment.trainFilename)));
+                    .Read(GetDataPath(TestDatasets.Sentiment.trainFilename));
 
                 var pipeline = new TextTransform(env, "SentimentText", "Features")
                     .Append(new LinearClassificationTrainer(env, "Features", "Label", advancedSettings: (s) => s.NumThreads = 1));

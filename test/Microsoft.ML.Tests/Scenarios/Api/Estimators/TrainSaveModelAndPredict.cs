@@ -26,7 +26,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             using (var env = new LocalEnvironment(seed: 1, conc: 1))
             {
                 var reader = new TextLoader(env, MakeSentimentTextLoaderArgs());
-                var data = reader.Read(new MultiFileSource(GetDataPath(TestDatasets.Sentiment.trainFilename)));
+                var data = reader.Read(GetDataPath(TestDatasets.Sentiment.trainFilename));
 
                 // Pipeline.
                 var pipeline = new TextTransform(env, "SentimentText", "Features")
@@ -50,7 +50,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                 var engine = loadedModel.MakePredictionFunction<SentimentData, SentimentPrediction>(env);
 
                 // Take a couple examples out of the test data and run predictions on top.
-                var testData = reader.Read(new MultiFileSource(GetDataPath(TestDatasets.Sentiment.testFilename)))
+                var testData = reader.Read(GetDataPath(TestDatasets.Sentiment.testFilename))
                     .AsEnumerable<SentimentData>(env, false);
                 foreach (var input in testData.Take(5))
                 {

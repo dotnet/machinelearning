@@ -24,7 +24,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             using (var env = new LocalEnvironment())
             {
                 var data = new TextLoader(env, MakeIrisTextLoaderArgs())
-                    .Read(new MultiFileSource(GetDataPath(TestDatasets.irisData.trainFilename)));
+                    .Read(GetDataPath(TestDatasets.irisData.trainFilename));
 
                 var sdcaTrainer = new LinearClassificationTrainer(env, "Features", "Label", advancedSettings: (s) => { s.MaxIterations = 100; s.Shuffle = true; s.NumThreads = 1; });
                 var pipeline = new ConcatEstimator(env, "Features", "SepalLength", "SepalWidth", "PetalLength", "PetalWidth")

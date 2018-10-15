@@ -28,7 +28,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             using (var env = new LocalEnvironment())
             {
                 var data = new TextLoader(env, MakeIrisTextLoaderArgs())
-                    .Read(new MultiFileSource(dataPath));
+                    .Read(dataPath);
 
                 Action<IrisData, IrisData> action = (i, j) =>
                 {

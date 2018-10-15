@@ -26,7 +26,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             {
 
                 var data = new TextLoader(env, MakeSentimentTextLoaderArgs())
-                    .Read(new MultiFileSource(GetDataPath(TestDatasets.Sentiment.trainFilename)));
+                    .Read(GetDataPath(TestDatasets.Sentiment.trainFilename));
                 // Pipeline.
                 var pipeline = new TextTransform(env, "SentimentText", "Features")
                         .Append(new LinearClassificationTrainer(env, "Features", "Label", advancedSettings: (s) => { s.ConvergenceTolerance = 1f; s.NumThreads = 1; }));

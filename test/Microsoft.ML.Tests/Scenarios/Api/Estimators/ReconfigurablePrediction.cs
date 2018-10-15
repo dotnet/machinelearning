@@ -25,8 +25,8 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             {
                 var dataReader = new TextLoader(env, MakeSentimentTextLoaderArgs());
 
-                var data = dataReader.Read(new MultiFileSource(GetDataPath(TestDatasets.Sentiment.trainFilename)));
-                var testData = dataReader.Read(new MultiFileSource(GetDataPath(TestDatasets.Sentiment.testFilename)));
+                var data = dataReader.Read(GetDataPath(TestDatasets.Sentiment.trainFilename));
+                var testData = dataReader.Read(GetDataPath(TestDatasets.Sentiment.testFilename));
 
                 // Pipeline.
                 var pipeline = new TextTransform(env, "SentimentText", "Features")

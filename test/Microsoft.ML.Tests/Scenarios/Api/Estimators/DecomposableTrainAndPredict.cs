@@ -30,7 +30,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                 .AddStandardComponents()) // ScoreUtils.GetScorer requires scorers to be registered in the ComponentCatalog
             {
                 var data = new TextLoader(env, MakeIrisTextLoaderArgs())
-                    .Read(new MultiFileSource(dataPath));
+                    .Read(dataPath);
 
                 var pipeline = new ConcatEstimator(env, "Features", "SepalLength", "SepalWidth", "PetalLength", "PetalWidth")
                     .Append(new TermEstimator(env, "Label"), TransformerScope.TrainTest)

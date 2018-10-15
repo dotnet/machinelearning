@@ -22,7 +22,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
 
             using (var env = new LocalEnvironment(seed: 1, conc: 1))
             {
-                var data = new TextLoader(env, MakeSentimentTextLoaderArgs()).Read(new MultiFileSource(GetDataPath(TestDatasets.Sentiment.trainFilename)));
+                var data = new TextLoader(env, MakeSentimentTextLoaderArgs()).Read(GetDataPath(TestDatasets.Sentiment.trainFilename));
 
                 // Pipeline.
                 var pipeline = new TextTransform(env, "SentimentText", "Features");
