@@ -443,7 +443,7 @@ namespace Microsoft.ML.Runtime.RunTests
             {
             }
 
-            input.Data = new EmptyDataView(Env, new SimpleSchema(Env, new KeyValuePair<string, ColumnType>("ColA", NumberType.R4)));
+            input.Data = new EmptyDataView(Env, new Schema(new[] { new Schema.Column("ColA", NumberType.R4, null) }));
             input.Column = new string[0];
             EntryPointUtils.CheckInputArgs(Env, input);
         }

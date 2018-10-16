@@ -146,7 +146,7 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
                 });
 
         protected override IRowMapper MakeRowMapper(ISchema schema)
-            => new Mapper(this, schema);
+            => new Mapper(this, Schema.Create(schema));
 
         protected override void CheckInputColumn(ISchema inputSchema, int col, int srcCol)
         {
@@ -158,14 +158,14 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
         {
             private ImageGrayscaleTransform _parent;
 
-            public Mapper(ImageGrayscaleTransform parent, ISchema inputSchema)
+            public Mapper(ImageGrayscaleTransform parent, Schema inputSchema)
                 : base(parent.Host.Register(nameof(Mapper)), parent, inputSchema)
             {
                 _parent = parent;
             }
 
-            public override RowMapperColumnInfo[] GetOutputColumns()
-                => _parent.ColumnPairs.Select((x, idx) => new RowMapperColumnInfo(x.output, InputSchema.GetColumnType(ColMapNewToOld[idx]), null)).ToArray();
+            public override Schema.Column[] GetOutputColumns()
+                => _parent.ColumnPairs.Select((x, idx) => new Schema.Column(x.output, InputSchema[ColMapNewToOld[idx]].Type, null)).ToArray();
 
             protected override Delegate MakeGetter(IRow input, int iinfo, out Action disposer)
             {

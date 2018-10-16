@@ -59,8 +59,8 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
 
         public RoleMappedSchema InputRoleMappedSchema { get; }
 
-        public ISchema Schema { get; }
-        public ISchema InputSchema => InputRoleMappedSchema.Schema;
+        public Schema Schema { get; }
+        public Schema InputSchema => InputRoleMappedSchema.Schema;
 
         public ISchemaBindableMapper Bindable => _pred;
 
@@ -69,7 +69,7 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
         private readonly IHostEnvironment _env;
 
         public FieldAwareFactorizationMachineScalarRowMapper(IHostEnvironment env, RoleMappedSchema schema,
-            ISchema outputSchema, FieldAwareFactorizationMachinePredictor pred)
+            Schema outputSchema, FieldAwareFactorizationMachinePredictor pred)
         {
             Contracts.AssertValue(env);
             Contracts.AssertValue(schema);

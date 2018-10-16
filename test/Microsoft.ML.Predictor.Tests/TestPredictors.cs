@@ -1934,14 +1934,16 @@ output Out [3] from H all;
         /// <summary>
         /// A test for field-aware factorization machine.
         /// </summary>
-        [Fact(Skip = "Need CoreTLC specific baseline update")]
+        [Fact]
         [TestCategory("Binary")]
         [TestCategory("FieldAwareFactorizationMachine")]
         public void BinaryClassifierFieldAwareFactorizationMachineTest()
         {
             var binaryPredictors = new[] { TestLearners.FieldAwareFactorizationMachine };
             var binaryClassificationDatasets = GetDatasetsForBinaryClassifierBaseTest();
-            RunAllTests(binaryPredictors, binaryClassificationDatasets);
+
+            RunAllTests(binaryPredictors, binaryClassificationDatasets, digitsOfPrecision: 4);
+
             Done();
         }
 

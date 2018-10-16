@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2013/01/nuspec.xsd">
   <metadata>
     <id>MlNetMklDeps</id>
-    <version>0.0.0.6</version>
+    <version>0.0.0.7</version>
     <title>This NuGet package provides Intel(R) MKL dependencies for ML.NET</title>
     <authors>Intel Corporation</authors>
     <owners>Microsoft</owners>

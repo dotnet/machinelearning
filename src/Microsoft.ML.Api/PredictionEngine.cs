@@ -149,7 +149,7 @@ namespace Microsoft.ML.Runtime.Api
         {
         }
 
-        private static Func<ISchema, IRowToRowMapper> StreamChecker(IHostEnvironment env, Stream modelStream)
+        private static Func<Schema, IRowToRowMapper> StreamChecker(IHostEnvironment env, Stream modelStream)
         {
             env.CheckValue(modelStream, nameof(modelStream));
             return schema =>
@@ -173,14 +173,14 @@ namespace Microsoft.ML.Runtime.Api
         {
         }
 
-        private static Func<ISchema, IRowToRowMapper> TransformerChecker(IExceptionContext ectx, ITransformer transformer)
+        private static Func<Schema, IRowToRowMapper> TransformerChecker(IExceptionContext ectx, ITransformer transformer)
         {
             ectx.CheckValue(transformer, nameof(transformer));
             ectx.CheckParam(transformer.IsRowToRowMapper, nameof(transformer), "Must be a row to row mapper");
             return transformer.GetRowToRowMapper;
         }
 
-        private PredictionEngine(IHostEnvironment env, Func<ISchema, IRowToRowMapper> makeMapper, bool ignoreMissingColumns,
+        private PredictionEngine(IHostEnvironment env, Func<Schema, IRowToRowMapper> makeMapper, bool ignoreMissingColumns,
                  SchemaDefinition inputSchemaDefinition, SchemaDefinition outputSchemaDefinition)
         {
             Contracts.CheckValue(env, nameof(env));

@@ -97,7 +97,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
             if (rows.Count == 0)
             {
                 var host = env.Register("ExtractSweepResult");
-                outputView = new EmptyDataView(host, new SimpleSchema(host, col1, col2, col3, col4, col5, col6));
+                outputView = new EmptyDataView(host, SimpleSchemaUtils.Create(host, col1, col2, col3, col4, col5, col6));
             }
             else
             {
