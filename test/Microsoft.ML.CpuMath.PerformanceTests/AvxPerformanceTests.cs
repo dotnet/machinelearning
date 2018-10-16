@@ -98,5 +98,12 @@ namespace Microsoft.ML.CpuMath.PerformanceTests
         [Benchmark]
         public void SdcaL1UpdateSU()
             => AvxIntrinsics.SdcaL1UpdateSU(DefaultScale, IndexLength, src, idx, DefaultScale, dst, result);
+        [Benchmark]
+        public void MatMulX()
+            => AvxIntrinsics.MatMulX(src, src1, dst, 1000, 1000);
+
+        [Benchmark]
+        public void MatMulTranX()
+            => AvxIntrinsics.MatMulTranX(src, src1, dst, 1000, 1000);
     }
 }
