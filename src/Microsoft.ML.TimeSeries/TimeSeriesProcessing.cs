@@ -90,7 +90,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
         public static CommonOutputs.TransformOutput SsaChangePointDetector(IHostEnvironment env, SsaChangePointDetector.Arguments input)
         {
             var h = EntryPointUtils.CheckArgsAndCreateHost(env, "SsaChangePointDetector", input);
-            var view = new SsaChangePointDetector(h, input).Transform(input.Data);
+            var view = new SsaChangePointDetector(h, input).Fit(input.Data).Transform(input.Data);
             return new CommonOutputs.TransformOutput()
             {
                 Model = new TransformModel(h, view, input.Data),
