@@ -9,6 +9,8 @@ using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
+using Microsoft.ML.StaticPipe;
+using Microsoft.ML.StaticPipe.Runtime;
 using Microsoft.ML.Transforms;
 using System;
 using System.Collections.Generic;
@@ -35,8 +37,7 @@ using System.Linq;
 namespace Microsoft.ML.Transforms
 {
     /// <summary>
-    /// An estimator class that allows for selecting the columns in a data set. Hidden columns will remain hidden
-    /// unless specified in which any hidden column will be removed.
+    /// The SelectColumnsEstimator supports selection of specified columns to keep from a given input.
     /// </summary>
     public sealed class SelectColumnsEstimator : IEstimator<SelectColumnsTransform>
     {
@@ -47,8 +48,8 @@ namespace Microsoft.ML.Transforms
         /// <summary>
         /// Constructs the Select Columns Estimator with an array of column names to keep.
         /// </summary>
-        /// <param name="env">Instance of the host environment</param>
-        /// <param name="columns">The array of column names to keep</param>
+        /// <param name="env">Instance of the host environment.</param>
+        /// <param name="columns">The array of column names to keep.</param>
         public SelectColumnsEstimator(IHostEnvironment env, params string[] columns)
             : this(env, true, (string name) => columns.Contains(name))
         { }
@@ -56,9 +57,9 @@ namespace Microsoft.ML.Transforms
         /// <summary>
         /// Constructs the Select Columns Estimator with an array of column names to keep.
         /// </summary>
-        /// <param name="env">Instance of the host environment</param>
-        /// <param name="keepHidden">Specifies if hidden columns should be removed. Default is true to keep hidden columns</param>
-        /// <param name="columns">The array of column names to keep</param>
+        /// <param name="env">Instance of the host environment.</param>
+        /// <param name="keepHidden">Specifies if hidden columns should be removed. Default is true to keep hidden columns.</param>
+        /// <param name="columns">The array of column names to keep.</param>
         public SelectColumnsEstimator(IHostEnvironment env, bool keepHidden, params string[] columns)
             : this(env, keepHidden, (string name) => columns.Contains(name))
         { }
@@ -66,7 +67,7 @@ namespace Microsoft.ML.Transforms
         /// <summary>
         /// Constructs the Select Columns Estimator using a specified predicate to determine the columns to keep.
         /// </summary>
-        /// <param name="env">Instance of the host environment</param>
+        /// <param name="env">Instance of the host environment.</param>
         /// <param name="selectPredicate">The predicate that will determines the columns to keep.</param>
         public SelectColumnsEstimator(IHostEnvironment env, Func<string, bool> selectPredicate)
             : this(env, true, selectPredicate)
@@ -75,8 +76,8 @@ namespace Microsoft.ML.Transforms
         /// <summary>
         /// Constructs the Select Columns Estimator using a specified predicate to determine the columns to keep.
         /// </summary>
-        /// <param name="env">Instance of the host environment</param>
-        /// <param name="keepHidden">Specifies if hidden columns should be removed. Default is true to keep hidden columns</param>
+        /// <param name="env">Instance of the host environment.</param>
+        /// <param name="keepHidden">Specifies if hidden columns should be removed. Default is true to keep hidden columns.</param>
         /// <param name="selectPredicate">The predicate that will determines the columns to keep.</param>
         public SelectColumnsEstimator(IHostEnvironment env, bool keepHidden, Func<string, bool> selectPredicate)
         {
@@ -103,17 +104,7 @@ namespace Microsoft.ML.Transforms
 
         public SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {
-            var columns = new List<SchemaShape.Column>();
-            var columnCount = inputSchema.Columns.Length;
-            for (int i = 0; i < columnCount; ++i)
-            {
-                var columnName = inputSchema.Columns[i].Name;
-                if (_selectPredicate(columnName))
-                {
-                    columns.Add(inputSchema.Columns[i]);
-                }
-            }
-
+            var columns = inputSchema.Columns.Where(c=>_selectPredicate(c.Name));
             return new SchemaShape(columns);
         }
     }
@@ -193,7 +184,9 @@ namespace Microsoft.ML.Transforms
             _selectedColumns = columns;
         }
 
-        /// Helper function to determine the model version that is being loaded
+        /// <summary>
+        /// Helper function to determine the model version that is being loaded.
+        /// </summary>
         private static bool CheckModelVersion(ModelLoadContext ctx, VersionInfo versionInfo)
         {
             try
@@ -208,7 +201,9 @@ namespace Microsoft.ML.Transforms
             }
         }
 
-        /// Back-compatibilty function that handles loading the DropColumns Transform
+        /// <summary>
+        /// Back-compatibilty function that handles loading the DropColumns Transform.
+        /// </summary>
         private static SelectColumnsTransform LoadDropColumnsTransform(IHostEnvironment env, ModelLoadContext ctx, IDataView input)
         {
             // *** Binary format ***
@@ -253,7 +248,9 @@ namespace Microsoft.ML.Transforms
             return new SelectColumnsTransform(env, true, selectColumns.ToArray());
         }
 
-        /// Back-compatibilty that is handling the HiddenColumnOption from ChooseColumns
+        /// <summary>
+        /// Back-compatibilty that is handling the HiddenColumnOption from ChooseColumns.
+        /// </summary>
         private enum HiddenColumnOption : byte
         {
             Drop = 1,
@@ -261,7 +258,9 @@ namespace Microsoft.ML.Transforms
             Rename = 3
         };
 
-        /// Backwards compatibility helper function to convert the HiddenColumnOption to a boolean
+        /// <summary>
+        /// Backwards compatibility helper function to convert the HiddenColumnOption to a boolean.
+        /// </summary>
         private static bool GetHiddenOption(IHostEnvironment env, HiddenColumnOption option)
         {
             switch (option)
@@ -275,7 +274,9 @@ namespace Microsoft.ML.Transforms
             };
         }
 
-        /// Backwards compatibility helper function that loads a Choose Column Transform
+        /// <summary>
+        /// Backwards compatibility helper function that loads a Choose Column Transform.
+        /// </summary>
         private static SelectColumnsTransform LoadChooseColumnsTransform(IHostEnvironment env, ModelLoadContext ctx, IDataView input)
         {
             // *** Binary format ***
@@ -378,50 +379,37 @@ namespace Microsoft.ML.Transforms
             var length = _selectedColumns.Length;
             ctx.Writer.Write(length);
             for (int i = 0; i < length; i++)
-            {
                 ctx.SaveNonEmptyString(_selectedColumns[i]);
-            }
         }
 
-        public ISchema GetOutputSchema(ISchema inputSchema)
+        public Schema GetOutputSchema(Schema inputSchema)
         {
             _host.CheckValue(inputSchema, nameof(inputSchema));
             return new Mapper(this, inputSchema).Schema;
         }
 
-        public IRowToRowMapper GetRowToRowMapper(ISchema inputSchema)
+        public IRowToRowMapper GetRowToRowMapper(Schema inputSchema)
         {
             _host.CheckValue(inputSchema, nameof(inputSchema));
-            return new SelectColumnsDataTransform(_host, this, new Mapper(this, inputSchema), new EmptyDataView(_host, inputSchema));
+            return new SelectColumnsDataTransform(_host, this,
+                                                  new Mapper(this, inputSchema),
+                                                  new EmptyDataView(_host, Schema.Create(inputSchema)));
         }
 
-        public IDataView Transform(IDataView input)
-        {
-            return new SelectColumnsDataTransform(_host, this, new Mapper(this, input.Schema), input);
-        }
+        public IDataView Transform(IDataView input) => new SelectColumnsDataTransform(_host, this, new Mapper(this, input.Schema), input);
 
         private sealed class Mapper
         {
             private readonly Schema _inputSchema;
-            private readonly Schema _outputSchema;
             private readonly IHost _host;
             private readonly SelectColumnsTransform _transform;
             private readonly int[] _outputToInputMap;
 
             public ISchema InputSchema => _inputSchema;
 
-            public ISchema Schema => _outputSchema;
+            public Schema Schema { get; }
 
-            public int this [int colIndex]
-            {
-                get
-                {
-                    _host.Assert(0 <= colIndex && colIndex < _outputToInputMap.Length);
-                    return _outputToInputMap[colIndex];
-                }
-            }
-
-            internal Mapper(SelectColumnsTransform transform, ISchema inputSchema)
+            public Mapper(SelectColumnsTransform transform, ISchema inputSchema)
             {
                 _transform = transform;
                 _host = transform._host.Register(nameof(Mapper));
@@ -430,7 +418,13 @@ namespace Microsoft.ML.Transforms
                 var selectedColumns = _transform.SelectColumns;
                 var keepHidden = _transform.KeepHidden;
                 _outputToInputMap = BuildOutputToInputMap(selectedColumns, keepHidden, _inputSchema);
-                _outputSchema = GenerateOutputSchema(selectedColumns, keepHidden, _inputSchema);
+                Schema = GenerateOutputSchema(selectedColumns, keepHidden, _inputSchema);
+            }
+
+            public int GetInputIndex(int outputIndex)
+            {
+                _host.Assert(0 <= outputIndex && outputIndex < _outputToInputMap.Length);
+                return _outputToInputMap[outputIndex];
             }
 
             private static int[] BuildOutputToInputMap(IEnumerable<string> selectedColumns,
@@ -482,7 +476,7 @@ namespace Microsoft.ML.Transforms
         {
             private readonly Mapper _mapper;
             private readonly IRow _input;
-            public Row(IRow input, Mapper mapper, Schema outputSchema)
+            public Row(IRow input, Mapper mapper)
             {
                 _mapper = mapper;
                 _input = input;
@@ -492,89 +486,81 @@ namespace Microsoft.ML.Transforms
 
             public long Batch => _input.Batch;
 
-            public ISchema Schema => _mapper.Schema;
+            Schema ISchematized.Schema => _mapper.Schema;
 
             public ValueGetter<TValue> GetGetter<TValue>(int col)
             {
-                int index = _mapper[col];
+                int index = _mapper.GetInputIndex(col);
                 return _input.GetGetter<TValue>(index);
             }
 
             public ValueGetter<UInt128> GetIdGetter()
                 => _input.GetIdGetter();
 
-            public bool IsColumnActive(int col)
-            {
-                return true;
-            }
+            public bool IsColumnActive(int col) => true;
         }
 
         private sealed class SelectColumnsDataTransform : IDataTransform, IRowToRowMapper
         {
             private readonly Mapper _mapper;
-            private readonly IHostEnvironment _host;
+            private readonly IHostEnvironment _env;
             private readonly SelectColumnsTransform _transform;
-            public SelectColumnsDataTransform(IHostEnvironment host, SelectColumnsTransform transform, Mapper mapper, IDataView input)
+
+            public SelectColumnsDataTransform(IHostEnvironment env, SelectColumnsTransform transform, Mapper mapper, IDataView input)
             {
+                _env = Contracts.CheckRef(env, nameof(env)).Register(nameof(SelectColumnsDataTransform));
                 _transform = transform;
                 _mapper = mapper;
                 Source = input;
-                _host = host;
             }
 
             public bool CanShuffle => Source.CanShuffle;
 
-            public ISchema Schema => _mapper.Schema;
-
             public IDataView Source { get; }
 
-            public ISchema InputSchema => Source.Schema;
+            Schema IRowToRowMapper.InputSchema => Source.Schema;
 
-            public long? GetRowCount(bool lazy = true)
-            {
-                return Source.GetRowCount(lazy);
-            }
+            Schema ISchematized.Schema => _mapper.Schema;
+
+            public long? GetRowCount(bool lazy = true) => Source.GetRowCount(lazy);
 
             public IRowCursor GetRowCursor(Func<int, bool> needCol, IRandom rand = null)
             {
-                _host.AssertValue(needCol, "needCol");
-                _host.AssertValueOrNull(rand);
+                _env.AssertValue(needCol, nameof(needCol));
+                _env.AssertValueOrNull(rand);
 
                 // Build out the active state for the input
                 var inputPred = GetDependencies(needCol);
                 var inputRowCursor = Source.GetRowCursor(inputPred, rand);
 
                 // Build the active state for the output
-                var active = Utils.BuildArray(Schema.ColumnCount, needCol);
-                return new RowCursor(_host, _mapper, inputRowCursor, active);
+                var active = Utils.BuildArray(_mapper.Schema.ColumnCount, needCol);
+                return new RowCursor(_env, _mapper, inputRowCursor, active);
             }
 
             public IRowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator, Func<int, bool> needCol, int n, IRandom rand = null)
             {
-                _host.CheckValue(needCol, nameof(needCol));
-                _host.CheckValueOrNull(rand);
+                _env.CheckValue(needCol, nameof(needCol));
+                _env.CheckValueOrNull(rand);
 
                 // Build out the active state for the input
                 var inputPred = GetDependencies(needCol);
                 var inputs = Source.GetRowCursorSet(out consolidator, inputPred, n, rand);
 
                 // Build out the acitve state for the output
-                var active = Utils.BuildArray(Schema.ColumnCount, needCol);
-                _host.AssertNonEmpty(inputs);
+                var active = Utils.BuildArray(_mapper.Schema.ColumnCount, needCol);
+                _env.AssertNonEmpty(inputs);
 
                 // No need to split if this is given 1 input cursor.
                 var cursors = new IRowCursor[inputs.Length];
                 for (int i = 0; i < inputs.Length; i++)
                 {
-                    cursors[i] = new RowCursor(_host, _mapper, inputs[i], active);
+                    cursors[i] = new RowCursor(_env, _mapper, inputs[i], active);
                 }
                 return cursors;
             }
 
-            public void Save(ModelSaveContext ctx)
-            {
-                _transform.Save(ctx);
-            }
+            public void Save(ModelSaveContext ctx) => _transform.Save(ctx);
 
             public Func<int, bool> GetDependencies(Func<int, bool> activeOutput)
             {
@@ -583,9 +569,7 @@ namespace Microsoft.ML.Transforms
                 for (int colIdx = 0; colIdx < columnCount; ++colIdx)
                 {
                     if (activeOutput(colIdx))
-                    {
-                        active[_mapper[colIdx]] = true;
-                    }
+                        active[_mapper.GetInputIndex(colIdx)] = true;
                 }
 
                 return col => active[col];
@@ -594,10 +578,7 @@ namespace Microsoft.ML.Transforms
             public IRow GetRow(IRow input, Func<int, bool> active, out Action disposer)
             {
                 disposer = null;
-                using (var ch = _host.Start("GetEntireRow"))
-                {
-                    return new Row(input, _mapper, Runtime.Data.Schema.Create(_mapper.Schema));
-                }
+                return new Row(input, _mapper);
             }
         }
 
@@ -614,19 +595,15 @@ namespace Microsoft.ML.Transforms
                 _active = active;
             }
 
-            public ISchema Schema => _mapper.Schema;
+            Schema ISchematized.Schema => _mapper.Schema;
 
             public ValueGetter<TValue> GetGetter<TValue>(int col)
-
             {
-                int index = _mapper[col];
+                int index = _mapper.GetInputIndex(col);
                 return _inputCursor.GetGetter<TValue>(index);
             }
 
-            public bool IsColumnActive(int col)
-            {
-                return _active[col];
-            }
+            public bool IsColumnActive(int col) => _active[col];
         }
     }
 }

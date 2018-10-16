@@ -1,6 +1,11 @@
-﻿using Microsoft.ML.Runtime.Api;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Model;
+using Microsoft.ML.Runtime.RunTests;
 using Microsoft.ML.Runtime.Tools;
 using Microsoft.ML.TestFramework;
 using Microsoft.ML.Transforms;
@@ -10,7 +15,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.ML.Tests
 {
-    public class SelectColumnsTransformsTests : BaseTestClass
+    public class SelectColumnsTransformsTests : TestDataPipeBase
     {
         class TestClass
         {
@@ -43,6 +48,18 @@ namespace Microsoft.ML.Tests
                 Assert.Equal(0, bIdx);
                 Assert.True(foundColumnC);
                 Assert.Equal(1, cIdx);
+            }
+        }
+        
+        [Fact]
+        void TestSelectWorkout()
+        {
+            var data = new[] { new TestClass() { A = 1, B = 2, C = 3, }, new TestClass() { A = 4, B = 5, C = 6 } };
+            using (var env = new ConsoleEnvironment())
+            {
+                var dataView = ComponentCreation.CreateDataView(env, data);
+                var est = new SelectColumnsEstimator(env, new[]{ "D", "E" });
+                TestEstimatorCore(est, validFitInput: dataView);
             }
         }
 
