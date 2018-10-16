@@ -204,7 +204,7 @@ namespace Microsoft.ML.StaticPipelineTesting
         public void AssertStaticSimple()
         {
             var env = new ConsoleEnvironment(0, verbose: true);
-            var schema = new SimpleSchema(env,
+            var schema = SimpleSchemaUtils.Create(env,
                 P("hello", TextType.Instance),
                 P("my", new VectorType(NumberType.I8, 5)),
                 P("friend", new KeyType(DataKind.U4, 0, 3)));
@@ -228,7 +228,7 @@ namespace Microsoft.ML.StaticPipelineTesting
         public void AssertStaticSimpleFailure()
         {
             var env = new ConsoleEnvironment(0, verbose: true);
-            var schema = new SimpleSchema(env,
+            var schema = SimpleSchemaUtils.Create(env,
                 P("hello", TextType.Instance),
                 P("my", new VectorType(NumberType.I8, 5)),
                 P("friend", new KeyType(DataKind.U4, 0, 3)));

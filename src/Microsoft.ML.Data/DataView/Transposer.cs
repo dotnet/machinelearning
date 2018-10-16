@@ -260,7 +260,7 @@ namespace Microsoft.ML.Runtime.Data
         // we are still and will likely forever remain in a state where only a few specialized
         // operations make use of the transpose dataview, with many operations instead being
         // handled in the standard row-wise fashion.
-        public ISchema Schema { get { return _view.Schema; } }
+        public Schema Schema => _view.Schema;
 
         public bool CanShuffle { get { return _view.CanShuffle; } }
 
@@ -287,7 +287,9 @@ namespace Microsoft.ML.Runtime.Data
             private readonly IExceptionContext _ectx;
             private readonly VectorType[] _slotTypes;
 
-            private ISchema InputSchema { get { return _parent._view.Schema; } }
+            private Schema InputSchema { get { return _parent._view.Schema; } }
+
+            public Schema AsSchema { get; }
 
             public int ColumnCount { get { return InputSchema.ColumnCount; } }
 
@@ -306,6 +308,8 @@ namespace Microsoft.ML.Runtime.Data
                     _ectx.Assert(ctype.IsPrimitive);
                     _slotTypes[c] = new VectorType(ctype.AsPrimitive, _parent.RowCount);
                 }
+
+                AsSchema = Data.Schema.Create(this);
             }
 
             public bool TryGetColumnIndex(string name, out int col)
@@ -768,7 +772,7 @@ namespace Microsoft.ML.Runtime.Data
             private readonly SchemaImpl _schema;
 
             private readonly IHost _host;
-            public ISchema Schema { get { return _schema; } }
+            public Schema Schema => _schema.AsSchema;
 
             public bool CanShuffle { get { return _input.CanShuffle; } }
 
@@ -895,6 +899,8 @@ namespace Microsoft.ML.Runtime.Data
                 private readonly DataViewSlicer _slicer;
                 private readonly Dictionary<string, int> _nameToCol;
 
+                public Schema AsSchema { get; }
+
                 public override int ColumnCount { get { return _slicer._colToSplitIndex.Length; } }
 
                 public SchemaImpl(DataViewSlicer slicer, Dictionary<string, int> nameToCol)
@@ -903,6 +909,7 @@ namespace Microsoft.ML.Runtime.Data
                     Contracts.AssertValue(nameToCol);
                     _slicer = slicer;
                     _nameToCol = nameToCol;
+                    AsSchema = Data.Schema.Create(this);
                 }
 
                 public override bool TryGetColumnIndex(string name, out int col)
@@ -976,6 +983,8 @@ namespace Microsoft.ML.Runtime.Data
                 private readonly int _col;
 
                 public int SrcCol { get { return _col; } }
+
+                public abstract Schema AsSchema { get; }
 
                 protected Splitter(IDataView view, int col)
                 {
@@ -1068,7 +1077,7 @@ namespace Microsoft.ML.Runtime.Data
                     protected readonly TSplitter Parent;
                     protected readonly IRow Input;
 
-                    public ISchema Schema => Parent;
+                    public Schema Schema => Parent.AsSchema;
                     public long Position => Input.Position;
                     public long Batch => Input.Batch;
 
@@ -1100,10 +1109,13 @@ namespace Microsoft.ML.Runtime.Data
                 {
                     public override int ColumnCount => 1;
 
+                    public override Schema AsSchema { get; }
+
                     public NoSplitter(IDataView view, int col)
                         : base(view, col)
                     {
                         Contracts.Assert(_view.Schema.GetColumnType(col).RawType == typeof(T));
+                        AsSchema = Data.Schema.Create(this);
                     }
 
                     public override ColumnType GetColumnType(int col)
@@ -1156,6 +1168,8 @@ namespace Microsoft.ML.Runtime.Data
                     // Cache of the types of each slice.
                     private readonly VectorType[] _types;
 
+                    public override Schema AsSchema { get; }
+
                     public override int ColumnCount { get { return _lims.Length; } }
 
                     /// <summary>
@@ -1186,6 +1200,8 @@ namespace Microsoft.ML.Runtime.Data
                         _types[0] = new VectorType(type.ItemType, _lims[0]);
                         for (int c = 1; c < _lims.Length; ++c)
                             _types[c] = new VectorType(type.ItemType, _lims[c] - _lims[c - 1]);
+
+                        AsSchema = Data.Schema.Create(this);
                     }
 
                     public override ColumnType GetColumnType(int col)
@@ -1330,7 +1346,7 @@ namespace Microsoft.ML.Runtime.Data
                 private readonly DataViewSlicer _slicer;
                 private readonly IRow[] _sliceRows;
 
-                public ISchema Schema { get { return _slicer.Schema; } }
+                public Schema Schema => _slicer.Schema;
 
                 public Cursor(IChannelProvider provider, DataViewSlicer slicer, IRowCursor input, Func<int, bool> pred, bool[] activeSplitters)
                     : base(provider, input)
@@ -1463,9 +1479,9 @@ namespace Microsoft.ML.Runtime.Data
             private readonly ITransposeDataView _data;
             private readonly int _col;
             private readonly ColumnType _type;
-            private readonly SchemaImpl _schema;
+            private readonly SchemaImpl _schemaImpl;
 
-            public ISchema Schema { get { return _schema; } }
+            public Schema Schema => _schemaImpl.AsSchema;
 
             public bool CanShuffle { get { return false; } }
 
@@ -1480,7 +1496,7 @@ namespace Microsoft.ML.Runtime.Data
 
                 _data = data;
                 _col = col;
-                _schema = new SchemaImpl(this);
+                _schemaImpl = new SchemaImpl(this);
             }
 
             public long? GetRowCount(bool lazy = true)
@@ -1515,12 +1531,15 @@ namespace Microsoft.ML.Runtime.Data
 
                 private IHost Host { get { return _parent._host; } }
 
+                public Schema AsSchema { get; }
+
                 public int ColumnCount { get { return 1; } }
 
                 public SchemaImpl(SlotDataView parent)
                 {
                     Contracts.AssertValue(parent);
                     _parent = parent;
+                    AsSchema = Data.Schema.Create(this);
                 }
 
                 public ColumnType GetColumnType(int col)
@@ -1578,7 +1597,7 @@ namespace Microsoft.ML.Runtime.Data
                 private readonly SlotDataView _parent;
                 private readonly Delegate _getter;
 
-                public ISchema Schema { get { return _parent._schema; } }
+                public Schema Schema => _parent.Schema;
 
                 public Cursor(SlotDataView parent, bool active)
                     : base(parent._host, parent._data.GetSlotCursor(parent._col))
@@ -1613,7 +1632,7 @@ namespace Microsoft.ML.Runtime.Data
         {
             private readonly SchemaImpl _schema;
 
-            public ISchema Schema { get { return _schema; } }
+            public Schema Schema => _schema.AsSchema;
 
             private sealed class SchemaImpl : ISchema
             {
@@ -1621,6 +1640,8 @@ namespace Microsoft.ML.Runtime.Data
                 private readonly VectorType _type;
 
                 private IChannel Ch { get { return _parent.Ch; } }
+
+                public Schema AsSchema { get; }
 
                 public int ColumnCount { get { return 1; } }
 
@@ -1630,6 +1651,7 @@ namespace Microsoft.ML.Runtime.Data
                     _parent = parent;
                     Ch.AssertValue(slotType);
                     _type = slotType;
+                    AsSchema = Schema.Create(this);
                 }
 
                 public ColumnType GetColumnType(int col)

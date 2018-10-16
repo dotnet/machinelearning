@@ -171,8 +171,8 @@ namespace Microsoft.ML.Runtime.Data
 
             public RoleMappedSchema InputRoleMappedSchema { get; }
 
-            public ISchema Schema { get; }
-            public ISchema InputSchema => InputRoleMappedSchema.Schema;
+            public Schema Schema { get; }
+            public Schema InputSchema => InputRoleMappedSchema.Schema;
 
             public ISchemaBindableMapper Bindable => _owner;
 
@@ -202,7 +202,7 @@ namespace Microsoft.ML.Runtime.Data
                 // which means that #internal = #leaf - 1.
                 // Therefore, the number of internal nodes in the ensemble is #leaf - #trees.
                 var pathIdType = new VectorType(NumberType.Float, _owner._totalLeafCount - _owner._ensemble.NumTrees);
-                Schema = new SchemaImpl(ectx, owner, treeValueType, leafIdType, pathIdType);
+                Schema = Schema.Create(new SchemaImpl(ectx, owner, treeValueType, leafIdType, pathIdType));
             }
 
             public IRow GetRow(IRow input, Func<int, bool> predicate, out Action disposer)
