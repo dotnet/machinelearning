@@ -64,10 +64,10 @@ namespace Microsoft.ML.Runtime.RunTests
                 Path = _testCmd.DeleteOutputPath(_dir, _name);
             }
 
-            public bool CheckEquality()
+            public bool CheckEquality(int digitsOfPrecision = DigitsOfPrecision)
             {
                 Contracts.Assert(CanBeBaselined);
-                return _testCmd.CheckEquality(_dir, _name);
+                return _testCmd.CheckEquality(_dir, _name, digitsOfPrecision: digitsOfPrecision);
             }
 
             public bool CheckEqualityNormalized(int digitsOfPrecision = DigitsOfPrecision)
@@ -128,7 +128,7 @@ namespace Microsoft.ML.Runtime.RunTests
         /// This contains a convenience class for capturing the very common test case where
         /// one wants to first incorporate a path as an argument to a command, and then
         /// immediately turn around and run some sort of comparison based on it. It is sort
-        /// of a decorated path that describes how the <see cref="TestCore"/> and similar
+        /// of a decorated path that describes how the TestCore and similar
         /// methods should incorporate it into the arguments.
         /// </summary>
         protected sealed class PathArgument
@@ -210,11 +210,11 @@ namespace Microsoft.ML.Runtime.RunTests
                 _names = names;
             }
 
-            public bool CheckEquality()
+            public bool CheckEquality(int digitsOfPrecision = DigitsOfPrecision)
             {
                 if (Normalized)
-                    return Path.CheckEqualityNormalized();
-                return Path.CheckEquality();
+                    return Path.CheckEqualityNormalized(digitsOfPrecision);
+                return Path.CheckEquality(digitsOfPrecision);
             }
         }
 
@@ -276,12 +276,17 @@ namespace Microsoft.ML.Runtime.RunTests
             environment.AddStandardComponents();
         }
 
+        protected bool TestCore(RunContextBase ctx, string cmdName, string args, params PathArgument[] toCompare)
+        {
+            return TestCore(ctx, cmdName, args, DigitsOfPrecision, toCompare);
+        }
+
         /// <summary>
         /// Runs a command with some arguments. Note that the input
         /// <paramref name="toCompare"/> objects are used for comparison only.
         /// </summary>
         /// <returns>Whether this test succeeded.</returns>
-        protected bool TestCore(RunContextBase ctx, string cmdName, string args, params PathArgument[] toCompare)
+        protected bool TestCore(RunContextBase ctx, string cmdName, string args, int digitsOfPrecision, params PathArgument[] toCompare)
         {
             Contracts.AssertValue(cmdName);
             Contracts.AssertValueOrNull(args);
@@ -300,10 +305,10 @@ namespace Microsoft.ML.Runtime.RunTests
             bool all = true;
             if (!ctx.NoComparisons)
             {
-                all &= outputPath.CheckEqualityNormalized();
+                all &= outputPath.CheckEqualityNormalized(digitsOfPrecision);
                 if (toCompare != null)
                     foreach (var c in toCompare)
-                        all &= c.CheckEquality();
+                        all &= c.CheckEquality(digitsOfPrecision);
             }
             return all;
         }
@@ -355,7 +360,14 @@ namespace Microsoft.ML.Runtime.RunTests
     /// </summary>
     public abstract partial class TestDmCommandBase : TestCommandBase
     {
-        private bool TestCoreCore(RunContextBase ctx, string cmdName, string dataPath, PathArgument.Usage situation, OutputPath inModelPath, OutputPath outModelPath, string loaderArgs, string extraArgs, params PathArgument[] toCompare)
+        private bool TestCoreCore(RunContextBase ctx, string cmdName, string dataPath, PathArgument.Usage situation,
+            OutputPath inModelPath, OutputPath outModelPath, string loaderArgs, string extraArgs, params PathArgument[] toCompare)
+        {
+            return TestCoreCore(ctx, cmdName, dataPath, situation, inModelPath, outModelPath, loaderArgs, extraArgs, DigitsOfPrecision, toCompare);
+        }
+
+        private bool TestCoreCore(RunContextBase ctx, string cmdName, string dataPath, PathArgument.Usage situation, 
+            OutputPath inModelPath, OutputPath outModelPath, string loaderArgs, string extraArgs, int digitsOfPrecision, params PathArgument[] toCompare)
         {
             Contracts.AssertNonEmpty(cmdName);
             Contracts.AssertValueOrNull(dataPath);
@@ -385,7 +397,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 args.Add(extraArgs);
             var argString = string.Join(" ", args);
             var paths = toCompare.Where(pa => (pa.CmpUsage & situation) != PathArgument.Usage.None).ToArray();
-            return TestCore(ctx, cmdName, argString, paths);
+            return TestCore(ctx, cmdName, argString, digitsOfPrecision: digitsOfPrecision, toCompare: paths);
         }
 
         /// <summary>
@@ -405,6 +417,11 @@ namespace Microsoft.ML.Runtime.RunTests
         protected bool TestCore(RunContextBase ctx, string cmdName, string dataPath, string loaderArgs, string extraArgs, params PathArgument[] toCompare)
         {
             return TestCoreCore(ctx, cmdName, dataPath, PathArgument.Usage.DataModel, null, ctx.ModelPath(), loaderArgs, extraArgs, toCompare);
+        }
+
+        protected bool TestCore(RunContextBase ctx, string cmdName, string dataPath, string loaderArgs, string extraArgs, int digitsOfPrecision, params PathArgument[] toCompare)
+        {
+            return TestCoreCore(ctx, cmdName, dataPath, PathArgument.Usage.DataModel, null, ctx.ModelPath(), loaderArgs, extraArgs, digitsOfPrecision, toCompare);
         }
 
         /// <summary>
@@ -612,7 +629,12 @@ namespace Microsoft.ML.Runtime.RunTests
 
         protected bool TestCore(string cmdName, string dataPath, string loaderArgs, string extraArgs, params PathArgument[] toCompare)
         {
-            return TestCore(Params, cmdName, dataPath, loaderArgs, extraArgs, toCompare);
+            return TestCore(Params, cmdName, dataPath, loaderArgs, extraArgs, DigitsOfPrecision, toCompare);
+        }
+
+        protected bool TestCore(string cmdName, string dataPath, string loaderArgs, string extraArgs, int digitsOfPrecision, params PathArgument[] toCompare)
+        {
+            return TestCore(Params, cmdName, dataPath, loaderArgs, extraArgs, digitsOfPrecision, toCompare);
         }
 
         protected bool TestCore(string cmdName, string args, params PathArgument[] toCompare)
@@ -820,7 +842,7 @@ namespace Microsoft.ML.Runtime.RunTests
             Done();
         }
 
-        [Fact]
+        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // x86 output differs from Baseline
         public void CommandCrossValidationKeyLabelWithFloatKeyValues()
         {
             RunMTAThread(() =>
@@ -1925,35 +1947,39 @@ namespace Microsoft.ML.Runtime.RunTests
         }
 
         [TestCategory(Cat), TestCategory("FieldAwareFactorizationMachine"), TestCategory("Continued Training")]
-        [Fact(Skip = "Need CoreTLC specific baseline update")]
+        [Fact]
         public void CommandTrainingBinaryFactorizationMachineWithInitialization()
         {
             const string loaderArgs = "loader=text{col=Label:0 col=Features:1-*}";
             const string extraArgs = "xf=minmax{col=Features} tr=ffm{d=7 shuf- iters=3 norm-}";
             string data = GetDataPath("breast-cancer.txt");
             OutputPath model = ModelPath();
+
             TestCore("traintest", data, loaderArgs, extraArgs + " test=" + data);
+
             _step++;
             TestInOutCore("traintest", data, model, extraArgs + " " + loaderArgs + " " + "cont+" + " " + "test=" + data);
             Done();
         }
 
         [TestCategory(Cat), TestCategory("FieldAwareFactorizationMachine"), TestCategory("Continued Training")]
-        [Fact(Skip = "Need CoreTLC specific baseline update")]
+        [Fact]
         public void CommandTrainingBinaryFieldAwareFactorizationMachineWithInitialization()
         {
             const string loaderArgs = "loader=text{col=Label:0 col=FieldA:1-2 col=FieldB:3-4 col=FieldC:5-6 col=FieldD:7-9}";
             const string extraArgs = "tr=ffm{d=7 shuf- iters=3} col[Feature]=FieldA col[Feature]=FieldB col[Feature]=FieldC col[Feature]=FieldD";
             string data = GetDataPath("breast-cancer.txt");
             OutputPath model = ModelPath();
-            TestCore("traintest", data, loaderArgs, extraArgs + " test=" + data);
+
+            TestCore("traintest", data, loaderArgs, extraArgs + " test=" + data, digitsOfPrecision:5);
+
             _step++;
             TestInOutCore("traintest", data, model, extraArgs + " " + loaderArgs + " " + "cont+" + " " + "test=" + data);
             Done();
         }
 
         [TestCategory(Cat), TestCategory("FieldAwareFactorizationMachine"), TestCategory("Continued Training")]
-        [Fact(Skip = "Need CoreTLC specific baseline update")]
+        [Fact(Skip = "Missing Dataset.")]
         public void CommandTrainingBinaryFactorizationMachineWithValidation()
         {
             const string loaderArgs = "loader=Text{header+ col=Label:1 col=Features:2-*}";
@@ -1966,15 +1992,23 @@ namespace Microsoft.ML.Runtime.RunTests
             using (var newWriter = OpenWriter(outputPath.Path))
             using (var env = new ConsoleEnvironment(42, outWriter: newWriter, errWriter: newWriter))
             {
+                InitializeEnvironment(env);
                 int res = MainForTest(env, newWriter, string.Format("{0} {1}", "traintest", args), true);
                 Assert.True(res == 0);
             }
-            Assert.True(outputPath.CheckEqualityNormalized());
+
+            // see https://github.com/dotnet/machinelearning/issues/404
+            // in Linux, the clang sqrt() results vary highly from the ones in mac and Windows. 
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+                Assert.True(outputPath.CheckEqualityNormalized(digitsOfPrecision:4));
+            else
+                Assert.True(outputPath.CheckEqualityNormalized());
+
             Done();
         }
 
         [TestCategory(Cat), TestCategory("FieldAwareFactorizationMachine"), TestCategory("Continued Training")]
-        [Fact(Skip = "Need CoreTLC specific baseline update")]
+        [Fact(Skip = "Missing Dataset.")]
         public void CommandTrainingBinaryFieldAwareFactorizationMachineWithValidation()
         {
             const string loaderArgs = "loader=Text{header+ col=Label:1 col=FieldA:2-20 col=FieldB:21-40 col=FieldC:41-60 col=FieldD:61-*}";
@@ -1987,54 +2021,70 @@ namespace Microsoft.ML.Runtime.RunTests
             using (var newWriter = OpenWriter(outputPath.Path))
             using (var env = new ConsoleEnvironment(42, outWriter: newWriter, errWriter: newWriter))
             {
+                InitializeEnvironment(env);
                 int res = MainForTest(env, newWriter, string.Format("{0} {1}", "traintest", args), true);
                 Assert.Equal(0, res);
             }
+
             Assert.True(outputPath.CheckEqualityNormalized());
+
             Done();
         }
 
         [TestCategory(Cat), TestCategory("FieldAwareFactorizationMachine"), TestCategory("Continued Training")]
-        [Fact(Skip = "Need CoreTLC specific baseline update")]
+        [Fact]
         public void CommandTrainingBinaryFactorizationMachineWithValidationAndInitialization()
         {
             const string loaderArgs = "loader=text{col=Label:0 col=Features:1-*}";
             const string extraArgs = "xf=minmax{col=Features} tr=ffm{d=5 shuf- iters=2 norm-}";
             string data = GetDataPath("breast-cancer.txt");
             OutputPath model = ModelPath();
+
             TestCore("traintest", data, loaderArgs, extraArgs + " test=" + data);
+
             _step++;
             OutputPath outputPath = StdoutPath();
             string args = $"data={data} test={data} valid={data} in={model.Path} cont+" + " " + loaderArgs + " " + extraArgs;
             using (var newWriter = OpenWriter(outputPath.Path))
             using (var env = new ConsoleEnvironment(42, outWriter: newWriter, errWriter: newWriter))
             {
+                InitializeEnvironment(env);
                 int res = MainForTest(env, newWriter, string.Format("{0} {1}", "traintest", args), true);
                 Assert.True(res == 0);
             }
-            Assert.True(outputPath.CheckEqualityNormalized());
+
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+                Assert.True(outputPath.CheckEqualityNormalized(digitsOfPrecision:4));
+            else
+                Assert.True(outputPath.CheckEqualityNormalized());
+
             Done();
         }
 
         [TestCategory(Cat), TestCategory("FieldAwareFactorizationMachine"), TestCategory("Continued Training")]
-        [Fact(Skip = "Need CoreTLC specific baseline update")]
+        [Fact]
         public void CommandTrainingBinaryFieldAwareFactorizationMachineWithValidationAndInitialization()
         {
             const string loaderArgs = "loader=text{col=Label:0 col=FieldA:1-2 col=FieldB:3-4 col=FieldC:5-6 col=FieldD:7-9}";
             const string extraArgs = "tr=ffm{d=5 shuf- iters=2} col[Feature]=FieldA col[Feature]=FieldB col[Feature]=FieldC col[Feature]=FieldD";
             string data = GetDataPath("breast-cancer.txt");
             OutputPath model = ModelPath();
+
             TestCore("traintest", data, loaderArgs, extraArgs + " test=" + data);
+
             _step++;
             OutputPath outputPath = StdoutPath();
             string args = $"data={data} test={data} valid={data} in={model.Path} cont+" + " " + loaderArgs + " " + extraArgs;
             using (var newWriter = OpenWriter(outputPath.Path))
             using (var env = new ConsoleEnvironment(42, outWriter: newWriter, errWriter: newWriter))
             {
+                InitializeEnvironment(env);
                 int res = MainForTest(env, newWriter, string.Format("{0} {1}", "traintest", args), true);
                 Assert.True(res == 0);
             }
+
             Assert.True(outputPath.CheckEqualityNormalized());
+
             Done();
         }
 

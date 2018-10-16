@@ -63,7 +63,7 @@ namespace Microsoft.ML.Transforms
             };
 
             // Create a valid instance of data.
-            var schema = new SimpleSchema(env, columns.Select(x => new KeyValuePair<string, ColumnType>(x.input, TextType.Instance)).ToArray());
+            var schema = new Schema(columns.Select(x => new Schema.Column(x.input, TextType.Instance, null)));
             var emptyData = new EmptyDataView(env, schema);
 
             return new TransformWrapper(env, new DelimitedTokenizeTransform(env, args, emptyData));
@@ -116,7 +116,7 @@ namespace Microsoft.ML.Transforms
             };
 
             // Create a valid instance of data.
-            var schema = new SimpleSchema(env, columns.Select(x => new KeyValuePair<string, ColumnType>(x.input, TextType.Instance)).ToArray());
+            var schema = new Schema(columns.Select(x => new Schema.Column(x.input, TextType.Instance, null)));
             var emptyData = new EmptyDataView(env, schema);
 
             return new TransformWrapper(env, new CharTokenizeTransform(env, args, emptyData));
@@ -173,7 +173,7 @@ namespace Microsoft.ML.Transforms
             };
 
             // Create a valid instance of data.
-            var schema = new SimpleSchema(env, columns.Select(x => new KeyValuePair<string, ColumnType>(x.input, new VectorType(TextType.Instance))).ToArray());
+            var schema = new Schema(columns.Select(x => new Schema.Column(x.input, new VectorType(TextType.Instance), null)));
             var emptyData = new EmptyDataView(env, schema);
 
             return new TransformWrapper(env, new StopWordsRemoverTransform(env, args, emptyData));
@@ -254,7 +254,7 @@ namespace Microsoft.ML.Transforms
             };
 
             // Create a valid instance of data.
-            var schema = new SimpleSchema(env, columns.Select(x => new KeyValuePair<string, ColumnType>(x.input, TextType.Instance)).ToArray());
+            var schema = new Schema(columns.Select(x => new Schema.Column(x.input, TextType.Instance, null)));
             var emptyData = new EmptyDataView(env, schema);
 
             return new TransformWrapper(env, new TextNormalizerTransform(env, args, emptyData));

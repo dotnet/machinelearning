@@ -31,7 +31,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                 var validData = preprocess.Transform(reader.Read(new MultiFileSource(GetDataPath(TestDatasets.Sentiment.testFilename))));
 
                 // Train model with validation set.
-                var trainer = new LinearClassificationTrainer(env, new LinearClassificationTrainer.Arguments(), "Features", "Label");
+                var trainer = new LinearClassificationTrainer(env, "Features", "Label");
                 var model = trainer.Train(trainData, validData);
             }
         }

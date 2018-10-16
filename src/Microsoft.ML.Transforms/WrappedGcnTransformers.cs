@@ -55,7 +55,7 @@ namespace Microsoft.ML.Transforms
             };
 
             // Create a valid instance of data.
-            var schema = new SimpleSchema(env, columns.Select(x => new KeyValuePair<string, ColumnType>(x.input, new VectorType(NumberType.R4))).ToArray());
+            var schema = new Schema(columns.Select(x => new Schema.Column(x.input, new VectorType(NumberType.R4), null)));
             var emptyData = new EmptyDataView(env, schema);
 
             return new TransformWrapper(env, new LpNormNormalizerTransform(env, args, emptyData));
@@ -107,7 +107,7 @@ namespace Microsoft.ML.Transforms
             };
 
             // Create a valid instance of data.
-            var schema = new SimpleSchema(env, columns.Select(x => new KeyValuePair<string, ColumnType>(x.input, new VectorType(NumberType.R4))).ToArray());
+            var schema = new Schema(columns.Select(x => new Schema.Column(x.input, new VectorType(NumberType.R4), null)));
             var emptyData = new EmptyDataView(env, schema);
 
             return new TransformWrapper(env, new LpNormNormalizerTransform(env, args, emptyData));

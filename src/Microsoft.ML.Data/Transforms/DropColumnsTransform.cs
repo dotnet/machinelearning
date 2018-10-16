@@ -64,6 +64,8 @@ namespace Microsoft.ML.Runtime.Data
             // Map from names to our column indices.
             public readonly Dictionary<string, int> NameToCol;
 
+            public Schema AsSchema { get; }
+
             public Bindings(ArgumentsBase args, bool keep, ISchema schemaInput)
             {
                 Contracts.AssertValue(args);
@@ -85,6 +87,8 @@ namespace Microsoft.ML.Runtime.Data
                 }
 
                 BuildMap(out ColMap, out NameToCol);
+
+                AsSchema = Schema.Create(this);
             }
 
             private void BuildMap(out int[] map, out Dictionary<string, int> nameToCol)
@@ -130,6 +134,7 @@ namespace Microsoft.ML.Runtime.Data
                 }
 
                 BuildMap(out ColMap, out NameToCol);
+                AsSchema = Schema.Create(this);
             }
 
             public void Save(ModelSaveContext ctx)
@@ -309,7 +314,7 @@ namespace Microsoft.ML.Runtime.Data
             _bindings.Save(ctx);
         }
 
-        public override ISchema Schema { get { return _bindings; } }
+        public override Schema Schema => _bindings.AsSchema;
 
         protected override bool? ShouldUseParallelCursors(Func<int, bool> predicate)
         {
@@ -380,7 +385,7 @@ namespace Microsoft.ML.Runtime.Data
                 _active = active;
             }
 
-            public ISchema Schema { get { return _bindings; } }
+            public Schema Schema => _bindings.AsSchema;
 
             public bool IsColumnActive(int col)
             {
