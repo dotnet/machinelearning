@@ -283,6 +283,33 @@ namespace Microsoft.ML.Tests
         }
 
         [Fact]
+        public void WordEmbeddingsTest()
+        {
+            string dataPath = GetDataPath(@"temp.txt");
+            var pipeline = new Legacy.LearningPipeline(0);
+
+            pipeline.Add(new Legacy.Data.TextLoader(dataPath)
+            {
+                Arguments = new TextLoaderArguments
+                {
+                    Separator = new[] { '\t' },
+                    HasHeader = false,
+                    Column = new []
+                    {
+                        new TextLoaderColumn()
+                        {
+                            Name = "Features",
+                            Source = new [] { new TextLoaderRange(0, 3) },
+                            Type = Legacy.Data.DataKind.TX
+                        },
+                    }
+                }
+            });
+
+            pipeline.Add(new WordEmbeddingsTransform() { });
+        }
+
+        [Fact]
         public void KmeansTest()
         {
             string dataPath = GetDataPath(@"breast-cancer.txt");
