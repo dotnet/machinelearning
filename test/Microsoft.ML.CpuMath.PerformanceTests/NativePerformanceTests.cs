@@ -250,5 +250,17 @@ namespace Microsoft.ML.CpuMath.PerformanceTests
                 Thunk.MatMulTran(psrc1, psrc, pdst, 1000, 1000);
             }
         }
+
+        [Benchmark]
+        public unsafe void MatMulP()
+        {
+            fixed (float* psrc = &src[0])
+            fixed (float* pdst = &dst[0])
+            fixed (float* psrc1 = &src1[0])
+            fixed (int* pidx = &idx[0])
+            {
+                Thunk.MatMulP(psrc1, pidx, psrc, 0, 0, 8, pdst, 1000, 1000);
+            }
+        }
     }
 }

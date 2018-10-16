@@ -114,7 +114,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             else if (Sse.IsSupported)
             {
                 Contracts.Assert(crun <= dst.Size);
-                SseIntrinsics.MatMulPA(mat, rgposSrc, srcValues, posMin, iposMin, iposLim, dst, crun, srcValues.Size);
+                SseIntrinsics.MatMulP(mat, rgposSrc, srcValues, posMin, iposMin, iposLim, dst, crun, srcValues.Size);
             }
             else
             {

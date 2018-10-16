@@ -106,5 +106,9 @@ namespace Microsoft.ML.CpuMath.PerformanceTests
         [Benchmark]
         public void MatMulTranX()
             => SseIntrinsics.MatMulTran(src, src1, dst, 1000, 1000);
+
+        [Benchmark]
+        public void MatMulPX()
+            => SseIntrinsics.MatMulP(src, idx, src1, 0, 0, 8, dst, 1000, 1000);
     }
 }

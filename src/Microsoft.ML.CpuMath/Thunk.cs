@@ -22,7 +22,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         public static extern void MatMulX(/*const*/ float* pmat, /*const*/ float* psrc, float* pdst, int crow, int ccol);
 
         [DllImport(NativePath), SuppressUnmanagedCodeSecurity]
-        public static extern void MatMulPA(/*const*/ float* pmat, /*const*/ int* pposSrc, /*const*/ float* psrc,
+        public static extern void MatMulP(/*const*/ float* pmat, /*const*/ int* pposSrc, /*const*/ float* psrc,
             int posMin, int iposMin, int iposLim, float* pdst, int crow, int ccol);
         [DllImport(NativePath), SuppressUnmanagedCodeSecurity]
         public static extern void MatMulPX(/*const*/ float* pmat, /*const*/ int* pposSrc, /*const*/ float* psrc,

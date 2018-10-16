@@ -116,5 +116,9 @@ namespace Microsoft.ML.CpuMath.PerformanceTests
         [Benchmark]
         public void MatMulTranX()
             => AvxIntrinsics.MatMulTranX(src, src1, dst, 1000, 1000);
+
+        [Benchmark]
+        public void MatMulPX()
+            => AvxIntrinsics.MatMulPX(src, idx, src1, 0, 0, 8, dst, 1000, 1000);
     }
 }

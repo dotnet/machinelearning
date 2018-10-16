@@ -81,7 +81,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                 fixed (int* ppossrc = &rgposSrc[0])
                 {
                     Contracts.Assert(0 <= crun && crun <= dst.Size);
-                    Thunk.MatMulPA(Ptr(mat, pmat), ppossrc, Ptr(srcValues, psrc), posMin, iposMin, iposLim, Ptr(dst, pdst), crun, srcValues.Size);
+                    Thunk.MatMulP(Ptr(mat, pmat), ppossrc, Ptr(srcValues, psrc), posMin, iposMin, iposLim, Ptr(dst, pdst), crun, srcValues.Size);
                 }
             }
         }

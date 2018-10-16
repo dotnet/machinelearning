@@ -255,32 +255,147 @@ EXPORT_API(void) MatMul(_In_ const float * pmat, _In_ const float * psrc, _Inout
 }
 
 // Partial sparse source vector.
-EXPORT_API(void) MatMulPA(_In_ const float * pmat, _In_ const int * pposSrc, _In_ const float * psrc,
+EXPORT_API(void) MatMulP(_In_ const float * pmat, _In_ const int * pposSrc, _In_ const float * psrc,
     int posMin, int iposMin, int iposLim, _Inout_ float * pdst, int crow, int ccol)
 {
     // REVIEW: For extremely sparse inputs, interchanging the loops would
     // likely be more efficient.
     const int * pposMin = pposSrc + iposMin;
-    const int * pposLim = pposSrc + iposLim;
-    const float * pdLim = pdst + crow;
+    const int * pposEnd = pposSrc + iposLim;
+    const float * pDstEnd = pdst + crow;
     const float * pm0 = pmat - posMin;
-    const float * ps = psrc - posMin;
-    for (float * pd = pdst; pd < pdLim; pd += 4, pm0 += 4 * ccol)
+    const float * pSrcCurrent = psrc - posMin;
+    float* pDstCurrent = pdst;
+    
+    uintptr_t address = (uintptr_t)(pDstCurrent);
+    uintptr_t misalignment = address % 16;
+    int length = crow;
+    int remainder = 0;
+    
+    if ((misalignment & 3) != 0)
     {
-        const float * pm1 = pm0 + ccol;
-        const float * pm2 = pm1 + ccol;
-        const float * pm3 = pm2 + ccol;
-        __m128 res = _mm_setzero_ps();
-        for (const int * ppos = pposMin; ppos < pposLim; ppos++)
+        while (pDstCurrent < pDstEnd)
         {
-            int col = *ppos;
-            __m128 x1 = _mm_setr_ps(pm0[col], pm1[col], pm2[col], pm3[col]);
-            __m128 x2 = _mm_set1_ps(ps[col]);
-            x2 = _mm_mul_ps(x2, x1);
-            res = _mm_add_ps(res, x2);
+            const float* pm1 = pm0 + ccol;
+            const float* pm2 = pm1 + ccol;
+            const float* pm3 = pm2 + ccol;
+
+            __m128 res = _mm_setzero_ps();
+            const int* ppos = pposMin;
+
+            while (ppos < pposEnd)
+            {
+                int col = *ppos;
+                __m128 x1 = _mm_setr_ps(pm0[col], pm1[col], pm2[col], pm3[col]);
+                __m128 x2 = _mm_set1_ps(pSrcCurrent[col]);
+                x2 = _mm_mul_ps(x2, x1);
+                res = _mm_add_ps(res, x2);
+                ppos++;
+            }
+
+            _mm_storeu_ps(pDstCurrent, res);
+            pDstCurrent += 4;
+            pm0 += 4 * ccol;
+        }
+    }
+    else
+    {
+        if (misalignment != 0)
+        {
+            misalignment >>= 2;
+            misalignment = 4 - misalignment;
+
+            __m128 mask = _mm_loadu_ps(((float*)(&LeadingAlignmentMask)) + (misalignment * 4));       
+
+            const float* pm1 = pm0 + ccol;
+            const float* pm2 = pm1 + ccol;
+            const float* pm3 = pm2 + ccol;
+
+            __m128 res = _mm_setzero_ps();
+            const int* ppos = pposMin;
+
+            while (ppos < pposEnd)
+            {
+                int col = *ppos;
+                __m128 x1 = _mm_setr_ps(pm0[col], pm1[col], pm2[col], pm3[col]);
+                x1 = _mm_and_ps(mask, x1);
+                
+                __m128 x2 = _mm_set1_ps(pSrcCurrent[col]);
+                x2 = _mm_mul_ps(x2, x1);
+                res = _mm_add_ps(res, x2);
+                ppos++;
+            }
+
+            _mm_storeu_ps(pDstCurrent, res);
+            pDstCurrent += misalignment;
+            pm0 += misalignment * ccol;
+            length -= misalignment;
         }
 
-        _mm_store_ps(pd, res);
+        if (length > 3)
+        {
+            remainder = length % 4;
+            while (pDstCurrent < pDstEnd)
+            {
+                const float* pm1 = pm0 + ccol;
+                const float* pm2 = pm1 + ccol;
+                const float* pm3 = pm2 + ccol;
+
+                const int* ppos = pposMin;
+                __m128 res = _mm_setzero_ps();
+
+                while (ppos < pposEnd)
+                {
+                    int col = *ppos;
+                    __m128 x1 = _mm_setr_ps(pm0[col], pm1[col], pm2[col], pm3[col]);
+                    __m128 x2 = _mm_set1_ps(pSrcCurrent[col]);
+                    x2 = _mm_mul_ps(x2, x1);
+                    res = _mm_add_ps(res, x2);
+                    ppos++;
+                }
+
+                _mm_store_ps(pDstCurrent, res);
+                pDstCurrent += 4;
+                pm0 += 4 * ccol;
+            }
+        }
+        else
+        {
+            length = remainder;
+        }
+
+        if (remainder != 0)
+        {
+            pDstCurrent -= (4 - remainder);
+            pm0 -= (4 - remainder) * ccol;
+
+            __m128 trailingMask = _mm_loadu_ps(((float*)(&TrailingAlignmentMask)) + (remainder * 4));     
+            __m128 leadingMask = _mm_loadu_ps(((float*)(&LeadingAlignmentMask)) + (( 4 - remainder) * 4));     
+            
+            const float* pm1 = pm0 + ccol;
+            const float* pm2 = pm1 + ccol;
+            const float* pm3 = pm2 + ccol;
+
+            const int* ppos = pposMin;
+            __m128 res = _mm_setzero_ps();
+            
+            while (ppos < pposEnd)
+            {
+                int col = *ppos;
+                __m128 x1 = _mm_setr_ps(pm0[col], pm1[col], pm2[col], pm3[col]);
+                x1 = _mm_and_ps(x1, trailingMask);
+
+                __m128 x2 = _mm_set1_ps(pSrcCurrent[col]);
+                x2 = _mm_mul_ps(x2, x1);
+                res = _mm_add_ps(res, x2);
+                ppos++;
+            }
+
+            res = _mm_add_ps(res, _mm_and_ps(leadingMask, _mm_loadu_ps(pDstCurrent)));
+            _mm_storeu_ps(pDstCurrent, res);
+            pDstCurrent += 4;
+            pm0 += 4 * ccol;
+        }
     }
 }
 

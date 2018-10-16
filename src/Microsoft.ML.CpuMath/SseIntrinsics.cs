@@ -285,24 +285,27 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         }
 
         // Partial sparse source vector.
-        public static unsafe void MatMulPA(AlignedArray mat, int[] rgposSrc, AlignedArray src,
-                                        int posMin, int iposMin, int iposEnd, AlignedArray dst, int crow, int ccol)
+        public static unsafe void MatMulP(AlignedArray mat, int[] rgposSrc, AlignedArray src,
+                                int posMin, int iposMin, int iposEnd, AlignedArray dst, int crow, int ccol)
         {
-            Contracts.Assert(HasCompatibleAlignment(mat));
-            Contracts.Assert(HasCompatibleAlignment(src));
-            Contracts.Assert(HasCompatibleAlignment(dst));
+            Contracts.Assert(crow % 4 == 0);
+            Contracts.Assert(ccol % 4 == 0);
 
+            MatMulP(mat.Items, rgposSrc, src.Items, posMin, iposMin, iposEnd, dst.Items, crow, ccol);
+        }
+
+        public static unsafe void MatMulP(float[] mat, int[] rgposSrc, float[] src,
+                                        int posMin, int iposMin, int iposEnd, float[] dst, int crow, int ccol)
+        {
             // REVIEW: For extremely sparse inputs, interchanging the loops would
             // likely be more efficient.
-            fixed (float* pSrcStart = &src.Items[0])
-            fixed (float* pDstStart = &dst.Items[0])
-            fixed (float* pMatStart = &mat.Items[0])
+            fixed (float* psrc = &src[0])
+            fixed (float* pdst = &dst[0])
+            fixed (float* pmat = &mat[0])
             fixed (int* pposSrc = &rgposSrc[0])
+            fixed (uint* pLeadingAlignmentMask = &LeadingAlignmentMask[0])
+            fixed (uint* pTrailingAlignmentMask = &TrailingAlignmentMask[0])
             {
-                float* psrc = GetAlignedBase(src, pSrcStart);
-                float* pdst = GetAlignedBase(dst, pDstStart);
-                float* pmat = GetAlignedBase(mat, pMatStart);
-
                 int* pposMin = pposSrc + iposMin;
                 int* pposEnd = pposSrc + iposEnd;
                 float* pDstEnd = pdst + crow;
@@ -310,29 +313,136 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                 float* pSrcCurrent = psrc - posMin;
                 float* pDstCurrent = pdst;
 
-                while (pDstCurrent < pDstEnd)
+                nuint address = (nuint)(pDstCurrent);
+                int misalignment = (int)(address % 16);
+
+                int length = crow;
+                int remainder = 0;
+
+                if ((misalignment & 3) != 0)
                 {
-                    float* pm1 = pm0 + ccol;
-                    float* pm2 = pm1 + ccol;
-                    float* pm3 = pm2 + ccol;
-                    Vector128<float> result = Sse.SetZeroVector128();
-
-                    int* ppos = pposMin;
-
-                    while (ppos < pposEnd)
+                    while (pDstCurrent < pDstEnd)
                     {
-                        int col = *ppos;
-                        Vector128<float> x1 = Sse.SetVector128(pm3[col], pm2[col], pm1[col], pm0[col]);
-                        Vector128<float> x2 = Sse.SetAllVector128(pSrcCurrent[col]);
-                        x2 = Sse.Multiply(x2, x1);
-                        result = Sse.Add(result, x2);
+                        float* pm1 = pm0 + ccol;
+                        float* pm2 = pm1 + ccol;
+                        float* pm3 = pm2 + ccol;
+                        Vector128<float> result = Sse.SetZeroVector128();
 
-                        ppos++;
+                        int* ppos = pposMin;
+
+                        while (ppos < pposEnd)
+                        {
+                            int col = *ppos;
+                            Vector128<float> x1 = Sse.SetVector128(pm3[col], pm2[col], pm1[col], pm0[col]);
+                            Vector128<float> x2 = Sse.SetAllVector128(pSrcCurrent[col]);
+                            x2 = Sse.Multiply(x2, x1);
+                            result = Sse.Add(result, x2);
+                            ppos++;
+                        }
+
+                        Sse.Store(pDstCurrent, result);
+                        pDstCurrent += 4;
+                        pm0 += 4 * ccol;
+                    }
+                }
+                else
+                {
+                    if (misalignment != 0)
+                    {
+                        misalignment >>= 2;
+                        misalignment = 4 - misalignment;
+
+                        Vector128<float> mask = Sse.LoadVector128(((float*)(pLeadingAlignmentMask)) + (misalignment * 4));
+
+                        float* pm1 = pm0 + ccol;
+                        float* pm2 = pm1 + ccol;
+                        float* pm3 = pm2 + ccol;
+                        Vector128<float> result = Sse.SetZeroVector128();
+
+                        int* ppos = pposMin;
+
+                        while (ppos < pposEnd)
+                        {
+                            int col = *ppos;
+                            Vector128<float> x1 = Sse.SetVector128(pm3[col], pm2[col], pm1[col], pm0[col]);
+
+                            x1 = Sse.And(mask, x1);
+                            Vector128<float> x2 = Sse.SetAllVector128(pSrcCurrent[col]);
+                            x2 = Sse.Multiply(x2, x1);
+                            result = Sse.Add(result, x2);
+                            ppos++;
+                        }
+
+                        Sse.Store(pDstCurrent, result);
+                        pDstCurrent += misalignment;
+                        pm0 += misalignment * ccol;
+                        length -= misalignment;
                     }
 
-                    Sse.StoreAligned(pDstCurrent, result);
-                    pDstCurrent += 4;
-                    pm0 += 4 * ccol;
+                    if (length > 3)
+                    {
+                        remainder = length % 4;
+                        while (pDstCurrent < pDstEnd)
+                        {
+                            float* pm1 = pm0 + ccol;
+                            float* pm2 = pm1 + ccol;
+                            float* pm3 = pm2 + ccol;
+                            Vector128<float> result = Sse.SetZeroVector128();
+
+                            int* ppos = pposMin;
+
+                            while (ppos < pposEnd)
+                            {
+                                int col = *ppos;
+                                Vector128<float> x1 = Sse.SetVector128(pm3[col], pm2[col], pm1[col], pm0[col]);
+                                Vector128<float> x2 = Sse.SetAllVector128(pSrcCurrent[col]);
+                                x2 = Sse.Multiply(x2, x1);
+                                result = Sse.Add(result, x2);
+                                ppos++;
+                            }
+
+                            Sse.Store(pDstCurrent, result);
+                            pDstCurrent += 4;
+                            pm0 += 4 * ccol;
+                        }
+                    }
+                    else
+                    {
+                        remainder = length;
+                    }
+
+                    if (remainder != 0)
+                    {
+                        pDstCurrent -= (4 - remainder);
+                        pm0 -= (4 - remainder) * ccol;
+                        Vector128<float> trailingMask = Sse.LoadVector128(((float*)(pTrailingAlignmentMask)) + (remainder * 4));
+                        Vector128<float> leadingMask = Sse.LoadVector128(((float*)(pLeadingAlignmentMask)) + ((4 - remainder) * 4));
+
+                        float* pm1 = pm0 + ccol;
+                        float* pm2 = pm1 + ccol;
+                        float* pm3 = pm2 + ccol;
+                        Vector128<float> result = Sse.SetZeroVector128();
+
+                        int* ppos = pposMin;
+
+                        while (ppos < pposEnd)
+                        {
+                            int col = *ppos;
+                            Vector128<float> x1 = Sse.SetVector128(pm3[col], pm2[col], pm1[col], pm0[col]);
+                            x1 = Sse.And(x1, trailingMask);
+
+                            Vector128<float> x2 = Sse.SetAllVector128(pSrcCurrent[col]);
+                            x2 = Sse.Multiply(x2, x1);
+                            result = Sse.Add(result, x2);
+                            ppos++;
+                        }
+
+                        result = Sse.Add(result, Sse.And(leadingMask, Sse.LoadVector128(pDstCurrent)));
+
+                        Sse.Store(pDstCurrent, result);
+                        pDstCurrent += 4;
+                        pm0 += 4 * ccol;
+                    }
                 }
             }
         }
