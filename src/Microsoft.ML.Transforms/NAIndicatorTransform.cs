@@ -151,6 +151,9 @@ namespace Microsoft.ML.Transforms
 
         private sealed class Mapper : MapperBase
         {
+            private readonly NAIndicatorTransform _parent;
+            private readonly ColInfo[] _infos;
+
             private sealed class ColInfo
             {
                 public readonly string Output;
@@ -168,10 +171,6 @@ namespace Microsoft.ML.Transforms
                     InputIsNA = GetIsNADelegate(InputType); ;
                 }
             }
-
-            // are we sure we need this? maybe not?
-            private readonly NAIndicatorTransform _parent;
-            private readonly ColInfo[] _infos;
 
             public Mapper(NAIndicatorTransform parent, ISchema inputSchema)
                 : base(parent.Host.Register(nameof(Mapper)), parent, inputSchema)
@@ -555,10 +554,10 @@ namespace Microsoft.ML.Transforms
         }
 
         /// <summary>
-        /// Produces a column of boolean entries indicating wheter input column entries were missing.
+        /// Produces a column of boolean entries indicating whether input column entries were missing.
         /// </summary>
         /// <param name="input">The input column.</param>
-        /// <returns>A column indicating wheter input column entries were missing.</returns>
+        /// <returns>A column indicating whether input column entries were missing.</returns>
         public static Scalar<bool> IsMissingValue(this Scalar<float> input)
         {
             Contracts.CheckValue(input, nameof(input));
@@ -566,10 +565,10 @@ namespace Microsoft.ML.Transforms
         }
 
         /// <summary>
-        /// Produces a column of boolean entries indicating wheter input column entries were missing.
+        /// Produces a column of boolean entries indicating whether input column entries were missing.
         /// </summary>
         /// <param name="input">The input column.</param>
-        /// <returns>A column indicating wheter input column entries were missing.</returns>
+        /// <returns>A column indicating whether input column entries were missing.</returns>
         public static Scalar<bool> IsMissingValue(this Scalar<double> input)
         {
             Contracts.CheckValue(input, nameof(input));
@@ -577,10 +576,10 @@ namespace Microsoft.ML.Transforms
         }
 
         /// <summary>
-        /// Produces a column of boolean entries indicating wheter input column entries were missing.
+        /// Produces a column of boolean entries indicating whether input column entries were missing.
         /// </summary>
         /// <param name="input">The input column.</param>
-        /// <returns>A column indicating wheter input column entries were missing.</returns>
+        /// <returns>A column indicating whether input column entries were missing.</returns>
         public static Vector<bool> IsMissingValue(this Vector<float> input)
         {
             Contracts.CheckValue(input, nameof(input));
@@ -588,10 +587,10 @@ namespace Microsoft.ML.Transforms
         }
 
         /// <summary>
-        /// Produces a column of boolean entries indicating wheter input column entries were missing.
+        /// Produces a column of boolean entries indicating whether input column entries were missing.
         /// </summary>
         /// <param name="input">The input column.</param>
-        /// <returns>A column indicating wheter input column entries were missing.</returns>
+        /// <returns>A column indicating whether input column entries were missing.</returns>
         public static Vector<bool> IsMissingValue(this Vector<double> input)
         {
             Contracts.CheckValue(input, nameof(input));
@@ -599,10 +598,10 @@ namespace Microsoft.ML.Transforms
         }
 
         /// <summary>
-        /// Produces a column of boolean entries indicating wheter input column entries were missing.
+        /// Produces a column of boolean entries indicating whether input column entries were missing.
         /// </summary>
         /// <param name="input">The input column.</param>
-        /// <returns>A column indicating wheter input column entries were missing.</returns>
+        /// <returns>A column indicating whether input column entries were missing.</returns>
         public static VarVector<bool> IsMissingValue(this VarVector<float> input)
         {
             Contracts.CheckValue(input, nameof(input));
@@ -610,10 +609,10 @@ namespace Microsoft.ML.Transforms
         }
 
         /// <summary>
-        /// Produces a column of boolean entries indicating wheter input column entries were missing.
+        /// Produces a column of boolean entries indicating whether input column entries were missing.
         /// </summary>
         /// <param name="input">The input column.</param>
-        /// <returns>A column indicating wheter input column entries were missing.</returns>
+        /// <returns>A column indicating whether input column entries were missing.</returns>
         public static VarVector<bool> IsMissingValue(this VarVector<double> input)
         {
             Contracts.CheckValue(input, nameof(input));

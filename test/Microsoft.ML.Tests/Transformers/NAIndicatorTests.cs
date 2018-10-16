@@ -78,5 +78,37 @@ namespace Microsoft.ML.Tests.Transformers
                 var loadedView = ModelFileUtils.LoadTransforms(Env, dataView, ms);
             }
         }
+
+        [Fact]
+        public void NAIndicatorFileOutput()
+        {
+            string dataPath = GetDataPath("breast-cancer.txt");
+            var reader = TextLoader.CreateReader(Env, ctx => (
+                ScalarFloat: ctx.LoadFloat(1),
+                ScalarDouble: ctx.LoadDouble(1),
+                VectorFloat: ctx.LoadFloat(1, 4),
+                VectorDoulbe: ctx.LoadDouble(1, 4)
+            ));
+
+            var data = reader.Read(new MultiFileSource(dataPath)).AsDynamic;
+            var wrongCollection = new[] { new TestClass() { A = 1, B = 3, C = new float[2] { 1, 2 }, D = new double[2] { 3, 4 } } };
+            var invalidData = ComponentCreation.CreateDataView(Env, wrongCollection);
+            var est = new NAIndicatorEstimator(Env,
+               new (string input, string output)[] { ("ScalarFloat", "A"), ("ScalarDouble", "B"), ("VectorFloat", "C"), ("VectorDoulbe", "D") });
+
+            TestEstimatorCore(est, data, invalidInput: invalidData);
+            var outputPath = GetOutputPath("NAIndicator", "featurized.tsv");
+            using (var ch = Env.Start("save"))
+            {
+                var saver = new TextSaver(Env, new TextSaver.Arguments { Silent = true });
+                IDataView savedData = TakeFilter.Create(Env, est.Fit(data).Transform(data), 4);
+                using (var fs = File.Create(outputPath))
+                    DataSaverUtils.SaveDataView(ch, saver, savedData, fs, keepHidden: true);
+            }
+
+            CheckEquality("NAIndicator", "featurized.tsv");
+            Done();
+        }
+
     }
 }
