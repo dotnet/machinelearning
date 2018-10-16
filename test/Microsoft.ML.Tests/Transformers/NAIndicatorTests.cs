@@ -8,6 +8,7 @@ using Microsoft.ML.Runtime.Data.IO;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.RunTests;
 using Microsoft.ML.Runtime.Tools;
+using Microsoft.ML.Transforms;
 using System.IO;
 using Xunit;
 using Xunit.Abstractions;
@@ -43,48 +44,8 @@ namespace Microsoft.ML.Tests.Transformers
 
             var dataView = ComponentCreation.CreateDataView(Env, data);
             var pipe = new NAIndicatorEstimator(Env,
-                new NAIndicatorTransform.ColumnInfo("A", "NAA"),
-                new NAIndicatorTransform.ColumnInfo("B", "NAB"),
-                new NAIndicatorTransform.ColumnInfo("C", "NAC"),
-                new NAIndicatorTransform.ColumnInfo("D", "NAD"));
+                new (string input, string output)[] { ("A", "NAA"), ("B", "NAB"), ("C", "NAC"), ("D", "NAD") });
             TestEstimatorCore(pipe, dataView);
-            Done();
-        }
-
-        [Fact]
-        public void NAIndicatorStatic()
-        {
-            string dataPath = GetDataPath("breast-cancer.txt");
-            var reader = TextLoader.CreateReader(Env, ctx => (
-                ScalarFloat: ctx.LoadFloat(1),
-                ScalarDouble: ctx.LoadDouble(1),
-                VectorFloat: ctx.LoadFloat(1, 4),
-                VectorDoulbe: ctx.LoadDouble(1, 4)
-            ));
-
-            var data = reader.Read(new MultiFileSource(dataPath));
-            var wrongCollection = new[] { new TestClass() { A = 1, B = 3, C = new float[2] { 1, 2 }, D = new double[2] { 3, 4 } } };
-            var invalidData = ComponentCreation.CreateDataView(Env, wrongCollection);
-
-            var est = data.MakeNewEstimator().
-                   Append(row => (
-                   A: row.ScalarFloat.IsMissingValue(),
-                   B: row.ScalarDouble.IsMissingValue(),
-                   C: row.VectorFloat.IsMissingValue(),
-                   D: row.VectorDoulbe.IsMissingValue()
-                   ));
-
-            TestEstimatorCore(est.AsDynamic, data.AsDynamic, invalidInput: invalidData);
-            var outputPath = GetOutputPath("NAIndicator", "featurized.tsv");
-            using (var ch = Env.Start("save"))
-            {
-                var saver = new TextSaver(Env, new TextSaver.Arguments { Silent = true });
-                IDataView savedData = TakeFilter.Create(Env, est.Fit(data).Transform(data).AsDynamic, 4);
-                using (var fs = File.Create(outputPath))
-                    DataSaverUtils.SaveDataView(ch, saver, savedData, fs, keepHidden: true);
-            }
-
-            CheckEquality("NAIndicator", "featurized.tsv");
             Done();
         }
 
@@ -107,11 +68,7 @@ namespace Microsoft.ML.Tests.Transformers
 
             var dataView = ComponentCreation.CreateDataView(Env, data);
             var pipe = new NAIndicatorEstimator(Env,
-                new NAIndicatorTransform.ColumnInfo("A", "NAA"),
-                new NAIndicatorTransform.ColumnInfo("B", "NAB"),
-                new NAIndicatorTransform.ColumnInfo("C", "NAC"),
-                new NAIndicatorTransform.ColumnInfo("D", "NAD"));
-
+                new (string input, string output)[] { ("A", "NAA"), ("B", "NAB"), ("C", "NAC"), ("D", "NAD") });
             var result = pipe.Fit(dataView).Transform(dataView);
             var resultRoles = new RoleMappedData(result);
             using (var ms = new MemoryStream())
