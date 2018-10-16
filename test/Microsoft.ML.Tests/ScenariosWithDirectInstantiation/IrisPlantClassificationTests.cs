@@ -46,7 +46,7 @@ namespace Microsoft.ML.Scenarios
                 pipeline = NormalizeTransform.CreateMinMaxNormalizer(env, pipeline, "Features");
 
                 // Train
-                var trainer = new SdcaMultiClassTrainer(env, new SdcaMultiClassTrainer.Arguments() { NumThreads = 1 }, "Features", "Label");
+                var trainer = new SdcaMultiClassTrainer(env, "Features", "Label", advancedSettings: (s) => s.NumThreads = 1);
 
                 // Explicity adding CacheDataView since caching is not working though trainer has 'Caching' On/Auto
                 var cached = new CacheDataView(env, pipeline, prefetch: null);
@@ -152,7 +152,7 @@ namespace Microsoft.ML.Scenarios
         private ClassificationMetrics Evaluate(IHostEnvironment env, IDataView scoredData)
         {
             var dataEval = new RoleMappedData(scoredData, label: "Label", feature: "Features", opt: true);
-            
+
             // Evaluate.
             // It does not work. It throws error "Failed to find 'Score' column" when Evaluate is called
             //var evaluator = new MultiClassClassifierEvaluator(env, new MultiClassClassifierEvaluator.Arguments() { OutputTopKAcc = 3 });

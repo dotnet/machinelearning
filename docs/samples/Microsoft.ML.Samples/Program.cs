@@ -9,6 +9,7 @@ namespace Microsoft.ML.Samples
         static void Main(string[] args)
         {
             Trainers.SdcaRegression();
+            Transformers.ConcatEstimator();
         }
     }
 }

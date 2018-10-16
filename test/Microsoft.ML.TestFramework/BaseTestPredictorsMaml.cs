@@ -163,7 +163,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 return;
             }
             var consOutPath = ctx.StdoutPath();
-            TestCore(ctx, ctx.Command.ToString(), runcmd);
+            TestCore(ctx, ctx.Command.ToString(), runcmd, digitsOfPrecision: digitsOfPrecision);
             bool matched = consOutPath.CheckEqualityNormalized(digitsOfPrecision);
 
             if (modelPath != null && (ctx.Summary || ctx.SaveAsIni))
@@ -208,12 +208,12 @@ namespace Microsoft.ML.Runtime.RunTests
 
                 // Run result processor on the console output.
                 RunResultProcessorTest(new string[] { consOutPath.Path }, rpOutPath, rpArgs);
-                CheckEqualityNormalized(dir, rpName);
+                CheckEqualityNormalized(dir, rpName, digitsOfPrecision:digitsOfPrecision);
             }
 
             // Check the prediction output against its baseline.
             Contracts.Assert(predOutPath != null);
-            predOutPath.CheckEquality();
+            predOutPath.CheckEquality(digitsOfPrecision: digitsOfPrecision);
 
             if (ctx.Command == Cmd.TrainTest)
             {
@@ -255,7 +255,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 // Redirect output to the individual log and run the test.
                 var ctx2 = ctx.TestCtx();
                 OutputPath consOutPath2 = ctx2.StdoutPath();
-                TestCore(ctx2, "Test", runcmd);
+                TestCore(ctx2, "Test", runcmd, digitsOfPrecision:digitsOfPrecision);
 
                 if (CheckTestOutputMatchesTrainTest(consOutPath.Path, consOutPath2.Path, 1))
                     File.Delete(consOutPath2.Path);
@@ -337,13 +337,13 @@ namespace Microsoft.ML.Runtime.RunTests
         /// </summary>
         protected void RunAllTests(
             IList<PredictorAndArgs> predictors, IList<TestDataset> datasets,
-            string[] extraSettings = null, string extraTag = "", bool summary = false)
+            string[] extraSettings = null, string extraTag = "", bool summary = false, int digitsOfPrecision = DigitsOfPrecision)
         {
             Contracts.Assert(IsActive);
             foreach (TestDataset dataset in datasets)
             {
                 foreach (PredictorAndArgs predictor in predictors)
-                    RunOneAllTests(predictor, dataset, extraSettings, extraTag, summary);
+                    RunOneAllTests(predictor, dataset, extraSettings, extraTag, summary, digitsOfPrecision);
             }
         }
 

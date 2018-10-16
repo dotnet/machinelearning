@@ -4,21 +4,19 @@
 
 using System;
 using System.Collections.Generic;
-using Microsoft.ML.Runtime.Internal.Utilities;
 
 namespace Microsoft.ML.Runtime.Data
 {
     /// <summary>
-    /// Interface for schema information.
+    /// Legacy interface for schema information.
+    /// Please avoid implementing this interface, use <see cref="Schema"/>.
     /// </summary>
     public interface ISchema
     {
         /// <summary>
         /// Number of columns.
         /// </summary>
-        int ColumnCount {
-            get;
-        }
+        int ColumnCount { get; }
 
         /// <summary>
         /// If there is a column with the given name, set col to its index and return true.
@@ -69,7 +67,7 @@ namespace Microsoft.ML.Runtime.Data
         /// <summary>
         /// Gets an instance of Schema.
         /// </summary>
-        ISchema Schema { get; }
+        Schema Schema { get; }
     }
 
     /// <summary>
@@ -161,8 +159,7 @@ namespace Microsoft.ML.Runtime.Data
         /// <summary>
         /// Returns a value getter delegate to fetch the given column value from the row.
         /// This throws if the column is not active in this row, or if the type
-        /// <typeparamref name="TValue"/> differs from this row's schema's
-        /// <see cref="ISchema.GetColumnType(int)"/> on <paramref name="col"/>.
+        /// <typeparamref name="TValue"/> differs from this column's type.
         /// </summary>
         ValueGetter<TValue> GetGetter<TValue>(int col);
     }

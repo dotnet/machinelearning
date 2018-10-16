@@ -575,9 +575,9 @@ namespace Microsoft.ML.Runtime.Data
             src.CopyToDense(ref dst);
 
             if (normScale != 1)
-                CpuMathUtils.ScaleAdd(normScale, -offset, dst.Values, length);
+                CpuMathUtils.ScaleAdd(normScale, -offset, dst.Values.AsSpan(0, length));
             else
-                CpuMathUtils.Add(-offset, dst.Values, length);
+                CpuMathUtils.Add(-offset, dst.Values.AsSpan(0, length));
         }
 
         /// <summary>
@@ -591,7 +591,7 @@ namespace Microsoft.ML.Runtime.Data
             if (count == 0)
                 return 0;
             // We need a mean to compute variance.
-            Float tmpMean = CpuMathUtils.Sum(values, 0, count) / length;
+            Float tmpMean = CpuMathUtils.Sum(values.AsSpan(0, count)) / length;
             Float sumSq = 0;
             if (count != length && tmpMean != 0)
             {
@@ -599,7 +599,7 @@ namespace Microsoft.ML.Runtime.Data
                 Float meanSq = tmpMean * tmpMean;
                 sumSq = (length - count) * meanSq;
             }
-            sumSq += CpuMathUtils.SumSq(tmpMean, values, 0, count);
+            sumSq += CpuMathUtils.SumSq(tmpMean, values.AsSpan(0, count));
             return MathUtils.Sqrt(sumSq / length);
         }
 
@@ -619,7 +619,7 @@ namespace Microsoft.ML.Runtime.Data
                 Float meanSq = mean * mean;
                 sumSq = (length - count) * meanSq;
             }
-            sumSq += CpuMathUtils.SumSq(mean, values, 0, count);
+            sumSq += CpuMathUtils.SumSq(mean, values.AsSpan(0, count));
             return MathUtils.Sqrt(sumSq / length);
         }
 
@@ -631,7 +631,7 @@ namespace Microsoft.ML.Runtime.Data
         {
             if (count == 0)
                 return 0;
-            return MathUtils.Sqrt(CpuMathUtils.SumSq(mean, values, 0, count));
+            return MathUtils.Sqrt(CpuMathUtils.SumSq(mean, values.AsSpan(0, count)));
         }
 
         /// <summary>
@@ -642,7 +642,7 @@ namespace Microsoft.ML.Runtime.Data
         {
             if (count == 0)
                 return 0;
-            return CpuMathUtils.SumAbs(mean, values, 0, count);
+            return CpuMathUtils.SumAbs(mean, values.AsSpan(0, count));
         }
 
         /// <summary>
@@ -653,14 +653,14 @@ namespace Microsoft.ML.Runtime.Data
         {
             if (count == 0)
                 return 0;
-            return CpuMathUtils.MaxAbsDiff(mean, values, count);
+            return CpuMathUtils.MaxAbsDiff(mean, values.AsSpan(0, count));
         }
 
         private static Float Mean(Float[] src, int count, int length)
         {
             if (length == 0 || count == 0)
                 return 0;
-            return CpuMathUtils.Sum(src, 0, count) / length;
+            return CpuMathUtils.Sum(src.AsSpan(0, count)) / length;
         }
     }
 

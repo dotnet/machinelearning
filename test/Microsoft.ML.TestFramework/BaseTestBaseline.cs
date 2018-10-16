@@ -257,13 +257,13 @@ namespace Microsoft.ML.Runtime.RunTests
                 {
                     line = _matchDataRoot.Replace(line, "%Data%");
                     line = _matchDataUnixRoot.Replace(line, "%Data%");
+                    line = _matchOutputRoot.Replace(line, "%Output%");
+                    line = _matchOutputUnixRoot.Replace(line, "%Output%");
                     line = _matchSamplesRoot.Replace(line, "%Samples%\\");
                     line = _matchSamplesUnixRoot.Replace(line, "%Samples%\\");
                     line = _matchSourceRoot.Replace(line, "%Source%\\");
                     line = _matchSourceUnixRoot.Replace(line, "%Source%\\");
                     line = _matchTestsRoot.Replace(line, "%Tests%\\");
-                    line = _matchOutputRoot.Replace(line, "%Output%");
-                    line = _matchOutputUnixRoot.Replace(line, "%Output%");
                     line = _matchBin.Replace(line, "%Bin%\\");
                     line = _matchUnixBin.Replace(line, "%Bin%\\");
                     line = _matchBin64.Replace(line, "%Bin%\\");
@@ -323,9 +323,9 @@ namespace Microsoft.ML.Runtime.RunTests
         /// <summary>
         /// Compare the contents of an output file with its baseline.
         /// </summary>
-        protected bool CheckEquality(string dir, string name, string nameBase = null)
+        protected bool CheckEquality(string dir, string name, string nameBase = null, int digitsOfPrecision = DigitsOfPrecision)
         {
-            return CheckEqualityCore(dir, name, nameBase ?? name, false);
+            return CheckEqualityCore(dir, name, nameBase ?? name, false, digitsOfPrecision);
         }
 
         /// <summary>
@@ -504,7 +504,7 @@ namespace Microsoft.ML.Runtime.RunTests
 
         private static void GetNumbersFromFile(ref string firstString, ref string secondString, int digitsOfPrecision)
         {
-            Regex _matchNumer = new Regex(@"\b[0-9]+\.?[0-9]*\b", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+            Regex _matchNumer = new Regex(@"\b[0-9]+\.?[0-9]*(E-[0-9]*)?\b", RegexOptions.IgnoreCase | RegexOptions.Compiled);
             MatchCollection firstCollection = _matchNumer.Matches(firstString);
             MatchCollection secondCollection = _matchNumer.Matches(secondString);
 
@@ -520,10 +520,27 @@ namespace Microsoft.ML.Runtime.RunTests
                 double f1 = double.Parse(firstCollection[i].ToString());
                 double f2 = double.Parse(secondCollection[i].ToString());
 
+                // this follows the IEEE recommendations for how to compare floating point numbers
                 double allowedVariance = Math.Pow(10, -digitsOfPrecision);
                 double delta = Round(f1, digitsOfPrecision) - Round(f2, digitsOfPrecision);
+                // limitting to the digits we care about. 
+                delta = Math.Round(delta, digitsOfPrecision);
 
-                Assert.InRange(delta, -allowedVariance, allowedVariance);
+                bool inRange = delta > -allowedVariance && delta < allowedVariance;
+
+                // for some cases, rounding up is not beneficial
+                // so checking on whether the difference is significant prior to rounding, and failing only then. 
+                // example, for 5 digits of precision. 
+                // F1 = 1.82844949 Rounds to 1.8284
+                // F2 = 1.8284502  Rounds to 1.8285
+                // would fail the inRange == true check, but would suceed the following, and we doconsider those two numbers 
+                // (1.82844949 - 1.8284502) = -0.00000071
+
+                if (!inRange)
+                {
+                    delta = Math.Round(f1 - f2, digitsOfPrecision);
+                    Assert.InRange(delta, -allowedVariance, allowedVariance);
+                }
             }
         }
 

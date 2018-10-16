@@ -150,6 +150,7 @@ namespace Microsoft.ML.Runtime.LightGBM
 
         [DllImport(DllName, EntryPoint = "LGBM_BoosterSaveModelToString", CallingConvention = CallingConvention.StdCall)]
         public static extern unsafe int BoosterSaveModelToString(IntPtr handle,
+            int startIteration,
             int numIteration,
             int bufferLen,
             ref int outLen,

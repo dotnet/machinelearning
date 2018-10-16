@@ -617,6 +617,9 @@ var model = learningPipeline.Fit(trainData);
 VBuffer<float>[] weights = null;
 predictor.GetWeights(ref weights, out int numClasses);
 
+// similarly we can also inspect the biases for the 3 classes
+var biases = pred.GetBiases();
+
 // Inspect the normalizer scales.
 Console.WriteLine(string.Join(" ", normScales));
 ```
@@ -912,7 +915,7 @@ Namely, any statically typed component (`DataView<T>`, `Transformer<T>`, `Estima
 
 Transitioning from dynamic to static types is more costly: we have to formally declare what is the 'schema shape'. Or, in case of estimators and transformers, what is the input and output schema shape. 
 
-We can do this via `AssertStatic<T>` extensions, as demonstrated in the following example, where we mix and match static ande dynamic pipelines.
+We can do this via `AssertStatic<T>` extensions, as demonstrated in the following example, where we mix and match static and dynamic pipelines.
 ```c#
 // Create a new environment for ML.NET operations. It can be used for exception tracking and logging, 
 // as well as the source of randomness.
