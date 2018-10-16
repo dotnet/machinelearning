@@ -40,6 +40,8 @@ namespace Microsoft.ML.Runtime.Data
             // The following argument is used only to inform serialization.
             private readonly int[] _dropped;
 
+            public Schema AsSchema { get; }
+
             public Bindings(Arguments args, ISchema schemaInput)
             {
                 Contracts.AssertValue(args);
@@ -49,6 +51,8 @@ namespace Microsoft.ML.Runtime.Data
 
                 int[] indexCopy = args.Index == null ? new int[0] : args.Index.ToArray();
                 BuildNameDict(indexCopy, args.Drop, out Sources, out _dropped, out _nameToIndex, user: true);
+
+                AsSchema = Data.Schema.Create(this);
             }
 
             private void BuildNameDict(int[] indexCopy, bool drop, out int[] sources, out int[] dropped, out Dictionary<string, int> nameToCol, bool user)
@@ -98,6 +102,7 @@ namespace Microsoft.ML.Runtime.Data
 
                 bool isDrop = ctx.Reader.ReadBoolByte();
                 BuildNameDict(ctx.Reader.ReadIntArray() ?? new int[0], isDrop, out Sources, out _dropped, out _nameToIndex, user: false);
+                AsSchema = Data.Schema.Create(this);
             }
 
             public void Save(ModelSaveContext ctx)
@@ -239,7 +244,7 @@ namespace Microsoft.ML.Runtime.Data
             _bindings.Save(ctx);
         }
 
-        public override ISchema Schema { get { return _bindings; } }
+        public override Schema Schema => _bindings.AsSchema;
 
         protected override bool? ShouldUseParallelCursors(Func<int, bool> predicate)
         {
@@ -292,7 +297,7 @@ namespace Microsoft.ML.Runtime.Data
                 _active = active;
             }
 
-            public ISchema Schema { get { return _bindings; } }
+            public Schema Schema => _bindings.AsSchema;
 
             public bool IsColumnActive(int col)
             {

@@ -15,9 +15,9 @@ namespace Microsoft.ML.Runtime.Data
         private readonly IHost _host;
 
         public bool CanShuffle => true;
-        public ISchema Schema { get; }
+        public Schema Schema { get; }
 
-        public EmptyDataView(IHostEnvironment env, ISchema schema)
+        public EmptyDataView(IHostEnvironment env, Schema schema)
         {
             Contracts.CheckValue(env, nameof(env));
             _host = env.Register(nameof(EmptyDataView));
@@ -46,10 +46,10 @@ namespace Microsoft.ML.Runtime.Data
         {
             private readonly bool[] _active;
 
-            public ISchema Schema { get; }
+            public Schema Schema { get; }
             public override long Batch => 0;
 
-            public Cursor(IChannelProvider provider, ISchema schema, Func<int, bool> needCol)
+            public Cursor(IChannelProvider provider, Schema schema, Func<int, bool> needCol)
                 : base(provider)
             {
                 Ch.AssertValue(schema);

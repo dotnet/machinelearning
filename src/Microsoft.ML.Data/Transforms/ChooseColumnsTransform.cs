@@ -123,6 +123,8 @@ namespace Microsoft.ML.Runtime.Data
             public readonly ColInfo[] Infos;
             public readonly Dictionary<string, int> NameToInfoIndex;
 
+            public Schema AsSchema { get; }
+
             public Bindings(Arguments args, ISchema schemaInput)
             {
                 Contracts.AssertValue(args);
@@ -160,6 +162,7 @@ namespace Microsoft.ML.Runtime.Data
                 }
 
                 BuildInfos(out Infos, out NameToInfoIndex, user: true);
+                AsSchema = Schema.Create(this);
             }
 
             private void BuildInfos(out ColInfo[] infosArray, out Dictionary<string, int> nameToCol, bool user)
@@ -344,6 +347,8 @@ namespace Microsoft.ML.Runtime.Data
                 }
 
                 BuildInfos(out Infos, out NameToInfoIndex, user: false);
+
+                AsSchema = Schema.Create(this);
             }
 
             public void Save(ModelSaveContext ctx)
@@ -512,7 +517,7 @@ namespace Microsoft.ML.Runtime.Data
             _bindings.Save(ctx);
         }
 
-        public override ISchema Schema { get { return _bindings; } }
+        public override Schema Schema => _bindings.AsSchema;
 
         protected override bool? ShouldUseParallelCursors(Func<int, bool> predicate)
         {
@@ -565,7 +570,7 @@ namespace Microsoft.ML.Runtime.Data
                 _active = active;
             }
 
-            public ISchema Schema { get { return _bindings; } }
+            public Schema Schema => _bindings.AsSchema;
 
             public bool IsColumnActive(int col)
             {

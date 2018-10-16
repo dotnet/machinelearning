@@ -48,7 +48,7 @@ namespace Microsoft.ML.Runtime.Data
 
         public virtual bool CanShuffle { get { return Source.CanShuffle; } }
 
-        public abstract ISchema Schema { get; }
+        public abstract Schema Schema { get; }
 
         public IRowCursor GetRowCursor(Func<int, bool> predicate, IRandom rand = null)
         {
@@ -124,7 +124,7 @@ namespace Microsoft.ML.Runtime.Data
 
         public override long? GetRowCount(bool lazy = true) { return null; }
 
-        public sealed override ISchema Schema { get { return Source.Schema; } }
+        public sealed override Schema Schema { get { return Source.Schema; } }
 
         public virtual bool CanSavePfa => true;
 
@@ -154,7 +154,7 @@ namespace Microsoft.ML.Runtime.Data
 
         protected abstract Func<int, bool> GetDependenciesCore(Func<int, bool> predicate);
 
-        ISchema IRowToRowMapper.InputSchema => Source.Schema;
+        Schema IRowToRowMapper.InputSchema => Source.Schema;
 
         public IRow GetRow(IRow input, Func<int, bool> active, out Action disposer)
         {
@@ -178,7 +178,7 @@ namespace Microsoft.ML.Runtime.Data
 
         private sealed class Row : IRow
         {
-            private readonly ISchema _schema;
+            private readonly Schema _schema;
             private readonly IRow _input;
             private readonly Delegate[] _getters;
 
@@ -188,9 +188,9 @@ namespace Microsoft.ML.Runtime.Data
 
             public long Position { get { return _input.Position; } }
 
-            public ISchema Schema { get { return _schema; } }
+            public Schema Schema { get { return _schema; } }
 
-            public Row(IRow input, RowToRowMapperTransformBase parent, ISchema schema, Delegate[] getters)
+            public Row(IRow input, RowToRowMapperTransformBase parent, Schema schema, Delegate[] getters)
             {
                 _input = input;
                 _parent = parent;
@@ -525,7 +525,7 @@ namespace Microsoft.ML.Runtime.Data
                 .Select(x => new ColumnTmp
                 {
                     Name = x.Name,
-                    Source = transform.Source.Schema.GetColumnName(x.Source),
+                    Source = transform.Source.Schema[x.Source].Name,
                 })
                 .ToArray();
 
@@ -553,7 +553,7 @@ namespace Microsoft.ML.Runtime.Data
             for (int iinfo = 0; iinfo < Infos.Length; ++iinfo)
             {
                 var info = Infos[iinfo];
-                var srcName = Source.Schema.GetColumnName(info.Source);
+                var srcName = Source.Schema[info.Source].Name;
                 string srcToken = ctx.TokenOrNullForName(srcName);
                 if (srcToken == null)
                 {
@@ -580,7 +580,7 @@ namespace Microsoft.ML.Runtime.Data
             for (int iinfo = 0; iinfo < Infos.Length; ++iinfo)
             {
                 ColInfo info = Infos[iinfo];
-                string sourceColumnName = Source.Schema.GetColumnName(info.Source);
+                string sourceColumnName = Source.Schema[info.Source].Name;
                 if (!ctx.ContainsColumn(sourceColumnName))
                 {
                     ctx.RemoveColumn(info.Name, false);
@@ -588,7 +588,7 @@ namespace Microsoft.ML.Runtime.Data
                 }
 
                 if (!SaveAsOnnxCore(ctx, iinfo, info, ctx.GetVariableName(sourceColumnName),
-                    ctx.AddIntermediateVariable(Schema.GetColumnType(_bindings.MapIinfoToCol(iinfo)), info.Name)))
+                    ctx.AddIntermediateVariable(Schema[_bindings.MapIinfoToCol(iinfo)].Type, info.Name)))
                 {
                     ctx.RemoveColumn(info.Name, true);
                 }
@@ -620,7 +620,7 @@ namespace Microsoft.ML.Runtime.Data
         protected virtual bool SaveAsOnnxCore(OnnxContext ctx, int iinfo, ColInfo info, string srcVariableName,
             string dstVariableName) => false;
 
-        public sealed override ISchema Schema => _bindings;
+        public sealed override Schema Schema => _bindings.AsSchema;
 
         public ITransposeSchema TransposeSchema => _bindings;
 
@@ -743,7 +743,7 @@ namespace Microsoft.ML.Runtime.Data
         {
             Host.Assert(0 <= col && col < _bindings.ColumnCount);
             return Host.ExceptParam(nameof(col), "Bad call to GetSlotCursor on untransposable column '{0}'",
-                Schema.GetColumnName(col));
+                Schema[col].Name);
         }
 
         public ISlotCursor GetSlotCursor(int col)
@@ -856,7 +856,7 @@ namespace Microsoft.ML.Runtime.Data
                 base.Dispose();
             }
 
-            public ISchema Schema { get { return _bindings; } }
+            public Schema Schema => _bindings.AsSchema;
 
             public ValueGetter<TValue> GetGetter<TValue>(int col)
             {

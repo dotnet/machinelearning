@@ -427,7 +427,7 @@ namespace Microsoft.ML.Runtime.Learners
             return cursor.Weight;
         }
 
-        protected override MulticlassPredictionTransformer<MulticlassLogisticRegressionPredictor> MakeTransformer(MulticlassLogisticRegressionPredictor model, ISchema trainSchema)
+        protected override MulticlassPredictionTransformer<MulticlassLogisticRegressionPredictor> MakeTransformer(MulticlassLogisticRegressionPredictor model, Schema trainSchema)
             => new MulticlassPredictionTransformer<MulticlassLogisticRegressionPredictor>(Host, model, trainSchema, FeatureColumn.Name, LabelColumn.Name);
     }
 

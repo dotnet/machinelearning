@@ -605,7 +605,7 @@ namespace Microsoft.ML.Runtime.Data
 
         public bool CanShuffle { get { return _transform.CanShuffle; } }
 
-        public ISchema Schema { get { return _transform.Schema; } }
+        public Schema Schema => _transform.Schema;
 
         public RankerPerInstanceTransform(IHostEnvironment env, IDataView input, string labelCol, string scoreCol, string groupCol,
                 int truncationLevel, Double[] labelGains)

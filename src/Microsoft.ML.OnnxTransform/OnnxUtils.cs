@@ -35,7 +35,7 @@ namespace Microsoft.ML.Transforms
 
         private ITensorValueGetter _tensorValueGetter;
 
-        public IdvToTensorAdapter(ISchema idvSchema, string idvColumnName,
+        public IdvToTensorAdapter(Schema idvSchema, string idvColumnName,
                                     OnnxModel.OnnxNodeInfo onnxInputNodeInfo)
         {
             _idvColumnName = idvColumnName;

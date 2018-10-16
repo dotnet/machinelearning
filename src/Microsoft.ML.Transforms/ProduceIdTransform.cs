@@ -90,7 +90,7 @@ namespace Microsoft.ML.Runtime.Data
 
         private readonly Bindings _bindings;
 
-        public override ISchema Schema { get { return _bindings; } }
+        public override Schema Schema => _bindings.AsSchema;
 
         public override bool CanShuffle { get { return Source.CanShuffle; } }
 
@@ -170,7 +170,7 @@ namespace Microsoft.ML.Runtime.Data
             private readonly Bindings _bindings;
             private readonly bool _active;
 
-            public ISchema Schema { get { return _bindings; } }
+            public Schema Schema => _bindings.AsSchema;
 
             public RowCursor(IChannelProvider provider, Bindings bindings, IRowCursor input, bool active)
                 : base(provider, input)
