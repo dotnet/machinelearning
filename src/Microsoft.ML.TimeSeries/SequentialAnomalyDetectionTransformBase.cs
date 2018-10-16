@@ -538,16 +538,16 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             protected abstract Double ComputeRawAnomalyScore(ref TInput input, FixedSizeQueue<TInput> windowedBuffer, long iteration);
         }
 
-        protected override IRowMapper MakeRowMapper(ISchema schema) => new Mapper(Host, this, schema);
+        protected override IRowMapper MakeRowMapper(Schema schema) => new Mapper(Host, this, schema);
 
         public sealed class Mapper : IRowMapper
         {
             private readonly IHost _host;
             private readonly SequentialAnomalyDetectionTransformBase<TInput, TState> _parent;
-            private readonly ISchema _parentSchema;
+            private readonly Schema _parentSchema;
             private readonly string[] _slotNames;
 
-            public Mapper(IHostEnvironment env, SequentialAnomalyDetectionTransformBase<TInput, TState> parent, ISchema inputSchema)
+            public Mapper(IHostEnvironment env, SequentialAnomalyDetectionTransformBase<TInput, TState> parent, Schema inputSchema)
             {
                 Contracts.CheckValue(env, nameof(env));
                 _host = env.Register(nameof(Mapper));
@@ -563,26 +563,25 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
                 _slotNames[3] = "Martingale Score";
             }
 
-            public RowMapperColumnInfo[] GetOutputColumns()
+            public Schema.Column[] GetOutputColumns()
             {
-                var metadata = new ColumnMetadataInfo(_parent.OutputColumnName);
-                metadata.Add(MetadataUtils.Kinds.SlotNames,
-                    new MetadataInfo<VBuffer<ReadOnlyMemory<char>>>(MetadataUtils.GetNamesType(_parent._outputLength), GetSlotNames));
-                var info = new RowMapperColumnInfo[1];
-                info[0] = new RowMapperColumnInfo(_parent.OutputColumnName, new VectorType(NumberType.R8, _parent._outputLength), metadata);
+                var meta = new Schema.Metadata.Builder();
+                meta.AddSlotNames(_parent._outputLength, GetSlotNames);
+                var info = new Schema.Column[1];
+                info[0] = new Schema.Column(_parent.OutputColumnName, new VectorType(NumberType.R8, _parent._outputLength), meta.GetMetadata());
                 return info;
             }
 
-            public void GetSlotNames(int col, ref VBuffer<ReadOnlyMemory<char>> slotNames)
+            public void GetSlotNames(ref VBuffer<ReadOnlyMemory<char>> dst)
             {
-                var result = slotNames.Values;
+                var result = dst.Values;
                 if (Utils.Size(result) < _parent._outputLength)
                     result = new ReadOnlyMemory<char>[_parent._outputLength];
 
                 for (int i = 0; i < _parent._outputLength; ++i)
                     result[i] = _slotNames[i].AsMemory();
 
-                slotNames = new VBuffer<ReadOnlyMemory<char>>(_parent._outputLength, result, slotNames.Indices);
+                dst = new VBuffer<ReadOnlyMemory<char>>(_parent._outputLength, result, dst.Indices);
             }
 
             public Func<int, bool> GetDependencies(Func<int, bool> activeOutput)

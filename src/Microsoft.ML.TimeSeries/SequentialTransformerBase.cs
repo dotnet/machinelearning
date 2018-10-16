@@ -270,13 +270,13 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             bs.TryWriteTypeDescription(ctx.Writer.BaseStream, OutputColumnType, out int byteWritten);
         }
 
-        public ISchema GetOutputSchema(ISchema inputSchema)
+        public Schema GetOutputSchema(Schema inputSchema)
         {
             Host.CheckValue(inputSchema, nameof(inputSchema));
             return Transform(new EmptyDataView(Host, inputSchema)).Schema;
         }
 
-        protected abstract IRowMapper MakeRowMapper(ISchema schema);
+        protected abstract IRowMapper MakeRowMapper(Schema schema);
 
         protected RowToRowMapperTransform MakeDataTransform(IDataView input)
         {
@@ -286,7 +286,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
 
         public IDataView Transform(IDataView input) => MakeDataTransform(input);
 
-        public IRowToRowMapper GetRowToRowMapper(ISchema inputSchema)
+        public IRowToRowMapper GetRowToRowMapper(Schema inputSchema)
         {
             Host.CheckValue(inputSchema, nameof(inputSchema));
             return MakeDataTransform(new EmptyDataView(Host, inputSchema));
