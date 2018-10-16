@@ -16,9 +16,16 @@ using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.Recommend;
 using Microsoft.ML.Runtime.Recommend.Internal;
+using Microsoft.ML.Runtime.Model.Pfa;
+using Microsoft.ML.Runtime.Model.Onnx;
+using Microsoft.ML.Runtime.CommandLine;
+using Microsoft.ML.Runtime.Data.IO;
 
 [assembly: LoadableClass(typeof(MatrixFactorizationPredictor), null, typeof(SignatureLoadModel),
     "Matrix Factorization Predictor Executor", MatrixFactorizationPredictor.LoaderSignature)]
+
+[assembly: LoadableClass(typeof(MatrixFactorizationPredictionTransformer), typeof(MatrixFactorizationPredictionTransformer),
+    null, typeof(SignatureLoadModel), "", MatrixFactorizationPredictionTransformer.LoaderSignature)]
 
 namespace Microsoft.ML.Runtime.Recommend
 {
@@ -399,5 +406,133 @@ namespace Microsoft.ML.Runtime.Recommend
 
             return mapper;
         }
+    }
+
+    public sealed class MatrixFactorizationPredictionTransformer : PredictionTransformerBase<MatrixFactorizationPredictor, GenericScorer>, ICanSaveModel
+    {
+        public const string LoaderSignature = "MaFactPredXf";
+        public string UserIdColumnName { get; }
+        public string ItemIdColumnName { get; }
+        public ColumnType UserIdColumnType { get; }
+        public ColumnType ItemIdColumnType { get; }
+        protected override GenericScorer Scorer { get; set; }
+
+        /// <summary>
+        /// Construct matrix
+        /// </summary>
+        /// <param name="host"></param>
+        /// <param name="model"></param>
+        /// <param name="trainSchema"></param>
+        /// <param name="userIdColumnName"></param>
+        /// <param name="itemIdColumnName"></param>
+        /// <param name="scoreColumnName"></param>
+        public MatrixFactorizationPredictionTransformer(IHostEnvironment host, MatrixFactorizationPredictor model, ISchema trainSchema,
+            string userIdColumnName, string itemIdColumnName, string scoreColumnName = DefaultColumnNames.Score)
+            :base(Contracts.CheckRef(host, nameof(host)).Register(nameof(MatrixFactorizationPredictionTransformer)), model, trainSchema)
+        {
+            Host.CheckNonEmpty(userIdColumnName, nameof(userIdColumnName));
+            Host.CheckNonEmpty(itemIdColumnName, nameof(itemIdColumnName));
+
+            UserIdColumnName = userIdColumnName;
+            ItemIdColumnName = itemIdColumnName;
+
+            if (!trainSchema.TryGetColumnIndex(UserIdColumnName, out int userCol))
+                throw Host.ExceptSchemaMismatch(nameof(userIdColumnName), RecommendUtils.UserKind.Value, userIdColumnName);
+            UserIdColumnType = trainSchema.GetColumnType(userCol);
+            if (!trainSchema.TryGetColumnIndex(ItemIdColumnName, out int itemCol))
+                throw Host.ExceptSchemaMismatch(nameof(itemIdColumnName), RecommendUtils.ItemKind.Value, itemIdColumnName);
+
+            BindableMapper = ScoreUtils.GetSchemaBindableMapper(Host, model);
+
+            var schema = GetSchema();
+            var args = new GenericScorer.Arguments { Suffix = "" };
+            Scorer = new GenericScorer(Host, args, new EmptyDataView(Host, trainSchema), BindableMapper.Bind(Host, schema), schema);
+        }
+
+        private RoleMappedSchema GetSchema()
+        {
+            var roles = new List<KeyValuePair<RoleMappedSchema.ColumnRole, string>>();
+            roles.Add(new KeyValuePair<RoleMappedSchema.ColumnRole, string>(new RoleMappedSchema.ColumnRole("User"), UserIdColumnName));
+            roles.Add(new KeyValuePair<RoleMappedSchema.ColumnRole, string>(new RoleMappedSchema.ColumnRole("Item"), ItemIdColumnName));
+            var schema = new RoleMappedSchema(TrainSchema, roles);
+            return schema;
+        }
+
+        public MatrixFactorizationPredictionTransformer(IHostEnvironment host, ModelLoadContext ctx)
+            :base(Contracts.CheckRef(host, nameof(host)).Register(nameof(MatrixFactorizationPredictionTransformer)), ctx)
+        {
+            // *** Binary format ***
+            // <base info>
+            // string: the column name of user ids.
+            // string: the column name of item ids.
+
+            UserIdColumnName = ctx.LoadString();
+            ItemIdColumnName = ctx.LoadString();
+
+            if (!TrainSchema.TryGetColumnIndex(UserIdColumnName, out int userCol))
+                throw Host.ExceptSchemaMismatch(nameof(UserIdColumnName), "User ID", UserIdColumnName);
+            UserIdColumnType = TrainSchema.GetColumnType(userCol);
+
+            if (!TrainSchema.TryGetColumnIndex(ItemIdColumnName, out int itemCol))
+                throw Host.ExceptSchemaMismatch(nameof(ItemIdColumnName), "Item ID", ItemIdColumnName);
+            ItemIdColumnType = TrainSchema.GetColumnType(itemCol);
+
+            BindableMapper = ScoreUtils.GetSchemaBindableMapper(Host, Model);
+
+            var schema = GetSchema();
+            var args = new GenericScorer.Arguments { Suffix = "" };
+            Scorer = new GenericScorer(Host, args, new EmptyDataView(Host, TrainSchema), BindableMapper.Bind(Host, schema), schema);
+        }
+
+        public override ISchema GetOutputSchema(ISchema inputSchema)
+        {
+            if (!inputSchema.TryGetColumnIndex(UserIdColumnName, out int userCol))
+                throw Host.ExceptSchemaMismatch(nameof(inputSchema), "User ID", UserIdColumnName);
+            if (!inputSchema.TryGetColumnIndex(ItemIdColumnName, out int itemCol))
+                throw Host.ExceptSchemaMismatch(nameof(inputSchema), "Item ID", ItemIdColumnName);
+
+            return Transform(new EmptyDataView(Host, inputSchema)).Schema;
+        }
+
+        public void Save(ModelSaveContext ctx)
+        {
+            Host.CheckValue(ctx, nameof(ctx));
+            ctx.CheckAtModel();
+            ctx.SetVersionInfo(GetVersionInfo());
+
+            // *** Binary format ***
+            // model: prediction model.
+            // stream: empty data view that contains train schema.
+            // ids of strings: feature columns.
+            // float: scorer threshold
+            // id of string: scorer threshold column
+
+            ctx.SaveModel(Model, DirModel);
+            ctx.SaveBinaryStream(DirTransSchema, writer =>
+            {
+                using (var ch = Host.Start("Saving train schema"))
+                {
+                    var saver = new BinarySaver(Host, new BinarySaver.Arguments { Silent = true });
+                    DataSaverUtils.SaveDataView(ch, saver, new EmptyDataView(Host, TrainSchema), writer.BaseStream);
+                }
+            });
+
+            ctx.SaveString(UserIdColumnName);
+            ctx.SaveString(ItemIdColumnName);
+        }
+
+        private static VersionInfo GetVersionInfo()
+        {
+            return new VersionInfo(
+                modelSignature: "MAFAPRED", // "MA"trix "FA"torization "PRED"iction
+                verWrittenCur: 0x00010001, // Initial
+                verReadableCur: 0x00010001,
+                verWeCanReadBack: 0x00010001,
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(MatrixFactorizationPredictionTransformer).Assembly.FullName);
+        }
+        private static MatrixFactorizationPredictionTransformer Create(IHostEnvironment env, ModelLoadContext ctx)
+            => new MatrixFactorizationPredictionTransformer(env, ctx);
+
     }
 }

@@ -5,6 +5,10 @@
 //------------------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using Microsoft.ML.Core.Data;
+using Microsoft.ML.Core.Prediction;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
@@ -20,7 +24,8 @@ using Microsoft.ML.Runtime.Training;
 
 namespace Microsoft.ML.Runtime.Recommend
 {
-    public sealed class MatrixFactorizationTrainer : TrainerBase<MatrixFactorizationPredictor>
+    public sealed class MatrixFactorizationTrainer : TrainerBase<MatrixFactorizationPredictor>,
+        IEstimator<MatrixFactorizationPredictionTransformer>
     {
         public sealed class Arguments
         {
@@ -68,6 +73,35 @@ namespace Microsoft.ML.Runtime.Recommend
 
         public override PredictionKind PredictionKind => PredictionKind.Recommendation;
         public const string LoadNameValue = "MatrixFactorization";
+
+        /// <summary>
+        /// The user and item columns that the trainer expects.
+        /// </summary>
+        public readonly SchemaShape.Column UserIdColumn;
+        public readonly SchemaShape.Column ItemIdColumn;
+
+        /// <summary>
+        /// The label column that the trainer expects. Can be <c>null</c>, which indicates that label
+        /// is not used for training.
+        /// </summary>
+        public readonly SchemaShape.Column LabelColumn;
+
+        /// <summary>
+        /// The <see cref="TrainerInfo"/> containing at least the training data for this trainer.
+        /// </summary>
+        public override TrainerInfo Info { get; }
+
+        /// <summary>
+        /// Additional data for training, through <see cref="TrainerEstimatorContext"/>
+        /// </summary>
+        public readonly TrainerEstimatorContext Context;
+
+        /// <summary>
+        /// Legacy constructor initializing a new instance of <see cref="MatrixFactorizationTrainer"/> through the legacy
+        /// <see cref="Arguments"/> class.
+        /// </summary>
+        /// <param name="env">The private instance of <see cref="IHostEnvironment"/>.</param>
+        /// <param name="args">An instance of the legacy <see cref="Arguments"/> to apply advanced parameters to the algorithm.</param>
         public MatrixFactorizationTrainer(IHostEnvironment env, Arguments args) : base(env, LoadNameValue)
         {
 
@@ -86,9 +120,42 @@ namespace Microsoft.ML.Runtime.Recommend
             _threads = args.NumThreads ?? Environment.ProcessorCount;
             _quiet = args.Quiet;
             _doNmf = args.NonNegative;
+
+            Info = new TrainerInfo(normalization: false, caching: false);
         }
-        private static TrainerInfo _info = new TrainerInfo(normalization: false, caching: false);
-        public override TrainerInfo Info => _info;
+
+        /// <summary>
+        /// Initializing a new instance of <see cref="MatrixFactorizationTrainer"/>.
+        /// </summary>
+        /// <param name="env">The private instance of <see cref="IHostEnvironment"/>.</param>
+        /// <param name="labelColumn">The name of the label column.</param>
+        /// <param name="userIdColumn">The name of the column hosting the user IDs.</param>
+        /// <param name="itemIdColumn">The name of the column hosting the item IDs.</param>
+        /// <param name="advancedSettings">A delegate to apply all the advanced arguments to the algorithm.</param>
+        /// <param name="context">The <see cref="TrainerEstimatorContext"/> for additional input data to training.</param>
+        public MatrixFactorizationTrainer(IHostEnvironment env, string labelColumn, string userIdColumn, string itemIdColumn,
+            TrainerEstimatorContext context = null, Action<Arguments> advancedSettings = null)
+            : base(env, LoadNameValue)
+        {
+            var args = new Arguments();
+            advancedSettings?.Invoke(args);
+
+            _lambda = args.Lambda;
+            _k = args.K;
+            _iter = args.NumIterations;
+            _eta = args.Eta;
+            _threads = args.NumThreads ?? Environment.ProcessorCount;
+            _quiet = args.Quiet;
+            _doNmf = args.NonNegative;
+
+            Info = new TrainerInfo(normalization: false, caching: false);
+            Context = context;
+
+            LabelColumn = new SchemaShape.Column(labelColumn, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false);
+            UserIdColumn = new SchemaShape.Column(userIdColumn, SchemaShape.Column.VectorKind.Scalar, NumberType.U4, true);
+            ItemIdColumn = new SchemaShape.Column(itemIdColumn, SchemaShape.Column.VectorKind.Scalar, NumberType.U4, true);
+        }
+
         public override MatrixFactorizationPredictor Train(TrainContext context)
         {
             Host.CheckValue(context, nameof(context));
@@ -186,6 +253,69 @@ namespace Microsoft.ML.Runtime.Recommend
         {
             return new SafeTrainingAndModelBuffer(Host, _k, Math.Max(20, 2 * _threads),
                 _threads, _iter, _lambda, _eta, _doNmf, _quiet, copyData: false);
+        }
+
+        public MatrixFactorizationPredictionTransformer Fit(IDataView input)
+        {
+            MatrixFactorizationPredictor model = null;
+
+            var roles = new List<KeyValuePair<RoleMappedSchema.ColumnRole, string>>();
+            roles.Add(new KeyValuePair<RoleMappedSchema.ColumnRole, string>(RoleMappedSchema.ColumnRole.Label, LabelColumn.Name));
+            roles.Add(new KeyValuePair<RoleMappedSchema.ColumnRole, string>(RecommendUtils.UserKind.Value, UserIdColumn.Name));
+            roles.Add(new KeyValuePair<RoleMappedSchema.ColumnRole, string>(RecommendUtils.ItemKind.Value, ItemIdColumn.Name));
+
+            var trainingData = new RoleMappedData(input, roles);
+            var validData = Context == null ? null : new RoleMappedData(Context.ValidationSet, roles);
+
+            using (var ch = Host.Start("Training"))
+            using (var pch = Host.StartProgressChannel("Training"))
+            {
+                model = TrainCore(ch, trainingData, validData);
+            }
+
+            return new MatrixFactorizationPredictionTransformer(Host, model, input.Schema, UserIdColumn.Name, ItemIdColumn.Name);
+        }
+
+        public SchemaShape GetOutputSchema(SchemaShape inputSchema)
+        {
+            Host.CheckValue(inputSchema, nameof(inputSchema));
+
+            void CheckColumnsCompatible(SchemaShape.Column cachedColumn, string expectedColumnName)
+            {
+                if (!inputSchema.TryFindColumn(cachedColumn.Name, out var col))
+                    throw Host.ExceptSchemaMismatch(nameof(col), expectedColumnName, expectedColumnName);
+
+                if (!cachedColumn.IsCompatibleWith(col))
+                    throw Host.Except($"{expectedColumnName} column '{cachedColumn.Name}' is not compatible");
+            }
+
+            // In prediction phase, no label column is expected.
+            if (LabelColumn != null)
+                CheckColumnsCompatible(LabelColumn, LabelColumn.Name);
+
+            // In both of training and prediction phases, we need columns of user ID and column ID.
+            CheckColumnsCompatible(UserIdColumn, UserIdColumn.Name);
+            CheckColumnsCompatible(ItemIdColumn, ItemIdColumn.Name);
+
+            // Input columns just pass through so that output column dictionary contains all input columns.
+            var outColumns = inputSchema.Columns.ToDictionary(x => x.Name);
+
+            // Add columns produced by this estimator.
+            foreach (var col in GetOutputColumnsCore(inputSchema))
+                outColumns[col.Name] = col;
+
+            return new SchemaShape(outColumns.Values);
+        }
+
+        private SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema)
+        {
+            bool success = inputSchema.TryFindColumn(LabelColumn.Name, out var labelCol);
+            Contracts.Assert(success);
+
+            return new[]
+            {
+                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata())),
+            };
         }
     }
 }
