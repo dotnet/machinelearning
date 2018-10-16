@@ -100,7 +100,7 @@ namespace Microsoft.ML.Runtime.Ensemble.Selector.SubModelSelector
         }
 
         private IEnumerable<KeyValuePair<RoleMappedSchema.ColumnRole, string>> GetColumnRoles(
-            RoleMappedSchema testSchema, ISchema scoredSchema)
+            RoleMappedSchema testSchema, Schema scoredSchema)
         {
             switch (PredictionKind)
             {

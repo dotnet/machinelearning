@@ -357,7 +357,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             return new Cursor(this, srcCursor);
         }
 
-        public override ISchema Schema
+        public override Schema Schema
         {
             get { return _transform.Schema; }
         }
@@ -387,7 +387,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
                 _parent = parent;
             }
 
-            public ISchema Schema { get { return _parent.Schema; } }
+            public Schema Schema { get { return _parent.Schema; } }
 
             public bool IsColumnActive(int col)
             {

@@ -146,7 +146,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
 
         private readonly SchemaImpl _wrappedSchema;
 
-        public override ISchema Schema => _wrappedSchema;
+        public override Schema Schema => _wrappedSchema.AsSchema;
 
         private static int GetOutputLength(AlertingScore alertingScore, IHostEnvironment host)
         {
@@ -569,6 +569,8 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             private readonly int _namesLength;
             private readonly MetadataUtils.MetadataGetter<VBuffer<ReadOnlyMemory<char>>> _getter;
 
+            public Schema AsSchema { get; }
+
             public int ColumnCount { get { return _parent.ColumnCount; } }
 
             /// <summary>
@@ -595,6 +597,8 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
                 _type = new VectorType(TextType.Instance, _namesLength);
                 Contracts.AssertValue(_type);
                 _getter = GetSlotNames;
+
+                AsSchema = Schema.Create(this);
             }
 
             public bool TryGetColumnIndex(string name, out int col)

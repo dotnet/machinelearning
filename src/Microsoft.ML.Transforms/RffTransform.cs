@@ -504,7 +504,7 @@ namespace Microsoft.ML.Transforms
                 _transformInfos[i].Save(ctx, string.Format("MatrixGenerator{0}", i));
         }
 
-        protected override IRowMapper MakeRowMapper(ISchema schema) => new Mapper(this, schema);
+        protected override IRowMapper MakeRowMapper(ISchema schema) => new Mapper(this, Schema.Create(schema));
 
         private sealed class Mapper : MapperBase
         {
@@ -513,7 +513,7 @@ namespace Microsoft.ML.Transforms
             private readonly ColumnType[] _types;
             private readonly RffTransform _parent;
 
-            public Mapper(RffTransform parent, ISchema inputSchema)
+            public Mapper(RffTransform parent, Schema inputSchema)
                : base(parent.Host.Register(nameof(Mapper)), parent, inputSchema)
             {
                 _parent = parent;
@@ -523,22 +523,19 @@ namespace Microsoft.ML.Transforms
                 for (int i = 0; i < _parent.ColumnPairs.Length; i++)
                 {
                     inputSchema.TryGetColumnIndex(_parent.ColumnPairs[i].input, out _srcCols[i]);
-                    _srcTypes[i] = inputSchema.GetColumnType(_srcCols[i]);
+                    var srcCol = inputSchema[_srcCols[i]];
+                    _srcTypes[i] = srcCol.Type;
                     //validate typeSrc.ValueCount and transformInfo.SrcDim
                     _types[i] = new VectorType(NumberType.Float, _parent._transformInfos[i].RotationTerms == null ?
                     _parent._transformInfos[i].NewDim * 2 : _parent._transformInfos[i].NewDim);
                 }
             }
 
-            public override RowMapperColumnInfo[] GetOutputColumns()
+            public override Schema.Column[] GetOutputColumns()
             {
-                var result = new RowMapperColumnInfo[_parent.ColumnPairs.Length];
+                var result = new Schema.Column[_parent.ColumnPairs.Length];
                 for (int i = 0; i < _parent.ColumnPairs.Length; i++)
-                {
-                    InputSchema.TryGetColumnIndex(_parent.ColumnPairs[i].input, out int colIndex);
-                    Host.Assert(colIndex >= 0);
-                    result[i] = new RowMapperColumnInfo(_parent.ColumnPairs[i].output, _types[i], null);
-                }
+                    result[i] = new Schema.Column(_parent.ColumnPairs[i].output, _types[i], null);
                 return result;
             }
 

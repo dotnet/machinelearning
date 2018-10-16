@@ -15,9 +15,9 @@ namespace Microsoft.ML.Runtime.Data
         private readonly bool[] _active;
 
         /// <summary>Gets row's schema.</summary>
-        public ISchema Schema { get; }
+        public Schema Schema { get; }
 
-        protected LinkedRowRootCursorBase(IChannelProvider provider, IRowCursor input, ISchema schema, bool[] active)
+        protected LinkedRowRootCursorBase(IChannelProvider provider, IRowCursor input, Schema schema, bool[] active)
             : base(provider, input)
         {
             Ch.CheckValue(schema, nameof(schema));

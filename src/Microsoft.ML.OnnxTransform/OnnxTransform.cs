@@ -150,7 +150,7 @@ namespace Microsoft.ML.Transforms
         {
         }
 
-        public ISchema GetOutputSchema(ISchema inputSchema)
+        public Schema GetOutputSchema(Schema inputSchema)
         {
             _host.CheckValue(inputSchema, nameof(inputSchema));
             if (!inputSchema.TryGetColumnIndex(Input, out int srcCol))
@@ -160,7 +160,7 @@ namespace Microsoft.ML.Transforms
             return transform.Schema;
         }
 
-        private IRowMapper MakeRowMapper(ISchema schema) => new Mapper(_host, this, schema);
+        private IRowMapper MakeRowMapper(ISchema schema) => new Mapper(_host, this, Schema.Create(schema));
 
         private RowToRowMapperTransform MakeDataTransform(IDataView input)
         {
@@ -183,7 +183,7 @@ namespace Microsoft.ML.Transforms
 
         public bool IsRowToRowMapper => true;
 
-        public IRowToRowMapper GetRowToRowMapper(ISchema inputSchema)
+        public IRowToRowMapper GetRowToRowMapper(Schema inputSchema)
         {
             _host.CheckValue(inputSchema, nameof(inputSchema));
             return MakeDataTransform(new EmptyDataView(_host, inputSchema));
@@ -200,7 +200,7 @@ namespace Microsoft.ML.Transforms
 
             private readonly IdvToTensorAdapter _idvToTensorAdapter;
 
-            public Mapper(IHostEnvironment env, OnnxTransform parent, ISchema inputSchema)
+            public Mapper(IHostEnvironment env, OnnxTransform parent, Schema inputSchema)
             {
                 Contracts.CheckValue(env, nameof(env));
                 _host = env.Register(nameof(Mapper));
@@ -244,10 +244,10 @@ namespace Microsoft.ML.Transforms
                 _host.Assert(_outputItemRawType == _outputColType.ItemType.RawType);
             }
 
-            public RowMapperColumnInfo[] GetOutputColumns()
+            public Schema.Column[] GetOutputColumns()
             {
-                var info = new RowMapperColumnInfo[1];
-                info[0] = new RowMapperColumnInfo(_outputColName, _outputColType, null);
+                var info = new Schema.Column[1];
+                info[0] = new Schema.Column(_outputColName, _outputColType, null);
                 return info;
             }
 
