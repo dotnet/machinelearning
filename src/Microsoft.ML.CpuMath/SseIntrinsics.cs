@@ -356,10 +356,10 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                 float* pDstEnd = pdst + crow;
                 float* pSrcCurrent = psrc;
                 float* pMatCurrent = pmat;
-                bool firstTime = true;
 
-                // We do 4-way unrolling
-                while (pSrcCurrent < pSrcEnd)
+                // The reason behind adding the if condtion instead of boolean flag
+                // is to avoid branching in codegen.
+                if (pSrcCurrent < pSrcEnd)
                 {
                     Vector128<float> x01 = Sse.LoadVector128(pSrcCurrent);
                     // Replicate each 32-bit slot of x01 (ABCD) into its own register.
@@ -387,11 +387,6 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                             x02 = Sse.Add(x02, x12);
                             x22 = Sse.Add(x22, x32);
                             x02 = Sse.Add(x02, x22);
-
-                            if (!firstTime)
-                            {
-                                x02 = Sse.Add(x02, Sse.LoadVector128(pDstCurrent));
-                            }
 
                             Sse.Store(pDstCurrent, x02);
                             pDstCurrent += 4;
@@ -430,11 +425,6 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                             Vector128<float> x3 = Sse.LoadVector128(pDstCurrent);
                             x02 = Sse.Or(x02, Sse.And(x3, trailingMask));
 
-                            if (!firstTime)
-                            {
-                                x02 = Sse.Add(x02, Sse.And(x3, leadingMask));
-                            }
-
                             Sse.Store(pDstCurrent, x02);
                             pMatCurrent += misalignment;
                             pDstCurrent += misalignment;
@@ -455,11 +445,6 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                                 x02 = Sse.Add(x02, x12);
                                 x22 = Sse.Add(x22, x32);
                                 x02 = Sse.Add(x02, x22);
-
-                                if (!firstTime)
-                                {
-                                    x02 = Sse.Add(x02, Sse.LoadVector128(pDstCurrent));
-                                }
 
                                 Sse.Store(pDstCurrent, x02);
                                 pDstCurrent += 4;
@@ -496,18 +481,151 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                             Vector128<float> x3 = Sse.LoadVector128(pDstCurrent);
                             x02 = Sse.Or(x02, Sse.And(x3, leadingMask));
 
-                            if (!firstTime)
-                            {
-                                x02 = Sse.Add(x02, Sse.And(x3, trailingMask));
-                            }
-
                             Sse.Store(pDstCurrent, x02);
                             pDstCurrent += 4;
                             pMatCurrent += 4;
                         }
                     }
 
-                    firstTime = false;
+                    pMatCurrent += 3 * crow;
+                    pSrcCurrent += 4;
+                }
+
+                // We do 4-way unrolling
+                while (pSrcCurrent < pSrcEnd)
+                {
+                    Vector128<float> x01 = Sse.LoadVector128(pSrcCurrent);
+                    // Replicate each 32-bit slot of x01 (ABCD) into its own register.
+                    Vector128<float> x11 = Sse.Shuffle(x01, x01, 0x55); // B
+                    Vector128<float> x21 = Sse.Shuffle(x01, x01, 0xAA); // C
+                    Vector128<float> x31 = Sse.Shuffle(x01, x01, 0xFF); // D
+                    x01 = Sse.Shuffle(x01, x01, 0x00); // A
+
+                    int length = crow;
+                    float* pDstCurrent = pdst;
+
+                    nuint address = (nuint)(pMatCurrent);
+                    int misalignment = (int)(address % 16);
+
+                    if ((misalignment & 3) != 0)
+                    {
+                        while (pDstCurrent < pDstEnd)
+                        {
+                            float* pMatTemp = pMatCurrent;
+                            Vector128<float> x02 = Sse.Multiply(x01, Sse.LoadVector128(pMatTemp));
+                            Vector128<float> x12 = Sse.Multiply(x11, Sse.LoadVector128(pMatTemp += crow));
+                            Vector128<float> x22 = Sse.Multiply(x21, Sse.LoadVector128(pMatTemp += crow));
+                            Vector128<float> x32 = Sse.Multiply(x31, Sse.LoadVector128(pMatTemp += crow));
+
+                            x02 = Sse.Add(x02, x12);
+                            x22 = Sse.Add(x22, x32);
+                            x02 = Sse.Add(x02, x22);
+
+                            x02 = Sse.Add(x02, Sse.LoadVector128(pDstCurrent));
+
+                            Sse.Store(pDstCurrent, x02);
+                            pDstCurrent += 4;
+                            pMatCurrent += 4;
+                        }
+                    }
+                    else
+                    {
+                        int remainder = 0;
+                        if (misalignment != 0)
+                        {
+                            // Handle cases where the data is not 128-bit aligned by doing an unaligned read and then
+                            // masking any elements that will be included in the first aligned read
+                            misalignment >>= 2;
+                            misalignment = 4 - misalignment;
+
+                            Vector128<float> leadingMask = Sse.LoadVector128(((float*)(pLeadingAlignmentMask)) + (misalignment * 4));
+
+                            // We only align pMat since it has significantly more reads.
+                            float* pMatTemp = pMatCurrent;
+                            Vector128<float> x02 = Sse.And(leadingMask, Sse.LoadVector128(pMatTemp));
+                            Vector128<float> x12 = Sse.And(leadingMask, Sse.LoadVector128(pMatTemp += crow));
+                            Vector128<float> x22 = Sse.And(leadingMask, Sse.LoadVector128(pMatTemp += crow));
+                            Vector128<float> x32 = Sse.And(leadingMask, Sse.LoadVector128(pMatTemp += crow));
+
+                            x02 = Sse.Multiply(x01, x02);
+                            x12 = Sse.Multiply(x11, x12);
+                            x22 = Sse.Multiply(x21, x22);
+                            x32 = Sse.Multiply(x31, x32);
+
+                            x02 = Sse.Add(x02, x12);
+                            x22 = Sse.Add(x22, x32);
+                            x02 = Sse.Add(x02, x22);
+
+                            Vector128<float> trailingMask = Sse.LoadVector128(((float*)(pTrailingAlignmentMask)) + ((4 - misalignment) * 4));
+                            Vector128<float> x3 = Sse.LoadVector128(pDstCurrent);
+                            x02 = Sse.Or(x02, Sse.And(x3, trailingMask));
+
+                            x02 = Sse.Add(x02, Sse.And(x3, leadingMask));
+
+                            Sse.Store(pDstCurrent, x02);
+                            pMatCurrent += misalignment;
+                            pDstCurrent += misalignment;
+                            length -= misalignment;
+                        }
+                        if (length > 4)
+                        {
+                            remainder = length % 4;
+                            while (pDstCurrent + 4 <= pDstEnd)
+                            {
+                                float* pMatTemp = pMatCurrent;
+
+                                Vector128<float> x02 = Sse.Multiply(x01, Sse.LoadVector128(pMatTemp));
+                                Vector128<float> x12 = Sse.Multiply(x11, Sse.LoadVector128(pMatTemp += crow));
+                                Vector128<float> x22 = Sse.Multiply(x21, Sse.LoadVector128(pMatTemp += crow));
+                                Vector128<float> x32 = Sse.Multiply(x31, Sse.LoadVector128(pMatTemp += crow));
+
+                                x02 = Sse.Add(x02, x12);
+                                x22 = Sse.Add(x22, x32);
+                                x02 = Sse.Add(x02, x22);
+
+                                x02 = Sse.Add(x02, Sse.LoadVector128(pDstCurrent));
+                                Sse.Store(pDstCurrent, x02);
+                                pDstCurrent += 4;
+                                pMatCurrent += 4;
+                            }
+                        }
+                        else
+                        {
+                            remainder = length;
+                        }
+
+                        if (remainder != 0)
+                        {
+                            pMatCurrent -= (4 - remainder);
+                            pDstCurrent -= (4 - remainder);
+                            Vector128<float> trailingMask = Sse.LoadVector128(((float*)(pTrailingAlignmentMask)) + (remainder * 4));
+
+                            float* pMatTemp = pMatCurrent;
+                            Vector128<float> x02 = Sse.And(trailingMask, Sse.LoadVector128(pMatTemp));
+                            Vector128<float> x12 = Sse.And(trailingMask, Sse.LoadVector128(pMatTemp += crow));
+                            Vector128<float> x22 = Sse.And(trailingMask, Sse.LoadVector128(pMatTemp += crow));
+                            Vector128<float> x32 = Sse.And(trailingMask, Sse.LoadVector128(pMatTemp += crow));
+
+                            x02 = Sse.Multiply(x01, x02);
+                            x12 = Sse.Multiply(x11, x12);
+                            x22 = Sse.Multiply(x21, x22);
+                            x32 = Sse.Multiply(x31, x32);
+
+                            x02 = Sse.Add(x02, x12);
+                            x22 = Sse.Add(x22, x32);
+                            x02 = Sse.Add(x02, x22);
+
+                            Vector128<float> leadingMask = Sse.LoadVector128(((float*)(pLeadingAlignmentMask)) + ((4 - remainder) * 4));
+                            Vector128<float> x3 = Sse.LoadVector128(pDstCurrent);
+                            x02 = Sse.Or(x02, Sse.And(x3, leadingMask));
+
+                            x02 = Sse.Add(x02, Sse.And(x3, trailingMask));
+                            Sse.Store(pDstCurrent, x02);
+                            pDstCurrent += 4;
+                            pMatCurrent += 4;
+                        }
+                    }
+
                     pMatCurrent += 3 * crow;
                     pSrcCurrent += 4;
                 }
