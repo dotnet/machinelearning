@@ -404,6 +404,48 @@ namespace Microsoft.ML.Runtime.RunTests
             Done();
         }
 
+        [Fact]
+        public void SavePipeCat()
+        {
+            TestCore(null, false,
+                new[] {
+                    "loader=Text{col=Text:TX:1-9 col=OneText:TX:1 col=Label:0}",
+                    "xf=Cat{max=5 col={name=Bag src=Text kind=bag} col=One:ind:OneText}",
+                    "xf=Cat{max=7 col=Hot:Text}",
+                    "xf=Cat{max=8 col=Key:kEY:Text col=KeyOne:KeY:OneText}",
+                });
+
+            Done();
+        }
+
+        [Fact]
+        public void SavePipeHash()
+        {
+            string pathData = DeleteOutputPath("SavePipe", "HashTransform.txt");
+            File.WriteAllLines(pathData,
+                new[] {
+                    "1\t2\t3\t4\t3\t5",
+                    "2\t3\t2\t4\t7\t10\t11",
+                    "1\t1\t2\t3",
+                    "10\t2:1\t7:2\t9:3"
+                });
+
+            TestCore(pathData, true,
+                new[] {
+                    "loader=Text{col=Text:TX:0-2 col=CatU1:U1[0-2]:0-2 col=CatU2:U2[2-4]:0-2 col=CatU8:U8[0-*]:0-2 col=OneU1:U1[0-*]:0 col=OneU2:U2[0-*]:1 col=OneU4:U4[0-*]:1 col=OneU8:U8[0-*]:2 col=Single:TX:0 col=VarU1:U1[0-*]:3-** col=VarU2:U2[0-*]:3-** col=VarU4:U4[0-*]:3-** col=VarU8:U8[0-*]:3-** col=Variable:TX:3-**}",
+                    "xf=Cat{col=Cat:Key:Text col=VarCat:Key:Variable}",
+                    "xf=Hash{bits=6 ordered+ col={name=Hash0 src=Text bits=4} col={name=Hash1 src=Text ord- bits=4} col={name=Hash2 src=Cat} col=Hash3:CatU8}",
+                    "xf=Hash{col={name=Hash4 bits=5 src=CatU1} col={name=Hash5 src=CatU2 bits=6 ord+} col={name=Hash6 src=CatU2 bits=6} col={name=Hash7 src=CatU8 bits=6} col={name=Hash8 src=Cat bits=6}}",
+                    "xf=Hash{col={name=Hash9 bits=5 src=OneU1} col={name=Hash10 bits=8 src=OneU2} col={name=Hash11 bits=3 src=OneU4} col={name=Hash12 bits=3 src=OneU8}}",
+                    "xf=Hash{bits=7 ordered+ col={name=VarHash1 src=Variable} col={name=VarHash2 src=VarCat ordered-}}",
+                    "xf=Hash{bits=7 ordered+ col={name=VarHash3 src=VarU1} col={name=VarHash4 src=VarU2} col={name=VarHash5 src=VarU4} col={name=VarHash6 src=VarU8}}",
+                    "xf=Hash{bits=4 col={name=SingleHash src=Single ordered+}}",
+                    "xf=Concat{col=VarComb:VarHash1,VarHash2,VarHash3,VarHash4,VarHash5,VarHash6}",
+                    "xf=ChooseColumns{col=SingleHash col=Hash0 col=Hash1 col=Hash2 col=Hash3 col=Hash4 col=Hash5 col=Hash6 col=Hash7 col=Hash8 col=Hash9 col=Hash10 col=Hash11 col=Hash12 col=VarComb}",
+                }, logCurs: true);
+
+            Done();
+        }
 
         [Fact]
         public void TestHashTransformFloat()
