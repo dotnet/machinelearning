@@ -66,7 +66,7 @@ namespace Microsoft.ML.Tests.Transformers
                 VectorString: ctx.LoadText(1, 4)
             ));
 
-            var data = reader.Read(new MultiFileSource(dataPath));
+            var data = reader.Read(dataPath);
 
             // Non-pigsty Term.
             var dynamicData = new TermEstimator(Env,

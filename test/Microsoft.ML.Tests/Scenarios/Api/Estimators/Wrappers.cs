@@ -31,7 +31,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
 
         public Schema GetOutputSchema()
         {
-            var emptyData = Read(new MultiFileSource(null));
+            var emptyData = Read(null);
             return emptyData.Schema;
         }
 
@@ -41,7 +41,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         {
             ctx.CheckAtModel();
             ctx.SetVersionInfo(GetVersionInfo());
-            var ldr = Read(new MultiFileSource(null));
+            var ldr = Read(null);
             ctx.SaveModel(ldr, "Loader");
         }
 

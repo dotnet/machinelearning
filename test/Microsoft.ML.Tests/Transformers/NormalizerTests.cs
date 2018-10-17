@@ -114,12 +114,12 @@ namespace Microsoft.ML.Tests.Transformers
             var data = TextLoader.CreateReader(env,
                 c => (label: c.LoadFloat(11), features: c.LoadFloat(0, 10)),
                 separator: ';', hasHeader: true)
-                .Read(new MultiFileSource(dataSource));
+                .Read(dataSource);
 
             var invalidData = TextLoader.CreateReader(env,
                 c => (label: c.LoadFloat(11), features: c.LoadText(0, 10)),
                 separator: ';', hasHeader: true)
-                .Read(new MultiFileSource(dataSource));
+                .Read(dataSource);
 
             var est = new LpNormalizer(env, "features", "lpnorm")
                 .Append(new GlobalContrastNormalizer(env, "features", "gcnorm"))

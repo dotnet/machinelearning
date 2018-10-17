@@ -103,7 +103,7 @@ var reader = TextLoader.CreateReader(env, ctx => (
     hasHeader: true);
 
 // Now read the file (remember though, readers are lazy, so the actual reading will happen when the data is accessed).
-var data = reader.Read(new MultiFileSource(dataPath));
+var data = reader.Read(dataPath);
 ```
 
 If the schema of the data is not known at compile time, or too cumbersome, you can revert to the dynamically-typed API: 
@@ -128,7 +128,7 @@ var reader = new TextLoader(env, new TextLoader.Arguments
 });
 
 // Now read the file (remember though, readers are lazy, so the actual reading will happen when the data is accessed).
-var data = reader.Read(new MultiFileSource(dataPath));
+var data = reader.Read(dataPath);
 ```
 
 ## How do I load data from multiple files?
@@ -163,7 +163,7 @@ var reader = TextLoader.CreateReader(env, ctx => (
     hasHeader: true);
 
 // Now read the files (remember though, readers are lazy, so the actual reading will happen when the data is accessed).
-var data = reader.Read(new MultiFileSource(exampleFile1, exampleFile2));
+var data = reader.Read(exampleFile1, exampleFile2);
 
 ## How do I load data with many columns from a CSV?
 `TextLoader` is used to load data from text files. You will need to specify what are the data columns, what are their types, and where to find them in the text file. 
@@ -196,7 +196,7 @@ var reader = TextLoader.CreateReader(env, ctx => (
 
 
 // Now read the file (remember though, readers are lazy, so the actual reading will happen when the data is accessed).
-var data = reader.Read(new MultiFileSource(dataPath));
+var data = reader.Read(dataPath);
 ```
 
 
@@ -220,7 +220,7 @@ var reader = new TextLoader(env, new TextLoader.Arguments
 });
 
 // Now read the file (remember though, readers are lazy, so the actual reading will happen when the data is accessed).
-var data = reader.Read(new MultiFileSource(dataPath));
+var data = reader.Read(dataPath);
 ```
 
 ## How do I look at the intermediate data?
@@ -268,7 +268,7 @@ var dataPipeline = reader.MakeNewEstimator()
 
 // Let's verify that the data has been read correctly. 
 // First, we read the data file.
-var data = reader.Read(new MultiFileSource(dataPath));
+var data = reader.Read(dataPath);
 
 // Fit our data pipeline and transform data with it.
 var transformedData = dataPipeline.Fit(data).Transform(data);
@@ -344,7 +344,7 @@ var reader = TextLoader.CreateReader(env, ctx => (
 
 
 // Now read the file (remember though, readers are lazy, so the actual reading will happen when the data is accessed).
-var trainData = reader.Read(new MultiFileSource(trainDataPath));
+var trainData = reader.Read(trainDataPath);
 
 // Step two: define the learning pipeline. 
 // We know that this is a regression task, so we create a regression context: it will give us the algorithms
@@ -376,7 +376,7 @@ You can use the corresponding 'context' of the task to evaluate the model.
 Assuming the example above was used to train the model, here's how you calculate the metrics.
 ```csharp
 // Read the test dataset.
-var testData = reader.Read(new MultiFileSource(testDataPath));
+var testData = reader.Read(testDataPath);
 // Calculate metrics of the model on the test data.
 // We are using the 'regression' context object here to perform evaluation.
 var metrics = regression.Evaluate(model.Transform(testData), label: r => r.Target, score: r => r.Prediction);
@@ -437,7 +437,7 @@ var reader = TextLoader.CreateReader(env, ctx => (
     separator: ',');
 
 // Retrieve the training data.
-var trainData = reader.Read(new MultiFileSource(irisDataPath));
+var trainData = reader.Read(irisDataPath);
 
 // Build the training pipeline.
 var learningPipeline = reader.MakeNewEstimator()
@@ -612,7 +612,7 @@ var reader = TextLoader.CreateReader(env, ctx => (
     separator: ',');
 
 // Retrieve the training data.
-var trainData = reader.Read(new MultiFileSource(dataPath));
+var trainData = reader.Read(dataPath);
 
 // This is the predictor ('weights collection') that we will train.
 MulticlassLogisticRegressionPredictor predictor = null;
@@ -703,7 +703,7 @@ var reader = TextLoader.CreateReader(env, ctx => (
     separator: ',');
 
 // Read the training data.
-var trainData = reader.Read(new MultiFileSource(dataPath));
+var trainData = reader.Read(dataPath);
 
 // Apply all kinds of standard ML.NET normalization to the raw features.
 var pipeline = reader.MakeNewEstimator()
@@ -762,7 +762,7 @@ var reader = TextLoader.CreateReader(env, ctx => (
     ), hasHeader: true);
 
 // Read the data.
-var data = reader.Read(new MultiFileSource(dataPath));
+var data = reader.Read(dataPath);
 
 // Inspect the categorical columns to check that they are correctly read.
 var catColumns = data.GetColumn(r => r.CategoricalFeatures).Take(10).ToArray();
@@ -840,7 +840,7 @@ var reader = TextLoader.CreateReader(env, ctx => (
     ), hasHeader: true);
 
 // Read the data.
-var data = reader.Read(new MultiFileSource(dataPath));
+var data = reader.Read(dataPath);
 
 // Inspect the message texts that are read from the file.
 var messageTexts = data.GetColumn(x => x.Message).Take(20).ToArray();
@@ -909,7 +909,7 @@ var reader = TextLoader.CreateReader(env, ctx => (
     separator: ',');
 
 // Read the data.
-var data = reader.Read(new MultiFileSource(dataPath));
+var data = reader.Read(dataPath);
 
 // Build the training pipeline.
 var learningPipeline = reader.MakeNewEstimator()
@@ -970,7 +970,7 @@ var reader = TextLoader.CreateReader(env, ctx => (
     separator: ',');
 
 // Read the data.
-var data = reader.Read(new MultiFileSource(dataPath));
+var data = reader.Read(dataPath);
 
 // Build the pre-processing pipeline.
 var learningPipeline = reader.MakeNewEstimator()
