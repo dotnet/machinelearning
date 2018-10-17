@@ -16,10 +16,16 @@ using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.Numeric;
 
-[assembly: LoadableClass(PcaTransformer.Summary, typeof(PcaTransformer), typeof(PcaTransformer.Arguments), typeof(SignatureDataTransform),
+[assembly: LoadableClass(PcaTransformer.Summary, typeof(IDataTransform), typeof(PcaTransformer), typeof(PcaTransformer.Arguments), typeof(SignatureDataTransform),
     PcaTransformer.UserName, PcaTransformer.LoaderSignature, PcaTransformer.ShortName)]
 
-[assembly: LoadableClass(PcaTransformer.Summary, typeof(PcaTransformer), null, typeof(SignatureLoadDataTransform),
+[assembly: LoadableClass(PcaTransformer.Summary, typeof(IDataTransform), typeof(PcaTransformer), null, typeof(SignatureLoadDataTransform),
+    PcaTransformer.UserName, PcaTransformer.LoaderSignature)]
+
+[assembly: LoadableClass(PcaTransformer.Summary, typeof(PcaTransformer), null, typeof(SignatureLoadModel),
+    PcaTransformer.UserName, PcaTransformer.LoaderSignature)]
+
+[assembly: LoadableClass(typeof(IRowMapper), typeof(PcaTransformer), null, typeof(SignatureLoadRowMapper),
     PcaTransformer.UserName, PcaTransformer.LoaderSignature)]
 
 [assembly: LoadableClass(typeof(void), typeof(PcaTransformer), null, typeof(SignatureEntryPointModule), PcaTransformer.LoaderSignature)]
@@ -27,7 +33,7 @@ using Microsoft.ML.Runtime.Numeric;
 namespace Microsoft.ML.Runtime.Data
 {
     /// <include file='doc.xml' path='doc/members/member[@name="PCA"]/*' />
-    public sealed class PcaTransformer : OneToOneTransformBase
+    public sealed class PcaTransformer : OneToOneTransformerBase
     {
         internal static class Defaults
         {
@@ -113,7 +119,7 @@ namespace Microsoft.ML.Runtime.Data
                 Contracts.CheckUserArg(0 < Rank && Rank <= Dimension, nameof(item.Rank), "Rank must be positive, and at most the dimension of untransformed data");
             }
 
-            public TransformInfo(ModelLoadContext ctx, int colValueCount)
+            public TransformInfo(ModelLoadContext ctx)
             {
                 Contracts.AssertValue(ctx);
 
@@ -126,8 +132,6 @@ namespace Microsoft.ML.Runtime.Data
                 // Float[]: MeanProjected
 
                 Dimension = ctx.Reader.ReadInt32();
-                Contracts.CheckDecode(Dimension == colValueCount);
-
                 Rank = ctx.Reader.ReadInt32();
                 Contracts.CheckDecode(0 < Rank && Rank <= Dimension);
 
@@ -205,26 +209,37 @@ namespace Microsoft.ML.Runtime.Data
         private readonly bool[] _center;
         private readonly int[] _weightColumnIndex;
 
+        private readonly int[] _inputColumnsIndex;
+        private readonly ColumnType[] _inputColumnsTypes;
+        private readonly int _numColumns;
+
         private const string RegistrationName = "Pca";
 
         /// <summary>
         /// Public constructor corresponding to SignatureDataTransform.
         /// </summary>
         public PcaTransformer(IHostEnvironment env, Arguments args, IDataView input)
-            : base(env, RegistrationName, Contracts.CheckRef(args, nameof(args)).Column,
-                input, TestIsFloatItem)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(PcaTransformer)), GetColumnPairs(args))
         {
-            Host.AssertNonEmpty(Infos);
-            Host.Assert(Infos.Length == Utils.Size(args.Column));
+            Host.AssertNonEmpty(ColumnPairs);
+            Host.Assert(ColumnPairs.Length == Utils.Size(args.Column));
 
-            _transformInfos = new TransformInfo[args.Column.Length];
-            _oversampling = new int[args.Column.Length];
-            _center = new bool[args.Column.Length];
-            _weightColumnIndex = new int[args.Column.Length];
+            _numColumns = ColumnPairs.Length;
+            _transformInfos = new TransformInfo[_numColumns];
+            _oversampling = new int[_numColumns];
+            _center = new bool[_numColumns];
+            _weightColumnIndex = new int[_numColumns];
+            _inputColumnsIndex = new int[_numColumns];
+            _inputColumnsTypes = new ColumnType[_numColumns];
+
             for (int i = 0; i < _transformInfos.Length; i++)
             {
-                Host.Check(Infos[i].TypeSrc.VectorSize > 1, "Pca transform can only be applied to columns with known dimensionality greater than 1");
-                _transformInfos[i] = new TransformInfo(args.Column[i], args, Infos[i].TypeSrc.ValueCount);
+                if (!input.Schema.TryGetColumnIndex(ColumnPairs[i].input, out _inputColumnsIndex[i]))
+                    throw Host.ExceptSchemaMismatch(nameof(input), "input", ColumnPairs[i].input);
+                _inputColumnsTypes[i] = input.Schema.GetColumnType(_inputColumnsIndex[i]);
+                Host.Check(_inputColumnsTypes[i].IsKnownSizeVector && _inputColumnsTypes[i].VectorSize > 1,
+                    "Pca transform can only be applied to columns with known dimensionality greater than 1");
+                _transformInfos[i] = new TransformInfo(args.Column[i], args, _inputColumnsTypes[i].ValueCount);
                 _center[i] = args.Column[i].Center ?? args.Center;
                 _oversampling[i] = args.Column[i].Oversampling ?? args.Oversampling;
                 Host.CheckUserArg(_oversampling[i] >= 0, nameof(args.Oversampling), "Oversampling must be non-negative");
@@ -232,20 +247,19 @@ namespace Microsoft.ML.Runtime.Data
                 var weightColumn = args.Column[i].WeightColumn ?? args.WeightColumn;
                 if (weightColumn != null)
                 {
-                    if (!Source.Schema.TryGetColumnIndex(weightColumn, out _weightColumnIndex[i]))
+                    if (!input.Schema.TryGetColumnIndex(weightColumn, out _weightColumnIndex[i]))
                         throw Host.Except("weight column '{0}' does not exist", weightColumn);
-                    var type = Source.Schema.GetColumnType(_weightColumnIndex[i]);
+                    var type = input.Schema.GetColumnType(_weightColumnIndex[i]);
                     Host.CheckUserArg(type == NumberType.Float, nameof(args.WeightColumn));
                 }
             }
 
             Train(args, _transformInfos, input);
-
             _types = InitColumnTypes();
         }
 
-        private PcaTransformer(IHost host, ModelLoadContext ctx, IDataView input)
-            : base(host, ctx, input, TestIsFloatItem)
+        private PcaTransformer(IHost host, ModelLoadContext ctx)
+         : base(host, ctx)
         {
             Host.AssertValue(ctx);
 
@@ -253,11 +267,18 @@ namespace Microsoft.ML.Runtime.Data
             // <prefix handled in static Create method>
             // <base>
             // transformInfos
-            Host.AssertNonEmpty(Infos);
-            _transformInfos = new TransformInfo[Infos.Length];
-            for (int i = 0; i < Infos.Length; i++)
-                _transformInfos[i] = new TransformInfo(ctx, Infos[i].TypeSrc.ValueCount);
+            Host.AssertNonEmpty(ColumnPairs);
+            _numColumns = ColumnPairs.Length;
+            _transformInfos = new TransformInfo[_numColumns];
+            for (int i = 0; i < _numColumns; i++)
+                _transformInfos[i] = new TransformInfo(ctx);
             _types = InitColumnTypes();
+        }
+
+        private static (string input, string output)[] GetColumnPairs(Arguments args)
+        {
+            //Contracts.CheckValue(columns, nameof(columns));
+            return args.Column.Select(x => (x.Source, x.Name)).ToArray();
         }
 
         public static PcaTransformer Create(IHostEnvironment env, ModelLoadContext ctx, IDataView input)
@@ -287,7 +308,7 @@ namespace Microsoft.ML.Runtime.Data
             // <base>
             // transformInfos
             ctx.Writer.Write(sizeof(Float));
-            SaveBase(ctx);
+            SaveColumns(ctx);
             for (int i = 0; i < _transformInfos.Length; i++)
                 _transformInfos[i].Save(ctx);
         }
@@ -313,7 +334,7 @@ namespace Microsoft.ML.Runtime.Data
                     using (var ch = Host.Start("Memory usage"))
                     {
                         ch.Info("Estimate memory usage for transforming column {1}: {0:G2} GB. If running out of memory, reduce rank and oversampling factor.",
-                            colMemoryUsageEstimate, Infos[iinfo].Name);
+                            colMemoryUsageEstimate, ColumnPairs[iinfo].input);
                     }
                 }
 
@@ -386,7 +407,7 @@ namespace Microsoft.ML.Runtime.Data
         //Note that the covariance matrix is not computed explicitly
         private void Project(IDataView trainingData, Float[][] mean, Float[][][] omega, Float[][][] y, TransformInfo[] transformInfos)
         {
-            Host.Assert(mean.Length == omega.Length && omega.Length == y.Length && y.Length == Infos.Length);
+            Host.Assert(mean.Length == omega.Length && omega.Length == y.Length && y.Length == _numColumns);
             for (int i = 0; i < omega.Length; i++)
                 Contracts.Assert(omega[i].Length == y[i].Length);
 
@@ -399,37 +420,37 @@ namespace Microsoft.ML.Runtime.Data
 
             bool[] center = Enumerable.Range(0, mean.Length).Select(i => mean[i] != null).ToArray();
 
-            Double[] totalColWeight = new Double[Infos.Length];
+            Double[] totalColWeight = new Double[_numColumns];
 
-            bool[] activeColumns = new bool[Source.Schema.ColumnCount];
-            for (int iinfo = 0; iinfo < Infos.Length; iinfo++)
+            bool[] activeColumns = new bool[trainingData.Schema.ColumnCount];
+            for (int iinfo = 0; iinfo < _numColumns; iinfo++)
             {
-                activeColumns[Infos[iinfo].Source] = true;
+                activeColumns[_inputColumnsIndex[iinfo]] = true;
                 if (_weightColumnIndex[iinfo] >= 0)
                     activeColumns[_weightColumnIndex[iinfo]] = true;
             }
+
             using (var cursor = trainingData.GetRowCursor(col => activeColumns[col]))
             {
-                var weightGetters = new ValueGetter<Float>[Infos.Length];
-                var columnGetters = new ValueGetter<VBuffer<Float>>[Infos.Length];
-                for (int iinfo = 0; iinfo < Infos.Length; iinfo++)
+                var weightGetters = new ValueGetter<Float>[_numColumns];
+                var columnGetters = new ValueGetter<VBuffer<Float>>[_numColumns];
+                for (int iinfo = 0; iinfo < _numColumns; iinfo++)
                 {
                     if (_weightColumnIndex[iinfo] >= 0)
                         weightGetters[iinfo] = cursor.GetGetter<Float>(_weightColumnIndex[iinfo]);
-                    columnGetters[iinfo] = cursor.GetGetter<VBuffer<Float>>(Infos[iinfo].Source);
+                    columnGetters[iinfo] = cursor.GetGetter<VBuffer<Float>>(_inputColumnsIndex[iinfo]);
                 }
 
                 var features = default(VBuffer<Float>);
                 while (cursor.MoveNext())
                 {
-                    for (int iinfo = 0; iinfo < Infos.Length; iinfo++)
+                    for (int iinfo = 0; iinfo < _numColumns; iinfo++)
                     {
-                        Contracts.Check(Infos[iinfo].TypeSrc.IsVector && Infos[iinfo].TypeSrc.ItemType.IsNumber,
+                        Contracts.Check(_inputColumnsTypes[iinfo].IsVector && _inputColumnsTypes[iinfo].ItemType.IsNumber,
                             "PCA transform can only be performed on numeric columns of dimension > 1");
 
                         Float weight = 1;
-                        if (weightGetters[iinfo] != null)
-                            weightGetters[iinfo](ref weight);
+                        weightGetters[iinfo]?.Invoke(ref weight);
                         columnGetters[iinfo](ref features);
 
                         if (FloatUtils.IsFinite(weight) && weight >= 0 && (features.Count == 0 || FloatUtils.IsFinite(features.Values, features.Count)))
@@ -445,13 +466,13 @@ namespace Microsoft.ML.Runtime.Data
                     }
                 }
 
-                for (int iinfo = 0; iinfo < Infos.Length; iinfo++)
+                for (int iinfo = 0; iinfo < _numColumns; iinfo++)
                 {
                     if (totalColWeight[iinfo] <= 0)
-                        throw Host.Except("Empty data in column '{0}'", Source.Schema.GetColumnName(Infos[iinfo].Source));
+                        throw Host.Except("Empty data in column '{0}'", ColumnPairs[iinfo].input);
                 }
 
-                for (int iinfo = 0; iinfo < Infos.Length; iinfo++)
+                for (int iinfo = 0; iinfo < _numColumns; iinfo++)
                 {
                     var invn = (Float)(1 / totalColWeight[iinfo]);
 
@@ -495,11 +516,8 @@ namespace Microsoft.ML.Runtime.Data
 
         private ColumnType[] InitColumnTypes()
         {
-            Host.Assert(Infos.Length == _transformInfos.Length);
-            var types = new ColumnType[Infos.Length];
-            for (int i = 0; i < _transformInfos.Length; i++)
-                types[i] = new VectorType(NumberType.Float, _transformInfos[i].Rank);
-            Metadata.Seal();
+            Host.Assert(ColumnPairs.Length == _transformInfos.Length);
+            var types = _transformInfos.Select(tInfo => new VectorType(NumberType.Float, tInfo.Rank)).ToArray();
             return types;
         }
 
@@ -513,7 +531,7 @@ namespace Microsoft.ML.Runtime.Data
         {
             Host.AssertValueOrNull(ch);
             Host.AssertValue(input);
-            Host.Assert(0 <= iinfo && iinfo < Infos.Length);
+            Host.Assert(0 <= iinfo && iinfo < _numColumns);
             disposer = null;
 
             var getSrc = GetSrcGetter<VBuffer<Float>>(input, iinfo);
@@ -545,7 +563,7 @@ namespace Microsoft.ML.Runtime.Data
             dst = new VBuffer<Float>(transformInfo.Rank, values, dst.Indices);
         }
 
-        [TlcModule.EntryPoint(Name = "Transforms.PcaCalculator",
+        [TlcModule.EntryPoint(Name = "Transforms.PcaCalculator2",
             Desc = Summary,
             UserName = UserName,
             ShortName = ShortName,
@@ -560,6 +578,11 @@ namespace Microsoft.ML.Runtime.Data
                 Model = new TransformModel(h, view, input.Data),
                 OutputData = view
             };
+        }
+
+        protected override IRowMapper MakeRowMapper(ISchema schema)
+        {
+            throw new NotImplementedException();
         }
     }
 }
