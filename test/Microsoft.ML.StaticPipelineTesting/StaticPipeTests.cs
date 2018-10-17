@@ -771,5 +771,46 @@ namespace Microsoft.ML.StaticPipelineTesting
             var type = schema.GetColumnType(pcaCol);
             Assert.True(type.IsVector && type.IsKnownSizeVector && type.ItemType.IsNumber);
         }
+
+        [Fact]
+        public void TextNormalizeStatic()
+        {
+            var env = new ConsoleEnvironment(seed: 0);
+            var dataPath = GetDataPath("wikipedia-detox-250-line-data.tsv");
+            var reader = TextLoader.CreateReader(env, ctx => (
+                    label: ctx.LoadBool(0),
+                    text: ctx.LoadText(1)), hasHeader: true);
+            var dataSource = new MultiFileSource(dataPath);
+            var data = reader.Read(dataSource);
+
+            var est = data.MakeNewEstimator()
+                .Append(r => (
+                    r.label,
+                    norm: r.text.NormalizeText(),
+                    norm_Upper: r.text.NormalizeText(textCase: TextNormalizerEstimator.CaseNormalizationMode.Upper),
+                    norm_KeepDiacritics: r.text.NormalizeText(keepDiacritics: true),
+                    norm_NoPuctuations: r.text.NormalizeText(keepPunctuations: false),
+                    norm_NoNumbers: r.text.NormalizeText(keepNumbers: false)));
+            var tdata = est.Fit(data).Transform(data);
+            var schema = tdata.AsDynamic.Schema;
+
+            Assert.True(schema.TryGetColumnIndex("norm", out int norm));
+            var type = schema.GetColumnType(norm);
+            Assert.True(!type.IsVector && type.ItemType.IsText);
+
+            Assert.True(schema.TryGetColumnIndex("norm_Upper", out int normUpper));
+            type = schema.GetColumnType(normUpper);
+            Assert.True(!type.IsVector && type.ItemType.IsText);
+            Assert.True(schema.TryGetColumnIndex("norm_KeepDiacritics", out int diacritics));
+            type = schema.GetColumnType(diacritics);
+            Assert.True(!type.IsVector && type.ItemType.IsText);
+            Assert.True(schema.TryGetColumnIndex("norm_NoPuctuations", out int punct));
+            type = schema.GetColumnType(punct);
+            Assert.True(!type.IsVector && type.ItemType.IsText);
+            Assert.True(schema.TryGetColumnIndex("norm_NoNumbers", out int numbers));
+            type = schema.GetColumnType(numbers);
+            Assert.True(!type.IsVector && type.ItemType.IsText);
+
+        }
     }
 }

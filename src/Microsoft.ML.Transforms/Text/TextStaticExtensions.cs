@@ -224,7 +224,7 @@ namespace Microsoft.ML.Transforms.Text
                 foreach (var outCol in toOutput)
                     pairs.Add((inputNames[((OutPipelineColumn)outCol).Input], outputNames[outCol]));
 
-                return new TextNormalizerEstimator(env, pairs.ToArray(), _textCase, _keepDiacritics, _keepPunctuations, _keepNumbers);
+                return new TextNormalizerEstimator(env, _textCase, _keepDiacritics, _keepPunctuations, _keepNumbers, pairs.ToArray());
             }
         }
 

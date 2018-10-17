@@ -285,8 +285,7 @@ namespace Microsoft.ML.Transforms.Text
                 Host.Assert(0 <= iinfo && iinfo < _parent.ColumnPairs.Length);
                 disposer = null;
 
-                input.Schema.TryGetColumnIndex(_parent.ColumnPairs[iinfo].input, out int srcCol);
-                var srcType = input.Schema.GetColumnType(srcCol);
+                var srcType = input.Schema[_parent.ColumnPairs[iinfo].input].Type;
                 Host.Assert(srcType.ItemType.IsText);
 
                 if (srcType.IsVector)
@@ -452,7 +451,7 @@ namespace Microsoft.ML.Transforms.Text
 
         public static bool IsColumnTypeValid(ColumnType type) => (type.ItemType.IsText);
 
-        internal const string ExpectedColumnType = "Expected Text item type";
+        internal const string ExpectedColumnType = "Expected Text or vector of text.";
 
         /// <summary>
         /// Normalizes incoming text in <paramref name="inputColumn"/> by changing case, removing diacritical marks, punctuation marks and/or numbers
