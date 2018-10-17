@@ -46,25 +46,6 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
         private static readonly Vector256<float> _absMask256 = Avx.StaticCast<int, float>(Avx.SetAllVector256(0x7FFFFFFF));
 
-        private const int Vector256Alignment = 32;
-
-        [MethodImplAttribute(MethodImplOptions.AggressiveInlining)]
-        private static bool HasCompatibleAlignment(AlignedArray alignedArray)
-        {
-            Contracts.AssertValue(alignedArray);
-            Contracts.Assert(alignedArray.Size > 0);
-            return (alignedArray.CbAlign % Vector256Alignment) == 0;
-        }
-
-        [MethodImplAttribute(MethodImplOptions.AggressiveInlining)]
-        private static unsafe float* GetAlignedBase(AlignedArray alignedArray, float* unalignedBase)
-        {
-            Contracts.AssertValue(alignedArray);
-            float* alignedBase = unalignedBase + alignedArray.GetBase((long)unalignedBase);
-            Contracts.Assert(((long)alignedBase % Vector256Alignment) == 0);
-            return alignedBase;
-        }
-
         [MethodImplAttribute(MethodImplOptions.AggressiveInlining)]
         private static Vector128<float> GetHigh(in Vector256<float> x)
             => Avx.ExtractVector128(x, 1);
@@ -170,19 +151,19 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         }
 
         // Multiply matrix times vector into vector.
-        public static unsafe void MatMulX(AlignedArray mat, AlignedArray src, AlignedArray dst, int crow, int ccol)
+        public static unsafe void MatMul(AlignedArray mat, AlignedArray src, AlignedArray dst, int crow, int ccol)
+        {
+            MatMul(mat.Items, src.Items, dst.Items, crow, ccol);
+        }
+
+        public static unsafe void MatMul(ReadOnlySpan<float> mat, ReadOnlySpan<float> src, Span<float> dst, int crow, int ccol)
         {
             Contracts.Assert(crow % 4 == 0);
             Contracts.Assert(ccol % 4 == 0);
 
-            MatMulX(mat.Items, src.Items, dst.Items, crow, ccol);
-        }
-
-        public static unsafe void MatMulX(float[] mat, float[] src, float[] dst, int crow, int ccol)
-        {
-            fixed (float* psrc = &src[0])
-            fixed (float* pdst = &dst[0])
-            fixed (float* pmat = &mat[0])
+            fixed (float* psrc = &MemoryMarshal.GetReference(src))
+            fixed (float* pdst = &MemoryMarshal.GetReference(dst))
+            fixed (float* pmat = &MemoryMarshal.GetReference(mat))
             fixed (uint* pLeadingAlignmentMask = &LeadingAlignmentMask[0])
             fixed (uint* pTrailingAlignmentMask = &TrailingAlignmentMask[0])
             {
@@ -312,24 +293,24 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         }
 
         // Partial sparse source vector.
-        public static unsafe void MatMulPX(AlignedArray mat, int[] rgposSrc, AlignedArray src,
+        public static unsafe void MatMulP(AlignedArray mat, ReadOnlySpan<int> rgposSrc, AlignedArray src,
                                 int posMin, int iposMin, int iposEnd, AlignedArray dst, int crow, int ccol)
+        {
+            MatMulP(mat.Items, rgposSrc, src.Items, posMin, iposMin, iposEnd, dst.Items, crow, ccol);
+        }
+
+        public static unsafe void MatMulP(ReadOnlySpan<float> mat, ReadOnlySpan<int> rgposSrc, ReadOnlySpan<float> src,
+                                        int posMin, int iposMin, int iposEnd, Span<float> dst, int crow, int ccol)
         {
             Contracts.Assert(crow % 8 == 0);
             Contracts.Assert(ccol % 8 == 0);
 
-            MatMulPX(mat.Items, rgposSrc, src.Items, posMin, iposMin, iposEnd, dst.Items, crow, ccol);
-        }
-
-        public static unsafe void MatMulPX(float[] mat, int[] rgposSrc, float[] src,
-                                        int posMin, int iposMin, int iposEnd, float[] dst, int crow, int ccol)
-        {
             // REVIEW: For extremely sparse inputs, interchanging the loops would
             // likely be more efficient.
-            fixed (float* psrc = &src[0])
-            fixed (float* pdst = &dst[0])
-            fixed (float* pmat = &mat[0])
-            fixed (int* pposSrc = &rgposSrc[0])
+            fixed (float* psrc = &MemoryMarshal.GetReference(src))
+            fixed (float* pdst = &MemoryMarshal.GetReference(dst))
+            fixed (float* pmat = &MemoryMarshal.GetReference(mat))
+            fixed (int* pposSrc = &MemoryMarshal.GetReference(rgposSrc))
             fixed (uint* pLeadingAlignmentMask = &LeadingAlignmentMask[0])
             fixed (uint* pTrailingAlignmentMask = &TrailingAlignmentMask[0])
             {
@@ -349,26 +330,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                 {
                     while (pDstCurrent < pDstEnd)
                     {
-                        float* pm1 = pm0 + ccol;
-                        float* pm2 = pm1 + ccol;
-                        float* pm3 = pm2 + ccol;
-                        Vector256<float> result = Avx.SetZeroVector256<float>();
-
-                        int* ppos = pposMin;
-
-                        while (ppos < pposEnd)
-                        {
-                            int col1 = *ppos;
-                            int col2 = col1 + 4 * ccol;
-                            Vector256<float> x1 = Avx.SetVector256(pm3[col2], pm2[col2], pm1[col2], pm0[col2],
-                                                                       pm3[col1], pm2[col1], pm1[col1], pm0[col1]);
-                            Vector256<float> x2 = Avx.SetAllVector256(pSrcCurrent[col1]);
-                            x2 = Avx.Multiply(x2, x1);
-                            result = Avx.Add(result, x2);
-                            ppos++;
-                        }
-
-                        Avx.Store(pDstCurrent, result);
+                        Avx.Store(pDstCurrent, SparseMultiplicationAcrossRow());
                         pDstCurrent += 8;
                         pm0 += 8 * ccol;
                     }
@@ -414,26 +376,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                         remainder = length % 8;
                         while (pDstCurrent < pDstEnd)
                         {
-                            float* pm1 = pm0 + ccol;
-                            float* pm2 = pm1 + ccol;
-                            float* pm3 = pm2 + ccol;
-                            Vector256<float> result = Avx.SetZeroVector256<float>();
-
-                            int* ppos = pposMin;
-
-                            while (ppos < pposEnd)
-                            {
-                                int col1 = *ppos;
-                                int col2 = col1 + 4 * ccol;
-                                Vector256<float> x1 = Avx.SetVector256(pm3[col2], pm2[col2], pm1[col2], pm0[col2],
-                                                                           pm3[col1], pm2[col1], pm1[col1], pm0[col1]);
-                                Vector256<float> x2 = Avx.SetAllVector256(pSrcCurrent[col1]);
-                                x2 = Avx.Multiply(x2, x1);
-                                result = Avx.Add(result, x2);
-                                ppos++;
-                            }
-
-                            Avx.Store(pDstCurrent, result);
+                            Avx.Store(pDstCurrent, SparseMultiplicationAcrossRow());
                             pDstCurrent += 8;
                             pm0 += 8 * ccol;
                         }
@@ -478,22 +421,46 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                         pm0 += 8 * ccol;
                     }
                 }
+
+                Vector256<float> SparseMultiplicationAcrossRow()
+                {
+                    float* pm1 = pm0 + ccol;
+                    float* pm2 = pm1 + ccol;
+                    float* pm3 = pm2 + ccol;
+                    Vector256<float> result = Avx.SetZeroVector256<float>();
+
+                    int* ppos = pposMin;
+
+                    while (ppos < pposEnd)
+                    {
+                        int col1 = *ppos;
+                        int col2 = col1 + 4 * ccol;
+                        Vector256<float> x1 = Avx.SetVector256(pm3[col2], pm2[col2], pm1[col2], pm0[col2],
+                                                                   pm3[col1], pm2[col1], pm1[col1], pm0[col1]);
+                        Vector256<float> x2 = Avx.SetAllVector256(pSrcCurrent[col1]);
+                        x2 = Avx.Multiply(x2, x1);
+                        result = Avx.Add(result, x2);
+                        ppos++;
+                    }
+
+                    return result;
+                }
             }
         }
 
-        public static unsafe void MatMulTranX(AlignedArray mat, AlignedArray src, AlignedArray dst, int crow, int ccol)
+        public static unsafe void MatMulTran(AlignedArray mat, AlignedArray src, AlignedArray dst, int crow, int ccol)
+        {
+            MatMulTran(mat.Items, src.Items, dst.Items, crow, ccol);
+        }
+
+        public static unsafe void MatMulTran(ReadOnlySpan<float> mat, ReadOnlySpan<float> src, Span<float> dst, int crow, int ccol)
         {
             Contracts.Assert(crow % 4 == 0);
             Contracts.Assert(ccol % 4 == 0);
 
-            MatMulTranX(mat.Items, src.Items, dst.Items, crow, ccol);
-        }
-
-        public static unsafe void MatMulTranX(float[] mat, float[] src, float[] dst, int crow, int ccol)
-        {
-            fixed (float* psrc = &src[0])
-            fixed (float* pdst = &dst[0])
-            fixed (float* pmat = &mat[0])
+            fixed (float* psrc = &MemoryMarshal.GetReference(src))
+            fixed (float* pdst = &MemoryMarshal.GetReference(dst))
+            fixed (float* pmat = &MemoryMarshal.GetReference(mat))
             fixed (uint* pLeadingAlignmentMask = &LeadingAlignmentMask[0])
             fixed (uint* pTrailingAlignmentMask = &TrailingAlignmentMask[0])
             {

@@ -34,12 +34,12 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                 if (!tran)
                 {
                     Contracts.Assert(crun <= dst.Size);
-                    AvxIntrinsics.MatMulX(mat, src, dst, crun, src.Size);
+                    AvxIntrinsics.MatMul(mat, src, dst, crun, src.Size);
                 }
                 else
                 {
                     Contracts.Assert(crun <= src.Size);
-                    AvxIntrinsics.MatMulTranX(mat, src, dst, dst.Size, crun);
+                    AvxIntrinsics.MatMulTran(mat, src, dst, dst.Size, crun);
                 }
             }
             else if (Sse.IsSupported)
@@ -109,7 +109,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             if (Avx.IsSupported)
             {
                 Contracts.Assert(crun <= dst.Size);
-                AvxIntrinsics.MatMulPX(mat, rgposSrc, srcValues, posMin, iposMin, iposLim, dst, crun, srcValues.Size);
+                AvxIntrinsics.MatMulP(mat, rgposSrc, srcValues, posMin, iposMin, iposLim, dst, crun, srcValues.Size);
             }
             else if (Sse.IsSupported)
             {
