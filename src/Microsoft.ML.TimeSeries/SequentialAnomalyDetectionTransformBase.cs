@@ -538,16 +538,16 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             protected abstract Double ComputeRawAnomalyScore(ref TInput input, FixedSizeQueue<TInput> windowedBuffer, long iteration);
         }
 
-        protected override IRowMapper MakeRowMapper(Schema schema) => new Mapper(Host, this, schema);
+        protected override IRowMapper MakeRowMapper(ISchema schema) => new Mapper(Host, this, schema);
 
         public sealed class Mapper : IRowMapper
         {
             private readonly IHost _host;
             private readonly SequentialAnomalyDetectionTransformBase<TInput, TState> _parent;
-            private readonly Schema _parentSchema;
+            private readonly ISchema _parentSchema;
             private readonly string[] _slotNames;
 
-            public Mapper(IHostEnvironment env, SequentialAnomalyDetectionTransformBase<TInput, TState> parent, Schema inputSchema)
+            public Mapper(IHostEnvironment env, SequentialAnomalyDetectionTransformBase<TInput, TState> parent, ISchema inputSchema)
             {
                 Contracts.CheckValue(env, nameof(env));
                 _host = env.Register(nameof(Mapper));

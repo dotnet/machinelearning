@@ -276,7 +276,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             return Transform(new EmptyDataView(Host, inputSchema)).Schema;
         }
 
-        protected abstract IRowMapper MakeRowMapper(Schema schema);
+        protected abstract IRowMapper MakeRowMapper(ISchema schema);
 
         protected RowToRowMapperTransform MakeDataTransform(IDataView input)
         {
