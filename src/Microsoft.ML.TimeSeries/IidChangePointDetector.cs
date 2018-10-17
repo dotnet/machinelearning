@@ -229,10 +229,12 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
         public SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {
             _host.CheckValue(inputSchema, nameof(inputSchema));
+            var metadata = new List<SchemaShape.Column>() {
+                new SchemaShape.Column(MetadataUtils.Kinds.SlotNames, SchemaShape.Column.VectorKind.Vector, TextType.Instance, false)
+            };
             var resultDic = inputSchema.Columns.ToDictionary(x => x.Name);
-
             resultDic[_outputColumnName] = new SchemaShape.Column(
-                _outputColumnName, SchemaShape.Column.VectorKind.Vector, NumberType.R8, false);
+                _outputColumnName, SchemaShape.Column.VectorKind.Vector, NumberType.R8, false, new SchemaShape(metadata));
 
             return new SchemaShape(resultDic.Values);
         }
