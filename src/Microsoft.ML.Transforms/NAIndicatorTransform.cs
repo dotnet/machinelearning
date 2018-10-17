@@ -139,15 +139,13 @@ namespace Microsoft.ML.Transforms
         public override void Save(ModelSaveContext ctx)
         {
             Host.CheckValue(ctx, nameof(ctx));
-
             ctx.CheckAtModel();
             ctx.SetVersionInfo(GetVersionInfo());
-
             SaveColumns(ctx);
         }
 
         protected override IRowMapper MakeRowMapper(ISchema schema)
-            => new Mapper(this, schema);
+            => new Mapper(this, Schema.Create(schema));
 
         private sealed class Mapper : MapperBase
         {
@@ -172,14 +170,14 @@ namespace Microsoft.ML.Transforms
                 }
             }
 
-            public Mapper(NAIndicatorTransform parent, ISchema inputSchema)
+            public Mapper(NAIndicatorTransform parent, Schema inputSchema)
                 : base(parent.Host.Register(nameof(Mapper)), parent, inputSchema)
             {
                 _parent = parent;
                 _infos = CreateInfos(inputSchema);
             }
 
-            private ColInfo[] CreateInfos(ISchema inputSchema)
+            private ColInfo[] CreateInfos(Schema inputSchema)
             {
                 Host.AssertValue(inputSchema);
                 var infos = new ColInfo[_parent.ColumnPairs.Length];
@@ -199,16 +197,21 @@ namespace Microsoft.ML.Transforms
                 return infos;
             }
 
-            public override RowMapperColumnInfo[] GetOutputColumns()
+            public override Schema.Column[] GetOutputColumns()
             {
-                var result = new RowMapperColumnInfo[_parent.ColumnPairs.Length];
+                var result = new Schema.Column[_parent.ColumnPairs.Length];
                 for (int iinfo = 0; iinfo < _infos.Length; iinfo++)
                 {
                     InputSchema.TryGetColumnIndex(_infos[iinfo].Input, out int colIndex);
                     Host.Assert(colIndex >= 0);
-                    var colMetaInfo = new ColumnMetadataInfo(_infos[iinfo].Output);
-                    var meta = RowColumnUtils.GetMetadataAsRow(InputSchema, colIndex, x => x == MetadataUtils.Kinds.SlotNames || x == MetadataUtils.Kinds.IsNormalized);
-                    result[iinfo] = new RowMapperColumnInfo(_infos[iinfo].Output, _infos[iinfo].OutputType, meta);
+                    var builder = new Schema.Metadata.Builder();
+                    builder.Add(InputSchema[colIndex].Metadata, x => x == MetadataUtils.Kinds.SlotNames);
+                    ValueGetter<bool> getter = (ref bool dst) =>
+                    {
+                        dst = true;
+                    };
+                    builder.Add(new Schema.Column(MetadataUtils.Kinds.IsNormalized, BoolType.Instance, null), getter);
+                    result[iinfo] = new Schema.Column(_infos[iinfo].Output, _infos[iinfo].OutputType, builder.GetMetadata());
                 }
                 return result;
             }
@@ -479,8 +482,7 @@ namespace Microsoft.ML.Transforms
                 var metadata = new List<SchemaShape.Column>();
                 if (col.Metadata.TryFindColumn(MetadataUtils.Kinds.SlotNames, out var slotMeta))
                     metadata.Add(slotMeta);
-                if (col.Metadata.TryFindColumn(MetadataUtils.Kinds.IsNormalized, out var normalized))
-                    metadata.Add(normalized);
+                metadata.Add(new SchemaShape.Column(MetadataUtils.Kinds.IsNormalized, SchemaShape.Column.VectorKind.Scalar, BoolType.Instance, false));
                 ColumnType type = !col.ItemType.IsVector ? (ColumnType) BoolType.Instance : new VectorType(BoolType.Instance, col.ItemType.AsVector);
                 result[colPair.output] = new SchemaShape.Column(colPair.output, col.Kind, type, false, new SchemaShape(metadata.ToArray()));
             }
