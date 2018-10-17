@@ -6,6 +6,8 @@
         using Microsoft.ML.Runtime.Data;
         using Microsoft.ML.Runtime.Learners;
         using Microsoft.ML.Trainers;
+        using Microsoft.ML.Runtime.LightGBM;
+        using Microsoft.ML.Runtime.FastTree;
         using System;
 
 // NOTE: WHEN ADDING TO THE FILE, ALWAYS APPEND TO THE END OF IT. 
@@ -14,8 +16,8 @@
 namespace Microsoft.ML.Samples
 {
     public static class Trainers
-    { 
-    
+    {
+
         public static void SdcaRegression()
         {
             // Downloading a regression dataset from github.com/dotnet/machinelearning
@@ -100,7 +102,7 @@ namespace Microsoft.ML.Samples
             var (trainData, testData) = regressionContext.TrainTestSplit(data, testFraction: 0.1);
 
             // The predictor that gets produced out of training
-            LinearRegressionPredictor pred = null;
+            FastTreeRegressionPredictor pred = null;
 
             // Create the estimator
             var learningPipeline = reader.MakeNewEstimator()
@@ -125,11 +127,11 @@ namespace Microsoft.ML.Samples
             var dataWithPredictions = model.Transform(testData);
             var metrics = regressionContext.Evaluate(dataWithPredictions, r => r.label, r => r.score);
 
-            Console.WriteLine($"L1 - {metrics.L1}");
-            Console.WriteLine($"L2 - {metrics.L2}");
-            Console.WriteLine($"LossFunction - {metrics.LossFn}");
-            Console.WriteLine($"RMS - {metrics.Rms}");
-            Console.WriteLine($"RSquared - {metrics.RSquared}");
+            Console.WriteLine($"L1 - {metrics.L1}"); // 3.0035
+            Console.WriteLine($"L2 - {metrics.L2}"); // 12.9096
+            Console.WriteLine($"LossFunction - {metrics.LossFn}"); // 12.9096
+            Console.WriteLine($"RMS - {metrics.Rms}"); // 3.5929
+            Console.WriteLine($"RSquared - {metrics.RSquared}"); // 0.7686
         }
 
         public static void LightGbmRegression()
@@ -157,7 +159,7 @@ namespace Microsoft.ML.Samples
             var (trainData, testData) = regressionContext.TrainTestSplit(data, testFraction: 0.1);
 
             // The predictor that gets produced out of training
-            LinearRegressionPredictor pred = null;
+            LightGbmRegressionPredictor pred = null;
 
             // Create the estimator
             var learningPipeline = reader.MakeNewEstimator()
