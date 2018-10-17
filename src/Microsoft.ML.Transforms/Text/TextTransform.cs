@@ -351,6 +351,7 @@ namespace Microsoft.ML.Runtime.Data
                 for (int i = 0; i < textCols.Length; i++)
                 {
                     var col = new DelimitedTokenizeTransform.ColumnInfo(textCols[i], GenerateColumnName(view.Schema, textCols[i], "WordTokenizer"), new[] { ' ' });
+                    xfCols[i] = col;
                     wordTokCols[i] = col.Output;
                     tempCols.Add(col.Output);
                 }
