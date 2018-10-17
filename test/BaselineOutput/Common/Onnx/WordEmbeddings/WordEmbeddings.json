@@ -1,7 +1,7 @@
 {
   "irVersion": "3",
   "producerName": "ML.NET",
-  "producerVersion": "0.7.27008.0",
+  "producerVersion": "##VERSION##",
   "domain": "Onnx",
   "graph": {
     "node": [

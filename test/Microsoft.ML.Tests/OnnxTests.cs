@@ -36,13 +36,13 @@ namespace Microsoft.ML.Tests
         public class EmbeddingsData
         {
             [VectorType(4)]
-            public string[] Words;
+            public string[] Cat;
         }
 
         public class EmbeddingsResult
         {
-            [ColumnName("Result")]
-            public float[] Results;
+            [ColumnName("Cat")]
+            public float[] Cat;
         }
 
         public class BreastNumericalColumns
@@ -310,7 +310,7 @@ namespace Microsoft.ML.Tests
                     {
                         new TextLoaderColumn()
                         {
-                            Name = "Features",
+                            Name = "Cat",
                             Source = new [] { new TextLoaderRange(0, 3) },
                             Type = Legacy.Data.DataKind.TX
                         },
@@ -318,12 +318,10 @@ namespace Microsoft.ML.Tests
                 }
             });
 
-            var embed = new WordEmbeddings(new string[1] { "Features" });
-
-            var modelDir = Path.Combine("..", "..", "data");
-            var modelPath = GetOutputPath(modelDir, "shortsentiment.emd");
-
-            embed.CustomLookupTable = modelPath;
+            //var embed = new WordEmbeddings(new string[1] { "Features" });
+            var modelPath = GetDataPath(@"shortsentiment.emd");
+            var embed = new WordEmbeddings() { CustomLookupTable = modelPath };
+            embed.AddColumn("Cat", "Cat");
             pipeline.Add(embed);
             var model = pipeline.Train<EmbeddingsData, EmbeddingsResult>();
 

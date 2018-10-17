@@ -222,6 +222,7 @@ namespace Microsoft.ML.Runtime.Data
             Host.CheckNonWhiteSpace(customModelFile, nameof(customModelFile));
 
             _modelKind = null;
+            _customLookup = true;
             _modelFileNameWithPath = customModelFile;
             _currentVocab = GetVocabularyDictionary();
         }
