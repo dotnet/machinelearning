@@ -1,0 +1,131 @@
+maml.exe CV tr=FastForestRegression{nl=5 mil=5 iter=20} scorer=QuantileRegression{quantiles = 0.25,0.5,0.75} threads=- dout=%Output% data=%Data% seed=1
+Not adding a normalizer.
+Making per-feature arrays
+Changing data from row-wise to column-wise
+  Bad value at line 1 in column Label
+  Bad value at line 1 in column Features at slot 0
+  Bad value at line 1 in column Features at slot 1
+  Bad value at line 1 in column Features at slot 2
+  Bad value at line 1 in column Features at slot 3
+  Bad value at line 1 in column Features at slot 4
+  Bad value at line 1 in column Features at slot 5
+  Bad value at line 1 in column Features at slot 6
+  Bad value at line 1 in column Features at slot 7
+  Bad value at line 1 in column Features at slot 8
+  Suppressing further bad value messages
+Processed 507 rows with 14 bad values and 0 format errors
+Processed 241 instances
+Binning and forming Feature objects
+Reserved memory for tree learner: 56016 bytes
+Starting to train ...
+Not training a calibrator because it is not needed.
+  Bad value at line 1 in column Label
+  Bad value at line 1 in column Features at slot 0
+  Bad value at line 1 in column Features at slot 1
+  Bad value at line 1 in column Features at slot 2
+  Bad value at line 1 in column Features at slot 3
+  Bad value at line 1 in column Features at slot 4
+  Bad value at line 1 in column Features at slot 5
+  Bad value at line 1 in column Features at slot 6
+  Bad value at line 1 in column Features at slot 7
+  Bad value at line 1 in column Features at slot 8
+  Suppressing further bad value messages
+Processed 507 rows with 14 bad values and 0 format errors
+Not adding a normalizer.
+Making per-feature arrays
+Changing data from row-wise to column-wise
+  Bad value at line 1 in column Label
+  Bad value at line 1 in column Features at slot 0
+  Bad value at line 1 in column Features at slot 1
+  Bad value at line 1 in column Features at slot 2
+  Bad value at line 1 in column Features at slot 3
+  Bad value at line 1 in column Features at slot 4
+  Bad value at line 1 in column Features at slot 5
+  Bad value at line 1 in column Features at slot 6
+  Bad value at line 1 in column Features at slot 7
+  Bad value at line 1 in column Features at slot 8
+  Suppressing further bad value messages
+Processed 507 rows with 14 bad values and 0 format errors
+Processed 265 instances
+Binning and forming Feature objects
+Reserved memory for tree learner: 61056 bytes
+Starting to train ...
+Not training a calibrator because it is not needed.
+  Bad value at line 1 in column Label
+  Bad value at line 1 in column Features at slot 0
+  Bad value at line 1 in column Features at slot 1
+  Bad value at line 1 in column Features at slot 2
+  Bad value at line 1 in column Features at slot 3
+  Bad value at line 1 in column Features at slot 4
+  Bad value at line 1 in column Features at slot 5
+  Bad value at line 1 in column Features at slot 6
+  Bad value at line 1 in column Features at slot 7
+  Bad value at line 1 in column Features at slot 8
+  Suppressing further bad value messages
+Processed 507 rows with 14 bad values and 0 format errors
+L1(avg):            3.267170
+L2(avg):            24.349036
+RMS(avg):           4.934474
+Loss-fn(avg):       24.349036
+R Squared:          0.733374
+Warning: Encountered 1 unlabeled instances during testing.
+L1(avg):            3.123237
+L2(avg):            21.870913
+RMS(avg):           4.676635
+Loss-fn(avg):       21.870913
+R Squared:          0.711335
+
+OVERALL RESULTS
+---------------------------------------
+L1(avg):            3.195203 (0.0720)
+L2(avg):            23.109975 (1.2391)
+RMS(avg):           4.805555 (0.1289)
+Loss-fn(avg):       23.109975 (1.2391)
+R Squared:          0.722355 (0.0110)
+
+---------------------------------------
+  Bad value at line 1 in column Label
+  Bad value at line 1 in column Features at slot 0
+  Bad value at line 1 in column Features at slot 1
+  Bad value at line 1 in column Features at slot 2
+  Bad value at line 1 in column Features at slot 3
+  Bad value at line 1 in column Features at slot 4
+  Bad value at line 1 in column Features at slot 5
+  Bad value at line 1 in column Features at slot 6
+  Bad value at line 1 in column Features at slot 7
+  Bad value at line 1 in column Features at slot 8
+  Suppressing further bad value messages
+Processed 507 rows with 14 bad values and 0 format errors
+  Bad value at line 1 in column Label
+  Bad value at line 1 in column Features at slot 0
+  Bad value at line 1 in column Features at slot 1
+  Bad value at line 1 in column Features at slot 2
+  Bad value at line 1 in column Features at slot 3
+  Bad value at line 1 in column Features at slot 4
+  Bad value at line 1 in column Features at slot 5
+  Bad value at line 1 in column Features at slot 6
+  Bad value at line 1 in column Features at slot 7
+  Bad value at line 1 in column Features at slot 8
+  Suppressing further bad value messages
+Processed 507 rows with 14 bad values and 0 format errors
+Physical memory usage(MB): %Number%
+Virtual memory usage(MB): %Number%
+%DateTime%	 Time elapsed(s): %Number%
+
+--- Progress log ---
+[1] 'FastTree data preparation' started.
+[1] 'FastTree data preparation' finished in %Time%.
+[2] 'FastTree in-memory bins initialization' started.
+[2] 'FastTree in-memory bins initialization' finished in %Time%.
+[3] 'FastTree feature conversion' started.
+[3] 'FastTree feature conversion' finished in %Time%.
+[4] 'FastTree training' started.
+[4] 'FastTree training' finished in %Time%.
+[5] 'FastTree data preparation #2' started.
+[5] 'FastTree data preparation #2' finished in %Time%.
+[6] 'FastTree in-memory bins initialization #2' started.
+[6] 'FastTree in-memory bins initialization #2' finished in %Time%.
+[7] 'FastTree feature conversion #2' started.
+[7] 'FastTree feature conversion #2' finished in %Time%.
+[8] 'FastTree training #2' started.
+[8] 'FastTree training #2' finished in %Time%.

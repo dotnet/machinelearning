@@ -347,7 +347,7 @@ namespace Microsoft.ML.Runtime.RunTests
         /// <summary>
         ///A test for binary classifiers
         ///</summary>
-        [Fact(Skip = "Need CoreTLC specific baseline update")]
+        [Fact]
         [TestCategory("Binary")]
         [TestCategory("FastRank")]
         public void BinaryClassifierFastRankClassificationTest()
@@ -363,9 +363,6 @@ namespace Microsoft.ML.Runtime.RunTests
                 Run_TrainTest(learner, data, new[] { eval });
                 CheckEqualityNormalized(dir, prName);
                 Run_CV(learner, data);
-
-                Run_CV(TestLearners.fastRankClassification, TestDatasets.breastCancer);
-                RunOneAllTests(TestLearners.fastRankClassification, TestDatasets.msm);
             });
             Done();
         }
@@ -390,7 +387,7 @@ namespace Microsoft.ML.Runtime.RunTests
         /// <summary>
         ///A test for regressors
         ///</summary>
-        [Fact(Skip = "Need CoreTLC specific baseline update")]
+        [Fact]
         [TestCategory("Regressor")]
         [TestCategory("FastForest")]
         public void FastForestRegressionTest()
