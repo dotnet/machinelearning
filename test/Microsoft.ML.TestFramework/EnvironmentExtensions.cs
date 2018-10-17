@@ -9,6 +9,7 @@ using Microsoft.ML.Runtime.FastTree;
 using Microsoft.ML.Runtime.KMeans;
 using Microsoft.ML.Runtime.Learners;
 using Microsoft.ML.Runtime.PCA;
+using Microsoft.ML.Runtime.Recommend;
 
 namespace Microsoft.ML.TestFramework
 {
@@ -17,6 +18,7 @@ namespace Microsoft.ML.TestFramework
         public static TEnvironment AddStandardComponents<TEnvironment>(this TEnvironment env)
             where TEnvironment : IHostEnvironment
         {
+            env.ComponentCatalog.RegisterAssembly(typeof(MatrixFactorizationPredictor).Assembly); // ML.Data
             env.ComponentCatalog.RegisterAssembly(typeof(TextLoader).Assembly); // ML.Data
             env.ComponentCatalog.RegisterAssembly(typeof(LinearPredictor).Assembly); // ML.StandardLearners
             env.ComponentCatalog.RegisterAssembly(typeof(CategoricalTransform).Assembly); // ML.Transforms

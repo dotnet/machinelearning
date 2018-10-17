@@ -21,16 +21,14 @@ using Microsoft.ML.Runtime.Model.Onnx;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data.IO;
 
-[assembly: LoadableClass(typeof(MatrixFactorizationPredictor), null, typeof(SignatureLoadModel),
-    "Matrix Factorization Predictor Executor", MatrixFactorizationPredictor.LoaderSignature)]
+[assembly: LoadableClass(typeof(MatrixFactorizationPredictor), null, typeof(SignatureLoadModel), "Matrix Factorization Predictor Executor", MatrixFactorizationPredictor.LoaderSignature)]
 
 [assembly: LoadableClass(typeof(MatrixFactorizationPredictionTransformer), typeof(MatrixFactorizationPredictionTransformer),
     null, typeof(SignatureLoadModel), "", MatrixFactorizationPredictionTransformer.LoaderSignature)]
 
 namespace Microsoft.ML.Runtime.Recommend
 {
-    public sealed class MatrixFactorizationPredictor : IPredictor, ICanSaveModel, ICanSaveInTextFormat, IMIValueMapper, ISchemaBindableMapper,
-        IUserHistoryToItemsRecommender
+    public sealed class MatrixFactorizationPredictor : IPredictor, ICanSaveModel, ICanSaveInTextFormat, IMIValueMapper, ISchemaBindableMapper
     {
         public const string LoaderSignature = "MFPredictorExec";
         public const string RegistrationName = "MatrixFactorizationPredictor";
@@ -38,12 +36,12 @@ namespace Microsoft.ML.Runtime.Recommend
         private static VersionInfo GetVersionInfo()
         {
             return new VersionInfo(
-                "MFPREDIC",
-                0x00010001, // Initial
-                0x00010001,
-                0x00010001,
-                "MFPredictorExec",
-                null);
+                modelSignature: "FAFAMAPD",
+                verWrittenCur: 0x00010001,
+                verReadableCur: 0x00010001,
+                verWeCanReadBack: 0x00010001,
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(MatrixFactorizationPredictor).Assembly.FullName);
         }
 
         private readonly IHost _host;
@@ -62,18 +60,15 @@ namespace Microsoft.ML.Runtime.Recommend
         // Packed _k by _n matrix.
         private readonly Single[] _q;
 
-        private readonly KeyType _inputYType;
-        private readonly KeyType _inputXType;
-
         public PredictionKind PredictionKind
         {
             get { return PredictionKind.Recommendation; }
         }
 
         public ColumnType OutputType { get { return NumberType.Float; } }
-        // REVIEW tfinley: Worth caching the below?
-        public ColumnType InputXType { get { return _inputXType; } }
-        public ColumnType InputYType { get { return _inputYType; } }
+
+        public ColumnType InputXType { get; }
+        public ColumnType InputYType { get; }
 
         internal MatrixFactorizationPredictor(IHostEnvironment env, SafeTrainingAndModelBuffer buffer, KeyType xType, KeyType yType)
         {
@@ -89,8 +84,8 @@ namespace Microsoft.ML.Runtime.Recommend
             _host.Assert(_n == xType.Count);
             _host.Assert(_m == yType.Count);
 
-            _inputXType = xType;
-            _inputYType = yType;
+            InputXType = xType;
+            InputYType = yType;
         }
 
         private MatrixFactorizationPredictor(IHostEnvironment env, ModelLoadContext ctx)
@@ -120,8 +115,8 @@ namespace Microsoft.ML.Runtime.Recommend
             _p = Utils.ReadSingleArray(ctx.Reader, checked(_m * _k));
             _q = Utils.ReadSingleArray(ctx.Reader, checked(_n * _k));
 
-            _inputXType = new KeyType(DataKind.U4, nMin, _n);
-            _inputYType = new KeyType(DataKind.U4, mMin, _m);
+            InputXType = new KeyType(DataKind.U4, nMin, _n);
+            InputYType = new KeyType(DataKind.U4, mMin, _m);
         }
 
         public static MatrixFactorizationPredictor Create(IHostEnvironment env, ModelLoadContext ctx)
@@ -150,9 +145,9 @@ namespace Microsoft.ML.Runtime.Recommend
             _host.Assert(_n > 0);
             _host.Assert(_k > 0);
             ctx.Writer.Write(_m);
-            ctx.Writer.Write(_inputYType.Min);
+            ctx.Writer.Write((InputYType as KeyType).Min);
             ctx.Writer.Write(_n);
-            ctx.Writer.Write(_inputXType.Min);
+            ctx.Writer.Write((InputXType as KeyType).Min);
             ctx.Writer.Write(_k);
             _host.Assert(Utils.Size(_p) == _m * _k);
             _host.Assert(Utils.Size(_q) == _n * _k);
@@ -350,97 +345,32 @@ namespace Microsoft.ML.Runtime.Recommend
 
             public ISchemaBindableMapper Bindable { get { return _parent; } }
         }
-
-        public int UserFeaturesSize { get { return -1; } }
-        public KeyType UserIdType { get { return _inputYType; } }
-        public KeyType ItemIdType { get { return _inputXType; } }
-
-        public UserHistoryToItemsMapper GetRecommendMapper(int recommendationCount, bool includeHistory)
-        {
-            _host.CheckParam(recommendationCount > 0, nameof(recommendationCount), "Recommendation count must be positive");
-
-            var scores = new List<KeyValuePair<uint, Float>>(_n);
-            var history = new HashSet<uint>();
-
-            UserHistoryToItemsMapper mapper =
-                (ref uint userId, ref VBuffer<float> userFeatures, ref VBuffer<uint> items, ref VBuffer<float> weights,
-                    ref VBuffer<uint> recoItems, ref VBuffer<float> recoScores) =>
-                {
-                    scores.Clear();
-                    if (!includeHistory)
-                    {
-                        history.Clear();
-                        for (int i = 0; i < items.Count; i++)
-                            history.Add(items.Values[i]);
-                    }
-
-                    int recoCount = Math.Min(_n, recommendationCount);
-                    if (userId == 0)
-                        recoCount = 0;
-                    else
-                    {
-                        int row = (int)userId - 1;
-                        for (int i = 0; i < _n; i++)
-                        {
-                            Single rowScore = Single.NegativeInfinity;
-                            if (includeHistory || !history.Contains((uint)(i + 1)))
-                                rowScore = Score(i, row);
-
-                            scores.Add(new KeyValuePair<uint, float>((uint)i + 1, rowScore));
-                        }
-
-                        scores.Sort((x, y) => y.Value.CompareTo(x.Value));
-                    }
-                    uint[] outItems = Utils.Size(recoItems.Values) < recommendationCount ? new uint[recommendationCount] : recoItems.Values;
-                    Single[] outScores = Utils.Size(recoScores.Values) < recommendationCount ? new Single[recommendationCount] : recoScores.Values;
-
-                    int j;
-                    for (j = 0; j < recoCount; j++)
-                    {
-                        outItems[j] = (uint)scores[j].Key;
-                        outScores[j] = scores[j].Value;
-                    }
-                    recoItems = new VBuffer<uint>(recoCount, outItems, recoItems.Indices);
-                    recoScores = new VBuffer<Single>(recoCount, outScores, recoScores.Indices);
-                };
-
-            return mapper;
-        }
     }
 
     public sealed class MatrixFactorizationPredictionTransformer : PredictionTransformerBase<MatrixFactorizationPredictor, GenericScorer>, ICanSaveModel
     {
         public const string LoaderSignature = "MaFactPredXf";
-        public string UserIdColumnName { get; }
-        public string ItemIdColumnName { get; }
-        public ColumnType UserIdColumnType { get; }
-        public ColumnType ItemIdColumnType { get; }
+        public string XColumnName { get; }
+        public string YColumnName { get; }
+        public ColumnType XColumnType { get; }
+        public ColumnType YColumnType { get; }
         protected override GenericScorer Scorer { get; set; }
 
-        /// <summary>
-        /// Construct matrix
-        /// </summary>
-        /// <param name="host"></param>
-        /// <param name="model"></param>
-        /// <param name="trainSchema"></param>
-        /// <param name="userIdColumnName"></param>
-        /// <param name="itemIdColumnName"></param>
-        /// <param name="scoreColumnName"></param>
         public MatrixFactorizationPredictionTransformer(IHostEnvironment host, MatrixFactorizationPredictor model, ISchema trainSchema,
-            string userIdColumnName, string itemIdColumnName, string scoreColumnName = DefaultColumnNames.Score)
+            string xColumnName, string yColumnName, string scoreColumnName = DefaultColumnNames.Score)
             :base(Contracts.CheckRef(host, nameof(host)).Register(nameof(MatrixFactorizationPredictionTransformer)), model, trainSchema)
         {
-            Host.CheckNonEmpty(userIdColumnName, nameof(userIdColumnName));
-            Host.CheckNonEmpty(itemIdColumnName, nameof(itemIdColumnName));
+            Host.CheckNonEmpty(xColumnName, nameof(yColumnName));
+            Host.CheckNonEmpty(xColumnName, nameof(yColumnName));
 
-            UserIdColumnName = userIdColumnName;
-            ItemIdColumnName = itemIdColumnName;
+            XColumnName = xColumnName;
+            YColumnName = yColumnName;
 
-            if (!trainSchema.TryGetColumnIndex(UserIdColumnName, out int userCol))
-                throw Host.ExceptSchemaMismatch(nameof(userIdColumnName), RecommendUtils.UserKind.Value, userIdColumnName);
-            UserIdColumnType = trainSchema.GetColumnType(userCol);
-            if (!trainSchema.TryGetColumnIndex(ItemIdColumnName, out int itemCol))
-                throw Host.ExceptSchemaMismatch(nameof(itemIdColumnName), RecommendUtils.ItemKind.Value, itemIdColumnName);
+            if (!trainSchema.TryGetColumnIndex(XColumnName, out int xCol))
+                throw Host.ExceptSchemaMismatch(nameof(XColumnName), RecommendUtils.XKind.Value, XColumnName);
+            XColumnType = trainSchema.GetColumnType(xCol);
+            if (!trainSchema.TryGetColumnIndex(YColumnName, out int yCol))
+                throw Host.ExceptSchemaMismatch(nameof(yCol), RecommendUtils.ItemKind.Value, YColumnName);
 
             BindableMapper = ScoreUtils.GetSchemaBindableMapper(Host, model);
 
@@ -452,8 +382,8 @@ namespace Microsoft.ML.Runtime.Recommend
         private RoleMappedSchema GetSchema()
         {
             var roles = new List<KeyValuePair<RoleMappedSchema.ColumnRole, string>>();
-            roles.Add(new KeyValuePair<RoleMappedSchema.ColumnRole, string>(new RoleMappedSchema.ColumnRole("User"), UserIdColumnName));
-            roles.Add(new KeyValuePair<RoleMappedSchema.ColumnRole, string>(new RoleMappedSchema.ColumnRole("Item"), ItemIdColumnName));
+            roles.Add(new KeyValuePair<RoleMappedSchema.ColumnRole, string>(RecommendUtils.XKind, XColumnName));
+            roles.Add(new KeyValuePair<RoleMappedSchema.ColumnRole, string>(RecommendUtils.YKind, YColumnName));
             var schema = new RoleMappedSchema(TrainSchema, roles);
             return schema;
         }
@@ -463,19 +393,19 @@ namespace Microsoft.ML.Runtime.Recommend
         {
             // *** Binary format ***
             // <base info>
-            // string: the column name of user ids.
-            // string: the column name of item ids.
+            // string: the column name of matrix's column ids.
+            // string: the column name of matrix's row ids.
 
-            UserIdColumnName = ctx.LoadString();
-            ItemIdColumnName = ctx.LoadString();
+            XColumnName = ctx.LoadString();
+            YColumnName = ctx.LoadString();
 
-            if (!TrainSchema.TryGetColumnIndex(UserIdColumnName, out int userCol))
-                throw Host.ExceptSchemaMismatch(nameof(UserIdColumnName), "User ID", UserIdColumnName);
-            UserIdColumnType = TrainSchema.GetColumnType(userCol);
+            if (!TrainSchema.TryGetColumnIndex(XColumnName, out int xCol))
+                throw Host.ExceptSchemaMismatch(nameof(XColumnName), RecommendUtils.XKind.Value, XColumnName);
+            XColumnType = TrainSchema.GetColumnType(xCol);
 
-            if (!TrainSchema.TryGetColumnIndex(ItemIdColumnName, out int itemCol))
-                throw Host.ExceptSchemaMismatch(nameof(ItemIdColumnName), "Item ID", ItemIdColumnName);
-            ItemIdColumnType = TrainSchema.GetColumnType(itemCol);
+            if (!TrainSchema.TryGetColumnIndex(YColumnName, out int yCol))
+                throw Host.ExceptSchemaMismatch(nameof(YColumnName), RecommendUtils.YKind.Value, YColumnName);
+            YColumnType = TrainSchema.GetColumnType(yCol);
 
             BindableMapper = ScoreUtils.GetSchemaBindableMapper(Host, Model);
 
@@ -486,10 +416,10 @@ namespace Microsoft.ML.Runtime.Recommend
 
         public override ISchema GetOutputSchema(ISchema inputSchema)
         {
-            if (!inputSchema.TryGetColumnIndex(UserIdColumnName, out int userCol))
-                throw Host.ExceptSchemaMismatch(nameof(inputSchema), "User ID", UserIdColumnName);
-            if (!inputSchema.TryGetColumnIndex(ItemIdColumnName, out int itemCol))
-                throw Host.ExceptSchemaMismatch(nameof(inputSchema), "Item ID", ItemIdColumnName);
+            if (!inputSchema.TryGetColumnIndex(XColumnName, out int xCol))
+                throw Host.ExceptSchemaMismatch(nameof(inputSchema), RecommendUtils.XKind.Value, XColumnName);
+            if (!inputSchema.TryGetColumnIndex(YColumnName, out int yCol))
+                throw Host.ExceptSchemaMismatch(nameof(inputSchema), RecommendUtils.YKind.Value, YColumnName);
 
             return Transform(new EmptyDataView(Host, inputSchema)).Schema;
         }
@@ -517,8 +447,8 @@ namespace Microsoft.ML.Runtime.Recommend
                 }
             });
 
-            ctx.SaveString(UserIdColumnName);
-            ctx.SaveString(ItemIdColumnName);
+            ctx.SaveString(XColumnName);
+            ctx.SaveString(YColumnName);
         }
 
         private static VersionInfo GetVersionInfo()

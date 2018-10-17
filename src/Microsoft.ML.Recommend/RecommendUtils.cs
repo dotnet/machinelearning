@@ -67,13 +67,12 @@ namespace Microsoft.ML.Runtime.Recommend
             return keyType;
         }
 
-        public static RoleMappedSchema.ColumnRole YKind => "Y";
-
-        public static RoleMappedSchema.ColumnRole XKind => "X";
-
         public static RoleMappedSchema.ColumnRole UserKind => "User";
 
         public static RoleMappedSchema.ColumnRole ItemKind => "Item";
+        public static RoleMappedSchema.ColumnRole XKind => "X";
+
+        public static RoleMappedSchema.ColumnRole YKind => "Y";
 
         public static RoleMappedSchema.ColumnRole DateKind => "Date";
 
