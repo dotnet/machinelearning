@@ -43,9 +43,6 @@ namespace Microsoft.ML.Scenarios
                         Name = "Features",
                         Source = new[] { "SentimentText" }
                     },
-                    KeepDiacritics = false,
-                    KeepPunctuations = false,
-                    TextCase = Runtime.TextAnalytics.TextNormalizerTransform.CaseNormalizationMode.Lower,
                     OutputTokens = true,
                     StopWordsRemover = new Runtime.TextAnalytics.PredefinedStopWordsRemoverFactory(),
                     VectorNormalizer = TextTransform.TextNormKind.L2,
@@ -108,9 +105,6 @@ namespace Microsoft.ML.Scenarios
                         Name = "WordEmbeddings",
                         Source = new[] { "SentimentText" }
                     },
-                    KeepDiacritics = false,
-                    KeepPunctuations = false,
-                    TextCase = Runtime.TextAnalytics.TextNormalizerTransform.CaseNormalizationMode.Lower,
                     OutputTokens = true,
                     StopWordsRemover = new Runtime.TextAnalytics.PredefinedStopWordsRemoverFactory(),
                     VectorNormalizer = TextTransform.TextNormKind.None,

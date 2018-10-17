@@ -208,17 +208,14 @@ namespace Microsoft.ML.Runtime.Data
 
             env.CheckValue(args.Column, nameof(args.Column));
             var cols = new ColumnInfo[args.Column.Length];
-            using (var ch = env.Start("ValidateArgs"))
+            for (int i = 0; i < cols.Length; i++)
             {
-                for (int i = 0; i < cols.Length; i++)
-                {
-                    var item = args.Column[i];
+                var item = args.Column[i];
 
-                    cols[i] = new ColumnInfo(item.Source ?? item.Name,
-                        item.Name,
-                        item.Bag ?? args.Bag);
-                };
-            }
+                cols[i] = new ColumnInfo(item.Source ?? item.Name,
+                    item.Name,
+                    item.Bag ?? args.Bag);
+            };
             return new KeyToVectorTransform(env, cols).MakeDataTransform(input);
         }
 
@@ -727,7 +724,7 @@ namespace Microsoft.ML.Runtime.Data
                     // Note that one input feature got expended to an one-hot vector.
                     opType = "ReduceSum";
                     var reduceNode = ctx.CreateNode(opType, encodedVariableName, dstVariableName, ctx.GetNodeName(opType), "");
-                    reduceNode.AddAttribute("axes", new long[] { shape.Count - 1});
+                    reduceNode.AddAttribute("axes", new long[] { shape.Count - 1 });
                     reduceNode.AddAttribute("keepdims", 0);
                 }
                 return true;

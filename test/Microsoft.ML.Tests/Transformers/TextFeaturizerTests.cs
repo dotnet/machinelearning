@@ -2,12 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.StaticPipe;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Data.IO;
 using Microsoft.ML.Runtime.RunTests;
-using Microsoft.ML.Runtime.Tools;
 using Microsoft.ML.Transforms;
+using Microsoft.ML.Transforms.Text;
 using System.IO;
 using Xunit;
 using Xunit.Abstractions;
@@ -141,7 +140,7 @@ namespace Microsoft.ML.Tests.Transformers
                     text: ctx.LoadFloat(1)), hasHeader: true)
                 .Read(new MultiFileSource(sentimentDataPath));
 
-            var est = new TextNormalizer(Env,"text")
+            var est = new TextNormalizerEstimator(Env,"text")
                 .Append(new WordTokenizer(Env, "text", "words"))
                 .Append(new StopwordRemover(Env, "words", "words_without_stopwords"));
             TestEstimatorCore(est, data.AsDynamic, invalidInput: invalidData.AsDynamic);
