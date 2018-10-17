@@ -85,8 +85,8 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
 
         private void TrainRegression(string trainDataPath, string testDataPath, string modelPath)
         {
-            // Create a new environment for ML.NET operations. It can be used for exception tracking and logging, 
-            // as well as the source of randomness.
+            // Create a new context for ML.NET operations. It can be used for exception tracking and logging, 
+            // as a catalog of available operations and as the source of randomness.
             var mlContext = new MLContext();
 
             // Step one: read the data as an IDataView.
@@ -127,7 +127,6 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             // Read the test dataset.
             var testData = reader.Read(new MultiFileSource(testDataPath));
             // Calculate metrics of the model on the test data.
-            // We are using the 'regression' context object here to perform evaluation.
             var metrics = mlContext.Regression.Evaluate(model.Transform(testData), label: r => r.Target, score: r => r.Prediction);
 
             using (var stream = File.Create(modelPath))
@@ -195,8 +194,8 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
 
         private void PredictOnIris(ITransformer model)
         {
-            // Create a new environment for ML.NET operations. It can be used for exception tracking and logging, 
-            // as well as the source of randomness.
+            // Create a new context for ML.NET operations. It can be used for exception tracking and logging, 
+            // as a catalog of available operations and as the source of randomness.
             var mlContext = new MLContext();
 
             // Use the model for one-time prediction.
@@ -407,8 +406,8 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
 
         private void TextFeaturizationOn(string dataPath)
         {
-            // Create a new environment for ML.NET operations. It can be used for exception tracking and logging, 
-            // as well as the source of randomness.
+            // Create a new context for ML.NET operations. It can be used for exception tracking and logging, 
+            // as a catalog of available operations and as the source of randomness.
             var mlContext = new MLContext();
 
             // Define the reader: specify the data columns and where to find them in the text file.

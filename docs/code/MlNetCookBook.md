@@ -286,8 +286,8 @@ feature_0;feature_1;feature_2;feature_3;feature_4;feature_5;feature_6;feature_7;
 In the file above, the last column (12th) is label that we predict, and all the preceding ones are features.
 
 ```csharp
-// Create a new environment for ML.NET operations. It can be used for exception tracking and logging, 
-// as well as the source of randomness.
+// Create a new context for ML.NET operations. It can be used for exception tracking and logging, 
+// as a catalog of available operations and as the source of randomness.
 var mlContext = new MLContext();
 
 // Step one: read the data as an IDataView.
@@ -336,7 +336,6 @@ Assuming the example above was used to train the model, here's how you calculate
 // Read the test dataset.
 var testData = reader.Read(new MultiFileSource(testDataPath));
 // Calculate metrics of the model on the test data.
-// We are using the 'regression' context object here to perform evaluation.
 var metrics = mlContext.Regression.Evaluate(model.Transform(testData), label: r => r.Target, score: r => r.Prediction);
 ```
 
@@ -435,8 +434,8 @@ private class IrisPrediction
 
 The prediction code now looks as follows:
 ```csharp
-// Create a new environment for ML.NET operations. It can be used for exception tracking and logging, 
-// as well as the source of randomness.
+// Create a new context for ML.NET operations. It can be used for exception tracking and logging, 
+// as a catalog of available operations and as the source of randomness.
 var mlContext = new MLContext();
 
 // Use the model for one-time prediction.
@@ -774,8 +773,8 @@ Sentiment   SentimentText
 ```
 
 ```csharp
-// Create a new environment for ML.NET operations. It can be used for exception tracking and logging, 
-// as well as the source of randomness.
+// Create a new context for ML.NET operations. It can be used for exception tracking and logging, 
+// as a catalog of available operations and as the source of randomness.
 var mlContext = new MLContext();
 
 // Define the reader: specify the data columns and where to find them in the text file.
