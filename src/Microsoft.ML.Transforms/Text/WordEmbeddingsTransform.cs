@@ -404,7 +404,7 @@ namespace Microsoft.ML.Runtime.Data
                 nodeY.AddAttribute("classes_strings", _parent._currentVocab.GetWordLabels());
                 nodeY.AddAttribute("default_int64", 1);
 
-                // Do gather
+                // Map encoded words to their embedding vectors using Gather
                 var nameW = ctx.AddIntermediateVariable(null, "WeightsOfInput", true);
                 var nodeW = ctx.CreateNode("Gather", new[] { nameD, nameY }, new[] { nameW }, ctx.GetNodeName("Gather"), "");
 
