@@ -37,6 +37,7 @@ namespace Microsoft.ML.Tests.Transformers
                     Source = new[] { "SentimentText" }
                 },
                 OutputTokens = true,
+                KeepPunctuations = false,
                 StopWordsRemover = new Runtime.TextAnalytics.PredefinedStopWordsRemoverFactory(),
                 VectorNormalizer = TextTransform.TextNormKind.None,
                 CharFeatureExtractor = null,

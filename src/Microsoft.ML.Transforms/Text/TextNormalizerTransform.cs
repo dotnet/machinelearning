@@ -391,7 +391,7 @@ namespace Microsoft.ML.Transforms.Text
                         list.Clear();
                         for (int i = 0; i < src.Count; i++)
                         {
-                            NormalizeSrc(_parent._columns[i], ref src.Values[i], ref temp, buffer);
+                            NormalizeSrc(_parent._columns[iinfo], ref src.Values[i], ref temp, buffer);
                             if (!temp.IsEmpty)
                                 list.Add(temp);
                         }

@@ -70,6 +70,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                     Source = new[] { "SentimentText" }
                 },
                 OutputTokens = true,
+                KeepPunctuations=false,
                 StopWordsRemover = new Runtime.TextAnalytics.PredefinedStopWordsRemoverFactory(),
                 VectorNormalizer = normalize ? TextTransform.TextNormKind.L2 : TextTransform.TextNormKind.None,
                 CharFeatureExtractor = new NgramExtractorTransform.NgramExtractorArguments() { NgramLength = 3, AllLengths = false },

@@ -44,6 +44,7 @@ namespace Microsoft.ML.Scenarios
                         Source = new[] { "SentimentText" }
                     },
                     OutputTokens = true,
+                    KeepPunctuations = false,
                     StopWordsRemover = new Runtime.TextAnalytics.PredefinedStopWordsRemoverFactory(),
                     VectorNormalizer = TextTransform.TextNormKind.L2,
                     CharFeatureExtractor = new NgramExtractorTransform.NgramExtractorArguments() { NgramLength = 3, AllLengths = false },
@@ -106,6 +107,7 @@ namespace Microsoft.ML.Scenarios
                         Source = new[] { "SentimentText" }
                     },
                     OutputTokens = true,
+                    KeepPunctuations= false,
                     StopWordsRemover = new Runtime.TextAnalytics.PredefinedStopWordsRemoverFactory(),
                     VectorNormalizer = TextTransform.TextNormKind.None,
                     CharFeatureExtractor = null,

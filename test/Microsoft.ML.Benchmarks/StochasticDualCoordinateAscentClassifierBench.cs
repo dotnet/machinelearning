@@ -98,6 +98,7 @@ namespace Microsoft.ML.Benchmarks
                             Source = new[] { "SentimentText" }
                         },
                         OutputTokens = true,
+                        KeepPunctuations=false,
                         StopWordsRemover = new Runtime.TextAnalytics.PredefinedStopWordsRemoverFactory(),
                         VectorNormalizer = TextTransform.TextNormKind.None,
                         CharFeatureExtractor = null,
