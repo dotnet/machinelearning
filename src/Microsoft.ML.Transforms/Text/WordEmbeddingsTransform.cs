@@ -365,7 +365,7 @@ namespace Microsoft.ML.Runtime.Data
                 // Converts 1 column that is taken as input to the transform into one column of output
                 //
                 // Symbols:
-                // j: # of features per word in the pretrained model
+                // j: length of latent vector of every word in the pretrained model
                 // n: # of input words
                 // X: word input, n tensor
                 // k: # of words in pretrained model (known when transform is created)
