@@ -33,54 +33,51 @@ Wrote 119 rows across 3 columns in %Time%
 [1] 'Building term dictionary' started.
 [1] (%Time%)	119 examples	Total Terms: 7
 [1] 'Building term dictionary' finished in %Time%.
-[2] 'Building term dictionary #2' started.
-[2] (%Time%)	119 examples	Total Terms: 7
-[2] 'Building term dictionary #2' finished in %Time%.
-[3] 'BinarySaver' started.
-[3] (%Time%)	7 rows
-[3] 'BinarySaver' finished in %Time%.
-[4] 'TextSaver: saving data' started.
+[2] 'BinarySaver' started.
+[2] (%Time%)	7 rows
+[2] 'BinarySaver' finished in %Time%.
+[3] 'TextSaver: saving data' started.
+[3] (%Time%)	119 rows
+[3] 'TextSaver: saving data' finished in %Time%.
+[4] 'BinarySaver #2' started.
 [4] (%Time%)	119 rows
-[4] 'TextSaver: saving data' finished in %Time%.
-[5] 'BinarySaver #2' started.
-[5] (%Time%)	119 rows
-[5] 'BinarySaver #2' finished in %Time%.
-[6] 'BinarySaver #3' started.
-[6] (%Time%)	7 rows
-[6] 'BinarySaver #3' finished in %Time%.
-[7] 'TextSaver: saving data #2' started.
+[4] 'BinarySaver #2' finished in %Time%.
+[5] 'BinarySaver #3' started.
+[5] (%Time%)	7 rows
+[5] 'BinarySaver #3' finished in %Time%.
+[6] 'TextSaver: saving data #2' started.
+[6] (%Time%)	119 rows
+[6] 'TextSaver: saving data #2' finished in %Time%.
+[7] 'BinarySaver #4' started.
 [7] (%Time%)	119 rows
-[7] 'TextSaver: saving data #2' finished in %Time%.
-[8] 'BinarySaver #4' started.
-[8] (%Time%)	119 rows
-[8] 'BinarySaver #4' finished in %Time%.
-[9] 'BinarySaver #5' started.
-[9] (%Time%)	7 rows
-[9] 'BinarySaver #5' finished in %Time%.
-[10] 'TextSaver: saving data #3' started.
+[7] 'BinarySaver #4' finished in %Time%.
+[8] 'BinarySaver #5' started.
+[8] (%Time%)	7 rows
+[8] 'BinarySaver #5' finished in %Time%.
+[9] 'TextSaver: saving data #3' started.
+[9] (%Time%)	119 rows
+[9] 'TextSaver: saving data #3' finished in %Time%.
+[10] 'BinarySaver #6' started.
 [10] (%Time%)	119 rows
-[10] 'TextSaver: saving data #3' finished in %Time%.
-[11] 'BinarySaver #6' started.
-[11] (%Time%)	119 rows
-[11] 'BinarySaver #6' finished in %Time%.
-[12] 'BinarySaver #7' started.
-[12] (%Time%)	7 rows
-[12] 'BinarySaver #7' finished in %Time%.
-[13] 'TextSaver: saving data #4' started.
+[10] 'BinarySaver #6' finished in %Time%.
+[11] 'BinarySaver #7' started.
+[11] (%Time%)	7 rows
+[11] 'BinarySaver #7' finished in %Time%.
+[12] 'TextSaver: saving data #4' started.
+[12] (%Time%)	119 rows
+[12] 'TextSaver: saving data #4' finished in %Time%.
+[13] 'BinarySaver #8' started.
 [13] (%Time%)	119 rows
-[13] 'TextSaver: saving data #4' finished in %Time%.
-[14] 'BinarySaver #8' started.
-[14] (%Time%)	119 rows
-[14] 'BinarySaver #8' finished in %Time%.
-[15] 'BinarySaver #9' started.
+[13] 'BinarySaver #8' finished in %Time%.
+[14] 'BinarySaver #9' started.
+[14] (%Time%)	7 rows
+[14] 'BinarySaver #9' finished in %Time%.
+[15] 'BinarySaver #10' started.
 [15] (%Time%)	7 rows
-[15] 'BinarySaver #9' finished in %Time%.
-[16] 'BinarySaver #10' started.
-[16] (%Time%)	7 rows
-[16] 'BinarySaver #10' finished in %Time%.
-[17] 'TextSaver: saving data #5' started.
+[15] 'BinarySaver #10' finished in %Time%.
+[16] 'TextSaver: saving data #5' started.
+[16] (%Time%)	119 rows
+[16] 'TextSaver: saving data #5' finished in %Time%.
+[17] 'BinarySaver #11' started.
 [17] (%Time%)	119 rows
-[17] 'TextSaver: saving data #5' finished in %Time%.
-[18] 'BinarySaver #11' started.
-[18] (%Time%)	119 rows
-[18] 'BinarySaver #11' finished in %Time%.
+[17] 'BinarySaver #11' finished in %Time%.
