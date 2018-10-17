@@ -367,7 +367,7 @@ namespace Microsoft.ML.Runtime.Data
                 // Symbols:
                 // j: length of latent vector of every word in the pretrained model
                 // n: # of input words
-                // X: word input, n tensor
+                // X: word input, a tensor with n elements.
                 // k: # of words in pretrained model (known when transform is created)
                 // S: word labels, k tensor (known when transform is created)
                 // D: word embeddings, k-by-j tensor(known when transform is created)
