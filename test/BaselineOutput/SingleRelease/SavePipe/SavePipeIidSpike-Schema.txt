@@ -43,7 +43,7 @@
   fAnomaly2: Vec<R4, 3>
     Metadata 'SlotNames': Vec<Text, 3>: Length=3, Count=3
       [0] 'Alert', [1] 'Raw Score', [2] 'P-Value Score'
----- ChooseColumnsTransform ----
+---- SelectColumnsTransform ----
 3 columns:
   Features: R4
   fAnomaly: Vec<R4, 3>
