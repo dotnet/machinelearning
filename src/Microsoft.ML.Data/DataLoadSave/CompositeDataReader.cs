@@ -40,7 +40,7 @@ namespace Microsoft.ML.Runtime.Data
             return idv;
         }
 
-        public ISchema GetOutputSchema()
+        public Schema GetOutputSchema()
         {
             var s = Reader.GetOutputSchema();
             return Transformer.GetOutputSchema(s);

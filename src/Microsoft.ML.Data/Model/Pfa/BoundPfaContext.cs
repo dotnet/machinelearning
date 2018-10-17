@@ -40,7 +40,7 @@ namespace Microsoft.ML.Runtime.Model.Pfa
         private readonly bool _allowSet;
         private readonly IHost _host;
 
-        public BoundPfaContext(IHostEnvironment env, ISchema inputSchema, HashSet<string> toDrop, bool allowSet)
+        public BoundPfaContext(IHostEnvironment env, Schema inputSchema, HashSet<string> toDrop, bool allowSet)
         {
             Contracts.CheckValue(env, nameof(env));
             _host = env.Register(nameof(BoundPfaContext));
@@ -54,7 +54,7 @@ namespace Microsoft.ML.Runtime.Model.Pfa
             SetInput(inputSchema, toDrop);
         }
 
-        private void SetInput(ISchema schema, HashSet<string> toDrop)
+        private void SetInput(Schema schema, HashSet<string> toDrop)
         {
             var recordType = new JObject();
             recordType["type"] = "record";

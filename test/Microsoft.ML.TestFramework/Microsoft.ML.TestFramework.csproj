@@ -23,5 +23,6 @@
     <NativeAssemblyReference Include="FastTreeNative" />
     <NativeAssemblyReference Include="CpuMathNative" />
     <NativeAssemblyReference Include="MklProxyNative" />
+    <NativeAssemblyReference Include="FactorizationMachineNative" />
   </ItemGroup>
 </Project>

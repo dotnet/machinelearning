@@ -675,7 +675,7 @@ namespace Microsoft.ML.Transforms
             }
         }
 
-        public ISchema GetOutputSchema(ISchema inputSchema)
+        public Schema GetOutputSchema(Schema inputSchema)
         {
             _host.CheckValue(inputSchema, nameof(inputSchema));
             foreach (var input in Inputs)
@@ -791,7 +791,7 @@ namespace Microsoft.ML.Transforms
         }
         public bool IsRowToRowMapper => true;
 
-        public IRowToRowMapper GetRowToRowMapper(ISchema inputSchema)
+        public IRowToRowMapper GetRowToRowMapper(Schema inputSchema)
         {
             _host.CheckValue(inputSchema, nameof(inputSchema));
             return MakeDataTransform(new EmptyDataView(_host, inputSchema));
@@ -964,11 +964,11 @@ namespace Microsoft.ML.Transforms
                 return col => Enumerable.Range(0, _parent.Outputs.Length).Any(i => activeOutput(i)) && _inputColIndices.Any(i => i == col);
             }
 
-            public RowMapperColumnInfo[] GetOutputColumns()
+            public Schema.Column[] GetOutputColumns()
             {
-                var info = new RowMapperColumnInfo[_parent.Outputs.Length];
+                var info = new Schema.Column[_parent.Outputs.Length];
                 for (int i = 0; i < _parent.Outputs.Length; i++)
-                    info[i] = new RowMapperColumnInfo(_parent.Outputs[i], _parent.OutputTypes[i], null);
+                    info[i] = new Schema.Column(_parent.Outputs[i], _parent.OutputTypes[i], null);
                 return info;
             }
         }

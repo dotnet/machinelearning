@@ -564,7 +564,7 @@ namespace Microsoft.ML.Runtime.Data
 
         public bool CanShuffle => View.CanShuffle;
 
-        public ISchema Schema => View.Schema;
+        public Schema Schema => View.Schema;
 
         public ITransposeSchema TransposeSchema { get; }
 

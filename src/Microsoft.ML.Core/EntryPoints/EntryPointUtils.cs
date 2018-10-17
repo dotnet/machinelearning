@@ -101,7 +101,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
         /// and the column name was explicitly specified. If the column is not found
         /// and the column name was not explicitly specified, it returns null.
         /// </summary>
-        public static string FindColumnOrNull(IExceptionContext ectx, ISchema schema, Optional<string> value)
+        public static string FindColumnOrNull(IExceptionContext ectx, Schema schema, Optional<string> value)
         {
             Contracts.CheckValueOrNull(ectx);
             ectx.CheckValue(schema, nameof(schema));

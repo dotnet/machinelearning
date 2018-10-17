@@ -90,7 +90,7 @@ namespace Microsoft.ML.Runtime.Data
 
         public bool IsRowToRowMapper => true;
 
-        public IRowToRowMapper GetRowToRowMapper(ISchema inputSchema)
+        public IRowToRowMapper GetRowToRowMapper(Schema inputSchema)
         {
             Host.CheckValue(inputSchema, nameof(inputSchema));
             var simplerMapper = MakeRowMapper(inputSchema);
@@ -99,7 +99,7 @@ namespace Microsoft.ML.Runtime.Data
 
         protected abstract IRowMapper MakeRowMapper(ISchema schema);
 
-        public ISchema GetOutputSchema(ISchema inputSchema)
+        public Schema GetOutputSchema(Schema inputSchema)
         {
             Host.CheckValue(inputSchema, nameof(inputSchema));
 
@@ -122,10 +122,10 @@ namespace Microsoft.ML.Runtime.Data
         {
             protected readonly IHost Host;
             protected readonly Dictionary<int, int> ColMapNewToOld;
-            protected readonly ISchema InputSchema;
+            protected readonly Schema InputSchema;
             private readonly OneToOneTransformerBase _parent;
 
-            protected MapperBase(IHost host, OneToOneTransformerBase parent, ISchema inputSchema)
+            protected MapperBase(IHost host, OneToOneTransformerBase parent, Schema inputSchema)
             {
                 Contracts.AssertValue(host);
                 Contracts.AssertValue(parent);
@@ -151,13 +151,18 @@ namespace Microsoft.ML.Runtime.Data
                 return col => active[col];
             }
 
-            public abstract RowMapperColumnInfo[] GetOutputColumns();
+            public abstract Schema.Column[] GetOutputColumns();
 
             public void Save(ModelSaveContext ctx) => _parent.Save(ctx);
 
             public Delegate[] CreateGetters(IRow input, Func<int, bool> activeOutput, out Action disposer)
             {
-                Contracts.Assert(input.Schema == InputSchema);
+                // REVIEW: it used to be that the mapper's input schema in the constructor was required to be reference-equal to the schema
+                // of the input row.
+                // It still has to be the same schema, but because we may make a transition from lazy to eager schema, the reference-equality
+                // is no longer always possible. So, we relax the assert as below.
+                if (input.Schema is Schema s)
+                    Contracts.Assert(s == InputSchema);
                 var result = new Delegate[_parent.ColumnPairs.Length];
                 var disposers = new Action[_parent.ColumnPairs.Length];
                 for (int i = 0; i < _parent.ColumnPairs.Length; i++)
