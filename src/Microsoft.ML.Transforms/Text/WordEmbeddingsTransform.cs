@@ -409,7 +409,7 @@ namespace Microsoft.ML.Runtime.Data
                 var nodeW = ctx.CreateNode("Gather", new[] { nameD, nameY }, new[] { nameW }, ctx.GetNodeName("Gather"), "");
 
                 long[] axes = new long[] { 0 };
-                // Do reduce min
+                // Merge all embedding vectors using element-wise min per embedding coordinate
                 var nameJ = ctx.AddIntermediateVariable(null, "MinWeights", true);
                 var nodeJ = ctx.CreateNode("ReduceMin", nameW, nameJ, ctx.GetNodeName("ReduceMin"), "");
                 nodeJ.AddAttribute("axes", axes);
