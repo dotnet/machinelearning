@@ -76,7 +76,7 @@ namespace Microsoft.ML.Transforms.Text
         internal const string Summary = "A text normalization transform that allows normalizing text case, removing diacritical marks, punctuation marks and/or numbers." +
             " The transform operates on text input as well as vector of tokens/text (vector of ReadOnlyMemory).";
 
-        public const string LoaderSignature = "TextNormalizerTransform";
+        public const string LoaderSignature = nameof(TextNormalizerTransform);
 
         private static VersionInfo GetVersionInfo()
         {
@@ -135,7 +135,7 @@ namespace Microsoft.ML.Transforms.Text
             return columns.Select(x => (x.Input, x.Output)).ToArray();
         }
 
-        public TextNormalizerTransform(IHostEnvironment env, ColumnInfo[] columns) :
+        internal TextNormalizerTransform(IHostEnvironment env, ColumnInfo[] columns) :
             base(Contracts.CheckRef(env, nameof(env)).Register(RegistrationName), GetColumnPairs(columns))
         {
             _columns = columns.ToArray();
@@ -176,10 +176,8 @@ namespace Microsoft.ML.Transforms.Text
         {
             Contracts.CheckValue(env, nameof(env));
             var host = env.Register(RegistrationName);
-
             host.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel(GetVersionInfo());
-
             return new TextNormalizerTransform(host, ctx);
         }
 
@@ -504,7 +502,7 @@ namespace Microsoft.ML.Transforms.Text
             None = 2
         }
 
-        public static class Defaults
+        internal static class Defaults
         {
             public const CaseNormalizationMode TextCase = CaseNormalizationMode.Lower;
             public const bool KeepDiacritics = false;
@@ -560,12 +558,7 @@ namespace Microsoft.ML.Transforms.Text
         }
 
         public TextNormalizerEstimator(IHostEnvironment env, params TextNormalizerTransform.ColumnInfo[] columns)
-          : this(env, new TextNormalizerTransform(env, columns))
-        {
-        }
-
-        private TextNormalizerEstimator(IHostEnvironment env, TextNormalizerTransform transformer)
-            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(TextNormalizerEstimator)), transformer)
+          : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(TextNormalizerEstimator)), new TextNormalizerTransform(env, columns))
         {
         }
 

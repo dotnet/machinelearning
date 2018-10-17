@@ -734,7 +734,7 @@ namespace Microsoft.ML.Runtime.Data
 
     public sealed class KeyToVectorEstimator : TrivialEstimator<KeyToVectorTransform>
     {
-        public static class Defaults
+        internal static class Defaults
         {
             public const bool Bag = false;
         }
