@@ -677,5 +677,13 @@ namespace Microsoft.ML.Runtime.RunTests
             testFilename = @"..\V3\Data\OCR\train.tsv",
             loaderSettings = "loader=Text{col=Label:U1[0-25]:1 col=GroupId:U4[1-*]:3 col=Features:Num:4-*}"
         };
+
+        public static TestDataset trivialMatrixFactorization = new TestDataset()
+        {
+            name = "trivialMatrixFactorization",
+            trainFilename = @"MatrixFactorization\trivial-train.tsv",
+            testFilename = @"MatrixFactorization\trivial-test.tsv",
+            loaderSettings = "loader=Text{col=Label:R4:0 col=User:U4[0-19]:1 col=Item:U4[0-39]:2 header+}"
+        };
     }
 }
