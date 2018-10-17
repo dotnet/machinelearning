@@ -16,19 +16,29 @@ namespace Microsoft.ML.Runtime.Data
     {
         private readonly string[] _paths;
 
-        public MultiFileSource(string path)
+        public MultiFileSource(params string[] paths)
         {
-            Contracts.CheckValueOrNull(path);
+            Contracts.CheckValueOrNull(paths);
 
-            if (string.IsNullOrEmpty(path))
+            if (paths == null || paths.Length == 0)
             {
                 _paths = new string[0];
                 return;
             }
 
-            _paths = StreamUtils.ExpandWildCards(path);
-            if (_paths.Length == 0)
-                throw Contracts.ExceptIO("Could not find file '{0}'", path);
+            // in case of usage from Maml, the paths would be wildcard concatenated in the
+            // first string of paths.
+            string[] concatenated = paths[0] != null ? StreamUtils.ExpandWildCards(paths[0]) : null;
+
+            if (concatenated != null && concatenated.Length > 1)
+            {
+                if (paths.Length > 1)
+                    throw Contracts.Except($"Pass a single string to the {nameof(MultiFileSource)} constructor, if you are using wildcards.");
+
+                _paths = concatenated;
+            }
+            else
+                _paths = paths;
         }
 
         public int Count

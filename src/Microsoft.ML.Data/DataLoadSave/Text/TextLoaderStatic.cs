@@ -259,7 +259,7 @@ namespace Microsoft.ML.Runtime.Data
 
     public static class LocalPathReader
     {
-        public static IDataView Read(this IDataReader<IMultiStreamSource> reader, string path)
+        public static IDataView Read(this IDataReader<IMultiStreamSource> reader, params string[] path)
         {
             return reader.Read(new MultiFileSource(path));
         }

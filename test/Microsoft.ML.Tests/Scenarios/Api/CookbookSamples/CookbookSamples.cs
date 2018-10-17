@@ -475,7 +475,11 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
         public void CategoricalFeaturization()
             => CategoricalFeaturizationOn(GetDataPath("adult.tiny.with-schema.txt"));
 
-        private void CategoricalFeaturizationOn(string dataPath)
+        [Fact]
+        public void ReadMultipleFiles()
+            => CategoricalFeaturizationOn(GetDataPath("adult.tiny.with-schema.txt"), GetDataPath("adult.tiny.with-schema.txt"));
+
+        private void CategoricalFeaturizationOn(params string[] dataPath)
         {
             // Create a new environment for ML.NET operations. It can be used for exception tracking and logging, 
             // as well as the source of randomness.

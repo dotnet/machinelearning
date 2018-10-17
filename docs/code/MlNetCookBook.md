@@ -131,6 +131,40 @@ var reader = new TextLoader(env, new TextLoader.Arguments
 var data = reader.Read(new MultiFileSource(dataPath));
 ```
 
+## How do I load data from multiple files?
+
+You can again use the `TextLoader`, and specify an array of files to its Read method.
+The files need to have the same schema (same number and type of columns) 
+
+[Example file1](../../test/data/adult.train):
+[Example file2](../../test/data/adult.test):
+```
+Label	Workclass	education	marital-status
+0	Private	11th	Never-married
+0	Private	HS-grad	Married-civ-spouse
+1	Local-gov	Assoc-acdm	Married-civ-spouse
+1	Private	Some-college	Married-civ-spouse
+```
+
+This is how you can read this data:
+```csharp
+// Create a new environment for ML.NET operations. It can be used for exception tracking and logging, 
+// as well as the source of randomness.
+var env = new LocalEnvironment();
+
+// Create the reader: define the data columns and where to find them in the text file.
+var reader = TextLoader.CreateReader(env, ctx => (
+        // A boolean column depicting the 'target label'.
+        IsOver50K: ctx.LoadBool(14),
+        // Three text columns.
+        Workclass: ctx.LoadText(1),
+        Education: ctx.LoadText(3),
+        MaritalStatus: ctx.LoadText(5)),
+    hasHeader: true);
+
+// Now read the files (remember though, readers are lazy, so the actual reading will happen when the data is accessed).
+var data = reader.Read(new MultiFileSource(exampleFile1, exampleFile2));
+
 ## How do I load data with many columns from a CSV?
 `TextLoader` is used to load data from text files. You will need to specify what are the data columns, what are their types, and where to find them in the text file. 
 
