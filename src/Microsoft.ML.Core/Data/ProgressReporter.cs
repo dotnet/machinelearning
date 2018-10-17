@@ -468,6 +468,14 @@ namespace Microsoft.ML.Runtime.Data
 
                 return list;
             }
+
+            public void Reset()
+            {
+                while (!_pendingEvents.IsEmpty)
+                    _pendingEvents.TryDequeue(out var res);
+                _namesUsed.Clear();
+                _index = 0;
+            }
         }
 
         /// <summary>
