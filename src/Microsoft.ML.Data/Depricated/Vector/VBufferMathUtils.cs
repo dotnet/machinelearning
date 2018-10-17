@@ -22,7 +22,7 @@ namespace Microsoft.ML.Runtime.Numeric
         {
             if (a.Count == 0)
                 return 0;
-            return CpuMathUtils.SumSq(a.Values, 0, a.Count);
+            return CpuMathUtils.SumSq(a.Values.AsSpan(0, a.Count));
         }
 
         /// <summary>
@@ -30,7 +30,7 @@ namespace Microsoft.ML.Runtime.Numeric
         /// </summary>
         public static Float NormSquared(Float[] a, int offset, int count)
         {
-            return CpuMathUtils.SumSq(a, offset, count);
+            return CpuMathUtils.SumSq(a.AsSpan(offset, count));
         }
 
         /// <summary>
@@ -50,7 +50,7 @@ namespace Microsoft.ML.Runtime.Numeric
         {
             if (a.Count == 0)
                 return 0;
-            return CpuMathUtils.SumAbs(a.Values, 0, a.Count);
+            return CpuMathUtils.SumAbs(a.Values.AsSpan(0, a.Count));
         }
 
         /// <summary>
@@ -61,7 +61,7 @@ namespace Microsoft.ML.Runtime.Numeric
         {
             if (a.Count == 0)
                 return 0;
-            return CpuMathUtils.MaxAbs(a.Values, 0, a.Count);
+            return CpuMathUtils.MaxAbs(a.Values.AsSpan(0, a.Count));
         }
 
         /// <summary>
@@ -71,7 +71,7 @@ namespace Microsoft.ML.Runtime.Numeric
         {
             if (a.Count == 0)
                 return 0;
-            return CpuMathUtils.Sum(a.Values, 0, a.Count);
+            return CpuMathUtils.Sum(a.Values.AsSpan(0, a.Count));
         }
 
         /// <summary>
@@ -84,7 +84,7 @@ namespace Microsoft.ML.Runtime.Numeric
             if (c == 1 || dst.Count == 0)
                 return;
             if (c != 0)
-                CpuMathUtils.Scale(c, dst.Values, dst.Count);
+                CpuMathUtils.Scale(c, dst.Values.AsSpan(0, dst.Count));
             else // Maintain density of dst.
                 Array.Clear(dst.Values, 0, dst.Count);
             // REVIEW: Any benefit in sparsifying?
@@ -239,9 +239,9 @@ namespace Microsoft.ML.Runtime.Numeric
             {
                 // This is by far the most common case.
                 if (src.IsDense)
-                    CpuMathUtils.AddScale(c, src.Values, dst.Values, offset, src.Count);
+                    CpuMathUtils.AddScale(c, src.Values, dst.Values.AsSpan(offset), src.Count);
                 else
-                    CpuMathUtils.AddScale(c, src.Values, src.Indices, dst.Values, offset, src.Count);
+                    CpuMathUtils.AddScale(c, src.Values, src.Indices, dst.Values.AsSpan(offset), src.Count);
                 return;
             }
             // REVIEW: Perhaps implementing an ApplyInto with an offset would be more

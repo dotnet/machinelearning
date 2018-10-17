@@ -217,7 +217,7 @@ namespace Microsoft.ML.Runtime.Data
                 get { return 0; }
             }
 
-            public RowCursor(IChannelProvider provider, IRowCursor input, ISchema schema, bool[] active, long skip, long take)
+            public RowCursor(IChannelProvider provider, IRowCursor input, Schema schema, bool[] active, long skip, long take)
                 : base(provider, input, schema, active)
             {
                 Ch.Assert(skip >= 0);

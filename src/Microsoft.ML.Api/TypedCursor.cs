@@ -259,7 +259,7 @@ namespace Microsoft.ML.Runtime.Api
 
             public long Position => _input.Position;
 
-            public ISchema Schema => _input.Schema;
+            public Schema Schema => _input.Schema;
 
             public TypedRowBase(TypedCursorable<TRow> parent, IRow input, string channelMessage)
             {

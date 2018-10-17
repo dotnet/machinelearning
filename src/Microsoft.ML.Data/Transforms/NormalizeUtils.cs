@@ -73,9 +73,9 @@ namespace Microsoft.ML.Runtime.Data
         /// </summary>
         /// <param name="schema">The role-mapped schema to query</param>
         /// <returns>Returns null if <paramref name="schema"/> does not have <see cref="RoleMappedSchema.Feature"/>
-        /// defined, and otherwise returns a Boolean value as returned from <see cref="MetadataUtils.IsNormalized(ISchema, int)"/>
+        /// defined, and otherwise returns a Boolean value as returned from <see cref="MetadataUtils.IsNormalized(Schema, int)"/>
         /// on that feature column</returns>
-        /// <seealso cref="MetadataUtils.IsNormalized(ISchema, int)"/>
+        /// <seealso cref="MetadataUtils.IsNormalized(Schema, int)"/>
         public static bool? FeaturesAreNormalized(this RoleMappedSchema schema)
         {
             // REVIEW: The role mapped data has the ability to have multiple columns fill the role of features, which is

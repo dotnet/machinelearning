@@ -34,7 +34,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
 
                 var pipeline = new ConcatEstimator(env, "Features", "SepalLength", "SepalWidth", "PetalLength", "PetalWidth")
                     .Append(new TermEstimator(env, "Label"), TransformerScope.TrainTest)
-                    .Append(new SdcaMultiClassTrainer(env, new SdcaMultiClassTrainer.Arguments { MaxIterations = 100, Shuffle = true, NumThreads = 1 }, "Features", "Label"))
+                    .Append(new SdcaMultiClassTrainer(env, "Features", "Label", advancedSettings: (s) => { s.MaxIterations = 100; s.Shuffle = true; s.NumThreads = 1; }))
                     .Append(new KeyToValueEstimator(env, "PredictedLabel"));
 
                 var model = pipeline.Fit(data).GetModelFor(TransformerScope.Scoring);
