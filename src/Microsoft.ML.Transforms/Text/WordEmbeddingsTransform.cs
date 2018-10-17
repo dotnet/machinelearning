@@ -372,7 +372,7 @@ namespace Microsoft.ML.Runtime.Data
                 // S: word labels, k tensor (known when transform is created)
                 // D: word embeddings, k-by-j tensor(known when transform is created)
                 //
-                // X[n]-- > LabelEncoder(classes_strings = S[k], default_int64 = 1)        D[k, j]->Initializer
+                // X [n]-- > LabelEncoder(classes_strings = S [k], default_int64 = 1)        D [k, j]->Initializer
                 //                              |                                                   |
                 //                             Y[n]                                                 |
                 //                              |                                                   |
