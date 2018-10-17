@@ -381,13 +381,13 @@ namespace Microsoft.ML.Runtime.Data
                 //                                                   W[n, j]
                 //                                                /     |      \
                 //                        ---------------------- /      |       \----------------------
-                //						/                               |                                \
+                //                      /                               |                                \
                 //              ReduceMin(axes = [0])         ReduceMean(axes = [0])         ReduceMax(axes = [0])
-                //                      |                                |                                |
+                //                      |                               |                                |
                 //                    J[j]                             K[j]                             L[j]
-                //                      |                                |                                |
+                //                      |                               |                                |
                 //                       --------------------Concat (axis = 1) ---------------------------
-                //                                                       |
+                //                                                      |
                 //                                                   P[j * 3]
 
                 // Allocate D, a constant tensor
@@ -414,12 +414,12 @@ namespace Microsoft.ML.Runtime.Data
                 var nodeJ = ctx.CreateNode("ReduceMin", nameW, nameJ, ctx.GetNodeName("ReduceMin"), "");
                 nodeJ.AddAttribute("axes", axes);
 
-                // Do reduce mean
+                // Merge all embedding vectors using element-wise mean per embedding coordinate
                 var nameK = ctx.AddIntermediateVariable(null, "MeanWeights", true);
                 var nodeK = ctx.CreateNode("ReduceMean", nameW, nameK, ctx.GetNodeName("ReduceMean"), "");
                 nodeK.AddAttribute("axes", axes);
 
-                // Do reduce max
+                // Merge all embedding vectors using element-wise max per embedding coordinate
                 var nameL = ctx.AddIntermediateVariable(null, "MaxWeights", true);
                 var nodeL = ctx.CreateNode("ReduceMax", nameW, nameL, ctx.GetNodeName("ReduceMax"), "");
                 nodeL.AddAttribute("axes", axes);
