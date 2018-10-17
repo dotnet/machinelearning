@@ -376,7 +376,7 @@ namespace Microsoft.ML.Runtime.Data
                 //                              |                                                   |
                 //                             Y[n]                                                 |
                 //                              |                                                   |
-                //                              -------->(indices) Gather (axis= 1)(data) <---------
+                //                              '------->(indices) Gather (axis= 1)(data) <---------'
                 //                                                      |
                 //                                                   W[n, j]
                 //                                                /     |      \
