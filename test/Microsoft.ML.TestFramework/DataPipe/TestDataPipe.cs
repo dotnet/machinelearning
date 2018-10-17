@@ -333,7 +333,7 @@ namespace Microsoft.ML.Runtime.RunTests
             "pneumonia"
         };
 
-        [Fact(Skip = "")]
+        [Fact(Skip = "Possible bug in HashTransform, needs some more investigation.")]
         public void SavePipeTermDictionary()
         {
             string dataFile = DeleteOutputPath("SavePipe", "TermDictionary-SampleText.txt");
