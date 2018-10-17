@@ -193,7 +193,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             string output)
         {
             Contracts.CheckValue(env, nameof(env));
-            _host = env.Register("SsaSpikeEstimator");
+            _host = env.Register(nameof(SsaSpikeEstimator));
 
             _host.CheckNonEmpty(input, nameof(input));
             _host.CheckNonEmpty(output, nameof(output));

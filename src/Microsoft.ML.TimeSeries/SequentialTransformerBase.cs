@@ -53,9 +53,9 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             /// <summary>
             /// Counts the number of rows observed by the transform so far.
             /// </summary>
-            protected int RowCounter { get; private set; }
+            protected long RowCounter { get; private set; }
 
-            protected int IncrementRowCounter()
+            protected long IncrementRowCounter()
             {
                 RowCounter++;
                 return RowCounter;

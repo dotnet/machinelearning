@@ -2,13 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.RunTests;
-using System;
-using System.Collections.Generic;
 using Microsoft.ML.Runtime.TimeSeriesProcessing;
+using System.Collections.Generic;
 using Xunit;
 using Xunit.Abstractions;
 

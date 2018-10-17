@@ -202,7 +202,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             string output)
         {
             Contracts.CheckValue(env, nameof(env));
-            _host = env.Register("IidChangePointEstimator");
+            _host = env.Register(nameof(IidChangePointEstimator));
 
             _host.CheckNonEmpty(input, nameof(input));
             _host.CheckNonEmpty(output, nameof(output));
