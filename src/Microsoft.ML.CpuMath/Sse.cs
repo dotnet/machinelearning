@@ -30,7 +30,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             return q;
         }
 
-        public static void MatTimesSrc(bool tran, bool add, AlignedArray mat, AlignedArray src, AlignedArray dst, int crun)
+        public static void MatTimesSrc(bool tran, AlignedArray mat, AlignedArray src, AlignedArray dst, int crun)
         {
             Contracts.Assert(Compat(mat));
             Contracts.Assert(Compat(src));
@@ -46,18 +46,18 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                     if (!tran)
                     {
                         Contracts.Assert(0 <= crun && crun <= dst.Size);
-                        Thunk.MatMulA(add, Ptr(mat, pmat), Ptr(src, psrc), Ptr(dst, pdst), crun, src.Size);
+                        Thunk.MatMul(Ptr(mat, pmat), Ptr(src, psrc), Ptr(dst, pdst), crun, src.Size);
                     }
                     else
                     {
                         Contracts.Assert(0 <= crun && crun <= src.Size);
-                        Thunk.MatMulTranA(add, Ptr(mat, pmat), Ptr(src, psrc), Ptr(dst, pdst), dst.Size, crun);
+                        Thunk.MatMulTran(Ptr(mat, pmat), Ptr(src, psrc), Ptr(dst, pdst), dst.Size, crun);
                     }
                 }
             }
         }
 
-        public static void MatTimesSrc(bool tran, bool add, AlignedArray mat, int[] rgposSrc, AlignedArray srcValues,
+        public static void MatTimesSrc(AlignedArray mat, int[] rgposSrc, AlignedArray srcValues,
             int posMin, int iposMin, int iposLim, AlignedArray dst, int crun)
         {
             Contracts.Assert(Compat(mat));
@@ -69,8 +69,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
             if (iposMin >= iposLim)
             {
-                if (!add)
-                    dst.ZeroItems();
+                dst.ZeroItems();
                 return;
             }
             Contracts.AssertNonEmpty(rgposSrc);
@@ -81,16 +80,8 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                 fixed (float* psrc = &srcValues.Items[0])
                 fixed (int* ppossrc = &rgposSrc[0])
                 {
-                    if (!tran)
-                    {
-                        Contracts.Assert(0 <= crun && crun <= dst.Size);
-                        Thunk.MatMulPA(add, Ptr(mat, pmat), ppossrc, Ptr(srcValues, psrc), posMin, iposMin, iposLim, Ptr(dst, pdst), crun, srcValues.Size);
-                    }
-                    else
-                    {
-                        Contracts.Assert(0 <= crun && crun <= srcValues.Size);
-                        Thunk.MatMulTranPA(add, Ptr(mat, pmat), ppossrc, Ptr(srcValues, psrc), posMin, iposMin, iposLim, Ptr(dst, pdst), dst.Size);
-                    }
+                    Contracts.Assert(0 <= crun && crun <= dst.Size);
+                    Thunk.MatMulPA(Ptr(mat, pmat), ppossrc, Ptr(srcValues, psrc), posMin, iposMin, iposLim, Ptr(dst, pdst), crun, srcValues.Size);
                 }
             }
         }

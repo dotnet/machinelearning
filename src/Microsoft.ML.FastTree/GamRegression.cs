@@ -83,7 +83,7 @@ namespace Microsoft.ML.Runtime.FastTree
             PruningTest = new TestHistory(validTest, PruningLossIndex);
         }
 
-        protected override RegressionPredictionTransformer<RegressionGamPredictor> MakeTransformer(RegressionGamPredictor model, ISchema trainSchema)
+        protected override RegressionPredictionTransformer<RegressionGamPredictor> MakeTransformer(RegressionGamPredictor model, Schema trainSchema)
             => new RegressionPredictionTransformer<RegressionGamPredictor>(Host, model, trainSchema, FeatureColumn.Name);
 
         protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema)

@@ -33,13 +33,13 @@ namespace Microsoft.ML.Runtime.Data
 
         private readonly IDataView[] _sources;
         private readonly int[] _counts;
-        private readonly ISchema _schema;
+        private readonly Schema _schema;
         private readonly IHost _host;
         private readonly bool _canShuffle;
 
         public bool CanShuffle { get { return _canShuffle; } }
 
-        public ISchema Schema { get { return _schema; } }
+        public Schema Schema { get { return _schema; } }
 
         // REVIEW: AppendRowsDataView now only checks schema consistency up to column names and types.
         // A future task will be to ensure that the sources are consistent on the metadata level.
@@ -54,7 +54,7 @@ namespace Microsoft.ML.Runtime.Data
         /// <param name="schema">The schema for the result. If this is null, the first source's schema will be used.</param>
         /// <param name="sources">The sources to be appended.</param>
         /// <returns>The resulting IDataView.</returns>
-        public static IDataView Create(IHostEnvironment env, ISchema schema, params IDataView[] sources)
+        public static IDataView Create(IHostEnvironment env, Schema schema, params IDataView[] sources)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(sources, nameof(sources));
@@ -66,7 +66,7 @@ namespace Microsoft.ML.Runtime.Data
             return new AppendRowsDataView(env, schema, sources);
         }
 
-        private AppendRowsDataView(IHostEnvironment env, ISchema schema, IDataView[] sources)
+        private AppendRowsDataView(IHostEnvironment env, Schema schema, IDataView[] sources)
         {
             Contracts.CheckValue(env, nameof(env));
             _host = env.Register(RegistrationName);
@@ -115,8 +115,9 @@ namespace Microsoft.ML.Runtime.Data
 
             for (int c = 0; c < colCount; c++)
             {
-                string name = _schema.GetColumnName(c);
-                ColumnType type = _schema.GetColumnType(c);
+                string name = _schema[c].Name;
+                ColumnType type = _schema[c].Type;
+
                 for (int i = startingSchemaIndex; i < _sources.Length; i++)
                 {
                     ISchema schema = _sources[i].Schema;
@@ -165,7 +166,7 @@ namespace Microsoft.ML.Runtime.Data
 
             public override long Batch => 0;
 
-            public ISchema Schema { get; }
+            public Schema Schema { get; }
 
             public CursorBase(AppendRowsDataView parent)
                 : base(parent._host)
@@ -178,7 +179,7 @@ namespace Microsoft.ML.Runtime.Data
 
             protected Delegate CreateGetter(int col)
             {
-                ColumnType colType = Schema.GetColumnType(col);
+                ColumnType colType = Schema[col].Type;
                 Ch.AssertValue(colType);
                 Func<int, Delegate> creator = CreateTypedGetter<int>;
                 var typedCreator = creator.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(colType.RawType);

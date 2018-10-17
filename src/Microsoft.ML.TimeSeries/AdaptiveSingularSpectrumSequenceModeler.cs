@@ -1130,10 +1130,10 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             _x[_windowSize - 1] = input;
 
             // Computing y: Eq. (11) in https://hal-institut-mines-telecom.archives-ouvertes.fr/hal-00479772/file/twocolumns.pdf
-            CpuAligenedMathUtils<CpuAlignedMatrixRow>.MatTimesSrc(false, _wTrans, _x, _y);
+            CpuAligenedMathUtils<CpuAlignedMatrixRow>.MatTimesSrc(_wTrans, _x, _y);
 
             // Updating the state vector
-            CpuAligenedMathUtils<CpuAlignedMatrixRow>.MatTranTimesSrc(false, _wTrans, _y, _xSmooth);
+            CpuAligenedMathUtils<CpuAlignedMatrixRow>.MatTranTimesSrc(_wTrans, _y, _xSmooth);
 
             _nextPrediction = _autoregressionNoiseMean + _observationNoiseMean;
             for (i = 0; i < _windowSize - 2; ++i)
@@ -1337,7 +1337,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
                 nu += _y[i] * _y[i];
             }
 
-            CpuAligenedMathUtils<CpuAlignedMatrixRow>.MatTranTimesSrc(false, _wTrans, _y, _xSmooth);
+            CpuAligenedMathUtils<CpuAlignedMatrixRow>.MatTranTimesSrc(_wTrans, _y, _xSmooth);
             for (i = 0; i < _windowSize - 1; ++i)
                 _alpha[i] = _xSmooth[i] / (1 - nu);
 
@@ -1382,8 +1382,8 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
                     _x[i - originalSeriesLength + _windowSize] = dataArray[i];
             }
 
-            CpuAligenedMathUtils<CpuAlignedMatrixRow>.MatTimesSrc(false, _wTrans, _x, _y);
-            CpuAligenedMathUtils<CpuAlignedMatrixRow>.MatTranTimesSrc(false, _wTrans, _y, _xSmooth);
+            CpuAligenedMathUtils<CpuAlignedMatrixRow>.MatTimesSrc(_wTrans, _x, _y);
+            CpuAligenedMathUtils<CpuAlignedMatrixRow>.MatTranTimesSrc(_wTrans, _y, _xSmooth);
 
             for (i = 1; i < _windowSize; ++i)
             {

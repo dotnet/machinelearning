@@ -177,10 +177,10 @@ namespace Microsoft.ML.Runtime.Data
             private readonly SchemaBindablePredictorWrapperBase _parent;
 
             public RoleMappedSchema InputRoleMappedSchema { get; }
-            public ISchema Schema { get; }
+            public Schema Schema { get; }
             public ISchemaBindableMapper Bindable => _parent;
 
-            public SingleValueRowMapper(RoleMappedSchema schema, SchemaBindablePredictorWrapperBase parent, ISchema outputSchema)
+            public SingleValueRowMapper(RoleMappedSchema schema, SchemaBindablePredictorWrapperBase parent, Schema outputSchema)
             {
                 Contracts.AssertValue(schema);
                 Contracts.AssertValue(parent);
@@ -207,7 +207,7 @@ namespace Microsoft.ML.Runtime.Data
                 yield return RoleMappedSchema.ColumnRole.Feature.Bind(InputRoleMappedSchema.Feature.Name);
             }
 
-            public ISchema InputSchema => InputRoleMappedSchema.Schema;
+            public Schema InputSchema => InputRoleMappedSchema.Schema;
 
             public IRow GetRow(IRow input, Func<int, bool> predicate, out Action disposer)
             {
@@ -305,7 +305,7 @@ namespace Microsoft.ML.Runtime.Data
 
         protected override ISchemaBoundMapper BindCore(IChannel ch, RoleMappedSchema schema)
         {
-            var outputSchema = new ScoreMapperSchema(ScoreType, _scoreColumnKind);
+            var outputSchema = Schema.Create(new ScoreMapperSchema(ScoreType, _scoreColumnKind));
             return new SingleValueRowMapper(schema, this, outputSchema);
         }
 
@@ -454,12 +454,11 @@ namespace Microsoft.ML.Runtime.Data
         private sealed class CalibratedRowMapper : ISchemaBoundRowMapper
         {
             private readonly SchemaBindableBinaryPredictorWrapper _parent;
-            private readonly ScoreMapperSchemaBase _outputSchema;
 
             public RoleMappedSchema InputRoleMappedSchema { get; }
-            public ISchema InputSchema => InputRoleMappedSchema.Schema;
+            public Schema InputSchema => InputRoleMappedSchema.Schema;
 
-            public ISchema Schema => _outputSchema;
+            public Schema Schema { get; }
             public ISchemaBindableMapper Bindable => _parent;
 
             public CalibratedRowMapper(RoleMappedSchema schema, SchemaBindableBinaryPredictorWrapper parent)
@@ -471,7 +470,7 @@ namespace Microsoft.ML.Runtime.Data
 
                 _parent = parent;
                 InputRoleMappedSchema = schema;
-                _outputSchema = new BinaryClassifierSchema();
+                Schema = Schema.Create(new BinaryClassifierSchema());
 
                 if (schema.Feature != null)
                 {
@@ -505,7 +504,7 @@ namespace Microsoft.ML.Runtime.Data
                 if (active[0] || active[1])
                 {
                     // Put all captured locals at this scope.
-                    var featureGetter = InputRoleMappedSchema.Feature!= null ? input.GetGetter<VBuffer<Float>>(InputRoleMappedSchema.Feature.Index) : null;
+                    var featureGetter = InputRoleMappedSchema.Feature != null ? input.GetGetter<VBuffer<Float>>(InputRoleMappedSchema.Feature.Index) : null;
                     Float prob = 0;
                     Float score = 0;
                     long cachedPosition = -1;
@@ -640,7 +639,7 @@ namespace Microsoft.ML.Runtime.Data
 
         protected override ISchemaBoundMapper BindCore(IChannel ch, RoleMappedSchema schema)
         {
-            return new SingleValueRowMapper(schema, this, new Schema(ScoreType, _quantiles));
+            return new SingleValueRowMapper(schema, this, Schema.Create(new SchemaImpl(ScoreType, _quantiles)));
         }
 
         protected override Delegate GetPredictionGetter(IRow input, int colSrc)
@@ -673,12 +672,12 @@ namespace Microsoft.ML.Runtime.Data
             return del;
         }
 
-        private sealed class Schema : ScoreMapperSchemaBase
+        private sealed class SchemaImpl : ScoreMapperSchemaBase
         {
             private readonly string[] _slotNames;
             private readonly MetadataUtils.MetadataGetter<VBuffer<ReadOnlyMemory<char>>> _getSlotNames;
 
-            public Schema(ColumnType scoreType, Double[] quantiles)
+            public SchemaImpl(ColumnType scoreType, Double[] quantiles)
                 : base(scoreType, MetadataUtils.Const.ScoreColumnKind.QuantileRegression)
             {
                 Contracts.Assert(Utils.Size(quantiles) > 0);
