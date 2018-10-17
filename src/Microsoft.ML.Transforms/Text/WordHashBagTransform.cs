@@ -113,9 +113,7 @@ namespace Microsoft.ML.Runtime.Data
                 var curTmpNames = new string[srcCount];
                 Contracts.Assert(uniqueSourceNames[iinfo].Length == args.Column[iinfo].Source.Length);
                 for (int isrc = 0; isrc < srcCount; isrc++)
-                {
-                    tokenizeColumns[iinfo] = new DelimitedTokenizeTransform.ColumnInfo(args.Column[iinfo].Source[isrc], curTmpNames[isrc] = uniqueSourceNames[iinfo][isrc], new[] { ' ' });
-                }
+                    tokenizeColumns[iinfo] = new DelimitedTokenizeTransform.ColumnInfo(args.Column[iinfo].Source[isrc], curTmpNames[isrc] = uniqueSourceNames[iinfo][isrc]);
 
                 tmpColNames.AddRange(curTmpNames);
                 extractorCols[iinfo] =

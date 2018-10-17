@@ -11,6 +11,7 @@ using Microsoft.ML.Transforms;
 using System.IO;
 using Xunit;
 using Xunit.Abstractions;
+using Microsoft.ML.Transforms.Text;
 
 namespace Microsoft.ML.Tests.Transformers
 {
@@ -70,7 +71,7 @@ namespace Microsoft.ML.Tests.Transformers
                     text: ctx.LoadFloat(1)), hasHeader: true)
                 .Read(new MultiFileSource(sentimentDataPath));
 
-            var est = new WordTokenizer(Env, "text", "words")
+            var est = new DelimitedTokenizeEstimator(Env, "text", "words")
                 .Append(new CharacterTokenizer(Env, "text", "chars"))
                 .Append(new KeyToValueEstimator(Env, "chars"));
             TestEstimatorCore(est, data.AsDynamic, invalidInput: invalidData.AsDynamic);
@@ -99,7 +100,7 @@ namespace Microsoft.ML.Tests.Transformers
                     text: ctx.LoadText(1)), hasHeader: true)
                 .Read(new MultiFileSource(dataPath)).AsDynamic;
 
-            var est = new WordTokenizer(Env, "text", "words", separators: new[] { ' ', '?', '!', '.', ','});
+            var est = new DelimitedTokenizeEstimator(Env, "text", "words", separators: new[] { ' ', '?', '!', '.', ','});
             var outdata = TakeFilter.Create(Env, est.Fit(data).Transform(data), 4);
             var savedData = new ChooseColumnsTransform(Env, outdata, "words");
 
@@ -142,7 +143,7 @@ namespace Microsoft.ML.Tests.Transformers
                 .Read(new MultiFileSource(sentimentDataPath));
 
             var est = new TextNormalizer(Env,"text")
-                .Append(new WordTokenizer(Env, "text", "words"))
+                .Append(new DelimitedTokenizeEstimator(Env, "text", "words"))
                 .Append(new StopwordRemover(Env, "words", "words_without_stopwords"));
             TestEstimatorCore(est, data.AsDynamic, invalidInput: invalidData.AsDynamic);
 
@@ -211,7 +212,7 @@ namespace Microsoft.ML.Tests.Transformers
                     text: ctx.LoadFloat(1)), hasHeader: true)
                 .Read(new MultiFileSource(sentimentDataPath));
 
-            var est = new WordTokenizer(Env, "text", "text")
+            var est = new DelimitedTokenizeEstimator(Env, "text", "text")
                 .Append(new TermEstimator(Env, "text", "terms"))
                 .Append(new NgramEstimator(Env, "terms", "ngrams"))
                 .Append(new NgramHashEstimator(Env, "terms", "ngramshash"));

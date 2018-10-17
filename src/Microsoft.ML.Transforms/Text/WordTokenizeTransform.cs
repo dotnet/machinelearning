@@ -122,13 +122,12 @@ namespace Microsoft.ML.Transforms.Text
             /// </summary>
             /// <param name="input">Name of input column.</param>
             /// <param name="output">Name of output column.</param>
-            /// <param name="separators">Casing text using the rules of the invariant culture.</param>
-            public ColumnInfo(string input, string output, char[] separators)
+            /// <param name="separators">Casing text using the rules of the invariant culture. If not specified, space will be used as separator.</param>
+            public ColumnInfo(string input, string output, char[] separators = null)
             {
-                Contracts.CheckNonEmpty(separators, nameof(separators));
                 Input = input;
                 Output = output;
-                Separators = separators;
+                Separators = separators ?? new[] { ' ' };
             }
         }
         public IReadOnlyCollection<ColumnInfo> Columns => _columns.AsReadOnly();
@@ -437,6 +436,29 @@ namespace Microsoft.ML.Transforms.Text
 
         internal const string ExpectedColumnType = "Expected Text item type";
 
+        /// <summary>
+        /// Tokenize incoming text in <paramref name="inputColumn"/> and output the tokens as <paramref name="outputColumn"/>.
+        /// </summary>
+        /// <param name="env">The environment.</param>
+        /// <param name="inputColumn">The column containing text to tokenize.</param>
+        /// <param name="outputColumn">The column containing output tokens. Null means <paramref name="inputColumn"/> is replaced.</param>
+        /// <param name="separators">The separators to use (uses space character by default).</param>
+        public DelimitedTokenizeEstimator(IHostEnvironment env, string inputColumn, string outputColumn = null, char[] separators = null)
+            : this(env, new[] { (inputColumn, outputColumn ?? inputColumn) }, separators)
+        {
+        }
+
+        /// <summary>
+        /// Tokenize incoming text in input columns and output the tokens as output columns.
+        /// </summary>
+        /// <param name="env">The environment.</param>
+        /// <param name="columns">Pairs of columns to run the tokenization on.</param>
+        /// <param name="separators">The separators to use (uses space character by default).</param>
+        public DelimitedTokenizeEstimator(IHostEnvironment env, (string input, string output)[] columns, char[] separators = null)
+            : this(env, columns.Select(x => new DelimitedTokenizeTransform.ColumnInfo(x.input, x.output, separators)).ToArray())
+        {
+        }
+
         public DelimitedTokenizeEstimator(IHostEnvironment env, params DelimitedTokenizeTransform.ColumnInfo[] columns)
           : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(DelimitedTokenizeEstimator)), new DelimitedTokenizeTransform(env, columns))
         {
@@ -452,7 +474,7 @@ namespace Microsoft.ML.Transforms.Text
                     throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.Input);
                 if (!IsColumnTypeValid(col.ItemType))
                     throw Host.ExceptParam(nameof(inputSchema), ExpectedColumnType);
-                result[colInfo.Output] = new SchemaShape.Column(colInfo.Output,  SchemaShape.Column.VectorKind.VariableVector, col.ItemType, false);
+                result[colInfo.Output] = new SchemaShape.Column(colInfo.Output, SchemaShape.Column.VectorKind.VariableVector, col.ItemType, false);
             }
 
             return new SchemaShape(result.Values);

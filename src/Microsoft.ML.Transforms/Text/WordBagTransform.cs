@@ -143,7 +143,7 @@ namespace Microsoft.ML.Runtime.Data
                 h.CheckUserArg(Utils.Size(column.Source) > 0, nameof(column.Source));
                 h.CheckUserArg(column.Source.All(src => !string.IsNullOrWhiteSpace(src)), nameof(column.Source));
 
-                tokenizeColumns[iinfo] = new DelimitedTokenizeTransform.ColumnInfo(column.Source.Length > 1 ? column.Name : column.Source[0], column.Name, new[] { ' ' });
+                tokenizeColumns[iinfo] = new DelimitedTokenizeTransform.ColumnInfo(column.Source.Length > 1 ? column.Name : column.Source[0], column.Name);
 
                 extractorArgs.Column[iinfo] =
                     new NgramExtractorTransform.Column()

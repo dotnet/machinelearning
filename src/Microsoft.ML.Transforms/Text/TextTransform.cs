@@ -350,7 +350,7 @@ namespace Microsoft.ML.Runtime.Data
                 wordTokCols = new string[textCols.Length];
                 for (int i = 0; i < textCols.Length; i++)
                 {
-                    var col = new DelimitedTokenizeTransform.ColumnInfo(textCols[i], GenerateColumnName(view.Schema, textCols[i], "WordTokenizer"), new[] { ' ' });
+                    var col = new DelimitedTokenizeTransform.ColumnInfo(textCols[i], GenerateColumnName(view.Schema, textCols[i], "WordTokenizer"));
                     xfCols[i] = col;
                     wordTokCols[i] = col.Output;
                     tempCols.Add(col.Output);

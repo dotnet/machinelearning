@@ -34,8 +34,8 @@ namespace Microsoft.ML.Tests.Transformers
 
             var dataView = ComponentCreation.CreateDataView(Env, data);
             var pipe = new DelimitedTokenizeEstimator(Env, new[]{
-                    new DelimitedTokenizeTransform.ColumnInfo("A", "TokenizeA", new []{' '}),
-                    new DelimitedTokenizeTransform.ColumnInfo("B", "TokenizeB", new []{' '}),
+                    new DelimitedTokenizeTransform.ColumnInfo("A", "TokenizeA"),
+                    new DelimitedTokenizeTransform.ColumnInfo("B", "TokenizeB"),
                 });
 
             TestEstimatorCore(pipe, dataView);
@@ -55,8 +55,8 @@ namespace Microsoft.ML.Tests.Transformers
 
             var dataView = ComponentCreation.CreateDataView(Env, data);
             var pipe = new DelimitedTokenizeEstimator(Env, new[]{
-                    new DelimitedTokenizeTransform.ColumnInfo("A", "TokenizeA", new []{' '}),
-                    new DelimitedTokenizeTransform.ColumnInfo("B", "TokenizeB", new []{' '}),
+                    new DelimitedTokenizeTransform.ColumnInfo("A", "TokenizeA"),
+                    new DelimitedTokenizeTransform.ColumnInfo("B", "TokenizeB"),
                 });
             var result = pipe.Fit(dataView).Transform(dataView);
             var resultRoles = new RoleMappedData(result);

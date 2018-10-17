@@ -6,7 +6,6 @@ using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.TextAnalytics;
-using Microsoft.ML.Transforms.Text;
 using System;
 using System.Linq;
 using static Microsoft.ML.Runtime.TextAnalytics.StopWordsRemoverTransform;
@@ -14,53 +13,6 @@ using static Microsoft.ML.Runtime.TextAnalytics.TextNormalizerTransform;
 
 namespace Microsoft.ML.Transforms
 {
-    /// <summary>
-    /// Word tokenizer splits text into tokens using the delimiter.
-    /// For each text input, the output column is a variable vector of text.
-    /// </summary>
-    public sealed class WordTokenizer : TrivialWrapperEstimator
-    {
-        /// <summary>
-        /// Tokenize incoming text in <paramref name="inputColumn"/> and output the tokens as <paramref name="outputColumn"/>.
-        /// </summary>
-        /// <param name="env">The environment.</param>
-        /// <param name="inputColumn">The column containing text to tokenize.</param>
-        /// <param name="outputColumn">The column containing output tokens. Null means <paramref name="inputColumn"/> is replaced.</param>
-        /// <param name="separators">The separators to use (uses space character by default).</param>
-        public WordTokenizer(IHostEnvironment env, string inputColumn, string outputColumn = null, char[] separators = null)
-            : this(env, new[] { (inputColumn, outputColumn ?? inputColumn) }, separators)
-        {
-        }
-
-        /// <summary>
-        /// Tokenize incoming text in input columns and output the tokens as output columns.
-        /// </summary>
-        /// <param name="env">The environment.</param>
-        /// <param name="columns">Pairs of columns to run the tokenization on.</param>
-        /// <param name="separators">The separators to use (uses space character by default).</param>
-        public WordTokenizer(IHostEnvironment env, (string input, string output)[] columns, char[] separators = null)
-            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(WordTokenizer)), MakeTransformer(env, columns, separators))
-        {
-        }
-
-        private static TransformWrapper MakeTransformer(IHostEnvironment env, (string input, string output)[] columns, char[] separators)
-        {
-            Contracts.AssertValue(env);
-            env.CheckNonEmpty(columns, nameof(columns));
-            foreach (var (input, output) in columns)
-            {
-                env.CheckValue(input, nameof(input));
-                env.CheckValue(output, nameof(input));
-            }
-
-            // Create a valid instance of data.
-            var schema = new Schema(columns.Select(x => new Schema.Column(x.input, TextType.Instance, null)));
-            var emptyData = new EmptyDataView(env, schema);
-            var est = new DelimitedTokenizeEstimator(env, columns.Select(x => new DelimitedTokenizeTransform.ColumnInfo(x.input, x.output, separators)).ToArray());
-            return new TransformWrapper(env, est.Fit(emptyData).Transform(emptyData));
-        }
-    }
-
     /// <summary>
     /// Character tokenizer splits text into sequences of characters using a sliding window.
     /// </summary>
