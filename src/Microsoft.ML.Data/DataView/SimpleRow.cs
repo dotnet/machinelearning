@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Microsoft.ML.Runtime.Internal.Utilities;
 
 namespace Microsoft.ML.Runtime.Data
@@ -18,17 +19,17 @@ namespace Microsoft.ML.Runtime.Data
     /// </summary>
     public sealed class SimpleRow : IRow
     {
-        private readonly ISchema _schema;
+        private readonly Schema _schema;
         private readonly IRow _input;
         private readonly Delegate[] _getters;
 
-        public ISchema Schema { get { return _schema; } }
+        public Schema Schema { get { return _schema; } }
 
         public long Position { get { return _input.Position; } }
 
         public long Batch { get { return _input.Batch; } }
 
-        public SimpleRow(ISchema schema, IRow input, Delegate[] getters)
+        public SimpleRow(Schema schema, IRow input, Delegate[] getters)
         {
             Contracts.CheckValue(schema, nameof(schema));
             Contracts.CheckValue(input, nameof(input));
@@ -195,4 +196,17 @@ namespace Microsoft.ML.Runtime.Data
                 throw Ectx.ExceptGetMetadata();
         }
     }
+
+    public static class SimpleSchemaUtils
+    {
+        public static Schema Create(IExceptionContext ectx, params KeyValuePair<string, ColumnType>[] columns)
+        {
+            Contracts.CheckValueOrNull(ectx);
+            ectx.CheckValue(columns, nameof(columns));
+
+            var cols = columns.Select(kvp => new Schema.Column(kvp.Key, kvp.Value, null));
+            return new Schema(cols);
+        }
+    }
+
 }

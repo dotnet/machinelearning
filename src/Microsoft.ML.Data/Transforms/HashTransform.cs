@@ -320,7 +320,7 @@ namespace Microsoft.ML.Transforms
             return ComposeGetterVec(input, iinfo, srcCol, srcType);
         }
 
-        protected override IRowMapper MakeRowMapper(ISchema schema) => new Mapper(this, schema);
+        protected override IRowMapper MakeRowMapper(ISchema schema) => new Mapper(this, Schema.Create(schema));
 
         // Factory method for SignatureLoadModel.
         private static HashTransformer Create(IHostEnvironment env, ModelLoadContext ctx)
@@ -997,7 +997,7 @@ namespace Microsoft.ML.Transforms
             private readonly ColumnType[] _types;
             private readonly HashTransformer _parent;
 
-            public Mapper(HashTransformer parent, ISchema inputSchema)
+            public Mapper(HashTransformer parent, Schema inputSchema)
                 : base(parent.Host.Register(nameof(Mapper)), parent, inputSchema)
             {
                 _parent = parent;
@@ -1006,43 +1006,29 @@ namespace Microsoft.ML.Transforms
                     _types[i] = _parent.GetOutputType(inputSchema, _parent._columns[i]);
             }
 
-            public override RowMapperColumnInfo[] GetOutputColumns()
+            public override Schema.Column[] GetOutputColumns()
             {
-                var result = new RowMapperColumnInfo[_parent.ColumnPairs.Length];
+                var result = new Schema.Column[_parent.ColumnPairs.Length];
                 for (int i = 0; i < _parent.ColumnPairs.Length; i++)
                 {
                     InputSchema.TryGetColumnIndex(_parent.ColumnPairs[i].input, out int colIndex);
-                    var colMetaInfo = new ColumnMetadataInfo(_parent.ColumnPairs[i].output);
+                    var meta = new Schema.Metadata.Builder();
 
-                    foreach (var type in InputSchema.GetMetadataTypes(colIndex).Where(x => x.Key == MetadataUtils.Kinds.SlotNames))
-                        Utils.MarshalInvoke(AddMetaGetter<int>, type.Value.RawType, colMetaInfo, InputSchema, type.Key, type.Value, colIndex);
+                    meta.Add(InputSchema[colIndex].Metadata, name => name == MetadataUtils.Kinds.SlotNames);
+
                     if (_parent._kvTypes != null && _parent._kvTypes[i] != null)
-                        AddMetaKeyValues(i, colMetaInfo);
-                    result[i] = new RowMapperColumnInfo(_parent.ColumnPairs[i].output, _types[i], colMetaInfo);
+                        AddMetaKeyValues(i, meta);
+                    result[i] = new Schema.Column(_parent.ColumnPairs[i].output, _types[i], meta.GetMetadata());
                 }
                 return result;
             }
-            private void AddMetaKeyValues(int i, ColumnMetadataInfo colMetaInfo)
+            private void AddMetaKeyValues(int i, Schema.Metadata.Builder builder)
             {
-                MetadataUtils.MetadataGetter<VBuffer<ReadOnlyMemory<char>>> getter = (int col, ref VBuffer<ReadOnlyMemory<char>> dst) =>
+                ValueGetter<VBuffer<ReadOnlyMemory<char>>> getter = (ref VBuffer<ReadOnlyMemory<char>> dst) =>
                 {
                     _parent._keyValues[i].CopyTo(ref dst);
                 };
-                var info = new MetadataInfo<VBuffer<ReadOnlyMemory<char>>>(_parent._kvTypes[i], getter);
-                colMetaInfo.Add(MetadataUtils.Kinds.KeyValues, info);
-            }
-
-            private int AddMetaGetter<T>(ColumnMetadataInfo colMetaInfo, ISchema schema, string kind, ColumnType ct, int originalCol)
-            {
-                MetadataUtils.MetadataGetter<T> getter = (int col, ref T dst) =>
-                {
-                    // We don't care about 'col': this getter is specialized for a column 'originalCol',
-                    // and 'col' in this case is the 'metadata kind index', not the column index.
-                    schema.GetMetadata<T>(kind, originalCol, ref dst);
-                };
-                var info = new MetadataInfo<T>(ct, getter);
-                colMetaInfo.Add(kind, info);
-                return 0;
+                builder.AddKeyValues(_parent._kvTypes[i].VectorSize, _parent._kvTypes[i].ItemType.AsPrimitive, getter);
             }
 
             protected override Delegate MakeGetter(IRow input, int iinfo, out Action disposer) => _parent.GetGetterCore(input, iinfo, out disposer);

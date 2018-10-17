@@ -29,7 +29,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             _loaderFactory = loaderFactory;
         }
 
-        public ISchema GetOutputSchema()
+        public Schema GetOutputSchema()
         {
             var emptyData = Read(new MultiFileSource(null));
             return emptyData.Schema;

@@ -28,6 +28,8 @@
     <Compile Remove="CpuMathUtils.netcoreapp.cs" />
     <Compile Remove="SseIntrinsics.cs" />
     <Compile Remove="AvxIntrinsics.cs" />
+
+    <PackageReference Include="System.Memory" Version="$(SystemMemoryVersion)" />
   </ItemGroup>
 
 </Project>

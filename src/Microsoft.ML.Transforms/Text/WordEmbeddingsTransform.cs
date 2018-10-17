@@ -296,7 +296,7 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         protected override IRowMapper MakeRowMapper(ISchema schema)
-           => new Mapper(this, schema);
+           => new Mapper(this, Schema.Create(schema));
 
         protected override void CheckInputColumn(ISchema inputSchema, int col, int srcCol)
         {
@@ -310,7 +310,7 @@ namespace Microsoft.ML.Runtime.Data
             private readonly WordEmbeddingsTransform _parent;
             private readonly VectorType _outputType;
 
-            public Mapper(WordEmbeddingsTransform parent, ISchema inputSchema)
+            public Mapper(WordEmbeddingsTransform parent, Schema inputSchema)
                 : base(parent.Host.Register(nameof(Mapper)), parent, inputSchema)
             {
                 Host.CheckValue(inputSchema, nameof(inputSchema));
@@ -324,8 +324,8 @@ namespace Microsoft.ML.Runtime.Data
                 _outputType = new VectorType(NumberType.R4, 3 * _parent._currentVocab.Dimension);
             }
 
-            public override RowMapperColumnInfo[] GetOutputColumns()
-                => _parent.ColumnPairs.Select(x => new RowMapperColumnInfo(x.output, _outputType, null)).ToArray();
+            public override Schema.Column[] GetOutputColumns()
+                => _parent.ColumnPairs.Select(x => new Schema.Column(x.output, _outputType, null)).ToArray();
 
             protected override Delegate MakeGetter(IRow input, int iinfo, out Action disposer)
             {

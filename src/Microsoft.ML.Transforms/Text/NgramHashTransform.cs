@@ -602,7 +602,7 @@ namespace Microsoft.ML.Runtime.Data
             Host.Assert(icol >= 0);
         }
 
-        public override ISchema Schema { get { return _bindings; } }
+        public override Schema Schema => _bindings.AsSchema;
 
         protected override bool? ShouldUseParallelCursors(Func<int, bool> predicate)
         {
@@ -720,7 +720,7 @@ namespace Microsoft.ML.Runtime.Data
             private readonly bool[] _active;
             private readonly Delegate[] _getters;
 
-            public ISchema Schema { get { return _bindings; } }
+            public Schema Schema => _bindings.AsSchema;
 
             public RowCursor(NgramHashTransform parent, IRowCursor input, bool[] active, FinderDecorator decorator = null)
                 : base(parent.Host, input)
