@@ -16,7 +16,7 @@ namespace Microsoft.ML.StaticPipe
     /// <summary>
     /// Binary Classification trainer estimators.
     /// </summary>
-    public static partial class BinaryClassificationTrainers
+    public static class LbfgsBinaryClassificationExtensions
     {
         /// <summary>
         ///  Predict a target using a linear binary classification model trained with the <see cref="Microsoft.ML.Runtime.Learners.LogisticRegression"/> trainer.
@@ -70,7 +70,7 @@ namespace Microsoft.ML.StaticPipe
     /// <summary>
     /// Regression trainer estimators.
     /// </summary>
-    public static partial class RegressionTrainers
+    public static class LbfgsRegressionExtensions
     {
 
         /// <summary>
@@ -123,9 +123,9 @@ namespace Microsoft.ML.StaticPipe
     }
 
     /// <summary>
-    /// MultiClass Classification trainer estimators.
+    /// Multiclass Classification trainer estimators.
     /// </summary>
-    public static partial class MultiClassClassificationTrainers
+    public static class LbfgsMulticlassExtensions
     {
 
         /// <summary>

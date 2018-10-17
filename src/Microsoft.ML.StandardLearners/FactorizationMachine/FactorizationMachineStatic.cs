@@ -17,7 +17,7 @@ namespace Microsoft.ML.StaticPipe
     /// <summary>
     /// Extension methods and utilities for instantiating FFM trainer estimators inside statically typed pipelines.
     /// </summary>
-    public static class FactorizationMachineStatic
+    public static class FactorizationMachineExtensions
     {
         /// <summary>
         /// Predict a target using a field-aware factorization machine.

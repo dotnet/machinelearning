@@ -12,7 +12,7 @@ namespace Microsoft.ML
     /// <summary>
     /// Extension method to create <see cref="FieldAwareFactorizationMachineTrainer"/>
     /// </summary>
-    public static partial class BinaryClassificationTrainers
+    public static class FactorizationMachineExtensions
     {
         /// <summary>
         /// Predict a target using a field-aware factorization machine algorithm.

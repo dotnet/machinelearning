@@ -12,7 +12,7 @@ namespace Microsoft.ML
     /// <summary>
     /// Regression trainer estimators.
     /// </summary>
-    public static partial class RegressionTrainers
+    public static class LightGbmRegressionExtensions
     {
         /// <summary>
         /// Predict a target using a decision tree regression model trained with the <see cref="LightGbmRegressorTrainer"/>.
@@ -45,7 +45,7 @@ namespace Microsoft.ML
     /// <summary>
     /// Binary Classification trainer estimators.
     /// </summary>
-    public static partial class ClassificationTrainers
+    public static class LightGbmClassificationExtensions
     {
 
         /// <summary>

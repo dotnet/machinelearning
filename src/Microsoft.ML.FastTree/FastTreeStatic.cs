@@ -14,7 +14,7 @@ namespace Microsoft.ML.StaticPipe
     /// <summary>
     /// FastTree <see cref="TrainContextBase"/> extension methods.
     /// </summary>
-    public static partial class RegressionTrainers
+    public static class FastTreeRegressionExtensions
     {
         /// <summary>
         /// FastTree <see cref="RegressionContext"/> extension method.
@@ -60,7 +60,7 @@ namespace Microsoft.ML.StaticPipe
         }
     }
 
-    public static partial class BinaryClassificationTrainers
+    public static class FastTreeBinaryClassificationExtensions
     {
 
         /// <summary>
@@ -110,7 +110,7 @@ namespace Microsoft.ML.StaticPipe
         }
     }
 
-    public static partial class RankingTrainers
+    public static class FastTreeRankingExtensions
     {
 
         /// <summary>
@@ -157,15 +157,15 @@ namespace Microsoft.ML.StaticPipe
         }
     }
 
-        internal class FastTreeStaticsUtils
-        {
-            internal static void CheckUserValues(PipelineColumn label, Vector<float> features, Scalar<float> weights,
-            int numLeaves,
-            int numTrees,
-            int minDatapointsInLeafs,
-            double learningRate,
-            Delegate advancedSettings,
-            Delegate onFit)
+    internal class FastTreeStaticsUtils
+    {
+        internal static void CheckUserValues(PipelineColumn label, Vector<float> features, Scalar<float> weights,
+        int numLeaves,
+        int numTrees,
+        int minDatapointsInLeafs,
+        double learningRate,
+        Delegate advancedSettings,
+        Delegate onFit)
         {
             Contracts.CheckValue(label, nameof(label));
             Contracts.CheckValue(features, nameof(features));

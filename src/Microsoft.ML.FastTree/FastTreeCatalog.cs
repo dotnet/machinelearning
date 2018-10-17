@@ -5,8 +5,6 @@
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.FastTree;
-using Microsoft.ML.Runtime.Internal.Internallearn;
-using Microsoft.ML.StaticPipe.Runtime;
 using System;
 
 namespace Microsoft.ML
@@ -14,7 +12,7 @@ namespace Microsoft.ML
     /// <summary>
     /// FastTree <see cref="TrainContextBase"/> extension methods.
     /// </summary>
-    public static partial class RegressionTrainers
+    public static class FastTreeRegressionExtensions
     {
         /// <summary>
         /// Predict a target using a decision tree regression model trained with the <see cref="FastTreeRegressionTrainer"/>.
@@ -44,7 +42,7 @@ namespace Microsoft.ML
         }
     }
 
-    public static partial class BinaryClassificationTrainers
+    public static class FastTreeBinaryClassificationExtensions
     {
 
         /// <summary>
@@ -75,7 +73,7 @@ namespace Microsoft.ML
         }
     }
 
-    public static partial class RankingTrainers
+    public static class FastTreeRankingExtensions
     {
 
         /// <summary>

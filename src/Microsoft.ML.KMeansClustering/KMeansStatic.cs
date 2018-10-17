@@ -13,7 +13,7 @@ namespace Microsoft.ML.StaticPipe
     /// <summary>
     /// The trainer context extensions for the <see cref="KMeansPlusPlusTrainer"/>.
     /// </summary>
-    public static class ClusteringTrainers
+    public static class KMeansClusteringExtensions
     {
         /// <summary>
         /// KMeans <see cref="ClusteringContext"/> extension method.
