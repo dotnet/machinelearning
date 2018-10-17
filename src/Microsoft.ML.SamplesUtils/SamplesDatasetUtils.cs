@@ -43,5 +43,21 @@ namespace Microsoft.ML.SamplesUtils
 
             return data;
         }
+
+        public class SampleSentimentData
+        {
+            public bool Sentiment { get; set; }
+            public string SentimentText { get; set; }
+        }
+
+        public static IEnumerable<SampleSentimentData> GetSentimentData()
+        {
+            var data = new List<SampleSentimentData>();
+            data.Add(new SampleSentimentData { Sentiment = true, SentimentText = "Best game I've ever played." });
+            data.Add(new SampleSentimentData { Sentiment = false, SentimentText = "==RUDE== Dude" });
+            data.Add(new SampleSentimentData { Sentiment = true, SentimentText = "Until the next game, this is the best Xbox game!" });
+
+            return data;
+        }
     }
 }
