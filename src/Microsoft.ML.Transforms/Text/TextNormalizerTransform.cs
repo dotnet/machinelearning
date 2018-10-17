@@ -82,8 +82,7 @@ namespace Microsoft.ML.Transforms.Text
         {
             return new VersionInfo(
                 modelSignature: "TEXTNORM",
-                //verWrittenCur: 0x00010001, // Initial
-                verWrittenCur: 0x00010002, // Params for each column.
+                verWrittenCur: 0x00010001, // Initial
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
                 loaderSignature: LoaderSignature,
@@ -91,54 +90,26 @@ namespace Microsoft.ML.Transforms.Text
         }
 
         private const string RegistrationName = "TextNormalizer";
+        public IReadOnlyCollection<(string input, string output)> Columns => ColumnPairs.AsReadOnly();
 
-        public sealed class ColumnInfo
+        private readonly TextNormalizerEstimator.CaseNormalizationMode _textCase;
+        private readonly bool _keepDiacritics;
+        private readonly bool _keepPunctuations;
+        private readonly bool _keepNumbers;
+
+        public TextNormalizerTransform(IHostEnvironment env,
+            TextNormalizerEstimator.CaseNormalizationMode textCase = TextNormalizerEstimator.Defaults.TextCase,
+            bool keepDiacritics = TextNormalizerEstimator.Defaults.KeepDiacritics,
+            bool keepPunctuations = TextNormalizerEstimator.Defaults.KeepPunctuations,
+            bool keepNumbers = TextNormalizerEstimator.Defaults.KeepNumbers,
+            params (string input, string output)[] columns) :
+            base(Contracts.CheckRef(env, nameof(env)).Register(RegistrationName), columns)
         {
-            public readonly string Input;
-            public readonly string Output;
-            public readonly TextNormalizerEstimator.CaseNormalizationMode TextCase;
-            public readonly bool KeepDiacritics;
-            public readonly bool KeepPunctuations;
-            public readonly bool KeepNumbers;
+            _textCase = textCase;
+            _keepDiacritics = keepDiacritics;
+            _keepPunctuations = keepPunctuations;
+            _keepNumbers = keepNumbers;
 
-            /// <summary>
-            /// Describes how the transformer handles one column pair.
-            /// </summary>
-            /// <param name="input">Name of input column.</param>
-            /// <param name="output">Name of output column.</param>
-            /// <param name="textCase">Casing text using the rules of the invariant culture.</param>
-            /// <param name="keepDiacritics">Whether to keep diacritical marks or remove them.</param>
-            /// <param name="keepPunctuations">Whether to keep punctuation marks or remove them.</param>
-            /// <param name="keepNumbers">Whether to keep numbers or remove them.</param>
-            public ColumnInfo(string input, string output,
-                TextNormalizerEstimator.CaseNormalizationMode textCase = TextNormalizerEstimator.Defaults.TextCase,
-                bool keepDiacritics = TextNormalizerEstimator.Defaults.KeepDiacritics,
-                bool keepPunctuations = TextNormalizerEstimator.Defaults.KeepPunctuations,
-                bool keepNumbers = TextNormalizerEstimator.Defaults.KeepNumbers)
-            {
-
-                Input = input;
-                Output = output;
-                TextCase = textCase;
-                KeepDiacritics = keepDiacritics;
-                KeepPunctuations = keepPunctuations;
-                KeepNumbers = keepNumbers;
-            }
-        }
-
-        public IReadOnlyCollection<ColumnInfo> Columns => _columns.AsReadOnly();
-        private readonly ColumnInfo[] _columns;
-
-        private static (string input, string output)[] GetColumnPairs(ColumnInfo[] columns)
-        {
-            Contracts.CheckNonEmpty(columns, nameof(columns));
-            return columns.Select(x => (x.Input, x.Output)).ToArray();
-        }
-
-        internal TextNormalizerTransform(IHostEnvironment env, ColumnInfo[] columns) :
-            base(Contracts.CheckRef(env, nameof(env)).Register(RegistrationName), GetColumnPairs(columns))
-        {
-            _columns = columns.ToArray();
         }
 
         protected override void CheckInputColumn(ISchema inputSchema, int col, int srcCol)
@@ -156,19 +127,16 @@ namespace Microsoft.ML.Transforms.Text
 
             // *** Binary format ***
             // <base>
-            // for each added column:
-            //   byte: case
-            //   bool: whether to keep diacritics
-            //   bool: whether to keep punctuations
-            //   bool: whether to keep numbers
+            // byte: case
+            // bool: whether to keep diacritics
+            // bool: whether to keep punctuations
+            // bool: whether to keep numbers
             SaveColumns(ctx);
-            foreach (var column in _columns)
-            {
-                ctx.Writer.Write((byte)column.TextCase);
-                ctx.Writer.WriteBoolByte(column.KeepDiacritics);
-                ctx.Writer.WriteBoolByte(column.KeepPunctuations);
-                ctx.Writer.WriteBoolByte(column.KeepNumbers);
-            }
+
+            ctx.Writer.Write((byte)_textCase);
+            ctx.Writer.WriteBoolByte(_keepDiacritics);
+            ctx.Writer.WriteBoolByte(_keepPunctuations);
+            ctx.Writer.WriteBoolByte(_keepNumbers);
         }
 
         // Factory method for SignatureLoadModel.
@@ -185,46 +153,18 @@ namespace Microsoft.ML.Transforms.Text
           : base(host, ctx)
         {
             var columnsLength = ColumnPairs.Length;
-            if (ctx.Header.ModelVerWritten == 0x00010001)
-            {
-                // *** Binary format ***
-                // <base>
-                //   byte: case
-                //   bool: whether to keep diacritics
-                //   bool: whether to keep punctuations
-                //   bool: whether to keep numbers
-                var textCase = (TextNormalizerEstimator.CaseNormalizationMode)ctx.Reader.ReadByte();
-                host.CheckDecode(Enum.IsDefined(typeof(TextNormalizerEstimator.CaseNormalizationMode), textCase));
+            // *** Binary format ***
+            // <base>
+            // byte: case
+            // bool: whether to keep diacritics
+            // bool: whether to keep punctuations
+            // bool: whether to keep numbers
+            _textCase = (TextNormalizerEstimator.CaseNormalizationMode)ctx.Reader.ReadByte();
+            host.CheckDecode(Enum.IsDefined(typeof(TextNormalizerEstimator.CaseNormalizationMode), _textCase));
 
-                var keepDiacritics = ctx.Reader.ReadBoolByte();
-                var keepPunctuations = ctx.Reader.ReadBoolByte();
-                var keepNumbers = ctx.Reader.ReadBoolByte();
-                _columns = new ColumnInfo[columnsLength];
-                for (int i = 0; i < columnsLength; i++)
-                    _columns[i] = new ColumnInfo(ColumnPairs[i].input, ColumnPairs[i].output, textCase, keepDiacritics, keepPunctuations, keepNumbers);
-            }
-            else
-            {
-                _columns = new ColumnInfo[columnsLength];
-                for (int i = 0; i < columnsLength; i++)
-                {
-                    // *** Binary format ***
-                    // <base>
-                    // for each added column:
-                    //   byte: case
-                    //   bool: whether to keep diacritics
-                    //   bool: whether to keep punctuations
-                    //   bool: whether to keep numbers
-                    var textCase = (TextNormalizerEstimator.CaseNormalizationMode)ctx.Reader.ReadByte();
-                    host.CheckDecode(Enum.IsDefined(typeof(TextNormalizerEstimator.CaseNormalizationMode), textCase));
-
-                    var keepDiacritics = ctx.Reader.ReadBoolByte();
-                    var keepPunctuations = ctx.Reader.ReadBoolByte();
-                    var keepNumbers = ctx.Reader.ReadBoolByte();
-                    _columns[i] = new ColumnInfo(ColumnPairs[i].input, ColumnPairs[i].output, textCase, keepDiacritics, keepPunctuations, keepNumbers);
-                }
-            }
-
+            _keepDiacritics = ctx.Reader.ReadBoolByte();
+            _keepPunctuations = ctx.Reader.ReadBoolByte();
+            _keepNumbers = ctx.Reader.ReadBoolByte();
         }
 
         // Factory method for SignatureDataTransform.
@@ -235,14 +175,13 @@ namespace Microsoft.ML.Transforms.Text
             env.CheckValue(input, nameof(input));
 
             env.CheckValue(args.Column, nameof(args.Column));
-            var cols = new ColumnInfo[args.Column.Length];
+            var cols = new (string input, string output)[args.Column.Length];
             for (int i = 0; i < cols.Length; i++)
             {
                 var item = args.Column[i];
-                cols[i] = new ColumnInfo(item.Source ?? item.Name, item.Name,
-                    args.TextCase, args.KeepDiacritics, args.KeepPunctuations, args.KeepNumbers);
+                cols[i] = (item.Source ?? item.Name, item.Name);
             }
-            return new TextNormalizerTransform(env, cols).MakeDataTransform(input);
+            return new TextNormalizerTransform(env,  args.TextCase, args.KeepDiacritics, args.KeepPunctuations, args.KeepNumbers, cols).MakeDataTransform(input);
         }
 
         // Factory method for SignatureLoadDataTransform.
@@ -264,10 +203,10 @@ namespace Microsoft.ML.Transforms.Text
               : base(parent.Host.Register(nameof(Mapper)), parent, inputSchema)
             {
                 _parent = parent;
-                _types = new ColumnType[_parent._columns.Length];
+                _types = new ColumnType[_parent.ColumnPairs.Length];
                 for (int i = 0; i < _types.Length; i++)
                 {
-                    inputSchema.TryGetColumnIndex(_parent._columns[i].Input, out int srcCol);
+                    inputSchema.TryGetColumnIndex(_parent.ColumnPairs[i].input, out int srcCol);
                     var srcType = inputSchema.GetColumnType(srcCol);
                     _types[i] = srcType.IsVector ? new VectorType(TextType.Instance) : srcType;
                 }
@@ -343,10 +282,10 @@ namespace Microsoft.ML.Transforms.Text
             protected override Delegate MakeGetter(IRow input, int iinfo, out Action disposer)
             {
                 Host.AssertValue(input);
-                Host.Assert(0 <= iinfo && iinfo < _parent._columns.Length);
+                Host.Assert(0 <= iinfo && iinfo < _parent.ColumnPairs.Length);
                 disposer = null;
 
-                input.Schema.TryGetColumnIndex(_parent._columns[iinfo].Input, out int srcCol);
+                input.Schema.TryGetColumnIndex(_parent.ColumnPairs[iinfo].input, out int srcCol);
                 var srcType = input.Schema.GetColumnType(srcCol);
                 Host.Assert(srcType.ItemType.IsText);
 
@@ -370,7 +309,7 @@ namespace Microsoft.ML.Transforms.Text
                     (ref ReadOnlyMemory<char> dst) =>
                     {
                         getSrc(ref src);
-                        NormalizeSrc(_parent._columns[iinfo], ref src, ref dst, buffer);
+                        NormalizeSrc(ref src, ref dst, buffer);
                     };
             }
 
@@ -389,7 +328,7 @@ namespace Microsoft.ML.Transforms.Text
                         list.Clear();
                         for (int i = 0; i < src.Count; i++)
                         {
-                            NormalizeSrc(_parent._columns[iinfo], ref src.Values[i], ref temp, buffer);
+                            NormalizeSrc(ref src.Values[i], ref temp, buffer);
                             if (!temp.IsEmpty)
                                 list.Add(temp);
                         }
@@ -398,7 +337,7 @@ namespace Microsoft.ML.Transforms.Text
                     };
             }
 
-            private void NormalizeSrc(ColumnInfo columnInfo, ref ReadOnlyMemory<char> src, ref ReadOnlyMemory<char> dst, StringBuilder buffer)
+            private void NormalizeSrc(ref ReadOnlyMemory<char> src, ref ReadOnlyMemory<char> dst, StringBuilder buffer)
             {
                 Host.AssertValue(buffer);
 
@@ -416,7 +355,7 @@ namespace Microsoft.ML.Transforms.Text
                 while (i < src.Length)
                 {
                     char ch = span[i];
-                    if (!columnInfo.KeepPunctuations && char.IsPunctuation(ch) || !columnInfo.KeepNumbers && char.IsNumber(ch))
+                    if (!_parent._keepPunctuations && char.IsPunctuation(ch) || !_parent._keepNumbers && char.IsNumber(ch))
                     {
                         // Append everything before ch and ignore ch.
                         buffer.AppendSpan(span.Slice(min, i - min));
@@ -425,7 +364,7 @@ namespace Microsoft.ML.Transforms.Text
                         continue;
                     }
 
-                    if (!columnInfo.KeepDiacritics)
+                    if (!_parent._keepDiacritics)
                     {
                         if (IsCombiningDiacritic(ch))
                         {
@@ -439,9 +378,9 @@ namespace Microsoft.ML.Transforms.Text
                             ch = CombinedDiacriticsMap[ch];
                     }
 
-                    if (columnInfo.TextCase == TextNormalizerEstimator.CaseNormalizationMode.Lower)
+                    if (_parent._textCase == TextNormalizerEstimator.CaseNormalizationMode.Lower)
                         ch = CharUtils.ToLowerInvariant(ch);
-                    else if (columnInfo.TextCase == TextNormalizerEstimator.CaseNormalizationMode.Upper)
+                    else if (_parent._textCase == TextNormalizerEstimator.CaseNormalizationMode.Upper)
                         ch = CharUtils.ToUpperInvariant(ch);
 
                     if (ch != src.Span[i])
@@ -533,7 +472,7 @@ namespace Microsoft.ML.Transforms.Text
             bool keepDiacritics = Defaults.KeepDiacritics,
             bool keepPunctuations = Defaults.KeepPunctuations,
             bool keepNumbers = Defaults.KeepNumbers)
-            : this(env, new TextNormalizerTransform.ColumnInfo(inputColumn, outputColumn ?? inputColumn, textCase, keepDiacritics, keepPunctuations, keepNumbers))
+            : this(env, textCase, keepDiacritics, keepPunctuations, keepNumbers, (inputColumn, outputColumn ?? inputColumn))
         {
         }
 
@@ -542,23 +481,18 @@ namespace Microsoft.ML.Transforms.Text
         /// and outputs new text as output columns.
         /// </summary>
         /// <param name="env">The environment.</param>
-        /// <param name="columns">Pairs of columns to run the text normalization on.</param>
         /// <param name="textCase">Casing text using the rules of the invariant culture.</param>
         /// <param name="keepDiacritics">Whether to keep diacritical marks or remove them.</param>
         /// <param name="keepPunctuations">Whether to keep punctuation marks or remove them.</param>
         /// <param name="keepNumbers">Whether to keep numbers or remove them.</param>
+        /// <param name="columns">Pairs of columns to run the text normalization on.</param>
         public TextNormalizerEstimator(IHostEnvironment env,
-            (string input, string output)[] columns,
             CaseNormalizationMode textCase = Defaults.TextCase,
             bool keepDiacritics = Defaults.KeepDiacritics,
             bool keepPunctuations = Defaults.KeepPunctuations,
-            bool keepNumbers = Defaults.KeepNumbers)
-            : this(env, columns.Select(x => new TextNormalizerTransform.ColumnInfo(x.input, x.output, textCase, keepDiacritics, keepPunctuations, keepNumbers)).ToArray())
-        {
-        }
-
-        public TextNormalizerEstimator(IHostEnvironment env, params TextNormalizerTransform.ColumnInfo[] columns)
-          : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(TextNormalizerEstimator)), new TextNormalizerTransform(env, columns))
+            bool keepNumbers = Defaults.KeepNumbers,
+            params (string input, string output)[] columns)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(TextNormalizerEstimator)), new TextNormalizerTransform(env, textCase, keepDiacritics, keepPunctuations, keepNumbers, columns))
         {
         }
 
@@ -568,13 +502,12 @@ namespace Microsoft.ML.Transforms.Text
             var result = inputSchema.Columns.ToDictionary(x => x.Name);
             foreach (var colInfo in Transformer.Columns)
             {
-                if (!inputSchema.TryFindColumn(colInfo.Input, out var col))
-                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.Input);
+                if (!inputSchema.TryFindColumn(colInfo.input, out var col))
+                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.input);
                 if (!IsColumnTypeValid(col.ItemType))
                     throw Host.ExceptParam(nameof(inputSchema), ExpectedColumnType);
-                result[colInfo.Output] = new SchemaShape.Column(colInfo.Output, col.Kind == SchemaShape.Column.VectorKind.Vector ? SchemaShape.Column.VectorKind.VariableVector : SchemaShape.Column.VectorKind.Scalar, col.ItemType, false);
+                result[colInfo.output] = new SchemaShape.Column(colInfo.output, col.Kind == SchemaShape.Column.VectorKind.Vector ? SchemaShape.Column.VectorKind.VariableVector : SchemaShape.Column.VectorKind.Scalar, col.ItemType, false);
             }
-
             return new SchemaShape(result.Values);
         }
     }
