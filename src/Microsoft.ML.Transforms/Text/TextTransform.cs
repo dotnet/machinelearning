@@ -2,10 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
@@ -18,6 +14,11 @@ using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.TextAnalytics;
 using Microsoft.ML.StaticPipe;
 using Microsoft.ML.StaticPipe.Runtime;
+using Microsoft.ML.Transforms.Text;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 
 [assembly: LoadableClass(TextTransform.Summary, typeof(IDataTransform), typeof(TextTransform), typeof(TextTransform.Arguments), typeof(SignatureDataTransform),
     TextTransform.UserName, "TextTransform", TextTransform.LoaderSignature)]
@@ -27,12 +28,10 @@ using Microsoft.ML.StaticPipe.Runtime;
 
 namespace Microsoft.ML.Runtime.Data
 {
-    using StopWordsArgs = StopWordsRemoverTransform.Arguments;
-    using TextNormalizerArgs = TextNormalizerTransform.Arguments;
-    using StopWordsCol = StopWordsRemoverTransform.Column;
-    using TextNormalizerCol = TextNormalizerTransform.Column;
-    using StopWordsLang = StopWordsRemoverTransform.Language;
     using CaseNormalizationMode = TextNormalizerTransform.CaseNormalizationMode;
+    using StopWordsCol = StopWordsRemoverTransform.Column;
+    using TextNormalizerArgs = TextNormalizerTransform.Arguments;
+    using TextNormalizerCol = TextNormalizerTransform.Column;
 
     // A transform that turns a collection of text documents into numerical feature vectors. The feature vectors are counts
     // of (word or character) ngrams in a given text. It offers ngram hashing (finding the ngram token string name to feature
@@ -347,21 +346,16 @@ namespace Microsoft.ML.Runtime.Data
 
             if (tparams.NeedsWordTokenizationTransform)
             {
-                var xfCols = new DelimitedTokenizeTransform.Column[textCols.Length];
+                var xfCols = new DelimitedTokenizeTransform.ColumnInfo[textCols.Length];
                 wordTokCols = new string[textCols.Length];
                 for (int i = 0; i < textCols.Length; i++)
                 {
-                    var col = new DelimitedTokenizeTransform.Column();
-                    col.Source = textCols[i];
-                    col.Name = GenerateColumnName(view.Schema, textCols[i], "WordTokenizer");
-
-                    xfCols[i] = col;
-
-                    wordTokCols[i] = col.Name;
-                    tempCols.Add(col.Name);
+                    var col = new DelimitedTokenizeTransform.ColumnInfo(textCols[i], GenerateColumnName(view.Schema, textCols[i], "WordTokenizer"), new[] { ' ' });
+                    wordTokCols[i] = col.Output;
+                    tempCols.Add(col.Output);
                 }
 
-                view = new DelimitedTokenizeTransform(h, new DelimitedTokenizeTransform.Arguments() { Column = xfCols }, view);
+                view = new DelimitedTokenizeEstimator(h, xfCols).Fit(view).Transform(view);
             }
 
             if (tparams.NeedsRemoveStopwordsTransform)

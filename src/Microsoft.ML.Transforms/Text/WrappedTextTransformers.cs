@@ -6,11 +6,9 @@ using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.TextAnalytics;
+using Microsoft.ML.Transforms.Text;
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using static Microsoft.ML.Runtime.TextAnalytics.LdaTransform;
 using static Microsoft.ML.Runtime.TextAnalytics.StopWordsRemoverTransform;
 using static Microsoft.ML.Runtime.TextAnalytics.TextNormalizerTransform;
 
@@ -55,18 +53,11 @@ namespace Microsoft.ML.Transforms
                 env.CheckValue(output, nameof(input));
             }
 
-            // Create arguments.
-            var args = new DelimitedTokenizeTransform.Arguments
-            {
-                Column = columns.Select(x => new DelimitedTokenizeTransform.Column { Source = x.input, Name = x.output }).ToArray(),
-                CharArrayTermSeparators = separators
-            };
-
             // Create a valid instance of data.
             var schema = new Schema(columns.Select(x => new Schema.Column(x.input, TextType.Instance, null)));
             var emptyData = new EmptyDataView(env, schema);
-
-            return new TransformWrapper(env, new DelimitedTokenizeTransform(env, args, emptyData));
+            var est = new DelimitedTokenizeEstimator(env, columns.Select(x => new DelimitedTokenizeTransform.ColumnInfo(x.input, x.output, separators)).ToArray());
+            return new TransformWrapper(env, est.Fit(emptyData).Transform(emptyData));
         }
     }
 

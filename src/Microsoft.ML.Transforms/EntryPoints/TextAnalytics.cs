@@ -7,6 +7,7 @@ using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.TextAnalytics;
 using Microsoft.ML.Runtime.Transforms;
+using Microsoft.ML.Transforms.Text;
 
 [assembly: LoadableClass(typeof(void), typeof(TextAnalytics), null, typeof(SignatureEntryPointModule), "TextAnalytics")]
 
@@ -35,15 +36,15 @@ namespace Microsoft.ML.Runtime.Transforms
         }
 
         [TlcModule.EntryPoint(Name = "Transforms.WordTokenizer",
-            Desc = Data.DelimitedTokenizeTransform.Summary,
-            UserName = Data.DelimitedTokenizeTransform.UserName,
-            ShortName = Data.DelimitedTokenizeTransform.LoaderSignature,
+            Desc = ML.Transforms.Text.DelimitedTokenizeTransform.Summary,
+            UserName = ML.Transforms.Text.DelimitedTokenizeTransform.UserName,
+            ShortName = ML.Transforms.Text.DelimitedTokenizeTransform.LoaderSignature,
             XmlInclude = new[] { @"<include file='../Microsoft.ML.Transforms/Text/doc.xml' path='doc/members/member[@name=""WordTokenizer""]/*' />",
                                  @"<include file='../Microsoft.ML.Transforms/Text/doc.xml' path='doc/members/example[@name=""WordTokenizer""]/*' />"})]
         public static CommonOutputs.TransformOutput DelimitedTokenizeTransform(IHostEnvironment env, DelimitedTokenizeTransform.Arguments input)
         {
             var h = EntryPointUtils.CheckArgsAndCreateHost(env, "DelimitedTokenizeTransform", input);
-            var xf = new DelimitedTokenizeTransform(h, input, input.Data);
+            var xf = ML.Transforms.Text.DelimitedTokenizeTransform.Create(h, input, input.Data);
             return new CommonOutputs.TransformOutput()
             {
                 Model = new TransformModel(h, xf, input.Data),
