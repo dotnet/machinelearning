@@ -321,6 +321,90 @@ namespace Microsoft.ML.Runtime.RunTests
             Done();
         }
 
+        private static string[] _small20NewsGroupSample =
+        {
+            "SPORT.BASEBALL\tWhen does Fred McGriff of the Padres become a free agent?",
+            "SCI.MED\tIs erythromycin effective in treating pneumonia?"
+        };
+
+        private static string[] _small20NewsGroupDict =
+        {
+            "sport", "baseball", "fred", "mcgriff", "padres", "free", "agent", "med", "erythromycin", "treating",
+            "pneumonia"
+        };
+
+        [Fact(Skip = "")]
+        public void SavePipeTermDictionary()
+        {
+            string dataFile = DeleteOutputPath("SavePipe", "TermDictionary-SampleText.txt");
+            File.WriteAllLines(dataFile, _small20NewsGroupSample);
+
+            string dictFile = DeleteOutputPath("SavePipe", "TermDictionary-SampleDict.txt");
+            File.WriteAllLines(dictFile, _small20NewsGroupDict);
+
+            string textSettings =
+                "xf=Text{{col=Features:T1,T2 num- punc- dict={{data={0}}} norm=None charExtractor={{}} wordExtractor=Ngram{{ngram=2}}}}";
+            TestCore(dataFile, true,
+                new[] {
+                    "loader=Text{col=T1:TX:0 col=T2:TX:1}",
+                    string.Format(textSettings, dictFile),
+                    "xf=ChooseColumns{col=Features}"
+                }, suffix: "Ngram");
+
+            textSettings =
+                "xf=Text{{col=Features:T1,T2 num- punc- dict={{data={0}}} norm=None charExtractor={{}} wordExtractor=NgramHash{{bits=5}}}}";
+            TestCore(dataFile, true,
+                new[] {
+                    "loader=Text{col=T1:TX:0 col=T2:TX:1}",
+                    string.Format(textSettings, dictFile),
+                    "xf=ChooseColumns{col=Features}"
+                }, suffix: "NgramHash");
+
+
+            string terms = "sport,baseball,mcgriff,padres,agent,med,erythromycin,pneumonia";
+            textSettings =
+                "xf=Text{{col=Features:T1,T2 num- punc- dict={{terms={0}}} norm=None charExtractor={{}} wordExtractor=Ngram{{ngram=2}}}}";
+            TestCore(dataFile, true,
+                new[] {
+                    "loader=Text{col=T1:TX:0 col=T2:TX:1}",
+                    string.Format(textSettings, terms),
+                    "xf=ChooseColumns{col=Features}"
+                }, suffix: "NgramTerms");
+
+            terms = "sport,baseball,padres,med,erythromycin";
+            textSettings =
+                "xf=Text{{col=Features:T1,T2 num- punc- dict={{terms={0} dropna+}} norm=None charExtractor={{}} wordExtractor=NgramHash{{ih=3 bits=4}}}}";
+            TestCore(dataFile, true,
+                new[] {
+                    "loader=Text{col=T1:TX:0 col=T2:TX:1}",
+                    string.Format(textSettings, terms),
+                    "xf=ChooseColumns{col=Features}"
+                }, suffix: "NgramHashTermsDropNA");
+
+            terms = "sport,baseball,mcgriff,med,erythromycin";
+            textSettings =
+                "xf=Text{{col=Features:T1,T2 num- punc- dict={{terms={0} dropna+}} norm=linf charExtractor={{}} wordExtractor=Ngram{{ngram=2}}}}";
+            TestCore(dataFile, true,
+                new[] {
+                    "loader=Text{col=T1:TX:0 col=T2:TX:1}",
+                    string.Format(textSettings, terms),
+                    "xf=ChooseColumns{col=Features}"
+                }, suffix: "NgramTermsDropNA");
+
+            terms = "hello";
+            textSettings =
+                "xf=Text{{col=Features:T1,T2 num- punc- dict={{terms={0} dropna+}} norm=linf charExtractor={{}} wordExtractor=Ngram{{ngram=2}}}}";
+            TestCore(dataFile, true,
+                new[] {
+                    "loader=Text{col=T1:TX:0 col=T2:TX:1}",
+                    string.Format(textSettings, terms),
+                    "xf=ChooseColumns{col=T1 col=T2 col=Features}"
+                }, suffix: "EmptyNgramTermsDropNA");
+
+            Done();
+        }
+
+
         [Fact]
         public void TestHashTransformFloat()
         {

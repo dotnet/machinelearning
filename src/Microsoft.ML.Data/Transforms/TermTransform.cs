@@ -320,7 +320,7 @@ namespace Microsoft.ML.Runtime.Data
                         sortOrder,
                         item.Term,
                         item.TextKeyValues ?? args.TextKeyValues);
-                    cols[i].Terms = item.Terms;
+                    cols[i].Terms = item.Terms ?? args.Terms;
                 };
             }
             return new TermTransform(env, input, cols, args.DataFile, args.TermsColumn, args.Loader).MakeDataTransform(input);
