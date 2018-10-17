@@ -76,7 +76,7 @@ namespace Microsoft.ML.Transforms.Text
         internal const string Summary = "A text normalization transform that allows normalizing text case, removing diacritical marks, punctuation marks and/or numbers." +
             " The transform operates on text input as well as vector of tokens/text (vector of ReadOnlyMemory).";
 
-        public const string LoaderSignature = nameof(TextNormalizerTransform);
+        internal const string LoaderSignature = nameof(TextNormalizerTransform);
 
         private static VersionInfo GetVersionInfo()
         {
@@ -578,5 +578,4 @@ namespace Microsoft.ML.Transforms.Text
             return new SchemaShape(result.Values);
         }
     }
-
 }
