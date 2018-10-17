@@ -424,7 +424,7 @@ namespace Microsoft.ML.Runtime.Data
                 var nodeL = ctx.CreateNode("ReduceMax", nameW, nameL, ctx.GetNodeName("ReduceMax"), "");
                 nodeL.AddAttribute("axes", axes);
 
-                // Do concat
+                // Concatenate the final embeddings produced by the three reduction strategies.
                 var nameP = dstVariableName;
                 var nodeP = ctx.CreateNode("Concat", new[] { nameJ, nameK, nameL }, new[] { nameP }, ctx.GetNodeName("Concat"), "");
                 nodeP.AddAttribute("axis", 1);
