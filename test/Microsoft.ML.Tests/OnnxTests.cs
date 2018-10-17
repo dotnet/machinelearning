@@ -317,8 +317,7 @@ namespace Microsoft.ML.Tests
                     }
                 }
             });
-
-            //var embed = new WordEmbeddings(new string[1] { "Features" });
+            
             var modelPath = GetDataPath(@"shortsentiment.emd");
             var embed = new WordEmbeddings() { CustomLookupTable = modelPath };
             embed.AddColumn("Cat", "Cat");
