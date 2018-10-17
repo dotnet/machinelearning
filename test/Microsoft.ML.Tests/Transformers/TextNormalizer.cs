@@ -97,7 +97,5 @@ namespace Microsoft.ML.Tests.Transformers
                 var loadedView = ModelFileUtils.LoadTransforms(Env, dataView, ms);
             }
         }
-
-
     }
 }
