@@ -29,8 +29,6 @@ using System.Text;
 
 namespace Microsoft.ML.Transforms
 {
-    using Conditional = System.Diagnostics.ConditionalAttribute;
-
     /// <summary>
     /// This transform can hash either single valued columns or vector columns. For vector columns,
     /// it hashes each slot separately.
@@ -397,7 +395,7 @@ namespace Microsoft.ML.Transforms
         #region Getters
         private ValueGetter<uint> ComposeGetterOne(IRow input, int iinfo, int srcCol, ColumnType srcType)
         {
-            Host.Assert(srcType.IsText || srcType.IsKey || srcType == NumberType.R4 || srcType == NumberType.R8);
+            Host.Assert(HashEstimator.IsColumnTypeValid(srcType));
 
             var mask = (1U << _columns[iinfo].HashBits) - 1;
             uint seed = _columns[iinfo].Seed;
@@ -410,33 +408,53 @@ namespace Microsoft.ML.Transforms
                 switch (srcType.RawKind)
                 {
                     case DataKind.U1:
-                        return MakeScalarHashGetter<byte, HashKey1>(seed, mask, input.GetGetter<byte>(srcCol));
+                        return MakeScalarHashGetter<byte, HashKey1>(input, srcCol, seed, mask);
                     case DataKind.U2:
-                        return MakeScalarHashGetter<ushort, HashKey2>(seed, mask, input.GetGetter<ushort>(srcCol));
+                        return MakeScalarHashGetter<ushort, HashKey2>(input, srcCol, seed, mask);
                     case DataKind.U4:
-                        return MakeScalarHashGetter<uint, HashKey4>(seed, mask, input.GetGetter<uint>(srcCol));
+                        return MakeScalarHashGetter<uint, HashKey4>(input, srcCol, seed, mask);
                     default:
                         Host.Assert(srcType.RawKind == DataKind.U8);
-                        return MakeScalarHashGetter<ulong, HashKey8>(seed, mask, input.GetGetter<ulong>(srcCol));
+                        return MakeScalarHashGetter<ulong, HashKey8>(input, srcCol, seed, mask);
                 }
             }
 
             switch (srcType.RawKind)
             {
+                case DataKind.U1:
+                    return MakeScalarHashGetter<byte, HashU1>(input, srcCol, seed, mask);
+                case DataKind.U2:
+                    return MakeScalarHashGetter<ushort, HashU2>(input, srcCol, seed, mask);
+                case DataKind.U4:
+                    return MakeScalarHashGetter<uint, HashU4>(input, srcCol, seed, mask);
+                case DataKind.U8:
+                    return MakeScalarHashGetter<ulong, HashU8>(input, srcCol, seed, mask);
+                case DataKind.U16:
+                    return MakeScalarHashGetter<UInt128, HashU16>(input, srcCol, seed, mask);
+                case DataKind.I1:
+                    return MakeScalarHashGetter<sbyte, HashI1>(input, srcCol, seed, mask);
+                case DataKind.I2:
+                    return MakeScalarHashGetter<short, HashI2>(input, srcCol, seed, mask);
+                case DataKind.I4:
+                    return MakeScalarHashGetter<int, HashI4>(input, srcCol, seed, mask);
+                case DataKind.I8:
+                    return MakeScalarHashGetter<long, HashI8>(input, srcCol, seed, mask);
                 case DataKind.R4:
-                    return MakeScalarHashGetter<float, HashFloat>(seed, mask, input.GetGetter<float>(srcCol));
+                    return MakeScalarHashGetter<float, HashFloat>(input, srcCol, seed, mask);
                 case DataKind.R8:
-                    return MakeScalarHashGetter<double, HashDouble>(seed, mask, input.GetGetter<double>(srcCol));
+                    return MakeScalarHashGetter<double, HashDouble>(input, srcCol, seed, mask);
+                case DataKind.BL:
+                    return MakeScalarHashGetter<bool, HashBool>(input, srcCol, seed, mask);
                 default:
                     Host.Assert(srcType.RawKind == DataKind.Text);
-                    return MakeScalarHashGetter<ReadOnlyMemory<char>, HashText>(seed, mask, input.GetGetter<ReadOnlyMemory<char>>(srcCol));
+                    return MakeScalarHashGetter<ReadOnlyMemory<char>, HashText>(input, srcCol, seed, mask);
             }
         }
 
         private ValueGetter<VBuffer<uint>> ComposeGetterVec(IRow input, int iinfo, int srcCol, ColumnType srcType)
         {
             Host.Assert(srcType.IsVector);
-            Host.Assert(srcType.ItemType.IsText || srcType.ItemType.IsKey || srcType.ItemType == NumberType.R4 || srcType.ItemType == NumberType.R8);
+            Host.Assert(HashEstimator.IsColumnTypeValid(srcType.ItemType));
 
             if (srcType.ItemType.IsKey)
             {
@@ -456,10 +474,30 @@ namespace Microsoft.ML.Transforms
 
             switch (srcType.ItemType.RawKind)
             {
+                case DataKind.U1:
+                    return ComposeGetterVecCore<byte, HashU1>(input, iinfo, srcCol, srcType);
+                case DataKind.U2:
+                    return ComposeGetterVecCore<ushort, HashU2>(input, iinfo, srcCol, srcType);
+                case DataKind.U4:
+                    return ComposeGetterVecCore<uint, HashU4>(input, iinfo, srcCol, srcType);
+                case DataKind.U8:
+                    return ComposeGetterVecCore<ulong, HashU8>(input, iinfo, srcCol, srcType);
+                case DataKind.U16:
+                    return ComposeGetterVecCore<UInt128, HashU16>(input, iinfo, srcCol, srcType);
+                case DataKind.I1:
+                    return ComposeGetterVecCore<sbyte, HashI1>(input, iinfo, srcCol, srcType);
+                case DataKind.I2:
+                    return ComposeGetterVecCore<short, HashI2>(input, iinfo, srcCol, srcType);
+                case DataKind.I4:
+                    return ComposeGetterVecCore<int, HashI4>(input, iinfo, srcCol, srcType);
+                case DataKind.I8:
+                    return ComposeGetterVecCore<long, HashI8>(input, iinfo, srcCol, srcType);
                 case DataKind.R4:
                     return ComposeGetterVecCore<float, HashFloat>(input, iinfo, srcCol, srcType);
                 case DataKind.R8:
                     return ComposeGetterVecCore<double, HashDouble>(input, iinfo, srcCol, srcType);
+                case DataKind.BL:
+                    return ComposeGetterVecCore<bool, HashBool>(input, iinfo, srcCol, srcType);
                 default:
                     Host.Assert(srcType.ItemType.RawKind == DataKind.TX);
                     return ComposeGetterVecCore<ReadOnlyMemory<char>, HashText>(input, iinfo, srcCol, srcType);
@@ -575,11 +613,110 @@ namespace Microsoft.ML.Transforms
             }
         }
 
-        private static ValueGetter<uint> MakeScalarHashGetter<T, THash>(uint seed, uint mask, ValueGetter<T> srcGetter)
+        private readonly struct HashU1 : IHasher<byte>
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public uint HashCore(uint seed, uint mask, in byte value)
+                => (Hashing.MixHash(Hashing.MurmurRound(seed, value)) & mask) + 1;
+        }
+
+        private readonly struct HashU2 : IHasher<ushort>
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public uint HashCore(uint seed, uint mask, in ushort value)
+                => (Hashing.MixHash(Hashing.MurmurRound(seed, value)) & mask) + 1;
+        }
+
+        private readonly struct HashU4 : IHasher<uint>
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public uint HashCore(uint seed, uint mask, in uint value)
+                => (Hashing.MixHash(Hashing.MurmurRound(seed, value)) & mask) + 1;
+        }
+
+        private readonly struct HashU8 : IHasher<ulong>
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public uint HashCore(uint seed, uint mask, in ulong value)
+            {
+                var hash = Hashing.MurmurRound(seed, Utils.GetLo(value));
+                var hi = Utils.GetHi(value);
+                if (hi != 0)
+                    hash = Hashing.MurmurRound(hash, hi);
+                return (Hashing.MixHash(hash) & mask) + 1;
+            }
+        }
+
+        private readonly struct HashU16: IHasher<UInt128>
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public uint HashCore(uint seed, uint mask, in UInt128 value)
+            {
+                var hash = Hashing.MurmurRound(seed, Utils.GetLo(value.Lo));
+                var hi = Utils.GetHi(value.Lo);
+                if (hi != 0)
+                    hash = Hashing.MurmurRound(hash, hi);
+                if (value.Hi != 0)
+                {
+                    hash = Hashing.MurmurRound(hash, Utils.GetLo(value.Hi));
+                    hi = Utils.GetHi(value.Hi);
+                    if (hi != 0)
+                        hash = Hashing.MurmurRound(hash, hi);
+                }
+                return (Hashing.MixHash(hash) & mask) + 1;
+            }
+        }
+
+        private readonly struct HashBool : IHasher<bool>
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public uint HashCore(uint seed, uint mask, in bool value)
+                => (Hashing.MixHash(Hashing.MurmurRound(seed, value ? 1u : 0u)) & mask) + 1;
+        }
+
+        private readonly struct HashI1 : IHasher<sbyte>
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public uint HashCore(uint seed, uint mask, in sbyte value)
+                => (Hashing.MixHash(Hashing.MurmurRound(seed, (uint)value)) & mask) + 1;
+        }
+
+        private readonly struct HashI2 : IHasher<short>
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public uint HashCore(uint seed, uint mask, in short value)
+                => (Hashing.MixHash(Hashing.MurmurRound(seed, (uint)value)) & mask) + 1;
+        }
+
+        private readonly struct HashI4 : IHasher<int>
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public uint HashCore(uint seed, uint mask, in int value)
+                => (Hashing.MixHash(Hashing.MurmurRound(seed, (uint)value)) & mask) + 1;
+        }
+
+        private readonly struct HashI8 : IHasher<long>
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public uint HashCore(uint seed, uint mask, in long value)
+            {
+                var hash = Hashing.MurmurRound(seed, Utils.GetLo((ulong)value));
+                var hi = Utils.GetHi((ulong)value);
+                if (hi != 0)
+                    hash = Hashing.MurmurRound(hash, hi);
+                return (Hashing.MixHash(hash) & mask) + 1;
+            }
+        }
+
+        private static ValueGetter<uint> MakeScalarHashGetter<T, THash>(IRow input, int srcCol, uint seed, uint mask)
             where THash : struct, IHasher<T>
         {
             Contracts.Assert(Utils.IsPowerOfTwo(mask + 1));
-            Contracts.AssertValue(srcGetter);
+            Contracts.AssertValue(input);
+            Contracts.Assert(0 <= srcCol && srcCol < input.Schema.ColumnCount);
+            Contracts.Assert(input.Schema.GetColumnType(srcCol).RawType == typeof(T));
+
+            var srcGetter = input.GetGetter<T>(srcCol);
             T src = default;
             THash hasher = default;
             return (ref uint dst) =>
@@ -714,10 +851,11 @@ namespace Microsoft.ML.Transforms
                     int j = 0;
                     for (int i = 0; i < src.Length; i++)
                     {
+                        uint indexSeed = Hashing.MurmurRound(seed, (uint)i);
                         if (src.Count <= j || src.Indices[j] > i)
-                            values[i] = hasher.HashCore(Hashing.MurmurRound(seed, (uint)i), mask, default);
+                            values[i] = hasher.HashCore(indexSeed, mask, default);
                         else if (src.Indices[j] == i)
-                            values[i] = hasher.HashCore(seed, mask, srcValuesSpan[j++]);
+                            values[i] = hasher.HashCore(indexSeed, mask, srcValuesSpan[j++]);
                         else
                             Contracts.Assert(false, "this should have never happened.");
                     }
@@ -1051,9 +1189,13 @@ namespace Microsoft.ML.Transforms
         private readonly IHost _host;
         private readonly HashTransformer.ColumnInfo[] _columns;
 
-        public static bool IsColumnTypeValid(ColumnType type) => (type.ItemType.IsText || type.ItemType.IsKey || type.ItemType == NumberType.R4 || type.ItemType == NumberType.R8);
+        internal static bool IsColumnTypeValid(ColumnType type)
+        {
+            var itemType = type.ItemType;
+            return itemType.IsText || itemType.IsKey || itemType.IsNumber || itemType.IsBool;
+        }
 
-        internal const string ExpectedColumnType = "Expected Text, Key, Single or Double item type";
+        internal const string ExpectedColumnType = "Expected Text, Key, numeric or Boolean item type";
 
         /// <summary>
         /// Convinence constructor for simple one column case
