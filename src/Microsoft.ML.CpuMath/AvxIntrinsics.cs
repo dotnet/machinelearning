@@ -185,15 +185,30 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                             Vector256<float> vector = Avx.LoadVector256(pSrcCurrent);
 
                             float* pMatTemp = pMatCurrent;
-                            Vector256<float> x01 = Avx.Multiply(vector, Avx.LoadVector256(pMatTemp));
-                            Vector256<float> x11 = Avx.Multiply(vector, Avx.LoadVector256(pMatTemp += ccol));
-                            Vector256<float> x21 = Avx.Multiply(vector, Avx.LoadVector256(pMatTemp += ccol));
-                            Vector256<float> x31 = Avx.Multiply(vector, Avx.LoadVector256(pMatTemp += ccol));
+                            if (Fma.IsSupported)
+                            {
+                                Vector256<float> x01 = Avx.LoadVector256(pMatTemp);
+                                Vector256<float> x11 = Avx.LoadVector256(pMatTemp += ccol);
+                                Vector256<float> x21 = Avx.LoadVector256(pMatTemp += ccol);
+                                Vector256<float> x31 = Avx.LoadVector256(pMatTemp += ccol);
 
-                            res0 = Avx.Add(res0, x01);
-                            res1 = Avx.Add(res1, x11);
-                            res2 = Avx.Add(res2, x21);
-                            res3 = Avx.Add(res3, x31);
+                                res0 = Fma.MultiplyAdd(vector, x01, res0);
+                                res1 = Fma.MultiplyAdd(vector, x11, res1);
+                                res2 = Fma.MultiplyAdd(vector, x21, res2);
+                                res3 = Fma.MultiplyAdd(vector, x31, res3);
+                            }
+                            else
+                            {
+                                Vector256<float> x01 = Avx.Multiply(vector, Avx.LoadVector256(pMatTemp));
+                                Vector256<float> x11 = Avx.Multiply(vector, Avx.LoadVector256(pMatTemp += ccol));
+                                Vector256<float> x21 = Avx.Multiply(vector, Avx.LoadVector256(pMatTemp += ccol));
+                                Vector256<float> x31 = Avx.Multiply(vector, Avx.LoadVector256(pMatTemp += ccol));
+
+                                res0 = Avx.Add(res0, x01);
+                                res1 = Avx.Add(res1, x11);
+                                res2 = Avx.Add(res2, x21);
+                                res3 = Avx.Add(res3, x31);
+                            }
 
                             pSrcCurrent += 8;
                             pMatCurrent += 8;
@@ -236,15 +251,30 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                                 Vector256<float> vector = Avx.LoadVector256(pSrcCurrent);
 
                                 float* pMatTemp = pMatCurrent;
-                                Vector256<float> x01 = Avx.Multiply(vector, Avx.LoadVector256(pMatTemp));
-                                Vector256<float> x11 = Avx.Multiply(vector, Avx.LoadVector256(pMatTemp += ccol));
-                                Vector256<float> x21 = Avx.Multiply(vector, Avx.LoadVector256(pMatTemp += ccol));
-                                Vector256<float> x31 = Avx.Multiply(vector, Avx.LoadVector256(pMatTemp += ccol));
+                                if (Fma.IsSupported)
+                                {
+                                    Vector256<float> x01 = Avx.LoadVector256(pMatTemp);
+                                    Vector256<float> x11 = Avx.LoadVector256(pMatTemp += ccol);
+                                    Vector256<float> x21 = Avx.LoadVector256(pMatTemp += ccol);
+                                    Vector256<float> x31 = Avx.LoadVector256(pMatTemp += ccol);
 
-                                res0 = Avx.Add(res0, x01);
-                                res1 = Avx.Add(res1, x11);
-                                res2 = Avx.Add(res2, x21);
-                                res3 = Avx.Add(res3, x31);
+                                    res0 = Fma.MultiplyAdd(vector, x01, res0);
+                                    res1 = Fma.MultiplyAdd(vector, x11, res1);
+                                    res2 = Fma.MultiplyAdd(vector, x21, res2);
+                                    res3 = Fma.MultiplyAdd(vector, x31, res3);
+                                }
+                                else
+                                {
+                                    Vector256<float> x01 = Avx.Multiply(vector, Avx.LoadVector256(pMatTemp));
+                                    Vector256<float> x11 = Avx.Multiply(vector, Avx.LoadVector256(pMatTemp += ccol));
+                                    Vector256<float> x21 = Avx.Multiply(vector, Avx.LoadVector256(pMatTemp += ccol));
+                                    Vector256<float> x31 = Avx.Multiply(vector, Avx.LoadVector256(pMatTemp += ccol));
+
+                                    res0 = Avx.Add(res0, x01);
+                                    res1 = Avx.Add(res1, x11);
+                                    res2 = Avx.Add(res2, x21);
+                                    res3 = Avx.Add(res3, x31);
+                                }
 
                                 pSrcCurrent += 8;
                                 pMatCurrent += 8;
@@ -269,10 +299,20 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                             Vector256<float> x31 = Avx.And(mask, Avx.LoadVector256(pMatTemp += ccol));
                             Vector256<float> vector = Avx.And(mask, Avx.LoadVector256(pSrcCurrent));
 
-                            res0 = Avx.Add(res0, Avx.Multiply(x01, vector));
-                            res1 = Avx.Add(res1, Avx.Multiply(x11, vector));
-                            res2 = Avx.Add(res2, Avx.Multiply(x21, vector));
-                            res3 = Avx.Add(res3, Avx.Multiply(x31, vector));
+                            if (Fma.IsSupported)
+                            {
+                                res0 = Fma.MultiplyAdd(x01, vector, res0);
+                                res1 = Fma.MultiplyAdd(x11, vector, res1);
+                                res2 = Fma.MultiplyAdd(x21, vector, res2);
+                                res3 = Fma.MultiplyAdd(x31, vector, res3);
+                            }
+                            else
+                            {
+                                res0 = Avx.Add(res0, Avx.Multiply(x01, vector));
+                                res1 = Avx.Add(res1, Avx.Multiply(x11, vector));
+                                res2 = Avx.Add(res2, Avx.Multiply(x21, vector));
+                                res3 = Avx.Add(res3, Avx.Multiply(x31, vector));
+                            }
 
                             pMatCurrent += 8;
                             pSrcCurrent += 8;
@@ -335,8 +375,15 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                         Vector256<float> x1 = Avx.SetVector256(pm3[col2], pm2[col2], pm1[col2], pm0[col2],
                                                                 pm3[col1], pm2[col1], pm1[col1], pm0[col1]);
                         Vector256<float> x2 = Avx.SetAllVector256(pSrcCurrent[col1]);
-                        x2 = Avx.Multiply(x2, x1);
-                        result = Avx.Add(result, x2);
+                        if (Fma.IsSupported)
+                        {
+                            result = Fma.MultiplyAdd(x2, x1, result);
+                        }
+                        else
+                        {
+                            x2 = Avx.Multiply(x2, x1);
+                            result = Avx.Add(result, x2);
+                        }
 
                         ppos++;
                     }
@@ -924,8 +971,15 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                     Vector256<float> srcVector = Avx.LoadVector256(pSrcCurrent);
                     Vector256<float> dstVector = Avx.LoadVector256(pDstCurrent);
 
-                    srcVector = Avx.Multiply(srcVector, scaleVector256);
-                    dstVector = Avx.Add(dstVector, srcVector);
+                    if (Fma.IsSupported)
+                    {
+                        dstVector = Fma.MultiplyAdd(srcVector, scaleVector256, dstVector);
+                    }
+                    else
+                    {
+                        srcVector = Avx.Multiply(srcVector, scaleVector256);
+                        dstVector = Avx.Add(dstVector, srcVector);
+                    }
                     Avx.Store(pDstCurrent, dstVector);
 
                     pSrcCurrent += 8;
@@ -979,8 +1033,15 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                 {
                     Vector256<float> srcVector = Avx.LoadVector256(pSrcCurrent);
                     Vector256<float> dstVector = Avx.LoadVector256(pDstCurrent);
-                    srcVector = Avx.Multiply(srcVector, scaleVector256);
-                    dstVector = Avx.Add(dstVector, srcVector);
+                    if (Fma.IsSupported)
+                    {
+                        dstVector = Fma.MultiplyAdd(srcVector, scaleVector256, dstVector);
+                    }
+                    else
+                    {
+                        srcVector = Avx.Multiply(srcVector, scaleVector256);
+                        dstVector = Avx.Add(dstVector, srcVector);
+                    }
                     Avx.Store(pResCurrent, dstVector);
 
                     pSrcCurrent += 8;
@@ -1036,8 +1097,15 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                     Vector256<float> srcVector = Avx.LoadVector256(pSrcCurrent);
                     Vector256<float> dstVector = Load8(pDstCurrent, pIdxCurrent);
 
-                    srcVector = Avx.Multiply(srcVector, scaleVector256);
-                    dstVector = Avx.Add(dstVector, srcVector);
+                    if (Fma.IsSupported)
+                    {
+                        dstVector = Fma.MultiplyAdd(srcVector, scaleVector256, dstVector);
+                    }
+                    else
+                    {
+                        srcVector = Avx.Multiply(srcVector, scaleVector256);
+                        dstVector = Avx.Add(dstVector, srcVector);
+                    }
                     Store8(in dstVector, pDstCurrent, pIdxCurrent);
 
                     pIdxCurrent += 8;
@@ -1260,7 +1328,14 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                 while (pSrcCurrent + 8 <= pSrcEnd)
                 {
                     Vector256<float> srcVector = Avx.LoadVector256(pSrcCurrent);
-                    result256 = Avx.Add(result256, Avx.Multiply(srcVector, srcVector));
+                    if (Fma.IsSupported)
+                    {
+                        result256 = Fma.MultiplyAdd(srcVector, srcVector, result256);
+                    }
+                    else
+                    {
+                        result256 = Avx.Add(result256, Avx.Multiply(srcVector, srcVector));
+                    }
 
                     pSrcCurrent += 8;
                 }
@@ -1306,7 +1381,14 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                 {
                     Vector256<float> srcVector = Avx.LoadVector256(pSrcCurrent);
                     srcVector = Avx.Subtract(srcVector, meanVector256);
-                    result256 = Avx.Add(result256, Avx.Multiply(srcVector, srcVector));
+                    if (Fma.IsSupported)
+                    {
+                        result256 = Fma.MultiplyAdd(srcVector, srcVector, result256);
+                    }
+                    else
+                    {
+                        result256 = Avx.Add(result256, Avx.Multiply(srcVector, srcVector));
+                    }
 
                     pSrcCurrent += 8;
                 }
@@ -1543,7 +1625,14 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                     Vector256<float> srcVector = Avx.LoadVector256(pSrcCurrent);
                     Vector256<float> dstVector = Avx.LoadVector256(pDstCurrent);
 
-                    result256 = Avx.Add(result256, Avx.Multiply(srcVector, dstVector));
+                    if (Fma.IsSupported)
+                    {
+                        result256 = Fma.MultiplyAdd(srcVector, dstVector, result256);
+                    }
+                    else
+                    {
+                        result256 = Avx.Add(result256, Avx.Multiply(srcVector, dstVector));
+                    }
 
                     pSrcCurrent += 8;
                     pDstCurrent += 8;
@@ -1600,7 +1689,14 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                     Vector256<float> srcVector = Load8(pSrcCurrent, pIdxCurrent);
                     Vector256<float> dstVector = Avx.LoadVector256(pDstCurrent);
 
-                    result256 = Avx.Add(result256, Avx.Multiply(srcVector, dstVector));
+                    if (Fma.IsSupported)
+                    {
+                        result256 = Fma.MultiplyAdd(srcVector, dstVector, result256);
+                    }
+                    else
+                    {
+                        result256 = Avx.Add(result256, Avx.Multiply(srcVector, dstVector));
+                    }
 
                     pIdxCurrent += 8;
                     pDstCurrent += 8;
@@ -1654,8 +1750,15 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                 {
                     Vector256<float> distanceVector = Avx.Subtract(Avx.LoadVector256(pSrcCurrent),
                                                                     Avx.LoadVector256(pDstCurrent));
-                    sqDistanceVector256 = Avx.Add(sqDistanceVector256,
+                    if (Fma.IsSupported)
+                    {
+                        sqDistanceVector256 = Fma.MultiplyAdd(distanceVector, distanceVector, sqDistanceVector256);
+                    }
+                    else
+                    {
+                        sqDistanceVector256 = Avx.Add(sqDistanceVector256,
                                                 Avx.Multiply(distanceVector, distanceVector));
+                    }
 
                     pSrcCurrent += 8;
                     pDstCurrent += 8;
@@ -1712,7 +1815,14 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                     Vector256<float> xSrc = Avx.LoadVector256(pSrcCurrent);
 
                     Vector256<float> xDst1 = Avx.LoadVector256(pDst1Current);
-                    xDst1 = Avx.Add(xDst1, Avx.Multiply(xSrc, xPrimal256));
+                    if (Fma.IsSupported)
+                    {
+                        xDst1 = Fma.MultiplyAdd(xSrc, xPrimal256, xDst1);
+                    }
+                    else
+                    {
+                        xDst1 = Avx.Add(xDst1, Avx.Multiply(xSrc, xPrimal256));
+                    }
                     Vector256<float> xDst2 = GetNewDst256(xDst1, xThreshold256);
 
                     Avx.Store(pDst1Current, xDst1);
@@ -1774,7 +1884,14 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                     Vector256<float> xSrc = Avx.LoadVector256(pSrcCurrent);
 
                     Vector256<float> xDst1 = Load8(pdst1, pIdxCurrent);
-                    xDst1 = Avx.Add(xDst1, Avx.Multiply(xSrc, xPrimal256));
+                    if (Fma.IsSupported)
+                    {
+                        xDst1 = Fma.MultiplyAdd(xSrc, xPrimal256, xDst1);
+                    }
+                    else
+                    {
+                        xDst1 = Avx.Add(xDst1, Avx.Multiply(xSrc, xPrimal256));
+                    }
                     Vector256<float> xDst2 = GetNewDst256(xDst1, xThreshold);
 
                     Store8(in xDst1, pdst1, pIdxCurrent);
