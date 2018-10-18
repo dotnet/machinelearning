@@ -21,13 +21,6 @@ phases:
     name: Windows_NT
     buildScript: build.cmd
     queue:
-      name: Hosted VS2017 
-
-- template: /build/ci/phase-template.yml
-  parameters:
-    name: Windows_NT_x86
-    buildScript: build.cmd -buildArch=x86
-    queue:
       name: Hosted VS2017
 
 - template: /build/ci/phase-template.yml
