@@ -119,7 +119,7 @@ phases:
   queue:
     name: DotNetCore-Build
     demands: 
-      - agent.os -equals Windows_x86
+      - agent.os -equals win_x86
   steps:
 
   - task: ms-vseng.MicroBuildTasks.30666190-6959-11e5-9f96-f56098202fef.MicroBuildSigningPlugin@1
