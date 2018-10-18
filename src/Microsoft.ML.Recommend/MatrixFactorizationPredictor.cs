@@ -1,8 +1,6 @@
-//------------------------------------------------------------------------------
-// <copyright company="Microsoft Corporation">
-//     Copyright (c) Microsoft Corporation.  All rights reserved.
-// </copyright>
-//------------------------------------------------------------------------------
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -26,9 +24,9 @@ using Microsoft.ML.Runtime.Data.IO;
 
 namespace Microsoft.ML.Runtime.Recommender
 {
-    public sealed class MatrixFactorizationPredictor : IPredictor, ICanSaveModel, ICanSaveInTextFormat, IMIValueMapper, ISchemaBindableMapper
+    public sealed class MatrixFactorizationPredictor : IPredictor, ICanSaveModel, ICanSaveInTextFormat, ISchemaBindableMapper
     {
-        public const string LoaderSignature = "MFPredictorExec";
+        public const string LoaderSignature = "MFPredictor";
         public const string RegistrationName = "MatrixFactorizationPredictor";
 
         private static VersionInfo GetVersionInfo()
@@ -199,12 +197,15 @@ namespace Microsoft.ML.Runtime.Recommender
 
         public ValueMapper<TXIn, TYIn, TOut> GetMapper<TXIn, TYIn, TOut>()
         {
-            if (typeof(TXIn) != typeof(uint))
-                throw _host.Except("Invalid TXIn in GetMapper: '{0}'", typeof(TXIn));
-            if (typeof(TYIn) != typeof(uint))
-                throw _host.Except("Invalid TYIn in GetMapper: '{0}'", typeof(TYIn));
-            if (typeof(TOut) != typeof(float))
-                throw _host.Except("Invalid TOut in GetMapper: '{0}'", typeof(TOut));
+            string msg = null;
+            msg = "Invalid TXIn in GetMapper: " + typeof(TXIn);
+            _host.Check(typeof(TXIn) == typeof(uint), msg);
+
+            msg = "Invalid TYIn in GetMapper: " + typeof(TYIn);
+            _host.Check(typeof(TYIn) == typeof(uint), msg);
+
+            msg = "Invalid TOut in GetMapper: " + typeof(TOut);
+            _host.Check(typeof(TOut) == typeof(float), msg);
 
             ValueMapper<uint, uint, float> mapper = MapperCore;
             return mapper as ValueMapper<TXIn, TYIn, TOut>;
@@ -239,7 +240,8 @@ namespace Microsoft.ML.Runtime.Recommender
 
         public ISchemaBoundMapper Bind(IHostEnvironment env, RoleMappedSchema schema)
         {
-            Contracts.AssertValue(schema);
+            Contracts.AssertValue(env);
+            env.AssertValue(schema);
             return new RowMapper(this, schema, Schema.Create(new ScoreMapperSchema(OutputType, MetadataUtils.Const.ScoreColumnKind.Regression)));
         }
 
@@ -252,6 +254,7 @@ namespace Microsoft.ML.Runtime.Recommender
             private readonly string _xColName;
             private readonly string _yColName;
 
+            private IHost Host => _parent._host;
             public Schema Schema { get; }
             public Schema InputSchema => InputRoleMappedSchema.Schema;
 
@@ -262,17 +265,21 @@ namespace Microsoft.ML.Runtime.Recommender
                 Contracts.AssertValue(parent);
                 _parent = parent;
 
-                var list = schema.GetColumns(RecommendUtils.XKind);
-                if (Utils.Size(list) != 1)
-                    throw Contracts.Except($"'{RecommendUtils.XKind}' column doesn't exist");
-                _xColName = list[0].Name;
-                _xColIndex = list[0].Index;
+                // Check role of X
+                var xList = schema.GetColumns(RecommendUtils.XKind);
+                string msg = $"'{RecommendUtils.XKind}' column doesn't exist or not unique";
+                Host.Check(Utils.Size(xList) == 1, msg);
 
-                list = schema.GetColumns(RecommendUtils.YKind);
-                if (Utils.Size(list) != 1)
-                    throw Contracts.Except($"'{RecommendUtils.YKind}' column doesn't exist");
-                _yColName = list[0].Name;
-                _yColIndex = list[0].Index;
+                // Check role of Y
+                var yList = schema.GetColumns(RecommendUtils.YKind);
+                msg = $"'{RecommendUtils.YKind}' column doesn't exist or not unique";
+                Host.Check(Utils.Size(yList) == 1, msg);
+
+                _xColName = xList[0].Name;
+                _xColIndex = xList[0].Index;
+
+                _yColName = yList[0].Name;
+                _yColIndex = yList[0].Index;
 
                 CheckInputSchema(schema.Schema, _xColIndex, _yColIndex);
                 InputRoleMappedSchema = schema;
@@ -297,24 +304,21 @@ namespace Microsoft.ML.Runtime.Recommender
 
             private void CheckInputSchema(ISchema schema, int xCol, int yCol)
             {
+                // See if role X's type matches the one expected in the trained predictor
                 var type = schema.GetColumnType(xCol);
-                if (!type.Equals(_parent.InputXType))
-                {
-                    throw Contracts.ExceptParam(nameof(schema), "Input X type '{0}' incompatible with predictor X type '{1}'",
-                        type, _parent.InputXType);
-                }
+                string msg = string.Format("Input X type '{0}' incompatible with predictor X type '{1}'", type, _parent.InputXType);
+                Host.CheckParam(type.Equals(_parent.InputXType), nameof(schema), msg);
+
+                // See if role Y's type matches the one expected in the trained predictor
                 type = schema.GetColumnType(yCol);
-                if (!type.Equals(_parent.InputYType))
-                {
-                    throw Contracts.ExceptParam(nameof(schema), "Input Y type '{0}' incompatible with predictor Y type '{1}'",
-                        type, _parent.InputYType);
-                }
+                msg = string.Format("Input Y type '{0}' incompatible with predictor Y type '{1}'", type, _parent.InputYType);
+                Host.CheckParam(type.Equals(_parent.InputYType), nameof(schema), msg);
             }
 
             private Delegate[] CreateGetter(IRow input, bool[] active)
             {
-                Contracts.CheckValue(input, nameof(input));
-                Contracts.Assert(Utils.Size(active) == Schema.ColumnCount);
+                Host.CheckValue(input, nameof(input));
+                Host.Assert(Utils.Size(active) == Schema.ColumnCount);
 
                 var getters = new Delegate[1];
                 if (active[0])
