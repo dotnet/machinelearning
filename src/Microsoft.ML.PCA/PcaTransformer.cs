@@ -659,22 +659,22 @@ namespace Microsoft.ML.Runtime.Data
 
         }
 
-        //[TlcModule.EntryPoint(Name = "Transforms.PcaCalculator2",
-        //    Desc = Summary,
-        //    UserName = UserName,
-        //    ShortName = ShortName,
-        //    XmlInclude = new[] { @"<include file='../Microsoft.ML.PCA/doc.xml' path='doc/members/member[@name=""PCA""]/*' />",
-        //                         @"<include file='../Microsoft.ML.PCA/doc.xml' path='doc/members/example[@name=""PcaCalculator""]/*' />"})]
-        //public static CommonOutputs.TransformOutput Calculate(IHostEnvironment env, Arguments input)
-        //{
-        //    var h = EntryPointUtils.CheckArgsAndCreateHost(env, "Pca", input);
-        //    var view = new PcaTransformer(h, input, input.Data);
-        //    return new CommonOutputs.TransformOutput()
-        //    {
-        //        Model = new TransformModel(h, view, input.Data),
-        //        OutputData = view
-        //    };
-        //}
+        [TlcModule.EntryPoint(Name = "Transforms.PcaCalculator2",
+            Desc = Summary,
+            UserName = UserName,
+            ShortName = ShortName,
+            XmlInclude = new[] { @"<include file='../Microsoft.ML.PCA/doc.xml' path='doc/members/member[@name=""PCA""]/*' />",
+                                 @"<include file='../Microsoft.ML.PCA/doc.xml' path='doc/members/example[@name=""PcaCalculator""]/*' />"})]
+        public static CommonOutputs.TransformOutput Calculate(IHostEnvironment env, Arguments input)
+        {
+            var h = EntryPointUtils.CheckArgsAndCreateHost(env, "Pca", input);
+            var view = PcaTransformer.Create(h, input, input.Data);
+            return new CommonOutputs.TransformOutput()
+            {
+                Model = new TransformModel(h, view, input.Data),
+                OutputData = view
+            };
+        }
     }
 
     public sealed class PcaEstimator2 : IEstimator<PcaTransformer>
