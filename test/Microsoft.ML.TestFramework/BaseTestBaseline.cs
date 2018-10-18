@@ -72,6 +72,7 @@ namespace Microsoft.ML.Runtime.RunTests
         // The writer to write to test log files.
         protected StreamWriter LogWriter;
         protected ConsoleEnvironment Env;
+        protected MLContext ML;
         private bool _normal;
         private bool _passed;
 
@@ -94,6 +95,7 @@ namespace Microsoft.ML.Runtime.RunTests
             _passed = true;
             Env = new ConsoleEnvironment(42, outWriter: LogWriter, errWriter: LogWriter)
                 .AddStandardComponents();
+            ML = new MLContext(42);
         }
 
         // This method is used by subclass to dispose of disposable objects

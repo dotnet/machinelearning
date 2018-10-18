@@ -483,6 +483,18 @@ namespace Microsoft.ML.Runtime.Model
                 {
                     // No strings.
                     strings = null;
+
+                    if (header.VerWritten < VerAssemblyNameSupported)
+                    {
+                        // Before VerAssemblyNameSupported, if there were no strings in the model,
+                        // validation ended here. Specifically the FpTail checks below were skipped.
+                        // There are earlier versions of models that don't have strings, and 'reader' is
+                        // not at FpTail at this point.
+                        // Preserve the previous behavior by returning early here.
+                        loaderAssemblyName = null;
+                        ex = null;
+                        return true;
+                    }
                 }
                 else
                 {
