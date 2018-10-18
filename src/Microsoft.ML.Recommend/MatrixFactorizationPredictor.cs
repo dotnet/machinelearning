@@ -4,8 +4,6 @@
 // </copyright>
 //------------------------------------------------------------------------------
 
-using Float = System.Single;
-
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -14,8 +12,8 @@ using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Internal.Internallearn;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
-using Microsoft.ML.Runtime.Recommend;
-using Microsoft.ML.Runtime.Recommend.Internal;
+using Microsoft.ML.Runtime.Recommender;
+using Microsoft.ML.Runtime.Recommender.Internal;
 using Microsoft.ML.Runtime.Model.Pfa;
 using Microsoft.ML.Runtime.Model.Onnx;
 using Microsoft.ML.Runtime.CommandLine;
@@ -26,7 +24,7 @@ using Microsoft.ML.Runtime.Data.IO;
 [assembly: LoadableClass(typeof(MatrixFactorizationPredictionTransformer), typeof(MatrixFactorizationPredictionTransformer),
     null, typeof(SignatureLoadModel), "", MatrixFactorizationPredictionTransformer.LoaderSignature)]
 
-namespace Microsoft.ML.Runtime.Recommend
+namespace Microsoft.ML.Runtime.Recommender
 {
     public sealed class MatrixFactorizationPredictor : IPredictor, ICanSaveModel, ICanSaveInTextFormat, IMIValueMapper, ISchemaBindableMapper
     {
@@ -53,12 +51,12 @@ namespace Microsoft.ML.Runtime.Recommend
         private readonly int _k;
         // The libMF is always single precision, so we will
         // keep it as such even in the double build, even when
-        // the TLC output type is noted as being double.
+        // the ML.NET output type is noted as being double.
 
         // Packed _m by _k matrix.
-        private readonly Single[] _p;
+        private readonly float[] _p;
         // Packed _k by _n matrix.
-        private readonly Single[] _q;
+        private readonly float[] _q;
 
         public PredictionKind PredictionKind
         {
@@ -78,11 +76,13 @@ namespace Microsoft.ML.Runtime.Recommend
             _host.CheckValue(xType, nameof(xType));
             _host.CheckValue(yType, nameof(xType));
 
-            buffer.Get(out _m, out _n, out _k, out _p, out _q);
             _host.Assert(xType.RawKind == DataKind.U4);
             _host.Assert(yType.RawKind == DataKind.U4);
+            buffer.Get(out _m, out _n, out _k, out _p, out _q);
             _host.Assert(_n == xType.Count);
             _host.Assert(_m == yType.Count);
+            _host.Assert(_p.Length == _m * _k);
+            _host.Assert(_q.Length == _n * _k);
 
             InputXType = xType;
             InputYType = yType;
@@ -98,8 +98,8 @@ namespace Microsoft.ML.Runtime.Recommend
             // int: number of columns (n), the limit on x
             // ulong: Minimum value of the x key-type
             // int: internal dimension of matrices (k)
-            // Single[m * k]: the row dimension factor matrix P
-            // Single[k * n]: the column dimension factor matrix Q
+            // float[m * k]: the row dimension factor matrix P
+            // float[k * n]: the column dimension factor matrix Q
 
             _m = ctx.Reader.ReadInt32();
             _host.CheckDecode(_m > 0);
@@ -138,8 +138,8 @@ namespace Microsoft.ML.Runtime.Recommend
             // int: number of columns (n), the limit on x
             // ulong: Minimum value of the x key-type
             // int: internal dimension of matrices (k)
-            // Single[m * k]: the row dimension factor matrix P
-            // Single[k * n]: the column dimension factor matrix Q
+            // float[m * k]: the row dimension factor matrix P
+            // float[k * n]: the column dimension factor matrix Q
 
             _host.Assert(_m > 0);
             _host.Assert(_n > 0);
@@ -178,7 +178,7 @@ namespace Microsoft.ML.Runtime.Recommend
             }
         }
 
-        private ValueGetter<Float> GetGetter(ValueGetter<uint> xGetter, ValueGetter<uint> yGetter)
+        private ValueGetter<float> GetGetter(ValueGetter<uint> xGetter, ValueGetter<uint> yGetter)
         {
             _host.AssertValue(xGetter);
             _host.AssertValue(yGetter);
@@ -186,9 +186,9 @@ namespace Microsoft.ML.Runtime.Recommend
             uint x = 0;
             uint y = 0;
 
-            var mapper = GetMapper<uint, uint, Float>();
-            ValueGetter<Float> del =
-                (ref Float value) =>
+            var mapper = GetMapper<uint, uint, float>();
+            ValueGetter<float> del =
+                (ref float value) =>
                 {
                     xGetter(ref x);
                     yGetter(ref y);
@@ -203,14 +203,14 @@ namespace Microsoft.ML.Runtime.Recommend
                 throw _host.Except("Invalid TXIn in GetMapper: '{0}'", typeof(TXIn));
             if (typeof(TYIn) != typeof(uint))
                 throw _host.Except("Invalid TYIn in GetMapper: '{0}'", typeof(TYIn));
-            if (typeof(TOut) != typeof(Float))
+            if (typeof(TOut) != typeof(float))
                 throw _host.Except("Invalid TOut in GetMapper: '{0}'", typeof(TOut));
 
-            ValueMapper<uint, uint, Float> mapper = MapperCore;
+            ValueMapper<uint, uint, float> mapper = MapperCore;
             return mapper as ValueMapper<TXIn, TYIn, TOut>;
         }
 
-        private void MapperCore(ref uint srcCol, ref uint srcRow, ref Float dst)
+        private void MapperCore(ref uint srcCol, ref uint srcRow, ref float dst)
         {
             // REVIEW tfinley: The key-type version a bit more "strict" than the predictor
             // version, since the predictor version can't know the maximum bound during
@@ -219,17 +219,17 @@ namespace Microsoft.ML.Runtime.Recommend
             // is actually correct.
             if (srcRow == 0 || srcRow > _m || srcCol == 0 || srcCol > _n)
             {
-                dst = Float.NaN;
+                dst = float.NaN;
                 return;
             }
             dst = Score((int)(srcCol - 1), (int)(srcRow - 1));
         }
 
-        private Float Score(int col, int row)
+        private float Score(int col, int row)
         {
             _host.Assert(0 <= row && row < _m);
             _host.Assert(0 <= col && col < _n);
-            Float score = 0;
+            float score = 0;
             int poffset = row * _k;
             int qoffset = col * _k;
             for (int i = 0; i < _k; i++)

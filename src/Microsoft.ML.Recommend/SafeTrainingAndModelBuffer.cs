@@ -11,11 +11,11 @@ using System.Security;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Internal.Utilities;
 
-namespace Microsoft.ML.Runtime.Recommend.Internal
+namespace Microsoft.ML.Runtime.Recommender.Internal
 {
     /// <summary>
     /// Contains mirrors of unmanaged struct import extern functions from mf.h / mf.cpp, which implements Matrix Factorization in native C++.
-    /// It also wraps/bridges the train, traintest and cv interfaces ready for TLC infra.
+    /// It also wraps/bridges the train, traintest and cv interfaces ready for ML.NET infra.
     /// </summary>
     internal sealed class SafeTrainingAndModelBuffer : IDisposable
     {

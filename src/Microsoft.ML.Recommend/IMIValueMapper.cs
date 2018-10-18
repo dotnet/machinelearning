@@ -7,7 +7,7 @@
 using System;
 using Microsoft.ML.Runtime.Data;
 
-namespace Microsoft.ML.Runtime.Recommend
+namespace Microsoft.ML.Runtime.Recommender
 {
     /// <summary>
     /// Interface for mapping a two input value (of the two indicated ColumnTypes) to

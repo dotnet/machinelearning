@@ -1,6 +1,6 @@
 ﻿using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Recommend;
+using Microsoft.ML.Runtime.Recommender;
 using Microsoft.ML.Runtime.RunTests;
 using Xunit;
 

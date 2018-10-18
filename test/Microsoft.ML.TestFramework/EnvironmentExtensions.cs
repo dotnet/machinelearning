@@ -9,7 +9,7 @@ using Microsoft.ML.Runtime.FastTree;
 using Microsoft.ML.Runtime.KMeans;
 using Microsoft.ML.Runtime.Learners;
 using Microsoft.ML.Runtime.PCA;
-using Microsoft.ML.Runtime.Recommend;
+using Microsoft.ML.Runtime.Recommender;
 
 namespace Microsoft.ML.TestFramework
 {

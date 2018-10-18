@@ -14,15 +14,15 @@ using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Internallearn;
-using Microsoft.ML.Runtime.Recommend;
-using Microsoft.ML.Runtime.Recommend.Internal;
+using Microsoft.ML.Runtime.Recommender;
+using Microsoft.ML.Runtime.Recommender.Internal;
 using Microsoft.ML.Runtime.Training;
 
 [assembly: LoadableClass(MatrixFactorizationTrainer.Summary, typeof(MatrixFactorizationTrainer), typeof(MatrixFactorizationTrainer.Arguments),
     new Type[] { typeof(SignatureTrainer), typeof(SignatureMatrixRecommendingTrainer) },
     "Matrix Factorization", MatrixFactorizationTrainer.LoadNameValue, "libmf", "mf")]
 
-namespace Microsoft.ML.Runtime.Recommend
+namespace Microsoft.ML.Runtime.Recommender
 {
     public sealed class MatrixFactorizationTrainer : TrainerBase<MatrixFactorizationPredictor>,
         IEstimator<MatrixFactorizationPredictionTransformer>

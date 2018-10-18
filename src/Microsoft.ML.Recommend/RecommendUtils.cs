@@ -8,7 +8,7 @@ using System.Threading;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Internal.Utilities;
 
-namespace Microsoft.ML.Runtime.Recommend
+namespace Microsoft.ML.Runtime.Recommender
 {
    internal static class RecommendUtils
     {
