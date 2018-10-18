@@ -166,7 +166,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             => Create(env, ctx).MakeRowMapper(inputSchema);
     }
 
-    public sealed class IidSpikeEstimator : IEstimator<ITransformer>
+    public sealed class IidSpikeEstimator : IEstimator<IidSpikeDetector>
     {
         private readonly IHost _host;
         private readonly string _inputColumnName;
@@ -193,7 +193,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             _outputColumnName = output;
         }
 
-        public ITransformer Fit(IDataView input)
+        public IidSpikeDetector Fit(IDataView input)
         {
             _host.CheckValue(input, nameof(input));
             return new IidSpikeDetector(_host,
@@ -217,50 +217,6 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
                 _outputColumnName, SchemaShape.Column.VectorKind.Vector, NumberType.R8, false, new SchemaShape(metadata));
 
             return new SchemaShape(resultDic.Values);
-        }
-    }
-
-    public static class IidSpikeStaticExtensions
-    {
-        private sealed class OutColumn : Vector<float>
-        {
-            public PipelineColumn Input { get; }
-
-            public OutColumn(Vector<float> input,
-                int confidence,
-                int pvalueHistoryLength)
-                : base(new Reconciler(confidence, pvalueHistoryLength), input)
-            {
-                Input = input;
-            }
-        }
-
-        private sealed class Reconciler : EstimatorReconciler
-        {
-            private readonly int _confidence;
-            private readonly int _pvalueHistoryLength;
-
-            public Reconciler(
-                int confidence,
-                int pvalueHistoryLength)
-            {
-                _confidence = confidence;
-                _pvalueHistoryLength = pvalueHistoryLength;
-            }
-
-            public override IEstimator<ITransformer> Reconcile(IHostEnvironment env,
-                PipelineColumn[] toOutput,
-                IReadOnlyDictionary<PipelineColumn, string> inputNames,
-                IReadOnlyDictionary<PipelineColumn, string> outputNames,
-                IReadOnlyCollection<string> usedNames)
-            {
-                Contracts.Assert(toOutput.Length == 1);
-                var outCol = (OutColumn)toOutput[0];
-                return new IidSpikeEstimator(env,
-                    _confidence,
-                    _pvalueHistoryLength,
-                    inputNames[outCol.Input], outputNames[outCol]);
-            }
         }
     }
 }

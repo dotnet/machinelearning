@@ -186,7 +186,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             => Create(env, ctx).MakeRowMapper(inputSchema);
     }
 
-    public sealed class IidChangePointEstimator : IEstimator<ITransformer>
+    public sealed class IidChangePointEstimator : IEstimator<IidChangePointDetector>
     {
         private readonly IHost _host;
         private readonly string _inputColumnName;
@@ -213,7 +213,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             _outputColumnName = output;
         }
 
-        public ITransformer Fit(IDataView input)
+        public IidChangePointDetector Fit(IDataView input)
         {
             _host.CheckValue(input, nameof(input));
             return new IidChangePointDetector(_host,
@@ -237,50 +237,6 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
                 _outputColumnName, SchemaShape.Column.VectorKind.Vector, NumberType.R8, false, new SchemaShape(metadata));
 
             return new SchemaShape(resultDic.Values);
-        }
-    }
-
-    public static class IidChangePointStaticExtensions
-    {
-        private sealed class OutColumn : Vector<float>
-        {
-            public PipelineColumn Input { get; }
-
-            public OutColumn(Vector<float> input,
-                int confidence,
-                int changeHistoryLength)
-                : base(new Reconciler(confidence, changeHistoryLength), input)
-            {
-                Input = input;
-            }
-        }
-
-        private sealed class Reconciler : EstimatorReconciler
-        {
-            private readonly int _confidence;
-            private readonly int _changeHistoryLength;
-
-            public Reconciler(
-                int confidence,
-                int changeHistoryLength)
-            {
-                _confidence = confidence;
-                _changeHistoryLength = changeHistoryLength;
-            }
-
-            public override IEstimator<ITransformer> Reconcile(IHostEnvironment env,
-                PipelineColumn[] toOutput,
-                IReadOnlyDictionary<PipelineColumn, string> inputNames,
-                IReadOnlyDictionary<PipelineColumn, string> outputNames,
-                IReadOnlyCollection<string> usedNames)
-            {
-                Contracts.Assert(toOutput.Length == 1);
-                var outCol = (OutColumn)toOutput[0];
-                return new IidChangePointEstimator(env,
-                    _confidence,
-                    _changeHistoryLength,
-                    inputNames[outCol.Input], outputNames[outCol]);
-            }
         }
     }
 }

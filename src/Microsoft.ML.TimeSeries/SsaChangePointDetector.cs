@@ -191,7 +191,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             => Create(env, ctx).MakeRowMapper(inputSchema);
     }
 
-    public sealed class SsaChangePointEstimator : IEstimator<ITransformer>
+    public sealed class SsaChangePointEstimator : IEstimator<SsaChangePointDetector>
     {
         private readonly IHost _host;
         private readonly string _inputColumnName;
@@ -224,7 +224,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             _outputColumnName = output;
         }
 
-        public ITransformer Fit(IDataView input)
+        public SsaChangePointDetector Fit(IDataView input)
         {
             _host.CheckValue(input, nameof(input));
             var transformer = new SsaChangePointDetector(_host,
@@ -251,60 +251,6 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
                 _outputColumnName, SchemaShape.Column.VectorKind.Vector, NumberType.R8, false, new SchemaShape(metadata));
 
             return new SchemaShape(resultDic.Values);
-        }
-    }
-
-    public static class SsaChangePointStaticExtensions
-    {
-        private sealed class OutColumn : Vector<float>
-        {
-            public PipelineColumn Input { get; }
-
-            public OutColumn(Vector<float> input,
-                int confidence,
-                int changeHistoryLength,
-                int trainingWindowSize,
-                int seasonalityWindowSize)
-                : base(new Reconciler(confidence, changeHistoryLength, trainingWindowSize, seasonalityWindowSize), input)
-            {
-                Input = input;
-            }
-        }
-
-        private sealed class Reconciler : EstimatorReconciler
-        {
-            private readonly int _confidence;
-            private readonly int _changeHistoryLength;
-            private readonly int _trainingWindowSize;
-            private readonly int _seasonalityWindowSize;
-
-            public Reconciler(
-                int confidence,
-                int changeHistoryLength,
-                int trainingWindowSize,
-                int seasonalityWindowSize)
-            {
-                _confidence = confidence;
-                _changeHistoryLength = changeHistoryLength;
-                _trainingWindowSize = trainingWindowSize;
-                _seasonalityWindowSize = seasonalityWindowSize;
-            }
-
-            public override IEstimator<ITransformer> Reconcile(IHostEnvironment env,
-                PipelineColumn[] toOutput,
-                IReadOnlyDictionary<PipelineColumn, string> inputNames,
-                IReadOnlyDictionary<PipelineColumn, string> outputNames,
-                IReadOnlyCollection<string> usedNames)
-            {
-                Contracts.Assert(toOutput.Length == 1);
-                var outCol = (OutColumn)toOutput[0];
-                return new SsaChangePointEstimator(env,
-                    _confidence,
-                    _changeHistoryLength,
-                    _trainingWindowSize,
-                    _seasonalityWindowSize,
-                    inputNames[outCol.Input], outputNames[outCol]);
-            }
         }
     }
 }

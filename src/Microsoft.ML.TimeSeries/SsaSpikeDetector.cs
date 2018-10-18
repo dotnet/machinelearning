@@ -173,7 +173,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             => Create(env, ctx).MakeRowMapper(inputSchema);
     }
 
-    public sealed class SsaSpikeEstimator : IEstimator<ITransformer>
+    public sealed class SsaSpikeEstimator : IEstimator<SsaSpikeDetector>
     {
         private readonly IHost _host;
         private readonly string _inputColumnName;
@@ -206,7 +206,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             _outputColumnName = output;
         }
 
-        public ITransformer Fit(IDataView input)
+        public SsaSpikeDetector Fit(IDataView input)
         {
             _host.CheckValue(input, nameof(input));
             var transformer = new SsaSpikeDetector(_host,
@@ -234,60 +234,6 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
                 _outputColumnName, SchemaShape.Column.VectorKind.Vector, NumberType.R8, false, new SchemaShape(metadata));
 
             return new SchemaShape(resultDic.Values);
-        }
-    }
-
-    public static class SsaSpikeStaticExtensions
-    {
-        private sealed class OutColumn : Vector<float>
-        {
-            public PipelineColumn Input { get; }
-
-            public OutColumn(Vector<float> input,
-                int confidence,
-                int pvalueHistoryLength,
-                int trainingWindowSize,
-                int seasonalityWindowSize)
-                : base(new Reconciler(confidence, pvalueHistoryLength, trainingWindowSize, seasonalityWindowSize), input)
-            {
-                Input = input;
-            }
-        }
-
-        private sealed class Reconciler : EstimatorReconciler
-        {
-            private readonly int _confidence;
-            private readonly int _pvalueHistoryLength;
-            private readonly int _trainingWindowSize;
-            private readonly int _seasonalityWindowSize;
-
-            public Reconciler(
-                int confidence,
-                int pvalueHistoryLength,
-                int trainingWindowSize,
-                int seasonalityWindowSize)
-            {
-                _confidence = confidence;
-                _pvalueHistoryLength = pvalueHistoryLength;
-                _trainingWindowSize = trainingWindowSize;
-                _seasonalityWindowSize = seasonalityWindowSize;
-            }
-
-            public override IEstimator<ITransformer> Reconcile(IHostEnvironment env,
-                PipelineColumn[] toOutput,
-                IReadOnlyDictionary<PipelineColumn, string> inputNames,
-                IReadOnlyDictionary<PipelineColumn, string> outputNames,
-                IReadOnlyCollection<string> usedNames)
-            {
-                Contracts.Assert(toOutput.Length == 1);
-                var outCol = (OutColumn)toOutput[0];
-                return new SsaSpikeEstimator(env,
-                    _confidence,
-                    _pvalueHistoryLength,
-                    _trainingWindowSize,
-                    _seasonalityWindowSize,
-                    inputNames[outCol.Input], outputNames[outCol]);
-            }
         }
     }
 }
