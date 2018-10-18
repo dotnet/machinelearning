@@ -15,6 +15,7 @@ using Microsoft.ML.Runtime.Internal.CpuMath;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.Numeric;
+using Microsoft.ML.Core.Data;
 
 [assembly: LoadableClass(PcaTransformer.Summary, typeof(IDataTransform), typeof(PcaTransformer), typeof(PcaTransformer.Arguments), typeof(SignatureDataTransform),
     PcaTransformer.UserName, PcaTransformer.LoaderSignature, PcaTransformer.ShortName)]
@@ -676,4 +677,55 @@ namespace Microsoft.ML.Runtime.Data
         //    };
         //}
     }
+
+    public sealed class PcaEstimator2 : IEstimator<PcaTransformer>
+    {
+        public static class Defaults
+        {
+            public const int NewDim = 1000;
+            public const bool UseSin = false;
+        }
+
+        private readonly IHost _host;
+        private readonly PcaTransformer.ColumnInfo[] _columns;
+
+        /// <summary>
+        /// Convinence constructor for simple one column case
+        /// </summary>
+        public PcaEstimator2(IHostEnvironment env, string inputColumn, string outputColumn = null,
+            string weightColumn = PcaTransformer.Defaults.WeightColumn, int rank = PcaTransformer.Defaults.Rank,
+            int overSampling = PcaTransformer.Defaults.Oversampling, bool center = PcaTransformer.Defaults.Center,
+            int? seed = null)
+            : this(env, new PcaTransformer.ColumnInfo(inputColumn, outputColumn ?? inputColumn, weightColumn, rank, overSampling, center, seed))
+        {
+        }
+
+        public PcaEstimator2(IHostEnvironment env, params PcaTransformer.ColumnInfo[] columns)
+        {
+            Contracts.CheckValue(env, nameof(env));
+            _host = env.Register(nameof(PcaEstimator2));
+            _columns = columns;
+        }
+
+        public PcaTransformer Fit(IDataView input) => new PcaTransformer(_host, input, _columns);
+
+        public SchemaShape GetOutputSchema(SchemaShape inputSchema)
+        {
+            _host.CheckValue(inputSchema, nameof(inputSchema));
+            var result = inputSchema.Columns.ToDictionary(x => x.Name);
+            foreach (var colInfo in _columns)
+            {
+                if (!inputSchema.TryFindColumn(colInfo.Input, out var col))
+                    throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.Input);
+                if (col.ItemType.RawKind != DataKind.R4 || col.Kind != SchemaShape.Column.VectorKind.Vector)
+                    throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.Input);
+
+                result[colInfo.Output] = new SchemaShape.Column(colInfo.Output,
+                    SchemaShape.Column.VectorKind.Vector, NumberType.R4, false);
+            }
+
+            return new SchemaShape(result.Values);
+        }
+    }
+
 }
