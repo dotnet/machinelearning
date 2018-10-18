@@ -508,9 +508,7 @@ namespace Microsoft.ML.Runtime.RunTests
             MatchCollection firstCollection = _matchNumer.Matches(firstString);
             MatchCollection secondCollection = _matchNumer.Matches(secondString);
 
-            if (firstCollection.Count != secondCollection.Count)
-                Fail(_allowMismatch, $"Output and baseline mismatch: '{firstString}' vs. '{secondString}'");
-            else
+            if (firstCollection.Count == secondCollection.Count)
                 MatchNumberWithTolerance(firstCollection, secondCollection, digitsOfPrecision);
             firstString = _matchNumer.Replace(firstString, "%Number%");
             secondString = _matchNumer.Replace(secondString, "%Number%");
@@ -542,8 +540,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 if (!inRange)
                 {
                     delta = Math.Round(f1 - f2, digitsOfPrecision);
-                    if (delta < -allowedVariance || delta > allowedVariance)
-                        Fail(_allowMismatch, $"Results differ too much: '{f1}' vs. '{f2}'");
+                    Assert.InRange(delta, -allowedVariance, allowedVariance);
                 }
             }
         }
