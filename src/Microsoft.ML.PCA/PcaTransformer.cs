@@ -104,6 +104,31 @@ namespace Microsoft.ML.Runtime.Data
             }
         }
 
+        public sealed class ColumnInfo
+        {
+            public readonly string Input;
+            public readonly string Output;
+            public readonly string WeightColumn;
+            public readonly int Rank;
+            public readonly int Oversampling;
+            public readonly bool Center;
+            public readonly int? Seed;
+
+            /// <summary>
+            /// Describes how the transformer handles one column pair.
+            /// </summary>
+            public ColumnInfo(string input, string output, string weightColumn, int rank, int overSampling, bool center, int? seed = null)
+            {
+                Input = input;
+                Output = output;
+                WeightColumn = weightColumn;
+                Rank = rank;
+                Oversampling = overSampling;
+                Center = center;
+                Seed = seed;
+            }
+        }
+
         private sealed class TransformInfo
         {
             public readonly int Dimension;
@@ -112,11 +137,11 @@ namespace Microsoft.ML.Runtime.Data
             public Float[][] Eigenvectors;
             public Float[] MeanProjected;
 
-            public TransformInfo(Column item, Arguments args, int d)
+            public TransformInfo(int rank, int dim)
             {
-                Dimension = d;
-                Rank = item.Rank ?? args.Rank;
-                Contracts.CheckUserArg(0 < Rank && Rank <= Dimension, nameof(item.Rank), "Rank must be positive, and at most the dimension of untransformed data");
+                Dimension = dim;
+                Rank = rank;
+                Contracts.CheckUserArg(0 < Rank && Rank <= Dimension, nameof(Rank), "Rank must be positive, and at most the dimension of untransformed data");
             }
 
             public TransformInfo(ModelLoadContext ctx)
@@ -204,11 +229,7 @@ namespace Microsoft.ML.Runtime.Data
         // These are parallel to Infos.
         private readonly ColumnType[] _types;
         private readonly TransformInfo[] _transformInfos;
-
-        private readonly int[] _oversampling;
-        private readonly bool[] _center;
         private readonly int[] _weightColumnIndex;
-
         private readonly int[] _inputColumnsIndex;
         private readonly ColumnType[] _inputColumnsTypes;
         private readonly int _numColumns;
@@ -218,43 +239,39 @@ namespace Microsoft.ML.Runtime.Data
         /// <summary>
         /// Public constructor corresponding to SignatureDataTransform.
         /// </summary>
-        public PcaTransformer(IHostEnvironment env, Arguments args, IDataView input)
-            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(PcaTransformer)), GetColumnPairs(args))
+        public PcaTransformer(IHostEnvironment env, IDataView input, ColumnInfo[] columns)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(PcaTransformer)), GetColumnPairs(columns))
         {
             Host.AssertNonEmpty(ColumnPairs);
-            Host.Assert(ColumnPairs.Length == Utils.Size(args.Column));
 
             _numColumns = ColumnPairs.Length;
             _transformInfos = new TransformInfo[_numColumns];
-            _oversampling = new int[_numColumns];
-            _center = new bool[_numColumns];
             _weightColumnIndex = new int[_numColumns];
             _inputColumnsIndex = new int[_numColumns];
             _inputColumnsTypes = new ColumnType[_numColumns];
 
             for (int i = 0; i < _transformInfos.Length; i++)
             {
-                if (!input.Schema.TryGetColumnIndex(ColumnPairs[i].input, out _inputColumnsIndex[i]))
-                    throw Host.ExceptSchemaMismatch(nameof(input), "input", ColumnPairs[i].input);
+                var col = columns[i];
+                if (!input.Schema.TryGetColumnIndex(col.Input, out _inputColumnsIndex[i]))
+                    throw Host.ExceptSchemaMismatch(nameof(col.Input), "input", col.Input);
                 _inputColumnsTypes[i] = input.Schema.GetColumnType(_inputColumnsIndex[i]);
                 Host.Check(_inputColumnsTypes[i].IsKnownSizeVector && _inputColumnsTypes[i].VectorSize > 1,
                     "Pca transform can only be applied to columns with known dimensionality greater than 1");
-                _transformInfos[i] = new TransformInfo(args.Column[i], args, _inputColumnsTypes[i].ValueCount);
-                _center[i] = args.Column[i].Center ?? args.Center;
-                _oversampling[i] = args.Column[i].Oversampling ?? args.Oversampling;
-                Host.CheckUserArg(_oversampling[i] >= 0, nameof(args.Oversampling), "Oversampling must be non-negative");
+                _transformInfos[i] = new TransformInfo(col.Rank, _inputColumnsTypes[i].ValueCount);
+                Host.CheckUserArg(col.Oversampling >= 0, nameof(col.Oversampling), "Oversampling must be non-negative");
                 _weightColumnIndex[i] = -1;
-                var weightColumn = args.Column[i].WeightColumn ?? args.WeightColumn;
+                var weightColumn = col.WeightColumn;
                 if (weightColumn != null)
                 {
                     if (!input.Schema.TryGetColumnIndex(weightColumn, out _weightColumnIndex[i]))
                         throw Host.Except("weight column '{0}' does not exist", weightColumn);
                     var type = input.Schema.GetColumnType(_weightColumnIndex[i]);
-                    Host.CheckUserArg(type == NumberType.Float, nameof(args.WeightColumn));
+                    Host.CheckUserArg(type == NumberType.Float, nameof(weightColumn));
                 }
             }
 
-            Train(args, _transformInfos, input);
+            Train(columns, _transformInfos, input);
             _types = InitColumnTypes();
         }
 
@@ -275,10 +292,37 @@ namespace Microsoft.ML.Runtime.Data
             _types = InitColumnTypes();
         }
 
-        private static (string input, string output)[] GetColumnPairs(Arguments args)
+        private static (string input, string output)[] GetColumnPairs(ColumnInfo[] columns)
         {
             //Contracts.CheckValue(columns, nameof(columns));
-            return args.Column.Select(x => (x.Source, x.Name)).ToArray();
+            return columns.Select(x => (x.Input, x.Output)).ToArray();
+        }
+
+        // Factory method for SignatureDataTransform.
+        private static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
+        {
+            Contracts.CheckValue(env, nameof(env));
+            env.CheckValue(args, nameof(args));
+            env.CheckValue(input, nameof(input));
+
+            env.CheckValue(args.Column, nameof(args.Column));
+            var cols = new ColumnInfo[args.Column.Length];
+            using (var ch = env.Start("ValidateArgs"))
+            {
+
+                for (int i = 0; i < cols.Length; i++)
+                {
+                    var item = args.Column[i];
+                    cols[i] = new ColumnInfo(item.Source,
+                        item.Name,
+                        item.WeightColumn,
+                        item.Rank ?? args.Rank,
+                        item.Oversampling ?? args.Oversampling,
+                        item.Center ?? args.Center,
+                        item.Seed ?? args.Seed);
+                };
+            }
+            return new PcaTransformer(env, input, cols).MakeDataTransform(input);
         }
 
         public static PcaTransformer Create(IHostEnvironment env, ModelLoadContext ctx, IDataView input)
@@ -313,18 +357,17 @@ namespace Microsoft.ML.Runtime.Data
                 _transformInfos[i].Save(ctx);
         }
 
-        private void Train(Arguments args, TransformInfo[] transformInfos, IDataView trainingData)
+        private void Train(ColumnInfo[] columns, TransformInfo[] transformInfos, IDataView trainingData)
         {
-            var y = new Float[transformInfos.Length][][];
-            var omega = new Float[transformInfos.Length][][];
-            var mean = new Float[transformInfos.Length][];
-
-            var oversampledRank = new int[transformInfos.Length];
+            var y = new Float[_numColumns][][];
+            var omega = new Float[_numColumns][][];
+            var mean = new Float[_numColumns][];
+            var oversampledRank = new int[_numColumns];
             var rnd = Host.Rand;
             Double totalMemoryUsageEstimate = 0;
-            for (int iinfo = 0; iinfo < transformInfos.Length; iinfo++)
+            for (int iinfo = 0; iinfo < _numColumns; iinfo++)
             {
-                oversampledRank[iinfo] = Math.Min(transformInfos[iinfo].Rank + _oversampling[iinfo], transformInfos[iinfo].Dimension);
+                oversampledRank[iinfo] = Math.Min(transformInfos[iinfo].Rank + columns[iinfo].Oversampling, transformInfos[iinfo].Dimension);
 
                 //exact: (size of the 2 big matrices + other minor allocations) / (2^30)
                 Double colMemoryUsageEstimate = 2.0 * transformInfos[iinfo].Dimension * oversampledRank[iinfo] * sizeof(Float) / 1e9;
@@ -350,7 +393,7 @@ namespace Microsoft.ML.Runtime.Data
                     }
                 }
 
-                if (_center[iinfo])
+                if (columns[iinfo].Center)
                     mean[iinfo] = new Float[transformInfos[iinfo].Dimension];
             }
             if (totalMemoryUsageEstimate > 2)
