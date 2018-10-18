@@ -54,8 +54,26 @@ namespace Microsoft.ML.SamplesUtils
         {
             var data = new List<SampleSentimentData>();
             data.Add(new SampleSentimentData { Sentiment = true, SentimentText = "Best game I've ever played." });
-            data.Add(new SampleSentimentData { Sentiment = false, SentimentText = "==RUDE== Dude" });
+            data.Add(new SampleSentimentData { Sentiment = false, SentimentText = "==RUDE== Dude, 2" });
             data.Add(new SampleSentimentData { Sentiment = true, SentimentText = "Until the next game, this is the best Xbox game!" });
+
+            return data;
+        }
+
+        public class SampleTopicsData
+        {
+            public string Review { get; set; }
+            public string ReviewReverse { get; set; }
+            public bool Label { get; set; }
+        }
+
+        public static IEnumerable<SampleTopicsData> GetTopicsData()
+        {
+            var data = new List<SampleTopicsData>();
+            data.Add(new SampleTopicsData { Review = "animals birds cats dogs fish horse", ReviewReverse = "radiation galaxy universe duck", Label = true });
+            data.Add(new SampleTopicsData { Review = "horse birds house fish duck cats", ReviewReverse = "space galaxy universe radiation", Label = false });
+            data.Add(new SampleTopicsData { Review = "car truck driver bus pickup", ReviewReverse = "bus pickup", Label = true});
+            data.Add(new SampleTopicsData { Review = "car truck driver bus pickup horse", ReviewReverse = "car truck", Label = false });
 
             return data;
         }

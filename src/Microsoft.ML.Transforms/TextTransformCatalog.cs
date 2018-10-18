@@ -18,6 +18,8 @@ namespace Microsoft.ML
         /// <param name="inputColumn">The input column</param>
         /// <param name="outputColumn">The output column</param>
         /// <param name="advancedSettings">Advanced transform settings</param>
+        /// <example>
+        /// </example>
         public static TextTransform FeaturizeText(this TransformsCatalog.TextTransforms catalog,
             string inputColumn, string outputColumn = null,
             Action<TextTransform.Settings> advancedSettings = null)

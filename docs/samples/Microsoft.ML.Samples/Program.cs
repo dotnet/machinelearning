@@ -10,7 +10,7 @@ namespace Microsoft.ML.Samples
         {
             //Trainers.SdcaRegression();
             //Transformers.ConcatEstimator();
-            DynamicTransformers.TextTransform();
+            ConvertCatalogTransformers.KeyToValue_Term();
         }
     }
 }

@@ -1,0 +1,9 @@
+review,review_reverse,label
+"animals birds cats dogs fish horse","radiation galaxy universe duck",1
+"horse birds house fish duck cats","space galaxy universe radiation",0
+"car truck driver bus pickup","bus pickup",1
+"car truck driver bus pickup horse","car truck",0
+"car truck","car truck driver bus pickup horse",1
+"bus pickup","car truck driver bus pickup",1
+"space galaxy universe radiation","horse birds house fish duck cats",1
+"radiation galaxy universe duck","animals birds cats dogs fish horse",1
