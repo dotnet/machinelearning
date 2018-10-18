@@ -354,8 +354,7 @@ namespace Microsoft.ML.Runtime.Data
                 {
                     var srcVariableName = ctx.GetVariableName(input);
                     var schema = _parent.GetOutputSchema(InputSchema);
-                    schema.TryGetColumnIndex(output, out int colIndex);
-                    var dstVariableName = ctx.AddIntermediateVariable(schema.GetColumnType(colIndex), output);
+                    var dstVariableName = ctx.AddIntermediateVariable(schema[output].Type, output);
                     SaveAsOnnxCore(ctx, srcVariableName, dstVariableName);
                 }
             }
