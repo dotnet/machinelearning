@@ -350,16 +350,16 @@ namespace Microsoft.ML.Runtime.Model
             Contracts.CheckDecode(header.ModelSignature == ver.ModelSignature, "Unknown file type");
             Contracts.CheckDecode(header.ModelVerReadable <= header.ModelVerWritten, "Corrupt file header");
             if (header.ModelVerReadable > ver.VerWrittenCur)
-                throw Contracts.ExceptDecode("Cause: TLC {0} cannont read component '{1}' of the model, because the model is too new.\n" +
-                                "Suggestion: Make sure the model is trained with TLC {0} or older.\n" +
+                throw Contracts.ExceptDecode("Cause: ML.NET {0} cannont read component '{1}' of the model, because the model is too new.\n" +
+                                "Suggestion: Make sure the model is trained with ML.NET {0} or older.\n" +
                                 "Debug details: Maximum expected version {2}, got {3}.",
                                 typeof(VersionInfo).Assembly.GetName().Version, ver.LoaderSignature, header.ModelVerReadable, ver.VerWrittenCur);
             if (header.ModelVerWritten < ver.VerWeCanReadBack)
             {
                 // Breaking backwards compatibility is something we should avoid if at all possible. If
                 // this message is observed, it may be a bug.
-                throw Contracts.ExceptDecode("Cause: TLC {0} cannot read component '{1}' of the model, because the model is too old.\n" +
-                                  "Suggestion: Make sure the model is trained with TLC {0}.\n" +
+                throw Contracts.ExceptDecode("Cause: ML.NET {0} cannot read component '{1}' of the model, because the model is too old.\n" +
+                                  "Suggestion: Make sure the model is trained with ML.NET {0}.\n" +
                                   "Debug details: Minimum expected version {2}, got {3}.",
                                   typeof(VersionInfo).Assembly.GetName().Version, ver.LoaderSignature, header.ModelVerReadable, ver.VerWrittenCur);
             }
