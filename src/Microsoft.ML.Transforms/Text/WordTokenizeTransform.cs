@@ -139,7 +139,7 @@ namespace Microsoft.ML.Transforms.Text
             return columns.Select(x => (x.Input, x.Output)).ToArray();
         }
 
-        internal DelimitedTokenizeTransform(IHostEnvironment env, ColumnInfo[] columns) :
+        public DelimitedTokenizeTransform(IHostEnvironment env, params ColumnInfo[] columns) :
             base(Contracts.CheckRef(env, nameof(env)).Register(RegistrationName), GetColumnPairs(columns))
         {
             _columns = columns.ToArray();
@@ -149,8 +149,29 @@ namespace Microsoft.ML.Transforms.Text
         {
             var type = inputSchema.GetColumnType(srcCol);
             if (!DelimitedTokenizeEstimator.IsColumnTypeValid(type))
-                throw Host.ExceptParam(nameof(inputSchema), DelimitedTokenizeEstimator.ExpectedColumnType);
+                throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", ColumnPairs[col].input, DelimitedTokenizeEstimator.ExpectedColumnType, type.ToString());
         }
+
+        private DelimitedTokenizeTransform(IHost host, ModelLoadContext ctx) :
+            base(host, ctx)
+        {
+            var columnsLength = ColumnPairs.Length;
+            _columns = new ColumnInfo[columnsLength];
+            // *** Binary format ***
+            // <base>
+            // for each added column
+            //   charArray: Separators
+            for (int i = 0; i < columnsLength; i++)
+            {
+                var separators = ctx.Reader.ReadCharArray();
+                Contracts.CheckDecode(Utils.Size(separators) > 0);
+                _columns[i] = new ColumnInfo(ColumnPairs[i].input, ColumnPairs[i].output, separators);
+            }
+        }
+
+        // Factory method for SignatureLoadDataTransform.
+        private static IDataTransform Create(IHostEnvironment env, ModelLoadContext ctx, IDataView input)
+            => Create(env, ctx).MakeDataTransform(input);
 
         public override void Save(ModelSaveContext ctx)
         {
@@ -177,24 +198,6 @@ namespace Microsoft.ML.Transforms.Text
             return new DelimitedTokenizeTransform(host, ctx);
         }
 
-        private DelimitedTokenizeTransform(IHost host, ModelLoadContext ctx)
-          : base(host, ctx)
-        {
-            var columnsLength = ColumnPairs.Length;
-            _columns = new ColumnInfo[columnsLength];
-            // *** Binary format ***
-            // <base>
-            // for each added column
-            //   charArray: Separators
-            for (int i = 0; i < columnsLength; i++)
-            {
-                var separators = ctx.Reader.ReadCharArray();
-                Contracts.CheckDecode(Utils.Size(separators) > 0);
-                _columns[i] = new ColumnInfo(ColumnPairs[i].input, ColumnPairs[i].output, separators);
-            }
-
-        }
-
         // Factory method for SignatureDataTransform.
         public static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
         {
@@ -213,10 +216,6 @@ namespace Microsoft.ML.Transforms.Text
             }
             return new DelimitedTokenizeTransform(env, cols).MakeDataTransform(input);
         }
-
-        // Factory method for SignatureLoadDataTransform.
-        private static IDataTransform Create(IHostEnvironment env, ModelLoadContext ctx, IDataView input)
-            => Create(env, ctx).MakeDataTransform(input);
 
         // Factory method for SignatureLoadRowMapper.
         private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, ISchema inputSchema)
@@ -432,9 +431,9 @@ namespace Microsoft.ML.Transforms.Text
 
     public sealed class DelimitedTokenizeEstimator : TrivialEstimator<DelimitedTokenizeTransform>
     {
-        public static bool IsColumnTypeValid(ColumnType type) => (type.ItemType.IsText);
+        public static bool IsColumnTypeValid(ColumnType type) => type.ItemType.IsText;
 
-        internal const string ExpectedColumnType = "Expected Text item type";
+        internal const string ExpectedColumnType = "Text";
 
         /// <summary>
         /// Tokenize incoming text in <paramref name="inputColumn"/> and output the tokens as <paramref name="outputColumn"/>.
@@ -449,7 +448,7 @@ namespace Microsoft.ML.Transforms.Text
         }
 
         /// <summary>
-        /// Tokenize incoming text in input columns and output the tokens as output columns.
+        /// Tokenize incoming text in input columns and output the tokens.
         /// </summary>
         /// <param name="env">The environment.</param>
         /// <param name="columns">Pairs of columns to run the tokenization on.</param>
@@ -459,6 +458,11 @@ namespace Microsoft.ML.Transforms.Text
         {
         }
 
+        /// <summary>
+        ///  Tokenize incoming text in input columns and output the tokens.
+        /// </summary>
+        /// <param name="env">The environment.</param>
+        /// <param name="columns">Pairs of columns to run the tokenization on.</param>
         public DelimitedTokenizeEstimator(IHostEnvironment env, params DelimitedTokenizeTransform.ColumnInfo[] columns)
           : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(DelimitedTokenizeEstimator)), new DelimitedTokenizeTransform(env, columns))
         {
@@ -473,7 +477,7 @@ namespace Microsoft.ML.Transforms.Text
                 if (!inputSchema.TryFindColumn(colInfo.Input, out var col))
                     throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.Input);
                 if (!IsColumnTypeValid(col.ItemType))
-                    throw Host.ExceptParam(nameof(inputSchema), ExpectedColumnType);
+                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.Input, ExpectedColumnType, col.ItemType.ToString());
                 result[colInfo.Output] = new SchemaShape.Column(colInfo.Output, SchemaShape.Column.VectorKind.VariableVector, col.ItemType, false);
             }
 
