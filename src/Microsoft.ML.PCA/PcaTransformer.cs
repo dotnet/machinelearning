@@ -213,13 +213,13 @@ namespace Microsoft.ML.Runtime.Data
 
         internal const string Summary = "PCA is a dimensionality-reduction transform which computes the projection of a numeric vector onto a low-rank subspace.";
         internal const string UserName = "Principal Component Analysis Transform";
-        internal const string ShortName = "Pca";
+        internal const string ShortName = "Pca2";
 
         public const string LoaderSignature = "PcaTransformer";
         private static VersionInfo GetVersionInfo()
         {
             return new VersionInfo(
-                modelSignature: "PCA FUNC",
+                modelSignature: "PCA FUN2",
                 verWrittenCur: 0x00010001, // Initial
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
@@ -235,7 +235,7 @@ namespace Microsoft.ML.Runtime.Data
         private readonly ColumnType[] _inputColumnTypes;
         private readonly int _numColumns;
 
-        private const string RegistrationName = "Pca";
+        private const string RegistrationName = "Pca2";
 
         /// <summary>
         /// Public constructor corresponding to SignatureDataTransform.
