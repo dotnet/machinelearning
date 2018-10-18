@@ -52,7 +52,7 @@ namespace Microsoft.ML.Transforms.Text
                 foreach (var outCol in toOutput)
                     pairs.Add((inputNames[((OutPipelineColumn)outCol).Input], outputNames[outCol]));
 
-                return new DelimitedTokenizeEstimator(env, pairs.ToArray(), _separators);
+                return new WordTokenizeEstimator(env, pairs.ToArray(), _separators);
             }
         }
 

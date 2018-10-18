@@ -18,17 +18,17 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-[assembly: LoadableClass(DelimitedTokenizeTransform.Summary, typeof(IDataTransform), typeof(DelimitedTokenizeTransform), typeof(DelimitedTokenizeTransform.Arguments), typeof(SignatureDataTransform),
+[assembly: LoadableClass(WordTokenizeTransform.Summary, typeof(IDataTransform), typeof(WordTokenizeTransform), typeof(WordTokenizeTransform.Arguments), typeof(SignatureDataTransform),
     "Word Tokenizer Transform", "WordTokenizeTransform", "DelimitedTokenizeTransform", "WordToken", "DelimitedTokenize", "Token")]
 
-[assembly: LoadableClass(DelimitedTokenizeTransform.Summary, typeof(IDataTransform), typeof(DelimitedTokenizeTransform), null, typeof(SignatureLoadDataTransform),
-    "Word Tokenizer Transform", DelimitedTokenizeTransform.LoaderSignature)]
+[assembly: LoadableClass(WordTokenizeTransform.Summary, typeof(IDataTransform), typeof(WordTokenizeTransform), null, typeof(SignatureLoadDataTransform),
+    "Word Tokenizer Transform", WordTokenizeTransform.LoaderSignature)]
 
-[assembly: LoadableClass(DelimitedTokenizeTransform.Summary, typeof(DelimitedTokenizeTransform), null, typeof(SignatureLoadModel),
-    "Word Tokenizer Transform", DelimitedTokenizeTransform.LoaderSignature)]
+[assembly: LoadableClass(WordTokenizeTransform.Summary, typeof(WordTokenizeTransform), null, typeof(SignatureLoadModel),
+    "Word Tokenizer Transform", WordTokenizeTransform.LoaderSignature)]
 
-[assembly: LoadableClass(typeof(IRowMapper), typeof(DelimitedTokenizeTransform), null, typeof(SignatureLoadRowMapper),
-   "Word Tokenizer Transform", DelimitedTokenizeTransform.LoaderSignature)]
+[assembly: LoadableClass(typeof(IRowMapper), typeof(WordTokenizeTransform), null, typeof(SignatureLoadRowMapper),
+   "Word Tokenizer Transform", WordTokenizeTransform.LoaderSignature)]
 
 namespace Microsoft.ML.Transforms.Text
 {
@@ -38,7 +38,7 @@ namespace Microsoft.ML.Transforms.Text
     // Empty strings and strings containing only spaces are dropped.
     /// <include file='doc.xml' path='doc/members/member[@name="WordTokenizer"]/*' />
 
-    public sealed class DelimitedTokenizeTransform : OneToOneTransformerBase
+    public sealed class WordTokenizeTransform : OneToOneTransformerBase
     {
         public class Column : OneToOneColumn
         {
@@ -106,7 +106,7 @@ namespace Microsoft.ML.Transforms.Text
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
                 loaderSignature: LoaderSignature,
-                loaderAssemblyName: typeof(DelimitedTokenizeTransform).Assembly.FullName);
+                loaderAssemblyName: typeof(WordTokenizeTransform).Assembly.FullName);
         }
 
         private const string RegistrationName = "DelimitedTokenize";
@@ -139,7 +139,7 @@ namespace Microsoft.ML.Transforms.Text
             return columns.Select(x => (x.Input, x.Output)).ToArray();
         }
 
-        public DelimitedTokenizeTransform(IHostEnvironment env, params ColumnInfo[] columns) :
+        public WordTokenizeTransform(IHostEnvironment env, params ColumnInfo[] columns) :
             base(Contracts.CheckRef(env, nameof(env)).Register(RegistrationName), GetColumnPairs(columns))
         {
             _columns = columns.ToArray();
@@ -148,11 +148,11 @@ namespace Microsoft.ML.Transforms.Text
         protected override void CheckInputColumn(ISchema inputSchema, int col, int srcCol)
         {
             var type = inputSchema.GetColumnType(srcCol);
-            if (!DelimitedTokenizeEstimator.IsColumnTypeValid(type))
-                throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", ColumnPairs[col].input, DelimitedTokenizeEstimator.ExpectedColumnType, type.ToString());
+            if (!WordTokenizeEstimator.IsColumnTypeValid(type))
+                throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", ColumnPairs[col].input, WordTokenizeEstimator.ExpectedColumnType, type.ToString());
         }
 
-        private DelimitedTokenizeTransform(IHost host, ModelLoadContext ctx) :
+        private WordTokenizeTransform(IHost host, ModelLoadContext ctx) :
             base(host, ctx)
         {
             var columnsLength = ColumnPairs.Length;
@@ -189,13 +189,13 @@ namespace Microsoft.ML.Transforms.Text
         }
 
         // Factory method for SignatureLoadModel.
-        private static DelimitedTokenizeTransform Create(IHostEnvironment env, ModelLoadContext ctx)
+        private static WordTokenizeTransform Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
             var host = env.Register(RegistrationName);
             host.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel(GetVersionInfo());
-            return new DelimitedTokenizeTransform(host, ctx);
+            return new WordTokenizeTransform(host, ctx);
         }
 
         // Factory method for SignatureDataTransform.
@@ -214,7 +214,7 @@ namespace Microsoft.ML.Transforms.Text
                 cols[i] = new ColumnInfo(item.Source ?? item.Name, item.Name, separators);
 
             }
-            return new DelimitedTokenizeTransform(env, cols).MakeDataTransform(input);
+            return new WordTokenizeTransform(env, cols).MakeDataTransform(input);
         }
 
         // Factory method for SignatureLoadRowMapper.
@@ -226,12 +226,12 @@ namespace Microsoft.ML.Transforms.Text
         private sealed class Mapper : MapperBase, ISaveAsPfa
         {
             private readonly ColumnType[] _types;
-            private readonly DelimitedTokenizeTransform _parent;
+            private readonly WordTokenizeTransform _parent;
             private readonly bool[] _isSourceVector;
 
             public bool CanSavePfa => true;
 
-            public Mapper(DelimitedTokenizeTransform parent, Schema inputSchema)
+            public Mapper(WordTokenizeTransform parent, Schema inputSchema)
               : base(parent.Host.Register(nameof(Mapper)), parent, inputSchema)
             {
                 _parent = parent;
@@ -429,7 +429,11 @@ namespace Microsoft.ML.Transforms.Text
 
     }
 
-    public sealed class DelimitedTokenizeEstimator : TrivialEstimator<DelimitedTokenizeTransform>
+    /// <summary>
+    /// Word tokenizer splits text into tokens using the delimiter.
+    /// For each text input, the output column is a variable vector of text.
+    /// </summary>
+    public sealed class WordTokenizeEstimator : TrivialEstimator<WordTokenizeTransform>
     {
         public static bool IsColumnTypeValid(ColumnType type) => type.ItemType.IsText;
 
@@ -442,7 +446,7 @@ namespace Microsoft.ML.Transforms.Text
         /// <param name="inputColumn">The column containing text to tokenize.</param>
         /// <param name="outputColumn">The column containing output tokens. Null means <paramref name="inputColumn"/> is replaced.</param>
         /// <param name="separators">The separators to use (uses space character by default).</param>
-        public DelimitedTokenizeEstimator(IHostEnvironment env, string inputColumn, string outputColumn = null, char[] separators = null)
+        public WordTokenizeEstimator(IHostEnvironment env, string inputColumn, string outputColumn = null, char[] separators = null)
             : this(env, new[] { (inputColumn, outputColumn ?? inputColumn) }, separators)
         {
         }
@@ -453,8 +457,8 @@ namespace Microsoft.ML.Transforms.Text
         /// <param name="env">The environment.</param>
         /// <param name="columns">Pairs of columns to run the tokenization on.</param>
         /// <param name="separators">The separators to use (uses space character by default).</param>
-        public DelimitedTokenizeEstimator(IHostEnvironment env, (string input, string output)[] columns, char[] separators = null)
-            : this(env, columns.Select(x => new DelimitedTokenizeTransform.ColumnInfo(x.input, x.output, separators)).ToArray())
+        public WordTokenizeEstimator(IHostEnvironment env, (string input, string output)[] columns, char[] separators = null)
+            : this(env, columns.Select(x => new WordTokenizeTransform.ColumnInfo(x.input, x.output, separators)).ToArray())
         {
         }
 
@@ -463,8 +467,8 @@ namespace Microsoft.ML.Transforms.Text
         /// </summary>
         /// <param name="env">The environment.</param>
         /// <param name="columns">Pairs of columns to run the tokenization on.</param>
-        public DelimitedTokenizeEstimator(IHostEnvironment env, params DelimitedTokenizeTransform.ColumnInfo[] columns)
-          : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(DelimitedTokenizeEstimator)), new DelimitedTokenizeTransform(env, columns))
+        public WordTokenizeEstimator(IHostEnvironment env, params WordTokenizeTransform.ColumnInfo[] columns)
+          : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(WordTokenizeEstimator)), new WordTokenizeTransform(env, columns))
         {
         }
 

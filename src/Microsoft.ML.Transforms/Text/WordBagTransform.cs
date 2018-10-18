@@ -123,7 +123,7 @@ namespace Microsoft.ML.Runtime.Data
             // REVIEW: In order to make it possible to output separate bags for different columns
             // using the same dictionary, we need to find a way to make ConcatTransform remember the boundaries.
 
-            var tokenizeColumns = new DelimitedTokenizeTransform.ColumnInfo[args.Column.Length];
+            var tokenizeColumns = new WordTokenizeTransform.ColumnInfo[args.Column.Length];
 
             var extractorArgs =
                 new NgramExtractorTransform.Arguments()
@@ -143,7 +143,7 @@ namespace Microsoft.ML.Runtime.Data
                 h.CheckUserArg(Utils.Size(column.Source) > 0, nameof(column.Source));
                 h.CheckUserArg(column.Source.All(src => !string.IsNullOrWhiteSpace(src)), nameof(column.Source));
 
-                tokenizeColumns[iinfo] = new DelimitedTokenizeTransform.ColumnInfo(column.Source.Length > 1 ? column.Name : column.Source[0], column.Name);
+                tokenizeColumns[iinfo] = new WordTokenizeTransform.ColumnInfo(column.Source.Length > 1 ? column.Name : column.Source[0], column.Name);
 
                 extractorArgs.Column[iinfo] =
                     new NgramExtractorTransform.Column()
@@ -160,7 +160,7 @@ namespace Microsoft.ML.Runtime.Data
 
             IDataView view = input;
             view = NgramExtractionUtils.ApplyConcatOnSources(h, args.Column, view);
-            view = new DelimitedTokenizeEstimator(env, tokenizeColumns).Fit(view).Transform(view);
+            view = new WordTokenizeEstimator(env, tokenizeColumns).Fit(view).Transform(view);
             return NgramExtractorTransform.Create(h, extractorArgs, view);
         }
     }
