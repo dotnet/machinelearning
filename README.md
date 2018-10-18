@@ -16,7 +16,7 @@ Along with these ML capabilities, this first release of ML.NET also brings the f
 
 [![NuGet Status](https://img.shields.io/nuget/v/Microsoft.ML.svg?style=flat)](https://www.nuget.org/packages/Microsoft.ML/)
 
-ML.NET runs on Windows, Linux, and macOS - any platform where x64 bits [.NET Core](https://github.com/dotnet/core) or later is available.
+ML.NET runs on Windows, Linux, and macOS - any platform where x64 [.NET Core](https://github.com/dotnet/core) or later is available.
 
 The current release is 0.6. Check out the [release notes](docs/release-notes/0.6/release-0.6.md) to see what's new.
 
