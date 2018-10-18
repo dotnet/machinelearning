@@ -102,7 +102,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
         }
 
         // Factory method for SignatureDataTransform.
-        public static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
+        private static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(args, nameof(args));
