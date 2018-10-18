@@ -80,7 +80,7 @@ namespace Microsoft.ML.Transforms
 
         private const string RegistrationName = nameof(NAIndicatorTransform);
 
-        internal (string input, string output)[] GetColumnPairs() => ColumnPairs;
+        public IReadOnlyList<(string input, string output)> Columns => ColumnPairs.AsReadOnly();
 
         /// <summary>
         /// Initializes a new instance of <see cref="NAIndicatorTransform"/>
@@ -466,7 +466,7 @@ namespace Microsoft.ML.Transforms
         {
             Host.CheckValue(inputSchema, nameof(inputSchema));
             var result = inputSchema.Columns.ToDictionary(x => x.Name);
-            foreach (var colPair in Transformer.GetColumnPairs())
+            foreach (var colPair in Transformer.Columns)
             {
                 if (!inputSchema.TryFindColumn(colPair.input, out var col) || !Conversions.Instance.TryGetIsNAPredicate(col.ItemType, out Delegate del))
                     throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colPair.input);
