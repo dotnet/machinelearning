@@ -117,20 +117,6 @@ namespace Microsoft.ML.Runtime.Data
 
         public const string UserName = "Categorical Transform";
 
-        /// <summary>
-        /// A helper method to create <see cref="CategoricalTransform"/>.
-        /// </summary>
-        /// <param name="env">Host Environment.</param>
-        /// <param name="input">Input <see cref="IDataView"/>. This is the output from previous transform or loader.</param>
-        /// <param name="inputColumn">Name of the input column.</param>
-        /// <param name="outputColumn">Name of the column to be transformed. If this is null '<paramref name="inputColumn"/>' will be used.</param>
-        /// <param name="outputKind">The type of output expected.</param>
-        public static IDataView Create(IHostEnvironment env, IDataView input, string inputColumn,
-            string outputColumn = null, OutputKind outputKind = CategoricalEstimator.Defaults.OutKind)
-        {
-            return new CategoricalEstimator(env, inputColumn, outputColumn, outputKind).Fit(input).Transform(input) as IDataView;
-        }
-
         public static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
         {
             Contracts.CheckValue(env, nameof(env));
