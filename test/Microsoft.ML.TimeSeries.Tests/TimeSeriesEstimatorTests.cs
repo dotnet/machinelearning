@@ -53,8 +53,8 @@ namespace Microsoft.ML.Tests
             for (int i = 0; i < ChangeHistorySize; i++)
                 data.Add(new Data(i * 100));
 
-            var pipe = new SsaChangePointEstimator(Env, 
-                Confidence, ChangeHistorySize, MaxTrainingSize, SeasonalitySize, "Value", "Change");
+            var pipe = new SsaChangePointEstimator(Env, "Change", "Value",
+                Confidence, ChangeHistorySize, MaxTrainingSize, SeasonalitySize);
             TestEstimatorCore(pipe, dataView);
         }
 
@@ -77,8 +77,8 @@ namespace Microsoft.ML.Tests
             for (int i = 0; i < PValueHistorySize; i++)
                 data.Add(new Data(i * 100));
 
-            var pipe = new SsaSpikeEstimator(Env,
-                Confidence, PValueHistorySize, MaxTrainingSize, SeasonalitySize, "Value", "Change");
+            var pipe = new SsaSpikeEstimator(Env, "Change", "Value",
+                Confidence, PValueHistorySize, MaxTrainingSize, SeasonalitySize);
             TestEstimatorCore(pipe, dataView);
         }
 
@@ -95,7 +95,7 @@ namespace Microsoft.ML.Tests
                 data.Add(new Data(i * 100));
 
             var pipe = new IidChangePointEstimator(Env,
-                Confidence, ChangeHistorySize, "Value", "Change");
+                "Change", "Value", Confidence, ChangeHistorySize);
             TestEstimatorCore(pipe, dataView);
         }
 
@@ -111,8 +111,8 @@ namespace Microsoft.ML.Tests
             for (int i = 0; i < PValueHistorySize; i++)
                 data.Add(new Data(i * 100));
 
-            var pipe = new IidSpikeEstimator(Env,
-                Confidence, PValueHistorySize, "Value", "Change");
+            var pipe = new IidSpikeEstimator(Env, 
+                "Change", "Value", Confidence, PValueHistorySize);
             TestEstimatorCore(pipe, dataView);
         }
     }

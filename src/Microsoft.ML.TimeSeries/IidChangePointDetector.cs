@@ -12,8 +12,7 @@ using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.TimeSeriesProcessing;
-using Microsoft.ML.StaticPipe;
-using Microsoft.ML.StaticPipe.Runtime;
+using static Microsoft.ML.Runtime.TimeSeriesProcessing.SequentialAnomalyDetectionTransformBase<System.Single, Microsoft.ML.Runtime.TimeSeriesProcessing.IidAnomalyDetectionBase.State>;
 
 [assembly: LoadableClass(IidChangePointDetector.Summary, typeof(IDataTransform), typeof(IidChangePointDetector), typeof(IidChangePointDetector.Arguments), typeof(SignatureDataTransform),
     IidChangePointDetector.UserName, IidChangePointDetector.LoaderSignature, IidChangePointDetector.ShortName)]
@@ -186,16 +185,32 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             => Create(env, ctx).MakeRowMapper(inputSchema);
     }
 
+    /// <summary>
+    /// Estimator for <see cref="IidChangePointDetector"/>
+    /// </summary>
     public sealed class IidChangePointEstimator : TrivialEstimator<IidChangePointDetector>
     {
-        public IidChangePointEstimator(IHostEnvironment env, int confidence, int changeHistoryLength, string input, string output):
+        /// <summary>
+        /// Convinence constructor
+        /// </summary>
+        /// <param name="env">Host Environment.</param>
+        /// <param name="name">The name of the new column.</param>
+        /// <param name="source">Name of the input column.</param>
+        /// <param name="confidence">The confidence for change point detection in the range [0, 100].</param>
+        /// <param name="changeHistoryLength">The change history length.</param>
+        /// <param name="martingale">The martingale used for scoring.</param>
+        /// <param name="eps">The epsilon parameter for the Power martingale.</param>
+        public IidChangePointEstimator(IHostEnvironment env, string name, string source, int confidence,
+            int changeHistoryLength, MartingaleType martingale = MartingaleType.Power, double eps = 0.1):
             base(Contracts.CheckRef(env, nameof(env)).Register(nameof(IidChangePointEstimator)),
                 new IidChangePointDetector(env, new IidChangePointDetector.Arguments
                 {
+                    Name = name,
+                    Source = source,
                     Confidence = confidence,
                     ChangeHistoryLength = changeHistoryLength,
-                    Source = input,
-                    Name = output,
+                    Martingale = martingale,
+                    PowerMartingaleEpsilon = eps
                 }))
         {
         }

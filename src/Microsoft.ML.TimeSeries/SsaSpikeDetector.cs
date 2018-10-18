@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.ML.Core.Data;
@@ -12,8 +11,7 @@ using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.TimeSeriesProcessing;
-using Microsoft.ML.StaticPipe;
-using Microsoft.ML.StaticPipe.Runtime;
+using static Microsoft.ML.Runtime.TimeSeriesProcessing.SequentialAnomalyDetectionTransformBase<System.Single, Microsoft.ML.Runtime.TimeSeriesProcessing.SsaAnomalyDetectionBase.State>;
 
 [assembly: LoadableClass(SsaSpikeDetector.Summary, typeof(IDataTransform), typeof(SsaSpikeDetector), typeof(SsaSpikeDetector.Arguments), typeof(SignatureDataTransform),
     SsaSpikeDetector.UserName, SsaSpikeDetector.LoaderSignature, SsaSpikeDetector.ShortName)]
@@ -173,6 +171,9 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             => Create(env, ctx).MakeRowMapper(inputSchema);
     }
 
+    /// <summary>
+    /// Estimator for <see cref="SsaSpikeDetector"/>
+    /// </summary>
     public sealed class SsaSpikeEstimator : IEstimator<SsaSpikeDetector>
     {
         private readonly IHost _host;
@@ -182,28 +183,39 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
         private readonly int _pvalueHistoryLength;
         private readonly int _trainingWindowSize;
         private readonly int _seasonalityWindowSize;
+        private readonly AnomalySide _side;
+        private readonly ErrorFunctionUtils.ErrorFunction _errorFunction;
 
-        public SsaSpikeEstimator(
-            IHostEnvironment env,
-            int confidence,
-            int pvalueHistoryLength,
-            int trainingWindowSize,
-            int seasonalityWindowSize,
-            string input,
-            string output)
+        /// <summary>
+        /// Convinence constructor
+        /// </summary>
+        /// <param name="env">Host Environment.</param>
+        /// <param name="name">The name of the new column.</param>
+        /// <param name="source">Name of the input column.</param>
+        /// <param name="confidence">The confidence for spike detection in the range [0, 100].</param>
+        /// <param name="pvalueHistoryLength">The size of the sliding window for computing the p-value.</param>
+        /// <param name="trainingWindowSize">The change history length.</param>
+        /// <param name="seasonalityWindowSize">The change history length.</param>
+        /// <param name="side">The argument that determines whether to detect positive or negative anomalies, or both.</param>
+        /// <param name="errorFunction">The function used to compute the error between the expected and the observed value.</param>
+        public SsaSpikeEstimator(IHostEnvironment env, string name, string source, int confidence,
+            int pvalueHistoryLength, int trainingWindowSize, int seasonalityWindowSize, AnomalySide side = AnomalySide.TwoSided,
+            ErrorFunctionUtils.ErrorFunction errorFunction = ErrorFunctionUtils.ErrorFunction.SignedDifference)
         {
             Contracts.CheckValue(env, nameof(env));
             _host = env.Register(nameof(SsaSpikeEstimator));
 
-            _host.CheckNonEmpty(input, nameof(input));
-            _host.CheckNonEmpty(output, nameof(output));
+            _host.CheckNonEmpty(name, nameof(name));
+            _host.CheckNonEmpty(source, nameof(source));
 
+            _outputColumnName = name;
+            _inputColumnName = source;
             _confidence = confidence;
             _pvalueHistoryLength = pvalueHistoryLength;
             _trainingWindowSize = trainingWindowSize;
             _seasonalityWindowSize = seasonalityWindowSize;
-            _inputColumnName = input;
-            _outputColumnName = output;
+            _side = side;
+            _errorFunction = errorFunction;
         }
 
         public SsaSpikeDetector Fit(IDataView input)
@@ -212,12 +224,14 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             var transformer = new SsaSpikeDetector(_host,
                 new SsaSpikeDetector.Arguments
                 {
+                    Name = _outputColumnName,
+                    Source = _inputColumnName,
                     Confidence = _confidence,
                     PvalueHistoryLength = _pvalueHistoryLength,
                     TrainingWindowSize = _trainingWindowSize,
                     SeasonalWindowSize = _seasonalityWindowSize,
-                    Source = _inputColumnName,
-                    Name = _outputColumnName
+                    Side = _side,
+                    ErrorFunction = _errorFunction
                 });
             transformer.Fit(input);
             return transformer;

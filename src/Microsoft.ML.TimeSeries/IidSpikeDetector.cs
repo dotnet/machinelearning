@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.ML.Core.Data;
@@ -12,8 +11,7 @@ using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.TimeSeriesProcessing;
-using Microsoft.ML.StaticPipe;
-using Microsoft.ML.StaticPipe.Runtime;
+using static Microsoft.ML.Runtime.TimeSeriesProcessing.SequentialAnomalyDetectionTransformBase<System.Single, Microsoft.ML.Runtime.TimeSeriesProcessing.IidAnomalyDetectionBase.State>;
 
 [assembly: LoadableClass(IidSpikeDetector.Summary, typeof(IDataTransform), typeof(IidSpikeDetector), typeof(IidSpikeDetector.Arguments), typeof(SignatureDataTransform),
     IidSpikeDetector.UserName, IidSpikeDetector.LoaderSignature, IidSpikeDetector.ShortName)]
@@ -166,16 +164,29 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             => Create(env, ctx).MakeRowMapper(inputSchema);
     }
 
+    /// <summary>
+    /// Estimator for <see cref="IidSpikeDetector"/>
+    /// </summary>
     public sealed class IidSpikeEstimator : TrivialEstimator<IidSpikeDetector>
     {
-        public IidSpikeEstimator(IHostEnvironment env, int confidence, int pvalueHistoryLength, string input, string output):
+        /// <summary>
+        /// Convinence constructor
+        /// </summary>
+        /// <param name="env">Host Environment.</param>
+        /// <param name="name">The name of the new column.</param>
+        /// <param name="source">Name of the input column.</param>
+        /// <param name="confidence">The confidence for spike detection in the range [0, 100].</param>
+        /// <param name="pvalueHistoryLength">The size of the sliding window for computing the p-value.</param>
+        /// <param name="side">The argument that determines whether to detect positive or negative anomalies, or both.</param>
+        public IidSpikeEstimator(IHostEnvironment env, string name, string source, int confidence, int pvalueHistoryLength, AnomalySide side = AnomalySide.TwoSided) :
             base(Contracts.CheckRef(env, nameof(env)).Register(nameof(IidSpikeDetector)),
                 new IidSpikeDetector(env, new IidSpikeDetector.Arguments
                 {
+                    Name = name,
+                    Source = source,
                     Confidence = confidence,
                     PvalueHistoryLength = pvalueHistoryLength,
-                    Source = input,
-                    Name = output,
+                    Side = side
                 }))
         {
         }

@@ -12,8 +12,7 @@ using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.TimeSeriesProcessing;
-using Microsoft.ML.StaticPipe;
-using Microsoft.ML.StaticPipe.Runtime;
+using static Microsoft.ML.Runtime.TimeSeriesProcessing.SequentialAnomalyDetectionTransformBase<System.Single, Microsoft.ML.Runtime.TimeSeriesProcessing.SsaAnomalyDetectionBase.State>;
 
 [assembly: LoadableClass(SsaChangePointDetector.Summary, typeof(IDataTransform), typeof(SsaChangePointDetector), typeof(SsaChangePointDetector.Arguments), typeof(SignatureDataTransform),
     SsaChangePointDetector.UserName, SsaChangePointDetector.LoaderSignature, SsaChangePointDetector.ShortName)]
@@ -191,6 +190,9 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             => Create(env, ctx).MakeRowMapper(inputSchema);
     }
 
+    /// <summary>
+    /// Estimator for <see cref="SsaChangePointDetector"/>
+    /// </summary>
     public sealed class SsaChangePointEstimator : IEstimator<SsaChangePointDetector>
     {
         private readonly IHost _host;
@@ -200,28 +202,43 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
         private readonly int _changeHistoryLength;
         private readonly int _trainingWindowSize;
         private readonly int _seasonalityWindowSize;
+        private readonly MartingaleType _martingale;
+        private readonly double _powerMartingaleEpsilon;
+        private readonly ErrorFunctionUtils.ErrorFunction _errorFunction;
 
-        public SsaChangePointEstimator(
-            IHostEnvironment env,
-            int confidence,
-            int changeHistoryLength,
-            int trainingWindowSize,
-            int seasonalityWindowSize,
-            string input,
-            string output)
+        /// <summary>
+        /// Convinence constructor
+        /// </summary>
+        /// <param name="env">Host Environment.</param>
+        /// <param name="name">The name of the new column.</param>
+        /// <param name="source">Name of the input column.</param>
+        /// <param name="confidence">The confidence for change point detection in the range [0, 100].</param>
+        /// <param name="trainingWindowSize">The change history length.</param>
+        /// <param name="changeHistoryLength">The change history length.</param>
+        /// <param name="seasonalityWindowSize">The change history length.</param>
+        /// <param name="errorFunction">The function used to compute the error between the expected and the observed value.</param>
+        /// <param name="martingale">The martingale used for scoring.</param>
+        /// <param name="eps">The epsilon parameter for the Power martingale.</param>
+        public SsaChangePointEstimator(IHostEnvironment env, string name, string source,
+            int confidence, int changeHistoryLength, int trainingWindowSize, int seasonalityWindowSize,
+            ErrorFunctionUtils.ErrorFunction errorFunction = ErrorFunctionUtils.ErrorFunction.SignedDifference,
+            MartingaleType martingale = MartingaleType.Power, double eps = 0.1)
         {
             Contracts.CheckValue(env, nameof(env));
             _host = env.Register(nameof(SsaChangePointEstimator));
 
-            _host.CheckNonEmpty(input, nameof(input));
-            _host.CheckNonEmpty(output, nameof(output));
+            _host.CheckNonEmpty(name, nameof(name));
+            _host.CheckNonEmpty(source, nameof(source));
 
+            _outputColumnName = name;
+            _inputColumnName = source;
             _confidence = confidence;
             _changeHistoryLength = changeHistoryLength;
             _trainingWindowSize = trainingWindowSize;
             _seasonalityWindowSize = seasonalityWindowSize;
-            _inputColumnName = input;
-            _outputColumnName = output;
+            _martingale = martingale;
+            _powerMartingaleEpsilon = eps;
+            _errorFunction = errorFunction;
         }
 
         public SsaChangePointDetector Fit(IDataView input)
@@ -229,12 +246,15 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             _host.CheckValue(input, nameof(input));
             var transformer = new SsaChangePointDetector(_host,
                 new SsaChangePointDetector.Arguments {
+                    Name = _outputColumnName,
+                    Source = _inputColumnName,
                     Confidence = _confidence,
                     ChangeHistoryLength = _changeHistoryLength,
                     TrainingWindowSize = _trainingWindowSize,
                     SeasonalWindowSize = _seasonalityWindowSize,
-                    Source = _inputColumnName,
-                    Name = _outputColumnName
+                    Martingale = _martingale,
+                    PowerMartingaleEpsilon = _powerMartingaleEpsilon,
+                    ErrorFunction = _errorFunction
                 });
             transformer.Fit(input);
             return transformer;
