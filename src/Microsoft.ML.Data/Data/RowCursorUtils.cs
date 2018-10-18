@@ -510,7 +510,7 @@ namespace Microsoft.ML.Runtime.Data
             private readonly IRow _row;
             private readonly IHost _host; // A channel provider is required for creating the cursor.
 
-            public ISchema Schema { get { return _row.Schema; } }
+            public Schema Schema => _row.Schema;
             public bool CanShuffle { get { return true; } } // The shuffling is even uniformly IID!! :)
 
             public OneRowDataView(IHostEnvironment env, IRow row)
@@ -549,7 +549,7 @@ namespace Microsoft.ML.Runtime.Data
                 private readonly OneRowDataView _parent;
                 private readonly bool[] _active;
 
-                public ISchema Schema { get { return _parent.Schema; } }
+                public Schema Schema => _parent.Schema;
                 public override long Batch { get { return 0; } }
 
                 public Cursor(IHost host, OneRowDataView parent, bool[] active)

@@ -399,7 +399,7 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
         }
 
         protected override IRowMapper MakeRowMapper(ISchema schema)
-            => new Mapper(this, schema);
+            => new Mapper(this, Schema.Create(schema));
 
         protected override void CheckInputColumn(ISchema inputSchema, int col, int srcCol)
         {
@@ -418,15 +418,15 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
             private readonly ImagePixelExtractorTransform _parent;
             private readonly VectorType[] _types;
 
-            public Mapper(ImagePixelExtractorTransform parent, ISchema inputSchema)
+            public Mapper(ImagePixelExtractorTransform parent, Schema inputSchema)
                 : base(parent.Host.Register(nameof(Mapper)), parent, inputSchema)
             {
                 _parent = parent;
                 _types = ConstructTypes();
             }
 
-            public override RowMapperColumnInfo[] GetOutputColumns()
-                => _parent._columns.Select((x, idx) => new RowMapperColumnInfo(x.Output, _types[idx], null)).ToArray();
+            public override Schema.Column[] GetOutputColumns()
+                => _parent._columns.Select((x, idx) => new Schema.Column(x.Output, _types[idx], null)).ToArray();
 
             protected override Delegate MakeGetter(IRow input, int iinfo, out Action disposer)
             {
@@ -617,7 +617,7 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
                     var column = _parent._columns[i];
                     Contracts.Assert(column.Planes > 0);
 
-                    var type = InputSchema.GetColumnType(ColMapNewToOld[i]) as ImageType;
+                    var type = InputSchema[ColMapNewToOld[i]].Type as ImageType;
                     Contracts.Assert(type != null);
 
                     int height = type.Height;

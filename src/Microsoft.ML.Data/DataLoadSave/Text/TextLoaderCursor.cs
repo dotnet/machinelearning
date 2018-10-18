@@ -276,7 +276,7 @@ namespace Microsoft.ML.Runtime.Data
                 return sb.ToString();
             }
 
-            public ISchema Schema { get { return _bindings; } }
+            public Schema Schema => _bindings.AsSchema;
 
             public override void Dispose()
             {

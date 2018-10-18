@@ -285,7 +285,7 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
         }
 
         protected override IRowMapper MakeRowMapper(ISchema schema)
-            => new Mapper(this, schema);
+            => new Mapper(this, Schema.Create(schema));
 
         protected override void CheckInputColumn(ISchema inputSchema, int col, int srcCol)
         {
@@ -297,14 +297,14 @@ namespace Microsoft.ML.Runtime.ImageAnalytics
         {
             private readonly ImageResizerTransform _parent;
 
-            public Mapper(ImageResizerTransform parent, ISchema inputSchema)
+            public Mapper(ImageResizerTransform parent, Schema inputSchema)
                 : base(parent.Host.Register(nameof(Mapper)), parent, inputSchema)
             {
                 _parent = parent;
             }
 
-            public override RowMapperColumnInfo[] GetOutputColumns()
-                => _parent._columns.Select(x => new RowMapperColumnInfo(x.Output, x.Type, null)).ToArray();
+            public override Schema.Column[] GetOutputColumns()
+                => _parent._columns.Select(x => new Schema.Column(x.Output, x.Type, null)).ToArray();
 
             protected override Delegate MakeGetter(IRow input, int iinfo, out Action disposer)
             {

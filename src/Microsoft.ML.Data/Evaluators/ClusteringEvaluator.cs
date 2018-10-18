@@ -69,7 +69,7 @@ namespace Microsoft.ML.Runtime.Data
             roles.Add(RoleMappedSchema.CreatePair(MetadataUtils.Const.ScoreValueKind.Score, score));
 
             if (label != null)
-                 roles.Add(RoleMappedSchema.ColumnRole.Label.Bind(label));
+                roles.Add(RoleMappedSchema.ColumnRole.Label.Bind(label));
 
             if (features != null)
                 roles.Add(RoleMappedSchema.ColumnRole.Feature.Bind(features));
@@ -593,7 +593,7 @@ namespace Microsoft.ML.Runtime.Data
                 Nmi = Fetch(ClusteringEvaluator.Nmi);
                 AvgMinScore = Fetch(ClusteringEvaluator.AvgMinScore);
 
-                if(calculateDbi)
+                if (calculateDbi)
                     Dbi = Fetch(ClusteringEvaluator.Dbi);
             }
         }
@@ -758,37 +758,35 @@ namespace Microsoft.ML.Runtime.Data
             return getters;
         }
 
-        public override RowMapperColumnInfo[] GetOutputColumns()
+        public override Schema.Column[] GetOutputColumns()
         {
-            var infos = new RowMapperColumnInfo[3];
-            infos[ClusterIdCol] = new RowMapperColumnInfo(ClusterId, _types[ClusterIdCol], null);
+            var infos = new Schema.Column[3];
+            infos[ClusterIdCol] = new Schema.Column(ClusterId, _types[ClusterIdCol], null);
 
             var slotNamesType = new VectorType(TextType.Instance, _numClusters);
 
-            var sortedClusters = new ColumnMetadataInfo(SortedClusters);
-            sortedClusters.Add(MetadataUtils.Kinds.SlotNames, new MetadataInfo<VBuffer<ReadOnlyMemory<char>>>(slotNamesType,
-                CreateSlotNamesGetter(_numClusters, "Cluster")));
-            var sortedClusterScores = new ColumnMetadataInfo(SortedClusterScores);
-            sortedClusterScores.Add(MetadataUtils.Kinds.SlotNames, new MetadataInfo<VBuffer<ReadOnlyMemory<char>>>(slotNamesType,
-                CreateSlotNamesGetter(_numClusters, "Score")));
+            var sortedClusters = new Schema.Metadata.Builder();
+            sortedClusters.AddSlotNames(slotNamesType.VectorSize, CreateSlotNamesGetter(_numClusters, "Cluster"));
 
-            infos[SortedClusterCol] = new RowMapperColumnInfo(SortedClusters, _types[SortedClusterCol], sortedClusters);
-            infos[SortedClusterScoreCol] = new RowMapperColumnInfo(SortedClusterScores,
-                _types[SortedClusterScoreCol], sortedClusterScores);
+            var sortedClusterScores = new Schema.Metadata.Builder();
+            sortedClusterScores.AddSlotNames(slotNamesType.VectorSize, CreateSlotNamesGetter(_numClusters, "Score"));
+
+            infos[SortedClusterCol] = new Schema.Column(SortedClusters, _types[SortedClusterCol], sortedClusters.GetMetadata());
+            infos[SortedClusterScoreCol] = new Schema.Column(SortedClusterScores, _types[SortedClusterScoreCol], sortedClusterScores.GetMetadata());
             return infos;
         }
 
         // REVIEW: Figure out how to avoid having the column name in each slot name.
-        private MetadataUtils.MetadataGetter<VBuffer<ReadOnlyMemory<char>>> CreateSlotNamesGetter(int numTopClusters, string suffix)
+        private ValueGetter<VBuffer<ReadOnlyMemory<char>>> CreateSlotNamesGetter(int numTopClusters, string suffix)
         {
             return
-                (int col, ref VBuffer<ReadOnlyMemory<char>> dst) =>
+                (ref VBuffer<ReadOnlyMemory<char>> dst) =>
                 {
                     var values = dst.Values;
                     if (Utils.Size(values) < numTopClusters)
                         values = new ReadOnlyMemory<char>[numTopClusters];
                     for (int i = 1; i <= numTopClusters; i++)
-                        values[i - 1] = string.Format("#{0} {1}", i, suffix).AsMemory();
+                        values[i - 1] = $"#{i} {suffix}".AsMemory();
                     dst = new VBuffer<ReadOnlyMemory<char>>(numTopClusters, values);
                 };
         }

@@ -524,8 +524,8 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
 
             public ISchemaBindableMapper Bindable => _parent;
             public RoleMappedSchema InputRoleMappedSchema => _predictor.InputRoleMappedSchema;
-            public ISchema InputSchema => _predictor.InputSchema;
-            public ISchema Schema { get; }
+            public Schema InputSchema => _predictor.InputSchema;
+            public Schema Schema { get; }
 
             public Bound(IHostEnvironment env, SchemaBindableCalibratedPredictor parent, RoleMappedSchema schema)
             {
@@ -538,7 +538,7 @@ namespace Microsoft.ML.Runtime.Internal.Calibration
                     throw env.Except("Predictor does not output a score");
                 var scoreType = _predictor.Schema.GetColumnType(_scoreCol);
                 env.Check(!scoreType.IsVector && scoreType.IsNumber);
-                Schema = new BinaryClassifierSchema();
+                Schema = Schema.Create(new BinaryClassifierSchema());
             }
 
             public Func<int, bool> GetDependencies(Func<int, bool> predicate)
