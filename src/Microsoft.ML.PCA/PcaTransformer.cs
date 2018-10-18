@@ -227,11 +227,11 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         // These are parallel to Infos.
-        private readonly ColumnType[] _types;
+        private readonly ColumnType[] _outputColumnTypes;
         private readonly TransformInfo[] _transformInfos;
-        private readonly int[] _weightColumnIndex;
-        private readonly int[] _inputColumnsIndex;
-        private readonly ColumnType[] _inputColumnsTypes;
+        private readonly int[] _weightColumnIndices;
+        private readonly int[] _inputColumnIndices;
+        private readonly ColumnType[] _inputColumnTypes;
         private readonly int _numColumns;
 
         private const string RegistrationName = "Pca";
@@ -246,33 +246,33 @@ namespace Microsoft.ML.Runtime.Data
 
             _numColumns = ColumnPairs.Length;
             _transformInfos = new TransformInfo[_numColumns];
-            _weightColumnIndex = new int[_numColumns];
-            _inputColumnsIndex = new int[_numColumns];
-            _inputColumnsTypes = new ColumnType[_numColumns];
+            _weightColumnIndices = new int[_numColumns];
+            _inputColumnIndices = new int[_numColumns];
+            _inputColumnTypes = new ColumnType[_numColumns];
 
-            for (int i = 0; i < _transformInfos.Length; i++)
+            for (int i = 0; i < _numColumns; i++)
             {
                 var col = columns[i];
-                if (!input.Schema.TryGetColumnIndex(col.Input, out _inputColumnsIndex[i]))
+                if (!input.Schema.TryGetColumnIndex(col.Input, out _inputColumnIndices[i]))
                     throw Host.ExceptSchemaMismatch(nameof(col.Input), "input", col.Input);
-                _inputColumnsTypes[i] = input.Schema.GetColumnType(_inputColumnsIndex[i]);
-                Host.Check(_inputColumnsTypes[i].IsKnownSizeVector && _inputColumnsTypes[i].VectorSize > 1,
+                _inputColumnTypes[i] = input.Schema[_inputColumnIndices[i]].Type;
+                Host.Check(_inputColumnTypes[i].IsKnownSizeVector && _inputColumnTypes[i].VectorSize > 1,
                     "Pca transform can only be applied to columns with known dimensionality greater than 1");
-                _transformInfos[i] = new TransformInfo(col.Rank, _inputColumnsTypes[i].ValueCount);
+                _transformInfos[i] = new TransformInfo(col.Rank, _inputColumnTypes[i].ValueCount);
                 Host.CheckUserArg(col.Oversampling >= 0, nameof(col.Oversampling), "Oversampling must be non-negative");
-                _weightColumnIndex[i] = -1;
+                _weightColumnIndices[i] = -1;
                 var weightColumn = col.WeightColumn;
                 if (weightColumn != null)
                 {
-                    if (!input.Schema.TryGetColumnIndex(weightColumn, out _weightColumnIndex[i]))
+                    if (!input.Schema.TryGetColumnIndex(weightColumn, out _weightColumnIndices[i]))
                         throw Host.Except("weight column '{0}' does not exist", weightColumn);
-                    var type = input.Schema.GetColumnType(_weightColumnIndex[i]);
+                    var type = input.Schema.GetColumnType(_weightColumnIndices[i]);
                     Host.CheckUserArg(type == NumberType.Float, nameof(weightColumn));
                 }
             }
 
             Train(columns, _transformInfos, input);
-            _types = InitColumnTypes();
+            _outputColumnTypes = InitColumnTypes();
         }
 
         private PcaTransformer(IHost host, ModelLoadContext ctx)
@@ -289,7 +289,7 @@ namespace Microsoft.ML.Runtime.Data
             _transformInfos = new TransformInfo[_numColumns];
             for (int i = 0; i < _numColumns; i++)
                 _transformInfos[i] = new TransformInfo(ctx);
-            _types = InitColumnTypes();
+            _outputColumnTypes = InitColumnTypes();
         }
 
         // Factory method for SignatureLoadDataTransform.
@@ -476,9 +476,9 @@ namespace Microsoft.ML.Runtime.Data
             bool[] activeColumns = new bool[trainingData.Schema.ColumnCount];
             for (int iinfo = 0; iinfo < _numColumns; iinfo++)
             {
-                activeColumns[_inputColumnsIndex[iinfo]] = true;
-                if (_weightColumnIndex[iinfo] >= 0)
-                    activeColumns[_weightColumnIndex[iinfo]] = true;
+                activeColumns[_inputColumnIndices[iinfo]] = true;
+                if (_weightColumnIndices[iinfo] >= 0)
+                    activeColumns[_weightColumnIndices[iinfo]] = true;
             }
 
             using (var cursor = trainingData.GetRowCursor(col => activeColumns[col]))
@@ -487,9 +487,9 @@ namespace Microsoft.ML.Runtime.Data
                 var columnGetters = new ValueGetter<VBuffer<Float>>[_numColumns];
                 for (int iinfo = 0; iinfo < _numColumns; iinfo++)
                 {
-                    if (_weightColumnIndex[iinfo] >= 0)
-                        weightGetters[iinfo] = cursor.GetGetter<Float>(_weightColumnIndex[iinfo]);
-                    columnGetters[iinfo] = cursor.GetGetter<VBuffer<Float>>(_inputColumnsIndex[iinfo]);
+                    if (_weightColumnIndices[iinfo] >= 0)
+                        weightGetters[iinfo] = cursor.GetGetter<Float>(_weightColumnIndices[iinfo]);
+                    columnGetters[iinfo] = cursor.GetGetter<VBuffer<Float>>(_inputColumnIndices[iinfo]);
                 }
 
                 var features = default(VBuffer<Float>);
@@ -497,7 +497,7 @@ namespace Microsoft.ML.Runtime.Data
                 {
                     for (int iinfo = 0; iinfo < _numColumns; iinfo++)
                     {
-                        Contracts.Check(_inputColumnsTypes[iinfo].IsVector && _inputColumnsTypes[iinfo].ItemType.IsNumber,
+                        Contracts.Check(_inputColumnTypes[iinfo].IsVector && _inputColumnTypes[iinfo].ItemType.IsNumber,
                             "PCA transform can only be performed on numeric columns of dimension > 1");
 
                         Float weight = 1;
@@ -572,46 +572,85 @@ namespace Microsoft.ML.Runtime.Data
             return types;
         }
 
-        protected override ColumnType GetColumnTypeCore(int iinfo)
+        protected override IRowMapper MakeRowMapper(ISchema schema) => new Mapper(this, Schema.Create(schema));
+
+        private sealed class Mapper : MapperBase
         {
-            Host.Check(0 <= iinfo & iinfo < Utils.Size(_types));
-            return _types[iinfo];
-        }
+            private readonly ColumnType[] _outputColumnTypes;
+            private readonly ColumnType[] _inputColumnTypes;
+            private readonly int[] _inputColumnIndices;
+            private readonly PcaTransformer _parent;
+            private readonly int _numColumns;
 
-        protected override Delegate GetGetterCore(IChannel ch, IRow input, int iinfo, out Action disposer)
-        {
-            Host.AssertValueOrNull(ch);
-            Host.AssertValue(input);
-            Host.Assert(0 <= iinfo && iinfo < _numColumns);
-            disposer = null;
-
-            var getSrc = GetSrcGetter<VBuffer<Float>>(input, iinfo);
-            var src = default(VBuffer<Float>);
-            var trInfo = _transformInfos[iinfo];
-            ValueGetter<VBuffer<Float>> del =
-                (ref VBuffer<Float> dst) =>
-                {
-                    getSrc(ref src);
-                    TransformFeatures(Host, ref src, ref dst, trInfo);
-                };
-            return del;
-        }
-
-        private static void TransformFeatures(IExceptionContext ectx, ref VBuffer<Float> src, ref VBuffer<Float> dst, TransformInfo transformInfo)
-        {
-            ectx.Check(src.Length == transformInfo.Dimension);
-
-            var values = dst.Values;
-            if (Utils.Size(values) < transformInfo.Rank)
-                values = new Float[transformInfo.Rank];
-
-            for (int i = 0; i < transformInfo.Rank; i++)
+            public Mapper(PcaTransformer parent, Schema inputSchema)
+               : base(parent.Host.Register(nameof(Mapper)), parent, inputSchema)
             {
-                values[i] = VectorUtils.DotProductWithOffset(transformInfo.Eigenvectors[i], 0, ref src) -
-                    (transformInfo.MeanProjected == null ? 0 : transformInfo.MeanProjected[i]);
+                _parent = parent;
+                _numColumns = parent._numColumns;
+                _outputColumnTypes = parent.InitColumnTypes();
+                _inputColumnTypes = new ColumnType[_numColumns];
+                _inputColumnIndices = new int[_numColumns];
+                for (int i = 0; i < _numColumns; i++)
+                {
+                    var inputColName = _parent.ColumnPairs[i].input;
+                    if (!inputSchema.TryGetColumnIndex(inputColName, out _inputColumnIndices[i]))
+                        throw Host.ExceptSchemaMismatch(nameof(inputColName), "input", inputColName);
+                    _inputColumnTypes[i] = inputSchema[_inputColumnIndices[i]].Type;
+                    Host.Check(_inputColumnTypes[i].IsKnownSizeVector && _inputColumnTypes[i].VectorSize > 1,
+                        "Pca transform can only be applied to columns with known dimensionality greater than 1");
+                    if (_inputColumnTypes[i].VectorSize != _parent._transformInfos[i].Dimension)
+                    {
+                        var msg = $"Dimension of column ${inputColName} is ${_inputColumnTypes[i].VectorSize}, which doesn't match the expected size ${_parent._transformInfos[i].Dimension}";
+                        throw Host.Except(msg);
+                    }
+                }
+                // Ivan't comment:
+                //var getSrc = input.GetGetter<ReadOnlyMemory<char>>(ColMapNewToOld[iinfo]);
             }
 
-            dst = new VBuffer<Float>(transformInfo.Rank, values, dst.Indices);
+            public override Schema.Column[] GetOutputColumns()
+            {
+                var result = new Schema.Column[_numColumns];
+                for (int i = 0; i < _numColumns; i++)
+                    result[i] = new Schema.Column(_parent.ColumnPairs[i].output, _outputColumnTypes[i], null);
+                return result;
+            }
+
+            protected override Delegate MakeGetter(IRow input, int iinfo, out Action disposer)
+            {
+                Contracts.AssertValue(input);
+                Contracts.Assert(0 <= iinfo && iinfo < _numColumns);
+                disposer = null;
+
+                var srcGetter = input.GetGetter<VBuffer<float>>(_inputColumnIndices[iinfo]);
+                var src = default(VBuffer<float>);
+
+                ValueGetter<VBuffer<float>> dstGetter = (ref VBuffer<float> dst) =>
+                    {
+                        srcGetter(ref src);
+                        TransformFeatures(Host, ref src, ref dst, _parent._transformInfos[iinfo]);
+                    };
+
+                return dstGetter;
+            }
+
+            private static void TransformFeatures(IExceptionContext ectx, ref VBuffer<Float> src, ref VBuffer<Float> dst, TransformInfo transformInfo)
+            {
+                ectx.Check(src.Length == transformInfo.Dimension);
+
+                var values = dst.Values;
+                if (Utils.Size(values) < transformInfo.Rank)
+                    values = new Float[transformInfo.Rank];
+
+                for (int i = 0; i < transformInfo.Rank; i++)
+                {
+                    values[i] = VectorUtils.DotProductWithOffset(transformInfo.Eigenvectors[i], 0, ref src) -
+                        (transformInfo.MeanProjected == null ? 0 : transformInfo.MeanProjected[i]);
+                }
+
+                dst = new VBuffer<Float>(transformInfo.Rank, values, dst.Indices);
+            }
+
         }
 
         [TlcModule.EntryPoint(Name = "Transforms.PcaCalculator2",
@@ -629,11 +668,6 @@ namespace Microsoft.ML.Runtime.Data
                 Model = new TransformModel(h, view, input.Data),
                 OutputData = view
             };
-        }
-
-        protected override IRowMapper MakeRowMapper(ISchema schema)
-        {
-            throw new NotImplementedException();
         }
     }
 }
