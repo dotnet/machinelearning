@@ -19,6 +19,9 @@ using Microsoft.ML.Runtime.Learners;
     new[] { typeof(SignatureBinaryClassifierTrainer), typeof(SignatureTrainer) },
     EnsembleTrainer.UserNameValue, EnsembleTrainer.LoadNameValue, "pe", "ParallelEnsemble")]
 
+[assembly: LoadableClass(typeof(EnsembleTrainer), typeof(EnsembleTrainer.Arguments), typeof(SignatureModelCombiner),
+    "Binary Classification Ensemble Model Combiner", EnsembleTrainer.LoadNameValue, "pe", "ParallelEnsemble")]
+
 namespace Microsoft.ML.Runtime.Ensemble
 {
     using TDistPredictor = IDistPredictorProducing<Single, Single>;
@@ -28,7 +31,7 @@ namespace Microsoft.ML.Runtime.Ensemble
     /// </summary>
     public sealed class EnsembleTrainer : EnsembleTrainerBase<Single, TScalarPredictor,
         IBinarySubModelSelector, IBinaryOutputCombiner>,
-        IModelCombiner<TScalarPredictor, TScalarPredictor>
+        IModelCombiner
     {
         public const string LoadNameValue = "WeightedEnsemble";
         public const string UserNameValue = "Parallel Ensemble (bagging, stacking, etc)";
@@ -70,6 +73,12 @@ namespace Microsoft.ML.Runtime.Ensemble
             Combiner = args.OutputCombiner.CreateComponent(Host);
         }
 
+        public EnsembleTrainer(IHostEnvironment env, Arguments args, PredictionKind predictionKind)
+            : this(env, args)
+        {
+            Host.CheckParam(predictionKind == PredictionKind.BinaryClassification, nameof(PredictionKind));
+        }
+
         public override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
 
         private protected override TScalarPredictor CreatePredictor(List<FeatureSubsetModel<TScalarPredictor>> models)
@@ -79,18 +88,22 @@ namespace Microsoft.ML.Runtime.Ensemble
             return new EnsemblePredictor(Host, PredictionKind, CreateModels<TScalarPredictor>(models), Combiner);
         }
 
-        public TScalarPredictor CombineModels(IEnumerable<TScalarPredictor> models)
+        public IPredictor CombineModels(IEnumerable<IPredictor> models)
         {
+            Host.CheckValue(models, nameof(models));
+
             var combiner = _outputCombiner.CreateComponent(Host);
             var p = models.First();
-
             if (p is TDistPredictor)
             {
+                Host.CheckParam(models.All(m => m is TDistPredictor), nameof(models));
                 return new EnsembleDistributionPredictor(Host, p.PredictionKind,
                     models.Select(k => new FeatureSubsetModel<TDistPredictor>((TDistPredictor)k)).ToArray(), combiner);
             }
+
+            Host.CheckParam(models.All(m => m is TScalarPredictor), nameof(models));
             return new EnsemblePredictor(Host, p.PredictionKind,
-                    models.Select(k => new FeatureSubsetModel<TScalarPredictor>(k)).ToArray(), combiner);
+                    models.Select(k => new FeatureSubsetModel<TScalarPredictor>((TScalarPredictor)k)).ToArray(), combiner);
         }
     }
 }
