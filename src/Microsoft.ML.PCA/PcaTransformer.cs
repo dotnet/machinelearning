@@ -292,11 +292,13 @@ namespace Microsoft.ML.Runtime.Data
             _types = InitColumnTypes();
         }
 
-        private static (string input, string output)[] GetColumnPairs(ColumnInfo[] columns)
-        {
-            //Contracts.CheckValue(columns, nameof(columns));
-            return columns.Select(x => (x.Input, x.Output)).ToArray();
-        }
+        // Factory method for SignatureLoadDataTransform.
+        private static IDataTransform Create(IHostEnvironment env, ModelLoadContext ctx, IDataView input)
+            => Create(env, ctx).MakeDataTransform(input);
+
+        // Factory method for SignatureLoadRowMapper.
+        private static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, ISchema inputSchema)
+            => Create(env, ctx).MakeRowMapper(inputSchema);
 
         // Factory method for SignatureDataTransform.
         private static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
@@ -325,20 +327,20 @@ namespace Microsoft.ML.Runtime.Data
             return new PcaTransformer(env, input, cols).MakeDataTransform(input);
         }
 
-        public static PcaTransformer Create(IHostEnvironment env, ModelLoadContext ctx, IDataView input)
+        // Factory method for SignatureLoadModel.
+        private static PcaTransformer Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
-            var h = env.Register(RegistrationName);
-            h.CheckValue(ctx, nameof(ctx));
-            h.CheckValue(input, nameof(input));
-            ctx.CheckAtModel(GetVersionInfo());
+            var host = env.Register(nameof(PcaTransformer));
 
-            // *** Binary format ***
-            // int: sizeof(Float)
-            // <remainder handled in ctors>
-            int cbFloat = ctx.Reader.ReadInt32();
-            h.CheckDecode(cbFloat == sizeof(Float));
-            return h.Apply("Loading Model", ch => new PcaTransformer(h, ctx, input));
+            host.CheckValue(ctx, nameof(ctx));
+            ctx.CheckAtModel(GetVersionInfo());
+            if (ctx.Header.ModelVerWritten == 0x00010001)
+            {
+                int cbFloat = ctx.Reader.ReadInt32();
+                env.CheckDecode(cbFloat == sizeof(float));
+            }
+            return new PcaTransformer(host, ctx);
         }
 
         public override void Save(ModelSaveContext ctx)
@@ -355,6 +357,12 @@ namespace Microsoft.ML.Runtime.Data
             SaveColumns(ctx);
             for (int i = 0; i < _transformInfos.Length; i++)
                 _transformInfos[i].Save(ctx);
+        }
+
+        private static (string input, string output)[] GetColumnPairs(ColumnInfo[] columns)
+        {
+            //Contracts.CheckValue(columns, nameof(columns));
+            return columns.Select(x => (x.Input, x.Output)).ToArray();
         }
 
         private void Train(ColumnInfo[] columns, TransformInfo[] transformInfos, IDataView trainingData)
