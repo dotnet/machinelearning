@@ -16,6 +16,9 @@ using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.Numeric;
 using Microsoft.ML.Core.Data;
+using Microsoft.ML.StaticPipe;
+using Microsoft.ML.StaticPipe.Runtime;
+using System.Collections.Generic;
 
 [assembly: LoadableClass(PcaTransformer.Summary, typeof(IDataTransform), typeof(PcaTransformer), typeof(PcaTransformer.Arguments), typeof(SignatureDataTransform),
     PcaTransformer.UserName, PcaTransformer.LoaderSignature, PcaTransformer.ShortName)]
@@ -307,25 +310,21 @@ namespace Microsoft.ML.Runtime.Data
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(args, nameof(args));
             env.CheckValue(input, nameof(input));
-
             env.CheckValue(args.Column, nameof(args.Column));
-            var cols = new ColumnInfo[args.Column.Length];
-            using (var ch = env.Start("ValidateArgs"))
-            {
+            var cols = ArgumentsToColumnInfos(args);
+            return new PcaTransformer(env, input, cols).MakeDataTransform(input);
+        }
 
-                for (int i = 0; i < cols.Length; i++)
-                {
-                    var item = args.Column[i];
-                    cols[i] = new ColumnInfo(item.Source,
+        internal static ColumnInfo[] ArgumentsToColumnInfos(Arguments args)
+        {
+            return args.Column.Select(item => new ColumnInfo(
+                        item.Source,
                         item.Name,
                         item.WeightColumn,
                         item.Rank ?? args.Rank,
                         item.Oversampling ?? args.Oversampling,
                         item.Center ?? args.Center,
-                        item.Seed ?? args.Seed);
-                };
-            }
-            return new PcaTransformer(env, input, cols).MakeDataTransform(input);
+                        item.Seed ?? args.Seed)).ToArray();
         }
 
         // Factory method for SignatureLoadModel.
@@ -680,31 +679,48 @@ namespace Microsoft.ML.Runtime.Data
 
     public sealed class PcaEstimator2 : IEstimator<PcaTransformer>
     {
-        public static class Defaults
-        {
-            public const int NewDim = 1000;
-            public const bool UseSin = false;
-        }
-
         private readonly IHost _host;
         private readonly PcaTransformer.ColumnInfo[] _columns;
 
         /// <summary>
         /// Convinence constructor for simple one column case
         /// </summary>
+        /// <include file='doc.xml' path='doc/members/member[@name="PCA"]/*' />
+        /// <param name="env">The environment.</param>
+        /// <param name="inputColumn">Input column to apply PCA on.</param>
+        /// <param name="outputColumn">Output column. Null means <paramref name="inputColumn"/> is replaced.</param>
+        /// <param name="rank">The number of components in the PCA.</param>
+        /// <param name="advancedSettings">A delegate to apply all the advanced arguments to the algorithm.</param>
         public PcaEstimator2(IHostEnvironment env, string inputColumn, string outputColumn = null,
-            string weightColumn = PcaTransformer.Defaults.WeightColumn, int rank = PcaTransformer.Defaults.Rank,
-            int overSampling = PcaTransformer.Defaults.Oversampling, bool center = PcaTransformer.Defaults.Center,
-            int? seed = null)
-            : this(env, new PcaTransformer.ColumnInfo(inputColumn, outputColumn ?? inputColumn, weightColumn, rank, overSampling, center, seed))
+            int rank = PcaTransformer.Defaults.Rank,
+            Action<PcaTransformer.Arguments> advancedSettings = null)
+            : this(env, new[] { (inputColumn, outputColumn ?? inputColumn) }, rank, advancedSettings)
         {
         }
 
-        public PcaEstimator2(IHostEnvironment env, params PcaTransformer.ColumnInfo[] columns)
+        /// <include file='doc.xml' path='doc/members/member[@name="PCA"]/*' />
+        /// <param name="env">The environment.</param>
+        /// <param name="columns">Pairs of columns to run the PCA on.</param>
+        /// <param name="rank">The number of components in the PCA.</param>
+        /// <param name="advancedSettings">A delegate to apply all the advanced arguments to the algorithm.</param>
+        public PcaEstimator2(IHostEnvironment env, (string input, string output)[] columns,
+            int rank = PcaTransformer.Defaults.Rank,
+            Action<PcaTransformer.Arguments> advancedSettings = null)
         {
             Contracts.CheckValue(env, nameof(env));
             _host = env.Register(nameof(PcaEstimator2));
-            _columns = columns;
+
+            foreach (var (input, output) in columns)
+            {
+                _host.CheckUserArg(Utils.Size(input) > 0, nameof(input));
+                _host.CheckValue(output, nameof(output));
+            }
+
+            var args = new PcaTransformer.Arguments();
+            args.Column = columns.Select(x => new PcaTransformer.Column { Source = x.input, Name = x.output }).ToArray();
+            args.Rank = rank;
+            advancedSettings?.Invoke(args);
+            _columns = PcaTransformer.ArgumentsToColumnInfos(args);
         }
 
         public PcaTransformer Fit(IDataView input) => new PcaTransformer(_host, input, _columns);
@@ -728,4 +744,56 @@ namespace Microsoft.ML.Runtime.Data
         }
     }
 
+    /// <summary>
+    /// Extensions for statically typed <see cref="PcaEstimator"/>.
+    /// </summary>
+    public static class PcaEstimatorExtensions2
+    {
+        private sealed class OutPipelineColumn : Vector<float>
+        {
+            public readonly Vector<float> Input;
+
+            public OutPipelineColumn(Vector<float> input, int rank, Action<PcaTransformer.Arguments> advancedSettings)
+                : base(new Reconciler(null, rank, advancedSettings), input)
+            {
+                Input = input;
+            }
+        }
+
+        private sealed class Reconciler : EstimatorReconciler
+        {
+            private readonly int _rank;
+            private readonly Action<PcaTransformer.Arguments> _advancedSettings;
+
+            public Reconciler(PipelineColumn weightColumn, int rank, Action<PcaTransformer.Arguments> advancedSettings)
+            {
+                _rank = rank;
+                _advancedSettings = advancedSettings;
+            }
+
+            public override IEstimator<ITransformer> Reconcile(IHostEnvironment env,
+                PipelineColumn[] toOutput,
+                IReadOnlyDictionary<PipelineColumn, string> inputNames,
+                IReadOnlyDictionary<PipelineColumn, string> outputNames,
+                IReadOnlyCollection<string> usedNames)
+            {
+                Contracts.Assert(toOutput.Length == 1);
+
+                var pairs = new List<(string input, string output)>();
+                foreach (var outCol in toOutput)
+                    pairs.Add((inputNames[((OutPipelineColumn)outCol).Input], outputNames[outCol]));
+
+                return new PcaEstimator2(env, pairs.ToArray(), _rank, _advancedSettings);
+            }
+        }
+
+        /// <summary>Replace current vector with its principal components. Can significantly reduce size of vector.</summary>
+        /// <include file='doc.xml' path='doc/members/member[@name="PCA"]/*'/>
+        /// <param name="input">The column to apply PCA to.</param>
+        /// <param name="rank">The number of components in the PCA.</param>
+        /// <param name="advancedSettings">A delegate to apply all the advanced arguments to the algorithm.</param>
+        public static Vector<float> ToPrincipalComponents(this Vector<float> input,
+            int rank = PcaTransformer.Defaults.Rank,
+            Action<PcaTransformer.Arguments> advancedSettings = null) => new OutPipelineColumn(input, rank, advancedSettings);
+    }
 }
