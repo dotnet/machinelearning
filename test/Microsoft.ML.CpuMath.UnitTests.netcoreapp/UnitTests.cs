@@ -116,7 +116,7 @@ namespace Microsoft.ML.CpuMath.UnitTests
         [InlineData(0, 0, 0, new float[] { 38.25002f, 38.25002f, 38.25002f, 38.25002f, 38.25002f, 38.25002f, 38.25002f, 38.25002f })]
         [InlineData(1, 1, 0, new float[] { 910f, 2190f, 3470f, 4750f, 6030f, 7310f, 8590f, 9870f })]
         [InlineData(1, 0, 1, new float[] { 95f, 231f, 367f, 503f, 639f, 775f, 911f, 1047f, 1183f, 1319f, 1455f, 1591f, 1727f, 1863f, 1999f, 2135f })]
-        public void MatMulPTest(int matTest, int srcTest, int dstTest, float[] expected)
+        public void MatTimesSrcSparseTest(int matTest, int srcTest, int dstTest, float[] expected)
         {
             AlignedArray mat = _testMatrices[matTest];
             AlignedArray src = _testSrcVectors[srcTest];

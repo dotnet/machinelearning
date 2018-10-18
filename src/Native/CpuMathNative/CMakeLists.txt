@@ -5,9 +5,7 @@ set(SOURCES
     MathLinux.S
 )
 
-if(WIN32)
-    set_property(SOURCE Sse.cpp APPEND_STRING PROPERTY COMPILE_FLAGS " -mavx")
-else()
+if(NOT WIN32)
     set_property(SOURCE Sse.cpp APPEND_STRING PROPERTY COMPILE_FLAGS " -msse3")
     list(APPEND SOURCES ${VERSION_FILE_PATH})
 endif()

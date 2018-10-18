@@ -41,43 +41,6 @@
     x = _rotate(x); _mm_store_ss(pd + pi[2], x); \
     x = _rotate(x); _mm_store_ss(pd + pi[3], x)
 
-#ifndef _WIN32
-
-typedef unsigned int DWORD; // NOTE: diff from  windows.h, for LP64 compat
-
-// getcpuid and xmmYmmStateSupport are taken from 
-// https://github.com/dotnet/coreclr/blob/b5f4d2df2e087401f2c3aab2c37021e326707915/src/vm/amd64/unixstubs.cpp#L14-L55
-
-DWORD getcpuid(DWORD arg, unsigned char result[16])
-{
-	DWORD eax;
-	__asm("  xor %%ecx, %%ecx\n" \
-	"  cpuid\n" \
-		"  mov %%eax, 0(%[result])\n" \
-		"  mov %%ebx, 4(%[result])\n" \
-		"  mov %%ecx, 8(%[result])\n" \
-		"  mov %%edx, 12(%[result])\n" \
-		: "=a"(eax) /*output in eax*/\
-		: "a"(arg), [result]"r"(result) /*inputs - arg in eax, result in any register*/\
-		: "rbx", "ecx", "edx", "memory" /* registers that are clobbered, *result is clobbered */
-		);
-	return eax;
-}
-
-DWORD xmmYmmStateSupport()
-{
-	DWORD eax;
-	__asm("  xgetbv\n" \
-	: "=a"(eax) /*output in eax*/\
-		: "c"(0) /*inputs - 0 in ecx*/\
-		: "edx" /* registers that are clobbered*/
-		);
-	// check OS has enabled both XMM and YMM state support
-	return ((eax & 0x06) == 0x06) ? 1 : 0;
-}
-
-#endif
-
 const unsigned int LeadingAlignmentMask[16] =
 {
     0x00000000, 0x00000000, 0x00000000, 0x00000000,
