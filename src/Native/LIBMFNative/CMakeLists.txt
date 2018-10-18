@@ -1,8 +1,10 @@
 project (LIBMFNative)
 
+include_directories(libmf)
+
 set(SOURCES
     UnmanagedMemory.cpp
-    mf.cpp
+    libmf/mf.cpp
 )
 
 if(WIN32)

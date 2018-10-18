@@ -79,7 +79,7 @@ namespace Microsoft.ML.Runtime.Recommender.Internal
             public float* Q;
         }
 
-        private const string DllPath = "LibMFWrapper";
+        private const string DllPath = "LIBMFNative";
 
         [DllImport(DllPath), SuppressUnmanagedCodeSecurity]
         private static unsafe extern void MFDestroyModel(ref MFModel* model);

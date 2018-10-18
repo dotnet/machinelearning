@@ -89,7 +89,7 @@
                           RelativePath="Microsoft.ML\runtimes\$(PackageRid)\native" />
       <NativePackageAsset Include="$(NativeAssetsBuiltPath)\$(NativeLibPrefix)LdaNative$(NativeLibExtension)"
                           RelativePath="Microsoft.ML\runtimes\$(PackageRid)\native" />
-      <NativePackageAsset Include="$(NativeAssetsBuiltPath)\$(NativeLibPrefix)LibMFWrapper$(NativeLibExtension)"
+      <NativePackageAsset Include="$(NativeAssetsBuiltPath)\$(NativeLibPrefix)LIBMFNative$(NativeLibExtension)"
                           RelativePath="Microsoft.ML\runtimes\$(PackageRid)\native" />
       <NativePackageAsset Include="$(NativeAssetsBuiltPath)\$(NativeLibPrefix)FactorizationMachineNative$(NativeLibExtension)"
                           RelativePath="Microsoft.ML\runtimes\$(PackageRid)\native" />
