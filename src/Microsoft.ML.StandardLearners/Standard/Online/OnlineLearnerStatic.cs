@@ -9,12 +9,12 @@ using Microsoft.ML.StaticPipe;
 using Microsoft.ML.StaticPipe.Runtime;
 using System;
 
-namespace Microsoft.ML.Trainers
+namespace Microsoft.ML.StaticPipe
 {
     /// <summary>
     /// Binary Classification trainer estimators.
     /// </summary>
-    public static partial class BinaryClassificationTrainers
+    public static class AveragedPerceptronExtensions
     {
         /// <summary>
         /// Predict a target using a linear binary classification model trained with the AveragedPerceptron trainer, and a custom loss.
@@ -91,7 +91,7 @@ namespace Microsoft.ML.Trainers
     /// <summary>
     /// Regression trainer estimators.
     /// </summary>
-    public static partial class RegressionTrainers
+    public static class OnlineGradientDescentExtensions
     {
         /// <summary>
         /// Predict a target using a linear regression model trained with the <see cref="Microsoft.ML.Runtime.Learners.OnlineGradientDescentTrainer"/> trainer.
