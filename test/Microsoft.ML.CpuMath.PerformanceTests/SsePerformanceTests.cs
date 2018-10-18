@@ -98,5 +98,13 @@ namespace Microsoft.ML.CpuMath.PerformanceTests
         [Benchmark]
         public void SdcaL1UpdateSU()
             => SseIntrinsics.SdcaL1UpdateSU(DefaultScale, IndexLength, src, idx, DefaultScale, dst, result);
+
+        [Benchmark]
+        public void MatMulX()
+            => SseIntrinsics.MatMul(src, src1, dst, 1000, 1000);
+
+        [Benchmark]
+        public void MatMulTranX()
+            => SseIntrinsics.MatMulTran(src, src1, dst, 1000, 1000);
     }
 }

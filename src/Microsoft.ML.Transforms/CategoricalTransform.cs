@@ -117,20 +117,6 @@ namespace Microsoft.ML.Runtime.Data
 
         public const string UserName = "Categorical Transform";
 
-        /// <summary>
-        /// A helper method to create <see cref="CategoricalTransform"/>.
-        /// </summary>
-        /// <param name="env">Host Environment.</param>
-        /// <param name="input">Input <see cref="IDataView"/>. This is the output from previous transform or loader.</param>
-        /// <param name="name">Name of the output column.</param>
-        /// <param name="source">Name of the column to be transformed. If this is null '<paramref name="name"/>' will be used.</param>
-        /// <param name="outputKind">The type of output expected.</param>
-        public static IDataView Create(IHostEnvironment env, IDataView input, string name,
-            string source = null, OutputKind outputKind = CategoricalEstimator.Defaults.OutKind)
-        {
-            return new CategoricalEstimator(env, name, source, outputKind).Fit(input).Transform(input) as IDataView;
-        }
-
         public static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
         {
             Contracts.CheckValue(env, nameof(env));
@@ -207,12 +193,12 @@ namespace Microsoft.ML.Runtime.Data
 
         /// A helper method to create <see cref="CategoricalEstimator"/> for public facing API.
         /// <param name="env">Host Environment.</param>
-        /// <param name="name">Name of the output column.</param>
-        /// <param name="source">Name of the column to be transformed. If this is null '<paramref name="name"/>' will be used.</param>
+        /// <param name="input">Name of the column to be transformed.</param>
+        /// <param name="output">Name of the output column. If this is <c>null</c>, <paramref name="input"/> is used.</param>
         /// <param name="outputKind">The type of output expected.</param>
-        public CategoricalEstimator(IHostEnvironment env, string name,
-            string source = null, CategoricalTransform.OutputKind outputKind = Defaults.OutKind)
-            : this(env, new ColumnInfo(source ?? name, name, outputKind))
+        public CategoricalEstimator(IHostEnvironment env, string input,
+            string output = null, CategoricalTransform.OutputKind outputKind = Defaults.OutKind)
+            : this(env, new ColumnInfo(input, output ?? input, outputKind))
         {
         }
 
