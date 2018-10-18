@@ -166,55 +166,29 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             => Create(env, ctx).MakeRowMapper(inputSchema);
     }
 
-    public sealed class IidSpikeEstimator : IEstimator<IidSpikeDetector>
+    public sealed class IidSpikeEstimator : TrivialEstimator<IidSpikeDetector>
     {
-        private readonly IHost _host;
-        private readonly string _inputColumnName;
-        private readonly string _outputColumnName;
-        private readonly int _confidence;
-        private readonly int _pvalueHistoryLength;
-
-        public IidSpikeEstimator(
-            IHostEnvironment env,
-            int confidence,
-            int pvalueHistoryLength,
-            string input,
-            string output)
-        {
-            Contracts.CheckValue(env, nameof(env));
-            _host = env.Register(nameof(IidSpikeEstimator));
-
-            _host.CheckNonEmpty(input, nameof(input));
-            _host.CheckNonEmpty(output, nameof(output));
-
-            _confidence = confidence;
-            _pvalueHistoryLength = pvalueHistoryLength;
-            _inputColumnName = input;
-            _outputColumnName = output;
-        }
-
-        public IidSpikeDetector Fit(IDataView input)
-        {
-            _host.CheckValue(input, nameof(input));
-            return new IidSpikeDetector(_host,
-                new IidSpikeDetector.Arguments
+        public IidSpikeEstimator(IHostEnvironment env, int confidence, int pvalueHistoryLength, string input, string output):
+            base(Contracts.CheckRef(env, nameof(env)).Register(nameof(IidSpikeDetector)),
+                new IidSpikeDetector(env, new IidSpikeDetector.Arguments
                 {
-                    Confidence = _confidence,
-                    PvalueHistoryLength = _pvalueHistoryLength,
-                    Source = _inputColumnName,
-                    Name = _outputColumnName
-                });
+                    Confidence = confidence,
+                    PvalueHistoryLength = pvalueHistoryLength,
+                    Source = input,
+                    Name = output,
+                }))
+        {
         }
 
-        public SchemaShape GetOutputSchema(SchemaShape inputSchema)
+        public override SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {
-            _host.CheckValue(inputSchema, nameof(inputSchema));
+            Host.CheckValue(inputSchema, nameof(inputSchema));
             var metadata = new List<SchemaShape.Column>() {
                 new SchemaShape.Column(MetadataUtils.Kinds.SlotNames, SchemaShape.Column.VectorKind.Vector, TextType.Instance, false)
             };
             var resultDic = inputSchema.Columns.ToDictionary(x => x.Name);
-            resultDic[_outputColumnName] = new SchemaShape.Column(
-                _outputColumnName, SchemaShape.Column.VectorKind.Vector, NumberType.R8, false, new SchemaShape(metadata));
+            resultDic[Transformer.OutputColumnName] = new SchemaShape.Column(
+                Transformer.OutputColumnName, SchemaShape.Column.VectorKind.Vector, NumberType.R8, false, new SchemaShape(metadata));
 
             return new SchemaShape(resultDic.Values);
         }

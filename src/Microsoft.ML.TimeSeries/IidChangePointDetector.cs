@@ -186,55 +186,30 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             => Create(env, ctx).MakeRowMapper(inputSchema);
     }
 
-    public sealed class IidChangePointEstimator : IEstimator<IidChangePointDetector>
+    public sealed class IidChangePointEstimator : TrivialEstimator<IidChangePointDetector>
     {
-        private readonly IHost _host;
-        private readonly string _inputColumnName;
-        private readonly string _outputColumnName;
-        private readonly int _confidence;
-        private readonly int _changeHistoryLength;
-
-        public IidChangePointEstimator(
-            IHostEnvironment env,
-            int confidence,
-            int changeHistoryLength,
-            string input,
-            string output)
-        {
-            Contracts.CheckValue(env, nameof(env));
-            _host = env.Register(nameof(IidChangePointEstimator));
-
-            _host.CheckNonEmpty(input, nameof(input));
-            _host.CheckNonEmpty(output, nameof(output));
-
-            _confidence = confidence;
-            _changeHistoryLength = changeHistoryLength;
-            _inputColumnName = input;
-            _outputColumnName = output;
-        }
-
-        public IidChangePointDetector Fit(IDataView input)
-        {
-            _host.CheckValue(input, nameof(input));
-            return new IidChangePointDetector(_host,
-                new IidChangePointDetector.Arguments
+        public IidChangePointEstimator(IHostEnvironment env, int confidence, int changeHistoryLength, string input, string output):
+            base(Contracts.CheckRef(env, nameof(env)).Register(nameof(IidChangePointEstimator)),
+                new IidChangePointDetector(env, new IidChangePointDetector.Arguments
                 {
-                    Confidence = _confidence,
-                    ChangeHistoryLength = _changeHistoryLength,
-                    Source = _inputColumnName,
-                    Name = _outputColumnName,
-                });
+                    Confidence = confidence,
+                    ChangeHistoryLength = changeHistoryLength,
+                    Source = input,
+                    Name = output,
+                }))
+        {
         }
 
-        public SchemaShape GetOutputSchema(SchemaShape inputSchema)
+        public override SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {
-            _host.CheckValue(inputSchema, nameof(inputSchema));
+            Host.CheckValue(inputSchema, nameof(inputSchema));
             var metadata = new List<SchemaShape.Column>() {
                 new SchemaShape.Column(MetadataUtils.Kinds.SlotNames, SchemaShape.Column.VectorKind.Vector, TextType.Instance, false)
             };
             var resultDic = inputSchema.Columns.ToDictionary(x => x.Name);
-            resultDic[_outputColumnName] = new SchemaShape.Column(
-                _outputColumnName, SchemaShape.Column.VectorKind.Vector, NumberType.R8, false, new SchemaShape(metadata));
+
+            resultDic[Transformer.OutputColumnName] = new SchemaShape.Column(
+                Transformer.OutputColumnName, SchemaShape.Column.VectorKind.Vector, NumberType.R8, false, new SchemaShape(metadata));
 
             return new SchemaShape(resultDic.Values);
         }

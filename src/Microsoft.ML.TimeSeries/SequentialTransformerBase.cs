@@ -183,7 +183,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
         protected int InitialWindowSize;
 
         protected string InputColumnName;
-        protected string OutputColumnName;
+        public string OutputColumnName;
         protected ColumnType OutputColumnType;
 
         public bool IsRowToRowMapper => true;
