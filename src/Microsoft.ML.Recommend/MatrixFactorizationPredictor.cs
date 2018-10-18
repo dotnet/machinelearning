@@ -240,25 +240,24 @@ namespace Microsoft.ML.Runtime.Recommend
         public ISchemaBoundMapper Bind(IHostEnvironment env, RoleMappedSchema schema)
         {
             Contracts.AssertValue(schema);
-            return new RowMapper(this, schema, new ScoreMapperSchema(OutputType, MetadataUtils.Const.ScoreColumnKind.Regression));
+            return new RowMapper(this, schema, Schema.Create(new ScoreMapperSchema(OutputType, MetadataUtils.Const.ScoreColumnKind.Regression)));
         }
 
         private sealed class RowMapper : ISchemaBoundRowMapper
         {
             private readonly MatrixFactorizationPredictor _parent;
-            private readonly RoleMappedSchema _inputSchema;
-            private readonly ScoreMapperSchema _outputSchema;
 
             private readonly int _xColIndex;
             private readonly int _yColIndex;
             private readonly string _xColName;
             private readonly string _yColName;
 
-            public ISchema InputSchema => _inputSchema.Schema;
+            public Schema Schema { get; }
+            public Schema InputSchema => InputRoleMappedSchema.Schema;
 
-            public RoleMappedSchema InputRoleMappedSchema => _inputSchema;
+            public RoleMappedSchema InputRoleMappedSchema { get; }
 
-            public RowMapper(MatrixFactorizationPredictor parent, RoleMappedSchema schema, ScoreMapperSchema outputSchema)
+            public RowMapper(MatrixFactorizationPredictor parent, RoleMappedSchema schema, Schema outputSchema)
             {
                 Contracts.AssertValue(parent);
                 _parent = parent;
@@ -276,20 +275,13 @@ namespace Microsoft.ML.Runtime.Recommend
                 _yColIndex = list[0].Index;
 
                 CheckInputSchema(schema.Schema, _xColIndex, _yColIndex);
-                _inputSchema = schema;
-                _outputSchema = outputSchema;
-            }
-
-            public ISchema Schema => OutputSchema;
-
-            public ISchema OutputSchema
-            {
-                get { return _outputSchema; }
+                InputRoleMappedSchema = schema;
+                Schema = outputSchema;
             }
 
             public Func<int, bool> GetDependencies(Func<int, bool> predicate)
             {
-                for (int i = 0; i < OutputSchema.ColumnCount; i++)
+                for (int i = 0; i < Schema.ColumnCount; i++)
                 {
                     if (predicate(i))
                         return col => (col == _xColIndex || col == _yColIndex);
@@ -322,7 +314,7 @@ namespace Microsoft.ML.Runtime.Recommend
             private Delegate[] CreateGetter(IRow input, bool[] active)
             {
                 Contracts.CheckValue(input, nameof(input));
-                Contracts.Assert(Utils.Size(active) == OutputSchema.ColumnCount);
+                Contracts.Assert(Utils.Size(active) == Schema.ColumnCount);
 
                 var getters = new Delegate[1];
                 if (active[0])
@@ -337,10 +329,10 @@ namespace Microsoft.ML.Runtime.Recommend
 
             public IRow GetRow(IRow input, Func<int, bool> predicate, out Action disposer)
             {
-                var active = Utils.BuildArray(OutputSchema.ColumnCount, predicate);
+                var active = Utils.BuildArray(Schema.ColumnCount, predicate);
                 var getters = CreateGetter(input, active);
                 disposer = null;
-                return new SimpleRow(OutputSchema, input, getters);
+                return new SimpleRow(Schema, input, getters);
             }
 
             public ISchemaBindableMapper Bindable { get { return _parent; } }
@@ -356,7 +348,7 @@ namespace Microsoft.ML.Runtime.Recommend
         public ColumnType YColumnType { get; }
         protected override GenericScorer Scorer { get; set; }
 
-        public MatrixFactorizationPredictionTransformer(IHostEnvironment host, MatrixFactorizationPredictor model, ISchema trainSchema,
+        public MatrixFactorizationPredictionTransformer(IHostEnvironment host, MatrixFactorizationPredictor model, Schema trainSchema,
             string xColumnName, string yColumnName, string scoreColumnName = DefaultColumnNames.Score)
             :base(Contracts.CheckRef(host, nameof(host)).Register(nameof(MatrixFactorizationPredictionTransformer)), model, trainSchema)
         {
@@ -414,7 +406,7 @@ namespace Microsoft.ML.Runtime.Recommend
             Scorer = new GenericScorer(Host, args, new EmptyDataView(Host, TrainSchema), BindableMapper.Bind(Host, schema), schema);
         }
 
-        public override ISchema GetOutputSchema(ISchema inputSchema)
+        public override Schema GetOutputSchema(Schema inputSchema)
         {
             if (!inputSchema.TryGetColumnIndex(XColumnName, out int xCol))
                 throw Host.ExceptSchemaMismatch(nameof(inputSchema), RecommendUtils.XKind.Value, XColumnName);

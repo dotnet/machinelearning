@@ -91,8 +91,9 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 }
                 error /= count;
                 double tolerance = System.Math.Pow(10, -DigitsOfPrecision);
-                double expectedError = 0.6151565;
-                Assert.True(System.Math.Abs(error - expectedError) < tolerance);
+                double expectedError = 0.61528733643754685;
+                double relativeError = System.Math.Abs(error - expectedError) / System.Math.Abs(expectedError);
+                Assert.True(relativeError < tolerance);
             }
         }
 
