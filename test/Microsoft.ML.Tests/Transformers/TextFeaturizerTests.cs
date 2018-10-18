@@ -11,6 +11,7 @@ using Microsoft.ML.Transforms;
 using System.IO;
 using Xunit;
 using Xunit.Abstractions;
+using Microsoft.ML.Transforms.Text;
 
 namespace Microsoft.ML.Tests.Transformers
 {
@@ -71,7 +72,7 @@ namespace Microsoft.ML.Tests.Transformers
                 .Read(new MultiFileSource(sentimentDataPath));
 
             var est = new WordTokenizer(Env, "text", "words")
-                .Append(new CharacterTokenizer(Env, "text", "chars"))
+                .Append(new CharacterTokenizeEstimator(Env, "text", "chars"))
                 .Append(new KeyToValueEstimator(Env, "chars"));
             TestEstimatorCore(est, data.AsDynamic, invalidInput: invalidData.AsDynamic);
 

@@ -7,6 +7,7 @@ using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.TextAnalytics;
 using Microsoft.ML.Runtime.Transforms;
+using Microsoft.ML.Transforms.Text;
 
 [assembly: LoadableClass(typeof(void), typeof(TextAnalytics), null, typeof(SignatureEntryPointModule), "TextAnalytics")]
 
@@ -110,7 +111,7 @@ namespace Microsoft.ML.Runtime.Transforms
             env.CheckValue(input, nameof(input));
 
             var h = EntryPointUtils.CheckArgsAndCreateHost(env, "CharTokenize", input);
-            var view = new CharTokenizeTransform(h, input, input.Data);
+            var view = CharTokenizeTransform.Create(h, input, input.Data);
             return new CommonOutputs.TransformOutput()
             {
                 Model = new TransformModel(h, view, input.Data),
