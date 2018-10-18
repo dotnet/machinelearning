@@ -37,7 +37,6 @@ namespace Microsoft.ML.Transforms.Text
     // corresponding to the tokens in the input text, split using a set of user specified separator characters.
     // Empty strings and strings containing only spaces are dropped.
     /// <include file='doc.xml' path='doc/members/member[@name="WordTokenizer"]/*' />
-
     public sealed class WordTokenizeTransform : OneToOneTransformerBase
     {
         public class Column : OneToOneColumn
@@ -94,7 +93,7 @@ namespace Microsoft.ML.Transforms.Text
         internal const string Summary = "The input to this transform is text, and the output is a vector of text containing the words (tokens) in the original text. "
             + "The separator is space, but can be specified as any other character (or multiple characters) if needed.";
 
-        public const string LoaderSignature = "TokenizeTextTransform";
+        internal const string LoaderSignature = "TokenizeTextTransform";
 
         internal const string UserName = "Tokenize Text Transform";
 
@@ -199,7 +198,7 @@ namespace Microsoft.ML.Transforms.Text
         }
 
         // Factory method for SignatureDataTransform.
-        public static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
+        internal static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(args, nameof(args));
