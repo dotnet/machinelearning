@@ -133,7 +133,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.Samples", "doc
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.SamplesUtils", "src\Microsoft.ML.SamplesUtils\Microsoft.ML.SamplesUtils.csproj", "{11A5210E-2EA7-42F1-80DB-827762E9C781}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.ML.Recommend", "src\Microsoft.ML.Recommend\Microsoft.ML.Recommend.csproj", "{C8E1772B-DFD9-4A4D-830D-6AAB1C668BB3}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ML.Recommender", "src\Microsoft.ML.Recommender\Microsoft.ML.Recommender.csproj", "{C8E1772B-DFD9-4A4D-830D-6AAB1C668BB3}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

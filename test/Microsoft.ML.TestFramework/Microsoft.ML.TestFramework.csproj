@@ -13,10 +13,10 @@
     <ProjectReference Include="..\..\src\Microsoft.ML.Maml\Microsoft.ML.Maml.csproj" />
     <ProjectReference Include="..\..\src\Microsoft.ML.Parquet\Microsoft.ML.Parquet.csproj" />
     <ProjectReference Include="..\..\src\Microsoft.ML.PCA\Microsoft.ML.PCA.csproj" />
+    <ProjectReference Include="..\..\src\Microsoft.ML.Recommender\Microsoft.ML.Recommender.csproj" />
     <ProjectReference Include="..\..\src\Microsoft.ML.ResultProcessor\Microsoft.ML.ResultProcessor.csproj" />
     <ProjectReference Include="..\..\src\Microsoft.ML.Legacy\Microsoft.ML.Legacy.csproj" />
     <ProjectReference Include="..\..\src\Microsoft.ML.StandardLearners\Microsoft.ML.StandardLearners.csproj" />
-    <ProjectReference Include="..\..\src\Microsoft.ML.Recommend\Microsoft.ML.Recommend.csproj" />
   </ItemGroup>
 
   <ItemGroup>
@@ -25,5 +25,6 @@
     <NativeAssemblyReference Include="CpuMathNative" />
     <NativeAssemblyReference Include="MklProxyNative" />
     <NativeAssemblyReference Include="FactorizationMachineNative" />
+    <NativeAssemblyReference Include="LIBMFNative" />
   </ItemGroup>
 </Project>
