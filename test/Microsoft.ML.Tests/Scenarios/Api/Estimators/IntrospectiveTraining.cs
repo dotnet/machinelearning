@@ -33,21 +33,20 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         [Fact]
         public void New_IntrospectiveTraining()
         {
-            using (var env = new LocalEnvironment(seed: 1, conc: 1))
-            {
-                var data = new TextLoader(env, MakeSentimentTextLoaderArgs())
-                    .Read(GetDataPath(TestDatasets.Sentiment.trainFilename));
+            var ml = new MLContext(seed: 1, conc: 1);
+            var data = ml.Data.TextReader(MakeSentimentTextLoaderArgs())
+                .Read(GetDataPath(TestDatasets.Sentiment.trainFilename));
 
-                var pipeline = new TextTransform(env, "SentimentText", "Features")
-                    .Append(new LinearClassificationTrainer(env, "Features", "Label", advancedSettings: (s) => s.NumThreads = 1));
+            var pipeline = ml.Transforms.Text.FeaturizeText("SentimentText", "Features")
+                .Append(ml.BinaryClassification.Trainers.StochasticDualCoordinateAscent(advancedSettings: s => s.NumThreads = 1));
 
-                // Train.
-                var model = pipeline.Fit(data);
+            // Train.
+            var model = pipeline.Fit(data);
 
-                // Get feature weights.
-                VBuffer<float> weights = default;
-                model.LastTransformer.Model.GetFeatureWeights(ref weights);
-            }
+            // Get feature weights.
+            VBuffer<float> weights = default;
+            model.LastTransformer.Model.GetFeatureWeights(ref weights);
+
         }
     }
 }

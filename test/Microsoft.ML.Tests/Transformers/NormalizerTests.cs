@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.ML;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Data.IO;
 using Microsoft.ML.Runtime.RunTests;
@@ -77,7 +78,7 @@ namespace Microsoft.ML.Tests.Transformers
         }
 
         [Fact]
-        public void SimpleConstructors()
+        public void SimpleConstructorsAndExtensions()
         {
             string dataPath = GetDataPath("iris.txt");
 
@@ -93,15 +94,23 @@ namespace Microsoft.ML.Tests.Transformers
             var est1 = new Normalizer(Env, "float4");
             var est2 = new Normalizer(Env, Normalizer.NormalizerMode.MinMax, ("float4", "float4"));
             var est3 = new Normalizer(Env, new Normalizer.MinMaxColumn("float4"));
+            var est4 = ML.Transforms.Normalizer(Normalizer.NormalizerMode.MinMax, ("float4", "float4"));
+            var est5 = ML.Transforms.Normalizer("float4");
 
             var data1 = est1.Fit(data).Transform(data);
             var data2 = est2.Fit(data).Transform(data);
             var data3 = est3.Fit(data).Transform(data);
+            var data4 = est4.Fit(data).Transform(data);
+            var data5 = est5.Fit(data).Transform(data);
 
             CheckSameSchemas(data1.Schema, data2.Schema);
             CheckSameSchemas(data1.Schema, data3.Schema);
+            CheckSameSchemas(data1.Schema, data4.Schema);
+            CheckSameSchemas(data1.Schema, data5.Schema);
             CheckSameValues(data1, data2);
             CheckSameValues(data1, data3);
+            CheckSameValues(data1, data4);
+            CheckSameValues(data1, data5);
 
             Done();
         }

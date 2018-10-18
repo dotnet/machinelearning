@@ -5,7 +5,7 @@
 // the alignment of the usings with the methods is intentional so they can display on the same level in the docs site. 
         using Microsoft.ML.Runtime.Data;
         using Microsoft.ML.Runtime.Learners;
-        using Microsoft.ML.Trainers;
+        using Microsoft.ML.StaticPipe;
         using System;
 
 // NOTE: WHEN ADDING TO THE FILE, ALWAYS APPEND TO THE END OF IT. 

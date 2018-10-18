@@ -20,26 +20,26 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         public void New_TrainWithInitialPredictor()
         {
 
-            using (var env = new LocalEnvironment(seed: 1, conc: 1))
-            {
-                var data = new TextLoader(env, MakeSentimentTextLoaderArgs()).Read(GetDataPath(TestDatasets.Sentiment.trainFilename));
+            var ml = new MLContext(seed: 1, conc: 1);
 
-                // Pipeline.
-                var pipeline = new TextTransform(env, "SentimentText", "Features");
+            var data = ml.Data.TextReader(MakeSentimentTextLoaderArgs()).Read(GetDataPath(TestDatasets.Sentiment.trainFilename));
 
-                // Train the pipeline, prepare train set.
-                var trainData = pipeline.FitAndTransform(data);
+            // Pipeline.
+            var pipeline = ml.Transforms.Text.FeaturizeText("SentimentText", "Features");
 
-                // Train the first predictor.
-                var trainer = new LinearClassificationTrainer(env, "Features", "Label", advancedSettings: (s) => s.NumThreads = 1);
-                var firstModel = trainer.Fit(trainData);
+            // Train the pipeline, prepare train set.
+            var trainData = pipeline.FitAndTransform(data);
 
-                // Train the second predictor on the same data.
-                var secondTrainer = new AveragedPerceptronTrainer(env, "Label", "Features");
+            // Train the first predictor.
+            var trainer = ml.BinaryClassification.Trainers.StochasticDualCoordinateAscent(advancedSettings: s => s.NumThreads = 1);
+            var firstModel = trainer.Fit(trainData);
 
-                var trainRoles = new RoleMappedData(trainData, label: "Label", feature: "Features");
-                var finalModel = secondTrainer.Train(new TrainContext(trainRoles, initialPredictor: firstModel.Model));
-            }
+            // Train the second predictor on the same data.
+            var secondTrainer = ml.BinaryClassification.Trainers.AveragedPerceptron();
+
+            var trainRoles = new RoleMappedData(trainData, label: "Label", feature: "Features");
+            var finalModel = secondTrainer.Train(new TrainContext(trainRoles, initialPredictor: firstModel.Model));
+
         }
     }
 }

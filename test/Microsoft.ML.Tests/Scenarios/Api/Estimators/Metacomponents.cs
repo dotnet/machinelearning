@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Internal.Calibration;
 using Microsoft.ML.Runtime.Learners;
 using Microsoft.ML.Runtime.RunTests;
 using System.Linq;
@@ -21,19 +20,18 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         [Fact]
         public void New_Metacomponents()
         {
-            using (var env = new LocalEnvironment())
-            {
-                var data = new TextLoader(env, MakeIrisTextLoaderArgs())
-                    .Read(GetDataPath(TestDatasets.irisData.trainFilename));
+            var ml = new MLContext();
+            var data = ml.Data.TextReader(MakeIrisTextLoaderArgs())
+                .Read(GetDataPath(TestDatasets.irisData.trainFilename));
 
-                var sdcaTrainer = new LinearClassificationTrainer(env, "Features", "Label", advancedSettings: (s) => { s.MaxIterations = 100; s.Shuffle = true; s.NumThreads = 1; });
-                var pipeline = new ConcatEstimator(env, "Features", "SepalLength", "SepalWidth", "PetalLength", "PetalWidth")
-                    .Append(new TermEstimator(env, "Label"), TransformerScope.TrainTest)
-                    .Append(new Ova(env, sdcaTrainer))
-                    .Append(new KeyToValueEstimator(env, "PredictedLabel"));
+            var sdcaTrainer = ml.BinaryClassification.Trainers.StochasticDualCoordinateAscent(advancedSettings: (s) => { s.MaxIterations = 100; s.Shuffle = true; s.NumThreads = 1; });
 
-                var model = pipeline.Fit(data);
-            }
+            var pipeline = new ConcatEstimator(ml, "Features", "SepalLength", "SepalWidth", "PetalLength", "PetalWidth")
+                .Append(new TermEstimator(ml, "Label"), TransformerScope.TrainTest)
+                .Append(new Ova(ml, sdcaTrainer))
+                .Append(new KeyToValueEstimator(ml, "PredictedLabel"));
+
+            var model = pipeline.Fit(data);
         }
     }
 }

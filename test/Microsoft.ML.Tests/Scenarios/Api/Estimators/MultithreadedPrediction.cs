@@ -25,33 +25,31 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         [Fact]
         void New_MultithreadedPrediction()
         {
-            using (var env = new LocalEnvironment(seed: 1, conc: 1))
+            var ml = new MLContext(seed: 1, conc: 1);
+            var reader = ml.Data.TextReader(MakeSentimentTextLoaderArgs());
+            var data = reader.Read(new MultiFileSource(GetDataPath(TestDatasets.Sentiment.trainFilename)));
+
+            // Pipeline.
+            var pipeline = ml.Transforms.Text.FeaturizeText("SentimentText", "Features")
+                .Append(ml.BinaryClassification.Trainers.StochasticDualCoordinateAscent(advancedSettings: s => s.NumThreads = 1));
+
+            // Train.
+            var model = pipeline.Fit(data);
+
+            // Create prediction engine and test predictions.
+            var engine = model.MakePredictionFunction<SentimentData, SentimentPrediction>(ml);
+
+            // Take a couple examples out of the test data and run predictions on top.
+            var testData = reader.Read(new MultiFileSource(GetDataPath(TestDatasets.Sentiment.testFilename)))
+                .AsEnumerable<SentimentData>(ml, false);
+
+            Parallel.ForEach(testData, (input) =>
             {
-                var reader = new TextLoader(env, MakeSentimentTextLoaderArgs());
-                var data = reader.Read(GetDataPath(TestDatasets.Sentiment.trainFilename));
-
-                // Pipeline.
-                var pipeline = new TextTransform(env, "SentimentText", "Features")
-                    .Append(new LinearClassificationTrainer(env, "Features", "Label", advancedSettings: (s) => s.NumThreads = 1));
-
-                // Train.
-                var model = pipeline.Fit(data);
-
-                // Create prediction engine and test predictions.
-                var engine = model.MakePredictionFunction<SentimentData, SentimentPrediction>(env);
-
-                // Take a couple examples out of the test data and run predictions on top.
-                var testData = reader.Read(GetDataPath(TestDatasets.Sentiment.testFilename))
-                    .AsEnumerable<SentimentData>(env, false);
-
-                Parallel.ForEach(testData, (input) =>
+                lock (engine)
                 {
-                    lock (engine)
-                    {
-                        var prediction = engine.Predict(input);
-                    }
-                });
-            }
+                    var prediction = engine.Predict(input);
+                }
+            });
         }
     }
 }

@@ -208,6 +208,17 @@ namespace Microsoft.ML.Runtime.Data
         {
             public readonly HashTransformer.ColumnInfo HashInfo;
             public readonly CategoricalTransform.OutputKind OutputKind;
+
+            /// <summary>
+            /// Describes how the transformer handles one column pair.
+            /// </summary>
+            /// <param name="input">Name of input column.</param>
+            /// <param name="output">Name of output column.</param>
+            /// <param name="outputKind">Kind of output: bag, indicator vector etc.</param>
+            /// <param name="hashBits">Number of bits to hash into. Must be between 1 and 31, inclusive.</param>
+            /// <param name="seed">Hashing seed.</param>
+            /// <param name="ordered">Whether the position of each term should be included in the hash.</param>
+            /// <param name="invertHash">Limit the number of keys used to generate the slot name to this many. 0 means no invert hashing, -1 means no limit.</param>
             public ColumnInfo(string input, string output,
                 CategoricalTransform.OutputKind outputKind = Defaults.OutputKind,
                 int hashBits = Defaults.HashBits,
