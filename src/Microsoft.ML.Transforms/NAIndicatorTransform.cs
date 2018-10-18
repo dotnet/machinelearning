@@ -19,16 +19,16 @@ using Microsoft.ML.StaticPipe.Runtime;
 using Microsoft.ML.Transforms;
 
 [assembly: LoadableClass(NAIndicatorTransform.Summary, typeof(IDataTransform), typeof(NAIndicatorTransform), typeof(NAIndicatorTransform.Arguments), typeof(SignatureDataTransform),
-    NAIndicatorTransform.FriendlyName, nameof(NAIndicatorTransform), "NAIndicator", NAIndicatorTransform.ShortName, DocName = "transform/NAHandle.md")]
+    NAIndicatorTransform.FriendlyName, NAIndicatorTransform.LoadName, "NAIndicator", NAIndicatorTransform.ShortName, DocName = "transform/NAHandle.md")]
 
 [assembly: LoadableClass(NAIndicatorTransform.Summary, typeof(IDataTransform), typeof(NAIndicatorTransform), null, typeof(SignatureLoadDataTransform),
-    NAIndicatorTransform.FriendlyName, nameof(NAIndicatorTransform))]
+    NAIndicatorTransform.FriendlyName, NAIndicatorTransform.LoadName)]
 
 [assembly: LoadableClass(NAIndicatorTransform.Summary, typeof(NAIndicatorTransform), null, typeof(SignatureLoadModel),
-    NAIndicatorTransform.FriendlyName, nameof(NAIndicatorTransform))]
+    NAIndicatorTransform.FriendlyName, NAIndicatorTransform.LoadName)]
 
 [assembly: LoadableClass(typeof(IRowMapper), typeof(NAIndicatorTransform), null, typeof(SignatureLoadRowMapper),
-   NAIndicatorTransform.FriendlyName, nameof(NAIndicatorTransform))]
+   NAIndicatorTransform.FriendlyName, NAIndicatorTransform.LoadName)]
 
 namespace Microsoft.ML.Transforms
 {
@@ -60,6 +60,8 @@ namespace Microsoft.ML.Transforms
             public Column[] Column;
         }
 
+        internal const string LoadName = "NaIndicatorTransform";
+
         private static VersionInfo GetVersionInfo()
         {
             return new VersionInfo(
@@ -67,7 +69,7 @@ namespace Microsoft.ML.Transforms
                 verWrittenCur: 0x00010001, // Initial
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
-                loaderSignature: nameof(NAIndicatorTransform),
+                loaderSignature: LoadName,
                 loaderAssemblyName: typeof(NAIndicatorTransform).Assembly.FullName);
         }
 
@@ -78,12 +80,14 @@ namespace Microsoft.ML.Transforms
 
         private const string RegistrationName = nameof(NAIndicatorTransform);
 
+        internal (string input, string output)[] GetColumnPairs() => ColumnPairs;
+
         /// <summary>
         /// Initializes a new instance of <see cref="NAIndicatorTransform"/>
         /// </summary>
         /// <param name="env">The environment to use.</param>
         /// <param name="columns">The names of the input columns of the transformation and the corresponding names for the output columns.</param>
-        internal NAIndicatorTransform(IHostEnvironment env, params (string input, string output)[] columns)
+        public NAIndicatorTransform(IHostEnvironment env, params (string input, string output)[] columns)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(NAIndicatorTransform)), columns)
         {
         }
@@ -100,17 +104,7 @@ namespace Microsoft.ML.Transforms
         }
 
         private static (string input, string output)[] GetColumnPairs(Column[] columns)
-        {
-            var cols = new (string input, string output)[columns.Length];
-            for (int i = 0; i < cols.Length; i++)
-            {
-                var item = columns[i];
-
-                cols[i].input = item.Source;
-                cols[i].output = item.Name;
-            };
-            return cols;
-        }
+            => columns.Select(c => (c.Source ?? c.Name, c.Name)).ToArray();
 
         // Factory method for SignatureLoadModel
         internal static NAIndicatorTransform Create(IHostEnvironment env, ModelLoadContext ctx)
@@ -166,7 +160,7 @@ namespace Microsoft.ML.Transforms
                     Output = output;
                     InputType = inType;
                     OutputType = outType;
-                    InputIsNA = GetIsNADelegate(InputType); ;
+                    InputIsNA = GetIsNADelegate(InputType);
                 }
             }
 
@@ -443,8 +437,6 @@ namespace Microsoft.ML.Transforms
 
     public sealed class NAIndicatorEstimator : TrivialEstimator<NAIndicatorTransform>
     {
-        private readonly (string input, string output)[] _columnPairs;
-
         /// <summary>
         /// Initializes a new instance of <see cref="NAIndicatorEstimator"/>
         /// </summary>
@@ -454,7 +446,6 @@ namespace Microsoft.ML.Transforms
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(NAIndicatorTransform)), new NAIndicatorTransform(env, columns))
         {
             Contracts.CheckValue(env, nameof(env));
-            _columnPairs = columns;
         }
 
         /// <summary>
@@ -475,7 +466,7 @@ namespace Microsoft.ML.Transforms
         {
             Host.CheckValue(inputSchema, nameof(inputSchema));
             var result = inputSchema.Columns.ToDictionary(x => x.Name);
-            foreach (var colPair in _columnPairs)
+            foreach (var colPair in Transformer.GetColumnPairs())
             {
                 if (!inputSchema.TryFindColumn(colPair.input, out var col) || !Conversions.Instance.TryGetIsNAPredicate(col.ItemType, out Delegate del))
                     throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colPair.input);
