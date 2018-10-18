@@ -20,7 +20,7 @@ namespace Microsoft.ML.Runtime.RunTests
         {
             using (var env = new LocalEnvironment()
                 .AddStandardComponents())
-            using (var modelStream = File.OpenRead("OriginalVersionBinaryLoader.zip"))
+            using (var modelStream = File.OpenRead(Path.Combine("TestModels", "BinaryLoader-v3.11.0.0.zip")))
             using (var rep = RepositoryReader.Open(modelStream, env))
             {
                 IDataLoader result = ModelFileUtils.LoadLoader(env, rep, new MultiFileSource(null), true);
