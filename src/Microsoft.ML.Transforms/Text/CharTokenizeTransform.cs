@@ -25,10 +25,11 @@ using Microsoft.ML.Transforms.Text;
     CharTokenizeTransform.UserName, CharTokenizeTransform.LoaderSignature)]
 
 [assembly: LoadableClass(CharTokenizeTransform.Summary, typeof(CharTokenizeTransform), null, typeof(SignatureLoadModel),
-    "Word Tokenizer Transform", CharTokenizeTransform.LoaderSignature)]
+    CharTokenizeTransform.UserName, CharTokenizeTransform.LoaderSignature)]
 
 [assembly: LoadableClass(typeof(IRowMapper), typeof(CharTokenizeTransform), null, typeof(SignatureLoadRowMapper),
-   "Word Tokenizer Transform", CharTokenizeTransform.LoaderSignature)]
+    CharTokenizeTransform.UserName, CharTokenizeTransform.LoaderSignature)]
+
 namespace Microsoft.ML.Transforms.Text
 {
     /// <summary>
@@ -67,10 +68,10 @@ namespace Microsoft.ML.Transforms.Text
             // REVIEW: support encoding surrogate pairs in UTF-16?
         }
 
-        public const string Summary = "Character-oriented tokenizer where text is considered a sequence of characters.";
+        internal const string Summary = "Character-oriented tokenizer where text is considered a sequence of characters.";
 
-        public const string LoaderSignature = "CharToken";
-        public const string UserName = "Character Tokenizer Transform";
+        internal const string LoaderSignature = "CharToken";
+        internal const string UserName = "Character Tokenizer Transform";
 
         // Keep track of the model that was saved with ver:0x00010001
         private readonly bool _isSeparatorStartEnd;
@@ -155,7 +156,7 @@ namespace Microsoft.ML.Transforms.Text
         }
 
         // Factory method for SignatureDataTransform.
-        public static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
+        internal static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(args, nameof(args));
@@ -207,13 +208,13 @@ namespace Microsoft.ML.Transforms.Text
                 {
                     InputSchema.TryGetColumnIndex(_parent.ColumnPairs[i].input, out int colIndex);
                     Host.Assert(colIndex >= 0);
-                    //IVAN: Metadata: slotNames and KeyValues;
                     var builder = new Schema.Metadata.Builder();
                     AddMetadata(i, builder);
                     result[i] = new Schema.Column(_parent.ColumnPairs[i].output, _types[i], builder.GetMetadata());
                 }
                 return result;
             }
+
             private void AddMetadata(int iinfo, Schema.Metadata.Builder builder)
             {
                 InputSchema.TryGetColumnIndex(_parent.ColumnPairs[iinfo].input, out int srcCol);
@@ -225,6 +226,7 @@ namespace Microsoft.ML.Transforms.Text
                        };
                 builder.AddKeyValues(CharsCount, TextType.Instance, getter);
             }
+
             /// <summary>
             /// Get the key values (chars) corresponding to keys in the output columns.
             /// </summary>
@@ -601,7 +603,6 @@ namespace Microsoft.ML.Transforms.Text
                 if (!IsColumnTypeValid(col.ItemType))
                     throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.input, ExpectedColumnType, col.ItemType.ToString());
                 var metadata = new List<SchemaShape.Column>();
-                //IVAN: Metadata: slotNames and KeyValues;
                 if (col.Metadata.TryFindColumn(MetadataUtils.Kinds.SlotNames, out var slotMeta))
                     metadata.Add(new SchemaShape.Column(MetadataUtils.Kinds.SlotNames, SchemaShape.Column.VectorKind.Vector, slotMeta.ItemType, false));
                 metadata.Add(new SchemaShape.Column(MetadataUtils.Kinds.KeyValues, SchemaShape.Column.VectorKind.Vector, TextType.Instance, false));
