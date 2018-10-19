@@ -344,6 +344,9 @@ namespace Microsoft.ML.Transforms
             {
                 var typedDst = (System.Single[])(object)dst;
                 tensor.CopyTo(typedDst);
+                // TODO: the CopyTo() function is susceptible to GC reclaiming tensor
+                // during the method call. Use KeepAlive for now, and remove
+                // after permanent fix in CopyTo().
                 GC.KeepAlive(tensor);
             }
             else
