@@ -2,25 +2,17 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Api;
-using Microsoft.ML.Data;
-using System;
-using System.Linq;
-using System.Collections.Generic;
+        // the alignment of the usings with the methods is intentional so they can display on the same level in the docs site.
+        using Microsoft.ML.Runtime.Data;
+        using Microsoft.ML.Runtime.Api;
+        using Microsoft.ML.Data;
+        using System;
+        using System.Collections.Generic;
 
-namespace Microsoft.ML.Samples
+namespace Microsoft.ML.Samples.Dynamic
 {
-    public class TextCatalogTransformers
+    public partial class TransformSamples
     {
-
-       
-
-        public static void Concat()
-        {
-
-        }
-
         public static void TextTransform()
         {
             // Create a new ML context, for ML.NET operations. It can be used for exception tracking and logging, 
@@ -44,7 +36,7 @@ namespace Microsoft.ML.Samples
 
             // Another pipeline, that customizes the advanced settings of the FeaturizeText transformer.
             string customizedColumnName = "CustomizedTextFeatures";
-            var customized_pipeline = ml.Transforms.Text.FeaturizeText("SentimentText", customizedColumnName, s=>
+            var customized_pipeline = ml.Transforms.Text.FeaturizeText("SentimentText", customizedColumnName, s =>
             {
                 s.KeepPunctuations = false;
                 s.KeepNumbers = false;
@@ -57,7 +49,7 @@ namespace Microsoft.ML.Samples
             var transformedData_customized = customized_pipeline.Fit(trainData).Transform(trainData);
 
             // small helper to print the text inside the columns, in the console. 
-            Action<string, VBuffer<float>[]> printHelper = (columnName, column) =>
+            Action<string, IEnumerable<VBuffer<float>>> printHelper = (columnName, column) =>
             {
                 Console.WriteLine($"{columnName} column obtained post-transformation.");
                 foreach (var featureRow in column)
@@ -71,27 +63,22 @@ namespace Microsoft.ML.Samples
             };
 
             // Preview of the TextFeatures column obtained after processing the input.
-            var defaultColumn = transformedData_default.GetColumn<VBuffer<float>>(ml, defaultColumnName).ToArray();
+            var defaultColumn = transformedData_default.GetColumn<VBuffer<float>>(ml, defaultColumnName);
             printHelper(defaultColumnName, defaultColumn);
 
-            // Transformed data  REVIEW: why are the first two lines identical? Log a bug. 
-            // 0.2581989 0.2581989 0.2581989 0.2581989 0.5163978 0.2581989 0.2581989 0.2581989 0.2581989 0.2581989 0.2581989 0.2581989 0.7071068 0.7071068 0.1924501 0.1924501 0.1924501 0.1924501 0.1924501 0.1924501 0.1924501 0.1924501 0.1924501 0.1924501 0.1924501 0.1924501 0.1924501 0.4472136 0.4472136 0.4472136 0.4472136 0.4472136
-            // 0.2581989 0.2581989 0.2581989 0.2581989 0.5163978 0.2581989 0.2581989 0.2581989 0.2581989 0.2581989 0.2581989 0.2581989 0.7071068 0.7071068 0.1924501 0.1924501 0.1924501 0.1924501 0.1924501 0.1924501 0.1924501 0.1924501 0.1924501 0.1924501 0.1924501 0.1924501 0.1924501 0.4472136 0.4472136 0.4472136 0.4472136 0.4472136
-            // 0 0.1230915 0.1230915 0.1230915 0.1230915 0.246183 0.246183 0.246183 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.1230915 0.1230915 0.1230915 0.1230915 0.1230915 0.1230915 0.3692745 0.246183 0.246183 0.1230915 0.1230915 0.1230915 0.1230915 0.1230915 0.1230915 0.1230915 0.1230915 0.1230915 0.1230915 0.246183 0.1230915 0.1230915 0.1230915 0.1230915 0.1230915 0.1230915 0.1230915 0.1230915 0.1230915 0.1230915 0.1230915 0.1230915 0.1230915 0.2886751 0 0 0 0 0 0 0.2886751 0.5773503 0.2886751 0.2886751 0.2886751 0.2886751 0.2886751 0.2886751
+            // Transformed data 
+            // 0.1924501 0.1924501 0.1924501 0.1924501 0.1924501 0.1924501 0.1924501 0.1924501 0.1924501 0.1924501 0.1924501 0.1924501 0.1924501 0.1924501 0.1924501 0.1924501 0.1924501 0.1924501 0.1924501 0.1924501 0.1924501 0.1924501 0.1924501 0.1924501 0.1924501 0.1924501 0.1924501 0.4472136 0.4472136 0.4472136 0.4472136 0.4472136
+            // 0.2357023 0.2357023 0.2357023 0.2357023 0.4714046 0.2357023 0.2357023 0.2357023 0.2357023 0.2357023 0.2357023 0.2357023 0.2357023 0.2357023 0.2357023 0.5773503 0.5773503 0.5773503 0.1924501 0.1924501 0.1924501 0.1924501 0.1924501 0.1924501 0.1924501 0.1924501 0.1924501 0.4472136 0.4472136 0.4472136 0.4472136 0.4472136
+            // 0 0.1230915 0.1230915 0.1230915 0.1230915 0.246183 0.246183 0.246183 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.1230915 0 0 0.1230915 0.1230915 0.1230915 0.1230915 0.1230915 0.1230915 0.3692745 0.246183 0.246183 0.1230915 0.1230915 0.1230915 0.1230915 0.1230915 0.1230915 0.1230915 0.1230915 0.1230915 0.246183 0.1230915 0.1230915 0.1230915 0.1230915 0.1230915 0.1230915 0.1230915 0.1230915 0.1230915 0.1230915 0.1230915 0.1230915 0.1230915 0.2886751 0 0 0 0 0 0 0 0.2886751 0.5773503 0.2886751 0.2886751 0.2886751 0.2886751 0.2886751 0.2886751
 
             // Preview of the TextFeatures column obtained after processing the input.
-            var customizedColumn = transformedData_customized.GetColumn<VBuffer<float>>(ml, customizedColumnName).ToArray();
+            var customizedColumn = transformedData_customized.GetColumn<VBuffer<float>>(ml, customizedColumnName);
             printHelper(customizedColumnName, customizedColumn);
 
             // Transformed data
+            // 0.2 0.2 0.2 0.2 0.2 0.2 0.2 0.2 0.2 0.2 0.2 0.2 0.2 0.2 0.2 0.2 0.2 0.2 0.2 0.2 0.2 0.2 0.2 0.2 0.2 0.4472136 0.4472136 0.4472136 0.4472136 0.4472136
             // 0.25 0.25 0.25 0.25 0.5 0.25 0.25 0.25 0.25 0.25 0.25 0.25 0.25 0.7071068 0.7071068 0.2 0.2 0.2 0.2 0.2 0.2 0.2 0.2 0.2 0.2 0.4472136 0.4472136 0.4472136 0.4472136 0.4472136
-            // 0.25 0.25 0.25 0.25 0.5 0.25 0.25 0.25 0.25 0.25 0.25 0.25 0.25 0.7071068 0.7071068 0.2 0.2 0.2 0.2 0.2 0.2 0.2 0.2 0.2 0.2 0.4472136 0.4472136 0.4472136 0.4472136 0.4472136
-            // 0 0.125 0.125 0.125 0.125 0.25 0.25 0.25 0.125 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.125 0.125 0.125 0.125 0.125 0.125 0.375 0.25 0.25 0.125 0.125 0.125 0.125 0.125 0.125 0.125 0.125 0.25 0.125 0.125 0.125 0.125 0.125 0.125 0.125 0.125 0.125 0.125 0.125 0.125 0.2672612 0.5345225 0 0 0 0 0 0.2672612 0.5345225 0.2672612 0.2672612 0.2672612 0.2672612
-        }
-
-        public static void MinMaxNormalizer()
-        {
-
+            // 0 0.125 0.125 0.125 0.125 0.25 0.25 0.25 0.125 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.125 0.125 0.125 0.125 0.125 0.125 0.375 0.25 0.25 0.125 0.125 0.125 0.125 0.125 0.125 0.125 0.125 0.25 0.125 0.125 0.125 0.125 0.125 0.125 0.125 0.125 0.125 0.125 0.125 0.125 0.2672612 0.5345225 0 0 0 0 0 0.2672612 0.5345225 0.2672612 0.2672612 0.2672612 0.2672612        }
         }
     }
 }

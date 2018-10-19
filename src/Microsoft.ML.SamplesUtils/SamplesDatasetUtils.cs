@@ -77,5 +77,35 @@ namespace Microsoft.ML.SamplesUtils
 
             return data;
         }
+
+        public class SampleInfertData
+        {
+            public int RowNum { get; set; }
+            public string Education { get; set; }
+            public float Age { get; set; }
+            public float Parity { get; set; }
+            public float Induced { get; set; }
+            public float Case { get; set; }
+
+            public float Spontaneous { get; set; }
+            public float Stratum { get; set; }
+            public float PooledStratum { get; set; }
+        }
+
+        public static IEnumerable<SampleInfertData> GetInfertData()
+        {
+            var data = new List<SampleInfertData>();
+            data.Add(new SampleInfertData {
+                RowNum = 0, Education = "0-5yrs", Age = 26, Parity = 6, Induced = 1, Case = 1, Spontaneous = 2, Stratum = 1, PooledStratum = 3 });
+            data.Add(new SampleInfertData {
+                RowNum = 1, Education = "0-5yrs", Age = 42, Parity = 1, Induced = 1, Case = 1, Spontaneous = 0, Stratum = 2, PooledStratum = 1 });
+            data.Add(new SampleInfertData {
+                RowNum = 2, Education = "0-5yrs", Age = 39, Parity = 6, Induced = 2, Case = 1, Spontaneous = 0, Stratum = 3, PooledStratum = 4 });
+            data.Add(new SampleInfertData {
+                RowNum = 3, Education = "0-5yrs", Age = 34, Parity = 4, Induced = 2, Case = 1, Spontaneous = 0, Stratum = 4, PooledStratum = 2 });
+            data.Add(new SampleInfertData {
+                RowNum = 4, Education = "6-11yrs", Age = 35, Parity = 3, Induced = 1,  Case = 1, Spontaneous = 1, Stratum = 5, PooledStratum = 32 });
+            return data;
+        }
     }
 }

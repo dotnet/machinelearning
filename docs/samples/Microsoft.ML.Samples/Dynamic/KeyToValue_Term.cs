@@ -2,17 +2,18 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Api;
-using Microsoft.ML.Data;
-using System;
-using System.Linq;
-using System.Collections.Generic;
-using Microsoft.ML.Transforms;
+        // the alignment of the usings with the methods is intentional so they can display on the same level in the docs site.
+        using Microsoft.ML.Data;
+        using Microsoft.ML.Runtime.Api;
+        using Microsoft.ML.Runtime.Data;
+        using Microsoft.ML.Transforms;
+        using System;
+        using System.Collections.Generic;
+        using System.Linq;
 
-namespace Microsoft.ML.Samples
+namespace Microsoft.ML.Samples.Dynamic
 {
-    public class ConvertCatalogTransformers
+    public partial class TransformSamples
     {
         public static void KeyToValue_Term()
         {
@@ -41,14 +42,14 @@ namespace Microsoft.ML.Samples
             // Another pipeline, that customizes the advanced settings of the FeaturizeText transformer.
             string customizedColumnName = "CustomizedKeys";
             var customized_pipeline = new WordTokenizer(ml, "ReviewReverse", "ReviewReverse")
-                .Append(new TermEstimator(ml, "ReviewReverse", customizedColumnName, maxNumTerms: 3, sort:TermTransform.SortOrder.Value));
+                .Append(new TermEstimator(ml, "ReviewReverse", customizedColumnName, maxNumTerms: 10, sort:TermTransform.SortOrder.Value));
 
             // The transformed data.
             var transformedData_default = default_pipeline.Fit(trainData).Transform(trainData);
             var transformedData_customized = customized_pipeline.Fit(trainData).Transform(trainData);
 
             // small helper to print the text inside the columns, in the console. 
-            Action<string, VBuffer<uint>[]> printHelper = (columnName, column) =>
+            Action<string, IEnumerable<VBuffer<uint>>> printHelper = (columnName, column) =>
             {
                 Console.WriteLine($"{columnName} column obtained post-transformation.");
                 foreach (var row in column)
@@ -62,33 +63,32 @@ namespace Microsoft.ML.Samples
             };
 
             // Preview of the TextFeatures column obtained after processing the input.
-             var defaultColumn = transformedData_default.GetColumn<VBuffer<uint>>(ml, defaultColumnName).ToArray();
+             var defaultColumn = transformedData_default.GetColumn<VBuffer<uint>>(ml, defaultColumnName);
              printHelper(defaultColumnName, defaultColumn);
 
-            // DefaultKeys column obtained post-transformation
-            // 8 9 3 1
-            // 8 9 3 1
-            // 8 9 3 1
+            // DefaultKeys column obtained post-transformation.
+            // 1 2 3 4
+            // 5 2 3 1
+            // 6 7 3 1
             // 8 9 3 1
 
-            // Preview of the TextFeatures column obtained after processing the input.
-            var customizedColumn = transformedData_customized.GetColumn<VBuffer<uint>>(ml, customizedColumnName).ToArray();
+            // Previewing the CustomizedKeys column obtained after processing the input.
+            var customizedColumn = transformedData_customized.GetColumn<VBuffer<uint>>(ml, customizedColumnName);
             printHelper(customizedColumnName, customizedColumn);
 
             // CustomizedKeys column obtained post-transformation.
-            // 0 1 3 2
-            // 0 1 3 2
-            // 0 1 3 2
-            // 0 1 3 2
+            // 6 4 9 3
+            // 7 4 9 6
+            // 1 5 9 6
+            // 2 8 9 6
 
             // retrieve the original values, by appending the KeyToValue etimator to the existing pipelines
+            // to convert the keys back to the strings
             var pipeline = default_pipeline.Append(new KeyToValueEstimator(ml, defaultColumnName));
-
-            // The transformed data.
             transformedData_default = pipeline.Fit(trainData).Transform(trainData);
 
-            // Preview of the TextFeatures column obtained after processing the input.
-            var originalColumnBack = transformedData_default.GetColumn<VBuffer<ReadOnlyMemory<char>>>(ml, defaultColumnName).ToArray();
+            // Preview of the DefaultColumnName column obtained
+            var originalColumnBack = transformedData_default.GetColumn<VBuffer<ReadOnlyMemory<char>>>(ml, defaultColumnName);
 
             foreach (var row in originalColumnBack)
             {
@@ -97,9 +97,10 @@ namespace Microsoft.ML.Samples
                 Console.WriteLine("");
             }
 
-            // car truck universe radiation
-            // car truck universe radiation
-            // car truck universe radiation
+            // DefaultColumnName column obtained post-transformation.
+            // radiation galaxy universe duck
+            // space galaxy universe radiation
+            // bus pickup universe radiation
             // car truck universe radiation
         }
     }

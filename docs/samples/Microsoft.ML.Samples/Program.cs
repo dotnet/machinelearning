@@ -2,15 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-namespace Microsoft.ML.Samples
+namespace Microsoft.ML.Samples.Dynamic
 {
     internal static class Program
     {
         static void Main(string[] args)
         {
-            //Trainers.SdcaRegression();
-            //Transformers.ConcatEstimator();
-            ConvertCatalogTransformers.KeyToValue_Term();
+            TransformSamples.MinMaxNormalizer();
         }
     }
 }

@@ -19,6 +19,18 @@ namespace Microsoft.ML
         /// <param name="outputColumn">The output column</param>
         /// <param name="advancedSettings">Advanced transform settings</param>
         /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[ConcatWith] (](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/TextTransform.cs?range=38-45 )]
+        /// ]]>
+        /// </format>
+        /// </example>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        /// [!code-csharp[ConcatWith] (](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/TextTransform.cs?range =6-11,16-82)]
+        /// ]]>
+        /// </format>
         /// </example>
         public static TextTransform FeaturizeText(this TransformsCatalog.TextTransforms catalog,
             string inputColumn, string outputColumn = null,
