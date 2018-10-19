@@ -188,7 +188,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             Helper(schema, "how.Donut.friend.Biz", TextType.Instance);
             Helper(schema, "how.Donut.friend.Blam", new VectorType(NumberType.R8, 10));
 
-            var textData = text.Read(new MultiFileSource(null));
+            var textData = text.Read(null);
 
             var est = text.MakeNewEstimator().Append(r => r.how.Donut.friend.Blam.ConcatWith(r.dawg.Blam));
             var outData = est.Fit(textData).Transform(textData);

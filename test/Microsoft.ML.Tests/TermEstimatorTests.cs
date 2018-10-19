@@ -77,7 +77,7 @@ namespace Microsoft.ML.Tests
                     new TermTransform.ColumnInfo("text1", "TermText1"),
                     new TermTransform.ColumnInfo("text2", "TermText2")
                 });
-            var data = loader.Read(new MultiFileSource(dataPath));
+            var data = loader.Read(dataPath);
             data = TakeFilter.Create(Env, data, 10);
             var outputPath = GetOutputPath("Term", "Term.tsv");
             using (var ch = Env.Start("save"))
