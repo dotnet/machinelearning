@@ -1,5 +1,6 @@
 parameters:
   name: ''
+  architecture: x64
   buildScript: ''
   queue: {}
 
@@ -8,7 +9,7 @@ phases:
     variables:
       _buildScript: ${{ parameters.buildScript }}
       _phaseName: ${{ parameters.name }}
-      _architecture: x64
+      _arch: ${{ parameters.architecture }}
     queue:
       parallel: 99
       matrix:
@@ -18,9 +19,7 @@ phases:
           _configuration: Release
       ${{ insert }}: ${{ parameters.queue }}
     steps:
-    - ${{ if eq(parameters.name, 'Windows_NT_x86')}}:
-      _architecture: x86
-    - script: $(_buildScript) -$(_configuration) -buildArch=$(_architecture)
+    - script: $(_buildScript) -$(_configuration) -buildArch=$(_arch)
       displayName: Build
     - ${{ if eq(parameters.name, 'MacOS') }}:
       - script: brew install libomp
