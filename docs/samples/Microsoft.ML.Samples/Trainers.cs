@@ -9,6 +9,7 @@
         using Microsoft.ML.Runtime.LightGBM;
         using Microsoft.ML.Runtime.FastTree;
         using System;
+        using System.Linq;
 
 // NOTE: WHEN ADDING TO THE FILE, ALWAYS APPEND TO THE END OF IT. 
 // If you change the existinc content, check that the files referencing it in the XML documentation are still correct, as they reference
@@ -99,7 +100,6 @@ namespace Microsoft.ML.Samples
 
             // Read the data, and leave 10% out, so we can use them for testing
             var data = reader.Read(new MultiFileSource(dataFile));
-            var (trainData, testData) = regressionContext.TrainTestSplit(data, testFraction: 0.1);
 
             // The predictor that gets produced out of training
             FastTreeRegressionPredictor pred = null;
@@ -109,29 +109,27 @@ namespace Microsoft.ML.Samples
                 .Append(r => (r.label, score: regressionContext.Trainers.FastTree(
                                             r.label,
                                             r.features,
+                                            numTrees: 100, // try: (int) 20-2000
+                                            numLeaves: 20, // try: (int) 2-128
+                                            minDocumentsInLeafs: 10, // try: (int) 1-100
+                                            learningRate: 0.2, // try: (float) 0.025-0.4    
                                         onFit: p => pred = p)
                                 )
                         );
 
-            // Fit this pipeline to the training data
-            var model = learningPipeline.Fit(trainData);
-
-            // Check the weights that the model learned
-            VBuffer<float> weights = default;
-            pred.GetFeatureWeights(ref weights);
-
-            Console.WriteLine($"weight 0 - {weights.Values[0]}");
-            Console.WriteLine($"weight 1 - {weights.Values[1]}");
-
-            // Evaluate how the model is doing on the test data
-            var dataWithPredictions = model.Transform(testData);
-            var metrics = regressionContext.Evaluate(dataWithPredictions, r => r.label, r => r.score);
-
-            Console.WriteLine($"L1 - {metrics.L1}"); // 3.0035
-            Console.WriteLine($"L2 - {metrics.L2}"); // 12.9096
-            Console.WriteLine($"LossFunction - {metrics.LossFn}"); // 12.9096
-            Console.WriteLine($"RMS - {metrics.Rms}"); // 3.5929
-            Console.WriteLine($"RSquared - {metrics.RSquared}"); // 0.7686
+            var cvResults = regressionContext.CrossValidate(data, learningPipeline, r => r.label, numFolds: 5);
+            var averagedMetrics = (
+                L1: cvResults.Select(r => r.metrics.L1).Average(),
+                L2: cvResults.Select(r => r.metrics.L2).Average(),
+                LossFn: cvResults.Select(r => r.metrics.LossFn).Average(),
+                Rms: cvResults.Select(r => r.metrics.Rms).Average(),
+                RSquared: cvResults.Select(r => r.metrics.RSquared).Average()
+            );
+            Console.WriteLine($"L1 - {averagedMetrics.L1}");
+            Console.WriteLine($"L2 - {averagedMetrics.L2}");
+            Console.WriteLine($"LossFunction - {averagedMetrics.LossFn}");
+            Console.WriteLine($"RMS - {averagedMetrics.Rms}");
+            Console.WriteLine($"RSquared - {averagedMetrics.RSquared}");
         }
 
         public static void LightGbmRegression()

@@ -38,7 +38,7 @@ namespace Microsoft.ML.Trainers
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        ///  [!code-csharp[SDCA](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Trainers.cs?range=6-10,19-76 "The SDCA regression example.")]
+        ///  [!code-csharp[SDCA](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Trainers.cs?range=6-12,22-79 "The SDCA regression example.")]
         /// ]]></format>
         /// </example>
         public static Scalar<float> Sdca(this RegressionContext.RegressionTrainers ctx,
