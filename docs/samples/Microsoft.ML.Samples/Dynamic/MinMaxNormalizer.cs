@@ -19,7 +19,7 @@ namespace Microsoft.ML.Samples.Dynamic
             // as well as the source of randomness.
             var ml = new MLContext(seed: 1, conc: 1);
 
-            // Get a small dataset as an IEnumerable.
+            // Get a small dataset as an IEnumerable and convert it to an IDataView.
             IEnumerable<SamplesUtils.DatasetUtils.SampleInfertData> data = SamplesUtils.DatasetUtils.GetInfertData();
             var trainData = ml.CreateStreamingDataView(data);
 
@@ -31,14 +31,14 @@ namespace Microsoft.ML.Samples.Dynamic
             // 34   1       0-5yrs      2         4         2             4  ...
             // 35   1       6-11yrs     1         3         32            5  ...
 
-            // A pipeline for concatenating the age, parity and induced columns together in the Features column
+            // A pipeline for normalizing the Induced column.
             var pipeline = ml.Transforms.Normalizer("Induced");
-            // The transformed data.
+            // The transformed (normalized according to Normalizer.NormalizerMode.MinMax) data.
             var transformedData = pipeline.Fit(trainData).Transform(trainData);
-            // Getting the data of the newly created column as an Array, and 
+            // Getting the data of the newly created column, so we can preview it.
             var normalizedColumn = transformedData.GetColumn<float>(ml, "Induced");
 
-            // A small printing utility
+            // A small printing utility.
             Action<string, IEnumerable<float>> printHelper = (colName, column) =>
             {
                 Console.WriteLine($"{colName} column obtained post-transformation.");
@@ -47,6 +47,8 @@ namespace Microsoft.ML.Samples.Dynamic
             };
 
             printHelper("Induced", normalizedColumn);
+
+            // Preview of the data.
             // Induced
             // 0.5
             // 0.5
@@ -55,12 +57,12 @@ namespace Microsoft.ML.Samples.Dynamic
             // 0.5
 
             // Composing a different pipeline if we wanted to normalize more than one column at a time. 
-            // A pipeline for concatenating the age, parity and induced columns together in the new columns
-            // using log scale 
+            // Using log scale as the normalization mode. 
             var multiColPipeline = ml.Transforms.Normalizer(Normalizer.NormalizerMode.LogMeanVariance, new[] { ("Induced", "LogInduced"), ("Spontaneous", "LogSpontaneous") });
             // The transformed data.
             var multiColtransformedData = multiColPipeline.Fit(trainData).Transform(trainData);
-            // Getting the data of the newly created column as an Array, and 
+
+            // Getting the newly created columns. 
             var normalizedInduced = multiColtransformedData.GetColumn<float>(ml, "LogInduced");
             var normalizedSpont = multiColtransformedData.GetColumn<float>(ml, "LogSpontaneous");
 

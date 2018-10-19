@@ -39,7 +39,7 @@ namespace Microsoft.ML.Samples.Dynamic
             var default_pipeline = new WordTokenizer(ml, "ReviewReverse", "ReviewReverse")
                 .Append(new TermEstimator(ml, "ReviewReverse" , defaultColumnName));
 
-            // Another pipeline, that customizes the advanced settings of the FeaturizeText transformer.
+            // Another pipeline, that customizes the advanced settings of the TermEstimator.
             string customizedColumnName = "CustomizedKeys";
             var customized_pipeline = new WordTokenizer(ml, "ReviewReverse", "ReviewReverse")
                 .Append(new TermEstimator(ml, "ReviewReverse", customizedColumnName, maxNumTerms: 10, sort:TermTransform.SortOrder.Value));
@@ -48,7 +48,7 @@ namespace Microsoft.ML.Samples.Dynamic
             var transformedData_default = default_pipeline.Fit(trainData).Transform(trainData);
             var transformedData_customized = customized_pipeline.Fit(trainData).Transform(trainData);
 
-            // small helper to print the text inside the columns, in the console. 
+            // Small helper to print the text inside the columns, in the console. 
             Action<string, IEnumerable<VBuffer<uint>>> printHelper = (columnName, column) =>
             {
                 Console.WriteLine($"{columnName} column obtained post-transformation.");
@@ -62,9 +62,9 @@ namespace Microsoft.ML.Samples.Dynamic
                 Console.WriteLine("===================================================");
             };
 
-            // Preview of the TextFeatures column obtained after processing the input.
-             var defaultColumn = transformedData_default.GetColumn<VBuffer<uint>>(ml, defaultColumnName);
-             printHelper(defaultColumnName, defaultColumn);
+            // Preview of the DefaultKeys column obtained after processing the input.
+            var defaultColumn = transformedData_default.GetColumn<VBuffer<uint>>(ml, defaultColumnName);
+            printHelper(defaultColumnName, defaultColumn);
 
             // DefaultKeys column obtained post-transformation.
             // 1 2 3 4
@@ -76,18 +76,18 @@ namespace Microsoft.ML.Samples.Dynamic
             var customizedColumn = transformedData_customized.GetColumn<VBuffer<uint>>(ml, customizedColumnName);
             printHelper(customizedColumnName, customizedColumn);
 
-            // CustomizedKeys column obtained post-transformation.
+            // CustomizedKeys
             // 6 4 9 3
             // 7 4 9 6
             // 1 5 9 6
             // 2 8 9 6
 
-            // retrieve the original values, by appending the KeyToValue etimator to the existing pipelines
-            // to convert the keys back to the strings
+            // Retrieve the original values, by appending the KeyToValue etimator to the existing pipelines
+            // to convert the keys back to the strings.
             var pipeline = default_pipeline.Append(new KeyToValueEstimator(ml, defaultColumnName));
             transformedData_default = pipeline.Fit(trainData).Transform(trainData);
 
-            // Preview of the DefaultColumnName column obtained
+            // Preview of the DefaultColumnName column obtained.
             var originalColumnBack = transformedData_default.GetColumn<VBuffer<ReadOnlyMemory<char>>>(ml, defaultColumnName);
 
             foreach (var row in originalColumnBack)
@@ -97,7 +97,7 @@ namespace Microsoft.ML.Samples.Dynamic
                 Console.WriteLine("");
             }
 
-            // DefaultColumnName column obtained post-transformation.
+            // DefaultKeys 
             // radiation galaxy universe duck
             // space galaxy universe radiation
             // bus pickup universe radiation
