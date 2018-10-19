@@ -2,22 +2,21 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Internal.Internallearn;
 using Microsoft.ML.Runtime.Learners;
-using Microsoft.ML.StaticPipe;
 using Microsoft.ML.StaticPipe.Runtime;
+using System;
 
-namespace Microsoft.ML.Trainers
+namespace Microsoft.ML.StaticPipe
 {
     using Arguments = StochasticGradientDescentClassificationTrainer.Arguments;
 
     /// <summary>
     /// Binary Classification trainer estimators.
     /// </summary>
-    public static partial class BinaryClassificationTrainers
+    public static class SgdExtensions
     {
         /// <summary>
         ///  Predict a target using a linear binary classification model trained with the <see cref="Microsoft.ML.Runtime.Learners.StochasticGradientDescentClassificationTrainer"/> trainer.

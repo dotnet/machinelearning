@@ -12,6 +12,7 @@ using Microsoft.ML.Runtime.KMeans;
 using Microsoft.ML.Runtime.Learners;
 using Microsoft.ML.Runtime.LightGBM;
 using Microsoft.ML.Runtime.RunTests;
+using Microsoft.ML.StaticPipe;
 using Microsoft.ML.Trainers;
 using System;
 using System.Linq;
@@ -719,7 +720,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var dataPath = GetDataPath(TestDatasets.adultRanking.trainFilename);
             var dataSource = new MultiFileSource(dataPath);
 
-            var ctx = new RankerContext(env);
+            var ctx = new RankingContext(env);
 
             var reader = TextLoader.CreateReader(env,
                 c => (label: c.LoadFloat(0), features: c.LoadFloat(9, 14), groupId: c.LoadText(1)),
