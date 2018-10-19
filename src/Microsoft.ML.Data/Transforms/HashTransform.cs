@@ -525,11 +525,11 @@ namespace Microsoft.ML.Transforms
         /// <summary>
         /// The usage of this interface may seem a bit strange, but it is deliberately structured in this way.
         /// One will note all implementors of this interface are structs, and that where used, you never use
-        /// the interface itself but instead a type. This is due to how .NET and the JIT handles generic.
-        /// For value types, it will actually generate new assembly code, which will allow effectively code
-        /// generation in a way that would not happen if the hasher implementor was a class, or if the hasher
-        /// implementation was just passed in with a delegate, or the hashing logic was encapsulated as the
-        /// abstract method of some class.
+        /// the interface itself, but instead an implementing type. This is due to how .NET and the JIT handles
+        /// generic types that are also value types. For value types, it will actually generate new assembly
+        /// code, which will allow effectively code generation in a way that would not happen if the hasher
+        /// implementor was a class, or if the hasher implementation was just passed in with a delegate, or
+        /// the hashing logic was encapsulated as the abstract method of some class.
         ///
         /// In a prior time, there were methods for all possible combinations of types, scalarness, vector
         /// sparsity/density, whether the hash was sparsity preserving or not, whether it was ordered or not.
@@ -777,7 +777,7 @@ namespace Microsoft.ML.Transforms
                 else
                 {
                     // First fill in the values of the destination. This strategy assumes, of course,
-                    // that it is more performant to intiialize then fill in the exceptional (non-sparse)
+                    // that it is more performant to initialize then fill in the exceptional (non-sparse)
                     // values, rather than having complicated logic to do a simultaneous traversal of the
                     // sparse vs. dense array.
                     for (int i = 0; i < src.Length; ++i)
