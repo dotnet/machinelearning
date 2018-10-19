@@ -34,9 +34,12 @@ namespace Microsoft.ML.Tests.Transformers
                 separator: ';', hasHeader: true)
                 .Read(new MultiFileSource(dataSource));
 
-            var est = new PcaEstimator(env, "features", "pca", rank: 5, advancedSettings: s => {
-                    s.Seed = 1;
-                });
+            //var est = new PcaEstimator(env, "features", "pca", rank: 5, advancedSettings: s =>
+            //{
+            //    s.Seed = 1;
+            //});
+
+            var est = new PcaEstimator2(env, "features", "pca", rank: 5, seed: 1);
 
             // The following call fails because of the following issue
             // https://github.com/dotnet/machinelearning/issues/969
