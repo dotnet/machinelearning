@@ -123,8 +123,6 @@ namespace Microsoft.ML.Tests.Transformers
             };
 
             var dataView = ComponentCreation.CreateDataView(Env, data);
-            var args = new NAIndicatorTransform.Arguments();
-            args.Column = new NAIndicatorTransform.Column[] { new NAIndicatorTransform.Column() { Name = "NAA", Source = "A" } };
             var pipe = new CategoricalEstimator(Env, new CategoricalEstimator.ColumnInfo("A", "CatA"));
             var newpipe = pipe.Append(new NAIndicatorEstimator(Env, new (string input, string output)[] { ("CatA", "NAA") }));
             var result = newpipe.Fit(dataView).Transform(dataView);
