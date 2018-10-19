@@ -10,8 +10,11 @@ namespace Microsoft.ML.Legacy.Models
     public sealed partial class OnnxConverter
     {
         /// <summary>
-        /// <para><a href="https://onnx.ai/">ONNX</a> is an intermediate representation format
-        /// for machine learning models. It is used to make models portable such that you can
+        /// <a href="https://onnx.ai/">ONNX</a> is an intermediate representation format
+        /// for machine learning models.
+        /// </summary>
+        /// <remarks>
+        /// <para>It is used to make models portable such that you can
         /// train a model using a toolkit and run it in another tookit's runtime, for example,
         /// you can create a model using ML.NET, export it to an ONNX-ML model file,
         /// then load and run that ONNX-ML model in Windows ML, on an UWP Windows 10 app.</para>
@@ -63,7 +66,7 @@ namespace Microsoft.ML.Legacy.Models
         ///
         /// <para>See <a href="https://github.com/dotnet/machinelearning/blob/master/test/Microsoft.ML.Tests/OnnxTests.cs">OnnxTests.cs</a>
         /// for an example on how to train a model and then convert that model to ONNX.</para>
-        /// </summary>
+        /// </remarks>
         /// <param name="model">Model that needs to be converted to ONNX format.</param>
         public void Convert(PredictionModel model)
         {
