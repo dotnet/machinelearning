@@ -318,9 +318,7 @@ namespace Microsoft.ML.Scenarios
 
             pipeline.Add(new TextFeaturizer("Features", "SentimentText")
             {
-                KeepDiacritics = false,
                 KeepPunctuations = false,
-                TextCase = TextNormalizerTransformCaseNormalizationMode.Lower,
                 OutputTokens = true,
                 StopWordsRemover = new PredefinedStopWordsRemover(),
                 VectorNormalizer = TextTransformTextNormKind.L2,
@@ -367,9 +365,7 @@ namespace Microsoft.ML.Scenarios
 
             pipeline.Add(new TextFeaturizer("Features", "SentimentText")
             {
-                KeepDiacritics = false,
                 KeepPunctuations = false,
-                TextCase = TextNormalizerTransformCaseNormalizationMode.Lower,
                 OutputTokens = true,
                 StopWordsRemover = new PredefinedStopWordsRemover(),
                 VectorNormalizer = TextTransformTextNormKind.L2,
@@ -416,9 +412,7 @@ namespace Microsoft.ML.Scenarios
 
             pipeline.Add(new TextFeaturizer("Features", "SentimentText")
             {
-                KeepDiacritics = false,
                 KeepPunctuations = false,
-                TextCase = TextNormalizerTransformCaseNormalizationMode.Lower,
                 OutputTokens = true,
                 StopWordsRemover = new PredefinedStopWordsRemover(),
                 VectorNormalizer = TextTransformTextNormKind.L2,
