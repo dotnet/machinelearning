@@ -26,11 +26,6 @@ namespace Microsoft.ML.Tests
             }
         }
 
-        private class TestDataSize
-        {
-            [VectorType(2)]
-            public float[] data_0;
-        }
         private class TestDataXY
         {
             [VectorType(inputSize)]
@@ -70,7 +65,6 @@ namespace Microsoft.ML.Tests
 
             var xyData = new List<TestDataXY> { new TestDataXY() { A = new float[inputSize] } };
             var stringData = new List<TestDataDifferntType> { new TestDataDifferntType() { data_0 = new string[inputSize] } };
-            var sizeData = new List<TestDataSize> { new TestDataSize() { data_0 = new float[2] } };
 
             var invalidDataWrongNames = ComponentCreation.CreateDataView(Env, xyData);
             var invalidDataWrongTypes = ComponentCreation.CreateDataView(Env, stringData);
@@ -103,7 +97,6 @@ namespace Microsoft.ML.Tests
 
             var xyData = new List<TestDataXY> { new TestDataXY() { A = new float[inputSize] } };
             var stringData = new List<TestDataDifferntType> { new TestDataDifferntType() { data_0 = new string[inputSize] } };
-            var sizeData = new List<TestDataSize> { new TestDataSize() { data_0 = new float[2] } };
 
             var invalidDataWrongNames = ComponentCreation.CreateDataView(Env, xyData);
             var invalidDataWrongTypes = ComponentCreation.CreateDataView(Env, stringData);
@@ -129,7 +122,6 @@ namespace Microsoft.ML.Tests
 
             var xyData = new List<TestDataXY> { new TestDataXY() { A = new float[inputSize] } };
             var stringData = new List<TestDataDifferntType> { new TestDataDifferntType() { data_0 = new string[inputSize] } };
-            var sizeData = new List<TestDataSize> { new TestDataSize() { data_0 = new float[2] } };
 
             var invalidDataWrongNames = ComponentCreation.CreateDataView(Env, xyData);
             var invalidDataWrongTypes = ComponentCreation.CreateDataView(Env, stringData);
@@ -155,7 +147,6 @@ namespace Microsoft.ML.Tests
 
             var xyData = new List<TestDataXY> { new TestDataXY() { A = new float[inputSize] } };
             var stringData = new List<TestDataDifferntType> { new TestDataDifferntType() { data_0 = new string[inputSize] } };
-            var sizeData = new List<TestDataSize> { new TestDataSize() { data_0 = new float[2] } };
 
             var invalidDataWrongNames = ComponentCreation.CreateDataView(Env, xyData);
             var invalidDataWrongTypes = ComponentCreation.CreateDataView(Env, stringData);
