@@ -121,10 +121,10 @@ namespace Microsoft.ML.Runtime.Data
             /// </summary>
             public ColumnInfo(string input,
                               string output,
-                              string weightColumn = PcaTransform.Defaults.WeightColumn,
-                              int rank = PcaTransform.Defaults.Rank,
-                              int overSampling = PcaTransform.Defaults.Oversampling,
-                              bool center = PcaTransform.Defaults.Center,
+                              string weightColumn = Defaults.WeightColumn,
+                              int rank = Defaults.Rank,
+                              int overSampling = Defaults.Oversampling,
+                              bool center = Defaults.Center,
                               int? seed = null)
             {
                 Input = input;
@@ -358,7 +358,7 @@ namespace Microsoft.ML.Runtime.Data
 
         private static (string input, string output)[] GetColumnPairs(ColumnInfo[] columns)
         {
-            //Contracts.CheckValue(columns, nameof(columns));
+            Contracts.CheckValue(columns, nameof(columns));
             return columns.Select(x => (x.Input, x.Output)).ToArray();
         }
 
@@ -592,9 +592,7 @@ namespace Microsoft.ML.Runtime.Data
         private sealed class Mapper : MapperBase
         {
             private readonly ColumnType[] _outputColumnTypes;
-            // Todo: replace with ColMapNewToOld
             private readonly ColumnType[] _inputColumnTypes;
-            private readonly int[] _inputColumnIndices;
             private readonly PcaTransform _parent;
             private readonly int _numColumns;
 
@@ -605,12 +603,11 @@ namespace Microsoft.ML.Runtime.Data
                 _numColumns = parent._numColumns;
                 _outputColumnTypes = parent.InitColumnTypes();
                 _inputColumnTypes = new ColumnType[_numColumns];
-                _inputColumnIndices = new int[_numColumns];
                 for (int i = 0; i < _numColumns; i++)
                 {
                     var inputColName = _parent.ColumnPairs[i].input;
-                    inputSchema.TryGetColumnIndex(inputColName, out _inputColumnIndices[i]);
-                    _inputColumnTypes[i] = inputSchema[_inputColumnIndices[i]].Type;
+                    var inputColIndex = ColMapNewToOld[i];
+                    _inputColumnTypes[i] = inputSchema[inputColIndex].Type;
                     ValidatePcaInput(Host, inputColName, _inputColumnTypes[i]);
                     if (_inputColumnTypes[i].VectorSize != _parent._transformInfos[i].Dimension)
                     {
@@ -636,7 +633,7 @@ namespace Microsoft.ML.Runtime.Data
                 Contracts.Assert(0 <= iinfo && iinfo < _numColumns);
                 disposer = null;
 
-                var srcGetter = input.GetGetter<VBuffer<float>>(_inputColumnIndices[iinfo]);
+                var srcGetter = input.GetGetter<VBuffer<float>>(ColMapNewToOld[iinfo]);
                 var src = default(VBuffer<float>);
 
                 ValueGetter<VBuffer<float>> dstGetter = (ref VBuffer<float> dst) =>
