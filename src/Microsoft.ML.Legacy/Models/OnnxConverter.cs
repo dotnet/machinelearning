@@ -59,7 +59,7 @@ namespace Microsoft.ML.Legacy.Models
         /// <item><description>Logistic Regression</description></item>
         /// </list>
         ///
-        /// <para>See <a href="https://github.com/dotnet/machinelearning/blob/master/test/Microsoft.ML.Tests/OnnxTests.cs"/>OnnxTests.cs</a>
+        /// <para>See <a href="https://github.com/dotnet/machinelearning/blob/master/test/Microsoft.ML.Tests/OnnxTests.cs">OnnxTests.cs</a>
         /// for an example on how to train a model and then convert that model to ONNX.</para>
         /// </summary>
         /// <param name="model">Model that needs to be converted to ONNX format.</param>
