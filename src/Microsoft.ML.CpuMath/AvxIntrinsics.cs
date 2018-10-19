@@ -150,7 +150,8 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             }
             else
             {
-                return Avx.Add(Avx.Multiply(Avx.LoadVector256(psrc1), src2), src3);
+                Vector256<float> product = Avx.Multiply(src2, Avx.LoadVector256(psrc1));
+                return Avx.Add(product, src3);
             }
         }
 
@@ -163,7 +164,8 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             }
             else
             {
-                return Avx.Add(Avx.Multiply(src1, src2), src3);
+                Vector256<float> product = Avx.Multiply(src1, src2);
+                return Avx.Add(product, src3);
             }
         }
 
