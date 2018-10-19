@@ -263,11 +263,10 @@ namespace Microsoft.ML.Runtime.Data
             for (int i = 0; i < _numColumns; i++)
             {
                 var col = columns[i];
-                if (!input.Schema.TryGetColumnIndex(col.Input, out _inputColumnIndices[i]))
-                    throw Host.ExceptSchemaMismatch(nameof(col.Input), "input", col.Input);
+                // Base class has checked existence of input columns
+                input.Schema.TryGetColumnIndex(col.Input, out _inputColumnIndices[i]);
                 _inputColumnTypes[i] = input.Schema[_inputColumnIndices[i]].Type;
-                Host.Check(_inputColumnTypes[i].IsKnownSizeVector && _inputColumnTypes[i].VectorSize > 1,
-                    "Pca transform can only be applied to columns with known dimensionality greater than 1");
+                ValidatePcaInput(Host, col.Input, _inputColumnTypes[i]);
                 _transformInfos[i] = new TransformInfo(col.Rank, _inputColumnTypes[i].ValueCount);
                 Host.CheckUserArg(col.Oversampling >= 0, nameof(col.Oversampling), "Oversampling must be non-negative");
                 _weightColumnIndices[i] = -1;
@@ -575,6 +574,24 @@ namespace Microsoft.ML.Runtime.Data
 
         protected override IRowMapper MakeRowMapper(ISchema schema) => new Mapper(this, Schema.Create(schema));
 
+        protected override void CheckInputColumn(ISchema inputSchema, int col, int srcCol)
+        {
+            ValidatePcaInput(Host, inputSchema.GetColumnName(srcCol), inputSchema.GetColumnType(srcCol));
+        }
+
+        internal static void ValidatePcaInput(IHost host, string name, ColumnType type)
+        {
+            if (!type.IsVector)
+                throw host.Except($"Pca transform can only be applied to vector columns. Column ${name} is of type ${type}");
+
+            if (!(type.IsKnownSizeVector && type.VectorSize > 1))
+                throw host.Except($"Pca transform can only be applied to vector columns. Column ${name} is of size ${type.VectorSize}");
+
+            var itemType = type.ItemType;
+            if (!itemType.IsNumber)
+                throw host.Except($"Pca transform can only be applied to vector of numeric items. Column ${name} contains type ${itemType}");
+        }
+
         private sealed class Mapper : MapperBase
         {
             private readonly ColumnType[] _outputColumnTypes;
@@ -652,12 +669,6 @@ namespace Microsoft.ML.Runtime.Data
 
                 dst = new VBuffer<Float>(transformInfo.Rank, values, dst.Indices);
             }
-
-            //protected virtual void CheckInputColumn(ISchema inputSchema, int col, int srcCol)
-            //{
-            //    // By default, there are no extra checks.
-            //}
-
         }
 
         [TlcModule.EntryPoint(Name = "Transforms.PcaCalculator2",
@@ -750,7 +761,8 @@ namespace Microsoft.ML.Runtime.Data
             {
                 if (!inputSchema.TryFindColumn(colInfo.Input, out var col))
                     throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.Input);
-                if (col.ItemType.RawKind != DataKind.R4 || col.Kind != SchemaShape.Column.VectorKind.Vector)
+
+                if (!(col.Kind == SchemaShape.Column.VectorKind.Vector && col.ItemType.IsNumber))
                     throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.Input);
 
                 result[colInfo.Output] = new SchemaShape.Column(colInfo.Output,
@@ -772,7 +784,7 @@ namespace Microsoft.ML.Runtime.Data
 
             public OutPipelineColumn(Vector<float> input, string weightColumn, int rank,
                                      int overSampling, bool center, int? seed = null)
-                : base(new Reconciler(weightColumn, rank, overSampling, center, seed))
+                : base(new Reconciler(weightColumn, rank, overSampling, center, seed), input)
             {
                 Input = input;
             }
