@@ -342,11 +342,8 @@ namespace Microsoft.ML.Transforms
         {
             if (typeof(T) == typeof(System.Single))
             {
-                // Sonoma only takes List<T>. We need to do an extra copy to T[]
-                var listDst = new List<System.Single>();
                 var typedDst = (System.Single[])(object)dst;
-                tensor.CopyTo(listDst);
-                listDst.CopyTo(typedDst);
+                tensor.CopyTo(typedDst);
             }
             else
                 throw new NotImplementedException($"Not implemented type {typeof(T)}");
