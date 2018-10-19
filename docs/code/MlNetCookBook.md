@@ -88,12 +88,12 @@ Label	Workclass	education	marital-status
 
 This is how you can read this data:
 ```csharp
-// Create a new environment for ML.NET operations. It can be used for exception tracking and logging, 
-// as well as the source of randomness.
-var env = new LocalEnvironment();
+// Create a new context for ML.NET operations. It can be used for exception tracking and logging, 
+// as a catalog of available operations and as the source of randomness.
+var mlContext = new MLContext();
 
 // Create the reader: define the data columns and where to find them in the text file.
-var reader = TextLoader.CreateReader(env, ctx => (
+var reader = TextLoader.CreateReader(mlContext, ctx => (
         // A boolean column depicting the 'target label'.
         IsOver50K: ctx.LoadBool(0),
         // Three text columns.
@@ -108,12 +108,12 @@ var data = reader.Read(new MultiFileSource(dataPath));
 
 If the schema of the data is not known at compile time, or too cumbersome, you can revert to the dynamically-typed API: 
 ```csharp
-// Create a new environment for ML.NET operations. It can be used for exception tracking and logging, 
-// as well as the source of randomness.
-var env = new LocalEnvironment();
+// Create a new context for ML.NET operations. It can be used for exception tracking and logging, 
+// as a catalog of available operations and as the source of randomness.
+var mlContext = new MLContext();
 
 // Create the reader: define the data columns and where to find them in the text file.
-var reader = new TextLoader(env, new TextLoader.Arguments
+var reader = new TextLoader(mlContext, new TextLoader.Arguments
 {
     Column = new[] {
         // A boolean column depicting the 'label'.
@@ -146,12 +146,12 @@ When the input file contains many columns of the same type, always intended to b
 
 Reading this file using `TextLoader`:
 ```csharp
-// Create a new environment for ML.NET operations. It can be used for exception tracking and logging, 
-// as well as the source of randomness.
-var env = new LocalEnvironment();
+// Create a new context for ML.NET operations. It can be used for exception tracking and logging, 
+// as a catalog of available operations and as the source of randomness.
+var mlContext = new MLContext();
 
 // Create the reader: define the data columns and where to find them in the text file.
-var reader = TextLoader.CreateReader(env, ctx => (
+var reader = TextLoader.CreateReader(mlContext, ctx => (
         // We read the first 11 values as a single float vector.
         FeatureVector: ctx.LoadFloat(0, 10),
         // Separately, read the target variable.
@@ -168,22 +168,19 @@ var data = reader.Read(new MultiFileSource(dataPath));
 
 If the schema of the data is not known at compile time, or too cumbersome, you can revert to the dynamically-typed API: 
 ```csharp
-// Create a new environment for ML.NET operations. It can be used for exception tracking and logging, 
-// as well as the source of randomness.
-var env = new LocalEnvironment();
+// Create a new context for ML.NET operations. It can be used for exception tracking and logging, 
+// as a catalog of available operations and as the source of randomness.
+var mlContext = new MLContext();
 
 // Create the reader: define the data columns and where to find them in the text file.
-var reader = new TextLoader(env, new TextLoader.Arguments
-{
-    Column = new[] {
-	    // We read the first 10 values as a single float vector.
+var reader = mlContext.Data.TextReader(new[] {
+        // We read the first 10 values as a single float vector.
         new TextLoader.Column("FeatureVector", DataKind.R4, new[] {new TextLoader.Range(0, 9)}),
         // Separately, read the target variable.
         new TextLoader.Column("Target", DataKind.R4, 10)
     },
     // Default separator is tab, but we need a comma.
-    Separator = ","
-});
+    s => s.Separator = ",");
 
 // Now read the file (remember though, readers are lazy, so the actual reading will happen when the data is accessed).
 var data = reader.Read(new MultiFileSource(dataPath));
@@ -210,12 +207,12 @@ Label	Workclass	education	marital-status
 ```
 
 ```csharp
-// Create a new environment for ML.NET operations. It can be used for exception tracking and logging, 
-// as well as the source of randomness.
-var env = new LocalEnvironment();
+// Create a new context for ML.NET operations. It can be used for exception tracking and logging, 
+// as a catalog of available operations and as the source of randomness.
+var mlContext = new MLContext();
 
 // Create the reader: define the data columns and where to find them in the text file.
-var reader = TextLoader.CreateReader(env, ctx => (
+var reader = TextLoader.CreateReader(mlContext, ctx => (
         // A boolean column depicting the 'target label'.
         IsOver50K: ctx.LoadBool(0),
         // Three text columns.
@@ -242,11 +239,9 @@ var transformedData = dataPipeline.Fit(data).Transform(data);
 // 'transformedData' is a 'promise' of data. Let's actually read it.
 var someRows = transformedData.AsDynamic
     // Convert to an enumerable of user-defined type. 
-    .AsEnumerable<InspectedRow>(env, reuseRowObject: false)
+    .AsEnumerable<InspectedRow>(mlContext, reuseRowObject: false)
     // Take a couple values as an array.
     .Take(4).ToArray();
-
-// Now we can inspect 'someRows' to see if the data has been read and transformed correctly.
 
 // Extract the 'AllFeatures' column.
 // This will give the entire dataset: make sure to only take several row
@@ -257,7 +252,7 @@ var featureColumns = transformedData.GetColumn(r => r.AllFeatures)
 // The same extension method also applies to the dynamic-typed data, except you have to
 // specify the column name and type:
 var dynamicData = transformedData.AsDynamic;
-var sameFeatureColumns = dynamicData.GetColumn<string[]>(env, "AllFeatures")
+var sameFeatureColumns = dynamicData.GetColumn<string[]>(mlContext, "AllFeatures")
     .Take(20).ToArray();
 ```
 
@@ -291,13 +286,13 @@ feature_0;feature_1;feature_2;feature_3;feature_4;feature_5;feature_6;feature_7;
 In the file above, the last column (12th) is label that we predict, and all the preceding ones are features.
 
 ```csharp
-// Create a new environment for ML.NET operations. It can be used for exception tracking and logging, 
-// as well as the source of randomness.
-var env = new LocalEnvironment();
+// Create a new context for ML.NET operations. It can be used for exception tracking and logging, 
+// as a catalog of available operations and as the source of randomness.
+var mlContext = new MLContext();
 
 // Step one: read the data as an IDataView.
 // First, we define the reader: specify the data columns and where to find them in the text file.
-var reader = TextLoader.CreateReader(env, ctx => (
+var reader = TextLoader.CreateReader(mlContext, ctx => (
         // We read the first 11 values as a single float vector.
         FeatureVector: ctx.LoadFloat(0, 10),
         // Separately, read the target variable.
@@ -313,9 +308,6 @@ var reader = TextLoader.CreateReader(env, ctx => (
 var trainData = reader.Read(new MultiFileSource(trainDataPath));
 
 // Step two: define the learning pipeline. 
-// We know that this is a regression task, so we create a regression context: it will give us the algorithms
-// we need, as well as the evaluation procedure.
-var regression = new RegressionContext(env);
 
 // We 'start' the pipeline with the output of the reader.
 var learningPipeline = reader.MakeNewEstimator()
@@ -325,8 +317,8 @@ var learningPipeline = reader.MakeNewEstimator()
         // Retain the 'Target' column for evaluation purposes.
         r.Target,
         // We choose the SDCA regression trainer. Note that we normalize the 'FeatureVector' right here in
-        // the same call.
-        Prediction: regression.Trainers.Sdca(label: r.Target, features: r.FeatureVector.Normalize())));
+        // the the same call.
+        Prediction: mlContext.Regression.Trainers.Sdca(label: r.Target, features: r.FeatureVector.Normalize())));
 
 // Step three. Train the pipeline.
 var model = learningPipeline.Fit(trainData);
@@ -344,8 +336,7 @@ Assuming the example above was used to train the model, here's how you calculate
 // Read the test dataset.
 var testData = reader.Read(new MultiFileSource(testDataPath));
 // Calculate metrics of the model on the test data.
-// We are using the 'regression' context object here to perform evaluation.
-var metrics = regression.Evaluate(model.Transform(testData), label: r => r.Target, score: r => r.Prediction);
+var metrics = mlContext.Regression.Evaluate(model.Transform(testData), label: r => r.Target, score: r => r.Prediction);
 ```
 
 ## How do I save and load the model?
@@ -358,15 +349,15 @@ Here's what you do to save the model to a file, and reload it (potentially in a 
 using (var stream = File.Create(modelPath))
 {
     // Saving and loading happens to 'dynamic' models, so the static typing is lost in the process.
-    model.AsDynamic.SaveTo(env, stream);
+    mlContext.Model.Save(model.AsDynamic, stream);
 }
 
 // Potentially, the lines below can be in a different process altogether.
 
-// When you load the model, it's just a transformer.
+// When you load the model, it's a 'dynamic' transformer. 
 ITransformer loadedModel;
 using (var stream = File.OpenRead(modelPath))
-    loadedModel = TransformerChain.LoadFrom(env, stream);
+    loadedModel = mlContext.Model.Load(stream);
 ```
 
 ## How do I use the model to make one prediction?
@@ -380,17 +371,13 @@ For this case, ML.NET offers a convenient `PredictionFunction` component, that e
 Here is the full example. Let's imagine that we have built a model for the famous Iris prediction dataset:
 
 ```csharp
-// Create a new environment for ML.NET operations. It can be used for exception tracking and logging, 
-// as well as the source of randomness.
-var env = new LocalEnvironment();
-
-// We know that this is a classification task, so we create a multiclass classification context: it will give us the algorithms
-// we need, as well as the evaluation procedure.
-var classification = new MulticlassClassificationContext(env);
+// Create a new context for ML.NET operations. It can be used for exception tracking and logging, 
+// as a catalog of available operations and as the source of randomness.
+var mlContext = new MLContext();
 
 // Step one: read the data as an IDataView.
 // First, we define the reader: specify the data columns and where to find them in the text file.
-var reader = TextLoader.CreateReader(env, ctx => (
+var reader = TextLoader.CreateReader(mlContext, ctx => (
         // The four features of the Iris dataset.
         SepalLength: ctx.LoadFloat(0),
         SepalWidth: ctx.LoadFloat(1),
@@ -415,10 +402,10 @@ var learningPipeline = reader.MakeNewEstimator()
         r.Label,
         // Train the multi-class SDCA model to predict the label using features.
         // Note that the label is a text, so it needs to be converted to key using 'ToKey' estimator.
-        Predictions: classification.Trainers.Sdca(r.Label.ToKey(), r.Features)))
-        // Apply the inverse conversion from 'predictedLabel' key back to string value.
-        // Note that the final output column is only one, and we didn't assign a name to it.
-        // In this case, ML.NET auto-assigns the name 'Data' to the produced column.
+        Predictions: mlContext.MulticlassClassification.Trainers.Sdca(r.Label.ToKey(), r.Features)))
+    // Apply the inverse conversion from 'predictedLabel' key back to string value.
+    // Note that the final output column is only one, and we didn't assign a name to it.
+    // In this case, ML.NET auto-assigns the name 'Data' to the produced column.
     .Append(r => r.Predictions.predictedLabel.ToValue());
 
 // Train the model.
@@ -447,15 +434,15 @@ private class IrisPrediction
 
 The prediction code now looks as follows:
 ```csharp
-// Create a new environment for ML.NET operations. It can be used for exception tracking and logging, 
-// as well as the source of randomness.
-var env = new LocalEnvironment();
+// Create a new context for ML.NET operations. It can be used for exception tracking and logging, 
+// as a catalog of available operations and as the source of randomness.
+var mlContext = new MLContext();
 
 // Use the model for one-time prediction.
 // Make the prediction function object. Note that, on average, this call takes around 200x longer
 // than one prediction, so you might want to cache and reuse the prediction function, instead of
 // creating one per prediction.
-var predictionFunc = model.MakePredictionFunction<IrisInput, IrisPrediction>(env);
+var predictionFunc = model.MakePredictionFunction<IrisInput, IrisPrediction>(mlContext);
 
 // Obtain the prediction. Remember that 'Predict' is not reentrant. If you want to use multiple threads
 // for simultaneous prediction, make sure each thread is using its own PredictionFunction.
@@ -494,9 +481,9 @@ private class CustomerChurnInfo
 
 Given this information, here's how we turn this data into the ML.NET data view and train on it:
 ```csharp
-// Create a new environment for ML.NET operations. It can be used for exception tracking and logging, 
-// as well as the source of randomness.
-var env = new LocalEnvironment();
+// Create a new context for ML.NET operations. It can be used for exception tracking and logging, 
+// as a catalog of available operations and as the source of randomness.
+var mlContext = new MLContext();
 
 // Step one: read the data as an IDataView.
 // Let's assume that 'GetChurnData()' fetches and returns the training data from somewhere.
@@ -505,29 +492,25 @@ IEnumerable<CustomerChurnInfo> churnData = GetChurnInfo();
 // Turn the data into the ML.NET data view.
 // We can use CreateDataView or CreateStreamingDataView, depending on whether 'churnData' is an IList, 
 // or merely an IEnumerable.
-var trainData = env.CreateStreamingDataView(churnData);
+var trainData = mlContext.CreateStreamingDataView(churnData);
 
 // Now note that 'trainData' is just an IDataView, so we face a choice here: either declare the static type
 // and proceed in the statically typed fashion, or keep dynamic types and build a dynamic pipeline.
 // We demonstrate both below.
 
-// We know that this is a binary classification task, so we create a binary classification context: it will give us the algorithms
-// we need, as well as the evaluation procedure.
-var classification = new BinaryClassificationContext(env);
-
 // Build the learning pipeline. 
 // In our case, we will one-hot encode the demographic category, and concatenate that with the number of visits.
 // We apply our FastTree binary classifier to predict the 'HasChurned' label.
 
-var dynamicLearningPipeline = new CategoricalEstimator(env, "DemographicCategory")
-    .Append(new ConcatEstimator(env, "Features", "DemographicCategory", "LastVisits"))
-    .Append(new FastTreeBinaryClassificationTrainer(env, "HasChurned", "Features", numTrees: 20));
+var dynamicLearningPipeline = mlContext.Transforms.Categorical.OneHotEncoding("DemographicCategory")
+    .Append(new ConcatEstimator(mlContext, "Features", "DemographicCategory", "LastVisits"))
+    .Append(mlContext.BinaryClassification.Trainers.FastTree("HasChurned", "Features", numTrees: 20));
 
 var dynamicModel = dynamicLearningPipeline.Fit(trainData);
 
 // Build the same learning pipeline, but statically typed.
 // First, transition to the statically-typed data view.
-var staticData = trainData.AssertStatic(env, c => (
+var staticData = trainData.AssertStatic(mlContext, c => (
         HasChurned: c.Bool.Scalar,
         DemographicCategory: c.Text.Scalar,
         LastVisits: c.R4.Vector));
@@ -537,7 +520,7 @@ var staticLearningPipeline = staticData.MakeNewEstimator()
     .Append(r => (
         r.HasChurned,
         Features: r.DemographicCategory.OneHotEncoding().ConcatWith(r.LastVisits)))
-    .Append(r => classification.Trainers.FastTree(r.HasChurned, r.Features, numTrees: 20));
+    .Append(r => mlContext.BinaryClassification.Trainers.FastTree(r.HasChurned, r.Features, numTrees: 20));
 
 var staticModel = staticLearningPipeline.Fit(staticData);
 
@@ -555,17 +538,13 @@ In the static pipeline API, we provide a set of `onFit` delegates that allow int
 
 This is how we can extract the learned parameters out of the model that we trained:
 ```csharp
-// Create a new environment for ML.NET operations. It can be used for exception tracking and logging, 
-// as well as the source of randomness.
-var env = new LocalEnvironment();
-
-// We know that this is a classification task, so we create a multiclass classification context: it will give us the algorithms
-// we need, as well as the evaluation procedure.
-var classification = new MulticlassClassificationContext(env);
+// Create a new context for ML.NET operations. It can be used for exception tracking and logging, 
+// as a catalog of available operations and as the source of randomness.
+var mlContext = new MLContext();
 
 // Step one: read the data as an IDataView.
 // First, we define the reader: specify the data columns and where to find them in the text file.
-var reader = TextLoader.CreateReader(env, ctx => (
+var reader = TextLoader.CreateReader(mlContext, ctx => (
         // The four features of the Iris dataset.
         SepalLength: ctx.LoadFloat(0),
         SepalWidth: ctx.LoadFloat(1),
@@ -601,7 +580,7 @@ var learningPipeline = reader.MakeNewEstimator()
         r.Label,
         // Train the multi-class SDCA model to predict the label using features.
         // Note that the label is a text, so it needs to be converted to key using 'ToKey' estimator.
-        Predictions: classification.Trainers.Sdca(r.Label.ToKey(), r.Features,
+        Predictions: mlContext.MulticlassClassification.Trainers.Sdca(r.Label.ToKey(), r.Features,
             // When the model is trained, the below delegate is going to be called.
             // We use that to memorize the predictor object.
             onFit: p => predictor = p)));
@@ -617,8 +596,8 @@ var model = learningPipeline.Fit(trainData);
 VBuffer<float>[] weights = null;
 predictor.GetWeights(ref weights, out int numClasses);
 
-// similarly we can also inspect the biases for the 3 classes
-var biases = pred.GetBiases();
+// Similarly we can also inspect the biases for the 3 classes.
+var biases = predictor.GetBiases();
 
 // Inspect the normalizer scales.
 Console.WriteLine(string.Join(" ", normScales));
@@ -654,12 +633,12 @@ It is a good practice to include the normalizer directly in the ML.NET learning 
 
 Here's a snippet of code that demonstrates normalization in learning pipelines. It assumes the Iris dataset:
 ```csharp
-// Create a new environment for ML.NET operations. It can be used for exception tracking and logging, 
-// as well as the source of randomness.
-var env = new LocalEnvironment();
+// Create a new context for ML.NET operations. It can be used for exception tracking and logging, 
+// as a catalog of available operations and as the source of randomness.
+var mlContext = new MLContext();
 
 // Define the reader: specify the data columns and where to find them in the text file.
-var reader = TextLoader.CreateReader(env, ctx => (
+var reader = TextLoader.CreateReader(mlContext, ctx => (
         // The four features of the Iris dataset will be grouped together as one Features column.
         Features: ctx.LoadFloat(0, 3),
         // Label: kind of iris.
@@ -677,7 +656,7 @@ var pipeline = reader.MakeNewEstimator()
         MinMaxNormalized: r.Features.Normalize(fixZero: true),
         MeanVarNormalized: r.Features.NormalizeByMeanVar(fixZero: false),
         CdfNormalized: r.Features.NormalizeByCumulativeDistribution(),
-        BinNormalized: r.Features.NormalizeByBinning(maxBins: 256),
+        BinNormalized: r.Features.NormalizeByBinning(maxBins: 256)
     ));
 
 // Let's train our pipeline of normalizers, and then apply it to the same data.
@@ -712,12 +691,12 @@ Label	Workclass	education	marital-status	occupation	relationship	ethnicity	sex	n
 ```
 
 ```csharp
-// Create a new environment for ML.NET operations. It can be used for exception tracking and logging, 
-// as well as the source of randomness.
-var env = new LocalEnvironment();
+// Create a new context for ML.NET operations. It can be used for exception tracking and logging, 
+// as a catalog of available operations and as the source of randomness.
+var mlContext = new MLContext();
 
 // Define the reader: specify the data columns and where to find them in the text file.
-var reader = TextLoader.CreateReader(env, ctx => (
+var reader = TextLoader.CreateReader(mlContext, ctx => (
         Label: ctx.LoadBool(0),
         // We will load all the categorical features into one vector column of size 8.
         CategoricalFeatures: ctx.LoadText(1, 8),
@@ -736,7 +715,7 @@ var catColumns = data.GetColumn(r => r.CategoricalFeatures).Take(10).ToArray();
 // Build several alternative featurization pipelines.
 var learningPipeline = reader.MakeNewEstimator()
     .Append(r => (
-        r.Label, 
+        r.Label,
         r.NumericalFeatures,
         // Convert each categorical feature into one-hot encoding independently.
         CategoricalOneHot: r.CategoricalFeatures.OneHotEncoding(outputKind: CategoricalStaticExtensions.OneHotVectorOutputKind.Ind),
@@ -756,14 +735,13 @@ var workclasses = transformedData.GetColumn(x => x.WorkclassOneHotTrimmed).Take(
 // Of course, if we want to train the model, we will need to compose a single float vector of all the features.
 // Here's how we could do this:
 
-var classification = new BinaryClassificationContext(env);
 var fullLearningPipeline = learningPipeline
     .Append(r => (
         r.Label,
         // Concatenate two of the 3 categorical pipelines, and the numeric features.
         Features: r.NumericalFeatures.ConcatWith(r.CategoricalBag, r.WorkclassOneHotTrimmed)))
     // Now we're ready to train. We chose our FastTree trainer for this classification task.
-    .Append(r => classification.Trainers.FastTree(r.Label, r.Features, numTrees: 50));
+    .Append(r => mlContext.BinaryClassification.Trainers.FastTree(r.Label, r.Features, numTrees: 50));
 
 // Train the model.
 var model = fullLearningPipeline.Fit(data);
@@ -795,12 +773,12 @@ Sentiment   SentimentText
 ```
 
 ```csharp
-// Create a new environment for ML.NET operations. It can be used for exception tracking and logging, 
-// as well as the source of randomness.
-var env = new LocalEnvironment();
+// Create a new context for ML.NET operations. It can be used for exception tracking and logging, 
+// as a catalog of available operations and as the source of randomness.
+var mlContext = new MLContext();
 
 // Define the reader: specify the data columns and where to find them in the text file.
-var reader = TextLoader.CreateReader(env, ctx => (
+var reader = TextLoader.CreateReader(mlContext, ctx => (
         IsToxic: ctx.LoadBool(0),
         Message: ctx.LoadText(1)
     ), hasHeader: true);
@@ -852,17 +830,13 @@ ML.NET guards us against both these pitfalls: it will automatically apply the fe
 
 Here's an example of training on Iris dataset using randomized 90/10 train-test split, as well as a 5-fold cross-validation:
 ```csharp
-// Create a new environment for ML.NET operations. It can be used for exception tracking and logging, 
-// as well as the source of randomness.
-var env = new LocalEnvironment();
-
-// We know that this is a classification task, so we create a multiclass classification context: it will give us the algorithms
-// we need, as well as the evaluation procedure.
-var classification = new MulticlassClassificationContext(env);
+// Create a new context for ML.NET operations. It can be used for exception tracking and logging, 
+// as a catalog of available operations and as the source of randomness.
+var mlContext = new MLContext();
 
 // Step one: read the data as an IDataView.
 // First, we define the reader: specify the data columns and where to find them in the text file.
-var reader = TextLoader.CreateReader(env, ctx => (
+var reader = TextLoader.CreateReader(mlContext, ctx => (
         // The four features of the Iris dataset.
         SepalLength: ctx.LoadFloat(0),
         SepalWidth: ctx.LoadFloat(1),
@@ -887,19 +861,19 @@ var learningPipeline = reader.MakeNewEstimator()
     .Append(r => (
         r.Label,
         // Train the multi-class SDCA model to predict the label using features.
-        Predictions: classification.Trainers.Sdca(r.Label, r.Features)));
+        Predictions: mlContext.MulticlassClassification.Trainers.Sdca(r.Label, r.Features)));
 
 // Split the data 90:10 into train and test sets, train and evaluate.
-var (trainData, testData) = classification.TrainTestSplit(data, testFraction: 0.1);
+var (trainData, testData) = mlContext.MulticlassClassification.TrainTestSplit(data, testFraction: 0.1);
 
 // Train the model.
 var model = learningPipeline.Fit(trainData);
 // Compute quality metrics on the test set.
-var metrics = classification.Evaluate(model.Transform(testData), r => r.Label, r => r.Predictions);
+var metrics = mlContext.MulticlassClassification.Evaluate(model.Transform(testData), r => r.Label, r => r.Predictions);
 Console.WriteLine(metrics.AccuracyMicro);
 
 // Now run the 5-fold cross-validation experiment, using the same pipeline.
-var cvResults = classification.CrossValidate(data, learningPipeline, r => r.Label, numFolds: 5);
+var cvResults = mlContext.MulticlassClassification.CrossValidate(data, learningPipeline, r => r.Label, numFolds: 5);
 
 // The results object is an array of 5 elements. For each of the 5 folds, we have metrics, model and scored test data.
 // Let's compute the average micro-accuracy.
@@ -917,13 +891,13 @@ Transitioning from dynamic to static types is more costly: we have to formally d
 
 We can do this via `AssertStatic<T>` extensions, as demonstrated in the following example, where we mix and match static and dynamic pipelines.
 ```c#
-// Create a new environment for ML.NET operations. It can be used for exception tracking and logging, 
-// as well as the source of randomness.
-var env = new LocalEnvironment();
+// Create a new context for ML.NET operations. It can be used for exception tracking and logging, 
+// as a catalog of available operations and as the source of randomness.
+var mlContext = new MLContext();
 
 // Read the data as an IDataView.
 // First, we define the reader: specify the data columns and where to find them in the text file.
-var reader = TextLoader.CreateReader(env, ctx => (
+var reader = TextLoader.CreateReader(mlContext, ctx => (
         // The four features of the Iris dataset.
         SepalLength: ctx.LoadFloat(0),
         SepalWidth: ctx.LoadFloat(1),
@@ -951,15 +925,15 @@ var learningPipeline = reader.MakeNewEstimator()
 IEstimator<ITransformer> dynamicPipe = learningPipeline.AsDynamic;
 
 // Create a binary classification trainer.
-var binaryTrainer = new AveragedPerceptronTrainer(env, "Label", "Features");
+var binaryTrainer = mlContext.BinaryClassification.Trainers.AveragedPerceptron();
 
 // Append the OVA learner to the pipeline.
-dynamicPipe = dynamicPipe.Append(new Ova(env, binaryTrainer));
+dynamicPipe = dynamicPipe.Append(new Ova(mlContext, binaryTrainer));
 
 // At this point, we have a choice. We could continue working with the dynamically-typed pipeline, and
 // ultimately call dynamicPipe.Fit(data.AsDynamic) to get the model, or we could go back into the static world.
 // Here's how we go back to the static pipeline:
-var staticFinalPipe = dynamicPipe.AssertStatic(env,
+var staticFinalPipe = dynamicPipe.AssertStatic(mlContext,
         // Declare the shape of the input. As you can see, it's identical to the shape of the reader:
         // four float features and a string label.
         c => (
@@ -981,7 +955,7 @@ var staticFinalPipe = dynamicPipe.AssertStatic(env,
 var model = staticFinalPipe.Fit(data);
 
 // And here is how we could've stayed in the dynamic pipeline and train that way.
-dynamicPipe = dynamicPipe.Append(new KeyToValueEstimator(env, "PredictedLabel"));
+dynamicPipe = dynamicPipe.Append(new KeyToValueEstimator(mlContext, "PredictedLabel"));
 var dynamicModel = dynamicPipe.Fit(data.AsDynamic);
 
 // Now 'dynamicModel', and 'model.AsDynamic' are equivalent.

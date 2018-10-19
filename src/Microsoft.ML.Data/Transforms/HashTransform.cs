@@ -1289,10 +1289,10 @@ namespace Microsoft.ML.Transforms
     /// </summary>
     public sealed class HashEstimator : IEstimator<HashTransformer>
     {
-        public const int NumBitsMin = 1;
-        public const int NumBitsLim = 32;
+        internal const int NumBitsMin = 1;
+        internal const int NumBitsLim = 32;
 
-        public static class Defaults
+        internal static class Defaults
         {
             public const int HashBits = NumBitsLim - 1;
             public const uint Seed = 314489979;

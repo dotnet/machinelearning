@@ -102,9 +102,7 @@ module SmokeTest1 =
         pipeline.Add(
             TextFeaturizer(
                 "Features", [| "SentimentText" |],
-                KeepDiacritics = false,
                 KeepPunctuations = false,
-                TextCase = TextNormalizerTransformCaseNormalizationMode.Lower,
                 OutputTokens = true,
                 VectorNormalizer = TextTransformTextNormKind.L2
             ))
@@ -171,9 +169,7 @@ module SmokeTest2 =
         pipeline.Add(
             TextFeaturizer(
                 "Features", [| "SentimentText" |],
-                KeepDiacritics = false,
                 KeepPunctuations = false,
-                TextCase = TextNormalizerTransformCaseNormalizationMode.Lower,
                 OutputTokens = true,
                 VectorNormalizer = TextTransformTextNormKind.L2
             ))
@@ -237,9 +233,7 @@ module SmokeTest3 =
         pipeline.Add(
             TextFeaturizer(
                 "Features", [| "SentimentText" |],
-                KeepDiacritics = false,
                 KeepPunctuations = false,
-                TextCase = TextNormalizerTransformCaseNormalizationMode.Lower,
                 OutputTokens = true,
                 VectorNormalizer = TextTransformTextNormKind.L2
             ))
