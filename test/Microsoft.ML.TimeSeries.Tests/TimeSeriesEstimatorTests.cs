@@ -14,13 +14,9 @@ namespace Microsoft.ML.Tests
 {
     public class TimeSeriesEstimatorTests : TestDataPipeBase
     {
-        public class Prediction
-        {
-            [VectorType(4)]
-            public double[] Change;
-        }
+        private const int inputSize = 150528;
 
-        sealed class Data
+        private class Data
         {
             public float Value;
 
@@ -28,6 +24,22 @@ namespace Microsoft.ML.Tests
             {
                 Value = value;
             }
+        }
+
+        private class TestDataSize
+        {
+            [VectorType(2)]
+            public float[] data_0;
+        }
+        private class TestDataXY
+        {
+            [VectorType(inputSize)]
+            public float[] A;
+        }
+        private class TestDataDifferntType
+        {
+            [VectorType(inputSize)]
+            public string[] data_0;
         }
 
         public TimeSeriesEstimatorTests(ITestOutputHelper output) : base(output)
@@ -55,7 +67,16 @@ namespace Microsoft.ML.Tests
 
             var pipe = new SsaChangePointEstimator(Env, "Change", "Value",
                 Confidence, ChangeHistorySize, MaxTrainingSize, SeasonalitySize);
-            TestEstimatorCore(pipe, dataView);
+
+            var xyData = new List<TestDataXY> { new TestDataXY() { A = new float[inputSize] } };
+            var stringData = new List<TestDataDifferntType> { new TestDataDifferntType() { data_0 = new string[inputSize] } };
+            var sizeData = new List<TestDataSize> { new TestDataSize() { data_0 = new float[2] } };
+
+            var invalidDataWrongNames = ComponentCreation.CreateDataView(Env, xyData);
+            var invalidDataWrongTypes = ComponentCreation.CreateDataView(Env, stringData);
+
+            TestEstimatorCore(pipe, dataView, invalidInput: invalidDataWrongTypes);
+            TestEstimatorCore(pipe, dataView, invalidInput: invalidDataWrongNames);
         }
 
         [Fact]
@@ -79,7 +100,16 @@ namespace Microsoft.ML.Tests
 
             var pipe = new SsaSpikeEstimator(Env, "Change", "Value",
                 Confidence, PValueHistorySize, MaxTrainingSize, SeasonalitySize);
-            TestEstimatorCore(pipe, dataView);
+
+            var xyData = new List<TestDataXY> { new TestDataXY() { A = new float[inputSize] } };
+            var stringData = new List<TestDataDifferntType> { new TestDataDifferntType() { data_0 = new string[inputSize] } };
+            var sizeData = new List<TestDataSize> { new TestDataSize() { data_0 = new float[2] } };
+
+            var invalidDataWrongNames = ComponentCreation.CreateDataView(Env, xyData);
+            var invalidDataWrongTypes = ComponentCreation.CreateDataView(Env, stringData);
+
+            TestEstimatorCore(pipe, dataView, invalidInput: invalidDataWrongTypes);
+            TestEstimatorCore(pipe, dataView, invalidInput: invalidDataWrongNames);
         }
 
         [Fact]
@@ -96,7 +126,16 @@ namespace Microsoft.ML.Tests
 
             var pipe = new IidChangePointEstimator(Env,
                 "Change", "Value", Confidence, ChangeHistorySize);
-            TestEstimatorCore(pipe, dataView);
+
+            var xyData = new List<TestDataXY> { new TestDataXY() { A = new float[inputSize] } };
+            var stringData = new List<TestDataDifferntType> { new TestDataDifferntType() { data_0 = new string[inputSize] } };
+            var sizeData = new List<TestDataSize> { new TestDataSize() { data_0 = new float[2] } };
+
+            var invalidDataWrongNames = ComponentCreation.CreateDataView(Env, xyData);
+            var invalidDataWrongTypes = ComponentCreation.CreateDataView(Env, stringData);
+
+            TestEstimatorCore(pipe, dataView, invalidInput: invalidDataWrongTypes);
+            TestEstimatorCore(pipe, dataView, invalidInput: invalidDataWrongNames);
         }
 
         [Fact]
@@ -113,7 +152,16 @@ namespace Microsoft.ML.Tests
 
             var pipe = new IidSpikeEstimator(Env, 
                 "Change", "Value", Confidence, PValueHistorySize);
-            TestEstimatorCore(pipe, dataView);
+
+            var xyData = new List<TestDataXY> { new TestDataXY() { A = new float[inputSize] } };
+            var stringData = new List<TestDataDifferntType> { new TestDataDifferntType() { data_0 = new string[inputSize] } };
+            var sizeData = new List<TestDataSize> { new TestDataSize() { data_0 = new float[2] } };
+
+            var invalidDataWrongNames = ComponentCreation.CreateDataView(Env, xyData);
+            var invalidDataWrongTypes = ComponentCreation.CreateDataView(Env, stringData);
+
+            TestEstimatorCore(pipe, dataView, invalidInput: invalidDataWrongTypes);
+            TestEstimatorCore(pipe, dataView, invalidInput: invalidDataWrongNames);
         }
     }
 }

@@ -182,7 +182,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
         /// </summary>
         protected int InitialWindowSize;
 
-        protected string InputColumnName;
+        public string InputColumnName;
         public string OutputColumnName;
         protected ColumnType OutputColumnType;
 
@@ -270,9 +270,13 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             bs.TryWriteTypeDescription(ctx.Writer.BaseStream, OutputColumnType, out int byteWritten);
         }
 
-        public Schema GetOutputSchema(Schema inputSchema)
+        public virtual Schema GetOutputSchema(Schema inputSchema)
         {
             Host.CheckValue(inputSchema, nameof(inputSchema));
+
+            if (!inputSchema.TryGetColumnIndex(InputColumnName, out var col))
+                throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", InputColumnName);
+
             return Transform(new EmptyDataView(Host, inputSchema)).Schema;
         }
 

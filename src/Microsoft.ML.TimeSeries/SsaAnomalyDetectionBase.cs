@@ -162,6 +162,20 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             Host.CheckDecode(Model != null);
         }
 
+        public override Schema GetOutputSchema(Schema inputSchema)
+        {
+            Host.CheckValue(inputSchema, nameof(inputSchema));
+
+            if (!inputSchema.TryGetColumnIndex(InputColumnName, out var col))
+                throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", InputColumnName);
+
+            var colType = inputSchema.GetColumnType(col);
+            if (colType != NumberType.Float)
+                throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", InputColumnName, "float type", colType.ToString());
+
+            return Transform(new EmptyDataView(Host, inputSchema)).Schema;
+        }
+
         public override void Save(ModelSaveContext ctx)
         {
             Host.CheckValue(ctx, nameof(ctx));

@@ -554,6 +554,13 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
                 _host.CheckValue(inputSchema, nameof(inputSchema));
                 _host.CheckValue(parent, nameof(parent));
 
+                if (!inputSchema.TryGetColumnIndex(parent.InputColumnName, out var col))
+                    throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", parent.InputColumnName);
+
+                var colType = inputSchema.GetColumnType(col);
+                if (colType != NumberType.Float)
+                    throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", parent.InputColumnName, "float type", colType.ToString());
+
                 _parent = parent;
                 _parentSchema = inputSchema;
                 _slotNames = new string[4];

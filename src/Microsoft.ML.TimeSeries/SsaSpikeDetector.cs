@@ -240,6 +240,12 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
         public SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {
             _host.CheckValue(inputSchema, nameof(inputSchema));
+
+            if (!inputSchema.TryFindColumn(_inputColumnName, out var col))
+                throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", _inputColumnName);
+            if (col.ItemType != NumberType.Float)
+                throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", _inputColumnName, "float type", col.GetTypeString());
+
             var metadata = new List<SchemaShape.Column>() {
                 new SchemaShape.Column(MetadataUtils.Kinds.SlotNames, SchemaShape.Column.VectorKind.Vector, TextType.Instance, false)
             };
