@@ -609,11 +609,9 @@ namespace Microsoft.ML.Runtime.Data
                 for (int i = 0; i < _numColumns; i++)
                 {
                     var inputColName = _parent.ColumnPairs[i].input;
-                    if (!inputSchema.TryGetColumnIndex(inputColName, out _inputColumnIndices[i]))
-                        throw Host.ExceptSchemaMismatch(nameof(inputColName), "input", inputColName);
+                    inputSchema.TryGetColumnIndex(inputColName, out _inputColumnIndices[i]);
                     _inputColumnTypes[i] = inputSchema[_inputColumnIndices[i]].Type;
-                    Host.Check(_inputColumnTypes[i].IsKnownSizeVector && _inputColumnTypes[i].VectorSize > 1,
-                        "Pca transform can only be applied to columns with known dimensionality greater than 1");
+                    ValidatePcaInput(Host, inputColName, _inputColumnTypes[i]);
                     if (_inputColumnTypes[i].VectorSize != _parent._transformInfos[i].Dimension)
                     {
                         var msg = $"Dimension of column ${inputColName} is ${_inputColumnTypes[i].VectorSize}, which doesn't match the expected size ${_parent._transformInfos[i].Dimension}";
