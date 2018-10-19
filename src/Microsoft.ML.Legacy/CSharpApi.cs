@@ -11758,12 +11758,22 @@ namespace Microsoft.ML
             /// <summary>
             /// List of columns to keep
             /// </summary>
-            public string[] Columns { get; set; }
+            public string[] KeepColumns { get; set; }
+
+            /// <summary>
+            /// Specifies whether to keep or drop the selected columns
+            /// </summary>
+            public string[] DropColumns { get; set; }
 
             /// <summary>
             /// Specifies whether to keep hidden columns
             /// </summary>
-            public bool KeepHidden { get; set; } = false;
+            public bool KeepHidden { get; set; } = true;
+
+            /// <summary>
+            /// Specifies whether to ignore mismatch between the columns to select and input.
+            /// </summary>
+            public bool IgnoreMismatch { get; set; } = true;
 
             /// <summary>
             /// Input dataset

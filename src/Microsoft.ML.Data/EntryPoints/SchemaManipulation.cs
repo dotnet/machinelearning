@@ -33,7 +33,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
             host.CheckValue(input, nameof(input));
             EntryPointUtils.CheckInputArgs(host, input);
 
-            var xf = new SelectColumnsTransform(env, input.KeepHidden, input.Columns).Transform(input.Data);
+            var xf = new SelectColumnsTransform(env, input.KeepColumns, input.DropColumns, input.KeepHidden, input.IgnoreMismatch).Transform(input.Data);
             return new CommonOutputs.TransformOutput { Model = new TransformModel(env, xf, input.Data), OutputData = xf };
         }
 

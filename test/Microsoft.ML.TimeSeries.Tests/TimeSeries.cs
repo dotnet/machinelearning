@@ -35,7 +35,7 @@ namespace Microsoft.ML.Runtime.RunTests
                     "xf=Convert{col=fAnomaly:R4:Anomaly}",
                     "xf=IidSpikeDetector{src=Features name=Anomaly2 cnf=99.5 wnd=200 side=Negative}",
                     "xf=Convert{col=fAnomaly2:R4:Anomaly2}",
-                    "xf=Select{col=Features col=fAnomaly col=fAnomaly2}" });
+                    "xf=Select{keepcol=Features keepcol=fAnomaly keepcol=fAnomaly2}" });
 
             Done();
         }
@@ -50,7 +50,7 @@ namespace Microsoft.ML.Runtime.RunTests
                     "xf=Convert{col=fAnomaly:R4:Anomaly}",
                     "xf=IidChangePointDetector{src=Features name=Anomaly2 cnf=83 wnd=100 mart=Mixture}",
                     "xf=Convert{col=fAnomaly2:R4:Anomaly2}",
-                    "xf=Select{col=Features col=fAnomaly col=fAnomaly2}" });
+                    "xf=Select{keepcol=Features keepcol=fAnomaly keepcol=fAnomaly2}" });
 
             Done();
         }
@@ -67,7 +67,7 @@ namespace Microsoft.ML.Runtime.RunTests
                     "xf=Convert{col=fAnomaly2:R4:Anomaly2}",
                     "xf=SsaSpikeDetector{src=Features name=Anomaly3 twnd=500 swnd=50 err=SignedDifference cnf=99.5 wnd=100}",
                     "xf=Convert{col=fAnomaly3:R4:Anomaly3}",
-                    "xf=Select{col=Features col=fAnomaly col=fAnomaly2 col=fAnomaly3}" });
+                    "xf=Select{keepcol=Features keepcol=fAnomaly keepcol=fAnomaly2 keepcol=fAnomaly3}" });
 
             Done();
         }

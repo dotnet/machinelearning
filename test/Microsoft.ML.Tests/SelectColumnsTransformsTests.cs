@@ -9,6 +9,7 @@ using Microsoft.ML.Runtime.RunTests;
 using Microsoft.ML.Runtime.Tools;
 using Microsoft.ML.TestFramework;
 using Microsoft.ML.Transforms;
+using System;
 using System.IO;
 using Xunit;
 using Xunit.Abstractions;
@@ -24,6 +25,12 @@ namespace Microsoft.ML.Tests
             public int C;
         }
 
+        class TestClass2
+        {
+            public int D;
+            public int E;
+        }
+
         public SelectColumnsTransformsTests(ITestOutputHelper output) : base(output)
         {
         }
@@ -35,7 +42,7 @@ namespace Microsoft.ML.Tests
             using (var env = new ConsoleEnvironment())
             {
                 var dataView = ComponentCreation.CreateDataView(env, data);
-                var est = new SelectColumnsEstimator(env, new[]{ "A", "C" });
+                var est = new SelectColumnsEstimator(env, "A", "C");
                 var transformer = est.Fit(dataView);
                 var result = transformer.Transform(dataView);
                 var foundColumnA = result.Schema.TryGetColumnIndex("A", out int aIdx);
@@ -55,11 +62,23 @@ namespace Microsoft.ML.Tests
         void TestSelectWorkout()
         {
             var data = new[] { new TestClass() { A = 1, B = 2, C = 3, }, new TestClass() { A = 4, B = 5, C = 6 } };
+            var invalidData = new [] { new TestClass2 { D = 3, E = 5} };
             using (var env = new ConsoleEnvironment())
             {
                 var dataView = ComponentCreation.CreateDataView(env, data);
-                var est = new SelectColumnsEstimator(env, new[]{ "D", "E" });
-                TestEstimatorCore(est, validFitInput: dataView);
+                var invalidDataView = ComponentCreation.CreateDataView(env, invalidData);
+
+                // Workout on keep columns
+                var est = new SelectColumnsEstimator(env,  new[] {"A", "B"}, null, true, false);
+                TestEstimatorCore(est, validFitInput: dataView, invalidInput: invalidDataView);
+
+                // Workout on drop columns
+                est = new SelectColumnsEstimator(env,  null, new[] {"A", "B"}, true, false);
+                TestEstimatorCore(est, validFitInput: dataView, invalidInput: invalidDataView);
+
+                // Workout on keep columns with ignore mismatch -- using invalid data set
+                est = new SelectColumnsEstimator(env,  null, new[] {"A", "B"}, true);
+                TestEstimatorCore(est, validFitInput: invalidDataView);
             }
         }
 
@@ -80,29 +99,6 @@ namespace Microsoft.ML.Tests
                 Assert.False(foundColumnA);
                 Assert.Equal(0, aIdx);
                 Assert.False(foundColumnB);
-                Assert.Equal(0, bIdx);
-                Assert.False(foundColumnC);
-                Assert.Equal(0, cIdx);
-            }
-        }
-
-        [Fact]
-        void TestSelectColumnsWithPredicate()
-        {
-            var data = new[] { new TestClass() { A = 1, B = 2, C = 3, }, new TestClass() { A = 4, B = 5, C = 6 } };
-            using (var env = new ConsoleEnvironment())
-            {
-                var dataView = ComponentCreation.CreateDataView(env, data);
-                var est = new SelectColumnsEstimator(env, (string name) => name == "B");
-                var transformer = est.Fit(dataView);
-                var result = transformer.Transform(dataView);
-                var foundColumnA = result.Schema.TryGetColumnIndex("A", out int aIdx);
-                var foundColumnB = result.Schema.TryGetColumnIndex("B", out int bIdx);
-                var foundColumnC = result.Schema.TryGetColumnIndex("C", out int cIdx);
-
-                Assert.False(foundColumnA);
-                Assert.Equal(0, aIdx);
-                Assert.True(foundColumnB);
                 Assert.Equal(0, bIdx);
                 Assert.False(foundColumnC);
                 Assert.Equal(0, cIdx);
@@ -137,14 +133,14 @@ namespace Microsoft.ML.Tests
         }
 
         [Fact]
-        void TestSelectColumnsDontHideWithSameName()
+        void TestSelectColumnsWithNoKeepHidden()
         {
             var data = new[] { new TestClass() { A = 1, B = 2, C = 3, }, new TestClass() { A = 4, B = 5, C = 6 } };
             using (var env = new ConsoleEnvironment())
             {
                 var dataView = ComponentCreation.CreateDataView(env, data);
                 var est = new CopyColumnsEstimator(env, new[] {("A", "A"), ("B", "B")});
-                var chain = est.Append(new SelectColumnsEstimator(env, false, new[]{"A", "B" }));
+                var chain = est.Append(new SelectColumnsEstimator(env, new[] {"A", "B" }, null, false));
                 var transformer = chain.Fit(dataView);
                 var result = transformer.Transform(dataView);
 
@@ -160,6 +156,25 @@ namespace Microsoft.ML.Tests
                 Assert.Equal(1, bIdx);
                 Assert.False(foundColumnC);
                 Assert.Equal(0, cIdx);
+            }
+        }
+
+        [Fact]
+        void TestSelectWithKeepAndDropSet()
+        {
+            using (var env = new ConsoleEnvironment())
+            {
+                var test = new string[]{ "D", "G"};
+                Assert.Throws<InvalidOperationException>(() => new SelectColumnsEstimator(env, test, test));
+            }
+        }
+
+        [Fact]
+        void TestSelectNoKeepAndDropSet()
+        {
+            using (var env = new ConsoleEnvironment())
+            {
+                Assert.Throws<InvalidOperationException>(() => new SelectColumnsEstimator(env, null, null));
             }
         }
 
@@ -193,7 +208,7 @@ namespace Microsoft.ML.Tests
             {
                 var dataView = ComponentCreation.CreateDataView(env, data);
                 var est = new CopyColumnsEstimator(env, new[] {("A", "A"), ("B", "B")}).Append(
-                          new SelectColumnsEstimator(env, false, new[] { "A", "B" }));
+                          new SelectColumnsEstimator(env, new[] { "A", "B" }, null, false));
                 var transformer = est.Fit(dataView);
                 using (var ms = new MemoryStream())
                 {
@@ -308,11 +323,38 @@ namespace Microsoft.ML.Tests
         }
 
         [Fact]
-        void TestCommandLine()
+        void TestCommandLineWithKeep()
         {
             using (var env = new ConsoleEnvironment())
             {
-                Assert.Equal(Maml.Main(new[] { @"showschema loader=Text{col=A:R4:0 col=B:R4:1 col=C:R4:2} xf=select{col=A col=B} in=f:\1.txt" }), (int)0);
+                Assert.Equal(Maml.Main(new[] { @"showschema loader=Text{col=A:R4:0 col=B:R4:1 col=C:R4:2} xf=select{keepcol=A keepcol=B} in=f:\1.txt" }), (int)0);
+            }
+        }
+
+        [Fact]
+        void TestCommandLineWithDrop()
+        {
+            using (var env = new ConsoleEnvironment())
+            {
+                Assert.Equal(Maml.Main(new[] { @"showschema loader=Text{col=A:R4:0 col=B:R4:1 col=C:R4:2} xf=select{dropcol=A dropcol=B} in=f:\1.txt" }), (int)0);
+            }
+        }
+
+        [Fact]
+        void TestCommandLineKeepWithoutHidden()
+        {
+            using (var env = new ConsoleEnvironment())
+            {
+                Assert.Equal(Maml.Main(new[] { @"showschema loader=Text{col=A:R4:0 col=B:R4:1 col=C:R4:2} xf=select{keepcol=A keepcol=B hidden=-} in=f:\1.txt" }), (int)0);
+            }
+        }
+
+        [Fact]
+        void TestCommandLineKeepWithIgnoreMismatch()
+        {
+            using (var env = new ConsoleEnvironment())
+            {
+                Assert.Equal(Maml.Main(new[] { @"showschema loader=Text{col=A:R4:0 col=B:R4:1 col=C:R4:2} xf=select{keepcol=A keepcol=B ignore=-} in=f:\1.txt" }), (int)0);
             }
         }
     }
