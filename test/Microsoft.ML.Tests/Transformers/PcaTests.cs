@@ -39,7 +39,7 @@ namespace Microsoft.ML.Tests.Transformers
                 separator: ';', hasHeader: true)
                 .Read(new MultiFileSource(_dataSource));
 
-            var est = new PcaEstimator2(_env, "features", "pca", rank: 4, seed: 10);
+            var est = new PcaEstimator(_env, "features", "pca", rank: 4, seed: 10);
             TestEstimatorCore(est, data.AsDynamic, invalidInput: invalidData.AsDynamic);
             Done();
         }
@@ -52,7 +52,7 @@ namespace Microsoft.ML.Tests.Transformers
                 separator: ';', hasHeader: true)
                 .Read(new MultiFileSource(_dataSource));
 
-            var est = new PcaEstimator2(_env, "features", "pca", rank: 5, seed: 1);
+            var est = new PcaEstimator(_env, "features", "pca", rank: 5, seed: 1);
             var outputPath = GetOutputPath("PCA", "pca.tsv");
             using (var ch = _env.Start("save"))
             {
