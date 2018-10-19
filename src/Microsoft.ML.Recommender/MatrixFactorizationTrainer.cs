@@ -155,6 +155,10 @@ namespace Microsoft.ML.Runtime.Recommender
             YColumn = new SchemaShape.Column(yColumnName, SchemaShape.Column.VectorKind.Scalar, NumberType.U4, true);
         }
 
+        /// <summary>
+        /// Train a matrix factorization model based on training data, validation data, and so on in the given context.
+        /// </summary>
+        /// <param name="context">The information collection needed for training. <see cref="TrainContext"/> for details.</param>
         public override MatrixFactorizationPredictor Train(TrainContext context)
         {
             Host.CheckValue(context, nameof(context));
@@ -255,6 +259,10 @@ namespace Microsoft.ML.Runtime.Recommender
                 _threads, _iter, _lambda, _eta, _doNmf, _quiet, copyData: false);
         }
 
+        /// <summary>
+        /// Train a matrix factorization model based on the input <see cref="IDataView"/> using the roles specified by XColumn and YColumn in <see cref="MatrixFactorizationTrainer"/>.
+        /// </summary>
+        /// <param name="input">The training data set.</param>
         public MatrixFactorizationPredictionTransformer Fit(IDataView input)
         {
             MatrixFactorizationPredictor model = null;

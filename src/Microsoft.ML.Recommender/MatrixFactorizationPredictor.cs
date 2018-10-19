@@ -117,6 +117,9 @@ namespace Microsoft.ML.Runtime.Recommender
             InputYType = new KeyType(DataKind.U4, mMin, _m);
         }
 
+        /// <summary>
+        /// Load model from the given context
+        /// </summary>
         public static MatrixFactorizationPredictor Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
@@ -125,6 +128,9 @@ namespace Microsoft.ML.Runtime.Recommender
             return new MatrixFactorizationPredictor(env, ctx);
         }
 
+        /// <summary>
+        /// Save model to the given context
+        /// </summary>
         public void Save(ModelSaveContext ctx)
         {
             ctx.CheckAtModel();
@@ -153,6 +159,9 @@ namespace Microsoft.ML.Runtime.Recommender
             Utils.WriteSinglesNoCount(ctx.Writer, _q, _n * _k);
         }
 
+        /// <summary>
+        /// Save the trained matrix factorization model (two factor matrices) in text format
+        /// </summary>
         public void SaveAsText(TextWriter writer, RoleMappedSchema schema)
         {
             writer.WriteLine("# Imputed matrix is P * Q'");
@@ -195,6 +204,13 @@ namespace Microsoft.ML.Runtime.Recommender
             return del;
         }
 
+        /// <summary>
+        /// Create the mapper required by matrix factorization's predictor. That mapper maps two
+        /// index inputs (e.g., row index and column index) to the value located by the two indexes
+        /// in the training matrix. In recommender system where the training matrix stores ratings
+        /// from users to items, the mappers maps user ID and item ID to the rating of that item given
+        /// by the user.
+        /// </summary>
         public ValueMapper<TXIn, TYIn, TOut> GetMapper<TXIn, TYIn, TOut>()
         {
             string msg = null;
@@ -352,8 +368,20 @@ namespace Microsoft.ML.Runtime.Recommender
         public ColumnType YColumnType { get; }
         protected override GenericScorer Scorer { get; set; }
 
+        /// <summary>
+        /// Build a transformer based on matrix factorization predictor (model) and the input schema (trainSchema). The created
+        /// transformer can only transform IDataView objects compatible to the input schema; that is, that IDataView must contain
+        /// columns specified by <see cref="XColumnName"/>, <see cref="XColumnType"/>, <see cref="YColumnName"/>, and <see cref="YColumnType"></see>.
+        /// The output column is "Score" by default but user can append a string to it.
+        /// </summary>
+        /// <param name="host">Eviroment object for showing information</param>
+        /// <param name="model">The model trained by one of the training functions in <see cref="MatrixFactorizationTrainer"/></param>
+        /// <param name="trainSchema">Targeted schema that containing columns named as xColumnName</param>
+        /// <param name="xColumnName">The name of the column used as role X in matrix factorization world</param>
+        /// <param name="yColumnName">The name of the column used as role Y in matrix factorization world</param>
+        /// <param name="scoreColumnNameSuffix">A string attached to the output column name of this transformer</param>
         public MatrixFactorizationPredictionTransformer(IHostEnvironment host, MatrixFactorizationPredictor model, Schema trainSchema,
-            string xColumnName, string yColumnName, string scoreColumnName = DefaultColumnNames.Score)
+            string xColumnName, string yColumnName, string scoreColumnNameSuffix = "")
             :base(Contracts.CheckRef(host, nameof(host)).Register(nameof(MatrixFactorizationPredictionTransformer)), model, trainSchema)
         {
             Host.CheckNonEmpty(xColumnName, nameof(yColumnName));
@@ -366,12 +394,12 @@ namespace Microsoft.ML.Runtime.Recommender
                 throw Host.ExceptSchemaMismatch(nameof(XColumnName), RecommendUtils.XKind.Value, XColumnName);
             XColumnType = trainSchema.GetColumnType(xCol);
             if (!trainSchema.TryGetColumnIndex(YColumnName, out int yCol))
-                throw Host.ExceptSchemaMismatch(nameof(yCol), RecommendUtils.ItemKind.Value, YColumnName);
+                throw Host.ExceptSchemaMismatch(nameof(yCol), RecommendUtils.YKind.Value, YColumnName);
 
             BindableMapper = ScoreUtils.GetSchemaBindableMapper(Host, model);
 
             var schema = GetSchema();
-            var args = new GenericScorer.Arguments { Suffix = "" };
+            var args = new GenericScorer.Arguments { Suffix = scoreColumnNameSuffix };
             Scorer = new GenericScorer(Host, args, new EmptyDataView(Host, trainSchema), BindableMapper.Bind(Host, schema), schema);
         }
 
@@ -384,6 +412,10 @@ namespace Microsoft.ML.Runtime.Recommender
             return schema;
         }
 
+        /// <summary>
+        /// The counter constructor of re-creating <see cref="MatrixFactorizationPredictionTransformer"/> from the context where
+        /// the original transform is saved.
+        /// </summary>
         public MatrixFactorizationPredictionTransformer(IHostEnvironment host, ModelLoadContext ctx)
             :base(Contracts.CheckRef(host, nameof(host)).Register(nameof(MatrixFactorizationPredictionTransformer)), ctx)
         {

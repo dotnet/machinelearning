@@ -10,6 +10,14 @@ namespace Microsoft.ML.Runtime.Recommender
 {
    internal static class RecommendUtils
     {
+        /// <summary>
+        /// Check if the considered data, <see cref="RoleMappedData"/>, contains column roles specified by <see cref="XKind"/> and <see cref="YKind"/>.
+        /// If the column roles, X and Y, uniquely exists in data, their <see cref="ColumnInfo"/> would be assigned to xColumn and yColumn.
+        /// </summary>
+        /// <param name="data">The considered data being checked</param>
+        /// <param name="xColumn">The column as role X in the input data</param>
+        /// <param name="yColumn">The column as role Y in the input data</param>
+        /// <param name="isDecode">Whether a non-user error should be thrown as a decode</param>
         public static void CheckAndGetXYColumns(RoleMappedData data, out ColumnInfo xColumn, out ColumnInfo yColumn, bool isDecode)
         {
             Contracts.AssertValue(data);
@@ -65,17 +73,14 @@ namespace Microsoft.ML.Runtime.Recommender
             return keyType;
         }
 
-        public static RoleMappedSchema.ColumnRole UserKind => "User";
-
-        public static RoleMappedSchema.ColumnRole ItemKind => "Item";
+        /// <summary>
+        /// The column role that is treated as column index in matrix factorization problem
+        /// </summary>
         public static RoleMappedSchema.ColumnRole XKind => "X";
 
+        /// <summary>
+        /// The column role that is treated as row index in matrix factorization problem
+        /// </summary>
         public static RoleMappedSchema.ColumnRole YKind => "Y";
-
-        public static RoleMappedSchema.ColumnRole DateKind => "Date";
-
-        public static RoleMappedSchema.ColumnRole ExplanationCode => "ExplanationCode";
-
-        public static RoleMappedSchema.ColumnRole ExplanationItem => "ExplanationItem";
     }
 }

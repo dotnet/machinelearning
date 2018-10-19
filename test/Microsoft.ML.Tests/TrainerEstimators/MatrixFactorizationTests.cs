@@ -65,6 +65,12 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 // Apply the trained model to the test set
                 var prediction = model.Transform(testData);
 
+                // Get output schema and check its column names
+                var outputSchema = model.GetOutputSchema(data.Schema);
+                var expectedOutputNames = new string[] { labelColumnName, userColumnName, itemColumnName, scoreColumnName };
+                foreach (var (i, col) in outputSchema.GetColumns())
+                    Assert.True(col.Name == expectedOutputNames[i]);
+
                 // Retrieve label column's index from the test IDataView
                 testData.Schema.TryGetColumnIndex(labelColumnName, out int labelColumnId);
 
