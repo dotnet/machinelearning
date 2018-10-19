@@ -550,13 +550,13 @@ namespace Microsoft.ML.Transforms
 
         private sealed class SelectColumnsDataTransform : IDataTransform, IRowToRowMapper
         {
-            private readonly IHostEnvironment _env;
+            private readonly IHost _host;
             private readonly SelectColumnsTransform _transform;
             private readonly Mapper _mapper;
 
             public SelectColumnsDataTransform(IHostEnvironment env, SelectColumnsTransform transform, Mapper mapper, IDataView input)
             {
-                _env = Contracts.CheckRef(env, nameof(env)).Register(nameof(SelectColumnsDataTransform));
+                _host = Contracts.CheckRef(env, nameof(env)).Register(nameof(SelectColumnsDataTransform));
                 _transform = transform;
                 _mapper = mapper;
                 Source = input;
@@ -574,8 +574,8 @@ namespace Microsoft.ML.Transforms
 
             public IRowCursor GetRowCursor(Func<int, bool> needCol, IRandom rand = null)
             {
-                _env.AssertValue(needCol, nameof(needCol));
-                _env.AssertValueOrNull(rand);
+                _host.AssertValue(needCol, nameof(needCol));
+                _host.AssertValueOrNull(rand);
 
                 // Build out the active state for the input
                 var inputPred = GetDependencies(needCol);
@@ -583,13 +583,13 @@ namespace Microsoft.ML.Transforms
 
                 // Build the active state for the output
                 var active = Utils.BuildArray(_mapper.Schema.ColumnCount, needCol);
-                return new RowCursor(_env, _mapper, inputRowCursor, active);
+                return new RowCursor(_host, _mapper, inputRowCursor, active);
             }
 
             public IRowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator, Func<int, bool> needCol, int n, IRandom rand = null)
             {
-                _env.CheckValue(needCol, nameof(needCol));
-                _env.CheckValueOrNull(rand);
+                _host.CheckValue(needCol, nameof(needCol));
+                _host.CheckValueOrNull(rand);
 
                 // Build out the active state for the input
                 var inputPred = GetDependencies(needCol);
@@ -597,13 +597,13 @@ namespace Microsoft.ML.Transforms
 
                 // Build out the acitve state for the output
                 var active = Utils.BuildArray(_mapper.Schema.ColumnCount, needCol);
-                _env.AssertNonEmpty(inputs);
+                _host.AssertNonEmpty(inputs);
 
                 // No need to split if this is given 1 input cursor.
                 var cursors = new IRowCursor[inputs.Length];
                 for (int i = 0; i < inputs.Length; i++)
                 {
-                    cursors[i] = new RowCursor(_env, _mapper, inputs[i], active);
+                    cursors[i] = new RowCursor(_host, _mapper, inputs[i], active);
                 }
                 return cursors;
             }
