@@ -691,6 +691,16 @@ namespace Microsoft.ML.Runtime.Data
         private readonly IHost _host;
         private readonly PcaTransform.ColumnInfo[] _columns;
 
+        /// <summary>Convinence constructor for simple one column case.</summary>
+        /// <include file='doc.xml' path='doc/members/member[@name="PCA"]/*'/>
+        /// <param name="env">The environment.</param>
+        /// <param name="inputColumn">Input column to apply PCA on.</param>
+        /// <param name="outputColumn">Output column. Null means <paramref name="inputColumn"/> is replaced.</param>
+        /// <param name="weightColumn">The name of the weight column.</param>
+        /// <param name="rank">The number of components in the PCA.</param>
+        /// <param name="overSampling">Oversampling parameter for randomized PCA training.</param>
+        /// <param name="center">If enabled, data is centered to be zero mean.</param>
+        /// <param name="seed">The seed for random number generation</param>
         public PcaEstimator(IHostEnvironment env, string inputColumn, string outputColumn = null,
             string weightColumn = PcaTransform.Defaults.WeightColumn, int rank = PcaTransform.Defaults.Rank,
             int overSampling = PcaTransform.Defaults.Oversampling, bool center = PcaTransform.Defaults.Center,
@@ -705,48 +715,6 @@ namespace Microsoft.ML.Runtime.Data
             _host = env.Register(nameof(PcaEstimator));
             _columns = columns;
         }
-
-        //TODO: move the dosctrings above
-        ///// <summary>
-        ///// Convinence constructor for simple one column case
-        ///// </summary>
-        ///// <include file='doc.xml' path='doc/members/member[@name="PCA"]/*' />
-        ///// <param name="env">The environment.</param>
-        ///// <param name="inputColumn">Input column to apply PCA on.</param>
-        ///// <param name="outputColumn">Output column. Null means <paramref name="inputColumn"/> is replaced.</param>
-        ///// <param name="rank">The number of components in the PCA.</param>
-        ///// <param name="advancedSettings">A delegate to apply all the advanced arguments to the algorithm.</param>
-        //public PcaEstimator(IHostEnvironment env, string inputColumn, string outputColumn = null,
-        //    int rank = PcaTransform.Defaults.Rank,
-        //    Action<PcaTransform.Arguments> advancedSettings = null)
-        //    : this(env, new[] { (inputColumn, outputColumn ?? inputColumn) }, rank, advancedSettings)
-        //{
-        //}
-
-        ///// <include file='doc.xml' path='doc/members/member[@name="PCA"]/*' />
-        ///// <param name="env">The environment.</param>
-        ///// <param name="columns">Pairs of columns to run the PCA on.</param>
-        ///// <param name="rank">The number of components in the PCA.</param>
-        ///// <param name="advancedSettings">A delegate to apply all the advanced arguments to the algorithm.</param>
-        //public PcaEstimator(IHostEnvironment env, (string input, string output)[] columns,
-        //    int rank = PcaTransform.Defaults.Rank,
-        //    Action<PcaTransform.Arguments> advancedSettings = null)
-        //{
-        //    Contracts.CheckValue(env, nameof(env));
-        //    _host = env.Register(nameof(PcaEstimator));
-
-        //    foreach (var (input, output) in columns)
-        //    {
-        //        _host.CheckUserArg(Utils.Size(input) > 0, nameof(input));
-        //        _host.CheckValue(output, nameof(output));
-        //    }
-
-        //    var args = new PcaTransform.Arguments();
-        //    args.Column = columns.Select(x => new PcaTransform.Column { Source = x.input, Name = x.output }).ToArray();
-        //    args.Rank = rank;
-        //    advancedSettings?.Invoke(args);
-        //    _columns = PcaTransform.ArgumentsToColumnInfos(args);
-        //}
 
         public PcaTransform Fit(IDataView input) => new PcaTransform(_host, input, _columns);
 
@@ -770,9 +738,6 @@ namespace Microsoft.ML.Runtime.Data
         }
     }
 
-    /// <summary>
-    /// Extensions for statically typed <see cref="PcaEstimator"/>.
-    /// </summary>
     public static class PcaEstimatorExtensions
     {
         private sealed class OutPipelineColumn : Vector<float>
@@ -814,12 +779,15 @@ namespace Microsoft.ML.Runtime.Data
             }
         }
 
-        // TODO: fix docstrings
-        // /// <summary>Replace current vector with its principal components. Can significantly reduce size of vector.</summary>
-        // /// <include file='doc.xml' path='doc/members/member[@name="PCA"]/*'/>
-        // /// <param name="input">The column to apply PCA to.</param>
-        // /// <param name="rank">The number of components in the PCA.</param>
-        // /// <param name="advancedSettings">A delegate to apply all the advanced arguments to the algorithm.</param>
+        /// <summary>Compute the principal components of the input column. Can significantly reduce size of vector.</summary>
+        /// <include file='doc.xml' path='doc/members/member[@name="PCA"]/*'/>
+        /// <param name="input">The column to apply PCA to.</param>
+        /// <param name="weightColumn">The name of the weight column.</param>
+        /// <param name="rank">The number of components in the PCA.</param>
+        /// <param name="overSampling">Oversampling parameter for randomized PCA training.</param>
+        /// <param name="center">If enabled, data is centered to be zero mean.</param>
+        /// <param name="seed">The seed for random number generation</param>
+        /// <returns>Vector containing the principal components.</returns>
         public static Vector<float> ToPrincipalComponents(this Vector<float> input,
             string weightColumn = PcaTransform.Defaults.WeightColumn,
             int rank = PcaTransform.Defaults.Rank,
