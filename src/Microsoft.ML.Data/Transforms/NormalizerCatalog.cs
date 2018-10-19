@@ -44,6 +44,7 @@ namespace Microsoft.ML
         /// <param name="catalog">The transform catalog</param>
         /// <param name="mode">The normalization mode (<see cref="Normalizer.NormalizerMode"/>). </param>
         /// <param name="columns">The pairs of input and output columns.</param>
+        /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
         /// [!code-csharp[ConcatWith] (](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/MinMaxNormalizer.cs?range=57-60 )]
