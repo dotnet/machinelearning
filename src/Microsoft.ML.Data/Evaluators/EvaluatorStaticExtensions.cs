@@ -213,7 +213,7 @@ namespace Microsoft.ML.Runtime.Data
         /// <param name="score">The index delegate for predicted score column.</param>
         /// <returns>The evaluation metrics.</returns>
         public static RankerEvaluator.Result Evaluate<T, TVal>(
-            this RankerContext ctx,
+            this RankingContext ctx,
             DataView<T> data,
             Func<T, Scalar<float>> label,
             Func<T, Key<uint, TVal>> groupId,
