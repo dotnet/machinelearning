@@ -344,6 +344,7 @@ namespace Microsoft.ML.Transforms
             {
                 var typedDst = (System.Single[])(object)dst;
                 tensor.CopyTo(typedDst);
+                GC.KeepAlive(tensor);
             }
             else
                 throw new NotImplementedException($"Not implemented type {typeof(T)}");
