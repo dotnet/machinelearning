@@ -17948,9 +17948,9 @@
           "Default": true
         },
         {
-          "Name": "IgnoreMismatch",
+          "Name": "IgnoreMissing",
           "Type": "Bool",
-          "Desc": "Specifies whether to ignore mismatch between the columns to select and input.",
+          "Desc": "Specifies whether to ignore columns that are missing from the input.",
           "Aliases": [
             "ignore"
           ],

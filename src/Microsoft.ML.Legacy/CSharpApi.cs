@@ -11771,9 +11771,9 @@ namespace Microsoft.ML
             public bool KeepHidden { get; set; } = true;
 
             /// <summary>
-            /// Specifies whether to ignore mismatch between the columns to select and input.
+            /// Specifies whether to ignore columns that are missing from the input.
             /// </summary>
-            public bool IgnoreMismatch { get; set; } = true;
+            public bool IgnoreMissing { get; set; } = true;
 
             /// <summary>
             /// Input dataset

@@ -54,24 +54,25 @@ namespace Microsoft.ML.Transforms
         /// Constructs the Select Columns Estimator.
         /// </summary>
         /// <param name="env">Instance of the host environment.</param>
-        /// <param name="keepColumns">The array of column names to keep, cannot be set with dropColumns.</param>
-        /// <param name="dropColumns">The array of column names to drop, cannot be set with keepColumns.</param>
-        /// <param name="keepHidden">Boolean if true will keep hidden columns and false will remove hidden columns.</param>
-        /// <param name="ignoreMismatch">Boolean if false will check for any mismatch between what is specified in keepColumns or dropColumns
-        ///                                 with the input. If a column name exists in the keep or drop argument that is not found in the input,
-        ///                                 a SchemaMistmatch exception is thrown. If true, the check is not made and any mismatch is ignored.</param>
+        /// <param name="keepColumns">The array of column names to keep, cannot be set with <paramref name="dropColumns"/>.</param>
+        /// <param name="dropColumns">The array of column names to drop, cannot be set with <paramref name="keepColumns"/>.</param>
+        /// <param name="keepHidden">If true will keep hidden columns and false will remove hidden columns.</param>
+        /// <param name="ignoreMissing">If false will check for any columns given in <paramref name="keepColumns"/>
+        ///     or <paramref name="dropColumns"/> that are missing from the input. If a missing colums exists a
+        ///     SchemaMistmatch exception is thrown. If true, the check is not made.</param>
         public SelectColumnsEstimator(IHostEnvironment env, string[] keepColumns,
                                     string[] dropColumns, bool keepHidden = true,
-                                    bool ignoreMismatch = true)
+                                    bool ignoreMissing= true)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(SelectColumnsEstimator)),
-                  new SelectColumnsTransform(env, keepColumns, dropColumns, keepHidden, ignoreMismatch))
+                  new SelectColumnsTransform(env, keepColumns, dropColumns, keepHidden, ignoreMissing))
         {
 
             _selectPredicate = (name) => (keepColumns!=null) ? keepColumns.Contains(name) : !dropColumns.Contains(name);
         }
 
         /// <summary>
-        /// Static helper function to create a SelectColumnsEstimator with columns to keep.
+        /// KeepColumns is used to select a list of columns that the user wants to keep on a given an input. Any column not specified
+        /// will be dropped from the output output schema.
         /// </summary>
         /// <param name="env">Instance of the host environment.</param>
         /// <param name="columnsToKeep">The array of column names to keep.</param>
@@ -81,7 +82,8 @@ namespace Microsoft.ML.Transforms
         }
 
         /// <summary>
-        /// Static helper function to create a SelectColumnsEstimator with columns to drop.
+        /// DropColumns is used to select a list of columns that user wants to drop from a given input. Any column not specified will
+        /// be maintained in the output schema.
         /// </summary>
         /// <param name="env">Instance of the host environment.</param>
         /// <param name="columnsToDrop">The array of column names to drop.</param>
@@ -94,12 +96,12 @@ namespace Microsoft.ML.Transforms
         public override SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {
             Host.CheckValue(inputSchema, nameof(inputSchema));
-            if (!Transformer.IgnoreMismatch &&
-                !SelectColumnsTransform.IsSchemaValid(inputSchema.Columns.Select(x=>x.Name),
-                                                        Transformer.SelectColumns,
-                                                        out IEnumerable<string> invalidColumns))
-                  throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input",
-                                                      string.Join(",", invalidColumns));
+            if (!Transformer.IgnoreMissing && !SelectColumnsTransform.IsSchemaValid(inputSchema.Columns.Select(x=>x.Name),
+                                                                                    Transformer.SelectColumns,
+                                                                                    out IEnumerable<string> invalidColumns))
+            {
+                  throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", string.Join(",", invalidColumns));
+            }
 
             var columns = inputSchema.Columns.Where(c=>_selectPredicate(c.Name));
             return new SchemaShape(columns);
@@ -131,7 +133,7 @@ namespace Microsoft.ML.Transforms
         public bool KeepColumns { get; }
 
         public bool KeepHidden { get; }
-        public bool IgnoreMismatch { get; }
+        public bool IgnoreMissing { get; }
 
         private static VersionInfo GetVersionInfo()
         {
@@ -179,12 +181,12 @@ namespace Microsoft.ML.Transforms
             [Argument(ArgumentType.AtMostOnce, HelpText = "Specifies whether to keep or remove hidden columns.", ShortName = "hidden", SortOrder = 3)]
             public bool KeepHidden = true;
 
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Specifies whether to ignore mismatch between the columns to select and input.", ShortName = "ignore", SortOrder = 4)]
-            public bool IgnoreMismatch = true;
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Specifies whether to ignore columns that are missing from the input.", ShortName = "ignore", SortOrder = 4)]
+            public bool IgnoreMissing = true;
         }
 
         public SelectColumnsTransform(IHostEnvironment env, string[] keepColumns, string[] dropColumns,
-                                        bool keepHidden=true, bool ignoreMismatch=true)
+                                        bool keepHidden=true, bool ignoreMissing=true)
         {
             _host = Contracts.CheckRef(env, nameof(env)).Register(nameof(SelectColumnsTransform));
             _host.CheckValueOrNull(keepColumns);
@@ -201,7 +203,7 @@ namespace Microsoft.ML.Transforms
             _selectedColumns = (keepValid) ? keepColumns : dropColumns;
             KeepColumns = keepValid;
             KeepHidden = keepHidden;
-            IgnoreMismatch = ignoreMismatch;
+            IgnoreMissing = ignoreMissing;
         }
 
         /// <summary>
@@ -334,13 +336,13 @@ namespace Microsoft.ML.Transforms
             // *** Binary format ***
             // bool: keep columns flag
             // bool: keep hidden flag
-            // bool: ignore mismatch flag
+            // bool: ignore missing flag
             // int: number of added columns
             // for each added column
             //   string: selected column name
             var keepColumns = ctx.Reader.ReadBoolByte();
             var keepHidden = ctx.Reader.ReadBoolByte();
-            var ignoreMismatch = ctx.Reader.ReadBoolByte();
+            var ignoreMissing = ctx.Reader.ReadBoolByte();
             var length = ctx.Reader.ReadInt32();
             var columns = new string[length];
             for (int i = 0; i < length; i++)
@@ -355,7 +357,7 @@ namespace Microsoft.ML.Transforms
             else
                 columnsToDrop = columns;
 
-            return new SelectColumnsTransform(env, columnsToKeep, columnsToDrop, keepHidden, ignoreMismatch);
+            return new SelectColumnsTransform(env, columnsToKeep, columnsToDrop, keepHidden, ignoreMissing);
         }
 
         // Factory method for SignatureLoadDataTransform.
@@ -388,7 +390,7 @@ namespace Microsoft.ML.Transforms
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(args, nameof(args));
             var transform = new SelectColumnsTransform(env, args.KeepColumns, args.DropColumns,
-                                                            args.KeepHidden, args.IgnoreMismatch);
+                                                            args.KeepHidden, args.IgnoreMissing);
             return new SelectColumnsDataTransform(env, transform, new Mapper(transform, input.Schema), input);
         }
 
@@ -398,7 +400,7 @@ namespace Microsoft.ML.Transforms
 
             ctx.Writer.WriteBoolByte(KeepColumns);
             ctx.Writer.WriteBoolByte(KeepHidden);
-            ctx.Writer.WriteBoolByte(IgnoreMismatch);
+            ctx.Writer.WriteBoolByte(IgnoreMissing);
             var length = _selectedColumns.Length;
             ctx.Writer.Write(length);
             for (int i = 0; i < length; i++)
@@ -410,20 +412,19 @@ namespace Microsoft.ML.Transforms
                                          out IEnumerable<string> invalidColumns)
         {
             // Confirm that all selected columns are in the inputSchema
-            var misMatches = selectColumns.Where(x => !inputColumns.Contains(x));
-            invalidColumns = misMatches;
-            return misMatches.Count() == 0;
+            var missing = selectColumns.Where(x => !inputColumns.Contains(x));
+            invalidColumns = missing;
+            return missing.Count() == 0;
         }
 
         public Schema GetOutputSchema(Schema inputSchema)
         {
             _host.CheckValue(inputSchema, nameof(inputSchema));
-            if (!IgnoreMismatch &&
-                !IsSchemaValid(inputSchema.GetColumns().Select(x=>x.column.Name),
-                                SelectColumns,
-                                out IEnumerable<string> invalidColumns))
-                  throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input",
-                                                      string.Join(",", invalidColumns));
+            if (!IgnoreMissing && !IsSchemaValid(inputSchema.GetColumns().Select(x=>x.column.Name),
+                                                                SelectColumns, out IEnumerable<string> invalidColumns))
+            {
+                throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", string.Join(",", invalidColumns));
+            }
 
             return new Mapper(this, inputSchema).Schema;
         }
@@ -431,12 +432,11 @@ namespace Microsoft.ML.Transforms
         public IRowToRowMapper GetRowToRowMapper(Schema inputSchema)
         {
             _host.CheckValue(inputSchema, nameof(inputSchema));
-            if (!IgnoreMismatch &&
-                !IsSchemaValid(inputSchema.GetColumns().Select(x=>x.column.Name),
-                                SelectColumns,
-                                out IEnumerable<string> invalidColumns))
-                  throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input",
-                                                      string.Join(",", invalidColumns));
+            if (!IgnoreMissing && !IsSchemaValid(inputSchema.GetColumns().Select(x=>x.column.Name),
+                                                    SelectColumns, out IEnumerable<string> invalidColumns))
+            {
+                throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", string.Join(",", invalidColumns));
+            }
 
             return new SelectColumnsDataTransform(_host, this,
                                                   new Mapper(this, inputSchema),
@@ -446,12 +446,11 @@ namespace Microsoft.ML.Transforms
         public IDataView Transform(IDataView input)
         {
             _host.CheckValue(input, nameof(input));
-            if (!IgnoreMismatch &&
-                !IsSchemaValid(input.Schema.GetColumns().Select(x=>x.column.Name),
-                                SelectColumns,
-                                out IEnumerable<string> invalidColumns))
-                  throw _host.ExceptSchemaMismatch(nameof(input), "input",
-                                                      string.Join(",", invalidColumns));
+            if (!IgnoreMissing && !IsSchemaValid(input.Schema.GetColumns().Select(x=>x.column.Name),
+                                                    SelectColumns, out IEnumerable<string> invalidColumns))
+            {
+                throw _host.ExceptSchemaMismatch(nameof(input), "input", string.Join(",", invalidColumns));
+            }
 
             return new SelectColumnsDataTransform(_host, this, new Mapper(this, input.Schema), input);
         }
@@ -485,9 +484,9 @@ namespace Microsoft.ML.Transforms
             }
 
             private static int[] BuildOutputToInputMap(IEnumerable<string> selectedColumns,
-                                                         bool keepColumns,
-                                                         bool keepHidden,
-                                                         Schema inputSchema)
+                bool keepColumns,
+                bool keepHidden,
+                Schema inputSchema)
             {
                 var outputToInputMapping = new List<int>();
                 var columnCount = inputSchema.ColumnCount;
