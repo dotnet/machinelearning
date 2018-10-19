@@ -83,7 +83,6 @@ namespace Microsoft.ML.Samples.Dynamic
             // 0
             // 0
             // 0.1586974
-
         }
     }
 }

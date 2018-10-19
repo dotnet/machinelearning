@@ -37,14 +37,14 @@ namespace Microsoft.ML.Samples.Dynamic
             // 34.0   1.0   0-5yrs      2.0         4.0       2.0      4.0  ...
             // 35.0   1.0   6-11yrs     1.0         3.0       32.0     5.0  ...
 
-            // A pipeline for concatenating the age, parity and induced columns together in the Features column
+            // A pipeline for concatenating the age, parity and induced columns together in the Features column.
             string outputColumnName = "Features";
             var pipeline = new ConcatEstimator(ml, outputColumnName, new[] { "Age", "Parity", "Induced"});
 
             // The transformed data.
             var transformedData = pipeline.Fit(trainData).Transform(trainData);
 
-            // Getting the data of the newly created column as an Array, and 
+            // Getting the data of the newly created column as an IEnumerable of SampleInfertDataWithFeatures.
             var featuresColumn = transformedData.AsEnumerable<SampleInfertDataWithFeatures>(ml, reuseRowObject: false);
 
             Console.WriteLine($"{outputColumnName} column obtained post-transformation.");
