@@ -11756,17 +11756,17 @@ namespace Microsoft.ML
 
 
             /// <summary>
-            /// List of columns to keep
+            /// List of columns to keep.
             /// </summary>
             public string[] KeepColumns { get; set; }
 
             /// <summary>
-            /// Specifies whether to keep or drop the selected columns
+            /// List of columns to drop.
             /// </summary>
             public string[] DropColumns { get; set; }
 
             /// <summary>
-            /// Specifies whether to keep hidden columns
+            /// Specifies whether to keep or remove hidden columns.
             /// </summary>
             public bool KeepHidden { get; set; } = true;
 

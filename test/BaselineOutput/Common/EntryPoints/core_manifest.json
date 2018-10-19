@@ -17898,18 +17898,19 @@
       "ShortName": null,
       "Inputs": [
         {
-          "Name": "Columns",
+          "Name": "KeepColumns",
           "Type": {
             "Kind": "Array",
             "ItemType": "String"
           },
-          "Desc": "List of columns to keep",
+          "Desc": "List of columns to keep.",
           "Aliases": [
-            "col"
+            "keepcol"
           ],
-          "Required": true,
+          "Required": false,
           "SortOrder": 1.0,
-          "IsNullable": false
+          "IsNullable": false,
+          "Default": null
         },
         {
           "Name": "Data",
@@ -17920,16 +17921,43 @@
           "IsNullable": false
         },
         {
-          "Name": "KeepHidden",
-          "Type": "Bool",
-          "Desc": "Specifies whether to keep hidden columns",
+          "Name": "DropColumns",
+          "Type": {
+            "Kind": "Array",
+            "ItemType": "String"
+          },
+          "Desc": "List of columns to drop.",
           "Aliases": [
-            "keep"
+            "dropcol"
           ],
           "Required": false,
           "SortOrder": 2.0,
           "IsNullable": false,
-          "Default": false
+          "Default": null
+        },
+        {
+          "Name": "KeepHidden",
+          "Type": "Bool",
+          "Desc": "Specifies whether to keep or remove hidden columns.",
+          "Aliases": [
+            "hidden"
+          ],
+          "Required": false,
+          "SortOrder": 3.0,
+          "IsNullable": false,
+          "Default": true
+        },
+        {
+          "Name": "IgnoreMismatch",
+          "Type": "Bool",
+          "Desc": "Specifies whether to ignore mismatch between the columns to select and input.",
+          "Aliases": [
+            "ignore"
+          ],
+          "Required": false,
+          "SortOrder": 4.0,
+          "IsNullable": false,
+          "Default": true
         }
       ],
       "Outputs": [
