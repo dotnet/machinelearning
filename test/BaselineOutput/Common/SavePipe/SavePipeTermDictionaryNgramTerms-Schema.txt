@@ -1,0 +1,90 @@
+---- BoundLoader ----
+2 columns:
+  T1: Text
+  T2: Text
+---- RowToRowMapperTransform ----
+3 columns:
+  T1: Text
+  T2: Text
+  Features_InitialConcat: Vec<Text, 2>
+    Metadata 'SlotNames': Vec<Text, 2>: Length=2, Count=2
+      [0] 'T1', [1] 'T2'
+---- TextNormalizerTransform ----
+4 columns:
+  T1: Text
+  T2: Text
+  Features_InitialConcat: Vec<Text, 2>
+    Metadata 'SlotNames': Vec<Text, 2>: Length=2, Count=2
+      [0] 'T1', [1] 'T2'
+  Features_InitialConcat_TextNormalizer: Vec<Text>
+---- DelimitedTokenizeTransform ----
+5 columns:
+  T1: Text
+  T2: Text
+  Features_InitialConcat: Vec<Text, 2>
+    Metadata 'SlotNames': Vec<Text, 2>: Length=2, Count=2
+      [0] 'T1', [1] 'T2'
+  Features_InitialConcat_TextNormalizer: Vec<Text>
+  Features_InitialConcat_TextNormalizer_WordTokenizer: Vec<Text>
+---- RowToRowMapperTransform ----
+6 columns:
+  T1: Text
+  T2: Text
+  Features_InitialConcat: Vec<Text, 2>
+    Metadata 'SlotNames': Vec<Text, 2>: Length=2, Count=2
+      [0] 'T1', [1] 'T2'
+  Features_InitialConcat_TextNormalizer: Vec<Text>
+  Features_InitialConcat_TextNormalizer_WordTokenizer: Vec<Text>
+  Features_WordExtractor: Vec<Key<U4, 0-7>>
+    Metadata 'KeyValues': Vec<Text, 8>: Length=8, Count=8
+      [0] 'sport', [1] 'baseball', [2] 'mcgriff', [3] 'padres', [4] 'agent', [5] 'med', [6] 'erythromycin', [7] 'pneumonia'
+---- NgramTransform ----
+7 columns:
+  T1: Text
+  T2: Text
+  Features_InitialConcat: Vec<Text, 2>
+    Metadata 'SlotNames': Vec<Text, 2>: Length=2, Count=2
+      [0] 'T1', [1] 'T2'
+  Features_InitialConcat_TextNormalizer: Vec<Text>
+  Features_InitialConcat_TextNormalizer_WordTokenizer: Vec<Text>
+  Features_WordExtractor: Vec<Key<U4, 0-7>>
+    Metadata 'KeyValues': Vec<Text, 8>: Length=8, Count=8
+      [0] 'sport', [1] 'baseball', [2] 'mcgriff', [3] 'padres', [4] 'agent', [5] 'med', [6] 'erythromycin', [7] 'pneumonia'
+  Features_WordExtractor: Vec<R4, 15>
+    Metadata 'SlotNames': Vec<Text, 15>: Length=15, Count=15
+      [0] '*', [1] '*|*', [2] '*|mcgriff', [3] 'mcgriff', [4] 'mcgriff|*', [5] '*|padres', [6] 'padres', [7] 'padres|*', [8] '*|agent', [9] 'agent'
+      [10] '*|erythromycin', [11] 'erythromycin', [12] 'erythromycin|*', [13] '*|pneumonia', [14] 'pneumonia'
+---- RowToRowMapperTransform ----
+8 columns:
+  T1: Text
+  T2: Text
+  Features_InitialConcat: Vec<Text, 2>
+    Metadata 'SlotNames': Vec<Text, 2>: Length=2, Count=2
+      [0] 'T1', [1] 'T2'
+  Features_InitialConcat_TextNormalizer: Vec<Text>
+  Features_InitialConcat_TextNormalizer_WordTokenizer: Vec<Text>
+  Features_WordExtractor: Vec<Key<U4, 0-7>>
+    Metadata 'KeyValues': Vec<Text, 8>: Length=8, Count=8
+      [0] 'sport', [1] 'baseball', [2] 'mcgriff', [3] 'padres', [4] 'agent', [5] 'med', [6] 'erythromycin', [7] 'pneumonia'
+  Features_WordExtractor: Vec<R4, 15>
+    Metadata 'SlotNames': Vec<Text, 15>: Length=15, Count=15
+      [0] '*', [1] '*|*', [2] '*|mcgriff', [3] 'mcgriff', [4] 'mcgriff|*', [5] '*|padres', [6] 'padres', [7] 'padres|*', [8] '*|agent', [9] 'agent'
+      [10] '*|erythromycin', [11] 'erythromycin', [12] 'erythromycin|*', [13] '*|pneumonia', [14] 'pneumonia'
+  Features: Vec<R4, 15>
+    Metadata 'SlotNames': Vec<Text, 15>: Length=15, Count=15
+      [0] '*', [1] '*|*', [2] '*|mcgriff', [3] 'mcgriff', [4] 'mcgriff|*', [5] '*|padres', [6] 'padres', [7] 'padres|*', [8] '*|agent', [9] 'agent'
+      [10] '*|erythromycin', [11] 'erythromycin', [12] 'erythromycin|*', [13] '*|pneumonia', [14] 'pneumonia'
+---- DropColumnsTransform ----
+3 columns:
+  T1: Text
+  T2: Text
+  Features: Vec<R4, 15>
+    Metadata 'SlotNames': Vec<Text, 15>: Length=15, Count=15
+      [0] '*', [1] '*|*', [2] '*|mcgriff', [3] 'mcgriff', [4] 'mcgriff|*', [5] '*|padres', [6] 'padres', [7] 'padres|*', [8] '*|agent', [9] 'agent'
+      [10] '*|erythromycin', [11] 'erythromycin', [12] 'erythromycin|*', [13] '*|pneumonia', [14] 'pneumonia'
+---- ChooseColumnsTransform ----
+1 columns:
+  Features: Vec<R4, 15>
+    Metadata 'SlotNames': Vec<Text, 15>: Length=15, Count=15
+      [0] '*', [1] '*|*', [2] '*|mcgriff', [3] 'mcgriff', [4] 'mcgriff|*', [5] '*|padres', [6] 'padres', [7] 'padres|*', [8] '*|agent', [9] 'agent'
+      [10] '*|erythromycin', [11] 'erythromycin', [12] 'erythromycin|*', [13] '*|pneumonia', [14] 'pneumonia'

@@ -42,9 +42,9 @@ namespace Microsoft.ML.Tests.Transformers
 
             var data = reader.Read(dataPath);
 
-            data = new TermEstimator(Env,
+            data = new TermEstimator(Env, new[] {
                 new TermTransform.ColumnInfo("ScalarString", "A"),
-                new TermTransform.ColumnInfo("VectorString", "B")).Fit(data).Transform(data);
+                new TermTransform.ColumnInfo("VectorString", "B") }).Fit(data).Transform(data);
 
             var badData1 = new CopyColumnsTransform(Env, ("BareKey", "A")).Transform(data);
             var badData2 = new CopyColumnsTransform(Env, ("VectorString", "B")).Transform(data);
@@ -79,9 +79,9 @@ namespace Microsoft.ML.Tests.Transformers
             var data = reader.Read(dataPath);
 
             // Non-pigsty Term.
-            var dynamicData = new TermEstimator(Env,
+            var dynamicData = new TermEstimator(Env, new[] {
                 new TermTransform.ColumnInfo("ScalarString", "A"),
-                new TermTransform.ColumnInfo("VectorString", "B"))
+                new TermTransform.ColumnInfo("VectorString", "B") })
                 .Fit(data.AsDynamic).Transform(data.AsDynamic);
 
             var data2 = dynamicData.AssertStatic(Env, ctx => (
