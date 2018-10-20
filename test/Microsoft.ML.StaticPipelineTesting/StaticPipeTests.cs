@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Data.IO;
 using Microsoft.ML.Runtime.Internal.Utilities;
@@ -773,6 +774,50 @@ namespace Microsoft.ML.StaticPipelineTesting
         }
 
         [Fact]
+        public void NAIndicatorStatic()
+        {
+            var Env = new ConsoleEnvironment(seed: 0);
+
+            string dataPath = GetDataPath("breast-cancer.txt");
+            var reader = TextLoader.CreateReader(Env, ctx => (
+                ScalarFloat: ctx.LoadFloat(1),
+                ScalarDouble: ctx.LoadDouble(1),
+                VectorFloat: ctx.LoadFloat(1, 4),
+                VectorDoulbe: ctx.LoadDouble(1, 4)
+            ));
+
+            var data = reader.Read(new MultiFileSource(dataPath));
+
+            var est = data.MakeNewEstimator().
+                   Append(row => (
+                   A: row.ScalarFloat.IsMissingValue(),
+                   B: row.ScalarDouble.IsMissingValue(),
+                   C: row.VectorFloat.IsMissingValue(),
+                   D: row.VectorDoulbe.IsMissingValue()
+                   ));
+
+            IDataView newData = TakeFilter.Create(Env, est.Fit(data).Transform(data).AsDynamic, 4);
+            Assert.NotNull(newData);
+            bool[] ScalarFloat = newData.GetColumn<bool>(Env, "A").ToArray();
+            bool[] ScalarDouble = newData.GetColumn<bool>(Env, "B").ToArray();
+            bool[][] VectorFloat = newData.GetColumn<bool[]>(Env, "C").ToArray();
+            bool[][] VectorDoulbe = newData.GetColumn<bool[]>(Env, "D").ToArray();
+
+            Assert.NotNull(ScalarFloat);
+            Assert.NotNull(ScalarDouble);
+            Assert.NotNull(VectorFloat);
+            Assert.NotNull(VectorDoulbe);
+            for (int i = 0; i < 4; i++)
+            {
+                Assert.True(!ScalarFloat[i] && !ScalarDouble[i]);
+                Assert.NotNull(VectorFloat[i]);
+                Assert.NotNull(VectorDoulbe[i]);
+                for (int j = 0; j < 4; j++)
+                    Assert.True(!VectorFloat[i][j] && !VectorDoulbe[i][j]);
+            }
+        }
+        
+        [Fact]
         public void TextNormalizeStatic()
         {
             var env = new ConsoleEnvironment(seed: 0);
@@ -810,7 +855,6 @@ namespace Microsoft.ML.StaticPipelineTesting
             Assert.True(schema.TryGetColumnIndex("norm_NoNumbers", out int numbers));
             type = schema.GetColumnType(numbers);
             Assert.True(!type.IsVector && type.ItemType.IsText);
-
         }
     }
 }

@@ -84,7 +84,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         public void TestEstimatorHogwildSGD()
         {
             (IEstimator<ITransformer> pipe, IDataView dataView) = GetBinaryClassificationPipeline();
-            pipe.Append(new StochasticGradientDescentClassificationTrainer(Env, "Features", "Label"));
+            pipe = pipe.Append(new StochasticGradientDescentClassificationTrainer(Env, "Features", "Label"));
             TestEstimatorCore(pipe, dataView);
             Done();
         }
@@ -96,7 +96,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         public void TestEstimatorMultiClassNaiveBayesTrainer()
         {
             (IEstimator<ITransformer> pipe, IDataView dataView) = GetMultiClassPipeline();
-            pipe.Append(new MultiClassNaiveBayesTrainer(Env, "Features", "Label"));
+            pipe = pipe.Append(new MultiClassNaiveBayesTrainer(Env, "Features", "Label"));
             TestEstimatorCore(pipe, dataView);
             Done();
         }
