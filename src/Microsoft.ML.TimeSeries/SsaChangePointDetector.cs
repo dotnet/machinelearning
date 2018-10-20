@@ -196,21 +196,13 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
     public sealed class SsaChangePointEstimator : IEstimator<SsaChangePointDetector>
     {
         private readonly IHost _host;
-        private readonly string _inputColumnName;
-        private readonly string _outputColumnName;
-        private readonly int _confidence;
-        private readonly int _changeHistoryLength;
-        private readonly int _trainingWindowSize;
-        private readonly int _seasonalityWindowSize;
-        private readonly MartingaleType _martingale;
-        private readonly double _powerMartingaleEpsilon;
-        private readonly ErrorFunctionUtils.ErrorFunction _errorFunction;
+        private readonly SsaChangePointDetector.Arguments _args;
 
         /// <summary>
-        /// Convinence constructor
+        /// Constructor for <see cref="SsaChangePointEstimator"/>
         /// </summary>
         /// <param name="env">Host Environment.</param>
-        /// <param name="name">The name of the new column.</param>
+        /// <param name="outputColumn">The name of the new column.</param>
         /// <param name="source">Name of the input column.</param>
         /// <param name="confidence">The confidence for change point detection in the range [0, 100].</param>
         /// <param name="trainingWindowSize">The change history length.</param>
@@ -219,7 +211,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
         /// <param name="errorFunction">The function used to compute the error between the expected and the observed value.</param>
         /// <param name="martingale">The martingale used for scoring.</param>
         /// <param name="eps">The epsilon parameter for the Power martingale.</param>
-        public SsaChangePointEstimator(IHostEnvironment env, string name, string source,
+        public SsaChangePointEstimator(IHostEnvironment env, string outputColumn, string source,
             int confidence, int changeHistoryLength, int trainingWindowSize, int seasonalityWindowSize,
             ErrorFunctionUtils.ErrorFunction errorFunction = ErrorFunctionUtils.ErrorFunction.SignedDifference,
             MartingaleType martingale = MartingaleType.Power, double eps = 0.1)
@@ -227,36 +219,29 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             Contracts.CheckValue(env, nameof(env));
             _host = env.Register(nameof(SsaChangePointEstimator));
 
-            _host.CheckNonEmpty(name, nameof(name));
+            _host.CheckNonEmpty(outputColumn, nameof(outputColumn));
             _host.CheckNonEmpty(source, nameof(source));
 
-            _outputColumnName = name;
-            _inputColumnName = source;
-            _confidence = confidence;
-            _changeHistoryLength = changeHistoryLength;
-            _trainingWindowSize = trainingWindowSize;
-            _seasonalityWindowSize = seasonalityWindowSize;
-            _martingale = martingale;
-            _powerMartingaleEpsilon = eps;
-            _errorFunction = errorFunction;
+            _args = new SsaChangePointDetector.Arguments
+            {
+                Name = outputColumnName,
+                Source = inputColumnName,
+                Confidence = confidence,
+                ChangeHistoryLength = changeHistoryLength,
+                TrainingWindowSize = trainingWindowSize,
+                SeasonalWindowSize = seasonalityWindowSize,
+                Martingale = martingale,
+                PowerMartingaleEpsilon = eps,
+                ErrorFunction = errorFunction
+            };
         }
 
         public SsaChangePointDetector Fit(IDataView input)
         {
             _host.CheckValue(input, nameof(input));
-            var transformer = new SsaChangePointDetector(_host,
-                new SsaChangePointDetector.Arguments {
-                    Name = _outputColumnName,
-                    Source = _inputColumnName,
-                    Confidence = _confidence,
-                    ChangeHistoryLength = _changeHistoryLength,
-                    TrainingWindowSize = _trainingWindowSize,
-                    SeasonalWindowSize = _seasonalityWindowSize,
-                    Martingale = _martingale,
-                    PowerMartingaleEpsilon = _powerMartingaleEpsilon,
-                    ErrorFunction = _errorFunction
-                });
-            transformer.Fit(input);
+            var transformer = new SsaChangePointDetector(_host, _args);
+            var data = new RoleMappedData(input, null, InputColumnName);
+            transformer.Model.Train(data);
             return transformer;
         }
 
@@ -266,8 +251,8 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
 
             if (!inputSchema.TryFindColumn(_inputColumnName, out var col))
                 throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", _inputColumnName);
-            if (col.ItemType != NumberType.Float)
-                throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", _inputColumnName, "float type", col.GetTypeString());
+            if (col.ItemType != NumberType.R4)
+                throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", _inputColumnName, NumberType.R4.ToString(), col.GetTypeString());
 
             var metadata = new List<SchemaShape.Column>() {
                 new SchemaShape.Column(MetadataUtils.Kinds.SlotNames, SchemaShape.Column.VectorKind.Vector, TextType.Instance, false)

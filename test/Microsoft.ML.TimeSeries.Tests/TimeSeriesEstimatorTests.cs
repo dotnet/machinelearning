@@ -71,6 +71,8 @@ namespace Microsoft.ML.Tests
 
             TestEstimatorCore(pipe, dataView, invalidInput: invalidDataWrongTypes);
             TestEstimatorCore(pipe, dataView, invalidInput: invalidDataWrongNames);
+
+            Done();
         }
 
         [Fact]
@@ -103,6 +105,8 @@ namespace Microsoft.ML.Tests
 
             TestEstimatorCore(pipe, dataView, invalidInput: invalidDataWrongTypes);
             TestEstimatorCore(pipe, dataView, invalidInput: invalidDataWrongNames);
+
+            Done();
         }
 
         [Fact]
@@ -128,6 +132,8 @@ namespace Microsoft.ML.Tests
 
             TestEstimatorCore(pipe, dataView, invalidInput: invalidDataWrongTypes);
             TestEstimatorCore(pipe, dataView, invalidInput: invalidDataWrongNames);
+
+            Done();
         }
 
         [Fact]
@@ -153,6 +159,8 @@ namespace Microsoft.ML.Tests
 
             TestEstimatorCore(pipe, dataView, invalidInput: invalidDataWrongTypes);
             TestEstimatorCore(pipe, dataView, invalidInput: invalidDataWrongNames);
+
+            Done();
         }
     }
 }

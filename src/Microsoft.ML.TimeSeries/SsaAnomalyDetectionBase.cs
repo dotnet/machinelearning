@@ -123,14 +123,6 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
                 DiscountFactor, null, AdaptiveSingularSpectrumSequenceModeler.RankSelectionMethod.Exact, null, SeasonalWindowSize / 2, false, false);
         }
 
-        public SsaAnomalyDetectionBase Fit(IDataView input)
-        {
-            // Training the master SSA model
-            var data = new RoleMappedData(input, null, InputColumnName);
-            Model.Train(data);
-            return this;
-        }
-
         public SsaAnomalyDetectionBase(IHostEnvironment env, ModelLoadContext ctx, string name)
             : base(env, ctx, name)
         {

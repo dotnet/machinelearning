@@ -191,22 +191,22 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
     public sealed class IidChangePointEstimator : TrivialEstimator<IidChangePointDetector>
     {
         /// <summary>
-        /// Convinence constructor
+        /// Constructor for <see cref="IidChangePointEstimator"/>
         /// </summary>
         /// <param name="env">Host Environment.</param>
-        /// <param name="name">The name of the new column.</param>
-        /// <param name="source">Name of the input column.</param>
+        /// <param name="outputColumn">The name of the new column.</param>
+        /// <param name="inputColumn">Name of the input column.</param>
         /// <param name="confidence">The confidence for change point detection in the range [0, 100].</param>
         /// <param name="changeHistoryLength">The change history length.</param>
         /// <param name="martingale">The martingale used for scoring.</param>
         /// <param name="eps">The epsilon parameter for the Power martingale.</param>
-        public IidChangePointEstimator(IHostEnvironment env, string name, string source, int confidence,
+        public IidChangePointEstimator(IHostEnvironment env, string outputColumn, string inputColumn, int confidence,
             int changeHistoryLength, MartingaleType martingale = MartingaleType.Power, double eps = 0.1):
             base(Contracts.CheckRef(env, nameof(env)).Register(nameof(IidChangePointEstimator)),
                 new IidChangePointDetector(env, new IidChangePointDetector.Arguments
                 {
-                    Name = name,
-                    Source = source,
+                    Name = outputColumn,
+                    Source = inputColumn,
                     Confidence = confidence,
                     ChangeHistoryLength = changeHistoryLength,
                     Martingale = martingale,
@@ -221,8 +221,8 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
 
             if (!inputSchema.TryFindColumn(Transformer.InputColumnName, out var col))
                 throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", Transformer.InputColumnName);
-            if (col.ItemType != NumberType.Float)
-                throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", Transformer.InputColumnName, "float type", col.GetTypeString());
+            if (col.ItemType != NumberType.R4)
+                throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", Transformer.InputColumnName, NumberType.R4.ToString(), col.GetTypeString());
 
             var metadata = new List<SchemaShape.Column>() {
                 new SchemaShape.Column(MetadataUtils.Kinds.SlotNames, SchemaShape.Column.VectorKind.Vector, TextType.Instance, false)

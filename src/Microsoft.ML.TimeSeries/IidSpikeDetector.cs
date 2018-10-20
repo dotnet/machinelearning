@@ -170,20 +170,20 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
     public sealed class IidSpikeEstimator : TrivialEstimator<IidSpikeDetector>
     {
         /// <summary>
-        /// Convinence constructor
+        /// Constructor for <see cref="IidSpikeEstimator"/>
         /// </summary>
         /// <param name="env">Host Environment.</param>
-        /// <param name="name">The name of the new column.</param>
-        /// <param name="source">Name of the input column.</param>
+        /// <param name="outputColumn">The name of the new column.</param>
+        /// <param name="inputColumn">Name of the input column.</param>
         /// <param name="confidence">The confidence for spike detection in the range [0, 100].</param>
         /// <param name="pvalueHistoryLength">The size of the sliding window for computing the p-value.</param>
         /// <param name="side">The argument that determines whether to detect positive or negative anomalies, or both.</param>
-        public IidSpikeEstimator(IHostEnvironment env, string name, string source, int confidence, int pvalueHistoryLength, AnomalySide side = AnomalySide.TwoSided) :
+        public IidSpikeEstimator(IHostEnvironment env, string outputColumn, string inputColumn, int confidence, int pvalueHistoryLength, AnomalySide side = AnomalySide.TwoSided) :
             base(Contracts.CheckRef(env, nameof(env)).Register(nameof(IidSpikeDetector)),
                 new IidSpikeDetector(env, new IidSpikeDetector.Arguments
                 {
-                    Name = name,
-                    Source = source,
+                    Name = outputColumn,
+                    Source = inputColumn,
                     Confidence = confidence,
                     PvalueHistoryLength = pvalueHistoryLength,
                     Side = side
@@ -197,8 +197,8 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
 
             if (!inputSchema.TryFindColumn(Transformer.InputColumnName, out var col))
                 throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", Transformer.InputColumnName);
-            if (col.ItemType != NumberType.Float)
-                throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", Transformer.InputColumnName, "float type", col.GetTypeString());
+            if (col.ItemType != NumberType.R4)
+                throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", Transformer.InputColumnName, NumberType.R4.ToString(), col.GetTypeString());
 
             var metadata = new List<SchemaShape.Column>() {
                 new SchemaShape.Column(MetadataUtils.Kinds.SlotNames, SchemaShape.Column.VectorKind.Vector, TextType.Instance, false)

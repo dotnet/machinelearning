@@ -40,11 +40,11 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
 
         public sealed class Arguments : TransformInputBase
         {
-            [Argument(ArgumentType.Required, HelpText = "The name of the source column.", ShortName = "src",
+            [Argument(ArgumentType.Required, HelpText = "The outputColumn of the inputColumn column.", ShortName = "src",
                 SortOrder = 1, Purpose = SpecialPurpose.ColumnName)]
             public string Source;
 
-            [Argument(ArgumentType.Required, HelpText = "The name of the new column.",
+            [Argument(ArgumentType.Required, HelpText = "The outputColumn of the new column.",
                 SortOrder = 2)]
             public string Name;
 
@@ -177,63 +177,49 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
     public sealed class SsaSpikeEstimator : IEstimator<SsaSpikeDetector>
     {
         private readonly IHost _host;
-        private readonly string _inputColumnName;
-        private readonly string _outputColumnName;
-        private readonly int _confidence;
-        private readonly int _pvalueHistoryLength;
-        private readonly int _trainingWindowSize;
-        private readonly int _seasonalityWindowSize;
-        private readonly AnomalySide _side;
-        private readonly ErrorFunctionUtils.ErrorFunction _errorFunction;
+        private readonly SsaSpikeDetector.Arguments _args;
 
         /// <summary>
-        /// Convinence constructor
+        /// Constructor for <see cref="SsaSpikeEstimator"/>
         /// </summary>
         /// <param name="env">Host Environment.</param>
-        /// <param name="name">The name of the new column.</param>
-        /// <param name="source">Name of the input column.</param>
+        /// <param name="outputColumn">The name of the new column.</param>
+        /// <param name="inputColumn">Name of the input column.</param>
         /// <param name="confidence">The confidence for spike detection in the range [0, 100].</param>
         /// <param name="pvalueHistoryLength">The size of the sliding window for computing the p-value.</param>
         /// <param name="trainingWindowSize">The change history length.</param>
         /// <param name="seasonalityWindowSize">The change history length.</param>
         /// <param name="side">The argument that determines whether to detect positive or negative anomalies, or both.</param>
         /// <param name="errorFunction">The function used to compute the error between the expected and the observed value.</param>
-        public SsaSpikeEstimator(IHostEnvironment env, string name, string source, int confidence,
+        public SsaSpikeEstimator(IHostEnvironment env, string outputColumn, string inputColumn, int confidence,
             int pvalueHistoryLength, int trainingWindowSize, int seasonalityWindowSize, AnomalySide side = AnomalySide.TwoSided,
             ErrorFunctionUtils.ErrorFunction errorFunction = ErrorFunctionUtils.ErrorFunction.SignedDifference)
         {
             Contracts.CheckValue(env, nameof(env));
             _host = env.Register(nameof(SsaSpikeEstimator));
 
-            _host.CheckNonEmpty(name, nameof(name));
-            _host.CheckNonEmpty(source, nameof(source));
+            _host.CheckNonEmpty(outputColumn, nameof(outputColumn));
+            _host.CheckNonEmpty(inputColumn, nameof(inputColumn));
 
-            _outputColumnName = name;
-            _inputColumnName = source;
-            _confidence = confidence;
-            _pvalueHistoryLength = pvalueHistoryLength;
-            _trainingWindowSize = trainingWindowSize;
-            _seasonalityWindowSize = seasonalityWindowSize;
-            _side = side;
-            _errorFunction = errorFunction;
+            _args = new SsaSpikeDetector.Arguments
+            {
+                Name = _outputColumnName,
+                Source = _inputColumnName,
+                Confidence = _confidence,
+                PvalueHistoryLength = _pvalueHistoryLength,
+                TrainingWindowSize = _trainingWindowSize,
+                SeasonalWindowSize = _seasonalityWindowSize,
+                Side = _side,
+                ErrorFunction = _errorFunction
+            };
         }
 
         public SsaSpikeDetector Fit(IDataView input)
         {
             _host.CheckValue(input, nameof(input));
-            var transformer = new SsaSpikeDetector(_host,
-                new SsaSpikeDetector.Arguments
-                {
-                    Name = _outputColumnName,
-                    Source = _inputColumnName,
-                    Confidence = _confidence,
-                    PvalueHistoryLength = _pvalueHistoryLength,
-                    TrainingWindowSize = _trainingWindowSize,
-                    SeasonalWindowSize = _seasonalityWindowSize,
-                    Side = _side,
-                    ErrorFunction = _errorFunction
-                });
-            transformer.Fit(input);
+            var transformer = new SsaSpikeDetector(_host, _args);
+            var data = new RoleMappedData(input, null, InputColumnName);
+            transformer.Model.Train(data);
             return transformer;
         }
 
@@ -243,8 +229,8 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
 
             if (!inputSchema.TryFindColumn(_inputColumnName, out var col))
                 throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", _inputColumnName);
-            if (col.ItemType != NumberType.Float)
-                throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", _inputColumnName, "float type", col.GetTypeString());
+            if (col.ItemType != NumberType.R4)
+                throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", _inputColumnName, NumberType.R4.ToString(), col.GetTypeString());
 
             var metadata = new List<SchemaShape.Column>() {
                 new SchemaShape.Column(MetadataUtils.Kinds.SlotNames, SchemaShape.Column.VectorKind.Vector, TextType.Instance, false)
