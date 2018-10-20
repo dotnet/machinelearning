@@ -121,11 +121,11 @@ namespace Microsoft.ML.Runtime.Data
             public Column[] Column;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "The replacement method to utilize", ShortName = "kind")]
-            public ReplacementKind ReplacementKind = (ReplacementKind)NAReplaceEstimator.Defaults.ReplacementMode;
+            public ReplacementKind ReplacementKind = (ReplacementKind)NaNReplacerEstimator.Defaults.ReplacementMode;
 
             // Specifying by-slot imputation for vectors of unknown size will cause a warning, and the imputation will be global.
             [Argument(ArgumentType.AtMostOnce, HelpText = "Whether to impute values by slot", ShortName = "slot")]
-            public bool ImputeBySlot = NAReplaceEstimator.Defaults.ImputeBySlot;
+            public bool ImputeBySlot = NaNReplacerEstimator.Defaults.ImputeBySlot;
         }
 
         public const string LoadName = "NAReplaceTransform";
@@ -199,8 +199,8 @@ namespace Microsoft.ML.Runtime.Data
             /// <param name="imputeBySlot">If true, per-slot imputation of replacement is performed.
             /// Otherwise, replacement value is imputed for the entire vector column. This setting is ignored for scalars and variable vectors,
             /// where imputation is always for the entire column.</param>
-            public ColumnInfo(string input, string output, ReplacementMode replacementMode = NAReplaceEstimator.Defaults.ReplacementMode,
-                bool imputeBySlot = NAReplaceEstimator.Defaults.ImputeBySlot)
+            public ColumnInfo(string input, string output, ReplacementMode replacementMode = NaNReplacerEstimator.Defaults.ReplacementMode,
+                bool imputeBySlot = NaNReplacerEstimator.Defaults.ImputeBySlot)
             {
                 Input = input;
                 Output = output;
@@ -947,7 +947,7 @@ namespace Microsoft.ML.Runtime.Data
         }
     }
 
-    public sealed class NAReplaceEstimator : IEstimator<NAReplaceTransform>
+    public sealed class NaNReplacerEstimator : IEstimator<NAReplaceTransform>
     {
         public static class Defaults
         {
@@ -958,16 +958,16 @@ namespace Microsoft.ML.Runtime.Data
         private readonly IHost _host;
         private readonly NAReplaceTransform.ColumnInfo[] _columns;
 
-        public NAReplaceEstimator(IHostEnvironment env, string name, string source = null, NAReplaceTransform.ColumnInfo.ReplacementMode replacementKind = Defaults.ReplacementMode)
-            : this(env, new NAReplaceTransform.ColumnInfo(source ?? name, name, replacementKind))
+        public NaNReplacerEstimator(IHostEnvironment env, string inputColumn, string outputColumn = null, NAReplaceTransform.ColumnInfo.ReplacementMode replacementKind = Defaults.ReplacementMode)
+            : this(env, new NAReplaceTransform.ColumnInfo(outputColumn ?? inputColumn, inputColumn, replacementKind))
         {
 
         }
 
-        public NAReplaceEstimator(IHostEnvironment env, params NAReplaceTransform.ColumnInfo[] columns)
+        public NaNReplacerEstimator(IHostEnvironment env, params NAReplaceTransform.ColumnInfo[] columns)
         {
             Contracts.CheckValue(env, nameof(env));
-            _host = env.Register(nameof(NAReplaceEstimator));
+            _host = env.Register(nameof(NaNReplacerEstimator));
             _columns = columns;
         }
 
@@ -999,15 +999,15 @@ namespace Microsoft.ML.Runtime.Data
     /// <summary>
     /// Extension methods for the static-pipeline over <see cref="PipelineColumn"/> objects.
     /// </summary>
-    public static class NAReplaceExtensions
+    public static class NAReplacerExtensions
     {
         private struct Config
         {
             public readonly bool ImputeBySlot;
             public readonly NAReplaceTransform.ColumnInfo.ReplacementMode ReplacementMode;
 
-            public Config(NAReplaceTransform.ColumnInfo.ReplacementMode replacementMode = NAReplaceEstimator.Defaults.ReplacementMode,
-                bool imputeBySlot = NAReplaceEstimator.Defaults.ImputeBySlot)
+            public Config(NAReplaceTransform.ColumnInfo.ReplacementMode replacementMode = NaNReplacerEstimator.Defaults.ReplacementMode,
+                bool imputeBySlot = NaNReplacerEstimator.Defaults.ImputeBySlot)
             {
                 ImputeBySlot = imputeBySlot;
                 ReplacementMode = replacementMode;
@@ -1078,7 +1078,7 @@ namespace Microsoft.ML.Runtime.Data
                     var col = (IColInput)toOutput[i];
                     infos[i] = new NAReplaceTransform.ColumnInfo(inputNames[col.Input], outputNames[toOutput[i]], col.Config.ReplacementMode, col.Config.ImputeBySlot);
                 }
-                return new NAReplaceEstimator(env, infos);
+                return new NaNReplacerEstimator(env, infos);
             }
         }
 
@@ -1087,7 +1087,7 @@ namespace Microsoft.ML.Runtime.Data
         /// </summary>
         /// <param name="input">Incoming data.</param>
         /// <param name="replacementMode">How NaN should be replaced</param>
-        public static Scalar<float> ReplaceNaNValues(this Scalar<float> input, NAReplaceTransform.ColumnInfo.ReplacementMode replacementMode = NAReplaceEstimator.Defaults.ReplacementMode)
+        public static Scalar<float> ReplaceNaNValues(this Scalar<float> input, NAReplaceTransform.ColumnInfo.ReplacementMode replacementMode = NaNReplacerEstimator.Defaults.ReplacementMode)
         {
             Contracts.CheckValue(input, nameof(input));
             return new OutScalar<float>(input, new Config(replacementMode, false));
@@ -1098,7 +1098,7 @@ namespace Microsoft.ML.Runtime.Data
         /// </summary>
         /// <param name="input">Incoming data.</param>
         /// <param name="replacementMode">How NaN should be replaced</param>
-        public static Scalar<double> ReplaceNaNValues(this Scalar<double> input, NAReplaceTransform.ColumnInfo.ReplacementMode replacementMode = NAReplaceEstimator.Defaults.ReplacementMode)
+        public static Scalar<double> ReplaceNaNValues(this Scalar<double> input, NAReplaceTransform.ColumnInfo.ReplacementMode replacementMode = NaNReplacerEstimator.Defaults.ReplacementMode)
         {
             Contracts.CheckValue(input, nameof(input));
             return new OutScalar<double>(input, new Config(replacementMode, false));
@@ -1111,7 +1111,7 @@ namespace Microsoft.ML.Runtime.Data
         /// <param name="imputeBySlot">If true, per-slot imputation of replacement is performed.
         /// Otherwise, replacement value is imputed for the entire vector column. This setting is ignored for scalars and variable vectors,
         /// where imputation is always for the entire column.</param>
-        public static Vector<float> ReplaceNaNValues(this Vector<float> input, NAReplaceTransform.ColumnInfo.ReplacementMode replacementMode = NAReplaceEstimator.Defaults.ReplacementMode, bool imputeBySlot = NAReplaceEstimator.Defaults.ImputeBySlot)
+        public static Vector<float> ReplaceNaNValues(this Vector<float> input, NAReplaceTransform.ColumnInfo.ReplacementMode replacementMode = NaNReplacerEstimator.Defaults.ReplacementMode, bool imputeBySlot = NaNReplacerEstimator.Defaults.ImputeBySlot)
         {
             Contracts.CheckValue(input, nameof(input));
             return new OutVectorColumn<float>(input, new Config(replacementMode, imputeBySlot));
@@ -1125,7 +1125,7 @@ namespace Microsoft.ML.Runtime.Data
         /// <param name="imputeBySlot">If true, per-slot imputation of replacement is performed.
         /// Otherwise, replacement value is imputed for the entire vector column. This setting is ignored for scalars and variable vectors,
         /// where imputation is always for the entire column.</param>
-        public static Vector<double> ReplaceNaNValues(this Vector<double> input, NAReplaceTransform.ColumnInfo.ReplacementMode replacementMode = NAReplaceEstimator.Defaults.ReplacementMode, bool imputeBySlot = NAReplaceEstimator.Defaults.ImputeBySlot)
+        public static Vector<double> ReplaceNaNValues(this Vector<double> input, NAReplaceTransform.ColumnInfo.ReplacementMode replacementMode = NaNReplacerEstimator.Defaults.ReplacementMode, bool imputeBySlot = NaNReplacerEstimator.Defaults.ImputeBySlot)
         {
             Contracts.CheckValue(input, nameof(input));
             return new OutVectorColumn<double>(input, new Config(replacementMode, imputeBySlot));
@@ -1136,7 +1136,7 @@ namespace Microsoft.ML.Runtime.Data
         /// </summary>
         /// <param name="input">Incoming data.</param>
         /// <param name="replacementMode">How NaN should be replaced</param>
-        public static VarVector<float> ReplaceNaNValues(this VarVector<float> input, NAReplaceTransform.ColumnInfo.ReplacementMode replacementMode = NAReplaceEstimator.Defaults.ReplacementMode)
+        public static VarVector<float> ReplaceNaNValues(this VarVector<float> input, NAReplaceTransform.ColumnInfo.ReplacementMode replacementMode = NaNReplacerEstimator.Defaults.ReplacementMode)
         {
             Contracts.CheckValue(input, nameof(input));
             return new OutVarVectorColumn<float>(input, new Config(replacementMode, false));
@@ -1146,7 +1146,7 @@ namespace Microsoft.ML.Runtime.Data
         /// </summary>
         /// <param name="input">Incoming data.</param>
         /// <param name="replacementMode">How NaN should be replaced</param>
-        public static VarVector<double> NAReplace(this VarVector<double> input, NAReplaceTransform.ColumnInfo.ReplacementMode replacementMode = NAReplaceEstimator.Defaults.ReplacementMode)
+        public static VarVector<double> ReplaceNaNValues(this VarVector<double> input, NAReplaceTransform.ColumnInfo.ReplacementMode replacementMode = NaNReplacerEstimator.Defaults.ReplacementMode)
         {
             Contracts.CheckValue(input, nameof(input));
             return new OutVarVectorColumn<double>(input, new Config(replacementMode, false));

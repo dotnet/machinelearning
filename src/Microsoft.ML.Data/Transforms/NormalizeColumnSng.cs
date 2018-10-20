@@ -1430,7 +1430,7 @@ namespace Microsoft.ML.Runtime.Data
                 {
                 }
 
-                public static IColumnFunctionBuilder Create(Normalizer.MinMaxColumn column, IHost host, ColumnType srcType,
+                public static IColumnFunctionBuilder Create(NormalizerEstimator.MinMaxColumn column, IHost host, ColumnType srcType,
                     ValueGetter<TFloat> getter)
                 {
                     host.CheckUserArg(column.MaxTrainingExamples > 1, nameof(column.MaxTrainingExamples), "Must be greater than 1");
@@ -1480,7 +1480,7 @@ namespace Microsoft.ML.Runtime.Data
                 {
                 }
 
-                public static IColumnFunctionBuilder Create(Normalizer.MinMaxColumn column, IHost host, ColumnType srcType,
+                public static IColumnFunctionBuilder Create(NormalizerEstimator.MinMaxColumn column, IHost host, ColumnType srcType,
                     ValueGetter<VBuffer<TFloat>> getter)
                 {
                     host.CheckUserArg(column.MaxTrainingExamples > 1, nameof(column.MaxTrainingExamples), "Must be greater than 1");
@@ -1542,14 +1542,14 @@ namespace Microsoft.ML.Runtime.Data
                     _buffer = new VBuffer<TFloat>(1, new TFloat[1]);
                 }
 
-                public static IColumnFunctionBuilder Create(Normalizer.MeanVarColumn column, IHost host, ColumnType srcType,
+                public static IColumnFunctionBuilder Create(NormalizerEstimator.MeanVarColumn column, IHost host, ColumnType srcType,
                     ValueGetter<TFloat> getter)
                 {
                     host.CheckUserArg(column.MaxTrainingExamples > 1, nameof(column.MaxTrainingExamples), "Must be greater than 1");
                     return new MeanVarOneColumnFunctionBuilder(host, column.MaxTrainingExamples, column.FixZero, getter, false, column.UseCdf);
                 }
 
-                public static IColumnFunctionBuilder Create(Normalizer.LogMeanVarColumn column, IHost host, ColumnType srcType,
+                public static IColumnFunctionBuilder Create(NormalizerEstimator.LogMeanVarColumn column, IHost host, ColumnType srcType,
                     ValueGetter<TFloat> getter)
                 {
                     var lim = column.MaxTrainingExamples;
@@ -1616,7 +1616,7 @@ namespace Microsoft.ML.Runtime.Data
                     _useCdf = useCdf;
                 }
 
-                public static IColumnFunctionBuilder Create(Normalizer.MeanVarColumn column, IHost host, ColumnType srcType,
+                public static IColumnFunctionBuilder Create(NormalizerEstimator.MeanVarColumn column, IHost host, ColumnType srcType,
                     ValueGetter<VBuffer<TFloat>> getter)
                 {
                     host.CheckUserArg(column.MaxTrainingExamples > 1, nameof(column.MaxTrainingExamples), "Must be greater than 1");
@@ -1624,7 +1624,7 @@ namespace Microsoft.ML.Runtime.Data
                     return new MeanVarVecColumnFunctionBuilder(host, cv, column.MaxTrainingExamples, column.FixZero, getter, false, column.UseCdf);
                 }
 
-                public static IColumnFunctionBuilder Create(Normalizer.LogMeanVarColumn column, IHost host, ColumnType srcType,
+                public static IColumnFunctionBuilder Create(NormalizerEstimator.LogMeanVarColumn column, IHost host, ColumnType srcType,
                     ValueGetter<VBuffer<TFloat>> getter)
                 {
                     var lim = column.MaxTrainingExamples;
@@ -1732,7 +1732,7 @@ namespace Microsoft.ML.Runtime.Data
                     _values = new List<TFloat>();
                 }
 
-                public static IColumnFunctionBuilder Create(Normalizer.BinningColumn column, IHost host, ColumnType srcType,
+                public static IColumnFunctionBuilder Create(NormalizerEstimator.BinningColumn column, IHost host, ColumnType srcType,
                     ValueGetter<TFloat> getter)
                 {
                     var lim = column.MaxTrainingExamples;
@@ -1781,7 +1781,7 @@ namespace Microsoft.ML.Runtime.Data
                     }
                 }
 
-                public static IColumnFunctionBuilder Create(Normalizer.BinningColumn column, IHost host, ColumnType srcType,
+                public static IColumnFunctionBuilder Create(NormalizerEstimator.BinningColumn column, IHost host, ColumnType srcType,
                     ValueGetter<VBuffer<TFloat>> getter)
                 {
                     var lim = column.MaxTrainingExamples;

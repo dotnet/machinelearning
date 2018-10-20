@@ -211,7 +211,7 @@ namespace Microsoft.ML.Tests.Transformers
                 .Read(new MultiFileSource(sentimentDataPath));
 
             var est = new WordTokenizer(Env, "text", "text")
-                .Append(new TermEstimator(Env, "text", "terms"))
+                .Append(new ToKeyEstimator(Env, "text", "terms"))
                 .Append(new NgramEstimator(Env, "terms", "ngrams"))
                 .Append(new NgramHashEstimator(Env, "terms", "ngramshash"));
             

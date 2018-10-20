@@ -29,7 +29,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                 // Pipeline
                 var loader = TextLoader.ReadFile(env, MakeSentimentTextLoaderArgs(), new MultiFileSource(GetDataPath(dataset.trainFilename)));
 
-                var trans = TextTransform.Create(env, MakeSentimentTextTransformArgs(), loader);
+                var trans = FeaturizeTextEstimator.Create(env, MakeSentimentTextTransformArgs(), loader);
 
                 // Train
                 var trainer = new LinearClassificationTrainer(env, new LinearClassificationTrainer.Arguments
@@ -60,11 +60,11 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             }
         }
 
-        private static TextTransform.Arguments MakeSentimentTextTransformArgs(bool normalize = true)
+        private static FeaturizeTextEstimator.Arguments MakeSentimentTextTransformArgs(bool normalize = true)
         {
-            return new TextTransform.Arguments()
+            return new FeaturizeTextEstimator.Arguments()
             {
-                Column = new TextTransform.Column
+                Column = new FeaturizeTextEstimator.Column
                 {
                     Name = "Features",
                     Source = new[] { "SentimentText" }
@@ -72,7 +72,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                 OutputTokens = true,
                 KeepPunctuations=false,
                 StopWordsRemover = new Runtime.TextAnalytics.PredefinedStopWordsRemoverFactory(),
-                VectorNormalizer = normalize ? TextTransform.TextNormKind.L2 : TextTransform.TextNormKind.None,
+                VectorNormalizer = normalize ? FeaturizeTextEstimator.TextNormKind.L2 : FeaturizeTextEstimator.TextNormKind.None,
                 CharFeatureExtractor = new NgramExtractorTransform.NgramExtractorArguments() { NgramLength = 3, AllLengths = false },
                 WordFeatureExtractor = new NgramExtractorTransform.NgramExtractorArguments() { NgramLength = 2, AllLengths = true },
             };

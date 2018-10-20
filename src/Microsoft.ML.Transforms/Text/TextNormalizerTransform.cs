@@ -18,16 +18,16 @@ using System.Text;
 using System.Threading;
 
 [assembly: LoadableClass(TextNormalizerTransform.Summary, typeof(IDataTransform), typeof(TextNormalizerTransform), typeof(TextNormalizerTransform.Arguments), typeof(SignatureDataTransform),
-    "Text Normalizer Transform", "TextNormalizerTransform", "TextNormalizer", "TextNorm")]
+    "Text NormalizerEstimator Transform", "TextNormalizerTransform", "TextNormalizer", "TextNorm")]
 
 [assembly: LoadableClass(TextNormalizerTransform.Summary, typeof(IDataTransform), typeof(TextNormalizerTransform), null, typeof(SignatureLoadDataTransform),
-    "Text Normalizer Transform", TextNormalizerTransform.LoaderSignature)]
+    "Text NormalizerEstimator Transform", TextNormalizerTransform.LoaderSignature)]
 
 [assembly: LoadableClass(TextNormalizerTransform.Summary, typeof(TextNormalizerTransform), null, typeof(SignatureLoadModel),
-     "Text Normalizer Transform", TextNormalizerTransform.LoaderSignature)]
+     "Text NormalizerEstimator Transform", TextNormalizerTransform.LoaderSignature)]
 
 [assembly: LoadableClass(typeof(IRowMapper), typeof(TextNormalizerTransform), null, typeof(SignatureLoadRowMapper),
-   "Text Normalizer Transform", TextNormalizerTransform.LoaderSignature)]
+   "Text NormalizerEstimator Transform", TextNormalizerTransform.LoaderSignature)]
 
 namespace Microsoft.ML.Transforms.Text
 {

@@ -766,7 +766,7 @@ namespace Microsoft.ML.Runtime.RunTests
             for (int i = 0; i < nModels; i++)
             {
                 var data = splitOutput.TrainData[i];
-                data = new RffEstimator(Env, new[] {
+                data = new RandomFourierFeaturizerEstimator(Env, new[] {
                     new RffTransform.ColumnInfo("Features", "Features1", 10, false),
                     new RffTransform.ColumnInfo("Features", "Features2", 10, false),
                 }).Fit(data).Transform(data);
@@ -1035,10 +1035,10 @@ namespace Microsoft.ML.Runtime.RunTests
                 var data = splitOutput.TrainData[i];
                 if (i % 2 == 0)
                 {
-                    data = TextTransform.Create(Env,
-                        new TextTransform.Arguments()
+                    data = FeaturizeTextEstimator.Create(Env,
+                        new FeaturizeTextEstimator.Arguments()
                         {
-                            Column = new TextTransform.Column() { Name = "Features", Source = new[] { "Text" } },
+                            Column = new FeaturizeTextEstimator.Column() { Name = "Features", Source = new[] { "Text" } },
                             StopWordsRemover = new PredefinedStopWordsRemoverFactory()
                         }, data);
                 }
@@ -1235,7 +1235,7 @@ namespace Microsoft.ML.Runtime.RunTests
             for (int i = 0; i < nModels; i++)
             {
                 var data = splitOutput.TrainData[i];
-                data = new RffEstimator(Env, new[] {
+                data = new RandomFourierFeaturizerEstimator(Env, new[] {
                     new RffTransform.ColumnInfo("Features", "Features1", 10, false),
                     new RffTransform.ColumnInfo("Features", "Features2", 10, false),
                 }).Fit(data).Transform(data);

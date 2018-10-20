@@ -479,7 +479,7 @@ namespace Microsoft.ML.Runtime.TextAnalytics
                         int index = 0;
 
                         // ReadOnlyMemory can be a result of either concatenating text columns together
-                        // or application of word tokenizer before char tokenizer in TextTransform.
+                        // or application of word tokenizer before char tokenizer in FeaturizeTextEstimator.
                         //
                         // Considering VBuffer<ReadOnlyMemory> as a single text stream.
                         // Therefore, prepend and append start and end markers only once i.e. at the start and at end of vector.

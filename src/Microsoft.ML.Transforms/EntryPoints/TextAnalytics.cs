@@ -18,15 +18,15 @@ namespace Microsoft.ML.Runtime.Transforms
     public static class TextAnalytics
     {
         [TlcModule.EntryPoint(Name = "Transforms.TextFeaturizer",
-            Desc = Data.TextTransform.Summary,
-            UserName = Data.TextTransform.UserName,
-            ShortName = Data.TextTransform.LoaderSignature,
-            XmlInclude = new[] { @"<include file='../Microsoft.ML.Transforms/Text/doc.xml' path='doc/members/member[@name=""TextTransform""]/*' />" ,
-                                 @"<include file='../Microsoft.ML.Transforms/Text/doc.xml' path='doc/members/example[@name=""TextTransform""]/*' />"})]
-        public static CommonOutputs.TransformOutput TextTransform(IHostEnvironment env, TextTransform.Arguments input)
+            Desc = Data.FeaturizeTextEstimator.Summary,
+            UserName = Data.FeaturizeTextEstimator.UserName,
+            ShortName = Data.FeaturizeTextEstimator.LoaderSignature,
+            XmlInclude = new[] { @"<include file='../Microsoft.ML.Transforms/Text/doc.xml' path='doc/members/member[@name=""FeaturizeTextEstimator""]/*' />" ,
+                                 @"<include file='../Microsoft.ML.Transforms/Text/doc.xml' path='doc/members/example[@name=""FeaturizeTextEstimator""]/*' />"})]
+        public static CommonOutputs.TransformOutput TextTransform(IHostEnvironment env, FeaturizeTextEstimator.Arguments input)
         {
-            var h = EntryPointUtils.CheckArgsAndCreateHost(env, "TextTransform", input);
-            var xf = Data.TextTransform.Create(h, input, input.Data);
+            var h = EntryPointUtils.CheckArgsAndCreateHost(env, "FeaturizeTextEstimator", input);
+            var xf = Data.FeaturizeTextEstimator.Create(h, input, input.Data);
             return new CommonOutputs.TransformOutput()
             {
                 Model = new TransformModel(h, xf, input.Data),

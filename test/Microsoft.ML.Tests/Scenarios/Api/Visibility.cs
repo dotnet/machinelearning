@@ -27,7 +27,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                 // Pipeline.
                 var loader = TextLoader.ReadFile(env, MakeSentimentTextLoaderArgs(), new MultiFileSource(GetDataPath(TestDatasets.Sentiment.trainFilename)));
 
-                var trans = TextTransform.Create(env, MakeSentimentTextTransformArgs(false), loader);
+                var trans = FeaturizeTextEstimator.Create(env, MakeSentimentTextTransformArgs(false), loader);
                 
                 // In order to find out available column names, you can go through schema and check
                 // column names and appropriate type for getter.

@@ -18,18 +18,24 @@ namespace Microsoft.ML.Runtime.Data
         private readonly string _name;
         private readonly string[] _source;
 
-        public ConcatEstimator(IHostEnvironment env, string name, params string[] source)
+        /// <summary>
+        /// Initializes a new instance of <see cref="ConcatEstimator"/>
+        /// </summary>
+        /// <param name="env">The private instance of <see cref="IHostEnvironment"/>.</param>
+        /// <param name="outputColumn">The name of the resulting column.</param>
+        /// <param name="inputColumns">The columns to concatenate together.</param>
+        public ConcatEstimator(IHostEnvironment env, string outputColumn, params string[] inputColumns)
         {
             Contracts.CheckValue(env, nameof(env));
             _host = env.Register("ConcatEstimator");
 
-            _host.CheckNonEmpty(name, nameof(name));
-            _host.CheckNonEmpty(source, nameof(source));
-            _host.CheckParam(!source.Any(r => string.IsNullOrEmpty(r)), nameof(source),
+            _host.CheckNonEmpty(outputColumn, nameof(outputColumn));
+            _host.CheckValue(inputColumns, nameof(inputColumns));
+            _host.CheckParam(!inputColumns.Any(r => string.IsNullOrEmpty(r)), nameof(inputColumns),
                 "Contained some null or empty items");
 
-            _name = name;
-            _source = source;
+            _name = outputColumn;
+            _source = inputColumns;
         }
 
         public ITransformer Fit(IDataView input)

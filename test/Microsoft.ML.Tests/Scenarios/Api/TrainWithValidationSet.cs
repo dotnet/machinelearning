@@ -24,7 +24,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                 // Pipeline
                 var loader = TextLoader.ReadFile(env, MakeSentimentTextLoaderArgs(), new MultiFileSource(GetDataPath(TestDatasets.Sentiment.trainFilename)));
 
-                var trans = TextTransform.Create(env, MakeSentimentTextTransformArgs(), loader);
+                var trans = FeaturizeTextEstimator.Create(env, MakeSentimentTextTransformArgs(), loader);
                 var trainData = trans;
 
                 // Apply the same transformations on the validation set.

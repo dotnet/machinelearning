@@ -909,7 +909,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 foldModels[i] = FoldModelPath(i);
 
             string extraArgs = string.Format("{0} {1} {2} {3} k={4}", "prexf=Term{col=Label:Cat} prexf=CategoricalTransform{col=Cat01}",
-                                               "xf=TextTransform{col=Text} xf=Concat{col=Features:Cat01,Text}",
+                                               "xf=FeaturizeTextEstimator{col=Text} xf=Concat{col=Features:Cat01,Text}",
                                                 "threads- tr=MultiClassLogisticRegression{numThreads=1}", "norm=No", numFolds);
             const string loaderArgs = "loader=TextLoader{col=Label:R4:0 col=Cat:TX:1 col=Cat01:TX:2 col=Text:TX:3 header=+}";
             TestCore("cv", pathData, loaderArgs, extraArgs);
@@ -1624,7 +1624,7 @@ namespace Microsoft.ML.Runtime.RunTests
         {
             // Train binary classifier on a small subset of 20NG data
             const string textTransform =
-                "xf=TextTransform{{col={0} remover=PredefinedStopWordsRemover punc=- num=- charExtractor={{}} wordExtractor=NgramExtractor}} ";
+                "xf=FeaturizeTextEstimator{{col={0} remover=PredefinedStopWordsRemover punc=- num=- charExtractor={{}} wordExtractor=NgramExtractor}} ";
             string loaderArgs = "loader = TextLoader{col=ID:R4:0 col=Label:TX:1 col=Title:TX:2 col=Body:TX:3 header=+} "
               + "xf=SkipFilter{c=700} xf=TakeFilter{c=400} xf=Term{col=Label max=2} "
               + string.Format(textTransform, "Title")

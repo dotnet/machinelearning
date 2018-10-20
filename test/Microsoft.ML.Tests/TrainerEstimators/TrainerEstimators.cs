@@ -116,7 +116,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                     }).Read(new MultiFileSource(GetDataPath(TestDatasets.Sentiment.trainFilename)));
 
             // Pipeline.
-            var pipeline = new TextTransform(Env, "SentimentText", "Features");
+            var pipeline = new FeaturizeTextEstimator(Env, "SentimentText", "Features");
 
             return (pipeline, data);
         }
@@ -137,7 +137,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             }).Read(new MultiFileSource(GetDataPath(TestDatasets.adultRanking.trainFilename)));
 
             // Pipeline.
-            var pipeline = new TermEstimator(Env, new[]{
+            var pipeline = new ToKeyEstimator(Env, new[]{
                                     new TermTransform.ColumnInfo("Workclass", "Group"),
                                     new TermTransform.ColumnInfo("Label", "Label0") });
 
@@ -188,7 +188,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 })
                 .Read(new MultiFileSource(GetDataPath(IrisDataPath)));
 
-            var pipeline = new TermEstimator(Env, "Label");
+            var pipeline = new ToKeyEstimator(Env, "Label");
 
             return (pipeline, data);
         }

@@ -11,7 +11,7 @@ using System.Linq;
 
 namespace Microsoft.ML.Runtime.Data
 {
-    public sealed class TermEstimator : IEstimator<TermTransform>
+    public sealed class ToKeyEstimator : IEstimator<TermTransform>
     {
         public static class Defaults
         {
@@ -31,15 +31,15 @@ namespace Microsoft.ML.Runtime.Data
         /// <param name="maxNumTerms">Maximum number of terms to keep per column when auto-training.</param>
         /// <param name="sort">How items should be ordered when vectorized. By default, they will be in the order encountered.
         /// If by value items are sorted according to their default comparison, for example, text sorting will be case sensitive (for example, 'A' then 'Z' then 'a').</param>
-        public TermEstimator(IHostEnvironment env, string inputColumn, string outputColumn = null, int maxNumTerms = Defaults.MaxNumTerms, TermTransform.SortOrder sort = Defaults.Sort) :
+        public ToKeyEstimator(IHostEnvironment env, string inputColumn, string outputColumn = null, int maxNumTerms = Defaults.MaxNumTerms, TermTransform.SortOrder sort = Defaults.Sort) :
            this(env, new TermTransform.ColumnInfo(inputColumn, outputColumn ?? inputColumn, maxNumTerms, sort))
         {
         }
 
-        public TermEstimator(IHostEnvironment env, params TermTransform.ColumnInfo[] columns)
+        public ToKeyEstimator(IHostEnvironment env, params TermTransform.ColumnInfo[] columns)
         {
             Contracts.CheckValue(env, nameof(env));
-            _host = env.Register(nameof(TermEstimator));
+            _host = env.Register(nameof(ToKeyEstimator));
             _columns = columns;
         }
 
@@ -117,8 +117,8 @@ namespace Microsoft.ML.Runtime.Data
         // Raw generics would allow illegal possible inputs, for example, Scalar<Bitmap>. So, this is a partial
         // class, and all the public facing extension methods for each possible type are in a T4 generated result.
 
-        private const KeyValueOrder DefSort = (KeyValueOrder)TermEstimator.Defaults.Sort;
-        private const int DefMax = TermEstimator.Defaults.MaxNumTerms;
+        private const KeyValueOrder DefSort = (KeyValueOrder)ToKeyEstimator.Defaults.Sort;
+        private const int DefMax = ToKeyEstimator.Defaults.MaxNumTerms;
 
         private struct Config
         {
@@ -203,7 +203,7 @@ namespace Microsoft.ML.Runtime.Data
                         onFit += tt => tcol.Config.OnFit(tt.GetTermMap(ii));
                     }
                 }
-                var est = new TermEstimator(env, infos);
+                var est = new ToKeyEstimator(env, infos);
                 if (onFit == null)
                     return est;
                 return est.WithOnFitDelegate(onFit);

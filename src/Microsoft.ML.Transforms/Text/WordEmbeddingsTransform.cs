@@ -552,6 +552,7 @@ namespace Microsoft.ML.Runtime.Data
         }
     }
 
+    /// <include file='doc.xml' path='doc/members/member[@name="WordEmbeddings"]/*' />
     public sealed class WordEmbeddingsEstimator : IEstimator<WordEmbeddingsTransform>
     {
         private readonly IHost _host;
@@ -559,9 +560,16 @@ namespace Microsoft.ML.Runtime.Data
         private readonly WordEmbeddingsTransform.PretrainedModelKind? _modelKind;
         private readonly string _customLookupTable;
 
-        public WordEmbeddingsEstimator(IHostEnvironment env, string inputColumn, string outputColumn,
+        /// <summary>
+        /// Initializes a new instance of <see cref="WordEmbeddingsEstimator"/>
+        /// </summary>
+        /// <param name="env">The private instance of <see cref="IHostEnvironment"/></param>
+        /// <param name="inputColumn">The input column.</param>
+        /// <param name="outputColumn">The optional output column. If it is <value>null</value> the input column will be substituted with its value.</param>
+        /// <param name="modelKind">The embeddings <see cref="WordEmbeddingsTransform.PretrainedModelKind"/> to use. </param>
+        public WordEmbeddingsEstimator(IHostEnvironment env, string inputColumn, string outputColumn = null,
            WordEmbeddingsTransform.PretrainedModelKind modelKind = WordEmbeddingsTransform.PretrainedModelKind.Sswe)
-            : this(env, modelKind, new WordEmbeddingsTransform.ColumnInfo(inputColumn, outputColumn))
+            : this(env, modelKind, new WordEmbeddingsTransform.ColumnInfo(inputColumn, outputColumn ?? inputColumn))
         {
         }
 

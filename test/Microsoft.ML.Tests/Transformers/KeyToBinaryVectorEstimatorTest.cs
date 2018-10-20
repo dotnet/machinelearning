@@ -45,7 +45,7 @@ namespace Microsoft.ML.Tests.Transformers
             var data = new[] { new TestClass() { A = 1, B = 2, C = 3, }, new TestClass() { A = 4, B = 5, C = 6 } };
 
             var dataView = ComponentCreation.CreateDataView(Env, data);
-            dataView = new TermEstimator(Env, new[]{
+            dataView = new ToKeyEstimator(Env, new[]{
                     new TermTransform.ColumnInfo("A", "TermA"),
                     new TermTransform.ColumnInfo("B", "TermB"),
                     new TermTransform.ColumnInfo("C", "TermC", textKeyValues:true)
@@ -69,7 +69,7 @@ namespace Microsoft.ML.Tests.Transformers
             var data = reader.Read(new MultiFileSource(dataPath));
 
             // Non-pigsty Term.
-            var dynamicData = new TermEstimator(Env,
+            var dynamicData = new ToKeyEstimator(Env,
                 new TermTransform.ColumnInfo("ScalarString", "A"),
                 new TermTransform.ColumnInfo("VectorString", "B"))
                 .Fit(data.AsDynamic).Transform(data.AsDynamic);
@@ -98,7 +98,7 @@ namespace Microsoft.ML.Tests.Transformers
 
 
             var dataView = ComponentCreation.CreateDataView(Env, data);
-            var termEst = new TermEstimator(Env,
+            var termEst = new ToKeyEstimator(Env,
                 new TermTransform.ColumnInfo("A", "TA", textKeyValues: true),
                 new TermTransform.ColumnInfo("B", "TB", textKeyValues: true),
                 new TermTransform.ColumnInfo("C", "TC"),
@@ -159,7 +159,7 @@ namespace Microsoft.ML.Tests.Transformers
         {
             var data = new[] { new TestClass() { A = 1, B = 2, C = 3, }, new TestClass() { A = 4, B = 5, C = 6 } };
             var dataView = ComponentCreation.CreateDataView(Env, data);
-            var est = new TermEstimator(Env, new[]{
+            var est = new ToKeyEstimator(Env, new[]{
                     new TermTransform.ColumnInfo("A", "TermA"),
                     new TermTransform.ColumnInfo("B", "TermB", textKeyValues:true),
                     new TermTransform.ColumnInfo("C", "TermC")

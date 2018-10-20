@@ -34,7 +34,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                 // Pipeline.
                 var loader = TextLoader.ReadFile(env, MakeSentimentTextLoaderArgs(), new MultiFileSource(GetDataPath(dataset.trainFilename)));
 
-                var text = TextTransform.Create(env, MakeSentimentTextTransformArgs(false), loader);
+                var text = FeaturizeTextEstimator.Create(env, MakeSentimentTextTransformArgs(false), loader);
                 IDataView trans = new GenerateNumberTransform(env, text, "StratificationColumn");
                 // Train.
                 var trainer = new LinearClassificationTrainer(env, new LinearClassificationTrainer.Arguments

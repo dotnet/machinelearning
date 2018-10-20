@@ -88,7 +88,7 @@ namespace Microsoft.ML.Benchmarks
 
                 IDataView data = reader.Read(new MultiFileSource(_sentimentDataPath));
 
-                var pipeline = new TextTransform(env, "SentimentText", "Features")
+                var pipeline = new FeaturizeTextEstimator(env, "SentimentText", "Features")
                     .Append(new LinearClassificationTrainer(env, "Features", "Label", advancedSettings: (s) => { s.NumThreads = 1; s.ConvergenceTolerance = 1e-2f; }));
 
                 var model = pipeline.Fit(data);

@@ -620,7 +620,7 @@ namespace Microsoft.ML.Runtime.RunTests
             var dataView = ImportTextData.ImportText(Env, new ImportTextData.Input { InputFile = inputFile }).Data;
 #pragma warning restore 0618
 
-            var cat = new CategoricalEstimator(Env, "Categories", "Features").Fit(dataView).Transform(dataView);
+            var cat = new OneHotEncodingEstimator(Env, "Categories", "Features").Fit(dataView).Transform(dataView);
             var fastTrees = new IPredictorModel[3];
             for (int i = 0; i < 3; i++)
             {

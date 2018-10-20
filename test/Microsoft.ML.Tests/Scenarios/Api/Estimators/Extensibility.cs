@@ -39,7 +39,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             };
             var pipeline = new ConcatEstimator(ml, "Features", "SepalLength", "SepalWidth", "PetalLength", "PetalWidth")
                 .Append(new MyLambdaTransform<IrisData, IrisData>(ml, action), TransformerScope.TrainTest)
-                .Append(new TermEstimator(ml, "Label"), TransformerScope.TrainTest)
+                .Append(new ToKeyEstimator(ml, "Label"), TransformerScope.TrainTest)
                 .Append(ml.MulticlassClassification.Trainers.StochasticDualCoordinateAscent(advancedSettings: (s) => { s.MaxIterations = 100; s.Shuffle = true; s.NumThreads = 1; }))
                 .Append(new KeyToValueEstimator(ml, "PredictedLabel"));
 

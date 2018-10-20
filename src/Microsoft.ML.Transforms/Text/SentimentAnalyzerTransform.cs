@@ -13,7 +13,7 @@ using Microsoft.ML.Transforms;
 using System.Collections.Generic;
 using System.Linq;
 
-[assembly: LoadableClass(TextTransform.Summary, typeof(IDataTransform), typeof(SentimentAnalyzingTransform), typeof(SentimentAnalyzingTransform.Arguments), typeof(SignatureDataTransform),
+[assembly: LoadableClass(FeaturizeTextEstimator.Summary, typeof(IDataTransform), typeof(SentimentAnalyzingTransform), typeof(SentimentAnalyzingTransform.Arguments), typeof(SignatureDataTransform),
     SentimentAnalyzingTransform.UserName, "SentimentAnalyzingTransform", SentimentAnalyzingTransform.LoaderSignature, SentimentAnalyzingTransform.ShortName, DocName = "transform/SentimentAnalyzingTransform.md")]
 
 namespace Microsoft.ML.Runtime.TextAnalytics

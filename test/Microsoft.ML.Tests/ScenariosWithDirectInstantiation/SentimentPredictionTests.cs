@@ -36,9 +36,9 @@ namespace Microsoft.ML.Scenarios
                     }
                 }, new MultiFileSource(dataPath));
 
-                var trans = TextTransform.Create(env, new TextTransform.Arguments()
+                var trans = FeaturizeTextEstimator.Create(env, new FeaturizeTextEstimator.Arguments()
                 {
-                    Column = new TextTransform.Column
+                    Column = new FeaturizeTextEstimator.Column
                     {
                         Name = "Features",
                         Source = new[] { "SentimentText" }
@@ -46,7 +46,7 @@ namespace Microsoft.ML.Scenarios
                     OutputTokens = true,
                     KeepPunctuations = false,
                     StopWordsRemover = new Runtime.TextAnalytics.PredefinedStopWordsRemoverFactory(),
-                    VectorNormalizer = TextTransform.TextNormKind.L2,
+                    VectorNormalizer = FeaturizeTextEstimator.TextNormKind.L2,
                     CharFeatureExtractor = new NgramExtractorTransform.NgramExtractorArguments() { NgramLength = 3, AllLengths = false },
                     WordFeatureExtractor = new NgramExtractorTransform.NgramExtractorArguments() { NgramLength = 2, AllLengths = true },
                 },
@@ -99,9 +99,9 @@ namespace Microsoft.ML.Scenarios
                     }
                 }, new MultiFileSource(dataPath));
 
-                var text = TextTransform.Create(env, new TextTransform.Arguments()
+                var text = FeaturizeTextEstimator.Create(env, new FeaturizeTextEstimator.Arguments()
                 {
-                    Column = new TextTransform.Column
+                    Column = new FeaturizeTextEstimator.Column
                     {
                         Name = "WordEmbeddings",
                         Source = new[] { "SentimentText" }
@@ -109,7 +109,7 @@ namespace Microsoft.ML.Scenarios
                     OutputTokens = true,
                     KeepPunctuations= false,
                     StopWordsRemover = new Runtime.TextAnalytics.PredefinedStopWordsRemoverFactory(),
-                    VectorNormalizer = TextTransform.TextNormKind.None,
+                    VectorNormalizer = FeaturizeTextEstimator.TextNormKind.None,
                     CharFeatureExtractor = null,
                     WordFeatureExtractor = null,
                 },

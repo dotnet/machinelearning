@@ -27,7 +27,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                 // Pipeline
                 var loader = TextLoader.ReadFile(env, MakeSentimentTextLoaderArgs(), new MultiFileSource(GetDataPath(TestDatasets.Sentiment.trainFilename)));
                 
-                var trans = TextTransform.Create(env, MakeSentimentTextTransformArgs(), loader);
+                var trans = FeaturizeTextEstimator.Create(env, MakeSentimentTextTransformArgs(), loader);
                 var saver = new BinarySaver(env, new BinarySaver.Arguments());
                 using (var ch = env.Start("SaveData"))
                 using (var file = env.CreateOutputFile("i.idv"))

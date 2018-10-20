@@ -42,7 +42,7 @@ namespace Microsoft.ML.Scenarios
                 IDataView pipeline = new ConcatTransform(env, "Features",
                     "SepalLength", "SepalWidth", "PetalLength", "PetalWidth").Transform(loader);
 
-                // Normalizer is not automatically added though the trainer has 'NormalizeFeatures' On/Auto
+                // NormalizerEstimator is not automatically added though the trainer has 'NormalizeFeatures' On/Auto
                 pipeline = NormalizeTransform.CreateMinMaxNormalizer(env, pipeline, "Features");
 
                 // Train

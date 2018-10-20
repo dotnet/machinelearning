@@ -29,7 +29,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                 // Pipeline
                 var loader = TextLoader.ReadFile(env, MakeSentimentTextLoaderArgs(), new MultiFileSource(data));
 
-                var trans = TextTransform.Create(env, MakeSentimentTextTransformArgs(), loader);
+                var trans = FeaturizeTextEstimator.Create(env, MakeSentimentTextTransformArgs(), loader);
 
                 // Train
                 var trainer = new LinearClassificationTrainer(env, new LinearClassificationTrainer.Arguments

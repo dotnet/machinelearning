@@ -104,7 +104,7 @@ namespace Microsoft.ML.Runtime.Data
         public abstract class ArgumentsBase : TransformInputBase
         {
             [Argument(ArgumentType.AtMostOnce, HelpText = "Maximum number of terms to keep per column when auto-training", ShortName = "max", SortOrder = 5)]
-            public int MaxNumTerms = TermEstimator.Defaults.MaxNumTerms;
+            public int MaxNumTerms = ToKeyEstimator.Defaults.MaxNumTerms;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Comma separated list of terms", SortOrder = 105, Visibility = ArgumentAttribute.VisibilityType.CmdLineOnly)]
             public string Terms;
@@ -128,7 +128,7 @@ namespace Microsoft.ML.Runtime.Data
             // REVIEW: Should we always sort? Opinions are mixed. See work item 7797429.
             [Argument(ArgumentType.AtMostOnce, HelpText = "How items should be ordered when vectorized. By default, they will be in the order encountered. " +
                 "If by value items are sorted according to their default comparison, for example, text sorting will be case sensitive (for example, 'A' then 'Z' then 'a').", SortOrder = 113)]
-            public SortOrder Sort = TermEstimator.Defaults.Sort;
+            public SortOrder Sort = ToKeyEstimator.Defaults.Sort;
 
             // REVIEW: Should we do this here, or correct the various pieces of code here and in MRS etc. that
             // assume key-values will be string? Once we correct these things perhaps we can see about removing it.
@@ -158,7 +158,7 @@ namespace Microsoft.ML.Runtime.Data
 
         public class ColumnInfo
         {
-            public ColumnInfo(string input, string output, int maxNumTerms = TermEstimator.Defaults.MaxNumTerms, SortOrder sort = TermEstimator.Defaults.Sort, string[] term = null, bool textKeyValues = false)
+            public ColumnInfo(string input, string output, int maxNumTerms = ToKeyEstimator.Defaults.MaxNumTerms, SortOrder sort = ToKeyEstimator.Defaults.Sort, string[] term = null, bool textKeyValues = false)
             {
                 Input = input;
                 Output = output;
@@ -401,7 +401,7 @@ namespace Microsoft.ML.Runtime.Data
         /// If by value items are sorted according to their default comparison, for example, text sorting will be case sensitive (for example, 'A' then 'Z' then 'a').</param>
         public static IDataView Create(IHostEnvironment env,
             IDataView input, string name, string source = null,
-            int maxNumTerms = TermEstimator.Defaults.MaxNumTerms, SortOrder sort = TermEstimator.Defaults.Sort) =>
+            int maxNumTerms = ToKeyEstimator.Defaults.MaxNumTerms, SortOrder sort = ToKeyEstimator.Defaults.Sort) =>
             new TermTransform(env, input, new[] { new ColumnInfo(source ?? name, name, maxNumTerms, sort) }).MakeDataTransform(input);
 
         public static IDataTransform Create(IHostEnvironment env, ArgumentsBase args, ColumnBase[] column, IDataView input)

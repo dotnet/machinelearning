@@ -1308,7 +1308,7 @@ namespace Microsoft.ML.Transforms
         internal const string ExpectedColumnType = "Expected Text, Key, Single or Double item type";
 
         /// <summary>
-        /// Convinence constructor for simple one column case
+        /// Initializes a new instance of <see cref="HashEstimator"/>.
         /// </summary>
         /// <param name="env">Host Environment.</param>
         /// <param name="inputColumn">Name of the output column.</param>
@@ -1321,6 +1321,9 @@ namespace Microsoft.ML.Transforms
         {
         }
 
+        /// <summary>
+        /// Initializes a new instance of <see cref="HashEstimator"/>.
+        /// </summary>
         /// <param name="env">Host Environment.</param>
         /// <param name="columns">Description of dataset columns and how to process them.</param>
         public HashEstimator(IHostEnvironment env, params HashTransformer.ColumnInfo[] columns)

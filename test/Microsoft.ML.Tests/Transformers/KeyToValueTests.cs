@@ -42,7 +42,7 @@ namespace Microsoft.ML.Tests.Transformers
 
             var data = reader.Read(new MultiFileSource(dataPath));
 
-            data = new TermEstimator(Env,
+            data = new ToKeyEstimator(Env,
                 new TermTransform.ColumnInfo("ScalarString", "A"),
                 new TermTransform.ColumnInfo("VectorString", "B")).Fit(data).Transform(data);
 
@@ -79,7 +79,7 @@ namespace Microsoft.ML.Tests.Transformers
             var data = reader.Read(new MultiFileSource(dataPath));
 
             // Non-pigsty Term.
-            var dynamicData = new TermEstimator(Env,
+            var dynamicData = new ToKeyEstimator(Env,
                 new TermTransform.ColumnInfo("ScalarString", "A"),
                 new TermTransform.ColumnInfo("VectorString", "B"))
                 .Fit(data.AsDynamic).Transform(data.AsDynamic);

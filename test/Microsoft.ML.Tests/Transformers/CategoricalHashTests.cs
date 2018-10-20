@@ -48,11 +48,11 @@ namespace Microsoft.ML.Tests.Transformers
             var data = new[] { new TestClass() { A = "1", B = "2", C = "3", }, new TestClass() { A = "4", B = "5", C = "6" } };
 
             var dataView = ComponentCreation.CreateDataView(Env, data);
-            var pipe = new CategoricalHashEstimator(Env, new[]{
-                    new CategoricalHashEstimator.ColumnInfo("A", "CatA", CategoricalTransform.OutputKind.Bag),
-                    new CategoricalHashEstimator.ColumnInfo("A", "CatB", CategoricalTransform.OutputKind.Bin),
-                    new CategoricalHashEstimator.ColumnInfo("A", "CatC", CategoricalTransform.OutputKind.Ind),
-                    new CategoricalHashEstimator.ColumnInfo("A", "CatD", CategoricalTransform.OutputKind.Key),
+            var pipe = new OneHotHashEncodingEstimator(Env, new[]{
+                    new OneHotHashEncodingEstimator.ColumnInfo("A", "CatA", CategoricalTransform.OutputKind.Bag),
+                    new OneHotHashEncodingEstimator.ColumnInfo("A", "CatB", CategoricalTransform.OutputKind.Bin),
+                    new OneHotHashEncodingEstimator.ColumnInfo("A", "CatC", CategoricalTransform.OutputKind.Ind),
+                    new OneHotHashEncodingEstimator.ColumnInfo("A", "CatD", CategoricalTransform.OutputKind.Key),
                 });
 
             TestEstimatorCore(pipe, dataView);
@@ -104,17 +104,17 @@ namespace Microsoft.ML.Tests.Transformers
                 new TestMeta() { A = new string[2] { "A", "B"}, B = "C", C =new float[2] { 5.0f,6.0f}, D = 1.0f , E= new string[2]{"D","E"}, F="D"} };
 
             var dataView = ComponentCreation.CreateDataView(Env, data);
-            var bagPipe = new CategoricalHashEstimator(Env,
-                new CategoricalHashEstimator.ColumnInfo("A", "CatA", CategoricalTransform.OutputKind.Bag, invertHash: -1),
-                new CategoricalHashEstimator.ColumnInfo("B", "CatB", CategoricalTransform.OutputKind.Bag, invertHash: -1),
-                new CategoricalHashEstimator.ColumnInfo("C", "CatC", CategoricalTransform.OutputKind.Bag, invertHash: -1),
-                new CategoricalHashEstimator.ColumnInfo("D", "CatD", CategoricalTransform.OutputKind.Bag, invertHash: -1),
-                new CategoricalHashEstimator.ColumnInfo("E", "CatE", CategoricalTransform.OutputKind.Ind, invertHash: -1),
-                new CategoricalHashEstimator.ColumnInfo("F", "CatF", CategoricalTransform.OutputKind.Ind, invertHash: -1),
-                new CategoricalHashEstimator.ColumnInfo("A", "CatG", CategoricalTransform.OutputKind.Key, invertHash: -1),
-                new CategoricalHashEstimator.ColumnInfo("B", "CatH", CategoricalTransform.OutputKind.Key, invertHash: -1),
-                new CategoricalHashEstimator.ColumnInfo("A", "CatI", CategoricalTransform.OutputKind.Bin, invertHash: -1),
-                new CategoricalHashEstimator.ColumnInfo("B", "CatJ", CategoricalTransform.OutputKind.Bin, invertHash: -1));
+            var bagPipe = new OneHotHashEncodingEstimator(Env,
+                new OneHotHashEncodingEstimator.ColumnInfo("A", "CatA", CategoricalTransform.OutputKind.Bag, invertHash: -1),
+                new OneHotHashEncodingEstimator.ColumnInfo("B", "CatB", CategoricalTransform.OutputKind.Bag, invertHash: -1),
+                new OneHotHashEncodingEstimator.ColumnInfo("C", "CatC", CategoricalTransform.OutputKind.Bag, invertHash: -1),
+                new OneHotHashEncodingEstimator.ColumnInfo("D", "CatD", CategoricalTransform.OutputKind.Bag, invertHash: -1),
+                new OneHotHashEncodingEstimator.ColumnInfo("E", "CatE", CategoricalTransform.OutputKind.Ind, invertHash: -1),
+                new OneHotHashEncodingEstimator.ColumnInfo("F", "CatF", CategoricalTransform.OutputKind.Ind, invertHash: -1),
+                new OneHotHashEncodingEstimator.ColumnInfo("A", "CatG", CategoricalTransform.OutputKind.Key, invertHash: -1),
+                new OneHotHashEncodingEstimator.ColumnInfo("B", "CatH", CategoricalTransform.OutputKind.Key, invertHash: -1),
+                new OneHotHashEncodingEstimator.ColumnInfo("A", "CatI", CategoricalTransform.OutputKind.Bin, invertHash: -1),
+                new OneHotHashEncodingEstimator.ColumnInfo("B", "CatJ", CategoricalTransform.OutputKind.Bin, invertHash: -1));
 
             var bagResult = bagPipe.Fit(dataView).Transform(dataView);
             ValidateMetadata(bagResult);
@@ -223,10 +223,10 @@ namespace Microsoft.ML.Tests.Transformers
         {
             var data = new[] { new TestClass() { A = "1", B = "2", C = "3", }, new TestClass() { A = "4", B = "5", C = "6" } };
             var dataView = ComponentCreation.CreateDataView(Env, data);
-            var pipe = new CategoricalHashEstimator(Env, new[]{
-                    new CategoricalHashEstimator.ColumnInfo("A", "CatHashA"),
-                    new CategoricalHashEstimator.ColumnInfo("B", "CatHashB"),
-                    new CategoricalHashEstimator.ColumnInfo("C", "CatHashC")
+            var pipe = new OneHotHashEncodingEstimator(Env, new[]{
+                    new OneHotHashEncodingEstimator.ColumnInfo("A", "CatHashA"),
+                    new OneHotHashEncodingEstimator.ColumnInfo("B", "CatHashB"),
+                    new OneHotHashEncodingEstimator.ColumnInfo("C", "CatHashC")
             });
             var result = pipe.Fit(dataView).Transform(dataView);
             var resultRoles = new RoleMappedData(result);

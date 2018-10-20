@@ -89,10 +89,10 @@ namespace Microsoft.ML.Benchmarks
                         }
                     }, new MultiFileSource(_sentimentDataPath));
 
-                var text = TextTransform.Create(env,
-                    new TextTransform.Arguments()
+                var text = FeaturizeTextEstimator.Create(env,
+                    new FeaturizeTextEstimator.Arguments()
                     {
-                        Column = new TextTransform.Column
+                        Column = new FeaturizeTextEstimator.Column
                         {
                             Name = "WordEmbeddings",
                             Source = new[] { "SentimentText" }
@@ -100,7 +100,7 @@ namespace Microsoft.ML.Benchmarks
                         OutputTokens = true,
                         KeepPunctuations=false,
                         StopWordsRemover = new Runtime.TextAnalytics.PredefinedStopWordsRemoverFactory(),
-                        VectorNormalizer = TextTransform.TextNormKind.None,
+                        VectorNormalizer = FeaturizeTextEstimator.TextNormKind.None,
                         CharFeatureExtractor = null,
                         WordFeatureExtractor = null,
                     }, loader);
