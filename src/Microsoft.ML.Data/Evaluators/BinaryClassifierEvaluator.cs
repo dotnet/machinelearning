@@ -790,141 +790,6 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         /// <summary>
-        /// Evaluation results for binary classifiers, excluding probabilistic metrics.
-        /// </summary>
-        public class Result
-        {
-            /// <summary>
-            /// Gets the area under the ROC curve.
-            /// </summary>
-            /// <remarks>
-            /// The area under the ROC curve is equal to the probability that the classifier ranks
-            /// a randomly chosen positive instance higher than a randomly chosen negative one
-            /// (assuming 'positive' ranks higher than 'negative').
-            /// </remarks>
-            public double Auc { get; }
-
-            /// <summary>
-            /// Gets the accuracy of a classifier which is the proportion of correct predictions in the test set.
-            /// </summary>
-            public double Accuracy { get; }
-
-            /// <summary>
-            /// Gets the positive precision of a classifier which is the proportion of correctly predicted
-            /// positive instances among all the positive predictions (i.e., the number of positive instances
-            /// predicted as positive, divided by the total number of instances predicted as positive).
-            /// </summary>
-            public double PositivePrecision { get; }
-
-            /// <summary>
-            /// Gets the positive recall of a classifier which is the proportion of correctly predicted
-            /// positive instances among all the positive instances (i.e., the number of positive instances
-            /// predicted as positive, divided by the total number of positive instances).
-            /// </summary>
-            public double PositiveRecall { get; private set; }
-
-            /// <summary>
-            /// Gets the negative precision of a classifier which is the proportion of correctly predicted
-            /// negative instances among all the negative predictions (i.e., the number of negative instances
-            /// predicted as negative, divided by the total number of instances predicted as negative).
-            /// </summary>
-            public double NegativePrecision { get; }
-
-            /// <summary>
-            /// Gets the negative recall of a classifier which is the proportion of correctly predicted
-            /// negative instances among all the negative instances (i.e., the number of negative instances
-            /// predicted as negative, divided by the total number of negative instances).
-            /// </summary>
-            public double NegativeRecall { get; }
-
-            /// <summary>
-            /// Gets the F1 score of the classifier.
-            /// </summary>
-            /// <remarks>
-            /// F1 score is the harmonic mean of precision and recall: 2 * precision * recall / (precision + recall).
-            /// </remarks>
-            public double F1Score { get; }
-
-            /// <summary>
-            /// Gets the area under the precision/recall curve of the classifier.
-            /// </summary>
-            /// <remarks>
-            /// The area under the precision/recall curve is a single number summary of the information in the
-            /// precision/recall curve. It is increasingly used in the machine learning community, particularly
-            /// for imbalanced datasets where one class is observed more frequently than the other. On these
-            /// datasets, AUPRC can highlight performance differences that are lost with AUC.
-            /// </remarks>
-            public double Auprc { get; }
-
-            protected private static T Fetch<T>(IExceptionContext ectx, IRow row, string name)
-            {
-                if (!row.Schema.TryGetColumnIndex(name, out int col))
-                    throw ectx.Except($"Could not find column '{name}'");
-                T val = default;
-                row.GetGetter<T>(col)(ref val);
-                return val;
-            }
-
-            internal Result(IExceptionContext ectx, IRow overallResult)
-            {
-                double Fetch(string name) => Fetch<double>(ectx, overallResult, name);
-                Auc = Fetch(BinaryClassifierEvaluator.Auc);
-                Accuracy = Fetch(BinaryClassifierEvaluator.Accuracy);
-                PositivePrecision = Fetch(BinaryClassifierEvaluator.PosPrecName);
-                PositiveRecall = Fetch(BinaryClassifierEvaluator.PosRecallName);
-                NegativePrecision = Fetch(BinaryClassifierEvaluator.NegPrecName);
-                NegativeRecall = Fetch(BinaryClassifierEvaluator.NegRecallName);
-                F1Score = Fetch(BinaryClassifierEvaluator.F1);
-                Auprc = Fetch(BinaryClassifierEvaluator.AuPrc);
-            }
-        }
-
-        /// <summary>
-        /// Evaluation results for binary classifiers, including probabilistic metrics.
-        /// </summary>
-        public sealed class CalibratedResult : Result
-        {
-            /// <summary>
-            /// Gets the log-loss of the classifier.
-            /// </summary>
-            /// <remarks>
-            /// The log-loss metric, is computed as follows:
-            /// LL = - (1/m) * sum( log(p[i]))
-            /// where m is the number of instances in the test set.
-            /// p[i] is the probability returned by the classifier if the instance belongs to class 1,
-            /// and 1 minus the probability returned by the classifier if the instance belongs to class 0.
-            /// </remarks>
-            public double LogLoss { get; }
-
-            /// <summary>
-            /// Gets the log-loss reduction (also known as relative log-loss, or reduction in information gain - RIG)
-            /// of the classifier.
-            /// </summary>
-            /// <remarks>
-            /// The log-loss reduction is scaled relative to a classifier that predicts the prior for every example:
-            /// (LL(prior) - LL(classifier)) / LL(prior)
-            /// This metric can be interpreted as the advantage of the classifier over a random prediction.
-            /// For example, if the RIG equals 20, it can be interpreted as &quot;the probability of a correct prediction is
-            /// 20% better than random guessing.&quot;
-            /// </remarks>
-            public double LogLossReduction { get; }
-
-            /// <summary>
-            /// Gets the test-set entropy (prior Log-Loss/instance) of the classifier.
-            /// </summary>
-            public double Entropy { get; }
-
-            internal CalibratedResult(IExceptionContext ectx, IRow overallResult)
-                : base(ectx, overallResult)
-            {
-                double Fetch(string name) => Fetch<double>(ectx, overallResult, name);
-                LogLoss = Fetch(BinaryClassifierEvaluator.LogLoss);
-                LogLossReduction = Fetch(BinaryClassifierEvaluator.LogLossReduction);
-                Entropy = Fetch(BinaryClassifierEvaluator.Entropy);
-            }
-        }
-
-        /// <summary>
         /// Evaluates scored binary classification data.
         /// </summary>
         /// <param name="data">The scored data.</param>
@@ -933,7 +798,7 @@ namespace Microsoft.ML.Runtime.Data
         /// <param name="probability">The name of the probability column in <paramref name="data"/>, the calibrated version of <paramref name="score"/>.</param>
         /// <param name="predictedLabel">The name of the predicted label column in <paramref name="data"/>.</param>
         /// <returns>The evaluation results for these calibrated outputs.</returns>
-        public CalibratedResult Evaluate(IDataView data, string label, string score, string probability, string predictedLabel)
+        public BinaryClassificationMetrics Evaluate(IDataView data, string label, string score, string probability, string predictedLabel)
         {
             Host.CheckValue(data, nameof(data));
             Host.CheckNonEmpty(label, nameof(label));
@@ -972,7 +837,7 @@ namespace Microsoft.ML.Runtime.Data
         /// <param name="predictedLabel">The name of the predicted label column in <paramref name="data"/>.</param>
         /// <returns>The evaluation results for these uncalibrated outputs.</returns>
         /// <seealso cref="Evaluate(IDataView, string, string, string)"/>
-        public Result Evaluate(IDataView data, string label, string score, string predictedLabel)
+        public EvaluatorMetrics Evaluate(IDataView data, string label, string score, string predictedLabel)
         {
             Host.CheckValue(data, nameof(data));
             Host.CheckNonEmpty(label, nameof(label));
