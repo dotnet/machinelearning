@@ -78,6 +78,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 prediction.Schema.TryGetColumnIndex(scoreColumnName, out int scoreColumnId);
 
                 // Go through the whole test set and calculate the expected statistics.
+                // TODO: use regression evaluator
                 double error = 0;
                 long count = 0;
                 using (var cursor = testData.GetRowCursor(c => c == labelColumnId))

@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk" DefaultTargets="Pack">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <PackageDescription>LIBMF</PackageDescription>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../Microsoft.ML/Microsoft.ML.nupkgproj" />
+  </ItemGroup>
+
+  <ItemGroup> 
+    <Content Include="..\common\CommonPackage.props" Pack="true" PackagePath="build\netstandard2.0\$(MSBuildProjectName).props" />
+  </ItemGroup> 
+  
+</Project>

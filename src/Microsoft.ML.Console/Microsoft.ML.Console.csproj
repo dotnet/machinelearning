@@ -34,7 +34,6 @@
     <NativeAssemblyReference Include="FactorizationMachineNative" />
     <NativeAssemblyReference Include="LdaNative" />
     <NativeAssemblyReference Include="SymSgdNative" />
-    <NativeAssemblyReference Include="LIBMFNative" />
   </ItemGroup>
   
 </Project>
