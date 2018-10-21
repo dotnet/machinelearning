@@ -162,8 +162,8 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
                 throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", InputColumnName);
 
             var colType = inputSchema.GetColumnType(col);
-            if (colType != NumberType.Float)
-                throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", InputColumnName, "float type", colType.ToString());
+            if (colType != NumberType.R4)
+                throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", InputColumnName, NumberType.R4.ToString(), colType.ToString());
 
             return Transform(new EmptyDataView(Host, inputSchema)).Schema;
         }

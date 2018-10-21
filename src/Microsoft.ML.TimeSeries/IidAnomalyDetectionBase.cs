@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
 
@@ -24,6 +25,20 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             : base(env, ctx, name)
         {
             Host.CheckDecode(InitialWindowSize == 0);
+        }
+
+        public override Schema GetOutputSchema(Schema inputSchema)
+        {
+            Host.CheckValue(inputSchema, nameof(inputSchema));
+
+            if (!inputSchema.TryGetColumnIndex(InputColumnName, out var col))
+                throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", InputColumnName);
+
+            var colType = inputSchema.GetColumnType(col);
+            if (colType != NumberType.R4)
+                throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", InputColumnName, NumberType.R4.ToString(), colType.ToString());
+
+            return Transform(new EmptyDataView(Host, inputSchema)).Schema;
         }
 
         public override void Save(ModelSaveContext ctx)
