@@ -20110,14 +20110,14 @@ namespace Microsoft.ML
             internal override string ComponentName => "FastTreeTweedieRegression";
         }
 
-        public abstract class NgramExtractor : ComponentKind {}
+        public abstract class NgramExtractClass : ComponentKind {}
 
 
 
         /// <summary>
         /// Extracts NGrams from text and convert them to vector using dictionary.
         /// </summary>
-        public sealed class NGramNgramExtractor : NgramExtractor
+        public sealed class NGramNgramText2Vector : NgramExtractClass
         {
             /// <summary>
             /// Ngram length
