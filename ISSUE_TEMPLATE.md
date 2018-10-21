@@ -1,3 +1,5 @@
+Kindly keep your issues in the following format:
+
 ### System information
 
 - **OS version/distro**:
