@@ -378,7 +378,7 @@ namespace Microsoft.ML.Scenarios
                         }
                     }, new MultiFileSource(dataPath));
 
-                    IDataView trans = CategoricalTransform.Create(env, loader, "OneHotLabel", "Label");
+                    IDataView trans = new CategoricalEstimator(env, "Label", "OneHotLabel").Fit(loader).Transform(loader);
                     trans = NormalizeTransform.CreateMinMaxNormalizer(env, trans, "Features", "Placeholder");
 
                     var args = new TensorFlowTransform.Arguments()

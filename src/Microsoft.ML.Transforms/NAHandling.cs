@@ -4,6 +4,7 @@
 
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
+using Microsoft.ML.Transforms;
 
 [assembly: EntryPointModule(typeof(NAHandling))]
 
@@ -71,7 +72,7 @@ namespace Microsoft.ML.Runtime.Data
         public static CommonOutputs.TransformOutput Indicator(IHostEnvironment env, NAIndicatorTransform.Arguments input)
         {
             var h = EntryPointUtils.CheckArgsAndCreateHost(env, "NAIndicator", input);
-            var xf = new NAIndicatorTransform(h, input, input.Data);
+            var xf = new NAIndicatorTransform(h, input).Transform(input.Data);
             return new CommonOutputs.TransformOutput()
             {
                 Model = new TransformModel(h, xf, input.Data),

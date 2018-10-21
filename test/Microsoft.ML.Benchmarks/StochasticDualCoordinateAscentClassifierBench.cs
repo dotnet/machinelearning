@@ -97,10 +97,8 @@ namespace Microsoft.ML.Benchmarks
                             Name = "WordEmbeddings",
                             Source = new[] { "SentimentText" }
                         },
-                        KeepDiacritics = false,
-                        KeepPunctuations = false,
-                        TextCase = Runtime.TextAnalytics.TextNormalizerTransform.CaseNormalizationMode.Lower,
                         OutputTokens = true,
+                        KeepPunctuations=false,
                         StopWordsRemover = new Runtime.TextAnalytics.PredefinedStopWordsRemoverFactory(),
                         VectorNormalizer = TextTransform.TextNormKind.None,
                         CharFeatureExtractor = null,

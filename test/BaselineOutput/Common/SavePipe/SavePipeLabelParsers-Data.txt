@@ -1,0 +1,128 @@
+#@ TextLoader{
+#@   header+
+#@   sep=tab
+#@   col=RawLabel:TX:0
+#@   col=AutoLabel:U4[0-6]:1
+#@   col=StringLabel:U4[0-6]:2
+#@   col=FileLabel:U4[0-1]:3
+#@ }
+RawLabel	AutoLabel	StringLabel	FileLabel
+Wirtschaft	0	0	0
+Wirtschaft	0	0	0
+Wirtschaft	0	0	0
+Wirtschaft	0	0	0
+Wirtschaft	0	0	0
+Wirtschaft	0	0	0
+Wirtschaft	0	0	0
+Gesundheit	1	1	0
+Gesundheit	1	1	0
+Gesundheit	1	1	0
+Gesundheit	1	1	0
+Gesundheit	1	1	0
+Gesundheit	1	1	0
+Gesundheit	1	1	0
+Gesundheit	1	1	0
+Deutschland	2	2	0
+Deutschland	2	2	0
+Ausland	3	3	0
+Ausland	3	3	0
+Unterhaltung	4	4	0
+Unterhaltung	4	4	0
+Unterhaltung	4	4	0
+Unterhaltung	4	4	0
+Unterhaltung	4	4	0
+Sport	5	5	1
+Sport	5	5	1
+Sport	5	5	1
+Sport	5	5	1
+Sport	5	5	1
+Sport	5	5	1
+Sport	5	5	1
+Sport	5	5	1
+Sport	5	5	1
+Sport	5	5	1
+Technik & Wissen	6	6	0
+Technik & Wissen	6	6	0
+Technik & Wissen	6	6	0
+Technik & Wissen	6	6	0
+Technik & Wissen	6	6	0
+Technik & Wissen	6	6	0
+Technik & Wissen	6	6	0
+Technik & Wissen	6	6	0
+Technik & Wissen	6	6	0
+Technik & Wissen	6	6	0
+Technik & Wissen	6	6	0
+Technik & Wissen	6	6	0
+Technik & Wissen	6	6	0
+Technik & Wissen	6	6	0
+Technik & Wissen	6	6	0
+Technik & Wissen	6	6	0
+Technik & Wissen	6	6	0
+Technik & Wissen	6	6	0
+Technik & Wissen	6	6	0
+Technik & Wissen	6	6	0
+Technik & Wissen	6	6	0
+Technik & Wissen	6	6	0
+Technik & Wissen	6	6	0
+Gesundheit	1	1	0
+Gesundheit	1	1	0
+Ausland	3	3	0
+Ausland	3	3	0
+Ausland	3	3	0
+Ausland	3	3	0
+Ausland	3	3	0
+Ausland	3	3	0
+Ausland	3	3	0
+Ausland	3	3	0
+Unterhaltung	4	4	0
+Unterhaltung	4	4	0
+Unterhaltung	4	4	0
+Sport	5	5	1
+Sport	5	5	1
+Technik & Wissen	6	6	0
+Technik & Wissen	6	6	0
+Technik & Wissen	6	6	0
+Technik & Wissen	6	6	0
+Technik & Wissen	6	6	0
+Wirtschaft	0	0	0
+Gesundheit	1	1	0
+Wirtschaft	0	0	0
+Deutschland	2	2	0
+Wirtschaft	0	0	0
+Wirtschaft	0	0	0
+Wirtschaft	0	0	0
+Wirtschaft	0	0	0
+Wirtschaft	0	0	0
+Unterhaltung	4	4	0
+Deutschland	2	2	0
+Gesundheit	1	1	0
+Gesundheit	1	1	0
+Deutschland	2	2	0
+Wirtschaft	0	0	0
+Unterhaltung	4	4	0
+Wirtschaft	0	0	0
+Wirtschaft	0	0	0
+Gesundheit	1	1	0
+Deutschland	2	2	0
+Gesundheit	1	1	0
+Wirtschaft	0	0	0
+Wirtschaft	0	0	0
+Deutschland	2	2	0
+Wirtschaft	0	0	0
+Wirtschaft	0	0	0
+Gesundheit	1	1	0
+Unterhaltung	4	4	0
+Wirtschaft	0	0	0
+Deutschland	2	2	0
+Wirtschaft	0	0	0
+Unterhaltung	4	4	0
+Gesundheit	1	1	0
+Deutschland	2	2	0
+Wirtschaft	0	0	0
+Unterhaltung	4	4	0
+Deutschland	2	2	0
+Wirtschaft	0	0	0
+Deutschland	2	2	0
+Wirtschaft	0	0	0
+Wirtschaft	0	0	0
+Deutschland	2	2	0

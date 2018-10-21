@@ -5,7 +5,7 @@
 // the alignment of the usings with the methods is intentional so they can display on the same level in the docs site. 
         using Microsoft.ML.Runtime.Data;
         using Microsoft.ML.Runtime.Learners;
-        using Microsoft.ML.Trainers;
+        using Microsoft.ML.StaticPipe;
         using System;
 
 // NOTE: WHEN ADDING TO THE FILE, ALWAYS APPEND TO THE END OF IT. 
@@ -37,7 +37,7 @@ namespace Microsoft.ML.Samples
                 separator: '\t', hasHeader: true);
 
             // Read the data, and leave 10% out, so we can use them for testing
-            var data = reader.Read(new MultiFileSource(dataFile));
+            var data = reader.Read(dataFile);
             var (trainData, testData) = regressionContext.TrainTestSplit(data, testFraction: 0.1);
 
             // The predictor that gets produced out of training
