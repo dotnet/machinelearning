@@ -171,6 +171,22 @@ namespace Microsoft.ML.Runtime.Data
                     return _schema[Input].Type;
                 }
             }
+
+            internal int WeightColumnIndex
+            {
+                get
+                {
+                    Contracts.AssertValue(_schema);
+                    var index = -1;
+                    if (WeightColumn != null)
+                    {
+                        if (!_schema.TryGetColumnIndex(WeightColumn, out index))
+                            throw Contracts.Except("Weight column '{0}' does not exist.", WeightColumn);
+                        Contracts.CheckUserArg(_schema[index].Type == NumberType.Float, nameof(WeightColumn));
+                    }
+                    return index;
+                }
+            }
         }
 
         private sealed class TransformInfo
@@ -276,7 +292,6 @@ namespace Microsoft.ML.Runtime.Data
         private readonly int _numColumns;
         private readonly ColumnInfo[] _columns;
         private readonly TransformInfo[] _transformInfos;
-        private readonly int[] _weightColumnIndices;
 
         private const string RegistrationName = "Pca";
 
@@ -288,29 +303,17 @@ namespace Microsoft.ML.Runtime.Data
         {
             Host.AssertNonEmpty(ColumnPairs);
 
-            _numColumns = ColumnPairs.Length;
             _columns = columns;
+            _numColumns = columns.Length;
             _transformInfos = new TransformInfo[_numColumns];
-            _weightColumnIndices = new int[_numColumns];
 
             for (int i = 0; i < _numColumns; i++)
             {
                 var col = columns[i];
                 col.SetSchema(input.Schema);
-
                 ValidatePcaInput(Host, col.Input, col.InputType);
                 Host.CheckUserArg(col.Oversampling >= 0, nameof(col.Oversampling), "Oversampling must be non-negative");
-
                 _transformInfos[i] = new TransformInfo(col.Rank, col.InputType.ValueCount);
-                _weightColumnIndices[i] = -1;
-                var weightColumn = col.WeightColumn;
-                if (weightColumn != null)
-                {
-                    if (!input.Schema.TryGetColumnIndex(weightColumn, out _weightColumnIndices[i]))
-                        throw Host.Except("weight column '{0}' does not exist", weightColumn);
-                    var type = input.Schema.GetColumnType(_weightColumnIndices[i]);
-                    Host.CheckUserArg(type == NumberType.Float, nameof(weightColumn));
-                }
             }
 
             Train(columns, _transformInfos, input);
@@ -506,11 +509,11 @@ namespace Microsoft.ML.Runtime.Data
             Double[] totalColWeight = new Double[_numColumns];
 
             bool[] activeColumns = new bool[trainingData.Schema.ColumnCount];
-            for (int iinfo = 0; iinfo < _numColumns; iinfo++)
+            foreach (var col in _columns)
             {
-                activeColumns[_columns[iinfo].InputIndex] = true;
-                if (_weightColumnIndices[iinfo] >= 0)
-                    activeColumns[_weightColumnIndices[iinfo]] = true;
+                activeColumns[col.InputIndex] = true;
+                if (col.WeightColumnIndex >= 0)
+                    activeColumns[col.WeightColumnIndex] = true;
             }
 
             using (var cursor = trainingData.GetRowCursor(col => activeColumns[col]))
@@ -519,9 +522,10 @@ namespace Microsoft.ML.Runtime.Data
                 var columnGetters = new ValueGetter<VBuffer<float>>[_numColumns];
                 for (int iinfo = 0; iinfo < _numColumns; iinfo++)
                 {
-                    if (_weightColumnIndices[iinfo] >= 0)
-                        weightGetters[iinfo] = cursor.GetGetter<float>(_weightColumnIndices[iinfo]);
-                    columnGetters[iinfo] = cursor.GetGetter<VBuffer<float>>(_columns[iinfo].InputIndex);
+                    var col = _columns[iinfo];
+                    if (col.WeightColumnIndex >= 0)
+                        weightGetters[iinfo] = cursor.GetGetter<float>(col.WeightColumnIndex);
+                    columnGetters[iinfo] = cursor.GetGetter<VBuffer<float>>(col.InputIndex);
                 }
 
                 var features = default(VBuffer<float>);
@@ -549,7 +553,7 @@ namespace Microsoft.ML.Runtime.Data
                 for (int iinfo = 0; iinfo < _numColumns; iinfo++)
                 {
                     if (totalColWeight[iinfo] <= 0)
-                        throw Host.Except("Empty data in column '{0}'", ColumnPairs[iinfo].input);
+                        throw Host.Except("Empty data in column '{0}'", _columns[iinfo].Input);
                 }
 
                 for (int iinfo = 0; iinfo < _numColumns; iinfo++)

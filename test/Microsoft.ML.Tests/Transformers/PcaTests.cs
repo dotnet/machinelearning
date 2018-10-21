@@ -29,17 +29,21 @@ namespace Microsoft.ML.Tests.Transformers
         public void PcaWorkout()
         {
             var data = TextLoader.CreateReader(_env,
-                c => (label: c.LoadFloat(11), features: c.LoadFloat(0, 10)),
+                c => (label: c.LoadFloat(11), weight: c.LoadFloat(0), features: c.LoadFloat(1, 10)),
                 separator: ';', hasHeader: true)
                 .Read(new MultiFileSource(_dataSource));
 
             var invalidData = TextLoader.CreateReader(_env,
-                c => (label: c.LoadFloat(11), features: c.LoadText(0, 10)),
+                c => (label: c.LoadFloat(11), weight: c.LoadFloat(0), features: c.LoadText(1, 10)),
                 separator: ';', hasHeader: true)
                 .Read(new MultiFileSource(_dataSource));
 
             var est = new PcaEstimator(_env, "features", "pca", rank: 4, seed: 10);
             TestEstimatorCore(est, data.AsDynamic, invalidInput: invalidData.AsDynamic);
+
+            var est_non_default_args = new PcaEstimator(_env, "features", "pca", rank: 3, weightColumn: "weight", overSampling: 2, center: false);
+            TestEstimatorCore(est_non_default_args, data.AsDynamic, invalidInput: invalidData.AsDynamic);
+
             Done();
         }
 
