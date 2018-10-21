@@ -111,9 +111,10 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             env.CheckValue(args, nameof(args));
             env.CheckValue(input, nameof(input));
 
-            var transform = new SsaChangePointDetector(env, args);
-            transform.Fit(input);
-            return transform.MakeDataTransform(input);
+            var transformer = new SsaChangePointDetector(env, args);
+            var data = new RoleMappedData(input, null, transformer.InputColumnName);
+            transformer.Model.Train(data);
+            return transformer.MakeDataTransform(input);
         }
 
         internal SsaChangePointDetector(IHostEnvironment env, Arguments args)
@@ -203,7 +204,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
         /// </summary>
         /// <param name="env">Host Environment.</param>
         /// <param name="outputColumn">The name of the new column.</param>
-        /// <param name="source">Name of the input column.</param>
+        /// <param name="inputColumn">Name of the input column.</param>
         /// <param name="confidence">The confidence for change point detection in the range [0, 100].</param>
         /// <param name="trainingWindowSize">The change history length.</param>
         /// <param name="changeHistoryLength">The change history length.</param>
@@ -211,21 +212,14 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
         /// <param name="errorFunction">The function used to compute the error between the expected and the observed value.</param>
         /// <param name="martingale">The martingale used for scoring.</param>
         /// <param name="eps">The epsilon parameter for the Power martingale.</param>
-        public SsaChangePointEstimator(IHostEnvironment env, string outputColumn, string source,
+        public SsaChangePointEstimator(IHostEnvironment env, string outputColumn, string inputColumn,
             int confidence, int changeHistoryLength, int trainingWindowSize, int seasonalityWindowSize,
             ErrorFunctionUtils.ErrorFunction errorFunction = ErrorFunctionUtils.ErrorFunction.SignedDifference,
-            MartingaleType martingale = MartingaleType.Power, double eps = 0.1)
-        {
-            Contracts.CheckValue(env, nameof(env));
-            _host = env.Register(nameof(SsaChangePointEstimator));
-
-            _host.CheckNonEmpty(outputColumn, nameof(outputColumn));
-            _host.CheckNonEmpty(source, nameof(source));
-
-            _args = new SsaChangePointDetector.Arguments
+            MartingaleType martingale = MartingaleType.Power, double eps = 0.1):
+            this(env, new SsaChangePointDetector.Arguments
             {
-                Name = outputColumnName,
-                Source = inputColumnName,
+                Name = outputColumn,
+                Source = inputColumn,
                 Confidence = confidence,
                 ChangeHistoryLength = changeHistoryLength,
                 TrainingWindowSize = trainingWindowSize,
@@ -233,14 +227,26 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
                 Martingale = martingale,
                 PowerMartingaleEpsilon = eps,
                 ErrorFunction = errorFunction
-            };
+            })
+        {
+        }
+
+        public SsaChangePointEstimator(IHostEnvironment env, SsaChangePointDetector.Arguments args)
+        {
+            Contracts.CheckValue(env, nameof(env));
+            _host = env.Register(nameof(SsaChangePointEstimator));
+
+            _host.CheckNonEmpty(args.Name, nameof(args.Name));
+            _host.CheckNonEmpty(args.Source, nameof(args.Source));
+
+            _args = args;
         }
 
         public SsaChangePointDetector Fit(IDataView input)
         {
             _host.CheckValue(input, nameof(input));
             var transformer = new SsaChangePointDetector(_host, _args);
-            var data = new RoleMappedData(input, null, InputColumnName);
+            var data = new RoleMappedData(input, null, transformer.InputColumnName);
             transformer.Model.Train(data);
             return transformer;
         }
@@ -249,17 +255,17 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
         {
             _host.CheckValue(inputSchema, nameof(inputSchema));
 
-            if (!inputSchema.TryFindColumn(_inputColumnName, out var col))
-                throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", _inputColumnName);
+            if (!inputSchema.TryFindColumn(_args.Source, out var col))
+                throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", _args.Source);
             if (col.ItemType != NumberType.R4)
-                throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", _inputColumnName, NumberType.R4.ToString(), col.GetTypeString());
+                throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", _args.Source, NumberType.R4.ToString(), col.GetTypeString());
 
             var metadata = new List<SchemaShape.Column>() {
                 new SchemaShape.Column(MetadataUtils.Kinds.SlotNames, SchemaShape.Column.VectorKind.Vector, TextType.Instance, false)
             };
             var resultDic = inputSchema.Columns.ToDictionary(x => x.Name);
-            resultDic[_outputColumnName] = new SchemaShape.Column(
-                _outputColumnName, SchemaShape.Column.VectorKind.Vector, NumberType.R8, false, new SchemaShape(metadata));
+            resultDic[_args.Name] = new SchemaShape.Column(
+                _args.Name, SchemaShape.Column.VectorKind.Vector, NumberType.R8, false, new SchemaShape(metadata));
 
             return new SchemaShape(resultDic.Values);
         }

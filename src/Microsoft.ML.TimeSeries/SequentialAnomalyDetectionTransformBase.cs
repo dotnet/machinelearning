@@ -563,11 +563,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
 
                 _parent = parent;
                 _parentSchema = inputSchema;
-                _slotNames = new string[4];
-                _slotNames[0] = "Alert";
-                _slotNames[1] = "Raw Score";
-                _slotNames[2] = "P-Value Score";
-                _slotNames[3] = "Martingale Score";
+                _slotNames = new string[4] { "Alert", "Raw Score", "P-Value Score", "Martingale Score" };
             }
 
             public Schema.Column[] GetOutputColumns()

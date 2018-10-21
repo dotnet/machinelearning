@@ -30,7 +30,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
         public static CommonOutputs.TransformOutput IidChangePointDetector(IHostEnvironment env, IidChangePointDetector.Arguments input)
         {
             var h = EntryPointUtils.CheckArgsAndCreateHost(env, "IidChangePointDetector", input);
-            var view = new IidChangePointEstimator(h, input).Transform(input.Data);
+            var view = new IidChangePointEstimator(h, input).Fit(input.Data).Transform(input.Data);
             return new CommonOutputs.TransformOutput()
             {
                 Model = new TransformModel(h, view, input.Data),
@@ -42,7 +42,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
         public static CommonOutputs.TransformOutput IidSpikeDetector(IHostEnvironment env, IidSpikeDetector.Arguments input)
         {
             var h = EntryPointUtils.CheckArgsAndCreateHost(env, "IidSpikeDetector", input);
-            var view = new IidSpikeEstimator(h, input).Transform(input.Data);
+            var view = new IidSpikeEstimator(h, input).Fit(input.Data).Transform(input.Data);
             return new CommonOutputs.TransformOutput()
             {
                 Model = new TransformModel(h, view, input.Data),

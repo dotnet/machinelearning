@@ -108,9 +108,10 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             env.CheckValue(args, nameof(args));
             env.CheckValue(input, nameof(input));
 
-            var transform = new SsaSpikeDetector(env, args);
-            transform.Fit(input);
-            return transform.MakeDataTransform(input);
+            var transformer = new SsaSpikeDetector(env, args);
+            var data = new RoleMappedData(input, null, transformer.InputColumnName);
+            transformer.Model.Train(data);
+            return transformer.MakeDataTransform(input);
         }
 
         internal SsaSpikeDetector(IHostEnvironment env, Arguments args)
@@ -193,32 +194,37 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
         /// <param name="errorFunction">The function used to compute the error between the expected and the observed value.</param>
         public SsaSpikeEstimator(IHostEnvironment env, string outputColumn, string inputColumn, int confidence,
             int pvalueHistoryLength, int trainingWindowSize, int seasonalityWindowSize, AnomalySide side = AnomalySide.TwoSided,
-            ErrorFunctionUtils.ErrorFunction errorFunction = ErrorFunctionUtils.ErrorFunction.SignedDifference)
+            ErrorFunctionUtils.ErrorFunction errorFunction = ErrorFunctionUtils.ErrorFunction.SignedDifference) :
+            this(env, new SsaSpikeDetector.Arguments
+            {
+                Name = outputColumn,
+                Source = inputColumn,
+                Confidence = confidence,
+                PvalueHistoryLength = pvalueHistoryLength,
+                TrainingWindowSize = trainingWindowSize,
+                SeasonalWindowSize = seasonalityWindowSize,
+                Side = side,
+                ErrorFunction = errorFunction
+            })
+        {
+        }
+
+        public SsaSpikeEstimator(IHostEnvironment env, SsaSpikeDetector.Arguments args)
         {
             Contracts.CheckValue(env, nameof(env));
             _host = env.Register(nameof(SsaSpikeEstimator));
 
-            _host.CheckNonEmpty(outputColumn, nameof(outputColumn));
-            _host.CheckNonEmpty(inputColumn, nameof(inputColumn));
+            _host.CheckNonEmpty(args.Name, nameof(args.Name));
+            _host.CheckNonEmpty(args.Source, nameof(args.Source));
 
-            _args = new SsaSpikeDetector.Arguments
-            {
-                Name = _outputColumnName,
-                Source = _inputColumnName,
-                Confidence = _confidence,
-                PvalueHistoryLength = _pvalueHistoryLength,
-                TrainingWindowSize = _trainingWindowSize,
-                SeasonalWindowSize = _seasonalityWindowSize,
-                Side = _side,
-                ErrorFunction = _errorFunction
-            };
+            _args = args;
         }
 
         public SsaSpikeDetector Fit(IDataView input)
         {
             _host.CheckValue(input, nameof(input));
             var transformer = new SsaSpikeDetector(_host, _args);
-            var data = new RoleMappedData(input, null, InputColumnName);
+            var data = new RoleMappedData(input, null, transformer.InputColumnName);
             transformer.Model.Train(data);
             return transformer;
         }
@@ -227,17 +233,17 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
         {
             _host.CheckValue(inputSchema, nameof(inputSchema));
 
-            if (!inputSchema.TryFindColumn(_inputColumnName, out var col))
-                throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", _inputColumnName);
+            if (!inputSchema.TryFindColumn(_args.Source, out var col))
+                throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", _args.Source);
             if (col.ItemType != NumberType.R4)
-                throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", _inputColumnName, NumberType.R4.ToString(), col.GetTypeString());
+                throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", _args.Source, NumberType.R4.ToString(), col.GetTypeString());
 
             var metadata = new List<SchemaShape.Column>() {
                 new SchemaShape.Column(MetadataUtils.Kinds.SlotNames, SchemaShape.Column.VectorKind.Vector, TextType.Instance, false)
             };
             var resultDic = inputSchema.Columns.ToDictionary(x => x.Name);
-            resultDic[_outputColumnName] = new SchemaShape.Column(
-                _outputColumnName, SchemaShape.Column.VectorKind.Vector, NumberType.R8, false, new SchemaShape(metadata));
+            resultDic[_args.Name] = new SchemaShape.Column(
+                _args.Name, SchemaShape.Column.VectorKind.Vector, NumberType.R8, false, new SchemaShape(metadata));
 
             return new SchemaShape(resultDic.Values);
         }

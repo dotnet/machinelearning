@@ -215,6 +215,12 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
         {
         }
 
+        public IidChangePointEstimator(IHostEnvironment env, IidChangePointDetector.Arguments args) :
+            base(Contracts.CheckRef(env, nameof(env)).Register(nameof(IidChangePointEstimator)),
+                new IidChangePointDetector(env, args))
+        {
+        }
+
         public override SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {
             Host.CheckValue(inputSchema, nameof(inputSchema));

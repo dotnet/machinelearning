@@ -191,6 +191,12 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
         {
         }
 
+        public IidSpikeEstimator(IHostEnvironment env, IidSpikeDetector.Arguments args) :
+    base(Contracts.CheckRef(env, nameof(env)).Register(nameof(IidSpikeEstimator)),
+        new IidSpikeDetector(env, args))
+        {
+        }
+
         public override SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {
             Host.CheckValue(inputSchema, nameof(inputSchema));
