@@ -308,11 +308,11 @@ namespace Microsoft.ML.Runtime.Data
                 col => (activeOutput(L1Col) || activeOutput(L2Col)) && (col == ScoreIndex || col == LabelIndex);
         }
 
-        public override RowMapperColumnInfo[] GetOutputColumns()
+        public override Schema.Column[] GetOutputColumns()
         {
-            var infos = new RowMapperColumnInfo[2];
-            infos[L1Col] = new RowMapperColumnInfo(L1, NumberType.R8, null);
-            infos[L2Col] = new RowMapperColumnInfo(L2, NumberType.R8, null);
+            var infos = new Schema.Column[2];
+            infos[L1Col] = new Schema.Column(L1, NumberType.R8, null);
+            infos[L2Col] = new Schema.Column(L2, NumberType.R8, null);
             return infos;
         }
 

@@ -67,7 +67,7 @@ namespace Microsoft.ML.Runtime.Data
         /// <summary>
         /// Mappers are defined as accepting inputs with this very specific schema.
         /// </summary>
-        ISchema InputSchema { get; }
+        Schema InputSchema { get; }
 
         /// <summary>
         /// Given a predicate specifying which columns are needed, return a predicate indicating which input columns are

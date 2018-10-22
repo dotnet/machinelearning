@@ -37,9 +37,21 @@ namespace Microsoft.ML.Runtime.Data
 
         public enum NormalizerMode
         {
+            /// <summary>
+            /// Linear rescale such that minimum and maximum values are mapped between -1 and 1.
+            /// </summary>
             MinMax = 0,
+            /// <summary>
+            /// Rescale to unit variance and, optionally, zero mean.
+            /// </summary>
             MeanVariance = 1,
+            /// <summary>
+            /// Rescale to unit variance on the log scale.
+            /// </summary>
             LogMeanVariance = 2,
+            /// <summary>
+            /// Bucketize and then rescale to between -1 and 1.
+            /// </summary>
             Binning = 3
         }
 
@@ -447,7 +459,7 @@ namespace Microsoft.ML.Runtime.Data
             => base.MakeDataTransform(input);
 
         protected override IRowMapper MakeRowMapper(ISchema schema)
-            => new Mapper(this, schema);
+            => new Mapper(this, Schema.Create(schema));
 
         private sealed class Mapper : MapperBase, ISaveAsOnnx, ISaveAsPfa
         {
@@ -456,37 +468,31 @@ namespace Microsoft.ML.Runtime.Data
             public bool CanSaveOnnx(OnnxContext ctx) => true;
             public bool CanSavePfa => true;
 
-            public Mapper(NormalizerTransformer parent, ISchema schema)
+            public Mapper(NormalizerTransformer parent, Schema schema)
                 : base(parent.Host.Register(nameof(Mapper)), parent, schema)
             {
                 _parent = parent;
             }
 
-            public override RowMapperColumnInfo[] GetOutputColumns()
+            public override Schema.Column[] GetOutputColumns()
             {
-                var result = new RowMapperColumnInfo[_parent._columns.Length];
+                var result = new Schema.Column[_parent._columns.Length];
                 for (int i = 0; i < _parent.Columns.Length; i++)
-                    result[i] = new RowMapperColumnInfo(_parent._columns[i].Output, _parent._columns[i].InputType, MakeMetadata(i));
+                    result[i] = new Schema.Column(_parent._columns[i].Output, _parent._columns[i].InputType, MakeMetadata(i));
                 return result;
             }
 
-            private ColumnMetadataInfo MakeMetadata(int iinfo)
+            private Schema.Metadata MakeMetadata(int iinfo)
             {
                 var colInfo = _parent._columns[iinfo];
-                var result = new ColumnMetadataInfo(colInfo.Output);
-                result.Add(MetadataUtils.Kinds.IsNormalized, new MetadataInfo<bool>(BoolType.Instance, IsNormalizedGetter));
-                if (InputSchema.HasSlotNames(ColMapNewToOld[iinfo], colInfo.InputType.VectorSize))
-                {
-                    MetadataUtils.MetadataGetter<VBuffer<ReadOnlyMemory<char>>> getter = (int col, ref VBuffer<ReadOnlyMemory<char>> slotNames) =>
-                        InputSchema.GetMetadata(MetadataUtils.Kinds.SlotNames, ColMapNewToOld[iinfo], ref slotNames);
-                    var metaType = InputSchema.GetMetadataTypeOrNull(MetadataUtils.Kinds.SlotNames, ColMapNewToOld[iinfo]);
-                    Contracts.AssertValue(metaType);
-                    result.Add(MetadataUtils.Kinds.SlotNames, new MetadataInfo<VBuffer<ReadOnlyMemory<char>>>(metaType, getter));
-                }
-                return result;
+                var builder = new Schema.Metadata.Builder();
+
+                builder.Add(new Schema.Column(MetadataUtils.Kinds.IsNormalized, BoolType.Instance, null), (ValueGetter<bool>)IsNormalizedGetter);
+                builder.Add(InputSchema[ColMapNewToOld[iinfo]].Metadata, name => name == MetadataUtils.Kinds.SlotNames);
+                return builder.GetMetadata();
             }
 
-            private void IsNormalizedGetter(int col, ref bool dst)
+            private void IsNormalizedGetter(ref bool dst)
             {
                 dst = true;
             }

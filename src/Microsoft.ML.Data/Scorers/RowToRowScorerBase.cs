@@ -22,7 +22,7 @@ namespace Microsoft.ML.Runtime.Data
         {
             public readonly ISchemaBoundRowMapper RowMapper;
 
-            protected BindingsBase(ISchema schema, ISchemaBoundRowMapper mapper, string suffix, bool user, params string[] namesDerived)
+            protected BindingsBase(Schema schema, ISchemaBoundRowMapper mapper, string suffix, bool user, params string[] namesDerived)
                 : base(schema, mapper, suffix, user, namesDerived)
             {
                 RowMapper = mapper;
@@ -66,11 +66,6 @@ namespace Microsoft.ML.Runtime.Data
         /// Derived classes provide the specific bindings object.
         /// </summary>
         protected abstract BindingsBase GetBindings();
-
-        public sealed override ISchema Schema
-        {
-            get { return GetBindings(); }
-        }
 
         /// <summary>
         /// Produces the set of active columns for the scorer (as a bool[] of length bindings.ColumnCount),
@@ -226,7 +221,7 @@ namespace Microsoft.ML.Runtime.Data
             private readonly Delegate[] _getters;
             private readonly Action _disposer;
 
-            public ISchema Schema => _bindings;
+            public Schema Schema { get; }
 
             public RowCursor(IChannelProvider provider, RowToRowScorerBase parent, IRowCursor input, bool[] active, Func<int, bool> predicateMapper)
                 : base(provider, input)
@@ -236,6 +231,7 @@ namespace Microsoft.ML.Runtime.Data
                 Ch.AssertValue(predicateMapper);
 
                 _bindings = parent.GetBindings();
+                Schema = parent.Schema;
                 Ch.Assert(active.Length == _bindings.ColumnCount);
                 _active = active;
 
@@ -317,7 +313,7 @@ namespace Microsoft.ML.Runtime.Data
         private readonly uint _crtScoreSet;
         private readonly MetadataUtils.MetadataGetter<uint> _getScoreColumnSetId;
 
-        protected ScorerBindingsBase(ISchema input, ISchemaBoundMapper mapper, string suffix, bool user, params string[] namesDerived)
+        protected ScorerBindingsBase(Schema input, ISchemaBoundMapper mapper, string suffix, bool user, params string[] namesDerived)
             : base(input, user, GetOutputNames(mapper, suffix, namesDerived))
         {
             Contracts.AssertValue(mapper);

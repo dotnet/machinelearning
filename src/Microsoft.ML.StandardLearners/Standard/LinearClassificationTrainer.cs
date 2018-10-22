@@ -829,9 +829,9 @@ namespace Microsoft.ML.Runtime.Learners
                                 }
 
                                 if (features.IsDense)
-                                    CpuMathUtils.SdcaL1UpdateDense(primalUpdate, features.Length, features.Values, l1Threshold, l1IntermediateWeights[0].Values, weights[0].Values);
+                                    CpuMathUtils.SdcaL1UpdateDense(primalUpdate, features.Count, features.Values, l1Threshold, l1IntermediateWeights[0].Values, weights[0].Values);
                                 else if (features.Count > 0)
-                                    CpuMathUtils.SdcaL1UpdateSparse(primalUpdate, features.Length, features.Values, features.Indices, features.Count, l1Threshold, l1IntermediateWeights[0].Values, weights[0].Values);
+                                    CpuMathUtils.SdcaL1UpdateSparse(primalUpdate, features.Count, features.Values, features.Indices, l1Threshold, l1IntermediateWeights[0].Values, weights[0].Values);
                             }
 
                             break;
@@ -1564,7 +1564,7 @@ namespace Microsoft.ML.Runtime.Learners
             weightSetCount = 1;
         }
 
-        protected override BinaryPredictionTransformer<TScalarPredictor> MakeTransformer(TScalarPredictor model, ISchema trainSchema)
+        protected override BinaryPredictionTransformer<TScalarPredictor> MakeTransformer(TScalarPredictor model, Schema trainSchema)
             => new BinaryPredictionTransformer<TScalarPredictor>(Host, model, trainSchema, FeatureColumn.Name);
 
         public BinaryPredictionTransformer<TScalarPredictor> Train(IDataView trainData, IDataView validationData = null, IPredictor initialPredictor = null) => TrainTransformer(trainData, validationData, initialPredictor);
@@ -1753,7 +1753,7 @@ namespace Microsoft.ML.Runtime.Learners
             };
         }
 
-        protected override BinaryPredictionTransformer<TScalarPredictor> MakeTransformer(TScalarPredictor model, ISchema trainSchema)
+        protected override BinaryPredictionTransformer<TScalarPredictor> MakeTransformer(TScalarPredictor model, Schema trainSchema)
             => new BinaryPredictionTransformer<TScalarPredictor>(Host, model, trainSchema, FeatureColumn.Name);
 
         //For complexity analysis, we assume that

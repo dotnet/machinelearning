@@ -348,7 +348,7 @@ namespace Microsoft.ML.Runtime.Data
         /// <param name="suppressed">Whether the column is suppressed (all slots dropped)</param>
         /// <param name="type">The column type</param>
         /// <param name="categoricalRanges">Categorical feature indices.</param>
-        private void ComputeType(ISchema input, int[] slotsMin, int[] slotsMax, int iinfo,
+        private void ComputeType(Schema input, int[] slotsMin, int[] slotsMax, int iinfo,
             SlotDropper slotDropper, out bool suppressed, out ColumnType type, out int[] categoricalRanges)
         {
             Contracts.AssertValue(slotDropper);

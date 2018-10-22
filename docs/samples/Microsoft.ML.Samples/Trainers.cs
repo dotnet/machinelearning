@@ -1,13 +1,13 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
 // the alignment of the usings with the methods is intentional so they can display on the same level in the docs site. 
         using Microsoft.ML.Runtime.Data;
         using Microsoft.ML.Runtime.Learners;
-        using Microsoft.ML.Trainers;
         using Microsoft.ML.Runtime.LightGBM;
         using Microsoft.ML.Runtime.FastTree;
+        using Microsoft.ML.StaticPipe;
         using System;
         using System.Linq;
 
@@ -40,7 +40,7 @@ namespace Microsoft.ML.Samples
                 separator: '\t', hasHeader: true);
 
             // Read the data, and leave 10% out, so we can use them for testing
-            var data = reader.Read(new MultiFileSource(dataFile));
+            var data = reader.Read(dataFile);
             var (trainData, testData) = regressionContext.TrainTestSplit(data, testFraction: 0.1);
 
             // The predictor that gets produced out of training

@@ -150,7 +150,7 @@ namespace Microsoft.ML.Runtime.LightGBM
             };
         }
 
-        protected override RankingPredictionTransformer<LightGbmRankingPredictor> MakeTransformer(LightGbmRankingPredictor model, ISchema trainSchema)
+        protected override RankingPredictionTransformer<LightGbmRankingPredictor> MakeTransformer(LightGbmRankingPredictor model, Schema trainSchema)
          => new RankingPredictionTransformer<LightGbmRankingPredictor>(Host, model, trainSchema, FeatureColumn.Name);
     }
 

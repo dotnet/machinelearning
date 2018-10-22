@@ -82,6 +82,7 @@ namespace Microsoft.ML.Runtime.Data
         {
             Contracts.AssertNonEmpty(Infos);
             Contracts.Assert(Infos.Length == Utils.Size(args.Column));
+            Metadata.Seal();
         }
 
         private LabelConvertTransform(IHost host, ModelLoadContext ctx, IDataView input)
@@ -92,6 +93,8 @@ namespace Microsoft.ML.Runtime.Data
             // *** Binary format ***
             // <prefix handled in static Create method>
             // <base>
+
+            Metadata.Seal();
         }
 
         public static LabelConvertTransform Create(IHostEnvironment env, ModelLoadContext ctx, IDataView input)

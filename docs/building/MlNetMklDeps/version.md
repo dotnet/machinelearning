@@ -1,4 +1,4 @@
-#Intel MKl SDK versions used to build the MlNetMklDeps v0.0.0.4-0.0.0.6
+#Intel MKl SDK versions used to build the MlNetMklDeps v0.0.0.4-0.0.0.7
 
 ##Sdk Version
 linux and windows: mkl 2018 update 3

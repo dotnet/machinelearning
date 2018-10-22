@@ -62,7 +62,7 @@ namespace Microsoft.ML.Tests.Transformers
                 VectorDoulbe: ctx.LoadDouble(1, 4)
             ));
 
-            var data = reader.Read(new MultiFileSource(dataPath));
+            var data = reader.Read(dataPath);
             var wrongCollection = new[] { new TestClass() { A = 1, B = 3, C = new float[2] { 1, 2 }, D = new double[2] { 3, 4 } } };
             var invalidData = ComponentCreation.CreateDataView(Env, wrongCollection);
 

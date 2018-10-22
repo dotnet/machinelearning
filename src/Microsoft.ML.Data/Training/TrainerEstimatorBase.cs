@@ -147,7 +147,7 @@ namespace Microsoft.ML.Runtime.Training
 
         protected abstract TModel TrainModelCore(TrainContext trainContext);
 
-        protected abstract TTransformer MakeTransformer(TModel model, ISchema trainSchema);
+        protected abstract TTransformer MakeTransformer(TModel model, Schema trainSchema);
 
         private RoleMappedData MakeRoles(IDataView data) =>
             new RoleMappedData(data, label: LabelColumn?.Name, feature: FeatureColumn.Name, weight: WeightColumn?.Name);

@@ -145,7 +145,7 @@ namespace Microsoft.ML.Legacy
                     {
                         _pipelineExecutionException = e;
                         var fakeColumn = new KeyValuePair<string, ColumnType>("Blank", TextType.Instance);
-                        _preview = new EmptyDataView(_environment, new SimpleSchema(_environment, fakeColumn));
+                        _preview = new EmptyDataView(_environment, Schema.Create(new SimpleSchema(_environment, fakeColumn)));
                     }
                 }
             }
