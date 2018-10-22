@@ -23,8 +23,6 @@ phases:
     - agent.os -equals linux
     container: LinuxContainer
   steps:
-  - script: git submodule update --init
-    displayName: Update submodules
   - script: ./build.sh -buildNative -$(BuildConfig)
     displayName: Build
 
@@ -49,8 +47,6 @@ phases:
     demands:
     - agent.os -equals Darwin
   steps:
-  - script: git submodule update --init
-    displayName: Update submodules
   - script: ./build.sh -buildNative -$(BuildConfig)
     displayName: Build
 
@@ -89,9 +85,6 @@ phases:
       TeamName: $(_TeamName)
     continueOnError: false
     condition: and(succeeded(), in(variables._SignType, 'real', 'test'))
-
-  - script: git submodule update --init
-    displayName: Update submodules
 
   - script: ./build.cmd -$(BuildConfig)
     displayName: Build
