@@ -1,0 +1,8 @@
+#@ TextLoader{
+#@   header+
+#@   sep=tab
+#@   col=Features:R4:0-14
+#@ }
+*	*|*	*|mcgriff	mcgriff	mcgriff|*	*|padres	padres	padres|*	*|agent	agent	*|erythromycin	erythromycin	erythromycin|*	*|pneumonia	pneumonia
+9	6	1	1	1	1	1	1	1	1	0	0	0	0	0
+5	3	0	0	0	0	0	0	0	0	1	1	1	1	1

@@ -504,18 +504,19 @@ namespace Microsoft.ML.Runtime.RunTests
             }
         }
 
-        private static void GetNumbersFromFile(ref string firstString, ref string secondString, int digitsOfPrecision)
+        private void GetNumbersFromFile(ref string firstString, ref string secondString, int digitsOfPrecision)
         {
             Regex _matchNumer = new Regex(@"\b[0-9]+\.?[0-9]*(E-[0-9]*)?\b", RegexOptions.IgnoreCase | RegexOptions.Compiled);
             MatchCollection firstCollection = _matchNumer.Matches(firstString);
             MatchCollection secondCollection = _matchNumer.Matches(secondString);
 
-            MatchNumberWithTolerance(firstCollection, secondCollection, digitsOfPrecision);
+            if (firstCollection.Count == secondCollection.Count)
+                MatchNumberWithTolerance(firstCollection, secondCollection, digitsOfPrecision);
             firstString = _matchNumer.Replace(firstString, "%Number%");
             secondString = _matchNumer.Replace(secondString, "%Number%");
         }
 
-        private static void MatchNumberWithTolerance(MatchCollection firstCollection, MatchCollection secondCollection, int digitsOfPrecision)
+        private void MatchNumberWithTolerance(MatchCollection firstCollection, MatchCollection secondCollection, int digitsOfPrecision)
         {
             for (int i = 0; i < firstCollection.Count; i++)
             {
