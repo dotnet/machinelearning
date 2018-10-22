@@ -42,8 +42,8 @@ namespace Microsoft.ML.Tests.Transformers
             var est = new PcaEstimator(_env, "features", "pca", rank: 4, seed: 10);
             TestEstimatorCore(est, data.AsDynamic, invalidInput: invalidData.AsDynamic);
 
-            var est_non_default_args = new PcaEstimator(_env, "features", "pca", rank: 3, weightColumn: "weight", overSampling: 2, center: false);
-            TestEstimatorCore(est_non_default_args, data.AsDynamic, invalidInput: invalidData.AsDynamic);
+            var estNonDefaultArgs = new PcaEstimator(_env, "features", "pca", rank: 3, weightColumn: "weight", overSampling: 2, center: false);
+            TestEstimatorCore(estNonDefaultArgs, data.AsDynamic, invalidInput: invalidData.AsDynamic);
 
             Done();
         }
@@ -68,30 +68,6 @@ namespace Microsoft.ML.Tests.Transformers
             }
 
             CheckEquality("PCA", "pca.tsv");
-            Done();
-        }
-
-        [Fact]
-        public void TestPcaPigsty()
-        {
-            var reader = TextLoader.CreateReader(_env,
-                c => (label: c.LoadFloat(11), features1: c.LoadFloat(0, 10)),
-                separator: ';', hasHeader: true);
-            var data = reader.Read(_dataSource);
-            var pipeline = reader.MakeNewEstimator()
-                .Append(r => (r.label, pca: r.features1.ToPrincipalComponents(rank: 5, seed: 1)));
-
-            var outputPath = GetOutputPath("PCA", "pca.tsv");
-            using (var ch = _env.Start("save"))
-            {
-                IDataView savedData = TakeFilter.Create(_env, pipeline.Fit(data).Transform(data).AsDynamic, 4);
-                savedData = new ChooseColumnsTransform(_env, savedData, "pca");
-
-                using (var fs = File.Create(outputPath))
-                    DataSaverUtils.SaveDataView(ch, _saver, savedData, fs, keepHidden: true);
-            }
-
-            CheckEquality("PCA", "pca.tsv", digitsOfPrecision: 5);
             Done();
         }
     }
