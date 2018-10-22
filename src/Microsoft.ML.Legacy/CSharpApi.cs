@@ -16778,7 +16778,7 @@ namespace Microsoft.ML
 
     namespace Legacy.Transforms
     {
-        public enum TextTransformLanguage
+        public enum TextFeaturizingEstimatorLanguage
         {
             English = 1,
             French = 2,
@@ -16796,7 +16796,7 @@ namespace Microsoft.ML
             None = 2
         }
 
-        public enum TextTransformTextNormKind
+        public enum TextFeaturizingEstimatorTextNormKind
         {
             None = 0,
             L1 = 1,
@@ -16805,7 +16805,7 @@ namespace Microsoft.ML
         }
 
 
-        public sealed partial class TextTransformColumn : ManyToOneColumn<TextTransformColumn>, IManyToOneColumn
+        public sealed partial class TextFeaturizingEstimatorColumn : ManyToOneColumn<TextFeaturizingEstimatorColumn>, IManyToOneColumn
         {
             /// <summary>
             /// Name of the new column
@@ -16838,8 +16838,8 @@ namespace Microsoft.ML
 
         }
 
-        /// <include file='../Microsoft.ML.Transforms/Text/doc.xml' path='doc/members/member[@name="TextFeaturizingEstimator "]/*' />
-        /// <include file='../Microsoft.ML.Transforms/Text/doc.xml' path='doc/members/example[@name="TextFeaturizingEstimator "]/*' />
+        /// <include file='../Microsoft.ML.Transforms/Text/doc.xml' path='doc/members/member[@name="FeaturizeTextEstimator"]/*' />
+        /// <include file='../Microsoft.ML.Transforms/Text/doc.xml' path='doc/members/example[@name="FeaturizeTextEstimator"]/*' />
         public sealed partial class TextFeaturizer : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
         {
 
@@ -16854,19 +16854,19 @@ namespace Microsoft.ML
             
             public void AddColumn(string name, params string[] source)
             {
-                Column = ManyToOneColumn<Microsoft.ML.Legacy.Transforms.TextTransformColumn>.Create(name, source);
+                Column = ManyToOneColumn<Microsoft.ML.Legacy.Transforms.TextFeaturizingEstimatorColumn>.Create(name, source);
             }
 
 
             /// <summary>
             /// New column definition (optional form: name:srcs).
             /// </summary>
-            public TextTransformColumn Column { get; set; }
+            public TextFeaturizingEstimatorColumn Column { get; set; }
 
             /// <summary>
             /// Dataset language or 'AutoDetect' to detect language per row.
             /// </summary>
-            public TextTransformLanguage Language { get; set; } = TextTransformLanguage.English;
+            public TextFeaturizingEstimatorLanguage Language { get; set; } = TextFeaturizingEstimatorLanguage.English;
 
             /// <summary>
             /// Stopwords remover.
@@ -16919,7 +16919,7 @@ namespace Microsoft.ML
             /// <summary>
             /// Normalize vectors (rows) individually by rescaling them to unit norm.
             /// </summary>
-            public TextTransformTextNormKind VectorNormalizer { get; set; } = TextTransformTextNormKind.L2;
+            public TextFeaturizingEstimatorTextNormKind VectorNormalizer { get; set; } = TextFeaturizingEstimatorTextNormKind.L2;
 
             /// <summary>
             /// Input dataset

@@ -104,7 +104,7 @@ module SmokeTest1 =
                 "Features", [| "SentimentText" |],
                 KeepPunctuations = false,
                 OutputTokens = true,
-                VectorNormalizer = TextTransformTextNormKind.L2
+                VectorNormalizer = TextFeaturizingEstimatorTextNormKind.L2
             ))
 
         pipeline.Add(
@@ -171,7 +171,7 @@ module SmokeTest2 =
                 "Features", [| "SentimentText" |],
                 KeepPunctuations = false,
                 OutputTokens = true,
-                VectorNormalizer = TextTransformTextNormKind.L2
+                VectorNormalizer = TextFeaturizingEstimatorTextNormKind.L2
             ))
 
         pipeline.Add(
@@ -235,7 +235,7 @@ module SmokeTest3 =
                 "Features", [| "SentimentText" |],
                 KeepPunctuations = false,
                 OutputTokens = true,
-                VectorNormalizer = TextTransformTextNormKind.L2
+                VectorNormalizer = TextFeaturizingEstimatorTextNormKind.L2
             ))
 
         pipeline.Add(
