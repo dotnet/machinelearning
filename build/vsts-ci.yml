@@ -105,7 +105,7 @@ phases:
       artifactType: container
 
 ################################################################################
-- phase: Windows
+- phase: Windows_x64
 ################################################################################
   variables:
     BuildConfig: Release
@@ -157,8 +157,8 @@ phases:
   dependsOn:
   - Linux
   - MacOS
-  - Windows
   - Windows_x86
+  - Windows_x64
   variables:
     BuildConfig: Release
     OfficialBuildId: $(BUILD.BUILDNUMBER)
