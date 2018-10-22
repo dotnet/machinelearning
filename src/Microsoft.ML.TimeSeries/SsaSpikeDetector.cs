@@ -40,11 +40,11 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
 
         public sealed class Arguments : TransformInputBase
         {
-            [Argument(ArgumentType.Required, HelpText = "The outputColumn of the inputColumn column.", ShortName = "src",
+            [Argument(ArgumentType.Required, HelpText = "The name of the source column.", ShortName = "src",
                 SortOrder = 1, Purpose = SpecialPurpose.ColumnName)]
             public string Source;
 
-            [Argument(ArgumentType.Required, HelpText = "The outputColumn of the new column.",
+            [Argument(ArgumentType.Required, HelpText = "The name of the new column.",
                 SortOrder = 2)]
             public string Name;
 
