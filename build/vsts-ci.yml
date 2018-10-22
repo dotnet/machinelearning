@@ -58,6 +58,53 @@ phases:
       artifactType: container
 
 ################################################################################
+- phase: Windows_x86
+################################################################################
+  variables:
+    BuildConfig: Release
+    OfficialBuildId: $(BUILD.BUILDNUMBER)
+    DOTNET_CLI_TELEMETRY_OPTOUT: 1
+    DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
+    DOTNET_MULTILEVEL_LOOKUP: 0
+    _SignType: real
+    _UseEsrpSigning: true
+    _TeamName: DotNetCore
+  queue:
+    name: DotNetCore-Build
+    demands: 
+      - agent.os -equals Windows_NT
+  steps:
+
+  - task: ms-vseng.MicroBuildTasks.30666190-6959-11e5-9f96-f56098202fef.MicroBuildSigningPlugin@1
+    displayName: Install MicroBuild Signing Plugin
+    inputs:
+      signType: '$(_SignType)'
+      zipSources: false
+      esrpSigning: '$(_UseEsrpSigning)'
+    env:
+      TeamName: $(_TeamName)
+    continueOnError: false
+    condition: and(succeeded(), in(variables._SignType, 'real', 'test'))
+
+  - script: ./build.cmd -buildNative -$(BuildConfig) -buildArch=x86
+    displayName: Build
+  
+  - task: MSBuild@1
+    displayName: Sign Windows_x86 Binaries
+    inputs:
+      solution: build/sign.proj
+      msbuildArguments: /p:SignType=$(_SignType)
+      msbuildVersion: 15.0
+    continueOnError: false
+
+  - task: PublishBuildArtifacts@1
+    displayName: Publish Windows_x86 package assets
+    inputs:
+      pathToPublish: $(Build.SourcesDirectory)/bin/obj/packages
+      artifactName: PackageAssets
+      artifactType: container
+
+################################################################################
 - phase: Windows
 ################################################################################
   variables:
@@ -99,53 +146,6 @@ phases:
 
   - task: PublishBuildArtifacts@1
     displayName: Publish Windows package assets
-    inputs:
-      pathToPublish: $(Build.SourcesDirectory)/bin/obj/packages
-      artifactName: PackageAssets
-      artifactType: container
-
-################################################################################
-- phase: Windows_x86
-################################################################################
-  variables:
-    BuildConfig: Release
-    OfficialBuildId: $(BUILD.BUILDNUMBER)
-    DOTNET_CLI_TELEMETRY_OPTOUT: 1
-    DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
-    DOTNET_MULTILEVEL_LOOKUP: 0
-    _SignType: real
-    _UseEsrpSigning: true
-    _TeamName: DotNetCore
-  queue:
-    name: DotNetCore-Build
-    demands: 
-      - agent.os -equals Windows_NT
-  steps:
-
-  - task: ms-vseng.MicroBuildTasks.30666190-6959-11e5-9f96-f56098202fef.MicroBuildSigningPlugin@1
-    displayName: Install MicroBuild Signing Plugin
-    inputs:
-      signType: '$(_SignType)'
-      zipSources: false
-      esrpSigning: '$(_UseEsrpSigning)'
-    env:
-      TeamName: $(_TeamName)
-    continueOnError: false
-    condition: and(succeeded(), in(variables._SignType, 'real', 'test'))
-
-  - script: ./build.cmd -$(BuildConfig) -buildArch=x86
-    displayName: Build
-  
-  - task: MSBuild@1
-    displayName: Sign Windows_x86 Binaries
-    inputs:
-      solution: build/sign.proj
-      msbuildArguments: /p:SignType=$(_SignType)
-      msbuildVersion: 15.0
-    continueOnError: false
-
-  - task: PublishBuildArtifacts@1
-    displayName: Publish Windows_x86 package assets
     inputs:
       pathToPublish: $(Build.SourcesDirectory)/bin/obj/packages
       artifactName: PackageAssets
