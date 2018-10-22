@@ -353,7 +353,7 @@ namespace Microsoft.ML.Scenarios
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))]
         public void TensorFlowTransformMNISTLRTemplateTrainingTest()
         {
             var model_location = "mnist_lr_model";
@@ -483,7 +483,7 @@ namespace Microsoft.ML.Scenarios
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))]
         public void TensorFlowTransformMNISTConvTemplateTrainingTest()
         {
             var model_location = "mnist_conv_model";
@@ -860,7 +860,7 @@ namespace Microsoft.ML.Scenarios
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))]
         public void TensorFlowTransformCifarInvalidShape()
         {
             var model_location = "cifar_model/frozen_model.pb";
