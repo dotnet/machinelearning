@@ -79,28 +79,11 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 
                 // Go through the whole test set and calculate the expected statistics.
                 // TODO: use regression evaluator
-                double error = 0;
-                long count = 0;
-                using (var cursor = testData.GetRowCursor(c => c == labelColumnId))
-                using (var scoreCursor = prediction.GetRowCursor(c => c == scoreColumnId))
-                {
-                    float label = 0;
-                    float score = 0;
-                    ValueGetter<float> labelGetter = RowCursorUtils.GetGetterAs<float>(NumberType.R4, cursor, labelColumnId);
-                    ValueGetter<float> scoreGetter = RowCursorUtils.GetGetterAs<float>(NumberType.R4, scoreCursor, scoreColumnId);
-                    while (cursor.MoveNext() && scoreCursor.MoveNext())
-                    {
-                        labelGetter(ref label);
-                        scoreGetter(ref score);
-                        error += (score - label) * (score - label);
-                        ++count;
-                    }
-                }
-                error /= count;
+                var mlContext = new MLContext();
+                var expectedL2Error = 0.61528733643754685;
                 double tolerance = System.Math.Pow(10, -DigitsOfPrecision);
-                double expectedError = 0.61528733643754685;
-                double relativeError = System.Math.Abs(error - expectedError) / System.Math.Abs(expectedError);
-                Assert.True(relativeError < tolerance);
+                var metrices = mlContext.Regression.Evaluate(prediction, label: labelColumnName, score: scoreColumnName);
+                Assert.InRange(metrices.L2, expectedL2Error - tolerance, expectedL2Error + tolerance);
             }
         }
 
