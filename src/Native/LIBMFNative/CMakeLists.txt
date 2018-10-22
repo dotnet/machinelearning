@@ -7,8 +7,7 @@ set(SOURCES
     libmf/mf.cpp
 )
 
-if(WIN32)
-else()
+if(NOT WIN32)
     list(APPEND SOURCES ${VERSION_FILE_PATH})
 endif()
 
