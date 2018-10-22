@@ -17,6 +17,7 @@ using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.Numeric;
 using Microsoft.ML.StaticPipe;
 using Microsoft.ML.StaticPipe.Runtime;
+using Microsoft.ML.Transforms;
 
 [assembly: LoadableClass(PcaTransform.Summary, typeof(IDataTransform), typeof(PcaTransform), typeof(PcaTransform.Arguments), typeof(SignatureDataTransform),
     PcaTransform.UserName, PcaTransform.LoaderSignature, PcaTransform.ShortName)]
@@ -32,39 +33,30 @@ using Microsoft.ML.StaticPipe.Runtime;
 
 [assembly: LoadableClass(typeof(void), typeof(PcaTransform), null, typeof(SignatureEntryPointModule), PcaTransform.LoaderSignature)]
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Transforms
 {
     /// <include file='doc.xml' path='doc/members/member[@name="PCA"]/*' />
     public sealed class PcaTransform : OneToOneTransformerBase
     {
-        internal static class Defaults
-        {
-            public const string WeightColumn = null;
-            public const int Rank = 20;
-            public const int Oversampling = 20;
-            public const bool Center = true;
-            public const int Seed = 0;
-        }
-
         public sealed class Arguments : TransformInputBase
         {
             [Argument(ArgumentType.Multiple | ArgumentType.Required, HelpText = "New column definition(s) (optional form: name:src)", ShortName = "col", SortOrder = 1)]
             public Column[] Column;
 
             [Argument(ArgumentType.Multiple, HelpText = "The name of the weight column", ShortName = "weight", Purpose = SpecialPurpose.ColumnName)]
-            public string WeightColumn = Defaults.WeightColumn;
+            public string WeightColumn = PcaEstimator.Defaults.WeightColumn;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "The number of components in the PCA", ShortName = "k")]
-            public int Rank = Defaults.Rank;
+            public int Rank = PcaEstimator.Defaults.Rank;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Oversampling parameter for randomized PCA training", ShortName = "over")]
-            public int Oversampling = Defaults.Oversampling;
+            public int Oversampling = PcaEstimator.Defaults.Oversampling;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "If enabled, data is centered to be zero mean")]
-            public bool Center = Defaults.Center;
+            public bool Center = PcaEstimator.Defaults.Center;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "The seed for random number generation")]
-            public int Seed = Defaults.Seed;
+            public int Seed = PcaEstimator.Defaults.Seed;
         }
 
         public class Column : OneToOneColumn
@@ -121,10 +113,10 @@ namespace Microsoft.ML.Runtime.Data
             /// </summary>
             public ColumnInfo(string input,
                               string output,
-                              string weightColumn = Defaults.WeightColumn,
-                              int rank = Defaults.Rank,
-                              int overSampling = Defaults.Oversampling,
-                              bool center = Defaults.Center,
+                              string weightColumn = PcaEstimator.Defaults.WeightColumn,
+                              int rank = PcaEstimator.Defaults.Rank,
+                              int overSampling = PcaEstimator.Defaults.Oversampling,
+                              bool center = PcaEstimator.Defaults.Center,
                               int? seed = null)
             {
                 Input = input;
@@ -134,6 +126,7 @@ namespace Microsoft.ML.Runtime.Data
                 Oversampling = overSampling;
                 Center = center;
                 Seed = seed;
+                Contracts.CheckUserArg(Oversampling >= 0, nameof(Oversampling), "Oversampling must be non-negative.");
             }
 
             // The following functions and properties are all internal and used for simplifying the
@@ -312,7 +305,6 @@ namespace Microsoft.ML.Runtime.Data
                 var col = columns[i];
                 col.SetSchema(input.Schema);
                 ValidatePcaInput(Host, col.Input, col.InputType);
-                Host.CheckUserArg(col.Oversampling >= 0, nameof(col.Oversampling), "Oversampling must be non-negative");
                 _transformInfos[i] = new TransformInfo(col.Rank, col.InputType.ValueCount);
             }
 
@@ -614,8 +606,8 @@ namespace Microsoft.ML.Runtime.Data
                 throw host.Except($"Pca transform can only be applied to vector columns. Column ${name} is of size ${type.VectorSize}");
 
             var itemType = type.ItemType;
-            if (!itemType.IsNumber)
-                throw host.Except($"Pca transform can only be applied to vector of numeric items. Column ${name} contains type ${itemType}");
+            if (itemType.RawKind != DataKind.R4)
+                throw host.Except($"Pca transform can only be applied to vector of float items. Column ${name} contains type ${itemType}");
         }
 
         private sealed class Mapper : MapperBase
@@ -707,6 +699,15 @@ namespace Microsoft.ML.Runtime.Data
 
     public sealed class PcaEstimator : IEstimator<PcaTransform>
     {
+        internal static class Defaults
+        {
+            public const string WeightColumn = null;
+            public const int Rank = 20;
+            public const int Oversampling = 20;
+            public const bool Center = true;
+            public const int Seed = 0;
+        }
+
         private readonly IHost _host;
         private readonly PcaTransform.ColumnInfo[] _columns;
 
@@ -721,8 +722,8 @@ namespace Microsoft.ML.Runtime.Data
         /// <param name="center">If enabled, data is centered to be zero mean.</param>
         /// <param name="seed">The seed for random number generation</param>
         public PcaEstimator(IHostEnvironment env, string inputColumn, string outputColumn = null,
-            string weightColumn = PcaTransform.Defaults.WeightColumn, int rank = PcaTransform.Defaults.Rank,
-            int overSampling = PcaTransform.Defaults.Oversampling, bool center = PcaTransform.Defaults.Center,
+            string weightColumn = Defaults.WeightColumn, int rank = Defaults.Rank,
+            int overSampling = Defaults.Oversampling, bool center = Defaults.Center,
             int? seed = null)
             : this(env, new PcaTransform.ColumnInfo(inputColumn, outputColumn ?? inputColumn, weightColumn, rank, overSampling, center, seed))
         {
@@ -746,7 +747,7 @@ namespace Microsoft.ML.Runtime.Data
                 if (!inputSchema.TryFindColumn(colInfo.Input, out var col))
                     throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.Input);
 
-                if (!(col.Kind == SchemaShape.Column.VectorKind.Vector && col.ItemType.IsNumber))
+                if (col.Kind != SchemaShape.Column.VectorKind.Vector || col.ItemType.RawKind != DataKind.R4)
                     throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.Input);
 
                 result[colInfo.Output] = new SchemaShape.Column(colInfo.Output,
@@ -808,10 +809,10 @@ namespace Microsoft.ML.Runtime.Data
         /// <param name="seed">The seed for random number generation</param>
         /// <returns>Vector containing the principal components.</returns>
         public static Vector<float> ToPrincipalComponents(this Vector<float> input,
-            string weightColumn = PcaTransform.Defaults.WeightColumn,
-            int rank = PcaTransform.Defaults.Rank,
-            int overSampling = PcaTransform.Defaults.Oversampling,
-            bool center = PcaTransform.Defaults.Center,
+            string weightColumn = PcaEstimator.Defaults.WeightColumn,
+            int rank = PcaEstimator.Defaults.Rank,
+            int overSampling = PcaEstimator.Defaults.Oversampling,
+            bool center = PcaEstimator.Defaults.Center,
             int? seed = null) => new OutPipelineColumn(input, weightColumn, rank, overSampling, center, seed);
     }
 }
