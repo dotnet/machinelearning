@@ -347,7 +347,7 @@ namespace Microsoft.ML.Runtime.RunTests
         /// <summary>
         ///A test for binary classifiers
         ///</summary>
-        [Fact(Skip = "Need CoreTLC specific baseline update")]
+        [Fact]
         [TestCategory("Binary")]
         [TestCategory("FastRank")]
         public void BinaryClassifierFastRankClassificationTest()
@@ -359,13 +359,11 @@ namespace Microsoft.ML.Runtime.RunTests
                 string dir = learner.Trainer.Kind;
                 string prName = "prcurve-breast-cancer-prcurve.txt";
                 string prPath = DeleteOutputPath(dir, prName);
-                string eval = string.Format("eval=Binary{{pr={{{0}}}}}", prPath);
+                string eval = $"eval=Binary{{pr={{{prPath} }}}}";
                 Run_TrainTest(learner, data, new[] { eval });
-                CheckEqualityNormalized(dir, prName);
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) // PR curves are only generated on Windows.
+                    CheckEqualityNormalized(dir, prName);
                 Run_CV(learner, data);
-
-                Run_CV(TestLearners.fastRankClassification, TestDatasets.breastCancer);
-                RunOneAllTests(TestLearners.fastRankClassification, TestDatasets.msm);
             });
             Done();
         }
@@ -620,7 +618,7 @@ namespace Microsoft.ML.Runtime.RunTests
             var dataView = ImportTextData.ImportText(Env, new ImportTextData.Input { InputFile = inputFile }).Data;
 #pragma warning restore 0618
 
-            var cat = CategoricalTransform.Create(Env, dataView, "Features", "Categories");
+            var cat = new CategoricalEstimator(Env, "Categories", "Features").Fit(dataView).Transform(dataView);
             var fastTrees = new IPredictorModel[3];
             for (int i = 0; i < 3; i++)
             {
@@ -1413,7 +1411,8 @@ namespace Microsoft.ML.Runtime.RunTests
                 string prPath = DeleteOutputPath(dir, prName);
                 string eval = string.Format("eval=Binary{{pr={{{0}}}}}", prPath);
                 Run_TrainTest(learner, data, new[] { eval });
-                CheckEqualityNormalized(dir, prName);
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) // PR curves are only generated on Windows.
+                    CheckEqualityNormalized(dir, prName);
                 Run_CV(learner, data);
             });
             Done();
