@@ -1,0 +1,137 @@
+---- BoundLoader ----
+3 columns:
+  Text: Vec<Text, 9>
+  OneText: Text
+  Label: R4
+---- RowToRowMapperTransform ----
+5 columns:
+  Text: Vec<Text, 9>
+  OneText: Text
+  Label: R4
+  Bag: Vec<Key<U4, 0-4>, 9>
+    Metadata 'KeyValues': Vec<Text, 5>: Length=5, Count=5
+      [0] '5', [1] '1', [2] '2', [3] '3', [4] '4'
+  One: Key<U4, 0-4>
+    Metadata 'KeyValues': Vec<Text, 5>: Length=5, Count=5
+      [0] '5', [1] '3', [2] '6', [3] '4', [4] '8'
+---- RowToRowMapperTransform ----
+7 columns:
+  Text: Vec<Text, 9>
+  OneText: Text
+  Label: R4
+  Bag: Vec<Key<U4, 0-4>, 9>
+    Metadata 'KeyValues': Vec<Text, 5>: Length=5, Count=5
+      [0] '5', [1] '1', [2] '2', [3] '3', [4] '4'
+  Bag: Vec<R4, 5>
+    Metadata 'SlotNames': Vec<Text, 5>: Length=5, Count=5
+      [0] '5', [1] '1', [2] '2', [3] '3', [4] '4'
+  One: Key<U4, 0-4>
+    Metadata 'KeyValues': Vec<Text, 5>: Length=5, Count=5
+      [0] '5', [1] '3', [2] '6', [3] '4', [4] '8'
+  One: Vec<R4, 5>
+    Metadata 'CategoricalSlotRanges': Vec<I4, 1, 2>: Length=2, Count=2
+      [0] '0', [1] '4'
+    Metadata 'IsNormalized': Bool: '1'
+    Metadata 'SlotNames': Vec<Text, 5>: Length=5, Count=5
+      [0] '5', [1] '3', [2] '6', [3] '4', [4] '8'
+---- RowToRowMapperTransform ----
+8 columns:
+  Text: Vec<Text, 9>
+  OneText: Text
+  Label: R4
+  Bag: Vec<Key<U4, 0-4>, 9>
+    Metadata 'KeyValues': Vec<Text, 5>: Length=5, Count=5
+      [0] '5', [1] '1', [2] '2', [3] '3', [4] '4'
+  Bag: Vec<R4, 5>
+    Metadata 'SlotNames': Vec<Text, 5>: Length=5, Count=5
+      [0] '5', [1] '1', [2] '2', [3] '3', [4] '4'
+  One: Key<U4, 0-4>
+    Metadata 'KeyValues': Vec<Text, 5>: Length=5, Count=5
+      [0] '5', [1] '3', [2] '6', [3] '4', [4] '8'
+  One: Vec<R4, 5>
+    Metadata 'CategoricalSlotRanges': Vec<I4, 1, 2>: Length=2, Count=2
+      [0] '0', [1] '4'
+    Metadata 'IsNormalized': Bool: '1'
+    Metadata 'SlotNames': Vec<Text, 5>: Length=5, Count=5
+      [0] '5', [1] '3', [2] '6', [3] '4', [4] '8'
+  Hot: Vec<Key<U4, 0-6>, 9>
+    Metadata 'KeyValues': Vec<Text, 7>: Length=7, Count=7
+      [0] '5', [1] '1', [2] '2', [3] '3', [4] '4', [5] '7', [6] '10'
+---- RowToRowMapperTransform ----
+9 columns:
+  Text: Vec<Text, 9>
+  OneText: Text
+  Label: R4
+  Bag: Vec<Key<U4, 0-4>, 9>
+    Metadata 'KeyValues': Vec<Text, 5>: Length=5, Count=5
+      [0] '5', [1] '1', [2] '2', [3] '3', [4] '4'
+  Bag: Vec<R4, 5>
+    Metadata 'SlotNames': Vec<Text, 5>: Length=5, Count=5
+      [0] '5', [1] '1', [2] '2', [3] '3', [4] '4'
+  One: Key<U4, 0-4>
+    Metadata 'KeyValues': Vec<Text, 5>: Length=5, Count=5
+      [0] '5', [1] '3', [2] '6', [3] '4', [4] '8'
+  One: Vec<R4, 5>
+    Metadata 'CategoricalSlotRanges': Vec<I4, 1, 2>: Length=2, Count=2
+      [0] '0', [1] '4'
+    Metadata 'IsNormalized': Bool: '1'
+    Metadata 'SlotNames': Vec<Text, 5>: Length=5, Count=5
+      [0] '5', [1] '3', [2] '6', [3] '4', [4] '8'
+  Hot: Vec<Key<U4, 0-6>, 9>
+    Metadata 'KeyValues': Vec<Text, 7>: Length=7, Count=7
+      [0] '5', [1] '1', [2] '2', [3] '3', [4] '4', [5] '7', [6] '10'
+  Hot: Vec<R4, 9, 7>
+    Metadata 'CategoricalSlotRanges': Vec<I4, 9, 2>: Length=18, Count=18
+      [0] '0', [1] '6', [2] '7', [3] '13', [4] '14', [5] '20', [6] '21', [7] '27', [8] '28', [9] '34'
+      [10] '35', [11] '41', [12] '42', [13] '48', [14] '49', [15] '55', [16] '56', [17] '62'
+    Metadata 'IsNormalized': Bool: '1'
+    Metadata 'SlotNames': Vec<Text, 9, 7>: Length=63, Count=63
+      [0] '[0].5', [1] '[0].1', [2] '[0].2', [3] '[0].3', [4] '[0].4', [5] '[0].7', [6] '[0].10', [7] '[1].5', [8] '[1].1', [9] '[1].2'
+      [10] '[1].3', [11] '[1].4', [12] '[1].7', [13] '[1].10', [14] '[2].5', [15] '[2].1', [16] '[2].2', [17] '[2].3', [18] '[2].4', [19] '[2].7'
+      [20] '[2].10', [21] '[3].5', [22] '[3].1', [23] '[3].2', [24] '[3].3', [25] '[3].4', [26] '[3].7', [27] '[3].10', [28] '[4].5', [29] '[4].1'
+      [30] '[4].2', [31] '[4].3', [32] '[4].4', [33] '[4].7', [34] '[4].10', [35] '[5].5', [36] '[5].1', [37] '[5].2', [38] '[5].3', [39] '[5].4'
+      [40] '[5].7', [41] '[5].10', [42] '[6].5', [43] '[6].1', [44] '[6].2', [45] '[6].3', [46] '[6].4', [47] '[6].7', [48] '[6].10', [49] '[7].5'
+      [50] '[7].1', [51] '[7].2', [52] '[7].3', [53] '[7].4', [54] '[7].7', [55] '[7].10', [56] '[8].5', [57] '[8].1', [58] '[8].2', [59] '[8].3'
+      [60] '[8].4', [61] '[8].7', [62] '[8].10'
+---- RowToRowMapperTransform ----
+11 columns:
+  Text: Vec<Text, 9>
+  OneText: Text
+  Label: R4
+  Bag: Vec<Key<U4, 0-4>, 9>
+    Metadata 'KeyValues': Vec<Text, 5>: Length=5, Count=5
+      [0] '5', [1] '1', [2] '2', [3] '3', [4] '4'
+  Bag: Vec<R4, 5>
+    Metadata 'SlotNames': Vec<Text, 5>: Length=5, Count=5
+      [0] '5', [1] '1', [2] '2', [3] '3', [4] '4'
+  One: Key<U4, 0-4>
+    Metadata 'KeyValues': Vec<Text, 5>: Length=5, Count=5
+      [0] '5', [1] '3', [2] '6', [3] '4', [4] '8'
+  One: Vec<R4, 5>
+    Metadata 'CategoricalSlotRanges': Vec<I4, 1, 2>: Length=2, Count=2
+      [0] '0', [1] '4'
+    Metadata 'IsNormalized': Bool: '1'
+    Metadata 'SlotNames': Vec<Text, 5>: Length=5, Count=5
+      [0] '5', [1] '3', [2] '6', [3] '4', [4] '8'
+  Hot: Vec<Key<U4, 0-6>, 9>
+    Metadata 'KeyValues': Vec<Text, 7>: Length=7, Count=7
+      [0] '5', [1] '1', [2] '2', [3] '3', [4] '4', [5] '7', [6] '10'
+  Hot: Vec<R4, 9, 7>
+    Metadata 'CategoricalSlotRanges': Vec<I4, 9, 2>: Length=18, Count=18
+      [0] '0', [1] '6', [2] '7', [3] '13', [4] '14', [5] '20', [6] '21', [7] '27', [8] '28', [9] '34'
+      [10] '35', [11] '41', [12] '42', [13] '48', [14] '49', [15] '55', [16] '56', [17] '62'
+    Metadata 'IsNormalized': Bool: '1'
+    Metadata 'SlotNames': Vec<Text, 9, 7>: Length=63, Count=63
+      [0] '[0].5', [1] '[0].1', [2] '[0].2', [3] '[0].3', [4] '[0].4', [5] '[0].7', [6] '[0].10', [7] '[1].5', [8] '[1].1', [9] '[1].2'
+      [10] '[1].3', [11] '[1].4', [12] '[1].7', [13] '[1].10', [14] '[2].5', [15] '[2].1', [16] '[2].2', [17] '[2].3', [18] '[2].4', [19] '[2].7'
+      [20] '[2].10', [21] '[3].5', [22] '[3].1', [23] '[3].2', [24] '[3].3', [25] '[3].4', [26] '[3].7', [27] '[3].10', [28] '[4].5', [29] '[4].1'
+      [30] '[4].2', [31] '[4].3', [32] '[4].4', [33] '[4].7', [34] '[4].10', [35] '[5].5', [36] '[5].1', [37] '[5].2', [38] '[5].3', [39] '[5].4'
+      [40] '[5].7', [41] '[5].10', [42] '[6].5', [43] '[6].1', [44] '[6].2', [45] '[6].3', [46] '[6].4', [47] '[6].7', [48] '[6].10', [49] '[7].5'
+      [50] '[7].1', [51] '[7].2', [52] '[7].3', [53] '[7].4', [54] '[7].7', [55] '[7].10', [56] '[8].5', [57] '[8].1', [58] '[8].2', [59] '[8].3'
+      [60] '[8].4', [61] '[8].7', [62] '[8].10'
+  Key: Vec<Key<U4, 0-7>, 9>
+    Metadata 'KeyValues': Vec<Text, 8>: Length=8, Count=8
+      [0] '5', [1] '1', [2] '2', [3] '3', [4] '4', [5] '7', [6] '10', [7] '6'
+  KeyOne: Key<U4, 0-7>
+    Metadata 'KeyValues': Vec<Text, 8>: Length=8, Count=8
+      [0] '5', [1] '3', [2] '6', [3] '4', [4] '8', [5] '1', [6] '2', [7] '7'

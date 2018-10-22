@@ -56,7 +56,7 @@ namespace Microsoft.ML.Tests.Transformers
                 new Normalizer.LogMeanVarColumn("double1", "double1lmv"),
                 new Normalizer.LogMeanVarColumn("double4", "double4lmv"));
 
-            var data = loader.Read(new MultiFileSource(dataPath));
+            var data = loader.Read(dataPath);
 
             var badData1 = new CopyColumnsTransform(Env, ("int1", "float1")).Transform(data);
             var badData2 = new CopyColumnsTransform(Env, ("float0", "float4")).Transform(data);
@@ -89,7 +89,7 @@ namespace Microsoft.ML.Tests.Transformers
                 }
             });
 
-            var data = loader.Read(new MultiFileSource(dataPath));
+            var data = loader.Read(dataPath);
 
             var est1 = new Normalizer(Env, "float4");
             var est2 = new Normalizer(Env, Normalizer.NormalizerMode.MinMax, ("float4", "float4"));
@@ -123,12 +123,12 @@ namespace Microsoft.ML.Tests.Transformers
             var data = TextLoader.CreateReader(env,
                 c => (label: c.LoadFloat(11), features: c.LoadFloat(0, 10)),
                 separator: ';', hasHeader: true)
-                .Read(new MultiFileSource(dataSource));
+                .Read(dataSource);
 
             var invalidData = TextLoader.CreateReader(env,
                 c => (label: c.LoadFloat(11), features: c.LoadText(0, 10)),
                 separator: ';', hasHeader: true)
-                .Read(new MultiFileSource(dataSource));
+                .Read(dataSource);
 
             var est = new LpNormalizer(env, "features", "lpnorm")
                 .Append(new GlobalContrastNormalizer(env, "features", "gcnorm"))
