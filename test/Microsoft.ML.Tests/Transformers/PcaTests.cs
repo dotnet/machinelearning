@@ -20,7 +20,7 @@ namespace Microsoft.ML.Tests.Transformers
         public PcaTests(ITestOutputHelper helper)
             : base(helper)
         {
-            _env = new ConsoleEnvironment(seed: 1, conc: 1);
+            _env = new ConsoleEnvironment(seed: 1);
             _dataSource = GetDataPath("generated_regression_dataset.csv");
             _saver = new TextSaver(_env, new TextSaver.Arguments { Silent = true, OutputHeader = false });
         }
@@ -31,12 +31,12 @@ namespace Microsoft.ML.Tests.Transformers
             var data = TextLoader.CreateReader(_env,
                 c => (label: c.LoadFloat(11), weight: c.LoadFloat(0), features: c.LoadFloat(1, 10)),
                 separator: ';', hasHeader: true)
-                .Read(new MultiFileSource(_dataSource));
+                .Read(_dataSource);
 
             var invalidData = TextLoader.CreateReader(_env,
                 c => (label: c.LoadFloat(11), weight: c.LoadFloat(0), features: c.LoadText(1, 10)),
                 separator: ';', hasHeader: true)
-                .Read(new MultiFileSource(_dataSource));
+                .Read(_dataSource);
 
             var est = new PcaEstimator(_env, "features", "pca", rank: 4, seed: 10);
             TestEstimatorCore(est, data.AsDynamic, invalidInput: invalidData.AsDynamic);
@@ -53,7 +53,7 @@ namespace Microsoft.ML.Tests.Transformers
             var data = TextLoader.CreateReader(_env,
                 c => (label: c.LoadFloat(11), features: c.LoadFloat(0, 10)),
                 separator: ';', hasHeader: true)
-                .Read(new MultiFileSource(_dataSource));
+                .Read(_dataSource);
 
             var est = new PcaEstimator(_env, "features", "pca", rank: 5, seed: 1);
             var outputPath = GetOutputPath("PCA", "pca.tsv");
@@ -76,7 +76,7 @@ namespace Microsoft.ML.Tests.Transformers
             var reader = TextLoader.CreateReader(_env,
                 c => (label: c.LoadFloat(11), features1: c.LoadFloat(0, 10)),
                 separator: ';', hasHeader: true);
-            var data = reader.Read(new MultiFileSource(_dataSource));
+            var data = reader.Read(_dataSource);
             var pipeline = reader.MakeNewEstimator()
                 .Append(r => (r.label, pca: r.features1.ToPrincipalComponents(rank: 5, seed: 1)));
 
