@@ -1,6 +1,7 @@
 // Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
+
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
@@ -34,9 +35,9 @@ namespace Microsoft.ML.Runtime.Data
 
     public sealed class ConcatTransform : ITransformer, ICanSaveModel
     {
-        public const string Summary = "Concatenates one or more columns of the same item type.";
-        public const string UserName = "Concat Transform";
-        public const string LoadName = "Concat";
+        internal const string Summary = "Concatenates one or more columns of the same item type.";
+        internal const string UserName = "Concat Transform";
+        internal const string LoadName = "Concat";
 
         internal const string LoaderSignature = "ConcatTransform";
         internal const string LoaderSignatureOld = "ConcatFunction";

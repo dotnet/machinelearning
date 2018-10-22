@@ -3,9 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 // the alignment of the usings with the methods is intentional so they can display on the same level in the docs site.
-using Microsoft.ML.Runtime.Api;
+        using Microsoft.ML.Runtime.Api;
         using Microsoft.ML.Runtime.Data;
         using Microsoft.ML.StaticPipe;
+        using Microsoft.ML.Transforms;
         using System;
         using System.Collections.Generic;
 

@@ -2,18 +2,19 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
-using System.Text;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
+using Microsoft.ML.Runtime.EntryPoints;
+using Microsoft.ML.Runtime.Internal.Internallearn;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.Model.Pfa;
-using Microsoft.ML.Runtime.Internal.Internallearn;
+using Microsoft.ML.Transforms.Text;
 using Newtonsoft.Json.Linq;
-using Microsoft.ML.Runtime.EntryPoints;
+using System;
+using System.Collections.Generic;
+using System.Text;
 
 [assembly: LoadableClass(DelimitedTokenizeTransform.Summary, typeof(DelimitedTokenizeTransform), typeof(DelimitedTokenizeTransform.Arguments), typeof(SignatureDataTransform),
     "Word Tokenizer Transform", "WordTokenizeTransform", "DelimitedTokenizeTransform", "WordToken", "DelimitedTokenize", "Token")]
@@ -24,7 +25,7 @@ using Microsoft.ML.Runtime.EntryPoints;
 [assembly: LoadableClass(DelimitedTokenizeTransform.Summary, typeof(DelimitedTokenizeTransform), null, typeof(SignatureLoadDataTransform),
     "Word Tokenizer Transform", DelimitedTokenizeTransform.LoaderSignature)]
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Transforms.Text
 {
     /// <summary>
     /// Signature for creating an ITokenizeTransform.

@@ -8,6 +8,8 @@ using Microsoft.ML.Runtime.KMeans;
 using Microsoft.ML.Runtime.Learners;
 using Microsoft.ML.Runtime.PCA;
 using Microsoft.ML.Runtime.RunTests;
+using Microsoft.ML.Transforms.CategoricalTransforms;
+using Microsoft.ML.Transforms.Text;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -116,7 +118,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                     }).Read(new MultiFileSource(GetDataPath(TestDatasets.Sentiment.trainFilename)));
 
             // Pipeline.
-            var pipeline = new FeaturizeTextEstimator(Env, "SentimentText", "Features");
+            var pipeline = new TextFeaturizingEstimator (Env, "SentimentText", "Features");
 
             return (pipeline, data);
         }
@@ -137,7 +139,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             }).Read(new MultiFileSource(GetDataPath(TestDatasets.adultRanking.trainFilename)));
 
             // Pipeline.
-            var pipeline = new ToKeyEstimator(Env, new[]{
+            var pipeline = new ValueToKeyMappingEstimator(Env, new[]{
                                     new TermTransform.ColumnInfo("Workclass", "Group"),
                                     new TermTransform.ColumnInfo("Label", "Label0") });
 
@@ -188,7 +190,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 })
                 .Read(new MultiFileSource(GetDataPath(IrisDataPath)));
 
-            var pipeline = new ToKeyEstimator(Env, "Label");
+            var pipeline = new ValueToKeyMappingEstimator(Env, "Label");
 
             return (pipeline, data);
         }

@@ -8,6 +8,7 @@ using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.RunTests;
 using Microsoft.ML.Runtime.Tools;
+using Microsoft.ML.Transforms.CategoricalTransforms;
 using System;
 using System.IO;
 using System.Linq;
@@ -45,7 +46,7 @@ namespace Microsoft.ML.Tests.Transformers
             var data = new[] { new TestClass() { A = 1, B = 2, C = 3, }, new TestClass() { A = 4, B = 5, C = 6 } };
 
             var dataView = ComponentCreation.CreateDataView(Env, data);
-            dataView = new ToKeyEstimator(Env, new[]{
+            dataView = new ValueToKeyMappingEstimator(Env, new[]{
                     new TermTransform.ColumnInfo("A", "TermA"),
                     new TermTransform.ColumnInfo("B", "TermB"),
                     new TermTransform.ColumnInfo("C", "TermC", textKeyValues:true)
@@ -69,7 +70,7 @@ namespace Microsoft.ML.Tests.Transformers
             var data = reader.Read(new MultiFileSource(dataPath));
 
             // Non-pigsty Term.
-            var dynamicData = new ToKeyEstimator(Env,
+            var dynamicData = new ValueToKeyMappingEstimator(Env,
                 new TermTransform.ColumnInfo("ScalarString", "A"),
                 new TermTransform.ColumnInfo("VectorString", "B"))
                 .Fit(data.AsDynamic).Transform(data.AsDynamic);
@@ -98,7 +99,7 @@ namespace Microsoft.ML.Tests.Transformers
 
 
             var dataView = ComponentCreation.CreateDataView(Env, data);
-            var termEst = new ToKeyEstimator(Env,
+            var termEst = new ValueToKeyMappingEstimator(Env,
                 new TermTransform.ColumnInfo("A", "TA", textKeyValues: true),
                 new TermTransform.ColumnInfo("B", "TB", textKeyValues: true),
                 new TermTransform.ColumnInfo("C", "TC"),
@@ -159,7 +160,7 @@ namespace Microsoft.ML.Tests.Transformers
         {
             var data = new[] { new TestClass() { A = 1, B = 2, C = 3, }, new TestClass() { A = 4, B = 5, C = 6 } };
             var dataView = ComponentCreation.CreateDataView(Env, data);
-            var est = new ToKeyEstimator(Env, new[]{
+            var est = new ValueToKeyMappingEstimator(Env, new[]{
                     new TermTransform.ColumnInfo("A", "TermA"),
                     new TermTransform.ColumnInfo("B", "TermB", textKeyValues:true),
                     new TermTransform.ColumnInfo("C", "TermC")

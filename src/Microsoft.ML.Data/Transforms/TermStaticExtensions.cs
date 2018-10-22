@@ -4,8 +4,9 @@
 
 using System;
 using Microsoft.ML.StaticPipe;
+using Microsoft.ML.Runtime;
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Transforms.CategoricalTransforms
 {
     public static partial class TermStaticExtensions
     {

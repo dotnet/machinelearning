@@ -6,11 +6,12 @@ using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.TextAnalytics;
-using Microsoft.ML.Runtime.Transforms;
+using Microsoft.ML.Transforms.CategoricalTransforms;
+using Microsoft.ML.Transforms.Text;
 
 [assembly: LoadableClass(typeof(void), typeof(TextAnalytics), null, typeof(SignatureEntryPointModule), "TextAnalytics")]
 
-namespace Microsoft.ML.Runtime.Transforms
+namespace Microsoft.ML.Transforms.Text
 {
     /// <summary>
     /// Entry points for text anylytics transforms.
@@ -18,15 +19,15 @@ namespace Microsoft.ML.Runtime.Transforms
     public static class TextAnalytics
     {
         [TlcModule.EntryPoint(Name = "Transforms.TextFeaturizer",
-            Desc = Data.FeaturizeTextEstimator.Summary,
-            UserName = Data.FeaturizeTextEstimator.UserName,
-            ShortName = Data.FeaturizeTextEstimator.LoaderSignature,
+            Desc = TextFeaturizingEstimator.Summary,
+            UserName = TextFeaturizingEstimator.UserName,
+            ShortName = TextFeaturizingEstimator.LoaderSignature,
             XmlInclude = new[] { @"<include file='../Microsoft.ML.Transforms/Text/doc.xml' path='doc/members/member[@name=""FeaturizeTextEstimator""]/*' />" ,
                                  @"<include file='../Microsoft.ML.Transforms/Text/doc.xml' path='doc/members/example[@name=""FeaturizeTextEstimator""]/*' />"})]
-        public static CommonOutputs.TransformOutput TextTransform(IHostEnvironment env, FeaturizeTextEstimator.Arguments input)
+        public static CommonOutputs.TransformOutput TextTransform(IHostEnvironment env, TextFeaturizingEstimator.Arguments input)
         {
             var h = EntryPointUtils.CheckArgsAndCreateHost(env, "FeaturizeTextEstimator", input);
-            var xf = Data.FeaturizeTextEstimator.Create(h, input, input.Data);
+            var xf = TextFeaturizingEstimator.Create(h, input, input.Data);
             return new CommonOutputs.TransformOutput()
             {
                 Model = new TransformModel(h, xf, input.Data),
@@ -35,9 +36,9 @@ namespace Microsoft.ML.Runtime.Transforms
         }
 
         [TlcModule.EntryPoint(Name = "Transforms.WordTokenizer",
-            Desc = Data.DelimitedTokenizeTransform.Summary,
-            UserName = Data.DelimitedTokenizeTransform.UserName,
-            ShortName = Data.DelimitedTokenizeTransform.LoaderSignature,
+            Desc = Text.DelimitedTokenizeTransform.Summary,
+            UserName = Text.DelimitedTokenizeTransform.UserName,
+            ShortName = Text.DelimitedTokenizeTransform.LoaderSignature,
             XmlInclude = new[] { @"<include file='../Microsoft.ML.Transforms/Text/doc.xml' path='doc/members/member[@name=""WordTokenizer""]/*' />",
                                  @"<include file='../Microsoft.ML.Transforms/Text/doc.xml' path='doc/members/example[@name=""WordTokenizer""]/*' />"})]
         public static CommonOutputs.TransformOutput DelimitedTokenizeTransform(IHostEnvironment env, DelimitedTokenizeTransform.Arguments input)
@@ -68,13 +69,13 @@ namespace Microsoft.ML.Runtime.Transforms
         }
 
         [TlcModule.EntryPoint(Name = "Transforms.Dictionarizer",
-            Desc = Data.TermTransform.Summary,
-            UserName = Data.TermTransform.UserName,
-            ShortName = Data.TermTransform.LoaderSignature)]
+            Desc = CategoricalTransforms.TermTransform.Summary,
+            UserName = CategoricalTransforms.TermTransform.UserName,
+            ShortName = CategoricalTransforms.TermTransform.LoaderSignature)]
         public static CommonOutputs.TransformOutput TermTransform(IHostEnvironment env, TermTransform.Arguments input)
         {
             var h = EntryPointUtils.CheckArgsAndCreateHost(env, "TermTransform", input);
-            var xf = Data.TermTransform.Create(h, input, input.Data);
+            var xf = CategoricalTransforms.TermTransform.Create(h, input, input.Data);
             return new CommonOutputs.TransformOutput()
             {
                 Model = new TransformModel(h, xf, input.Data),

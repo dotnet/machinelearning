@@ -5,6 +5,8 @@
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Learners;
 using Microsoft.ML.Runtime.RunTests;
+using Microsoft.ML.Transforms.Normalizers;
+using Microsoft.ML.Transforms.Text;
 using Xunit;
 
 namespace Microsoft.ML.Tests.Scenarios.Api
@@ -26,7 +28,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                 // Pipeline.
                 var loader = TextLoader.ReadFile(env, MakeSentimentTextLoaderArgs(), new MultiFileSource(data));
 
-                var trans = FeaturizeTextEstimator.Create(env, MakeSentimentTextTransformArgs(false), loader);
+                var trans = TextFeaturizingEstimator.Create(env, MakeSentimentTextTransformArgs(false), loader);
 
                 // Train.
                 var trainer = new LinearClassificationTrainer(env, new LinearClassificationTrainer.Arguments

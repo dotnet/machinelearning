@@ -2,17 +2,17 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Float = System.Single;
-
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
+using Microsoft.ML.Transforms;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using Float = System.Single;
 
 [assembly: LoadableClass(typeof(ChooseColumnsTransform), typeof(ChooseColumnsTransform.Arguments), typeof(SignatureDataTransform),
     "Choose Columns Transform", "ChooseColumnsTransform", "ChooseColumns", "Choose", DocName = "transform/DropKeepChooseTransforms.md")]
@@ -20,7 +20,7 @@ using Microsoft.ML.Runtime.Model;
 [assembly: LoadableClass(typeof(ChooseColumnsTransform), null, typeof(SignatureLoadDataTransform),
     "Choose Columns Transform", ChooseColumnsTransform.LoaderSignature, ChooseColumnsTransform.LoaderSignatureOld)]
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Transforms
 {
     public sealed class ChooseColumnsTransform : RowToRowTransformBase
     {

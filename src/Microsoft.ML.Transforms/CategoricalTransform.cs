@@ -2,20 +2,21 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
-using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Internal.Internallearn;
+using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.StaticPipe;
 using Microsoft.ML.StaticPipe.Runtime;
+using Microsoft.ML.Transforms.CategoricalTransforms;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 
 [assembly: LoadableClass(CategoricalTransform.Summary, typeof(IDataTransform), typeof(CategoricalTransform), typeof(CategoricalTransform.Arguments), typeof(SignatureDataTransform),
     CategoricalTransform.UserName, "CategoricalTransform", "CatTransform", "Categorical", "Cat")]
@@ -143,7 +144,7 @@ namespace Microsoft.ML.Runtime.Data
 
         private readonly TransformerChain<ITransformer> _transformer;
 
-        public CategoricalTransform(ToKeyEstimator term, IEstimator<ITransformer> toVector, IDataView input)
+        public CategoricalTransform(ValueToKeyMappingEstimator term, IEstimator<ITransformer> toVector, IDataView input)
         {
             var chain = term.Append(toVector);
             _transformer = chain.Fit(input);
@@ -173,7 +174,7 @@ namespace Microsoft.ML.Runtime.Data
         {
             public readonly CategoricalTransform.OutputKind OutputKind;
             public ColumnInfo(string input, string output, CategoricalTransform.OutputKind outputKind = Defaults.OutKind,
-                int maxNumTerms = ToKeyEstimator.Defaults.MaxNumTerms, TermTransform.SortOrder sort = ToKeyEstimator.Defaults.Sort,
+                int maxNumTerms = ValueToKeyMappingEstimator.Defaults.MaxNumTerms, TermTransform.SortOrder sort = ValueToKeyMappingEstimator.Defaults.Sort,
                 string[] term = null)
                 : base(input, output, maxNumTerms, sort, term, true)
             {
@@ -189,7 +190,7 @@ namespace Microsoft.ML.Runtime.Data
 
         private readonly IHost _host;
         private readonly IEstimator<ITransformer> _toSomething;
-        private ToKeyEstimator _term;
+        private ValueToKeyMappingEstimator _term;
 
         /// Initializes an instance of the <see cref="OneHotEncodingEstimator"/>.
         /// <param name="env">Host Environment.</param>
@@ -205,8 +206,8 @@ namespace Microsoft.ML.Runtime.Data
         public OneHotEncodingEstimator(IHostEnvironment env, params ColumnInfo[] columns)
         {
             Contracts.CheckValue(env, nameof(env));
-            _host = env.Register(nameof(ToKeyEstimator));
-            _term = new ToKeyEstimator(_host, columns);
+            _host = env.Register(nameof(ValueToKeyMappingEstimator));
+            _term = new ValueToKeyMappingEstimator(_host, columns);
             var binaryCols = new List<(string input, string output)>();
             var cols = new List<(string input, string output, bool bag)>();
             for (int i = 0; i < columns.Length; i++)
@@ -254,7 +255,7 @@ namespace Microsoft.ML.Runtime.Data
 
         internal void WrapTermWithDelegate(Action<TermTransform> onFit)
         {
-            _term = (ToKeyEstimator)_term.WithOnFitDelegate(onFit);
+            _term = (ValueToKeyMappingEstimator)_term.WithOnFitDelegate(onFit);
         }
     }
 
@@ -357,8 +358,8 @@ namespace Microsoft.ML.Runtime.Data
             Bin = 4,
         }
 
-        private const KeyValueOrder DefSort = (KeyValueOrder)ToKeyEstimator.Defaults.Sort;
-        private const int DefMax = ToKeyEstimator.Defaults.MaxNumTerms;
+        private const KeyValueOrder DefSort = (KeyValueOrder)ValueToKeyMappingEstimator.Defaults.Sort;
+        private const int DefMax = ValueToKeyMappingEstimator.Defaults.MaxNumTerms;
         private const OneHotVectorOutputKind DefOut = (OneHotVectorOutputKind)OneHotEncodingEstimator.Defaults.OutKind;
 
         private struct Config

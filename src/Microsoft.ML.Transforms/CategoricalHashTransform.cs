@@ -11,7 +11,8 @@ using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.StaticPipe;
 using Microsoft.ML.StaticPipe.Runtime;
-using Microsoft.ML.Transforms;
+using Microsoft.ML.Transforms.CategoricalTransforms;
+using Microsoft.ML.Transforms.Conversions;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -249,7 +250,7 @@ namespace Microsoft.ML.Runtime.Data
         public OneHotHashEncodingEstimator(IHostEnvironment env, params ColumnInfo[] columns)
         {
             Contracts.CheckValue(env, nameof(env));
-            _host = env.Register(nameof(ToKeyEstimator));
+            _host = env.Register(nameof(ValueToKeyMappingEstimator));
             _hash = new HashEstimator(_host, columns.Select(x => x.HashInfo).ToArray());
             using (var ch = _host.Start(nameof(OneHotHashEncodingEstimator)))
             {

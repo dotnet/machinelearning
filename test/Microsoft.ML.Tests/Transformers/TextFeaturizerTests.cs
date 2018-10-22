@@ -7,6 +7,7 @@ using Microsoft.ML.Runtime.Data.IO;
 using Microsoft.ML.Runtime.RunTests;
 using Microsoft.ML.Transforms;
 using Microsoft.ML.Transforms.Text;
+using Microsoft.ML.Transforms.CategoricalTransforms;
 using System.IO;
 using Xunit;
 using Xunit.Abstractions;
@@ -211,7 +212,7 @@ namespace Microsoft.ML.Tests.Transformers
                 .Read(new MultiFileSource(sentimentDataPath));
 
             var est = new WordTokenizer(Env, "text", "text")
-                .Append(new ToKeyEstimator(Env, "text", "terms"))
+                .Append(new ValueToKeyMappingEstimator(Env, "text", "terms"))
                 .Append(new NgramEstimator(Env, "terms", "ngrams"))
                 .Append(new NgramHashEstimator(Env, "terms", "ngramshash"));
             

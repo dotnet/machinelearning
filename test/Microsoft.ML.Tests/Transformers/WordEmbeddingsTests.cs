@@ -6,6 +6,7 @@ using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.RunTests;
 using Microsoft.ML.Scenarios;
 using Microsoft.ML.StaticPipe;
+using Microsoft.ML.Transforms.Text;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -29,9 +30,9 @@ namespace Microsoft.ML.Tests.Transformers
                     SentimentText: ctx.LoadText(1)), hasHeader: true)
                 .Read(new MultiFileSource(dataPath));
 
-            var dynamicData = FeaturizeTextEstimator.Create(Env, new FeaturizeTextEstimator.Arguments()
+            var dynamicData = TextFeaturizingEstimator.Create(Env, new TextFeaturizingEstimator.Arguments()
             {
-                Column = new FeaturizeTextEstimator.Column
+                Column = new TextFeaturizingEstimator.Column
                 {
                     Name = "SentimentText_Features",
                     Source = new[] { "SentimentText" }
@@ -39,7 +40,7 @@ namespace Microsoft.ML.Tests.Transformers
                 OutputTokens = true,
                 KeepPunctuations = false,
                 StopWordsRemover = new Runtime.TextAnalytics.PredefinedStopWordsRemoverFactory(),
-                VectorNormalizer = FeaturizeTextEstimator.TextNormKind.None,
+                VectorNormalizer = TextFeaturizingEstimator.TextNormKind.None,
                 CharFeatureExtractor = null,
                 WordFeatureExtractor = null,
             }, data.AsDynamic);

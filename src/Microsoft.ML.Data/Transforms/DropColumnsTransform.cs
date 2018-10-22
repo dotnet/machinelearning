@@ -2,16 +2,16 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Float = System.Single;
-
-using System;
-using System.Collections.Generic;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
+using Microsoft.ML.Transforms;
+using System;
+using System.Collections.Generic;
+using Float = System.Single;
 
 [assembly: LoadableClass(DropColumnsTransform.DropColumnsSummary, typeof(DropColumnsTransform), typeof(DropColumnsTransform.Arguments), typeof(SignatureDataTransform),
     DropColumnsTransform.DropUserName, "DropColumns", "DropColumnsTransform", DropColumnsTransform.DropShortName, DocName = "transform/DropKeepChooseTransforms.md")]
@@ -22,7 +22,7 @@ using Microsoft.ML.Runtime.Model;
 [assembly: LoadableClass(DropColumnsTransform.DropColumnsSummary, typeof(DropColumnsTransform), null, typeof(SignatureLoadDataTransform),
     DropColumnsTransform.DropUserName, DropColumnsTransform.LoaderSignature)]
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Transforms
 {
     /// <summary>
     /// Transform to drop columns with the given names. Note that if there are names that

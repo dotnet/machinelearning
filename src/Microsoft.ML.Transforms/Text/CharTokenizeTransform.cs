@@ -4,9 +4,6 @@
 
 #pragma warning disable 420 // volatile with Interlocked.CompareExchange
 
-using System;
-using System.Text;
-using System.Threading;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
@@ -14,6 +11,9 @@ using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.TextAnalytics;
+using System;
+using System.Text;
+using System.Threading;
 
 [assembly: LoadableClass(CharTokenizeTransform.Summary, typeof(CharTokenizeTransform), typeof(CharTokenizeTransform.Arguments), typeof(SignatureDataTransform),
     CharTokenizeTransform.UserName, "CharTokenize", CharTokenizeTransform.LoaderSignature)]
@@ -479,7 +479,7 @@ namespace Microsoft.ML.Runtime.TextAnalytics
                         int index = 0;
 
                         // ReadOnlyMemory can be a result of either concatenating text columns together
-                        // or application of word tokenizer before char tokenizer in FeaturizeTextEstimator.
+                        // or application of word tokenizer before char tokenizer in TextFeaturizingEstimator.
                         //
                         // Considering VBuffer<ReadOnlyMemory> as a single text stream.
                         // Therefore, prepend and append start and end markers only once i.e. at the start and at end of vector.

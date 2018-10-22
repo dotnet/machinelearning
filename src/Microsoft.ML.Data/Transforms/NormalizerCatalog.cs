@@ -4,6 +4,7 @@
 
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
+using Microsoft.ML.Transforms.Normalizers;
 
 namespace Microsoft.ML
 {
@@ -19,7 +20,7 @@ namespace Microsoft.ML
         /// <param name="inputName">The column name</param>
         /// <param name="outputName">The column name</param>
         /// <param name="mode">The <see cref="NormalizerEstimator.NormalizerMode"/> used to map the old values in the new scale. </param>
-        public static NormalizerEstimator Normalizer(this TransformsCatalog catalog, string inputName, string outputName = null, NormalizerEstimator.NormalizerMode mode = Runtime.Data.NormalizerEstimator.NormalizerMode.MinMax)
+        public static NormalizerEstimator Normalizer(this TransformsCatalog catalog, string inputName, string outputName = null, NormalizerEstimator.NormalizerMode mode = NormalizerEstimator.NormalizerMode.MinMax)
             => new NormalizerEstimator(CatalogUtils.GetEnvironment(catalog), inputName, outputName, mode);
 
         /// <summary>

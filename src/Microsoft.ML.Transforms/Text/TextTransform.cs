@@ -20,13 +20,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-[assembly: LoadableClass(FeaturizeTextEstimator.Summary, typeof(IDataTransform), typeof(FeaturizeTextEstimator), typeof(FeaturizeTextEstimator.Arguments), typeof(SignatureDataTransform),
-    FeaturizeTextEstimator.UserName, "FeaturizeTextEstimator", FeaturizeTextEstimator.LoaderSignature)]
+[assembly: LoadableClass(TextFeaturizingEstimator.Summary, typeof(IDataTransform), typeof(TextFeaturizingEstimator), typeof(TextFeaturizingEstimator.Arguments), typeof(SignatureDataTransform),
+    TextFeaturizingEstimator.UserName, "FeaturizeTextEstimator", TextFeaturizingEstimator.LoaderSignature)]
 
-[assembly: LoadableClass(FeaturizeTextEstimator.Summary, typeof(ITransformer), typeof(FeaturizeTextEstimator), null, typeof(SignatureLoadModel),
-    FeaturizeTextEstimator.UserName, "FeaturizeTextEstimator", FeaturizeTextEstimator.LoaderSignature)]
+[assembly: LoadableClass(TextFeaturizingEstimator.Summary, typeof(ITransformer), typeof(TextFeaturizingEstimator), null, typeof(SignatureLoadModel),
+    TextFeaturizingEstimator.UserName, "FeaturizeTextEstimator", TextFeaturizingEstimator.LoaderSignature)]
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Transforms.Text
 {
     using CaseNormalizationMode = TextNormalizerEstimator.CaseNormalizationMode;
     using StopWordsCol = StopWordsRemoverTransform.Column;
@@ -34,8 +34,8 @@ namespace Microsoft.ML.Runtime.Data
     // A transform that turns a collection of text documents into numerical feature vectors. The feature vectors are counts
     // of (word or character) ngrams in a given text. It offers ngram hashing (finding the ngram token string name to feature
     // integer index mapping through hashing) as an option.
-    /// <include file='doc.xml' path='doc/members/member[@name="FeaturizeTextEstimator"]/*' />
-    public sealed class FeaturizeTextEstimator : IEstimator<ITransformer>
+    /// <include file='doc.xml' path='doc/members/member[@name="TextFeaturizingEstimator "]/*' />
+    public sealed class TextFeaturizingEstimator  : IEstimator<ITransformer>
     {
         /// <summary>
         /// Text language. This enumeration is serialized.
@@ -151,7 +151,7 @@ namespace Microsoft.ML.Runtime.Data
         private readonly IHost _host;
 
         /// <summary>
-        /// A distilled version of the FeaturizeTextEstimator Arguments, with all fields marked readonly and
+        /// A distilled version of the TextFeaturizingEstimator  Arguments, with all fields marked readonly and
         /// only the exact set of information needed to construct the transforms preserved.
         /// </summary>
         private sealed class TransformApplierParams
@@ -232,7 +232,7 @@ namespace Microsoft.ML.Runtime.Data
             }
             #endregion
 
-            public TransformApplierParams(FeaturizeTextEstimator parent)
+            public TransformApplierParams(TextFeaturizingEstimator  parent)
             {
                 var host = parent._host;
                 host.Check(Enum.IsDefined(typeof(Language), parent.AdvancedSettings.TextLanguage));
@@ -261,17 +261,17 @@ namespace Microsoft.ML.Runtime.Data
 
         private const string TransformedTextColFormat = "{0}_TransformedText";
 
-        public FeaturizeTextEstimator(IHostEnvironment env, string inputColumn, string outputColumn = null,
+        public TextFeaturizingEstimator (IHostEnvironment env, string inputColumn, string outputColumn = null,
             Action<Settings> advancedSettings = null)
             : this(env, new[] { inputColumn }, outputColumn ?? inputColumn, advancedSettings)
         {
         }
 
-        public FeaturizeTextEstimator(IHostEnvironment env, IEnumerable<string> inputColumns, string outputColumn,
+        public TextFeaturizingEstimator (IHostEnvironment env, IEnumerable<string> inputColumns, string outputColumn,
             Action<Settings> advancedSettings = null)
         {
             Contracts.CheckValue(env, nameof(env));
-            _host = env.Register(nameof(FeaturizeTextEstimator));
+            _host = env.Register(nameof(TextFeaturizingEstimator ));
             _host.CheckValue(inputColumns, nameof(inputColumns));
             _host.CheckParam(inputColumns.Any(), nameof(inputColumns));
             _host.CheckParam(!inputColumns.Any(string.IsNullOrWhiteSpace), nameof(inputColumns));
@@ -538,7 +538,7 @@ namespace Microsoft.ML.Runtime.Data
                 s.VectorNormalizer = args.VectorNormalizer;
             };
 
-            var estimator = new FeaturizeTextEstimator(env, args.Column.Source ?? new[] { args.Column.Name }, args.Column.Name, settings);
+            var estimator = new TextFeaturizingEstimator (env, args.Column.Source ?? new[] { args.Column.Name }, args.Column.Name, settings);
             estimator._stopWordsRemover = args.StopWordsRemover;
             estimator._dictionary = args.Dictionary;
             estimator._wordFeatureExtractor = args.WordFeatureExtractor;
@@ -681,7 +681,7 @@ namespace Microsoft.ML.Runtime.Data
 
                 var outCol = (OutPipelineColumn)toOutput[0];
                 var inputs = outCol.Inputs.Select(x => inputNames[x]);
-                return new FeaturizeTextEstimator(env, inputs, outputNames[outCol], _settings);
+                return new TextFeaturizingEstimator (env, inputs, outputNames[outCol], _settings);
             }
         }
     }
@@ -698,12 +698,12 @@ namespace Microsoft.ML.Runtime.Data
         /// <param name="otherInputs">Additional data.</param>
         /// <param name="advancedSettings">Delegate which allows you to set transformation settings.</param>
         /// <returns></returns>
-        public static Vector<float> FeaturizeText(this Scalar<string> input, Scalar<string>[] otherInputs = null, Action<FeaturizeTextEstimator.Settings> advancedSettings = null)
+        public static Vector<float> FeaturizeText(this Scalar<string> input, Scalar<string>[] otherInputs = null, Action<TextFeaturizingEstimator.Settings> advancedSettings = null)
         {
             Contracts.CheckValue(input, nameof(input));
             Contracts.CheckValueOrNull(otherInputs);
             otherInputs = otherInputs ?? new Scalar<string>[0];
-            return new FeaturizeTextEstimator.OutPipelineColumn(new[] { input }.Concat(otherInputs), advancedSettings);
+            return new TextFeaturizingEstimator.OutPipelineColumn(new[] { input }.Concat(otherInputs), advancedSettings);
         }
     }
 }

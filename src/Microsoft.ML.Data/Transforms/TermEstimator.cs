@@ -3,15 +3,17 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Core.Data;
+using Microsoft.ML.Runtime;
+using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.StaticPipe;
 using Microsoft.ML.StaticPipe.Runtime;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Transforms.CategoricalTransforms
 {
-    public sealed class ToKeyEstimator : IEstimator<TermTransform>
+    public sealed class ValueToKeyMappingEstimator: IEstimator<TermTransform>
     {
         public static class Defaults
         {
@@ -28,18 +30,18 @@ namespace Microsoft.ML.Runtime.Data
         /// <param name="env">Host Environment.</param>
         /// <param name="inputColumn">Name of the column to be transformed.</param>
         /// <param name="outputColumn">Name of the output column. If this is null '<paramref name="inputColumn"/>' will be used.</param>
-        /// <param name="maxNumTerms">Maximum number of terms to keep per column when auto-training.</param>
+        /// <param name="maxNumTerms">Maximum number of keys to keep per column when auto-training.</param>
         /// <param name="sort">How items should be ordered when vectorized. By default, they will be in the order encountered.
         /// If by value items are sorted according to their default comparison, for example, text sorting will be case sensitive (for example, 'A' then 'Z' then 'a').</param>
-        public ToKeyEstimator(IHostEnvironment env, string inputColumn, string outputColumn = null, int maxNumTerms = Defaults.MaxNumTerms, TermTransform.SortOrder sort = Defaults.Sort) :
+        public ValueToKeyMappingEstimator(IHostEnvironment env, string inputColumn, string outputColumn = null, int maxNumTerms = Defaults.MaxNumTerms, TermTransform.SortOrder sort = Defaults.Sort) :
            this(env, new TermTransform.ColumnInfo(inputColumn, outputColumn ?? inputColumn, maxNumTerms, sort))
         {
         }
 
-        public ToKeyEstimator(IHostEnvironment env, params TermTransform.ColumnInfo[] columns)
+        public ValueToKeyMappingEstimator(IHostEnvironment env, params TermTransform.ColumnInfo[] columns)
         {
             Contracts.CheckValue(env, nameof(env));
-            _host = env.Register(nameof(ToKeyEstimator));
+            _host = env.Register(nameof(ValueToKeyMappingEstimator));
             _columns = columns;
         }
 
@@ -117,8 +119,8 @@ namespace Microsoft.ML.Runtime.Data
         // Raw generics would allow illegal possible inputs, for example, Scalar<Bitmap>. So, this is a partial
         // class, and all the public facing extension methods for each possible type are in a T4 generated result.
 
-        private const KeyValueOrder DefSort = (KeyValueOrder)ToKeyEstimator.Defaults.Sort;
-        private const int DefMax = ToKeyEstimator.Defaults.MaxNumTerms;
+        private const KeyValueOrder DefSort = (KeyValueOrder)ValueToKeyMappingEstimator.Defaults.Sort;
+        private const int DefMax = ValueToKeyMappingEstimator.Defaults.MaxNumTerms;
 
         private struct Config
         {
@@ -203,7 +205,7 @@ namespace Microsoft.ML.Runtime.Data
                         onFit += tt => tcol.Config.OnFit(tt.GetTermMap(ii));
                     }
                 }
-                var est = new ToKeyEstimator(env, infos);
+                var est = new ValueToKeyMappingEstimator(env, infos);
                 if (onFit == null)
                     return est;
                 return est.WithOnFitDelegate(onFit);

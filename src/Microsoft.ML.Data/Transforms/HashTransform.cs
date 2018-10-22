@@ -8,7 +8,7 @@ using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
-using Microsoft.ML.Transforms;
+using Microsoft.ML.Transforms.Conversions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -27,12 +27,12 @@ using System.Text;
 [assembly: LoadableClass(typeof(IRowMapper), typeof(HashTransformer), null, typeof(SignatureLoadRowMapper),
    "Hash Transform", HashTransformer.LoaderSignature)]
 
-namespace Microsoft.ML.Transforms
+namespace Microsoft.ML.Transforms.Conversions
 {
     using Conditional = System.Diagnostics.ConditionalAttribute;
 
     /// <summary>
-    /// This transform can hash either single valued columns or vector columns. For vector columns,
+    /// This transformer can hash either single valued columns or vector columns. For vector columns,
     /// it hashes each slot separately.
     /// It can hash either text values or key values.
     /// </summary>

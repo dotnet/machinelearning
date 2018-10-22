@@ -41,7 +41,7 @@
     <Compile Update="Transforms\TermStaticExtensions.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
-      <DependentUpon>TermStaticExtensions.tt</DependentUpon>
+      <DependentUpon>TermStaticExtensions.cs</DependentUpon>
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>TermStaticExtensions.cs</LastGenOutput>
     </Compile>

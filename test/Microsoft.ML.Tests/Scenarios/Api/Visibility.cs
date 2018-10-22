@@ -2,9 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.RunTests;
+using Microsoft.ML.Transforms.Text;
+using System;
 using Xunit;
 
 namespace Microsoft.ML.Tests.Scenarios.Api
@@ -27,7 +28,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                 // Pipeline.
                 var loader = TextLoader.ReadFile(env, MakeSentimentTextLoaderArgs(), new MultiFileSource(GetDataPath(TestDatasets.Sentiment.trainFilename)));
 
-                var trans = FeaturizeTextEstimator.Create(env, MakeSentimentTextTransformArgs(false), loader);
+                var trans = TextFeaturizingEstimator.Create(env, MakeSentimentTextTransformArgs(false), loader);
                 
                 // In order to find out available column names, you can go through schema and check
                 // column names and appropriate type for getter.

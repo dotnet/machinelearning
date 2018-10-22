@@ -4,21 +4,20 @@
 
 #pragma warning disable 420 // volatile with Interlocked.CompareExchange
 
-using Float = System.Single;
-
+using Microsoft.ML.Runtime;
+using Microsoft.ML.Runtime.Command;
+using Microsoft.ML.Runtime.CommandLine;
+using Microsoft.ML.Runtime.Data;
+using Microsoft.ML.Runtime.EntryPoints;
+using Microsoft.ML.Runtime.Internal.Utilities;
+using Microsoft.ML.Runtime.Model;
+using Microsoft.ML.Runtime.Model.Onnx;
+using Microsoft.ML.Transforms;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Data.Conversion;
-using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Model;
-using Microsoft.ML.Runtime.Model.Onnx;
-using Microsoft.ML.Runtime.Command;
-using Microsoft.ML.Runtime.EntryPoints;
+using Float = System.Single;
 
 [assembly: LoadableClass(ConvertTransform.Summary, typeof(ConvertTransform), typeof(ConvertTransform.Arguments), typeof(SignatureDataTransform),
     ConvertTransform.UserName, ConvertTransform.ShortName, "ConvertTransform", DocName = "transform/ConvertTransform.md")]
@@ -31,7 +30,7 @@ using Microsoft.ML.Runtime.EntryPoints;
 
 [assembly: EntryPointModule(typeof(TypeConversion))]
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Transforms
 {
     public sealed class ConvertTransform : OneToOneTransformBase
     {
@@ -439,7 +438,7 @@ namespace Microsoft.ML.Runtime.Data
             // re-fetched by the utils code when needed.
             bool identity;
             Delegate del;
-            if (!Conversions.Instance.TryGetStandardConversion(typeSrc.ItemType, itemType, out del, out identity))
+            if (!Runtime.Data.Conversion.Conversions.Instance.TryGetStandardConversion(typeSrc.ItemType, itemType, out del, out identity))
                 return false;
 
             ColumnType typeDst = itemType;
@@ -581,7 +580,7 @@ namespace Microsoft.ML.Runtime.Data
             {
                 using (var ch = _host.Start("Run"))
                 {
-                    var conv = Conversions.Instance;
+                    var conv = Runtime.Data.Conversion.Conversions.Instance;
                     var comp = new KindSetComparer();
                     var dstToSrcMap = new Dictionary<HashSet<DataKind>, HashSet<DataKind>>(comp);
                     var srcToDstMap = new Dictionary<DataKind, HashSet<DataKind>>();
@@ -645,7 +644,7 @@ namespace Microsoft.ML.Runtime.Data
                 ch.AssertValue(type);
                 ch.Assert(type.IsStandardScalar);
 
-                var conv = Conversions.Instance;
+                var conv = Runtime.Data.Conversion.Conversions.Instance;
                 RefPredicate<T> isNaDel;
                 bool hasNaPred = conv.TryGetIsNAPredicate(type, out isNaDel);
                 bool defaultIsNa = false;

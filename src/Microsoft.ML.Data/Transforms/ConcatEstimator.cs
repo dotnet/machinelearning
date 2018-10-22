@@ -3,6 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Core.Data;
+using Microsoft.ML.Runtime;
+using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.StaticPipe;
 using Microsoft.ML.StaticPipe.Runtime;
@@ -10,24 +12,24 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Transforms
 {
-    public sealed class ConcatEstimator : IEstimator<ITransformer>
+    public sealed class ColumnConcatenatingEstimator  : IEstimator<ITransformer>
     {
         private readonly IHost _host;
         private readonly string _name;
         private readonly string[] _source;
 
         /// <summary>
-        /// Initializes a new instance of <see cref="ConcatEstimator"/>
+        /// Initializes a new instance of <see cref="ColumnConcatenatingEstimator"/>
         /// </summary>
         /// <param name="env">The private instance of <see cref="IHostEnvironment"/>.</param>
         /// <param name="outputColumn">The name of the resulting column.</param>
         /// <param name="inputColumns">The columns to concatenate together.</param>
-        public ConcatEstimator(IHostEnvironment env, string outputColumn, params string[] inputColumns)
+        public ColumnConcatenatingEstimator (IHostEnvironment env, string outputColumn, params string[] inputColumns)
         {
             Contracts.CheckValue(env, nameof(env));
-            _host = env.Register("ConcatEstimator");
+            _host = env.Register("ColumnConcatenatingEstimator ");
 
             _host.CheckNonEmpty(outputColumn, nameof(outputColumn));
             _host.CheckValue(inputColumns, nameof(inputColumns));
@@ -267,7 +269,7 @@ namespace Microsoft.ML.Runtime.Data
                 {
                     var ccol = (IConcatCol)toOutput[i];
                     string[] inputs = ccol.Sources.Select(s => inputNames[s]).ToArray();
-                    var localEst = new ConcatEstimator(env, outputNames[toOutput[i]], inputs);
+                    var localEst = new ColumnConcatenatingEstimator (env, outputNames[toOutput[i]], inputs);
                     if (i == 0)
                         est = localEst;
                     else

@@ -10,7 +10,7 @@ using System;
 using System.Linq;
 using static Microsoft.ML.Runtime.TextAnalytics.StopWordsRemoverTransform;
 
-namespace Microsoft.ML.Transforms
+namespace Microsoft.ML.Transforms.Text
 {
     /// <summary>
     /// Word tokenizer splits text into tokens using the delimiter.
