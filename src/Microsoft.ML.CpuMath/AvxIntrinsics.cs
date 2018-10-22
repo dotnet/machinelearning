@@ -360,8 +360,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
                             x1 = Avx.And(mask, x1);
                             Vector256<float> x2 = Avx.SetAllVector256(pSrcCurrent[col1]);
-                            x2 = Avx.Multiply(x2, x1);
-                            result = Avx.Add(result, x2);
+                            result = MultiplyAdd(x2, x1, result);
                             ppos++;
                         }
 
@@ -409,8 +408,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                             x1 = Avx.And(x1, trailingMask);
 
                             Vector256<float> x2 = Avx.SetAllVector256(pSrcCurrent[col1]);
-                            x2 = Avx.Multiply(x2, x1);
-                            result = Avx.Add(result, x2);
+                            result = MultiplyAdd(x2, x1, result);
                             ppos++;
                         }
 
@@ -438,8 +436,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                         Vector256<float> x1 = Avx.SetVector256(pm3[col2], pm2[col2], pm1[col2], pm0[col2],
                                                                    pm3[col1], pm2[col1], pm1[col1], pm0[col1]);
                         Vector256<float> x2 = Avx.SetAllVector256(pSrcCurrent[col1]);
-                        x2 = Avx.Multiply(x2, x1);
-                        result = Avx.Add(result, x2);
+                        result = MultiplyAdd(x2, x1, result);
                         ppos++;
                     }
 

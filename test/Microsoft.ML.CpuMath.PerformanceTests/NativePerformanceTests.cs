@@ -257,9 +257,9 @@ namespace Microsoft.ML.CpuMath.PerformanceTests
             fixed (float* psrc = &src[0])
             fixed (float* pdst = &dst[0])
             fixed (float* psrc1 = &src1[0])
-            fixed (int* pidx = &idx[0])
+            fixed (int* pidx = &matrixIdx[0])
             {
-                Thunk.MatMulP(psrc1, pidx, psrc, 0, 0, 8, pdst, 1000, 1000);
+                Thunk.MatMulP(psrc1, pidx, psrc, 0, 0, MatrixIndexLength, pdst, 1000, 1000);
             }
         }
     }

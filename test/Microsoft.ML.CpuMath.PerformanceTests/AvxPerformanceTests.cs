@@ -119,7 +119,8 @@ namespace Microsoft.ML.CpuMath.PerformanceTests
             => AvxIntrinsics.MatMulTran(src, src1, dst, 1000, 1000);
 
         [Benchmark]
+        [BenchmarkCategory("Fma")]
         public void MatMulP()
-            => AvxIntrinsics.MatMulP(src, idx, src1, 0, 0, 8, dst, 1000, 1000);
+            => AvxIntrinsics.MatMulP(src, matrixIdx, src1, 0, 0, MatrixIndexLength, dst, 1000, 1000);
     }
 }
