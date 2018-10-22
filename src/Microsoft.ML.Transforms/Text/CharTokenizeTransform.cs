@@ -206,8 +206,6 @@ namespace Microsoft.ML.Transforms.Text
                 var result = new Schema.Column[_parent.ColumnPairs.Length];
                 for (int i = 0; i < _parent.ColumnPairs.Length; i++)
                 {
-                    InputSchema.TryGetColumnIndex(_parent.ColumnPairs[i].input, out int colIndex);
-                    Host.Assert(colIndex >= 0);
                     var builder = new Schema.Metadata.Builder();
                     AddMetadata(i, builder);
                     result[i] = new Schema.Column(_parent.ColumnPairs[i].output, _types[i], builder.GetMetadata());
@@ -217,8 +215,7 @@ namespace Microsoft.ML.Transforms.Text
 
             private void AddMetadata(int iinfo, Schema.Metadata.Builder builder)
             {
-                InputSchema.TryGetColumnIndex(_parent.ColumnPairs[iinfo].input, out int srcCol);
-                builder.Add(InputSchema[srcCol].Metadata, name => name == MetadataUtils.Kinds.SlotNames);
+                builder.Add(InputSchema[_parent.ColumnPairs[iinfo].input].Metadata, name => name == MetadataUtils.Kinds.SlotNames);
                 ValueGetter<VBuffer<ReadOnlyMemory<char>>> getter =
                        (ref VBuffer<ReadOnlyMemory<char>> dst) =>
                        {
