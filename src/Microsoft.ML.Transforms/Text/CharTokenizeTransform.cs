@@ -4,11 +4,6 @@
 
 #pragma warning disable 420 // volatile with Interlocked.CompareExchange
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading;
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
@@ -17,6 +12,11 @@ using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Transforms.Text;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading;
 
 [assembly: LoadableClass(CharTokenizeTransform.Summary, typeof(IDataTransform), typeof(CharTokenizeTransform), typeof(CharTokenizeTransform.Arguments), typeof(SignatureDataTransform),
     CharTokenizeTransform.UserName, "CharTokenize", CharTokenizeTransform.LoaderSignature)]
@@ -115,15 +115,20 @@ namespace Microsoft.ML.Transforms.Text
 
         public IReadOnlyCollection<(string input, string output)> Columns => ColumnPairs.AsReadOnly();
 
+        protected override void CheckInputColumn(ISchema inputSchema, int col, int srcCol)
+        {
+            var type = inputSchema.GetColumnType(srcCol);
+            if (!CharacterTokenizeEstimator.IsColumnTypeValid(type))
+                throw Host.ExceptParam(nameof(inputSchema), CharacterTokenizeEstimator.ExpectedColumnType);
+        }
+
         private CharTokenizeTransform(IHost host, ModelLoadContext ctx) :
           base(host, ctx)
         {
-            var columnsLength = ColumnPairs.Length;
             // *** Binary format ***
             // <base>
             // byte: _useMarkerChars value.
             _useMarkerChars = ctx.Reader.ReadBoolByte();
-
             _isSeparatorStartEnd = ctx.Header.ModelVerReadable < 0x00010002 || ctx.Reader.ReadBoolByte();
         }
 
@@ -582,8 +587,9 @@ namespace Microsoft.ML.Transforms.Text
         /// Tokenize incoming text in input columns and output the tokens as output columns.
         /// </summary>
         /// <param name="env">The environment.</param>
-        /// <param name="columns">Pairs of columns to run the tokenization on.</param>
         /// <param name="useMarkerCharacters">Whether to use marker characters to separate words.</param>
+        /// <param name="columns">Pairs of columns to run the tokenization on.</param>
+
         public CharacterTokenizeEstimator(IHostEnvironment env, bool useMarkerCharacters = Defaults.UseMarkerCharacters, params (string input, string output)[] columns)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(CharacterTokenizeEstimator)), new CharTokenizeTransform(env, useMarkerCharacters, columns))
         {

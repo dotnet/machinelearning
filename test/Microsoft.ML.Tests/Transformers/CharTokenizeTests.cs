@@ -27,15 +27,24 @@ namespace Microsoft.ML.Tests.Transformers
             public string[] B;
         }
 
+        private class TestWrong
+        {
+            public float A;
+            [VectorType(2)]
+            public float[] B;
+        }
+
+
         [Fact]
         public void CharTokenizeWorkout()
         {
             var data = new[] { new TestClass() { A = "This is a good sentence.", B = new string[2] { "Much words", "Wow So Cool" } } };
-
             var dataView = ComponentCreation.CreateDataView(Env, data);
+            var invalidData = new[] { new TestWrong() { A = 1, B = new float[2] { 2,3} } };
+            var invalidDataView = ComponentCreation.CreateDataView(Env, invalidData);
             var pipe = new CharacterTokenizeEstimator(Env, columns: new[] { ("A", "TokenizeA"), ("B", "TokenizeB") });
 
-            TestEstimatorCore(pipe, dataView);
+            TestEstimatorCore(pipe, dataView, invalidInput:invalidDataView);
             Done();
         }
 
