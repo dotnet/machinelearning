@@ -578,7 +578,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
 
             public void GetSlotNames(ref VBuffer<ReadOnlyMemory<char>> dst)
             {
-                _slotNames.CopyTo(ref dst);
+                _slotNames.CopyTo(ref dst, 0, _parent._outputLength);
             }
 
             public Func<int, bool> GetDependencies(Func<int, bool> activeOutput)
