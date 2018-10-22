@@ -190,7 +190,7 @@ namespace Microsoft.ML.Transforms
             public float[][] Eigenvectors;
             public float[] MeanProjected;
 
-            internal ColumnType OutputType => new VectorType(NumberType.Float, Rank);
+            public ColumnType OutputType => new VectorType(NumberType.Float, Rank);
 
             public TransformInfo(int rank, int dim)
             {
@@ -250,7 +250,7 @@ namespace Microsoft.ML.Transforms
                 ctx.Writer.WriteFloatArray(MeanProjected);
             }
 
-            internal void ProjectMean(float[] mean)
+            public void ProjectMean(float[] mean)
             {
                 Contracts.AssertValue(Eigenvectors);
                 if (mean == null)
@@ -275,7 +275,7 @@ namespace Microsoft.ML.Transforms
             return new VersionInfo(
                 modelSignature: "PCA FUNC",
                 //verWrittenCur: 0x00010001, // Initial
-                verWrittenCur: 0x00010002, // Get rid of writing float size in model context
+                verWrittenCur: 0x00010002, // Got rid of writing float size in model context
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
                 loaderSignature: LoaderSignature,
@@ -288,10 +288,7 @@ namespace Microsoft.ML.Transforms
 
         private const string RegistrationName = "Pca";
 
-        /// <summary>
-        /// Public constructor corresponding to SignatureDataTransform.
-        /// </summary>
-        public PcaTransform(IHostEnvironment env, IDataView input, ColumnInfo[] columns)
+        internal PcaTransform(IHostEnvironment env, IDataView input, ColumnInfo[] columns)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(PcaTransform)), GetColumnPairs(columns))
         {
             Host.AssertNonEmpty(ColumnPairs);
