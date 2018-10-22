@@ -6,6 +6,7 @@ using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.RunTests;
 using Microsoft.ML.Scenarios;
 using Microsoft.ML.StaticPipe;
+using Microsoft.ML.Transforms.Text;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -38,7 +39,7 @@ namespace Microsoft.ML.Tests.Transformers
                 },
                 OutputTokens = true,
                 KeepPunctuations = false,
-                StopWordsRemover = new Runtime.TextAnalytics.PredefinedStopWordsRemoverFactory(),
+                StopWordsRemover = new PredefinedStopWordsRemoverFactory(),
                 VectorNormalizer = TextTransform.TextNormKind.None,
                 CharFeatureExtractor = null,
                 WordFeatureExtractor = null,

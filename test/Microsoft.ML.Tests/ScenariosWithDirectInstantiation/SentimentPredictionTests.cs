@@ -8,6 +8,7 @@ using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.FastTree;
 using Microsoft.ML.Runtime.Internal.Calibration;
+using Microsoft.ML.Transforms.Text;
 using System.Linq;
 using Xunit;
 
@@ -45,7 +46,7 @@ namespace Microsoft.ML.Scenarios
                     },
                     OutputTokens = true,
                     KeepPunctuations = false,
-                    StopWordsRemover = new Runtime.TextAnalytics.PredefinedStopWordsRemoverFactory(),
+                    StopWordsRemover = new PredefinedStopWordsRemoverFactory(),
                     VectorNormalizer = TextTransform.TextNormKind.L2,
                     CharFeatureExtractor = new NgramExtractorTransform.NgramExtractorArguments() { NgramLength = 3, AllLengths = false },
                     WordFeatureExtractor = new NgramExtractorTransform.NgramExtractorArguments() { NgramLength = 2, AllLengths = true },
@@ -108,7 +109,7 @@ namespace Microsoft.ML.Scenarios
                     },
                     OutputTokens = true,
                     KeepPunctuations= false,
-                    StopWordsRemover = new Runtime.TextAnalytics.PredefinedStopWordsRemoverFactory(),
+                    StopWordsRemover = new PredefinedStopWordsRemoverFactory(),
                     VectorNormalizer = TextTransform.TextNormKind.None,
                     CharFeatureExtractor = null,
                     WordFeatureExtractor = null,

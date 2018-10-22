@@ -169,12 +169,12 @@ namespace Microsoft.ML.Runtime.Data
             public readonly bool OutputTextTokens;
             public readonly TermLoaderArguments Dictionary;
 
-            public StopWordsRemoverTransform.Language StopwordsLanguage
+            public StopWordsRemoverEstimator.Language StopwordsLanguage
             {
                 get
                 {
-                    return (StopWordsRemoverTransform.Language)
-                        Enum.Parse(typeof(StopWordsRemoverTransform.Language), Language.ToString());
+                    return (StopWordsRemoverEstimator.Language)
+                        Enum.Parse(typeof(StopWordsRemoverEstimator.Language), Language.ToString());
                 }
             }
 

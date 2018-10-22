@@ -142,7 +142,7 @@ namespace Microsoft.ML.Tests.Transformers
 
             var est = new TextNormalizerEstimator(Env,"text")
                 .Append(new WordTokenizer(Env, "text", "words"))
-                .Append(new StopwordRemover(Env, "words", "words_without_stopwords"));
+                .Append(new StopWordsRemoverEstimator(Env, "words", "words_without_stopwords"));
             TestEstimatorCore(est, data.AsDynamic, invalidInput: invalidData.AsDynamic);
 
             var outputPath = GetOutputPath("Text", "words_without_stopwords.tsv");

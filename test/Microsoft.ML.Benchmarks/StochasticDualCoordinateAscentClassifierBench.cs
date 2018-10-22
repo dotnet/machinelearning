@@ -11,6 +11,7 @@ using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Learners;
+using Microsoft.ML.Transforms.Text;
 using System.Collections.Generic;
 using System.Globalization;
 
@@ -99,7 +100,7 @@ namespace Microsoft.ML.Benchmarks
                         },
                         OutputTokens = true,
                         KeepPunctuations=false,
-                        StopWordsRemover = new Runtime.TextAnalytics.PredefinedStopWordsRemoverFactory(),
+                        StopWordsRemover = new PredefinedStopWordsRemoverFactory(),
                         VectorNormalizer = TextTransform.TextNormKind.None,
                         CharFeatureExtractor = null,
                         WordFeatureExtractor = null,
