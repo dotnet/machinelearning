@@ -329,7 +329,7 @@ namespace Microsoft.ML.Tests
             fileText = Regex.Replace(fileText, "\"producerVersion\": \"([^\"]+)\"", "\"producerVersion\": \"##VERSION##\"");
             File.WriteAllText(onnxAsJsonPath, fileText);
 
-            CheckEquality(subDir, "Kmeans.json");
+            CheckEquality(subDir, "Kmeans.json", digitsOfPrecision: 2);
             Done();
         }
 
@@ -452,7 +452,7 @@ namespace Microsoft.ML.Tests
             fileText = Regex.Replace(fileText, "\"producerVersion\": \"([^\"]+)\"", "\"producerVersion\": \"##VERSION##\"");
             File.WriteAllText(onnxAsJsonPath, fileText);
 
-            CheckEquality(subDir, "BinaryClassificationLRSaveModelToOnnxTest.json");
+            CheckEquality(subDir, "BinaryClassificationLRSaveModelToOnnxTest.json", digitsOfPrecision: 3);
             Done();
         }
 
@@ -514,7 +514,7 @@ namespace Microsoft.ML.Tests
             fileText = Regex.Replace(fileText, "\"producerVersion\": \"([^\"]+)\"", "\"producerVersion\": \"##VERSION##\"");
             File.WriteAllText(onnxAsJsonPath, fileText);
 
-            CheckEquality(subDir, "MultiClassificationLRSaveModelToOnnxTest.json");
+            CheckEquality(subDir, "MultiClassificationLRSaveModelToOnnxTest.json", digitsOfPrecision: 4);
             Done();
         }
 

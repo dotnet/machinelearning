@@ -53,7 +53,7 @@ namespace Microsoft.ML.Tests.Transformers
                     DataSaverUtils.SaveDataView(ch, saver, savedData, fs, keepHidden: true);
             }
 
-            CheckEquality("PCA", "pca.tsv");
+            CheckEquality("PCA", "pca.tsv", digitsOfPrecision: 4);
             Done();
         }
     }

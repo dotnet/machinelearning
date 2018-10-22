@@ -3630,10 +3630,10 @@ namespace Microsoft.ML.Runtime.RunTests
                     DataSaverUtils.SaveDataView(ch, saver, mcOutput.Stats, file);
             }
 
-            CheckEquality(@"../Common/EntryPoints", "lr-weights.txt");
-            CheckEquality(@"../Common/EntryPoints", "lr-stats.txt");
-            CheckEquality(@"../Common/EntryPoints", "mc-lr-weights.txt");
-            CheckEquality(@"../Common/EntryPoints", "mc-lr-stats.txt");
+            CheckEquality(@"../Common/EntryPoints", "lr-weights.txt", digitsOfPrecision: 6);
+            CheckEquality(@"../Common/EntryPoints", "lr-stats.txt", digitsOfPrecision: 6);
+            CheckEquality(@"../Common/EntryPoints", "mc-lr-weights.txt", digitsOfPrecision: 3);
+            CheckEquality(@"../Common/EntryPoints", "mc-lr-stats.txt", digitsOfPrecision: 5);
             Done();
         }
 
@@ -3675,7 +3675,7 @@ namespace Microsoft.ML.Runtime.RunTests
                         DataSaverUtils.SaveDataView(ch, saver, output.Summary, file);
                 }
 
-                CheckEquality(@"../Common/EntryPoints", "pca-weights.txt");
+                CheckEquality(@"../Common/EntryPoints", "pca-weights.txt", digitsOfPrecision: 4);
                 Done();
             }
         }
