@@ -365,13 +365,17 @@ namespace Microsoft.ML.Runtime.Data
                 //
                 // Symbols:
                 // j: length of latent vector of every word in the pretrained model
-                // n: length of input tensor
+                // n: length of input tensor (number of words)
                 // X: word input, a tensor with n elements.
                 // k: # of words in pretrained model (known when transform is created)
                 // S: word labels, k tensor (known when transform is created)
-                // D: word embeddings, k-by-j tensor(known when transform is created)
+                // D: word embeddings, (k + 3)-by-j tensor(known when transform is created). The extra three embeddings
+                //      at the end are used for out of vocab words.
                 //
-                // X [n] -- > LabelEncoder (classes_strings = S [k], default_int64 = 1)        D [k, j] --> Initializer
+
+                //
+                //-- > LabelEncoder (classes_strings = S [k], default_int64 = 1)
+                //D [k, j] --> Initializer
                 //                              |                                                   |
                 //                            Y [n]                                                 |
                 //                              |                                                   |
@@ -389,43 +393,124 @@ namespace Microsoft.ML.Runtime.Data
                 //                                                      |
                 //                                                   P [j * 3]
 
+                long[] axes = new long[] { 0 };
                 // Allocate D, a constant tensor
-                var shapeD = new long[] { _parent._currentVocab.GetNumWords(), _parent._currentVocab.Dimension };
-                var tensorD = _parent._currentVocab.WordVectors;
+                var shapeD = new long[] { _parent._currentVocab.GetNumWords() + 3, _parent._currentVocab.Dimension };
+                var wordVectors = _parent._currentVocab.WordVectors;
+                var tensorD = new List<float>();
+                tensorD.AddRange(wordVectors);
+                tensorD.AddRange(Enumerable.Repeat(float.MinValue, _parent._currentVocab.Dimension));
+                tensorD.AddRange(Enumerable.Repeat(float.MaxValue, _parent._currentVocab.Dimension));
+                tensorD.AddRange(Enumerable.Repeat(0.0f, _parent._currentVocab.Dimension));
                 var nameD = ctx.AddInitializer(tensorD, shapeD, "WordEmbeddingWeights");
 
-                // Retrieve name of X
+                // Allocate F, a constant tensor representing not found words
+                var shapeF = new long[] { 1 };
+                var tensorF = new List<long>{ -1 };
+                var nameF = ctx.AddInitializer(tensorF, shapeF, "NotFoundValueComp");
+
+                // Retrieve name of input
                 var nameX = srcVariableName;
 
                 // Do label encoding
                 var nameY = ctx.AddIntermediateVariable(null, "LabelEncodedInput", true);
                 var nodeY = ctx.CreateNode("LabelEncoder", nameX, nameY, ctx.GetNodeName("LabelEncoder"));
                 nodeY.AddAttribute("classes_strings", _parent._currentVocab.GetWordLabels());
-                nodeY.AddAttribute("default_int64", 1);
 
-                // Map encoded words to their embedding vectors using Gather
-                var nameW = ctx.AddIntermediateVariable(null, "WeightsOfInput", true);
-                var nodeW = ctx.CreateNode("Gather", new[] { nameD, nameY }, new[] { nameW }, ctx.GetNodeName("Gather"), "");
+                // Do steps necessary for min and max embedding vectors
 
-                long[] axes = new long[] { 0 };
-                // Merge all embedding vectors using element-wise min per embedding coordinate
+                // Map to boolean vector representing missing words
+                var nameA = ctx.AddIntermediateVariable(null, "NotFoundValuesBool", true);
+                var nodeA = ctx.CreateNode("Equal", new[] { nameY, nameF }, new[] { nameA }, ctx.GetNodeName("Equal"), "");
+
+                // Cast the not found values to floats
+                var nameB = ctx.AddIntermediateVariable(null, "NotFoundValuesFloat", true);
+                var nodeB = ctx.CreateNode("Cast", nameA, nameB, ctx.GetNodeName("Cast"), "");
+                nodeB.AddAttribute("to", 1);
+
+                // Do the scaling to get to the right location for the latent vector
+                var nameSMin = ctx.AddIntermediateVariable(null, "ScaleMin", true);
+                var nodeSMin = ctx.CreateNode("Scale", nameB, nameSMin, ctx.GetNodeName("Scale"), "");
+                nodeSMin.AddAttribute("scale", -1.0);
+
+                var nameSMax = ctx.AddIntermediateVariable(null, "ScaleMax", true);
+                var nodeSMax = ctx.CreateNode("Scale", nameB, nameSMax, ctx.GetNodeName("Scale"), "");
+                nodeSMax.AddAttribute("scale", -2.0);
+
+                // Cast scaled word label locations to ints
+                var nameVMin = ctx.AddIntermediateVariable(null, "CastMin", true);
+                var nodeVMin = ctx.CreateNode("Cast", nameSMin, nameVMin, ctx.GetNodeName("Cast"), "");
+                nodeVMin.AddAttribute("to", 7);
+
+                var nameVMax = ctx.AddIntermediateVariable(null, "CastMax", true);
+                var nodeVMax = ctx.CreateNode("Cast", nameSMax, nameVMax, ctx.GetNodeName("Cast"), "");
+                nodeVMax.AddAttribute("to", 7);
+
+                // Add the scaled options back to originals
+                var namePMin = ctx.AddIntermediateVariable(null, "AddMin", true);
+                var nodePMin = ctx.CreateNode("Add", new[] { nameY, nameVMin }, new[] { namePMin }, ctx.GetNodeName("Add"), "");
+
+                var namePMax = ctx.AddIntermediateVariable(null, "AddMax", true);
+                var nodePMax = ctx.CreateNode("Add", new[] { nameY, nameVMax }, new[] { namePMax }, ctx.GetNodeName("Add"), "");
+
+                // Map encoded words to their embedding vectors, mapping missing ones to min/max
+                var nameGMin = ctx.AddIntermediateVariable(null, "GatheredMin", true);
+                var nodeGMin = ctx.CreateNode("Gather", new[] { nameD, namePMin }, new[] { nameGMin }, ctx.GetNodeName("Gather"), "");
+
+                var nameGMax = ctx.AddIntermediateVariable(null, "GatheredMax", true);
+                var nodeGMax = ctx.CreateNode("Gather", new[] { nameD, namePMax }, new[] { nameGMax }, ctx.GetNodeName("Gather"), "");
+
+                // Merge all embedding vectors using element-wise min/max per embedding coordinate
                 var nameJ = ctx.AddIntermediateVariable(null, "MinWeights", true);
-                var nodeJ = ctx.CreateNode("ReduceMin", nameW, nameJ, ctx.GetNodeName("ReduceMin"), "");
+                var nodeJ = ctx.CreateNode("ReduceMin", nameGMin, nameJ, ctx.GetNodeName("ReduceMin"), "");
                 nodeJ.AddAttribute("axes", axes);
 
-                // Merge all embedding vectors using element-wise mean per embedding coordinate
-                var nameK = ctx.AddIntermediateVariable(null, "MeanWeights", true);
-                var nodeK = ctx.CreateNode("ReduceMean", nameW, nameK, ctx.GetNodeName("ReduceMean"), "");
+                var nameL = ctx.AddIntermediateVariable(null, "MaxWeights", true);
+                var nodeL = ctx.CreateNode("ReduceMax", nameGMax, nameL, ctx.GetNodeName("ReduceMax"), "");
+                nodeL.AddAttribute("axes", axes);
+
+                // Do steps necessary for mean embedding vector
+
+                // Map encoded words to their embedding vectors using Gather
+                var nameW = ctx.AddIntermediateVariable(null, "GatheredMean", true);
+                var nodeW = ctx.CreateNode("Gather", new[] { nameD, nameY }, new[] { nameW }, ctx.GetNodeName("Gather"), "");
+
+                // Find the sum of the embedding vectors
+                var nameK = ctx.AddIntermediateVariable(null, "SumWeights", true);
+                var nodeK = ctx.CreateNode("ReduceSum", nameW, nameK, ctx.GetNodeName("ReduceSum"), "");
                 nodeK.AddAttribute("axes", axes);
 
-                // Merge all embedding vectors using element-wise max per embedding coordinate
-                var nameL = ctx.AddIntermediateVariable(null, "MaxWeights", true);
-                var nodeL = ctx.CreateNode("ReduceMax", nameW, nameL, ctx.GetNodeName("ReduceMax"), "");
-                nodeL.AddAttribute("axes", axes);
+                // Flip the boolean vector representing missing words to represent found words
+                var nameQ = ctx.AddIntermediateVariable(null, "FoundValuesBool", true);
+                var nodeQ = ctx.CreateNode("Not", nameA, nameQ, ctx.GetNodeName("Not"), "");
+
+                // Cast the found words vector to ints
+                var nameZ = ctx.AddIntermediateVariable(null, "FoundValuesInt", true);
+                var nodeZ = ctx.CreateNode("Cast", nameQ, nameZ, ctx.GetNodeName("Cast"), "");
+                nodeZ.AddAttribute("to", 7);
+
+                // Sum the number of total found words
+                var nameR = ctx.AddIntermediateVariable(null, "NumWordsFoundInt", true);
+                var nodeR = ctx.CreateNode("ReduceSum", nameZ, nameR, ctx.GetNodeName("ReduceSum"), "");
+                nodeR.AddAttribute("axes", axes);
+
+                // Cast the found words to float
+                var nameRF = ctx.AddIntermediateVariable(null, "NumWordsFoundFloat", true);
+                var nodeRF = ctx.CreateNode("Cast", nameR, nameRF, ctx.GetNodeName("Cast"), "");
+                nodeRF.AddAttribute("to", 1);
+
+                // Clip the number of found words to prevent division by 0
+                var nameT = ctx.AddIntermediateVariable(null, "NumWordsClippedFloat", true);
+                var nodeT = ctx.CreateNode("Clip", nameRF, nameT, ctx.GetNodeName("Clip"), "");
+                nodeT.AddAttribute("min", 1.0f);
+
+                // Divide total sum by number of words found
+                var nameE = ctx.AddIntermediateVariable(null, "MeanWeights", true);
+                var nodeE = ctx.CreateNode("Div", new[] { nameK, nameT }, new[] { nameE }, ctx.GetNodeName("Div"), "");
 
                 // Concatenate the final embeddings produced by the three reduction strategies.
                 var nameP = dstVariableName;
-                var nodeP = ctx.CreateNode("Concat", new[] { nameJ, nameK, nameL }, new[] { nameP }, ctx.GetNodeName("Concat"), "");
+                var nodeP = ctx.CreateNode("Concat", new[] { nameJ, nameE, nameL }, new[] { nameP }, ctx.GetNodeName("Concat"), "");
                 nodeP.AddAttribute("axis", 1);
             }
 
