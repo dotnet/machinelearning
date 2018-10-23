@@ -10,6 +10,8 @@ using Microsoft.ML.Runtime.Internal.Calibration;
 using Microsoft.ML.Runtime.Learners;
 using Microsoft.ML.Runtime.LightGBM;
 using Microsoft.ML.Runtime.Training;
+using Microsoft.ML.Runtime.FastTree.Internal;
+using Microsoft.ML.Trainers;
 using System;
 using System.Linq;
 
@@ -17,7 +19,7 @@ using System.Linq;
     new[] { typeof(SignatureMultiClassClassifierTrainer), typeof(SignatureTrainer) },
     "LightGBM Multi-class Classifier", LightGbmMulticlassTrainer.LoadNameValue, LightGbmMulticlassTrainer.ShortName, DocName = "trainer/LightGBM.md")]
 
-namespace Microsoft.ML.Runtime.LightGBM
+namespace Microsoft.ML.Trainers
 {
 
     /// <include file='doc.xml' path='doc/members/member[@name="LightGBM"]/*' />
@@ -57,9 +59,9 @@ namespace Microsoft.ML.Runtime.LightGBM
             _numClass = -1;
         }
 
-        private FastTree.Internal.Ensemble GetBinaryEnsemble(int classID)
+        private Ensemble GetBinaryEnsemble(int classID)
         {
-            FastTree.Internal.Ensemble res = new FastTree.Internal.Ensemble();
+            Ensemble res = new Ensemble();
             for (int i = classID; i < TrainedEnsemble.NumTrees; i += _numClass)
             {
                 // Ignore dummy trees.
