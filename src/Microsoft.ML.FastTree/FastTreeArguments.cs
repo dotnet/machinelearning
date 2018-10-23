@@ -2,10 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.FastTree;
 using Microsoft.ML.Runtime.Internal.Internallearn;
+using Microsoft.ML.Trainers;
 using System;
 
 [assembly: EntryPointModule(typeof(FastTreeBinaryClassificationTrainer.Arguments))]
@@ -13,7 +15,7 @@ using System;
 [assembly: EntryPointModule(typeof(FastTreeTweedieTrainer.Arguments))]
 [assembly: EntryPointModule(typeof(FastTreeRankingTrainer.Arguments))]
 
-namespace Microsoft.ML.Runtime.FastTree
+namespace Microsoft.ML.Trainers
 {
     [TlcModule.ComponentKind("FastTreeTrainer")]
     public interface IFastTreeTrainerFactory : IComponentFactory<ITrainer>

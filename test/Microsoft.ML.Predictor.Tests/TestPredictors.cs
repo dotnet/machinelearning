@@ -17,6 +17,7 @@ namespace Microsoft.ML.Runtime.RunTests
     using Microsoft.ML.Runtime.LightGBM;
     using Microsoft.ML.Runtime.SymSgd;
     using Microsoft.ML.TestFramework;
+    using Microsoft.ML.Trainers;
     using System.Linq;
     using System.Runtime.InteropServices;
     using Xunit;

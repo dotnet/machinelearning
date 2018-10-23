@@ -13,6 +13,7 @@ using Microsoft.ML.Runtime.Internal.Internallearn;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.Training;
+using Microsoft.ML.Trainers;
 using System;
 
 [assembly: LoadableClass(FastForestRegression.Summary, typeof(FastForestRegression), typeof(FastForestRegression.Arguments),
@@ -25,7 +26,7 @@ using System;
     "FastForest Regression Executor",
     FastForestRegressionPredictor.LoaderSignature)]
 
-namespace Microsoft.ML.Runtime.FastTree
+namespace Microsoft.ML.Trainers
 {
     public sealed class FastForestRegressionPredictor :
         FastTreePredictionWrapper,

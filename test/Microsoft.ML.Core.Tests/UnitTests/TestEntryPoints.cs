@@ -28,6 +28,7 @@ using Microsoft.ML.Runtime.PipelineInference;
 using Microsoft.ML.Runtime.SymSgd;
 using Microsoft.ML.Runtime.TextAnalytics;
 using Microsoft.ML.Runtime.TimeSeriesProcessing;
+using Microsoft.ML.Trainers;
 using Microsoft.ML.Transforms;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -3793,7 +3794,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 Column = new[] { new ConcatTransform.Column { Name = "Features", Source = new[] { "Categories", "NumericFeatures" } } }
             });
 
-            var fastTree = FastTree.FastTree.TrainBinary(Env, new FastTreeBinaryClassificationTrainer.Arguments
+            var fastTree = Trainers.FastTree.TrainBinary(Env, new FastTreeBinaryClassificationTrainer.Arguments
             {
                 FeatureColumn = "Features",
                 NumTrees = 5,

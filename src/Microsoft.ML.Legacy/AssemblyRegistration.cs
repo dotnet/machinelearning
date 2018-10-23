@@ -9,6 +9,7 @@ using Microsoft.ML.Runtime.KMeans;
 using Microsoft.ML.Runtime.PCA;
 using Microsoft.ML.Runtime.Sweeper;
 using Microsoft.ML.Runtime.Tools;
+using Microsoft.ML.Trainers;
 using System;
 using System.Reflection;
 

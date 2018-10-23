@@ -8,6 +8,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.ML.Runtime.Internal.CpuMath;
 using Microsoft.ML.Runtime.Internal.Utilities;
+using Microsoft.ML.Trainers;
 
 namespace Microsoft.ML.Runtime.FastTree.Internal
 {

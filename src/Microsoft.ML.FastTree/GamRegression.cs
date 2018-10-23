@@ -11,6 +11,7 @@ using Microsoft.ML.Runtime.FastTree.Internal;
 using Microsoft.ML.Runtime.Internal.Internallearn;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.Training;
+using Microsoft.ML.Trainers;
 using System;
 
 [assembly: LoadableClass(RegressionGamTrainer.Summary,
@@ -24,7 +25,7 @@ using System;
     "GAM Regression Predictor",
     RegressionGamPredictor.LoaderSignature)]
 
-namespace Microsoft.ML.Runtime.FastTree
+namespace Microsoft.ML.Trainers
 {
     public sealed class RegressionGamTrainer : GamTrainerBase<RegressionGamTrainer.Arguments, RegressionPredictionTransformer<RegressionGamPredictor>, RegressionGamPredictor>
     {

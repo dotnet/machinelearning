@@ -14,6 +14,7 @@ using Microsoft.ML.Runtime.Sweeper;
 using Microsoft.ML.Runtime.Internal.Internallearn;
 using Newtonsoft.Json;
 using Microsoft.ML.Runtime.FastTree;
+using Microsoft.ML.Trainers;
 
 namespace Microsoft.ML.Runtime.PipelineInference
 {

@@ -17,6 +17,7 @@ using Microsoft.ML.Runtime.FastTree;
 using Microsoft.ML.Runtime.FastTree.Internal;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Sweeper.Algorithms;
+using Microsoft.ML.Trainers;
 
 [assembly: LoadableClass(typeof(SmacSweeper), typeof(SmacSweeper.Arguments), typeof(SignatureSweeper),
     "SMAC Sweeper", "SMACSweeper", "SMAC")]

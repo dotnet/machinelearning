@@ -12,6 +12,7 @@ using Microsoft.ML.Runtime.Internal.Calibration;
 using Microsoft.ML.Runtime.Internal.Internallearn;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.Training;
+using Microsoft.ML.Trainers;
 using System;
 using System.Threading.Tasks;
 
@@ -26,7 +27,7 @@ using System.Threading.Tasks;
     "GAM Binary Class Predictor",
     BinaryClassGamPredictor.LoaderSignature)]
 
-namespace Microsoft.ML.Runtime.FastTree
+namespace Microsoft.ML.Trainers
 {
     public sealed class BinaryClassificationGamTrainer :
     GamTrainerBase<BinaryClassificationGamTrainer.Arguments, BinaryPredictionTransformer<IPredictorProducing<float>>, IPredictorProducing<float>>

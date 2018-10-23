@@ -6,6 +6,7 @@ using System.Text;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.FastTree;
 using Microsoft.ML.TestFramework;
+using Microsoft.ML.Trainers;
 
 namespace Microsoft.ML.Runtime.RunTests
 {

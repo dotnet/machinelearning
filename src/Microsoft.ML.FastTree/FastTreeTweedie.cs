@@ -12,6 +12,7 @@ using Microsoft.ML.Runtime.Internal.Internallearn;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.Training;
+using Microsoft.ML.Trainers;
 using System;
 using System.Linq;
 using System.Text;
@@ -26,7 +27,7 @@ using System.Text;
     "FastTree Tweedie Regression Executor",
     FastTreeTweediePredictor.LoaderSignature)]
 
-namespace Microsoft.ML.Runtime.FastTree
+namespace Microsoft.ML.Trainers
 {
     // The Tweedie boosting model follows the mathematics established in:
     // Yang, Quan, and Zou. "Insurance Premium Prediction via Gradient Tree-Boosted Tweedie Compound Poisson Models."

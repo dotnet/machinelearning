@@ -5,6 +5,7 @@
 using System;
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime.FastTree.Internal;
+using Microsoft.ML.Trainers;
 
 namespace Microsoft.ML.Runtime.FastTree
 {

@@ -8,6 +8,7 @@ using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.FastTree;
 using Microsoft.ML.Runtime.Internal.Calibration;
+using Microsoft.ML.Trainers;
 using System.Linq;
 using Xunit;
 

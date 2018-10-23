@@ -8,6 +8,7 @@ using Microsoft.ML.Runtime.FastTree;
 using Microsoft.ML.Runtime.LightGBM;
 using Microsoft.ML.Runtime.RunTests;
 using Microsoft.ML.Runtime.Tools;
+using Microsoft.ML.Trainers;
 using Microsoft.ML.Transforms;
 using System.IO;
 

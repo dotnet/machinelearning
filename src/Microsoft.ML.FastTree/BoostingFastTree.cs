@@ -10,6 +10,7 @@ using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.FastTree.Internal;
 using Microsoft.ML.Runtime.Internal.Internallearn;
+using Microsoft.ML.Trainers;
 
 namespace Microsoft.ML.Runtime.FastTree
 {

@@ -15,6 +15,7 @@ using Microsoft.ML.Runtime.Model.Onnx;
 using Microsoft.ML.Runtime.Model.Pfa;
 using Microsoft.ML.Runtime.Training;
 using Microsoft.ML.Runtime.TreePredictor;
+using Microsoft.ML.Trainers;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections;
