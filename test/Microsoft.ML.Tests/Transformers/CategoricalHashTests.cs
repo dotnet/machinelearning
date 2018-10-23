@@ -66,7 +66,7 @@ namespace Microsoft.ML.Tests.Transformers
             var reader = TextLoader.CreateReader(Env, ctx => (
                 ScalarString: ctx.LoadText(1),
                 VectorString: ctx.LoadText(1, 4)));
-            var data = reader.Read(new MultiFileSource(dataPath));
+            var data = reader.Read(dataPath);
             var wrongCollection = new[] { new TestClass() { A = "1", B = "2", C = "3", }, new TestClass() { A = "4", B = "5", C = "6" } };
 
             var invalidData = ComponentCreation.CreateDataView(Env, wrongCollection);

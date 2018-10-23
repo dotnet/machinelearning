@@ -1063,10 +1063,10 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn.ResultProcessor
             var experiment = new ML.Runtime.ExperimentVisualization.Experiment
             {
                 Key = index.ToString(),
-                CompareGroup = string.IsNullOrEmpty(result.CustomizedTag) ? result.Trainer.Kind : result.CustomizedTag,
+                CompareGroup = string.IsNullOrEmpty(result.CustomizedTag) ? result.TrainerKind : result.CustomizedTag,
                 Trainer = new ML.Runtime.ExperimentVisualization.Trainer
                 {
-                    Name = result.Trainer.Kind,
+                    Name = result.TrainerKind,
                     ParameterSets = new List<ML.Runtime.ExperimentVisualization.Item>()
                 },
                 DataSet = new ML.Runtime.ExperimentVisualization.DataSet { File = result.Datafile },
@@ -1152,7 +1152,10 @@ namespace Microsoft.ML.Runtime.Internal.Internallearn.ResultProcessor
 
         public static int Main(string[] args)
         {
-            return Main(new ConsoleEnvironment(42), args);
+            string currentDirectory = Path.GetDirectoryName(typeof(ResultProcessor).Module.FullyQualifiedName);
+            using (var env = new ConsoleEnvironment(42))
+            using (AssemblyLoadingUtils.CreateAssemblyRegistrar(env, currentDirectory))
+                return Main(env, args);
         }
 
         public static int Main(IHostEnvironment env, string[] args)

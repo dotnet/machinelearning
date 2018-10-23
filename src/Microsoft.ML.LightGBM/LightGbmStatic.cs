@@ -6,11 +6,10 @@ using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Internal.Internallearn;
 using Microsoft.ML.Runtime.LightGBM;
-using Microsoft.ML.StaticPipe;
 using Microsoft.ML.StaticPipe.Runtime;
 using System;
 
-namespace Microsoft.ML.Trainers
+namespace Microsoft.ML.StaticPipe
 {
     /// <summary>
     /// Regression trainer estimators.
@@ -35,6 +34,12 @@ namespace Microsoft.ML.Trainers
         /// the linear model that was trained. Note that this action cannot change the result in any way;
         /// it is only a way for the caller to be informed about what was learnt.</param>
         /// <returns>The Score output column indicating the predicted value.</returns>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        ///  [!code-csharp[SDCA](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Trainers.cs?range=6-12,135-193 "LightGbm regression example.")]
+        /// ]]></format>
+        /// </example>
         public static Scalar<float> LightGbm(this RegressionContext.RegressionTrainers ctx,
             Scalar<float> label, Vector<float> features, Scalar<float> weights = null,
             int? numLeaves = null,

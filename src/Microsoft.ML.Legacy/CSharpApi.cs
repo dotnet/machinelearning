@@ -1042,18 +1042,6 @@ namespace Microsoft.ML
                 _jsonNodes.Add(Serialize("Transforms.ColumnCopier", input, output));
             }
 
-            public Microsoft.ML.Legacy.Transforms.ColumnDropper.Output Add(Microsoft.ML.Legacy.Transforms.ColumnDropper input)
-            {
-                var output = new Microsoft.ML.Legacy.Transforms.ColumnDropper.Output();
-                Add(input, output);
-                return output;
-            }
-
-            public void Add(Microsoft.ML.Legacy.Transforms.ColumnDropper input, Microsoft.ML.Legacy.Transforms.ColumnDropper.Output output)
-            {
-                _jsonNodes.Add(Serialize("Transforms.ColumnDropper", input, output));
-            }
-
             public Microsoft.ML.Legacy.Transforms.ColumnSelector.Output Add(Microsoft.ML.Legacy.Transforms.ColumnSelector input)
             {
                 var output = new Microsoft.ML.Legacy.Transforms.ColumnSelector.Output();
@@ -11761,71 +11749,6 @@ namespace Microsoft.ML
     {
 
         /// <summary>
-        /// Drops columns from the dataset
-        /// </summary>
-        public sealed partial class ColumnDropper : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
-        {
-
-
-            /// <summary>
-            /// Column name to drop
-            /// </summary>
-            public string[] Column { get; set; }
-
-            /// <summary>
-            /// Input dataset
-            /// </summary>
-            public Var<Microsoft.ML.Runtime.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
-
-
-            public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITransformOutput
-            {
-                /// <summary>
-                /// Transformed dataset
-                /// </summary>
-                public Var<Microsoft.ML.Runtime.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
-
-                /// <summary>
-                /// Transform model
-                /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel>();
-
-            }
-            public Var<IDataView> GetInputData() => Data;
-            
-            public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
-            {
-                if (previousStep != null)
-                {
-                    if (!(previousStep is ILearningPipelineDataStep dataStep))
-                    {
-                        throw new InvalidOperationException($"{ nameof(ColumnDropper)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
-                    }
-
-                    Data = dataStep.Data;
-                }
-                Output output = experiment.Add(this);
-                return new ColumnDropperPipelineStep(output);
-            }
-
-            private class ColumnDropperPipelineStep : ILearningPipelineDataStep
-            {
-                public ColumnDropperPipelineStep(Output output)
-                {
-                    Data = output.OutputData;
-                    Model = output.Model;
-                }
-
-                public Var<IDataView> Data { get; }
-                public Var<ITransformModel> Model { get; }
-            }
-        }
-    }
-
-    namespace Legacy.Transforms
-    {
-
-        /// <summary>
         /// Selects a set of columns, dropping all others
         /// </summary>
         public sealed partial class ColumnSelector : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
@@ -11833,9 +11756,24 @@ namespace Microsoft.ML
 
 
             /// <summary>
-            /// Column name to keep
+            /// List of columns to keep.
             /// </summary>
-            public string[] Column { get; set; }
+            public string[] KeepColumns { get; set; }
+
+            /// <summary>
+            /// List of columns to drop.
+            /// </summary>
+            public string[] DropColumns { get; set; }
+
+            /// <summary>
+            /// Specifies whether to keep or remove hidden columns.
+            /// </summary>
+            public bool KeepHidden { get; set; } = true;
+
+            /// <summary>
+            /// Specifies whether to ignore columns that are missing from the input.
+            /// </summary>
+            public bool IgnoreMissing { get; set; } = true;
 
             /// <summary>
             /// Input dataset
@@ -16789,7 +16727,7 @@ namespace Microsoft.ML
             Japanese = 7
         }
 
-        public enum TextNormalizerTransformCaseNormalizationMode
+        public enum TextNormalizerEstimatorCaseNormalizationMode
         {
             Lower = 0,
             Upper = 1,
@@ -16877,7 +16815,7 @@ namespace Microsoft.ML
             /// <summary>
             /// Casing text using the rules of the invariant culture.
             /// </summary>
-            public TextNormalizerTransformCaseNormalizationMode TextCase { get; set; } = TextNormalizerTransformCaseNormalizationMode.Lower;
+            public TextNormalizerEstimatorCaseNormalizationMode TextCase { get; set; } = TextNormalizerEstimatorCaseNormalizationMode.Lower;
 
             /// <summary>
             /// Whether to keep diacritical marks or remove them.
@@ -17596,7 +17534,7 @@ namespace Microsoft.ML
     namespace Legacy.Transforms
     {
 
-        public sealed partial class DelimitedTokenizeTransformColumn : OneToOneColumn<DelimitedTokenizeTransformColumn>, IOneToOneColumn
+        public sealed partial class WordTokenizeTransformColumn : OneToOneColumn<WordTokenizeTransformColumn>, IOneToOneColumn
         {
             /// <summary>
             /// Comma separated set of term separator(s). Commonly: 'space', 'comma', 'semicolon' or other single character.
@@ -17648,15 +17586,15 @@ namespace Microsoft.ML
             
             public void AddColumn(string inputColumn)
             {
-                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.DelimitedTokenizeTransformColumn>() : new List<Microsoft.ML.Legacy.Transforms.DelimitedTokenizeTransformColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.DelimitedTokenizeTransformColumn>.Create(inputColumn));
+                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.WordTokenizeTransformColumn>() : new List<Microsoft.ML.Legacy.Transforms.WordTokenizeTransformColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.WordTokenizeTransformColumn>.Create(inputColumn));
                 Column = list.ToArray();
             }
 
             public void AddColumn(string outputColumn, string inputColumn)
             {
-                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.DelimitedTokenizeTransformColumn>() : new List<Microsoft.ML.Legacy.Transforms.DelimitedTokenizeTransformColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.DelimitedTokenizeTransformColumn>.Create(outputColumn, inputColumn));
+                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.WordTokenizeTransformColumn>() : new List<Microsoft.ML.Legacy.Transforms.WordTokenizeTransformColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.WordTokenizeTransformColumn>.Create(outputColumn, inputColumn));
                 Column = list.ToArray();
             }
 
@@ -17664,7 +17602,7 @@ namespace Microsoft.ML
             /// <summary>
             /// New column definition(s)
             /// </summary>
-            public DelimitedTokenizeTransformColumn[] Column { get; set; }
+            public WordTokenizeTransformColumn[] Column { get; set; }
 
             /// <summary>
             /// Array of single character term separator(s). By default uses space character separator.

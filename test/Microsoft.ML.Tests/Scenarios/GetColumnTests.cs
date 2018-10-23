@@ -33,7 +33,7 @@ namespace Microsoft.ML.Tests.Scenarios
                 floatVector: ctx.LoadFloat(2, 6),
                 stringScalar: ctx.LoadText(4),
                 stringVector: ctx.LoadText(5, 7)
-            )).Read(new MultiFileSource(path));
+            )).Read(path);
 
             Action<Action> mustFail = (Action action) =>
             {

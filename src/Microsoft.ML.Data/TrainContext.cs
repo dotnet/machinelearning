@@ -156,7 +156,7 @@ namespace Microsoft.ML
         /// Subclasses of <see cref="TrainContext"/> will provide little "extension method" hookable objects
         /// (for example, something like <see cref="BinaryClassificationContext.Trainers"/>). User code will only
         /// interact with these objects by invoking the extension methods. The actual component code can work
-        /// through <see cref="TrainContextComponentUtils"/> to get more "hidden" information from this object,
+        /// through <see cref="CatalogUtils"/> to get more "hidden" information from this object,
         /// for example, the environment.
         /// </summary>
         public abstract class ContextInstantiatorBase
@@ -167,37 +167,6 @@ namespace Microsoft.ML
             {
                 Owner = ctx;
             }
-        }
-    }
-
-    /// <summary>
-    /// Utilities for component authors that want to be able to instantiate components using these context
-    /// objects. These utilities are not hidden from non-component authoring users per see, but are at least
-    /// registered somewhat less obvious so that they are not confused by the presence.
-    /// </summary>
-    /// <seealso cref="TrainContextBase"/>
-    public static class TrainContextComponentUtils
-    {
-        /// <summary>
-        /// Gets the environment hidden within the instantiator's context.
-        /// </summary>
-        /// <param name="obj">The extension method hook object for a context.</param>
-        /// <returns>An environment that can be used when instantiating components.</returns>
-        public static IHostEnvironment GetEnvironment(TrainContextBase.ContextInstantiatorBase obj)
-        {
-            Contracts.CheckValue(obj, nameof(obj));
-            return obj.Owner.Environment;
-        }
-
-        /// <summary>
-        /// Gets the environment hidden within the context.
-        /// </summary>
-        /// <param name="ctx">The context.</param>
-        /// <returns>An environment that can be used when instantiating components.</returns>
-        public static IHostEnvironment GetEnvironment(TrainContextBase ctx)
-        {
-            Contracts.CheckValue(ctx, nameof(ctx));
-            return ctx.Environment;
         }
     }
 
@@ -234,7 +203,7 @@ namespace Microsoft.ML
         /// <param name="probability">The name of the probability column in <paramref name="data"/>, the calibrated version of <paramref name="score"/>.</param>
         /// <param name="predictedLabel">The name of the predicted label column in <paramref name="data"/>.</param>
         /// <returns>The evaluation results for these calibrated outputs.</returns>
-        public BinaryClassifierEvaluator.CalibratedResult Evaluate(IDataView data, string label, string score = DefaultColumnNames.Score,
+        public BinaryClassifierEvaluator.CalibratedResult Evaluate(IDataView data, string label = DefaultColumnNames.Label, string score = DefaultColumnNames.Score,
             string probability = DefaultColumnNames.Probability, string predictedLabel = DefaultColumnNames.PredictedLabel)
         {
             Host.CheckValue(data, nameof(data));
@@ -255,7 +224,7 @@ namespace Microsoft.ML
         /// <param name="score">The name of the score column in <paramref name="data"/>.</param>
         /// <param name="predictedLabel">The name of the predicted label column in <paramref name="data"/>.</param>
         /// <returns>The evaluation results for these uncalibrated outputs.</returns>
-        public BinaryClassifierEvaluator.Result EvaluateNonCalibrated(IDataView data, string label, string score = DefaultColumnNames.Score,
+        public BinaryClassifierEvaluator.Result EvaluateNonCalibrated(IDataView data, string label = DefaultColumnNames.Label, string score = DefaultColumnNames.Score,
             string predictedLabel = DefaultColumnNames.PredictedLabel)
         {
             Host.CheckValue(data, nameof(data));
@@ -403,7 +372,7 @@ namespace Microsoft.ML
         /// the top-K accuracy, that is, the accuracy assuming we consider an example with the correct class within
         /// the top-K values as being stored "correctly."</param>
         /// <returns>The evaluation results for these calibrated outputs.</returns>
-        public MultiClassClassifierEvaluator.Result Evaluate(IDataView data, string label, string score = DefaultColumnNames.Score,
+        public MultiClassClassifierEvaluator.Result Evaluate(IDataView data, string label = DefaultColumnNames.Label, string score = DefaultColumnNames.Score,
             string predictedLabel = DefaultColumnNames.PredictedLabel, int topK = 0)
         {
             Host.CheckValue(data, nameof(data));
@@ -472,7 +441,7 @@ namespace Microsoft.ML
         /// <param name="label">The name of the label column in <paramref name="data"/>.</param>
         /// <param name="score">The name of the score column in <paramref name="data"/>.</param>
         /// <returns>The evaluation results for these calibrated outputs.</returns>
-        public RegressionEvaluator.Result Evaluate(IDataView data, string label, string score = DefaultColumnNames.Score)
+        public RegressionEvaluator.Result Evaluate(IDataView data, string label = DefaultColumnNames.Label, string score = DefaultColumnNames.Score)
         {
             Host.CheckValue(data, nameof(data));
             Host.CheckNonEmpty(label, nameof(label));
@@ -508,22 +477,22 @@ namespace Microsoft.ML
     /// <summary>
     /// The central context for regression trainers.
     /// </summary>
-    public sealed class RankerContext : TrainContextBase
+    public sealed class RankingContext : TrainContextBase
     {
         /// <summary>
         /// For trainers for performing regression.
         /// </summary>
-        public RankerTrainers Trainers { get; }
+        public RankingTrainers Trainers { get; }
 
-        public RankerContext(IHostEnvironment env)
-            : base(env, nameof(RankerContext))
+        public RankingContext(IHostEnvironment env)
+            : base(env, nameof(RankingContext))
         {
-            Trainers = new RankerTrainers(this);
+            Trainers = new RankingTrainers(this);
         }
 
-        public sealed class RankerTrainers : ContextInstantiatorBase
+        public sealed class RankingTrainers : ContextInstantiatorBase
         {
-            internal RankerTrainers(RankerContext ctx)
+            internal RankingTrainers(RankingContext ctx)
                 : base(ctx)
             {
             }
