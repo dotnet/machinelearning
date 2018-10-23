@@ -128,58 +128,6 @@ namespace Microsoft.ML.Transforms
                 Seed = seed;
                 Contracts.CheckUserArg(Oversampling >= 0, nameof(Oversampling), "Oversampling must be non-negative.");
             }
-
-            // The following functions and properties are all internal and used for simplifying the
-            // Transformer and Mapper code.
-
-            internal ColumnInfo((string input, string output) columnPair)
-            {
-                Input = columnPair.input;
-                Output = columnPair.output;
-            }
-
-            internal void SetSchema(Schema schema)
-            {
-                _schema = schema;
-            }
-
-            private Schema _schema;
-
-            internal int InputIndex
-            {
-                get
-                {
-                    Contracts.AssertValue(_schema);
-                    // Column names are already checked by PcaTransform
-                    _schema.TryGetColumnIndex(Input, out int index);
-                    return index;
-                }
-            }
-
-            internal ColumnType InputType
-            {
-                get
-                {
-                    Contracts.AssertValue(_schema);
-                    return _schema[Input].Type;
-                }
-            }
-
-            internal int WeightColumnIndex
-            {
-                get
-                {
-                    Contracts.AssertValue(_schema);
-                    var index = -1;
-                    if (WeightColumn != null)
-                    {
-                        if (!_schema.TryGetColumnIndex(WeightColumn, out index))
-                            throw Contracts.Except("Weight column '{0}' does not exist.", WeightColumn);
-                        Contracts.CheckUserArg(_schema[index].Type == NumberType.Float, nameof(WeightColumn));
-                    }
-                    return index;
-                }
-            }
         }
 
         private sealed class TransformInfo
@@ -283,7 +231,7 @@ namespace Microsoft.ML.Transforms
         }
 
         private readonly int _numColumns;
-        private readonly ColumnInfo[] _columns;
+        private readonly Mapper.ColumnSchemaInfo[] _schemaInfos;
         private readonly TransformInfo[] _transformInfos;
 
         private const string RegistrationName = "Pca";
@@ -292,17 +240,16 @@ namespace Microsoft.ML.Transforms
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(PcaTransform)), GetColumnPairs(columns))
         {
             Host.AssertNonEmpty(ColumnPairs);
-
-            _columns = columns;
             _numColumns = columns.Length;
             _transformInfos = new TransformInfo[_numColumns];
+            _schemaInfos = new Mapper.ColumnSchemaInfo[_numColumns];
 
             for (int i = 0; i < _numColumns; i++)
             {
-                var col = columns[i];
-                col.SetSchema(input.Schema);
-                ValidatePcaInput(Host, col.Input, col.InputType);
-                _transformInfos[i] = new TransformInfo(col.Rank, col.InputType.ValueCount);
+                var colInfo = columns[i];
+                var sInfo = _schemaInfos[i] = new Mapper.ColumnSchemaInfo(ColumnPairs[i], input.Schema, colInfo.WeightColumn);
+                ValidatePcaInput(Host, colInfo.Input, sInfo.InputType);
+                _transformInfos[i] = new TransformInfo(colInfo.Rank, sInfo.InputType.ValueCount);
             }
 
             Train(columns, _transformInfos, input);
@@ -319,13 +266,9 @@ namespace Microsoft.ML.Transforms
             // transformInfos
             Host.AssertNonEmpty(ColumnPairs);
             _numColumns = ColumnPairs.Length;
-            _columns = new ColumnInfo[_numColumns];
             _transformInfos = new TransformInfo[_numColumns];
             for (int i = 0; i < _numColumns; i++)
-            {
-                _columns[i] = new ColumnInfo(ColumnPairs[i]);
                 _transformInfos[i] = new TransformInfo(ctx);
-            }
         }
 
         // Factory method for SignatureLoadDataTransform.
@@ -498,11 +441,11 @@ namespace Microsoft.ML.Transforms
             Double[] totalColWeight = new Double[_numColumns];
 
             bool[] activeColumns = new bool[trainingData.Schema.ColumnCount];
-            foreach (var col in _columns)
+            foreach (var sInfo in _schemaInfos)
             {
-                activeColumns[col.InputIndex] = true;
-                if (col.WeightColumnIndex >= 0)
-                    activeColumns[col.WeightColumnIndex] = true;
+                activeColumns[sInfo.InputIndex] = true;
+                if (sInfo.WeightColumnIndex >= 0)
+                    activeColumns[sInfo.WeightColumnIndex] = true;
             }
 
             using (var cursor = trainingData.GetRowCursor(col => activeColumns[col]))
@@ -511,10 +454,10 @@ namespace Microsoft.ML.Transforms
                 var columnGetters = new ValueGetter<VBuffer<float>>[_numColumns];
                 for (int iinfo = 0; iinfo < _numColumns; iinfo++)
                 {
-                    var col = _columns[iinfo];
-                    if (col.WeightColumnIndex >= 0)
-                        weightGetters[iinfo] = cursor.GetGetter<float>(col.WeightColumnIndex);
-                    columnGetters[iinfo] = cursor.GetGetter<VBuffer<float>>(col.InputIndex);
+                    var sInfo = _schemaInfos[iinfo];
+                    if (sInfo.WeightColumnIndex >= 0)
+                        weightGetters[iinfo] = cursor.GetGetter<float>(sInfo.WeightColumnIndex);
+                    columnGetters[iinfo] = cursor.GetGetter<VBuffer<float>>(sInfo.InputIndex);
                 }
 
                 var features = default(VBuffer<float>);
@@ -542,7 +485,7 @@ namespace Microsoft.ML.Transforms
                 for (int iinfo = 0; iinfo < _numColumns; iinfo++)
                 {
                     if (totalColWeight[iinfo] <= 0)
-                        throw Host.Except("Empty data in column '{0}'", _columns[iinfo].Input);
+                        throw Host.Except("Empty data in column '{0}'", ColumnPairs[iinfo].input);
                 }
 
                 for (int iinfo = 0; iinfo < _numColumns; iinfo++)
@@ -609,7 +552,49 @@ namespace Microsoft.ML.Transforms
 
         private sealed class Mapper : MapperBase
         {
-            private readonly ColumnInfo[] _columns;
+            public sealed class ColumnSchemaInfo
+            {
+                private readonly string _input;
+                private readonly string _output;
+                private readonly string _weightColumn;
+                private readonly Schema _schema;
+
+                public ColumnSchemaInfo((string input, string output) columnPair, Schema schema, string weightColumn = null)
+                {
+                    _input = columnPair.input;
+                    _output = columnPair.output;
+                    _weightColumn = weightColumn;
+                    _schema = schema;
+                }
+
+                public int InputIndex
+                {
+                    get
+                    {
+                        // Column names are already checked by PcaTransform
+                        _schema.TryGetColumnIndex(_input, out int index);
+                        return index;
+                    }
+                }
+
+                public ColumnType InputType => _schema[_input].Type;
+
+                public int WeightColumnIndex
+                {
+                    get
+                    {
+                        var index = -1;
+                        if (_weightColumn != null)
+                        {
+                            if (!_schema.TryGetColumnIndex(_weightColumn, out index))
+                                throw Contracts.Except("Weight column '{0}' does not exist.", _weightColumn);
+                            Contracts.CheckUserArg(_schema[index].Type == NumberType.Float, nameof(_weightColumn));
+                        }
+                        return index;
+                    }
+                }
+            }
+
             private readonly PcaTransform _parent;
             private readonly int _numColumns;
 
@@ -618,15 +603,14 @@ namespace Microsoft.ML.Transforms
             {
                 _parent = parent;
                 _numColumns = parent._numColumns;
-                _columns = new ColumnInfo[_numColumns];
                 for (int i = 0; i < _numColumns; i++)
                 {
-                    var col = _columns[i] = new ColumnInfo(_parent.ColumnPairs[i]);
-                    col.SetSchema(inputSchema);
-                    ValidatePcaInput(Host, col.Input, col.InputType);
-                    if (col.InputType.VectorSize != _parent._transformInfos[i].Dimension)
+                    var colPair = _parent.ColumnPairs[i];
+                    var colSchemaInfo = new ColumnSchemaInfo(colPair, inputSchema);
+                    ValidatePcaInput(Host, colPair.input, colSchemaInfo.InputType);
+                    if (colSchemaInfo.InputType.VectorSize != _parent._transformInfos[i].Dimension)
                     {
-                        var msg = $"Dimension of column ${col.Input} is ${col.InputType.VectorSize}, which doesn't match the expected size ${_parent._transformInfos[i].Dimension}";
+                        var msg = $"Dimension of column ${colPair.input} is ${colSchemaInfo.InputType.VectorSize}, which doesn't match the expected size ${_parent._transformInfos[i].Dimension}";
                         throw Host.Except(msg);
                     }
                 }
@@ -636,7 +620,7 @@ namespace Microsoft.ML.Transforms
             {
                 var result = new Schema.Column[_numColumns];
                 for (int i = 0; i < _numColumns; i++)
-                    result[i] = new Schema.Column(_columns[i].Output, _parent._transformInfos[i].OutputType, null);
+                    result[i] = new Schema.Column(_parent.ColumnPairs[i].output, _parent._transformInfos[i].OutputType, null);
                 return result;
             }
 
