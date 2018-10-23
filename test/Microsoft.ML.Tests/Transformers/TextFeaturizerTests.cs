@@ -28,12 +28,12 @@ namespace Microsoft.ML.Tests.Transformers
             var data = TextLoader.CreateReader(Env, ctx => (
                     label: ctx.LoadBool(0),
                     text: ctx.LoadText(1)), hasHeader: true)
-                .Read(new MultiFileSource(sentimentDataPath));
+                .Read(sentimentDataPath);
 
             var invalidData = TextLoader.CreateReader(Env, ctx => (
                     label: ctx.LoadBool(0),
                     text: ctx.LoadFloat(1)), hasHeader: true)
-                .Read(new MultiFileSource(sentimentDataPath))
+                .Read(sentimentDataPath)
                 .AsDynamic;
 
             var feat = data.MakeNewEstimator()
@@ -63,12 +63,12 @@ namespace Microsoft.ML.Tests.Transformers
             var data = TextLoader.CreateReader(Env, ctx => (
                     label: ctx.LoadBool(0),
                     text: ctx.LoadText(1)), hasHeader: true)
-                .Read(new MultiFileSource(sentimentDataPath));
+                .Read(sentimentDataPath);
 
             var invalidData = TextLoader.CreateReader(Env, ctx => (
                     label: ctx.LoadBool(0),
                     text: ctx.LoadFloat(1)), hasHeader: true)
-                .Read(new MultiFileSource(sentimentDataPath));
+                .Read(sentimentDataPath);
 
             var est = new WordTokenizer(Env, "text", "words")
                 .Append(new CharacterTokenizer(Env, "text", "chars"))
@@ -97,7 +97,7 @@ namespace Microsoft.ML.Tests.Transformers
             var data = TextLoader.CreateReader(Env, ctx => (
                     label: ctx.LoadBool(0),
                     text: ctx.LoadText(1)), hasHeader: true)
-                .Read(new MultiFileSource(dataPath)).AsDynamic;
+                .Read(dataPath).AsDynamic;
 
             var est = new WordTokenizer(Env, "text", "words", separators: new[] { ' ', '?', '!', '.', ','});
             var outdata = TakeFilter.Create(Env, est.Fit(data).Transform(data), 4);
@@ -134,12 +134,12 @@ namespace Microsoft.ML.Tests.Transformers
             var data = TextLoader.CreateReader(Env, ctx => (
                     label: ctx.LoadBool(0),
                     text: ctx.LoadText(1)), hasHeader: true)
-                .Read(new MultiFileSource(sentimentDataPath));
+                .Read(sentimentDataPath);
 
             var invalidData = TextLoader.CreateReader(Env, ctx => (
                     label: ctx.LoadBool(0),
                     text: ctx.LoadFloat(1)), hasHeader: true)
-                .Read(new MultiFileSource(sentimentDataPath));
+                .Read(sentimentDataPath);
 
             var est = new TextNormalizerEstimator(Env,"text")
                 .Append(new WordTokenizer(Env, "text", "words"))
@@ -168,12 +168,12 @@ namespace Microsoft.ML.Tests.Transformers
             var data = TextLoader.CreateReader(Env, ctx => (
                     label: ctx.LoadBool(0),
                     text: ctx.LoadText(1)), hasHeader: true)
-                .Read(new MultiFileSource(sentimentDataPath));
+                .Read(sentimentDataPath);
 
             var invalidData = TextLoader.CreateReader(Env, ctx => (
                     label: ctx.LoadBool(0),
                     text: ctx.LoadFloat(1)), hasHeader: true)
-                .Read(new MultiFileSource(sentimentDataPath));
+                .Read(sentimentDataPath);
 
             var est = new WordBagEstimator(Env, "text", "bag_of_words").
                 Append(new WordHashBagEstimator(Env, "text", "bag_of_wordshash"));
@@ -204,12 +204,12 @@ namespace Microsoft.ML.Tests.Transformers
             var data = TextLoader.CreateReader(Env, ctx => (
                     label: ctx.LoadBool(0),
                     text: ctx.LoadText(1)), hasHeader: true)
-                .Read(new MultiFileSource(sentimentDataPath));
+                .Read(sentimentDataPath);
 
             var invalidData = TextLoader.CreateReader(Env, ctx => (
                     label: ctx.LoadBool(0),
                     text: ctx.LoadFloat(1)), hasHeader: true)
-                .Read(new MultiFileSource(sentimentDataPath));
+                .Read(sentimentDataPath);
 
             var est = new WordTokenizer(Env, "text", "text")
                 .Append(new ValueToKeyMappingEstimator(Env, "text", "terms"))
@@ -243,12 +243,12 @@ namespace Microsoft.ML.Tests.Transformers
             var data = TextLoader.CreateReader(env, ctx => (
                     label: ctx.LoadBool(0),
                     text: ctx.LoadText(1)), hasHeader: true)
-                .Read(new MultiFileSource(sentimentDataPath));
+                .Read(sentimentDataPath);
 
             var invalidData = TextLoader.CreateReader(env, ctx => (
                     label: ctx.LoadBool(0),
                     text: ctx.LoadFloat(1)), hasHeader: true)
-                .Read(new MultiFileSource(sentimentDataPath));
+                .Read(sentimentDataPath);
 
             var est = new WordBagEstimator(env, "text", "bag_of_words").
                 Append(new LdaEstimator(env, "bag_of_words", "topics", 10, advancedSettings: s => {

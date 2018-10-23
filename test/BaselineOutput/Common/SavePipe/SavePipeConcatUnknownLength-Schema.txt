@@ -1,0 +1,87 @@
+---- BoundLoader ----
+4 columns:
+  Known: Vec<I4, 3>
+  Single: I4
+  Text: Text
+  Unknown: Vec<I4>
+---- DelimitedTokenizeTransform ----
+5 columns:
+  Known: Vec<I4, 3>
+  Single: I4
+  Text: Text
+  Unknown: Vec<I4>
+  Tokens: Vec<Text>
+---- RowToRowMapperTransform ----
+6 columns:
+  Known: Vec<I4, 3>
+  Single: I4
+  Text: Text
+  Unknown: Vec<I4>
+  Tokens: Vec<Text>
+  Keys: Vec<Key<U4, 0-5>>
+    Metadata 'KeyValues': Vec<Text, 6>: Length=6, Count=6
+      [0] 'a', [1] 'b', [2] 'c', [3] 'd', [4] 'e', [5] 'f'
+---- RowToRowMapperTransform ----
+7 columns:
+  Known: Vec<I4, 3>
+  Single: I4
+  Text: Text
+  Unknown: Vec<I4>
+  Tokens: Vec<Text>
+  Keys: Vec<Key<U4, 0-5>>
+    Metadata 'KeyValues': Vec<Text, 6>: Length=6, Count=6
+      [0] 'a', [1] 'b', [2] 'c', [3] 'd', [4] 'e', [5] 'f'
+  Indicators: Vec<R4, *, 6>
+    Metadata 'IsNormalized': Bool: '1'
+---- ConvertTransform ----
+8 columns:
+  Known: Vec<I4, 3>
+  Single: I4
+  Text: Text
+  Unknown: Vec<I4>
+  Tokens: Vec<Text>
+  Keys: Vec<Key<U4, 0-5>>
+    Metadata 'KeyValues': Vec<Text, 6>: Length=6, Count=6
+      [0] 'a', [1] 'b', [2] 'c', [3] 'd', [4] 'e', [5] 'f'
+  Indicators: Vec<R4, *, 6>
+    Metadata 'IsNormalized': Bool: '1'
+  Indicators: Vec<R8, *, 6>
+    Metadata 'IsNormalized': Bool: '1'
+---- ConvertTransform ----
+11 columns:
+  Known: Vec<I4, 3>
+  Known: Vec<R8, 3>
+  Single: I4
+  Single: R8
+  Text: Text
+  Unknown: Vec<I4>
+  Unknown: Vec<R8>
+  Tokens: Vec<Text>
+  Keys: Vec<Key<U4, 0-5>>
+    Metadata 'KeyValues': Vec<Text, 6>: Length=6, Count=6
+      [0] 'a', [1] 'b', [2] 'c', [3] 'd', [4] 'e', [5] 'f'
+  Indicators: Vec<R4, *, 6>
+    Metadata 'IsNormalized': Bool: '1'
+  Indicators: Vec<R8, *, 6>
+    Metadata 'IsNormalized': Bool: '1'
+---- RowToRowMapperTransform ----
+12 columns:
+  Known: Vec<I4, 3>
+  Known: Vec<R8, 3>
+  Single: I4
+  Single: R8
+  Text: Text
+  Unknown: Vec<I4>
+  Unknown: Vec<R8>
+  Tokens: Vec<Text>
+  Keys: Vec<Key<U4, 0-5>>
+    Metadata 'KeyValues': Vec<Text, 6>: Length=6, Count=6
+      [0] 'a', [1] 'b', [2] 'c', [3] 'd', [4] 'e', [5] 'f'
+  Indicators: Vec<R4, *, 6>
+    Metadata 'IsNormalized': Bool: '1'
+  Indicators: Vec<R8, *, 6>
+    Metadata 'IsNormalized': Bool: '1'
+  All: Vec<R8>
+---- ChooseColumnsTransform ----
+1 columns:
+  All: Vec<R8>

@@ -70,7 +70,7 @@ namespace Microsoft.ML.Tests.Transformers
             var reader = TextLoader.CreateReader(Env, ctx => (
                 ScalarString: ctx.LoadText(1),
                 VectorString: ctx.LoadText(1, 4)));
-            var data = reader.Read(new MultiFileSource(dataPath));
+            var data = reader.Read(dataPath);
             var wrongCollection = new[] { new TestClass() { A = 1, B = 2, C = 3, }, new TestClass() { A = 4, B = 5, C = 6 } };
 
             var invalidData = ComponentCreation.CreateDataView(Env, wrongCollection);
@@ -109,7 +109,7 @@ namespace Microsoft.ML.Tests.Transformers
 
 
             var dataView = ComponentCreation.CreateDataView(Env, data);
-            var pipe = new OneHotEncodingEstimator(Env,
+            var pipe = new CategoricalEstimator(Env, new[] {
                 new OneHotEncodingEstimator.ColumnInfo("A", "CatA", CategoricalTransform.OutputKind.Bag),
                 new OneHotEncodingEstimator.ColumnInfo("B", "CatB", CategoricalTransform.OutputKind.Bag),
                 new OneHotEncodingEstimator.ColumnInfo("C", "CatC", CategoricalTransform.OutputKind.Bag),
@@ -121,7 +121,7 @@ namespace Microsoft.ML.Tests.Transformers
                 new OneHotEncodingEstimator.ColumnInfo("A", "CatI", CategoricalTransform.OutputKind.Bin),
                 new OneHotEncodingEstimator.ColumnInfo("B", "CatJ", CategoricalTransform.OutputKind.Bin),
                 new OneHotEncodingEstimator.ColumnInfo("C", "CatK", CategoricalTransform.OutputKind.Bin),
-                new OneHotEncodingEstimator.ColumnInfo("D", "CatL", CategoricalTransform.OutputKind.Bin));
+                new OneHotEncodingEstimator.ColumnInfo("D", "CatL", CategoricalTransform.OutputKind.Bin) });
 
 
             var result = pipe.Fit(dataView).Transform(dataView);

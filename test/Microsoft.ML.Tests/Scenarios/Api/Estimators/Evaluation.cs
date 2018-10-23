@@ -30,7 +30,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
             var readerModel = pipeline.Fit(new MultiFileSource(GetDataPath(TestDatasets.Sentiment.trainFilename)));
 
             // Evaluate on the test set.
-            var dataEval = readerModel.Read(new MultiFileSource(GetDataPath(TestDatasets.Sentiment.validFilename)));
+            var dataEval = readerModel.Read(new MultiFileSource(GetDataPath(TestDatasets.Sentiment.testFilename)));
             var metrics = ml.BinaryClassification.Evaluate(dataEval);
         }
     }

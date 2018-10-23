@@ -23,6 +23,9 @@ namespace Microsoft.ML.Transforms.CategoricalTransforms
 
         private readonly IHost _host;
         private readonly TermTransform.ColumnInfo[] _columns;
+        private readonly string _file;
+        private readonly string _termsColumn;
+        private readonly IComponentFactory<IMultiStreamSource, IDataLoader> _loaderFactory;
 
         /// <summary>
         /// Convenience constructor for public facing API.
@@ -38,14 +41,19 @@ namespace Microsoft.ML.Transforms.CategoricalTransforms
         {
         }
 
-        public ValueToKeyMappingEstimator(IHostEnvironment env, params TermTransform.ColumnInfo[] columns)
+        public ValueToKeyMappingEstimator(IHostEnvironment env, TermTransform.ColumnInfo[] columns,
+            string file = null, string termsColumn = null,
+            IComponentFactory<IMultiStreamSource, IDataLoader> loaderFactory = null)
         {
             Contracts.CheckValue(env, nameof(env));
             _host = env.Register(nameof(ValueToKeyMappingEstimator));
             _columns = columns;
+            _file = file;
+            _termsColumn = termsColumn;
+            _loaderFactory = loaderFactory;
         }
 
-        public TermTransform Fit(IDataView input) => new TermTransform(_host, input, _columns);
+        public TermTransform Fit(IDataView input) => new TermTransform(_host, input, _columns, _file, _termsColumn, _loaderFactory);
 
         public SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {

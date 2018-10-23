@@ -1079,13 +1079,13 @@ namespace Microsoft.ML.Runtime.RunTests
         public void CommandTrainingOgdWithInitialization() => CommandTrainingLinearLearnerTest("ogd{}");
 
         [TestCategory(Cat), TestCategory("Logistic Regression")]
-        [Fact(Skip = "Need CoreTLC specific baseline update")]
+        [Fact]
         public void CommandTrainingLrWithStats()
         {
             const string loaderArgs = "loader=text{header+ sep=comma col=Lab:14 col=Num:0,2,4,10-12}";
             const string extraArgs = "tr=lr{t=- stat=+} lab=Lab feat=Num";
 
-            string trainData = GetDataPath(@"..\UCI", "adult.train");
+            string trainData = GetDataPath("adult.train");
             OutputPath trainModel = ModelPath();
             TestCore("train", trainData, loaderArgs, extraArgs);
 
@@ -1176,13 +1176,13 @@ namespace Microsoft.ML.Runtime.RunTests
             Done();
         }
 
-        [Fact(Skip = "Need CoreTLC specific baseline update")]
+        [Fact]
         [TestCategory(Cat), TestCategory("Multiclass"), TestCategory("Logistic Regression")]
         public void CommandTrainMlrWithStats()
         {
             // Train MultiLR model.
-            const string loaderCmdline = @"loader=TextLoader{col=Label:TX:0 col=Features:R4:1-4 header=+}";
-            string pathTrain = GetDataPath("iris-label-name.txt");
+            const string loaderCmdline = @"loader=TextLoader{col=Label:TX:4 col=Features:R4:0-3 sep=,}";
+            string pathTrain = GetDataPath("iris.data");
             OutputPath trainModel = ModelPath();
             const string trainArgs = "tr=MultiClassLogisticRegression{maxiter=100 t=- stat=+} xf=Term{col=Label} seed=1";
             TestCore("train", pathTrain, loaderCmdline, trainArgs);

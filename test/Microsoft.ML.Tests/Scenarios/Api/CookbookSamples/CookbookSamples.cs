@@ -60,7 +60,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
 
             // Let's verify that the data has been read correctly. 
             // First, we read the data file.
-            var data = reader.Read(new MultiFileSource(dataPath));
+            var data = reader.Read(dataPath);
 
             // Fit our data pipeline and transform data with it.
             var transformedData = dataPipeline.Fit(data).Transform(data);
@@ -103,7 +103,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
 
 
             // Now read the file (remember though, readers are lazy, so the actual reading will happen when the data is accessed).
-            var trainData = reader.Read(new MultiFileSource(trainDataPath));
+            var trainData = reader.Read(trainDataPath);
 
             // Step two: define the learning pipeline. 
 
@@ -124,7 +124,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             var model = learningPipeline.Fit(trainData);
 
             // Read the test dataset.
-            var testData = reader.Read(new MultiFileSource(testDataPath));
+            var testData = reader.Read(testDataPath);
             // Calculate metrics of the model on the test data.
             var metrics = mlContext.Regression.Evaluate(model.Transform(testData), label: r => r.Target, score: r => r.Prediction);
 
@@ -168,7 +168,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
                 separator: ',');
 
             // Retrieve the training data.
-            var trainData = reader.Read(new MultiFileSource(irisDataPath));
+            var trainData = reader.Read(irisDataPath);
 
             // Build the training pipeline.
             var learningPipeline = reader.MakeNewEstimator()
@@ -239,7 +239,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
                 separator: ',');
 
             // Retrieve the training data.
-            var trainData = reader.Read(new MultiFileSource(dataPath));
+            var trainData = reader.Read(dataPath);
 
             // This is the predictor ('weights collection') that we will train.
             MulticlassLogisticRegressionPredictor predictor = null;
@@ -306,7 +306,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
                 separator: ',');
 
             // Read the training data.
-            var trainData = reader.Read(new MultiFileSource(dataPath));
+            var trainData = reader.Read(dataPath);
 
             // Apply all kinds of standard ML.NET normalization to the raw features.
             var pipeline = reader.MakeNewEstimator()
@@ -416,7 +416,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
                 ), hasHeader: true);
 
             // Read the data.
-            var data = reader.Read(new MultiFileSource(dataPath));
+            var data = reader.Read(dataPath);
 
             // Inspect the message texts that are read from the file.
             var messageTexts = data.GetColumn(x => x.Message).Take(20).ToArray();
@@ -457,7 +457,11 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
         public void CategoricalFeaturization()
             => CategoricalFeaturizationOn(GetDataPath("adult.tiny.with-schema.txt"));
 
-        private void CategoricalFeaturizationOn(string dataPath)
+        [Fact]
+        public void ReadMultipleFiles()
+            => CategoricalFeaturizationOn(GetDataPath("adult.tiny.with-schema.txt"), GetDataPath("adult.tiny.with-schema.txt"));
+
+        private void CategoricalFeaturizationOn(params string[] dataPath)
         {
             // Create a new context for ML.NET operations. It can be used for exception tracking and logging, 
             // as a catalog of available operations and as the source of randomness.
@@ -475,7 +479,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
                 ), hasHeader: true);
 
             // Read the data.
-            var data = reader.Read(new MultiFileSource(dataPath));
+            var data = reader.Read(dataPath);
 
             // Inspect the categorical columns to check that they are correctly read.
             var catColumns = data.GetColumn(r => r.CategoricalFeatures).Take(10).ToArray();
@@ -540,7 +544,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
                 separator: ',');
 
             // Read the data.
-            var data = reader.Read(new MultiFileSource(dataPath));
+            var data = reader.Read(dataPath);
 
             // Build the training pipeline.
             var learningPipeline = reader.MakeNewEstimator()
@@ -597,7 +601,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
                 separator: ',');
 
             // Read the data.
-            var data = reader.Read(new MultiFileSource(dataPath));
+            var data = reader.Read(dataPath);
 
             // Build the pre-processing pipeline.
             var learningPipeline = reader.MakeNewEstimator()

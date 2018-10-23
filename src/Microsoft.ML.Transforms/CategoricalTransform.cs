@@ -136,18 +136,20 @@ namespace Microsoft.ML.Runtime.Data
                     column.MaxNumTerms ?? args.MaxNumTerms,
                     column.Sort ?? args.Sort,
                     column.Term ?? args.Term);
-                col.SetTerms(column.Terms);
+                col.SetTerms(column.Terms ?? args.Terms);
                 columns.Add(col);
             }
-            return new OneHotEncodingEstimator(env, columns.ToArray()).Fit(input).Transform(input) as IDataTransform;
+            return new OneHotEncodingEstimator(env, columns.ToArray(), args.DataFile, args.TermsColumn, args.Loader).Fit(input).Transform(input) as IDataTransform;
         }
 
         private readonly TransformerChain<ITransformer> _transformer;
 
         public CategoricalTransform(ValueToKeyMappingEstimator term, IEstimator<ITransformer> toVector, IDataView input)
         {
-            var chain = term.Append(toVector);
-            _transformer = chain.Fit(input);
+            if (toVector != null)
+                _transformer = term.Append(toVector).Fit(input);
+            else
+                _transformer = new TransformerChain<ITransformer>(term.Fit(input));
         }
 
         public Schema GetOutputSchema(Schema inputSchema) => _transformer.GetOutputSchema(inputSchema);
@@ -197,17 +199,19 @@ namespace Microsoft.ML.Runtime.Data
         /// <param name="inputColumn">Name of the column to be transformed.</param>
         /// <param name="outputColumn">Name of the output column. If this is <c>null</c>, <paramref name="inputColumn"/> is used.</param>
         /// <param name="outputKind">The type of output expected.</param>
-        public OneHotEncodingEstimator(IHostEnvironment env, string inputColumn,
-            string outputColumn = null, CategoricalTransform.OutputKind outputKind = Defaults.OutKind)
-            : this(env, new ColumnInfo(inputColumn, outputColumn ?? inputColumn, outputKind))
+        public OneHotEncodingEstimator(IHostEnvironment env, string input,
+            string output = null, CategoricalTransform.OutputKind outputKind = Defaults.OutKind)
+            : this(env, new[] { new ColumnInfo(input, output ?? input, outputKind) })
         {
         }
 
-        public OneHotEncodingEstimator(IHostEnvironment env, params ColumnInfo[] columns)
+        public OneHotEncodingEstimator(IHostEnvironment env, ColumnInfo[] columns,
+            string file = null, string termsColumn = null,
+            IComponentFactory<IMultiStreamSource, IDataLoader> loaderFactory = null)
         {
             Contracts.CheckValue(env, nameof(env));
-            _host = env.Register(nameof(ValueToKeyMappingEstimator));
-            _term = new ValueToKeyMappingEstimator(_host, columns);
+            _host = env.Register(nameof(TermEstimator));
+            _term = new OneHotEncodingEstimator(_host, columns, file, termsColumn, loaderFactory);
             var binaryCols = new List<(string input, string output)>();
             var cols = new List<(string input, string output, bool bag)>();
             for (int i = 0; i < columns.Length; i++)

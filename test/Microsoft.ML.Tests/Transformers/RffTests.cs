@@ -68,7 +68,7 @@ namespace Microsoft.ML.Tests.Transformers
                 Label: ctx.LoadFloat(0)
             ));
 
-            var data = reader.Read(new MultiFileSource(dataPath));
+            var data = reader.Read(dataPath);
 
             var est = data.MakeNewEstimator()
                 .Append(row => (

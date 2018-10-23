@@ -1,0 +1,98 @@
+---- BoundLoader ----
+2 columns:
+  T1: Text
+  T2: Text
+---- RowToRowMapperTransform ----
+3 columns:
+  T1: Text
+  T2: Text
+  Features_InitialConcat: Vec<Text, 2>
+    Metadata 'SlotNames': Vec<Text, 2>: Length=2, Count=2
+      [0] 'T1', [1] 'T2'
+---- TextNormalizerTransform ----
+4 columns:
+  T1: Text
+  T2: Text
+  Features_InitialConcat: Vec<Text, 2>
+    Metadata 'SlotNames': Vec<Text, 2>: Length=2, Count=2
+      [0] 'T1', [1] 'T2'
+  Features_InitialConcat_TextNormalizer: Vec<Text>
+---- DelimitedTokenizeTransform ----
+5 columns:
+  T1: Text
+  T2: Text
+  Features_InitialConcat: Vec<Text, 2>
+    Metadata 'SlotNames': Vec<Text, 2>: Length=2, Count=2
+      [0] 'T1', [1] 'T2'
+  Features_InitialConcat_TextNormalizer: Vec<Text>
+  Features_InitialConcat_TextNormalizer_WordTokenizer: Vec<Text>
+---- RowToRowMapperTransform ----
+6 columns:
+  T1: Text
+  T2: Text
+  Features_InitialConcat: Vec<Text, 2>
+    Metadata 'SlotNames': Vec<Text, 2>: Length=2, Count=2
+      [0] 'T1', [1] 'T2'
+  Features_InitialConcat_TextNormalizer: Vec<Text>
+  Features_InitialConcat_TextNormalizer_WordTokenizer: Vec<Text>
+  Features_WordExtractor: Vec<Key<U4, 0-10>>
+    Metadata 'KeyValues': Vec<Text, 11>: Length=11, Count=11
+      [0] 'sport', [1] 'baseball', [2] 'fred', [3] 'mcgriff', [4] 'padres', [5] 'free', [6] 'agent', [7] 'med', [8] 'erythromycin', [9] 'treating'
+      [10] 'pneumonia'
+---- NgramTransform ----
+7 columns:
+  T1: Text
+  T2: Text
+  Features_InitialConcat: Vec<Text, 2>
+    Metadata 'SlotNames': Vec<Text, 2>: Length=2, Count=2
+      [0] 'T1', [1] 'T2'
+  Features_InitialConcat_TextNormalizer: Vec<Text>
+  Features_InitialConcat_TextNormalizer_WordTokenizer: Vec<Text>
+  Features_WordExtractor: Vec<Key<U4, 0-10>>
+    Metadata 'KeyValues': Vec<Text, 11>: Length=11, Count=11
+      [0] 'sport', [1] 'baseball', [2] 'fred', [3] 'mcgriff', [4] 'padres', [5] 'free', [6] 'agent', [7] 'med', [8] 'erythromycin', [9] 'treating'
+      [10] 'pneumonia'
+  Features_WordExtractor: Vec<R4, 21>
+    Metadata 'SlotNames': Vec<Text, 21>: Length=21, Count=21
+      [0] '*', [1] '*|*', [2] '*|fred', [3] 'fred', [4] 'fred|mcgriff', [5] 'mcgriff', [6] 'mcgriff|*', [7] '*|padres', [8] 'padres', [9] 'padres|*'
+      [10] '*|free', [11] 'free', [12] 'free|agent', [13] 'agent', [14] '*|erythromycin', [15] 'erythromycin', [16] 'erythromycin|*', [17] '*|treating', [18] 'treating', [19] 'treating|pneumonia'
+      [20] 'pneumonia'
+---- RowToRowMapperTransform ----
+8 columns:
+  T1: Text
+  T2: Text
+  Features_InitialConcat: Vec<Text, 2>
+    Metadata 'SlotNames': Vec<Text, 2>: Length=2, Count=2
+      [0] 'T1', [1] 'T2'
+  Features_InitialConcat_TextNormalizer: Vec<Text>
+  Features_InitialConcat_TextNormalizer_WordTokenizer: Vec<Text>
+  Features_WordExtractor: Vec<Key<U4, 0-10>>
+    Metadata 'KeyValues': Vec<Text, 11>: Length=11, Count=11
+      [0] 'sport', [1] 'baseball', [2] 'fred', [3] 'mcgriff', [4] 'padres', [5] 'free', [6] 'agent', [7] 'med', [8] 'erythromycin', [9] 'treating'
+      [10] 'pneumonia'
+  Features_WordExtractor: Vec<R4, 21>
+    Metadata 'SlotNames': Vec<Text, 21>: Length=21, Count=21
+      [0] '*', [1] '*|*', [2] '*|fred', [3] 'fred', [4] 'fred|mcgriff', [5] 'mcgriff', [6] 'mcgriff|*', [7] '*|padres', [8] 'padres', [9] 'padres|*'
+      [10] '*|free', [11] 'free', [12] 'free|agent', [13] 'agent', [14] '*|erythromycin', [15] 'erythromycin', [16] 'erythromycin|*', [17] '*|treating', [18] 'treating', [19] 'treating|pneumonia'
+      [20] 'pneumonia'
+  Features: Vec<R4, 21>
+    Metadata 'SlotNames': Vec<Text, 21>: Length=21, Count=21
+      [0] '*', [1] '*|*', [2] '*|fred', [3] 'fred', [4] 'fred|mcgriff', [5] 'mcgriff', [6] 'mcgriff|*', [7] '*|padres', [8] 'padres', [9] 'padres|*'
+      [10] '*|free', [11] 'free', [12] 'free|agent', [13] 'agent', [14] '*|erythromycin', [15] 'erythromycin', [16] 'erythromycin|*', [17] '*|treating', [18] 'treating', [19] 'treating|pneumonia'
+      [20] 'pneumonia'
+---- DropColumnsTransform ----
+3 columns:
+  T1: Text
+  T2: Text
+  Features: Vec<R4, 21>
+    Metadata 'SlotNames': Vec<Text, 21>: Length=21, Count=21
+      [0] '*', [1] '*|*', [2] '*|fred', [3] 'fred', [4] 'fred|mcgriff', [5] 'mcgriff', [6] 'mcgriff|*', [7] '*|padres', [8] 'padres', [9] 'padres|*'
+      [10] '*|free', [11] 'free', [12] 'free|agent', [13] 'agent', [14] '*|erythromycin', [15] 'erythromycin', [16] 'erythromycin|*', [17] '*|treating', [18] 'treating', [19] 'treating|pneumonia'
+      [20] 'pneumonia'
+---- ChooseColumnsTransform ----
+1 columns:
+  Features: Vec<R4, 21>
+    Metadata 'SlotNames': Vec<Text, 21>: Length=21, Count=21
+      [0] '*', [1] '*|*', [2] '*|fred', [3] 'fred', [4] 'fred|mcgriff', [5] 'mcgriff', [6] 'mcgriff|*', [7] '*|padres', [8] 'padres', [9] 'padres|*'
+      [10] '*|free', [11] 'free', [12] 'free|agent', [13] 'agent', [14] '*|erythromycin', [15] 'erythromycin', [16] 'erythromycin|*', [17] '*|treating', [18] 'treating', [19] 'treating|pneumonia'
+      [20] 'pneumonia'
