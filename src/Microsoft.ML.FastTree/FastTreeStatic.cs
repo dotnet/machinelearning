@@ -35,6 +35,12 @@ namespace Microsoft.ML.StaticPipe
         /// the linear model that was trained. Note that this action cannot change the result in any way;
         /// it is only a way for the caller to be informed about what was learnt.</param>
         /// <returns>The Score output column indicating the predicted value.</returns>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        ///  [!code-csharp[SDCA](~/../docs/samples/docs/samples/Microsoft.ML.Samples/FastTree.cs?range=6-10,18-76 "FastTree regression example.")]
+        /// ]]></format>
+        /// </example>
         public static Scalar<float> FastTree(this RegressionContext.RegressionTrainers ctx,
             Scalar<float> label, Vector<float> features, Scalar<float> weights = null,
             int numLeaves = Defaults.NumLeaves,

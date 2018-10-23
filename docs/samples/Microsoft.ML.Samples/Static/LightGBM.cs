@@ -1,10 +1,10 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-// the alignment of the usings with the methods is intentional so they can display on the same level in the docs site. 
+        // the alignment of the usings with the methods is intentional so they can display on the same level in the docs site. 
         using Microsoft.ML.Runtime.Data;
-        using Microsoft.ML.Runtime.Learners;
+        using Microsoft.ML.Runtime.LightGBM;
         using Microsoft.ML.StaticPipe;
         using System;
 
@@ -13,9 +13,9 @@
 // line by line. 
 namespace Microsoft.ML.Samples.Static
 {
-    public static class Trainers
+    public partial class TrainersSamples
     {
-        public static void SdcaRegression()
+        public static void LightGbmRegression()
         {
             // Downloading a regression dataset from github.com/dotnet/machinelearning
             // this will create a housing.txt file in the filsystem this code will run
@@ -36,19 +36,20 @@ namespace Microsoft.ML.Samples.Static
                 separator: '\t', hasHeader: true);
 
             // Read the data, and leave 10% out, so we can use them for testing
-            var data = reader.Read(dataFile);
+            var data = reader.Read(new MultiFileSource(dataFile));
             var (trainData, testData) = regressionContext.TrainTestSplit(data, testFraction: 0.1);
 
             // The predictor that gets produced out of training
-            LinearRegressionPredictor pred = null;
+            LightGbmRegressionPredictor pred = null;
 
             // Create the estimator
             var learningPipeline = reader.MakeNewEstimator()
-                .Append(r => (r.label, score: regressionContext.Trainers.Sdca(
+                .Append(r => (r.label, score: regressionContext.Trainers.LightGbm(
                                             r.label,
                                             r.features,
-                                            l1Threshold: 0f,
-                                            maxIterations: 100,
+                                            numLeaves: 4,
+                                            minDataPerLeaf: 6,
+                                            learningRate: 0.001,
                                         onFit: p => pred = p)
                                 )
                         );
@@ -67,11 +68,11 @@ namespace Microsoft.ML.Samples.Static
             var dataWithPredictions = model.Transform(testData);
             var metrics = regressionContext.Evaluate(dataWithPredictions, r => r.label, r => r.score);
 
-            Console.WriteLine($"L1 - {metrics.L1}");  // 3.7226085
-            Console.WriteLine($"L2 - {metrics.L2}");  // 24.250636
-            Console.WriteLine($"LossFunction - {metrics.LossFn}");  // 24.25063
-            Console.WriteLine($"RMS - {metrics.Rms}");  // 4.924493
-            Console.WriteLine($"RSquared - {metrics.RSquared}");  // 0.565467
+            Console.WriteLine($"L1 - {metrics.L1}");
+            Console.WriteLine($"L2 - {metrics.L2}");
+            Console.WriteLine($"LossFunction - {metrics.LossFn}");
+            Console.WriteLine($"RMS - {metrics.Rms}");
+            Console.WriteLine($"RSquared - {metrics.RSquared}");
         }
     }
 }
