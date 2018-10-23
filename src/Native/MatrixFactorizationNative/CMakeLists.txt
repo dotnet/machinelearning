@@ -1,4 +1,4 @@
-project (LIBMFNative)
+project (MatrixFactorizationNative)
 
 include_directories(libmf)
 
@@ -15,6 +15,6 @@ if(APPLE)
     include_directories(/usr/include/malloc) # for malloc.h
 endif()
 
-add_library(LIBMFNative SHARED ${SOURCES} ${RESOURCES})
+add_library(MatrixFactorizationNative SHARED ${SOURCES} ${RESOURCES})
 
-install_library_and_symbols (LIBMFNative)
+install_library_and_symbols (MatrixFactorizationNative)

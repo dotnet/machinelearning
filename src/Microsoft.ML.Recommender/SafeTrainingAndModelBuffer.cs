@@ -79,7 +79,7 @@ namespace Microsoft.ML.Runtime.Recommender.Internal
             public float* Q;
         }
 
-        private const string DllPath = "LIBMFNative";
+        private const string DllPath = "MatrixFactorizationNative";
 
         [DllImport(DllPath), SuppressUnmanagedCodeSecurity]
         private static unsafe extern void MFDestroyModel(ref MFModel* model);

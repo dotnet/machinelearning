@@ -25,6 +25,6 @@
     <NativeAssemblyReference Include="CpuMathNative" />
     <NativeAssemblyReference Include="MklProxyNative" />
     <NativeAssemblyReference Include="FactorizationMachineNative" />
-    <NativeAssemblyReference Include="LIBMFNative" />
+    <NativeAssemblyReference Include="MatrixFactorizationNative" />
   </ItemGroup>
 </Project>

@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>netcoreapp2.0</TargetFramework>
-    <IncludeInPackage>Microsoft.ML.LIBMFNative</IncludeInPackage>
+    <IncludeInPackage>Microsoft.ML.MatrixFactorizationNative</IncludeInPackage>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
