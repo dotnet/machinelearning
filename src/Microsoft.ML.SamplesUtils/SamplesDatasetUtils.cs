@@ -52,7 +52,7 @@ namespace Microsoft.ML.SamplesUtils
         }
 
         /// <summary>
-        /// A dataset that contains a tweet and the sentiment assigned to that tweet: 0 - negative and 1 - positive sentiment. 
+        /// A dataset that contains a tweet and the sentiment assigned to that tweet: 0 - negative and 1 - positive sentiment.
         /// </summary>
         public class SampleSentimentData
         {
@@ -99,7 +99,7 @@ namespace Microsoft.ML.SamplesUtils
         }
 
         /// <summary>
-        /// Represents the column of the infertility dataset. 
+        /// Represents the column of the infertility dataset.
         /// </summary>
         public class SampleInfertData
         {
@@ -116,7 +116,7 @@ namespace Microsoft.ML.SamplesUtils
         }
 
         /// <summary>
-        /// Returns a few rows of the infertility dataset. 
+        /// Returns a few rows of the infertility dataset.
         /// </summary>
         public static IEnumerable<SampleInfertData> GetInfertData()
         {
