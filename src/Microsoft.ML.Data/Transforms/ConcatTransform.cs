@@ -295,6 +295,7 @@ namespace Microsoft.ML.Runtime.Data
         private ColumnInfo[] LoadLegacy(ModelLoadContext ctx)
         {
             // *** Legacy binary format ***
+            // int: sizeof(Float).
             // int: number of added columns
             // for each added column
             //   int: id of output column name
@@ -306,10 +307,9 @@ namespace Microsoft.ML.Runtime.Data
             //          int: index of the alias
             //          int: string id of the alias
             //      int: -1, marks the end of the list
-            // int: sizeof(Float).
 
             var sizeofFloat = ctx.Reader.ReadInt32();
-            Contracts.CheckDecode(sizeofFloat == 4 || sizeofFloat == 8);
+            Contracts.CheckDecode(sizeofFloat == sizeof(float));
 
             int n = ctx.Reader.ReadInt32();
             Contracts.CheckDecode(n > 0);
