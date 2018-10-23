@@ -109,7 +109,7 @@ namespace Microsoft.ML.Tests.Transformers
 
 
             var dataView = ComponentCreation.CreateDataView(Env, data);
-            var pipe = new CategoricalEstimator(Env, new[] {
+            var pipe = new OneHotEncodingEstimator(Env, new[] {
                 new OneHotEncodingEstimator.ColumnInfo("A", "CatA", CategoricalTransform.OutputKind.Bag),
                 new OneHotEncodingEstimator.ColumnInfo("B", "CatB", CategoricalTransform.OutputKind.Bag),
                 new OneHotEncodingEstimator.ColumnInfo("C", "CatC", CategoricalTransform.OutputKind.Bag),

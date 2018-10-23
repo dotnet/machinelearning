@@ -8,6 +8,9 @@ using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Transforms;
+using System;
+using System.Collections.Generic;
+using System.Text;
 
 [assembly: LoadableClass(NAHandleTransform.Summary, typeof(IDataTransform), typeof(NAHandleTransform), typeof(NAHandleTransform.Arguments), typeof(SignatureDataTransform),
     NAHandleTransform.FriendlyName, "NAHandleTransform", NAHandleTransform.ShortName, "NA", DocName = "transform/NAHandle.md")]

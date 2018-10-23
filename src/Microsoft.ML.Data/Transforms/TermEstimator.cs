@@ -37,7 +37,7 @@ namespace Microsoft.ML.Transforms.CategoricalTransforms
         /// <param name="sort">How items should be ordered when vectorized. By default, they will be in the order encountered.
         /// If by value items are sorted according to their default comparison, for example, text sorting will be case sensitive (for example, 'A' then 'Z' then 'a').</param>
         public ValueToKeyMappingEstimator(IHostEnvironment env, string inputColumn, string outputColumn = null, int maxNumTerms = Defaults.MaxNumTerms, TermTransform.SortOrder sort = Defaults.Sort) :
-           this(env, new TermTransform.ColumnInfo(inputColumn, outputColumn ?? inputColumn, maxNumTerms, sort))
+           this(env, new [] { new TermTransform.ColumnInfo(inputColumn, outputColumn ?? inputColumn, maxNumTerms, sort) })
         {
         }
 
