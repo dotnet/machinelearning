@@ -25,8 +25,9 @@ namespace Microsoft.ML.Samples.Dynamic
             IEnumerable<SamplesUtils.DatasetUtils.SampleTopicsData> data = SamplesUtils.DatasetUtils.GetTopicsData();
             var trainData = ml.CreateStreamingDataView(data);
 
-            // Preview of the data.
-            // Review                                    ReviewReverse,                 Label
+            // Preview of the topics data; a dataset that contains one column with two set of keys assigned to a body of text
+            // Review and ReviewReverse. The dataset will be used to classify how accurately the keys are assigned to the text.  
+            // Review,                                    ReviewReverse,                 Label
             // "animals birds cats dogs fish horse", "radiation galaxy universe duck",     1
             // "horse birds house fish duck cats",   "space galaxy universe radiation",    0
             // "car truck driver bus pickup",        "bus pickup",                         1
@@ -40,6 +41,9 @@ namespace Microsoft.ML.Samples.Dynamic
                 .Append(new TermEstimator(ml, "ReviewReverse" , defaultColumnName));
 
             // Another pipeline, that customizes the advanced settings of the TermEstimator.
+            // We can change the maxNumTerm to limit how many keys will get generated out of the set of words, 
+            // and condition the order in which they get evaluated by changing sort from the default Occurence (order in which they get encountered) 
+            // to value/alphabetically.
             string customizedColumnName = "CustomizedKeys";
             var customized_pipeline = new WordTokenizer(ml, "ReviewReverse", "ReviewReverse")
                 .Append(new TermEstimator(ml, "ReviewReverse", customizedColumnName, maxNumTerms: 10, sort:TermTransform.SortOrder.Value));

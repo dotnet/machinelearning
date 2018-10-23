@@ -25,6 +25,10 @@ namespace Microsoft.ML.SamplesUtils
             return dataFile;
         }
 
+        /// <summary>
+        /// A simple set of features that help generate the Target column, according to a function.
+        /// Used for the transformers/estimators working on numeric data.
+        /// </summary>
         public class SampleInput
         {
             public float Feature0 { get; set; }
@@ -34,6 +38,9 @@ namespace Microsoft.ML.SamplesUtils
             public float Target { get; set; }
         }
 
+        /// <summary>
+        /// Returns a sample of a numeric dataset.
+        /// </summary>
         public static IEnumerable<SampleInput> GetInputData()
         {
             var data = new List<SampleInput>();
@@ -44,12 +51,18 @@ namespace Microsoft.ML.SamplesUtils
             return data;
         }
 
+        /// <summary>
+        /// A dataset that contains a tweet and the sentiment assigned to that tweet: 0 - negative and 1 - positive sentiment. 
+        /// </summary>
         public class SampleSentimentData
         {
             public bool Sentiment { get; set; }
             public string SentimentText { get; set; }
         }
 
+        /// <summary>
+        /// Returns a sample of the sentiment dataset.
+        /// </summary>
         public static IEnumerable<SampleSentimentData> GetSentimentData()
         {
             var data = new List<SampleSentimentData>();
@@ -60,6 +73,10 @@ namespace Microsoft.ML.SamplesUtils
             return data;
         }
 
+        /// <summary>
+        /// A dataset that contains one column with two set of keys assigned to a body of text: Review and ReviewReverse.
+        /// The dataset will be used to classify how accurately the keys are assigned to the text.
+        /// </summary>
         public class SampleTopicsData
         {
             public string Review { get; set; }
@@ -67,6 +84,9 @@ namespace Microsoft.ML.SamplesUtils
             public bool Label { get; set; }
         }
 
+        /// <summary>
+        /// Returns a sample of the topics dataset.
+        /// </summary>
         public static IEnumerable<SampleTopicsData> GetTopicsData()
         {
             var data = new List<SampleTopicsData>();
@@ -78,6 +98,9 @@ namespace Microsoft.ML.SamplesUtils
             return data;
         }
 
+        /// <summary>
+        /// Represents the column of the infertility dataset. 
+        /// </summary>
         public class SampleInfertData
         {
             public int RowNum { get; set; }
@@ -92,6 +115,9 @@ namespace Microsoft.ML.SamplesUtils
             public float PooledStratum { get; set; }
         }
 
+        /// <summary>
+        /// Returns a few rows of the infertility dataset. 
+        /// </summary>
         public static IEnumerable<SampleInfertData> GetInfertData()
         {
             var data = new List<SampleInfertData>();
