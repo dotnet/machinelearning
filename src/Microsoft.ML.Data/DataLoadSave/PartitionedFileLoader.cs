@@ -60,7 +60,8 @@ namespace Microsoft.ML.Runtime.Data
                 verWrittenCur: 0x00010001, // Initial
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
-                loaderSignature: LoadName);
+                loaderSignature: LoadName,
+                loaderAssemblyName: typeof(PartitionedFileLoader).Assembly.FullName);
         }
 
         public class Arguments
@@ -284,7 +285,7 @@ namespace Microsoft.ML.Runtime.Data
 
         public bool CanShuffle => true;
 
-        public ISchema Schema { get; }
+        public Schema Schema { get; }
 
         public long? GetRowCount(bool lazy = true)
         {
@@ -310,13 +311,12 @@ namespace Microsoft.ML.Runtime.Data
         /// <param name="cols">The partitioned columns.</param>
         /// <param name="subLoader">The sub loader.</param>
         /// <returns>The resulting schema.</returns>
-        private ISchema CreateSchema(IExceptionContext ectx, Column[] cols, IDataLoader subLoader)
+        private Schema CreateSchema(IExceptionContext ectx, Column[] cols, IDataLoader subLoader)
         {
             Contracts.AssertValue(cols);
             Contracts.AssertValue(subLoader);
 
-            var columnNameTypes = cols.Select((col) => new KeyValuePair<string, ColumnType>(col.Name, PrimitiveType.FromKind(col.Type.Value)));
-            var colSchema = new SimpleSchema(ectx, columnNameTypes.ToArray());
+            var colSchema = new Schema(cols.Select(c => new Schema.Column(c.Name, PrimitiveType.FromKind(c.Type.Value), null)));
 
             var subSchema = subLoader.Schema;
 
@@ -332,11 +332,11 @@ namespace Microsoft.ML.Runtime.Data
                     colSchema
                 };
 
-                return new CompositeSchema(schemas);
+                return Schema.Create(new CompositeSchema(schemas));
             }
         }
 
-        private byte [] SaveLoaderToBytes(IDataLoader loader)
+        private byte[] SaveLoaderToBytes(IDataLoader loader)
         {
             Contracts.CheckValue(loader, nameof(loader));
 
@@ -347,7 +347,7 @@ namespace Microsoft.ML.Runtime.Data
             }
         }
 
-        private IDataLoader CreateLoaderFromBytes(byte [] loaderBytes, IMultiStreamSource files)
+        private IDataLoader CreateLoaderFromBytes(byte[] loaderBytes, IMultiStreamSource files)
         {
             Contracts.CheckValue(loaderBytes, nameof(loaderBytes));
             Contracts.CheckValue(files, nameof(files));
@@ -394,7 +394,7 @@ namespace Microsoft.ML.Runtime.Data
 
             public override long Batch => 0;
 
-            public ISchema Schema => _parent.Schema;
+            public Schema Schema => _parent.Schema;
 
             public ValueGetter<TValue> GetGetter<TValue>(int col)
             {

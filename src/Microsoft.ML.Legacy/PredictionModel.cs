@@ -40,7 +40,7 @@ namespace Microsoft.ML.Legacy
         public bool TryGetScoreLabelNames(out string[] names, string scoreColumnName = DefaultColumnNames.Score)
         {
             names = null;
-            ISchema schema = _predictorModel.OutputSchema;
+            var schema = _predictorModel.OutputSchema;
             int colIndex = -1;
             if (!schema.TryGetColumnIndex(scoreColumnName, out colIndex))
                 return false;
@@ -127,6 +127,8 @@ namespace Microsoft.ML.Legacy
 
             using (var environment = new ConsoleEnvironment())
             {
+                AssemblyRegistration.RegisterAssemblies(environment);
+
                 BatchPredictionEngine<TInput, TOutput> predictor =
                     environment.CreateBatchPredictionEngine<TInput, TOutput>(stream);
 

@@ -71,7 +71,8 @@ namespace Microsoft.ML.Runtime.Data
                 verWrittenCur: 0x00010002, // Force shuffle source saving
                 verReadableCur: 0x00010002,
                 verWeCanReadBack: 0x00010002,
-                loaderSignature: LoaderSignature);
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(ShuffleTransform).Assembly.FullName);
         }
 
         private const string RegistrationName = "Shuffle";
@@ -239,7 +240,7 @@ namespace Microsoft.ML.Runtime.Data
 
         public override bool CanShuffle { get { return true; } }
 
-        public override ISchema Schema { get { return _subsetInput.Schema; } }
+        public override Schema Schema { get { return _subsetInput.Schema; } }
 
         protected override bool? ShouldUseParallelCursors(Func<int, bool> predicate)
         {
@@ -494,7 +495,7 @@ namespace Microsoft.ML.Runtime.Data
 
             private readonly int[] _colToActivesIndex;
 
-            public ISchema Schema { get { return _input.Schema; } }
+            public Schema Schema { get { return _input.Schema; } }
 
             public override long Batch
             {

@@ -47,6 +47,11 @@ namespace Microsoft.ML.Runtime
         bool IsCancelled { get; }
 
         /// <summary>
+        /// The catalog of loadable components (<see cref="LoadableClassAttribute"/>) that are available in this host.
+        /// </summary>
+        ComponentCatalog ComponentCatalog { get; }
+
+        /// <summary>
         /// Return a file handle for an input "file".
         /// </summary>
         IFileHandle OpenInputFile(string path);
@@ -99,11 +104,6 @@ namespace Microsoft.ML.Runtime
         /// The caller relinquishes ownership of the <paramref name="msg"/> object.
         /// </summary>
         void Send(TMessage msg);
-
-        /// <summary>
-        /// Called to indicate a normal shut-down of the pipe before disposing.
-        /// </summary>
-        void Done();
     }
 
     /// <summary>
@@ -219,7 +219,7 @@ namespace Microsoft.ML.Runtime
     /// <summary>
     /// General utility extension methods for objects in the "host" universe, i.e.,
     /// <see cref="IHostEnvironment"/>, <see cref="IHost"/>, and <see cref="IChannel"/>
-    /// that do not belong in more specific areas, e.g., <see cref="Contracts"/> or
+    /// that do not belong in more specific areas, for example, <see cref="Contracts"/> or
     /// component creation.
     /// </summary>
     public static class HostExtensions
@@ -230,7 +230,6 @@ namespace Microsoft.ML.Runtime
             using (var ch = host.Start(channelName))
             {
                 t = func(ch);
-                ch.Done();
             }
             return t;
         }

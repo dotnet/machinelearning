@@ -570,7 +570,14 @@ namespace Microsoft.ML.Runtime
         return val;
     }
 
-    public static void CheckValue<T>(T val, string paramName) where T : class
+    public static T CheckRef<T>(this IExceptionContext ctx, T val, string paramName, string msg) where T : class
+    {
+        if (object.ReferenceEquals(val, null))
+            throw ExceptValue(ctx, paramName, msg);
+        return val;
+    }
+
+        public static void CheckValue<T>(T val, string paramName) where T : class
     {
         if (object.ReferenceEquals(val, null))
             throw ExceptValue(paramName);
@@ -936,6 +943,19 @@ namespace Microsoft.ML.Runtime
     {
         if (string.IsNullOrWhiteSpace(s))
             DbgFailEmpty(ctx, msg);
+    }
+
+    [Conditional("DEBUG")]
+    public static void AssertNonEmpty<T>(ReadOnlySpan<T> args)
+    {
+        if (args.IsEmpty)
+            DbgFail();
+    }
+    [Conditional("DEBUG")]
+    public static void AssertNonEmpty<T>(Span<T> args)
+    {
+        if (args.IsEmpty)
+            DbgFail();
     }
 
     [Conditional("DEBUG")]

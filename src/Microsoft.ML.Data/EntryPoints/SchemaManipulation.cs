@@ -2,12 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
-using System.Linq;
 using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
+using Microsoft.ML.Transforms;
 
 [assembly: LoadableClass(typeof(void), typeof(SchemaManipulation), null, typeof(SignatureEntryPointModule), "SchemaManipulation")]
 
@@ -28,16 +26,14 @@ namespace Microsoft.ML.Runtime.EntryPoints
         }
 
         [TlcModule.EntryPoint(Name = "Transforms.ColumnSelector", Desc = "Selects a set of columns, dropping all others", UserName = "Select Columns")]
-        public static CommonOutputs.TransformOutput SelectColumns(IHostEnvironment env, DropColumnsTransform.KeepArguments input)
+        public static CommonOutputs.TransformOutput SelectColumns(IHostEnvironment env, SelectColumnsTransform.Arguments input)
         {
             Contracts.CheckValue(env, nameof(env));
             var host = env.Register("SelectColumns");
             host.CheckValue(input, nameof(input));
             EntryPointUtils.CheckInputArgs(host, input);
-            // We can have an empty Columns array, indicating we
-            // wish to drop all the columns.
 
-            var xf = new DropColumnsTransform(env, input, input.Data);
+            var xf = new SelectColumnsTransform(env, input.KeepColumns, input.DropColumns, input.KeepHidden, input.IgnoreMissing).Transform(input.Data);
             return new CommonOutputs.TransformOutput { Model = new TransformModel(env, xf, input.Data), OutputData = xf };
         }
 
@@ -49,18 +45,6 @@ namespace Microsoft.ML.Runtime.EntryPoints
             host.CheckValue(input, nameof(input));
             EntryPointUtils.CheckInputArgs(host, input);
             var xf = CopyColumnsTransform.Create(env, input, input.Data);
-            return new CommonOutputs.TransformOutput { Model = new TransformModel(env, xf, input.Data), OutputData = xf };
-        }
-
-        [TlcModule.EntryPoint(Name = "Transforms.ColumnDropper", Desc = "Drops columns from the dataset", UserName = DropColumnsTransform.DropUserName, ShortName = DropColumnsTransform.DropShortName)]
-        public static CommonOutputs.TransformOutput DropColumns(IHostEnvironment env, DropColumnsTransform.Arguments input)
-        {
-            Contracts.CheckValue(env, nameof(env));
-            var host = env.Register("DropColumns");
-            host.CheckValue(input, nameof(input));
-            EntryPointUtils.CheckInputArgs(host, input);
-
-            var xf = new DropColumnsTransform(env, input, input.Data);
             return new CommonOutputs.TransformOutput { Model = new TransformModel(env, xf, input.Data), OutputData = xf };
         }
     }

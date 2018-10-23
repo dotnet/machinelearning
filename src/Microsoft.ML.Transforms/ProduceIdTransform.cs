@@ -84,12 +84,13 @@ namespace Microsoft.ML.Runtime.Data
                 verWrittenCur: 0x00010001, // Initial
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
-                loaderSignature: LoaderSignature);
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(ProduceIdTransform).Assembly.FullName);
         }
 
         private readonly Bindings _bindings;
 
-        public override ISchema Schema { get { return _bindings; } }
+        public override Schema Schema => _bindings.AsSchema;
 
         public override bool CanShuffle { get { return Source.CanShuffle; } }
 
@@ -169,7 +170,7 @@ namespace Microsoft.ML.Runtime.Data
             private readonly Bindings _bindings;
             private readonly bool _active;
 
-            public ISchema Schema { get { return _bindings; } }
+            public Schema Schema => _bindings.AsSchema;
 
             public RowCursor(IChannelProvider provider, Bindings bindings, IRowCursor input, bool active)
                 : base(provider, input)

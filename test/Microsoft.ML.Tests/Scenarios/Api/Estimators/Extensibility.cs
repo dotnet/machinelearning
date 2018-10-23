@@ -25,35 +25,33 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         {
             var dataPath = GetDataPath(TestDatasets.irisData.trainFilename);
 
-            using (var env = new LocalEnvironment())
+            var ml = new MLContext();
+            var data = ml.Data.TextReader(MakeIrisTextLoaderArgs())
+                .Read(dataPath);
+
+            Action<IrisData, IrisData> action = (i, j) =>
             {
-                var data = new TextLoader(env, MakeIrisTextLoaderArgs())
-                    .Read(new MultiFileSource(dataPath));
+                j.Label = i.Label;
+                j.PetalLength = i.SepalLength > 3 ? i.PetalLength : i.SepalLength;
+                j.PetalWidth = i.PetalWidth;
+                j.SepalLength = i.SepalLength;
+                j.SepalWidth = i.SepalWidth;
+            };
+            var pipeline = new ConcatEstimator(ml, "Features", "SepalLength", "SepalWidth", "PetalLength", "PetalWidth")
+                .Append(new MyLambdaTransform<IrisData, IrisData>(ml, action), TransformerScope.TrainTest)
+                .Append(new TermEstimator(ml, "Label"), TransformerScope.TrainTest)
+                .Append(ml.MulticlassClassification.Trainers.StochasticDualCoordinateAscent(advancedSettings: (s) => { s.MaxIterations = 100; s.Shuffle = true; s.NumThreads = 1; }))
+                .Append(new KeyToValueEstimator(ml, "PredictedLabel"));
 
-                Action<IrisData, IrisData> action = (i, j) =>
-                {
-                    j.Label = i.Label;
-                    j.PetalLength = i.SepalLength > 3 ? i.PetalLength : i.SepalLength;
-                    j.PetalWidth = i.PetalWidth;
-                    j.SepalLength = i.SepalLength;
-                    j.SepalWidth = i.SepalWidth;
-                };
-                var pipeline = new ConcatEstimator(env, "Features", "SepalLength", "SepalWidth", "PetalLength", "PetalWidth")
-                    .Append(new MyLambdaTransform<IrisData, IrisData>(env, action), TransformerScope.TrainTest)
-                    .Append(new TermEstimator(env, "Label"), TransformerScope.TrainTest)
-                    .Append(new SdcaMultiClassTrainer(env, new SdcaMultiClassTrainer.Arguments { MaxIterations = 100, Shuffle = true, NumThreads = 1 }, "Features", "Label"))
-                    .Append(new KeyToValueEstimator(env, "PredictedLabel"));
+            var model = pipeline.Fit(data).GetModelFor(TransformerScope.Scoring);
+            var engine = model.MakePredictionFunction<IrisDataNoLabel, IrisPrediction>(ml);
 
-                var model = pipeline.Fit(data).GetModelFor(TransformerScope.Scoring);
-                var engine = model.MakePredictionFunction<IrisDataNoLabel, IrisPrediction>(env);
-
-                var testLoader = TextLoader.ReadFile(env, MakeIrisTextLoaderArgs(), new MultiFileSource(dataPath));
-                var testData = testLoader.AsEnumerable<IrisData>(env, false);
-                foreach (var input in testData.Take(20))
-                {
-                    var prediction = engine.Predict(input);
-                    Assert.True(prediction.PredictedLabel == input.Label);
-                }
+            var testLoader = TextLoader.ReadFile(ml, MakeIrisTextLoaderArgs(), new MultiFileSource(dataPath));
+            var testData = testLoader.AsEnumerable<IrisData>(ml, false);
+            foreach (var input in testData.Take(20))
+            {
+                var prediction = engine.Predict(input);
+                Assert.True(prediction.PredictedLabel == input.Label);
             }
         }
     }

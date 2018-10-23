@@ -21,6 +21,9 @@ namespace Microsoft.ML.Runtime.Data
 
         private readonly IHost _host;
         private readonly TermTransform.ColumnInfo[] _columns;
+        private readonly string _file;
+        private readonly string _termsColumn;
+        private readonly IComponentFactory<IMultiStreamSource, IDataLoader> _loaderFactory;
 
         /// <summary>
         /// Convenience constructor for public facing API.
@@ -30,20 +33,25 @@ namespace Microsoft.ML.Runtime.Data
         /// <param name="outputColumn">Name of the output column. If this is null '<paramref name="inputColumn"/>' will be used.</param>
         /// <param name="maxNumTerms">Maximum number of terms to keep per column when auto-training.</param>
         /// <param name="sort">How items should be ordered when vectorized. By default, they will be in the order encountered.
-        /// If by value items are sorted according to their default comparison, e.g., text sorting will be case sensitive (e.g., 'A' then 'Z' then 'a').</param>
+        /// If by value items are sorted according to their default comparison, for example, text sorting will be case sensitive (for example, 'A' then 'Z' then 'a').</param>
         public TermEstimator(IHostEnvironment env, string inputColumn, string outputColumn = null, int maxNumTerms = Defaults.MaxNumTerms, TermTransform.SortOrder sort = Defaults.Sort) :
-           this(env, new TermTransform.ColumnInfo(inputColumn, outputColumn ?? inputColumn, maxNumTerms, sort))
+           this(env, new[] { new TermTransform.ColumnInfo(inputColumn, outputColumn ?? inputColumn, maxNumTerms, sort) })
         {
         }
 
-        public TermEstimator(IHostEnvironment env, params TermTransform.ColumnInfo[] columns)
+        public TermEstimator(IHostEnvironment env, TermTransform.ColumnInfo[] columns,
+            string file = null, string termsColumn = null,
+            IComponentFactory<IMultiStreamSource, IDataLoader> loaderFactory = null)
         {
             Contracts.CheckValue(env, nameof(env));
             _host = env.Register(nameof(TermEstimator));
             _columns = columns;
+            _file = file;
+            _termsColumn = termsColumn;
+            _loaderFactory = loaderFactory;
         }
 
-        public TermTransform Fit(IDataView input) => new TermTransform(_host, input, _columns);
+        public TermTransform Fit(IDataView input) => new TermTransform(_host, input, _columns, _file, _termsColumn, _loaderFactory);
 
         public SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {
@@ -114,7 +122,7 @@ namespace Microsoft.ML.Runtime.Data
     public static partial class TermStaticExtensions
     {
         // I am not certain I see a good way to cover the distinct types beyond complete enumeration.
-        // Raw generics would allow illegal possible inputs, e.g., Scalar<Bitmap>. So, this is a partial
+        // Raw generics would allow illegal possible inputs, for example, Scalar<Bitmap>. So, this is a partial
         // class, and all the public facing extension methods for each possible type are in a T4 generated result.
 
         private const KeyValueOrder DefSort = (KeyValueOrder)TermEstimator.Defaults.Sort;

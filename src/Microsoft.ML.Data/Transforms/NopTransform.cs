@@ -24,7 +24,7 @@ namespace Microsoft.ML.Runtime.Data
 
         public IDataView Source { get; }
 
-        ISchema IRowToRowMapper.InputSchema => Source.Schema;
+        Schema IRowToRowMapper.InputSchema => Source.Schema;
 
         /// <summary>
         /// Creates a NopTransform if the input is not an IDataTransform.
@@ -58,7 +58,8 @@ namespace Microsoft.ML.Runtime.Data
                 verWrittenCur: 0x00010001, // Initial
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
-                loaderSignature: LoaderSignature);
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(NopTransform).Assembly.FullName);
         }
 
         internal static string RegistrationName = "NopTransform";
@@ -100,10 +101,7 @@ namespace Microsoft.ML.Runtime.Data
             get { return Source.CanShuffle; }
         }
 
-        public ISchema Schema
-        {
-            get { return Source.Schema; }
-        }
+        public Schema Schema => Source.Schema;
 
         public long? GetRowCount(bool lazy = true)
         {

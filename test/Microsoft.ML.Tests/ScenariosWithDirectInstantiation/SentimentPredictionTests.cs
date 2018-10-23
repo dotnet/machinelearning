@@ -43,10 +43,8 @@ namespace Microsoft.ML.Scenarios
                         Name = "Features",
                         Source = new[] { "SentimentText" }
                     },
-                    KeepDiacritics = false,
-                    KeepPunctuations = false,
-                    TextCase = Runtime.TextAnalytics.TextNormalizerTransform.CaseNormalizationMode.Lower,
                     OutputTokens = true,
+                    KeepPunctuations = false,
                     StopWordsRemover = new Runtime.TextAnalytics.PredefinedStopWordsRemoverFactory(),
                     VectorNormalizer = TextTransform.TextNormKind.L2,
                     CharFeatureExtractor = new NgramExtractorTransform.NgramExtractorArguments() { NgramLength = 3, AllLengths = false },
@@ -55,12 +53,8 @@ namespace Microsoft.ML.Scenarios
                 loader);
 
                 // Train
-                var trainer = new FastTreeBinaryClassificationTrainer(env, DefaultColumnNames.Label, DefaultColumnNames.Features, advancedSettings: s=>
-                {
-                    s.NumLeaves = 5;
-                    s.NumTrees = 5;
-                    s.MinDocumentsInLeafs = 2;
-                });
+                var trainer = new FastTreeBinaryClassificationTrainer(env, DefaultColumnNames.Label, DefaultColumnNames.Features, 
+                    numLeaves:5, numTrees:5, minDocumentsInLeafs: 2);
 
                 var trainRoles = new RoleMappedData(trans, label: "Label", feature: "Features");
                 var pred = trainer.Train(trainRoles);
@@ -112,10 +106,8 @@ namespace Microsoft.ML.Scenarios
                         Name = "WordEmbeddings",
                         Source = new[] { "SentimentText" }
                     },
-                    KeepDiacritics = false,
-                    KeepPunctuations = false,
-                    TextCase = Runtime.TextAnalytics.TextNormalizerTransform.CaseNormalizationMode.Lower,
                     OutputTokens = true,
+                    KeepPunctuations= false,
                     StopWordsRemover = new Runtime.TextAnalytics.PredefinedStopWordsRemoverFactory(),
                     VectorNormalizer = TextTransform.TextNormKind.None,
                     CharFeatureExtractor = null,
@@ -136,12 +128,7 @@ namespace Microsoft.ML.Scenarios
                     ModelKind = WordEmbeddingsTransform.PretrainedModelKind.Sswe,
                 }, text);
                 // Train
-                var trainer = new FastTreeBinaryClassificationTrainer(env, DefaultColumnNames.Label, DefaultColumnNames.Features, advancedSettings: s=> 
-                    {
-                        s.NumLeaves = 5;
-                        s.NumTrees = 5;
-                        s.MinDocumentsInLeafs = 2;
-                    });
+                var trainer = new FastTreeBinaryClassificationTrainer(env, DefaultColumnNames.Label, DefaultColumnNames.Features, numLeaves: 5, numTrees:5, minDocumentsInLeafs:2);
 
                 var trainRoles = new RoleMappedData(trans, label: "Label", feature: "Features");
                 var pred = trainer.Train(trainRoles);

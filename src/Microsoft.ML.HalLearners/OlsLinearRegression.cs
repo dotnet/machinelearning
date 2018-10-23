@@ -106,7 +106,7 @@ namespace Microsoft.ML.Runtime.HalLearners
             return args;
         }
 
-        protected override RegressionPredictionTransformer<OlsLinearRegressionPredictor> MakeTransformer(OlsLinearRegressionPredictor model, ISchema trainSchema)
+        protected override RegressionPredictionTransformer<OlsLinearRegressionPredictor> MakeTransformer(OlsLinearRegressionPredictor model, Schema trainSchema)
              => new RegressionPredictionTransformer<OlsLinearRegressionPredictor>(Host, model, trainSchema, FeatureColumn.Name);
 
         protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema)
@@ -150,9 +150,7 @@ namespace Microsoft.ML.Runtime.HalLearners
 
                 var cursorFactory = new FloatLabelCursor.Factory(examples, CursOpt.Label | CursOpt.Features);
 
-                var pred = TrainCore(ch, cursorFactory, typeFeat.VectorSize);
-                ch.Done();
-                return pred;
+                return TrainCore(ch, cursorFactory, typeFeat.VectorSize);
             }
         }
 
@@ -543,7 +541,8 @@ namespace Microsoft.ML.Runtime.HalLearners
                 verWrittenCur: 0x00010001,
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
-                loaderSignature: LoaderSignature);
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(OlsLinearRegressionPredictor).Assembly.FullName);
         }
 
         // The following will be null iff RSquaredAdjusted is NaN.

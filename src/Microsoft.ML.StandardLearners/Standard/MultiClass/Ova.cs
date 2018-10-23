@@ -214,7 +214,8 @@ namespace Microsoft.ML.Runtime.Learners
                 verWrittenCur: 0x00010001, // Initial
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
-                loaderSignature: LoaderSignature);
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(OvaPredictor).Assembly.FullName);
         }
 
         private const string SubPredictorFmt = "SubPredictor_{0:000}";
@@ -252,8 +253,6 @@ namespace Microsoft.ML.Runtime.Learners
                 }
                 else
                     impl = new ImplRaw(predictors);
-
-                ch.Done();
             }
 
             return new OvaPredictor(host, impl);
@@ -273,7 +272,7 @@ namespace Microsoft.ML.Runtime.Learners
             var normalizedView = input.ModelArray[0].TransformModel.Apply(host, input.TrainingData);
             using (var ch = host.Start("CombineOvaModels"))
             {
-                ISchema schema = normalizedView.Schema;
+                var schema = normalizedView.Schema;
                 var label = TrainUtils.MatchNameOrDefaultOrNull(ch, schema, nameof(input.LabelColumn),
                     input.LabelColumn,
                     DefaultColumnNames.Label);

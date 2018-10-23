@@ -57,7 +57,8 @@ namespace Microsoft.ML.Runtime.Data
                 verWrittenCur: 0x00010001, // Initial
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
-                loaderSignature: TransformerChain.LoaderSignature);
+                loaderSignature: TransformerChain.LoaderSignature,
+                loaderAssemblyName: typeof(TransformerChain<>).Assembly.FullName);
         }
 
         /// <summary>
@@ -102,7 +103,7 @@ namespace Microsoft.ML.Runtime.Data
             }
         }
 
-        public ISchema GetOutputSchema(ISchema inputSchema)
+        public Schema GetOutputSchema(Schema inputSchema)
         {
             Contracts.CheckValue(inputSchema, nameof(inputSchema));
 
@@ -145,7 +146,7 @@ namespace Microsoft.ML.Runtime.Data
             where TNewLast : class, ITransformer
         {
             Contracts.CheckValue(transformer, nameof(transformer));
-            return new TransformerChain<TNewLast>(_transformers.Append(transformer).ToArray(), _scopes.Append(scope).ToArray());
+            return new TransformerChain<TNewLast>(_transformers.AppendElement(transformer), _scopes.AppendElement(scope));
         }
 
         public void Save(ModelSaveContext ctx)
@@ -200,13 +201,13 @@ namespace Microsoft.ML.Runtime.Data
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
-        public IRowToRowMapper GetRowToRowMapper(ISchema inputSchema)
+        public IRowToRowMapper GetRowToRowMapper(Schema inputSchema)
         {
             Contracts.CheckValue(inputSchema, nameof(inputSchema));
             Contracts.Check(IsRowToRowMapper, nameof(GetRowToRowMapper) + " method called despite " + nameof(IsRowToRowMapper) + " being false.");
 
             IRowToRowMapper[] mappers = new IRowToRowMapper[_transformers.Length];
-            ISchema schema = inputSchema;
+            Schema schema = inputSchema;
             for (int i = 0; i < mappers.Length; ++i)
             {
                 mappers[i] = _transformers[i].GetRowToRowMapper(schema);

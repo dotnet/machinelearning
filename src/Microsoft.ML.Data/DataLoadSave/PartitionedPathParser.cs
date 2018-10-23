@@ -74,7 +74,7 @@ namespace Microsoft.ML.Runtime.Data
             Desc = SimplePartitionedPathParser.Summary, Alias = SimplePartitionedPathParser.ShortName)]
         public class Arguments : IPartitionedPathParserFactory
         {
-            [Argument(ArgumentType.Multiple, HelpText = "Column definitions used to override the Partitioned Path Parser. Expected with the format name:type:numeric-source, e.g. col=MyFeature:R4:1",
+            [Argument(ArgumentType.Multiple, HelpText = "Column definitions used to override the Partitioned Path Parser. Expected with the format name:type:numeric-source, for example, col=MyFeature:R4:1",
                 ShortName = "col", SortOrder = 1)]
             public PartitionedFileLoader.Column[] Columns;
 
@@ -91,7 +91,8 @@ namespace Microsoft.ML.Runtime.Data
                 verWrittenCur: 0x00010001, // Initial
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
-                loaderSignature: LoadName);
+                loaderSignature: LoadName,
+                loaderAssemblyName: typeof(SimplePartitionedPathParser).Assembly.FullName);
         }
 
         private IHost _host;
@@ -214,7 +215,8 @@ namespace Microsoft.ML.Runtime.Data
                 verWrittenCur: 0x00010001, // Initial
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
-                loaderSignature: LoadName);
+                loaderSignature: LoadName,
+                loaderAssemblyName: typeof(ParquetPartitionedPathParser).Assembly.FullName);
         }
 
         public ParquetPartitionedPathParser()

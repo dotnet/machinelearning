@@ -6,6 +6,7 @@ using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
+using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.RunTests;
 using Microsoft.ML.Runtime.Sweeper;
 using Microsoft.ML.Runtime.Sweeper.Algorithms;
@@ -603,6 +604,56 @@ namespace Microsoft.ML.Sweeper.RunTests
                     sweeps = sweeper.ProposeSweeps(5, results);
                 }
                 Assert.True(sweeps.Length <= 5);
+            }
+        }
+
+        [Fact]
+        public void TestNelderMeadSweeperWithDefaultFirstBatchSweeper()
+        {
+            var random = new Random(42);
+            using (var env = new ConsoleEnvironment(42))
+            {
+                var param = new IComponentFactory<INumericValueGenerator>[] {
+                    ComponentFactoryUtils.CreateFromFunction(
+                        environ => new FloatValueGenerator(new FloatParamArguments() { Name = "foo", Min = 1, Max = 5})),
+                    ComponentFactoryUtils.CreateFromFunction(
+                        environ => new LongValueGenerator(new LongParamArguments() { Name = "bar", Min = 1, Max = 1000, LogBase = true }))
+                };
+
+                var args = new NelderMeadSweeper.Arguments();
+                args.SweptParameters = param;
+                var sweeper = new NelderMeadSweeper(env, args);
+                var sweeps = sweeper.ProposeSweeps(5, new List<RunResult>());
+                Assert.Equal(3, sweeps.Length);
+
+                var results = new List<IRunResult>();
+                for (int i = 1; i < 10; i++)
+                {
+                    foreach (var parameterSet in sweeps)
+                    {
+                        foreach (var parameterValue in parameterSet)
+                        {
+                            if (parameterValue.Name == "foo")
+                            {
+                                var val = float.Parse(parameterValue.ValueText, CultureInfo.InvariantCulture);
+                                Assert.InRange(val, 1, 5);
+                            }
+                            else if (parameterValue.Name == "bar")
+                            {
+                                var val = long.Parse(parameterValue.ValueText);
+                                Assert.InRange(val, 1, 1000);
+                            }
+                            else
+                            {
+                                Assert.True(false, "Wrong parameter");
+                            }
+                        }
+                        results.Add(new RunResult(parameterSet, random.NextDouble(), true));
+                    }
+
+                    sweeps = sweeper.ProposeSweeps(5, results);
+                }
+                Assert.True(Utils.Size(sweeps) <= 5);
             }
         }
 

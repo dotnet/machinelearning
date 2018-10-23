@@ -85,6 +85,39 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         /// <summary>
+        /// Evaluates scored clustering prediction data.
+        /// </summary>
+        /// <typeparam name="T">The shape type for the input data.</typeparam>
+        /// <param name="ctx">The clustering context.</param>
+        /// <param name="data">The data to evaluate.</param>
+        /// <param name="score">The index delegate for the predicted score column.</param>
+        /// <param name="label">The optional index delegate for the label column.</param>
+        /// <param name="features">The optional index delegate for the features column.</param>
+        /// <returns>The evaluation metrics.</returns>
+        public static ClusteringEvaluator.Result Evaluate<T>(
+            this ClusteringContext ctx,
+            DataView<T> data,
+            Func<T, Vector<float>> score,
+            Func<T, Key<uint>> label = null,
+            Func<T, Vector<float>> features = null)
+        {
+            Contracts.CheckValue(data, nameof(data));
+            var env = StaticPipeUtils.GetEnvironment(data);
+            Contracts.AssertValue(env);
+            env.CheckValue(score, nameof(score));
+
+            var indexer = StaticPipeUtils.GetIndexer(data);
+            string scoreName = indexer.Get(score(indexer.Indices));
+
+            string labelName = (label != null)?  indexer.Get(label(indexer.Indices)) : null;
+            string featuresName = (features!= null) ? indexer.Get(features(indexer.Indices)): null;
+
+            var args = new ClusteringEvaluator.Arguments() { CalculateDbi = !string.IsNullOrEmpty(featuresName) };
+
+            return new ClusteringEvaluator(env, args).Evaluate(data.AsDynamic, scoreName, labelName, featuresName);
+        }
+
+        /// <summary>
         /// Evaluates scored multiclass classification data.
         /// </summary>
         /// <typeparam name="T">The shape type for the input data.</typeparam>
@@ -136,7 +169,7 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         /// <summary>
-        /// Evaluates scored multiclass classification data.
+        /// Evaluates scored regression data.
         /// </summary>
         /// <typeparam name="T">The shape type for the input data.</typeparam>
         /// <param name="ctx">The regression context.</param>
@@ -166,6 +199,41 @@ namespace Microsoft.ML.Runtime.Data
             if (loss != null)
                 args.LossFunction = new TrivialRegressionLossFactory(loss);
             return new RegressionEvaluator(env, args).Evaluate(data.AsDynamic, labelName, scoreName);
+        }
+
+        /// <summary>
+        /// Evaluates scored ranking data.
+        /// </summary>
+        /// <typeparam name="T">The shape type for the input data.</typeparam>
+        /// <typeparam name="TVal">The type of data, before being converted to a key.</typeparam>
+        /// <param name="ctx">The ranking context.</param>
+        /// <param name="data">The data to evaluate.</param>
+        /// <param name="label">The index delegate for the label column.</param>
+        /// <param name="groupId">The index delegate for the groupId column. </param>
+        /// <param name="score">The index delegate for predicted score column.</param>
+        /// <returns>The evaluation metrics.</returns>
+        public static RankerEvaluator.Result Evaluate<T, TVal>(
+            this RankingContext ctx,
+            DataView<T> data,
+            Func<T, Scalar<float>> label,
+            Func<T, Key<uint, TVal>> groupId,
+            Func<T, Scalar<float>> score)
+        {
+            Contracts.CheckValue(data, nameof(data));
+            var env = StaticPipeUtils.GetEnvironment(data);
+            Contracts.AssertValue(env);
+            env.CheckValue(label, nameof(label));
+            env.CheckValue(groupId, nameof(groupId));
+            env.CheckValue(score, nameof(score));
+
+            var indexer = StaticPipeUtils.GetIndexer(data);
+            string labelName = indexer.Get(label(indexer.Indices));
+            string scoreName = indexer.Get(score(indexer.Indices));
+            string groupIdName = indexer.Get(groupId(indexer.Indices));
+
+            var args = new RankerEvaluator.Arguments() { };
+
+            return new RankerEvaluator(env, args).Evaluate(data.AsDynamic, labelName, groupIdName, scoreName);
         }
     }
 }

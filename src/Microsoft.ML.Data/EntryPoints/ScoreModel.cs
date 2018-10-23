@@ -83,9 +83,8 @@ namespace Microsoft.ML.Runtime.EntryPoints
                 ch.AssertValue(bindable);
 
                 var mapper = bindable.Bind(host, data.Schema);
-                var scorer = ScoreUtils.GetScorerComponent(mapper, input.Suffix);
+                var scorer = ScoreUtils.GetScorerComponent(host, mapper, input.Suffix);
                 scoredPipe = scorer.CreateComponent(host, data.Data, mapper, input.PredictorModel.GetTrainingSchema(host));
-                ch.Done();
             }
 
             return
@@ -134,9 +133,8 @@ namespace Microsoft.ML.Runtime.EntryPoints
                 ch.AssertValue(bindable);
 
                 var mapper = bindable.Bind(host, data.Schema);
-                var scorer = ScoreUtils.GetScorerComponent(mapper);
+                var scorer = ScoreUtils.GetScorerComponent(host, mapper);
                 scoredPipe = scorer.CreateComponent(host, data.Data, mapper, input.PredictorModel.GetTrainingSchema(host));
-                ch.Done();
             }
 
             return new Output

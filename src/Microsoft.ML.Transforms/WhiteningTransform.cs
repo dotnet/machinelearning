@@ -202,7 +202,8 @@ namespace Microsoft.ML.Runtime.Data
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
                 loaderSignature: LoaderSignature,
-                loaderSignatureAlt: LoaderSignatureOld);
+                loaderSignatureAlt: LoaderSignatureOld,
+                loaderAssemblyName: typeof(WhiteningTransform).Assembly.FullName);
         }
 
         private readonly ColInfoEx[] _exes;
@@ -249,7 +250,6 @@ namespace Microsoft.ML.Runtime.Data
                 int[] rowCounts;
                 var columnData = LoadDataAsDense(ch, out rowCounts);
                 TrainModels(columnData, rowCounts, ch);
-                ch.Done();
             }
             Metadata.Seal();
         }
@@ -582,7 +582,7 @@ namespace Microsoft.ML.Runtime.Data
         private static Float DotProduct(Float[] a, int aOffset, Float[] b, int[] indices, int count)
         {
             Contracts.Assert(count <= indices.Length);
-            return CpuMathUtils.DotProductSparse(a, aOffset, b, indices, count);
+            return CpuMathUtils.DotProductSparse(a.AsSpan(aOffset), b, indices, count);
 
         }
 

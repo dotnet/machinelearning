@@ -132,10 +132,10 @@ namespace Microsoft.ML.Runtime.PipelineInference
                     {
                         if (!col.RawData.Skip(1)
                             .All(x =>
-                                {
-                                    bool value;
-                                    return Conversions.Instance.TryParse(ref x, out value);
-                                })
+                            {
+                                bool value;
+                                return Conversions.Instance.TryParse(ref x, out value);
+                            })
                             )
                         {
                             continue;
@@ -157,10 +157,10 @@ namespace Microsoft.ML.Runtime.PipelineInference
                     {
                         if (!col.RawData.Skip(1)
                             .All(x =>
-                                {
-                                    Single value;
-                                    return Conversions.Instance.TryParse(ref x, out value);
-                                })
+                            {
+                                Single value;
+                                return Conversions.Instance.TryParse(ref x, out value);
+                            })
                             )
                         {
                             continue;
@@ -227,9 +227,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
 
             using (var ch = env.Register("InferTextFileColumnTypes").Start("TypeInference"))
             {
-                var result = InferTextFileColumnTypesCore(env, fileSource, args, ch);
-                ch.Done();
-                return result;
+                return InferTextFileColumnTypesCore(env, fileSource, args, ch);
             }
         }
 
@@ -240,7 +238,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
             ch.AssertValue(fileSource);
             ch.AssertValue(args);
 
-            if (args.ColumnCount==0)
+            if (args.ColumnCount == 0)
             {
                 ch.Error("Too many empty columns for automatic inference.");
                 return InferenceResult.Fail();

@@ -30,7 +30,7 @@ namespace Microsoft.ML.Runtime.Data
         public const string UserName = "Mutual Information Feature Selection Transform";
         public const string ShortName = "MIFeatureSelection";
 
-        private static class Defaults
+        public static class Defaults
         {
             public const string LabelColumn = DefaultColumnNames.Label;
             public const int SlotsInOutput = 1000;
@@ -133,9 +133,7 @@ namespace Microsoft.ML.Runtime.Data
 
                 var dsArgs = new DropSlotsTransform.Arguments();
                 dsArgs.Column = columns.ToArray();
-                var ds = new DropSlotsTransform(host, dsArgs, input);
-                ch.Done();
-                return ds;
+                return new DropSlotsTransform(host, dsArgs, input);
             }
         }
 
@@ -385,7 +383,6 @@ namespace Microsoft.ML.Runtime.Data
                             pch.Checkpoint(i + 1);
                         }
                     }
-                    ch.Done();
                 }
 
                 return scores;

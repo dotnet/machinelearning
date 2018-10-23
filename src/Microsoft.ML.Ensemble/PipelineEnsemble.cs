@@ -41,14 +41,14 @@ namespace Microsoft.ML.Runtime.Ensemble
 
             public ISchemaBindableMapper Bindable => Parent;
             public RoleMappedSchema InputRoleMappedSchema { get; }
-            public ISchema InputSchema => InputRoleMappedSchema.Schema;
-            public ISchema Schema { get; }
+            public Schema InputSchema => InputRoleMappedSchema.Schema;
+            public Schema Schema { get; }
 
             public BoundBase(SchemaBindablePipelineEnsembleBase parent, RoleMappedSchema schema)
             {
                 Parent = parent;
                 InputRoleMappedSchema = schema;
-                Schema = new ScoreMapperSchema(Parent.ScoreType, Parent._scoreColumnKind);
+                Schema = Schema.Create(new ScoreMapperSchema(Parent.ScoreType, Parent._scoreColumnKind));
                 _inputColIndices = new HashSet<int>();
                 for (int i = 0; i < Parent._inputCols.Length; i++)
                 {
@@ -378,7 +378,8 @@ namespace Microsoft.ML.Runtime.Ensemble
                 verWrittenCur: 0x00010002, // Save predictor models in a subdirectory
                 verReadableCur: 0x00010002,
                 verWeCanReadBack: 0x00010001,
-                loaderSignature: LoaderSignature);
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(SchemaBindablePipelineEnsembleBase).Assembly.FullName);
         }
         public const string UserName = "Pipeline Ensemble";
         public const string LoaderSignature = "PipelineEnsemble";

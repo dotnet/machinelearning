@@ -279,7 +279,7 @@ namespace Microsoft.ML.Runtime.Data.IO
             /// <summary>
             /// Fetches the maximum block sizes for both the compressed and decompressed
             /// block sizes, for this column. If there are no blocks associated with this
-            /// column, for whatever reason (e.g., a data view with no rows, or a generated
+            /// column, for whatever reason (for example, a data view with no rows, or a generated
             /// column), this will return 0 in both vlaues.
             /// </summary>
             /// <param name="compressed">The maximum value of the compressed block size
@@ -311,7 +311,6 @@ namespace Microsoft.ML.Runtime.Data.IO
                     using (var ch = _parent._host.Start("Metadata TOC Read"))
                     {
                         ReadTocMetadata(ch, stream);
-                        ch.Done();
                     }
                 }
             }
@@ -694,7 +693,7 @@ namespace Microsoft.ML.Runtime.Data.IO
         private readonly BinaryReader _reader;
         private readonly CodecFactory _factory;
         private readonly Header _header;
-        private readonly SchemaImpl _schema;
+        private readonly Schema _schema;
         private readonly bool _autodeterminedThreads;
         private readonly int _threads;
         private readonly string _generatedRowIndexName;
@@ -702,7 +701,7 @@ namespace Microsoft.ML.Runtime.Data.IO
 
         private readonly TableOfContentsEntry[] _aliveColumns;
         // We still want to be able to access information about the columns we could not read, like their
-        // name, where they are, how much space they're taking, etc. Conceivably for some operations (e.g.,
+        // name, where they are, how much space they're taking, etc. Conceivably for some operations (for example,
         // column filtering) whether or not we can interpret the values in the column is totally irrelevant.
         private readonly TableOfContentsEntry[] _deadColumns;
 
@@ -757,7 +756,7 @@ namespace Microsoft.ML.Runtime.Data.IO
         /// </summary>
         private const ulong ReaderFirstVersion = 0x0001000100010002;
 
-        public ISchema Schema { get { return _schema; } }
+        public Schema Schema { get { return _schema; } }
 
         private long RowCount { get { return _header.RowCount; } }
 
@@ -778,7 +777,8 @@ namespace Microsoft.ML.Runtime.Data.IO
                 verWrittenCur: 0x00010003, // Number of blocks to put in the shuffle pool
                 verReadableCur: 0x00010003,
                 verWeCanReadBack: 0x00010001,
-                loaderSignature: LoaderSignature);
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(BinaryLoader).Assembly.FullName);
         }
 
         private BinaryLoader(Arguments args, IHost host, Stream stream, bool leaveOpen)
@@ -804,14 +804,13 @@ namespace Microsoft.ML.Runtime.Data.IO
                 _threads = Math.Max(1, args.Threads ?? (Environment.ProcessorCount / 2));
                 _generatedRowIndexName = string.IsNullOrWhiteSpace(args.RowIndexName) ? null : args.RowIndexName;
                 InitToc(ch, out _aliveColumns, out _deadColumns, out _rowsPerBlock, out _tocEndLim);
-                _schema = new SchemaImpl(this);
+                _schema = Schema.Create(new SchemaImpl(this));
                 _host.Assert(_schema.ColumnCount == Utils.Size(_aliveColumns));
                 _bufferCollection = new MemoryStreamCollection();
                 if (Utils.Size(_deadColumns) > 0)
                     ch.Warning("BinaryLoader does not know how to interpret {0} columns", Utils.Size(_deadColumns));
                 _shuffleBlocks = args.PoolBlocks;
                 CalculateShufflePoolRows(ch, out _randomShufflePoolRows);
-                ch.Done();
             }
         }
 
@@ -894,14 +893,13 @@ namespace Microsoft.ML.Runtime.Data.IO
 
                 _header = InitHeader();
                 InitToc(ch, out _aliveColumns, out _deadColumns, out _rowsPerBlock, out _tocEndLim);
-                _schema = new SchemaImpl(this);
+                _schema = Schema.Create(new SchemaImpl(this));
                 ch.Assert(_schema.ColumnCount == Utils.Size(_aliveColumns));
                 _bufferCollection = new MemoryStreamCollection();
                 if (Utils.Size(_deadColumns) > 0)
                     ch.Warning("BinaryLoader does not know how to interpret {0} columns", Utils.Size(_deadColumns));
 
                 CalculateShufflePoolRows(ch, out _randomShufflePoolRows);
-                ch.Done();
             }
         }
 
@@ -1000,7 +998,7 @@ namespace Microsoft.ML.Runtime.Data.IO
         /// Save a zero-row dataview that will be used to infer schema information, used in the case
         /// where the binary loader is instantiated with no input streams.
         /// </summary>
-        private static void SaveSchema(IHostEnvironment env, ModelSaveContext ctx, ISchema schema, out int[] unsavableColIndices)
+        private static void SaveSchema(IHostEnvironment env, ModelSaveContext ctx, Schema schema, out int[] unsavableColIndices)
         {
             Contracts.AssertValue(env, "env");
             var h = env.Register(LoadName);
@@ -1032,7 +1030,7 @@ namespace Microsoft.ML.Runtime.Data.IO
         /// to begin the pipe with, with the assumption that the user will bypass the loader at deserialization
         /// time by providing a starting data view.
         /// </summary>
-        public static void SaveInstance(IHostEnvironment env, ModelSaveContext ctx, ISchema schema)
+        public static void SaveInstance(IHostEnvironment env, ModelSaveContext ctx, Schema schema)
         {
             Contracts.CheckValue(env, nameof(env));
             var h = env.Register(LoadName);
@@ -1285,7 +1283,7 @@ namespace Microsoft.ML.Runtime.Data.IO
 
             private volatile bool _disposed;
 
-            public ISchema Schema { get { return _parent.Schema; } }
+            public Schema Schema => _parent.Schema;
 
             public override long Batch
             {
@@ -1300,7 +1298,6 @@ namespace Microsoft.ML.Runtime.Data.IO
                 Ch.AssertValue(predicate);
                 Ch.AssertValueOrNull(rand);
 
-                SchemaImpl schema = _parent._schema;
                 _exMarshaller = new ExceptionMarshaller();
 
                 TableOfContentsEntry[] toc = _parent._aliveColumns;
@@ -1594,7 +1591,7 @@ namespace Microsoft.ML.Runtime.Data.IO
                     }
 
                     /// <summary>
-                    /// Constructor for a sentinel compressed block. (E.g.,
+                    /// Constructor for a sentinel compressed block. (For example,
                     /// the pipe's last block, which contains no valid data.)
                     /// </summary>
                     public Block(long blockSequence)
@@ -1781,7 +1778,7 @@ namespace Microsoft.ML.Runtime.Data.IO
                     }
 
                     /// <summary>
-                    /// Constructor for a sentinel compressed block. (E.g.,
+                    /// Constructor for a sentinel compressed block. (For example,
                     /// the pipe's last block, which contains no valid data.)
                     /// </summary>
                     public CompressedBlock(long blockSequence)
@@ -2182,7 +2179,6 @@ namespace Microsoft.ML.Runtime.Data.IO
                 using (var ch = host.Start("Inspection"))
                 {
                     RunCore(ch, loader);
-                    ch.Done();
                 }
             }
 

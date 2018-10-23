@@ -20,23 +20,19 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         [Fact]
         public void New_Evaluation()
         {
-            using (var env = new LocalEnvironment(seed: 1, conc: 1))
-            {
-                var reader = new TextLoader(env, MakeSentimentTextLoaderArgs());
+            var ml = new MLContext(seed: 1, conc: 1);
 
-                // Pipeline.
-                var pipeline = new TextLoader(env, MakeSentimentTextLoaderArgs())
-                    .Append(new TextTransform(env, "SentimentText", "Features"))
-                    .Append(new LinearClassificationTrainer(env, new LinearClassificationTrainer.Arguments { NumThreads = 1 }, "Features", "Label"));
+            // Pipeline.
+            var pipeline = ml.Data.TextReader(MakeSentimentTextLoaderArgs())
+                .Append(ml.Transforms.Text.FeaturizeText("SentimentText", "Features"))
+                .Append(ml.BinaryClassification.Trainers.StochasticDualCoordinateAscent(advancedSettings: s => s.NumThreads = 1));
 
-                // Train.
-                var readerModel = pipeline.Fit(new MultiFileSource(GetDataPath(TestDatasets.Sentiment.trainFilename)));
+            // Train.
+            var readerModel = pipeline.Fit(new MultiFileSource(GetDataPath(TestDatasets.Sentiment.trainFilename)));
 
-                // Evaluate on the test set.
-                var dataEval = readerModel.Read(new MultiFileSource(GetDataPath(TestDatasets.Sentiment.validFilename)));
-                var evaluator = new MyBinaryClassifierEvaluator(env, new BinaryClassifierEvaluator.Arguments() { });
-                var metrics = evaluator.Evaluate(dataEval);
-            }
+            // Evaluate on the test set.
+            var dataEval = readerModel.Read(new MultiFileSource(GetDataPath(TestDatasets.Sentiment.testFilename)));
+            var metrics = ml.BinaryClassification.Evaluate(dataEval);
         }
     }
 }

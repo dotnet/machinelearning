@@ -24,7 +24,7 @@ namespace Microsoft.ML.Runtime.Data
         public const string Summary = "Selects the slots for which the count of non-default values is greater than or equal to a threshold.";
         public const string UserName = "Count Feature Selection Transform";
 
-        private static class Defaults
+        internal static class Defaults
         {
             public const long Count = 1;
         }
@@ -91,7 +91,6 @@ namespace Microsoft.ML.Runtime.Data
 
                 var dsArgs = new DropSlotsTransform.Arguments();
                 dsArgs.Column = columns.ToArray();
-                ch.Done();
                 return new DropSlotsTransform(host, dsArgs, input);
             }
         }

@@ -335,8 +335,6 @@ namespace Microsoft.ML.Runtime.Data.IO
 
                 if (!_silent)
                     ShowCount(ch, count, min, max);
-
-                ch.Done();
             }
         }
 
@@ -359,8 +357,6 @@ namespace Microsoft.ML.Runtime.Data.IO
 
                 if (showCount)
                     ShowCount(ch, count, min, max);
-
-                ch.Done();
             }
         }
 
@@ -468,7 +464,7 @@ namespace Microsoft.ML.Runtime.Data.IO
                 sb.Append(" col=");
                 if (!column.TryUnparse(sb))
                 {
-                    var settings = CmdParser.GetSettings(ch, column, new TextLoader.Column());
+                    var settings = CmdParser.GetSettings(_host, column, new TextLoader.Column());
                     CmdQuoter.QuoteValue(settings, sb, true);
                 }
                 if (type.IsVector && !type.IsKnownSizeVector && i != pipes.Length - 1)

@@ -33,7 +33,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         ///  *) The tree ensemble learners, I should be able to inspect the trees.
         ///  *) The LDA transform, I should be able to inspect the topics.
         ///  I view it as essential from a usability perspective that this be discoverable to someone without 
-        ///  having to read documentation.E.g.: if I have var lda = new LdaTransform().Fit(data)(I don't insist on that
+        ///  having to read documentation. For example, if I have var lda = new LdaTransform().Fit(data)(I don't insist on that
         ///  exact signature, just giving the idea), then if I were to type lda.
         ///  In Visual Studio, one of the auto-complete targets should be something like GetTopics.
         /// </summary>
@@ -75,8 +75,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                 linearPredictor.GetFeatureWeights(ref weights);
 
                 var topicSummary = lda.GetTopicSummary();
-                var treeTrainer = new FastTreeBinaryClassificationTrainer(env, DefaultColumnNames.Label, DefaultColumnNames.Features,
-                    advancedSettings: s =>{ s.NumTrees = 2; });
+                var treeTrainer = new FastTreeBinaryClassificationTrainer(env, DefaultColumnNames.Label, DefaultColumnNames.Features, numTrees: 2);
                 var ftPredictor = treeTrainer.Train(new Runtime.TrainContext(trainRoles));
                 FastTreeBinaryPredictor treePredictor;
                 if (ftPredictor is CalibratedPredictorBase calibrator)

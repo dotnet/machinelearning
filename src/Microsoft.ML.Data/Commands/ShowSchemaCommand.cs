@@ -59,7 +59,6 @@ namespace Microsoft.ML.Runtime.Data
             using (var ch = Host.Start(LoadName))
             {
                 RunCore(ch);
-                ch.Done();
             }
         }
 

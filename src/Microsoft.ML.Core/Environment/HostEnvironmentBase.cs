@@ -6,7 +6,6 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
-using System.Threading;
 
 namespace Microsoft.ML.Runtime.Data
 {
@@ -175,11 +174,6 @@ namespace Microsoft.ML.Runtime.Data
         {
             public override int Depth { get; }
 
-            /// <summary>
-            /// Whether this pipe is still active.
-            /// </summary>
-            public bool IsActive { get; private set; }
-
             // The delegate to call to dispatch messages.
             protected readonly Action<IMessageSource, TMessage> Dispatch;
 
@@ -193,13 +187,7 @@ namespace Microsoft.ML.Runtime.Data
                 Contracts.AssertValue(dispatch);
                 Parent = parent;
                 Depth = parent.Depth + 1;
-                IsActive = true;
                 Dispatch = dispatch;
-            }
-
-            public virtual void Done()
-            {
-                IsActive = false;
             }
 
             public void Dispose()
@@ -209,7 +197,6 @@ namespace Microsoft.ML.Runtime.Data
 
             protected virtual void DisposeCore()
             {
-                IsActive = false;
             }
 
             public void Send(TMessage msg)
@@ -382,6 +369,8 @@ namespace Microsoft.ML.Runtime.Data
 
         public bool IsCancelled { get; protected set; }
 
+        public ComponentCatalog ComponentCatalog { get; }
+
         public override int Depth => 0;
 
         protected bool IsDisposed => _tempFiles == null;
@@ -402,6 +391,7 @@ namespace Microsoft.ML.Runtime.Data
             _tempLock = new object();
             _tempFiles = new List<IFileHandle>();
             Root = this as TEnv;
+            ComponentCatalog = new ComponentCatalog();
         }
 
         /// <summary>
@@ -422,6 +412,7 @@ namespace Microsoft.ML.Runtime.Data
             Root = source.Root;
             ListenerDict = source.ListenerDict;
             ProgressTracker = source.ProgressTracker;
+            ComponentCatalog = source.ComponentCatalog;
         }
 
         /// <summary>

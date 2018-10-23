@@ -8,6 +8,7 @@ using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
+using Microsoft.ML.Transforms;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -542,7 +543,7 @@ namespace Microsoft.ML.Runtime.Data
             /// The log-loss reduction is scaled relative to a classifier that predicts the prior for every example:
             /// (LL(prior) - LL(classifier)) / LL(prior)
             /// This metric can be interpreted as the advantage of the classifier over a random prediction.
-            /// E.g., if the RIG equals 20, it can be interpreted as "the probability of a correct prediction is
+            /// For example, if the RIG equals 20, it can be interpreted as "the probability of a correct prediction is
             /// 20% better than random guessing".
             /// </remarks>
             public double LogLossReduction { get; private set; }
@@ -570,26 +571,18 @@ namespace Microsoft.ML.Runtime.Data
             /// </remarks>
             public double[] PerClassLogLoss { get; }
 
-            private static T Fetch<T>(IExceptionContext ectx, IRow row, string name)
-            {
-                if (!row.Schema.TryGetColumnIndex(name, out int col))
-                    throw ectx.Except($"Could not find column '{name}'");
-                T val = default;
-                row.GetGetter<T>(col)(ref val);
-                return val;
-            }
             internal Result(IExceptionContext ectx, IRow overallResult, int topK)
             {
-                double Fetch(string name) => Fetch<double>(ectx, overallResult, name);
-                AccuracyMicro = Fetch(MultiClassClassifierEvaluator.AccuracyMicro);
-                AccuracyMacro = Fetch(MultiClassClassifierEvaluator.AccuracyMacro);
-                LogLoss = Fetch(MultiClassClassifierEvaluator.LogLoss);
-                LogLossReduction = Fetch(MultiClassClassifierEvaluator.LogLossReduction);
+                double FetchDouble(string name) => RowCursorUtils.Fetch<double>(ectx, overallResult, name);
+                AccuracyMicro = FetchDouble(MultiClassClassifierEvaluator.AccuracyMicro);
+                AccuracyMacro = FetchDouble(MultiClassClassifierEvaluator.AccuracyMacro);
+                LogLoss = FetchDouble(MultiClassClassifierEvaluator.LogLoss);
+                LogLossReduction = FetchDouble(MultiClassClassifierEvaluator.LogLossReduction);
                 TopK = topK;
                 if (topK > 0)
-                    TopKAccuracy = Fetch(MultiClassClassifierEvaluator.TopKAccuracy);
+                    TopKAccuracy = FetchDouble(MultiClassClassifierEvaluator.TopKAccuracy);
 
-                var perClassLogLoss = Fetch<VBuffer<double>>(ectx, overallResult, MultiClassClassifierEvaluator.PerClassLogLoss);
+                var perClassLogLoss = RowCursorUtils.Fetch<VBuffer<double>>(ectx, overallResult, MultiClassClassifierEvaluator.PerClassLogLoss);
                 PerClassLogLoss = new double[perClassLogLoss.Length];
                 perClassLogLoss.CopyTo(PerClassLogLoss);
             }
@@ -644,7 +637,8 @@ namespace Microsoft.ML.Runtime.Data
                 verWrittenCur: 0x00010002, // Serialize the class names
                 verReadableCur: 0x00010002,
                 verWeCanReadBack: 0x00010001,
-                loaderSignature: LoaderSignature);
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(MultiClassPerInstanceEvaluator).Assembly.FullName);
         }
 
         private const int AssignedCol = 0;
@@ -665,7 +659,7 @@ namespace Microsoft.ML.Runtime.Data
         private readonly ReadOnlyMemory<char>[] _classNames;
         private readonly ColumnType[] _types;
 
-        public MultiClassPerInstanceEvaluator(IHostEnvironment env, ISchema schema, ColumnInfo scoreInfo, string labelCol)
+        public MultiClassPerInstanceEvaluator(IHostEnvironment env, Schema schema, ColumnInfo scoreInfo, string labelCol)
             : base(env, schema, Contracts.CheckRef(scoreInfo, nameof(scoreInfo)).Name, labelCol)
         {
             CheckInputColumnTypes(schema);
@@ -863,36 +857,33 @@ namespace Microsoft.ML.Runtime.Data
             return getters;
         }
 
-        public override RowMapperColumnInfo[] GetOutputColumns()
+        public override Schema.Column[] GetOutputColumns()
         {
-            var infos = new RowMapperColumnInfo[4];
+            var infos = new Schema.Column[4];
 
-            var assignedColKeyValues = new ColumnMetadataInfo(Assigned);
-            var keyValueType = new VectorType(TextType.Instance, _numClasses);
-            assignedColKeyValues.Add(MetadataUtils.Kinds.KeyValues, new MetadataInfo<VBuffer<ReadOnlyMemory<char>>>(keyValueType, CreateKeyValueGetter()));
-            infos[AssignedCol] = new RowMapperColumnInfo(Assigned, _types[AssignedCol], assignedColKeyValues);
+            var assignedColKeyValues = new Schema.Metadata.Builder();
+            assignedColKeyValues.AddKeyValues(_numClasses, TextType.Instance, CreateKeyValueGetter());
+            infos[AssignedCol] = new Schema.Column(Assigned, _types[AssignedCol], assignedColKeyValues.GetMetadata());
 
-            infos[LogLossCol] = new RowMapperColumnInfo(LogLoss, _types[LogLossCol], null);
+            infos[LogLossCol] = new Schema.Column(LogLoss, _types[LogLossCol], null);
 
-            var slotNamesType = new VectorType(TextType.Instance, _numClasses);
-            var sortedScores = new ColumnMetadataInfo(SortedScores);
-            sortedScores.Add(MetadataUtils.Kinds.SlotNames, new MetadataInfo<VBuffer<ReadOnlyMemory<char>>>(slotNamesType,
-                CreateSlotNamesGetter(_numClasses, "Score")));
-            var sortedClasses = new ColumnMetadataInfo(SortedClasses);
-            sortedClasses.Add(MetadataUtils.Kinds.SlotNames, new MetadataInfo<VBuffer<ReadOnlyMemory<char>>>(slotNamesType,
-                CreateSlotNamesGetter(_numClasses, "Class")));
-            sortedClasses.Add(MetadataUtils.Kinds.KeyValues, new MetadataInfo<VBuffer<ReadOnlyMemory<char>>>(keyValueType, CreateKeyValueGetter()));
+            var sortedScores = new Schema.Metadata.Builder();
+            sortedScores.AddSlotNames(_numClasses, CreateSlotNamesGetter(_numClasses, "Score"));
 
-            infos[SortedScoresCol] = new RowMapperColumnInfo(SortedScores, _types[SortedScoresCol], sortedScores);
-            infos[SortedClassesCol] = new RowMapperColumnInfo(SortedClasses, _types[SortedClassesCol], sortedClasses);
+            var sortedClasses = new Schema.Metadata.Builder();
+            sortedClasses.AddSlotNames(_numClasses, CreateSlotNamesGetter(_numClasses, "Class"));
+            sortedClasses.AddKeyValues(_numClasses, TextType.Instance, CreateKeyValueGetter());
+
+            infos[SortedScoresCol] = new Schema.Column(SortedScores, _types[SortedScoresCol], sortedScores.GetMetadata());
+            infos[SortedClassesCol] = new Schema.Column(SortedClasses, _types[SortedClassesCol], sortedClasses.GetMetadata());
             return infos;
         }
 
         // REVIEW: Figure out how to avoid having the column name in each slot name.
-        private MetadataUtils.MetadataGetter<VBuffer<ReadOnlyMemory<char>>> CreateSlotNamesGetter(int numTopClasses, string suffix)
+        private ValueGetter<VBuffer<ReadOnlyMemory<char>>> CreateSlotNamesGetter(int numTopClasses, string suffix)
         {
             return
-                (int col, ref VBuffer<ReadOnlyMemory<char>> dst) =>
+                (ref VBuffer<ReadOnlyMemory<char>> dst) =>
                 {
                     var values = dst.Values;
                     if (Utils.Size(values) < numTopClasses)
@@ -903,10 +894,10 @@ namespace Microsoft.ML.Runtime.Data
                 };
         }
 
-        private MetadataUtils.MetadataGetter<VBuffer<ReadOnlyMemory<char>>> CreateKeyValueGetter()
+        private ValueGetter<VBuffer<ReadOnlyMemory<char>>> CreateKeyValueGetter()
         {
             return
-                (int col, ref VBuffer<ReadOnlyMemory<char>> dst) =>
+                (ref VBuffer<ReadOnlyMemory<char>> dst) =>
                 {
                     var values = dst.Values;
                     if (Utils.Size(values) < _numClasses)

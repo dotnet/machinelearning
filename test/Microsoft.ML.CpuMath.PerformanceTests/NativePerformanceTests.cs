@@ -21,11 +21,11 @@ namespace Microsoft.ML.CpuMath.PerformanceTests
         }
         
         [Benchmark]
-        public unsafe void ScaleU()
+        public unsafe void Scale()
         {
             fixed (float* pdst = dst)
             {
-                CpuMathNativeUtils.ScaleU(DefaultScale, pdst, Length);
+                CpuMathNativeUtils.Scale(DefaultScale, pdst, Length);
             }
         }
         
@@ -226,6 +226,28 @@ namespace Microsoft.ML.CpuMath.PerformanceTests
             fixed (int* pidx = idx)
             {
                 CpuMathNativeUtils.SdcaL1UpdateSU(DefaultScale, psrc, pidx, DefaultScale, pdst, pres, IndexLength);
+            }
+        }
+
+        [Benchmark]
+        public unsafe void MatMul()
+        {
+            fixed (float* psrc = &src[0])
+            fixed (float* pdst = &dst[0])
+            fixed (float* psrc1 = &src1[0])
+            {
+                Thunk.MatMul(psrc1, psrc, pdst, 1000, 1000);
+            }
+        }
+            
+        [Benchmark]
+        public unsafe void MatMulTran()
+        {
+            fixed (float* psrc = &src[0])
+            fixed (float* pdst = &dst[0])
+            fixed (float* psrc1 = &src1[0])
+            {
+                Thunk.MatMulTran(psrc1, psrc, pdst, 1000, 1000);
             }
         }
     }

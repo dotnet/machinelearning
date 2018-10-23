@@ -6,6 +6,7 @@ using Microsoft.ML.Legacy.Trainers;
 using Microsoft.ML.Legacy.Transforms;
 using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Transforms.TensorFlow;
+using System;
 using System.IO;
 using Xunit;
 
@@ -13,7 +14,7 @@ namespace Microsoft.ML.Scenarios
 {
     public partial class ScenariosTests
     {
-        [Fact]
+        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // TensorFlow is 64-bit only
         public void TensorFlowTransformCifarLearningPipelineTest()
         {
             var imageHeight = 32;
@@ -44,7 +45,7 @@ namespace Microsoft.ML.Scenarios
 
             pipeline.Add(new TensorFlowScorer()
             {
-                ModelFile = model_location,
+                ModelLocation = model_location,
                 InputColumns = new[] { "Input" },
                 OutputColumns = new[] { "Output" }
             });
@@ -53,7 +54,6 @@ namespace Microsoft.ML.Scenarios
             pipeline.Add(new TextToKeyConverter("Label"));
             pipeline.Add(new StochasticDualCoordinateAscentClassifier());
 
-            TensorFlowUtils.Initialize();
             var model = pipeline.Train<CifarData, CifarPrediction>();
             string[] scoreLabels;
             model.TryGetScoreLabelNames(out scoreLabels);
@@ -121,7 +121,7 @@ namespace Microsoft.ML.Scenarios
 
             pipeline.Add(new TensorFlowScorer()
             {
-                ModelFile = model_location,
+                ModelLocation = model_location,
                 InputColumns = new[] { inputTensorName },
                 OutputColumns = new[] { outputTensorName }
             });
@@ -129,8 +129,6 @@ namespace Microsoft.ML.Scenarios
             pipeline.Add(new ColumnConcatenator(outputColumn: "Features", inputColumns: outputTensorName));
             pipeline.Add(new TextToKeyConverter("Label"));
             pipeline.Add(new StochasticDualCoordinateAscentClassifier());
-
-            TensorFlowUtils.Initialize();
 
             var model = pipeline.Train<ImageNetData, ImageNetPrediction>();
             string[] scoreLabels;

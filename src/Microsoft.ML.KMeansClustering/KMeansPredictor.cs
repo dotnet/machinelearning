@@ -12,7 +12,9 @@ using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.KMeans;
 using Microsoft.ML.Runtime.Model;
+using Microsoft.ML.Runtime.Model.Onnx;
 using Microsoft.ML.Runtime.Internal.Internallearn;
+using System.Collections.Generic;
 
 [assembly: LoadableClass(typeof(KMeansPredictor), null, typeof(SignatureLoadModel),
     "KMeans predictor", KMeansPredictor.LoaderSignature)]
@@ -23,7 +25,8 @@ namespace Microsoft.ML.Runtime.KMeans
         PredictorBase<VBuffer<Float>>,
         IValueMapper,
         ICanSaveInTextFormat,
-        ICanSaveModel
+        ICanSaveModel,
+        ISingleCanSaveOnnx
     {
         public const string LoaderSignature = "KMeansPredictor";
 
@@ -38,12 +41,15 @@ namespace Microsoft.ML.Runtime.KMeans
                 verWrittenCur: 0x00010002, // Allow sparse centroids
                 verReadableCur: 0x00010002,
                 verWeCanReadBack: 0x00010001,
-                loaderSignature: LoaderSignature);
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(KMeansPredictor).Assembly.FullName);
         }
 
         public override PredictionKind PredictionKind => PredictionKind.Clustering;
         public ColumnType InputType { get; }
         public ColumnType OutputType { get; }
+
+        public bool CanSaveOnnx(OnnxContext ctx) => true;
 
         private readonly int _dimensionality;
         private readonly int _k;
@@ -273,6 +279,79 @@ namespace Microsoft.ML.Runtime.KMeans
             for (int i = 0; i < _k; i++)
                 _centroids[i].CopyTo(ref centroids[i]);
             k = _k;
+        }
+
+        public bool SaveAsOnnx(OnnxContext ctx, string[] outputNames, string featureColumn)
+        {
+            // Computation graph of distances to all centriods for a batch of examples. Note that a centriod is just
+            // the center of a cluster. We use [] to denote the dimension of a variable; for example, X [3, 2] means
+            // that X is a 3-by-2 tensor. In addition, for a matrix X, X^T denotes its transpose.
+            //
+            // Symbols:
+            // l: # of examples.
+            // n: # of features per input example.
+            // X: input examples, l-by-n tensor.
+            // C: centriods, k-by-n tensor.
+            // C^2: 2-norm of all centriod vectors, its shape is [k].
+            // Y: 2-norm of difference between examples and centriods, l-by-k tensor. The value at i-th row and k-th
+            // column row, Y[i,k], is the distance from example i to centrioid k.
+            // L: the id of the nearest centriod for each input example, its shape is [l].
+            //
+            // .------------------------------------------------------.
+            // |                                                      |
+            // |                                                      v
+            // X [l, n] --> ReduceSumSquare --> X^2 [l]             Gemm (alpha=-2, transB=1) <-- C [k, n]
+            //                                   |                    |
+            //                                   |                    v
+            //                                   `------> Add <---- -2XC^T [l, k]
+            //                                             |
+            //                                             v
+            //                                             Z [l, k] ----------> Add <------------C^2 [k]
+            //                                                                   |
+            //                                                                   v
+            //                                           L [l] <--- ArgMin <---  Y [l, k]
+
+            // Allocate C, which is a constant tensor in prediction phase
+            var shapeC = new long[] { _centroids.Length, _centroids[0].Length };
+            var tensorC = new List<float>();
+            foreach (var centriod in _centroids)
+                tensorC.AddRange(centriod.DenseValues());
+            var nameC = ctx.AddInitializer(tensorC, shapeC, "C");
+
+            // Save C^2 as an initializer because it's a constant.
+            var shapeC2 = new long[] { _centroidL2s.Length };
+            var nameC2 = ctx.AddInitializer(_centroidL2s, shapeC2, "C2");
+
+            // Retrieve the name of X
+            var nameX = featureColumn;
+
+            // Compute X^2 from X
+            var nameX2 = ctx.AddIntermediateVariable(null , "X2", true);
+            var reduceNodeX2 = ctx.CreateNode("ReduceSumSquare", nameX, nameX2, ctx.GetNodeName("ReduceSumSquare"), "");
+
+            // Compute -2XC^T. Note that Gemm always takes three inputs. Since we only have two here,
+            // a dummy one, named zero, is created.
+            var zeroName = ctx.AddInitializer(new Float[] { 0f }, null, "zero");
+            var nameXC2 = ctx.AddIntermediateVariable(null, "XC2", true);
+            var gemmNodeXC2 = ctx.CreateNode("Gemm", new[] { nameX, nameC, zeroName}, new[] { nameXC2 }, ctx.GetNodeName("Gemm"), "");
+            gemmNodeXC2.AddAttribute("alpha", -2f);
+            gemmNodeXC2.AddAttribute("transB", 1);
+
+            // Compute Z = X^2 - 2XC^T
+            var nameZ = ctx.AddIntermediateVariable(null, "Z", true);
+            var addNodeZ = ctx.CreateNode("Add", new[] { nameX2, nameXC2 }, new[] { nameZ }, ctx.GetNodeName("Add"), "");
+
+            // Compute Y = Z + C^2
+            var nameY = outputNames[1];
+            var addNodeY = ctx.CreateNode("Add", new[] { nameZ, nameC2 }, new[] { nameY }, ctx.GetNodeName("Add"), "");
+
+            // Compute the most-matched cluster index, L
+            var nameL = outputNames[0];
+            var predictNodeL = ctx.CreateNode("ArgMin", nameY, nameL, ctx.GetNodeName("ArgMin"), "");
+            predictNodeL.AddAttribute("axis", 1);
+            predictNodeL.AddAttribute("keepdims", 1);
+
+            return true;
         }
     }
 }

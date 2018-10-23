@@ -203,18 +203,9 @@ namespace Microsoft.ML.Runtime.Data
             /// </summary>
             public double RSquared { get; }
 
-            private static T Fetch<T>(IExceptionContext ectx, IRow row, string name)
-            {
-                if (!row.Schema.TryGetColumnIndex(name, out int col))
-                    throw ectx.Except($"Could not find column '{name}'");
-                T val = default;
-                row.GetGetter<T>(col)(ref val);
-                return val;
-            }
-
             internal Result(IExceptionContext ectx, IRow overallResult)
             {
-                double Fetch(string name) => Fetch<double>(ectx, overallResult, name);
+                double Fetch(string name) => RowCursorUtils.Fetch<double>(ectx, overallResult, name);
                 L1 = Fetch(RegressionEvaluator.L1);
                 L2 = Fetch(RegressionEvaluator.L2);
                 Rms = Fetch(RegressionEvaluator.Rms);
@@ -230,10 +221,7 @@ namespace Microsoft.ML.Runtime.Data
         /// <param name="label">The name of the label column.</param>
         /// <param name="score">The name of the predicted score column.</param>
         /// <returns>The evaluation metrics for these outputs.</returns>
-        public Result Evaluate(
-            IDataView data,
-            string label,
-            string score)
+        public Result Evaluate(IDataView data, string label, string score)
         {
             Host.CheckValue(data, nameof(data));
             Host.CheckNonEmpty(label, nameof(label));
@@ -269,7 +257,8 @@ namespace Microsoft.ML.Runtime.Data
                 verWrittenCur: 0x00010001, // Initial
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
-                loaderSignature: LoaderSignature);
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(RegressionPerInstanceEvaluator).Assembly.FullName);
         }
 
         private const int L1Col = 0;
@@ -319,11 +308,11 @@ namespace Microsoft.ML.Runtime.Data
                 col => (activeOutput(L1Col) || activeOutput(L2Col)) && (col == ScoreIndex || col == LabelIndex);
         }
 
-        public override RowMapperColumnInfo[] GetOutputColumns()
+        public override Schema.Column[] GetOutputColumns()
         {
-            var infos = new RowMapperColumnInfo[2];
-            infos[L1Col] = new RowMapperColumnInfo(L1, NumberType.R8, null);
-            infos[L2Col] = new RowMapperColumnInfo(L2, NumberType.R8, null);
+            var infos = new Schema.Column[2];
+            infos[L1Col] = new Schema.Column(L1, NumberType.R8, null);
+            infos[L2Col] = new Schema.Column(L2, NumberType.R8, null);
             return infos;
         }
 

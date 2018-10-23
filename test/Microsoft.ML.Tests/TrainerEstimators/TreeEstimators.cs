@@ -6,6 +6,7 @@ using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.FastTree;
 using Microsoft.ML.Runtime.LightGBM;
 using Microsoft.ML.Runtime.RunTests;
+using System;
 using System.Linq;
 using Xunit;
 
@@ -21,10 +22,8 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         {
             var (pipeline, data) = GetBinaryClassificationPipeline();
 
-            pipeline.Append(new FastTreeBinaryClassificationTrainer(Env, "Label", "Features", advancedSettings: s => {
-                    s.NumTrees = 10;
+            pipeline.Append(new FastTreeBinaryClassificationTrainer(Env, "Label", "Features", numTrees:10, numLeaves:5,  advancedSettings: s => {
                     s.NumThreads = 1;
-                    s.NumLeaves = 5;
                 }));
 
             TestEstimatorCore(pipeline, data);
@@ -127,7 +126,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         /// <summary>
         /// FastTreeRegressor TrainerEstimator test 
         /// </summary>
-        [Fact]
+        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // LightGBM is 64-bit only
         public void LightGBMRegressorEstimator()
         {
 

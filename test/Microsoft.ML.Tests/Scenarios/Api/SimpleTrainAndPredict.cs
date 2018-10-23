@@ -7,7 +7,6 @@ using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Learners;
 using Xunit;
 using System.Linq;
-using Microsoft.ML.Runtime.FastTree;
 using Microsoft.ML.Runtime.RunTests;
 
 namespace Microsoft.ML.Tests.Scenarios.Api
@@ -18,7 +17,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         /// Start with a dataset in a text file. Run text featurization on text values. 
         /// Train a linear model over that. (I am thinking sentiment classification.) 
         /// Out of the result, produce some structure over which you can get predictions programmatically 
-        /// (e.g., the prediction does not happen over a file as it did during training).
+        /// (for example, the prediction does not happen over a file as it did during training).
         /// </summary>
         [Fact]
         public void SimpleTrainAndPredict()
@@ -70,10 +69,8 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                     Name = "Features",
                     Source = new[] { "SentimentText" }
                 },
-                KeepDiacritics = false,
-                KeepPunctuations = false,
-                TextCase = Runtime.TextAnalytics.TextNormalizerTransform.CaseNormalizationMode.Lower,
                 OutputTokens = true,
+                KeepPunctuations=false,
                 StopWordsRemover = new Runtime.TextAnalytics.PredefinedStopWordsRemoverFactory(),
                 VectorNormalizer = normalize ? TextTransform.TextNormKind.L2 : TextTransform.TextNormKind.None,
                 CharFeatureExtractor = new NgramExtractorTransform.NgramExtractorArguments() { NgramLength = 3, AllLengths = false },

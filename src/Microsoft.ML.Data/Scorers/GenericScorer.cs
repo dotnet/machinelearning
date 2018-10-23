@@ -37,7 +37,7 @@ namespace Microsoft.ML.Runtime.Data
             /// <summary>
             /// The one and only constructor for Bindings.
             /// </summary>
-            private Bindings(ISchema input, ISchemaBoundRowMapper mapper, string suffix, bool user)
+            private Bindings(Schema input, ISchemaBoundRowMapper mapper, string suffix, bool user)
                 : base(input, mapper, suffix, user)
             {
                 Contracts.Assert(DerivedColumnCount == 0);
@@ -46,7 +46,7 @@ namespace Microsoft.ML.Runtime.Data
             /// <summary>
             /// Create the bindings given the input schema, bound mapper, and column name suffix.
             /// </summary>
-            public static Bindings Create(ISchema input, ISchemaBoundRowMapper mapper, string suffix, bool user = true)
+            public static Bindings Create(Schema input, ISchemaBoundRowMapper mapper, string suffix, bool user = true)
             {
                 Contracts.AssertValue(input);
                 Contracts.AssertValue(mapper);
@@ -61,7 +61,7 @@ namespace Microsoft.ML.Runtime.Data
             /// <summary>
             /// Create the bindings given the env, bindable, input schema, column roles, and column name suffix.
             /// </summary>
-            private static Bindings Create(IHostEnvironment env, ISchemaBindableMapper bindable, ISchema input,
+            private static Bindings Create(IHostEnvironment env, ISchemaBindableMapper bindable, Schema input,
                 IEnumerable<KeyValuePair<RoleMappedSchema.ColumnRole, string>> roles, string suffix, bool user = true)
             {
                 Contracts.AssertValue(env);
@@ -85,7 +85,7 @@ namespace Microsoft.ML.Runtime.Data
             /// Create a new Bindings from this one, but based on a potentially different schema.
             /// Used by the ITransformTemplate.ApplyToData implementation.
             /// </summary>
-            public Bindings ApplyToSchema(IHostEnvironment env, ISchema input)
+            public Bindings ApplyToSchema(IHostEnvironment env, Schema input)
             {
                 Contracts.AssertValue(input);
                 Contracts.AssertValue(env);
@@ -100,7 +100,7 @@ namespace Microsoft.ML.Runtime.Data
             /// Deserialize the bindings, given the env, bindable and input schema.
             /// </summary>
             public static Bindings Create(ModelLoadContext ctx,
-                IHostEnvironment env, ISchemaBindableMapper bindable, ISchema input)
+                IHostEnvironment env, ISchemaBindableMapper bindable, Schema input)
             {
                 Contracts.AssertValue(ctx);
 
@@ -130,7 +130,8 @@ namespace Microsoft.ML.Runtime.Data
                 verWrittenCur: 0x00010001, // Initial
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
-                loaderSignature: LoaderSignature);
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(GenericScorer).Assembly.FullName);
         }
 
         private const string RegistrationName = "GenericScore";
@@ -138,9 +139,11 @@ namespace Microsoft.ML.Runtime.Data
         private readonly Bindings _bindings;
         protected override BindingsBase GetBindings() => _bindings;
 
+        public override Schema Schema { get; }
+
         public bool CanSavePfa => (Bindable as ICanSavePfa)?.CanSavePfa == true;
 
-        public bool CanSaveOnnx => (Bindable as ICanSaveOnnx)?.CanSaveOnnx == true;
+        public bool CanSaveOnnx(OnnxContext ctx) => (Bindable as ICanSaveOnnx)?.CanSaveOnnx(ctx) == true;
 
         /// <summary>
         /// The <see cref="SignatureDataScorer"/> entry point for creating a <see cref="GenericScorer"/>.
@@ -156,6 +159,7 @@ namespace Microsoft.ML.Runtime.Data
             var rowMapper = mapper as ISchemaBoundRowMapper;
             Host.CheckParam(rowMapper != null, nameof(mapper), "mapper should implement ISchemaBoundRowMapper");
             _bindings = Bindings.Create(data.Schema, rowMapper, args.Suffix);
+            Schema = Schema.Create(_bindings);
         }
 
         /// <summary>
@@ -165,6 +169,7 @@ namespace Microsoft.ML.Runtime.Data
             : base(env, data, RegistrationName, transform.Bindable)
         {
             _bindings = transform._bindings.ApplyToSchema(env, data.Schema);
+            Schema = Schema.Create(_bindings);
         }
 
         /// <summary>
@@ -175,6 +180,7 @@ namespace Microsoft.ML.Runtime.Data
         {
             Contracts.AssertValue(ctx);
             _bindings = Bindings.Create(ctx, host, Bindable, input.Schema);
+            Schema = Schema.Create(_bindings);
         }
 
         /// <summary>

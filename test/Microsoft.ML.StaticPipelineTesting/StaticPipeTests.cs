@@ -2,9 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.ML.Data;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Data.IO;
 using Microsoft.ML.Runtime.Internal.Utilities;
+using Microsoft.ML.Runtime.RunTests;
 using Microsoft.ML.StaticPipe;
 using Microsoft.ML.TestFramework;
 using Microsoft.ML.Transforms;
@@ -13,6 +15,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
+using System.Linq;
 using System.Text;
 using Xunit;
 using Xunit.Abstractions;
@@ -124,6 +127,76 @@ namespace Microsoft.ML.StaticPipelineTesting
             Assert.Equal(new VectorType(NumberType.R4, 3), schema.GetColumnType(labelIdx));
         }
 
+        private sealed class Obnoxious1
+        {
+            public Scalar<string> Foo { get; }
+            public Vector<float> Bar { get; }
+
+            public Obnoxious1(Scalar<string> f1, Vector<float> f2)
+            {
+                Foo = f1;
+                Bar = f2;
+            }
+        }
+
+        private sealed class Obnoxious2
+        {
+            public Scalar<string> Biz { get; set; }
+            public Vector<double> Blam { get; set; }
+        }
+
+        private sealed class Obnoxious3<T>
+        {
+            public (Scalar<bool> hi, Obnoxious1 my, T friend) Donut { get; set; }
+        }
+
+        private static Obnoxious3<T> MakeObnoxious3<T>(Scalar<bool> hi, Obnoxious1 my, T friend)
+            => new Obnoxious3<T>() { Donut = (hi, my, friend) };
+
+        [Fact]
+        public void SimpleTextLoaderObnoxiousTypeTest()
+        {
+            var env = new ConsoleEnvironment(0, verbose: true);
+
+            const string data = "0 hello 3.14159 -0 2\n"
+                + "1 1 2 4 15";
+            var dataSource = new BytesStreamSource(data);
+
+            // Ahhh. No one would ever, ever do this, of course, but just having fun with it.
+
+            void Helper(ISchema thisSchema, string name, ColumnType expected)
+            {
+                Assert.True(thisSchema.TryGetColumnIndex(name, out int thisCol), $"Could not find column '{name}'");
+                Assert.Equal(expected, thisSchema.GetColumnType(thisCol));
+            }
+
+            var text = TextLoader.CreateReader(env, ctx => (
+                yo: new Obnoxious1(ctx.LoadText(0), ctx.LoadFloat(1, 5)),
+                dawg: new Obnoxious2() { Biz = ctx.LoadText(2), Blam = ctx.LoadDouble(1, 2) },
+                how: MakeObnoxious3(ctx.LoadBool(2), new Obnoxious1(ctx.LoadText(0), ctx.LoadFloat(1, 4)),
+                    new Obnoxious2() { Biz = ctx.LoadText(5), Blam = ctx.LoadDouble(1, 10) })));
+
+            var schema = text.AsDynamic.GetOutputSchema();
+            Helper(schema, "yo.Foo", TextType.Instance);
+            Helper(schema, "yo.Bar", new VectorType(NumberType.Float, 5));
+            Helper(schema, "dawg.Biz", TextType.Instance);
+            Helper(schema, "dawg.Blam", new VectorType(NumberType.R8, 2));
+
+            Helper(schema, "how.Donut.hi", BoolType.Instance);
+            Helper(schema, "how.Donut.my.Foo", TextType.Instance);
+            Helper(schema, "how.Donut.my.Bar", new VectorType(NumberType.Float, 4));
+            Helper(schema, "how.Donut.friend.Biz", TextType.Instance);
+            Helper(schema, "how.Donut.friend.Blam", new VectorType(NumberType.R8, 10));
+
+            var textData = text.Read(null);
+
+            var est = text.MakeNewEstimator().Append(r => r.how.Donut.friend.Blam.ConcatWith(r.dawg.Blam));
+            var outData = est.Fit(textData).Transform(textData);
+
+            var xfSchema = outData.AsDynamic.Schema;
+            Helper(xfSchema, "Data", new VectorType(NumberType.R8, 12));
+        }
+
         private static KeyValuePair<string, ColumnType> P(string name, ColumnType type)
             => new KeyValuePair<string, ColumnType>(name, type);
 
@@ -131,17 +204,49 @@ namespace Microsoft.ML.StaticPipelineTesting
         public void AssertStaticSimple()
         {
             var env = new ConsoleEnvironment(0, verbose: true);
-            var schema = new SimpleSchema(env,
+            var schema = SimpleSchemaUtils.Create(env,
                 P("hello", TextType.Instance),
                 P("my", new VectorType(NumberType.I8, 5)),
                 P("friend", new KeyType(DataKind.U4, 0, 3)));
             var view = new EmptyDataView(env, schema);
+
+            view.AssertStatic(env, c => new
+            {
+                my = c.I8.Vector,
+                friend = c.KeyU4.NoValue.Scalar,
+                hello = c.Text.Scalar
+            });
 
             view.AssertStatic(env, c => (
                 my: c.I8.Vector,
                 friend: c.KeyU4.NoValue.Scalar,
                 hello: c.Text.Scalar
             ));
+        }
+
+        [Fact]
+        public void AssertStaticSimpleFailure()
+        {
+            var env = new ConsoleEnvironment(0, verbose: true);
+            var schema = SimpleSchemaUtils.Create(env,
+                P("hello", TextType.Instance),
+                P("my", new VectorType(NumberType.I8, 5)),
+                P("friend", new KeyType(DataKind.U4, 0, 3)));
+            var view = new EmptyDataView(env, schema);
+
+            Assert.ThrowsAny<Exception>(() =>
+                view.AssertStatic(env, c => new
+                {
+                    my = c.I8.Scalar, // Shouldn't work, the type is wrong.
+                    friend = c.KeyU4.NoValue.Scalar,
+                    hello = c.Text.Scalar
+                }));
+
+            Assert.ThrowsAny<Exception>(() =>
+                view.AssertStatic(env, c => (
+                    mie: c.I8.Vector, // Shouldn't work, the name is wrong.
+                    friend: c.KeyU4.NoValue.Scalar,
+                    hello: c.Text.Scalar)));
         }
 
         private sealed class MetaCounted : ICounted
@@ -573,7 +678,8 @@ namespace Microsoft.ML.StaticPipelineTesting
             var est = data.MakeNewEstimator()
                 .Append(r => (
                     r.label,
-                    topics: r.text.ToBagofWords().ToLdaTopicVector(numTopic: 10, advancedSettings: s => {
+                    topics: r.text.ToBagofWords().ToLdaTopicVector(numTopic: 10, advancedSettings: s =>
+                    {
                         s.AlphaSum = 10;
                     })));
 
@@ -583,6 +689,172 @@ namespace Microsoft.ML.StaticPipelineTesting
             Assert.True(schema.TryGetColumnIndex("topics", out int topicsCol));
             var type = schema.GetColumnType(topicsCol);
             Assert.True(type.IsVector && type.IsKnownSizeVector && type.ItemType.IsNumber);
+        }
+
+        [Fact]
+        public void FeatureSelection()
+        {
+            var env = new ConsoleEnvironment(seed: 0);
+            var dataPath = GetDataPath("wikipedia-detox-250-line-data.tsv");
+            var reader = TextLoader.CreateReader(env, ctx => (
+                    label: ctx.LoadBool(0),
+                    text: ctx.LoadText(1)), hasHeader: true);
+            var dataSource = new MultiFileSource(dataPath);
+            var data = reader.Read(dataSource);
+
+            var est = data.MakeNewEstimator()
+                .Append(r => (
+                    r.label,
+                    bag_of_words_count: r.text.ToBagofWords().SelectFeaturesBasedOnCount(10),
+                    bag_of_words_mi: r.text.ToBagofWords().SelectFeaturesBasedOnMutualInformation(r.label)));
+
+            var tdata = est.Fit(data).Transform(data);
+            var schema = tdata.AsDynamic.Schema;
+
+            Assert.True(schema.TryGetColumnIndex("bag_of_words_count", out int bagofwordCountCol));
+            var type = schema.GetColumnType(bagofwordCountCol);
+            Assert.True(type.IsVector && type.IsKnownSizeVector && type.ItemType.IsNumber);
+
+            Assert.True(schema.TryGetColumnIndex("bag_of_words_mi", out int bagofwordMiCol));
+            type = schema.GetColumnType(bagofwordMiCol);
+            Assert.True(type.IsVector && type.IsKnownSizeVector && type.ItemType.IsNumber);
+        }
+
+        [Fact]
+        public void TrainTestSplit()
+        {
+            var env = new ConsoleEnvironment(seed: 0);
+            var dataPath = GetDataPath(TestDatasets.iris.trainFilename);
+            var dataSource = new MultiFileSource(dataPath);
+
+            var ctx = new BinaryClassificationContext(env);
+
+            var reader = TextLoader.CreateReader(env,
+                c => (label: c.LoadFloat(0), features: c.LoadFloat(1, 4)));
+            var data = reader.Read(dataSource);
+
+            var (train, test) = ctx.TrainTestSplit(data, 0.5);
+
+            // Just make sure that the train is about the same size as the test set.
+            var trainCount = train.GetColumn(r => r.label).Count();
+            var testCount = test.GetColumn(r => r.label).Count();
+
+            Assert.InRange(trainCount * 1.0 / testCount, 0.8, 1.2);
+
+            // Now stratify by label. Silly thing to do.
+            (train, test) = ctx.TrainTestSplit(data, 0.5, stratificationColumn: r => r.label);
+            var trainLabels = train.GetColumn(r => r.label).Distinct();
+            var testLabels = test.GetColumn(r => r.label).Distinct();
+            Assert.True(trainLabels.Count() > 0);
+            Assert.True(testLabels.Count() > 0);
+            Assert.False(trainLabels.Intersect(testLabels).Any());
+        }
+
+        [Fact]
+        public void PrincipalComponentAnalysis()
+        {
+            var env = new ConsoleEnvironment(seed: 0);
+            var dataPath = GetDataPath("generated_regression_dataset.csv");
+            var dataSource = new MultiFileSource(dataPath);
+
+            var reader = TextLoader.CreateReader(env,
+                c => (label: c.LoadFloat(11), features: c.LoadFloat(0, 10)),
+                separator: ';', hasHeader: true);
+            var data = reader.Read(dataSource);
+
+            var est = reader.MakeNewEstimator()
+                .Append(r => (r.label,
+                              pca: r.features.ToPrincipalComponents(rank: 5)));
+            var tdata = est.Fit(data).Transform(data);
+            var schema = tdata.AsDynamic.Schema;
+
+            Assert.True(schema.TryGetColumnIndex("pca", out int pcaCol));
+            var type = schema.GetColumnType(pcaCol);
+            Assert.True(type.IsVector && type.IsKnownSizeVector && type.ItemType.IsNumber);
+        }
+
+        [Fact]
+        public void NAIndicatorStatic()
+        {
+            var Env = new ConsoleEnvironment(seed: 0);
+
+            string dataPath = GetDataPath("breast-cancer.txt");
+            var reader = TextLoader.CreateReader(Env, ctx => (
+                ScalarFloat: ctx.LoadFloat(1),
+                ScalarDouble: ctx.LoadDouble(1),
+                VectorFloat: ctx.LoadFloat(1, 4),
+                VectorDoulbe: ctx.LoadDouble(1, 4)
+            ));
+
+            var data = reader.Read(new MultiFileSource(dataPath));
+
+            var est = data.MakeNewEstimator().
+                   Append(row => (
+                   A: row.ScalarFloat.IsMissingValue(),
+                   B: row.ScalarDouble.IsMissingValue(),
+                   C: row.VectorFloat.IsMissingValue(),
+                   D: row.VectorDoulbe.IsMissingValue()
+                   ));
+
+            IDataView newData = TakeFilter.Create(Env, est.Fit(data).Transform(data).AsDynamic, 4);
+            Assert.NotNull(newData);
+            bool[] ScalarFloat = newData.GetColumn<bool>(Env, "A").ToArray();
+            bool[] ScalarDouble = newData.GetColumn<bool>(Env, "B").ToArray();
+            bool[][] VectorFloat = newData.GetColumn<bool[]>(Env, "C").ToArray();
+            bool[][] VectorDoulbe = newData.GetColumn<bool[]>(Env, "D").ToArray();
+
+            Assert.NotNull(ScalarFloat);
+            Assert.NotNull(ScalarDouble);
+            Assert.NotNull(VectorFloat);
+            Assert.NotNull(VectorDoulbe);
+            for (int i = 0; i < 4; i++)
+            {
+                Assert.True(!ScalarFloat[i] && !ScalarDouble[i]);
+                Assert.NotNull(VectorFloat[i]);
+                Assert.NotNull(VectorDoulbe[i]);
+                for (int j = 0; j < 4; j++)
+                    Assert.True(!VectorFloat[i][j] && !VectorDoulbe[i][j]);
+            }
+        }
+        
+        [Fact]
+        public void TextNormalizeStatic()
+        {
+            var env = new ConsoleEnvironment(seed: 0);
+            var dataPath = GetDataPath("wikipedia-detox-250-line-data.tsv");
+            var reader = TextLoader.CreateReader(env, ctx => (
+                    label: ctx.LoadBool(0),
+                    text: ctx.LoadText(1)), hasHeader: true);
+            var dataSource = new MultiFileSource(dataPath);
+            var data = reader.Read(dataSource);
+
+            var est = data.MakeNewEstimator()
+                .Append(r => (
+                    r.label,
+                    norm: r.text.NormalizeText(),
+                    norm_Upper: r.text.NormalizeText(textCase: TextNormalizerEstimator.CaseNormalizationMode.Upper),
+                    norm_KeepDiacritics: r.text.NormalizeText(keepDiacritics: true),
+                    norm_NoPuctuations: r.text.NormalizeText(keepPunctuations: false),
+                    norm_NoNumbers: r.text.NormalizeText(keepNumbers: false)));
+            var tdata = est.Fit(data).Transform(data);
+            var schema = tdata.AsDynamic.Schema;
+
+            Assert.True(schema.TryGetColumnIndex("norm", out int norm));
+            var type = schema.GetColumnType(norm);
+            Assert.True(!type.IsVector && type.ItemType.IsText);
+
+            Assert.True(schema.TryGetColumnIndex("norm_Upper", out int normUpper));
+            type = schema.GetColumnType(normUpper);
+            Assert.True(!type.IsVector && type.ItemType.IsText);
+            Assert.True(schema.TryGetColumnIndex("norm_KeepDiacritics", out int diacritics));
+            type = schema.GetColumnType(diacritics);
+            Assert.True(!type.IsVector && type.ItemType.IsText);
+            Assert.True(schema.TryGetColumnIndex("norm_NoPuctuations", out int punct));
+            type = schema.GetColumnType(punct);
+            Assert.True(!type.IsVector && type.ItemType.IsText);
+            Assert.True(schema.TryGetColumnIndex("norm_NoNumbers", out int numbers));
+            type = schema.GetColumnType(numbers);
+            Assert.True(!type.IsVector && type.ItemType.IsText);
         }
     }
 }

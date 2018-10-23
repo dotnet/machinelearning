@@ -171,18 +171,17 @@ namespace Microsoft.ML.Runtime
         /// for example, if a user opted to remove all implementations of <see cref="IServer"/> and
         /// the associated <see cref="IServerFactory"/> for security reasons.
         /// </summary>
-        public static IServerFactory CreateDefaultServerFactoryOrNull(IExceptionContext ectx)
+        public static IServerFactory CreateDefaultServerFactoryOrNull(IHostEnvironment env)
         {
-            Contracts.CheckValue(ectx, nameof(ectx));
+            Contracts.CheckValue(env, nameof(env));
             // REVIEW: There should be a better way. There currently isn't,
             // but there should be. This is pretty horrifying, but it is preferable to
             // the alternative of having core components depend on an actual server
             // implementation, since we want those to be removable because of security
             // concerns in certain environments (since not everyone will be wild about
             // web servers popping up everywhere).
-            var cat = ModuleCatalog.CreateInstance(ectx);
-            ModuleCatalog.ComponentInfo component;
-            if (!cat.TryFindComponent(typeof(IServerFactory), "mini", out component))
+            ComponentCatalog.ComponentInfo component;
+            if (!env.ComponentCatalog.TryFindComponent(typeof(IServerFactory), "mini", out component))
                 return null;
             IServerFactory factory = (IServerFactory)Activator.CreateInstance(component.ArgumentType);
             var field = factory.GetType().GetField("Port");
@@ -196,7 +195,7 @@ namespace Microsoft.ML.Runtime
         /// When a <see cref="ServerChannel"/> is created, the creation method will send an implementation
         /// is a notification sent through an <see cref="IPipe{IPendingBundleNotification}"/>, to indicate that
         /// a <see cref="Bundle"/> may be pending soon. Listeners that want to receive the bundle to
-        /// expose it, e.g., a web service, should register this interest by passing in an action to be called.
+        /// expose it, for example, a web service, should register this interest by passing in an action to be called.
         /// If no listener registers interest, the server channel that sent the notification will act
         /// differently by, say, acting as a no-op w.r.t. client calls to it.
         /// </summary>

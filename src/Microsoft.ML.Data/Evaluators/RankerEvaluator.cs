@@ -41,17 +41,17 @@ namespace Microsoft.ML.Runtime.Data
             public bool OutputGroupSummary;
         }
 
-        public const string LoadName = "RankingEvaluator";
+        internal const string LoadName = "RankingEvaluator";
 
         public const string Ndcg = "NDCG";
         public const string Dcg = "DCG";
         public const string MaxDcg = "MaxDCG";
 
-        /// <summary>
+        /// <value>
         /// The ranking evaluator outputs a data view by this name, which contains metrics aggregated per group.
         /// It contains four columns: GroupId, NDCG, DCG and MaxDCG. Each row in the data view corresponds to one
         /// group in the scored data.
-        /// </summary>
+        /// </value>
         public const string GroupSummary = "GroupSummary";
 
         private const string GroupId = "GroupId";
@@ -232,6 +232,40 @@ namespace Microsoft.ML.Runtime.Data
                         result.Add(GroupSummary, groupDvBldr.GetDataView());
                     return result;
                 };
+        }
+
+        /// <summary>
+        /// Evaluates scored regression data.
+        /// </summary>
+        /// <param name="data">The data to evaluate.</param>
+        /// <param name="label">The name of the label column.</param>
+        /// <param name="groupId">The name of the groupId column.</param>
+        /// <param name="score">The name of the predicted score column.</param>
+        /// <returns>The evaluation metrics for these outputs.</returns>
+        public Result Evaluate(IDataView data, string label, string groupId, string score)
+        {
+            Host.CheckValue(data, nameof(data));
+            Host.CheckNonEmpty(label, nameof(label));
+            Host.CheckNonEmpty(score, nameof(score));
+            var roles = new RoleMappedData(data, opt: false,
+                RoleMappedSchema.ColumnRole.Label.Bind(label),
+                RoleMappedSchema.ColumnRole.Group.Bind(groupId),
+                RoleMappedSchema.CreatePair(MetadataUtils.Const.ScoreValueKind.Score, score));
+
+            var resultDict = Evaluate(roles);
+            Host.Assert(resultDict.ContainsKey(MetricKinds.OverallMetrics));
+            var overall = resultDict[MetricKinds.OverallMetrics];
+
+            Result result;
+            using (var cursor = overall.GetRowCursor(i => true))
+            {
+                var moved = cursor.MoveNext();
+                Host.Assert(moved);
+                result = new Result(Host, cursor);
+                moved = cursor.MoveNext();
+                Host.Assert(!moved);
+            }
+            return result;
         }
 
         public sealed class Aggregator : AggregatorBase
@@ -509,6 +543,40 @@ namespace Microsoft.ML.Runtime.Data
                 slotNames = new VBuffer<ReadOnlyMemory<char>>(UnweightedCounters.TruncationLevel, values);
             }
         }
+
+        public sealed class Result
+        {
+            /// <summary>
+            /// Normalized Discounted Cumulative Gain
+            /// <a href="https://github.com/dotnet/machinelearning/tree/master/docs/images/ndcg.png"></a>
+            /// </summary>
+            public double[] Ndcg { get; }
+
+            /// <summary>
+            /// <a href="https://en.wikipedia.org/wiki/Discounted_cumulative_gain">Discounted Cumulative gain</a>
+            /// is the sum of the gains, for all the instances i, normalized by the natural logarithm of the instance + 1.
+            /// Note that unline the Wikipedia article, ML.Net uses the natural logarithm.
+            /// <a href="https://github.com/dotnet/machinelearning/tree/master/docs/images/dcg.png"></a>
+            /// </summary>
+            public double[] Dcg { get; }
+
+            private static T Fetch<T>(IExceptionContext ectx, IRow row, string name)
+            {
+                if (!row.Schema.TryGetColumnIndex(name, out int col))
+                    throw ectx.Except($"Could not find column '{name}'");
+                T val = default;
+                row.GetGetter<T>(col)(ref val);
+                return val;
+            }
+
+            internal Result(IExceptionContext ectx, IRow overallResult)
+            {
+                VBuffer<double> Fetch(string name) => Fetch<VBuffer<double>>(ectx, overallResult, name);
+
+                Dcg = Fetch(RankerEvaluator.Dcg).Values;
+                Ndcg = Fetch(RankerEvaluator.Ndcg).Values;
+            }
+        }
     }
 
     public sealed class RankerPerInstanceTransform : IDataTransform
@@ -523,7 +591,8 @@ namespace Microsoft.ML.Runtime.Data
                 verWrittenCur: 0x00010001, // Initial
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
-                loaderSignature: LoaderSignature);
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(RankerPerInstanceTransform).Assembly.FullName);
         }
 
         public const string Ndcg = "NDCG";
@@ -536,7 +605,7 @@ namespace Microsoft.ML.Runtime.Data
 
         public bool CanShuffle { get { return _transform.CanShuffle; } }
 
-        public ISchema Schema { get { return _transform.Schema; } }
+        public Schema Schema => _transform.Schema;
 
         public RankerPerInstanceTransform(IHostEnvironment env, IDataView input, string labelCol, string scoreCol, string groupCol,
                 int truncationLevel, Double[] labelGains)
@@ -869,7 +938,6 @@ namespace Microsoft.ML.Runtime.Data
                 // will be present, and drop them.
                 gs = MetricWriter.GetNonStratifiedMetrics(Host, gs);
                 MetricWriter.SavePerInstance(Host, ch, _groupSummaryFilename, gs);
-                ch.Done();
             }
         }
 

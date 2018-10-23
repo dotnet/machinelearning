@@ -1,7 +1,6 @@
 parameters:
   name: ''
   buildScript: ''
-  dockerImage: ''
   queue: {}
 
 phases:
@@ -9,9 +8,6 @@ phases:
     variables:
       _buildScript: ${{ parameters.buildScript }}
       _phaseName: ${{ parameters.name }}
-      # if dockerImage is not equal to '' then run under docker container
-      ${{ if ne(parameters.dockerImage, '') }}:
-        _PREVIEW_VSTS_DOCKER_IMAGE: ${{ parameters.dockerImage }}
     queue:
       parallel: 99
       matrix:
@@ -23,6 +19,9 @@ phases:
     steps:
     - script: $(_buildScript) -$(_configuration)
       displayName: Build
+    - ${{ if eq(parameters.name, 'MacOS') }}:
+      - script: brew install libomp
+        displayName: Install OpenMP runtime dependency
     - script: $(_buildScript) -$(_configuration) -runtests
       displayName: Run Tests
     - task: PublishTestResults@2

@@ -1564,13 +1564,11 @@ namespace Microsoft.ML.Runtime.PipelineInference
                         list.AddRange(suggestions);
                         if (suggestions.Length > 0)
                             atomicGroupId++;
-                        ch.Done();
                     }
                 }
 
                 if (list.Count == 0)
                     rootCh.Info("No transforms are needed for the data.");
-                rootCh.Done();
                 return new InferenceResult(list.ToArray());
             }
         }
@@ -1584,7 +1582,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
             h.Check(args.EstimatedSampleFraction > 0);
 
             //available transforms in this environment
-            var availableTransforms = ModuleCatalog.CreateInstance(env).AllEntryPoints()
+            var availableTransforms = env.ComponentCatalog.AllEntryPoints()
                 .Where(x => x.InputKinds?.FirstOrDefault(i => i == typeof(CommonInputs.ITransformInput)) != null
                     && x.InputKinds?.Any(i => i == typeof(CommonInputs.ICalibratorInput)) != true);
             var dataSample = data.Take(MaxRowsToRead);
@@ -1643,12 +1641,10 @@ namespace Microsoft.ML.Runtime.PipelineInference
                     for (int i = 0; i < suggestions.Length; i++)
                         suggestions[i].AtomicGroupId = atomicGroupId;
                     list.AddRange(suggestions);
-                    ch.Done();
                 }
 
                 if (list.Count == 0)
                     rootCh.Info("No transforms are needed for the data.");
-                rootCh.Done();
                 return list.ToArray();
             }
         }

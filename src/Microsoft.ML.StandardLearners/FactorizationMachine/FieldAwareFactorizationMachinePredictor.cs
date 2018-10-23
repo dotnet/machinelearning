@@ -40,7 +40,8 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
                 verWrittenCur: 0x00010001,
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
-                loaderSignature: LoaderSignature);
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(FieldAwareFactorizationMachinePredictor).Assembly.FullName);
         }
 
         internal FieldAwareFactorizationMachinePredictor(IHostEnvironment env, bool norm, int fieldCount, int featureCount, int latentDim,
@@ -172,7 +173,7 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
         }
 
         public ISchemaBoundMapper Bind(IHostEnvironment env, RoleMappedSchema schema)
-            => new FieldAwareFactorizationMachineScalarRowMapper(env, schema, new BinaryClassifierSchema(), this);
+            => new FieldAwareFactorizationMachineScalarRowMapper(env, schema, Schema.Create(new BinaryClassifierSchema()), this);
 
         internal void CopyLinearWeightsTo(float[] linearWeights)
         {
@@ -189,7 +190,7 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
         }
     }
 
-    public sealed class FieldAwareFactorizationMachinePredictionTransformer : PredictionTransformerBase<FieldAwareFactorizationMachinePredictor>, ICanSaveModel
+    public sealed class FieldAwareFactorizationMachinePredictionTransformer : PredictionTransformerBase<FieldAwareFactorizationMachinePredictor, BinaryClassifierScorer>, ICanSaveModel
     {
         public const string LoaderSignature = "FAFMPredXfer";
 
@@ -203,12 +204,12 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
         /// </summary>
         public ColumnType[] FeatureColumnTypes { get; }
 
-        private readonly BinaryClassifierScorer _scorer;
+        protected override BinaryClassifierScorer Scorer { get; set; }
 
         private readonly string _thresholdColumn;
         private readonly float _threshold;
 
-        public FieldAwareFactorizationMachinePredictionTransformer(IHostEnvironment host, FieldAwareFactorizationMachinePredictor model, ISchema trainSchema,
+        public FieldAwareFactorizationMachinePredictionTransformer(IHostEnvironment host, FieldAwareFactorizationMachinePredictor model, Schema trainSchema,
             string[] featureColumns, float threshold = 0f, string thresholdColumn = DefaultColumnNames.Score)
             :base(Contracts.CheckRef(host, nameof(host)).Register(nameof(FieldAwareFactorizationMachinePredictionTransformer)), model, trainSchema)
         {
@@ -235,7 +236,7 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
 
             var schema = GetSchema();
             var args = new BinaryClassifierScorer.Arguments { Threshold = _threshold, ThresholdColumn = _thresholdColumn };
-            _scorer = new BinaryClassifierScorer(Host, args, new EmptyDataView(Host, trainSchema), BindableMapper.Bind(Host, schema), schema);
+            Scorer = new BinaryClassifierScorer(Host, args, new EmptyDataView(Host, trainSchema), BindableMapper.Bind(Host, schema), schema);
         }
 
         public FieldAwareFactorizationMachinePredictionTransformer(IHostEnvironment host, ModelLoadContext ctx)
@@ -268,15 +269,15 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
 
             var schema = GetSchema();
             var args = new BinaryClassifierScorer.Arguments { Threshold = _threshold, ThresholdColumn = _thresholdColumn };
-            _scorer = new BinaryClassifierScorer(Host, args, new EmptyDataView(Host, TrainSchema), BindableMapper.Bind(Host, schema), schema);
+            Scorer = new BinaryClassifierScorer(Host, args, new EmptyDataView(Host, TrainSchema), BindableMapper.Bind(Host, schema), schema);
         }
 
         /// <summary>
-        /// Gets the <see cref="ISchema"/> result after applying <see cref="Transform(IDataView)"/>.
+        /// Gets the <see cref="ISchema"/> result after transformation.
         /// </summary>
-        /// <param name="inputSchema">The <see cref="ISchema"/> of the input data.</param>
-        /// <returns>The post transformation <see cref="ISchema"/>.</returns>
-        public override ISchema GetOutputSchema(ISchema inputSchema)
+        /// <param name="inputSchema">The <see cref="Schema"/> of the input data.</param>
+        /// <returns>The post transformation <see cref="Schema"/>.</returns>
+        public override Schema GetOutputSchema(Schema inputSchema)
         {
             for (int i = 0; i < FeatureColumns.Length; i++)
             {
@@ -289,25 +290,6 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
             }
 
             return Transform(new EmptyDataView(Host, inputSchema)).Schema;
-        }
-
-        /// <summary>
-        /// Applies the transformer to the <paramref name="input"/>, scoring it through the <see cref="BinaryClassifierScorer"/>.
-        /// </summary>
-        /// <param name="input">The data to be scored with the <see cref="FieldAwareFactorizationMachinePredictor"/>.</param>
-        /// <returns>The scored <see cref="IDataView"/>.</returns>
-        public override IDataView Transform(IDataView input)
-        {
-            Host.CheckValue(input, nameof(input));
-            return _scorer.ApplyToData(Host, input);
-        }
-
-        public override bool IsRowToRowMapper => true;
-
-        public override IRowToRowMapper GetRowToRowMapper(ISchema inputSchema)
-        {
-            Host.CheckValue(inputSchema, nameof(inputSchema));
-            return (IRowToRowMapper)_scorer.ApplyToData(Host, new EmptyDataView(Host, inputSchema));
         }
 
         /// <summary>
@@ -361,7 +343,8 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
                 verWrittenCur: 0x00010001, // Initial
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
-                loaderSignature: LoaderSignature);
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(FieldAwareFactorizationMachinePredictionTransformer).Assembly.FullName);
         }
 
         private static FieldAwareFactorizationMachinePredictionTransformer Create(IHostEnvironment env, ModelLoadContext ctx)

@@ -34,8 +34,8 @@ namespace Microsoft.ML.Runtime.Learners
     /// </summary>
     public sealed class LinearSvm : OnlineLinearTrainer<BinaryPredictionTransformer<LinearBinaryPredictor>, LinearBinaryPredictor>
     {
-        public const string LoadNameValue = "LinearSVM";
-        public const string ShortName = "svm";
+        internal const string LoadNameValue = "LinearSVM";
+        internal const string ShortName = "svm";
         internal const string UserNameValue = "SVM (Pegasos-Linear)";
         internal const string Summary = "The idea behind support vector machines, is to map the instances into a high dimensional space "
             + "in which instances of the two classes are linearly separable, i.e., there exists a hyperplane such that all the positive examples are on one side of it, "
@@ -92,20 +92,19 @@ namespace Microsoft.ML.Runtime.Learners
             Contracts.CheckUserArg(args.BatchSize > 0, nameof(args.BatchSize), UserErrorPositive);
 
             Args = args;
+        }
 
-            _outputColumns = new[]
+        public override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
+
+        protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema)
+        {
+            return new[]
             {
                 new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false),
                 new SchemaShape.Column(DefaultColumnNames.Probability, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false),
                 new SchemaShape.Column(DefaultColumnNames.PredictedLabel, SchemaShape.Column.VectorKind.Scalar, BoolType.Instance, false)
             };
         }
-
-        public override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
-
-        private readonly SchemaShape.Column[] _outputColumns;
-
-        protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema) => _outputColumns;
 
         protected override void CheckLabel(RoleMappedData data)
         {
@@ -259,7 +258,7 @@ namespace Microsoft.ML.Runtime.Learners
                 calibrator: input.Calibrator, maxCalibrationExamples: input.MaxCalibrationExamples);
         }
 
-        protected override BinaryPredictionTransformer<LinearBinaryPredictor> MakeTransformer(LinearBinaryPredictor model, ISchema trainSchema)
+        protected override BinaryPredictionTransformer<LinearBinaryPredictor> MakeTransformer(LinearBinaryPredictor model, Schema trainSchema)
         => new BinaryPredictionTransformer<LinearBinaryPredictor>(Host, model, trainSchema, FeatureColumn.Name);
     }
 }

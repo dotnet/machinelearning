@@ -317,7 +317,8 @@ namespace Microsoft.ML.Runtime.Data
                 verWrittenCur: 0x00010002, // Invert hash key values, hash fix
                 verReadableCur: 0x00010002,
                 verWeCanReadBack: 0x00010002,
-                loaderSignature: LoaderSignature);
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(NgramHashTransform).Assembly.FullName);
         }
 
         private readonly Bindings _bindings;
@@ -601,7 +602,7 @@ namespace Microsoft.ML.Runtime.Data
             Host.Assert(icol >= 0);
         }
 
-        public override ISchema Schema { get { return _bindings; } }
+        public override Schema Schema => _bindings.AsSchema;
 
         protected override bool? ShouldUseParallelCursors(Func<int, bool> predicate)
         {
@@ -669,7 +670,6 @@ namespace Microsoft.ML.Runtime.Data
                         continue;
                     getters[iinfo] = MakeGetter(ch, input, iinfo);
                 }
-                ch.Done();
                 return getters;
             }
         }
@@ -720,7 +720,7 @@ namespace Microsoft.ML.Runtime.Data
             private readonly bool[] _active;
             private readonly Delegate[] _getters;
 
-            public ISchema Schema { get { return _bindings; } }
+            public Schema Schema => _bindings.AsSchema;
 
             public RowCursor(NgramHashTransform parent, IRowCursor input, bool[] active, FinderDecorator decorator = null)
                 : base(parent.Host, input)

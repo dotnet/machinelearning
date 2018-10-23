@@ -15,7 +15,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
     public partial class ApiScenariosTests
     {
         /// <summary>
-        /// Meta-components: Meta-components (e.g., components that themselves instantiate components) should not be booby-trapped.
+        /// Meta-components: Meta-components (for example, components that themselves instantiate components) should not be booby-trapped.
         /// When specifying what trainer OVA should use, a user will be able to specify any binary classifier.
         /// If they specify a regression or multi-class classifier ideally that should be a compile error.
         /// </summary>
@@ -30,7 +30,8 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                 var trainer = new Ova(env, new Ova.Arguments
                 {
                     PredictorType = ComponentFactoryUtils.CreateFromFunction(
-                        e => new AveragedPerceptronTrainer(env, new AveragedPerceptronTrainer.Arguments()))
+                        e => new AveragedPerceptronTrainer(env, "Label", "Features", lossFunction: new SmoothedHingeLoss.Arguments())
+                    )
                 });
 
                 IDataView trainData = trainer.Info.WantCaching ? (IDataView)new CacheDataView(env, concat, prefetch: null) : concat;

@@ -25,7 +25,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         ///  *) The tree ensemble learners, I should be able to inspect the trees.
         ///  *) The LDA transform, I should be able to inspect the topics.
         ///  I view it as essential from a usability perspective that this be discoverable to someone without 
-        ///  having to read documentation.E.g.: if I have var lda = new LdaTransform().Fit(data)(I don't insist on that
+        ///  having to read documentation. For example, if I have var lda = new LdaTransform().Fit(data)(I don't insist on that
         ///  exact signature, just giving the idea), then if I were to type lda.
         ///  In Visual Studio, one of the auto-complete targets should be something like GetTopics.
         /// </summary>
@@ -33,21 +33,20 @@ namespace Microsoft.ML.Tests.Scenarios.Api
         [Fact]
         public void New_IntrospectiveTraining()
         {
-            using (var env = new LocalEnvironment(seed: 1, conc: 1))
-            {
-                var data = new TextLoader(env, MakeSentimentTextLoaderArgs())
-                    .Read(new MultiFileSource(GetDataPath(TestDatasets.Sentiment.trainFilename)));
+            var ml = new MLContext(seed: 1, conc: 1);
+            var data = ml.Data.TextReader(MakeSentimentTextLoaderArgs())
+                .Read(GetDataPath(TestDatasets.Sentiment.trainFilename));
 
-                var pipeline = new TextTransform(env, "SentimentText", "Features")
-                    .Append(new LinearClassificationTrainer(env, new LinearClassificationTrainer.Arguments { NumThreads = 1 }, "Features", "Label"));
+            var pipeline = ml.Transforms.Text.FeaturizeText("SentimentText", "Features")
+                .Append(ml.BinaryClassification.Trainers.StochasticDualCoordinateAscent(advancedSettings: s => s.NumThreads = 1));
 
-                // Train.
-                var model = pipeline.Fit(data);
+            // Train.
+            var model = pipeline.Fit(data);
 
-                // Get feature weights.
-                VBuffer<float> weights = default;
-                model.LastTransformer.Model.GetFeatureWeights(ref weights);
-            }
+            // Get feature weights.
+            VBuffer<float> weights = default;
+            model.LastTransformer.Model.GetFeatureWeights(ref weights);
+
         }
     }
 }

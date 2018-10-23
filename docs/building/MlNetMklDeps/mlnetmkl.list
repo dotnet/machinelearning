@@ -1,0 +1,42 @@
+; MKL custom dll built for ML.NET
+; Note that function names are case-sensitive, for example, you must specify LAPACKE_sgesvd rather than lapacke_sgesvd.
+
+;---- CBLAS ----
+cblas_sdot
+cblas_sdoti
+cblas_saxpy
+cblas_saxpyi
+cblas_sgemv
+cblas_sgemm
+cblas_isamin
+cblas_isamax
+cblas_daxpy
+cblas_sscal
+cblas_dscal
+
+LAPACKE_dpptrf
+LAPACKE_dpptri
+LAPACKE_dpptrs
+LAPACKE_dsteqr
+LAPACKE_dsytrd
+LAPACKE_dhseqr
+LAPACKE_dorgtr
+LAPACKE_sgesvd
+LAPACKE_shseqr
+LAPACKE_ssytrd
+LAPACKE_ssteqr
+LAPACKE_sorgtr
+
+;---- RNG ----
+vslNewStream
+vslDeleteStream
+vsRngUniform
+
+;---- FOURIER ----
+DftiCreateDescriptor
+DftiCommitDescriptor
+DftiFreeDescriptor
+DftiSetValue
+DftiComputeForward
+DftiComputeBackward
+DftiErrorMessage

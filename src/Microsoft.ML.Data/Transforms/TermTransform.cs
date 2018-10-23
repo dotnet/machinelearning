@@ -55,7 +55,7 @@ namespace Microsoft.ML.Runtime.Data
             public string[] Term;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "How items should be ordered when vectorized. By default, they will be in the order encountered. " +
-                "If by value items are sorted according to their default comparison, e.g., text sorting will be case sensitive (e.g., 'A' then 'Z' then 'a').")]
+                "If by value items are sorted according to their default comparison, for example, text sorting will be case sensitive (for example, 'A' then 'Z' then 'a').")]
             public SortOrder? Sort;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Whether key value metadata should be text, regardless of the actual input type", ShortName = "textkv", Hide = true)]
@@ -127,7 +127,7 @@ namespace Microsoft.ML.Runtime.Data
 
             // REVIEW: Should we always sort? Opinions are mixed. See work item 7797429.
             [Argument(ArgumentType.AtMostOnce, HelpText = "How items should be ordered when vectorized. By default, they will be in the order encountered. " +
-                "If by value items are sorted according to their default comparison, e.g., text sorting will be case sensitive (e.g., 'A' then 'Z' then 'a').", SortOrder = 113)]
+                "If by value items are sorted according to their default comparison, for example, text sorting will be case sensitive (for example, 'A' then 'Z' then 'a').", SortOrder = 113)]
             public SortOrder Sort = TermEstimator.Defaults.Sort;
 
             // REVIEW: Should we do this here, or correct the various pieces of code here and in MRS etc. that
@@ -193,7 +193,8 @@ namespace Microsoft.ML.Runtime.Data
                 verWrittenCur: 0x00010003, // Generalize to multiple types beyond text
                 verReadableCur: 0x00010003,
                 verWeCanReadBack: 0x00010001,
-                loaderSignature: LoaderSignature);
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(TermTransform).Assembly.FullName);
         }
 
         private const uint VerNonTextTypesSupported = 0x00010003;
@@ -224,7 +225,8 @@ namespace Microsoft.ML.Runtime.Data
                 verWrittenCur: 0x00010002, // Generalize to multiple types beyond text
                 verReadableCur: 0x00010002,
                 verWeCanReadBack: 0x00010001,
-                loaderSignature: TermManagerLoaderSignature);
+                loaderSignature: TermManagerLoaderSignature,
+                loaderAssemblyName: typeof(TermTransform).Assembly.FullName);
         }
 
         private readonly TermMap[] _unboundMaps;
@@ -266,7 +268,7 @@ namespace Microsoft.ML.Runtime.Data
             this(env, input, columns, null, null, null)
         { }
 
-        private TermTransform(IHostEnvironment env, IDataView input,
+        internal TermTransform(IHostEnvironment env, IDataView input,
             ColumnInfo[] columns,
             string file = null, string termsColumn = null,
             IComponentFactory<IMultiStreamSource, IDataLoader> loaderFactory = null)
@@ -282,7 +284,6 @@ namespace Microsoft.ML.Runtime.Data
                     _textMetadata[iinfo] = columns[iinfo].TextKeyValues;
                 }
                 ch.Assert(_unboundMaps.Length == columns.Length);
-                ch.Done();
             }
         }
 
@@ -313,13 +314,13 @@ namespace Microsoft.ML.Runtime.Data
                     if (!Enum.IsDefined(typeof(SortOrder), sortOrder))
                         throw env.ExceptUserArg(nameof(args.Sort), "Undefined sorting criteria '{0}' detected for column '{1}'", sortOrder, item.Name);
 
-                    cols[i] = new ColumnInfo(item.Source,
+                    cols[i] = new ColumnInfo(item.Source ?? item.Name,
                         item.Name,
                         item.MaxNumTerms ?? args.MaxNumTerms,
                         sortOrder,
                         item.Term,
                         item.TextKeyValues ?? args.TextKeyValues);
-                    cols[i].Terms = item.Terms;
+                    cols[i].Terms = item.Terms ?? args.Terms;
                 };
             }
             return new TermTransform(env, input, cols, args.DataFile, args.TermsColumn, args.Loader).MakeDataTransform(input);
@@ -397,7 +398,7 @@ namespace Microsoft.ML.Runtime.Data
         /// <param name="source">Name of the column to be transformed. If this is null '<paramref name="name"/>' will be used.</param>
         /// <param name="maxNumTerms">Maximum number of terms to keep per column when auto-training.</param>
         /// <param name="sort">How items should be ordered when vectorized. By default, they will be in the order encountered.
-        /// If by value items are sorted according to their default comparison, e.g., text sorting will be case sensitive (e.g., 'A' then 'Z' then 'a').</param>
+        /// If by value items are sorted according to their default comparison, for example, text sorting will be case sensitive (for example, 'A' then 'Z' then 'a').</param>
         public static IDataView Create(IHostEnvironment env,
             IDataView input, string name, string source = null,
             int maxNumTerms = TermEstimator.Defaults.MaxNumTerms, SortOrder sort = TermEstimator.Defaults.Sort) =>
@@ -711,7 +712,7 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         protected override IRowMapper MakeRowMapper(ISchema schema)
-          => new Mapper(this, schema);
+          => new Mapper(this, Schema.Create(schema));
 
         private sealed class Mapper : MapperBase, ISaveAsOnnx, ISaveAsPfa
         {
@@ -721,11 +722,11 @@ namespace Microsoft.ML.Runtime.Data
 
             private readonly BoundTermMap[] _termMap;
 
-            public bool CanSaveOnnx => true;
+            public bool CanSaveOnnx(OnnxContext ctx) => true;
 
             public bool CanSavePfa => true;
 
-            public Mapper(TermTransform parent, ISchema inputSchema)
+            public Mapper(TermTransform parent, Schema inputSchema)
                : base(parent.Host.Register(nameof(Mapper)), parent, inputSchema)
             {
                 _parent = parent;
@@ -749,34 +750,20 @@ namespace Microsoft.ML.Runtime.Data
                 }
             }
 
-            public override RowMapperColumnInfo[] GetOutputColumns()
+            public override Schema.Column[] GetOutputColumns()
             {
-                var result = new RowMapperColumnInfo[_parent.ColumnPairs.Length];
+                var result = new Schema.Column[_parent.ColumnPairs.Length];
                 for (int i = 0; i < _parent.ColumnPairs.Length; i++)
                 {
                     InputSchema.TryGetColumnIndex(_parent.ColumnPairs[i].input, out int colIndex);
                     Host.Assert(colIndex >= 0);
-                    var colMetaInfo = new ColumnMetadataInfo(_parent.ColumnPairs[i].output);
-                    _termMap[i].AddMetadata(colMetaInfo);
+                    var builder = new Schema.Metadata.Builder();
+                    _termMap[i].AddMetadata(builder);
 
-                    foreach (var type in InputSchema.GetMetadataTypes(colIndex).Where(x => x.Key == MetadataUtils.Kinds.SlotNames))
-                        Utils.MarshalInvoke(AddMetaGetter<int>, type.Value.RawType, colMetaInfo, InputSchema, type.Key, type.Value, colIndex);
-                    result[i] = new RowMapperColumnInfo(_parent.ColumnPairs[i].output, _types[i], colMetaInfo);
+                    builder.Add(InputSchema[colIndex].Metadata, name => name == MetadataUtils.Kinds.SlotNames);
+                    result[i] = new Schema.Column(_parent.ColumnPairs[i].output, _types[i], builder.GetMetadata());
                 }
                 return result;
-            }
-
-            private int AddMetaGetter<T>(ColumnMetadataInfo colMetaInfo, ISchema schema, string kind, ColumnType ct, int originalCol)
-            {
-                MetadataUtils.MetadataGetter<T> getter = (int col, ref T dst) =>
-                {
-                    // We don't care about 'col': this getter is specialized for a column 'originalCol',
-                    // and 'col' in this case is the 'metadata kind index', not the column index.
-                    schema.GetMetadata<T>(kind, originalCol, ref dst);
-                };
-                var info = new MetadataInfo<T>(ct, getter);
-                colMetaInfo.Add(kind, info);
-                return 0;
             }
 
             protected override Delegate MakeGetter(IRow input, int iinfo, out Action disposer)

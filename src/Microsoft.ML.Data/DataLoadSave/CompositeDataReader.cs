@@ -40,7 +40,7 @@ namespace Microsoft.ML.Runtime.Data
             return idv;
         }
 
-        public ISchema GetOutputSchema()
+        public Schema GetOutputSchema()
         {
             var s = Reader.GetOutputSchema();
             return Transformer.GetOutputSchema(s);
@@ -87,6 +87,12 @@ namespace Microsoft.ML.Runtime.Data
     /// </summary>
     public static class CompositeDataReader
     {
+        /// <summary>
+        /// Save the contents to a stream, as a "model file".
+        /// </summary>
+        public static void SaveTo<TSource>(this IDataReader<TSource> reader, IHostEnvironment env, Stream outputStream)
+            => new CompositeDataReader<TSource, ITransformer>(reader).SaveTo(env, outputStream);
+
         /// <summary>
         /// Load the pipeline from stream.
         /// </summary>

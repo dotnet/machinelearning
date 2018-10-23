@@ -71,7 +71,8 @@ namespace Microsoft.ML.Runtime.Data
                 verWrittenCur: 0x00010002, // Added transform tags and args strings
                 verReadableCur: 0x00010002,
                 verWeCanReadBack: 0x00010001,
-                loaderSignature: LoaderSignature);
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(CompositeDataLoader).Assembly.FullName);
         }
 
         // The composition of loader plus transforms in order.
@@ -152,8 +153,6 @@ namespace Microsoft.ML.Runtime.Data
                         if (!string.IsNullOrEmpty(pair.Key) && composite._transforms.Any(x => x.Tag == pair.Key))
                             ch.Warning("The transform with tag '{0}' already exists in the chain", pair.Key);
                     }
-
-                    ch.Done();
                 }
             }
 
@@ -264,8 +263,6 @@ namespace Microsoft.ML.Runtime.Data
 
                     view = newDataView;
                 }
-
-                ch.Done();
             }
 
             return view == srcView ? srcLoader : new CompositeDataLoader(host, exes.ToArray());
@@ -311,9 +308,7 @@ namespace Microsoft.ML.Runtime.Data
 
                 // Now the transforms.
                 h.Assert(!(loader is CompositeDataLoader));
-                var result = LoadTransforms(ctx, loader, h, x => true);
-                ch.Done();
-                return result;
+                return LoadTransforms(ctx, loader, h, x => true);
             }
         }
 
@@ -363,7 +358,6 @@ namespace Microsoft.ML.Runtime.Data
                 using (var ch = h.Start("ModelCheck"))
                 {
                     ch.Info("The data model doesn't contain transforms.");
-                    ch.Done();
                 }
                 return srcView;
             }
@@ -570,7 +564,7 @@ namespace Microsoft.ML.Runtime.Data
 
         public bool CanShuffle => View.CanShuffle;
 
-        public ISchema Schema => View.Schema;
+        public Schema Schema => View.Schema;
 
         public ITransposeSchema TransposeSchema { get; }
 

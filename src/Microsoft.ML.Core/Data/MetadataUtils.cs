@@ -42,13 +42,13 @@ namespace Microsoft.ML.Runtime.Data
             public const string ScoreColumnSetId = "ScoreColumnSetId";
 
             /// <summary>
-            /// Metadata kind that indicates the prediction kind as a string. E.g. "BinaryClassification".
+            /// Metadata kind that indicates the prediction kind as a string. For example, "BinaryClassification".
             /// The value is typically a ReadOnlyMemory&lt;char&gt;.
             /// </summary>
             public const string ScoreColumnKind = "ScoreColumnKind";
 
             /// <summary>
-            /// Metadata kind that indicates the value kind of the score column as a string. E.g. "Score", "PredictedLabel", "Probability". The value is typically a ReadOnlyMemory.
+            /// Metadata kind that indicates the value kind of the score column as a string. For example, "Score", "PredictedLabel", "Probability". The value is typically a ReadOnlyMemory.
             /// </summary>
             public const string ScoreValueKind = "ScoreValueKind";
 
@@ -232,7 +232,7 @@ namespace Microsoft.ML.Runtime.Data
         /// The filter function is called for each column, passing in the schema and the column index, and returns
         /// true if the column should be considered, false if the column should be skipped.
         /// </summary>
-        public static uint GetMaxMetadataKind(this ISchema schema, out int colMax, string metadataKind, Func<ISchema, int, bool> filterFunc = null)
+        public static uint GetMaxMetadataKind(this Schema schema, out int colMax, string metadataKind, Func<Schema, int, bool> filterFunc = null)
         {
             uint max = 0;
             colMax = -1;
@@ -258,7 +258,7 @@ namespace Microsoft.ML.Runtime.Data
         /// Returns the set of column ids which match the value of specified metadata kind.
         /// The metadata type should be a KeyType with raw type U4.
         /// </summary>
-        public static IEnumerable<int> GetColumnSet(this ISchema schema, string metadataKind, uint value)
+        public static IEnumerable<int> GetColumnSet(this Schema schema, string metadataKind, uint value)
         {
             for (int col = 0; col < schema.ColumnCount; col++)
             {
@@ -277,7 +277,7 @@ namespace Microsoft.ML.Runtime.Data
         /// Returns the set of column ids which match the value of specified metadata kind.
         /// The metadata type should be of type text.
         /// </summary>
-        public static IEnumerable<int> GetColumnSet(this ISchema schema, string metadataKind, string value)
+        public static IEnumerable<int> GetColumnSet(this Schema schema, string metadataKind, string value)
         {
             for (int col = 0; col < schema.ColumnCount; col++)
             {
@@ -298,7 +298,7 @@ namespace Microsoft.ML.Runtime.Data
         ///  * has a SlotNames metadata
         ///  * metadata type is VBuffer&lt;ReadOnlyMemory&lt;char&gt;&gt; of length N
         /// </summary>
-        public static bool HasSlotNames(this ISchema schema, int col, int vectorSize)
+        public static bool HasSlotNames(this Schema schema, int col, int vectorSize)
         {
             if (vectorSize == 0)
                 return false;
@@ -323,7 +323,7 @@ namespace Microsoft.ML.Runtime.Data
                 schema.Schema.GetMetadata(Kinds.SlotNames, list[0].Index, ref slotNames);
         }
 
-        public static bool HasKeyNames(this ISchema schema, int col, int keyCount)
+        public static bool HasKeyNames(this Schema schema, int col, int keyCount)
         {
             if (keyCount == 0)
                 return false;
@@ -345,7 +345,7 @@ namespace Microsoft.ML.Runtime.Data
         /// <param name="col">Which column in the schema to query</param>
         /// <returns>True if and only if the column has the <see cref="Kinds.IsNormalized"/> metadata
         /// set to the scalar value true</returns>
-        public static bool IsNormalized(this ISchema schema, int col)
+        public static bool IsNormalized(this Schema schema, int col)
         {
             Contracts.CheckValue(schema, nameof(schema));
             var value = default(bool);
@@ -393,7 +393,7 @@ namespace Microsoft.ML.Runtime.Data
         /// <param name="col">The column</param>
         /// <param name="value">The value to return, if successful</param>
         /// <returns>True if the metadata of the right type exists, false otherwise</returns>
-        public static bool TryGetMetadata<T>(this ISchema schema, PrimitiveType type, string kind, int col, ref T value)
+        public static bool TryGetMetadata<T>(this Schema schema, PrimitiveType type, string kind, int col, ref T value)
         {
             Contracts.CheckValue(schema, nameof(schema));
             Contracts.CheckValue(type, nameof(type));
@@ -408,7 +408,7 @@ namespace Microsoft.ML.Runtime.Data
         /// <summary>
         /// Return whether the given column index is hidden in the given schema.
         /// </summary>
-        public static bool IsHidden(this ISchema schema, int col)
+        public static bool IsHidden(this Schema schema, int col)
         {
             Contracts.CheckValue(schema, nameof(schema));
             string name = schema.GetColumnName(col);
@@ -426,7 +426,7 @@ namespace Microsoft.ML.Runtime.Data
         /// The way to interpret that is: feature with indices 0, 1, and 2 are one categorical
         /// Features with indices 3 and 4 are another categorical. Features 5 and 6 don't appear there, so they are not categoricals.
         /// </summary>
-        public static bool TryGetCategoricalFeatureIndices(ISchema schema, int colIndex, out int[] categoricalFeatures)
+        public static bool TryGetCategoricalFeatureIndices(Schema schema, int colIndex, out int[] categoricalFeatures)
         {
             Contracts.CheckValue(schema, nameof(schema));
             Contracts.Check(colIndex >= 0, nameof(colIndex));

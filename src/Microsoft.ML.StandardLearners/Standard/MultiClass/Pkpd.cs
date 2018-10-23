@@ -43,7 +43,7 @@ namespace Microsoft.ML.Runtime.Learners
     /// pair.
     ///
     /// These two can allow you to exploit trainers that do not naturally have a
-    /// multiclass option, e.g., using the Runtime.FastTree.FastTreeBinaryClassificationTrainer
+    /// multiclass option, for example, using the Runtime.FastTree.FastTreeBinaryClassificationTrainer
     /// to solve a multiclass problem.
     /// Alternately, it can allow ML.NET to solve a "simpler" problem even in the cases
     /// where the trainer has a multiclass option, but using it directly is not
@@ -225,7 +225,8 @@ namespace Microsoft.ML.Runtime.Learners
                 verWrittenCur: 0x00010001, // Initial
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
-                loaderSignature: LoaderSignature);
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(PkpdPredictor).Assembly.FullName);
         }
 
         private const string SubPredictorFmt = "SubPredictor_{0:000}";

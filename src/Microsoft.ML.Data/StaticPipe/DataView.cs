@@ -11,7 +11,7 @@ using System;
 
 namespace Microsoft.ML.StaticPipe
 {
-    public class DataView<TTupleShape> : SchemaBearing<TTupleShape>
+    public class DataView<TShape> : SchemaBearing<TShape>
     {
         public IDataView AsDynamic { get; }
 

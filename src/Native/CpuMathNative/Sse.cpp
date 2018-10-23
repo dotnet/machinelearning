@@ -27,6 +27,7 @@
 #include <tmmintrin.h>
 #include <smmintrin.h>
 #include <nmmintrin.h>
+#include <stdint.h>
 
 #define _load1(ps, pi) \
     _mm_set_ss(ps[pi[0]])
@@ -85,6 +86,22 @@ DWORD xmmYmmStateSupport()
 
 #endif
 
+const unsigned int LeadingAlignmentMask[16] =
+{
+    0x00000000, 0x00000000, 0x00000000, 0x00000000,
+    0xFFFFFFFF, 0x00000000, 0x00000000, 0x00000000,
+    0xFFFFFFFF, 0xFFFFFFFF, 0x00000000, 0x00000000,
+    0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0x00000000,
+};
+
+const unsigned int TrailingAlignmentMask[16] =
+{
+    0x00000000, 0x00000000, 0x00000000, 0x00000000,
+    0x00000000, 0x00000000, 0x00000000, 0xFFFFFFFF,
+    0x00000000, 0x00000000, 0xFFFFFFFF, 0xFFFFFFFF,
+    0x00000000, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF,
+};
+
 // Test whether Avx is available.
 EXPORT_API(bool) ChkAvx()
 {
@@ -105,33 +122,124 @@ EXPORT_API(bool) ChkAvx()
 }
 
 // Multiply matrix times vector into vector.
-EXPORT_API(void) MatMulA(bool add, _In_ const float * pmat, _In_ const float * psrc, _Inout_ float * pdst, int crow, int ccol)
+EXPORT_API(void) MatMul(_In_ const float * pmat, _In_ const float * psrc, _Inout_ float * pdst, int crow, int ccol)
 {
-    const float * psLim = psrc + ccol;
-    const float * pdLim = pdst + crow;
-    const float * pm = pmat;
-    for (float * pd = pdst; pd < pdLim; pd += 4, pm += 3 * ccol)
+    const float * pSrcEnd = psrc + ccol;
+    const float * pDstEnd = pdst + crow;
+    float* pDstCurrent = pdst;
+    const float* pMatCurrent = pmat;
+
+    while (pDstCurrent < pDstEnd)
     {
         __m128 res0 = _mm_setzero_ps();
         __m128 res1 = res0;
         __m128 res2 = res0;
         __m128 res3 = res0;
-        for (const float * ps = psrc; ps < psLim; ps += 4, pm += 4)
+
+        int length = ccol;
+        const float* pSrcCurrent = psrc;
+
+        uintptr_t address = (uintptr_t)(pMatCurrent);
+        uintptr_t misalignment = address % 16;
+        int remainder = 0;
+  
+        if ((misalignment & 3) != 0)
         {
-            const float * pmTmp;
-            __m128 x01 = _mm_load_ps(pmTmp = pm);
-            __m128 x11 = _mm_load_ps(pmTmp += ccol);
-            __m128 x21 = _mm_load_ps(pmTmp += ccol);
-            __m128 x31 = _mm_load_ps(pmTmp += ccol);
-            __m128 x02 = _mm_load_ps(ps);
-            x01 = _mm_mul_ps(x01, x02);
-            x11 = _mm_mul_ps(x11, x02);
-            x21 = _mm_mul_ps(x21, x02);
-            x31 = _mm_mul_ps(x31, x02);
-            res0 = _mm_add_ps(res0, x01);
-            res1 = _mm_add_ps(res1, x11);
-            res2 = _mm_add_ps(res2, x21);
-            res3 = _mm_add_ps(res3, x31);
+            while (pSrcCurrent < pSrcEnd)
+            {
+                __m128 vector = _mm_loadu_ps(pSrcCurrent);
+                
+                const float* pMatTemp = pMatCurrent;
+                __m128 x01 = _mm_mul_ps(vector, _mm_loadu_ps(pMatTemp));
+                __m128 x11 = _mm_mul_ps(vector, _mm_loadu_ps(pMatTemp += ccol));
+                __m128 x21 = _mm_mul_ps(vector, _mm_loadu_ps(pMatTemp += ccol));
+                __m128 x31 = _mm_mul_ps(vector, _mm_loadu_ps(pMatTemp += ccol));
+
+                res0 = _mm_add_ps(res0, x01);
+                res1 = _mm_add_ps(res1, x11);
+                res2 = _mm_add_ps(res2, x21);
+                res3 = _mm_add_ps(res3, x31);
+                
+                pSrcCurrent += 4;
+                pMatCurrent += 4;
+            }    
+        }
+        else
+        {
+            if (misalignment != 0)
+            {
+                misalignment >>= 2;
+                misalignment = 4 - misalignment;
+
+                __m128 mask = _mm_loadu_ps(((float*)(&LeadingAlignmentMask)) + (misalignment * 4));
+
+                // We only align pMat since it has significantly more reads.
+                const float* pMatTemp = pMatCurrent;
+                __m128 x01 = _mm_and_ps(mask, _mm_loadu_ps(pMatTemp));
+                __m128 x11 = _mm_and_ps(mask, _mm_loadu_ps(pMatTemp += ccol));
+                __m128 x21 = _mm_and_ps(mask, _mm_loadu_ps(pMatTemp += ccol));
+                __m128 x31 = _mm_and_ps(mask, _mm_loadu_ps(pMatTemp += ccol));                
+                __m128 vector = _mm_and_ps(mask, _mm_loadu_ps(pSrcCurrent));
+
+                res0 = _mm_mul_ps(x01, vector);
+                res1 = _mm_mul_ps(x11, vector);
+                res2 = _mm_mul_ps(x21, vector);
+                res3 = _mm_mul_ps(x31, vector);
+                                
+                pMatCurrent += misalignment;
+                pSrcCurrent += misalignment;
+                length -= misalignment;
+            }
+
+            if (length > 3)
+            {
+                remainder = length % 4;
+                while(pSrcCurrent < pSrcEnd)
+                {
+                    __m128 vector = _mm_loadu_ps(pSrcCurrent);
+                
+                    const float* pMatTemp = pMatCurrent;
+                    __m128 x01 = _mm_mul_ps(vector, _mm_load_ps(pMatTemp));
+                    __m128 x11 = _mm_mul_ps(vector, _mm_load_ps(pMatTemp += ccol));
+                    __m128 x21 = _mm_mul_ps(vector, _mm_load_ps(pMatTemp += ccol));
+                    __m128 x31 = _mm_mul_ps(vector, _mm_load_ps(pMatTemp += ccol));
+                
+                    res0 = _mm_add_ps(res0, x01);
+                    res1 = _mm_add_ps(res1, x11);
+                    res2 = _mm_add_ps(res2, x21);
+                    res3 = _mm_add_ps(res3, x31);
+                
+                    pSrcCurrent += 4;
+                    pMatCurrent += 4;
+                } 
+            }
+            else
+            {
+                remainder = length;
+            }
+
+            if (remainder != 0)
+            {
+                pMatCurrent -= (4 - remainder);
+                pSrcCurrent -= (4 - remainder);
+
+                __m128 mask = _mm_loadu_ps(((float*)(&TrailingAlignmentMask)) + (remainder * 4));
+
+                const float* pMatTemp = pMatCurrent;
+                __m128 x01 = _mm_and_ps(mask, _mm_loadu_ps(pMatTemp));
+                __m128 x11 = _mm_and_ps(mask, _mm_loadu_ps(pMatTemp += ccol));
+                __m128 x21 = _mm_and_ps(mask, _mm_loadu_ps(pMatTemp += ccol));
+                __m128 x31 = _mm_and_ps(mask, _mm_loadu_ps(pMatTemp += ccol));                
+                __m128 vector = _mm_and_ps(mask, _mm_loadu_ps(pSrcCurrent));
+
+                res0 = _mm_add_ps(x01, _mm_mul_ps(x01, vector));
+                res1 = _mm_add_ps(x11, _mm_mul_ps(x11, vector));
+                res2 = _mm_add_ps(x21, _mm_mul_ps(x21, vector));
+                res3 = _mm_add_ps(x31, _mm_mul_ps(x31, vector));
+              
+                pMatCurrent += 4;
+                pSrcCurrent += 4;
+            }
         }
 
         // Add up the entries of each, with the 4 results in res0
@@ -139,14 +247,15 @@ EXPORT_API(void) MatMulA(bool add, _In_ const float * pmat, _In_ const float * p
         res2 = _mm_hadd_ps(res2, res3);
         res0 = _mm_hadd_ps(res0, res2);
 
-        if (add)
-            res0 = _mm_add_ps(res0, _mm_load_ps(pd));
-        _mm_store_ps(pd, res0);
+        _mm_storeu_ps(pDstCurrent, res0);
+
+        pDstCurrent += 4;
+        pMatCurrent += 3 * ccol;  
     }
 }
 
 // Partial sparse source vector.
-EXPORT_API(void) MatMulPA(bool add, _In_ const float * pmat, _In_ const int * pposSrc, _In_ const float * psrc,
+EXPORT_API(void) MatMulPA(_In_ const float * pmat, _In_ const int * pposSrc, _In_ const float * psrc,
     int posMin, int iposMin, int iposLim, _Inout_ float * pdst, int crow, int ccol)
 {
     // REVIEW: For extremely sparse inputs, interchanging the loops would
@@ -171,8 +280,6 @@ EXPORT_API(void) MatMulPA(bool add, _In_ const float * pmat, _In_ const int * pp
             res = _mm_add_ps(res, x2);
         }
 
-        if (add)
-            res = _mm_add_ps(res, _mm_load_ps(pd));
         _mm_store_ps(pd, res);
     }
 }
@@ -478,108 +585,284 @@ EXPORT_API(void) RespNormU(bool add, float alpha, float beta, bool avgOverFullKe
     }
 }
 
-EXPORT_API(void) MatMulTranA(bool add, _In_ const float * pmat, _In_ const float * psrc, _Inout_ float * pdst, int crow, int ccol)
+EXPORT_API(void) MatMulTran(_In_ const float * pmat, _In_ const float * psrc, _Inout_ float * pdst, int crow, int ccol)
 {
-    const float * psLim = psrc + ccol;
-    const float * pdLim = pdst + crow;
-    const float * pm = pmat;
-    const float * ps = psrc;
+    const float * pSrcEnd = psrc + ccol;
+    const float * pDstEnd = pdst + crow;
+    
+    const float* pMatCurrent = pmat;
+    const float* pSrcCurrent = psrc;
 
-    if (!add)
+    if (pSrcCurrent < pSrcEnd)
     {
-        __m128 x01 = _mm_load_ps(ps);
+         __m128 x01 = _mm_loadu_ps(pSrcCurrent);
         // Replicate each slot of x01 into its own register.
         __m128 x11 = _mm_shuffle_ps(x01, x01, 0x55);
         __m128 x21 = _mm_shuffle_ps(x01, x01, 0xAA);
         __m128 x31 = _mm_shuffle_ps(x01, x01, 0xFF);
         x01 = _mm_shuffle_ps(x01, x01, 0x00);
-        ps += 4;
-        for (float * pd = pdst; pd < pdLim; pd += 4, pm += 4)
+
+        int length = crow;
+        float* pDstCurrent = pdst;
+
+        uintptr_t address = (uintptr_t)(pMatCurrent);
+        uintptr_t misalignment = address % 16;
+        int remainder = 0;
+
+        if ((misalignment & 3) != 0)
         {
-            const float * pmTmp;
-            __m128 x02 = _mm_load_ps(pmTmp = pm);
-            __m128 x12 = _mm_load_ps(pmTmp += crow);
-            __m128 x22 = _mm_load_ps(pmTmp += crow);
-            __m128 x32 = _mm_load_ps(pmTmp += crow);
-            x02 = _mm_mul_ps(x01, x02);
-            x12 = _mm_mul_ps(x11, x12);
-            x22 = _mm_mul_ps(x21, x22);
-            x32 = _mm_mul_ps(x31, x32);
-            x02 = _mm_add_ps(x02, x12);
-            x22 = _mm_add_ps(x22, x32);
-            x02 = _mm_add_ps(x02, x22);
-            _mm_store_ps(pd, x02);
+            while (pDstCurrent < pDstEnd)
+            {
+                const float* pMatTemp = pMatCurrent;
+                __m128 x02 = _mm_mul_ps(x01, _mm_loadu_ps(pMatTemp));
+                __m128 x12 = _mm_mul_ps(x11, _mm_loadu_ps(pMatTemp += crow));
+                __m128 x22 = _mm_mul_ps(x21, _mm_loadu_ps(pMatTemp += crow));
+                __m128 x32 = _mm_mul_ps(x31, _mm_loadu_ps(pMatTemp += crow));
+
+                x02 = _mm_add_ps(x02, x12);
+                x22 = _mm_add_ps(x22, x32);
+                x02 = _mm_add_ps(x02, x22);
+                
+                _mm_storeu_ps(pDstCurrent, x02);
+                pDstCurrent += 4;
+                pMatCurrent += 4;
+            }
+        }
+        else
+        {
+            int remainder = 0;
+            if (misalignment != 0)
+            {
+                misalignment >>= 2;
+                misalignment = 4 - misalignment;
+                
+                __m128 leadingMask = _mm_loadu_ps(((float*)(&LeadingAlignmentMask)) + (misalignment * 4));
+
+                // We only align pMat since it has significantly more reads.
+                const float* pMatTemp = pMatCurrent;
+                __m128 x02 = _mm_and_ps(leadingMask, _mm_loadu_ps(pMatTemp));
+                __m128 x12 = _mm_and_ps(leadingMask, _mm_loadu_ps(pMatTemp += crow));
+                __m128 x22 = _mm_and_ps(leadingMask, _mm_loadu_ps(pMatTemp += crow));
+                __m128 x32 = _mm_and_ps(leadingMask, _mm_loadu_ps(pMatTemp += crow));
+
+                x02 = _mm_mul_ps(x01, x02);
+                x12 = _mm_mul_ps(x11, x12);
+                x22 = _mm_mul_ps(x21, x22);
+                x32 = _mm_mul_ps(x31, x32);                                                
+
+                x02 = _mm_add_ps(x02, x12);
+                x22 = _mm_add_ps(x22, x32);
+                x02 = _mm_add_ps(x02, x22);
+
+                __m128 trailingMask = _mm_loadu_ps(((float*)(&TrailingAlignmentMask)) + (( 4 - misalignment) * 4));
+                __m128 x3 = _mm_loadu_ps(pDstCurrent);
+                x02 = _mm_or_ps(x02, _mm_and_ps(x3, trailingMask));
+
+                _mm_storeu_ps(pDstCurrent, x02);
+                pMatCurrent += misalignment;
+                pDstCurrent += misalignment;
+                length -= misalignment;
+            }
+
+            if(length > 3)
+            {
+                remainder = length % 4;
+                while (pDstCurrent < pDstEnd)
+                {
+                    const float* pMatTemp = pMatCurrent;
+                    __m128 x02 = _mm_mul_ps(x01, _mm_load_ps(pMatTemp));
+                    __m128 x12 = _mm_mul_ps(x11, _mm_load_ps(pMatTemp += crow));
+                    __m128 x22 = _mm_mul_ps(x21, _mm_load_ps(pMatTemp += crow));
+                    __m128 x32 = _mm_mul_ps(x31, _mm_load_ps(pMatTemp += crow));
+
+                    x02 = _mm_add_ps(x02, x12);
+                    x22 = _mm_add_ps(x22, x32);
+                    x02 = _mm_add_ps(x02, x22);
+
+                    _mm_storeu_ps(pDstCurrent, x02);
+                
+                    pDstCurrent += 4;
+                    pMatCurrent += 4;               
+                }
+            }
+            else
+            {
+                length = remainder;
+            }
+
+            if (remainder != 0)
+            {
+                pMatCurrent -= (4 - remainder);
+                pDstCurrent -= (4 - remainder);
+
+                __m128 trailingMask = _mm_loadu_ps(((float*)(&TrailingAlignmentMask)) + (remainder * 4));             
+                
+                const float* pMatTemp = pMatCurrent;
+                __m128 x02 = _mm_and_ps(trailingMask, _mm_loadu_ps(pMatTemp));
+                __m128 x12 = _mm_and_ps(trailingMask, _mm_loadu_ps(pMatTemp += crow));
+                __m128 x22 = _mm_and_ps(trailingMask, _mm_loadu_ps(pMatTemp += crow));
+                __m128 x32 = _mm_and_ps(trailingMask, _mm_loadu_ps(pMatTemp += crow));
+
+                x02 = _mm_mul_ps(x01, x02);
+                x12 = _mm_mul_ps(x11, x12);
+                x22 = _mm_mul_ps(x21, x22);
+                x32 = _mm_mul_ps(x31, x32);                                                
+
+                x02 = _mm_add_ps(x02, x12);
+                x22 = _mm_add_ps(x22, x32);
+                x02 = _mm_add_ps(x02, x22);
+
+                __m128 leadingMask = _mm_loadu_ps(((float*)(&LeadingAlignmentMask)) + (( 4 - remainder) * 4));
+                __m128 x3 = _mm_loadu_ps(pDstCurrent);
+                x02 = _mm_or_ps(x02, _mm_and_ps(x3, leadingMask));
+
+                _mm_storeu_ps(pDstCurrent, x02);
+                pMatCurrent += 4;
+                pDstCurrent += 4;
+            }
         }
 
-        pm += 3 * crow;
+        pMatCurrent += 3 * crow;
+        pSrcCurrent += 4;
     }
 
-    for (; ps < psLim; ps += 4)
+    while (pSrcCurrent < pSrcEnd)
     {
-        __m128 x01 = _mm_load_ps(ps);
+        __m128 x01 = _mm_loadu_ps(pSrcCurrent);
         // Replicate each slot of x01 into its own register.
         __m128 x11 = _mm_shuffle_ps(x01, x01, 0x55);
         __m128 x21 = _mm_shuffle_ps(x01, x01, 0xAA);
         __m128 x31 = _mm_shuffle_ps(x01, x01, 0xFF);
         x01 = _mm_shuffle_ps(x01, x01, 0x00);
-        for (float * pd = pdst; pd < pdLim; pd += 4, pm += 4)
+
+        int length = crow;
+        float* pDstCurrent = pdst;
+
+        uintptr_t address = (uintptr_t)(pMatCurrent);
+        uintptr_t misalignment = address % 16;
+        int remainder = 0;
+
+        if ((misalignment & 3) != 0)
         {
-            const float * pmTmp;
-            __m128 x02 = _mm_load_ps(pmTmp = pm);
-            __m128 x12 = _mm_load_ps(pmTmp += crow);
-            __m128 x22 = _mm_load_ps(pmTmp += crow);
-            __m128 x32 = _mm_load_ps(pmTmp += crow);
-            __m128 x3 = _mm_load_ps(pd);
-            x02 = _mm_mul_ps(x01, x02);
-            x12 = _mm_mul_ps(x11, x12);
-            x22 = _mm_mul_ps(x21, x22);
-            x32 = _mm_mul_ps(x31, x32);
-            x02 = _mm_add_ps(x02, x12);
-            x22 = _mm_add_ps(x22, x32);
-            x02 = _mm_add_ps(x02, x22);
-            x3 = _mm_add_ps(x02, x3);
-            _mm_store_ps(pd, x3);
+            while (pDstCurrent < pDstEnd)
+            {
+                const float* pMatTemp = pMatCurrent;
+                __m128 x02 = _mm_mul_ps(x01, _mm_loadu_ps(pMatTemp));
+                __m128 x12 = _mm_mul_ps(x11, _mm_loadu_ps(pMatTemp += crow));
+                __m128 x22 = _mm_mul_ps(x21, _mm_loadu_ps(pMatTemp += crow));
+                __m128 x32 = _mm_mul_ps(x31, _mm_loadu_ps(pMatTemp += crow));
+
+                x02 = _mm_add_ps(x02, x12);
+                x22 = _mm_add_ps(x22, x32);
+                x02 = _mm_add_ps(x02, x22);
+
+                x02 = _mm_add_ps(x02, _mm_loadu_ps(pDstCurrent));
+            
+                _mm_storeu_ps(pDstCurrent, x02);
+                pDstCurrent += 4;
+                pMatCurrent += 4;
+            }
+        }
+        else
+        {
+            int remainder = 0;
+            if (misalignment != 0)
+            {
+                misalignment >>= 2;
+                misalignment = 4 - misalignment;
+                
+                __m128 leadingMask = _mm_loadu_ps(((float*)(&LeadingAlignmentMask)) + (misalignment * 4));
+
+                // We only align pMat since it has significantly more reads.
+                const float* pMatTemp = pMatCurrent;
+                __m128 x02 = _mm_and_ps(leadingMask, _mm_loadu_ps(pMatTemp));
+                __m128 x12 = _mm_and_ps(leadingMask, _mm_loadu_ps(pMatTemp += crow));
+                __m128 x22 = _mm_and_ps(leadingMask, _mm_loadu_ps(pMatTemp += crow));
+                __m128 x32 = _mm_and_ps(leadingMask, _mm_loadu_ps(pMatTemp += crow));
+
+                x02 = _mm_mul_ps(x01, x02);
+                x12 = _mm_mul_ps(x11, x12);
+                x22 = _mm_mul_ps(x21, x22);
+                x32 = _mm_mul_ps(x31, x32);                                                
+
+                x02 = _mm_add_ps(x02, x12);
+                x22 = _mm_add_ps(x22, x32);
+                x02 = _mm_add_ps(x02, x22);
+
+                __m128 trailingMask = _mm_loadu_ps(((float*)(&TrailingAlignmentMask)) + (( 4 - misalignment) * 4));
+                __m128 x3 = _mm_loadu_ps(pDstCurrent);
+                x02 = _mm_or_ps(x02, _mm_and_ps(x3, trailingMask));
+                x02 = _mm_add_ps(x02, _mm_and_ps(x3, leadingMask));
+
+                _mm_storeu_ps(pDstCurrent, x02);
+                pMatCurrent += misalignment;
+                pDstCurrent += misalignment;
+                length -= misalignment;
+            }
+
+            if(length > 3)
+            {
+                remainder = length % 4;
+                while (pDstCurrent < pDstEnd)
+                {
+                    const float* pMatTemp = pMatCurrent;
+                    __m128 x02 = _mm_mul_ps(x01, _mm_load_ps(pMatTemp));
+                    __m128 x12 = _mm_mul_ps(x11, _mm_load_ps(pMatTemp += crow));
+                    __m128 x22 = _mm_mul_ps(x21, _mm_load_ps(pMatTemp += crow));
+                    __m128 x32 = _mm_mul_ps(x31, _mm_load_ps(pMatTemp += crow));
+
+                    x02 = _mm_add_ps(x02, x12);
+                    x22 = _mm_add_ps(x22, x32);
+                    x02 = _mm_add_ps(x02, x22);
+
+                    x02 = _mm_add_ps(x02,  _mm_loadu_ps(pDstCurrent));
+
+                    _mm_storeu_ps(pDstCurrent, x02);
+                
+                    pDstCurrent += 4;
+                    pMatCurrent += 4;               
+                }
+            }
+            else
+            {
+                length = remainder;
+            }
+
+            if (remainder != 0)
+            {
+                pMatCurrent -= (4 - remainder);
+                pDstCurrent -= (4 - remainder);
+
+                __m128 trailingMask = _mm_loadu_ps(((float*)(&TrailingAlignmentMask)) + (remainder * 4));             
+                
+                const float* pMatTemp = pMatCurrent;
+                __m128 x02 = _mm_and_ps(trailingMask, _mm_loadu_ps(pMatTemp));
+                __m128 x12 = _mm_and_ps(trailingMask, _mm_loadu_ps(pMatTemp += crow));
+                __m128 x22 = _mm_and_ps(trailingMask, _mm_loadu_ps(pMatTemp += crow));
+                __m128 x32 = _mm_and_ps(trailingMask, _mm_loadu_ps(pMatTemp += crow));
+
+                x02 = _mm_mul_ps(x01, x02);
+                x12 = _mm_mul_ps(x11, x12);
+                x22 = _mm_mul_ps(x21, x22);
+                x32 = _mm_mul_ps(x31, x32);                                                
+
+                x02 = _mm_add_ps(x02, x12);
+                x22 = _mm_add_ps(x22, x32);
+                x02 = _mm_add_ps(x02, x22);
+
+                __m128 leadingMask = _mm_loadu_ps(((float*)(&LeadingAlignmentMask)) + (( 4 - remainder) * 4));
+                __m128 x3 = _mm_loadu_ps(pDstCurrent);
+                x02 = _mm_or_ps(x02, _mm_and_ps(x3, leadingMask));
+
+                x02 = _mm_add_ps(x02, _mm_and_ps(x3, trailingMask));
+                _mm_storeu_ps(pDstCurrent, x02);
+                pMatCurrent += 4;
+                pDstCurrent += 4;
+            }
         }
 
-        pm += 3 * crow;
-    }
-}
-
-// Partial sparse source vector.
-EXPORT_API(void) MatMulTranPA(bool add, _In_ const float * pmat, _In_ const int * pposSrc, _In_ const float * psrc,
-    int posMin, int iposMin, int iposLim, _Inout_ float * pdst, int crow)
-{
-    const int * ppos = pposSrc + iposMin;
-    const int * pposLim = pposSrc + iposLim;
-    const float * pdLim = pdst + crow;
-
-    if (!add)
-    {
-        int col = *ppos++ - posMin;
-        const float * pm = pmat + col * crow;
-        __m128 x0 = _mm_set1_ps(psrc[col]);
-        for (float * pd = pdst; pd < pdLim; pd += 4, pm += 4)
-        {
-            __m128 x1 = _mm_load_ps(pm);
-            x1 = _mm_mul_ps(x1, x0);
-            _mm_store_ps(pd, x1);
-        }
-    }
-
-    // REVIEW: Should we explore unrolling the outer loop?
-    for (; ppos < pposLim; ppos++)
-    {
-        int col = *ppos - posMin;
-        __m128 x0 = _mm_set1_ps(psrc[col]);
-        const float * pm = pmat + col * crow;
-        for (float * pd = pdst; pd < pdLim; pd += 4, pm += 4)
-        {
-            __m128 x1 = _mm_load_ps(pm);
-            __m128 x2 = _mm_load_ps(pd);
-            x1 = _mm_mul_ps(x1, x0);
-            x2 = _mm_add_ps(x2, x1);
-            _mm_store_ps(pd, x2);
-        }
+        pMatCurrent += 3 * crow;
+        pSrcCurrent += 4;
     }
 }
 
@@ -1429,36 +1712,101 @@ EXPORT_API(void) AddScalarU(float a, _Inout_ float * pd, int c)
     }
 }
 
-EXPORT_API(void) ScaleU(float a, _Inout_ float * pd, int c)
+EXPORT_API(void) Scale(float a, _Inout_ float * pd, int c)
 {
-    float * pdLim = pd + c;
-
     __m128 x1 = _mm_set1_ps(a);
-    for (; pd + 4 <= pdLim; pd += 4)
+    
+    if (c < 4)
     {
-        __m128 x2 = _mm_loadu_ps(pd);
-        x2 = _mm_mul_ps(x1, x2);
-        _mm_storeu_ps(pd, x2);
+        switch(c)
+        {
+            case 3: pd[2] *= a;
+            case 2: pd[1] *= a;
+            case 1: pd[0] *= a;
+        }
+        return;           
     }
 
-    for (; pd < pdLim; pd++)
+    uintptr_t address = (uintptr_t)(pd);
+    uintptr_t misalignment = address % 16;
+    int remainder = 0;
+
+    if ((misalignment & 3) != 0)
     {
-        __m128 x2 = _mm_load_ss(pd);
-        x2 = _mm_mul_ss(x1, x2);
-        _mm_store_ss(pd, x2);
+        // Handles cases where the data is not 32-bit aligned and we can't ever use aligned operations
+        remainder = c % 4;
+        
+        for (const float* pEnd = pd + (c - remainder); pd < pEnd; pd += 4)
+        {
+            __m128 x2 = _mm_loadu_ps(pd);
+            x2 = _mm_mul_ps(x1, x2);
+            _mm_storeu_ps(pd, x2);
+        }
     }
-}
-
-EXPORT_API(void) ScaleA(float a, _Inout_ float * pd, int c)
-{
-    float * pdLim = pd + c;
-
-    __m128 x1 = _mm_set1_ps(a);
-    for (; pd < pdLim; pd += 4)
+    else
     {
-        __m128 x2 = _mm_load_ps(pd);
-        x2 = _mm_mul_ps(x1, x2);
-        _mm_store_ps(pd, x2);
+        if (misalignment != 0)
+        {
+            // Handle cases where the data is not 128-bit aligned by doing an unaligned read and then
+            // masking any elements that will be included in the first aligned read
+            misalignment >>= 2;
+            misalignment = 4 - misalignment;
+            
+            __m128 result = _mm_loadu_ps(pd);            
+            
+            __m128 leadingMask = _mm_loadu_ps(((float*)(&LeadingAlignmentMask)) + (misalignment * 4));
+            __m128 trailingMask = _mm_loadu_ps(((float*)(&TrailingAlignmentMask)) + ((4 - misalignment) * 4));
+            
+            __m128 temp = _mm_and_ps(result, leadingMask);
+            result = _mm_and_ps(result, trailingMask);
+            
+            temp = _mm_mul_ps(temp, x1);
+            result = _mm_or_ps(temp, result);            
+            
+            _mm_storeu_ps(pd, result);
+            
+            pd += misalignment;
+            c -= misalignment;            
+        }
+
+        if (c > 3)
+        {
+            // Handle all the 128-bit blocks that we can now that we have offset to an aligned address
+            remainder = c % 4;
+            for (const float* pEnd = pd + (c - remainder); pd < pEnd; pd += 4)
+            {
+                __m128 x2 = _mm_load_ps(pd);
+                x2 = _mm_mul_ps(x1, x2);
+                _mm_storeu_ps(pd, x2);
+            }
+        }
+        else
+        {
+            // Handle the "worst-case" scenario, which is when we have 4-8 elements and the input is not
+            // 128-bit aligned. This means we can't do any aligned loads and will just end up doing two
+            // unaligned loads where we mask the input each time.
+            remainder = c;
+        }
+    }
+
+    if (remainder != 0)
+    {
+        // Handle any trailing elements that don't fit into a 128-bit block by moving back so that the next
+        // unaligned load will read to the end of the array and then mask out any elements already processed
+        
+        pd -= (4 - remainder);
+        __m128 result = _mm_loadu_ps(pd);            
+            
+        __m128 trailingMask = _mm_loadu_ps(((float*)(&TrailingAlignmentMask)) + (remainder * 4));
+        __m128 leadingMask = _mm_loadu_ps(((float*)(&LeadingAlignmentMask)) + ((4 - remainder) * 4));
+            
+        __m128 temp = _mm_and_ps(result, trailingMask);
+        result = _mm_and_ps(result, leadingMask);
+            
+        temp = _mm_mul_ps(temp, x1);
+        result = _mm_or_ps(temp, result);            
+            
+        _mm_storeu_ps(pd, result);
     }
 }
 

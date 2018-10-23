@@ -52,6 +52,46 @@ namespace Microsoft.ML.Runtime.Data
             _calculateDbi = args.CalculateDbi;
         }
 
+        /// <summary>
+        /// Evaluates scored clustering data.
+        /// </summary>
+        /// <param name="data">The scored data.</param>
+        /// <param name="score">The name of the score column in <paramref name="data"/>.</param>
+        /// <param name="label">The name of the optional label column in <paramref name="data"/>.</param>
+        /// <param name="features">The name of the optional feature column in <paramref name="data"/>.</param>
+        /// <returns>The evaluation results.</returns>
+        public Result Evaluate(IDataView data, string score, string label = null, string features = null)
+        {
+            Host.CheckValue(data, nameof(data));
+            Host.CheckNonEmpty(score, nameof(score));
+
+            var roles = new List<KeyValuePair<RoleMappedSchema.ColumnRole, string>>();
+            roles.Add(RoleMappedSchema.CreatePair(MetadataUtils.Const.ScoreValueKind.Score, score));
+
+            if (label != null)
+                roles.Add(RoleMappedSchema.ColumnRole.Label.Bind(label));
+
+            if (features != null)
+                roles.Add(RoleMappedSchema.ColumnRole.Feature.Bind(features));
+
+            var rolesMappedData = new RoleMappedData(data, opt: false, roles.ToArray());
+
+            var resultDict = Evaluate(rolesMappedData);
+            Host.Assert(resultDict.ContainsKey(MetricKinds.OverallMetrics));
+            var overall = resultDict[MetricKinds.OverallMetrics];
+
+            Result result;
+            using (var cursor = overall.GetRowCursor(i => true))
+            {
+                var moved = cursor.MoveNext();
+                Host.Assert(moved);
+                result = new Result(Host, cursor, _calculateDbi);
+                moved = cursor.MoveNext();
+                Host.Assert(!moved);
+            }
+            return result;
+        }
+
         protected override void CheckScoreAndLabelTypes(RoleMappedSchema schema)
         {
             ColumnType type;
@@ -517,6 +557,46 @@ namespace Microsoft.ML.Runtime.Data
                 }
             }
         }
+
+        /// <summary>
+        /// The metrics generated after evaluating the clustering predictions.
+        /// </summary>
+        public sealed class Result
+        {
+            /// <summary>
+            /// Normalized Mutual Information
+            /// NMI is a measure of the mutual dependence of the variables.
+            /// <a href="http://en.wikipedia.org/wiki/Mutual_information#Normalized_variants">Normalized variants</a> work on data that already has cluster labels.
+            /// Its value ranged from 0 to 1, where higher numbers are better.
+            /// </summary>
+            public double Nmi { get; }
+
+            /// <summary>
+            /// Average Score. For the K-Means algorithm, the 'score' is the distance from the centroid to the example.
+            /// The average score is, therefore, a measure of proximity of the examples to cluster centroids.
+            /// In other words, it's the 'cluster tightness' measure.
+            /// Note however, that this metric will only decrease if the number of clusters is increased,
+            /// and in the extreme case (where each distinct example is its own cluster) it will be equal to zero.
+            /// </summary>
+            public double AvgMinScore { get; }
+
+            /// <summary>
+            /// <a href="https://en.wikipedia.org/wiki/Davies–Bouldin_index">Davies-Bouldin Index</a>
+            /// DBI is a measure of the how much scatter is in the cluster and the cluster separation.
+            /// </summary>
+            public double Dbi { get; }
+
+            internal Result(IExceptionContext ectx, IRow overallResult, bool calculateDbi)
+            {
+                double Fetch(string name) => RowCursorUtils.Fetch<double>(ectx, overallResult, name);
+
+                Nmi = Fetch(ClusteringEvaluator.Nmi);
+                AvgMinScore = Fetch(ClusteringEvaluator.AvgMinScore);
+
+                if (calculateDbi)
+                    Dbi = Fetch(ClusteringEvaluator.Dbi);
+            }
+        }
     }
 
     public sealed class ClusteringPerInstanceEvaluator : PerInstanceEvaluatorBase
@@ -529,7 +609,8 @@ namespace Microsoft.ML.Runtime.Data
                 verWrittenCur: 0x00010001, // Initial
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
-                loaderSignature: LoaderSignature);
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(ClusteringPerInstanceEvaluator).Assembly.FullName);
         }
 
         private const int ClusterIdCol = 0;
@@ -677,37 +758,35 @@ namespace Microsoft.ML.Runtime.Data
             return getters;
         }
 
-        public override RowMapperColumnInfo[] GetOutputColumns()
+        public override Schema.Column[] GetOutputColumns()
         {
-            var infos = new RowMapperColumnInfo[3];
-            infos[ClusterIdCol] = new RowMapperColumnInfo(ClusterId, _types[ClusterIdCol], null);
+            var infos = new Schema.Column[3];
+            infos[ClusterIdCol] = new Schema.Column(ClusterId, _types[ClusterIdCol], null);
 
             var slotNamesType = new VectorType(TextType.Instance, _numClusters);
 
-            var sortedClusters = new ColumnMetadataInfo(SortedClusters);
-            sortedClusters.Add(MetadataUtils.Kinds.SlotNames, new MetadataInfo<VBuffer<ReadOnlyMemory<char>>>(slotNamesType,
-                CreateSlotNamesGetter(_numClusters, "Cluster")));
-            var sortedClusterScores = new ColumnMetadataInfo(SortedClusterScores);
-            sortedClusterScores.Add(MetadataUtils.Kinds.SlotNames, new MetadataInfo<VBuffer<ReadOnlyMemory<char>>>(slotNamesType,
-                CreateSlotNamesGetter(_numClusters, "Score")));
+            var sortedClusters = new Schema.Metadata.Builder();
+            sortedClusters.AddSlotNames(slotNamesType.VectorSize, CreateSlotNamesGetter(_numClusters, "Cluster"));
 
-            infos[SortedClusterCol] = new RowMapperColumnInfo(SortedClusters, _types[SortedClusterCol], sortedClusters);
-            infos[SortedClusterScoreCol] = new RowMapperColumnInfo(SortedClusterScores,
-                _types[SortedClusterScoreCol], sortedClusterScores);
+            var sortedClusterScores = new Schema.Metadata.Builder();
+            sortedClusterScores.AddSlotNames(slotNamesType.VectorSize, CreateSlotNamesGetter(_numClusters, "Score"));
+
+            infos[SortedClusterCol] = new Schema.Column(SortedClusters, _types[SortedClusterCol], sortedClusters.GetMetadata());
+            infos[SortedClusterScoreCol] = new Schema.Column(SortedClusterScores, _types[SortedClusterScoreCol], sortedClusterScores.GetMetadata());
             return infos;
         }
 
         // REVIEW: Figure out how to avoid having the column name in each slot name.
-        private MetadataUtils.MetadataGetter<VBuffer<ReadOnlyMemory<char>>> CreateSlotNamesGetter(int numTopClusters, string suffix)
+        private ValueGetter<VBuffer<ReadOnlyMemory<char>>> CreateSlotNamesGetter(int numTopClusters, string suffix)
         {
             return
-                (int col, ref VBuffer<ReadOnlyMemory<char>> dst) =>
+                (ref VBuffer<ReadOnlyMemory<char>> dst) =>
                 {
                     var values = dst.Values;
                     if (Utils.Size(values) < numTopClusters)
                         values = new ReadOnlyMemory<char>[numTopClusters];
                     for (int i = 1; i <= numTopClusters; i++)
-                        values[i - 1] = string.Format("#{0} {1}", i, suffix).AsMemory();
+                        values[i - 1] = $"#{i} {suffix}".AsMemory();
                     dst = new VBuffer<ReadOnlyMemory<char>>(numTopClusters, values);
                 };
         }

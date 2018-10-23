@@ -101,7 +101,7 @@ namespace Microsoft.ML.Runtime.Learners
 
         public bool CanSavePfa => true;
 
-        public bool CanSaveOnnx => true;
+        public bool CanSaveOnnx(OnnxContext ctx) => true;
 
         /// <summary>
         /// Constructs a new linear predictor.
@@ -409,7 +409,8 @@ namespace Microsoft.ML.Runtime.Learners
                 verWrittenCur: 0x00020002, // Added model statistics
                 verReadableCur: 0x00020001,
                 verWeCanReadBack: 0x00020001,
-                loaderSignature: LoaderSignature);
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(LinearBinaryPredictor).Assembly.FullName);
         }
 
         /// <summary>
@@ -597,7 +598,8 @@ namespace Microsoft.ML.Runtime.Learners
                 verWrittenCur: 0x00020001, // Fixed sparse serialization
                 verReadableCur: 0x00020001,
                 verWeCanReadBack: 0x00020001,
-                loaderSignature: LoaderSignature);
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(LinearRegressionPredictor).Assembly.FullName);
         }
 
         /// <summary>
@@ -679,7 +681,8 @@ namespace Microsoft.ML.Runtime.Learners
                 verWrittenCur: 0x00020001, // Fixed sparse serialization
                 verReadableCur: 0x00020001,
                 verWeCanReadBack: 0x00020001,
-                loaderSignature: LoaderSignature);
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(PoissonRegressionPredictor).Assembly.FullName);
         }
 
         internal PoissonRegressionPredictor(IHostEnvironment env, ref VBuffer<Float> weights, Float bias)

@@ -59,7 +59,8 @@ namespace Microsoft.ML.Runtime.Data
                 verWrittenCur: 0x00010001, // Initial
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
-                loaderSignature: LoaderSignature);
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(BootstrapSampleTransform).Assembly.FullName);
         }
 
         internal const string RegistrationName = "BootstrapSample";
@@ -187,7 +188,7 @@ namespace Microsoft.ML.Runtime.Data
 
             public override long Batch { get { return 0; } }
 
-            public ISchema Schema { get { return Input.Schema; } }
+            public Schema Schema { get { return Input.Schema; } }
 
             public RowCursor(BootstrapSampleTransform parent, IRowCursor input, IRandom rgen)
                 : base(parent.Host, input)

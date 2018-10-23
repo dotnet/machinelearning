@@ -129,8 +129,6 @@ namespace Microsoft.ML.Runtime.Api
     /// in-memory data, one example at a time.
     /// This can also be used with trained pipelines that do not end with a predictor: in this case, the
     /// 'prediction' will be just the outcome of all the transformations.
-    /// This is essentially a wrapper for <see cref="BatchPredictionEngine{TSrc,TDst}"/> that throws if
-    /// more than one result is returned per call to <see cref="Predict"/>.
     /// </summary>
     /// <typeparam name="TSrc">The user-defined type that holds the example.</typeparam>
     /// <typeparam name="TDst">The user-defined type that holds the prediction.</typeparam>
@@ -141,7 +139,6 @@ namespace Microsoft.ML.Runtime.Api
         private readonly DataViewConstructionUtils.InputRow<TSrc> _inputRow;
         private readonly IRowReadableAs<TDst> _outputRow;
         private readonly Action _disposer;
-        private TDst _result;
 
         internal PredictionEngine(IHostEnvironment env, Stream modelStream, bool ignoreMissingColumns,
             SchemaDefinition inputSchemaDefinition = null, SchemaDefinition outputSchemaDefinition = null)
@@ -149,7 +146,7 @@ namespace Microsoft.ML.Runtime.Api
         {
         }
 
-        private static Func<ISchema, IRowToRowMapper> StreamChecker(IHostEnvironment env, Stream modelStream)
+        private static Func<Schema, IRowToRowMapper> StreamChecker(IHostEnvironment env, Stream modelStream)
         {
             env.CheckValue(modelStream, nameof(modelStream));
             return schema =>
@@ -173,14 +170,14 @@ namespace Microsoft.ML.Runtime.Api
         {
         }
 
-        private static Func<ISchema, IRowToRowMapper> TransformerChecker(IExceptionContext ectx, ITransformer transformer)
+        private static Func<Schema, IRowToRowMapper> TransformerChecker(IExceptionContext ectx, ITransformer transformer)
         {
             ectx.CheckValue(transformer, nameof(transformer));
             ectx.CheckParam(transformer.IsRowToRowMapper, nameof(transformer), "Must be a row to row mapper");
             return transformer.GetRowToRowMapper;
         }
 
-        private PredictionEngine(IHostEnvironment env, Func<ISchema, IRowToRowMapper> makeMapper, bool ignoreMissingColumns,
+        private PredictionEngine(IHostEnvironment env, Func<Schema, IRowToRowMapper> makeMapper, bool ignoreMissingColumns,
                  SchemaDefinition inputSchemaDefinition, SchemaDefinition outputSchemaDefinition)
         {
             Contracts.CheckValue(env, nameof(env));
@@ -205,12 +202,24 @@ namespace Microsoft.ML.Runtime.Api
         /// <returns>The result of prediction. A new object is created for every call.</returns>
         public TDst Predict(TSrc example)
         {
+            var result = new TDst();
+            Predict(example, ref result);
+            return result;
+        }
+
+        /// <summary>
+        /// Run prediction pipeline on one example.
+        /// </summary>
+        /// <param name="example">The example to run on.</param>
+        /// <param name="prediction">The object to store the prediction in. If it's <c>null</c>, a new one will be created, otherwise the old one
+        /// is reused.</param>
+        public void Predict(TSrc example, ref TDst prediction)
+        {
             Contracts.CheckValue(example, nameof(example));
             _inputRow.ExtractValues(example);
-            if (_result == null)
-                _result = new TDst();
-            _outputRow.FillValues(_result);
-            return _result;
+            if (prediction == null)
+                prediction = new TDst();
+            _outputRow.FillValues(prediction);
         }
     }
 

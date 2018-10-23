@@ -46,6 +46,11 @@ namespace Microsoft.ML.Runtime.Data
             public Column(string name, DataKind? type, int index)
                : this(name, type, new[] { new Range(index) }) { }
 
+            public Column(string name, DataKind? type, int minIndex, int maxIndex)
+                : this(name, type, new[] { new Range(minIndex, maxIndex) })
+            {
+            }
+
             public Column(string name, DataKind? type, Range[] source, KeyRange keyRange = null)
             {
                 Contracts.CheckValue(name, nameof(name));
@@ -518,6 +523,8 @@ namespace Microsoft.ML.Runtime.Data
 
             private readonly MetadataUtils.MetadataGetter<VBuffer<ReadOnlyMemory<char>>> _getSlotNames;
 
+            public Schema AsSchema { get; }
+
             private Bindings()
             {
                 _getSlotNames = GetSlotNames;
@@ -718,9 +725,8 @@ namespace Microsoft.ML.Runtime.Data
 
                     if (!_header.IsEmpty)
                         Parser.ParseSlotNames(parent, _header, Infos, _slotNames);
-
-                    ch.Done();
                 }
+                AsSchema = Schema.Create(this);
             }
 
             public Bindings(ModelLoadContext ctx, TextLoader parent)
@@ -803,6 +809,8 @@ namespace Microsoft.ML.Runtime.Data
                 ctx.TryLoadTextStream("Header.txt", reader => result = reader.ReadLine());
                 if (!string.IsNullOrEmpty(result))
                     Parser.ParseSlotNames(parent, _header = result.AsMemory(), Infos, _slotNames);
+
+                AsSchema = Schema.Create(this);
             }
 
             public void Save(ModelSaveContext ctx)
@@ -960,7 +968,8 @@ namespace Microsoft.ML.Runtime.Data
                 verWrittenCur: 0x0001000B, // Header now retained if used and present
                 verReadableCur: 0x0001000A,
                 verWeCanReadBack: 0x00010009,
-                loaderSignature: LoaderSignature);
+                loaderSignature: LoaderSignature,
+                loaderAssemblyName: typeof(TextLoader).Assembly.FullName);
         }
 
         /// <summary>
@@ -998,6 +1007,18 @@ namespace Microsoft.ML.Runtime.Data
 
         private readonly IHost _host;
         private const string RegistrationName = "TextLoader";
+
+        public TextLoader(IHostEnvironment env, Column[] columns, Action<Arguments> advancedSettings, IMultiStreamSource dataSample = null)
+            : this(env, MakeArgs(columns, advancedSettings), dataSample)
+        {
+        }
+
+        private static Arguments MakeArgs(Column[] columns, Action<Arguments> advancedSettings)
+        {
+            var result = new Arguments { Column = columns };
+            advancedSettings?.Invoke(result);
+            return result;
+        }
 
         public TextLoader(IHostEnvironment env, Arguments args, IMultiStreamSource dataSample = null)
         {
@@ -1180,13 +1201,13 @@ namespace Microsoft.ML.Runtime.Data
                     goto LDone;
 
                 // Make sure the loader binds to us.
-                var info = ComponentCatalog.GetLoadableClassInfo<SignatureDataLoader>(loader.Name);
+                var info = host.ComponentCatalog.GetLoadableClassInfo<SignatureDataLoader>(loader.Name);
                 if (info.Type != typeof(IDataLoader) || info.ArgType != typeof(Arguments))
                     goto LDone;
 
                 var argsNew = new Arguments();
                 // Copy the non-core arguments to the new args (we already know that all the core arguments are default).
-                var parsed = CmdParser.ParseArguments(host, CmdParser.GetSettings(ch, args, new Arguments()), argsNew);
+                var parsed = CmdParser.ParseArguments(host, CmdParser.GetSettings(host, args, new Arguments()), argsNew);
                 ch.Assert(parsed);
                 // Copy the core arguments to the new args.
                 if (!CmdParser.ParseArguments(host, loader.GetSettingsString(), argsNew, typeof(ArgumentsCore), msg => ch.Error(msg)))
@@ -1200,7 +1221,6 @@ namespace Microsoft.ML.Runtime.Data
                 args = argsNew;
 
             LDone:
-                ch.Done();
                 return !error;
             }
         }
@@ -1313,9 +1333,11 @@ namespace Microsoft.ML.Runtime.Data
             _bindings.Save(ctx);
         }
 
-        public ISchema GetOutputSchema() => _bindings;
+        public Schema GetOutputSchema() => _bindings.AsSchema;
 
         public IDataView Read(IMultiStreamSource source) => new BoundLoader(this, source);
+
+        public IDataView Read(string path) => Read(new MultiFileSource(path));
 
         private sealed class BoundLoader : IDataLoader
         {
@@ -1340,7 +1362,7 @@ namespace Microsoft.ML.Runtime.Data
             // REVIEW: Should we try to support shuffling?
             public bool CanShuffle => false;
 
-            public ISchema Schema => _reader._bindings;
+            public Schema Schema => _reader._bindings.AsSchema;
 
             public IRowCursor GetRowCursor(Func<int, bool> predicate, IRandom rand = null)
             {
