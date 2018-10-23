@@ -224,7 +224,7 @@ namespace Microsoft.ML.Transforms.Text
 
         private sealed class Mapper : MapperBase, ISaveAsPfa
         {
-            private readonly ColumnType[] _types;
+            private readonly ColumnType _type;
             private readonly WordTokenizeTransform _parent;
             private readonly bool[] _isSourceVector;
 
@@ -234,14 +234,13 @@ namespace Microsoft.ML.Transforms.Text
               : base(parent.Host.Register(nameof(Mapper)), parent, inputSchema)
             {
                 _parent = parent;
-                _types = new ColumnType[_parent._columns.Length];
+                _type = new VectorType(TextType.Instance);
                 _isSourceVector = new bool[_parent._columns.Length];
-                for (int i = 0; i < _types.Length; i++)
+                for (int i = 0; i < _isSourceVector.Length; i++)
                 {
                     inputSchema.TryGetColumnIndex(_parent._columns[i].Input, out int srcCol);
                     var srcType = inputSchema.GetColumnType(srcCol);
                     _isSourceVector[i] = srcType.IsVector;
-                    _types[i] = new VectorType(TextType.Instance);
                 }
             }
 
@@ -252,7 +251,7 @@ namespace Microsoft.ML.Transforms.Text
                 {
                     InputSchema.TryGetColumnIndex(_parent.ColumnPairs[i].input, out int colIndex);
                     Host.Assert(colIndex >= 0);
-                    result[i] = new Schema.Column(_parent.ColumnPairs[i].output, _types[i], null);
+                    result[i] = new Schema.Column(_parent.ColumnPairs[i].output, _type, null);
                 }
                 return result;
             }
