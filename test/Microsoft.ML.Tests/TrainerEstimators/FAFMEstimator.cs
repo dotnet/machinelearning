@@ -18,7 +18,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         public void FieldAwareFactorizationMachine_Estimator()
         {
             var data = new TextLoader(Env, GetFafmBCLoaderArgs())
-                    .Read(new MultiFileSource(GetDataPath(TestDatasets.breastCancer.trainFilename)));
+                    .Read(GetDataPath(TestDatasets.breastCancer.trainFilename));
 
             var est = new FieldAwareFactorizationMachineTrainer(Env, "Label", new[] { "Feature1", "Feature2", "Feature3", "Feature4" }, 
                 advancedSettings:s=>

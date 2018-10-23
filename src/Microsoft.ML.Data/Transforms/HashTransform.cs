@@ -29,8 +29,6 @@ using System.Text;
 
 namespace Microsoft.ML.Transforms
 {
-    using Conditional = System.Diagnostics.ConditionalAttribute;
-
     /// <summary>
     /// This transform can hash either single valued columns or vector columns. For vector columns,
     /// it hashes each slot separately.
@@ -397,7 +395,7 @@ namespace Microsoft.ML.Transforms
         #region Getters
         private ValueGetter<uint> ComposeGetterOne(IRow input, int iinfo, int srcCol, ColumnType srcType)
         {
-            Host.Assert(srcType.IsText || srcType.IsKey || srcType == NumberType.R4 || srcType == NumberType.R8);
+            Host.Assert(HashEstimator.IsColumnTypeValid(srcType));
 
             var mask = (1U << _columns[iinfo].HashBits) - 1;
             uint seed = _columns[iinfo].Seed;
@@ -405,140 +403,109 @@ namespace Microsoft.ML.Transforms
             if (_columns[iinfo].Ordered)
                 seed = Hashing.MurmurRound(seed, 0);
 
+            if (srcType.IsKey)
+            {
+                switch (srcType.RawKind)
+                {
+                    case DataKind.U1:
+                        return MakeScalarHashGetter<byte, HashKey1>(input, srcCol, seed, mask);
+                    case DataKind.U2:
+                        return MakeScalarHashGetter<ushort, HashKey2>(input, srcCol, seed, mask);
+                    case DataKind.U4:
+                        return MakeScalarHashGetter<uint, HashKey4>(input, srcCol, seed, mask);
+                    default:
+                        Host.Assert(srcType.RawKind == DataKind.U8);
+                        return MakeScalarHashGetter<ulong, HashKey8>(input, srcCol, seed, mask);
+                }
+            }
+
             switch (srcType.RawKind)
             {
-                case DataKind.Text:
-                    return ComposeGetterOneCore(input.GetGetter<ReadOnlyMemory<char>>(srcCol), seed, mask);
                 case DataKind.U1:
-                    return ComposeGetterOneCore(input.GetGetter<byte>(srcCol), seed, mask);
+                    return MakeScalarHashGetter<byte, HashU1>(input, srcCol, seed, mask);
                 case DataKind.U2:
-                    return ComposeGetterOneCore(input.GetGetter<ushort>(srcCol), seed, mask);
+                    return MakeScalarHashGetter<ushort, HashU2>(input, srcCol, seed, mask);
                 case DataKind.U4:
-                    return ComposeGetterOneCore(input.GetGetter<uint>(srcCol), seed, mask);
+                    return MakeScalarHashGetter<uint, HashU4>(input, srcCol, seed, mask);
+                case DataKind.U8:
+                    return MakeScalarHashGetter<ulong, HashU8>(input, srcCol, seed, mask);
+                case DataKind.U16:
+                    return MakeScalarHashGetter<UInt128, HashU16>(input, srcCol, seed, mask);
+                case DataKind.I1:
+                    return MakeScalarHashGetter<sbyte, HashI1>(input, srcCol, seed, mask);
+                case DataKind.I2:
+                    return MakeScalarHashGetter<short, HashI2>(input, srcCol, seed, mask);
+                case DataKind.I4:
+                    return MakeScalarHashGetter<int, HashI4>(input, srcCol, seed, mask);
+                case DataKind.I8:
+                    return MakeScalarHashGetter<long, HashI8>(input, srcCol, seed, mask);
                 case DataKind.R4:
-                    return ComposeGetterOneCore(input.GetGetter<float>(srcCol), seed, mask);
+                    return MakeScalarHashGetter<float, HashFloat>(input, srcCol, seed, mask);
                 case DataKind.R8:
-                    return ComposeGetterOneCore(input.GetGetter<double>(srcCol), seed, mask);
+                    return MakeScalarHashGetter<double, HashDouble>(input, srcCol, seed, mask);
+                case DataKind.BL:
+                    return MakeScalarHashGetter<bool, HashBool>(input, srcCol, seed, mask);
                 default:
-                    Host.Assert(srcType.RawKind == DataKind.U8);
-                    return ComposeGetterOneCore(input.GetGetter<ulong>(srcCol), seed, mask);
+                    Host.Assert(srcType.RawKind == DataKind.Text);
+                    return MakeScalarHashGetter<ReadOnlyMemory<char>, HashText>(input, srcCol, seed, mask);
             }
         }
-
-        private ValueGetter<uint> ComposeGetterOneCore(ValueGetter<ReadOnlyMemory<char>> getSrc, uint seed, uint mask)
-        {
-            ReadOnlyMemory<char> src = default;
-            return
-                (ref uint dst) =>
-                {
-                    // REVIEW: Should we verify that the key value is within the advertised KeyCount?
-                    // Values greater than KeyCount should be treated as zeros.
-                    getSrc(ref src);
-                    dst = HashCore(seed, ref src, mask);
-                };
-        }
-
-        private ValueGetter<uint> ComposeGetterOneCore(ValueGetter<byte> getSrc, uint seed, uint mask)
-        {
-            byte src = 0;
-            return
-                (ref uint dst) =>
-                {
-                    getSrc(ref src);
-                    dst = HashCore(seed, src, mask);
-                };
-        }
-
-        private ValueGetter<uint> ComposeGetterOneCore(ValueGetter<ushort> getSrc, uint seed, uint mask)
-        {
-            ushort src = 0;
-            return
-                (ref uint dst) =>
-                {
-                    getSrc(ref src);
-                    dst = HashCore(seed, src, mask);
-                };
-        }
-
-        private ValueGetter<uint> ComposeGetterOneCore(ValueGetter<uint> getSrc, uint seed, uint mask)
-        {
-            uint src = 0;
-            return
-                (ref uint dst) =>
-                {
-                    getSrc(ref src);
-                    dst = HashCore(seed, src, mask);
-                };
-        }
-
-        private ValueGetter<uint> ComposeGetterOneCore(ValueGetter<ulong> getSrc, uint seed, uint mask)
-        {
-            ulong src = 0;
-            return
-                (ref uint dst) =>
-                {
-                    getSrc(ref src);
-                    dst = HashCore(seed, src, mask);
-                };
-        }
-
-        private ValueGetter<uint> ComposeGetterOneCore(ValueGetter<float> getSrc, uint seed, uint mask)
-        {
-            float src = 0;
-            return
-                (ref uint dst) =>
-                {
-                    getSrc(ref src);
-                    dst = HashCore(seed, ref src, mask);
-                };
-        }
-
-        private ValueGetter<uint> ComposeGetterOneCore(ValueGetter<double> getSrc, uint seed, uint mask)
-        {
-            double src = 0;
-            return
-                (ref uint dst) =>
-                {
-                    getSrc(ref src);
-                    dst = HashCore(seed, ref src, mask);
-                };
-        }
-
-        // This is a delegate for a function that loops over the first count elements of src, and hashes
-        // them (either with their index or without) into dst.
-        private delegate void HashLoop<TSrc>(int count, int[] indices, TSrc[] src, uint[] dst, uint seed, uint mask);
-
-        // This is a delegate for a function that loops over the first count elements of src, and hashes
-        // them (either with their index or without) into dst. Additionally it fills in zero hashes in the rest of dst elements.
-        private delegate void HashLoopWithZeroHash<TSrc>(int count, int[] indices, TSrc[] src, uint[] dst, int dstCount, uint seed, uint mask);
 
         private ValueGetter<VBuffer<uint>> ComposeGetterVec(IRow input, int iinfo, int srcCol, ColumnType srcType)
         {
             Host.Assert(srcType.IsVector);
-            Host.Assert(srcType.ItemType.IsText || srcType.ItemType.IsKey || srcType.ItemType == NumberType.R4 || srcType.ItemType == NumberType.R8);
+            Host.Assert(HashEstimator.IsColumnTypeValid(srcType.ItemType));
+
+            if (srcType.ItemType.IsKey)
+            {
+                switch (srcType.ItemType.RawKind)
+                {
+                    case DataKind.U1:
+                        return ComposeGetterVecCore<byte, HashKey1>(input, iinfo, srcCol, srcType);
+                    case DataKind.U2:
+                        return ComposeGetterVecCore<ushort, HashKey2>(input, iinfo, srcCol, srcType);
+                    case DataKind.U4:
+                        return ComposeGetterVecCore<uint, HashKey4>(input, iinfo, srcCol, srcType);
+                    default:
+                        Host.Assert(srcType.ItemType.RawKind == DataKind.U8);
+                        return ComposeGetterVecCore<ulong, HashKey8>(input, iinfo, srcCol, srcType);
+                }
+            }
 
             switch (srcType.ItemType.RawKind)
             {
-                case DataKind.Text:
-                    return ComposeGetterVecCore<ReadOnlyMemory<char>>(input, iinfo, srcCol, srcType, HashUnord, HashDense, HashSparse);
                 case DataKind.U1:
-                    return ComposeGetterVecCore<byte>(input, iinfo, srcCol, srcType, HashUnord, HashDense, HashSparse);
+                    return ComposeGetterVecCore<byte, HashU1>(input, iinfo, srcCol, srcType);
                 case DataKind.U2:
-                    return ComposeGetterVecCore<ushort>(input, iinfo, srcCol, srcType, HashUnord, HashDense, HashSparse);
+                    return ComposeGetterVecCore<ushort, HashU2>(input, iinfo, srcCol, srcType);
                 case DataKind.U4:
-                    return ComposeGetterVecCore<uint>(input, iinfo, srcCol, srcType, HashUnord, HashDense, HashSparse);
+                    return ComposeGetterVecCore<uint, HashU4>(input, iinfo, srcCol, srcType);
+                case DataKind.U8:
+                    return ComposeGetterVecCore<ulong, HashU8>(input, iinfo, srcCol, srcType);
+                case DataKind.U16:
+                    return ComposeGetterVecCore<UInt128, HashU16>(input, iinfo, srcCol, srcType);
+                case DataKind.I1:
+                    return ComposeGetterVecCore<sbyte, HashI1>(input, iinfo, srcCol, srcType);
+                case DataKind.I2:
+                    return ComposeGetterVecCore<short, HashI2>(input, iinfo, srcCol, srcType);
+                case DataKind.I4:
+                    return ComposeGetterVecCore<int, HashI4>(input, iinfo, srcCol, srcType);
+                case DataKind.I8:
+                    return ComposeGetterVecCore<long, HashI8>(input, iinfo, srcCol, srcType);
                 case DataKind.R4:
-                    return ComposeGetterVecCoreFloat<float>(input, iinfo, srcCol, srcType, HashSparseUnord, HashUnord, HashDense);
+                    return ComposeGetterVecCore<float, HashFloat>(input, iinfo, srcCol, srcType);
                 case DataKind.R8:
-                    return ComposeGetterVecCoreFloat<double>(input, iinfo, srcCol, srcType, HashSparseUnord, HashUnord, HashDense);
+                    return ComposeGetterVecCore<double, HashDouble>(input, iinfo, srcCol, srcType);
+                case DataKind.BL:
+                    return ComposeGetterVecCore<bool, HashBool>(input, iinfo, srcCol, srcType);
                 default:
-                    Host.Assert(srcType.ItemType.RawKind == DataKind.U8);
-                    return ComposeGetterVecCore<ulong>(input, iinfo, srcCol, srcType, HashUnord, HashDense, HashSparse);
+                    Host.Assert(srcType.ItemType.RawKind == DataKind.TX);
+                    return ComposeGetterVecCore<ReadOnlyMemory<char>, HashText>(input, iinfo, srcCol, srcType);
             }
         }
 
-        private ValueGetter<VBuffer<uint>> ComposeGetterVecCore<T>(IRow input, int iinfo, int srcCol, ColumnType srcType,
-             HashLoop<T> hasherUnord, HashLoop<T> hasherDense, HashLoop<T> hasherSparse)
+        private ValueGetter<VBuffer<uint>> ComposeGetterVecCore<T, THash>(IRow input, int iinfo, int srcCol, ColumnType srcType)
+            where THash : struct, IHasher<T>
         {
             Host.Assert(srcType.IsVector);
             Host.Assert(srcType.ItemType.RawType == typeof(T));
@@ -547,435 +514,354 @@ namespace Microsoft.ML.Transforms
             var ex = _columns[iinfo];
             var mask = (1U << ex.HashBits) - 1;
             var seed = ex.Seed;
-            var len = srcType.VectorSize;
-            var src = default(VBuffer<T>);
 
             if (!ex.Ordered)
-            {
-                hasherDense = hasherUnord;
-                hasherSparse = hasherUnord;
-            }
-
-            return
-                (ref VBuffer<uint> dst) =>
-                {
-                    getSrc(ref src);
-                    if (len > 0 && src.Length != len)
-                        throw Host.Except("Hash transform expected {0} slots, but got {1}", len, src.Length);
-
-                    var hashes = dst.Values;
-                    if (Utils.Size(hashes) < src.Count)
-                        hashes = new uint[src.Count];
-
-                    if (src.IsDense)
-                    {
-                        hasherDense(src.Count, null, src.Values, hashes, seed, mask);
-                        dst = new VBuffer<uint>(src.Length, hashes, dst.Indices);
-                        return;
-                    }
-
-                    hasherSparse(src.Count, src.Indices, src.Values, hashes, seed, mask);
-                    var indices = dst.Indices;
-                    if (src.Count > 0)
-                    {
-                        if (Utils.Size(indices) < src.Count)
-                            indices = new int[src.Count];
-                        Array.Copy(src.Indices, indices, src.Count);
-                    }
-                    dst = new VBuffer<uint>(src.Length, src.Count, hashes, indices);
-                };
-        }
-
-        private ValueGetter<VBuffer<uint>> ComposeGetterVecCoreFloat<T>(IRow input, int iinfo, int srcCol, ColumnType srcType,
-            HashLoopWithZeroHash<T> hasherSparseUnord, HashLoop<T> hasherDenseUnord, HashLoop<T> hasherDenseOrdered)
-        {
-            Host.Assert(srcType.IsVector);
-            Host.Assert(srcType.ItemType.RawType == typeof(T));
-
-            var getSrc = input.GetGetter<VBuffer<T>>(srcCol);
-            var ex = _columns[iinfo];
-            var mask = (1U << ex.HashBits) - 1;
-            var seed = ex.Seed;
-            var len = srcType.VectorSize;
-            var src = default(VBuffer<T>);
-            T[] denseValues = null;
-            int expectedSrcLength = srcType.VectorSize;
-            HashLoop<T> hasherDense = ex.Ordered ? hasherDenseOrdered : hasherDenseUnord;
-
-            return
-                (ref VBuffer<uint> dst) =>
-                {
-                    getSrc(ref src);
-                    if (len > 0 && src.Length != len)
-                        throw Host.Except("Hash transform expected {0} slots, but got {1}", len, src.Length);
-
-                    T[] values = src.Values;
-                    var valuesCount = src.Count;
-                    var srcIsDense = src.IsDense;
-                    var hashes = dst.Values;
-
-                    // force-densify the input in case of ordered hash.
-                    if (!srcIsDense && ex.Ordered)
-                    {
-                        if (denseValues == null)
-                            denseValues = new T[expectedSrcLength];
-                        values = denseValues;
-                        src.CopyTo(values);
-                        valuesCount = expectedSrcLength;
-                        srcIsDense = true;
-                    }
-
-                    if (srcIsDense)
-                    {
-                        if (Utils.Size(hashes) < valuesCount)
-                            hashes = new uint[valuesCount];
-                        hasherDense(valuesCount, null, values, hashes, seed, mask);
-                        dst = new VBuffer<uint>(values.Length, hashes, dst.Indices);
-                        return;
-                    }
-
-                    // source is sparse at this point and hash is unordered
-                    if (Utils.Size(hashes) < expectedSrcLength)
-                        hashes = new uint[expectedSrcLength];
-                    hasherSparseUnord(src.Count, src.Indices, values, hashes, expectedSrcLength, seed, mask);
-                    dst = new VBuffer<uint>(expectedSrcLength, hashes, dst.Indices);
-                };
+                return MakeVectorHashGetter<T, THash>(seed, mask, getSrc);
+            return MakeVectorOrderedHashGetter<T, THash>(seed, mask, getSrc);
         }
 
         #endregion
 
-        #region Core Hash functions, with and without index
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static uint HashCore(uint seed, ref ReadOnlyMemory<char> value, uint mask)
+        /// <summary>
+        /// The usage of this interface may seem a bit strange, but it is deliberately structured in this way.
+        /// One will note all implementors of this interface are structs, and that where used, you never use
+        /// the interface itself, but instead an implementing type. This is due to how .NET and the JIT handles
+        /// generic types that are also value types. For value types, it will actually generate new assembly
+        /// code, which will allow effectively code generation in a way that would not happen if the hasher
+        /// implementor was a class, or if the hasher implementation was just passed in with a delegate, or
+        /// the hashing logic was encapsulated as the abstract method of some class.
+        ///
+        /// In a prior time, there were methods for all possible combinations of types, scalarness, vector
+        /// sparsity/density, whether the hash was sparsity preserving or not, whether it was ordered or not.
+        /// This resulted in an explosion of methods that made the hash transform code somewhat hard to maintain.
+        /// On the other hand, the methods were fast, since they were effectively (by brute enumeration) completely
+        /// inlined, so introducing any levels of abstraction would slow things down. By doing things in this
+        /// fashion using generics over struct types, we are effectively (via the JIT) doing code generation so
+        /// things are inlined and just as fast as the explicit implementation, while making the code rather
+        /// easier to maintain.
+        /// </summary>
+        private interface IHasher<T>
         {
-            Contracts.Assert(Utils.IsPowerOfTwo(mask + 1));
-            if (value.IsEmpty)
-                return 0;
-            return (Hashing.MurmurHash(seed, value.Span.Trim(' ')) & mask) + 1;
+            uint HashCore(uint seed, uint mask, in T value);
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static uint HashCore(uint seed, ref ReadOnlyMemory<char> value, int i, uint mask)
+        private readonly struct HashFloat : IHasher<float>
         {
-            Contracts.Assert(Utils.IsPowerOfTwo(mask + 1));
-            if (value.IsEmpty)
-                return 0;
-            return (Hashing.MurmurHash(Hashing.MurmurRound(seed, (uint)i), value.Span.Trim(' ')) & mask) + 1;
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public uint HashCore(uint seed, uint mask, in float value)
+                => float.IsNaN(value) ? 0 : (Hashing.MixHash(Hashing.MurmurRound(seed, FloatUtils.GetBits(value == 0 ? 0 : value))) & mask) + 1;
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static uint HashCore(uint seed, ref float value, uint mask)
+        private readonly struct HashDouble : IHasher<double>
         {
-            Contracts.Assert(Utils.IsPowerOfTwo(mask + 1));
-            if (float.IsNaN(value))
-                return 0;
-            // (value == 0 ? 0 : value) takes care of negative 0, its equal to positive 0 according to the IEEE 754 standard
-            return (Hashing.MixHash(Hashing.MurmurRound(seed, FloatUtils.GetBits(value == 0 ? 0 : value))) & mask) + 1;
-        }
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static uint HashCore(uint seed, ref float value, int i, uint mask)
-        {
-            Contracts.Assert(Utils.IsPowerOfTwo(mask + 1));
-            if (float.IsNaN(value))
-                return 0;
-            return (Hashing.MixHash(Hashing.MurmurRound(Hashing.MurmurRound(seed, (uint)i),
-                FloatUtils.GetBits(value == 0 ? 0 : value))) & mask) + 1;
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static uint HashCore(uint seed, ref double value, uint mask)
-        {
-            Contracts.Assert(Utils.IsPowerOfTwo(mask + 1));
-            if (double.IsNaN(value))
-                return 0;
-
-            ulong v = FloatUtils.GetBits(value == 0 ? 0 : value);
-            var hash = Hashing.MurmurRound(seed, Utils.GetLo(v));
-            var hi = Utils.GetHi(v);
-            if (hi != 0)
-                hash = Hashing.MurmurRound(hash, hi);
-            return (Hashing.MixHash(hash) & mask) + 1;
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static uint HashCore(uint seed, ref double value, int i, uint mask)
-        {
-            // If the high word is zero, this should produce the same value as the uint version.
-            Contracts.Assert(Utils.IsPowerOfTwo(mask + 1));
-            if (double.IsNaN(value))
-                return 0;
-
-            ulong v = FloatUtils.GetBits(value == 0 ? 0 : value);
-            var lo = Utils.GetLo(v);
-            var hi = Utils.GetHi(v);
-            var hash = Hashing.MurmurRound(Hashing.MurmurRound(seed, (uint)i), lo);
-            if (hi != 0)
-                hash = Hashing.MurmurRound(hash, hi);
-            return (Hashing.MixHash(hash) & mask) + 1;
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static uint HashCore(uint seed, uint value, uint mask)
-        {
-            Contracts.Assert(Utils.IsPowerOfTwo(mask + 1));
-            if (value == 0)
-                return 0;
-            return (Hashing.MixHash(Hashing.MurmurRound(seed, value)) & mask) + 1;
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static uint HashCore(uint seed, uint value, int i, uint mask)
-        {
-            Contracts.Assert(Utils.IsPowerOfTwo(mask + 1));
-            if (value == 0)
-                return 0;
-            return (Hashing.MixHash(Hashing.MurmurRound(Hashing.MurmurRound(seed, (uint)i), value)) & mask) + 1;
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static uint HashCore(uint seed, ulong value, uint mask)
-        {
-            // If the high word is zero, this should produce the same value as the uint version.
-            Contracts.Assert(Utils.IsPowerOfTwo(mask + 1));
-
-            if (value == 0)
-                return 0;
-
-            var hash = Hashing.MurmurRound(seed, Utils.GetLo(value));
-            var hi = Utils.GetHi(value);
-            if (hi != 0)
-                hash = Hashing.MurmurRound(hash, hi);
-            return (Hashing.MixHash(hash) & mask) + 1;
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static uint HashCore(uint seed, ulong value, int i, uint mask)
-        {
-            // If the high word is zero, this should produce the same value as the uint version.
-            Contracts.Assert(Utils.IsPowerOfTwo(mask + 1));
-            var lo = Utils.GetLo(value);
-            var hi = Utils.GetHi(value);
-            if (lo == 0 && hi == 0)
-                return 0;
-            var hash = Hashing.MurmurRound(Hashing.MurmurRound(seed, (uint)i), lo);
-            if (hi != 0)
-                hash = Hashing.MurmurRound(hash, hi);
-            return (Hashing.MixHash(hash) & mask) + 1;
-        }
-        #endregion Core Hash functions, with and without index
-
-        #region Unordered Loop: ignore indices
-        private static void HashUnord(int count, int[] indices, ReadOnlyMemory<char>[] src, uint[] dst, uint seed, uint mask)
-        {
-            AssertValid(count, src, dst);
-
-            for (int i = 0; i < count; i++)
-                dst[i] = HashCore(seed, ref src[i], mask);
-        }
-
-        private static void HashUnord(int count, int[] indices, byte[] src, uint[] dst, uint seed, uint mask)
-        {
-            AssertValid(count, src, dst);
-
-            for (int i = 0; i < count; i++)
-                dst[i] = HashCore(seed, src[i], mask);
-        }
-
-        private static void HashUnord(int count, int[] indices, ushort[] src, uint[] dst, uint seed, uint mask)
-        {
-            AssertValid(count, src, dst);
-
-            for (int i = 0; i < count; i++)
-                dst[i] = HashCore(seed, src[i], mask);
-        }
-
-        private static void HashUnord(int count, int[] indices, uint[] src, uint[] dst, uint seed, uint mask)
-        {
-            AssertValid(count, src, dst);
-
-            for (int i = 0; i < count; i++)
-                dst[i] = HashCore(seed, src[i], mask);
-        }
-
-        private static void HashUnord(int count, int[] indices, ulong[] src, uint[] dst, uint seed, uint mask)
-        {
-            AssertValid(count, src, dst);
-
-            for (int i = 0; i < count; i++)
-                dst[i] = HashCore(seed, src[i], mask);
-        }
-
-        private static void HashUnord(int count, int[] indices, float[] src, uint[] dst, uint seed, uint mask)
-        {
-            AssertValid(count, src, dst);
-
-            for (int i = 0; i < count; i++)
-                dst[i] = HashCore(seed, ref src[i], mask);
-        }
-        private static void HashUnord(int count, int[] indices, double[] src, uint[] dst, uint seed, uint mask)
-        {
-            AssertValid(count, src, dst);
-
-            for (int i = 0; i < count; i++)
-                dst[i] = HashCore(seed, ref src[i], mask);
-        }
-
-        #endregion Unordered Loop: ignore indices
-
-        #region Dense Loop: ignore indices
-        private static void HashDense(int count, int[] indices, ReadOnlyMemory<char>[] src, uint[] dst, uint seed, uint mask)
-        {
-            AssertValid(count, src, dst);
-
-            for (int i = 0; i < count; i++)
-                dst[i] = HashCore(seed, ref src[i], i, mask);
-        }
-
-        private static void HashDense(int count, int[] indices, byte[] src, uint[] dst, uint seed, uint mask)
-        {
-            AssertValid(count, src, dst);
-
-            for (int i = 0; i < count; i++)
-                dst[i] = HashCore(seed, src[i], i, mask);
-        }
-
-        private static void HashDense(int count, int[] indices, ushort[] src, uint[] dst, uint seed, uint mask)
-        {
-            AssertValid(count, src, dst);
-
-            for (int i = 0; i < count; i++)
-                dst[i] = HashCore(seed, src[i], i, mask);
-        }
-
-        private static void HashDense(int count, int[] indices, uint[] src, uint[] dst, uint seed, uint mask)
-        {
-            AssertValid(count, src, dst);
-
-            for (int i = 0; i < count; i++)
-                dst[i] = HashCore(seed, src[i], i, mask);
-        }
-
-        private static void HashDense(int count, int[] indices, ulong[] src, uint[] dst, uint seed, uint mask)
-        {
-            AssertValid(count, src, dst);
-
-            for (int i = 0; i < count; i++)
-                dst[i] = HashCore(seed, src[i], i, mask);
-        }
-
-        private static void HashDense(int count, int[] indices, float[] src, uint[] dst, uint seed, uint mask)
-        {
-            AssertValid(count, src, dst);
-
-            for (int i = 0; i < count; i++)
-                dst[i] = HashCore(seed, ref src[i], i, mask);
-        }
-        private static void HashDense(int count, int[] indices, double[] src, uint[] dst, uint seed, uint mask)
-        {
-            AssertValid(count, src, dst);
-
-            for (int i = 0; i < count; i++)
-                dst[i] = HashCore(seed, ref src[i], i, mask);
-        }
-        #endregion Dense Loop: ignore indices
-
-        #region Sparse Loop: use indices
-        private static void HashSparse(int count, int[] indices, ReadOnlyMemory<char>[] src, uint[] dst, uint seed, uint mask)
-        {
-            AssertValid(count, src, dst);
-            Contracts.Assert(count <= Utils.Size(indices));
-
-            for (int i = 0; i < count; i++)
-                dst[i] = HashCore(seed, ref src[i], indices[i], mask);
-        }
-
-        private static void HashSparse(int count, int[] indices, byte[] src, uint[] dst, uint seed, uint mask)
-        {
-            AssertValid(count, src, dst);
-            Contracts.Assert(count <= Utils.Size(indices));
-
-            for (int i = 0; i < count; i++)
-                dst[i] = HashCore(seed, src[i], indices[i], mask);
-        }
-
-        private static void HashSparse(int count, int[] indices, ushort[] src, uint[] dst, uint seed, uint mask)
-        {
-            AssertValid(count, src, dst);
-            Contracts.Assert(count <= Utils.Size(indices));
-
-            for (int i = 0; i < count; i++)
-                dst[i] = HashCore(seed, src[i], indices[i], mask);
-        }
-
-        private static void HashSparse(int count, int[] indices, uint[] src, uint[] dst, uint seed, uint mask)
-        {
-            AssertValid(count, src, dst);
-            Contracts.Assert(count <= Utils.Size(indices));
-
-            for (int i = 0; i < count; i++)
-                dst[i] = HashCore(seed, src[i], indices[i], mask);
-        }
-
-        private static void HashSparse(int count, int[] indices, ulong[] src, uint[] dst, uint seed, uint mask)
-        {
-            AssertValid(count, src, dst);
-            Contracts.Assert(count <= Utils.Size(indices));
-
-            for (int i = 0; i < count; i++)
-                dst[i] = HashCore(seed, src[i], indices[i], mask);
-        }
-
-        private static void HashSparseUnord(int count, int[] indices, float[] src, uint[] dst, int dstCount, uint seed, uint mask)
-        {
-            AssertValid(count, src, dst);
-            Contracts.Assert(count <= dstCount);
-            Contracts.Assert(dstCount <= Utils.Size(dst));
-
-            float zero = 0.0f;
-            uint zeroHash = HashCore(seed, ref zero, mask);
-
-            int j = 0;
-            for (int i = 0; i < dstCount; i++)
+            public uint HashCore(uint seed, uint mask, in double value)
             {
-                if (count <= j || indices[j] > i)
-                    dst[i] = zeroHash;
-                else if (indices[j] == i)
-                    dst[i] = HashCore(seed, ref src[j++], mask);
-                else
-                    Contracts.Assert(false, "this should have never happened.");
+                if (double.IsNaN(value))
+                    return 0;
+
+                ulong v = FloatUtils.GetBits(value == 0 ? 0 : value);
+                var hash = Hashing.MurmurRound(seed, Utils.GetLo(v));
+                var hi = Utils.GetHi(v);
+                if (hi != 0)
+                    hash = Hashing.MurmurRound(hash, hi);
+                return (Hashing.MixHash(hash) & mask) + 1;
             }
         }
 
-        private static void HashSparseUnord(int count, int[] indices, double[] src, uint[] dst, int dstCount, uint seed, uint mask)
+        private readonly struct HashText : IHasher<ReadOnlyMemory<char>>
         {
-            AssertValid(count, src, dst);
-            Contracts.Assert(count <= dstCount);
-            Contracts.Assert(dstCount <= Utils.Size(dst));
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public uint HashCore(uint seed, uint mask, in ReadOnlyMemory<char> value)
+                => value.IsEmpty ? 0 : (Hashing.MurmurHash(seed, value.Span.Trim(' ')) & mask) + 1;
+        }
 
-            double zero = 0.0;
-            uint zeroHash = HashCore(seed, ref zero, mask);
+        private readonly struct HashKey1 : IHasher<byte>
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public uint HashCore(uint seed, uint mask, in byte value)
+                => value == 0 ? 0 : (Hashing.MixHash(Hashing.MurmurRound(seed, value)) & mask) + 1;
+        }
 
-            int j = 0;
-            for (int i = 0; i < dstCount; i++)
+        private readonly struct HashKey2 : IHasher<ushort>
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public uint HashCore(uint seed, uint mask, in ushort value)
+                => value == 0 ? 0 : (Hashing.MixHash(Hashing.MurmurRound(seed, value)) & mask) + 1;
+        }
+
+        private readonly struct HashKey4 : IHasher<uint>
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public uint HashCore(uint seed, uint mask, in uint value)
+                => value == 0 ? 0 : (Hashing.MixHash(Hashing.MurmurRound(seed, value)) & mask) + 1;
+        }
+
+        private readonly struct HashKey8 : IHasher<ulong>
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public uint HashCore(uint seed, uint mask, in ulong value)
             {
-                if (count <= j || indices[j] > i)
-                    dst[i] = zeroHash;
-                else if (indices[j] == i)
-                    dst[i] = HashCore(seed, ref src[j++], mask);
-                else
-                    Contracts.Assert(false, "this should have never happened.");
+                if (value == 0)
+                    return 0;
+                var hash = Hashing.MurmurRound(seed, Utils.GetLo(value));
+                var hi = Utils.GetHi(value);
+                if (hi != 0)
+                    hash = Hashing.MurmurRound(hash, hi);
+                return (Hashing.MixHash(hash) & mask) + 1;
             }
         }
 
-        #endregion Sparse Loop: use indices
-
-        [Conditional("DEBUG")]
-        private static void AssertValid<T>(int count, T[] src, uint[] dst)
+        private readonly struct HashU1 : IHasher<byte>
         {
-            Contracts.Assert(count >= 0);
-            Contracts.Assert(count <= Utils.Size(src));
-            Contracts.Assert(count <= Utils.Size(dst));
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public uint HashCore(uint seed, uint mask, in byte value)
+                => (Hashing.MixHash(Hashing.MurmurRound(seed, value)) & mask) + 1;
+        }
+
+        private readonly struct HashU2 : IHasher<ushort>
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public uint HashCore(uint seed, uint mask, in ushort value)
+                => (Hashing.MixHash(Hashing.MurmurRound(seed, value)) & mask) + 1;
+        }
+
+        private readonly struct HashU4 : IHasher<uint>
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public uint HashCore(uint seed, uint mask, in uint value)
+                => (Hashing.MixHash(Hashing.MurmurRound(seed, value)) & mask) + 1;
+        }
+
+        private readonly struct HashU8 : IHasher<ulong>
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public uint HashCore(uint seed, uint mask, in ulong value)
+            {
+                var hash = Hashing.MurmurRound(seed, Utils.GetLo(value));
+                var hi = Utils.GetHi(value);
+                if (hi != 0)
+                    hash = Hashing.MurmurRound(hash, hi);
+                return (Hashing.MixHash(hash) & mask) + 1;
+            }
+        }
+
+        private readonly struct HashU16: IHasher<UInt128>
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public uint HashCore(uint seed, uint mask, in UInt128 value)
+            {
+                var hash = Hashing.MurmurRound(seed, Utils.GetLo(value.Lo));
+                var hi = Utils.GetHi(value.Lo);
+                if (hi != 0)
+                    hash = Hashing.MurmurRound(hash, hi);
+                if (value.Hi != 0)
+                {
+                    hash = Hashing.MurmurRound(hash, Utils.GetLo(value.Hi));
+                    hi = Utils.GetHi(value.Hi);
+                    if (hi != 0)
+                        hash = Hashing.MurmurRound(hash, hi);
+                }
+                return (Hashing.MixHash(hash) & mask) + 1;
+            }
+        }
+
+        private readonly struct HashBool : IHasher<bool>
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public uint HashCore(uint seed, uint mask, in bool value)
+                => (Hashing.MixHash(Hashing.MurmurRound(seed, value ? 1u : 0u)) & mask) + 1;
+        }
+
+        private readonly struct HashI1 : IHasher<sbyte>
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public uint HashCore(uint seed, uint mask, in sbyte value)
+                => (Hashing.MixHash(Hashing.MurmurRound(seed, (uint)value)) & mask) + 1;
+        }
+
+        private readonly struct HashI2 : IHasher<short>
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public uint HashCore(uint seed, uint mask, in short value)
+                => (Hashing.MixHash(Hashing.MurmurRound(seed, (uint)value)) & mask) + 1;
+        }
+
+        private readonly struct HashI4 : IHasher<int>
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public uint HashCore(uint seed, uint mask, in int value)
+                => (Hashing.MixHash(Hashing.MurmurRound(seed, (uint)value)) & mask) + 1;
+        }
+
+        private readonly struct HashI8 : IHasher<long>
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public uint HashCore(uint seed, uint mask, in long value)
+            {
+                var hash = Hashing.MurmurRound(seed, Utils.GetLo((ulong)value));
+                var hi = Utils.GetHi((ulong)value);
+                if (hi != 0)
+                    hash = Hashing.MurmurRound(hash, hi);
+                return (Hashing.MixHash(hash) & mask) + 1;
+            }
+        }
+
+        private static ValueGetter<uint> MakeScalarHashGetter<T, THash>(IRow input, int srcCol, uint seed, uint mask)
+            where THash : struct, IHasher<T>
+        {
+            Contracts.Assert(Utils.IsPowerOfTwo(mask + 1));
+            Contracts.AssertValue(input);
+            Contracts.Assert(0 <= srcCol && srcCol < input.Schema.ColumnCount);
+            Contracts.Assert(input.Schema.GetColumnType(srcCol).RawType == typeof(T));
+
+            var srcGetter = input.GetGetter<T>(srcCol);
+            T src = default;
+            THash hasher = default;
+            return (ref uint dst) =>
+                {
+                    srcGetter(ref src);
+                    dst = hasher.HashCore(seed, mask, src);
+                };
+        }
+
+        private static ValueGetter<VBuffer<uint>> MakeVectorHashGetter<T, THash>(uint seed, uint mask, ValueGetter<VBuffer<T>> srcGetter)
+            where THash : struct, IHasher<T>
+        {
+            Contracts.Assert(Utils.IsPowerOfTwo(mask + 1));
+            Contracts.AssertValue(srcGetter);
+            VBuffer<T> src = default;
+            THash hasher = default;
+
+            // Determine whether this transformation is sparsity preserving, or not. It is sparsity preserving
+            // if the default of T maps to the "missing" key value, that is, 0.
+            uint defaultHash = hasher.HashCore(seed, mask, default);
+            if (defaultHash == 0)
+            {
+                // It is sparsity preserving.
+                return (ref VBuffer<uint> dst) =>
+                {
+                    srcGetter(ref src);
+                    int[] indices = dst.Indices;
+                    if (src.Count == 0)
+                    {
+                        dst = new VBuffer<uint>(src.Length, 0, dst.Values, dst.Indices);
+                        return;
+                    }
+                    if (!src.IsDense)
+                    {
+                        Utils.EnsureSize(ref indices, src.Count, keepOld: false);
+                        Array.Copy(src.Indices, 0, indices, 0, src.Count);
+                    }
+                    var values = dst.Values;
+                    Utils.EnsureSize(ref values, src.Count, keepOld: false);
+                    var srcValuesSpan = src.Values.AsSpan(0, src.Count);
+                    for (int i = 0; i < srcValuesSpan.Length; ++i)
+                        values[i] = hasher.HashCore(seed, mask, srcValuesSpan[i]);
+                    dst = new VBuffer<uint>(src.Length, src.Count, values, indices);
+                };
+            }
+            // It is not sparsity preserving.
+            return (ref VBuffer<uint> dst) =>
+            {
+                srcGetter(ref src);
+                uint[] values = dst.Values;
+                Utils.EnsureSize(ref values, src.Length, keepOld: false);
+                var srcValuesSpan = src.Values.AsSpan(0, src.Count);
+                if (src.IsDense)
+                {
+                    for (int i = 0; i < srcValuesSpan.Length; ++i)
+                        values[i] = hasher.HashCore(seed, mask, srcValuesSpan[i]);
+                }
+                else
+                {
+                    // First fill in the values of the destination. This strategy assumes, of course,
+                    // that it is more performant to initialize then fill in the exceptional (non-sparse)
+                    // values, rather than having complicated logic to do a simultaneous traversal of the
+                    // sparse vs. dense array.
+                    for (int i = 0; i < src.Length; ++i)
+                        values[i] = defaultHash;
+                    // Next overwrite the values in the explicit entries.
+                    for (int i = 0; i < srcValuesSpan.Length; ++i)
+                        values[src.Indices[i]] = hasher.HashCore(seed, mask, srcValuesSpan[i]);
+                }
+                dst = new VBuffer<uint>(src.Length, values, dst.Indices);
+            };
+        }
+
+        private static ValueGetter<VBuffer<uint>> MakeVectorOrderedHashGetter<T, THash>(uint seed, uint mask, ValueGetter<VBuffer<T>> srcGetter)
+            where THash : struct, IHasher<T>
+        {
+            Contracts.Assert(Utils.IsPowerOfTwo(mask + 1));
+            Contracts.AssertValue(srcGetter);
+            VBuffer<T> src = default;
+            THash hasher = default;
+
+            // Determine whether this transformation is sparsity preserving, or not. It is sparsity preserving
+            // if the default of T maps to the "missing" key value, that is, 0.
+            uint defaultHash = hasher.HashCore(seed, mask, default);
+            if (defaultHash == 0)
+            {
+                // It is sparsity preserving.
+                return (ref VBuffer<uint> dst) =>
+                {
+                    srcGetter(ref src);
+                    int[] indices = dst.Indices;
+                    if (src.Count == 0)
+                    {
+                        dst = new VBuffer<uint>(src.Length, 0, dst.Values, dst.Indices);
+                        return;
+                    }
+                    if (!src.IsDense)
+                    {
+                        Utils.EnsureSize(ref indices, src.Count, keepOld: false);
+                        Array.Copy(src.Indices, 0, indices, 0, src.Count);
+                    }
+                    var values = dst.Values;
+                    Utils.EnsureSize(ref values, src.Count, keepOld: false);
+                    var srcValuesSpan = src.Values.AsSpan(0, src.Count);
+                    if (src.IsDense)
+                    {
+                        for (int i = 0; i < srcValuesSpan.Length; ++i)
+                            values[i] = hasher.HashCore(Hashing.MurmurRound(seed, (uint)i), mask, srcValuesSpan[i]);
+                    }
+                    else
+                    {
+                        for (int i = 0; i < srcValuesSpan.Length; ++i)
+                            values[i] = hasher.HashCore(Hashing.MurmurRound(seed, (uint)src.Indices[i]), mask, srcValuesSpan[i]);
+                    }
+                    dst = new VBuffer<uint>(src.Length, src.Count, values, indices);
+                };
+            }
+            // It is not sparsity preserving.
+            return (ref VBuffer<uint> dst) =>
+            {
+                srcGetter(ref src);
+                uint[] values = dst.Values;
+                Utils.EnsureSize(ref values, src.Length, keepOld: false);
+                var srcValuesSpan = src.Values.AsSpan(0, src.Count);
+                if (src.IsDense)
+                {
+                    for (int i = 0; i < srcValuesSpan.Length; ++i)
+                        values[i] = hasher.HashCore(Hashing.MurmurRound(seed, (uint)i), mask, srcValuesSpan[i]);
+                }
+                else
+                {
+                    int j = 0;
+                    for (int i = 0; i < src.Length; i++)
+                    {
+                        uint indexSeed = Hashing.MurmurRound(seed, (uint)i);
+                        if (src.Count <= j || src.Indices[j] > i)
+                            values[i] = hasher.HashCore(indexSeed, mask, default);
+                        else if (src.Indices[j] == i)
+                            values[i] = hasher.HashCore(indexSeed, mask, srcValuesSpan[j++]);
+                        else
+                            Contracts.Assert(false, "this should have never happened.");
+                    }
+                }
+                dst = new VBuffer<uint>(src.Length, values, dst.Indices);
+            };
         }
 
         private sealed class Mapper : MapperBase
@@ -1303,9 +1189,13 @@ namespace Microsoft.ML.Transforms
         private readonly IHost _host;
         private readonly HashTransformer.ColumnInfo[] _columns;
 
-        public static bool IsColumnTypeValid(ColumnType type) => (type.ItemType.IsText || type.ItemType.IsKey || type.ItemType == NumberType.R4 || type.ItemType == NumberType.R8);
+        internal static bool IsColumnTypeValid(ColumnType type)
+        {
+            var itemType = type.ItemType;
+            return itemType.IsText || itemType.IsKey || itemType.IsNumber || itemType.IsBool;
+        }
 
-        internal const string ExpectedColumnType = "Expected Text, Key, Single or Double item type";
+        internal const string ExpectedColumnType = "Expected Text, Key, numeric or Boolean item type";
 
         /// <summary>
         /// Convinence constructor for simple one column case

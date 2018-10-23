@@ -1,0 +1,21 @@
+---- BoundLoader ----
+1 columns:
+  Text: Vec<Text, 21>
+---- RowToRowMapperTransform ----
+2 columns:
+  Text: Vec<Text, 21>
+  Key: Vec<Key<U4, 0-3>, 21>
+    Metadata 'KeyValues': Vec<Text, 4>: Length=4, Count=4
+      [0] 'a', [1] 'b', [2] 'c', [3] 'd'
+---- NgramTransform ----
+3 columns:
+  Text: Vec<Text, 21>
+  Key: Vec<Key<U4, 0-3>, 21>
+    Metadata 'KeyValues': Vec<Text, 4>: Length=4, Count=4
+      [0] 'a', [1] 'b', [2] 'c', [3] 'd'
+  Ngrams: Vec<R4, 32>
+    Metadata 'SlotNames': Vec<Text, 32>: Length=32, Count=32
+      [0] '*', [1] '*|*', [2] '*|*|*', [3] '*|*|a', [4] '*|a', [5] '*|a|*', [6] '*|*|b', [7] '*|a|b', [8] '*|b', [9] '*|b|*'
+      [10] 'a', [11] 'a|*', [12] 'a|*|b', [13] 'a|*|*', [14] 'a|b', [15] 'a|b|*', [16] '*|b|c', [17] '*|*|c', [18] 'b', [19] 'b|*'
+      [20] 'b|*|*', [21] 'b|*|c', [22] 'b|c', [23] 'b|c|*', [24] '*|c', [25] '*|c|*', [26] 'c', [27] 'c|*', [28] 'c|*|*', [29] '*|*|d'
+      [30] '*|d', [31] 'd'
