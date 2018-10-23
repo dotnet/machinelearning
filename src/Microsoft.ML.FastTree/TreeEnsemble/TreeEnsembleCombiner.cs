@@ -11,7 +11,7 @@ using Microsoft.ML.Runtime.Internal.Calibration;
 
 namespace Microsoft.ML.Runtime.FastTree.Internal
 {
-    public sealed class TreeEnsembleCombiner : IModelCombiner<IPredictorProducing<float>, IPredictorProducing<float>>
+    public sealed class TreeEnsembleCombiner : IModelCombiner
     {
         private readonly IHost _host;
         private readonly PredictionKind _kind;
@@ -32,7 +32,7 @@ namespace Microsoft.ML.Runtime.FastTree.Internal
             }
         }
 
-        public IPredictorProducing<float> CombineModels(IEnumerable<IPredictorProducing<float>> models)
+        public IPredictor CombineModels(IEnumerable<IPredictor> models)
         {
             _host.CheckValue(models, nameof(models));
 

@@ -2,20 +2,19 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Internal.Calibration;
 using Microsoft.ML.Runtime.Learners;
-using Microsoft.ML.StaticPipe;
 using Microsoft.ML.StaticPipe.Runtime;
+using System;
 
-namespace Microsoft.ML.Trainers
+namespace Microsoft.ML.StaticPipe
 {
     /// <summary>
     /// Extension methods and utilities for instantiating SDCA trainer estimators inside statically typed pipelines.
     /// </summary>
-    public static partial class RegressionTrainers
+    public static class SdcaRegressionExtensions
     {
         /// <summary>
         /// Predict a target using a linear regression model trained with the SDCA trainer.
@@ -38,7 +37,7 @@ namespace Microsoft.ML.Trainers
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        ///  [!code-csharp[SDCA](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Trainers.cs?range=6-10,19-76 "The SDCA regression example.")]
+        ///  [!code-csharp[SDCA](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Trainers.cs?range=6-12,22-79 "The SDCA regression example.")]
         /// ]]></format>
         /// </example>
         public static Scalar<float> Sdca(this RegressionContext.RegressionTrainers ctx,
@@ -73,7 +72,7 @@ namespace Microsoft.ML.Trainers
         }
     }
 
-    public static partial class BinaryClassificationTrainers
+    public static class SdcaBinaryClassificationExtensions
     {
 
         /// <summary>
@@ -201,7 +200,7 @@ namespace Microsoft.ML.Trainers
         }
     }
 
-    public static partial class MultiClassClassificationTrainers
+    public static class SdcaMulticlassExtensions
     {
 
         /// <summary>

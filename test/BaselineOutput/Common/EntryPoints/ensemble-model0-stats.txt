@@ -1,0 +1,10 @@
+#@ TextLoader{
+#@   header+
+#@   sep=tab
+#@   col={name={Count of training examples} type=I8 src=0}
+#@   col={name={Residual Deviance} type=R4 src=1}
+#@   col={name={Null Deviance} type=R4 src=2}
+#@   col=AIC:R4:3
+#@ }
+Count of training examples	Residual Deviance	Null Deviance	AIC
+521	98.29433	669.0935	118.294327

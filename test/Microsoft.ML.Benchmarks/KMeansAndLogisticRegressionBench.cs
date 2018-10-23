@@ -45,7 +45,7 @@ namespace Microsoft.ML.Benchmarks
                         }
                     }, new MultiFileSource(_dataPath));
 
-                IDataView trans = CategoricalTransform.Create(env, loader, "CatFeatures");
+                IDataView trans = new CategoricalEstimator(env, "CatFeatures").Fit(loader).Transform(loader);
 
                 trans = NormalizeTransform.CreateMinMaxNormalizer(env, trans, "NumFeatures");
                 trans = new ConcatTransform(env, "Features", "NumFeatures", "CatFeatures").Transform(trans);
