@@ -39,8 +39,7 @@ namespace Microsoft.ML.Runtime.RunTests
         {
             using (var env = new LocalEnvironment()
                 .AddStandardComponents())
-            using (var modelStream = File.OpenRead(@"C:\tmp\model.zip"))
-            //using (var modelStream = File.OpenRead(Path.Combine("TestModels", "BinaryLoader-v3.11.0.0.zip")))
+            using (var modelStream = File.OpenRead(Path.Combine("TestModels", "ConcatTransform.zip")))
             using (var rep = RepositoryReader.Open(modelStream, env))
             {
                 var result = ModelFileUtils.LoadPipeline(env, rep, new MultiFileSource(null), true);
