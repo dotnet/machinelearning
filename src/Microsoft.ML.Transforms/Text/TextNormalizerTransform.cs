@@ -18,16 +18,16 @@ using System.Text;
 using System.Threading;
 
 [assembly: LoadableClass(TextNormalizingTransformer.Summary, typeof(IDataTransform), typeof(TextNormalizingTransformer), typeof(TextNormalizingTransformer.Arguments), typeof(SignatureDataTransform),
-    "Text NormalizerEstimator Transform", "TextNormalizerTransform", "TextNormalizer", "TextNorm")]
+    "Text Normalizer Transform", "TextNormalizerTransform", "TextNormalizer", "TextNorm")]
 
 [assembly: LoadableClass(TextNormalizingTransformer.Summary, typeof(IDataTransform), typeof(TextNormalizingTransformer), null, typeof(SignatureLoadDataTransform),
-    "Text NormalizerEstimator Transform", TextNormalizingTransformer.LoaderSignature)]
+    "Text Normalizer Transform", TextNormalizingTransformer.LoaderSignature)]
 
 [assembly: LoadableClass(TextNormalizingTransformer.Summary, typeof(TextNormalizingTransformer), null, typeof(SignatureLoadModel),
-     "Text NormalizerEstimator Transform", TextNormalizingTransformer.LoaderSignature)]
+     "Text Normalizer Transform", TextNormalizingTransformer.LoaderSignature)]
 
 [assembly: LoadableClass(typeof(IRowMapper), typeof(TextNormalizingTransformer), null, typeof(SignatureLoadRowMapper),
-   "Text NormalizerEstimator Transform", TextNormalizingTransformer.LoaderSignature)]
+   "Text Normalizer Transform", TextNormalizingTransformer.LoaderSignature)]
 
 namespace Microsoft.ML.Transforms.Text
 {
@@ -76,7 +76,7 @@ namespace Microsoft.ML.Transforms.Text
         internal const string Summary = "A text normalization transform that allows normalizing text case, removing diacritical marks, punctuation marks and/or numbers." +
             " The transform operates on text input as well as vector of tokens/text (vector of ReadOnlyMemory).";
 
-        internal const string LoaderSignature = nameof(TextNormalizingTransformer);
+        internal const string LoaderSignature = "TextNormalizerTransform";
 
         private static VersionInfo GetVersionInfo()
         {

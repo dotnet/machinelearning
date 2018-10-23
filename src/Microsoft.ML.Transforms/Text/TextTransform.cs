@@ -21,10 +21,10 @@ using System.Linq;
 using System.Text;
 
 [assembly: LoadableClass(TextFeaturizingEstimator.Summary, typeof(IDataTransform), typeof(TextFeaturizingEstimator), typeof(TextFeaturizingEstimator.Arguments), typeof(SignatureDataTransform),
-    TextFeaturizingEstimator.UserName, "FeaturizeTextEstimator", TextFeaturizingEstimator.LoaderSignature)]
+    TextFeaturizingEstimator.UserName, "TextTransform", TextFeaturizingEstimator.LoaderSignature)]
 
 [assembly: LoadableClass(TextFeaturizingEstimator.Summary, typeof(ITransformer), typeof(TextFeaturizingEstimator), null, typeof(SignatureLoadModel),
-    TextFeaturizingEstimator.UserName, "FeaturizeTextEstimator", TextFeaturizingEstimator.LoaderSignature)]
+    TextFeaturizingEstimator.UserName, "TextTransform", TextFeaturizingEstimator.LoaderSignature)]
 
 namespace Microsoft.ML.Transforms.Text
 {

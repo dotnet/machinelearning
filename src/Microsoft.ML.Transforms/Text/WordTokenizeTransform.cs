@@ -32,10 +32,6 @@ using System.Text;
 
 namespace Microsoft.ML.Transforms.Text
 {
-    /// <summary>
-    /// Signature for creating an ITokenizeTransform.
-    /// </summary>
-    public delegate void SignatureTokenizeTransform(IDataView input, OneToOneColumn[] columns);
 
     // The input for this transform is a ReadOnlyMemory or a vector of ReadOnlyMemory, and its output is a vector of ReadOnlyMemory<char>,
     // corresponding to the tokens in the input text, split using a set of user specified separator characters.

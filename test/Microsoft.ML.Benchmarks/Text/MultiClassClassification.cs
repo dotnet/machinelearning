@@ -33,7 +33,7 @@ namespace Microsoft.ML.Benchmarks
                         " loader=TextLoader{quote=- sparse=- col=Label:R4:0 col=rev_id:TX:1 col=comment:TX:2 col=logged_in:BL:4 col=ns:TX:5 col=sample:TX:6 col=split:TX:7 col=year:R4:3 header=+}" +
                         " xf=Convert{col=logged_in type=R4}" +
                         " xf=CategoricalTransform{col=ns}" +
-                        " xf=FeaturizeTextEstimator{col=FeaturesText:comment wordExtractor=NGramExtractorTransform{ngram=2}}" +
+                        " xf=TextTransform{col=FeaturesText:comment wordExtractor=NGramExtractorTransform{ngram=2}}" +
                         " xf=Concat{col=Features:FeaturesText,logged_in,ns}" +
                         " tr=OVA{p=AveragedPerceptron{iter=10}}";
 
@@ -50,7 +50,7 @@ namespace Microsoft.ML.Benchmarks
                     " loader=TextLoader{quote=- sparse=- col=Label:R4:0 col=rev_id:TX:1 col=comment:TX:2 col=logged_in:BL:4 col=ns:TX:5 col=sample:TX:6 col=split:TX:7 col=year:R4:3 header=+}" +
                     " xf=Convert{col=logged_in type=R4}" +
                     " xf=CategoricalTransform{col=ns}" +
-                    " xf=FeaturizeTextEstimator{col=FeaturesText:comment wordExtractor=NGramExtractorTransform{ngram=2}}" +
+                    " xf=TextTransform{col=FeaturesText:comment wordExtractor=NGramExtractorTransform{ngram=2}}" +
                     " xf=Concat{col=Features:FeaturesText,logged_in,ns}" +
                     " tr=LightGBMMulticlass{iter=10}";
 
@@ -68,7 +68,7 @@ namespace Microsoft.ML.Benchmarks
                 " loader=TextLoader{quote=- sparse=- col=Label:R4:0 col=rev_id:TX:1 col=comment:TX:2 col=logged_in:BL:4 col=ns:TX:5 col=sample:TX:6 col=split:TX:7 col=year:R4:3 header=+}" +
                 " xf=Convert{col=logged_in type=R4}" +
                 " xf=CategoricalTransform{col=ns}" +
-                " xf=FeaturizeTextEstimator{col=FeaturesText:comment tokens=+ wordExtractor=NGramExtractorTransform{ngram=2}}" +
+                " xf=TextTransform{col=FeaturesText:comment tokens=+ wordExtractor=NGramExtractorTransform{ngram=2}}" +
                 " xf=WordEmbeddingsTransform{col=FeaturesWordEmbedding:FeaturesText_TransformedText model=FastTextWikipedia300D}" +
                 " xf=Concat{col=Features:FeaturesText,FeaturesWordEmbedding,logged_in,ns}";
 
@@ -86,7 +86,7 @@ namespace Microsoft.ML.Benchmarks
                 " loader=TextLoader{quote=- sparse=- col=Label:R4:0 col=rev_id:TX:1 col=comment:TX:2 col=logged_in:BL:4 col=ns:TX:5 col=sample:TX:6 col=split:TX:7 col=year:R4:3 header=+}" +
                 " xf=Convert{col=logged_in type=R4}" +
                 " xf=CategoricalTransform{col=ns}" +
-                " xf=FeaturizeTextEstimator{col=FeaturesText:comment tokens=+ wordExtractor={} charExtractor={}}" +
+                " xf=TextTransform{col=FeaturesText:comment tokens=+ wordExtractor={} charExtractor={}}" +
                 " xf=WordEmbeddingsTransform{col=FeaturesWordEmbedding:FeaturesText_TransformedText model=FastTextWikipedia300D}" +
                 " xf=Concat{col=Features:FeaturesWordEmbedding,logged_in,ns}";
 
@@ -115,7 +115,7 @@ namespace Microsoft.ML.Benchmarks
             string cmd = @"CV k=5 data=" + _dataPath_Wiki +
                 " loader=TextLoader{quote=- sparse=- col=Label:R4:0 col=rev_id:TX:1 col=comment:TX:2 col=logged_in:BL:4 col=ns:TX:5 col=sample:TX:6 col=split:TX:7 col=year:R4:3 header=+} xf=Convert{col=logged_in type=R4}" +
                 " xf=CategoricalTransform{col=ns}" +
-                " xf=FeaturizeTextEstimator{col=FeaturesText:comment wordExtractor=NGramExtractorTransform{ngram=2}}" +
+                " xf=TextTransform{col=FeaturesText:comment wordExtractor=NGramExtractorTransform{ngram=2}}" +
                 " xf=Concat{col=Features:FeaturesText,logged_in,ns}" +
                 " tr=OVA{p=AveragedPerceptron{iter=10}}" +
                 " out={" + _modelPath_Wiki + "}";
