@@ -17,6 +17,8 @@ phases:
           _configuration: Release
       ${{ insert }}: ${{ parameters.queue }}
     steps:
+    - script: git submodule update --init
+      displayName: Update submodules
     - script: $(_buildScript) -$(_configuration)
       displayName: Build
     - ${{ if eq(parameters.name, 'MacOS') }}:
