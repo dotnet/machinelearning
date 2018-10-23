@@ -4,7 +4,7 @@
 ---- SkipTakeFilter ----
 1 columns:
   T: Text
----- DelimitedTokenizeTransform ----
+---- RowToRowMapperTransform ----
 2 columns:
   T: Text
   T: Vec<Text>
