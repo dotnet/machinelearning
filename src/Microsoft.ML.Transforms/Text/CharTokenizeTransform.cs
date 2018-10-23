@@ -185,7 +185,7 @@ namespace Microsoft.ML.Transforms.Text
 
         private sealed class Mapper : MapperBase
         {
-            private readonly ColumnType[] _types;
+            private readonly ColumnType _type;
             private readonly CharTokenizeTransform _parent;
             private readonly bool[] _isSourceVector;
             // Constructed and cached the first time it is needed.
@@ -196,14 +196,11 @@ namespace Microsoft.ML.Transforms.Text
              : base(parent.Host.Register(nameof(Mapper)), parent, inputSchema)
             {
                 _parent = parent;
-                _types = new ColumnType[_parent.ColumnPairs.Length];
-                _isSourceVector = new bool[_parent.ColumnPairs.Length];
                 var keyType = new KeyType(DataKind.U2, 1, CharsCount);
-                for (int i = 0; i < _types.Length; i++)
-                {
+                _type = new VectorType(keyType);
+                _isSourceVector = new bool[_parent.ColumnPairs.Length];
+                for (int i = 0; i < _isSourceVector.Length; i++)
                     _isSourceVector[i] = inputSchema[_parent.ColumnPairs[i].input].Type.IsVector;
-                    _types[i] = new VectorType(keyType);
-                }
             }
 
             public override Schema.Column[] GetOutputColumns()
@@ -213,7 +210,7 @@ namespace Microsoft.ML.Transforms.Text
                 {
                     var builder = new Schema.Metadata.Builder();
                     AddMetadata(i, builder);
-                    result[i] = new Schema.Column(_parent.ColumnPairs[i].output, _types[i], builder.GetMetadata());
+                    result[i] = new Schema.Column(_parent.ColumnPairs[i].output, _type, builder.GetMetadata());
                 }
                 return result;
             }
