@@ -18,7 +18,6 @@ namespace Microsoft.ML.TestFramework
         public static TEnvironment AddStandardComponents<TEnvironment>(this TEnvironment env)
             where TEnvironment : IHostEnvironment
         {
-            env.ComponentCatalog.RegisterAssembly(typeof(MatrixFactorizationPredictor).Assembly); // ML.Recommender
             env.ComponentCatalog.RegisterAssembly(typeof(TextLoader).Assembly); // ML.Data
             env.ComponentCatalog.RegisterAssembly(typeof(LinearPredictor).Assembly); // ML.StandardLearners
             env.ComponentCatalog.RegisterAssembly(typeof(CategoricalTransform).Assembly); // ML.Transforms

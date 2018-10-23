@@ -8,7 +8,7 @@ using Microsoft.ML.Runtime.Internal.Utilities;
 
 namespace Microsoft.ML.Runtime.Recommender
 {
-   internal static class RecommendUtils
+    internal static class RecommendUtils
     {
         /// <summary>
         /// Check if the considered data, <see cref="RoleMappedData"/>, contains column roles specified by <see cref="XKind"/> and <see cref="YKind"/>.
