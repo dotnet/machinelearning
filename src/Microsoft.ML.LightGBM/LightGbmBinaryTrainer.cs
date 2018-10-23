@@ -110,22 +110,29 @@ namespace Microsoft.ML.Runtime.LightGBM
         /// <param name="numBoostRound">Number of iterations.</param>
         /// <param name="minDataPerLeaf">The minimal number of documents allowed in a leaf of the tree, out of the subsampled data.</param>
         /// <param name="learningRate">The learning rate.</param>
-        public LightGbmBinaryTrainer(IHostEnvironment env, string labelColumn, string featureColumn,
+        public LightGbmBinaryTrainer(IHostEnvironment env,
+            string labelColumn,
+            string featureColumn,
             string weightColumn = null,
             int? numLeaves = null,
             int? minDataPerLeaf = null,
             double? learningRate = null,
             int numBoostRound = LightGbmArguments.Defaults.NumBoostRound,
             Action<LightGbmArguments> advancedSettings = null)
-            : base(env, LoadNameValue, TrainerUtils.MakeBoolScalarLabel(labelColumn), featureColumn, weightColumn, null, advancedSettings)
+            : this(env, new LightGbmArguments {
+                LabelColumn = labelColumn ?? DefaultColumnNames.Label,
+                FeatureColumn = featureColumn ?? DefaultColumnNames.Features,
+                WeightColumn = weightColumn ?? Optional<string>.Implicit(DefaultColumnNames.Weight),
+                NumLeaves = numLeaves ?? default,
+                MinDataPerLeaf = minDataPerLeaf ?? default,
+                LearningRate = learningRate ?? default,
+                NumBoostRound = numBoostRound
+            })
         {
-            Host.CheckNonEmpty(labelColumn, nameof(labelColumn));
-            Host.CheckNonEmpty(featureColumn, nameof(featureColumn));
-
             if (advancedSettings != null)
                 CheckArgsAndAdvancedSettingMismatch(numLeaves, minDataPerLeaf, learningRate, numBoostRound, new LightGbmArguments(), Args);
 
-            // override with the directly provided values
+            // override with the directly provided values, giving them priority over the Advanced args, in case they are assigned twice.
             Args.NumBoostRound = numBoostRound;
             Args.NumLeaves = numLeaves ?? Args.NumLeaves;
             Args.LearningRate = learningRate ?? Args.LearningRate;

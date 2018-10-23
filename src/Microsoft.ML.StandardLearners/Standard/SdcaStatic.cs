@@ -14,7 +14,7 @@ namespace Microsoft.ML.StaticPipe
     /// <summary>
     /// Extension methods and utilities for instantiating SDCA trainer estimators inside statically typed pipelines.
     /// </summary>
-    public static class SdcaRegressionExtensions
+    public static class SdcaExtensions
     {
         /// <summary>
         /// Predict a target using a linear regression model trained with the SDCA trainer.
@@ -70,10 +70,6 @@ namespace Microsoft.ML.StaticPipe
 
             return rec.Score;
         }
-    }
-
-    public static class SdcaBinaryClassificationExtensions
-    {
 
         /// <summary>
         /// Predict a target using a linear binary classification model trained with the SDCA trainer, and log-loss.
@@ -198,10 +194,6 @@ namespace Microsoft.ML.StaticPipe
 
             return rec.Output;
         }
-    }
-
-    public static class SdcaMulticlassExtensions
-    {
 
         /// <summary>
         /// Predict a target using a linear multiclass classification model trained with the SDCA trainer.

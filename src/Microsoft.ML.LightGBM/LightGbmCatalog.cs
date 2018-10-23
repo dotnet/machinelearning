@@ -12,7 +12,7 @@ namespace Microsoft.ML
     /// <summary>
     /// Regression trainer estimators.
     /// </summary>
-    public static class LightGbmRegressionExtensions
+    public static class LightGbmExtensions
     {
         /// <summary>
         /// Predict a target using a decision tree regression model trained with the <see cref="LightGbmRegressorTrainer"/>.
@@ -40,13 +40,6 @@ namespace Microsoft.ML
             var env = CatalogUtils.GetEnvironment(ctx);
             return new LightGbmRegressorTrainer(env, label, features, weights, numLeaves, minDataPerLeaf, learningRate, numBoostRound, advancedSettings);
         }
-    }
-
-    /// <summary>
-    /// Binary Classification trainer estimators.
-    /// </summary>
-    public static class LightGbmClassificationExtensions
-    {
 
         /// <summary>
         /// Predict a target using a decision tree binary classification model trained with the <see cref="LightGbmBinaryTrainer"/>.
@@ -73,6 +66,64 @@ namespace Microsoft.ML
             Contracts.CheckValue(ctx, nameof(ctx));
             var env = CatalogUtils.GetEnvironment(ctx);
             return new LightGbmBinaryTrainer(env, label, features, weights, numLeaves, minDataPerLeaf, learningRate, numBoostRound, advancedSettings);
+
+        }
+
+        /// <summary>
+        /// Predict a target using a decision tree binary classification model trained with the <see cref="LightGbmRankingTrainer"/>.
+        /// </summary>
+        /// <param name="ctx">The <see cref="RankingContext"/>.</param>
+        /// <param name="label">The label column.</param>
+        /// <param name="features">The features colum.</param>
+        /// <param name="weights">The weights column.</param>
+        /// <param name="groupId">The groupId column.</param>
+        /// <param name="numLeaves">The number of leaves to use.</param>
+        /// <param name="numBoostRound">Number of iterations.</param>
+        /// <param name="minDataPerLeaf">The minimal number of documents allowed in a leaf of the tree, out of the subsampled data.</param>
+        /// <param name="learningRate">The learning rate.</param>
+        /// <param name="advancedSettings">Algorithm advanced settings.</param>
+        public static LightGbmRankingTrainer LightGbm(this RankingContext.RankingTrainers ctx,
+            string label = DefaultColumnNames.Label,
+            string features = DefaultColumnNames.Features,
+            string groupId = DefaultColumnNames.GroupId,
+            string weights = null,
+            int? numLeaves = null,
+            int? minDataPerLeaf = null,
+            double? learningRate = null,
+            int numBoostRound = LightGbmArguments.Defaults.NumBoostRound,
+            Action<LightGbmArguments> advancedSettings = null)
+        {
+            Contracts.CheckValue(ctx, nameof(ctx));
+            var env = CatalogUtils.GetEnvironment(ctx);
+            return new LightGbmRankingTrainer(env, label, features, groupId, weights, numLeaves, minDataPerLeaf, learningRate, numBoostRound, advancedSettings);
+
+        }
+
+        /// <summary>
+        /// Predict a target using a decision tree binary classification model trained with the <see cref="LightGbmRankingTrainer"/>.
+        /// </summary>
+        /// <param name="ctx">The <see cref="RankingContext"/>.</param>
+        /// <param name="label">The label column.</param>
+        /// <param name="features">The features colum.</param>
+        /// <param name="weights">The weights column.</param>
+        /// <param name="numLeaves">The number of leaves to use.</param>
+        /// <param name="numBoostRound">Number of iterations.</param>
+        /// <param name="minDataPerLeaf">The minimal number of documents allowed in a leaf of the tree, out of the subsampled data.</param>
+        /// <param name="learningRate">The learning rate.</param>
+        /// <param name="advancedSettings">Algorithm advanced settings.</param>
+        public static LightGbmMulticlassTrainer LightGbm(this MulticlassClassificationContext.MulticlassClassificationTrainers ctx,
+            string label = DefaultColumnNames.Label,
+            string features = DefaultColumnNames.Features,
+            string weights = null,
+            int? numLeaves = null,
+            int? minDataPerLeaf = null,
+            double? learningRate = null,
+            int numBoostRound = LightGbmArguments.Defaults.NumBoostRound,
+            Action<LightGbmArguments> advancedSettings = null)
+        {
+            Contracts.CheckValue(ctx, nameof(ctx));
+            var env = CatalogUtils.GetEnvironment(ctx);
+            return new LightGbmMulticlassTrainer(env, label, features, weights, numLeaves, minDataPerLeaf, learningRate, numBoostRound, advancedSettings);
 
         }
     }

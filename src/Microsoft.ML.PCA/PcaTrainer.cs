@@ -107,7 +107,7 @@ namespace Microsoft.ML.Runtime.PCA
 
         private RandomizedPcaTrainer(IHostEnvironment env, Arguments args, string featureColumn, string weightColumn,
             int rank = 20, int oversampling = 20, bool center = true, int? seed = null)
-            : base(Contracts.CheckRef(env, nameof(env)).Register(LoadNameValue), TrainerUtils.MakeR4VecFeature(featureColumn), null, TrainerUtils.MakeR4ScalarWeightColumn(weightColumn))
+            : base(Contracts.CheckRef(env, nameof(env)).Register(LoadNameValue), TrainerUtils.MakeR4VecFeature(featureColumn), null, TrainerUtils.MakeR4ScalarWeightColumn(weightColumn, weightColumn != null))
         {
             // if the args are not null, we got here from maml, and the internal ctor.
             if (args != null)
