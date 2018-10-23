@@ -19,7 +19,7 @@ namespace Microsoft.ML.Runtime
     {
         /// <summary>
         /// Assembly attribute used to specify that a class is loadable by a machine learning
-        /// host enviroment, such as TLC
+        /// host environment, such as TLC
         /// </summary>
         /// <param name="instType">The class type that is loadable</param>
         /// <param name="argType">The argument type that the constructor takes (may be null)</param>
@@ -33,7 +33,7 @@ namespace Microsoft.ML.Runtime
 
         /// <summary>
         /// Assembly attribute used to specify that a class is loadable by a machine learning
-        /// host enviroment, such as TLC
+        /// host environment, such as TLC
         /// </summary>
         /// <param name="instType">The class type that is loadable</param>
         /// <param name="loaderType">The class type that contains the construction method</param>
@@ -58,7 +58,7 @@ namespace Microsoft.ML.Runtime
 
         /// <summary>
         /// Assembly attribute used to specify that a class is loadable by a machine learning
-        /// host enviroment, such as TLC
+        /// host environment, such as TLC
         /// </summary>
         /// <param name="summary">The description summary of the class type</param>
         /// <param name="instType">The class type that is loadable</param>
@@ -73,7 +73,7 @@ namespace Microsoft.ML.Runtime
 
         /// <summary>
         /// Assembly attribute used to specify that a class is loadable by a machine learning
-        /// host enviroment, such as TLC
+        /// host environment, such as TLC
         /// </summary>
         /// <param name="summary">The description summary of the class type</param>
         /// <param name="instType">The class type that is loadable</param>
