@@ -1,0 +1,127 @@
+#@ TextLoader{
+#@   header+
+#@   sep=tab
+#@   col=RawLabel:TX:0
+#@   col=FileLabelNum:R4:1
+#@   col=FileLabelKey:U4[0-*]:2
+#@ }
+RawLabel	FileLabelNum	FileLabelKey
+Wirtschaft	3.14	
+Wirtschaft	3.14	
+Wirtschaft	3.14	
+Wirtschaft	3.14	
+Wirtschaft	3.14	
+Wirtschaft	3.14	
+Wirtschaft	3.14	
+Gesundheit	0.1	
+Gesundheit	0.1	
+Gesundheit	0.1	
+Gesundheit	0.1	
+Gesundheit	0.1	
+Gesundheit	0.1	
+Gesundheit	0.1	
+Gesundheit	0.1	
+Deutschland	1.5	
+Deutschland	1.5	
+Ausland	0.5	
+Ausland	0.5	
+Unterhaltung	?	
+Unterhaltung	?	
+Unterhaltung	?	
+Unterhaltung	?	
+Unterhaltung	?	
+Sport	2.71	
+Sport	2.71	
+Sport	2.71	
+Sport	2.71	
+Sport	2.71	
+Sport	2.71	
+Sport	2.71	
+Sport	2.71	
+Sport	2.71	
+Sport	2.71	
+Technik & Wissen	0.01	
+Technik & Wissen	0.01	
+Technik & Wissen	0.01	
+Technik & Wissen	0.01	
+Technik & Wissen	0.01	
+Technik & Wissen	0.01	
+Technik & Wissen	0.01	
+Technik & Wissen	0.01	
+Technik & Wissen	0.01	
+Technik & Wissen	0.01	
+Technik & Wissen	0.01	
+Technik & Wissen	0.01	
+Technik & Wissen	0.01	
+Technik & Wissen	0.01	
+Technik & Wissen	0.01	
+Technik & Wissen	0.01	
+Technik & Wissen	0.01	
+Technik & Wissen	0.01	
+Technik & Wissen	0.01	
+Technik & Wissen	0.01	
+Technik & Wissen	0.01	
+Technik & Wissen	0.01	
+Technik & Wissen	0.01	
+Gesundheit	0.1	
+Gesundheit	0.1	
+Ausland	0.5	
+Ausland	0.5	
+Ausland	0.5	
+Ausland	0.5	
+Ausland	0.5	
+Ausland	0.5	
+Ausland	0.5	
+Ausland	0.5	
+Unterhaltung	?	
+Unterhaltung	?	
+Unterhaltung	?	
+Sport	2.71	
+Sport	2.71	
+Technik & Wissen	0.01	
+Technik & Wissen	0.01	
+Technik & Wissen	0.01	
+Technik & Wissen	0.01	
+Technik & Wissen	0.01	
+Wirtschaft	3.14	
+Gesundheit	0.1	
+Wirtschaft	3.14	
+Deutschland	1.5	
+Wirtschaft	3.14	
+Wirtschaft	3.14	
+Wirtschaft	3.14	
+Wirtschaft	3.14	
+Wirtschaft	3.14	
+Unterhaltung	?	
+Deutschland	1.5	
+Gesundheit	0.1	
+Gesundheit	0.1	
+Deutschland	1.5	
+Wirtschaft	3.14	
+Unterhaltung	?	
+Wirtschaft	3.14	
+Wirtschaft	3.14	
+Gesundheit	0.1	
+Deutschland	1.5	
+Gesundheit	0.1	
+Wirtschaft	3.14	
+Wirtschaft	3.14	
+Deutschland	1.5	
+Wirtschaft	3.14	
+Wirtschaft	3.14	
+Gesundheit	0.1	
+Unterhaltung	?	
+Wirtschaft	3.14	
+Deutschland	1.5	
+Wirtschaft	3.14	
+Unterhaltung	?	
+Gesundheit	0.1	
+Deutschland	1.5	
+Wirtschaft	3.14	
+Unterhaltung	?	
+Deutschland	1.5	
+Wirtschaft	3.14	
+Deutschland	1.5	
+Wirtschaft	3.14	
+Wirtschaft	3.14	
+Deutschland	1.5	

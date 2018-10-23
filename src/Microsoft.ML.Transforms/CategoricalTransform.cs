@@ -135,18 +135,20 @@ namespace Microsoft.ML.Runtime.Data
                     column.MaxNumTerms ?? args.MaxNumTerms,
                     column.Sort ?? args.Sort,
                     column.Term ?? args.Term);
-                col.SetTerms(column.Terms);
+                col.SetTerms(column.Terms ?? args.Terms);
                 columns.Add(col);
             }
-            return new CategoricalEstimator(env, columns.ToArray()).Fit(input).Transform(input) as IDataTransform;
+            return new CategoricalEstimator(env, columns.ToArray(), args.DataFile, args.TermsColumn, args.Loader).Fit(input).Transform(input) as IDataTransform;
         }
 
         private readonly TransformerChain<ITransformer> _transformer;
 
         public CategoricalTransform(TermEstimator term, IEstimator<ITransformer> toVector, IDataView input)
         {
-            var chain = term.Append(toVector);
-            _transformer = chain.Fit(input);
+            if (toVector != null)
+                _transformer = term.Append(toVector).Fit(input);
+            else
+                _transformer = new TransformerChain<ITransformer>(term.Fit(input));
         }
 
         public Schema GetOutputSchema(Schema inputSchema) => _transformer.GetOutputSchema(inputSchema);
@@ -198,15 +200,17 @@ namespace Microsoft.ML.Runtime.Data
         /// <param name="outputKind">The type of output expected.</param>
         public CategoricalEstimator(IHostEnvironment env, string input,
             string output = null, CategoricalTransform.OutputKind outputKind = Defaults.OutKind)
-            : this(env, new ColumnInfo(input, output ?? input, outputKind))
+            : this(env, new[] { new ColumnInfo(input, output ?? input, outputKind) })
         {
         }
 
-        public CategoricalEstimator(IHostEnvironment env, params ColumnInfo[] columns)
+        public CategoricalEstimator(IHostEnvironment env, ColumnInfo[] columns,
+            string file = null, string termsColumn = null,
+            IComponentFactory<IMultiStreamSource, IDataLoader> loaderFactory = null)
         {
             Contracts.CheckValue(env, nameof(env));
             _host = env.Register(nameof(TermEstimator));
-            _term = new TermEstimator(_host, columns);
+            _term = new TermEstimator(_host, columns, file, termsColumn, loaderFactory);
             var binaryCols = new List<(string input, string output)>();
             var cols = new List<(string input, string output, bool bag)>();
             for (int i = 0; i < columns.Length; i++)

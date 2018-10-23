@@ -6,7 +6,7 @@
         using Microsoft.ML.Data;
         using Microsoft.ML.Runtime.Api;
         using Microsoft.ML.Runtime.Data;
-        using Microsoft.ML.Transforms;
+        using Microsoft.ML.Transforms.Text;
         using System;
         using System.Collections.Generic;
         using System.Linq;
@@ -37,7 +37,7 @@ namespace Microsoft.ML.Samples.Dynamic
             // making use of default settings.
             string defaultColumnName = "DefaultKeys";
             // REVIEW create through the catalog extension
-            var default_pipeline = new WordTokenizer(ml, "ReviewReverse", "ReviewReverse")
+            var default_pipeline = new WordTokenizeEstimator(ml, "ReviewReverse", "ReviewReverse")
                 .Append(new TermEstimator(ml, "ReviewReverse" , defaultColumnName));
 
             // Another pipeline, that customizes the advanced settings of the TermEstimator.
@@ -45,7 +45,7 @@ namespace Microsoft.ML.Samples.Dynamic
             // and condition the order in which they get evaluated by changing sort from the default Occurence (order in which they get encountered) 
             // to value/alphabetically.
             string customizedColumnName = "CustomizedKeys";
-            var customized_pipeline = new WordTokenizer(ml, "ReviewReverse", "ReviewReverse")
+            var customized_pipeline = new WordTokenizeEstimator(ml, "ReviewReverse", "ReviewReverse")
                 .Append(new TermEstimator(ml, "ReviewReverse", customizedColumnName, maxNumTerms: 10, sort:TermTransform.SortOrder.Value));
 
             // The transformed data.
