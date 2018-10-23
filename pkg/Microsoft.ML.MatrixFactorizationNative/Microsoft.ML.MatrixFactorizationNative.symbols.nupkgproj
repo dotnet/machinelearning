@@ -1,5 +1,5 @@
 <Project DefaultTargets="Pack">
 
-  <Import Project="Microsoft.ML.LIBMFNative.nupkgproj" />
+  <Import Project="Microsoft.ML.MatrixFactorizationNative.nupkgproj" />
 
 </Project>

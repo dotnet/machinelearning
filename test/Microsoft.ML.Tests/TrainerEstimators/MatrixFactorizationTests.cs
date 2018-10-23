@@ -77,13 +77,19 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 // Retrieve score column's index from the IDataView produced by the trained model
                 prediction.Schema.TryGetColumnIndex(scoreColumnName, out int scoreColumnId);
 
-                // Go through the whole test set and calculate the expected statistics.
-                // TODO: use regression evaluator
+                // Compute prediction errors
                 var mlContext = new MLContext();
-                var expectedL2Error = 0.61528733643754685;
-                double tolerance = System.Math.Pow(10, -DigitsOfPrecision);
                 var metrices = mlContext.Regression.Evaluate(prediction, label: labelColumnName, score: scoreColumnName);
-                Assert.InRange(metrices.L2, expectedL2Error - tolerance, expectedL2Error + tolerance);
+
+                // Determine if the selected metric is reasonable for differen
+                var expectedWindowsL2Error = 0.61528733643754685; // Windows baseline
+                var expectedMacL2Error = 0.61192207960271; // Mac baseline
+                var expectedLinuxL2Error = 0.616821448679879; // Linux baseline
+                double tolerance = System.Math.Pow(10, -DigitsOfPrecision);
+                bool inWindowsRange = expectedWindowsL2Error - tolerance < metrices.L2 && metrices.L2 < expectedWindowsL2Error + tolerance;
+                bool inMacRange = expectedMacL2Error - tolerance < metrices.L2 && metrices.L2 < expectedMacL2Error + tolerance;
+                bool inLinuxRange = expectedLinuxL2Error - tolerance < metrices.L2 && metrices.L2 < expectedLinuxL2Error + tolerance;
+                Assert.True(inWindowsRange || inMacRange || inLinuxRange);
             }
         }
 
