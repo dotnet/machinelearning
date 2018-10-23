@@ -94,19 +94,10 @@ namespace Microsoft.ML.Transforms.Text
         /// </summary>
         public sealed class TokenizeColumn : OneToOneColumn { }
 
-        /// <summary>
-        /// This class is a merger of <see cref="ITokenizeTransform"/>
-        /// and <see cref="NgramExtractorTransform.ArgumentsBase"/> options.
-        /// </summary>
         public sealed class Arguments : NgramExtractorTransform.ArgumentsBase
         {
             [Argument(ArgumentType.Multiple, HelpText = "New column definition(s) (optional form: name:srcs)", ShortName = "col", SortOrder = 1)]
             public Column[] Column;
-
-            [Argument(ArgumentType.Multiple, HelpText = "Tokenizer to use", ShortName = "tok", SignatureType = typeof(SignatureTokenizeTransform))]
-            public IComponentFactory<IDataView, OneToOneColumn[], ITokenizeTransform> Tokenizer =
-                ComponentFactoryUtils.CreateFromFunction<IDataView, OneToOneColumn[], ITokenizeTransform>(
-                    (env, input, columns) => new DelimitedTokenizeTransform(env, new DelimitedTokenizeTransform.TokenizeArguments(), input, columns));
         }
 
         private const string RegistrationName = "WordBagTransform";
@@ -121,7 +112,6 @@ namespace Microsoft.ML.Transforms.Text
             h.CheckValue(args, nameof(args));
             h.CheckValue(input, nameof(input));
             h.CheckUserArg(Utils.Size(args.Column) > 0, nameof(args.Column), "Columns must be specified");
-            h.CheckUserArg(args.Tokenizer != null, nameof(args.Tokenizer), "tokenizer must be specified");
 
             // Compose the WordBagTransform from a tokenize transform,
             // followed by a NgramExtractionTransform.
@@ -134,7 +124,7 @@ namespace Microsoft.ML.Transforms.Text
             // REVIEW: In order to make it possible to output separate bags for different columns
             // using the same dictionary, we need to find a way to make ConcatTransform remember the boundaries.
 
-            var tokenizeColumns = new TokenizeColumn[args.Column.Length];
+            var tokenizeColumns = new WordTokenizeTransform.ColumnInfo[args.Column.Length];
 
             var extractorArgs =
                 new NgramExtractorTransform.Arguments()
@@ -154,12 +144,7 @@ namespace Microsoft.ML.Transforms.Text
                 h.CheckUserArg(Utils.Size(column.Source) > 0, nameof(column.Source));
                 h.CheckUserArg(column.Source.All(src => !string.IsNullOrWhiteSpace(src)), nameof(column.Source));
 
-                tokenizeColumns[iinfo] =
-                    new TokenizeColumn()
-                    {
-                        Name = column.Name,
-                        Source = column.Source.Length > 1 ? column.Name : column.Source[0]
-                    };
+                tokenizeColumns[iinfo] = new WordTokenizeTransform.ColumnInfo(column.Source.Length > 1 ? column.Name : column.Source[0], column.Name);
 
                 extractorArgs.Column[iinfo] =
                     new NgramExtractorTransform.Column()
@@ -176,7 +161,7 @@ namespace Microsoft.ML.Transforms.Text
 
             IDataView view = input;
             view = NgramExtractionUtils.ApplyConcatOnSources(h, args.Column, view);
-            view = args.Tokenizer.CreateComponent(h, view, tokenizeColumns);
+            view = new WordTokenizingEstimator(env, tokenizeColumns).Fit(view).Transform(view);
             return NgramExtractorTransform.Create(h, extractorArgs, view);
         }
     }
@@ -595,7 +580,7 @@ namespace Microsoft.ML.Transforms.Text
                 for (int isrc = 0; isrc < srcCount; isrc++)
                 {
                     string tmpColName;
-                    for (;;)
+                    for (; ; )
                     {
                         tmpColName = string.Format("_tmp{0:000}", tmp++);
                         int index;

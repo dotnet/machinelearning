@@ -330,24 +330,17 @@ namespace Microsoft.ML.Transforms.Text
 
             if (tparams.NeedsWordTokenizationTransform)
             {
-                var xfCols = new DelimitedTokenizeTransform.Column[textCols.Length];
+                var xfCols = new WordTokenizeTransform.ColumnInfo[textCols.Length];
                 wordTokCols = new string[textCols.Length];
                 for (int i = 0; i < textCols.Length; i++)
                 {
-                    var col = new DelimitedTokenizeTransform.Column();
-                    col.Source = textCols[i];
-                    col.Name = GenerateColumnName(view.Schema, textCols[i], "WordTokenizer");
-
+                    var col = new WordTokenizeTransform.ColumnInfo(textCols[i], GenerateColumnName(view.Schema, textCols[i], "WordTokenizer"));
                     xfCols[i] = col;
-
-                    wordTokCols[i] = col.Name;
-                    tempCols.Add(col.Name);
+                    wordTokCols[i] = col.Output;
+                    tempCols.Add(col.Output);
                 }
 
-                view = new DelimitedTokenizeTransform(h, new DelimitedTokenizeTransform.Arguments()
-                {
-                    Column = xfCols
-                }, view);
+                view = new WordTokenizingEstimator(h, xfCols).Fit(view).Transform(view);
             }
 
             if (tparams.NeedsRemoveStopwordsTransform)
@@ -395,17 +388,14 @@ namespace Microsoft.ML.Transforms.Text
                 {
                     var srcCols = tparams.NeedsRemoveStopwordsTransform ? wordTokCols : textCols;
                     charTokCols = new string[srcCols.Length];
-                    var xfCols = new CharTokenizeTransform.Column[srcCols.Length];
+                    var xfCols = new (string input, string output)[srcCols.Length];
                     for (int i = 0; i < srcCols.Length; i++)
                     {
-                        var col = new CharTokenizeTransform.Column();
-                        col.Source = srcCols[i];
-                        col.Name = GenerateColumnName(view.Schema, srcCols[i], "CharTokenizer");
-                        tempCols.Add(col.Name);
-                        charTokCols[i] = col.Name;
-                        xfCols[i] = col;
+                        xfCols[i] = (srcCols[i], GenerateColumnName(view.Schema, srcCols[i], "CharTokenizer"));
+                        tempCols.Add(xfCols[i].output);
+                        charTokCols[i] = xfCols[i].output;
                     }
-                    view = new CharTokenizeTransform(h, new CharTokenizeTransform.Arguments() { Column = xfCols }, view);
+                    view = new CharTokenizeTransform(h, columns: xfCols).Transform(view);
                 }
 
                 {
@@ -538,7 +528,7 @@ namespace Microsoft.ML.Transforms.Text
                 s.VectorNormalizer = args.VectorNormalizer;
             };
 
-            var estimator = new TextFeaturizingEstimator (env, args.Column.Source ?? new[] { args.Column.Name }, args.Column.Name, settings);
+            var estimator = new TextFeaturizingEstimator(env, args.Column.Source ?? new[] { args.Column.Name }, args.Column.Name, settings);
             estimator._stopWordsRemover = args.StopWordsRemover;
             estimator._dictionary = args.Dictionary;
             estimator._wordFeatureExtractor = args.WordFeatureExtractor;
@@ -681,7 +671,7 @@ namespace Microsoft.ML.Transforms.Text
 
                 var outCol = (OutPipelineColumn)toOutput[0];
                 var inputs = outCol.Inputs.Select(x => inputNames[x]);
-                return new TextFeaturizingEstimator (env, inputs, outputNames[outCol], _settings);
+                return new TextFeaturizingEstimator(env, inputs, outputNames[outCol], _settings);
             }
         }
     }
