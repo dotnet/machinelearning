@@ -681,8 +681,8 @@ namespace Microsoft.ML.Runtime.RunTests
         public static TestDataset trivialMatrixFactorization = new TestDataset()
         {
             name = "trivialMatrixFactorization",
-            trainFilename = @"MatrixFactorization\trivial-train.tsv",
-            testFilename = @"MatrixFactorization\trivial-test.tsv",
+            trainFilename = @"trivial-train.tsv",
+            testFilename = @"trivial-test.tsv",
             loaderSettings = "loader=Text{col=Label:R4:0 col=User:U4[0-19]:1 col=Item:U4[0-39]:2 header+}"
         };
     }
