@@ -336,24 +336,17 @@ namespace Microsoft.ML.Runtime.Data
 
             if (tparams.NeedsWordTokenizationTransform)
             {
-                var xfCols = new DelimitedTokenizeTransform.Column[textCols.Length];
+                var xfCols = new WordTokenizeTransform.ColumnInfo[textCols.Length];
                 wordTokCols = new string[textCols.Length];
                 for (int i = 0; i < textCols.Length; i++)
                 {
-                    var col = new DelimitedTokenizeTransform.Column();
-                    col.Source = textCols[i];
-                    col.Name = GenerateColumnName(view.Schema, textCols[i], "WordTokenizer");
-
+                    var col = new WordTokenizeTransform.ColumnInfo(textCols[i], GenerateColumnName(view.Schema, textCols[i], "WordTokenizer"));
                     xfCols[i] = col;
-
-                    wordTokCols[i] = col.Name;
-                    tempCols.Add(col.Name);
+                    wordTokCols[i] = col.Output;
+                    tempCols.Add(col.Output);
                 }
 
-                view = new DelimitedTokenizeTransform(h, new DelimitedTokenizeTransform.Arguments()
-                {
-                    Column = xfCols
-                }, view);
+                view = new WordTokenizeEstimator(h, xfCols).Fit(view).Transform(view);
             }
 
             if (tparams.NeedsRemoveStopwordsTransform)
