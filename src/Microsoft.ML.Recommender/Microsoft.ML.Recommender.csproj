@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>netcoreapp2.0</TargetFramework>
-    <IncludeInPackage>Microsoft.ML.MatrixFactorizationNative</IncludeInPackage>
+    <IncludeInPackage>Microsoft.ML.MatrixFactorization</IncludeInPackage>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 

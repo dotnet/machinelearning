@@ -26,8 +26,8 @@ namespace Microsoft.ML.Runtime.Recommender
 {
     public sealed class MatrixFactorizationPredictor : IPredictor, ICanSaveModel, ICanSaveInTextFormat, ISchemaBindableMapper
     {
-        public const string LoaderSignature = "MFPredictor";
-        public const string RegistrationName = "MatrixFactorizationPredictor";
+        internal const string LoaderSignature = "MFPredictor";
+        internal const string RegistrationName = "MatrixFactorizationPredictor";
 
         private static VersionInfo GetVersionInfo()
         {

@@ -2,12 +2,8 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <PackageDescription>LIBMF</PackageDescription>
+    <PackageDescription>LIBMF, the core computation library for matrix factorization in ML.NET</PackageDescription>
   </PropertyGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="../Microsoft.ML/Microsoft.ML.nupkgproj" />
-  </ItemGroup>
 
   <ItemGroup> 
     <Content Include="..\common\CommonPackage.props" Pack="true" PackagePath="build\netstandard2.0\$(MSBuildProjectName).props" />
