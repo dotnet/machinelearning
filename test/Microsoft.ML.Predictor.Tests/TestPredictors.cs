@@ -587,7 +587,8 @@ namespace Microsoft.ML.Runtime.RunTests
             Done();
         }
 
-        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // x86 fails with "Unknown command: 'train'; Format error at (83,3)-(83,4011): Illegal quoting"
+        // x86 fails. Associated GitHubIssue: https://github.com/dotnet/machinelearning/issues/1216
+        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))]
         public void TestTreeEnsembleCombiner()
         {
             var dataPath = GetDataPath("breast-cancer.txt");
@@ -608,7 +609,8 @@ namespace Microsoft.ML.Runtime.RunTests
             CombineAndTestTreeEnsembles(dataView, fastTrees);
         }
 
-        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // x86 fails with "Unknown command: 'train'; Format error at (83,3)-(83,4011): Illegal quoting"
+        // x86 fails. Associated GitHubIssue: https://github.com/dotnet/machinelearning/issues/1216
+        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))]
         public void TestTreeEnsembleCombinerWithCategoricalSplits()
         {
             var dataPath = GetDataPath("adult.tiny.with-schema.txt");
@@ -708,7 +710,8 @@ namespace Microsoft.ML.Runtime.RunTests
             }
         }
 
-        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // x86 fails with "Unknown command: 'train'; Format error at (83,3)-(83,4011): Illegal quoting"
+        // x86 fails. Associated GitHubIssue: https://github.com/dotnet/machinelearning/issues/1216
+        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))]
         public void TestEnsembleCombiner()
         {
             var dataPath = GetDataPath("breast-cancer.txt");
@@ -752,7 +755,8 @@ namespace Microsoft.ML.Runtime.RunTests
             CombineAndTestEnsembles(dataView, "pe", "oc=average", PredictionKind.BinaryClassification, predictors);
         }
 
-        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // x86 fails with "Unknown command: 'train'; Format error at (83,3)-(83,4011): Illegal quoting"
+        // x86 fails. Associated GitHubIssue: https://github.com/dotnet/machinelearning/issues/1216
+        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))]
         public void TestMultiClassEnsembleCombiner()
         {
             var dataPath = GetDataPath("breast-cancer.txt");
