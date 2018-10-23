@@ -28,14 +28,17 @@ namespace Microsoft.ML.CpuMath.PerformanceTests
             => AvxIntrinsics.ScaleAddU(DefaultScale, DefaultScale, new Span<float>(dst, 0, Length));
 
         [Benchmark]
+        [BenchmarkCategory("Fma")]
         public void AddScaleU()
             => AvxIntrinsics.AddScaleU(DefaultScale, src, dst, Length);
 
         [Benchmark]
+        [BenchmarkCategory("Fma")]
         public void AddScaleSU()
             => AvxIntrinsics.AddScaleSU(DefaultScale, src, idx, dst, IndexLength);
 
         [Benchmark]
+        [BenchmarkCategory("Fma")]
         public void AddScaleCopyU()
             => AvxIntrinsics.AddScaleCopyU(DefaultScale, src, dst, result, Length);
 
@@ -56,10 +59,12 @@ namespace Microsoft.ML.CpuMath.PerformanceTests
             => AvxIntrinsics.SumU(new Span<float>(src, 0, Length));
 
         [Benchmark]
+        [BenchmarkCategory("Fma")]
         public float SumSqU()
             => AvxIntrinsics.SumSqU(new Span<float>(src, 0, Length));
 
         [Benchmark]
+        [BenchmarkCategory("Fma")]
         public float SumSqDiffU()
             => AvxIntrinsics.SumSqDiffU(DefaultScale, new Span<float>(src, 0, Length));
 
@@ -80,25 +85,31 @@ namespace Microsoft.ML.CpuMath.PerformanceTests
             => AvxIntrinsics.MaxAbsDiffU(DefaultScale, new Span<float>(src, 0, Length));
 
         [Benchmark]
+        [BenchmarkCategory("Fma")]
         public float DotU()
             => AvxIntrinsics.DotU(src, dst, Length);
 
         [Benchmark]
+        [BenchmarkCategory("Fma")]
         public float DotSU()
             => AvxIntrinsics.DotSU(src, dst, idx, IndexLength);
 
         [Benchmark]
+        [BenchmarkCategory("Fma")]
         public float Dist2()
             => AvxIntrinsics.Dist2(src, dst, Length);
 
         [Benchmark]
+        [BenchmarkCategory("Fma")]
         public void SdcaL1UpdateU()
             => AvxIntrinsics.SdcaL1UpdateU(DefaultScale, Length, src, DefaultScale, dst, result);
 
         [Benchmark]
+        [BenchmarkCategory("Fma")]
         public void SdcaL1UpdateSU()
             => AvxIntrinsics.SdcaL1UpdateSU(DefaultScale, IndexLength, src, idx, DefaultScale, dst, result);
         [Benchmark]
+        [BenchmarkCategory("Fma")]
         public void MatMulX()
             => AvxIntrinsics.MatMulX(src, src1, dst, 1000, 1000);
 

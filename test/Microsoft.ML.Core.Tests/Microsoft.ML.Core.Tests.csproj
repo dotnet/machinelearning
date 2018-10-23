@@ -2,7 +2,7 @@
   <PropertyGroup>
     <DefineConstants>CORECLR</DefineConstants>
   </PropertyGroup>
-  
+
   <ItemGroup>
     <ProjectReference Include="..\..\src\Microsoft.ML.HalLearners\Microsoft.ML.HalLearners.csproj" />
     <ProjectReference Include="..\..\src\Microsoft.ML.Api\Microsoft.ML.Api.csproj" />
@@ -22,7 +22,11 @@
     <ProjectReference Include="..\..\src\Microsoft.ML.Legacy\Microsoft.ML.Legacy.csproj" />
     <ProjectReference Include="..\Microsoft.ML.TestFramework\Microsoft.ML.TestFramework.csproj" />
     <ProjectReference Include="..\Microsoft.ML.Tests\Microsoft.ML.Tests.csproj" />
-	<PackageReference Include="MlNetMklDeps" Version="$(MlNetMklDepsPackageVersion)" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <PackageReference Include="MlNetMklDeps" Version="$(MlNetMklDepsPackageVersion)" />
+    <PackageReference Include="Microsoft.ML.TestModels" Version="$(MicrosoftMLTestModelsPackageVersion)" />
   </ItemGroup>
 
   <ItemGroup>

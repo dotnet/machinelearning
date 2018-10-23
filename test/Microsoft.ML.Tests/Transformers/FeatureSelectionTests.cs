@@ -26,12 +26,12 @@ namespace Microsoft.ML.Tests.Transformers
             var data = TextLoader.CreateReader(Env, ctx => (
                     label: ctx.LoadBool(0),
                     text: ctx.LoadText(1)), hasHeader: true)
-                .Read(new MultiFileSource(sentimentDataPath));
+                .Read(sentimentDataPath);
 
             var invalidData = TextLoader.CreateReader(Env, ctx => (
                     label: ctx.LoadBool(0),
                     text: ctx.LoadFloat(1)), hasHeader: true)
-                .Read(new MultiFileSource(sentimentDataPath));
+                .Read(sentimentDataPath);
 
             var est = new WordBagEstimator(Env, "text", "bag_of_words")
                 .Append(new CountFeatureSelector(Env, "bag_of_words", "bag_of_words_count", 10)

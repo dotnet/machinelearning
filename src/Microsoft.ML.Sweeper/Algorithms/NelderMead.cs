@@ -26,7 +26,7 @@ namespace Microsoft.ML.Runtime.Sweeper
             public IComponentFactory<IValueGenerator>[] SweptParameters;
 
             [Argument(ArgumentType.LastOccurenceWins, HelpText = "The sweeper used to get the initial results.", ShortName = "init", SignatureType = typeof(SignatureSweeperFromParameterList))]
-            public IComponentFactory<IValueGenerator[], ISweeper> FirstBatchSweeper;
+            public IComponentFactory<IValueGenerator[], ISweeper> FirstBatchSweeper = ComponentFactoryUtils.CreateFromFunction<IValueGenerator[], ISweeper>((host, array) => new UniformRandomSweeper(host, new SweeperBase.ArgumentsBase(), array));
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Seed for the random number generator for the first batch sweeper", ShortName = "seed")]
             public int RandomSeed;

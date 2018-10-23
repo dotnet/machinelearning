@@ -6,16 +6,15 @@ using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.FastTree;
 using Microsoft.ML.Runtime.Internal.Internallearn;
-using Microsoft.ML.StaticPipe;
 using Microsoft.ML.StaticPipe.Runtime;
 using System;
 
-namespace Microsoft.ML.Trainers
+namespace Microsoft.ML.StaticPipe
 {
     /// <summary>
     /// FastTree <see cref="TrainContextBase"/> extension methods.
     /// </summary>
-    public static partial class RegressionTrainers
+    public static class FastTreeRegressionExtensions
     {
         /// <summary>
         /// FastTree <see cref="RegressionContext"/> extension method.
@@ -36,6 +35,12 @@ namespace Microsoft.ML.Trainers
         /// the linear model that was trained. Note that this action cannot change the result in any way;
         /// it is only a way for the caller to be informed about what was learnt.</param>
         /// <returns>The Score output column indicating the predicted value.</returns>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        ///  [!code-csharp[SDCA](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Trainers.cs?range=6-12,81-133 "FastTree regression example.")]
+        /// ]]></format>
+        /// </example>
         public static Scalar<float> FastTree(this RegressionContext.RegressionTrainers ctx,
             Scalar<float> label, Vector<float> features, Scalar<float> weights = null,
             int numLeaves = Defaults.NumLeaves,
@@ -61,7 +66,7 @@ namespace Microsoft.ML.Trainers
         }
     }
 
-    public static partial class BinaryClassificationTrainers
+    public static class FastTreeBinaryClassificationExtensions
     {
 
         /// <summary>
@@ -111,11 +116,11 @@ namespace Microsoft.ML.Trainers
         }
     }
 
-    public static partial class RankingTrainers
+    public static class FastTreeRankingExtensions
     {
 
         /// <summary>
-        /// FastTree <see cref="RankerContext"/>.
+        /// FastTree <see cref="RankingContext"/>.
         /// Ranks a series of inputs based on their relevance, training a decision tree ranking model through the <see cref="FastTreeRankingTrainer"/>.
         /// </summary>
         /// <param name="ctx">The <see cref="RegressionContext"/>.</param>
@@ -134,7 +139,7 @@ namespace Microsoft.ML.Trainers
         /// the linear model that was trained. Note that this action cannot change the result in any way;
         /// it is only a way for the caller to be informed about what was learnt.</param>
         /// <returns>The Score output column indicating the predicted value.</returns>
-        public static Scalar<float> FastTree<TVal>(this RankerContext.RankerTrainers ctx,
+        public static Scalar<float> FastTree<TVal>(this RankingContext.RankingTrainers ctx,
             Scalar<float> label, Vector<float> features, Key<uint, TVal> groupId, Scalar<float> weights = null,
             int numLeaves = Defaults.NumLeaves,
             int numTrees = Defaults.NumTrees,
@@ -158,15 +163,15 @@ namespace Microsoft.ML.Trainers
         }
     }
 
-        internal class FastTreeStaticsUtils
-        {
-            internal static void CheckUserValues(PipelineColumn label, Vector<float> features, Scalar<float> weights,
-            int numLeaves,
-            int numTrees,
-            int minDatapointsInLeafs,
-            double learningRate,
-            Delegate advancedSettings,
-            Delegate onFit)
+    internal class FastTreeStaticsUtils
+    {
+        internal static void CheckUserValues(PipelineColumn label, Vector<float> features, Scalar<float> weights,
+        int numLeaves,
+        int numTrees,
+        int minDatapointsInLeafs,
+        double learningRate,
+        Delegate advancedSettings,
+        Delegate onFit)
         {
             Contracts.CheckValue(label, nameof(label));
             Contracts.CheckValue(features, nameof(features));

@@ -388,7 +388,7 @@ namespace Microsoft.ML.Runtime.Data
                 env.CheckUserArg(Utils.Size(args.Column[i].Source) > 0, nameof(args.Column));
 
             var cols = args.Column
-                .Select(c => new ColumnInfo(c.Name, c.Source.Select(kvp => (kvp.Value, kvp.Key))))
+                .Select(c => new ColumnInfo(c.Name, c.Source.Select(kvp => (kvp.Value, kvp.Key != "" ? kvp.Key : null))))
                 .ToArray();
             var transformer = new ConcatTransform(env, cols);
             return transformer.MakeDataTransform(input);

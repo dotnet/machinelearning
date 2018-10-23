@@ -22,7 +22,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         public void TestEstimatorSymSgdClassificationTrainer()
         {
             (var pipe, var dataView) = GetBinaryClassificationPipeline();
-            pipe.Append(new SymSgdClassificationTrainer(Env, "Features", "Label"));
+            pipe = pipe.Append(new SymSgdClassificationTrainer(Env, "Features", "Label"));
             TestEstimatorCore(pipe, dataView);
             Done();
         }

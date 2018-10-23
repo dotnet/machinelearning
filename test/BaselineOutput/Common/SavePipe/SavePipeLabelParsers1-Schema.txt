@@ -1,0 +1,23 @@
+---- BoundLoader ----
+3 columns:
+  RawLabel: Text
+  Names: Vec<Text, 2>
+    Metadata 'SlotNames': Vec<Text, 2>: Length=2, Count=2
+      [0] 'de-DE', [1] 'url-pathpart-wirtschaft url-pathpart-soziales url-domainname-www.spiegel.de url-domainprefix-www url-domainprefix-www.spiegel url-domaintype-de url-domainsuffix-spiegel.de url-firstpartpagename-0,1518,793077,00 url-pagepartsplitname-0,1518,793077,00 url-lastpartpagename-html#ref=rss'
+  Features: Vec<Text, 2>
+    Metadata 'SlotNames': Vec<Text, 2>: Length=2, Count=2
+      [0] 'weg fuer milliardenhilfe frei', [1] 'vor dem parlamentsgebaeude toben strassenkaempfe zwischen demonstranten drinnen haben die griechischen abgeordneten das drastische sparpaket am abend endgueltig beschlossen die entscheidung ist eine wichtige voraussetzung fuer die auszahlung von weiteren acht milliarden euro hilfsgeldern athen das griechische parlament hat einem umfassenden sparpaket endgueltig zugestimmt'
+---- TermLookupTransform ----
+4 columns:
+  RawLabel: Text
+  Names: Vec<Text, 2>
+    Metadata 'SlotNames': Vec<Text, 2>: Length=2, Count=2
+      [0] 'de-DE', [1] 'url-pathpart-wirtschaft url-pathpart-soziales url-domainname-www.spiegel.de url-domainprefix-www url-domainprefix-www.spiegel url-domaintype-de url-domainsuffix-spiegel.de url-firstpartpagename-0,1518,793077,00 url-pagepartsplitname-0,1518,793077,00 url-lastpartpagename-html#ref=rss'
+  Features: Vec<Text, 2>
+    Metadata 'SlotNames': Vec<Text, 2>: Length=2, Count=2
+      [0] 'weg fuer milliardenhilfe frei', [1] 'vor dem parlamentsgebaeude toben strassenkaempfe zwischen demonstranten drinnen haben die griechischen abgeordneten das drastische sparpaket am abend endgueltig beschlossen die entscheidung ist eine wichtige voraussetzung fuer die auszahlung von weiteren acht milliarden euro hilfsgeldern athen das griechische parlament hat einem umfassenden sparpaket endgueltig zugestimmt'
+  FileLabel: Key<U8, 0-*>
+---- ChooseColumnsTransform ----
+2 columns:
+  RawLabel: Text
+  FileLabel: Key<U8, 0-*>
