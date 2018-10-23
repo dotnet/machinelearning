@@ -26,8 +26,8 @@ Below are some of the highlights from this release.
 * New APIs for ML.NET
     
     * While the `LearningPipeline` APIs that were released with ML.NET 0.1 were easy to get started with, they had obvious limitations in functionality. Certain tasks that were possible with the internal version of ML.NET like inspecting model weights, creating a transform-only pipeline, and training from an initial predictor could not be done with `LearningPipeline`.
-    * The important concepts for understanding the new API are introduced [here](https://github.com/dotnet/machinelearning/blob/3cdd3c8b32705e91dcf46c429ee34196163af6da/docs/code/MlNetHighLevelConcepts.md). 
-    * A cookbook that shows how to use these APIs for a variety of existing and new scenarios can be found [here](https://github.com/dotnet/machinelearning/blob/3cdd3c8b32705e91dcf46c429ee34196163af6da/docs/code/MlNetCookBook.md). 
+    * The important concepts for understanding the new API are introduced [here](https://github.com/dotnet/machinelearning/blob/master/docs/code/MlNetHighLevelConcepts.md). 
+    * A cookbook that shows how to use these APIs for a variety of existing and new scenarios can be found [here](https://github.com/dotnet/machinelearning/blob/master/docs/code/MlNetCookBook.md). 
     * These APIs are still evolving, so we would love to hear any feedback or questions. 
     * The `LearningPipeline` APIs have moved to the `Microsoft.ML.Legacy` namespace.
 
