@@ -373,7 +373,7 @@ namespace Microsoft.ML.Runtime.Learners
             CurrentWeights.GetItemOrDefault(0, ref bias);
             CurrentWeights.CopyTo(ref weights, 1, CurrentWeights.Length - 1);
             return new ParameterMixingCalibratedPredictor(Host,
-                new LinearBinaryPredictor(Host, ref weights, bias),
+                new LinearBinaryPredictor(Host, ref weights, bias, _stats),
                 new PlattCalibrator(Host, -1, 0));
         }
 

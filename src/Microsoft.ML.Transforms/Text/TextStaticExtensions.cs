@@ -50,7 +50,7 @@ namespace Microsoft.ML.Transforms.Text
                 foreach (var outCol in toOutput)
                     pairs.Add((inputNames[((OutPipelineColumn)outCol).Input], outputNames[outCol]));
 
-                return new WordTokenizer(env, pairs.ToArray(), _separators);
+                return new WordTokenizeEstimator(env, pairs.ToArray(), _separators);
             }
         }
 
@@ -104,7 +104,7 @@ namespace Microsoft.ML.Transforms.Text
                 foreach (var outCol in toOutput)
                     pairs.Add((inputNames[((OutPipelineColumn)outCol).Input], outputNames[outCol]));
 
-                return new CharacterTokenizer(env, pairs.ToArray(), _useMarker);
+                return new CharacterTokenizeEstimator(env, _useMarker, pairs.ToArray());
             }
         }
 

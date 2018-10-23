@@ -28,7 +28,7 @@ namespace Microsoft.ML.Tests.Transformers
             var data = TextLoader.CreateReader(Env, ctx => (
                     label: ctx.LoadBool(0),
                     SentimentText: ctx.LoadText(1)), hasHeader: true)
-                .Read(new MultiFileSource(dataPath));
+                .Read(dataPath);
 
             var dynamicData = TextTransform.Create(Env, new TextTransform.Arguments()
             {

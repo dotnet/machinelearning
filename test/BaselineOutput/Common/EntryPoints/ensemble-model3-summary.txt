@@ -1,0 +1,7 @@
+#@ TextLoader{
+#@   header+
+#@   sep=tab
+#@   col=Gains:R4:0-16
+#@ }
+Cat.1	Cat.5	Cat.2	Cat.4	Cat.3	Cat.7	Cat.10	Cat.8	Cat.6	Features.thickness	Features.uniform_size	Features.uniform_shape	Features.adhesion	Features.epit_size	Features.bare_nuclei	Features.bland_chromatin	Features.normal_nucleoli
+0.009761757	0	0.0203766879	0	0.000928933	0	0	0	0	0.308038682	1	0.5590685	0.125412315	0.118880585	0.488731444	0.308761537	0.132577017
