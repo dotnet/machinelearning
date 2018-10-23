@@ -7,7 +7,7 @@ using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Internal.Internallearn;
 using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Learners;
+using Microsoft.ML.Trainers;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.Training;
 using System;
@@ -32,7 +32,7 @@ using System.Linq;
 [assembly: LoadableClass(typeof(PriorPredictor), null, typeof(SignatureLoadModel),
     "Prior predictor", PriorPredictor.LoaderSignature)]
 
-namespace Microsoft.ML.Runtime.Learners
+namespace Microsoft.ML.Trainers
 {
     /// <summary>
     /// A trainer that trains a predictor that returns random values

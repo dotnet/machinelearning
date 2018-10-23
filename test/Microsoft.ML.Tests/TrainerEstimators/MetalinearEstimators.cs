@@ -6,6 +6,7 @@ using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Internal.Calibration;
 using Microsoft.ML.Runtime.Learners;
 using Microsoft.ML.Runtime.RunTests;
+using Microsoft.ML.Trainers;
 using System.Linq;
 using Xunit;
 using Xunit.Abstractions;

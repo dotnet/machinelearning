@@ -14,6 +14,7 @@ using Microsoft.ML.Runtime.Ensemble.Selector;
 using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Internallearn;
 using Microsoft.ML.Runtime.Learners;
+using Microsoft.ML.Trainers;
 
 [assembly: LoadableClass(EnsembleTrainer.Summary, typeof(EnsembleTrainer), typeof(EnsembleTrainer.Arguments),
     new[] { typeof(SignatureBinaryClassifierTrainer), typeof(SignatureTrainer) },

@@ -10,9 +10,9 @@ using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.CpuMath;
 using Microsoft.ML.Runtime.Internal.Internallearn;
 using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.KMeans;
 using Microsoft.ML.Runtime.Numeric;
 using Microsoft.ML.Runtime.Training;
+using Microsoft.ML.Trainers;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
@@ -25,7 +25,7 @@ using System.Threading.Tasks;
 
 [assembly: LoadableClass(typeof(void), typeof(KMeansPlusPlusTrainer), null, typeof(SignatureEntryPointModule), "KMeans")]
 
-namespace Microsoft.ML.Runtime.KMeans
+namespace Microsoft.ML.Trainers
 {
     /// <include file='./doc.xml' path='doc/members/member[@name="KMeans++"]/*' />
     public class KMeansPlusPlusTrainer : TrainerEstimatorBase<ClusteringPredictionTransformer<KMeansPredictor>, KMeansPredictor>

@@ -7,10 +7,11 @@ using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
+using Microsoft.ML.Runtime.Internal.Internallearn;
 using Microsoft.ML.Runtime.Learners;
 using Microsoft.ML.Runtime.Numeric;
 using Microsoft.ML.Runtime.Training;
-using Microsoft.ML.Runtime.Internal.Internallearn;
+using Microsoft.ML.Trainers;
 using System;
 
 [assembly: LoadableClass(OnlineGradientDescentTrainer.Summary, typeof(OnlineGradientDescentTrainer), typeof(OnlineGradientDescentTrainer.Arguments),
@@ -22,7 +23,7 @@ using System;
     "stochasticgradientdescentregression")]
 [assembly: LoadableClass(typeof(void), typeof(OnlineGradientDescentTrainer), null, typeof(SignatureEntryPointModule), "OGD")]
 
-namespace Microsoft.ML.Runtime.Learners
+namespace Microsoft.ML.Trainers
 {
 
     /// <include file='doc.xml' path='doc/members/member[@name="OGD"]/*' />

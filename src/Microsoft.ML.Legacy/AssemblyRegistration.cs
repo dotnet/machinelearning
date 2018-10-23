@@ -4,8 +4,6 @@
 
 using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.FastTree;
-using Microsoft.ML.Runtime.KMeans;
 using Microsoft.ML.Runtime.PCA;
 using Microsoft.ML.Runtime.Sweeper;
 using Microsoft.ML.Runtime.Tools;

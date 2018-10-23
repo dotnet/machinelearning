@@ -12,10 +12,7 @@ namespace Microsoft.ML.Runtime.RunTests
 {
     using Microsoft.ML.Runtime.Data;
     using Microsoft.ML.Runtime.EntryPoints;
-    using Microsoft.ML.Runtime.FastTree;
     using Microsoft.ML.Runtime.FastTree.Internal;
-    using Microsoft.ML.Runtime.LightGBM;
-    using Microsoft.ML.Runtime.SymSgd;
     using Microsoft.ML.TestFramework;
     using Microsoft.ML.Trainers;
     using System.Linq;

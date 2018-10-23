@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Float = System.Single;
-
 using System;
 using System.Linq;
 using System.Threading;
@@ -18,6 +16,7 @@ using Microsoft.ML.Runtime.Numeric;
 using Microsoft.ML.Runtime.Training;
 using Microsoft.ML.Runtime.Internal.Internallearn;
 using Microsoft.ML.Core.Data;
+using Microsoft.ML.Trainers;
 
 [assembly: LoadableClass(SdcaMultiClassTrainer.Summary, typeof(SdcaMultiClassTrainer), typeof(SdcaMultiClassTrainer.Arguments),
     new[] { typeof(SignatureMultiClassClassifierTrainer), typeof(SignatureTrainer), typeof(SignatureFeatureScorerTrainer) },
@@ -25,7 +24,7 @@ using Microsoft.ML.Core.Data;
     SdcaMultiClassTrainer.LoadNameValue,
     SdcaMultiClassTrainer.ShortName)]
 
-namespace Microsoft.ML.Runtime.Learners
+namespace Microsoft.ML.Trainers
 {
     // SDCA linear multiclass trainer.
     /// <include file='doc.xml' path='doc/members/member[@name="SDCA"]/*' />
@@ -121,8 +120,8 @@ namespace Microsoft.ML.Runtime.Learners
 
         /// <inheritdoc/>
         protected override void TrainWithoutLock(IProgressChannelProvider progress, FloatLabelCursor.Factory cursorFactory, IRandom rand,
-            IdToIdxLookup idToIdx, int numThreads, DualsTableBase duals, Float[] biasReg, Float[] invariants, Float lambdaNInv,
-            VBuffer<Float>[] weights, Float[] biasUnreg, VBuffer<Float>[] l1IntermediateWeights, Float[] l1IntermediateBias, Float[] featureNormSquared)
+            IdToIdxLookup idToIdx, int numThreads, DualsTableBase duals, float[] biasReg, float[] invariants, float lambdaNInv,
+            VBuffer<float>[] weights, float[] biasUnreg, VBuffer<float>[] l1IntermediateWeights, float[] l1IntermediateBias, float[] featureNormSquared)
         {
             Contracts.AssertValueOrNull(progress);
             Contracts.Assert(Args.L1Threshold.HasValue);
@@ -153,8 +152,8 @@ namespace Microsoft.ML.Runtime.Learners
                     long dualIndexInitPos = idx * numClasses;
                     var features = cursor.Features;
                     var label = (int)cursor.Label;
-                    Float invariant;
-                    Float normSquared;
+                    float invariant;
+                    float normSquared;
                     if (invariants != null)
                     {
                         invariant = invariants[idx];
@@ -175,13 +174,13 @@ namespace Microsoft.ML.Runtime.Learners
                     var instanceWeight = GetInstanceWeight(cursor);
 
                     // This will be the new dual variable corresponding to the label class.
-                    Float labelDual = 0;
+                    float labelDual = 0;
 
                     // This will be used to update the weights and regularized bias corresponding to the label class.
-                    Float labelPrimalUpdate = 0;
+                    float labelPrimalUpdate = 0;
 
                     // This will be used to update the unregularized bias corresponding to the label class.
-                    Float labelAdjustment = 0;
+                    float labelAdjustment = 0;
 
                     // Iterates through all classes.
                     for (int iClass = 0; iClass < numClasses; iClass++)
@@ -205,7 +204,7 @@ namespace Microsoft.ML.Runtime.Learners
                             var adjustment = l1ThresholdZero ? lr * biasReg[iClass] : lr * l1IntermediateBias[iClass];
                             dualUpdate -= adjustment;
                             bool success = false;
-                            duals.ApplyAt(dualIndex, (long index, ref Float value) =>
+                            duals.ApplyAt(dualIndex, (long index, ref float value) =>
                                 success = Interlocked.CompareExchange(ref value, dual + dualUpdate, dual) == dual);
 
                             if (success)
@@ -281,12 +280,12 @@ namespace Microsoft.ML.Runtime.Learners
             FloatLabelCursor.Factory cursorFactory,
             DualsTableBase duals,
             IdToIdxLookup idToIdx,
-            VBuffer<Float>[] weights,
-            VBuffer<Float>[] bestWeights,
-            Float[] biasUnreg,
-            Float[] bestBiasUnreg,
-            Float[] biasReg,
-            Float[] bestBiasReg,
+            VBuffer<float>[] weights,
+            VBuffer<float>[] bestWeights,
+            float[] biasUnreg,
+            float[] bestBiasUnreg,
+            float[] biasReg,
+            float[] bestBiasReg,
             long count,
             Double[] metrics,
             ref Double bestPrimalLoss,
@@ -401,7 +400,7 @@ namespace Microsoft.ML.Runtime.Learners
             return converged;
         }
 
-        protected override MulticlassLogisticRegressionPredictor CreatePredictor(VBuffer<Float>[] weights, Float[] bias)
+        protected override MulticlassLogisticRegressionPredictor CreatePredictor(VBuffer<float>[] weights, float[] bias)
         {
             Host.CheckValue(weights, nameof(weights));
             Host.CheckValue(bias, nameof(bias));
@@ -416,13 +415,13 @@ namespace Microsoft.ML.Runtime.Learners
             examples.CheckMultiClassLabel(out weightSetCount);
         }
 
-        protected override Float[] InitializeFeatureNormSquared(int length)
+        protected override float[] InitializeFeatureNormSquared(int length)
         {
             Contracts.Assert(0 < length & length <= Utils.ArrayMaxSize);
-            return new Float[length];
+            return new float[length];
         }
 
-        protected override Float GetInstanceWeight(FloatLabelCursor cursor)
+        protected override float GetInstanceWeight(FloatLabelCursor cursor)
         {
             return cursor.Weight;
         }

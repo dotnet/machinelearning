@@ -20,6 +20,7 @@ using Microsoft.ML.Runtime.Numeric;
 using Microsoft.ML.Runtime.Training;
 using Microsoft.ML.Runtime.Internal.Internallearn;
 using Newtonsoft.Json.Linq;
+using Microsoft.ML.Trainers;
 
 [assembly: LoadableClass(typeof(MulticlassLogisticRegression), typeof(MulticlassLogisticRegression.Arguments),
     new[] { typeof(SignatureMultiClassClassifierTrainer), typeof(SignatureTrainer) },
@@ -33,7 +34,7 @@ using Newtonsoft.Json.Linq;
     "Multiclass LR Executor",
     MulticlassLogisticRegressionPredictor.LoaderSignature)]
 
-namespace Microsoft.ML.Runtime.Learners
+namespace Microsoft.ML.Trainers
 {
     /// <include file = 'doc.xml' path='doc/members/member[@name="LBFGS"]/*' />
     /// <include file = 'doc.xml' path='docs/members/example[@name="LogisticRegressionClassifier"]/*' />

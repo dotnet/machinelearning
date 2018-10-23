@@ -8,6 +8,7 @@ using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.FastTree;
 using Microsoft.ML.Runtime.Learners;
 using Microsoft.ML.Runtime.RunTests;
+using Microsoft.ML.Trainers;
 using Xunit;
 
 namespace Microsoft.ML.Tests.Scenarios.Api

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Float = System.Single;
-
 using System;
 using System.Globalization;
 using Microsoft.ML.Core.Data;
@@ -33,7 +31,7 @@ namespace Microsoft.ML.Runtime.Learners
         [Argument(ArgumentType.AtMostOnce, HelpText = "Init weights diameter", ShortName = "initwts", SortOrder = 140)]
         [TGUI(Label = "Initial Weights Scale", SuggestedSweeps = "0,0.1,0.5,1")]
         [TlcModule.SweepableFloatParamAttribute("InitWtsDiameter", 0.0f, 1.0f, numSteps: 5)]
-        public Float InitWtsDiameter = 0;
+        public float InitWtsDiameter = 0;
 
         [Argument(ArgumentType.AtMostOnce, HelpText = "Whether to shuffle for each training iteration", ShortName = "shuf")]
         [TlcModule.SweepableDiscreteParamAttribute("Shuffle", new object[] { false, true })]
@@ -67,13 +65,13 @@ namespace Microsoft.ML.Runtime.Learners
         // weightsScale. Storing this separately allows us to avoid the overhead of
         // an explicit scaling, which many learning algorithms will attempt to do on
         // each update. Bias is not subject to the weights scale.
-        protected VBuffer<Float> Weights;
-        protected Float WeightsScale;
-        protected Float Bias;
+        protected VBuffer<float> Weights;
+        protected float WeightsScale;
+        protected float Bias;
 
         // Our tolerance for the error induced by the weight scale may depend on our precision.
-        private const Float _maxWeightScale = 1 << 10; // Exponent ranges 127 to -128, tolerate 10 being cut off that.
-        private const Float _minWeightScale = 1 / _maxWeightScale;
+        private const float _maxWeightScale = 1 << 10; // Exponent ranges 127 to -128, tolerate 10 being cut off that.
+        private const float _minWeightScale = 1 / _maxWeightScale;
 
         protected const string UserErrorPositive = "must be positive";
         protected const string UserErrorNonNegative = "must be non-negative";
@@ -115,7 +113,7 @@ namespace Microsoft.ML.Runtime.Learners
         /// </summary>
         protected void ScaleWeightsIfNeeded()
         {
-            Float absWeightsScale = Math.Abs(WeightsScale);
+            float absWeightsScale = Math.Abs(WeightsScale);
             if (absWeightsScale < _minWeightScale || absWeightsScale > _maxWeightScale)
                 ScaleWeights();
         }
@@ -147,7 +145,7 @@ namespace Microsoft.ML.Runtime.Learners
                 }
 
                 Contracts.Assert(WeightsScale == 1);
-                Float maxNorm = Math.Max(VectorUtils.MaxNorm(ref Weights), Math.Abs(Bias));
+                float maxNorm = Math.Max(VectorUtils.MaxNorm(ref Weights), Math.Abs(Bias));
                 Contracts.Check(FloatUtils.IsFinite(maxNorm),
                     "The weights/bias contain invalid values (NaN or Infinite). Potential causes: high learning rates, no normalization, high initial weights, etc.");
             }
@@ -217,22 +215,22 @@ namespace Microsoft.ML.Runtime.Learners
                         NumFeatures + 1, NumFeatures);
                 }
 
-                Weights = VBufferUtils.CreateDense<Float>(NumFeatures);
+                Weights = VBufferUtils.CreateDense<float>(NumFeatures);
                 for (int i = 0; i < NumFeatures; i++)
-                    Weights.Values[i] = Float.Parse(weightStr[i], CultureInfo.InvariantCulture);
-                Bias = Float.Parse(weightStr[NumFeatures], CultureInfo.InvariantCulture);
+                    Weights.Values[i] = float.Parse(weightStr[i], CultureInfo.InvariantCulture);
+                Bias = float.Parse(weightStr[NumFeatures], CultureInfo.InvariantCulture);
             }
             else if (Args.InitWtsDiameter > 0)
             {
-                Weights = VBufferUtils.CreateDense<Float>(NumFeatures);
+                Weights = VBufferUtils.CreateDense<float>(NumFeatures);
                 for (int i = 0; i < NumFeatures; i++)
-                    Weights.Values[i] = Args.InitWtsDiameter * (Host.Rand.NextSingle() - (Float)0.5);
-                Bias = Args.InitWtsDiameter * (Host.Rand.NextSingle() - (Float)0.5);
+                    Weights.Values[i] = Args.InitWtsDiameter * (Host.Rand.NextSingle() - (float)0.5);
+                Bias = Args.InitWtsDiameter * (Host.Rand.NextSingle() - (float)0.5);
             }
             else if (NumFeatures <= 1000)
-                Weights = VBufferUtils.CreateDense<Float>(NumFeatures);
+                Weights = VBufferUtils.CreateDense<float>(NumFeatures);
             else
-                Weights = VBufferUtils.CreateEmpty<Float>(NumFeatures);
+                Weights = VBufferUtils.CreateEmpty<float>(NumFeatures);
             WeightsScale = 1;
         }
 
@@ -277,10 +275,10 @@ namespace Microsoft.ML.Runtime.Learners
         /// <summary>
         /// print the weights as an ASCII histogram
         /// </summary>
-        protected void PrintWeightsHistogram(ref VBuffer<Float> weightVector, Float bias, Float scale)
+        protected void PrintWeightsHistogram(ref VBuffer<float> weightVector, float bias, float scale)
         {
-            Float min = Float.MaxValue;
-            Float max = Float.MinValue;
+            float min = float.MaxValue;
+            float max = float.MinValue;
             foreach (var iv in weightVector.Items())
             {
                 var v = iv.Value;
@@ -297,7 +295,7 @@ namespace Microsoft.ML.Runtime.Learners
             if (max < bias)
                 max = bias;
             int numTicks = 50;
-            Float tick = (max - min) / numTicks;
+            float tick = (max - min) / numTicks;
 
             if (scale != 1)
             {
@@ -317,7 +315,7 @@ namespace Microsoft.ML.Runtime.Learners
                 if (iv.Value == 0)
                     continue;
                 Host.StdOut.Write("  " + iv.Key + "\t");
-                Float weight = iv.Value / scale;
+                float weight = iv.Value / scale;
                 Host.StdOut.Write(@" {0,5:G3} " + "\t|", weight);
                 for (int j = 0; j < (weight - min) / tick; j++)
                     Host.StdOut.Write("=");
@@ -336,7 +334,7 @@ namespace Microsoft.ML.Runtime.Learners
         /// This should be overridden by derived classes. This implementation simply increments
         /// _numIterExamples and dumps debug information to the console.
         /// </summary>
-        protected virtual void ProcessDataInstance(IChannel ch, ref VBuffer<Float> feat, Float label, Float weight)
+        protected virtual void ProcessDataInstance(IChannel ch, ref VBuffer<float> feat, float label, float weight)
         {
             Contracts.Assert(FloatUtils.IsFinite(feat.Values, feat.Count));
 
@@ -378,12 +376,12 @@ namespace Microsoft.ML.Runtime.Learners
         /// <summary>
         /// Return the raw margin from the decision hyperplane
         /// </summary>
-        protected Float CurrentMargin(ref VBuffer<Float> feat)
+        protected float CurrentMargin(ref VBuffer<float> feat)
         {
             return Bias + VectorUtils.DotProduct(ref feat, ref Weights) * WeightsScale;
         }
 
-        protected virtual Float Margin(ref VBuffer<Float> feat)
+        protected virtual float Margin(ref VBuffer<float> feat)
         {
             return CurrentMargin(ref feat);
         }

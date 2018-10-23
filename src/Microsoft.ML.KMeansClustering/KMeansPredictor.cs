@@ -2,27 +2,25 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Float = System.Single;
-
-using System;
-using System.IO;
-using Microsoft.ML.Runtime.Numeric;
-using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.KMeans;
+using Microsoft.ML.Runtime.Internal.Internallearn;
+using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.Model.Onnx;
-using Microsoft.ML.Runtime.Internal.Internallearn;
+using Microsoft.ML.Runtime.Numeric;
+using Microsoft.ML.Trainers;
+using System;
 using System.Collections.Generic;
+using System.IO;
 
 [assembly: LoadableClass(typeof(KMeansPredictor), null, typeof(SignatureLoadModel),
     "KMeans predictor", KMeansPredictor.LoaderSignature)]
 
-namespace Microsoft.ML.Runtime.KMeans
+namespace Microsoft.ML.Trainers
 {
     public sealed class KMeansPredictor :
-        PredictorBase<VBuffer<Float>>,
+        PredictorBase<VBuffer<float>>,
         IValueMapper,
         ICanSaveInTextFormat,
         ICanSaveModel,
@@ -53,8 +51,8 @@ namespace Microsoft.ML.Runtime.KMeans
 
         private readonly int _dimensionality;
         private readonly int _k;
-        private readonly VBuffer<Float>[] _centroids;
-        private readonly Float[] _centroidL2s; // L2 norms of the centroids
+        private readonly VBuffer<float>[] _centroids;
+        private readonly float[] _centroidL2s; // L2 norms of the centroids
 
         /// <summary>
         /// Initialize predictor with a trained model.
@@ -76,8 +74,8 @@ namespace Microsoft.ML.Runtime.KMeans
             _k = k;
             _dimensionality = centroids[0].Length;
 
-            _centroidL2s = new Float[_k];
-            _centroids = new VBuffer<Float>[_k];
+            _centroidL2s = new float[_k];
+            _centroids = new VBuffer<float>[_k];
             for (int i = 0; i < _k; i++)
             {
                 Host.CheckParam(centroids[i].Length == _dimensionality,
@@ -110,15 +108,15 @@ namespace Microsoft.ML.Runtime.KMeans
             // for each cluster, then:
             //     int: count of this centroid vector (sparse iff count < dimensionality)
             //     int[count]: only present if sparse, in order indices
-            //     Float[count]: centroid vector values
+            //     float[count]: centroid vector values
 
             _k = ctx.Reader.ReadInt32();
             Host.CheckDecode(_k > 0);
             _dimensionality = ctx.Reader.ReadInt32();
             Host.CheckDecode(_dimensionality > 0);
 
-            _centroidL2s = new Float[_k];
-            _centroids = new VBuffer<Float>[_k];
+            _centroidL2s = new float[_k];
+            _centroids = new VBuffer<float>[_k];
             for (int i = 0; i < _k; i++)
             {
                 // Prior to allowing sparse vectors, count was not written and was implicitly
@@ -128,7 +126,7 @@ namespace Microsoft.ML.Runtime.KMeans
                 var indices = count < _dimensionality ? ctx.Reader.ReadIntArray(count) : null;
                 var values = ctx.Reader.ReadFloatArray(count);
                 Host.CheckDecode(FloatUtils.IsFinite(values, count));
-                _centroids[i] = new VBuffer<Float>(_dimensionality, count, values, indices);
+                _centroids[i] = new VBuffer<float>(_dimensionality, count, values, indices);
             }
             WarnOnOldNormalizer(ctx, GetType(), Host);
 
@@ -140,32 +138,32 @@ namespace Microsoft.ML.Runtime.KMeans
 
         public ValueMapper<TIn, TOut> GetMapper<TIn, TOut>()
         {
-            Host.Check(typeof(TIn) == typeof(VBuffer<Float>));
-            Host.Check(typeof(TOut) == typeof(VBuffer<Float>));
+            Host.Check(typeof(TIn) == typeof(VBuffer<float>));
+            Host.Check(typeof(TOut) == typeof(VBuffer<float>));
 
-            ValueMapper<VBuffer<Float>, VBuffer<Float>> del =
-                (ref VBuffer<Float> src, ref VBuffer<Float> dst) =>
+            ValueMapper<VBuffer<float>, VBuffer<float>> del =
+                (ref VBuffer<float> src, ref VBuffer<float> dst) =>
                 {
                     if (src.Length != _dimensionality)
                         throw Host.Except($"Incorrect number of features: expected {_dimensionality}, got {src.Length}");
                     var values = dst.Values;
                     if (Utils.Size(values) < _k)
-                        values = new Float[_k];
+                        values = new float[_k];
                     Map(ref src, values);
-                    dst = new VBuffer<Float>(_k, values, dst.Indices);
+                    dst = new VBuffer<float>(_k, values, dst.Indices);
                 };
 
             return (ValueMapper<TIn, TOut>)(Delegate)del;
         }
 
-        private void Map(ref VBuffer<Float> src, Float[] distances)
+        private void Map(ref VBuffer<float> src, float[] distances)
         {
             Host.Assert(Utils.Size(distances) >= _k);
 
-            Float instanceL2 = VectorUtils.NormSquared(src);
+            float instanceL2 = VectorUtils.NormSquared(src);
             for (int i = 0; i < _k; i++)
             {
-                Float distance = Math.Max(0,
+                float distance = Math.Max(0,
                     -2 * VectorUtils.DotProduct(ref _centroids[i], ref src) + _centroidL2s[i] + instanceL2);
                 distances[i] = distance;
             }
@@ -229,7 +227,7 @@ namespace Microsoft.ML.Runtime.KMeans
             // for each cluster, then:
             //     int: count of this centroid vector (sparse iff count < dimensionality)
             //     int[count]: only present if sparse, in order indices
-            //     Float[count]: centroid vector values
+            //     float[count]: centroid vector values
 
             writer.Write(_k);
             writer.Write(_dimensionality);
@@ -272,7 +270,7 @@ namespace Microsoft.ML.Runtime.KMeans
         /// an appropriate length, if necessary.</param>
         /// <param name="k">The number of clusters, corresponding to the logical size of
         /// <paramref name="centroids"/>.</param>
-        public void GetClusterCentroids(ref VBuffer<Float>[] centroids, out int k)
+        public void GetClusterCentroids(ref VBuffer<float>[] centroids, out int k)
         {
             Contracts.Assert(_centroids.Length == _k);
             Utils.EnsureSize(ref centroids, _k, _k);
@@ -331,7 +329,7 @@ namespace Microsoft.ML.Runtime.KMeans
 
             // Compute -2XC^T. Note that Gemm always takes three inputs. Since we only have two here,
             // a dummy one, named zero, is created.
-            var zeroName = ctx.AddInitializer(new Float[] { 0f }, null, "zero");
+            var zeroName = ctx.AddInitializer(new float[] { 0f }, null, "zero");
             var nameXC2 = ctx.AddIntermediateVariable(null, "XC2", true);
             var gemmNodeXC2 = ctx.CreateNode("Gemm", new[] { nameX, nameC, zeroName}, new[] { nameXC2 }, ctx.GetNodeName("Gemm"), "");
             gemmNodeXC2.AddAttribute("alpha", -2f);

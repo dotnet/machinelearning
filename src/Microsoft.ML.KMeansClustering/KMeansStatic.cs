@@ -4,8 +4,8 @@
 
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.KMeans;
 using Microsoft.ML.StaticPipe.Runtime;
+using Microsoft.ML.Trainers;
 using System;
 
 namespace Microsoft.ML.StaticPipe

@@ -13,13 +13,14 @@ using Microsoft.ML.Runtime.Internal.CpuMath;
 using Microsoft.ML.Runtime.Internal.Internallearn;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
+using Microsoft.ML.Trainers;
 
 [assembly: LoadableClass(typeof(FieldAwareFactorizationMachinePredictor), null, typeof(SignatureLoadModel), "Field Aware Factorization Machine", FieldAwareFactorizationMachinePredictor.LoaderSignature)]
 
 [assembly: LoadableClass(typeof(FieldAwareFactorizationMachinePredictionTransformer), typeof(FieldAwareFactorizationMachinePredictionTransformer), null, typeof(SignatureLoadModel),
     "", FieldAwareFactorizationMachinePredictionTransformer.LoaderSignature)]
 
-namespace Microsoft.ML.Runtime.FactorizationMachine
+namespace Microsoft.ML.Trainers
 {
     public sealed class FieldAwareFactorizationMachinePredictor : PredictorBase<float>, ISchemaBindableMapper, ICanSaveModel
     {

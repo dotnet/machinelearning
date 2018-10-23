@@ -6,10 +6,10 @@ using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Data.Conversion;
-using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Calibration;
 using Microsoft.ML.Runtime.Internal.Internallearn;
 using Microsoft.ML.Runtime.Training;
+using Microsoft.ML.Trainers;
 using System.Collections.Generic;
 using System.Linq;
 

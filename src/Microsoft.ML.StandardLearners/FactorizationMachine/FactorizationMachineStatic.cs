@@ -8,6 +8,7 @@ using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.FactorizationMachine;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.StaticPipe.Runtime;
+using Microsoft.ML.Trainers;
 using System;
 using System.Collections.Generic;
 using System.Linq;

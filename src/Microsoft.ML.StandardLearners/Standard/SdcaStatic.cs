@@ -7,6 +7,7 @@ using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Internal.Calibration;
 using Microsoft.ML.Runtime.Learners;
 using Microsoft.ML.StaticPipe.Runtime;
+using Microsoft.ML.Trainers;
 using System;
 
 namespace Microsoft.ML.StaticPipe

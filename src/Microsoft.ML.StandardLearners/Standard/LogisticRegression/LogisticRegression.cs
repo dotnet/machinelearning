@@ -15,6 +15,7 @@ using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Learners;
 using Microsoft.ML.Runtime.Numeric;
 using Microsoft.ML.Runtime.Training;
+using Microsoft.ML.Trainers;
 
 [assembly: LoadableClass(LogisticRegression.Summary, typeof(LogisticRegression), typeof(LogisticRegression.Arguments),
     new[] { typeof(SignatureBinaryClassifierTrainer), typeof(SignatureTrainer), typeof(SignatureFeatureScorerTrainer) },
@@ -25,7 +26,7 @@ using Microsoft.ML.Runtime.Training;
 
 [assembly: LoadableClass(typeof(void), typeof(LogisticRegression), null, typeof(SignatureEntryPointModule), LogisticRegression.LoadNameValue)]
 
-namespace Microsoft.ML.Runtime.Learners
+namespace Microsoft.ML.Trainers
 {
 
     /// <include file='doc.xml' path='doc/members/member[@name="LBFGS"]/*' />

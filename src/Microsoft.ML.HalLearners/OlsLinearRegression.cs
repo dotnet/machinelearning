@@ -2,20 +2,20 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
-using System.IO;
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.HalLearners;
-using Microsoft.ML.Runtime.Internal.Internallearn;
-using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
+using Microsoft.ML.Runtime.Internal.Internallearn;
+using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Learners;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.Training;
+using Microsoft.ML.Trainers;
+using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Runtime.InteropServices;
 
 [assembly: LoadableClass(OlsLinearRegressionTrainer.Summary, typeof(OlsLinearRegressionTrainer), typeof(OlsLinearRegressionTrainer.Arguments),
@@ -30,7 +30,7 @@ using System.Runtime.InteropServices;
 
 [assembly: LoadableClass(typeof(void), typeof(OlsLinearRegressionTrainer), null, typeof(SignatureEntryPointModule), OlsLinearRegressionTrainer.LoadNameValue)]
 
-namespace Microsoft.ML.Runtime.HalLearners
+namespace Microsoft.ML.Trainers
 {
     /// <include file='doc.xml' path='doc/members/member[@name="OLS"]/*' />
     public sealed class OlsLinearRegressionTrainer : TrainerEstimatorBase<RegressionPredictionTransformer<OlsLinearRegressionPredictor>, OlsLinearRegressionPredictor>

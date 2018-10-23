@@ -255,7 +255,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
                 }
                 else
                 {
-                    learner.LoadableClassInfo = Host.ComponentCatalog.GetLoadableClassInfo<SignatureTrainer>(Learners.AveragedPerceptronTrainer.LoadNameValue);
+                    learner.LoadableClassInfo = Host.ComponentCatalog.GetLoadableClassInfo<SignatureTrainer>(AveragedPerceptronTrainer.LoadNameValue);
                     learner.Settings = "iter=10";
                     var epInput = new Legacy.Trainers.AveragedPerceptronBinaryClassifier
                     {
@@ -322,7 +322,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
                 if (predictorType == typeof(SignatureMultiClassClassifierTrainer))
                 {
                     learner.LoadableClassInfo =
-                        Host.ComponentCatalog.GetLoadableClassInfo<SignatureTrainer>(Learners.SdcaMultiClassTrainer.LoadNameValue);
+                        Host.ComponentCatalog.GetLoadableClassInfo<SignatureTrainer>(SdcaMultiClassTrainer.LoadNameValue);
                 }
                 else
                 {
@@ -354,7 +354,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
             {
                 SuggestedRecipe.SuggestedLearner learner = new SuggestedRecipe.SuggestedLearner();
                 learner.LoadableClassInfo =
-                    Host.ComponentCatalog.GetLoadableClassInfo<SignatureTrainer>(Learners.MultiClassNaiveBayesTrainer.LoadName);
+                    Host.ComponentCatalog.GetLoadableClassInfo<SignatureTrainer>(MultiClassNaiveBayesTrainer.LoadName);
                 learner.Settings = "";
                 var epInput = new Legacy.Trainers.NaiveBayesClassifier();
                 learner.PipelineNode = new TrainerPipelineNode(epInput);

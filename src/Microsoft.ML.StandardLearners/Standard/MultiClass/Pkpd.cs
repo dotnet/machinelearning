@@ -10,6 +10,7 @@ using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Learners;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.Training;
+using Microsoft.ML.Trainers;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -22,7 +23,7 @@ using System.Threading.Tasks;
     "PKPD Executor",
     PkpdPredictor.LoaderSignature)]
 
-namespace Microsoft.ML.Runtime.Learners
+namespace Microsoft.ML.Trainers
 {
 
     using TDistPredictor = IDistPredictorProducing<float, float>;

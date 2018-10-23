@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Float = System.Single;
-
 using System;
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime;
@@ -15,6 +13,7 @@ using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Learners;
 using Microsoft.ML.Runtime.Training;
 using Microsoft.ML.Runtime.Internal.Internallearn;
+using Microsoft.ML.Trainers;
 
 [assembly: LoadableClass(SdcaRegressionTrainer.Summary, typeof(SdcaRegressionTrainer), typeof(SdcaRegressionTrainer.Arguments),
     new[] { typeof(SignatureRegressorTrainer), typeof(SignatureTrainer), typeof(SignatureFeatureScorerTrainer) },
@@ -22,7 +21,7 @@ using Microsoft.ML.Runtime.Internal.Internallearn;
     SdcaRegressionTrainer.LoadNameValue,
     SdcaRegressionTrainer.ShortName)]
 
-namespace Microsoft.ML.Runtime.Learners
+namespace Microsoft.ML.Trainers
 {
     /// <include file='doc.xml' path='doc/members/member[@name="SDCA"]/*' />
     public sealed class SdcaRegressionTrainer : SdcaTrainerBase<SdcaRegressionTrainer.Arguments, RegressionPredictionTransformer<LinearRegressionPredictor>, LinearRegressionPredictor>
@@ -96,19 +95,19 @@ namespace Microsoft.ML.Runtime.Learners
         {
         }
 
-        protected override LinearRegressionPredictor CreatePredictor(VBuffer<Float>[] weights, Float[] bias)
+        protected override LinearRegressionPredictor CreatePredictor(VBuffer<float>[] weights, float[] bias)
         {
             Host.CheckParam(Utils.Size(weights) == 1, nameof(weights));
             Host.CheckParam(Utils.Size(bias) == 1, nameof(bias));
             Host.CheckParam(weights[0].Length > 0, nameof(weights));
 
-            VBuffer<Float> maybeSparseWeights = default;
+            VBuffer<float> maybeSparseWeights = default;
             VBufferUtils.CreateMaybeSparseCopy(ref weights[0], ref maybeSparseWeights,
-                Conversions.Instance.GetIsDefaultPredicate<Float>(NumberType.Float));
+                Conversions.Instance.GetIsDefaultPredicate<float>(NumberType.Float));
             return new LinearRegressionPredictor(Host, ref maybeSparseWeights, bias[0]);
         }
 
-        protected override Float GetInstanceWeight(FloatLabelCursor cursor)
+        protected override float GetInstanceWeight(FloatLabelCursor cursor)
         {
             return cursor.Weight;
         }
@@ -132,13 +131,13 @@ namespace Microsoft.ML.Runtime.Learners
         }
 
         // Using a different logic for default L2 parameter in regression.
-        protected override Float TuneDefaultL2(IChannel ch, int maxIterations, long rowCount, int numThreads)
+        protected override float TuneDefaultL2(IChannel ch, int maxIterations, long rowCount, int numThreads)
         {
             Contracts.AssertValue(ch);
             Contracts.Assert(maxIterations > 0);
             Contracts.Assert(rowCount > 0);
             Contracts.Assert(numThreads > 0);
-            Float l2;
+            float l2;
 
             if (rowCount > 10000)
                 l2 = 1e-04f;

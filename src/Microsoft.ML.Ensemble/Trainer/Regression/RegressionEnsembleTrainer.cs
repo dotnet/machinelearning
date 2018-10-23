@@ -15,6 +15,7 @@ using Microsoft.ML.Runtime.Ensemble.Selector;
 using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Internallearn;
 using Microsoft.ML.Runtime.Learners;
+using Microsoft.ML.Trainers;
 
 [assembly: LoadableClass(typeof(RegressionEnsembleTrainer), typeof(RegressionEnsembleTrainer.Arguments),
     new[] { typeof(SignatureRegressorTrainer), typeof(SignatureTrainer) },

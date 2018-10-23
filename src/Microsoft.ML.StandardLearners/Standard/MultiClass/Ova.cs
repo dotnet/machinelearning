@@ -13,13 +13,13 @@ using Microsoft.ML.Runtime.Learners;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.Model.Pfa;
 using Microsoft.ML.Runtime.Training;
+using Microsoft.ML.Trainers;
+using Newtonsoft.Json.Linq;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using Newtonsoft.Json.Linq;
-
-using System.Collections.Generic;
 
 [assembly: LoadableClass(Ova.Summary, typeof(Ova), typeof(Ova.Arguments),
     new[] { typeof(SignatureMultiClassClassifierTrainer), typeof(SignatureTrainer) },
@@ -31,12 +31,12 @@ using System.Collections.Generic;
     OvaPredictor.LoaderSignature)]
 
 [assembly: EntryPointModule(typeof(OvaPredictor))]
-namespace Microsoft.ML.Runtime.Learners
+namespace Microsoft.ML.Trainers
 {
+    using CR = RoleMappedSchema.ColumnRole;
+    using TDistPredictor = IDistPredictorProducing<float, float>;
     using TScalarPredictor = IPredictorProducing<float>;
     using TScalarTrainer = ITrainerEstimator<ISingleFeaturePredictionTransformer<IPredictorProducing<float>>, IPredictorProducing<float>>;
-    using TDistPredictor = IDistPredictorProducing<float, float>;
-    using CR = RoleMappedSchema.ColumnRole;
 
     /// <include file='doc.xml' path='doc/members/member[@name="OVA"]' />
     public sealed class Ova : MetaMulticlassTrainer<MulticlassPredictionTransformer<OvaPredictor>, OvaPredictor>

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Float = System.Single;
-
 using System;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
@@ -15,6 +13,7 @@ using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Learners;
 using Microsoft.ML.Runtime.Numeric;
 using Microsoft.ML.Runtime.Training;
+using Microsoft.ML.Trainers;
 
 [assembly: LoadableClass(LinearSvm.Summary, typeof(LinearSvm), typeof(LinearSvm.Arguments),
     new[] { typeof(SignatureBinaryClassifierTrainer), typeof(SignatureTrainer), typeof(SignatureFeatureScorerTrainer) },
@@ -24,7 +23,7 @@ using Microsoft.ML.Runtime.Training;
 
 [assembly: LoadableClass(typeof(void), typeof(LinearSvm), null, typeof(SignatureEntryPointModule), "LinearSvm")]
 
-namespace Microsoft.ML.Runtime.Learners
+namespace Microsoft.ML.Trainers
 {
     using Microsoft.ML.Core.Data;
     using TPredictor = LinearBinaryPredictor;
@@ -49,7 +48,7 @@ namespace Microsoft.ML.Runtime.Learners
             [Argument(ArgumentType.AtMostOnce, HelpText = "Regularizer constant", ShortName = "lambda", SortOrder = 50)]
             [TGUI(SuggestedSweeps = "0.00001-0.1;log;inc:10")]
             [TlcModule.SweepableFloatParamAttribute("Lambda", 0.00001f, 0.1f, 10, isLogScale: true)]
-            public Float Lambda = (Float)0.001;
+            public float Lambda = (float)0.001;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Batch size", ShortName = "batch", SortOrder = 190)]
             [TGUI(Label = "Batch Size")]
@@ -79,9 +78,9 @@ namespace Microsoft.ML.Runtime.Learners
         // weightsUpdate/weightsUpdateScale/biasUpdate are similar to weights/weightsScale/bias, in that
         // all elements of weightsUpdate are considered to be multiplied by weightsUpdateScale, and the
         // bias update term is not considered to be multiplied by the scale.
-        private VBuffer<Float> _weightsUpdate;
-        private Float _weightsUpdateScale;
-        private Float _biasUpdate;
+        private VBuffer<float> _weightsUpdate;
+        private float _weightsUpdateScale;
+        private float _biasUpdate;
 
         protected override bool NeedCalibration => true;
 
@@ -115,7 +114,7 @@ namespace Microsoft.ML.Runtime.Learners
         /// <summary>
         /// Return the raw margin from the decision hyperplane
         /// </summary>
-        protected override Float Margin(ref VBuffer<Float> feat)
+        protected override float Margin(ref VBuffer<float> feat)
         {
             return Bias + VectorUtils.DotProduct(ref feat, ref Weights) * WeightsScale;
         }
@@ -135,7 +134,7 @@ namespace Microsoft.ML.Runtime.Learners
             if (predictor == null)
                 VBufferUtils.Densify(ref Weights);
 
-            _weightsUpdate = VBufferUtils.CreateEmpty<Float>(numFeatures);
+            _weightsUpdate = VBufferUtils.CreateEmpty<float>(numFeatures);
         }
 
         protected override void BeginIteration(IChannel ch)
@@ -149,10 +148,10 @@ namespace Microsoft.ML.Runtime.Learners
             _batch++;
             _numBatchExamples = 0;
             _biasUpdate = 0;
-            _weightsUpdate = new VBuffer<Float>(_weightsUpdate.Length, 0, _weightsUpdate.Values, _weightsUpdate.Indices);
+            _weightsUpdate = new VBuffer<float>(_weightsUpdate.Length, 0, _weightsUpdate.Values, _weightsUpdate.Indices);
         }
 
-        private void FinishBatch(ref VBuffer<Float> weightsUpdate, Float weightsUpdateScale)
+        private void FinishBatch(ref VBuffer<float> weightsUpdate, float weightsUpdateScale)
         {
             if (_numBatchExamples > 0)
                 UpdateWeights(ref weightsUpdate, weightsUpdateScale);
@@ -162,19 +161,19 @@ namespace Microsoft.ML.Runtime.Learners
         /// <summary>
         /// Observe an example and update weights if necessary
         /// </summary>
-        protected override void ProcessDataInstance(IChannel ch, ref VBuffer<Float> feat, Float label, Float weight)
+        protected override void ProcessDataInstance(IChannel ch, ref VBuffer<float> feat, float label, float weight)
         {
             base.ProcessDataInstance(ch, ref feat, label, weight);
 
             // compute the update and update if needed
-            Float output = Margin(ref feat);
-            Float trueOutput = (label > 0 ? 1 : -1);
-            Float loss = output * trueOutput - 1;
+            float output = Margin(ref feat);
+            float trueOutput = (label > 0 ? 1 : -1);
+            float loss = output * trueOutput - 1;
 
             // Accumulate the update if there is a loss and we have larger batches.
             if (Args.BatchSize > 1 && loss < 0)
             {
-                Float currentBiasUpdate = trueOutput * weight;
+                float currentBiasUpdate = trueOutput * weight;
                 _biasUpdate += currentBiasUpdate;
                 // Only aggregate in the case where we're handling multiple instances.
                 if (_weightsUpdate.Count == 0)
@@ -193,7 +192,7 @@ namespace Microsoft.ML.Runtime.Learners
                     Contracts.Assert(_weightsUpdate.Count == 0);
                     // If we aren't aggregating multiple instances, just use the instance's
                     // vector directly.
-                    Float currentBiasUpdate = trueOutput * weight;
+                    float currentBiasUpdate = trueOutput * weight;
                     _biasUpdate += currentBiasUpdate;
                     FinishBatch(ref feat, currentBiasUpdate);
                 }
@@ -207,13 +206,13 @@ namespace Microsoft.ML.Runtime.Learners
         /// Updates the weights at the end of the batch. Since weightsUpdate can be an instance
         /// feature vector, this function should not change the contents of weightsUpdate.
         /// </summary>
-        private void UpdateWeights(ref VBuffer<Float> weightsUpdate, Float weightsUpdateScale)
+        private void UpdateWeights(ref VBuffer<float> weightsUpdate, float weightsUpdateScale)
         {
             Contracts.Assert(_batch > 0);
 
             // REVIEW: This is really odd - normally lambda is small, so the learning rate is initially huge!?!?!
             // Changed from the paper's recommended rate = 1 / (lambda * t) to rate = 1 / (1 + lambda * t).
-            Float rate = 1 / (1 + Args.Lambda * _batch);
+            float rate = 1 / (1 + Args.Lambda * _batch);
 
             // w_{t+1/2} = (1 - eta*lambda) w_t + eta/k * totalUpdate
             WeightsScale *= 1 - rate * Args.Lambda;
@@ -227,7 +226,7 @@ namespace Microsoft.ML.Runtime.Learners
             // w_{t+1} = min{1, 1/sqrt(lambda)/|w_{t+1/2}|} * w_{t+1/2}
             if (Args.PerformProjection)
             {
-                Float normalizer = 1 / (MathUtils.Sqrt(Args.Lambda) * VectorUtils.Norm(Weights) * Math.Abs(WeightsScale));
+                float normalizer = 1 / (MathUtils.Sqrt(Args.Lambda) * VectorUtils.Norm(Weights) * Math.Abs(WeightsScale));
                 if (normalizer < 1)
                 {
                     // REVIEW: Why would we not scale _bias if we're scaling the weights?
