@@ -12,7 +12,6 @@ using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Ensemble;
 using Microsoft.ML.Runtime.Ensemble.OutputCombiners;
 using Microsoft.ML.Runtime.Ensemble.Selector;
-using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Internallearn;
 using Microsoft.ML.Runtime.Learners;
 
@@ -75,7 +74,7 @@ namespace Microsoft.ML.Runtime.Ensemble
             Combiner = args.OutputCombiner.CreateComponent(Host);
         }
 
-        public MulticlassDataPartitionEnsembleTrainer(IHostEnvironment env, Arguments args, PredictionKind predictionKind)
+        private MulticlassDataPartitionEnsembleTrainer(IHostEnvironment env, Arguments args, PredictionKind predictionKind)
             : this(env, args)
         {
             Host.CheckParam(predictionKind == PredictionKind.MultiClassClassification, nameof(PredictionKind));

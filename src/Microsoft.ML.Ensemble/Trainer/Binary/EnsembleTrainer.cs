@@ -73,7 +73,7 @@ namespace Microsoft.ML.Runtime.Ensemble
             Combiner = args.OutputCombiner.CreateComponent(Host);
         }
 
-        public EnsembleTrainer(IHostEnvironment env, Arguments args, PredictionKind predictionKind)
+        private EnsembleTrainer(IHostEnvironment env, Arguments args, PredictionKind predictionKind)
             : this(env, args)
         {
             Host.CheckParam(predictionKind == PredictionKind.BinaryClassification, nameof(PredictionKind));

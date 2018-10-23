@@ -591,10 +591,7 @@ namespace Microsoft.ML.Runtime.RunTests
         public void TestTreeEnsembleCombiner()
         {
             var dataPath = GetDataPath("breast-cancer.txt");
-            var inputFile = new SimpleFileHandle(Env, dataPath, false, false);
-#pragma warning disable 0618
-            var dataView = ImportTextData.ImportText(Env, new ImportTextData.Input { InputFile = inputFile }).Data;
-#pragma warning restore 0618
+            var dataView = TextLoader.Create(Env, new TextLoader.Arguments(), new MultiFileSource(dataPath));
 
             var fastTrees = new IPredictorModel[3];
             for (int i = 0; i < 3; i++)
@@ -615,10 +612,7 @@ namespace Microsoft.ML.Runtime.RunTests
         public void TestTreeEnsembleCombinerWithCategoricalSplits()
         {
             var dataPath = GetDataPath("adult.tiny.with-schema.txt");
-            var inputFile = new SimpleFileHandle(Env, dataPath, false, false);
-#pragma warning disable 0618
-            var dataView = ImportTextData.ImportText(Env, new ImportTextData.Input { InputFile = inputFile }).Data;
-#pragma warning restore 0618
+            var dataView = TextLoader.Create(Env, new TextLoader.Arguments(), new MultiFileSource(dataPath));
 
             var cat = new CategoricalEstimator(Env, "Categories", "Features").Fit(dataView).Transform(dataView);
             var fastTrees = new IPredictorModel[3];
@@ -718,10 +712,7 @@ namespace Microsoft.ML.Runtime.RunTests
         public void TestEnsembleCombiner()
         {
             var dataPath = GetDataPath("breast-cancer.txt");
-            var inputFile = new SimpleFileHandle(Env, dataPath, false, false);
-#pragma warning disable 0618
-            var dataView = ImportTextData.ImportText(Env, new ImportTextData.Input { InputFile = inputFile }).Data;
-#pragma warning restore 0618
+            var dataView = TextLoader.Create(Env, new TextLoader.Arguments(), new MultiFileSource(dataPath));
 
             var predictors = new IPredictorModel[]
             {
@@ -765,10 +756,7 @@ namespace Microsoft.ML.Runtime.RunTests
         public void TestMultiClassEnsembleCombiner()
         {
             var dataPath = GetDataPath("breast-cancer.txt");
-            var inputFile = new SimpleFileHandle(Env, dataPath, false, false);
-#pragma warning disable 0618
-            var dataView = ImportTextData.ImportText(Env, new ImportTextData.Input { InputFile = inputFile }).Data;
-#pragma warning restore 0618
+            var dataView = TextLoader.Create(Env, new TextLoader.Arguments(), new MultiFileSource(dataPath));
 
             var predictors = new IPredictorModel[]
             {
