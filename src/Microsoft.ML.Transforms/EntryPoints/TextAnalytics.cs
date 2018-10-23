@@ -111,7 +111,7 @@ namespace Microsoft.ML.Runtime.Transforms
             env.CheckValue(input, nameof(input));
 
             var h = EntryPointUtils.CheckArgsAndCreateHost(env, "CharTokenize", input);
-            var view = new CharTokenizeTransform(h, input, input.Data);
+            var view = CharTokenizeTransform.Create(h, input, input.Data);
             return new CommonOutputs.TransformOutput()
             {
                 Model = new TransformModel(h, view, input.Data),

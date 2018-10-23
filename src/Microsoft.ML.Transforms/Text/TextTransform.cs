@@ -394,17 +394,14 @@ namespace Microsoft.ML.Runtime.Data
                 {
                     var srcCols = tparams.NeedsRemoveStopwordsTransform ? wordTokCols : textCols;
                     charTokCols = new string[srcCols.Length];
-                    var xfCols = new CharTokenizeTransform.Column[srcCols.Length];
+                    var xfCols = new (string input, string output)[srcCols.Length];
                     for (int i = 0; i < srcCols.Length; i++)
                     {
-                        var col = new CharTokenizeTransform.Column();
-                        col.Source = srcCols[i];
-                        col.Name = GenerateColumnName(view.Schema, srcCols[i], "CharTokenizer");
-                        tempCols.Add(col.Name);
-                        charTokCols[i] = col.Name;
-                        xfCols[i] = col;
+                        xfCols[i] = (srcCols[i], GenerateColumnName(view.Schema, srcCols[i], "CharTokenizer"));
+                        tempCols.Add(xfCols[i].output);
+                        charTokCols[i] = xfCols[i].output;
                     }
-                    view = new CharTokenizeTransform(h, new CharTokenizeTransform.Arguments() { Column = xfCols }, view);
+                    view = new CharTokenizeTransform(h, columns: xfCols).Transform(view);
                 }
 
                 {

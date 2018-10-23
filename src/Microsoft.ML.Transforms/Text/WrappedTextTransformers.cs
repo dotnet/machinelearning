@@ -12,58 +12,6 @@ using static Microsoft.ML.Runtime.TextAnalytics.StopWordsRemoverTransform;
 
 namespace Microsoft.ML.Transforms
 {
-    /// <summary>
-    /// Character tokenizer splits text into sequences of characters using a sliding window.
-    /// </summary>
-    public sealed class CharacterTokenizer : TrivialWrapperEstimator
-    {
-        /// <summary>
-        /// Tokenize incoming text in <paramref name="inputColumn"/> and output the tokens as <paramref name="outputColumn"/>.
-        /// </summary>
-        /// <param name="env">The environment.</param>
-        /// <param name="inputColumn">The column containing text to tokenize.</param>
-        /// <param name="outputColumn">The column containing output tokens. Null means <paramref name="inputColumn"/> is replaced.</param>
-        /// <param name="useMarkerCharacters">Whether to use marker characters to separate words.</param>
-        public CharacterTokenizer(IHostEnvironment env, string inputColumn, string outputColumn = null, bool useMarkerCharacters = true)
-            : this(env, new[] { (inputColumn, outputColumn ?? inputColumn) }, useMarkerCharacters)
-        {
-        }
-
-        /// <summary>
-        /// Tokenize incoming text in input columns and output the tokens as output columns.
-        /// </summary>
-        /// <param name="env">The environment.</param>
-        /// <param name="columns">Pairs of columns to run the tokenization on.</param>
-        /// <param name="useMarkerCharacters">Whether to use marker characters to separate words.</param>
-        public CharacterTokenizer(IHostEnvironment env, (string input, string output)[] columns, bool useMarkerCharacters = true)
-            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(CharacterTokenizer)), MakeTransformer(env, columns, useMarkerCharacters))
-        {
-        }
-
-        private static TransformWrapper MakeTransformer(IHostEnvironment env, (string input, string output)[] columns, bool useMarkerChars)
-        {
-            Contracts.AssertValue(env);
-            env.CheckNonEmpty(columns, nameof(columns));
-            foreach (var (input, output) in columns)
-            {
-                env.CheckValue(input, nameof(input));
-                env.CheckValue(output, nameof(input));
-            }
-
-            // Create arguments.
-            var args = new CharTokenizeTransform.Arguments
-            {
-                Column = columns.Select(x => new CharTokenizeTransform.Column { Source = x.input, Name = x.output }).ToArray(),
-                UseMarkerChars = useMarkerChars
-            };
-
-            // Create a valid instance of data.
-            var schema = new Schema(columns.Select(x => new Schema.Column(x.input, TextType.Instance, null)));
-            var emptyData = new EmptyDataView(env, schema);
-
-            return new TransformWrapper(env, new CharTokenizeTransform(env, args, emptyData));
-        }
-    }
 
     /// <summary>
     /// Stopword remover removes language-specific lists of stop words (most common words)

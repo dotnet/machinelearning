@@ -70,7 +70,7 @@ namespace Microsoft.ML.Tests.Transformers
                 .Read(sentimentDataPath);
 
             var est = new WordTokenizeEstimator(Env, "text", "words")
-                .Append(new CharacterTokenizer(Env, "text", "chars"))
+                .Append(new CharacterTokenizeEstimator(Env, "text", "chars"))
                 .Append(new KeyToValueEstimator(Env, "chars"));
             TestEstimatorCore(est, data.AsDynamic, invalidInput: invalidData.AsDynamic);
 
