@@ -46,7 +46,7 @@ using System.Threading;
     "Custom Stopwords Remover Transform", CustomStopWordsRemoverTransform.LoaderSignature)]
 
 [assembly: LoadableClass(CustomStopWordsRemoverTransform.Summary, typeof(CustomStopWordsRemoverTransform), null, typeof(SignatureLoadModel),
-     "Custom Stopwords Remover Transform", StopWordsRemoverTransform.LoaderSignature)]
+     "Custom Stopwords Remover Transform", CustomStopWordsRemoverTransform.LoaderSignature)]
 
 [assembly: LoadableClass(typeof(IRowMapper), typeof(CustomStopWordsRemoverTransform), null, typeof(SignatureLoadRowMapper),
      "Custom Stopwords Remover Transform", CustomStopWordsRemoverTransform.LoaderSignature)]
@@ -74,7 +74,6 @@ namespace Microsoft.ML.Transforms.Text
         {
             return new StopWordsRemoverEstimator(env, columns.Select(x => new StopWordsRemoverTransform.ColumnInfo(x.Source, x.Name)).ToArray()).Fit(input).Transform(input) as IStopWordsRemoverTransform;
         }
-    }
 
     /// <summary>
     /// A Stopword remover transform based on language-specific lists of stop words (most common words)
