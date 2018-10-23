@@ -12,6 +12,13 @@ With this first preview release, ML.NET enables machine learning tasks like clas
 
 Along with these ML capabilities, this first release of ML.NET also brings the first draft of .NET APIs for training models, using models for predictions, as well as the core components of this framework such as learning algorithms, transforms, and ML data structures. 
 
+### More details 
+* **Open source and cross-platform**: ML.NET is open source and runs on Windows, Linux, and macOS. Our public release is still in-development, and we want your help! Join the community and contribute your ideas to help us shape what comes next.
+* **Proven and extensible**: Use the same framework behind recognized Microsoft features like Windows Hello, Bing Ads, and PowerPoint Design Ideas to power your own applications.
+* **Cover your developer scenarios**: Add machine learning to your existing .NET apps. ML.NET supports popular machine learning scenarios like sentiment analysis, forecasting, recommendation, and more. ML.NET also supports deep learning scenarios like image classification with TensorFlow. Probabilistic programming is supported through Infer.NET, which extends ML.NET with capabilities for bayesian analysis and online learning.
+
+We're building ML.NET as an extensible framework, with support for Light GBM, Accord.NET, CNTK, and TensorFlow coming soon.
+
 ## Installation
 
 [![NuGet Status](https://img.shields.io/nuget/v/Microsoft.ML.svg?style=flat)](https://www.nuget.org/packages/Microsoft.ML/)
@@ -110,3 +117,7 @@ There are many .NET related projects on GitHub.
 
 - [.NET home repo](https://github.com/Microsoft/dotnet) - links to 100s of .NET projects, from Microsoft and the community.
 
+### References
+* https://www.microsoft.com/net/learn/machinelearning-ai/what-is-mldotnet
+* https://www.microsoft.com/net/apps/machinelearning-ai/ml-dotnet
+* https://docs.microsoft.com/en-us/dotnet/machine-learning/resources/tasks
