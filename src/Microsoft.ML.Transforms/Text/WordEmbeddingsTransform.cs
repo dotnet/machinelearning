@@ -415,6 +415,7 @@ namespace Microsoft.ML.Runtime.Data
                 var wordVectors = _parent._currentVocab.WordVectors;
                 var tensorD = new List<float>();
                 tensorD.AddRange(wordVectors);
+                // out-of-vocab embedding vector for combining embeddings by mean
                 tensorD.AddRange(Enumerable.Repeat(0.0f, _parent._currentVocab.Dimension));
                 tensorD.AddRange(Enumerable.Repeat(float.MaxValue, _parent._currentVocab.Dimension));
                 tensorD.AddRange(Enumerable.Repeat(float.MinValue, _parent._currentVocab.Dimension));
