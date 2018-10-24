@@ -6,8 +6,8 @@
     <PackageDescription>Microsoft.ML.CpuMath contains optimized math routines for ML.NET.</PackageDescription>
   </PropertyGroup>
 
-  <ItemGroup Condition="'$(TargetFramework)' == 'netcoreapp3.0'">
-   <PackageReference Include="System.Memory" Version="$(SystemMemoryVersion)" />
+  <ItemGroup>
+    <PackageReference Include="System.Memory" Version="$(SystemMemoryVersion)" />
   </ItemGroup>
 
   <ItemGroup>
