@@ -68,11 +68,11 @@ namespace Microsoft.ML.Samples.Static
             var dataWithPredictions = model.Transform(testData);
             var metrics = regressionContext.Evaluate(dataWithPredictions, r => r.label, r => r.score);
 
-            Console.WriteLine($"L1 - {metrics.L1}");
-            Console.WriteLine($"L2 - {metrics.L2}");
-            Console.WriteLine($"LossFunction - {metrics.LossFn}");
-            Console.WriteLine($"RMS - {metrics.Rms}");
-            Console.WriteLine($"RSquared - {metrics.RSquared}");
+            Console.WriteLine($"L1 - {metrics.L1}");    // 4.9669731
+            Console.WriteLine($"L2 - {metrics.L2}");    // 51.37296
+            Console.WriteLine($"LossFunction - {metrics.LossFn}");  // 51.37296
+            Console.WriteLine($"RMS - {metrics.Rms}");              // 7.167493
+            Console.WriteLine($"RSquared - {metrics.RSquared}");    // 0.079478
         }
     }
 }

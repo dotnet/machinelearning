@@ -37,7 +37,7 @@ namespace Microsoft.ML.Samples.Static
                 separator: '\t', hasHeader: true);
 
             // Read the data, and leave 10% out, so we can use them for testing
-            var data = reader.Read(new MultiFileSource(dataFile));
+            var data = reader.Read(dataFile);
 
             // The predictor that gets produced out of training
             FastTreeRegressionPredictor pred = null;
@@ -63,11 +63,11 @@ namespace Microsoft.ML.Samples.Static
                 Rms: cvResults.Select(r => r.metrics.Rms).Average(),
                 RSquared: cvResults.Select(r => r.metrics.RSquared).Average()
             );
-            Console.WriteLine($"L1 - {averagedMetrics.L1}");
-            Console.WriteLine($"L2 - {averagedMetrics.L2}");
-            Console.WriteLine($"LossFunction - {averagedMetrics.LossFn}");
-            Console.WriteLine($"RMS - {averagedMetrics.Rms}");
-            Console.WriteLine($"RSquared - {averagedMetrics.RSquared}");
+            Console.WriteLine($"L1 - {averagedMetrics.L1}");    // 3.091095
+            Console.WriteLine($"L2 - {averagedMetrics.L2}");    // 20.351073
+            Console.WriteLine($"LossFunction - {averagedMetrics.LossFn}");  // 20.351074
+            Console.WriteLine($"RMS - {averagedMetrics.Rms}");              // 4.478358
+            Console.WriteLine($"RSquared - {averagedMetrics.RSquared}");    // 0.754977
         }
 
     }
