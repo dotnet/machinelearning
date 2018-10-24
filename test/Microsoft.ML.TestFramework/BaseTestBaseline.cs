@@ -233,6 +233,7 @@ namespace Microsoft.ML.Runtime.RunTests
         private static readonly Regex _matchTime = new Regex(@"[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]+)?", RegexOptions.Compiled);
         private static readonly Regex _matchShortTime = new Regex(@"\([0-9]{2}:[0-9]{2}(\.[0-9]+)?\)", RegexOptions.Compiled);
         private static readonly Regex _matchMemory = new Regex(@"memory usage\(MB\): [0-9]+", RegexOptions.Compiled);
+        private static readonly Regex _matchReservedMemory = new Regex(@": [0-9]+ bytes", RegexOptions.Compiled);
         private static readonly Regex _matchElapsed = new Regex(@"Time elapsed\(s\): [0-9.]+", RegexOptions.Compiled);
         private static readonly Regex _matchTimes = new Regex(@"Instances caching time\(s\): [0-9\.]+", RegexOptions.Compiled);
         private static readonly Regex _matchUpdatesPerSec = new Regex(@", ([0-9\.]+|Infinity)M WeightUpdates/sec", RegexOptions.Compiled);
@@ -281,6 +282,7 @@ namespace Microsoft.ML.Runtime.RunTests
                     line = _matchShortTime.Replace(line, "(%Time%)");
                     line = _matchElapsed.Replace(line, "Time elapsed(s): %Number%");
                     line = _matchMemory.Replace(line, "memory usage(MB): %Number%");
+                    line = _matchReservedMemory.Replace(line, ": %Number% bytes");
                     line = _matchTimes.Replace(line, "Instances caching time(s): %Number%");
                     line = _matchUpdatesPerSec.Replace(line, ", %Number%M WeightUpdates/sec");
                     line = _matchParameterT.Replace(line, "=PARAM:/t:%Number%");
