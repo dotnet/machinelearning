@@ -106,12 +106,12 @@ namespace Microsoft.ML.Trainers
         {
 
             const string posError = "Parameter must be positive";
-            Host.CheckValue(args, nameof(args));
-            Host.CheckUserArg(args.K > 0, nameof(args.K), posError);
-            Host.CheckUserArg(!args.NumThreads.HasValue || args.NumThreads > 0, nameof(args.NumThreads), posError);
-            Host.CheckUserArg(args.NumIterations > 0, nameof(args.NumIterations), posError);
-            Host.CheckUserArg(args.Lambda > 0, nameof(args.Lambda), posError);
-            Host.CheckUserArg(args.Eta > 0, nameof(args.Eta), posError);
+            env.CheckValue(args, nameof(args));
+            env.CheckUserArg(args.K > 0, nameof(args.K), posError);
+            env.CheckUserArg(!args.NumThreads.HasValue || args.NumThreads > 0, nameof(args.NumThreads), posError);
+            env.CheckUserArg(args.NumIterations > 0, nameof(args.NumIterations), posError);
+            env.CheckUserArg(args.Lambda > 0, nameof(args.Lambda), posError);
+            env.CheckUserArg(args.Eta > 0, nameof(args.Eta), posError);
 
             _lambda = args.Lambda;
             _k = args.K;
@@ -181,35 +181,35 @@ namespace Microsoft.ML.Trainers
             ColumnInfo validXColInfo = null;
             ColumnInfo validYColInfo = null;
 
-            Host.CheckValue(data.Schema.Label, nameof(data), "Input data did not have a unique label");
+            ch.CheckValue(data.Schema.Label, nameof(data), "Input data did not have a unique label");
             RecommendUtils.CheckAndGetXYColumns(data, out xColInfo, out yColInfo, isDecode: false);
             if (data.Schema.Label.Type != NumberType.R4 && data.Schema.Label.Type != NumberType.R8)
-                throw Host.Except("Column '{0}' for label should be floating point, but is instead {1}", data.Schema.Label.Name, data.Schema.Label.Type);
+                throw ch.Except("Column '{0}' for label should be floating point, but is instead {1}", data.Schema.Label.Name, data.Schema.Label.Type);
             MatrixFactorizationPredictor predictor;
             if (validData != null)
             {
-                Host.CheckValue(validData, nameof(validData));
-                Host.CheckValue(validData.Schema.Label, nameof(validData), "Input validation data did not have a unique label");
+                ch.CheckValue(validData, nameof(validData));
+                ch.CheckValue(validData.Schema.Label, nameof(validData), "Input validation data did not have a unique label");
                 RecommendUtils.CheckAndGetXYColumns(validData, out validXColInfo, out validYColInfo, isDecode: false);
                 if (validData.Schema.Label.Type != NumberType.R4 && validData.Schema.Label.Type != NumberType.R8)
-                    throw Host.Except("Column '{0}' for validation label should be floating point, but is instead {1}", data.Schema.Label.Name, data.Schema.Label.Type);
+                    throw ch.Except("Column '{0}' for validation label should be floating point, but is instead {1}", data.Schema.Label.Name, data.Schema.Label.Type);
 
                 if (!xColInfo.Type.Equals(validXColInfo.Type))
                 {
-                    throw Host.ExceptParam(nameof(validData), "Train and validation set X types differed, {0} vs. {1}",
+                    throw ch.ExceptParam(nameof(validData), "Train and validation set X types differed, {0} vs. {1}",
                         xColInfo.Type, validXColInfo.Type);
                 }
                 if (!yColInfo.Type.Equals(validYColInfo.Type))
                 {
-                    throw Host.ExceptParam(nameof(validData), "Train and validation set Y types differed, {0} vs. {1}",
+                    throw ch.ExceptParam(nameof(validData), "Train and validation set Y types differed, {0} vs. {1}",
                         yColInfo.Type, validYColInfo.Type);
                 }
             }
 
             int colCount = xColInfo.Type.KeyCount;
             int rowCount = yColInfo.Type.KeyCount;
-            Host.Assert(rowCount > 0);
-            Host.Assert(colCount > 0);
+            ch.Assert(rowCount > 0);
+            ch.Assert(colCount > 0);
             // Checks for equality on the validation set ensure it is correct here.
 
             using (var cursor = data.Data.GetRowCursor(c => c == xColInfo.Index || c == yColInfo.Index || c == data.Schema.Label.Index))
