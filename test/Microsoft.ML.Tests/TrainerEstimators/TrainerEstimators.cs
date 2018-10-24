@@ -4,9 +4,9 @@
 
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.KMeans;
+using Microsoft.ML.Trainers.KMeans;
 using Microsoft.ML.Runtime.Learners;
-using Microsoft.ML.Runtime.PCA;
+using Microsoft.ML.Trainers.PCA;
 using Microsoft.ML.Runtime.RunTests;
 using Xunit;
 using Xunit.Abstractions;

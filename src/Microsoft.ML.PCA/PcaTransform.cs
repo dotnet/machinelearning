@@ -2,11 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Float = System.Single;
-
-using System;
-using System.Linq;
-using System.Text;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
@@ -15,6 +10,10 @@ using Microsoft.ML.Runtime.Internal.CpuMath;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.Numeric;
+using Microsoft.ML.Transforms.PCA;
+using System;
+using System.Linq;
+using System.Text;
 
 [assembly: LoadableClass(PcaTransform.Summary, typeof(PcaTransform), typeof(PcaTransform.Arguments), typeof(SignatureDataTransform),
     PcaTransform.UserName, PcaTransform.LoaderSignature, PcaTransform.ShortName)]
@@ -24,7 +23,7 @@ using Microsoft.ML.Runtime.Numeric;
 
 [assembly: LoadableClass(typeof(void), typeof(PcaTransform), null, typeof(SignatureEntryPointModule), PcaTransform.LoaderSignature)]
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Transforms.PCA
 {
     /// <include file='doc.xml' path='doc/members/member[@name="PCA"]/*' />
     public sealed class PcaTransform : OneToOneTransformBase
@@ -103,8 +102,8 @@ namespace Microsoft.ML.Runtime.Data
             public readonly int Dimension;
             public readonly int Rank;
 
-            public Float[][] Eigenvectors;
-            public Float[] MeanProjected;
+            public float[][] Eigenvectors;
+            public float[] MeanProjected;
 
             public TransformInfo(Column item, Arguments args, int d)
             {
@@ -121,9 +120,9 @@ namespace Microsoft.ML.Runtime.Data
                 // int: Dimension
                 // int: Rank
                 // for i=0,..,Rank-1:
-                //   Float[]: the i'th eigenvector
+                //   float[]: the i'th eigenvector
                 // int: the size of MeanProjected (0 if it is null)
-                // Float[]: MeanProjected
+                // float[]: MeanProjected
 
                 Dimension = ctx.Reader.ReadInt32();
                 Contracts.CheckDecode(Dimension == colValueCount);
@@ -131,7 +130,7 @@ namespace Microsoft.ML.Runtime.Data
                 Rank = ctx.Reader.ReadInt32();
                 Contracts.CheckDecode(0 < Rank && Rank <= Dimension);
 
-                Eigenvectors = new Float[Rank][];
+                Eigenvectors = new float[Rank][];
                 for (int i = 0; i < Rank; i++)
                 {
                     Eigenvectors[i] = ctx.Reader.ReadFloatArray(Dimension);
@@ -150,9 +149,9 @@ namespace Microsoft.ML.Runtime.Data
                 // int: Dimension
                 // int: Rank
                 // for i=0,..,Rank-1:
-                //   Float[]: the i'th eigenvector
+                //   float[]: the i'th eigenvector
                 // int: the size of MeanProjected (0 if it is null)
-                // Float[]: MeanProjected
+                // float[]: MeanProjected
 
                 Contracts.Assert(0 < Rank && Rank <= Dimension);
                 ctx.Writer.Write(Dimension);
@@ -166,7 +165,7 @@ namespace Microsoft.ML.Runtime.Data
                 ctx.Writer.WriteFloatArray(MeanProjected);
             }
 
-            internal void ProjectMean(Float[] mean)
+            internal void ProjectMean(float[] mean)
             {
                 Contracts.AssertValue(Eigenvectors);
                 if (mean == null)
@@ -175,7 +174,7 @@ namespace Microsoft.ML.Runtime.Data
                     return;
                 }
 
-                MeanProjected = new Float[Rank];
+                MeanProjected = new float[Rank];
                 for (var i = 0; i < Rank; ++i)
                     MeanProjected[i] = VectorUtils.DotProduct(Eigenvectors[i], mean);
             }
@@ -269,10 +268,10 @@ namespace Microsoft.ML.Runtime.Data
             ctx.CheckAtModel(GetVersionInfo());
 
             // *** Binary format ***
-            // int: sizeof(Float)
+            // int: sizeof(float)
             // <remainder handled in ctors>
             int cbFloat = ctx.Reader.ReadInt32();
-            h.CheckDecode(cbFloat == sizeof(Float));
+            h.CheckDecode(cbFloat == sizeof(float));
             return h.Apply("Loading Model", ch => new PcaTransform(h, ctx, input));
         }
 
@@ -283,10 +282,10 @@ namespace Microsoft.ML.Runtime.Data
             ctx.SetVersionInfo(GetVersionInfo());
 
             // *** Binary format ***
-            // int: sizeof(Float)
+            // int: sizeof(float)
             // <base>
             // transformInfos
-            ctx.Writer.Write(sizeof(Float));
+            ctx.Writer.Write(sizeof(float));
             SaveBase(ctx);
             for (int i = 0; i < _transformInfos.Length; i++)
                 _transformInfos[i].Save(ctx);
@@ -294,9 +293,9 @@ namespace Microsoft.ML.Runtime.Data
 
         private void Train(Arguments args, TransformInfo[] transformInfos, IDataView trainingData)
         {
-            var y = new Float[transformInfos.Length][][];
-            var omega = new Float[transformInfos.Length][][];
-            var mean = new Float[transformInfos.Length][];
+            var y = new float[transformInfos.Length][][];
+            var omega = new float[transformInfos.Length][][];
+            var mean = new float[transformInfos.Length][];
 
             var oversampledRank = new int[transformInfos.Length];
             var rnd = Host.Rand;
@@ -306,7 +305,7 @@ namespace Microsoft.ML.Runtime.Data
                 oversampledRank[iinfo] = Math.Min(transformInfos[iinfo].Rank + _oversampling[iinfo], transformInfos[iinfo].Dimension);
 
                 //exact: (size of the 2 big matrices + other minor allocations) / (2^30)
-                Double colMemoryUsageEstimate = 2.0 * transformInfos[iinfo].Dimension * oversampledRank[iinfo] * sizeof(Float) / 1e9;
+                Double colMemoryUsageEstimate = 2.0 * transformInfos[iinfo].Dimension * oversampledRank[iinfo] * sizeof(float) / 1e9;
                 totalMemoryUsageEstimate += colMemoryUsageEstimate;
                 if (colMemoryUsageEstimate > 2)
                 {
@@ -317,20 +316,20 @@ namespace Microsoft.ML.Runtime.Data
                     }
                 }
 
-                y[iinfo] = new Float[oversampledRank[iinfo]][];
-                omega[iinfo] = new Float[oversampledRank[iinfo]][];
+                y[iinfo] = new float[oversampledRank[iinfo]][];
+                omega[iinfo] = new float[oversampledRank[iinfo]][];
                 for (int i = 0; i < oversampledRank[iinfo]; i++)
                 {
-                    y[iinfo][i] = new Float[transformInfos[iinfo].Dimension];
-                    omega[iinfo][i] = new Float[transformInfos[iinfo].Dimension];
+                    y[iinfo][i] = new float[transformInfos[iinfo].Dimension];
+                    omega[iinfo][i] = new float[transformInfos[iinfo].Dimension];
                     for (int j = 0; j < transformInfos[iinfo].Dimension; j++)
                     {
-                        omega[iinfo][i][j] = (Float)Stats.SampleFromGaussian(rnd);
+                        omega[iinfo][i][j] = (float)Stats.SampleFromGaussian(rnd);
                     }
                 }
 
                 if (_center[iinfo])
-                    mean[iinfo] = new Float[transformInfos[iinfo].Dimension];
+                    mean[iinfo] = new float[transformInfos[iinfo].Dimension];
             }
             if (totalMemoryUsageEstimate > 2)
             {
@@ -365,15 +364,15 @@ namespace Microsoft.ML.Runtime.Data
             for (int iinfo = 0; iinfo < transformInfos.Length; iinfo++)
             {
                 //Compute B2 = B' * B
-                var b2 = new Float[oversampledRank[iinfo] * oversampledRank[iinfo]];
+                var b2 = new float[oversampledRank[iinfo] * oversampledRank[iinfo]];
                 for (var i = 0; i < oversampledRank[iinfo]; ++i)
                 {
                     for (var j = i; j < oversampledRank[iinfo]; ++j)
                         b2[i * oversampledRank[iinfo] + j] = b2[j * oversampledRank[iinfo] + i] = VectorUtils.DotProduct(b[iinfo][i], b[iinfo][j]);
                 }
 
-                Float[] smallEigenvalues; // eigenvectors and eigenvalues of the small matrix B2.
-                Float[] smallEigenvectors;
+                float[] smallEigenvalues; // eigenvectors and eigenvalues of the small matrix B2.
+                float[] smallEigenvectors;
 
                 EigenUtils.EigenDecomposition(b2, out smallEigenvalues, out smallEigenvectors);
                 transformInfos[iinfo].Eigenvectors = PostProcess(b[iinfo], smallEigenvalues, smallEigenvectors, transformInfos[iinfo].Dimension, oversampledRank[iinfo]);
@@ -384,7 +383,7 @@ namespace Microsoft.ML.Runtime.Data
         //Project the covariance matrix A on to Omega: Y <- A * Omega
         //A = X' * X / n, where X = data - mean
         //Note that the covariance matrix is not computed explicitly
-        private void Project(IDataView trainingData, Float[][] mean, Float[][][] omega, Float[][][] y, TransformInfo[] transformInfos)
+        private void Project(IDataView trainingData, float[][] mean, float[][][] omega, float[][][] y, TransformInfo[] transformInfos)
         {
             Host.Assert(mean.Length == omega.Length && omega.Length == y.Length && y.Length == Infos.Length);
             for (int i = 0; i < omega.Length; i++)
@@ -410,16 +409,16 @@ namespace Microsoft.ML.Runtime.Data
             }
             using (var cursor = trainingData.GetRowCursor(col => activeColumns[col]))
             {
-                var weightGetters = new ValueGetter<Float>[Infos.Length];
-                var columnGetters = new ValueGetter<VBuffer<Float>>[Infos.Length];
+                var weightGetters = new ValueGetter<float>[Infos.Length];
+                var columnGetters = new ValueGetter<VBuffer<float>>[Infos.Length];
                 for (int iinfo = 0; iinfo < Infos.Length; iinfo++)
                 {
                     if (_weightColumnIndex[iinfo] >= 0)
-                        weightGetters[iinfo] = cursor.GetGetter<Float>(_weightColumnIndex[iinfo]);
-                    columnGetters[iinfo] = cursor.GetGetter<VBuffer<Float>>(Infos[iinfo].Source);
+                        weightGetters[iinfo] = cursor.GetGetter<float>(_weightColumnIndex[iinfo]);
+                    columnGetters[iinfo] = cursor.GetGetter<VBuffer<float>>(Infos[iinfo].Source);
                 }
 
-                var features = default(VBuffer<Float>);
+                var features = default(VBuffer<float>);
                 while (cursor.MoveNext())
                 {
                     for (int iinfo = 0; iinfo < Infos.Length; iinfo++)
@@ -427,7 +426,7 @@ namespace Microsoft.ML.Runtime.Data
                         Contracts.Check(Infos[iinfo].TypeSrc.IsVector && Infos[iinfo].TypeSrc.ItemType.IsNumber,
                             "PCA transform can only be performed on numeric columns of dimension > 1");
 
-                        Float weight = 1;
+                        float weight = 1;
                         if (weightGetters[iinfo] != null)
                             weightGetters[iinfo](ref weight);
                         columnGetters[iinfo](ref features);
@@ -453,7 +452,7 @@ namespace Microsoft.ML.Runtime.Data
 
                 for (int iinfo = 0; iinfo < Infos.Length; iinfo++)
                 {
-                    var invn = (Float)(1 / totalColWeight[iinfo]);
+                    var invn = (float)(1 / totalColWeight[iinfo]);
 
                     for (var i = 0; i < omega[iinfo].Length; ++i)
                         VectorUtils.ScaleBy(y[iinfo][i], invn);
@@ -470,13 +469,13 @@ namespace Microsoft.ML.Runtime.Data
 
         //return Y * eigenvectors / eigenvalues
         // REVIEW: improve
-        private Float[][] PostProcess(Float[][] y, Float[] sigma, Float[] z, int d, int k)
+        private float[][] PostProcess(float[][] y, float[] sigma, float[] z, int d, int k)
         {
-            var pinv = new Float[k];
-            var tmp = new Float[k];
+            var pinv = new float[k];
+            var tmp = new float[k];
 
             for (int i = 0; i < k; i++)
-                pinv[i] = (Float)(1.0) / ((Float)(1e-6) + sigma[i]);
+                pinv[i] = (float)(1.0) / ((float)(1e-6) + sigma[i]);
 
             for (int i = 0; i < d; i++)
             {
@@ -516,11 +515,11 @@ namespace Microsoft.ML.Runtime.Data
             Host.Assert(0 <= iinfo && iinfo < Infos.Length);
             disposer = null;
 
-            var getSrc = GetSrcGetter<VBuffer<Float>>(input, iinfo);
-            var src = default(VBuffer<Float>);
+            var getSrc = GetSrcGetter<VBuffer<float>>(input, iinfo);
+            var src = default(VBuffer<float>);
             var trInfo = _transformInfos[iinfo];
-            ValueGetter<VBuffer<Float>> del =
-                (ref VBuffer<Float> dst) =>
+            ValueGetter<VBuffer<float>> del =
+                (ref VBuffer<float> dst) =>
                 {
                     getSrc(ref src);
                     TransformFeatures(Host, ref src, ref dst, trInfo);
@@ -528,13 +527,13 @@ namespace Microsoft.ML.Runtime.Data
             return del;
         }
 
-        private static void TransformFeatures(IExceptionContext ectx, ref VBuffer<Float> src, ref VBuffer<Float> dst, TransformInfo transformInfo)
+        private static void TransformFeatures(IExceptionContext ectx, ref VBuffer<float> src, ref VBuffer<float> dst, TransformInfo transformInfo)
         {
             ectx.Check(src.Length == transformInfo.Dimension);
 
             var values = dst.Values;
             if (Utils.Size(values) < transformInfo.Rank)
-                values = new Float[transformInfo.Rank];
+                values = new float[transformInfo.Rank];
 
             for (int i = 0; i < transformInfo.Rank; i++)
             {
@@ -542,7 +541,7 @@ namespace Microsoft.ML.Runtime.Data
                     (transformInfo.MeanProjected == null ? 0 : transformInfo.MeanProjected[i]);
             }
 
-            dst = new VBuffer<Float>(transformInfo.Rank, values, dst.Indices);
+            dst = new VBuffer<float>(transformInfo.Rank, values, dst.Indices);
         }
 
         [TlcModule.EntryPoint(Name = "Transforms.PcaCalculator",

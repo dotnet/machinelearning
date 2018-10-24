@@ -15,10 +15,11 @@ namespace Microsoft.ML.Runtime.RunTests
     using Microsoft.ML.Runtime.Internal.Utilities;
     using Microsoft.ML.Runtime.Learners;
     using Microsoft.ML.Runtime.LightGBM;
-    using Microsoft.ML.Runtime.SymSgd;
     using Microsoft.ML.TestFramework;
     using Microsoft.ML.Trainers.FastTree;
     using Microsoft.ML.Trainers.FastTree.Internal;
+    using Microsoft.ML.Trainers.Online;
+    using Microsoft.ML.Trainers.SymSgd;
     using System.Linq;
     using System.Runtime.InteropServices;
     using Xunit;

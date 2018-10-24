@@ -2,18 +2,20 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.IO;
-using System.Text;
-using System.Reflection;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
-using Microsoft.ML.Runtime.Sweeper;
 using Microsoft.ML.Runtime.Internal.Internallearn;
-using Newtonsoft.Json;
+using Microsoft.ML.Runtime.Sweeper;
 using Microsoft.ML.Trainers.FastTree;
+using Microsoft.ML.Trainers;
+using Microsoft.ML.Trainers.Online;
+using Newtonsoft.Json;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Reflection;
+using System.Text;
 
 namespace Microsoft.ML.Runtime.PipelineInference
 {
@@ -254,7 +256,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
                 }
                 else
                 {
-                    learner.LoadableClassInfo = Host.ComponentCatalog.GetLoadableClassInfo<SignatureTrainer>(Learners.AveragedPerceptronTrainer.LoadNameValue);
+                    learner.LoadableClassInfo = Host.ComponentCatalog.GetLoadableClassInfo<SignatureTrainer>(AveragedPerceptronTrainer.LoadNameValue);
                     learner.Settings = "iter=10";
                     var epInput = new Legacy.Trainers.AveragedPerceptronBinaryClassifier
                     {
@@ -321,7 +323,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
                 if (predictorType == typeof(SignatureMultiClassClassifierTrainer))
                 {
                     learner.LoadableClassInfo =
-                        Host.ComponentCatalog.GetLoadableClassInfo<SignatureTrainer>(Learners.SdcaMultiClassTrainer.LoadNameValue);
+                        Host.ComponentCatalog.GetLoadableClassInfo<SignatureTrainer>(SdcaMultiClassTrainer.LoadNameValue);
                 }
                 else
                 {

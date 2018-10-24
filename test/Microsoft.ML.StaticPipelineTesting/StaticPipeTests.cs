@@ -19,6 +19,7 @@ using System.Linq;
 using System.Text;
 using Xunit;
 using Xunit.Abstractions;
+using Microsoft.ML.Transforms.PCA;
 
 namespace Microsoft.ML.StaticPipelineTesting
 {

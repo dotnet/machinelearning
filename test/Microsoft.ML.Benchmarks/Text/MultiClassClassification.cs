@@ -4,10 +4,11 @@
 
 using BenchmarkDotNet.Attributes;
 using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Learners;
 using Microsoft.ML.Runtime.LightGBM;
 using Microsoft.ML.Runtime.RunTests;
 using Microsoft.ML.Runtime.Tools;
+using Microsoft.ML.Trainers.Online;
+using Microsoft.ML.Trainers;
 using System.IO;
 
 namespace Microsoft.ML.Benchmarks
