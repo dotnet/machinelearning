@@ -4,7 +4,7 @@
 
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.FastTree;
+using Microsoft.ML.Trainers.FastTree;
 using System;
 
 namespace Microsoft.ML

@@ -3,10 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Core.Data;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Data.Conversion;
-using Microsoft.ML.Runtime.FastTree.Internal;
 using Microsoft.ML.Runtime.Internal.Calibration;
 using Microsoft.ML.Runtime.Internal.Internallearn;
 using Microsoft.ML.Runtime.Internal.Utilities;
@@ -15,6 +15,7 @@ using Microsoft.ML.Runtime.Model.Onnx;
 using Microsoft.ML.Runtime.Model.Pfa;
 using Microsoft.ML.Runtime.Training;
 using Microsoft.ML.Runtime.TreePredictor;
+using Microsoft.ML.Trainers.FastTree.Internal;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections;
@@ -30,7 +31,7 @@ using Float = System.Single;
 //REVIEW: Decouple train method in Application.cs to have boosting and random forest logic seperate.
 //REVIEW: Do we need to keep all the fast tree based testers?
 
-namespace Microsoft.ML.Runtime.FastTree
+namespace Microsoft.ML.Trainers.FastTree
 {
     public delegate void SignatureTreeEnsembleTrainer();
 
@@ -2964,7 +2965,7 @@ namespace Microsoft.ML.Runtime.FastTree
                 (ref VBuffer<Float> src, ref VBuffer<Float> dst) =>
                 {
                     WhatTheFeatureMap(ref src, ref dst, ref builder);
-                    Numeric.VectorUtils.SparsifyNormalize(ref dst, top, bottom, normalize);
+                    Runtime.Numeric.VectorUtils.SparsifyNormalize(ref dst, top, bottom, normalize);
                 };
             return (ValueMapper<TSrc, VBuffer<Float>>)(Delegate)del;
         }

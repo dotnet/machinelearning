@@ -10,6 +10,7 @@ using Microsoft.ML.Runtime.Internal.Calibration;
 using Microsoft.ML.Runtime.Learners;
 using Microsoft.ML.Runtime.LightGBM;
 using Microsoft.ML.Runtime.Training;
+using Microsoft.ML.Trainers.FastTree.Internal;
 using System;
 using System.Linq;
 
@@ -77,9 +78,9 @@ namespace Microsoft.ML.Runtime.LightGBM
             _numClass = -1;
         }
 
-        private FastTree.Internal.Ensemble GetBinaryEnsemble(int classID)
+        private Ensemble GetBinaryEnsemble(int classID)
         {
-            FastTree.Internal.Ensemble res = new FastTree.Internal.Ensemble();
+            var res = new Ensemble();
             for (int i = classID; i < TrainedEnsemble.NumTrees; i += _numClass)
             {
                 // Ignore dummy trees.
