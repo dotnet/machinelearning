@@ -390,7 +390,7 @@ namespace Microsoft.ML.Runtime.RunTests
         /// <summary>
         ///A test for regressors
         ///</summary>
-        [Fact(Skip = "Need CoreTLC specific baseline update")]
+        [Fact]
         [TestCategory("Regressor")]
         [TestCategory("FastForest")]
         public void FastForestRegressionTest()
