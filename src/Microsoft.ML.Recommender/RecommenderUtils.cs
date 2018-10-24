@@ -8,21 +8,22 @@ using Microsoft.ML.Runtime.Internal.Utilities;
 
 namespace Microsoft.ML.Runtime.Recommender
 {
-    internal static class RecommendUtils
+    internal static class RecommenderUtils
     {
         /// <summary>
         /// Check if the considered data, <see cref="RoleMappedData"/>, contains column roles specified by <see cref="MatrixColumnIndexKind"/> and <see cref="MatrixRowIndexKind"/>.
-        /// If the column roles, X and Y, uniquely exists in data, their <see cref="ColumnInfo"/> would be assigned to xColumn and yColumn.
+        /// If the column roles, <see cref="MatrixColumnIndexKind"/> and <see cref="MatrixRowIndexKind"/>, uniquely exist in data, their <see cref="ColumnInfo"/> would be assigned
+        /// to the two out parameters below.
         /// </summary>
         /// <param name="data">The considered data being checked</param>
-        /// <param name="xColumn">The column as role X in the input data</param>
-        /// <param name="yColumn">The column as role Y in the input data</param>
+        /// <param name="matrixColumnIndexColumn">The column as role row index in the input data</param>
+        /// <param name="matrixRowIndexColumn">The column as role column index in the input data</param>
         /// <param name="isDecode">Whether a non-user error should be thrown as a decode</param>
-        public static void CheckAndGetXYColumns(RoleMappedData data, out ColumnInfo xColumn, out ColumnInfo yColumn, bool isDecode)
+        public static void CheckAndGetMatrixIndexColumns(RoleMappedData data, out ColumnInfo matrixColumnIndexColumn, out ColumnInfo matrixRowIndexColumn, bool isDecode)
         {
             Contracts.AssertValue(data);
-            CheckRowColumnType(data, MatrixColumnIndexKind, out xColumn, isDecode);
-            CheckRowColumnType(data, MatrixRowIndexKind, out yColumn, isDecode);
+            CheckRowColumnType(data, MatrixColumnIndexKind, out matrixColumnIndexColumn, isDecode);
+            CheckRowColumnType(data, MatrixRowIndexKind, out matrixRowIndexColumn, isDecode);
         }
 
         /// <summary>
@@ -76,11 +77,11 @@ namespace Microsoft.ML.Runtime.Recommender
         /// <summary>
         /// The column role that is treated as column index in matrix factorization problem
         /// </summary>
-        public static RoleMappedSchema.ColumnRole MatrixColumnIndexKind => "X";
+        public static RoleMappedSchema.ColumnRole MatrixColumnIndexKind => "MatrixColumnIndex";
 
         /// <summary>
         /// The column role that is treated as row index in matrix factorization problem
         /// </summary>
-        public static RoleMappedSchema.ColumnRole MatrixRowIndexKind => "Y";
+        public static RoleMappedSchema.ColumnRole MatrixRowIndexKind => "MatrixRowIndex";
     }
 }

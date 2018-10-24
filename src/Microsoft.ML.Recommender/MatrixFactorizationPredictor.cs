@@ -287,13 +287,13 @@ namespace Microsoft.ML.Runtime.Recommender
                 _parent = parent;
 
                 // Check role of X
-                var matrixColumnList = schema.GetColumns(RecommendUtils.MatrixColumnIndexKind);
-                string msg = $"'{RecommendUtils.MatrixColumnIndexKind}' column doesn't exist or not unique";
+                var matrixColumnList = schema.GetColumns(RecommenderUtils.MatrixColumnIndexKind);
+                string msg = $"'{RecommenderUtils.MatrixColumnIndexKind}' column doesn't exist or not unique";
                 _env.Check(Utils.Size(matrixColumnList) == 1, msg);
 
                 // Check role of Y
-                var matrixRowList = schema.GetColumns(RecommendUtils.MatrixRowIndexKind);
-                msg = $"'{RecommendUtils.MatrixRowIndexKind}' column doesn't exist or not unique";
+                var matrixRowList = schema.GetColumns(RecommenderUtils.MatrixRowIndexKind);
+                msg = $"'{RecommenderUtils.MatrixRowIndexKind}' column doesn't exist or not unique";
                 _env.Check(Utils.Size(matrixRowList) == 1, msg);
 
                 _matrixColumnIndexColumnName = matrixColumnList[0].Name;
@@ -319,8 +319,8 @@ namespace Microsoft.ML.Runtime.Recommender
 
             public IEnumerable<KeyValuePair<RoleMappedSchema.ColumnRole, string>> GetInputColumnRoles()
             {
-                yield return RecommendUtils.MatrixColumnIndexKind.Bind(_matrixColumnIndexColumnName);
-                yield return RecommendUtils.MatrixRowIndexKind.Bind(_matrixRowIndexColumnName);
+                yield return RecommenderUtils.MatrixColumnIndexKind.Bind(_matrixColumnIndexColumnName);
+                yield return RecommenderUtils.MatrixRowIndexKind.Bind(_matrixRowIndexColumnName);
             }
 
             private void CheckInputSchema(ISchema schema, int matrixColumnIndexCol, int matrixRowIndexCol)
@@ -382,8 +382,8 @@ namespace Microsoft.ML.Runtime.Recommender
         /// <param name="env">Eviroment object for showing information</param>
         /// <param name="model">The model trained by one of the training functions in <see cref="MatrixFactorizationTrainer"/></param>
         /// <param name="trainSchema">Targeted schema that containing columns named as xColumnName</param>
-        /// <param name="matrixColumnIndexColumnName">The name of the column used as role <see cref="RecommendUtils.MatrixColumnIndexKind"/> in matrix factorization world</param>
-        /// <param name="matrixRowIndexColumnName">The name of the column used as role <see cref="RecommendUtils.MatrixRowIndexKind"/> in matrix factorization world</param>
+        /// <param name="matrixColumnIndexColumnName">The name of the column used as role <see cref="RecommenderUtils.MatrixColumnIndexKind"/> in matrix factorization world</param>
+        /// <param name="matrixRowIndexColumnName">The name of the column used as role <see cref="RecommenderUtils.MatrixRowIndexKind"/> in matrix factorization world</param>
         /// <param name="scoreColumnNameSuffix">A string attached to the output column name of this transformer</param>
         public MatrixFactorizationPredictionTransformer(IHostEnvironment env, MatrixFactorizationPredictor model, Schema trainSchema,
             string matrixColumnIndexColumnName, string matrixRowIndexColumnName, string scoreColumnNameSuffix = "")
@@ -396,10 +396,10 @@ namespace Microsoft.ML.Runtime.Recommender
             MatrixRowIndexColumnName = matrixRowIndexColumnName;
 
             if (!trainSchema.TryGetColumnIndex(MatrixColumnIndexColumnName, out int xCol))
-                throw Host.ExceptSchemaMismatch(nameof(MatrixColumnIndexColumnName), RecommendUtils.MatrixColumnIndexKind.Value, MatrixColumnIndexColumnName);
+                throw Host.ExceptSchemaMismatch(nameof(MatrixColumnIndexColumnName), RecommenderUtils.MatrixColumnIndexKind.Value, MatrixColumnIndexColumnName);
             MatrixColumnIndexColumnType = trainSchema.GetColumnType(xCol);
             if (!trainSchema.TryGetColumnIndex(MatrixRowIndexColumnName, out int yCol))
-                throw Host.ExceptSchemaMismatch(nameof(yCol), RecommendUtils.MatrixRowIndexKind.Value, MatrixRowIndexColumnName);
+                throw Host.ExceptSchemaMismatch(nameof(yCol), RecommenderUtils.MatrixRowIndexKind.Value, MatrixRowIndexColumnName);
 
             BindableMapper = ScoreUtils.GetSchemaBindableMapper(Host, model);
 
@@ -411,8 +411,8 @@ namespace Microsoft.ML.Runtime.Recommender
         private RoleMappedSchema GetSchema()
         {
             var roles = new List<KeyValuePair<RoleMappedSchema.ColumnRole, string>>();
-            roles.Add(new KeyValuePair<RoleMappedSchema.ColumnRole, string>(RecommendUtils.MatrixColumnIndexKind, MatrixColumnIndexColumnName));
-            roles.Add(new KeyValuePair<RoleMappedSchema.ColumnRole, string>(RecommendUtils.MatrixRowIndexKind, MatrixRowIndexColumnName));
+            roles.Add(new KeyValuePair<RoleMappedSchema.ColumnRole, string>(RecommenderUtils.MatrixColumnIndexKind, MatrixColumnIndexColumnName));
+            roles.Add(new KeyValuePair<RoleMappedSchema.ColumnRole, string>(RecommenderUtils.MatrixRowIndexKind, MatrixRowIndexColumnName));
             var schema = new RoleMappedSchema(TrainSchema, roles);
             return schema;
         }
@@ -433,11 +433,11 @@ namespace Microsoft.ML.Runtime.Recommender
             MatrixRowIndexColumnName = ctx.LoadString();
 
             if (!TrainSchema.TryGetColumnIndex(MatrixColumnIndexColumnName, out int xCol))
-                throw Host.ExceptSchemaMismatch(nameof(MatrixColumnIndexColumnName), RecommendUtils.MatrixColumnIndexKind.Value, MatrixColumnIndexColumnName);
+                throw Host.ExceptSchemaMismatch(nameof(MatrixColumnIndexColumnName), RecommenderUtils.MatrixColumnIndexKind.Value, MatrixColumnIndexColumnName);
             MatrixColumnIndexColumnType = TrainSchema.GetColumnType(xCol);
 
             if (!TrainSchema.TryGetColumnIndex(MatrixRowIndexColumnName, out int yCol))
-                throw Host.ExceptSchemaMismatch(nameof(MatrixRowIndexColumnName), RecommendUtils.MatrixRowIndexKind.Value, MatrixRowIndexColumnName);
+                throw Host.ExceptSchemaMismatch(nameof(MatrixRowIndexColumnName), RecommenderUtils.MatrixRowIndexKind.Value, MatrixRowIndexColumnName);
             MatrixRowIndexColumnType = TrainSchema.GetColumnType(yCol);
 
             BindableMapper = ScoreUtils.GetSchemaBindableMapper(Host, Model);
@@ -450,9 +450,9 @@ namespace Microsoft.ML.Runtime.Recommender
         public override Schema GetOutputSchema(Schema inputSchema)
         {
             if (!inputSchema.TryGetColumnIndex(MatrixColumnIndexColumnName, out int xCol))
-                throw Host.ExceptSchemaMismatch(nameof(inputSchema), RecommendUtils.MatrixColumnIndexKind.Value, MatrixColumnIndexColumnName);
+                throw Host.ExceptSchemaMismatch(nameof(inputSchema), RecommenderUtils.MatrixColumnIndexKind.Value, MatrixColumnIndexColumnName);
             if (!inputSchema.TryGetColumnIndex(MatrixRowIndexColumnName, out int yCol))
-                throw Host.ExceptSchemaMismatch(nameof(inputSchema), RecommendUtils.MatrixRowIndexKind.Value, MatrixRowIndexColumnName);
+                throw Host.ExceptSchemaMismatch(nameof(inputSchema), RecommenderUtils.MatrixRowIndexKind.Value, MatrixRowIndexColumnName);
 
             return Transform(new EmptyDataView(Host, inputSchema)).Schema;
         }

@@ -181,7 +181,7 @@ namespace Microsoft.ML.Trainers
             ColumnInfo validMatrixRowIndexColInfo = null;
 
             ch.CheckValue(data.Schema.Label, nameof(data), "Input data did not have a unique label");
-            RecommendUtils.CheckAndGetXYColumns(data, out matrixColumnIndexColInfo, out matrixRowIndexColInfo, isDecode: false);
+            RecommenderUtils.CheckAndGetMatrixIndexColumns(data, out matrixColumnIndexColInfo, out matrixRowIndexColInfo, isDecode: false);
             if (data.Schema.Label.Type != NumberType.R4 && data.Schema.Label.Type != NumberType.R8)
                 throw ch.Except("Column '{0}' for label should be floating point, but is instead {1}", data.Schema.Label.Name, data.Schema.Label.Type);
             MatrixFactorizationPredictor predictor;
@@ -189,7 +189,7 @@ namespace Microsoft.ML.Trainers
             {
                 ch.CheckValue(validData, nameof(validData));
                 ch.CheckValue(validData.Schema.Label, nameof(validData), "Input validation data did not have a unique label");
-                RecommendUtils.CheckAndGetXYColumns(validData, out validMatrixColumnIndexColInfo, out validMatrixRowIndexColInfo, isDecode: false);
+                RecommenderUtils.CheckAndGetMatrixIndexColumns(validData, out validMatrixColumnIndexColInfo, out validMatrixRowIndexColInfo, isDecode: false);
                 if (validData.Schema.Label.Type != NumberType.R4 && validData.Schema.Label.Type != NumberType.R8)
                     throw ch.Except("Column '{0}' for validation label should be floating point, but is instead {1}", data.Schema.Label.Name, data.Schema.Label.Type);
 
@@ -268,8 +268,8 @@ namespace Microsoft.ML.Trainers
 
             var roles = new List<KeyValuePair<RoleMappedSchema.ColumnRole, string>>();
             roles.Add(new KeyValuePair<RoleMappedSchema.ColumnRole, string>(RoleMappedSchema.ColumnRole.Label, LabelColumn.Name));
-            roles.Add(new KeyValuePair<RoleMappedSchema.ColumnRole, string>(RecommendUtils.MatrixColumnIndexKind.Value, MatrixColumnIndexColumn.Name));
-            roles.Add(new KeyValuePair<RoleMappedSchema.ColumnRole, string>(RecommendUtils.MatrixRowIndexKind.Value, MatrixRowIndexColumn.Name));
+            roles.Add(new KeyValuePair<RoleMappedSchema.ColumnRole, string>(RecommenderUtils.MatrixColumnIndexKind.Value, MatrixColumnIndexColumn.Name));
+            roles.Add(new KeyValuePair<RoleMappedSchema.ColumnRole, string>(RecommenderUtils.MatrixRowIndexKind.Value, MatrixRowIndexColumn.Name));
 
             var trainingData = new RoleMappedData(input, roles);
             var validData = Context == null ? null : new RoleMappedData(Context.ValidationSet, roles);
