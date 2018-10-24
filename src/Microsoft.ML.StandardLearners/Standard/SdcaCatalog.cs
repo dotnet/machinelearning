@@ -60,6 +60,18 @@ namespace Microsoft.ML
         /// <param name="l1Threshold">The L1 regularization hyperparameter. Higher values will tend to lead to more sparse model.</param>
         /// <param name="maxIterations">The maximum number of passes to perform over the data.</param>
         /// <param name="advancedSettings">A delegate to set more settings.</param>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        ///  [!code-csharp[SDCA](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/SDCA.cs?range=48-49)]
+        /// ]]></format>
+        /// </example>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        ///  [!code-csharp[SDCA](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/SDCA.cs?range=5-8,13-76)]
+        /// ]]></format>
+        /// </example>
         public static LinearClassificationTrainer StochasticDualCoordinateAscent(
                 this BinaryClassificationContext.BinaryClassificationTrainers ctx,
                 string label = DefaultColumnNames.Label, string features = DefaultColumnNames.Features,
