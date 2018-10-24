@@ -104,7 +104,6 @@ namespace Microsoft.ML.Trainers
         /// <param name="args">An instance of the legacy <see cref="Arguments"/> to apply advanced parameters to the algorithm.</param>
         public MatrixFactorizationTrainer(IHostEnvironment env, Arguments args) : base(env, LoadNameValue)
         {
-
             const string posError = "Parameter must be positive";
             Host.CheckValue(args, nameof(args));
             Host.CheckUserArg(args.K > 0, nameof(args.K), posError);

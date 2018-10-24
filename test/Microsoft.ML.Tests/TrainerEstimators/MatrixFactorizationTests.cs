@@ -17,8 +17,15 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             string labelColumnName = "Label";
             string xColumnName = "X";
             string yColumnName = "Y";
+
+            // This data contains three columns, Label, X, and Y where X and Y will be treated as the expected input names
+            // of the trained matrix factorization model.
             var data = new TextLoader(Env, GetLoaderArgs(labelColumnName, xColumnName, yColumnName))
                     .Read(new MultiFileSource(GetDataPath(TestDatasets.trivialMatrixFactorization.trainFilename)));
+
+            // "invalidData" is not compatible to "data" because it contains columns Label, XRenamed, and YRenamed (no column is X or Y).
+            var invalidData = new TextLoader(Env, GetLoaderArgs(labelColumnName, xColumnName + "Renamed", yColumnName+"Renamed"))
+                    .Read(new MultiFileSource(GetDataPath(TestDatasets.trivialMatrixFactorization.testFilename)));
 
             var est = new MatrixFactorizationTrainer(Env, labelColumnName, xColumnName, yColumnName, 
                 advancedSettings:s=>
@@ -28,57 +35,9 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                     s.K = 4;
                 });
 
-            TestEstimatorCore(est, data);
+            TestEstimatorCore(est, data, invalidInput: invalidData);
 
             Done();
-        }
-
-        [Fact]
-        public void MatrixFactorizationInvalid()
-        {
-            using (var env = new LocalEnvironment(seed: 1, conc: 1))
-            {
-                // Specific column names of the considered data set
-                string labelColumnName = "Label";
-                string userColumnName = "User";
-                string itemColumnName = "Item";
-
-                // Create readers for training and test data sets. Note that they produce different schemas, so an exception will be thrown
-                // because the trained transformer cannot be applied to the test schema.
-                var reader = new TextLoader(env, GetLoaderArgs(labelColumnName, userColumnName, itemColumnName));
-                var testReader = new TextLoader(env, GetLoaderArgs(labelColumnName, userColumnName + "Renamed", itemColumnName + "Renamed"));
-
-                // Read training data as an IDataView object
-                var data = reader.Read(new MultiFileSource(GetDataPath(TestDatasets.trivialMatrixFactorization.trainFilename)));
-
-                // Create a pipeline with a single operator.
-                var pipeline = new MatrixFactorizationTrainer(env, labelColumnName, userColumnName, itemColumnName,
-                    advancedSettings:s=>
-                    {
-                        s.NumIterations = 3;
-                        s.NumThreads = 1; // To eliminate randomness, # of threads must be 1.
-                        s.K = 7;
-                    });
-
-                // Train a matrix factorization model.
-                var model = pipeline.Fit(data);
-
-                // Read the test data set as an IDataView
-                var testData = testReader.Read(new MultiFileSource(GetDataPath(TestDatasets.trivialMatrixFactorization.testFilename)));
-
-                // Apply the trained model to the test set. It will fail because the transformer will be looking for "User" and "Item" colmuns,
-                // which were changed to "UserRenamed" and "ItemRenamed", respectively in the test data.
-                bool thrown = false;
-                try
-                {
-                    var prediction = model.Transform(testData);
-                }
-                catch
-                {
-                    thrown = true;
-                }
-                Assert.True(thrown);
-            }
         }
 
         [Fact]
