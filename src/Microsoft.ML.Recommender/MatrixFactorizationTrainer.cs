@@ -106,12 +106,12 @@ namespace Microsoft.ML.Trainers
         {
 
             const string posError = "Parameter must be positive";
-            env.CheckValue(args, nameof(args));
-            env.CheckUserArg(args.K > 0, nameof(args.K), posError);
-            env.CheckUserArg(!args.NumThreads.HasValue || args.NumThreads > 0, nameof(args.NumThreads), posError);
-            env.CheckUserArg(args.NumIterations > 0, nameof(args.NumIterations), posError);
-            env.CheckUserArg(args.Lambda > 0, nameof(args.Lambda), posError);
-            env.CheckUserArg(args.Eta > 0, nameof(args.Eta), posError);
+            Host.CheckValue(args, nameof(args));
+            Host.CheckUserArg(args.K > 0, nameof(args.K), posError);
+            Host.CheckUserArg(!args.NumThreads.HasValue || args.NumThreads > 0, nameof(args.NumThreads), posError);
+            Host.CheckUserArg(args.NumIterations > 0, nameof(args.NumIterations), posError);
+            Host.CheckUserArg(args.Lambda > 0, nameof(args.Lambda), posError);
+            Host.CheckUserArg(args.Eta > 0, nameof(args.Eta), posError);
 
             _lambda = args.Lambda;
             _k = args.K;
