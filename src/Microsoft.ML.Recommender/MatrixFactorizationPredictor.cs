@@ -220,7 +220,7 @@ namespace Microsoft.ML.Runtime.Recommender
             msg = "Invalid " + nameof(TMatrixRowIndexIn) + " in GetMapper: " + typeof(TMatrixRowIndexIn);
             _host.Check(typeof(TMatrixRowIndexIn) == typeof(uint), msg);
 
-            msg = "Invalid TOut in GetMapper: " + typeof(TOut);
+            msg = "Invalid " + nameof(TOut) + " in GetMapper: " + typeof(TOut);
             _host.Check(typeof(TOut) == typeof(float), msg);
 
             ValueMapper<uint, uint, float> mapper = MapperCore;
@@ -242,15 +242,17 @@ namespace Microsoft.ML.Runtime.Recommender
             dst = Score((int)(srcCol - 1), (int)(srcRow - 1));
         }
 
-        private float Score(int col, int row)
+        private float Score(int columnIndex, int rowIndex)
         {
-            _host.Assert(0 <= row && row < _numberOfRows);
-            _host.Assert(0 <= col && col < _numberofColumns);
+            _host.Assert(0 <= rowIndex && rowIndex < _numberOfRows);
+            _host.Assert(0 <= columnIndex && columnIndex < _numberofColumns);
             float score = 0;
-            int poffset = row * _approximationRank;
-            int qoffset = col * _approximationRank;
+            // Starting position of the rowIndex-th row in the left factor factor matrix
+            int rowOffset = rowIndex * _approximationRank;
+            // Starting position of the columnIndex-th column in the right factor factor matrix
+            int columnOffset = columnIndex * _approximationRank;
             for (int i = 0; i < _approximationRank; i++)
-                score += _leftFactorMatrix[poffset + i] * _rightFactorMatrix[qoffset + i];
+                score += _leftFactorMatrix[rowOffset + i] * _rightFactorMatrix[columnOffset + i];
             return score;
         }
 
@@ -286,12 +288,12 @@ namespace Microsoft.ML.Runtime.Recommender
                 _env = env;
                 _parent = parent;
 
-                // Check role of X
+                // Check role of matrix column index
                 var matrixColumnList = schema.GetColumns(RecommenderUtils.MatrixColumnIndexKind);
                 string msg = $"'{RecommenderUtils.MatrixColumnIndexKind}' column doesn't exist or not unique";
                 _env.Check(Utils.Size(matrixColumnList) == 1, msg);
 
-                // Check role of Y
+                // Check role of matrix row index
                 var matrixRowList = schema.GetColumns(RecommenderUtils.MatrixRowIndexKind);
                 msg = $"'{RecommenderUtils.MatrixRowIndexKind}' column doesn't exist or not unique";
                 _env.Check(Utils.Size(matrixRowList) == 1, msg);
@@ -325,12 +327,12 @@ namespace Microsoft.ML.Runtime.Recommender
 
             private void CheckInputSchema(ISchema schema, int matrixColumnIndexCol, int matrixRowIndexCol)
             {
-                // See if role X's type matches the one expected in the trained predictor
+                // See if matrix-column-index role's type matches the one expected in the trained predictor
                 var type = schema.GetColumnType(matrixColumnIndexCol);
                 string msg = string.Format("Input column index type '{0}' incompatible with predictor's column index type '{1}'", type, _parent.MatrixColumnIndexType);
                 _env.CheckParam(type.Equals(_parent.MatrixColumnIndexType), nameof(schema), msg);
 
-                // See if role Y's type matches the one expected in the trained predictor
+                // See if matrix-column-index  role's type matches the one expected in the trained predictor
                 type = schema.GetColumnType(matrixRowIndexCol);
                 msg = string.Format("Input row index type '{0}' incompatible with predictor' row index type '{1}'", type, _parent.MatrixRowIndexType);
                 _env.CheckParam(type.Equals(_parent.MatrixRowIndexType), nameof(schema), msg);
