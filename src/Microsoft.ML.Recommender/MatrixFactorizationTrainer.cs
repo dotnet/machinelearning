@@ -79,10 +79,10 @@ namespace Microsoft.ML.Trainers
         ///   [9, 4]
         ///   [8, 7]
         /// can be encoded as tuples (0, 0, 9), (0, 1, 4), (1, 0, 8), and (1, 1, 7). It means that the row/column/label column contains [0, 0, 1, 1]/
-        /// [0, 1, 0, 1]/[9, 4, 8, 7]. Note that for a given matrix, row indices are column indices are denoted by Y and X, respectively.
+        /// [0, 1, 0, 1]/[9, 4, 8, 7].
         /// </summary>
-        public readonly SchemaShape.Column XColumn; // column indices of the training matrix
-        public readonly SchemaShape.Column YColumn; // row indices of the training matrix
+        public readonly SchemaShape.Column MatrixColumnIndexColumn; // column indices of the training matrix
+        public readonly SchemaShape.Column MatrixRowIndexColumn; // row indices of the training matrix
         public readonly SchemaShape.Column LabelColumn;
 
         /// <summary>
@@ -128,11 +128,11 @@ namespace Microsoft.ML.Trainers
         /// </summary>
         /// <param name="env">The private instance of <see cref="IHostEnvironment"/>.</param>
         /// <param name="labelColumn">The name of the label column.</param>
-        /// <param name="xColumnName">The name of the column hosting the matrix's column IDs.</param>
-        /// <param name="yColumnName">The name of the column hosting the matrix's row IDs.</param>
+        /// <param name="matrixColumnIndexColumnName">The name of the column hosting the matrix's column IDs.</param>
+        /// <param name="matrixRowIndexColumnName">The name of the column hosting the matrix's row IDs.</param>
         /// <param name="advancedSettings">A delegate to apply all the advanced arguments to the algorithm.</param>
         /// <param name="context">The <see cref="TrainerEstimatorContext"/> for additional input data to training.</param>
-        public MatrixFactorizationTrainer(IHostEnvironment env, string labelColumn, string xColumnName, string yColumnName,
+        public MatrixFactorizationTrainer(IHostEnvironment env, string labelColumn, string matrixColumnIndexColumnName, string matrixRowIndexColumnName,
             TrainerEstimatorContext context = null, Action<Arguments> advancedSettings = null)
             : base(env, LoadNameValue)
         {
@@ -151,8 +151,8 @@ namespace Microsoft.ML.Trainers
             Context = context;
 
             LabelColumn = new SchemaShape.Column(labelColumn, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false);
-            XColumn = new SchemaShape.Column(xColumnName, SchemaShape.Column.VectorKind.Scalar, NumberType.U4, true);
-            YColumn = new SchemaShape.Column(yColumnName, SchemaShape.Column.VectorKind.Scalar, NumberType.U4, true);
+            MatrixColumnIndexColumn = new SchemaShape.Column(matrixColumnIndexColumnName, SchemaShape.Column.VectorKind.Scalar, NumberType.U4, true);
+            MatrixRowIndexColumn = new SchemaShape.Column(matrixRowIndexColumnName, SchemaShape.Column.VectorKind.Scalar, NumberType.U4, true);
         }
 
         /// <summary>
@@ -175,13 +175,13 @@ namespace Microsoft.ML.Trainers
             ch.AssertValue(data);
             ch.AssertValueOrNull(validData);
 
-            ColumnInfo xColInfo;
-            ColumnInfo yColInfo;
-            ColumnInfo validXColInfo = null;
-            ColumnInfo validYColInfo = null;
+            ColumnInfo matrixColumnIndexColInfo;
+            ColumnInfo matrixRowIndexColInfo;
+            ColumnInfo validMatrixColumnIndexColInfo = null;
+            ColumnInfo validMatrixRowIndexColInfo = null;
 
             ch.CheckValue(data.Schema.Label, nameof(data), "Input data did not have a unique label");
-            RecommendUtils.CheckAndGetXYColumns(data, out xColInfo, out yColInfo, isDecode: false);
+            RecommendUtils.CheckAndGetXYColumns(data, out matrixColumnIndexColInfo, out matrixRowIndexColInfo, isDecode: false);
             if (data.Schema.Label.Type != NumberType.R4 && data.Schema.Label.Type != NumberType.R8)
                 throw ch.Except("Column '{0}' for label should be floating point, but is instead {1}", data.Schema.Label.Name, data.Schema.Label.Type);
             MatrixFactorizationPredictor predictor;
@@ -189,34 +189,34 @@ namespace Microsoft.ML.Trainers
             {
                 ch.CheckValue(validData, nameof(validData));
                 ch.CheckValue(validData.Schema.Label, nameof(validData), "Input validation data did not have a unique label");
-                RecommendUtils.CheckAndGetXYColumns(validData, out validXColInfo, out validYColInfo, isDecode: false);
+                RecommendUtils.CheckAndGetXYColumns(validData, out validMatrixColumnIndexColInfo, out validMatrixRowIndexColInfo, isDecode: false);
                 if (validData.Schema.Label.Type != NumberType.R4 && validData.Schema.Label.Type != NumberType.R8)
                     throw ch.Except("Column '{0}' for validation label should be floating point, but is instead {1}", data.Schema.Label.Name, data.Schema.Label.Type);
 
-                if (!xColInfo.Type.Equals(validXColInfo.Type))
+                if (!matrixColumnIndexColInfo.Type.Equals(validMatrixColumnIndexColInfo.Type))
                 {
-                    throw ch.ExceptParam(nameof(validData), "Train and validation set X types differed, {0} vs. {1}",
-                        xColInfo.Type, validXColInfo.Type);
+                    throw ch.ExceptParam(nameof(validData), "Train and validation sets' matrix-column types differed, {0} vs. {1}",
+                        matrixColumnIndexColInfo.Type, validMatrixColumnIndexColInfo.Type);
                 }
-                if (!yColInfo.Type.Equals(validYColInfo.Type))
+                if (!matrixRowIndexColInfo.Type.Equals(validMatrixRowIndexColInfo.Type))
                 {
-                    throw ch.ExceptParam(nameof(validData), "Train and validation set Y types differed, {0} vs. {1}",
-                        yColInfo.Type, validYColInfo.Type);
+                    throw ch.ExceptParam(nameof(validData), "Train and validation sets' matrix-row types differed, {0} vs. {1}",
+                        matrixRowIndexColInfo.Type, validMatrixRowIndexColInfo.Type);
                 }
             }
 
-            int colCount = xColInfo.Type.KeyCount;
-            int rowCount = yColInfo.Type.KeyCount;
+            int colCount = matrixColumnIndexColInfo.Type.KeyCount;
+            int rowCount = matrixRowIndexColInfo.Type.KeyCount;
             ch.Assert(rowCount > 0);
             ch.Assert(colCount > 0);
             // Checks for equality on the validation set ensure it is correct here.
 
-            using (var cursor = data.Data.GetRowCursor(c => c == xColInfo.Index || c == yColInfo.Index || c == data.Schema.Label.Index))
+            using (var cursor = data.Data.GetRowCursor(c => c == matrixColumnIndexColInfo.Index || c == matrixRowIndexColInfo.Index || c == data.Schema.Label.Index))
             {
                 // LibMF works only over single precision floats, but we want to be able to consume either.
                 ValueGetter<Single> labGetter = RowCursorUtils.GetGetterAs<Single>(NumberType.R4, cursor, data.Schema.Label.Index);
-                var xGetter = cursor.GetGetter<uint>(xColInfo.Index);
-                var yGetter = cursor.GetGetter<uint>(yColInfo.Index);
+                var matrixColumnIndexGetter = cursor.GetGetter<uint>(matrixColumnIndexColInfo.Index);
+                var matrixRowIndexGetter = cursor.GetGetter<uint>(matrixRowIndexColInfo.Index);
 
                 if (validData == null)
                 {
@@ -224,26 +224,26 @@ namespace Microsoft.ML.Trainers
                     using (var buffer = PrepareBuffer())
                     {
                         buffer.Train(ch, rowCount, colCount,
-                            cursor, labGetter, yGetter, xGetter);
-                        predictor = new MatrixFactorizationPredictor(Host, buffer, xColInfo.Type.AsKey, yColInfo.Type.AsKey);
+                            cursor, labGetter, matrixRowIndexGetter, matrixColumnIndexGetter);
+                        predictor = new MatrixFactorizationPredictor(Host, buffer, matrixColumnIndexColInfo.Type.AsKey, matrixRowIndexColInfo.Type.AsKey);
                     }
                 }
                 else
                 {
                     using (var validCursor = validData.Data.GetRowCursor(
-                        c => c == validXColInfo.Index || c == validYColInfo.Index || c == validData.Schema.Label.Index))
+                        c => c == validMatrixColumnIndexColInfo.Index || c == validMatrixRowIndexColInfo.Index || c == validData.Schema.Label.Index))
                     {
                         ValueGetter<Single> validLabGetter = RowCursorUtils.GetGetterAs<Single>(NumberType.R4, validCursor, validData.Schema.Label.Index);
-                        var validXGetter = validCursor.GetGetter<uint>(validXColInfo.Index);
-                        var validYGetter = validCursor.GetGetter<uint>(validYColInfo.Index);
+                        var validXGetter = validCursor.GetGetter<uint>(validMatrixColumnIndexColInfo.Index);
+                        var validYGetter = validCursor.GetGetter<uint>(validMatrixRowIndexColInfo.Index);
 
                         // Have the trainer do its work.
                         using (var buffer = PrepareBuffer())
                         {
                             buffer.TrainWithValidation(ch, rowCount, colCount,
-                                cursor, labGetter, yGetter, xGetter,
+                                cursor, labGetter, matrixRowIndexGetter, matrixColumnIndexGetter,
                                 validCursor, validLabGetter, validYGetter, validXGetter);
-                            predictor = new MatrixFactorizationPredictor(Host, buffer, xColInfo.Type.AsKey, yColInfo.Type.AsKey);
+                            predictor = new MatrixFactorizationPredictor(Host, buffer, matrixColumnIndexColInfo.Type.AsKey, matrixRowIndexColInfo.Type.AsKey);
                         }
                     }
                 }
@@ -268,8 +268,8 @@ namespace Microsoft.ML.Trainers
 
             var roles = new List<KeyValuePair<RoleMappedSchema.ColumnRole, string>>();
             roles.Add(new KeyValuePair<RoleMappedSchema.ColumnRole, string>(RoleMappedSchema.ColumnRole.Label, LabelColumn.Name));
-            roles.Add(new KeyValuePair<RoleMappedSchema.ColumnRole, string>(RecommendUtils.XKind.Value, XColumn.Name));
-            roles.Add(new KeyValuePair<RoleMappedSchema.ColumnRole, string>(RecommendUtils.YKind.Value, YColumn.Name));
+            roles.Add(new KeyValuePair<RoleMappedSchema.ColumnRole, string>(RecommendUtils.MatrixColumnIndexKind.Value, MatrixColumnIndexColumn.Name));
+            roles.Add(new KeyValuePair<RoleMappedSchema.ColumnRole, string>(RecommendUtils.MatrixRowIndexKind.Value, MatrixRowIndexColumn.Name));
 
             var trainingData = new RoleMappedData(input, roles);
             var validData = Context == null ? null : new RoleMappedData(Context.ValidationSet, roles);
@@ -280,7 +280,7 @@ namespace Microsoft.ML.Trainers
                 model = TrainCore(ch, trainingData, validData);
             }
 
-            return new MatrixFactorizationPredictionTransformer(Host, model, input.Schema, XColumn.Name, YColumn.Name);
+            return new MatrixFactorizationPredictionTransformer(Host, model, input.Schema, MatrixColumnIndexColumn.Name, MatrixRowIndexColumn.Name);
         }
 
         public SchemaShape GetOutputSchema(SchemaShape inputSchema)
@@ -301,8 +301,8 @@ namespace Microsoft.ML.Trainers
                 CheckColumnsCompatible(LabelColumn, LabelColumn.Name);
 
             // In both of training and prediction phases, we need columns of user ID and column ID.
-            CheckColumnsCompatible(XColumn, XColumn.Name);
-            CheckColumnsCompatible(YColumn, YColumn.Name);
+            CheckColumnsCompatible(MatrixColumnIndexColumn, MatrixColumnIndexColumn.Name);
+            CheckColumnsCompatible(MatrixRowIndexColumn, MatrixRowIndexColumn.Name);
 
             // Input columns just pass through so that output column dictionary contains all input columns.
             var outColumns = inputSchema.Columns.ToDictionary(x => x.Name);

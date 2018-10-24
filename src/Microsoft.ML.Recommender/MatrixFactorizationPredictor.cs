@@ -22,6 +22,12 @@ using Microsoft.ML.Trainers;
 
 namespace Microsoft.ML.Runtime.Recommender
 {
+    /// <summary>
+    /// <see cref="MatrixFactorizationPredictor"/> stores two factor matrices, P and Q, for approximating the training matrix, R, by P * Q,
+    /// where * is a matrix multiplication. This predictor expects two inputs, row index and column index, and produces the (approximated)
+    /// value at the location specified by the two inputs in R. More specifically, if input row and column indices are u and v, respectively.
+    /// The output (a scalar) would be the inner product product of the u-th row in P and the v-th column in Q.
+    /// </summary>
     public sealed class MatrixFactorizationPredictor : IPredictor, ICanSaveModel, ICanSaveInTextFormat, ISchemaBindableMapper
     {
         internal const string LoaderSignature = "MFPredictor";
@@ -40,15 +46,15 @@ namespace Microsoft.ML.Runtime.Recommender
 
         private readonly IHost _host;
         // The number of rows.
-        private readonly int _m;
+        private readonly int _numberOfRows;
         // The number of columns.
-        private readonly int _n;
-        // The internal dimension.
-        private readonly int _k;
-        // Packed _m by _k matrix.
-        private readonly float[] _p;
-        // Packed _k by _n matrix. Note that LIBMF approximates the given _m-by-_n matrix via _p * _q, where * denotes matrix multiplication.
-        private readonly float[] _q;
+        private readonly int _numberofColumns;
+        // The rank of the factor matrices.
+        private readonly int _approximationRank;
+        // Packed _numberOfRows by _approximationRank matrix.
+        private readonly float[] _leftFactorMatrix;
+        // Packed _approximationRank by _numberofColumns matrix.
+        private readonly float[] _rightFactorMatrix;
 
         public PredictionKind PredictionKind
         {
@@ -57,27 +63,27 @@ namespace Microsoft.ML.Runtime.Recommender
 
         public ColumnType OutputType { get { return NumberType.Float; } }
 
-        public ColumnType InputXType { get; }
-        public ColumnType InputYType { get; }
+        public ColumnType MatrixColumnIndexType { get; }
+        public ColumnType MatrixRowIndexType { get; }
 
-        internal MatrixFactorizationPredictor(IHostEnvironment env, SafeTrainingAndModelBuffer buffer, KeyType xType, KeyType yType)
+        internal MatrixFactorizationPredictor(IHostEnvironment env, SafeTrainingAndModelBuffer buffer, KeyType matrixColumnIndexType, KeyType matrixRowIndexType)
         {
             Contracts.CheckValue(env, nameof(env));
             _host = env.Register(RegistrationName);
-            _host.Assert(xType.RawKind == DataKind.U4);
-            _host.Assert(yType.RawKind == DataKind.U4);
+            _host.Assert(matrixColumnIndexType.RawKind == DataKind.U4);
+            _host.Assert(matrixRowIndexType.RawKind == DataKind.U4);
             _host.CheckValue(buffer, nameof(buffer));
-            _host.CheckValue(xType, nameof(xType));
-            _host.CheckValue(yType, nameof(yType));
+            _host.CheckValue(matrixColumnIndexType, nameof(matrixColumnIndexType));
+            _host.CheckValue(matrixRowIndexType, nameof(matrixRowIndexType));
 
-            buffer.Get(out _m, out _n, out _k, out _p, out _q);
-            _host.Assert(_n == xType.Count);
-            _host.Assert(_m == yType.Count);
-            _host.Assert(_p.Length == _m * _k);
-            _host.Assert(_q.Length == _n * _k);
+            buffer.Get(out _numberOfRows, out _numberofColumns, out _approximationRank, out _leftFactorMatrix, out _rightFactorMatrix);
+            _host.Assert(_numberofColumns == matrixColumnIndexType.Count);
+            _host.Assert(_numberOfRows == matrixRowIndexType.Count);
+            _host.Assert(_leftFactorMatrix.Length == _numberOfRows * _approximationRank);
+            _host.Assert(_rightFactorMatrix.Length == _numberofColumns * _approximationRank);
 
-            InputXType = xType;
-            InputYType = yType;
+            MatrixColumnIndexType = matrixColumnIndexType;
+            MatrixRowIndexType = matrixRowIndexType;
         }
 
         private MatrixFactorizationPredictor(IHostEnvironment env, ModelLoadContext ctx)
@@ -85,30 +91,30 @@ namespace Microsoft.ML.Runtime.Recommender
             Contracts.CheckValue(env, nameof(env));
             _host = env.Register(RegistrationName);
             // *** Binary format ***
-            // int: number of rows (m), the limit on y
-            // ulong: Minimum value of the y key-type
-            // int: number of columns (n), the limit on x
-            // ulong: Minimum value of the x key-type
-            // int: internal dimension of matrices (k)
-            // float[m * k]: the row dimension factor matrix P
-            // float[k * n]: the column dimension factor matrix Q
+            // int: number of rows (m), the limit on row
+            // ulong: Minimum value of the row key-type
+            // int: number of columns (n), the limit on column
+            // ulong: Minimum value of the column key-type
+            // int: rank of factor matrices (k)
+            // float[m * k]: the left factor matrix
+            // float[k * n]: the right factor matrix
 
-            _m = ctx.Reader.ReadInt32();
-            _host.CheckDecode(_m > 0);
+            _numberOfRows = ctx.Reader.ReadInt32();
+            _host.CheckDecode(_numberOfRows > 0);
             ulong mMin = ctx.Reader.ReadUInt64();
-            _host.CheckDecode((ulong)_m <= ulong.MaxValue - mMin);
-            _n = ctx.Reader.ReadInt32();
-            _host.CheckDecode(_n > 0);
+            _host.CheckDecode((ulong)_numberOfRows <= ulong.MaxValue - mMin);
+            _numberofColumns = ctx.Reader.ReadInt32();
+            _host.CheckDecode(_numberofColumns > 0);
             ulong nMin = ctx.Reader.ReadUInt64();
-            _host.CheckDecode((ulong)_n <= ulong.MaxValue - nMin);
-            _k = ctx.Reader.ReadInt32();
-            _host.CheckDecode(_k > 0);
+            _host.CheckDecode((ulong)_numberofColumns <= ulong.MaxValue - nMin);
+            _approximationRank = ctx.Reader.ReadInt32();
+            _host.CheckDecode(_approximationRank > 0);
 
-            _p = Utils.ReadSingleArray(ctx.Reader, checked(_m * _k));
-            _q = Utils.ReadSingleArray(ctx.Reader, checked(_n * _k));
+            _leftFactorMatrix = Utils.ReadSingleArray(ctx.Reader, checked(_numberOfRows * _approximationRank));
+            _rightFactorMatrix = Utils.ReadSingleArray(ctx.Reader, checked(_numberofColumns * _approximationRank));
 
-            InputXType = new KeyType(DataKind.U4, nMin, _n);
-            InputYType = new KeyType(DataKind.U4, mMin, _m);
+            MatrixColumnIndexType = new KeyType(DataKind.U4, nMin, _numberofColumns);
+            MatrixRowIndexType = new KeyType(DataKind.U4, mMin, _numberOfRows);
         }
 
         /// <summary>
@@ -131,26 +137,26 @@ namespace Microsoft.ML.Runtime.Recommender
             ctx.SetVersionInfo(GetVersionInfo());
 
             // *** Binary format ***
-            // int: number of rows (m), the limit on y
-            // ulong: Minimum value of the y key-type
-            // int: number of columns (n), the limit on x
-            // ulong: Minimum value of the x key-type
-            // int: internal dimension of matrices (k)
-            // float[m * k]: the row dimension factor matrix P
-            // float[k * n]: the column dimension factor matrix Q
+            // int: number of rows (m), the limit on row
+            // ulong: Minimum value of the row key-type
+            // int: number of columns (n), the limit on column
+            // ulong: Minimum value of the column key-type
+            // int: rank of factor matrices (k)
+            // float[m * k]: the left factor matrix
+            // float[k * n]: the right factor matrix
 
-            _host.Check(_m > 0, "Number of rows must be positive");
-            _host.Check(_n > 0, "Number of columns must be positive");
-            _host.Check(_k > 0, "Number of latent factors must be positive");
-            ctx.Writer.Write(_m);
-            ctx.Writer.Write((InputYType as KeyType).Min);
-            ctx.Writer.Write(_n);
-            ctx.Writer.Write((InputXType as KeyType).Min);
-            ctx.Writer.Write(_k);
-            _host.Check(Utils.Size(_p) == _m * _k, "Unexpected matrix size of a factor matrix (matrix P in LIBMF paper)");
-            _host.Check(Utils.Size(_q) == _n * _k, "Unexpected matrix size of a factor matrix (matrix Q in LIBMF paper)");
-            Utils.WriteSinglesNoCount(ctx.Writer, _p, _m * _k);
-            Utils.WriteSinglesNoCount(ctx.Writer, _q, _n * _k);
+            _host.Check(_numberOfRows > 0, "Number of rows must be positive");
+            _host.Check(_numberofColumns > 0, "Number of columns must be positive");
+            _host.Check(_approximationRank > 0, "Number of latent factors must be positive");
+            ctx.Writer.Write(_numberOfRows);
+            ctx.Writer.Write((MatrixRowIndexType as KeyType).Min);
+            ctx.Writer.Write(_numberofColumns);
+            ctx.Writer.Write((MatrixColumnIndexType as KeyType).Min);
+            ctx.Writer.Write(_approximationRank);
+            _host.Check(Utils.Size(_leftFactorMatrix) == _numberOfRows * _approximationRank, "Unexpected matrix size of a factor matrix (matrix P in LIBMF paper)");
+            _host.Check(Utils.Size(_rightFactorMatrix) == _numberofColumns * _approximationRank, "Unexpected matrix size of a factor matrix (matrix Q in LIBMF paper)");
+            Utils.WriteSinglesNoCount(ctx.Writer, _leftFactorMatrix, _numberOfRows * _approximationRank);
+            Utils.WriteSinglesNoCount(ctx.Writer, _rightFactorMatrix, _numberofColumns * _approximationRank);
         }
 
         /// <summary>
@@ -159,66 +165,66 @@ namespace Microsoft.ML.Runtime.Recommender
         public void SaveAsText(TextWriter writer, RoleMappedSchema schema)
         {
             writer.WriteLine("# Imputed matrix is P * Q'");
-            writer.WriteLine("# P in R^({0} x {1}), rows correpond to Y item", _m, _k);
-            for (int i = 0; i < _p.Length; ++i)
+            writer.WriteLine("# P in R^({0} x {1}), rows correpond to Y item", _numberOfRows, _approximationRank);
+            for (int i = 0; i < _leftFactorMatrix.Length; ++i)
             {
-                writer.Write(_p[i].ToString("G"));
-                if (i % _k == _k - 1)
+                writer.Write(_leftFactorMatrix[i].ToString("G"));
+                if (i % _approximationRank == _approximationRank - 1)
                     writer.WriteLine();
                 else
                     writer.Write('\t');
             }
-            writer.WriteLine("# Q in R^({0} x {1}), rows correpond to X item", _n, _k);
-            for (int i = 0; i < _q.Length; ++i)
+            writer.WriteLine("# Q in R^({0} x {1}), rows correpond to X item", _numberofColumns, _approximationRank);
+            for (int i = 0; i < _rightFactorMatrix.Length; ++i)
             {
-                writer.Write(_q[i].ToString("G"));
-                if (i % _k == _k - 1)
+                writer.Write(_rightFactorMatrix[i].ToString("G"));
+                if (i % _approximationRank == _approximationRank - 1)
                     writer.WriteLine();
                 else
                     writer.Write('\t');
             }
         }
 
-        private ValueGetter<float> GetGetter(ValueGetter<uint> xGetter, ValueGetter<uint> yGetter)
+        private ValueGetter<float> GetGetter(ValueGetter<uint> matrixColumnIndexGetter, ValueGetter<uint> matrixRowIndexGetter)
         {
-            _host.AssertValue(xGetter);
-            _host.AssertValue(yGetter);
+            _host.AssertValue(matrixColumnIndexGetter);
+            _host.AssertValue(matrixRowIndexGetter);
 
-            uint x = 0;
-            uint y = 0;
+            uint matrixColumnIndex = 0;
+            uint matrixRowIndex = 0;
 
             var mapper = GetMapper<uint, uint, float>();
             ValueGetter<float> del =
                 (ref float value) =>
                 {
-                    xGetter(ref x);
-                    yGetter(ref y);
-                    mapper(ref x, ref y, ref value);
+                    matrixColumnIndexGetter(ref matrixColumnIndex);
+                    matrixRowIndexGetter(ref matrixRowIndex);
+                    mapper(ref matrixColumnIndex, ref matrixRowIndex, ref value);
                 };
             return del;
         }
 
         /// <summary>
         /// Create the mapper required by matrix factorization's predictor. That mapper maps two
-        /// index inputs (e.g., row index and column index) to the value located by the two indexes
-        /// in the training matrix. In recommender system where the training matrix stores ratings
-        /// from users to items, the mappers maps user ID and item ID to the rating of that item given
-        /// by the user.
+        /// index inputs (e.g., row index and column index) to an approximated value located by the
+        /// two indexes in the training matrix. In recommender system where the training matrix stores
+        /// ratings from users to items, the mappers maps user ID and item ID to the rating of that
+        /// item given by the user.
         /// </summary>
-        public ValueMapper<TXIn, TYIn, TOut> GetMapper<TXIn, TYIn, TOut>()
+        public ValueMapper<TMatrixColumnIndexIn, TMatrixRowIndexIn, TOut> GetMapper<TMatrixColumnIndexIn, TMatrixRowIndexIn, TOut>()
         {
             string msg = null;
-            msg = "Invalid TXIn in GetMapper: " + typeof(TXIn);
-            _host.Check(typeof(TXIn) == typeof(uint), msg);
+            msg = "Invalid " + nameof(TMatrixColumnIndexIn) + " in GetMapper: " + typeof(TMatrixColumnIndexIn);
+            _host.Check(typeof(TMatrixColumnIndexIn) == typeof(uint), msg);
 
-            msg = "Invalid TYIn in GetMapper: " + typeof(TYIn);
-            _host.Check(typeof(TYIn) == typeof(uint), msg);
+            msg = "Invalid " + nameof(TMatrixRowIndexIn) + " in GetMapper: " + typeof(TMatrixRowIndexIn);
+            _host.Check(typeof(TMatrixRowIndexIn) == typeof(uint), msg);
 
             msg = "Invalid TOut in GetMapper: " + typeof(TOut);
             _host.Check(typeof(TOut) == typeof(float), msg);
 
             ValueMapper<uint, uint, float> mapper = MapperCore;
-            return mapper as ValueMapper<TXIn, TYIn, TOut>;
+            return mapper as ValueMapper<TMatrixColumnIndexIn, TMatrixRowIndexIn, TOut>;
         }
 
         private void MapperCore(ref uint srcCol, ref uint srcRow, ref float dst)
@@ -228,7 +234,7 @@ namespace Microsoft.ML.Runtime.Recommender
             // training. For higher-than-expected values, the predictor version would return
             // 0, rather than NaN as we do here. It is in my mind an open question as to what
             // is actually correct.
-            if (srcRow == 0 || srcRow > _m || srcCol == 0 || srcCol > _n)
+            if (srcRow == 0 || srcRow > _numberOfRows || srcCol == 0 || srcCol > _numberofColumns)
             {
                 dst = float.NaN;
                 return;
@@ -238,13 +244,13 @@ namespace Microsoft.ML.Runtime.Recommender
 
         private float Score(int col, int row)
         {
-            _host.Assert(0 <= row && row < _m);
-            _host.Assert(0 <= col && col < _n);
+            _host.Assert(0 <= row && row < _numberOfRows);
+            _host.Assert(0 <= col && col < _numberofColumns);
             float score = 0;
-            int poffset = row * _k;
-            int qoffset = col * _k;
-            for (int i = 0; i < _k; i++)
-                score += _p[poffset + i] * _q[qoffset + i];
+            int poffset = row * _approximationRank;
+            int qoffset = col * _approximationRank;
+            for (int i = 0; i < _approximationRank; i++)
+                score += _leftFactorMatrix[poffset + i] * _rightFactorMatrix[qoffset + i];
             return score;
         }
 
@@ -262,11 +268,12 @@ namespace Microsoft.ML.Runtime.Recommender
         private sealed class RowMapper : ISchemaBoundRowMapper
         {
             private readonly MatrixFactorizationPredictor _parent;
-
-            private readonly int _xColIndex;
-            private readonly int _yColIndex;
-            private readonly string _xColName;
-            private readonly string _yColName;
+            // The tail "ColumnIndex" means the column index in IDataView
+            private readonly int _matrixColumnIndexColumnIndex;
+            private readonly int _matrixRowIndexCololumnIndex;
+            // The tail "ColumnName" means the column name in IDataView
+            private readonly string _matrixColumnIndexColumnName;
+            private readonly string _matrixRowIndexColumnName;
             private IHostEnvironment _env;
             public Schema Schema { get; }
             public Schema InputSchema => InputRoleMappedSchema.Schema;
@@ -280,22 +287,22 @@ namespace Microsoft.ML.Runtime.Recommender
                 _parent = parent;
 
                 // Check role of X
-                var xList = schema.GetColumns(RecommendUtils.XKind);
-                string msg = $"'{RecommendUtils.XKind}' column doesn't exist or not unique";
-                _env.Check(Utils.Size(xList) == 1, msg);
+                var matrixColumnList = schema.GetColumns(RecommendUtils.MatrixColumnIndexKind);
+                string msg = $"'{RecommendUtils.MatrixColumnIndexKind}' column doesn't exist or not unique";
+                _env.Check(Utils.Size(matrixColumnList) == 1, msg);
 
                 // Check role of Y
-                var yList = schema.GetColumns(RecommendUtils.YKind);
-                msg = $"'{RecommendUtils.YKind}' column doesn't exist or not unique";
-                _env.Check(Utils.Size(yList) == 1, msg);
+                var matrixRowList = schema.GetColumns(RecommendUtils.MatrixRowIndexKind);
+                msg = $"'{RecommendUtils.MatrixRowIndexKind}' column doesn't exist or not unique";
+                _env.Check(Utils.Size(matrixRowList) == 1, msg);
 
-                _xColName = xList[0].Name;
-                _xColIndex = xList[0].Index;
+                _matrixColumnIndexColumnName = matrixColumnList[0].Name;
+                _matrixColumnIndexColumnIndex = matrixColumnList[0].Index;
 
-                _yColName = yList[0].Name;
-                _yColIndex = yList[0].Index;
+                _matrixRowIndexColumnName = matrixRowList[0].Name;
+                _matrixRowIndexCololumnIndex = matrixRowList[0].Index;
 
-                CheckInputSchema(schema.Schema, _xColIndex, _yColIndex);
+                CheckInputSchema(schema.Schema, _matrixColumnIndexColumnIndex, _matrixRowIndexCololumnIndex);
                 InputRoleMappedSchema = schema;
                 Schema = outputSchema;
             }
@@ -305,28 +312,28 @@ namespace Microsoft.ML.Runtime.Recommender
                 for (int i = 0; i < Schema.ColumnCount; i++)
                 {
                     if (predicate(i))
-                        return col => (col == _xColIndex || col == _yColIndex);
+                        return col => (col == _matrixColumnIndexColumnIndex || col == _matrixRowIndexCololumnIndex);
                 }
                 return col => false;
             }
 
             public IEnumerable<KeyValuePair<RoleMappedSchema.ColumnRole, string>> GetInputColumnRoles()
             {
-                yield return RecommendUtils.XKind.Bind(_xColName);
-                yield return RecommendUtils.YKind.Bind(_yColName);
+                yield return RecommendUtils.MatrixColumnIndexKind.Bind(_matrixColumnIndexColumnName);
+                yield return RecommendUtils.MatrixRowIndexKind.Bind(_matrixRowIndexColumnName);
             }
 
-            private void CheckInputSchema(ISchema schema, int xCol, int yCol)
+            private void CheckInputSchema(ISchema schema, int matrixColumnIndexCol, int matrixRowIndexCol)
             {
                 // See if role X's type matches the one expected in the trained predictor
-                var type = schema.GetColumnType(xCol);
-                string msg = string.Format("Input X type '{0}' incompatible with predictor X type '{1}'", type, _parent.InputXType);
-                _env.CheckParam(type.Equals(_parent.InputXType), nameof(schema), msg);
+                var type = schema.GetColumnType(matrixColumnIndexCol);
+                string msg = string.Format("Input column index type '{0}' incompatible with predictor's column index type '{1}'", type, _parent.MatrixColumnIndexType);
+                _env.CheckParam(type.Equals(_parent.MatrixColumnIndexType), nameof(schema), msg);
 
                 // See if role Y's type matches the one expected in the trained predictor
-                type = schema.GetColumnType(yCol);
-                msg = string.Format("Input Y type '{0}' incompatible with predictor Y type '{1}'", type, _parent.InputYType);
-                _env.CheckParam(type.Equals(_parent.InputYType), nameof(schema), msg);
+                type = schema.GetColumnType(matrixRowIndexCol);
+                msg = string.Format("Input row index type '{0}' incompatible with predictor' row index type '{1}'", type, _parent.MatrixRowIndexType);
+                _env.CheckParam(type.Equals(_parent.MatrixRowIndexType), nameof(schema), msg);
             }
 
             private Delegate[] CreateGetter(IRow input, bool[] active)
@@ -337,10 +344,10 @@ namespace Microsoft.ML.Runtime.Recommender
                 var getters = new Delegate[1];
                 if (active[0])
                 {
-                    CheckInputSchema(input.Schema, _xColIndex, _yColIndex);
-                    var xGetter = input.GetGetter<uint>(_xColIndex);
-                    var yGetter = input.GetGetter<uint>(_yColIndex);
-                    getters[0] = _parent.GetGetter(xGetter, yGetter);
+                    CheckInputSchema(input.Schema, _matrixColumnIndexColumnIndex, _matrixRowIndexCololumnIndex);
+                    var matrixColumnIndexGetter = input.GetGetter<uint>(_matrixColumnIndexColumnIndex);
+                    var matrixRowIndexGetter = input.GetGetter<uint>(_matrixRowIndexCololumnIndex);
+                    getters[0] = _parent.GetGetter(matrixColumnIndexGetter, matrixRowIndexGetter);
                 }
                 return getters;
             }
@@ -360,39 +367,39 @@ namespace Microsoft.ML.Runtime.Recommender
     public sealed class MatrixFactorizationPredictionTransformer : PredictionTransformerBase<MatrixFactorizationPredictor, GenericScorer>, ICanSaveModel
     {
         public const string LoaderSignature = "MaFactPredXf";
-        public string XColumnName { get; }
-        public string YColumnName { get; }
-        public ColumnType XColumnType { get; }
-        public ColumnType YColumnType { get; }
+        public string MatrixColumnIndexColumnName { get; }
+        public string MatrixRowIndexColumnName { get; }
+        public ColumnType MatrixColumnIndexColumnType { get; }
+        public ColumnType MatrixRowIndexColumnType { get; }
         protected override GenericScorer Scorer { get; set; }
 
         /// <summary>
         /// Build a transformer based on matrix factorization predictor (model) and the input schema (trainSchema). The created
         /// transformer can only transform IDataView objects compatible to the input schema; that is, that IDataView must contain
-        /// columns specified by <see cref="XColumnName"/>, <see cref="XColumnType"/>, <see cref="YColumnName"/>, and <see cref="YColumnType"></see>.
+        /// columns specified by <see cref="MatrixColumnIndexColumnName"/>, <see cref="MatrixColumnIndexColumnType"/>, <see cref="MatrixRowIndexColumnName"/>, and <see cref="MatrixRowIndexColumnType"></see>.
         /// The output column is "Score" by default but user can append a string to it.
         /// </summary>
         /// <param name="env">Eviroment object for showing information</param>
         /// <param name="model">The model trained by one of the training functions in <see cref="MatrixFactorizationTrainer"/></param>
         /// <param name="trainSchema">Targeted schema that containing columns named as xColumnName</param>
-        /// <param name="xColumnName">The name of the column used as role X in matrix factorization world</param>
-        /// <param name="yColumnName">The name of the column used as role Y in matrix factorization world</param>
+        /// <param name="matrixColumnIndexColumnName">The name of the column used as role <see cref="RecommendUtils.MatrixColumnIndexKind"/> in matrix factorization world</param>
+        /// <param name="matrixRowIndexColumnName">The name of the column used as role <see cref="RecommendUtils.MatrixRowIndexKind"/> in matrix factorization world</param>
         /// <param name="scoreColumnNameSuffix">A string attached to the output column name of this transformer</param>
         public MatrixFactorizationPredictionTransformer(IHostEnvironment env, MatrixFactorizationPredictor model, Schema trainSchema,
-            string xColumnName, string yColumnName, string scoreColumnNameSuffix = "")
+            string matrixColumnIndexColumnName, string matrixRowIndexColumnName, string scoreColumnNameSuffix = "")
             :base(Contracts.CheckRef(env, nameof(env)).Register(nameof(MatrixFactorizationPredictionTransformer)), model, trainSchema)
         {
-            Host.CheckNonEmpty(xColumnName, nameof(yColumnName));
-            Host.CheckNonEmpty(xColumnName, nameof(yColumnName));
+            Host.CheckNonEmpty(matrixColumnIndexColumnName, nameof(matrixRowIndexColumnName));
+            Host.CheckNonEmpty(matrixColumnIndexColumnName, nameof(matrixRowIndexColumnName));
 
-            XColumnName = xColumnName;
-            YColumnName = yColumnName;
+            MatrixColumnIndexColumnName = matrixColumnIndexColumnName;
+            MatrixRowIndexColumnName = matrixRowIndexColumnName;
 
-            if (!trainSchema.TryGetColumnIndex(XColumnName, out int xCol))
-                throw Host.ExceptSchemaMismatch(nameof(XColumnName), RecommendUtils.XKind.Value, XColumnName);
-            XColumnType = trainSchema.GetColumnType(xCol);
-            if (!trainSchema.TryGetColumnIndex(YColumnName, out int yCol))
-                throw Host.ExceptSchemaMismatch(nameof(yCol), RecommendUtils.YKind.Value, YColumnName);
+            if (!trainSchema.TryGetColumnIndex(MatrixColumnIndexColumnName, out int xCol))
+                throw Host.ExceptSchemaMismatch(nameof(MatrixColumnIndexColumnName), RecommendUtils.MatrixColumnIndexKind.Value, MatrixColumnIndexColumnName);
+            MatrixColumnIndexColumnType = trainSchema.GetColumnType(xCol);
+            if (!trainSchema.TryGetColumnIndex(MatrixRowIndexColumnName, out int yCol))
+                throw Host.ExceptSchemaMismatch(nameof(yCol), RecommendUtils.MatrixRowIndexKind.Value, MatrixRowIndexColumnName);
 
             BindableMapper = ScoreUtils.GetSchemaBindableMapper(Host, model);
 
@@ -404,8 +411,8 @@ namespace Microsoft.ML.Runtime.Recommender
         private RoleMappedSchema GetSchema()
         {
             var roles = new List<KeyValuePair<RoleMappedSchema.ColumnRole, string>>();
-            roles.Add(new KeyValuePair<RoleMappedSchema.ColumnRole, string>(RecommendUtils.XKind, XColumnName));
-            roles.Add(new KeyValuePair<RoleMappedSchema.ColumnRole, string>(RecommendUtils.YKind, YColumnName));
+            roles.Add(new KeyValuePair<RoleMappedSchema.ColumnRole, string>(RecommendUtils.MatrixColumnIndexKind, MatrixColumnIndexColumnName));
+            roles.Add(new KeyValuePair<RoleMappedSchema.ColumnRole, string>(RecommendUtils.MatrixRowIndexKind, MatrixRowIndexColumnName));
             var schema = new RoleMappedSchema(TrainSchema, roles);
             return schema;
         }
@@ -422,16 +429,16 @@ namespace Microsoft.ML.Runtime.Recommender
             // string: the column name of matrix's column ids.
             // string: the column name of matrix's row ids.
 
-            XColumnName = ctx.LoadString();
-            YColumnName = ctx.LoadString();
+            MatrixColumnIndexColumnName = ctx.LoadString();
+            MatrixRowIndexColumnName = ctx.LoadString();
 
-            if (!TrainSchema.TryGetColumnIndex(XColumnName, out int xCol))
-                throw Host.ExceptSchemaMismatch(nameof(XColumnName), RecommendUtils.XKind.Value, XColumnName);
-            XColumnType = TrainSchema.GetColumnType(xCol);
+            if (!TrainSchema.TryGetColumnIndex(MatrixColumnIndexColumnName, out int xCol))
+                throw Host.ExceptSchemaMismatch(nameof(MatrixColumnIndexColumnName), RecommendUtils.MatrixColumnIndexKind.Value, MatrixColumnIndexColumnName);
+            MatrixColumnIndexColumnType = TrainSchema.GetColumnType(xCol);
 
-            if (!TrainSchema.TryGetColumnIndex(YColumnName, out int yCol))
-                throw Host.ExceptSchemaMismatch(nameof(YColumnName), RecommendUtils.YKind.Value, YColumnName);
-            YColumnType = TrainSchema.GetColumnType(yCol);
+            if (!TrainSchema.TryGetColumnIndex(MatrixRowIndexColumnName, out int yCol))
+                throw Host.ExceptSchemaMismatch(nameof(MatrixRowIndexColumnName), RecommendUtils.MatrixRowIndexKind.Value, MatrixRowIndexColumnName);
+            MatrixRowIndexColumnType = TrainSchema.GetColumnType(yCol);
 
             BindableMapper = ScoreUtils.GetSchemaBindableMapper(Host, Model);
 
@@ -442,10 +449,10 @@ namespace Microsoft.ML.Runtime.Recommender
 
         public override Schema GetOutputSchema(Schema inputSchema)
         {
-            if (!inputSchema.TryGetColumnIndex(XColumnName, out int xCol))
-                throw Host.ExceptSchemaMismatch(nameof(inputSchema), RecommendUtils.XKind.Value, XColumnName);
-            if (!inputSchema.TryGetColumnIndex(YColumnName, out int yCol))
-                throw Host.ExceptSchemaMismatch(nameof(inputSchema), RecommendUtils.YKind.Value, YColumnName);
+            if (!inputSchema.TryGetColumnIndex(MatrixColumnIndexColumnName, out int xCol))
+                throw Host.ExceptSchemaMismatch(nameof(inputSchema), RecommendUtils.MatrixColumnIndexKind.Value, MatrixColumnIndexColumnName);
+            if (!inputSchema.TryGetColumnIndex(MatrixRowIndexColumnName, out int yCol))
+                throw Host.ExceptSchemaMismatch(nameof(inputSchema), RecommendUtils.MatrixRowIndexKind.Value, MatrixRowIndexColumnName);
 
             return Transform(new EmptyDataView(Host, inputSchema)).Schema;
         }
@@ -473,8 +480,8 @@ namespace Microsoft.ML.Runtime.Recommender
                 }
             });
 
-            ctx.SaveString(XColumnName);
-            ctx.SaveString(YColumnName);
+            ctx.SaveString(MatrixColumnIndexColumnName);
+            ctx.SaveString(MatrixRowIndexColumnName);
         }
 
         private static VersionInfo GetVersionInfo()

@@ -11,7 +11,7 @@ namespace Microsoft.ML.Runtime.Recommender
     internal static class RecommendUtils
     {
         /// <summary>
-        /// Check if the considered data, <see cref="RoleMappedData"/>, contains column roles specified by <see cref="XKind"/> and <see cref="YKind"/>.
+        /// Check if the considered data, <see cref="RoleMappedData"/>, contains column roles specified by <see cref="MatrixColumnIndexKind"/> and <see cref="MatrixRowIndexKind"/>.
         /// If the column roles, X and Y, uniquely exists in data, their <see cref="ColumnInfo"/> would be assigned to xColumn and yColumn.
         /// </summary>
         /// <param name="data">The considered data being checked</param>
@@ -21,8 +21,8 @@ namespace Microsoft.ML.Runtime.Recommender
         public static void CheckAndGetXYColumns(RoleMappedData data, out ColumnInfo xColumn, out ColumnInfo yColumn, bool isDecode)
         {
             Contracts.AssertValue(data);
-            CheckRowColumnType(data, XKind, out xColumn, isDecode);
-            CheckRowColumnType(data, YKind, out yColumn, isDecode);
+            CheckRowColumnType(data, MatrixColumnIndexKind, out xColumn, isDecode);
+            CheckRowColumnType(data, MatrixRowIndexKind, out yColumn, isDecode);
         }
 
         /// <summary>
@@ -76,11 +76,11 @@ namespace Microsoft.ML.Runtime.Recommender
         /// <summary>
         /// The column role that is treated as column index in matrix factorization problem
         /// </summary>
-        public static RoleMappedSchema.ColumnRole XKind => "X";
+        public static RoleMappedSchema.ColumnRole MatrixColumnIndexKind => "X";
 
         /// <summary>
         /// The column role that is treated as row index in matrix factorization problem
         /// </summary>
-        public static RoleMappedSchema.ColumnRole YKind => "Y";
+        public static RoleMappedSchema.ColumnRole MatrixRowIndexKind => "Y";
     }
 }

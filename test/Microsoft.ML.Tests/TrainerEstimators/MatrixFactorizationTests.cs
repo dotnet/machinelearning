@@ -15,19 +15,19 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         public void MatrixFactorization_Estimator()
         {
             string labelColumnName = "Label";
-            string xColumnName = "X";
-            string yColumnName = "Y";
+            string matrixColumnIndexColumnName = "Col";
+            string matrixRowIndexColumnName = "Row";
 
-            // This data contains three columns, Label, X, and Y where X and Y will be treated as the expected input names
+            // This data contains three columns, Label, Col, and Row where Col and Row will be treated as the expected input names
             // of the trained matrix factorization model.
-            var data = new TextLoader(Env, GetLoaderArgs(labelColumnName, xColumnName, yColumnName))
+            var data = new TextLoader(Env, GetLoaderArgs(labelColumnName, matrixColumnIndexColumnName, matrixRowIndexColumnName))
                     .Read(new MultiFileSource(GetDataPath(TestDatasets.trivialMatrixFactorization.trainFilename)));
 
-            // "invalidData" is not compatible to "data" because it contains columns Label, XRenamed, and YRenamed (no column is X or Y).
-            var invalidData = new TextLoader(Env, GetLoaderArgs(labelColumnName, xColumnName + "Renamed", yColumnName+"Renamed"))
+            // "invalidData" is not compatible to "data" because it contains columns Label, ColRenamed, and RowRenamed (no column is Col or Row).
+            var invalidData = new TextLoader(Env, GetLoaderArgs(labelColumnName, matrixColumnIndexColumnName + "Renamed", matrixRowIndexColumnName+"Renamed"))
                     .Read(new MultiFileSource(GetDataPath(TestDatasets.trivialMatrixFactorization.testFilename)));
 
-            var est = new MatrixFactorizationTrainer(Env, labelColumnName, xColumnName, yColumnName, 
+            var est = new MatrixFactorizationTrainer(Env, labelColumnName, matrixColumnIndexColumnName, matrixRowIndexColumnName, 
                 advancedSettings:s=>
                 {
                     s.NumIterations = 3;
@@ -103,7 +103,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             }
         }
 
-        private TextLoader.Arguments GetLoaderArgs(string labelColumnName, string xColumnName, string yColumnName)
+        private TextLoader.Arguments GetLoaderArgs(string labelColumnName, string matrixColumnIndexColumnName, string matrixRowIndexColumnName)
         {
             return new TextLoader.Arguments()
             {
@@ -112,8 +112,8 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 Column = new[]
                 {
                     new TextLoader.Column(labelColumnName, DataKind.R4, new [] { new TextLoader.Range(0) }),
-                    new TextLoader.Column(xColumnName, DataKind.U4, new [] { new TextLoader.Range(1) }, new KeyRange(0, 19)),
-                    new TextLoader.Column(yColumnName, DataKind.U4, new [] { new TextLoader.Range(2) }, new KeyRange(0, 39)),
+                    new TextLoader.Column(matrixColumnIndexColumnName, DataKind.U4, new [] { new TextLoader.Range(1) }, new KeyRange(0, 19)),
+                    new TextLoader.Column(matrixRowIndexColumnName, DataKind.U4, new [] { new TextLoader.Range(2) }, new KeyRange(0, 39)),
                 }
             };
         }
