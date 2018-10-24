@@ -154,7 +154,7 @@ namespace Microsoft.ML.Tests
                 var data = TextLoader.CreateReader(env, ctx => (
                     imagePath: ctx.LoadText(0),
                     name: ctx.LoadText(1)))
-                    .Read(new MultiFileSource(dataFile));
+                    .Read(dataFile);
 
                 // Note that CamelCase column names are there to match the TF graph node names.
                 var pipe = data.MakeNewEstimator()
@@ -203,7 +203,7 @@ namespace Microsoft.ML.Tests
                 var data = TextLoader.CreateReader(env, ctx => (
                     imagePath: ctx.LoadText(0),
                     name: ctx.LoadText(1)))
-                    .Read(new MultiFileSource(dataFile));
+                    .Read(dataFile);
 
                 // Note that CamelCase column names are there to match the TF graph node names.
                 var pipe = data.MakeNewEstimator()

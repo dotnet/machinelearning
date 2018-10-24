@@ -642,7 +642,7 @@ namespace Microsoft.ML.Transforms
     /// </summary>
     public sealed class RffEstimator : IEstimator<RffTransform>
     {
-        public static class Defaults
+        internal static class Defaults
         {
             public const int NewDim = 1000;
             public const bool UseSin = false;

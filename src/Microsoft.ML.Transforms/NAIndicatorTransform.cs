@@ -4,7 +4,9 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
+using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
@@ -12,17 +14,26 @@ using Microsoft.ML.Runtime.Data.Conversion;
 using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
+using Microsoft.ML.StaticPipe;
+using Microsoft.ML.StaticPipe.Runtime;
+using Microsoft.ML.Transforms;
 
-[assembly: LoadableClass(typeof(NAIndicatorTransform), typeof(NAIndicatorTransform.Arguments), typeof(SignatureDataTransform),
-   NAIndicatorTransform.FriendlyName, "NAIndicatorTransform", "NAIndicator", NAIndicatorTransform.ShortName, DocName = "transform/NAHandle.md")]
+[assembly: LoadableClass(NAIndicatorTransform.Summary, typeof(IDataTransform), typeof(NAIndicatorTransform), typeof(NAIndicatorTransform.Arguments), typeof(SignatureDataTransform),
+    NAIndicatorTransform.FriendlyName, NAIndicatorTransform.LoadName, "NAIndicator", NAIndicatorTransform.ShortName, DocName = "transform/NAHandle.md")]
 
-[assembly: LoadableClass(typeof(NAIndicatorTransform), null, typeof(SignatureLoadDataTransform),
-    NAIndicatorTransform.FriendlyName, NAIndicatorTransform.LoaderSignature)]
+[assembly: LoadableClass(NAIndicatorTransform.Summary, typeof(IDataTransform), typeof(NAIndicatorTransform), null, typeof(SignatureLoadDataTransform),
+    NAIndicatorTransform.FriendlyName, NAIndicatorTransform.LoadName)]
 
-namespace Microsoft.ML.Runtime.Data
+[assembly: LoadableClass(NAIndicatorTransform.Summary, typeof(NAIndicatorTransform), null, typeof(SignatureLoadModel),
+    NAIndicatorTransform.FriendlyName, NAIndicatorTransform.LoadName)]
+
+[assembly: LoadableClass(typeof(IRowMapper), typeof(NAIndicatorTransform), null, typeof(SignatureLoadRowMapper),
+   NAIndicatorTransform.FriendlyName, NAIndicatorTransform.LoadName)]
+
+namespace Microsoft.ML.Transforms
 {
     /// <include file='doc.xml' path='doc/members/member[@name="NAIndicator"]'/>
-    public sealed class NAIndicatorTransform : OneToOneTransformBase
+    public sealed class NAIndicatorTransform : OneToOneTransformerBase
     {
         public sealed class Column : OneToOneColumn
         {
@@ -49,17 +60,16 @@ namespace Microsoft.ML.Runtime.Data
             public Column[] Column;
         }
 
-        public const string LoaderSignature = "NaIndicatorTransform";
+        internal const string LoadName = "NaIndicatorTransform";
 
         private static VersionInfo GetVersionInfo()
         {
             return new VersionInfo(
-                // REVIEW: temporary name
                 modelSignature: "NAIND TF",
                 verWrittenCur: 0x00010001, // Initial
                 verReadableCur: 0x00010001,
                 verWeCanReadBack: 0x00010001,
-                loaderSignature: LoaderSignature,
+                loaderSignature: LoadName,
                 loaderAssemblyName: typeof(NAIndicatorTransform).Assembly.FullName);
         }
 
@@ -68,322 +78,538 @@ namespace Microsoft.ML.Runtime.Data
         internal const string FriendlyName = "NA Indicator Transform";
         internal const string ShortName = "NAInd";
 
-        private static string TestType(ColumnType type)
-        {
-            // Item type must have an NA value. We'll get the predicate again later when we're ready to use it.
-            Delegate del;
-            if (Conversions.Instance.TryGetIsNAPredicate(type.ItemType, out del))
-                return null;
-            return string.Format("Type '{0}' is not supported by {1} since it doesn't have an NA value",
-                type, LoaderSignature);
-        }
+        private const string RegistrationName = nameof(NAIndicatorTransform);
 
-        private const string RegistrationName = "NaIndicator";
-
-        // The output column types, parallel to Infos.
-        private readonly ColumnType[] _types;
+        public IReadOnlyList<(string input, string output)> Columns => ColumnPairs.AsReadOnly();
 
         /// <summary>
-        /// Convenience constructor for public facing API.
+        /// Initializes a new instance of <see cref="NAIndicatorTransform"/>
         /// </summary>
-        /// <param name="env">Host Environment.</param>
-        /// <param name="input">Input <see cref="IDataView"/>. This is the output from previous transform or loader.</param>
-        /// <param name="name">Name of the output column.</param>
-        /// <param name="source">Name of the column to be transformed. If this is null '<paramref name="name"/>' will be used.</param>
-        public NAIndicatorTransform(IHostEnvironment env, IDataView input, string name, string source = null)
-            : this(env, new Arguments() { Column = new[] { new Column() { Source = source ?? name, Name = name } } }, input)
+        /// <param name="env">The environment to use.</param>
+        /// <param name="columns">The names of the input columns of the transformation and the corresponding names for the output columns.</param>
+        public NAIndicatorTransform(IHostEnvironment env, params (string input, string output)[] columns)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(NAIndicatorTransform)), columns)
         {
         }
 
-        /// <summary>
-        /// Public constructor corresponding to SignatureDataTransform.
-        /// </summary>
-        public NAIndicatorTransform(IHostEnvironment env, Arguments args, IDataView input)
-            : base(env, RegistrationName, Contracts.CheckRef(args, nameof(args)).Column,
-                input, TestType)
+        internal NAIndicatorTransform(IHostEnvironment env, Arguments args)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(NAIndicatorTransform)), GetColumnPairs(args.Column))
         {
-            Host.AssertNonEmpty(Infos);
-            Host.Assert(Infos.Length == Utils.Size(args.Column));
-
-            _types = GetTypesAndMetadata();
         }
 
-        private NAIndicatorTransform(IHost host, ModelLoadContext ctx, IDataView input)
-            : base(host, ctx, input, TestType)
+        private NAIndicatorTransform(IHostEnvironment env, ModelLoadContext ctx)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(NAIndicatorTransform)), ctx)
         {
-            Host.AssertValue(ctx);
-            Host.AssertNonEmpty(Infos);
-
-            // *** Binary format ***
-            // <base>
-
-            _types = GetTypesAndMetadata();
+            Host.CheckValue(ctx, nameof(ctx));
         }
 
-        public static NAIndicatorTransform Create(IHostEnvironment env, ModelLoadContext ctx, IDataView input)
+        private static (string input, string output)[] GetColumnPairs(Column[] columns)
+            => columns.Select(c => (c.Source ?? c.Name, c.Name)).ToArray();
+
+        // Factory method for SignatureLoadModel
+        internal static NAIndicatorTransform Create(IHostEnvironment env, ModelLoadContext ctx)
         {
             Contracts.CheckValue(env, nameof(env));
-            var h = env.Register(RegistrationName);
-            h.CheckValue(ctx, nameof(ctx));
-            h.CheckValue(input, nameof(input));
             ctx.CheckAtModel(GetVersionInfo());
-            return h.Apply("Loading Model", ch => new NAIndicatorTransform(h, ctx, input));
+
+            return new NAIndicatorTransform(env, ctx);
         }
 
+        // Factory method for SignatureDataTransform.
+        internal static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
+            => new NAIndicatorTransform(env, args).MakeDataTransform(input);
+
+        // Factory method for SignatureLoadDataTransform.
+        internal static IDataTransform Create(IHostEnvironment env, ModelLoadContext ctx, IDataView input)
+            => Create(env, ctx).MakeDataTransform(input);
+
+        // Factory method for SignatureLoadRowMapper.
+        internal static IRowMapper Create(IHostEnvironment env, ModelLoadContext ctx, ISchema inputSchema)
+            => Create(env, ctx).MakeRowMapper(inputSchema);
+
+        /// <summary>
+        /// Saves the transform.
+        /// </summary>
         public override void Save(ModelSaveContext ctx)
         {
             Host.CheckValue(ctx, nameof(ctx));
             ctx.CheckAtModel();
             ctx.SetVersionInfo(GetVersionInfo());
-
-            // *** Binary format ***
-            // <base>
-            SaveBase(ctx);
+            SaveColumns(ctx);
         }
 
-        private ColumnType[] GetTypesAndMetadata()
-        {
-            var md = Metadata;
-            var types = new ColumnType[Infos.Length];
-            for (int iinfo = 0; iinfo < Infos.Length; iinfo++)
-            {
-                var type = Infos[iinfo].TypeSrc;
+        protected override IRowMapper MakeRowMapper(ISchema schema)
+            => new Mapper(this, Schema.Create(schema));
 
-                if (!type.IsVector)
-                    types[iinfo] = BoolType.Instance;
+        private sealed class Mapper : MapperBase
+        {
+            private readonly NAIndicatorTransform _parent;
+            private readonly ColInfo[] _infos;
+
+            private sealed class ColInfo
+            {
+                public readonly string Output;
+                public readonly string Input;
+                public readonly ColumnType OutputType;
+                public readonly ColumnType InputType;
+                public readonly Delegate InputIsNA;
+
+                public ColInfo(string input, string output, ColumnType inType, ColumnType outType)
+                {
+                    Input = input;
+                    Output = output;
+                    InputType = inType;
+                    OutputType = outType;
+                    InputIsNA = GetIsNADelegate(InputType);
+                }
+            }
+
+            public Mapper(NAIndicatorTransform parent, Schema inputSchema)
+                : base(parent.Host.Register(nameof(Mapper)), parent, inputSchema)
+            {
+                _parent = parent;
+                _infos = CreateInfos(inputSchema);
+            }
+
+            private ColInfo[] CreateInfos(Schema inputSchema)
+            {
+                Host.AssertValue(inputSchema);
+                var infos = new ColInfo[_parent.ColumnPairs.Length];
+                for (int i = 0; i < _parent.ColumnPairs.Length; i++)
+                {
+                    if (!inputSchema.TryGetColumnIndex(_parent.ColumnPairs[i].input, out int colSrc))
+                        throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", _parent.ColumnPairs[i].input);
+                    _parent.CheckInputColumn(inputSchema, i, colSrc);
+                    var inType = inputSchema.GetColumnType(colSrc);
+                    ColumnType outType;
+                    if (!inType.IsVector)
+                        outType = BoolType.Instance;
+                    else
+                        outType = new VectorType(BoolType.Instance, inType.AsVector);
+                    infos[i] = new ColInfo(_parent.ColumnPairs[i].input, _parent.ColumnPairs[i].output, inType, outType);
+                }
+                return infos;
+            }
+
+            public override Schema.Column[] GetOutputColumns()
+            {
+                var result = new Schema.Column[_parent.ColumnPairs.Length];
+                for (int iinfo = 0; iinfo < _infos.Length; iinfo++)
+                {
+                    InputSchema.TryGetColumnIndex(_infos[iinfo].Input, out int colIndex);
+                    Host.Assert(colIndex >= 0);
+                    var builder = new Schema.Metadata.Builder();
+                    builder.Add(InputSchema[colIndex].Metadata, x => x == MetadataUtils.Kinds.SlotNames);
+                    ValueGetter<bool> getter = (ref bool dst) =>
+                    {
+                        dst = true;
+                    };
+                    builder.Add(new Schema.Column(MetadataUtils.Kinds.IsNormalized, BoolType.Instance, null), getter);
+                    result[iinfo] = new Schema.Column(_infos[iinfo].Output, _infos[iinfo].OutputType, builder.GetMetadata());
+                }
+                return result;
+            }
+
+            /// <summary>
+            /// Returns the isNA predicate for the respective type.
+            /// </summary>
+            private static Delegate GetIsNADelegate(ColumnType type)
+            {
+                Func<ColumnType, Delegate> func = GetIsNADelegate<int>;
+                return Utils.MarshalInvoke(func, type.ItemType.RawType, type);
+            }
+
+            private static Delegate GetIsNADelegate<T>(ColumnType type)
+            {
+                return Conversions.Instance.GetIsNAPredicate<T>(type.ItemType);
+            }
+
+            protected override Delegate MakeGetter(IRow input, int iinfo, out Action disposer)
+            {
+                Host.AssertValue(input);
+                Host.Assert(0 <= iinfo && iinfo < _infos.Length);
+                disposer = null;
+
+                if (!_infos[iinfo].InputType.IsVector)
+                    return ComposeGetterOne(input, iinfo);
+                return ComposeGetterVec(input, iinfo);
+            }
+
+            /// <summary>
+            /// Getter generator for single valued inputs.
+            /// </summary>
+            private ValueGetter<bool> ComposeGetterOne(IRow input, int iinfo)
+                => Utils.MarshalInvoke(ComposeGetterOne<int>, _infos[iinfo].InputType.RawType, input, iinfo);
+
+            private ValueGetter<bool> ComposeGetterOne<T>(IRow input, int iinfo)
+            {
+                var getSrc = input.GetGetter<T>(ColMapNewToOld[iinfo]);
+                var src = default(T);
+                var isNA = (RefPredicate<T>)_infos[iinfo].InputIsNA;
+
+                ValueGetter<bool> getter;
+
+                return getter =
+                    (ref bool dst) =>
+                    {
+                        getSrc(ref src);
+                        dst = isNA(ref src);
+                    };
+            }
+
+            /// <summary>
+            /// Getter generator for vector valued inputs.
+            /// </summary>
+            private ValueGetter<VBuffer<bool>> ComposeGetterVec(IRow input, int iinfo)
+                => Utils.MarshalInvoke(ComposeGetterVec<int>, _infos[iinfo].InputType.ItemType.RawType, input, iinfo);
+
+            private ValueGetter<VBuffer<bool>> ComposeGetterVec<T>(IRow input, int iinfo)
+            {
+                var getSrc = input.GetGetter<VBuffer<T>>(ColMapNewToOld[iinfo]);
+                var isNA = (RefPredicate<T>)_infos[iinfo].InputIsNA;
+                var val = default(T);
+                var defaultIsNA = isNA(ref val);
+                var src = default(VBuffer<T>);
+                var indices = new List<int>();
+
+                ValueGetter<VBuffer<bool>> getter;
+
+                return getter =
+                    (ref VBuffer<bool> dst) =>
+                    {
+                        // Sense indicates if the values added to the indices list represent NAs or non-NAs.
+                        bool sense;
+                        getSrc(ref src);
+                        FindNAs(ref src, isNA, defaultIsNA, indices, out sense);
+                        FillValues(src.Length, ref dst, indices, sense);
+                    };
+            }
+
+            /// <summary>
+            /// Adds all NAs (or non-NAs) to the indices List.  Whether NAs or non-NAs have been added is indicated by the bool sense.
+            /// </summary>
+            private void FindNAs<T>(ref VBuffer<T> src, RefPredicate<T> isNA, bool defaultIsNA, List<int> indices, out bool sense)
+            {
+                Host.AssertValue(isNA);
+                Host.AssertValue(indices);
+
+                // Find the indices of all of the NAs.
+                indices.Clear();
+                var srcValues = src.Values;
+                var srcCount = src.Count;
+                if (src.IsDense)
+                {
+                    for (int i = 0; i < srcCount; i++)
+                    {
+                        if (isNA(ref srcValues[i]))
+                            indices.Add(i);
+                    }
+                    sense = true;
+                }
+                else if (!defaultIsNA)
+                {
+                    var srcIndices = src.Indices;
+                    for (int ii = 0; ii < srcCount; ii++)
+                    {
+                        if (isNA(ref srcValues[ii]))
+                            indices.Add(srcIndices[ii]);
+                    }
+                    sense = true;
+                }
                 else
-                    types[iinfo] = new VectorType(BoolType.Instance, type.AsVector);
-                // Pass through slot name metadata.
-                using (var bldr = md.BuildMetadata(iinfo, Source.Schema, Infos[iinfo].Source, MetadataUtils.Kinds.SlotNames))
                 {
-                    // Output is normalized.
-                    bldr.AddPrimitive(MetadataUtils.Kinds.IsNormalized, BoolType.Instance, true);
+                    // Note that this adds non-NAs to indices -- this is indicated by sense being false.
+                    var srcIndices = src.Indices;
+                    for (int ii = 0; ii < srcCount; ii++)
+                    {
+                        if (!isNA(ref srcValues[ii]))
+                            indices.Add(srcIndices[ii]);
+                    }
+                    sense = false;
                 }
             }
-            md.Seal();
-            return types;
-        }
 
-        protected override ColumnType GetColumnTypeCore(int iinfo)
-        {
-            Host.Assert(0 <= iinfo & iinfo < Infos.Length);
-            return _types[iinfo];
-        }
-
-        protected override Delegate GetGetterCore(IChannel ch, IRow input, int iinfo, out Action disposer)
-        {
-            Host.AssertValueOrNull(ch);
-            Host.AssertValue(input);
-            Host.Assert(0 <= iinfo && iinfo < Infos.Length);
-            disposer = null;
-
-            if (!Infos[iinfo].TypeSrc.IsVector)
-                return ComposeGetterOne(input, iinfo);
-            return ComposeGetterVec(input, iinfo);
-        }
-
-        /// <summary>
-        /// Getter generator for single valued inputs.
-        /// </summary>
-        private ValueGetter<bool> ComposeGetterOne(IRow input, int iinfo)
-        {
-            Func<IRow, int, ValueGetter<bool>> func = ComposeGetterOne<int>;
-            return Utils.MarshalInvoke(func, Infos[iinfo].TypeSrc.RawType, input, iinfo);
-        }
-
-        /// <summary>
-        ///  Tests if a value is NA for scalars.
-        /// </summary>
-        private ValueGetter<bool> ComposeGetterOne<T>(IRow input, int iinfo)
-        {
-            var getSrc = GetSrcGetter<T>(input, iinfo);
-            var isNA = Conversions.Instance.GetIsNAPredicate<T>(input.Schema.GetColumnType(Infos[iinfo].Source));
-            T src = default(T);
-            return
-                (ref bool dst) =>
-                {
-                    getSrc(ref src);
-                    dst = isNA(ref src);
-                };
-        }
-
-        /// <summary>
-        /// Getter generator for vector valued inputs.
-        /// </summary>
-        private ValueGetter<VBuffer<bool>> ComposeGetterVec(IRow input, int iinfo)
-        {
-            Func<IRow, int, ValueGetter<VBuffer<bool>>> func = ComposeGetterVec<int>;
-            return Utils.MarshalInvoke(func, Infos[iinfo].TypeSrc.ItemType.RawType, input, iinfo);
-        }
-
-        /// <summary>
-        ///  Tests if a value is NA for vectors.
-        /// </summary>
-        private ValueGetter<VBuffer<bool>> ComposeGetterVec<T>(IRow input, int iinfo)
-        {
-            var getSrc = GetSrcGetter<VBuffer<T>>(input, iinfo);
-            var isNA = Conversions.Instance.GetIsNAPredicate<T>(input.Schema.GetColumnType(Infos[iinfo].Source).ItemType);
-            var val = default(T);
-            bool defaultIsNA = isNA(ref val);
-            var src = default(VBuffer<T>);
-            var indices = new List<int>();
-            return
-                (ref VBuffer<bool> dst) =>
-                {
-                    // Sense indicates if the values added to the indices list represent NAs or non-NAs.
-                    bool sense;
-                    getSrc(ref src);
-                    FindNAs(ref src, isNA, defaultIsNA, indices, out sense);
-                    FillValues(src.Length, ref dst, indices, sense);
-                };
-        }
-
-        /// <summary>
-        /// Adds all NAs (or non-NAs) to the indices List.  Whether NAs or non-NAs have been added is indicated by the bool sense.
-        /// </summary>
-        private void FindNAs<T>(ref VBuffer<T> src, RefPredicate<T> isNA, bool defaultIsNA, List<int> indices, out bool sense)
-        {
-            Host.AssertValue(isNA);
-            Host.AssertValue(indices);
-
-            // Find the indices of all of the NAs.
-            indices.Clear();
-            var srcValues = src.Values;
-            var srcCount = src.Count;
-            if (src.IsDense)
+            /// <summary>
+            ///  Fills indicator values for vectors.  The indices is a list that either holds all of the NAs or all
+            ///  of the non-NAs, indicated by sense being true or false respectively.
+            /// </summary>
+            private void FillValues(int srcLength, ref VBuffer<bool> dst, List<int> indices, bool sense)
             {
-                for (int i = 0; i < srcCount; i++)
-                {
-                    if (isNA(ref srcValues[i]))
-                        indices.Add(i);
-                }
-                sense = true;
-            }
-            else if (!defaultIsNA)
-            {
-                var srcIndices = src.Indices;
-                for (int ii = 0; ii < srcCount; ii++)
-                {
-                    if (isNA(ref srcValues[ii]))
-                        indices.Add(srcIndices[ii]);
-                }
-                sense = true;
-            }
-            else
-            {
-                // Note that this adds non-NAs to indices -- this is indicated by sense being false.
-                var srcIndices = src.Indices;
-                for (int ii = 0; ii < srcCount; ii++)
-                {
-                    if (!isNA(ref srcValues[ii]))
-                        indices.Add(srcIndices[ii]);
-                }
-                sense = false;
-            }
-        }
+                var dstValues = dst.Values;
+                var dstIndices = dst.Indices;
 
-        /// <summary>
-        ///  Fills indicator values for vectors.  The indices is a list that either holds all of the NAs or all
-        ///  of the non-NAs, indicated by sense being true or false respectively.
-        /// </summary>
-        private void FillValues(int srcLength, ref VBuffer<bool> dst, List<int> indices, bool sense)
-        {
-            var dstValues = dst.Values;
-            var dstIndices = dst.Indices;
-
-            if (indices.Count == 0)
-            {
-                if (sense)
+                if (indices.Count == 0)
                 {
-                    // Return empty VBuffer.
-                    dst = new VBuffer<bool>(srcLength, 0, dstValues, dstIndices);
+                    if (sense)
+                    {
+                        // Return empty VBuffer.
+                        dst = new VBuffer<bool>(srcLength, 0, dstValues, dstIndices);
+                        return;
+                    }
+
+                    // Return VBuffer filled with 1's.
+                    Utils.EnsureSize(ref dstValues, srcLength, false);
+                    for (int i = 0; i < srcLength; i++)
+                        dstValues[i] = true;
+                    dst = new VBuffer<bool>(srcLength, dstValues, dstIndices);
                     return;
                 }
 
-                // Return VBuffer filled with 1's.
-                Utils.EnsureSize(ref dstValues, srcLength, false);
-                for (int i = 0; i < srcLength; i++)
-                    dstValues[i] = true;
-                dst = new VBuffer<bool>(srcLength, dstValues, dstIndices);
-                return;
-            }
-
-            if (sense && indices.Count < srcLength / 2)
-            {
-                // Will produce sparse output.
-                int dstCount = indices.Count;
-                Utils.EnsureSize(ref dstValues, dstCount, false);
-                Utils.EnsureSize(ref dstIndices, dstCount, false);
-
-                indices.CopyTo(dstIndices);
-                for (int ii = 0; ii < dstCount; ii++)
-                    dstValues[ii] = true;
-
-                Host.Assert(dstCount <= srcLength);
-                dst = new VBuffer<bool>(srcLength, dstCount, dstValues, dstIndices);
-            }
-            else if (!sense && srcLength - indices.Count < srcLength / 2)
-            {
-                // Will produce sparse output.
-                int dstCount = srcLength - indices.Count;
-                Utils.EnsureSize(ref dstValues, dstCount, false);
-                Utils.EnsureSize(ref dstIndices, dstCount, false);
-
-                // Appends the length of the src to make the loop simpler,
-                // as the length of src will never be reached in the loop.
-                indices.Add(srcLength);
-
-                int iiDst = 0;
-                int iiSrc = 0;
-                int iNext = indices[iiSrc];
-                for (int i = 0; i < srcLength; i++)
+                if (sense && indices.Count < srcLength / 2)
                 {
-                    Host.Assert(0 <= i && i <= iNext);
-                    Host.Assert(iiSrc + iiDst == i);
-                    if (i < iNext)
-                    {
-                        Host.Assert(iiDst < dstCount);
-                        dstValues[iiDst] = true;
-                        dstIndices[iiDst++] = i;
-                    }
-                    else
-                    {
-                        Host.Assert(iiSrc + 1 < indices.Count);
-                        Host.Assert(iNext < indices[iiSrc + 1]);
-                        iNext = indices[++iiSrc];
-                    }
+                    // Will produce sparse output.
+                    int dstCount = indices.Count;
+                    Utils.EnsureSize(ref dstValues, dstCount, false);
+                    Utils.EnsureSize(ref dstIndices, dstCount, false);
+
+                    indices.CopyTo(dstIndices);
+                    for (int ii = 0; ii < dstCount; ii++)
+                        dstValues[ii] = true;
+
+                    Host.Assert(dstCount <= srcLength);
+                    dst = new VBuffer<bool>(srcLength, dstCount, dstValues, dstIndices);
                 }
-                Host.Assert(srcLength == iiSrc + iiDst);
-                Host.Assert(iiDst == dstCount);
-
-                dst = new VBuffer<bool>(srcLength, dstCount, dstValues, dstIndices);
-            }
-            else
-            {
-                // Will produce dense output.
-                Utils.EnsureSize(ref dstValues, srcLength, false);
-
-                // Appends the length of the src to make the loop simpler,
-                // as the length of src will never be reached in the loop.
-                indices.Add(srcLength);
-
-                int ii = 0;
-                for (int i = 0; i < srcLength; i++)
+                else if (!sense && srcLength - indices.Count < srcLength / 2)
                 {
-                    Host.Assert(0 <= i && i <= indices[ii]);
-                    if (i == indices[ii])
-                    {
-                        dstValues[i] = sense;
-                        ii++;
-                        Host.Assert(ii < indices.Count);
-                        Host.Assert(indices[ii - 1] < indices[ii]);
-                    }
-                    else
-                        dstValues[i] = !sense;
-                }
+                    // Will produce sparse output.
+                    int dstCount = srcLength - indices.Count;
+                    Utils.EnsureSize(ref dstValues, dstCount, false);
+                    Utils.EnsureSize(ref dstIndices, dstCount, false);
 
-                dst = new VBuffer<bool>(srcLength, dstValues, dstIndices);
+                    // Appends the length of the src to make the loop simpler,
+                    // as the length of src will never be reached in the loop.
+                    indices.Add(srcLength);
+
+                    int iiDst = 0;
+                    int iiSrc = 0;
+                    int iNext = indices[iiSrc];
+                    for (int i = 0; i < srcLength; i++)
+                    {
+                        Host.Assert(0 <= i && i <= iNext);
+                        Host.Assert(iiSrc + iiDst == i);
+                        if (i < iNext)
+                        {
+                            Host.Assert(iiDst < dstCount);
+                            dstValues[iiDst] = true;
+                            dstIndices[iiDst++] = i;
+                        }
+                        else
+                        {
+                            Host.Assert(iiSrc + 1 < indices.Count);
+                            Host.Assert(iNext < indices[iiSrc + 1]);
+                            iNext = indices[++iiSrc];
+                        }
+                    }
+                    Host.Assert(srcLength == iiSrc + iiDst);
+                    Host.Assert(iiDst == dstCount);
+
+                    dst = new VBuffer<bool>(srcLength, dstCount, dstValues, dstIndices);
+                }
+                else
+                {
+                    // Will produce dense output.
+                    Utils.EnsureSize(ref dstValues, srcLength, false);
+
+                    // Appends the length of the src to make the loop simpler,
+                    // as the length of src will never be reached in the loop.
+                    indices.Add(srcLength);
+
+                    int ii = 0;
+                    for (int i = 0; i < srcLength; i++)
+                    {
+                        Host.Assert(0 <= i && i <= indices[ii]);
+                        if (i == indices[ii])
+                        {
+                            dstValues[i] = sense;
+                            ii++;
+                            Host.Assert(ii < indices.Count);
+                            Host.Assert(indices[ii - 1] < indices[ii]);
+                        }
+                        else
+                            dstValues[i] = !sense;
+                    }
+
+                    dst = new VBuffer<bool>(srcLength, dstValues, dstIndices);
+                }
             }
+        }
+    }
+
+    public sealed class NAIndicatorEstimator : TrivialEstimator<NAIndicatorTransform>
+    {
+        /// <summary>
+        /// Initializes a new instance of <see cref="NAIndicatorEstimator"/>
+        /// </summary>
+        /// <param name="env">The environment to use.</param>
+        /// <param name="columns">The names of the input columns of the transformation and the corresponding names for the output columns.</param>
+        public NAIndicatorEstimator(IHostEnvironment env, params (string input, string output)[] columns)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(NAIndicatorTransform)), new NAIndicatorTransform(env, columns))
+        {
+            Contracts.CheckValue(env, nameof(env));
+        }
+
+        /// <summary>
+        /// Initializes a new instance of <see cref="NAIndicatorEstimator"/>
+        /// </summary>
+        /// <param name="env">The environment to use.</param>
+        /// <param name="input">The name of the input column of the transformation.</param>
+        /// <param name="output">The name of the column produced by the transformation.</param>
+        public NAIndicatorEstimator(IHostEnvironment env, string input, string output = null)
+            : this(env, (input, output ?? input))
+        {
+        }
+
+        /// <summary>
+        /// Returns the schema that would be produced by the transformation.
+        /// </summary>
+        public override SchemaShape GetOutputSchema(SchemaShape inputSchema)
+        {
+            Host.CheckValue(inputSchema, nameof(inputSchema));
+            var result = inputSchema.Columns.ToDictionary(x => x.Name);
+            foreach (var colPair in Transformer.Columns)
+            {
+                if (!inputSchema.TryFindColumn(colPair.input, out var col) || !Conversions.Instance.TryGetIsNAPredicate(col.ItemType, out Delegate del))
+                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colPair.input);
+                var metadata = new List<SchemaShape.Column>();
+                if (col.Metadata.TryFindColumn(MetadataUtils.Kinds.SlotNames, out var slotMeta))
+                    metadata.Add(slotMeta);
+                metadata.Add(new SchemaShape.Column(MetadataUtils.Kinds.IsNormalized, SchemaShape.Column.VectorKind.Scalar, BoolType.Instance, false));
+                ColumnType type = !col.ItemType.IsVector ? (ColumnType) BoolType.Instance : new VectorType(BoolType.Instance, col.ItemType.AsVector);
+                result[colPair.output] = new SchemaShape.Column(colPair.output, col.Kind, type, false, new SchemaShape(metadata.ToArray()));
+            }
+            return new SchemaShape(result.Values);
+        }
+    }
+
+    /// <summary>
+    /// Extension methods for the static-pipeline over <see cref="PipelineColumn"/> objects.
+    /// </summary>
+    public static class NAIndicatorExtensions
+    {
+        private interface IColInput
+        {
+            PipelineColumn Input { get; }
+        }
+
+        private sealed class OutScalar<TValue> : Scalar<bool>, IColInput
+        {
+            public PipelineColumn Input { get; }
+
+            public OutScalar(Scalar<TValue> input)
+                : base(Reconciler.Inst, input)
+            {
+                Input = input;
+            }
+        }
+
+        private sealed class OutVectorColumn<TValue> : Vector<bool>, IColInput
+        {
+            public PipelineColumn Input { get; }
+
+            public OutVectorColumn(Vector<TValue> input)
+                : base(Reconciler.Inst, input)
+            {
+                Input = input;
+            }
+        }
+
+        private sealed class OutVarVectorColumn<TValue> : VarVector<bool>, IColInput
+        {
+            public PipelineColumn Input { get; }
+
+            public OutVarVectorColumn(VarVector<TValue> input)
+                : base(Reconciler.Inst, input)
+            {
+                Input = input;
+            }
+        }
+
+        private sealed class Reconciler : EstimatorReconciler
+        {
+            public static Reconciler Inst = new Reconciler();
+
+            private Reconciler() { }
+
+            public override IEstimator<ITransformer> Reconcile(IHostEnvironment env,
+                PipelineColumn[] toOutput,
+                IReadOnlyDictionary<PipelineColumn, string> inputNames,
+                IReadOnlyDictionary<PipelineColumn, string> outputNames,
+                IReadOnlyCollection<string> usedNames)
+            {
+                var columnPairs = new (string input, string output)[toOutput.Length];
+                for (int i = 0; i < toOutput.Length; ++i)
+                {
+                    var col = (IColInput)toOutput[i];
+                    columnPairs[i] = (inputNames[col.Input], outputNames[toOutput[i]]);
+                }
+                return new NAIndicatorEstimator(env, columnPairs);
+            }
+        }
+
+        /// <summary>
+        /// Produces a column of boolean entries indicating whether input column entries were missing.
+        /// </summary>
+        /// <param name="input">The input column.</param>
+        /// <returns>A column indicating whether input column entries were missing.</returns>
+        public static Scalar<bool> IsMissingValue(this Scalar<float> input)
+        {
+            Contracts.CheckValue(input, nameof(input));
+            return new OutScalar<float>(input);
+        }
+
+        /// <summary>
+        /// Produces a column of boolean entries indicating whether input column entries were missing.
+        /// </summary>
+        /// <param name="input">The input column.</param>
+        /// <returns>A column indicating whether input column entries were missing.</returns>
+        public static Scalar<bool> IsMissingValue(this Scalar<double> input)
+        {
+            Contracts.CheckValue(input, nameof(input));
+            return new OutScalar<double>(input);
+        }
+
+        /// <summary>
+        /// Produces a column of boolean entries indicating whether input column entries were missing.
+        /// </summary>
+        /// <param name="input">The input column.</param>
+        /// <returns>A column indicating whether input column entries were missing.</returns>
+        public static Vector<bool> IsMissingValue(this Vector<float> input)
+        {
+            Contracts.CheckValue(input, nameof(input));
+            return new OutVectorColumn<float>(input);
+        }
+
+        /// <summary>
+        /// Produces a column of boolean entries indicating whether input column entries were missing.
+        /// </summary>
+        /// <param name="input">The input column.</param>
+        /// <returns>A column indicating whether input column entries were missing.</returns>
+        public static Vector<bool> IsMissingValue(this Vector<double> input)
+        {
+            Contracts.CheckValue(input, nameof(input));
+            return new OutVectorColumn<double>(input);
+        }
+
+        /// <summary>
+        /// Produces a column of boolean entries indicating whether input column entries were missing.
+        /// </summary>
+        /// <param name="input">The input column.</param>
+        /// <returns>A column indicating whether input column entries were missing.</returns>
+        public static VarVector<bool> IsMissingValue(this VarVector<float> input)
+        {
+            Contracts.CheckValue(input, nameof(input));
+            return new OutVarVectorColumn<float>(input);
+        }
+
+        /// <summary>
+        /// Produces a column of boolean entries indicating whether input column entries were missing.
+        /// </summary>
+        /// <param name="input">The input column.</param>
+        /// <returns>A column indicating whether input column entries were missing.</returns>
+        public static VarVector<bool> IsMissingValue(this VarVector<double> input)
+        {
+            Contracts.CheckValue(input, nameof(input));
+            return new OutVarVectorColumn<double>(input);
         }
     }
 }
