@@ -10,7 +10,7 @@ using Microsoft.ML.Runtime.Ensemble.EntryPoints;
 using Microsoft.ML.Runtime.Ensemble.OutputCombiners;
 using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.EntryPoints.JsonUtils;
-using Microsoft.ML.Runtime.FastTree;
+using Microsoft.ML.Trainers.FastTree;
 using Microsoft.ML.Runtime.ImageAnalytics;
 using Microsoft.ML.Runtime.Internal.Calibration;
 using Microsoft.ML.Runtime.Internal.Internallearn;
@@ -3796,7 +3796,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 Column = new[] { new ConcatTransform.Column { Name = "Features", Source = new[] { "Categories", "NumericFeatures" } } }
             });
 
-            var fastTree = FastTree.FastTree.TrainBinary(Env, new FastTreeBinaryClassificationTrainer.Arguments
+            var fastTree = FastTree.TrainBinary(Env, new FastTreeBinaryClassificationTrainer.Arguments
             {
                 FeatureColumn = "Features",
                 NumTrees = 5,

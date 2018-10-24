@@ -5,7 +5,7 @@
 using System;
 using System.Linq;
 
-namespace Microsoft.ML.Runtime.FastTree.Internal
+namespace Microsoft.ML.Trainers.FastTree.Internal
 {
     /// <summary>
     /// Implements a paging mechanism on indexed objects.

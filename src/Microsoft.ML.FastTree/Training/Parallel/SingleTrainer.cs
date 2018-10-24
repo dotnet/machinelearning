@@ -5,17 +5,17 @@
 using System;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.EntryPoints;
-using Microsoft.ML.Runtime.FastTree;
+using Microsoft.ML.Trainers.FastTree;
 using Microsoft.ML.Runtime.Internal.Utilities;
 
-[assembly: LoadableClass(typeof(Microsoft.ML.Runtime.FastTree.SingleTrainer),
-    null, typeof(Microsoft.ML.Runtime.FastTree.SignatureParallelTrainer), "single")]
+[assembly: LoadableClass(typeof(Microsoft.ML.Trainers.FastTree.SingleTrainer),
+    null, typeof(Microsoft.ML.Trainers.FastTree.SignatureParallelTrainer), "single")]
 
 [assembly: EntryPointModule(typeof(SingleTrainerFactory))]
 
-namespace Microsoft.ML.Runtime.FastTree
+namespace Microsoft.ML.Trainers.FastTree
 {
-    using Microsoft.ML.Runtime.FastTree.Internal;
+    using Microsoft.ML.Trainers.FastTree.Internal;
     using SplitInfo = Internal.LeastSquaresRegressionTreeLearner.SplitInfo;
     using LeafSplitCandidates = Internal.LeastSquaresRegressionTreeLearner.LeafSplitCandidates;
 
