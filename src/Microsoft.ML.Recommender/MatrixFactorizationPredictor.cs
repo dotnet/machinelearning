@@ -7,15 +7,12 @@ using System.Collections.Generic;
 using System.IO;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
+using Microsoft.ML.Runtime.Data.IO;
 using Microsoft.ML.Runtime.Internal.Internallearn;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.Recommender;
 using Microsoft.ML.Runtime.Recommender.Internal;
-using Microsoft.ML.Runtime.Model.Pfa;
-using Microsoft.ML.Runtime.Model.Onnx;
-using Microsoft.ML.Runtime.CommandLine;
-using Microsoft.ML.Runtime.Data.IO;
 using Microsoft.ML.Trainers;
 
 [assembly: LoadableClass(typeof(MatrixFactorizationPredictor), null, typeof(SignatureLoadModel), "Matrix Factorization Predictor Executor", MatrixFactorizationPredictor.LoaderSignature)]
