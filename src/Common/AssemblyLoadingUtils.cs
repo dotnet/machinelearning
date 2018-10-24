@@ -186,7 +186,7 @@ namespace Microsoft.ML.Runtime
                 return;
 
             // Load all dlls in the given directory.
-            var paths = Directory.EnumerateFiles(dir, "*.dll").Concat(Directory.EnumerateFiles(dir, "*.exe"));
+            var paths = Directory.EnumerateFiles(dir, "*.dll");
             foreach (string path in paths)
             {
                 if (filter && ShouldSkipPath(path))
