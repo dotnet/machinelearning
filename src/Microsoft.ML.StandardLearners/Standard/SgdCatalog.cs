@@ -14,7 +14,7 @@ namespace Microsoft.ML
     /// <summary>
     /// Binary Classification trainer estimators.
     /// </summary>
-    public static class SgdExtensions
+    public static class StochasticGradientDescentCatalog
     {
         /// <summary>
         ///  Predict a target using a linear binary classification model trained with the <see cref="Microsoft.ML.Runtime.Learners.StochasticGradientDescentClassificationTrainer"/> trainer.
