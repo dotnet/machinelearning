@@ -26,12 +26,6 @@ namespace Microsoft.ML
         /// <param name="maxIterations">The maximum number of passes to perform over the data.</param>
         /// <param name="loss">The custom loss, if unspecified will be <see cref="SquaredLossSDCARegressionLossFunction"/>.</param>
         /// <param name="advancedSettings">A delegate to set more settings.</param>
-        /// <example>
-        /// <format type="text/markdown">
-        /// <![CDATA[
-        ///  [!code-csharp[SDCA](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Trainers.cs?range=6-10,19-76 "The SDCA regression example.")]
-        /// ]]></format>
-        /// </example>
         public static SdcaRegressionTrainer StochasticDualCoordinateAscent(this RegressionContext.RegressionTrainers ctx,
             string label = DefaultColumnNames.Label, string features = DefaultColumnNames.Features, string weights = null,
             ISupportSdcaRegressionLoss loss = null,
@@ -69,7 +63,7 @@ namespace Microsoft.ML
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        ///  [!code-csharp[SDCA](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/SDCA.cs?range=5-8,13-76)]
+        ///  [!code-csharp[SDCA](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Dynamic/SDCA.cs?range=6-9,14-77)]
         /// ]]></format>
         /// </example>
         public static LinearClassificationTrainer StochasticDualCoordinateAscent(

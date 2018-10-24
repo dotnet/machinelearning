@@ -17,7 +17,7 @@ namespace Microsoft.ML.SamplesUtils
         => Download("https://raw.githubusercontent.com/dotnet/machinelearning/024bd4452e1d3660214c757237a19d6123f951ca/test/data/housing.txt", "housing.txt");
 
         /// <summary>
-        /// Downloads the adult dataset from the ML.NEt repo
+        /// Downloads the adult dataset from the ML.NET repo
         /// </summary>
         public static string DownloadSentimentDataset()
         => Download("https://github.com/dotnet/machinelearning/blob/76cb2cdf5cc8b6c88ca44b8969153836e589df04/test/data/wikipedia-detox-250-line-data.tsv", "sentiment.tsv");

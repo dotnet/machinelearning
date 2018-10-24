@@ -9,7 +9,7 @@ namespace Microsoft.ML.Samples
     {
         static void Main(string[] args)
         {
-            TrainerSamples.SDCA_BinaryClassificaiton();
+            TrainerSamples.SDCA_BinaryClassification();
         }
     }
 }

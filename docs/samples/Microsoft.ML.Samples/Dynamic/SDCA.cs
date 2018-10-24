@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+// the alignment of the usings with the methods is intentional so they can display on the same level in the docs site. 
         using Microsoft.ML.Runtime.Data;
         using System;
         using System.Linq;
@@ -26,7 +27,7 @@ namespace Microsoft.ML.Samples.Dynamic
             // as a catalog of available operations and as the source of randomness.
             var mlContext = new MLContext();
 
-            // Step one: read the data as an IDataView.
+            // Step 1: Read the data as an IDataView.
             // First, we define the reader: specify the data columns and where to find them in the text file.
             var reader = mlContext.Data.TextReader(new TextLoader.Arguments()
                 {
@@ -42,21 +43,21 @@ namespace Microsoft.ML.Samples.Dynamic
             // Read the data
             var data = reader.Read(dataFile);
 
-            // Step2: Pipeline. Featurize the text column through the FeaturizeText. 
-            // Than append a binary classifier, setting the "Label" column, as the column of the dataset, and 
-            // the "Features" column produced by FeaturizeText as the  features column. 
+            // Step 2: Pipeline 
+            // Featurize the text column through the FeaturizeText API. 
+            // Then append a binary classifier, setting the "Label" column as the label of the dataset, and 
+            // the "Features" column produced by FeaturizeText as the features column. 
             var pipeline = mlContext.Transforms.Text.FeaturizeText("SentimentText", "Features")
                     .Append(mlContext.BinaryClassification.Trainers.StochasticDualCoordinateAscent(label: "Sentiment", features: "Features", l2Const: 0.001f));
 
-            // Step 3: Run Cross-Validation on this pipeline, and dataFile.
+            // Step 3: Run Cross-Validation on this pipeline.
             var cvResults = mlContext.BinaryClassification.CrossValidate(data, pipeline, labelColumn: "Sentiment");
 
             var accuracies = cvResults.Select(r => r.metrics.Accuracy);
             Console.WriteLine(accuracies.Average());
 
             // If we wanted to specify more advanced parameters for the algorithm, 
-            // we could do so tweaking the AdvancedSetting. 
-            // Constructing a more advanced pipeline
+            // we could do so by tweaking the 'advancedSetting'.
             var advancedPipeline = mlContext.Transforms.Text.FeaturizeText("SentimentText", "Features")
                                   .Append(mlContext.BinaryClassification.Trainers.StochasticDualCoordinateAscent
                                   (label: "Sentiment",
@@ -68,7 +69,7 @@ namespace Microsoft.ML.Samples.Dynamic
                                        })
                                    );
 
-            // Run Cross-Validation on this second pipeline, and dataFile.
+            // Run Cross-Validation on this second pipeline.
             var cvResults_advancedPipeline = mlContext.BinaryClassification.CrossValidate(data, pipeline, labelColumn: "Sentiment", numFolds: 3);
             accuracies = cvResults_advancedPipeline.Select(r => r.metrics.Accuracy);
             Console.WriteLine(accuracies.Average());
