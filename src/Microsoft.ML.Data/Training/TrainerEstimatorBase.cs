@@ -41,6 +41,11 @@ namespace Microsoft.ML.Runtime.Training
         /// </summary>
         public readonly SchemaShape.Column WeightColumn;
 
+        /// <summary>
+        /// The optional groupID column that the ranking trainers expects.
+        /// </summary>
+        public readonly SchemaShape.Column GroupIdColumn;
+
         protected readonly IHost Host;
 
         /// <summary>
@@ -50,17 +55,23 @@ namespace Microsoft.ML.Runtime.Training
 
         public abstract PredictionKind PredictionKind { get; }
 
-        public TrainerEstimatorBase(IHost host, SchemaShape.Column feature, SchemaShape.Column label, SchemaShape.Column weight = null)
+        public TrainerEstimatorBase(IHost host,
+            SchemaShape.Column feature,
+            SchemaShape.Column label,
+            SchemaShape.Column weight = null,
+            SchemaShape.Column groupId = null)
         {
             Contracts.CheckValue(host, nameof(host));
             Host = host;
             Host.CheckValue(feature, nameof(feature));
             Host.CheckValueOrNull(label);
             Host.CheckValueOrNull(weight);
+            Host.CheckValueOrNull(groupId);
 
             FeatureColumn = feature;
             LabelColumn = label;
             WeightColumn = weight;
+            GroupIdColumn = groupId;
         }
 
         public TTransformer Fit(IDataView input) => TrainTransformer(input);
@@ -150,7 +161,7 @@ namespace Microsoft.ML.Runtime.Training
         protected abstract TTransformer MakeTransformer(TModel model, Schema trainSchema);
 
         private RoleMappedData MakeRoles(IDataView data) =>
-            new RoleMappedData(data, label: LabelColumn?.Name, feature: FeatureColumn.Name, weight: WeightColumn?.Name);
+            new RoleMappedData(data, label: LabelColumn?.Name, feature: FeatureColumn.Name, group: GroupIdColumn?.Name, weight: WeightColumn?.Name);
 
         IPredictor ITrainer.Train(TrainContext context) => Train(context);
     }

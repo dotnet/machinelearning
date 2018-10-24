@@ -93,7 +93,7 @@ namespace Microsoft.ML.Runtime.FastTree
         /// </summary>
         private protected FastTreeTrainerBase(IHostEnvironment env, SchemaShape.Column label, string featureColumn,
             string weightColumn = null, string groupIdColumn = null, Action<TArgs> advancedSettings = null)
-            : base(Contracts.CheckRef(env, nameof(env)).Register(RegisterName), TrainerUtils.MakeR4VecFeature(featureColumn), label, TrainerUtils.MakeR4ScalarWeightColumn(weightColumn, weightColumn != null ))
+            : base(Contracts.CheckRef(env, nameof(env)).Register(RegisterName), TrainerUtils.MakeR4VecFeature(featureColumn), label, TrainerUtils.MakeR4ScalarWeightColumn(weightColumn), TrainerUtils.MakeU4ScalarColumn(groupIdColumn))
         {
             Args = new TArgs();
 

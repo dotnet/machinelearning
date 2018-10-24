@@ -35,10 +35,10 @@ namespace Microsoft.ML.Runtime.FastTree
     public sealed partial class FastTreeTweedieTrainer
          : BoostingFastTreeTrainerBase<FastTreeTweedieTrainer.Arguments, RegressionPredictionTransformer<FastTreeTweediePredictor>, FastTreeTweediePredictor>
     {
-        public const string LoadNameValue = "FastTreeTweedieRegression";
-        public const string UserNameValue = "FastTree (Boosted Trees) Tweedie Regression";
-        public const string Summary = "Trains gradient boosted decision trees to fit target values using a Tweedie loss function. This learner is a generalization of Poisson, compound Poisson, and gamma regression.";
-        public const string ShortName = "fttweedie";
+        internal const string LoadNameValue = "FastTreeTweedieRegression";
+        internal const string UserNameValue = "FastTree (Boosted Trees) Tweedie Regression";
+        internal const string Summary = "Trains gradient boosted decision trees to fit target values using a Tweedie loss function. This learner is a generalization of Poisson, compound Poisson, and gamma regression.";
+        internal const string ShortName = "fttweedie";
 
         private TestHistory _firstTestSetHistory;
         private Test _trainRegressionTest;

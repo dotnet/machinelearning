@@ -53,7 +53,7 @@ namespace Microsoft.ML.Runtime.Learners
         /// <param name="featureColumn">The name of the feature column.</param>
         public MultiClassNaiveBayesTrainer(IHostEnvironment env, string featureColumn, string labelColumn)
             : base(Contracts.CheckRef(env, nameof(env)).Register(LoadName), TrainerUtils.MakeR4VecFeature(featureColumn),
-                  TrainerUtils.MakeU4ScalarLabel(labelColumn))
+                  TrainerUtils.MakeU4ScalarColumn(labelColumn))
         {
             Host.CheckNonEmpty(featureColumn, nameof(featureColumn));
             Host.CheckNonEmpty(labelColumn, nameof(labelColumn));
@@ -64,7 +64,7 @@ namespace Microsoft.ML.Runtime.Learners
         /// </summary>
         internal MultiClassNaiveBayesTrainer(IHostEnvironment env, Arguments args)
             : base(Contracts.CheckRef(env, nameof(env)).Register(LoadName), TrainerUtils.MakeR4VecFeature(args.FeatureColumn),
-                  TrainerUtils.MakeU4ScalarLabel(args.LabelColumn))
+                  TrainerUtils.MakeU4ScalarColumn(args.LabelColumn))
         {
             Host.CheckValue(args, nameof(args));
         }

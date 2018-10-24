@@ -140,6 +140,7 @@ namespace Microsoft.ML.StaticPipe
             Action<LightGbmRankingPredictor> onFit = null)
         {
             CheckUserValues(label, features, weights, numLeaves, minDataPerLeaf, learningRate, numBoostRound, advancedSettings, onFit);
+            Contracts.CheckValue(groupId, nameof(groupId));
 
             var rec = new TrainerEstimatorReconciler.Ranker<TVal>(
                (env, labelName, featuresName, groupIdName, weightsName) =>

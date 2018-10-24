@@ -362,9 +362,14 @@ namespace Microsoft.ML.Runtime.Training
         /// <summary>
         /// The <see cref="SchemaShape.Column"/> for the label column for regression tasks.
         /// </summary>
-        /// <param name="labelColumn">name of the weight column</param>
-        public static SchemaShape.Column MakeU4ScalarLabel(string labelColumn)
-            => new SchemaShape.Column(labelColumn, SchemaShape.Column.VectorKind.Scalar, NumberType.U4, true);
+        /// <param name="columnName">name of the weight column</param>
+        public static SchemaShape.Column MakeU4ScalarColumn(string columnName)
+        {
+            if (columnName == null)
+                return null;
+
+            return new SchemaShape.Column(columnName, SchemaShape.Column.VectorKind.Scalar, NumberType.U4, true);
+        }
 
         /// <summary>
         /// The <see cref="SchemaShape.Column"/> for the feature column.
@@ -378,7 +383,7 @@ namespace Microsoft.ML.Runtime.Training
         /// </summary>
         /// <param name="weightColumn">name of the weight column</param>
         /// <param name="isExplicit">whether the column is implicitely, or explicitely defined</param>
-        public static SchemaShape.Column MakeR4ScalarWeightColumn(string weightColumn, bool isExplicit)
+        public static SchemaShape.Column MakeR4ScalarWeightColumn(string weightColumn, bool isExplicit = true)
         {
             if (weightColumn == null || !isExplicit)
                 return null;

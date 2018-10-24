@@ -108,22 +108,16 @@ namespace Microsoft.ML.Runtime.LightGBM
             double? learningRate = null,
             int numBoostRound = LightGbmArguments.Defaults.NumBoostRound,
             Action<LightGbmArguments> advancedSettings = null)
-            : this(env, new LightGbmArguments
-            {
-                LabelColumn = labelColumn ?? DefaultColumnNames.Label,
-                FeatureColumn = featureColumn ?? DefaultColumnNames.Features,
-                GroupIdColumn = groupIdColumn ?? DefaultColumnNames.GroupId,
-                WeightColumn = weightColumn ?? null, // Optional<string>.Implicit(DefaultColumnNames.Weight),
-                NumLeaves = numLeaves ?? default,
-                MinDataPerLeaf = minDataPerLeaf ?? default,
-                LearningRate = learningRate ?? default,
-                NumBoostRound = numBoostRound
-            })
+            : base(env, LoadNameValue, TrainerUtils.MakeR4ScalarLabel(labelColumn), featureColumn, weightColumn, groupIdColumn, advancedSettings)
         {
+            Host.CheckNonEmpty(labelColumn, nameof(labelColumn));
+            Host.CheckNonEmpty(featureColumn, nameof(featureColumn));
+            Host.CheckNonEmpty(groupIdColumn, nameof(groupIdColumn));
+
             if (advancedSettings != null)
                 CheckArgsAndAdvancedSettingMismatch(numLeaves, minDataPerLeaf, learningRate, numBoostRound, new LightGbmArguments(), Args);
 
-            // override with the directly provided values, giving them priority over the Advanced args, in case they are assigned twice.
+            // override with the directly provided values
             Args.NumBoostRound = numBoostRound;
             Args.NumLeaves = numLeaves ?? Args.NumLeaves;
             Args.LearningRate = learningRate ?? Args.LearningRate;

@@ -63,7 +63,7 @@ namespace Microsoft.ML.Runtime.Learners
         private protected LinearTrainerBase(IHostEnvironment env, string featureColumn, SchemaShape.Column labelColumn,
             string weightColumn = null)
             : base(Contracts.CheckRef(env, nameof(env)).Register(RegisterName), TrainerUtils.MakeR4VecFeature(featureColumn),
-                          labelColumn, TrainerUtils.MakeR4ScalarWeightColumn(weightColumn, weightColumn != null))
+                          labelColumn, TrainerUtils.MakeR4ScalarWeightColumn(weightColumn))
         {
         }
 
@@ -1443,7 +1443,7 @@ namespace Microsoft.ML.Runtime.Learners
             float? l1Threshold = null,
             int? maxIterations = null,
             Action<Arguments> advancedSettings = null)
-             : base(env, featureColumn, TrainerUtils.MakeBoolScalarLabel(labelColumn), TrainerUtils.MakeR4ScalarWeightColumn(weightColumn, weightColumn != null), advancedSettings,
+             : base(env, featureColumn, TrainerUtils.MakeBoolScalarLabel(labelColumn), TrainerUtils.MakeR4ScalarWeightColumn(weightColumn), advancedSettings,
                   l2Const, l1Threshold, maxIterations)
         {
             Host.CheckNonEmpty(featureColumn, nameof(featureColumn));
@@ -1474,7 +1474,7 @@ namespace Microsoft.ML.Runtime.Learners
 
         internal LinearClassificationTrainer(IHostEnvironment env, Arguments args,
             string featureColumn, string labelColumn, string weightColumn = null)
-            : base(env, args, TrainerUtils.MakeBoolScalarLabel(labelColumn), TrainerUtils.MakeR4ScalarWeightColumn(weightColumn, weightColumn != null))
+            : base(env, args, TrainerUtils.MakeBoolScalarLabel(labelColumn), TrainerUtils.MakeR4ScalarWeightColumn(weightColumn))
         {
             _loss = args.LossFunction.CreateComponent(env);
             Loss = _loss;
