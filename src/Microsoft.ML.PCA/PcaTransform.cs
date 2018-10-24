@@ -134,6 +134,7 @@ namespace Microsoft.ML.Transforms
                 Center = center;
                 Seed = seed;
                 Contracts.CheckParam(Oversampling >= 0, nameof(Oversampling), "Oversampling must be non-negative.");
+                Contracts.CheckParam(Rank > 0, nameof(Rank), "Rank must be positive.");
             }
         }
 
@@ -546,15 +547,10 @@ namespace Microsoft.ML.Transforms
 
         internal static void ValidatePcaInput(IExceptionContext ectx, string name, ColumnType type)
         {
-            if (!type.IsVector)
-                throw ectx.Except($"Pca transform can only be applied to vector columns. Column ${name} is of type ${type}");
+            string inputSchema; // just used for the excpections
 
-            if (!(type.IsKnownSizeVector && type.VectorSize > 1))
-                throw ectx.Except($"Pca transform can only be applied to vector columns with known size greater than 1. Column ${name} is of size ${type.VectorSize}");
-
-            var itemType = type.ItemType;
-            if (!itemType.Equals(NumberType.R4))
-                throw ectx.Except($"Pca transform can only be applied to vector of float items. Column ${name} contains type ${itemType}");
+            if (!(type.IsKnownSizeVector && type.VectorSize > 1 && type.ItemType.Equals(NumberType.R4)))
+                throw ectx.ExceptSchemaMismatch(nameof(inputSchema), "input", name, "vector of floats with fixed size greater than 1", type.ToString());
         }
 
         private sealed class Mapper : MapperBase
@@ -597,8 +593,8 @@ namespace Microsoft.ML.Transforms
                     ValidatePcaInput(Host, colPair.input, colSchemaInfo.InputType);
                     if (colSchemaInfo.InputType.VectorSize != _parent._transformInfos[i].Dimension)
                     {
-                        var msg = $"Dimension of column ${colPair.input} is ${colSchemaInfo.InputType.VectorSize}, which doesn't match the expected size ${_parent._transformInfos[i].Dimension}";
-                        throw Host.Except(msg);
+                        throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", colPair.input,
+                            new VectorType(NumberType.R4, _parent._transformInfos[i].Dimension).ToString(), colSchemaInfo.InputType.ToString());
                     }
                 }
             }
