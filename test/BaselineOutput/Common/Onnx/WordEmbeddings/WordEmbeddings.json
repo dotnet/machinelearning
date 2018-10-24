@@ -33,7 +33,7 @@
           },
           {
             "name": "default_int64",
-            "i": "1",
+            "i": "10",
             "type": "INT"
           }
         ],
@@ -41,18 +41,130 @@
       },
       {
         "input": [
-          "WordEmbeddingWeights",
-          "LabelEncodedInput"
+          "LabelEncodedInput",
+          "NotFoundValueComp"
         ],
         "output": [
-          "WeightsOfInput"
+          "NotFoundValuesBool"
+        ],
+        "name": "Equal",
+        "opType": "Equal"
+      },
+      {
+        "input": [
+          "NotFoundValuesBool"
+        ],
+        "output": [
+          "NotFoundValuesFloat"
+        ],
+        "name": "Cast",
+        "opType": "Cast",
+        "attribute": [
+          {
+            "name": "to",
+            "i": "1",
+            "type": "INT"
+          }
+        ]
+      },
+      {
+        "input": [
+          "NotFoundValuesFloat"
+        ],
+        "output": [
+          "ScaleMax"
+        ],
+        "name": "Scale",
+        "opType": "Scale",
+        "attribute": [
+          {
+            "name": "scale",
+            "f": 2,
+            "type": "FLOAT"
+          }
+        ]
+      },
+      {
+        "input": [
+          "NotFoundValuesBool"
+        ],
+        "output": [
+          "CastMin"
+        ],
+        "name": "Cast0",
+        "opType": "Cast",
+        "attribute": [
+          {
+            "name": "to",
+            "i": "7",
+            "type": "INT"
+          }
+        ]
+      },
+      {
+        "input": [
+          "ScaleMax"
+        ],
+        "output": [
+          "CastMax"
+        ],
+        "name": "Cast1",
+        "opType": "Cast",
+        "attribute": [
+          {
+            "name": "to",
+            "i": "7",
+            "type": "INT"
+          }
+        ]
+      },
+      {
+        "input": [
+          "LabelEncodedInput",
+          "CastMin"
+        ],
+        "output": [
+          "AddMin"
+        ],
+        "name": "Add",
+        "opType": "Add"
+      },
+      {
+        "input": [
+          "LabelEncodedInput",
+          "CastMax"
+        ],
+        "output": [
+          "AddMax"
+        ],
+        "name": "Add0",
+        "opType": "Add"
+      },
+      {
+        "input": [
+          "WordEmbeddingWeights",
+          "AddMin"
+        ],
+        "output": [
+          "GatheredMin"
         ],
         "name": "Gather",
         "opType": "Gather"
       },
       {
         "input": [
-          "WeightsOfInput"
+          "WordEmbeddingWeights",
+          "AddMax"
+        ],
+        "output": [
+          "GatheredMax"
+        ],
+        "name": "Gather0",
+        "opType": "Gather"
+      },
+      {
+        "input": [
+          "GatheredMin"
         ],
         "output": [
           "MinWeights"
@@ -71,26 +183,7 @@
       },
       {
         "input": [
-          "WeightsOfInput"
-        ],
-        "output": [
-          "MeanWeights"
-        ],
-        "name": "ReduceMean",
-        "opType": "ReduceMean",
-        "attribute": [
-          {
-            "name": "axes",
-            "ints": [
-              "0"
-            ],
-            "type": "INTS"
-          }
-        ]
-      },
-      {
-        "input": [
-          "WeightsOfInput"
+          "GatheredMax"
         ],
         "output": [
           "MaxWeights"
@@ -106,6 +199,127 @@
             "type": "INTS"
           }
         ]
+      },
+      {
+        "input": [
+          "WordEmbeddingWeights",
+          "LabelEncodedInput"
+        ],
+        "output": [
+          "GatheredMean"
+        ],
+        "name": "Gather1",
+        "opType": "Gather"
+      },
+      {
+        "input": [
+          "GatheredMean"
+        ],
+        "output": [
+          "SumWeights"
+        ],
+        "name": "ReduceSum",
+        "opType": "ReduceSum",
+        "attribute": [
+          {
+            "name": "axes",
+            "ints": [
+              "0"
+            ],
+            "type": "INTS"
+          }
+        ]
+      },
+      {
+        "input": [
+          "NotFoundValuesBool"
+        ],
+        "output": [
+          "FoundValuesBool"
+        ],
+        "name": "Not",
+        "opType": "Not"
+      },
+      {
+        "input": [
+          "FoundValuesBool"
+        ],
+        "output": [
+          "FoundValuesInt"
+        ],
+        "name": "Cast2",
+        "opType": "Cast",
+        "attribute": [
+          {
+            "name": "to",
+            "i": "6",
+            "type": "INT"
+          }
+        ]
+      },
+      {
+        "input": [
+          "FoundValuesInt"
+        ],
+        "output": [
+          "NumWordsFoundInt"
+        ],
+        "name": "ReduceSum0",
+        "opType": "ReduceSum",
+        "attribute": [
+          {
+            "name": "axes",
+            "ints": [
+              "0"
+            ],
+            "type": "INTS"
+          }
+        ]
+      },
+      {
+        "input": [
+          "NumWordsFoundInt"
+        ],
+        "output": [
+          "NumWordsFoundFloat"
+        ],
+        "name": "Cast3",
+        "opType": "Cast",
+        "attribute": [
+          {
+            "name": "to",
+            "i": "1",
+            "type": "INT"
+          }
+        ]
+      },
+      {
+        "input": [
+          "NumWordsFoundFloat"
+        ],
+        "output": [
+          "NumWordsClippedFloat"
+        ],
+        "name": "Clip",
+        "opType": "Clip",
+        "attribute": [
+          {
+            "name": "min",
+            "f": 1,
+            "type": "FLOAT"
+          }
+        ]
+      },
+      {
+        "input": [
+          "SumWeights",
+          "NumWordsClippedFloat"
+        ],
+        "output": [
+          "MeanWeights"
+        ],
+        "name": "Div",
+        "opType": "Div"
       },
       {
         "input": [
@@ -141,7 +355,7 @@
     "initializer": [
       {
         "dims": [
-          "10",
+          "13",
           "50"
         ],
         "dataType": "FLOAT",
@@ -645,9 +859,166 @@
           0.2656501,
           0.1508634,
           -0.3700516,
-          -0.3107388
+          -0.3107388,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          3.40282347E+38,
+          3.40282347E+38,
+          3.40282347E+38,
+          3.40282347E+38,
+          3.40282347E+38,
+          3.40282347E+38,
+          3.40282347E+38,
+          3.40282347E+38,
+          3.40282347E+38,
+          3.40282347E+38,
+          3.40282347E+38,
+          3.40282347E+38,
+          3.40282347E+38,
+          3.40282347E+38,
+          3.40282347E+38,
+          3.40282347E+38,
+          3.40282347E+38,
+          3.40282347E+38,
+          3.40282347E+38,
+          3.40282347E+38,
+          3.40282347E+38,
+          3.40282347E+38,
+          3.40282347E+38,
+          3.40282347E+38,
+          3.40282347E+38,
+          3.40282347E+38,
+          3.40282347E+38,
+          3.40282347E+38,
+          3.40282347E+38,
+          3.40282347E+38,
+          3.40282347E+38,
+          3.40282347E+38,
+          3.40282347E+38,
+          3.40282347E+38,
+          3.40282347E+38,
+          3.40282347E+38,
+          3.40282347E+38,
+          3.40282347E+38,
+          3.40282347E+38,
+          3.40282347E+38,
+          3.40282347E+38,
+          3.40282347E+38,
+          3.40282347E+38,
+          3.40282347E+38,
+          3.40282347E+38,
+          3.40282347E+38,
+          3.40282347E+38,
+          3.40282347E+38,
+          3.40282347E+38,
+          3.40282347E+38,
+          -3.40282347E+38,
+          -3.40282347E+38,
+          -3.40282347E+38,
+          -3.40282347E+38,
+          -3.40282347E+38,
+          -3.40282347E+38,
+          -3.40282347E+38,
+          -3.40282347E+38,
+          -3.40282347E+38,
+          -3.40282347E+38,
+          -3.40282347E+38,
+          -3.40282347E+38,
+          -3.40282347E+38,
+          -3.40282347E+38,
+          -3.40282347E+38,
+          -3.40282347E+38,
+          -3.40282347E+38,
+          -3.40282347E+38,
+          -3.40282347E+38,
+          -3.40282347E+38,
+          -3.40282347E+38,
+          -3.40282347E+38,
+          -3.40282347E+38,
+          -3.40282347E+38,
+          -3.40282347E+38,
+          -3.40282347E+38,
+          -3.40282347E+38,
+          -3.40282347E+38,
+          -3.40282347E+38,
+          -3.40282347E+38,
+          -3.40282347E+38,
+          -3.40282347E+38,
+          -3.40282347E+38,
+          -3.40282347E+38,
+          -3.40282347E+38,
+          -3.40282347E+38,
+          -3.40282347E+38,
+          -3.40282347E+38,
+          -3.40282347E+38,
+          -3.40282347E+38,
+          -3.40282347E+38,
+          -3.40282347E+38,
+          -3.40282347E+38,
+          -3.40282347E+38,
+          -3.40282347E+38,
+          -3.40282347E+38,
+          -3.40282347E+38,
+          -3.40282347E+38,
+          -3.40282347E+38,
+          -3.40282347E+38
         ],
         "name": "WordEmbeddingWeights"
+      },
+      {
+        "dataType": "INT64",
+        "int64Data": [
+          "10"
+        ],
+        "name": "NotFoundValueComp"
       }
     ],
     "input": [
@@ -717,7 +1088,7 @@
       "version": "1"
     },
     {
-      "version": "7"
+      "version": "8"
     }
   ]
 }

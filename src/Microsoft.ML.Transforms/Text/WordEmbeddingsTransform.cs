@@ -378,36 +378,36 @@ namespace Microsoft.ML.Runtime.Data
                 // P: output, a j * 3 tensor
                 //
                 //                                                      X [n]
-                //                                                        |
-                //                                 LabelEncoder (classes_strings = S [k], default_int64 = k)
-                //                                 /   |                      |                           \
-                //                                /    | Initialize (F) ---> Equal                          \
-                //                               /     |                     / |  \                          \
-                //                              /      '-------------|      /  |   \                          \
-                //            -----------------/               ------|-----/   |    \------------------        \----------
-                //           /                                /      |         |                       \                  \
-                //          |                     Cast (to = int64)  | Cast (to = float)              Not                  |
-                //          |                            |           |         |                        |                  |
-                //          '------------ Add -----------'           | Scale (scale = 2.0)         Cast (to = int32)       |
-                //                          |                        |         |                        |                  |
-                //                          |                        | Cast (to = int64)       ReduceSum (axes = [0])      |
-                //                          |                        |         |                        |                  |
-                //                          |                        '-- Add --'                Cast (to = float)          |
-                //                          |   Initialize (D [k + 3, j]   |                            |                  |
-                //                          |             |                |                     Clip (min = 1.0)          |
-                //                          |             |----------------|----------------------------|--------\         |
-                //                          |             |                |                            |         \        |
-                //                          |   /---------'-------------\  |                            |          '----\  |
-                //                        Gather                        Gather                          |               Gather
-                //                          |                              |                            |                  |
-                //                  ReduceMin (axes = [0])      ReduceMax (axes = [0])                  |        ReduceSum (axes = [0])
-                //                          |                              |                            |                  |
-                //                          |                              |                            '------- Div ------'
-                //                          |                              |                                      |
-                //                          |                              |                                      |
-                //                          '------------------- Concat (axis = 1) -------------------------------'
-                //                                                         |
-                //                                                     P [j * 3]
+                //                                                       |
+                //                           LabelEncoder (classes_strings = S [k], default_int64 = k)
+                //                           /   |                       |                           \
+                //                          /    | Initialize (F) ---> Equal                          \
+                //                         /     |                     / |  \                          \
+                //                        /      '-------------|      /  |   \                          \
+                //      -----------------/               ------|-----/   |    \------------------        \----------
+                //     /                                /      |         |                       \                  \
+                //    |                     Cast (to = int64)  | Cast (to = float)              Not                  |
+                //    |                            |           |         |                        |                  |
+                //    '------------ Add -----------'           | Scale (scale = 2.0)         Cast (to = int32)       |
+                //                    |                        |         |                        |                  |
+                //                    |                        | Cast (to = int64)       ReduceSum (axes = [0])      |
+                //                    |                        |         |                        |                  |
+                //                    |                        '-- Add --'                Cast (to = float)          |
+                //                    |   Initialize (D [k + 3, j]   |                            |                  |
+                //                    |             |                |                     Clip (min = 1.0)          |
+                //                    |             |----------------|----------------------------|--------\         |
+                //                    |             |                |                            |         \        |
+                //                    |   /---------'-------------\  |                            |          '----\  |
+                //                  Gather                        Gather                          |               Gather
+                //                    |                              |                            |                  |
+                //            ReduceMin (axes = [0])      ReduceMax (axes = [0])                  |        ReduceSum (axes = [0])
+                //                    |                              |                            |                  |
+                //                    |                              |                            '------- Div ------'
+                //                    |                              |                                      |
+                //                    |                              |                                      |
+                //                    '------------------- Concat (axis = 1) -------------------------------'
+                //                                                   |
+                //                                               P [j * 3]
 
                 long[] axes = new long[] { 0 };
                 // Allocate D, a constant tensor representing word embedding weights
