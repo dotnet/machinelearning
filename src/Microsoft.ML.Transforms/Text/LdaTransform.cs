@@ -17,6 +17,7 @@ using Microsoft.ML.Runtime.Internal.Internallearn;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.TextAnalytics;
+using Microsoft.ML.Core.Data;
 
 [assembly: LoadableClass(typeof(LdaTransform), typeof(LdaTransform.Arguments), typeof(SignatureDataTransform),
     LdaTransform.UserName, LdaTransform.LoaderSignature, LdaTransform.ShortName, DocName = "transform/LdaTransform.md")]
@@ -42,7 +43,7 @@ namespace Microsoft.ML.Runtime.TextAnalytics
     // See <a href="https://github.com/dotnet/machinelearning/blob/master/test/Microsoft.ML.TestFramework/DataPipe/TestDataPipe.cs"/>
     // for an example on how to use LdaTransform.
     /// <include file='doc.xml' path='doc/members/member[@name="LightLDA"]/*' />
-    public sealed class LdaTransform : OneToOneTransformBase
+    public sealed class LdaTransform : OneToOneTransformerBase
     {
         public sealed class Arguments : TransformInputBase
         {
@@ -306,8 +307,31 @@ namespace Microsoft.ML.Runtime.TextAnalytics
         internal const string UserName = "Latent Dirichlet Allocation Transform";
         internal const string ShortName = "LightLda";
 
-        public LdaTransform(IHostEnvironment env, Arguments args, IDataView input)
-            : base(env, RegistrationName, args.Column, input, TestType)
+        public sealed class ColumnInfo
+        {
+            public readonly string Input;
+            public readonly string Output;
+
+            /// <summary>
+            /// Describes how the transformer handles one column pair.
+            /// </summary>
+            /// <param name="input">Name of input column.</param>
+            /// <param name="output">Name of output column.</param>
+            public ColumnInfo(string input, string output)
+            {
+                Input = input;
+                Output = output;
+            }
+        }
+
+        private static (string input, string output)[] GetColumnPairs(ColumnInfo[] columns)
+        {
+            Contracts.CheckValue(columns, nameof(columns));
+            return columns.Select(x => (x.Input, x.Output)).ToArray();
+        }
+
+        public LdaTransform(IHostEnvironment env, ColumnInfo[] columns, IDataView input)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(LdaTransform)), GetColumnPairs(columns))
         {
             Host.CheckValue(args, nameof(args));
             Host.CheckUserArg(args.NumTopic > 0, nameof(args.NumTopic), "Must be positive.");
@@ -969,6 +993,84 @@ namespace Microsoft.ML.Runtime.TextAnalytics
                     getSrc(ref src);
                     lda.Output(ref src, ref dst, numBurninIter, reset);
                 };
+        }
+
+        protected override IRowMapper MakeRowMapper(ISchema schema)
+        {
+            return new Mapper(this, Schema.Create(schema));
+        }
+
+        private sealed class Mapper : MapperBase
+        {
+            public Mapper(LdaTransform parent, Schema inputSchema)
+                : base(parent.Host.Register(nameof(Mapper)), parent, inputSchema)
+            {
+            }
+
+            public override Schema.Column[] GetOutputColumns()
+            {
+                throw new NotImplementedException();
+            }
+
+            protected override Delegate MakeGetter(IRow input, int iinfo, out Action disposer)
+            {
+                throw new NotImplementedException();
+            }
+        }
+    }
+
+        /// <include file='doc.xml' path='doc/members/member[@name="LightLDA"]/*' />
+    public sealed class LdaEstimator : IEstimator<LdaTransform>
+    {
+        private readonly IHost _host;
+        private readonly LdaTransform.ColumnInfo[] _columns;
+
+        /// <include file='doc.xml' path='doc/members/member[@name="LightLDA"]/*' />
+        /// <param name="env">The environment.</param>
+        /// <param name="inputColumn">The column containing text to tokenize.</param>
+        /// <param name="outputColumn">The column containing output tokens. Null means <paramref name="inputColumn"/> is replaced.</param>
+        /// <param name="numTopic">The number of topics in the LDA.</param>
+        /// <param name="advancedSettings">A delegate to apply all the advanced arguments to the algorithm.</param>
+        public LdaEstimator(IHostEnvironment env,
+            string inputColumn,
+            string outputColumn = null,
+            int numTopic = 100,
+            Action<LdaTransform.Arguments> advancedSettings = null)
+            : this(env, new[] { (inputColumn, outputColumn ?? inputColumn) },
+                    numTopic,
+                    advancedSettings)
+        {
+        }
+
+        /// <include file='doc.xml' path='doc/members/member[@name="LightLDA"]/*' />
+        /// <param name="env">The environment.</param>
+        /// <param name="columns">Pairs of columns to compute LDA.</param>
+        /// <param name="numTopic">The number of topics in the LDA.</param>
+        /// <param name="advancedSettings">A delegate to apply all the advanced arguments to the algorithm.</param>
+        public LdaEstimator(IHostEnvironment env,
+            (string input, string output)[] columns,
+            int numTopic = 100,
+            Action<LdaTransform.Arguments> advancedSettings = null)
+        {
+            Contracts.CheckValue(env, nameof(env));
+            _host = env.Register(nameof(LdaEstimator));
+
+            var args = new LdaTransform.Arguments();
+            args.Column = columns.Select(x => new LdaTransform.Column { Source = x.input, Name = x.output }).ToArray();
+            args.NumTopic = numTopic;
+
+            advancedSettings?.Invoke(args);
+            _columns = new LdaTransform.ColumnInfo(inputColumn, outputColumn ?? inputColumn);
+        }
+
+        public SchemaShape GetOutputSchema(SchemaShape inputSchema)
+        {
+            throw new NotImplementedException();
+        }
+
+        public LdaTransform Fit(IDataView input)
+        {
+            return new LdaTransform(_host, _columns, input);
         }
     }
 }
