@@ -382,7 +382,7 @@ namespace Microsoft.ML.Runtime.Training
         /// The <see cref="SchemaShape.Column"/> for the weight column.
         /// </summary>
         /// <param name="weightColumn">name of the weight column</param>
-        /// <param name="isExplicit">whether the column is implicitely, or explicitely defined</param>
+        /// <param name="isExplicit">whether the column is implicitly, or explicitly defined</param>
         public static SchemaShape.Column MakeR4ScalarWeightColumn(string weightColumn, bool isExplicit = true)
         {
             if (weightColumn == null || !isExplicit)
