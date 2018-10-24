@@ -111,6 +111,13 @@ namespace Microsoft.ML.Transforms
             /// <summary>
             /// Describes how the transformer handles one column pair.
             /// </summary>
+            /// <param name="input">The column to apply PCA to.</param>
+            /// <param name="output">The output column that contains PCA values.</param>
+            /// <param name="weightColumn">The name of the weight column.</param>
+            /// <param name="rank">The number of components in the PCA.</param>
+            /// <param name="overSampling">Oversampling parameter for randomized PCA training.</param>
+            /// <param name="center">If enabled, data is centered to be zero mean.</param>
+            /// <param name="seed">The seed for random number generation.</param>
             public ColumnInfo(string input,
                               string output,
                               string weightColumn = PcaEstimator.Defaults.WeightColumn,
@@ -126,7 +133,7 @@ namespace Microsoft.ML.Transforms
                 Oversampling = overSampling;
                 Center = center;
                 Seed = seed;
-                Contracts.CheckUserArg(Oversampling >= 0, nameof(Oversampling), "Oversampling must be non-negative.");
+                Contracts.CheckParam(Oversampling >= 0, nameof(Oversampling), "Oversampling must be non-negative.");
             }
         }
 
@@ -144,7 +151,7 @@ namespace Microsoft.ML.Transforms
             {
                 Dimension = dim;
                 Rank = rank;
-                Contracts.CheckUserArg(0 < Rank && Rank <= Dimension, nameof(Rank), "Rank must be positive, and at most the dimension of untransformed data");
+                Contracts.CheckParam(0 < Rank && Rank <= Dimension, nameof(Rank), "Rank must be positive, and at most the dimension of untransformed data");
             }
 
             public TransformInfo(ModelLoadContext ctx)
@@ -224,7 +231,7 @@ namespace Microsoft.ML.Transforms
                 modelSignature: "PCA FUNC",
                 //verWrittenCur: 0x00010001, // Initial
                 verWrittenCur: 0x00010002, // Got rid of writing float size in model context
-                verReadableCur: 0x00010001,
+                verReadableCur: 0x00010002,
                 verWeCanReadBack: 0x00010001,
                 loaderSignature: LoaderSignature,
                 loaderAssemblyName: typeof(PcaTransform).Assembly.FullName);
@@ -537,17 +544,17 @@ namespace Microsoft.ML.Transforms
             ValidatePcaInput(Host, inputSchema.GetColumnName(srcCol), inputSchema.GetColumnType(srcCol));
         }
 
-        internal static void ValidatePcaInput(IHost host, string name, ColumnType type)
+        internal static void ValidatePcaInput(IExceptionContext ectx, string name, ColumnType type)
         {
             if (!type.IsVector)
-                throw host.Except($"Pca transform can only be applied to vector columns. Column ${name} is of type ${type}");
+                throw ectx.Except($"Pca transform can only be applied to vector columns. Column ${name} is of type ${type}");
 
             if (!(type.IsKnownSizeVector && type.VectorSize > 1))
-                throw host.Except($"Pca transform can only be applied to vector columns. Column ${name} is of size ${type.VectorSize}");
+                throw ectx.Except($"Pca transform can only be applied to vector columns. Column ${name} is of size ${type.VectorSize}");
 
             var itemType = type.ItemType;
             if (itemType.RawKind != DataKind.R4)
-                throw host.Except($"Pca transform can only be applied to vector of float items. Column ${name} contains type ${itemType}");
+                throw ectx.Except($"Pca transform can only be applied to vector of float items. Column ${name} contains type ${itemType}");
         }
 
         private sealed class Mapper : MapperBase
@@ -701,7 +708,7 @@ namespace Microsoft.ML.Transforms
         /// <param name="rank">The number of components in the PCA.</param>
         /// <param name="overSampling">Oversampling parameter for randomized PCA training.</param>
         /// <param name="center">If enabled, data is centered to be zero mean.</param>
-        /// <param name="seed">The seed for random number generation</param>
+        /// <param name="seed">The seed for random number generation.</param>
         public PcaEstimator(IHostEnvironment env, string inputColumn, string outputColumn = null,
             string weightColumn = Defaults.WeightColumn, int rank = Defaults.Rank,
             int overSampling = Defaults.Oversampling, bool center = Defaults.Center,
@@ -780,7 +787,10 @@ namespace Microsoft.ML.Transforms
             }
         }
 
-        /// <summary>Compute the principal components of the input column. Can significantly reduce size of vector.</summary>
+        /// <summary>
+        /// Replaces the input vector with its projection to the principal component subspace,
+        /// which can significantly reduce size of vector.
+        /// </summary>
         /// <include file='doc.xml' path='doc/members/member[@name="PCA"]/*'/>
         /// <param name="input">The column to apply PCA to.</param>
         /// <param name="weightColumn">The name of the weight column.</param>
