@@ -7,6 +7,7 @@
 
   <ItemGroup> 
     <Content Include="..\common\CommonPackage.props" Pack="true" PackagePath="build\netstandard2.0\$(MSBuildProjectName).props" />
+    <Content Include="$(SourceDir)Native\MatrixFactorizationNative\libmf\COPYRIGHT" Pack="true" PackagePath=".\" />
   </ItemGroup> 
   
 </Project>

@@ -165,8 +165,7 @@ namespace Microsoft.ML.Runtime.Recommender
 
             using (var ch = Host.Start("Training"))
             {
-                var pred = TrainCore(ch, context.TrainingSet, context.ValidationSet);
-                return pred;
+                return TrainCore(ch, context.TrainingSet, context.ValidationSet);
             }
         }
 

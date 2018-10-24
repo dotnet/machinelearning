@@ -17,7 +17,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             string labelColumnName = "Label";
             string xColumnName = "X";
             string yColumnName = "Y";
-            var data = new TextLoader(Env, GetMfTrivialLoaderArgs(labelColumnName, xColumnName, yColumnName))
+            var data = new TextLoader(Env, GetLoaderArgs(labelColumnName, xColumnName, yColumnName))
                     .Read(new MultiFileSource(GetDataPath(TestDatasets.trivialMatrixFactorization.trainFilename)));
 
             var est = new MatrixFactorizationTrainer(Env, labelColumnName, xColumnName, yColumnName, 
@@ -34,6 +34,54 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         }
 
         [Fact]
+        public void MatrixFactorizationInvalid()
+        {
+            using (var env = new LocalEnvironment(seed: 1, conc: 1))
+            {
+                // Specific column names of the considered data set
+                string labelColumnName = "Label";
+                string userColumnName = "User";
+                string itemColumnName = "Item";
+
+                // Create readers for training and test data sets. Note that they produce different schemas, so an exception will be thrown
+                // because the trained transformer cannot be applied to the test schema.
+                var reader = new TextLoader(env, GetLoaderArgs(labelColumnName, userColumnName, itemColumnName));
+                var testReader = new TextLoader(env, GetLoaderArgs(labelColumnName, userColumnName + "Renamed", itemColumnName + "Renamed"));
+
+                // Read training data as an IDataView object
+                var data = reader.Read(new MultiFileSource(GetDataPath(TestDatasets.trivialMatrixFactorization.trainFilename)));
+
+                // Create a pipeline with a single operator.
+                var pipeline = new MatrixFactorizationTrainer(env, labelColumnName, userColumnName, itemColumnName,
+                    advancedSettings:s=>
+                    {
+                        s.NumIterations = 3;
+                        s.NumThreads = 1; // To eliminate randomness, # of threads must be 1.
+                        s.K = 7;
+                    });
+
+                // Train a matrix factorization model.
+                var model = pipeline.Fit(data);
+
+                // Read the test data set as an IDataView
+                var testData = testReader.Read(new MultiFileSource(GetDataPath(TestDatasets.trivialMatrixFactorization.testFilename)));
+
+                // Apply the trained model to the test set. It will fail because the transformer will be looking for "User" and "Item" colmuns,
+                // which were changed to "UserRenamed" and "ItemRenamed", respectively in the test data.
+                bool thrown = false;
+                try
+                {
+                    var prediction = model.Transform(testData);
+                }
+                catch
+                {
+                    thrown = true;
+                }
+                Assert.True(thrown);
+            }
+        }
+
+        [Fact]
         public void MatrixFactorizationSimpleTrainAndPredict()
         {
             using (var env = new LocalEnvironment(seed: 1, conc: 1))
@@ -45,7 +93,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 string scoreColumnName = "Score";
 
                 // Create reader for both of training and test data sets
-                var reader = new TextLoader(env, GetMfTrivialLoaderArgs(labelColumnName, userColumnName, itemColumnName));
+                var reader = new TextLoader(env, GetLoaderArgs(labelColumnName, userColumnName, itemColumnName));
 
                 // Read training data as an IDataView object
                 var data = reader.Read(new MultiFileSource(GetDataPath(TestDatasets.trivialMatrixFactorization.trainFilename)));
@@ -96,7 +144,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             }
         }
 
-        private TextLoader.Arguments GetMfTrivialLoaderArgs(string labelColumnName, string xColumnName, string yColumnName)
+        private TextLoader.Arguments GetLoaderArgs(string labelColumnName, string xColumnName, string yColumnName)
         {
             return new TextLoader.Arguments()
             {

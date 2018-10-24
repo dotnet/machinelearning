@@ -47,13 +47,9 @@ namespace Microsoft.ML.Runtime.Recommender
         private readonly int _n;
         // The internal dimension.
         private readonly int _k;
-        // The libMF is always single precision, so we will
-        // keep it as such even in the double build, even when
-        // the ML.NET output type is noted as being double.
-
         // Packed _m by _k matrix.
         private readonly float[] _p;
-        // Packed _k by _n matrix.
+        // Packed _k by _n matrix. Note that LIBMF approximates the given _m-by-_n matrix via _p * _q, where * denotes matrix multiplication.
         private readonly float[] _q;
 
         public PredictionKind PredictionKind
@@ -70,12 +66,12 @@ namespace Microsoft.ML.Runtime.Recommender
         {
             Contracts.CheckValue(env, nameof(env));
             _host = env.Register(RegistrationName);
-            _host.CheckValue(buffer, nameof(buffer));
-            _host.CheckValue(xType, nameof(xType));
-            _host.CheckValue(yType, nameof(xType));
-
             _host.Assert(xType.RawKind == DataKind.U4);
             _host.Assert(yType.RawKind == DataKind.U4);
+            _host.CheckValue(buffer, nameof(buffer));
+            _host.CheckValue(xType, nameof(xType));
+            _host.CheckValue(yType, nameof(yType));
+
             buffer.Get(out _m, out _n, out _k, out _p, out _q);
             _host.Assert(_n == xType.Count);
             _host.Assert(_m == yType.Count);
@@ -145,16 +141,16 @@ namespace Microsoft.ML.Runtime.Recommender
             // float[m * k]: the row dimension factor matrix P
             // float[k * n]: the column dimension factor matrix Q
 
-            _host.Assert(_m > 0);
-            _host.Assert(_n > 0);
-            _host.Assert(_k > 0);
+            _host.Check(_m > 0, "Number of rows must be positive");
+            _host.Check(_n > 0, "Number of columns must be positive");
+            _host.Check(_k > 0, "Number of latent factors must be positive");
             ctx.Writer.Write(_m);
             ctx.Writer.Write((InputYType as KeyType).Min);
             ctx.Writer.Write(_n);
             ctx.Writer.Write((InputXType as KeyType).Min);
             ctx.Writer.Write(_k);
-            _host.Assert(Utils.Size(_p) == _m * _k);
-            _host.Assert(Utils.Size(_q) == _n * _k);
+            _host.Check(Utils.Size(_p) == _m * _k, "Unexpected matrix size of a factor matrix (matrix P in LIBMF paper)");
+            _host.Check(Utils.Size(_q) == _n * _k, "Unexpected matrix size of a factor matrix (matrix Q in LIBMF paper)");
             Utils.WriteSinglesNoCount(ctx.Writer, _p, _m * _k);
             Utils.WriteSinglesNoCount(ctx.Writer, _q, _n * _k);
         }
@@ -229,7 +225,7 @@ namespace Microsoft.ML.Runtime.Recommender
 
         private void MapperCore(ref uint srcCol, ref uint srcRow, ref float dst)
         {
-            // REVIEW tfinley: The key-type version a bit more "strict" than the predictor
+            // REVIEW: The key-type version a bit more "strict" than the predictor
             // version, since the predictor version can't know the maximum bound during
             // training. For higher-than-expected values, the predictor version would return
             // 0, rather than NaN as we do here. It is in my mind an open question as to what
@@ -254,11 +250,15 @@ namespace Microsoft.ML.Runtime.Recommender
             return score;
         }
 
+        /// <summary>
+        /// Create a row mapper based on regression scorer. Because matrix factorization predictor maps a tuple of a row ID (u) and a column ID (v)
+        /// to the expected numerical value at the u-th row and the v-th column in the considered matrix, it is essentially a regressor.
+        /// </summary>
         public ISchemaBoundMapper Bind(IHostEnvironment env, RoleMappedSchema schema)
         {
             Contracts.AssertValue(env);
             env.AssertValue(schema);
-            return new RowMapper(this, schema, Schema.Create(new ScoreMapperSchema(OutputType, MetadataUtils.Const.ScoreColumnKind.Regression)));
+            return new RowMapper(env, this, schema, Schema.Create(new ScoreMapperSchema(OutputType, MetadataUtils.Const.ScoreColumnKind.Regression)));
         }
 
         private sealed class RowMapper : ISchemaBoundRowMapper
@@ -269,27 +269,27 @@ namespace Microsoft.ML.Runtime.Recommender
             private readonly int _yColIndex;
             private readonly string _xColName;
             private readonly string _yColName;
-
-            private IHost Host => _parent._host;
+            private IHostEnvironment _env;
             public Schema Schema { get; }
             public Schema InputSchema => InputRoleMappedSchema.Schema;
 
             public RoleMappedSchema InputRoleMappedSchema { get; }
 
-            public RowMapper(MatrixFactorizationPredictor parent, RoleMappedSchema schema, Schema outputSchema)
+            public RowMapper(IHostEnvironment env, MatrixFactorizationPredictor parent, RoleMappedSchema schema, Schema outputSchema)
             {
                 Contracts.AssertValue(parent);
+                _env = env;
                 _parent = parent;
 
                 // Check role of X
                 var xList = schema.GetColumns(RecommendUtils.XKind);
                 string msg = $"'{RecommendUtils.XKind}' column doesn't exist or not unique";
-                Host.Check(Utils.Size(xList) == 1, msg);
+                _env.Check(Utils.Size(xList) == 1, msg);
 
                 // Check role of Y
                 var yList = schema.GetColumns(RecommendUtils.YKind);
                 msg = $"'{RecommendUtils.YKind}' column doesn't exist or not unique";
-                Host.Check(Utils.Size(yList) == 1, msg);
+                _env.Check(Utils.Size(yList) == 1, msg);
 
                 _xColName = xList[0].Name;
                 _xColIndex = xList[0].Index;
@@ -323,18 +323,18 @@ namespace Microsoft.ML.Runtime.Recommender
                 // See if role X's type matches the one expected in the trained predictor
                 var type = schema.GetColumnType(xCol);
                 string msg = string.Format("Input X type '{0}' incompatible with predictor X type '{1}'", type, _parent.InputXType);
-                Host.CheckParam(type.Equals(_parent.InputXType), nameof(schema), msg);
+                _env.CheckParam(type.Equals(_parent.InputXType), nameof(schema), msg);
 
                 // See if role Y's type matches the one expected in the trained predictor
                 type = schema.GetColumnType(yCol);
                 msg = string.Format("Input Y type '{0}' incompatible with predictor Y type '{1}'", type, _parent.InputYType);
-                Host.CheckParam(type.Equals(_parent.InputYType), nameof(schema), msg);
+                _env.CheckParam(type.Equals(_parent.InputYType), nameof(schema), msg);
             }
 
             private Delegate[] CreateGetter(IRow input, bool[] active)
             {
-                Host.CheckValue(input, nameof(input));
-                Host.Assert(Utils.Size(active) == Schema.ColumnCount);
+                _env.CheckValue(input, nameof(input));
+                _env.Assert(Utils.Size(active) == Schema.ColumnCount);
 
                 var getters = new Delegate[1];
                 if (active[0])
@@ -374,15 +374,15 @@ namespace Microsoft.ML.Runtime.Recommender
         /// columns specified by <see cref="XColumnName"/>, <see cref="XColumnType"/>, <see cref="YColumnName"/>, and <see cref="YColumnType"></see>.
         /// The output column is "Score" by default but user can append a string to it.
         /// </summary>
-        /// <param name="host">Eviroment object for showing information</param>
+        /// <param name="env">Eviroment object for showing information</param>
         /// <param name="model">The model trained by one of the training functions in <see cref="MatrixFactorizationTrainer"/></param>
         /// <param name="trainSchema">Targeted schema that containing columns named as xColumnName</param>
         /// <param name="xColumnName">The name of the column used as role X in matrix factorization world</param>
         /// <param name="yColumnName">The name of the column used as role Y in matrix factorization world</param>
         /// <param name="scoreColumnNameSuffix">A string attached to the output column name of this transformer</param>
-        public MatrixFactorizationPredictionTransformer(IHostEnvironment host, MatrixFactorizationPredictor model, Schema trainSchema,
+        public MatrixFactorizationPredictionTransformer(IHostEnvironment env, MatrixFactorizationPredictor model, Schema trainSchema,
             string xColumnName, string yColumnName, string scoreColumnNameSuffix = "")
-            :base(Contracts.CheckRef(host, nameof(host)).Register(nameof(MatrixFactorizationPredictionTransformer)), model, trainSchema)
+            :base(Contracts.CheckRef(env, nameof(env)).Register(nameof(MatrixFactorizationPredictionTransformer)), model, trainSchema)
         {
             Host.CheckNonEmpty(xColumnName, nameof(yColumnName));
             Host.CheckNonEmpty(xColumnName, nameof(yColumnName));

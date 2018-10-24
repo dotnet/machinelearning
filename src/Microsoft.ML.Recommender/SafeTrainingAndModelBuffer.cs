@@ -161,7 +161,7 @@ namespace Microsoft.ML.Runtime.Recommender.Internal
                         continue;
                     }
                     rowGetter(ref row);
-                    // REVIEW tfinley: Instead of ignoring, should I throw in the row > rowCount case?
+                    // REVIEW: Instead of ignoring, should I throw in the row > rowCount case?
                     if (row == 0 || row > (uint)rowCount)
                     {
                         numSkipped++;
