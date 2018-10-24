@@ -506,7 +506,7 @@ namespace Microsoft.ML.Runtime.RunTests
 
         private void GetNumbersFromFile(ref string firstString, ref string secondString, int digitsOfPrecision)
         {
-            Regex _matchNumer = new Regex(@"-?[0-9]+\.?[0-9]*(E-[0-9]*)?\b", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+            Regex _matchNumer = new Regex(@"-?\b[0-9]+\.?[0-9]*(E-[0-9]*)?\b", RegexOptions.IgnoreCase | RegexOptions.Compiled);
             MatchCollection firstCollection = _matchNumer.Matches(firstString);
             MatchCollection secondCollection = _matchNumer.Matches(secondString);
 

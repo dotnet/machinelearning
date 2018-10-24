@@ -329,7 +329,7 @@ namespace Microsoft.ML.Tests
             fileText = Regex.Replace(fileText, "\"producerVersion\": \"([^\"]+)\"", "\"producerVersion\": \"##VERSION##\"");
             File.WriteAllText(onnxAsJsonPath, fileText);
 
-            CheckEquality(subDir, "Kmeans.json", digitsOfPrecision: 2);
+            CheckEquality(subDir, "Kmeans.json");
             Done();
         }
 
