@@ -419,6 +419,7 @@ namespace Microsoft.ML.Runtime.Data
                 tensorD.AddRange(Enumerable.Repeat(0.0f, _parent._currentVocab.Dimension));
                 // out-of-vocab embedding vector for combining embeddings by element-wise min
                 tensorD.AddRange(Enumerable.Repeat(float.MaxValue, _parent._currentVocab.Dimension));
+                // out-of-vocab embedding vector for combining embeddings by element-wise max
                 tensorD.AddRange(Enumerable.Repeat(float.MinValue, _parent._currentVocab.Dimension));
                 var nameD = ctx.AddInitializer(tensorD, shapeD, "WordEmbeddingWeights");
 
