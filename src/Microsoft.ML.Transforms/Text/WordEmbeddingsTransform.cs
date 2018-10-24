@@ -363,6 +363,9 @@ namespace Microsoft.ML.Runtime.Data
             {
                 // Converts 1 column that is taken as input to the transform into one column of output
                 //
+                // Missing words are mapped to k for finding average, k + 1 for finding min, and k + 2 for finding max
+                // Those spots in the dictionary contain a vector of 0s, max floats, and min floats, respectively
+                //
                 // Symbols:
                 // j: length of latent vector of every word in the pretrained model
                 // n: length of input tensor (number of words)
@@ -371,51 +374,64 @@ namespace Microsoft.ML.Runtime.Data
                 // S: word labels, k tensor (known when transform is created)
                 // D: word embeddings, (k + 3)-by-j tensor(known when transform is created). The extra three embeddings
                 //      at the end are used for out of vocab words.
+                // F: location value representing missing words, equal to k
+                // P: output, a j * 3 tensor
                 //
-
-                //
-                //-- > LabelEncoder (classes_strings = S [k], default_int64 = 1)
-                //D [k, j] --> Initializer
-                //                              |                                                   |
-                //                            Y [n]                                                 |
-                //                              |                                                   |
-                //                              '-------> (indices) Gather (axis = 1)(data) <-------'
-                //                                                      |
-                //                                                   W [n, j]
-                //                                                /     |      \
-                //                        ---------------------- /      |       \----------------------
-                //                      /                               |                                \
-                //              ReduceMin (axes = [0])         ReduceMean (axes = [0])         ReduceMax (axes = [0])
-                //                      |                               |                                |
-                //                   J [j]                             K [j]                            L [j]
-                //                      |                               |                                |
-                //                      '--------------------Concat (axis = 1) --------------------------'
-                //                                                      |
-                //                                                   P [j * 3]
+                //                                                      X [n]
+                //                                                        |
+                //                                 LabelEncoder (classes_strings = S [k], default_int64 = k)
+                //                                 /   |                      |                           \
+                //                                /    | Initialize (F) ---> Equal                          \
+                //                               /     |                     / |  \                          \
+                //                              /      '-------------|      /  |   \                          \
+                //            -----------------/               ------|-----/   |    \------------------        \----------
+                //           /                                /      |         |                       \                  \
+                //          |                     Cast (to = int64)  | Cast (to = float)              Not                  |
+                //          |                            |           |         |                        |                  |
+                //          '------------ Add -----------'           | Scale (scale = 2.0)         Cast (to = int32)       |
+                //                          |                        |         |                        |                  |
+                //                          |                        | Cast (to = int64)       ReduceSum (axes = [0])      |
+                //                          |                        |         |                        |                  |
+                //                          |                        '-- Add --'                Cast (to = float)          |
+                //                          |   Initialize (D [k + 3, j]   |                            |                  |
+                //                          |             |                |                     Clip (min = 1.0)          |
+                //                          |             |----------------|----------------------------|--------\         |
+                //                          |             |                |                            |         \        |
+                //                          |   /---------'-------------\  |                            |          '----\  |
+                //                        Gather                        Gather                          |               Gather
+                //                          |                              |                            |                  |
+                //                  ReduceMin (axes = [0])      ReduceMax (axes = [0])                  |        ReduceSum (axes = [0])
+                //                          |                              |                            |                  |
+                //                          |                              |                            '------- Div ------'
+                //                          |                              |                                      |
+                //                          |                              |                                      |
+                //                          '------------------- Concat (axis = 1) -------------------------------'
+                //                                                         |
+                //                                                     P [j * 3]
 
                 long[] axes = new long[] { 0 };
-                // Allocate D, a constant tensor
+                // Allocate D, a constant tensor representing word embedding weights
                 var shapeD = new long[] { _parent._currentVocab.GetNumWords() + 3, _parent._currentVocab.Dimension };
                 var wordVectors = _parent._currentVocab.WordVectors;
                 var tensorD = new List<float>();
                 tensorD.AddRange(wordVectors);
-                tensorD.AddRange(Enumerable.Repeat(float.MinValue, _parent._currentVocab.Dimension));
-                tensorD.AddRange(Enumerable.Repeat(float.MaxValue, _parent._currentVocab.Dimension));
                 tensorD.AddRange(Enumerable.Repeat(0.0f, _parent._currentVocab.Dimension));
+                tensorD.AddRange(Enumerable.Repeat(float.MaxValue, _parent._currentVocab.Dimension));
+                tensorD.AddRange(Enumerable.Repeat(float.MinValue, _parent._currentVocab.Dimension));
                 var nameD = ctx.AddInitializer(tensorD, shapeD, "WordEmbeddingWeights");
 
-                // Allocate F, a constant tensor representing not found words
-                var shapeF = new long[] { 1 };
-                var tensorF = new List<long>{ -1 };
-                var nameF = ctx.AddInitializer(tensorF, shapeF, "NotFoundValueComp");
+                // Allocate F, a value representing an out-of-dictionary word
+                var tensorF = _parent._currentVocab.GetNumWords();
+                var nameF = ctx.AddInitializer(tensorF, "NotFoundValueComp");
 
-                // Retrieve name of input
+                // Retrieve X, name of input
                 var nameX = srcVariableName;
 
                 // Do label encoding
                 var nameY = ctx.AddIntermediateVariable(null, "LabelEncodedInput", true);
                 var nodeY = ctx.CreateNode("LabelEncoder", nameX, nameY, ctx.GetNodeName("LabelEncoder"));
                 nodeY.AddAttribute("classes_strings", _parent._currentVocab.GetWordLabels());
+                nodeY.AddAttribute("default_int64", _parent._currentVocab.GetNumWords());
 
                 // Do steps necessary for min and max embedding vectors
 
@@ -423,23 +439,19 @@ namespace Microsoft.ML.Runtime.Data
                 var nameA = ctx.AddIntermediateVariable(null, "NotFoundValuesBool", true);
                 var nodeA = ctx.CreateNode("Equal", new[] { nameY, nameF }, new[] { nameA }, ctx.GetNodeName("Equal"), "");
 
-                // Cast the not found values to floats
+                // Cast the not found vector to a vector of floats
                 var nameB = ctx.AddIntermediateVariable(null, "NotFoundValuesFloat", true);
                 var nodeB = ctx.CreateNode("Cast", nameA, nameB, ctx.GetNodeName("Cast"), "");
                 nodeB.AddAttribute("to", 1);
 
-                // Do the scaling to get to the right location for the latent vector
-                var nameSMin = ctx.AddIntermediateVariable(null, "ScaleMin", true);
-                var nodeSMin = ctx.CreateNode("Scale", nameB, nameSMin, ctx.GetNodeName("Scale"), "");
-                nodeSMin.AddAttribute("scale", -1.0);
-
+                // Scale the not found vector to get to location for max weights
                 var nameSMax = ctx.AddIntermediateVariable(null, "ScaleMax", true);
                 var nodeSMax = ctx.CreateNode("Scale", nameB, nameSMax, ctx.GetNodeName("Scale"), "");
-                nodeSMax.AddAttribute("scale", -2.0);
+                nodeSMax.AddAttribute("scale", 2.0);
 
                 // Cast scaled word label locations to ints
                 var nameVMin = ctx.AddIntermediateVariable(null, "CastMin", true);
-                var nodeVMin = ctx.CreateNode("Cast", nameSMin, nameVMin, ctx.GetNodeName("Cast"), "");
+                var nodeVMin = ctx.CreateNode("Cast", nameA, nameVMin, ctx.GetNodeName("Cast"), "");
                 nodeVMin.AddAttribute("to", 7);
 
                 var nameVMax = ctx.AddIntermediateVariable(null, "CastMax", true);
@@ -487,7 +499,7 @@ namespace Microsoft.ML.Runtime.Data
                 // Cast the found words vector to ints
                 var nameZ = ctx.AddIntermediateVariable(null, "FoundValuesInt", true);
                 var nodeZ = ctx.CreateNode("Cast", nameQ, nameZ, ctx.GetNodeName("Cast"), "");
-                nodeZ.AddAttribute("to", 7);
+                nodeZ.AddAttribute("to", 6);
 
                 // Sum the number of total found words
                 var nameR = ctx.AddIntermediateVariable(null, "NumWordsFoundInt", true);
