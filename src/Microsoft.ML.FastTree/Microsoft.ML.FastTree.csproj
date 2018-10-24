@@ -4,7 +4,6 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <IncludeInPackage>Microsoft.ML</IncludeInPackage>
 	<DefineConstants>$(DefineConstants);USE_FASTTREENATIVE;NO_STORE;CORECLR</DefineConstants>
-	<EnableDefaultCompileItems>False</EnableDefaultCompileItems>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
