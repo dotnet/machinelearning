@@ -1,0 +1,76 @@
+maml.exe TrainTest test=%Data% tr=FastForestRegression{nl=5 mil=5 iter=20} scorer=QuantileRegression{quantiles = 0.25,0.5,0.75} dout=%Output% data=%Data% out=%Output% seed=1
+Not adding a normalizer.
+Making per-feature arrays
+Changing data from row-wise to column-wise
+  Bad value at line 1 in column Label
+  Bad value at line 1 in column Features at slot 0
+  Bad value at line 1 in column Features at slot 1
+  Bad value at line 1 in column Features at slot 2
+  Bad value at line 1 in column Features at slot 3
+  Bad value at line 1 in column Features at slot 4
+  Bad value at line 1 in column Features at slot 5
+  Bad value at line 1 in column Features at slot 6
+  Bad value at line 1 in column Features at slot 7
+  Bad value at line 1 in column Features at slot 8
+  Suppressing further bad value messages
+Processed 507 rows with 14 bad values and 0 format errors
+Processed 506 instances
+Binning and forming Feature objects
+Reserved memory for tree learner: 67032 bytes
+Starting to train ...
+Not training a calibrator because it is not needed.
+  Bad value at line 1 in column Label
+  Bad value at line 1 in column Features at slot 0
+  Bad value at line 1 in column Features at slot 1
+  Bad value at line 1 in column Features at slot 2
+  Bad value at line 1 in column Features at slot 3
+  Bad value at line 1 in column Features at slot 4
+  Bad value at line 1 in column Features at slot 5
+  Bad value at line 1 in column Features at slot 6
+  Bad value at line 1 in column Features at slot 7
+  Bad value at line 1 in column Features at slot 8
+  Suppressing further bad value messages
+Processed 507 rows with 14 bad values and 0 format errors
+Warning: Encountered 1 unlabeled instances during testing.
+L1(avg):            2.840810
+L2(avg):            17.723068
+RMS(avg):           4.209877
+Loss-fn(avg):       17.723068
+R Squared:          0.790060
+
+OVERALL RESULTS
+---------------------------------------
+L1(avg):            2.840810 (0.0000)
+L2(avg):            17.723068 (0.0000)
+RMS(avg):           4.209877 (0.0000)
+Loss-fn(avg):       17.723068 (0.0000)
+R Squared:          0.790060 (0.0000)
+
+---------------------------------------
+  Bad value at line 1 in column Label
+  Bad value at line 1 in column Features at slot 0
+  Bad value at line 1 in column Features at slot 1
+  Bad value at line 1 in column Features at slot 2
+  Bad value at line 1 in column Features at slot 3
+  Bad value at line 1 in column Features at slot 4
+  Bad value at line 1 in column Features at slot 5
+  Bad value at line 1 in column Features at slot 6
+  Bad value at line 1 in column Features at slot 7
+  Bad value at line 1 in column Features at slot 8
+  Suppressing further bad value messages
+Processed 507 rows with 14 bad values and 0 format errors
+Physical memory usage(MB): %Number%
+Virtual memory usage(MB): %Number%
+%DateTime%	 Time elapsed(s): %Number%
+
+--- Progress log ---
+[1] 'FastTree data preparation' started.
+[1] 'FastTree data preparation' finished in %Time%.
+[2] 'FastTree in-memory bins initialization' started.
+[2] 'FastTree in-memory bins initialization' finished in %Time%.
+[3] 'FastTree feature conversion' started.
+[3] 'FastTree feature conversion' finished in %Time%.
+[4] 'FastTree training' started.
+[4] 'FastTree training' finished in %Time%.
+[5] 'Saving model' started.
+[5] 'Saving model' finished in %Time%.

@@ -6,7 +6,7 @@
         using Microsoft.ML.Runtime.Data;
         using Microsoft.ML.Runtime.Learners;
         using Microsoft.ML.Runtime.LightGBM;
-        using Microsoft.ML.Runtime.FastTree;
+        using Microsoft.ML.Trainers.FastTree;
         using Microsoft.ML.StaticPipe;
         using System;
         using System.Linq;
