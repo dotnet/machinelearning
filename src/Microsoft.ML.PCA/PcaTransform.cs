@@ -550,10 +550,10 @@ namespace Microsoft.ML.Transforms
                 throw ectx.Except($"Pca transform can only be applied to vector columns. Column ${name} is of type ${type}");
 
             if (!(type.IsKnownSizeVector && type.VectorSize > 1))
-                throw ectx.Except($"Pca transform can only be applied to vector columns. Column ${name} is of size ${type.VectorSize}");
+                throw ectx.Except($"Pca transform can only be applied to vector columns with known size greater than 1. Column ${name} is of size ${type.VectorSize}");
 
             var itemType = type.ItemType;
-            if (itemType.RawKind != DataKind.R4)
+            if (!itemType.Equals(NumberType.R4))
                 throw ectx.Except($"Pca transform can only be applied to vector of float items. Column ${name} contains type ${itemType}");
         }
 
@@ -561,44 +561,24 @@ namespace Microsoft.ML.Transforms
         {
             public sealed class ColumnSchemaInfo
             {
-                private readonly string _input;
-                private readonly string _output;
-                private readonly string _weightColumn;
-                private readonly Schema _schema;
+                public ColumnType InputType { get; }
+                public int InputIndex { get; }
+                public int WeightColumnIndex { get; }
 
                 public ColumnSchemaInfo((string input, string output) columnPair, Schema schema, string weightColumn = null)
                 {
-                    _input = columnPair.input;
-                    _output = columnPair.output;
-                    _weightColumn = weightColumn;
-                    _schema = schema;
-                }
+                    schema.TryGetColumnIndex(columnPair.input, out int inputIndex);
+                    InputIndex = inputIndex;
+                    InputType = schema[columnPair.input].Type;
 
-                public int InputIndex
-                {
-                    get
+                    var weightIndex = -1;
+                    if (weightColumn != null)
                     {
-                        // Column names are already checked by PcaTransform
-                        _schema.TryGetColumnIndex(_input, out int index);
-                        return index;
+                        if (!schema.TryGetColumnIndex(weightColumn, out weightIndex))
+                            throw Contracts.Except("Weight column '{0}' does not exist.", weightColumn);
+                        Contracts.CheckParam(schema[weightIndex].Type == NumberType.Float, nameof(weightColumn));
                     }
-                }
-
-                public ColumnType InputType => _schema[_input].Type;
-
-                public int WeightColumnIndex
-                {
-                    get
-                    {
-                        var index = -1;
-                        if (_weightColumn != null)
-                        {
-                            if (!_schema.TryGetColumnIndex(_weightColumn, out index))
-                                throw Contracts.Except("Weight column '{0}' does not exist.", _weightColumn);
-                            Contracts.CheckUserArg(_schema[index].Type == NumberType.Float, nameof(_weightColumn));
-                        }
-                        return index;
-                    }
+                    WeightColumnIndex = weightIndex;
                 }
             }
 
@@ -735,7 +715,7 @@ namespace Microsoft.ML.Transforms
                 if (!inputSchema.TryFindColumn(colInfo.Input, out var col))
                     throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.Input);
 
-                if (col.Kind != SchemaShape.Column.VectorKind.Vector || col.ItemType.RawKind != DataKind.R4)
+                if (col.Kind != SchemaShape.Column.VectorKind.Vector || !col.ItemType.Equals(NumberType.R4))
                     throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", colInfo.Input);
 
                 result[colInfo.Output] = new SchemaShape.Column(colInfo.Output,
@@ -776,7 +756,6 @@ namespace Microsoft.ML.Transforms
                 IReadOnlyDictionary<PipelineColumn, string> outputNames,
                 IReadOnlyCollection<string> usedNames)
             {
-                // Only one column is allowed.
                 Contracts.Assert(toOutput.Length == 1);
                 var outCol = (OutPipelineColumn)toOutput[0];
                 var inputColName = inputNames[outCol.Input];
