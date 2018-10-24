@@ -4,14 +4,9 @@
 
 #pragma once
 #include "mf.h"
+#include "../Stdafx.h"
 
 using namespace mf;
-
-#ifdef _MSC_VER
-#define EXPORT_API(ret) extern "C" __declspec(dllexport) ret __stdcall
-#else
-#define EXPORT_API(ret) extern "C" __attribute__((visibility("default"))) ret
-#endif
 
 EXPORT_API(void) MFDestroyModel(mf_model *&model);
 
