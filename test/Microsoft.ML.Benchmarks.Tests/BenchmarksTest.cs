@@ -39,7 +39,7 @@ namespace Microsoft.ML.Benchmarks.Tests
 
         private ITestOutputHelper Output { get; }
 
-        [Fact(Skip = SkipTheDebug)]
+        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))]
         public void BenchmarksProjectIsNotBroken()
         {
             var summary = BenchmarkRunner.Run<BenchmarkTouchingNativeDependency>(new TestConfig().With(new OutputLogger(Output)));
