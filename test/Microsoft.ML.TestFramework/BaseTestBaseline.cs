@@ -506,7 +506,9 @@ namespace Microsoft.ML.Runtime.RunTests
 
         private void GetNumbersFromFile(ref string firstString, ref string secondString, int digitsOfPrecision)
         {
-            Regex _matchNumer = new Regex(@"\b[0-9]+\.?[0-9]*(E-[0-9]*)?\b", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+            // The Regex matches both positive and negative decimal point numbers present in a string.
+            // The numbers could be a part of a word. They can also be in Exponential form eg. 3E-9
+            Regex _matchNumer = new Regex(@"-?\b[0-9]+\.?[0-9]*(E-[0-9]*)?\b", RegexOptions.IgnoreCase | RegexOptions.Compiled);
             MatchCollection firstCollection = _matchNumer.Matches(firstString);
             MatchCollection secondCollection = _matchNumer.Matches(secondString);
 
