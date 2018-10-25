@@ -430,7 +430,7 @@ namespace Microsoft.ML.Runtime.Data
                 // Retrieve X, name of input
                 var nameX = srcVariableName;
 
-                // Do label encoding
+                // Do label encoding. Out-of-vocab tokens will be mapped to the size of vocabulary. Because the index of vocabulary is zero-based, the size of vocabulary is just greater then the max indexes computed from in-vocab tokens by one.
                 var nameY = ctx.AddIntermediateVariable(null, "LabelEncodedInput", true);
                 var nodeY = ctx.CreateNode("LabelEncoder", nameX, nameY, ctx.GetNodeName("LabelEncoder"));
                 nodeY.AddAttribute("classes_strings", _parent._currentVocab.GetWordLabels());
