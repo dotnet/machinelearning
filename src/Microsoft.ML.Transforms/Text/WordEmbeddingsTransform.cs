@@ -519,7 +519,7 @@ namespace Microsoft.ML.Runtime.Data
                 var nodeT = ctx.CreateNode("Clip", nameRF, nameT, ctx.GetNodeName("Clip"), "");
                 nodeT.AddAttribute("min", 1.0f);
 
-                // Divide total sum by number of words found
+                // Divide total sum by number of words found to get the average embedding vector of the input string vector```
                 var nameE = ctx.AddIntermediateVariable(null, "MeanWeights", true);
                 var nodeE = ctx.CreateNode("Div", new[] { nameK, nameT }, new[] { nameE }, ctx.GetNodeName("Div"), "");
 
