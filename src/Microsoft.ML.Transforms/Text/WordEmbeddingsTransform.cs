@@ -454,7 +454,7 @@ namespace Microsoft.ML.Runtime.Data
                 // Retrieve X, name of input
                 var nameX = srcVariableName;
 
-                // Do label encoding
+                // Do label encoding. Out-of-vocab tokens will be mapped to the size of vocabulary. Because the index of vocabulary is zero-based, the size of vocabulary is just greater then the max indexes computed from in-vocab tokens by one.
                 var nameY = ctx.AddIntermediateVariable(null, "LabelEncodedInput", true);
                 var nodeY = ctx.CreateNode("LabelEncoder", nameX, nameY, ctx.GetNodeName("LabelEncoder"));
                 nodeY.AddAttribute("classes_strings", _parent._currentVocab.GetWordLabels());
@@ -462,7 +462,7 @@ namespace Microsoft.ML.Runtime.Data
 
                 // Do steps necessary for min and max embedding vectors
 
-                // Map to boolean vector representing missing words
+                // Map to boolean vector representing missing words. The following Equal produces 1 if a token is missing and 0 otherwise.
                 var nameA = ctx.AddIntermediateVariable(null, "NotFoundValuesBool", true);
                 var nodeA = ctx.CreateNode("Equal", new[] { nameY, nameF }, new[] { nameA }, ctx.GetNodeName("Equal"), "");
 
@@ -471,7 +471,7 @@ namespace Microsoft.ML.Runtime.Data
                 var nodeB = ctx.CreateNode("Cast", nameA, nameB, ctx.GetNodeName("Cast"), "");
                 nodeB.AddAttribute("to", 1);
 
-                // Scale the not found vector to get to location for max weights
+                // Scale the not found vector to get the location bias for max weights.
                 var nameSMax = ctx.AddIntermediateVariable(null, "ScaleMax", true);
                 var nodeSMax = ctx.CreateNode("Scale", nameB, nameSMax, ctx.GetNodeName("Scale"), "");
                 nodeSMax.AddAttribute("scale", 2.0);
@@ -485,7 +485,7 @@ namespace Microsoft.ML.Runtime.Data
                 var nodeVMax = ctx.CreateNode("Cast", nameSMax, nameVMax, ctx.GetNodeName("Cast"), "");
                 nodeVMax.AddAttribute("to", 7);
 
-                // Add the scaled options back to originals
+                // Add the scaled options back to originals. The outputs of the following Add operators are almost identical the output of the previous LabelEncoder. The only difference is that out-of-vocab tokens are mapped to k+1 for applying ReduceMin and k+2 for applying ReduceMax so that out-of-vocab tokens do not affect embedding results at all.
                 var namePMin = ctx.AddIntermediateVariable(null, "AddMin", true);
                 var nodePMin = ctx.CreateNode("Add", new[] { nameY, nameVMin }, new[] { namePMin }, ctx.GetNodeName("Add"), "");
 
@@ -543,7 +543,7 @@ namespace Microsoft.ML.Runtime.Data
                 var nodeT = ctx.CreateNode("Clip", nameRF, nameT, ctx.GetNodeName("Clip"), "");
                 nodeT.AddAttribute("min", 1.0f);
 
-                // Divide total sum by number of words found
+                // Divide total sum by number of words found to get the average embedding vector of the input string vector```
                 var nameE = ctx.AddIntermediateVariable(null, "MeanWeights", true);
                 var nodeE = ctx.CreateNode("Div", new[] { nameK, nameT }, new[] { nameE }, ctx.GetNodeName("Div"), "");
 
