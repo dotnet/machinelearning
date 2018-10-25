@@ -434,39 +434,40 @@ namespace Microsoft.ML.Runtime.Data
                 //                                               P [j * 3]
 
                 long[] axes = new long[] { 0 };
-                // Allocate D, a constant tensor representing word embedding weights
+                // Allocate D, a constant tensor representing word embedding weights.
                 var shapeD = new long[] { _parent._currentVocab.GetNumWords() + 3, _parent._currentVocab.Dimension };
                 var wordVectors = _parent._currentVocab.WordVectors;
                 var tensorD = new List<float>();
                 tensorD.AddRange(wordVectors);
-                // Out-of-vocab embedding vector for combining embeddings by mean
+                // Out-of-vocab embedding vector for combining embeddings by mean.
                 tensorD.AddRange(Enumerable.Repeat(0.0f, _parent._currentVocab.Dimension));
-                // Out-of-vocab embedding vector for combining embeddings by element-wise min
+                // Out-of-vocab embedding vector for combining embeddings by element-wise min.
                 tensorD.AddRange(Enumerable.Repeat(float.MaxValue, _parent._currentVocab.Dimension));
-                // Out-of-vocab embedding vector for combining embeddings by element-wise max
+                // Out-of-vocab embedding vector for combining embeddings by element-wise max.
                 tensorD.AddRange(Enumerable.Repeat(float.MinValue, _parent._currentVocab.Dimension));
                 var nameD = ctx.AddInitializer(tensorD, shapeD, "WordEmbeddingWeights");
 
-                // Allocate F, a value representing an out-of-dictionary word
+                // Allocate F, a value representing an out-of-dictionary word.
                 var tensorF = _parent._currentVocab.GetNumWords();
                 var nameF = ctx.AddInitializer(tensorF, "NotFoundValueComp");
 
-                // Retrieve X, name of input
+                // Retrieve X, name of input.
                 var nameX = srcVariableName;
 
-                // Do label encoding. Out-of-vocab tokens will be mapped to the size of vocabulary. Because the index of vocabulary is zero-based, the size of vocabulary is just greater then the max indexes computed from in-vocab tokens by one.
+                // Do label encoding. Out-of-vocab tokens will be mapped to the size of vocabulary. Because the index of vocabulary
+                // is zero-based, the size of vocabulary is just greater then the max indexes computed from in-vocab tokens by one.
                 var nameY = ctx.AddIntermediateVariable(null, "LabelEncodedInput", true);
                 var nodeY = ctx.CreateNode("LabelEncoder", nameX, nameY, ctx.GetNodeName("LabelEncoder"));
                 nodeY.AddAttribute("classes_strings", _parent._currentVocab.GetWordLabels());
                 nodeY.AddAttribute("default_int64", _parent._currentVocab.GetNumWords());
 
-                // Do steps necessary for min and max embedding vectors
+                // Do steps necessary for min and max embedding vectors.
 
                 // Map to boolean vector representing missing words. The following Equal produces 1 if a token is missing and 0 otherwise.
                 var nameA = ctx.AddIntermediateVariable(null, "NotFoundValuesBool", true);
                 var nodeA = ctx.CreateNode("Equal", new[] { nameY, nameF }, new[] { nameA }, ctx.GetNodeName("Equal"), "");
 
-                // Cast the not found vector to a vector of floats
+                // Cast the not found vector to a vector of floats.
                 var nameB = ctx.AddIntermediateVariable(null, "NotFoundValuesFloat", true);
                 var nodeB = ctx.CreateNode("Cast", nameA, nameB, ctx.GetNodeName("Cast"), "");
                 nodeB.AddAttribute("to", 1);
@@ -476,7 +477,7 @@ namespace Microsoft.ML.Runtime.Data
                 var nodeSMax = ctx.CreateNode("Scale", nameB, nameSMax, ctx.GetNodeName("Scale"), "");
                 nodeSMax.AddAttribute("scale", 2.0);
 
-                // Cast scaled word label locations to ints
+                // Cast scaled word label locations to ints.
                 var nameVMin = ctx.AddIntermediateVariable(null, "CastMin", true);
                 var nodeVMin = ctx.CreateNode("Cast", nameA, nameVMin, ctx.GetNodeName("Cast"), "");
                 nodeVMin.AddAttribute("to", 7);
@@ -485,21 +486,23 @@ namespace Microsoft.ML.Runtime.Data
                 var nodeVMax = ctx.CreateNode("Cast", nameSMax, nameVMax, ctx.GetNodeName("Cast"), "");
                 nodeVMax.AddAttribute("to", 7);
 
-                // Add the scaled options back to originals. The outputs of the following Add operators are almost identical the output of the previous LabelEncoder. The only difference is that out-of-vocab tokens are mapped to k+1 for applying ReduceMin and k+2 for applying ReduceMax so that out-of-vocab tokens do not affect embedding results at all.
+                // Add the scaled options back to originals. The outputs of the following Add operators are almost identical
+                // the output of the previous LabelEncoder. The only difference is that out-of-vocab tokens are mapped to k+1
+                // for applying ReduceMin and k+2 for applying ReduceMax so that out-of-vocab tokens do not affect embedding results at all.
                 var namePMin = ctx.AddIntermediateVariable(null, "AddMin", true);
                 var nodePMin = ctx.CreateNode("Add", new[] { nameY, nameVMin }, new[] { namePMin }, ctx.GetNodeName("Add"), "");
 
                 var namePMax = ctx.AddIntermediateVariable(null, "AddMax", true);
                 var nodePMax = ctx.CreateNode("Add", new[] { nameY, nameVMax }, new[] { namePMax }, ctx.GetNodeName("Add"), "");
 
-                // Map encoded words to their embedding vectors, mapping missing ones to min/max
+                // Map encoded words to their embedding vectors, mapping missing ones to min/max.
                 var nameGMin = ctx.AddIntermediateVariable(null, "GatheredMin", true);
                 var nodeGMin = ctx.CreateNode("Gather", new[] { nameD, namePMin }, new[] { nameGMin }, ctx.GetNodeName("Gather"), "");
 
                 var nameGMax = ctx.AddIntermediateVariable(null, "GatheredMax", true);
                 var nodeGMax = ctx.CreateNode("Gather", new[] { nameD, namePMax }, new[] { nameGMax }, ctx.GetNodeName("Gather"), "");
 
-                // Merge all embedding vectors using element-wise min/max per embedding coordinate
+                // Merge all embedding vectors using element-wise min/max per embedding coordinate.
                 var nameJ = ctx.AddIntermediateVariable(null, "MinWeights", true);
                 var nodeJ = ctx.CreateNode("ReduceMin", nameGMin, nameJ, ctx.GetNodeName("ReduceMin"), "");
                 nodeJ.AddAttribute("axes", axes);
@@ -508,42 +511,42 @@ namespace Microsoft.ML.Runtime.Data
                 var nodeL = ctx.CreateNode("ReduceMax", nameGMax, nameL, ctx.GetNodeName("ReduceMax"), "");
                 nodeL.AddAttribute("axes", axes);
 
-                // Do steps necessary for mean embedding vector
+                // Do steps necessary for mean embedding vector.
 
-                // Map encoded words to their embedding vectors using Gather
+                // Map encoded words to their embedding vectors using Gather.
                 var nameW = ctx.AddIntermediateVariable(null, "GatheredMean", true);
                 var nodeW = ctx.CreateNode("Gather", new[] { nameD, nameY }, new[] { nameW }, ctx.GetNodeName("Gather"), "");
 
-                // Find the sum of the embedding vectors
+                // Find the sum of the embedding vectors.
                 var nameK = ctx.AddIntermediateVariable(null, "SumWeights", true);
                 var nodeK = ctx.CreateNode("ReduceSum", nameW, nameK, ctx.GetNodeName("ReduceSum"), "");
                 nodeK.AddAttribute("axes", axes);
 
-                // Flip the boolean vector representing missing words to represent found words
+                // Flip the boolean vector representing missing words to represent found words.
                 var nameQ = ctx.AddIntermediateVariable(null, "FoundValuesBool", true);
                 var nodeQ = ctx.CreateNode("Not", nameA, nameQ, ctx.GetNodeName("Not"), "");
 
-                // Cast the found words vector to ints
+                // Cast the found words vector to ints.
                 var nameZ = ctx.AddIntermediateVariable(null, "FoundValuesInt", true);
                 var nodeZ = ctx.CreateNode("Cast", nameQ, nameZ, ctx.GetNodeName("Cast"), "");
                 nodeZ.AddAttribute("to", 6);
 
-                // Sum the number of total found words
+                // Sum the number of total found words.
                 var nameR = ctx.AddIntermediateVariable(null, "NumWordsFoundInt", true);
                 var nodeR = ctx.CreateNode("ReduceSum", nameZ, nameR, ctx.GetNodeName("ReduceSum"), "");
                 nodeR.AddAttribute("axes", axes);
 
-                // Cast the found words to float
+                // Cast the found words to float.
                 var nameRF = ctx.AddIntermediateVariable(null, "NumWordsFoundFloat", true);
                 var nodeRF = ctx.CreateNode("Cast", nameR, nameRF, ctx.GetNodeName("Cast"), "");
                 nodeRF.AddAttribute("to", 1);
 
-                // Clip the number of found words to prevent division by 0
+                // Clip the number of found words to prevent division by 0.
                 var nameT = ctx.AddIntermediateVariable(null, "NumWordsClippedFloat", true);
                 var nodeT = ctx.CreateNode("Clip", nameRF, nameT, ctx.GetNodeName("Clip"), "");
                 nodeT.AddAttribute("min", 1.0f);
 
-                // Divide total sum by number of words found to get the average embedding vector of the input string vector```
+                // Divide total sum by number of words found to get the average embedding vector of the input string vector.
                 var nameE = ctx.AddIntermediateVariable(null, "MeanWeights", true);
                 var nodeE = ctx.CreateNode("Div", new[] { nameK, nameT }, new[] { nameE }, ctx.GetNodeName("Div"), "");
 
