@@ -69,7 +69,7 @@ namespace Microsoft.ML.Runtime
         /// handles and ensure that they are disposed properly when the environment is "shut down".
         ///
         /// The suffix and prefix are optional. A common use for suffix is to specify an extension, eg, ".txt".
-        /// The use of suffix and prefix, including whether they have any affect, is up to the host enviroment.
+        /// The use of suffix and prefix, including whether they have any affect, is up to the host environment.
         /// </summary>
         IFileHandle CreateTempFile(string suffix = null, string prefix = null);
     }

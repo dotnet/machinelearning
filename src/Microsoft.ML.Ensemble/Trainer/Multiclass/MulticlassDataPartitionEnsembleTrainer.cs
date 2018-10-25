@@ -12,7 +12,6 @@ using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Ensemble;
 using Microsoft.ML.Runtime.Ensemble.OutputCombiners;
 using Microsoft.ML.Runtime.Ensemble.Selector;
-using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Internallearn;
 using Microsoft.ML.Runtime.Learners;
 
@@ -21,6 +20,9 @@ using Microsoft.ML.Runtime.Learners;
     new[] { typeof(SignatureMultiClassClassifierTrainer), typeof(SignatureTrainer) },
     MulticlassDataPartitionEnsembleTrainer.UserNameValue,
     MulticlassDataPartitionEnsembleTrainer.LoadNameValue)]
+
+[assembly: LoadableClass(typeof(MulticlassDataPartitionEnsembleTrainer), typeof(MulticlassDataPartitionEnsembleTrainer.Arguments),
+    typeof(SignatureModelCombiner), "Multiclass Classification Ensemble Model Combiner", MulticlassDataPartitionEnsembleTrainer.LoadNameValue)]
 
 namespace Microsoft.ML.Runtime.Ensemble
 {
@@ -31,7 +33,7 @@ namespace Microsoft.ML.Runtime.Ensemble
     public sealed class MulticlassDataPartitionEnsembleTrainer :
         EnsembleTrainerBase<VBuffer<Single>, EnsembleMultiClassPredictor,
         IMulticlassSubModelSelector, IMultiClassOutputCombiner>,
-        IModelCombiner<TVectorPredictor, TVectorPredictor>
+        IModelCombiner
     {
         public const string LoadNameValue = "WeightedEnsembleMulticlass";
         public const string UserNameValue = "Multi-class Parallel Ensemble (bagging, stacking, etc)";
@@ -72,6 +74,12 @@ namespace Microsoft.ML.Runtime.Ensemble
             Combiner = args.OutputCombiner.CreateComponent(Host);
         }
 
+        private MulticlassDataPartitionEnsembleTrainer(IHostEnvironment env, Arguments args, PredictionKind predictionKind)
+            : this(env, args)
+        {
+            Host.CheckParam(predictionKind == PredictionKind.MultiClassClassification, nameof(PredictionKind));
+        }
+
         public override PredictionKind PredictionKind => PredictionKind.MultiClassClassification;
 
         private protected override EnsembleMultiClassPredictor CreatePredictor(List<FeatureSubsetModel<TVectorPredictor>> models)
@@ -79,12 +87,15 @@ namespace Microsoft.ML.Runtime.Ensemble
             return new EnsembleMultiClassPredictor(Host, CreateModels<TVectorPredictor>(models), Combiner as IMultiClassOutputCombiner);
         }
 
-        public TVectorPredictor CombineModels(IEnumerable<TVectorPredictor> models)
+        public IPredictor CombineModels(IEnumerable<IPredictor> models)
         {
-            var predictor = new EnsembleMultiClassPredictor(Host,
-                models.Select(k => new FeatureSubsetModel<TVectorPredictor>(k)).ToArray(),
-                _outputCombiner.CreateComponent(Host));
+            Host.CheckValue(models, nameof(models));
+            Host.CheckParam(models.All(m => m is TVectorPredictor), nameof(models));
 
+            var combiner = _outputCombiner.CreateComponent(Host);
+            var predictor = new EnsembleMultiClassPredictor(Host,
+                models.Select(k => new FeatureSubsetModel<TVectorPredictor>((TVectorPredictor)k)).ToArray(),
+                combiner);
             return predictor;
         }
     }
