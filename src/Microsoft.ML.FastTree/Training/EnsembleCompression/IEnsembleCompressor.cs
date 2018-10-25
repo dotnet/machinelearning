@@ -4,7 +4,9 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
-namespace Microsoft.ML.Runtime.FastTree.Internal
+using Microsoft.ML.Runtime;
+
+namespace Microsoft.ML.Trainers.FastTree.Internal
 {
     public interface IEnsembleCompressor<TLabel>
     {

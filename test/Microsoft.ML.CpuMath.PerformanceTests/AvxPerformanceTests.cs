@@ -108,13 +108,19 @@ namespace Microsoft.ML.CpuMath.PerformanceTests
         [BenchmarkCategory("Fma")]
         public void SdcaL1UpdateSU()
             => AvxIntrinsics.SdcaL1UpdateSU(DefaultScale, IndexLength, src, idx, DefaultScale, dst, result);
-        [Benchmark]
-        [BenchmarkCategory("Fma")]
-        public void MatMulX()
-            => AvxIntrinsics.MatMulX(src, src1, dst, 1000, 1000);
 
         [Benchmark]
-        public void MatMulTranX()
-            => AvxIntrinsics.MatMulTranX(src, src1, dst, 1000, 1000);
+        [BenchmarkCategory("Fma")]
+        public void MatMul()
+            => AvxIntrinsics.MatMul(src, src1, dst, 1000, 1000);
+
+        [Benchmark]
+        public void MatMulTran()
+            => AvxIntrinsics.MatMulTran(src, src1, dst, 1000, 1000);
+
+        [Benchmark]
+        [BenchmarkCategory("Fma")]
+        public void MatMulP()
+            => AvxIntrinsics.MatMulP(src, matrixIdx, src1, 0, 0, MatrixIndexLength, dst, 1000, 1000);
     }
 }
