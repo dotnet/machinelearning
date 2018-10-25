@@ -10,7 +10,7 @@ using Microsoft.ML.Runtime.Numeric;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.KMeans;
+using Microsoft.ML.Trainers.KMeans;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.Model.Onnx;
 using Microsoft.ML.Runtime.Internal.Internallearn;
@@ -19,7 +19,7 @@ using System.Collections.Generic;
 [assembly: LoadableClass(typeof(KMeansPredictor), null, typeof(SignatureLoadModel),
     "KMeans predictor", KMeansPredictor.LoaderSignature)]
 
-namespace Microsoft.ML.Runtime.KMeans
+namespace Microsoft.ML.Trainers.KMeans
 {
     public sealed class KMeansPredictor :
         PredictorBase<VBuffer<Float>>,
