@@ -10,16 +10,23 @@ namespace Microsoft.ML.SamplesUtils
 {
     public static class DatasetUtils
     {
+        /// <summary>
+        /// Downloads the housing dataset from the ML.Net repo.
+        /// </summary>
         public static string DownloadHousingRegressionDataset()
+        => Download("https://raw.githubusercontent.com/dotnet/machinelearning/024bd4452e1d3660214c757237a19d6123f951ca/test/data/housing.txt", "housing.txt");
+
+        /// <summary>
+        /// Downloads the adult dataset from the ML.NET repo
+        /// </summary>
+        public static string DownloadSentimentDataset()
+        => Download("https://github.com/dotnet/machinelearning/blob/76cb2cdf5cc8b6c88ca44b8969153836e589df04/test/data/wikipedia-detox-250-line-data.tsv", "sentiment.tsv");
+
+        private static string Download(string baseGitPath, string dataFile)
         {
-            string baseGitPath = "https://raw.githubusercontent.com/dotnet/machinelearning/024bd4452e1d3660214c757237a19d6123f951ca/test/data/";
-
-            // Downloading a regression dataset from github.com/dotnet/machinelearning
-            string dataFile = "housing.txt";
-
             using (WebClient client = new WebClient())
             {
-                client.DownloadFile(new Uri($"{baseGitPath}housing.txt"), dataFile);
+                client.DownloadFile(new Uri($"{baseGitPath}"), dataFile);
             }
 
             return dataFile;

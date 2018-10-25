@@ -212,7 +212,6 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         private static CountAggregator GetOneAggregator<T>(IRow row, ColumnType colType, int colSrc)
-            where T : IEquatable<T>
         {
             return new CountAggregator<T>(colType, row.GetGetter<T>(colSrc));
         }
@@ -225,7 +224,6 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         private static CountAggregator GetVecAggregator<T>(IRow row, ColumnType colType, int colSrc)
-            where T : IEquatable<T>
         {
             return new CountAggregator<T>(colType, row.GetGetter<VBuffer<T>>(colSrc));
         }
@@ -237,7 +235,6 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         private sealed class CountAggregator<T> : CountAggregator, IColumnAggregator<VBuffer<T>>
-            where T : IEquatable<T>
         {
             private readonly long[] _count;
             private readonly Action _fillBuffer;
@@ -258,7 +255,8 @@ namespace Microsoft.ML.Runtime.Data
                         _buffer.Values[0] = t;
                     };
                 _isDefault = Conversions.Instance.GetIsDefaultPredicate<T>(type);
-                _isMissing = Conversions.Instance.GetIsNAPredicate<T>(type);
+                if (!Conversions.Instance.TryGetIsNAPredicate<T>(type, out _isMissing))
+                    _isMissing = (ref T value) => false;
             }
 
             public CountAggregator(ColumnType type, ValueGetter<VBuffer<T>> getter)
@@ -268,7 +266,8 @@ namespace Microsoft.ML.Runtime.Data
                 _count = new long[size];
                 _fillBuffer = () => getter(ref _buffer);
                 _isDefault = Conversions.Instance.GetIsDefaultPredicate<T>(type.ItemType);
-                _isMissing = Conversions.Instance.GetIsNAPredicate<T>(type.ItemType);
+                if (!Conversions.Instance.TryGetIsNAPredicate<T>(type.ItemType, out _isMissing))
+                    _isMissing = (ref T value) => false;
             }
 
             public override long[] Count
