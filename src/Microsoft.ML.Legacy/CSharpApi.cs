@@ -14153,14 +14153,14 @@ namespace Microsoft.ML
             public int LikelihoodInterval { get; set; } = 5;
 
             /// <summary>
-            /// The threshold of maximum count of tokens per doc
-            /// </summary>
-            public int NumMaxDocToken { get; set; } = 512;
-
-            /// <summary>
             /// The number of training threads. Default value depends on number of logical processors.
             /// </summary>
             public int? NumThreads { get; set; }
+
+            /// <summary>
+            /// The threshold of maximum count of tokens per doc
+            /// </summary>
+            public int NumMaxDocToken { get; set; } = 512;
 
             /// <summary>
             /// The number of words to summarize the topic

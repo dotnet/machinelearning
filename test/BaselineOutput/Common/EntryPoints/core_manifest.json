@@ -20225,18 +20225,6 @@
           }
         },
         {
-          "Name": "NumMaxDocToken",
-          "Type": "Int",
-          "Desc": "The threshold of maximum count of tokens per doc",
-          "Aliases": [
-            "maxNumToken"
-          ],
-          "Required": false,
-          "SortOrder": 50.0,
-          "IsNullable": false,
-          "Default": 512
-        },
-        {
           "Name": "NumThreads",
           "Type": "Int",
           "Desc": "The number of training threads. Default value depends on number of logical processors.",
@@ -20247,6 +20235,18 @@
           "SortOrder": 50.0,
           "IsNullable": true,
           "Default": null
+        },
+        {
+          "Name": "NumMaxDocToken",
+          "Type": "Int",
+          "Desc": "The threshold of maximum count of tokens per doc",
+          "Aliases": [
+            "maxNumToken"
+          ],
+          "Required": false,
+          "SortOrder": 50.0,
+          "IsNullable": false,
+          "Default": 512
         },
         {
           "Name": "AlphaSum",
