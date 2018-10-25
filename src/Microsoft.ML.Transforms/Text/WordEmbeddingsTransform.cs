@@ -379,33 +379,57 @@ namespace Microsoft.ML.Runtime.Data
                 //
                 //                                                      X [n]
                 //                                                       |
+                //                                                     nameX
+                //                                                       |
                 //                           LabelEncoder (classes_strings = S [k], default_int64 = k)
+                //                                                       |
+                //                            /----------------------- nameY -----------------------\
                 //                           /   |                       |                           \
-                //                          /    | Initialize (F) ---> Equal                          \
-                //                         /     |                     / |  \                          \
-                //                        /      '-------------|      /  |   \                          \
-                //      -----------------/               ------|-----/   |    \------------------        \----------
-                //     /                                /      |         |                       \                  \
-                //    |                     Cast (to = int64)  | Cast (to = float)              Not                  |
-                //    |                            |           |         |                        |                  |
-                //    '------------ Add -----------'           | Scale (scale = 2.0)         Cast (to = int32)       |
+                //     Initialize (F)-------/----|------ nameF ------> Equal                          \
+                //                         /     |                       |                             \
+                //                        /      |                     nameA                            \
+                //                       /       |                     / |  \                            \
+                //                      /        '-------------|      /  |   \                            \
+                //                     /                 ------|-----/   |    \------------------          \---------
+                //                    /                 /      |         |                       \                   \
+                //                    |      Cast (to = int64) |  Cast (to = float)              Not                 |
+                //                    |             |          |         |                        |                  |
+                //                    |         nameVMin       |       nameB                    nameQ                |
+                //                    |             |          |         |                        |                  |
+                //                  Add ------------'          | Scale (scale = 2.0)         Cast (to = int32)       |
+                //                    |                        |         |                        |                  |
+                //                    |                        |     nameSMax                  nameZ                 |
                 //                    |                        |         |                        |                  |
                 //                    |                        | Cast (to = int64)       ReduceSum (axes = [0])      |
+                //                namePMin                     |         |                        |                  |
+                //                    |                        |      nameVMax                 nameR                 |
                 //                    |                        |         |                        |                  |
                 //                    |                        '-- Add --'                Cast (to = float)          |
                 //                    |   Initialize (D [k + 3, j]   |                            |                  |
+                //                    |             |                |                            |                  |
+                //                    |           nameD           namePMax                     nameRF                |
+                //                    |             |                |                            |                  |
                 //                    |             |                |                     Clip (min = 1.0)          |
+                //                    |             |                |                            |                  |
+                //                    |             |                |                          nameT                |
                 //                    |             |----------------|----------------------------|--------\         |
                 //                    |             |                |                            |         \        |
                 //                    |   /---------'-------------\  |                            |          '----\  |
                 //                  Gather                        Gather                          |               Gather
                 //                    |                              |                            |                  |
+                //                 nameGMin                       nameGMax                        |                nameW
+                //                    |                              |                            |                  |
                 //            ReduceMin (axes = [0])      ReduceMax (axes = [0])                  |        ReduceSum (axes = [0])
                 //                    |                              |                            |                  |
+                //                    |                              |                            |                nameK
+                //                    |                              |                            |                  |
                 //                    |                              |                            '------- Div ------'
-                //                    |                              |                                      |
+                //                  nameJ                          nameL                                    |
+                //                    |                              |                                   nameE
                 //                    |                              |                                      |
                 //                    '------------------- Concat (axis = 1) -------------------------------'
+                //                                                   |
+                //                                                 nameP
                 //                                                   |
                 //                                               P [j * 3]
 
@@ -415,11 +439,11 @@ namespace Microsoft.ML.Runtime.Data
                 var wordVectors = _parent._currentVocab.WordVectors;
                 var tensorD = new List<float>();
                 tensorD.AddRange(wordVectors);
-                // out-of-vocab embedding vector for combining embeddings by mean
+                // Out-of-vocab embedding vector for combining embeddings by mean
                 tensorD.AddRange(Enumerable.Repeat(0.0f, _parent._currentVocab.Dimension));
-                // out-of-vocab embedding vector for combining embeddings by element-wise min
+                // Out-of-vocab embedding vector for combining embeddings by element-wise min
                 tensorD.AddRange(Enumerable.Repeat(float.MaxValue, _parent._currentVocab.Dimension));
-                // out-of-vocab embedding vector for combining embeddings by element-wise max
+                // Out-of-vocab embedding vector for combining embeddings by element-wise max
                 tensorD.AddRange(Enumerable.Repeat(float.MinValue, _parent._currentVocab.Dimension));
                 var nameD = ctx.AddInitializer(tensorD, shapeD, "WordEmbeddingWeights");
 
