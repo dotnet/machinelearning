@@ -461,7 +461,7 @@ namespace Microsoft.ML.Runtime.Data
                 var nodeVMax = ctx.CreateNode("Cast", nameSMax, nameVMax, ctx.GetNodeName("Cast"), "");
                 nodeVMax.AddAttribute("to", 7);
 
-                // Add the scaled options back to originals
+                // Add the scaled options back to originals. The outputs of the following Add operators are almost identical the output of the previous LabelEncoder. The only difference is that out-of-vocab tokens are mapped to k+1 for applying ReduceMin and k+2 for applying ReduceMax so that out-of-vocab tokens do not affect embedding results at all.
                 var namePMin = ctx.AddIntermediateVariable(null, "AddMin", true);
                 var nodePMin = ctx.CreateNode("Add", new[] { nameY, nameVMin }, new[] { namePMin }, ctx.GetNodeName("Add"), "");
 
