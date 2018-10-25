@@ -23,6 +23,7 @@ phases:
     - agent.os -equals linux
     container: LinuxContainer
   steps:
+  # Only build native assets to avoid conflicts.
   - script: ./build.sh -buildNative -$(BuildConfig)
     displayName: Build
 
@@ -47,6 +48,7 @@ phases:
     demands:
     - agent.os -equals Darwin
   steps:
+  # Only build native assets to avoid conflicts.
   - script: ./build.sh -buildNative -$(BuildConfig)
     displayName: Build
 
@@ -86,6 +88,7 @@ phases:
     continueOnError: false
     condition: and(succeeded(), in(variables._SignType, 'real', 'test'))
 
+  # Only build native assets to avoid conflicts.
   - script: ./build.cmd -buildNative -$(BuildConfig) -buildArch=x86
     displayName: Build
   
@@ -133,11 +136,12 @@ phases:
     continueOnError: false
     condition: and(succeeded(), in(variables._SignType, 'real', 'test'))
 
+  # Build both native and managed assets. 
   - script: ./build.cmd -$(BuildConfig)
     displayName: Build
   
   - task: MSBuild@1
-    displayName: Sign Windows Binaries
+    displayName: Sign Windows_x64 Binaries
     inputs:
       solution: build/sign.proj
       msbuildArguments: /p:SignType=$(_SignType)
@@ -145,7 +149,7 @@ phases:
     continueOnError: false
 
   - task: PublishBuildArtifacts@1
-    displayName: Publish Windows package assets
+    displayName: Publish Windows_x64 package assets
     inputs:
       pathToPublish: $(Build.SourcesDirectory)/bin/obj/packages
       artifactName: PackageAssets
