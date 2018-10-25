@@ -247,6 +247,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             }
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void AddScale(float a, ReadOnlySpan<float> src, ReadOnlySpan<int> indices, Span<float> dst, int count)
         {
             Contracts.AssertNonEmpty(src);
@@ -259,19 +260,31 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
             if (Avx.IsSupported)
             {
-                AvxIntrinsics.AddScaleSU(a, src, indices, dst, count);
+                if (VectorizationMakesSense(count))
+                    AvxIntrinsics.AddScaleSU(a, src, indices, dst, count);
+                else
+                    AddScaleSimple(a, src, indices, dst, count);
             }
             else if (Sse.IsSupported)
             {
-                SseIntrinsics.AddScaleSU(a, src, indices, dst, count);
+                if (VectorizationMakesSense(count))
+                    SseIntrinsics.AddScaleSU(a, src, indices, dst, count);
+                else
+                    AddScaleSimple(a, src, indices, dst, count);
             }
             else
             {
-                for (int i = 0; i < count; i++)
-                {
-                    int index = indices[i];
-                    dst[index] += a * src[i];
-                }
+                AddScaleSimple(a, src, indices, dst, count);
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void AddScaleSimple(float a, ReadOnlySpan<float> src, ReadOnlySpan<int> indices, Span<float> dst, int count)
+        {
+            for (int i = 0; i < count; i++)
+            {
+                int index = indices[i];
+                dst[index] += a * src[i];
             }
         }
 
@@ -551,6 +564,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             }
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static float DotProductDense(ReadOnlySpan<float> a, ReadOnlySpan<float> b, int count)
         {
             Contracts.AssertNonEmpty(a);
@@ -561,23 +575,30 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
             if (Avx.IsSupported)
             {
-                return AvxIntrinsics.DotU(a, b, count);
+                return VectorizationMakesSense(count) ?  AvxIntrinsics.DotU(a, b, count) : DotProductDenseSimple(a, b, count);
             }
             else if (Sse.IsSupported)
             {
-                return SseIntrinsics.DotU(a, b, count);
+                return VectorizationMakesSense(count) ?  SseIntrinsics.DotU(a, b, count) : DotProductDenseSimple(a, b, count);
             }
             else
             {
-                float result = 0;
-                for (int i = 0; i < count; i++)
-                {
-                    result += a[i] * b[i];
-                }
-                return result;
+                return DotProductDenseSimple(a, b, count);
             }
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static float DotProductDenseSimple(ReadOnlySpan<float> a, ReadOnlySpan<float> b, int count)
+        {
+            float result = 0;
+            for (int i = 0; i < count; i++)
+            {
+                result += a[i] * b[i];
+            }
+            return result;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static float DotProductSparse(ReadOnlySpan<float> a, ReadOnlySpan<float> b, ReadOnlySpan<int> indices, int count)
         {
             Contracts.AssertNonEmpty(a);
@@ -590,22 +611,28 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
             if (Avx.IsSupported)
             {
-                return AvxIntrinsics.DotSU(a, b, indices, count);
+                return VectorizationMakesSense(count) ? AvxIntrinsics.DotSU(a, b, indices, count) : DotProductSparseSimple(a, b, indices, count);
             }
             else if (Sse.IsSupported)
             {
-                return SseIntrinsics.DotSU(a, b, indices, count);
+                return VectorizationMakesSense(count) ? SseIntrinsics.DotSU(a, b, indices, count) : DotProductSparseSimple(a, b, indices, count);
             }
             else
             {
-                float result = 0;
-                for (int i = 0; i < count; i++)
-                {
-                    int index = indices[i];
-                    result += a[index] * b[i];
-                }
-                return result;
+                return DotProductSparseSimple(a, b, indices, count);
             }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static float DotProductSparseSimple(ReadOnlySpan<float> a, ReadOnlySpan<float> b, ReadOnlySpan<int> indices, int count)
+        {
+            float result = 0;
+            for (int i = 0; i < count; i++)
+            {
+                int index = indices[i];
+                result += a[index] * b[i];
+            }
+            return result;
         }
 
         public static float L2DistSquared(ReadOnlySpan<float> a, ReadOnlySpan<float> b, int count)
@@ -759,6 +786,23 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                     float value = v[index];
                     w[index] = Math.Abs(value) > threshold ? (value > 0 ? value - threshold : value + threshold) : 0;
                 }
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static bool VectorizationMakesSense(int count)
+        {
+            if (Avx.IsSupported)
+            {
+                return count >= Vector256Alignment;
+            }
+            else if (Sse.IsSupported)
+            {
+                return count >= Vector128Alignment;
+            }
+            else
+            {
+                return false;
             }
         }
     }
