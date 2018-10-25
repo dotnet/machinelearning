@@ -580,6 +580,7 @@ namespace Microsoft.ML.Runtime.RunTests
 
             LdaTransform.Column col = new LdaTransform.Column();
             col.Source = "F1V";
+            col.Name = "F2V";
             col.NumTopic = 20;
             col.NumTopic = 3;
             col.NumSummaryTermPerTopic = 3;
@@ -589,7 +590,7 @@ namespace Microsoft.ML.Runtime.RunTests
             LdaTransform.Arguments args = new LdaTransform.Arguments();
             args.Column = new LdaTransform.Column[] { col };
 
-            LdaTransform ldaTransform = new LdaTransform(Env, args, srcView);
+            var ldaTransform = LdaTransform.Create(Env, args, srcView);
 
             using (var cursor = ldaTransform.GetRowCursor(c => true))
             {
@@ -637,7 +638,8 @@ namespace Microsoft.ML.Runtime.RunTests
             var srcView = builder.GetDataView();
             var col = new LdaTransform.Column()
             {
-                Source = "Zeros"
+                Source = "Zeros",
+                Name = "Zeros_1"
             };
             var args = new LdaTransform.Arguments()
             {
@@ -646,7 +648,7 @@ namespace Microsoft.ML.Runtime.RunTests
 
             try
             {
-                var lda = new LdaTransform(Env, args, srcView);
+                var lda = LdaTransform.Create(Env, args, srcView);
             }
             catch (InvalidOperationException ex)
             {

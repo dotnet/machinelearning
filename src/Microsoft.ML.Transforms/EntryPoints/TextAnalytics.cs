@@ -131,7 +131,7 @@ namespace Microsoft.ML.Runtime.Transforms
             env.CheckValue(input, nameof(input));
 
             var h = EntryPointUtils.CheckArgsAndCreateHost(env, "LightLda", input);
-            var view = new LdaTransform(h, input, input.Data);
+            var view = LdaTransform.Create(h, input, input.Data);
             return new CommonOutputs.TransformOutput()
             {
                 Model = new TransformModel(h, view, input.Data),

@@ -53,7 +53,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                     Column = new[] { new WordBagTransform.Column() { Name = "Tokenize", Source = new[] { "SentimentText" } } }
                 }, loader);
 
-                var lda = new LdaTransform(env, new LdaTransform.Arguments()
+                var lda = LdaTransform.Create(env, new LdaTransform.Arguments()
                 {
                     NumTopic = 10,
                     NumIterations = 3,
@@ -61,6 +61,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                     Column = new[] { new LdaTransform.Column { Source = "Tokenize", Name = "Features"}
                     }
                 }, words);
+
                 var trainData = lda;
 
                 var cachedTrain = new CacheDataView(env, trainData, prefetch: null);
@@ -74,7 +75,6 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                 VBuffer<float> weights = default;
                 linearPredictor.GetFeatureWeights(ref weights);
 
-                var topicSummary = lda.GetTopicSummary();
                 var treeTrainer = new FastTreeBinaryClassificationTrainer(env, DefaultColumnNames.Label, DefaultColumnNames.Features, numTrees: 2);
                 var ftPredictor = treeTrainer.Train(new Runtime.TrainContext(trainRoles));
                 FastTreeBinaryPredictor treePredictor;
