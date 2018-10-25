@@ -246,7 +246,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             unsafe
             {
                 fixed (float* psrc = &MemoryMarshal.GetReference(src))
-                    return Thunk.SumU(psrc, src.Length);
+                    return Thunk.Sum(psrc, src.Length);
             }
         }
 

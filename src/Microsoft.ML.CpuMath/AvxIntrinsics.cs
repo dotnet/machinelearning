@@ -1300,41 +1300,112 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             }
         }
 
-        public static unsafe float SumU(ReadOnlySpan<float> src)
+        public static unsafe float Sum(ReadOnlySpan<float> src)
         {
-            fixed (float* psrc = &MemoryMarshal.GetReference(src))
+            fixed (float* pSrc = &MemoryMarshal.GetReference(src))
+            fixed (uint* pLeadingAlignmentMask = &LeadingAlignmentMask[0])
+            fixed (uint* pTrailingAlignmentMask = &TrailingAlignmentMask[0])
             {
-                float* pSrcEnd = psrc + src.Length;
-                float* pSrcCurrent = psrc;
+                float* pValues = pSrc;
+                int length = src.Length;
 
-                Vector256<float> result256 = Avx.SetZeroVector256<float>();
-
-                while (pSrcCurrent + 8 <= pSrcEnd)
+                if (length < 8)
                 {
-                    result256 = Avx.Add(result256, Avx.LoadVector256(pSrcCurrent));
-                    pSrcCurrent += 8;
+                    // Handle cases where we have less than 256-bits total and can't ever use SIMD acceleration.
+
+                    float res = 0;
+
+                    switch (length)
+                    {
+                        case 7: res += pValues[6]; goto case 6;
+                        case 6: res += pValues[5]; goto case 5;
+                        case 5: res += pValues[4]; goto case 4;
+                        case 4: res += pValues[3]; goto case 3;
+                        case 3: res += pValues[2]; goto case 2;
+                        case 2: res += pValues[1]; goto case 1;
+                        case 1: res += pValues[0]; break;
+                    }
+
+                    return res;
                 }
 
-                result256 = VectorSum256(in result256);
-                Vector128<float> resultPadded = Sse.AddScalar(Avx.GetLowerHalf(result256), GetHigh(result256));
+                Vector256<float> result = Avx.SetZeroVector256<float>();
 
-                Vector128<float> result128 = Sse.SetZeroVector128();
+                nuint address = (nuint)(pValues);
+                int misalignment = (int)(address % 32);
+                int remainder = 0;
 
-                if (pSrcCurrent + 4 <= pSrcEnd)
+                if ((misalignment & 3) != 0)
                 {
-                    result128 = Sse.Add(result128, Sse.LoadVector128(pSrcCurrent));
-                    pSrcCurrent += 4;
+                    // Handles cases where the data is not 32-bit aligned and we can't ever use aligned operations
+
+                    remainder = length % 8;
+
+                    for (float* pEnd = pValues + (length - remainder); pValues < pEnd; pValues += 8)
+                    {
+                        result = Avx.Add(result, Avx.LoadVector256(pValues));
+                    }
+                }
+                else
+                {
+                    if (misalignment != 0)
+                    {
+                        // Handle cases where the data is not 256-bit aligned by doing an unaligned read and then
+                        // masking any elements that will be included in the first aligned read
+
+                        misalignment >>= 2;
+                        misalignment = 8 - misalignment;
+
+                        Vector256<float> mask = Avx.LoadVector256(((float*)(pLeadingAlignmentMask)) + (misalignment * 8));
+                        Vector256<float> temp = Avx.And(mask, Avx.LoadVector256(pValues));
+                        result = Avx.Add(result, temp);
+
+                        pValues += misalignment;
+                        length -= misalignment;
+                    }
+
+                    if (length > 7)
+                    {
+                        // Handle all the 256-bit blocks that we can now that we have offset to an aligned address
+
+                        remainder = length % 8;
+
+                        for (float* pEnd = pValues + (length - remainder); pValues < pEnd; pValues += 8)
+                        {
+                            // The JIT will only fold away unaligned loads due to the semantics behind
+                            // the VEX-encoding of the memory operand for `ins xmm, xmm, [mem]`. Since
+                            // modern hardware has unaligned loads that are as fast as aligned loads,
+                            // when it doesn't cross a cache-line/page boundary, we will just assert
+                            // that the alignment is correct and allow for the more-efficient codegen.
+
+                            Contracts.Assert(((nuint)(pValues) % 32) == 0);
+                            result = Avx.Add(result, Avx.LoadVector256(pValues));
+                        }
+                    }
+                    else
+                    {
+                        // Handle the "worst-case" scenario, which is when we have 8-16 elements and the input is not
+                        // 256-bit aligned. This means we can't do any aligned loads and will just end up doing two
+                        // unaligned loads where we mask the input each time.
+                        remainder = length;
+                    }
                 }
 
-                result128 = SseIntrinsics.VectorSum128(in result128);
-
-                while (pSrcCurrent < pSrcEnd)
+                if (remainder != 0)
                 {
-                    result128 = Sse.AddScalar(result128, Sse.LoadScalarVector128(pSrcCurrent));
-                    pSrcCurrent++;
+                    // Handle any trailing elements that don't fit into a 128-bit block by moving back so that the next
+                    // unaligned load will read to the end of the array and then mask out any elements already processed
+
+                    pValues -= (8 - remainder);
+
+                    Vector256<float> mask = Avx.LoadVector256(((float*)(pTrailingAlignmentMask)) + (remainder * 8));
+                    Vector256<float> temp = Avx.And(mask, Avx.LoadVector256(pValues));
+                    result = Avx.Add(result, temp);
                 }
 
-                return Sse.ConvertToSingle(Sse.AddScalar(result128, resultPadded));
+                // Sum all the elements together and return the result
+                result = VectorSum256(in result);
+                return Sse.ConvertToSingle(Sse.AddScalar(Avx.GetLowerHalf(result), GetHigh(result)));
             }
         }
 
