@@ -13,7 +13,7 @@ using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Sweeper;
 using Microsoft.ML.Runtime.Internal.Internallearn;
 using Newtonsoft.Json;
-using Microsoft.ML.Runtime.FastTree;
+using Microsoft.ML.Trainers.FastTree;
 
 namespace Microsoft.ML.Runtime.PipelineInference
 {
