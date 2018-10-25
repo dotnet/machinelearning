@@ -30,7 +30,7 @@ namespace Microsoft.ML.Scenarios
             pipeline.Add(new CategoricalOneHotVectorizer("CategoryFeatures"));
             pipeline.Add(new ColumnConcatenator(outputColumn: "Features",
                 "NumericalFeatures", "CategoryFeatures"));
-          //  pipeline.Add(new StochasticDualCoordinateAscentRegressor());
+            pipeline.Add(new StochasticDualCoordinateAscentRegressor());
 
             var model = pipeline.Train<HousePriceData, HousePricePrediction>();
 
