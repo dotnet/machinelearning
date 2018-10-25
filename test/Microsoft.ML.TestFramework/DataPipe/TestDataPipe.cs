@@ -533,20 +533,20 @@ namespace Microsoft.ML.Runtime.RunTests
                             getU8(ref u8);
 
                             // Signed to smaller signed.
-                            VerifyMatch(i8, i1, Conversions.Instance.Convert);
-                            VerifyMatch(i4, i1, Conversions.Instance.Convert);
-                            VerifyMatch(i2, i1, Conversions.Instance.Convert);
-                            VerifyMatch(i8, i2, Conversions.Instance.Convert);
-                            VerifyMatch(i4, i2, Conversions.Instance.Convert);
-                            VerifyMatch(i8, i4, Conversions.Instance.Convert);
+                            VerifyMatch(i8, i1, Conversions.Instance.Convert, Conversions.Instance.Convert);
+                            VerifyMatch(i4, i1, Conversions.Instance.Convert, Conversions.Instance.Convert);
+                            VerifyMatch(i2, i1, Conversions.Instance.Convert, Conversions.Instance.Convert);
+                            VerifyMatch(i8, i2, Conversions.Instance.Convert, Conversions.Instance.Convert);
+                            VerifyMatch(i4, i2, Conversions.Instance.Convert, Conversions.Instance.Convert);
+                            VerifyMatch(i8, i4, Conversions.Instance.Convert, Conversions.Instance.Convert);
 
                             // Unsigned to smaller unsigned.
-                            VerifyMatch(u8, u1, Conversions.Instance.Convert);
-                            VerifyMatch(u4, u1, Conversions.Instance.Convert);
-                            VerifyMatch(u2, u1, Conversions.Instance.Convert);
-                            VerifyMatch(u8, u2, Conversions.Instance.Convert);
-                            VerifyMatch(u4, u2, Conversions.Instance.Convert);
-                            VerifyMatch(u8, u4, Conversions.Instance.Convert);
+                            VerifyMatch(u8, u1, Conversions.Instance.Convert, Conversions.Instance.Convert);
+                            VerifyMatch(u4, u1, Conversions.Instance.Convert, Conversions.Instance.Convert);
+                            VerifyMatch(u2, u1, Conversions.Instance.Convert, Conversions.Instance.Convert);
+                            VerifyMatch(u8, u2, Conversions.Instance.Convert, Conversions.Instance.Convert);
+                            VerifyMatch(u4, u2, Conversions.Instance.Convert, Conversions.Instance.Convert);
+                            VerifyMatch(u8, u4, Conversions.Instance.Convert, Conversions.Instance.Convert);
                         }
                     }
                 }, logCurs: true);
@@ -554,7 +554,7 @@ namespace Microsoft.ML.Runtime.RunTests
             Done();
         }
 
-        private bool VerifyMatch<TSrc, TDst>(TSrc src, TDst dst, ValueMapper<TSrc, TDst> conv)
+        private bool VerifyMatch<TSrc, TDst>(TSrc src, TDst dst, ValueMapper<TSrc, TDst> conv, ValueMapper<TDst, TSrc> convBack)
             where TSrc : struct
             where TDst : struct
         {
@@ -562,7 +562,11 @@ namespace Microsoft.ML.Runtime.RunTests
             conv(ref src, ref v);
             if (EqualityComparer<TDst>.Default.Equals(dst, v))
                 return true;
-            Fail("Values different values in VerifyMatch<{0}, {1}>: {2} vs {3}", typeof(TDst).Name, typeof(TSrc).Name, v, src);
+            TSrc vSrc = default;
+            convBack(ref v, ref vSrc);
+            if (EqualityComparer<TDst>.Default.Equals(dst, default(TDst)) && !EqualityComparer<TSrc>.Default.Equals(src, vSrc))
+                return true;
+            Fail($"Values different values in VerifyMatch<{typeof(TSrc).Name}, {typeof(TDst).Name}>: converted from {typeof(TSrc).Name} to {typeof(TDst).Name}: {v}. Parsed from text: {dst}");
             return false;
         }
 
