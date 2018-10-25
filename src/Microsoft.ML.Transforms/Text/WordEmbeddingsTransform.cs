@@ -438,7 +438,7 @@ namespace Microsoft.ML.Runtime.Data
 
                 // Do steps necessary for min and max embedding vectors
 
-                // Map to boolean vector representing missing words
+                // Map to boolean vector representing missing words. The following Equal produces 1 if a token is missing and 0 otherwise.
                 var nameA = ctx.AddIntermediateVariable(null, "NotFoundValuesBool", true);
                 var nodeA = ctx.CreateNode("Equal", new[] { nameY, nameF }, new[] { nameA }, ctx.GetNodeName("Equal"), "");
 
