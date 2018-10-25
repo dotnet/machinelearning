@@ -677,9 +677,9 @@ EXPORT_API(void) Scale(float a, _Inout_ float * pd, int c)
     {
         switch (c)
         {
-        case 3: pd[2] *= a;
-        case 2: pd[1] *= a;
-        case 1: pd[0] *= a;
+            case 3: pd[2] *= a;
+            case 2: pd[1] *= a;
+            case 1: pd[0] *= a;
         }
         return;
     }
@@ -945,9 +945,9 @@ EXPORT_API(float) Sum(const float* pValues, int length)
 
         switch (length)
         {
-        case 3: result += pValues[2];
-        case 2: result += pValues[1];
-        case 1: result += pValues[0];
+            case 3: result += pValues[2];
+            case 2: result += pValues[1];
+            case 1: result += pValues[0];
         }
 
         return result;
