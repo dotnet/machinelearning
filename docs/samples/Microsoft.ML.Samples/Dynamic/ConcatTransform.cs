@@ -30,6 +30,7 @@ namespace Microsoft.ML.Samples.Dynamic
             var trainData = ml.CreateStreamingDataView(data);
 
             // Preview of the data.
+            //
             // Age    Case  Education  induced     parity  pooled.stratum  row_num  ...
             // 26.0   1.0   0-5yrs      1.0         6.0       3.0      1.0  ...
             // 42.0   1.0   0-5yrs      1.0         1.0       1.0      2.0  ...
@@ -55,7 +56,8 @@ namespace Microsoft.ML.Samples.Dynamic
                 Console.WriteLine("");
             }
 
-            // Features
+            // Features column obtained post-transformation.
+            //
             // 26 6 1
             // 42 1 1
             // 39 6 2

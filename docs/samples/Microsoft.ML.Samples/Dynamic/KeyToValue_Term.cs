@@ -25,8 +25,10 @@ namespace Microsoft.ML.Samples.Dynamic
             IEnumerable<SamplesUtils.DatasetUtils.SampleTopicsData> data = SamplesUtils.DatasetUtils.GetTopicsData();
             var trainData = ml.CreateStreamingDataView(data);
 
-            // Preview of the topics data; a dataset that contains one column with two set of keys assigned to a body of text
-            // Review and ReviewReverse. The dataset will be used to classify how accurately the keys are assigned to the text.  
+            // Preview of the topics data; a dataset that contains two columns containing keys independently assigned to a body of text, 
+            // Review and ReviewReverse. The Label colum indicates whether the set of keys in the ReviewReverse match the ones in the review column.
+            // The dataset will be used to classify how accurately the keys are assigned to the text. 
+            //
             // Review,                                    ReviewReverse,                 Label
             // "animals birds cats dogs fish horse", "radiation galaxy universe duck",     1
             // "horse birds house fish duck cats",   "space galaxy universe radiation",    0
@@ -37,7 +39,7 @@ namespace Microsoft.ML.Samples.Dynamic
             // making use of default settings.
             string defaultColumnName = "DefaultKeys";
             // REVIEW create through the catalog extension
-            var default_pipeline = new WordTokenizeEstimator(ml, "ReviewReverse", "ReviewReverse")
+            var default_pipeline = new WordTokenizeEstimator(ml, "ReviewReverse")
                 .Append(new TermEstimator(ml, "ReviewReverse" , defaultColumnName));
 
             // Another pipeline, that customizes the advanced settings of the TermEstimator.
@@ -71,6 +73,7 @@ namespace Microsoft.ML.Samples.Dynamic
             printHelper(defaultColumnName, defaultColumn);
 
             // DefaultKeys column obtained post-transformation.
+            //
             // 1 2 3 4
             // 5 2 3 1
             // 6 7 3 1
@@ -80,7 +83,8 @@ namespace Microsoft.ML.Samples.Dynamic
             var customizedColumn = transformedData_customized.GetColumn<VBuffer<uint>>(ml, customizedColumnName);
             printHelper(customizedColumnName, customizedColumn);
 
-            // CustomizedKeys
+            // CustomizedKeys column obtained post-transformation.
+            //
             // 6 4 9 3
             // 7 4 9 6
             // 1 5 9 6
@@ -101,7 +105,8 @@ namespace Microsoft.ML.Samples.Dynamic
                 Console.WriteLine("");
             }
 
-            // DefaultKeys 
+            // DefaultKeys column obtained post-transformation.
+            //
             // radiation galaxy universe duck
             // space galaxy universe radiation
             // bus pickup universe radiation

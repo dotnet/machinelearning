@@ -24,6 +24,7 @@ namespace Microsoft.ML.Samples.Dynamic
             var trainData = ml.CreateStreamingDataView(data);
 
             // Preview of the data.
+            //
             // Age  Case  Education  Induced     Parity  PooledStratum  RowNum  ...
             // 26   1       0-5yrs      1         6         3             1  ...
             // 42   1       0-5yrs      1         1         1             2  ...
@@ -48,8 +49,8 @@ namespace Microsoft.ML.Samples.Dynamic
 
             printHelper("Induced", normalizedColumn);
 
-            // Preview of the data.
-            // Induced
+            // Induced column obtained post-transformation.
+            //
             // 0.5
             // 0.5
             // 1
@@ -68,7 +69,8 @@ namespace Microsoft.ML.Samples.Dynamic
 
             printHelper("LogInduced", normalizedInduced);
 
-            // LogInduced
+            // LogInduced column obtained post-transformation.
+            //
             // 0.2071445
             // 0.2071445
             // 0.889631
@@ -77,7 +79,8 @@ namespace Microsoft.ML.Samples.Dynamic
 
             printHelper("LogSpontaneous", normalizedSpont);
 
-            // LogSpontaneous
+            // LogSpontaneous column obtained post-transformation.
+            //
             // 0.8413026
             // 0
             // 0
