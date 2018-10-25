@@ -52,8 +52,8 @@ namespace Microsoft.ML.CpuMath.PerformanceTests
             => SseIntrinsics.MulElementWiseU(src1, src2, dst, Length);
 
         [Benchmark]
-        public float SumU()
-            => SseIntrinsics.SumU(new Span<float>(src, 0, Length));
+        public float Sum()
+            => SseIntrinsics.Sum(new Span<float>(src, 0, Length));
 
         [Benchmark]
         public float SumSqU()

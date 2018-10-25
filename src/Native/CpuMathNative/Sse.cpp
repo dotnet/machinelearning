@@ -903,21 +903,102 @@ EXPORT_API(void) MulElementWiseU(_In_ const float * ps1, _In_ const float * ps2,
     }
 }
 
-EXPORT_API(float) SumU(const float * ps, int c)
+EXPORT_API(float) Sum(const float* pValues, int length)
 {
-    const float * psLim = ps + c;
+    if (length < 4)
+    {
+        // Handle cases where we have less than 128-bits total and can't ever use SIMD acceleration.
 
-    __m128 res = _mm_setzero_ps();
-    for (; ps + 4 <= psLim; ps += 4)
-        res = _mm_add_ps(res, _mm_loadu_ps(ps));
+        float result = 0;
 
-    res = _mm_hadd_ps(res, res);
-    res = _mm_hadd_ps(res, res);
+        switch (length)
+        {
+            case 3: result += pValues[2];
+            case 2: result += pValues[1];
+            case 1: result += pValues[0];
+        }
 
-    for (; ps < psLim; ps++)
-        res = _mm_add_ss(res, _mm_load_ss(ps));
+        return result;
+    }
 
-    return _mm_cvtss_f32(res);
+    __m128 result = _mm_setzero_ps();
+
+    uintptr_t address = (uintptr_t)(pValues);
+    uintptr_t misalignment = address % 16;
+
+    int remainder = 0;
+
+    if ((misalignment & 3) != 0)
+    {
+        // Handles cases where the data is not 32-bit aligned and we can't ever use aligned operations
+
+        remainder = length % 4;
+
+        for (const float* pEnd = pValues + (length - remainder); pValues < pEnd; pValues += 4)
+        {
+            __m128 temp = _mm_loadu_ps(pValues);
+            result = _mm_add_ps(result, temp);
+        }
+    }
+    else
+    {
+        if (misalignment != 0)
+        {
+            // Handle cases where the data is not 128-bit aligned by doing an unaligned read and then
+            // masking any elements that will be included in the first aligned read
+
+            misalignment >>= 2;
+            misalignment = 4 - misalignment;
+
+            __m128 temp = _mm_loadu_ps(pValues);
+            __m128 mask = _mm_loadu_ps(((float*)(&LeadingAlignmentMask)) + (misalignment * 4));
+            temp = _mm_and_ps(temp, mask);
+            result = _mm_add_ps(result, temp);
+
+            pValues += misalignment;
+            length -= misalignment;
+        }
+
+        if (length > 3)
+        {
+            // Handle all the 128-bit blocks that we can now that we have offset to an aligned address
+
+            remainder = length % 4;
+
+            for (const float* pEnd = pValues + (length - remainder); pValues < pEnd; pValues += 4)
+            {
+                __m128 temp = _mm_load_ps(pValues);
+                result = _mm_add_ps(result, temp);
+            }
+        }
+        else
+        {
+            // Handle the "worst-case" scenario, which is when we have 4-8 elements and the input is not
+            // 128-bit aligned. This means we can't do any aligned loads and will just end up doing two
+            // unaligned loads where we mask the input each time.
+            remainder = length;
+        }
+    }
+
+    if (remainder != 0)
+    {
+        // Handle any trailing elements that don't fit into a 128-bit block by moving back so that the next
+        // unaligned load will read to the end of the array and then mask out any elements already processed
+
+        pValues -= (4 - remainder);
+
+        __m128 temp = _mm_loadu_ps(pValues);
+        __m128 mask = _mm_loadu_ps(((float*)(&TrailingAlignmentMask)) + (remainder * 4));
+        temp = _mm_and_ps(temp, mask);
+        result = _mm_add_ps(result, temp);
+    }
+
+    // Sum all the elements together and return the result
+
+    result = _mm_add_ps(result, _mm_movehl_ps(result, result));
+    result = _mm_add_ps(result, _mm_shuffle_ps(result, result, 0xB1));
+
+    return _mm_cvtss_f32(result);
 }
 
 EXPORT_API(float) SumSqU(const float * ps, int c)
