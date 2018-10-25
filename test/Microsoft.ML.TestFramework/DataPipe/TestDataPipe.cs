@@ -3,10 +3,12 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Runtime.Data;
+using Microsoft.ML.Runtime.Data.Conversion;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.TextAnalytics;
 using Microsoft.ML.Transforms;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using Xunit;
 using Float = System.Single;
@@ -486,6 +488,157 @@ namespace Microsoft.ML.Runtime.RunTests
                     "xf=KeyToVector{col=Key}",
                     "xf=CountFeatureSelection{col=Key count=100}",
                 });
+
+            Done();
+        }
+
+        [Fact]
+        public void SavePipeMissingValues()
+        {
+            string pathData = DeleteOutputPath("SavePipe", "MissingValuesInput.txt");
+            File.WriteAllLines(pathData, new string[] {
+                "0,",
+                "1,\"\"",
+                "2,0",
+                "3,-0",
+                "4,-",
+                "5,32xy",
+                "6,127",
+                "7,128",
+                "8,-127",
+                "9,-128",
+                "10,-129",
+                "11,255",
+                "12,256",
+                "13,32767",
+                "14,32768",
+                "15,-32767",
+                "16,-32768",
+                "17,-32769",
+                "18,65535",
+                "19,65536",
+                "20,2147483647",
+                "21,2147483648",
+                "22,-2147483647",
+                "23,-2147483648",
+                "24,-2147483649",
+                "25,4294967295",
+                "26,4294967296",
+                "27,9223372036854775807",
+                "28,9223372036854775808",
+                "29,-9223372036854775807",
+                "30,-9223372036854775808",
+                "31,-9223372036854775809",
+                "32,18446744073709551615",
+                "33,18446744073709551616",
+                "34,123456789012345678901",
+            });
+
+            TestCore(pathData, true,
+                new[] {
+                    "loader=Text{sep=comma col=Id:[0-*]:0 col=TX:TX:1 col=I1:I1:1 col=I2:I2:1 col=I4:I4:1 col=I8:I8:1 col=U1:U1:1 col=U2:U2:1 col=U4:U4:1 col=U8:U8:1}",
+                },
+                pipe =>
+                {
+                    // Verify that all narrowing conversions produce the same result as converting
+                    // from text to the narrow type.
+                    using (var c = pipe.GetRowCursor(col => true))
+                    {
+                        // Get all the getters.
+                        var getI1 = c.GetGetter<sbyte>(2);
+                        var getI2 = c.GetGetter<short>(3);
+                        var getI4 = c.GetGetter<int>(4);
+                        var getI8 = c.GetGetter<long>(5);
+                        var getU1 = c.GetGetter<byte>(6);
+                        var getU2 = c.GetGetter<ushort>(7);
+                        var getU4 = c.GetGetter<uint>(8);
+                        var getU8 = c.GetGetter<ulong>(9);
+
+                        sbyte i1 = 0;
+                        short i2 = 0;
+                        int i4 = 0;
+                        long i8 = 0;
+
+                        byte u1 = 0;
+                        ushort u2 = 0;
+                        uint u4 = 0;
+                        ulong u8 = 0;
+
+                        while (c.MoveNext())
+                        {
+                            getI1(ref i1);
+                            getI2(ref i2);
+                            getI4(ref i4);
+                            getI8(ref i8);
+                            getU1(ref u1);
+                            getU2(ref u2);
+                            getU4(ref u4);
+                            getU8(ref u8);
+
+                            // Signed to smaller signed.
+                            VerifyMatch(i8, i1, Conversions.Instance.Convert, Conversions.Instance.Convert);
+                            VerifyMatch(i4, i1, Conversions.Instance.Convert, Conversions.Instance.Convert);
+                            VerifyMatch(i2, i1, Conversions.Instance.Convert, Conversions.Instance.Convert);
+                            VerifyMatch(i8, i2, Conversions.Instance.Convert, Conversions.Instance.Convert);
+                            VerifyMatch(i4, i2, Conversions.Instance.Convert, Conversions.Instance.Convert);
+                            VerifyMatch(i8, i4, Conversions.Instance.Convert, Conversions.Instance.Convert);
+
+                            // Unsigned to smaller unsigned.
+                            VerifyMatch(u8, u1, Conversions.Instance.Convert, Conversions.Instance.Convert);
+                            VerifyMatch(u4, u1, Conversions.Instance.Convert, Conversions.Instance.Convert);
+                            VerifyMatch(u2, u1, Conversions.Instance.Convert, Conversions.Instance.Convert);
+                            VerifyMatch(u8, u2, Conversions.Instance.Convert, Conversions.Instance.Convert);
+                            VerifyMatch(u4, u2, Conversions.Instance.Convert, Conversions.Instance.Convert);
+                            VerifyMatch(u8, u4, Conversions.Instance.Convert, Conversions.Instance.Convert);
+                        }
+                    }
+                }, logCurs: true);
+
+            Done();
+        }
+
+        private bool VerifyMatch<TSrc, TDst>(TSrc src, TDst dst, ValueMapper<TSrc, TDst> conv, ValueMapper<TDst, TSrc> convBack)
+            where TSrc : struct
+            where TDst : struct
+        {
+            TDst v = default(TDst);
+            conv(ref src, ref v);
+            if (EqualityComparer<TDst>.Default.Equals(dst, v))
+                return true;
+            TSrc vSrc = default;
+            convBack(ref v, ref vSrc);
+            if (EqualityComparer<TDst>.Default.Equals(dst, default(TDst)) && !EqualityComparer<TSrc>.Default.Equals(src, vSrc))
+                return true;
+            Fail($"Values different values in VerifyMatch<{typeof(TSrc).Name}, {typeof(TDst).Name}>: converted from {typeof(TSrc).Name} to {typeof(TDst).Name}: {v}. Parsed from text: {dst}");
+            return false;
+        }
+
+        [Fact(Skip = "Fails until issue #1342 is resolved.")]
+        public void SavePipeNgramHash()
+        {
+            string pathData = GetDataPath("lm.sample.txt");
+            TestCore(pathData, true,
+                new[] {
+                    "loader=Text{header+ col=Label:TX:0 col=Attrs:TX:1-2 col=TextFeatures:TX:3-4 rows=100}",
+                    "xf=WordToken{col={name=Tokens src=TextFeatures}}",
+                    "xf=Cat{max=10 col={name=Cat src=Tokens kind=key}}",
+                    "xf=Hash{col={name=Hash src=Tokens bits=10} col={name=HashBig src=Tokens bits=31}}",
+                    "xf=NgramHash{col={name=NgramHashOne src=Cat bits=4 ngram=3 skips=2}}",
+                    "xf=NgramHash{col={name=HashNgram1 src=Cat src=Cat bits=10 ngram=3 skips=1}}",
+                    "xf=NgramHash{ngram=3 bits=8 col={name=HashNgram2 src=Hash src=Hash skips=1 ord-} col={name=HashNgram3 src=Cat src=Hash skips=2 ord- rehash+ all-}}",
+                    "xf=NgramHash{bits=6 col=HashNgram4:HashBig,Hash rehash+}",
+                    "xf=NgramHash{bits=3 ngram=1 col={name=HashNgram5 src=Hash src=Hash} col={name=HashNgram6 src=Hash ord-}}",
+                    "xf=NgramHash{bits=6 col=HashNgram7:HashBig,Hash rehash+ all- col={name=HashNgram8 src=Hash all+ ord-}}",
+                    "xf=SelectColumns{keepcol=NgramHashOne keepcol=HashNgram1 keepcol=HashNgram2 keepcol=HashNgram3 keepcol=HashNgram4 keepcol=HashNgram5 keepcol=HashNgram6 keepcol=HashNgram7 keepcol=HashNgram8, hidden=-}",
+                });
+
+            TestCore(null, true,
+                new[] {
+                    "loader=Text{col=CatU8:U8[0-100]:1-9 col=CatU2:U2[0-*]:3-5}",
+                    "xf=NgramHash{bits=5 col=NgramHash:CatU8 col=NgramHash2:CatU2}",
+                    "xf=SelectColumns{keepcol=NgramHash keepcol=NgramHash2 hidden=-}"
+                },
+                suffix: "-Convert");
 
             Done();
         }

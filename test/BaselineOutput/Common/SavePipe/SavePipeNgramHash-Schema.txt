@@ -1,0 +1,175 @@
+---- BoundLoader ----
+3 columns:
+  Label: Text
+  Attrs: Vec<Text, 2>
+    Metadata 'SlotNames': Vec<Text, 2>: Length=2, Count=2
+      [0] 'de-DE', [1] 'url-pathpart-wirtschaft url-pathpart-soziales url-domainname-www.spiegel.de url-domainprefix-www url-domainprefix-www.spiegel url-domaintype-de url-domainsuffix-spiegel.de url-firstpartpagename-0,1518,793077,00 url-pagepartsplitname-0,1518,793077,00 url-lastpartpagename-html#ref=rss'
+  TextFeatures: Vec<Text, 2>
+    Metadata 'SlotNames': Vec<Text, 2>: Length=2, Count=2
+      [0] 'weg fuer milliardenhilfe frei', [1] 'vor dem parlamentsgebaeude toben strassenkaempfe zwischen demonstranten drinnen haben die griechischen abgeordneten das drastische sparpaket am abend endgueltig beschlossen die entscheidung ist eine wichtige voraussetzung fuer die auszahlung von weiteren acht milliarden euro hilfsgeldern athen das griechische parlament hat einem umfassenden sparpaket endgueltig zugestimmt'
+---- DelimitedTokenizeTransform ----
+4 columns:
+  Label: Text
+  Attrs: Vec<Text, 2>
+    Metadata 'SlotNames': Vec<Text, 2>: Length=2, Count=2
+      [0] 'de-DE', [1] 'url-pathpart-wirtschaft url-pathpart-soziales url-domainname-www.spiegel.de url-domainprefix-www url-domainprefix-www.spiegel url-domaintype-de url-domainsuffix-spiegel.de url-firstpartpagename-0,1518,793077,00 url-pagepartsplitname-0,1518,793077,00 url-lastpartpagename-html#ref=rss'
+  TextFeatures: Vec<Text, 2>
+    Metadata 'SlotNames': Vec<Text, 2>: Length=2, Count=2
+      [0] 'weg fuer milliardenhilfe frei', [1] 'vor dem parlamentsgebaeude toben strassenkaempfe zwischen demonstranten drinnen haben die griechischen abgeordneten das drastische sparpaket am abend endgueltig beschlossen die entscheidung ist eine wichtige voraussetzung fuer die auszahlung von weiteren acht milliarden euro hilfsgeldern athen das griechische parlament hat einem umfassenden sparpaket endgueltig zugestimmt'
+  Tokens: Vec<Text>
+---- RowToRowMapperTransform ----
+5 columns:
+  Label: Text
+  Attrs: Vec<Text, 2>
+    Metadata 'SlotNames': Vec<Text, 2>: Length=2, Count=2
+      [0] 'de-DE', [1] 'url-pathpart-wirtschaft url-pathpart-soziales url-domainname-www.spiegel.de url-domainprefix-www url-domainprefix-www.spiegel url-domaintype-de url-domainsuffix-spiegel.de url-firstpartpagename-0,1518,793077,00 url-pagepartsplitname-0,1518,793077,00 url-lastpartpagename-html#ref=rss'
+  TextFeatures: Vec<Text, 2>
+    Metadata 'SlotNames': Vec<Text, 2>: Length=2, Count=2
+      [0] 'weg fuer milliardenhilfe frei', [1] 'vor dem parlamentsgebaeude toben strassenkaempfe zwischen demonstranten drinnen haben die griechischen abgeordneten das drastische sparpaket am abend endgueltig beschlossen die entscheidung ist eine wichtige voraussetzung fuer die auszahlung von weiteren acht milliarden euro hilfsgeldern athen das griechische parlament hat einem umfassenden sparpaket endgueltig zugestimmt'
+  Tokens: Vec<Text>
+  Cat: Vec<Key<U4, 0-9>>
+    Metadata 'KeyValues': Vec<Text, 10>: Length=10, Count=10
+      [0] 'versicherer', [1] 'lediglich', [2] 'air', [3] 'worldwide', [4] 'ein', [5] 'spezialist', [6] 'fuer', [7] 'risikomodelle', [8] 'wagte', [9] 'sich'
+---- RowToRowMapperTransform ----
+7 columns:
+  Label: Text
+  Attrs: Vec<Text, 2>
+    Metadata 'SlotNames': Vec<Text, 2>: Length=2, Count=2
+      [0] 'de-DE', [1] 'url-pathpart-wirtschaft url-pathpart-soziales url-domainname-www.spiegel.de url-domainprefix-www url-domainprefix-www.spiegel url-domaintype-de url-domainsuffix-spiegel.de url-firstpartpagename-0,1518,793077,00 url-pagepartsplitname-0,1518,793077,00 url-lastpartpagename-html#ref=rss'
+  TextFeatures: Vec<Text, 2>
+    Metadata 'SlotNames': Vec<Text, 2>: Length=2, Count=2
+      [0] 'weg fuer milliardenhilfe frei', [1] 'vor dem parlamentsgebaeude toben strassenkaempfe zwischen demonstranten drinnen haben die griechischen abgeordneten das drastische sparpaket am abend endgueltig beschlossen die entscheidung ist eine wichtige voraussetzung fuer die auszahlung von weiteren acht milliarden euro hilfsgeldern athen das griechische parlament hat einem umfassenden sparpaket endgueltig zugestimmt'
+  Tokens: Vec<Text>
+  Cat: Vec<Key<U4, 0-9>>
+    Metadata 'KeyValues': Vec<Text, 10>: Length=10, Count=10
+      [0] 'versicherer', [1] 'lediglich', [2] 'air', [3] 'worldwide', [4] 'ein', [5] 'spezialist', [6] 'fuer', [7] 'risikomodelle', [8] 'wagte', [9] 'sich'
+  Hash: Vec<Key<U4, 0-1023>>
+  HashBig: Vec<Key<U4, Min:0>>
+---- NgramHashTransform ----
+8 columns:
+  Label: Text
+  Attrs: Vec<Text, 2>
+    Metadata 'SlotNames': Vec<Text, 2>: Length=2, Count=2
+      [0] 'de-DE', [1] 'url-pathpart-wirtschaft url-pathpart-soziales url-domainname-www.spiegel.de url-domainprefix-www url-domainprefix-www.spiegel url-domaintype-de url-domainsuffix-spiegel.de url-firstpartpagename-0,1518,793077,00 url-pagepartsplitname-0,1518,793077,00 url-lastpartpagename-html#ref=rss'
+  TextFeatures: Vec<Text, 2>
+    Metadata 'SlotNames': Vec<Text, 2>: Length=2, Count=2
+      [0] 'weg fuer milliardenhilfe frei', [1] 'vor dem parlamentsgebaeude toben strassenkaempfe zwischen demonstranten drinnen haben die griechischen abgeordneten das drastische sparpaket am abend endgueltig beschlossen die entscheidung ist eine wichtige voraussetzung fuer die auszahlung von weiteren acht milliarden euro hilfsgeldern athen das griechische parlament hat einem umfassenden sparpaket endgueltig zugestimmt'
+  Tokens: Vec<Text>
+  Cat: Vec<Key<U4, 0-9>>
+    Metadata 'KeyValues': Vec<Text, 10>: Length=10, Count=10
+      [0] 'versicherer', [1] 'lediglich', [2] 'air', [3] 'worldwide', [4] 'ein', [5] 'spezialist', [6] 'fuer', [7] 'risikomodelle', [8] 'wagte', [9] 'sich'
+  Hash: Vec<Key<U4, 0-1023>>
+  HashBig: Vec<Key<U4, Min:0>>
+  NgramHashOne: Vec<R4, 16>
+---- NgramHashTransform ----
+9 columns:
+  Label: Text
+  Attrs: Vec<Text, 2>
+    Metadata 'SlotNames': Vec<Text, 2>: Length=2, Count=2
+      [0] 'de-DE', [1] 'url-pathpart-wirtschaft url-pathpart-soziales url-domainname-www.spiegel.de url-domainprefix-www url-domainprefix-www.spiegel url-domaintype-de url-domainsuffix-spiegel.de url-firstpartpagename-0,1518,793077,00 url-pagepartsplitname-0,1518,793077,00 url-lastpartpagename-html#ref=rss'
+  TextFeatures: Vec<Text, 2>
+    Metadata 'SlotNames': Vec<Text, 2>: Length=2, Count=2
+      [0] 'weg fuer milliardenhilfe frei', [1] 'vor dem parlamentsgebaeude toben strassenkaempfe zwischen demonstranten drinnen haben die griechischen abgeordneten das drastische sparpaket am abend endgueltig beschlossen die entscheidung ist eine wichtige voraussetzung fuer die auszahlung von weiteren acht milliarden euro hilfsgeldern athen das griechische parlament hat einem umfassenden sparpaket endgueltig zugestimmt'
+  Tokens: Vec<Text>
+  Cat: Vec<Key<U4, 0-9>>
+    Metadata 'KeyValues': Vec<Text, 10>: Length=10, Count=10
+      [0] 'versicherer', [1] 'lediglich', [2] 'air', [3] 'worldwide', [4] 'ein', [5] 'spezialist', [6] 'fuer', [7] 'risikomodelle', [8] 'wagte', [9] 'sich'
+  Hash: Vec<Key<U4, 0-1023>>
+  HashBig: Vec<Key<U4, Min:0>>
+  NgramHashOne: Vec<R4, 16>
+  HashNgram1: Vec<R4, 1024>
+---- NgramHashTransform ----
+11 columns:
+  Label: Text
+  Attrs: Vec<Text, 2>
+    Metadata 'SlotNames': Vec<Text, 2>: Length=2, Count=2
+      [0] 'de-DE', [1] 'url-pathpart-wirtschaft url-pathpart-soziales url-domainname-www.spiegel.de url-domainprefix-www url-domainprefix-www.spiegel url-domaintype-de url-domainsuffix-spiegel.de url-firstpartpagename-0,1518,793077,00 url-pagepartsplitname-0,1518,793077,00 url-lastpartpagename-html#ref=rss'
+  TextFeatures: Vec<Text, 2>
+    Metadata 'SlotNames': Vec<Text, 2>: Length=2, Count=2
+      [0] 'weg fuer milliardenhilfe frei', [1] 'vor dem parlamentsgebaeude toben strassenkaempfe zwischen demonstranten drinnen haben die griechischen abgeordneten das drastische sparpaket am abend endgueltig beschlossen die entscheidung ist eine wichtige voraussetzung fuer die auszahlung von weiteren acht milliarden euro hilfsgeldern athen das griechische parlament hat einem umfassenden sparpaket endgueltig zugestimmt'
+  Tokens: Vec<Text>
+  Cat: Vec<Key<U4, 0-9>>
+    Metadata 'KeyValues': Vec<Text, 10>: Length=10, Count=10
+      [0] 'versicherer', [1] 'lediglich', [2] 'air', [3] 'worldwide', [4] 'ein', [5] 'spezialist', [6] 'fuer', [7] 'risikomodelle', [8] 'wagte', [9] 'sich'
+  Hash: Vec<Key<U4, 0-1023>>
+  HashBig: Vec<Key<U4, Min:0>>
+  NgramHashOne: Vec<R4, 16>
+  HashNgram1: Vec<R4, 1024>
+  HashNgram2: Vec<R4, 256>
+  HashNgram3: Vec<R4, 256>
+---- NgramHashTransform ----
+12 columns:
+  Label: Text
+  Attrs: Vec<Text, 2>
+    Metadata 'SlotNames': Vec<Text, 2>: Length=2, Count=2
+      [0] 'de-DE', [1] 'url-pathpart-wirtschaft url-pathpart-soziales url-domainname-www.spiegel.de url-domainprefix-www url-domainprefix-www.spiegel url-domaintype-de url-domainsuffix-spiegel.de url-firstpartpagename-0,1518,793077,00 url-pagepartsplitname-0,1518,793077,00 url-lastpartpagename-html#ref=rss'
+  TextFeatures: Vec<Text, 2>
+    Metadata 'SlotNames': Vec<Text, 2>: Length=2, Count=2
+      [0] 'weg fuer milliardenhilfe frei', [1] 'vor dem parlamentsgebaeude toben strassenkaempfe zwischen demonstranten drinnen haben die griechischen abgeordneten das drastische sparpaket am abend endgueltig beschlossen die entscheidung ist eine wichtige voraussetzung fuer die auszahlung von weiteren acht milliarden euro hilfsgeldern athen das griechische parlament hat einem umfassenden sparpaket endgueltig zugestimmt'
+  Tokens: Vec<Text>
+  Cat: Vec<Key<U4, 0-9>>
+    Metadata 'KeyValues': Vec<Text, 10>: Length=10, Count=10
+      [0] 'versicherer', [1] 'lediglich', [2] 'air', [3] 'worldwide', [4] 'ein', [5] 'spezialist', [6] 'fuer', [7] 'risikomodelle', [8] 'wagte', [9] 'sich'
+  Hash: Vec<Key<U4, 0-1023>>
+  HashBig: Vec<Key<U4, Min:0>>
+  NgramHashOne: Vec<R4, 16>
+  HashNgram1: Vec<R4, 1024>
+  HashNgram2: Vec<R4, 256>
+  HashNgram3: Vec<R4, 256>
+  HashNgram4: Vec<R4, 64>
+---- NgramHashTransform ----
+14 columns:
+  Label: Text
+  Attrs: Vec<Text, 2>
+    Metadata 'SlotNames': Vec<Text, 2>: Length=2, Count=2
+      [0] 'de-DE', [1] 'url-pathpart-wirtschaft url-pathpart-soziales url-domainname-www.spiegel.de url-domainprefix-www url-domainprefix-www.spiegel url-domaintype-de url-domainsuffix-spiegel.de url-firstpartpagename-0,1518,793077,00 url-pagepartsplitname-0,1518,793077,00 url-lastpartpagename-html#ref=rss'
+  TextFeatures: Vec<Text, 2>
+    Metadata 'SlotNames': Vec<Text, 2>: Length=2, Count=2
+      [0] 'weg fuer milliardenhilfe frei', [1] 'vor dem parlamentsgebaeude toben strassenkaempfe zwischen demonstranten drinnen haben die griechischen abgeordneten das drastische sparpaket am abend endgueltig beschlossen die entscheidung ist eine wichtige voraussetzung fuer die auszahlung von weiteren acht milliarden euro hilfsgeldern athen das griechische parlament hat einem umfassenden sparpaket endgueltig zugestimmt'
+  Tokens: Vec<Text>
+  Cat: Vec<Key<U4, 0-9>>
+    Metadata 'KeyValues': Vec<Text, 10>: Length=10, Count=10
+      [0] 'versicherer', [1] 'lediglich', [2] 'air', [3] 'worldwide', [4] 'ein', [5] 'spezialist', [6] 'fuer', [7] 'risikomodelle', [8] 'wagte', [9] 'sich'
+  Hash: Vec<Key<U4, 0-1023>>
+  HashBig: Vec<Key<U4, Min:0>>
+  NgramHashOne: Vec<R4, 16>
+  HashNgram1: Vec<R4, 1024>
+  HashNgram2: Vec<R4, 256>
+  HashNgram3: Vec<R4, 256>
+  HashNgram4: Vec<R4, 64>
+  HashNgram5: Vec<R4, 8>
+  HashNgram6: Vec<R4, 8>
+---- NgramHashTransform ----
+16 columns:
+  Label: Text
+  Attrs: Vec<Text, 2>
+    Metadata 'SlotNames': Vec<Text, 2>: Length=2, Count=2
+      [0] 'de-DE', [1] 'url-pathpart-wirtschaft url-pathpart-soziales url-domainname-www.spiegel.de url-domainprefix-www url-domainprefix-www.spiegel url-domaintype-de url-domainsuffix-spiegel.de url-firstpartpagename-0,1518,793077,00 url-pagepartsplitname-0,1518,793077,00 url-lastpartpagename-html#ref=rss'
+  TextFeatures: Vec<Text, 2>
+    Metadata 'SlotNames': Vec<Text, 2>: Length=2, Count=2
+      [0] 'weg fuer milliardenhilfe frei', [1] 'vor dem parlamentsgebaeude toben strassenkaempfe zwischen demonstranten drinnen haben die griechischen abgeordneten das drastische sparpaket am abend endgueltig beschlossen die entscheidung ist eine wichtige voraussetzung fuer die auszahlung von weiteren acht milliarden euro hilfsgeldern athen das griechische parlament hat einem umfassenden sparpaket endgueltig zugestimmt'
+  Tokens: Vec<Text>
+  Cat: Vec<Key<U4, 0-9>>
+    Metadata 'KeyValues': Vec<Text, 10>: Length=10, Count=10
+      [0] 'versicherer', [1] 'lediglich', [2] 'air', [3] 'worldwide', [4] 'ein', [5] 'spezialist', [6] 'fuer', [7] 'risikomodelle', [8] 'wagte', [9] 'sich'
+  Hash: Vec<Key<U4, 0-1023>>
+  HashBig: Vec<Key<U4, Min:0>>
+  NgramHashOne: Vec<R4, 16>
+  HashNgram1: Vec<R4, 1024>
+  HashNgram2: Vec<R4, 256>
+  HashNgram3: Vec<R4, 256>
+  HashNgram4: Vec<R4, 64>
+  HashNgram5: Vec<R4, 8>
+  HashNgram6: Vec<R4, 8>
+  HashNgram7: Vec<R4, 64>
+  HashNgram8: Vec<R4, 64>
+---- SelectColumnsDataTransform ----
+8 columns:
+  NgramHashOne: Vec<R4, 16>
+  HashNgram1: Vec<R4, 1024>
+  HashNgram2: Vec<R4, 256>
+  HashNgram3: Vec<R4, 256>
+  HashNgram4: Vec<R4, 64>
+  HashNgram5: Vec<R4, 8>
+  HashNgram6: Vec<R4, 8>
+  HashNgram7: Vec<R4, 64>
