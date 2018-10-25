@@ -23,13 +23,10 @@ namespace Microsoft.ML.Samples.Static
             string dataFile = SamplesUtils.DatasetUtils.DownloadHousingRegressionDataset();
 
             // Creating the ML.Net IHostEnvironment object, needed for the pipeline
-            var env = new LocalEnvironment(seed: 0);
-
-            // Creating the ML context, based on the task performed.
-            var regressionContext = new RegressionContext(env);
+            var mlContext = new MLContext();
 
             // Creating a data reader, based on the format of the data
-            var reader = TextLoader.CreateReader(env, c => (
+            var reader = TextLoader.CreateReader(mlContext, c => (
                         label: c.LoadFloat(0),
                         features: c.LoadFloat(1, 6)
                     ),
@@ -37,14 +34,14 @@ namespace Microsoft.ML.Samples.Static
 
             // Read the data, and leave 10% out, so we can use them for testing
             var data = reader.Read(dataFile);
-            var (trainData, testData) = regressionContext.TrainTestSplit(data, testFraction: 0.1);
+            var (trainData, testData) = mlContext.Regression.TrainTestSplit(data, testFraction: 0.1);
 
             // The predictor that gets produced out of training
             LinearRegressionPredictor pred = null;
 
             // Create the estimator
             var learningPipeline = reader.MakeNewEstimator()
-                .Append(r => (r.label, score: regressionContext.Trainers.Sdca(
+                .Append(r => (r.label, score: mlContext.Regression.Trainers.Sdca(
                                             r.label,
                                             r.features,
                                             l1Threshold: 0f,
@@ -65,7 +62,7 @@ namespace Microsoft.ML.Samples.Static
 
             // Evaluate how the model is doing on the test data
             var dataWithPredictions = model.Transform(testData);
-            var metrics = regressionContext.Evaluate(dataWithPredictions, r => r.label, r => r.score);
+            var metrics = mlContext.Regression.Evaluate(dataWithPredictions, r => r.label, r => r.score);
 
             Console.WriteLine($"L1 - {metrics.L1}");  // 3.7226085
             Console.WriteLine($"L2 - {metrics.L2}");  // 24.250636

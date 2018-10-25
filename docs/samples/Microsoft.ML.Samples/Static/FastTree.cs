@@ -4,7 +4,7 @@
 
         // the alignment of the usings with the methods is intentional so they can display on the same level in the docs site. 
         using Microsoft.ML.Runtime.Data;
-        using Microsoft.ML.Runtime.FastTree;
+        using Microsoft.ML.Trainers.FastTree;
         using Microsoft.ML.StaticPipe;
         using System;
         using System.Linq;
@@ -23,14 +23,12 @@ namespace Microsoft.ML.Samples.Static
             // you can open the file to see the data. 
             string dataFile = SamplesUtils.DatasetUtils.DownloadHousingRegressionDataset();
 
-            // Creating the ML.Net IHostEnvironment object, needed for the pipeline
-            var env = new LocalEnvironment(seed: 0);
-
-            // Creating the ML context, based on the task performed.
-            var regressionContext = new RegressionContext(env);
+            // Create a new ML context, for ML.NET operations. It can be used for exception tracking and logging, 
+            // as well as the source of randomness.
+            var mlContext = new MLContext();
 
             // Creating a data reader, based on the format of the data
-            var reader = TextLoader.CreateReader(env, c => (
+            var reader = TextLoader.CreateReader(mlContext, c => (
                         label: c.LoadFloat(0),
                         features: c.LoadFloat(1, 6)
                     ),
@@ -44,7 +42,7 @@ namespace Microsoft.ML.Samples.Static
 
             // Create the estimator
             var learningPipeline = reader.MakeNewEstimator()
-                .Append(r => (r.label, score: regressionContext.Trainers.FastTree(
+                .Append(r => (r.label, score: mlContext.Regression.Trainers.FastTree(
                                             r.label,
                                             r.features,
                                             numTrees: 100, // try: (int) 20-2000
@@ -55,7 +53,7 @@ namespace Microsoft.ML.Samples.Static
                                 )
                         );
 
-            var cvResults = regressionContext.CrossValidate(data, learningPipeline, r => r.label, numFolds: 5);
+            var cvResults = mlContext.Regression.CrossValidate(data, learningPipeline, r => r.label, numFolds: 5);
             var averagedMetrics = (
                 L1: cvResults.Select(r => r.metrics.L1).Average(),
                 L2: cvResults.Select(r => r.metrics.L2).Average(),

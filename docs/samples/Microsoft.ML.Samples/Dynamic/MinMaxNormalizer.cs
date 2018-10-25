@@ -17,7 +17,7 @@ namespace Microsoft.ML.Samples.Dynamic
         {
             // Create a new ML context, for ML.NET operations. It can be used for exception tracking and logging, 
             // as well as the source of randomness.
-            var ml = new MLContext(seed: 1, conc: 1);
+            var ml = new MLContext();
 
             // Get a small dataset as an IEnumerable and convert it to an IDataView.
             IEnumerable<SamplesUtils.DatasetUtils.SampleInfertData> data = SamplesUtils.DatasetUtils.GetInfertData();

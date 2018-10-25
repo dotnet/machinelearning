@@ -10,8 +10,7 @@ namespace Microsoft.ML.Samples
     {
         static void Main(string[] args)
         {
-            TransformSamples.MinMaxNormalizer();
-            // TrainersSamples.LightGbmRegression();
+            TransformSamples.KeyToValue_Term();
         }
     }
 }

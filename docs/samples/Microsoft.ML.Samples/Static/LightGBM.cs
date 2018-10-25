@@ -22,14 +22,12 @@ namespace Microsoft.ML.Samples.Static
             // you can open the file to see the data. 
             string dataFile = SamplesUtils.DatasetUtils.DownloadHousingRegressionDataset();
 
-            // Creating the ML.Net IHostEnvironment object, needed for the pipeline
-            var env = new LocalEnvironment(seed: 0);
-
-            // Creating the ML context, based on the task performed.
-            var regressionContext = new RegressionContext(env);
+            // Create a new ML context, for ML.NET operations. It can be used for exception tracking and logging, 
+            // as well as the source of randomness.
+            var mlContext = new MLContext();
 
             // Creating a data reader, based on the format of the data
-            var reader = TextLoader.CreateReader(env, c => (
+            var reader = TextLoader.CreateReader(mlContext, c => (
                         label: c.LoadFloat(0),
                         features: c.LoadFloat(1, 6)
                     ),
@@ -37,14 +35,14 @@ namespace Microsoft.ML.Samples.Static
 
             // Read the data, and leave 10% out, so we can use them for testing
             var data = reader.Read(new MultiFileSource(dataFile));
-            var (trainData, testData) = regressionContext.TrainTestSplit(data, testFraction: 0.1);
+            var (trainData, testData) = mlContext.Regression.TrainTestSplit(data, testFraction: 0.1);
 
             // The predictor that gets produced out of training
             LightGbmRegressionPredictor pred = null;
 
             // Create the estimator
             var learningPipeline = reader.MakeNewEstimator()
-                .Append(r => (r.label, score: regressionContext.Trainers.LightGbm(
+                .Append(r => (r.label, score: mlContext.Regression.Trainers.LightGbm(
                                             r.label,
                                             r.features,
                                             numLeaves: 4,
@@ -66,7 +64,7 @@ namespace Microsoft.ML.Samples.Static
 
             // Evaluate how the model is doing on the test data
             var dataWithPredictions = model.Transform(testData);
-            var metrics = regressionContext.Evaluate(dataWithPredictions, r => r.label, r => r.score);
+            var metrics = mlContext.Regression.Evaluate(dataWithPredictions, r => r.label, r => r.score);
 
             Console.WriteLine($"L1 - {metrics.L1}");    // 4.9669731
             Console.WriteLine($"L2 - {metrics.L2}");    // 51.37296

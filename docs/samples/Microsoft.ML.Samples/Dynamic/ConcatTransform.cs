@@ -5,7 +5,6 @@
         // the alignment of the usings with the methods is intentional so they can display on the same level in the docs site.
         using Microsoft.ML.Runtime.Data;
         using Microsoft.ML.Runtime.Api;
-        using Microsoft.ML.Data;
         using System;
         using System.Linq;
         using System.Collections.Generic;
@@ -23,7 +22,7 @@ namespace Microsoft.ML.Samples.Dynamic
         {
             // Create a new ML context, for ML.NET operations. It can be used for exception tracking and logging, 
             // as well as the source of randomness.
-            var ml = new MLContext(seed: 1, conc: 1);
+            var ml = new MLContext();
 
             // Get a small dataset as an IEnumerable.
             IEnumerable<SamplesUtils.DatasetUtils.SampleInfertData> data = SamplesUtils.DatasetUtils.GetInfertData();
