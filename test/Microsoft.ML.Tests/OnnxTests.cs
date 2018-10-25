@@ -33,6 +33,18 @@ namespace Microsoft.ML.Tests
             public ReadOnlyMemory<char> F2;
         }
 
+        public class EmbeddingsData
+        {
+            [VectorType(4)]
+            public string[] Cat;
+        }
+
+        public class EmbeddingsResult
+        {
+            [ColumnName("Cat")]
+            public float[] Cat;
+        }
+
         public class BreastNumericalColumns
         {
             [VectorType(9)]
@@ -279,6 +291,60 @@ namespace Microsoft.ML.Tests
             File.WriteAllText(onnxAsJsonPath, fileText);
 
             CheckEquality(subDir, "KeyToVectorBag.json");
+            Done();
+        }
+
+        [Fact]
+        public void WordEmbeddingsTest()
+        {
+            string dataPath = GetDataPath(@"small-sentiment-test.tsv");
+            var pipeline = new Legacy.LearningPipeline(0);
+
+            pipeline.Add(new Legacy.Data.TextLoader(dataPath)
+            {
+                Arguments = new TextLoaderArguments
+                {
+                    Separator = new[] { '\t' },
+                    HasHeader = false,
+                    Column = new []
+                    {
+                        new TextLoaderColumn()
+                        {
+                            Name = "Cat",
+                            Source = new [] { new TextLoaderRange(0, 3) },
+                            Type = Legacy.Data.DataKind.TX
+                        },
+                    }
+                }
+            });
+            
+            var modelPath = GetDataPath(@"shortsentiment.emd");
+            var embed = new WordEmbeddings() { CustomLookupTable = modelPath };
+            embed.AddColumn("Cat", "Cat");
+            pipeline.Add(embed);
+            var model = pipeline.Train<EmbeddingsData, EmbeddingsResult>();
+
+            var subDir = Path.Combine("..", "..", "BaselineOutput", "Common", "Onnx", "WordEmbeddings");
+            var onnxPath = GetOutputPath(subDir, "WordEmbeddings.onnx");
+            DeleteOutputPath(onnxPath);
+
+            var onnxAsJsonPath = GetOutputPath(subDir, "WordEmbeddings.json");
+            DeleteOutputPath(onnxAsJsonPath);
+
+            OnnxConverter converter = new OnnxConverter()
+            {
+                Onnx = onnxPath,
+                Json = onnxAsJsonPath,
+                Domain = "Onnx"
+            };
+
+            converter.Convert(model);
+
+            var fileText = File.ReadAllText(onnxAsJsonPath);
+            fileText = Regex.Replace(fileText, "\"producerVersion\": \"([^\"]+)\"", "\"producerVersion\": \"##VERSION##\"");
+            File.WriteAllText(onnxAsJsonPath, fileText);
+
+            CheckEquality(subDir, "WordEmbeddings.json");
             Done();
         }
 
