@@ -113,11 +113,11 @@ namespace Microsoft.ML.CpuMath.PerformanceTests
         }
         
         [Benchmark]
-        public unsafe float SumU()
+        public unsafe float Sum()
         {
             fixed (float* psrc = src)
             {
-                return CpuMathNativeUtils.SumU(psrc, Length);
+                return CpuMathNativeUtils.Sum(psrc, Length);
             }
         }
         

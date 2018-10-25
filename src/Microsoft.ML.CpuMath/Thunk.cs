@@ -53,7 +53,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         public static extern void AddSU(/*const*/ float* ps, /*const*/ int* pi, float* pd, int c);
 
         [DllImport(NativePath), SuppressUnmanagedCodeSecurity]
-        public static extern float SumU(/*const*/ float* ps, int c);
+        public static extern float Sum(/*const*/ float* pValues, int length);
 
         [DllImport(NativePath), SuppressUnmanagedCodeSecurity]
         public static extern float SumSqU(/*const*/ float* ps, int c);

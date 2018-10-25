@@ -346,7 +346,7 @@ namespace Microsoft.ML.CpuMath.UnitTests
         [Theory]
         [InlineData(0, -187.8f)]
         [InlineData(1, -191.09f)]
-        public void SumUTest(int test, float expected)
+        public void SumTest(int test, float expected)
         {
             float[] src = (float[])_testArrays[test].Clone();
             var actual = CpuMathUtils.Sum(src);
