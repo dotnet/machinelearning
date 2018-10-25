@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Text;
 using Microsoft.ML.Runtime;
@@ -14,6 +15,7 @@ using Microsoft.ML.Runtime.Data.Conversion;
 using Microsoft.ML.Runtime.Data.IO;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
+using Microsoft.ML.Transforms;
 
 [assembly: LoadableClass(TermLookupTransform.Summary, typeof(TermLookupTransform), typeof(TermLookupTransform.Arguments), typeof(SignatureDataTransform),
     "Term Lookup Transform", "TermLookup", "Lookup", "LookupTransform", "TermLookupTransform")]
@@ -507,12 +509,15 @@ namespace Microsoft.ML.Runtime.Data
             host.CheckUserArg(typeTerm.IsText, nameof(Arguments.TermColumn), "term column must contain text");
             var typeValue = schema.GetColumnType(colValue);
 
-            var args = new ChooseColumnsTransform.Arguments();
-            args.Column = new[] {
-                new ChooseColumnsTransform.Column {Name = "Term", Source = termColumn},
-                new ChooseColumnsTransform.Column {Name = "Value", Source = valueColumn},
+            var args = new CopyColumnsTransform.Arguments();
+            var copyColumns = new List<CopyColumnsTransform.Column>() {
+                new CopyColumnsTransform.Column {Name = "Term", Source = termColumn},
+                new CopyColumnsTransform.Column {Name = "Value", Source = valueColumn},
             };
-            var view = new ChooseColumnsTransform(host, args, lookup);
+            args.Column = copyColumns.ToArray();
+
+            var view = CopyColumnsTransform.Create(host, args, lookup);
+            view = SelectColumnsTransform.CreateKeep(host, view, false, copyColumns.Select(c => c.Name).ToArray());
 
             var saver = new BinarySaver(host, new BinarySaver.Arguments());
             using (var strm = new MemoryStream())

@@ -2,9 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
-using System.Text;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
@@ -12,6 +9,9 @@ using Microsoft.ML.Runtime.Data.Conversion;
 using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Transforms;
+using System;
+using System.Collections.Generic;
+using System.Text;
 
 [assembly: LoadableClass(NAHandleTransform.Summary, typeof(IDataTransform), typeof(NAHandleTransform), typeof(NAHandleTransform.Arguments), typeof(SignatureDataTransform),
     NAHandleTransform.FriendlyName, "NAHandleTransform", NAHandleTransform.ShortName, "NA", DocName = "transform/NAHandle.md")]
@@ -230,7 +230,7 @@ namespace Microsoft.ML.Runtime.Data
 
             // Finally, drop the temporary indicator columns.
             if (dropCols.Count > 0)
-                output = new DropColumnsTransform(h, new DropColumnsTransform.Arguments() { Column = dropCols.ToArray() }, output);
+                output = SelectColumnsTransform.CreateDrop(h, output, dropCols.ToArray());
 
             return output;
         }

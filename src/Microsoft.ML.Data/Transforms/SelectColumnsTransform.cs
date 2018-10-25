@@ -384,6 +384,27 @@ namespace Microsoft.ML.Transforms
             return transform.Transform(input);
         }
 
+        public static IDataTransform CreateKeep(IHostEnvironment env, IDataView input, params string[] keepColumns)
+        {
+            Arguments args = new Arguments();
+            args.KeepColumns = keepColumns;
+            return SelectColumnsTransform.Create(env, args, input);
+        }
+        public static IDataTransform CreateKeep(IHostEnvironment env, IDataView input, bool keepHidden, params string[] keepColumns)
+        {
+            Arguments args = new Arguments();
+            args.KeepColumns = keepColumns;
+            args.KeepHidden = keepHidden;
+            return SelectColumnsTransform.Create(env, args, input);
+        }
+
+        public static IDataTransform CreateDrop(IHostEnvironment env, IDataView input, params string[] dropColumns)
+        {
+            Arguments args = new Arguments();
+            args.DropColumns = dropColumns;
+            return SelectColumnsTransform.Create(env, args, input);
+        }
+
         // Factory method for SignatureDataTransform.
         private static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
         {
@@ -490,21 +511,59 @@ namespace Microsoft.ML.Transforms
             {
                 var outputToInputMapping = new List<int>();
                 var columnCount = inputSchema.ColumnCount;
-                int outputIdx = 0;
 
-                for (int colIdx = 0; colIdx < columnCount; ++colIdx)
+                if (keepColumns)
                 {
-                    if (!keepHidden && inputSchema.IsHidden(colIdx))
-                        continue;
+                    // With KeepColumns, the order that is specified is preserved in the mapping.
+                    // For example if a given input has the columns of ABC and the select columns are
+                    // specified as CA, then the output will be CA.
 
-                    var columnName = inputSchema[colIdx].Name;
-                    var selected = selectedColumns.Contains(columnName);
-                    selected = (keepColumns) ? selected : !selected;
-                    if (selected)
+                    // In order to account for keeping hidden columns, build a dictionary of
+                    // column name-> list of column indices. This dictionary is used for
+                    // building the final mapping.
+                    var columnDict = new Dictionary<string, List<int>>();
+                    for(int colIdx = 0; colIdx < inputSchema.ColumnCount; ++colIdx)
                     {
-                        outputToInputMapping.Add(colIdx);
-                        outputIdx++;
+                        if (!keepHidden && inputSchema.IsHidden(colIdx))
+                            continue;
+
+                        var columnName = inputSchema[colIdx].Name;
+                        if (columnDict.TryGetValue(columnName, out List<int> columnList))
+                            columnList.Add(colIdx);
+                        else
+                        {
+                            columnList = new List<int>();
+                            columnList.Add(colIdx);
+                            columnDict.Add(columnName, columnList);
+                        }
                     }
+
+                    // Since the ordering matters, iterate through the selected columns
+                    // finding the associated index that should be used.
+                    foreach(var columnName in selectedColumns)
+                    {
+                        if (columnDict.TryGetValue(columnName, out List<int> columnList))
+                        {
+                            foreach(var colIdx in columnList)
+                            {
+                                outputToInputMapping.Add(colIdx);
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    // Handles the drop case, removing any columns specified from the input
+                    // In the case of drop, the order of the output is modeled after the input
+                    // given an input of ABC and dropping column B will result in AC.
+                    for(int colIdx = 0; colIdx < inputSchema.ColumnCount; colIdx++)
+                    {
+                        if (selectedColumns.Contains(inputSchema[colIdx].Name))
+                            continue;
+
+                        outputToInputMapping.Add(colIdx);
+                    }
+
                 }
 
                 return outputToInputMapping.ToArray();
@@ -513,9 +572,7 @@ namespace Microsoft.ML.Transforms
             private static Schema GenerateOutputSchema(IEnumerable<int> map,
                                                         Schema inputSchema)
             {
-                IEnumerable<int> inputs = Enumerable.Range(0, inputSchema.ColumnCount);
-                var outputColumns = inputs.Where(idx=> map.Contains(idx))
-                    .Select(idx=>inputSchema[idx]);
+                var outputColumns = map.Select(x=>inputSchema[x]);
                 return new Schema(outputColumns);
             }
         }

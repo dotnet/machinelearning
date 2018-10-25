@@ -96,8 +96,9 @@ namespace Microsoft.ML.Tests.Transformers
             TestEstimatorCore(est.AsDynamic, data2.AsDynamic, invalidInput: data.AsDynamic);
 
             // Check that term and ToValue are round-trippable.
-            var dataLeft = new ChooseColumnsTransform(Env, data.AsDynamic, "ScalarString", "VectorString");
-            var dataRight = new ChooseColumnsTransform(Env, est.Fit(data2).Transform(data2).AsDynamic, "ScalarString", "VectorString");
+            var dataLeft = SelectColumnsTransform.CreateKeep(Env, data.AsDynamic, false, "ScalarString", "VectorString");
+            var dataRight = SelectColumnsTransform.CreateKeep(Env, est.Fit(data2).Transform(data2).AsDynamic, false, "ScalarString", "VectorString");
+
             CheckSameSchemas(dataLeft.Schema, dataRight.Schema);
             CheckSameValues(dataLeft, dataRight);
             Done();

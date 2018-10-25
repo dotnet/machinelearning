@@ -14,6 +14,7 @@ using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.TextAnalytics;
 using Microsoft.ML.StaticPipe;
 using Microsoft.ML.StaticPipe.Runtime;
+using Microsoft.ML.Transforms;
 using Microsoft.ML.Transforms.Text;
 using System;
 using System.Collections.Generic;
@@ -479,9 +480,7 @@ namespace Microsoft.ML.Runtime.Data
                 }
             }
 
-            view = new DropColumnsTransform(h,
-                new DropColumnsTransform.Arguments() { Column = tempCols.ToArray() }, view);
-
+            view = SelectColumnsTransform.CreateDrop(h, view, tempCols.ToArray());
             return new Transformer(_host, input, view);
         }
 

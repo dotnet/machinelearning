@@ -8,6 +8,7 @@ using Microsoft.ML.Runtime.Data.IO;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.RunTests;
 using Microsoft.ML.Runtime.Tools;
+using Microsoft.ML.Transforms;
 using System.IO;
 using Xunit;
 using Xunit.Abstractions;
@@ -61,7 +62,7 @@ namespace Microsoft.ML.Tests.Transformers
             t = GetType(data.Schema, "f4");
             Assert.True(t.IsVector && t.ItemType == NumberType.R4 && t.VectorSize == 0);
 
-            data = new ChooseColumnsTransform(Env, data, "f1", "f2", "f3", "f4");
+            data = SelectColumnsTransform.CreateKeep(Env, data, "f1", "f2", "f3", "f4");
 
             var subdir = Path.Combine("Transform", "Concat");
             var outputPath = GetOutputPath(subdir, "Concat1.tsv");
@@ -113,7 +114,7 @@ namespace Microsoft.ML.Tests.Transformers
             t = GetType(data.Schema, "f3");
             Assert.True(t.IsVector && t.ItemType == NumberType.R4 && t.VectorSize == 5);
 
-            data = new ChooseColumnsTransform(Env, data, "f2", "f3");
+            data = SelectColumnsTransform.CreateKeep(Env, data, "f2", "f3");
 
             var subdir = Path.Combine("Transform", "Concat");
             var outputPath = GetOutputPath(subdir, "Concat2.tsv");

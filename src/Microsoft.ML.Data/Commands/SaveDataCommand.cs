@@ -12,6 +12,7 @@ using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Data.IO;
 using Microsoft.ML.Runtime.Internal.Utilities;
+using Microsoft.ML.Transforms;
 
 [assembly: LoadableClass(SaveDataCommand.Summary, typeof(SaveDataCommand), typeof(SaveDataCommand.Arguments), typeof(SignatureCommand),
     "Save Data", "SaveData", "save")]
@@ -129,11 +130,10 @@ namespace Microsoft.ML.Runtime.Data
 
             if (!string.IsNullOrWhiteSpace(Args.Columns))
             {
-                var args = new ChooseColumnsTransform.Arguments();
-                args.Column = Args.Columns
-                    .Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries).Select(s => new ChooseColumnsTransform.Column() { Name = s }).ToArray();
-                if (Utils.Size(args.Column) > 0)
-                    data = new ChooseColumnsTransform(Host, args, data);
+                var keepColumns = Args.Columns
+                    .Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries).ToArray();
+                if (keepColumns.Length > 0)
+                    data = SelectColumnsTransform.CreateKeep(Host, data, keepColumns);
             }
 
             IDataSaver saver;
