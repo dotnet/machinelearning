@@ -271,8 +271,7 @@ namespace Microsoft.ML.Runtime.RunTests
             trainFilename = "adult.train",
             testFilename = "adult.test",
             loaderSettings = "loader=Text{header+ sep=comma col=Cat:TX:1,3,5-9,13 col=Label:14 col=Num:~}",
-            mamlExtraSettings = new[] { "xf=CatHash{col=Hash:5:Cat}", "xf=Concat{col=Features:Num,Hash}" },
-            extraSettings = @"/inst Pipe{loader=Text{header+ sep=comma col=Cat:TX:1,3,5-9,13 col=Label:14 col=Num:0,2,4,10-12} xf=CatHash{col=Hash:5:Cat} xf=Concat{col=Features:Num,Hash}}"
+            mamlExtraSettings = new[] { "xf=CatHash{col=Hash:5:Cat}", "xf=Concat{col=Features:Num,Hash}" }
         };
 
         public static TestDataset adultText = new TestDataset

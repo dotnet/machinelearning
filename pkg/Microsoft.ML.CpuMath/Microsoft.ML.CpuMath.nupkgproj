@@ -6,9 +6,8 @@
     <PackageDescription>Microsoft.ML.CpuMath contains optimized math routines for ML.NET.</PackageDescription>
   </PropertyGroup>
 
-  <ItemGroup Condition="'$(TargetFramework)' == 'netcoreapp3.0'">
-    <!-- This is only needed until https://github.com/dotnet/corefx/issues/31064 is addressed. -->
-    <PackageReference Include="System.Runtime.Intrinsics.Experimental" Version="4.6.0-preview1-26708-04" />
+  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
+    <PackageReference Include="System.Memory" Version="$(SystemMemoryVersion)" />
   </ItemGroup>
 
   <ItemGroup>

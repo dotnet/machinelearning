@@ -13,6 +13,7 @@ using Microsoft.ML.Runtime.Data.Conversion;
 using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Learners;
+using Microsoft.ML.Trainers;
 using Microsoft.ML.Runtime.Training;
 using Microsoft.ML.Runtime.Internal.Internallearn;
 
@@ -22,7 +23,7 @@ using Microsoft.ML.Runtime.Internal.Internallearn;
     SdcaRegressionTrainer.LoadNameValue,
     SdcaRegressionTrainer.ShortName)]
 
-namespace Microsoft.ML.Runtime.Learners
+namespace Microsoft.ML.Trainers
 {
     /// <include file='doc.xml' path='doc/members/member[@name="SDCA"]/*' />
     public sealed class SdcaRegressionTrainer : SdcaTrainerBase<SdcaRegressionTrainer.Arguments, RegressionPredictionTransformer<LinearRegressionPredictor>, LinearRegressionPredictor>

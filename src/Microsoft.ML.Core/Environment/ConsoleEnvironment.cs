@@ -430,6 +430,11 @@ namespace Microsoft.ML.Runtime.Data
             return new OutputRedirector(this, newOutWriter, newErrWriter);
         }
 
+        internal void ResetProgressChannel()
+        {
+            ProgressTracker.Reset();
+        }
+
         private sealed class OutputRedirector : IDisposable
         {
             private readonly ConsoleEnvironment _root;

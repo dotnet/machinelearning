@@ -7,6 +7,7 @@ using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Internal.Calibration;
 using Microsoft.ML.Runtime.Learners;
 using Microsoft.ML.StaticPipe.Runtime;
+using Microsoft.ML.Trainers;
 using System;
 
 namespace Microsoft.ML.StaticPipe
@@ -37,7 +38,7 @@ namespace Microsoft.ML.StaticPipe
         /// <example>
         /// <format type="text/markdown">
         /// <![CDATA[
-        ///  [!code-csharp[SDCA](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Trainers.cs?range=6-10,19-76 "The SDCA regression example.")]
+        ///  [!code-csharp[SDCA](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Trainers.cs?range=6-12,22-79 "The SDCA regression example.")]
         /// ]]></format>
         /// </example>
         public static Scalar<float> Sdca(this RegressionContext.RegressionTrainers ctx,

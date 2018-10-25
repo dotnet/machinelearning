@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text;
 using Microsoft.ML.Runtime.Internal.Utilities;
 
-namespace Microsoft.ML.Runtime.FastTree.Internal
+namespace Microsoft.ML.Trainers.FastTree.Internal
 {
     /// <summary>
     /// This class contains extension methods that support binary serialization of some base C# types

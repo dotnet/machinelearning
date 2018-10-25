@@ -21,7 +21,7 @@ namespace Microsoft.ML.StaticPipe
         /// </summary>
         /// <param name="ctx">The <see cref="RegressionContext"/>.</param>
         /// <param name="label">The label column.</param>
-        /// <param name="features">The features colum.</param>
+        /// <param name="features">The features column.</param>
         /// <param name="weights">The weights column.</param>
         /// <param name="numLeaves">The number of leaves to use.</param>
         /// <param name="numBoostRound">Number of iterations.</param>
@@ -34,6 +34,12 @@ namespace Microsoft.ML.StaticPipe
         /// the linear model that was trained. Note that this action cannot change the result in any way;
         /// it is only a way for the caller to be informed about what was learnt.</param>
         /// <returns>The Score output column indicating the predicted value.</returns>
+        /// <example>
+        /// <format type="text/markdown">
+        /// <![CDATA[
+        ///  [!code-csharp[SDCA](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Trainers.cs?range=6-12,135-193 "LightGbm regression example.")]
+        /// ]]></format>
+        /// </example>
         public static Scalar<float> LightGbm(this RegressionContext.RegressionTrainers ctx,
             Scalar<float> label, Vector<float> features, Scalar<float> weights = null,
             int? numLeaves = null,
@@ -69,7 +75,7 @@ namespace Microsoft.ML.StaticPipe
         /// </summary>
         /// <param name="ctx">The <see cref="BinaryClassificationContext"/>.</param>
         /// <param name="label">The label column.</param>
-        /// <param name="features">The features colum.</param>
+        /// <param name="features">The features column.</param>
         /// <param name="weights">The weights column.</param>
         /// <param name="numLeaves">The number of leaves to use.</param>
         /// <param name="numBoostRound">Number of iterations.</param>

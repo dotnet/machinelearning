@@ -16645,11 +16645,6 @@ namespace Microsoft.ML
             public float LearningRate { get; set; } = 0.01f;
 
             /// <summary>
-            /// Shuffle data before each iteration.
-            /// </summary>
-            public bool Shuffle { get; set; } = true;
-
-            /// <summary>
             /// Name of the input in TensorFlow graph that specifiy the location for saving/restoring models from disk.
             /// </summary>
             public string SaveLocationOperation { get; set; } = "save/Const";
@@ -17534,7 +17529,7 @@ namespace Microsoft.ML
     namespace Legacy.Transforms
     {
 
-        public sealed partial class DelimitedTokenizeTransformColumn : OneToOneColumn<DelimitedTokenizeTransformColumn>, IOneToOneColumn
+        public sealed partial class WordTokenizeTransformColumn : OneToOneColumn<WordTokenizeTransformColumn>, IOneToOneColumn
         {
             /// <summary>
             /// Comma separated set of term separator(s). Commonly: 'space', 'comma', 'semicolon' or other single character.
@@ -17586,15 +17581,15 @@ namespace Microsoft.ML
             
             public void AddColumn(string inputColumn)
             {
-                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.DelimitedTokenizeTransformColumn>() : new List<Microsoft.ML.Legacy.Transforms.DelimitedTokenizeTransformColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.DelimitedTokenizeTransformColumn>.Create(inputColumn));
+                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.WordTokenizeTransformColumn>() : new List<Microsoft.ML.Legacy.Transforms.WordTokenizeTransformColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.WordTokenizeTransformColumn>.Create(inputColumn));
                 Column = list.ToArray();
             }
 
             public void AddColumn(string outputColumn, string inputColumn)
             {
-                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.DelimitedTokenizeTransformColumn>() : new List<Microsoft.ML.Legacy.Transforms.DelimitedTokenizeTransformColumn>(Column);
-                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.DelimitedTokenizeTransformColumn>.Create(outputColumn, inputColumn));
+                var list = Column == null ? new List<Microsoft.ML.Legacy.Transforms.WordTokenizeTransformColumn>() : new List<Microsoft.ML.Legacy.Transforms.WordTokenizeTransformColumn>(Column);
+                list.Add(OneToOneColumn<Microsoft.ML.Legacy.Transforms.WordTokenizeTransformColumn>.Create(outputColumn, inputColumn));
                 Column = list.ToArray();
             }
 
@@ -17602,7 +17597,7 @@ namespace Microsoft.ML
             /// <summary>
             /// New column definition(s)
             /// </summary>
-            public DelimitedTokenizeTransformColumn[] Column { get; set; }
+            public WordTokenizeTransformColumn[] Column { get; set; }
 
             /// <summary>
             /// Array of single character term separator(s). By default uses space character separator.
