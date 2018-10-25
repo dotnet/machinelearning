@@ -20,10 +20,10 @@ namespace Microsoft.ML
         /// </summary>
         /// <param name="ctx">The <see cref="RegressionContext"/>.</param>
         /// <param name="label">The label column.</param>
-        /// <param name="features">The features colum.</param>
+        /// <param name="features">The features column.</param>
         /// <param name="weights">The weights column.</param>
         /// <param name="advancedSettings">Algorithm advanced settings.</param>
-        public static OlsLinearRegressionTrainer OrdinaryLeastSquare(this RegressionContext.RegressionTrainers ctx,
+        public static OlsLinearRegressionTrainer OrdinaryLeastSquares(this RegressionContext.RegressionTrainers ctx,
             string label,
             string features,
             string weights = null,
@@ -39,9 +39,9 @@ namespace Microsoft.ML
         /// </summary>
         /// <param name="ctx">The <see cref="RegressionContext"/>.</param>
         /// <param name="label">The label column.</param>
-        /// <param name="features">The features colum.</param>
+        /// <param name="features">The features column.</param>
         /// <param name="advancedSettings">Algorithm advanced settings.</param>
-        public static SymSgdClassificationTrainer SymbolicSgd(this RegressionContext.RegressionTrainers ctx,
+        public static SymSgdClassificationTrainer SymbolicStochasticGradientDescent(this RegressionContext.RegressionTrainers ctx,
             string label,
             string features,
             Action<SymSgdClassificationTrainer.Arguments> advancedSettings = null)

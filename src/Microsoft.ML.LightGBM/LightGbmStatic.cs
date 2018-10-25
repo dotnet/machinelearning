@@ -21,7 +21,7 @@ namespace Microsoft.ML.StaticPipe
         /// </summary>
         /// <param name="ctx">The <see cref="RegressionContext"/>.</param>
         /// <param name="label">The label column.</param>
-        /// <param name="features">The features colum.</param>
+        /// <param name="features">The features column.</param>
         /// <param name="weights">The weights column.</param>
         /// <param name="numLeaves">The number of leaves to use.</param>
         /// <param name="numBoostRound">Number of iterations.</param>
@@ -75,7 +75,7 @@ namespace Microsoft.ML.StaticPipe
         /// </summary>
         /// <param name="ctx">The <see cref="BinaryClassificationContext"/>.</param>
         /// <param name="label">The label column.</param>
-        /// <param name="features">The features colum.</param>
+        /// <param name="features">The features column.</param>
         /// <param name="weights">The weights column.</param>
         /// <param name="numLeaves">The number of leaves to use.</param>
         /// <param name="numBoostRound">Number of iterations.</param>

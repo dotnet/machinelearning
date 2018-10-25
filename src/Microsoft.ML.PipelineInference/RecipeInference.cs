@@ -328,7 +328,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
                 else
                 {
                     learner.LoadableClassInfo =
-                        Host.ComponentCatalog.GetLoadableClassInfo<SignatureTrainer>(Learners.LinearClassificationTrainer.LoadNameValue);
+                        Host.ComponentCatalog.GetLoadableClassInfo<SignatureTrainer>(LinearClassificationTrainer.LoadNameValue);
                     var epInput = new Legacy.Trainers.StochasticDualCoordinateAscentBinaryClassifier();
                     learner.PipelineNode = new TrainerPipelineNode(epInput);
                 }
@@ -355,7 +355,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
             {
                 SuggestedRecipe.SuggestedLearner learner = new SuggestedRecipe.SuggestedLearner();
                 learner.LoadableClassInfo =
-                    Host.ComponentCatalog.GetLoadableClassInfo<SignatureTrainer>(Learners.MultiClassNaiveBayesTrainer.LoadName);
+                    Host.ComponentCatalog.GetLoadableClassInfo<SignatureTrainer>(MultiClassNaiveBayesTrainer.LoadName);
                 learner.Settings = "";
                 var epInput = new Legacy.Trainers.NaiveBayesClassifier();
                 learner.PipelineNode = new TrainerPipelineNode(epInput);

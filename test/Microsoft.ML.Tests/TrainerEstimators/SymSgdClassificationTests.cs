@@ -5,7 +5,7 @@
 using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Learners;
+using Microsoft.ML.Trainers;
 using Microsoft.ML.Trainers.SymSgd;
 using System.Linq;
 using Xunit;

@@ -33,6 +33,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Xunit;
 using Xunit.Abstractions;
+using Microsoft.ML.Trainers;
 
 namespace Microsoft.ML.Runtime.RunTests
 {
@@ -244,7 +245,7 @@ namespace Microsoft.ML.Runtime.RunTests
 #endif
         }
 
-        [Fact(Skip = "Execute this test if you want to regenerate ep-list and _manifest.json")]
+        [Fact]
         public void RegenerateEntryPointCatalog()
         {
             var (epListContents, jObj) = BuildManifests();

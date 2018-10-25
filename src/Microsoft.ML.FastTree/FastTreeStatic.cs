@@ -22,7 +22,7 @@ namespace Microsoft.ML.StaticPipe
         /// </summary>
         /// <param name="ctx">The <see cref="RegressionContext"/>.</param>
         /// <param name="label">The label column.</param>
-        /// <param name="features">The features colum.</param>
+        /// <param name="features">The features column.</param>
         /// <param name="weights">The optional weights column.</param>
         /// <param name="numTrees">Total number of decision trees to create in the ensemble.</param>
         /// <param name="numLeaves">The maximum number of leaves per decision tree.</param>
@@ -75,7 +75,7 @@ namespace Microsoft.ML.StaticPipe
         /// </summary>
         /// <param name="ctx">The <see cref="BinaryClassificationContext"/>.</param>
         /// <param name="label">The label column.</param>
-        /// <param name="features">The features colum.</param>
+        /// <param name="features">The features column.</param>
         /// <param name="weights">The optional weights column.</param>
         /// <param name="numTrees">Total number of decision trees to create in the ensemble.</param>
         /// <param name="numLeaves">The maximum number of leaves per decision tree.</param>
@@ -125,7 +125,7 @@ namespace Microsoft.ML.StaticPipe
         /// </summary>
         /// <param name="ctx">The <see cref="RegressionContext"/>.</param>
         /// <param name="label">The label column.</param>
-        /// <param name="features">The features colum.</param>
+        /// <param name="features">The features column.</param>
         /// <param name="groupId">The groupId column.</param>
         /// <param name="weights">The optional weights column.</param>
         /// <param name="numTrees">Total number of decision trees to create in the ensemble.</param>
