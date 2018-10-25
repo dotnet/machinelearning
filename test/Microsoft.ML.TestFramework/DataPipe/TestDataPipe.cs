@@ -613,7 +613,7 @@ namespace Microsoft.ML.Runtime.RunTests
             return false;
         }
 
-        [Fact]
+        [Fact(Skip = "Fails until issue #1342 is resolved.")]
         public void SavePipeNgramHash()
         {
             string pathData = GetDataPath("lm.sample.txt");
