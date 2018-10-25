@@ -164,6 +164,7 @@ var reader = TextLoader.CreateReader(env, ctx => (
 
 // Now read the files (remember though, readers are lazy, so the actual reading will happen when the data is accessed).
 var data = reader.Read(exampleFile1, exampleFile2);
+```
 
 ## How do I load data with many columns from a CSV?
 `TextLoader` is used to load data from text files. You will need to specify what are the data columns, what are their types, and where to find them in the text file. 
