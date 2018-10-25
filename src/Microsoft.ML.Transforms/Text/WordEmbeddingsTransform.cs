@@ -447,7 +447,7 @@ namespace Microsoft.ML.Runtime.Data
                 var nodeB = ctx.CreateNode("Cast", nameA, nameB, ctx.GetNodeName("Cast"), "");
                 nodeB.AddAttribute("to", 1);
 
-                // Scale the not found vector to get to location for max weights
+                // Scale the not found vector to get the location bias for max weights.
                 var nameSMax = ctx.AddIntermediateVariable(null, "ScaleMax", true);
                 var nodeSMax = ctx.CreateNode("Scale", nameB, nameSMax, ctx.GetNodeName("Scale"), "");
                 nodeSMax.AddAttribute("scale", 2.0);
