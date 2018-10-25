@@ -3,6 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections;
+using System.Collections.Generic;
 
 namespace Microsoft.ML.Runtime.Internal.Utilities
 {
@@ -17,7 +19,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
     /// than the total capacity.
     /// </summary>
     /// <typeparam name="T">The type of entries.</typeparam>
-    public sealed class BigArray<T>
+    public sealed class BigArray<T> : IEnumerable<T>
     {
         // REVIEW: This class merges and replaces the original private BigArray implementation in CacheDataView.
         // There the block size was 25 bits. Need to understand the performance implication of this 32x change.
@@ -453,6 +455,21 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
             major = (int)((--lim) >> BlockSizeBits);
             minor = (int)((lim & BlockSizeMinusOne) + 1);
             Contracts.Assert((long)major * BlockSize + minor == lim + 1);
+        }
+
+        public IEnumerator<T> GetEnumerator()
+        {
+            long cur = 0;
+            while (cur < _length)
+            {
+                yield return this[cur];
+                cur++;
+            }
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
         }
     }
 }

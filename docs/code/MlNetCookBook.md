@@ -93,7 +93,7 @@ This is how you can read this data:
 var mlContext = new MLContext();
 
 // Create the reader: define the data columns and where to find them in the text file.
-var reader = TextLoader.CreateReader(mlContext, ctx => (
+var reader = mlContext.Data.TextReader(ctx => (
         // A boolean column depicting the 'target label'.
         IsOver50K: ctx.LoadBool(0),
         // Three text columns.
@@ -185,7 +185,7 @@ Reading this file using `TextLoader`:
 var mlContext = new MLContext();
 
 // Create the reader: define the data columns and where to find them in the text file.
-var reader = TextLoader.CreateReader(mlContext, ctx => (
+var reader = mlContext.Data.TextReader(ctx => (
         // We read the first 11 values as a single float vector.
         FeatureVector: ctx.LoadFloat(0, 10),
         // Separately, read the target variable.
@@ -246,7 +246,7 @@ Label	Workclass	education	marital-status
 var mlContext = new MLContext();
 
 // Create the reader: define the data columns and where to find them in the text file.
-var reader = TextLoader.CreateReader(mlContext, ctx => (
+var reader = mlContext.Data.TextReader(ctx => (
         // A boolean column depicting the 'target label'.
         IsOver50K: ctx.LoadBool(0),
         // Three text columns.
@@ -326,7 +326,7 @@ var mlContext = new MLContext();
 
 // Step one: read the data as an IDataView.
 // First, we define the reader: specify the data columns and where to find them in the text file.
-var reader = TextLoader.CreateReader(mlContext, ctx => (
+var reader = mlContext.Data.TextReader(ctx => (
         // We read the first 11 values as a single float vector.
         FeatureVector: ctx.LoadFloat(0, 10),
         // Separately, read the target variable.
@@ -411,7 +411,7 @@ var mlContext = new MLContext();
 
 // Step one: read the data as an IDataView.
 // First, we define the reader: specify the data columns and where to find them in the text file.
-var reader = TextLoader.CreateReader(mlContext, ctx => (
+var reader = mlContext.Data.TextReader(ctx => (
         // The four features of the Iris dataset.
         SepalLength: ctx.LoadFloat(0),
         SepalWidth: ctx.LoadFloat(1),
@@ -578,7 +578,7 @@ var mlContext = new MLContext();
 
 // Step one: read the data as an IDataView.
 // First, we define the reader: specify the data columns and where to find them in the text file.
-var reader = TextLoader.CreateReader(mlContext, ctx => (
+var reader = mlContext.Data.TextReader(ctx => (
         // The four features of the Iris dataset.
         SepalLength: ctx.LoadFloat(0),
         SepalWidth: ctx.LoadFloat(1),
@@ -672,7 +672,7 @@ Here's a snippet of code that demonstrates normalization in learning pipelines. 
 var mlContext = new MLContext();
 
 // Define the reader: specify the data columns and where to find them in the text file.
-var reader = TextLoader.CreateReader(mlContext, ctx => (
+var reader = mlContext.Data.TextReader(ctx => (
         // The four features of the Iris dataset will be grouped together as one Features column.
         Features: ctx.LoadFloat(0, 3),
         // Label: kind of iris.
@@ -730,7 +730,7 @@ Label	Workclass	education	marital-status	occupation	relationship	ethnicity	sex	n
 var mlContext = new MLContext();
 
 // Define the reader: specify the data columns and where to find them in the text file.
-var reader = TextLoader.CreateReader(mlContext, ctx => (
+var reader = mlContext.Data.TextReader(ctx => (
         Label: ctx.LoadBool(0),
         // We will load all the categorical features into one vector column of size 8.
         CategoricalFeatures: ctx.LoadText(1, 8),
@@ -812,7 +812,7 @@ Sentiment   SentimentText
 var mlContext = new MLContext();
 
 // Define the reader: specify the data columns and where to find them in the text file.
-var reader = TextLoader.CreateReader(mlContext, ctx => (
+var reader = mlContext.Data.TextReader(ctx => (
         IsToxic: ctx.LoadBool(0),
         Message: ctx.LoadText(1)
     ), hasHeader: true);
@@ -870,7 +870,7 @@ var mlContext = new MLContext();
 
 // Step one: read the data as an IDataView.
 // First, we define the reader: specify the data columns and where to find them in the text file.
-var reader = TextLoader.CreateReader(mlContext, ctx => (
+var reader = mlContext.Data.TextReader(ctx => (
         // The four features of the Iris dataset.
         SepalLength: ctx.LoadFloat(0),
         SepalWidth: ctx.LoadFloat(1),
@@ -931,7 +931,7 @@ var mlContext = new MLContext();
 
 // Read the data as an IDataView.
 // First, we define the reader: specify the data columns and where to find them in the text file.
-var reader = TextLoader.CreateReader(mlContext, ctx => (
+var reader = mlContext.Data.TextReader(ctx => (
         // The four features of the Iris dataset.
         SepalLength: ctx.LoadFloat(0),
         SepalWidth: ctx.LoadFloat(1),

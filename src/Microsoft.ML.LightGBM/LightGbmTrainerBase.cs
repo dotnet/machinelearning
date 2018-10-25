@@ -425,7 +425,7 @@ namespace Microsoft.ML.Runtime.LightGBM
             bool hasGroup = false;
             if (PredictionKind == PredictionKind.Ranking)
             {
-                ch.Check(factory.Data.Schema != null, "The data for ranking task should have group field.");
+                ch.Check(factory.Data.Schema.Group != null, "The data for ranking task should have group field.");
                 hasGroup = true;
             }
             List<float> weightList = hasWeights ? new List<float>() : null;
