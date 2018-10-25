@@ -59,6 +59,7 @@ namespace Microsoft.ML.Runtime.RunTests
         private const string OutputRootUnixRegExp = @"\/[^\\\t ]+\/TestOutput" + @"\/[^\\\t ]+";
         private static readonly string BinRegUnixExp = @"\/[^\\\t ]+\/bin\/" + Mode;
         private static readonly string Bin64RegUnixExp = @"\/[^\\\t ]+\/bin\/x64\/" + Mode;
+        private static readonly Regex MatchNumbers = new Regex(@"\b[0-9]+\.?[0-9]*(E-[0-9]*)?\b", RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
         /// <summary>
         /// When the progress log is appended to the end of output (in test runs), this line precedes the progress log.
@@ -503,8 +504,6 @@ namespace Microsoft.ML.Runtime.RunTests
                 }
             }
         }
-
-        private static Regex MatchNumbers = new Regex(@"\b[0-9]+\.?[0-9]*(E-[0-9]*)?\b", RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
         private void GetNumbersFromFile(ref string firstString, ref string secondString, int digitsOfPrecision)
         {
