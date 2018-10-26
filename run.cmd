@@ -22,7 +22,11 @@ set _json=%~dp0config.json
 :: a relative path to the binclash logger
 
 pushd "%~dp0"
+:: start building
 call "%_dotnet%" "%_toolRuntime%\run.exe" "%_json%" %*
+
+:: shutdown all dotnet build processes
+call "%_dotnet%" "build-server" "shutdown"
 popd
 
 exit /b %ERRORLEVEL%
