@@ -199,7 +199,7 @@ namespace Microsoft.ML.Runtime.Learners
 
             args.FeatureColumn = FeatureColumn.Name;
             args.LabelColumn = LabelColumn.Name;
-            args.WeightColumn = WeightColumn.Name;
+            args.WeightColumn = WeightColumn?.Name;
 
             Host.CheckUserArg(!Args.UseThreads || Args.NumThreads > 0 || Args.NumThreads == null,
                nameof(Args.NumThreads), "numThreads must be positive (or empty for default)");
