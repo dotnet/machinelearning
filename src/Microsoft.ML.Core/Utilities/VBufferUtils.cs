@@ -492,7 +492,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
         /// Creates a maybe sparse copy of a VBuffer.
         /// Whether the created copy is sparse or not is determined by the proportion of non-default entries compared to the sparsity parameter.
         /// </summary>
-        public static void CreateMaybeSparseCopy<T>(ref VBuffer<T> src, ref VBuffer<T> dst, RefPredicate<T> isDefaultPredicate, float sparsityThreshold = SparsityThreshold)
+        public static void CreateMaybeSparseCopy<T>(ref VBuffer<T> src, ref VBuffer<T> dst, InPredicate<T> isDefaultPredicate, float sparsityThreshold = SparsityThreshold)
         {
             Contracts.CheckParam(0 < sparsityThreshold && sparsityThreshold < 1, nameof(sparsityThreshold));
             if (!src.IsDense || src.Length < 20)
@@ -505,7 +505,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
             var sparseCountThreshold = (int)(src.Length * sparsityThreshold);
             for (int i = 0; i < src.Length; i++)
             {
-                if (!isDefaultPredicate(ref src.Values[i]))
+                if (!isDefaultPredicate(in src.Values[i]))
                     sparseCount++;
 
                 if (sparseCount > sparseCountThreshold)
@@ -527,7 +527,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
                 int j = 0;
                 for (int i = 0; i < src.Length; i++)
                 {
-                    if (!isDefaultPredicate(ref src.Values[i]))
+                    if (!isDefaultPredicate(in src.Values[i]))
                     {
                         Contracts.Assert(j < sparseCount);
                         indices[j] = i;

@@ -305,7 +305,7 @@ namespace Microsoft.ML.Runtime.Data
                 private readonly TValue _na;
 
                 private readonly bool _naMapsToDefault;
-                private readonly RefPredicate<TValue> _isDefault;
+                private readonly InPredicate<TValue> _isDefault;
 
                 private readonly ValueMapper<TKey, UInt32> _convertToUInt;
 
@@ -441,7 +441,7 @@ namespace Microsoft.ML.Runtime.Data
                                         // Current slot has an explicitly defined value.
                                         Parent.Host.Assert(islotSrc < srcCount);
                                         MapKey(ref srcValues[islotSrc], ref dstItem);
-                                        if (!_isDefault(ref dstItem))
+                                        if (!_isDefault(in dstItem))
                                         {
                                             dstValues[islotDst] = dstItem;
                                             dstIndices[islotDst++] = srcIndices[islotSrc];

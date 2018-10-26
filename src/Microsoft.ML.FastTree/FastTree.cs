@@ -1488,7 +1488,7 @@ namespace Microsoft.ML.Trainers.FastTree
                                                 out BinUpperBounds[iFeature]);
                                         }
                                         else
-                                            hasMissing = hasMissingPred(ref temp);
+                                            hasMissing = hasMissingPred(in temp);
 
                                         if (hasMissing)
                                         {
