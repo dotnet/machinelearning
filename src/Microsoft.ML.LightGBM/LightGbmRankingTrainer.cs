@@ -98,7 +98,10 @@ namespace Microsoft.ML.Runtime.LightGBM
         /// <param name="numBoostRound">Number of iterations.</param>
         /// <param name="minDataPerLeaf">The minimal number of documents allowed in a leaf of the tree, out of the subsampled data.</param>
         /// <param name="learningRate">The learning rate.</param>
-        /// <param name="advancedSettings">A delegate to apply all the advanced arguments to the algorithm.</param>
+        /// <param name="advancedSettings">A delegate to set more settings.
+        /// The settings here will override the ones provided in the direct signature,
+        /// if both are present and have different values.
+        /// The columns names, however need to be provided directly, not through the <paramref name="advancedSettings"/>.</param>
         public LightGbmRankingTrainer(IHostEnvironment env,
             string labelColumn,
             string featureColumn,
@@ -109,20 +112,9 @@ namespace Microsoft.ML.Runtime.LightGBM
             double? learningRate = null,
             int numBoostRound = LightGbmArguments.Defaults.NumBoostRound,
             Action<LightGbmArguments> advancedSettings = null)
-            : base(env, LoadNameValue, TrainerUtils.MakeR4ScalarLabel(labelColumn), featureColumn, weightColumn, groupIdColumn, advancedSettings)
+            : base(env, LoadNameValue, TrainerUtils.MakeR4ScalarLabel(labelColumn), featureColumn, weightColumn, groupIdColumn, numLeaves, minDataPerLeaf, learningRate, numBoostRound, advancedSettings)
         {
-            Host.CheckNonEmpty(labelColumn, nameof(labelColumn));
-            Host.CheckNonEmpty(featureColumn, nameof(featureColumn));
             Host.CheckNonEmpty(groupIdColumn, nameof(groupIdColumn));
-
-            if (advancedSettings != null)
-                CheckArgsAndAdvancedSettingMismatch(numLeaves, minDataPerLeaf, learningRate, numBoostRound, new LightGbmArguments(), Args);
-
-            // override with the directly provided values
-            Args.NumBoostRound = numBoostRound;
-            Args.NumLeaves = numLeaves ?? Args.NumLeaves;
-            Args.LearningRate = learningRate ?? Args.LearningRate;
-            Args.MinDataPerLeaf = minDataPerLeaf ?? Args.MinDataPerLeaf;
         }
 
         protected override void CheckDataValid(IChannel ch, RoleMappedData data)

@@ -132,15 +132,26 @@ namespace Microsoft.ML.Trainers.FastTree
 
         protected IParallelTraining ParallelTraining;
 
-        private protected GamTrainerBase(IHostEnvironment env, string name, SchemaShape.Column label, string featureColumn,
-            string weightColumn = null, Action<TArgs> advancedSettings = null)
+        private protected GamTrainerBase(IHostEnvironment env,
+            string name,
+            SchemaShape.Column label,
+            string featureColumn,
+            string weightColumn,
+            int minDocumentsInLeafs,
+            double learningRate,
+            Action<TArgs> advancedSettings)
             : base(Contracts.CheckRef(env, nameof(env)).Register(name), TrainerUtils.MakeR4VecFeature(featureColumn), label, TrainerUtils.MakeR4ScalarWeightColumn(weightColumn))
         {
             Args = new TArgs();
 
+            Args.MinDocuments = minDocumentsInLeafs;
+            Args.LearningRates = learningRate;
+
             //apply the advanced args, if the user supplied any
             advancedSettings?.Invoke(Args);
+
             Args.LabelColumn = label.Name;
+            Args.FeatureColumn = featureColumn;
 
             if (weightColumn != null)
                 Args.WeightColumn = weightColumn;

@@ -76,8 +76,6 @@ namespace Microsoft.ML.Runtime.HalLearners
             string weightColumn = null, Action<Arguments> advancedSettings = null)
             : this(env, ArgsInit(featureColumn, labelColumn, weightColumn, advancedSettings))
         {
-            Host.CheckNonEmpty(featureColumn, nameof(featureColumn));
-            Host.CheckNonEmpty(labelColumn, nameof(labelColumn));
         }
 
         /// <summary>
