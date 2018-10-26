@@ -6,6 +6,7 @@ using System;
 
 namespace Microsoft.ML.Runtime.Data
 {
+    using System.ComponentModel.Composition.Hosting;
     using Stopwatch = System.Diagnostics.Stopwatch;
 
     /// <summary>
@@ -13,6 +14,8 @@ namespace Microsoft.ML.Runtime.Data
     /// </summary>
     public sealed class LocalEnvironment : HostEnvironmentBase<LocalEnvironment>
     {
+        private readonly Func<CompositionContainer> _compositionContainerFactory;
+
         private sealed class Channel : ChannelBase
         {
             public readonly Stopwatch Watch;
@@ -42,9 +45,11 @@ namespace Microsoft.ML.Runtime.Data
         /// </summary>
         /// <param name="seed">Random seed. Set to <c>null</c> for a non-deterministic environment.</param>
         /// <param name="conc">Concurrency level. Set to 1 to run single-threaded. Set to 0 to pick automatically.</param>
-        public LocalEnvironment(int? seed = null, int conc = 0)
+        /// <param name="compositionContainerFactory">The function to retrieve the composition container</param>
+        public LocalEnvironment(int? seed = null, int conc = 0, Func<CompositionContainer> compositionContainerFactory = null)
             : base(RandomUtils.Create(seed), verbose: false, conc)
         {
+            _compositionContainerFactory = compositionContainerFactory;
         }
 
         /// <summary>
@@ -85,6 +90,13 @@ namespace Microsoft.ML.Runtime.Data
             Contracts.Assert(parent is LocalEnvironment);
             Contracts.AssertNonEmpty(name);
             return new Pipe<TMessage>(parent, name, GetDispatchDelegate<TMessage>());
+        }
+
+        public override CompositionContainer GetCompositionContainer()
+        {
+            if (_compositionContainerFactory != null)
+                return _compositionContainerFactory();
+            return base.GetCompositionContainer();
         }
 
         private sealed class Host : HostBase

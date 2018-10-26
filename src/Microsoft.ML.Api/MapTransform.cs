@@ -2,10 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Internal.Utilities;
+using Microsoft.ML.Runtime.Model;
 using System;
-using System.IO;
+using System.Linq;
 
 namespace Microsoft.ML.Runtime.Api
 {
@@ -13,308 +15,191 @@ namespace Microsoft.ML.Runtime.Api
     /// This transform generates additional columns to the provided <see cref="IDataView"/>.
     /// It doesn't change the number of rows, and can be seen as a result of application of the user's function
     /// to every row of the input data.
-    /// Similarly to the existing <see cref="IDataTransform"/>'s, this object can be treated as both the 'transformation' algorithm
-    /// (which can be then applied to different data by calling <see cref="ApplyToData"/>), and the transformed data (which can
-    /// be enumerated upon by calling <c>GetRowCursor</c> or <c>AsCursorable{TRow}</c>).
     /// </summary>
     /// <typeparam name="TSrc">The type that describes what 'source' columns are consumed from the input <see cref="IDataView"/>.</typeparam>
     /// <typeparam name="TDst">The type that describes what new columns are added by this transform.</typeparam>
-    internal sealed class MapTransform<TSrc, TDst> : LambdaTransformBase, ITransformTemplate, IRowToRowMapper
+    public sealed class CustomMappingTransformer<TSrc, TDst> : ITransformer, ICanSaveModel
         where TSrc : class, new()
         where TDst : class, new()
     {
-        private const string RegistrationNameTemplate = "MapTransform<{0}, {1}>";
+        private readonly IHost _host;
         private readonly Action<TSrc, TDst> _mapAction;
         private readonly InternalSchemaDefinition _addedSchema;
-        private readonly ColumnBindings _bindings;
+        private readonly string _contractName;
 
-        // Memorized input schema definition. Needed for re-apply.
+        internal InternalSchemaDefinition AddedSchema => _addedSchema;
+
+        public bool IsRowToRowMapper => true;
         private readonly SchemaDefinition _inputSchemaDefinition;
-        private readonly TypedCursorable<TSrc> _typedSource;
-
-        private static string RegistrationName { get { return string.Format(RegistrationNameTemplate, typeof(TSrc).FullName, typeof(TDst).FullName); } }
-
         /// <summary>
-        /// Create a a map transform that is savable iff <paramref name="saveAction"/> and <paramref name="loadFunc"/> are
-        /// not null.
+        /// Create a a map transform.
         /// </summary>
         /// <param name="env">The host environment</param>
-        /// <param name="source">The dataview upon which we construct the transform</param>
         /// <param name="mapAction">The action by which we map source to destination columns</param>
-        /// <param name="saveAction">An action that allows us to save state to the serialization stream. May be
-        /// null simultaneously with <paramref name="loadFunc"/>.</param>
-        /// <param name="loadFunc">A function that given the serialization stream and a data view, returns
-        /// an <see cref="ITransformTemplate"/>. The intent is, this returned object should itself be a
-        /// <see cref="MapTransform{TSrc,TDst}"/>, but this is not strictly necessary. This delegate should be
-        /// a static non-lambda method that this assembly can legally call. May be null simultaneously with
-        /// <paramref name="saveAction"/>.</param>
+        /// <param name="contractName">The name of the action (will be saved to the model).</param>
         /// <param name="inputSchemaDefinition">The schema definition overrides for <typeparamref name="TSrc"/></param>
         /// <param name="outputSchemaDefinition">The schema definition overrides for <typeparamref name="TDst"/></param>
-        public MapTransform(IHostEnvironment env, IDataView source, Action<TSrc, TDst> mapAction,
-            Action<BinaryWriter> saveAction, LambdaTransform.LoadDelegate loadFunc,
+        public CustomMappingTransformer(IHostEnvironment env, Action<TSrc, TDst> mapAction, string contractName,
             SchemaDefinition inputSchemaDefinition = null, SchemaDefinition outputSchemaDefinition = null)
-            : base(env, RegistrationName, saveAction, loadFunc)
         {
-            Host.AssertValue(source);
-            Host.AssertValue(mapAction);
-            Host.AssertValueOrNull(inputSchemaDefinition);
-            Host.AssertValueOrNull(outputSchemaDefinition);
+            Contracts.CheckValue(env, nameof(env));
+            _host = env.Register(nameof(CustomMappingTransformer<TSrc, TDst>));
+            _host.CheckValue(mapAction, nameof(mapAction));
+            _host.CheckValueOrNull(contractName);
+            _host.CheckValueOrNull(inputSchemaDefinition);
+            _host.CheckValueOrNull(outputSchemaDefinition);
 
-            Source = source;
             _mapAction = mapAction;
             _inputSchemaDefinition = inputSchemaDefinition;
-            _typedSource = TypedCursorable<TSrc>.Create(Host, Source, false, inputSchemaDefinition);
+
             var outSchema = outputSchemaDefinition == null
                ? InternalSchemaDefinition.Create(typeof(TDst), SchemaDefinition.Direction.Write)
                : InternalSchemaDefinition.Create(typeof(TDst), outputSchemaDefinition);
 
+            _contractName = contractName;
             _addedSchema = outSchema;
-            _bindings = new ColumnBindings(Data.Schema.Create(Source.Schema), DataViewConstructionUtils.GetSchemaColumns(outSchema));
         }
 
-        /// <summary>
-        /// The 'reapply' constructor.
-        /// </summary>
-        private MapTransform(IHostEnvironment env, MapTransform<TSrc, TDst> transform, IDataView newSource)
-            : base(env, RegistrationName, transform)
+        public void Save(ModelSaveContext ctx)
         {
-            Host.AssertValue(transform);
-            Host.AssertValue(newSource);
-
-            Source = newSource;
-            _mapAction = transform._mapAction;
-            _typedSource = TypedCursorable<TSrc>.Create(Host, newSource, false, transform._inputSchemaDefinition);
-
-            _addedSchema = transform._addedSchema;
-            _bindings = new ColumnBindings(Data.Schema.Create(newSource.Schema), DataViewConstructionUtils.GetSchemaColumns(_addedSchema));
+            if (_contractName == null)
+                throw _host.Except("Empty contract name for a transform: the transform cannot be saved");
+            LambdaTransform.SaveCustomTransformer(_host, ctx, _contractName);
         }
 
-        public bool CanShuffle => Source.CanShuffle;
-
-        public Schema Schema => _bindings.Schema;
-
-        public long? GetRowCount(bool lazy = true)
+        public Schema GetOutputSchema(Schema inputSchema)
         {
-            return Source.GetRowCount(lazy);
+            _host.CheckValue(inputSchema, nameof(inputSchema));
+            var mapper = MakeRowMapper(inputSchema);
+            return RowToRowMapperTransform.GetOutputSchema(inputSchema, mapper);
         }
 
-        public IRowCursor GetRowCursor(Func<int, bool> predicate, IRandom rand = null)
+        public IDataView Transform(IDataView input)
         {
-            Host.CheckValue(predicate, nameof(predicate));
-            Host.CheckValueOrNull(rand);
-
-            IRowCursor curs;
-            if (DataViewUtils.TryCreateConsolidatingCursor(out curs, this, predicate, Host, rand))
-                return curs;
-
-            var activeInputs = _bindings.GetActiveInput(predicate);
-            Func<int, bool> srcPredicate = c => activeInputs[c];
-
-            var input = _typedSource.GetCursor(srcPredicate, rand == null ? (int?)null : rand.Next());
-            return new Cursor(Host, this, input, predicate);
+            _host.CheckValue(input, nameof(input));
+            return new RowToRowMapperTransform(_host, input, MakeRowMapper(input.Schema));
         }
 
-        public IRowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator, Func<int, bool> predicate, int n, IRandom rand = null)
+        public IRowToRowMapper GetRowToRowMapper(Schema inputSchema)
         {
-            Host.CheckValue(predicate, nameof(predicate));
-            Host.CheckValueOrNull(rand);
-
-            var activeInputs = _bindings.GetActiveInput(predicate);
-            Func<int, bool> srcPredicate = c => activeInputs[c];
-
-            var inputs = _typedSource.GetCursorSet(out consolidator, srcPredicate, n, rand);
-            Host.AssertNonEmpty(inputs);
-
-            var cursors = new IRowCursor[inputs.Length];
-            for (int i = 0; i < inputs.Length; i++)
-                cursors[i] = new Cursor(Host, this, inputs[i], predicate);
-            return cursors;
+            _host.CheckValue(inputSchema, nameof(inputSchema));
+            var simplerMapper = MakeRowMapper(inputSchema);
+            return new RowToRowMapperTransform(_host, new EmptyDataView(_host, inputSchema), simplerMapper);
         }
 
-        public IDataView Source { get; }
+        private IRowMapper MakeRowMapper(Schema schema) => new Mapper(this, schema);
 
-        public IDataTransform ApplyToData(IHostEnvironment env, IDataView newSource)
+        private sealed class Mapper : IRowMapper
         {
-            Contracts.CheckValue(env, nameof(env));
-            Contracts.CheckValue(newSource, nameof(newSource));
-            return new MapTransform<TSrc, TDst>(env, this, newSource);
-        }
+            private readonly IHost _host;
+            private readonly Schema _inputSchema;
+            private readonly CustomMappingTransformer<TSrc, TDst> _parent;
+            private readonly TypedCursorable<TSrc> _typedSrc;
 
-        public Func<int, bool> GetDependencies(Func<int, bool> predicate)
-        {
-            Host.CheckValue(predicate, nameof(predicate));
-            var activeInput = _bindings.GetActiveInput(predicate);
-            Func<int, bool> srcPredicate =
-                c =>
-                {
-                    Host.Check(0 <= c && c < activeInput.Length);
-                    return activeInput[c];
-                };
-            return _typedSource.GetDependencies(srcPredicate);
-        }
-
-        Schema IRowToRowMapper.InputSchema => Source.Schema;
-
-        public IRow GetRow(IRow input, Func<int, bool> active, out Action disposer)
-        {
-            Host.CheckValue(input, nameof(input));
-            Host.CheckValue(active, nameof(active));
-            Host.CheckParam(input.Schema == Source.Schema, nameof(input), "Schema of input row must be the same as the schema the mapper is bound to");
-
-            var src = new TSrc();
-            var dst = new TDst();
-
-            bool disposed = false;
-            disposer =
-                () =>
-                {
-                    if (!disposed)
-                    {
-                        (src as IDisposable)?.Dispose();
-                        (dst as IDisposable)?.Dispose();
-                    }
-                    disposed = true;
-                };
-
-            return new Row(_typedSource.GetRow(input), this, active, src, dst);
-        }
-
-        private IRow GetAppendedRow(Func<int, bool> active, TDst dst)
-        {
-            // REVIEW: This is quite odd (for a cursor to create an IDataView). Consider cleaning up your
-            // programming model for this. Note that you don't use the IDataView, only a cursor around a single row that
-            // is owned by this cursor. Seems like that cursor implementation could be decoupled from any IDataView class.
-            var appendedDataView = new DataViewConstructionUtils.SingleRowLoopDataView<TDst>(Host, _addedSchema);
-            appendedDataView.SetCurrentRowObject(dst);
-            return appendedDataView.GetRowCursor(i => active(_bindings.AddedColumnIndices[i]));
-        }
-
-        private sealed class Cursor : SynchronizedCursorBase<IRowCursor<TSrc>>, IRowCursor
-        {
-            private readonly Row _row;
-
-            private readonly TSrc _src;
-            private readonly TDst _dst;
-
-            private bool _disposed;
-
-            public Cursor(IHost host, MapTransform<TSrc, TDst> owner, IRowCursor<TSrc> input, Func<int, bool> predicate)
-                : base(host, input)
+            public Mapper(CustomMappingTransformer<TSrc, TDst> parent, Schema inputSchema)
             {
-                Ch.AssertValue(owner);
-                Ch.AssertValue(input);
-                Ch.AssertValue(predicate);
+                Contracts.AssertValue(parent);
+                Contracts.AssertValue(inputSchema);
 
-                _src = new TSrc();
-                _dst = new TDst();
-                _row = new Row(input, owner, predicate, _src, _dst);
-
-                CursorChannelAttribute.TrySetCursorChannel(host, _src, Ch);
-                CursorChannelAttribute.TrySetCursorChannel(host, _dst, Ch);
-            }
-
-            public Schema Schema => _row.Schema;
-
-            public bool IsColumnActive(int col)
-            {
-                return _row.IsColumnActive(col);
-            }
-
-            public ValueGetter<TValue> GetGetter<TValue>(int col)
-            {
-                Action isGood =
-                    () =>
-                    {
-                        if (!IsGood)
-                            throw Ch.Except("Getter is called when the cursor is {0}, which is not allowed.", Input.State);
-                    };
-                return _row.GetGetterCore<TValue>(col, isGood);
-            }
-
-            public override void Dispose()
-            {
-                if (!_disposed)
-                {
-                    (_src as IDisposable)?.Dispose();
-                    (_dst as IDisposable)?.Dispose();
-                    base.Dispose();
-                    _disposed = true;
-                }
-            }
-        }
-
-        private sealed class Row : IRow
-        {
-            private readonly IRowReadableAs<TSrc> _input;
-            private readonly IRow _appendedRow;
-            private readonly bool[] _active;
-
-            private readonly MapTransform<TSrc, TDst> _parent;
-
-            private readonly TSrc _src;
-            private readonly TDst _dst;
-
-            private long _lastServedPosition;
-
-            public long Batch => _input.Batch;
-
-            public long Position => _input.Position;
-
-            public Schema Schema { get; }
-
-            public Row(IRowReadableAs<TSrc> input, MapTransform<TSrc, TDst> parent, Func<int, bool> active, TSrc src, TDst dst)
-            {
-                _input = input;
+                _host = parent._host.Register(nameof(Mapper));
                 _parent = parent;
-                Schema = parent.Schema;
+                _inputSchema = inputSchema;
 
-                _active = Utils.BuildArray(Schema.ColumnCount, active);
-                _src = src;
-                _dst = dst;
-
-                _lastServedPosition = -1;
-                _appendedRow = _parent.GetAppendedRow(active, _dst);
+                var emptyDataView = new EmptyDataView(_host, inputSchema);
+                _typedSrc = TypedCursorable<TSrc>.Create(_host, emptyDataView, false, _parent._inputSchemaDefinition);
             }
 
-            public ValueGetter<TValue> GetGetter<TValue>(int col)
+            public Delegate[] CreateGetters(IRow input, Func<int, bool> activeOutput, out Action disposer)
             {
-                return GetGetterCore<TValue>(col, null);
-            }
+                disposer = null;
+                // If no outputs are active, we short-circuit to empty array of getters.
+                var result = new Delegate[_parent._addedSchema.Columns.Length];
+                if (!Enumerable.Range(0, result.Length).Any(activeOutput))
+                    return result;
 
-            public ValueGetter<TValue> GetGetterCore<TValue>(int col, Action checkIsGood)
-            {
-                bool isSrc;
-                int index = _parent._bindings.MapColumnIndex(out isSrc, col);
-                if (isSrc)
-                    return _input.GetGetter<TValue>(index);
+                var dstRow = new DataViewConstructionUtils.InputRow<TDst>(_host, _parent._addedSchema);
+                IRowReadableAs<TSrc> inputRow = _typedSrc.GetRow(input);
 
-                var appendedGetter = _appendedRow.GetGetter<TValue>(index);
-                return
-                    (ref TValue value) =>
+                TSrc src = new TSrc();
+                TDst dst = new TDst();
+
+                long lastServedPosition = -1;
+                Action refresh = () =>
+                {
+                    if (lastServedPosition != input.Position)
                     {
-                        checkIsGood?.Invoke();
-                        if (_lastServedPosition != _input.Position)
-                        {
-                            _input.FillValues(_src);
-                            // REVIEW: what if this throws? Maybe swallow the exception?
-                            _parent._mapAction(_src, _dst);
-                            _lastServedPosition = _input.Position;
-                        }
+                        inputRow.FillValues(src);
+                        _parent._mapAction(src, dst);
+                        dstRow.ExtractValues(dst);
 
-                        appendedGetter(ref value);
-                    };
+                        lastServedPosition = input.Position;
+                    }
+                };
+
+                for (int i = 0; i < result.Length; i++)
+                {
+                    if (!activeOutput(i))
+                        continue;
+                    result[i] = Utils.MarshalInvoke(GetDstGetter<int>, dstRow.Schema[i].Type.RawType, dstRow, i, refresh);
+                }
+                return result;
             }
 
-            public ValueGetter<UInt128> GetIdGetter()
+            private Delegate GetDstGetter<T>(IRow input, int colIndex, Action refreshAction)
             {
-                return _input.GetIdGetter();
+                var getter = input.GetGetter<T>(colIndex);
+                ValueGetter<T> combinedGetter = (ref T dst) =>
+                {
+                    refreshAction();
+                    getter(ref dst);
+                };
+                return combinedGetter;
             }
 
-            public bool IsColumnActive(int col)
+            public Func<int, bool> GetDependencies(Func<int, bool> activeOutput)
             {
-                _parent.Host.Check(0 <= col && col < Schema.ColumnCount);
-                return _active[col];
+                if (Enumerable.Range(0, _parent._addedSchema.Columns.Length).Any(activeOutput))
+                {
+                    // If any output column is requested, then we activate all input columns that we need.
+                    return _typedSrc.GetDependencies(col => false);
+                }
+                // Otherwise, we need no input.
+                return col => false;
             }
+
+            public Schema.Column[] GetOutputColumns()
+            {
+                var dstRow = new DataViewConstructionUtils.InputRow<TDst>(_host, _parent._addedSchema);
+                // All the output columns of dstRow are our outputs.
+                return Enumerable.Range(0, dstRow.Schema.ColumnCount).Select(x => dstRow.Schema[x]).ToArray();
+            }
+
+            public void Save(ModelSaveContext ctx)
+                => _parent.Save(ctx);
+        }
+    }
+
+    public sealed class CustomMappingEstimator<TSrc, TDst> : TrivialEstimator<CustomMappingTransformer<TSrc, TDst>>
+        where TSrc : class, new()
+        where TDst : class, new()
+    {
+        public CustomMappingEstimator(IHostEnvironment env, Action<TSrc, TDst> mapAction, string contractName,
+                SchemaDefinition inputSchemaDefinition = null, SchemaDefinition outputSchemaDefinition = null)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(CustomMappingEstimator<TSrc, TDst>)),
+                 new CustomMappingTransformer<TSrc, TDst>(env, mapAction, contractName, inputSchemaDefinition, outputSchemaDefinition))
+        {
+        }
+
+        public override SchemaShape GetOutputSchema(SchemaShape inputSchema)
+        {
+            var addedCols = DataViewConstructionUtils.GetSchemaColumns(Transformer.AddedSchema);
+            var addedSchemaShape = SchemaShape.Create(new Schema(addedCols));
+
+            var result = inputSchema.Columns.ToDictionary(x => x.Name);
+            foreach (var addedCol in addedSchemaShape.Columns)
+                result[addedCol.Name] = addedCol;
+
+            return new SchemaShape(result.Values);
         }
     }
 }

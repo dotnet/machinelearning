@@ -12,6 +12,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="System.ComponentModel.Composition" Version="4.5.0" />
     <PackageReference Include="System.Memory" Version="$(SystemMemoryVersion)" />
   </ItemGroup>
 

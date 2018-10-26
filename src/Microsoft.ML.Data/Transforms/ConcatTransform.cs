@@ -417,7 +417,7 @@ namespace Microsoft.ML.Runtime.Data
         {
             _host.CheckValue(inputSchema, nameof(inputSchema));
             var mapper = MakeRowMapper(inputSchema);
-            return RowToRowMapperTransform.GetOutputSchema(inputSchema, MakeRowMapper(inputSchema));
+            return RowToRowMapperTransform.GetOutputSchema(inputSchema, mapper);
         }
 
         public bool IsRowToRowMapper => true;

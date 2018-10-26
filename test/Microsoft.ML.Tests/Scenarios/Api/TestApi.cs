@@ -73,11 +73,11 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                 var idv1 = env.CreateDataView(data1);
                 Assert.Null(data1[0].Channel);
 
-                var map1 = LambdaTransform.CreateMap<OneIChannelWithAttribute, OneIChannelWithAttribute>(env, idv1,
+                var map1 = new CustomMappingTransformer<OneIChannelWithAttribute, OneIChannelWithAttribute>(env,
                    (input, output) =>
                    {
                        output.OutField = input.OutField + input.OutField;
-                   });
+                   }, null).Transform(idv1);
                 map1.GetRowCursor(col => true);
 
                 var filter1 = LambdaTransform.CreateFilter<OneIChannelWithAttribute, object>(env, idv1,
@@ -109,11 +109,11 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                     Assert.True(ex.IsMarked());
                 }
 
-                var map2 = LambdaTransform.CreateMap<OneStringWithAttribute, OneStringWithAttribute>(env, idv2,
+                var map2 = new CustomMappingTransformer<OneStringWithAttribute, OneStringWithAttribute>(env,
                     (input, output) =>
                     {
                         output.OutField = input.OutField + input.OutField;
-                    });
+                    }, null).Transform(idv2);
                 try
                 {
                     map2.GetRowCursor(col => true);
@@ -147,11 +147,11 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                     Assert.True(ex.IsMarked());
                 }
 
-                var map3 = LambdaTransform.CreateMap<TwoIChannelsWithAttributes, TwoIChannelsWithAttributes>(env, idv3,
+                var map3 = new CustomMappingTransformer<TwoIChannelsWithAttributes, TwoIChannelsWithAttributes>(env,
                     (input, output) =>
                     {
                         output.OutField = input.OutField + input.OutField;
-                    });
+                    }, null).Transform(idv3);
                 try
                 {
                     map3.GetRowCursor(col => true);
@@ -168,8 +168,8 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                 Assert.Null(example4.ChannelOne);
                 var idv4 = env.CreateDataView(Utils.CreateArray(10, example4));
 
-                var map4 = LambdaTransform.CreateMap<TwoIChannelsOnlyOneWithAttribute, TwoIChannelsOnlyOneWithAttribute>(env, idv4,
-                    (input, output) => { });
+                var map4 = new CustomMappingTransformer<TwoIChannelsOnlyOneWithAttribute, TwoIChannelsOnlyOneWithAttribute>(env,
+                    (input, output) => { }, null).Transform(idv4);
                 map4.GetRowCursor(col => true);
 
                 var filter4 = LambdaTransform.CreateFilter<TwoIChannelsOnlyOneWithAttribute, object>(env, idv4,
@@ -204,11 +204,11 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                 var data = ReadBreastCancerExamples();
                 var idv = env.CreateDataView(data);
 
-                var map = LambdaTransform.CreateMap<BreastCancerExample, LambdaOutput>(env, idv,
+                var map = new CustomMappingTransformer<BreastCancerExample, LambdaOutput>(env,
                     (input, output) =>
                     {
                         output.OutField = string.Join(";", input.Features);
-                    });
+                    }, null).Transform(idv);
 
                 var filter = LambdaTransform.CreateFilter<BreastCancerExample, object>(env, map,
                     (input, state) => input.Label == 0, null);
@@ -239,7 +239,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                     (i, s) => true,
                     s => { globalCounter++; });
 
-                new AveragedPerceptronTrainer(env, "Label", "Features", numIterations: 2).FitAndTransform(xf);
+                new AveragedPerceptronTrainer(env, "Label", "Features", numIterations: 2).Fit(xf).Transform(xf);
 
                 // Make sure there were 2 cursoring events.
                 Assert.Equal(1, globalCounter);

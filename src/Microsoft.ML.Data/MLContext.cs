@@ -5,6 +5,8 @@
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using System;
+using System.ComponentModel.Composition;
+using System.ComponentModel.Composition.Hosting;
 
 namespace Microsoft.ML
 {
@@ -61,6 +63,8 @@ namespace Microsoft.ML
         /// </summary>
         public Action<string> Log { get; set; }
 
+        public AggregateCatalog PartCatalog { get; }
+
         /// <summary>
         /// Create the ML context.
         /// </summary>
@@ -68,7 +72,7 @@ namespace Microsoft.ML
         /// <param name="conc">Concurrency level. Set to 1 to run single-threaded. Set to 0 to pick automatically.</param>
         public MLContext(int? seed = null, int conc = 0)
         {
-            _env = new LocalEnvironment(seed, conc);
+            _env = new LocalEnvironment(seed, conc, MakeCompositionContainer);
             _env.AddListener(ProcessMessage);
 
             BinaryClassification = new BinaryClassificationContext(_env);
@@ -79,6 +83,14 @@ namespace Microsoft.ML
             Transforms = new TransformsCatalog(_env);
             Model = new ModelOperationsCatalog(_env);
             Data = new DataLoadSaveOperations(_env);
+            PartCatalog = new AggregateCatalog();
+        }
+
+        private CompositionContainer MakeCompositionContainer()
+        {
+            var result = new CompositionContainer(PartCatalog);
+            result.ComposeExportedValue<MLContext>(this);
+            return result;
         }
 
         private void ProcessMessage(IMessageSource source, ChannelMessage message)
@@ -104,5 +116,6 @@ namespace Microsoft.ML
         IChannel IChannelProvider.Start(string name) => _env.Start(name);
         IPipe<TMessage> IChannelProvider.StartPipe<TMessage>(string name) => _env.StartPipe<TMessage>(name);
         IProgressChannel IProgressChannelProvider.StartProgressChannel(string name) => _env.StartProgressChannel(name);
+        CompositionContainer IHostEnvironment.GetCompositionContainer() => _env.GetCompositionContainer();
     }
 }

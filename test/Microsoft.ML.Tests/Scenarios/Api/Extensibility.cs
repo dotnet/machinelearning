@@ -32,7 +32,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                     j.SepalLength = i.SepalLength;
                     j.SepalWidth = i.SepalWidth;
                 };
-                var lambda = LambdaTransform.CreateMap(env, loader, action);
+                var lambda = new CustomMappingTransformer<IrisData, IrisData>(env, action, null).Transform(loader);
                 var term = TermTransform.Create(env, lambda, "Label");
                 var concat = new ConcatTransform(env, "Features", "SepalLength", "SepalWidth", "PetalLength", "PetalWidth")
                     .Transform(term);

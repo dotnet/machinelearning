@@ -5,6 +5,8 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.ComponentModel.Composition;
+using System.ComponentModel.Composition.Hosting;
 using System.IO;
 
 namespace Microsoft.ML.Runtime.Data
@@ -687,5 +689,7 @@ namespace Microsoft.ML.Runtime.Data
             else if (!removeLastNewLine)
                 writer.WriteLine();
         }
+
+        public virtual CompositionContainer GetCompositionContainer() => throw this.ExceptNotSupp("Composition not supported by this environment");
     }
 }
