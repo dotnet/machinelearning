@@ -92,7 +92,7 @@ namespace Microsoft.ML.Runtime.Learners
 
         public int ParametersCount { get { return _paramCount; } }
 
-        internal LinearModelStatistics(IHostEnvironment env, long trainingExampleCount, int paramCount, Single deviance, Single nullDeviance)
+        public LinearModelStatistics(IHostEnvironment env, long trainingExampleCount, int paramCount, Single deviance, Single nullDeviance)
         {
             Contracts.AssertValue(env);
             env.Assert(trainingExampleCount > 0);
@@ -104,7 +104,7 @@ namespace Microsoft.ML.Runtime.Learners
             _nullDeviance = nullDeviance;
         }
 
-        internal LinearModelStatistics(IHostEnvironment env, long trainingExampleCount, int paramCount, Single deviance, Single nullDeviance, ref VBuffer<Single> coeffStdError)
+        public LinearModelStatistics(IHostEnvironment env, long trainingExampleCount, int paramCount, Single deviance, Single nullDeviance, ref VBuffer<Single> coeffStdError)
             : this(env, trainingExampleCount, paramCount, deviance, nullDeviance)
         {
             _env.Assert(coeffStdError.Count == _paramCount);

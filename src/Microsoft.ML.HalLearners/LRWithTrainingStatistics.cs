@@ -1,51 +1,41 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
-using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
-using Microsoft.ML.Runtime.Internal.Calibration;
 using Microsoft.ML.Runtime.Internal.Internallearn;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Learners;
 using Microsoft.ML.Runtime.Numeric;
 using Microsoft.ML.Runtime.Training;
+using Microsoft.ML.Trainers.HalLearners;
+using System;
+using System.Collections.Generic;
 
-[assembly: LoadableClass(LogisticRegression.Summary, typeof(LogisticRegression), typeof(LogisticRegression.Arguments),
+[assembly: LoadableClass(LogisticRegressionWithStats.Summary, typeof(LogisticRegressionWithStats), typeof(LogisticRegression.Arguments),
     new[] { typeof(SignatureBinaryClassifierTrainer), typeof(SignatureTrainer), typeof(SignatureFeatureScorerTrainer) },
-    LogisticRegression.UserNameValue,
-    LogisticRegression.LoadNameValue,
-    LogisticRegression.ShortName,
+    LogisticRegressionWithStats.UserNameValue,
+    LogisticRegressionWithStats.LoadNameValue,
+    LogisticRegressionWithStats.ShortName,
     "logisticregressionwrapper")]
 
-[assembly: LoadableClass(typeof(void), typeof(LogisticRegression), null, typeof(SignatureEntryPointModule), LogisticRegression.LoadNameValue)]
+[assembly: LoadableClass(typeof(void), typeof(LogisticRegressionWithStats), null, typeof(SignatureEntryPointModule), LogisticRegressionWithStats.LoadNameValue)]
 
-namespace Microsoft.ML.Runtime.Learners
+namespace Microsoft.ML.Trainers.HalLearners
 {
+    using Mkl = OlsLinearRegressionTrainer.Mkl;
 
     /// <include file='doc.xml' path='doc/members/member[@name="LBFGS"]/*' />
     /// <include file='doc.xml' path='docs/members/example[@name="LogisticRegressionBinaryClassifier"]/*' />
-    public partial class LogisticRegression : LbfgsTrainerBase<LogisticRegression.Arguments, BinaryPredictionTransformer<ParameterMixingCalibratedPredictor>, ParameterMixingCalibratedPredictor>
+    public sealed partial class LogisticRegressionWithStats : LogisticRegression
     {
-        public const string LoadNameValue = "LogisticRegression";
+        public new const string LoadNameValue = "LogisticRegressionWithStats";
         internal const string UserNameValue = "Logistic Regression";
-        internal const string ShortName = "lr";
+        internal const string ShortName = "lrwstats";
         internal const string Summary = "Logistic Regression is a method in statistics used to predict the probability of occurrence of an event and can "
             + "be used as a classification algorithm. The algorithm predicts the probability of occurrence of an event by fitting data to a logistical function.";
-
-        public sealed class Arguments : ArgumentsBase
-        {
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Show statistics of training examples.", ShortName = "stat", SortOrder = 50)]
-            public bool ShowTrainingStats = false;
-        }
-
-        protected Double PosWeight;
-        protected LinearModelStatistics Stats;
 
         /// <summary>
         /// Initializes a new instance of <see cref="LogisticRegression"/>
@@ -60,7 +50,7 @@ namespace Microsoft.ML.Runtime.Learners
         /// <param name="memorySize">Memory size for <see cref="LogisticRegression"/>. Lower=faster, less accurate.</param>
         /// <param name="optimizationTolerance">Threshold for optimizer convergence.</param>
         /// <param name="advancedSettings">A delegate to apply all the advanced arguments to the algorithm.</param>
-        public LogisticRegression(IHostEnvironment env,
+        public LogisticRegressionWithStats(IHostEnvironment env,
             string featureColumn,
             string labelColumn,
             string weightColumn = null,
@@ -70,74 +60,17 @@ namespace Microsoft.ML.Runtime.Learners
             int memorySize = Arguments.Defaults.MemorySize,
             bool enforceNoNegativity = Arguments.Defaults.EnforceNonNegativity,
             Action<Arguments> advancedSettings = null)
-            : base(env, featureColumn, TrainerUtils.MakeBoolScalarLabel(labelColumn), weightColumn, advancedSettings,
-                  l1Weight, l2Weight,  optimizationTolerance, memorySize, enforceNoNegativity)
+            : base(env, featureColumn, labelColumn, weightColumn,
+                  l1Weight, l2Weight, optimizationTolerance, memorySize, enforceNoNegativity, advancedSettings)
         {
-            Host.CheckNonEmpty(featureColumn, nameof(featureColumn));
-            Host.CheckNonEmpty(labelColumn, nameof(labelColumn));
-
-            PosWeight = 0;
-            ShowTrainingStats = Args.ShowTrainingStats;
         }
 
         /// <summary>
         /// Initializes a new instance of <see cref="LogisticRegression"/>
         /// </summary>
-        public LogisticRegression(IHostEnvironment env, Arguments args)
-            : base(env, args, TrainerUtils.MakeBoolScalarLabel(args.LabelColumn))
+        internal LogisticRegressionWithStats(IHostEnvironment env, Arguments args)
+            : base(env, args)
         {
-            PosWeight = 0;
-            ShowTrainingStats = Args.ShowTrainingStats;
-        }
-
-        public override PredictionKind PredictionKind => PredictionKind.BinaryClassification;
-
-        protected override void CheckLabel(RoleMappedData data)
-        {
-            Contracts.AssertValue(data);
-            data.CheckBinaryLabel();
-        }
-
-        protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema)
-        {
-            return new[]
-            {
-                new SchemaShape.Column(DefaultColumnNames.Score, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata())),
-                new SchemaShape.Column(DefaultColumnNames.Probability, SchemaShape.Column.VectorKind.Scalar, NumberType.R4, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata(true))),
-                new SchemaShape.Column(DefaultColumnNames.PredictedLabel, SchemaShape.Column.VectorKind.Scalar, BoolType.Instance, false, new SchemaShape(MetadataUtils.GetTrainerOutputMetadata()))
-            };
-        }
-
-        protected override BinaryPredictionTransformer<ParameterMixingCalibratedPredictor> MakeTransformer(ParameterMixingCalibratedPredictor model, Schema trainSchema)
-            => new BinaryPredictionTransformer<ParameterMixingCalibratedPredictor>(Host, model, trainSchema, FeatureColumn.Name);
-
-        protected override float AccumulateOneGradient(ref VBuffer<float> feat, float label, float weight,
-            ref VBuffer<float> x, ref VBuffer<float> grad, ref float[] scratch)
-        {
-            float bias = 0;
-            x.GetItemOrDefault(0, ref bias);
-            float score = bias + VectorUtils.DotProductWithOffset(ref x, 1, ref feat);
-
-            float s = score / 2;
-
-            float logZ = MathUtils.SoftMax(s, -s);
-            float label01 = Math.Min(1, Math.Max(label, 0));
-            float label11 = 2 * label01 - 1; //(-1..1) label
-            float modelProb1 = MathUtils.ExpSlow(s - logZ);
-            float ls = label11 * s;
-            float datumLoss = logZ - ls;
-            //float loss2 = MathUtil.SoftMax(s-l_s, -s-l_s);
-
-            Contracts.Check(!float.IsNaN(datumLoss), "Unexpected NaN");
-
-            float mult = weight * (modelProb1 - label01);
-            VectorUtils.AddMultWithOffset(ref feat, mult, ref grad, 1); // Note that 0th L-BFGS weight is for bias.
-            // Add bias using this strange trick that has advantage of working well for dense and sparse arrays.
-            // Due to the call to EnsureBiases, we know this region is dense.
-            Contracts.Assert(grad.Count >= BiasCount && (grad.IsDense || grad.Indices[BiasCount - 1] == BiasCount - 1));
-            grad.Values[0] += mult;
-
-            return weight * datumLoss;
         }
 
         protected override void ComputeTrainingStatistics(IChannel ch, FloatLabelCursor.Factory cursorFactory, float loss, int numParams)
@@ -330,61 +263,74 @@ namespace Microsoft.ML.Runtime.Learners
                 }
             }
 
-            Stats = new LinearModelStatistics(Host, NumGoodRows, numParams, deviance, nullDeviance);
+            // Apply Cholesky Decomposition to find the inverse of the Hessian.
+            Double[] invHessian = null;
+            try
+            {
+                // First, find the Cholesky decomposition LL' of the Hessian.
+                Mkl.Pptrf(Mkl.Layout.RowMajor, Mkl.UpLo.Lo, numParams, hessian);
+                // Note that hessian is already modified at this point. It is no longer the original Hessian,
+                // but instead represents the Cholesky decomposition L.
+                // Also note that the following routine is supposed to consume the Cholesky decomposition L instead
+                // of the original information matrix.
+                Mkl.Pptri(Mkl.Layout.RowMajor, Mkl.UpLo.Lo, numParams, hessian);
+                // At this point, hessian should contain the inverse of the original Hessian matrix.
+                // Swap hessian with invHessian to avoid confusion in the following context.
+                Utils.Swap(ref hessian, ref invHessian);
+                Contracts.Assert(hessian == null);
+            }
+            catch (DllNotFoundException)
+            {
+                throw ch.ExceptNotSupp("The MKL library (Microsoft.ML.MklImports.dll) or one of its dependencies is missing.");
+            }
+
+            float[] stdErrorValues = new float[numParams];
+            stdErrorValues[0] = (float)Math.Sqrt(invHessian[0]);
+
+            for (int i = 1; i < numParams; i++)
+            {
+                // Initialize with inverse Hessian.
+                stdErrorValues[i] = (Single)invHessian[i * (i + 1) / 2 + i];
+            }
+
+            if (L2Weight > 0)
+            {
+                // Iterate through all entries of inverse Hessian to make adjustment to variance.
+                // A discussion on ridge regularized LR coefficient covariance matrix can be found here:
+                // http://www.ncbi.nlm.nih.gov/pmc/articles/PMC3228544/
+                // http://www.inf.unibz.it/dis/teaching/DWDM/project2010/LogisticRegression.pdf
+                int ioffset = 1;
+                for (int iRow = 1; iRow < numParams; iRow++)
+                {
+                    for (int iCol = 0; iCol <= iRow; iCol++)
+                    {
+                        var entry = (Single)invHessian[ioffset];
+                        var adjustment = -L2Weight * entry * entry;
+                        stdErrorValues[iRow] -= adjustment;
+                        if (0 < iCol && iCol < iRow)
+                            stdErrorValues[iCol] -= adjustment;
+                        ioffset++;
+                    }
+                }
+
+                Contracts.Assert(ioffset == invHessian.Length);
+            }
+
+            for (int i = 1; i < numParams; i++)
+                stdErrorValues[i] = (float)Math.Sqrt(stdErrorValues[i]);
+
+            VBuffer<float> stdErrors = new VBuffer<float>(CurrentWeights.Length, numParams, stdErrorValues, weightIndices);
+            Stats = new LinearModelStatistics(Host, NumGoodRows, numParams, deviance, nullDeviance, ref stdErrors);
         }
 
-        protected override void ProcessPriorDistribution(float label, float weight)
-        {
-            if (label > 0)
-                PosWeight += weight;
-        }
-
-        //Override default termination criterion MeanRelativeImprovementCriterion with
-        protected override Optimizer InitializeOptimizer(IChannel ch, FloatLabelCursor.Factory cursorFactory,
-            out VBuffer<float> init, out ITerminationCriterion terminationCriterion)
-        {
-            var opt = base.InitializeOptimizer(ch, cursorFactory, out init, out terminationCriterion);
-
-            // MeanImprovementCriterion:
-            //   Terminates when the geometrically-weighted average improvement falls below the tolerance
-            //terminationCriterion = new GradientCheckingMonitor(new MeanImprovementCriterion(CmdArgs.optTol, 0.25, MaxIterations),2);
-            terminationCriterion = new MeanImprovementCriterion(OptTol, (float)0.25, MaxIterations);
-
-            return opt;
-        }
-
-        protected override VBuffer<float> InitializeWeightsFromPredictor(ParameterMixingCalibratedPredictor srcPredictor)
-        {
-            Contracts.AssertValue(srcPredictor);
-
-            var pred = srcPredictor.SubPredictor as LinearBinaryPredictor;
-            Contracts.AssertValue(pred);
-            return InitializeWeights(pred.Weights2, new[] { pred.Bias });
-        }
-
-        protected override ParameterMixingCalibratedPredictor CreatePredictor()
-        {
-            // Logistic regression is naturally calibrated to
-            // output probabilities when transformed using
-            // the logistic function, so there is no need to
-            // train a separate calibrator.
-            VBuffer<float> weights = default(VBuffer<float>);
-            float bias = 0;
-            CurrentWeights.GetItemOrDefault(0, ref bias);
-            CurrentWeights.CopyTo(ref weights, 1, CurrentWeights.Length - 1);
-            return new ParameterMixingCalibratedPredictor(Host,
-                new LinearBinaryPredictor(Host, ref weights, bias, Stats),
-                new PlattCalibrator(Host, -1, 0));
-        }
-
-        [TlcModule.EntryPoint(Name = "Trainers.LogisticRegressionBinaryClassifier",
+        [TlcModule.EntryPoint(Name = "Trainers.LogisticRegressionBinaryClassifierWithStats",
             Desc = Summary,
             UserName = UserNameValue,
             ShortName = ShortName,
             XmlInclude = new[] { @"<include file='../Microsoft.ML.StandardLearners/Standard/LogisticRegression/doc.xml' path='doc/members/member[@name=""LBFGS""]/*' />",
                                  @"<include file='../Microsoft.ML.StandardLearners/Standard/LogisticRegression/doc.xml' path='doc/members/example[@name=""LogisticRegressionBinaryClassifier""]/*' />"})]
 
-        public static CommonOutputs.BinaryClassificationOutput TrainBinary(IHostEnvironment env, Arguments input)
+        public static new CommonOutputs.BinaryClassificationOutput TrainBinary(IHostEnvironment env, Arguments input)
         {
             Contracts.CheckValue(env, nameof(env));
             var host = env.Register("TrainLRBinary");
@@ -392,7 +338,7 @@ namespace Microsoft.ML.Runtime.Learners
             EntryPointUtils.CheckInputArgs(host, input);
 
             return LearnerEntryPointsUtils.Train<Arguments, CommonOutputs.BinaryClassificationOutput>(host, input,
-                () => new LogisticRegression(host, input),
+                () => new LogisticRegressionWithStats(host, input),
                 () => LearnerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.LabelColumn),
                 () => LearnerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.WeightColumn));
         }
