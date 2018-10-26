@@ -530,7 +530,7 @@ namespace Microsoft.ML.Scenarios
 
                 var trainedTfDataView = TensorFlowTransform.Create(env, args, trans);
                 trans = new ConcatTransform(env, "Features", "Prediction").Transform(trainedTfDataView);
-                trans = new ConvertTransform(env, trans, DataKind.R4, "Label");
+                trans = new ConvertTransform(env, new ConvertTransform.ColumnInfo("Label","Label", DataKind.R4)).Transform(trans);
 
                     var trainer = new LightGbmMulticlassTrainer(env, "Label", "Features");
 

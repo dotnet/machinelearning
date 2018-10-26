@@ -138,7 +138,7 @@ namespace Microsoft.ML.Runtime.Data
 
             var replaceCols = new List<NAReplaceTransform.ColumnInfo>();
             var naIndicatorCols = new List<NAIndicatorTransform.Column>();
-            var naConvCols = new List<ConvertTransform.Column>();
+            var naConvCols = new List<ConvertTransform.ColumnInfo>();
             var concatCols = new List<ConcatTransform.TaggedColumn>();
             var dropCols = new List<string>();
             var tmpIsMissingColNames = input.Schema.GetTempColumnNames(args.Column.Length, "IsMissing");
@@ -174,7 +174,7 @@ namespace Microsoft.ML.Runtime.Data
 
                 // Add a ConvertTransform column if necessary.
                 if (!identity)
-                    naConvCols.Add(new ConvertTransform.Column() { Name = tmpIsMissingColName, Source = tmpIsMissingColName, ResultType = replaceType.ItemType.RawKind });
+                    naConvCols.Add(new ConvertTransform.ColumnInfo(tmpIsMissingColName, tmpIsMissingColName, replaceType.ItemType.RawKind));
 
                 // Add the NAReplaceTransform column.
                 replaceCols.Add(new NAReplaceTransform.ColumnInfo(column.Source, tmpReplacementColName, (NAReplaceTransform.ColumnInfo.ReplacementMode)(column.Kind ?? args.ReplaceWith), column.ImputeBySlot ?? args.ImputeBySlot));
@@ -219,7 +219,8 @@ namespace Microsoft.ML.Runtime.Data
             if (naConvCols.Count > 0)
             {
                 h.AssertValue(output);
-                output = new ConvertTransform(h, new ConvertTransform.Arguments() { Column = naConvCols.ToArray() }, output);
+                //REVIEW: all this need to be converted to estimatorChain as soon as we done with dropcolumns.
+                output = new ConvertTransform(h,naConvCols.ToArray()).Transform( output) as IDataTransform;
             }
             // Create the NAReplace transform.
             output = NAReplaceTransform.Create(env, output ?? input, replaceCols.ToArray());
