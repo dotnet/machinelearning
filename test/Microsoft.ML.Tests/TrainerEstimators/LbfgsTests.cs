@@ -5,6 +5,7 @@
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Learners;
+using Microsoft.ML.Trainers;
 using Xunit;
 
 namespace Microsoft.ML.Tests.TrainerEstimators

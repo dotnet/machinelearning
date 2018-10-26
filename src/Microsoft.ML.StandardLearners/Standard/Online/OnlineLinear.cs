@@ -2,21 +2,22 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Float = System.Single;
-
-using System;
-using System.Globalization;
 using Microsoft.ML.Core.Data;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Calibration;
 using Microsoft.ML.Runtime.Internal.Internallearn;
 using Microsoft.ML.Runtime.Internal.Utilities;
+using Microsoft.ML.Runtime.Learners;
 using Microsoft.ML.Runtime.Numeric;
 using Microsoft.ML.Runtime.Training;
+using System;
+using System.Globalization;
+using Float = System.Single;
 
-namespace Microsoft.ML.Runtime.Learners
+namespace Microsoft.ML.Trainers.Online
 {
 
     public abstract class OnlineLinearArguments : LearnerInputBaseWithLabel

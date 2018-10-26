@@ -10,6 +10,7 @@ using Microsoft.ML.Runtime.RunTests;
 using Microsoft.ML.StaticPipe;
 using Microsoft.ML.TestFramework;
 using Microsoft.ML.Transforms;
+using Microsoft.ML.Transforms.PCA;
 using Microsoft.ML.Transforms.Text;
 using System;
 using System.Collections.Generic;

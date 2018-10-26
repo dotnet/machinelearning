@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using System.IO;
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.HalLearners;
+using Microsoft.ML.Trainers.HalLearners;
 using Microsoft.ML.Runtime.Internal.Internallearn;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.CommandLine;
@@ -30,7 +30,7 @@ using System.Runtime.InteropServices;
 
 [assembly: LoadableClass(typeof(void), typeof(OlsLinearRegressionTrainer), null, typeof(SignatureEntryPointModule), OlsLinearRegressionTrainer.LoadNameValue)]
 
-namespace Microsoft.ML.Runtime.HalLearners
+namespace Microsoft.ML.Trainers.HalLearners
 {
     /// <include file='doc.xml' path='doc/members/member[@name="OLS"]/*' />
     public sealed class OlsLinearRegressionTrainer : TrainerEstimatorBase<RegressionPredictionTransformer<OlsLinearRegressionPredictor>, OlsLinearRegressionPredictor>

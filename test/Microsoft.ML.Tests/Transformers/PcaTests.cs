@@ -2,11 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.IO;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Data.IO;
 using Microsoft.ML.Runtime.RunTests;
-using Microsoft.ML.Transforms;
+using Microsoft.ML.Transforms.PCA;
+using System.IO;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -67,7 +67,7 @@ namespace Microsoft.ML.Tests.Transformers
                     DataSaverUtils.SaveDataView(ch, _saver, savedData, fs, keepHidden: true);
             }
 
-            CheckEquality("PCA", "pca.tsv");
+            CheckEquality("PCA", "pca.tsv", digitsOfPrecision: 4);
             Done();
         }
     }

@@ -12,10 +12,12 @@ using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Numeric;
 using Microsoft.ML.Runtime.Internal.Internallearn;
+using Microsoft.ML.Runtime.Learners;
+using Microsoft.ML.Runtime;
 
 // TODO: Check if it works properly if Averaged is set to false
 
-namespace Microsoft.ML.Runtime.Learners
+namespace Microsoft.ML.Trainers.Online
 {
     public abstract class AveragedLinearArguments : OnlineLinearArguments
     {
