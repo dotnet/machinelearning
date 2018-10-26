@@ -161,19 +161,24 @@ namespace Microsoft.ML.Runtime.Learners
             float optimizationTolerance,
             int memorySize,
             bool enforceNoNegativity)
-            : this(env, new TArgs(), labelColumn,
-                  l1Weight, l2Weight, optimizationTolerance, memorySize, enforceNoNegativity, advancedSettings)
+            : this(env, new TArgs
+                        {
+                            FeatureColumn = featureColumn,
+                            LabelColumn = labelColumn.Name,
+                            WeightColumn = weightColumn ?? Optional<string>.Explicit(weightColumn),
+                            L1Weight = l1Weight,
+                            L2Weight = l2Weight,
+                            OptTol = optimizationTolerance,
+                            MemorySize = memorySize,
+                            EnforceNonNegativity = enforceNoNegativity
+                        },
+                  labelColumn, advancedSettings)
         {
         }
 
         internal LbfgsTrainerBase(IHostEnvironment env,
             TArgs args,
             SchemaShape.Column labelColumn,
-            float? l1Weight = null,
-            float? l2Weight = null,
-            float? optimizationTolerance = null,
-            int? memorySize = null,
-            bool? enforceNoNegativity = null,
             Action<TArgs> advancedSettings = null)
             : base(Contracts.CheckRef(env, nameof(env)).Register(RegisterName), TrainerUtils.MakeR4VecFeature(args.FeatureColumn),
                   labelColumn, TrainerUtils.MakeR4ScalarWeightColumn(args.WeightColumn, args.WeightColumn.IsExplicit))
@@ -181,28 +186,14 @@ namespace Microsoft.ML.Runtime.Learners
             Host.CheckValue(args, nameof(args));
             Args = args;
 
-            L2Weight = l2Weight ?? Args.L2Weight;
-            L1Weight = l1Weight ?? Args.L1Weight;
-            OptTol = optimizationTolerance ?? Args.OptTol;
-            MemorySize = memorySize ?? Args.MemorySize;
-            MaxIterations = Args.MaxIterations;
-            SgdInitializationTolerance = Args.SgdInitializationTolerance;
-            Quiet = Args.Quiet;
-            InitWtsDiameter = Args.InitWtsDiameter;
-            UseThreads = Args.UseThreads;
-            NumThreads = Args.NumThreads;
-            DenseOptimizer = Args.DenseOptimizer;
-            EnforceNonNegativity = enforceNoNegativity ?? Args.EnforceNonNegativity;
-
             // Apply the advanced args, if the user supplied any.
             advancedSettings?.Invoke(args);
 
             args.FeatureColumn = FeatureColumn.Name;
             args.LabelColumn = LabelColumn.Name;
             args.WeightColumn = WeightColumn?.Name;
-
             Host.CheckUserArg(!Args.UseThreads || Args.NumThreads > 0 || Args.NumThreads == null,
-               nameof(Args.NumThreads), "numThreads must be positive (or empty for default)");
+              nameof(Args.NumThreads), "numThreads must be positive (or empty for default)");
             Host.CheckUserArg(Args.L2Weight >= 0, nameof(Args.L2Weight), "Must be non-negative");
             Host.CheckUserArg(Args.L1Weight >= 0, nameof(Args.L1Weight), "Must be non-negative");
             Host.CheckUserArg(Args.OptTol > 0, nameof(Args.OptTol), "Must be positive");
@@ -211,10 +202,23 @@ namespace Microsoft.ML.Runtime.Learners
             Host.CheckUserArg(Args.SgdInitializationTolerance >= 0, nameof(Args.SgdInitializationTolerance), "Must be non-negative");
             Host.CheckUserArg(Args.NumThreads == null || Args.NumThreads.Value >= 0, nameof(Args.NumThreads), "Must be non-negative");
 
-            Host.CheckParam(!(l2Weight < 0), nameof(l2Weight), "Must be non-negative, if provided.");
-            Host.CheckParam(!(l1Weight < 0), nameof(l1Weight), "Must be non-negative, if provided");
-            Host.CheckParam(!(optimizationTolerance <= 0), nameof(optimizationTolerance), "Must be positive, if provided.");
-            Host.CheckParam(!(memorySize <= 0), nameof(memorySize), "Must be positive, if provided.");
+            Host.CheckParam(!(Args.L2Weight < 0), nameof(Args.L2Weight), "Must be non-negative, if provided.");
+            Host.CheckParam(!(Args.L1Weight < 0), nameof(Args.L1Weight), "Must be non-negative, if provided");
+            Host.CheckParam(!(Args.OptTol <= 0), nameof(Args.OptTol), "Must be positive, if provided.");
+            Host.CheckParam(!(Args.MemorySize <= 0), nameof(Args.MemorySize), "Must be positive, if provided.");
+
+            L2Weight = Args.L2Weight;
+            L1Weight = Args.L1Weight;
+            OptTol = Args.OptTol;
+            MemorySize =Args.MemorySize;
+            MaxIterations = Args.MaxIterations;
+            SgdInitializationTolerance = Args.SgdInitializationTolerance;
+            Quiet = Args.Quiet;
+            InitWtsDiameter = Args.InitWtsDiameter;
+            UseThreads = Args.UseThreads;
+            NumThreads = Args.NumThreads;
+            DenseOptimizer = Args.DenseOptimizer;
+            EnforceNonNegativity = Args.EnforceNonNegativity;
 
             if (EnforceNonNegativity && ShowTrainingStats)
             {
@@ -227,6 +231,30 @@ namespace Microsoft.ML.Runtime.Learners
 
             ShowTrainingStats = false;
             _srcPredictor = default;
+        }
+
+        private static TArgs ArgsInit(string featureColumn, SchemaShape.Column labelColumn,
+                string weightColumn,
+                float l1Weight,
+                float l2Weight,
+                float optimizationTolerance,
+                int memorySize,
+                bool enforceNoNegativity)
+        {
+            var args = new TArgs
+            {
+                FeatureColumn = featureColumn,
+                LabelColumn = labelColumn.Name,
+                WeightColumn = weightColumn ?? Optional<string>.Explicit(weightColumn),
+                L1Weight = l1Weight,
+                L2Weight = l2Weight,
+                OptTol = optimizationTolerance,
+                MemorySize = memorySize,
+                EnforceNonNegativity = enforceNoNegativity
+            };
+
+            args.WeightColumn = weightColumn;
+            return args;
         }
 
         protected virtual int ClassCount => 1;
