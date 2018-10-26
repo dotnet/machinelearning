@@ -14,6 +14,7 @@ using Microsoft.ML.Runtime.Internal.Internallearn;
 using Microsoft.ML.Runtime.Learners;
 using Microsoft.ML.Runtime.Numeric;
 using Microsoft.ML.Runtime.Training;
+using Microsoft.ML.Trainers.Online;
 using System;
 
 [assembly: LoadableClass(AveragedPerceptronTrainer.Summary, typeof(AveragedPerceptronTrainer), typeof(AveragedPerceptronTrainer.Arguments),
@@ -23,7 +24,7 @@ using System;
 
 [assembly: LoadableClass(typeof(void), typeof(AveragedPerceptronTrainer), null, typeof(SignatureEntryPointModule), "AP")]
 
-namespace Microsoft.ML.Runtime.Learners
+namespace Microsoft.ML.Trainers.Online
 {
     // This is an averaged perceptron classifier.
     // Configurable subcomponents:

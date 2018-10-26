@@ -1,10 +1,10 @@
 ﻿using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Learners;
 using Microsoft.ML.Runtime.RunTests;
 using Microsoft.ML.TestFramework;
 using Microsoft.ML.Transforms.CategoricalTransforms;
 using Microsoft.ML.Transforms.Normalizers;
+using Microsoft.ML.Trainers;
 using System;
 using System.Linq;
 using Xunit;

@@ -3,10 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Learners;
 using Microsoft.ML.Runtime.RunTests;
 using Microsoft.ML.Transforms.Normalizers;
 using Microsoft.ML.Transforms.Text;
+using Microsoft.ML.Trainers;
 using Xunit;
 
 namespace Microsoft.ML.Tests.Scenarios.Api

@@ -15,10 +15,11 @@ namespace Microsoft.ML.Runtime.RunTests
     using Microsoft.ML.Runtime.Internal.Utilities;
     using Microsoft.ML.Runtime.Learners;
     using Microsoft.ML.Runtime.LightGBM;
-    using Microsoft.ML.Runtime.SymSgd;
     using Microsoft.ML.TestFramework;
     using Microsoft.ML.Trainers.FastTree;
     using Microsoft.ML.Trainers.FastTree.Internal;
+    using Microsoft.ML.Trainers.Online;
+    using Microsoft.ML.Trainers.SymSgd;
     using System.Linq;
     using System.Runtime.InteropServices;
     using Xunit;
@@ -110,7 +111,7 @@ namespace Microsoft.ML.Runtime.RunTests
         {
             var binaryPredictors = new[] { TestLearners.perceptron };
             var binaryClassificationDatasets = GetDatasetsForBinaryClassifierBaseTest();
-            RunAllTests(binaryPredictors, binaryClassificationDatasets);
+            RunAllTests(binaryPredictors, binaryClassificationDatasets, digitsOfPrecision: 6);
             Done();
         }
 
@@ -255,7 +256,7 @@ namespace Microsoft.ML.Runtime.RunTests
                     TestLearners.binarySgdHinge
                 };
             var binaryClassificationDatasets = GetDatasetsForBinaryClassifierBaseTest();
-            RunAllTests(binaryPredictors, binaryClassificationDatasets);
+            RunAllTests(binaryPredictors, binaryClassificationDatasets, digitsOfPrecision: 5);
             Done();
         }
 
@@ -267,7 +268,7 @@ namespace Microsoft.ML.Runtime.RunTests
         public void BinaryClassifierLogisticRegressionTest()
         {
             var binaryPredictors = new[] { TestLearners.logisticRegression };
-            RunOneAllTests(TestLearners.logisticRegression, TestDatasets.breastCancer, summary: true);
+            RunOneAllTests(TestLearners.logisticRegression, TestDatasets.breastCancer, summary: true, digitsOfPrecision: 3);
             // RunOneAllTests(TestLearners.logisticRegression, TestDatasets.msm);
             Done();
         }
@@ -280,7 +281,7 @@ namespace Microsoft.ML.Runtime.RunTests
             if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
                 return;
 
-            RunOneAllTests(TestLearners.symSGD, TestDatasets.breastCancer, summary: true);
+            RunOneAllTests(TestLearners.symSGD, TestDatasets.breastCancer, summary: true, digitsOfPrecision: 4);
             Done();
         }
 
@@ -290,7 +291,7 @@ namespace Microsoft.ML.Runtime.RunTests
         {
             var binaryPredictors = new[] { TestLearners.logisticRegression };
             var binaryClassificationDatasets = new[] { TestDatasets.breastCancer };
-            RunAllTests(binaryPredictors, binaryClassificationDatasets, new[] { "eval=BinaryClassifier{threshold=0.95 useRawScore=-}" }, "withThreshold");
+            RunAllTests(binaryPredictors, binaryClassificationDatasets, new[] { "eval=BinaryClassifier{threshold=0.95 useRawScore=-}" }, "withThreshold", digitsOfPrecision: 3);
             Done();
         }
 
@@ -303,7 +304,7 @@ namespace Microsoft.ML.Runtime.RunTests
         {
             var binaryPredictors = new[] { TestLearners.logisticRegressionNorm };
             var binaryClassificationDatasets = GetDatasetsForBinaryClassifierBaseTest();
-            RunAllTests(binaryPredictors, binaryClassificationDatasets);
+            RunAllTests(binaryPredictors, binaryClassificationDatasets, digitsOfPrecision: 5);
             Done();
         }
 
@@ -329,7 +330,7 @@ namespace Microsoft.ML.Runtime.RunTests
         {
             var binaryPredictors = new[] { TestLearners.logisticRegressionBinNorm };
             var binaryClassificationDatasets = GetDatasetsForBinaryClassifierBaseTest();
-            RunAllTests(binaryPredictors, binaryClassificationDatasets);
+            RunAllTests(binaryPredictors, binaryClassificationDatasets, digitsOfPrecision: 6);
             Done();
         }
 
@@ -342,7 +343,7 @@ namespace Microsoft.ML.Runtime.RunTests
         {
             var binaryPredictors = new[] { TestLearners.logisticRegressionGaussianNorm };
             var binaryClassificationDatasets = GetDatasetsForBinaryClassifierBaseTest();
-            RunAllTests(binaryPredictors, binaryClassificationDatasets);
+            RunAllTests(binaryPredictors, binaryClassificationDatasets, digitsOfPrecision: 4);
             Done();
         }
 
@@ -1154,7 +1155,7 @@ namespace Microsoft.ML.Runtime.RunTests
         [TestCategory("Regressor")]
         public void RegressorOlsTestOne()
         {
-            Run_TrainTest(TestLearners.Ols, TestDatasets.generatedRegressionDataset);
+            Run_TrainTest(TestLearners.Ols, TestDatasets.generatedRegressionDataset, digitsOfPrecision: 4);
             Done();
         }
 
@@ -1598,7 +1599,7 @@ namespace Microsoft.ML.Runtime.RunTests
         public void NoCalibratorLinearSvmTest()
         {
             var datasets = GetDatasetsForCalibratorTest();
-            RunAllTests(new[] { TestLearners.linearSVM }, datasets, new string[] { "cali={}" }, "nocalibration");
+            RunAllTests(new[] { TestLearners.linearSVM }, datasets, new string[] { "cali={}" }, "nocalibration", digitsOfPrecision: 6);
             Done();
         }
 
@@ -1610,7 +1611,7 @@ namespace Microsoft.ML.Runtime.RunTests
         public void PAVCalibratorLinearSvmTest()
         {
             var datasets = GetDatasetsForCalibratorTest();
-            RunAllTests(new[] { TestLearners.linearSVM }, datasets, new string[] { "cali=PAV" }, "PAVcalibration");
+            RunAllTests(new[] { TestLearners.linearSVM }, datasets, new string[] { "cali=PAV" }, "PAVcalibration", digitsOfPrecision: 5);
             Done();
         }
 
@@ -1740,8 +1741,8 @@ output Out [3] from H all;
         [TestCategory("Anomaly")]
         public void PcaAnomalyTest()
         {
-            Run_TrainTest(TestLearners.PCAAnomalyDefault, TestDatasets.mnistOneClass);
-            Run_TrainTest(TestLearners.PCAAnomalyNoNorm, TestDatasets.mnistOneClass);
+            Run_TrainTest(TestLearners.PCAAnomalyDefault, TestDatasets.mnistOneClass, digitsOfPrecision: 5);
+            Run_TrainTest(TestLearners.PCAAnomalyNoNorm, TestDatasets.mnistOneClass, digitsOfPrecision: 5);
 
             // REVIEW: This next test was misbehaving in a strange way that seems to have gone away
             // mysteriously (bad build?).

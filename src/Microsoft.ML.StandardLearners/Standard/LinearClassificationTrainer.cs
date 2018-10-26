@@ -15,6 +15,7 @@ using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Learners;
 using Microsoft.ML.Runtime.Numeric;
 using Microsoft.ML.Runtime.Training;
+using Microsoft.ML.Trainers;
 using Microsoft.ML.Transforms;
 using System;
 using System.Linq;
@@ -38,7 +39,7 @@ using System.Threading.Tasks;
 [assembly: LoadableClass(typeof(void), typeof(Sdca), null, typeof(SignatureEntryPointModule), "SDCA")]
 [assembly: LoadableClass(typeof(void), typeof(StochasticGradientDescentClassificationTrainer), null, typeof(SignatureEntryPointModule), StochasticGradientDescentClassificationTrainer.ShortName)]
 
-namespace Microsoft.ML.Runtime.Learners
+namespace Microsoft.ML.Trainers
 {
     using ConditionalAttribute = System.Diagnostics.ConditionalAttribute;
     using Stopwatch = System.Diagnostics.Stopwatch;

@@ -3,13 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using BenchmarkDotNet.Attributes;
-using Microsoft.ML.Runtime;
-using Microsoft.ML.Runtime.Api;
-using Microsoft.ML.Runtime.Learners;
 using Microsoft.ML.Legacy;
 using Microsoft.ML.Legacy.Data;
-using Microsoft.ML.Legacy.Transforms;
 using Microsoft.ML.Legacy.Trainers;
+using Microsoft.ML.Legacy.Transforms;
 
 namespace Microsoft.ML.Benchmarks
 {

@@ -5,6 +5,8 @@
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Internal.Calibration;
 using Microsoft.ML.Runtime.Learners;
+using Microsoft.ML.Trainers;
+using Microsoft.ML.Trainers.Online;
 using Microsoft.ML.Transforms.CategoricalTransforms;
 using System.Linq;
 using Xunit;

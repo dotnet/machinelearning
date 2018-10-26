@@ -5,7 +5,7 @@
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Learners;
-using Microsoft.ML.StaticPipe;
+using Microsoft.ML.Trainers.Online;
 using Microsoft.ML.StaticPipe.Runtime;
 using System;
 
@@ -94,7 +94,7 @@ namespace Microsoft.ML.StaticPipe
     public static class OnlineGradientDescentExtensions
     {
         /// <summary>
-        /// Predict a target using a linear regression model trained with the <see cref="Microsoft.ML.Runtime.Learners.OnlineGradientDescentTrainer"/> trainer.
+        /// Predict a target using a linear regression model trained with the <see cref="OnlineGradientDescentTrainer"/> trainer.
         /// </summary>
         /// <param name="ctx">The regression context trainer object.</param>
         /// <param name="label">The label, or dependent variable.</param>
