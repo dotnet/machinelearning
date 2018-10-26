@@ -59,6 +59,7 @@ namespace Microsoft.ML.Runtime.RunTests
         private const string OutputRootUnixRegExp = @"\/[^\\\t ]+\/TestOutput" + @"\/[^\\\t ]+";
         private static readonly string BinRegUnixExp = @"\/[^\\\t ]+\/bin\/" + Mode;
         private static readonly string Bin64RegUnixExp = @"\/[^\\\t ]+\/bin\/x64\/" + Mode;
+        private static readonly Regex MatchNumbers = new Regex(@"\b[0-9]+\.?[0-9]*(E-[0-9]*)?\b", RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
         /// <summary>
         /// When the progress log is appended to the end of output (in test runs), this line precedes the progress log.
@@ -506,16 +507,14 @@ namespace Microsoft.ML.Runtime.RunTests
 
         private void GetNumbersFromFile(ref string firstString, ref string secondString, int digitsOfPrecision)
         {
-            // The Regex matches both positive and negative decimal point numbers present in a string.
-            // The numbers could be a part of a word. They can also be in Exponential form eg. 3E-9
-            Regex _matchNumer = new Regex(@"-?\b[0-9]+\.?[0-9]*(E-[0-9]*)?\b", RegexOptions.IgnoreCase | RegexOptions.Compiled);
-            MatchCollection firstCollection = _matchNumer.Matches(firstString);
-            MatchCollection secondCollection = _matchNumer.Matches(secondString);
+            
+            MatchCollection firstCollection = MatchNumbers.Matches(firstString);
+            MatchCollection secondCollection = MatchNumbers.Matches(secondString);
 
             if (firstCollection.Count == secondCollection.Count)
                 MatchNumberWithTolerance(firstCollection, secondCollection, digitsOfPrecision);
-            firstString = _matchNumer.Replace(firstString, "%Number%");
-            secondString = _matchNumer.Replace(secondString, "%Number%");
+            firstString = MatchNumbers.Replace(firstString, "%Number%");
+            secondString = MatchNumbers.Replace(secondString, "%Number%");
         }
 
         private void MatchNumberWithTolerance(MatchCollection firstCollection, MatchCollection secondCollection, int digitsOfPrecision)
