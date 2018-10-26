@@ -59,6 +59,8 @@ namespace Microsoft.ML.Runtime.RunTests
         private const string OutputRootUnixRegExp = @"\/[^\\\t ]+\/TestOutput" + @"\/[^\\\t ]+";
         private static readonly string BinRegUnixExp = @"\/[^\\\t ]+\/bin\/" + Mode;
         private static readonly string Bin64RegUnixExp = @"\/[^\\\t ]+\/bin\/x64\/" + Mode;
+        // The Regex matches both positive and negative decimal point numbers present in a string.
+        // The numbers could be a part of a word. They can also be in Exponential form eg. 3E-9
         private static readonly Regex MatchNumbers = new Regex(@"-?\b[0-9]+\.?[0-9]*(E-[0-9]*)?\b", RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
         /// <summary>
