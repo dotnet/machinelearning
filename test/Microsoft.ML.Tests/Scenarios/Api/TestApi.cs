@@ -11,7 +11,7 @@ using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Data.IO;
 using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Learners;
+using Microsoft.ML.Trainers.Online;
 using Microsoft.ML.TestFramework;
 using Xunit;
 using Xunit.Abstractions;
