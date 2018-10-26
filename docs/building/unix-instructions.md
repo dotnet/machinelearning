@@ -3,7 +3,7 @@ Building ML.NET on Linux and macOS
 ## Building
 
 1. Install the prerequisites ([Linux](#user-content-linux), [macOS](#user-content-macos))
-2. Clone the machine learning repo `git clone https://github.com/dotnet/machinelearning.git`
+2. Clone the machine learning repo `git clone --recursive https://github.com/dotnet/machinelearning.git`
 3. Navigate to the `machinelearning` directory
 4. Run the build script `./build.sh`
 
