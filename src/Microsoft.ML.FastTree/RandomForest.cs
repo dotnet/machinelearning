@@ -30,7 +30,7 @@ namespace Microsoft.ML.Trainers.FastTree
         /// </summary>
         protected RandomForestTrainerBase(IHostEnvironment env, SchemaShape.Column label, string featureColumn,
             string weightColumn = null, string groupIdColumn = null, bool quantileEnabled = false, Action<TArgs> advancedSettings = null)
-            : base(env, label, featureColumn, weightColumn, groupIdColumn, advancedSettings)
+            : base(env, label, featureColumn, weightColumn, groupIdColumn, advancedSettings: advancedSettings)
         {
             _quantileEnabled = quantileEnabled;
         }

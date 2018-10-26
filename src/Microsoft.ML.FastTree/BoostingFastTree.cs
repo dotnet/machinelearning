@@ -21,10 +21,20 @@ namespace Microsoft.ML.Trainers.FastTree
         {
         }
 
-        protected BoostingFastTreeTrainerBase(IHostEnvironment env, SchemaShape.Column label, string featureColumn,
-            string weightColumn = null, string groupIdColumn = null, Action<TArgs> advancedSettings = null)
-            : base(env, label, featureColumn, weightColumn, groupIdColumn, advancedSettings)
+        protected BoostingFastTreeTrainerBase(IHostEnvironment env,
+            SchemaShape.Column label,
+            string featureColumn,
+            string weightColumn = null,
+            string groupIdColumn = null,
+            int numLeaves = Defaults.NumLeaves,
+            int numTrees = Defaults.NumTrees,
+            int minDocumentsInLeafs = Defaults.MinDocumentsInLeafs,
+            double learningRate = Defaults.LearningRates,
+            Action<TArgs> advancedSettings = null)
+            : base(env, label, featureColumn, weightColumn, groupIdColumn, numLeaves, numTrees, minDocumentsInLeafs, advancedSettings)
         {
+            //override with the directly provided values.
+            Args.LearningRates = learningRate;
         }
 
         protected override void CheckArgs(IChannel ch)

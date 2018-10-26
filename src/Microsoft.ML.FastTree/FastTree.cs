@@ -92,8 +92,15 @@ namespace Microsoft.ML.Trainers.FastTree
         /// <summary>
         /// Constructor to use when instantiating the classes deriving from here through the API.
         /// </summary>
-        private protected FastTreeTrainerBase(IHostEnvironment env, SchemaShape.Column label, string featureColumn,
-            string weightColumn = null, string groupIdColumn = null, Action<TArgs> advancedSettings = null)
+        private protected FastTreeTrainerBase(IHostEnvironment env,
+            SchemaShape.Column label,
+            string featureColumn,
+            string weightColumn = null,
+            string groupIdColumn = null,
+            int numLeaves = Defaults.NumLeaves,
+            int numTrees = Defaults.NumTrees,
+            int minDocumentsInLeafs = Defaults.MinDocumentsInLeafs,
+            Action<TArgs> advancedSettings = null)
             : base(Contracts.CheckRef(env, nameof(env)).Register(RegisterName), TrainerUtils.MakeR4VecFeature(featureColumn), label, TrainerUtils.MakeR4ScalarWeightColumn(weightColumn))
         {
             Args = new TArgs();
@@ -112,6 +119,11 @@ namespace Microsoft.ML.Trainers.FastTree
 
             if (groupIdColumn != null)
                 Args.GroupIdColumn = groupIdColumn;
+
+            //override with the directly provided values.
+            Args.NumLeaves = numLeaves;
+            Args.NumTrees = numTrees;
+            Args.MinDocumentsInLeafs = minDocumentsInLeafs;
 
             // The discretization step renders this trainer non-parametric, and therefore it does not need normalization.
             // Also since it builds its own internal discretized columnar structures, it cannot benefit from caching.

@@ -59,7 +59,7 @@ namespace Microsoft.ML.Trainers.FastTree
         /// <param name="advancedSettings">A delegate to apply all the advanced arguments to the algorithm.</param>
         public FastTreeTweedieTrainer(IHostEnvironment env, string labelColumn, string featureColumn,
             string groupIdColumn = null, string weightColumn = null, Action<Arguments> advancedSettings = null)
-            : base(env, TrainerUtils.MakeR4ScalarLabel(labelColumn), featureColumn, weightColumn, groupIdColumn, advancedSettings)
+            : base(env, TrainerUtils.MakeR4ScalarLabel(labelColumn), featureColumn, weightColumn, groupIdColumn, advancedSettings: advancedSettings)
         {
             Host.CheckNonEmpty(labelColumn, nameof(labelColumn));
             Host.CheckNonEmpty(featureColumn, nameof(featureColumn));

@@ -72,7 +72,7 @@ namespace Microsoft.ML.Trainers.FastTree
             int minDocumentsInLeafs = Defaults.MinDocumentsInLeafs,
             double learningRate = Defaults.LearningRates,
             Action<Arguments> advancedSettings = null)
-            : base(env, TrainerUtils.MakeR4ScalarLabel(labelColumn), featureColumn, weightColumn, null, advancedSettings)
+            : base(env, TrainerUtils.MakeR4ScalarLabel(labelColumn), featureColumn, weightColumn, null, numLeaves, numTrees, minDocumentsInLeafs, learningRate, advancedSettings)
         {
             Host.CheckNonEmpty(labelColumn, nameof(labelColumn));
             Host.CheckNonEmpty(featureColumn, nameof(featureColumn));

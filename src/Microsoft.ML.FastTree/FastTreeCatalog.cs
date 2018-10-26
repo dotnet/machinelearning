@@ -94,7 +94,7 @@ namespace Microsoft.ML
         {
             Contracts.CheckValue(ctx, nameof(ctx));
             var env = CatalogUtils.GetEnvironment(ctx);
-            return new FastTreeRankingTrainer(env, label, features, groupId, weights, advancedSettings);
+            return new FastTreeRankingTrainer(env, label, features, groupId, weights, advancedSettings: advancedSettings);
         }
     }
 }

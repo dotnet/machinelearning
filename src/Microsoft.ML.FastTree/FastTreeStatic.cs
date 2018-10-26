@@ -153,7 +153,7 @@ namespace Microsoft.ML.StaticPipe
             var rec = new TrainerEstimatorReconciler.Ranker<TVal>(
                (env, labelName, featuresName, groupIdName, weightsName) =>
                {
-                   var trainer = new FastTreeRankingTrainer(env, labelName, featuresName, groupIdName, weightsName, advancedSettings);
+                   var trainer = new FastTreeRankingTrainer(env, labelName, featuresName, groupIdName, weightsName, numLeaves, numTrees, minDatapointsInLeafs, learningRate, advancedSettings);
                    if (onFit != null)
                        return trainer.WithOnFitDelegate(trans => onFit(trans.Model));
                    return trainer;
