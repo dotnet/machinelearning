@@ -8,6 +8,7 @@ using Microsoft.ML.Runtime.Recommender;
 using Microsoft.ML.StaticPipe;
 using Microsoft.ML.Trainers;
 using System;
+using System.Runtime.InteropServices;
 using Xunit;
 
 namespace Microsoft.ML.Tests.TrainerEstimators
@@ -95,20 +96,21 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                 var metrices = mlContext.Regression.Evaluate(prediction, label: labelColumnName, score: scoreColumnName);
 
                 // Determine if the selected metric is reasonable for different platforms
-                double tolerance = Math.Pow(10, -6); // -7 sometime leads to a test failure on Mac
-                if (Environment.OSVersion.Platform == PlatformID.Unix)
+                double tolerance = Math.Pow(10, -7);
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                 {
                     // Unix case
                     var expectedUnixL2Error = 0.616821448679879; // Unix baseline
                     Assert.InRange(metrices.L2, expectedUnixL2Error - tolerance, expectedUnixL2Error + tolerance);
                 }
-                else if (Environment.OSVersion.Platform == PlatformID.MacOSX)
+                else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+
                 {
                     // Mac case
                     var expectedMacL2Error = 0.61192207960271; // Mac baseline
-                    Assert.InRange(metrices.L2, expectedMacL2Error - tolerance, expectedMacL2Error + tolerance);
+                    Assert.InRange(metrices.L2, expectedMacL2Error - 5e-3, expectedMacL2Error + 5e-3); // 1e-7 is too small for Mac so we try 1e-5
                 }
-                else
+                else if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                 {
                     // Windows case
                     var expectedWindowsL2Error = 0.61528733643754685; // Windows baseline
@@ -120,47 +122,50 @@ namespace Microsoft.ML.Tests.TrainerEstimators
         [Fact]
         public void MatrixFactorizationStatic()
         {
-            using (var env = new LocalEnvironment(seed: 1, conc: 1))
-            {
-                var dataPath = GetDataPath(TestDatasets.trivialMatrixFactorization.trainFilename);
-                var dataSource = new MultiFileSource(dataPath);
-                var ctx = new RegressionContext(env);
-                var reader = TextLoader.CreateReader(env, c => (label: c.LoadFloat(0), matrixColumnIndex: c.LoadUInt32Key(1, 0, 19), matrixRowIndex: c.LoadUInt32Key(2, 0, 39)));
+            // Create a new context for ML.NET operations. It can be used for exception tracking and logging, 
+            // as a catalog of available operations and as the source of randomness.
+            var mlContext = new MLContext(seed: 1, conc: 1);
 
-                var testData = reader.Read(new MultiFileSource(GetDataPath(TestDatasets.trivialMatrixFactorization.testFilename)));
+            // Specify where to find data file
+            var dataPath = GetDataPath(TestDatasets.trivialMatrixFactorization.trainFilename);
+            var dataSource = new MultiFileSource(dataPath);
 
-                // The parameter that will be into the onFit method below. The obtained predictor will be assigned to this variable
-                // so that we will be able to touch it.
-                MatrixFactorizationPredictor pred = null;
+            // Read data file. The file contains 3 columns, label (float value), matrixColumnIndex (unsigned integer key), and matrixRowIndex (unsigned integer key).
+            // More specifically, LoadUInt32Key(1, 0, 19) means that the matrixColumnIndex column is read from the 2nd (indexed by 1) column in the data file and as
+            // a key type (stored as 32-bit unsigned integer) ranged from 0 to 19 (aka the training matrix has 20 columns).
+            var reader = mlContext.Data.TextReader(ctx => (label: ctx.LoadFloat(0), matrixColumnIndex: ctx.LoadUInt32Key(1, 0, 19), matrixRowIndex: ctx.LoadUInt32Key(2, 0, 39)));
 
-                // Create a statically-typed matrix factorization estimator. The MatrixFactorization's input and output defined in MatrixFactorizationStatic
-                // tell what (aks a Scalar<float>) is expected. Notice that only one thread is used for deterministic outcome.
-                var matrixFactorizationEstimator = reader.MakeNewEstimator()
-                    .Append(r => (r.label, score: ctx.Trainers.MatrixFactorization(r.label, r.matrixRowIndex, r.matrixColumnIndex, onFit: p => pred = p,
-                    advancedSettings: args => { args.NumThreads = 1; })));
+            // The parameter that will be into the onFit method below. The obtained predictor will be assigned to this variable
+            // so that we will be able to touch it.
+            MatrixFactorizationPredictor pred = null;
 
-                // Create a pipeline from the reader (the 1st step) and the matrix factorization estimator (the 2nd step).
-                var pipe = reader.Append(matrixFactorizationEstimator);
+            // Create a statically-typed matrix factorization estimator. The MatrixFactorization's input and output defined in MatrixFactorizationStatic
+            // tell what (aks a Scalar<float>) is expected. Notice that only one thread is used for deterministic outcome.
+            var matrixFactorizationEstimator = reader.MakeNewEstimator()
+                .Append(r => (r.label, score: mlContext.Regression.Trainers.MatrixFactorization(r.label, r.matrixRowIndex, r.matrixColumnIndex, onFit: p => pred = p,
+                advancedSettings: args => { args.NumThreads = 1; })));
 
-                // pred will be assigned by the onFit method once the training process is finished, so pred must be null before training.
-                Assert.Null(pred);
+            // Create a pipeline from the reader (the 1st step) and the matrix factorization estimator (the 2nd step).
+            var pipe = reader.Append(matrixFactorizationEstimator);
 
-                // Train the pipeline on the given data file. Steps in the pipeline are sequentially fitted (by calling their Fit function).
-                var model = pipe.Fit(dataSource);
+            // pred will be assigned by the onFit method once the training process is finished, so pred must be null before training.
+            Assert.Null(pred);
 
-                // pred got assigned so that one can inspect the predictor trained in pipeline.
-                Assert.NotNull(pred);
+            // Train the pipeline on the given data file. Steps in the pipeline are sequentially fitted (by calling their Fit function).
+            var model = pipe.Fit(dataSource);
 
-                // Feed the data file into the trained pipeline. In the pipeline, it would be loaded by TextLoader (the 1st step) and then the output of the
-                // TextLoader would be fed into MatrixFactorizationEstimator.
-                var estimatedData = model.Read(dataSource);
+            // pred got assigned so that one can inspect the predictor trained in pipeline.
+            Assert.NotNull(pred);
 
-                // After the training process, the metrics for regression problems can be computed.
-                var metrics = ctx.Evaluate(estimatedData, r => r.label, r => r.score);
+            // Feed the data file into the trained pipeline. The data would be loaded by TextLoader (the 1st step) and then the output of the
+            // TextLoader would be fed into MatrixFactorizationEstimator.
+            var estimatedData = model.Read(dataSource);
 
-                // Naive test. Just make sure the pipeline runs.
-                Assert.True(metrics.L2 > 0);
-            }
+            // After the training process, the metrics for regression problems can be computed.
+            var metrics = mlContext.Regression.Evaluate(estimatedData, r => r.label, r => r.score);
+
+            // Naive test. Just make sure the pipeline runs.
+            Assert.True(metrics.L2 > 0);
         }
 
         private TextLoader.Arguments GetLoaderArgs(string labelColumnName, string matrixColumnIndexColumnName, string matrixRowIndexColumnName)
