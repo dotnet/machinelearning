@@ -18,7 +18,7 @@ namespace Microsoft.ML.StaticPipe
     public static class LightGbmTrainers
     {
         /// <summary>
-        /// Predict a target using a tree regression model trained with the LightGbm trainer.
+        /// Predict a target using a tree regression model trained with the <see cref="LightGbmRegressorTrainer"/>.
         /// </summary>
         /// <param name="ctx">The <see cref="RegressionContext"/>.</param>
         /// <param name="label">The label column.</param>
@@ -66,7 +66,7 @@ namespace Microsoft.ML.StaticPipe
         }
 
         /// <summary>
-        /// Predict a target using a tree binary classification model trained with the LightGbm trainer.
+        /// Predict a target using a tree binary classification model trained with the <see cref="LightGbmBinaryTrainer"/>.
         /// </summary>
         /// <param name="ctx">The <see cref="BinaryClassificationContext"/>.</param>
         /// <param name="label">The label column.</param>
@@ -111,7 +111,7 @@ namespace Microsoft.ML.StaticPipe
         }
 
         /// <summary>
-        /// LightGbm <see cref="RankingContext"/> extension method.
+        /// Ranks a series of inputs based on their relevance, training a decision tree ranking model through the <see cref="LightGbmRankingTrainer"/>.
         /// </summary>
         /// <param name="ctx">The <see cref="RankingContext"/>.</param>
         /// <param name="label">The label column.</param>
@@ -157,7 +157,7 @@ namespace Microsoft.ML.StaticPipe
         }
 
         /// <summary>
-        /// Predict a target using a tree multiclass classification model trained with the LightGbm trainer.
+        /// Predict a target using a tree multiclass classification model trained with the <see cref="LightGbmMulticlassTrainer"/>.
         /// </summary>
         /// <param name="ctx">The multiclass classification context trainer object.</param>
         /// <param name="label">The label, or dependent variable.</param>

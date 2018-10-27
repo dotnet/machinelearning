@@ -1438,7 +1438,7 @@ namespace Microsoft.ML.Trainers
         /// if both are present and have different values.
         /// The columns names, however need to be provided directly, not through the <paramref name="advancedSettings"/>.</param>
         public LinearClassificationTrainer(IHostEnvironment env,
-        string featureColumn,
+            string featureColumn,
             string labelColumn,
             string weightColumn = null,
             ISupportSdcaClassificationLoss loss = null,

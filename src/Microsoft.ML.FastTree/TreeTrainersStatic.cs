@@ -126,6 +126,7 @@ namespace Microsoft.ML.StaticPipe
         /// <param name="learningRate">The learning rate.</param>
         /// <param name="advancedSettings">Algorithm advanced settings.</param>
         /// <param name="onFit">A delegate that is called every time the
+        /// <param name="onFit">A delegate that is called every time the
         /// <see cref="Estimator{TInShape, TOutShape, TTransformer}.Fit(DataView{TInShape})"/> method is called on the
         /// <see cref="Estimator{TInShape, TOutShape, TTransformer}"/> instance created out of this. This delegate will receive
         /// the linear model that was trained. Note that this action cannot change the result in any way;

@@ -37,7 +37,7 @@ namespace Microsoft.ML.Trainers.FastTree
             if (Args.LearningRates != learningRate)
             {
                 using (var ch = Host.Start($"Setting learning rate to: {learningRate} as supplied in the direct arguments."))
-                Args.LearningRates = learningRate;
+                    Args.LearningRates = learningRate;
             }
         }
 
