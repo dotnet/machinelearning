@@ -3,10 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.ComponentModel.Composition.Hosting;
 
 namespace Microsoft.ML.Runtime.Data
 {
-    using System.ComponentModel.Composition.Hosting;
     using Stopwatch = System.Diagnostics.Stopwatch;
 
     /// <summary>
