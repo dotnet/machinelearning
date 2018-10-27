@@ -124,11 +124,6 @@ namespace Microsoft.ML.Trainers.FastTree
             if (groupIdColumn != null)
                 Args.GroupIdColumn = Optional<string>.Explicit(groupIdColumn); ;
 
-            //override with the directly provided values.
-            Args.NumLeaves = numLeaves;
-            Args.NumTrees = numTrees;
-            Args.MinDocumentsInLeafs = minDocumentsInLeafs;
-
             // The discretization step renders this trainer non-parametric, and therefore it does not need normalization.
             // Also since it builds its own internal discretized columnar structures, it cannot benefit from caching.
             // Finally, even the binary classifiers, being logitboost, tend to not benefit from external calibration.
