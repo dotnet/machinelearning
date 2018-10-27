@@ -24,7 +24,7 @@ namespace Microsoft.ML.Samples.Static
         {
             // Create a new environment for ML.NET operations. It can be used for exception tracking and logging, 
             // as well as the source of randomness.
-            var env = new LocalEnvironment();
+            var ml = new MLContext();
 
             IEnumerable<SamplesUtils.DatasetUtils.SampleInput> data = SamplesUtils.DatasetUtils.GetInputData();
 
@@ -35,11 +35,11 @@ namespace Microsoft.ML.Samples.Static
             // -0.85;    -0.91;      1.81;      0.02;       402.20
 
             // Convert to an DataView.
-            var trainingData = env.CreateStreamingDataView(data);
+            var trainingData = ml.CreateStreamingDataView(data);
 
             // Convert the IDataView to statically-typed data view, so its schema can be used on the 
             // pipelines that will get built in top of it. 
-            var staticData = trainingData.AssertStatic(env, c => (
+            var staticData = trainingData.AssertStatic(ml, c => (
                    Feature0: c.R4.Scalar,
                    Feature1: c.R4.Scalar,
                    Feature2: c.R4.Scalar,

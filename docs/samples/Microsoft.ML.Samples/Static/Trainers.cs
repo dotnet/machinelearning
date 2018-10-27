@@ -27,7 +27,7 @@ namespace Microsoft.ML.Samples.Static
             string dataFile = SamplesUtils.DatasetUtils.DownloadHousingRegressionDataset();
 
             // Creating the ML.Net IHostEnvironment object, needed for the pipeline
-            var env = new LocalEnvironment(seed: 0);
+            var env = new MLContext(seed: 0);
 
             // Creating the ML context, based on the task performed.
             var regressionContext = new RegressionContext(env);
@@ -86,7 +86,7 @@ namespace Microsoft.ML.Samples.Static
             string dataFile = SamplesUtils.DatasetUtils.DownloadHousingRegressionDataset();
 
             // Creating the ML.Net IHostEnvironment object, needed for the pipeline
-            var env = new LocalEnvironment(seed: 0);
+            var env = new MLContext(seed: 0);
 
             // Creating the ML context, based on the task performed.
             var regressionContext = new RegressionContext(env);
@@ -140,7 +140,7 @@ namespace Microsoft.ML.Samples.Static
             string dataFile = SamplesUtils.DatasetUtils.DownloadHousingRegressionDataset();
 
             // Creating the ML.Net IHostEnvironment object, needed for the pipeline
-            var env = new LocalEnvironment(seed: 0);
+            var env = new MLContext(seed: 0);
 
             // Creating the ML context, based on the task performed.
             var regressionContext = new RegressionContext(env);

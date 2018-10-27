@@ -12,7 +12,7 @@ namespace Microsoft.ML.Runtime.Data
     /// <summary>
     /// An ML.NET environment for local execution.
     /// </summary>
-    public sealed class LocalEnvironment : HostEnvironmentBase<LocalEnvironment>
+    internal sealed class LocalEnvironment : HostEnvironmentBase<LocalEnvironment>
     {
         private readonly Func<CompositionContainer> _compositionContainerFactory;
 

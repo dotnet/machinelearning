@@ -28,7 +28,7 @@ namespace Microsoft.ML.Benchmarks
 
         private const int Count = 100_000;
 
-        private readonly IHostEnvironment _env = new LocalEnvironment();
+        private readonly IHostEnvironment _env = new MLContext();
 
         private Counted _counted;
         private ValueGetter<uint> _getter;
