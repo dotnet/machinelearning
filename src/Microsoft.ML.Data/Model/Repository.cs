@@ -226,7 +226,7 @@ namespace Microsoft.ML.Runtime.Model
         /// When we load those entries into our look-up dictionary, we normalize them to always use
         /// backward slashes.
         /// </summary>
-        protected static string NormalizeForArchiveEntry(string path) => path?.Replace('/', '\\');
+        protected static string NormalizeForArchiveEntry(string path) => path?.Replace('/', Path.DirectorySeparatorChar);
 
         /// <summary>
         /// When building paths to our local file system, we want to force both forward and backward slashes
