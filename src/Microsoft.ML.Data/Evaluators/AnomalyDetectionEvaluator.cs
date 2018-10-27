@@ -709,24 +709,11 @@ namespace Microsoft.ML.Runtime.Data
             var pFormatName = string.Format(FoldDrAtPFormat, _p);
             var numAnomName = string.Format(FoldDrAtNumAnomaliesFormat, numAnomalies);
 
-            var args = new CopyColumnsTransform.Arguments();
-            var cols = new List<CopyColumnsTransform.Column>()
+            (string Source, string Name)[] cols =
             {
-                new CopyColumnsTransform.Column()
-                {
-                    Name = kFormatName,
-                    Source = AnomalyDetectionEvaluator.OverallMetrics.DrAtK
-                },
-                new CopyColumnsTransform.Column()
-                {
-                    Name = pFormatName,
-                    Source = AnomalyDetectionEvaluator.OverallMetrics.DrAtPFpr
-                },
-                new CopyColumnsTransform.Column()
-                {
-                    Name = numAnomName,
-                    Source=AnomalyDetectionEvaluator.OverallMetrics.DrAtNumPos
-                }
+                (AnomalyDetectionEvaluator.OverallMetrics.DrAtK, kFormatName),
+                (AnomalyDetectionEvaluator.OverallMetrics.DrAtPFpr, pFormatName),
+                (AnomalyDetectionEvaluator.OverallMetrics.DrAtNumPos, numAnomName)
             };
 
             // List of columns to keep, note that the order specified determines the order of the output
@@ -739,8 +726,7 @@ namespace Microsoft.ML.Runtime.Data
             colsToKeep.Add(AnomalyDetectionEvaluator.OverallMetrics.ThreshAtNumPos);
             colsToKeep.Add(BinaryClassifierEvaluator.Auc);
 
-            args.Column = cols.ToArray();
-            overall = CopyColumnsTransform.Create(Host, args, overall);
+            overall = new CopyColumnsTransform(Host, cols).Transform(overall);
             IDataView fold = SelectColumnsTransform.CreateKeep(Host, overall, colsToKeep.ToArray());
 
             string weightedFold;

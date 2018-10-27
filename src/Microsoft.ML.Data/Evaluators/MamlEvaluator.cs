@@ -214,7 +214,7 @@ namespace Microsoft.ML.Runtime.Data
 
             // Make a list of column names that Maml outputs as part of the per-instance data view, and then wrap
             // the per-instance data computed by the evaluator in a SelectColumnsTransform.
-            var cols = new List<CopyColumnsTransform.Column>();
+            var cols = new List<(string Source, string Name)>();
             var colsToKeep = new List<string>();
 
             // If perInst is the result of cross-validation and contains a fold Id column, include it.
@@ -233,7 +233,7 @@ namespace Microsoft.ML.Runtime.Data
             }
             else
             {
-                cols.Add(new CopyColumnsTransform.Column() { Source = perInst.Schema.Name.Name, Name = "Instance" });
+                cols.Add((perInst.Schema.Name.Name, "Instance"));
                 colsToKeep.Add("Instance");
             }
 
@@ -245,9 +245,7 @@ namespace Microsoft.ML.Runtime.Data
             foreach (var col in GetPerInstanceColumnsToSave(perInst.Schema))
                 colsToKeep.Add(col);
 
-            var copyArgs = new CopyColumnsTransform.Arguments();
-            copyArgs.Column = cols.ToArray();
-            idv = CopyColumnsTransform.Create(Host, copyArgs, idv);
+            idv = new CopyColumnsTransform(Host, cols.ToArray()).Transform(idv);
             idv = SelectColumnsTransform.CreateKeep(Host, idv, colsToKeep.ToArray());
             return GetPerInstanceMetricsCore(idv, perInst.Schema);
         }

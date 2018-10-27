@@ -1334,25 +1334,12 @@ namespace Microsoft.ML.Runtime.Data
             if (!metrics.TryGetValue(MetricKinds.ConfusionMatrix, out conf))
                 throw ch.Except("No overall metrics found");
 
-            var args = new CopyColumnsTransform.Arguments();
-            var cols = new List<CopyColumnsTransform.Column>()
-                {
-                    new CopyColumnsTransform.Column()
-                    {
-                        Name = FoldAccuracy,
-                        Source = BinaryClassifierEvaluator.Accuracy
-                    },
-                    new CopyColumnsTransform.Column()
-                    {
-                        Name = FoldLogLoss,
-                        Source = BinaryClassifierEvaluator.LogLoss
-                    },
-                    new CopyColumnsTransform.Column()
-                    {
-                        Name = FoldLogLosRed,
-                        Source = BinaryClassifierEvaluator.LogLossReduction
-                    }
-                };
+            (string Source, string Name)[] cols =
+            {
+                (BinaryClassifierEvaluator.Accuracy, FoldAccuracy),
+                (BinaryClassifierEvaluator.LogLoss, FoldLogLoss),
+                (BinaryClassifierEvaluator.LogLossReduction, FoldLogLosRed)
+            };
 
             var colsToKeep = new List<string>();
             colsToKeep.Add(FoldAccuracy);
@@ -1369,8 +1356,7 @@ namespace Microsoft.ML.Runtime.Data
             if (fold.Schema.TryGetColumnIndex(MetricKinds.ColumnNames.StratVal, out index))
                 colsToKeep.Add(MetricKinds.ColumnNames.StratVal);
 
-            args.Column = cols.ToArray();
-            fold = CopyColumnsTransform.Create(Host, args, fold);
+            fold = new CopyColumnsTransform(Host, cols).Transform(fold);
 
             // Select the columns that are specified in the Copy
             fold = SelectColumnsTransform.CreateKeep(Host, fold, colsToKeep.ToArray());

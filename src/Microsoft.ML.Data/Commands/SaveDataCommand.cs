@@ -132,7 +132,7 @@ namespace Microsoft.ML.Runtime.Data
             {
                 var keepColumns = Args.Columns
                     .Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries).ToArray();
-                if (keepColumns.Length > 0)
+                if (Utils.Size(keepColumns) > 0)
                     data = SelectColumnsTransform.CreateKeep(Host, data, keepColumns);
             }
 

@@ -232,7 +232,7 @@ namespace Microsoft.ML.Transforms
             // int: sizeof(Float)
             // bindings
             int cbFloat = ctx.Reader.ReadInt32();
-            //env.CheckDecode(cbFloat == sizeof(Float));
+            env.CheckDecode(cbFloat == sizeof(float));
 
             // *** Binary format ***
             // bool: whether to keep (vs drop) the named columns
@@ -390,6 +390,7 @@ namespace Microsoft.ML.Transforms
             args.KeepColumns = keepColumns;
             return SelectColumnsTransform.Create(env, args, input);
         }
+
         public static IDataTransform CreateKeep(IHostEnvironment env, IDataView input, bool keepHidden, params string[] keepColumns)
         {
             Arguments args = new Arguments();
