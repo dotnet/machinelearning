@@ -19,6 +19,7 @@ using System.Linq;
 using System.Text;
 using Xunit;
 using Xunit.Abstractions;
+using static Microsoft.ML.Runtime.TextAnalytics.LdaTransform;
 
 namespace Microsoft.ML.StaticPipelineTesting
 {
@@ -675,13 +676,13 @@ namespace Microsoft.ML.StaticPipelineTesting
             var dataSource = new MultiFileSource(dataPath);
             var data = reader.Read(dataSource);
 
+            // This will be populated once we call fit.
+            LdaState ldaState;
+
             var est = data.MakeNewEstimator()
                 .Append(r => (
                     r.label,
-                    topics: r.text.ToBagofWords().ToLdaTopicVector(numTopic: 10, advancedSettings: s =>
-                    {
-                        s.AlphaSum = 10;
-                    })));
+                    topics: r.text.ToBagofWords().ToLdaTopicVector(numTopic: 5, numSummaryTermPerTopic:3, alphaSum: 10, onFit: m => ldaState = m.LdaState )));
 
             var tdata = est.Fit(data).Transform(data);
             var schema = tdata.AsDynamic.Schema;

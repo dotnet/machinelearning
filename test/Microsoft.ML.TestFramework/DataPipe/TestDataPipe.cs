@@ -580,7 +580,6 @@ namespace Microsoft.ML.Runtime.RunTests
 
             LdaTransform.Column col = new LdaTransform.Column();
             col.Source = "F1V";
-            col.Name = "F2V";
             col.NumTopic = 20;
             col.NumTopic = 3;
             col.NumSummaryTermPerTopic = 3;
@@ -639,7 +638,6 @@ namespace Microsoft.ML.Runtime.RunTests
             var col = new LdaTransform.Column()
             {
                 Source = "Zeros",
-                Name = "Zeros_1"
             };
             var args = new LdaTransform.Arguments()
             {

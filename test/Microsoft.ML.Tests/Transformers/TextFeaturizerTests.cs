@@ -251,10 +251,9 @@ namespace Microsoft.ML.Tests.Transformers
                 .Read(sentimentDataPath);
 
             var est = new WordBagEstimator(env, "text", "bag_of_words").
-                Append(new LdaEstimator(env, "bag_of_words", "topics", 10, advancedSettings: s => {
-                    s.NumIterations = 10;
-                    s.ResetRandomGenerator = true;
-                }));
+                Append(new LdaEstimator(env, "bag_of_words", "topics", 10, 
+                    numIterations: 10, 
+                    resetRandomGenerator: true));
 
             // The following call fails because of the following issue
             // https://github.com/dotnet/machinelearning/issues/969

@@ -59,48 +59,48 @@ namespace Microsoft.ML.Runtime.TextAnalytics
             [Argument(ArgumentType.AtMostOnce, HelpText = "The number of topics in the LDA", SortOrder = 50)]
             [TGUI(SuggestedSweeps = "20,40,100,200")]
             [TlcModule.SweepableDiscreteParam("NumTopic", new object[] { 20, 40, 100, 200 })]
-            public int NumTopic = 100;
+            public int NumTopic = LdaEstimator.Defaults.NumTopic;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Dirichlet prior on document-topic vectors")]
             [TGUI(SuggestedSweeps = "1,10,100,200")]
             [TlcModule.SweepableDiscreteParam("AlphaSum", new object[] { 1, 10, 100, 200 })]
-            public Single AlphaSum = 100;
+            public Single AlphaSum = LdaEstimator.Defaults.AlphaSum;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Dirichlet prior on vocab-topic vectors")]
             [TGUI(SuggestedSweeps = "0.01,0.015,0.07,0.02")]
             [TlcModule.SweepableDiscreteParam("Beta", new object[] { 0.01f, 0.015f, 0.07f, 0.02f })]
-            public Single Beta = 0.01f;
+            public Single Beta = LdaEstimator.Defaults.Beta;
 
             [Argument(ArgumentType.Multiple, HelpText = "Number of Metropolis Hasting step")]
             [TGUI(SuggestedSweeps = "2,4,8,16")]
             [TlcModule.SweepableDiscreteParam("Mhstep", new object[] { 2, 4, 8, 16 })]
-            public int Mhstep = 4;
+            public int Mhstep = LdaEstimator.Defaults.Mhstep;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Number of iterations", ShortName = "iter")]
             [TGUI(SuggestedSweeps = "100,200,300,400")]
             [TlcModule.SweepableDiscreteParam("NumIterations", new object[] { 100, 200, 300, 400 })]
-            public int NumIterations = 200;
+            public int NumIterations = LdaEstimator.Defaults.NumIterations;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Compute log likelihood over local dataset on this iteration interval", ShortName = "llInterval")]
-            public int LikelihoodInterval = 5;
+            public int LikelihoodInterval = LdaEstimator.Defaults.LikelihoodInterval;
 
             // REVIEW: Should change the default when multi-threading support is optimized.
             [Argument(ArgumentType.AtMostOnce, HelpText = "The number of training threads. Default value depends on number of logical processors.", ShortName = "t", SortOrder = 50)]
             public int? NumThreads;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "The threshold of maximum count of tokens per doc", ShortName = "maxNumToken", SortOrder = 50)]
-            public int NumMaxDocToken = 512;
+            public int NumMaxDocToken = LdaEstimator.Defaults.NumMaxDocToken;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "The number of words to summarize the topic", ShortName = "ns")]
-            public int NumSummaryTermPerTopic = 10;
+            public int NumSummaryTermPerTopic = LdaEstimator.Defaults.NumSummaryTermPerTopic;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "The number of burn-in iterations", ShortName = "burninIter")]
             [TGUI(SuggestedSweeps = "10,20,30,40")]
             [TlcModule.SweepableDiscreteParam("NumBurninIterations", new object[] { 10, 20, 30, 40 })]
-            public int NumBurninIterations = 10;
+            public int NumBurninIterations = LdaEstimator.Defaults.NumBurninIterations;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Reset the random number generator for each document", ShortName = "reset")]
-            public bool ResetRandomGenerator;
+            public bool ResetRandomGenerator = LdaEstimator.Defaults.ResetRandomGenerator;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Whether to output the topic-word summary in text format", ShortName = "summary")]
             public bool OutputTopicWordSummary;
@@ -182,17 +182,17 @@ namespace Microsoft.ML.Runtime.TextAnalytics
             /// </summary>
             /// <param name="input">Name of input column.</param>
             /// <param name="output">Name of output column.</param>
-            /// <param name="numTopic"></param>
-            /// <param name="alphaSum"></param>
-            /// <param name="beta"></param>
-            /// <param name="mhStep"></param>
-            /// <param name="numIter"></param>
-            /// <param name="likelihoodInterval"></param>
-            /// <param name="numThread"></param>
-            /// <param name="numMaxDocToken"></param>
-            /// <param name="numSummaryTermPerTopic"></param>
-            /// <param name="numBurninIter"></param>
-            /// <param name="resetRandomGenerator"></param>
+            /// <param name="numTopic">The number of topics in the LDA.</param>
+            /// <param name="alphaSum">Dirichlet prior on document-topic vectors</param>
+            /// <param name="beta">Dirichlet prior on vocab-topic vectors</param>
+            /// <param name="mhStep">Number of Metropolis Hasting step</param>
+            /// <param name="numIter">Number of iterations</param>
+            /// <param name="likelihoodInterval">Compute log likelihood over local dataset on this iteration interval</param>
+            /// <param name="numThread">The number of training threads. Default value depends on number of logical processors.</param>
+            /// <param name="numMaxDocToken">The threshold of maximum count of tokens per doc</param>
+            /// <param name="numSummaryTermPerTopic">The number of words to summarize the topic</param>
+            /// <param name="numBurninIter">The number of burn-in iterations</param>
+            /// <param name="resetRandomGenerator">Reset the random number generator for each document</param>
             public ColumnInfo(string input, string output, int numTopic, Single alphaSum, Single beta, int mhStep, int numIter, int likelihoodInterval,
                 int numThread, int numMaxDocToken, int numSummaryTermPerTopic, int numBurninIter, bool resetRandomGenerator)
             {
@@ -212,9 +212,9 @@ namespace Microsoft.ML.Runtime.TextAnalytics
             }
         }
 
-        private sealed class LdaState : IDisposable
+        public sealed class LdaState : IDisposable
         {
-            public readonly TransformInfo InfoEx;
+            internal readonly TransformInfo InfoEx;
             private readonly int _numVocab;
             private readonly object _preparationSyncRoot;
             private readonly object _testSyncRoot;
@@ -227,7 +227,7 @@ namespace Microsoft.ML.Runtime.TextAnalytics
                 _testSyncRoot = new object();
             }
 
-            public LdaState(IExceptionContext ectx, TransformInfo ex, int numVocab)
+            internal LdaState(IExceptionContext ectx, TransformInfo ex, int numVocab)
                 : this()
             {
                 Contracts.AssertValue(ectx);
@@ -251,7 +251,7 @@ namespace Microsoft.ML.Runtime.TextAnalytics
                     InfoEx.NumMaxDocToken);
             }
 
-            public LdaState(IExceptionContext ectx, ModelLoadContext ctx)
+            internal LdaState(IExceptionContext ectx, ModelLoadContext ctx)
                 : this()
             {
                 ectx.AssertValue(ctx);
@@ -508,7 +508,7 @@ namespace Microsoft.ML.Runtime.TextAnalytics
             }
         }
 
-        private sealed class TransformInfo
+        public sealed class TransformInfo
         {
             public readonly int NumTopic;
             public readonly Single AlphaSum;
@@ -522,7 +522,7 @@ namespace Microsoft.ML.Runtime.TextAnalytics
             public readonly int NumBurninIter;
             public readonly bool ResetRandomGenerator;
 
-            public TransformInfo(IExceptionContext ectx, ColumnInfo column)
+            internal TransformInfo(IExceptionContext ectx, ColumnInfo column)
             {
                 Contracts.AssertValue(ectx);
 
@@ -557,7 +557,7 @@ namespace Microsoft.ML.Runtime.TextAnalytics
                 ResetRandomGenerator = column.ResetRandomGenerator;
             }
 
-            public TransformInfo(IExceptionContext ectx, ModelLoadContext ctx)
+            internal TransformInfo(IExceptionContext ectx, ModelLoadContext ctx)
             {
                 Contracts.AssertValue(ectx);
                 ectx.AssertValue(ctx);
@@ -784,6 +784,12 @@ namespace Microsoft.ML.Runtime.TextAnalytics
             Dispose(false);
         }
 
+        public LdaState GetLdaState(int iinfo)
+        {
+            Contracts.Assert(0 <= iinfo && iinfo < _ldas.Length);
+            return _ldas[iinfo];
+        }
+
         // Factory method for SignatureLoadDataTransform.
         private static IDataTransform Create(IHostEnvironment env, ModelLoadContext ctx, IDataView input)
             => Create(env, ctx).MakeDataTransform(input);
@@ -808,7 +814,7 @@ namespace Microsoft.ML.Runtime.TextAnalytics
                 {
                     var item = args.Column[i];
                     cols[i] = new ColumnInfo(item.Source,
-                        item.Name,
+                        item.Name ?? item.Source,
                         item.NumTopic ?? args.NumTopic,
                         item.AlphaSum ?? args.AlphaSum,
                         item.Beta ?? args.Beta,
@@ -1021,6 +1027,21 @@ namespace Microsoft.ML.Runtime.TextAnalytics
     /// <include file='doc.xml' path='doc/members/member[@name="LightLDA"]/*' />
     public sealed class LdaEstimator : IEstimator<LdaTransform>
     {
+        internal static class Defaults
+        {
+            public const int NumTopic = 100;
+            public const Single AlphaSum = 100;
+            public const Single Beta = 0.01f;
+            public const int Mhstep = 4;
+            public const int NumIterations = 200;
+            public const int LikelihoodInterval = 5;
+            public const int NumThreads = 0;
+            public const int NumMaxDocToken = 512;
+            public const int NumSummaryTermPerTopic = 10;
+            public const int NumBurninIterations = 10;
+            public const bool ResetRandomGenerator = false;
+        }
+
         private readonly IHost _host;
         private readonly LdaTransform.ColumnInfo[] _columns;
 
@@ -1029,55 +1050,43 @@ namespace Microsoft.ML.Runtime.TextAnalytics
         /// <param name="inputColumn">The column containing text to tokenize.</param>
         /// <param name="outputColumn">The column containing output tokens. Null means <paramref name="inputColumn"/> is replaced.</param>
         /// <param name="numTopic">The number of topics in the LDA.</param>
-        /// <param name="advancedSettings">A delegate to apply all the advanced arguments to the algorithm.</param>
+        /// <param name="alphaSum">Dirichlet prior on document-topic vectors</param>
+        /// <param name="beta">Dirichlet prior on vocab-topic vectors</param>
+        /// <param name="mhstep">Number of Metropolis Hasting step</param>
+        /// <param name="numIterations">Number of iterations</param>
+        /// <param name="likelihoodInterval">Compute log likelihood over local dataset on this iteration interval</param>
+        /// <param name="numThreads">The number of training threads. Default value depends on number of logical processors.</param>
+        /// <param name="numMaxDocToken">The threshold of maximum count of tokens per doc</param>
+        /// <param name="numSummaryTermPerTopic">The number of words to summarize the topic</param>
+        /// <param name="numBurninIterations">The number of burn-in iterations</param>
+        /// <param name="resetRandomGenerator">Reset the random number generator for each document</param>
         public LdaEstimator(IHostEnvironment env,
             string inputColumn,
             string outputColumn = null,
-            int numTopic = 100,
-            Action<LdaTransform.Arguments> advancedSettings = null)
-            : this(env, new[] { (inputColumn, outputColumn ?? inputColumn) },
-                    numTopic,
-                    advancedSettings)
-        {
-        }
+            int numTopic = Defaults.NumTopic,
+            Single alphaSum = Defaults.AlphaSum,
+            Single beta = Defaults.Beta,
+            int mhstep = Defaults.Mhstep,
+            int numIterations = Defaults.NumIterations,
+            int likelihoodInterval = Defaults.LikelihoodInterval,
+            int numThreads = Defaults.NumThreads,
+            int numMaxDocToken = Defaults.NumMaxDocToken,
+            int numSummaryTermPerTopic = Defaults.NumSummaryTermPerTopic,
+            int numBurninIterations = Defaults.NumBurninIterations,
+            bool resetRandomGenerator = Defaults.ResetRandomGenerator)
+            : this(env, new[] { new LdaTransform.ColumnInfo(inputColumn, outputColumn ?? inputColumn,
+                numTopic, alphaSum, beta, mhstep, numIterations, likelihoodInterval, numThreads, numMaxDocToken,
+                numSummaryTermPerTopic, numBurninIterations, resetRandomGenerator) })
+        { }
 
         /// <include file='doc.xml' path='doc/members/member[@name="LightLDA"]/*' />
         /// <param name="env">The environment.</param>
         /// <param name="columns">Pairs of columns to compute LDA.</param>
-        /// <param name="numTopic">The number of topics in the LDA.</param>
-        /// <param name="advancedSettings">A delegate to apply all the advanced arguments to the algorithm.</param>
-        public LdaEstimator(IHostEnvironment env,
-            (string input, string output)[] columns,
-            int numTopic = 100,
-            Action<LdaTransform.Arguments> advancedSettings = null)
+        public LdaEstimator(IHostEnvironment env, LdaTransform.ColumnInfo[] columns)
         {
             Contracts.CheckValue(env, nameof(env));
             _host = env.Register(nameof(LdaEstimator));
-
-            var args = new LdaTransform.Arguments();
-            args.Column = columns.Select(x => new LdaTransform.Column { Source = x.input, Name = x.output }).ToArray();
-            args.NumTopic = numTopic;
-            advancedSettings?.Invoke(args);
-
-            var cols = new List<LdaTransform.ColumnInfo>();
-            foreach (var (input, output) in columns)
-            {
-                var colInfo = new LdaTransform.ColumnInfo(input, output,
-                    args.NumTopic,
-                    args.AlphaSum,
-                    args.Beta,
-                    args.Mhstep,
-                    args.NumIterations,
-                    args.LikelihoodInterval,
-                    args.NumThreads ?? 0,
-                    args.NumMaxDocToken,
-                    args.NumSummaryTermPerTopic,
-                    args.NumBurninIterations,
-                    args.ResetRandomGenerator);
-
-                cols.Add(colInfo);
-            }
-            _columns = cols.ToArray();
+            _columns = columns;
         }
 
         public SchemaShape GetOutputSchema(SchemaShape inputSchema)
