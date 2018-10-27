@@ -2,12 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+
+using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.RunTests;
 using Microsoft.ML.Runtime.Recommender;
 using Microsoft.ML.StaticPipe;
 using Microsoft.ML.Trainers;
 using System;
+using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using Xunit;
 
@@ -181,6 +184,60 @@ namespace Microsoft.ML.Tests.TrainerEstimators
                     new TextLoader.Column(matrixRowIndexColumnName, DataKind.U4, new [] { new TextLoader.Range(2) }, new KeyRange(0, 39)),
                 }
             };
+        }
+
+        const int _synthesizedMatrixRowCount = 100;
+        const int _synthesizedMatrixColumnCount = 60;
+
+        internal class MatrixElement
+        {
+            // Matrix column index starts from 1 and is at most _synthesizedMatrixColumnCount.
+            [KeyType(Contiguous=true, Count=_synthesizedMatrixColumnCount, Min=1)]
+            public uint MatrixColumnIndex;
+            // Matrix row index starts from 1 and is at most _synthesizedMatrixRowCount.
+            [KeyType(Contiguous=true, Count=_synthesizedMatrixRowCount, Min=1)]
+            public uint MatrixRowIndex;
+            // The value at the (matrixColumnIndexi-1)th column and the (matrixRowIndex-1) row in the considered matrix.
+            public float Value;
+        }
+
+        [Fact]
+        public void MatrixFactorizationInMemoryData()
+        {
+
+            using (var env = new LocalEnvironment(seed: 1, conc: 1))
+            {
+                // Create an in-memory matrix as a list of (row index, column index, value).
+                var dataMatrix = new List<MatrixElement>();
+                for (uint i = 0; i < _synthesizedMatrixColumnCount; ++i)
+                    for (uint j = 0; j < _synthesizedMatrixRowCount; ++j)
+                        dataMatrix.Add(new MatrixElement() { MatrixColumnIndex = i, MatrixRowIndex = j, Value = (i + j) % 5 });
+
+                // Convert the in-memory matrix into an IDataView so that ML.NET components can consume it.
+                var dataView = ComponentCreation.CreateDataView(Env, dataMatrix);
+
+                // Create a matrix factorization trainer which may consume "Value" as the training label, "MatrixColumnIndex" as the
+                // matrix's column index, and "MatrixRowIndex" as the matrix's row index.
+                var pipeline = new MatrixFactorizationTrainer(env, "Value", "MatrixColumnIndex", "MatrixRowIndex",
+                    advancedSettings:s=>
+                    {
+                        s.NumIterations = 3;
+                        s.NumThreads = 1; // To eliminate randomness, # of threads must be 1.
+                        s.K = 8;
+                    });
+
+                // Train a matrix factorization model.
+                var model = pipeline.Fit(dataView);
+
+                // Apply the trained model to the training set
+                var prediction = model.Transform(dataView);
+
+                // Calculate regression matrices for the prediction result
+                var metrics = new MLContext().Regression.Evaluate(prediction, label: "Value", score: "Score");
+
+                // Native test. Just check the pipeline runs.
+                Assert.True(metrics.L2 > 0);
+            }
         }
     }
 }
