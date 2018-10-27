@@ -449,6 +449,49 @@ namespace Microsoft.ML.Runtime.RunTests
         }
 
         [Fact]
+        public void SavePipeCountSelect()
+        {
+            TestCore(null, false,
+                new[] {
+                    "loader=Text{col=One:TX:1 col=Num:R4:2-* col=Key:U1[1-10]:1}",
+                    // Create a lot of unused slots.
+                    "xf=CatHash{col=OneInd:One bits=10}",
+                    // One is for the non-vector case and OneInd is reduced to a small size.
+                    "xf=CountFeatureSelection{col=Num col=One col=OneInd count=1}",
+                    // This tests the path where a no-op transform is created.
+                    "xf=CountFeatureSelection{col=Num col=One col=OneInd count=1}",
+                    // This tests counts greater than 1
+                    "xf=KeyToVector{col=Key}",
+                    "xf=CountFeatureSelection{col=Key count=100}",
+                });
+
+            Done();
+        }
+
+        [Fact(Skip = "Should be enabled after NAHandle is converted to use SelectColumnsTransform instead of DropColumnsTransform")]
+        public void SavePipeCountSelectWithSparse()
+        {
+            TestCore(null, false,
+                new[] {
+                    "loader=Text{col=One:TX:1 col=Num:R4:2-* col=Key:U1[1-10]:1}",
+                    // Create a lot of unused slots.
+                    "xf=CatHash{col=OneInd:One bits=10}",
+                    // Create more unused slots and test the sparse case.
+                    "xf=NAHandle{col=NumSparse:Num}",
+                    // This tests that Num and NumSparse remain the same,
+                    // One is for the non-vector case and OneInd is reduced to a small size.
+                    "xf=CountFeatureSelection{col=Num col=NumSparse col=One col=OneInd count=1}",
+                    // This tests the path where a no-op transform is created.
+                    "xf=CountFeatureSelection{col=Num col=NumSparse col=One col=OneInd count=1}",
+                    // This tests counts greater than 1
+                    "xf=KeyToVector{col=Key}",
+                    "xf=CountFeatureSelection{col=Key count=100}",
+                });
+
+            Done();
+        }
+
+        [Fact]
         public void TestHashTransformFloat()
         {
             TestHashTransformHelper(dataFloat, resultsFloat, NumberType.R4);
