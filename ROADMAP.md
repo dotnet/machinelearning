@@ -18,7 +18,7 @@ In the meanwhile, we are looking for contributions.  An easy place to start is t
 	* _Ranking_ - problem where the goal is to automatically sort (rank) instances within a group based on ranked examples in training data
 	* _Anomaly Detection_ - is also known as _outlier detection_. It is a task to identify items, events or observations which do not conform to an expected pattern in the dataset.
 	* _Quantile Regression_ is a type of regression analysis. Whereas regression results in estimates that approximate the conditional mean of the response variable given certain values of the predictor variables, quantile regression aims at estimating either the conditional median or other quantiles of the response variable
-* Additional Data source support  (*)
+* Additional Data Sources support  (*)
 	* Apache Parquet
 	* Native Binary high-performance format
 
