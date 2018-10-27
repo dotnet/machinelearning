@@ -24,17 +24,21 @@ namespace Microsoft.ML.Trainers.FastTree
         protected BoostingFastTreeTrainerBase(IHostEnvironment env,
             SchemaShape.Column label,
             string featureColumn,
-            string weightColumn = null,
-            string groupIdColumn = null,
-            int numLeaves = Defaults.NumLeaves,
-            int numTrees = Defaults.NumTrees,
-            int minDocumentsInLeafs = Defaults.MinDocumentsInLeafs,
-            double learningRate = Defaults.LearningRates,
-            Action<TArgs> advancedSettings = null)
+            string weightColumn,
+            string groupIdColumn,
+            int numLeaves,
+            int numTrees,
+            int minDocumentsInLeafs,
+            double learningRate,
+            Action<TArgs> advancedSettings)
             : base(env, label, featureColumn, weightColumn, groupIdColumn, numLeaves, numTrees, minDocumentsInLeafs, advancedSettings)
         {
-            //override with the directly provided values.
-            Args.LearningRates = learningRate;
+
+            if (Args.LearningRates != learningRate)
+            {
+                using (var ch = Host.Start($"Setting learning rate to: {learningRate} as supplied in the direct arguments."))
+                    Args.LearningRates = learningRate;
+            }
         }
 
         protected override void CheckArgs(IChannel ch)

@@ -183,7 +183,7 @@ namespace Microsoft.ML.Tests
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))]
         public void TestTensorFlowStaticWithSchema()
         {
             var modelLocation = "cifar_model/frozen_model.pb";
