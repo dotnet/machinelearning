@@ -15,7 +15,7 @@ namespace Microsoft.ML.Runtime.Data
 {
     using Stopwatch = System.Diagnostics.Stopwatch;
 
-    public sealed class ConsoleEnvironment : HostEnvironmentBase<ConsoleEnvironment>
+    internal sealed class ConsoleEnvironment : HostEnvironmentBase<ConsoleEnvironment>
     {
         public const string ComponentHistoryKey = "ComponentHistory";
 
