@@ -10,7 +10,7 @@ using Microsoft.ML.Legacy.Transforms;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Learners;
+using Microsoft.ML.Trainers;
 using System.Collections.Generic;
 using System.Globalization;
 
@@ -97,10 +97,8 @@ namespace Microsoft.ML.Benchmarks
                             Name = "WordEmbeddings",
                             Source = new[] { "SentimentText" }
                         },
-                        KeepDiacritics = false,
-                        KeepPunctuations = false,
-                        TextCase = Runtime.TextAnalytics.TextNormalizerTransform.CaseNormalizationMode.Lower,
                         OutputTokens = true,
+                        KeepPunctuations=false,
                         StopWordsRemover = new Runtime.TextAnalytics.PredefinedStopWordsRemoverFactory(),
                         VectorNormalizer = TextTransform.TextNormKind.None,
                         CharFeatureExtractor = null,

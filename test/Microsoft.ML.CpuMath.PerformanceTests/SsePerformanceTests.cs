@@ -52,8 +52,8 @@ namespace Microsoft.ML.CpuMath.PerformanceTests
             => SseIntrinsics.MulElementWiseU(src1, src2, dst, Length);
 
         [Benchmark]
-        public float SumU()
-            => SseIntrinsics.SumU(new Span<float>(src, 0, Length));
+        public float Sum()
+            => SseIntrinsics.Sum(new Span<float>(src, 0, Length));
 
         [Benchmark]
         public float SumSqU()
@@ -98,5 +98,17 @@ namespace Microsoft.ML.CpuMath.PerformanceTests
         [Benchmark]
         public void SdcaL1UpdateSU()
             => SseIntrinsics.SdcaL1UpdateSU(DefaultScale, IndexLength, src, idx, DefaultScale, dst, result);
+
+        [Benchmark]
+        public void MatMul()
+            => SseIntrinsics.MatMul(src, src1, dst, 1000, 1000);
+
+        [Benchmark]
+        public void MatMulTran()
+            => SseIntrinsics.MatMulTran(src, src1, dst, 1000, 1000);
+
+        [Benchmark]
+        public void MatMulP()
+            => SseIntrinsics.MatMulP(src, matrixIdx, src1, 0, 0, MatrixIndexLength, dst, 1000, 1000);
     }
 }

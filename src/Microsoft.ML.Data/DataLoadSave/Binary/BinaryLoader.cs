@@ -820,7 +820,7 @@ namespace Microsoft.ML.Runtime.Data.IO
         /// <param name="stream">A seekable, readable stream. Note that the data view reader assumes
         /// that it is the exclusive owner of this stream.</param>
         /// <param name="args">Arguments</param>
-        /// <param name="env">Host enviroment</param>
+        /// <param name="env">Host environment</param>
         /// <param name="leaveOpen">Whether to leave the input stream open</param>
         public BinaryLoader(IHostEnvironment env, Arguments args, Stream stream, bool leaveOpen = true)
             : this(args, env.Register(LoadName), stream, leaveOpen)

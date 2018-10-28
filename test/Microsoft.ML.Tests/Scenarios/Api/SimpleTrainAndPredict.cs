@@ -4,11 +4,10 @@
 
 using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Learners;
-using Xunit;
-using System.Linq;
-using Microsoft.ML.Runtime.FastTree;
 using Microsoft.ML.Runtime.RunTests;
+using Microsoft.ML.Trainers;
+using System.Linq;
+using Xunit;
 
 namespace Microsoft.ML.Tests.Scenarios.Api
 {
@@ -70,10 +69,8 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                     Name = "Features",
                     Source = new[] { "SentimentText" }
                 },
-                KeepDiacritics = false,
-                KeepPunctuations = false,
-                TextCase = Runtime.TextAnalytics.TextNormalizerTransform.CaseNormalizationMode.Lower,
                 OutputTokens = true,
+                KeepPunctuations=false,
                 StopWordsRemover = new Runtime.TextAnalytics.PredefinedStopWordsRemoverFactory(),
                 VectorNormalizer = normalize ? TextTransform.TextNormKind.L2 : TextTransform.TextNormKind.None,
                 CharFeatureExtractor = new NgramExtractorTransform.NgramExtractorArguments() { NgramLength = 3, AllLengths = false },

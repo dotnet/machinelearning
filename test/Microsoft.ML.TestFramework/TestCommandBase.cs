@@ -292,12 +292,10 @@ namespace Microsoft.ML.Runtime.RunTests
             Contracts.AssertValueOrNull(args);
             OutputPath outputPath = ctx.StdoutPath();
             using (var newWriter = OpenWriter(outputPath.Path))
-            using (var env = new ConsoleEnvironment(42, outWriter: newWriter, errWriter: newWriter))
+            using (Env.RedirectChannelOutput(newWriter, newWriter))
             {
-                InitializeEnvironment(env);
-
-                int res;
-                res = MainForTest(env, newWriter, string.Format("{0} {1}", cmdName, args), ctx.BaselineProgress);
+                Env.ResetProgressChannel();
+                int res = MainForTest(Env, newWriter, string.Format("{0} {1}", cmdName, args), ctx.BaselineProgress);
                 if (res != 0)
                     Log("*** Predictor returned {0}", res);
             }
@@ -1079,13 +1077,13 @@ namespace Microsoft.ML.Runtime.RunTests
         public void CommandTrainingOgdWithInitialization() => CommandTrainingLinearLearnerTest("ogd{}");
 
         [TestCategory(Cat), TestCategory("Logistic Regression")]
-        [Fact(Skip = "Need CoreTLC specific baseline update")]
+        [Fact]
         public void CommandTrainingLrWithStats()
         {
             const string loaderArgs = "loader=text{header+ sep=comma col=Lab:14 col=Num:0,2,4,10-12}";
             const string extraArgs = "tr=lr{t=- stat=+} lab=Lab feat=Num";
 
-            string trainData = GetDataPath(@"..\UCI", "adult.train");
+            string trainData = GetDataPath("adult.train");
             OutputPath trainModel = ModelPath();
             TestCore("train", trainData, loaderArgs, extraArgs);
 
@@ -1176,13 +1174,13 @@ namespace Microsoft.ML.Runtime.RunTests
             Done();
         }
 
-        [Fact(Skip = "Need CoreTLC specific baseline update")]
+        [Fact]
         [TestCategory(Cat), TestCategory("Multiclass"), TestCategory("Logistic Regression")]
         public void CommandTrainMlrWithStats()
         {
             // Train MultiLR model.
-            const string loaderCmdline = @"loader=TextLoader{col=Label:TX:0 col=Features:R4:1-4 header=+}";
-            string pathTrain = GetDataPath("iris-label-name.txt");
+            const string loaderCmdline = @"loader=TextLoader{col=Label:TX:4 col=Features:R4:0-3 sep=,}";
+            string pathTrain = GetDataPath("iris.data");
             OutputPath trainModel = ModelPath();
             const string trainArgs = "tr=MultiClassLogisticRegression{maxiter=100 t=- stat=+} xf=Term{col=Label} seed=1";
             TestCore("train", pathTrain, loaderCmdline, trainArgs);
@@ -1990,10 +1988,10 @@ namespace Microsoft.ML.Runtime.RunTests
             string args = $"{loaderArgs} data={trainData} valid={validData} test={validData} {extraArgs} out={model}";
             OutputPath outputPath = StdoutPath();
             using (var newWriter = OpenWriter(outputPath.Path))
-            using (var env = new ConsoleEnvironment(42, outWriter: newWriter, errWriter: newWriter))
+            using (Env.RedirectChannelOutput(newWriter, newWriter))
             {
-                InitializeEnvironment(env);
-                int res = MainForTest(env, newWriter, string.Format("{0} {1}", "traintest", args), true);
+                Env.ResetProgressChannel();
+                int res = MainForTest(Env, newWriter, string.Format("{0} {1}", "traintest", args), true);
                 Assert.True(res == 0);
             }
 
@@ -2019,10 +2017,10 @@ namespace Microsoft.ML.Runtime.RunTests
             string args = $"{loaderArgs} data={trainData} valid={validData} test={validData} {extraArgs} out={model}";
             OutputPath outputPath = StdoutPath();
             using (var newWriter = OpenWriter(outputPath.Path))
-            using (var env = new ConsoleEnvironment(42, outWriter: newWriter, errWriter: newWriter))
+            using (Env.RedirectChannelOutput(newWriter, newWriter))
             {
-                InitializeEnvironment(env);
-                int res = MainForTest(env, newWriter, string.Format("{0} {1}", "traintest", args), true);
+                Env.ResetProgressChannel();
+                int res = MainForTest(Env, newWriter, string.Format("{0} {1}", "traintest", args), true);
                 Assert.Equal(0, res);
             }
 
@@ -2046,10 +2044,10 @@ namespace Microsoft.ML.Runtime.RunTests
             OutputPath outputPath = StdoutPath();
             string args = $"data={data} test={data} valid={data} in={model.Path} cont+" + " " + loaderArgs + " " + extraArgs;
             using (var newWriter = OpenWriter(outputPath.Path))
-            using (var env = new ConsoleEnvironment(42, outWriter: newWriter, errWriter: newWriter))
+            using (Env.RedirectChannelOutput(newWriter, newWriter))
             {
-                InitializeEnvironment(env);
-                int res = MainForTest(env, newWriter, string.Format("{0} {1}", "traintest", args), true);
+                Env.ResetProgressChannel();
+                int res = MainForTest(Env, newWriter, string.Format("{0} {1}", "traintest", args), true);
                 Assert.True(res == 0);
             }
 
@@ -2076,10 +2074,10 @@ namespace Microsoft.ML.Runtime.RunTests
             OutputPath outputPath = StdoutPath();
             string args = $"data={data} test={data} valid={data} in={model.Path} cont+" + " " + loaderArgs + " " + extraArgs;
             using (var newWriter = OpenWriter(outputPath.Path))
-            using (var env = new ConsoleEnvironment(42, outWriter: newWriter, errWriter: newWriter))
+            using (Env.RedirectChannelOutput(newWriter, newWriter))
             {
-                InitializeEnvironment(env);
-                int res = MainForTest(env, newWriter, string.Format("{0} {1}", "traintest", args), true);
+                Env.ResetProgressChannel();
+                int res = MainForTest(Env, newWriter, string.Format("{0} {1}", "traintest", args), true);
                 Assert.True(res == 0);
             }
 
