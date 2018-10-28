@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.CodeDom.Compiler;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -63,7 +64,7 @@ namespace Microsoft.ML.Runtime.Internal.Tools
 
             using (var sw = new StreamWriter(_csFilename))
             {
-                var writer = IndentingTextWriter.Wrap(sw, "    ");
+                var writer = new IndentedTextWriter(sw, "    ");
 
                 // Generate header
                 CSharpGeneratorUtils.GenerateHeader(writer);
@@ -106,7 +107,7 @@ namespace Microsoft.ML.Runtime.Internal.Tools
             }
         }
 
-        private void GenerateInputOutput(IndentingTextWriter writer, ComponentCatalog.EntryPointInfo entryPointInfo, ComponentCatalog catalog)
+        private void GenerateInputOutput(IndentedTextWriter writer, ComponentCatalog.EntryPointInfo entryPointInfo, ComponentCatalog catalog)
         {
             var classAndMethod = CSharpGeneratorUtils.GetEntryPointMetadata(entryPointInfo);
             writer.WriteLine($"namespace Legacy.{classAndMethod.Namespace}");
@@ -118,7 +119,7 @@ namespace Microsoft.ML.Runtime.Internal.Tools
             writer.WriteLine();
         }
 
-        private void GenerateEnums(IndentingTextWriter writer, Type inputType, string currentNamespace)
+        private void GenerateEnums(IndentedTextWriter writer, Type inputType, string currentNamespace)
         {
             foreach (var fieldInfo in inputType.GetFields())
             {
@@ -177,7 +178,7 @@ namespace Microsoft.ML.Runtime.Internal.Tools
             }
         }
 
-        private void GenerateClasses(IndentingTextWriter writer, Type inputType, ComponentCatalog catalog, string currentNamespace)
+        private void GenerateClasses(IndentedTextWriter writer, Type inputType, ComponentCatalog catalog, string currentNamespace)
         {
             foreach (var fieldInfo in inputType.GetFields())
             {
@@ -225,7 +226,7 @@ namespace Microsoft.ML.Runtime.Internal.Tools
             }
         }
 
-        private void GenerateColumnAddMethods(IndentingTextWriter writer, Type inputType, ComponentCatalog catalog,
+        private void GenerateColumnAddMethods(IndentedTextWriter writer, Type inputType, ComponentCatalog catalog,
             string className, out Type columnType)
         {
             columnType = null;
@@ -253,7 +254,7 @@ namespace Microsoft.ML.Runtime.Internal.Tools
             }
         }
 
-        private Type GenerateManyToOneColumn(IndentingTextWriter writer, string className, Type columnType,
+        private Type GenerateManyToOneColumn(IndentedTextWriter writer, string className, Type columnType,
             System.Reflection.FieldInfo fieldInfo, ArgumentAttribute inputAttr, Type type, bool isArray)
         {
             var fieldName = CSharpGeneratorUtils.Capitalize(inputAttr.Name ?? fieldInfo.Name);
@@ -290,7 +291,7 @@ namespace Microsoft.ML.Runtime.Internal.Tools
             return columnType;
         }
 
-        private Type GenerateOneToOneColumn(IndentingTextWriter writer, string className, Type columnType,
+        private Type GenerateOneToOneColumn(IndentedTextWriter writer, string className, Type columnType,
             System.Reflection.FieldInfo fieldInfo, ArgumentAttribute inputAttr, Type type, bool isArray)
         {
             var fieldName = CSharpGeneratorUtils.Capitalize(inputAttr.Name ?? fieldInfo.Name);
@@ -368,7 +369,7 @@ namespace Microsoft.ML.Runtime.Internal.Tools
             return columnType;
         }
 
-        private void GenerateInput(IndentingTextWriter writer, ComponentCatalog.EntryPointInfo entryPointInfo, ComponentCatalog catalog)
+        private void GenerateInput(IndentedTextWriter writer, ComponentCatalog.EntryPointInfo entryPointInfo, ComponentCatalog catalog)
         {
             var entryPointMetadata = CSharpGeneratorUtils.GetEntryPointMetadata(entryPointInfo);
             string classBase = "";
@@ -405,7 +406,7 @@ namespace Microsoft.ML.Runtime.Internal.Tools
             writer.WriteLine("}");
         }
 
-        private static void GenerateApplyFunction(IndentingTextWriter writer, string className, Type type,
+        private static void GenerateApplyFunction(IndentedTextWriter writer, string className, Type type,
             HashSet<string> outputVariableNames, Type[] inputKinds)
         {
             if (inputKinds == null)
@@ -497,7 +498,7 @@ namespace Microsoft.ML.Runtime.Internal.Tools
             writer.WriteLine("}");
         }
 
-        private void GenerateInputFields(IndentingTextWriter writer, Type inputType, ComponentCatalog catalog, string rootNameSpace)
+        private void GenerateInputFields(IndentedTextWriter writer, Type inputType, ComponentCatalog catalog, string rootNameSpace)
         {
             var defaults = Activator.CreateInstance(inputType);
             foreach (var fieldInfo in inputType.GetFields())
@@ -551,7 +552,7 @@ namespace Microsoft.ML.Runtime.Internal.Tools
             }
         }
 
-        private void GenerateOutput(IndentingTextWriter writer, ComponentCatalog.EntryPointInfo entryPointInfo, out HashSet<string> outputVariableNames)
+        private void GenerateOutput(IndentedTextWriter writer, ComponentCatalog.EntryPointInfo entryPointInfo, out HashSet<string> outputVariableNames)
         {
             outputVariableNames = new HashSet<string>();
             string classBase = "";
@@ -582,13 +583,13 @@ namespace Microsoft.ML.Runtime.Internal.Tools
             writer.WriteLine("}");
         }
 
-        private void GenerateComponentKind(IndentingTextWriter writer, string kind)
+        private void GenerateComponentKind(IndentedTextWriter writer, string kind)
         {
             writer.WriteLine($"public abstract class {kind} : ComponentKind {{}}");
             writer.WriteLine();
         }
 
-        private void GenerateComponent(IndentingTextWriter writer, ComponentCatalog.ComponentInfo component, ComponentCatalog catalog)
+        private void GenerateComponent(IndentedTextWriter writer, ComponentCatalog.ComponentInfo component, ComponentCatalog catalog)
         {
             GenerateEnums(writer, component.ArgumentType, "Runtime");
             writer.WriteLine();

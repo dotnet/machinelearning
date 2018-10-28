@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.CodeDom.Compiler;
 using System.IO;
 using System.Linq;
 using Microsoft.ML.Runtime.CommandLine;
@@ -12,7 +13,7 @@ namespace Microsoft.ML.Runtime.EntryPoints.CodeGen
 {
     internal class LearnerImplGenerator : ImplGeneratorBase
     {
-        protected override void GenerateMethodSignature(IndentingTextWriter w, string prefix, ComponentCatalog.LoadableClassInfo component)
+        protected override void GenerateMethodSignature(IndentedTextWriter w, string prefix, ComponentCatalog.LoadableClassInfo component)
         {
             w.WriteLine("/// <summary>");
             w.WriteLine("/// Creates a {0}", component.LoadNames[0]);
@@ -21,7 +22,7 @@ namespace Microsoft.ML.Runtime.EntryPoints.CodeGen
             w.WriteLine("public Tuple<string, string> GetTlcSettings()");
         }
 
-        protected override void GenerateImplBody(IndentingTextWriter w, ComponentCatalog.LoadableClassInfo component)
+        protected override void GenerateImplBody(IndentedTextWriter w, ComponentCatalog.LoadableClassInfo component)
         {
             w.WriteLine("{");
             using (w.Nest())
@@ -40,7 +41,7 @@ namespace Microsoft.ML.Runtime.EntryPoints.CodeGen
 
     internal sealed class LearnerEntryPointGenerator : EntryPointGeneratorBase
     {
-        protected override void GenerateSummaryComment(IndentingTextWriter w, ComponentCatalog.LoadableClassInfo component)
+        protected override void GenerateSummaryComment(IndentedTextWriter w, ComponentCatalog.LoadableClassInfo component)
         {
             w.WriteLine("/// <summary>");
             var desc = component.Summary ?? component.LoadNames[0];
@@ -57,12 +58,12 @@ namespace Microsoft.ML.Runtime.EntryPoints.CodeGen
                 GenerateSummaryComment(w, arg, "");
         }
 
-        protected override void GenerateReturnComment(IndentingTextWriter w)
+        protected override void GenerateReturnComment(IndentedTextWriter w)
         {
             w.WriteLine("/// <returns>An untrained model.</returns>");
         }
 
-        protected override void GenerateModuleAttribute(IndentingTextWriter w, string prefix, ComponentCatalog.LoadableClassInfo component, string moduleId)
+        protected override void GenerateModuleAttribute(IndentedTextWriter w, string prefix, ComponentCatalog.LoadableClassInfo component, string moduleId)
         {
             if (!string.IsNullOrEmpty(prefix))
                 prefix += " ";
@@ -94,13 +95,13 @@ namespace Microsoft.ML.Runtime.EntryPoints.CodeGen
             }
         }
 
-        protected override void GenerateOutputPort(IndentingTextWriter w)
+        protected override void GenerateOutputPort(IndentedTextWriter w)
         {
             w.WriteLine(
                 "[DataLabOutputPort(FriendlyName = \"Untrained model\", DisplayName = \"Untrained model\", Position = 0, DataType = WellKnownDataTypeIds.ITrainerDotNet, Description = \"An untrained model.\")]");
         }
 
-        protected override void GenerateMethodSignature(IndentingTextWriter w, string prefix, ComponentCatalog.LoadableClassInfo component)
+        protected override void GenerateMethodSignature(IndentedTextWriter w, string prefix, ComponentCatalog.LoadableClassInfo component)
         {
             w.Write("public static Tuple<ITrainer> Create{0}{1}(", prefix, component.LoadNames[0]);
             using (w.Nest())
@@ -114,7 +115,7 @@ namespace Microsoft.ML.Runtime.EntryPoints.CodeGen
             }
         }
 
-        protected override void GenerateImplCall(IndentingTextWriter w, string prefix, ComponentCatalog.LoadableClassInfo component)
+        protected override void GenerateImplCall(IndentedTextWriter w, string prefix, ComponentCatalog.LoadableClassInfo component)
         {
             w.WriteLine("{");
             using (w.Nest())

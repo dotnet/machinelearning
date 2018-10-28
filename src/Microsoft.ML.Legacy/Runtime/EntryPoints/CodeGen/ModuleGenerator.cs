@@ -5,6 +5,7 @@
 #pragma warning disable 420 // volatile with Interlocked.CompareExchange
 
 using System;
+using System.CodeDom.Compiler;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -205,7 +206,7 @@ namespace Microsoft.ML.Runtime.EntryPoints.CodeGen
         {
             using (var sw = new StreamWriter(filename))
             {
-                var writer = IndentingTextWriter.Wrap(sw, "    ");
+                var writer = new IndentedTextWriter(sw, "    ");
                 foreach (var kvp in mapping)
                 {
                     if (info.IsOfType(kvp.Key))

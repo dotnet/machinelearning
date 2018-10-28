@@ -4,6 +4,7 @@
 
 using Microsoft.ML.Runtime.Internal.Utilities;
 using System;
+using System.CodeDom.Compiler;
 using System.IO;
 using Xunit;
 using Xunit.Abstractions;
@@ -45,7 +46,7 @@ namespace Microsoft.ML.Runtime.RunTests
 
             using (var writer = File.CreateText(outPath))
             {
-                var wrt = IndentingTextWriter.Wrap(writer);
+                var wrt = new IndentedTextWriter(writer);
 
                 // Individual scripts are separated by $
                 int count = 0;

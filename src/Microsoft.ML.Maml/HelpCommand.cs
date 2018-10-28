@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.CodeDom.Compiler;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
@@ -104,7 +105,7 @@ namespace Microsoft.ML.Runtime.Tools
 
             using (var ch = _env.Start("Help"))
             using (var sw = new StringWriter(CultureInfo.InvariantCulture))
-            using (var writer = IndentingTextWriter.Wrap(sw))
+            using (var writer = new IndentedTextWriter(sw))
             {
                 if (_listKinds)
                 {
@@ -125,7 +126,7 @@ namespace Microsoft.ML.Runtime.Tools
             }
         }
 
-        private void ShowHelp(IndentingTextWriter writer, int? columns = null)
+        private void ShowHelp(IndentedTextWriter writer, int? columns = null)
         {
             _env.AssertValue(_component);
 
@@ -183,7 +184,7 @@ namespace Microsoft.ML.Runtime.Tools
                 Serialize(components);
         }
 
-        private void ShowAllHelp(IndentingTextWriter writer, int? columns = null)
+        private void ShowAllHelp(IndentedTextWriter writer, int? columns = null)
         {
             string sig = _kind?.ToLowerInvariant();
 
@@ -217,7 +218,7 @@ namespace Microsoft.ML.Runtime.Tools
                 Serialize(components);
         }
 
-        private void ShowUsage(IndentingTextWriter writer, string kind, string summary, string loadName,
+        private void ShowUsage(IndentedTextWriter writer, string kind, string summary, string loadName,
             IReadOnlyList<string> loadNames, object args, int? columns)
         {
             _env.Assert(loadName == loadNames[0]);
@@ -238,7 +239,7 @@ namespace Microsoft.ML.Runtime.Tools
                 writer.WriteLine(CmdParser.ArgumentsUsage(_env, args.GetType(), args, false, columns));
         }
 
-        private void ShowComponents(IndentingTextWriter writer)
+        private void ShowComponents(IndentedTextWriter writer)
         {
             Type typeSig;
             Type typeRes;
@@ -304,7 +305,7 @@ namespace Microsoft.ML.Runtime.Tools
                 GenerateModule(components);
         }
 
-        private void ShowAliases(IndentingTextWriter writer, IReadOnlyList<string> names)
+        private void ShowAliases(IndentedTextWriter writer, IReadOnlyList<string> names)
         {
             if (names.Count <= 1)
                 return;
@@ -319,7 +320,7 @@ namespace Microsoft.ML.Runtime.Tools
             writer.WriteLine();
         }
 
-        private void ListKinds(IndentingTextWriter writer)
+        private void ListKinds(IndentedTextWriter writer)
         {
             var sigs = _env.ComponentCatalog.GetAllSignatureTypes()
                 .Select(ComponentCatalog.SignatureToString)
@@ -333,7 +334,7 @@ namespace Microsoft.ML.Runtime.Tools
             }
         }
 
-        private void ShowFormattedSummary(IndentingTextWriter writer, string summary, int? columns)
+        private void ShowFormattedSummary(IndentedTextWriter writer, string summary, int? columns)
         {
             _env.AssertValue(writer);
 
