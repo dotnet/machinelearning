@@ -173,7 +173,7 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
         }
 
         public ISchemaBoundMapper Bind(IHostEnvironment env, RoleMappedSchema schema)
-            => new FieldAwareFactorizationMachineScalarRowMapper(env, schema, new BinaryClassifierSchema(), this);
+            => new FieldAwareFactorizationMachineScalarRowMapper(env, schema, Schema.Create(new BinaryClassifierSchema()), this);
 
         internal void CopyLinearWeightsTo(float[] linearWeights)
         {
@@ -209,7 +209,7 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
         private readonly string _thresholdColumn;
         private readonly float _threshold;
 
-        public FieldAwareFactorizationMachinePredictionTransformer(IHostEnvironment host, FieldAwareFactorizationMachinePredictor model, ISchema trainSchema,
+        public FieldAwareFactorizationMachinePredictionTransformer(IHostEnvironment host, FieldAwareFactorizationMachinePredictor model, Schema trainSchema,
             string[] featureColumns, float threshold = 0f, string thresholdColumn = DefaultColumnNames.Score)
             :base(Contracts.CheckRef(host, nameof(host)).Register(nameof(FieldAwareFactorizationMachinePredictionTransformer)), model, trainSchema)
         {
@@ -275,9 +275,9 @@ namespace Microsoft.ML.Runtime.FactorizationMachine
         /// <summary>
         /// Gets the <see cref="ISchema"/> result after transformation.
         /// </summary>
-        /// <param name="inputSchema">The <see cref="ISchema"/> of the input data.</param>
-        /// <returns>The post transformation <see cref="ISchema"/>.</returns>
-        public override ISchema GetOutputSchema(ISchema inputSchema)
+        /// <param name="inputSchema">The <see cref="Schema"/> of the input data.</param>
+        /// <returns>The post transformation <see cref="Schema"/>.</returns>
+        public override Schema GetOutputSchema(Schema inputSchema)
         {
             for (int i = 0; i < FeatureColumns.Length; i++)
             {

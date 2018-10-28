@@ -231,7 +231,7 @@ namespace Microsoft.ML.Runtime.Api
         /// <summary>
         /// Create a Cursorable object on a given data view.
         /// </summary>
-        /// <param name="env">Host enviroment.</param>
+        /// <param name="env">Host environment.</param>
         /// <param name="data">The underlying data view.</param>
         /// <param name="ignoreMissingColumns">Whether to ignore missing columns in the data view.</param>
         /// <param name="schemaDefinition">The optional user-provided schema.</param>
@@ -259,7 +259,7 @@ namespace Microsoft.ML.Runtime.Api
 
             public long Position => _input.Position;
 
-            public ISchema Schema => _input.Schema;
+            public Schema Schema => _input.Schema;
 
             public TypedRowBase(TypedCursorable<TRow> parent, IRow input, string channelMessage)
             {

@@ -1,0 +1,147 @@
+---- BoundLoader ----
+7 columns:
+  Label: R4
+  Age: R4
+  Gender: Text
+  Mar: Text
+  Race: Text
+  Num: Vec<R4, 5>
+    Metadata 'SlotNames': Vec<Text, 5>: Length=5, Count=5
+      [0] 'fnlwgt', [1] 'education-num', [2] 'capital-gain', [3] 'capital-loss', [4] 'hours-per-week'
+  Txt: Vec<Text, 5>
+    Metadata 'SlotNames': Vec<Text, 5>: Length=5, Count=5
+      [0] 'workclass', [1] 'education', [2] 'occupation', [3] 'relationship', [4] 'native-country'
+---- RowToRowMapperTransform ----
+8 columns:
+  Label: R4
+  Age: R4
+  Gender: Text
+  Mar: Text
+  Race: Text
+  Num: Vec<R4, 5>
+    Metadata 'SlotNames': Vec<Text, 5>: Length=5, Count=5
+      [0] 'fnlwgt', [1] 'education-num', [2] 'capital-gain', [3] 'capital-loss', [4] 'hours-per-week'
+  Txt: Vec<Text, 5>
+    Metadata 'SlotNames': Vec<Text, 5>: Length=5, Count=5
+      [0] 'workclass', [1] 'education', [2] 'occupation', [3] 'relationship', [4] 'native-country'
+  Race2: Key<U4, 0-3>
+    Metadata 'KeyValues': Vec<Text, 4>: Length=4, Count=4
+      [0] 'Amer-Indian-Eskimo', [1] 'Black', [2] 'Asian-Pac-Islander', [3] 'White'
+---- RowToRowMapperTransform ----
+9 columns:
+  Label: R4
+  Age: R4
+  Gender: Text
+  Mar: Text
+  Race: Text
+  Num: Vec<R4, 5>
+    Metadata 'SlotNames': Vec<Text, 5>: Length=5, Count=5
+      [0] 'fnlwgt', [1] 'education-num', [2] 'capital-gain', [3] 'capital-loss', [4] 'hours-per-week'
+  Txt: Vec<Text, 5>
+    Metadata 'SlotNames': Vec<Text, 5>: Length=5, Count=5
+      [0] 'workclass', [1] 'education', [2] 'occupation', [3] 'relationship', [4] 'native-country'
+  Race2: Key<U4, 0-3>
+    Metadata 'KeyValues': Vec<Text, 4>: Length=4, Count=4
+      [0] 'Amer-Indian-Eskimo', [1] 'Black', [2] 'Asian-Pac-Islander', [3] 'White'
+  Gender2: Key<U4, 0-1>
+    Metadata 'KeyValues': Vec<Text, 2>: Length=2, Count=2
+      [0] 'Male', [1] 'Female'
+---- RowToRowMapperTransform ----
+10 columns:
+  Label: R4
+  Age: R4
+  Gender: Text
+  Mar: Text
+  Race: Text
+  Num: Vec<R4, 5>
+    Metadata 'SlotNames': Vec<Text, 5>: Length=5, Count=5
+      [0] 'fnlwgt', [1] 'education-num', [2] 'capital-gain', [3] 'capital-loss', [4] 'hours-per-week'
+  Txt: Vec<Text, 5>
+    Metadata 'SlotNames': Vec<Text, 5>: Length=5, Count=5
+      [0] 'workclass', [1] 'education', [2] 'occupation', [3] 'relationship', [4] 'native-country'
+  Race2: Key<U4, 0-3>
+    Metadata 'KeyValues': Vec<Text, 4>: Length=4, Count=4
+      [0] 'Amer-Indian-Eskimo', [1] 'Black', [2] 'Asian-Pac-Islander', [3] 'White'
+  Gender2: Key<U4, 0-1>
+    Metadata 'KeyValues': Vec<Text, 2>: Length=2, Count=2
+      [0] 'Male', [1] 'Female'
+  Gender2: Vec<R4, 2>
+    Metadata 'CategoricalSlotRanges': Vec<I4, 1, 2>: Length=2, Count=2
+      [0] '0', [1] '1'
+    Metadata 'IsNormalized': Bool: '1'
+    Metadata 'SlotNames': Vec<Text, 2>: Length=2, Count=2
+      [0] 'Male', [1] 'Female'
+---- RowToRowMapperTransform ----
+12 columns:
+  Label: R4
+  Age: R4
+  Gender: Text
+  Mar: Text
+  Race: Text
+  Num: Vec<R4, 5>
+    Metadata 'SlotNames': Vec<Text, 5>: Length=5, Count=5
+      [0] 'fnlwgt', [1] 'education-num', [2] 'capital-gain', [3] 'capital-loss', [4] 'hours-per-week'
+  Txt: Vec<Text, 5>
+    Metadata 'SlotNames': Vec<Text, 5>: Length=5, Count=5
+      [0] 'workclass', [1] 'education', [2] 'occupation', [3] 'relationship', [4] 'native-country'
+  Race2: Key<U4, 0-3>
+    Metadata 'KeyValues': Vec<Text, 4>: Length=4, Count=4
+      [0] 'Amer-Indian-Eskimo', [1] 'Black', [2] 'Asian-Pac-Islander', [3] 'White'
+  Gender2: Key<U4, 0-1>
+    Metadata 'KeyValues': Vec<Text, 2>: Length=2, Count=2
+      [0] 'Male', [1] 'Female'
+  Gender2: Vec<R4, 2>
+    Metadata 'CategoricalSlotRanges': Vec<I4, 1, 2>: Length=2, Count=2
+      [0] '0', [1] '1'
+    Metadata 'IsNormalized': Bool: '1'
+    Metadata 'SlotNames': Vec<Text, 2>: Length=2, Count=2
+      [0] 'Male', [1] 'Female'
+  Mar2: Key<U4, 0-6>
+    Metadata 'KeyValues': Vec<Text, 7>: Length=7, Count=7
+      [0] 'Never-married', [1] 'Married-civ-spouse', [2] 'Divorced', [3] 'Married-spouse-absent', [4] 'Separated', [5] 'Married-AF-spouse', [6] 'Widowed'
+  Race3: Key<U4, 0-4>
+    Metadata 'KeyValues': Vec<Text, 5>: Length=5, Count=5
+      [0] 'Other', [1] 'White', [2] 'Black', [3] 'Asian-Pac-Islander', [4] 'Amer-Indian-Eskimo'
+---- RowToRowMapperTransform ----
+14 columns:
+  Label: R4
+  Age: R4
+  Gender: Text
+  Mar: Text
+  Race: Text
+  Num: Vec<R4, 5>
+    Metadata 'SlotNames': Vec<Text, 5>: Length=5, Count=5
+      [0] 'fnlwgt', [1] 'education-num', [2] 'capital-gain', [3] 'capital-loss', [4] 'hours-per-week'
+  Txt: Vec<Text, 5>
+    Metadata 'SlotNames': Vec<Text, 5>: Length=5, Count=5
+      [0] 'workclass', [1] 'education', [2] 'occupation', [3] 'relationship', [4] 'native-country'
+  Race2: Key<U4, 0-3>
+    Metadata 'KeyValues': Vec<Text, 4>: Length=4, Count=4
+      [0] 'Amer-Indian-Eskimo', [1] 'Black', [2] 'Asian-Pac-Islander', [3] 'White'
+  Gender2: Key<U4, 0-1>
+    Metadata 'KeyValues': Vec<Text, 2>: Length=2, Count=2
+      [0] 'Male', [1] 'Female'
+  Gender2: Vec<R4, 2>
+    Metadata 'CategoricalSlotRanges': Vec<I4, 1, 2>: Length=2, Count=2
+      [0] '0', [1] '1'
+    Metadata 'IsNormalized': Bool: '1'
+    Metadata 'SlotNames': Vec<Text, 2>: Length=2, Count=2
+      [0] 'Male', [1] 'Female'
+  Mar2: Key<U4, 0-6>
+    Metadata 'KeyValues': Vec<Text, 7>: Length=7, Count=7
+      [0] 'Never-married', [1] 'Married-civ-spouse', [2] 'Divorced', [3] 'Married-spouse-absent', [4] 'Separated', [5] 'Married-AF-spouse', [6] 'Widowed'
+  Mar2: Vec<R4, 7>
+    Metadata 'CategoricalSlotRanges': Vec<I4, 1, 2>: Length=2, Count=2
+      [0] '0', [1] '6'
+    Metadata 'IsNormalized': Bool: '1'
+    Metadata 'SlotNames': Vec<Text, 7>: Length=7, Count=7
+      [0] 'Never-married', [1] 'Married-civ-spouse', [2] 'Divorced', [3] 'Married-spouse-absent', [4] 'Separated', [5] 'Married-AF-spouse', [6] 'Widowed'
+  Race3: Key<U4, 0-4>
+    Metadata 'KeyValues': Vec<Text, 5>: Length=5, Count=5
+      [0] 'Other', [1] 'White', [2] 'Black', [3] 'Asian-Pac-Islander', [4] 'Amer-Indian-Eskimo'
+  Race3: Vec<R4, 5>
+    Metadata 'CategoricalSlotRanges': Vec<I4, 1, 2>: Length=2, Count=2
+      [0] '0', [1] '4'
+    Metadata 'IsNormalized': Bool: '1'
+    Metadata 'SlotNames': Vec<Text, 5>: Length=5, Count=5
+      [0] 'Other', [1] 'White', [2] 'Black', [3] 'Asian-Pac-Islander', [4] 'Amer-Indian-Eskimo'

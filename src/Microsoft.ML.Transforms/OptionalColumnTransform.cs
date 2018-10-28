@@ -45,7 +45,7 @@ namespace Microsoft.ML.Runtime.DataPipe
             // The input schema of the original data view that contains the source columns. We need this
             // so that we can have the metadata even when we load this transform with new data that does not have
             // these columns.
-            private readonly ISchema _inputWithOptionalColumn;
+            private readonly Schema _inputWithOptionalColumn;
             private readonly int[] _srcColsWithOptionalColumn;
 
             private Bindings(OptionalColumnTransform parent, ColumnType[] columnTypes, int[] srcCols,
@@ -60,7 +60,7 @@ namespace Microsoft.ML.Runtime.DataPipe
                 SrcCols = srcCols;
                 _parent = parent;
                 _metadata = new MetadataDispatcher(InfoCount);
-                _inputWithOptionalColumn = inputWithOptionalColumn;
+                _inputWithOptionalColumn = Schema.Create(inputWithOptionalColumn);
                 _srcColsWithOptionalColumn = srcColsWithOptionalColumn;
                 SetMetadata();
             }
@@ -288,7 +288,7 @@ namespace Microsoft.ML.Runtime.DataPipe
             _bindings.Save(Host, ctx);
         }
 
-        public override ISchema Schema { get { return _bindings; } }
+        public override Schema Schema => _bindings.AsSchema;
 
         protected override bool? ShouldUseParallelCursors(Func<int, bool> predicate)
         {
@@ -425,7 +425,7 @@ namespace Microsoft.ML.Runtime.DataPipe
                 }
             }
 
-            public ISchema Schema { get { return _bindings; } }
+            public Schema Schema => _bindings.AsSchema;
 
             public bool IsColumnActive(int col)
             {

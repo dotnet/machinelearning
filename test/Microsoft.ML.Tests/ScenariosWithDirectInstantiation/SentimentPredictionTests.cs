@@ -6,7 +6,7 @@ using Microsoft.ML.Legacy.Models;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.FastTree;
+using Microsoft.ML.Trainers.FastTree;
 using Microsoft.ML.Runtime.Internal.Calibration;
 using System.Linq;
 using Xunit;
@@ -43,10 +43,8 @@ namespace Microsoft.ML.Scenarios
                         Name = "Features",
                         Source = new[] { "SentimentText" }
                     },
-                    KeepDiacritics = false,
-                    KeepPunctuations = false,
-                    TextCase = Runtime.TextAnalytics.TextNormalizerTransform.CaseNormalizationMode.Lower,
                     OutputTokens = true,
+                    KeepPunctuations = false,
                     StopWordsRemover = new Runtime.TextAnalytics.PredefinedStopWordsRemoverFactory(),
                     VectorNormalizer = TextTransform.TextNormKind.L2,
                     CharFeatureExtractor = new NgramExtractorTransform.NgramExtractorArguments() { NgramLength = 3, AllLengths = false },
@@ -108,10 +106,8 @@ namespace Microsoft.ML.Scenarios
                         Name = "WordEmbeddings",
                         Source = new[] { "SentimentText" }
                     },
-                    KeepDiacritics = false,
-                    KeepPunctuations = false,
-                    TextCase = Runtime.TextAnalytics.TextNormalizerTransform.CaseNormalizationMode.Lower,
                     OutputTokens = true,
+                    KeepPunctuations= false,
                     StopWordsRemover = new Runtime.TextAnalytics.PredefinedStopWordsRemoverFactory(),
                     VectorNormalizer = TextTransform.TextNormKind.None,
                     CharFeatureExtractor = null,

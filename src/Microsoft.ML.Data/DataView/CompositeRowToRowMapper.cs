@@ -15,8 +15,8 @@ namespace Microsoft.ML.Runtime.Data
         private readonly IRowToRowMapper[] _innerMappers;
         private static readonly IRowToRowMapper[] _empty = new IRowToRowMapper[0];
 
-        public ISchema InputSchema { get; }
-        public ISchema Schema { get; }
+        public Schema InputSchema { get; }
+        public Schema Schema { get; }
 
         /// <summary>
         /// Out of a series of mappers, construct a seemingly unitary mapper that is able to apply them in sequence.
@@ -24,7 +24,7 @@ namespace Microsoft.ML.Runtime.Data
         /// <param name="inputSchema">The input schema.</param>
         /// <param name="mappers">The sequence of mappers to wrap. An empty or <c>null</c> argument
         /// is legal, and counts as being a no-op application.</param>
-        public CompositeRowToRowMapper(ISchema inputSchema, IRowToRowMapper[] mappers)
+        public CompositeRowToRowMapper(Schema inputSchema, IRowToRowMapper[] mappers)
         {
             Contracts.CheckValue(inputSchema, nameof(inputSchema));
             Contracts.CheckValueOrNull(mappers);
@@ -36,7 +36,7 @@ namespace Microsoft.ML.Runtime.Data
         public Func<int, bool> GetDependencies(Func<int, bool> predicate)
         {
             Func<int, bool> toReturn = predicate;
-            for (int i = _innerMappers.Length - 1; i <= 0; --i)
+            for (int i = _innerMappers.Length - 1; i >= 0; --i)
                 toReturn = _innerMappers[i].GetDependencies(toReturn);
             return toReturn;
         }
@@ -100,7 +100,7 @@ namespace Microsoft.ML.Runtime.Data
                 _pred = pred;
             }
 
-            public ISchema Schema => _row.Schema;
+            public Schema Schema => _row.Schema;
             public long Position => _row.Position;
             public long Batch => _row.Batch;
             public ValueGetter<TValue> GetGetter<TValue>(int col) => _row.GetGetter<TValue>(col);

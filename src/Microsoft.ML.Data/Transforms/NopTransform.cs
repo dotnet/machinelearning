@@ -24,7 +24,7 @@ namespace Microsoft.ML.Runtime.Data
 
         public IDataView Source { get; }
 
-        ISchema IRowToRowMapper.InputSchema => Source.Schema;
+        Schema IRowToRowMapper.InputSchema => Source.Schema;
 
         /// <summary>
         /// Creates a NopTransform if the input is not an IDataTransform.
@@ -101,10 +101,7 @@ namespace Microsoft.ML.Runtime.Data
             get { return Source.CanShuffle; }
         }
 
-        public ISchema Schema
-        {
-            get { return Source.Schema; }
-        }
+        public Schema Schema => Source.Schema;
 
         public long? GetRowCount(bool lazy = true)
         {

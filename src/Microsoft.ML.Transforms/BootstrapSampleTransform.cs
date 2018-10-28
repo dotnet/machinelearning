@@ -188,7 +188,7 @@ namespace Microsoft.ML.Runtime.Data
 
             public override long Batch { get { return 0; } }
 
-            public ISchema Schema { get { return Input.Schema; } }
+            public Schema Schema { get { return Input.Schema; } }
 
             public RowCursor(BootstrapSampleTransform parent, IRowCursor input, IRandom rgen)
                 : base(parent.Host, input)

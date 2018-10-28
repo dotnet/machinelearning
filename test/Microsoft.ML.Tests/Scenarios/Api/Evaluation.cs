@@ -4,8 +4,8 @@
 
 using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Learners;
 using Microsoft.ML.Runtime.RunTests;
+using Microsoft.ML.Trainers;
 using Xunit;
 
 namespace Microsoft.ML.Tests.Scenarios.Api
@@ -44,7 +44,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                 var model = env.CreatePredictionEngine<SentimentData, SentimentPrediction>(scorer);
 
                 // Take a couple examples out of the test data and run predictions on top.
-                var testLoader = TextLoader.ReadFile(env, MakeSentimentTextLoaderArgs(), new MultiFileSource(GetDataPath(TestDatasets.irisData.validFilename)));
+                var testLoader = TextLoader.ReadFile(env, MakeSentimentTextLoaderArgs(), new MultiFileSource(GetDataPath(TestDatasets.irisData.testFilename)));
                 var testData = testLoader.AsEnumerable<SentimentData>(env, false);
 
                 var dataEval = new RoleMappedData(scorer, label: "Label", feature: "Features", opt: true);

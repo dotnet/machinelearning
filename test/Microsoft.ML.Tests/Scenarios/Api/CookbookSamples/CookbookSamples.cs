@@ -6,7 +6,7 @@ using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.FastTree;
+using Microsoft.ML.Trainers.FastTree;
 using Microsoft.ML.Runtime.Learners;
 using Microsoft.ML.Runtime.RunTests;
 using Microsoft.ML.StaticPipe;
@@ -37,12 +37,12 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
 
         private void IntermediateData(string dataPath)
         {
-            // Create a new environment for ML.NET operations. It can be used for exception tracking and logging, 
-            // as well as the source of randomness.
-            var env = new LocalEnvironment();
+            // Create a new context for ML.NET operations. It can be used for exception tracking and logging, 
+            // as a catalog of available operations and as the source of randomness.
+            var mlContext = new MLContext();
 
             // Create the reader: define the data columns and where to find them in the text file.
-            var reader = TextLoader.CreateReader(env, ctx => (
+            var reader = mlContext.Data.TextReader(ctx => (
                     // A boolean column depicting the 'target label'.
                     IsOver50K: ctx.LoadBool(0),
                     // Three text columns.
@@ -61,7 +61,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
 
             // Let's verify that the data has been read correctly. 
             // First, we read the data file.
-            var data = reader.Read(new MultiFileSource(dataPath));
+            var data = reader.Read(dataPath);
 
             // Fit our data pipeline and transform data with it.
             var transformedData = dataPipeline.Fit(data).Transform(data);
@@ -75,7 +75,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             // The same extension method also applies to the dynamic-typed data, except you have to
             // specify the column name and type:
             var dynamicData = transformedData.AsDynamic;
-            var sameFeatureColumns = dynamicData.GetColumn<string[]>(env, "AllFeatures")
+            var sameFeatureColumns = dynamicData.GetColumn<string[]>(mlContext, "AllFeatures")
                 .Take(20).ToArray();
         }
 
@@ -83,16 +83,15 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
         public void InspectIntermediateDataGetColumn()
             => IntermediateData(GetDataPath("adult.tiny.with-schema.txt"));
 
-
         private void TrainRegression(string trainDataPath, string testDataPath, string modelPath)
         {
-            // Create a new environment for ML.NET operations. It can be used for exception tracking and logging, 
-            // as well as the source of randomness.
-            var env = new LocalEnvironment();
+            // Create a new context for ML.NET operations. It can be used for exception tracking and logging, 
+            // as a catalog of available operations and as the source of randomness.
+            var mlContext = new MLContext();
 
             // Step one: read the data as an IDataView.
             // First, we define the reader: specify the data columns and where to find them in the text file.
-            var reader = TextLoader.CreateReader(env, ctx => (
+            var reader = mlContext.Data.TextReader(ctx => (
                     // We read the first 11 values as a single float vector.
                     FeatureVector: ctx.LoadFloat(0, 10),
                     // Separately, read the target variable.
@@ -105,12 +104,9 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
 
 
             // Now read the file (remember though, readers are lazy, so the actual reading will happen when the data is accessed).
-            var trainData = reader.Read(new MultiFileSource(trainDataPath));
+            var trainData = reader.Read(trainDataPath);
 
             // Step two: define the learning pipeline. 
-            // We know that this is a regression task, so we create a regression context: it will give us the algorithms
-            // we need, as well as the evaluation procedure.
-            var regression = new RegressionContext(env);
 
             // We 'start' the pipeline with the output of the reader.
             var learningPipeline = reader.MakeNewEstimator()
@@ -121,7 +117,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
                     r.Target,
                     // We choose the SDCA regression trainer. Note that we normalize the 'FeatureVector' right here in
                     // the the same call.
-                    Prediction: regression.Trainers.Sdca(label: r.Target, features: r.FeatureVector.Normalize())));
+                    Prediction: mlContext.Regression.Trainers.Sdca(label: r.Target, features: r.FeatureVector.Normalize())));
 
             var fx = trainData.GetColumn(x => x.FeatureVector);
 
@@ -129,15 +125,14 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             var model = learningPipeline.Fit(trainData);
 
             // Read the test dataset.
-            var testData = reader.Read(new MultiFileSource(testDataPath));
+            var testData = reader.Read(testDataPath);
             // Calculate metrics of the model on the test data.
-            // We are using the 'regression' context object here to perform evaluation.
-            var metrics = regression.Evaluate(model.Transform(testData), label: r => r.Target, score: r => r.Prediction);
+            var metrics = mlContext.Regression.Evaluate(model.Transform(testData), label: r => r.Target, score: r => r.Prediction);
 
             using (var stream = File.Create(modelPath))
             {
                 // Saving and loading happens to 'dynamic' models, so the static typing is lost in the process.
-                model.AsDynamic.SaveTo(env, stream);
+                mlContext.Model.Save(model.AsDynamic, stream);
             }
 
             // Potentially, the lines below can be in a different process altogether.
@@ -145,7 +140,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             // When you load the model, it's a 'dynamic' transformer. 
             ITransformer loadedModel;
             using (var stream = File.OpenRead(modelPath))
-                loadedModel = TransformerChain.LoadFrom(env, stream);
+                loadedModel = mlContext.Model.Load(stream);
         }
 
         [Fact]
@@ -155,17 +150,13 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
 
         private ITransformer TrainOnIris(string irisDataPath)
         {
-            // Create a new environment for ML.NET operations. It can be used for exception tracking and logging, 
-            // as well as the source of randomness.
-            var env = new LocalEnvironment();
-
-            // We know that this is a classification task, so we create a multiclass classification context: it will give us the algorithms
-            // we need, as well as the evaluation procedure.
-            var classification = new MulticlassClassificationContext(env);
+            // Create a new context for ML.NET operations. It can be used for exception tracking and logging, 
+            // as a catalog of available operations and as the source of randomness.
+            var mlContext = new MLContext();
 
             // Step one: read the data as an IDataView.
             // First, we define the reader: specify the data columns and where to find them in the text file.
-            var reader = TextLoader.CreateReader(env, ctx => (
+            var reader = mlContext.Data.TextReader(ctx => (
                     // The four features of the Iris dataset.
                     SepalLength: ctx.LoadFloat(0),
                     SepalWidth: ctx.LoadFloat(1),
@@ -178,7 +169,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
                 separator: ',');
 
             // Retrieve the training data.
-            var trainData = reader.Read(new MultiFileSource(irisDataPath));
+            var trainData = reader.Read(irisDataPath);
 
             // Build the training pipeline.
             var learningPipeline = reader.MakeNewEstimator()
@@ -190,7 +181,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
                     r.Label,
                     // Train the multi-class SDCA model to predict the label using features.
                     // Note that the label is a text, so it needs to be converted to key using 'ToKey' estimator.
-                    Predictions: classification.Trainers.Sdca(r.Label.ToKey(), r.Features)))
+                    Predictions: mlContext.MulticlassClassification.Trainers.Sdca(r.Label.ToKey(), r.Features)))
                 // Apply the inverse conversion from 'predictedLabel' key back to string value.
                 // Note that the final output column is only one, and we didn't assign a name to it.
                 // In this case, ML.NET auto-assigns the name 'Data' to the produced column.
@@ -203,15 +194,15 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
 
         private void PredictOnIris(ITransformer model)
         {
-            // Create a new environment for ML.NET operations. It can be used for exception tracking and logging, 
-            // as well as the source of randomness.
-            var env = new LocalEnvironment();
+            // Create a new context for ML.NET operations. It can be used for exception tracking and logging, 
+            // as a catalog of available operations and as the source of randomness.
+            var mlContext = new MLContext();
 
             // Use the model for one-time prediction.
             // Make the prediction function object. Note that, on average, this call takes around 200x longer
             // than one prediction, so you might want to cache and reuse the prediction function, instead of
             // creating one per prediction.
-            var predictionFunc = model.MakePredictionFunction<IrisInput, IrisPrediction>(env);
+            var predictionFunc = model.MakePredictionFunction<IrisInput, IrisPrediction>(mlContext);
 
             // Obtain the prediction. Remember that 'Predict' is not reentrant. If you want to use multiple threads
             // for simultaneous prediction, make sure each thread is using its own PredictionFunction.
@@ -230,17 +221,13 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
 
         private void TrainAndInspectWeights(string dataPath)
         {
-            // Create a new environment for ML.NET operations. It can be used for exception tracking and logging, 
-            // as well as the source of randomness.
-            var env = new LocalEnvironment();
-
-            // We know that this is a classification task, so we create a multiclass classification context: it will give us the algorithms
-            // we need, as well as the evaluation procedure.
-            var classification = new MulticlassClassificationContext(env);
+            // Create a new context for ML.NET operations. It can be used for exception tracking and logging, 
+            // as a catalog of available operations and as the source of randomness.
+            var mlContext = new MLContext();
 
             // Step one: read the data as an IDataView.
             // First, we define the reader: specify the data columns and where to find them in the text file.
-            var reader = TextLoader.CreateReader(env, ctx => (
+            var reader = mlContext.Data.TextReader(ctx => (
                     // The four features of the Iris dataset.
                     SepalLength: ctx.LoadFloat(0),
                     SepalWidth: ctx.LoadFloat(1),
@@ -253,7 +240,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
                 separator: ',');
 
             // Retrieve the training data.
-            var trainData = reader.Read(new MultiFileSource(dataPath));
+            var trainData = reader.Read(dataPath);
 
             // This is the predictor ('weights collection') that we will train.
             MulticlassLogisticRegressionPredictor predictor = null;
@@ -276,7 +263,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
                     r.Label,
                     // Train the multi-class SDCA model to predict the label using features.
                     // Note that the label is a text, so it needs to be converted to key using 'ToKey' estimator.
-                    Predictions: classification.Trainers.Sdca(r.Label.ToKey(), r.Features,
+                    Predictions: mlContext.MulticlassClassification.Trainers.Sdca(r.Label.ToKey(), r.Features,
                         // When the model is trained, the below delegate is going to be called.
                         // We use that to memorize the predictor object.
                         onFit: p => predictor = p)));
@@ -292,7 +279,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             VBuffer<float>[] weights = null;
             predictor.GetWeights(ref weights, out int numClasses);
 
-            // similarly we can also inspect the biases for the 3 classes 
+            // Similarly we can also inspect the biases for the 3 classes.
             var biases = predictor.GetBiases();
 
             // Inspect the normalizer scales.
@@ -305,12 +292,12 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
 
         private void NormalizationWorkout(string dataPath)
         {
-            // Create a new environment for ML.NET operations. It can be used for exception tracking and logging, 
-            // as well as the source of randomness.
-            var env = new LocalEnvironment();
+            // Create a new context for ML.NET operations. It can be used for exception tracking and logging, 
+            // as a catalog of available operations and as the source of randomness.
+            var mlContext = new MLContext();
 
             // Define the reader: specify the data columns and where to find them in the text file.
-            var reader = TextLoader.CreateReader(env, ctx => (
+            var reader = mlContext.Data.TextReader(ctx => (
                     // The four features of the Iris dataset will be grouped together as one Features column.
                     Features: ctx.LoadFloat(0, 3),
                     // Label: kind of iris.
@@ -320,7 +307,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
                 separator: ',');
 
             // Read the training data.
-            var trainData = reader.Read(new MultiFileSource(dataPath));
+            var trainData = reader.Read(dataPath);
 
             // Apply all kinds of standard ML.NET normalization to the raw features.
             var pipeline = reader.MakeNewEstimator()
@@ -368,9 +355,9 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
         [Fact]
         public void TrainOnAutoGeneratedData()
         {
-            // Create a new environment for ML.NET operations. It can be used for exception tracking and logging, 
-            // as well as the source of randomness.
-            var env = new LocalEnvironment();
+            // Create a new context for ML.NET operations. It can be used for exception tracking and logging, 
+            // as a catalog of available operations and as the source of randomness.
+            var mlContext = new MLContext();
 
             // Step one: read the data as an IDataView.
             // Let's assume that 'GetChurnData()' fetches and returns the training data from somewhere.
@@ -379,29 +366,25 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             // Turn the data into the ML.NET data view.
             // We can use CreateDataView or CreateStreamingDataView, depending on whether 'churnData' is an IList, 
             // or merely an IEnumerable.
-            var trainData = env.CreateStreamingDataView(churnData);
+            var trainData = mlContext.CreateStreamingDataView(churnData);
 
             // Now note that 'trainData' is just an IDataView, so we face a choice here: either declare the static type
             // and proceed in the statically typed fashion, or keep dynamic types and build a dynamic pipeline.
             // We demonstrate both below.
 
-            // We know that this is a binary classification task, so we create a binary classification context: it will give us the algorithms
-            // we need, as well as the evaluation procedure.
-            var classification = new BinaryClassificationContext(env);
-
             // Build the learning pipeline. 
             // In our case, we will one-hot encode the demographic category, and concatenate that with the number of visits.
             // We apply our FastTree binary classifier to predict the 'HasChurned' label.
 
-            var dynamicLearningPipeline = new CategoricalEstimator(env, "DemographicCategory")
-                .Append(new ConcatEstimator(env, "Features", "DemographicCategory", "LastVisits"))
-                .Append(new FastTreeBinaryClassificationTrainer(env, "HasChurned", "Features", numTrees: 20));
+            var dynamicLearningPipeline = mlContext.Transforms.Categorical.OneHotEncoding("DemographicCategory")
+                .Append(new ConcatEstimator(mlContext, "Features", "DemographicCategory", "LastVisits"))
+                .Append(mlContext.BinaryClassification.Trainers.FastTree("HasChurned", "Features", numTrees: 20));
 
             var dynamicModel = dynamicLearningPipeline.Fit(trainData);
 
             // Build the same learning pipeline, but statically typed.
             // First, transition to the statically-typed data view.
-            var staticData = trainData.AssertStatic(env, c => (
+            var staticData = trainData.AssertStatic(mlContext, c => (
                     HasChurned: c.Bool.Scalar,
                     DemographicCategory: c.Text.Scalar,
                     LastVisits: c.R4.Vector));
@@ -411,30 +394,30 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
                 .Append(r => (
                     r.HasChurned,
                     Features: r.DemographicCategory.OneHotEncoding().ConcatWith(r.LastVisits)))
-                .Append(r => classification.Trainers.FastTree(r.HasChurned, r.Features, numTrees: 20));
+                .Append(r => mlContext.BinaryClassification.Trainers.FastTree(r.HasChurned, r.Features, numTrees: 20));
 
             var staticModel = staticLearningPipeline.Fit(staticData);
 
             // Note that dynamicModel should be the same as staticModel.AsDynamic (give or take random variance from
             // the training procedure).
 
-            var qualityMetrics = classification.Evaluate(dynamicModel.Transform(trainData), "HasChurned");
+            var qualityMetrics = mlContext.BinaryClassification.Evaluate(dynamicModel.Transform(trainData), "HasChurned");
         }
 
         private void TextFeaturizationOn(string dataPath)
         {
-            // Create a new environment for ML.NET operations. It can be used for exception tracking and logging, 
-            // as well as the source of randomness.
-            var env = new LocalEnvironment();
+            // Create a new context for ML.NET operations. It can be used for exception tracking and logging, 
+            // as a catalog of available operations and as the source of randomness.
+            var mlContext = new MLContext();
 
             // Define the reader: specify the data columns and where to find them in the text file.
-            var reader = TextLoader.CreateReader(env, ctx => (
+            var reader = mlContext.Data.TextReader(ctx => (
                     IsToxic: ctx.LoadBool(0),
                     Message: ctx.LoadText(1)
                 ), hasHeader: true);
 
             // Read the data.
-            var data = reader.Read(new MultiFileSource(dataPath));
+            var data = reader.Read(dataPath);
 
             // Inspect the message texts that are read from the file.
             var messageTexts = data.GetColumn(x => x.Message).Take(20).ToArray();
@@ -475,14 +458,18 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
         public void CategoricalFeaturization()
             => CategoricalFeaturizationOn(GetDataPath("adult.tiny.with-schema.txt"));
 
-        private void CategoricalFeaturizationOn(string dataPath)
+        [Fact]
+        public void ReadMultipleFiles()
+            => CategoricalFeaturizationOn(GetDataPath("adult.tiny.with-schema.txt"), GetDataPath("adult.tiny.with-schema.txt"));
+
+        private void CategoricalFeaturizationOn(params string[] dataPath)
         {
-            // Create a new environment for ML.NET operations. It can be used for exception tracking and logging, 
-            // as well as the source of randomness.
-            var env = new LocalEnvironment();
+            // Create a new context for ML.NET operations. It can be used for exception tracking and logging, 
+            // as a catalog of available operations and as the source of randomness.
+            var mlContext = new MLContext();
 
             // Define the reader: specify the data columns and where to find them in the text file.
-            var reader = TextLoader.CreateReader(env, ctx => (
+            var reader = mlContext.Data.TextReader(ctx => (
                     Label: ctx.LoadBool(0),
                     // We will load all the categorical features into one vector column of size 8.
                     CategoricalFeatures: ctx.LoadText(1, 8),
@@ -493,7 +480,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
                 ), hasHeader: true);
 
             // Read the data.
-            var data = reader.Read(new MultiFileSource(dataPath));
+            var data = reader.Read(dataPath);
 
             // Inspect the categorical columns to check that they are correctly read.
             var catColumns = data.GetColumn(r => r.CategoricalFeatures).Take(10).ToArray();
@@ -521,14 +508,13 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             // Of course, if we want to train the model, we will need to compose a single float vector of all the features.
             // Here's how we could do this:
 
-            var classification = new BinaryClassificationContext(env);
             var fullLearningPipeline = learningPipeline
                 .Append(r => (
                     r.Label,
                     // Concatenate two of the 3 categorical pipelines, and the numeric features.
                     Features: r.NumericalFeatures.ConcatWith(r.CategoricalBag, r.WorkclassOneHotTrimmed)))
                 // Now we're ready to train. We chose our FastTree trainer for this classification task.
-                .Append(r => classification.Trainers.FastTree(r.Label, r.Features, numTrees: 50));
+                .Append(r => mlContext.BinaryClassification.Trainers.FastTree(r.Label, r.Features, numTrees: 50));
 
             // Train the model.
             var model = fullLearningPipeline.Fit(data);
@@ -540,17 +526,13 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
 
         private void CrossValidationOn(string dataPath)
         {
-            // Create a new environment for ML.NET operations. It can be used for exception tracking and logging, 
-            // as well as the source of randomness.
-            var env = new LocalEnvironment();
-
-            // We know that this is a classification task, so we create a multiclass classification context: it will give us the algorithms
-            // we need, as well as the evaluation procedure.
-            var classification = new MulticlassClassificationContext(env);
+            // Create a new context for ML.NET operations. It can be used for exception tracking and logging, 
+            // as a catalog of available operations and as the source of randomness.
+            var mlContext = new MLContext();
 
             // Step one: read the data as an IDataView.
             // First, we define the reader: specify the data columns and where to find them in the text file.
-            var reader = TextLoader.CreateReader(env, ctx => (
+            var reader = mlContext.Data.TextReader(ctx => (
                     // The four features of the Iris dataset.
                     SepalLength: ctx.LoadFloat(0),
                     SepalWidth: ctx.LoadFloat(1),
@@ -563,7 +545,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
                 separator: ',');
 
             // Read the data.
-            var data = reader.Read(new MultiFileSource(dataPath));
+            var data = reader.Read(dataPath);
 
             // Build the training pipeline.
             var learningPipeline = reader.MakeNewEstimator()
@@ -575,19 +557,19 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
                 .Append(r => (
                     r.Label,
                     // Train the multi-class SDCA model to predict the label using features.
-                    Predictions: classification.Trainers.Sdca(r.Label, r.Features)));
+                    Predictions: mlContext.MulticlassClassification.Trainers.Sdca(r.Label, r.Features)));
 
             // Split the data 90:10 into train and test sets, train and evaluate.
-            var (trainData, testData) = classification.TrainTestSplit(data, testFraction: 0.1);
+            var (trainData, testData) = mlContext.MulticlassClassification.TrainTestSplit(data, testFraction: 0.1);
 
             // Train the model.
             var model = learningPipeline.Fit(trainData);
             // Compute quality metrics on the test set.
-            var metrics = classification.Evaluate(model.Transform(testData), r => r.Label, r => r.Predictions);
+            var metrics = mlContext.MulticlassClassification.Evaluate(model.Transform(testData), r => r.Label, r => r.Predictions);
             Console.WriteLine(metrics.AccuracyMicro);
 
             // Now run the 5-fold cross-validation experiment, using the same pipeline.
-            var cvResults = classification.CrossValidate(data, learningPipeline, r => r.Label, numFolds: 5);
+            var cvResults = mlContext.MulticlassClassification.CrossValidate(data, learningPipeline, r => r.Label, numFolds: 5);
 
             // The results object is an array of 5 elements. For each of the 5 folds, we have metrics, model and scored test data.
             // Let's compute the average micro-accuracy.
@@ -601,13 +583,13 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
 
         private void MixMatch(string dataPath)
         {
-            // Create a new environment for ML.NET operations. It can be used for exception tracking and logging, 
-            // as well as the source of randomness.
-            var env = new LocalEnvironment();
+            // Create a new context for ML.NET operations. It can be used for exception tracking and logging, 
+            // as a catalog of available operations and as the source of randomness.
+            var mlContext = new MLContext();
 
             // Read the data as an IDataView.
             // First, we define the reader: specify the data columns and where to find them in the text file.
-            var reader = TextLoader.CreateReader(env, ctx => (
+            var reader = mlContext.Data.TextReader(ctx => (
                     // The four features of the Iris dataset.
                     SepalLength: ctx.LoadFloat(0),
                     SepalWidth: ctx.LoadFloat(1),
@@ -620,7 +602,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
                 separator: ',');
 
             // Read the data.
-            var data = reader.Read(new MultiFileSource(dataPath));
+            var data = reader.Read(dataPath);
 
             // Build the pre-processing pipeline.
             var learningPipeline = reader.MakeNewEstimator()
@@ -635,15 +617,15 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             IEstimator<ITransformer> dynamicPipe = learningPipeline.AsDynamic;
 
             // Create a binary classification trainer.
-            var binaryTrainer = new AveragedPerceptronTrainer(env, "Label", "Features");
+            var binaryTrainer = mlContext.BinaryClassification.Trainers.AveragedPerceptron();
 
             // Append the OVA learner to the pipeline.
-            dynamicPipe = dynamicPipe.Append(new Ova(env, binaryTrainer));
+            dynamicPipe = dynamicPipe.Append(new Ova(mlContext, binaryTrainer));
 
             // At this point, we have a choice. We could continue working with the dynamically-typed pipeline, and
             // ultimately call dynamicPipe.Fit(data.AsDynamic) to get the model, or we could go back into the static world.
             // Here's how we go back to the static pipeline:
-            var staticFinalPipe = dynamicPipe.AssertStatic(env,
+            var staticFinalPipe = dynamicPipe.AssertStatic(mlContext,
                     // Declare the shape of the input. As you can see, it's identical to the shape of the reader:
                     // four float features and a string label.
                     c => (
@@ -665,11 +647,36 @@ namespace Microsoft.ML.Tests.Scenarios.Api.CookbookSamples
             var model = staticFinalPipe.Fit(data);
 
             // And here is how we could've stayed in the dynamic pipeline and train that way.
-            dynamicPipe = dynamicPipe.Append(new KeyToValueEstimator(env, "PredictedLabel"));
+            dynamicPipe = dynamicPipe.Append(new KeyToValueEstimator(mlContext, "PredictedLabel"));
             var dynamicModel = dynamicPipe.Fit(data.AsDynamic);
 
             // Now 'dynamicModel', and 'model.AsDynamic' are equivalent.
-            var rs = model.Transform(data).GetColumn(x => x).ToArray();
+        }
+
+        [Fact]
+        public void ReadData()
+        {
+            ReadDataDynamic(GetDataPath("generated_regression_dataset.csv"));
+        }
+
+        private void ReadDataDynamic(string dataPath)
+        {
+            // Create a new context for ML.NET operations. It can be used for exception tracking and logging, 
+            // as a catalog of available operations and as the source of randomness.
+            var mlContext = new MLContext();
+
+            // Create the reader: define the data columns and where to find them in the text file.
+            var reader = mlContext.Data.TextReader(new[] {
+	                // We read the first 10 values as a single float vector.
+                    new TextLoader.Column("FeatureVector", DataKind.R4, new[] {new TextLoader.Range(0, 9)}),
+                    // Separately, read the target variable.
+                    new TextLoader.Column("Target", DataKind.R4, 10)
+                },
+                // Default separator is tab, but we need a comma.
+                s => s.Separator = ",");
+
+            // Now read the file (remember though, readers are lazy, so the actual reading will happen when the data is accessed).
+            var data = reader.Read(new MultiFileSource(dataPath));
         }
 
         private class CustomerChurnInfo

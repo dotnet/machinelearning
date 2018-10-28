@@ -7,121 +7,11 @@ using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.TextAnalytics;
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using static Microsoft.ML.Runtime.TextAnalytics.LdaTransform;
 using static Microsoft.ML.Runtime.TextAnalytics.StopWordsRemoverTransform;
-using static Microsoft.ML.Runtime.TextAnalytics.TextNormalizerTransform;
 
 namespace Microsoft.ML.Transforms
 {
-    /// <summary>
-    /// Word tokenizer splits text into tokens using the delimiter.
-    /// For each text input, the output column is a variable vector of text.
-    /// </summary>
-    public sealed class WordTokenizer : TrivialWrapperEstimator
-    {
-        /// <summary>
-        /// Tokenize incoming text in <paramref name="inputColumn"/> and output the tokens as <paramref name="outputColumn"/>.
-        /// </summary>
-        /// <param name="env">The environment.</param>
-        /// <param name="inputColumn">The column containing text to tokenize.</param>
-        /// <param name="outputColumn">The column containing output tokens. Null means <paramref name="inputColumn"/> is replaced.</param>
-        /// <param name="separators">The separators to use (uses space character by default).</param>
-        public WordTokenizer(IHostEnvironment env, string inputColumn, string outputColumn = null, char[] separators = null)
-            : this(env, new[] { (inputColumn, outputColumn ?? inputColumn) }, separators)
-        {
-        }
-
-        /// <summary>
-        /// Tokenize incoming text in input columns and output the tokens as output columns.
-        /// </summary>
-        /// <param name="env">The environment.</param>
-        /// <param name="columns">Pairs of columns to run the tokenization on.</param>
-        /// <param name="separators">The separators to use (uses space character by default).</param>
-        public WordTokenizer(IHostEnvironment env, (string input, string output)[] columns, char[] separators = null)
-            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(WordTokenizer)), MakeTransformer(env, columns, separators))
-        {
-        }
-
-        private static TransformWrapper MakeTransformer(IHostEnvironment env, (string input, string output)[] columns, char[] separators)
-        {
-            Contracts.AssertValue(env);
-            env.CheckNonEmpty(columns, nameof(columns));
-            foreach (var (input, output) in columns)
-            {
-                env.CheckValue(input, nameof(input));
-                env.CheckValue(output, nameof(input));
-            }
-
-            // Create arguments.
-            var args = new DelimitedTokenizeTransform.Arguments
-            {
-                Column = columns.Select(x => new DelimitedTokenizeTransform.Column { Source = x.input, Name = x.output }).ToArray(),
-                CharArrayTermSeparators = separators
-            };
-
-            // Create a valid instance of data.
-            var schema = new SimpleSchema(env, columns.Select(x => new KeyValuePair<string, ColumnType>(x.input, TextType.Instance)).ToArray());
-            var emptyData = new EmptyDataView(env, schema);
-
-            return new TransformWrapper(env, new DelimitedTokenizeTransform(env, args, emptyData));
-        }
-    }
-
-    /// <summary>
-    /// Character tokenizer splits text into sequences of characters using a sliding window.
-    /// </summary>
-    public sealed class CharacterTokenizer : TrivialWrapperEstimator
-    {
-        /// <summary>
-        /// Tokenize incoming text in <paramref name="inputColumn"/> and output the tokens as <paramref name="outputColumn"/>.
-        /// </summary>
-        /// <param name="env">The environment.</param>
-        /// <param name="inputColumn">The column containing text to tokenize.</param>
-        /// <param name="outputColumn">The column containing output tokens. Null means <paramref name="inputColumn"/> is replaced.</param>
-        /// <param name="useMarkerCharacters">Whether to use marker characters to separate words.</param>
-        public CharacterTokenizer(IHostEnvironment env, string inputColumn, string outputColumn = null, bool useMarkerCharacters = true)
-            : this(env, new[] { (inputColumn, outputColumn ?? inputColumn) }, useMarkerCharacters)
-        {
-        }
-
-        /// <summary>
-        /// Tokenize incoming text in input columns and output the tokens as output columns.
-        /// </summary>
-        /// <param name="env">The environment.</param>
-        /// <param name="columns">Pairs of columns to run the tokenization on.</param>
-        /// <param name="useMarkerCharacters">Whether to use marker characters to separate words.</param>
-        public CharacterTokenizer(IHostEnvironment env, (string input, string output)[] columns, bool useMarkerCharacters = true)
-            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(CharacterTokenizer)), MakeTransformer(env, columns, useMarkerCharacters))
-        {
-        }
-
-        private static TransformWrapper MakeTransformer(IHostEnvironment env, (string input, string output)[] columns, bool useMarkerChars)
-        {
-            Contracts.AssertValue(env);
-            env.CheckNonEmpty(columns, nameof(columns));
-            foreach (var (input, output) in columns)
-            {
-                env.CheckValue(input, nameof(input));
-                env.CheckValue(output, nameof(input));
-            }
-
-            // Create arguments.
-            var args = new CharTokenizeTransform.Arguments
-            {
-                Column = columns.Select(x => new CharTokenizeTransform.Column { Source = x.input, Name = x.output }).ToArray(),
-                UseMarkerChars = useMarkerChars
-            };
-
-            // Create a valid instance of data.
-            var schema = new SimpleSchema(env, columns.Select(x => new KeyValuePair<string, ColumnType>(x.input, TextType.Instance)).ToArray());
-            var emptyData = new EmptyDataView(env, schema);
-
-            return new TransformWrapper(env, new CharTokenizeTransform(env, args, emptyData));
-        }
-    }
 
     /// <summary>
     /// Stopword remover removes language-specific lists of stop words (most common words)
@@ -173,91 +63,10 @@ namespace Microsoft.ML.Transforms
             };
 
             // Create a valid instance of data.
-            var schema = new SimpleSchema(env, columns.Select(x => new KeyValuePair<string, ColumnType>(x.input, new VectorType(TextType.Instance))).ToArray());
+            var schema = new Schema(columns.Select(x => new Schema.Column(x.input, new VectorType(TextType.Instance), null)));
             var emptyData = new EmptyDataView(env, schema);
 
             return new TransformWrapper(env, new StopWordsRemoverTransform(env, args, emptyData));
-        }
-    }
-
-    /// <summary>
-    /// Text normalizer allows normalizing text by changing case (Upper/Lower case), removing diacritical marks, punctuation marks and/or numbers.
-    /// </summary>
-    public sealed class TextNormalizer : TrivialWrapperEstimator
-    {
-        /// <summary>
-        /// Normalizes incoming text in <paramref name="inputColumn"/> by changing case, removing diacritical marks, punctuation marks and/or numbers
-        /// and outputs new text as <paramref name="outputColumn"/>.
-        /// </summary>
-        /// <param name="env">The environment.</param>
-        /// <param name="inputColumn">The column containing text to normalize.</param>
-        /// <param name="outputColumn">The column containing output tokens. Null means <paramref name="inputColumn"/> is replaced.</param>
-        /// <param name="textCase">Casing text using the rules of the invariant culture.</param>
-        /// <param name="keepDiacritics">Whether to keep diacritical marks or remove them.</param>
-        /// <param name="keepPunctuations">Whether to keep punctuation marks or remove them.</param>
-        /// <param name="keepNumbers">Whether to keep numbers or remove them.</param>
-        public TextNormalizer(IHostEnvironment env,
-            string inputColumn,
-            string outputColumn = null,
-            CaseNormalizationMode textCase = CaseNormalizationMode.Lower,
-            bool keepDiacritics = false,
-            bool keepPunctuations = true,
-            bool keepNumbers = true)
-            : this(env, new[] { (inputColumn, outputColumn ?? inputColumn) }, textCase, keepDiacritics, keepPunctuations, keepNumbers)
-        {
-        }
-
-        /// <summary>
-        /// Normalizes incoming text in input columns by changing case, removing diacritical marks, punctuation marks and/or numbers
-        /// and outputs new text as output columns.
-        /// </summary>
-        /// <param name="env">The environment.</param>
-        /// <param name="columns">Pairs of columns to run the text normalization on.</param>
-        /// <param name="textCase">Casing text using the rules of the invariant culture.</param>
-        /// <param name="keepDiacritics">Whether to keep diacritical marks or remove them.</param>
-        /// <param name="keepPunctuations">Whether to keep punctuation marks or remove them.</param>
-        /// <param name="keepNumbers">Whether to keep numbers or remove them.</param>
-        public TextNormalizer(IHostEnvironment env,
-            (string input, string output)[] columns,
-            CaseNormalizationMode textCase = CaseNormalizationMode.Lower,
-            bool keepDiacritics = false,
-            bool keepPunctuations = true,
-            bool keepNumbers = true)
-            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(TextNormalizer)),
-                  MakeTransformer(env, columns, textCase, keepDiacritics, keepPunctuations, keepNumbers))
-        {
-        }
-
-        private static TransformWrapper MakeTransformer(IHostEnvironment env,
-            (string input, string output)[] columns,
-            CaseNormalizationMode textCase,
-            bool keepDiacritics,
-            bool keepPunctuations,
-            bool keepNumbers)
-        {
-            Contracts.AssertValue(env);
-            env.CheckNonEmpty(columns, nameof(columns));
-            foreach (var (input, output) in columns)
-            {
-                env.CheckValue(input, nameof(input));
-                env.CheckValue(output, nameof(input));
-            }
-
-            // Create arguments.
-            var args = new TextNormalizerTransform.Arguments
-            {
-                Column = columns.Select(x => new TextNormalizerTransform.Column { Source = x.input, Name = x.output }).ToArray(),
-                TextCase = textCase,
-                KeepDiacritics = keepDiacritics,
-                KeepPunctuations = keepPunctuations,
-                KeepNumbers = keepNumbers
-            };
-
-            // Create a valid instance of data.
-            var schema = new SimpleSchema(env, columns.Select(x => new KeyValuePair<string, ColumnType>(x.input, TextType.Instance)).ToArray());
-            var emptyData = new EmptyDataView(env, schema);
-
-            return new TransformWrapper(env, new TextNormalizerTransform(env, args, emptyData));
         }
     }
 

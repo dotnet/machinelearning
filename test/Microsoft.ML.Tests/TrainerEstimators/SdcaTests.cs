@@ -5,9 +5,8 @@
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Learners;
-using Microsoft.ML.Runtime.RunTests;
+using Microsoft.ML.Trainers;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Microsoft.ML.Tests.TrainerEstimators
 {
@@ -19,7 +18,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             var dataPath = GetDataPath("breast-cancer.txt");
 
             var data = TextLoader.CreateReader(Env, ctx => (Label: ctx.LoadFloat(0), Features: ctx.LoadFloat(1, 10)))
-                .Read(new MultiFileSource(dataPath));
+                .Read(dataPath);
             IEstimator<ITransformer> est = new LinearClassificationTrainer(Env, "Features", "Label", advancedSettings: (s) => s.ConvergenceTolerance = 1e-2f);
             TestEstimatorCore(est, data.AsDynamic);
 

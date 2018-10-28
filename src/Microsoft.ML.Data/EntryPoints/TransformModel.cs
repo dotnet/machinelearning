@@ -19,7 +19,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
     public sealed class TransformModel : ITransformModel
     {
         // The cached schema of the root of the _chain.
-        private readonly ISchema _schemaRoot;
+        private readonly Schema _schemaRoot;
 
         // This contains the transforms to save instantiated on an IDataView with
         // appropriate initial schema. Note that the "root" of this is typically either
@@ -39,14 +39,14 @@ namespace Microsoft.ML.Runtime.EntryPoints
         /// if transform model A needs column X and model B needs Y, that is NOT produced by A,
         /// then trimming A's input schema would cause composition to fail.
         /// </summary>
-        public ISchema InputSchema => _schemaRoot;
+        public Schema InputSchema => _schemaRoot;
 
         /// <summary>
         /// The resulting schema once applied to this model. The <see cref="InputSchema"/> might have
         /// columns that are not needed by this transform and these columns will be seen in the
         /// <see cref="OutputSchema"/> produced by this transform.
         /// </summary>
-        public ISchema OutputSchema => _chain.Schema;
+        public Schema OutputSchema => _chain.Schema;
 
         /// <summary>
         /// Create a TransformModel containing the transforms from "result" back to "input".
@@ -62,7 +62,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
             _chain = ApplyTransformUtils.ApplyAllTransformsToData(env, result, root, input);
         }
 
-        private TransformModel(IHostEnvironment env, ISchema schemaRoot, IDataView chain)
+        private TransformModel(IHostEnvironment env, Schema schemaRoot, IDataView chain)
         {
             Contracts.AssertValue(env);
             env.AssertValue(schemaRoot);
@@ -75,7 +75,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
         /// Create a TransformModel containing the given (optional) transforms applied to the
         /// given root schema.
         /// </summary>
-        public TransformModel(IHostEnvironment env, ISchema schemaRoot, IDataTransform[] xfs)
+        public TransformModel(IHostEnvironment env, Schema schemaRoot, IDataTransform[] xfs)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(schemaRoot, nameof(schemaRoot));
@@ -143,7 +143,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
             env.CheckValue(input, nameof(input));
 
             IDataView view;
-            ISchema schemaRoot = input.InputSchema;
+            Schema schemaRoot = input.InputSchema;
             var mod = input as TransformModel;
             if (mod != null)
                 view = ApplyTransformUtils.ApplyAllTransformsToData(env, _chain, mod._chain);
@@ -187,10 +187,10 @@ namespace Microsoft.ML.Runtime.EntryPoints
         private sealed class CompositeRowToRowMapper : IRowToRowMapper
         {
             private readonly IDataView _chain;
-            private readonly ISchema _rootSchema;
+            private readonly Schema _rootSchema;
             private readonly IExceptionContext _ectx;
 
-            public ISchema Schema => _chain.Schema;
+            public Schema Schema => _chain.Schema;
 
             public CompositeRowToRowMapper(IExceptionContext ectx, IDataView chain, ISchema rootSchema)
             {
@@ -200,7 +200,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
                 _ectx.CheckValue(rootSchema, nameof(rootSchema));
 
                 _chain = chain;
-                _rootSchema = rootSchema;
+                _rootSchema = Schema.Create(rootSchema);
             }
 
             public static bool IsCompositeRowToRowMapper(IDataView chain)
@@ -231,7 +231,7 @@ namespace Microsoft.ML.Runtime.EntryPoints
                 return pred;
             }
 
-            public ISchema InputSchema => _rootSchema;
+            public Schema InputSchema => _rootSchema;
 
             public IRow GetRow(IRow input, Func<int, bool> active, out Action disposer)
             {

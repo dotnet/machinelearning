@@ -14,7 +14,7 @@ namespace Microsoft.ML.Runtime.Data
     {
         private readonly IDataView _source;
         public bool CanShuffle => _source.CanShuffle;
-        public ISchema Schema => _source.Schema;
+        public Schema Schema => _source.Schema;
 
         public OpaqueDataView(IDataView source)
         {
