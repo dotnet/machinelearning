@@ -22,8 +22,6 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
         private const int Vector256Alignment = 32;
 
-        private const int destinationEnd = pDstEnd - 4;
-
         [MethodImplAttribute(MethodImplOptions.AggressiveInlining)]
         private static bool HasCompatibleAlignment(AlignedArray alignedArray)
         {
@@ -419,6 +417,8 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             {
                 float* pDstEnd = pdst + dst.Length;
                 float* pDstCurrent = pdst;
+                int destinationEnd = pDstEnd - 4;
+
 
                 Vector256<float> scalarVector256 = Avx.SetAllVector256(scalar);
 
@@ -504,6 +504,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                 float* pDstEnd = pdst + dst.Length;
                 float* pSrcCurrent = psrc;
                 float* pDstCurrent = pdst;
+                int destinationEnd = pDstEnd - 4;
 
                 Vector256<float> scaleVector256 = Avx.SetAllVector256(scale);
 
@@ -548,6 +549,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             {
                 float* pDstEnd = pdst + dst.Length;
                 float* pDstCurrent = pdst;
+                int destinationEnd = pDstEnd - 4;
 
                 Vector256<float> a256 = Avx.SetAllVector256(a);
                 Vector256<float> b256 = Avx.SetAllVector256(b);
