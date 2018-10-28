@@ -32,7 +32,7 @@ namespace Microsoft.ML.Tests.Scenarios.Api
                 var trans = TextTransform.Create(env, MakeSentimentTextTransformArgs(), loader);
 
                 // Train
-                var trainer = new LinearClassificationTrainer(env, new LinearClassificationTrainer.Arguments
+                var trainer = new SdcaBinaryTrainer(env, new SdcaBinaryTrainer.Arguments
                 {
                     NumThreads = 1
                 });

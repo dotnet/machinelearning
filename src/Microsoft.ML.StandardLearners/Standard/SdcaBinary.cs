@@ -21,10 +21,10 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-[assembly: LoadableClass(typeof(LinearClassificationTrainer), typeof(LinearClassificationTrainer.Arguments),
+[assembly: LoadableClass(typeof(SdcaBinaryTrainer), typeof(SdcaBinaryTrainer.Arguments),
     new[] { typeof(SignatureBinaryClassifierTrainer), typeof(SignatureTrainer), typeof(SignatureFeatureScorerTrainer) },
-    LinearClassificationTrainer.UserNameValue,
-    LinearClassificationTrainer.LoadNameValue,
+    SdcaBinaryTrainer.UserNameValue,
+    SdcaBinaryTrainer.LoadNameValue,
     "LinearClassifier",
     "lc",
     "sasdca")]
@@ -1383,7 +1383,7 @@ namespace Microsoft.ML.Trainers
         }
     }
 
-    public sealed class LinearClassificationTrainer : SdcaTrainerBase<LinearClassificationTrainer.Arguments, BinaryPredictionTransformer<TScalarPredictor>, TScalarPredictor>
+    public sealed class SdcaBinaryTrainer : SdcaTrainerBase<SdcaBinaryTrainer.Arguments, BinaryPredictionTransformer<TScalarPredictor>, TScalarPredictor>
     {
         public const string LoadNameValue = "SDCA";
         internal const string UserNameValue = "Fast Linear (SA-SDCA)";
@@ -1423,7 +1423,7 @@ namespace Microsoft.ML.Trainers
         public override TrainerInfo Info { get; }
 
         /// <summary>
-        /// Initializes a new instance of <see cref="LinearClassificationTrainer"/>
+        /// Initializes a new instance of <see cref="SdcaBinaryTrainer"/>
         /// </summary>
         /// <param name="env">The environment to use.</param>
         /// <param name="featureColumn">The features, or independent variables.</param>
@@ -1437,7 +1437,7 @@ namespace Microsoft.ML.Trainers
         /// The settings here will override the ones provided in the direct method signature,
         /// if both are present and have different values.
         /// The columns names, however need to be provided directly, not through the <paramref name="advancedSettings"/>.</param>
-        public LinearClassificationTrainer(IHostEnvironment env,
+        public SdcaBinaryTrainer(IHostEnvironment env,
             string featureColumn,
             string labelColumn,
             string weightColumn = null,
@@ -1475,7 +1475,7 @@ namespace Microsoft.ML.Trainers
             }
         }
 
-        internal LinearClassificationTrainer(IHostEnvironment env, Arguments args,
+        internal SdcaBinaryTrainer(IHostEnvironment env, Arguments args,
             string featureColumn, string labelColumn, string weightColumn = null)
             : base(env, args, TrainerUtils.MakeBoolScalarLabel(labelColumn), TrainerUtils.MakeR4ScalarWeightColumn(weightColumn))
         {
@@ -1504,7 +1504,7 @@ namespace Microsoft.ML.Trainers
 
         }
 
-        public LinearClassificationTrainer(IHostEnvironment env, Arguments args)
+        public SdcaBinaryTrainer(IHostEnvironment env, Arguments args)
             : this(env, args, args.FeatureColumn, args.LabelColumn)
         {
         }
@@ -1946,19 +1946,19 @@ namespace Microsoft.ML.Trainers
     {
         [TlcModule.EntryPoint(Name = "Trainers.StochasticDualCoordinateAscentBinaryClassifier",
             Desc = "Train an SDCA binary model.",
-            UserName = LinearClassificationTrainer.UserNameValue,
-            ShortName = LinearClassificationTrainer.LoadNameValue,
+            UserName = SdcaBinaryTrainer.UserNameValue,
+            ShortName = SdcaBinaryTrainer.LoadNameValue,
             XmlInclude = new[] { @"<include file='../Microsoft.ML.StandardLearners/Standard/doc.xml' path='doc/members/member[@name=""SDCA""]/*' />",
                                  @"<include file='../Microsoft.ML.StandardLearners/Standard/doc.xml' path='doc/members/example[@name=""StochasticDualCoordinateAscentBinaryClassifier""]/*'/>" })]
-        public static CommonOutputs.BinaryClassificationOutput TrainBinary(IHostEnvironment env, LinearClassificationTrainer.Arguments input)
+        public static CommonOutputs.BinaryClassificationOutput TrainBinary(IHostEnvironment env, SdcaBinaryTrainer.Arguments input)
         {
             Contracts.CheckValue(env, nameof(env));
             var host = env.Register("TrainSDCA");
             host.CheckValue(input, nameof(input));
             EntryPointUtils.CheckInputArgs(host, input);
 
-            return LearnerEntryPointsUtils.Train<LinearClassificationTrainer.Arguments, CommonOutputs.BinaryClassificationOutput>(host, input,
-                () => new LinearClassificationTrainer(host, input),
+            return LearnerEntryPointsUtils.Train<SdcaBinaryTrainer.Arguments, CommonOutputs.BinaryClassificationOutput>(host, input,
+                () => new SdcaBinaryTrainer(host, input),
                 () => LearnerEntryPointsUtils.FindColumn(host, input.TrainingData.Schema, input.LabelColumn),
                 calibrator: input.Calibrator, maxCalibrationExamples: input.MaxCalibrationExamples);
         }

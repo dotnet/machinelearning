@@ -102,7 +102,7 @@ namespace Microsoft.ML.StaticPipe
                     float? l2Const = null,
                     float? l1Threshold = null,
                     int? maxIterations = null,
-                    Action<LinearClassificationTrainer.Arguments> advancedSettings = null,
+                    Action<SdcaBinaryTrainer.Arguments> advancedSettings = null,
                     Action<LinearBinaryPredictor, ParameterMixingCalibratedPredictor> onFit = null)
         {
             Contracts.CheckValue(label, nameof(label));
@@ -117,7 +117,7 @@ namespace Microsoft.ML.StaticPipe
             var rec = new TrainerEstimatorReconciler.BinaryClassifier(
                 (env, labelName, featuresName, weightsName) =>
                 {
-                    var trainer = new LinearClassificationTrainer(env, featuresName, labelName, weightsName, loss: new LogLoss(), l2Const, l1Threshold, maxIterations, advancedSettings);
+                    var trainer = new SdcaBinaryTrainer(env, featuresName, labelName, weightsName, loss: new LogLoss(), l2Const, l1Threshold, maxIterations, advancedSettings);
                     if (onFit != null)
                     {
                         return trainer.WithOnFitDelegate(trans =>
@@ -159,7 +159,7 @@ namespace Microsoft.ML.StaticPipe
         /// result in any way; it is only a way for the caller to be informed about what was learnt.</param>
         /// <returns>The set of output columns including in order the predicted binary classification score (which will range
         /// from negative to positive infinity), and the predicted label.</returns>
-        /// <seealso cref="Sdca(BinaryClassificationContext.BinaryClassificationTrainers, Scalar{bool}, Vector{float}, Scalar{float}, float?, float?, int?, Action{LinearClassificationTrainer.Arguments}, Action{LinearBinaryPredictor, ParameterMixingCalibratedPredictor})"/>
+        /// <seealso cref="Sdca(BinaryClassificationContext.BinaryClassificationTrainers, Scalar{bool}, Vector{float}, Scalar{float}, float?, float?, int?, Action{SdcaBinaryTrainer.Arguments}, Action{LinearBinaryPredictor, ParameterMixingCalibratedPredictor})"/>
         public static (Scalar<float> score, Scalar<bool> predictedLabel) Sdca(
                 this BinaryClassificationContext.BinaryClassificationTrainers ctx,
                 Scalar<bool> label, Vector<float> features,
@@ -168,7 +168,7 @@ namespace Microsoft.ML.StaticPipe
                 float? l2Const = null,
                 float? l1Threshold = null,
                 int? maxIterations = null,
-                Action<LinearClassificationTrainer.Arguments> advancedSettings = null,
+                Action<SdcaBinaryTrainer.Arguments> advancedSettings = null,
                 Action<LinearBinaryPredictor> onFit = null
             )
         {
@@ -187,7 +187,7 @@ namespace Microsoft.ML.StaticPipe
             var rec = new TrainerEstimatorReconciler.BinaryClassifierNoCalibration(
                 (env, labelName, featuresName, weightsName) =>
                 {
-                    var trainer = new LinearClassificationTrainer(env, featuresName, labelName, weightsName, loss, l2Const, l1Threshold, maxIterations, advancedSettings);
+                    var trainer = new SdcaBinaryTrainer(env, featuresName, labelName, weightsName, loss, l2Const, l1Threshold, maxIterations, advancedSettings);
                     if (onFit != null)
                     {
                         return trainer.WithOnFitDelegate(trans =>
