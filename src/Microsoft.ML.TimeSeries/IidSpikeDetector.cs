@@ -192,8 +192,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
         }
 
         public IidSpikeEstimator(IHostEnvironment env, IidSpikeDetector.Arguments args)
-            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(IidSpikeEstimator)),
-        new IidSpikeDetector(env, args))
+            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(IidSpikeEstimator)), new IidSpikeDetector(env, args))
         {
         }
 
