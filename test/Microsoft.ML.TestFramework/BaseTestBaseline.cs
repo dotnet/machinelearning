@@ -59,6 +59,9 @@ namespace Microsoft.ML.Runtime.RunTests
         private const string OutputRootUnixRegExp = @"\/[^\\\t ]+\/TestOutput" + @"\/[^\\\t ]+";
         private static readonly string BinRegUnixExp = @"\/[^\\\t ]+\/bin\/" + Mode;
         private static readonly string Bin64RegUnixExp = @"\/[^\\\t ]+\/bin\/x64\/" + Mode;
+        // The Regex matches both positive and negative decimal point numbers present in a string.
+        // The numbers could be a part of a word. They can also be in Exponential form eg. 3E-9
+        private static readonly Regex MatchNumbers = new Regex(@"-?\b[0-9]+\.?[0-9]*(E-[0-9]*)?\b", RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
         /// <summary>
         /// When the progress log is appended to the end of output (in test runs), this line precedes the progress log.
@@ -72,6 +75,7 @@ namespace Microsoft.ML.Runtime.RunTests
         // The writer to write to test log files.
         protected StreamWriter LogWriter;
         protected ConsoleEnvironment Env;
+        protected MLContext ML;
         private bool _normal;
         private bool _passed;
 
@@ -94,6 +98,7 @@ namespace Microsoft.ML.Runtime.RunTests
             _passed = true;
             Env = new ConsoleEnvironment(42, outWriter: LogWriter, errWriter: LogWriter)
                 .AddStandardComponents();
+            ML = new MLContext(42);
         }
 
         // This method is used by subclass to dispose of disposable objects
@@ -231,6 +236,7 @@ namespace Microsoft.ML.Runtime.RunTests
         private static readonly Regex _matchTime = new Regex(@"[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]+)?", RegexOptions.Compiled);
         private static readonly Regex _matchShortTime = new Regex(@"\([0-9]{2}:[0-9]{2}(\.[0-9]+)?\)", RegexOptions.Compiled);
         private static readonly Regex _matchMemory = new Regex(@"memory usage\(MB\): [0-9]+", RegexOptions.Compiled);
+        private static readonly Regex _matchReservedMemory = new Regex(@": [0-9]+ bytes", RegexOptions.Compiled);
         private static readonly Regex _matchElapsed = new Regex(@"Time elapsed\(s\): [0-9.]+", RegexOptions.Compiled);
         private static readonly Regex _matchTimes = new Regex(@"Instances caching time\(s\): [0-9\.]+", RegexOptions.Compiled);
         private static readonly Regex _matchUpdatesPerSec = new Regex(@", ([0-9\.]+|Infinity)M WeightUpdates/sec", RegexOptions.Compiled);
@@ -279,6 +285,7 @@ namespace Microsoft.ML.Runtime.RunTests
                     line = _matchShortTime.Replace(line, "(%Time%)");
                     line = _matchElapsed.Replace(line, "Time elapsed(s): %Number%");
                     line = _matchMemory.Replace(line, "memory usage(MB): %Number%");
+                    line = _matchReservedMemory.Replace(line, ": %Number% bytes");
                     line = _matchTimes.Replace(line, "Instances caching time(s): %Number%");
                     line = _matchUpdatesPerSec.Replace(line, ", %Number%M WeightUpdates/sec");
                     line = _matchParameterT.Replace(line, "=PARAM:/t:%Number%");
@@ -502,18 +509,19 @@ namespace Microsoft.ML.Runtime.RunTests
             }
         }
 
-        private static void GetNumbersFromFile(ref string firstString, ref string secondString, int digitsOfPrecision)
+        private void GetNumbersFromFile(ref string firstString, ref string secondString, int digitsOfPrecision)
         {
-            Regex _matchNumer = new Regex(@"\b[0-9]+\.?[0-9]*(E-[0-9]*)?\b", RegexOptions.IgnoreCase | RegexOptions.Compiled);
-            MatchCollection firstCollection = _matchNumer.Matches(firstString);
-            MatchCollection secondCollection = _matchNumer.Matches(secondString);
+            
+            MatchCollection firstCollection = MatchNumbers.Matches(firstString);
+            MatchCollection secondCollection = MatchNumbers.Matches(secondString);
 
-            MatchNumberWithTolerance(firstCollection, secondCollection, digitsOfPrecision);
-            firstString = _matchNumer.Replace(firstString, "%Number%");
-            secondString = _matchNumer.Replace(secondString, "%Number%");
+            if (firstCollection.Count == secondCollection.Count)
+                MatchNumberWithTolerance(firstCollection, secondCollection, digitsOfPrecision);
+            firstString = MatchNumbers.Replace(firstString, "%Number%");
+            secondString = MatchNumbers.Replace(secondString, "%Number%");
         }
 
-        private static void MatchNumberWithTolerance(MatchCollection firstCollection, MatchCollection secondCollection, int digitsOfPrecision)
+        private void MatchNumberWithTolerance(MatchCollection firstCollection, MatchCollection secondCollection, int digitsOfPrecision)
         {
             for (int i = 0; i < firstCollection.Count; i++)
             {

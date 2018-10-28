@@ -7,6 +7,7 @@ using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Learners;
+using Microsoft.ML.Trainers;
 
 namespace Microsoft.ML.Benchmarks
 {
@@ -51,7 +52,7 @@ namespace Microsoft.ML.Benchmarks
                         }
                     });
 
-                IDataView data = reader.Read(new MultiFileSource(_irisDataPath));
+                IDataView data = reader.Read(_irisDataPath);
 
                 var pipeline = new ConcatEstimator(env, "Features", new[] { "SepalLength", "SepalWidth", "PetalLength", "PetalWidth" })
                     .Append(new SdcaMultiClassTrainer(env, "Features", "Label", advancedSettings: (s) => { s.NumThreads = 1; s.ConvergenceTolerance = 1e-2f; }));
@@ -86,7 +87,7 @@ namespace Microsoft.ML.Benchmarks
                         }
                     });
 
-                IDataView data = reader.Read(new MultiFileSource(_sentimentDataPath));
+                IDataView data = reader.Read(_sentimentDataPath);
 
                 var pipeline = new TextTransform(env, "SentimentText", "Features")
                     .Append(new LinearClassificationTrainer(env, "Features", "Label", advancedSettings: (s) => { s.NumThreads = 1; s.ConvergenceTolerance = 1e-2f; }));
@@ -121,7 +122,7 @@ namespace Microsoft.ML.Benchmarks
                         }
                     });
 
-                IDataView data = reader.Read(new MultiFileSource(_breastCancerDataPath));
+                IDataView data = reader.Read(_breastCancerDataPath);
 
                 var pipeline = new LinearClassificationTrainer(env, "Features", "Label", advancedSettings: (s) => { s.NumThreads = 1; s.ConvergenceTolerance = 1e-2f; });
 

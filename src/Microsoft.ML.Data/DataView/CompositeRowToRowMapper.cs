@@ -36,7 +36,7 @@ namespace Microsoft.ML.Runtime.Data
         public Func<int, bool> GetDependencies(Func<int, bool> predicate)
         {
             Func<int, bool> toReturn = predicate;
-            for (int i = _innerMappers.Length - 1; i <= 0; --i)
+            for (int i = _innerMappers.Length - 1; i >= 0; --i)
                 toReturn = _innerMappers[i].GetDependencies(toReturn);
             return toReturn;
         }

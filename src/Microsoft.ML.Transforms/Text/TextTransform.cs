@@ -2,10 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
@@ -18,6 +14,11 @@ using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.TextAnalytics;
 using Microsoft.ML.StaticPipe;
 using Microsoft.ML.StaticPipe.Runtime;
+using Microsoft.ML.Transforms.Text;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 
 [assembly: LoadableClass(TextTransform.Summary, typeof(IDataTransform), typeof(TextTransform), typeof(TextTransform.Arguments), typeof(SignatureDataTransform),
     TextTransform.UserName, "TextTransform", TextTransform.LoaderSignature)]
@@ -27,12 +28,8 @@ using Microsoft.ML.StaticPipe.Runtime;
 
 namespace Microsoft.ML.Runtime.Data
 {
-    using StopWordsArgs = StopWordsRemoverTransform.Arguments;
-    using TextNormalizerArgs = TextNormalizerTransform.Arguments;
+    using CaseNormalizationMode = TextNormalizerEstimator.CaseNormalizationMode;
     using StopWordsCol = StopWordsRemoverTransform.Column;
-    using TextNormalizerCol = TextNormalizerTransform.Column;
-    using StopWordsLang = StopWordsRemoverTransform.Language;
-    using CaseNormalizationMode = TextNormalizerTransform.CaseNormalizationMode;
 
     // A transform that turns a collection of text documents into numerical feature vectors. The feature vectors are counts
     // of (word or character) ngrams in a given text. It offers ngram hashing (finding the ngram token string name to feature
@@ -97,16 +94,16 @@ namespace Microsoft.ML.Runtime.Data
             public IStopWordsRemoverFactory StopWordsRemover;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Casing text using the rules of the invariant culture.", ShortName = "case", SortOrder = 5)]
-            public CaseNormalizationMode TextCase = CaseNormalizationMode.Lower;
+            public CaseNormalizationMode TextCase = TextNormalizerEstimator.Defaults.TextCase;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Whether to keep diacritical marks or remove them.", ShortName = "diac", SortOrder = 6)]
-            public bool KeepDiacritics;
+            public bool KeepDiacritics = TextNormalizerEstimator.Defaults.KeepDiacritics;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Whether to keep punctuation marks or remove them.", ShortName = "punc", SortOrder = 7)]
-            public bool KeepPunctuations = true;
+            public bool KeepPunctuations = TextNormalizerEstimator.Defaults.KeepPunctuations;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Whether to keep numbers or remove them.", ShortName = "num", SortOrder = 8)]
-            public bool KeepNumbers = true;
+            public bool KeepNumbers = TextNormalizerEstimator.Defaults.KeepNumbers;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Whether to output the transformed text tokens as an additional column.", ShortName = "tokens,showtext,showTransformedText", SortOrder = 9)]
             public bool OutputTokens;
@@ -323,45 +320,33 @@ namespace Microsoft.ML.Runtime.Data
 
             if (tparams.NeedsNormalizeTransform)
             {
-                var xfCols = new TextNormalizerCol[textCols.Length];
+                var xfCols = new (string input, string output)[textCols.Length];
                 string[] dstCols = new string[textCols.Length];
                 for (int i = 0; i < textCols.Length; i++)
                 {
                     dstCols[i] = GenerateColumnName(view.Schema, textCols[i], "TextNormalizer");
                     tempCols.Add(dstCols[i]);
-                    xfCols[i] = new TextNormalizerCol() { Source = textCols[i], Name = dstCols[i] };
+                    xfCols[i] = (textCols[i], dstCols[i]);
                 }
 
-                view = new TextNormalizerTransform(h,
-                    new TextNormalizerArgs()
-                    {
-                        Column = xfCols,
-                        KeepDiacritics = tparams.KeepDiacritics,
-                        KeepNumbers = tparams.KeepNumbers,
-                        KeepPunctuations = tparams.KeepPunctuations,
-                        TextCase = tparams.TextCase
-                    }, view);
+                view = new TextNormalizerEstimator(h, tparams.TextCase, tparams.KeepDiacritics, tparams.KeepPunctuations, tparams.KeepNumbers, xfCols).Fit(view).Transform(view);
 
                 textCols = dstCols;
             }
 
             if (tparams.NeedsWordTokenizationTransform)
             {
-                var xfCols = new DelimitedTokenizeTransform.Column[textCols.Length];
+                var xfCols = new WordTokenizeTransform.ColumnInfo[textCols.Length];
                 wordTokCols = new string[textCols.Length];
                 for (int i = 0; i < textCols.Length; i++)
                 {
-                    var col = new DelimitedTokenizeTransform.Column();
-                    col.Source = textCols[i];
-                    col.Name = GenerateColumnName(view.Schema, textCols[i], "WordTokenizer");
-
+                    var col = new WordTokenizeTransform.ColumnInfo(textCols[i], GenerateColumnName(view.Schema, textCols[i], "WordTokenizer"));
                     xfCols[i] = col;
-
-                    wordTokCols[i] = col.Name;
-                    tempCols.Add(col.Name);
+                    wordTokCols[i] = col.Output;
+                    tempCols.Add(col.Output);
                 }
 
-                view = new DelimitedTokenizeTransform(h, new DelimitedTokenizeTransform.Arguments() { Column = xfCols }, view);
+                view = new WordTokenizeEstimator(h, xfCols).Fit(view).Transform(view);
             }
 
             if (tparams.NeedsRemoveStopwordsTransform)
@@ -390,8 +375,8 @@ namespace Microsoft.ML.Runtime.Data
                 tempCols.Add(dstCol);
                 view = tparams.WordExtractorFactory.Create(h, view, new[] {
                     new ExtractorColumn()
-                    {
-                        Name = dstCol,
+{
+    Name = dstCol,
                         Source = wordTokCols,
                         FriendlyNames = _inputColumns
                     }});
@@ -409,17 +394,14 @@ namespace Microsoft.ML.Runtime.Data
                 {
                     var srcCols = tparams.NeedsRemoveStopwordsTransform ? wordTokCols : textCols;
                     charTokCols = new string[srcCols.Length];
-                    var xfCols = new CharTokenizeTransform.Column[srcCols.Length];
+                    var xfCols = new (string input, string output)[srcCols.Length];
                     for (int i = 0; i < srcCols.Length; i++)
                     {
-                        var col = new CharTokenizeTransform.Column();
-                        col.Source = srcCols[i];
-                        col.Name = GenerateColumnName(view.Schema, srcCols[i], "CharTokenizer");
-                        tempCols.Add(col.Name);
-                        charTokCols[i] = col.Name;
-                        xfCols[i] = col;
+                        xfCols[i] = (srcCols[i], GenerateColumnName(view.Schema, srcCols[i], "CharTokenizer"));
+                        tempCols.Add(xfCols[i].output);
+                        charTokCols[i] = xfCols[i].output;
                     }
-                    view = new CharTokenizeTransform(h, new CharTokenizeTransform.Arguments() { Column = xfCols }, view);
+                    view = new CharTokenizeTransform(h, columns: xfCols).Transform(view);
                 }
 
                 {
@@ -427,8 +409,8 @@ namespace Microsoft.ML.Runtime.Data
                     tempCols.Add(charFeatureCol);
                     view = tparams.CharExtractorFactory.Create(h, view, new[] {
                         new ExtractorColumn()
-                        {
-                            Source = charTokCols,
+{
+    Source = charTokCols,
                             FriendlyNames = _inputColumns,
                             Name = charFeatureCol
                         }});

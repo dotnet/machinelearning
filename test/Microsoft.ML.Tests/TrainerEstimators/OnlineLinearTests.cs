@@ -5,8 +5,7 @@
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.FactorizationMachine;
-using Microsoft.ML.Runtime.Learners;
+using Microsoft.ML.Trainers.Online;
 using Xunit;
 
 namespace Microsoft.ML.Tests.TrainerEstimators
@@ -19,7 +18,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             var dataPath = GetDataPath("breast-cancer.txt");
 
             var data = TextLoader.CreateReader(Env, ctx => (Label: ctx.LoadFloat(0), Features: ctx.LoadFloat(1, 10)))
-                .Read(new MultiFileSource(dataPath));
+                .Read(dataPath);
 
             var pipe = data.MakeNewEstimator()
                 .Append(r => (r.Label, Features: r.Features.Normalize()));

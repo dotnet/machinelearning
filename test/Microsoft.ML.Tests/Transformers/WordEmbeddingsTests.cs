@@ -2,12 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.ML.StaticPipe;
 using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Data.IO;
 using Microsoft.ML.Runtime.RunTests;
 using Microsoft.ML.Scenarios;
-using System.IO;
+using Microsoft.ML.StaticPipe;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -29,7 +27,7 @@ namespace Microsoft.ML.Tests.Transformers
             var data = TextLoader.CreateReader(Env, ctx => (
                     label: ctx.LoadBool(0),
                     SentimentText: ctx.LoadText(1)), hasHeader: true)
-                .Read(new MultiFileSource(dataPath));
+                .Read(dataPath);
 
             var dynamicData = TextTransform.Create(Env, new TextTransform.Arguments()
             {
@@ -38,10 +36,8 @@ namespace Microsoft.ML.Tests.Transformers
                     Name = "SentimentText_Features",
                     Source = new[] { "SentimentText" }
                 },
-                KeepDiacritics = false,
-                KeepPunctuations = false,
-                TextCase = Runtime.TextAnalytics.TextNormalizerTransform.CaseNormalizationMode.Lower,
                 OutputTokens = true,
+                KeepPunctuations = false,
                 StopWordsRemover = new Runtime.TextAnalytics.PredefinedStopWordsRemoverFactory(),
                 VectorNormalizer = TextTransform.TextNormKind.None,
                 CharFeatureExtractor = null,

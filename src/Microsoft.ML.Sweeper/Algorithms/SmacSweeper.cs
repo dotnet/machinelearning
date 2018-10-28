@@ -13,8 +13,8 @@ using Microsoft.ML.Runtime.Sweeper;
 
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
-using Microsoft.ML.Runtime.FastTree;
-using Microsoft.ML.Runtime.FastTree.Internal;
+using Microsoft.ML.Trainers.FastTree;
+using Microsoft.ML.Trainers.FastTree.Internal;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Sweeper.Algorithms;
 

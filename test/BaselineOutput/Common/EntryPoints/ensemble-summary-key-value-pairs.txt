@@ -1,0 +1,58 @@
+Partition model 0 summary:
+Linear Binary Classification Predictor non-zero weights
+(Bias): -5.120674
+Features.bare_nuclei: 2.435889
+Features.thickness: 2.353567
+Features.uniform_shape: 1.944249
+Features.uniform_size: 1.786538
+Features.bland_chromatin: 1.611417
+Features.adhesion: 1.38072
+Features.normal_nucleoli: 1.345759
+Features.epit_size: 1.083109
+Cat.1: -0.7715381
+Count of training examples: 521
+Residual Deviance: 98.29433
+Null Deviance: 669.0935
+AIC: 118.2943
+Partition model 1 summary:
+Per-feature gain summary for the boosted tree ensemble:
+Features.uniform_size: 1
+Features.uniform_shape: 0.711238682354263
+Features.bare_nuclei: 0.413435971399054
+Features.normal_nucleoli: 0.260448393604327
+Features.bland_chromatin: 0.254190368593018
+Features.epit_size: 0.222178863469679
+Features.thickness: 0.190965373645692
+Features.adhesion: 0.143150245168852
+Cat.1: 0.0607880054395048
+Cat.2: 0.0249023775790133
+Cat.3: 4.10026871732935E-09
+Partition model 2 summary:
+Linear Binary Classification Predictor non-zero weights
+(Bias): -4.860323
+Features.bare_nuclei: 3.16846
+Features.thickness: 2.143086
+Features.uniform_shape: 1.711214
+Features.normal_nucleoli: 1.519048
+Features.uniform_size: 1.494185
+Features.bland_chromatin: 1.386847
+Features.adhesion: 1.383187
+Features.epit_size: 0.8832003
+Cat.1: -0.8226236
+Count of training examples: 520
+Residual Deviance: 94.19695
+Null Deviance: 673.3445
+AIC: 114.1969
+Partition model 3 summary:
+Per-feature gain summary for the boosted tree ensemble:
+Features.uniform_size: 1
+Features.uniform_shape: 0.559068504082849
+Features.bare_nuclei: 0.488731457203164
+Features.bland_chromatin: 0.308761540884501
+Features.thickness: 0.308038677882308
+Features.normal_nucleoli: 0.132577017456797
+Features.adhesion: 0.125412316945858
+Features.epit_size: 0.118880587537871
+Cat.2: 0.0203766881332348
+Cat.1: 0.00976175711400017
+Cat.3: 0.000928932959407758

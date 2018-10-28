@@ -116,18 +116,12 @@ namespace Microsoft.ML.Transforms
             public float LearningRate = 0.01f;
 
             /// <summary>
-            /// Shuffle training data on each iteration?
-            /// </summary>
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Shuffle data before each iteration.", SortOrder = 13)]
-            public bool Shuffle = true;
-
-            /// <summary>
             /// Name of the input in TensorFlow graph that specifiy the location for saving/restoring models to/from disk.
             /// This parameter is set by different kinds of 'Savers' in TensorFlow and users don't have control over this.
             /// Therefore, its highly unlikely that this parameter is changed from its default value of 'save/Const'.
             /// Please change it cautiously if you need to.
             /// </summary>
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Name of the input in TensorFlow graph that specifiy the location for saving/restoring models from disk.", SortOrder = 14)]
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Name of the input in TensorFlow graph that specifiy the location for saving/restoring models from disk.", SortOrder = 13)]
             public string SaveLocationOperation = "save/Const";
 
             /// <summary>
@@ -136,13 +130,13 @@ namespace Microsoft.ML.Transforms
             /// Therefore, its highly unlikely that this parameter is changed from its default value of 'save/control_dependency'.
             /// Please change it cautiously if you need to.
             /// </summary>
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Name of the input in TensorFlow graph that specifiy the location for saving/restoring models from disk.", SortOrder = 15)]
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Name of the input in TensorFlow graph that specifiy the location for saving/restoring models from disk.", SortOrder = 14)]
             public string SaveOperation = "save/control_dependency";
 
             /// <summary>
             /// Needed for command line to specify if retraining is requested.
             /// </summary>
-            [Argument(ArgumentType.AtMostOnce, HelpText = "Retrain TensorFlow model.", SortOrder = 16)]
+            [Argument(ArgumentType.AtMostOnce, HelpText = "Retrain TensorFlow model.", SortOrder = 15)]
             public bool ReTrain = false;
         }
 
@@ -291,7 +285,12 @@ namespace Microsoft.ML.Transforms
         }
 
         internal TensorFlowTransform(IHostEnvironment env, Arguments args, IDataView input)
-            : this(env, TensorFlowUtils.GetSession(env, args.ModelLocation), args.InputColumns, args.OutputColumns, TensorFlowUtils.IsSavedModel(env, args.ModelLocation) ? args.ModelLocation : null, false)
+            :this(env,args, TensorFlowUtils.LoadTensorFlowModel(env,args.ModelLocation), input)
+        {
+        }
+
+        internal TensorFlowTransform(IHostEnvironment env, Arguments args, TensorFlowModelInfo tensorFlowModel, IDataView input)
+            : this(env, tensorFlowModel.Session, args.InputColumns, args.OutputColumns, TensorFlowUtils.IsSavedModel(env, args.ModelLocation) ? args.ModelLocation : null, false)
         {
 
             Contracts.CheckValue(env, nameof(env));
@@ -299,20 +298,13 @@ namespace Microsoft.ML.Transforms
 
             if (args.ReTrain)
             {
-                // Shuffling fails because ShuffleTransform is not RowToRowMapper
-                // https://github.com/dotnet/machinelearning/issues/1106
-                //if(args.Shuffle)
-                //{
-                //    input = new ShuffleTransform(env, new ShuffleTransform.Arguments(), input);
-                //}
-
                 env.CheckValue(input, nameof(input));
 
                 CheckTrainingParameters(args);
 
                 if (!TensorFlowUtils.IsSavedModel(env, args.ModelLocation))
                     throw env.ExceptNotSupp("TensorFlowTransform: Re-Training of TensorFlow model is only supported for un-frozen model.");
-                TrainCore(args, args.ModelLocation, input);
+                TrainCore(args, input);
             }
         }
 
@@ -357,7 +349,7 @@ namespace Microsoft.ML.Transforms
             }
         }
 
-        private (int, bool, TFDataType, TFShape) GetInputMetaData(ISchema inputSchema, string columnName, string tfNodeName, int batchSize)
+        private (int, bool, TFDataType, TFShape) GetTrainingInputInfo(ISchema inputSchema, string columnName, string tfNodeName, int batchSize)
         {
             if (!inputSchema.TryGetColumnIndex(columnName, out int inputColIndex))
                 throw _host.Except($"Column {columnName} doesn't exist");
@@ -385,7 +377,7 @@ namespace Microsoft.ML.Transforms
             return (inputColIndex, isInputVector, tfInputType, tfInputShape);
         }
 
-        private void TrainCore(Arguments args, string model, IDataView input)
+        private void TrainCore(Arguments args, IDataView input)
         {
             var inputsForTraining = new string[Inputs.Length + 1];
             var inputColIndices = new int[inputsForTraining.Length];
@@ -402,13 +394,13 @@ namespace Microsoft.ML.Transforms
             for (int i = 0; i < inputsForTraining.Length - 1; i++)
             {
                 (inputColIndices[i], isInputVector[i], tfInputTypes[i], tfInputShapes[i]) =
-                    GetInputMetaData(inputSchema, inputsForTraining[i], inputsForTraining[i], args.BatchSize);
+                    GetTrainingInputInfo(inputSchema, inputsForTraining[i], inputsForTraining[i], args.BatchSize);
             }
 
             var index = inputsForTraining.Length - 1;
             inputsForTraining[index] = args.TensorFlowLabel;
             (inputColIndices[index], isInputVector[index], tfInputTypes[index], tfInputShapes[index]) =
-                    GetInputMetaData(inputSchema, args.LabelColumn, inputsForTraining[index], args.BatchSize);
+                    GetTrainingInputInfo(inputSchema, args.LabelColumn, inputsForTraining[index], args.BatchSize);
 
             var fetchList = new List<string>();
             if (args.LossOperation != null)
@@ -456,7 +448,7 @@ namespace Microsoft.ML.Transforms
                     }
                 }
             }
-            UpdateModelOnDisk(model, args);
+            UpdateModelOnDisk(args.ModelLocation, args);
         }
 
         private (float loss, float metric) TrainBatch(int[] inputColIndices,
@@ -621,58 +613,71 @@ namespace Microsoft.ML.Transforms
             Session = session;
             _savedModelPath = savedModelPath;
             _isTemporarySavedModel = isTemporarySavedModel;
+            Inputs = inputs;
+            Outputs = outputs;
+
+            (TFInputTypes, TFInputShapes) = GetInputInfo(_host, Session, Inputs);
+            (TFOutputTypes, OutputTypes) = GetOutputInfo(_host, Session, Outputs);
+        }
+
+        internal static (TFDataType[] tfInputTypes, TFShape[] tfInputShapes) GetInputInfo(IHost host, TFSession session, string[] inputs)
+        {
+            var tfInputTypes = new TFDataType[inputs.Length];
+            var tfInputShapes = new TFShape[inputs.Length];
 
             foreach (var input in inputs)
             {
-                _host.CheckNonWhiteSpace(input, nameof(inputs));
-                if (Session.Graph[input] == null)
-                    throw _host.ExceptParam(nameof(inputs), $"Input column '{input}' does not exist in the model");
-                var tfInput = new TFOutput(Session.Graph[input]);
+                host.CheckNonWhiteSpace(input, nameof(inputs));
+                if (session.Graph[input] == null)
+                    throw host.ExceptParam(nameof(inputs), $"Input column '{input}' does not exist in the model");
+                var tfInput = new TFOutput(session.Graph[input]);
                 if (!TensorFlowUtils.IsTypeSupported(tfInput.OutputType))
-                    throw _host.ExceptParam(nameof(session), $"Input type '{tfInput.OutputType}' of input column '{input}' is not supported in TensorFlow");
+                    throw host.ExceptParam(nameof(session), $"Input type '{tfInput.OutputType}' of input column '{input}' is not supported in TensorFlow");
             }
 
+            for (int i = 0; i < inputs.Length; i++)
+            {
+                var tfInput = new TFOutput(session.Graph[inputs[i]]);
+                tfInputTypes[i] = tfInput.OutputType;
+                tfInputShapes[i] = session.Graph.GetTensorShape(tfInput);
+                if (tfInputShapes[i].NumDimensions != -1)
+                {
+                    var newShape = new long[tfInputShapes[i].NumDimensions];
+                    newShape[0] = tfInputShapes[i][0] == -1 ? BatchSize : tfInputShapes[i][0];
+
+                    for (int j = 1; j < tfInputShapes[i].NumDimensions; j++)
+                        newShape[j] = tfInputShapes[i][j];
+                    tfInputShapes[i] = new TFShape(newShape);
+                }
+            }
+            return (tfInputTypes, tfInputShapes);
+        }
+
+        internal static (TFDataType[] tfOutputTypes, ColumnType[] outputTypes) GetOutputInfo(IHost host, TFSession session, string[] outputs)
+        {
+            var tfOutputTypes = new TFDataType[outputs.Length];
+            var outputTypes = new ColumnType[outputs.Length];
             var newNames = new HashSet<string>();
             foreach (var output in outputs)
             {
-                _host.CheckNonWhiteSpace(output, nameof(outputs));
+                host.CheckNonWhiteSpace(output, nameof(outputs));
                 if (!newNames.Add(output))
-                    throw _host.ExceptParam(nameof(outputs), $"Output column '{output}' specified multiple times");
-                if (Session.Graph[output] == null)
-                    throw _host.ExceptParam(nameof(outputs), $"Output column '{output}' does not exist in the model");
+                    throw host.ExceptParam(nameof(outputs), $"Output column '{output}' specified multiple times");
+                if (session.Graph[output] == null)
+                    throw host.ExceptParam(nameof(outputs), $"Output column '{output}' does not exist in the model");
             }
 
-            Inputs = inputs;
-            TFInputTypes = new TFDataType[Inputs.Length];
-            TFInputShapes = new TFShape[Inputs.Length];
-            for (int i = 0; i < Inputs.Length; i++)
+            for (int i = 0; i < outputs.Length; i++)
             {
-                var tfInput = new TFOutput(Graph[Inputs[i]]);
-                TFInputTypes[i] = tfInput.OutputType;
-                TFInputShapes[i] = Graph.GetTensorShape(tfInput);
-                if (TFInputShapes[i].NumDimensions != -1)
-                {
-                    var newShape = new long[TFInputShapes[i].NumDimensions];
-                    newShape[0] = TFInputShapes[i][0] == -1 ? BatchSize : TFInputShapes[i][0];
-
-                    for (int j = 1; j < TFInputShapes[i].NumDimensions; j++)
-                        newShape[j] = TFInputShapes[i][j];
-                    TFInputShapes[i] = new TFShape(newShape);
-                }
-            }
-
-            Outputs = outputs;
-            OutputTypes = new ColumnType[Outputs.Length];
-            TFOutputTypes = new TFDataType[Outputs.Length];
-            for (int i = 0; i < Outputs.Length; i++)
-            {
-                var tfOutput = new TFOutput(Graph[Outputs[i]]);
-                var shape = Graph.GetTensorShape(tfOutput);
+                var tfOutput = new TFOutput(session.Graph[outputs[i]]);
+                var shape = session.Graph.GetTensorShape(tfOutput);
                 int[] dims = shape.NumDimensions > 0 ? shape.ToIntArray().Skip(shape[0] == -1 ? 1 : 0).ToArray() : new[] { 0 };
                 var type = TensorFlowUtils.Tf2MlNetType(tfOutput.OutputType);
-                OutputTypes[i] = new VectorType(type, dims);
-                TFOutputTypes[i] = tfOutput.OutputType;
+                outputTypes[i] = new VectorType(type, dims);
+                tfOutputTypes[i] = tfOutput.OutputType;
             }
+
+            return (tfOutputTypes, outputTypes);
         }
 
         public Schema GetOutputSchema(Schema inputSchema)
@@ -1095,46 +1100,87 @@ namespace Microsoft.ML.Transforms
         }
     }
 
-    public sealed class TensorFlowEstimator : TrivialEstimator<TensorFlowTransform>
+    public sealed class TensorFlowEstimator : IEstimator<TensorFlowTransform>
     {
-        public TensorFlowEstimator(IHostEnvironment env, string model, string[] inputs, string[] outputs)
-           : this(env, new TensorFlowTransform(env, TensorFlowUtils.GetSession(env, model), inputs, outputs, TensorFlowUtils.IsSavedModel(env, model) ? model : null, false))
+        private readonly IHost _host;
+        private readonly TensorFlowTransform.Arguments _args;
+        private readonly TensorFlowModelInfo _tensorFlowModel;
+        private readonly TFDataType[] _tfInputTypes;
+        private readonly ColumnType[] _outputTypes;
+        private TensorFlowTransform _transformer;
+
+        public TensorFlowEstimator(IHostEnvironment env, string modelLocation, string[] inputs, string[] outputs)
+            :this(env, TensorFlowUtils.LoadTensorFlowModel(env,modelLocation), inputs, outputs)
         {
         }
 
         public TensorFlowEstimator(IHostEnvironment env, TensorFlowModelInfo tensorFlowModel, string[] inputs, string[] outputs)
-           : this(env, new TensorFlowTransform(env, tensorFlowModel.Session, inputs, outputs, TensorFlowUtils.IsSavedModel(env, tensorFlowModel.ModelPath) ? tensorFlowModel.ModelPath : null, false))
+            :this(env, CreateArguments(tensorFlowModel,inputs, outputs), tensorFlowModel)
         {
         }
 
-        public TensorFlowEstimator(IHostEnvironment env, TensorFlowTransform transformer)
-            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(TensorFlowTransform)), transformer)
+        public TensorFlowEstimator(IHostEnvironment env, TensorFlowTransform.Arguments args)
+            :this(env, args, TensorFlowUtils.LoadTensorFlowModel(env, args.ModelLocation))
         {
         }
 
-        public override SchemaShape GetOutputSchema(SchemaShape inputSchema)
+        public TensorFlowEstimator(IHostEnvironment env, TensorFlowTransform.Arguments args, TensorFlowModelInfo tensorFlowModel)
         {
-            Host.CheckValue(inputSchema, nameof(inputSchema));
+            _host = Contracts.CheckRef(env, nameof(env)).Register(nameof(TensorFlowEstimator));
+            _args = args;
+            _tensorFlowModel = tensorFlowModel;
+            var inputTuple = TensorFlowTransform.GetInputInfo(_host, tensorFlowModel.Session, args.InputColumns);
+            _tfInputTypes = inputTuple.tfInputTypes;
+            var outputTuple = TensorFlowTransform.GetOutputInfo(_host, tensorFlowModel.Session, args.OutputColumns);
+            _outputTypes = outputTuple.outputTypes;
+        }
+
+        private static TensorFlowTransform.Arguments CreateArguments(TensorFlowModelInfo tensorFlowModel, string[] inputs, string[] outputs)
+        {
+            var args = new TensorFlowTransform.Arguments();
+            args.ModelLocation = tensorFlowModel.ModelPath;
+            args.InputColumns = inputs;
+            args.OutputColumns = outputs;
+            args.ReTrain = false;
+            return args;
+        }
+        public SchemaShape GetOutputSchema(SchemaShape inputSchema)
+        {
+            _host.CheckValue(inputSchema, nameof(inputSchema));
             var result = inputSchema.Columns.ToDictionary(x => x.Name);
             var resultDic = inputSchema.Columns.ToDictionary(x => x.Name);
-            for (var i = 0; i < Transformer.Inputs.Length; i++)
+            for (var i = 0; i < _args.InputColumns.Length; i++)
             {
-                var input = Transformer.Inputs[i];
+                var input = _args.InputColumns[i];
                 if (!inputSchema.TryFindColumn(input, out var col))
-                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", input);
+                    throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", input);
                 if (!(col.Kind == SchemaShape.Column.VectorKind.Vector))
-                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", input, nameof(VectorType), col.GetTypeString());
-                var expectedType = TensorFlowUtils.Tf2MlNetType(Transformer.TFInputTypes[i]);
+                    throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", input, nameof(VectorType), col.GetTypeString());
+                var expectedType = TensorFlowUtils.Tf2MlNetType(_tfInputTypes[i]);
                 if (col.ItemType != expectedType)
-                    throw Host.ExceptSchemaMismatch(nameof(inputSchema), "input", input, expectedType.ToString(), col.ItemType.ToString());
+                    throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", input, expectedType.ToString(), col.ItemType.ToString());
             }
-            for (var i = 0; i < Transformer.Outputs.Length; i++)
+            for (var i = 0; i < _args.OutputColumns.Length; i++)
             {
-                resultDic[Transformer.Outputs[i]] = new SchemaShape.Column(Transformer.Outputs[i],
-                    Transformer.OutputTypes[i].IsKnownSizeVector ? SchemaShape.Column.VectorKind.Vector
-                    : SchemaShape.Column.VectorKind.VariableVector, Transformer.OutputTypes[i].ItemType, false);
+                resultDic[_args.OutputColumns[i]] = new SchemaShape.Column(_args.OutputColumns[i],
+                    _outputTypes[i].IsKnownSizeVector ? SchemaShape.Column.VectorKind.Vector
+                    : SchemaShape.Column.VectorKind.VariableVector, _outputTypes[i].ItemType, false);
             }
             return new SchemaShape(resultDic.Values);
+        }
+
+        public TensorFlowTransform Fit(IDataView input)
+        {
+            _host.CheckValue(input, nameof(input));
+            if (_transformer == null)
+            {
+                _transformer = _args.ReTrain ? new TensorFlowTransform(_host, _args, _tensorFlowModel, input) :
+                    new TensorFlowTransform(_host, _tensorFlowModel.Session, _args.InputColumns, _args.OutputColumns,
+                    TensorFlowUtils.IsSavedModel(_host, _args.ModelLocation) ? _args.ModelLocation : null, false);
+            }
+            // Validate input schema.
+            _transformer.GetOutputSchema(input.Schema);
+            return _transformer;
         }
     }
 
