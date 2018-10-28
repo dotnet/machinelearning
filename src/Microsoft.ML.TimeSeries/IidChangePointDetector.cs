@@ -201,8 +201,8 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
         /// <param name="martingale">The martingale used for scoring.</param>
         /// <param name="eps">The epsilon parameter for the Power martingale.</param>
         public IidChangePointEstimator(IHostEnvironment env, string inputColumn, string outputColumn, int confidence,
-            int changeHistoryLength, MartingaleType martingale = MartingaleType.Power, double eps = 0.1):
-            base(Contracts.CheckRef(env, nameof(env)).Register(nameof(IidChangePointEstimator)),
+            int changeHistoryLength, MartingaleType martingale = MartingaleType.Power, double eps = 0.1)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(IidChangePointEstimator)),
                 new IidChangePointDetector(env, new IidChangePointDetector.Arguments
                 {
                     Name = outputColumn,
