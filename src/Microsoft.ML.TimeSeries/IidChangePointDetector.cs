@@ -191,16 +191,16 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
     public sealed class IidChangePointEstimator : TrivialEstimator<IidChangePointDetector>
     {
         /// <summary>
-        /// Constructor for <see cref="IidChangePointEstimator"/>
+        /// Create a new instance of <see cref="IidChangePointEstimator"/>
         /// </summary>
         /// <param name="env">Host Environment.</param>
-        /// <param name="outputColumn">The name of the new column.</param>
         /// <param name="inputColumn">Name of the input column.</param>
+        /// <param name="outputColumn">The name of the new column.</param>
         /// <param name="confidence">The confidence for change point detection in the range [0, 100].</param>
         /// <param name="changeHistoryLength">The change history length.</param>
         /// <param name="martingale">The martingale used for scoring.</param>
         /// <param name="eps">The epsilon parameter for the Power martingale.</param>
-        public IidChangePointEstimator(IHostEnvironment env, string outputColumn, string inputColumn, int confidence,
+        public IidChangePointEstimator(IHostEnvironment env, string inputColumn, string outputColumn, int confidence,
             int changeHistoryLength, MartingaleType martingale = MartingaleType.Power, double eps = 0.1):
             base(Contracts.CheckRef(env, nameof(env)).Register(nameof(IidChangePointEstimator)),
                 new IidChangePointDetector(env, new IidChangePointDetector.Arguments
@@ -215,8 +215,8 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
         {
         }
 
-        public IidChangePointEstimator(IHostEnvironment env, IidChangePointDetector.Arguments args) :
-            base(Contracts.CheckRef(env, nameof(env)).Register(nameof(IidChangePointEstimator)),
+        public IidChangePointEstimator(IHostEnvironment env, IidChangePointDetector.Arguments args)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(IidChangePointEstimator)),
                 new IidChangePointDetector(env, args))
         {
         }

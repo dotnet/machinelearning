@@ -186,7 +186,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
         public string OutputColumnName;
         protected ColumnType OutputColumnType;
 
-        public bool IsRowToRowMapper => true;
+        public bool IsRowToRowMapper => false;
 
         /// <summary>
         /// The main constructor for the sequential transform
@@ -280,12 +280,121 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             return new RowToRowMapperTransform(Host, input, MakeRowMapper(input.Schema));
         }
 
-        public IDataView Transform(IDataView input) => MakeDataTransform(input);
+        public IDataView Transform(IDataView input)
+        {
+            Host.CheckValue(input, nameof(input));
+            return new DataView(this, input);
+        }
 
         public IRowToRowMapper GetRowToRowMapper(Schema inputSchema)
         {
-            Host.CheckValue(inputSchema, nameof(inputSchema));
-            return MakeDataTransform(new EmptyDataView(Host, inputSchema));
+            throw new NotImplementedException("Not a RowToRowMapper.");
+        }
+
+        private sealed class DataView : IDataView
+        {
+            private readonly SequentialTransformerBase<TInput, TOutput, TState> _parent;
+            private readonly IDataTransform _transform;
+
+            public DataView(SequentialTransformerBase<TInput, TOutput, TState> parent, IDataView input)
+            {
+                _parent = parent;
+                _transform = CreateLambdaTransform(_parent.Host, input, _parent.InputColumnName,
+                    _parent.OutputColumnName, InitFunction, _parent.WindowSize > 0, _parent.OutputColumnType);
+            }
+
+            private static IDataTransform CreateLambdaTransform(IHost host, IDataView input, string inputColumnName, string outputColumnName,
+    Action<TState> initFunction, bool hasBuffer, ColumnType outputColTypeOverride)
+            {
+                var inputSchema = SchemaDefinition.Create(typeof(DataBox<TInput>));
+                inputSchema[0].ColumnName = inputColumnName;
+
+                var outputSchema = SchemaDefinition.Create(typeof(DataBox<TOutput>));
+                outputSchema[0].ColumnName = outputColumnName;
+
+                if (outputColTypeOverride != null)
+                    outputSchema[0].ColumnType = outputColTypeOverride;
+
+                Action<DataBox<TInput>, DataBox<TOutput>, TState> lambda;
+                if (hasBuffer)
+                    lambda = MapFunction;
+                else
+                    lambda = MapFunctionWithoutBuffer;
+
+                return LambdaTransform.CreateMap(host, input, lambda, initFunction, inputSchema, outputSchema);
+            }
+
+            private static void MapFunction(DataBox<TInput> input, DataBox<TOutput> output, TState state)
+            {
+                state.Process(ref input.Value, ref output.Value);
+            }
+
+            private static void MapFunctionWithoutBuffer(DataBox<TInput> input, DataBox<TOutput> output, TState state)
+            {
+                state.ProcessWithoutBuffer(ref input.Value, ref output.Value);
+            }
+
+            private void InitFunction(TState state)
+            {
+                state.InitState(_parent.WindowSize, _parent.InitialWindowSize, _parent, _parent.Host);
+            }
+
+            public IRowCursor GetRowCursor(Func<int, bool> predicate, IRandom rand = null) => GetRowCursorCore(predicate, null);
+
+            public bool CanShuffle { get { return false; } }
+
+            public IHost Host { get { return _parent.Host; } }
+
+            private IRowCursor GetRowCursorCore(Func<int, bool> predicate, IRandom rand = null)
+            {
+                var srcCursor = _transform.GetRowCursor(predicate, rand);
+                return new Cursor(this, srcCursor);
+            }
+
+            public Schema Schema
+            {
+                get { return _transform.Schema; }
+            }
+
+            public long? GetRowCount(bool lazy = true)
+            {
+                return _transform.GetRowCount(lazy);
+            }
+
+            public IRowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator, Func<int, bool> predicate, int n, IRandom rand = null)
+            {
+                consolidator = null;
+                return new IRowCursor[] { GetRowCursorCore(predicate, rand) };
+            }
+        }
+
+        /// <summary>
+        /// A wrapper around the cursor which replaces the schema.
+        /// </summary>
+        private sealed class Cursor : SynchronizedCursorBase<IRowCursor>, IRowCursor
+        {
+            private readonly DataView _parent;
+
+            public Cursor(DataView parent, IRowCursor input)
+                : base(parent.Host, input)
+            {
+                Ch.Assert(input.Schema.ColumnCount == parent.Schema.ColumnCount);
+                _parent = parent;
+            }
+
+            public Schema Schema { get { return _parent.Schema; } }
+
+            public bool IsColumnActive(int col)
+            {
+                Ch.Check(0 <= col && col < Schema.ColumnCount, "col");
+                return Input.IsColumnActive(col);
+            }
+
+            public ValueGetter<TValue> GetGetter<TValue>(int col)
+            {
+                Ch.Check(IsColumnActive(col), "col");
+                return Input.GetGetter<TValue>(col);
+            }
         }
     }
 }

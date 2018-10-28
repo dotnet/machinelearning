@@ -101,6 +101,12 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
                 loaderAssemblyName: typeof(SsaSpikeDetector).Assembly.FullName);
         }
 
+        internal SsaSpikeDetector(IHostEnvironment env, Arguments args, IDataView input)
+            : base(new BaseArguments(args), LoaderSignature, env)
+        {
+            Model.Train(new RoleMappedData(input, null, InputColumnName));
+        }
+
         // Factory method for SignatureDataTransform.
         private static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
         {
@@ -108,10 +114,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             env.CheckValue(args, nameof(args));
             env.CheckValue(input, nameof(input));
 
-            var transformer = new SsaSpikeDetector(env, args);
-            var data = new RoleMappedData(input, null, transformer.InputColumnName);
-            transformer.Model.Train(data);
-            return transformer.MakeDataTransform(input);
+            return new SsaSpikeDetector(env, args, input).MakeDataTransform(input);
         }
 
         internal SsaSpikeDetector(IHostEnvironment env, Arguments args)
@@ -181,31 +184,31 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
         private readonly SsaSpikeDetector.Arguments _args;
 
         /// <summary>
-        /// Constructor for <see cref="SsaSpikeEstimator"/>
+        /// Create a new instance of <see cref="SsaSpikeEstimator"/>
         /// </summary>
         /// <param name="env">Host Environment.</param>
-        /// <param name="outputColumn">The name of the new column.</param>
         /// <param name="inputColumn">Name of the input column.</param>
+        /// <param name="outputColumn">The name of the new column.</param>
         /// <param name="confidence">The confidence for spike detection in the range [0, 100].</param>
         /// <param name="pvalueHistoryLength">The size of the sliding window for computing the p-value.</param>
         /// <param name="trainingWindowSize">The change history length.</param>
         /// <param name="seasonalityWindowSize">The change history length.</param>
         /// <param name="side">The argument that determines whether to detect positive or negative anomalies, or both.</param>
         /// <param name="errorFunction">The function used to compute the error between the expected and the observed value.</param>
-        public SsaSpikeEstimator(IHostEnvironment env, string outputColumn, string inputColumn, int confidence,
+        public SsaSpikeEstimator(IHostEnvironment env, string inputColumn, string outputColumn, int confidence,
             int pvalueHistoryLength, int trainingWindowSize, int seasonalityWindowSize, AnomalySide side = AnomalySide.TwoSided,
-            ErrorFunctionUtils.ErrorFunction errorFunction = ErrorFunctionUtils.ErrorFunction.SignedDifference) :
-            this(env, new SsaSpikeDetector.Arguments
-            {
-                Name = outputColumn,
-                Source = inputColumn,
-                Confidence = confidence,
-                PvalueHistoryLength = pvalueHistoryLength,
-                TrainingWindowSize = trainingWindowSize,
-                SeasonalWindowSize = seasonalityWindowSize,
-                Side = side,
-                ErrorFunction = errorFunction
-            })
+            ErrorFunctionUtils.ErrorFunction errorFunction = ErrorFunctionUtils.ErrorFunction.SignedDifference)
+            : this(env, new SsaSpikeDetector.Arguments
+                {
+                    Name = outputColumn,
+                    Source = inputColumn,
+                    Confidence = confidence,
+                    PvalueHistoryLength = pvalueHistoryLength,
+                    TrainingWindowSize = trainingWindowSize,
+                    SeasonalWindowSize = seasonalityWindowSize,
+                    Side = side,
+                    ErrorFunction = errorFunction
+                })
         {
         }
 
@@ -223,10 +226,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
         public SsaSpikeDetector Fit(IDataView input)
         {
             _host.CheckValue(input, nameof(input));
-            var transformer = new SsaSpikeDetector(_host, _args);
-            var data = new RoleMappedData(input, null, transformer.InputColumnName);
-            transformer.Model.Train(data);
-            return transformer;
+            return new SsaSpikeDetector(_host, _args, input);
         }
 
         public SchemaShape GetOutputSchema(SchemaShape inputSchema)

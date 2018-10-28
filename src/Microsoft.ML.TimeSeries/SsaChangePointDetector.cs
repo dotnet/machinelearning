@@ -104,6 +104,12 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
                 loaderAssemblyName: typeof(SsaChangePointDetector).Assembly.FullName);
         }
 
+        internal SsaChangePointDetector(IHostEnvironment env, Arguments args, IDataView input)
+            : this(env, args)
+        {
+            Model.Train(new RoleMappedData(input, null, InputColumnName));
+        }
+
         // Factory method for SignatureDataTransform.
         private static IDataTransform Create(IHostEnvironment env, Arguments args, IDataView input)
         {
@@ -111,10 +117,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             env.CheckValue(args, nameof(args));
             env.CheckValue(input, nameof(input));
 
-            var transformer = new SsaChangePointDetector(env, args);
-            var data = new RoleMappedData(input, null, transformer.InputColumnName);
-            transformer.Model.Train(data);
-            return transformer.MakeDataTransform(input);
+            return new SsaChangePointDetector(env, args, input).MakeDataTransform(input);
         }
 
         internal SsaChangePointDetector(IHostEnvironment env, Arguments args)
@@ -200,11 +203,11 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
         private readonly SsaChangePointDetector.Arguments _args;
 
         /// <summary>
-        /// Constructor for <see cref="SsaChangePointEstimator"/>
+        /// Create a new instance of <see cref="SsaChangePointEstimator"/>
         /// </summary>
         /// <param name="env">Host Environment.</param>
-        /// <param name="outputColumn">The name of the new column.</param>
         /// <param name="inputColumn">Name of the input column.</param>
+        /// <param name="outputColumn">The name of the new column.</param>
         /// <param name="confidence">The confidence for change point detection in the range [0, 100].</param>
         /// <param name="trainingWindowSize">The change history length.</param>
         /// <param name="changeHistoryLength">The change history length.</param>
@@ -212,22 +215,22 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
         /// <param name="errorFunction">The function used to compute the error between the expected and the observed value.</param>
         /// <param name="martingale">The martingale used for scoring.</param>
         /// <param name="eps">The epsilon parameter for the Power martingale.</param>
-        public SsaChangePointEstimator(IHostEnvironment env, string outputColumn, string inputColumn,
+        public SsaChangePointEstimator(IHostEnvironment env, string inputColumn, string outputColumn,
             int confidence, int changeHistoryLength, int trainingWindowSize, int seasonalityWindowSize,
             ErrorFunctionUtils.ErrorFunction errorFunction = ErrorFunctionUtils.ErrorFunction.SignedDifference,
-            MartingaleType martingale = MartingaleType.Power, double eps = 0.1):
-            this(env, new SsaChangePointDetector.Arguments
-            {
-                Name = outputColumn,
-                Source = inputColumn,
-                Confidence = confidence,
-                ChangeHistoryLength = changeHistoryLength,
-                TrainingWindowSize = trainingWindowSize,
-                SeasonalWindowSize = seasonalityWindowSize,
-                Martingale = martingale,
-                PowerMartingaleEpsilon = eps,
-                ErrorFunction = errorFunction
-            })
+            MartingaleType martingale = MartingaleType.Power, double eps = 0.1)
+            : this(env, new SsaChangePointDetector.Arguments
+                {
+                    Name = outputColumn,
+                    Source = inputColumn,
+                    Confidence = confidence,
+                    ChangeHistoryLength = changeHistoryLength,
+                    TrainingWindowSize = trainingWindowSize,
+                    SeasonalWindowSize = seasonalityWindowSize,
+                    Martingale = martingale,
+                    PowerMartingaleEpsilon = eps,
+                    ErrorFunction = errorFunction
+                })
         {
         }
 
@@ -245,10 +248,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
         public SsaChangePointDetector Fit(IDataView input)
         {
             _host.CheckValue(input, nameof(input));
-            var transformer = new SsaChangePointDetector(_host, _args);
-            var data = new RoleMappedData(input, null, transformer.InputColumnName);
-            transformer.Model.Train(data);
-            return transformer;
+            return new SsaChangePointDetector(_host, _args, input);
         }
 
         public SchemaShape GetOutputSchema(SchemaShape inputSchema)

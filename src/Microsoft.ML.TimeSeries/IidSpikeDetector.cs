@@ -170,16 +170,16 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
     public sealed class IidSpikeEstimator : TrivialEstimator<IidSpikeDetector>
     {
         /// <summary>
-        /// Constructor for <see cref="IidSpikeEstimator"/>
+        /// Create a new instance of <see cref="IidSpikeEstimator"/>
         /// </summary>
         /// <param name="env">Host Environment.</param>
-        /// <param name="outputColumn">The name of the new column.</param>
         /// <param name="inputColumn">Name of the input column.</param>
+        /// <param name="outputColumn">The name of the new column.</param>
         /// <param name="confidence">The confidence for spike detection in the range [0, 100].</param>
         /// <param name="pvalueHistoryLength">The size of the sliding window for computing the p-value.</param>
         /// <param name="side">The argument that determines whether to detect positive or negative anomalies, or both.</param>
-        public IidSpikeEstimator(IHostEnvironment env, string outputColumn, string inputColumn, int confidence, int pvalueHistoryLength, AnomalySide side = AnomalySide.TwoSided) :
-            base(Contracts.CheckRef(env, nameof(env)).Register(nameof(IidSpikeDetector)),
+        public IidSpikeEstimator(IHostEnvironment env, string inputColumn, string outputColumn, int confidence, int pvalueHistoryLength, AnomalySide side = AnomalySide.TwoSided)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(IidSpikeDetector)),
                 new IidSpikeDetector(env, new IidSpikeDetector.Arguments
                 {
                     Name = outputColumn,
@@ -191,8 +191,8 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
         {
         }
 
-        public IidSpikeEstimator(IHostEnvironment env, IidSpikeDetector.Arguments args) :
-    base(Contracts.CheckRef(env, nameof(env)).Register(nameof(IidSpikeEstimator)),
+        public IidSpikeEstimator(IHostEnvironment env, IidSpikeDetector.Arguments args)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(IidSpikeEstimator)),
         new IidSpikeDetector(env, args))
         {
         }

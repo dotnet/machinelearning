@@ -104,7 +104,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
         protected readonly bool IsAdaptive;
         protected readonly ErrorFunctionUtils.ErrorFunction ErrorFunction;
         protected readonly Func<Double, Double, Double> ErrorFunc;
-        public readonly ISequenceModeler<Single, Single> Model;
+        protected readonly ISequenceModeler<Single, Single> Model;
 
         public SsaAnomalyDetectionBase(SsaArguments args, string name, IHostEnvironment env)
             : base(args.WindowSize, 0, args.Source, args.Name, name, env, args.Side, args.Martingale, args.AlertOn, args.PowerMartingaleEpsilon, args.AlertThreshold)

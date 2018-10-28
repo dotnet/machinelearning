@@ -576,20 +576,14 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
                 return info;
             }
 
-            public void GetSlotNames(ref VBuffer<ReadOnlyMemory<char>> dst)
-            {
-                _slotNames.CopyTo(ref dst, 0, _parent._outputLength);
-            }
+            public void GetSlotNames(ref VBuffer<ReadOnlyMemory<char>> dst) => _slotNames.CopyTo(ref dst, 0, _parent._outputLength);
 
             public Func<int, bool> GetDependencies(Func<int, bool> activeOutput)
             {
                 return col => activeOutput(0);
             }
 
-            public void Save(ModelSaveContext ctx)
-            {
-                _parent.Save(ctx);
-            }
+            public void Save(ModelSaveContext ctx) => _parent.Save(ctx);
 
             public Delegate[] CreateGetters(IRow input, Func<int, bool> activeOutput, out Action disposer)
             {
