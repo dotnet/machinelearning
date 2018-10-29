@@ -190,7 +190,7 @@ namespace Microsoft.ML.Trainers.SymSgd
             VBuffer<float> maybeSparseWeights = default;
             VBufferUtils.CreateMaybeSparseCopy(in weights, ref maybeSparseWeights,
                 Conversions.Instance.GetIsDefaultPredicate<float>(NumberType.R4));
-            var predictor = new LinearBinaryPredictor(Host, ref maybeSparseWeights, bias);
+            var predictor = new LinearBinaryPredictor(Host, in maybeSparseWeights, bias);
             return new ParameterMixingCalibratedPredictor(Host, predictor, new PlattCalibrator(Host, -1, 0));
         }
 

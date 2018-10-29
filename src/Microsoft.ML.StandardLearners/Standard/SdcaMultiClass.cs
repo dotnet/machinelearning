@@ -175,7 +175,7 @@ namespace Microsoft.ML.Trainers
                     }
 
                     // The output for the label class using current weights and bias.
-                    var labelOutput = WDot(ref features, ref weights[label], biasReg[label] + biasUnreg[label]);
+                    var labelOutput = WDot(in features, in weights[label], biasReg[label] + biasUnreg[label]);
                     var instanceWeight = GetInstanceWeight(cursor);
 
                     // This will be the new dual variable corresponding to the label class.
@@ -201,7 +201,7 @@ namespace Microsoft.ML.Trainers
                         {
                             long dualIndex = iClass + dualIndexInitPos;
                             var dual = duals[dualIndex];
-                            var output = labelOutput + labelPrimalUpdate * normSquared - WDot(ref features, ref weights[iClass], biasReg[iClass] + biasUnreg[iClass]);
+                            var output = labelOutput + labelPrimalUpdate * normSquared - WDot(in features, in weights[iClass], biasReg[iClass] + biasUnreg[iClass]);
                             var dualUpdate = _loss.DualUpdate(output, 1, dual, invariant, numThreads);
 
                             // The successive over-relaxation apporach to adjust the sum of dual variables (biasReg) to zero.
@@ -321,7 +321,7 @@ namespace Microsoft.ML.Trainers
                     var instanceWeight = GetInstanceWeight(cursor);
                     var features = cursor.Features;
                     var label = (int)cursor.Label;
-                    var labelOutput = WDot(ref features, ref weights[label], biasReg[label] + biasUnreg[label]);
+                    var labelOutput = WDot(in features, in weights[label], biasReg[label] + biasUnreg[label]);
                     Double subLoss = 0;
                     Double subDualLoss = 0;
                     long idx = getIndexFromIdAndRow(cursor.Id, row);
@@ -334,7 +334,7 @@ namespace Microsoft.ML.Trainers
                             continue;
                         }
 
-                        var currentClassOutput = WDot(ref features, ref weights[iClass], biasReg[iClass] + biasUnreg[iClass]);
+                        var currentClassOutput = WDot(in features, in weights[iClass], biasReg[iClass] + biasUnreg[iClass]);
                         subLoss += _loss.Loss(labelOutput - currentClassOutput, 1);
                         Contracts.Assert(dualIndex == iClass + idx * numClasses);
                         var dual = duals[dualIndex++];

@@ -281,14 +281,14 @@ namespace Microsoft.ML.Trainers.HalLearners
             {
                 // We would expect the solution to the problem to be exact in this case.
                 ch.Info("Number of examples equals number of parameters, solution is exact but no statistics can be derived");
-                return new OlsLinearRegressionPredictor(Host, ref weights, bias, null, null, null, 1, float.NaN);
+                return new OlsLinearRegressionPredictor(Host, in weights, bias, null, null, null, 1, float.NaN);
             }
 
             Double rss = 0; // residual sum of squares
             Double tss = 0; // total sum of squares
             using (var cursor = cursorFactory.Create())
             {
-                var lrPredictor = new LinearRegressionPredictor(Host, ref weights, bias);
+                var lrPredictor = new LinearRegressionPredictor(Host, in weights, bias);
                 var lrMap = lrPredictor.GetMapper<VBuffer<float>, float>();
                 float yh = default;
                 while (cursor.MoveNext())
@@ -317,7 +317,7 @@ namespace Microsoft.ML.Trainers.HalLearners
             // Also we can't estimate it, unless we can estimate the variance, which requires more examples than
             // parameters.
             if (!_perParameterSignificance || m >= n)
-                return new OlsLinearRegressionPredictor(Host, ref weights, bias, null, null, null, rSquared, rSquaredAdjusted);
+                return new OlsLinearRegressionPredictor(Host, in weights, bias, null, null, null, rSquared, rSquaredAdjusted);
 
             ch.Assert(!Double.IsNaN(rSquaredAdjusted));
             var standardErrors = new Double[m];
@@ -364,7 +364,7 @@ namespace Microsoft.ML.Trainers.HalLearners
                 ch.Check(0 <= pValues[i] && pValues[i] <= 1, "p-Value calculated outside expected [0,1] range");
             }
 
-            return new OlsLinearRegressionPredictor(Host, ref weights, bias, standardErrors, tValues, pValues, rSquared, rSquaredAdjusted);
+            return new OlsLinearRegressionPredictor(Host, in weights, bias, standardErrors, tValues, pValues, rSquared, rSquaredAdjusted);
         }
 
         internal static class Mkl
@@ -598,9 +598,9 @@ namespace Microsoft.ML.Trainers.HalLearners
         public IReadOnlyCollection<Double> PValues
         { get { return _pValues.AsReadOnly(); } }
 
-        internal OlsLinearRegressionPredictor(IHostEnvironment env, ref VBuffer<float> weights, float bias,
+        internal OlsLinearRegressionPredictor(IHostEnvironment env, in VBuffer<float> weights, float bias,
             Double[] standardErrors, Double[] tValues, Double[] pValues, Double rSquared, Double rSquaredAdjusted)
-            : base(env, RegistrationName, ref weights, bias)
+            : base(env, RegistrationName, in weights, bias)
         {
             Contracts.AssertValueOrNull(standardErrors);
             Contracts.AssertValueOrNull(tValues);

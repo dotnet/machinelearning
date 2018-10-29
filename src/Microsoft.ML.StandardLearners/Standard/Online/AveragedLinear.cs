@@ -126,15 +126,15 @@ namespace Microsoft.ML.Trainers.Online
         /// <summary>
         /// Return the raw margin from the decision hyperplane
         /// </summary>
-        protected Float AveragedMargin(ref VBuffer<Float> feat)
+        protected Float AveragedMargin(in VBuffer<Float> feat)
         {
             Contracts.Assert(Args.Averaged);
             return (TotalBias + VectorUtils.DotProduct(in feat, in TotalWeights)) / (Float)NumWeightUpdates;
         }
 
-        protected override Float Margin(ref VBuffer<Float> feat)
+        protected override Float Margin(in VBuffer<Float> feat)
         {
-            return Args.Averaged ? AveragedMargin(ref feat) : CurrentMargin(ref feat);
+            return Args.Averaged ? AveragedMargin(in feat) : CurrentMargin(in feat);
         }
 
         protected override void FinishIteration(IChannel ch)
@@ -181,12 +181,12 @@ namespace Microsoft.ML.Trainers.Online
         }
 #endif
 
-        protected override void ProcessDataInstance(IChannel ch, ref VBuffer<Float> feat, Float label, Float weight)
+        protected override void ProcessDataInstance(IChannel ch, in VBuffer<Float> feat, Float label, Float weight)
         {
-            base.ProcessDataInstance(ch, ref feat, label, weight);
+            base.ProcessDataInstance(ch, in feat, label, weight);
 
             // compute the update and update if needed
-            Float output = CurrentMargin(ref feat);
+            Float output = CurrentMargin(in feat);
             Double loss = LossFunction.Loss(output, label);
 
             // REVIEW: Should this be biasUpdate != 0?

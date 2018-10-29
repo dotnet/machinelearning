@@ -109,7 +109,7 @@ namespace Microsoft.ML.Trainers
             VBuffer<Float> maybeSparseWeights = default;
             VBufferUtils.CreateMaybeSparseCopy(in weights[0], ref maybeSparseWeights,
                 Conversions.Instance.GetIsDefaultPredicate<Float>(NumberType.Float));
-            return new LinearRegressionPredictor(Host, ref maybeSparseWeights, bias[0]);
+            return new LinearRegressionPredictor(Host, in maybeSparseWeights, bias[0]);
         }
 
         protected override Float GetInstanceWeight(FloatLabelCursor cursor)

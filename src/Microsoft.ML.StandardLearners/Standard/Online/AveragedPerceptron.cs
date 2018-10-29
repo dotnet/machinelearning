@@ -159,7 +159,7 @@ namespace Microsoft.ML.Trainers.Online
                 bias = TotalBias / (Float)NumWeightUpdates;
             }
 
-            return new LinearBinaryPredictor(Host, ref weights, bias);
+            return new LinearBinaryPredictor(Host, in weights, bias);
         }
 
         protected override BinaryPredictionTransformer<LinearBinaryPredictor> MakeTransformer(LinearBinaryPredictor model, Schema trainSchema)

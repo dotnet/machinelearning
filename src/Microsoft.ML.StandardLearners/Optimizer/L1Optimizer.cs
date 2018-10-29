@@ -57,8 +57,8 @@ namespace Microsoft.ML.Runtime.Numeric
             }
 
             if (_l1weight > 0 && _biasCount < initial.Length)
-                return new L1OptimizerState(ch, progress, function, ref initial, M, TotalMemoryLimit, _biasCount, _l1weight, KeepDense, EnforceNonNegativity);
-            return new FunctionOptimizerState(ch, progress, function, ref initial, M, TotalMemoryLimit, KeepDense, EnforceNonNegativity);
+                return new L1OptimizerState(ch, progress, function, in initial, M, TotalMemoryLimit, _biasCount, _l1weight, KeepDense, EnforceNonNegativity);
+            return new FunctionOptimizerState(ch, progress, function, in initial, M, TotalMemoryLimit, KeepDense, EnforceNonNegativity);
         }
 
         /// <summary>
@@ -73,9 +73,9 @@ namespace Microsoft.ML.Runtime.Numeric
             private readonly int _biasCount;
             private readonly Float _l1weight;
 
-            internal L1OptimizerState(IChannel ch, IProgressChannelProvider progress, DifferentiableFunction function, ref VBuffer<Float> initial, int m, long totalMemLimit,
+            internal L1OptimizerState(IChannel ch, IProgressChannelProvider progress, DifferentiableFunction function, in VBuffer<Float> initial, int m, long totalMemLimit,
                 int biasCount, Float l1Weight, bool keepDense, bool enforceNonNegativity)
-                : base(ch, progress, ref initial, m, totalMemLimit, keepDense, enforceNonNegativity)
+                : base(ch, progress, in initial, m, totalMemLimit, keepDense, enforceNonNegativity)
             {
                 Contracts.AssertValue(ch);
                 ch.Assert(0 <= biasCount && biasCount < initial.Length);
@@ -96,7 +96,7 @@ namespace Microsoft.ML.Runtime.Numeric
             /// <summary>
             /// This is the original differentiable function with the injected L1 term.
             /// </summary>
-            private Float EvalCore(ref VBuffer<Float> input, ref VBuffer<Float> gradient, IProgressChannelProvider progress)
+            private Float EvalCore(in VBuffer<Float> input, ref VBuffer<Float> gradient, IProgressChannelProvider progress)
             {
                 // REVIEW: Leverage Vector methods that use SSE.
                 Float res = 0;
@@ -117,13 +117,13 @@ namespace Microsoft.ML.Runtime.Numeric
                     else
                         VBufferUtils.ForEachDefined(in input, (ind, value) => res += value);
                 }
-                res = _l1weight * res + _function(ref input, ref gradient, progress);
+                res = _l1weight * res + _function(in input, ref gradient, progress);
                 return res;
             }
 
-            public override Float Eval(ref VBuffer<Float> input, ref VBuffer<Float> gradient)
+            public override Float Eval(in VBuffer<Float> input, ref VBuffer<Float> gradient)
             {
-                return EvalCore(ref input, ref gradient, ProgressProvider);
+                return EvalCore(in input, ref gradient, ProgressProvider);
             }
 
             private void MakeSteepestDescDir()
@@ -226,7 +226,7 @@ namespace Microsoft.ML.Runtime.Numeric
                 int i = 0;
                 while (true)
                 {
-                    Value = Eval(ref _newX, ref _newGrad);
+                    Value = Eval(in _newX, ref _newGrad);
                     GradientCalculations++;
 
                     if (Value <= LastValue - Gamma * unnormCos)

@@ -177,7 +177,7 @@ namespace Microsoft.ML.Trainers.Online
                 using (var cursor = cursorFactory.Create(rand))
                 {
                     while (cursor.MoveNext())
-                        ProcessDataInstance(ch, ref cursor.Features, cursor.Label, cursor.Weight);
+                        ProcessDataInstance(ch, in cursor.Features, cursor.Label, cursor.Weight);
                     NumBad += cursor.BadFeaturesRowCount;
                 }
 
@@ -337,7 +337,7 @@ namespace Microsoft.ML.Trainers.Online
         /// This should be overridden by derived classes. This implementation simply increments
         /// _numIterExamples and dumps debug information to the console.
         /// </summary>
-        protected virtual void ProcessDataInstance(IChannel ch, ref VBuffer<Float> feat, Float label, Float weight)
+        protected virtual void ProcessDataInstance(IChannel ch, in VBuffer<Float> feat, Float label, Float weight)
         {
             Contracts.Assert(FloatUtils.IsFinite(feat.Values, feat.Count));
 
@@ -379,14 +379,14 @@ namespace Microsoft.ML.Trainers.Online
         /// <summary>
         /// Return the raw margin from the decision hyperplane
         /// </summary>
-        protected Float CurrentMargin(ref VBuffer<Float> feat)
+        protected Float CurrentMargin(in VBuffer<Float> feat)
         {
             return Bias + VectorUtils.DotProduct(in feat, in Weights) * WeightsScale;
         }
 
-        protected virtual Float Margin(ref VBuffer<Float> feat)
+        protected virtual Float Margin(in VBuffer<Float> feat)
         {
-            return CurrentMargin(ref feat);
+            return CurrentMargin(in feat);
         }
     }
 }

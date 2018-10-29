@@ -93,24 +93,24 @@ namespace Microsoft.ML.Runtime.Numeric
 
         internal virtual OptimizerState MakeState(IChannel ch, IProgressChannelProvider progress, DifferentiableFunction function, ref VBuffer<Float> initial)
         {
-            return new FunctionOptimizerState(ch, progress, function, ref initial, M, TotalMemoryLimit, KeepDense, EnforceNonNegativity);
+            return new FunctionOptimizerState(ch, progress, function, in initial, M, TotalMemoryLimit, KeepDense, EnforceNonNegativity);
         }
 
         internal sealed class FunctionOptimizerState : OptimizerState
         {
             public override DifferentiableFunction Function { get; }
 
-            internal FunctionOptimizerState(IChannel ch, IProgressChannelProvider progress, DifferentiableFunction function, ref VBuffer<Float> initial, int m,
+            internal FunctionOptimizerState(IChannel ch, IProgressChannelProvider progress, DifferentiableFunction function, in VBuffer<Float> initial, int m,
                 long totalMemLimit, bool keepDense, bool enforceNonNegativity)
-                : base(ch, progress, ref initial, m, totalMemLimit, keepDense, enforceNonNegativity)
+                : base(ch, progress, in initial, m, totalMemLimit, keepDense, enforceNonNegativity)
             {
                 Function = function;
                 Init();
             }
 
-            public override Float Eval(ref VBuffer<Float> input, ref VBuffer<Float> gradient)
+            public override Float Eval(in VBuffer<Float> input, ref VBuffer<Float> gradient)
             {
-                return Function(ref input, ref gradient, ProgressProvider);
+                return Function(in input, ref gradient, ProgressProvider);
             }
         }
 
@@ -141,7 +141,7 @@ namespace Microsoft.ML.Runtime.Numeric
             /// The function being optimized
             /// </summary>
             public abstract DifferentiableFunction Function { get; }
-            public abstract Float Eval(ref VBuffer<Float> input, ref VBuffer<Float> gradient);
+            public abstract Float Eval(in VBuffer<Float> input, ref VBuffer<Float> gradient);
 
             /// <summary>
             /// The current point being explored
@@ -194,7 +194,7 @@ namespace Microsoft.ML.Runtime.Numeric
             private int _m;
             private readonly long _totalMemLimit;
 
-            protected internal OptimizerState(IChannel ch, IProgressChannelProvider progress, ref VBuffer<Float> initial,
+            protected internal OptimizerState(IChannel ch, IProgressChannelProvider progress, in VBuffer<Float> initial,
                 int m, long totalMemLimit, bool keepDense, bool enforceNonNegativity)
             {
                 Contracts.AssertValue(ch);
@@ -239,7 +239,7 @@ namespace Microsoft.ML.Runtime.Numeric
             // Leaf constructors must call this once they are fully initialized.
             protected virtual void Init()
             {
-                Value = LastValue = Eval(ref _x, ref _grad);
+                Value = LastValue = Eval(in _x, ref _grad);
                 GradientCalculations++;
                 if (!FloatUtils.IsFinite(LastValue))
                     throw Ch.Except("Optimizer unable to proceed with loss function yielding {0}", LastValue);
@@ -412,7 +412,7 @@ namespace Microsoft.ML.Runtime.Numeric
                         });
                     }
 
-                    Value = Eval(ref _newX, ref _newGrad);
+                    Value = Eval(in _newX, ref _newGrad);
                     GradientCalculations++;
                     if (Float.IsPositiveInfinity(Value))
                     {
@@ -493,7 +493,7 @@ namespace Microsoft.ML.Runtime.Numeric
                         });
                     }
 
-                    Value = Eval(ref _newX, ref _newGrad);
+                    Value = Eval(in _newX, ref _newGrad);
                     GradientCalculations++;
                     if (!FloatUtils.IsFinite(Value))
                         throw ch.Except("Optimizer unable to proceed with loss function yielding {0}", Value);

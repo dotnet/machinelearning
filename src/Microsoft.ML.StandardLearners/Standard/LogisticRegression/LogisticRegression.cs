@@ -111,8 +111,8 @@ namespace Microsoft.ML.Runtime.Learners
         protected override BinaryPredictionTransformer<ParameterMixingCalibratedPredictor> MakeTransformer(ParameterMixingCalibratedPredictor model, Schema trainSchema)
             => new BinaryPredictionTransformer<ParameterMixingCalibratedPredictor>(Host, model, trainSchema, FeatureColumn.Name);
 
-        protected override float AccumulateOneGradient(ref VBuffer<float> feat, float label, float weight,
-            ref VBuffer<float> x, ref VBuffer<float> grad, ref float[] scratch)
+        protected override float AccumulateOneGradient(in VBuffer<float> feat, float label, float weight,
+            in VBuffer<float> x, ref VBuffer<float> grad, ref float[] scratch)
         {
             float bias = 0;
             x.GetItemOrDefault(0, ref bias);
@@ -373,7 +373,7 @@ namespace Microsoft.ML.Runtime.Learners
             CurrentWeights.GetItemOrDefault(0, ref bias);
             CurrentWeights.CopyTo(ref weights, 1, CurrentWeights.Length - 1);
             return new ParameterMixingCalibratedPredictor(Host,
-                new LinearBinaryPredictor(Host, ref weights, bias, _stats),
+                new LinearBinaryPredictor(Host, in weights, bias, _stats),
                 new PlattCalibrator(Host, -1, 0));
         }
 

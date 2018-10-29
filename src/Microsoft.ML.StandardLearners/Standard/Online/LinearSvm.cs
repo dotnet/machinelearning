@@ -116,7 +116,7 @@ namespace Microsoft.ML.Trainers.Online
         /// <summary>
         /// Return the raw margin from the decision hyperplane
         /// </summary>
-        protected override Float Margin(ref VBuffer<Float> feat)
+        protected override Float Margin(in VBuffer<Float> feat)
         {
             return Bias + VectorUtils.DotProduct(in feat, in Weights) * WeightsScale;
         }
@@ -153,22 +153,22 @@ namespace Microsoft.ML.Trainers.Online
             _weightsUpdate = new VBuffer<Float>(_weightsUpdate.Length, 0, _weightsUpdate.Values, _weightsUpdate.Indices);
         }
 
-        private void FinishBatch(ref VBuffer<Float> weightsUpdate, Float weightsUpdateScale)
+        private void FinishBatch(in VBuffer<Float> weightsUpdate, Float weightsUpdateScale)
         {
             if (_numBatchExamples > 0)
-                UpdateWeights(ref weightsUpdate, weightsUpdateScale);
+                UpdateWeights(in weightsUpdate, weightsUpdateScale);
             _numBatchExamples = 0;
         }
 
         /// <summary>
         /// Observe an example and update weights if necessary
         /// </summary>
-        protected override void ProcessDataInstance(IChannel ch, ref VBuffer<Float> feat, Float label, Float weight)
+        protected override void ProcessDataInstance(IChannel ch, in VBuffer<Float> feat, Float label, Float weight)
         {
-            base.ProcessDataInstance(ch, ref feat, label, weight);
+            base.ProcessDataInstance(ch, in feat, label, weight);
 
             // compute the update and update if needed
-            Float output = Margin(ref feat);
+            Float output = Margin(in feat);
             Float trueOutput = (label > 0 ? 1 : -1);
             Float loss = output * trueOutput - 1;
 
@@ -196,10 +196,10 @@ namespace Microsoft.ML.Trainers.Online
                     // vector directly.
                     Float currentBiasUpdate = trueOutput * weight;
                     _biasUpdate += currentBiasUpdate;
-                    FinishBatch(ref feat, currentBiasUpdate);
+                    FinishBatch(in feat, currentBiasUpdate);
                 }
                 else
-                    FinishBatch(ref _weightsUpdate, _weightsUpdateScale);
+                    FinishBatch(in _weightsUpdate, _weightsUpdateScale);
                 BeginBatch();
             }
         }
@@ -208,7 +208,7 @@ namespace Microsoft.ML.Trainers.Online
         /// Updates the weights at the end of the batch. Since weightsUpdate can be an instance
         /// feature vector, this function should not change the contents of weightsUpdate.
         /// </summary>
-        private void UpdateWeights(ref VBuffer<Float> weightsUpdate, Float weightsUpdateScale)
+        private void UpdateWeights(in VBuffer<Float> weightsUpdate, Float weightsUpdateScale)
         {
             Contracts.Assert(_batch > 0);
 
@@ -242,7 +242,7 @@ namespace Microsoft.ML.Trainers.Online
         protected override TPredictor CreatePredictor()
         {
             Contracts.Assert(WeightsScale == 1);
-            return new LinearBinaryPredictor(Host, ref Weights, Bias);
+            return new LinearBinaryPredictor(Host, in Weights, Bias);
         }
 
         [TlcModule.EntryPoint(Name = "Trainers.LinearSvmBinaryClassifier", Desc = "Train a linear SVM.", UserName = UserNameValue, ShortName = ShortName)]
