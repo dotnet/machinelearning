@@ -238,8 +238,8 @@ namespace Microsoft.ML.Transforms
         {
             private readonly long[] _count;
             private readonly Action _fillBuffer;
-            private readonly RefPredicate<T> _isDefault;
-            private readonly RefPredicate<T> _isMissing;
+            private readonly InPredicate<T> _isDefault;
+            private readonly InPredicate<T> _isMissing;
             private VBuffer<T> _buffer;
 
             public CountAggregator(ColumnType type, ValueGetter<T> getter)
@@ -255,8 +255,8 @@ namespace Microsoft.ML.Transforms
                         _buffer.Values[0] = t;
                     };
                 _isDefault = Runtime.Data.Conversion.Conversions.Instance.GetIsDefaultPredicate<T>(type);
-                if (!Runtime.Data.Conversion.Conversions.Instance.TryGetIsNAPredicate<T>(type, out _isMissing))
-                    _isMissing = (ref T value) => false;
+                if (!Conversions.Instance.TryGetIsNAPredicate<T>(type, out _isMissing))
+                    _isMissing = (in T value) => false;
             }
 
             public CountAggregator(ColumnType type, ValueGetter<VBuffer<T>> getter)
@@ -266,8 +266,8 @@ namespace Microsoft.ML.Transforms
                 _count = new long[size];
                 _fillBuffer = () => getter(ref _buffer);
                 _isDefault = Runtime.Data.Conversion.Conversions.Instance.GetIsDefaultPredicate<T>(type.ItemType);
-                if (!Runtime.Data.Conversion.Conversions.Instance.TryGetIsNAPredicate<T>(type.ItemType, out _isMissing))
-                    _isMissing = (ref T value) => false;
+                if (!Conversions.Instance.TryGetIsNAPredicate<T>(type.ItemType, out _isMissing))
+                    _isMissing = (in T value) => false;
             }
 
             public override long[] Count
@@ -289,7 +289,7 @@ namespace Microsoft.ML.Transforms
                 foreach (var kvp in value.Items())
                 {
                     var val = kvp.Value;
-                    if (!_isDefault(ref val) && !_isMissing(ref val))
+                    if (!_isDefault(in val) && !_isMissing(in val))
                         _count[kvp.Key]++;
                 }
             }
