@@ -52,12 +52,13 @@ namespace Microsoft.ML.Tests
                     Confidence = 80,
                     Source = "Value",
                     Name = "Change",
-                    ChangeHistoryLength = size,
-                    Data = dataView
+                    ChangeHistoryLength = size
                 };
-
-                var detector = TimeSeriesProcessing.IidChangePointDetector(env, args);
-                var output = detector.Model.Apply(env, dataView);
+                // Train
+                var detector = new IidChangePointEstimator(env, args).Fit(dataView);
+                // Transform
+                var output = detector.Transform(dataView);
+                // Get predictions
                 var enumerator = output.AsEnumerable<Prediction>(env, true).GetEnumerator();
                 Prediction row = null;
                 List<double> expectedValues = new List<double>() { 0, 5, 0.5, 5.1200000000000114E-08, 0, 5, 0.4999999995, 5.1200000046080209E-08, 0, 5, 0.4999999995, 5.1200000092160303E-08,
@@ -94,7 +95,6 @@ namespace Microsoft.ML.Tests
                     Source = "Value",
                     Name = "Change",
                     ChangeHistoryLength = ChangeHistorySize,
-                    Data = dataView,
                     TrainingWindowSize = MaxTrainingSize,
                     SeasonalWindowSize = SeasonalitySize
                 };
@@ -106,8 +106,11 @@ namespace Microsoft.ML.Tests
                 for (int i = 0; i < ChangeHistorySize; i++)
                     data.Add(new Data(i * 100));
 
-                var detector = TimeSeriesProcessing.SsaChangePointDetector(env, args);
-                var output = detector.Model.Apply(env, dataView);
+                // Train
+                var detector = new SsaChangePointEstimator(env, args).Fit(dataView);
+                // Transform
+                var output = detector.Transform(dataView);
+                // Get predictions
                 var enumerator = output.AsEnumerable<Prediction>(env, true).GetEnumerator();
                 Prediction row = null;
                 List<double> expectedValues = new List<double>() { 0, 0, 0.5, 0, 0, 1, 0.15865526383236372,
