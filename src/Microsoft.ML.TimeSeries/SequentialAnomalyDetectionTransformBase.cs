@@ -545,6 +545,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             private readonly IHost _host;
             private readonly SequentialAnomalyDetectionTransformBase<TInput, TState> _parent;
             private readonly ISchema _parentSchema;
+            private readonly int _inputColumnIndex;
             private readonly VBuffer<ReadOnlyMemory<Char>> _slotNames;
 
             public Mapper(IHostEnvironment env, SequentialAnomalyDetectionTransformBase<TInput, TState> parent, ISchema inputSchema)
@@ -554,10 +555,10 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
                 _host.CheckValue(inputSchema, nameof(inputSchema));
                 _host.CheckValue(parent, nameof(parent));
 
-                if (!inputSchema.TryGetColumnIndex(parent.InputColumnName, out var col))
+                if (!inputSchema.TryGetColumnIndex(parent.InputColumnName, out _inputColumnIndex))
                     throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", parent.InputColumnName);
 
-                var colType = inputSchema.GetColumnType(col);
+                var colType = inputSchema.GetColumnType(_inputColumnIndex);
                 if (colType != NumberType.R4)
                     throw _host.ExceptSchemaMismatch(nameof(inputSchema), "input", parent.InputColumnName, NumberType.R4.ToString(), colType.ToString());
 
@@ -580,7 +581,10 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
 
             public Func<int, bool> GetDependencies(Func<int, bool> activeOutput)
             {
-                return col => activeOutput(0);
+                if (activeOutput(0))
+                    return col => col == _inputColumnIndex;
+                else
+                    return col => false;
             }
 
             public void Save(ModelSaveContext ctx) => _parent.Save(ctx);
@@ -603,8 +607,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             private Delegate MakeGetter(IRow input, TState state)
             {
                 _host.AssertValue(input);
-                input.Schema.TryGetColumnIndex(_parent.InputColumnName, out int srcCol);
-                var srcGetter = input.GetGetter<TInput>(srcCol);
+                var srcGetter = input.GetGetter<TInput>(_inputColumnIndex);
                 ProcessData processData = _parent.WindowSize > 0 ?
                     (ProcessData) state.Process : state.ProcessWithoutBuffer;
                 ValueGetter <VBuffer<double>> valueGetter = (ref VBuffer<double> dst) =>
