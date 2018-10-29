@@ -370,7 +370,7 @@ namespace Microsoft.ML.Runtime.Internal.Utilities
                 manip(slot, ref dst.Values[idx]);
                 return;
             }
-            // The vector is sparse and there is no correpsonding item, yet.
+            // The vector is sparse and there is no corresponding item, yet.
             T value = default(T);
             manip(slot, ref value);
             // If this item is not defined and it's default, no need to proceed of course.
