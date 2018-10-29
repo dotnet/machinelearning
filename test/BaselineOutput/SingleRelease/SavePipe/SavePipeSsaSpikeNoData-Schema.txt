@@ -1,7 +1,7 @@
 ---- BoundLoader ----
 1 columns:
   Features: R4
----- RowToRowMapperTransform ----
+---- SequentialDataTransform ----
 2 columns:
   Features: R4
   Anomaly: Vec<R8, 3>

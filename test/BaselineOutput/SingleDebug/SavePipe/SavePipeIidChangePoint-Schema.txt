@@ -1,7 +1,7 @@
 ---- BoundLoader ----
 1 columns:
   Features: R4
----- RowToRowMapperTransform ----
+---- SequentialDataTransform ----
 2 columns:
   Features: R4
   Anomaly: Vec<R8, 4>
@@ -16,7 +16,7 @@
   fAnomaly: Vec<R4, 4>
     Metadata 'SlotNames': Vec<Text, 4>: Length=4, Count=4
       [0] 'Alert', [1] 'Raw Score', [2] 'P-Value Score', [3] 'Martingale Score'
----- RowToRowMapperTransform ----
+---- SequentialDataTransform ----
 4 columns:
   Features: R4
   Anomaly: Vec<R8, 4>
