@@ -877,5 +877,35 @@ namespace Microsoft.ML.StaticPipelineTesting
             Assert.True(type.IsVector && type.ItemType.RawKind == DataKind.R4);
             Assert.True(type.VectorSize == 5);
         }
+
+        [Fact]
+        public void TestConvertStatic()
+        {
+            MLContext ml = new MLContext();
+            const string content = "0 hello 3.14159 -0 2\n"
+               + "1 1 2 4 15";
+            var dataSource = new BytesStreamSource(content);
+
+            var text = ml.Data.TextReader( ctx => (
+                label: ctx.LoadBool(0),
+                text: ctx.LoadText(1),
+                numericFeatures: ctx.LoadDouble(2, null)), // If fit correctly, this ought to be equivalent to max of 4, that is, length of 3.
+                dataSource, separator: ' ');
+            var data =text.Read(dataSource);
+            var est = text.MakeNewEstimator().Append(r => (floatLabel: r.label.ToFloat(), txtFloat: r.text.ToFloat(), num: r.numericFeatures.ToFloat()));
+            var tdata = est.Fit(data).Transform(data);
+            var schema = tdata.AsDynamic.Schema;
+
+            Assert.True(schema.TryGetColumnIndex("floatLabel", out int floatLabel));
+            var type = schema[floatLabel].Type;
+            Assert.True(!type.IsVector && type.ItemType.RawKind == DataKind.R4);
+            Assert.True(schema.TryGetColumnIndex("txtFloat", out int txtFloat));
+            type = schema[txtFloat].Type;
+            Assert.True(!type.IsVector && type.ItemType.RawKind == DataKind.R4);
+            Assert.True(schema.TryGetColumnIndex("num", out int num));
+            type = schema[num].Type;
+            Assert.True(type.IsVector && type.ItemType.RawKind == DataKind.R4);
+            Assert.True(type.VectorSize == 3);
+        }
     }
 }

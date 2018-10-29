@@ -4,21 +4,22 @@
 
 #pragma warning disable 420 // volatile with Interlocked.CompareExchange
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Data.Conversion;
+using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.Model.Onnx;
-using Microsoft.ML.Runtime.Command;
-using Microsoft.ML.Runtime.EntryPoints;
+using Microsoft.ML.StaticPipe;
+using Microsoft.ML.StaticPipe.Runtime;
 using Microsoft.ML.Transforms;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 
 [assembly: LoadableClass(ConvertTransform.Summary, typeof(IDataTransform), typeof(ConvertTransform), typeof(ConvertTransform.Arguments), typeof(SignatureDataTransform),
     ConvertTransform.UserName, ConvertTransform.ShortName, "ConvertTransform", DocName = "transform/ConvertTransform.md")]
@@ -148,7 +149,7 @@ namespace Microsoft.ML.Transforms
         internal const string UserName = "Convert Transform";
         internal const string ShortName = "Convert";
 
-        public const string LoaderSignature = "ConvertTransform";
+        internal const string LoaderSignature = "ConvertTransform";
         internal const string LoaderSignatureOld = "ConvertFunction";
         private static VersionInfo GetVersionInfo()
         {
@@ -413,7 +414,7 @@ namespace Microsoft.ML.Transforms
                         srcType.ItemType.KeyCount > 0 &&
                         srcType.ItemType.KeyCount == _types[i].ItemType.KeyCount)
                         builder.Add(InputSchema[ColMapNewToOld[i]].Metadata, name => name == MetadataUtils.Kinds.KeyValues);
-                    if (srcType.ItemType.IsNumber&&_types[i].ItemType.IsNumber)
+                    if (srcType.ItemType.IsNumber && _types[i].ItemType.IsNumber)
                         builder.Add(InputSchema[ColMapNewToOld[i]].Metadata, name => name == MetadataUtils.Kinds.IsNormalized);
                     if (srcType.IsBool && _types[i].ItemType.IsNumber)
                     {
@@ -527,5 +528,63 @@ namespace Microsoft.ML.Transforms
             return new SchemaShape(result.Values);
         }
     }
+    public static partial class ConvertStaticExtensions
+    {
 
+        private interface IConvertCol
+        {
+            PipelineColumn Input { get; }
+            DataKind Kind { get; }
+        }
+
+        private sealed class ImplScalar<T> : Scalar<float>, IConvertCol
+        {
+            public PipelineColumn Input { get; }
+            public DataKind Kind { get; }
+            public ImplScalar(PipelineColumn input, DataKind kind) : base(Rec.Inst, input)
+            {
+                Input = input;
+                Kind = kind;
+            }
+        }
+
+        private sealed class ImplVector<T> : Vector<float>, IConvertCol
+        {
+            public PipelineColumn Input { get; }
+            public DataKind Kind { get; }
+            public ImplVector(PipelineColumn input, DataKind kind) : base(Rec.Inst, input)
+            {
+                Input = input;
+                Kind = kind;
+            }
+        }
+
+        private sealed class ImplVarVector<T> : VarVector<float>, IConvertCol
+        {
+            public PipelineColumn Input { get; }
+            public DataKind Kind { get; }
+            public ImplVarVector(PipelineColumn input, DataKind kind) : base(Rec.Inst, input)
+            {
+                Input = input;
+                Kind = kind;
+            }
+        }
+
+        private sealed class Rec : EstimatorReconciler
+        {
+            public static readonly Rec Inst = new Rec();
+
+            public override IEstimator<ITransformer> Reconcile(IHostEnvironment env, PipelineColumn[] toOutput,
+                IReadOnlyDictionary<PipelineColumn, string> inputNames, IReadOnlyDictionary<PipelineColumn, string> outputNames, IReadOnlyCollection<string> usedNames)
+            {
+                var infos = new ConvertTransform.ColumnInfo[toOutput.Length];
+                for (int i = 0; i < toOutput.Length; ++i)
+                {
+                    var tcol = (IConvertCol)toOutput[i];
+                    infos[i] = new ConvertTransform.ColumnInfo(inputNames[tcol.Input], outputNames[toOutput[i]], tcol.Kind);
+                }
+                return new ConvertEstimator(env, infos);
+            }
+        }
+    }
 }
