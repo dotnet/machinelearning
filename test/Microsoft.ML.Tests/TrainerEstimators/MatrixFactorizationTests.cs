@@ -12,7 +12,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
 {
     public partial class TrainerEstimators : TestDataPipeBase
     {
-        [Fact]
+        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // This test is being fixed as part of issue #1441.
         public void MatrixFactorization_Estimator()
         {
             string labelColumnName = "Label";
