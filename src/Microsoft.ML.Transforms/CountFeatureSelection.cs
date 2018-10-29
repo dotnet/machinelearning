@@ -255,7 +255,7 @@ namespace Microsoft.ML.Transforms
                         _buffer.Values[0] = t;
                     };
                 _isDefault = Runtime.Data.Conversion.Conversions.Instance.GetIsDefaultPredicate<T>(type);
-                if (!Conversions.Instance.TryGetIsNAPredicate<T>(type, out _isMissing))
+                if (!Runtime.Data.Conversion.Conversions.Instance.TryGetIsNAPredicate<T>(type, out _isMissing))
                     _isMissing = (in T value) => false;
             }
 
@@ -266,7 +266,7 @@ namespace Microsoft.ML.Transforms
                 _count = new long[size];
                 _fillBuffer = () => getter(ref _buffer);
                 _isDefault = Runtime.Data.Conversion.Conversions.Instance.GetIsDefaultPredicate<T>(type.ItemType);
-                if (!Conversions.Instance.TryGetIsNAPredicate<T>(type.ItemType, out _isMissing))
+                if (!Runtime.Data.Conversion.Conversions.Instance.TryGetIsNAPredicate<T>(type.ItemType, out _isMissing))
                     _isMissing = (in T value) => false;
             }
 
