@@ -184,8 +184,8 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
                     nuint address = (nuint)(pMatCurrent);
                     int misalignment = (int)(address % 32);
-
                     int remainder = 0;
+
                     if ((misalignment & 3) != 0)
                     {
                         // Handles cases where the data is not 32-bit aligned and we can't ever use aligned operations
@@ -234,9 +234,14 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
                         if (length > 7)
                         {
+                            // Handle all the 256-bit blocks that we can now that we have offset to an aligned address
                             remainder = length % 8;
+
                             while (pSrcCurrent + 8 <= pSrcEnd)
                             {
+                                // If we aren't using the VEX-encoding, the JIT will only fold away aligned loads
+                                // (due to semantics of the legacy encoding).
+                                // We don't need an assert, since the instruction will throw for unaligned inputs.
                                 Vector256<float> vector = Avx.LoadVector256(pSrcCurrent);
 
                                 float* pMatTemp = pMatCurrent;
@@ -251,11 +256,17 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                         }
                         else
                         {
+                            // Handle the "worst-case" scenario, which is when we have 8-16 elements and the input is not
+                            // 256-bit aligned. This means we can't do any aligned loads and will just end up doing two
+                            // unaligned loads where we mask the input each time.
                             remainder = length;
                         }
 
                         if (remainder != 0)
                         {
+                            // Handle any trailing elements that don't fit into a 256-bit block by moving back so that the next
+                            // unaligned load will read to the end of the array and then mask out any elements already processed
+
                             pMatCurrent -= (8 - remainder);
                             pSrcCurrent -= (8 - remainder);
 
@@ -328,6 +339,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
                 if ((misalignment & 3) != 0)
                 {
+                    // Handles cases where the data is not 32-bit aligned and we can't ever use aligned operations
                     while (pDstCurrent < pDstEnd)
                     {
                         Avx.Store(pDstCurrent, SparseMultiplicationAcrossRow());
@@ -339,6 +351,8 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                 {
                     if (misalignment != 0)
                     {
+                        // Handle cases where the data is not 256-bit aligned by doing an unaligned read and then
+                        // masking any elements that will be included in the first aligned read
                         misalignment >>= 2;
                         misalignment = 8 - misalignment;
 
@@ -372,6 +386,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
                     if (length > 7)
                     {
+                        // Handle all the 256-bit blocks that we can now that we have offset to an aligned address
                         remainder = length % 8;
                         while (pDstCurrent < pDstEnd)
                         {
@@ -382,11 +397,17 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                     }
                     else
                     {
+                        // Handle the "worst-case" scenario, which is when we have 8-16 elements and the input is not
+                        // 256-bit aligned. This means we can't do any aligned loads and will just end up doing two
+                        // unaligned loads where we mask the input each time.
                         remainder = length;
                     }
 
                     if (remainder != 0)
                     {
+                        // Handle any trailing elements that don't fit into a 256-bit block by moving back so that the next
+                        // unaligned load will read to the end of the array and then mask out any elements already processed
+
                         pDstCurrent -= (8 - remainder);
                         pm0 -= (8 - remainder) * ccol;
                         Vector256<float> trailingMask = Avx.LoadVector256(((float*)(pTrailingAlignmentMask)) + (remainder * 8));
@@ -490,6 +511,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
                     if ((misalignment & 3) != 0)
                     {
+                        // Handles cases where the data is not 32-bit aligned and we can't ever use aligned operations
                         while (pDstCurrent < pDstEnd)
                         {
                             float* pMatTemp = pMatCurrent;
@@ -546,9 +568,14 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                         }
                         if (length > 7)
                         {
+                            // Handle all the 256-bit blocks that we can now that we have offset to an aligned address
                             remainder = length % 8;
+
                             while (pDstCurrent + 8 <= pDstEnd)
                             {
+                                // If we aren't using the VEX-encoding, the JIT will only fold away aligned loads
+                                // (due to semantics of the legacy encoding).
+                                // We don't need an assert, since the instruction will throw for unaligned inputs.
                                 float* pMatTemp = pMatCurrent;
 
                                 Vector256<float> x02 = Avx.Multiply(x01, Avx.LoadVector256(pMatTemp));
@@ -567,11 +594,17 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                         }
                         else
                         {
+                            // Handle the "worst-case" scenario, which is when we have 8-16 elements and the input is not
+                            // 256-bit aligned. This means we can't do any aligned loads and will just end up doing two
+                            // unaligned loads where we mask the input each time.
                             remainder = length;
                         }
 
                         if (remainder != 0)
                         {
+                            // Handle any trailing elements that don't fit into a 256-bit block by moving back so that the next
+                            // unaligned load will read to the end of the array and then mask out any elements already processed
+
                             pMatCurrent -= (8 - remainder);
                             pDstCurrent -= (8 - remainder);
                             Vector256<float> trailingMask = Avx.LoadVector256(((float*)(pTrailingAlignmentMask)) + (remainder * 8));
@@ -806,6 +839,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
                 if (length < 8)
                 {
+                    // Handle cases where we have less than 256-bits total and can't ever use SIMD acceleration.
                     switch (length)
                     {
                         case 7: dst[6] *= scale; goto case 6;

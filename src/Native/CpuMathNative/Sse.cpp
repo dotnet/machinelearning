@@ -78,13 +78,14 @@ EXPORT_API(void) MatMul(_In_ const float * pmat, _In_ const float * psrc, _Inout
         uintptr_t address = (uintptr_t)(pMatCurrent);
         uintptr_t misalignment = address % 16;
         int remainder = 0;
-  
+
         if ((misalignment & 3) != 0)
         {
+            // Handles cases where the data is not 32-bit aligned and we can't ever use aligned operations
             while (pSrcCurrent < pSrcEnd)
             {
                 __m128 vector = _mm_loadu_ps(pSrcCurrent);
-                
+
                 const float* pMatTemp = pMatCurrent;
                 __m128 x01 = _mm_mul_ps(vector, _mm_loadu_ps(pMatTemp));
                 __m128 x11 = _mm_mul_ps(vector, _mm_loadu_ps(pMatTemp += ccol));
@@ -95,15 +96,17 @@ EXPORT_API(void) MatMul(_In_ const float * pmat, _In_ const float * psrc, _Inout
                 res1 = _mm_add_ps(res1, x11);
                 res2 = _mm_add_ps(res2, x21);
                 res3 = _mm_add_ps(res3, x31);
-                
+
                 pSrcCurrent += 4;
                 pMatCurrent += 4;
-            }    
+            }
         }
         else
         {
             if (misalignment != 0)
             {
+                // Handle cases where the data is not 128-bit aligned by doing an unaligned read and then
+                // masking any elements that will be included in the first aligned read
                 misalignment >>= 2;
                 misalignment = 4 - misalignment;
 
@@ -114,14 +117,14 @@ EXPORT_API(void) MatMul(_In_ const float * pmat, _In_ const float * psrc, _Inout
                 __m128 x01 = _mm_and_ps(mask, _mm_loadu_ps(pMatTemp));
                 __m128 x11 = _mm_and_ps(mask, _mm_loadu_ps(pMatTemp += ccol));
                 __m128 x21 = _mm_and_ps(mask, _mm_loadu_ps(pMatTemp += ccol));
-                __m128 x31 = _mm_and_ps(mask, _mm_loadu_ps(pMatTemp += ccol));                
+                __m128 x31 = _mm_and_ps(mask, _mm_loadu_ps(pMatTemp += ccol));
                 __m128 vector = _mm_and_ps(mask, _mm_loadu_ps(pSrcCurrent));
 
                 res0 = _mm_mul_ps(x01, vector);
                 res1 = _mm_mul_ps(x11, vector);
                 res2 = _mm_mul_ps(x21, vector);
                 res3 = _mm_mul_ps(x31, vector);
-                                
+
                 pMatCurrent += misalignment;
                 pSrcCurrent += misalignment;
                 length -= misalignment;
@@ -129,33 +132,41 @@ EXPORT_API(void) MatMul(_In_ const float * pmat, _In_ const float * psrc, _Inout
 
             if (length > 3)
             {
+                // Handle all the 128-bit blocks that we can now that we have offset to an aligned address
                 remainder = length % 4;
-                while(pSrcCurrent < pSrcEnd)
+
+                while (pSrcCurrent + 4 <= pSrcEnd)
                 {
                     __m128 vector = _mm_loadu_ps(pSrcCurrent);
-                
+
                     const float* pMatTemp = pMatCurrent;
                     __m128 x01 = _mm_mul_ps(vector, _mm_load_ps(pMatTemp));
                     __m128 x11 = _mm_mul_ps(vector, _mm_load_ps(pMatTemp += ccol));
                     __m128 x21 = _mm_mul_ps(vector, _mm_load_ps(pMatTemp += ccol));
                     __m128 x31 = _mm_mul_ps(vector, _mm_load_ps(pMatTemp += ccol));
-                
+
                     res0 = _mm_add_ps(res0, x01);
                     res1 = _mm_add_ps(res1, x11);
                     res2 = _mm_add_ps(res2, x21);
                     res3 = _mm_add_ps(res3, x31);
-                
+
                     pSrcCurrent += 4;
                     pMatCurrent += 4;
-                } 
+                }
             }
             else
             {
+                // Handle the "worst-case" scenario, which is when we have 4-8 elements and the input is not
+                // 128-bit aligned. This means we can't do any aligned loads and will just end up doing two
+                // unaligned loads where we mask the input each time.
                 remainder = length;
             }
 
             if (remainder != 0)
             {
+                // Handle any trailing elements that don't fit into a 128-bit block by moving back so that the next
+                // unaligned load will read to the end of the array and then mask out any elements already processed
+
                 pMatCurrent -= (4 - remainder);
                 pSrcCurrent -= (4 - remainder);
 
@@ -165,14 +176,14 @@ EXPORT_API(void) MatMul(_In_ const float * pmat, _In_ const float * psrc, _Inout
                 __m128 x01 = _mm_and_ps(mask, _mm_loadu_ps(pMatTemp));
                 __m128 x11 = _mm_and_ps(mask, _mm_loadu_ps(pMatTemp += ccol));
                 __m128 x21 = _mm_and_ps(mask, _mm_loadu_ps(pMatTemp += ccol));
-                __m128 x31 = _mm_and_ps(mask, _mm_loadu_ps(pMatTemp += ccol));                
+                __m128 x31 = _mm_and_ps(mask, _mm_loadu_ps(pMatTemp += ccol));
                 __m128 vector = _mm_and_ps(mask, _mm_loadu_ps(pSrcCurrent));
 
-                res0 = _mm_add_ps(x01, _mm_mul_ps(x01, vector));
-                res1 = _mm_add_ps(x11, _mm_mul_ps(x11, vector));
-                res2 = _mm_add_ps(x21, _mm_mul_ps(x21, vector));
-                res3 = _mm_add_ps(x31, _mm_mul_ps(x31, vector));
-              
+                res0 = _mm_add_ps(res0, _mm_mul_ps(x01, vector));
+                res1 = _mm_add_ps(res1, _mm_mul_ps(x11, vector));
+                res2 = _mm_add_ps(res2, _mm_mul_ps(x21, vector));
+                res3 = _mm_add_ps(res3, _mm_mul_ps(x31, vector));
+
                 pMatCurrent += 4;
                 pSrcCurrent += 4;
             }
@@ -186,7 +197,7 @@ EXPORT_API(void) MatMul(_In_ const float * pmat, _In_ const float * psrc, _Inout
         _mm_storeu_ps(pDstCurrent, res0);
 
         pDstCurrent += 4;
-        pMatCurrent += 3 * ccol;  
+        pMatCurrent += 3 * ccol;
     }
 }
 
@@ -202,14 +213,15 @@ EXPORT_API(void) MatMulP(_In_ const float * pmat, _In_ const int * pposSrc, _In_
     const float * pm0 = pmat - posMin;
     const float * pSrcCurrent = psrc - posMin;
     float* pDstCurrent = pdst;
-    
+
     uintptr_t address = (uintptr_t)(pDstCurrent);
     uintptr_t misalignment = address % 16;
     int length = crow;
     int remainder = 0;
-    
+
     if ((misalignment & 3) != 0)
     {
+        // Handles cases where the data is not 32-bit aligned and we can't ever use aligned operations
         while (pDstCurrent < pDstEnd)
         {
             const float* pm1 = pm0 + ccol;
@@ -238,10 +250,12 @@ EXPORT_API(void) MatMulP(_In_ const float * pmat, _In_ const int * pposSrc, _In_
     {
         if (misalignment != 0)
         {
+            // Handle cases where the data is not 128-bit aligned by doing an unaligned read and then
+            // masking any elements that will be included in the first aligned read
             misalignment >>= 2;
             misalignment = 4 - misalignment;
 
-            __m128 mask = _mm_loadu_ps(((float*)(&LeadingAlignmentMask)) + (misalignment * 4));       
+            __m128 mask = _mm_loadu_ps(((float*)(&LeadingAlignmentMask)) + (misalignment * 4));
 
             const float* pm1 = pm0 + ccol;
             const float* pm2 = pm1 + ccol;
@@ -255,7 +269,7 @@ EXPORT_API(void) MatMulP(_In_ const float * pmat, _In_ const int * pposSrc, _In_
                 int col = *ppos;
                 __m128 x1 = _mm_setr_ps(pm0[col], pm1[col], pm2[col], pm3[col]);
                 x1 = _mm_and_ps(mask, x1);
-                
+
                 __m128 x2 = _mm_set1_ps(pSrcCurrent[col]);
                 x2 = _mm_mul_ps(x2, x1);
                 res = _mm_add_ps(res, x2);
@@ -270,6 +284,7 @@ EXPORT_API(void) MatMulP(_In_ const float * pmat, _In_ const int * pposSrc, _In_
 
         if (length > 3)
         {
+            // Handle all the 128-bit blocks that we can now that we have offset to an aligned address
             remainder = length % 4;
             while (pDstCurrent < pDstEnd)
             {
@@ -297,24 +312,30 @@ EXPORT_API(void) MatMulP(_In_ const float * pmat, _In_ const int * pposSrc, _In_
         }
         else
         {
-            length = remainder;
+            // Handle the "worst-case" scenario, which is when we have 4-8 elements and the input is not
+            // 128-bit aligned. This means we can't do any aligned loads and will just end up doing two
+            // unaligned loads where we mask the input each time.
+            remainder = length;
         }
 
         if (remainder != 0)
         {
+            // Handle any trailing elements that don't fit into a 128-bit block by moving back so that the next
+            // unaligned load will read to the end of the array and then mask out any elements already processed
+
             pDstCurrent -= (4 - remainder);
             pm0 -= (4 - remainder) * ccol;
 
-            __m128 trailingMask = _mm_loadu_ps(((float*)(&TrailingAlignmentMask)) + (remainder * 4));     
-            __m128 leadingMask = _mm_loadu_ps(((float*)(&LeadingAlignmentMask)) + (( 4 - remainder) * 4));     
-            
+            __m128 trailingMask = _mm_loadu_ps(((float*)(&TrailingAlignmentMask)) + (remainder * 4));
+            __m128 leadingMask = _mm_loadu_ps(((float*)(&LeadingAlignmentMask)) + ((4 - remainder) * 4));
+
             const float* pm1 = pm0 + ccol;
             const float* pm2 = pm1 + ccol;
             const float* pm3 = pm2 + ccol;
 
             const int* ppos = pposMin;
             __m128 res = _mm_setzero_ps();
-            
+
             while (ppos < pposEnd)
             {
                 int col = *ppos;
@@ -339,13 +360,13 @@ EXPORT_API(void) MatMulTran(_In_ const float * pmat, _In_ const float * psrc, _I
 {
     const float * pSrcEnd = psrc + ccol;
     const float * pDstEnd = pdst + crow;
-    
+
     const float* pMatCurrent = pmat;
     const float* pSrcCurrent = psrc;
 
     if (pSrcCurrent < pSrcEnd)
     {
-         __m128 x01 = _mm_loadu_ps(pSrcCurrent);
+        __m128 x01 = _mm_loadu_ps(pSrcCurrent);
         // Replicate each slot of x01 into its own register.
         __m128 x11 = _mm_shuffle_ps(x01, x01, 0x55);
         __m128 x21 = _mm_shuffle_ps(x01, x01, 0xAA);
@@ -361,6 +382,7 @@ EXPORT_API(void) MatMulTran(_In_ const float * pmat, _In_ const float * psrc, _I
 
         if ((misalignment & 3) != 0)
         {
+            // Handles cases where the data is not 32-bit aligned and we can't ever use aligned operations
             while (pDstCurrent < pDstEnd)
             {
                 const float* pMatTemp = pMatCurrent;
@@ -372,7 +394,7 @@ EXPORT_API(void) MatMulTran(_In_ const float * pmat, _In_ const float * psrc, _I
                 x02 = _mm_add_ps(x02, x12);
                 x22 = _mm_add_ps(x22, x32);
                 x02 = _mm_add_ps(x02, x22);
-                
+
                 _mm_storeu_ps(pDstCurrent, x02);
                 pDstCurrent += 4;
                 pMatCurrent += 4;
@@ -383,9 +405,11 @@ EXPORT_API(void) MatMulTran(_In_ const float * pmat, _In_ const float * psrc, _I
             int remainder = 0;
             if (misalignment != 0)
             {
+                // Handle cases where the data is not 128-bit aligned by doing an unaligned read and then
+                // masking any elements that will be included in the first aligned read
                 misalignment >>= 2;
                 misalignment = 4 - misalignment;
-                
+
                 __m128 leadingMask = _mm_loadu_ps(((float*)(&LeadingAlignmentMask)) + (misalignment * 4));
 
                 // We only align pMat since it has significantly more reads.
@@ -398,13 +422,13 @@ EXPORT_API(void) MatMulTran(_In_ const float * pmat, _In_ const float * psrc, _I
                 x02 = _mm_mul_ps(x01, x02);
                 x12 = _mm_mul_ps(x11, x12);
                 x22 = _mm_mul_ps(x21, x22);
-                x32 = _mm_mul_ps(x31, x32);                                                
+                x32 = _mm_mul_ps(x31, x32);
 
                 x02 = _mm_add_ps(x02, x12);
                 x22 = _mm_add_ps(x22, x32);
                 x02 = _mm_add_ps(x02, x22);
 
-                __m128 trailingMask = _mm_loadu_ps(((float*)(&TrailingAlignmentMask)) + (( 4 - misalignment) * 4));
+                __m128 trailingMask = _mm_loadu_ps(((float*)(&TrailingAlignmentMask)) + ((4 - misalignment) * 4));
                 __m128 x3 = _mm_loadu_ps(pDstCurrent);
                 x02 = _mm_or_ps(x02, _mm_and_ps(x3, trailingMask));
 
@@ -414,10 +438,12 @@ EXPORT_API(void) MatMulTran(_In_ const float * pmat, _In_ const float * psrc, _I
                 length -= misalignment;
             }
 
-            if(length > 3)
+            if (length > 3)
             {
+                // Handle all the 128-bit blocks that we can now that we have offset to an aligned address
                 remainder = length % 4;
-                while (pDstCurrent < pDstEnd)
+
+                while (pDstCurrent + 4 <= pDstEnd)
                 {
                     const float* pMatTemp = pMatCurrent;
                     __m128 x02 = _mm_mul_ps(x01, _mm_load_ps(pMatTemp));
@@ -430,23 +456,29 @@ EXPORT_API(void) MatMulTran(_In_ const float * pmat, _In_ const float * psrc, _I
                     x02 = _mm_add_ps(x02, x22);
 
                     _mm_storeu_ps(pDstCurrent, x02);
-                
+
                     pDstCurrent += 4;
-                    pMatCurrent += 4;               
+                    pMatCurrent += 4;
                 }
             }
             else
             {
-                length = remainder;
+                // Handle the "worst-case" scenario, which is when we have 8-16 elements and the input is not
+                // 128-bit aligned. This means we can't do any aligned loads and will just end up doing two
+                // unaligned loads where we mask the input each time.
+                remainder = length;
             }
 
             if (remainder != 0)
             {
+                // Handle any trailing elements that don't fit into a 128-bit block by moving back so that the next
+                // unaligned load will read to the end of the array and then mask out any elements already processed
+
                 pMatCurrent -= (4 - remainder);
                 pDstCurrent -= (4 - remainder);
 
-                __m128 trailingMask = _mm_loadu_ps(((float*)(&TrailingAlignmentMask)) + (remainder * 4));             
-                
+                __m128 trailingMask = _mm_loadu_ps(((float*)(&TrailingAlignmentMask)) + (remainder * 4));
+
                 const float* pMatTemp = pMatCurrent;
                 __m128 x02 = _mm_and_ps(trailingMask, _mm_loadu_ps(pMatTemp));
                 __m128 x12 = _mm_and_ps(trailingMask, _mm_loadu_ps(pMatTemp += crow));
@@ -456,13 +488,13 @@ EXPORT_API(void) MatMulTran(_In_ const float * pmat, _In_ const float * psrc, _I
                 x02 = _mm_mul_ps(x01, x02);
                 x12 = _mm_mul_ps(x11, x12);
                 x22 = _mm_mul_ps(x21, x22);
-                x32 = _mm_mul_ps(x31, x32);                                                
+                x32 = _mm_mul_ps(x31, x32);
 
                 x02 = _mm_add_ps(x02, x12);
                 x22 = _mm_add_ps(x22, x32);
                 x02 = _mm_add_ps(x02, x22);
 
-                __m128 leadingMask = _mm_loadu_ps(((float*)(&LeadingAlignmentMask)) + (( 4 - remainder) * 4));
+                __m128 leadingMask = _mm_loadu_ps(((float*)(&LeadingAlignmentMask)) + ((4 - remainder) * 4));
                 __m128 x3 = _mm_loadu_ps(pDstCurrent);
                 x02 = _mm_or_ps(x02, _mm_and_ps(x3, leadingMask));
 
@@ -507,7 +539,7 @@ EXPORT_API(void) MatMulTran(_In_ const float * pmat, _In_ const float * psrc, _I
                 x02 = _mm_add_ps(x02, x22);
 
                 x02 = _mm_add_ps(x02, _mm_loadu_ps(pDstCurrent));
-            
+
                 _mm_storeu_ps(pDstCurrent, x02);
                 pDstCurrent += 4;
                 pMatCurrent += 4;
@@ -520,7 +552,7 @@ EXPORT_API(void) MatMulTran(_In_ const float * pmat, _In_ const float * psrc, _I
             {
                 misalignment >>= 2;
                 misalignment = 4 - misalignment;
-                
+
                 __m128 leadingMask = _mm_loadu_ps(((float*)(&LeadingAlignmentMask)) + (misalignment * 4));
 
                 // We only align pMat since it has significantly more reads.
@@ -533,13 +565,13 @@ EXPORT_API(void) MatMulTran(_In_ const float * pmat, _In_ const float * psrc, _I
                 x02 = _mm_mul_ps(x01, x02);
                 x12 = _mm_mul_ps(x11, x12);
                 x22 = _mm_mul_ps(x21, x22);
-                x32 = _mm_mul_ps(x31, x32);                                                
+                x32 = _mm_mul_ps(x31, x32);
 
                 x02 = _mm_add_ps(x02, x12);
                 x22 = _mm_add_ps(x22, x32);
                 x02 = _mm_add_ps(x02, x22);
 
-                __m128 trailingMask = _mm_loadu_ps(((float*)(&TrailingAlignmentMask)) + (( 4 - misalignment) * 4));
+                __m128 trailingMask = _mm_loadu_ps(((float*)(&TrailingAlignmentMask)) + ((4 - misalignment) * 4));
                 __m128 x3 = _mm_loadu_ps(pDstCurrent);
                 x02 = _mm_or_ps(x02, _mm_and_ps(x3, trailingMask));
                 x02 = _mm_add_ps(x02, _mm_and_ps(x3, leadingMask));
@@ -550,10 +582,10 @@ EXPORT_API(void) MatMulTran(_In_ const float * pmat, _In_ const float * psrc, _I
                 length -= misalignment;
             }
 
-            if(length > 3)
+            if (length > 3)
             {
                 remainder = length % 4;
-                while (pDstCurrent < pDstEnd)
+                while (pDstCurrent + 4 <= pDstEnd)
                 {
                     const float* pMatTemp = pMatCurrent;
                     __m128 x02 = _mm_mul_ps(x01, _mm_load_ps(pMatTemp));
@@ -565,17 +597,17 @@ EXPORT_API(void) MatMulTran(_In_ const float * pmat, _In_ const float * psrc, _I
                     x22 = _mm_add_ps(x22, x32);
                     x02 = _mm_add_ps(x02, x22);
 
-                    x02 = _mm_add_ps(x02,  _mm_loadu_ps(pDstCurrent));
+                    x02 = _mm_add_ps(x02, _mm_loadu_ps(pDstCurrent));
 
                     _mm_storeu_ps(pDstCurrent, x02);
-                
+
                     pDstCurrent += 4;
-                    pMatCurrent += 4;               
+                    pMatCurrent += 4;
                 }
             }
             else
             {
-                length = remainder;
+                remainder = length;
             }
 
             if (remainder != 0)
@@ -583,8 +615,8 @@ EXPORT_API(void) MatMulTran(_In_ const float * pmat, _In_ const float * psrc, _I
                 pMatCurrent -= (4 - remainder);
                 pDstCurrent -= (4 - remainder);
 
-                __m128 trailingMask = _mm_loadu_ps(((float*)(&TrailingAlignmentMask)) + (remainder * 4));             
-                
+                __m128 trailingMask = _mm_loadu_ps(((float*)(&TrailingAlignmentMask)) + (remainder * 4));
+
                 const float* pMatTemp = pMatCurrent;
                 __m128 x02 = _mm_and_ps(trailingMask, _mm_loadu_ps(pMatTemp));
                 __m128 x12 = _mm_and_ps(trailingMask, _mm_loadu_ps(pMatTemp += crow));
@@ -594,13 +626,13 @@ EXPORT_API(void) MatMulTran(_In_ const float * pmat, _In_ const float * psrc, _I
                 x02 = _mm_mul_ps(x01, x02);
                 x12 = _mm_mul_ps(x11, x12);
                 x22 = _mm_mul_ps(x21, x22);
-                x32 = _mm_mul_ps(x31, x32);                                                
+                x32 = _mm_mul_ps(x31, x32);
 
                 x02 = _mm_add_ps(x02, x12);
                 x22 = _mm_add_ps(x22, x32);
                 x02 = _mm_add_ps(x02, x22);
 
-                __m128 leadingMask = _mm_loadu_ps(((float*)(&LeadingAlignmentMask)) + (( 4 - remainder) * 4));
+                __m128 leadingMask = _mm_loadu_ps(((float*)(&LeadingAlignmentMask)) + ((4 - remainder) * 4));
                 __m128 x3 = _mm_loadu_ps(pDstCurrent);
                 x02 = _mm_or_ps(x02, _mm_and_ps(x3, leadingMask));
 
@@ -640,16 +672,16 @@ EXPORT_API(void) AddScalarU(float a, _Inout_ float * pd, int c)
 EXPORT_API(void) Scale(float a, _Inout_ float * pd, int c)
 {
     __m128 x1 = _mm_set1_ps(a);
-    
+
     if (c < 4)
     {
-        switch(c)
+        switch (c)
         {
             case 3: pd[2] *= a;
             case 2: pd[1] *= a;
             case 1: pd[0] *= a;
         }
-        return;           
+        return;
     }
 
     uintptr_t address = (uintptr_t)(pd);
@@ -660,7 +692,7 @@ EXPORT_API(void) Scale(float a, _Inout_ float * pd, int c)
     {
         // Handles cases where the data is not 32-bit aligned and we can't ever use aligned operations
         remainder = c % 4;
-        
+
         for (const float* pEnd = pd + (c - remainder); pd < pEnd; pd += 4)
         {
             __m128 x2 = _mm_loadu_ps(pd);
@@ -676,22 +708,22 @@ EXPORT_API(void) Scale(float a, _Inout_ float * pd, int c)
             // masking any elements that will be included in the first aligned read
             misalignment >>= 2;
             misalignment = 4 - misalignment;
-            
-            __m128 result = _mm_loadu_ps(pd);            
-            
+
+            __m128 result = _mm_loadu_ps(pd);
+
             __m128 leadingMask = _mm_loadu_ps(((float*)(&LeadingAlignmentMask)) + (misalignment * 4));
             __m128 trailingMask = _mm_loadu_ps(((float*)(&TrailingAlignmentMask)) + ((4 - misalignment) * 4));
-            
+
             __m128 temp = _mm_and_ps(result, leadingMask);
             result = _mm_and_ps(result, trailingMask);
-            
+
             temp = _mm_mul_ps(temp, x1);
-            result = _mm_or_ps(temp, result);            
-            
+            result = _mm_or_ps(temp, result);
+
             _mm_storeu_ps(pd, result);
-            
+
             pd += misalignment;
-            c -= misalignment;            
+            c -= misalignment;
         }
 
         if (c > 3)
@@ -718,19 +750,19 @@ EXPORT_API(void) Scale(float a, _Inout_ float * pd, int c)
     {
         // Handle any trailing elements that don't fit into a 128-bit block by moving back so that the next
         // unaligned load will read to the end of the array and then mask out any elements already processed
-        
+
         pd -= (4 - remainder);
-        __m128 result = _mm_loadu_ps(pd);            
-            
+        __m128 result = _mm_loadu_ps(pd);
+
         __m128 trailingMask = _mm_loadu_ps(((float*)(&TrailingAlignmentMask)) + (remainder * 4));
         __m128 leadingMask = _mm_loadu_ps(((float*)(&LeadingAlignmentMask)) + ((4 - remainder) * 4));
-            
+
         __m128 temp = _mm_and_ps(result, trailingMask);
         result = _mm_and_ps(result, leadingMask);
-            
+
         temp = _mm_mul_ps(temp, x1);
-        result = _mm_or_ps(temp, result);            
-            
+        result = _mm_or_ps(temp, result);
+
         _mm_storeu_ps(pd, result);
     }
 }
@@ -1260,7 +1292,7 @@ EXPORT_API(void) SdcaL1UpdateU(float primalUpdate, _In_ const float * ps, float 
 
         __m128 xSign = _mm_and_ps(xd1, signMask); // result = 10000... if xd1 is negative or 00000 otherwise
         __m128 xd1Abs = _mm_xor_ps(xd1, xSign);
-        __m128 xCond = _mm_cmpgt_ps(xd1Abs, xThreshold); // all 1's if true                        
+        __m128 xCond = _mm_cmpgt_ps(xd1Abs, xThreshold); // all 1's if true
         __m128 x2 = _mm_xor_ps(xSign, xThreshold); // -threshold if xd1 is negative and +threshold otherwise
         __m128 xd2 = _mm_and_ps(_mm_sub_ps(xd1, x2), xCond);
         _mm_storeu_ps(pd2, xd2);

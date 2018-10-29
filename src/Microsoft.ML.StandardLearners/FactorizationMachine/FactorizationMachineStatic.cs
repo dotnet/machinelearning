@@ -28,8 +28,10 @@ namespace Microsoft.ML.StaticPipe
         /// <param name="learningRate">Initial learning rate.</param>
         /// <param name="numIterations">Number of training iterations.</param>
         /// <param name="numLatentDimensions">Latent space dimensions.</param>
-        /// <param name="advancedSettings">A delegate to set more settings.</param>
-        /// <param name="onFit">A delegate that is called every time the
+        /// <param name="advancedSettings">A delegate to set more settings.
+        /// The settings here will override the ones provided in the direct method signature,
+        /// if both are present and have different values.
+        /// The columns names, however need to be provided directly, not through the <paramref name="advancedSettings"/>.</param>/// <param name="onFit">A delegate that is called every time the
         /// <see cref="Estimator{TInShape, TOutShape, TTransformer}.Fit(DataView{TInShape})"/> method is called on the
         /// <see cref="Estimator{TInShape, TOutShape, TTransformer}"/> instance created out of this. This delegate will receive
         /// the model that was trained.  Note that this action cannot change the result in any way; it is only a way for the caller to
@@ -57,10 +59,11 @@ namespace Microsoft.ML.StaticPipe
                 var trainer = new FieldAwareFactorizationMachineTrainer(env, labelCol, featureCols, advancedSettings:
                     args =>
                     {
-                        advancedSettings?.Invoke(args);
                         args.LearningRate = learningRate;
                         args.Iters = numIterations;
                         args.LatentDim = numLatentDimensions;
+
+                        advancedSettings?.Invoke(args);
                     });
                 if (onFit != null)
                     return trainer.WithOnFitDelegate(trans => onFit(trans.Model));
