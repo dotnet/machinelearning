@@ -98,7 +98,7 @@ namespace Microsoft.ML.EntryPoints.Tests
             }
             catch(Exception ex)
             {
-                Assert.Equal("Value could not be parsed from text to long.", ex.Message);
+                Assert.Equal("Could not parse value in line 1, column DvInt8", ex.Message);
                 return;
             }
 
@@ -122,7 +122,7 @@ namespace Microsoft.ML.EntryPoints.Tests
             }
             catch (Exception ex)
             {
-                Assert.Equal("Value could not be parsed from text to long.", ex.Message);
+                Assert.Equal("Could not parse value in line 1, column DvInt8", ex.Message);
                 return;
             }
 
