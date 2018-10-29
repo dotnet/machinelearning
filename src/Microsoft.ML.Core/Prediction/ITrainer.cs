@@ -95,10 +95,11 @@ namespace Microsoft.ML.Runtime
             => trainer.Train(new TrainContext(trainData));
     }
 
-    // A trainer can optionally implement this to indicate it can combine multiple models into a single predictor.
-    public interface IModelCombiner<TModel, TPredictor>
-        where TPredictor : IPredictor
+    /// <summary>
+    /// An interface that combines multiple predictors into a single predictor.
+    /// </summary>
+    public interface IModelCombiner
     {
-        TPredictor CombineModels(IEnumerable<TModel> models);
+        IPredictor CombineModels(IEnumerable<IPredictor> models);
     }
 }

@@ -15,6 +15,7 @@ using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Learners;
 using Microsoft.ML.Runtime.Numeric;
 using Microsoft.ML.Runtime.Training;
+using Microsoft.ML.Trainers;
 using Microsoft.ML.Transforms;
 using System;
 using System.Linq;
@@ -38,7 +39,7 @@ using System.Threading.Tasks;
 [assembly: LoadableClass(typeof(void), typeof(Sdca), null, typeof(SignatureEntryPointModule), "SDCA")]
 [assembly: LoadableClass(typeof(void), typeof(StochasticGradientDescentClassificationTrainer), null, typeof(SignatureEntryPointModule), StochasticGradientDescentClassificationTrainer.ShortName)]
 
-namespace Microsoft.ML.Runtime.Learners
+namespace Microsoft.ML.Trainers
 {
     using ConditionalAttribute = System.Diagnostics.ConditionalAttribute;
     using Stopwatch = System.Diagnostics.Stopwatch;
@@ -1433,7 +1434,10 @@ namespace Microsoft.ML.Runtime.Learners
         /// <param name="l2Const">The L2 regularization hyperparameter.</param>
         /// <param name="l1Threshold">The L1 regularization hyperparameter. Higher values will tend to lead to more sparse model.</param>
         /// <param name="maxIterations">The maximum number of passes to perform over the data.</param>
-        /// <param name="advancedSettings">A delegate to set more settings.</param>
+        /// <param name="advancedSettings">A delegate to set more settings.
+        /// The settings here will override the ones provided in the direct method signature,
+        /// if both are present and have different values.
+        /// The columns names, however need to be provided directly, not through the <paramref name="advancedSettings"/>.</param>
         public LinearClassificationTrainer(IHostEnvironment env,
             string featureColumn,
             string labelColumn,
@@ -1682,21 +1686,17 @@ namespace Microsoft.ML.Runtime.Learners
             Host.CheckNonEmpty(labelColumn, nameof(labelColumn));
 
             _args = new Arguments();
-            advancedSettings?.Invoke(_args);
-
-            // check that the users didn't specify different label, group, feature, weights in the args, from what they supplied directly
-            TrainerUtils.CheckArgsHaveDefaultColNames(Host, _args);
-
-            if (advancedSettings != null)
-                CheckArgsAndAdvancedSettingMismatch(maxIterations, initLearningRate, l2Weight, loss, new Arguments(), _args);
-
-            // Apply the advanced args, if the user supplied any.
-            _args.FeatureColumn = featureColumn;
-            _args.LabelColumn = labelColumn;
-            _args.WeightColumn = weightColumn;
             _args.MaxIterations = maxIterations;
             _args.InitLearningRate = initLearningRate;
             _args.L2Weight = l2Weight;
+
+            // Apply the advanced args, if the user supplied any.
+            advancedSettings?.Invoke(_args);
+
+            _args.FeatureColumn = featureColumn;
+            _args.LabelColumn = labelColumn;
+            _args.WeightColumn = weightColumn;
+
             if (loss != null)
                 _args.LossFunction = loss;
             _args.Check(env);
@@ -1717,30 +1717,6 @@ namespace Microsoft.ML.Runtime.Learners
             Info = new TrainerInfo(calibration: !(_loss is LogLoss), supportIncrementalTrain: true);
             NeedShuffle = args.Shuffle;
             _args = args;
-        }
-
-        /// <summary>
-        /// If, after applying the advancedSettings delegate, the args are different that the default value
-        /// and are also different than the value supplied directly to the xtension method, warn the user
-        /// about which value is being used.
-        /// The parameters that appear here, numTrees, minDocumentsInLeafs, numLeaves, learningRate are the ones the users are most likely to tune.
-        /// This list should follow the one in the constructor, and the extension methods on the <see cref="TrainContextBase"/>.
-        /// </summary>
-        internal void CheckArgsAndAdvancedSettingMismatch(int maxIterations,
-            double initLearningRate,
-            float l2Weight,
-            ISupportClassificationLossFactory loss,
-            Arguments snapshot,
-            Arguments currentArgs)
-        {
-            using (var ch = Host.Start("Comparing advanced settings with the directly provided values."))
-            {
-                // Check that the user didn't supply different parameters in the args, from what it specified directly.
-                TrainerUtils.CheckArgsAndAdvancedSettingMismatch(ch, maxIterations, snapshot.MaxIterations, currentArgs.MaxIterations, nameof(maxIterations));
-                TrainerUtils.CheckArgsAndAdvancedSettingMismatch(ch, initLearningRate, snapshot.InitLearningRate, currentArgs.InitLearningRate, nameof(initLearningRate));
-                TrainerUtils.CheckArgsAndAdvancedSettingMismatch(ch, l2Weight, snapshot.L2Weight, currentArgs.L2Weight, nameof(l2Weight));
-                TrainerUtils.CheckArgsAndAdvancedSettingMismatch(ch, loss, snapshot.LossFunction, currentArgs.LossFunction, nameof(loss));
-            }
         }
 
         protected override SchemaShape.Column[] GetOutputColumnsCore(SchemaShape inputSchema)

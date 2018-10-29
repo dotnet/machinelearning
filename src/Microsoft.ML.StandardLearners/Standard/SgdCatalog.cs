@@ -4,7 +4,7 @@
 
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Learners;
+using Microsoft.ML.Trainers;
 using System;
 
 namespace Microsoft.ML
@@ -14,10 +14,10 @@ namespace Microsoft.ML
     /// <summary>
     /// Binary Classification trainer estimators.
     /// </summary>
-    public static class SgdExtensions
+    public static class StochasticGradientDescentCatalog
     {
         /// <summary>
-        ///  Predict a target using a linear binary classification model trained with the <see cref="Microsoft.ML.Runtime.Learners.StochasticGradientDescentClassificationTrainer"/> trainer.
+        ///  Predict a target using a linear binary classification model trained with the <see cref="StochasticGradientDescentClassificationTrainer"/> trainer.
         /// </summary>
         /// <param name="ctx">The binary classificaiton context trainer object.</param>
         /// <param name="label">The name of the label column.</param>

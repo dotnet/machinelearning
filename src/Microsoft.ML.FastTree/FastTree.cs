@@ -3,10 +3,11 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Core.Data;
+using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Data.Conversion;
-using Microsoft.ML.Runtime.FastTree.Internal;
+using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Calibration;
 using Microsoft.ML.Runtime.Internal.Internallearn;
 using Microsoft.ML.Runtime.Internal.Utilities;
@@ -15,6 +16,7 @@ using Microsoft.ML.Runtime.Model.Onnx;
 using Microsoft.ML.Runtime.Model.Pfa;
 using Microsoft.ML.Runtime.Training;
 using Microsoft.ML.Runtime.TreePredictor;
+using Microsoft.ML.Trainers.FastTree.Internal;
 using Microsoft.ML.Transforms;
 using Newtonsoft.Json.Linq;
 using System;
@@ -31,7 +33,7 @@ using Float = System.Single;
 //REVIEW: Decouple train method in Application.cs to have boosting and random forest logic seperate.
 //REVIEW: Do we need to keep all the fast tree based testers?
 
-namespace Microsoft.ML.Runtime.FastTree
+namespace Microsoft.ML.Trainers.FastTree
 {
     public delegate void SignatureTreeEnsembleTrainer();
 
@@ -45,7 +47,7 @@ namespace Microsoft.ML.Runtime.FastTree
     }
 
     public abstract class FastTreeTrainerBase<TArgs, TTransformer, TModel> :
-        TrainerEstimatorBase<TTransformer, TModel>
+        TrainerEstimatorBaseWithGroupId<TTransformer, TModel>
         where TTransformer: ISingleFeaturePredictionTransformer<TModel>
         where TArgs : TreeArgs, new()
         where TModel : IPredictorProducing<Float>
@@ -92,26 +94,36 @@ namespace Microsoft.ML.Runtime.FastTree
         /// <summary>
         /// Constructor to use when instantiating the classes deriving from here through the API.
         /// </summary>
-        private protected FastTreeTrainerBase(IHostEnvironment env, SchemaShape.Column label, string featureColumn,
-            string weightColumn = null, string groupIdColumn = null, Action<TArgs> advancedSettings = null)
-            : base(Contracts.CheckRef(env, nameof(env)).Register(RegisterName), TrainerUtils.MakeR4VecFeature(featureColumn), label, TrainerUtils.MakeR4ScalarWeightColumn(weightColumn))
+        private protected FastTreeTrainerBase(IHostEnvironment env,
+            SchemaShape.Column label,
+            string featureColumn,
+            string weightColumn,
+            string groupIdColumn,
+            int numLeaves,
+            int numTrees,
+            int minDocumentsInLeafs,
+            Action<TArgs> advancedSettings)
+            : base(Contracts.CheckRef(env, nameof(env)).Register(RegisterName), TrainerUtils.MakeR4VecFeature(featureColumn), label, TrainerUtils.MakeR4ScalarWeightColumn(weightColumn), TrainerUtils.MakeU4ScalarColumn(groupIdColumn))
         {
             Args = new TArgs();
 
+            // set up the directly provided values
+            // override with the directly provided values.
+            Args.NumLeaves = numLeaves;
+            Args.NumTrees = numTrees;
+            Args.MinDocumentsInLeafs = minDocumentsInLeafs;
+
             //apply the advanced args, if the user supplied any
             advancedSettings?.Invoke(Args);
-
-            // check that the users didn't specify different label, group, feature, weights in the args, from what they supplied directly
-            TrainerUtils.CheckArgsHaveDefaultColNames(Host, Args);
 
             Args.LabelColumn = label.Name;
             Args.FeatureColumn = featureColumn;
 
             if (weightColumn != null)
-                Args.WeightColumn = weightColumn;
+                Args.WeightColumn = Optional<string>.Explicit(weightColumn); ;
 
             if (groupIdColumn != null)
-                Args.GroupIdColumn = groupIdColumn;
+                Args.GroupIdColumn = Optional<string>.Explicit(groupIdColumn); ;
 
             // The discretization step renders this trainer non-parametric, and therefore it does not need normalization.
             // Also since it builds its own internal discretized columnar structures, it cannot benefit from caching.
@@ -128,7 +140,7 @@ namespace Microsoft.ML.Runtime.FastTree
         /// Legacy constructor that is used when invoking the classes deriving from this, through maml.
         /// </summary>
         private protected FastTreeTrainerBase(IHostEnvironment env, TArgs args, SchemaShape.Column label)
-            : base(Contracts.CheckRef(env, nameof(env)).Register(RegisterName), TrainerUtils.MakeR4VecFeature(args.FeatureColumn), label, TrainerUtils.MakeR4ScalarWeightColumn(args.WeightColumn))
+            : base(Contracts.CheckRef(env, nameof(env)).Register(RegisterName), TrainerUtils.MakeR4VecFeature(args.FeatureColumn), label, TrainerUtils.MakeR4ScalarWeightColumn(args.WeightColumn, args.WeightColumn.IsExplicit))
         {
             Host.CheckValue(args, nameof(args));
             Args = args;
@@ -157,32 +169,6 @@ namespace Microsoft.ML.Runtime.FastTree
         protected virtual Float GetMaxLabel()
         {
             return Float.PositiveInfinity;
-        }
-
-        /// <summary>
-        /// If, after applying the advancedSettings delegate, the args are different that the default value
-        /// and are also different than the value supplied directly to the xtension method, warn the user
-        /// about which value is being used.
-        /// The parameters that appear here, numTrees, minDocumentsInLeafs, numLeaves, learningRate are the ones the users are most likely to tune.
-        /// This list should follow the one in the constructor, and the extension methods on the <see cref="TrainContextBase"/>.
-        /// REVIEW: we should somehow mark the arguments that are set apart in those two places. Currently they stand out by their sort order annotation.
-        /// </summary>
-        protected void CheckArgsAndAdvancedSettingMismatch(int numLeaves,
-            int numTrees,
-            int minDocumentsInLeafs,
-            double learningRate,
-            BoostedTreeArgs snapshot,
-            BoostedTreeArgs currentArgs)
-        {
-            using (var ch = Host.Start("Comparing advanced settings with the directly provided values."))
-            {
-
-                // Check that the user didn't supply different parameters in the args, from what it specified directly.
-                TrainerUtils.CheckArgsAndAdvancedSettingMismatch(ch, numLeaves, snapshot.NumLeaves, currentArgs.NumLeaves, nameof(numLeaves));
-                TrainerUtils.CheckArgsAndAdvancedSettingMismatch(ch, numTrees, snapshot.NumTrees, currentArgs.NumTrees, nameof(numTrees));
-                TrainerUtils.CheckArgsAndAdvancedSettingMismatch(ch, minDocumentsInLeafs, snapshot.MinDocumentsInLeafs, currentArgs.MinDocumentsInLeafs, nameof(minDocumentsInLeafs));
-                TrainerUtils.CheckArgsAndAdvancedSettingMismatch(ch, learningRate, snapshot.LearningRates, currentArgs.LearningRates, nameof(learningRate));
-            }
         }
 
         private void Initialize(IHostEnvironment env)
@@ -2965,7 +2951,7 @@ namespace Microsoft.ML.Runtime.FastTree
                 (ref VBuffer<Float> src, ref VBuffer<Float> dst) =>
                 {
                     WhatTheFeatureMap(ref src, ref dst, ref builder);
-                    Numeric.VectorUtils.SparsifyNormalize(ref dst, top, bottom, normalize);
+                    Runtime.Numeric.VectorUtils.SparsifyNormalize(ref dst, top, bottom, normalize);
                 };
             return (ValueMapper<TSrc, VBuffer<Float>>)(Delegate)del;
         }

@@ -8,6 +8,7 @@ using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Learners;
 using Microsoft.ML.Runtime.Model;
+using Microsoft.ML.Trainers;
 using Microsoft.ML.Transforms.Normalizers;
 using System;
 using System.IO;

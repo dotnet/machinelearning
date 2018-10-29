@@ -12,7 +12,7 @@ using Microsoft.ML.Runtime.Internal.Calibration;
 using Microsoft.ML.Runtime.Internal.Internallearn;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Learners;
-using Microsoft.ML.Runtime.SymSgd;
+using Microsoft.ML.Trainers.SymSgd;
 using Microsoft.ML.Runtime.Training;
 using Microsoft.ML.Transforms;
 using System;
@@ -28,7 +28,7 @@ using System.Security;
 
 [assembly: LoadableClass(typeof(void), typeof(SymSgdClassificationTrainer), null, typeof(SignatureEntryPointModule), SymSgdClassificationTrainer.LoadNameValue)]
 
-namespace Microsoft.ML.Runtime.SymSgd
+namespace Microsoft.ML.Trainers.SymSgd
 {
     using TPredictor = IPredictorWithFeatureWeights<float>;
 

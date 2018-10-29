@@ -9,6 +9,7 @@ using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Learners;
 using Microsoft.ML.Transforms;
 using Microsoft.ML.Transforms.Text;
+using Microsoft.ML.Trainers;
 
 namespace Microsoft.ML.Benchmarks
 {

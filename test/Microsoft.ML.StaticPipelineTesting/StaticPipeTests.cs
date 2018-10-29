@@ -10,6 +10,7 @@ using Microsoft.ML.Runtime.RunTests;
 using Microsoft.ML.StaticPipe;
 using Microsoft.ML.TestFramework;
 using Microsoft.ML.Transforms;
+using Microsoft.ML.Transforms.PCA;
 using Microsoft.ML.Transforms.CategoricalTransforms;
 using Microsoft.ML.Transforms.Text;
 using System;
@@ -856,6 +857,26 @@ namespace Microsoft.ML.StaticPipelineTesting
             Assert.True(schema.TryGetColumnIndex("norm_NoNumbers", out int numbers));
             type = schema.GetColumnType(numbers);
             Assert.True(!type.IsVector && type.ItemType.IsText);
+        }
+
+        [Fact]
+        public void TestPcaStatic()
+        {
+            var env = new ConsoleEnvironment(seed: 1);
+            var dataSource = GetDataPath("generated_regression_dataset.csv");
+            var reader = TextLoader.CreateReader(env,
+                c => (label: c.LoadFloat(11), features: c.LoadFloat(0, 10)),
+                separator: ';', hasHeader: true);
+            var data = reader.Read(dataSource);
+            var est = reader.MakeNewEstimator()
+                .Append(r => (r.label, pca: r.features.ToPrincipalComponents(rank: 5)));
+            var tdata = est.Fit(data).Transform(data);
+            var schema = tdata.AsDynamic.Schema;
+
+            Assert.True(schema.TryGetColumnIndex("pca", out int pca));
+            var type = schema[pca].Type;
+            Assert.True(type.IsVector && type.ItemType.RawKind == DataKind.R4);
+            Assert.True(type.VectorSize == 5);
         }
     }
 }

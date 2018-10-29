@@ -241,7 +241,7 @@ namespace Microsoft.ML.Runtime.Data
                 //verWrittenCur: 0x00010001, // Initial
                 //verWrittenCur: 0x00010002, // Added aliases
                 verWrittenCur: 0x00010003, // Converted to transformer
-                verReadableCur: 0x00010002,
+                verReadableCur: 0x00010003,
                 verWeCanReadBack: 0x00010001,
                 loaderSignature: LoaderSignature,
                 loaderSignatureAlt: LoaderSignatureOld,
@@ -249,7 +249,7 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         private const int VersionAddedAliases = 0x00010002;
-        private const int VersionTransformer = 0x00010002;
+        private const int VersionTransformer = 0x00010003;
 
         public void Save(ModelSaveContext ctx)
         {
@@ -296,6 +296,7 @@ namespace Microsoft.ML.Runtime.Data
         private ColumnInfo[] LoadLegacy(ModelLoadContext ctx)
         {
             // *** Legacy binary format ***
+            // int: sizeof(Float).
             // int: number of added columns
             // for each added column
             //   int: id of output column name
@@ -307,6 +308,9 @@ namespace Microsoft.ML.Runtime.Data
             //          int: index of the alias
             //          int: string id of the alias
             //      int: -1, marks the end of the list
+
+            var sizeofFloat = ctx.Reader.ReadInt32();
+            Contracts.CheckDecode(sizeofFloat == sizeof(float));
 
             int n = ctx.Reader.ReadInt32();
             Contracts.CheckDecode(n > 0);

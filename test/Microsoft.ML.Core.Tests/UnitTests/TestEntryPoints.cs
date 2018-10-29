@@ -10,7 +10,7 @@ using Microsoft.ML.Runtime.Ensemble.EntryPoints;
 using Microsoft.ML.Runtime.Ensemble.OutputCombiners;
 using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.EntryPoints.JsonUtils;
-using Microsoft.ML.Runtime.FastTree;
+using Microsoft.ML.Trainers.FastTree;
 using Microsoft.ML.Runtime.ImageAnalytics;
 using Microsoft.ML.Runtime.Internal.Calibration;
 using Microsoft.ML.Runtime.Internal.Internallearn;
@@ -18,9 +18,9 @@ using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Learners;
 using Microsoft.ML.Runtime.LightGBM;
 using Microsoft.ML.Runtime.Model.Onnx;
-using Microsoft.ML.Runtime.PCA;
+using Microsoft.ML.Trainers.PCA;
 using Microsoft.ML.Runtime.PipelineInference;
-using Microsoft.ML.Runtime.SymSgd;
+using Microsoft.ML.Trainers.SymSgd;
 using Microsoft.ML.Runtime.TextAnalytics;
 using Microsoft.ML.Runtime.TimeSeriesProcessing;
 using Microsoft.ML.Transforms;
@@ -36,6 +36,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using Xunit;
 using Xunit.Abstractions;
+using Microsoft.ML.Trainers;
 
 namespace Microsoft.ML.Runtime.RunTests
 {
@@ -247,7 +248,7 @@ namespace Microsoft.ML.Runtime.RunTests
 #endif
         }
 
-        [Fact(Skip = "Execute this test if you want to regenerate ep-list and _manifest.json")]
+        [Fact(Skip = "Execute this test if you want to regenerate CSharpApi file")]
         public void RegenerateEntryPointCatalog()
         {
             var (epListContents, jObj) = BuildManifests();
@@ -3633,10 +3634,10 @@ namespace Microsoft.ML.Runtime.RunTests
                     DataSaverUtils.SaveDataView(ch, saver, mcOutput.Stats, file);
             }
 
-            CheckEquality(@"../Common/EntryPoints", "lr-weights.txt");
-            CheckEquality(@"../Common/EntryPoints", "lr-stats.txt");
-            CheckEquality(@"../Common/EntryPoints", "mc-lr-weights.txt");
-            CheckEquality(@"../Common/EntryPoints", "mc-lr-stats.txt");
+            CheckEquality(@"../Common/EntryPoints", "lr-weights.txt", digitsOfPrecision: 6);
+            CheckEquality(@"../Common/EntryPoints", "lr-stats.txt", digitsOfPrecision: 6);
+            CheckEquality(@"../Common/EntryPoints", "mc-lr-weights.txt", digitsOfPrecision: 3);
+            CheckEquality(@"../Common/EntryPoints", "mc-lr-stats.txt", digitsOfPrecision: 5);
             Done();
         }
 
@@ -3678,7 +3679,7 @@ namespace Microsoft.ML.Runtime.RunTests
                         DataSaverUtils.SaveDataView(ch, saver, output.Summary, file);
                 }
 
-                CheckEquality(@"../Common/EntryPoints", "pca-weights.txt");
+                CheckEquality(@"../Common/EntryPoints", "pca-weights.txt", digitsOfPrecision: 4);
                 Done();
             }
         }
@@ -3796,7 +3797,7 @@ namespace Microsoft.ML.Runtime.RunTests
                 Column = new[] { new ConcatTransform.Column { Name = "Features", Source = new[] { "Categories", "NumericFeatures" } } }
             });
 
-            var fastTree = FastTree.FastTree.TrainBinary(Env, new FastTreeBinaryClassificationTrainer.Arguments
+            var fastTree = FastTree.TrainBinary(Env, new FastTreeBinaryClassificationTrainer.Arguments
             {
                 FeatureColumn = "Features",
                 NumTrees = 5,

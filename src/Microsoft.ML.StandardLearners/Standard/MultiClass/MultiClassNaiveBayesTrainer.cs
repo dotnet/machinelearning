@@ -7,7 +7,7 @@ using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Runtime.Learners;
+using Microsoft.ML.Trainers;
 using Microsoft.ML.Runtime.Model;
 using Microsoft.ML.Runtime.Training;
 using Microsoft.ML.Runtime.Internal.Internallearn;
@@ -26,7 +26,7 @@ using System.Linq;
 
 [assembly: LoadableClass(typeof(void), typeof(MultiClassNaiveBayesTrainer), null, typeof(SignatureEntryPointModule), MultiClassNaiveBayesTrainer.LoadName)]
 
-namespace Microsoft.ML.Runtime.Learners
+namespace Microsoft.ML.Trainers
 {
     /// <include file='doc.xml' path='doc/members/member[@name="MultiClassNaiveBayesTrainer"]' />
     public sealed class MultiClassNaiveBayesTrainer : TrainerEstimatorBase<MulticlassPredictionTransformer<MultiClassNaiveBayesPredictor>, MultiClassNaiveBayesPredictor>
@@ -53,7 +53,7 @@ namespace Microsoft.ML.Runtime.Learners
         /// <param name="featureColumn">The name of the feature column.</param>
         public MultiClassNaiveBayesTrainer(IHostEnvironment env, string featureColumn, string labelColumn)
             : base(Contracts.CheckRef(env, nameof(env)).Register(LoadName), TrainerUtils.MakeR4VecFeature(featureColumn),
-                  TrainerUtils.MakeU4ScalarLabel(labelColumn))
+                  TrainerUtils.MakeU4ScalarColumn(labelColumn))
         {
             Host.CheckNonEmpty(featureColumn, nameof(featureColumn));
             Host.CheckNonEmpty(labelColumn, nameof(labelColumn));
@@ -64,7 +64,7 @@ namespace Microsoft.ML.Runtime.Learners
         /// </summary>
         internal MultiClassNaiveBayesTrainer(IHostEnvironment env, Arguments args)
             : base(Contracts.CheckRef(env, nameof(env)).Register(LoadName), TrainerUtils.MakeR4VecFeature(args.FeatureColumn),
-                  TrainerUtils.MakeU4ScalarLabel(args.LabelColumn))
+                  TrainerUtils.MakeU4ScalarColumn(args.LabelColumn))
         {
             Host.CheckValue(args, nameof(args));
         }
