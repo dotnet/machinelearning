@@ -45,7 +45,7 @@ namespace Microsoft.ML.Runtime.Data
         }
 
         /// <summary>
-        /// Create another reader estimator, by appending another estimator to the end of this reader estimator.
+        /// Create a new reader estimator, by appending another estimator to the end of this reader estimator.
         /// </summary>
         public CompositeReaderEstimator<TSource, TNewTrans> Append<TNewTrans>(IEstimator<TNewTrans> estimator)
             where TNewTrans : class, ITransformer
