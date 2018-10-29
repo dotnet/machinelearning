@@ -92,7 +92,6 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         public static extern void ZeroMatrixItemsCore(float* pd, int c, int ccol, int cfltRow, /*const*/ int* pindices, int cindices);
 
         [DllImport(NativePath), SuppressUnmanagedCodeSecurity]
-
         public static extern void SdcaL1UpdateU(float primalUpdate, /*const*/ float* ps, float threshold, float* pd1, float* pd2, int c);
 
         [DllImport(NativePath), SuppressUnmanagedCodeSecurity]

@@ -568,7 +568,6 @@ namespace Microsoft.ML.Transforms
 
             private ValueGetter<VBuffer<float>> GetterFromFloatType(IRow input, int iinfo)
             {
-
                 var getSrc = input.GetGetter<float>(_srcCols[iinfo]);
                 var src = default(float);
 

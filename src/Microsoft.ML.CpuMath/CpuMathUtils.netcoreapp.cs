@@ -88,7 +88,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             }
         }
 
-        public static void MatTimesSrc(AlignedArray matrix, int[] rgposSrc, AlignedArray sourceValues,
+        public static void MatrixTimesSource(AlignedArray matrix, int[] rgposSrc, AlignedArray sourceValues,
             int posMin, int iposMin, int iposLimit, AlignedArray destination, int stride)
         {
             Contracts.AssertValue(rgposSrc);
