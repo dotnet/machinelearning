@@ -86,7 +86,7 @@ namespace Microsoft.ML.Tests
                     },
                 });
 
-            var pipe = new DnnImageFeaturizerEstimator(Env, "data_0", "dnnfeatures_1", DnnImageFeaturizerEstimator.DnnModelType.Resnet18);
+            var pipe = new DnnImageFeaturizerEstimator(Env, "data_0", "dnnfeatures_1", m => m.ResNet18());
             TestEstimatorCore(pipe, dataView);
         }
 

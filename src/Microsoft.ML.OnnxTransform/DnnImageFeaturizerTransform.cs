@@ -1,4 +1,8 @@
-﻿using Microsoft.ML.Core.Data;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Model;
@@ -13,41 +17,10 @@ namespace Microsoft.ML.Transforms
     {
         private readonly EstimatorChain<OnnxTransform> _modelChain;
 
-        public DnnImageFeaturizerEstimator(IHostEnvironment env, string input, string output, DnnModelType model)
+        public DnnImageFeaturizerEstimator(IHostEnvironment env, string input, string output, Func<DnnImageModelSelector, EstimatorChain<OnnxTransform>> model)
         {
-            _modelChain = new EstimatorChain<OnnxTransform>();
-            _modelsPreprocess.TryGetValue(model, out string prepModel);
-            _modelsMain.TryGetValue(model, out string mainModel);
-            var tempCol = "onnxDnnPrep";
-            var prepEstimator = new OnnxEstimator(env, prepModel, input, tempCol);
-            var mainEstimator = new OnnxEstimator(env, mainModel, tempCol, output);
-            _modelChain.Append(prepEstimator);
-            _modelChain.Append(mainEstimator);
+            _modelChain = model(new DnnImageModelSelector(env, input, output));
         }
-
-        public enum DnnModelType : byte
-        {
-            Resnet18 = 10,
-            Resnet50 = 20,
-            Resnet101 = 30,
-            Alexnet = 100
-        };
-
-        private static Dictionary<DnnModelType, string> _modelsPreprocess = new Dictionary<DnnModelType, string>()
-        {
-             { DnnModelType.Resnet18, "C:\\Models\\DnnImageFeat\\Results\\FinalOnnx\\Prep\\resnetPreprocess.onnx" },
-             { DnnModelType.Resnet50, "glove.6B.100d.txt" },
-             { DnnModelType.Resnet101, "glove.6B.200d.txt" },
-             { DnnModelType.Alexnet, "glove.6B.300d.txt" },
-        };
-
-        private static Dictionary<DnnModelType, string> _modelsMain = new Dictionary<DnnModelType, string>()
-        {
-             { DnnModelType.Resnet18, "C:\\Models\\DnnImageFeat\\Results\\FinalOnnx\\ResNet18\\resnet18.onnx" },
-             { DnnModelType.Resnet50, "glove.6B.100d.txt" },
-             { DnnModelType.Resnet101, "glove.6B.200d.txt" },
-             { DnnModelType.Alexnet, "glove.6B.300d.txt" },
-        };
 
         public TransformerChain<OnnxTransform> Fit(IDataView input)
         {
@@ -57,6 +30,20 @@ namespace Microsoft.ML.Transforms
         public SchemaShape GetOutputSchema(SchemaShape inputSchema)
         {
             return _modelChain.GetOutputSchema(inputSchema);
+        }
+    }
+
+    public partial class DnnImageModelSelector
+    {
+        private readonly IHostEnvironment _env;
+        private readonly string _input;
+        private readonly string _output;
+
+        public DnnImageModelSelector(IHostEnvironment env, string input, string output)
+        {
+            _env = env;
+            _input = input;
+            _output = output;
         }
     }
 }
