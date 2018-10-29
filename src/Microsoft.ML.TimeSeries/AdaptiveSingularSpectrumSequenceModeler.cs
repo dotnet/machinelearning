@@ -404,6 +404,9 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             _alpha = ctx.Reader.ReadFloatArray();
             _host.CheckDecode(Utils.Size(_alpha) == _windowSize - 1);
 
+            _state = ctx.Reader.ReadFloatArray();
+            _host.CheckDecode(Utils.Size(_state) == _windowSize - 1);
+
             ShouldComputeForecastIntervals = ctx.Reader.ReadBoolByte();
 
             _observationNoiseVariance = ctx.Reader.ReadSingle();
@@ -444,7 +447,6 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             }
 
             _buffer = new FixedSizeQueue<Single>(_seriesLength);
-            _state = new Single[_windowSize - 1];
             _x = new CpuAlignedVector(_windowSize, SseUtils.CbAlign);
             _xSmooth = new CpuAlignedVector(_windowSize, SseUtils.CbAlign);
         }
@@ -475,6 +477,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             // RankSelectionMethod: _rankSelectionMethod
             // bool: _isWeightSet
             // float[]: _alpha
+            // float[]: _state
             // bool: ShouldComputeForecastIntervals
             // float: _observationNoiseVariance
             // float: _autoregressionNoiseVariance
@@ -494,6 +497,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             ctx.Writer.Write((byte)_rankSelectionMethod);
             ctx.Writer.WriteBoolByte(_wTrans != null);
             ctx.Writer.WriteFloatArray(_alpha);
+            ctx.Writer.WriteFloatArray(_state);
             ctx.Writer.WriteBoolByte(ShouldComputeForecastIntervals);
             ctx.Writer.Write(_observationNoiseVariance);
             ctx.Writer.Write(_autoregressionNoiseVariance);

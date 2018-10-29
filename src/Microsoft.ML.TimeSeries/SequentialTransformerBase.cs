@@ -284,13 +284,14 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
 
         public IRowToRowMapper GetRowToRowMapper(Schema inputSchema)
         {
-            throw new NotImplementedException("Not a RowToRowMapper.");
+            throw new InvalidOperationException("Not a RowToRowMapper.");
         }
 
         public sealed class SequentialDataTransform : TransformBase
         {
             private readonly SequentialTransformerBase<TInput, TOutput, TState> _parent;
             private readonly IDataTransform _transform;
+            private readonly ColumnBindings _bindings;
 
             public SequentialDataTransform(IHost host, SequentialTransformerBase<TInput, TOutput, TState> parent, IDataView input, IRowMapper mapper)
                 :base(parent.Host, input)
@@ -298,6 +299,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
                 _parent = parent;
                 _transform = CreateLambdaTransform(_parent.Host, input, _parent.InputColumnName,
                     _parent.OutputColumnName, InitFunction, _parent.WindowSize > 0, _parent.OutputColumnType);
+                _bindings = new ColumnBindings(Schema.Create(input.Schema), mapper.GetOutputColumns());
             }
 
             private static IDataTransform CreateLambdaTransform(IHost host, IDataView input, string inputColumnName, string outputColumnName,
@@ -350,10 +352,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
                 return false;
             }
 
-            public override Schema Schema
-            {
-                get { return _transform.Schema; }
-            }
+            public override Schema Schema => _bindings.Schema;
 
             public override long? GetRowCount(bool lazy = true)
             {

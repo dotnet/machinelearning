@@ -41,7 +41,7 @@ namespace Microsoft.ML.Tests
         {
         }
 
-        [Fact(Skip = "Fails as state is not preserved on model reload from disk. Temporarily disabling this until stateful prediction engine is implemented.")]
+        [Fact]
         void TestSsaChangePointEstimator()
         {
             int Confidence = 95;
@@ -60,7 +60,7 @@ namespace Microsoft.ML.Tests
             for (int i = 0; i < ChangeHistorySize; i++)
                 data.Add(new Data(i * 100));
 
-            var pipe = new SsaChangePointEstimator(Env, "Change", "Value",
+            var pipe = new SsaChangePointEstimator(Env, "Value", "Change",
                 Confidence, ChangeHistorySize, MaxTrainingSize, SeasonalitySize);
 
             var xyData = new List<TestDataXY> { new TestDataXY() { A = new float[inputSize] } };
@@ -75,7 +75,7 @@ namespace Microsoft.ML.Tests
             Done();
         }
 
-        [Fact(Skip = "Fails as state is not preserved on model reload from disk. Temporarily disabling this until stateful prediction engine is implemented.")]
+        [Fact]
         void TestSsaSpikeEstimator()
         {
             int Confidence = 95;
@@ -94,7 +94,7 @@ namespace Microsoft.ML.Tests
             for (int i = 0; i < PValueHistorySize; i++)
                 data.Add(new Data(i * 100));
 
-            var pipe = new SsaSpikeEstimator(Env, "Change", "Value",
+            var pipe = new SsaSpikeEstimator(Env, "Value", "Change",
                 Confidence, PValueHistorySize, MaxTrainingSize, SeasonalitySize);
 
             var xyData = new List<TestDataXY> { new TestDataXY() { A = new float[inputSize] } };
@@ -109,7 +109,7 @@ namespace Microsoft.ML.Tests
             Done();
         }
 
-        [Fact(Skip = "Fails as state is not preserved on model reload from disk. Temporarily disabling this until stateful prediction engine is implemented.")]
+        [Fact]
         void TestIidChangePointEstimator()
         {
             int Confidence = 95;
@@ -122,7 +122,7 @@ namespace Microsoft.ML.Tests
                 data.Add(new Data(i * 100));
 
             var pipe = new IidChangePointEstimator(Env,
-                "Change", "Value", Confidence, ChangeHistorySize);
+                "Value", "Change", Confidence, ChangeHistorySize);
 
             var xyData = new List<TestDataXY> { new TestDataXY() { A = new float[inputSize] } };
             var stringData = new List<TestDataDifferntType> { new TestDataDifferntType() { data_0 = new string[inputSize] } };
@@ -136,7 +136,7 @@ namespace Microsoft.ML.Tests
             Done();
         }
 
-        [Fact(Skip = "Fails as state is not preserved on model reload from disk. Temporarily disabling this until stateful prediction engine is implemented.")]
+        [Fact]
         void TestIidSpikeEstimator()
         {
             int Confidence = 95;
@@ -149,7 +149,7 @@ namespace Microsoft.ML.Tests
                 data.Add(new Data(i * 100));
 
             var pipe = new IidSpikeEstimator(Env, 
-                "Change", "Value", Confidence, PValueHistorySize);
+                "Value", "Change", Confidence, PValueHistorySize);
 
             var xyData = new List<TestDataXY> { new TestDataXY() { A = new float[inputSize] } };
             var stringData = new List<TestDataDifferntType> { new TestDataDifferntType() { data_0 = new string[inputSize] } };
