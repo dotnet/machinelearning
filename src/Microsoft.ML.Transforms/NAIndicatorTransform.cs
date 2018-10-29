@@ -245,7 +245,7 @@ namespace Microsoft.ML.Transforms
             {
                 var getSrc = input.GetGetter<T>(ColMapNewToOld[iinfo]);
                 var src = default(T);
-                var isNA = (RefPredicate<T>)_infos[iinfo].InputIsNA;
+                var isNA = (InPredicate<T>)_infos[iinfo].InputIsNA;
 
                 ValueGetter<bool> getter;
 
@@ -253,7 +253,7 @@ namespace Microsoft.ML.Transforms
                     (ref bool dst) =>
                     {
                         getSrc(ref src);
-                        dst = isNA(ref src);
+                        dst = isNA(in src);
                     };
             }
 
@@ -266,9 +266,9 @@ namespace Microsoft.ML.Transforms
             private ValueGetter<VBuffer<bool>> ComposeGetterVec<T>(IRow input, int iinfo)
             {
                 var getSrc = input.GetGetter<VBuffer<T>>(ColMapNewToOld[iinfo]);
-                var isNA = (RefPredicate<T>)_infos[iinfo].InputIsNA;
+                var isNA = (InPredicate<T>)_infos[iinfo].InputIsNA;
                 var val = default(T);
-                var defaultIsNA = isNA(ref val);
+                var defaultIsNA = isNA(in val);
                 var src = default(VBuffer<T>);
                 var indices = new List<int>();
 
@@ -288,7 +288,7 @@ namespace Microsoft.ML.Transforms
             /// <summary>
             /// Adds all NAs (or non-NAs) to the indices List.  Whether NAs or non-NAs have been added is indicated by the bool sense.
             /// </summary>
-            private void FindNAs<T>(ref VBuffer<T> src, RefPredicate<T> isNA, bool defaultIsNA, List<int> indices, out bool sense)
+            private void FindNAs<T>(ref VBuffer<T> src, InPredicate<T> isNA, bool defaultIsNA, List<int> indices, out bool sense)
             {
                 Host.AssertValue(isNA);
                 Host.AssertValue(indices);
@@ -301,7 +301,7 @@ namespace Microsoft.ML.Transforms
                 {
                     for (int i = 0; i < srcCount; i++)
                     {
-                        if (isNA(ref srcValues[i]))
+                        if (isNA(in srcValues[i]))
                             indices.Add(i);
                     }
                     sense = true;
@@ -311,7 +311,7 @@ namespace Microsoft.ML.Transforms
                     var srcIndices = src.Indices;
                     for (int ii = 0; ii < srcCount; ii++)
                     {
-                        if (isNA(ref srcValues[ii]))
+                        if (isNA(in srcValues[ii]))
                             indices.Add(srcIndices[ii]);
                     }
                     sense = true;
@@ -322,7 +322,7 @@ namespace Microsoft.ML.Transforms
                     var srcIndices = src.Indices;
                     for (int ii = 0; ii < srcCount; ii++)
                     {
-                        if (!isNA(ref srcValues[ii]))
+                        if (!isNA(in srcValues[ii]))
                             indices.Add(srcIndices[ii]);
                     }
                     sense = false;
