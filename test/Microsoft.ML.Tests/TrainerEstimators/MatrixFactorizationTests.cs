@@ -5,6 +5,7 @@
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.RunTests;
 using Microsoft.ML.Trainers;
+using System;
 using Xunit;
 
 namespace Microsoft.ML.Tests.TrainerEstimators
@@ -40,7 +41,7 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             Done();
         }
 
-        [Fact]
+        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // This test is being fixed as part of issue #1441.
         public void MatrixFactorizationSimpleTrainAndPredict()
         {
             using (var env = new LocalEnvironment(seed: 1, conc: 1))
