@@ -287,8 +287,9 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             throw new InvalidOperationException("Not a RowToRowMapper.");
         }
 
-        public sealed class SequentialDataTransform : TransformBase
+        public sealed class SequentialDataTransform : TransformBase, ITransformTemplate
         {
+            private readonly IRowMapper _mapper;
             private readonly SequentialTransformerBase<TInput, TOutput, TState> _parent;
             private readonly IDataTransform _transform;
             private readonly ColumnBindings _bindings;
@@ -299,7 +300,8 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
                 _parent = parent;
                 _transform = CreateLambdaTransform(_parent.Host, input, _parent.InputColumnName,
                     _parent.OutputColumnName, InitFunction, _parent.WindowSize > 0, _parent.OutputColumnType);
-                _bindings = new ColumnBindings(Schema.Create(input.Schema), mapper.GetOutputColumns());
+                _mapper = mapper;
+                _bindings = new ColumnBindings(Schema.Create(input.Schema), _mapper.GetOutputColumns());
             }
 
             private static IDataTransform CreateLambdaTransform(IHost host, IDataView input, string inputColumnName, string outputColumnName,
@@ -368,6 +370,11 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
             public override void Save(ModelSaveContext ctx)
             {
                 _parent.Save(ctx);
+            }
+
+            public IDataTransform ApplyToData(IHostEnvironment env, IDataView newSource)
+            {
+                return new SequentialDataTransform(Contracts.CheckRef(env, nameof(env)).Register("SequentialDataTransform"), _parent, newSource, _mapper);
             }
         }
 

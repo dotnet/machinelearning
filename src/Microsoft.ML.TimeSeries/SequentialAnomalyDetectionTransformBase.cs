@@ -540,7 +540,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
 
         protected override IRowMapper MakeRowMapper(ISchema schema) => new Mapper(Host, this, schema);
 
-        public sealed class Mapper : IRowMapper
+        private sealed class Mapper : IRowMapper
         {
             private readonly IHost _host;
             private readonly SequentialAnomalyDetectionTransformBase<TInput, TState> _parent;
