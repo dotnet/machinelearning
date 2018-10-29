@@ -419,7 +419,6 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                 float* pDstCurrent = pdst;
                 int destinationEnd = pDstEnd - 4;
 
-
                 Vector256<float> scalarVector256 = Avx.SetAllVector256(scalar);
 
                 while (pDstCurrent + 8 <= pDstEnd)
