@@ -25,11 +25,11 @@ namespace Microsoft.ML.Transforms
         <#
         foreach (string columnKind in new string[] { "Scalar", "Vector", "VarVector" }) {
         #>
-        /// <summary>
-        /// Convert to float.
+/// <summary>
+        /// Convert to <#=columnKind=="Scalar"?"float":" array of floats"#>.
         /// </summary>
         /// <param name="input">The input column.</param>
-        /// <returns >Float column.</returns>
+        /// <returns >Float valued column.</returns>
         public static <#=columnKind#><float> ToFloat(this <#=columnKind#><<#=typeName#>> input) => new Impl<#=columnKind#><<#=typeName#>>(Contracts.CheckRef(input, nameof(input)), DataKind.R4);
 
         <#

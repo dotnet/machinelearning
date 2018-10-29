@@ -33,7 +33,7 @@
       [0] 'a', [1] 'b', [2] 'c', [3] 'd', [4] 'e', [5] 'f'
   Indicators: Vec<R4, *, 6>
     Metadata 'IsNormalized': Bool: '1'
----- ConvertTransform ----
+---- RowToRowMapperTransform ----
 8 columns:
   Known: Vec<I4, 3>
   Single: I4
@@ -47,7 +47,7 @@
     Metadata 'IsNormalized': Bool: '1'
   Indicators: Vec<R8, *, 6>
     Metadata 'IsNormalized': Bool: '1'
----- ConvertTransform ----
+---- RowToRowMapperTransform ----
 11 columns:
   Known: Vec<I4, 3>
   Known: Vec<R8, 3>

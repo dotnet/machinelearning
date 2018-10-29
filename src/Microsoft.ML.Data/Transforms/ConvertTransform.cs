@@ -223,7 +223,6 @@ namespace Microsoft.ML.Transforms
             for (int i = 0; i < _columns.Length; i++)
             {
                 Host.Assert((DataKind)(byte)_columns[i].Kind == _columns[i].Kind);
-                ctx.Writer.Write((byte)_columns[i].Kind);
                 if (_columns[i].KeyRange != null)
                 {
                     byte b = (byte)_columns[i].Kind;
@@ -233,6 +232,8 @@ namespace Microsoft.ML.Transforms
                     ctx.Writer.Write(_columns[i].KeyRange.Max ?? 0);
                     ctx.Writer.WriteBoolByte(_columns[i].KeyRange.Contiguous);
                 }
+                else
+                    ctx.Writer.Write((byte)_columns[i].Kind);
             }
         }
 

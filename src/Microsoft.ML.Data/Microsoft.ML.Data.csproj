@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
@@ -55,9 +55,7 @@
     <Compile Update="Transforms\TermStaticExtensions.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
-      <DependentUpon>TermStaticExtensions.cs</DependentUpon>
-      <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>TermStaticExtensions.cs</LastGenOutput>
+      <DependentUpon>TermStaticExtensions.tt</DependentUpon>
     </Compile>
   </ItemGroup>
 
