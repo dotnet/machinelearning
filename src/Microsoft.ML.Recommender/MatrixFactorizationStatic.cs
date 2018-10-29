@@ -5,9 +5,9 @@
 using Microsoft.ML.Core.Data;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
-using Microsoft.ML.Runtime.Recommender;
 using Microsoft.ML.StaticPipe.Runtime;
 using Microsoft.ML.Trainers;
+using Microsoft.ML.Trainers.Recommender;
 using System;
 using System.Collections.Generic;
 
@@ -59,11 +59,12 @@ namespace Microsoft.ML.StaticPipe
                 var trainer = new MatrixFactorizationTrainer(env, labelColName, matrixColumnIndexColName, matrixRowIndexColName, advancedSettings:
                     args =>
                     {
-                        advancedSettings?.Invoke(args);
                         args.Lambda = regularizationCoefficient;
                         args.K = approximationRank;
                         args.Eta = learningRate;
                         args.NumIterations = numIterations;
+                        // The previous settings may be overwritten by the line below.
+                        advancedSettings?.Invoke(args);
                     });
                 if (onFit != null)
                     return trainer.WithOnFitDelegate(trans => onFit(trans.Model));
