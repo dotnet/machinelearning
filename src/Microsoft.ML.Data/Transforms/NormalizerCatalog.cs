@@ -20,7 +20,7 @@ namespace Microsoft.ML
         /// <param name="inputName">The column name</param>
         /// <param name="outputName">The column name</param>
         /// <param name="mode">The <see cref="NormalizerEstimator.NormalizerMode"/> used to map the old values in the new scale. </param>
-        public static NormalizerEstimator Normalizer(this TransformsCatalog catalog, string inputName, string outputName = null, NormalizerEstimator.NormalizerMode mode = NormalizerEstimator.NormalizerMode.MinMax)
+        public static NormalizerEstimator Normalize(this TransformsCatalog catalog, string inputName, string outputName = null, NormalizerEstimator.NormalizerMode mode = NormalizerEstimator.NormalizerMode.MinMax)
             => new NormalizerEstimator(CatalogUtils.GetEnvironment(catalog), inputName, outputName, mode);
 
         /// <summary>
@@ -29,7 +29,7 @@ namespace Microsoft.ML
         /// <param name="catalog">The transform catalog</param>
         /// <param name="mode">The <see cref="NormalizerEstimator.NormalizerMode"/> used to map the old values to the new ones. </param>
         /// <param name="columns">The pairs of input and output columns.</param>
-        public static NormalizerEstimator Normalizer(this TransformsCatalog catalog, NormalizerEstimator.NormalizerMode mode, params (string input, string output)[] columns)
+        public static NormalizerEstimator Normalize(this TransformsCatalog catalog, NormalizerEstimator.NormalizerMode mode, params (string input, string output)[] columns)
             => new NormalizerEstimator(CatalogUtils.GetEnvironment(catalog), mode, columns);
 
         /// <summary>
@@ -37,7 +37,7 @@ namespace Microsoft.ML
         /// </summary>
         /// <param name="catalog">The transform catalog</param>
         /// <param name="columns">The normalization settings for all the columns</param>
-        public static NormalizerEstimator Normalizer(this TransformsCatalog catalog, params NormalizerEstimator.ColumnBase[] columns)
+        public static NormalizerEstimator Normalize(this TransformsCatalog catalog, params NormalizerEstimator.ColumnBase[] columns)
             => new NormalizerEstimator(CatalogUtils.GetEnvironment(catalog), columns);
     }
 }

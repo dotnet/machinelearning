@@ -13,7 +13,7 @@ using System.IO;
 using System.Linq;
 using Xunit;
 using Xunit.Abstractions;
-using Microsoft.ML.Transforms.CategoricalTransforms;
+using Microsoft.ML.Transforms.Categorical;
 
 namespace Microsoft.ML.Tests.Transformers
 {

@@ -23,7 +23,7 @@ namespace Microsoft.ML.Transforms
         /// <summary>
         /// Initializes a new instance of <see cref="ColumnConcatenatingEstimator"/>
         /// </summary>
-        /// <param name="env">The private instance of <see cref="IHostEnvironment"/>.</param>
+        /// <param name="env">The local instance of <see cref="IHostEnvironment"/>.</param>
         /// <param name="outputColumn">The name of the resulting column.</param>
         /// <param name="inputColumns">The columns to concatenate together.</param>
         public ColumnConcatenatingEstimator (IHostEnvironment env, string outputColumn, params string[] inputColumns)

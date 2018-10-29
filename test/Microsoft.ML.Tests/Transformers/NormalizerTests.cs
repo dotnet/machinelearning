@@ -95,8 +95,8 @@ namespace Microsoft.ML.Tests.Transformers
             var est1 = new NormalizerEstimator(Env, "float4");
             var est2 = new NormalizerEstimator(Env, NormalizerEstimator.NormalizerMode.MinMax, ("float4", "float4"));
             var est3 = new NormalizerEstimator(Env, new NormalizerEstimator.MinMaxColumn("float4"));
-            var est4 = ML.Transforms.Normalizer(NormalizerEstimator.NormalizerMode.MinMax, ("float4", "float4"));
-            var est5 = ML.Transforms.Normalizer("float4");
+            var est4 = ML.Transforms.Normalize(NormalizerEstimator.NormalizerMode.MinMax, ("float4", "float4"));
+            var est5 = ML.Transforms.Normalize("float4");
 
             var data1 = est1.Fit(data).Transform(data);
             var data2 = est2.Fit(data).Transform(data);

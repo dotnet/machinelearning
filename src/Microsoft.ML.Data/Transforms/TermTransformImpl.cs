@@ -11,7 +11,7 @@ using System;
 using System.IO;
 using System.Text;
 
-namespace Microsoft.ML.Transforms.CategoricalTransforms
+namespace Microsoft.ML.Transforms.Categorical
 {
     public sealed partial class TermTransform
     {

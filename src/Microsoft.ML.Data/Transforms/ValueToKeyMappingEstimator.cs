@@ -11,8 +11,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Microsoft.ML.Transforms.CategoricalTransforms
+namespace Microsoft.ML.Transforms.Categorical
 {
+    /// <include file='doc.xml' path='doc/members/member[@name="ValueToKeyMappingEstimator"]/*' />
     public sealed class ValueToKeyMappingEstimator: IEstimator<TermTransform>
     {
         public static class Defaults
@@ -28,7 +29,7 @@ namespace Microsoft.ML.Transforms.CategoricalTransforms
         private readonly IComponentFactory<IMultiStreamSource, IDataLoader> _loaderFactory;
 
         /// <summary>
-        /// Convenience constructor for public facing API.
+        /// Initializes a new instance of <see cref="ValueToKeyMappingEstimator"/>.
         /// </summary>
         /// <param name="env">Host Environment.</param>
         /// <param name="inputColumn">Name of the column to be transformed.</param>
