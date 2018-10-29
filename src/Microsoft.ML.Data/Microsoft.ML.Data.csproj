@@ -8,11 +8,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Include="Transforms\ConvertStaticExtensions.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>ConvertStaticExtensions.tt</DependentUpon>
-    </None>
     <None Include="Transforms\TermStaticExtensions.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
@@ -56,6 +51,8 @@
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
       <DependentUpon>TermStaticExtensions.tt</DependentUpon>
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>TermStaticExtensions.cs</LastGenOutput>
     </Compile>
   </ItemGroup>
 
