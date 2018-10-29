@@ -25,7 +25,7 @@ namespace Microsoft.ML.Runtime.RunTests
         {
         }
 
-        [Fact(Skip = "Fails due to inability to run in parallel cursors. Temporarily disabling this until stateful prediction engine is implemented.")]
+        [Fact]
         public void SavePipeIidSpike()
         {
             TestCore(GetDataPath(Path.Combine("Timeseries", "real_1.csv")),
@@ -40,7 +40,7 @@ namespace Microsoft.ML.Runtime.RunTests
             Done();
         }
 
-        [Fact(Skip = "Fails due to inability to run in parallel cursors. Temporarily disabling this until stateful prediction engine is implemented.")]
+        [Fact]
         public void SavePipeIidChangePoint()
         {
             TestCore(GetDataPath(Path.Combine("Timeseries", "real_11.csv")),
