@@ -107,6 +107,10 @@ phases:
       artifactName: PackageAssets
       artifactType: container
 
+  # Terminate all dotnet build processes.
+  - script: $(Build.SourcesDirectory)/Tools/dotnetcli/dotnet.exe build-server shutdown
+    displayName: Dotnet Server Shutdown
+
 ################################################################################
 - phase: Windows_x64
 ################################################################################
@@ -154,6 +158,10 @@ phases:
       pathToPublish: $(Build.SourcesDirectory)/bin/obj/packages
       artifactName: PackageAssets
       artifactType: container
+
+  # Terminate all dotnet build processes.
+  - script: $(Build.SourcesDirectory)/Tools/dotnetcli/dotnet.exe build-server shutdown
+    displayName: Dotnet Server Shutdown
 
 ################################################################################
 - phase: Package
