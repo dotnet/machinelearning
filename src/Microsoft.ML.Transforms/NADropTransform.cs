@@ -138,7 +138,7 @@ namespace Microsoft.ML.Runtime.Data
         private static string TestType<T>(ColumnType type)
         {
             Contracts.Assert(type.ItemType.RawType == typeof(T));
-            RefPredicate<T> isNA;
+            InPredicate<T> isNA;
             if (!Conversions.Instance.TryGetIsNAPredicate(type.ItemType, out isNA))
             {
                 return string.Format("Type '{0}' is not supported by {1} since it doesn't have an NA value",
@@ -202,9 +202,9 @@ namespace Microsoft.ML.Runtime.Data
         {
             var srcGetter = GetSrcGetter<VBuffer<TDst>>(input, iinfo);
             var buffer = default(VBuffer<TDst>);
-            var isNA = (RefPredicate<TDst>)_isNAs[iinfo];
+            var isNA = (InPredicate<TDst>)_isNAs[iinfo];
             var def = default(TDst);
-            if (isNA(ref def))
+            if (isNA(in def))
             {
                 // Case I: NA equals the default value.
                 return
@@ -216,7 +216,7 @@ namespace Microsoft.ML.Runtime.Data
             }
 
             // Case II: NA is different form default value.
-            Host.Assert(!isNA(ref def));
+            Host.Assert(!isNA(in def));
             return
                 (ref VBuffer<TDst> value) =>
                 {
@@ -225,14 +225,14 @@ namespace Microsoft.ML.Runtime.Data
                 };
         }
 
-        private void DropNAsAndDefaults<TDst>(ref VBuffer<TDst> src, ref VBuffer<TDst> dst, RefPredicate<TDst> isNA)
+        private void DropNAsAndDefaults<TDst>(ref VBuffer<TDst> src, ref VBuffer<TDst> dst, InPredicate<TDst> isNA)
         {
             Host.AssertValue(isNA);
 
             int newCount = 0;
             for (int i = 0; i < src.Count; i++)
             {
-                if (!isNA(ref src.Values[i]))
+                if (!isNA(in src.Values[i]))
                     newCount++;
             }
             Host.Assert(newCount <= src.Count);
@@ -262,7 +262,7 @@ namespace Microsoft.ML.Runtime.Data
             // Densifying sparse vectors since default value equals NA and hence should be dropped.
             for (int i = 0; i < src.Count; i++)
             {
-                if (!isNA(ref src.Values[i]))
+                if (!isNA(in src.Values[i]))
                     values[iDst++] = src.Values[i];
             }
             Host.Assert(iDst == newCount);
@@ -270,14 +270,14 @@ namespace Microsoft.ML.Runtime.Data
             dst = new VBuffer<TDst>(newCount, values, dst.Indices);
         }
 
-        private void DropNAs<TDst>(ref VBuffer<TDst> src, ref VBuffer<TDst> dst, RefPredicate<TDst> isNA)
+        private void DropNAs<TDst>(ref VBuffer<TDst> src, ref VBuffer<TDst> dst, InPredicate<TDst> isNA)
         {
             Host.AssertValue(isNA);
 
             int newCount = 0;
             for (int i = 0; i < src.Count; i++)
             {
-                if (!isNA(ref src.Values[i]))
+                if (!isNA(in src.Values[i]))
                     newCount++;
             }
             Host.Assert(newCount <= src.Count);
@@ -303,7 +303,7 @@ namespace Microsoft.ML.Runtime.Data
             {
                 for (int i = 0; i < src.Count; i++)
                 {
-                    if (!isNA(ref src.Values[i]))
+                    if (!isNA(in src.Values[i]))
                     {
                         values[iDst] = src.Values[i];
                         iDst++;
@@ -321,7 +321,7 @@ namespace Microsoft.ML.Runtime.Data
                 int offset = 0;
                 for (int i = 0; i < src.Count; i++)
                 {
-                    if (!isNA(ref src.Values[i]))
+                    if (!isNA(in src.Values[i]))
                     {
                         values[iDst] = src.Values[i];
                         indices[iDst] = src.Indices[i] - offset;

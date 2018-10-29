@@ -149,17 +149,17 @@ namespace Microsoft.ML.Runtime.Learners
             {
                 // Key values are 1-based.
                 uint key = (uint)(cls + 1);
-                return MapLabelsCore(NumberType.U4, (ref uint val) => key == val, data);
+                return MapLabelsCore(NumberType.U4, (in uint val) => key == val, data);
             }
             if (lab.Type == NumberType.R4)
             {
                 float key = cls;
-                return MapLabelsCore(NumberType.R4, (ref float val) => key == val, data);
+                return MapLabelsCore(NumberType.R4, (in float val) => key == val, data);
             }
             if (lab.Type == NumberType.R8)
             {
                 Double key = cls;
-                return MapLabelsCore(NumberType.R8, (ref double val) => key == val, data);
+                return MapLabelsCore(NumberType.R8, (in double val) => key == val, data);
             }
 
             throw Host.ExceptNotSupp($"Label column type is not supported by OVA: {lab.Type}");

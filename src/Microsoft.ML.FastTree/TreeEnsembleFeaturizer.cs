@@ -747,7 +747,7 @@ namespace Microsoft.ML.Runtime.Data
                 mapper =
                     (ref TInput src, ref Single dst) =>
                     {
-                        if (isNa(ref src))
+                        if (isNa(in src))
                         {
                             dst = Single.NaN;
                             return;
@@ -763,7 +763,7 @@ namespace Microsoft.ML.Runtime.Data
                 mapper =
                     (ref TInput src, ref Single dst) =>
                     {
-                        if (isNa(ref src))
+                        if (isNa(in src))
                         {
                             dst = Single.NaN;
                             return;

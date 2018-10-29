@@ -24,7 +24,7 @@ namespace Microsoft.ML.Runtime.Data
         public enum ReplacementKind : byte
         {
             /// <summary>
-            /// Replace with the default value of the column based on it's type. For example, 'zero' for numeric and 'empty' for string/text columns.
+            /// Replace with the default value of the column based on its type. For example, 'zero' for numeric and 'empty' for string/text columns.
             /// </summary>
             [EnumValueDisplay("Zero/empty")]
             DefaultValue = 0,
