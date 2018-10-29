@@ -151,7 +151,7 @@ namespace Microsoft.ML.Runtime.Data
             /// <param name="minKeyValue">smallest value of the loaded key values</param>
             /// <param name="maxKeyValue">If specified, it's the largest allowed value of the loaded key values. Use null if key is unbounded.</param>
             /// <returns>The column representation.</returns>
-            public Key<uint> LoadUInt32Key(int ordinal, ulong minKeyValue, ulong? maxKeyValue) => Load<uint>(DataKind.U4, ordinal, minKeyValue, maxKeyValue);
+            public Key<uint> LoadKey(int ordinal, ulong minKeyValue, ulong? maxKeyValue) => Load<uint>(DataKind.U4, ordinal, minKeyValue, maxKeyValue);
 
             /// <summary>
             /// Reads a scalar single-precision floating point column from a single field in the text file.
@@ -226,8 +226,10 @@ namespace Microsoft.ML.Runtime.Data
                 return new MyKey<T>(_rec, kind, ordinal, minKeyValue, maxKeyValue);
             }
 
-            // A data type used to bridge PipelineColumn and TextLoader's Column. It can be used as PipelineColumn in static-typed
-            // pipeline and provides a Create function for translating itself into TextLoader's Column.
+            /// <summary>
+            /// A data type used to bridge <see cref="PipelineColumn"/> and <see cref="TextLoader.Column"/>. It can be used as <see cref="PipelineColumn"/>
+            /// in static-typed pipelines and provides <see cref="MyKey{T}.Create"/> for translating itself into <see cref="TextLoader.Column"/>.
+            /// </summary>
             private class MyKey<T> : Key<T>, IPipelineArgColumn
             {
                 // The storage type that the targeted content would be loaded as.
