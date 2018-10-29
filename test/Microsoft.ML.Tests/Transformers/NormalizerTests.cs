@@ -39,23 +39,23 @@ namespace Microsoft.ML.Tests.Transformers
                 HasHeader = true
             }, new MultiFileSource(dataPath));
 
-            var est = new NormalizerEstimator(Env,
-                new NormalizerEstimator.MinMaxColumn("float1"),
-                new NormalizerEstimator.MinMaxColumn("float4"),
-                new NormalizerEstimator.MinMaxColumn("double1"),
-                new NormalizerEstimator.MinMaxColumn("double4"),
-                new NormalizerEstimator.BinningColumn("float1", "float1bin"),
-                new NormalizerEstimator.BinningColumn("float4", "float4bin"),
-                new NormalizerEstimator.BinningColumn("double1", "double1bin"),
-                new NormalizerEstimator.BinningColumn("double4", "double4bin"),
-                new NormalizerEstimator.MeanVarColumn("float1", "float1mv"),
-                new NormalizerEstimator.MeanVarColumn("float4", "float4mv"),
-                new NormalizerEstimator.MeanVarColumn("double1", "double1mv"),
-                new NormalizerEstimator.MeanVarColumn("double4", "double4mv"),
-                new NormalizerEstimator.LogMeanVarColumn("float1", "float1lmv"),
-                new NormalizerEstimator.LogMeanVarColumn("float4", "float4lmv"),
-                new NormalizerEstimator.LogMeanVarColumn("double1", "double1lmv"),
-                new NormalizerEstimator.LogMeanVarColumn("double4", "double4lmv"));
+            var est = new NormalizingEstimator(Env,
+                new NormalizingEstimator.MinMaxColumn("float1"),
+                new NormalizingEstimator.MinMaxColumn("float4"),
+                new NormalizingEstimator.MinMaxColumn("double1"),
+                new NormalizingEstimator.MinMaxColumn("double4"),
+                new NormalizingEstimator.BinningColumn("float1", "float1bin"),
+                new NormalizingEstimator.BinningColumn("float4", "float4bin"),
+                new NormalizingEstimator.BinningColumn("double1", "double1bin"),
+                new NormalizingEstimator.BinningColumn("double4", "double4bin"),
+                new NormalizingEstimator.MeanVarColumn("float1", "float1mv"),
+                new NormalizingEstimator.MeanVarColumn("float4", "float4mv"),
+                new NormalizingEstimator.MeanVarColumn("double1", "double1mv"),
+                new NormalizingEstimator.MeanVarColumn("double4", "double4mv"),
+                new NormalizingEstimator.LogMeanVarColumn("float1", "float1lmv"),
+                new NormalizingEstimator.LogMeanVarColumn("float4", "float4lmv"),
+                new NormalizingEstimator.LogMeanVarColumn("double1", "double1lmv"),
+                new NormalizingEstimator.LogMeanVarColumn("double4", "double4lmv"));
 
             var data = loader.Read(dataPath);
 
@@ -92,10 +92,10 @@ namespace Microsoft.ML.Tests.Transformers
 
             var data = loader.Read(dataPath);
 
-            var est1 = new NormalizerEstimator(Env, "float4");
-            var est2 = new NormalizerEstimator(Env, NormalizerEstimator.NormalizerMode.MinMax, ("float4", "float4"));
-            var est3 = new NormalizerEstimator(Env, new NormalizerEstimator.MinMaxColumn("float4"));
-            var est4 = ML.Transforms.Normalize(NormalizerEstimator.NormalizerMode.MinMax, ("float4", "float4"));
+            var est1 = new NormalizingEstimator(Env, "float4");
+            var est2 = new NormalizingEstimator(Env, NormalizingEstimator.NormalizerMode.MinMax, ("float4", "float4"));
+            var est3 = new NormalizingEstimator(Env, new NormalizingEstimator.MinMaxColumn("float4"));
+            var est4 = ML.Transforms.Normalize(NormalizingEstimator.NormalizerMode.MinMax, ("float4", "float4"));
             var est5 = ML.Transforms.Normalize("float4");
 
             var data1 = est1.Fit(data).Transform(data);

@@ -259,7 +259,7 @@ namespace Microsoft.ML.Transforms.Normalizers
         {
             Contracts.CheckValue(env, nameof(env));
 
-            var normalizer = new NormalizerEstimator(env, new NormalizerEstimator.MinMaxColumn(source ?? name, name));
+            var normalizer = new NormalizingEstimator(env, new NormalizingEstimator.MinMaxColumn(source ?? name, name));
             return normalizer.Fit(input).MakeDataTransform(input);
         }
 
@@ -300,13 +300,13 @@ namespace Microsoft.ML.Transforms.Normalizers
             env.CheckValue(args.Column, nameof(args.Column));
 
             var columns = args.Column
-                .Select(col => new NormalizerEstimator.MinMaxColumn(
+                .Select(col => new NormalizingEstimator.MinMaxColumn(
                     col.Source ?? col.Name,
                     col.Name,
                     col.MaxTrainingExamples ?? args.MaxTrainingExamples,
                     col.FixZero ?? args.FixZero))
                 .ToArray();
-            var normalizer = new NormalizerEstimator(env, columns);
+            var normalizer = new NormalizingEstimator(env, columns);
             return normalizer.Fit(input).MakeDataTransform(input);
         }
 
@@ -320,13 +320,13 @@ namespace Microsoft.ML.Transforms.Normalizers
             env.CheckValue(args.Column, nameof(args.Column));
 
             var columns = args.Column
-                .Select(col => new NormalizerEstimator.MeanVarColumn(
+                .Select(col => new NormalizingEstimator.MeanVarColumn(
                     col.Source ?? col.Name,
                     col.Name,
                     col.MaxTrainingExamples ?? args.MaxTrainingExamples,
                     col.FixZero ?? args.FixZero))
                 .ToArray();
-            var normalizer = new NormalizerEstimator(env, columns);
+            var normalizer = new NormalizingEstimator(env, columns);
             return normalizer.Fit(input).MakeDataTransform(input);
         }
 
@@ -340,13 +340,13 @@ namespace Microsoft.ML.Transforms.Normalizers
             env.CheckValue(args.Column, nameof(args.Column));
 
             var columns = args.Column
-                .Select(col => new NormalizerEstimator.LogMeanVarColumn(
+                .Select(col => new NormalizingEstimator.LogMeanVarColumn(
                     col.Source ?? col.Name,
                     col.Name,
                     col.MaxTrainingExamples ?? args.MaxTrainingExamples,
                     args.UseCdf))
                 .ToArray();
-            var normalizer = new NormalizerEstimator(env, columns);
+            var normalizer = new NormalizingEstimator(env, columns);
             return normalizer.Fit(input).MakeDataTransform(input);
         }
 
@@ -360,14 +360,14 @@ namespace Microsoft.ML.Transforms.Normalizers
             env.CheckValue(args.Column, nameof(args.Column));
 
             var columns = args.Column
-                .Select(col => new NormalizerEstimator.BinningColumn(
+                .Select(col => new NormalizingEstimator.BinningColumn(
                     col.Source ?? col.Name,
                     col.Name,
                     col.MaxTrainingExamples ?? args.MaxTrainingExamples,
                     col.FixZero ?? args.FixZero,
                     col.NumBins ?? args.NumBins))
                 .ToArray();
-            var normalizer = new NormalizerEstimator(env, columns);
+            var normalizer = new NormalizingEstimator(env, columns);
             return normalizer.Fit(input).MakeDataTransform(input);
         }
 
@@ -936,14 +936,14 @@ namespace Microsoft.ML.Transforms.Normalizers
                 Contracts.AssertValue(host);
                 host.AssertValue(args);
 
-                return CreateBuilder(new NormalizerEstimator.MinMaxColumn(
+                return CreateBuilder(new NormalizingEstimator.MinMaxColumn(
                     args.Column[icol].Source ?? args.Column[icol].Name,
                     args.Column[icol].Name,
                     args.Column[icol].MaxTrainingExamples ?? args.MaxTrainingExamples,
                     args.Column[icol].FixZero ?? args.FixZero), host, srcIndex, srcType, cursor);
             }
 
-            public static IColumnFunctionBuilder CreateBuilder(NormalizerEstimator.MinMaxColumn column, IHost host,
+            public static IColumnFunctionBuilder CreateBuilder(NormalizingEstimator.MinMaxColumn column, IHost host,
                 int srcIndex, ColumnType srcType, IRowCursor cursor)
             {
                 if (srcType.IsNumber)
@@ -972,7 +972,7 @@ namespace Microsoft.ML.Transforms.Normalizers
                 Contracts.AssertValue(host);
                 host.AssertValue(args);
 
-                return CreateBuilder(new NormalizerEstimator.MeanVarColumn(
+                return CreateBuilder(new NormalizingEstimator.MeanVarColumn(
                     args.Column[icol].Source ?? args.Column[icol].Name,
                     args.Column[icol].Name,
                     args.Column[icol].MaxTrainingExamples ?? args.MaxTrainingExamples,
@@ -980,7 +980,7 @@ namespace Microsoft.ML.Transforms.Normalizers
                     args.UseCdf), host, srcIndex, srcType, cursor);
             }
 
-            public static IColumnFunctionBuilder CreateBuilder(NormalizerEstimator.MeanVarColumn column, IHost host,
+            public static IColumnFunctionBuilder CreateBuilder(NormalizingEstimator.MeanVarColumn column, IHost host,
                 int srcIndex, ColumnType srcType, IRowCursor cursor)
             {
                 Contracts.AssertValue(host);
@@ -1012,14 +1012,14 @@ namespace Microsoft.ML.Transforms.Normalizers
                 Contracts.AssertValue(host);
                 host.AssertValue(args);
 
-                return CreateBuilder(new NormalizerEstimator.LogMeanVarColumn(
+                return CreateBuilder(new NormalizingEstimator.LogMeanVarColumn(
                     args.Column[icol].Source ?? args.Column[icol].Name,
                     args.Column[icol].Name,
                     args.Column[icol].MaxTrainingExamples ?? args.MaxTrainingExamples,
                     args.UseCdf), host, srcIndex, srcType, cursor);
             }
 
-            public static IColumnFunctionBuilder CreateBuilder(NormalizerEstimator.LogMeanVarColumn column, IHost host,
+            public static IColumnFunctionBuilder CreateBuilder(NormalizingEstimator.LogMeanVarColumn column, IHost host,
                 int srcIndex, ColumnType srcType, IRowCursor cursor)
             {
                 Contracts.AssertValue(host);
@@ -1051,7 +1051,7 @@ namespace Microsoft.ML.Transforms.Normalizers
                 Contracts.AssertValue(host);
                 host.AssertValue(args);
 
-                return CreateBuilder(new NormalizerEstimator.BinningColumn(
+                return CreateBuilder(new NormalizingEstimator.BinningColumn(
                     args.Column[icol].Source ?? args.Column[icol].Name,
                     args.Column[icol].Name,
                     args.Column[icol].MaxTrainingExamples ?? args.MaxTrainingExamples,
@@ -1059,7 +1059,7 @@ namespace Microsoft.ML.Transforms.Normalizers
                     args.Column[icol].NumBins ?? args.NumBins), host, srcIndex, srcType, cursor);
             }
 
-            public static IColumnFunctionBuilder CreateBuilder(NormalizerEstimator.BinningColumn column, IHost host,
+            public static IColumnFunctionBuilder CreateBuilder(NormalizingEstimator.BinningColumn column, IHost host,
                 int srcIndex, ColumnType srcType, IRowCursor cursor)
             {
                 Contracts.AssertValue(host);

@@ -24,7 +24,7 @@ using System.Linq;
 
 namespace Microsoft.ML.Transforms.Normalizers
 {
-    public sealed class NormalizerEstimator : IEstimator<NormalizerTransformer>
+    public sealed class NormalizingEstimator : IEstimator<NormalizerTransformer>
     {
         internal static class Defaults
         {
@@ -164,40 +164,40 @@ namespace Microsoft.ML.Transforms.Normalizers
         private readonly ColumnBase[] _columns;
 
         /// <summary>
-        /// Initializes a new instance of <see cref="NormalizerEstimator"/>.
+        /// Initializes a new instance of <see cref="NormalizingEstimator"/>.
         /// </summary>
         /// <param name="env">Host Environment.</param>
         /// <param name="inputColumn">Name of the output column.</param>
         /// <param name="outputColumn">Name of the column to be transformed. If this is null '<paramref name="inputColumn"/>' will be used.</param>
         /// <param name="mode">The <see cref="NormalizerMode"/> indicating how to the old values are mapped to the new values.</param>
-        public NormalizerEstimator(IHostEnvironment env, string inputColumn, string outputColumn = null, NormalizerMode mode = NormalizerMode.MinMax)
+        public NormalizingEstimator(IHostEnvironment env, string inputColumn, string outputColumn = null, NormalizerMode mode = NormalizerMode.MinMax)
             : this(env, mode, (inputColumn, outputColumn ?? inputColumn))
         {
         }
 
         /// <summary>
-        /// Initializes a new instance of <see cref="NormalizerEstimator"/>.
+        /// Initializes a new instance of <see cref="NormalizingEstimator"/>.
         /// </summary>
         /// <param name="env">The private instance of <see cref="IHostEnvironment"/>.</param>
         /// <param name="mode">The <see cref="NormalizerMode"/> indicating how to the old values are mapped to the new values.</param>
         /// <param name="columns">An array of (inputColumn, outputColumn) tuples.</param>
-        public NormalizerEstimator(IHostEnvironment env, NormalizerMode mode, params (string inputColumn, string outputColumn)[] columns)
+        public NormalizingEstimator(IHostEnvironment env, NormalizerMode mode, params (string inputColumn, string outputColumn)[] columns)
         {
             Contracts.CheckValue(env, nameof(env));
-            _host = env.Register(nameof(NormalizerEstimator));
+            _host = env.Register(nameof(NormalizingEstimator));
             _host.CheckValue(columns, nameof(columns));
             _columns = columns.Select(x => ColumnBase.Create(x.inputColumn, x.outputColumn, mode)).ToArray();
         }
 
         /// <summary>
-        /// Initializes a new instance of <see cref="NormalizerEstimator"/>.
+        /// Initializes a new instance of <see cref="NormalizingEstimator"/>.
         /// </summary>
         /// <param name="env">The private instance of the <see cref="IHostEnvironment"/>.</param>
         /// <param name="columns">An array of <see cref="ColumnBase"/> defining the inputs to the Normalizer, and their settings.</param>
-        public NormalizerEstimator(IHostEnvironment env, params ColumnBase[] columns)
+        public NormalizingEstimator(IHostEnvironment env, params ColumnBase[] columns)
         {
             Contracts.CheckValue(env, nameof(env));
-            _host = env.Register(nameof(NormalizerEstimator));
+            _host = env.Register(nameof(NormalizingEstimator));
             _host.CheckValue(columns, nameof(columns));
 
             _columns = columns.ToArray();
@@ -332,7 +332,7 @@ namespace Microsoft.ML.Transforms.Normalizers
             ColumnFunctions = new ColumnFunctionAccessor(_columns);
         }
 
-        public static NormalizerTransformer Train(IHostEnvironment env, IDataView data, NormalizerEstimator.ColumnBase[] columns)
+        public static NormalizerTransformer Train(IHostEnvironment env, IDataView data, NormalizingEstimator.ColumnBase[] columns)
         {
             Contracts.CheckValue(env, nameof(env));
             env.CheckValue(data, nameof(data));
