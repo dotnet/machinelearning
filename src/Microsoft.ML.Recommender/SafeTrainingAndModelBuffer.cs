@@ -17,65 +17,44 @@ namespace Microsoft.ML.Runtime.Recommender.Internal
     /// </summary>
     internal sealed class SafeTrainingAndModelBuffer : IDisposable
     {
-        [StructLayout(LayoutKind.Explicit)]
+        [StructLayout(LayoutKind.Sequential)]
         private struct MFNode
         {
-            [FieldOffset(0)]
             public int U;
-            [FieldOffset(4)]
             public int V;
-            [FieldOffset(8)]
             public float R;
         }
 
-        [StructLayout(LayoutKind.Explicit)]
+        [StructLayout(LayoutKind.Sequential)]
         private unsafe struct MFProblem
         {
-            [FieldOffset(0)]
             public int M;
-            [FieldOffset(4)]
             public int N;
-            [FieldOffset(8)]
             public long Nnz;
-            [FieldOffset(16)]
             public MFNode* R;
         }
 
-        [StructLayout(LayoutKind.Explicit)]
+        [StructLayout(LayoutKind.Sequential)]
         private struct MFParameter
         {
-            [FieldOffset(0)]
             public int K;
-            [FieldOffset(4)]
             public int NrThreads;
-            [FieldOffset(8)]
             public int NrBins;
-            [FieldOffset(12)]
             public int NrIters;
-            [FieldOffset(16)]
             public float Lambda;
-            [FieldOffset(20)]
             public float Eta;
-            [FieldOffset(24)]
             public int DoNmf;
-            [FieldOffset(28)]
             public int Quiet;
-            [FieldOffset(32)]
             public int CopyData;
         }
 
-        [StructLayout(LayoutKind.Explicit)]
+        [StructLayout(LayoutKind.Sequential)]
         private unsafe struct MFModel
         {
-            [FieldOffset(0)]
             public int M;
-            [FieldOffset(4)]
             public int N;
-            [FieldOffset(8)]
             public int K;
-            [FieldOffset(16)]
             public float* P;
-            [FieldOffset(24)]
             public float* Q;
         }
 
