@@ -754,7 +754,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             Assert.InRange(metrics.Ndcg[2], 36.5, 37);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // LightGBM is 64-bit only
         public void LightGBMRanking()
         {
             var env = new ConsoleEnvironment(seed: 0);
@@ -795,7 +795,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             Assert.InRange(metrics.Ndcg[2], 36.5, 37);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(Environment), nameof(Environment.Is64BitProcess))] // LightGBM is 64-bit only
         public void MultiClassLightGBM()
         {
             var env = new ConsoleEnvironment(seed: 0);
