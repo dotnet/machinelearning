@@ -179,6 +179,8 @@ namespace Microsoft.ML.Runtime.Data
 
             public readonly ChannelProviderBase Parent;
 
+            private bool _disposed;
+
             protected PipeBase(ChannelProviderBase parent, string shortName,
                 Action<IMessageSource, TMessage> dispatch)
                 : base(shortName, parent.FullName, parent.Verbose)
@@ -192,10 +194,14 @@ namespace Microsoft.ML.Runtime.Data
 
             public void Dispose()
             {
-                DisposeCore();
+                if(!_disposed)
+                {
+                    Dispose(true);
+                    _disposed = true;
+                }
             }
 
-            protected virtual void DisposeCore()
+            protected virtual void Dispose(bool disposing)
             {
             }
 

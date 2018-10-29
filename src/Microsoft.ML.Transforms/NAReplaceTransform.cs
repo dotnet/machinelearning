@@ -160,13 +160,13 @@ namespace Microsoft.ML.Runtime.Data
         private static string TestType<T>(ColumnType type)
         {
             Contracts.Assert(type.ItemType.RawType == typeof(T));
-            if (!Conversions.Instance.TryGetIsNAPredicate(type.ItemType, out RefPredicate<T> isNA))
+            if (!Conversions.Instance.TryGetIsNAPredicate(type.ItemType, out InPredicate<T> isNA))
             {
                 return string.Format("Type '{0}' is not supported by {1} since it doesn't have an NA value",
                     type, LoadName);
             }
             var t = default(T);
-            if (isNA(ref t))
+            if (isNA(in t))
             {
                 // REVIEW: Key values will be handled in a "new key value" transform.
                 return string.Format("Type '{0}' is not supported by {1} since its NA value is equivalent to its default value",
@@ -288,11 +288,11 @@ namespace Microsoft.ML.Runtime.Data
             Host.Assert(srcType.IsVector);
             Host.Assert(srcType.VectorSize == src.Length);
             VBufferUtils.Densify<T>(ref src);
-            RefPredicate<T> defaultPred = Conversions.Instance.GetIsDefaultPredicate<T>(srcType.ItemType);
+            InPredicate<T> defaultPred = Conversions.Instance.GetIsDefaultPredicate<T>(srcType.ItemType);
             _repIsDefault[iinfo] = new BitArray(srcType.VectorSize);
             for (int slot = 0; slot < src.Length; slot++)
             {
-                if (defaultPred(ref src.Values[slot]))
+                if (defaultPred(in src.Values[slot]))
                     _repIsDefault[iinfo][slot] = true;
             }
             T[] valReturn = src.Values;
@@ -401,10 +401,10 @@ namespace Microsoft.ML.Runtime.Data
         {
             Host.Assert(values.Length == type.VectorSize);
             BitArray defaultSlots = new BitArray(values.Length);
-            RefPredicate<T> defaultPred = Conversions.Instance.GetIsDefaultPredicate<T>(type.ItemType);
+            InPredicate<T> defaultPred = Conversions.Instance.GetIsDefaultPredicate<T>(type.ItemType);
             for (int slot = 0; slot < values.Length; slot++)
             {
-                if (defaultPred(ref values[slot]))
+                if (defaultPred(in values[slot]))
                     defaultSlots[slot] = true;
             }
             return defaultSlots;
@@ -441,12 +441,12 @@ namespace Microsoft.ML.Runtime.Data
         /// </summary>
         private object GetSpecifiedValue(string srcStr, ColumnType dstType, Delegate isNA)
         {
-            Func<string, ColumnType, RefPredicate<int>, object> func = GetSpecifiedValue<int>;
+            Func<string, ColumnType, InPredicate<int>, object> func = GetSpecifiedValue<int>;
             var meth = func.GetMethodInfo().GetGenericMethodDefinition().MakeGenericMethod(dstType.ItemType.RawType);
             return meth.Invoke(this, new object[] { srcStr, dstType, isNA });
         }
 
-        private object GetSpecifiedValue<T>(string srcStr, ColumnType dstType, RefPredicate<T> isNA)
+        private object GetSpecifiedValue<T>(string srcStr, ColumnType dstType, InPredicate<T> isNA)
         {
             var val = default(T);
             if (!string.IsNullOrEmpty(srcStr))
@@ -456,7 +456,7 @@ namespace Microsoft.ML.Runtime.Data
                 var strToT = Conversions.Instance.GetStandardConversion<ReadOnlyMemory<char>, T>(TextType.Instance, dstType.ItemType, out bool identity);
                 strToT(ref srcTxt, ref val);
                 // Make sure that the srcTxt can legitimately be converted to dstType, throw error otherwise.
-                if (isNA(ref val))
+                if (isNA(in val))
                     throw Contracts.Except("No conversion of '{0}' to '{1}'", srcStr, dstType.ItemType);
             }
 
@@ -671,7 +671,7 @@ namespace Microsoft.ML.Runtime.Data
             {
                 var getSrc = input.GetGetter<T>(ColMapNewToOld[iinfo]);
                 var src = default(T);
-                var isNA = (RefPredicate<T>)_isNAs[iinfo];
+                var isNA = (InPredicate<T>)_isNAs[iinfo];
                 Host.Assert(_parent._repValues[iinfo] is T);
                 T rep = (T)_parent._repValues[iinfo];
                 ValueGetter<T> getter;
@@ -680,7 +680,7 @@ namespace Microsoft.ML.Runtime.Data
                     (ref T dst) =>
                     {
                         getSrc(ref src);
-                        dst = isNA(ref src) ? rep : src;
+                        dst = isNA(in src) ? rep : src;
                     };
             }
 
@@ -696,7 +696,7 @@ namespace Microsoft.ML.Runtime.Data
             private Delegate ComposeGetterVec<T>(IRow input, int iinfo)
             {
                 var getSrc = input.GetGetter<VBuffer<T>>(ColMapNewToOld[iinfo]);
-                var isNA = (RefPredicate<T>)_isNAs[iinfo];
+                var isNA = (InPredicate<T>)_isNAs[iinfo];
                 var isDefault = Conversions.Instance.GetIsDefaultPredicate<T>(_infos[iinfo].TypeSrc.ItemType);
 
                 var src = default(VBuffer<T>);
@@ -707,7 +707,7 @@ namespace Microsoft.ML.Runtime.Data
                     // One replacement value for all slots.
                     Host.Assert(_parent._repValues[iinfo] is T);
                     T rep = (T)_parent._repValues[iinfo];
-                    bool repIsDefault = isDefault(ref rep);
+                    bool repIsDefault = isDefault(in rep);
                     return getter =
                         (ref VBuffer<T> dst) =>
                         {
@@ -733,7 +733,7 @@ namespace Microsoft.ML.Runtime.Data
             /// <summary>
             ///  Fills values for vectors where there is one replacement value.
             /// </summary>
-            private void FillValues<T>(ref VBuffer<T> src, ref VBuffer<T> dst, RefPredicate<T> isNA, T rep, bool repIsDefault)
+            private void FillValues<T>(ref VBuffer<T> src, ref VBuffer<T> dst, InPredicate<T> isNA, T rep, bool repIsDefault)
             {
                 Host.AssertValue(isNA);
 
@@ -765,7 +765,7 @@ namespace Microsoft.ML.Runtime.Data
                         // the default value, resulting in more than half of the indices being the default value.
                         // In this case, changing the dst vector to be sparse would be more memory efficient -- the current decision
                         // is it is not worth handling this case at the expense of running checks that will almost always not be triggered.
-                        dstValues[ivSrc] = isNA(ref srcVal) ? rep : srcVal;
+                        dstValues[ivSrc] = isNA(in srcVal) ? rep : srcVal;
                     }
                     iivDst = srcCount;
                 }
@@ -791,7 +791,7 @@ namespace Microsoft.ML.Runtime.Data
                         Host.Assert(ivPrev < iv & iv < srcSize);
                         ivPrev = iv;
 
-                        if (!isNA(ref srcVal))
+                        if (!isNA(in srcVal))
                         {
                             dstValues[iivDst] = srcVal;
                             dstIndices[iivDst++] = iv;
@@ -813,7 +813,7 @@ namespace Microsoft.ML.Runtime.Data
             /// <summary>
             ///  Fills values for vectors where there is slot-wise replacement values.
             /// </summary>
-            private void FillValues<T>(ref VBuffer<T> src, ref VBuffer<T> dst, RefPredicate<T> isNA, T[] rep, BitArray repIsDefault)
+            private void FillValues<T>(ref VBuffer<T> src, ref VBuffer<T> dst, InPredicate<T> isNA, T[] rep, BitArray repIsDefault)
             {
                 Host.AssertValue(rep);
                 Host.Assert(rep.Length == src.Length);
@@ -849,7 +849,7 @@ namespace Microsoft.ML.Runtime.Data
                         // the default value, resulting in more than half of the indices being the default value.
                         // In this case, changing the dst vector to be sparse would be more memory efficient -- the current decision
                         // is it is not worth handling this case at the expense of running checks that will almost always not be triggered.
-                        dstValues[ivSrc] = isNA(ref srcVal) ? rep[ivSrc] : srcVal;
+                        dstValues[ivSrc] = isNA(in srcVal) ? rep[ivSrc] : srcVal;
                     }
                     iivDst = srcCount;
                 }
@@ -875,7 +875,7 @@ namespace Microsoft.ML.Runtime.Data
                         Host.Assert(ivPrev < iv & iv < srcSize);
                         ivPrev = iv;
 
-                        if (!isNA(ref srcVal))
+                        if (!isNA(in srcVal))
                         {
                             dstValues[iivDst] = srcVal;
                             dstIndices[iivDst++] = iv;

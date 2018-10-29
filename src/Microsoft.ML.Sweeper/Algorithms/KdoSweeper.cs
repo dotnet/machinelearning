@@ -375,7 +375,7 @@ namespace Microsoft.ML.Runtime.Sweeper.Algorithms
             for (int i = 0; i < weights.Length; i++)
                 weights[i] /= (counts[i] > 0 ? counts[i] : 1);
 
-            // If any learner has not been seen, default it's average to
+            // If any learner has not been seen, default its average to
             // best value to encourage exploration of untried algorithms.
             double bestVal = isMaximizing ?
                 previousRuns.Cast<RunResult>().Where(r => r.HasMetricValue).Max(r => r.MetricValue) :

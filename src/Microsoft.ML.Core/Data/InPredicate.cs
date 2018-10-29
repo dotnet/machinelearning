@@ -4,5 +4,5 @@
 
 namespace Microsoft.ML.Runtime.Data
 {
-    public delegate bool RefPredicate<T>(ref T value);
+    public delegate bool InPredicate<T>(in T value);
 }
