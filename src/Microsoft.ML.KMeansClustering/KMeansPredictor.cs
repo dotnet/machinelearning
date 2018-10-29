@@ -166,7 +166,7 @@ namespace Microsoft.ML.Trainers.KMeans
             for (int i = 0; i < _k; i++)
             {
                 Float distance = Math.Max(0,
-                    -2 * VectorUtils.DotProduct(ref _centroids[i], ref src) + _centroidL2s[i] + instanceL2);
+                    -2 * VectorUtils.DotProduct(in _centroids[i], in src) + _centroidL2s[i] + instanceL2);
                 distances[i] = distance;
             }
         }

@@ -129,12 +129,12 @@ namespace Microsoft.ML.Trainers
         {
             float bias = 0;
             x.GetItemOrDefault(0, ref bias);
-            float dot = VectorUtils.DotProductWithOffset(ref x, 1, ref feat) + bias;
+            float dot = VectorUtils.DotProductWithOffset(in x, 1, in feat) + bias;
             float lambda = MathUtils.ExpSlow(dot);
 
             float y = label;
             float mult = -(y - lambda) * weight;
-            VectorUtils.AddMultWithOffset(ref feat, mult, ref grad, 1);
+            VectorUtils.AddMultWithOffset(in feat, mult, ref grad, 1);
             // Due to the call to EnsureBiases, we know this region is dense.
             Contracts.Assert(grad.Count >= BiasCount && (grad.IsDense || grad.Indices[BiasCount - 1] == BiasCount - 1));
             grad.Values[0] += mult;

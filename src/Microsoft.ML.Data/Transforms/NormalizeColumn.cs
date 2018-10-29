@@ -703,10 +703,10 @@ namespace Microsoft.ML.Runtime.Data
             {
                 TFloat tmp = default(TFloat);
                 _getSrc(ref tmp);
-                return ProcessValue(ref tmp);
+                return ProcessValue(in tmp);
             }
 
-            protected virtual bool ProcessValue(ref TFloat val)
+            protected virtual bool ProcessValue(in TFloat val)
             {
                 Host.Assert(Rem >= 0);
                 if (Rem == 0)
@@ -738,10 +738,10 @@ namespace Microsoft.ML.Runtime.Data
             public bool ProcessValue()
             {
                 _getSrc(ref _buffer);
-                return ProcessValue(ref _buffer);
+                return ProcessValue(in _buffer);
             }
 
-            protected virtual bool ProcessValue(ref VBuffer<TFloat> buffer)
+            protected virtual bool ProcessValue(in VBuffer<TFloat> buffer)
             {
                 Host.Assert(Rem >= 0);
                 if (Rem == 0)
@@ -858,13 +858,13 @@ namespace Microsoft.ML.Runtime.Data
             {
                 TFloat colValue = default(TFloat);
                 _colGetterSrc(ref colValue);
-                var result = AcceptColumnValue(ref colValue);
+                var result = AcceptColumnValue(in colValue);
                 if (result)
                     ColValues.Add(colValue);
                 return result;
             }
 
-            protected abstract bool AcceptColumnValue(ref TFloat colValue);
+            protected abstract bool AcceptColumnValue(in TFloat colValue);
         }
 
         private abstract class VecColumnSupervisedBinFunctionBuilderBase<TFloat> : SupervisedBinFunctionBuilderBase
@@ -893,7 +893,7 @@ namespace Microsoft.ML.Runtime.Data
             protected override bool AcceptColumnValue()
             {
                 _colValueGetter(ref _buffer);
-                bool result = AcceptColumnValue(ref _buffer);
+                bool result = AcceptColumnValue(in _buffer);
                 if (result)
                 {
                     if (_buffer.IsDense)
@@ -924,7 +924,7 @@ namespace Microsoft.ML.Runtime.Data
                 return result;
             }
 
-            protected abstract bool AcceptColumnValue(ref VBuffer<TFloat> buffer);
+            protected abstract bool AcceptColumnValue(in VBuffer<TFloat> buffer);
         }
 
         internal static partial class MinMaxUtils

@@ -106,7 +106,7 @@ namespace Microsoft.ML.Runtime.Numeric
                 if (_tempGrads[chunkIndex].Length == 0)
                     tempGrad.CopyTo(ref _tempGrads[chunkIndex]);
                 else
-                    VectorUtils.Add(ref tempGrad, ref _tempGrads[chunkIndex]);
+                    VectorUtils.Add(in tempGrad, ref _tempGrads[chunkIndex]);
             }
 
             _threadFinished[chunkIndex].Set();
@@ -136,7 +136,7 @@ namespace Microsoft.ML.Runtime.Numeric
                 if (gradient.Length == 0)
                     _tempGrads[c].CopyTo(ref gradient);
                 else
-                    VectorUtils.Add(ref _tempGrads[c], ref gradient);
+                    VectorUtils.Add(in _tempGrads[c], ref gradient);
                 value += _tempVals[c];
             }
 
@@ -217,13 +217,13 @@ namespace Microsoft.ML.Runtime.Numeric
                 Float norm = VectorUtils.Norm(dir);
                 VectorUtils.ScaleBy(ref dir, 1 / norm);
 
-                VectorUtils.AddMultInto(ref x, Eps, ref dir, ref newX);
+                VectorUtils.AddMultInto(in x, Eps, in dir, ref newX);
                 Float rVal = f(ref newX, ref newGrad, null);
 
-                VectorUtils.AddMultInto(ref x, -Eps, ref dir, ref newX);
+                VectorUtils.AddMultInto(in x, -Eps, in dir, ref newX);
                 Float lVal = f(ref newX, ref newGrad, null);
 
-                Float dirDeriv = VectorUtils.DotProduct(ref grad, ref dir);
+                Float dirDeriv = VectorUtils.DotProduct(in grad, in dir);
                 Float numDeriv = (rVal - lVal) / (2 * Eps);
 
                 Float normDiff = Math.Abs(1 - numDeriv / dirDeriv);
@@ -264,13 +264,13 @@ namespace Microsoft.ML.Runtime.Numeric
             for (int n = 0; n < x.Length; n++)
             {
                 dir.Values[0] = n;
-                VectorUtils.AddMultInto(ref x, Eps, ref dir, ref newX);
+                VectorUtils.AddMultInto(in x, Eps, in dir, ref newX);
                 Float rVal = f(ref newX, ref newGrad, null);
 
-                VectorUtils.AddMultInto(ref x, -Eps, ref dir, ref newX);
+                VectorUtils.AddMultInto(in x, -Eps, in dir, ref newX);
                 Float lVal = f(ref newX, ref newGrad, null);
 
-                Float dirDeriv = VectorUtils.DotProduct(ref grad, ref dir);
+                Float dirDeriv = VectorUtils.DotProduct(in grad, in dir);
                 Float numDeriv = (rVal - lVal) / (2 * Eps);
 
                 Float normDiff = Math.Abs(1 - numDeriv / dirDeriv);
@@ -303,13 +303,13 @@ namespace Microsoft.ML.Runtime.Numeric
             foreach (int n in coords)
             {
                 dir.Values[0] = n;
-                VectorUtils.AddMultInto(ref x, Eps, ref dir, ref newX);
+                VectorUtils.AddMultInto(in x, Eps, in dir, ref newX);
                 Float rVal = f(ref newX, ref newGrad, null);
 
-                VectorUtils.AddMultInto(ref x, -Eps, ref dir, ref newX);
+                VectorUtils.AddMultInto(in x, -Eps, in dir, ref newX);
                 Float lVal = f(ref newX, ref newGrad, null);
 
-                Float dirDeriv = VectorUtils.DotProduct(ref grad, ref dir);
+                Float dirDeriv = VectorUtils.DotProduct(in grad, in dir);
                 Float numDeriv = (rVal - lVal) / (2 * Eps);
 
                 Float normDiff = Math.Abs(1 - numDeriv / dirDeriv);
@@ -334,14 +334,14 @@ namespace Microsoft.ML.Runtime.Numeric
             Float normDir = VectorUtils.Norm(dir);
 
             Float val = f(ref x, ref newGrad, null);
-            Float dirDeriv = VectorUtils.DotProduct(ref newGrad, ref dir);
+            Float dirDeriv = VectorUtils.DotProduct(in newGrad, in dir);
 
             Float scaledEps = Eps / normDir;
 
-            VectorUtils.AddMultInto(ref x, scaledEps, ref dir, ref newX);
+            VectorUtils.AddMultInto(in x, scaledEps, in dir, ref newX);
             Float rVal = f(ref newX, ref newGrad, null);
 
-            VectorUtils.AddMultInto(ref x, -scaledEps, ref dir, ref newX);
+            VectorUtils.AddMultInto(in x, -scaledEps, in dir, ref newX);
             Float lVal = f(ref newX, ref newGrad, null);
 
             Float numDeriv = (rVal - lVal) / (2 * scaledEps);

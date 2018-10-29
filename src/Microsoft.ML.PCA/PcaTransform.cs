@@ -482,10 +482,10 @@ namespace Microsoft.ML.Transforms.PCA
                             totalColWeight[iinfo] += weight;
 
                             if (center[iinfo])
-                                VectorUtils.AddMult(ref features, mean[iinfo], weight);
+                                VectorUtils.AddMult(in features, mean[iinfo], weight);
 
                             for (int i = 0; i < omega[iinfo].Length; i++)
-                                VectorUtils.AddMult(ref features, y[iinfo][i], weight * VectorUtils.DotProductWithOffset(omega[iinfo][i], 0, ref features));
+                                VectorUtils.AddMult(in features, y[iinfo][i], weight * VectorUtils.DotProductWithOffset(omega[iinfo][i], 0, in features));
                         }
                     }
                 }
@@ -635,7 +635,7 @@ namespace Microsoft.ML.Transforms.PCA
 
                 for (int i = 0; i < transformInfo.Rank; i++)
                 {
-                    values[i] = VectorUtils.DotProductWithOffset(transformInfo.Eigenvectors[i], 0, ref src) -
+                    values[i] = VectorUtils.DotProductWithOffset(transformInfo.Eigenvectors[i], 0, in src) -
                         (transformInfo.MeanProjected == null ? 0 : transformInfo.MeanProjected[i]);
                 }
 

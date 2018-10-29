@@ -348,7 +348,7 @@ namespace Microsoft.ML.Trainers.KMeans
 
                                 for (int j = 0; j < i; j++)
                                 {
-                                    var distance = -2 * VectorUtils.DotProduct(ref cursor.Features, ref centroids[j])
+                                    var distance = -2 * VectorUtils.DotProduct(in cursor.Features, in centroids[j])
                                         + l2 + centroidL2s[j];
                                     probabilityWeight = Math.Min(probabilityWeight, distance);
                                 }
@@ -591,7 +591,7 @@ namespace Microsoft.ML.Trainers.KMeans
                     Contracts.Assert(0 <= oldClusterIdx && oldClusterIdx < _clusterDistances.GetLength(1));
 
                     _clusterDistances[newClusterIdxWithinSample, oldClusterIdx] =
-                        MathUtils.Sqrt(newClusterL2 - 2 * VectorUtils.DotProduct(ref newClusterFeatures, ref oldClusterFeatures) + oldClusterL2);
+                        MathUtils.Sqrt(newClusterL2 - 2 * VectorUtils.DotProduct(in newClusterFeatures, in oldClusterFeatures) + oldClusterL2);
                 }
             }
 
@@ -669,11 +669,11 @@ namespace Microsoft.ML.Trainers.KMeans
                     {
 #if DEBUG
                         // Lets check if our invariant actually holds
-                        Contracts.Assert(-2 * VectorUtils.DotProduct(ref point, ref clusters[j]) + clustersL2s[j] > bestWeight);
+                        Contracts.Assert(-2 * VectorUtils.DotProduct(in point, in clusters[j]) + clustersL2s[j] > bestWeight);
 #endif
                         continue;
                     }
-                    float weight = -2 * VectorUtils.DotProduct(ref point, ref clusters[j]) + clustersL2s[j];
+                    float weight = -2 * VectorUtils.DotProduct(in point, in clusters[j]) + clustersL2s[j];
                     if (bestWeight >= weight)
                     {
                         bestWeight = weight;
@@ -1064,15 +1064,15 @@ namespace Microsoft.ML.Trainers.KMeans
             {
                 if (firstIteration)
                 {
-                    VectorUtils.Add(ref features, ref CachedSum[cluster]);
+                    VectorUtils.Add(in features, ref CachedSum[cluster]);
                     NumChanged++;
                 }
                 else if (previousCluster != cluster)
                 {
                     // update the cachedSum as the instance moves from (previous) bestCluster[n] to cluster
-                    VectorUtils.Add(ref features, ref CachedSum[cluster]);
+                    VectorUtils.Add(in features, ref CachedSum[cluster]);
                     // There doesnt seem to be a Subtract function that does a -= b, so doing a += (-1 * b)
-                    VectorUtils.AddMult(ref features, -1, ref CachedSum[previousCluster]);
+                    VectorUtils.AddMult(in features, -1, ref CachedSum[previousCluster]);
                     NumChanged++;
                 }
                 else
@@ -1083,7 +1083,7 @@ namespace Microsoft.ML.Trainers.KMeans
 
             public void UpdateClusterAssignment(ref VBuffer<float> features, int cluster, float distance)
             {
-                VectorUtils.Add(ref features, ref Centroids[cluster]);
+                VectorUtils.Add(in features, ref Centroids[cluster]);
                 UpdateClusterAssignmentMetrics(cluster, distance);
             }
 
@@ -1112,8 +1112,8 @@ namespace Microsoft.ML.Trainers.KMeans
                     for (int j = 0; j < reducedState.ClusterSizes.Length; j++)
                     {
                         reducedState.ClusterSizes[j] += workChunkArr[i].ClusterSizes[j];
-                        VectorUtils.Add(ref workChunkArr[i].CachedSum[j], ref reducedState.CachedSum[j]);
-                        VectorUtils.Add(ref workChunkArr[i].Centroids[j], ref reducedState.Centroids[j]);
+                        VectorUtils.Add(in workChunkArr[i].CachedSum[j], ref reducedState.CachedSum[j]);
+                        VectorUtils.Add(in workChunkArr[i].Centroids[j], ref reducedState.Centroids[j]);
                     }
 
                     workChunkArr[i].Clear(keepCachedSums: false);
@@ -1159,14 +1159,14 @@ namespace Microsoft.ML.Trainers.KMeans
                 for (int i = 0; i < K; i++)
                 {
                     if (isAccelerated)
-                        VectorUtils.Add(ref CachedSum[i], ref Centroids[i]);
+                        VectorUtils.Add(in CachedSum[i], ref Centroids[i]);
 
                     if (ClusterSizes[i] > 1)
                         VectorUtils.ScaleBy(ref Centroids[i], (float)(1.0 / ClusterSizes[i]));
 
                     if (isAccelerated)
                     {
-                        float clusterDelta = MathUtils.Sqrt(VectorUtils.L2DistSquared(ref Centroids[i], ref centroids[i]));
+                        float clusterDelta = MathUtils.Sqrt(VectorUtils.L2DistSquared(in Centroids[i], in centroids[i]));
 
                         deltas[i] = clusterDelta;
                         if (deltaMax < clusterDelta)
@@ -1285,13 +1285,13 @@ namespace Microsoft.ML.Trainers.KMeans
             public void AssertValidYinYangBounds(int n, ref VBuffer<float> features, VBuffer<float>[] centroids)
             {
                 // Assert that the global filter is indeed doing the right thing
-                float bestDistance = MathUtils.Sqrt(VectorUtils.L2DistSquared(ref features, ref centroids[_bestCluster[n]]));
+                float bestDistance = MathUtils.Sqrt(VectorUtils.L2DistSquared(in features, in centroids[_bestCluster[n]]));
                 Contracts.Assert(KMeansLloydsYinYangTrain.AlmostLeq(bestDistance, _upperBound[n]));
                 for (int j = 0; j < centroids.Length; j++)
                 {
                     if (j == _bestCluster[n])
                         continue;
-                    float distance = MathUtils.Sqrt(VectorUtils.L2DistSquared(ref features, ref centroids[j]));
+                    float distance = MathUtils.Sqrt(VectorUtils.L2DistSquared(in features, in centroids[j]));
 
                     Contracts.Assert(AlmostLeq(_lowerBound[n], distance));
                 }
@@ -1373,7 +1373,7 @@ namespace Microsoft.ML.Trainers.KMeans
                                 int id = state.RowIndexGetter(cursor);
                                 if (id != -1)
                                 {
-                                    VectorUtils.Add(ref cursor.Features, ref cachedSumCopy[state.GetBestCluster(id)]);
+                                    VectorUtils.Add(in cursor.Features, ref cachedSumCopy[state.GetBestCluster(id)]);
                                     numCounted++;
                                 }
                             }
@@ -1750,7 +1750,7 @@ namespace Microsoft.ML.Trainers.KMeans
             {
                 // this is not a real distance, since we don't add L2 norm of the instance
                 // This won't affect minimum calculations, and total score will just be lowered by sum(L2 norms)
-                float distance = -2 * VectorUtils.DotProduct(ref features, ref centroids[j]) + centroidL2s[j];
+                float distance = -2 * VectorUtils.DotProduct(in features, in centroids[j]) + centroidL2s[j];
 
                 if (distance <= minDistance)
                 {

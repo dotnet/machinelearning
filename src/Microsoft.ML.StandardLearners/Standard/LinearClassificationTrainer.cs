@@ -131,12 +131,12 @@ namespace Microsoft.ML.Trainers
 
         protected float WDot(ref VBuffer<float> features, ref VBuffer<float> weights, float bias)
         {
-            return VectorUtils.DotProduct(ref weights, ref features) + bias;
+            return VectorUtils.DotProduct(in weights, in features) + bias;
         }
 
         protected float WScaledDot(ref VBuffer<float> features, Double scaling, ref VBuffer<float> weights, float bias)
         {
-            return VectorUtils.DotProduct(ref weights, ref features) * (float)scaling + bias;
+            return VectorUtils.DotProduct(in weights, in features) * (float)scaling + bias;
         }
 
         protected virtual int ComputeNumThreads(FloatLabelCursor.Factory cursorFactory)
@@ -276,7 +276,7 @@ namespace Microsoft.ML.Trainers
 
         protected float WDot(ref VBuffer<float> features, ref VBuffer<float> weights, float bias)
         {
-            return VectorUtils.DotProduct(ref weights, ref features) + bias;
+            return VectorUtils.DotProduct(in weights, in features) + bias;
         }
 
         protected sealed override TModel TrainCore(IChannel ch, RoleMappedData data, LinearPredictor predictor, int weightSetCount)
@@ -811,7 +811,7 @@ namespace Microsoft.ML.Trainers
 
                             if (l1ThresholdZero)
                             {
-                                VectorUtils.AddMult(ref features, weights[0].Values, primalUpdate);
+                                VectorUtils.AddMult(in features, weights[0].Values, primalUpdate);
                                 biasReg[0] += primalUpdate;
                             }
                             else
@@ -943,7 +943,7 @@ namespace Microsoft.ML.Trainers
             Contracts.Assert(Args.L1Threshold.HasValue);
             Double l2Const = Args.L2Const.Value;
             Double l1Threshold = Args.L1Threshold.Value;
-            Double l1Regularizer = l1Threshold * l2Const * (VectorUtils.L1Norm(ref weights[0]) + Math.Abs(biasReg[0]));
+            Double l1Regularizer = l1Threshold * l2Const * (VectorUtils.L1Norm(in weights[0]) + Math.Abs(biasReg[0]));
             var l2Regularizer = l2Const * (VectorUtils.NormSquared(weights[0]) + biasReg[0] * biasReg[0]) * 0.5;
             var newLoss = lossSum.Sum / count + l2Regularizer + l1Regularizer;
             var newDualLoss = dualLossSum.Sum / count - l2Regularizer - l2Const * biasUnreg[0] * biasReg[0];
@@ -1547,7 +1547,7 @@ namespace Microsoft.ML.Trainers
             Host.CheckParam(weights[0].Length > 0, nameof(weights));
 
             VBuffer<float> maybeSparseWeights = default;
-            VBufferUtils.CreateMaybeSparseCopy(ref weights[0], ref maybeSparseWeights,
+            VBufferUtils.CreateMaybeSparseCopy(in weights[0], ref maybeSparseWeights,
                 Conversions.Instance.GetIsDefaultPredicate<float>(NumberType.Float));
 
             var predictor = new LinearBinaryPredictor(Host, ref maybeSparseWeights, bias[0]);
@@ -1844,7 +1844,7 @@ namespace Microsoft.ML.Trainers
                             Double rate = ilr / (1 + ilr * l2Weight * (t++));
                             Double step = -derivative * rate;
                             weightScaling *= 1 - rate * l2Weight;
-                            VectorUtils.AddMult(ref features, weights.Values, (float)(step / weightScaling));
+                            VectorUtils.AddMult(in features, weights.Values, (float)(step / weightScaling));
                             bias += (float)step;
                         }
                         if (e == 1)
@@ -1909,7 +1909,7 @@ namespace Microsoft.ML.Trainers
             VectorUtils.ScaleBy(ref weights, (float)weightScaling); // restore the true weights
 
             VBuffer<float> maybeSparseWeights = default;
-            VBufferUtils.CreateMaybeSparseCopy(ref weights, ref maybeSparseWeights, Conversions.Instance.GetIsDefaultPredicate<float>(NumberType.Float));
+            VBufferUtils.CreateMaybeSparseCopy(in weights, ref maybeSparseWeights, Conversions.Instance.GetIsDefaultPredicate<float>(NumberType.Float));
             var pred = new LinearBinaryPredictor(Host, ref maybeSparseWeights, bias);
             if (!(_loss is LogLoss))
                 return pred;

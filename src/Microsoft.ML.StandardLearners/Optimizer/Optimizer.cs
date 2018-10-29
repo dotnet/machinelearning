@@ -259,8 +259,8 @@ namespace Microsoft.ML.Runtime.Numeric
                     {
                         if (_roList[i] > 0)
                         {
-                            alphas[i] = -VectorUtils.DotProduct(ref _sList[i], ref _dir) / _roList[i];
-                            VectorUtils.AddMult(ref _yList[i], alphas[i], ref _dir);
+                            alphas[i] = -VectorUtils.DotProduct(in _sList[i], in _dir) / _roList[i];
+                            VectorUtils.AddMult(in _yList[i], alphas[i], ref _dir);
                             if (lastGoodRo == -1)
                                 lastGoodRo = i;
                         }
@@ -270,15 +270,15 @@ namespace Microsoft.ML.Runtime.Numeric
                     if (lastGoodRo == -1)
                         return;
 
-                    Float yDotY = VectorUtils.DotProduct(ref _yList[lastGoodRo], ref _yList[lastGoodRo]);
+                    Float yDotY = VectorUtils.DotProduct(in _yList[lastGoodRo], in _yList[lastGoodRo]);
                     VectorUtils.ScaleBy(ref _dir, _roList[lastGoodRo] / yDotY);
 
                     for (int i = 0; i <= lastGoodRo; i++)
                     {
                         if (_roList[i] > 0)
                         {
-                            Float beta = VectorUtils.DotProduct(ref _yList[i], ref _dir) / _roList[i];
-                            VectorUtils.AddMult(ref _sList[i], -alphas[i] - beta, ref _dir);
+                            Float beta = VectorUtils.DotProduct(in _yList[i], in _dir) / _roList[i];
+                            VectorUtils.AddMult(in _sList[i], -alphas[i] - beta, ref _dir);
                         }
                     }
                 }
@@ -293,7 +293,7 @@ namespace Microsoft.ML.Runtime.Numeric
 
             protected void FixDirZeros()
             {
-                VBufferUtils.ApplyWithEitherDefined(ref _steepestDescDir, ref _dir,
+                VBufferUtils.ApplyWithEitherDefined(in _steepestDescDir, ref _dir,
                     (int i, Float sdVal, ref Float dirVal) =>
                     {
                         if (sdVal == 0)
@@ -305,7 +305,7 @@ namespace Microsoft.ML.Runtime.Numeric
             {
                 if (EnforceNonNegativity)
                 {
-                    VBufferUtils.ApplyInto(ref _x, ref _grad, ref _steepestDescDir,
+                    VBufferUtils.ApplyInto(in _x, in _grad, ref _steepestDescDir,
                         (ind, xVal, gradVal) =>
                         {
                             if (xVal > 0)
@@ -316,7 +316,7 @@ namespace Microsoft.ML.Runtime.Numeric
                     _steepestDescDir.CopyTo(ref _dir);
                 }
                 else
-                    VectorUtils.ScaleInto(ref _grad, -1, ref _dir);
+                    VectorUtils.ScaleInto(in _grad, -1, ref _dir);
 
                 MapDirByInverseHessian();
 
@@ -355,9 +355,9 @@ namespace Microsoft.ML.Runtime.Numeric
                     nextY = CreateWorkingVector();
                 }
 
-                VectorUtils.AddMultInto(ref _newX, -1, ref _x, ref nextS);
-                VectorUtils.AddMultInto(ref _newGrad, -1, ref _grad, ref nextY);
-                Float ro = VectorUtils.DotProduct(ref nextS, ref nextY);
+                VectorUtils.AddMultInto(in _newX, -1, in _x, ref nextS);
+                VectorUtils.AddMultInto(in _newGrad, -1, in _grad, ref nextY);
+                Float ro = VectorUtils.DotProduct(in nextS, in nextY);
                 if (ro == 0)
                     throw Ch.Process(new PrematureConvergenceException(this, "ro equals zero. Is your function linear?"));
 
@@ -381,7 +381,7 @@ namespace Microsoft.ML.Runtime.Numeric
             internal virtual bool LineSearch(IChannel ch, bool force)
             {
                 Contracts.AssertValue(ch);
-                Float dirDeriv = VectorUtils.DotProduct(ref _dir, ref _grad);
+                Float dirDeriv = VectorUtils.DotProduct(in _dir, in _grad);
 
                 if (dirDeriv == 0)
                     throw ch.Process(new PrematureConvergenceException(this, "Directional derivative is zero. You may be sitting on the optimum."));
@@ -402,7 +402,7 @@ namespace Microsoft.ML.Runtime.Numeric
                 // initial bracketing phase
                 while (true)
                 {
-                    VectorUtils.AddMultInto(ref _x, alpha, ref _dir, ref _newX);
+                    VectorUtils.AddMultInto(in _x, alpha, in _dir, ref _newX);
                     if (EnforceNonNegativity)
                     {
                         VBufferUtils.Apply(ref _newX, delegate(int ind, ref Float newXval)
@@ -423,7 +423,7 @@ namespace Microsoft.ML.Runtime.Numeric
                     if (!FloatUtils.IsFinite(Value))
                         throw ch.Except("Optimizer unable to proceed with loss function yielding {0}", Value);
 
-                    dirDeriv = VectorUtils.DotProduct(ref _dir, ref _newGrad);
+                    dirDeriv = VectorUtils.DotProduct(in _dir, in _newGrad);
                     PointValueDeriv curr = new PointValueDeriv(alpha, Value, dirDeriv);
 
                     if ((curr.V > LastValue + c1 * alpha) || (last.A > 0 && curr.V >= last.V))
@@ -483,7 +483,7 @@ namespace Microsoft.ML.Runtime.Numeric
                     if (alpha < lb)
                         alpha = lb;
 
-                    VectorUtils.AddMultInto(ref _x, alpha, ref _dir, ref _newX);
+                    VectorUtils.AddMultInto(in _x, alpha, in _dir, ref _newX);
                     if (EnforceNonNegativity)
                     {
                         VBufferUtils.Apply(ref _newX, delegate(int ind, ref Float newXval)
@@ -497,7 +497,7 @@ namespace Microsoft.ML.Runtime.Numeric
                     GradientCalculations++;
                     if (!FloatUtils.IsFinite(Value))
                         throw ch.Except("Optimizer unable to proceed with loss function yielding {0}", Value);
-                    dirDeriv = VectorUtils.DotProduct(ref _dir, ref _newGrad);
+                    dirDeriv = VectorUtils.DotProduct(in _dir, in _newGrad);
 
                     PointValueDeriv curr = new PointValueDeriv(alpha, Value, dirDeriv);
 

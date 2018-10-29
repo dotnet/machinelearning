@@ -406,7 +406,7 @@ namespace Microsoft.ML.Runtime.Data
                     {
                     }
 
-                    protected override void Copy(ref VBuffer<T> src, ref VBuffer<T> dst)
+                    protected override void Copy(in VBuffer<T> src, ref VBuffer<T> dst)
                     {
                         src.CopyTo(ref dst);
                     }
@@ -419,7 +419,7 @@ namespace Microsoft.ML.Runtime.Data
                     {
                     }
 
-                    protected override void Copy(ref T src, ref T dst)
+                    protected override void Copy(in T src, ref T dst)
                     {
                         dst = src;
                     }
@@ -452,10 +452,10 @@ namespace Microsoft.ML.Runtime.Data
                 public void Fetch(int idx, ref T value)
                 {
                     Contracts.Assert(0 <= idx && idx < Buffer.Length);
-                    Copy(ref Buffer[idx], ref value);
+                    Copy(in Buffer[idx], ref value);
                 }
 
-                protected abstract void Copy(ref T src, ref T dst);
+                protected abstract void Copy(in T src, ref T dst);
             }
 
             // The number of examples to have in each synchronization block. This should be >= 1.

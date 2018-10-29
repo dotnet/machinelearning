@@ -459,12 +459,12 @@ namespace Microsoft.ML.Runtime.Numeric
 
         private static Float QuadTest2D(ref VBuffer<Float> x, ref VBuffer<Float> grad, IProgressChannelProvider progress = null)
         {
-            Float d1 = VectorUtils.DotProduct(ref x, ref _c1);
-            Float d2 = VectorUtils.DotProduct(ref x, ref _c2);
-            Float d3 = VectorUtils.DotProduct(ref x, ref _c3);
+            Float d1 = VectorUtils.DotProduct(in x, in  _c1);
+            Float d2 = VectorUtils.DotProduct(in x, in  _c2);
+            Float d3 = VectorUtils.DotProduct(in x, in _c3);
             _c3.CopyTo(ref grad);
-            VectorUtils.AddMult(ref _c1, d1, ref grad);
-            VectorUtils.AddMult(ref _c2, d2, ref grad);
+            VectorUtils.AddMult(in _c1, d1, ref grad);
+            VectorUtils.AddMult(in _c2, d2, ref grad);
             return (Float)0.5 * (d1 * d1 + d2 * d2) + d3 + 55;
         }
 

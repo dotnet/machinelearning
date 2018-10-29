@@ -129,7 +129,7 @@ namespace Microsoft.ML.Trainers.Online
         protected Float AveragedMargin(ref VBuffer<Float> feat)
         {
             Contracts.Assert(Args.Averaged);
-            return (TotalBias + VectorUtils.DotProduct(ref feat, ref TotalWeights)) / (Float)NumWeightUpdates;
+            return (TotalBias + VectorUtils.DotProduct(in feat, in TotalWeights)) / (Float)NumWeightUpdates;
         }
 
         protected override Float Margin(ref VBuffer<Float> feat)
@@ -147,7 +147,7 @@ namespace Microsoft.ML.Trainers.Online
                 if (Args.DoLazyUpdates && NumNoUpdates > 0)
                 {
                     // Update the total weights to include the final loss=0 updates
-                    VectorUtils.AddMult(ref Weights, NumNoUpdates * WeightsScale, ref TotalWeights);
+                    VectorUtils.AddMult(in Weights, NumNoUpdates * WeightsScale, ref TotalWeights);
                     TotalBias += Bias * NumNoUpdates;
                     NumWeightUpdates += NumNoUpdates;
                     NumNoUpdates = 0;
@@ -162,7 +162,7 @@ namespace Microsoft.ML.Trainers.Online
                     Console.WriteLine("");
                     // #endif
                     ch.Info("Resetting weights to average weights");
-                    VectorUtils.ScaleInto(ref TotalWeights, 1 / (Float)NumWeightUpdates, ref Weights);
+                    VectorUtils.ScaleInto(in TotalWeights, 1 / (Float)NumWeightUpdates, ref Weights);
                     WeightsScale = 1;
                     Bias = TotalBias / (Float)NumWeightUpdates;
                 }
@@ -197,7 +197,7 @@ namespace Microsoft.ML.Trainers.Online
                 // If doing lazy weights, we need to update the totalWeights and totalBias before updating weights/bias
                 if (Args.DoLazyUpdates && Args.Averaged && NumNoUpdates > 0 && TotalMultipliers * Args.AveragedTolerance <= PendingMultipliers)
                 {
-                    VectorUtils.AddMult(ref Weights, NumNoUpdates * WeightsScale, ref TotalWeights);
+                    VectorUtils.AddMult(in Weights, NumNoUpdates * WeightsScale, ref TotalWeights);
                     TotalBias += Bias * NumNoUpdates * WeightsScale;
                     NumWeightUpdates += NumNoUpdates;
                     NumNoUpdates = 0;
@@ -218,7 +218,7 @@ namespace Microsoft.ML.Trainers.Online
                 Float biasUpdate = -rate * LossFunction.Derivative(output, label);
 
                 // Perform the update to weights and bias.
-                VectorUtils.AddMult(ref feat, biasUpdate / WeightsScale, ref Weights);
+                VectorUtils.AddMult(in feat, biasUpdate / WeightsScale, ref Weights);
                 WeightsScale *= 1 - 2 * Args.L2RegularizerWeight; // L2 regularization.
                 ScaleWeightsIfNeeded();
                 Bias += biasUpdate;
@@ -256,7 +256,7 @@ namespace Microsoft.ML.Trainers.Online
                     Console.WriteLine();
                     // #endif
                     ch.Info("Resetting weights to average weights");
-                    VectorUtils.ScaleInto(ref TotalWeights, 1 / (Float)NumWeightUpdates, ref Weights);
+                    VectorUtils.ScaleInto(in TotalWeights, 1 / (Float)NumWeightUpdates, ref Weights);
                     WeightsScale = 1;
                     Bias = TotalBias / (Float)NumWeightUpdates;
                 }
@@ -285,12 +285,12 @@ namespace Microsoft.ML.Trainers.Online
         {
             if (Args.RecencyGain == 0)
             {
-                VectorUtils.AddMult(ref Weights, WeightsScale, ref TotalWeights);
+                VectorUtils.AddMult(in Weights, WeightsScale, ref TotalWeights);
                 TotalBias += Bias;
                 NumWeightUpdates++;
                 return;
             }
-            VectorUtils.AddMult(ref Weights, Gain * WeightsScale, ref TotalWeights);
+            VectorUtils.AddMult(in Weights, Gain * WeightsScale, ref TotalWeights);
             TotalBias += Gain * Bias;
             NumWeightUpdates += Gain;
             Gain = (Args.RecencyGainMulti ? Gain * Args.RecencyGain : Gain + Args.RecencyGain);

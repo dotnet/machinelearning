@@ -44,7 +44,7 @@ namespace Microsoft.ML.Runtime.Data
         /// <summary>
         /// Updates the aggregate function with a value
         /// </summary>
-        void ProcessValue(ref T val);
+        void ProcessValue(in T val);
 
         /// <summary>
         /// Finishes the aggregation

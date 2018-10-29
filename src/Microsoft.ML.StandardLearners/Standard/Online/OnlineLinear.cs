@@ -148,7 +148,7 @@ namespace Microsoft.ML.Trainers.Online
                 }
 
                 Contracts.Assert(WeightsScale == 1);
-                Float maxNorm = Math.Max(VectorUtils.MaxNorm(ref Weights), Math.Abs(Bias));
+                Float maxNorm = Math.Max(VectorUtils.MaxNorm(in Weights), Math.Abs(Bias));
                 Contracts.Check(FloatUtils.IsFinite(maxNorm),
                     "The weights/bias contain invalid values (NaN or Infinite). Potential causes: high learning rates, no normalization, high initial weights, etc.");
             }
@@ -381,7 +381,7 @@ namespace Microsoft.ML.Trainers.Online
         /// </summary>
         protected Float CurrentMargin(ref VBuffer<Float> feat)
         {
-            return Bias + VectorUtils.DotProduct(ref feat, ref Weights) * WeightsScale;
+            return Bias + VectorUtils.DotProduct(in feat, in Weights) * WeightsScale;
         }
 
         protected virtual Float Margin(ref VBuffer<Float> feat)

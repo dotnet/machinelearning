@@ -118,7 +118,7 @@ namespace Microsoft.ML.Trainers.Online
         /// </summary>
         protected override Float Margin(ref VBuffer<Float> feat)
         {
-            return Bias + VectorUtils.DotProduct(ref feat, ref Weights) * WeightsScale;
+            return Bias + VectorUtils.DotProduct(in feat, in Weights) * WeightsScale;
         }
 
         private static SchemaShape.Column MakeLabelColumn(string labelColumn)
@@ -180,11 +180,11 @@ namespace Microsoft.ML.Trainers.Online
                 // Only aggregate in the case where we're handling multiple instances.
                 if (_weightsUpdate.Count == 0)
                 {
-                    VectorUtils.ScaleInto(ref feat, currentBiasUpdate, ref _weightsUpdate);
+                    VectorUtils.ScaleInto(in feat, currentBiasUpdate, ref _weightsUpdate);
                     _weightsUpdateScale = 1;
                 }
                 else
-                    VectorUtils.AddMult(ref feat, currentBiasUpdate, ref _weightsUpdate);
+                    VectorUtils.AddMult(in feat, currentBiasUpdate, ref _weightsUpdate);
             }
 
             if (++_numBatchExamples >= Args.BatchSize)
@@ -219,7 +219,7 @@ namespace Microsoft.ML.Trainers.Online
             // w_{t+1/2} = (1 - eta*lambda) w_t + eta/k * totalUpdate
             WeightsScale *= 1 - rate * Args.Lambda;
             ScaleWeightsIfNeeded();
-            VectorUtils.AddMult(ref weightsUpdate, rate * weightsUpdateScale / (_numBatchExamples * WeightsScale), ref Weights);
+            VectorUtils.AddMult(in weightsUpdate, rate * weightsUpdateScale / (_numBatchExamples * WeightsScale), ref Weights);
 
             Contracts.Assert(!Args.NoBias || Bias == 0);
             if (!Args.NoBias)

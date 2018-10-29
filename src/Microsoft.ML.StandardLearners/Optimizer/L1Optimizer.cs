@@ -104,18 +104,18 @@ namespace Microsoft.ML.Runtime.Numeric
                 if (!EnforceNonNegativity)
                 {
                     if (_biasCount > 0)
-                        VBufferUtils.ForEachDefined(ref input,
+                        VBufferUtils.ForEachDefined(in input,
                             (ind, value) => { if (ind >= _biasCount) res += Math.Abs(value); });
                     else
-                        VBufferUtils.ForEachDefined(ref input, (ind, value) => res += Math.Abs(value));
+                        VBufferUtils.ForEachDefined(in input, (ind, value) => res += Math.Abs(value));
                 }
                 else
                 {
                     if (_biasCount > 0)
-                        VBufferUtils.ForEachDefined(ref input,
+                        VBufferUtils.ForEachDefined(in input,
                             (ind, value) => { if (ind >= _biasCount) res += value; });
                     else
-                        VBufferUtils.ForEachDefined(ref input, (ind, value) => res += value);
+                        VBufferUtils.ForEachDefined(in input, (ind, value) => res += value);
                 }
                 res = _l1weight * res + _function(ref input, ref gradient, progress);
                 return res;
@@ -130,7 +130,7 @@ namespace Microsoft.ML.Runtime.Numeric
             {
                 if (!EnforceNonNegativity)
                 {
-                    VBufferUtils.ApplyInto(ref _x, ref _grad, ref _steepestDescDir,
+                    VBufferUtils.ApplyInto(in _x, in _grad, ref _steepestDescDir,
                         (ind, xVal, gradVal) =>
                         {
                             if (ind < _biasCount)
@@ -148,7 +148,7 @@ namespace Microsoft.ML.Runtime.Numeric
                 }
                 else
                 {
-                    VBufferUtils.ApplyInto(ref _x, ref _grad, ref _steepestDescDir,
+                    VBufferUtils.ApplyInto(in _x, in _grad, ref _steepestDescDir,
                         (ind, xVal, gradVal) =>
                         {
                             if (ind < _biasCount)
@@ -164,11 +164,11 @@ namespace Microsoft.ML.Runtime.Numeric
 
             private void GetNextPoint(Float alpha)
             {
-                VectorUtils.AddMultInto(ref _x, alpha, ref _dir, ref _newX);
+                VectorUtils.AddMultInto(in _x, alpha, in _dir, ref _newX);
 
                 if (!EnforceNonNegativity)
                 {
-                    VBufferUtils.ApplyWith(ref _x, ref _newX,
+                    VBufferUtils.ApplyWith(in _x, ref _newX,
                         delegate(int ind, Float xVal, ref Float newXval)
                         {
                             if (xVal*newXval < 0.0 && ind >= _biasCount)
@@ -197,7 +197,7 @@ namespace Microsoft.ML.Runtime.Numeric
             /// </summary>
             internal override bool LineSearch(IChannel ch, bool force)
             {
-                Float dirDeriv = -VectorUtils.DotProduct(ref _dir, ref _steepestDescDir);
+                Float dirDeriv = -VectorUtils.DotProduct(in _dir, in _steepestDescDir);
 
                 if (dirDeriv == 0)
                     throw ch.Process(new PrematureConvergenceException(this, "Directional derivative is zero. You may be sitting on the optimum."));
@@ -209,10 +209,10 @@ namespace Microsoft.ML.Runtime.Numeric
 
                 Float alpha = (Iter == 1 ? (1 / VectorUtils.Norm(_dir)) : 1);
                 GetNextPoint(alpha);
-                Float unnormCos = VectorUtils.DotProduct(ref _steepestDescDir, ref _newX) - VectorUtils.DotProduct(ref _steepestDescDir, ref _x);
+                Float unnormCos = VectorUtils.DotProduct(in _steepestDescDir, in _newX) - VectorUtils.DotProduct(in _steepestDescDir, in _x);
                 if (unnormCos < 0)
                 {
-                    VBufferUtils.ApplyWith(ref _steepestDescDir, ref _dir,
+                    VBufferUtils.ApplyWith(in _steepestDescDir, ref _dir,
                         (int ind, Float sdVal, ref Float dirVal) =>
                         {
                             if (sdVal * dirVal < 0 && ind >= _biasCount)
@@ -220,7 +220,7 @@ namespace Microsoft.ML.Runtime.Numeric
                         });
 
                     GetNextPoint(alpha);
-                    unnormCos = VectorUtils.DotProduct(ref _steepestDescDir, ref _newX) - VectorUtils.DotProduct(ref _steepestDescDir, ref _x);
+                    unnormCos = VectorUtils.DotProduct(in _steepestDescDir, in _newX) - VectorUtils.DotProduct(in _steepestDescDir, in _x);
                 }
 
                 int i = 0;
@@ -240,7 +240,7 @@ namespace Microsoft.ML.Runtime.Numeric
 
                     alpha *= (Float)0.25;
                     GetNextPoint(alpha);
-                    unnormCos = VectorUtils.DotProduct(ref _steepestDescDir, ref _newX) - VectorUtils.DotProduct(ref _steepestDescDir, ref _x);
+                    unnormCos = VectorUtils.DotProduct(in _steepestDescDir, in _newX) - VectorUtils.DotProduct(in _steepestDescDir, in _x);
                 }
             }
         }

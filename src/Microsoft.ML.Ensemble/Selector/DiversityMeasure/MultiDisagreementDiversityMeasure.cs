@@ -20,7 +20,7 @@ namespace Microsoft.ML.Runtime.Ensemble.Selector.DiversityMeasure
 
         protected override Single GetDifference(ref VBuffer<Single> valueX, ref VBuffer<Single> valueY)
         {
-            return (VectorUtils.ArgMax(ref valueX) != VectorUtils.ArgMax(ref valueY)) ? 1 : 0;
+            return (VectorUtils.ArgMax(in valueX) != VectorUtils.ArgMax(in valueY)) ? 1 : 0;
         }
     }
 }

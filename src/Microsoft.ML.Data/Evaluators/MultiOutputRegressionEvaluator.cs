@@ -323,7 +323,7 @@ namespace Microsoft.ML.Runtime.Data
                 _scoreGetter(ref _score);
                 Contracts.Check(_score.Length == _size);
 
-                if (VBufferUtils.HasNaNs(ref _score))
+                if (VBufferUtils.HasNaNs(in _score))
                 {
                     NumBadScores++;
                     return;
@@ -517,7 +517,7 @@ namespace Microsoft.ML.Runtime.Data
                     (ref double dst) =>
                     {
                         updateCacheIfNeeded();
-                        dst = VectorUtils.L1Distance(ref label, ref score);
+                        dst = VectorUtils.L1Distance(in label, in score);
                     };
                 getters[L1Output] = l1Fn;
             }
@@ -527,7 +527,7 @@ namespace Microsoft.ML.Runtime.Data
                     (ref double dst) =>
                     {
                         updateCacheIfNeeded();
-                        dst = VectorUtils.L2DistSquared(ref label, ref score);
+                        dst = VectorUtils.L2DistSquared(in label, in score);
                     };
                 getters[L2Output] = l2Fn;
             }
@@ -537,7 +537,7 @@ namespace Microsoft.ML.Runtime.Data
                     (ref double dst) =>
                     {
                         updateCacheIfNeeded();
-                        dst = MathUtils.Sqrt(VectorUtils.L2DistSquared(ref label, ref score));
+                        dst = MathUtils.Sqrt(VectorUtils.L2DistSquared(in label, in score));
                     };
                 getters[DistCol] = distFn;
             }

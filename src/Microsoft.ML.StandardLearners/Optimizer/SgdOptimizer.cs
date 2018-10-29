@@ -193,15 +193,15 @@ namespace Microsoft.ML.Runtime.Numeric
                 for (int i = 0; i < _batchSize; ++i)
                 {
                     f(ref x, ref grad);
-                    VectorUtils.AddMult(ref grad, scale, ref step);
+                    VectorUtils.AddMult(in grad, scale, ref step);
                 }
 
                 if (_averaging)
                 {
                     Utils.Swap(ref avg, ref prev);
                     VectorUtils.ScaleBy(prev, ref avg, (Float)n / (n + 1));
-                    VectorUtils.AddMult(ref step, -stepSize, ref x);
-                    VectorUtils.AddMult(ref x, (Float)1 / (n + 1), ref avg);
+                    VectorUtils.AddMult(in step, -stepSize, ref x);
+                    VectorUtils.AddMult(in x, (Float)1 / (n + 1), ref avg);
 
                     if ((n > 0 && TerminateTester.ShouldTerminate(ref avg, ref prev)) || _terminate(ref avg))
                     {
@@ -212,7 +212,7 @@ namespace Microsoft.ML.Runtime.Numeric
                 else
                 {
                     Utils.Swap(ref x, ref prev);
-                    VectorUtils.AddMult(ref step, -stepSize, ref prev, ref x);
+                    VectorUtils.AddMult(in step, -stepSize, ref prev, ref x);
                     if ((n > 0 && TerminateTester.ShouldTerminate(ref x, ref prev)) || _terminate(ref x))
                     {
                         result = x;
@@ -300,7 +300,7 @@ namespace Microsoft.ML.Runtime.Numeric
 
             private DifferentiableFunction _func;
 
-            public Float Deriv => VectorUtils.DotProduct(ref _dir, ref _grad);
+            public Float Deriv => VectorUtils.DotProduct(in _dir, in _grad);
 
             public LineFunc(DifferentiableFunction function, ref VBuffer<Float> initial, bool useCG = false)
             {
@@ -310,16 +310,16 @@ namespace Microsoft.ML.Runtime.Numeric
                 _func = function;
                 // REVIEW: plumb the IProgressChannelProvider through.
                 _value = _func(ref _point, ref _grad, null);
-                VectorUtils.ScaleInto(ref _grad, -1, ref _dir);
+                VectorUtils.ScaleInto(in _grad, -1, ref _dir);
 
                 _useCG = useCG;
             }
 
             public Float Eval(Float step, out Float deriv)
             {
-                VectorUtils.AddMultInto(ref _point, step, ref _dir, ref _newPoint);
+                VectorUtils.AddMultInto(in _point, step, in _dir, ref _newPoint);
                 _newValue = _func(ref _newPoint, ref _newGrad, null);
-                deriv = VectorUtils.DotProduct(ref _dir, ref _newGrad);
+                deriv = VectorUtils.DotProduct(in _dir, in _newGrad);
                 return _newValue;
             }
 
@@ -328,15 +328,15 @@ namespace Microsoft.ML.Runtime.Numeric
                 if (_useCG)
                 {
                     Float newByNew = VectorUtils.NormSquared(_newGrad);
-                    Float newByOld = VectorUtils.DotProduct(ref _newGrad, ref _grad);
+                    Float newByOld = VectorUtils.DotProduct(in _newGrad, in _grad);
                     Float oldByOld = VectorUtils.NormSquared(_grad);
                     Float betaPR = (newByNew - newByOld) / oldByOld;
                     Float beta = Math.Max(0, betaPR);
                     VectorUtils.ScaleBy(ref _dir, beta);
-                    VectorUtils.AddMult(ref _newGrad, -1, ref _dir);
+                    VectorUtils.AddMult(in _newGrad, -1, ref _dir);
                 }
                 else
-                    VectorUtils.ScaleInto(ref _newGrad, -1, ref _dir);
+                    VectorUtils.ScaleInto(in _newGrad, -1, ref _dir);
                 _newPoint.CopyTo(ref _point);
                 _newGrad.CopyTo(ref _grad);
                 _value = _newValue;

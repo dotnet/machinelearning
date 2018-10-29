@@ -41,7 +41,7 @@ namespace Microsoft.ML.Runtime.Learners
             int numNonZeroWeights = 0;
             writer.Write(codeVariable);
             writer.Write(" = ");
-            VBufferUtils.ForEachDefined(ref weights,
+            VBufferUtils.ForEachDefined(in weights,
                 (idx, value) =>
                 {
                     if (Math.Abs(value - 0) >= Epsilon)
@@ -108,7 +108,7 @@ namespace Microsoft.ML.Runtime.Learners
 
             int numNonZeroWeights = 0;
             const string weightsSep = "\t";
-            VBufferUtils.ForEachDefined(ref weights,
+            VBufferUtils.ForEachDefined(in weights,
                 (idx, value) =>
                 {
                     if (Math.Abs(value - 0) >= Epsilon)

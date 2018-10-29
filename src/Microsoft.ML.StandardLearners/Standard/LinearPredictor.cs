@@ -251,10 +251,10 @@ namespace Microsoft.ML.Runtime.Learners
             if (src.IsDense)
             {
                 var weights = Weight;
-                return Bias + VectorUtils.DotProduct(ref weights, ref src);
+                return Bias + VectorUtils.DotProduct(in weights, in src);
             }
             EnsureWeightsDense();
-            return Bias + VectorUtils.DotProduct(ref _weightsDense, ref src);
+            return Bias + VectorUtils.DotProduct(in _weightsDense, in src);
         }
 
         protected virtual void GetFeatureContributions(ref VBuffer<Float> features, ref VBuffer<Float> contributions, int top, int bottom, bool normalize)
@@ -263,8 +263,8 @@ namespace Microsoft.ML.Runtime.Learners
                 throw Contracts.Except("Input is of length {0} does not match expected length  of weights {1}", features.Length, Weight.Length);
 
             var weights = Weight;
-            VBuffer<Float>.Copy(ref features, ref contributions);
-            VectorUtils.MulElementWise(ref weights, ref contributions);
+            features.CopyTo(ref contributions);
+            VectorUtils.MulElementWise(in weights, ref contributions);
             VectorUtils.SparsifyNormalize(ref contributions, top, bottom, normalize);
         }
 
@@ -317,7 +317,7 @@ namespace Microsoft.ML.Runtime.Learners
 
                 var sub = (LinearPredictor)m;
                 var subweights = sub.Weight;
-                VectorUtils.Add(ref subweights, ref weights);
+                VectorUtils.Add(in subweights, ref weights);
                 bias += sub.Bias;
             }
             VectorUtils.ScaleBy(ref weights, (Float)1 / models.Count);

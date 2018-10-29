@@ -707,7 +707,7 @@ namespace Microsoft.ML.Runtime.Data
                         for (int i = 0; i < _values.Count; ++i)
                         {
                             T val = _values.GetItem(i);
-                            writer.Write(ref val);
+                            writer.Write(in val);
                         }
                         writer.Commit();
                     }
@@ -770,7 +770,7 @@ namespace Microsoft.ML.Runtime.Data
             public abstract void GetTerms(ref VBuffer<T> dst);
         }
 
-        private static void GetTextTerms<T>(ref VBuffer<T> src, ValueMapper<T, StringBuilder> stringMapper, ref VBuffer<ReadOnlyMemory<char>> dst)
+        private static void GetTextTerms<T>(in VBuffer<T> src, ValueMapper<T, StringBuilder> stringMapper, ref VBuffer<ReadOnlyMemory<char>> dst)
         {
             // REVIEW: This convenience function is not optimized. For non-string
             // types, creating a whole bunch of string objects on the heap is one that is
@@ -1054,7 +1054,7 @@ namespace Microsoft.ML.Runtime.Data
                                 // No buffer sharing convenient here.
                                 VBuffer<T> dstT = default;
                                 TypedMap.GetTerms(ref dstT);
-                                GetTextTerms(ref dstT, stringMapper, ref dst);
+                                GetTextTerms(in dstT, stringMapper, ref dst);
                             };
                         builder.AddKeyValues(TypedMap.OutputType.KeyCount, TextType.Instance, getter);
                     }
@@ -1146,7 +1146,7 @@ namespace Microsoft.ML.Runtime.Data
                                 var tempMeta = default(VBuffer<TMeta>);
                                 getter(ref tempMeta);
                                 Contracts.Assert(tempMeta.IsDense);
-                                GetTextTerms(ref tempMeta, stringMapper, ref dst);
+                                GetTextTerms(in tempMeta, stringMapper, ref dst);
                                 _host.Assert(dst.Length == TypedMap.OutputType.KeyCount);
                             };
                         builder.AddKeyValues(TypedMap.OutputType.KeyCount, TextType.Instance, mgetter);

@@ -305,7 +305,7 @@ namespace Microsoft.ML.Runtime.Learners
                 {
                     if (++numExamples % 1000 != 0)
                         return false;
-                    VectorUtils.AddMult(ref x, -1, ref oldWeights);
+                    VectorUtils.AddMult(in x, -1, ref oldWeights);
                     float normDiff = VectorUtils.Norm(oldWeights);
                     x.CopyTo(ref oldWeights);
                     // #if OLD_TRACING // REVIEW: How should this be ported?
@@ -556,7 +556,7 @@ namespace Microsoft.ML.Runtime.Learners
             int numParams = BiasCount;
             if ((L1Weight > 0 && !Quiet) || ShowTrainingStats)
             {
-                VBufferUtils.ForEachDefined(ref CurrentWeights, (index, value) => { if (index >= BiasCount && value != 0) numParams++; });
+                VBufferUtils.ForEachDefined(in CurrentWeights, (index, value) => { if (index >= BiasCount && value != 0) numParams++; });
                 if (L1Weight > 0 && !Quiet)
                     ch.Info("L1 regularization selected {0} of {1} weights.", numParams, BiasCount + WeightCount);
             }
@@ -623,7 +623,7 @@ namespace Microsoft.ML.Runtime.Learners
                 regLoss = (float)(r * L2Weight * 0.5);
 
                 // Here we probably want to use sparse x
-                VBufferUtils.ApplyWithEitherDefined(ref x, ref gradient,
+                VBufferUtils.ApplyWithEitherDefined(in x, ref gradient,
                     (int ind, float v1, ref float v2) => { if (ind >= BiasCount) v2 += L2Weight * v1; });
             }
             VectorUtils.ScaleBy(ref gradient, scaleFactor);
@@ -666,7 +666,7 @@ namespace Microsoft.ML.Runtime.Learners
             float loss = _localLosses[0];
             for (int i = 1; i < _numChunks; i++)
             {
-                VectorUtils.Add(ref _localGradients[i - 1], ref gradient);
+                VectorUtils.Add(in _localGradients[i - 1], ref gradient);
                 loss += _localLosses[i];
             }
             return loss;
