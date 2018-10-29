@@ -11768,12 +11768,12 @@ namespace Microsoft.ML
             /// <summary>
             /// Specifies whether to keep or remove hidden columns.
             /// </summary>
-            public bool KeepHidden { get; set; } = true;
+            public bool KeepHidden { get; set; } = false;
 
             /// <summary>
             /// Specifies whether to ignore columns that are missing from the input.
             /// </summary>
-            public bool IgnoreMissing { get; set; } = true;
+            public bool IgnoreMissing { get; set; } = false;
 
             /// <summary>
             /// Input dataset

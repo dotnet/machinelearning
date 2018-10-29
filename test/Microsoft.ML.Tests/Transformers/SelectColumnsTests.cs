@@ -31,6 +31,14 @@ namespace Microsoft.ML.Tests
             public int D;
             public int E;
         }
+        class TestClass3
+        {
+            public string Label;
+            public string Features;
+            public int A;
+            public int B;
+            public int C;
+        };
 
         public SelectColumnsTransformsTests(ITestOutputHelper output) : base(output)
         {
@@ -95,7 +103,7 @@ namespace Microsoft.ML.Tests
             TestEstimatorCore(est, validFitInput: dataView, invalidInput: invalidDataView);
 
             // Workout on keep columns with ignore mismatch -- using invalid data set
-            est = new SelectColumnsEstimator(Env,  null, new[] {"A", "B"}, true);
+            est = new SelectColumnsEstimator(Env, new[] {"A", "B"}, null, true, true);
             TestEstimatorCore(est, validFitInput: invalidDataView);
         }
 
@@ -222,40 +230,56 @@ namespace Microsoft.ML.Tests
         [Fact]
         void TestSelectBackCompatDropColumns()
         {
-            var data = new[] { new TestClass() { A = 1, B = 2, C = 3, }, new TestClass() { A = 4, B = 5, C = 6 } };
+            // Model generated with: xf=drop{col=A} 
+            // Expected output: Features Label B C
+            var data = new[] { new TestClass3() { Label="foo", Features="bar", A = 1, B = 2, C = 3, } };
             var dataView = ComponentCreation.CreateDataView(Env, data);
             string dropModelPath = GetDataPath("backcompat/drop-model.zip");
             using (FileStream fs = File.OpenRead(dropModelPath))
             {
                 var result = ModelFileUtils.LoadTransforms(Env, dataView, fs);
+                var foundColumnFeature = result.Schema.TryGetColumnIndex("Features", out int featureIdx);
+                var foundColumnLabel = result.Schema.TryGetColumnIndex("Label", out int labelIdx);
                 var foundColumnA = result.Schema.TryGetColumnIndex("A", out int aIdx);
                 var foundColumnB = result.Schema.TryGetColumnIndex("B", out int bIdx);
                 var foundColumnC = result.Schema.TryGetColumnIndex("C", out int cIdx);
+                Assert.True(foundColumnLabel);
+                Assert.Equal(0, labelIdx);
+                Assert.True(foundColumnFeature);
+                Assert.Equal(1, featureIdx);
                 Assert.False(foundColumnA);
                 Assert.Equal(0, aIdx);
                 Assert.True(foundColumnB);
-                Assert.Equal(0, bIdx);
+                Assert.Equal(2, bIdx);
                 Assert.True(foundColumnC);
-                Assert.Equal(1, cIdx);
+                Assert.Equal(3, cIdx);
             }
         }
 
         [Fact]
         void TestSelectBackCompatKeepColumns()
         {
-            var data = new[] { new TestClass() { A = 1, B = 2, C = 3, }, new TestClass() { A = 4, B = 5, C = 6 } };
+            // Model generated with: xf=keep{col=Label col=Features col=A col=B}
+            // Expected output: Label Features A B
+            var data = new[] { new TestClass3() { Label="foo", Features="bar", A = 1, B = 2, C = 3, } };
             var dataView = ComponentCreation.CreateDataView(Env, data);
             string dropModelPath = GetDataPath("backcompat/keep-model.zip");
             using (FileStream fs = File.OpenRead(dropModelPath))
             {
                 var result = ModelFileUtils.LoadTransforms(Env, dataView, fs);
+                var foundColumnFeature = result.Schema.TryGetColumnIndex("Features", out int featureIdx);
+                var foundColumnLabel = result.Schema.TryGetColumnIndex("Label", out int labelIdx);
                 var foundColumnA = result.Schema.TryGetColumnIndex("A", out int aIdx);
                 var foundColumnB = result.Schema.TryGetColumnIndex("B", out int bIdx);
                 var foundColumnC = result.Schema.TryGetColumnIndex("C", out int cIdx);
+                Assert.True(foundColumnLabel);
+                Assert.Equal(0, labelIdx);
+                Assert.True(foundColumnFeature);
+                Assert.Equal(1, featureIdx);
                 Assert.True(foundColumnA);
-                Assert.Equal(0, aIdx);
+                Assert.Equal(2, aIdx);
                 Assert.True(foundColumnB);
-                Assert.Equal(1, bIdx);
+                Assert.Equal(3, bIdx);
                 Assert.False(foundColumnC);
                 Assert.Equal(0, cIdx);
             }
@@ -264,19 +288,27 @@ namespace Microsoft.ML.Tests
         [Fact]
         void TestSelectBackCompatChooseColumns()
         {
-            var data = new[] { new TestClass() { A = 1, B = 2, C = 3, }, new TestClass() { A = 4, B = 5, C = 6 } };
+            // Model generated with: xf=choose{col=Label col=Features col=A col=B}
+            // Output expected is Label Features A B
+            var data = new[] { new TestClass3() { Label="foo", Features="bar", A = 1, B = 2, C = 3, } };
             var dataView = ComponentCreation.CreateDataView(Env, data);
             string dropModelPath = GetDataPath("backcompat/choose-model.zip");
             using (FileStream fs = File.OpenRead(dropModelPath))
             {
                 var result = ModelFileUtils.LoadTransforms(Env, dataView, fs);
+                var foundColumnFeature = result.Schema.TryGetColumnIndex("Features", out int featureIdx);
+                var foundColumnLabel = result.Schema.TryGetColumnIndex("Label", out int labelIdx);
                 var foundColumnA = result.Schema.TryGetColumnIndex("A", out int aIdx);
                 var foundColumnB = result.Schema.TryGetColumnIndex("B", out int bIdx);
                 var foundColumnC = result.Schema.TryGetColumnIndex("C", out int cIdx);
+                Assert.True(foundColumnLabel);
+                Assert.Equal(0, labelIdx);
+                Assert.True(foundColumnFeature);
+                Assert.Equal(1, featureIdx);
                 Assert.True(foundColumnA);
-                Assert.Equal(0, aIdx);
+                Assert.Equal(2, aIdx);
                 Assert.True(foundColumnB);
-                Assert.Equal(1, bIdx);
+                Assert.Equal(3, bIdx);
                 Assert.False(foundColumnC);
                 Assert.Equal(0, cIdx);
             }
@@ -286,21 +318,27 @@ namespace Microsoft.ML.Tests
         void TestSelectBackCompatChooseColumnsWithKeep()
         {
             // Model generated with: xf=copy{col=A:A col=B:B} xf=choose{col=Label col=Features col=A col=B hidden=keep}
-            // Output expected is AABB
-            var data = new[] { new TestClass() { A = 1, B = 2, C = 3, }, new TestClass() { A = 4, B = 5, C = 6 } };
+            // Output expected is Label Features A A B B
+            var data = new[] { new TestClass3() { Label="foo", Features="bar", A = 1, B = 2, C = 3, } };
             var dataView = ComponentCreation.CreateDataView(Env, data);
             string chooseModelPath = GetDataPath("backcompat/choose-keep-model.zip");
             using (FileStream fs = File.OpenRead(chooseModelPath))
             {
                 var result = ModelFileUtils.LoadTransforms(Env, dataView, fs);
-                Assert.Equal(4, result.Schema.ColumnCount);
+                Assert.Equal(6, result.Schema.ColumnCount);
+                var foundColumnFeature = result.Schema.TryGetColumnIndex("Features", out int featureIdx);
+                var foundColumnLabel = result.Schema.TryGetColumnIndex("Label", out int labelIdx);
                 var foundColumnA = result.Schema.TryGetColumnIndex("A", out int aIdx);
                 var foundColumnB = result.Schema.TryGetColumnIndex("B", out int bIdx);
                 var foundColumnC = result.Schema.TryGetColumnIndex("C", out int cIdx);
+                Assert.True(foundColumnLabel);
+                Assert.Equal(0, labelIdx);
+                Assert.True(foundColumnFeature);
+                Assert.Equal(1, featureIdx);
                 Assert.True(foundColumnA);
-                Assert.Equal(1, aIdx);
+                Assert.Equal(3, aIdx);
                 Assert.True(foundColumnB);
-                Assert.Equal(3, bIdx);
+                Assert.Equal(5, bIdx);
                 Assert.False(foundColumnC);
                 Assert.Equal(0, cIdx);
             }

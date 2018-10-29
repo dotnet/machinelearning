@@ -61,8 +61,8 @@ namespace Microsoft.ML.Transforms
         ///     or <paramref name="dropColumns"/> that are missing from the input. If a missing colums exists a
         ///     SchemaMistmatch exception is thrown. If true, the check is not made.</param>
         public SelectColumnsEstimator(IHostEnvironment env, string[] keepColumns,
-                                    string[] dropColumns, bool keepHidden = true,
-                                    bool ignoreMissing= true)
+                                    string[] dropColumns, bool keepHidden = false,
+                                    bool ignoreMissing= false)
             : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(SelectColumnsEstimator)),
                   new SelectColumnsTransform(env, keepColumns, dropColumns, keepHidden, ignoreMissing))
         {
@@ -179,14 +179,14 @@ namespace Microsoft.ML.Transforms
             public string[] DropColumns;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Specifies whether to keep or remove hidden columns.", ShortName = "hidden", SortOrder = 3)]
-            public bool KeepHidden = true;
+            public bool KeepHidden = false;
 
             [Argument(ArgumentType.AtMostOnce, HelpText = "Specifies whether to ignore columns that are missing from the input.", ShortName = "ignore", SortOrder = 4)]
-            public bool IgnoreMissing = true;
+            public bool IgnoreMissing = false;
         }
 
         public SelectColumnsTransform(IHostEnvironment env, string[] keepColumns, string[] dropColumns,
-                                        bool keepHidden=true, bool ignoreMissing=true)
+                                        bool keepHidden=false, bool ignoreMissing=false)
         {
             _host = Contracts.CheckRef(env, nameof(env)).Register(nameof(SelectColumnsTransform));
             _host.CheckValueOrNull(keepColumns);
@@ -386,24 +386,20 @@ namespace Microsoft.ML.Transforms
 
         public static IDataTransform CreateKeep(IHostEnvironment env, IDataView input, params string[] keepColumns)
         {
-            Arguments args = new Arguments();
-            args.KeepColumns = keepColumns;
-            return SelectColumnsTransform.Create(env, args, input);
+            var transform = new SelectColumnsTransform(env, keepColumns, null);
+            return new SelectColumnsDataTransform(env, transform, new Mapper(transform, input.Schema), input);
         }
 
         public static IDataTransform CreateKeep(IHostEnvironment env, IDataView input, bool keepHidden, params string[] keepColumns)
         {
-            Arguments args = new Arguments();
-            args.KeepColumns = keepColumns;
-            args.KeepHidden = keepHidden;
-            return SelectColumnsTransform.Create(env, args, input);
+            var transform = new SelectColumnsTransform(env, keepColumns, null, keepHidden);
+            return new SelectColumnsDataTransform(env, transform, new Mapper(transform, input.Schema), input);
         }
 
         public static IDataTransform CreateDrop(IHostEnvironment env, IDataView input, params string[] dropColumns)
         {
-            Arguments args = new Arguments();
-            args.DropColumns = dropColumns;
-            return SelectColumnsTransform.Create(env, args, input);
+            var transform = new SelectColumnsTransform(env, null, dropColumns);
+            return new SelectColumnsDataTransform(env, transform, new Mapper(transform, input.Schema), input);
         }
 
         // Factory method for SignatureDataTransform.
