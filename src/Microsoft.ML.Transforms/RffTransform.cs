@@ -561,7 +561,7 @@ namespace Microsoft.ML.Transforms
                     (ref VBuffer<float> dst) =>
                     {
                         getSrc(ref src);
-                        TransformFeatures(ref src, ref dst, _parent._transformInfos[iinfo], featuresAligned, productAligned);
+                        TransformFeatures(in src, ref dst, _parent._transformInfos[iinfo], featuresAligned, productAligned);
                     };
             }
 
@@ -580,11 +580,11 @@ namespace Microsoft.ML.Transforms
                     {
                         getSrc(ref src);
                         oneDimensionalVector.Values[0] = src;
-                        TransformFeatures(ref oneDimensionalVector, ref dst, _parent._transformInfos[iinfo], featuresAligned, productAligned);
+                        TransformFeatures(in oneDimensionalVector, ref dst, _parent._transformInfos[iinfo], featuresAligned, productAligned);
                     };
             }
 
-            private void TransformFeatures(ref VBuffer<float> src, ref VBuffer<float> dst, TransformInfo transformInfo,
+            private void TransformFeatures(in VBuffer<float> src, ref VBuffer<float> dst, TransformInfo transformInfo,
                 AlignedArray featuresAligned, AlignedArray productAligned)
             {
                 Host.Check(src.Length == transformInfo.SrcDim, "column does not have the expected dimensionality.");

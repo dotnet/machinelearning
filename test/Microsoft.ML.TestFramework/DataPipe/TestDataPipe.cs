@@ -230,7 +230,7 @@ namespace Microsoft.ML.Runtime.RunTests
                             {
                                 getters[i](ref v1);
                                 getters[i + 1](ref v2);
-                                Check(CompareVec(ref v1, ref v2, v1.Length, fn), "Mismatch");
+                                Check(CompareVec(in v1, in v2, v1.Length, fn), "Mismatch");
                             }
                         }
                     }

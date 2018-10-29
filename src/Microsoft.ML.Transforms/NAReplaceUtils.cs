@@ -160,10 +160,10 @@ namespace Microsoft.ML.Runtime.Data
             {
                 _rowCount++;
                 _getter(ref _val);
-                ProcessRow(ref _val);
+                ProcessRow(in _val);
             }
 
-            protected abstract void ProcessRow(ref TValue val);
+            protected abstract void ProcessRow(in TValue val);
         }
 
         private abstract class StatAggregatorAcrossSlots<TItem, TStat> : StatAggregator<VBuffer<TItem>, TStat>
@@ -181,19 +181,19 @@ namespace Microsoft.ML.Runtime.Data
             {
             }
 
-            protected sealed override void ProcessRow(ref VBuffer<TItem> src)
+            protected sealed override void ProcessRow(in VBuffer<TItem> src)
             {
                 var srcCount = src.Count;
                 var srcValues = src.Values;
                 Ch.Assert(Utils.Size(srcValues) >= srcCount);
 
                 for (int slot = 0; slot < srcCount; slot++)
-                    ProcessValue(ref srcValues[slot]);
+                    ProcessValue(in srcValues[slot]);
 
                 _valueCount = _valueCount + (ulong)src.Length;
             }
 
-            protected abstract void ProcessValue(ref TItem val);
+            protected abstract void ProcessValue(in TItem val);
         }
 
         private abstract class StatAggregatorBySlot<TItem, TStatItem> : StatAggregator<VBuffer<TItem>, TStatItem[]>
@@ -206,7 +206,7 @@ namespace Microsoft.ML.Runtime.Data
                 Stat = new TStatItem[type.VectorSize];
             }
 
-            protected sealed override void ProcessRow(ref VBuffer<TItem> src)
+            protected sealed override void ProcessRow(in VBuffer<TItem> src)
             {
                 var srcCount = src.Count;
                 var srcValues = src.Values;
@@ -215,7 +215,7 @@ namespace Microsoft.ML.Runtime.Data
                 {
                     // The src vector is dense.
                     for (int slot = 0; slot < srcCount; slot++)
-                        ProcessValue(ref srcValues[slot], slot);
+                        ProcessValue(in srcValues[slot], slot);
                 }
                 else
                 {
@@ -223,17 +223,17 @@ namespace Microsoft.ML.Runtime.Data
                     var srcIndices = src.Indices;
                     Ch.Assert(Utils.Size(srcIndices) >= srcCount);
                     for (int islot = 0; islot < srcCount; islot++)
-                        ProcessValue(ref srcValues[islot], srcIndices[islot]);
+                        ProcessValue(in srcValues[islot], srcIndices[islot]);
                 }
             }
 
-            protected abstract void ProcessValue(ref TItem val, int slot);
+            protected abstract void ProcessValue(in TItem val, int slot);
         }
 
         private abstract class MinMaxAggregatorOne<TValue, TStat> : StatAggregator<TValue, TStat>
         {
             protected readonly bool ReturnMax;
-            private delegate void ProcessValueDelegate(ref TValue val);
+            private delegate void ProcessValueDelegate(in TValue val);
             private readonly ProcessValueDelegate _processValueDelegate;
 
             protected MinMaxAggregatorOne(IChannel ch, IRowCursor cursor, int col, bool returnMax)
@@ -246,9 +246,9 @@ namespace Microsoft.ML.Runtime.Data
                     _processValueDelegate = ProcessValueMin;
             }
 
-            protected override void ProcessRow(ref TValue val)
+            protected override void ProcessRow(in TValue val)
             {
-                _processValueDelegate(ref val);
+                _processValueDelegate(in val);
             }
 
             public override object GetStat()
@@ -256,14 +256,14 @@ namespace Microsoft.ML.Runtime.Data
                 return Stat;
             }
 
-            protected abstract void ProcessValueMin(ref TValue val);
-            protected abstract void ProcessValueMax(ref TValue val);
+            protected abstract void ProcessValueMin(in TValue val);
+            protected abstract void ProcessValueMax(in TValue val);
         }
 
         private abstract class MinMaxAggregatorAcrossSlots<TItem, TStat> : StatAggregatorAcrossSlots<TItem, TStat>
         {
             protected readonly bool ReturnMax;
-            protected delegate void ProcessValueDelegate(ref TItem val);
+            protected delegate void ProcessValueDelegate(in TItem val);
             protected readonly ProcessValueDelegate ProcValueDelegate;
             // The count of the number of times ProcessValue has been called (used for tracking sparsity).
             private long _valuesProcessed;
@@ -283,20 +283,20 @@ namespace Microsoft.ML.Runtime.Data
                     ProcValueDelegate = ProcessValueMin;
             }
 
-            protected override void ProcessValue(ref TItem val)
+            protected override void ProcessValue(in TItem val)
             {
                 _valuesProcessed = _valuesProcessed + 1;
-                ProcValueDelegate(ref val);
+                ProcValueDelegate(in val);
             }
 
-            protected abstract void ProcessValueMin(ref TItem val);
-            protected abstract void ProcessValueMax(ref TItem val);
+            protected abstract void ProcessValueMin(in TItem val);
+            protected abstract void ProcessValueMax(in TItem val);
         }
 
         private abstract class MinMaxAggregatorBySlot<TItem, TStatItem> : StatAggregatorBySlot<TItem, TStatItem>
         {
             protected readonly bool ReturnMax;
-            protected delegate void ProcessValueDelegate(ref TItem val, int slot);
+            protected delegate void ProcessValueDelegate(in TItem val, int slot);
             protected readonly ProcessValueDelegate ProcValueDelegate;
             // The count of the number of times ProcessValue has been called on a specific slot (used for tracking sparsity).
             private readonly long[] _valuesProcessed;
@@ -315,11 +315,11 @@ namespace Microsoft.ML.Runtime.Data
                 _valuesProcessed = new long[type.VectorSize];
             }
 
-            protected override void ProcessValue(ref TItem val, int slot)
+            protected override void ProcessValue(in TItem val, int slot)
             {
                 Ch.Assert(0 <= slot && slot < Stat.Length);
                 _valuesProcessed[slot]++;
-                ProcValueDelegate(ref val, slot);
+                ProcValueDelegate(in val, slot);
             }
 
             protected long GetValuesProcessed(int slot)
@@ -327,8 +327,8 @@ namespace Microsoft.ML.Runtime.Data
                 return _valuesProcessed[slot];
             }
 
-            protected abstract void ProcessValueMin(ref TItem val, int slot);
-            protected abstract void ProcessValueMax(ref TItem val, int slot);
+            protected abstract void ProcessValueMin(in TItem val, int slot);
+            protected abstract void ProcessValueMax(in TItem val, int slot);
         }
 
         /// <summary>
@@ -546,7 +546,7 @@ namespace Microsoft.ML.Runtime.Data
                 {
                 }
 
-                protected override void ProcessRow(ref Single val)
+                protected override void ProcessRow(in Single val)
                 {
                     Stat.Update(val);
                 }
@@ -566,7 +566,7 @@ namespace Microsoft.ML.Runtime.Data
                 {
                 }
 
-                protected override void ProcessValue(ref Single val)
+                protected override void ProcessValue(in Single val)
                 {
                     Stat.Update(val);
                 }
@@ -586,7 +586,7 @@ namespace Microsoft.ML.Runtime.Data
                 {
                 }
 
-                protected override void ProcessValue(ref Single val, int slot)
+                protected override void ProcessValue(in Single val, int slot)
                 {
                     Ch.Assert(0 <= slot && slot < Stat.Length);
                     Stat[slot].Update(val);
@@ -613,13 +613,13 @@ namespace Microsoft.ML.Runtime.Data
                     Stat = ReturnMax ? Single.NegativeInfinity : Single.PositiveInfinity;
                 }
 
-                protected override void ProcessValueMin(ref Single val)
+                protected override void ProcessValueMin(in Single val)
                 {
                     if (val < Stat)
                         Stat = val;
                 }
 
-                protected override void ProcessValueMax(ref Single val)
+                protected override void ProcessValueMax(in Single val)
                 {
                     if (val > Stat)
                         Stat = val;
@@ -634,13 +634,13 @@ namespace Microsoft.ML.Runtime.Data
                     Stat = ReturnMax ? Single.NegativeInfinity : Single.PositiveInfinity;
                 }
 
-                protected override void ProcessValueMin(ref Single val)
+                protected override void ProcessValueMin(in Single val)
                 {
                     if (val < Stat)
                         Stat = val;
                 }
 
-                protected override void ProcessValueMax(ref Single val)
+                protected override void ProcessValueMax(in Single val)
                 {
                     if (val > Stat)
                         Stat = val;
@@ -652,7 +652,7 @@ namespace Microsoft.ML.Runtime.Data
                     if (ValueCount > (ulong)ValuesProcessed)
                     {
                         Single def = 0;
-                        ProcValueDelegate(ref def);
+                        ProcValueDelegate(in def);
                     }
                     return (Single)Stat;
                 }
@@ -668,14 +668,14 @@ namespace Microsoft.ML.Runtime.Data
                         Stat[i] = bound;
                 }
 
-                protected override void ProcessValueMin(ref Single val, int slot)
+                protected override void ProcessValueMin(in Single val, int slot)
                 {
                     Ch.Assert(0 <= slot && slot < Stat.Length);
                     if (val < Stat[slot])
                         Stat[slot] = val;
                 }
 
-                protected override void ProcessValueMax(ref Single val, int slot)
+                protected override void ProcessValueMax(in Single val, int slot)
                 {
                     Ch.Assert(0 <= slot && slot < Stat.Length);
                     if (val > Stat[slot])
@@ -690,7 +690,7 @@ namespace Microsoft.ML.Runtime.Data
                         if (GetValuesProcessed(slot) < RowCount)
                         {
                             Single def = 0;
-                            ProcValueDelegate(ref def, slot);
+                            ProcValueDelegate(in def, slot);
                         }
                     }
                     return Stat;
@@ -707,7 +707,7 @@ namespace Microsoft.ML.Runtime.Data
                 {
                 }
 
-                protected override void ProcessRow(ref Double val)
+                protected override void ProcessRow(in Double val)
                 {
                     Stat.Update(val);
                 }
@@ -725,7 +725,7 @@ namespace Microsoft.ML.Runtime.Data
                 {
                 }
 
-                protected override void ProcessValue(ref Double val)
+                protected override void ProcessValue(in Double val)
                 {
                     Stat.Update(val);
                 }
@@ -743,7 +743,7 @@ namespace Microsoft.ML.Runtime.Data
                 {
                 }
 
-                protected override void ProcessValue(ref Double val, int slot)
+                protected override void ProcessValue(in Double val, int slot)
                 {
                     Ch.Assert(0 <= slot && slot < Stat.Length);
                     Stat[slot].Update(val);
@@ -766,13 +766,13 @@ namespace Microsoft.ML.Runtime.Data
                     Stat = ReturnMax ? Double.NegativeInfinity : Double.PositiveInfinity;
                 }
 
-                protected override void ProcessValueMin(ref Double val)
+                protected override void ProcessValueMin(in Double val)
                 {
                     if (val < Stat)
                         Stat = val;
                 }
 
-                protected override void ProcessValueMax(ref Double val)
+                protected override void ProcessValueMax(in Double val)
                 {
                     if (val > Stat)
                         Stat = val;
@@ -787,13 +787,13 @@ namespace Microsoft.ML.Runtime.Data
                     Stat = ReturnMax ? Double.NegativeInfinity : Double.PositiveInfinity;
                 }
 
-                protected override void ProcessValueMin(ref Double val)
+                protected override void ProcessValueMin(in Double val)
                 {
                     if (val < Stat)
                         Stat = val;
                 }
 
-                protected override void ProcessValueMax(ref Double val)
+                protected override void ProcessValueMax(in Double val)
                 {
                     if (val > Stat)
                         Stat = val;
@@ -805,7 +805,7 @@ namespace Microsoft.ML.Runtime.Data
                     if (ValueCount > (ulong)ValuesProcessed)
                     {
                         Double def = 0;
-                        ProcValueDelegate(ref def);
+                        ProcValueDelegate(in def);
                     }
                     return Stat;
                 }
@@ -821,7 +821,7 @@ namespace Microsoft.ML.Runtime.Data
                         Stat[i] = bound;
                 }
 
-                protected override void ProcessValueMin(ref Double val, int slot)
+                protected override void ProcessValueMin(in Double val, int slot)
                 {
                     Ch.Assert(0 <= slot && slot < Stat.Length);
                     if (FloatUtils.IsFinite(val))
@@ -831,7 +831,7 @@ namespace Microsoft.ML.Runtime.Data
                     }
                 }
 
-                protected override void ProcessValueMax(ref Double val, int slot)
+                protected override void ProcessValueMax(in Double val, int slot)
                 {
                     Ch.Assert(0 <= slot && slot < Stat.Length);
                     if (FloatUtils.IsFinite(val))
@@ -849,7 +849,7 @@ namespace Microsoft.ML.Runtime.Data
                         if (GetValuesProcessed(slot) < RowCount)
                         {
                             Double def = 0;
-                            ProcValueDelegate(ref def, slot);
+                            ProcValueDelegate(in def, slot);
                         }
                     }
                     return Stat;

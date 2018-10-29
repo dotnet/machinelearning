@@ -93,7 +93,7 @@ namespace Microsoft.ML.Runtime.Data
             using (var ch = host.Start("Dropping Slots"))
             {
                 int selectedCount;
-                var column = CreateDropSlotsColumn(args, ref scores, out selectedCount);
+                var column = CreateDropSlotsColumn(args, in scores, out selectedCount);
 
                 if (column == null)
                 {
@@ -109,7 +109,7 @@ namespace Microsoft.ML.Runtime.Data
             }
         }
 
-        private static DropSlotsTransform.Column CreateDropSlotsColumn(Arguments args, ref VBuffer<Single> scores, out int selectedCount)
+        private static DropSlotsTransform.Column CreateDropSlotsColumn(Arguments args, in VBuffer<Single> scores, out int selectedCount)
         {
             // Not checking the scores.Length, because:
             // 1. If it's the same as the features column length, we should be constructing the right DropSlots arguments.

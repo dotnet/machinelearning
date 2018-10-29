@@ -712,7 +712,7 @@ namespace Microsoft.ML.Runtime.Data
                         (ref VBuffer<T> dst) =>
                         {
                             getSrc(ref src);
-                            FillValues(ref src, ref dst, isNA, rep, repIsDefault);
+                            FillValues(in src, ref dst, isNA, rep, repIsDefault);
                         };
                 }
 
@@ -726,14 +726,14 @@ namespace Microsoft.ML.Runtime.Data
                     {
                         getSrc(ref src);
                         Host.Check(src.Length == repArray.Length);
-                        FillValues(ref src, ref dst, isNA, repArray, _parent._repIsDefault[iinfo]);
+                        FillValues(in src, ref dst, isNA, repArray, _parent._repIsDefault[iinfo]);
                     };
             }
 
             /// <summary>
             ///  Fills values for vectors where there is one replacement value.
             /// </summary>
-            private void FillValues<T>(ref VBuffer<T> src, ref VBuffer<T> dst, InPredicate<T> isNA, T rep, bool repIsDefault)
+            private void FillValues<T>(in VBuffer<T> src, ref VBuffer<T> dst, InPredicate<T> isNA, T rep, bool repIsDefault)
             {
                 Host.AssertValue(isNA);
 
@@ -813,7 +813,7 @@ namespace Microsoft.ML.Runtime.Data
             /// <summary>
             ///  Fills values for vectors where there is slot-wise replacement values.
             /// </summary>
-            private void FillValues<T>(ref VBuffer<T> src, ref VBuffer<T> dst, InPredicate<T> isNA, T[] rep, BitArray repIsDefault)
+            private void FillValues<T>(in VBuffer<T> src, ref VBuffer<T> dst, InPredicate<T> isNA, T[] rep, BitArray repIsDefault)
             {
                 Host.AssertValue(rep);
                 Host.Assert(rep.Length == src.Length);

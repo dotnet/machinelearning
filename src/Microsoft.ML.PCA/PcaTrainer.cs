@@ -209,7 +209,7 @@ namespace Microsoft.ML.Trainers.PCA
             EigenUtils.EigenDecomposition(b2, out smallEigenvalues, out smallEigenvectors);
             PostProcess(b, smallEigenvalues, smallEigenvectors, dimension, oversampledRank);
 
-            return new PcaPredictor(Host, _rank, b, ref mean);
+            return new PcaPredictor(Host, _rank, b, in mean);
         }
 
         private static VBuffer<float>[] Zeros(int k, int d)
@@ -393,7 +393,7 @@ namespace Microsoft.ML.Trainers.PCA
             get { return PredictionKind.AnomalyDetection; }
         }
 
-        internal PcaPredictor(IHostEnvironment env, int rank, VBuffer<float>[] eigenVectors, ref VBuffer<float> mean)
+        internal PcaPredictor(IHostEnvironment env, int rank, VBuffer<float>[] eigenVectors, in VBuffer<float> mean)
             : base(env, RegistrationName)
         {
             _dimension = eigenVectors[0].Length;
@@ -564,18 +564,18 @@ namespace Microsoft.ML.Trainers.PCA
                 (ref VBuffer<float> src, ref float dst) =>
                 {
                     Host.Check(src.Length == _dimension);
-                    dst = Score(ref src);
+                    dst = Score(in src);
                 };
             return (ValueMapper<TIn, TOut>)(Delegate)del;
         }
 
-        private float Score(ref VBuffer<float> src)
+        private float Score(in VBuffer<float> src)
         {
             Host.Assert(src.Length == _dimension);
 
             // REVIEW: Can this be done faster in a single pass over src and _mean?
             var mean = _mean;
-            float norm2X = VectorUtils.NormSquared(src) -
+            float norm2X = VectorUtils.NormSquared(in src) -
                 2 * VectorUtils.DotProduct(in mean, in src) + _norm2Mean;
             // Because the distance between src and _mean is computed using the above expression, the result
             // may be negative due to round off error. If this happens, we let the distance be 0.

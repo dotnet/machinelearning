@@ -18,7 +18,7 @@ namespace Microsoft.ML.Runtime.Ensemble.Selector.DiversityMeasure
     {
         public const string LoadName = "MultiDisagreementDiversityMeasure";
 
-        protected override Single GetDifference(ref VBuffer<Single> valueX, ref VBuffer<Single> valueY)
+        protected override Single GetDifference(in VBuffer<Single> valueX, in VBuffer<Single> valueY)
         {
             return (VectorUtils.ArgMax(in valueX) != VectorUtils.ArgMax(in valueY)) ? 1 : 0;
         }

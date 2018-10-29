@@ -151,14 +151,14 @@ namespace Microsoft.ML.Trainers.KMeans
                     var values = dst.Values;
                     if (Utils.Size(values) < _k)
                         values = new Float[_k];
-                    Map(ref src, values);
+                    Map(in src, values);
                     dst = new VBuffer<Float>(_k, values, dst.Indices);
                 };
 
             return (ValueMapper<TIn, TOut>)(Delegate)del;
         }
 
-        private void Map(ref VBuffer<Float> src, Float[] distances)
+        private void Map(in VBuffer<Float> src, Float[] distances)
         {
             Host.Assert(Utils.Size(distances) >= _k);
 

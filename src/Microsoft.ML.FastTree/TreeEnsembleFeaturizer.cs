@@ -383,7 +383,7 @@ namespace Microsoft.ML.Runtime.Data
                         _ectx.Assert(Utils.Size(_pathIds) == _numTrees);
 
                         for (int i = 0; i < _numTrees; i++)
-                            _leafIds[i] = _ensemble.GetLeaf(i, ref _src, ref _pathIds[i]);
+                            _leafIds[i] = _ensemble.GetLeaf(i, in _src, ref _pathIds[i]);
 
                         _cachedPosition = _input.Position;
                     }

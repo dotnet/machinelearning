@@ -159,7 +159,7 @@ namespace Microsoft.ML.Runtime.Ensemble.OutputCombiners
                             var model = models[i];
                             if (model.SelectedFeatures != null)
                             {
-                                EnsembleUtils.SelectFeatures(ref cursor.Features, model.SelectedFeatures, model.Cardinality, ref vBuffers[i]);
+                                EnsembleUtils.SelectFeatures(in cursor.Features, model.SelectedFeatures, model.Cardinality, ref vBuffers[i]);
                                 maps[i](ref vBuffers[i], ref predictions[i]);
                             }
                             else

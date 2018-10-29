@@ -198,14 +198,14 @@ namespace Microsoft.ML.Runtime.Data
                         else
                         {
                             Contracts.Assert(0 <= nstr.Id && nstr.Id < _values.Length);
-                            CopyValue(ref _values[nstr.Id], ref dst);
+                            CopyValue(in _values[nstr.Id], ref dst);
                         }
                     };
             }
 
             protected abstract void GetMissing(ref TRes dst);
 
-            protected abstract void CopyValue(ref TRes src, ref TRes dst);
+            protected abstract void CopyValue(in TRes src, ref TRes dst);
         }
 
         /// <summary>
@@ -237,7 +237,7 @@ namespace Microsoft.ML.Runtime.Data
                 dst = _badValue;
             }
 
-            protected override void CopyValue(ref TRes src, ref TRes dst)
+            protected override void CopyValue(in TRes src, ref TRes dst)
             {
                 dst = src;
             }
@@ -259,7 +259,7 @@ namespace Microsoft.ML.Runtime.Data
                 dst = new VBuffer<TItem>(Type.VectorSize, 0, dst.Values, dst.Indices);
             }
 
-            protected override void CopyValue(ref VBuffer<TItem> src, ref VBuffer<TItem> dst)
+            protected override void CopyValue(in VBuffer<TItem> src, ref VBuffer<TItem> dst)
             {
                 src.CopyTo(ref dst);
             }

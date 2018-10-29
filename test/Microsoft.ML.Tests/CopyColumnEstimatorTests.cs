@@ -155,7 +155,7 @@ namespace Microsoft.ML.Tests
                 var type2 = result.Schema.GetColumnType(copyIndex);
                 result.Schema.GetMetadata(MetadataUtils.Kinds.KeyValues, termIndex, ref names1);
                 result.Schema.GetMetadata(MetadataUtils.Kinds.KeyValues, copyIndex, ref names2);
-                Assert.True(CompareVec(ref names1, ref names2, size, (a, b) => a.Span.SequenceEqual(b.Span)));
+                Assert.True(CompareVec(in names1, in names2, size, (a, b) => a.Span.SequenceEqual(b.Span)));
             }
         }
 
@@ -195,12 +195,12 @@ namespace Microsoft.ML.Tests
                 }
             }
         }
-        private bool CompareVec<T>(ref VBuffer<T> v1, ref VBuffer<T> v2, int size, Func<T, T, bool> fn)
+        private bool CompareVec<T>(in VBuffer<T> v1, in VBuffer<T> v2, int size, Func<T, T, bool> fn)
         {
-            return CompareVec(ref v1, ref v2, size, (i, x, y) => fn(x, y));
+            return CompareVec(in v1, in v2, size, (i, x, y) => fn(x, y));
         }
 
-        private bool CompareVec<T>(ref VBuffer<T> v1, ref VBuffer<T> v2, int size, Func<int, T, T, bool> fn)
+        private bool CompareVec<T>(in VBuffer<T> v1, in VBuffer<T> v2, int size, Func<int, T, T, bool> fn)
         {
             Contracts.Assert(size == 0 || v1.Length == size);
             Contracts.Assert(size == 0 || v2.Length == size);
