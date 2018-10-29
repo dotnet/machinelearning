@@ -33,12 +33,12 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             {
                 if (!transpose)
                 {
-                    Contracts.Assert(stride <= dst.Size);
+                    Contracts.Assert(stride <= destination.Size);
                     AvxIntrinsics.MatMul(matrix, source, destination, stride, source.Size);
                 }
                 else
                 {
-                    Contracts.Assert(stride <= src.Size);
+                    Contracts.Assert(stride <= source.Size);
                     AvxIntrinsics.MatMulTran(matrix, source, destination, destination.Size, stride);
                 }
             }
@@ -91,10 +91,10 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
         public static void MatTimesSrc(AlignedArray matrix, int[] rgposSrc, AlignedArray sourceValues,
             int posMin, int iposMin, int iposLimit, AlignedArray destination, int stride)
         {
-            Contracts.AssertValue(posSource);
+            Contracts.AssertValue(rgposSrc);
             Contracts.Assert(iposMin >= 0);
             Contracts.Assert(iposMin <= iposLimit);
-            Contracts.Assert(iposLimit <= posSource.Length);
+            Contracts.Assert(iposLimit <= rgposSrc.Length);
             Contracts.Assert(matrix.Size == destination.Size * sourceValues.Size);
 
             if (iposMin >= iposLimit)
@@ -103,7 +103,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
                 return;
             }
 
-            Contracts.AssertNonEmpty(posSource);
+            Contracts.AssertNonEmpty(rgposSrc);
             Contracts.Assert(stride >= 0);
 
             if (Avx.IsSupported)
@@ -287,11 +287,11 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
 
             if (Avx.IsSupported)
             {
-                AvxIntrinsics.AddScaleCopyU(a, src, dst, res, count);
+                AvxIntrinsics.AddScaleCopyU(scale, source, destination, result, count);
             }
             else if (Sse.IsSupported)
             {
-                SseIntrinsics.AddScaleCopyU(a, src, dst, res, count);
+                SseIntrinsics.AddScaleCopyU(scale, source, destination, result, count);
             }
             else
             {
@@ -707,7 +707,7 @@ namespace Microsoft.ML.Runtime.Internal.CpuMath
             Contracts.AssertNonEmpty(v);
             Contracts.AssertNonEmpty(w);
             Contracts.Assert(count > 0);
-            Contracts.Assert(count <= src.Length);
+            Contracts.Assert(count <= source.Length);
             Contracts.Assert(count <= v.Length);
             Contracts.Assert(count <= w.Length);
 
