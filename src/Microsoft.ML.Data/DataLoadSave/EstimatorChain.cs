@@ -71,7 +71,12 @@ namespace Microsoft.ML.Runtime.Data
         public EstimatorChain<TNewTrans> Append<TNewTrans>(IEstimator<TNewTrans> estimator, TransformerScope scope = TransformerScope.Everything)
             where TNewTrans : class, ITransformer
         {
-            Contracts.CheckValue(estimator, nameof(estimator));
+            if(estimator==null)
+            {
+                //Only mapper same column names
+                return new EstimatorChain<TNewTrans>(_estimators, _scopes);
+            }
+
             return new EstimatorChain<TNewTrans>(_estimators.AppendElement(estimator), _scopes.AppendElement(scope));
         }
     }

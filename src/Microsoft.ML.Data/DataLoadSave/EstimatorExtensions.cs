@@ -48,7 +48,6 @@ namespace Microsoft.ML.Runtime.Data
             where TTrans : class, ITransformer
         {
             Contracts.CheckValue(start, nameof(start));
-            Contracts.CheckValue(estimator, nameof(estimator));
 
             return new EstimatorChain<ITransformer>().Append(start).Append(estimator, scope);
         }

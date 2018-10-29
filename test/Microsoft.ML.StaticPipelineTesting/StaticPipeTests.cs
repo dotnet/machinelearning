@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Data;
+using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Data.IO;
 using Microsoft.ML.Runtime.Internal.Utilities;
@@ -876,6 +877,21 @@ namespace Microsoft.ML.StaticPipelineTesting
             var type = schema[pca].Type;
             Assert.True(type.IsVector && type.ItemType.RawKind == DataKind.R4);
             Assert.True(type.VectorSize == 5);
+        }
+
+        [Fact]
+        public void UseSameColumnNamesForAppend()
+        {
+            var env = new ConsoleEnvironment(seed: 1, conc: 0);
+            var dataView = env.CreateDataView(new[]{new {A = "A", B = "B", C = "C"}}).AssertStatic(env, c => (
+                A: c.Text.Scalar,
+                B: c.Text.Scalar,
+                C: c.Text.Scalar));
+
+            var dataPipeline= dataView.MakeNewEstimator().Append(row => (row.A,row.B));
+            
+            var transformedData = dataPipeline.Fit(dataView).Transform(dataView);
+            Assert.Equal("B",transformedData.GetColumn(r => r.B).First());            
         }
     }
 }

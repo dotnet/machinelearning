@@ -69,7 +69,6 @@ namespace Microsoft.ML.StaticPipe
 
                 var readerEst = StaticPipeUtils.GeneralFunctionAnalyzer(Env, ch, input, fakeReconciler, mapper, out var estTail, NameMap);
                 ch.Assert(readerEst == null);
-                ch.AssertValue(estTail);
 
                 var est = AsDynamic.Append(estTail);
                 var newOut = StaticSchemaShape.Make<TNewOutShape>(method.ReturnParameter);
