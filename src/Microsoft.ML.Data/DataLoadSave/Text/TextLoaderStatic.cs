@@ -222,7 +222,7 @@ namespace Microsoft.ML.Runtime.Data
             {
                 Contracts.CheckParam(ordinal >= 0, nameof(ordinal), "Should be non-negative");
                 Contracts.CheckParam(minKeyValue >= 0, nameof(minKeyValue), "Should be non-negative");
-                Contracts.CheckParam(maxKeyValue == null || maxKeyValue >= minKeyValue, nameof(maxKeyValue), "Should be greater thena or eqaul to mnimum key value or null");
+                Contracts.CheckParam(maxKeyValue == null || maxKeyValue >= minKeyValue, nameof(maxKeyValue), "Should be greater than or eqaul to minimum key value or null");
                 return new MyKey<T>(_rec, kind, ordinal, minKeyValue, maxKeyValue);
             }
 

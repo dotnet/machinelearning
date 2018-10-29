@@ -112,7 +112,7 @@ namespace Microsoft.ML.StaticPipe
             {
                 Contracts.AssertValue(env);
 
-                // The first, second, third names are label, matrix's row index, and matrix's column index, respectively.
+                // The first, second, third names are label, matrix's column index, and matrix's row index, respectively.
                 return _factory(env, inputNames[0], inputNames[1], inputNames[2]);
             }
 
