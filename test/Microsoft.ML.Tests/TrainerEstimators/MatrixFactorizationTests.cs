@@ -186,58 +186,63 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             };
         }
 
-        const int _synthesizedMatrixRowCount = 100;
+        // The following variables defines the shape of a matrix. Its shape is _synthesizedMatrixRowCount-by-_synthesizedMatrixColumnCount.
+        // The variable _synthesizedMatrixFirstRowIndex indicates the integer that would be mapped to the first row index. If user data uses
+        // 0-based indices for rows, _synthesizedMatrixFirstRowIndex can be set to 0. Similarly, for 1-based indices, _synthesizedMatrixFirstRowIndex
+        // could be 1.
+        const int _synthesizedMatrixFirstColumnIndex = 1;
+        const int _synthesizedMatrixFirstRowIndex = 1;
         const int _synthesizedMatrixColumnCount = 60;
+        const int _synthesizedMatrixRowCount = 100;
 
         internal class MatrixElement
         {
             // Matrix column index starts from 1 and is at most _synthesizedMatrixColumnCount.
-            [KeyType(Contiguous=true, Count=_synthesizedMatrixColumnCount, Min=1)]
+            // Contieuous=true means that all values from 1 to _synthesizedMatrixColumnCount are allowed keys.
+            [KeyType(Contiguous=true, Count=_synthesizedMatrixColumnCount, Min=_synthesizedMatrixFirstColumnIndex)]
             public uint MatrixColumnIndex;
             // Matrix row index starts from 1 and is at most _synthesizedMatrixRowCount.
-            [KeyType(Contiguous=true, Count=_synthesizedMatrixRowCount, Min=1)]
+            // Contieuous=true means that all values from 1 to _synthesizedMatrixRowCount are allowed keys.
+            [KeyType(Contiguous=true, Count=_synthesizedMatrixRowCount, Min=_synthesizedMatrixFirstRowIndex)]
             public uint MatrixRowIndex;
-            // The value at the (matrixColumnIndexi-1)th column and the (matrixRowIndex-1) row in the considered matrix.
+            // The value at the MatrixColumnIndex-th column and the MatrixRowIndex-th row in the considered matrix.
             public float Value;
         }
 
         [Fact]
         public void MatrixFactorizationInMemoryData()
         {
+            // Create an in-memory matrix as a list of tuples (column index, row index, value).
+            var dataMatrix = new List<MatrixElement>();
+            for (uint i = _synthesizedMatrixFirstColumnIndex; i < _synthesizedMatrixFirstColumnIndex + _synthesizedMatrixColumnCount; ++i)
+                for (uint j = _synthesizedMatrixFirstRowIndex; j < _synthesizedMatrixFirstRowIndex + _synthesizedMatrixRowCount; ++j)
+                    dataMatrix.Add(new MatrixElement() { MatrixColumnIndex = i, MatrixRowIndex = j, Value = (i + j) % 5 });
 
-            using (var env = new LocalEnvironment(seed: 1, conc: 1))
-            {
-                // Create an in-memory matrix as a list of (row index, column index, value).
-                var dataMatrix = new List<MatrixElement>();
-                for (uint i = 0; i < _synthesizedMatrixColumnCount; ++i)
-                    for (uint j = 0; j < _synthesizedMatrixRowCount; ++j)
-                        dataMatrix.Add(new MatrixElement() { MatrixColumnIndex = i, MatrixRowIndex = j, Value = (i + j) % 5 });
+            // Convert the in-memory matrix into an IDataView so that ML.NET components can consume it.
+            var dataView = ComponentCreation.CreateDataView(Env, dataMatrix);
 
-                // Convert the in-memory matrix into an IDataView so that ML.NET components can consume it.
-                var dataView = ComponentCreation.CreateDataView(Env, dataMatrix);
+            // Create a matrix factorization trainer which may consume "Value" as the training label, "MatrixColumnIndex" as the
+            // matrix's column index, and "MatrixRowIndex" as the matrix's row index.
+            var mlContext = new MLContext(seed: 1, conc: 1);
+            var pipeline = new MatrixFactorizationTrainer(mlContext, "Value", "MatrixColumnIndex", "MatrixRowIndex",
+                advancedSettings:s=>
+                {
+                    s.NumIterations = 10;
+                    s.NumThreads = 1; // To eliminate randomness, # of threads must be 1.
+                    s.K = 32;
+                });
 
-                // Create a matrix factorization trainer which may consume "Value" as the training label, "MatrixColumnIndex" as the
-                // matrix's column index, and "MatrixRowIndex" as the matrix's row index.
-                var pipeline = new MatrixFactorizationTrainer(env, "Value", "MatrixColumnIndex", "MatrixRowIndex",
-                    advancedSettings:s=>
-                    {
-                        s.NumIterations = 3;
-                        s.NumThreads = 1; // To eliminate randomness, # of threads must be 1.
-                        s.K = 8;
-                    });
+            // Train a matrix factorization model.
+            var model = pipeline.Fit(dataView);
 
-                // Train a matrix factorization model.
-                var model = pipeline.Fit(dataView);
+            // Apply the trained model to the training set
+            var prediction = model.Transform(dataView);
 
-                // Apply the trained model to the training set
-                var prediction = model.Transform(dataView);
+            // Calculate regression matrices for the prediction result
+            var metrics = mlContext.Regression.Evaluate(prediction, label: "Value", score: "Score");
 
-                // Calculate regression matrices for the prediction result
-                var metrics = new MLContext().Regression.Evaluate(prediction, label: "Value", score: "Score");
-
-                // Native test. Just check the pipeline runs.
-                Assert.True(metrics.L2 > 0);
-            }
+            // Native test. Just check the pipeline runs.
+            Assert.True(metrics.L2 < 0.1);
         }
     }
 }
