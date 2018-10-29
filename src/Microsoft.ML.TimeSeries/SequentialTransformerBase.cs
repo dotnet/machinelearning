@@ -274,29 +274,26 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
 
         protected abstract IRowMapper MakeRowMapper(ISchema schema);
 
-        protected RowToRowMapperTransform MakeDataTransform(IDataView input)
+        protected SequentialDataTransform MakeDataTransform(IDataView input)
         {
             Host.CheckValue(input, nameof(input));
-            return new RowToRowMapperTransform(Host, input, MakeRowMapper(input.Schema));
+            return new SequentialDataTransform(Host, this, input, MakeRowMapper(input.Schema));
         }
 
-        public IDataView Transform(IDataView input)
-        {
-            Host.CheckValue(input, nameof(input));
-            return new DataView(this, input);
-        }
+        public IDataView Transform(IDataView input) => MakeDataTransform(input);
 
         public IRowToRowMapper GetRowToRowMapper(Schema inputSchema)
         {
             throw new NotImplementedException("Not a RowToRowMapper.");
         }
 
-        private sealed class DataView : IDataView
+        public sealed class SequentialDataTransform : TransformBase
         {
             private readonly SequentialTransformerBase<TInput, TOutput, TState> _parent;
             private readonly IDataTransform _transform;
 
-            public DataView(SequentialTransformerBase<TInput, TOutput, TState> parent, IDataView input)
+            public SequentialDataTransform(IHost host, SequentialTransformerBase<TInput, TOutput, TState> parent, IDataView input, IRowMapper mapper)
+                :base(parent.Host, input)
             {
                 _parent = parent;
                 _transform = CreateLambdaTransform(_parent.Host, input, _parent.InputColumnName,
@@ -339,32 +336,39 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
                 state.InitState(_parent.WindowSize, _parent.InitialWindowSize, _parent, _parent.Host);
             }
 
-            public IRowCursor GetRowCursor(Func<int, bool> predicate, IRandom rand = null) => GetRowCursorCore(predicate, null);
+            public override bool CanShuffle { get { return false; } }
 
-            public bool CanShuffle { get { return false; } }
-
-            public IHost Host { get { return _parent.Host; } }
-
-            private IRowCursor GetRowCursorCore(Func<int, bool> predicate, IRandom rand = null)
+            protected override IRowCursor GetRowCursorCore(Func<int, bool> predicate, IRandom rand = null)
             {
                 var srcCursor = _transform.GetRowCursor(predicate, rand);
-                return new Cursor(this, srcCursor);
+                return new Cursor(Host, this, srcCursor);
             }
 
-            public Schema Schema
+            protected override bool? ShouldUseParallelCursors(Func<int, bool> predicate)
+            {
+                Host.AssertValue(predicate);
+                return false;
+            }
+
+            public override Schema Schema
             {
                 get { return _transform.Schema; }
             }
 
-            public long? GetRowCount(bool lazy = true)
+            public override long? GetRowCount(bool lazy = true)
             {
                 return _transform.GetRowCount(lazy);
             }
 
-            public IRowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator, Func<int, bool> predicate, int n, IRandom rand = null)
+            public override IRowCursor[] GetRowCursorSet(out IRowCursorConsolidator consolidator, Func<int, bool> predicate, int n, IRandom rand = null)
             {
                 consolidator = null;
                 return new IRowCursor[] { GetRowCursorCore(predicate, rand) };
+            }
+
+            public override void Save(ModelSaveContext ctx)
+            {
+                _parent.Save(ctx);
             }
         }
 
@@ -373,10 +377,10 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
         /// </summary>
         private sealed class Cursor : SynchronizedCursorBase<IRowCursor>, IRowCursor
         {
-            private readonly DataView _parent;
+            private readonly SequentialDataTransform _parent;
 
-            public Cursor(DataView parent, IRowCursor input)
-                : base(parent.Host, input)
+            public Cursor(IHost host, SequentialDataTransform parent, IRowCursor input)
+                : base(host, input)
             {
                 Ch.Assert(input.Schema.ColumnCount == parent.Schema.ColumnCount);
                 _parent = parent;
