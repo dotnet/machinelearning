@@ -256,3 +256,7 @@ phases:
       msbuildArguments: /t:PublishSymbolPackages /p:SymbolServerPath=$(_MsdlSymbolServerPath) /p:SymbolServerPAT=$(MsdlSymbolServerPAT)
       msbuildVersion: 15.0
     continueOnError: true
+
+  # Terminate all dotnet build processes.
+  - script: $(Build.SourcesDirectory)/Tools/dotnetcli/dotnet.exe build-server shutdown
+    displayName: Dotnet Server Shutdown
