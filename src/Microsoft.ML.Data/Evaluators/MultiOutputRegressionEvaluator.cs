@@ -571,7 +571,7 @@ namespace Microsoft.ML.Runtime.Data
             getter = GetScoreValueKind;
             builder.Add(new Schema.Column(MetadataUtils.Kinds.ScoreValueKind, TextType.Instance, null), getter);
             ValueGetter<uint> uintGetter = GetScoreColumnSetId(schema);
-            builder.Add(new Schema.Column(MetadataUtils.Kinds.ScoreValueKind, NumberType.U4, null), uintGetter);
+            builder.Add(new Schema.Column(MetadataUtils.Kinds.ScoreColumnSetId, MetadataUtils.ScoreColumnSetIdType, null), uintGetter);
             scoreMetadata = builder.GetMetadata();
         }
 

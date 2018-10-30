@@ -491,6 +491,20 @@ namespace Microsoft.ML.Runtime.RunTests
         }
 
         [Fact]
+        public void SavePipeWordTokenize()
+        {
+            TestCore(GetDataPath("lm.sample.txt"), false,
+                new[]
+                {
+                    "loader=Text{col=A:TX:2 col=B:TX:3}",
+                    "xf=wordToken{col={name=C source=A sep=space,-} col=D:B}",
+                    "xf=concat{col=Concat:C,D}",
+                    "xf=Select{dropcol=C dropcol=D}"
+                });
+            Done();
+        }
+
+        [Fact]
         public void TestHashTransformFloat()
         {
             TestHashTransformHelper(dataFloat, resultsFloat, NumberType.R4);

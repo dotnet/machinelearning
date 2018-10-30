@@ -328,10 +328,10 @@ namespace Microsoft.ML.Runtime.Data
                 private abstract class TypedValue<T> : Value
                 {
                     private readonly ValueGetter<T> _getSrc;
-                    private readonly RefPredicate<T> _hasBad;
+                    private readonly InPredicate<T> _hasBad;
                     public T Src;
 
-                    protected TypedValue(RowCursor cursor, ValueGetter<T> getSrc, RefPredicate<T> hasBad)
+                    protected TypedValue(RowCursor cursor, ValueGetter<T> getSrc, InPredicate<T> hasBad)
                         : base(cursor)
                     {
                         Contracts.AssertValue(getSrc);
@@ -343,7 +343,7 @@ namespace Microsoft.ML.Runtime.Data
                     public override bool Refresh()
                     {
                         _getSrc(ref Src);
-                        return !_hasBad(ref Src);
+                        return !_hasBad(in Src);
                     }
                 }
 
@@ -351,7 +351,7 @@ namespace Microsoft.ML.Runtime.Data
                 {
                     private readonly ValueGetter<T> _getter;
 
-                    public ValueOne(RowCursor cursor, ValueGetter<T> getSrc, RefPredicate<T> hasBad)
+                    public ValueOne(RowCursor cursor, ValueGetter<T> getSrc, InPredicate<T> hasBad)
                         : base(cursor, getSrc, hasBad)
                     {
                         _getter = GetValue;
@@ -373,7 +373,7 @@ namespace Microsoft.ML.Runtime.Data
                 {
                     private readonly ValueGetter<VBuffer<T>> _getter;
 
-                    public ValueVec(RowCursor cursor, ValueGetter<VBuffer<T>> getSrc, RefPredicate<VBuffer<T>> hasBad)
+                    public ValueVec(RowCursor cursor, ValueGetter<VBuffer<T>> getSrc, InPredicate<VBuffer<T>> hasBad)
                         : base(cursor, getSrc, hasBad)
                     {
                         _getter = GetValue;
