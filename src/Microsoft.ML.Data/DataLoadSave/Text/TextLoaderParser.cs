@@ -258,7 +258,7 @@ namespace Microsoft.ML.Runtime.Data
             {
                 Contracts.Assert(0 <= irow && irow < _values.Length);
                 Contracts.Assert(index == 0);
-                return _conv(ref text, out _values[irow]);
+                return _conv(in text, out _values[irow]);
             }
 
             public void Get(ref TResult value)
@@ -337,7 +337,7 @@ namespace Microsoft.ML.Runtime.Data
                     Contracts.Assert(_indexPrev < index & index < _size);
 
                     TItem tmp = default(TItem);
-                    bool f = _conv(ref text, out tmp);
+                    bool f = _conv(in text, out tmp);
                     if (_count < _size)
                     {
                         if (_count < _size / 2)

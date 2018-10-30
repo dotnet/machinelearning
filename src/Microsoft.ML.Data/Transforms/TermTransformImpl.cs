@@ -64,9 +64,9 @@ namespace Microsoft.ML.Transforms.CategoricalTransforms
                 // If this is a type with NA values, we should ignore those NA values for the purpose
                 // of building our term dictionary. For the other types (practically, only the UX types),
                 // we should ignore nothing.
-                RefPredicate<T> mapsToMissing;
+                InPredicate<T> mapsToMissing;
                 if (!Runtime.Data.Conversion.Conversions.Instance.TryGetIsNAPredicate(type, out mapsToMissing))
-                    mapsToMissing = (ref T val) => false;
+                    mapsToMissing = (in T val) => false;
                 return new Impl<T>(type, mapsToMissing, sorted);
             }
 
@@ -143,7 +143,7 @@ namespace Microsoft.ML.Transforms.CategoricalTransforms
             {
                 // Because we can't know the actual mapping till we finish.
                 private readonly HashArray<T> _values;
-                private readonly RefPredicate<T> _mapsToMissing;
+                private readonly InPredicate<T> _mapsToMissing;
                 private readonly bool _sort;
 
                 public override int Count
@@ -159,7 +159,7 @@ namespace Microsoft.ML.Transforms.CategoricalTransforms
                 /// to the missing value. If this returns true for a value then we do not attempt
                 /// to store it in the map.</param>
                 /// <param name="sort">Indicates whether to sort mapping IDs by input values.</param>
-                public Impl(PrimitiveType type, RefPredicate<T> mapsToMissing, bool sort)
+                public Impl(PrimitiveType type, InPredicate<T> mapsToMissing, bool sort)
                     : base(type)
                 {
                     Contracts.Assert(type.RawType == typeof(T));
@@ -172,7 +172,7 @@ namespace Microsoft.ML.Transforms.CategoricalTransforms
 
                 public override bool TryAdd(ref T val)
                 {
-                    return !_mapsToMissing(ref val) && _values.TryAdd(val);
+                    return !_mapsToMissing(in val) && _values.TryAdd(val);
                 }
 
                 public override TermMap Finish()
@@ -213,7 +213,7 @@ namespace Microsoft.ML.Transforms.CategoricalTransforms
                     term = ReadOnlyMemoryUtils.TrimSpaces(term);
                     if (term.IsEmpty)
                         ch.Warning("Empty strings ignored in 'terms' specification");
-                    else if (!tryParse(ref term, out val))
+                    else if (!tryParse(in term, out val))
                         ch.Warning("Item '{0}' ignored in 'terms' specification since it could not be parsed as '{1}'", term, ItemType);
                     else if (!TryAdd(ref val))
                         ch.Warning("Duplicate item '{0}' ignored in 'terms' specification", term);
@@ -238,7 +238,7 @@ namespace Microsoft.ML.Transforms.CategoricalTransforms
                     term = ReadOnlyMemoryUtils.TrimSpaces(term);
                     if (term.IsEmpty)
                         ch.Warning("Empty strings ignored in 'term' specification");
-                    else if (!tryParse(ref term, out val))
+                    else if (!tryParse(in term, out val))
                         ch.Warning("Item '{0}' ignored in 'term' specification since it could not be parsed as '{1}'", term, ItemType);
                     else if (!TryAdd(ref val))
                         ch.Warning("Duplicate item '{0}' ignored in 'term' specification", term);
