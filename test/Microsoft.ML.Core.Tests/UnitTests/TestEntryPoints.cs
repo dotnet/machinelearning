@@ -129,8 +129,8 @@ namespace Microsoft.ML.Runtime.RunTests
             expected = Env.CreateTransform("KeyToVector{col=F1}", expected);
             expected = Env.CreateTransform("Concat{col=Features:F1,F2,Rest}", expected);
 
-            expected = Env.CreateTransform("ChooseColumns{col=Features}", expected);
-            result = Env.CreateTransform("ChooseColumns{col=Features}", result);
+            expected = Env.CreateTransform("SelectColumns{keepcol=Features hidden=-}", expected);
+            result = Env.CreateTransform("SelectColumns{keepcol=Features hidden=-}", result);
             CheckSameValues(result, expected);
             Done();
         }
@@ -437,24 +437,6 @@ namespace Microsoft.ML.Runtime.RunTests
         }
 
         [Fact]
-        public void EntryPointInputArgsChecks()
-        {
-            var input = new DropColumnsTransform.KeepArguments();
-            try
-            {
-                EntryPointUtils.CheckInputArgs(Env, input);
-                Assert.False(true);
-            }
-            catch
-            {
-            }
-
-            input.Data = new EmptyDataView(Env, new Schema(new[] { new Schema.Column("ColA", NumberType.R4, null) }));
-            input.Column = new string[0];
-            EntryPointUtils.CheckInputArgs(Env, input);
-        }
-
-        [Fact]
         public void EntryPointCreateEnsemble()
         {
             var dataView = GetBreastCancerDataView();
@@ -490,9 +472,7 @@ namespace Microsoft.ML.Runtime.RunTests
                             },
                         }
                     }, individualScores[i]);
-                individualScores[i] = new DropColumnsTransform(Env,
-                    new DropColumnsTransform.Arguments() { Column = new[] { MetadataUtils.Const.ScoreValueKind.Score } },
-                    individualScores[i]);
+                individualScores[i] = SelectColumnsTransform.CreateDrop(Env, individualScores[i], MetadataUtils.Const.ScoreValueKind.Score);
             }
 
             var avgEnsembleInput = new EnsembleCreator.ClassifierInput { Models = predictorModels, ModelCombiner = EnsembleCreator.ClassifierCombiner.Average };

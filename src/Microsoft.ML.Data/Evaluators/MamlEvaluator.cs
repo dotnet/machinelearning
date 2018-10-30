@@ -213,13 +213,14 @@ namespace Microsoft.ML.Runtime.Data
             var idv = perInst.Data;
 
             // Make a list of column names that Maml outputs as part of the per-instance data view, and then wrap
-            // the per-instance data computed by the evaluator in a ChooseColumnsTransform.
-            var cols = new List<ChooseColumnsTransform.Column>();
+            // the per-instance data computed by the evaluator in a SelectColumnsTransform.
+            var cols = new List<(string Source, string Name)>();
+            var colsToKeep = new List<string>();
 
             // If perInst is the result of cross-validation and contains a fold Id column, include it.
             int foldCol;
             if (perInst.Schema.Schema.TryGetColumnIndex(MetricKinds.ColumnNames.FoldIndex, out foldCol))
-                cols.Add(new ChooseColumnsTransform.Column() { Source = MetricKinds.ColumnNames.FoldIndex });
+                colsToKeep.Add(MetricKinds.ColumnNames.FoldIndex);
 
             // Maml always outputs a name column, if it doesn't exist add a GenerateNumberTransform.
             if (perInst.Schema.Name == null)
@@ -228,22 +229,24 @@ namespace Microsoft.ML.Runtime.Data
                 args.Column = new[] { new GenerateNumberTransform.Column() { Name = "Instance" } };
                 args.UseCounter = true;
                 idv = new GenerateNumberTransform(Host, args, idv);
-                cols.Add(new ChooseColumnsTransform.Column() { Name = "Instance" });
+                colsToKeep.Add("Instance");
             }
             else
-                cols.Add(new ChooseColumnsTransform.Column() { Source = perInst.Schema.Name.Name, Name = "Instance" });
+            {
+                cols.Add((perInst.Schema.Name.Name, "Instance"));
+                colsToKeep.Add("Instance");
+            }
 
             // Maml outputs the weight column if it exists.
             if (perInst.Schema.Weight != null)
-                cols.Add(new ChooseColumnsTransform.Column() { Name = perInst.Schema.Weight.Name });
+                colsToKeep.Add(perInst.Schema.Weight.Name);
 
             // Get the other columns from the evaluator.
             foreach (var col in GetPerInstanceColumnsToSave(perInst.Schema))
-                cols.Add(new ChooseColumnsTransform.Column() { Name = col });
+                colsToKeep.Add(col);
 
-            var chooseArgs = new ChooseColumnsTransform.Arguments();
-            chooseArgs.Column = cols.ToArray();
-            idv = new ChooseColumnsTransform(Host, chooseArgs, idv);
+            idv = new CopyColumnsTransform(Host, cols.ToArray()).Transform(idv);
+            idv = SelectColumnsTransform.CreateKeep(Host, idv, colsToKeep.ToArray());
             return GetPerInstanceMetricsCore(idv, perInst.Schema);
         }
 
