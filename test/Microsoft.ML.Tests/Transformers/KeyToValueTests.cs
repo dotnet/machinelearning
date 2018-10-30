@@ -7,6 +7,7 @@ using Microsoft.ML.Runtime.Data.IO;
 using Microsoft.ML.Runtime.RunTests;
 using Microsoft.ML.StaticPipe;
 using Microsoft.ML.Transforms;
+using Microsoft.ML.Transforms.Categorical;
 using System.IO;
 using Xunit;
 using Xunit.Abstractions;
@@ -42,7 +43,7 @@ namespace Microsoft.ML.Tests.Transformers
 
             var data = reader.Read(dataPath);
 
-            data = new TermEstimator(Env, new[] {
+            data = new ValueToKeyMappingEstimator(Env, new[] {
                 new TermTransform.ColumnInfo("ScalarString", "A"),
                 new TermTransform.ColumnInfo("VectorString", "B") }).Fit(data).Transform(data);
 
@@ -79,7 +80,7 @@ namespace Microsoft.ML.Tests.Transformers
             var data = reader.Read(dataPath);
 
             // Non-pigsty Term.
-            var dynamicData = new TermEstimator(Env, new[] {
+            var dynamicData = new ValueToKeyMappingEstimator(Env, new[] {
                 new TermTransform.ColumnInfo("ScalarString", "A"),
                 new TermTransform.ColumnInfo("VectorString", "B") })
                 .Fit(data.AsDynamic).Transform(data.AsDynamic);

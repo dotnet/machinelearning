@@ -43,7 +43,7 @@ namespace Microsoft.ML.Tests.Transformers
             };
 
             var dataView = ComponentCreation.CreateDataView(Env, data);
-            var pipe = new NAReplaceEstimator(Env,
+            var pipe = new MissingValueReplacingEstimator(Env,
                 new NAReplaceTransform.ColumnInfo("A", "NAA", NAReplaceTransform.ColumnInfo.ReplacementMode.Mean),
                 new NAReplaceTransform.ColumnInfo("B", "NAB", NAReplaceTransform.ColumnInfo.ReplacementMode.Mean),
                 new NAReplaceTransform.ColumnInfo("C", "NAC", NAReplaceTransform.ColumnInfo.ReplacementMode.Mean),
@@ -108,7 +108,7 @@ namespace Microsoft.ML.Tests.Transformers
             };
 
             var dataView = ComponentCreation.CreateDataView(Env, data);
-            var pipe = new NAReplaceEstimator(Env,
+            var pipe = new MissingValueReplacingEstimator(Env,
                 new NAReplaceTransform.ColumnInfo("A", "NAA", NAReplaceTransform.ColumnInfo.ReplacementMode.Mean),
                 new NAReplaceTransform.ColumnInfo("B", "NAB", NAReplaceTransform.ColumnInfo.ReplacementMode.Mean),
                 new NAReplaceTransform.ColumnInfo("C", "NAC", NAReplaceTransform.ColumnInfo.ReplacementMode.Mean),

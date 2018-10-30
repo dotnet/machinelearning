@@ -7,7 +7,8 @@ using Microsoft.ML.Runtime.CommandLine;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
 using Microsoft.ML.Runtime.Internal.Utilities;
-using Microsoft.ML.Transforms;
+using Microsoft.ML.Transforms.Categorical;
+using Microsoft.ML.Transforms.Conversions;
 using Microsoft.ML.Transforms.Text;
 using System.Collections.Generic;
 using System.Linq;
@@ -21,7 +22,7 @@ using System.Text;
 
 [assembly: EntryPointModule(typeof(NgramHashExtractorTransform.NgramHashExtractorArguments))]
 
-namespace Microsoft.ML.Runtime.Data
+namespace Microsoft.ML.Transforms.Text
 {
     public static class WordHashBagTransform
     {
@@ -132,7 +133,7 @@ namespace Microsoft.ML.Runtime.Data
                     };
             }
 
-            view = new WordTokenizeEstimator(env, tokenizeColumns).Fit(view).Transform(view);
+            view = new WordTokenizingEstimator(env, tokenizeColumns).Fit(view).Transform(view);
 
             var featurizeArgs =
                 new NgramHashExtractorTransform.Arguments

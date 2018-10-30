@@ -44,10 +44,10 @@ namespace Microsoft.ML.Tests.Transformers
                 Assert.True(schema.TryGetColumnIndex(name, out int cIdx), $"Could not find '{name}'");
                 return schema.GetColumnType(cIdx);
             }
-            var pipe = new ConcatEstimator(Env, "f1", "float1")
-                .Append(new ConcatEstimator(Env, "f2", "float1", "float1"))
-                .Append(new ConcatEstimator(Env, "f3", "float4", "float1"))
-                .Append(new ConcatEstimator(Env, "f4", "vfloat", "float1"));
+            var pipe = new ColumnConcatenatingEstimator (Env, "f1", "float1")
+                .Append(new ColumnConcatenatingEstimator (Env, "f2", "float1", "float1"))
+                .Append(new ColumnConcatenatingEstimator (Env, "f3", "float4", "float1"))
+                .Append(new ColumnConcatenatingEstimator (Env, "f4", "vfloat", "float1"));
 
             data = TakeFilter.Create(Env, data, 10);
             data = pipe.Fit(data).Transform(data);

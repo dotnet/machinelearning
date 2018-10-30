@@ -796,7 +796,7 @@ namespace Microsoft.ML.Runtime.TextAnalytics
 
         /// <summary>
         /// Public constructor corresponding to SignatureStopWordsRemoverTransform. It accepts arguments of type LoaderArguments,
-        /// and a separate array of columns (constructed by the caller -TextTransform- arguments).
+        /// and a separate array of columns (constructed by the caller -TextFeaturizingEstimator - arguments).
         /// </summary>
         public CustomStopWordsRemoverTransform(IHostEnvironment env, LoaderArguments loaderArgs, IDataView input, OneToOneColumn[] column)
             : base(env, RegistrationName, column, input, TestIsTextItem)

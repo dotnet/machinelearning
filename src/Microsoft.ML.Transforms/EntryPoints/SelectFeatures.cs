@@ -5,9 +5,11 @@
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.EntryPoints;
+using Microsoft.ML.Transforms;
 
 [assembly: LoadableClass(typeof(void), typeof(SelectFeatures), null, typeof(SignatureEntryPointModule), "SelectFeatures")]
-namespace Microsoft.ML.Runtime.EntryPoints
+
+namespace Microsoft.ML.Transforms
 {
     public static class SelectFeatures
     {
