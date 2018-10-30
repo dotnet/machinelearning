@@ -209,7 +209,7 @@ namespace Microsoft.ML.Transforms.Text
             for (int i = 0; i < cols.Length; i++)
             {
                 var item = args.Column[i];
-                var separators = args.CharArrayTermSeparators ?? PredictionUtil.SeparatorFromString(args.TermSeparators);
+                var separators = args.CharArrayTermSeparators ?? PredictionUtil.SeparatorFromString(item.TermSeparators ?? args.TermSeparators);
                 cols[i] = new ColumnInfo(item.Source ?? item.Name, item.Name, separators);
 
             }

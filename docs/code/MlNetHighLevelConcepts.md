@@ -10,7 +10,7 @@ This document is going to cover the following ML.NET concepts:
   - In ML.NET, data is very similar to a SQL view: it's a lazily-evaluated, immutable, cursorable, heterogenous, schematized dataset. 
   - An excellent document about the data interface is [IDataView Design Principles](IDataViewDesignPrinciples.md).
 - [*Transformer*](#transformer), represented as `ITransformer` interface.
-  - In one sentence, a transformer is a component that takes data, does some work on it, and return new 'transformed' data.
+  - In one sentence, a transformer is a component that takes data, does some work on it, and returns new 'transformed' data.
   - For example, you can think of a machine learning model as a transformer that takes features and returns predictions.
   - Another example, 'text tokenizer' would take a single text column and output a vector column with individual 'words' extracted out of the texts.
 - [*Data reader*](#data-reader), represented as an `IDataReader<T>` interface.
