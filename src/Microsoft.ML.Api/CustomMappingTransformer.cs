@@ -3,13 +3,15 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Core.Data;
+using Microsoft.ML.Runtime;
+using Microsoft.ML.Runtime.Api;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Model;
 using System;
 using System.Linq;
 
-namespace Microsoft.ML.Runtime.Api
+namespace Microsoft.ML.Transforms
 {
     /// <summary>
     /// This transform generates additional columns to the provided <see cref="IDataView"/>.

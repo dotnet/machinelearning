@@ -16,6 +16,7 @@ using Xunit;
 using Xunit.Abstractions;
 using System.Linq;
 using System;
+using Microsoft.ML.Transforms;
 
 namespace Microsoft.ML.Tests.Transformers
 {
@@ -39,7 +40,7 @@ namespace Microsoft.ML.Tests.Transformers
         public class MyLambda
         {
             [Export("MyLambda")]
-            public ITransformer MyTransformer => new CustomMappingTransformer<MyInput, MyOutput>(ML, MyAction, "MyLambda");
+            public ITransformer MyTransformer => ML.Transforms.CustomMappingTransformer<MyInput, MyOutput>(MyAction, "MyLambda");
 
             [Import]
             public MLContext ML { get; set; }
@@ -78,7 +79,6 @@ namespace Microsoft.ML.Tests.Transformers
                 {
                     // REVIEW: we should have a common mechanism that will make sure this is 'our' exception thrown.
                 }
-
                 ML.CompositionContainer = new CompositionContainer(new TypeCatalog(typeof(MyLambda)));
                 TestEstimatorCore(customEst, data);
                 transformedData = customEst.Fit(data).Transform(data);
