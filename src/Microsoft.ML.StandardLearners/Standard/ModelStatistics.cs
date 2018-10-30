@@ -2,17 +2,16 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.IO;
-using System.Linq;
 using Microsoft.ML.Runtime;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Internal.CpuMath;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Learners;
 using Microsoft.ML.Runtime.Model;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 
 // This is for deserialization from a model repository.
 [assembly: LoadableClass(typeof(LinearModelStatistics), null, typeof(SignatureLoadModel),
@@ -82,7 +81,7 @@ namespace Microsoft.ML.Runtime.Learners
         // It could be null when there are too many non-zero weights so that
         // the memory is insufficient to hold the Hessian matrix necessary for the computation
         // of the variance-covariance matrix.
-        private readonly VBuffer<Single>? _coeffStdError;
+        private VBuffer<Single>? _coeffStdError;
 
         public long TrainingExampleCount { get { return _trainingExampleCount; } }
 
@@ -91,6 +90,11 @@ namespace Microsoft.ML.Runtime.Learners
         public Single NullDeviance { get { return _nullDeviance; } }
 
         public int ParametersCount { get { return _paramCount; } }
+
+        public Double[] Hessian;
+
+        // Indices of bias and non-zero weight slots.
+        public int[] WeightIndices;
 
         public LinearModelStatistics(IHostEnvironment env, long trainingExampleCount, int paramCount, Single deviance, Single nullDeviance)
         {
@@ -283,6 +287,12 @@ namespace Microsoft.ML.Runtime.Learners
                     }
                     dst = new VBuffer<ReadOnlyMemory<char>>(stats.ParametersCount - 1, values, dst.Indices);
                 };
+        }
+
+        public void SetCoeffStdError(ref VBuffer<Single> coeffStdError)
+        {
+            _env.Assert(coeffStdError.Count == _paramCount);
+            _coeffStdError = coeffStdError;
         }
 
         private IEnumerable<CoefficientStatistics> GetUnorderedCoefficientStatistics(LinearBinaryPredictor parent, RoleMappedSchema schema)

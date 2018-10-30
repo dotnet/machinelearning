@@ -38,5 +38,20 @@ namespace Microsoft.ML.Tests.TrainerEstimators
             TestEstimatorCore(pipe, dataView);
             Done();
         }
+
+        [Fact]
+        public void TestLogisticRegressionStats()
+        {
+            (IEstimator<ITransformer> pipe, IDataView dataView) = GetBinaryClassificationPipeline();
+
+            var trainer = new LogisticRegression(Env, "Features", "Label", advancedSettings: s=> { s.ShowTrainingStats = true; });
+            pipe = pipe.Append(trainer);
+            var transformer = pipe.Fit(dataView);
+
+            using (var ch = Env.Start("Calcuating STD for LR."))
+                trainer.ComputeExtendedTrainingStatistics(ch);
+
+            Done();
+        }
     }
 }

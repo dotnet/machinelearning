@@ -15,6 +15,7 @@ using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.Learners;
 using Microsoft.ML.Runtime.Numeric;
 using Microsoft.ML.Runtime.Training;
+//using Microsoft.ML.Trainers.HalLearners;
 
 [assembly: LoadableClass(LogisticRegression.Summary, typeof(LogisticRegression), typeof(LogisticRegression.Arguments),
     new[] { typeof(SignatureBinaryClassifierTrainer), typeof(SignatureTrainer), typeof(SignatureFeatureScorerTrainer) },
@@ -44,8 +45,8 @@ namespace Microsoft.ML.Runtime.Learners
             public bool ShowTrainingStats = false;
         }
 
-        protected Double PosWeight;
-        protected LinearModelStatistics Stats;
+        private Double _posWeight;
+        public LinearModelStatistics Stats;
 
         /// <summary>
         /// Initializes a new instance of <see cref="LogisticRegression"/>
@@ -76,7 +77,7 @@ namespace Microsoft.ML.Runtime.Learners
             Host.CheckNonEmpty(featureColumn, nameof(featureColumn));
             Host.CheckNonEmpty(labelColumn, nameof(labelColumn));
 
-            PosWeight = 0;
+            _posWeight = 0;
             ShowTrainingStats = Args.ShowTrainingStats;
         }
 
@@ -86,7 +87,7 @@ namespace Microsoft.ML.Runtime.Learners
         public LogisticRegression(IHostEnvironment env, Arguments args)
             : base(env, args, TrainerUtils.MakeBoolScalarLabel(args.LabelColumn))
         {
-            PosWeight = 0;
+            _posWeight = 0;
             ShowTrainingStats = Args.ShowTrainingStats;
         }
 
@@ -140,7 +141,7 @@ namespace Microsoft.ML.Runtime.Learners
             return weight * datumLoss;
         }
 
-        protected override void ComputeTrainingStatistics(IChannel ch, FloatLabelCursor.Factory cursorFactory, float loss, int numParams)
+        protected override void ComputeTrainingStatistics(IChannel ch, FloatLabelCursor.Factory cursorFactory, float loss)
         {
             Contracts.AssertValue(ch);
             Contracts.AssertValue(cursorFactory);
@@ -148,7 +149,7 @@ namespace Microsoft.ML.Runtime.Learners
             Contracts.Assert(WeightSum > 0);
             Contracts.Assert(BiasCount == 1);
             Contracts.Assert(loss >= 0);
-            Contracts.Assert(numParams >= BiasCount);
+            Contracts.Assert(NumParams >= BiasCount);
             Contracts.Assert(CurrentWeights.IsDense);
 
             ch.Info("Model trained with {0} training examples.", NumGoodRows);
@@ -173,18 +174,18 @@ namespace Microsoft.ML.Runtime.Learners
                 deviance -= (float)regLoss * L1Weight * 2;
             }
 
-            ch.Info("Residual Deviance: \t{0} (on {1} degrees of freedom)", deviance, Math.Max(NumGoodRows - numParams, 0));
+            ch.Info("Residual Deviance: \t{0} (on {1} degrees of freedom)", deviance, Math.Max(NumGoodRows - NumParams, 0));
 
             // Compute null deviance, i.e., the deviance of null hypothesis.
             // Cap the prior positive rate at 1e-15.
-            Double priorPosRate = PosWeight / WeightSum;
+            Double priorPosRate = _posWeight / WeightSum;
             Contracts.Assert(0 <= priorPosRate && priorPosRate <= 1);
             float nullDeviance = (priorPosRate <= 1e-15 || 1 - priorPosRate <= 1e-15) ?
                 0f : (float)(2 * WeightSum * MathUtils.Entropy(priorPosRate, true));
             ch.Info("Null Deviance:     \t{0} (on {1} degrees of freedom)", nullDeviance, NumGoodRows - 1);
 
             // Compute AIC.
-            ch.Info("AIC:               \t{0}", 2 * numParams + deviance);
+            ch.Info("AIC:               \t{0}", 2 * NumParams + deviance);
 
             // Show the coefficients statistics table.
             var featureColIdx = cursorFactory.Data.Schema.Feature.Index;
@@ -202,13 +203,13 @@ namespace Microsoft.ML.Runtime.Learners
             int[] weightIndices = null;
 
             // Whether all weights are non-zero.
-            bool denseWeight = numParams == CurrentWeights.Length;
+            bool denseWeight = NumParams == CurrentWeights.Length;
 
             // Extract non-zero indices of weight.
             if (!denseWeight)
             {
-                weightIndices = new int[numParams];
-                weightIndicesInvMap = new Dictionary<int, int>(numParams);
+                weightIndices = new int[NumParams];
+                weightIndicesInvMap = new Dictionary<int, int>(NumParams);
                 weightIndices[0] = 0;
                 weightIndicesInvMap[0] = 0;
                 int j = 1;
@@ -221,17 +222,17 @@ namespace Microsoft.ML.Runtime.Learners
                     }
                 }
 
-                Contracts.Assert(j == numParams);
+                Contracts.Assert(j == NumParams);
             }
 
             // Compute the standard error of coefficients.
-            long hessianDimension = (long)numParams * (numParams + 1) / 2;
+            long hessianDimension = (long)NumParams * (NumParams + 1) / 2;
             if (hessianDimension > int.MaxValue)
             {
                 ch.Warning("The number of parameter is too large. Cannot hold the variance-covariance matrix in memory. " +
                     "Skipping computation of standard errors and z-statistics of coefficients. Consider choosing a larger L1 regularizer" +
                     "to reduce the number of parameters.");
-                Stats = new LinearModelStatistics(Host, NumGoodRows, numParams, deviance, nullDeviance);
+                Stats = new LinearModelStatistics(Host, NumGoodRows, NumParams, deviance, nullDeviance);
                 return;
             }
 
@@ -251,7 +252,7 @@ namespace Microsoft.ML.Runtime.Learners
                 // i is the array index of the diagonal entry at iRow-th row and iRow-th column.
                 // iRow is one-based.
                 int i = 0;
-                for (int iRow = 2; iRow <= numParams; iRow++)
+                for (int iRow = 2; iRow <= NumParams; iRow++)
                 {
                     i += iRow;
                     hessian[i] = L2Weight;
@@ -281,7 +282,7 @@ namespace Microsoft.ML.Runtime.Learners
                         int ioff = 1;
 
                         // Increment remaining entries of hessian.
-                        for (int i = 1; i < numParams; i++)
+                        for (int i = 1; i < NumParams; i++)
                         {
                             ch.Assert(ioff == i * (i + 1) / 2);
                             int wi = weightIndices == null ? i - 1 : weightIndices[i] - 1;
@@ -329,14 +330,15 @@ namespace Microsoft.ML.Runtime.Learners
                     }
                 }
             }
-
-            Stats = new LinearModelStatistics(Host, NumGoodRows, numParams, deviance, nullDeviance);
+            Stats = new LinearModelStatistics(Host, NumGoodRows, NumParams, deviance, nullDeviance);
+            Stats.Hessian = hessian;
+            Stats.WeightIndices = weightIndices;
         }
 
         protected override void ProcessPriorDistribution(float label, float weight)
         {
             if (label > 0)
-                PosWeight += weight;
+                _posWeight += weight;
         }
 
         //Override default termination criterion MeanRelativeImprovementCriterion with

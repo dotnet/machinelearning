@@ -251,7 +251,7 @@ namespace Microsoft.ML.Runtime.Learners
             return new MulticlassLogisticRegressionPredictor(Host, ref CurrentWeights, _numClasses, NumFeatures, _labelNames, _stats);
         }
 
-        protected override void ComputeTrainingStatistics(IChannel ch, FloatLabelCursor.Factory cursorFactory, float loss, int numParams)
+        protected override void ComputeTrainingStatistics(IChannel ch, FloatLabelCursor.Factory cursorFactory, float loss)
         {
             Contracts.AssertValue(ch);
             Contracts.AssertValue(cursorFactory);
@@ -259,7 +259,7 @@ namespace Microsoft.ML.Runtime.Learners
             Contracts.Assert(WeightSum > 0);
             Contracts.Assert(BiasCount == _numClasses);
             Contracts.Assert(loss >= 0);
-            Contracts.Assert(numParams >= BiasCount);
+            Contracts.Assert(NumParams >= BiasCount);
             Contracts.Assert(CurrentWeights.IsDense);
 
             ch.Info("Model trained with {0} training examples.", NumGoodRows);
@@ -299,10 +299,10 @@ namespace Microsoft.ML.Runtime.Learners
             ch.Info("Null Deviance:    \t{0}", nullDeviance);
 
             // Compute AIC.
-            ch.Info("AIC:              \t{0}", 2 * numParams + deviance);
+            ch.Info("AIC:              \t{0}", 2 * NumParams + deviance);
 
             // REVIEW: Figure out how to compute the statistics for the coefficients.
-            _stats = new LinearModelStatistics(Host, NumGoodRows, numParams, deviance, nullDeviance);
+            _stats = new LinearModelStatistics(Host, NumGoodRows, NumParams, deviance, nullDeviance);
         }
 
         protected override void ProcessPriorDistribution(float label, float weight)

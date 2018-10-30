@@ -155,7 +155,7 @@ namespace Microsoft.ML.Trainers
             return new PoissonRegressionPredictor(Host, ref weights, bias);
         }
 
-        protected override void ComputeTrainingStatistics(IChannel ch, FloatLabelCursor.Factory factory, float loss, int numParams)
+        protected override void ComputeTrainingStatistics(IChannel ch, FloatLabelCursor.Factory factory, float loss)
         {
             // No-op by design.
         }
