@@ -6,7 +6,7 @@ using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Data.Conversion;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.TextAnalytics;
-using Microsoft.ML.Transforms;
+using Microsoft.ML.Transforms.Conversions;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -536,6 +536,20 @@ namespace Microsoft.ML.Runtime.RunTests
                 },
                 suffix: "-Convert");
 
+            Done();
+        }
+
+        [Fact]
+        public void SavePipeWordTokenize()
+        {
+            TestCore(GetDataPath("lm.sample.txt"), false,
+                new[]
+                {
+                    "loader=Text{col=A:TX:2 col=B:TX:3}",
+                    "xf=wordToken{col={name=C source=A sep=space,-} col=D:B}",
+                    "xf=concat{col=Concat:C,D}",
+                    "xf=Select{dropcol=C dropcol=D}"
+                });
             Done();
         }
 

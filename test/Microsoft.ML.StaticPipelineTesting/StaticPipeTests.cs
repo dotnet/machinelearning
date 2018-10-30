@@ -6,10 +6,12 @@ using Microsoft.ML.Data;
 using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Data.IO;
 using Microsoft.ML.Runtime.Internal.Utilities;
+using Microsoft.ML.Runtime.Recommender;
 using Microsoft.ML.Runtime.RunTests;
 using Microsoft.ML.StaticPipe;
 using Microsoft.ML.TestFramework;
 using Microsoft.ML.Transforms;
+using Microsoft.ML.Transforms.Categorical;
 using Microsoft.ML.Transforms.PCA;
 using Microsoft.ML.Transforms.Text;
 using System;
@@ -877,5 +879,6 @@ namespace Microsoft.ML.StaticPipelineTesting
             Assert.True(type.IsVector && type.ItemType.RawKind == DataKind.R4);
             Assert.True(type.VectorSize == 5);
         }
+
     }
 }
