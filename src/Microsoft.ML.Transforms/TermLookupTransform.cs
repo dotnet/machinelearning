@@ -13,6 +13,7 @@ using Microsoft.ML.Transforms;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Text;
 
@@ -507,13 +508,14 @@ namespace Microsoft.ML.Runtime.Data
             var typeTerm = schema.GetColumnType(colTerm);
             host.CheckUserArg(typeTerm.IsText, nameof(Arguments.TermColumn), "term column must contain text");
             var typeValue = schema.GetColumnType(colValue);
-
-            var args = new ChooseColumnsTransform.Arguments();
-            args.Column = new[] {
-                new ChooseColumnsTransform.Column {Name = "Term", Source = termColumn},
-                new ChooseColumnsTransform.Column {Name = "Value", Source = valueColumn},
+            var cols = new List<(string Source, string Name)>()
+            {
+                (termColumn, "Term"),
+                (valueColumn, "Value")
             };
-            var view = new ChooseColumnsTransform(host, args, lookup);
+
+            var view = new CopyColumnsTransform(host, cols.ToArray()).Transform(lookup);
+            view = SelectColumnsTransform.CreateKeep(host, view, cols.Select(x=>x.Name).ToArray());
 
             var saver = new BinarySaver(host, new BinarySaver.Arguments());
             using (var strm = new MemoryStream())
