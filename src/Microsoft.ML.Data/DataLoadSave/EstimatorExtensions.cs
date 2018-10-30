@@ -48,8 +48,23 @@ namespace Microsoft.ML.Runtime.Data
             where TTrans : class, ITransformer
         {
             Contracts.CheckValue(start, nameof(start));
+            Contracts.CheckValue(estimator, nameof(estimator));
 
             return new EstimatorChain<ITransformer>().Append(start).Append(estimator, scope);
+        }
+
+        /// <summary>
+        /// Create an estimator chain by mappering same column names only.
+        /// </summary>
+        public static EstimatorChain<TTrans> AppendNull<TTrans>(
+            this IEstimator<ITransformer> start, IEstimator<TTrans> estimator,
+            TransformerScope scope = TransformerScope.Everything)
+            where TTrans : class, ITransformer
+        {
+            Contracts.CheckValue(start, nameof(start));
+            Contracts.Assert(estimator == null);
+
+            return new EstimatorChain<ITransformer>().Append(start).Append<TTrans>();
         }
 
         /// <summary>
