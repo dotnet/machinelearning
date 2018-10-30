@@ -214,9 +214,9 @@ namespace Microsoft.ML.Transforms.Categorical
                     if (term.IsEmpty)
                         ch.Warning("Empty strings ignored in 'terms' specification");
                     else if (!tryParse(in term, out val))
-                        ch.Warning("Item '{0}' ignored in 'terms' specification since it could not be parsed as '{1}'", term, ItemType);
+                        throw ch.Except($"Item '{term}' in 'terms' specification could not be parsed as '{ItemType}'");
                     else if (!TryAdd(ref val))
-                        ch.Warning("Duplicate item '{0}' ignored in 'terms' specification", term);
+                        ch.Warning($"Duplicate item '{term}' ignored in 'terms' specification", term);
                 }
 
                 if (Count == 0)

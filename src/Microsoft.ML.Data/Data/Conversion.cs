@@ -1164,27 +1164,25 @@ namespace Microsoft.ML.Runtime.Data.Conversion
         /// Utility to assist in parsing key-type values. The min and max values define
         /// the legal input value bounds. The output dst value is "normalized" so min is
         /// mapped to 1, max is mapped to 1 + (max - min).
-        /// Exception is thrown for missing values.
         /// Unparsable or out of range values are mapped to zero with a false return.
         /// </summary>
         public bool TryParseKey(in TX src, U8 min, U8 max, out U8 dst)
         {
             var span = src.Span;
-            Contracts.Check(span.IsEmpty || !IsStdMissing(ref span), "Missing text value cannot be converted to unsigned integer type.");
+            // Both empty and missing map to zero (NA for key values) and that mapping is valid,
+            // hence the true return.
+            if (src.IsEmpty || IsStdMissing(ref span))
+            {
+                dst = 0;
+                return true;
+            }
+
             Contracts.Assert(min <= max);
 
             // This simply ensures we don't have min == 0 and max == U8.MaxValue. This is illegal since
             // we map min to 1, which would cause max to overflow to zero. Specifically, it protects
             // against overflow in the expression uu - min + 1 below.
             Contracts.Assert((max - min) < U8.MaxValue);
-
-            // Both empty and missing map to zero (NA for key values) and that mapping is valid,
-            // hence the true return.
-            if (src.IsEmpty)
-            {
-                dst = 0;
-                return true;
-            }
 
             // Parse a ulong.
             ulong uu;
@@ -1198,7 +1196,7 @@ namespace Microsoft.ML.Runtime.Data.Conversion
             if (min > uu || uu > max)
             {
                 dst = 0;
-                return false;
+                return true;
             }
 
             dst = uu - min + 1;
@@ -1243,7 +1241,12 @@ namespace Microsoft.ML.Runtime.Data.Conversion
         {
             dst = default;
             TryParseSigned(I1.MaxValue, in src, out long? res);
-            Contracts.Check(res.HasValue, "Value could not be parsed from text to sbyte.");
+            if (res == null)
+            {
+                dst = default;
+                return false;
+            }
+            Contracts.Assert(res.HasValue);
             Contracts.Check((I1)res == res, "Overflow or underflow occured while converting value in text to sbyte.");
             dst = (I1)res;
             return true;
@@ -1257,7 +1260,12 @@ namespace Microsoft.ML.Runtime.Data.Conversion
         {
             dst = default;
             TryParseSigned(I2.MaxValue, in src, out long? res);
-            Contracts.Check(res.HasValue, "Value could not be parsed from text to short.");
+            if (res == null)
+            {
+                dst = default;
+                return false;
+            }
+            Contracts.Assert(res.HasValue);
             Contracts.Check((I2)res == res, "Overflow or underflow occured while converting value in text to short.");
             dst = (I2)res;
             return true;
@@ -1271,7 +1279,12 @@ namespace Microsoft.ML.Runtime.Data.Conversion
         {
             dst = default;
             TryParseSigned(I4.MaxValue, in src, out long? res);
-            Contracts.Check(res.HasValue, "Value could not be parsed from text to int32.");
+            if (res == null)
+            {
+                dst = default;
+                return false;
+            }
+            Contracts.Assert(res.HasValue);
             Contracts.Check((I4)res == res, "Overflow or underflow occured while converting value in text to int.");
             dst = (I4)res;
             return true;
@@ -1285,7 +1298,12 @@ namespace Microsoft.ML.Runtime.Data.Conversion
         {
             dst = default;
             TryParseSigned(I8.MaxValue, in src, out long? res);
-            Contracts.Check(res.HasValue, "Value could not be parsed from text to long.");
+            if (res == null)
+            {
+                dst = default;
+                return false;
+            }
+            Contracts.Assert(res.HasValue);
             dst = (I8)res;
             return true;
         }
@@ -1409,9 +1427,9 @@ namespace Microsoft.ML.Runtime.Data.Conversion
 
             if (TimeSpan.TryParse(src.ToString(), CultureInfo.InvariantCulture, out dst))
                 return true;
+            dst = default;
             var span = src.Span;
-            Contracts.Check(!IsStdMissing(ref span), "Missing values cannot be converted to boolean value.");
-            return true;
+            return IsStdMissing(ref span);
         }
 
         public bool TryParse(in TX src, out DT dst)
@@ -1424,10 +1442,9 @@ namespace Microsoft.ML.Runtime.Data.Conversion
 
             if (DateTime.TryParse(src.ToString(), CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal, out dst))
                 return true;
-
+            dst = default;
             var span = src.Span;
-            Contracts.Check(!IsStdMissing(ref span), "Missing values cannot be converted to boolean value.");
-            return true;
+            return IsStdMissing(ref span);
         }
 
         public bool TryParse(in TX src, out DZ dst)
@@ -1441,9 +1458,9 @@ namespace Microsoft.ML.Runtime.Data.Conversion
             if (DateTimeOffset.TryParse(src.ToString(), CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal, out dst))
                 return true;
 
+            dst = default;
             var span = src.Span;
-            Contracts.Check(!IsStdMissing(ref span), "Missing values cannot be converted to boolean value.");
-            return true;
+            return IsStdMissing(ref span);
         }
 
         // These throw an exception for unparsable and overflow values.
@@ -1530,7 +1547,13 @@ namespace Microsoft.ML.Runtime.Data.Conversion
         {
             var span = src.Span;
 
-            Contracts.Check(span.IsEmpty || !IsStdMissing(ref span), "Missing text value cannot be converted to bool type.");
+            if (!span.IsEmpty && IsStdMissing(ref span))
+            {
+                dst = false;
+                return false;
+            }
+
+            Contracts.Assert(!IsStdMissing(ref span));
 
             char ch;
             switch (src.Length)

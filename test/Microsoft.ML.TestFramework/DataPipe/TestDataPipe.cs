@@ -3,11 +3,14 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.ML.Runtime.Data;
+using Microsoft.ML.Runtime.Data.Conversion;
 using Microsoft.ML.Runtime.Internal.Utilities;
 using Microsoft.ML.Runtime.TextAnalytics;
 using Microsoft.ML.Transforms.Conversions;
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using Xunit;
 using Float = System.Single;
 
@@ -486,6 +489,52 @@ namespace Microsoft.ML.Runtime.RunTests
                     "xf=KeyToVector{col=Key}",
                     "xf=CountFeatureSelection{col=Key count=100}",
                 });
+
+            Done();
+        }
+
+        private bool VerifyMatch<TSrc, TDst>(TSrc src, TDst dst, ValueMapper<TSrc, TDst> conv, ValueMapper<TDst, TSrc> convBack)
+            where TSrc : struct
+            where TDst : struct
+        {
+            TDst v = default(TDst);
+            conv(ref src, ref v);
+            if (EqualityComparer<TDst>.Default.Equals(dst, v))
+                return true;
+            TSrc vSrc = default;
+            convBack(ref v, ref vSrc);
+            if (EqualityComparer<TDst>.Default.Equals(dst, default(TDst)) && !EqualityComparer<TSrc>.Default.Equals(src, vSrc))
+                return true;
+            Fail($"Values different values in VerifyMatch<{typeof(TSrc).Name}, {typeof(TDst).Name}>: converted from {typeof(TSrc).Name} to {typeof(TDst).Name}: {v}. Parsed from text: {dst}");
+            return false;
+        }
+
+        [Fact(Skip = "Fails until issue #1342 is resolved.")]
+        public void SavePipeNgramHash()
+        {
+            string pathData = GetDataPath("lm.sample.txt");
+            TestCore(pathData, true,
+                new[] {
+                    "loader=Text{header+ col=Label:TX:0 col=Attrs:TX:1-2 col=TextFeatures:TX:3-4 rows=100}",
+                    "xf=WordToken{col={name=Tokens src=TextFeatures}}",
+                    "xf=Cat{max=10 col={name=Cat src=Tokens kind=key}}",
+                    "xf=Hash{col={name=Hash src=Tokens bits=10} col={name=HashBig src=Tokens bits=31}}",
+                    "xf=NgramHash{col={name=NgramHashOne src=Cat bits=4 ngram=3 skips=2}}",
+                    "xf=NgramHash{col={name=HashNgram1 src=Cat src=Cat bits=10 ngram=3 skips=1}}",
+                    "xf=NgramHash{ngram=3 bits=8 col={name=HashNgram2 src=Hash src=Hash skips=1 ord-} col={name=HashNgram3 src=Cat src=Hash skips=2 ord- rehash+ all-}}",
+                    "xf=NgramHash{bits=6 col=HashNgram4:HashBig,Hash rehash+}",
+                    "xf=NgramHash{bits=3 ngram=1 col={name=HashNgram5 src=Hash src=Hash} col={name=HashNgram6 src=Hash ord-}}",
+                    "xf=NgramHash{bits=6 col=HashNgram7:HashBig,Hash rehash+ all- col={name=HashNgram8 src=Hash all+ ord-}}",
+                    "xf=SelectColumns{keepcol=NgramHashOne keepcol=HashNgram1 keepcol=HashNgram2 keepcol=HashNgram3 keepcol=HashNgram4 keepcol=HashNgram5 keepcol=HashNgram6 keepcol=HashNgram7 keepcol=HashNgram8, hidden=-}",
+                });
+
+            TestCore(null, true,
+                new[] {
+                    "loader=Text{col=CatU8:U8[0-100]:1-9 col=CatU2:U2[0-*]:3-5}",
+                    "xf=NgramHash{bits=5 col=NgramHash:CatU8 col=NgramHash2:CatU2}",
+                    "xf=SelectColumns{keepcol=NgramHash keepcol=NgramHash2 hidden=-}"
+                },
+                suffix: "-Convert");
 
             Done();
         }

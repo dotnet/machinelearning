@@ -32,7 +32,8 @@ namespace Microsoft.ML.Tests.Transformers
                 Column = new[]{
                     new TextLoader.Column("float1", DataKind.R4, 0),
                     new TextLoader.Column("float4", DataKind.R4, new[]{new TextLoader.Range(0), new TextLoader.Range(2), new TextLoader.Range(4), new TextLoader.Range(10) }),
-                    new TextLoader.Column("vfloat", DataKind.R4, new[]{new TextLoader.Range(0), new TextLoader.Range(2), new TextLoader.Range(4), new TextLoader.Range(10, null) { AutoEnd = false, VariableEnd = true } })
+                    new TextLoader.Column("float6", DataKind.R4, new[]{new TextLoader.Range(0), new TextLoader.Range(2), new TextLoader.Range(4), new TextLoader.Range(10, 12) }),
+                    new TextLoader.Column("vfloat", DataKind.R4, new[]{new TextLoader.Range(14, null) { AutoEnd = false, VariableEnd = true } })
                 },
                 Separator = ",",
                 HasHeader = true
@@ -44,10 +45,10 @@ namespace Microsoft.ML.Tests.Transformers
                 Assert.True(schema.TryGetColumnIndex(name, out int cIdx), $"Could not find '{name}'");
                 return schema.GetColumnType(cIdx);
             }
-            var pipe = new ColumnConcatenatingEstimator (Env, "f1", "float1")
-                .Append(new ColumnConcatenatingEstimator (Env, "f2", "float1", "float1"))
-                .Append(new ColumnConcatenatingEstimator (Env, "f3", "float4", "float1"))
-                .Append(new ColumnConcatenatingEstimator (Env, "f4", "vfloat", "float1"));
+            var pipe = new ColumnConcatenatingEstimator(Env, "f1", "float1")
+                .Append(new ColumnConcatenatingEstimator(Env, "f2", "float1", "float1"))
+                .Append(new ColumnConcatenatingEstimator(Env, "f3", "float4", "float1"))
+                .Append(new ColumnConcatenatingEstimator(Env, "f4", "float6", "vfloat", "float1"));
 
             data = TakeFilter.Create(Env, data, 10);
             data = pipe.Fit(data).Transform(data);
