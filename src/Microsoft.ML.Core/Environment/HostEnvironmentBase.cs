@@ -690,6 +690,6 @@ namespace Microsoft.ML.Runtime.Data
                 writer.WriteLine();
         }
 
-        public virtual CompositionContainer GetCompositionContainer() => throw this.ExceptNotSupp("Composition not supported by this environment");
+        public virtual CompositionContainer GetCompositionContainer() => new CompositionContainer();
     }
 }

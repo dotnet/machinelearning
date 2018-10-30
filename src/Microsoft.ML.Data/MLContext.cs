@@ -63,6 +63,10 @@ namespace Microsoft.ML
         /// </summary>
         public Action<string> Log { get; set; }
 
+        /// <summary>
+        /// This is a MEF catalog to be used for model loading. Add custom components as parts to this catalog,
+        /// so that ML.NET can pick them up at the time model is loaded.
+        /// </summary>
         public AggregateCatalog PartCatalog { get; }
 
         /// <summary>

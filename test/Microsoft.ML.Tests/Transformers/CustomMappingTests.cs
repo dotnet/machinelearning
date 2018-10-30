@@ -14,12 +14,13 @@ using System.ComponentModel.Composition.Hosting;
 using System.IO;
 using Xunit;
 using Xunit.Abstractions;
+using System.Linq;
 
 namespace Microsoft.ML.Tests.Transformers
 {
-    public sealed class CustomTransformerTests : TestDataPipeBase
+    public sealed class CustomMappingTests : TestDataPipeBase
     {
-        public CustomTransformerTests(ITestOutputHelper helper) : base(helper)
+        public CustomMappingTests(ITestOutputHelper helper) : base(helper)
         {
         }
 
@@ -64,6 +65,14 @@ namespace Microsoft.ML.Tests.Transformers
 
             var customEst = new CustomMappingEstimator<MyInput, MyOutput>(ML, MyLambda.MyAction, "MyLambda");
             TestEstimatorCore(customEst, data);
+
+            var transformedData = customEst.Fit(data).Transform(data);
+
+            var inputs = transformedData.AsEnumerable<MyInput>(ML, true);
+            var outputs = transformedData.AsEnumerable<MyOutput>(ML, true);
+
+            Assert.True(inputs.Zip(outputs, (x, y) => y.Together == $"{x.Float1} + {string.Join(", ", x.Float4)}").All(x => x));
+
             Done();
         }
     }
