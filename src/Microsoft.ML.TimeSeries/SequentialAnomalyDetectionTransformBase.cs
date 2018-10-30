@@ -162,7 +162,7 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
         protected SequentialAnomalyDetectionTransformBase(int windowSize, int initialWindowSize, string inputColumnName, string outputColumnName, string name, IHostEnvironment env,
             AnomalySide anomalySide, MartingaleType martingale, AlertingScore alertingScore, Double powerMartingaleEpsilon,
             Double alertThreshold)
-            : base(windowSize, initialWindowSize, inputColumnName, outputColumnName, name, env, new VectorType(NumberType.R8, GetOutputLength(alertingScore, env)))
+            : base(Contracts.CheckRef(env, nameof(env)).Register(nameof(IidChangePointEstimator)), windowSize, initialWindowSize, inputColumnName, outputColumnName, name, new VectorType(NumberType.R8, GetOutputLength(alertingScore, env)))
         {
             Host.CheckUserArg(Enum.IsDefined(typeof(MartingaleType), martingale), nameof(ArgumentsBase.Martingale), "Value is undefined.");
             Host.CheckUserArg(Enum.IsDefined(typeof(AnomalySide), anomalySide), nameof(ArgumentsBase.Side), "Value is undefined.");

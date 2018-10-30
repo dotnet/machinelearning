@@ -191,18 +191,17 @@ namespace Microsoft.ML.Runtime.TimeSeriesProcessing
         /// <summary>
         /// The main constructor for the sequential transform
         /// </summary>
+        /// <param name="host">The host.</param>
         /// <param name="windowSize">The size of buffer used for windowed buffering.</param>
         /// <param name="initialWindowSize">The number of datapoints picked from the beginning of the series for training the transform parameters if needed.</param>
         /// <param name="inputColumnName">The name of the input column.</param>
         /// <param name="outputColumnName">The name of the dst column.</param>
         /// <param name="name"></param>
-        /// <param name="env">A reference to the environment variable.</param>
         /// <param name="outputColType"></param>
-        protected SequentialTransformerBase(int windowSize, int initialWindowSize, string inputColumnName, string outputColumnName,
-            string name, IHostEnvironment env, ColumnType outputColType)
+        protected SequentialTransformerBase(IHost host, int windowSize, int initialWindowSize, string inputColumnName, string outputColumnName,
+            string name, ColumnType outputColType)
         {
-            Contracts.CheckRef(env, nameof(env));
-            Host = env.Register(name);
+            Host = host;
             Host.CheckParam(initialWindowSize >= 0, nameof(initialWindowSize), "Must be non-negative.");
             Host.CheckParam(windowSize >= 0, nameof(windowSize), "Must be non-negative.");
             // REVIEW: Very bad design. This base class is responsible for reporting errors on
