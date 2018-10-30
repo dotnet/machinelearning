@@ -884,7 +884,7 @@ namespace Microsoft.ML.StaticPipelineTesting
             var metrics = mlContext.Regression.Evaluate(estimatedData, r => r.label, r => r.score);
 
             // Naive test. Just make sure the pipeline runs.
-            Assert.True(metrics.L2 < 0.2);
+            Assert.InRange(metrics.L2, 0, 0.5);
         }
     }
 }
