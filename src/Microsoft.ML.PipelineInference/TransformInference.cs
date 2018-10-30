@@ -880,7 +880,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
                     var nodeInput = new ML.Legacy.Transforms.TextFeaturizer();
                     nodeInput.WordFeatureExtractor = new NGramNgramExtractor { NgramLength = 1 };
                     nodeInput.CharFeatureExtractor = new NGramNgramExtractor { NgramLength = 3 };
-                    nodeInput.Column = new ML.Legacy.Transforms.TextTransformColumn
+                    nodeInput.Column = new ML.Legacy.Transforms.TextFeaturizingEstimatorColumn
                     {
                         Name = dstColumn,
                         Source = new[] { srcColumn }
@@ -898,7 +898,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
                     var nodeInput = new ML.Legacy.Transforms.TextFeaturizer();
                     nodeInput.WordFeatureExtractor = new NGramNgramExtractor { NgramLength = 2 };
                     nodeInput.CharFeatureExtractor = new NGramNgramExtractor { NgramLength = 3 };
-                    nodeInput.Column = new ML.Legacy.Transforms.TextTransformColumn
+                    nodeInput.Column = new ML.Legacy.Transforms.TextFeaturizingEstimatorColumn
                     {
                         Name = dstColumn,
                         Source = new[] { srcColumn }
@@ -1144,7 +1144,7 @@ namespace Microsoft.ML.Runtime.PipelineInference
                         featureCols.Add(columnDestRenamed);
                         var epInput = new ML.Legacy.Transforms.TextFeaturizer
                         {
-                            Column = new ML.Legacy.Transforms.TextTransformColumn
+                            Column = new ML.Legacy.Transforms.TextFeaturizingEstimatorColumn
                             {
                                 Name = columnDestRenamed,
                                 Source = new[] { columnNameSafe }

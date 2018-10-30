@@ -14,6 +14,7 @@ using Microsoft.ML.Runtime.LightGBM;
 using Microsoft.ML.Runtime.RunTests;
 using Microsoft.ML.StaticPipe;
 using Microsoft.ML.Trainers;
+using Microsoft.ML.Transforms.Categorical;
 using System;
 using System.Linq;
 using Xunit;

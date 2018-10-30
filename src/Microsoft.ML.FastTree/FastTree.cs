@@ -17,6 +17,7 @@ using Microsoft.ML.Runtime.Model.Pfa;
 using Microsoft.ML.Runtime.Training;
 using Microsoft.ML.Runtime.TreePredictor;
 using Microsoft.ML.Trainers.FastTree.Internal;
+using Microsoft.ML.Transforms;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections;
