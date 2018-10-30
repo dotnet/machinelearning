@@ -62,13 +62,18 @@ namespace Microsoft.ML.Trainers.FastTree
         /// <param name="labelColumn">The name of the label column.</param>
         /// <param name="featureColumn">The name of the feature column.</param>
         /// <param name="weightColumn">The name for the column containing the initial weight.</param>
+        /// <param name="learningRate">The learning rate.</param>
+        /// <param name="minDocumentsInLeafs">The minimal number of documents allowed in a leaf of a regression tree, out of the subsampled data.</param>
         /// <param name="advancedSettings">A delegate to apply all the advanced arguments to the algorithm.</param>
-        public BinaryClassificationGamTrainer(IHostEnvironment env, string labelColumn, string featureColumn, string weightColumn = null, Action<Arguments> advancedSettings = null)
-            : base(env, LoadNameValue, TrainerUtils.MakeBoolScalarLabel(labelColumn), featureColumn, weightColumn, advancedSettings)
+        public BinaryClassificationGamTrainer(IHostEnvironment env,
+            string labelColumn,
+            string featureColumn,
+            string weightColumn = null,
+            int minDocumentsInLeafs = Defaults.MinDocumentsInLeafs,
+            double learningRate = Defaults.LearningRates,
+            Action<Arguments> advancedSettings = null)
+            : base(env, LoadNameValue, TrainerUtils.MakeBoolScalarLabel(labelColumn), featureColumn, weightColumn, minDocumentsInLeafs, learningRate, advancedSettings)
         {
-            Host.CheckNonEmpty(labelColumn, nameof(labelColumn));
-            Host.CheckNonEmpty(featureColumn, nameof(featureColumn));
-
             _sigmoidParameter = 1;
         }
 

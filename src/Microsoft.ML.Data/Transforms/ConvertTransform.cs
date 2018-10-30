@@ -646,13 +646,13 @@ namespace Microsoft.ML.Runtime.Data
                 ch.Assert(type.IsStandardScalar);
 
                 var conv = Conversions.Instance;
-                RefPredicate<T> isNaDel;
+                InPredicate<T> isNaDel;
                 bool hasNaPred = conv.TryGetIsNAPredicate(type, out isNaDel);
                 bool defaultIsNa = false;
                 if (hasNaPred)
                 {
                     T def = default(T);
-                    defaultIsNa = isNaDel(ref def);
+                    defaultIsNa = isNaDel(in def);
                 }
                 return new TypeNaInfo(hasNaPred, defaultIsNa);
             }
