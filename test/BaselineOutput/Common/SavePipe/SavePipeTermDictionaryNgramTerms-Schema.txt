@@ -82,7 +82,7 @@
     Metadata 'SlotNames': Vec<Text, 15>: Length=15, Count=15
       [0] '*', [1] '*|*', [2] '*|mcgriff', [3] 'mcgriff', [4] 'mcgriff|*', [5] '*|padres', [6] 'padres', [7] 'padres|*', [8] '*|agent', [9] 'agent'
       [10] '*|erythromycin', [11] 'erythromycin', [12] 'erythromycin|*', [13] '*|pneumonia', [14] 'pneumonia'
----- ChooseColumnsTransform ----
+---- SelectColumnsDataTransform ----
 1 columns:
   Features: Vec<R4, 15>
     Metadata 'SlotNames': Vec<Text, 15>: Length=15, Count=15

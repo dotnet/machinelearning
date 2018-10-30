@@ -229,7 +229,7 @@ namespace Microsoft.ML.Transforms
 
             // Finally, drop the temporary indicator columns.
             if (dropCols.Count > 0)
-                output = new DropColumnsTransform(h, new DropColumnsTransform.Arguments() { Column = dropCols.ToArray() }, output);
+                output = SelectColumnsTransform.CreateDrop(h, output, dropCols.ToArray());
 
             return output;
         }

@@ -70,7 +70,10 @@ namespace Microsoft.ML.Tests.Transformers
             {
                 var saver = new TextSaver(Env, new TextSaver.Arguments { Silent = true });
                 using (var fs = File.Create(outputPath))
-                    DataSaverUtils.SaveDataView(ch, saver, new DropColumnsTransform(Env, est.Fit(data).Transform(data), "float0"), fs, keepHidden: true);
+                {
+                    var dataView = SelectColumnsTransform.CreateDrop(Env, est.Fit(data).Transform(data), true, "float0");
+                    DataSaverUtils.SaveDataView(ch, saver, dataView, fs, keepHidden: true);
+                }
             }
 
             CheckEquality("NormalizerEstimator", "normalized.tsv");
@@ -141,7 +144,7 @@ namespace Microsoft.ML.Tests.Transformers
             {
                 var saver = new TextSaver(Env, new TextSaver.Arguments { Silent = true, OutputHeader = false });
                 IDataView savedData = TakeFilter.Create(Env, est.Fit(data.AsDynamic).Transform(data.AsDynamic), 4);
-                savedData = new ChooseColumnsTransform(Env, savedData, "lpnorm", "gcnorm", "whitened");
+                savedData = SelectColumnsTransform.CreateKeep(Env, savedData, "lpnorm", "gcnorm", "whitened");
 
                 using (var fs = File.Create(outputPath))
                     DataSaverUtils.SaveDataView(ch, saver, savedData, fs, keepHidden: true);
