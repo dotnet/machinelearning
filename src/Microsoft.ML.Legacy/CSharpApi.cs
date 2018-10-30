@@ -1582,18 +1582,6 @@ namespace Microsoft.ML
                 _jsonNodes.Add(Serialize("Transforms.Scorer", input, output));
             }
 
-            public Microsoft.ML.Legacy.Transforms.Segregator.Output Add(Microsoft.ML.Legacy.Transforms.Segregator input)
-            {
-                var output = new Microsoft.ML.Legacy.Transforms.Segregator.Output();
-                Add(input, output);
-                return output;
-            }
-
-            public void Add(Microsoft.ML.Legacy.Transforms.Segregator input, Microsoft.ML.Legacy.Transforms.Segregator.Output output)
-            {
-                _jsonNodes.Add(Serialize("Transforms.Segregator", input, output));
-            }
-
             public Microsoft.ML.Legacy.Transforms.SentimentAnalyzer.Output Add(Microsoft.ML.Legacy.Transforms.SentimentAnalyzer input)
             {
                 var output = new Microsoft.ML.Legacy.Transforms.SentimentAnalyzer.Output();
@@ -16427,82 +16415,6 @@ namespace Microsoft.ML
                 /// </summary>
                 public Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel> ScoringTransform { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel>();
 
-            }
-        }
-    }
-
-    namespace Legacy.Transforms
-    {
-        public enum UngroupTransformUngroupMode
-        {
-            Inner = 0,
-            Outer = 1,
-            First = 2
-        }
-
-
-        /// <include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/member[@name="Ungroup"]/*' />
-        /// <include file='../Microsoft.ML.Transforms/doc.xml' path='doc/members/example[@name="Ungroup"]/*' />
-        public sealed partial class Segregator : Microsoft.ML.Runtime.EntryPoints.CommonInputs.ITransformInput, Microsoft.ML.Legacy.ILearningPipelineItem
-        {
-
-
-            /// <summary>
-            /// Columns to unroll, or 'pivot'
-            /// </summary>
-            public string[] Column { get; set; }
-
-            /// <summary>
-            /// Specifies how to unroll multiple pivot columns of different size.
-            /// </summary>
-            public UngroupTransformUngroupMode Mode { get; set; } = UngroupTransformUngroupMode.Inner;
-
-            /// <summary>
-            /// Input dataset
-            /// </summary>
-            public Var<Microsoft.ML.Runtime.Data.IDataView> Data { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
-
-
-            public sealed class Output : Microsoft.ML.Runtime.EntryPoints.CommonOutputs.ITransformOutput
-            {
-                /// <summary>
-                /// Transformed dataset
-                /// </summary>
-                public Var<Microsoft.ML.Runtime.Data.IDataView> OutputData { get; set; } = new Var<Microsoft.ML.Runtime.Data.IDataView>();
-
-                /// <summary>
-                /// Transform model
-                /// </summary>
-                public Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel> Model { get; set; } = new Var<Microsoft.ML.Runtime.EntryPoints.ITransformModel>();
-
-            }
-            public Var<IDataView> GetInputData() => Data;
-            
-            public ILearningPipelineStep ApplyStep(ILearningPipelineStep previousStep, Experiment experiment)
-            {
-                if (previousStep != null)
-                {
-                    if (!(previousStep is ILearningPipelineDataStep dataStep))
-                    {
-                        throw new InvalidOperationException($"{ nameof(Segregator)} only supports an { nameof(ILearningPipelineDataStep)} as an input.");
-                    }
-
-                    Data = dataStep.Data;
-                }
-                Output output = experiment.Add(this);
-                return new SegregatorPipelineStep(output);
-            }
-
-            private class SegregatorPipelineStep : ILearningPipelineDataStep
-            {
-                public SegregatorPipelineStep(Output output)
-                {
-                    Data = output.OutputData;
-                    Model = output.Model;
-                }
-
-                public Var<IDataView> Data { get; }
-                public Var<ITransformModel> Model { get; }
             }
         }
     }

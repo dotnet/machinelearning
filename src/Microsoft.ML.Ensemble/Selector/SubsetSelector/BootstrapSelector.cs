@@ -8,6 +8,7 @@ using Microsoft.ML.Runtime.Data;
 using Microsoft.ML.Runtime.Ensemble.Selector;
 using Microsoft.ML.Runtime.Ensemble.Selector.SubsetSelector;
 using Microsoft.ML.Runtime.EntryPoints;
+using Microsoft.ML.Transforms;
 
 [assembly: LoadableClass(typeof(BootstrapSelector), typeof(BootstrapSelector.Arguments),
     typeof(SignatureEnsembleDataSelector), BootstrapSelector.UserName, BootstrapSelector.LoadName)]
