@@ -152,13 +152,6 @@ namespace Microsoft.ML.Transforms
         /// <param name="me">The first input column.</param>
         /// <param name="others">Subsequent input columns.</param>
         /// <returns>The result of concatenating all input columns together.</returns>
-        /// <example>
-        /// <format type="text/markdown">
-        /// <![CDATA[
-        ///  [!code-csharp[ConcatWith](](~/../docs/samples/docs/samples/Microsoft.ML.Samples/Transformers.cs?range=6-10,23-74 )]
-        /// ]]>
-        /// </format>
-        /// </example>
         public static Vector<T> ConcatWith<T>(this Scalar<T> me, params ScalarOrVector<T>[] others)
             => new Impl<T>(Join(me, others));
 
